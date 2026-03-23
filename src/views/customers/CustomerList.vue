@@ -223,16 +223,74 @@ onMounted(() => {
   }
 
   :deep(.t-button) {
-    transition: all 0.25s ease;
-    border-radius: 10px;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    border-radius: 12px !important;
+    font-weight: 600 !important;
 
-    &:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 2px 8px rgba(255, 107, 138, 0.15);
+    &.t-button--theme-primary {
+      background: linear-gradient(135deg, #FF8FAB, #FF6B8A) !important;
+      border: none !important;
+      box-shadow: 0 4px 16px rgba(255, 107, 138, 0.3) !important;
+
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(255, 107, 138, 0.4) !important;
+        background: linear-gradient(135deg, #FFB5C8, #FF8FAB) !important;
+      }
+
+      &:active {
+        transform: translateY(1px) scale(0.98);
+        box-shadow: 0 2px 12px rgba(255, 107, 138, 0.35) !important;
+      }
+
+      :deep(.t-button__icon) {
+        color: white !important;
+      }
     }
 
-    &:active {
-      transform: translateY(0);
+    &.t-button--theme-default {
+      background: rgba(255, 255, 255, 0.9) !important;
+      border: 2px solid #FFD6E0 !important;
+      color: #5D4E60 !important;
+
+      &:hover {
+        border-color: #FF8FAB !important;
+        color: #FF6B8A !important;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(255, 143, 171, 0.2);
+      }
+
+      &:active {
+        transform: translateY(1px) scale(0.98);
+      }
+
+      :deep(.t-button__icon) {
+        color: #FF8FAB !important;
+      }
+    }
+
+    &.t-button--theme-danger {
+      background: linear-gradient(135deg, #FF6B8A, #E34D59) !important;
+      border: none !important;
+
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(227, 77, 89, 0.4) !important;
+      }
+
+      &:active {
+        transform: translateY(1px) scale(0.98);
+      }
+    }
+
+    &.t-button--variant-text {
+      &:hover {
+        background-color: #FFF0F3 !important;
+      }
+
+      &:active {
+        background-color: #FFD6E0 !important;
+      }
     }
   }
 

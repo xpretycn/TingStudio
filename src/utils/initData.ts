@@ -261,6 +261,22 @@ export function validateData(): boolean {
 }
 
 /**
+ * 自动初始化数据（仅在首次加载且数据为空时执行）
+ */
+export function autoInitData(): void {
+  const users = JSON.parse(localStorage.getItem(STORAGE_KEYS.USERS) || '[]')
+  const customers = JSON.parse(localStorage.getItem(STORAGE_KEYS.CUSTOMERS) || '[]')
+  const materials = JSON.parse(localStorage.getItem(STORAGE_KEYS.MATERIALS) || '[]')
+  const formulas = JSON.parse(localStorage.getItem(STORAGE_KEYS.FORMULAS) || '[]')
+
+  // 如果数据为空，则自动初始化
+  if (users.length === 0 && customers.length === 0 && materials.length === 0 && formulas.length === 0) {
+    console.log('检测到数据为空，开始自动初始化示例数据...')
+    initSampleData(1, 20, 20, 20) // 1个测试用户，每个模块20条数据
+  }
+}
+
+/**
  * 在浏览器控制台验证数据的辅助函数
  */
 (window as any).validateTingStudioData = () => {

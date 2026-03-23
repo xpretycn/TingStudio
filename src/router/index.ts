@@ -18,7 +18,7 @@ const router = createRouter({
     },
     {
       path: '/',
-      component: () => import('@/components/Layout/AppLayout.vue'),
+      component: () => import('@/views/Home.vue'),
       meta: { requiresAuth: true },
       children: [
         {
@@ -84,6 +84,12 @@ const router = createRouter({
           name: 'FormulaEdit',
           component: () => import('@/views/formulas/FormulaForm.vue'),
           meta: { title: '编辑配方' }
+        },
+        {
+          path: 'tools',
+          name: 'Tools',
+          component: () => import('@/views/Tools.vue'),
+          meta: { title: '工具箱' }
         }
       ]
     }

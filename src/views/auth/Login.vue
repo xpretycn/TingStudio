@@ -122,6 +122,41 @@
 
         <!-- Form header -->
         <div class="form-header">
+          <!-- Cat logo -->
+          <div class="form-header__logo">
+            <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- Head -->
+              <ellipse cx="50" cy="55" rx="38" ry="35" fill="#FFE8D6" />
+              <!-- Left ear -->
+              <path d="M22 35L12 8L35 30Z" fill="#FFB5C8" />
+              <path d="M25 32L18 12L36 28Z" fill="#FFD1DC" />
+              <!-- Right ear -->
+              <path d="M78 35L88 8L65 30Z" fill="#FFB5C8" />
+              <path d="M75 32L82 12L64 28Z" fill="#FFD1DC" />
+              <!-- Eyes -->
+              <ellipse cx="38" cy="52" rx="6" ry="7" fill="#5D4E60" />
+              <ellipse cx="62" cy="52" rx="6" ry="7" fill="#5D4E60" />
+              <ellipse cx="40" cy="49" rx="2" ry="2.5" fill="#fff" />
+              <ellipse cx="64" cy="49" rx="2" ry="2.5" fill="#fff" />
+              <!-- Nose -->
+              <ellipse cx="50" cy="62" rx="3.5" ry="2.5" fill="#FFB5C2" />
+              <!-- Mouth -->
+              <path d="M44 68Q50 73 56 68" stroke="#E8A0B0" stroke-width="1.2" fill="none" stroke-linecap="round" />
+              <!-- Blush -->
+              <ellipse cx="32" cy="62" rx="6" ry="3.5" fill="#FFB5C2" opacity="0.35" />
+              <ellipse cx="68" cy="62" rx="6" ry="3.5" fill="#FFB5C2" opacity="0.35" />
+              <!-- Whiskers -->
+              <line x1="20" y1="60" x2="35" y2="62" stroke="#E8A0B0" stroke-width="1" opacity="0.4" />
+              <line x1="20" y1="66" x2="35" y2="65" stroke="#E8A0B0" stroke-width="1" opacity="0.4" />
+              <line x1="65" y1="62" x2="80" y2="60" stroke="#E8A0B0" stroke-width="1" opacity="0.4" />
+              <line x1="65" y1="65" x2="80" y2="66" stroke="#E8A0B0" stroke-width="1" opacity="0.4" />
+              <!-- Paws -->
+              <ellipse cx="35" cy="88" rx="10" ry="6" fill="#FFE8D6" />
+              <ellipse cx="65" cy="88" rx="10" ry="6" fill="#FFE8D6" />
+              <!-- Heart in paw -->
+              <path d="M35 88C35 85 33 84 31 84C29 84 27 85 27 86C27 88 35 92 35 92C35 92 43 88 43 86C43 85 41 84 39 84C37 84 35 85 35 88Z" fill="#FF8FAB" />
+            </svg>
+          </div>
           <h2 class="form-header__title">欢迎回来 ~</h2>
           <p class="form-header__desc">登录你的小天地，开始今天的工作吧</p>
         </div>
@@ -573,6 +608,23 @@ $white:     #fff;
 // ───── Form Header ─────
 .form-header {
   margin-bottom: 32px;
+  text-align: center;
+
+  &__logo {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto 20px;
+    width: 100px;
+    height: 100px;
+
+    svg {
+      width: 100%;
+      height: 100%;
+      animation: catBounceSmall 4s ease-in-out infinite;
+      filter: drop-shadow(0 4px 12px rgba(255, 143, 171, 0.15));
+    }
+  }
 
   &__title {
     font-size: 24px;
@@ -587,6 +639,11 @@ $white:     #fff;
     margin: 0;
     line-height: 1.5;
   }
+}
+
+@keyframes catBounceSmall {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
 }
 
 // ───── Form Fields ─────
@@ -661,6 +718,7 @@ $white:     #fff;
 
 // ───── Button ─────
 .cute-btn {
+  position: relative;
   height: 48px !important;
   border-radius: 14px !important;
   font-size: 15px !important;
@@ -669,21 +727,66 @@ $white:     #fff;
   background: linear-gradient(135deg, $pink-400, $pink-500) !important;
   border: none !important;
   box-shadow: 0 4px 16px rgba(255, 107, 138, 0.3);
-  transition: all 0.3s ease;
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+
+  // Ripple effect background
+  &::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.35);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+                height 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: none;
+    z-index: 1;
+  }
 
   &:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 24px rgba(255, 107, 138, 0.4);
     background: linear-gradient(135deg, $pink-300, $pink-400) !important;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   &:active {
-    transform: translateY(0);
-    box-shadow: 0 2px 8px rgba(255, 107, 138, 0.3);
+    transform: translateY(1px) scale(0.98);
+    box-shadow: 0 2px 12px rgba(255, 107, 138, 0.35);
+    background: linear-gradient(135deg, $pink-400, $pink-500) !important;
+    transition: all 0.15s ease-out;
+
+    // Expand ripple effect
+    &::before {
+      width: 300px;
+      height: 300px;
+      transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+                  height 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+  }
+
+  &:focus {
+    outline: none;
+    box-shadow: 0 4px 16px rgba(255, 107, 138, 0.3),
+                0 0 0 4px rgba(255, 143, 171, 0.25);
+  }
+
+  // Loading state
+  &[class*='loading'] {
+    opacity: 0.85;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: 0 2px 8px rgba(255, 107, 138, 0.2) !important;
   }
 
   .btn-text {
     color: $white;
+    position: relative;
+    z-index: 2;
   }
 }
 
@@ -775,6 +878,12 @@ $white:     #fff;
 
   .form-header {
     margin-bottom: 24px;
+
+    &__logo {
+      width: 80px;
+      height: 80px;
+      margin-bottom: 16px;
+    }
 
     &__title {
       font-size: 22px;

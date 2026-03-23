@@ -5,7 +5,7 @@ import 'tdesign-vue-next/es/style/index.css'
 import App from './App.vue'
 import router from './router'
 import './assets/styles/main.scss'
-import './utils/initData'
+import { autoInitData } from './utils/initData'
 
 const app = createApp(App)
 const pinia = createPinia()
@@ -15,3 +15,6 @@ app.use(router)
 app.use(TDesign)
 
 app.mount('#app')
+
+// 自动初始化示例数据
+autoInitData()

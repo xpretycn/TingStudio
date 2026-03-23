@@ -1,4 +1,4 @@
-@import './variables.scss';
+@use './variables.scss' as *;
 
 * {
   margin: 0;
@@ -85,13 +85,13 @@ body {
 }
 
 // Global card style overrides for cute theme
-:deep(.t-card) {
+::v-deep(.t-card) {
   border-radius: 12px !important;
   border-color: #FFE0E8 !important;
   box-shadow: 0 2px 12px rgba(255, 107, 138, 0.06) !important;
 }
 
-:deep(.t-button--variant-base.t-button--theme-primary) {
+::v-deep(.t-button--variant-base.t-button--theme-primary) {
   border-radius: 10px !important;
   background: linear-gradient(135deg, #FF8FAB, #FF6B8A) !important;
   border: none !important;
@@ -104,7 +104,7 @@ body {
   }
 }
 
-:deep(.t-button--variant-outline.t-button--theme-primary) {
+::v-deep(.t-button--variant-outline.t-button--theme-primary) {
   border-color: #FF6B8A !important;
   color: #FF6B8A !important;
   border-radius: 10px !important;
@@ -114,18 +114,18 @@ body {
   }
 }
 
-:deep(.t-tag--theme-primary) {
+::v-deep(.t-tag--theme-primary) {
   background: #FFF0F3 !important;
   color: #FF6B8A !important;
   border-color: #FFD6E0 !important;
 }
 
-:deep(.t-tag--primary-light) {
+::v-deep(.t-tag--primary-light) {
   background: #FFF0F3 !important;
   color: #FF6B8A !important;
 }
 
-:deep(.t-link--theme-primary) {
+::v-deep(.t-link--theme-primary) {
   color: #FF6B8A;
 
   &:hover {
@@ -133,7 +133,7 @@ body {
   }
 }
 
-:deep(.t-input) {
+::v-deep(.t-input) {
   border-radius: 10px;
   border-color: #FFE0E8;
 
@@ -142,17 +142,17 @@ body {
   }
 }
 
-:deep(.t-input.t-is-focused),
-:deep(.t-input:focus-within) {
+::v-deep(.t-input.t-is-focused),
+::v-deep(.t-input:focus-within) {
   border-color: #FF8FAB;
   box-shadow: 0 0 0 2px rgba(255, 107, 138, 0.1);
 }
 
-:deep(.t-select) {
+::v-deep(.t-select) {
   border-radius: 10px;
 }
 
-:deep(.t-textarea) {
+::v-deep(.t-textarea) {
   border-radius: 10px;
   border-color: #FFE0E8;
 
@@ -161,13 +161,13 @@ body {
   }
 }
 
-:deep(.t-textarea.t-is-focused) {
+::v-deep(.t-textarea.t-is-focused) {
   border-color: #FF8FAB;
   box-shadow: 0 0 0 2px rgba(255, 107, 138, 0.1);
 }
 
 // Table cute theme
-:deep(.t-table) {
+::v-deep(.t-table) {
   border-radius: 10px !important;
 
   th {
@@ -190,13 +190,13 @@ body {
   }
 }
 
-:deep(.t-pagination) {
+::v-deep(.t-pagination) {
   .t-pagination__total {
     color: #9B8FA0;
   }
 }
 
 // Dialog
-:deep(.t-dialog) {
+::v-deep(.t-dialog) {
   border-radius: 16px !important;
 }
