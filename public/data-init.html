@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>数据初始化测试 - TingStudio</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB',
+        'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      padding: 40px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+    }
+    
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    }
+    
+    h1 {
+      color: #333;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    
+    .section {
+      margin-bottom: 30px;
+    }
+    
+    .section h2 {
+      color: #555;
+      margin-bottom: 15px;
+      font-size: 18px;
+    }
+    
+    .button-group {
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+    
+    button {
+      flex: 1;
+      min-width: 200px;
+      padding: 15px 25px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-weight: 600;
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+    
+    .btn-success {
+      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+      color: white;
+    }
+    
+    .btn-danger {
+      background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+      color: white;
+    }
+    
+    .btn-info {
+      background: linear-gradient(135deg, #2193b0 0%, #6dd5ed 100%);
+      color: white;
+    }
+    
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+    
+    button:active {
+      transform: translateY(0);
+    }
+    
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    #output {
+      background: #f8f9fa;
+      border-radius: 8px;
+      padding: 20px;
+      margin-top: 20px;
+      min-height: 200px;
+      max-height: 400px;
+      overflow-y: auto;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+    }
+    
+    #output .success {
+      color: #28a745;
+    }
+    
+    #output .error {
+      color: #dc3545;
+    }
+    
+    #output .warning {
+      color: #ffc107;
+    }
+    
+    #output .info {
+      color: #17a2b8;
+    }
+    
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 15px;
+      margin-top: 20px;
+    }
+    
+    .stat-card {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px;
+      border-radius: 8px;
+      text-align: center;
+    }
+    
+    .stat-card .number {
+      font-size: 32px;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+    
+    .stat-card .label {
+      font-size: 14px;
+      opacity: 0.9;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🚀 TingStudio 数据初始化工具</h1>
+    
+    <div class="section">
+      <h2>操作按钮</h2>
+      <div class="button-group">
+        <button class="btn-primary" onclick="initData()">📊 初始化示例数据</button>
+        <button class="btn-success" onclick="validateData()">✅ 验证数据完整性</button>
+        <button class="btn-danger" onclick="clearData()">🗑️ 清除所有数据</button>
+        <button class="btn-info" onclick="showStats()">📈 显示数据统计</button>
+      </div>
+    </div>
+    
+    <div class="section">
+      <h2>数据统计</h2>
+      <div class="stats" id="stats">
+        <div class="stat-card">
+          <div class="number" id="userCount">0</div>
+          <div class="label">用户</div>
+        </div>
+        <div class="stat-card">
+          <div class="number" id="customerCount">0</div>
+          <div class="label">客户</div>
+        </div>
+        <div class="stat-card">
+          <div class="number" id="materialCount">0</div>
+          <div class="label">原料</div>
+        </div>
+        <div class="stat-card">
+          <div class="number" id="formulaCount">0</div>
+          <div class="label">配方</div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="section">
+      <h2>操作日志</h2>
+      <div id="output"></div>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEYS = {
+      USERS: 'tingstudio_users',
+      CURRENT_USER: 'tingstudio_current_user',
+      CUSTOMERS: 'tingstudio_customers',
+      MATERIALS: 'tingstudio_materials',
+      FORMULAS: 'tingstudio_formulas'
+    };
+
+    function log(message, type = 'info') {
+      const output = document.getElementById('output');
+      const timestamp = new Date().toLocaleTimeString();
+      const className = type || '';
+      output.innerHTML += `<div class="${className}">[${timestamp}] ${message}</div>`;
+      output.scrollTop = output.scrollHeight;
+    }
+
+    function clearLog() {
+      document.getElementById('output').innerHTML = '';
+    }
+
+    function getData(key) {
+      const data = localStorage.getItem(key);
+      return data ? JSON.parse(data) : [];
+    }
+
+    function setData(key, data) {
+      localStorage.setItem(key, JSON.stringify(data));
+    }
+
+    function showStats() {
+      const users = getData(STORAGE_KEYS.USERS);
+      const customers = getData(STORAGE_KEYS.CUSTOMERS);
+      const materials = getData(STORAGE_KEYS.MATERIALS);
+      const formulas = getData(STORAGE_KEYS.FORMULAS);
+
+      document.getElementById('userCount').textContent = users.length;
+      document.getElementById('customerCount').textContent = customers.length;
+      document.getElementById('materialCount').textContent = materials.length;
+      document.getElementById('formulaCount').textContent = formulas.length;
+
+      log(`数据统计: ${users.length} 用户, ${customers.length} 客户, ${materials.length} 原料, ${formulas.length} 配方`, 'info');
+    }
+
+    function clearData() {
+      clearLog();
+      log('开始清除所有数据...', 'info');
+
+      localStorage.removeItem(STORAGE_KEYS.USERS);
+      localStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
+      localStorage.removeItem(STORAGE_KEYS.CUSTOMERS);
+      localStorage.removeItem(STORAGE_KEYS.MATERIALS);
+      localStorage.removeItem(STORAGE_KEYS.FORMULAS);
+
+      log('✓ 所有数据已清除', 'success');
+      showStats();
+    }
+
+    function validateData() {
+      clearLog();
+      log('开始验证数据完整性...', 'info');
+
+      const users = getData(STORAGE_KEYS.USERS);
+      const customers = getData(STORAGE_KEYS.CUSTOMERS);
+      const materials = getData(STORAGE_KEYS.MATERIALS);
+      const formulas = getData(STORAGE_KEYS.FORMULAS);
+
+      log(`用户: ${users.length} 条`, 'info');
+      log(`客户: ${customers.length} 条`, 'info');
+      log(`原料: ${materials.length} 条`, 'info');
+      log(`配方: ${formulas.length} 条`, 'info');
+
+      let invalidCount = 0;
+
+      formulas.forEach(formula => {
+        const customerExists = customers.some(c => c.id === formula.customerId);
+        if (!customerExists) {
+          invalidCount++;
+          log(`⚠ 配方 "${formula.name}" 引用了不存在的客户`, 'warning');
+        }
+
+        formula.materials.forEach(materialItem => {
+          const materialExists = materials.some(m => m.id === materialItem.materialId);
+          if (!materialExists) {
+            invalidCount++;
+            log(`⚠ 配方 "${formula.name}" 引用了不存在的原料`, 'warning');
+          }
+        });
+      });
+
+      if (invalidCount === 0) {
+        log('✓ 所有数据关联关系正确', 'success');
+      } else {
+        log(`✗ 发现 ${invalidCount} 个无效的关联关系`, 'error');
+      }
+
+      showStats();
+    }
+
+    function initData() {
+      clearLog();
+      log('开始初始化示例数据...', 'info');
+      log('配置: 20个用户, 每个用户20个客户、20个原料、20个配方', 'info');
+
+      // 清除所有现有数据
+      localStorage.removeItem(STORAGE_KEYS.USERS);
+      localStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
+      localStorage.removeItem(STORAGE_KEYS.CUSTOMERS);
+      localStorage.removeItem(STORAGE_KEYS.MATERIALS);
+      localStorage.removeItem(STORAGE_KEYS.FORMULAS);
+      log('✓ 所有现有数据已清除', 'success');
+
+      // 生成用户
+      const users = [];
+      for (let i = 0; i < 20; i++) {
+        users.push({
+          id: generateId(),
+          username: `user${String(i + 1).padStart(3, '0')}`,
+          createdAt: new Date().toISOString(),
+          password: `user${String(i + 1).padStart(3, '0')}`
+        });
+      }
+      setData(STORAGE_KEYS.USERS, users);
+      log(`✓ 已生成 ${users.length} 个用户`, 'success');
+
+      // 为每个用户生成客户、原料和配方
+      let totalCustomers = 0;
+      let totalMaterials = 0;
+      let totalFormulas = 0;
+
+      const allCustomers = [];
+      const allMaterials = [];
+      const allFormulas = [];
+
+      users.forEach(user => {
+        // 生成客户
+        const customers = generateCustomers(user.id, 20);
+        allCustomers.push(...customers);
+        totalCustomers += customers.length;
+
+        // 生成原料
+        const materials = generateMaterials(user.id, 20);
+        allMaterials.push(...materials);
+        totalMaterials += materials.length;
+
+        // 生成配方
+        const formulas = generateFormulas(user.id, customers, materials, 20);
+        allFormulas.push(...formulas);
+        totalFormulas += formulas.length;
+      });
+
+      // 批量保存数据
+      setData(STORAGE_KEYS.CUSTOMERS, allCustomers);
+      setData(STORAGE_KEYS.MATERIALS, allMaterials);
+      setData(STORAGE_KEYS.FORMULAS, allFormulas);
+
+      log(`✓ 已生成 ${totalCustomers} 个客户`, 'success');
+      log(`✓ 已生成 ${totalMaterials} 个原料`, 'success');
+      log(`✓ 已生成 ${totalFormulas} 个配方`, 'success');
+
+      // 验证数据
+      validateData();
+
+      log('', 'info');
+      log('✓ 数据初始化完成！', 'success');
+      log(`总计: ${users.length} 用户, ${totalCustomers} 客户, ${totalMaterials} 原料, ${totalFormulas} 配方`, 'info');
+      log('', 'info');
+      log('💡 提示: 可以使用任意用户名登录,密码与用户名相同', 'info');
+    }
+
+    // 工具函数
+    function generateId() {
+      return Date.now().toString(36) + Math.random().toString(36).substr(2);
+    }
+
+    function randomPick(array) {
+      return array[Math.floor(Math.random() * array.length)];
+    }
+
+    function randomInt(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function generateChineseName() {
+      const surnames = '王李张刘陈杨黄赵吴周徐孙马朱胡郭何高林罗'.split('');
+      const givenNames = '伟芳娜敏静丽强磊军洋勇艳杰娟涛明超秀霞平刚桂英华文'.split('');
+      return randomPick(surnames) + randomPick(givenNames);
+    }
+
+    function generateCustomers(userId, count) {
+      const customers = [];
+      for (let i = 0; i < count; i++) {
+        const name = generateChineseName();
+        customers.push({
+          id: generateId(),
+          name,
+          contact: name,
+          phone: `138${randomInt(10000000, 99999999)}`,
+          email: `user${randomInt(100, 999)}@qq.com`,
+          address: `${randomPick(['北京', '上海', '广州', '深圳', '杭州'])}${randomPick(['朝阳区', '海淀区', '浦东新区', '天河区'])}中山路${randomInt(1, 999)}号`,
+          createdBy: userId,
+          createdAt: new Date().toISOString()
+        });
+      }
+      return customers;
+    }
+
+    function generateMaterials(userId, count) {
+      const materials = [];
+      const units = ['kg', 'g', 'ml', 'L', '个', '包', '瓶', '盒'];
+      const bases = ['玫瑰', '薰衣草', '绿茶', '人参', '燕窝', '珍珠', '胶原蛋白', '维生素', '蜂蜜', '芦荟'];
+      const suffixes = ['粉', '油', '提取物', '浓缩液', '原浆', '精华', '膏', '液'];
+      
+      for (let i = 0; i < count; i++) {
+        materials.push({
+          id: generateId(),
+          name: `天然${randomPick(bases)}${randomPick(suffixes)}`,
+          code: `MTL${userId.substr(-3).toUpperCase()}-${String(i + 1).padStart(3, '0')}`,
+          unit: randomPick(units),
+          stock: randomInt(10, 500),
+          createdBy: userId,
+          createdAt: new Date().toISOString()
+        });
+      }
+      return materials;
+    }
+
+    function generateFormulas(userId, customers, materials, count) {
+      const formulas = [];
+      const types = ['保湿型', '滋养型', '修复型', '美白型', '抗皱型', '清爽型', '控油型', '舒缓型'];
+      const names = ['精华', '乳液', '面霜', '面膜', '爽肤水', '精华露'];
+      
+      for (let i = 0; i < count; i++) {
+        const customer = randomPick(customers);
+        const selectedMaterials = [];
+        const materialCount = randomInt(2, 5);
+        const availableMaterials = [...materials];
+        
+        for (let j = 0; j < materialCount && availableMaterials.length > 0; j++) {
+          const idx = randomInt(0, availableMaterials.length - 1);
+          const material = availableMaterials.splice(idx, 1)[0];
+          selectedMaterials.push({
+            materialId: material.id,
+            materialName: material.name,
+            quantity: randomInt(1, 50)
+          });
+        }
+        
+        formulas.push({
+          id: generateId(),
+          name: `${randomPick(types)}${randomPick(names)}V${randomInt(1, 5)}`,
+          customerId: customer.id,
+          customerName: customer.name,
+          materials: selectedMaterials,
+          description: '精心调配的独特配方，为肌肤带来深层滋养',
+          createdBy: userId,
+          createdAt: new Date().toISOString()
+        });
+      }
+      return formulas;
+    }
+
+    // 页面加载时显示当前数据统计
+    window.onload = function() {
+      showStats();
+      log('欢迎使用 TingStudio 数据初始化工具', 'info');
+      log('点击上方按钮开始操作', 'info');
+    };
+  </script>
+</body>
+</html>

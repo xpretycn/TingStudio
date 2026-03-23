@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0052D9;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#00A870;stop-opacity:1" />
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Background hexagon -->
+  <polygon points="100,10 180,55 180,145 100,190 20,145 20,55" 
+           fill="none" stroke="url(#grad1)" stroke-width="3" opacity="0.3"/>
+  
+  <!-- Inner hexagon -->
+  <polygon points="100,30 157,63 157,137 100,170 43,137 43,63" 
+           fill="none" stroke="url(#grad1)" stroke-width="2" opacity="0.5"/>
+  
+  <!-- Tech symbol - stylized molecule -->
+  <g filter="url(#glow)">
+    <!-- Center node -->
+    <circle cx="100" cy="100" r="12" fill="url(#grad1)"/>
+    
+    <!-- Orbiting nodes -->
+    <circle cx="100" cy="55" r="6" fill="#0052D9"/>
+    <circle cx="145" cy="78" r="6" fill="#00A870"/>
+    <circle cx="145" cy="122" r="6" fill="#ED7B2F"/>
+    <circle cx="100" cy="145" r="6" fill="#0052D9"/>
+    <circle cx="55" cy="122" r="6" fill="#00A870"/>
+    <circle cx="55" cy="78" r="6" fill="#ED7B2F"/>
+    
+    <!-- Connection lines -->
+    <line x1="100" y1="88" x2="100" y2="61" stroke="#0052D9" stroke-width="1.5" opacity="0.6"/>
+    <line x1="110" y1="94" x2="139" y2="81" stroke="#00A870" stroke-width="1.5" opacity="0.6"/>
+    <line x1="110" y1="106" x2="139" y2="119" stroke="#ED7B2F" stroke-width="1.5" opacity="0.6"/>
+    <line x1="100" y1="112" x2="100" y2="139" stroke="#0052D9" stroke-width="1.5" opacity="0.6"/>
+    <line x1="90" y1="106" x2="61" y2="119" stroke="#00A870" stroke-width="1.5" opacity="0.6"/>
+    <line x1="90" y1="94" x2="61" y2="81" stroke="#ED7B2F" stroke-width="1.5" opacity="0.6"/>
+  </g>
+  
+  <!-- T letter -->
+  <text x="100" y="105" text-anchor="middle" font-family="Arial, sans-serif" 
+        font-size="16" font-weight="bold" fill="white" dy="5">T</text>
+</svg>
