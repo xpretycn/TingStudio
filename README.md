@@ -1,269 +1,216 @@
-# TingStudio
+# TingStudio v2.0
 
-个人工作数据管理平台 - 基于Vue3 + TypeScript开发的现代化Web应用
+食品配方工作数据管理平台 — 前后端分离架构
 
 ## 项目简介
 
-TingStudio是一个专业的个人工作数据管理应用，帮助用户高效管理客户信息、配方信息和原料信息。应用支持用户注册登录、数据的增删改查、数据关联查询等功能。界面采用可爱的粉色主题，提供温馨愉悦的用户体验。
+TingStudio 是一个专业的食品配方工作数据管理平台，提供配方管理、原料管理、客户管理、业务员管理、营养成分分析、导出分享等完整功能链路。采用 Vue 3 + Express + SQLite 前后端分离架构，支持 JWT 认证、RESTful API、配方版本控制、营养合规检查等企业级特性。
 
 ## 技术栈
 
-- **前端框架**: Vue 3.4+ (Composition API)
-- **开发语言**: TypeScript 5.3+
-- **构建工具**: Vite 5.0+
-- **路由管理**: Vue Router 4.2+
+### 后端
+- **运行时**: Node.js + TypeScript
+- **Web 框架**: Express 4.21+
+- **数据库**: SQLite (better-sqlite3)
+- **认证**: JWT (jsonwebtoken + bcryptjs)
+- **安全**: Helmet + CORS + express-rate-limit
+- **日志**: Morgan
+
+### 前端
+- **框架**: Vue 3.4+ (Composition API)
+- **语言**: TypeScript 5.4+
+- **构建工具**: Vite 5.1+
+- **路由**: Vue Router 4.3+
 - **状态管理**: Pinia 2.1+
-- **UI组件库**: TDesign Vue 3 Next
-- **样式方案**: SCSS + CSS Modules
-- **数据持久化**: LocalStorage
+- **UI 组件库**: TDesign Vue Next 1.9+
+- **HTTP 客户端**: Axios
+- **表单验证**: VeeValidate + Yup
+- **样式**: SCSS
 
 ## 功能特性
 
-### 用户管理
-- 用户注册和登录
-- 多用户数据隔离
-- 会话管理
-- 自动初始化示例数据（首次访问时）
+### 认证系统
+- 用户注册/登录（JWT Token）
+- 多角色支持（admin / formulist / salesman / production）
+- Token 自动续期与过期处理
 
 ### 客户管理
-- 客户信息的增删改查
-- 客户列表搜索和分页
-- 查看客户关联的配方
-
-### 配方管理
-- 配方信息的增删改查
-- 关联客户和原料
-- 配方列表搜索和过滤
-- 支持配方包含多种原料
-- 最近配方快速访问
-- 配方详情弹窗查看（原料清单、配方描述）
+- 客户信息 CRUD
+- 关键词搜索（姓名/联系人/电话）
+- 分页查询
 
 ### 原料管理
-- 原料信息的增删改查
-- 原料列表搜索和分页
-- 查看原料使用统计
-- 库存管理
+- 原料信息 CRUD
+- 唯一编码校验
+- 配方引用检测（防误删）
 
-### 首页功能
-- 可爱猫咪 Logo 动画
-- 实时日期和星期显示
-- 天气信息（包含城市定位）
-- 每日祝福语
-- 可折叠导航菜单
-- 锁屏和退出登录功能
-- 精美的视觉分隔和装饰图标
+### 配方管理
+- 配方信息 CRUD（关联客户 + 多原料）
+- 关键词搜索与客户过滤
+- 自动版本控制（每次更新自动生成快照）
+- 手动创建/发布版本
+- 版本对比（原料变更可视化）
 
-### 工具箱
-- 实用工具集合（开发中）
+### 业务员管理
+- 业务员信息 CRUD
+- 关联客户（一对多）
+- 对接配方师
+- 沟通记录管理
+- 软删除（停用）
+
+### 导出与分享
+- 导出模板管理（PDF/Excel/API/打印）
+- 导出任务创建与状态跟踪
+- 分享链接（支持密码、过期时间、下载限制）
+
+### 营养分析
+- 原料营养成分录入（per 100g）
+- 配方营养汇总计算
+- 营养标准管理（按人群分类）
+- 合规性检查（与标准对比，生成建议）
 
 ## 项目结构
 
 ```
 ting-studio/
-├── public/                    # 静态资源
-│   └── logo.svg               # 应用Logo
-├── src/
-│   ├── api/                   # API接口层
-│   │   └── storage.ts        # LocalStorage封装服务
-│   ├── assets/               # 资源文件
-│   │   └── styles/           # 全局样式文件
-│   │       ├── main.scss     # 主样式
-│   │       └── variables.scss # 变量定义
-│   ├── components/           # 公共组件
-│   │   └── Layout/          # 布局组件
-│   ├── router/              # 路由配置
-│   │   └── index.ts
-│   ├── stores/              # Pinia状态管理
-│   │   ├── auth.ts         # 认证Store
-│   │   ├── customer.ts     # 客户Store
-│   │   ├── formula.ts      # 配方Store
-│   │   └── material.ts     # 原料Store
-│   ├── types/               # TypeScript类型定义
-│   │   ├── index.ts        # 类型导出
-│   │   ├── user.ts
-│   │   ├── customer.ts
-│   │   ├── formula.ts
-│   │   └── material.ts
-│   ├── utils/               # 工具函数
-│   │   ├── initData.ts     # 数据初始化
-│   │   └── mockData.ts     # 模拟数据生成
-│   ├── views/               # 页面组件
-│   │   ├── auth/           # 认证页面
-│   │   │   ├── Login.vue   # 登录页
-│   │   │   └── Register.vue # 注册页
-│   │   ├── customers/      # 客户管理页面
-│   │   ├── formulas/       # 配方管理页面
-│   │   ├── materials/      # 原料管理页面
-│   │   ├── Home.vue        # 主页
-│   │   └── Tools.vue       # 工具箱页面
-│   ├── App.vue             # 根组件
-│   └── main.ts             # 应用入口
-├── scripts/                # 脚本文件
-├── index.html
-├── package.json
-├── tsconfig.json
-├── vite.config.ts
+├── backend/                          # 后端服务
+│   ├── src/
+│   │   ├── config/                   # 配置（数据库、JWT、应用）
+│   │   ├── controllers/              # 控制器（8个模块）
+│   │   │   ├── authController.ts
+│   │   │   ├── customerController.ts
+│   │   │   ├── materialController.ts
+│   │   │   ├── formulaController.ts
+│   │   │   ├── salesmanController.ts
+│   │   │   ├── versionController.ts
+│   │   │   ├── exportController.ts
+│   │   │   └── nutritionController.ts
+│   │   ├── middleware/                # 中间件（认证、校验、错误处理）
+│   │   ├── routes/                   # 路由定义（8个模块）
+│   │   ├── scripts/                  # 数据库脚本
+│   │   │   ├── init.sql              # 建表 SQL
+│   │   │   ├── initDatabase.ts       # 数据库初始化
+│   │   │   └── seedData.ts           # 种子数据（每表30条）
+│   │   ├── utils/                    # 工具函数
+│   │   └── index.ts                  # 入口文件
+│   ├── data/                         # SQLite 数据库文件
+│   ├── API_DOC.md                    # API 接口文档
+│   ├── DATABASE_DOC.md               # 数据库文档
+│   └── package.json
+├── frontend/                         # 前端应用
+│   ├── src/
+│   │   ├── api/                      # API 接口层（HTTP 封装）
+│   │   ├── stores/                   # Pinia 状态管理
+│   │   ├── views/                    # 页面组件
+│   │   │   ├── auth/                 # 登录/注册
+│   │   │   ├── customers/            # 客户管理
+│   │   │   ├── materials/            # 原料管理
+│   │   │   ├── formulas/             # 配方管理
+│   │   │   ├── salesmen/             # 业务员管理
+│   │   │   ├── versions/             # 版本控制
+│   │   │   ├── exports/              # 导出管理
+│   │   │   ├── nutrition/            # 营养分析
+│   │   │   ├── Home.vue              # 首页
+│   │   │   └── Tools.vue             # 工具箱
+│   │   ├── router/                   # 路由配置
+│   │   ├── types/                    # 类型定义
+│   │   └── App.vue                   # 根组件
+│   ├── vite.config.ts                # Vite 配置（含 API 代理）
+│   └── package.json
+├── PRD-TingStudio-v2.0.md            # 产品需求文档
 └── README.md
 ```
 
 ## 快速开始
 
-### 安装依赖
+### 环境要求
+
+- Node.js 18+
+- npm 9+
+
+### 后端
 
 ```bash
+cd backend
 npm install
-```
 
-### 开发模式
+# 初始化数据库
+npm run init-db
 
-```bash
+# 填充种子数据（可选，每表30条示例数据）
+npm run seed
+
+# 启动开发服务（端口 3000）
 npm run dev
 ```
 
-应用将在 http://localhost:3000 启动
-
-### 构建生产版本
+### 前端
 
 ```bash
-npm run build
+cd frontend
+npm install
+
+# 启动开发服务（端口 5173，API 代理到 localhost:3000）
+npm run dev
 ```
 
-### 预览生产构建
+启动后访问 http://localhost:5173
 
-```bash
-npm run preview
-```
+### 测试账号
 
-## 示例数据初始化
+| 用户名 | 密码 | 角色 |
+|--------|------|------|
+| `admin` | `admin123` | 管理员 |
+| `user002` | `user002` | 配方师 |
+| `user003` | `user003` | 业务员 |
 
-### 方法一: 使用可视化工具(推荐)
+> 其他测试账号：`user004` ~ `user030`，密码与用户名相同，角色在 admin/formulist/salesman/production 间循环。
 
-访问 `http://localhost:3000/data-init.html` 打开数据初始化工具页面，点击按钮即可完成数据操作。
+## API 文档
 
-### 方法二: 浏览器控制台
+详细的接口文档请查看 [backend/API_DOC.md](./backend/API_DOC.md)，涵盖 8 个模块、40+ 个端点的完整说明。
 
-1. 在应用页面按F12打开开发者工具
-2. 切换到"Console"(控制台)标签
-3. 输入以下命令:
+## 数据库文档
 
-```javascript
-// 初始化示例数据(20个用户,每个用户20个客户、20个原料、20个配方)
-initTingStudioData()
+数据库表结构与字段说明请查看 [backend/DATABASE_DOC.md](./backend/DATABASE_DOC.md)，覆盖全部 17 张表。
 
-// 验证数据完整性
-validateTingStudioData()
+## 主要脚本
 
-// 清除所有数据
-clearTingStudioData()
-```
-
-### 方法三: 命令行脚本
-
-```bash
-npm run init:sample-data
-```
-
-**⚠️ 注意**: 初始化会清除所有现有数据，请谨慎使用。
-
-**💡 登录提示**: 使用生成的用户名登录，密码与用户名相同(如user001的密码是user001)
-
-详细使用说明请查看 [DATA_INIT_GUIDE.md](./DATA_INIT_GUIDE.md)
-
-## 使用说明
-
-### 首次使用
-
-1. 访问应用，点击"立即注册"
-2. 填写用户名和密码（密码至少6位）
-3. 注册成功后自动登录到主页
-4. 系统会自动初始化示例数据（1个测试用户，每个模块20条数据）
-
-### 主页导航
-
-- **最近配方**: 快速访问最近使用的配方
-- **配方管理**: 管理所有配方信息
-- **原材料管理**: 管理原料库存
-- **客户管理**: 管理客户信息
-- **工具箱**: 实用工具集合
-
-### 管理客户
-
-1. 点击左侧菜单"客户管理"
-2. 点击"新增客户"按钮
-3. 填写客户信息并保存
-
-### 管理原料
-
-1. 点击左侧菜单"原材料管理"
-2. 点击"新增原料"按钮
-3. 填写原料编码、名称、单位和库存
-
-### 管理配方
-
-1. 点击左侧菜单"配方管理"
-2. 点击"新增配方"按钮
-3. 选择客户和添加原料
-4. 填写配方描述并保存
-
-## 数据存储
-
-应用使用LocalStorage进行数据持久化，数据存储在浏览器本地。不同用户的数据相互隔离，确保数据安全。
-
-## 浏览器支持
-
-- Chrome (推荐)
-- Firefox
-- Safari
-- Edge
-
-## 设计特色
-
-- **可爱猫咪Logo**: 精心设计的猫咪SVG图标，带有弹跳动画效果
-- **粉色主题**: 采用柔和的粉色系配色，营造温馨愉悦的使用氛围
-- **渐变背景**: 精心调配的渐变色彩，从粉色过渡到薰衣草紫
-- **流畅动画**: 丰富的微交互和过渡动画，提升用户体验
-  - 猫咪Logo弹跳动画
-  - 爱心跳动动画
-  - 按钮涟漪效果
-  - 装饰图标浮动动画
-  - 平滑的页面切换
-- **视觉分隔**: 清晰的层次结构，精美的分隔线和装饰元素
-- **响应式布局**: 适配不同屏幕尺寸，确保在各种设备上都能良好显示
-- **即时反馈**: 所有操作都有明确的视觉反馈
+| 命令 | 位置 | 说明 |
+|------|------|------|
+| `npm run dev` | backend | 启动后端开发服务 |
+| `npm run build` | backend | 编译后端 TypeScript |
+| `npm run init-db` | backend | 初始化数据库表结构 |
+| `npm run seed` | backend | 填充种子数据 |
+| `npm run dev` | frontend | 启动前端开发服务 |
+| `npm run build` | frontend | 构建前端生产版本 |
 
 ## 更新日志
 
+### v2.0.0 (2026-03-25)
+- 架构升级为前后端分离（Vue 3 + Express + SQLite）
+- 新增 JWT 认证体系与多角色权限
+- 新增业务员管理（关联客户、对接配方师、沟通记录）
+- 新增配方版本控制（自动/手动版本、版本对比）
+- 新增导出管理（模板管理、任务跟踪、分享链接）
+- 新增营养分析（成分录入、配方汇总、合规检查）
+- 新增 RESTful API（8 个模块、40+ 个端点）
+- 填充完整种子数据（12 张表、共 340+ 条记录）
+- 生成 API 接口文档与数据库文档
+
 ### v1.2.0 (2026-03-24)
-- ✨ 新增配方详情弹窗，支持查看原料清单和配方描述
-- 🎨 统一操作按钮样式，查看（紫色）、编辑（粉色）、删除（红色）渐变配色
-- 🎨 按钮文字统一为白色，提升视觉一致性
-- ✨ 所有列表页新增"查看"按钮，支持快速预览详情
-- 🐛 修复 WebView 环境下 geolocation 定位报错问题
+- 新增配方详情弹窗
+- 统一操作按钮样式
+- 修复 WebView 定位报错
 
 ### v1.1.0 (2026-03-23)
-- ✨ 新增主页功能，包含完整侧边栏导航
-- ✨ 添加猫咪Logo动画和可爱主题设计
-- ✨ 实现天气显示和城市定位功能
-- ✨ 添加每日祝福语和实时日期显示
-- ✨ 实现可折叠导航菜单
-- ✨ 添加锁屏功能按钮
-- ✨ 优化视觉分隔和装饰图标
-- ✨ 自动初始化示例数据（首次访问时）
-- 🐛 修复 initData.ts 模块加载错误
-- 🐛 修复 SCSS 样式表配置问题
+- 新增主页（侧边栏导航、猫咪Logo动画）
+- 实现天气显示与每日祝福语
+- 添加锁屏功能
 
 ### v1.0.0
-- 🎉 项目初始版本发布
-- ✅ 用户注册登录功能
-- ✅ 客户管理模块
-- ✅ 原料管理模块
-- ✅ 配方管理模块
-- ✅ 数据关联查询
-- ✅ 搜索和分页功能
-
-## 开发团队
-
-TingStudio开发团队
+- 项目初始版本（LocalStorage 单体应用）
+- 用户注册登录、客户/原料/配方管理
 
 ## 许可证
 

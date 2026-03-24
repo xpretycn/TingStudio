@@ -1,33 +1,24 @@
-# Dependencies
+# TingStudio 前后端分离项目
 node_modules/
-.pnp
-.pnp.js
-
-# Build output
 dist/
-dist-ssr/
-
-# Editor
-.vscode/*
-!.vscode/extensions.json
-.idea/
-
-# OS
-.DS_Store
-Thumbs.db
-Desktop.ini
-
-# Env
 .env
-.env.local
-.env.*.local
-
-# Logs
 *.log
-npm-debug.log*
+uploads/
 
-# Vite
-*.local
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
 
 # CodeBuddy
 .codebuddy/
+
+# Vite
+.vite/
+
+# Database
+*.db
+*.db-wal
+*.db-shm
