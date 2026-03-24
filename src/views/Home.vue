@@ -352,24 +352,28 @@ const updateWeather = () => {
 
 // 获取城市定位
 const getLocation = () => {
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        // 根据经纬度获取城市（这里简化处理，实际需要调用地理编码API）
-        const cities = ['北京', '上海', '广州', '深圳', '杭州', '成都', '重庆', '武汉', '西安', '南京']
-        const index = Math.floor(Math.random() * cities.length)
-        city.value = cities[index]
-      },
-      (error) => {
-        console.error('获取定位失败:', error)
-        // 使用默认城市
-        const cities = ['北京', '上海', '广州', '深圳']
-        city.value = cities[Math.floor(Math.random() * cities.length)]
-      }
-    )
-  } else {
-    const cities = ['北京', '上海', '广州', '深圳']
-    city.value = cities[Math.floor(Math.random() * cities.length)]
+  const defaultCities = ['北京', '上海', '广州', '深圳']
+  const setDefaultCity = () => {
+    city.value = defaultCities[Math.floor(Math.random() * defaultCities.length)]
+  }
+  try {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          // 根据经纬度获取城市（这里简化处理，实际需要调用地理编码API）
+          const cities = ['北京', '上海', '广州', '深圳', '杭州', '成都', '重庆', '武汉', '西安', '南京']
+          const index = Math.floor(Math.random() * cities.length)
+          city.value = cities[index]
+        },
+        () => {
+          setDefaultCity()
+        }
+      )
+    } else {
+      setDefaultCity()
+    }
+  } catch {
+    setDefaultCity()
   }
 }
 

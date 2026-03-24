@@ -111,7 +111,13 @@
 
         <template #operation="{ row }">
           <t-space :size="8">
-            <t-button variant="text" theme="primary" size="small" @click="handleEdit(row)">
+            <t-button variant="text" theme="default" size="small" class="btn-view" @click="handleView(row)">
+              <template #icon>
+                <t-icon name="browse" />
+              </template>
+              查看
+            </t-button>
+            <t-button variant="text" theme="primary" size="small" class="btn-edit" @click="handleEdit(row)">
               <template #icon>
                 <t-icon name="edit" />
               </template>
@@ -211,6 +217,10 @@ const handleReset = () => {
 
 const handleCreate = () => {
   router.push('/formulas/new')
+}
+
+const handleView = (row: Formula) => {
+  router.push(`/formulas/${row.id}/edit`)
 }
 
 const handleEdit = (row: Formula) => {
@@ -348,6 +358,31 @@ onMounted(async () => {
     border-left: 3px solid #FFD6E0;
   }
 
+  :deep(.btn-view) {
+    background: linear-gradient(135deg, #A78BFA, #7C3AED) !important;
+    border: none !important;
+    color: #fff !important;
+    box-shadow: 0 4px 16px rgba(124, 58, 237, 0.3) !important;
+
+    :deep(.t-button__text) {
+      color: #fff !important;
+    }
+
+    :deep(.t-button__icon) {
+      color: #fff !important;
+    }
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(124, 58, 237, 0.4) !important;
+      background: linear-gradient(135deg, #C4B5FD, #A78BFA) !important;
+    }
+
+    &:active {
+      transform: translateY(1px) scale(0.98);
+    }
+  }
+
   :deep(.t-button) {
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
     border-radius: 12px !important;
@@ -356,7 +391,16 @@ onMounted(async () => {
     &.t-button--theme-primary {
       background: linear-gradient(135deg, #FF8FAB, #FF6B8A) !important;
       border: none !important;
+      color: #fff !important;
       box-shadow: 0 4px 16px rgba(255, 107, 138, 0.3) !important;
+
+      :deep(.t-button__text) {
+        color: #fff !important;
+      }
+
+      :deep(.t-button__icon) {
+        color: #fff !important;
+      }
 
       &:hover {
         transform: translateY(-2px);
@@ -398,6 +442,7 @@ onMounted(async () => {
     &.t-button--theme-danger {
       background: linear-gradient(135deg, #FF6B8A, #E34D59) !important;
       border: none !important;
+      color: #fff !important;
 
       &:hover {
         transform: translateY(-2px);
