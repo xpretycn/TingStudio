@@ -20,6 +20,7 @@ import {
   shuffle
 } from './mockData'
 import type { User, Customer, Material, Formula, MaterialItem } from '@/types'
+import { getTimestamp } from './timeFormat'
 
 const STORAGE_KEYS = {
   USERS: 'tingstudio_users',
@@ -31,10 +32,6 @@ const STORAGE_KEYS = {
 
 const generateId = (): string => {
   return Date.now().toString(36) + Math.random().toString(36).substr(2)
-}
-
-const getTimestamp = (): string => {
-  return new Date().toISOString()
 }
 
 /**

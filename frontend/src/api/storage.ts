@@ -2,6 +2,7 @@ import type { User, LoginForm, RegisterForm } from '@/types/user'
 import type { Customer, CustomerForm } from '@/types/customer'
 import type { Material, MaterialForm, MaterialUsage } from '@/types/material'
 import type { Formula, FormulaForm, MaterialItem } from '@/types/formula'
+import { getTimestamp } from '@/utils/timeFormat'
 
 const STORAGE_KEYS = {
   USERS: 'tingstudio_users',
@@ -15,10 +16,6 @@ const generateId = (): string => {
   return Date.now().toString(36) + Math.random().toString(36).substr(2)
 }
 
-const getTimestamp = (): string => {
-  return new Date().toISOString()
-}
-
 class StorageService {
   private ensureTestUser(): void {
     const users = this.getUsers()
@@ -27,7 +24,7 @@ class StorageService {
         id: 'test_user_001',
         username: 'user001',
         password: 'user001',
-        createdAt: new Date().toISOString()
+        createdAt: getTimestamp()
       } as any)
       this.setUsers(users)
     }
@@ -148,7 +145,7 @@ class StorageService {
     const index = customers.findIndex(c => c.id === id)
     if (index === -1) return null
 
-    customers[index] = { ...customers[index], ...form }
+    customers[index] = { ...customers[index], ...form, updatedAt: getTimestamp() }
     this.setCustomers(customers)
     return customers[index]
   }
@@ -287,7 +284,7 @@ class StorageService {
     const index = materials.findIndex(m => m.id === id)
     if (index === -1) return null
 
-    materials[index] = { ...materials[index], ...form }
+    materials[index] = { ...materials[index], ...form, updatedAt: getTimestamp() }
     this.setMaterials(materials)
     return materials[index]
   }

@@ -2,6 +2,8 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { salesmanApi } from '@/api/salesman'
 import type { Salesman, SalesmanForm } from '@/api/salesman'
+import { formatTimestamp } from '@/utils/timeFormat'
+import { usePaginationStore } from '@/stores/pagination'
 
 export const useSalesmanStore = defineStore('salesman', () => {
   const salesmen = ref<Salesman[]>([])
@@ -15,13 +17,19 @@ export const useSalesmanStore = defineStore('salesman', () => {
   const fetchSalesmen = async () => {
     loading.value = true
     try {
+      const { dynamicPageSize } = usePaginationStore()
+      pageSize.value = dynamicPageSize
       const res = await salesmanApi.getList({
         keyword: keyword.value || undefined,
         status: statusFilter.value || undefined,
         page: currentPage.value,
         pageSize: pageSize.value,
       })
-      salesmen.value = res.data.list
+      salesmen.value = res.data.list.map((s: Salesman) => ({
+        ...s,
+        createdAt: formatTimestamp(s.createdAt),
+        updatedAt: formatTimestamp(s.updatedAt),
+      }))
       total.value = res.data.pagination.total
     } catch (error) {
       console.error('获取业务员列表失败:', error)

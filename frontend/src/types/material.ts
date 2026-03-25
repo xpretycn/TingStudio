@@ -6,6 +6,7 @@ export interface Material {
   stock: number;
   createdBy: string;
   createdAt: string;
+  updatedAt?: string;
 }
 
 export interface MaterialForm {

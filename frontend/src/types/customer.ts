@@ -7,6 +7,7 @@ export interface Customer {
   address?: string;
   createdBy: string;
   createdAt: string;
+  updatedAt?: string;
 }
 
 export interface CustomerForm {

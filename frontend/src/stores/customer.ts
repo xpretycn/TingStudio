@@ -2,6 +2,8 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { customerApi } from '@/api/customer'
 import type { Customer, CustomerForm } from '@/api/customer'
+import { formatTimestamp } from '@/utils/timeFormat'
+import { usePaginationStore } from '@/stores/pagination'
 
 export const useCustomerStore = defineStore('customer', () => {
   const customers = ref<Customer[]>([])
@@ -14,12 +16,18 @@ export const useCustomerStore = defineStore('customer', () => {
   const fetchCustomers = async () => {
     loading.value = true
     try {
+      const { dynamicPageSize } = usePaginationStore()
+      pageSize.value = dynamicPageSize
       const res = await customerApi.getList({
         keyword: keyword.value || undefined,
         page: currentPage.value,
         pageSize: pageSize.value,
       })
-      customers.value = res.data.list
+      customers.value = res.data.list.map((c: Customer) => ({
+        ...c,
+        createdAt: formatTimestamp(c.createdAt),
+        updatedAt: formatTimestamp(c.updatedAt),
+      }))
       total.value = res.data.pagination.total
     } catch (error) {
       console.error('获取客户列表失败:', error)

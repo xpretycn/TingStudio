@@ -257,8 +257,8 @@ const formRef = ref<FormInstanceFunctions>()
 const loading = ref(false)
 
 const formData = reactive({
-  username: 'user001',
-  password: 'user001'
+  username: 'admin',
+  password: 'admin123'
 })
 
 const rules: Record<string, FormRule[]> = {

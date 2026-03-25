@@ -1,69 +1,11 @@
 <template>
   <div class="formula-list">
-    <t-card class="search-card" bordered>
-      <t-form :data="searchForm" layout="inline" @submit="handleSearch">
-        <t-form-item label="搜索">
-          <t-input
-            v-model="searchForm.keyword"
-            placeholder="输入配方名称或客户名称"
-            clearable
-            style="width: 300px"
-            @clear="handleSearch"
-          >
-            <template #suffix-icon>
-              <t-icon name="search" />
-            </template>
-          </t-input>
-        </t-form-item>
-        <t-form-item label="客户">
-          <t-select
-            v-model="searchForm.customerId"
-            placeholder="选择客户"
-            clearable
-            style="width: 200px"
-          >
-            <t-option
-              v-for="customer in customerStore.customers"
-              :key="customer.id"
-              :value="customer.id"
-              :label="customer.name"
-            />
-          </t-select>
-        </t-form-item>
-        <t-form-item>
-          <t-space :size="8">
-            <t-button theme="primary" type="submit">
-              <template #icon>
-                <t-icon name="search" />
-              </template>
-              搜索
-            </t-button>
-            <t-button theme="default" @click="handleReset">
-              <template #icon>
-                <t-icon name="refresh" />
-              </template>
-              重置
-            </t-button>
-          </t-space>
-        </t-form-item>
-      </t-form>
-    </t-card>
-
     <t-card class="content-card" bordered>
-      <template #actions>
-        <t-button theme="primary" @click="handleCreate" size="large">
-          <template #icon>
-            <t-icon name="add" />
-          </template>
-          新增配方
-        </t-button>
-      </template>
-
       <t-table
         :data="formulaStore.formulas"
         :columns="columns"
         :loading="formulaStore.loading"
-        :pagination="pagination"
+        :pagination="false"
         row-key="id"
         hover
         stripe
@@ -164,16 +106,18 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useFormulaStore } from '@/stores/formula'
 import { useCustomerStore } from '@/stores/customer'
+import { usePaginationStore } from '@/stores/pagination'
 import { MessagePlugin } from 'tdesign-vue-next'
 import type { Formula } from '@/api/formula'
 
 const router = useRouter()
 const formulaStore = useFormulaStore()
 const customerStore = useCustomerStore()
+const paginationStore = usePaginationStore()
 
 const searchForm = reactive({
   keyword: '',
@@ -201,13 +145,22 @@ const pagination = computed(() => ({
   current: formulaStore.currentPage,
   pageSize: formulaStore.pageSize,
   total: formulaStore.total,
-  showJumper: true,
-  showSizeChanger: true,
-  pageSizeOptions: [10, 20, 50, 100],
   onChange: (pageInfo: any) => {
     formulaStore.setPage(pageInfo.current)
+    formulaStore.fetchFormulas()
   }
 }))
+
+// 注册分页到全局 paginationStore
+onMounted(() => {
+  paginationStore.register(pagination.value)
+  // 监听分页数据变化，同步到 paginationStore
+  watch(pagination, (val) => paginationStore.update(val), { deep: true })
+})
+
+onUnmounted(() => {
+  paginationStore.unregister()
+})
 
 const handleSearch = () => {
   formulaStore.setKeyword(searchForm.keyword)
@@ -285,16 +238,6 @@ onMounted(async () => {
 
 <style scoped lang="scss">
 .formula-list {
-  .search-card {
-    margin-bottom: 16px;
-    box-shadow: 0 2px 12px rgba(255, 107, 138, 0.06);
-    transition: box-shadow 0.3s;
-
-    &:hover {
-      box-shadow: 0 4px 20px rgba(255, 107, 138, 0.1);
-    }
-  }
-
   .content-card {
     min-height: 400px;
     box-shadow: 0 2px 12px rgba(255, 107, 138, 0.06);

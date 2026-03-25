@@ -2,6 +2,8 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { materialApi } from '@/api/material'
 import type { Material, MaterialForm } from '@/api/material'
+import { formatTimestamp } from '@/utils/timeFormat'
+import { usePaginationStore } from '@/stores/pagination'
 
 export const useMaterialStore = defineStore('material', () => {
   const materials = ref<Material[]>([])
@@ -14,12 +16,18 @@ export const useMaterialStore = defineStore('material', () => {
   const fetchMaterials = async () => {
     loading.value = true
     try {
+      const { dynamicPageSize } = usePaginationStore()
+      pageSize.value = dynamicPageSize
       const res = await materialApi.getList({
         keyword: keyword.value || undefined,
         page: currentPage.value,
         pageSize: pageSize.value,
       })
-      materials.value = res.data.list
+      materials.value = res.data.list.map((m: Material) => ({
+        ...m,
+        createdAt: formatTimestamp(m.createdAt),
+        updatedAt: formatTimestamp(m.updatedAt),
+      }))
       total.value = res.data.pagination.total
     } catch (error) {
       console.error('获取原料列表失败:', error)

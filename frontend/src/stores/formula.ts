@@ -2,6 +2,8 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { formulaApi } from '@/api/formula'
 import type { Formula, FormulaForm, MaterialItem } from '@/api/formula'
+import { formatTimestamp } from '@/utils/timeFormat'
+import { usePaginationStore } from '@/stores/pagination'
 
 export const useFormulaStore = defineStore('formula', () => {
   const formulas = ref<Formula[]>([])
@@ -15,16 +17,20 @@ export const useFormulaStore = defineStore('formula', () => {
   const fetchFormulas = async () => {
     loading.value = true
     try {
+      const { dynamicPageSize } = usePaginationStore()
+      pageSize.value = dynamicPageSize
       const res = await formulaApi.getList({
         keyword: keyword.value || undefined,
         customerId: customerId.value || undefined,
         page: currentPage.value,
         pageSize: pageSize.value,
       })
-      // 解析 materialsJson
+      // 解析 materialsJson 并格式化时间
       formulas.value = res.data.list.map((f: Formula) => ({
         ...f,
         materials: parseMaterials(f),
+        createdAt: formatTimestamp(f.createdAt),
+        updatedAt: formatTimestamp(f.updatedAt),
       }))
       total.value = res.data.pagination.total
     } catch (error) {
@@ -38,7 +44,7 @@ export const useFormulaStore = defineStore('formula', () => {
     try {
       const res = await formulaApi.getById(id)
       const formula = res.data
-      return { ...formula, materials: parseMaterials(formula) }
+      return { ...formula, materials: parseMaterials(formula), createdAt: formatTimestamp(formula.createdAt), updatedAt: formatTimestamp(formula.updatedAt) }
     } catch {
       return null
     }

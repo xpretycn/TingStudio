@@ -13,6 +13,7 @@ export interface Formula {
   description?: string;
   createdBy: string;
   createdAt: string;
+  updatedAt?: string;
 }
 
 export interface FormulaForm {

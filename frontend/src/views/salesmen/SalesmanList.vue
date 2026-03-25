@@ -1,33 +1,7 @@
 <template>
   <div class="salesman-list">
-    <t-card class="search-card" bordered>
-      <t-form :data="searchForm" layout="inline" @submit="handleSearch">
-        <t-form-item label="搜索">
-          <t-input v-model="searchForm.keyword" placeholder="输入姓名、工号或电话" clearable style="width: 260px" @clear="handleSearch">
-            <template #suffix-icon><t-icon name="search" /></template>
-          </t-input>
-        </t-form-item>
-        <t-form-item label="状态">
-          <t-select v-model="searchForm.status" placeholder="全部" clearable style="width: 140px">
-            <t-option value="active" label="活跃" />
-            <t-option value="inactive" label="停用" />
-          </t-select>
-        </t-form-item>
-        <t-form-item>
-          <t-space :size="8">
-            <t-button theme="primary" type="submit"><template #icon><t-icon name="search" /></template>搜索</t-button>
-            <t-button theme="default" @click="handleReset"><template #icon><t-icon name="refresh" /></template>重置</t-button>
-          </t-space>
-        </t-form-item>
-      </t-form>
-    </t-card>
-
     <t-card class="content-card" bordered>
-      <template #actions>
-        <t-button theme="primary" @click="handleCreate" size="large"><template #icon><t-icon name="add" /></template>新增业务员</t-button>
-      </template>
-
-      <t-table :data="salesmanStore.salesmen" :columns="columns" :loading="salesmanStore.loading" :pagination="pagination" row-key="id" hover stripe>
+      <t-table :data="salesmanStore.salesmen" :columns="columns" :loading="salesmanStore.loading" :pagination="false" row-key="id" hover stripe>
         <template #empty><t-empty description="暂无业务员数据" /></template>
         <template #status="{ row }">
           <t-tag :theme="row.status === 'active' ? 'success' : 'default'" variant="light">{{ row.status === 'active' ? '活跃' : '停用' }}</t-tag>
@@ -47,14 +21,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useSalesmanStore } from '@/stores/salesman'
+import { usePaginationStore } from '@/stores/pagination'
 import { MessagePlugin } from 'tdesign-vue-next'
 import type { Salesman } from '@/api/salesman'
 
 const router = useRouter()
 const salesmanStore = useSalesmanStore()
+const paginationStore = usePaginationStore()
 
 const searchForm = reactive({ keyword: '', status: '' })
 
@@ -73,11 +49,21 @@ const pagination = computed(() => ({
   current: salesmanStore.currentPage,
   pageSize: salesmanStore.pageSize,
   total: salesmanStore.total,
-  showJumper: true,
-  showSizeChanger: true,
-  pageSizeOptions: [10, 20, 50, 100],
-  onChange: (pageInfo: any) => { salesmanStore.setPage(pageInfo.current) }
+  onChange: (pageInfo: any) => {
+    salesmanStore.setPage(pageInfo.current)
+    salesmanStore.fetchSalesmen()
+  }
 }))
+
+// 注册分页到全局 paginationStore
+onMounted(() => {
+  paginationStore.register(pagination.value)
+  watch(pagination, (val) => paginationStore.update(val), { deep: true })
+})
+
+onUnmounted(() => {
+  paginationStore.unregister()
+})
 
 const handleSearch = () => {
   salesmanStore.setKeyword(searchForm.keyword)
@@ -108,11 +94,6 @@ onMounted(() => { salesmanStore.fetchSalesmen() })
 
 <style scoped lang="scss">
 .salesman-list {
-  .search-card {
-    margin-bottom: 16px;
-    box-shadow: 0 2px 12px rgba(255, 107, 138, 0.06);
-    &:hover { box-shadow: 0 4px 20px rgba(255, 107, 138, 0.1); }
-  }
   .content-card {
     min-height: 400px;
     box-shadow: 0 2px 12px rgba(255, 107, 138, 0.06);
