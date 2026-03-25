@@ -15,25 +15,10 @@ export interface Salesman {
   phone?: string;
   email?: string;
   status: 'active' | 'inactive';
-  linkedCustomers: string[];  // 关联的客户ID列表
   linkedFormulists: string[]; // 关联的配方师ID列表
   createdBy: string;
   createdAt: string;
   updatedAt?: string;
-}
-
-/**
- * 业务员-客户关联关系
- */
-export interface SalesmanCustomerRelation {
-  id: string;
-  salesmanId: string;
-  customerId: string;
-  relationType: 'primary' | 'secondary';  // 主业务员/辅助业务员
-  startDate: string;
-  endDate?: string;
-  notes?: string;
-  createdAt: string;
 }
 
 /**
@@ -100,8 +85,8 @@ export interface VersionChange {
  */
 export interface FormulaSnapshot {
   name: string;
-  customerId: string;
-  customerName: string;
+  salesmanId: string;
+  salesmanName: string;
   materials: MaterialItem[];
   description: string;
   formulaData: any;  // 完整的配方数据
@@ -125,7 +110,7 @@ export interface FormulaVersionDiff {
 export interface DiffItem {
   fieldId: string;
   fieldLabel: string;
-  fieldType: 'customer' | 'material' | 'materialQuantity' | 'description' | 'nutrition';
+  fieldType: 'salesman' | 'material' | 'materialQuantity' | 'description' | 'nutrition';
   changes: {
     oldValue: any;
     newValue: any;

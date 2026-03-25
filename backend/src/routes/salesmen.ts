@@ -3,7 +3,6 @@ import { Router } from 'express'
 import { authMiddleware } from '../middleware/auth.js'
 import {
   getSalesmen, getSalesman, createSalesman, updateSalesman, deleteSalesman,
-  linkCustomer, unlinkCustomer, linkFormulist, addCommunicationLog, getCommunicationLogs,
 } from '../controllers/salesmanController.js'
 import { validateBody } from '../middleware/validate.js'
 
@@ -22,14 +21,3 @@ salesmanRoutes.post('/',
 )
 salesmanRoutes.put('/:id', updateSalesman)
 salesmanRoutes.delete('/:id', deleteSalesman)
-
-// 客户关联
-salesmanRoutes.post('/:salesmanId/customers', linkCustomer)
-salesmanRoutes.delete('/customers/:relationId', unlinkCustomer)
-
-// 配方师对接
-salesmanRoutes.post('/:salesmanId/formulists', linkFormulist)
-
-// 沟通记录
-salesmanRoutes.post('/relations/:relationId/communications', addCommunicationLog)
-salesmanRoutes.get('/relations/:relationId/communications', getCommunicationLogs)

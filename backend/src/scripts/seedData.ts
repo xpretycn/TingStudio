@@ -1,4 +1,4 @@
-// 种子数据 - SQLite 版本（每表30条）
+// 种子数据 - SQLite 版本
 import 'dotenv/config'
 import bcrypt from 'bcryptjs'
 import { connectDatabase, getDb, closeDatabase } from '../config/database.js'
@@ -11,15 +11,15 @@ async function seedData() {
 
   const insert = db.transaction(() => {
     // ═══════════════════════════════════════════════════════
-    // 1. 用户表 users（30条）
+    // 1. 用户表 users（10条）
     // ═══════════════════════════════════════════════════════
-    console.log('\n--- 创建用户 (30条) ---')
-    const roles = ['admin', 'formulist', 'formulist', 'salesman', 'production']
+    console.log('\n--- 创建用户 (10条) ---')
+    const roles = ['admin', 'formulist']
     const stmtUser = db.prepare(
       'INSERT OR IGNORE INTO users (id, username, password, role, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)'
     )
     const userIds: string[] = []
-    for (let i = 1; i <= 30; i++) {
+    for (let i = 1; i <= 10; i++) {
       const id = generateId()
       userIds.push(id)
       const username = i === 1 ? 'admin' : `user${String(i).padStart(3, '0')}`
@@ -39,36 +39,36 @@ async function seedData() {
     // ═══════════════════════════════════════════════════════
     console.log('\n--- 创建原料 (30条) ---')
     const materialsData = [
-      { name: '白砂糖', code: 'MAT001', unit: 'g', stock: 50000 },
-      { name: '全脂奶粉', code: 'MAT002', unit: 'g', stock: 20000 },
-      { name: '可可粉', code: 'MAT003', unit: 'g', stock: 10000 },
-      { name: '黄油', code: 'MAT004', unit: 'g', stock: 15000 },
-      { name: '低筋面粉', code: 'MAT005', unit: 'g', stock: 30000 },
-      { name: '鸡蛋', code: 'MAT006', unit: 'g', stock: 25000 },
-      { name: '食用盐', code: 'MAT007', unit: 'g', stock: 5000 },
-      { name: '香草精', code: 'MAT008', unit: 'ml', stock: 3000 },
-      { name: '脱脂奶粉', code: 'MAT009', unit: 'g', stock: 18000 },
-      { name: '乳清蛋白粉', code: 'MAT010', unit: 'g', stock: 12000 },
-      { name: '麦芽糊精', code: 'MAT011', unit: 'g', stock: 22000 },
-      { name: '葡萄糖浆', code: 'MAT012', unit: 'ml', stock: 35000 },
-      { name: '棕榈油', code: 'MAT013', unit: 'g', stock: 28000 },
-      { name: '大豆分离蛋白', code: 'MAT014', unit: 'g', stock: 16000 },
-      { name: '碳酸钙', code: 'MAT015', unit: 'g', stock: 8000 },
-      { name: '维生素C', code: 'MAT016', unit: 'g', stock: 4000 },
-      { name: '维生素E', code: 'MAT017', unit: 'g', stock: 3500 },
-      { name: '柠檬酸', code: 'MAT018', unit: 'g', stock: 6000 },
-      { name: '卡拉胶', code: 'MAT019', unit: 'g', stock: 4500 },
-      { name: '果胶', code: 'MAT020', unit: 'g', stock: 5500 },
-      { name: '山梨酸钾', code: 'MAT021', unit: 'g', stock: 3000 },
-      { name: 'DHA藻油', code: 'MAT022', unit: 'ml', stock: 2000 },
-      { name: 'ARA花生四烯酸', code: 'MAT023', unit: 'ml', stock: 1800 },
-      { name: '牛磺酸', code: 'MAT024', unit: 'g', stock: 5000 },
-      { name: '叶黄素', code: 'MAT025', unit: 'g', stock: 1500 },
-      { name: '低聚果糖', code: 'MAT026', unit: 'g', stock: 9000 },
-      { name: '乳酸亚铁', code: 'MAT027', unit: 'g', stock: 3000 },
-      { name: '葡萄糖酸锌', code: 'MAT028', unit: 'g', stock: 2500 },
-      { name: '烟酰胺', code: 'MAT029', unit: 'g', stock: 2000 },
-      { name: 'L-肉碱', code: 'MAT030', unit: 'g', stock: 1800 },
+      { name: '炒山楂', code: 'MAT001', unit: 'g', stock: 50000 },
+      { name: '炒麦芽', code: 'MAT002', unit: 'g', stock: 40000 },
+      { name: '莱菔子', code: 'MAT003', unit: 'g', stock: 35000 },
+      { name: '炒鸡内金', code: 'MAT004', unit: 'g', stock: 20000 },
+      { name: '茯苓', code: 'MAT005', unit: 'g', stock: 60000 },
+      { name: '陈皮', code: 'MAT006', unit: 'g', stock: 45000 },
+      { name: '火麻仁', code: 'MAT007', unit: 'g', stock: 30000 },
+      { name: '磷酸三钙', code: 'MAT008', unit: 'g', stock: 80000 },
+      { name: '低聚异麦芽糖', code: 'MAT009', unit: 'g', stock: 100000 },
+      { name: '蒲公英', code: 'MAT010', unit: 'g', stock: 25000 },
+      { name: '昆布', code: 'MAT011', unit: 'g', stock: 20000 },
+      { name: '罗汉果', code: 'MAT012', unit: 'g', stock: 18000 },
+      { name: '桔梗', code: 'MAT013', unit: 'g', stock: 28000 },
+      { name: '甘草', code: 'MAT014', unit: 'g', stock: 55000 },
+      { name: '山楂', code: 'MAT015', unit: 'g', stock: 40000 },
+      { name: '乌梅', code: 'MAT016', unit: 'g', stock: 35000 },
+      { name: '大枣', code: 'MAT017', unit: 'g', stock: 70000 },
+      { name: '桑叶', code: 'MAT018', unit: 'g', stock: 30000 },
+      { name: '白芷', code: 'MAT019', unit: 'g', stock: 22000 },
+      { name: '苦杏仁', code: 'MAT020', unit: 'g', stock: 25000 },
+      { name: '黄芪', code: 'MAT021', unit: 'g', stock: 50000 },
+      { name: '党参', code: 'MAT022', unit: 'g', stock: 38000 },
+      { name: '枸杞子', code: 'MAT023', unit: 'g', stock: 65000 },
+      { name: '当归', code: 'MAT024', unit: 'g', stock: 30000 },
+      { name: '菊花', code: 'MAT025', unit: 'g', stock: 40000 },
+      { name: '金银花', code: 'MAT026', unit: 'g', stock: 35000 },
+      { name: '淡竹叶', code: 'MAT027', unit: 'g', stock: 20000 },
+      { name: '芡实', code: 'MAT028', unit: 'g', stock: 25000 },
+      { name: '山药', code: 'MAT029', unit: 'g', stock: 55000 },
+      { name: '益智仁', code: 'MAT030', unit: 'g', stock: 15000 },
     ]
     const stmtMat = db.prepare(
       'INSERT OR IGNORE INTO materials (id, name, code, unit, stock, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
@@ -86,68 +86,17 @@ async function seedData() {
     }
 
     // ═══════════════════════════════════════════════════════
-    // 3. 客户表 customers（30条）
+    // 3. 业务员表 salesmen（15条）
     // ═══════════════════════════════════════════════════════
-    console.log('\n--- 创建客户 (30条) ---')
-    const customersData = [
-      { name: '甜蜜食品有限公司', contact: '张经理', phone: '13800138001', email: 'zhang@sweet.com', address: '上海市浦东新区食品路100号' },
-      { name: '美味食品集团', contact: '李总', phone: '13900139002', email: 'li@tasty.com', address: '北京市朝阳区食街200号' },
-      { name: '健康食品科技', contact: '王主任', phone: '13700137003', email: 'wang@health.com', address: '广州市天河区健康大道88号' },
-      { name: '佳宝乳业', contact: '赵部长', phone: '13600136004', email: 'zhao@jiabao.com', address: '内蒙古呼和浩特市乳业园区' },
-      { name: '金宝母婴用品', contact: '孙总监', phone: '13500135005', email: 'sun@jinbao.com', address: '深圳市南山区母婴大厦15层' },
-      { name: '诺优营养科技', contact: '周博士', phone: '13400134006', email: 'zhou@nuoyou.com', address: '杭州市滨江区科技路66号' },
-      { name: '绿源食品加工厂', contact: '吴厂长', phone: '13300133007', email: 'wu@lvyuan.com', address: '成都市武侯区绿源路22号' },
-      { name: '盛世乳制品有限公司', contact: '郑副总', phone: '13200132008', email: 'zheng@shengshi.com', address: '哈尔滨市松北区乳业大街' },
-      { name: '婴乐食品贸易', contact: '冯经理', phone: '13100131009', email: 'feng@yingle.com', address: '武汉市江汉区贸易中心' },
-      { name: '天然坊食品有限公司', contact: '陈总', phone: '13000130010', email: 'chen@tianran.com', address: '南京市鼓楼区天然路99号' },
-      { name: '星河营养品有限公司', contact: '褚主管', phone: '15000150011', email: 'chu@xinghe.com', address: '重庆市渝北区星河路5号' },
-      { name: '康宝母婴连锁', contact: '卫经理', phone: '15100151012', email: 'wei@kangbao.com', address: '西安市雁塔区康宝街18号' },
-      { name: '鲜奶工坊', contact: '蒋店长', phone: '15200152013', email: 'jiang@xiannai.com', address: '长沙市芙蓉区鲜奶巷20号' },
-      { name: '润之味食品', contact: '沈总监', phone: '15300153014', email: 'shen@runzhi.com', address: '苏州市工业园区润之路33号' },
-      { name: '禾优生物科技', contact: '韩博士', phone: '15400154015', email: 'han@heyou.com', address: '合肥市高新区禾优大厦' },
-      { name: '优选乳业集团', contact: '杨副董', phone: '15500155016', email: 'yang@youxuan.com', address: '石家庄市裕华区优选路1号' },
-      { name: '乐享食品科技', contact: '朱经理', phone: '15600156017', email: 'zhu@lexiang.com', address: '福州市鼓楼区乐享大厦8层' },
-      { name: '皇家宝贝母婴', contact: '秦总', phone: '15700157018', email: 'qin@huangjia.com', address: '青岛市市南区皇家街100号' },
-      { name: '维康营养食品', contact: '许主任', phone: '15800158019', email: 'xu@weikang.com', address: '天津市南开区维康路50号' },
-      { name: '百味食品配料', contact: '何经理', phone: '15900159020', email: 'he@baiwei.com', address: '郑州市金水区百味巷8号' },
-      { name: '安贝婴幼儿食品', contact: '吕总监', phone: '18000180021', email: 'lv@anbei.com', address: '昆明市盘龙区安贝路12号' },
-      { name: '优加乳品', contact: '施经理', phone: '18100181022', email: 'shi@youjia.com', address: '沈阳市沈河区优加大厦' },
-      { name: '德尚食品研发', contact: '张博士', phone: '18200182023', email: 'zhangb@deshang.com', address: '济南市历下区德尚科技园' },
-      { name: '味全食品工业', contact: '王副总', phone: '18300183024', email: 'wangb@weiquan.com', address: '宁波市鄞州区味全工业园' },
-      { name: '嘉宝食品集团', contact: '刘总监', phone: '18400184025', email: 'liub@jiabao.com', address: '大连市中山区嘉宝大厦' },
-      { name: '贝因美食品', contact: '谢经理', phone: '18500185026', email: 'xie@beingmate.com', address: '杭州市滨江区贝因美路1号' },
-      { name: '飞鹤乳业合作方', contact: '高经理', phone: '18600186027', email: 'gao@feihe.com', address: '齐齐哈尔市飞鹤产业园' },
-      { name: '雅士利食品', contact: '马总监', phone: '18700187028', email: 'ma@yashili.com', address: '广州市开发区雅士利大厦' },
-      { name: '明一国际', contact: '林经理', phone: '18800188029', email: 'lin@mingyi.com', address: '福州市仓山区明一工业园' },
-      { name: '合生元生物', contact: '罗总', phone: '18900189030', email: 'luo@biostime.com', address: '广州市黄埔区生物科技园' },
-    ]
-    const stmtCus = db.prepare(
-      'INSERT OR IGNORE INTO customers (id, name, contact, phone, email, address, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
-    )
-    const customerIds: string[] = []
-    for (const cus of customersData) {
-      const id = generateId()
-      customerIds.push(id)
-      try {
-        stmtCus.run(id, cus.name, cus.contact, cus.phone, cus.email, cus.address, userIds[0], now(), now())
-        console.log(`✓ 客户: ${cus.name}`)
-      } catch {
-        console.log(`  客户 ${cus.name} 已存在，跳过`)
-      }
-    }
-
-    // ═══════════════════════════════════════════════════════
-    // 4. 业务员表 salesmen（30条）
-    // ═══════════════════════════════════════════════════════
-    console.log('\n--- 创建业务员 (30条) ---')
-    const departments = ['华东销售部', '华南销售部', '华北销售部', '西南销售部', '华中销售部', '东北销售部']
-    const salesmenData = Array.from({ length: 30 }, (_, i) => ({
+    console.log('\n--- 创建业务员 (15条) ---')
+    const departments = ['华东销售部', '华南销售部', '华北销售部', '西南销售部', '华中销售部']
+    const salesmenData = Array.from({ length: 15 }, (_, i) => ({
       name: `业务员${String.fromCharCode(65 + Math.floor(i / 2))}${i % 2 === 0 ? '甲' : '乙'}`,
       code: `SM${String(i + 1).padStart(3, '0')}`,
       department: departments[i % departments.length],
       phone: `136${String(10000000 + i * 111111).padStart(8, '0')}`,
       email: `sm${String(i + 1).padStart(3, '0')}@ting.com`,
-      status: i < 27 ? 'active' : 'inactive',
+      status: i < 13 ? 'active' : 'inactive',
     }))
     const stmtSm = db.prepare(
       'INSERT OR IGNORE INTO salesmen (id, name, code, department, phone, email, status, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
@@ -165,59 +114,110 @@ async function seedData() {
     }
 
     // ═══════════════════════════════════════════════════════
-    // 5. 配方表 formulas（30条）
+    // 4. 配方表 formulas（30条）— 关联业务员
     // ═══════════════════════════════════════════════════════
     console.log('\n--- 创建配方 (30条) ---')
-    const formulaNames = [
-      '婴儿配方奶粉1段', '婴儿配方奶粉2段', '婴儿配方奶粉3段',
-      '幼儿营养米粉', '儿童成长奶粉', '中老年高钙奶粉',
-      '孕妇营养奶粉', '脱脂低脂奶粉', '全脂甜奶粉',
-      '巧克力风味奶粉', '草莓风味奶粉', '原味酸奶发酵剂',
-      '高蛋白运动奶粉', '低乳糖奶粉', '有机全脂奶粉',
-      '羊奶粉配方', '益生菌配方奶粉', 'DHA强化配方奶粉',
-      '高铁婴儿米粉', '维生素强化奶粉', '无糖代餐奶粉',
-      '奶茶专用奶精', '烘焙专用奶粉', '冰淇淋专用奶粉',
-      '保健功能奶粉', '学生营养奶粉', '速溶全脂奶粉',
-      '浓缩蛋白配方', '膳食纤维奶粉', '特殊医学用途配方',
+    const formulaData = [
+      { name: '消积通便固体饮料', productType: '固体饮料', dosage: '4g/袋', efficacy: '消积、通便',
+        materials: [[0,0.31,6,60],[1,0.465,9,55],[2,0.31,6,70],[3,0.155,3,70],[4,0.465,9,75],[5,0.31,6,70],[6,0.465,9,55],[7,0.02,null,40],[8,1.5,null,10.8]] },
+      { name: '鼻炎扁腺炎固体饮料', productType: '固体饮料', dosage: '4g/袋', efficacy: '鼻炎、扁腺炎症',
+        materials: [[9,0.4133,9,70],[10,0.4133,9,70],[11,0.4133,9,70],[12,0.2756,6,70],[13,0.2756,6,70],[14,0.2756,6,70],[15,0.4133,9,70],[7,0.02,null,40],[8,1.5,null,10.8]] },
+      { name: '过敏体质固体饮料', productType: '固体饮料', dosage: '4g/袋', efficacy: '过敏体质',
+        materials: [[15,0.4133,6,70],[5,0.4133,6,70],[13,0.2067,3,75],[16,0.8267,12,70],[17,0.4133,6,70],[18,0.2067,3,75],[7,0.02,null,40],[8,1.5,null,10.8]] },
+      { name: '止咳化痰固体饮料', productType: '固体饮料', dosage: '4g/袋', efficacy: '咳嗽',
+        materials: [[12,0.2918,6,70],[19,0.4376,9,70],[5,0.2918,6,70],[4,0.5835,12,75],[13,0.1459,3,70],[15,0.2918,6,70],[11,0.4376,9,80],[7,0.02,null,40],[8,1.5,null,10.8]] },
+      { name: '健脾益胃固体饮料', productType: '固体饮料', dosage: '4g/袋', efficacy: '健脾、益胃',
+        materials: [[20,0.5,9,55],[21,0.5,9,60],[28,0.5,9,50],[4,0.333,6,75],[5,0.333,6,70],[13,0.167,3,70],[7,0.02,null,40],[8,1.5,null,10.8]] },
+      { name: '益气养血固体饮料', productType: '固体饮料', dosage: '4g/袋', efficacy: '气血两虚',
+        materials: [[20,0.5,9,55],[22,0.5,9,65],[23,0.333,6,80],[16,0.333,6,70],[23,0.167,3,80],[13,0.167,3,70],[7,0.02,null,40],[8,1.5,null,10.8]] },
+      { name: '安神助眠固体饮料', productType: '固体饮料', dosage: '4g/袋', efficacy: '失眠、多梦',
+        materials: [[4,0.5,9,75],[15,0.5,9,70],[6,0.333,6,70],[5,0.333,6,70],[16,0.167,3,70],[13,0.167,3,70],[7,0.02,null,40],[8,1.5,null,10.8]] },
+      { name: '清热解毒固体饮料', productType: '固体饮料', dosage: '4g/袋', efficacy: '清热、解毒',
+        materials: [[25,0.5,9,45],[26,0.5,9,50],[27,0.333,6,40],[14,0.333,6,70],[5,0.167,3,70],[11,0.167,3,80],[7,0.02,null,40],[8,1.5,null,10.8]] },
+      { name: '补钙壮骨固体饮料', productType: '固体饮料', dosage: '4g/袋', efficacy: '补钙、壮骨',
+        materials: [[7,0.5,null,40],[20,0.375,6,55],[28,0.375,6,50],[4,0.25,3,75],[23,0.25,3,80],[8,1.5,null,10.8]] },
+      { name: '免疫力提升固体饮料', productType: '固体饮料', dosage: '4g/袋', efficacy: '免疫力低下',
+        materials: [[20,0.5,9,55],[21,0.375,6,60],[28,0.375,6,50],[4,0.25,3,75],[13,0.25,3,70],[7,0.02,null,40],[8,1.5,null,10.8]] },
+      { name: '消积通便口服液', productType: '口服液', dosage: '15g/支', efficacy: '消积、通便',
+        materials: [[0,1.5,6,14],[1,2.25,9,7],[2,1.5,6,28],[3,0.75,3,15],[4,2.25,9,28],[5,1.5,6,15],[6,2.25,9,28],[8,5,null,10.8]] },
+      { name: '鼻炎扁腺炎口服液', productType: '口服液', dosage: '15g/支', efficacy: '鼻炎、扁腺炎症',
+        materials: [[9,1.8,9,15],[10,1.8,9,28],[11,1.8,9,48],[12,1.2,6,45],[13,1.2,6,28],[14,1.2,6,14],[15,1.8,9,19],[8,5,null,10.8]] },
+      { name: '过敏体质口服液', productType: '口服液', dosage: '15g/支', efficacy: '过敏体质',
+        materials: [[15,2,6,19],[5,2,6,15],[13,1,3,28],[16,4,12,12],[17,2,6,15],[18,1,3,38],[8,8,null,10.8]] },
+      { name: '止咳化痰口服液', productType: '口服液', dosage: '15g/支', efficacy: '咳嗽',
+        materials: [[12,1.2,6,35],[19,1.8,9,45],[5,1.2,6,15],[4,2.4,12,25],[13,0.6,3,28],[15,1.2,6,19],[11,1.8,9,48],[8,5,null,10.8]] },
+      { name: '健脾益胃口服液', productType: '口服液', dosage: '15g/支', efficacy: '健脾、益胃',
+        materials: [[20,1.8,9,28],[21,1.8,9,30],[28,1.8,9,22],[4,1.2,6,25],[5,1.2,6,28],[13,0.6,3,28],[8,5,null,10.8]] },
+      { name: '益气养血口服液', productType: '口服液', dosage: '15g/支', efficacy: '气血两虚',
+        materials: [[20,1.8,9,28],[22,1.8,9,35],[23,1.2,6,38],[16,1.2,6,32],[23,0.6,3,38],[13,0.6,3,28],[8,5,null,10.8]] },
+      { name: '安神助眠口服液', productType: '口服液', dosage: '15g/支', efficacy: '失眠、多梦',
+        materials: [[4,1.8,9,25],[15,1.8,9,32],[6,1.2,6,28],[5,1.2,6,28],[16,0.6,3,32],[13,0.6,3,28],[8,5,null,10.8]] },
+      { name: '清热解毒口服液', productType: '口服液', dosage: '15g/支', efficacy: '清热、解毒',
+        materials: [[25,1.8,9,20],[26,1.8,9,22],[27,1.2,6,18],[13,1.2,6,28],[5,0.6,3,28],[11,0.6,3,48],[8,5,null,10.8]] },
+      { name: '补钙壮骨口服液', productType: '口服液', dosage: '15g/支', efficacy: '补钙、壮骨',
+        materials: [[7,1.5,null,40],[20,1.2,6,28],[28,1.2,6,22],[4,0.8,3,25],[23,0.8,3,38],[8,8,null,10.8]] },
+      { name: '免疫力提升口服液', productType: '口服液', dosage: '15g/支', efficacy: '免疫力低下',
+        materials: [[20,1.8,9,28],[21,1.2,6,30],[28,1.2,6,22],[4,0.8,3,25],[13,0.8,3,28],[8,5,null,10.8]] },
+      { name: '儿童消积开胃固体饮料', productType: '固体饮料', dosage: '4g/袋', efficacy: '儿童消积、开胃',
+        materials: [[0,0.31,6,60],[1,0.465,9,55],[3,0.155,3,70],[4,0.465,9,75],[5,0.31,6,70],[29,0.31,6,50],[7,0.02,null,40],[8,1.5,null,10.8]] },
+      { name: '儿童健脾化痰固体饮料', productType: '固体饮料', dosage: '4g/袋', efficacy: '儿童健脾、化痰',
+        materials: [[4,0.465,9,75],[12,0.31,6,70],[5,0.31,6,70],[29,0.31,6,50],[13,0.155,3,70],[14,0.31,6,70],[7,0.02,null,40],[8,1.5,null,10.8]] },
+      { name: '成人疏肝理气固体饮料', productType: '固体饮料', dosage: '4g/袋', efficacy: '疏肝、理气',
+        materials: [[5,0.465,9,70],[14,0.31,6,70],[15,0.465,9,70],[6,0.31,6,70],[24,0.155,3,80],[13,0.155,3,70],[7,0.02,null,40],[8,1.5,null,10.8]] },
+      { name: '女性调理养颜固体饮料', productType: '固体饮料', dosage: '4g/袋', efficacy: '女性调理、养颜',
+        materials: [[23,0.465,9,80],[24,0.31,6,80],[16,0.465,9,70],[4,0.31,6,75],[20,0.155,3,55],[13,0.155,3,70],[7,0.02,null,40],[8,1.5,null,10.8]] },
+      { name: '中老年润肠通便固体饮料', productType: '固体饮料', dosage: '4g/袋', efficacy: '中老年润肠、通便',
+        materials: [[6,0.465,9,70],[2,0.465,9,70],[5,0.31,6,55],[4,0.31,6,75],[17,0.31,6,70],[7,0.02,null,40],[8,1.5,null,10.8]] },
+      { name: '儿童消积开胃口服液', productType: '口服液', dosage: '15g/支', efficacy: '儿童消积、开胃',
+        materials: [[0,1.5,6,14],[1,2.25,9,7],[3,0.75,3,15],[4,2.25,9,28],[5,1.5,6,15],[29,1.5,6,12],[8,5,null,10.8]] },
+      { name: '儿童健脾化痰口服液', productType: '口服液', dosage: '15g/支', efficacy: '儿童健脾、化痰',
+        materials: [[4,2.25,9,25],[12,1.5,6,35],[5,1.5,6,15],[29,1.5,6,12],[13,0.75,3,28],[14,1.5,6,28],[8,5,null,10.8]] },
+      { name: '成人疏肝理气口服液', productType: '口服液', dosage: '15g/支', efficacy: '疏肝、理气',
+        materials: [[5,1.8,9,28],[13,1.2,6,28],[15,1.8,9,32],[6,1.2,6,28],[24,0.6,3,48],[13,0.6,3,28],[8,5,null,10.8]] },
+      { name: '女性调理养颜口服液', productType: '口服液', dosage: '15g/支', efficacy: '女性调理、养颜',
+        materials: [[23,1.8,9,48],[24,1.2,6,48],[16,1.8,9,32],[4,1.2,6,25],[20,0.6,3,28],[13,0.6,3,28],[8,5,null,10.8]] },
+      { name: '中老年润肠通便口服液', productType: '口服液', dosage: '15g/支', efficacy: '中老年润肠、通便',
+        materials: [[6,1.8,9,28],[2,1.8,9,28],[7,1.2,null,40],[4,1.2,6,25],[17,1.2,6,32],[8,8,null,10.8]] },
     ]
     const stmtFormula = db.prepare(
-      'INSERT OR IGNORE INTO formulas (id, name, customer_id, customer_name, materials_json, description, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
+      'INSERT OR IGNORE INTO formulas (id, name, salesman_id, salesman_name, materials_json, description, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
     )
     const formulaIds: string[] = []
     for (let i = 0; i < 30; i++) {
       const id = generateId()
       formulaIds.push(id)
-      const cusIdx = i % customerIds.length
-      // 为每个配方生成合理的原料组合
-      const matCount = 4 + (i % 5)
-      const usedMats = new Set<number>()
-      const matsList: { materialId: string; name: string; amount: number; unit: string }[] = []
-      for (let j = 0; j < matCount; j++) {
-        let matIdx: number
-        do {
-          matIdx = Math.floor((i * 3 + j * 7) % 30)
-        } while (usedMats.has(matIdx))
-        usedMats.add(matIdx)
-        matsList.push({
-          materialId: materialIds[matIdx],
-          materialName: materialsData[matIdx].name,
-          quantity: Math.round((10 + (i * 13 + j * 37) % 490) * 10) / 10,
-        })
-      }
-      const description = `${customersData[cusIdx].name}定制的${formulaNames[i]}，采用优质原料精制而成。`
+      const smIdx = i % salesmanIds.length
+      const f = formulaData[i]
+      const matsList = f.materials.map(([matIdx, amount, ratio, unitPrice]: number[]) => ({
+        materialId: materialIds[matIdx],
+        materialName: materialsData[matIdx].name,
+        quantity: amount,
+      }))
+      const materialDetails = f.materials.map(([matIdx, amount, ratio, unitPrice]: number[]) => ({
+        name: materialsData[matIdx].name,
+        ratio: ratio ? `${ratio}%` : '辅料',
+        amount: `${amount}g`,
+        unitPrice: unitPrice ? `${unitPrice}元/kg` : '',
+        quote: unitPrice ? parseFloat((amount * unitPrice / 1000).toFixed(4)) : null,
+      }))
+      const totalQuote = materialDetails.reduce((s, m) => s + (m.quote || 0), 0)
+      const description = JSON.stringify({
+        productType: f.productType, dosage: f.dosage, efficacy: f.efficacy,
+        totalQuote: parseFloat(totalQuote.toFixed(4)), materials: materialDetails,
+      })
       try {
         stmtFormula.run(
-          id, formulaNames[i], customerIds[cusIdx], customersData[cusIdx].name,
-          JSON.stringify(matsList), description, userIds[i % 5 + 1], now(), now()
+          id, f.name, salesmanIds[smIdx], salesmenData[smIdx].name,
+          JSON.stringify(matsList), description, userIds[i % userIds.length], now(), now()
         )
-        console.log(`✓ 配方: ${formulaNames[i]}`)
+        console.log(`✓ 配方: ${f.name} [${f.productType}]`)
       } catch (e) {
-        console.log(`  配方 ${formulaNames[i]} 创建失败或已存在: ${e}`)
+        console.log(`  配方 ${f.name} 创建失败或已存在: ${e}`)
       }
     }
 
     // ═══════════════════════════════════════════════════════
-    // 6. 配方版本表 formula_versions（30条）
+    // 5. 配方版本表 formula_versions（30条）
     // ═══════════════════════════════════════════════════════
     console.log('\n--- 创建配方版本 (30条) ---')
     const stmtFv = db.prepare(
@@ -233,51 +233,45 @@ async function seedData() {
       const status = statuses[i % 3]
       const isCurrent = (i % 10 === 0) ? 1 : 0
       const changes = [
-        { field: '白砂糖', oldVal: '200g', newVal: `${180 + i % 40}g` },
-        { field: '全脂奶粉', oldVal: '300g', newVal: `${280 + i % 60}g` },
+        { field: '炒山楂', oldVal: '0.31g', newVal: `${(0.28 + i * 0.01).toFixed(2)}g` },
+        { field: '茯苓', oldVal: '0.465g', newVal: `${(0.4 + i * 0.01).toFixed(2)}g` },
       ]
-      const snapshot = { name: formulaNames[formulaIdx], timestamp: now(), data: `配方快照 ${verNum}` }
+      const snapshot = { name: formulaData[formulaIdx].name, timestamp: now(), data: `配方快照 ${verNum}` }
       try {
         stmtFv.run(
           vid, formulaIds[formulaIdx], verNum,
-          `${formulaNames[formulaIdx]} ${verNum}`,
+          `${formulaData[formulaIdx].name} ${verNum}`,
           JSON.stringify(changes), JSON.stringify(snapshot),
-          status, isCurrent, userIds[(i + 2) % 10], now()
+          status, isCurrent, userIds[(i + 2) % userIds.length], now()
         )
-        console.log(`✓ 版本: ${verNum} (${formulaNames[formulaIdx]})`)
+        console.log(`✓ 版本: ${verNum} (${formulaData[formulaIdx].name})`)
       } catch (e) {
         console.log(`  版本 ${verNum} 创建失败或已存在: ${e}`)
       }
     }
 
     // ═══════════════════════════════════════════════════════
-    // 7. 导出模板表 export_templates（30条）
+    // 6. 导出模板表 export_templates（12条）
     // ═══════════════════════════════════════════════════════
-    console.log('\n--- 创建导出模板 (30条) ---')
+    console.log('\n--- 创建导出模板 (12条) ---')
     const templateNames = [
-      '标准配方PDF模板', '详细配方PDF模板', '简要配方PDF模板',
-      '营养标签PDF模板', '客户定制PDF模板', '内部审核PDF模板',
-      '生产配方Excel模板', '原料清单Excel模板', '营养成分Excel模板',
-      '批量配方Excel模板', '成本核算Excel模板', '库存对比Excel模板',
-      'MES对接API模板', 'ERP对接API模板', 'WMS对接API模板',
-      '质检系统API模板', '采购系统API模板', '客户门户API模板',
+      '标准配方PDF模板', '营养标签PDF模板', '内部审核PDF模板',
+      '生产配方Excel模板', '原料清单Excel模板', '成本核算Excel模板',
+      'MES对接API模板', 'ERP对接API模板', '质检系统API模板',
       '生产指令打印模板', '原料领料单打印模板', '质检报告打印模板',
-      '出货标签打印模板', '批次追溯打印模板', '配比称量打印模板',
-      '婴儿配方PDF模板', '成人营养PDF模板', '运动营养PDF模板',
-      '老年保健PDF模板', '孕妇营养PDF模板', '特殊医学PDF模板',
     ]
     const types = ['pdf', 'excel', 'api', 'print'] as const
     const stmtEt = db.prepare(
       'INSERT OR IGNORE INTO export_templates (template_id, name, description, type, format_config_json, is_default, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
     )
     const templateIds: string[] = []
-    for (let i = 0; i < 30; i++) {
+    for (let i = 0; i < 12; i++) {
       const tid = generateId()
       templateIds.push(tid)
       const type = types[i % 4]
       const isDefault = (i === 0) ? 1 : 0
       const config = {
-        columns: ['配方名称', '客户名称', '原料列表', '创建时间'],
+        columns: ['配方名称', '业务员名称', '原料列表', '创建时间'],
         orientation: i % 2 === 0 ? 'portrait' : 'landscape',
         fontSize: 12,
       }
@@ -293,89 +287,65 @@ async function seedData() {
     }
 
     // ═══════════════════════════════════════════════════════
-    // 8. 导出任务表 export_jobs（30条）
+    // 7. 导出任务表 export_jobs（10条）
     // ═══════════════════════════════════════════════════════
-    console.log('\n--- 创建导出任务 (30条) ---')
+    console.log('\n--- 创建导出任务 (10条) ---')
     const jobStatuses = ['completed', 'completed', 'completed', 'failed', 'processing', 'pending'] as const
     const stmtEj = db.prepare(
       'INSERT OR IGNORE INTO export_jobs (job_id, formula_id, version_id, template_id, export_type, status, file_url, file_name, api_endpoint, progress, error_message, created_by, created_at, completed_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
     )
-    for (let i = 0; i < 30; i++) {
+    for (let i = 0; i < 10; i++) {
       const jid = generateId()
       const formulaIdx = i % formulaIds.length
       const status = jobStatuses[i % jobStatuses.length]
       const exportType = (types[i % 4] === 'print') ? 'pdf' : types[i % 4]
       const progress = status === 'completed' ? 100 : status === 'pending' ? 0 : Math.floor(Math.random() * 80) + 10
       const fileUrl = status === 'completed' ? `/exports/formula_${formulaIdx + 1}_${Date.now()}.pdf` : null
-      const fileName = status === 'completed' ? `配方_${formulaNames[formulaIdx]}_${i + 1}.pdf` : null
+      const fileName = status === 'completed' ? `配方_${formulaData[formulaIdx].name}_${i + 1}.pdf` : null
       const errorMsg = status === 'failed' ? '导出过程中发生超时错误' : null
       const completedAt = status === 'completed' ? now() : null
       try {
         stmtEj.run(
-          jid, formulaIds[formulaIdx],
-          versionIds[i % versionIds.length],
-          templateIds[i % templateIds.length],
-          exportType, status, fileUrl, fileName,
-          exportType === 'api' ? '/api/v1/formula/export' : null,
-          progress, errorMsg,
-          userIds[(i + 1) % 10], now(), completedAt
+          jid, formulaIds[formulaIdx], versionIds[i % versionIds.length],
+          templateIds[i % templateIds.length], exportType, status,
+          fileUrl, fileName, exportType === 'api' ? '/api/v1/formula/export' : null,
+          progress, errorMsg, userIds[(i + 1) % userIds.length], now(), completedAt
         )
-        console.log(`✓ 导出任务: ${formulaNames[formulaIdx]} (${status})`)
+        console.log(`✓ 导出任务: ${formulaData[formulaIdx].name} (${status})`)
       } catch (e) {
         console.log(`  导出任务创建失败: ${e}`)
       }
     }
 
     // ═══════════════════════════════════════════════════════
-    // 9. 营养标准表 nutrition_profiles（30条）
+    // 8. 营养标准表 nutrition_profiles（12条）
     // ═══════════════════════════════════════════════════════
-    console.log('\n--- 创建营养标准 (30条) ---')
+    console.log('\n--- 创建营养标准 (12条) ---')
     const categories = ['infant', 'child', 'adult', 'elderly', 'pregnant', 'special'] as const
     const profileNames = [
-      '婴儿配方奶GB10765标准', '较大婴儿配方奶GB10767标准', '幼儿配方奶GB10769标准',
-      '1-3岁幼儿营养标准', '4-6岁儿童营养标准', '7-10岁学龄儿童标准',
-      '11-14岁青少年营养标准', '15-18岁青少年营养标准', '成人基础营养标准',
-      '成人高强度运动标准', '成人减脂营养标准', '成人增肌营养标准',
-      '老年男性营养标准', '老年女性营养标准', '老年骨质疏松预防标准',
-      '孕早期营养标准', '孕中期营养标准', '孕晚期营养标准',
-      '哺乳期营养标准', '乳糖不耐受特殊配方标准', '苯丙酮尿症特殊配方标准',
-      '过敏体质特殊配方标准', '糖尿病专用营养标准', '高血压专用营养标准',
-      '术后恢复营养标准', '胃肠道功能恢复标准', '免疫低下营养标准',
-      '儿童青少年钙需求标准', '婴幼儿DHA推荐标准', '孕期叶酸需求标准',
+      '婴儿配方奶GB10765标准', '较大婴儿配方奶GB10767标准',
+      '1-3岁幼儿营养标准', '4-6岁儿童营养标准',
+      '成人基础营养标准', '成人高强度运动标准',
+      '老年男性营养标准', '老年女性营养标准',
+      '孕早期营养标准', '孕中期营养标准',
+      '乳糖不耐受特殊配方标准', '糖尿病专用营养标准',
     ]
     const stmtNp = db.prepare(
       'INSERT OR IGNORE INTO nutrition_profiles (profile_id, name, description, category, target_values_json, tolerance_ranges_json, mandatory_fields_json, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
     )
-    for (let i = 0; i < 30; i++) {
+    for (let i = 0; i < 12; i++) {
       const pid = generateId()
       const category = categories[i % categories.length]
       const targetValues = {
-        energy_kj: 1500 + i * 50,
-        protein_g: 10 + i * 2,
-        fat_g: 20 + i,
-        carbohydrate_g: 50 + i * 3,
-        calcium_mg: 300 + i * 20,
-        iron_mg: 5 + i * 0.5,
-        zinc_mg: 3 + i * 0.3,
-        vitaminA_ug: 200 + i * 30,
-        vitaminD_ug: 5 + i,
-        vitaminE_mg: 3 + i * 0.5,
+        energy_kj: 1500 + i * 50, protein_g: 10 + i * 2, fat_g: 20 + i,
+        carbohydrate_g: 50 + i * 3, calcium_mg: 300 + i * 20, iron_mg: 5 + i * 0.5,
+        zinc_mg: 3 + i * 0.3, vitaminA_ug: 200 + i * 30, vitaminD_ug: 5 + i, vitaminE_mg: 3 + i * 0.5,
       }
-      const toleranceRanges = {
-        energy_kj: { min: 0.9, max: 1.1 },
-        protein_g: { min: 0.8, max: 1.2 },
-        fat_g: { min: 0.85, max: 1.15 },
-      }
+      const toleranceRanges = { energy_kj: { min: 0.9, max: 1.1 }, protein_g: { min: 0.8, max: 1.2 }, fat_g: { min: 0.85, max: 1.15 } }
       const mandatoryFields = ['energy_kj', 'protein_g', 'fat_g', 'calcium_mg']
       try {
-        stmtNp.run(
-          pid, profileNames[i], `${profileNames[i]}的详细描述`,
-          category,
-          JSON.stringify(targetValues),
-          JSON.stringify(toleranceRanges),
-          JSON.stringify(mandatoryFields),
-          now(), now()
-        )
+        stmtNp.run(pid, profileNames[i], `${profileNames[i]}的详细描述`, category,
+          JSON.stringify(targetValues), JSON.stringify(toleranceRanges), JSON.stringify(mandatoryFields), now(), now())
         console.log(`✓ 营养标准: ${profileNames[i]}`)
       } catch (e) {
         console.log(`  营养标准 ${profileNames[i]} 已存在: ${e}`)
@@ -383,122 +353,40 @@ async function seedData() {
     }
 
     // ═══════════════════════════════════════════════════════
-    // 10. 原料营养成分表 material_nutrition（30条）
+    // 9. 原料营养成分表 material_nutrition（30条）
     // ═══════════════════════════════════════════════════════
     console.log('\n--- 创建原料营养成分 (30条) ---')
     const stmtMn = db.prepare(
       'INSERT OR IGNORE INTO material_nutrition (nutrition_id, material_id, per_100g_json, data_version, data_source, notes, last_updated) VALUES (?, ?, ?, ?, ?, ?, ?)'
     )
+    const sources = ['中国食物成分表2024版', 'USDA食物数据库', 'GB28050-2011', '企业检测数据', '第三方检测报告']
     for (let i = 0; i < 30; i++) {
       const nid = generateId()
       const per100g = {
-        energy_kj: 1500 + i * 100,
-        protein_g: Math.round((5 + i * 2.5) * 10) / 10,
-        fat_g: Math.round((1 + i * 1.5) * 10) / 10,
-        carbohydrate_g: Math.round((70 + i * 3) * 10) / 10,
-        dietary_fiber_g: Math.round((0.5 + i * 0.2) * 10) / 10,
-        sodium_mg: Math.round((50 + i * 30) * 10) / 10,
-        calcium_mg: Math.round((20 + i * 15) * 10) / 10,
-        iron_mg: Math.round((0.5 + i * 0.3) * 10) / 10,
+        energy_kj: 1500 + i * 100, protein_g: Math.round((5 + i * 2.5) * 10) / 10,
+        fat_g: Math.round((1 + i * 1.5) * 10) / 10, carbohydrate_g: Math.round((70 + i * 3) * 10) / 10,
+        dietary_fiber_g: Math.round((0.5 + i * 0.2) * 10) / 10, sodium_mg: Math.round((50 + i * 30) * 10) / 10,
+        calcium_mg: Math.round((20 + i * 15) * 10) / 10, iron_mg: Math.round((0.5 + i * 0.3) * 10) / 10,
         vitaminC_mg: Math.round((0.1 + i * 0.05) * 10) / 10,
       }
-      const sources = ['中国食物成分表2024版', 'USDA食物数据库', 'GB28050-2011', '企业检测数据', '第三方检测报告']
       try {
-        stmtMn.run(
-          nid, materialIds[i],
-          JSON.stringify(per100g),
-          '1.0',
-          sources[i % sources.length],
-          `原料[${materialsData[i].name}]营养成分数据`,
-          now()
-        )
+        stmtMn.run(nid, materialIds[i], JSON.stringify(per100g), '1.0', sources[i % sources.length], `原料[${materialsData[i].name}]营养成分数据`, now())
         console.log(`✓ 原料营养: ${materialsData[i].name}`)
       } catch (e) {
         console.log(`  原料营养 ${materialsData[i].name} 已存在: ${e}`)
       }
     }
 
-    // ═══════════════════════════════════════════════════════
-    // 11. 业务员-客户关联表（30条，保证 UNIQUE 约束）
-    // UNIQUE (salesman_id, customer_id, start_date)
-    // ═══════════════════════════════════════════════════════
-    console.log('\n--- 创建业务员-客户关联 (30条) ---')
-    const stmtScr = db.prepare(
-      'INSERT OR IGNORE INTO salesman_customer_relations (id, salesman_id, customer_id, relation_type, start_date, end_date, notes, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
-    )
-    const usedPairs = new Set<string>()
-    let scrCount = 0
-    for (let i = 0; i < 50 && scrCount < 30; i++) {
-      const smIdx = i % salesmanIds.length
-      const cusIdx = (i * 3 + 7) % customerIds.length
-      const month = (i % 12) + 1
-      const startDate = `2024-${String(month).padStart(2, '0')}-01`
-      const pairKey = `${smIdx}-${cusIdx}-${startDate}`
-      if (usedPairs.has(pairKey)) continue
-      usedPairs.add(pairKey)
-      const rid = generateId()
-      const relType = i % 3 === 0 ? 'secondary' : 'primary'
-      const endDate = i % 5 === 0 ? null : '2025-12-31'
-      try {
-        stmtScr.run(
-          rid, salesmanIds[smIdx], customerIds[cusIdx],
-          relType, startDate, endDate,
-          `${salesmenData[smIdx].name}负责${customersData[cusIdx].name}`,
-          now()
-        )
-        console.log(`✓ 关联: ${salesmenData[smIdx].name} -> ${customersData[cusIdx].name}`)
-        scrCount++
-      } catch (e) {
-        console.log(`  关联创建失败: ${e}`)
-      }
-    }
-
-    // ═══════════════════════════════════════════════════════
-    // 12. 业务员-配方师对接表（20条，保证 UNIQUE 约束）
-    // UNIQUE (salesman_id, formulist_id)
-    // ═══════════════════════════════════════════════════════
-    console.log('\n--- 创建业务员-配方师对接 (20条) ---')
-    const stmtSfr = db.prepare(
-      'INSERT OR IGNORE INTO salesman_formulist_relations (id, salesman_id, formulist_id, cooperation_mode, priority, notes, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)'
-    )
-    const usedFlPairs = new Set<string>()
-    let sfrCount = 0
-    for (let i = 0; i < 50 && sfrCount < 20; i++) {
-      const smIdx = i % salesmanIds.length
-      const flIdx = (i * 3 + 1) % userIds.length
-      const pairKey = `${smIdx}-${flIdx}`
-      if (usedFlPairs.has(pairKey)) continue
-      usedFlPairs.add(pairKey)
-      const rid = generateId()
-      const mode = i % 2 === 0 ? 'direct' : 'indirect'
-      const priority = (i % 5) + 1
-      try {
-        stmtSfr.run(
-          rid, salesmanIds[smIdx], userIds[flIdx],
-          mode, priority,
-          `${salesmenData[smIdx].name}与配方师${flIdx}对接合作`,
-          now()
-        )
-        console.log(`✓ 对接: ${salesmenData[smIdx].name} <-> 配方师${flIdx}`)
-        sfrCount++
-      } catch (e) {
-        console.log(`  对接创建失败: ${e}`)
-      }
-    }
-
     console.log('\n✅ 种子数据全部插入完成！')
-    console.log(`  用户: 30 条`)
+    console.log(`  用户: ${userIds.length} 条`)
     console.log(`  原料: 30 条`)
-    console.log(`  客户: 30 条`)
-    console.log(`  业务员: 30 条`)
+    console.log(`  业务员: ${salesmanIds.length} 条`)
     console.log(`  配方: 30 条`)
     console.log(`  配方版本: 30 条`)
-    console.log(`  导出模板: 30 条`)
-    console.log(`  导出任务: 30 条`)
-    console.log(`  营养标准: 30 条`)
+    console.log(`  导出模板: 12 条`)
+    console.log(`  导出任务: 10 条`)
+    console.log(`  营养标准: 12 条`)
     console.log(`  原料营养: 30 条`)
-    console.log(`  业务员-客户关联: 30 条`)
-    console.log(`  业务员-配方师对接: 20 条`)
   })
 
   insert()

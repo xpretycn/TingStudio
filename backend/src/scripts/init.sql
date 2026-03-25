@@ -9,25 +9,10 @@ CREATE TABLE IF NOT EXISTS `users` (
   `id` TEXT PRIMARY KEY,
   `username` TEXT NOT NULL UNIQUE,
   `password` TEXT NOT NULL,
-  `role` TEXT NOT NULL DEFAULT 'formulist' CHECK(role IN ('admin', 'formulist', 'salesman', 'production')),
+  `role` TEXT NOT NULL DEFAULT 'formulist' CHECK(role IN ('admin', 'formulist')),
   `created_at` TEXT NOT NULL DEFAULT (datetime('now')),
   `updated_at` TEXT NOT NULL DEFAULT (datetime('now'))
 );
-
--- 客户表
-CREATE TABLE IF NOT EXISTS `customers` (
-  `id` TEXT PRIMARY KEY,
-  `name` TEXT NOT NULL,
-  `contact` TEXT DEFAULT NULL,
-  `phone` TEXT DEFAULT NULL,
-  `email` TEXT DEFAULT NULL,
-  `address` TEXT DEFAULT NULL,
-  `created_by` TEXT NOT NULL,
-  `created_at` TEXT NOT NULL DEFAULT (datetime('now')),
-  `updated_at` TEXT NOT NULL DEFAULT (datetime('now'))
-);
-CREATE INDEX IF NOT EXISTS `idx_customer_name` ON `customers`(`name`);
-CREATE INDEX IF NOT EXISTS `idx_customer_created_by` ON `customers`(`created_by`);
 
 -- 原料表
 CREATE TABLE IF NOT EXISTS `materials` (
@@ -43,25 +28,25 @@ CREATE TABLE IF NOT EXISTS `materials` (
 CREATE INDEX IF NOT EXISTS `idx_material_name` ON `materials`(`name`);
 CREATE INDEX IF NOT EXISTS `idx_material_code` ON `materials`(`code`);
 
--- 配方表
+-- 配方表（关联业务员）
 CREATE TABLE IF NOT EXISTS `formulas` (
   `id` TEXT PRIMARY KEY,
   `name` TEXT NOT NULL,
-  `customer_id` TEXT NOT NULL,
-  `customer_name` TEXT NOT NULL,
+  `salesman_id` TEXT NOT NULL,
+  `salesman_name` TEXT NOT NULL,
   `materials_json` TEXT NOT NULL,
   `description` TEXT DEFAULT NULL,
   `created_by` TEXT NOT NULL,
   `created_at` TEXT NOT NULL DEFAULT (datetime('now')),
   `updated_at` TEXT NOT NULL DEFAULT (datetime('now')),
-  FOREIGN KEY (`customer_id`) REFERENCES `customers`(`id`) ON DELETE RESTRICT
+  FOREIGN KEY (`salesman_id`) REFERENCES `salesmen`(`id`) ON DELETE RESTRICT
 );
 CREATE INDEX IF NOT EXISTS `idx_formula_name` ON `formulas`(`name`);
-CREATE INDEX IF NOT EXISTS `idx_formula_customer_id` ON `formulas`(`customer_id`);
+CREATE INDEX IF NOT EXISTS `idx_formula_salesman_id` ON `formulas`(`salesman_id`);
 CREATE INDEX IF NOT EXISTS `idx_formula_created_by` ON `formulas`(`created_by`);
 
 -- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
--- v2.0 新增表：业务员数据管理体系
+-- 业务员数据管理体系
 -- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 -- 业务员表
@@ -81,53 +66,8 @@ CREATE INDEX IF NOT EXISTS `idx_salesman_name` ON `salesmen`(`name`);
 CREATE INDEX IF NOT EXISTS `idx_salesman_code` ON `salesmen`(`code`);
 CREATE INDEX IF NOT EXISTS `idx_salesman_status` ON `salesmen`(`status`);
 
--- 业务员-客户关联表
-CREATE TABLE IF NOT EXISTS `salesman_customer_relations` (
-  `id` TEXT PRIMARY KEY,
-  `salesman_id` TEXT NOT NULL,
-  `customer_id` TEXT NOT NULL,
-  `relation_type` TEXT NOT NULL DEFAULT 'primary' CHECK(relation_type IN ('primary', 'secondary')),
-  `start_date` TEXT NOT NULL,
-  `end_date` TEXT DEFAULT NULL,
-  `notes` TEXT DEFAULT NULL,
-  `created_at` TEXT NOT NULL DEFAULT (datetime('now')),
-  FOREIGN KEY (`salesman_id`) REFERENCES `salesmen`(`id`) ON DELETE CASCADE,
-  FOREIGN KEY (`customer_id`) REFERENCES `customers`(`id`) ON DELETE CASCADE,
-  UNIQUE (`salesman_id`, `customer_id`, `start_date`)
-);
-CREATE INDEX IF NOT EXISTS `idx_scm_salesman` ON `salesman_customer_relations`(`salesman_id`);
-CREATE INDEX IF NOT EXISTS `idx_scm_customer` ON `salesman_customer_relations`(`customer_id`);
-
--- 业务员-配方师对接表
-CREATE TABLE IF NOT EXISTS `salesman_formulist_relations` (
-  `id` TEXT PRIMARY KEY,
-  `salesman_id` TEXT NOT NULL,
-  `formulist_id` TEXT NOT NULL,
-  `cooperation_mode` TEXT NOT NULL DEFAULT 'direct' CHECK(cooperation_mode IN ('direct', 'indirect')),
-  `priority` INTEGER NOT NULL DEFAULT 3,
-  `notes` TEXT DEFAULT NULL,
-  `created_at` TEXT NOT NULL DEFAULT (datetime('now')),
-  FOREIGN KEY (`salesman_id`) REFERENCES `salesmen`(`id`) ON DELETE CASCADE,
-  UNIQUE (`salesman_id`, `formulist_id`)
-);
-CREATE INDEX IF NOT EXISTS `idx_sfr_salesman` ON `salesman_formulist_relations`(`salesman_id`);
-CREATE INDEX IF NOT EXISTS `idx_sfr_formulist` ON `salesman_formulist_relations`(`formulist_id`);
-
--- 沟通记录表
-CREATE TABLE IF NOT EXISTS `communication_logs` (
-  `id` TEXT PRIMARY KEY,
-  `relation_id` TEXT NOT NULL,
-  `type` TEXT NOT NULL CHECK(type IN ('email', 'phone', 'meeting', 'message')),
-  `content` TEXT NOT NULL,
-  `attachment_urls` TEXT DEFAULT NULL,
-  `created_by` TEXT NOT NULL,
-  `created_at` TEXT NOT NULL DEFAULT (datetime('now')),
-  FOREIGN KEY (`relation_id`) REFERENCES `salesman_formulist_relations`(`id`) ON DELETE CASCADE
-);
-CREATE INDEX IF NOT EXISTS `idx_cl_relation` ON `communication_logs`(`relation_id`);
-
 -- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
--- v2.0 新增表：配方版本控制与对比
+-- 配方版本控制与对比
 -- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 -- 配方版本表
@@ -148,7 +88,7 @@ CREATE INDEX IF NOT EXISTS `idx_fv_formula` ON `formula_versions`(`formula_id`);
 CREATE INDEX IF NOT EXISTS `idx_fv_version_number` ON `formula_versions`(`formula_id`, `version_number`);
 
 -- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
--- v2.0 新增表：多元化配方输出方案
+-- 多元化配方输出方案
 -- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 -- 导出模板表
@@ -223,7 +163,7 @@ CREATE TABLE IF NOT EXISTS `share_configs` (
 CREATE INDEX IF NOT EXISTS `idx_sc_formula` ON `share_configs`(`formula_id`);
 
 -- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
--- v2.0 新增表：营养成分集成模块
+-- 营养成分集成模块
 -- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 -- 原料营养成分表

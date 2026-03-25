@@ -4,6 +4,7 @@ import { formulaApi } from '@/api/formula'
 import type { Formula, FormulaForm, MaterialItem } from '@/api/formula'
 import { formatTimestamp } from '@/utils/timeFormat'
 import { usePaginationStore } from '@/stores/pagination'
+import { MessagePlugin } from 'tdesign-vue-next'
 
 export const useFormulaStore = defineStore('formula', () => {
   const formulas = ref<Formula[]>([])
@@ -12,7 +13,7 @@ export const useFormulaStore = defineStore('formula', () => {
   const currentPage = ref(1)
   const pageSize = ref(10)
   const keyword = ref('')
-  const customerId = ref('')
+  const salesmanId = ref('')
 
   const fetchFormulas = async () => {
     loading.value = true
@@ -21,20 +22,22 @@ export const useFormulaStore = defineStore('formula', () => {
       pageSize.value = dynamicPageSize
       const res = await formulaApi.getList({
         keyword: keyword.value || undefined,
-        customerId: customerId.value || undefined,
+        salesmanId: salesmanId.value || undefined,
         page: currentPage.value,
         pageSize: pageSize.value,
       })
-      // 解析 materialsJson 并格式化时间
+      // 解析 materialsJson、description 并格式化时间
       formulas.value = res.data.list.map((f: Formula) => ({
         ...f,
         materials: parseMaterials(f),
+        description: parseDescription(f.description),
         createdAt: formatTimestamp(f.createdAt),
         updatedAt: formatTimestamp(f.updatedAt),
       }))
       total.value = res.data.pagination.total
-    } catch (error) {
+    } catch (error: any) {
       console.error('获取配方列表失败:', error)
+      MessagePlugin.error(error.message || '获取配方数据失败，请检查网络连接')
     } finally {
       loading.value = false
     }
@@ -44,8 +47,16 @@ export const useFormulaStore = defineStore('formula', () => {
     try {
       const res = await formulaApi.getById(id)
       const formula = res.data
-      return { ...formula, materials: parseMaterials(formula), createdAt: formatTimestamp(formula.createdAt), updatedAt: formatTimestamp(formula.updatedAt) }
-    } catch {
+      return {
+        ...formula,
+        materials: parseMaterials(formula),
+        description: parseDescription(formula.description),
+        createdAt: formatTimestamp(formula.createdAt),
+        updatedAt: formatTimestamp(formula.updatedAt),
+      }
+    } catch (error: any) {
+      console.error('获取配方详情失败:', error)
+      MessagePlugin.error(error.message || '获取配方详情失败')
       return null
     }
   }
@@ -94,8 +105,8 @@ export const useFormulaStore = defineStore('formula', () => {
     currentPage.value = 1
   }
 
-  const setCustomerId = (val: string) => {
-    customerId.value = val
+  const setSalesmanId = (val: string) => {
+    salesmanId.value = val
     currentPage.value = 1
   }
 
@@ -110,14 +121,14 @@ export const useFormulaStore = defineStore('formula', () => {
     currentPage,
     pageSize,
     keyword,
-    customerId,
+    salesmanId,
     fetchFormulas,
     getFormula,
     createFormula,
     updateFormula,
     deleteFormula,
     setKeyword,
-    setCustomerId,
+    setSalesmanId,
     setPage,
   }
 })
@@ -129,5 +140,26 @@ function parseMaterials(formula: Formula): MaterialItem[] {
     return formula.materialsJson ? JSON.parse(formula.materialsJson) : []
   } catch {
     return []
+  }
+}
+
+/** 解析 description 字段（可能是 JSON 字符串或纯文本） */
+export function parseDescription(raw: string | null | undefined): string {
+  if (!raw) return ''
+  if (typeof raw !== 'string') return String(raw)
+  // 尝试解析 JSON，提取可读摘要
+  try {
+    const obj = JSON.parse(raw)
+    if (typeof obj === 'object' && obj !== null) {
+      const parts: string[] = []
+      if (obj.productType) parts.push(obj.productType)
+      if (obj.dosage) parts.push(obj.dosage)
+      if (obj.efficacy) parts.push(obj.efficacy)
+      if (obj.totalQuote != null) parts.push(`报价: ¥${obj.totalQuote.toFixed(4)}`)
+      return parts.length > 0 ? parts.join(' | ') : raw
+    }
+    return raw
+  } catch {
+    return raw
   }
 }

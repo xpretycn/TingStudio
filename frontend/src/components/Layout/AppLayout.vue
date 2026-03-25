@@ -84,11 +84,11 @@
             </template>
             <span class="menu-text">原料管理</span>
           </t-menu-item>
-          <t-menu-item value="/customers">
+          <t-menu-item value="/salesmen">
             <template #icon>
               <t-icon name="usergroup" size="20px" />
             </template>
-            <span class="menu-text">客户管理</span>
+            <span class="menu-text">业务员管理</span>
           </t-menu-item>
         </t-menu>
       </t-aside>
@@ -113,7 +113,6 @@ const authStore = useAuthStore()
 const activeMenu = computed(() => {
   const path = route.path
   if (path.startsWith('/recent-formulas')) return '/recent-formulas'
-  if (path.startsWith('/customers')) return '/customers'
   if (path.startsWith('/materials')) return '/materials'
   if (path.startsWith('/formulas')) return '/formulas'
   return '/recent-formulas'
@@ -122,7 +121,6 @@ const activeMenu = computed(() => {
 const pageTitle = computed(() => {
   const path = route.path
   if (path.startsWith('/recent-formulas')) return '最近配方'
-  if (path.startsWith('/customers')) return '客户管理'
   if (path.startsWith('/materials')) return '原料管理'
   if (path.startsWith('/formulas')) return '配方管理'
   return '首页'

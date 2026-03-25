@@ -6,23 +6,29 @@ import { generateId, now, success, successWithPagination, buildPagination, build
 /** 获取配方列表 */
 export async function getFormulas(req: any, res: Response) {
   try {
-    const { keyword, customerId, page, pageSize } = req.query
+    const { keyword, salesmanId, page, pageSize } = req.query
     const { page: p, pageSize: size, offset } = buildPagination(
       Number(page), Number(pageSize)
     )
     const userId = req.user.userId
 
-    let whereSql = 'WHERE created_by = ?'
-    const params: any[] = [userId]
+    // 查询当前用户角色，admin 可查看所有配方
+    const [[userRow]]: any[][] = await query(
+      'SELECT role FROM users WHERE id = ?', [userId]
+    )
+    const isAdmin = userRow?.role === 'admin'
+
+    let whereSql = isAdmin ? '' : 'WHERE created_by = ?'
+    const params: any[] = isAdmin ? [] : [userId]
 
     if (keyword) {
-      whereSql += ' AND (name LIKE ? OR customer_name LIKE ?)'
+      whereSql += ' AND (name LIKE ? OR salesman_name LIKE ?)'
       const like = buildLike(keyword as string)
       params.push(like, like)
     }
-    if (customerId) {
-      whereSql += ' AND customer_id = ?'
-      params.push(customerId)
+    if (salesmanId) {
+      whereSql += ' AND salesman_id = ?'
+      params.push(salesmanId)
     }
 
     const [list]: any[] = await query(
@@ -61,14 +67,14 @@ export async function getFormula(req: Request, res: Response) {
 /** 创建配方 */
 export async function createFormula(req: any, res: Response) {
   try {
-    const { name, customerId, materials, description } = req.body
+    const { name, salesmanId, materials, description } = req.body
     const userId = req.user.userId
     const id = generateId()
 
-    // 获取客户信息
-    const [[customer]]: any[][] = await query('SELECT name FROM customers WHERE id = ?', [customerId])
-    if (!customer) {
-      res.status(400).json({ success: false, message: '客户不存在' })
+    // 获取业务员信息
+    const [[salesman]]: any[][] = await query('SELECT name FROM salesmen WHERE id = ?', [salesmanId])
+    if (!salesman) {
+      res.status(400).json({ success: false, message: '业务员不存在' })
       return
     }
 
@@ -78,9 +84,9 @@ export async function createFormula(req: any, res: Response) {
     })
 
     await query(
-      `INSERT INTO formulas (id, name, customer_id, customer_name, materials_json, description, created_by, created_at)
+      `INSERT INTO formulas (id, name, salesman_id, salesman_name, materials_json, description, created_by, created_at)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [id, name, customerId, customer.name, JSON.stringify(materialItems), description, userId, now()]
+      [id, name, salesmanId, salesman.name, JSON.stringify(materialItems), description, userId, now()]
     )
 
     // 自动创建初始版本
@@ -90,7 +96,7 @@ export async function createFormula(req: any, res: Response) {
        VALUES (?, ?, ?, ?, ?, 'published', 1, ?, ?)`,
       [
         versionId, id, 'v1.0', '初始版本',
-        JSON.stringify({ name, customerId, customerName: customer.name, materials: materialItems, description, formulaData: { name, customerId, materials, description } }),
+        JSON.stringify({ name, salesmanId, salesmanName: salesman.name, materials: materialItems, description, formulaData: { name, salesmanId, materials, description } }),
         userId, now()
       ]
     )
@@ -106,7 +112,7 @@ export async function createFormula(req: any, res: Response) {
 export async function updateFormula(req: any, res: Response) {
   try {
     const { id } = req.params
-    const { name, customerId, materials, description } = req.body
+    const { name, salesmanId, materials, description } = req.body
     const userId = req.user.userId
 
     // 获取旧配方
@@ -116,14 +122,14 @@ export async function updateFormula(req: any, res: Response) {
       return
     }
 
-    let customerName = oldFormula.customer_name
-    if (customerId && customerId !== oldFormula.customer_id) {
-      const [[customer]]: any[][] = await query('SELECT name FROM customers WHERE id = ?', [customerId])
-      if (!customer) {
-        res.status(400).json({ success: false, message: '客户不存在' })
+    let salesmanName = oldFormula.salesman_name
+    if (salesmanId && salesmanId !== oldFormula.salesman_id) {
+      const [[salesman]]: any[][] = await query('SELECT name FROM salesmen WHERE id = ?', [salesmanId])
+      if (!salesman) {
+        res.status(400).json({ success: false, message: '业务员不存在' })
         return
       }
-      customerName = customer.name
+      salesmanName = salesman.name
     }
 
     const materialItems = materials ? materials.map((m: any) => ({
@@ -131,8 +137,8 @@ export async function updateFormula(req: any, res: Response) {
     })) : oldFormula.materials_json
 
     await query(
-      `UPDATE formulas SET name=?, customer_id=?, customer_name=?, materials_json=?, description=? WHERE id=?`,
-      [name || oldFormula.name, customerId || oldFormula.customer_id, customerName,
+      `UPDATE formulas SET name=?, salesman_id=?, salesman_name=?, materials_json=?, description=? WHERE id=?`,
+      [name || oldFormula.name, salesmanId || oldFormula.salesman_id, salesmanName,
        JSON.stringify(materialItems), description !== undefined ? description : oldFormula.description, id]
     )
 
@@ -170,11 +176,11 @@ export async function updateFormula(req: any, res: Response) {
           JSON.stringify(changes),
           JSON.stringify({
             name: name || oldFormula.name,
-            customerId: customerId || oldFormula.customer_id,
-            customerName,
+            salesmanId: salesmanId || oldFormula.salesman_id,
+            salesmanName,
             materials: materialItems,
             description: description !== undefined ? description : oldFormula.description,
-            formulaData: { name, customerId, materials, description }
+            formulaData: { name, salesmanId, materials, description }
           }),
           userId, now()
         ]

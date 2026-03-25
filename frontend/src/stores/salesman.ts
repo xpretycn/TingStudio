@@ -86,24 +86,6 @@ export const useSalesmanStore = defineStore('salesman', () => {
     }
   }
 
-  const linkCustomer = async (salesmanId: string, data: { customerId: string; relationType?: string; startDate?: string; notes?: string }) => {
-    try {
-      await salesmanApi.linkCustomer(salesmanId, data)
-      return { success: true }
-    } catch (error: any) {
-      return { success: false, message: error.message || '关联失败' }
-    }
-  }
-
-  const unlinkCustomer = async (relationId: string) => {
-    try {
-      await salesmanApi.unlinkCustomer(relationId)
-      return { success: true }
-    } catch (error: any) {
-      return { success: false, message: error.message || '取消关联失败' }
-    }
-  }
-
   const setKeyword = (val: string) => {
     keyword.value = val
     currentPage.value = 1
@@ -131,8 +113,6 @@ export const useSalesmanStore = defineStore('salesman', () => {
     createSalesman,
     updateSalesman,
     deleteSalesman,
-    linkCustomer,
-    unlinkCustomer,
     setKeyword,
     setStatusFilter,
     setPage,

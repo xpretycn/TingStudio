@@ -9,8 +9,8 @@ export interface MaterialItem {
 export interface Formula {
   id: string
   name: string
-  customerId: string
-  customerName: string
+  salesmanId: string
+  salesmanName: string
   materialsJson: string
   description: string | null
   createdBy: string
@@ -21,13 +21,13 @@ export interface Formula {
 
 export interface FormulaForm {
   name: string
-  customerId: string
+  salesmanId: string
   materials: { materialId: string; materialName?: string; quantity: number }[]
   description?: string
 }
 
 export const formulaApi = {
-  getList(params?: { keyword?: string; customerId?: string; page?: number; pageSize?: number }) {
+  getList(params?: { keyword?: string; salesmanId?: string; page?: number; pageSize?: number }) {
     return http.get<any, { success: boolean; data: { list: Formula[]; pagination: any } }>('/formulas', { params })
   },
   getById(id: string) {

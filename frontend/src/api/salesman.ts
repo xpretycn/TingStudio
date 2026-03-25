@@ -11,8 +11,6 @@ export interface Salesman {
   createdBy: string
   createdAt: string
   updatedAt: string
-  linkedCustomers?: any[]
-  linkedFormulists?: any[]
 }
 
 export interface SalesmanForm {
@@ -38,20 +36,5 @@ export const salesmanApi = {
   },
   delete(id: string) {
     return http.delete<any, { success: boolean; message: string }>(`/salesmen/${id}`)
-  },
-  linkCustomer(salesmanId: string, data: { customerId: string; relationType?: string; startDate?: string; notes?: string }) {
-    return http.post<any, { success: boolean; message: string; data: { id: string } }>(`/salesmen/${salesmanId}/customers`, data)
-  },
-  unlinkCustomer(relationId: string) {
-    return http.delete<any, { success: boolean; message: string }>(`/salesmen/customers/${relationId}`)
-  },
-  linkFormulist(salesmanId: string, data: { formulistId: string; cooperationMode?: string; priority?: number; notes?: string }) {
-    return http.post<any, { success: boolean; message: string; data: { id: string } }>(`/salesmen/${salesmanId}/formulists`, data)
-  },
-  addCommunicationLog(relationId: string, data: { type: string; content: string; attachmentUrls?: string[] }) {
-    return http.post<any, { success: boolean; message: string }>(`/salesmen/relations/${relationId}/communications`, data)
-  },
-  getCommunicationLogs(relationId: string) {
-    return http.get<any, { success: boolean; data: any[] }>(`/salesmen/relations/${relationId}/communications`)
   },
 }

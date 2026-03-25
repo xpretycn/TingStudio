@@ -5,36 +5,50 @@
         :data="formulaStore.formulas"
         :columns="columns"
         :loading="formulaStore.loading"
-        :pagination="false"
+        :pagination="undefined"
         row-key="id"
         hover
         stripe
         :expandable="true"
+        @row-click="handleView"
       >
         <template #expandedRow="{ row }">
           <div class="expanded-content">
+            <div class="description-section" v-if="getFormulaDesc(row.description)">
+              <h4>配方信息</h4>
+              <div class="desc-tags">
+                <t-tag v-if="getFormulaDesc(row.description).productType" theme="primary" variant="light" size="medium">
+                  {{ getFormulaDesc(row.description).productType }}
+                </t-tag>
+                <t-tag v-if="getFormulaDesc(row.description).dosage" theme="warning" variant="light" size="medium">
+                  {{ getFormulaDesc(row.description).dosage }}
+                </t-tag>
+                <t-tag v-if="getFormulaDesc(row.description).efficacy" theme="success" variant="light" size="medium">
+                  {{ getFormulaDesc(row.description).efficacy }}
+                </t-tag>
+                <t-tag v-if="getFormulaDesc(row.description).totalQuote != null" theme="danger" variant="light" size="medium">
+                  报价: ¥{{ getFormulaDesc(row.description).totalQuote.toFixed(4) }}
+                </t-tag>
+              </div>
+            </div>
             <div class="materials-section">
               <h4>原料清单</h4>
               <t-table
-                :data="row.materials"
+                :data="row.materials || []"
                 :columns="materialColumns"
                 size="small"
                 bordered
               />
             </div>
-            <div v-if="row.description" class="description-section">
-              <h4>配方描述</h4>
-              <p>{{ row.description }}</p>
-            </div>
           </div>
         </template>
 
-        <template #customerName="{ row }">
+        <template #salesmanName="{ row }">
           <t-tag theme="primary" variant="light">
             <template #icon>
               <t-icon name="user" />
             </template>
-            {{ row.customerName }}
+            {{ row.salesmanName }}
           </t-tag>
         </template>
 
@@ -43,7 +57,7 @@
             <template #icon>
               <t-icon name="layers" />
             </template>
-            {{ row.materials.length }} 种原料
+            {{ (row.materials || []).length }} 种原料
           </t-tag>
         </template>
 
@@ -53,20 +67,14 @@
 
         <template #operation="{ row }">
           <t-space :size="8">
-            <t-button variant="text" theme="default" size="small" class="btn-view" @click="handleView(row)">
-              <template #icon>
-                <t-icon name="browse" />
-              </template>
-              查看
-            </t-button>
-            <t-button variant="text" theme="primary" size="small" class="btn-edit" @click="handleEdit(row)">
+            <t-button variant="outline" theme="primary" size="small" class="btn-edit" @click.stop="handleEdit(row)">
               <template #icon>
                 <t-icon name="edit" />
               </template>
               编辑
             </t-button>
             <t-dropdown :options="moreOptions(row)" @click="handleMoreAction">
-              <t-button variant="text" theme="default" size="small">
+              <t-button variant="outline" theme="default" size="small" class="btn-more" @click.stop>
                 <template #icon>
                   <t-icon name="ellipsis" />
                 </template>
@@ -77,7 +85,7 @@
               content="确定要删除该配方吗？"
               @confirm="handleDelete(row)"
             >
-              <t-button variant="text" theme="danger" size="small">
+              <t-button variant="outline" theme="danger" size="small" class="btn-delete" @click.stop>
                 <template #icon>
                   <t-icon name="delete" />
                 </template>
@@ -109,19 +117,29 @@
 import { ref, reactive, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useFormulaStore } from '@/stores/formula'
-import { useCustomerStore } from '@/stores/customer'
+import { useSalesmanStore } from '@/stores/salesman'
 import { usePaginationStore } from '@/stores/pagination'
 import { MessagePlugin } from 'tdesign-vue-next'
 import type { Formula } from '@/api/formula'
 
 const router = useRouter()
 const formulaStore = useFormulaStore()
-const customerStore = useCustomerStore()
+const salesmanStore = useSalesmanStore()
 const paginationStore = usePaginationStore()
+
+const getFormulaDesc = (description: string | null | undefined) => {
+  if (!description || typeof description !== 'string') return null
+  try {
+    const obj = JSON.parse(description)
+    return typeof obj === 'object' && obj !== null ? obj : null
+  } catch {
+    return null
+  }
+}
 
 const searchForm = reactive({
   keyword: '',
-  customerId: ''
+  salesmanId: ''
 })
 
 const deleteDialogVisible = ref(false)
@@ -130,7 +148,7 @@ const deleteTarget = ref<Formula | null>(null)
 
 const columns = [
   { colKey: 'name', title: '配方名称', width: 200 },
-  { colKey: 'customerName', title: '所属客户', width: 150 },
+  { colKey: 'salesmanName', title: '所属业务员', width: 150 },
   { colKey: 'materialCount', title: '原料数量', width: 120 },
   { colKey: 'createdAt', title: '创建时间', width: 180 },
   { colKey: 'operation', title: '操作', width: 230, fixed: 'right' }
@@ -164,19 +182,19 @@ onUnmounted(() => {
 
 const handleSearch = () => {
   formulaStore.setKeyword(searchForm.keyword)
-  if (searchForm.customerId) {
-    formulaStore.setCustomerId(searchForm.customerId)
+  if (searchForm.salesmanId) {
+    formulaStore.setSalesmanId(searchForm.salesmanId)
   } else {
-    formulaStore.setCustomerId('')
+    formulaStore.setSalesmanId('')
   }
   formulaStore.fetchFormulas()
 }
 
 const handleReset = () => {
   searchForm.keyword = ''
-  searchForm.customerId = ''
+  searchForm.salesmanId = ''
   formulaStore.setKeyword('')
-  formulaStore.setCustomerId('')
+  formulaStore.setSalesmanId('')
   formulaStore.fetchFormulas()
 }
 
@@ -230,7 +248,7 @@ const confirmDelete = async () => {
 
 onMounted(async () => {
   await Promise.all([
-    customerStore.fetchCustomers(),
+    salesmanStore.fetchSalesmen(),
     formulaStore.fetchFormulas()
   ])
 })
@@ -279,8 +297,10 @@ onMounted(async () => {
   }
 
   .description-section {
+    margin-bottom: 16px;
+
     h4 {
-      margin: 0 0 8px 0;
+      margin: 0 0 12px 0;
       font-size: 15px;
       font-weight: 600;
       color: #5D4E60;
@@ -296,6 +316,12 @@ onMounted(async () => {
         background: linear-gradient(135deg, #FF8FAB, #FF6B8A);
         border-radius: 2px;
       }
+    }
+
+    .desc-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
     }
 
     p {
@@ -327,27 +353,53 @@ onMounted(async () => {
   }
 
   :deep(.btn-view) {
-    background: linear-gradient(135deg, #A78BFA, #7C3AED) !important;
-    border: none !important;
-    color: #fff !important;
-    box-shadow: 0 4px 16px rgba(124, 58, 237, 0.3) !important;
+    display: none;
+  }
 
-    :deep(.t-button__text) {
-      color: #fff !important;
-    }
+  :deep(.btn-edit) {
+    color: #2952CC !important;
+    border-color: #C5D1F8 !important;
+    background: #EDF2FF !important;
 
     :deep(.t-button__icon) {
-      color: #fff !important;
+      color: #2952CC !important;
     }
 
     &:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(124, 58, 237, 0.4) !important;
-      background: linear-gradient(135deg, #C4B5FD, #A78BFA) !important;
+      color: #0052D9 !important;
+      border-color: #0052D9 !important;
+      background: #ECF3FF !important;
+    }
+  }
+
+  :deep(.btn-delete) {
+    color: #D54941 !important;
+    border-color: #F5C6C2 !important;
+    background: #FFF1EF !important;
+
+    :deep(.t-button__icon) {
+      color: #D54941 !important;
     }
 
-    &:active {
-      transform: translateY(1px) scale(0.98);
+    &:hover {
+      color: #E34D59 !important;
+      border-color: #E34D59 !important;
+      background: #FEF0EF !important;
+    }
+  }
+
+  :deep(.btn-more) {
+    color: #5D4E60 !important;
+    border-color: #DCD3DE !important;
+    background: rgba(255, 255, 255, 0.9) !important;
+
+    :deep(.t-button__icon) {
+      color: #5D4E60 !important;
+    }
+
+    &:hover {
+      color: #2952CC !important;
+      border-color: #2952CC !important;
     }
   }
 
@@ -436,6 +488,10 @@ onMounted(async () => {
   :deep(.t-table) {
     .t-table__row--hover {
       background-color: #FFFBFA;
+    }
+
+    .t-table__row {
+      cursor: pointer;
     }
   }
 }

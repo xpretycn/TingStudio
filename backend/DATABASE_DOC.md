@@ -8,16 +8,15 @@
 
 ## 一、数据库概览
 
-系统共包含 **17 张表**，分为 5 个功能模块：
+系统共包含 **13 张表**，分为 5 个功能模块：
 
 | 模块 | 表数量 | 说明 |
 |------|--------|------|
-| 基础模块 | 4 | users, customers, materials, formulas |
-| 业务员管理 | 3 | salesmen, salesman_customer_relations, salesman_formulist_relations |
+| 基础模块 | 3 | users, materials, formulas |
+| 业务员管理 | 1 | salesmen |
 | 版本控制 | 1 | formula_versions |
 | 导出管理 | 4 | export_templates, export_jobs, api_data_interfaces, share_configs |
 | 营养分析 | 4 | material_nutrition, formula_nutrition_summaries, nutrition_profiles, nutrition_analysis_reports |
-| 辅助表 | 1 | communication_logs |
 
 ---
 
@@ -25,50 +24,24 @@
 
 ### 2.1 用户表 `users`
 
-存储系统用户信息（管理员、配方师、业务员、生产人员）。
+存储系统用户信息（管理员、配方师）。
 
 | 字段 | 类型 | 约束 | 说明 |
 |------|------|------|------|
 | `id` | TEXT | PRIMARY KEY | 用户唯一标识（自动生成） |
 | `username` | TEXT | NOT NULL, UNIQUE | 用户名，登录凭证 |
 | `password` | TEXT | NOT NULL | 密码（bcrypt 哈希） |
-| `role` | TEXT | NOT NULL, DEFAULT 'formulist' | 角色：`admin` / `formulist` / `salesman` / `production` |
+| `role` | TEXT | NOT NULL, DEFAULT 'formulist' | 角色：`admin` / `formulist` |
 | `created_at` | TEXT | NOT NULL | 创建时间（ISO 8601） |
 | `updated_at` | TEXT | NOT NULL | 更新时间（ISO 8601） |
 
 **业务含义**：
 - `admin`：系统管理员，拥有所有权限
 - `formulist`：配方师，负责配方创建和营养分析
-- `salesman`：业务员，负责客户管理和配方对接
-- `production`：生产人员
 
 ---
 
-### 2.2 客户表 `customers`
-
-存储客户（企业/组织）信息。
-
-| 字段 | 类型 | 约束 | 说明 |
-|------|------|------|------|
-| `id` | TEXT | PRIMARY KEY | 客户唯一标识 |
-| `name` | TEXT | NOT NULL | 客户名称 |
-| `contact` | TEXT | NULL | 联系人姓名 |
-| `phone` | TEXT | NULL | 联系电话 |
-| `email` | TEXT | NULL | 邮箱 |
-| `address` | TEXT | NULL | 地址 |
-| `created_by` | TEXT | NOT NULL | 创建人（用户 ID） |
-| `created_at` | TEXT | NOT NULL | 创建时间 |
-| `updated_at` | TEXT | NOT NULL | 更新时间 |
-
-**索引**：
-- `idx_customer_name`：按客户名称
-- `idx_customer_created_by`：按创建人
-
-**业务含义**：配方服务的企业客户，每个配方关联一个客户。
-
----
-
-### 2.3 原料表 `materials`
+### 2.2 原料表 `materials`
 
 存储配方所需的原料信息。
 
@@ -89,27 +62,27 @@
 
 ---
 
-### 2.4 配方表 `formulas`
+### 2.3 配方表 `formulas`
 
-存储配方基本信息，原料列表以 JSON 格式存储。
+存储配方基本信息，原料列表以 JSON 格式存储，关联业务员。
 
 | 字段 | 类型 | 约束 | 说明 |
 |------|------|------|------|
 | `id` | TEXT | PRIMARY KEY | 配方唯一标识 |
 | `name` | TEXT | NOT NULL | 配方名称 |
-| `customer_id` | TEXT | NOT NULL, FK → customers.id | 所属客户 |
-| `customer_name` | TEXT | NOT NULL | 客户名称（冗余） |
+| `salesman_id` | TEXT | NOT NULL, FK → salesmen.id | 所属业务员 |
+| `salesman_name` | TEXT | NOT NULL | 业务员名称（冗余） |
 | `materials_json` | TEXT | NOT NULL | 原料列表 JSON |
 | `description` | TEXT | NULL | 配方描述 |
 | `created_by` | TEXT | NOT NULL | 创建人（用户 ID） |
 | `created_at` | TEXT | NOT NULL | 创建时间 |
 | `updated_at` | TEXT | NOT NULL | 更新时间 |
 
-**外键**：`customer_id` → `customers(id)` ON DELETE RESTRICT
+**外键**：`salesman_id` → `salesmen(id)` ON DELETE RESTRICT
 
 **索引**：
 - `idx_formula_name`：按配方名称
-- `idx_formula_customer_id`：按客户 ID
+- `idx_formula_salesman_id`：按业务员 ID
 - `idx_formula_created_by`：按创建人
 
 **`materials_json` 结构**：
@@ -122,7 +95,7 @@
 
 ---
 
-### 2.5 业务员表 `salesmen`
+### 2.4 业务员表 `salesmen`
 
 存储业务员基本信息。
 
@@ -146,80 +119,7 @@
 
 ---
 
-### 2.6 业务员-客户关联表 `salesman_customer_relations`
-
-记录业务员与客户的关联关系。
-
-| 字段 | 类型 | 约束 | 说明 |
-|------|------|------|------|
-| `id` | TEXT | PRIMARY KEY | 关联记录 ID |
-| `salesman_id` | TEXT | NOT NULL, FK → salesmen.id | 业务员 ID |
-| `customer_id` | TEXT | NOT NULL, FK → customers.id | 客户 ID |
-| `relation_type` | TEXT | NOT NULL, DEFAULT 'primary' | 关系类型：`primary`（主要）/ `secondary`（次要） |
-| `start_date` | TEXT | NOT NULL | 关联开始日期 |
-| `end_date` | TEXT | NULL | 关联结束日期（NULL 表示有效） |
-| `notes` | TEXT | NULL | 备注 |
-| `created_at` | TEXT | NOT NULL | 创建时间 |
-
-**外键**：
-- `salesman_id` → `salesmen(id)` ON DELETE CASCADE
-- `customer_id` → `customers(id)` ON DELETE CASCADE
-
-**唯一约束**：`UNIQUE(salesman_id, customer_id, start_date)`
-
-**索引**：
-- `idx_scm_salesman`：按业务员
-- `idx_scm_customer`：按客户
-
-**业务含义**：一个业务员可关联多个客户，通过 `end_date` IS NULL 判断当前有效关联。
-
----
-
-### 2.7 业务员-配方师对接表 `salesman_formulist_relations`
-
-记录业务员与配方师的合作对接关系。
-
-| 字段 | 类型 | 约束 | 说明 |
-|------|------|------|------|
-| `id` | TEXT | PRIMARY KEY | 对接记录 ID |
-| `salesman_id` | TEXT | NOT NULL, FK → salesmen.id | 业务员 ID |
-| `formulist_id` | TEXT | NOT NULL | 配方师（用户 ID） |
-| `cooperation_mode` | TEXT | NOT NULL, DEFAULT 'direct' | 合作方式：`direct`（直接）/ `indirect`（间接） |
-| `priority` | INTEGER | NOT NULL, DEFAULT 3 | 优先级（1-5） |
-| `notes` | TEXT | NULL | 备注 |
-| `created_at` | TEXT | NOT NULL | 创建时间 |
-
-**外键**：`salesman_id` → `salesmen(id)` ON DELETE CASCADE
-
-**唯一约束**：`UNIQUE(salesman_id, formulist_id)`
-
-**索引**：
-- `idx_sfr_salesman`：按业务员
-- `idx_sfr_formulist`：按配方师
-
----
-
-### 2.8 沟通记录表 `communication_logs`
-
-记录业务员与配方师之间的沟通日志。
-
-| 字段 | 类型 | 约束 | 说明 |
-|------|------|------|------|
-| `id` | TEXT | PRIMARY KEY | 记录 ID |
-| `relation_id` | TEXT | NOT NULL, FK → salesman_formulist_relations.id | 对接关系 ID |
-| `type` | TEXT | NOT NULL | 沟通类型：`email` / `phone` / `meeting` / `message` |
-| `content` | TEXT | NOT NULL | 沟通内容 |
-| `attachment_urls` | TEXT | NULL | 附件 URL 列表（JSON 数组） |
-| `created_by` | TEXT | NOT NULL | 创建人 |
-| `created_at` | TEXT | NOT NULL | 创建时间 |
-
-**外键**：`relation_id` → `salesman_formulist_relations(id)` ON DELETE CASCADE
-
-**索引**：`idx_cl_relation`：按对接关系
-
----
-
-### 2.9 配方版本表 `formula_versions`
+### 2.5 配方版本表 `formula_versions`
 
 存储配方的版本快照和变更记录。
 
@@ -246,8 +146,8 @@
 ```json
 {
   "name": "婴儿配方奶粉1段",
-  "customerId": "xxx",
-  "customerName": "甜蜜食品",
+  "salesmanId": "xxx",
+  "salesmanName": "张明",
   "materials": [...],
   "description": "...",
   "formulaData": { ... }
@@ -269,7 +169,7 @@
 
 ---
 
-### 2.10 导出模板表 `export_templates`
+### 2.6 导出模板表 `export_templates`
 
 存储配方导出的模板配置。
 
@@ -288,7 +188,7 @@
 
 ---
 
-### 2.11 导出任务表 `export_jobs`
+### 2.7 导出任务表 `export_jobs`
 
 存储配方导出的任务记录。
 
@@ -317,7 +217,7 @@
 
 ---
 
-### 2.12 API 数据接口表 `api_data_interfaces`
+### 2.8 API 数据接口表 `api_data_interfaces`
 
 存储外部 API 对接配置。
 
@@ -342,7 +242,7 @@
 
 ---
 
-### 2.13 分享配置表 `share_configs`
+### 2.9 分享配置表 `share_configs`
 
 存储配方分享链接配置。
 
@@ -367,7 +267,7 @@
 
 ---
 
-### 2.14 原料营养成分表 `material_nutrition`
+### 2.10 原料营养成分表 `material_nutrition`
 
 存储每种原料的营养成分数据（每100g含量）。
 
@@ -418,7 +318,7 @@
 
 ---
 
-### 2.15 配方营养汇总表 `formula_nutrition_summaries`
+### 2.11 配方营养汇总表 `formula_nutrition_summaries`
 
 存储配方的营养成分计算结果。
 
@@ -442,7 +342,7 @@
 
 ---
 
-### 2.16 营养标准/档案表 `nutrition_profiles`
+### 2.12 营养标准/档案表 `nutrition_profiles`
 
 存储不同人群的营养标准值。
 
@@ -464,7 +364,7 @@
 
 ---
 
-### 2.17 营养分析报告表 `nutrition_analysis_reports`
+### 2.13 营养分析报告表 `nutrition_analysis_reports`
 
 存储配方的合规性检查报告。
 
@@ -491,11 +391,9 @@
 
 ```
 users
-  ├── 1:N → customers (created_by)
   ├── 1:N → materials (created_by)
   ├── 1:N → formulas (created_by)
   ├── 1:N → salesmen (created_by)
-  ├── 1:N → salesman_formulist_relations (formulist_id)
   ├── 1:N → formula_versions (created_by)
   ├── 1:N → export_templates (created_by)
   ├── 1:N → export_jobs (created_by)
@@ -504,29 +402,16 @@ users
   ├── 1:N → formula_nutrition_summaries (calculated_by)
   └── 1:N → nutrition_analysis_reports (generated_by)
 
-customers
-  ├── 1:N → formulas (customer_id)
-  ├── 1:N → salesman_customer_relations (customer_id)
-
 materials
   ├── 1:1 → material_nutrition (material_id)
 
 formulas
+  ├── N:1 → salesmen (salesman_id)
   ├── 1:N → formula_versions (formula_id)
   ├── 1:N → export_jobs (formula_id)
   ├── 1:N → formula_nutrition_summaries (formula_id)
   ├── 1:N → share_configs (formula_id)
   └── 1:N → nutrition_analysis_reports (formula_id)
-
-salesmen
-  ├── 1:N → salesman_customer_relations (salesman_id)
-  └── 1:N → salesman_formulist_relations (salesman_id)
-
-salesman_customer_relations
-  └── (被 communication_logs 间接引用)
-
-salesman_formulist_relations
-  ├── 1:N → communication_logs (relation_id)
 
 formula_versions
   └── 1:1 → formula_nutrition_summaries (version_id, UNIQUE)
@@ -546,7 +431,6 @@ nutrition_profiles
 |------|-----------|------|
 | users | 30 | 含 1 个 admin，29 个普通用户 |
 | materials | 30 | 食品行业常用原料 |
-| customers | 30 | 食品/乳品行业企业客户 |
 | salesmen | 30 | 6 个部门，27 active + 3 inactive |
 | formulas | 30 | 覆盖婴幼儿到特殊医学配方 |
 | formula_versions | 30 | 每个配方 1 个版本 |
@@ -554,8 +438,6 @@ nutrition_profiles
 | export_jobs | 30 | 多种状态的任务记录 |
 | nutrition_profiles | 30 | 6 个分类的营养标准 |
 | material_nutrition | 30 | 每种原料对应营养数据 |
-| salesman_customer_relations | 30 | 业务员-客户关联 |
-| salesman_formulist_relations | 20 | 业务员-配方师对接 |
 
 ---
 

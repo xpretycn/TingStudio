@@ -20,7 +20,7 @@
               v-for="f in formulaStore.formulas"
               :key="f.id"
               :value="f.id"
-              :label="`${f.name} (${f.customerName})`"
+              :label="`${f.name} (${f.salesmanName})`"
             />
           </t-select>
         </t-form-item>
@@ -70,7 +70,7 @@
 
       <t-descriptions :column="2" bordered size="medium" title="配方信息">
         <t-descriptions-item label="配方名称">{{ nutritionStore.formulaNutrition.formulaName }}</t-descriptions-item>
-        <t-descriptions-item label="客户">{{ nutritionStore.formulaNutrition.customerName }}</t-descriptions-item>
+        <t-descriptions-item label="业务员">{{ nutritionStore.formulaNutrition.salesmanName }}</t-descriptions-item>
         <t-descriptions-item label="总重量">{{ nutritionStore.formulaNutrition.totalWeight ?? '-' }} g</t-descriptions-item>
         <t-descriptions-item label="计算时间">{{ nutritionStore.formulaNutrition.calculatedAt }}</t-descriptions-item>
       </t-descriptions>

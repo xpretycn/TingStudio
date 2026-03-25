@@ -87,8 +87,8 @@ const diffColumns = [
   { colKey: 'newValue', title: '新值', ellipsis: true }
 ]
 
-const fieldTypeTheme = (t: string) => t === 'material' ? 'primary' : t === 'customer' ? 'warning' : 'default'
-const fieldTypeLabel = (t: string) => ({ customer: '客户', material: '原料', materialQuantity: '数量', description: '描述', nutrition: '营养' }[t] || t)
+const fieldTypeTheme = (t: string) => t === 'material' ? 'primary' : t === 'salesman' ? 'warning' : 'default'
+const fieldTypeLabel = (t: string) => ({ salesman: '业务员', material: '原料', materialQuantity: '数量', description: '描述', nutrition: '营养' }[t] || t)
 const changeTypeTheme = (t: string) => t === 'add' ? 'success' : t === 'delete' ? 'danger' : 'warning'
 const changeTypeLabel = (t: string) => t === 'add' ? '新增' : t === 'delete' ? '删除' : '修改'
 

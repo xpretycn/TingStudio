@@ -1,17 +1,16 @@
 <template>
   <div class="salesman-list">
     <t-card class="content-card" bordered>
-      <t-table :data="salesmanStore.salesmen" :columns="columns" :loading="salesmanStore.loading" :pagination="false" row-key="id" hover stripe>
+      <t-table :data="salesmanStore.salesmen" :columns="columns" :loading="salesmanStore.loading" :pagination="undefined" row-key="id" hover stripe @row-click="handleView">
         <template #empty><t-empty description="暂无业务员数据" /></template>
         <template #status="{ row }">
           <t-tag :theme="row.status === 'active' ? 'success' : 'default'" variant="light">{{ row.status === 'active' ? '活跃' : '停用' }}</t-tag>
         </template>
         <template #operation="{ row }">
           <t-space :size="8">
-            <t-button variant="text" theme="default" size="small" class="btn-view" @click="handleView(row)"><template #icon><t-icon name="browse" /></template>查看</t-button>
-            <t-button variant="text" theme="primary" size="small" class="btn-edit" @click="handleEdit(row)"><template #icon><t-icon name="edit" /></template>编辑</t-button>
+            <t-button variant="outline" theme="primary" size="small" class="btn-edit" @click.stop="handleEdit(row)"><template #icon><t-icon name="edit" /></template>编辑</t-button>
             <t-popconfirm v-if="row.status === 'active'" content="确定要停用该业务员吗？" @confirm="handleToggleStatus(row)">
-              <t-button variant="text" theme="danger" size="small"><template #icon><t-icon name="poweroff" /></template>停用</t-button>
+              <t-button variant="outline" theme="danger" size="small" class="btn-delete" @click.stop><template #icon><t-icon name="poweroff" /></template>停用</t-button>
             </t-popconfirm>
           </t-space>
         </template>
@@ -99,11 +98,20 @@ onMounted(() => { salesmanStore.fetchSalesmen() })
     box-shadow: 0 2px 12px rgba(255, 107, 138, 0.06);
     &:hover { box-shadow: 0 4px 20px rgba(255, 107, 138, 0.1); }
   }
-  :deep(.btn-view) {
-    background: linear-gradient(135deg, #A78BFA, #7C3AED) !important;
-    border: none !important; color: #fff !important;
-    box-shadow: 0 4px 16px rgba(124, 58, 237, 0.3) !important;
-    &:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(124, 58, 237, 0.4) !important; }
+  :deep(.btn-view) { display: none; }
+  :deep(.btn-edit) {
+    color: #2952CC !important;
+    border-color: #C5D1F8 !important;
+    background: #EDF2FF !important;
+    :deep(.t-button__icon) { color: #2952CC !important; }
+    &:hover { color: #0052D9 !important; border-color: #0052D9 !important; background: #ECF3FF !important; }
+  }
+  :deep(.btn-delete) {
+    color: #D54941 !important;
+    border-color: #F5C6C2 !important;
+    background: #FFF1EF !important;
+    :deep(.t-button__icon) { color: #D54941 !important; }
+    &:hover { color: #E34D59 !important; border-color: #E34D59 !important; background: #FEF0EF !important; }
   }
   :deep(.t-button) {
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
@@ -121,6 +129,6 @@ onMounted(() => { salesmanStore.fetchSalesmen() })
     }
     &.t-button--variant-text { &:hover { background-color: #FFF0F3 !important; } }
   }
-  :deep(.t-table) { .t-table__row--hover { background-color: #FFFBFA; } }
+  :deep(.t-table) { .t-table__row--hover { background-color: #FFFBFA; } .t-table__row { cursor: pointer; } }
 }
 </style>

@@ -52,29 +52,7 @@ export async function getSalesman(req: Request, res: Response) {
       return
     }
 
-    // 获取关联客户
-    const [customers]: any[] = await query(
-      `SELECT r.*, c.name as customer_name, c.phone as customer_phone
-       FROM salesman_customer_relations r
-       JOIN customers c ON r.customer_id = c.id
-       WHERE r.salesman_id = ? AND r.end_date IS NULL`,
-      [id]
-    )
-
-    // 获取对接配方师
-    const [formulists]: any[] = await query(
-      `SELECT r.*, u.username as formulist_name
-       FROM salesman_formulist_relations r
-       JOIN users u ON r.formulist_id = u.id
-       WHERE r.salesman_id = ?`,
-      [id]
-    )
-
-    res.json(success({
-      ...rowToCamelCase(salesman),
-      linkedCustomers: rowsToCamelCase(customers),
-      linkedFormulists: rowsToCamelCase(formulists),
-    }))
+    res.json(success(rowToCamelCase(salesman)))
   } catch (error: any) {
     res.status(500).json({ success: false, message: '获取业务员详情失败', error: error.message })
   }
@@ -134,96 +112,5 @@ export async function deleteSalesman(req: Request, res: Response) {
     res.json(success(null, '业务员已停用'))
   } catch (error: any) {
     res.status(500).json({ success: false, message: '停用业务员失败', error: error.message })
-  }
-}
-
-/** 关联客户 */
-export async function linkCustomer(req: any, res: Response) {
-  try {
-    const { salesmanId } = req.params
-    const { customerId, relationType, startDate, notes } = req.body
-    const id = generateId()
-
-    await query(
-      `INSERT INTO salesman_customer_relations (id, salesman_id, customer_id, relation_type, start_date, notes, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [id, salesmanId, customerId, relationType || 'primary', startDate || now(), notes, now()]
-    )
-
-    res.status(201).json(success({ id }, '客户关联成功'))
-  } catch (error: any) {
-    if (error.message?.includes('UNIQUE constraint failed')) {
-      res.status(409).json({ success: false, message: '该客户已关联此业务员' })
-      return
-    }
-    res.status(500).json({ success: false, message: '关联客户失败', error: error.message })
-  }
-}
-
-/** 解除客户关联 */
-export async function unlinkCustomer(req: Request, res: Response) {
-  try {
-    const { relationId } = req.params
-    await query('UPDATE salesman_customer_relations SET end_date = ? WHERE id = ?', [new Date().toISOString().slice(0, 10), relationId])
-    res.json(success(null, '客户关联已解除'))
-  } catch (error: any) {
-    res.status(500).json({ success: false, message: '解除关联失败', error: error.message })
-  }
-}
-
-/** 对接配方师 */
-export async function linkFormulist(req: any, res: Response) {
-  try {
-    const { salesmanId } = req.params
-    const { formulistId, cooperationMode, priority, notes } = req.body
-    const id = generateId()
-
-    await query(
-      `INSERT INTO salesman_formulist_relations (id, salesman_id, formulist_id, cooperation_mode, priority, notes, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [id, salesmanId, formulistId, cooperationMode || 'direct', priority || 3, notes, now()]
-    )
-
-    res.status(201).json(success({ id }, '配方师对接成功'))
-  } catch (error: any) {
-    if (error.message?.includes('UNIQUE constraint failed')) {
-      res.status(409).json({ success: false, message: '该配方师已与此业务员对接' })
-      return
-    }
-    res.status(500).json({ success: false, message: '对接配方师失败', error: error.message })
-  }
-}
-
-/** 添加沟通记录 */
-export async function addCommunicationLog(req: any, res: Response) {
-  try {
-    const { relationId } = req.params
-    const { type, content, attachmentUrls } = req.body
-    const userId = req.user.userId
-    const id = generateId()
-
-    await query(
-      `INSERT INTO communication_logs (id, relation_id, type, content, attachment_urls, created_by, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [id, relationId, type, content, JSON.stringify(attachmentUrls || []), userId, now()]
-    )
-
-    res.status(201).json(success({ id }, '沟通记录添加成功'))
-  } catch (error: any) {
-    res.status(500).json({ success: false, message: '添加沟通记录失败', error: error.message })
-  }
-}
-
-/** 获取沟通记录 */
-export async function getCommunicationLogs(req: Request, res: Response) {
-  try {
-    const { relationId } = req.params
-    const [logs]: any[] = await query(
-      'SELECT * FROM communication_logs WHERE relation_id = ? ORDER BY created_at DESC',
-      [relationId]
-    )
-    res.json(success(rowsToCamelCase(logs)))
-  } catch (error: any) {
-    res.status(500).json({ success: false, message: '获取沟通记录失败', error: error.message })
   }
 }

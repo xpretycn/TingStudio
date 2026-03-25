@@ -316,7 +316,6 @@ const pageIcon = computed(() => {
     '/recent-formulas': '🕐',
     '/formulas': '📝',
     '/materials': '🧪',
-    '/customers': '👥',
     '/salesmen': '🤝',
     '/exports': '📤',
     '/nutrition': '🥗',
@@ -333,10 +332,9 @@ const pageIcon = computed(() => {
 // 搜索框占位符
 const searchPlaceholder = computed(() => {
   const placeholderMap: Record<string, string> = {
-    '/recent-formulas': '搜索配方名称或客户...',
-    '/formulas': '搜索配方名称或客户...',
+    '/recent-formulas': '搜索配方名称或业务员...',
+    '/formulas': '搜索配方名称或业务员...',
     '/materials': '搜索原料名称或编码...',
-    '/customers': '搜索客户名称、联系人...',
     '/salesmen': '搜索姓名、工号或电话...',
     '/exports': '搜索导出记录...',
     '/nutrition': '搜索营养标准...',
@@ -354,7 +352,6 @@ const navItems = [
   { path: '/recent-formulas', label: '最近配方', icon: '🕐' },
   { path: '/formulas', label: '配方管理', icon: '📝' },
   { path: '/materials', label: '原材料管理', icon: '🧪' },
-  { path: '/customers', label: '客户管理', icon: '👥' },
   { path: '/salesmen', label: '业务员管理', icon: '🤝' },
   { path: '/exports', label: '导出中心', icon: '📤' },
   { path: '/nutrition', label: '营养分析', icon: '🥗' },
@@ -379,7 +376,6 @@ const pageTitle = computed(() => {
     '/recent-formulas': '最近配方',
     '/formulas': '配方管理',
     '/materials': '原材料管理',
-    '/customers': '客户管理',
     '/salesmen': '业务员管理',
     '/exports': '导出中心',
     '/nutrition': '营养分析',
@@ -410,8 +406,6 @@ const handleAdd = () => {
     router.push('/formulas/new')
   } else if (path === '/materials') {
     router.push('/materials/new')
-  } else if (path === '/customers') {
-    router.push('/customers/new')
   } else if (path === '/salesmen') {
     router.push('/salesmen/new')
   } else if (path === '/exports') {

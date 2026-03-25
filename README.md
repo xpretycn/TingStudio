@@ -4,7 +4,7 @@
 
 ## 项目简介
 
-TingStudio 是一个专业的食品配方工作数据管理平台，提供配方管理、原料管理、客户管理、业务员管理、营养成分分析、导出分享等完整功能链路。采用 Vue 3 + Express + SQLite 前后端分离架构，支持 JWT 认证、RESTful API、配方版本控制、营养合规检查等企业级特性。
+TingStudio 是一个专业的食品配方工作数据管理平台，提供配方管理、原料管理、业务员管理、营养成分分析、导出分享等完整功能链路。采用 Vue 3 + Express + SQLite 前后端分离架构，支持 JWT 认证、RESTful API、配方版本控制、营养合规检查等企业级特性。
 
 ## 技术栈
 
@@ -31,13 +31,8 @@ TingStudio 是一个专业的食品配方工作数据管理平台，提供配方
 
 ### 认证系统
 - 用户注册/登录（JWT Token）
-- 多角色支持（admin / formulist / salesman / production）
+- 多角色支持（admin / formulist）
 - Token 自动续期与过期处理
-
-### 客户管理
-- 客户信息 CRUD
-- 关键词搜索（姓名/联系人/电话）
-- 分页查询
 
 ### 原料管理
 - 原料信息 CRUD
@@ -45,17 +40,15 @@ TingStudio 是一个专业的食品配方工作数据管理平台，提供配方
 - 配方引用检测（防误删）
 
 ### 配方管理
-- 配方信息 CRUD（关联客户 + 多原料）
-- 关键词搜索与客户过滤
+- 配方信息 CRUD（关联业务员 + 多原料）
+- 关键词搜索与业务员过滤
 - 自动版本控制（每次更新自动生成快照）
 - 手动创建/发布版本
 - 版本对比（原料变更可视化）
 
 ### 业务员管理
 - 业务员信息 CRUD
-- 关联客户（一对多）
-- 对接配方师
-- 沟通记录管理
+- 关键词搜索与状态筛选
 - 软删除（停用）
 
 ### 导出与分享
@@ -76,9 +69,8 @@ ting-studio/
 ├── backend/                          # 后端服务
 │   ├── src/
 │   │   ├── config/                   # 配置（数据库、JWT、应用）
-│   │   ├── controllers/              # 控制器（8个模块）
+│   │   ├── controllers/              # 控制器（7个模块）
 │   │   │   ├── authController.ts
-│   │   │   ├── customerController.ts
 │   │   │   ├── materialController.ts
 │   │   │   ├── formulaController.ts
 │   │   │   ├── salesmanController.ts
@@ -86,7 +78,7 @@ ting-studio/
 │   │   │   ├── exportController.ts
 │   │   │   └── nutritionController.ts
 │   │   ├── middleware/                # 中间件（认证、校验、错误处理）
-│   │   ├── routes/                   # 路由定义（8个模块）
+│   │   ├── routes/                   # 路由定义（7个模块）
 │   │   ├── scripts/                  # 数据库脚本
 │   │   │   ├── init.sql              # 建表 SQL
 │   │   │   ├── initDatabase.ts       # 数据库初始化
@@ -103,7 +95,6 @@ ting-studio/
 │   │   ├── stores/                   # Pinia 状态管理
 │   │   ├── views/                    # 页面组件
 │   │   │   ├── auth/                 # 登录/注册
-│   │   │   ├── customers/            # 客户管理
 │   │   │   ├── materials/            # 原料管理
 │   │   │   ├── formulas/             # 配方管理
 │   │   │   ├── salesmen/             # 业务员管理
@@ -162,17 +153,16 @@ npm run dev
 |--------|------|------|
 | `admin` | `admin123` | 管理员 |
 | `user002` | `user002` | 配方师 |
-| `user003` | `user003` | 业务员 |
 
-> 其他测试账号：`user004` ~ `user030`，密码与用户名相同，角色在 admin/formulist/salesman/production 间循环。
+> 其他测试账号：`user003` ~ `user030`，密码与用户名相同，角色在 admin/formulist 间循环。
 
 ## API 文档
 
-详细的接口文档请查看 [backend/API_DOC.md](./backend/API_DOC.md)，涵盖 8 个模块、40+ 个端点的完整说明。
+详细的接口文档请查看 [backend/API_DOC.md](./backend/API_DOC.md)，涵盖 7 个模块、30+ 个端点的完整说明。
 
 ## 数据库文档
 
-数据库表结构与字段说明请查看 [backend/DATABASE_DOC.md](./backend/DATABASE_DOC.md)，覆盖全部 17 张表。
+数据库表结构与字段说明请查看 [backend/DATABASE_DOC.md](./backend/DATABASE_DOC.md)，覆盖全部 13 张表。
 
 ## 主要脚本
 
@@ -187,15 +177,23 @@ npm run dev
 
 ## 更新日志
 
+### v2.1.0 (2026-03-25)
+- 移除客户管理模块，简化业务模型
+- 配方关联由客户改为业务员（salesman_id / salesman_name）
+- 用户角色精简为 admin / formulist
+- 删除业务员-客户关联、业务员-配方师对接、沟通记录功能
+- 数据库从 17 张表精简为 13 张表
+- 后端从 8 个控制器精简为 7 个，路由同步调整
+- 前端移除客户相关视图、API、Store、类型定义
+
 ### v2.0.0 (2026-03-25)
 - 架构升级为前后端分离（Vue 3 + Express + SQLite）
 - 新增 JWT 认证体系与多角色权限
-- 新增业务员管理（关联客户、对接配方师、沟通记录）
 - 新增配方版本控制（自动/手动版本、版本对比）
 - 新增导出管理（模板管理、任务跟踪、分享链接）
 - 新增营养分析（成分录入、配方汇总、合规检查）
-- 新增 RESTful API（8 个模块、40+ 个端点）
-- 填充完整种子数据（12 张表、共 340+ 条记录）
+- 新增 RESTful API（7 个模块、30+ 个端点）
+- 填充完整种子数据（10 张表、共 270+ 条记录）
 - 生成 API 接口文档与数据库文档
 
 ### v1.2.0 (2026-03-24)

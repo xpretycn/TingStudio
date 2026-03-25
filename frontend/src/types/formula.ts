@@ -7,8 +7,8 @@ export interface MaterialItem {
 export interface Formula {
   id: string;
   name: string;
-  customerId: string;
-  customerName: string;
+  salesmanId: string;
+  salesmanName: string;
   materials: MaterialItem[];
   description?: string;
   createdBy: string;
@@ -18,14 +18,14 @@ export interface Formula {
 
 export interface FormulaForm {
   name: string;
-  customerId: string;
+  salesmanId: string;
   materials: MaterialItem[];
   description?: string;
 }
 
 export interface FormulaQuery {
   keyword?: string;
-  customerId?: string;
+  salesmanId?: string;
   materialId?: string;
   page?: number;
   pageSize?: number;

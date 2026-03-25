@@ -28,18 +28,18 @@
           />
         </t-form-item>
 
-        <t-form-item label="所属客户" name="customerId">
+        <t-form-item label="所属业务员" name="salesmanId">
           <t-select
-            v-model="formData.customerId"
-            placeholder="请选择客户"
+            v-model="formData.salesmanId"
+            placeholder="请选择业务员"
             clearable
             filterable
           >
             <t-option
-              v-for="customer in customerStore.customers"
-              :key="customer.id"
-              :value="customer.id"
-              :label="customer.name"
+              v-for="salesman in salesmanStore.salesmen"
+              :key="salesman.id"
+              :value="salesman.id"
+              :label="salesman.name"
             />
           </t-select>
         </t-form-item>
@@ -128,7 +128,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useFormulaStore } from '@/stores/formula'
-import { useCustomerStore } from '@/stores/customer'
+import { useSalesmanStore } from '@/stores/salesman'
 import { useMaterialStore } from '@/stores/material'
 import { MessagePlugin } from 'tdesign-vue-next'
 import type { FormInstanceFunctions, FormRule } from 'tdesign-vue-next'
@@ -137,7 +137,7 @@ import type { FormulaForm, MaterialItem } from '@/api/formula'
 const router = useRouter()
 const route = useRoute()
 const formulaStore = useFormulaStore()
-const customerStore = useCustomerStore()
+const salesmanStore = useSalesmanStore()
 const materialStore = useMaterialStore()
 
 const formRef = ref<FormInstanceFunctions>()
@@ -147,7 +147,7 @@ const isEdit = computed(() => !!route.params.id)
 
 const formData = reactive<FormulaForm>({
   name: '',
-  customerId: '',
+  salesmanId: '',
   materials: [],
   description: ''
 })
@@ -161,7 +161,7 @@ const rules: Record<string, FormRule[]> = {
     { required: true, message: '请输入配方名称' },
     { min: 2, message: '配方名称至少2个字符' }
   ],
-  customerId: [{ required: true, message: '请选择所属客户' }],
+  salesmanId: [{ required: true, message: '请选择所属业务员' }],
   materials: [
     { validator: validateMaterials, message: '请至少添加一种原料' },
     {
@@ -224,7 +224,7 @@ const handleBack = () => {
 
 onMounted(async () => {
   await Promise.all([
-    customerStore.fetchCustomers(),
+    salesmanStore.fetchSalesmen(),
     materialStore.fetchMaterials()
   ])
 
@@ -234,7 +234,7 @@ onMounted(async () => {
     if (formula) {
       Object.assign(formData, {
         name: formula.name,
-        customerId: formula.customerId,
+        salesmanId: formula.salesmanId,
         materials: (formula.materials || []).map(m => ({ ...m })),
         description: formula.description || ''
       })

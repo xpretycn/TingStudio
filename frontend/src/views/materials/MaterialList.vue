@@ -5,10 +5,11 @@
         :data="materialStore.materials"
         :columns="columns"
         :loading="materialStore.loading"
-        :pagination="false"
+        :pagination="undefined"
         row-key="id"
         hover
         stripe
+        @row-click="handleView"
       >
         <template #stock="{ row }">
           <t-tag :theme="row.stock > 0 ? 'success' : 'danger'">
@@ -25,13 +26,7 @@
 
         <template #operation="{ row }">
           <t-space :size="8">
-            <t-button variant="text" theme="default" size="small" class="btn-view" @click="handleView(row)">
-              <template #icon>
-                <t-icon name="browse" />
-              </template>
-              查看
-            </t-button>
-            <t-button variant="text" theme="primary" size="small" class="btn-edit" @click="handleEdit(row)">
+            <t-button variant="outline" theme="primary" size="small" class="btn-edit" @click.stop="handleEdit(row)">
               <template #icon>
                 <t-icon name="edit" />
               </template>
@@ -41,7 +36,7 @@
               content="确定要删除该原料吗？"
               @confirm="handleDelete(row)"
             >
-              <t-button variant="text" theme="danger" size="small">
+              <t-button variant="outline" theme="danger" size="small" class="btn-delete" @click.stop>
                 <template #icon>
                   <t-icon name="delete" />
                 </template>
@@ -204,27 +199,38 @@ onMounted(() => {
   }
 
   :deep(.btn-view) {
-    background: linear-gradient(135deg, #A78BFA, #7C3AED) !important;
-    border: none !important;
-    color: #fff !important;
-    box-shadow: 0 4px 16px rgba(124, 58, 237, 0.3) !important;
+    display: none;
+  }
 
-    :deep(.t-button__text) {
-      color: #fff !important;
-    }
+  :deep(.btn-edit) {
+    color: #2952CC !important;
+    border-color: #C5D1F8 !important;
+    background: #EDF2FF !important;
 
     :deep(.t-button__icon) {
-      color: #fff !important;
+      color: #2952CC !important;
     }
 
     &:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(124, 58, 237, 0.4) !important;
-      background: linear-gradient(135deg, #C4B5FD, #A78BFA) !important;
+      color: #0052D9 !important;
+      border-color: #0052D9 !important;
+      background: #ECF3FF !important;
+    }
+  }
+
+  :deep(.btn-delete) {
+    color: #D54941 !important;
+    border-color: #F5C6C2 !important;
+    background: #FFF1EF !important;
+
+    :deep(.t-button__icon) {
+      color: #D54941 !important;
     }
 
-    &:active {
-      transform: translateY(1px) scale(0.98);
+    &:hover {
+      color: #E34D59 !important;
+      border-color: #E34D59 !important;
+      background: #FEF0EF !important;
     }
   }
 
@@ -313,6 +319,10 @@ onMounted(() => {
   :deep(.t-table) {
     .t-table__row--hover {
       background-color: #FFFBFA;
+    }
+
+    .t-table__row {
+      cursor: pointer;
     }
   }
 }

@@ -44,7 +44,7 @@
           <t-descriptions-item label="版本号">{{ currentSnapshot.versionNumber }}</t-descriptions-item>
           <t-descriptions-item label="版本名称">{{ currentSnapshot.versionName || '-' }}</t-descriptions-item>
           <t-descriptions-item label="配方名称">{{ currentSnapshot.snapshot?.name }}</t-descriptions-item>
-          <t-descriptions-item label="客户">{{ currentSnapshot.snapshot?.customerName }}</t-descriptions-item>
+          <t-descriptions-item label="业务员">{{ currentSnapshot.snapshot?.salesmanName }}</t-descriptions-item>
         </t-descriptions>
         <div v-if="currentSnapshot.snapshot?.materials?.length" class="snapshot-materials">
           <h4>原料清单</h4>

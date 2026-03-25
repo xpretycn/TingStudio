@@ -16,7 +16,7 @@ formulaRoutes.get('/:id', getFormula)
 formulaRoutes.post('/',
   validateBody({
     name: { type: 'string', required: true, minLength: 1, message: '请输入配方名称' },
-    customerId: { type: 'string', required: true, message: '请选择客户' },
+    salesmanId: { type: 'string', required: true, message: '请选择业务员' },
     materials: { type: 'array', required: true, message: '请添加原料' },
   }),
   createFormula

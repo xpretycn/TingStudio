@@ -16,34 +16,48 @@
         hover
         stripe
         :expandable="true"
+        @row-click="handleView"
       >
         <template #expandedRow="{ row }">
           <div class="expanded-content">
+            <div class="description-section" v-if="getFormulaDesc(row.description)">
+              <h4>配方信息</h4>
+              <div class="desc-tags">
+                <t-tag v-if="getFormulaDesc(row.description).productType" theme="primary" variant="light" size="medium">
+                  {{ getFormulaDesc(row.description).productType }}
+                </t-tag>
+                <t-tag v-if="getFormulaDesc(row.description).dosage" theme="warning" variant="light" size="medium">
+                  {{ getFormulaDesc(row.description).dosage }}
+                </t-tag>
+                <t-tag v-if="getFormulaDesc(row.description).efficacy" theme="success" variant="light" size="medium">
+                  {{ getFormulaDesc(row.description).efficacy }}
+                </t-tag>
+                <t-tag v-if="getFormulaDesc(row.description).totalQuote != null" theme="danger" variant="light" size="medium">
+                  报价: ¥{{ getFormulaDesc(row.description).totalQuote.toFixed(4) }}
+                </t-tag>
+              </div>
+            </div>
             <div class="materials-section">
               <h4>原料清单</h4>
               <t-table
-                :data="row.materials"
+                :data="row.materials || []"
                 :columns="materialColumns"
                 size="small"
                 bordered
               />
             </div>
-            <div v-if="row.description" class="description-section">
-              <h4>配方描述</h4>
-              <p>{{ row.description }}</p>
-            </div>
           </div>
         </template>
 
-        <template #customerName="{ row }">
+        <template #salesmanName="{ row }">
           <t-tag theme="primary" variant="light">
-            {{ row.customerName }}
+            {{ row.salesmanName }}
           </t-tag>
         </template>
 
         <template #materialCount="{ row }">
           <t-tag theme="success" variant="light">
-            {{ row.materials.length }} 种原料
+            {{ (row.materials || []).length }} 种原料
           </t-tag>
         </template>
 
@@ -59,13 +73,7 @@
 
         <template #operation="{ row }">
           <t-space :size="8">
-            <t-button variant="text" theme="default" size="small" class="btn-view" @click="handleView(row)">
-              <template #icon>
-                <t-icon name="browse" />
-              </template>
-              查看
-            </t-button>
-            <t-button variant="text" theme="primary" size="small" class="btn-edit" @click="handleEdit(row)">
+            <t-button variant="outline" theme="primary" size="small" class="btn-edit" @click.stop="handleEdit(row)">
               <template #icon>
                 <t-icon name="edit" />
               </template>
@@ -92,8 +100,8 @@
           </div>
           <div class="detail-title-group">
             <h2 class="detail-name">{{ detailData?.name }}</h2>
-            <t-tag v-if="detailData?.customerName" theme="primary" variant="light" size="small">
-              {{ detailData.customerName }}
+            <t-tag v-if="detailData?.salesmanName" theme="primary" variant="light" size="small">
+              {{ detailData.salesmanName }}
             </t-tag>
           </div>
           <t-button
@@ -143,9 +151,22 @@
           </div>
         </div>
 
-        <div v-if="detailData?.description" class="detail-section">
-          <h4><span class="section-dot"></span>配方描述</h4>
-          <p class="detail-description">{{ detailData.description }}</p>
+        <div v-if="getFormulaDesc(detailData?.description)" class="detail-section">
+          <h4><span class="section-dot"></span>配方信息</h4>
+          <div class="detail-desc-tags">
+            <t-tag v-if="getFormulaDesc(detailData?.description)?.productType" theme="primary" variant="light" size="medium">
+              {{ getFormulaDesc(detailData?.description)?.productType }}
+            </t-tag>
+            <t-tag v-if="getFormulaDesc(detailData?.description)?.dosage" theme="warning" variant="light" size="medium">
+              {{ getFormulaDesc(detailData?.description)?.dosage }}
+            </t-tag>
+            <t-tag v-if="getFormulaDesc(detailData?.description)?.efficacy" theme="success" variant="light" size="medium">
+              {{ getFormulaDesc(detailData?.description)?.efficacy }}
+            </t-tag>
+            <t-tag v-if="getFormulaDesc(detailData?.description)?.totalQuote != null" theme="danger" variant="light" size="medium">
+              报价: ¥{{ getFormulaDesc(detailData?.description)?.totalQuote.toFixed(4) }}
+            </t-tag>
+          </div>
         </div>
 
         <div class="detail-footer">
@@ -173,9 +194,19 @@ const formulaStore = useFormulaStore()
 const detailVisible = ref(false)
 const detailData = ref<Formula | null>(null)
 
+const getFormulaDesc = (description: string | null | undefined) => {
+  if (!description || typeof description !== 'string') return null
+  try {
+    const obj = JSON.parse(description)
+    return typeof obj === 'object' && obj !== null ? obj : null
+  } catch {
+    return null
+  }
+}
+
 const columns = [
   { colKey: 'name', title: '配方名称', width: 200 },
-  { colKey: 'customerName', title: '所属客户', width: 150 },
+  { colKey: 'salesmanName', title: '所属业务员', width: 150 },
   { colKey: 'materialCount', title: '原料数量', width: 120 },
   { colKey: 'createdAt', title: '创建时间', width: 180 },
   { colKey: 'updatedAt', title: '更新时间', width: 180 },
@@ -273,29 +304,16 @@ onMounted(async () => {
     }
   }
 
-  :deep(.btn-view) {
-    background: linear-gradient(135deg, #A78BFA, #7C3AED) !important;
-    border: none !important;
-    color: #fff !important;
-    box-shadow: 0 4px 16px rgba(124, 58, 237, 0.3) !important;
+  :deep(.btn-view) { display: none; }
 
-    :deep(.t-button__text) {
-      color: #fff !important;
-    }
+  :deep(.btn-edit) {
+    color: #2952CC !important;
+    border-color: #C5D1F8 !important;
+    background: #EDF2FF !important;
 
-    :deep(.t-button__icon) {
-      color: #fff !important;
-    }
+    :deep(.t-button__icon) { color: #2952CC !important; }
 
-    &:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(124, 58, 237, 0.4) !important;
-      background: linear-gradient(135deg, #C4B5FD, #A78BFA) !important;
-    }
-
-    &:active {
-      transform: translateY(1px) scale(0.98);
-    }
+    &:hover { color: #0052D9 !important; border-color: #0052D9 !important; background: #ECF3FF !important; }
   }
 
   .expanded-content {
@@ -512,6 +530,12 @@ onMounted(async () => {
       font-size: 14px;
       color: #5D4E60;
       line-height: 1.7;
+    }
+
+    .detail-desc-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
     }
 
     .detail-footer {

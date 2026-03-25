@@ -94,8 +94,8 @@ export async function createVersion(req: any, res: Response) {
       [
         versionId, formulaId, newVersionNum, versionName || `手动版本 ${newVersionNum}`,
         JSON.stringify({
-          name: formula.name, customerId: formula.customer_id,
-          customerName: formula.customer_name,
+          name: formula.name, salesmanId: formula.salesman_id,
+          salesmanName: formula.salesman_name,
           materials: safeJsonParse(formula.materials_json, []),
           description: formula.description,
           formulaData: formula,
@@ -175,13 +175,13 @@ export async function compareVersions(req: Request, res: Response) {
     const differences: any[] = []
     let addedCount = 0, modifiedCount = 0, deletedCount = 0
 
-    // 客户变更
-    if (snapshotA.customerId !== snapshotB.customerId) {
+    // 业务员变更
+    if (snapshotA.salesmanId !== snapshotB.salesmanId) {
       differences.push({
-        fieldId: 'customerId',
-        fieldLabel: '客户',
-        fieldType: 'customer',
-        changes: { oldValue: snapshotA.customerName, newValue: snapshotB.customerName, changeType: 'modify', highlighted: true },
+        fieldId: 'salesmanId',
+        fieldLabel: '业务员',
+        fieldType: 'salesman',
+        changes: { oldValue: snapshotA.salesmanName, newValue: snapshotB.salesmanName, changeType: 'modify', highlighted: true },
       })
       modifiedCount++
     }

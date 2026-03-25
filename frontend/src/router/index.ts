@@ -31,24 +31,7 @@ const router = createRouter({
           component: () => import('@/views/formulas/RecentFormulas.vue'),
           meta: { title: '最近配方' }
         },
-        {
-          path: 'customers',
-          name: 'CustomerList',
-          component: () => import('@/views/customers/CustomerList.vue'),
-          meta: { title: '客户管理' }
-        },
-        {
-          path: 'customers/new',
-          name: 'CustomerNew',
-          component: () => import('@/views/customers/CustomerForm.vue'),
-          meta: { title: '新增客户' }
-        },
-        {
-          path: 'customers/:id/edit',
-          name: 'CustomerEdit',
-          component: () => import('@/views/customers/CustomerForm.vue'),
-          meta: { title: '编辑客户' }
-        },
+
         {
           path: 'materials',
           name: 'MaterialList',
