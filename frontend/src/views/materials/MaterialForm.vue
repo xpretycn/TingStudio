@@ -28,6 +28,24 @@
           />
         </t-form-item>
 
+        <t-form-item label="原料类型" name="materialType">
+          <t-radio-group v-model="formData.materialType" @change="handleTypeChange">
+            <t-radio value="herb">药材</t-radio>
+            <t-radio value="supplement">辅料</t-radio>
+          </t-radio-group>
+        </t-form-item>
+
+        <t-form-item label="含量比系数" name="ratioFactor">
+          <t-input-number
+            v-model="formData.ratioFactor"
+            :min="0"
+            :max="2"
+            :decimal-places="2"
+            placeholder="药材默认0.18，辅料默认1"
+            style="width: 200px"
+          />
+        </t-form-item>
+
         <t-form-item label="原料名称" name="name">
           <t-input
             v-model="formData.name"
@@ -84,11 +102,13 @@ const loading = ref(false)
 
 const isEdit = computed(() => !!route.params.id)
 
-const formData = reactive<MaterialForm>({
+const formData = reactive<any>({
   code: '',
   name: '',
   unit: '',
-  stock: 0
+  stock: 0,
+  materialType: 'herb',
+  ratioFactor: 0.18,
 })
 
 const unitOptions = [
@@ -113,6 +133,10 @@ const rules: Record<string, FormRule[]> = {
   ],
   unit: [{ required: true, message: '请选择单位' }],
   stock: [{ required: true, message: '请输入库存数量' }]
+}
+
+const handleTypeChange = (val: string) => {
+  formData.ratioFactor = val === 'supplement' ? 1.0 : 0.18
 }
 
 const handleSubmit = async ({ validateResult }: any) => {
@@ -153,7 +177,9 @@ onMounted(async () => {
         code: material.code,
         name: material.name,
         unit: material.unit,
-        stock: material.stock
+        stock: material.stock,
+        materialType: material.materialType || 'herb',
+        ratioFactor: material.ratioFactor ?? (material.materialType === 'supplement' ? 1.0 : 0.18),
       })
     }
   }

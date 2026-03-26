@@ -19,7 +19,6 @@ formulaRoutes.post('/',
     salesmanId: { type: 'string', required: true, message: '请选择业务员' },
     materials: { type: 'array', required: true, message: '请添加原料' },
     finishedWeight: { type: 'number', required: true, message: '请输入成品重量' },
-    ratioFactor: { type: 'number', required: false, message: '请输入含量比系数' },
   }),
   createFormula
 )

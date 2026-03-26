@@ -4,7 +4,7 @@
       <template #header>
         <div class="page-header">
           <t-button variant="text" @click="handleBack"><template #icon><t-icon name="chevron-left" /></template>返回配方</t-button>
-          <span class="page-title">版本管理</span>
+          <span class="page-title">版本管理 - {{ formulaName || '加载中...' }}</span>
         </div>
       </template>
 
@@ -72,13 +72,16 @@
 import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useVersionStore } from '@/stores/version'
+import { useFormulaStore } from '@/stores/formula'
 import { MessagePlugin } from 'tdesign-vue-next'
 
 const router = useRouter()
 const route = useRoute()
 const versionStore = useVersionStore()
+const formulaStore = useFormulaStore()
 
 const formulaId = route.params.formulaId as string
+const formulaName = ref('')
 const statusFilter = ref('')
 const snapshotVisible = ref(false)
 const currentSnapshot = ref<any>(null)
@@ -127,7 +130,11 @@ const handleViewSnapshot = (row: any) => {
   snapshotVisible.value = true
 }
 
-onMounted(() => { fetchVersions() })
+onMounted(async () => {
+  fetchVersions()
+  const formula = await formulaStore.getFormula(formulaId)
+  if (formula) formulaName.value = formula.name
+})
 </script>
 
 <style scoped lang="scss">

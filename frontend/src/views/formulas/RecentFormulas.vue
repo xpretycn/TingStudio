@@ -86,116 +86,17 @@
         </template>
       </t-table>
     </t-card>
-
-    <t-dialog
-      v-model:visible="detailVisible"
-      :header="''"
-      :footer="false"
-      :close-btn="true"
-      :close-on-overlay-click="true"
-      width="560px"
-      class="formula-detail-dialog"
-    >
-      <div class="detail-content">
-        <div class="detail-header">
-          <div class="detail-icon">
-            <t-icon name="file-text" />
-          </div>
-          <div class="detail-title-group">
-            <h2 class="detail-name">{{ detailData?.name }}</h2>
-            <t-tag v-if="detailData?.salesmanName" theme="primary" variant="light" size="small">
-              {{ detailData.salesmanName }}
-            </t-tag>
-          </div>
-          <t-button
-            class="detail-close-btn"
-            shape="circle"
-            variant="outline"
-            @click="detailVisible = false"
-          >
-            <template #icon>
-              <t-icon name="close" />
-            </template>
-          </t-button>
-        </div>
-
-        <div class="detail-meta">
-          <div class="meta-item">
-            <t-icon name="time" />
-            <span>创建：{{ detailData?.createdAt }}</span>
-          </div>
-          <div v-if="detailData?.updatedAt" class="meta-item">
-            <t-icon name="refresh" />
-            <span>更新：{{ detailData.updatedAt }}</span>
-          </div>
-        </div>
-
-        <div class="detail-section">
-          <h4>
-            <span class="section-dot"></span>
-            原料清单
-            <t-tag size="small" variant="light" theme="success" class="section-tag">
-              {{ detailData?.materials?.length || 0 }} 种
-            </t-tag>
-          </h4>
-          <div class="materials-list">
-            <div
-              v-for="(item, index) in detailData?.materials"
-              :key="index"
-              class="material-item"
-            >
-              <span class="material-index">{{ index + 1 }}</span>
-              <span class="material-name">{{ item.materialName }}</span>
-              <span class="material-quantity">{{ item.quantity }}</span>
-            </div>
-            <div v-if="!detailData?.materials?.length" class="empty-materials">
-              暂无原料信息
-            </div>
-          </div>
-        </div>
-
-        <div v-if="getFormulaDesc(detailData?.description)" class="detail-section">
-          <h4><span class="section-dot"></span>配方信息</h4>
-          <div class="detail-desc-tags">
-            <t-tag v-if="getFormulaDesc(detailData?.description)?.productType" theme="primary" variant="light" size="medium">
-              {{ getFormulaDesc(detailData?.description)?.productType }}
-            </t-tag>
-            <t-tag v-if="getFormulaDesc(detailData?.description)?.dosage" theme="warning" variant="light" size="medium">
-              {{ getFormulaDesc(detailData?.description)?.dosage }}
-            </t-tag>
-            <t-tag v-if="getFormulaDesc(detailData?.description)?.efficacy" theme="success" variant="light" size="medium">
-              {{ getFormulaDesc(detailData?.description)?.efficacy }}
-            </t-tag>
-            <t-tag v-if="getFormulaDesc(detailData?.description)?.totalQuote != null" theme="danger" variant="light" size="medium">
-              报价: ¥{{ getFormulaDesc(detailData?.description)?.totalQuote.toFixed(4) }}
-            </t-tag>
-          </div>
-        </div>
-
-        <div class="detail-footer">
-          <t-button theme="primary" @click="handleEditFromDialog">
-            <template #icon>
-              <t-icon name="edit" />
-            </template>
-            编辑配方
-          </t-button>
-        </div>
-      </div>
-    </t-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useFormulaStore } from '@/stores/formula'
 import type { Formula } from '@/api/formula'
 
 const router = useRouter()
 const formulaStore = useFormulaStore()
-
-const detailVisible = ref(false)
-const detailData = ref<Formula | null>(null)
 
 const getFormulaDesc = (description: string | null | undefined) => {
   if (!description || typeof description !== 'string') return null
@@ -233,14 +134,7 @@ const recentFormulas = computed(() => {
 })
 
 const handleView = (row: Formula) => {
-  detailData.value = row
-  detailVisible.value = true
-}
-
-const handleEditFromDialog = () => {
-  if (detailData.value) {
-    router.push(`/formulas/${detailData.value.id}/edit`)
-  }
+  router.push(`/formulas/${row.id}`)
 }
 
 const handleEdit = (row: Formula) => {
@@ -252,7 +146,18 @@ const goToFormulas = () => {
 }
 
 onMounted(async () => {
+  window.addEventListener('global-search', handleGlobalSearch)
   await formulaStore.fetchFormulas()
+})
+
+const handleGlobalSearch = (e: Event) => {
+  const keyword = (e as CustomEvent).detail || ''
+  formulaStore.setKeyword(keyword)
+  formulaStore.fetchFormulas()
+}
+
+onUnmounted(() => {
+  window.removeEventListener('global-search', handleGlobalSearch)
 })
 </script>
 
@@ -371,186 +276,6 @@ onMounted(async () => {
         font-size: 14px;
         color: #9B8FA0;
         line-height: 1.6;
-      }
-    }
-  }
-  .detail-content {
-    .detail-header {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      margin-bottom: 20px;
-      padding-bottom: 16px;
-      border-bottom: 1px solid #FFF0F3;
-
-      .detail-icon {
-        width: 48px;
-        height: 48px;
-        border-radius: 12px;
-        background: linear-gradient(135deg, #FF8FAB, #FF6B8A);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #fff;
-        font-size: 24px;
-        flex-shrink: 0;
-      }
-
-      .detail-title-group {
-        flex: 1;
-        min-width: 0;
-
-        .detail-name {
-          margin: 0 0 4px 0;
-          font-size: 20px;
-          font-weight: 700;
-          color: #5D4E60;
-        }
-      }
-
-      .detail-close-btn {
-        flex-shrink: 0;
-        border-color: #FFD6E0 !important;
-        color: #FF6B8A !important;
-        width: 36px;
-        height: 36px;
-
-        &:hover {
-          background: #FFF0F3 !important;
-          border-color: #FF6B8A !important;
-        }
-      }
-    }
-
-    .detail-meta {
-      display: flex;
-      gap: 24px;
-      margin-bottom: 20px;
-      padding: 12px 16px;
-      background: #FFF9F7;
-      border-radius: 8px;
-
-      .meta-item {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        font-size: 13px;
-        color: #9B8FA0;
-
-        .t-icon {
-          color: #FF8FAB;
-        }
-      }
-    }
-
-    .detail-section {
-      margin-bottom: 20px;
-
-      h4 {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        margin: 0 0 12px 0;
-        font-size: 15px;
-        font-weight: 600;
-        color: #5D4E60;
-
-        .section-dot {
-          width: 4px;
-          height: 16px;
-          background: linear-gradient(135deg, #FF8FAB, #FF6B8A);
-          border-radius: 2px;
-        }
-
-        .section-tag {
-          margin-left: auto;
-        }
-      }
-    }
-
-    .materials-list {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-
-      .material-item {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 10px 14px;
-        background: #FAFBFC;
-        border-radius: 8px;
-        border: 1px solid #F0F0F0;
-        transition: all 0.2s;
-
-        &:hover {
-          background: #FFF9F7;
-          border-color: #FFD6E0;
-        }
-
-        .material-index {
-          width: 24px;
-          height: 24px;
-          border-radius: 50%;
-          background: linear-gradient(135deg, #A78BFA, #7C3AED);
-          color: #fff;
-          font-size: 12px;
-          font-weight: 600;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          flex-shrink: 0;
-        }
-
-        .material-name {
-          flex: 1;
-          font-size: 14px;
-          color: #333;
-          font-weight: 500;
-        }
-
-        .material-quantity {
-          font-size: 14px;
-          color: #7C3AED;
-          font-weight: 600;
-        }
-      }
-
-      .empty-materials {
-        text-align: center;
-        padding: 24px;
-        color: #9B8FA0;
-        font-size: 14px;
-      }
-    }
-
-    .detail-description {
-      margin: 0;
-      padding: 14px 16px;
-      background: #FFF9F7;
-      border-radius: 8px;
-      border-left: 3px solid #FFD6E0;
-      font-size: 14px;
-      color: #5D4E60;
-      line-height: 1.7;
-    }
-
-    .detail-desc-tags {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-
-    .detail-footer {
-      margin-top: 24px;
-      padding-top: 16px;
-      border-top: 1px solid #FFF0F3;
-      display: flex;
-      justify-content: flex-end;
-
-      .t-button {
-        border-radius: 12px !important;
-        padding: 8px 24px;
       }
     }
   }

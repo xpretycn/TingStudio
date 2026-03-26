@@ -21,6 +21,8 @@ CREATE TABLE IF NOT EXISTS `materials` (
   `code` TEXT NOT NULL UNIQUE,
   `unit` TEXT NOT NULL DEFAULT 'g',
   `stock` REAL NOT NULL DEFAULT 0,
+  `material_type` TEXT NOT NULL DEFAULT 'herb' CHECK(material_type IN ('herb', 'supplement')),
+  `ratio_factor` REAL NOT NULL DEFAULT 0.18,
   `created_by` TEXT NOT NULL,
   `created_at` TEXT NOT NULL DEFAULT (datetime('now')),
   `updated_at` TEXT NOT NULL DEFAULT (datetime('now'))
@@ -36,7 +38,6 @@ CREATE TABLE IF NOT EXISTS `formulas` (
   `salesman_name` TEXT NOT NULL,
   `materials_json` TEXT NOT NULL,
   `finished_weight` REAL NOT NULL DEFAULT 0,
-  `ratio_factor` REAL NOT NULL DEFAULT 0.18,
   `description` TEXT DEFAULT NULL,
   `created_by` TEXT NOT NULL,
   `created_at` TEXT NOT NULL DEFAULT (datetime('now')),

@@ -9,19 +9,36 @@
         <span class="detail-title">配方详情 - {{ data.formulaName }}</span>
       </div>
 
+      <!-- 营养数据缺失警告 -->
+      <t-alert
+        v-if="missingMaterials.length > 0"
+        :theme="missingMaterials.length === data.calcRows?.length ? 'warning' : 'info'"
+        class="nutrition-warning"
+      >
+        <template #message>
+          {{ missingMaterials.length === data.calcRows?.length
+            ? '以下原料尚未录入营养数据，营养成分表无法计算：'
+            : '以下原料营养数据缺失，计算结果可能不准确：'
+          }}
+          <t-tag v-for="name in missingMaterials" :key="name" theme="warning" variant="light" size="small" style="margin: 2px 4px 2px 0;">
+            {{ name }}
+          </t-tag>
+        </template>
+      </t-alert>
+
       <!-- 表1: 营养成分表计算表格 -->
       <div class="table-card">
         <div class="table-title-row">
           <span class="formula-name">{{ data.formulaName }}</span>
         </div>
         <div class="formula-info-row">
-          <span>成品重量：<b>{{ data.finishedWeight }}g</b></span>
-          <span>含量比系数：<b>{{ data.ratioFactor }}</b></span>
+          <span>成品重量：<b class="highlight-weight">{{ data.finishedWeight }}g</b></span>
         </div>
         <div class="table-title-row">
           <span class="table-title">营养成分表计算表格</span>
         </div>
         <t-table
+          v-if="missingMaterials.length < data.calcRows?.length"
           :data="calcTableData"
           :columns="calcColumns"
           row-key="name"
@@ -33,11 +50,18 @@
             <template v-if="typeof row.ratio === 'number'">{{ (row.ratio * 100).toFixed(2) }}%</template>
             <template v-else>{{ row.ratio }}</template>
           </template>
+          <template #name="{ row }">
+            <span :class="{ 'missing-nutrition': row.hasEmptyNutrition }">
+              {{ row.name }}
+              <t-icon v-if="row.hasEmptyNutrition" name="error-circle" style="color: #E8703A; margin-left: 4px;" />
+            </span>
+          </template>
         </t-table>
+        <t-empty v-else description="请先为原料录入营养数据后再查看营养成分表" />
       </div>
 
       <!-- 表2: 营养成分表 + 技术处理依据 -->
-      <div class="table-card">
+      <div v-if="missingMaterials.length < data.calcRows?.length" class="table-card">
         <div class="table-title-row">
           <span class="formula-name">{{ data.formulaName }}</span>
         </div>
@@ -84,6 +108,9 @@ const route = useRoute()
 
 const loading = ref(false)
 const data = ref<any>(null)
+const missingMaterials = computed<string[]>(() => {
+  return data.value?.missingNutritionMaterials || []
+})
 
 const calcColumns = [
   { colKey: 'name', title: '原料名', width: 140 },
@@ -195,6 +222,25 @@ onMounted(() => { loadData() })
     b {
       color: #5D4E60;
     }
+
+    .highlight-weight {
+      color: #E8703A;
+      font-weight: 700;
+      font-size: 15px;
+      background: linear-gradient(135deg, rgba(232, 112, 58, 0.1), rgba(255, 143, 171, 0.1));
+      padding: 2px 10px;
+      border-radius: 6px;
+      border: 1px solid rgba(232, 112, 58, 0.25);
+    }
+  }
+
+  .nutrition-warning {
+    margin-bottom: 16px;
+    border-radius: 10px;
+  }
+
+  .missing-nutrition {
+    color: #E8703A;
   }
 
   .dual-title {

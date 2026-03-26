@@ -6,6 +6,8 @@ export interface Material {
   code: string
   unit: string
   stock: number
+  materialType: string
+  ratioFactor: number
   createdBy: string
   createdAt: string
   updatedAt: string
@@ -16,6 +18,8 @@ export interface MaterialForm {
   code: string
   unit?: string
   stock?: number
+  materialType?: string
+  ratioFactor?: number
 }
 
 export const materialApi = {

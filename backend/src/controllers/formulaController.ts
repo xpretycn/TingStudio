@@ -41,7 +41,28 @@ export async function getFormulas(req: any, res: Response) {
       params
     )
 
-    res.json(successWithPagination(rowsToCamelCase(list), countResult[0].total, p, size))
+    // 批量查询每个配方的版本信息
+    const formulaIds = list.map((f: any) => f.id)
+    let versionsMap: Record<string, any[]> = {}
+    if (formulaIds.length > 0) {
+      const placeholders = formulaIds.map(() => '?').join(',')
+      const [versions]: any[] = await query(
+        `SELECT * FROM formula_versions WHERE formula_id IN (${placeholders}) ORDER BY created_at DESC`,
+        formulaIds
+      )
+      for (const v of versions) {
+        const fid = v.formula_id
+        if (!versionsMap[fid]) versionsMap[fid] = []
+        versionsMap[fid].push(rowToCamelCase(v))
+      }
+    }
+
+    const listWithVersions = rowsToCamelCase(list).map((f: any) => ({
+      ...f,
+      versions: versionsMap[f.id] || []
+    }))
+
+    res.json(successWithPagination(listWithVersions, countResult[0].total, p, size))
   } catch (error: any) {
     res.status(500).json({ success: false, message: '获取配方列表失败', error: error.message })
   }
@@ -67,7 +88,7 @@ export async function getFormula(req: Request, res: Response) {
 /** 创建配方 */
 export async function createFormula(req: any, res: Response) {
   try {
-    const { name, salesmanId, materials, description, finishedWeight, ratioFactor } = req.body
+    const { name, salesmanId, materials, description, finishedWeight } = req.body
     const userId = req.user.userId
     const id = generateId()
 
@@ -78,15 +99,15 @@ export async function createFormula(req: any, res: Response) {
       return
     }
 
-    // 补充原料名称
+    // 补充原料名称（ratioFactor 从原料表获取，不再从请求中传入）
     const materialItems = materials.map((m: any) => {
-      return { materialId: m.materialId, materialName: m.materialName || '', quantity: m.quantity, ratioFactor: m.ratioFactor }
+      return { materialId: m.materialId, materialName: m.materialName || '', quantity: m.quantity }
     })
 
     await query(
-      `INSERT INTO formulas (id, name, salesman_id, salesman_name, materials_json, finished_weight, ratio_factor, description, created_by, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [id, name, salesmanId, salesman.name, JSON.stringify(materialItems), finishedWeight || 0, ratioFactor ?? 0.18, description, userId, now()]
+      `INSERT INTO formulas (id, name, salesman_id, salesman_name, materials_json, finished_weight, description, created_by, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [id, name, salesmanId, salesman.name, JSON.stringify(materialItems), finishedWeight || 0, description, userId, now()]
     )
 
     // 自动创建初始版本
@@ -96,7 +117,7 @@ export async function createFormula(req: any, res: Response) {
        VALUES (?, ?, ?, ?, ?, 'published', 1, ?, ?)`,
       [
         versionId, id, 'v1.0', '初始版本',
-        JSON.stringify({ name, salesmanId, salesmanName: salesman.name, materials: materialItems, finishedWeight, ratioFactor, description, formulaData: { name, salesmanId, materials, finishedWeight, ratioFactor, description } }),
+        JSON.stringify({ name, salesmanId, salesmanName: salesman.name, materials: materialItems, finishedWeight, description, formulaData: { name, salesmanId, materials, finishedWeight, description } }),
         userId, now()
       ]
     )
@@ -112,7 +133,7 @@ export async function createFormula(req: any, res: Response) {
 export async function updateFormula(req: any, res: Response) {
   try {
     const { id } = req.params
-    const { name, salesmanId, materials, description, finishedWeight, ratioFactor } = req.body
+    const { name, salesmanId, materials, description, finishedWeight } = req.body
     const userId = req.user.userId
 
     // 获取旧配方
@@ -133,14 +154,13 @@ export async function updateFormula(req: any, res: Response) {
     }
 
     const materialItems = materials ? materials.map((m: any) => ({
-      materialId: m.materialId, materialName: m.materialName || '', quantity: m.quantity, ratioFactor: m.ratioFactor
+      materialId: m.materialId, materialName: m.materialName || '', quantity: m.quantity
     })) : oldFormula.materials_json
 
     await query(
-      `UPDATE formulas SET name=?, salesman_id=?, salesman_name=?, materials_json=?, finished_weight=?, ratio_factor=?, description=? WHERE id=?`,
+      `UPDATE formulas SET name=?, salesman_id=?, salesman_name=?, materials_json=?, finished_weight=?, description=? WHERE id=?`,
       [name || oldFormula.name, salesmanId || oldFormula.salesman_id, salesmanName,
        JSON.stringify(materialItems), finishedWeight !== undefined ? finishedWeight : oldFormula.finished_weight,
-       ratioFactor !== undefined ? ratioFactor : oldFormula.ratio_factor,
        description !== undefined ? description : oldFormula.description, id]
     )
 
@@ -182,9 +202,8 @@ export async function updateFormula(req: any, res: Response) {
             salesmanName,
             materials: materialItems,
             finishedWeight: finishedWeight !== undefined ? finishedWeight : oldFormula.finished_weight,
-            ratioFactor: ratioFactor !== undefined ? ratioFactor : oldFormula.ratio_factor,
             description: description !== undefined ? description : oldFormula.description,
-            formulaData: { name, salesmanId, materials, finishedWeight, ratioFactor, description }
+            formulaData: { name, salesmanId, materials, finishedWeight, description }
           }),
           userId, now()
         ]

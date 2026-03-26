@@ -124,21 +124,35 @@ export async function publishVersion(req: Request, res: Response) {
       return
     }
 
-    // 将同一配方的所有版本设为非当前和归档
+    const formulaId = version.formula_id
+
+    // 检查配方是否存在
+    const [[formula]]: any[][] = await query(
+      'SELECT id FROM formulas WHERE id = ?',
+      [formulaId]
+    )
+    if (!formula) {
+      res.status(404).json({ success: false, message: '关联的配方不存在，无法发布' })
+      return
+    }
+
+    // 将同一配方的其他所有版本设为归档（仅影响状态为 draft 或 published 的）
     await query(
-      'UPDATE formula_versions SET is_current = 0, status = "archived" WHERE formula_id = ? AND version_id != ?',
-      [version.formula_id, versionId]
+      `UPDATE formula_versions SET is_current = 0, status = 'archived'
+       WHERE formula_id = ? AND version_id <> ? AND status IN ('draft', 'published')`,
+      [formulaId, versionId]
     )
 
     // 发布当前版本
     await query(
-      'UPDATE formula_versions SET status = "published", is_current = 1 WHERE version_id = ?',
+      `UPDATE formula_versions SET status = 'published', is_current = 1 WHERE version_id = ?`,
       [versionId]
     )
 
     res.json(success(null, '版本已发布'))
   } catch (error: any) {
-    res.status(500).json({ success: false, message: '发布版本失败', error: error.message })
+    console.error('发布版本失败:', error)
+    res.status(500).json({ success: false, message: '发布版本失败: ' + error.message })
   }
 }
 

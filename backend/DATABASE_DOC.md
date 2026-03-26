@@ -52,6 +52,8 @@
 | `code` | TEXT | NOT NULL, UNIQUE | 原料编码（如 MAT001） |
 | `unit` | TEXT | NOT NULL, DEFAULT 'g' | 计量单位 |
 | `stock` | REAL | NOT NULL, DEFAULT 0 | 库存数量 |
+| `material_type` | TEXT | NOT NULL, DEFAULT 'herb' | 原料类型：`herb`（中药材）/ `supplement`（营养补充剂） |
+| `ratio_factor` | REAL | NOT NULL, DEFAULT 0.18 | 含量比系数（默认 0.18） |
 | `created_by` | TEXT | NOT NULL | 创建人（用户 ID） |
 | `created_at` | TEXT | NOT NULL | 创建时间 |
 | `updated_at` | TEXT | NOT NULL | 更新时间 |
@@ -73,6 +75,7 @@
 | `salesman_id` | TEXT | NOT NULL, FK → salesmen.id | 所属业务员 |
 | `salesman_name` | TEXT | NOT NULL | 业务员名称（冗余） |
 | `materials_json` | TEXT | NOT NULL | 原料列表 JSON |
+| `finished_weight` | REAL | NOT NULL, DEFAULT 0 | 成品重量 |
 | `description` | TEXT | NULL | 配方描述 |
 | `created_by` | TEXT | NOT NULL | 创建人（用户 ID） |
 | `created_at` | TEXT | NOT NULL | 创建时间 |
@@ -267,7 +270,7 @@
 
 ---
 
-### 2.10 原料营养成分表 e`matrial_nutrition`
+### 2.10 原料营养成分表 `material_nutrition`
 
 存储每种原料的营养成分数据（每100g含量）。
 

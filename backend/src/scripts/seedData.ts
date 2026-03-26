@@ -4,6 +4,101 @@ import bcrypt from 'bcryptjs'
 import { connectDatabase, getDb, closeDatabase } from '../config/database.js'
 import { generateId, now } from '../utils/helpers.js'
 
+// ═══════════════════════════════════════════════════════
+// 从 nutrition1.xls / nutrition2.xls 提取的原料及营养数据
+// ═══════════════════════════════════════════════════════
+// 每条: [name, unitPrice元/kg(可为null), per100g: { energy, protein, fat, carbohydrate, sodium }]
+interface MaterialEntry {
+  name: string
+  unitPrice: number | null
+  per100g: { energy: number; protein: number; fat: number; carbohydrate: number; sodium: number }
+  materialType: 'herb' | 'supplement'
+  ratioFactor: number
+}
+
+// 佛手玫苓膏 (nutrition1.xls) + 沫彐淳膏 + 津源盈膏 + 甘绪理膏 (nutrition2.xls) 的全部唯一原料
+const materialsFromExcel: MaterialEntry[] = [
+  { name: '佛手', unitPrice: 60, per100g: { energy: 1869.3, protein: 1.2, fat: 7.7, carbohydrate: 92, sodium: 0 }, materialType: 'herb', ratioFactor: 0.18 },
+  { name: '重瓣玫瑰花', unitPrice: 80, per100g: { energy: 1474.4, protein: 8.5, fat: 4.7, carbohydrate: 68, sodium: 0 }, materialType: 'herb', ratioFactor: 0.18 },
+  { name: '茯苓', unitPrice: 55, per100g: { energy: 1443.1, protein: 1.2, fat: 0.5, carbohydrate: 82.6, sodium: 1 }, materialType: 'herb', ratioFactor: 0.18 },
+  { name: '山药', unitPrice: 28, per100g: { energy: 1400.4, protein: 9.4, fat: 1, carbohydrate: 70.8, sodium: 104 }, materialType: 'herb', ratioFactor: 0.18 },
+  { name: '桔梗', unitPrice: 50, per100g: { energy: 1483.4, protein: 10.7, fat: 0.9, carbohydrate: 74.6, sodium: 12 }, materialType: 'herb', ratioFactor: 0.18 },
+  { name: '甘草', unitPrice: 35, per100g: { energy: 1513.7, protein: 4.9, fat: 4.2, carbohydrate: 75, sodium: 155 }, materialType: 'herb', ratioFactor: 0.18 },
+  { name: '低聚异麦芽糖', unitPrice: 8, per100g: { energy: 1530, protein: 0, fat: 0, carbohydrate: 90, sodium: 0 }, materialType: 'supplement', ratioFactor: 1.0 },
+  { name: '桃仁', unitPrice: 70, per100g: { energy: 1479.7, protein: 7.4, fat: 0.8, carbohydrate: 77.9, sodium: 3.8 }, materialType: 'herb', ratioFactor: 0.18 },
+  { name: '短梗五加', unitPrice: 45, per100g: { energy: 1309, protein: 12, fat: 0, carbohydrate: 65, sodium: 0 }, materialType: 'herb', ratioFactor: 0.18 },
+  { name: '桑椹', unitPrice: 65, per100g: { energy: 278.3, protein: 1.7, fat: 0.4, carbohydrate: 13.8, sodium: 2 }, materialType: 'herb', ratioFactor: 0.18 },
+  { name: '黄精', unitPrice: 55, per100g: { energy: 1223.2, protein: 11.6, fat: 3.7, carbohydrate: 52.3, sodium: 0 }, materialType: 'herb', ratioFactor: 0.18 },
+  { name: '黄芪', unitPrice: 42, per100g: { energy: 861.8, protein: 14.9, fat: 1.1, carbohydrate: 33.4, sodium: 0 }, materialType: 'herb', ratioFactor: 0.18 },
+  { name: '沙棘', unitPrice: 48, per100g: { energy: 515.4, protein: 0.9, fat: 1.8, carbohydrate: 25.5, sodium: 28 }, materialType: 'herb', ratioFactor: 0.18 },
+  { name: '枸杞子', unitPrice: 58, per100g: { energy: 1381.5, protein: 13.9, fat: 1.5, carbohydrate: 64.1, sodium: 252 }, materialType: 'herb', ratioFactor: 0.18 },
+  { name: '香橼', unitPrice: 40, per100g: { energy: 652.1, protein: 6.9, fat: 0.9, carbohydrate: 29.5, sodium: 0 }, materialType: 'herb', ratioFactor: 0.18 },
+  { name: '陈皮', unitPrice: 38, per100g: { energy: 1530.8, protein: 8, fat: 1.4, carbohydrate: 79, sodium: 21 }, materialType: 'herb', ratioFactor: 0.18 },
+  { name: '平卧菊三七', unitPrice: 50, per100g: { energy: 1409.1, protein: 6.8, fat: 3.9, carbohydrate: 67.6, sodium: 17.5 }, materialType: 'herb', ratioFactor: 0.18 },
+  { name: '重瓣红玫瑰', unitPrice: 75, per100g: { energy: 1474.4, protein: 8.5, fat: 4.7, carbohydrate: 68, sodium: 0 }, materialType: 'herb', ratioFactor: 0.18 },
+  { name: '金银花', unitPrice: 52, per100g: { energy: 946.8, protein: 13.1, fat: 4.5, carbohydrate: 32.8, sodium: 0 }, materialType: 'herb', ratioFactor: 0.18 },
+  { name: '葛根', unitPrice: 32, per100g: { energy: 1608.5, protein: 0.4, fat: 0.1, carbohydrate: 94, sodium: 5 }, materialType: 'herb', ratioFactor: 0.18 },
+  { name: '荷叶', unitPrice: 25, per100g: { energy: 155.3, protein: 3.1, fat: 0.2, carbohydrate: 5.6, sodium: 5 }, materialType: 'herb', ratioFactor: 0.18 },
+  { name: '竹叶黄酮', unitPrice: 120, per100g: { energy: 0, protein: 0, fat: 0, carbohydrate: 0, sodium: 0 }, materialType: 'supplement', ratioFactor: 1.0 },
+  { name: '纳豆', unitPrice: 60, per100g: { energy: 1443.4, protein: 20.2, fat: 0.6, carbohydrate: 63.4, sodium: 2 }, materialType: 'herb', ratioFactor: 0.18 },
+  { name: '显脉旋覆花', unitPrice: 45, per100g: { energy: 1214.1, protein: 5.5, fat: 1.8, carbohydrate: 62, sodium: 0 }, materialType: 'herb', ratioFactor: 0.18 },
+  { name: '栀子', unitPrice: 35, per100g: { energy: 159.3, protein: 2.9, fat: 0.4, carbohydrate: 5.6, sodium: 5 }, materialType: 'herb', ratioFactor: 0.18 },
+  { name: '西红花', unitPrice: 800, per100g: { energy: 1523.9, protein: 11.4, fat: 5.9, carbohydrate: 65.4, sodium: 0 }, materialType: 'herb', ratioFactor: 0.18 },
+  { name: '当归', unitPrice: 55, per100g: { energy: 1149.6, protein: 44.2, fat: 2.4, carbohydrate: 18.2, sodium: 0 }, materialType: 'herb', ratioFactor: 0.18 },
+  { name: '芦根', unitPrice: 20, per100g: { energy: 232.4, protein: 0.8, fat: 0.4, carbohydrate: 12, sodium: 0 }, materialType: 'herb', ratioFactor: 0.18 },
+  { name: '薄荷', unitPrice: 42, per100g: { energy: 1409.1, protein: 6.8, fat: 3.9, carbohydrate: 67.6, sodium: 17.5 }, materialType: 'herb', ratioFactor: 0.18 },
+  { name: '白芷', unitPrice: 40, per100g: { energy: 1466.5, protein: 8.9, fat: 1.5, carbohydrate: 74.1, sodium: 27 }, materialType: 'herb', ratioFactor: 0.18 },
+  { name: '薏苡仁', unitPrice: 22, per100g: { energy: 462.5, protein: 0.8, fat: 0.6, carbohydrate: 25.1, sodium: 15 }, materialType: 'herb', ratioFactor: 0.18 },
+  { name: '化橘红', unitPrice: 48, per100g: { energy: 1530.8, protein: 8, fat: 1.4, carbohydrate: 79, sodium: 21 }, materialType: 'herb', ratioFactor: 0.18 },
+  { name: '鱼腥草', unitPrice: 18, per100g: { energy: 1530.8, protein: 8, fat: 1.4, carbohydrate: 79, sodium: 21 }, materialType: 'herb', ratioFactor: 0.18 },
+  { name: '乌药叶', unitPrice: 35, per100g: { energy: 281, protein: 3.8, fat: 1.3, carbohydrate: 9.9, sodium: 0 }, materialType: 'herb', ratioFactor: 0.18 },
+  { name: '黄芥子', unitPrice: 30, per100g: { energy: 954.8, protein: 13.4, fat: 6.6, carbohydrate: 28.4, sodium: 0 }, materialType: 'herb', ratioFactor: 0.18 },
+  { name: '苦杏仁', unitPrice: 45, per100g: { energy: 2468.6, protein: 22.5, fat: 45.4, carbohydrate: 23.9, sodium: 8 }, materialType: 'herb', ratioFactor: 0.18 },
+  { name: '蒲公英', unitPrice: 22, per100g: { energy: 241.3, protein: 4.8, fat: 1.1, carbohydrate: 7, sodium: 76 }, materialType: 'herb', ratioFactor: 0.18 },
+  { name: '麦冬', unitPrice: 50, per100g: { energy: 1483.4, protein: 10.7, fat: 0.9, carbohydrate: 74.6, sodium: 12 }, materialType: 'herb', ratioFactor: 0.18 },
+  { name: '西洋参', unitPrice: 300, per100g: { energy: 1294.6, protein: 9.9, fat: 0.3, carbohydrate: 65.6, sodium: 0 }, materialType: 'herb', ratioFactor: 0.18 },
+  { name: '牡蛎', unitPrice: 80, per100g: { energy: 277.6, protein: 10.8, fat: 1.3, carbohydrate: 2.7, sodium: 510 }, materialType: 'herb', ratioFactor: 0.18 },
+  { name: '昆布', unitPrice: 25, per100g: { energy: 1170.5, protein: 8, fat: 2, carbohydrate: 56.5, sodium: 2700 }, materialType: 'herb', ratioFactor: 0.18 },
+  { name: '丹凤牡丹花', unitPrice: 70, per100g: { energy: 1474.4, protein: 8.5, fat: 4.7, carbohydrate: 68, sodium: 0 }, materialType: 'herb', ratioFactor: 0.18 },
+  { name: '百合', unitPrice: 35, per100g: { energy: 1483.9, protein: 6.7, fat: 0.5, carbohydrate: 79.5, sodium: 37 }, materialType: 'herb', ratioFactor: 0.18 },
+  { name: '麦芽', unitPrice: 18, per100g: { energy: 1572.8, protein: 10.3, fat: 1.8, carbohydrate: 78.3, sodium: 11 }, materialType: 'herb', ratioFactor: 0.18 },
+  { name: '姜黄', unitPrice: 48, per100g: { energy: 1602.2, protein: 7.8, fat: 9.9, carbohydrate: 64.9, sodium: 38 }, materialType: 'herb', ratioFactor: 0.18 },
+  { name: '山茱萸', unitPrice: 60, per100g: { energy: 1381.5, protein: 13.9, fat: 1.5, carbohydrate: 64.1, sodium: 252 }, materialType: 'herb', ratioFactor: 0.18 },
+  { name: '肉桂', unitPrice: 35, per100g: { energy: 760.5, protein: 4, fat: 1.9, carbohydrate: 36.6, sodium: 15 }, materialType: 'herb', ratioFactor: 0.18 },
+  { name: '山楂', unitPrice: 20, per100g: { energy: 457.4, protein: 0.5, fat: 0.6, carbohydrate: 25.1, sodium: 5 }, materialType: 'herb', ratioFactor: 0.18 },
+  { name: '酸枣仁', unitPrice: 80, per100g: { energy: 1491.5, protein: 31.8, fat: 25.7, carbohydrate: 0, sodium: 0 }, materialType: 'herb', ratioFactor: 0.18 },
+  { name: '鸡内金', unitPrice: 55, per100g: { energy: 1525.4, protein: 83.1, fat: 1.3, carbohydrate: 3.8, sodium: 0 }, materialType: 'herb', ratioFactor: 0.18 },
+  { name: 'r-氨基丁酸', unitPrice: 200, per100g: { energy: 0, protein: 0, fat: 0, carbohydrate: 0, sodium: 0 }, materialType: 'supplement', ratioFactor: 1.0 },
+  { name: '地龙蛋白肽粉', unitPrice: 150, per100g: { energy: 1312, protein: 60, fat: 1, carbohydrate: 15, sodium: 0 }, materialType: 'supplement', ratioFactor: 1.0 },
+]
+
+// ═══════════════════════════════════════════════════════
+// 从 Excel 提取的配方数据
+// ═══════════════════════════════════════════════════════
+// finishedWeight: 成品重量(g)，用于含量比计算 ratio = qty * ratioFactor / finishedWeight
+//   公式: ratioFactor(药材)=0.18, ratioFactor(辅料)=1.0
+//   验证: Excel 含量比 = qty * matRatioFactor / finishedWeight
+// 每条原料: [matIdx, amount_g]
+// 含量比计算: ratio = qty * material.ratioFactor / finishedWeight
+const formulaDataFromExcel = [
+  { name: '佛手玫苓膏', productType: '膏方', efficacy: '疏肝理气、健脾宁心',
+    finishedWeight: 900,
+    materials: [[0,108],[1,90],[2,90],[3,72],[4,54],[5,36],[6,787.5]] },
+  { name: '沫彐淳膏', productType: '膏方', efficacy: '益气养阴、清热解毒',
+    finishedWeight: 780,
+    materials: [[7,45],[8,36],[9,45],[10,54],[11,60],[12,45],[13,45],[4,24],[14,30],[15,36],[16,36],[17,24],[18,24],[19,60],[20,36],[21,18],[5,18],[2,54],[22,30],[23,24],[24,30],[25,0.15],[26,36],[51,30],[6,617.97]] },
+  { name: '津源盈膏', productType: '膏方', efficacy: '润肺化痰、清热利咽',
+    finishedWeight: 780,
+    materials: [[27,90],[4,54],[7,45],[28,45],[29,24],[9,60],[30,75],[31,45],[32,75],[11,75],[33,24],[2,45],[5,24],[34,45],[35,45],[36,75],[37,60],[18,24],[38,9],[24,24],[26,24],[15,45],[6,594.24]] },
+  { name: '甘绪理膏', productType: '膏方', efficacy: '疏肝解郁、调理脾胃',
+    finishedWeight: 780,
+    materials: [[39,120],[0,45],[13,45],[40,30],[1,30],[41,30],[42,30],[43,60],[26,45],[44,45],[45,30],[46,18],[47,60],[7,45],[2,60],[36,45],[15,45],[48,30],[30,45],[9,60],[49,45],[50,15.6],[6,617.52]] },
+]
+
+// 建立原料名→索引映射
+const materialNameIndex = new Map<string, number>()
+materialsFromExcel.forEach((m, i) => materialNameIndex.set(m.name, i))
+
 async function seedData() {
   console.log('开始插入种子数据...')
   await connectDatabase()
@@ -35,68 +130,44 @@ async function seedData() {
     }
 
     // ═══════════════════════════════════════════════════════
-    // 2. 原料表 materials（30条）
+    // 2. 原料表 materials（Excel 数据）
     // ═══════════════════════════════════════════════════════
-    console.log('\n--- 创建原料 (30条) ---')
-    const materialsData = [
-      { name: '炒山楂', code: 'MAT001', unit: 'g', stock: 50000 },
-      { name: '炒麦芽', code: 'MAT002', unit: 'g', stock: 40000 },
-      { name: '莱菔子', code: 'MAT003', unit: 'g', stock: 35000 },
-      { name: '炒鸡内金', code: 'MAT004', unit: 'g', stock: 20000 },
-      { name: '茯苓', code: 'MAT005', unit: 'g', stock: 60000 },
-      { name: '陈皮', code: 'MAT006', unit: 'g', stock: 45000 },
-      { name: '火麻仁', code: 'MAT007', unit: 'g', stock: 30000 },
-      { name: '磷酸三钙', code: 'MAT008', unit: 'g', stock: 80000 },
-      { name: '低聚异麦芽糖', code: 'MAT009', unit: 'g', stock: 100000 },
-      { name: '蒲公英', code: 'MAT010', unit: 'g', stock: 25000 },
-      { name: '昆布', code: 'MAT011', unit: 'g', stock: 20000 },
-      { name: '罗汉果', code: 'MAT012', unit: 'g', stock: 18000 },
-      { name: '桔梗', code: 'MAT013', unit: 'g', stock: 28000 },
-      { name: '甘草', code: 'MAT014', unit: 'g', stock: 55000 },
-      { name: '山楂', code: 'MAT015', unit: 'g', stock: 40000 },
-      { name: '乌梅', code: 'MAT016', unit: 'g', stock: 35000 },
-      { name: '大枣', code: 'MAT017', unit: 'g', stock: 70000 },
-      { name: '桑叶', code: 'MAT018', unit: 'g', stock: 30000 },
-      { name: '白芷', code: 'MAT019', unit: 'g', stock: 22000 },
-      { name: '苦杏仁', code: 'MAT020', unit: 'g', stock: 25000 },
-      { name: '黄芪', code: 'MAT021', unit: 'g', stock: 50000 },
-      { name: '党参', code: 'MAT022', unit: 'g', stock: 38000 },
-      { name: '枸杞子', code: 'MAT023', unit: 'g', stock: 65000 },
-      { name: '当归', code: 'MAT024', unit: 'g', stock: 30000 },
-      { name: '菊花', code: 'MAT025', unit: 'g', stock: 40000 },
-      { name: '金银花', code: 'MAT026', unit: 'g', stock: 35000 },
-      { name: '淡竹叶', code: 'MAT027', unit: 'g', stock: 20000 },
-      { name: '芡实', code: 'MAT028', unit: 'g', stock: 25000 },
-      { name: '山药', code: 'MAT029', unit: 'g', stock: 55000 },
-      { name: '益智仁', code: 'MAT030', unit: 'g', stock: 15000 },
-    ]
+    console.log(`\n--- 创建原料 (${materialsFromExcel.length}条，来源 nutrition1/2.xls) ---`)
     const stmtMat = db.prepare(
-      'INSERT OR IGNORE INTO materials (id, name, code, unit, stock, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+      'INSERT OR IGNORE INTO materials (id, name, code, unit, stock, material_type, ratio_factor, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
     )
     const materialIds: string[] = []
-    for (const mat of materialsData) {
-      const id = generateId()
-      materialIds.push(id)
-      try {
-        stmtMat.run(id, mat.name, mat.code, mat.unit, mat.stock, userIds[0], now(), now())
-        console.log(`✓ 原料: ${mat.name}`)
-      } catch {
-        console.log(`  原料 ${mat.name} 已存在，跳过`)
+    materialsFromExcel.forEach((mat, i) => {
+      const code = `MAT${String(i + 1).padStart(3, '0')}`
+      // 先查找是否已存在，避免 ID 错位
+      const existing = db.prepare('SELECT id FROM materials WHERE code = ?').get(code) as any
+      if (existing) {
+        materialIds.push(existing.id)
+        console.log(`  原料 ${mat.name} 已存在 (${code})，使用已有ID`)
+      } else {
+        const id = generateId()
+        materialIds.push(id)
+        try {
+          stmtMat.run(id, mat.name, code, 'g', 50000, mat.materialType, mat.ratioFactor, userIds[0], now(), now())
+          console.log(`✓ 原料: ${mat.name} (${code})`)
+        } catch (e) {
+          console.log(`  原料 ${mat.name} 创建失败: ${e}`)
+        }
       }
-    }
+    })
 
     // ═══════════════════════════════════════════════════════
-    // 3. 业务员表 salesmen（15条）
+    // 3. 业务员表 salesmen（10条）
     // ═══════════════════════════════════════════════════════
-    console.log('\n--- 创建业务员 (15条) ---')
+    console.log('\n--- 创建业务员 (10条) ---')
     const departments = ['华东销售部', '华南销售部', '华北销售部', '西南销售部', '华中销售部']
-    const salesmenData = Array.from({ length: 15 }, (_, i) => ({
-      name: `业务员${String.fromCharCode(65 + Math.floor(i / 2))}${i % 2 === 0 ? '甲' : '乙'}`,
+    const salesmenData = Array.from({ length: 10 }, (_, i) => ({
+      name: `业务员${String.fromCharCode(65 + i)}`,
       code: `SM${String(i + 1).padStart(3, '0')}`,
       department: departments[i % departments.length],
-      phone: `136${String(10000000 + i * 111111).padStart(8, '0')}`,
+      phone: `136${String(10000000 + i * 1111111).padStart(8, '0')}`,
       email: `sm${String(i + 1).padStart(3, '0')}@ting.com`,
-      status: i < 13 ? 'active' : 'inactive',
+      status: i < 9 ? 'active' : 'inactive',
     }))
     const stmtSm = db.prepare(
       'INSERT OR IGNORE INTO salesmen (id, name, code, department, phone, email, status, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
@@ -114,172 +185,110 @@ async function seedData() {
     }
 
     // ═══════════════════════════════════════════════════════
-    // 4. 配方表 formulas（30条）— 关联业务员
+    // 4. 配方表 formulas（Excel 数据 — 4条真实配方）
     // ═══════════════════════════════════════════════════════
-    console.log('\n--- 创建配方 (30条) ---')
-    const formulaData = [
-      { name: '消积通便固体饮料', productType: '固体饮料', dosage: '4g/袋', efficacy: '消积、通便',
-        materials: [[0,0.31,6,60],[1,0.465,9,55],[2,0.31,6,70],[3,0.155,3,70],[4,0.465,9,75],[5,0.31,6,70],[6,0.465,9,55],[7,0.02,null,40],[8,1.5,null,10.8]] },
-      { name: '鼻炎扁腺炎固体饮料', productType: '固体饮料', dosage: '4g/袋', efficacy: '鼻炎、扁腺炎症',
-        materials: [[9,0.4133,9,70],[10,0.4133,9,70],[11,0.4133,9,70],[12,0.2756,6,70],[13,0.2756,6,70],[14,0.2756,6,70],[15,0.4133,9,70],[7,0.02,null,40],[8,1.5,null,10.8]] },
-      { name: '过敏体质固体饮料', productType: '固体饮料', dosage: '4g/袋', efficacy: '过敏体质',
-        materials: [[15,0.4133,6,70],[5,0.4133,6,70],[13,0.2067,3,75],[16,0.8267,12,70],[17,0.4133,6,70],[18,0.2067,3,75],[7,0.02,null,40],[8,1.5,null,10.8]] },
-      { name: '止咳化痰固体饮料', productType: '固体饮料', dosage: '4g/袋', efficacy: '咳嗽',
-        materials: [[12,0.2918,6,70],[19,0.4376,9,70],[5,0.2918,6,70],[4,0.5835,12,75],[13,0.1459,3,70],[15,0.2918,6,70],[11,0.4376,9,80],[7,0.02,null,40],[8,1.5,null,10.8]] },
-      { name: '健脾益胃固体饮料', productType: '固体饮料', dosage: '4g/袋', efficacy: '健脾、益胃',
-        materials: [[20,0.5,9,55],[21,0.5,9,60],[28,0.5,9,50],[4,0.333,6,75],[5,0.333,6,70],[13,0.167,3,70],[7,0.02,null,40],[8,1.5,null,10.8]] },
-      { name: '益气养血固体饮料', productType: '固体饮料', dosage: '4g/袋', efficacy: '气血两虚',
-        materials: [[20,0.5,9,55],[22,0.5,9,65],[23,0.333,6,80],[16,0.333,6,70],[23,0.167,3,80],[13,0.167,3,70],[7,0.02,null,40],[8,1.5,null,10.8]] },
-      { name: '安神助眠固体饮料', productType: '固体饮料', dosage: '4g/袋', efficacy: '失眠、多梦',
-        materials: [[4,0.5,9,75],[15,0.5,9,70],[6,0.333,6,70],[5,0.333,6,70],[16,0.167,3,70],[13,0.167,3,70],[7,0.02,null,40],[8,1.5,null,10.8]] },
-      { name: '清热解毒固体饮料', productType: '固体饮料', dosage: '4g/袋', efficacy: '清热、解毒',
-        materials: [[25,0.5,9,45],[26,0.5,9,50],[27,0.333,6,40],[14,0.333,6,70],[5,0.167,3,70],[11,0.167,3,80],[7,0.02,null,40],[8,1.5,null,10.8]] },
-      { name: '补钙壮骨固体饮料', productType: '固体饮料', dosage: '4g/袋', efficacy: '补钙、壮骨',
-        materials: [[7,0.5,null,40],[20,0.375,6,55],[28,0.375,6,50],[4,0.25,3,75],[23,0.25,3,80],[8,1.5,null,10.8]] },
-      { name: '免疫力提升固体饮料', productType: '固体饮料', dosage: '4g/袋', efficacy: '免疫力低下',
-        materials: [[20,0.5,9,55],[21,0.375,6,60],[28,0.375,6,50],[4,0.25,3,75],[13,0.25,3,70],[7,0.02,null,40],[8,1.5,null,10.8]] },
-      { name: '消积通便口服液', productType: '口服液', dosage: '15g/支', efficacy: '消积、通便',
-        materials: [[0,1.5,6,14],[1,2.25,9,7],[2,1.5,6,28],[3,0.75,3,15],[4,2.25,9,28],[5,1.5,6,15],[6,2.25,9,28],[8,5,null,10.8]] },
-      { name: '鼻炎扁腺炎口服液', productType: '口服液', dosage: '15g/支', efficacy: '鼻炎、扁腺炎症',
-        materials: [[9,1.8,9,15],[10,1.8,9,28],[11,1.8,9,48],[12,1.2,6,45],[13,1.2,6,28],[14,1.2,6,14],[15,1.8,9,19],[8,5,null,10.8]] },
-      { name: '过敏体质口服液', productType: '口服液', dosage: '15g/支', efficacy: '过敏体质',
-        materials: [[15,2,6,19],[5,2,6,15],[13,1,3,28],[16,4,12,12],[17,2,6,15],[18,1,3,38],[8,8,null,10.8]] },
-      { name: '止咳化痰口服液', productType: '口服液', dosage: '15g/支', efficacy: '咳嗽',
-        materials: [[12,1.2,6,35],[19,1.8,9,45],[5,1.2,6,15],[4,2.4,12,25],[13,0.6,3,28],[15,1.2,6,19],[11,1.8,9,48],[8,5,null,10.8]] },
-      { name: '健脾益胃口服液', productType: '口服液', dosage: '15g/支', efficacy: '健脾、益胃',
-        materials: [[20,1.8,9,28],[21,1.8,9,30],[28,1.8,9,22],[4,1.2,6,25],[5,1.2,6,28],[13,0.6,3,28],[8,5,null,10.8]] },
-      { name: '益气养血口服液', productType: '口服液', dosage: '15g/支', efficacy: '气血两虚',
-        materials: [[20,1.8,9,28],[22,1.8,9,35],[23,1.2,6,38],[16,1.2,6,32],[23,0.6,3,38],[13,0.6,3,28],[8,5,null,10.8]] },
-      { name: '安神助眠口服液', productType: '口服液', dosage: '15g/支', efficacy: '失眠、多梦',
-        materials: [[4,1.8,9,25],[15,1.8,9,32],[6,1.2,6,28],[5,1.2,6,28],[16,0.6,3,32],[13,0.6,3,28],[8,5,null,10.8]] },
-      { name: '清热解毒口服液', productType: '口服液', dosage: '15g/支', efficacy: '清热、解毒',
-        materials: [[25,1.8,9,20],[26,1.8,9,22],[27,1.2,6,18],[13,1.2,6,28],[5,0.6,3,28],[11,0.6,3,48],[8,5,null,10.8]] },
-      { name: '补钙壮骨口服液', productType: '口服液', dosage: '15g/支', efficacy: '补钙、壮骨',
-        materials: [[7,1.5,null,40],[20,1.2,6,28],[28,1.2,6,22],[4,0.8,3,25],[23,0.8,3,38],[8,8,null,10.8]] },
-      { name: '免疫力提升口服液', productType: '口服液', dosage: '15g/支', efficacy: '免疫力低下',
-        materials: [[20,1.8,9,28],[21,1.2,6,30],[28,1.2,6,22],[4,0.8,3,25],[13,0.8,3,28],[8,5,null,10.8]] },
-      { name: '儿童消积开胃固体饮料', productType: '固体饮料', dosage: '4g/袋', efficacy: '儿童消积、开胃',
-        materials: [[0,0.31,6,60],[1,0.465,9,55],[3,0.155,3,70],[4,0.465,9,75],[5,0.31,6,70],[29,0.31,6,50],[7,0.02,null,40],[8,1.5,null,10.8]] },
-      { name: '儿童健脾化痰固体饮料', productType: '固体饮料', dosage: '4g/袋', efficacy: '儿童健脾、化痰',
-        materials: [[4,0.465,9,75],[12,0.31,6,70],[5,0.31,6,70],[29,0.31,6,50],[13,0.155,3,70],[14,0.31,6,70],[7,0.02,null,40],[8,1.5,null,10.8]] },
-      { name: '成人疏肝理气固体饮料', productType: '固体饮料', dosage: '4g/袋', efficacy: '疏肝、理气',
-        materials: [[5,0.465,9,70],[14,0.31,6,70],[15,0.465,9,70],[6,0.31,6,70],[24,0.155,3,80],[13,0.155,3,70],[7,0.02,null,40],[8,1.5,null,10.8]] },
-      { name: '女性调理养颜固体饮料', productType: '固体饮料', dosage: '4g/袋', efficacy: '女性调理、养颜',
-        materials: [[23,0.465,9,80],[24,0.31,6,80],[16,0.465,9,70],[4,0.31,6,75],[20,0.155,3,55],[13,0.155,3,70],[7,0.02,null,40],[8,1.5,null,10.8]] },
-      { name: '中老年润肠通便固体饮料', productType: '固体饮料', dosage: '4g/袋', efficacy: '中老年润肠、通便',
-        materials: [[6,0.465,9,70],[2,0.465,9,70],[5,0.31,6,55],[4,0.31,6,75],[17,0.31,6,70],[7,0.02,null,40],[8,1.5,null,10.8]] },
-      { name: '儿童消积开胃口服液', productType: '口服液', dosage: '15g/支', efficacy: '儿童消积、开胃',
-        materials: [[0,1.5,6,14],[1,2.25,9,7],[3,0.75,3,15],[4,2.25,9,28],[5,1.5,6,15],[29,1.5,6,12],[8,5,null,10.8]] },
-      { name: '儿童健脾化痰口服液', productType: '口服液', dosage: '15g/支', efficacy: '儿童健脾、化痰',
-        materials: [[4,2.25,9,25],[12,1.5,6,35],[5,1.5,6,15],[29,1.5,6,12],[13,0.75,3,28],[14,1.5,6,28],[8,5,null,10.8]] },
-      { name: '成人疏肝理气口服液', productType: '口服液', dosage: '15g/支', efficacy: '疏肝、理气',
-        materials: [[5,1.8,9,28],[13,1.2,6,28],[15,1.8,9,32],[6,1.2,6,28],[24,0.6,3,48],[13,0.6,3,28],[8,5,null,10.8]] },
-      { name: '女性调理养颜口服液', productType: '口服液', dosage: '15g/支', efficacy: '女性调理、养颜',
-        materials: [[23,1.8,9,48],[24,1.2,6,48],[16,1.8,9,32],[4,1.2,6,25],[20,0.6,3,28],[13,0.6,3,28],[8,5,null,10.8]] },
-      { name: '中老年润肠通便口服液', productType: '口服液', dosage: '15g/支', efficacy: '中老年润肠、通便',
-        materials: [[6,1.8,9,28],[2,1.8,9,28],[7,1.2,null,40],[4,1.2,6,25],[17,1.2,6,32],[8,8,null,10.8]] },
-    ]
+    console.log(`\n--- 创建配方 (${formulaDataFromExcel.length}条，来源 nutrition1/2.xls) ---`)
     const stmtFormula = db.prepare(
-      'INSERT OR IGNORE INTO formulas (id, name, salesman_id, salesman_name, materials_json, description, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
+      'INSERT OR IGNORE INTO formulas (id, name, salesman_id, salesman_name, materials_json, finished_weight, description, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
     )
     const formulaIds: string[] = []
-    for (let i = 0; i < 30; i++) {
+    formulaDataFromExcel.forEach((f, i) => {
       const id = generateId()
       formulaIds.push(id)
       const smIdx = i % salesmanIds.length
-      const f = formulaData[i]
-      const matsList = f.materials.map(([matIdx, amount, ratio, unitPrice]: number[]) => ({
+      const matsList = f.materials.map(([matIdx, amount]: number[]) => ({
         materialId: materialIds[matIdx],
-        materialName: materialsData[matIdx].name,
+        materialName: materialsFromExcel[matIdx].name,
         quantity: amount,
       }))
-      const materialDetails = f.materials.map(([matIdx, amount, ratio, unitPrice]: number[]) => ({
-        name: materialsData[matIdx].name,
-        ratio: ratio ? `${ratio}%` : '辅料',
-        amount: `${amount}g`,
-        unitPrice: unitPrice ? `${unitPrice}元/kg` : '',
-        quote: unitPrice ? parseFloat((amount * unitPrice / 1000).toFixed(4)) : null,
-      }))
-      const totalQuote = materialDetails.reduce((s, m) => s + (m.quote || 0), 0)
+      const totalWeight = f.materials.reduce((s: number, [, a]: number[]) => s + a, 0)
+      const materialDetails = f.materials.map(([matIdx, amount]: number[]) => {
+        const mat = materialsFromExcel[matIdx]
+        const ratio = parseFloat((amount / totalWeight * 100).toFixed(4))
+        return {
+          name: mat.name,
+          ratio: `${ratio}%`,
+          amount: `${amount}g`,
+          unitPrice: mat.unitPrice ? `${mat.unitPrice}元/kg` : '',
+          quote: mat.unitPrice ? parseFloat((amount * mat.unitPrice / 1000).toFixed(4)) : null,
+        }
+      })
+      const totalQuote = materialDetails.reduce((s: number, m: any) => s + (m.quote || 0), 0)
       const description = JSON.stringify({
-        productType: f.productType, dosage: f.dosage, efficacy: f.efficacy,
+        productType: f.productType, dosage: '每剂', efficacy: f.efficacy,
+        totalWeight: parseFloat(totalWeight.toFixed(2)),
         totalQuote: parseFloat(totalQuote.toFixed(4)), materials: materialDetails,
       })
       try {
         stmtFormula.run(
           id, f.name, salesmanIds[smIdx], salesmenData[smIdx].name,
-          JSON.stringify(matsList), description, userIds[i % userIds.length], now(), now()
+          JSON.stringify(matsList), f.finishedWeight,
+          description, userIds[i % userIds.length], now(), now()
         )
         console.log(`✓ 配方: ${f.name} [${f.productType}]`)
       } catch (e) {
         console.log(`  配方 ${f.name} 创建失败或已存在: ${e}`)
       }
-    }
+    })
 
     // ═══════════════════════════════════════════════════════
-    // 5. 配方版本表 formula_versions（30条）
+    // 5. 配方版本表 formula_versions（每个配方1个版本）
     // ═══════════════════════════════════════════════════════
-    console.log('\n--- 创建配方版本 (30条) ---')
+    console.log(`\n--- 创建配方版本 (${formulaDataFromExcel.length}条) ---`)
     const stmtFv = db.prepare(
       'INSERT OR IGNORE INTO formula_versions (version_id, formula_id, version_number, version_name, changes_json, snapshot_json, status, is_current, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
     )
     const versionIds: string[] = []
-    for (let i = 0; i < 30; i++) {
+    formulaDataFromExcel.forEach((f, i) => {
       const vid = generateId()
       versionIds.push(vid)
-      const formulaIdx = i % formulaIds.length
-      const verNum = `v${Math.floor(i / formulaIds.length) + 1}.${(i % 3) + 1}.0`
-      const statuses = ['draft', 'published', 'archived'] as const
-      const status = statuses[i % 3]
-      const isCurrent = (i % 10 === 0) ? 1 : 0
-      const changes = [
-        { field: '炒山楂', oldVal: '0.31g', newVal: `${(0.28 + i * 0.01).toFixed(2)}g` },
-        { field: '茯苓', oldVal: '0.465g', newVal: `${(0.4 + i * 0.01).toFixed(2)}g` },
-      ]
-      const snapshot = { name: formulaData[formulaIdx].name, timestamp: now(), data: `配方快照 ${verNum}` }
+      const formulaIdx = i
+      const snapshot = {
+        name: f.name, salesmanId: salesmanIds[i % salesmanIds.length],
+        salesmanName: salesmenData[i % salesmanIds.length].name,
+        materials: f.materials.map(([matIdx, amount]: number[]) => ({
+          materialId: materialIds[matIdx], materialName: materialsFromExcel[matIdx].name, quantity: amount,
+        })),
+        description: f.efficacy,
+      }
       try {
         stmtFv.run(
-          vid, formulaIds[formulaIdx], verNum,
-          `${formulaData[formulaIdx].name} ${verNum}`,
-          JSON.stringify(changes), JSON.stringify(snapshot),
-          status, isCurrent, userIds[(i + 2) % userIds.length], now()
+          vid, formulaIds[formulaIdx], 'v1.0',
+          `${f.name} v1.0`,
+          '[]', JSON.stringify(snapshot),
+          'published', 1, userIds[0], now()
         )
-        console.log(`✓ 版本: ${verNum} (${formulaData[formulaIdx].name})`)
+        console.log(`✓ 版本: v1.0 (${f.name})`)
       } catch (e) {
-        console.log(`  版本 ${verNum} 创建失败或已存在: ${e}`)
+        console.log(`  版本创建失败: ${e}`)
       }
-    }
+    })
 
     // ═══════════════════════════════════════════════════════
-    // 6. 导出模板表 export_templates（12条）
+    // 6. 导出模板表 export_templates（6条）
     // ═══════════════════════════════════════════════════════
-    console.log('\n--- 创建导出模板 (12条) ---')
+    console.log('\n--- 创建导出模板 (6条) ---')
     const templateNames = [
-      '标准配方PDF模板', '营养标签PDF模板', '内部审核PDF模板',
-      '生产配方Excel模板', '原料清单Excel模板', '成本核算Excel模板',
-      'MES对接API模板', 'ERP对接API模板', '质检系统API模板',
-      '生产指令打印模板', '原料领料单打印模板', '质检报告打印模板',
+      '标准配方PDF模板', '生产配方Excel模板', 'MES对接API模板',
+      '营养标签PDF模板', '原料清单Excel模板', '质检报告打印模板',
     ]
     const types = ['pdf', 'excel', 'api', 'print'] as const
     const stmtEt = db.prepare(
       'INSERT OR IGNORE INTO export_templates (template_id, name, description, type, format_config_json, is_default, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
     )
     const templateIds: string[] = []
-    for (let i = 0; i < 12; i++) {
+    for (let i = 0; i < templateNames.length; i++) {
       const tid = generateId()
       templateIds.push(tid)
       const type = types[i % 4]
-      const isDefault = (i === 0) ? 1 : 0
+      const isDefault = i === 0 ? 1 : 0
       const config = {
         columns: ['配方名称', '业务员名称', '原料列表', '创建时间'],
         orientation: i % 2 === 0 ? 'portrait' : 'landscape',
         fontSize: 12,
       }
       try {
-        stmtEt.run(
-          tid, templateNames[i], `${templateNames[i]}的描述信息`,
-          type, JSON.stringify(config), isDefault, userIds[0], now()
-        )
+        stmtEt.run(tid, templateNames[i], `${templateNames[i]}的描述信息`, type, JSON.stringify(config), isDefault, userIds[0], now())
         console.log(`✓ 导出模板: ${templateNames[i]} (${type})`)
       } catch (e) {
         console.log(`  导出模板 ${templateNames[i]} 已存在: ${e}`)
@@ -287,62 +296,56 @@ async function seedData() {
     }
 
     // ═══════════════════════════════════════════════════════
-    // 7. 导出任务表 export_jobs（10条）
+    // 7. 导出任务表 export_jobs（4条）
     // ═══════════════════════════════════════════════════════
-    console.log('\n--- 创建导出任务 (10条) ---')
-    const jobStatuses = ['completed', 'completed', 'completed', 'failed', 'processing', 'pending'] as const
+    console.log('\n--- 创建导出任务 (4条) ---')
+    const jobStatuses = ['completed', 'completed', 'processing', 'pending'] as const
     const stmtEj = db.prepare(
       'INSERT OR IGNORE INTO export_jobs (job_id, formula_id, version_id, template_id, export_type, status, file_url, file_name, api_endpoint, progress, error_message, created_by, created_at, completed_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
     )
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 4; i++) {
       const jid = generateId()
       const formulaIdx = i % formulaIds.length
-      const status = jobStatuses[i % jobStatuses.length]
-      const exportType = (types[i % 4] === 'print') ? 'pdf' : types[i % 4]
-      const progress = status === 'completed' ? 100 : status === 'pending' ? 0 : Math.floor(Math.random() * 80) + 10
-      const fileUrl = status === 'completed' ? `/exports/formula_${formulaIdx + 1}_${Date.now()}.pdf` : null
-      const fileName = status === 'completed' ? `配方_${formulaData[formulaIdx].name}_${i + 1}.pdf` : null
-      const errorMsg = status === 'failed' ? '导出过程中发生超时错误' : null
+      const status = jobStatuses[i]
+      const exportType = types[i % 4] === 'print' ? 'pdf' : types[i % 4]
+      const progress = status === 'completed' ? 100 : status === 'pending' ? 0 : 65
+      const fileUrl = status === 'completed' ? `/exports/formula_${i + 1}_${Date.now()}.pdf` : null
+      const fileName = status === 'completed' ? `配方_${formulaDataFromExcel[formulaIdx].name}.pdf` : null
       const completedAt = status === 'completed' ? now() : null
       try {
         stmtEj.run(
-          jid, formulaIds[formulaIdx], versionIds[i % versionIds.length],
+          jid, formulaIds[formulaIdx], versionIds[formulaIdx],
           templateIds[i % templateIds.length], exportType, status,
-          fileUrl, fileName, exportType === 'api' ? '/api/v1/formula/export' : null,
-          progress, errorMsg, userIds[(i + 1) % userIds.length], now(), completedAt
+          fileUrl, fileName, null, progress, null, userIds[0], now(), completedAt
         )
-        console.log(`✓ 导出任务: ${formulaData[formulaIdx].name} (${status})`)
+        console.log(`✓ 导出任务: ${formulaDataFromExcel[formulaIdx].name} (${status})`)
       } catch (e) {
         console.log(`  导出任务创建失败: ${e}`)
       }
     }
 
     // ═══════════════════════════════════════════════════════
-    // 8. 营养标准表 nutrition_profiles（12条）
+    // 8. 营养标准表 nutrition_profiles（6条）
     // ═══════════════════════════════════════════════════════
-    console.log('\n--- 创建营养标准 (12条) ---')
+    console.log('\n--- 创建营养标准 (6条) ---')
     const categories = ['infant', 'child', 'adult', 'elderly', 'pregnant', 'special'] as const
     const profileNames = [
-      '婴儿配方奶GB10765标准', '较大婴儿配方奶GB10767标准',
-      '1-3岁幼儿营养标准', '4-6岁儿童营养标准',
-      '成人基础营养标准', '成人高强度运动标准',
-      '老年男性营养标准', '老年女性营养标准',
-      '孕早期营养标准', '孕中期营养标准',
-      '乳糖不耐受特殊配方标准', '糖尿病专用营养标准',
+      '婴儿配方食品营养标准', '1-3岁幼儿营养标准',
+      '成人基础营养标准', '老年男性营养标准',
+      '孕早期营养标准', '糖尿病专用营养标准',
     ]
     const stmtNp = db.prepare(
       'INSERT OR IGNORE INTO nutrition_profiles (profile_id, name, description, category, target_values_json, tolerance_ranges_json, mandatory_fields_json, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
     )
-    for (let i = 0; i < 12; i++) {
+    for (let i = 0; i < 6; i++) {
       const pid = generateId()
-      const category = categories[i % categories.length]
+      const category = categories[i]
       const targetValues = {
-        energy_kj: 1500 + i * 50, protein_g: 10 + i * 2, fat_g: 20 + i,
-        carbohydrate_g: 50 + i * 3, calcium_mg: 300 + i * 20, iron_mg: 5 + i * 0.5,
-        zinc_mg: 3 + i * 0.3, vitaminA_ug: 200 + i * 30, vitaminD_ug: 5 + i, vitaminE_mg: 3 + i * 0.5,
+        energy_kj: 1500 + i * 200, protein_g: 10 + i * 3, fat_g: 20 + i * 2,
+        carbohydrate_g: 50 + i * 5, sodium_mg: 200 + i * 100,
       }
-      const toleranceRanges = { energy_kj: { min: 0.9, max: 1.1 }, protein_g: { min: 0.8, max: 1.2 }, fat_g: { min: 0.85, max: 1.15 } }
-      const mandatoryFields = ['energy_kj', 'protein_g', 'fat_g', 'calcium_mg']
+      const toleranceRanges = { energy_kj: { min: 0.9, max: 1.1 }, protein_g: { min: 0.8, max: 1.2 } }
+      const mandatoryFields = ['energy_kj', 'protein_g', 'fat_g', 'carbohydrate_g']
       try {
         stmtNp.run(pid, profileNames[i], `${profileNames[i]}的详细描述`, category,
           JSON.stringify(targetValues), JSON.stringify(toleranceRanges), JSON.stringify(mandatoryFields), now(), now())
@@ -353,40 +356,36 @@ async function seedData() {
     }
 
     // ═══════════════════════════════════════════════════════
-    // 9. 原料营养成分表 material_nutrition（30条）
+    // 9. 原料营养成分表 material_nutrition（Excel 真实数据）
     // ═══════════════════════════════════════════════════════
-    console.log('\n--- 创建原料营养成分 (30条) ---')
+    console.log(`\n--- 创建原料营养成分 (${materialsFromExcel.length}条，来源 nutrition1/2.xls) ---`)
     const stmtMn = db.prepare(
       'INSERT OR IGNORE INTO material_nutrition (nutrition_id, material_id, per_100g_json, data_version, data_source, notes, last_updated) VALUES (?, ?, ?, ?, ?, ?, ?)'
     )
-    const sources = ['中国食物成分表2024版', 'USDA食物数据库', 'GB28050-2011', '企业检测数据', '第三方检测报告']
-    for (let i = 0; i < 30; i++) {
+    materialsFromExcel.forEach((mat, i) => {
       const nid = generateId()
-      const per100g = {
-        energy_kj: 1500 + i * 100, protein_g: Math.round((5 + i * 2.5) * 10) / 10,
-        fat_g: Math.round((1 + i * 1.5) * 10) / 10, carbohydrate_g: Math.round((70 + i * 3) * 10) / 10,
-        dietary_fiber_g: Math.round((0.5 + i * 0.2) * 10) / 10, sodium_mg: Math.round((50 + i * 30) * 10) / 10,
-        calcium_mg: Math.round((20 + i * 15) * 10) / 10, iron_mg: Math.round((0.5 + i * 0.3) * 10) / 10,
-        vitaminC_mg: Math.round((0.1 + i * 0.05) * 10) / 10,
-      }
       try {
-        stmtMn.run(nid, materialIds[i], JSON.stringify(per100g), '1.0', sources[i % sources.length], `原料[${materialsData[i].name}]营养成分数据`, now())
-        console.log(`✓ 原料营养: ${materialsData[i].name}`)
+        stmtMn.run(nid, materialIds[i], JSON.stringify(mat.per100g), '1.0',
+          '中国食物成分表/原料营养标签', `原料[${mat.name}]营养成分数据（来源nutrition1/2.xls）`, now())
+        console.log(`✓ 原料营养: ${mat.name}`)
       } catch (e) {
-        console.log(`  原料营养 ${materialsData[i].name} 已存在: ${e}`)
+        console.log(`  原料营养 ${mat.name} 已存在: ${e}`)
       }
-    }
+    })
 
+    // ═══════════════════════════════════════════════════════
+    // 汇总
+    // ═══════════════════════════════════════════════════════
     console.log('\n✅ 种子数据全部插入完成！')
     console.log(`  用户: ${userIds.length} 条`)
-    console.log(`  原料: 30 条`)
+    console.log(`  原料: ${materialsFromExcel.length} 条`)
     console.log(`  业务员: ${salesmanIds.length} 条`)
-    console.log(`  配方: 30 条`)
-    console.log(`  配方版本: 30 条`)
-    console.log(`  导出模板: 12 条`)
-    console.log(`  导出任务: 10 条`)
-    console.log(`  营养标准: 12 条`)
-    console.log(`  原料营养: 30 条`)
+    console.log(`  配方: ${formulaDataFromExcel.length} 条`)
+    console.log(`  配方版本: ${versionIds.length} 条`)
+    console.log(`  导出模板: ${templateIds.length} 条`)
+    console.log(`  导出任务: 4 条`)
+    console.log(`  营养标准: 6 条`)
+    console.log(`  原料营养: ${materialsFromExcel.length} 条`)
   })
 
   insert()

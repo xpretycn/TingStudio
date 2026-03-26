@@ -92,6 +92,13 @@ const deleteTarget = ref<Material | null>(null)
 const columns = [
   { colKey: 'code', title: '原料编码', width: 120 },
   { colKey: 'name', title: '原料名称', width: 200 },
+  { colKey: 'materialType', title: '类型', width: 90, cell: (h: any, { row }: any) => {
+    if (row.materialType === 'supplement') {
+      return h('t-tag', { theme: 'primary', variant: 'light-outline', size: 'small' }, '辅料')
+    }
+    return h('t-tag', { theme: 'success', variant: 'light-outline', size: 'small' }, '药材')
+  }},
+  { colKey: 'ratioFactor', title: '含量比系数', width: 110 },
   { colKey: 'unit', title: '单位', width: 80 },
   { colKey: 'stock', title: '库存', width: 120 },
   { colKey: 'createdAt', title: '创建时间', width: 180 },
@@ -110,22 +117,28 @@ const pagination = computed(() => ({
 
 // 注册分页到全局 paginationStore
 onMounted(() => {
+  window.addEventListener('global-search', handleGlobalSearch)
   paginationStore.register(pagination.value)
   watch(pagination, (val) => paginationStore.update(val), { deep: true })
+  materialStore.fetchMaterials()
 })
 
 onUnmounted(() => {
+  window.removeEventListener('global-search', handleGlobalSearch)
   paginationStore.unregister()
 })
-
-const handleSearch = () => {
-  materialStore.setKeyword(searchForm.keyword)
-  materialStore.fetchMaterials()
-}
 
 const handleReset = () => {
   searchForm.keyword = ''
   materialStore.setKeyword('')
+  materialStore.fetchMaterials()
+}
+
+// 监听全局搜索事件（来自首页搜索框）
+const handleGlobalSearch = (e: Event) => {
+  const keyword = (e as CustomEvent).detail || ''
+  searchForm.keyword = keyword
+  materialStore.setKeyword(keyword)
   materialStore.fetchMaterials()
 }
 
@@ -163,10 +176,6 @@ const confirmDelete = async () => {
     deleteLoading.value = false
   }
 }
-
-onMounted(() => {
-  materialStore.fetchMaterials()
-})
 </script>
 
 <style scoped lang="scss">

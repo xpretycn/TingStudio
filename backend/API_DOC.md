@@ -183,6 +183,8 @@
 | `code` | string | 原料编码（唯一） |
 | `unit` | string | 单位（默认 g） |
 | `stock` | number | 库存 |
+| `materialType` | string | 原料类型：`herb`（中药材）/ `supplement`（营养补充剂），默认 `herb` |
+| `ratioFactor` | number | 含量比系数，默认 `0.18` |
 | `createdBy` | string | 创建人 |
 | `createdAt` | string | 创建时间 |
 | `updatedAt` | string | 更新时间 |
@@ -240,7 +242,9 @@
 | `salesmanId` | string | 业务员 ID |
 | `salesmanName` | string | 业务员名称 |
 | `materialsJson` | string | 原料列表 JSON 字符串 |
+| `finishedWeight` | number | 成品重量 |
 | `description` | string | 配方描述 |
+| `versions` | array | 版本列表（包含版本详情） |
 | `createdBy` | string | 创建人 |
 | `createdAt` | string | 创建时间 |
 | `updatedAt` | string | 更新时间 |
@@ -260,6 +264,7 @@
 | `name` | string | 是 | 配方名称 |
 | `salesmanId` | string | 是 | 业务员 ID |
 | `materials` | array | 是 | 原料列表 |
+| `finishedWeight` | number | 是 | 成品重量 |
 | `description` | string | 否 | 描述 |
 
 `materials` 数组元素结构：
@@ -671,6 +676,27 @@
   "message": "蛋白质: 12.5"
 }
 ```
+
+### 7.7 获取配方营养表格数据
+
+**GET** `/api/nutrition/tables/:formulaId`
+
+> 返回配方营养计算表格所需的完整数据，包括原料明细、总营养成分、每100g营养值等。
+
+#### 响应字段
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `formulaId` | string | 配方 ID |
+| `formulaName` | string | 配方名称 |
+| `finishedWeight` | number | 成品重量 |
+| `totalWeight` | number | 原料总重量 |
+| `totalNutrition` | object | 总营养成分 |
+| `per100gNutrition` | object | 每100g营养成分 |
+| `nrvData` | object | 各营养素占 NRV 百分比 |
+| `materialBreakdown` | array | 各原料贡献明细（含含量比计算） |
+| `allNutrientFields` | array | 全部 29 种营养素字段名 |
+| `technicalBasis` | array | 技术处理依据列表 |
 
 ---
 

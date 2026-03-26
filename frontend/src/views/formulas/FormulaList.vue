@@ -30,14 +30,66 @@
                 </t-tag>
               </div>
             </div>
-            <div class="materials-section">
-              <h4>原料清单</h4>
-              <t-table
-                :data="row.materials || []"
-                :columns="materialColumns"
-                size="small"
-                bordered
-              />
+            <div class="version-section">
+              <h4>版本记录 <t-tag size="small" variant="light" theme="primary">{{ row.versions?.length || 0 }} 个版本</t-tag></h4>
+              <div v-if="row.versions && row.versions.length" class="version-list">
+                <div
+                  v-for="ver in row.versions"
+                  :key="ver.versionId"
+                  class="version-item"
+                  :class="{ 'is-current': ver.isCurrent }"
+                >
+                  <div class="version-left">
+                    <span class="version-number">{{ ver.versionNumber }}</span>
+                    <t-tag
+                      v-if="ver.isCurrent"
+                      size="small"
+                      theme="success"
+                      variant="dark"
+                      class="current-tag"
+                    >当前</t-tag>
+                    <t-tag
+                      v-else
+                      :theme="ver.status === 'published' ? 'primary' : ver.status === 'draft' ? 'warning' : 'default'"
+                      size="small"
+                      variant="light"
+                    >{{ ver.status === 'published' ? '已发布' : ver.status === 'draft' ? '草稿' : '已归档' }}</t-tag>
+                  </div>
+                  <div class="version-center">
+                    <span class="version-name">{{ ver.versionName }}</span>
+                    <span class="version-time">{{ ver.createdAt }}</span>
+                  </div>
+                  <div v-if="ver.changesJson" class="version-changes">
+                    <t-button variant="text" size="small" @click.stop="toggleChanges(ver)">
+                      {{ expandedChangesId === ver.versionId ? '收起变更' : '查看变更' }}
+                    </t-button>
+                    <div v-if="expandedChangesId === ver.versionId" class="changes-detail">
+                      <div v-if="parseChanges(ver.changesJson).length" class="changes-list">
+                        <div
+                          v-for="(change, ci) in parseChanges(ver.changesJson)"
+                          :key="ci"
+                          class="change-row"
+                        >
+                          <t-tag
+                            size="small"
+                            :theme="change.changeType === 'add' ? 'success' : change.changeType === 'delete' ? 'danger' : 'warning'"
+                            variant="light"
+                            class="change-type-tag"
+                          >{{ change.changeType === 'add' ? '新增' : change.changeType === 'delete' ? '删除' : '修改' }}</t-tag>
+                          <span class="change-label">{{ change.fieldLabel }}</span>
+                          <span class="change-values">
+                            <span v-if="change.oldValue !== null" class="change-old">{{ change.oldValue }}</span>
+                            <span v-if="change.oldValue !== null && change.newValue !== null" class="change-arrow">→</span>
+                            <span v-if="change.newValue !== null" class="change-new">{{ change.newValue }}</span>
+                          </span>
+                        </div>
+                      </div>
+                      <div v-else class="changes-empty">暂无变更记录</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div v-else class="empty-versions">暂无版本记录</div>
             </div>
           </div>
         </template>
@@ -48,6 +100,19 @@
               <t-icon name="user" />
             </template>
             {{ row.salesmanName }}
+          </t-tag>
+        </template>
+
+        <template #formulaStatus="{ row }">
+          <t-tag
+            :theme="getFormulaStatus(row).theme"
+            :variant="getFormulaStatus(row).variant"
+            size="medium"
+          >
+            <template #icon>
+              <t-icon :name="getFormulaStatus(row).icon" />
+            </template>
+            {{ getFormulaStatus(row).label }}
           </t-tag>
         </template>
 
@@ -148,18 +213,42 @@ const searchForm = reactive({
 const deleteDialogVisible = ref(false)
 const deleteLoading = ref(false)
 const deleteTarget = ref<Formula | null>(null)
+const expandedChangesId = ref<string | null>(null)
+
+const toggleChanges = (ver: any) => {
+  expandedChangesId.value = expandedChangesId.value === ver.versionId ? null : ver.versionId
+}
+
+const parseChanges = (changesJson: string): any[] => {
+  try {
+    const arr = JSON.parse(changesJson)
+    return Array.isArray(arr) ? arr : []
+  } catch {
+    return []
+  }
+}
+
+const getFormulaStatus = (row: any) => {
+  const currentVersion = (row.versions || []).find((v: any) => v.isCurrent)
+  if (currentVersion && currentVersion.status === 'published') {
+    return { label: '已发布', theme: 'success', variant: 'light' as const, icon: 'check-circle' }
+  }
+  if (currentVersion && currentVersion.status === 'draft') {
+    return { label: '草稿', theme: 'warning', variant: 'light' as const, icon: 'edit' }
+  }
+  if (!row.versions || row.versions.length === 0) {
+    return { label: '未发布', theme: 'default', variant: 'light' as const, icon: 'time' }
+  }
+  return { label: '已归档', theme: 'default', variant: 'light' as const, icon: 'folder' }
+}
 
 const columns = [
   { colKey: 'name', title: '配方名称', width: 200 },
   { colKey: 'salesmanName', title: '所属业务员', width: 150 },
+  { colKey: 'formulaStatus', title: '状态', width: 100 },
   { colKey: 'materialCount', title: '原料数量', width: 120 },
   { colKey: 'createdAt', title: '创建时间', width: 180 },
   { colKey: 'operation', title: '操作', width: 230, fixed: 'right' }
-]
-
-const materialColumns = [
-  { colKey: 'materialName', title: '原料名称', width: 200 },
-  { colKey: 'quantity', title: '数量', width: 120 }
 ]
 
 const pagination = computed(() => ({
@@ -179,7 +268,16 @@ onMounted(() => {
   watch(pagination, (val) => paginationStore.update(val), { deep: true })
 })
 
+onMounted(async () => {
+  window.addEventListener('global-search', handleGlobalSearch)
+  await Promise.all([
+    salesmanStore.fetchSalesmen(),
+    formulaStore.fetchFormulas()
+  ])
+})
+
 onUnmounted(() => {
+  window.removeEventListener('global-search', handleGlobalSearch)
   paginationStore.unregister()
 })
 
@@ -199,6 +297,13 @@ const handleReset = () => {
   formulaStore.setKeyword('')
   formulaStore.setSalesmanId('')
   formulaStore.fetchFormulas()
+}
+
+// 监听全局搜索事件（来自首页搜索框）
+const handleGlobalSearch = (e: Event) => {
+  const keyword = (e as CustomEvent).detail || ''
+  searchForm.keyword = keyword
+  handleSearch()
 }
 
 const handleCreate = () => {
@@ -248,13 +353,6 @@ const confirmDelete = async () => {
     deleteLoading.value = false
   }
 }
-
-onMounted(async () => {
-  await Promise.all([
-    salesmanStore.fetchSalesmen(),
-    formulaStore.fetchFormulas()
-  ])
-})
 </script>
 
 <style scoped lang="scss">
@@ -275,7 +373,7 @@ onMounted(async () => {
     border-radius: 10px;
     border: 1px solid #FFF0F3;
 
-    .materials-section {
+    .version-section {
       margin-bottom: 16px;
 
       h4 {
@@ -285,7 +383,7 @@ onMounted(async () => {
         color: #5D4E60;
         display: flex;
         align-items: center;
-        gap: 6px;
+        gap: 8px;
 
         &::before {
           content: '';
@@ -296,6 +394,147 @@ onMounted(async () => {
           border-radius: 2px;
         }
       }
+    }
+
+    .version-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .version-item {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 10px 16px;
+      background: white;
+      border-radius: 8px;
+      border: 1px solid #F0F0F0;
+      transition: all 0.2s;
+
+      &:hover {
+        border-color: #FFD6E0;
+        background: #FFFDFC;
+      }
+
+      &.is-current {
+        border-color: #D9F7BE;
+        background: #F6FFED;
+      }
+    }
+
+    .version-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+      min-width: 160px;
+    }
+
+    .version-number {
+      font-size: 14px;
+      font-weight: 600;
+      color: #5D4E60;
+    }
+
+    .current-tag {
+      font-size: 11px;
+    }
+
+    .version-center {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+
+    .version-name {
+      font-size: 14px;
+      color: #333;
+      font-weight: 500;
+    }
+
+    .version-time {
+      font-size: 12px;
+      color: #9B8FA0;
+    }
+
+    .version-changes {
+      flex-shrink: 0;
+
+      .changes-detail {
+        margin-top: 8px;
+        padding: 10px 14px;
+        background: #FAFAFA;
+        border-radius: 6px;
+        border: 1px solid #F0F0F0;
+      }
+
+      .changes-list {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .change-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 13px;
+        padding: 4px 0;
+      }
+
+      .change-type-tag {
+        flex-shrink: 0;
+      }
+
+      .change-label {
+        color: #5D4E60;
+        font-weight: 500;
+        flex-shrink: 0;
+      }
+
+      .change-values {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .change-old {
+        color: #E34D59;
+        text-decoration: line-through;
+        background: #FEF0EF;
+        padding: 1px 8px;
+        border-radius: 4px;
+      }
+
+      .change-arrow {
+        color: #9B8FA0;
+        font-weight: 600;
+      }
+
+      .change-new {
+        color: #2BA471;
+        background: #E8F8F2;
+        padding: 1px 8px;
+        border-radius: 4px;
+        font-weight: 600;
+      }
+
+      .changes-empty {
+        text-align: center;
+        color: #9B8FA0;
+        font-size: 13px;
+        padding: 8px 0;
+      }
+    }
+
+    .empty-versions {
+      text-align: center;
+      padding: 24px;
+      color: #9B8FA0;
+      font-size: 14px;
     }
   }
 

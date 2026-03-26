@@ -54,16 +54,6 @@
           />
         </t-form-item>
 
-        <t-form-item label="含量比系数" name="ratioFactor">
-          <t-input-number
-            v-model="formData.ratioFactor"
-            :min="0"
-            :decimal-places="4"
-            placeholder="默认0.18"
-            style="width: 280px"
-          />
-        </t-form-item>
-
         <t-form-item label="原料清单" name="materials">
           <div class="materials-section">
             <t-button
@@ -100,7 +90,19 @@
                     :key="material.id"
                     :value="material.id"
                     :label="`${material.name} (${material.unit})`"
-                  />
+                  >
+                    <div style="display: flex; align-items: center; justify-content: space-between;">
+                      <span>{{ material.name }} ({{ material.unit }})</span>
+                      <t-tag
+                        v-if="material.materialType === 'supplement'"
+                        theme="primary"
+                        variant="light-outline"
+                        size="small"
+                        style="margin-left: 8px;"
+                      >辅料</t-tag>
+                      <t-tag v-else theme="success" variant="light-outline" size="small" style="margin-left: 8px;">药材</t-tag>
+                    </div>
+                  </t-option>
                   <template #empty>
                     <div style="padding: 8px 0; text-align: center; color: #999;">
                       {{ materialSearchKeyword ? '未找到匹配原料' : '暂无原料数据' }}
@@ -113,14 +115,6 @@
                   :min="0"
                   placeholder="数量"
                   style="width: 150px; margin-right: 12px"
-                />
-
-                <t-input-number
-                  v-model="item.ratioFactor"
-                  :min="0"
-                  :decimal-places="4"
-                  placeholder="系数(默认跟随)"
-                  style="width: 160px; margin-right: 12px"
                 />
 
                 <t-button
@@ -194,12 +188,11 @@ const filteredMaterials = computed(() => {
 
 const isEdit = computed(() => !!route.params.id)
 
-const formData = reactive<FormulaForm>({
+const formData = reactive<any>({
   name: '',
   salesmanId: '',
   materials: [],
   finishedWeight: 0,
-  ratioFactor: 0.18,
   description: ''
 })
 
@@ -230,7 +223,6 @@ const addMaterial = () => {
     materialId: '',
     materialName: '',
     quantity: 0,
-    ratioFactor: undefined as any,
   })
 }
 
@@ -298,12 +290,21 @@ onMounted(async () => {
   if (isEdit.value && id) {
     const formula = await formulaStore.getFormula(id)
     if (formula) {
+      const allMats = materialStore.allMaterials ?? []
+      const materials = (formula.materials || []).map((m: any) => {
+        // 校正 materialId：若当前原料列表中找不到该 ID，则通过名称匹配
+        let materialId = m.materialId
+        if (!allMats.find(mat => mat.id === materialId) && m.materialName) {
+          const matched = allMats.find(mat => mat.name === m.materialName)
+          if (matched) materialId = matched.id
+        }
+        return { materialId, materialName: m.materialName, quantity: m.quantity }
+      })
       Object.assign(formData, {
         name: formula.name,
         salesmanId: formula.salesmanId,
-        materials: (formula.materials || []).map(m => ({ ...m })),
+        materials,
         finishedWeight: formula.finishedWeight || 0,
-        ratioFactor: formula.ratioFactor ?? 0.18,
         description: formula.description || ''
       })
     }

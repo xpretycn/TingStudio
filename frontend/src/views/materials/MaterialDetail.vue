@@ -7,6 +7,8 @@
             <template #icon><t-icon name="chevron-left" /></template>返回
           </t-button>
           <span class="detail-title">原料详情 - {{ material.name }}</span>
+          <t-tag v-if="material.materialType === 'supplement'" theme="primary" variant="light-outline">辅料</t-tag>
+          <t-tag v-else theme="success" variant="light-outline">药材</t-tag>
           <t-tag :theme="(material.stock ?? 0) > 0 ? 'success' : 'danger'" variant="light">
             库存 {{ material.stock ?? 0 }} {{ material.unit }}
           </t-tag>
@@ -16,6 +18,11 @@
       <t-descriptions :column="2" bordered size="medium">
         <t-descriptions-item label="原料编码">{{ material.code }}</t-descriptions-item>
         <t-descriptions-item label="原料名称">{{ material.name }}</t-descriptions-item>
+        <t-descriptions-item label="原料类型">
+          <t-tag v-if="material.materialType === 'supplement'" theme="primary" variant="light-outline" size="small">辅料</t-tag>
+          <t-tag v-else theme="success" variant="light-outline" size="small">药材</t-tag>
+        </t-descriptions-item>
+        <t-descriptions-item label="含量比系数">{{ material.ratioFactor ?? 0.18 }}</t-descriptions-item>
         <t-descriptions-item label="单位">{{ material.unit || '-' }}</t-descriptions-item>
         <t-descriptions-item label="库存">
           <t-tag :theme="(material.stock ?? 0) > 0 ? 'success' : 'danger'" size="small">
