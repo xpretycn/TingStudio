@@ -267,7 +267,7 @@
 
 ---
 
-### 2.10 原料营养成分表 `material_nutrition`
+### 2.10 原料营养成分表 e`matrial_nutrition`
 
 存储每种原料的营养成分数据（每100g含量）。
 
