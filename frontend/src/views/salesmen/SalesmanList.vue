@@ -1,13 +1,14 @@
 <template>
   <div class="salesman-list">
     <t-card class="content-card" bordered>
-      <t-table :data="salesmanStore.salesmen" :columns="columns" :loading="salesmanStore.loading" :pagination="undefined" row-key="id" hover stripe @row-click="handleView">
+      <t-table :data="salesmanStore.salesmen" :columns="columns" :loading="salesmanStore.loading" :pagination="undefined" row-key="id" hover stripe>
         <template #empty><t-empty description="暂无业务员数据" /></template>
         <template #status="{ row }">
           <t-tag :theme="row.status === 'active' ? 'success' : 'default'" variant="light">{{ row.status === 'active' ? '活跃' : '停用' }}</t-tag>
         </template>
         <template #operation="{ row }">
-          <t-space :size="8">
+          <t-space :size="6">
+            <t-button variant="outline" theme="default" size="small" @click="handleView(row)"><template #icon><t-icon name="browse" /></template>查看</t-button>
             <t-button variant="outline" theme="primary" size="small" class="btn-edit" @click.stop="handleEdit(row)"><template #icon><t-icon name="edit" /></template>编辑</t-button>
             <t-popconfirm v-if="row.status === 'active'" content="确定要停用该业务员吗？" @confirm="handleToggleStatus(row)">
               <t-button variant="outline" theme="danger" size="small" class="btn-delete" @click.stop><template #icon><t-icon name="poweroff" /></template>停用</t-button>

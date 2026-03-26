@@ -38,7 +38,7 @@
     </t-card>
 
     <!-- 版本快照弹窗 -->
-    <t-dialog v-model:visible="snapshotVisible" header="版本快照" width="700px">
+    <t-dialog v-model:visible="snapshotVisible" header="版本快照" width="700px" @confirm="snapshotVisible = false">
       <div v-if="currentSnapshot">
         <t-descriptions :column="2" bordered>
           <t-descriptions-item label="版本号">{{ currentSnapshot.versionNumber }}</t-descriptions-item>
@@ -48,7 +48,7 @@
         </t-descriptions>
         <div v-if="currentSnapshot.snapshot?.materials?.length" class="snapshot-materials">
           <h4>原料清单</h4>
-          <t-table :data="currentSnapshot.snapshot.materials" :columns="materialColumns" size="small" bordered />
+          <t-table :data="currentSnapshot.snapshot.materials" :columns="materialColumns" row-key="materialName" size="small" bordered />
         </div>
         <div v-if="currentSnapshot.snapshot?.description" class="snapshot-desc">
           <h4>配方描述</h4>

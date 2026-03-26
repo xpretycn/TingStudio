@@ -9,7 +9,6 @@
         row-key="id"
         hover
         stripe
-        @row-click="handleView"
       >
         <template #stock="{ row }">
           <t-tag :theme="row.stock > 0 ? 'success' : 'danger'">
@@ -25,7 +24,11 @@
         </template>
 
         <template #operation="{ row }">
-          <t-space :size="8">
+          <t-space :size="6">
+            <t-button variant="outline" theme="default" size="small" @click="handleView(row)">
+              <template #icon><t-icon name="browse" /></template>
+              查看
+            </t-button>
             <t-button variant="outline" theme="primary" size="small" class="btn-edit" @click.stop="handleEdit(row)">
               <template #icon>
                 <t-icon name="edit" />
@@ -131,7 +134,7 @@ const handleCreate = () => {
 }
 
 const handleView = (row: Material) => {
-  router.push(`/materials/${row.id}/edit`)
+  router.push(`/materials/${row.id}`)
 }
 
 const handleEdit = (row: Material) => {

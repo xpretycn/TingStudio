@@ -4,6 +4,7 @@ export interface MaterialItem {
   materialId: string
   materialName: string
   quantity: number
+  ratioFactor?: number
 }
 
 export interface Formula {
@@ -12,6 +13,8 @@ export interface Formula {
   salesmanId: string
   salesmanName: string
   materialsJson: string
+  finishedWeight: number
+  ratioFactor: number
   description: string | null
   createdBy: string
   createdAt: string
@@ -22,7 +25,9 @@ export interface Formula {
 export interface FormulaForm {
   name: string
   salesmanId: string
-  materials: { materialId: string; materialName?: string; quantity: number }[]
+  materials: { materialId: string; materialName?: string; quantity: number; ratioFactor?: number }[]
+  finishedWeight: number
+  ratioFactor: number
   description?: string
 }
 

@@ -39,6 +39,12 @@ const router = createRouter({
           meta: { title: '原料管理' }
         },
         {
+          path: 'materials/:id',
+          name: 'MaterialDetail',
+          component: () => import('@/views/materials/MaterialDetail.vue'),
+          meta: { title: '原料详情' }
+        },
+        {
           path: 'materials/new',
           name: 'MaterialNew',
           component: () => import('@/views/materials/MaterialForm.vue'),
@@ -55,6 +61,12 @@ const router = createRouter({
           name: 'FormulaList',
           component: () => import('@/views/formulas/FormulaList.vue'),
           meta: { title: '配方管理' }
+        },
+        {
+          path: 'formulas/:id',
+          name: 'FormulaDetail',
+          component: () => import('@/views/formulas/FormulaDetail.vue'),
+          meta: { title: '配方详情' }
         },
         {
           path: 'formulas/new',

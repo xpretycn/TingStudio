@@ -93,14 +93,32 @@ export const useMaterialStore = defineStore('material', () => {
     currentPage.value = page
   }
 
+  /** 获取全部原料（用于下拉选择，不分页） */
+  const allMaterials = ref<Material[]>([])
+
+  const fetchAllForSelect = async () => {
+    if (allMaterials.value.length > 0) return
+    loading.value = true
+    try {
+      const res = await materialApi.getList({ page: 1, pageSize: 9999 })
+      allMaterials.value = res.data.list
+    } catch (error) {
+      console.error('获取全部原料失败:', error)
+    } finally {
+      loading.value = false
+    }
+  }
+
   return {
     materials,
+    allMaterials,
     loading,
     total,
     currentPage,
     pageSize,
     keyword,
     fetchMaterials,
+    fetchAllForSelect,
     getMaterial,
     createMaterial,
     updateMaterial,

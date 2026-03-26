@@ -45,7 +45,7 @@
               <template #icon><t-icon name="chart" /></template>计算营养成分
             </t-button>
             <t-button
-              v-if="nutritionStore.formulaNutrition"
+              v-if="nutritionStore.formulaNutrition?.per100gNutrition"
               theme="default"
               :loading="checking"
               @click="handleCheckCompliance"
@@ -70,9 +70,7 @@
 
       <t-descriptions :column="2" bordered size="medium" title="配方信息">
         <t-descriptions-item label="配方名称">{{ nutritionStore.formulaNutrition.formulaName }}</t-descriptions-item>
-        <t-descriptions-item label="业务员">{{ nutritionStore.formulaNutrition.salesmanName }}</t-descriptions-item>
         <t-descriptions-item label="总重量">{{ nutritionStore.formulaNutrition.totalWeight ?? '-' }} g</t-descriptions-item>
-        <t-descriptions-item label="计算时间">{{ nutritionStore.formulaNutrition.calculatedAt }}</t-descriptions-item>
       </t-descriptions>
 
       <div class="nutrition-table-section">
@@ -80,6 +78,7 @@
         <t-table
           :data="nutritionDataList"
           :columns="nutritionColumns"
+          row-key="nutrient"
           size="small"
           bordered
           stripe
@@ -94,20 +93,21 @@
       <div v-if="nutritionStore.complianceResult" class="compliance-section">
         <h4>合规检查结果</h4>
         <t-alert
-          :theme="nutritionStore.complianceResult.compliant ? 'success' : 'warning'"
-          :message="nutritionStore.complianceResult.compliant ? '配方符合所选营养标准要求' : '配方部分指标超出营养标准范围'"
+          :theme="nutritionStore.complianceResult.summary?.failed === 0 ? 'success' : 'warning'"
+          :message="nutritionStore.complianceResult.summary?.failed === 0 ? '配方符合所选营养标准要求' : `配方有 ${nutritionStore.complianceResult.summary?.failed} 项指标不达标`"
           style="margin-bottom: 12px;"
         />
         <t-table
-          v-if="nutritionStore.complianceResult.details?.length"
-          :data="nutritionStore.complianceResult.details"
+          v-if="nutritionStore.complianceResult?.complianceCheck?.length"
+          :data="complianceDataList"
           :columns="complianceColumns"
+          row-key="field"
           size="small"
           bordered
         >
           <template #status="{ row }">
-            <t-tag :theme="row.compliant ? 'success' : 'danger'" variant="light">
-              {{ row.compliant ? '达标' : '超标' }}
+            <t-tag :theme="row.status === 'pass' ? 'success' : row.status === 'warning' ? 'warning' : 'danger'" variant="light">
+              {{ row.status === 'pass' ? '达标' : row.status === 'warning' ? '警告' : '超标' }}
             </t-tag>
           </template>
         </t-table>
@@ -139,26 +139,51 @@ const categoryMap: Record<string, string> = {
 }
 const categoryLabel = (c: string) => categoryMap[c] || c
 
+const nutrientInfoMap: Record<string, [string, string]> = {
+  energy: ['能量', 'kcal'], protein: ['蛋白质', 'g'], fat: ['脂肪', 'g'], carbohydrate: ['碳水化合物', 'g'],
+  fiber: ['膳食纤维', 'g'], sugars: ['糖类', 'g'], sodium: ['钠', 'mg'], potassium: ['钾', 'mg'],
+  calcium: ['钙', 'mg'], iron: ['铁', 'mg'], zinc: ['锌', 'mg'], magnesium: ['镁', 'mg'],
+  phosphorus: ['磷', 'mg'], vitaminA: ['维生素A', 'μg'], vitaminC: ['维生素C', 'mg'],
+  vitaminD: ['维生素D', 'μg'], vitaminE: ['维生素E', 'mg'], vitaminK: ['维生素K', 'μg'],
+  vitaminB1: ['维生素B1', 'mg'], vitaminB2: ['维生素B2', 'mg'], vitaminB3: ['维生素B3', 'mg'],
+  vitaminB6: ['维生素B6', 'mg'], vitaminB12: ['维生素B12', 'μg'], folate: ['叶酸', 'μg'],
+  cholesterol: ['胆固醇', 'mg'], transFat: ['反式脂肪', 'g'], saturatedFat: ['饱和脂肪', 'g'],
+}
+
 const nutritionDataList = computed(() => {
-  if (!nutritionStore.formulaNutrition?.per100g) return []
-  return Object.entries(nutritionStore.formulaNutrition.per100g).map(([key, value]) => ({
-    nutrient: key,
-    value: typeof value === 'number' ? value.toFixed(2) : String(value),
-    overLimit: false
-  }))
+  if (!nutritionStore.formulaNutrition?.per100gNutrition) return []
+  return Object.entries(nutritionStore.formulaNutrition.per100gNutrition)
+    .map(([key, value]) => {
+      const [name, unit] = nutrientInfoMap[key] || [key, '']
+      return {
+        nutrient: name,
+        value: typeof value === 'number' ? value.toFixed(2) : String(value),
+        unit,
+        overLimit: false
+      }
+    })
 })
 
 const nutritionColumns = [
   { colKey: 'nutrient', title: '营养成分', width: 200 },
-  { colKey: 'value', title: '含量', width: 200 }
+  { colKey: 'value', title: '含量', width: 150 },
+  { colKey: 'unit', title: '单位', width: 100 },
 ]
 
 const complianceColumns = [
-  { colKey: 'nutrient', title: '营养成分', width: 150 },
-  { colKey: 'actual', title: '实际值', width: 120 },
-  { colKey: 'target', title: '标准值', width: 120 },
-  { colKey: 'status', title: '状态', width: 100 }
+  { colKey: 'label', title: '营养成分', width: 150 },
+  { colKey: 'actualValue', title: '实际值', width: 120 },
+  { colKey: 'status', title: '状态', width: 100 },
+  { colKey: 'message', title: '说明', width: 300 }
 ]
+
+const complianceDataList = computed(() => {
+  if (!nutritionStore.complianceResult?.complianceCheck) return []
+  return nutritionStore.complianceResult.complianceCheck.map((item: any) => ({
+    ...item,
+    actualValue: typeof item.actualValue === 'number' ? item.actualValue.toFixed(2) : String(item.actualValue),
+  }))
+})
 
 const handleAnalyze = async () => {
   if (!analysisForm.formulaId) {

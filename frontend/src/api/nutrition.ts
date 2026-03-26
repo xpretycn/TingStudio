@@ -31,4 +31,7 @@ export const nutritionApi = {
   checkCompliance(formulaId: string, profileId?: string) {
     return http.post<any, { success: boolean; data: any }>(`/nutrition/compliance/${formulaId}`, null, { params: profileId ? { profileId } : {} })
   },
+  getFormulaNutritionTables(formulaId: string) {
+    return http.get<any, { success: boolean; data: any }>(`/nutrition/tables/${formulaId}`)
+  },
 }

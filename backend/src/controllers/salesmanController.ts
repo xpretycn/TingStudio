@@ -86,12 +86,20 @@ export async function createSalesman(req: any, res: Response) {
 export async function updateSalesman(req: Request, res: Response) {
   try {
     const { id } = req.params
-    const { name, department, phone, email, status } = req.body
+    const { name, code, department, phone, email, status } = req.body
 
-    await query(
-      'UPDATE salesmen SET name=?, department=?, phone=?, email=?, status=? WHERE id=?',
-      [name, department, phone, email, status, id]
-    )
+    // 只更新传入的字段，status 未传则保持原值
+    if (status !== undefined) {
+      await query(
+        'UPDATE salesmen SET name=?, code=?, department=?, phone=?, email=?, status=? WHERE id=?',
+        [name, code, department, phone, email, status, id]
+      )
+    } else {
+      await query(
+        'UPDATE salesmen SET name=?, code=?, department=?, phone=?, email=? WHERE id=?',
+        [name, code, department, phone, email, id]
+      )
+    }
 
     const [[salesman]]: any[][] = await query('SELECT * FROM salesmen WHERE id = ?', [id])
     if (!salesman) {

@@ -952,7 +952,7 @@ $sidebar-w: 300px;
   flex-direction: column;
   min-width: 0;
   overflow: hidden;
-  gap: 10px;
+  gap: 2px;
   padding: 8px 16px;
 }
 
@@ -960,8 +960,8 @@ $sidebar-w: 300px;
   flex-shrink: 0;
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 12px 16px;
+  gap: 12px;
+  padding: 8px 14px;
   background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(12px);
   border-radius: 14px;
@@ -976,12 +976,12 @@ $sidebar-w: 300px;
     flex-shrink: 0;
 
     .title-icon {
-      font-size: 24px;
+      font-size: 20px;
       line-height: 1;
     }
 
     .content-title {
-      font-size: 22px;
+      font-size: 18px;
       font-weight: 700;
       color: $text-main;
       margin: 0;
@@ -1009,7 +1009,7 @@ $sidebar-w: 300px;
         min-width: 120px;
 
         :deep(.t-input) {
-          height: 36px;
+          height: 32px;
           border-radius: 10px;
           border: 1.5px solid $pink-200;
           background: rgba(255, 240, 243, 0.3);
@@ -1020,18 +1020,18 @@ $sidebar-w: 300px;
             box-shadow: 0 0 0 3px rgba(255, 143, 171, 0.1);
           }
 
-          .t-input__wrap { color: $text-main; font-size: 13px; }
+          .t-input__wrap { color: $text-main; font-size: 12px; }
           .t-input__prefix { color: $pink-400; }
         }
       }
 
       .header-btn {
-        height: 36px !important;
+        height: 32px !important;
         border-radius: 10px !important;
-        font-size: 13px !important;
+        font-size: 12px !important;
         font-weight: 600 !important;
         flex-shrink: 0;
-        padding: 0 14px;
+        padding: 0 12px;
 
         &.t-button--theme-primary {
           background: linear-gradient(135deg, $pink-400, $pink-500) !important;
@@ -1066,11 +1066,11 @@ $sidebar-w: 300px;
     flex-shrink: 0;
 
     .action-btn {
-      height: 36px !important;
+      height: 32px !important;
       border-radius: 10px !important;
-      font-size: 13px !important;
+      font-size: 12px !important;
       font-weight: 600 !important;
-      padding: 0 14px;
+      padding: 0 12px;
       transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 
       &.t-button--theme-primary {
@@ -1201,9 +1201,9 @@ $sidebar-w: 300px;
             background: transparent !important;
             color: $text-main !important;
             font-weight: 600 !important;
-            font-size: 13px !important;
+            font-size: 12px !important;
             border-bottom: 1.5px solid rgba(255, 181, 200, 0.2) !important;
-            padding: 12px 16px !important;
+            padding: 8px 12px !important;
 
             .t-table__cell-text {
               color: $text-main !important;
@@ -1215,10 +1215,10 @@ $sidebar-w: 300px;
         // 表体行
         .t-table__body {
           td {
-            font-size: 13px;
+            font-size: 12px;
             color: $text-main;
             border-bottom: 1px solid rgba(255, 220, 230, 0.15) !important;
-            padding: 10px 16px !important;
+            padding: 8px 12px !important;
           }
 
           tr:hover td {
@@ -1346,14 +1346,15 @@ $sidebar-w: 300px;
         }
 
         &.t-button--size-medium {
-          height: 36px !important;
-          padding: 0 16px !important;
+          height: 32px !important;
+          padding: 0 14px !important;
+          font-size: 12px !important;
         }
 
         &.t-button--size-small {
-          height: 30px !important;
-          padding: 0 10px !important;
-          font-size: 12px !important;
+          height: 28px !important;
+          padding: 0 8px !important;
+          font-size: 11px !important;
         }
       }
     }
@@ -1363,7 +1364,7 @@ $sidebar-w: 300px;
 // ─── 分页底栏 — 独立于 content-body，不随内容滚动 ───
 .content-footer {
   flex-shrink: 0;
-  padding: 10px 20px;
+  padding: 6px 16px;
   background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(12px);
   border-radius: 14px;

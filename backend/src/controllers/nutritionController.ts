@@ -12,6 +12,46 @@ const NUTRIENT_FIELDS = [
   'cholesterol', 'transFat', 'saturatedFat',
 ]
 
+// DB 键名 → 标准键名映射（兼容带单位后缀的键名）
+function normalizeNutrientKey(key: string): string {
+  const map: Record<string, string> = {
+    energy_kj: 'energy', protein_g: 'protein', fat_g: 'fat',
+    carbohydrate_g: 'carbohydrate', dietary_fiber_g: 'fiber',
+    sugars_g: 'sugars', sodium_mg: 'sodium', potassium_mg: 'potassium',
+    calcium_mg: 'calcium', iron_mg: 'iron', zinc_mg: 'zinc',
+    magnesium_mg: 'magnesium', phosphorus_mg: 'phosphorus',
+    vitaminA_ug: 'vitaminA', vitaminC_mg: 'vitaminC',
+    vitaminD_ug: 'vitaminD', vitaminE_mg: 'vitaminE', vitaminK_ug: 'vitaminK',
+    vitaminB1_mg: 'vitaminB1', vitaminB2_mg: 'vitaminB2', vitaminB3_mg: 'vitaminB3',
+    vitaminB6_mg: 'vitaminB6', vitaminB12_ug: 'vitaminB12', folate_ug: 'folate',
+    cholesterol_mg: 'cholesterol', transFat_g: 'transFat', saturatedFat_g: 'saturatedFat',
+  }
+  if (map[key]) return map[key]
+  // 去掉常见的单位后缀
+  const cleaned = key.replace(/_(mg|g|ug|μg|kj|kcal)$/, '')
+  return map[cleaned] || key
+}
+
+/** 将 DB 中的 per_100g_json 键名标准化 */
+function normalizePer100g(raw: Record<string, any>): Record<string, number> {
+  const result: Record<string, number> = {}
+  for (const [k, v] of Object.entries(raw)) {
+    if (typeof v === 'number') {
+      result[normalizeNutrientKey(k)] = v
+    }
+  }
+  return result
+}
+
+// 营养素参考值 (NRV)
+const NRV: Record<string, number> = {
+  energy: 8400, protein: 60, fat: 60, carbohydrate: 300, sodium: 2000,
+  potassium: 2000, calcium: 800, iron: 15, zinc: 15, vitaminA: 800,
+  vitaminC: 100, vitaminD: 5, vitaminE: 14, vitaminB1: 1.4, vitaminB2: 1.4,
+  vitaminB3: 14, vitaminB6: 1.4, vitaminB12: 2.4, folate: 400, cholesterol: 300,
+  dietaryFiber: 25,
+}
+
 /** 获取原料营养成分 */
 export async function getMaterialNutrition(req: Request, res: Response) {
   try {
@@ -26,7 +66,7 @@ export async function getMaterialNutrition(req: Request, res: Response) {
     }
     res.json(success({
       ...rowToCamelCase(nutrition),
-      per100g: safeJsonParse(nutrition.per_100g_json, {}),
+      per100g: normalizePer100g(safeJsonParse(nutrition.per_100g_json, {})),
     }))
   } catch (error: any) {
     res.status(500).json({ success: false, message: '获取营养成分失败', error: error.message })
@@ -109,7 +149,8 @@ export async function calculateFormulaNutrition(req: any, res: Response) {
         [mat.materialId]
       )
 
-      const per100g = nutrition ? safeJsonParse(nutrition.per_100g_json, {}) : {}
+      const rawPer100g = nutrition ? safeJsonParse(nutrition.per_100g_json, {}) : {}
+      const per100g = normalizePer100g(rawPer100g)
       const quantity = mat.quantity || 0
       const contribution: Record<string, number> = {}
 
@@ -356,5 +397,141 @@ async function getProfile(profileId: string): Promise<any | null> {
     targetValues: safeJsonParse(profile.target_values_json, {}),
     toleranceRanges: safeJsonParse(profile.tolerance_ranges_json, []),
     mandatoryFields: safeJsonParse(profile.mandatory_fields_json, []),
+  }
+}
+
+/** 获取配方营养计算表格数据（与 XLS 格式一致） */
+export async function getFormulaNutritionTables(req: any, res: Response) {
+  try {
+    const { formulaId } = req.params
+
+    const [[formula]]: any[][] = await query('SELECT * FROM formulas WHERE id = ?', [formulaId])
+    if (!formula) {
+      res.status(404).json({ success: false, message: '配方不存在' })
+      return
+    }
+
+    const materials = safeJsonParse(formula.materials_json, [])
+    const NUTRIENT_COLS = ['protein', 'fat', 'carbohydrate', 'sodium'] as const
+    const finishedWeight = formula.finished_weight || 0
+    const ratioFactor = formula.ratio_factor ?? 0.18
+
+    const LABEL_INFO: Record<string, { name: string; unit: string; zeroThreshold: string; tolerance: string }> = {
+      energy: { name: '能量', unit: '千焦(kJ)', zeroThreshold: '≤17千焦(kJ)', tolerance: '≤120%标示值' },
+      protein: { name: '蛋白质', unit: '克(g)', zeroThreshold: '≤0.5克(g)', tolerance: '≥80%标示值' },
+      fat: { name: '脂肪', unit: '克(g)', zeroThreshold: '≤0.5克(g)', tolerance: '≤120%标示值' },
+      carbohydrate: { name: '碳水化合物', unit: '克(g)', zeroThreshold: '≤0.5克(g)', tolerance: '≥80%标示值' },
+      sodium: { name: '钠', unit: '毫克(mg)', zeroThreshold: '≤5毫克(mg)', tolerance: '≤120%标示值' },
+    }
+
+    let totalQuantity = 0
+    let totalRatio = 0
+
+    // 表1：营养成分计算表格行数据
+    const calcRows: any[] = []
+    for (const mat of materials) {
+      const [[nutrition]]: any[][] = await query(
+        'SELECT per_100g_json FROM material_nutrition WHERE material_id = ?', [mat.materialId]
+      )
+      const per100g = normalizePer100g(nutrition ? safeJsonParse(nutrition.per_100g_json, {}) : {})
+      const quantity = mat.quantity || 0
+
+      // 含量比 = quantity / finishedWeight * ratioFactor（原料级别可覆盖）
+      const matRatioFactor = mat.ratioFactor ?? ratioFactor
+      const ratio = finishedWeight > 0
+        ? Math.round((quantity / finishedWeight) * matRatioFactor * 100000) / 100000
+        : 0
+
+      const row: any = {
+        name: mat.materialName,
+        quantity,
+        ratio,
+        energy: '',  // 能量由DB不直接提供，单独计算
+        protein: per100g.protein ?? 0,
+        fat: per100g.fat ?? 0,
+        carbohydrate: per100g.carbohydrate ?? 0,
+        sodium: per100g.sodium ?? 0,
+      }
+      calcRows.push(row)
+
+      totalQuantity += quantity
+      totalRatio += ratio
+    }
+
+    // 汇总行：营养成分表
+    // 计算：Σ(per100g营养素 × 含量比)
+    const summaryNutrition: Record<string, number> = {}
+    for (const f of NUTRIENT_COLS) {
+      let sum = 0
+      for (const row of calcRows) {
+        sum += (row[f] || 0) * row.ratio
+      }
+      summaryNutrition[f] = Math.round(sum * 10000) / 10000
+    }
+    // 能量 = 蛋白质 * 17 + 脂肪 * 37 + 碳水化合物 * 17
+    const summaryEnergy = Math.round(
+      (summaryNutrition.protein * 17 + summaryNutrition.fat * 37 + summaryNutrition.carbohydrate * 17) * 100
+    ) / 100
+
+    const summaryRow: any = {
+      name: '营养成分表',
+      quantity: totalQuantity,
+      ratio: Math.round(totalRatio * 100000) / 100000,
+      energy: summaryEnergy,
+      protein: summaryNutrition.protein,
+      fat: summaryNutrition.fat,
+      carbohydrate: summaryNutrition.carbohydrate,
+      sodium: summaryNutrition.sodium,
+    }
+
+    // NRV% 计算
+    const nrvRow: any = { name: '营养素参考值(NRV)', quantity: '', ratio: '' }
+    const nrvPercentRow: any = { name: '营养素参考值%', quantity: '', ratio: '' }
+    // 能量NRV
+    nrvRow.energy = NRV.energy ?? ''
+    nrvPercentRow.energy = NRV.energy ? Math.round((summaryEnergy / NRV.energy) * 10000) / 100 : 0
+    for (const f of NUTRIENT_COLS) {
+      nrvRow[f] = NRV[f] ?? ''
+      nrvPercentRow[f] = NRV[f] ? Math.round((summaryNutrition[f] / NRV[f]) * 10000) / 100 : 0
+    }
+
+    // 表2：营养成分表 + 技术处理依据
+    const labelRows: any[] = []
+    // 能量行
+    labelRows.push({
+      item: '能量',
+      value: Math.round(summaryEnergy * 100) / 100,
+      unit: '千焦(kJ)',
+      nrvPercent: Math.round((summaryEnergy / (NRV.energy || 1)) * 10000) / 100,
+      zeroThreshold: '≤17千焦(kJ)',
+      tolerance: '≤120%标示值',
+    })
+    for (const f of NUTRIENT_COLS) {
+      const info = LABEL_INFO[f]
+      const val = summaryNutrition[f]
+      const nrv = NRV[f] || 1
+      labelRows.push({
+        item: info.name,
+        value: Math.round(val * 100) / 100,
+        unit: info.unit,
+        nrvPercent: Math.round((val / nrv) * 10000) / 100,
+        zeroThreshold: info.zeroThreshold,
+        tolerance: info.tolerance,
+      })
+    }
+
+    res.json(success({
+      formulaName: formula.name,
+      finishedWeight,
+      ratioFactor,
+      totalWeight: totalQuantity,
+      calcRows,
+      summaryRow,
+      nrvRow,
+      nrvPercentRow,
+      labelRows,
+    }))
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: '获取营养计算表格失败', error: error.message })
   }
 }

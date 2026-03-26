@@ -35,6 +35,8 @@ CREATE TABLE IF NOT EXISTS `formulas` (
   `salesman_id` TEXT NOT NULL,
   `salesman_name` TEXT NOT NULL,
   `materials_json` TEXT NOT NULL,
+  `finished_weight` REAL NOT NULL DEFAULT 0,
+  `ratio_factor` REAL NOT NULL DEFAULT 0.18,
   `description` TEXT DEFAULT NULL,
   `created_by` TEXT NOT NULL,
   `created_at` TEXT NOT NULL DEFAULT (datetime('now')),

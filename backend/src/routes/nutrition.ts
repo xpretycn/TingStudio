@@ -6,6 +6,7 @@ import {
   calculateFormulaNutrition,
   getNutritionProfiles, createNutritionProfile,
   checkCompliance,
+  getFormulaNutritionTables,
 } from '../controllers/nutritionController.js'
 import { validateBody } from '../middleware/validate.js'
 
@@ -19,6 +20,7 @@ nutritionRoutes.put('/material/:materialId', setMaterialNutrition)
 
 // 配方营养计算
 nutritionRoutes.post('/calculate/:formulaId', calculateFormulaNutrition)
+nutritionRoutes.get('/tables/:formulaId', getFormulaNutritionTables)
 
 // 营养标准
 nutritionRoutes.get('/profiles', getNutritionProfiles)

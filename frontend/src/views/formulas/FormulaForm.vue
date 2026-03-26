@@ -44,6 +44,26 @@
           </t-select>
         </t-form-item>
 
+        <t-form-item label="成品重量(g)" name="finishedWeight">
+          <t-input-number
+            v-model="formData.finishedWeight"
+            :min="0"
+            :decimal-places="2"
+            placeholder="请输入成品重量"
+            style="width: 280px"
+          />
+        </t-form-item>
+
+        <t-form-item label="含量比系数" name="ratioFactor">
+          <t-input-number
+            v-model="formData.ratioFactor"
+            :min="0"
+            :decimal-places="4"
+            placeholder="默认0.18"
+            style="width: 280px"
+          />
+        </t-form-item>
+
         <t-form-item label="原料清单" name="materials">
           <div class="materials-section">
             <t-button
@@ -65,18 +85,27 @@
               >
                 <t-select
                   v-model="item.materialId"
-                  placeholder="选择原料"
+                  placeholder="搜索或选择原料"
                   clearable
                   filterable
-                  style="width: 200px; margin-right: 12px"
+                  :loading="materialSelectLoading"
+                  style="width: 280px; margin-right: 12px"
+                  :filter-icon="() => null"
+                  @search="handleMaterialSearch"
                   @change="handleMaterialChange(index)"
+                  @focus="handleMaterialFocus"
                 >
                   <t-option
-                    v-for="material in materialStore.materials"
+                    v-for="material in filteredMaterials"
                     :key="material.id"
                     :value="material.id"
                     :label="`${material.name} (${material.unit})`"
                   />
+                  <template #empty>
+                    <div style="padding: 8px 0; text-align: center; color: #999;">
+                      {{ materialSearchKeyword ? '未找到匹配原料' : '暂无原料数据' }}
+                    </div>
+                  </template>
                 </t-select>
 
                 <t-input-number
@@ -84,6 +113,14 @@
                   :min="0"
                   placeholder="数量"
                   style="width: 150px; margin-right: 12px"
+                />
+
+                <t-input-number
+                  v-model="item.ratioFactor"
+                  :min="0"
+                  :decimal-places="4"
+                  placeholder="系数(默认跟随)"
+                  style="width: 160px; margin-right: 12px"
                 />
 
                 <t-button
@@ -142,6 +179,18 @@ const materialStore = useMaterialStore()
 
 const formRef = ref<FormInstanceFunctions>()
 const loading = ref(false)
+const materialSelectLoading = ref(false)
+const materialSearchKeyword = ref('')
+
+// 远程搜索结果（优先使用搜索结果，无搜索时用全量）
+const filteredMaterials = computed(() => {
+  const list = materialStore.allMaterials ?? []
+  if (!materialSearchKeyword.value) return list
+  const kw = materialSearchKeyword.value.toLowerCase()
+  return list.filter(
+    m => m.name.toLowerCase().includes(kw) || m.code.toLowerCase().includes(kw)
+  )
+})
 
 const isEdit = computed(() => !!route.params.id)
 
@@ -149,6 +198,8 @@ const formData = reactive<FormulaForm>({
   name: '',
   salesmanId: '',
   materials: [],
+  finishedWeight: 0,
+  ratioFactor: 0.18,
   description: ''
 })
 
@@ -162,6 +213,7 @@ const rules: Record<string, FormRule[]> = {
     { min: 2, message: '配方名称至少2个字符' }
   ],
   salesmanId: [{ required: true, message: '请选择所属业务员' }],
+  finishedWeight: [{ required: true, message: '请输入成品重量' }],
   materials: [
     { validator: validateMaterials, message: '请至少添加一种原料' },
     {
@@ -177,7 +229,8 @@ const addMaterial = () => {
   formData.materials.push({
     materialId: '',
     materialName: '',
-    quantity: 0
+    quantity: 0,
+    ratioFactor: undefined as any,
   })
 }
 
@@ -187,9 +240,22 @@ const removeMaterial = (index: number) => {
 
 const handleMaterialChange = (index: number) => {
   const item = formData.materials[index]
-  const material = materialStore.materials.find(m => m.id === item.materialId)
+  const material = materialStore.allMaterials.find(m => m.id === item.materialId)
   if (material) {
     item.materialName = material.name
+  }
+}
+
+const handleMaterialSearch = (keyword: string) => {
+  materialSearchKeyword.value = keyword
+}
+
+const handleMaterialFocus = () => {
+  if (!materialStore.allMaterials || materialStore.allMaterials.length === 0) {
+    materialSelectLoading.value = true
+    materialStore.fetchAllForSelect().finally(() => {
+      materialSelectLoading.value = false
+    })
   }
 }
 
@@ -225,7 +291,7 @@ const handleBack = () => {
 onMounted(async () => {
   await Promise.all([
     salesmanStore.fetchSalesmen(),
-    materialStore.fetchMaterials()
+    materialStore.fetchAllForSelect()
   ])
 
   const id = route.params.id as string
@@ -236,6 +302,8 @@ onMounted(async () => {
         name: formula.name,
         salesmanId: formula.salesmanId,
         materials: (formula.materials || []).map(m => ({ ...m })),
+        finishedWeight: formula.finishedWeight || 0,
+        ratioFactor: formula.ratioFactor ?? 0.18,
         description: formula.description || ''
       })
     }
