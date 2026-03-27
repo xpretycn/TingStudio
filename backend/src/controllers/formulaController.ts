@@ -88,7 +88,7 @@ export async function getFormula(req: Request, res: Response) {
 /** 创建配方 */
 export async function createFormula(req: any, res: Response) {
   try {
-    const { name, salesmanId, materials, description, finishedWeight, ratioFactor } = req.body
+    const { name, salesmanId, materials, description, finishedWeight, ratioFactor, supplementRatioFactor } = req.body
     const userId = req.user.userId
     const id = generateId()
 
@@ -104,21 +104,23 @@ export async function createFormula(req: any, res: Response) {
       return { materialId: m.materialId, materialName: m.materialName || '', quantity: m.quantity }
     })
 
+    const supRatio = supplementRatioFactor ?? 1.0
+
     await query(
-      `INSERT INTO formulas (id, name, salesman_id, salesman_name, materials_json, finished_weight, ratio_factor, description, created_by, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [id, name, salesmanId, salesman.name, JSON.stringify(materialItems), finishedWeight || 0, ratioFactor ?? 0.18, description, userId, now()]
+      `INSERT INTO formulas (id, name, salesman_id, salesman_name, materials_json, finished_weight, ratio_factor, supplement_ratio_factor, description, created_by, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [id, name, salesmanId, salesman.name, JSON.stringify(materialItems), finishedWeight || 0, ratioFactor ?? 0.18, supRatio, description, userId, now()]
     )
 
     // 自动创建初始版本
     const versionId = generateId()
     await query(
-      `INSERT INTO formula_versions (version_id, formula_id, version_number, version_name, snapshot_json, status, is_current, ratio_factor, created_by, created_at)
-       VALUES (?, ?, ?, ?, ?, 'published', 1, ?, ?, ?)`,
+      `INSERT INTO formula_versions (version_id, formula_id, version_number, version_name, snapshot_json, status, is_current, ratio_factor, supplement_ratio_factor, created_by, created_at)
+       VALUES (?, ?, ?, ?, ?, 'published', 1, ?, ?, ?, ?)`,
       [
         versionId, id, 'v1.0', '初始版本',
-        JSON.stringify({ name, salesmanId, salesmanName: salesman.name, materials: materialItems, finishedWeight, ratioFactor, description, formulaData: { name, salesmanId, materials, finishedWeight, ratioFactor, description } }),
-        ratioFactor ?? 0.18, userId, now()
+        JSON.stringify({ name, salesmanId, salesmanName: salesman.name, materials: materialItems, finishedWeight, ratioFactor, supplementRatioFactor: supRatio, description, formulaData: { name, salesmanId, materials, finishedWeight, ratioFactor, supplementRatioFactor: supRatio, description } }),
+        ratioFactor ?? 0.18, supRatio, userId, now()
       ]
     )
 
@@ -133,7 +135,7 @@ export async function createFormula(req: any, res: Response) {
 export async function updateFormula(req: any, res: Response) {
   try {
     const { id } = req.params
-    const { name, salesmanId, materials, description, finishedWeight, ratioFactor } = req.body
+    const { name, salesmanId, materials, description, finishedWeight, ratioFactor, supplementRatioFactor } = req.body
     const userId = req.user.userId
 
     // 获取旧配方
@@ -158,10 +160,11 @@ export async function updateFormula(req: any, res: Response) {
     })) : oldFormula.materials_json
 
     await query(
-      `UPDATE formulas SET name=?, salesman_id=?, salesman_name=?, materials_json=?, finished_weight=?, ratio_factor=?, description=? WHERE id=?`,
+      `UPDATE formulas SET name=?, salesman_id=?, salesman_name=?, materials_json=?, finished_weight=?, ratio_factor=?, supplement_ratio_factor=?, description=? WHERE id=?`,
       [name || oldFormula.name, salesmanId || oldFormula.salesman_id, salesmanName,
        JSON.stringify(materialItems), finishedWeight !== undefined ? finishedWeight : oldFormula.finished_weight,
        ratioFactor !== undefined ? ratioFactor : oldFormula.ratio_factor,
+       supplementRatioFactor !== undefined ? supplementRatioFactor : oldFormula.supplement_ratio_factor,
        description !== undefined ? description : oldFormula.description, id]
     )
 
@@ -192,8 +195,8 @@ export async function updateFormula(req: any, res: Response) {
       const changes = buildChanges(oldMaterials, materialItems)
 
       await query(
-        `INSERT INTO formula_versions (version_id, formula_id, version_number, version_name, changes_json, snapshot_json, status, is_current, ratio_factor, created_by, created_at)
-         VALUES (?, ?, ?, ?, ?, ?, 'draft', 1, ?, ?, ?)`,
+        `INSERT INTO formula_versions (version_id, formula_id, version_number, version_name, changes_json, snapshot_json, status, is_current, ratio_factor, supplement_ratio_factor, created_by, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, 'draft', 1, ?, ?, ?, ?)`,
         [
           versionId, id, newVersionNum, `自动版本 ${newVersionNum}`,
           JSON.stringify(changes),
@@ -204,10 +207,12 @@ export async function updateFormula(req: any, res: Response) {
             materials: materialItems,
             finishedWeight: finishedWeight !== undefined ? finishedWeight : oldFormula.finished_weight,
             ratioFactor: ratioFactor !== undefined ? ratioFactor : oldFormula.ratio_factor,
+            supplementRatioFactor: supplementRatioFactor !== undefined ? supplementRatioFactor : oldFormula.supplement_ratio_factor,
             description: description !== undefined ? description : oldFormula.description,
-            formulaData: { name, salesmanId, materials, finishedWeight, ratioFactor, description }
+            formulaData: { name, salesmanId, materials, finishedWeight, ratioFactor, supplementRatioFactor, description }
           }),
           ratioFactor !== undefined ? ratioFactor : oldFormula.ratio_factor,
+          supplementRatioFactor !== undefined ? supplementRatioFactor : oldFormula.supplement_ratio_factor,
           userId, now()
         ]
       )

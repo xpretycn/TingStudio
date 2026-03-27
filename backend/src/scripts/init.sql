@@ -38,6 +38,7 @@ CREATE TABLE IF NOT EXISTS `formulas` (
   `materials_json` TEXT NOT NULL,
   `finished_weight` REAL NOT NULL DEFAULT 0,
   `ratio_factor` REAL NOT NULL DEFAULT 0.18,
+  `supplement_ratio_factor` REAL NOT NULL DEFAULT 1.0,
   `description` TEXT DEFAULT NULL,
   `created_by` TEXT NOT NULL,
   `created_at` TEXT NOT NULL DEFAULT (datetime('now')),
@@ -84,6 +85,7 @@ CREATE TABLE IF NOT EXISTS `formula_versions` (
   `status` TEXT NOT NULL DEFAULT 'draft' CHECK(status IN ('draft', 'published', 'archived')),
   `is_current` INTEGER NOT NULL DEFAULT 0,
   `ratio_factor` REAL NOT NULL DEFAULT 0.18,
+  `supplement_ratio_factor` REAL NOT NULL DEFAULT 1.0,
   `created_by` TEXT NOT NULL,
   `created_at` TEXT NOT NULL DEFAULT (datetime('now')),
   FOREIGN KEY (`formula_id`) REFERENCES `formulas`(`id`) ON DELETE CASCADE

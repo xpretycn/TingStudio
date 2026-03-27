@@ -76,6 +76,8 @@
 | `salesman_name` | TEXT | NOT NULL | 业务员名称（冗余） |
 | `materials_json` | TEXT | NOT NULL | 原料列表 JSON |
 | `finished_weight` | REAL | NOT NULL, DEFAULT 0 | 成品重量 |
+| `ratio_factor` | REAL | NOT NULL, DEFAULT 0.18 | 药材含量比系数 |
+| `supplement_ratio_factor` | REAL | NOT NULL, DEFAULT 1.0 | 辅料含量比系数（范围0.5-1.5） |
 | `description` | TEXT | NULL | 配方描述 |
 | `created_by` | TEXT | NOT NULL | 创建人（用户 ID） |
 | `created_at` | TEXT | NOT NULL | 创建时间 |
@@ -136,6 +138,8 @@
 | `snapshot_json` | TEXT | NOT NULL | 完整配方快照 JSON |
 | `status` | TEXT | NOT NULL, DEFAULT 'draft' | 状态：`draft` / `published` / `archived` |
 | `is_current` | INTEGER | NOT NULL, DEFAULT 0 | 是否为当前版本（1/0） |
+| `ratio_factor` | REAL | NOT NULL, DEFAULT 0.18 | 药材含量比系数 |
+| `supplement_ratio_factor` | REAL | NOT NULL, DEFAULT 1.0 | 辅料含量比系数（范围0.5-1.5） |
 | `created_by` | TEXT | NOT NULL | 创建人 |
 | `created_at` | TEXT | NOT NULL | 创建时间 |
 

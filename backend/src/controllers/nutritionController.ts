@@ -432,17 +432,21 @@ export async function getFormulaNutritionTables(req: any, res: Response) {
     const materials = safeJsonParse(formula.materials_json, [])
     const NUTRIENT_COLS = ['protein', 'fat', 'carbohydrate', 'sodium'] as const
     const finishedWeight = formula.finished_weight || 0
+    const formulaRatioFactor = formula.ratio_factor ?? 0.18
+    const supplementRatioFactor = formula.supplement_ratio_factor ?? 1.0
 
-    // 批量获取所有原料的 ratio_factor（从原料表获取，不再从配方表）
+    // 批量获取所有原料的类型和 ratio_factor（区分药材和辅料）
+    const materialTypes: Record<string, string> = {}
     const materialRatios: Record<string, number> = {}
     if (materials.length > 0) {
       const matIds = materials.map((m: any) => m.materialId)
       const placeholders = matIds.map(() => '?').join(',')
       const [matRows]: any[] = await query(
-        `SELECT id, ratio_factor FROM materials WHERE id IN (${placeholders})`,
+        `SELECT id, material_type, ratio_factor FROM materials WHERE id IN (${placeholders})`,
         matIds
       )
       for (const row of matRows) {
+        materialTypes[row.id] = row.material_type || 'herb'
         materialRatios[row.id] = row.ratio_factor ?? 0.18
       }
     }
@@ -494,9 +498,12 @@ export async function getFormulaNutritionTables(req: any, res: Response) {
 
       const quantity = mat.quantity || 0
 
-      // 含量比 = quantity / finishedWeight * ratioFactor（从配方表获取）
+      // 含量比 = quantity / finishedWeight * ratioFactor
+      // 药材使用 ratio_factor，辅料使用 supplement_ratio_factor
+      const isSupplement = materialTypes[mat.materialId] === 'supplement'
+      const effectiveRatio = isSupplement ? supplementRatioFactor : formulaRatioFactor
       const ratio = finishedWeight > 0
-        ? Math.round((quantity / finishedWeight) * formulaRatioFactor * 100000) / 100000
+        ? Math.round((quantity / finishedWeight) * effectiveRatio * 100000) / 100000
         : 0
 
       const row: any = {

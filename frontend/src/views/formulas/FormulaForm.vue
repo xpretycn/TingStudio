@@ -66,6 +66,18 @@
           <span class="help-text">用于营养成分含量比计算</span>
         </t-form-item>
 
+        <t-form-item label="辅料含量比系数" name="supplementRatioFactor">
+          <t-input-number
+            v-model="formData.supplementRatioFactor"
+            :min="0.5"
+            :max="1.5"
+            :decimal-places="2"
+            placeholder="默认1.0"
+            style="width: 200px"
+          />
+          <span class="help-text">辅料（如低聚异麦芽糖）含量比系数，范围0.5-1.5</span>
+        </t-form-item>
+
         <t-form-item label="原料清单" name="materials">
           <div class="materials-section">
             <t-button
@@ -206,6 +218,7 @@ const formData = reactive<any>({
   materials: [],
   finishedWeight: 0,
   ratioFactor: 0.18,
+  supplementRatioFactor: 1.0,
   description: ''
 })
 
@@ -220,6 +233,13 @@ const rules: Record<string, FormRule[]> = {
   ],
   salesmanId: [{ required: true, message: '请选择所属业务员' }],
   finishedWeight: [{ required: true, message: '请输入成品重量' }],
+  supplementRatioFactor: [
+    { required: true, message: '请输入辅料含量比系数' },
+    {
+      validator: (val: number) => val >= 0.5 && val <= 1.5,
+      message: '辅料含量比系数范围为0.5-1.5'
+    }
+  ],
   materials: [
     { validator: validateMaterials, message: '请至少添加一种原料' },
     {
@@ -319,6 +339,7 @@ onMounted(async () => {
         materials,
         finishedWeight: formula.finishedWeight || 0,
         ratioFactor: formula.ratioFactor ?? 0.18,
+        supplementRatioFactor: formula.supplementRatioFactor ?? 1.0,
         description: formula.description || ''
       })
     }

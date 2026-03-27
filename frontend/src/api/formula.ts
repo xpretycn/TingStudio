@@ -27,6 +27,7 @@ export interface Formula {
   materialsJson: string
   finishedWeight: number
   ratioFactor: number
+  supplementRatioFactor: number
   description: string | null
   createdBy: string
   createdAt: string
@@ -41,6 +42,7 @@ export interface FormulaForm {
   materials: { materialId: string; materialName?: string; quantity: number }[]
   finishedWeight: number
   ratioFactor?: number
+  supplementRatioFactor?: number
   description?: string
 }
 

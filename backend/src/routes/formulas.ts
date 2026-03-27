@@ -19,6 +19,7 @@ formulaRoutes.post('/',
     salesmanId: { type: 'string', required: true, message: '请选择业务员' },
     materials: { type: 'array', required: true, message: '请添加原料' },
     finishedWeight: { type: 'number', required: true, message: '请输入成品重量' },
+    supplementRatioFactor: { type: 'number', required: true, min: 0.5, max: 1.5, message: '辅料含量比系数范围为0.5-1.5' },
   }),
   createFormula
 )
