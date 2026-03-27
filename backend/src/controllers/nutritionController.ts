@@ -134,6 +134,7 @@ export async function calculateFormulaNutrition(req: any, res: Response) {
     }
 
     const materials = safeJsonParse(formula.materials_json, [])
+    const formulaRatioFactor = formula.ratio_factor ?? 0.18
 
     // 获取每个原料的营养数据
     const breakdown: any[] = []
@@ -493,10 +494,9 @@ export async function getFormulaNutritionTables(req: any, res: Response) {
 
       const quantity = mat.quantity || 0
 
-      // 含量比 = quantity / finishedWeight * ratioFactor（从原料表获取）
-      const matRatioFactor = materialRatios[mat.materialId] ?? 0.18
+      // 含量比 = quantity / finishedWeight * ratioFactor（从配方表获取）
       const ratio = finishedWeight > 0
-        ? Math.round((quantity / finishedWeight) * matRatioFactor * 100000) / 100000
+        ? Math.round((quantity / finishedWeight) * formulaRatioFactor * 100000) / 100000
         : 0
 
       const row: any = {

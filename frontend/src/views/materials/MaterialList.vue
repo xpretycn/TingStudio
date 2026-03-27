@@ -98,7 +98,6 @@ const columns = [
     }
     return h('t-tag', { theme: 'success', variant: 'light-outline', size: 'small' }, '药材')
   }},
-  { colKey: 'ratioFactor', title: '含量比系数', width: 110 },
   { colKey: 'unit', title: '单位', width: 80 },
   { colKey: 'stock', title: '库存', width: 120 },
   { colKey: 'createdAt', title: '创建时间', width: 180 },

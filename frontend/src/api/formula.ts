@@ -26,6 +26,7 @@ export interface Formula {
   salesmanName: string
   materialsJson: string
   finishedWeight: number
+  ratioFactor: number
   description: string | null
   createdBy: string
   createdAt: string
@@ -39,6 +40,7 @@ export interface FormulaForm {
   salesmanId: string
   materials: { materialId: string; materialName?: string; quantity: number }[]
   finishedWeight: number
+  ratioFactor?: number
   description?: string
 }
 

@@ -54,6 +54,18 @@
           />
         </t-form-item>
 
+        <t-form-item label="含量比系数" name="ratioFactor">
+          <t-input-number
+            v-model="formData.ratioFactor"
+            :min="0"
+            :max="2"
+            :decimal-places="3"
+            placeholder="默认0.18"
+            style="width: 200px"
+          />
+          <span class="help-text">用于营养成分含量比计算</span>
+        </t-form-item>
+
         <t-form-item label="原料清单" name="materials">
           <div class="materials-section">
             <t-button
@@ -193,6 +205,7 @@ const formData = reactive<any>({
   salesmanId: '',
   materials: [],
   finishedWeight: 0,
+  ratioFactor: 0.18,
   description: ''
 })
 
@@ -305,6 +318,7 @@ onMounted(async () => {
         salesmanId: formula.salesmanId,
         materials,
         finishedWeight: formula.finishedWeight || 0,
+        ratioFactor: formula.ratioFactor ?? 0.18,
         description: formula.description || ''
       })
     }
@@ -342,6 +356,12 @@ onMounted(async () => {
         border: 1px solid #FFF0F3;
       }
     }
+  }
+
+  .help-text {
+    margin-left: 12px;
+    font-size: 12px;
+    color: #999;
   }
 }
 </style>

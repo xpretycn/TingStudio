@@ -22,7 +22,6 @@
           <t-tag v-if="material.materialType === 'supplement'" theme="primary" variant="light-outline" size="small">辅料</t-tag>
           <t-tag v-else theme="success" variant="light-outline" size="small">药材</t-tag>
         </t-descriptions-item>
-        <t-descriptions-item label="含量比系数">{{ material.ratioFactor ?? 0.18 }}</t-descriptions-item>
         <t-descriptions-item label="单位">{{ material.unit || '-' }}</t-descriptions-item>
         <t-descriptions-item label="库存">
           <t-tag :theme="(material.stock ?? 0) > 0 ? 'success' : 'danger'" size="small">

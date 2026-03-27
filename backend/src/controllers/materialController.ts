@@ -57,14 +57,14 @@ export async function getMaterial(req: Request, res: Response) {
 /** 创建原料 */
 export async function createMaterial(req: any, res: Response) {
   try {
-    const { name, code, unit, stock, materialType, ratioFactor } = req.body
+    const { name, code, unit, stock, materialType } = req.body
     const userId = req.user.userId
     const id = generateId()
 
     await query(
-      `INSERT INTO materials (id, name, code, unit, stock, material_type, ratio_factor, created_by, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [id, name, code, unit || 'g', stock || 0, materialType || 'herb', ratioFactor ?? 0.18, userId, now()]
+      `INSERT INTO materials (id, name, code, unit, stock, material_type, created_by, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [id, name, code, unit || 'g', stock || 0, materialType || 'herb', userId, now()]
     )
 
     const [[material]]: any[][] = await query('SELECT * FROM materials WHERE id = ?', [id])
@@ -82,11 +82,11 @@ export async function createMaterial(req: any, res: Response) {
 export async function updateMaterial(req: Request, res: Response) {
   try {
     const { id } = req.params
-    const { name, code, unit, stock, materialType, ratioFactor } = req.body
+    const { name, code, unit, stock, materialType } = req.body
 
     await query(
-      'UPDATE materials SET name=?, code=?, unit=?, stock=?, material_type=?, ratio_factor=? WHERE id=?',
-      [name, code, unit, stock, materialType || 'herb', ratioFactor ?? 0.18, id]
+      'UPDATE materials SET name=?, code=?, unit=?, stock=?, material_type=? WHERE id=?',
+      [name, code, unit, stock, materialType || 'herb', id]
     )
 
     const [[material]]: any[][] = await query('SELECT * FROM materials WHERE id = ?', [id])
