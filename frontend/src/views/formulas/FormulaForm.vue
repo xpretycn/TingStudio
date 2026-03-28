@@ -45,37 +45,44 @@
         </t-form-item>
 
         <t-form-item label="成品重量(g)" name="finishedWeight">
-          <t-input-number
-            v-model="formData.finishedWeight"
-            :min="0"
-            :decimal-places="2"
-            placeholder="请输入成品重量"
-            style="width: 280px"
-          />
+          <div>
+            <t-input-number
+              v-model="formData.finishedWeight"
+              :min="0"
+              :decimal-places="2"
+              placeholder="请输入成品重量"
+              style="width: 200px"
+            />
+            <span class="help-text">成品规格</span>
+          </div>
         </t-form-item>
 
-        <t-form-item label="含量比系数" name="ratioFactor">
-          <t-input-number
-            v-model="formData.ratioFactor"
-            :min="0"
-            :max="2"
-            :decimal-places="3"
-            placeholder="默认0.18"
-            style="width: 200px"
-          />
-          <span class="help-text">用于营养成分含量比计算</span>
+        <t-form-item label="主料含量比系数" name="ratioFactor">
+          <div>
+            <t-input-number
+              v-model="formData.ratioFactor"
+              :min="0.15"
+              :max="0.25"
+              :decimal-places="2"
+              placeholder="默认0.18"
+              style="width: 200px"
+            />
+            <span class="help-text">用于营养成分含量比计算，范围0.15-0.25。例：原料蛋白质含量10%，系数0.18，则成品蛋白质含量=10%×0.18=1.8%</span>
+          </div>
         </t-form-item>
 
         <t-form-item label="辅料含量比系数" name="supplementRatioFactor">
-          <t-input-number
-            v-model="formData.supplementRatioFactor"
-            :min="0.5"
-            :max="1.5"
-            :decimal-places="2"
-            placeholder="默认1.0"
-            style="width: 200px"
-          />
-          <span class="help-text">辅料（如低聚异麦芽糖）含量比系数，范围0.5-1.5</span>
+          <div>
+            <t-input-number
+              v-model="formData.supplementRatioFactor"
+              :min="0.5"
+              :max="1.5"
+              :decimal-places="2"
+              placeholder="默认1.0"
+              style="width: 200px"
+            />
+            <span class="help-text">辅料（如低聚异麦芽糖）含量比系数，范围0.5-1.5</span>
+          </div>
         </t-form-item>
 
         <t-form-item label="原料清单" name="materials">
@@ -233,6 +240,13 @@ const rules: Record<string, FormRule[]> = {
   ],
   salesmanId: [{ required: true, message: '请选择所属业务员' }],
   finishedWeight: [{ required: true, message: '请输入成品重量' }],
+  ratioFactor: [
+    { required: true, message: '请输入主料含量比系数' },
+    {
+      validator: (val: number) => val >= 0.15 && val <= 0.25,
+      message: '主料含量比系数范围为0.15-0.25'
+    }
+  ],
   supplementRatioFactor: [
     { required: true, message: '请输入辅料含量比系数' },
     {
@@ -383,6 +397,7 @@ onMounted(async () => {
     margin-left: 12px;
     font-size: 12px;
     color: #999;
+    line-height: 32px;
   }
 }
 </style>

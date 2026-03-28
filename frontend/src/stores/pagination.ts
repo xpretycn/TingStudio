@@ -22,8 +22,14 @@ export const usePaginationStore = defineStore('pagination', () => {
   const showSizeChanger = ref(true)
   const pageSizeOptions = ref([10, 20, 50, 100])
 
-  // 由 Home.vue 根据可视区域高度动态计算
-  const dynamicPageSize = ref(10)
+  // 基于屏幕宽度媒体查询的响应式分页大小：<1200px → 10，>=1200px → 15
+  const dynamicPageSize = ref(
+    window.matchMedia('(min-width: 1200px)').matches ? 15 : 10
+  )
+  const mql = window.matchMedia('(min-width: 1200px)')
+  mql.addEventListener('change', (e) => {
+    dynamicPageSize.value = e.matches ? 15 : 10
+  })
 
   const paginationConfig = computed<PaginationState>(() => ({
     current: current.value,
@@ -63,13 +69,6 @@ export const usePaginationStore = defineStore('pagination', () => {
     if (partial.total !== undefined) total.value = partial.total
   }
 
-  const setDynamicPageSize = (size: number) => {
-    const clamped = Math.max(1, Math.floor(size))
-    if (dynamicPageSize.value !== clamped) {
-      dynamicPageSize.value = clamped
-    }
-  }
-
   return {
     current,
     pageSize,
@@ -83,6 +82,5 @@ export const usePaginationStore = defineStore('pagination', () => {
     register,
     unregister,
     update,
-    setDynamicPageSize,
   }
 })

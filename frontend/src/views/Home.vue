@@ -101,30 +101,6 @@
         </div>
       </div>
 
-      <!-- 底部按钮 - 固定底部 -->
-      <div class="sidebar-footer">
-        <div class="footer-buttons">
-          <t-button theme="default" variant="outline" size="large" @click="handleLock" class="lock-btn">
-            <template #icon>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-              </svg>
-            </template>
-            锁屏
-          </t-button>
-          <t-button theme="danger" variant="outline" size="large" @click="handleLogout" class="logout-btn">
-            <template #icon>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                <polyline points="16 17 21 12 16 7" />
-                <line x1="21" y1="12" x2="9" y2="12" />
-              </svg>
-            </template>
-            退出
-          </t-button>
-        </div>
-      </div>
     </div>
 
     <!-- 右侧内容展示区 -->
@@ -133,79 +109,108 @@
         <div class="header-left">
           <span class="title-icon">{{ pageIcon }}</span>
           <h2 class="content-title">{{ pageTitle }}</h2>
-        </div>
-        <div class="header-actions">
-          <div class="header-search">
-            <t-input
-              v-model="searchKeyword"
-              :placeholder="searchPlaceholder"
-              clearable
-              class="search-input"
-              @enter="handleSearch"
-              @clear="handleSearch"
-            >
-              <template #prefix-icon>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="11" cy="11" r="8" />
-                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          <div class="header-nav-buttons">
+            <t-button theme="default" size="medium" @click="handleGoBack" class="header-btn">
+              <template #icon>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="15 18 9 12 15 6" />
                 </svg>
               </template>
-            </t-input>
-            <t-button theme="primary" size="medium" @click="handleSearch" class="header-btn">
-              <template #icon><t-icon name="search" /></template>
-              搜索
+              后退
             </t-button>
-            <t-button theme="default" size="medium" @click="handleReset" class="header-btn">
-              <template #icon><t-icon name="refresh" /></template>
-              重置
+            <t-button theme="default" size="medium" @click="handleGoForward" class="header-btn">
+              <template #icon>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
+              </template>
+              前进
+            </t-button>
+            <t-button theme="default" size="medium" @click="handleRefresh" class="header-btn">
+              <template #icon>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="23 4 23 10 17 10" />
+                  <polyline points="1 20 1 14 7 14" />
+                  <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+                </svg>
+              </template>
+              刷新
             </t-button>
           </div>
         </div>
-        <div class="header-action-buttons">
-          <t-button theme="primary" size="medium" @click="handleAdd" class="action-btn">
-            <template #icon>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="12" y1="5" x2="12" y2="19" />
-                <line x1="5" y1="12" x2="19" y2="12" />
-              </svg>
-            </template>
-            新增
-          </t-button>
-          <t-button theme="default" size="medium" @click="handleRefresh" class="action-btn">
-            <template #icon>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="23 4 23 10 17 10" />
-                <polyline points="1 20 1 14 7 14" />
-                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
-              </svg>
-            </template>
-            刷新
-          </t-button>
+        <div class="header-actions">
+          <div class="header-user-section">
+            <t-button theme="default" size="medium" @click="handleLock" class="header-btn">
+              <template #icon>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                </svg>
+              </template>
+              锁屏
+            </t-button>
+            <t-popup placement="bottom-right" trigger="click" :visible="userMenuVisible" @visible-change="(v: boolean) => userMenuVisible = v">
+              <div class="user-avatar-wrapper">
+                <div class="user-avatar">{{ userInitial }}</div>
+                <svg class="user-avatar-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              </div>
+              <template #content>
+                <div class="user-menu-popup">
+                  <div v-for="item in userMenuItems" :key="item.value" :class="['user-menu-item', { 'user-menu-item--danger': item.danger }]" @click="handleUserMenuClick(item.value)">
+                    <t-icon :name="item.icon" size="16px" />
+                    <span>{{ item.content }}</span>
+                  </div>
+                </div>
+              </template>
+            </t-popup>
+          </div>
         </div>
       </div>
 
       <!-- 滚动内容区域 -->
       <div ref="contentBodyRef" class="content-body">
         <div class="content-body-wrapper">
-          <!-- 内容装饰图标 -->
-          <div class="content-decoration">
-            <div class="decoration-icon decoration-icon-1">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
-              </svg>
+          <!-- 工具栏：左侧搜索/重置，右侧新增 -->
+          <div class="content-toolbar">
+            <div class="toolbar-left">
+              <div class="header-search">
+                <t-input
+                  v-model="searchKeyword"
+                  :placeholder="searchPlaceholder"
+                  clearable
+                  class="search-input"
+                  @enter="handleSearch"
+                  @clear="handleSearch"
+                >
+                  <template #prefix-icon>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="11" cy="11" r="8" />
+                      <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                    </svg>
+                  </template>
+                </t-input>
+                <t-button theme="primary" size="medium" @click="handleSearch" class="toolbar-btn">
+                  <template #icon><t-icon name="search" /></template>
+                  搜索
+                </t-button>
+                <t-button theme="default" size="medium" @click="handleReset" class="toolbar-btn">
+                  <template #icon><t-icon name="refresh" /></template>
+                  重置
+                </t-button>
+              </div>
             </div>
-            <div class="decoration-icon decoration-icon-2">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10" />
-                <path d="M8 14s1.5 2 4 2 4-2 4-2" />
-                <line x1="9" y1="9" x2="9.01" y2="9" />
-                <line x1="15" y1="9" x2="15.01" y2="9" />
-              </svg>
-            </div>
-            <div class="decoration-icon decoration-icon-3">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-              </svg>
+            <div class="toolbar-right">
+              <t-button theme="primary" size="medium" @click="handleAdd" class="action-btn">
+                <template #icon>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19" />
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                  </svg>
+                </template>
+                新增
+              </t-button>
             </div>
           </div>
 
@@ -213,7 +218,7 @@
           <div class="content-main">
             <router-view v-slot="{ Component }">
               <transition name="fade-slide" mode="out-in">
-                <component :is="Component" />
+                <component :is="Component" :key="refreshKey" />
               </transition>
             </router-view>
           </div>
@@ -231,7 +236,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { usePaginationStore } from '@/stores/pagination'
@@ -247,67 +252,41 @@ const activePath = computed(() => route.path)
 const searchKeyword = ref('')
 const contentBodyRef = ref<HTMLElement | null>(null)
 
-// ─── 动态计算分页大小：根据 content-body 可用高度自动推算 ───
-// 表格已知尺寸（基于 Home.vue 中 :deep(.t-table) 样式）：
-//   wrapper padding: 16px + 16px = 32px
-//   表头高度: th padding 12+12 + font~16 + border 1.5 ≈ 42px（运行时实际测量）
-//   行高:     td padding 10+10 + font~16 + border 1  ≈ 37px（运行时实际测量）
-//   安全余量: 4px
-const calcDynamicPageSize = () => {
-  const el = contentBodyRef.value
-  if (!el) return 10
+// 用户头像首字母
+const userInitial = computed(() => {
+  const name = authStore.user?.username || 'U'
+  return name.charAt(0).toUpperCase()
+})
 
-  const bodyHeight = el.clientHeight
-  if (bodyHeight <= 0) return 10
+// 用户下拉菜单
+const userMenuVisible = ref(false)
+const userMenuItems = [
+  { content: '账号设置', value: 'settings', icon: 'setting' },
+  { content: '主题', value: 'theme', icon: 'browse' },
+  { content: '切换账号', value: 'switchAccount', icon: 'usergroup' },
+  { content: '退出登录', value: 'logout', icon: 'poweroff', danger: true },
+]
 
-  // 尝试从 DOM 测量表头和行高的实际像素值
-  const wrapper = el.querySelector('.content-body-wrapper')
-  const wrapperPaddingTop = wrapper ? parseFloat(getComputedStyle(wrapper).paddingTop) : 16
-  const wrapperPaddingBottom = wrapper ? parseFloat(getComputedStyle(wrapper).paddingBottom) : 16
-  const verticalPadding = wrapperPaddingTop + wrapperPaddingBottom
-
-  const headerEl = el.querySelector('.t-table__header')
-  const headerHeight = headerEl ? headerEl.getBoundingClientRect().height : 42
-
-  const firstRowEl = el.querySelector('.t-table__body tr')
-  const rowHeight = firstRowEl ? firstRowEl.getBoundingClientRect().height : 37
-
-  if (rowHeight <= 0) return 10
-
-  const available = bodyHeight - verticalPadding - headerHeight - 4
-  return Math.max(1, Math.floor(available / rowHeight))
-}
-
-let resizeObserver: ResizeObserver | null = null
-
-const setupDynamicPageSize = () => {
-  const el = contentBodyRef.value
-  if (!el) return
-
-  const update = () => {
-    // 等待表格渲染完成后再测量
-    requestAnimationFrame(() => {
-      const size = calcDynamicPageSize()
-      paginationStore.setDynamicPageSize(size)
-    })
+// 用户菜单点击
+const handleUserMenuClick = (value: string) => {
+  userMenuVisible.value = false
+  switch (value) {
+    case 'settings':
+      MessagePlugin.info('账号设置功能开发中')
+      break
+    case 'theme':
+      MessagePlugin.info('主题切换功能开发中')
+      break
+    case 'switchAccount':
+      handleLogout()
+      break
+    case 'logout':
+      handleLogout()
+      break
   }
-
-  resizeObserver = new ResizeObserver(update)
-  resizeObserver.observe(el)
-
-  // 路由变化后重新计算（子组件可能不同页面有不同表头高度）
-  watch(() => route.path, () => {
-    nextTick(update)
-  })
-
-  // 首次计算
-  nextTick(update)
 }
 
-const teardownDynamicPageSize = () => {
-  resizeObserver?.disconnect()
-  resizeObserver = null
-}
+
 
 
 // 页面图标映射
@@ -419,9 +398,31 @@ const handleAdd = () => {
   }
 }
 
-// 处理刷新
+// 刷新子页面
+const refreshKey = ref(0)
 const handleRefresh = () => {
-  window.location.reload()
+  refreshKey.value++
+}
+
+// 后退 — 返回上一级列表页
+const handleGoBack = () => {
+  const path = route.path
+  if (path === '/formulas/new') {
+    router.push('/formulas')
+  } else if (path.startsWith('/formulas/') && path !== '/formulas') {
+    router.push('/formulas')
+  } else if (path === '/materials/new') {
+    router.push('/materials')
+  } else if (path.startsWith('/materials/') && path !== '/materials') {
+    router.push('/materials')
+  } else {
+    router.back()
+  }
+}
+
+// 前进
+const handleGoForward = () => {
+  router.forward()
 }
 
 // 处理搜索 — 通过自定义事件传递给子页面
@@ -487,29 +488,10 @@ const updateWeather = () => {
   temperature.value = w.temp
 }
 
-// 获取城市定位
+// 随机城市
 const getLocation = () => {
-  const defaultCities = ['北京', '上海', '广州', '深圳']
-  const setDefaultCity = () => {
-    city.value = defaultCities[Math.floor(Math.random() * defaultCities.length)]
-  }
-  try {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        () => {
-          const cities = ['北京', '上海', '广州', '深圳', '杭州', '成都', '重庆', '武汉', '西安', '南京']
-          city.value = cities[Math.floor(Math.random() * cities.length)]
-        },
-        () => {
-          setDefaultCity()
-        }
-      )
-    } else {
-      setDefaultCity()
-    }
-  } catch {
-    setDefaultCity()
-  }
+  const cities = ['北京', '上海', '广州', '深圳', '杭州', '成都', '重庆', '武汉', '西安', '南京']
+  city.value = cities[Math.floor(Math.random() * cities.length)]
 }
 
 onMounted(() => {
@@ -517,11 +499,6 @@ onMounted(() => {
   updateBlessing()
   updateWeather()
   getLocation()
-  setupDynamicPageSize()
-})
-
-onUnmounted(() => {
-  teardownDynamicPageSize()
 })
 </script>
 
@@ -891,58 +868,6 @@ $sidebar-w: 300px;
   }
 }
 
-// ─── sidebar-footer：固定底部 ───
-.sidebar-footer {
-  flex-shrink: 0;
-  padding: 14px 18px 18px;
-  border-top: 2px dashed rgba(255, 181, 200, 0.25);
-  background: linear-gradient(180deg, transparent, rgba(255, 240, 243, 0.5));
-
-  .footer-buttons {
-    display: flex;
-    gap: 8px;
-
-    .lock-btn,
-    .logout-btn {
-      flex: 1;
-      height: 38px !important;
-      border-radius: 10px !important;
-      font-size: 12px !important;
-      font-weight: 600 !important;
-      border: 2px solid $pink-400 !important;
-      color: $pink-500 !important;
-      background: rgba(255, 255, 255, 0.8) !important;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-
-      &:hover {
-        background: linear-gradient(135deg, $pink-400, $pink-500) !important;
-        color: white !important;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(255, 107, 138, 0.3) !important;
-      }
-
-      &:active {
-        transform: translateY(1px) scale(0.98);
-        transition: all 0.15s ease-out;
-      }
-
-      :deep(.t-button__icon) {
-        color: inherit !important;
-      }
-    }
-
-    .logout-btn {
-      border-color: #E34D59 !important;
-      color: #E34D59 !important;
-
-      &:hover {
-        background: linear-gradient(135deg, #FF6B8A, #E34D59) !important;
-        color: white !important;
-      }
-    }
-  }
-}
-
 // ═══════════════════════════════════════
 //  RIGHT CONTENT — 仅此区域滚动
 // ═══════════════════════════════════════
@@ -975,6 +900,15 @@ $sidebar-w: 300px;
     gap: 10px;
     flex-shrink: 0;
 
+    .header-nav-buttons {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-left: 16px;
+      padding-left: 16px;
+      border-left: 1.5px solid rgba(255, 181, 200, 0.25);
+    }
+
     .title-icon {
       font-size: 20px;
       line-height: 1;
@@ -989,124 +923,119 @@ $sidebar-w: 300px;
     }
   }
 
-  // 中间：搜索区域 — 居中对齐
-  .header-actions {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    min-width: 0;
+  // 统一按钮样式（后退、前进、刷新、锁屏）
+  .header-btn {
+    height: 32px !important;
+    border-radius: 10px !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    flex-shrink: 0;
+    padding: 0 12px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
-    .header-search {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      max-width: 800px;
+    &.t-button--theme-default {
+      border: 1.5px solid $pink-400 !important;
+      color: $pink-500 !important;
+      background: rgba(255, 255, 255, 0.9) !important;
 
-      .search-input {
-        flex: 1;
-        min-width: 120px;
-
-        :deep(.t-input) {
-          height: 32px;
-          border-radius: 10px;
-          border: 1.5px solid $pink-200;
-          background: rgba(255, 240, 243, 0.3);
-
-          &:hover { border-color: $pink-300; }
-          &:focus-within {
-            border-color: $pink-400;
-            box-shadow: 0 0 0 3px rgba(255, 143, 171, 0.1);
-          }
-
-          .t-input__wrap { color: $text-main; font-size: 12px; }
-          .t-input__prefix { color: $pink-400; }
-        }
+      &:hover {
+        background: linear-gradient(135deg, $pink-400, $pink-500) !important;
+        color: white !important;
+        border-color: $pink-500 !important;
+        :deep(.t-button__icon) { color: white !important; }
       }
-
-      .header-btn {
-        height: 32px !important;
-        border-radius: 10px !important;
-        font-size: 12px !important;
-        font-weight: 600 !important;
-        flex-shrink: 0;
-        padding: 0 12px;
-
-        &.t-button--theme-primary {
-          background: linear-gradient(135deg, $pink-400, $pink-500) !important;
-          border: none !important;
-
-          &:hover {
-            background: linear-gradient(135deg, $pink-300, $pink-400) !important;
-            transform: translateY(-1px);
-          }
-          :deep(.t-button__icon) { color: white !important; }
-        }
-
-        &.t-button--theme-default {
-          background: rgba(255, 255, 255, 0.9) !important;
-          border: 1.5px solid $pink-200 !important;
-          color: $text-main !important;
-
-          &:hover {
-            border-color: $pink-400 !important;
-            color: $pink-500 !important;
-          }
-          :deep(.t-button__icon) { color: $pink-400 !important; }
-        }
-      }
+      :deep(.t-button__icon) { color: $pink-500 !important; }
     }
   }
 
-  // 右侧：新增 / 刷新按钮 — 右对齐
-  .header-action-buttons {
+  // 右侧：导航 + 操作按钮
+  .header-actions {
     display: flex;
+    align-items: center;
     gap: 8px;
     flex-shrink: 0;
+    margin-left: auto;
 
-    .action-btn {
-      height: 32px !important;
-      border-radius: 10px !important;
-      font-size: 12px !important;
-      font-weight: 600 !important;
-      padding: 0 12px;
-      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    .header-user-section {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
 
-      &.t-button--theme-primary {
-        background: linear-gradient(135deg, $pink-400, $pink-500) !important;
-        border: none !important;
-        box-shadow: 0 4px 16px rgba(255, 107, 138, 0.3);
+    .user-avatar-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      padding: 2px 6px;
+      border-radius: 10px;
+      transition: all 0.3s ease;
 
-        &:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 8px 24px rgba(255, 107, 138, 0.4);
-          background: linear-gradient(135deg, $pink-300, $pink-400) !important;
-        }
-
-        &:active {
-          transform: translateY(1px) scale(0.98);
-        }
-
-        :deep(.t-button__icon) { color: white !important; }
+      &:hover {
+        background: rgba(255, 143, 171, 0.08);
       }
 
-      &.t-button--theme-default {
-        background: rgba(255, 255, 255, 0.9) !important;
-        border: 1.5px solid $pink-200 !important;
-        color: $text-main !important;
+      .user-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, $pink-400, $pink-500);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        font-weight: 700;
+        flex-shrink: 0;
+        box-shadow: 0 2px 8px rgba(255, 107, 138, 0.3);
+      }
 
-        &:hover {
-          border-color: $pink-400 !important;
-          color: $pink-500 !important;
-          transform: translateY(-2px);
-        }
+      .user-avatar-arrow {
+        color: $pink-400;
+        flex-shrink: 0;
+        transition: transform 0.3s ease;
+      }
 
-        &:active {
-          transform: translateY(1px) scale(0.98);
-        }
+      &:hover .user-avatar-arrow {
+        transform: rotate(180deg);
+      }
+    }
 
-        :deep(.t-button__icon) { color: $pink-400 !important; }
+  }
+}
+
+// ─── 用户下拉菜单 ───
+.user-menu-popup {
+  padding: 4px;
+  min-width: 150px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(12px);
+  border: 1.5px solid rgba(255, 181, 200, 0.2);
+  box-shadow: 0 8px 32px rgba(255, 107, 138, 0.12);
+
+  .user-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    color: $text-main;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: rgba(255, 143, 171, 0.08);
+      color: $pink-500;
+    }
+
+    &--danger {
+      color: #E34D59;
+
+      &:hover {
+        background: rgba(227, 77, 89, 0.08);
+        color: #E34D59;
       }
     }
   }
@@ -1138,34 +1067,105 @@ $sidebar-w: 300px;
     padding: 16px 20px;
     min-height: 100%;
 
-    .content-decoration {
-      position: absolute;
-      top: 0;
-      right: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      overflow: hidden;
+    // 工具栏：左侧搜索/重置，右侧新增
+    .content-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding-bottom: 12px;
+      flex-shrink: 0;
 
-      .decoration-icon {
-        position: absolute;
-        opacity: 0.08;
-        animation: float 6s ease-in-out infinite;
+      .toolbar-left {
+        flex-shrink: 0;
 
-        &.decoration-icon-1 {
-          top: 20px; right: 40px;
-          color: $pink-400;
-          animation-delay: 0s;
+        .header-search {
+          display: flex;
+            align-items: center;
+            gap: 8px;
+
+            .search-input {
+              width: 220px;
+
+            :deep(.t-input) {
+              height: 32px;
+              border-radius: 10px;
+              border: 1.5px solid $pink-200;
+              background: rgba(255, 240, 243, 0.3);
+
+              &:hover { border-color: $pink-300; }
+              &:focus-within {
+                border-color: $pink-400;
+                box-shadow: 0 0 0 3px rgba(255, 143, 171, 0.1);
+              }
+
+              .t-input__wrap { color: $text-main; font-size: 12px; }
+              .t-input__prefix { color: $pink-400; }
+            }
+          }
+
+          .toolbar-btn {
+            height: 32px !important;
+            border-radius: 10px !important;
+            font-size: 12px !important;
+            font-weight: 600 !important;
+            flex-shrink: 0;
+            padding: 0 12px;
+
+            &.t-button--theme-primary {
+              background: linear-gradient(135deg, $pink-400, $pink-500) !important;
+              border: none !important;
+
+              &:hover {
+                background: linear-gradient(135deg, $pink-300, $pink-400) !important;
+                transform: translateY(-1px);
+              }
+              :deep(.t-button__icon) { color: white !important; }
+            }
+
+            &.t-button--theme-default {
+              background: rgba(255, 255, 255, 0.9) !important;
+              border: 1.5px solid $pink-200 !important;
+              color: $text-main !important;
+
+              &:hover {
+                border-color: $pink-400 !important;
+                color: $pink-500 !important;
+              }
+              :deep(.t-button__icon) { color: $pink-400 !important; }
+            }
+          }
         }
-        &.decoration-icon-2 {
-          top: 120px; right: 100px;
-          color: $pink-300;
-          animation-delay: 1s;
-        }
-        &.decoration-icon-3 {
-          top: 80px; right: 180px;
-          color: $lavender;
-          animation-delay: 2s;
+      }
+
+      .toolbar-right {
+        flex-shrink: 0;
+
+        .action-btn {
+          height: 32px !important;
+          border-radius: 10px !important;
+          font-size: 12px !important;
+          font-weight: 600 !important;
+          padding: 0 12px;
+          transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+
+          &.t-button--theme-primary {
+            background: linear-gradient(135deg, $pink-400, $pink-500) !important;
+            border: none !important;
+            box-shadow: 0 4px 16px rgba(255, 107, 138, 0.3);
+
+            &:hover {
+              transform: translateY(-2px);
+              box-shadow: 0 8px 24px rgba(255, 107, 138, 0.4);
+              background: linear-gradient(135deg, $pink-300, $pink-400) !important;
+            }
+
+            &:active {
+              transform: translateY(1px) scale(0.98);
+            }
+
+            :deep(.t-button__icon) { color: white !important; }
+          }
         }
       }
     }
@@ -1463,7 +1463,6 @@ $sidebar-w: 300px;
 
     .sidebar-top { padding: 16px 14px 10px; }
     .sidebar-nav { padding: 10px 14px; }
-    .sidebar-footer { padding: 10px 14px 14px; }
   }
 
   .right-content {
@@ -1476,15 +1475,6 @@ $sidebar-w: 300px;
     padding: 10px 14px;
 
     .header-left .content-title { font-size: 18px; }
-
-    .header-actions {
-      flex-wrap: wrap;
-
-      .header-search {
-        max-width: 100%;
-        flex: 1 1 auto;
-      }
-    }
   }
 
   .content-body {
@@ -1522,12 +1512,16 @@ $sidebar-w: 300px;
     flex-direction: column;
     gap: 12px;
     align-items: stretch;
+  }
 
-    .header-actions {
-      flex-wrap: wrap;
+  .content-body {
+    .content-body-wrapper {
+      .content-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+      }
     }
-
-    .header-action-buttons .action-btn { flex: 1; }
   }
 }
 </style>

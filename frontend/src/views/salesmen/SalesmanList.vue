@@ -39,7 +39,7 @@ const columns = [
   { colKey: 'code', title: '工号', width: 120 },
   { colKey: 'department', title: '部门', width: 140 },
   { colKey: 'phone', title: '电话', width: 150 },
-  { colKey: 'email', title: '邮箱', ellipsis: true },
+  { colKey: 'email', title: '邮箱', width: 160 },
   { colKey: 'status', title: '状态', width: 100 },
   { colKey: 'createdAt', title: '创建时间', width: 180 },
   { colKey: 'operation', title: '操作', width: 180, fixed: 'right' }
@@ -84,7 +84,7 @@ const handleView = (row: Salesman) => router.push(`/salesmen/${row.id}`)
 const handleEdit = (row: Salesman) => router.push(`/salesmen/${row.id}/edit`)
 
 const handleToggleStatus = async (row: Salesman) => {
-  const result = await salesmanStore.updateSalesman(row.id, { status: 'inactive' })
+  const result = await salesmanStore.deleteSalesman(row.id)
   if (result.success) MessagePlugin.success('已停用')
   else MessagePlugin.error(result.message || '操作失败')
 }

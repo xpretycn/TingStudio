@@ -116,7 +116,7 @@ export async function updateSalesman(req: Request, res: Response) {
 export async function deleteSalesman(req: Request, res: Response) {
   try {
     const { id } = req.params
-    await query('UPDATE salesmen SET status = "inactive" WHERE id = ?', [id])
+    await query('UPDATE salesmen SET status = ? WHERE id = ?', ['inactive', id])
     res.json(success(null, '业务员已停用'))
   } catch (error: any) {
     res.status(500).json({ success: false, message: '停用业务员失败', error: error.message })

@@ -11,11 +11,16 @@
         stripe
       >
         <template #stock="{ row }">
-          <t-tag :theme="row.stock > 0 ? 'success' : 'danger'">
-            <template #icon>
-              <t-icon :name="row.stock > 0 ? 'check-circle' : 'error-circle'" />
-            </template>
-            {{ row.stock }} {{ row.unit }}
+          {{ row.stock }} {{ row.unit }}
+        </template>
+
+        <template #materialType="{ row }">
+          <t-tag
+            :theme="row.materialType === 'supplement' ? 'primary' : 'success'"
+            variant="light-outline"
+            size="small"
+          >
+            {{ row.materialType === 'supplement' ? '辅料' : '药材' }}
           </t-tag>
         </template>
 
@@ -92,12 +97,7 @@ const deleteTarget = ref<Material | null>(null)
 const columns = [
   { colKey: 'code', title: '原料编码', width: 120 },
   { colKey: 'name', title: '原料名称', width: 200 },
-  { colKey: 'materialType', title: '类型', width: 90, cell: (h: any, { row }: any) => {
-    if (row.materialType === 'supplement') {
-      return h('t-tag', { theme: 'primary', variant: 'light-outline', size: 'small' }, '辅料')
-    }
-    return h('t-tag', { theme: 'success', variant: 'light-outline', size: 'small' }, '药材')
-  }},
+  { colKey: 'materialType', title: '类型', width: 90 },
   { colKey: 'unit', title: '单位', width: 80 },
   { colKey: 'stock', title: '库存', width: 120 },
   { colKey: 'createdAt', title: '创建时间', width: 180 },
