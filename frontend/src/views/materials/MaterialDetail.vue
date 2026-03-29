@@ -3,15 +3,21 @@
     <t-card bordered v-if="material">
       <template #header>
         <div class="detail-header">
-          <t-button variant="text" @click="handleBack">
-            <template #icon><t-icon name="chevron-left" /></template>返回
+          <div class="header-left">
+            <t-button variant="text" @click="handleBack">
+              <template #icon><t-icon name="chevron-left" /></template>返回
+            </t-button>
+            <span class="detail-title">原料详情 - {{ material.name }}</span>
+            <t-tag v-if="material.materialType === 'supplement'" theme="primary" variant="light-outline">辅料</t-tag>
+            <t-tag v-else theme="success" variant="light-outline">药材</t-tag>
+            <t-tag :theme="(material.stock ?? 0) > 0 ? 'success' : 'danger'" variant="light">
+              库存 {{ material.stock ?? 0 }} {{ material.unit }}
+            </t-tag>
+          </div>
+          <t-button variant="text" size="medium" @click="router.push(`/materials/${route.params.id}/edit`)">
+            <template #icon><t-icon name="edit" /></template>
+            编辑
           </t-button>
-          <span class="detail-title">原料详情 - {{ material.name }}</span>
-          <t-tag v-if="material.materialType === 'supplement'" theme="primary" variant="light-outline">辅料</t-tag>
-          <t-tag v-else theme="success" variant="light-outline">药材</t-tag>
-          <t-tag :theme="(material.stock ?? 0) > 0 ? 'success' : 'danger'" variant="light">
-            库存 {{ material.stock ?? 0 }} {{ material.unit }}
-          </t-tag>
         </div>
       </template>
 
@@ -118,7 +124,8 @@ onMounted(() => { loadData() })
 <style scoped lang="scss">
 .material-detail {
   .detail-header {
-    display: flex; align-items: center; gap: 12px;
+    display: flex; align-items: center; justify-content: space-between; width: 100%;
+    .header-left { display: flex; align-items: center; gap: 12px; }
     .detail-title { font-size: 16px; font-weight: 600; color: #5D4E60; }
   }
 

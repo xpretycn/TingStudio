@@ -63,7 +63,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useVersionStore } from '@/stores/version'
 import { MessagePlugin } from 'tdesign-vue-next'
@@ -79,16 +79,35 @@ const versionB = ref('')
 const compareResult = ref<any>(null)
 const hasCompared = ref(false)
 
-const diffColumns = [
-  { colKey: 'fieldLabel', title: '字段', width: 180 },
-  { colKey: 'fieldType', title: '类型', width: 100 },
-  { colKey: 'changeType', title: '变更', width: 80 },
-  { colKey: 'oldValue', title: '旧值', ellipsis: true },
-  { colKey: 'newValue', title: '新值', ellipsis: true }
-]
+const selectedVersionA = computed(() => {
+  if (!versionA.value) return null
+  return versions.value.find(v => v.versionId === versionA.value) || null
+})
+const selectedVersionB = computed(() => {
+  if (!versionB.value) return null
+  return versions.value.find(v => v.versionId === versionB.value) || null
+})
 
-const fieldTypeTheme = (t: string) => t === 'material' ? 'primary' : t === 'salesman' ? 'warning' : 'default'
-const fieldTypeLabel = (t: string) => ({ salesman: '业务员', material: '原料', materialQuantity: '数量', description: '描述', nutrition: '营养' }[t] || t)
+const diffColumns = computed(() => {
+  const labelA = selectedVersionA.value ? `${selectedVersionA.value.versionNumber} - ${selectedVersionA.value.versionName || ''}` : '旧值'
+  const labelB = selectedVersionB.value ? `${selectedVersionB.value.versionNumber} - ${selectedVersionB.value.versionName || ''}` : '新值'
+  return [
+    { colKey: 'fieldLabel', title: '字段', width: 180 },
+    { colKey: 'fieldType', title: '类型', width: 100 },
+    { colKey: 'changeType', title: '变更', width: 80 },
+    { colKey: 'oldValue', title: labelA, ellipsis: true },
+    { colKey: 'newValue', title: labelB, ellipsis: true }
+  ]
+})
+
+const fieldTypeTheme = (t: string) => {
+  if (t === 'material' || t === 'materialQuantity') return 'primary'
+  if (t === 'salesman' || t === 'formula') return 'warning'
+  if (t === 'param') return 'success'
+  if (t === 'description') return 'default'
+  return 'default'
+}
+const fieldTypeLabel = (t: string) => ({ salesman: '业务员', formula: '配方', material: '原料', materialQuantity: '数量', param: '参数', description: '描述', nutrition: '营养' }[t] || t)
 const changeTypeTheme = (t: string) => t === 'add' ? 'success' : t === 'delete' ? 'danger' : 'warning'
 const changeTypeLabel = (t: string) => t === 'add' ? '新增' : t === 'delete' ? '删除' : '修改'
 

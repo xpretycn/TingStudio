@@ -61,8 +61,13 @@ export async function getVersion(req: Request, res: Response) {
 export async function createVersion(req: any, res: Response) {
   try {
     const { formulaId } = req.params
-    const { versionName, status } = req.body
+    const { versionName, versionReason, status } = req.body
     const userId = req.user.userId
+
+    if (!versionReason?.trim()) {
+      res.status(400).json({ success: false, message: '请填写升版原因' })
+      return
+    }
 
     // 获取当前配方
     const [[formula]]: any[][] = await query('SELECT * FROM formulas WHERE id = ?', [formulaId])
@@ -89,10 +94,11 @@ export async function createVersion(req: any, res: Response) {
     await query('UPDATE formula_versions SET is_current = 0 WHERE formula_id = ?', [formulaId])
 
     await query(
-      `INSERT INTO formula_versions (version_id, formula_id, version_number, version_name, snapshot_json, status, is_current, created_by, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, 1, ?, ?)`,
+      `INSERT INTO formula_versions (version_id, formula_id, version_number, version_name, version_reason, snapshot_json, status, is_current, created_by, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?, ?)`,
       [
-        versionId, formulaId, newVersionNum, versionName || `手动版本 ${newVersionNum}`,
+        versionId, formulaId, newVersionNum, versionReason?.trim() || `手动版本 ${newVersionNum}`,
+        versionReason?.trim() || null,
         JSON.stringify({
           name: formula.name, salesmanId: formula.salesman_id,
           salesmanName: formula.salesman_name,
@@ -149,7 +155,26 @@ export async function publishVersion(req: Request, res: Response) {
       [versionId]
     )
 
-    res.json(success(null, '版本已发布'))
+    // 将快照数据回写到 formulas 表，确保配方数据与当前版本一致
+    const snapshot = safeJsonParse(version.snapshot_json, {})
+    if (snapshot.name || snapshot.materials) {
+      await query(
+        `UPDATE formulas SET name=?, salesman_id=?, salesman_name=?, materials_json=?, finished_weight=?, ratio_factor=?, supplement_ratio_factor=?, description=? WHERE id=?`,
+        [
+          snapshot.name || formula.name,
+          snapshot.salesmanId || formula.salesman_id,
+          snapshot.salesmanName || formula.salesman_name,
+          JSON.stringify(snapshot.materials || []),
+          snapshot.finishedWeight !== undefined ? snapshot.finishedWeight : formula.finished_weight,
+          snapshot.ratioFactor !== undefined ? snapshot.ratioFactor : formula.ratio_factor,
+          snapshot.supplementRatioFactor !== undefined ? snapshot.supplementRatioFactor : formula.supplement_ratio_factor,
+          snapshot.description !== undefined ? snapshot.description : formula.description,
+          formulaId,
+        ]
+      )
+    }
+
+    res.json(success(null, '版本已发布，配方数据已同步'))
   } catch (error: any) {
     console.error('发布版本失败:', error)
     res.status(500).json({ success: false, message: '发布版本失败: ' + error.message })
@@ -189,13 +214,57 @@ export async function compareVersions(req: Request, res: Response) {
     const differences: any[] = []
     let addedCount = 0, modifiedCount = 0, deletedCount = 0
 
+    // 配方名称变更
+    if (snapshotA.name !== snapshotB.name) {
+      differences.push({
+        fieldId: 'name',
+        fieldLabel: '配方名称',
+        fieldType: 'formula',
+        changes: { oldValue: snapshotA.name, newValue: snapshotB.name, changeType: 'modify', highlighted: true },
+      })
+      modifiedCount++
+    }
+
     // 业务员变更
     if (snapshotA.salesmanId !== snapshotB.salesmanId) {
       differences.push({
         fieldId: 'salesmanId',
-        fieldLabel: '业务员',
+        fieldLabel: '所属业务员',
         fieldType: 'salesman',
         changes: { oldValue: snapshotA.salesmanName, newValue: snapshotB.salesmanName, changeType: 'modify', highlighted: true },
+      })
+      modifiedCount++
+    }
+
+    // 成品重量变更
+    if (snapshotA.finishedWeight !== snapshotB.finishedWeight) {
+      differences.push({
+        fieldId: 'finishedWeight',
+        fieldLabel: '成品重量(g)',
+        fieldType: 'param',
+        changes: { oldValue: snapshotA.finishedWeight, newValue: snapshotB.finishedWeight, changeType: 'modify' },
+      })
+      modifiedCount++
+    }
+
+    // 主料含量比系数变更
+    if (snapshotA.ratioFactor !== snapshotB.ratioFactor) {
+      differences.push({
+        fieldId: 'ratioFactor',
+        fieldLabel: '主料含量比系数',
+        fieldType: 'param',
+        changes: { oldValue: snapshotA.ratioFactor, newValue: snapshotB.ratioFactor, changeType: 'modify' },
+      })
+      modifiedCount++
+    }
+
+    // 辅料含量比系数变更
+    if (snapshotA.supplementRatioFactor !== snapshotB.supplementRatioFactor) {
+      differences.push({
+        fieldId: 'supplementRatioFactor',
+        fieldLabel: '辅料含量比系数',
+        fieldType: 'param',
+        changes: { oldValue: snapshotA.supplementRatioFactor, newValue: snapshotB.supplementRatioFactor, changeType: 'modify' },
       })
       modifiedCount++
     }
@@ -257,6 +326,7 @@ export async function compareVersions(req: Request, res: Response) {
         modifiedCount,
         deletedCount,
         materialChanges: differences.filter((d: any) => d.fieldType?.startsWith('material')).length,
+        paramChanges: differences.filter((d: any) => d.fieldType === 'param').length,
         descriptionChanges: differences.filter((d: any) => d.fieldType === 'description').length,
         nutritionChanges: 0,
       },

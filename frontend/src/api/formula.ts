@@ -44,6 +44,7 @@ export interface FormulaForm {
   ratioFactor?: number
   supplementRatioFactor?: number
   description?: string
+  versionReason?: string
 }
 
 export const formulaApi = {

@@ -48,9 +48,9 @@ export const useMaterialStore = defineStore('material', () => {
   const createMaterial = async (form: MaterialForm) => {
     loading.value = true
     try {
-      await materialApi.create(form)
+      const res = await materialApi.create(form)
       await fetchMaterials()
-      return { success: true }
+      return { success: true, data: res.data?.data }
     } catch (error: any) {
       return { success: false, message: error.message || '创建失败' }
     } finally {

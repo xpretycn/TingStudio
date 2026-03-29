@@ -55,13 +55,24 @@ const pagination = computed(() => ({
   }
 }))
 
+// 监听全局搜索事件（来自首页搜索框）
+const handleGlobalSearch = (e: Event) => {
+  const keyword = (e as CustomEvent).detail || ''
+  searchForm.keyword = keyword
+  salesmanStore.setKeyword(keyword)
+  salesmanStore.fetchSalesmen()
+}
+
 // 注册分页到全局 paginationStore
 onMounted(() => {
+  window.addEventListener('global-search', handleGlobalSearch)
   paginationStore.register(pagination.value)
   watch(pagination, (val) => paginationStore.update(val), { deep: true })
+  salesmanStore.fetchSalesmen()
 })
 
 onUnmounted(() => {
+  window.removeEventListener('global-search', handleGlobalSearch)
   paginationStore.unregister()
 })
 
@@ -89,7 +100,6 @@ const handleToggleStatus = async (row: Salesman) => {
   else MessagePlugin.error(result.message || '操作失败')
 }
 
-onMounted(() => { salesmanStore.fetchSalesmen() })
 </script>
 
 <style scoped lang="scss">

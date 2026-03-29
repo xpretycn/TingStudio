@@ -24,6 +24,19 @@
           </t-tag>
         </template>
 
+        <template #nutrition="{ row }">
+          <t-tag
+            v-if="nutritionMap[row.id]"
+            theme="warning"
+            variant="light-outline"
+            size="small"
+          >
+            <template #icon><t-icon name="chart-bar" size="14px" /></template>
+            {{ nutritionMap[row.id] }}项
+          </t-tag>
+          <span v-else style="color: #C0C0C0; font-size: 12px;">未录入</span>
+        </template>
+
         <template #empty>
           <t-empty description="暂无原料数据" />
         </template>
@@ -79,6 +92,7 @@ import { ref, reactive, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useMaterialStore } from '@/stores/material'
 import { usePaginationStore } from '@/stores/pagination'
+import { nutritionApi } from '@/api/nutrition'
 import { MessagePlugin } from 'tdesign-vue-next'
 import type { Material } from '@/api/material'
 
@@ -93,15 +107,17 @@ const searchForm = reactive({
 const deleteDialogVisible = ref(false)
 const deleteLoading = ref(false)
 const deleteTarget = ref<Material | null>(null)
+const nutritionMap = ref<Record<string, string>>({})
 
 const columns = [
-  { colKey: 'code', title: '原料编码', width: 120 },
+  { colKey: 'code', title: '原料编码', width: 100 },
   { colKey: 'name', title: '原料名称', width: 200 },
   { colKey: 'materialType', title: '类型', width: 90 },
   { colKey: 'unit', title: '单位', width: 80 },
-  { colKey: 'stock', title: '库存', width: 120 },
-  { colKey: 'createdAt', title: '创建时间', width: 180 },
-  { colKey: 'operation', title: '操作', width: 150, fixed: 'right' }
+  { colKey: 'stock', title: '库存', width: 90 },
+  { colKey: 'nutrition', title: '营养', width: 90 },
+  { colKey: 'createdAt', title: '创建时间', width: 150 },
+  { colKey: 'operation', title: '操作', width: 200, fixed: 'right' }
 ]
 
 const pagination = computed(() => ({
@@ -110,7 +126,7 @@ const pagination = computed(() => ({
   total: materialStore.total,
   onChange: (pageInfo: any) => {
     materialStore.setPage(pageInfo.current)
-    materialStore.fetchMaterials()
+    loadMaterials()
   }
 }))
 
@@ -119,8 +135,33 @@ onMounted(() => {
   window.addEventListener('global-search', handleGlobalSearch)
   paginationStore.register(pagination.value)
   watch(pagination, (val) => paginationStore.update(val), { deep: true })
-  materialStore.fetchMaterials()
+  loadMaterials()
 })
+
+// 加载原料列表并刷新营养状态
+const loadMaterials = async () => {
+  await materialStore.fetchMaterials()
+  loadNutritionStatus()
+}
+
+// 批量检查营养数据状态
+const loadNutritionStatus = async () => {
+  const materials = materialStore.materials
+  if (!materials.length) return
+  const map: Record<string, string> = {}
+  const promises = materials.map(async (m: Material) => {
+    try {
+      // http 拦截器已解包 response.data，res 直接是 { success, data } 结构
+      const res = await nutritionApi.getMaterialNutrition(m.id) as any
+      if (res?.success && res?.data?.per100g) {
+        const count = Object.keys(res.data.per100g).filter(k => res.data.per100g[k] > 0).length
+        if (count > 0) map[m.id] = `${count}`
+      }
+    } catch { /* no data */ }
+  })
+  await Promise.all(promises)
+  nutritionMap.value = map
+}
 
 onUnmounted(() => {
   window.removeEventListener('global-search', handleGlobalSearch)
@@ -130,7 +171,7 @@ onUnmounted(() => {
 const handleReset = () => {
   searchForm.keyword = ''
   materialStore.setKeyword('')
-  materialStore.fetchMaterials()
+  loadMaterials()
 }
 
 // 监听全局搜索事件（来自首页搜索框）
@@ -138,7 +179,7 @@ const handleGlobalSearch = (e: Event) => {
   const keyword = (e as CustomEvent).detail || ''
   searchForm.keyword = keyword
   materialStore.setKeyword(keyword)
-  materialStore.fetchMaterials()
+  loadMaterials()
 }
 
 const handleCreate = () => {
@@ -168,6 +209,7 @@ const confirmDelete = async () => {
       MessagePlugin.success('删除成功')
       deleteDialogVisible.value = false
       deleteTarget.value = null
+      loadNutritionStatus()
     } else {
       MessagePlugin.error(result.message || '删除失败')
     }

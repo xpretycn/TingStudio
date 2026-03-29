@@ -3,10 +3,16 @@
     <template v-if="!loading && data">
       <!-- 顶部返回栏 -->
       <div class="detail-header">
-        <t-button variant="text" @click="handleBack">
-          <template #icon><t-icon name="chevron-left" /></template>返回
+        <div class="header-left">
+          <t-button variant="text" @click="handleBack">
+            <template #icon><t-icon name="chevron-left" /></template>返回
+          </t-button>
+          <span class="detail-title">配方详情 - {{ data.formulaName }}</span>
+        </div>
+        <t-button variant="text" size="medium" @click="router.push(`/formulas/${route.params.id}/edit`)">
+          <template #icon><t-icon name="edit" /></template>
+          编辑
         </t-button>
-        <span class="detail-title">配方详情 - {{ data.formulaName }}</span>
       </div>
 
       <!-- 营养数据缺失警告 -->
@@ -165,8 +171,14 @@ onMounted(() => { loadData() })
   .detail-header {
     display: flex;
     align-items: center;
-    gap: 12px;
+    justify-content: space-between;
     margin-bottom: 16px;
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
 
     .detail-title {
       font-size: 16px;

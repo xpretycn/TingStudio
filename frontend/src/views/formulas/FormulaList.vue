@@ -9,7 +9,8 @@
         row-key="id"
         hover
         stripe
-        :expandable="true"
+        :expanded-row-keys="expandedRowKeys"
+        @expand-change="onExpandChange"
       >
         <template #expandedRow="{ row }">
           <div class="expanded-content">
@@ -57,14 +58,12 @@
                   </div>
                   <div class="version-center">
                     <span class="version-name">{{ ver.versionName }}</span>
+                    <span v-if="ver.versionReason" class="version-reason">原因: {{ ver.versionReason }}</span>
                     <span class="version-time">{{ ver.createdAt }}</span>
                   </div>
-                  <div v-if="ver.changesJson" class="version-changes">
-                    <t-button variant="text" size="small" @click.stop="toggleChanges(ver)">
-                      {{ expandedChangesId === ver.versionId ? '收起变更' : '查看变更' }}
-                    </t-button>
-                    <div v-if="expandedChangesId === ver.versionId" class="changes-detail">
-                      <div v-if="parseChanges(ver.changesJson).length" class="changes-list">
+                  <div v-if="ver.changesJson && parseChanges(ver.changesJson).length" class="version-changes">
+                    <div class="changes-detail">
+                      <div class="changes-list">
                         <div
                           v-for="(change, ci) in parseChanges(ver.changesJson)"
                           :key="ci"
@@ -84,7 +83,6 @@
                           </span>
                         </div>
                       </div>
-                      <div v-else class="changes-empty">暂无变更记录</div>
                     </div>
                   </div>
                 </div>
@@ -213,10 +211,10 @@ const searchForm = reactive({
 const deleteDialogVisible = ref(false)
 const deleteLoading = ref(false)
 const deleteTarget = ref<Formula | null>(null)
-const expandedChangesId = ref<string | null>(null)
+const expandedRowKeys = ref<(string | number)[]>([])
 
-const toggleChanges = (ver: any) => {
-  expandedChangesId.value = expandedChangesId.value === ver.versionId ? null : ver.versionId
+const onExpandChange = (keys: Array<string | number>) => {
+  expandedRowKeys.value = keys
 }
 
 const parseChanges = (changesJson: string): any[] => {
@@ -453,6 +451,14 @@ const confirmDelete = async () => {
       font-size: 14px;
       color: #333;
       font-weight: 500;
+    }
+
+    .version-reason {
+      font-size: 12px;
+      color: #FF6B8A;
+      background: #FFF0F3;
+      padding: 1px 8px;
+      border-radius: 4px;
     }
 
     .version-time {

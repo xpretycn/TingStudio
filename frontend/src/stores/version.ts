@@ -13,9 +13,10 @@ export const useVersionStore = defineStore('version', () => {
     loading.value = true
     try {
       const res = await versionApi.getList(formulaId, params)
-      versions.value = res.data
+      versions.value = res?.data || []
     } catch (error) {
       console.error('获取版本列表失败:', error)
+      versions.value = []
     } finally {
       loading.value = false
     }
@@ -30,14 +31,14 @@ export const useVersionStore = defineStore('version', () => {
     }
   }
 
-  const createVersion = async (formulaId: string, data?: { versionName?: string; status?: string }) => {
+  const createVersion = async (formulaId: string, data?: { versionName?: string; versionReason?: string; status?: string }) => {
     loading.value = true
     try {
       const res = await versionApi.create(formulaId, data)
       await fetchVersions(formulaId)
-      return { success: true, data: res.data }
+      return { success: true, data: res?.data || null }
     } catch (error: any) {
-      return { success: false, message: error.message || '创建版本失败' }
+      return { success: false, message: error.message || '创建版本失败', data: null }
     } finally {
       loading.value = false
     }
@@ -59,9 +60,11 @@ export const useVersionStore = defineStore('version', () => {
     loading.value = true
     try {
       const res = await versionApi.compare(formulaId, versionA, versionB)
-      compareResult.value = res.data
-      return { success: true, data: res.data }
+      const data = res?.data || null
+      compareResult.value = data
+      return { success: true, data }
     } catch (error: any) {
+      compareResult.value = null
       return { success: false, message: error.message || '版本对比失败' }
     } finally {
       loading.value = false

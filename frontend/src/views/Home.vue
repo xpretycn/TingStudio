@@ -172,8 +172,8 @@
       <!-- 滚动内容区域 -->
       <div ref="contentBodyRef" class="content-body">
         <div class="content-body-wrapper">
-          <!-- 工具栏：左侧搜索/重置，右侧新增 -->
-          <div class="content-toolbar">
+          <!-- 工具栏：左侧搜索/重置，右侧新增（仅列表页可见） -->
+          <div v-if="showAddBtn" class="content-toolbar">
             <div class="toolbar-left">
               <div class="header-search">
                 <t-input
@@ -330,7 +330,7 @@ const searchPlaceholder = computed(() => {
 const navItems = [
   { path: '/recent-formulas', label: '最近配方', icon: '🕐' },
   { path: '/formulas', label: '配方管理', icon: '📝' },
-  { path: '/materials', label: '原材料管理', icon: '🧪' },
+  { path: '/materials', label: '原材管理', icon: '🧪' },
   { path: '/salesmen', label: '业务员管理', icon: '🤝' },
   { path: '/exports', label: '导出中心', icon: '📤' },
   { path: '/nutrition', label: '营养分析', icon: '🥗' },
@@ -354,7 +354,7 @@ const pageTitle = computed(() => {
   const titleMap: Record<string, string> = {
     '/recent-formulas': '最近配方',
     '/formulas': '配方管理',
-    '/materials': '原材料管理',
+    '/materials': '原料管理',
     '/salesmen': '业务员管理',
     '/exports': '导出中心',
     '/nutrition': '营养分析',
@@ -377,6 +377,14 @@ const toggleNav = () => {
 const navigateTo = (path: string) => {
   router.push(path)
 }
+
+// 工具栏：仅在列表页显示，表单页/详情页/编辑页隐藏
+const showAddBtn = computed(() => {
+  const path = route.path
+  const listPages = ['/materials', '/formulas', '/salesmen', '/exports', '/nutrition', '/nutrition/profiles', '/tools']
+  // 精确匹配列表页（不含子路径）
+  return listPages.some(p => path === p)
+})
 
 // 处理新增
 const handleAdd = () => {
@@ -1085,7 +1093,7 @@ $sidebar-w: 300px;
             gap: 8px;
 
             .search-input {
-              width: 220px;
+              width: 320px;
 
             :deep(.t-input) {
               height: 32px;

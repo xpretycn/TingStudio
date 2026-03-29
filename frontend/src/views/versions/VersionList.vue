@@ -24,18 +24,79 @@
         <template #status="{ row }">
           <t-tag :theme="statusTheme(row.status)" variant="light">{{ statusLabel(row.status) }}</t-tag>
         </template>
-        <template #isCurrent="{ row }">
-          <t-tag v-if="row.isCurrent" theme="primary" variant="light">当前版本</t-tag>
-          <span v-else>-</span>
+        <template #versionNumber="{ row }">
+          <span>{{ row.versionNumber }}</span>
+          <t-tag v-if="row.isCurrent" size="small" theme="success" variant="dark" style="margin-left: 6px;">当前</t-tag>
+        </template>
+        <template #versionReason="{ row }">
+          <span v-if="row.versionReason" class="cell-reason">{{ row.versionReason }}</span>
+          <span v-else class="no-changes">-</span>
+        </template>
+        <template #changes="{ row }">
+          <div class="cell-changes">
+            <template v-if="row.changes?.length">
+              <t-space :size="4" wrap>
+                <t-tooltip v-for="(c, ci) in row.changes" :key="ci" :content="`${changeTypeLabel(c.changeType)} ${c.fieldLabel}${c.oldValue !== null ? '：' + c.oldValue : ''}${c.oldValue !== null && c.newValue !== null ? ' → ' : ''}${c.newValue !== null ? c.newValue : ''}`">
+                  <t-tag
+                    size="small"
+                    :theme="changeTypeTheme(c.changeType)"
+                    variant="light-outline"
+                    class="change-tag"
+                  >
+                    <template #icon>
+                      <t-icon :name="changeTypeIcon(c.changeType)" size="14px" />
+                    </template>
+                    {{ changeTypeLabel(c.changeType) }} {{ c.fieldLabel }}
+                  </t-tag>
+                </t-tooltip>
+              </t-space>
+            </template>
+            <span v-else class="no-changes">-</span>
+          </div>
         </template>
         <template #operation="{ row }">
           <t-space :size="8">
             <t-button variant="text" size="small" @click="handleViewSnapshot(row)"><template #icon><t-icon name="browse" /></template>快照</t-button>
-            <t-button v-if="row.status === 'draft'" variant="text" theme="primary" size="small" @click="handlePublish(row)"><template #icon><t-icon name="check-circle" /></template>发布</t-button>
+            <t-button v-if="!row.isCurrent" variant="text" theme="primary" size="small" @click="handlePublish(row)"><template #icon><t-icon name="check-circle" /></template>发布</t-button>
           </t-space>
         </template>
       </t-table>
     </t-card>
+
+    <!-- 创建版本弹窗 -->
+    <t-dialog
+      v-model:visible="createVersionVisible"
+      header="创建新版本"
+      :confirm-btn="{ content: '创建', theme: 'primary' }"
+      @confirm="confirmCreateVersion"
+    >
+      <t-form-item label="升版原因" style="margin-bottom: 0;">
+        <t-textarea
+          v-model="createVersionReason"
+          placeholder="请输入升版原因（必填）"
+          :autosize="{ minRows: 2, maxRows: 4 }"
+        />
+      </t-form-item>
+    </t-dialog>
+
+    <!-- 发布确认弹窗 -->
+    <t-dialog
+      v-model:visible="publishDialogVisible"
+      header="确认发布版本"
+      :confirm-btn="{ content: '确认发布', theme: 'primary', loading: publishLoading }"
+      @confirm="confirmPublish"
+    >
+      <div v-if="publishTarget" class="publish-confirm-content">
+        <t-alert theme="warning" class="publish-warning">
+          发布后将替换当前版本，配方数据将同步更新为该版本的快照数据。此操作不可撤销。
+        </t-alert>
+        <t-descriptions :column="1" bordered size="small" style="margin-top: 12px;">
+          <t-descriptions-item label="版本号">{{ publishTarget.versionNumber }}</t-descriptions-item>
+          <t-descriptions-item label="版本名称">{{ publishTarget.versionName || '-' }}</t-descriptions-item>
+          <t-descriptions-item label="升版原因">{{ publishTarget.versionReason || '-' }}</t-descriptions-item>
+        </t-descriptions>
+      </div>
+    </t-dialog>
 
     <!-- 版本快照弹窗 -->
     <t-dialog v-model:visible="snapshotVisible" header="版本快照" width="700px" @confirm="snapshotVisible = false">
@@ -88,11 +149,12 @@ const currentSnapshot = ref<any>(null)
 
 const columns = [
   { colKey: 'versionNumber', title: '版本号', width: 120 },
-  { colKey: 'versionName', title: '版本名称', ellipsis: true },
-  { colKey: 'status', title: '状态', width: 100 },
-  { colKey: 'isCurrent', title: '当前版本', width: 100 },
-  { colKey: 'createdAt', title: '创建时间', width: 180 },
-  { colKey: 'operation', title: '操作', width: 180, fixed: 'right' }
+  { colKey: 'versionName', title: '版本名称', width: 140, ellipsis: true },
+  { colKey: 'versionReason', title: '升版原因', width: 180, ellipsis: true },
+  { colKey: 'changes', title: '版本变更', width: 320 },
+  { colKey: 'status', title: '状态', width: 80 },
+  { colKey: 'createdAt', title: '创建时间', width: 170 },
+  { colKey: 'operation', title: '操作', width: 160, fixed: 'right' }
 ]
 
 const materialColumns = [
@@ -104,6 +166,7 @@ const statusTheme = (s: string) => s === 'published' ? 'success' : s === 'draft'
 const statusLabel = (s: string) => s === 'published' ? '已发布' : s === 'draft' ? '草稿' : '已归档'
 const changeTypeTheme = (t: string) => t === 'add' ? 'success' : t === 'delete' ? 'danger' : 'warning'
 const changeTypeLabel = (t: string) => t === 'add' ? '新增' : t === 'delete' ? '删除' : '修改'
+const changeTypeIcon = (t: string) => t === 'add' ? 'add' : t === 'delete' ? 'remove' : 'edit'
 
 const fetchVersions = () => {
   versionStore.fetchVersions(formulaId, statusFilter.value ? { status: statusFilter.value } : undefined)
@@ -111,16 +174,57 @@ const fetchVersions = () => {
 
 const handleBack = () => router.push('/formulas')
 
-const handleCreateVersion = async () => {
-  const result = await versionStore.createVersion(formulaId, { status: 'draft' })
-  if (result.success) MessagePlugin.success(`版本 ${result.data?.versionNumber} 创建成功`)
-  else MessagePlugin.error(result.message || '创建失败')
+const createVersionVisible = ref(false)
+const createVersionReason = ref('')
+
+const handleCreateVersion = () => {
+  createVersionReason.value = ''
+  createVersionVisible.value = true
 }
 
-const handlePublish = async (row: any) => {
-  const result = await versionStore.publishVersion(row.versionId)
-  if (result.success) { MessagePlugin.success('发布成功'); fetchVersions() }
-  else MessagePlugin.error(result.message || '发布失败')
+const confirmCreateVersion = async () => {
+  if (!createVersionReason.value?.trim()) {
+    MessagePlugin.warning('请填写升版原因')
+    return
+  }
+  const result = await versionStore.createVersion(formulaId, { versionReason: createVersionReason.value.trim(), status: 'draft' })
+  if (result.success) {
+    MessagePlugin.success(`版本 ${result.data?.versionNumber} 创建成功`)
+    createVersionVisible.value = false
+    fetchVersions()
+  } else {
+    MessagePlugin.error(result.message || '创建失败')
+  }
+}
+
+const publishDialogVisible = ref(false)
+const publishLoading = ref(false)
+const publishTarget = ref<any>(null)
+
+const handlePublish = (row: any) => {
+  publishTarget.value = row
+  publishDialogVisible.value = true
+}
+
+const confirmPublish = async () => {
+  if (!publishTarget.value) return
+  publishLoading.value = true
+  try {
+    const result = await versionStore.publishVersion(publishTarget.value.versionId)
+    if (result.success) {
+      MessagePlugin.success(result.message || '发布成功，配方数据已同步')
+      publishDialogVisible.value = false
+      publishTarget.value = null
+      fetchVersions()
+      // 刷新配方名称（可能已变更）
+      const formula = await formulaStore.getFormula(formulaId)
+      if (formula) formulaName.value = formula.name
+    } else {
+      MessagePlugin.error(result.message || '发布失败')
+    }
+  } finally {
+    publishLoading.value = false
+  }
 }
 
 const handleCompare = () => router.push(`/versions/compare/${formulaId}`)
@@ -158,6 +262,27 @@ onMounted(async () => {
   }
   .change-item {
     display: flex; align-items: center; gap: 6px; padding: 4px 0; font-size: 13px; color: #5D4E60;
+  }
+  .cell-changes {
+    .change-tag {
+      max-width: 180px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .no-changes {
+      color: #C9C1CC;
+    }
+  }
+  .cell-reason {
+    font-size: 13px;
+    color: #5D4E60;
+    line-height: 1.5;
+  }
+  .publish-confirm-content {
+    .publish-warning {
+      border-radius: 8px;
+    }
   }
   :deep(.t-button) {
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;

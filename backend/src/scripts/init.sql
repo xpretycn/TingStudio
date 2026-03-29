@@ -80,6 +80,7 @@ CREATE TABLE IF NOT EXISTS `formula_versions` (
   `formula_id` TEXT NOT NULL,
   `version_number` TEXT NOT NULL,
   `version_name` TEXT DEFAULT NULL,
+  `version_reason` TEXT DEFAULT NULL,
   `changes_json` TEXT DEFAULT NULL,
   `snapshot_json` TEXT NOT NULL,
   `status` TEXT NOT NULL DEFAULT 'draft' CHECK(status IN ('draft', 'published', 'archived')),

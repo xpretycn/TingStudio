@@ -22,7 +22,7 @@ export const versionApi = {
   getById(versionId: string) {
     return http.get<any, { success: boolean; data: FormulaVersion }>(`/versions/detail/${versionId}`)
   },
-  create(formulaId: string, data?: { versionName?: string; status?: string }) {
+  create(formulaId: string, data?: { versionName?: string; versionReason?: string; status?: string }) {
     return http.post<any, { success: boolean; message: string; data: { versionId: string; versionNumber: string } }>(`/versions/formula/${formulaId}`, data)
   },
   publish(versionId: string) {

@@ -3,9 +3,15 @@
     <t-card bordered v-if="salesman">
       <template #header>
         <div class="detail-header">
-          <t-button variant="text" @click="handleBack"><template #icon><t-icon name="chevron-left" /></template>返回</t-button>
-          <span class="detail-title">业务员详情 - {{ salesman.name }}</span>
-          <t-tag :theme="salesman.status === 'active' ? 'success' : 'default'" variant="light">{{ salesman.status === 'active' ? '活跃' : '停用' }}</t-tag>
+          <div class="header-left">
+            <t-button variant="text" @click="handleBack"><template #icon><t-icon name="chevron-left" /></template>返回</t-button>
+            <span class="detail-title">业务员详情 - {{ salesman.name }}</span>
+            <t-tag :theme="salesman.status === 'active' ? 'success' : 'default'" variant="light">{{ salesman.status === 'active' ? '活跃' : '停用' }}</t-tag>
+          </div>
+          <t-button variant="text" size="medium" @click="router.push(`/salesmen/${route.params.id}/edit`)">
+            <template #icon><t-icon name="edit" /></template>
+            编辑
+          </t-button>
         </div>
       </template>
 
@@ -44,7 +50,8 @@ onMounted(() => { loadData() })
 <style scoped lang="scss">
 .salesman-detail {
   .detail-header {
-    display: flex; align-items: center; gap: 12px;
+    display: flex; align-items: center; justify-content: space-between; width: 100%;
+    .header-left { display: flex; align-items: center; gap: 12px; }
     .detail-title { font-size: 16px; font-weight: 600; color: #5D4E60; }
   }
 }

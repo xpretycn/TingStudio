@@ -117,7 +117,7 @@
                   @focus="handleMaterialFocus"
                 >
                   <t-option
-                    v-for="material in filteredMaterials"
+                    v-for="material in getFilteredMaterials(index)"
                     :key="material.id"
                     :value="material.id"
                     :label="`${material.name} (${material.unit})`"
@@ -173,6 +173,14 @@
           />
         </t-form-item>
 
+        <t-form-item v-if="isEdit" label="升版原因" name="versionReason">
+          <t-textarea
+            v-model="formData.versionReason"
+            placeholder="请输入升版原因（必填）"
+            :autosize="{ minRows: 2, maxRows: 4 }"
+          />
+        </t-form-item>
+
         <t-form-item>
           <t-space>
             <t-button theme="primary" type="submit" :loading="loading">
@@ -207,15 +215,23 @@ const loading = ref(false)
 const materialSelectLoading = ref(false)
 const materialSearchKeyword = ref('')
 
-// 远程搜索结果（优先使用搜索结果，无搜索时用全量）
-const filteredMaterials = computed(() => {
+// 过滤原料列表：排除其他行已选的原料，防止重复添加
+const getFilteredMaterials = (currentIndex: number) => {
   const list = materialStore.allMaterials ?? []
-  if (!materialSearchKeyword.value) return list
+  const selectedIds = formData.materials
+    .map((m: any, i: number) => i !== currentIndex && m.materialId ? m.materialId : null)
+    .filter(Boolean)
+  let result = list
+  if (selectedIds.length > 0) {
+    const idSet = new Set(selectedIds)
+    result = list.filter(m => !idSet.has(m.id))
+  }
+  if (!materialSearchKeyword.value) return result
   const kw = materialSearchKeyword.value.toLowerCase()
-  return list.filter(
+  return result.filter(
     m => m.name.toLowerCase().includes(kw) || m.code.toLowerCase().includes(kw)
   )
-})
+}
 
 const isEdit = computed(() => !!route.params.id)
 
@@ -226,7 +242,8 @@ const formData = reactive<any>({
   finishedWeight: 0,
   ratioFactor: 0.18,
   supplementRatioFactor: 1.0,
-  description: ''
+  description: '',
+  versionReason: ''
 })
 
 const validateMaterials = (value: MaterialItem[]) => {
@@ -262,7 +279,8 @@ const rules: Record<string, FormRule[]> = {
       },
       message: '请完整填写所有原料信息'
     }
-  ]
+  ],
+  versionReason: [{ required: true, message: '请填写升版原因' }]
 }
 
 const addMaterial = () => {

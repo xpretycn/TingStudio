@@ -61,7 +61,7 @@ export async function getMaterialNutrition(req: Request, res: Response) {
       [materialId]
     )
     if (!nutrition) {
-      res.status(404).json({ success: false, message: '未找到该原料的营养数据' })
+      res.json({ success: true, data: null })
       return
     }
     res.json(success({
@@ -89,12 +89,23 @@ export async function setMaterialNutrition(req: any, res: Response) {
 
     // 检查是否已存在
     const [[existing]]: any[][] = await query(
-      'SELECT nutrition_id, data_version FROM material_nutrition WHERE material_id = ?',
+      'SELECT nutrition_id, per_100g_json, data_source, notes, data_version FROM material_nutrition WHERE material_id = ?',
       [materialId]
     )
 
     if (existing) {
-      // 更新
+      // 增量更新：将新数据合并到已有数据中
+      const oldData: Record<string, number> = safeJsonParse(existing.per_100g_json, {})
+      const merged = { ...oldData }
+      for (const [key, val] of Object.entries(per100g)) {
+        if (typeof val === 'number' && val > 0) {
+          merged[key] = val
+        } else {
+          // 值为0或负数时，移除该字段
+          delete merged[key]
+        }
+      }
+
       const version = existing.data_version
       const match = version.match(/^(\d+)\./)
       const newVersion = match ? `${parseInt(match[1]) + 1}.0` : '2.0'
@@ -102,7 +113,7 @@ export async function setMaterialNutrition(req: any, res: Response) {
       await query(
         `UPDATE material_nutrition SET per_100g_json = ?, data_source = ?, notes = ?, data_version = ?, last_updated = ?
          WHERE material_id = ?`,
-        [JSON.stringify(per100g), dataSource || existing.data_source, notes, newVersion, now(), materialId]
+        [JSON.stringify(merged), dataSource || existing.data_source, notes || existing.notes, newVersion, now(), materialId]
       )
     } else {
       // 新建
