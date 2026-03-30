@@ -134,6 +134,7 @@
 | `formula_id` | TEXT | NOT NULL, FK → formulas.id | 配方 ID |
 | `version_number` | TEXT | NOT NULL | 版本号（如 v1.0） |
 | `version_name` | TEXT | NULL | 版本名称 |
+| `version_reason` | TEXT | NULL | 升版原因 |
 | `changes_json` | TEXT | NULL | 变更记录 JSON |
 | `snapshot_json` | TEXT | NOT NULL | 完整配方快照 JSON |
 | `status` | TEXT | NOT NULL, DEFAULT 'draft' | 状态：`draft` / `published` / `archived` |

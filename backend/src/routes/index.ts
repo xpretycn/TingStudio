@@ -7,6 +7,7 @@ import { salesmanRoutes } from './salesmen.js'
 import { versionRoutes } from './versions.js'
 import { exportRoutes } from './exports.js'
 import { nutritionRoutes } from './nutrition.js'
+import { excelImportRoutes } from './excelImport.js'
 
 export function createAppRouter(): Router {
   const router = Router()
@@ -18,6 +19,7 @@ export function createAppRouter(): Router {
   router.use('/versions', versionRoutes)
   router.use('/exports', exportRoutes)
   router.use('/nutrition', nutritionRoutes)
+  router.use('/import', excelImportRoutes)
 
   return router
 }

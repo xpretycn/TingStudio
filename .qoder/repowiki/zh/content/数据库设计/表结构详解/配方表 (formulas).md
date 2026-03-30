@@ -9,7 +9,16 @@
 - [formula.ts](file://frontend/src/types/formula.ts)
 - [store/formula.ts](file://frontend/src/stores/formula.ts)
 - [seedData.ts](file://backend/src/scripts/seedData.ts)
+- [migrate-ratio-factor.ts](file://backend/src/scripts/migrate-ratio-factor.ts)
+- [complete-migration.cjs](file://backend/src/scripts/complete-migration.cjs)
 </cite>
+
+## 更新摘要
+**变更内容**
+- 新增 ratio_factor 字段说明，用于含量比系数计算
+- 更新配方表和配方版本表的字段定义
+- 添加数据库迁移脚本说明
+- 更新表结构和业务逻辑说明
 
 ## 目录
 1. [简介](#简介)
@@ -25,6 +34,8 @@
 ## 简介
 
 配方表 (formulas) 是 TingStudio 系统中的核心业务表，用于存储配方的基本信息和原料组成。该表采用 JSON 格式存储原料列表，实现了灵活的数据结构设计，支持复杂的配方管理和版本控制功能。
+
+**更新** 新增了 ratio_factor 字段，用于存储含量比系数，支持不同原料类型的差异化计算需求。
 
 配方表的设计充分考虑了中医膏方行业的特殊需求，通过 `materials_json` 字段存储原料的动态列表，配合业务员关联实现完整的配方管理体系。
 
@@ -77,10 +88,13 @@ STORE --> CONTROLLER
 | `salesman_name` | TEXT | NOT NULL | 业务员名称（冗余字段） |
 | `materials_json` | TEXT | NOT NULL | 原料列表的JSON格式存储 |
 | `finished_weight` | REAL | NOT NULL, DEFAULT 0 | 成品重量（克） |
+| `ratio_factor` | REAL | NOT NULL, DEFAULT 0.18 | 含量比系数（默认 0.18） |
 | `description` | TEXT | NULL | 配方描述信息 |
 | `created_by` | TEXT | NOT NULL | 创建人ID |
 | `created_at` | TEXT | NOT NULL | 创建时间（ISO 8601） |
 | `updated_at` | TEXT | NOT NULL | 更新时间（ISO 8601） |
+
+**更新** 新增 `ratio_factor` 字段，用于存储含量比系数，默认值为 0.18，表示药材的含量比例。
 
 ### 外键关系
 
@@ -119,7 +133,7 @@ DB-->>Controller : 返回版本数据
 Controller->>Controller : 组装响应数据
 Controller-->>API : 返回配方列表
 API-->>Client : 配方数据
-Note over Client,DB : 配方数据包含JSON格式的原料列表
+Note over Client,DB : 配方数据包含JSON格式的原料列表和ratio_factor系数
 ```
 
 **图表来源**
@@ -139,7 +153,8 @@ flowchart TD
 Start([开始创建配方]) --> Validate["验证请求参数"]
 Validate --> CheckSalesman["检查业务员是否存在"]
 CheckSalesman --> BuildMaterials["构建原料列表"]
-BuildMaterials --> InsertFormula["插入配方记录"]
+BuildMaterials --> SetRatioFactor["设置含量比系数"]
+SetRatioFactor --> InsertFormula["插入配方记录"]
 InsertFormula --> CreateVersion["创建初始版本"]
 CreateVersion --> ReturnSuccess["返回成功响应"]
 CheckSalesman --> |业务员不存在| ReturnError["返回错误"]
@@ -147,6 +162,8 @@ Validate --> |参数验证失败| ReturnError
 ReturnError --> End([结束])
 ReturnSuccess --> End
 ```
+
+**更新** 在创建配方流程中新增了 `ratio_factor` 字段的处理逻辑。
 
 **图表来源**
 - [formulaController.ts:88-130](file://backend/src/controllers/formulaController.ts#L88-L130)
@@ -160,7 +177,10 @@ LoadOld --> CheckExists{"配方存在？"}
 CheckExists --> |否| ReturnNotFound["返回404"]
 CheckExists --> |是| CheckSalesman["检查业务员变更"]
 CheckSalesman --> BuildNewMaterials["构建新原料列表"]
-BuildNewMaterials --> UpdateFormula["更新配方记录"]
+BuildNewMaterials --> CheckRatioFactor{"ratio_factor有变更？"}
+CheckRatioFactor --> |是| UpdateRatioFactor["更新含量比系数"]
+CheckRatioFactor --> |否| UpdateFormula["更新配方记录"]
+UpdateRatioFactor --> UpdateFormula
 UpdateFormula --> CheckMaterials{"原料有变更？"}
 CheckMaterials --> |否| ReturnSuccess["返回成功"]
 CheckMaterials --> |是| CreateVersion["创建新版本"]
@@ -168,6 +188,8 @@ CreateVersion --> ReturnSuccess
 ReturnNotFound --> End([结束])
 ReturnSuccess --> End
 ```
+
+**更新** 在更新配方流程中新增了 `ratio_factor` 字段的变更检测和处理。
 
 **图表来源**
 - [formulaController.ts:132-218](file://backend/src/controllers/formulaController.ts#L132-L218)
@@ -193,16 +215,20 @@ class Formula {
 +string createdBy
 +string createdAt
 +string updatedAt
++number ratioFactor
 }
 class FormulaForm {
 +string name
 +string salesmanId
 +MaterialItem[] materials
 +string description
++number ratioFactor
 }
 Formula --> MaterialItem : "包含多个"
 FormulaForm --> MaterialItem : "包含多个"
 ```
+
+**更新** 在前端类型定义中新增了 `ratioFactor` 字段的支持。
 
 **图表来源**
 - [formula.ts:1-33](file://frontend/src/types/formula.ts#L1-L33)
@@ -251,10 +277,47 @@ description 字段可以存储多种格式的信息：
 2. **角色权限控制**：只有 admin 角色可以查看所有配方
 3. **数据验证**：前端和后端双重验证确保数据质量
 4. **版本控制**：自动创建和管理配方版本历史
+5. **含量比系数约束**：ratio_factor 字段确保数值的有效性
+
+**更新** 新增了 `ratio_factor` 字段的数据完整性约束说明。
 
 **章节来源**
 - [formulaController.ts:15-19](file://backend/src/controllers/formulaController.ts#L15-L19)
 - [formulas.ts:17-23](file://backend/src/routes/formulas.ts#L17-L23)
+
+### 数据库迁移机制
+
+**更新** 新增了 `ratio_factor` 字段的数据库迁移机制说明。
+
+系统提供了完整的数据库迁移脚本，用于将 `ratio_factor` 字段从 `materials` 表迁移到 `formulas` 表：
+
+```mermaid
+flowchart TD
+Start([开始数据库迁移]) --> CheckTable["检查表结构"]
+CheckTable --> AddColumn["为formulas表添加ratio_factor列"]
+AddColumn --> AddVersionColumn["为formula_versions表添加ratio_factor列"]
+AddVersionColumn --> ProcessData["处理现有数据"]
+ProcessData --> CheckSupplement{"配方包含辅料？"}
+CheckSupplement --> |是| SetFactor1["设置ratio_factor=1.0"]
+CheckSupplement --> |否| SetFactor2["设置ratio_factor=0.18"]
+SetFactor1 --> UpdateVersions["更新版本表数据"]
+SetFactor2 --> UpdateVersions
+UpdateVersions --> VerifyMigration["验证迁移结果"]
+VerifyMigration --> Complete([迁移完成])
+```
+
+**图表来源**
+- [migrate-ratio-factor.ts:27-149](file://backend/src/scripts/migrate-ratio-factor.ts#L27-L149)
+
+迁移脚本的主要功能：
+- 为 `formulas` 表添加 `ratio_factor` 字段，默认值为 0.18
+- 为 `formula_versions` 表添加 `ratio_factor` 字段，默认值为 0.18
+- 根据配方中的原料类型自动设置合适的 `ratio_factor` 值
+- 纯药材配方使用 0.18，含辅料配方使用 1.0
+
+**章节来源**
+- [migrate-ratio-factor.ts:1-149](file://backend/src/scripts/migrate-ratio-factor.ts#L1-L149)
+- [complete-migration.cjs:1-70](file://backend/src/scripts/complete-migration.cjs#L1-L70)
 
 ## 依赖关系分析
 
@@ -269,6 +332,7 @@ text salesman_id FK
 text salesman_name
 text materials_json
 real finished_weight
+real ratio_factor
 text description
 text created_by
 text created_at
@@ -297,10 +361,13 @@ text status
 integer is_current
 text created_by
 text created_at
+real ratio_factor
 }
 FORMULAS ||--|| SALES : "关联"
 FORMULAS ||--o{ FORMULA_VERSIONS : "拥有"
 ```
+
+**更新** 在 ER 图中新增了 `ratio_factor` 字段的关联关系。
 
 **图表来源**
 - [DATABASE_DOC.md:67-99](file://backend/DATABASE_DOC.md#L67-L99)
@@ -344,12 +411,16 @@ BE_CONTROLLER --> BE_ROUTE
 1. **索引策略**：针对常用查询字段建立索引
 2. **分页查询**：支持大数据量的分页显示
 3. **批量查询**：一次性获取配方及其版本信息
+4. **ratio_factor 索引**：可根据需要为 ratio_factor 字段建立索引以支持按含量比系数的查询
 
 ### 存储优化
 
 1. **JSON 存储**：灵活的数据结构，减少表结构变更成本
 2. **冗余字段**：保存业务员名称提高查询效率
 3. **版本控制**：通过快照机制避免频繁的数据更新
+4. **默认值优化**：ratio_factor 字段的默认值减少了空值处理开销
+
+**更新** 新增了 `ratio_factor` 字段的性能考虑说明。
 
 ## 故障排除指南
 
@@ -359,6 +430,8 @@ BE_CONTROLLER --> BE_ROUTE
 2. **JSON 格式错误**：确保 `materials_json` 和 `description` 字段的 JSON 格式正确
 3. **权限不足**：确认当前用户角色为 admin 或为配方创建人
 4. **外键约束冲突**：删除业务员前需要先处理相关的配方数据
+5. **ratio_factor 字段缺失**：运行数据库迁移脚本添加缺失的字段
+6. **ratio_factor 值异常**：检查配方中的原料类型，确保使用正确的默认值
 
 ### 调试建议
 
@@ -366,6 +439,9 @@ BE_CONTROLLER --> BE_ROUTE
 2. 检查 `created_by` 字段确认数据归属
 3. 验证 `materials_json` 字段的解析是否正常
 4. 查看版本表 `formula_versions` 确认版本历史
+5. 检查 `ratio_factor` 字段的值是否符合预期
+
+**更新** 新增了 `ratio_factor` 字段相关的故障排除指南。
 
 **章节来源**
 - [formulaController.ts:96-100](file://backend/src/controllers/formulaController.ts#L96-L100)
@@ -380,5 +456,8 @@ BE_CONTROLLER --> BE_ROUTE
 3. **高效的查询性能**：合理的索引设计和查询优化保证系统响应速度
 4. **完整的版本控制**：自动化的版本管理机制支持配方的历史追踪
 5. **清晰的前后端分离**：明确的接口定义和类型约束便于维护和扩展
+6. **智能的含量比系数管理**：通过 `ratio_factor` 字段支持不同原料类型的差异化计算
 
-该设计充分体现了现代 Web 应用的最佳实践，在保证功能完整性的同时，也为未来的功能扩展奠定了良好的基础。
+**更新** 新增了 `ratio_factor` 字段带来的智能化含量比系数管理能力。
+
+该设计充分体现了现代 Web 应用的最佳实践，在保证功能完整性的同时，也为未来的功能扩展奠定了良好的基础。`ratio_factor` 字段的引入进一步提升了系统的专业性和准确性，为中医膏方行业的精细化管理提供了强有力的技术支撑。

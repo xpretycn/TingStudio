@@ -700,9 +700,99 @@
 
 ---
 
-## 八、健康检查
+## 八、Excel 导入模块 `/api/import`
 
-### 8.1 服务状态
+### 8.1 下载配方导入模板
+
+**GET** `/api/import/formula/template`
+
+需认证。下载 Excel 模板文件用于批量导入配方原料。
+
+#### 响应
+
+- Content-Type: `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`
+- Content-Disposition: `attachment; filename=formula-import-template.xlsx`
+
+#### 模板字段说明
+
+| 列名 | 必填 | 说明 |
+|------|------|------|
+| 原料名称* | 是 | 用于匹配系统中的原料 |
+| 原料编码 | 否 | 可选，辅助匹配 |
+| 原料类型* | 是 | 药材 或 辅料 |
+| 数量(g)* | 是 | 配方中该原料的用量 |
+| 单位 | 否 | 默认 g |
+| 蛋白质(g/100g) | 否 | 每100g原料中蛋白质含量 |
+| 脂肪(g/100g) | 否 | 每100g原料中脂肪含量 |
+| 碳水化合物(g/100g) | 否 | 每100g原料中碳水化合物含量 |
+| 钠(mg/100g) | 否 | 每100g原料中钠含量 |
+| 备注 | 否 | 备注信息 |
+
+### 8.2 解析配方 Excel 文件
+
+**POST** `/api/import/formula/parse`
+
+需认证。上传 Excel 文件并解析配方原料数据。
+
+#### 请求格式
+
+- Content-Type: `multipart/form-data`
+- 文件字段名: `file`
+- 支持格式: `.xlsx`, `.xls`
+- 文件大小限制: 5MB
+
+#### 响应示例
+
+```json
+{
+  "success": true,
+  "data": {
+    "materials": [
+      {
+        "materialId": "mncvfpifo3l4q5po",
+        "materialName": "佛手",
+        "materialCode": "MAT001",
+        "materialType": "herb",
+        "quantity": 108,
+        "unit": "g",
+        "nutrition": { "protein": 1.2, "fat": 7.7, "carbohydrate": 92, "sodium": 0 },
+        "isNew": false
+      }
+    ],
+    "errors": [],
+    "warnings": [],
+    "missingMaterials": [],
+    "summary": {
+      "total": 1,
+      "existing": 1,
+      "new": 0,
+      "hasErrors": false,
+      "hasMissingMaterials": false
+    }
+  }
+}
+```
+
+#### 响应字段说明
+
+| 字段 | 说明 |
+|------|------|
+| `materials` | 解析出的原料列表 |
+| `materials[].materialId` | 原料ID（已匹配时存在） |
+| `materials[].materialName` | 原料名称 |
+| `materials[].materialType` | 原料类型（herb/supplement） |
+| `materials[].quantity` | 数量（克） |
+| `materials[].isNew` | 是否为新原料（系统中不存在） |
+| `errors` | 解析错误列表 |
+| `warnings` | 解析警告列表 |
+| `missingMaterials` | 缺失原料名称列表 |
+| `summary` | 解析汇总信息 |
+
+---
+
+## 九、健康检查
+
+### 9.1 服务状态
 
 **GET** `/health`
 

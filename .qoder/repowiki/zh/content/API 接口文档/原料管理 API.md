@@ -3,10 +3,11 @@
 <cite>
 **本文档引用的文件**
 - [backend/src/controllers/materialController.ts](file://backend/src/controllers/materialController.ts)
-- [backend/src/routers/materials.ts](file://backend/src/routes/materials.ts)
+- [backend/src/routes/materials.ts](file://backend/src/routes/materials.ts)
 - [backend/src/middleware/validate.ts](file://backend/src/middleware/validate.ts)
 - [backend/src/utils/helpers.ts](file://backend/src/utils/helpers.ts)
 - [backend/DATABASE_DOC.md](file://backend/DATABASE_DOC.md)
+- [backend/src/scripts/init.sql](file://backend/src/scripts/init.sql)
 - [frontend/src/api/material.ts](file://frontend/src/api/material.ts)
 - [frontend/src/stores/material.ts](file://frontend/src/stores/material.ts)
 - [frontend/src/views/materials/MaterialList.vue](file://frontend/src/views/materials/MaterialList.vue)
@@ -14,6 +15,13 @@
 - [backend/src/controllers/formulaController.ts](file://backend/src/controllers/formulaController.ts)
 - [backend/src/routes/formulas.ts](file://backend/src/routes/formulas.ts)
 </cite>
+
+## 更新摘要
+**变更内容**
+- 移除了原料 API 接口中 ratioFactor 参数的处理
+- 更新了数据模型说明，反映实际的表结构
+- 简化了新增和更新原料的请求参数
+- 更新了前端类型定义，移除 ratioFactor 字段
 
 ## 目录
 1. [简介](#简介)
@@ -28,7 +36,9 @@
 10. [附录](#附录)
 
 ## 简介
-本文件为“原料管理”模块的完整 API 接口文档，覆盖原料的增删改查、详情查询、按配方查询原料、列表分页与关键词搜索、单位设置、库存管理等能力。文档同时说明原料编码的唯一性约束、库存变更的业务规则与删除保护机制，并提供前端调用示例与数据验证规则，帮助开发者正确集成。
+本文件为"原料管理"模块的完整 API 接口文档，覆盖原料的增删改查、详情查询、按配方查询原料、列表分页与关键词搜索、单位设置、库存管理等能力。文档同时说明原料编码的唯一性约束、库存变更的业务规则与删除保护机制，并提供前端调用示例与数据验证规则，帮助开发者正确集成。
+
+**更新** 本版本移除了 ratioFactor 参数，简化了原料管理接口，专注于核心的原料信息管理功能。
 
 ## 项目结构
 - 后端采用 Express + SQLite 的轻量架构，控制器负责业务处理，路由定义接口，中间件负责鉴权与参数校验，工具函数提供通用能力（分页、驼峰转换、ID 生成等）。
@@ -59,14 +69,14 @@ CTRL --> HELP
 CTRL --> DB
 ```
 
-图表来源
+**图表来源**
 - [backend/src/routers/materials.ts:1-22](file://backend/src/routes/materials.ts#L1-L22)
 - [backend/src/controllers/materialController.ts:1-129](file://backend/src/controllers/materialController.ts#L1-L129)
 - [backend/src/middleware/validate.ts:1-68](file://backend/src/middleware/validate.ts#L1-L68)
 - [backend/src/utils/helpers.ts:1-86](file://backend/src/utils/helpers.ts#L1-L86)
 - [backend/DATABASE_DOC.md:44-64](file://backend/DATABASE_DOC.md#L44-L64)
 
-章节来源
+**章节来源**
 - [backend/src/routers/materials.ts:1-22](file://backend/src/routes/materials.ts#L1-L22)
 - [backend/src/controllers/materialController.ts:1-129](file://backend/src/controllers/materialController.ts#L1-L129)
 - [backend/src/middleware/validate.ts:1-68](file://backend/src/middleware/validate.ts#L1-L68)
@@ -80,7 +90,7 @@ CTRL --> DB
 - 工具层：提供分页构建、LIKE 条件构造、驼峰转换、ID 生成等通用能力。
 - 数据层：SQLite 表结构定义，含原料表的唯一约束与默认值。
 
-章节来源
+**章节来源**
 - [backend/src/routers/materials.ts:1-22](file://backend/src/routes/materials.ts#L1-L22)
 - [backend/src/controllers/materialController.ts:6-38](file://backend/src/controllers/materialController.ts#L6-L38)
 - [backend/src/middleware/validate.ts:16-67](file://backend/src/middleware/validate.ts#L16-L67)
@@ -108,7 +118,7 @@ CTRL-->>API : 统一响应包装
 API-->>FE : 返回 JSON 响应
 ```
 
-图表来源
+**图表来源**
 - [backend/src/routers/materials.ts:9-21](file://backend/src/routes/materials.ts#L9-L21)
 - [backend/src/middleware/validate.ts:16-67](file://backend/src/middleware/validate.ts#L16-L67)
 - [backend/src/controllers/materialController.ts:58-106](file://backend/src/controllers/materialController.ts#L58-L106)
@@ -127,7 +137,7 @@ API-->>FE : 返回 JSON 响应
 - 响应数据
   - success：布尔
   - message：字符串
-  - data.list：原料数组（包含 id、name、code、unit、stock、materialType、ratioFactor、createdBy、createdAt、updatedAt）
+  - data.list：原料数组（包含 id、name、code、unit、stock、materialType、createdBy、createdAt、updatedAt）
   - data.pagination：分页信息（page、pageSize、total、totalPages）
 - 业务逻辑
   - 仅查询当前用户创建的原料
@@ -149,12 +159,12 @@ CountSQL --> Wrap["统一分页响应包装"]
 Wrap --> End(["返回 JSON"])
 ```
 
-图表来源
+**图表来源**
 - [backend/src/controllers/materialController.ts:7-38](file://backend/src/controllers/materialController.ts#L7-L38)
 - [backend/src/utils/helpers.ts:13-19](file://backend/src/utils/helpers.ts#L13-L19)
 - [backend/src/utils/helpers.ts:21-24](file://backend/src/utils/helpers.ts#L21-L24)
 
-章节来源
+**章节来源**
 - [backend/src/controllers/materialController.ts:7-38](file://backend/src/controllers/materialController.ts#L7-L38)
 - [backend/src/routers/materials.ts:11](file://backend/src/routes/materials.ts#L11)
 - [backend/src/utils/helpers.ts:13-19](file://backend/src/utils/helpers.ts#L13-L19)
@@ -173,7 +183,7 @@ Wrap --> End(["返回 JSON"])
   - 404：原料不存在
   - 500：服务器内部错误
 
-章节来源
+**章节来源**
 - [backend/src/controllers/materialController.ts:40-55](file://backend/src/controllers/materialController.ts#L40-L55)
 - [backend/src/routers/materials.ts:12](file://backend/src/routes/materials.ts#L12)
 
@@ -189,7 +199,6 @@ Wrap --> End(["返回 JSON"])
   - unit：字符串，可选，默认 g
   - stock：数字，可选，默认 0
   - materialType：字符串，可选，默认 herb
-  - ratioFactor：数字，可选，默认 0.18
 - 响应数据
   - data：新增的原料对象
 - 错误码
@@ -214,12 +223,12 @@ CTRL-->>API : 返回结果
 API-->>FE : JSON 响应
 ```
 
-图表来源
+**图表来源**
 - [backend/src/routers/materials.ts:13-19](file://backend/src/routes/materials.ts#L13-L19)
 - [backend/src/middleware/validate.ts:16-67](file://backend/src/middleware/validate.ts#L16-L67)
 - [backend/src/controllers/materialController.ts:58-79](file://backend/src/controllers/materialController.ts#L58-L79)
 
-章节来源
+**章节来源**
 - [backend/src/routers/materials.ts:13-19](file://backend/src/routes/materials.ts#L13-L19)
 - [backend/src/middleware/validate.ts:16-67](file://backend/src/middleware/validate.ts#L16-L67)
 - [backend/src/controllers/materialController.ts:58-79](file://backend/src/controllers/materialController.ts#L58-L79)
@@ -230,7 +239,7 @@ API-->>FE : JSON 响应
   - 路径：/materials/:id
   - 鉴权：是
 - 请求体字段
-  - name、code、unit、stock、materialType、ratioFactor（均可选）
+  - name、code、unit、stock、materialType（均可选）
 - 响应数据
   - data：更新后的原料对象
 - 错误码
@@ -238,7 +247,7 @@ API-->>FE : JSON 响应
   - 409：原料编码已存在（唯一约束）
   - 500：服务器内部错误
 
-章节来源
+**章节来源**
 - [backend/src/controllers/materialController.ts:81-106](file://backend/src/controllers/materialController.ts#L81-L106)
 - [backend/src/routers/materials.ts:20](file://backend/src/routes/materials.ts#L20)
 
@@ -265,10 +274,10 @@ Used -- 否 --> Delete["执行 DELETE FROM materials WHERE id=?"]
 Delete --> Done["返回删除成功"]
 ```
 
-图表来源
+**图表来源**
 - [backend/src/controllers/materialController.ts:108-128](file://backend/src/controllers/materialController.ts#L108-L128)
 
-章节来源
+**章节来源**
 - [backend/src/controllers/materialController.ts:108-128](file://backend/src/controllers/materialController.ts#L108-L128)
 - [backend/src/routers/materials.ts:21](file://backend/src/routes/materials.ts#L21)
 
@@ -282,7 +291,7 @@ Delete --> Done["返回删除成功"]
 - 响应数据
   - data：原料数组（包含原料基本信息）
 
-章节来源
+**章节来源**
 - [frontend/src/api/material.ts:41-44](file://frontend/src/api/material.ts#L41-L44)
 - [backend/src/controllers/formulaController.ts:231-243](file://backend/src/controllers/formulaController.ts#L231-L243)
 - [backend/src/routes/formulas.ts:27](file://backend/src/routes/formulas.ts#L27)
@@ -295,16 +304,18 @@ Delete --> Done["返回删除成功"]
   - unit：非空，默认 g
   - stock：非空，默认 0
   - material_type：非空，默认 herb
-  - ratio_factor：非空，默认 0.18
   - created_by：创建人
   - created_at/updated_at：时间戳
 - 唯一性约束
   - code 字段具有唯一约束，重复创建或更新会触发 409
 - 默认值与类型
-  - unit 默认 g，stock 默认 0，material_type 默认 herb，ratio_factor 默认 0.18（辅料场景可在前端设置为 1.0）
+  - unit 默认 g，stock 默认 0，material_type 默认 herb
 
-章节来源
+**更新** 移除了 ratio_factor 字段，该字段已从原料表中移除，不再作为请求参数或响应字段。
+
+**章节来源**
 - [backend/DATABASE_DOC.md:44-64](file://backend/DATABASE_DOC.md#L44-L64)
+- [backend/src/scripts/init.sql:17-28](file://backend/src/scripts/init.sql#L17-L28)
 
 ### 8) 前端调用示例与集成要点
 - 列表查询
@@ -320,7 +331,7 @@ Delete --> Done["返回删除成功"]
   - DELETE /materials/:id
   - 删除前需提示用户，避免误删
 
-章节来源
+**章节来源**
 - [frontend/src/api/material.ts:25-44](file://frontend/src/api/material.ts#L25-L44)
 - [frontend/src/stores/material.ts:16-85](file://frontend/src/stores/material.ts#L16-L85)
 - [frontend/src/views/materials/MaterialList.vue:131-178](file://frontend/src/views/materials/MaterialList.vue#L131-L178)
@@ -335,14 +346,14 @@ Ctrl --> Helpers["utils/helpers.ts"]
 Ctrl --> DB["DATABASE_DOC.md 表结构"]
 ```
 
-图表来源
+**图表来源**
 - [backend/src/routers/materials.ts:1-22](file://backend/src/routes/materials.ts#L1-L22)
 - [backend/src/controllers/materialController.ts:1-129](file://backend/src/controllers/materialController.ts#L1-L129)
 - [backend/src/middleware/validate.ts:1-68](file://backend/src/middleware/validate.ts#L1-L68)
 - [backend/src/utils/helpers.ts:1-86](file://backend/src/utils/helpers.ts#L1-L86)
 - [backend/DATABASE_DOC.md:44-64](file://backend/DATABASE_DOC.md#L44-L64)
 
-章节来源
+**章节来源**
 - [backend/src/routers/materials.ts:1-22](file://backend/src/routes/materials.ts#L1-L22)
 - [backend/src/controllers/materialController.ts:1-129](file://backend/src/controllers/materialController.ts#L1-L129)
 - [backend/src/middleware/validate.ts:1-68](file://backend/src/middleware/validate.ts#L1-L68)
@@ -367,14 +378,14 @@ Ctrl --> DB["DATABASE_DOC.md 表结构"]
 - 500 服务器内部错误
   - 查看服务端日志，定位具体异常
 
-章节来源
+**章节来源**
 - [backend/src/middleware/validate.ts:16-67](file://backend/src/middleware/validate.ts#L16-L67)
 - [backend/src/controllers/materialController.ts:73-78](file://backend/src/controllers/materialController.ts#L73-L78)
 - [backend/src/controllers/materialController.ts:100-103](file://backend/src/controllers/materialController.ts#L100-L103)
 - [backend/src/controllers/materialController.ts:118-121](file://backend/src/controllers/materialController.ts#L118-L121)
 
 ## 结论
-本接口文档覆盖了原料管理的全量能力：列表分页与关键词搜索、详情查询、新增与更新、删除保护、按配方查询原料等。通过前后端协同的参数校验与统一响应包装，保证了数据一致性与用户体验。建议在生产环境中结合业务场景进一步完善索引与缓存策略，以提升查询性能。
+本接口文档覆盖了原料管理的全量能力：列表分页与关键词搜索、详情查询、新增与更新、删除保护、按配方查询原料等。通过前后端协同的参数校验与统一响应包装，保证了数据一致性与用户体验。移除了 ratioFactor 参数后，接口更加简洁，专注于核心的原料信息管理功能。建议在生产环境中结合业务场景进一步完善索引与缓存策略，以提升查询性能。
 
 ## 附录
 
@@ -385,11 +396,12 @@ Ctrl --> DB["DATABASE_DOC.md 表结构"]
 - unit：计量单位（默认 g）
 - stock：库存数量（默认 0）
 - materialType：原料类型（herb/ supplement，默认 herb）
-- ratioFactor：含量比系数（默认 0.18，辅料默认 1.0）
 - createdBy：创建人
 - createdAt/updatedAt：创建与更新时间
 
-章节来源
+**更新** 移除了 ratioFactor 字段，该字段已从原料管理功能中移除。
+
+**章节来源**
 - [backend/DATABASE_DOC.md:44-64](file://backend/DATABASE_DOC.md#L44-L64)
 - [frontend/src/api/material.ts:3-14](file://frontend/src/api/material.ts#L3-L14)
 
@@ -400,7 +412,9 @@ Ctrl --> DB["DATABASE_DOC.md 表结构"]
 - 删除：materialApi.delete
 - 按配方查询：materialApi.getByFormula（前端定义，后端控制器未实现对应路由）
 
-章节来源
+**更新** 前端类型定义中已移除 ratioFactor 字段，保持与后端一致。
+
+**章节来源**
 - [frontend/src/api/material.ts:25-44](file://frontend/src/api/material.ts#L25-L44)
 - [frontend/src/stores/material.ts:16-85](file://frontend/src/stores/material.ts#L16-L85)
 - [backend/src/controllers/formulaController.ts:231-243](file://backend/src/controllers/formulaController.ts#L231-L243)

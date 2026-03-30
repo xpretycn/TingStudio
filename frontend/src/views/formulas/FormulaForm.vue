@@ -20,6 +20,9 @@
         label-width="100px"
         @submit="handleSubmit"
       >
+        <!-- Excel导入面板 -->
+        <ExcelImportPanel @import="handleExcelImport" />
+
         <t-form-item label="配方名称" name="name">
           <t-input
             v-model="formData.name"
@@ -87,16 +90,19 @@
 
         <t-form-item label="原料清单" name="materials">
           <div class="materials-section">
-            <t-button
-              theme="default"
-              size="small"
-              @click="addMaterial"
-            >
-              <template #icon>
-                <t-icon name="add" />
-              </template>
-              添加原料
-            </t-button>
+            <div class="manual-add">
+              <t-button
+                theme="default"
+                size="small"
+                @click="addMaterial"
+              >
+                <template #icon>
+                  <t-icon name="add" />
+                </template>
+                手动添加原料
+              </t-button>
+            </div>
+
 
             <div v-if="formData.materials.length > 0" class="materials-list">
               <div
@@ -203,6 +209,8 @@ import { useMaterialStore } from '@/stores/material'
 import { MessagePlugin } from 'tdesign-vue-next'
 import type { FormInstanceFunctions, FormRule } from 'tdesign-vue-next'
 import type { FormulaForm, MaterialItem } from '@/api/formula'
+import type { ParsedMaterial } from '@/api/excelImport'
+import ExcelImportPanel from '@/components/ExcelImportPanel.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -316,6 +324,17 @@ const handleMaterialFocus = () => {
   }
 }
 
+// 处理Excel导入的原料数据
+const handleExcelImport = (materials: ParsedMaterial[]) => {
+  // 清空现有原料清单，使用导入的数据
+  formData.materials = materials.map(m => ({
+    materialId: m.materialId,
+    materialName: m.materialName,
+    quantity: m.quantity,
+  }))
+  MessagePlugin.success(`已导入 ${materials.length} 条原料`)
+}
+
 const handleSubmit = async ({ validateResult }: any) => {
   if (validateResult === true) {
     loading.value = true
@@ -395,6 +414,10 @@ onMounted(async () => {
 
   .materials-section {
     width: 100%;
+
+    .manual-add {
+      margin-bottom: 12px;
+    }
 
     .materials-list {
       margin-top: 12px;

@@ -12,7 +12,16 @@
 - [MaterialForm.vue](file://frontend/src/views/materials/MaterialForm.vue)
 - [nutritionController.ts](file://backend/src/controllers/nutritionController.ts)
 - [seedData.ts](file://backend/src/scripts/seedData.ts)
+- [migrate-ratio-factor.ts](file://backend/src/scripts/migrate-ratio-factor.ts)
 </cite>
+
+## 更新摘要
+**变更内容**
+- 更新了原料表字段定义，移除了 `ratio_factor` 字段
+- 新增了配方表和版本表中 `ratio_factor` 字段的说明
+- 更新了营养计算流程，说明 `ratio_factor` 现在存储在配方表中
+- 添加了数据库迁移脚本的说明
+- 更新了相关业务逻辑和架构图
 
 ## 目录
 1. [简介](#简介)
@@ -33,9 +42,10 @@
 在系统中，原料表承担着以下重要职责：
 - 存储原料的基本信息（名称、编码、计量单位、库存等）
 - 支持原料类型的分类管理（中药材 vs 营养补充剂）
-- 提供含量比系数 (ratio_factor) 用于营养计算
 - 作为营养数据表的主表，建立一对一的关系
 - 支持配方系统的原料选择和用量管理
+
+**重要变更**：`ratio_factor` 字段已从原料表移除，现在存储在配方表和版本表中，用于配方级别的营养计算。
 
 ## 项目结构
 
@@ -59,6 +69,7 @@ subgraph "数据层"
 MAT_TABLE[materials 表]
 NUT_TABLE[material_nutrition 表]
 FORM_TABLE[formulas 表]
+VERSION_TABLE[formula_versions 表]
 end
 FE_API --> BE_ROUTE
 FE_STORE --> FE_API
@@ -69,9 +80,11 @@ BE_CTRL --> BE_DB
 BE_DB --> MAT_TABLE
 BE_DB --> NUT_TABLE
 BE_DB --> FORM_TABLE
+BE_DB --> VERSION_TABLE
 BE_INIT --> MAT_TABLE
 BE_INIT --> NUT_TABLE
 BE_INIT --> FORM_TABLE
+BE_INIT --> VERSION_TABLE
 ```
 
 **图表来源**
@@ -111,12 +124,13 @@ BE_INIT --> FORM_TABLE
 #### 业务字段
 - **stock**: 当前库存数量，默认 0
 - **material_type**: 原料类型，支持 'herb' 和 'supplement' 两种类型
-- **ratio_factor**: 含量比系数，用于营养计算，默认 0.18
 
 #### 系统字段
 - **created_by**: 创建人标识，关联用户表
 - **created_at**: 创建时间，默认当前时间
 - **updated_at**: 更新时间，默认当前时间
+
+**重要变更**：`ratio_factor` 字段已从原料表移除，现在存储在配方表和版本表中。
 
 **章节来源**
 - [DATABASE_DOC.md:44-65](file://backend/DATABASE_DOC.md#L44-L65)
@@ -139,8 +153,10 @@ Backend->>Database : 查询/更新原料数据
 Database-->>Backend : 返回查询结果
 Backend-->>Frontend : 处理后的数据
 Frontend-->>User : 展示结果
-Note over Backend,Nutrition : 营养计算时访问原料表
-Backend->>Database : 获取含量比系数
+Note over Backend,Nutrition : 营养计算时访问配方表获取ratio_factor
+Backend->>Database : 获取配方信息
+Database-->>Backend : 返回配方详情
+Backend->>Database : 获取配方的ratio_factor
 Database-->>Backend : 返回ratio_factor
 Backend->>Nutrition : 传递计算参数
 ```
@@ -260,7 +276,6 @@ TEXT code UK
 TEXT unit
 REAL stock
 TEXT material_type
-REAL ratio_factor
 TEXT created_by
 TEXT created_at
 TEXT updated_at
@@ -281,13 +296,28 @@ TEXT salesman_id
 TEXT salesman_name
 TEXT materials_json
 REAL finished_weight
+REAL ratio_factor
 TEXT description
 TEXT created_by
 TEXT created_at
 TEXT updated_at
 }
+FORMULA_VERSIONS {
+TEXT version_id PK
+TEXT formula_id
+TEXT version_number
+TEXT version_name
+TEXT changes_json
+TEXT snapshot_json
+TEXT status
+INTEGER is_current
+REAL ratio_factor
+TEXT created_by
+TEXT created_at
+}
 MATERIALS ||--|| MATERIAL_NUTRITION : "一对一"
 MATERIALS ||--o{ FORMULAS : "被引用"
+FORMULAS ||--|| FORMULA_VERSIONS : "版本管理"
 ```
 
 **图表来源**
@@ -305,6 +335,8 @@ MATERIALS ||--o{ FORMULAS : "被引用"
 | 默认值 | `unit='g'`, `stock=0` | 系统默认 | 数据一致性 |
 | 检查约束 | `material_type IN ('herb','supplement')` | 限定枚举值 | 类型规范化 |
 | 外键约束 | `created_by` → `users.id` | 用户关联 | 责任追踪 |
+
+**重要变更**：`ratio_factor` 字段已从原料表移除，现在存储在配方表和版本表中，具有默认值 0.18。
 
 **章节来源**
 - [init.sql:17-31](file://backend/src/scripts/init.sql#L17-L31)
@@ -332,6 +364,7 @@ subgraph "数据库依赖"
 MAT_TABLE[materials表]
 NUT_TABLE[material_nutrition表]
 FORM_TABLE[formulas表]
+VERSION_TABLE[formula_versions表]
 end
 FE_TYPES --> FE_API
 FE_API --> BE_ROUTE
@@ -340,6 +373,7 @@ BE_CTRL --> BE_DB
 BE_DB --> MAT_TABLE
 BE_DB --> NUT_TABLE
 BE_DB --> FORM_TABLE
+BE_DB --> VERSION_TABLE
 FE_STORE --> FE_API
 FE_VIEW --> FE_STORE
 BE_UTIL --> BE_CTRL
@@ -361,15 +395,17 @@ sequenceDiagram
 participant Formula as 配方系统
 participant Material as 原料表
 participant Nutrition as 营养数据表
-participant Ratio as 含量比系数
+participant Ratio as 配方ratio_factor
 Formula->>Material : 获取原料信息
 Material-->>Formula : 返回原料详情
-Formula->>Ratio : 获取ratio_factor
-Ratio-->>Formula : 返回含量比系数
+Formula->>Ratio : 获取配方的ratio_factor
+Ratio-->>Formula : 返回配方ratio_factor
 Formula->>Nutrition : 查询营养成分
 Nutrition-->>Formula : 返回每100g营养数据
 Formula->>Formula : 计算配方营养成分
 ```
+
+**重要变更**：`ratio_factor` 现在存储在配方表中，营养计算时从配方表获取该值。
 
 **图表来源**
 - [nutritionController.ts:434-447](file://backend/src/controllers/nutritionController.ts#L434-L447)
@@ -381,7 +417,7 @@ Formula->>Formula : 计算配方营养成分
 | 交互场景 | 数据流向 | 业务价值 |
 |----------|----------|----------|
 | 配方创建 | 原料选择 → 配方保存 | 支持配方开发 |
-| 营养计算 | 原料信息 → 营养分析 | 生成营养标签 |
+| 营养计算 | 原料信息 + 配方ratio_factor → 营养分析 | 生成营养标签 |
 | 库存管理 | 原料使用 → 库存更新 | 控制成本 |
 | 报告生成 | 原料数据 → 导出报告 | 合规性证明 |
 
@@ -436,6 +472,13 @@ Formula->>Formula : 计算配方营养成分
 - 更新或删除相关配方后再删除原料
 - 系统会自动阻止删除被使用的原料
 
+#### 营养计算异常问题
+**问题描述**: 营养计算结果异常
+**解决步骤**:
+1. 检查配方的 `ratio_factor` 值是否正确
+2. 验证原料的 `ratio_factor` 值是否存在于原料表中
+3. 确认配方中使用的原料都存在对应的营养数据
+
 **章节来源**
 - [materialController.ts:73-104](file://backend/src/controllers/materialController.ts#L73-L104)
 - [materialController.ts:113-121](file://backend/src/controllers/materialController.ts#L113-L121)
@@ -449,6 +492,8 @@ Formula->>Formula : 计算配方营养成分
 - **性能优化**: 合理的索引设计支持高效查询
 - **业务适配**: 支持中药材和营养补充剂两类原料
 - **扩展性**: JSON 字段和灵活的字段设计便于功能扩展
+
+**重要变更**：`ratio_factor` 字段的重新定位体现了系统架构的演进，从单一的原料级别计算调整为配方级别的计算，更好地支持了复杂的配方管理和营养分析需求。
 
 在未来的发展中，原料表还可以进一步优化的方向包括：
 - 增加更多的业务字段支持复杂需求
@@ -468,7 +513,6 @@ TEXT code UK
 TEXT unit
 REAL stock
 TEXT material_type
-REAL ratio_factor
 TEXT created_by FK
 TEXT created_at
 TEXT updated_at
@@ -490,8 +534,37 @@ TEXT role
 TEXT created_at
 TEXT updated_at
 }
+FORMULAS {
+TEXT id PK
+TEXT name
+TEXT salesman_id
+TEXT salesman_name
+TEXT materials_json
+REAL finished_weight
+REAL ratio_factor
+TEXT description
+TEXT created_by FK
+TEXT created_at
+TEXT updated_at
+}
+FORMULA_VERSIONS {
+TEXT version_id PK
+TEXT formula_id FK
+TEXT version_number
+TEXT version_name
+TEXT changes_json
+TEXT snapshot_json
+TEXT status
+INTEGER is_current
+REAL ratio_factor
+TEXT created_by FK
+TEXT created_at
+TEXT updated_at
+}
 MATERIALS ||--|| MATERIAL_NUTRITION : "一对一"
 USERS ||--o{ MATERIALS : "创建者"
+USERS ||--o{ FORMULAS : "创建者"
+FORMULAS ||--|| FORMULA_VERSIONS : "版本管理"
 ```
 
 **图表来源**
@@ -514,3 +587,16 @@ USERS ||--o{ MATERIALS : "创建者"
 - 验证原料的合规性
 - 追溯原料的来源信息
 - 生成质量报告
+
+### 数据库迁移说明
+
+**重要说明**：系统已执行 `ratio_factor` 字段的数据库迁移，具体变更如下：
+
+1. **迁移脚本**：`migrate-ratio-factor.ts` 负责将 `ratio_factor` 字段从 `materials` 表迁移到 `formulas` 和 `formula_versions` 表
+2. **迁移逻辑**：根据配方中是否包含营养补充剂原料来设置不同的 `ratio_factor` 值
+3. **默认值**：纯药材配方使用 0.18，含辅料配方使用 1.0
+4. **兼容性**：迁移后保持现有业务逻辑不变，仅改变了数据存储位置
+
+**章节来源**
+- [migrate-ratio-factor.ts:1-149](file://backend/src/scripts/migrate-ratio-factor.ts#L1-L149)
+- [nutritionController.ts:434-447](file://backend/src/controllers/nutritionController.ts#L434-L447)

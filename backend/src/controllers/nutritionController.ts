@@ -446,19 +446,18 @@ export async function getFormulaNutritionTables(req: any, res: Response) {
     const formulaRatioFactor = formula.ratio_factor ?? 0.18
     const supplementRatioFactor = formula.supplement_ratio_factor ?? 1.0
 
-    // 批量获取所有原料的类型和 ratio_factor（区分药材和辅料）
+    // 批量获取所有原料的类型（区分药材和辅料）
+    // ratio_factor 现在存储在 formulas 表中，不再从 materials 表获取
     const materialTypes: Record<string, string> = {}
-    const materialRatios: Record<string, number> = {}
     if (materials.length > 0) {
       const matIds = materials.map((m: any) => m.materialId)
       const placeholders = matIds.map(() => '?').join(',')
       const [matRows]: any[] = await query(
-        `SELECT id, material_type, ratio_factor FROM materials WHERE id IN (${placeholders})`,
+        `SELECT id, material_type FROM materials WHERE id IN (${placeholders})`,
         matIds
       )
       for (const row of matRows) {
         materialTypes[row.id] = row.material_type || 'herb'
-        materialRatios[row.id] = row.ratio_factor ?? 0.18
       }
     }
 
