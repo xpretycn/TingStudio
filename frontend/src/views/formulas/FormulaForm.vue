@@ -20,9 +20,6 @@
         label-width="100px"
         @submit="handleSubmit"
       >
-        <!-- Excel导入面板 -->
-        <ExcelImportPanel @import="handleExcelImport" />
-
         <t-form-item label="配方名称" name="name">
           <t-input
             v-model="formData.name"
@@ -88,21 +85,12 @@
           </div>
         </t-form-item>
 
-        <t-form-item label="原料清单" name="materials">
+        <t-form-item label="原料清单" name="materials" :required="true">
           <div class="materials-section">
-            <div class="manual-add">
-              <t-button
-                theme="default"
-                size="small"
-                @click="addMaterial"
-              >
-                <template #icon>
-                  <t-icon name="add" />
-                </template>
-                手动添加原料
-              </t-button>
-            </div>
+            <span class="help-text" style="display: block; margin-bottom: 12px;">请通过手动添加或Excel导入的方式录入原料清单，每种原料需选择原料名称并填写对应数量</span>
 
+            <!-- Excel导入面板 -->
+            <ExcelImportPanel @import="handleExcelImport" />
 
             <div v-if="formData.materials.length > 0" class="materials-list">
               <div
@@ -165,9 +153,33 @@
                   </template>
                 </t-button>
               </div>
+
+              <div class="manual-add">
+                <t-button
+                  theme="default"
+                  size="small"
+                  @click="addMaterial"
+                >
+                  <template #icon>
+                    <t-icon name="add" />
+                  </template>
+                  手动添加原料
+                </t-button>
+              </div>
             </div>
 
-            <t-empty v-else description="请添加原料" size="small" />
+            <div v-else class="manual-add">
+              <t-button
+                theme="default"
+                size="small"
+                @click="addMaterial"
+              >
+                <template #icon>
+                  <t-icon name="add" />
+                </template>
+                手动添加原料
+              </t-button>
+            </div>
           </div>
         </t-form-item>
 
@@ -327,11 +339,11 @@ const handleMaterialFocus = () => {
 // 处理Excel导入的原料数据
 const handleExcelImport = (materials: ParsedMaterial[]) => {
   // 清空现有原料清单，使用导入的数据
-  formData.materials = materials.map(m => ({
+  formData.materials.splice(0, formData.materials.length, ...materials.map(m => ({
     materialId: m.materialId,
     materialName: m.materialName,
     quantity: m.quantity,
-  }))
+  })))
   MessagePlugin.success(`已导入 ${materials.length} 条原料`)
 }
 

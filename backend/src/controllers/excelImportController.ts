@@ -9,43 +9,19 @@ import { success } from '../utils/helpers.js'
 
 // Excel模板列定义
 const TEMPLATE_COLUMNS = [
-  { key: 'materialName', header: '原料名称*', width: 15 },
-  { key: 'materialCode', header: '原料编码', width: 12 },
-  { key: 'materialType', header: '原料类型*', width: 10 },
-  { key: 'quantity', header: '数量(g)*', width: 10 },
-  { key: 'unit', header: '单位', width: 8 },
-  { key: 'protein', header: '蛋白质(g/100g)', width: 14 },
-  { key: 'fat', header: '脂肪(g/100g)', width: 12 },
-  { key: 'carbohydrate', header: '碳水化合物(g/100g)', width: 16 },
-  { key: 'sodium', header: '钠(mg/100g)', width: 12 },
-  { key: 'remarks', header: '备注', width: 20 },
+  { key: 'materialName', header: '原料名称', width: 20 },
+  { key: 'quantity', header: '数量(g)', width: 12 },
 ]
 
 // 示例数据
 const SAMPLE_DATA = [
   {
     materialName: '佛手',
-    materialCode: 'MAT001',
-    materialType: '药材',
     quantity: 108,
-    unit: 'g',
-    protein: 1.2,
-    fat: 7.7,
-    carbohydrate: 92,
-    sodium: 0,
-    remarks: '示例数据-可删除'
   },
   {
     materialName: '低聚异麦芽糖',
-    materialCode: 'MAT007',
-    materialType: '辅料',
     quantity: 500,
-    unit: 'g',
-    protein: 0,
-    fat: 0,
-    carbohydrate: 90,
-    sodium: 0,
-    remarks: '示例数据-可删除'
   },
 ]
 
@@ -71,20 +47,12 @@ export async function downloadFormulaTemplate(req: Request, res: Response) {
     const instructionsData = [
       ['配方导入模板使用说明'],
       [''],
-      ['1. 必填字段标记了 * 符号'],
-      ['2. 原料类型只能是：药材 或 辅料'],
-      ['3. 数量单位默认为g（克）'],
-      ['4. 营养成分为每100g原料中的含量'],
-      ['5. 如果原料编码为空，系统将自动生成'],
-      ['6. 请删除示例数据后再填入实际数据'],
-      ['7. 导入时如遇同名原料，将自动匹配现有原料'],
-      ['8. 若原料不存在，系统会提示错误，需先录入原料'],
-      [''],
-      ['营养成分说明：'],
-      ['- 蛋白质(g/100g)：每100g原料中蛋白质克数'],
-      ['- 脂肪(g/100g)：每100g原料中脂肪克数'],
-      ['- 碳水化合物(g/100g)：每100g原料中碳水化合物克数'],
-      ['- 钠(mg/100g)：每100g原料中钠毫克数'],
+      ['1. 模板仅包含两列：原料名称、数量(g)'],
+      ['2. 原料名称必须与系统中已录入的原料名称完全一致'],
+      ['3. 数量为该原料在配方中的用量，单位为克(g)'],
+      ['4. 请删除示例数据后再填入实际数据'],
+      ['5. 导入时系统将根据原料名称自动匹配现有原料'],
+      ['6. 若原料名称在系统中不存在，将标记为"未录入"需先去原料管理中录入'],
     ]
     
     const instructionsSheet = XLSX.utils.aoa_to_sheet(instructionsData)
@@ -138,18 +106,11 @@ export async function parseFormulaExcel(req: any, res: Response) {
       const row = jsonData[i]
       const rowNum = i + 2 // Excel行号（从第2行开始，第1行是表头）
       
-      // 跳过空行或备注行
-      if (!row['原料名称*'] && !row['materialName']) continue
-      
-      const materialName = String(row['原料名称*'] || row['materialName'] || '').trim()
-      const materialCode = String(row['原料编码'] || row['materialCode'] || '').trim()
-      const materialTypeRaw = String(row['原料类型*'] || row['materialType'] || '药材').trim()
-      const quantity = parseFloat(row['数量(g)*'] || row['quantity'] || 0)
-      const unit = String(row['单位'] || row['unit'] || 'g').trim()
-      const protein = parseFloat(row['蛋白质(g/100g)'] || row['protein'] || 0)
-      const fat = parseFloat(row['脂肪(g/100g)'] || row['fat'] || 0)
-      const carbohydrate = parseFloat(row['碳水化合物(g/100g)'] || row['carbohydrate'] || 0)
-      const sodium = parseFloat(row['钠(mg/100g)'] || row['sodium'] || 0)
+      // 跳过空行
+      if (!row['原料名称'] && !row['materialName']) continue
+
+      const materialName = String(row['原料名称'] || row['materialName'] || '').trim()
+      const quantity = parseFloat(row['数量(g)'] || row['quantity'] || 0)
       
       // 验证必填字段
       if (!materialName) {
@@ -161,44 +122,24 @@ export async function parseFormulaExcel(req: any, res: Response) {
         errors.push(`第${rowNum}行：${materialName} 的数量必须大于0`)
         continue
       }
-      
-      // 验证原料类型
-      let materialType = 'herb'
-      if (materialTypeRaw === '辅料' || materialTypeRaw === 'supplement') {
-        materialType = 'supplement'
-      } else if (materialTypeRaw !== '药材' && materialTypeRaw !== 'herb') {
-        warnings.push(`第${rowNum}行：${materialName} 的原料类型"${materialTypeRaw}"不识别，已默认为药材`)
-      }
-      
+
       // 查找现有原料
       let existingMaterial = materialMap.get(materialName)
-      if (!existingMaterial && materialCode) {
-        existingMaterial = materialMap.get(materialCode)
-      }
-      
+
       if (existingMaterial) {
-        // 使用现有原料
         parsedMaterials.push({
           materialId: existingMaterial.id,
           materialName: existingMaterial.name,
-          materialCode: existingMaterial.code,
           materialType: existingMaterial.material_type,
           quantity,
-          unit,
-          nutrition: { protein, fat, carbohydrate, sodium },
           isNew: false,
         })
       } else {
-        // 记录缺失的原料
         missingMaterials.push(materialName)
         parsedMaterials.push({
           materialId: null,
           materialName,
-          materialCode,
-          materialType,
           quantity,
-          unit,
-          nutrition: { protein, fat, carbohydrate, sodium },
           isNew: true,
         })
       }

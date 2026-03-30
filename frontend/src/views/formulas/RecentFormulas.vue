@@ -15,7 +15,8 @@
         row-key="id"
         hover
         stripe
-        :expandable="true"
+        :expanded-row-keys="expandedRowKeys"
+        @expand-change="onExpandChange"
       >
         <template #expandedRow="{ row }">
           <div class="expanded-content">
@@ -36,14 +37,63 @@
                 </t-tag>
               </div>
             </div>
-            <div class="materials-section">
-              <h4>原料清单</h4>
-              <t-table
-                :data="row.materials || []"
-                :columns="materialColumns"
-                size="small"
-                bordered
-              />
+            <div class="version-section">
+              <h4>版本记录 <t-tag size="small" variant="light" theme="primary">{{ row.versions?.length || 0 }} 个版本</t-tag></h4>
+              <div v-if="row.versions && row.versions.length" class="version-list">
+                <div
+                  v-for="ver in row.versions"
+                  :key="ver.versionId"
+                  class="version-item"
+                  :class="{ 'is-current': ver.isCurrent }"
+                >
+                  <div class="version-left">
+                    <span class="version-number">{{ ver.versionNumber }}</span>
+                    <t-tag
+                      v-if="ver.isCurrent"
+                      size="small"
+                      theme="success"
+                      variant="dark"
+                      class="current-tag"
+                    >当前</t-tag>
+                    <t-tag
+                      v-else
+                      :theme="ver.status === 'published' ? 'primary' : ver.status === 'draft' ? 'warning' : 'default'"
+                      size="small"
+                      variant="light"
+                    >{{ ver.status === 'published' ? '已发布' : ver.status === 'draft' ? '草稿' : '已归档' }}</t-tag>
+                  </div>
+                  <div class="version-center">
+                    <span class="version-name">{{ ver.versionName }}</span>
+                    <span v-if="ver.versionReason" class="version-reason">原因: {{ ver.versionReason }}</span>
+                    <span class="version-time">{{ ver.createdAt }}</span>
+                  </div>
+                  <div v-if="ver.changesJson && parseChanges(ver.changesJson).length" class="version-changes">
+                    <div class="changes-detail">
+                      <div class="changes-list">
+                        <div
+                          v-for="(change, ci) in parseChanges(ver.changesJson)"
+                          :key="ci"
+                          class="change-row"
+                        >
+                          <t-tag
+                            size="small"
+                            :theme="change.changeType === 'add' ? 'success' : change.changeType === 'delete' ? 'danger' : 'warning'"
+                            variant="light"
+                            class="change-type-tag"
+                          >{{ change.changeType === 'add' ? '新增' : change.changeType === 'delete' ? '删除' : '修改' }}</t-tag>
+                          <span class="change-label">{{ change.fieldLabel }}</span>
+                          <span class="change-values">
+                            <span v-if="change.oldValue !== null" class="change-old">{{ change.oldValue }}</span>
+                            <span v-if="change.oldValue !== null && change.newValue !== null" class="change-arrow">→</span>
+                            <span v-if="change.newValue !== null" class="change-new">{{ change.newValue }}</span>
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div v-else class="empty-versions">暂无版本记录</div>
             </div>
           </div>
         </template>
@@ -117,10 +167,20 @@ const columns = [
   { colKey: 'operation', title: '操作', width: 150, fixed: 'right' }
 ]
 
-const materialColumns = [
-  { colKey: 'materialName', title: '原料名称', width: 200 },
-  { colKey: 'quantity', title: '数量', width: 120 }
-]
+const expandedRowKeys = ref<(string | number)[]>([])
+
+const onExpandChange = (keys: Array<string | number>) => {
+  expandedRowKeys.value = keys
+}
+
+const parseChanges = (changesJson: string): any[] => {
+  try {
+    const arr = JSON.parse(changesJson)
+    return Array.isArray(arr) ? arr : []
+  } catch {
+    return []
+  }
+}
 
 const recentFormulas = computed(() => {
   const allFormulas = [...formulaStore.formulas]
@@ -230,45 +290,197 @@ onUnmounted(() => {
     border-radius: 10px;
     border: 1px solid #FFF0F3;
 
-    .materials-section {
+    .version-section {
       margin-bottom: 16px;
 
       h4 {
         margin: 0 0 12px 0;
-        font-size: 14px;
+        font-size: 15px;
         font-weight: 600;
         color: #5D4E60;
+        display: flex;
+        align-items: center;
+        gap: 8px;
 
         &::before {
           content: '';
           display: inline-block;
           width: 4px;
-          height: 14px;
+          height: 16px;
           background: linear-gradient(135deg, #FF8FAB, #FF6B8A);
           border-radius: 2px;
-          margin-right: 8px;
-          vertical-align: middle;
         }
       }
     }
 
+    .version-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .version-item {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 10px 16px;
+      background: white;
+      border-radius: 8px;
+      border: 1px solid #F0F0F0;
+      transition: all 0.2s;
+
+      &:hover {
+        border-color: #FFD6E0;
+        background: #FFFDFC;
+      }
+
+      &.is-current {
+        border-color: #D9F7BE;
+        background: #F6FFED;
+      }
+    }
+
+    .version-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+      min-width: 160px;
+    }
+
+    .version-number {
+      font-size: 14px;
+      font-weight: 600;
+      color: #5D4E60;
+    }
+
+    .current-tag {
+      font-size: 11px;
+    }
+
+    .version-center {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+
+    .version-name {
+      font-size: 14px;
+      color: #333;
+      font-weight: 500;
+    }
+
+    .version-reason {
+      font-size: 12px;
+      color: #FF6B8A;
+      background: #FFF0F3;
+      padding: 1px 8px;
+      border-radius: 4px;
+    }
+
+    .version-time {
+      font-size: 12px;
+      color: #9B8FA0;
+    }
+
+    .version-changes {
+      flex-shrink: 0;
+
+      .changes-detail {
+        margin-top: 8px;
+        padding: 10px 14px;
+        background: #FAFAFA;
+        border-radius: 6px;
+        border: 1px solid #F0F0F0;
+      }
+
+      .changes-list {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .change-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 13px;
+        padding: 4px 0;
+      }
+
+      .change-type-tag {
+        flex-shrink: 0;
+      }
+
+      .change-label {
+        color: #5D4E60;
+        font-weight: 500;
+        flex-shrink: 0;
+      }
+
+      .change-values {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .change-old {
+        color: #E34D59;
+        text-decoration: line-through;
+        background: #FEF0EF;
+        padding: 1px 8px;
+        border-radius: 4px;
+      }
+
+      .change-arrow {
+        color: #9B8FA0;
+        font-weight: 600;
+      }
+
+      .change-new {
+        color: #2BA471;
+        background: #E8F8F2;
+        padding: 1px 8px;
+        border-radius: 4px;
+        font-weight: 600;
+      }
+    }
+
+    .empty-versions {
+      text-align: center;
+      padding: 24px;
+      color: #9B8FA0;
+      font-size: 14px;
+    }
+
     .description-section {
+      margin-bottom: 16px;
+
       h4 {
-        margin: 0 0 8px 0;
-        font-size: 14px;
+        margin: 0 0 12px 0;
+        font-size: 15px;
         font-weight: 600;
         color: #5D4E60;
+        display: flex;
+        align-items: center;
+        gap: 6px;
 
         &::before {
           content: '';
           display: inline-block;
           width: 4px;
-          height: 14px;
+          height: 16px;
           background: linear-gradient(135deg, #FF8FAB, #FF6B8A);
           border-radius: 2px;
-          margin-right: 8px;
-          vertical-align: middle;
         }
+      }
+
+      .desc-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
       }
 
       p {
@@ -276,6 +488,10 @@ onUnmounted(() => {
         font-size: 14px;
         color: #9B8FA0;
         line-height: 1.6;
+        padding: 12px;
+        background: white;
+        border-radius: 8px;
+        border-left: 3px solid #FFD6E0;
       }
     }
   }

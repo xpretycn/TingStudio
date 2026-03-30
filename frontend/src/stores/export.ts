@@ -1,16 +1,19 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { exportApi } from '@/api/export'
-import type { ExportTemplate, ExportJob } from '@/api/export'
+import type { ExportTemplate, ExportJob, ShareItem, ApiInterface } from '@/api/export'
 
 export const useExportStore = defineStore('export', () => {
   const templates = ref<ExportTemplate[]>([])
   const jobs = ref<ExportJob[]>([])
+  const shares = ref<ShareItem[]>([])
+  const apiInterfaces = ref<ApiInterface[]>([])
   const loading = ref(false)
   const total = ref(0)
   const currentPage = ref(1)
   const pageSize = ref(10)
 
+  // ===== 模板 =====
   const fetchTemplates = async (params?: { type?: string }) => {
     loading.value = true
     try {
@@ -33,6 +36,27 @@ export const useExportStore = defineStore('export', () => {
     }
   }
 
+  const updateTemplate = async (templateId: string, data: { name: string; description?: string; type: string; formatConfig: any; isDefault?: boolean }) => {
+    try {
+      await exportApi.updateTemplate(templateId, data)
+      await fetchTemplates()
+      return { success: true }
+    } catch (error: any) {
+      return { success: false, message: error.message || '更新模板失败' }
+    }
+  }
+
+  const deleteTemplate = async (templateId: string) => {
+    try {
+      await exportApi.deleteTemplate(templateId)
+      await fetchTemplates()
+      return { success: true }
+    } catch (error: any) {
+      return { success: false, message: error.message || '删除模板失败' }
+    }
+  }
+
+  // ===== 导出任务 =====
   const createJob = async (data: { formulaId: string; versionId?: string; templateId?: string; exportType: string }) => {
     loading.value = true
     try {
@@ -67,6 +91,38 @@ export const useExportStore = defineStore('export', () => {
     }
   }
 
+  const retryJob = async (jobId: string) => {
+    try {
+      const res = await exportApi.retryJob(jobId)
+      await fetchJobs({ page: currentPage.value, pageSize: pageSize.value })
+      return { success: true, data: res.data }
+    } catch (error: any) {
+      return { success: false, message: error.message || '重试失败' }
+    }
+  }
+
+  const downloadFile = async (jobId: string, fileName: string, exportType: string = 'excel') => {
+    try {
+      const res = await exportApi.downloadFile(jobId)
+      const contentType = exportType === 'pdf'
+        ? 'application/pdf'
+        : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      const blob = new Blob([res.data], { type: contentType })
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = fileName
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
+      return { success: true }
+    } catch (error: any) {
+      return { success: false, message: error.message || '下载失败' }
+    }
+  }
+
+  // ===== 分享 =====
   const createShare = async (data: { formulaId: string; versionId?: string; shareType?: string; password?: string; expireDate?: string; downloadLimit?: number }) => {
     try {
       const res = await exportApi.createShare(data)
@@ -76,33 +132,57 @@ export const useExportStore = defineStore('export', () => {
     }
   }
 
-  const getApiInterfaces = async () => {
+  const fetchShares = async () => {
     try {
-      const res = await exportApi.getApiInterfaces()
-      return { success: true, data: res.data }
-    } catch (error: any) {
-      return { success: false, message: error.message || '获取API接口失败' }
+      const res = await exportApi.getShares()
+      shares.value = res.data
+    } catch (error) {
+      console.error('获取分享列表失败:', error)
     }
   }
 
+  const deleteShare = async (shareId: string) => {
+    try {
+      await exportApi.deleteShare(shareId)
+      await fetchShares()
+      return { success: true }
+    } catch (error: any) {
+      return { success: false, message: error.message || '删除分享失败' }
+    }
+  }
+
+  // ===== API 接口 =====
+  const fetchApiInterfaces = async () => {
+    try {
+      const res = await exportApi.getApiInterfaces()
+      apiInterfaces.value = res.data
+    } catch (error) {
+      console.error('获取API接口列表失败:', error)
+    }
+  }
+
+  const createApiInterface = async (data: any) => {
+    try {
+      const res = await exportApi.createApiInterface(data)
+      await fetchApiInterfaces()
+      return { success: true, data: res.data }
+    } catch (error: any) {
+      return { success: false, message: error.message || '创建API接口失败' }
+    }
+  }
+
+  // ===== 分页 =====
   const setPage = (page: number) => {
     currentPage.value = page
   }
 
   return {
-    templates,
-    jobs,
-    loading,
-    total,
-    currentPage,
-    pageSize,
-    fetchTemplates,
-    createTemplate,
-    createJob,
-    fetchJobs,
-    getJob,
-    createShare,
-    getApiInterfaces,
+    templates, jobs, shares, apiInterfaces,
+    loading, total, currentPage, pageSize,
+    fetchTemplates, createTemplate, updateTemplate, deleteTemplate,
+    createJob, fetchJobs, getJob, retryJob, downloadFile,
+    createShare, fetchShares, deleteShare,
+    fetchApiInterfaces, createApiInterface,
     setPage,
   }
 })

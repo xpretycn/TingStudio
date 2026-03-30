@@ -1,4 +1,7 @@
 import http from './http'
+import axios from 'axios'
+
+const TOKEN_KEY = 'tingstudio_token'
 
 export interface ExportTemplate {
   templateId: string
@@ -27,6 +30,39 @@ export interface ExportJob {
   completedAt: string | null
 }
 
+export interface ShareItem {
+  shareId: string
+  formulaId: string
+  formulaName?: string
+  versionId: string | null
+  shareType: string
+  shareUrl: string
+  password: string | null
+  expireDate: string | null
+  allowedEmails: string[]
+  downloadLimit: number | null
+  downloadCount: number
+  createdBy: string
+  createdAt: string
+}
+
+export interface ApiInterface {
+  interfaceId: string
+  name: string
+  description: string | null
+  endpoint: string
+  method: string
+  authentication: string
+  authConfig: any
+  dataFormat: string
+  fieldMapping: any[]
+  rateLimit: any
+  retryConfig: any
+  createdBy: string
+  createdAt: string
+  updatedAt: string
+}
+
 export const exportApi = {
   getTemplates(params?: { type?: string }) {
     return http.get<any, { success: boolean; data: ExportTemplate[] }>('/exports/templates', { params })
@@ -34,8 +70,14 @@ export const exportApi = {
   createTemplate(data: { name: string; description?: string; type: string; formatConfig: any; isDefault?: boolean }) {
     return http.post<any, { success: boolean; message: string; data: { templateId: string } }>('/exports/templates', data)
   },
+  updateTemplate(templateId: string, data: { name: string; description?: string; type: string; formatConfig: any; isDefault?: boolean }) {
+    return http.put<any, { success: boolean; message: string }>(`/exports/templates/${templateId}`, data)
+  },
+  deleteTemplate(templateId: string) {
+    return http.delete<any, { success: boolean; message: string }>(`/exports/templates/${templateId}`)
+  },
   createJob(data: { formulaId: string; versionId?: string; templateId?: string; exportType: string }) {
-    return http.post<any, { success: boolean; message: string; data: { jobId: string; status: string } }>('/exports/jobs', data)
+    return http.post<any, { success: boolean; message: string; data: { jobId: string; status: string; fileName?: string; errorMessage?: string } }>('/exports/jobs', data)
   },
   getJobs(params?: { status?: string; page?: number; pageSize?: number }) {
     return http.get<any, { success: boolean; data: { list: ExportJob[]; pagination: any } }>('/exports/jobs', { params })
@@ -43,11 +85,27 @@ export const exportApi = {
   getJob(jobId: string) {
     return http.get<any, { success: boolean; data: ExportJob }>(`/exports/jobs/${jobId}`)
   },
+  retryJob(jobId: string) {
+    return http.post<any, { success: boolean; message: string; data: { jobId: string; status: string } }>(`/exports/jobs/${jobId}/retry`)
+  },
+  downloadFile(jobId: string) {
+    // 文件下载单独处理，不走 http 拦截器（blob 响应没有 success 字段）
+    return axios.get(`/api/exports/jobs/${jobId}/download`, {
+      responseType: 'blob',
+      headers: { Authorization: `Bearer ${localStorage.getItem(TOKEN_KEY) || ''}` },
+    })
+  },
   createShare(data: { formulaId: string; versionId?: string; shareType?: string; password?: string; expireDate?: string; downloadLimit?: number }) {
     return http.post<any, { success: boolean; message: string; data: { shareId: string; shareUrl: string } }>('/exports/share', data)
   },
+  getShares() {
+    return http.get<any, { success: boolean; data: ShareItem[] }>('/exports/shares')
+  },
+  deleteShare(shareId: string) {
+    return http.delete<any, { success: boolean; message: string }>(`/exports/share/${shareId}`)
+  },
   getApiInterfaces() {
-    return http.get<any, { success: boolean; data: any[] }>('/exports/api-interfaces')
+    return http.get<any, { success: boolean; data: ApiInterface[] }>('/exports/api-interfaces')
   },
   createApiInterface(data: any) {
     return http.post<any, { success: boolean; message: string; data: { interfaceId: string } }>('/exports/api-interfaces', data)

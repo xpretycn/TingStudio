@@ -9,6 +9,39 @@ export async function getVersions(req: Request, res: Response) {
     const { formulaId } = req.params
     const { status } = req.query
 
+    // 数据一致性修复：确保每个配方只有一个当前版本，且只有一个已发布版本
+    // 1. 多个 is_current=1 时，仅保留最新的一个
+    const [currentVersions]: any[] = await query(
+      `SELECT version_id FROM formula_versions WHERE formula_id = ? AND is_current = 1 ORDER BY created_at DESC`,
+      [formulaId]
+    )
+    if (currentVersions.length > 1) {
+      const archiveIds = currentVersions.slice(1).map((v: any) => v.version_id)
+      if (archiveIds.length > 0) {
+        const placeholders = archiveIds.map(() => '?').join(',')
+        await query(
+          `UPDATE formula_versions SET is_current = 0, status = 'archived' WHERE version_id IN (${placeholders})`,
+          archiveIds
+        )
+      }
+    }
+
+    // 2. 多个 status='published' 时，仅保留最新的一个，其余归档
+    const [publishedVersions]: any[] = await query(
+      `SELECT version_id FROM formula_versions WHERE formula_id = ? AND status = 'published' ORDER BY created_at DESC`,
+      [formulaId]
+    )
+    if (publishedVersions.length > 1) {
+      const archiveIds = publishedVersions.slice(1).map((v: any) => v.version_id)
+      if (archiveIds.length > 0) {
+        const placeholders = archiveIds.map(() => '?').join(',')
+        await query(
+          `UPDATE formula_versions SET status = 'archived' WHERE version_id IN (${placeholders})`,
+          archiveIds
+        )
+      }
+    }
+
     let whereSql = 'WHERE formula_id = ?'
     const params: any[] = [formulaId]
 

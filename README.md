@@ -15,6 +15,8 @@ TingStudio 是一个专业的食品配方工作数据管理平台，面向食品
 - **认证**: JWT (jsonwebtoken + bcryptjs)
 - **安全**: Helmet + CORS + express-rate-limit
 - **日志**: Morgan
+- **Excel**: xlsx
+- **PDF**: pdfkit
 
 ### 前端
 - **框架**: Vue 3.4+ (Composition API)
@@ -77,9 +79,14 @@ TingStudio 是一个专业的食品配方工作数据管理平台，面向食品
 - 营养数据导入（Excel）
 
 ### 导出与分享
-- 导出模板管理（PDF/Excel/API/打印）
-- 导出任务创建与状态跟踪
-- 分享链接（支持密码、过期时间、下载限制）
+- **Excel 导出**：一键将配方导出为 Excel（含配方信息、原料清单、营养数据三个 Sheet，含配方合计行）
+- **PDF 导出**：一键将配方导出为 PDF（配方信息 + 原料清单表格 + 营养数据表格，含合计行）
+- 导出模板管理（PDF/Excel/API/打印），支持编辑和删除
+- 导出任务创建与状态跟踪，支持下载、失败重试
+- 配方列表一键导出跳转（自动填充配方选择）
+- 分享链接创建、历史列表、复制链接、删除管理
+- API 数据接口管理面板（创建、查看接口配置）
+- Excel 模板精简为两列（原料名称 + 数量），简化导入流程
 
 ## 项目结构
 
@@ -103,6 +110,9 @@ ting-studio/
 │   │   │   ├── initDatabase.ts       # 数据库初始化
 │   │   │   └── seedData.ts           # 种子数据
 │   │   ├── utils/                    # 工具函数
+│   │   │   ├── helpers.ts            # 通用工具
+│   │   │   ├── formulaExporter.ts    # Excel 导出引擎
+│   │   │   └── formulaPdfExporter.ts # PDF 导出引擎
 │   │   └── index.ts                  # 入口文件
 │   ├── data/                         # SQLite 数据库文件
 │   ├── API_DOC.md                    # API 接口文档
@@ -227,6 +237,31 @@ npm run dev
 | `npm run build` | frontend | 构建前端生产版本 |
 
 ## 更新日志
+
+### v2.7.0 (2026-03-30)
+- **阶段六：导出中心功能完善**（Excel + PDF 双格式导出引擎）
+- 新增配方 Excel 导出引擎（formulaExporter.ts）：配方信息、原料清单、营养数据三个 Sheet，含配方营养合计行
+- 新增配方 PDF 导出引擎（formulaPdfExporter.ts）：pdfkit 生成 A4 PDF，含标题、信息表、原料表格、营养表格
+- 导出任务同步执行：创建任务后立即生成文件，completed 状态自动触发下载
+- 导出任务列表增加「下载」和「重试」按钮，分页联动正确工作
+- 配方列表点击导出自动跳转导出中心并填充配方选择（route.query.formulaId）
+- 配方选择从输入 ID 改为下拉选择器（t-select 展示配方名称）
+- 分享管理新增分享历史列表、复制链接、删除/失效操作
+- 导出模板管理增加编辑、删除操作（后端 PUT/DELETE 接口）
+- 新增 API 数据接口管理 Tab 面板（创建接口、查看列表）
+- 后端新增路由：下载文件、重试任务、分享列表/删除、模板更新/删除
+- Excel 导入模板精简为两列（原料名称 + 数量），移除原料编码、类型、营养列
+- ExcelImportPanel 修复 t-table-column 组件报错（改为 TDesign 标准 :columns 方式）
+- ExcelImportPanel 新增取消导入按钮
+- 修复 Excel 导入后表单校验不触发（splice 替代直接赋值保持 reactive 响应式）
+- 配方编辑页原料清单标记为必填项，手动添加按钮移至列表末尾
+- 配方编辑页 ExcelImportPanel 移至手动添加原料按钮下方
+- 版本管理状态逻辑修复：状态列严格依据数据库 status 字段显示
+- 版本管理发布按钮条件改为除已发布外均可发布
+- 版本管理数据一致性自修复：多 is_current 或多 published 自动归档
+- 编辑配方创建新版本时旧版本保留原始状态（仅取消 is_current 标记）
+- 导出中心页面隐藏全局搜索框和新增按钮
+- 新增 pdfkit 依赖用于 PDF 生成
 
 ### v2.6.0 (2026-03-30)
 - **新增 Excel 批量导入配方功能**：模板下载、文件解析、数据验证、原料自动匹配

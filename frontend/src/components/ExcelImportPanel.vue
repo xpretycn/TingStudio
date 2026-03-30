@@ -114,28 +114,23 @@
         <template #header>
           <div class="preview-header">
             <span>原料预览</span>
-            <t-button theme="primary" size="small" @click="confirmImport">
-              确认导入
-            </t-button>
+            <t-space>
+              <t-button theme="default" size="small" @click="cancelImport">取消导入</t-button>
+              <t-button theme="primary" size="small" @click="confirmImport">确认导入</t-button>
+            </t-space>
           </div>
         </template>
-        <t-table :data="validMaterials" size="small" :max-height="300">
-          <t-table-column prop="materialName" label="原料名称" width="120" />
-          <t-table-column prop="materialType" label="类型" width="80">
-            <template #default="{ row }">
-              <t-tag :theme="row.materialType === 'supplement' ? 'primary' : 'success'" variant="light" size="small">
-                {{ row.materialType === 'supplement' ? '辅料' : '药材' }}
-              </t-tag>
-            </template>
-          </t-table-column>
-          <t-table-column prop="quantity" label="数量(g)" width="80" />
-          <t-table-column label="状态" width="80">
-            <template #default="{ row }">
-              <t-tag :theme="row.isNew ? 'danger' : 'success'" variant="light" size="small">
-                {{ row.isNew ? '未录入' : '已匹配' }}
-              </t-tag>
-            </template>
-          </t-table-column>
+        <t-table :data="validMaterials" :columns="previewColumns" size="small" :max-height="300">
+          <template #materialType="{ row }">
+            <t-tag :theme="row.materialType === 'supplement' ? 'primary' : 'success'" variant="light" size="small">
+              {{ row.materialType === 'supplement' ? '辅料' : '药材' }}
+            </t-tag>
+          </template>
+          <template #status="{ row }">
+            <t-tag :theme="row.isNew ? 'danger' : 'success'" variant="light" size="small">
+              {{ row.isNew ? '未录入' : '已匹配' }}
+            </t-tag>
+          </template>
         </t-table>
       </t-card>
     </div>
@@ -157,6 +152,13 @@ const downloading = ref(false)
 const uploading = ref(false)
 const parseResult = ref<ParseResult | null>(null)
 const uploadRef = ref()
+
+const previewColumns = [
+  { colKey: 'materialName', title: '原料名称', width: 120 },
+  { colKey: 'materialType', title: '类型', width: 80 },
+  { colKey: 'quantity', title: '数量(g)', width: 80 },
+  { colKey: 'status', title: '状态', width: 80 },
+]
 
 // 有效的原料（已匹配的）
 const validMaterials = computed(() => {
@@ -242,6 +244,12 @@ function confirmImport() {
   emit('import', parseResult.value.materials)
   parseResult.value = null
   MessagePlugin.success('原料已导入配方')
+}
+
+// 取消导入
+function cancelImport() {
+  parseResult.value = null
+  MessagePlugin.success('已取消导入')
 }
 
 // 前往原料管理

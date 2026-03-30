@@ -57,7 +57,7 @@
         <template #operation="{ row }">
           <t-space :size="8">
             <t-button variant="text" size="small" @click="handleViewSnapshot(row)"><template #icon><t-icon name="browse" /></template>快照</t-button>
-            <t-button v-if="!row.isCurrent" variant="text" theme="primary" size="small" @click="handlePublish(row)"><template #icon><t-icon name="check-circle" /></template>发布</t-button>
+            <t-button v-if="row.status === 'draft'" variant="text" theme="primary" size="small" @click="handlePublish(row)"><template #icon><t-icon name="check-circle" /></template>发布</t-button>
           </t-space>
         </template>
       </t-table>

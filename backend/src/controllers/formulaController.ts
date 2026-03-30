@@ -209,6 +209,12 @@ export async function updateFormula(req: any, res: Response) {
       // 空变更存 null，避免前端误显示"查看变更"按钮后展示"暂无变更记录"
       const changesJsonStr = changes.length > 0 ? JSON.stringify(changes) : null
 
+      // 将旧的当前版本设为非当前（保留其原始状态，不归档）
+      await query(
+        `UPDATE formula_versions SET is_current = 0 WHERE formula_id = ? AND is_current = 1`,
+        [id]
+      )
+
       await query(
         `INSERT INTO formula_versions (version_id, formula_id, version_number, version_name, version_reason, changes_json, snapshot_json, status, is_current, ratio_factor, supplement_ratio_factor, created_by, created_at)
          VALUES (?, ?, ?, ?, ?, ?, ?, 'draft', 1, ?, ?, ?, ?)`,
