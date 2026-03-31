@@ -1,6 +1,7 @@
 <template>
   <div class="formula-list">
-    <t-card class="content-card" bordered>
+    <PageSkeleton v-if="!initialized" type="table" :rows="5" :columns="6" />
+    <t-card v-else class="content-card" bordered>
       <t-table
         :data="formulaStore.formulas"
         :columns="columns"
@@ -9,6 +10,7 @@
         row-key="id"
         hover
         stripe
+        table-layout="auto"
         :expanded-row-keys="expandedRowKeys"
         @expand-change="onExpandChange"
       >
@@ -124,7 +126,13 @@
         </template>
 
         <template #empty>
-          <t-empty description="暂无配方数据" />
+          <t-empty description="暂无配方数据">
+            <template #action>
+              <t-button theme="primary" @click="handleCreate">
+                <template #icon><t-icon name="add" /></template>创建第一个配方
+              </t-button>
+            </template>
+          </t-empty>
         </template>
 
         <template #operation="{ row }">
@@ -187,11 +195,14 @@ import { useSalesmanStore } from '@/stores/salesman'
 import { usePaginationStore } from '@/stores/pagination'
 import { MessagePlugin } from 'tdesign-vue-next'
 import type { Formula } from '@/api/formula'
+import PageSkeleton from '@/components/Skeleton/PageSkeleton.vue'
 
 const router = useRouter()
 const formulaStore = useFormulaStore()
 const salesmanStore = useSalesmanStore()
 const paginationStore = usePaginationStore()
+
+const initialized = ref(false)
 
 const getFormulaDesc = (description: string | null | undefined) => {
   if (!description || typeof description !== 'string') return null
@@ -246,7 +257,7 @@ const columns = [
   { colKey: 'formulaStatus', title: '状态', width: 100 },
   { colKey: 'materialCount', title: '原料数量', width: 120 },
   { colKey: 'createdAt', title: '创建时间', width: 180 },
-  { colKey: 'operation', title: '操作', width: 230, fixed: 'right' }
+  { colKey: 'operation', title: '操作', width: 230 }
 ]
 
 const pagination = computed(() => ({
@@ -272,6 +283,7 @@ onMounted(async () => {
     salesmanStore.fetchSalesmen(),
     formulaStore.fetchFormulas()
   ])
+  initialized.value = true
 })
 
 onUnmounted(() => {

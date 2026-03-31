@@ -115,6 +115,11 @@ const activeMenu = computed(() => {
   if (path.startsWith('/recent-formulas')) return '/recent-formulas'
   if (path.startsWith('/materials')) return '/materials'
   if (path.startsWith('/formulas')) return '/formulas'
+  if (path.startsWith('/salesmen')) return '/salesmen'
+  if (path.startsWith('/versions')) return '/formulas'
+  if (path.startsWith('/exports')) return '/exports'
+  if (path.startsWith('/nutrition')) return '/nutrition'
+  if (path.startsWith('/tools')) return '/tools'
   return '/recent-formulas'
 })
 
@@ -123,6 +128,11 @@ const pageTitle = computed(() => {
   if (path.startsWith('/recent-formulas')) return '最近配方'
   if (path.startsWith('/materials')) return '原料管理'
   if (path.startsWith('/formulas')) return '配方管理'
+  if (path.startsWith('/salesmen')) return '业务员管理'
+  if (path.startsWith('/versions')) return '版本管理'
+  if (path.startsWith('/exports')) return '导出中心'
+  if (path.startsWith('/nutrition')) return '营养分析'
+  if (path.startsWith('/tools')) return '工具箱'
   return '首页'
 })
 

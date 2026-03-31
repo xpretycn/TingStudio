@@ -18,6 +18,7 @@
         :data="formData"
         :rules="rules"
         label-width="100px"
+        scroll-to-first-error
         @submit="handleSubmit"
       >
         <t-form-item label="原料编码" name="code">
@@ -215,15 +216,15 @@ const unitOptions = [
 
 const rules: Record<string, FormRule[]> = {
   code: [
-    { required: true, message: '请输入原料编码' },
-    { pattern: /^[A-Z0-9-]+$/, message: '编码只能包含大写字母、数字和横线' }
+    { required: true, message: '请输入原料编码', trigger: 'blur' },
+    { pattern: /^[A-Z0-9-]+$/, message: '编码只能包含大写字母、数字和横线', trigger: 'blur' },
   ],
   name: [
-    { required: true, message: '请输入原料名称' },
-    { min: 2, message: '原料名称至少2个字符' }
+    { required: true, message: '请输入原料名称', trigger: 'blur' },
+    { min: 2, message: '原料名称至少2个字符', trigger: 'blur' },
   ],
-  unit: [{ required: true, message: '请选择单位' }],
-  stock: [{ required: true, message: '请输入库存数量' }]
+  unit: [{ required: true, message: '请选择单位', trigger: 'change' }],
+  stock: [{ required: true, message: '请输入库存数量', trigger: 'blur' }],
 }
 
 // 营养成分字段定义（按组分类）
@@ -369,6 +370,7 @@ const saveNutrition = async (materialId: string) => {
 
 const handleSubmit = async ({ validateResult }: any) => {
   if (validateResult === true) {
+    if (loading.value) return
     loading.value = true
     try {
       const id = route.params.id as string
@@ -405,20 +407,20 @@ const handleBack = () => {
 
 const loadNutrition = async (materialId: string) => {
   try {
-    // http 拦截器已解包 response.data，res 直接是 { success, data } 结构
+    // http 拦截器已解包 response.data，res 直接是营养数据对象或 null
     const res = await nutritionApi.getMaterialNutrition(materialId) as any
-    if (res?.success && res?.data) {
-      const data = res.data
+    if (res && res.per100g) {
       hasNutrition.value = true
-      const per100g = data.per100g || {}
+      showNutrition.value = true
+      const per100g = res.per100g || {}
       for (const key of Object.keys(per100g)) {
         if (per100g[key] !== undefined && per100g[key] !== null) {
           nutritionData[key] = Number(per100g[key])
         }
       }
-      if (data.dataSource) nutritionMeta.dataSource = data.dataSource
-      if (data.notes) nutritionMeta.notes = data.notes
-      if (data.confidence) nutritionMeta.confidence = data.confidence
+      if (res.dataSource) nutritionMeta.dataSource = res.dataSource
+      if (res.notes) nutritionMeta.notes = res.notes
+      if (res.confidence) nutritionMeta.confidence = res.confidence
     }
   } catch {
     // no nutrition data yet, which is fine

@@ -144,9 +144,12 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useFormulaStore } from '@/stores/formula'
 import type { Formula } from '@/api/formula'
+import PageSkeleton from '@/components/Skeleton/PageSkeleton.vue'
 
 const router = useRouter()
 const formulaStore = useFormulaStore()
+
+const initialized = ref(false)
 
 const getFormulaDesc = (description: string | null | undefined) => {
   if (!description || typeof description !== 'string') return null
@@ -164,7 +167,7 @@ const columns = [
   { colKey: 'materialCount', title: '原料数量', width: 120 },
   { colKey: 'createdAt', title: '创建时间', width: 180 },
   { colKey: 'updatedAt', title: '更新时间', width: 180 },
-  { colKey: 'operation', title: '操作', width: 150, fixed: 'right' }
+  { colKey: 'operation', title: '操作', width: 150 }
 ]
 
 const expandedRowKeys = ref<(string | number)[]>([])
@@ -208,6 +211,7 @@ const goToFormulas = () => {
 onMounted(async () => {
   window.addEventListener('global-search', handleGlobalSearch)
   await formulaStore.fetchFormulas()
+  initialized.value = true
 })
 
 const handleGlobalSearch = (e: Event) => {

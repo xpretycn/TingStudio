@@ -213,17 +213,13 @@ async function handleUpload(options: { raw: File }) {
   
   try {
     const result = await excelImportApi.parseFormulaExcel(options.raw)
-    if (result.success) {
-      parseResult.value = result.data
-      if (result.data.errors.length > 0) {
-        MessagePlugin.warning(`解析完成，但有 ${result.data.errors.length} 个错误`)
-      } else if (result.data.missingMaterials.length > 0) {
-        MessagePlugin.warning(`解析完成，有 ${result.data.missingMaterials.length} 个原料未录入`)
-      } else {
-        MessagePlugin.success(`解析成功，共 ${result.data.summary.total} 条原料`)
-      }
+    parseResult.value = result
+    if (result.errors.length > 0) {
+      MessagePlugin.warning(`解析完成，但有 ${result.errors.length} 个错误`)
+    } else if (result.missingMaterials.length > 0) {
+      MessagePlugin.warning(`解析完成，有 ${result.missingMaterials.length} 个原料未录入`)
     } else {
-      MessagePlugin.error(result.message || '解析失败')
+      MessagePlugin.success(`解析成功，共 ${result.summary.total} 条原料`)
     }
   } catch (error: any) {
     MessagePlugin.error(error.message || '解析文件失败')

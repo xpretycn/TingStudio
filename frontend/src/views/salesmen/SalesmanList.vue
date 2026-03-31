@@ -1,8 +1,17 @@
 <template>
   <div class="salesman-list">
-    <t-card class="content-card" bordered>
-      <t-table :data="salesmanStore.salesmen" :columns="columns" :loading="salesmanStore.loading" :pagination="undefined" row-key="id" hover stripe>
-        <template #empty><t-empty description="暂无业务员数据" /></template>
+    <PageSkeleton v-if="!initialized" type="table" :rows="5" :columns="8" />
+    <t-card v-else class="content-card" bordered>
+      <t-table :data="salesmanStore.salesmen" :columns="columns" :loading="salesmanStore.loading" :pagination="undefined" row-key="id" hover stripe table-layout="auto">
+        <template #empty>
+          <t-empty description="暂无业务员数据">
+            <template #action>
+              <t-button theme="primary" @click="handleCreate">
+                <template #icon><t-icon name="add" /></template>添加业务员
+              </t-button>
+            </template>
+          </t-empty>
+        </template>
         <template #status="{ row }">
           <t-tag :theme="row.status === 'active' ? 'success' : 'default'" variant="light">{{ row.status === 'active' ? '活跃' : '停用' }}</t-tag>
         </template>
@@ -27,10 +36,13 @@ import { useSalesmanStore } from '@/stores/salesman'
 import { usePaginationStore } from '@/stores/pagination'
 import { MessagePlugin } from 'tdesign-vue-next'
 import type { Salesman } from '@/api/salesman'
+import PageSkeleton from '@/components/Skeleton/PageSkeleton.vue'
 
 const router = useRouter()
 const salesmanStore = useSalesmanStore()
 const paginationStore = usePaginationStore()
+
+const initialized = ref(false)
 
 const searchForm = reactive({ keyword: '', status: '' })
 
@@ -42,7 +54,7 @@ const columns = [
   { colKey: 'email', title: '邮箱', width: 160 },
   { colKey: 'status', title: '状态', width: 100 },
   { colKey: 'createdAt', title: '创建时间', width: 180 },
-  { colKey: 'operation', title: '操作', width: 180, fixed: 'right' }
+  { colKey: 'operation', title: '操作', width: 180 }
 ]
 
 const pagination = computed(() => ({
@@ -64,11 +76,12 @@ const handleGlobalSearch = (e: Event) => {
 }
 
 // 注册分页到全局 paginationStore
-onMounted(() => {
+onMounted(async () => {
   window.addEventListener('global-search', handleGlobalSearch)
   paginationStore.register(pagination.value)
   watch(pagination, (val) => paginationStore.update(val), { deep: true })
-  salesmanStore.fetchSalesmen()
+  await salesmanStore.fetchSalesmen()
+  initialized.value = true
 })
 
 onUnmounted(() => {

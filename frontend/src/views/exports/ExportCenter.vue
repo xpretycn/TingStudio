@@ -1,5 +1,7 @@
 <template>
   <div class="export-center">
+    <PageSkeleton v-if="!initialized" type="table" :rows="5" :columns="5" />
+    <div v-else>
     <t-tabs v-model="activeTab" @change="handleTabChange">
       <!-- ====== Tab 1: 导出任务 ====== -->
       <t-tab-panel value="export" label="导出任务">
@@ -44,7 +46,15 @@
             stripe
             size="small"
           >
-            <template #empty><t-empty description="暂无导出任务" /></template>
+            <template #empty>
+              <t-empty description="暂无导出任务">
+                <template #action>
+                  <t-button theme="primary" @click="handleCreateJob">
+                    <template #icon><t-icon name="add" /></template>创建导出任务
+                  </t-button>
+                </template>
+              </t-empty>
+            </template>
             <template #status="{ row }">
               <t-tag :theme="jobStatusTheme(row.status)" variant="light">{{ jobStatusLabel(row.status) }}</t-tag>
             </template>
@@ -271,18 +281,21 @@
         <t-form-item label="描述"><t-textarea v-model="apiForm.description" placeholder="可选" /></t-form-item>
       </t-form>
     </t-dialog>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted, watch } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useExportStore } from '@/stores/export'
 import { MessagePlugin } from 'tdesign-vue-next'
 import { formulaApi } from '@/api/formula'
+import PageSkeleton from '@/components/Skeleton/PageSkeleton.vue'
 
 const route = useRoute()
 const exportStore = useExportStore()
+const initialized = ref(false)
 const activeTab = ref('export')
 const showTemplateDialog = ref(false)
 const showApiDialog = ref(false)
@@ -302,7 +315,7 @@ async function fetchFormulaList() {
   formulaLoading.value = true
   try {
     const res = await formulaApi.getList({ page: 1, pageSize: 200 })
-    formulaList.value = res.data.list
+    formulaList.value = res.list
   } catch {
     // ignore
   } finally {
@@ -536,7 +549,8 @@ onMounted(async () => {
   }
 
   // 加载默认 Tab 数据
-  exportStore.fetchJobs({ page: 1 })
+  await exportStore.fetchJobs({ page: 1 })
+  initialized.value = true
 })
 </script>
 

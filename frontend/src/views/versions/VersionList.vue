@@ -1,6 +1,7 @@
 <template>
   <div class="version-list">
-    <t-card class="content-card" bordered>
+    <PageSkeleton v-if="!initialized" type="table" :rows="5" :columns="7" />
+    <t-card v-else class="content-card" bordered>
       <template #header>
         <div class="page-header">
           <t-button variant="text" @click="handleBack"><template #icon><t-icon name="chevron-left" /></template>返回配方</t-button>
@@ -19,8 +20,16 @@
         <t-button theme="default" @click="handleCompare" size="small"><template #icon><t-icon name="compare" /></template>版本对比</t-button>
       </div>
 
-      <t-table :data="versionStore.versions" :columns="columns" :loading="versionStore.loading" row-key="versionId" hover stripe>
-        <template #empty><t-empty description="暂无版本数据" /></template>
+      <t-table :data="versionStore.versions" :columns="columns" :loading="versionStore.loading" row-key="versionId" hover stripe table-layout="auto">
+        <template #empty>
+          <t-empty description="暂无版本数据">
+            <template #action>
+              <t-button theme="primary" @click="handleCreateVersion">
+                <template #icon><t-icon name="add" /></template>创建第一个版本
+              </t-button>
+            </template>
+          </t-empty>
+        </template>
         <template #status="{ row }">
           <t-tag :theme="statusTheme(row.status)" variant="light">{{ statusLabel(row.status) }}</t-tag>
         </template>
@@ -135,11 +144,14 @@ import { useRouter, useRoute } from 'vue-router'
 import { useVersionStore } from '@/stores/version'
 import { useFormulaStore } from '@/stores/formula'
 import { MessagePlugin } from 'tdesign-vue-next'
+import PageSkeleton from '@/components/Skeleton/PageSkeleton.vue'
 
 const router = useRouter()
 const route = useRoute()
 const versionStore = useVersionStore()
 const formulaStore = useFormulaStore()
+
+const initialized = ref(false)
 
 const formulaId = route.params.formulaId as string
 const formulaName = ref('')
@@ -154,7 +166,7 @@ const columns = [
   { colKey: 'changes', title: '版本变更', width: 320 },
   { colKey: 'status', title: '状态', width: 80 },
   { colKey: 'createdAt', title: '创建时间', width: 170 },
-  { colKey: 'operation', title: '操作', width: 160, fixed: 'right' }
+  { colKey: 'operation', title: '操作', width: 160 }
 ]
 
 const materialColumns = [
@@ -235,9 +247,14 @@ const handleViewSnapshot = (row: any) => {
 }
 
 onMounted(async () => {
-  fetchVersions()
-  const formula = await formulaStore.getFormula(formulaId)
-  if (formula) formulaName.value = formula.name
+  await Promise.all([
+    versionStore.fetchVersions(formulaId, statusFilter.value ? { status: statusFilter.value } : undefined),
+    (async () => {
+      const formula = await formulaStore.getFormula(formulaId)
+      if (formula) formulaName.value = formula.name
+    })()
+  ])
+  initialized.value = true
 })
 </script>
 

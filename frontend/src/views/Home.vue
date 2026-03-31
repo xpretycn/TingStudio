@@ -101,6 +101,32 @@
         </div>
       </div>
 
+      <!-- 新用户引导卡片 -->
+      <div v-if="showGuideCard" class="sidebar-guide">
+        <div class="guide-header">
+          <span class="guide-icon">🚀</span>
+          <span class="guide-title">快速开始</span>
+          <span class="guide-close" @click="dismissGuide">&times;</span>
+        </div>
+        <div class="guide-steps">
+          <div
+            v-for="(step, index) in guideSteps"
+            :key="index"
+            class="guide-step"
+            :class="{ active: guideStep === index, done: guideStep > index }"
+            @click="handleGuideStep(index)"
+          >
+            <div class="step-number">{{ guideStep > index ? '✓' : index + 1 }}</div>
+            <span class="step-text">{{ step.label }}</span>
+            <svg class="step-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
+          </div>
+        </div>
+        <div class="guide-action">
+          <t-button theme="primary" size="small" @click="handleStartGuide">
+            <template #icon><t-icon name="chevron-right" /></template>开始引导
+          </t-button>
+        </div>
+      </div>
     </div>
 
     <!-- 右侧内容展示区 -->
@@ -240,15 +266,34 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { usePaginationStore } from '@/stores/pagination'
+import { useFormulaStore } from '@/stores/formula'
+import { useMaterialStore } from '@/stores/material'
+import { useSalesmanStore } from '@/stores/salesman'
 import { MessagePlugin } from 'tdesign-vue-next'
 
 const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
 const paginationStore = usePaginationStore()
+const formulaStore = useFormulaStore()
+const materialStore = useMaterialStore()
+const salesmanStore = useSalesmanStore()
 
 const navExpanded = ref(true)
-const activePath = computed(() => route.path)
+const activePath = computed(() => {
+  const path = route.path
+  // 按最长前缀匹配，优先精确匹配，再按路径段前缀匹配
+  const pathMap = [
+    '/recent-formulas', '/formulas', '/materials', '/salesmen',
+    '/exports', '/nutrition', '/tools'
+  ]
+  for (const key of pathMap) {
+    if (path === key || path.startsWith(key + '/')) return key
+  }
+  // /versions/* 归属配方管理
+  if (path.includes('/versions')) return '/formulas'
+  return path
+})
 const searchKeyword = ref('')
 const contentBodyRef = ref<HTMLElement | null>(null)
 
@@ -454,6 +499,36 @@ const handleLogout = () => {
 // 处理锁屏
 const handleLock = () => {
   MessagePlugin.info('锁屏功能开发中')
+}
+
+// ─── 新用户引导 ───
+const GUIDE_DISMISSED_KEY = 'ting-guide-dismissed'
+const guideStep = ref(0)
+const guideSteps = [
+  { label: '录入原料库', path: '/materials' },
+  { label: '创建配方', path: '/formulas/new' },
+  { label: '分析营养成分', path: '/nutrition' },
+]
+
+const showGuideCard = computed(() => {
+  if (localStorage.getItem(GUIDE_DISMISSED_KEY)) return false
+  return formulaStore.formulas.length === 0 &&
+    materialStore.materials.length === 0 &&
+    salesmanStore.salesmen.length === 0
+})
+
+const dismissGuide = () => {
+  localStorage.setItem(GUIDE_DISMISSED_KEY, '1')
+  guideStep.value = 0
+}
+
+const handleGuideStep = (index: number) => {
+  router.push(guideSteps[index].path)
+  guideStep.value = index + 1
+}
+
+const handleStartGuide = () => {
+  handleGuideStep(0)
 }
 
 // 更新日期信息
@@ -872,6 +947,132 @@ $sidebar-w: 300px;
         transition: all 0.3s;
         svg { width: 12px; height: 12px; }
       }
+    }
+  }
+}
+
+// ─── 新用户引导卡片 ───
+.sidebar-guide {
+  flex-shrink: 0;
+  margin: 0 18px 16px;
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  border-radius: 14px;
+  border: 1.5px solid rgba(255, 181, 200, 0.25);
+  box-shadow: 0 4px 16px rgba(255, 143, 171, 0.1);
+
+  .guide-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+
+    .guide-icon { font-size: 18px; }
+    .guide-title {
+      flex: 1;
+      font-size: 13px;
+      font-weight: 700;
+      color: $text-main;
+    }
+    .guide-close {
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      font-size: 14px;
+      color: $text-sub;
+      cursor: pointer;
+      transition: all 0.2s;
+
+      &:hover {
+        background: rgba(255, 143, 171, 0.15);
+        color: $pink-500;
+      }
+    }
+  }
+
+  .guide-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 12px;
+
+    .guide-step {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: 1px solid transparent;
+
+      &:hover {
+        background: rgba(255, 240, 243, 0.6);
+        border-color: $pink-200;
+      }
+
+      &.active {
+        background: linear-gradient(135deg, $pink-300, $pink-400);
+        .step-number { background: white; color: $pink-500; }
+        .step-text { color: white; font-weight: 600; }
+        .step-arrow { color: white; }
+      }
+
+      &.done .step-number {
+        background: #52C41A;
+        color: white;
+      }
+
+      .step-number {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: $pink-100;
+        color: $pink-500;
+        font-size: 11px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+
+      .step-text {
+        flex: 1;
+        font-size: 12px;
+        color: $text-main;
+        font-weight: 500;
+      }
+
+      .step-arrow {
+        color: $text-sub;
+        flex-shrink: 0;
+      }
+    }
+  }
+
+  .guide-action {
+    :deep(.t-button--theme-primary) {
+      background: linear-gradient(135deg, $pink-400, $pink-500) !important;
+      border: none !important;
+      color: white !important;
+      width: 100%;
+      height: 32px !important;
+      border-radius: 10px !important;
+      font-size: 12px !important;
+      font-weight: 600 !important;
+
+      &:hover {
+        background: linear-gradient(135deg, $pink-300, $pink-400) !important;
+        transform: translateY(-1px);
+      }
+
+      .t-button__text { color: white !important; }
+      .t-button__icon { color: white !important; }
     }
   }
 }

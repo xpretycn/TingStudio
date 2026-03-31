@@ -62,9 +62,8 @@ export const useVersionStore = defineStore('version', () => {
     loading.value = true
     try {
       const res = await versionApi.compare(formulaId, versionA, versionB)
-      const data = res?.data || null
-      compareResult.value = data
-      return { success: true, data }
+      compareResult.value = res || null
+      return { success: true, data: res || null }
     } catch (error: any) {
       compareResult.value = null
       return { success: false, message: error.message || '版本对比失败' }

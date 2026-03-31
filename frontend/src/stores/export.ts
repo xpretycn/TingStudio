@@ -62,7 +62,7 @@ export const useExportStore = defineStore('export', () => {
     loading.value = true
     try {
       const res = await exportApi.createJob(data)
-      return { success: true, data: res.data }
+      return { success: true, data: res }
     } catch (error: any) {
       return { success: false, message: error.message || '创建导出任务失败' }
     } finally {
@@ -128,8 +128,8 @@ export const useExportStore = defineStore('export', () => {
   // ===== 分享 =====
   const createShare = async (data: { formulaId: string; versionId?: string; shareType?: string; password?: string; expireDate?: string; downloadLimit?: number }) => {
     try {
-      await exportApi.createShare(data)
-      return { success: true }
+      const res = await exportApi.createShare(data)
+      return { success: true, data: res }
     } catch (error: any) {
       return { success: false, message: error.message || '创建分享失败' }
     }

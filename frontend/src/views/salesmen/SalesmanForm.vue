@@ -68,26 +68,27 @@ const emailValidator = (val: string) => {
 
 const rules: Record<string, FormRule[]> = {
   name: [
-    { required: true, message: '请输入姓名' },
-    { min: 2, max: 20, message: '姓名需 2-20 个字符' },
+    { required: true, message: '请输入姓名', trigger: 'blur' },
+    { min: 2, max: 20, message: '姓名需 2-20 个字符', trigger: 'blur' },
   ],
   code: [
-    { required: true, message: '请输入工号' },
-    { pattern: /^[A-Za-z0-9_-]+$/, message: '工号只能包含字母、数字、下划线和横线' },
+    { required: true, message: '请输入工号', trigger: 'blur' },
+    { pattern: /^[A-Za-z0-9_-]+$/, message: '工号只能包含字母、数字、下划线和横线', trigger: 'blur' },
   ],
   department: [
-    { max: 50, message: '部门名称不超过 50 个字符' },
+    { max: 50, message: '部门名称不超过 50 个字符', trigger: 'blur' },
   ],
   phone: [
-    { validator: phoneValidator, message: '请输入正确的 11 位手机号（如 13800138000）' },
+    { validator: phoneValidator, message: '请输入正确的 11 位手机号（如 13800138000）', trigger: 'blur' },
   ],
   email: [
-    { validator: emailValidator, message: '请输入正确的邮箱地址（如 user@example.com）' },
+    { validator: emailValidator, message: '请输入正确的邮箱地址（如 user@example.com）', trigger: 'blur' },
   ],
 }
 
 const handleSubmit = async ({ validateResult }: any) => {
   if (validateResult === true) {
+    if (loading.value) return
     loading.value = true
     try {
       const id = route.params.id as string

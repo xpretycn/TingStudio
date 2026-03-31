@@ -51,6 +51,7 @@
           size="small"
           bordered
           stripe
+          table-layout="auto"
         >
           <template #ratio="{ row }">
             <template v-if="typeof row.ratio === 'number'">{{ (row.ratio * 100).toFixed(2) }}%</template>
@@ -84,6 +85,7 @@
           size="small"
           bordered
           stripe
+          table-layout="auto"
         >
           <template #nrvPercent="{ row }">
             {{ row.nrvPercent.toFixed(2) }}

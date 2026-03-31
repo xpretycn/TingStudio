@@ -196,6 +196,21 @@ body {
   }
 }
 
+// Form validation styles
+::v-deep(.t-form-item__required-icon) {
+  color: #E34D59 !important;
+}
+
+::v-deep(.t-form__item.t-is-error) {
+  .t-input,
+  .t-textarea,
+  .t-select .t-input,
+  .t-input-number {
+    border-color: #E34D59 !important;
+    box-shadow: 0 0 0 2px rgba(227, 77, 89, 0.12) !important;
+  }
+}
+
 // Dialog
 ::v-deep(.t-dialog) {
   border-radius: 16px !important;

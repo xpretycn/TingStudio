@@ -18,6 +18,7 @@
         :data="formData"
         :rules="rules"
         label-width="100px"
+        scroll-to-first-error
         @submit="handleSubmit"
       >
         <t-form-item label="配方名称" name="name">
@@ -270,37 +271,35 @@ const validateMaterials = (value: MaterialItem[]) => {
   return value.length > 0
 }
 
+const validateRatioFactor = (val: number) => val >= 0.15 && val <= 0.25
+
+const validateSupplementRatio = (val: number) => val >= 0.5 && val <= 1.5
+
 const rules: Record<string, FormRule[]> = {
   name: [
-    { required: true, message: '请输入配方名称' },
-    { min: 2, message: '配方名称至少2个字符' }
+    { required: true, message: '请输入配方名称', trigger: 'blur' },
+    { min: 2, message: '配方名称至少2个字符', trigger: 'blur' },
   ],
-  salesmanId: [{ required: true, message: '请选择所属业务员' }],
-  finishedWeight: [{ required: true, message: '请输入成品重量' }],
+  salesmanId: [{ required: true, message: '请选择所属业务员', trigger: 'change' }],
+  finishedWeight: [
+    { required: true, message: '请输入成品重量', trigger: 'blur' },
+  ],
   ratioFactor: [
-    { required: true, message: '请输入主料含量比系数' },
-    {
-      validator: (val: number) => val >= 0.15 && val <= 0.25,
-      message: '主料含量比系数范围为0.15-0.25'
-    }
+    { required: true, message: '请输入主料含量比系数', trigger: 'blur' },
+    { validator: validateRatioFactor, message: '主料含量比系数范围为0.15-0.25', trigger: 'blur' },
   ],
   supplementRatioFactor: [
-    { required: true, message: '请输入辅料含量比系数' },
-    {
-      validator: (val: number) => val >= 0.5 && val <= 1.5,
-      message: '辅料含量比系数范围为0.5-1.5'
-    }
+    { required: true, message: '请输入辅料含量比系数', trigger: 'blur' },
+    { validator: validateSupplementRatio, message: '辅料含量比系数范围为0.5-1.5', trigger: 'blur' },
   ],
   materials: [
-    { validator: validateMaterials, message: '请至少添加一种原料' },
+    { validator: validateMaterials, message: '请至少添加一种原料', trigger: 'change' },
     {
-      validator: (value: MaterialItem[]) => {
-        return value.every(item => item.materialId && item.quantity > 0)
-      },
-      message: '请完整填写所有原料信息'
-    }
+      validator: (value: MaterialItem[]) => value.every(item => item.materialId && item.quantity > 0),
+      message: '请完整填写所有原料信息', trigger: 'change',
+    },
   ],
-  versionReason: [{ required: true, message: '请填写升版原因' }]
+  versionReason: [{ required: true, message: '请填写升版原因', trigger: 'blur' }],
 }
 
 const addMaterial = () => {
@@ -349,6 +348,7 @@ const handleExcelImport = (materials: ParsedMaterial[]) => {
 
 const handleSubmit = async ({ validateResult }: any) => {
   if (validateResult === true) {
+    if (loading.value) return
     loading.value = true
     try {
       const id = route.params.id as string

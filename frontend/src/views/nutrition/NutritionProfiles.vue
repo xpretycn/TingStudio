@@ -1,6 +1,7 @@
 <template>
   <div class="nutrition-profiles">
-    <t-card class="content-card" bordered>
+    <PageSkeleton v-if="!initialized" type="table" :rows="5" :columns="5" />
+    <t-card v-else class="content-card" bordered>
       <template #actions>
         <t-button theme="primary" size="large" @click="showDialog = true; resetForm()">
           <template #icon><t-icon name="add" /></template>新增营养标准
@@ -35,6 +36,7 @@
         row-key="profileId"
         hover
         stripe
+        table-layout="auto"
       >
         <template #empty><t-empty description="暂无营养标准" /></template>
         <template #category="{ row }">
@@ -127,8 +129,11 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useNutritionStore } from '@/stores/nutrition'
 import { MessagePlugin, Dialog } from 'tdesign-vue-next'
 import type { NutritionProfile } from '@/api/nutrition'
+import PageSkeleton from '@/components/Skeleton/PageSkeleton.vue'
 
 const nutritionStore = useNutritionStore()
+
+const initialized = ref(false)
 
 const filterForm = reactive({ category: '' })
 const showDialog = ref(false)
@@ -156,7 +161,7 @@ const columns = [
   { colKey: 'isPreset', title: '预置', width: 80 },
   { colKey: 'targetCount', title: '指标数量', width: 120 },
   { colKey: 'createdAt', title: '创建时间', width: 180 },
-  { colKey: 'operation', title: '操作', width: 240, fixed: 'right' as const }
+  { colKey: 'operation', title: '操作', width: 240 }
 ]
 
 const targetDetailColumns = [
@@ -291,7 +296,10 @@ const handleViewDetail = (row: NutritionProfile) => {
   detailVisible.value = true
 }
 
-onMounted(() => { nutritionStore.fetchProfiles() })
+onMounted(async () => {
+  await nutritionStore.fetchProfiles()
+  initialized.value = true
+})
 </script>
 
 <style scoped lang="scss">

@@ -1,5 +1,7 @@
 <template>
   <div class="nutrition-analysis">
+    <PageSkeleton v-if="!initialized" type="cards" :rows="3" />
+    <div v-else>
     <!-- 选择器区域 -->
     <t-card class="content-card" bordered>
       <template #header>
@@ -185,63 +187,74 @@
           </template>
         </t-table>
       </div>
+    </t-card>
 
-      <!-- 合规检查结果 -->
-      <div v-if="nutritionStore.complianceResult" class="compliance-section">
-        <h4 class="section-title">
-          <t-icon name="check-circle" size="18px" />
+    <!-- 合规检查结果（独立 card，避免嵌套条件渲染问题） -->
+    <t-card v-if="nutritionStore.complianceResult && nutritionStore.formulaNutrition" class="content-card" bordered style="margin-top: 16px;">
+      <template #header>
+        <div class="section-header">
           <span>合规检查结果</span>
-        </h4>
-        <!-- 7.3.3 汇总统计展示 -->
-        <div class="compliance-summary">
-          <div class="summary-item pass">
-            <div class="summary-icon">🟢</div>
-            <div class="summary-content">
-              <span class="summary-count">{{ nutritionStore.complianceResult.summary?.passed || 0 }}</span>
-              <span class="summary-label">达标</span>
-            </div>
-          </div>
-          <div class="summary-item warning">
-            <div class="summary-icon">🟡</div>
-            <div class="summary-content">
-              <span class="summary-count">{{ nutritionStore.complianceResult.summary?.warnings || 0 }}</span>
-              <span class="summary-label">警告</span>
-            </div>
-          </div>
-          <div class="summary-item fail">
-            <div class="summary-icon">🔴</div>
-            <div class="summary-content">
-              <span class="summary-count">{{ nutritionStore.complianceResult.summary?.failed || 0 }}</span>
-              <span class="summary-label">超标</span>
-            </div>
+          <t-tag :theme="nutritionStore.complianceResult.summary?.failed === 0 ? 'success' : 'warning'" variant="light" size="medium">
+            <template #icon><t-icon name="check-circle" /></template>检查完成
+          </t-tag>
+        </div>
+      </template>
+      <!-- 7.3.3 汇总统计展示 -->
+      <div class="compliance-summary">
+        <div class="summary-item pass">
+          <div class="summary-icon">🟢</div>
+          <div class="summary-content">
+            <span class="summary-count">{{ nutritionStore.complianceResult.summary?.passed || 0 }}</span>
+            <span class="summary-label">达标</span>
           </div>
         </div>
-        <t-alert
-          :theme="nutritionStore.complianceResult.summary?.failed === 0 ? 'success' : 'warning'"
-          :message="nutritionStore.complianceResult.summary?.failed === 0 ? '配方符合所选营养标准要求' : `配方有 ${nutritionStore.complianceResult.summary?.failed} 项指标不达标`"
-          style="margin-bottom: 12px;"
-        />
-        <t-table
-          v-if="nutritionStore.complianceResult?.complianceCheck?.length"
-          :data="complianceDataList"
-          :columns="complianceColumns"
-          row-key="field"
-          size="small"
-          bordered
-        >
-          <template #status="{ row }">
-            <t-tag :theme="row.status === 'pass' ? 'success' : row.status === 'warning' ? 'warning' : 'danger'" variant="light">
-              {{ row.status === 'pass' ? '达标' : row.status === 'warning' ? '警告' : '超标' }}
-            </t-tag>
-          </template>
-        </t-table>
+        <div class="summary-item warning">
+          <div class="summary-icon">🟡</div>
+          <div class="summary-content">
+            <span class="summary-count">{{ nutritionStore.complianceResult.summary?.warnings || 0 }}</span>
+            <span class="summary-label">警告</span>
+          </div>
+        </div>
+        <div class="summary-item fail">
+          <div class="summary-icon">🔴</div>
+          <div class="summary-content">
+            <span class="summary-count">{{ nutritionStore.complianceResult.summary?.failed || 0 }}</span>
+            <span class="summary-label">超标</span>
+          </div>
+        </div>
       </div>
+      <t-alert
+        :theme="nutritionStore.complianceResult.summary?.failed === 0 ? 'success' : 'warning'"
+        :message="nutritionStore.complianceResult.summary?.failed === 0 ? '配方符合所选营养标准要求' : `配方有 ${nutritionStore.complianceResult.summary?.failed} 项指标不达标`"
+        style="margin-bottom: 12px;"
+      />
+      <t-table
+        v-if="nutritionStore.complianceResult?.complianceCheck?.length"
+        :data="complianceDataList"
+        :columns="complianceColumns"
+        row-key="field"
+        size="small"
+        bordered
+      >
+        <template #status="{ row }">
+          <t-tag :theme="row.status === 'pass' ? 'success' : row.status === 'warning' ? 'warning' : 'danger'" variant="light">
+            {{ row.status === 'pass' ? '达标' : row.status === 'warning' ? '警告' : '超标' }}
+          </t-tag>
+        </template>
+      </t-table>
     </t-card>
 
     <!-- 空状态 -->
-    <t-card v-else class="content-card empty-card" bordered style="margin-top: 16px;">
-      <t-empty description="请选择一个配方进行营养分析" />
+    <t-card v-else-if="!nutritionStore.formulaNutrition || !analysisForm.formulaId" class="content-card empty-card" bordered style="margin-top: 16px;">
+      <t-empty description="请选择一个配方进行营养分析">
+        <template #action>
+          <t-button theme="primary" @click="$router.push('/formulas')">
+            <template #icon><t-icon name="chart" /></template>前往配方管理
+          </t-button>
+        </template>
+      </t-empty>
     </t-card>
+    </div>
   </div>
 </template>
 
@@ -250,9 +263,12 @@ import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useFormulaStore } from '@/stores/formula'
 import { useNutritionStore } from '@/stores/nutrition'
 import { MessagePlugin } from 'tdesign-vue-next'
+import PageSkeleton from '@/components/Skeleton/PageSkeleton.vue'
 
 const formulaStore = useFormulaStore()
 const nutritionStore = useNutritionStore()
+
+const initialized = ref(false)
 
 const analysisForm = reactive({ formulaId: '', profileId: '' })
 const analyzing = ref(false)
@@ -461,12 +477,15 @@ const handleAnalyze = async () => {
 const handleCheckCompliance = async () => {
   if (!analysisForm.formulaId) return
   checking.value = true
+  nutritionStore.complianceResult = null
   const result = await nutritionStore.checkCompliance(
     analysisForm.formulaId,
     analysisForm.profileId || undefined
   )
   checking.value = false
-  if (!result.success) MessagePlugin.error(result.message || '合规检查失败')
+  if (!result.success) {
+    MessagePlugin.error(result.message || '合规检查失败')
+  }
 }
 
 // 监听配方选择变化，当取消选择或切换时清除计算结果
@@ -486,6 +505,7 @@ onMounted(async () => {
     formulaStore.fetchFormulas(),
     nutritionStore.fetchProfiles()
   ])
+  initialized.value = true
 })
 </script>
 

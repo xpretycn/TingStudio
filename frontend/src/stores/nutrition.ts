@@ -40,8 +40,8 @@ export const useNutritionStore = defineStore('nutrition', () => {
     loading.value = true
     try {
       const res = await nutritionApi.calculateFormulaNutrition(formulaId)
-      formulaNutrition.value = res.data
-      return { success: true, data: res.data }
+      formulaNutrition.value = res
+      return { success: true, data: res }
     } catch (error: any) {
       return { success: false, message: error.message || '计算营养成分失败' }
     } finally {
@@ -53,7 +53,7 @@ export const useNutritionStore = defineStore('nutrition', () => {
     loading.value = true
     try {
       const res = await nutritionApi.getProfiles(params)
-      profiles.value = res.data
+      profiles.value = res
     } catch (error) {
       console.error('获取营养标准失败:', error)
     } finally {
@@ -95,10 +95,10 @@ export const useNutritionStore = defineStore('nutrition', () => {
     loading.value = true
     try {
       const res = await nutritionApi.checkCompliance(formulaId, profileId)
-      // axios 拦截器已经提取了 res.data，所以这里直接存储即可
-      complianceResult.value = res.data
-      return { success: true, data: res.data }
+      complianceResult.value = res
+      return { success: true, data: res }
     } catch (error: any) {
+      console.error('[Store] complianceCheck 失败:', error)
       return { success: false, message: error.message || '合规检查失败' }
     } finally {
       loading.value = false

@@ -1,6 +1,7 @@
 <template>
   <div class="material-detail">
-    <t-card bordered v-if="material">
+    <PageSkeleton v-if="!material" type="detail" />
+    <t-card v-else bordered>
       <template #header>
         <div class="detail-header">
           <div class="header-left">
@@ -59,16 +60,19 @@
         <div v-if="nutritionLoading" style="text-align: center; padding: 24px;">
           <t-loading />
         </div>
-        <t-table
-          v-else-if="nutritionData.length"
-          :data="nutritionData"
-          :columns="nutritionColumns"
-          row-key="nutrient"
-          size="small"
-          bordered
-          stripe
-        />
-        <t-empty v-else description="暂无营养数据" />
+        <Transition name="fade" mode="out-in">
+          <t-table
+            v-if="!nutritionLoading && nutritionData.length"
+            :data="nutritionData"
+            :columns="nutritionColumns"
+            row-key="nutrient"
+            size="small"
+            bordered
+            table-layout="auto"
+            stripe
+          />
+          <t-empty v-else-if="!nutritionLoading" description="暂无营养数据" />
+        </Transition>
       </div>
     </t-card>
   </div>
@@ -79,6 +83,7 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useMaterialStore } from '@/stores/material'
 import { useNutritionStore } from '@/stores/nutrition'
+import PageSkeleton from '@/components/Skeleton/PageSkeleton.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -119,6 +124,9 @@ const nutritionColumns = [
   { colKey: 'unit', title: '单位', width: 100 },
 ]
 
+
+
+
 const handleBack = () => router.push('/materials')
 
 const loadData = async () => {
@@ -128,8 +136,8 @@ const loadData = async () => {
   nutritionLoading.value = true
   try {
     const res = await nutritionStore.getMaterialNutrition(id)
-    // axios 拦截器已经提取了 res.data，res 直接是营养数据对象
-    if (res.success && res.data?.per100g) {
+    // store 返回 { success: true, data: 营养数据对象 }
+    if (res?.success && res.data?.per100g) {
       nutritionData.value = Object.entries(res.data.per100g)
         .filter(([, value]) => value > 0)
         .map(([key, value]) => {
@@ -140,7 +148,6 @@ const loadData = async () => {
             unit,
           }
         })
-      // 加载元数据
       if (res.data.dataSource) nutritionMeta.dataSource = res.data.dataSource
       if (res.data.confidence) nutritionMeta.confidence = res.data.confidence
     }
@@ -155,6 +162,15 @@ onMounted(() => { loadData() })
 </script>
 
 <style scoped lang="scss">
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
 .material-detail {
   .detail-header {
     display: flex; align-items: center; justify-content: space-between; width: 100%;

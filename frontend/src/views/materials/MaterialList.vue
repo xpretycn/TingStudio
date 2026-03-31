@@ -1,6 +1,7 @@
 <template>
   <div class="material-list">
-    <t-card class="content-card" bordered>
+    <PageSkeleton v-if="!initialized" type="table" :rows="5" :columns="8" />
+    <t-card v-else class="content-card" bordered>
       <t-table
         :data="materialStore.materials"
         :columns="columns"
@@ -9,6 +10,7 @@
         row-key="id"
         hover
         stripe
+        table-layout="auto"
       >
         <template #stock="{ row }">
           {{ row.stock }} {{ row.unit }}
@@ -38,7 +40,13 @@
         </template>
 
         <template #empty>
-          <t-empty description="暂无原料数据" />
+          <t-empty description="暂无原料数据">
+            <template #action>
+              <t-button theme="primary" @click="handleCreate">
+                <template #icon><t-icon name="add" /></template>录入原料
+              </t-button>
+            </template>
+          </t-empty>
         </template>
 
         <template #operation="{ row }">
@@ -95,10 +103,13 @@ import { usePaginationStore } from '@/stores/pagination'
 import { nutritionApi } from '@/api/nutrition'
 import { MessagePlugin } from 'tdesign-vue-next'
 import type { Material } from '@/api/material'
+import PageSkeleton from '@/components/Skeleton/PageSkeleton.vue'
 
 const router = useRouter()
 const materialStore = useMaterialStore()
 const paginationStore = usePaginationStore()
+
+const initialized = ref(false)
 
 const searchForm = reactive({
   keyword: ''
@@ -117,7 +128,7 @@ const columns = [
   { colKey: 'stock', title: '库存', width: 90 },
   { colKey: 'nutrition', title: '营养', width: 90 },
   { colKey: 'createdAt', title: '创建时间', width: 150 },
-  { colKey: 'operation', title: '操作', width: 200, fixed: 'right' }
+  { colKey: 'operation', title: '操作', width: 200 }
 ]
 
 const pagination = computed(() => ({
@@ -141,6 +152,7 @@ onMounted(() => {
 // 加载原料列表并刷新营养状态
 const loadMaterials = async () => {
   await materialStore.fetchMaterials()
+  initialized.value = true
   loadNutritionStatus()
 }
 
