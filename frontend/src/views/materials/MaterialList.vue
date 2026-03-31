@@ -151,10 +151,11 @@ const loadNutritionStatus = async () => {
   const map: Record<string, string> = {}
   const promises = materials.map(async (m: Material) => {
     try {
-      // http 拦截器已解包 response.data，res 直接是 { success, data } 结构
+      // axios 拦截器已经提取了 res.data，res 直接是营养数据对象
       const res = await nutritionApi.getMaterialNutrition(m.id) as any
-      if (res?.success && res?.data?.per100g) {
-        const count = Object.keys(res.data.per100g).filter(k => res.data.per100g[k] > 0).length
+      // res 的结构：{ per100g: {...}, dataSource?: string, notes?: string }
+      if (res?.per100g) {
+        const count = Object.keys(res.per100g).filter(k => res.per100g[k] > 0).length
         if (count > 0) map[m.id] = `${count}`
       }
     } catch { /* no data */ }

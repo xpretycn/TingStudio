@@ -65,7 +65,8 @@ export interface ApiInterface {
 
 export const exportApi = {
   getTemplates(params?: { type?: string }) {
-    return http.get<any, { success: boolean; data: ExportTemplate[] }>('/exports/templates', { params })
+    // axios 拦截器会提取 res.data，所以这里直接返回内部的数据结构
+    return http.get<any, ExportTemplate[]>('/exports/templates', { params })
   },
   createTemplate(data: { name: string; description?: string; type: string; formatConfig: any; isDefault?: boolean }) {
     return http.post<any, { success: boolean; message: string; data: { templateId: string } }>('/exports/templates', data)
@@ -80,10 +81,11 @@ export const exportApi = {
     return http.post<any, { success: boolean; message: string; data: { jobId: string; status: string; fileName?: string; errorMessage?: string } }>('/exports/jobs', data)
   },
   getJobs(params?: { status?: string; page?: number; pageSize?: number }) {
-    return http.get<any, { success: boolean; data: { list: ExportJob[]; pagination: any } }>('/exports/jobs', { params })
+    // axios 拦截器会提取 res.data，所以这里直接返回内部的数据结构
+    return http.get<any, { list: ExportJob[]; pagination: any }>('/exports/jobs', { params })
   },
   getJob(jobId: string) {
-    return http.get<any, { success: boolean; data: ExportJob }>(`/exports/jobs/${jobId}`)
+    return http.get<any, ExportJob>(`/exports/jobs/${jobId}`)
   },
   retryJob(jobId: string) {
     return http.post<any, { success: boolean; message: string; data: { jobId: string; status: string } }>(`/exports/jobs/${jobId}/retry`)
@@ -99,13 +101,15 @@ export const exportApi = {
     return http.post<any, { success: boolean; message: string; data: { shareId: string; shareUrl: string } }>('/exports/share', data)
   },
   getShares() {
-    return http.get<any, { success: boolean; data: ShareItem[] }>('/exports/shares')
+    // axios 拦截器会提取 res.data，所以这里直接返回内部的数据结构
+    return http.get<any, ShareItem[]>('/exports/shares')
   },
   deleteShare(shareId: string) {
-    return http.delete<any, { success: boolean; message: string }>(`/exports/share/${shareId}`)
+    return http.delete<any, { message: string }>(`/exports/share/${shareId}`)
   },
   getApiInterfaces() {
-    return http.get<any, { success: boolean; data: ApiInterface[] }>('/exports/api-interfaces')
+    // axios 拦截器会提取 res.data，所以这里直接返回内部的数据结构
+    return http.get<any, ApiInterface[]>('/exports/api-interfaces')
   },
   createApiInterface(data: any) {
     return http.post<any, { success: boolean; message: string; data: { interfaceId: string } }>('/exports/api-interfaces', data)

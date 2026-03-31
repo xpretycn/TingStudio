@@ -26,7 +26,8 @@ http.interceptors.response.use(
       MessagePlugin.error(res.message || '请求失败')
       return Promise.reject(new Error(res.message))
     }
-    return res
+    // 返回实际的 data 字段，而不是整个响应对象
+    return res.data
   },
   (error) => {
     const msg = error.response?.data?.message || error.message || '网络错误'

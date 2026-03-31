@@ -20,7 +20,8 @@ export const useAuthStore = defineStore('auth', () => {
     loading.value = true
     try {
       const res = await authApi.login(params)
-      const { user: userInfo, token } = res.data
+      // axios 拦截器已经提取了 res.data，所以这里直接使用 res
+      const { user: userInfo, token } = res
       user.value = userInfo
       saveAuthData(userInfo, token)
       return { success: true }
@@ -35,7 +36,8 @@ export const useAuthStore = defineStore('auth', () => {
     loading.value = true
     try {
       const res = await authApi.register(params)
-      const { user: userInfo, token } = res.data
+      // axios 拦截器已经提取了 res.data，所以这里直接使用 res
+      const { user: userInfo, token } = res
       user.value = userInfo
       saveAuthData(userInfo, token)
       return { success: true }

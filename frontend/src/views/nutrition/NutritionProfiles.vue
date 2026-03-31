@@ -43,16 +43,28 @@
         <template #targetCount="{ row }">
           <t-tag theme="primary" variant="light">{{ Object.keys(row.targetValues || {}).length }} 项指标</t-tag>
         </template>
+        <template #isPreset="{ row }">
+          <t-tag v-if="row.isPreset" theme="warning" variant="light" size="small">预置</t-tag>
+          <span v-else>-</span>
+        </template>
         <template #operation="{ row }">
-          <t-button variant="text" theme="primary" size="small" @click="handleViewDetail(row)">
-            <template #icon><t-icon name="browse" /></template>详情
-          </t-button>
+          <t-space>
+            <t-button variant="text" theme="primary" size="small" @click="handleViewDetail(row)">
+              <template #icon><t-icon name="browse" /></template>详情
+            </t-button>
+            <t-button variant="text" theme="success" size="small" @click="handleEdit(row)" :disabled="row.isPreset">
+              <template #icon><t-icon name="edit" /></template>编辑
+            </t-button>
+            <t-button variant="text" theme="danger" size="small" @click="handleDelete(row)" :disabled="row.isPreset">
+              <template #icon><t-icon name="delete" /></template>删除
+            </t-button>
+          </t-space>
         </template>
       </t-table>
     </t-card>
 
     <!-- 新增营养标准弹窗 -->
-    <t-dialog v-model:visible="showDialog" header="新增营养标准" width="600px" @confirm="handleCreate">
+    <t-dialog v-model:visible="showDialog" :header="isEditMode ? '编辑营养标准' : '新增营养标准'" width="600px" @confirm="handleSave">
       <t-form :data="profileForm" label-width="100px">
         <t-form-item label="标准名称">
           <t-input v-model="profileForm.name" placeholder="例如：GB 10765 婴幼儿配方" />
@@ -113,7 +125,7 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useNutritionStore } from '@/stores/nutrition'
-import { MessagePlugin } from 'tdesign-vue-next'
+import { MessagePlugin, Dialog } from 'tdesign-vue-next'
 import type { NutritionProfile } from '@/api/nutrition'
 
 const nutritionStore = useNutritionStore()
@@ -121,6 +133,8 @@ const nutritionStore = useNutritionStore()
 const filterForm = reactive({ category: '' })
 const showDialog = ref(false)
 const detailVisible = ref(false)
+const isEditMode = ref(false)
+const editingProfileId = ref('')
 const currentProfile = ref<NutritionProfile | null>(null)
 
 const profileForm = reactive({
@@ -139,9 +153,10 @@ const categoryTheme = (c: string) => c === 'infant' ? 'warning' : c === 'adult' 
 const columns = [
   { colKey: 'name', title: '标准名称', width: 200 },
   { colKey: 'category', title: '适用类别', width: 120 },
+  { colKey: 'isPreset', title: '预置', width: 80 },
   { colKey: 'targetCount', title: '指标数量', width: 120 },
   { colKey: 'createdAt', title: '创建时间', width: 180 },
-  { colKey: 'operation', title: '操作', width: 100, fixed: 'right' as const }
+  { colKey: 'operation', title: '操作', width: 240, fixed: 'right' as const }
 ]
 
 const targetDetailColumns = [
@@ -206,6 +221,68 @@ const handleCreate = async () => {
     showDialog.value = false
   } else {
     MessagePlugin.error(result.message || '创建失败')
+  }
+}
+
+const handleEdit = (row: NutritionProfile) => {
+  isEditMode.value = true
+  editingProfileId.value = row.profileId
+  profileForm.name = row.name
+  profileForm.category = row.category
+  profileForm.description = row.description || ''
+  profileForm.targetValues = { ...row.targetValues }
+  showDialog.value = true
+}
+
+const handleSave = async () => {
+  if (!profileForm.name) { MessagePlugin.warning('请输入标准名称'); return }
+  if (!Object.keys(profileForm.targetValues).length) { MessagePlugin.warning('请至少添加一项营养指标'); return }
+  
+  let result
+  if (isEditMode.value && editingProfileId.value) {
+    result = await nutritionStore.updateProfile(editingProfileId.value, {
+      name: profileForm.name,
+      category: profileForm.category,
+      description: profileForm.description || undefined,
+      targetValues: profileForm.targetValues
+    })
+  } else {
+    result = await nutritionStore.createProfile({
+      name: profileForm.name,
+      category: profileForm.category,
+      description: profileForm.description || undefined,
+      targetValues: profileForm.targetValues
+    })
+  }
+  
+  if (result.success) {
+    MessagePlugin.success(isEditMode.value ? '更新成功' : '创建成功')
+    showDialog.value = false
+  } else {
+    MessagePlugin.error(result.message || (isEditMode.value ? '更新失败' : '创建失败'))
+  }
+}
+
+const handleDelete = async (row: NutritionProfile) => {
+  if (row.isPreset) {
+    MessagePlugin.warning('预置营养标准不可删除')
+    return
+  }
+  
+  const confirmed = await Dialog.confirm({
+    header: '确认删除',
+    content: `确定要删除营养标准"${row.name}"吗？`,
+    confirmBtn: { theme: 'danger', content: '确定' },
+    cancelBtn: { theme: 'default', content: '取消' },
+  })
+  
+  if (confirmed) {
+    const result = await nutritionStore.deleteProfile(row.profileId)
+    if (result.success) {
+      MessagePlugin.success('删除成功')
+    } else {
+      MessagePlugin.error(result.message || '删除失败')
+    }
   }
 }
 

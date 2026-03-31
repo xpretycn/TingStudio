@@ -39,7 +39,23 @@
       </t-descriptions>
 
       <div class="nutrition-section">
-        <h4>营养成分（每100g）</h4>
+        <div class="nutrition-header">
+          <h4>营养成分（每100g）</h4>
+          <div v-if="nutritionMeta.dataSource" class="nutrition-meta">
+            <t-tag theme="default" variant="light" size="small">
+              <template #icon><t-icon name="books" /></template>
+              {{ nutritionMeta.dataSource }}
+            </t-tag>
+            <t-tag
+              :theme="confidenceTheme"
+              variant="light"
+              size="small"
+            >
+              <template #icon><t-icon name="checked" /></template>
+              {{ confidenceLabel }}
+            </t-tag>
+          </div>
+        </div>
         <div v-if="nutritionLoading" style="text-align: center; padding: 24px;">
           <t-loading />
         </div>
@@ -59,7 +75,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useMaterialStore } from '@/stores/material'
 import { useNutritionStore } from '@/stores/nutrition'
@@ -72,6 +88,19 @@ const nutritionStore = useNutritionStore()
 const material = ref<any>(null)
 const nutritionLoading = ref(false)
 const nutritionData = ref<any[]>([])
+const nutritionMeta = reactive({
+  dataSource: '',
+  confidence: 'medium' as 'high' | 'medium' | 'low',
+})
+
+const confidenceMap: Record<string, { label: string; theme: 'success' | 'warning' | 'default' }> = {
+  high: { label: '高可信度', theme: 'success' },
+  medium: { label: '中可信度', theme: 'warning' },
+  low: { label: '低可信度', theme: 'default' },
+}
+
+const confidenceLabel = computed(() => confidenceMap[nutritionMeta.confidence]?.label || '中可信度')
+const confidenceTheme = computed(() => confidenceMap[nutritionMeta.confidence]?.theme || 'warning')
 
 const nutrientInfoMap: Record<string, [string, string]> = {
   energy: ['能量', 'kcal'], protein: ['蛋白质', 'g'], fat: ['脂肪', 'g'], carbohydrate: ['碳水化合物', 'g'],
@@ -99,6 +128,7 @@ const loadData = async () => {
   nutritionLoading.value = true
   try {
     const res = await nutritionStore.getMaterialNutrition(id)
+    // axios 拦截器已经提取了 res.data，res 直接是营养数据对象
     if (res.success && res.data?.per100g) {
       nutritionData.value = Object.entries(res.data.per100g)
         .filter(([, value]) => value > 0)
@@ -110,6 +140,9 @@ const loadData = async () => {
             unit,
           }
         })
+      // 加载元数据
+      if (res.data.dataSource) nutritionMeta.dataSource = res.data.dataSource
+      if (res.data.confidence) nutritionMeta.confidence = res.data.confidence
     }
   } catch {
     // 营养数据获取失败不阻塞页面展示
@@ -132,8 +165,15 @@ onMounted(() => { loadData() })
   .nutrition-section {
     margin-top: 20px;
 
+    .nutrition-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
     h4 {
-      margin: 0 0 12px 0;
+      margin: 0;
       font-size: 15px;
       font-weight: 600;
       color: #5D4E60;
@@ -149,6 +189,12 @@ onMounted(() => { loadData() })
         background: linear-gradient(135deg, #FF8FAB, #FF6B8A);
         border-radius: 2px;
       }
+    }
+
+    .nutrition-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
   }
 }

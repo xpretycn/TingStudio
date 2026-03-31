@@ -13,7 +13,8 @@ export const useVersionStore = defineStore('version', () => {
     loading.value = true
     try {
       const res = await versionApi.getList(formulaId, params)
-      versions.value = res?.data || []
+      // axios 拦截器已经提取了 res.data，所以这里直接使用 res
+      versions.value = res || []
     } catch (error) {
       console.error('获取版本列表失败:', error)
       versions.value = []
@@ -25,7 +26,8 @@ export const useVersionStore = defineStore('version', () => {
   const getVersion = async (versionId: string): Promise<FormulaVersion | null> => {
     try {
       const res = await versionApi.getById(versionId)
-      return res.data
+      // axios 拦截器已经提取了 res.data，所以这里直接使用 res
+      return res
     } catch {
       return null
     }
@@ -36,7 +38,7 @@ export const useVersionStore = defineStore('version', () => {
     try {
       const res = await versionApi.create(formulaId, data)
       await fetchVersions(formulaId)
-      return { success: true, data: res?.data || null }
+      return { success: true, data: res || null }
     } catch (error: any) {
       return { success: false, message: error.message || '创建版本失败', data: null }
     } finally {

@@ -17,18 +17,19 @@ export interface FormulaVersion {
 
 export const versionApi = {
   getList(formulaId: string, params?: { status?: string }) {
-    return http.get<any, { success: boolean; data: FormulaVersion[] }>(`/versions/formula/${formulaId}`, { params })
+    // axios 拦截器会提取 res.data，所以这里直接返回内部的数据结构
+    return http.get<any, FormulaVersion[]>(`/versions/formula/${formulaId}`, { params })
   },
   getById(versionId: string) {
-    return http.get<any, { success: boolean; data: FormulaVersion }>(`/versions/detail/${versionId}`)
+    return http.get<any, FormulaVersion>(`/versions/detail/${versionId}`)
   },
   create(formulaId: string, data?: { versionName?: string; versionReason?: string; status?: string }) {
-    return http.post<any, { success: boolean; message: string; data: { versionId: string; versionNumber: string } }>(`/versions/formula/${formulaId}`, data)
+    return http.post<any, { versionId: string; versionNumber: string }>(`/versions/formula/${formulaId}`, data)
   },
   publish(versionId: string) {
-    return http.put<any, { success: boolean; message: string }>(`/versions/publish/${versionId}`)
+    return http.put<any, { message: string }>(`/versions/publish/${versionId}`)
   },
   compare(formulaId: string, versionA: string, versionB: string) {
-    return http.get<any, { success: boolean; data: any }>(`/versions/compare/${formulaId}`, { params: { versionA, versionB } })
+    return http.get<any, any>(`/versions/compare/${formulaId}`, { params: { versionA, versionB } })
   },
 }

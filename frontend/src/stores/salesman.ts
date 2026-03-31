@@ -25,12 +25,13 @@ export const useSalesmanStore = defineStore('salesman', () => {
         page: currentPage.value,
         pageSize: pageSize.value,
       })
-      salesmen.value = res.data.list.map((s: Salesman) => ({
+      // axios 拦截器已经提取了 res.data，所以这里直接使用 res
+      salesmen.value = res.list.map((s: Salesman) => ({
         ...s,
         createdAt: formatTimestamp(s.createdAt),
         updatedAt: formatTimestamp(s.updatedAt),
       }))
-      total.value = res.data.pagination.total
+      total.value = res.pagination.total
     } catch (error) {
       console.error('获取业务员列表失败:', error)
     } finally {
@@ -41,7 +42,8 @@ export const useSalesmanStore = defineStore('salesman', () => {
   const getSalesman = async (id: string): Promise<Salesman | null> => {
     try {
       const res = await salesmanApi.getById(id)
-      return res.data
+      // axios 拦截器已经提取了 res.data，所以这里直接使用 res
+      return res
     } catch {
       return null
     }

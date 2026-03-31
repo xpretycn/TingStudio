@@ -77,7 +77,7 @@ export async function getMaterialNutrition(req: Request, res: Response) {
 export async function setMaterialNutrition(req: any, res: Response) {
   try {
     const { materialId } = req.params
-    const { per100g, dataSource, notes } = req.body
+    const { per100g, dataSource, notes, confidence } = req.body
     const userId = req.user.userId
 
     // 验证原料存在
@@ -89,9 +89,12 @@ export async function setMaterialNutrition(req: any, res: Response) {
 
     // 检查是否已存在
     const [[existing]]: any[][] = await query(
-      'SELECT nutrition_id, per_100g_json, data_source, notes, data_version FROM material_nutrition WHERE material_id = ?',
+      'SELECT nutrition_id, per_100g_json, data_source, notes, data_version, confidence FROM material_nutrition WHERE material_id = ?',
       [materialId]
     )
+
+    // 验证 confidence 值
+    const validConfidence = ['high', 'medium', 'low'].includes(confidence) ? confidence : 'medium'
 
     if (existing) {
       // 增量更新：将新数据合并到已有数据中
@@ -111,17 +114,17 @@ export async function setMaterialNutrition(req: any, res: Response) {
       const newVersion = match ? `${parseInt(match[1]) + 1}.0` : '2.0'
 
       await query(
-        `UPDATE material_nutrition SET per_100g_json = ?, data_source = ?, notes = ?, data_version = ?, last_updated = ?
+        `UPDATE material_nutrition SET per_100g_json = ?, data_source = ?, notes = ?, confidence = ?, data_version = ?, last_updated = ?
          WHERE material_id = ?`,
-        [JSON.stringify(merged), dataSource || existing.data_source, notes || existing.notes, newVersion, now(), materialId]
+        [JSON.stringify(merged), dataSource || existing.data_source, notes || existing.notes, validConfidence, newVersion, now(), materialId]
       )
     } else {
       // 新建
       const nutritionId = generateId()
       await query(
-        `INSERT INTO material_nutrition (nutrition_id, material_id, per_100g_json, data_source, notes, data_version, last_updated)
-         VALUES (?, ?, ?, ?, ?, '1.0', ?)`,
-        [nutritionId, materialId, JSON.stringify(per100g), dataSource, notes, now()]
+        `INSERT INTO material_nutrition (nutrition_id, material_id, per_100g_json, data_source, notes, confidence, data_version, last_updated)
+         VALUES (?, ?, ?, ?, ?, ?, '1.0', ?)`,
+        [nutritionId, materialId, JSON.stringify(per100g), dataSource, notes, validConfidence, now()]
       )
     }
 
@@ -287,8 +290,8 @@ export async function createNutritionProfile(req: Request, res: Response) {
     const id = generateId()
 
     await query(
-      `INSERT INTO nutrition_profiles (profile_id, name, description, category, target_values_json, tolerance_ranges_json, mandatory_fields_json, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO nutrition_profiles (profile_id, name, description, category, target_values_json, tolerance_ranges_json, mandatory_fields_json, is_preset, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?)`,
       [id, name, description, category, JSON.stringify(targetValues),
        JSON.stringify(toleranceRanges || []), JSON.stringify(mandatoryFields || []), now()]
     )
@@ -299,12 +302,81 @@ export async function createNutritionProfile(req: Request, res: Response) {
   }
 }
 
+/** 更新营养标准 */
+export async function updateNutritionProfile(req: Request, res: Response) {
+  try {
+    const { profileId } = req.params
+    const { name, description, category, targetValues, toleranceRanges, mandatoryFields } = req.body
+
+    // 检查是否存在
+    const [[profile]]: any[][] = await query(
+      'SELECT * FROM nutrition_profiles WHERE profile_id = ?',
+      [profileId]
+    )
+    if (!profile) {
+      res.status(404).json({ success: false, message: '营养标准不存在' })
+      return
+    }
+
+    // 预置标准不可修改
+    if (profile.is_preset === 1) {
+      res.status(403).json({ success: false, message: '预置营养标准不可修改' })
+      return
+    }
+
+    await query(
+      `UPDATE nutrition_profiles SET name = ?, description = ?, category = ?,
+       target_values_json = ?, tolerance_ranges_json = ?, mandatory_fields_json = ?, updated_at = ?
+       WHERE profile_id = ?`,
+      [name, description, category,
+       JSON.stringify(targetValues), JSON.stringify(toleranceRanges || []),
+       JSON.stringify(mandatoryFields || []), now(), profileId]
+    )
+
+    res.json(success(null, '营养标准更新成功'))
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: '更新营养标准失败', error: error.message })
+  }
+}
+
+/** 删除营养标准 */
+export async function deleteNutritionProfile(req: Request, res: Response) {
+  try {
+    const { profileId } = req.params
+
+    // 检查是否存在
+    const [[profile]]: any[][] = await query(
+      'SELECT * FROM nutrition_profiles WHERE profile_id = ?',
+      [profileId]
+    )
+    if (!profile) {
+      res.status(404).json({ success: false, message: '营养标准不存在' })
+      return
+    }
+
+    // 预置标准不可删除
+    if (profile.is_preset === 1) {
+      res.status(403).json({ success: false, message: '预置营养标准不可删除' })
+      return
+    }
+
+    await query('DELETE FROM nutrition_profiles WHERE profile_id = ?', [profileId])
+    res.json(success(null, '营养标准删除成功'))
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: '删除营养标准失败', error: error.message })
+  }
+}
+
 /** 合规性检查 */
 export async function checkCompliance(req: any, res: Response) {
   try {
     const { formulaId } = req.params
-    const { profileId } = req.query
+    const profileId = req.query.profileId as string | undefined
     const userId = req.user.userId
+
+    console.log('[Nutrition] 合规检查:', { formulaId, profileId })
+    console.log('[Nutrition] req.query:', req.query)
+    console.log('[Nutrition] req.user:', req.user)
 
     // 获取配方营养汇总
     const [[summary]]: any[][] = await query(
@@ -312,12 +384,18 @@ export async function checkCompliance(req: any, res: Response) {
       [formulaId]
     )
     if (!summary) {
+      console.error('[Nutrition] 未找到配方营养汇总:', formulaId)
       res.status(404).json({ success: false, message: '请先计算配方营养成分' })
       return
     }
 
+    console.log('[Nutrition] 配方营养汇总:', summary.formula_id)
+
     const per100g = safeJsonParse(summary.per_100g_nutrition_json, {})
-    const profile = profileId ? await getProfile(profileId as string) : null
+    console.log('[Nutrition] per100g:', per100g)
+
+    const profile = profileId ? await getProfile(profileId) : null
+    console.log('[Nutrition] profile:', profile ? profile.name : '无')
 
     const complianceChecks: any[] = []
     const recommendations: any[] = []
@@ -334,62 +412,102 @@ export async function checkCompliance(req: any, res: Response) {
           let status: 'pass' | 'warning' | 'fail' = 'pass'
           let deviation = 0
           let message = ''
+          let suggestedActions: string[] = []
 
           if (target !== undefined) {
             deviation = actualValue - target
 
             if (actualValue < tolerance.min) {
               status = 'fail'
-              message = `${tolerance.label} 不足: 实际 ${actualValue} < 最小值 ${tolerance.min}`
+              message = `${tolerance.label} 不足: 实际 ${actualValue.toFixed(2)} < 最小值 ${tolerance.min}`
+              suggestedActions = [
+                `增加富含${tolerance.label}的原料`,
+                `调整配方比例以提高${tolerance.label}含量`,
+              ]
             } else if (actualValue > tolerance.max) {
               status = 'fail'
-              message = `${tolerance.label} 超标: 实际 ${actualValue} > 最大值 ${tolerance.max}`
+              message = `${tolerance.label} 超标: 实际 ${actualValue.toFixed(2)} > 最大值 ${tolerance.max}`
+              suggestedActions = [
+                `减少富含${tolerance.label}的原料`,
+                `调整配方比例以降低${tolerance.label}含量`,
+              ]
             } else if (tolerance.alertLevel === 'warning') {
               const range = tolerance.max - tolerance.min
               const deviationPercent = Math.abs(deviation) / range
               if (deviationPercent > 0.8) {
                 status = 'warning'
-                message = `${tolerance.label} 接近临界值: 实际 ${actualValue}, 范围 ${tolerance.min}-${tolerance.max}`
+                message = `${tolerance.label} 接近临界值: 实际 ${actualValue.toFixed(2)}, 范围 ${tolerance.min}-${tolerance.max}`
+                suggestedActions = [
+                  `关注${tolerance.label}含量变化`,
+                  `考虑微调配方`,
+                ]
               }
             }
           }
 
           complianceChecks.push({
-            field, label: tolerance.label,
+            field,
+            label: tolerance.label,
             actualValue,
             targetRange: { min: tolerance.min, max: tolerance.max },
-            status, deviation: Math.round(deviation * 100) / 100, message,
+            status,
+            deviation: Math.round(deviation * 100) / 100,
+            message,
+            suggestedActions,
           })
         }
       } else {
         // 没有标准时，只显示数值
         complianceChecks.push({
-          field, label: field, actualValue,
+          field,
+          label: field,
+          actualValue,
           status: 'pass' as const,
-          message: `${field}: ${actualValue}`,
+          message: `${field}: ${actualValue.toFixed(2)}`,
+          suggestedActions: [],
         })
       }
     }
 
-    // 生成推荐建议
+    // 生成推荐建议（结构化）
     const passCount = complianceChecks.filter((c: any) => c.status === 'pass').length
+    const warningCount = complianceChecks.filter((c: any) => c.status === 'warning').length
     const failCount = complianceChecks.filter((c: any) => c.status === 'fail').length
 
     if (failCount > 0) {
       recommendations.push({
-        type: 'safety', priority: 'high',
+        type: 'safety',
+        priority: 'high',
         title: '营养合规性警告',
         description: `有 ${failCount} 项营养指标不达标，建议调整配方`,
         actionable: true,
+        suggestedActions: complianceChecks
+          .filter((c: any) => c.status === 'fail')
+          .flatMap((c: any) => c.suggestedActions || []),
+      })
+    }
+
+    if (warningCount > 0) {
+      recommendations.push({
+        type: 'warning',
+        priority: 'medium',
+        title: '营养指标接近临界值',
+        description: `有 ${warningCount} 项营养指标接近临界值，建议关注`,
+        actionable: true,
+        suggestedActions: complianceChecks
+          .filter((c: any) => c.status === 'warning')
+          .flatMap((c: any) => c.suggestedActions || []),
       })
     }
 
     if (passCount > 0 && failCount === 0) {
       recommendations.push({
-        type: 'nutrition', priority: 'low',
+        type: 'nutrition',
+        priority: 'low',
         title: '营养指标达标',
         description: '所有营养指标均在标准范围内',
         actionable: false,
+        suggestedActions: [],
       })
     }
 
@@ -410,23 +528,39 @@ export async function checkCompliance(req: any, res: Response) {
         totalChecked: complianceChecks.length,
         passed: passCount,
         failed: failCount,
-        warnings: complianceChecks.filter((c: any) => c.status === 'warning').length,
+        warnings: warningCount,
       },
     }))
   } catch (error: any) {
-    res.status(500).json({ success: false, message: '合规性检查失败', error: error.message })
+    console.error('[Nutrition] 合规检查出错:', error)
+    console.error('[Nutrition] 错误堆栈:', error.stack)
+    res.status(500).json({ 
+      success: false, 
+      message: '服务器内部错误',
+      error: error.message 
+    })
   }
 }
 
 async function getProfile(profileId: string): Promise<any | null> {
   const [[profile]]: any[][] = await query('SELECT * FROM nutrition_profiles WHERE profile_id = ?', [profileId])
   if (!profile) return null
-  return {
+  
+  const result = {
     ...rowToCamelCase(profile),
     targetValues: safeJsonParse(profile.target_values_json, {}),
     toleranceRanges: safeJsonParse(profile.tolerance_ranges_json, []),
     mandatoryFields: safeJsonParse(profile.mandatory_fields_json, []),
   }
+  
+  console.log('[Nutrition] getProfile:', { 
+    profileId, 
+    hasToleranceRanges: Array.isArray(result.toleranceRanges),
+    toleranceRangesCount: result.toleranceRanges?.length || 0,
+    targetValuesCount: Object.keys(result.targetValues).length
+  })
+  
+  return result
 }
 
 /** 获取配方营养计算表格数据（与 XLS 格式一致） */

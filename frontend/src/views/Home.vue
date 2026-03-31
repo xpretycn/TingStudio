@@ -381,8 +381,8 @@ const navigateTo = (path: string) => {
 // 工具栏：仅在列表页显示，表单页/详情页/编辑页隐藏
 const showAddBtn = computed(() => {
   const path = route.path
-  const listPages = ['/materials', '/formulas', '/salesmen', '/exports', '/nutrition', '/nutrition/profiles', '/tools']
-  // 精确匹配列表页（不含子路径）
+  const listPages = ['/materials', '/formulas', '/salesmen', '/nutrition/profiles', '/tools']
+  // 精确匹配列表页（不含子路径），导出中心和营养分析页隐藏新增按钮
   return listPages.some(p => path === p)
 })
 

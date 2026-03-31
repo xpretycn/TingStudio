@@ -49,21 +49,22 @@ export interface FormulaForm {
 
 export const formulaApi = {
   getList(params?: { keyword?: string; salesmanId?: string; page?: number; pageSize?: number }) {
-    return http.get<any, { success: boolean; data: { list: Formula[]; pagination: any } }>('/formulas', { params })
+    // axios 拦截器会提取 res.data，所以这里直接返回内部的数据结构
+    return http.get<any, { list: Formula[]; pagination: any }>('/formulas', { params })
   },
   getById(id: string) {
-    return http.get<any, { success: boolean; data: Formula }>(`/formulas/${id}`)
+    return http.get<any, Formula>(`/formulas/${id}`)
   },
   create(data: FormulaForm) {
-    return http.post<any, { success: boolean; message: string; data: Formula }>('/formulas', data)
+    return http.post<any, Formula>('/formulas', data)
   },
   update(id: string, data: Partial<FormulaForm>) {
-    return http.put<any, { success: boolean; message: string; data: Formula }>(`/formulas/${id}`, data)
+    return http.put<any, Formula>(`/formulas/${id}`, data)
   },
   delete(id: string) {
-    return http.delete<any, { success: boolean; message: string }>(`/formulas/${id}`)
+    return http.delete<any, { message: string }>(`/formulas/${id}`)
   },
   getByMaterial(materialId: string) {
-    return http.get<any, { success: boolean; data: Formula[] }>(`/formulas/by-material/${materialId}`)
+    return http.get<any, Formula[]>(`/formulas/by-material/${materialId}`)
   },
 }

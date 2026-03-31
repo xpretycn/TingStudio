@@ -64,48 +64,95 @@
         <!-- 营养成分录入 -->
         <div v-if="showNutrition" class="nutrition-section">
           <div class="section-title">
-            <t-icon name="chart-bar" size="18px" />
-            <span>营养成分（每100g）</span>
-            <t-tag v-if="hasNutrition" theme="success" variant="light" size="small">已录入</t-tag>
+            <div class="title-left">
+              <t-icon name="chart-bar" size="18px" />
+              <span>营养成分（每100g）</span>
+              <t-tag v-if="hasNutrition" theme="success" variant="light" size="small">已录入</t-tag>
+            </div>
+            <div class="title-actions">
+              <t-button size="small" variant="text" @click="expandAllGroups">
+                <template #icon><t-icon name="unfold-more" /></template>
+                展开全部
+              </t-button>
+              <t-button size="small" variant="text" @click="collapseAllGroups">
+                <template #icon><t-icon name="unfold-less" /></template>
+                收起全部
+              </t-button>
+            </div>
           </div>
 
-          <div class="nutrition-grid">
-            <t-form-item
-              v-for="field in nutritionFields"
-              :key="field.key"
-              :label="field.label"
+          <!-- 分组折叠面板 -->
+          <t-collapse
+            :value="Object.keys(collapseExpanded).filter(k => collapseExpanded[k])"
+            @change="handleCollapseChange"
+          >
+            <t-collapse-panel
+              v-for="group in nutritionFieldGroups"
+              :key="group.title"
+              :value="group.title"
             >
-              <div class="nutrition-input">
-                <t-input-number
-                  v-model="nutritionData[field.key]"
-                  :min="0"
-                  :decimal-places="field.decimals"
-                  :placeholder="field.placeholder"
-                  theme="normal"
-                  style="width: 160px"
-                />
-                <span class="nutrition-unit">{{ field.unit }}</span>
+              <template #header>
+                <div class="group-header">
+                  <t-icon :name="group.icon" size="16px" />
+                  <span>{{ group.title }}</span>
+                  <t-tag size="small" variant="light" theme="default">
+                    {{ group.fields.length }}项
+                  </t-tag>
+                </div>
+              </template>
+              <div class="nutrition-grid">
+                <t-form-item
+                  v-for="field in group.fields"
+                  :key="field.key"
+                  :label="field.label"
+                >
+                  <div class="nutrition-input">
+                    <t-input-number
+                      v-model="nutritionData[field.key]"
+                      :min="0"
+                      :decimal-places="field.decimals"
+                      :placeholder="field.placeholder"
+                      theme="normal"
+                      style="width: 160px"
+                    />
+                    <span class="nutrition-unit">{{ field.unit }}</span>
+                  </div>
+                </t-form-item>
               </div>
+            </t-collapse-panel>
+          </t-collapse>
+
+          <div class="nutrition-meta">
+            <t-form-item label="数据来源">
+              <t-input
+                v-model="nutritionMeta.dataSource"
+                placeholder="如：中国食物成分表（第6版）"
+                clearable
+                style="width: 320px"
+              />
+            </t-form-item>
+
+            <t-form-item label="数据可信度">
+              <t-radio-group v-model="nutritionMeta.confidence" variant="default-filled">
+                <t-radio-button
+                  v-for="opt in confidenceOptions"
+                  :key="opt.value"
+                  :value="opt.value"
+                >
+                  {{ opt.label }}
+                </t-radio-button>
+              </t-radio-group>
+            </t-form-item>
+
+            <t-form-item label="备注">
+              <t-input
+                v-model="nutritionMeta.notes"
+                placeholder="可选备注信息"
+                clearable
+                style="width: 320px"
+              />
             </t-form-item>
           </div>
-
-          <t-form-item label="数据来源">
-            <t-input
-              v-model="nutritionMeta.dataSource"
-              placeholder="如：中国食物成分表（第6版）"
-              clearable
-              style="width: 320px"
-            />
-          </t-form-item>
-
-          <t-form-item label="备注">
-            <t-input
-              v-model="nutritionMeta.notes"
-              placeholder="可选备注信息"
-              clearable
-              style="width: 320px"
-            />
-          </t-form-item>
         </div>
 
         <t-form-item>
@@ -179,35 +226,74 @@ const rules: Record<string, FormRule[]> = {
   stock: [{ required: true, message: '请输入库存数量' }]
 }
 
-// 营养成分字段定义
-const nutritionFields = [
-  { key: 'energy', label: '能量', unit: 'kJ', decimals: 1, placeholder: '千焦' },
-  { key: 'protein', label: '蛋白质', unit: 'g', decimals: 2, placeholder: '克' },
-  { key: 'fat', label: '脂肪', unit: 'g', decimals: 2, placeholder: '克' },
-  { key: 'carbohydrate', label: '碳水化合物', unit: 'g', decimals: 2, placeholder: '克' },
-  { key: 'fiber', label: '膳食纤维', unit: 'g', decimals: 2, placeholder: '克' },
-  { key: 'sugars', label: '糖', unit: 'g', decimals: 2, placeholder: '克' },
-  { key: 'sodium', label: '钠', unit: 'mg', decimals: 1, placeholder: '毫克' },
-  { key: 'potassium', label: '钾', unit: 'mg', decimals: 1, placeholder: '毫克' },
-  { key: 'calcium', label: '钙', unit: 'mg', decimals: 1, placeholder: '毫克' },
-  { key: 'iron', label: '铁', unit: 'mg', decimals: 2, placeholder: '毫克' },
-  { key: 'zinc', label: '锌', unit: 'mg', decimals: 2, placeholder: '毫克' },
-  { key: 'magnesium', label: '镁', unit: 'mg', decimals: 1, placeholder: '毫克' },
-  { key: 'phosphorus', label: '磷', unit: 'mg', decimals: 1, placeholder: '毫克' },
-  { key: 'vitaminA', label: '维生素A', unit: 'μg RE', decimals: 1, placeholder: '微克视黄醇当量' },
-  { key: 'vitaminC', label: '维生素C', unit: 'mg', decimals: 2, placeholder: '毫克' },
-  { key: 'vitaminD', label: '维生素D', unit: 'μg', decimals: 2, placeholder: '微克' },
-  { key: 'vitaminE', label: '维生素E', unit: 'mg α-TE', decimals: 2, placeholder: '毫克' },
-  { key: 'vitaminB1', label: '维生素B1', unit: 'mg', decimals: 3, placeholder: '毫克' },
-  { key: 'vitaminB2', label: '维生素B2', unit: 'mg', decimals: 3, placeholder: '毫克' },
-  { key: 'vitaminB3', label: '烟酸(B3)', unit: 'mg', decimals: 2, placeholder: '毫克' },
-  { key: 'vitaminB6', label: '维生素B6', unit: 'mg', decimals: 3, placeholder: '毫克' },
-  { key: 'vitaminB12', label: '维生素B12', unit: 'μg', decimals: 2, placeholder: '微克' },
-  { key: 'folate', label: '叶酸', unit: 'μg DFE', decimals: 1, placeholder: '微克' },
-  { key: 'cholesterol', label: '胆固醇', unit: 'mg', decimals: 1, placeholder: '毫克' },
-  { key: 'saturatedFat', label: '饱和脂肪', unit: 'g', decimals: 2, placeholder: '克' },
-  { key: 'transFat', label: '反式脂肪', unit: 'g', decimals: 2, placeholder: '克' },
+// 营养成分字段定义（按组分类）
+const nutritionFieldGroups = [
+  {
+    title: '基础营养成分',
+    icon: 'chart-bar',
+    expanded: true,
+    fields: [
+      { key: 'energy', label: '能量', unit: 'kJ', decimals: 1, placeholder: '千焦' },
+      { key: 'protein', label: '蛋白质', unit: 'g', decimals: 2, placeholder: '克' },
+      { key: 'fat', label: '脂肪', unit: 'g', decimals: 2, placeholder: '克' },
+      { key: 'carbohydrate', label: '碳水化合物', unit: 'g', decimals: 2, placeholder: '克' },
+      { key: 'fiber', label: '膳食纤维', unit: 'g', decimals: 2, placeholder: '克' },
+      { key: 'sugars', label: '糖', unit: 'g', decimals: 2, placeholder: '克' },
+    ]
+  },
+  {
+    title: '矿物质',
+    icon: 'layers',
+    expanded: false,
+    fields: [
+      { key: 'sodium', label: '钠', unit: 'mg', decimals: 1, placeholder: '毫克' },
+      { key: 'potassium', label: '钾', unit: 'mg', decimals: 1, placeholder: '毫克' },
+      { key: 'calcium', label: '钙', unit: 'mg', decimals: 1, placeholder: '毫克' },
+      { key: 'iron', label: '铁', unit: 'mg', decimals: 2, placeholder: '毫克' },
+      { key: 'zinc', label: '锌', unit: 'mg', decimals: 2, placeholder: '毫克' },
+      { key: 'magnesium', label: '镁', unit: 'mg', decimals: 1, placeholder: '毫克' },
+      { key: 'phosphorus', label: '磷', unit: 'mg', decimals: 1, placeholder: '毫克' },
+    ]
+  },
+  {
+    title: '维生素',
+    icon: 'sun',
+    expanded: false,
+    fields: [
+      { key: 'vitaminA', label: '维生素A', unit: 'μg RE', decimals: 1, placeholder: '微克视黄醇当量' },
+      { key: 'vitaminC', label: '维生素C', unit: 'mg', decimals: 2, placeholder: '毫克' },
+      { key: 'vitaminD', label: '维生素D', unit: 'μg', decimals: 2, placeholder: '微克' },
+      { key: 'vitaminE', label: '维生素E', unit: 'mg α-TE', decimals: 2, placeholder: '毫克' },
+      { key: 'vitaminB1', label: '维生素B1', unit: 'mg', decimals: 3, placeholder: '毫克' },
+      { key: 'vitaminB2', label: '维生素B2', unit: 'mg', decimals: 3, placeholder: '毫克' },
+      { key: 'vitaminB3', label: '烟酸(B3)', unit: 'mg', decimals: 2, placeholder: '毫克' },
+      { key: 'vitaminB6', label: '维生素B6', unit: 'mg', decimals: 3, placeholder: '毫克' },
+      { key: 'vitaminB12', label: '维生素B12', unit: 'μg', decimals: 2, placeholder: '微克' },
+      { key: 'folate', label: '叶酸', unit: 'μg DFE', decimals: 1, placeholder: '微克' },
+    ]
+  },
+  {
+    title: '其他',
+    icon: 'more',
+    expanded: false,
+    fields: [
+      { key: 'cholesterol', label: '胆固醇', unit: 'mg', decimals: 1, placeholder: '毫克' },
+      { key: 'saturatedFat', label: '饱和脂肪', unit: 'g', decimals: 2, placeholder: '克' },
+      { key: 'transFat', label: '反式脂肪', unit: 'g', decimals: 2, placeholder: '克' },
+    ]
+  }
 ]
+
+// 展开状态管理
+const collapseExpanded = reactive<Record<string, boolean>>({
+  '基础营养成分': true,
+  '矿物质': false,
+  '维生素': false,
+  '其他': false
+})
+
+// 扁平化字段列表（用于初始化数据）
+const nutritionFields = nutritionFieldGroups.flatMap(g => g.fields)
 
 const nutritionData = reactive<Record<string, number>>(
   Object.fromEntries(nutritionFields.map(f => [f.key, 0]))
@@ -215,7 +301,14 @@ const nutritionData = reactive<Record<string, number>>(
 const nutritionMeta = reactive({
   dataSource: '',
   notes: '',
+  confidence: 'medium' as 'high' | 'medium' | 'low',
 })
+
+const confidenceOptions = [
+  { label: '高（实验室检测）', value: 'high' },
+  { label: '中（文献数据）', value: 'medium' },
+  { label: '低（估算值）', value: 'low' },
+]
 
 const handleClearNutrition = () => {
   for (const field of nutritionFields) {
@@ -223,6 +316,28 @@ const handleClearNutrition = () => {
   }
   nutritionMeta.dataSource = ''
   nutritionMeta.notes = ''
+  nutritionMeta.confidence = 'medium'
+}
+
+// 折叠面板展开/收起
+const handleCollapseChange = (value: string[]) => {
+  for (const key of Object.keys(collapseExpanded)) {
+    collapseExpanded[key] = value.includes(key)
+  }
+}
+
+// 展开全部分组
+const expandAllGroups = () => {
+  for (const key of Object.keys(collapseExpanded)) {
+    collapseExpanded[key] = true
+  }
+}
+
+// 收起全部分组
+const collapseAllGroups = () => {
+  for (const key of Object.keys(collapseExpanded)) {
+    collapseExpanded[key] = false
+  }
 }
 
 const buildPer100g = (): Record<string, number> => {
@@ -245,6 +360,7 @@ const saveNutrition = async (materialId: string) => {
       per100g,
       dataSource: nutritionMeta.dataSource || undefined,
       notes: nutritionMeta.notes || undefined,
+      confidence: nutritionMeta.confidence,
     })
   } catch (error: any) {
     console.error('保存营养成分失败:', error)
@@ -302,6 +418,7 @@ const loadNutrition = async (materialId: string) => {
       }
       if (data.dataSource) nutritionMeta.dataSource = data.dataSource
       if (data.notes) nutritionMeta.notes = data.notes
+      if (data.confidence) nutritionMeta.confidence = data.confidence
     }
   } catch {
     // no nutrition data yet, which is fine
@@ -354,19 +471,40 @@ onMounted(async () => {
     .section-title {
       display: flex;
       align-items: center;
-      gap: 8px;
+      justify-content: space-between;
       font-size: 15px;
       font-weight: 700;
       color: #5D4E60;
       margin-bottom: 16px;
       padding-bottom: 12px;
       border-bottom: 1px solid rgba(255, 181, 200, 0.15);
+
+      .title-left {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .title-actions {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+    }
+
+    .group-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+      color: #5D4E60;
     }
 
     .nutrition-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 0 24px;
+      padding: 8px 0;
 
       @media (max-width: 640px) {
         grid-template-columns: 1fr;
@@ -388,6 +526,37 @@ onMounted(async () => {
         white-space: nowrap;
         min-width: 60px;
         text-align: center;
+      }
+    }
+
+    .nutrition-meta {
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255, 181, 200, 0.15);
+    }
+
+    :deep(.t-collapse) {
+      background: transparent;
+      border: none;
+
+      .t-collapse-panel__header {
+        background: rgba(255, 255, 255, 0.6);
+        border-radius: 10px;
+        padding: 10px 14px;
+        margin-bottom: 8px;
+        border: 1px solid rgba(255, 181, 200, 0.15);
+        transition: all 0.3s;
+
+        &:hover {
+          background: rgba(255, 255, 255, 0.9);
+          border-color: rgba(255, 181, 200, 0.3);
+        }
+      }
+
+      .t-collapse-panel__content {
+        background: transparent;
+        border: none;
+        padding: 0 8px;
       }
     }
   }

@@ -23,12 +23,13 @@ export const useMaterialStore = defineStore('material', () => {
         page: currentPage.value,
         pageSize: pageSize.value,
       })
-      materials.value = res.data.list.map((m: Material) => ({
+      // axios 拦截器已经提取了 res.data，所以这里直接使用 res
+      materials.value = res.list.map((m: Material) => ({
         ...m,
         createdAt: formatTimestamp(m.createdAt),
         updatedAt: formatTimestamp(m.updatedAt),
       }))
-      total.value = res.data.pagination.total
+      total.value = res.pagination.total
     } catch (error) {
       console.error('获取原料列表失败:', error)
     } finally {
@@ -39,7 +40,8 @@ export const useMaterialStore = defineStore('material', () => {
   const getMaterial = async (id: string): Promise<Material | null> => {
     try {
       const res = await materialApi.getById(id)
-      return res.data
+      // axios 拦截器已经提取了 res.data，所以这里直接使用 res
+      return res
     } catch {
       return null
     }
@@ -48,9 +50,9 @@ export const useMaterialStore = defineStore('material', () => {
   const createMaterial = async (form: MaterialForm) => {
     loading.value = true
     try {
-      const res = await materialApi.create(form)
+      await materialApi.create(form)
       await fetchMaterials()
-      return { success: true, data: res.data?.data }
+      return { success: true }
     } catch (error: any) {
       return { success: false, message: error.message || '创建失败' }
     } finally {
@@ -101,7 +103,8 @@ export const useMaterialStore = defineStore('material', () => {
     loading.value = true
     try {
       const res = await materialApi.getList({ page: 1, pageSize: 9999 })
-      allMaterials.value = res.data.list
+      // axios 拦截器已经提取了 res.data，所以这里直接使用 res
+      allMaterials.value = res.list
     } catch (error) {
       console.error('获取全部原料失败:', error)
     } finally {

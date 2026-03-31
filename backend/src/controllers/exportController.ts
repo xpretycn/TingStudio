@@ -128,20 +128,24 @@ export async function getExportJobs(req: any, res: Response) {
     const { page: p, pageSize: size, offset } = buildPagination(Number(page), Number(pageSize))
     const userId = req.user.userId
 
-    let whereSql = 'WHERE created_by = ?'
+    let whereSql = 'WHERE ej.created_by = ?'
     const params: any[] = [userId]
 
     if (status) {
-      whereSql += ' AND status = ?'
+      whereSql += ' AND ej.status = ?'
       params.push(status)
     }
 
+    // 关联查询配方名称
     const [list]: any[] = await query(
-      `SELECT * FROM export_jobs ${whereSql} ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+      `SELECT ej.*, f.name as formula_name 
+       FROM export_jobs ej 
+       LEFT JOIN formulas f ON ej.formula_id = f.id 
+       ${whereSql} ORDER BY ej.created_at DESC LIMIT ? OFFSET ?`,
       [...params, size, offset]
     )
     const [countResult]: any[] = await query(
-      `SELECT COUNT(*) as total FROM export_jobs ${whereSql}`,
+      `SELECT COUNT(*) as total FROM export_jobs ej ${whereSql}`,
       params
     )
 

@@ -190,18 +190,20 @@ export async function publishVersion(req: Request, res: Response) {
 
     // 将快照数据回写到 formulas 表，确保配方数据与当前版本一致
     const snapshot = safeJsonParse(version.snapshot_json, {})
-    if (snapshot.name || snapshot.materials) {
+    const formulaData = snapshot.formulaData || snapshot // 兼容两种快照格式
+    
+    if (snapshot.name || snapshot.materials || formulaData.name) {
       await query(
         `UPDATE formulas SET name=?, salesman_id=?, salesman_name=?, materials_json=?, finished_weight=?, ratio_factor=?, supplement_ratio_factor=?, description=? WHERE id=?`,
         [
-          snapshot.name || formula.name,
-          snapshot.salesmanId || formula.salesman_id,
-          snapshot.salesmanName || formula.salesman_name,
-          JSON.stringify(snapshot.materials || []),
-          snapshot.finishedWeight !== undefined ? snapshot.finishedWeight : formula.finished_weight,
-          snapshot.ratioFactor !== undefined ? snapshot.ratioFactor : formula.ratio_factor,
-          snapshot.supplementRatioFactor !== undefined ? snapshot.supplementRatioFactor : formula.supplement_ratio_factor,
-          snapshot.description !== undefined ? snapshot.description : formula.description,
+          snapshot.name || formulaData.name || formula.name,
+          snapshot.salesmanId || formulaData.salesmanId || formulaData.salesman_id || formula.salesman_id,
+          snapshot.salesmanName || formulaData.salesmanName || formulaData.salesman_name || formula.salesman_name,
+          JSON.stringify(snapshot.materials || formulaData.materials || []),
+          formulaData.finished_weight ?? formulaData.finishedWeight ?? formula.finished_weight ?? 0,
+          formulaData.ratio_factor ?? formulaData.ratioFactor ?? formula.ratio_factor ?? 0.18,
+          formulaData.supplement_ratio_factor ?? formulaData.supplementRatioFactor ?? formula.supplement_ratio_factor ?? 1.0,
+          snapshot.description ?? formulaData.description ?? formula.description,
           formulaId,
         ]
       )

@@ -292,7 +292,7 @@ const retryingId = ref('')
 const formulaLoading = ref(false)
 const formulaList = ref<any[]>([])
 
-const exportForm = reactive({ formulaId: '', exportType: 'excel' })
+const exportForm = reactive({ formulaId: '', exportType: 'pdf' })
 const shareForm = reactive({ formulaId: '', password: '', expireDate: '' })
 const templateForm = reactive({ name: '', type: 'excel', description: '', isDefault: false })
 const apiForm = reactive({ name: '', endpoint: '', method: 'POST', authentication: 'none', description: '' })
@@ -321,7 +321,7 @@ function handleTabChange(tab: string) {
 // ====== 导出任务 ======
 const jobColumns = [
   { colKey: 'jobId', title: '任务ID', width: 120, ellipsis: true },
-  { colKey: 'formulaId', title: '配方ID', width: 120, ellipsis: true },
+  { colKey: 'formulaName', title: '配方名称', width: 140, ellipsis: true },
   { colKey: 'exportType', title: '格式', width: 80, cell: 'exportType' },
   { colKey: 'status', title: '状态', width: 100, cell: 'status' },
   { colKey: 'createdAt', title: '创建时间', width: 170 },

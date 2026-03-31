@@ -155,7 +155,8 @@ const loadData = async () => {
   loading.value = true
   try {
     const res = await nutritionApi.getFormulaNutritionTables(route.params.id as string)
-    data.value = res.data
+    // axios 拦截器已经提取了 res.data，所以这里直接使用 res
+    data.value = res
   } catch (error: any) {
     console.error('获取营养计算表格失败:', error)
   } finally {

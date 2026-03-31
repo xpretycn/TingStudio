@@ -181,6 +181,7 @@ CREATE TABLE IF NOT EXISTS `material_nutrition` (
   `data_version` TEXT NOT NULL DEFAULT '1.0',
   `data_source` TEXT DEFAULT NULL,
   `notes` TEXT DEFAULT NULL,
+  `confidence` TEXT DEFAULT 'medium' CHECK(confidence IN ('high', 'medium', 'low')),
   `last_updated` TEXT NOT NULL DEFAULT (datetime('now')),
   FOREIGN KEY (`material_id`) REFERENCES `materials`(`id`) ON DELETE CASCADE
 );
@@ -210,6 +211,7 @@ CREATE TABLE IF NOT EXISTS `nutrition_profiles` (
   `target_values_json` TEXT NOT NULL,
   `tolerance_ranges_json` TEXT DEFAULT NULL,
   `mandatory_fields_json` TEXT DEFAULT NULL,
+  `is_preset` INTEGER NOT NULL DEFAULT 0,
   `created_at` TEXT NOT NULL DEFAULT (datetime('now')),
   `updated_at` TEXT NOT NULL DEFAULT (datetime('now'))
 );

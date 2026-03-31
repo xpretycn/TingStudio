@@ -22,16 +22,17 @@ export interface MaterialForm {
 
 export const materialApi = {
   getList(params?: { keyword?: string; page?: number; pageSize?: number }) {
-    return http.get<any, { success: boolean; data: { list: Material[]; pagination: any } }>('/materials', { params })
+    // axios 拦截器会提取 res.data，所以这里直接返回内部的数据结构
+    return http.get<any, { list: Material[]; pagination: any }>('/materials', { params })
   },
   getById(id: string) {
-    return http.get<any, { success: boolean; data: Material }>(`/materials/${id}`)
+    return http.get<any, Material>(`/materials/${id}`)
   },
   create(data: MaterialForm) {
-    return http.post<any, { success: boolean; message: string; data: Material }>('/materials', data)
+    return http.post<any, Material>('/materials', data)
   },
   update(id: string, data: Partial<MaterialForm>) {
-    return http.put<any, { success: boolean; message: string; data: Material }>(`/materials/${id}`, data)
+    return http.put<any, Material>(`/materials/${id}`, data)
   },
   delete(id: string) {
     return http.delete<any, { success: boolean; message: string }>(`/materials/${id}`)

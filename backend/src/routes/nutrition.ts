@@ -4,7 +4,7 @@ import { authMiddleware } from '../middleware/auth.js'
 import {
   getMaterialNutrition, setMaterialNutrition,
   calculateFormulaNutrition,
-  getNutritionProfiles, createNutritionProfile,
+  getNutritionProfiles, createNutritionProfile, updateNutritionProfile, deleteNutritionProfile,
   checkCompliance,
   getFormulaNutritionTables,
 } from '../controllers/nutritionController.js'
@@ -25,6 +25,8 @@ nutritionRoutes.get('/tables/:formulaId', getFormulaNutritionTables)
 // 营养标准
 nutritionRoutes.get('/profiles', getNutritionProfiles)
 nutritionRoutes.post('/profiles', createNutritionProfile)
+nutritionRoutes.put('/profiles/:profileId', updateNutritionProfile)
+nutritionRoutes.delete('/profiles/:profileId', deleteNutritionProfile)
 
 // 合规检查
 nutritionRoutes.post('/compliance/:formulaId', checkCompliance)

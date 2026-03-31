@@ -14,8 +14,9 @@ export const useNutritionStore = defineStore('nutrition', () => {
     loading.value = true
     try {
       const res = await nutritionApi.getMaterialNutrition(materialId)
-      materialNutrition.value = res.data
-      return { success: true, data: res.data }
+      // axios 拦截器已经提取了 res.data，所以这里直接使用 res
+      materialNutrition.value = res
+      return { success: true, data: res }
     } catch (error: any) {
       return { success: false, message: error.message || '获取营养成分失败' }
     } finally {
@@ -70,10 +71,31 @@ export const useNutritionStore = defineStore('nutrition', () => {
     }
   }
 
+  const updateProfile = async (profileId: string, data: { name: string; description?: string; category: string; targetValues: Record<string, number>; toleranceRanges?: any[]; mandatoryFields?: string[] }) => {
+    try {
+      await nutritionApi.updateProfile(profileId, data)
+      await fetchProfiles()
+      return { success: true }
+    } catch (error: any) {
+      return { success: false, message: error.message || '更新营养标准失败' }
+    }
+  }
+
+  const deleteProfile = async (profileId: string) => {
+    try {
+      await nutritionApi.deleteProfile(profileId)
+      await fetchProfiles()
+      return { success: true }
+    } catch (error: any) {
+      return { success: false, message: error.message || '删除营养标准失败' }
+    }
+  }
+
   const checkCompliance = async (formulaId: string, profileId?: string) => {
     loading.value = true
     try {
       const res = await nutritionApi.checkCompliance(formulaId, profileId)
+      // axios 拦截器已经提取了 res.data，所以这里直接存储即可
       complianceResult.value = res.data
       return { success: true, data: res.data }
     } catch (error: any) {
@@ -94,6 +116,8 @@ export const useNutritionStore = defineStore('nutrition', () => {
     calculateFormulaNutrition,
     fetchProfiles,
     createProfile,
+    updateProfile,
+    deleteProfile,
     checkCompliance,
   }
 })

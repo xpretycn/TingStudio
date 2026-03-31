@@ -6,13 +6,14 @@ export interface UserInfo { id: string; username: string; role: string; createdA
 
 export const authApi = {
   login(params: LoginParams) {
-    return http.post<any, { success: boolean; message: string; data: { user: UserInfo; token: string } }>('/auth/login', params)
+    // axios 拦截器会提取 res.data，所以这里直接返回内部的数据结构
+    return http.post<any, { user: UserInfo; token: string }>('/auth/login', params)
   },
   register(params: RegisterParams) {
-    return http.post<any, { success: boolean; message: string; data: { user: UserInfo; token: string } }>('/auth/register', params)
+    return http.post<any, { user: UserInfo; token: string }>('/auth/register', params)
   },
   getMe() {
-    return http.get<any, { success: boolean; data: UserInfo }>('/auth/me')
+    return http.get<any, UserInfo>('/auth/me')
   },
 }
 

@@ -26,15 +26,16 @@ export const useFormulaStore = defineStore('formula', () => {
         page: currentPage.value,
         pageSize: pageSize.value,
       })
+      // axios 拦截器已经提取了 res.data，所以这里直接使用 res
       // 解析 materialsJson、description 并格式化时间
-      formulas.value = res.data.list.map((f: Formula) => ({
+      formulas.value = res.list.map((f: Formula) => ({
         ...f,
         materials: parseMaterials(f),
         description: parseDescription(f.description),
         createdAt: formatTimestamp(f.createdAt),
         updatedAt: formatTimestamp(f.updatedAt),
       }))
-      total.value = res.data.pagination.total
+      total.value = res.pagination.total
     } catch (error: any) {
       console.error('获取配方列表失败:', error)
       MessagePlugin.error(error.message || '获取配方数据失败，请检查网络连接')
@@ -46,7 +47,8 @@ export const useFormulaStore = defineStore('formula', () => {
   const getFormula = async (id: string): Promise<Formula | null> => {
     try {
       const res = await formulaApi.getById(id)
-      const formula = res.data
+      // axios 拦截器已经提取了 res.data，所以这里直接使用 res
+      const formula = res
       return {
         ...formula,
         materials: parseMaterials(formula),

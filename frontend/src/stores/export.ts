@@ -18,7 +18,8 @@ export const useExportStore = defineStore('export', () => {
     loading.value = true
     try {
       const res = await exportApi.getTemplates(params)
-      templates.value = res.data
+      // axios 拦截器已经提取了 res.data，所以这里直接使用 res
+      templates.value = res
     } catch (error) {
       console.error('获取导出模板失败:', error)
     } finally {
@@ -73,8 +74,9 @@ export const useExportStore = defineStore('export', () => {
     loading.value = true
     try {
       const res = await exportApi.getJobs(params)
-      jobs.value = res.data.list
-      total.value = res.data.pagination.total
+      // axios 拦截器已经提取了 res.data，所以这里直接使用 res
+      jobs.value = res.list
+      total.value = res.pagination.total
     } catch (error) {
       console.error('获取导出任务失败:', error)
     } finally {
@@ -85,7 +87,8 @@ export const useExportStore = defineStore('export', () => {
   const getJob = async (jobId: string): Promise<ExportJob | null> => {
     try {
       const res = await exportApi.getJob(jobId)
-      return res.data
+      // axios 拦截器已经提取了 res.data，所以这里直接使用 res
+      return res
     } catch {
       return null
     }
@@ -93,9 +96,9 @@ export const useExportStore = defineStore('export', () => {
 
   const retryJob = async (jobId: string) => {
     try {
-      const res = await exportApi.retryJob(jobId)
+      await exportApi.retryJob(jobId)
       await fetchJobs({ page: currentPage.value, pageSize: pageSize.value })
-      return { success: true, data: res.data }
+      return { success: true }
     } catch (error: any) {
       return { success: false, message: error.message || '重试失败' }
     }
@@ -125,22 +128,23 @@ export const useExportStore = defineStore('export', () => {
   // ===== 分享 =====
   const createShare = async (data: { formulaId: string; versionId?: string; shareType?: string; password?: string; expireDate?: string; downloadLimit?: number }) => {
     try {
-      const res = await exportApi.createShare(data)
-      return { success: true, data: res.data }
+      await exportApi.createShare(data)
+      return { success: true }
     } catch (error: any) {
       return { success: false, message: error.message || '创建分享失败' }
     }
   }
-
+  
   const fetchShares = async () => {
     try {
       const res = await exportApi.getShares()
-      shares.value = res.data
+      // axios 拦截器已经提取了 res.data，所以这里直接使用 res
+      shares.value = res
     } catch (error) {
       console.error('获取分享列表失败:', error)
     }
   }
-
+  
   const deleteShare = async (shareId: string) => {
     try {
       await exportApi.deleteShare(shareId)
@@ -150,24 +154,25 @@ export const useExportStore = defineStore('export', () => {
       return { success: false, message: error.message || '删除分享失败' }
     }
   }
-
+  
   // ===== API 接口 =====
   const fetchApiInterfaces = async () => {
     try {
       const res = await exportApi.getApiInterfaces()
-      apiInterfaces.value = res.data
+      // axios 拦截器已经提取了 res.data，所以这里直接使用 res
+      apiInterfaces.value = res
     } catch (error) {
-      console.error('获取API接口列表失败:', error)
+      console.error('获取 API 接口列表失败:', error)
     }
   }
-
+  
   const createApiInterface = async (data: any) => {
     try {
-      const res = await exportApi.createApiInterface(data)
+      await exportApi.createApiInterface(data)
       await fetchApiInterfaces()
-      return { success: true, data: res.data }
+      return { success: true }
     } catch (error: any) {
-      return { success: false, message: error.message || '创建API接口失败' }
+      return { success: false, message: error.message || '创建 API 接口失败' }
     }
   }
 
