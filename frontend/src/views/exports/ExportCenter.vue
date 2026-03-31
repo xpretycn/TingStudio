@@ -557,11 +557,11 @@ onMounted(async () => {
 <style scoped lang="scss">
 .export-center {
   .section-header { display: flex; align-items: center; justify-content: space-between; }
-  .content-card { box-shadow: 0 2px 12px rgba(255, 107, 138, 0.06); }
+  .content-card { box-shadow: $shadow-xs; }
   :deep(.t-button--theme-primary) {
-    background: linear-gradient(135deg, #FF8FAB, #FF6B8A) !important;
-    border: none !important; color: #fff !important;
-    box-shadow: 0 4px 16px rgba(255, 107, 138, 0.3) !important;
+    background: $gradient-btn !important;
+    border: none !important; color: $text-white !important;
+    box-shadow: $shadow-brand !important;
   }
 }
 </style>

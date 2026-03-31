@@ -1,4 +1,4 @@
-# TingStudio v2.0
+# TingStudio v2.11
 
 食品配方工作数据管理平台 — 前后端分离架构
 
@@ -137,6 +137,10 @@ ting-studio/
 │   │   ├── components/               # 公共组件
 │   │   │   ├── Skeleton/              # 骨架屏组件
 │   │   │   └── Layout/               # 布局组件
+│   │   ├── assets/styles/            # 样式体系
+│   │   │   ├── design-tokens.scss    # 统一设计令牌（色彩/排版/间距/阴影）
+│   │   │   ├── tokens.ts             # JS 可导入的颜色常量
+│   │   │   └── theme.css             # TDesign 主题覆盖变量
 │   │   ├── router/                   # 路由配置
 │   │   ├── types/                    # 类型定义
 │   │   └── App.vue                   # 根组件
@@ -154,33 +158,51 @@ ting-studio/
 - Node.js 18+
 - npm 9+
 
-### 后端
+### 一键启动（推荐）
+
+```bash
+# 安装根目录依赖
+npm install
+
+# 初始化数据库 + 填充种子数据
+npm run init-db
+npm run seed
+
+# 同时启动前后端开发服务
+npm run dev
+```
+
+### 后端单独启动
 
 ```bash
 cd backend
 npm install
-
-# 初始化数据库
-npm run init-db
-
-# 填充种子数据（可选）
-npm run seed
-
-# 启动开发服务（端口 3000）
-npm run dev
+npm run init-db        # 初始化数据库
+npm run seed           # 填充种子数据（可选）
+npm run dev            # 启动开发服务（端口 3000）
 ```
 
-### 前端
+### 前端单独启动
 
 ```bash
 cd frontend
 npm install
-
-# 启动开发服务（端口 5173，API 代理到 localhost:3000）
-npm run dev
+npm run dev            # 启动开发服务（端口 5173，API 代理到 localhost:3000）
 ```
 
 启动后访问 http://localhost:5173
+
+### 生产部署
+
+```bash
+# 构建前后端
+npm run build
+
+# 启动后端生产服务
+npm run start          # 后端监听端口 3000，提供 API 服务
+```
+
+前端构建产物位于 `frontend/dist/`，可部署至任意静态服务器（Nginx / EdgeOne Pages 等），后端 API 地址需在 Vite 配置中修改代理目标或通过反向代理统一入口。
 
 ### 测试账号
 
@@ -229,17 +251,57 @@ npm run dev
 
 ## 主要脚本
 
-| 命令 | 位置 | 说明 |
-|------|------|------|
-| `npm run dev` | backend | 启动后端开发服务 |
-| `npm run build` | backend | 编译后端 TypeScript |
-| `npm run init-db` | backend | 初始化数据库表结构 |
-| `npm run seed` | backend | 填充种子数据 |
-| `npm run import-nutrition` | backend | 导入营养数据 (Excel) |
-| `npm run dev` | frontend | 启动前端开发服务 |
-| `npm run build` | frontend | 构建前端生产版本 |
+### 根目录统一脚本
+
+| 命令 | 说明 |
+|------|------|
+| `npm run dev` | 同时启动前后端开发服务 |
+| `npm run build` | 构建前后端生产版本 |
+| `npm run init-db` | 初始化数据库表结构 |
+| `npm run seed` | 填充种子数据 |
+| `npm run start` | 启动后端生产服务 |
+
+### 后端脚本（backend/）
+
+| 命令 | 说明 |
+|------|------|
+| `npm run dev` | 启动后端开发服务（热重载） |
+| `npm run build` | 编译后端 TypeScript |
+| `npm run start` | 运行编译后的生产版本 |
+| `npm run init-db` | 初始化数据库表结构 |
+| `npm run seed` | 填充种子数据 |
+| `npm run import-nutrition` | 导入营养数据 (Excel) |
+
+### 前端脚本（frontend/）
+
+| 命令 | 说明 |
+|------|------|
+| `npm run dev` | 启动前端开发服务 |
+| `npm run build` | 构建前端生产版本（vue-tsc 类型检查 + vite build） |
+| `npm run preview` | 预览构建产物 |
 
 ## 更新日志
+
+### v2.11.0 (2026-03-31)
+- **设计令牌体系建立**：新增 `design-tokens.scss`，统一定义 250+ 设计变量（品牌色、背景色、文字色、边框色、语义色、覆盖层、阴影、间距、圆角、动效、布局常量等）
+- **全局 TDesign 样式覆盖提取**：从 Home.vue 中提取 ~180 行重复的 `:deep()` 样式到 `main.scss`，统一按钮/输入框/表格/分页/标签/弹窗组件样式
+- **全局组件主题覆盖**：通过 `theme.css` 覆盖 TDesign CSS 变量，实现全局圆角、字体、品牌色等视觉统一
+- **色值统一（Task 1-5）**：20+ 个 Vue 组件中 ~200 处硬编码色值（rgba/hex）替换为设计令牌变量
+- **列表页色值替换**：FormulaList/MaterialList/SalesmanList/RecentFormulas/VersionList 中所有 rgba 硬编码 → 语义 token
+- **表单/详情页色值替换**：FormulaDetail/FormulaForm/MaterialForm/SalesmanForm/PageSkeleton/Tools/NutritionAnalysis 中色值统一
+- **Home.vue 主框架色值统一**：删除 15 个局部变量别名，90 处硬编码色值 → 全局 token（rgba/hex 全部清零）
+- **认证页色值统一**：Login.vue/Register.vue 删除局部 `$pink-*` 变量定义，改用全局 design-tokens
+- **新增 JS 设计令牌**：`tokens.ts` 提供图表色、工具箱渐变、核心营养素渐变等 JS 可导入常量
+- **Vite 配置优化**：SCSS additionalData 自动注入 design-tokens，所有 .vue 文件可直接使用全局变量
+
+### v2.10.0 (2026-03-31)
+- **阶段九：测试、部署与交付**
+- 前后端 TypeScript 编译检查通过，构建产物验证完整
+- 根目录新增统一管理脚本（`npm run dev/build/start`）
+- 新增 `concurrently` 依赖，支持前后端同时启动
+- 修正 `.env.example` 模板（MySQL → SQLite 配置同步）
+- README.md 添加生产部署说明和统一脚本文档
+- 项目版本号更新至 v2.9.0
 
 ### v2.9.0 (2026-03-31)
 - **阶段八：用户体验优化与代码质量提升**

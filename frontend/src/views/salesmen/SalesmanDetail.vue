@@ -51,8 +51,18 @@ onMounted(() => { loadData() })
 .salesman-detail {
   .detail-header {
     display: flex; align-items: center; justify-content: space-between; width: 100%;
-    .header-left { display: flex; align-items: center; gap: 12px; }
-    .detail-title { font-size: 16px; font-weight: 600; color: #5D4E60; }
+    .header-left { display: flex; align-items: center; gap: $space-3; }
+    .detail-title { font-size: $font-size-h3; font-weight: $font-weight-semibold; color: $text-primary; }
+  }
+  :deep(.t-button) {
+    transition: $transition-smooth !important;
+    border-radius: $radius-xl !important; font-weight: $font-weight-semibold !important;
+    &.t-button--theme-primary {
+      background: $gradient-btn !important;
+      border: none !important; color: $text-white !important;
+      box-shadow: $shadow-brand !important;
+      &:hover { transform: translateY(-2px); box-shadow: $shadow-lg !important; }
+    }
   }
 }
 </style>

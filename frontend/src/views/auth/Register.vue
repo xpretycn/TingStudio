@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="register-page">
     <!-- Background decorations -->
     <div class="bg-decor">
@@ -209,15 +209,7 @@ const handleSubmit = async ({ validateResult }: any) => {
 </script>
 
 <style scoped lang="scss">
-$pink-100: #FFF0F3;
-$pink-200: #FFD6E0;
-$pink-300: #FFB5C8;
-$pink-400: #FF8FAB;
-$pink-500: #FF6B8A;
-$lavender: #F0E6FF;
-$text-main: #5D4E60;
-$text-sub:  #9B8FA0;
-$white:     #fff;
+// ───── 使用全局 design-tokens（通过 Vite additionalData 自动注入）─────
 
 .register-page {
   position: relative;
@@ -225,7 +217,7 @@ $white:     #fff;
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  background: linear-gradient(160deg, $pink-100 0%, #FFF5EE 35%, $lavender 70%, $pink-100 100%);
+  background: linear-gradient(160deg, $brand-primary-bg 0%, $bg-pink-peach 35%, $color-lavender 70%, $brand-primary-bg 100%);
   overflow: hidden;
   font-family: 'PingFang SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
@@ -242,8 +234,8 @@ $white:     #fff;
   border-radius: 50%;
   filter: blur(60px);
   opacity: 0.45;
-  &--1 { width: 350px; height: 350px; top: -80px; right: -60px; background: radial-gradient(circle, $pink-200, transparent 70%); }
-  &--2 { width: 250px; height: 250px; bottom: -50px; left: -40px; background: radial-gradient(circle, $lavender, transparent 70%); }
+  &--1 { width: 350px; height: 350px; top: -80px; right: -60px; background: radial-gradient(circle, $brand-primary-lightest, transparent 70%); }
+  &--2 { width: 250px; height: 250px; bottom: -50px; left: -40px; background: radial-gradient(circle, $color-lavender, transparent 70%); }
 }
 
 .float-heart {
@@ -279,12 +271,12 @@ $white:     #fff;
   width: 92%;
   max-width: 420px;
   padding: 40px 36px 28px;
-  background: rgba(255, 255, 255, 0.82);
+  background: $overlay-white-82;
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-radius: 24px;
-  border: 1.5px solid rgba(255, 181, 200, 0.25);
-  box-shadow: 0 4px 24px rgba(255, 143, 171, 0.12), 0 1px 3px rgba(0, 0, 0, 0.04);
+  border: 1.5px solid $overlay-pink-lighter-25;
+  box-shadow: 0 4px 24px $overlay-pink-12, 0 1px 3px rgba(0, 0, 0, 0.04);
   animation: cardIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
@@ -302,7 +294,7 @@ $white:     #fff;
   display: inline-block;
   padding: 3px;
   border-radius: 50%;
-  background: linear-gradient(135deg, $pink-300, $lavender);
+  background: linear-gradient(135deg, $brand-primary-lighter, $color-lavender);
   margin-bottom: 12px;
 }
 
@@ -310,7 +302,7 @@ $white:     #fff;
   width: 64px;
   height: 64px;
   border-radius: 50%;
-  background: $white;
+  background: $text-white;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -320,13 +312,13 @@ $white:     #fff;
 .app-name {
   font-size: 24px;
   font-weight: 700;
-  color: $text-main;
+  color: $text-primary;
   margin: 0 0 4px 0;
 }
 
 .app-tagline {
   font-size: 13px;
-  color: $text-sub;
+  color: $text-secondary;
   margin: 0;
 }
 
@@ -341,7 +333,7 @@ $white:     #fff;
   gap: 6px;
   font-size: 13px;
   font-weight: 600;
-  color: $text-main;
+  color: $text-primary;
   margin-bottom: 8px;
 }
 
@@ -349,23 +341,23 @@ $white:     #fff;
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: $pink-400;
+  background: $brand-primary-light;
 }
 
 .cute-input {
   :deep(.t-input) {
     border-radius: 14px;
-    border: 1.5px solid $pink-200;
-    background: rgba(255, 240, 243, 0.4);
+    border: 1.5px solid $brand-primary-lightest;
+    background: $overlay-pink-bg-40;
     height: 46px;
     padding-left: 42px;
     transition: all 0.3s ease;
-    &:hover { border-color: $pink-300; background: rgba(255, 240, 243, 0.6); }
-    &:focus-within, &.t-is-focused { border-color: $pink-400; background: $white; box-shadow: 0 0 0 4px rgba(255, 143, 171, 0.12); }
-    .t-input__wrap { color: $text-main; font-size: 14px; }
-    &::placeholder { color: #C8AAB8 !important; }
+    &:hover { border-color: $brand-primary-lighter; background: $overlay-pink-bg-60; }
+    &:focus-within, &.t-is-focused { border-color: $brand-primary-light; background: $text-white; box-shadow: 0 0 0 4px $overlay-pink-12; }
+    .t-input__wrap { color: $text-primary; font-size: 14px; }
+    &::placeholder { color: $text-caption-muted !important; }
   }
-  :deep(.t-input__prefix) { margin-right: 10px; color: $pink-400; display: flex; align-items: center; }
+  :deep(.t-input__prefix) { margin-right: 10px; color: $brand-primary-light; display: flex; align-items: center; }
 }
 
 .cute-btn {
@@ -374,13 +366,13 @@ $white:     #fff;
   font-size: 15px !important;
   font-weight: 600 !important;
   letter-spacing: 1px;
-  background: linear-gradient(135deg, $pink-400, $pink-500) !important;
+  background: linear-gradient(135deg, $brand-primary-light, $brand-primary) !important;
   border: none !important;
-  box-shadow: 0 4px 16px rgba(255, 107, 138, 0.3);
+  box-shadow: 0 4px 16px $shadow-brand-md;
   transition: all 0.3s ease;
-  &:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(255, 107, 138, 0.4); }
+  &:hover { transform: translateY(-2px); box-shadow: 0 8px 24px $shadow-brand-lg; }
   &:active { transform: translateY(0); }
-  .btn-text { color: $white; }
+  .btn-text { color: $text-white; }
 }
 
 .card-footer {
@@ -390,14 +382,14 @@ $white:     #fff;
   gap: 6px;
   padding-top: 20px;
   margin-top: 8px;
-  border-top: 1px dashed $pink-200;
+  border-top: 1px dashed $brand-primary-lightest;
   font-size: 13px;
-  color: $text-sub;
+  color: $text-secondary;
   .go-login {
-    color: $pink-500;
+    color: $brand-primary;
     text-decoration: none;
     font-weight: 600;
-    &:hover { color: $pink-400; text-decoration: none; }
+    &:hover { color: $brand-primary-light; text-decoration: none; }
   }
 }
 
@@ -407,7 +399,7 @@ $white:     #fff;
   left: 50%;
   transform: translateX(-50%);
   font-size: 11px;
-  color: $text-sub;
+  color: $text-secondary;
   opacity: 0.6;
   white-space: nowrap;
 }

@@ -80,47 +80,47 @@ withDefaults(defineProps<{
 
 <style scoped lang="scss">
 .page-skeleton {
-  padding: 4px 0;
+  padding: $space-1 0;
 }
 
 // Toolbar skeleton
 .skeleton-toolbar {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 20px;
-  padding: 0 4px;
+  gap: $space-3;
+  margin-bottom: $space-5;
+  padding: 0 $space-1;
 }
 
 .skeleton-input,
 .skeleton-btn {
   height: 32px;
-  border-radius: 8px;
-  background: linear-gradient(90deg, #FFF0F3 25%, #FFF5F7 50%, #FFF0F3 75%);
+  border-radius: $radius-md;
+  background: linear-gradient(90deg, $brand-primary-bg 25%, $skeleton-shimmer 50%, $brand-primary-bg 75%);
   background-size: 200% 100%;
   animation: skeleton-shimmer 1.5s ease-in-out infinite;
 }
 
 // Table skeleton
 .skeleton-table {
-  border-radius: 10px;
+  border-radius: $radius-lg;
   overflow: hidden;
-  border: 1px solid #FFE0E8;
+  border: 1px solid $border-color;
 }
 
 .skeleton-table-header {
   display: flex;
-  background: #FFF9F7;
-  padding: 12px 16px;
-  gap: 8px;
-  border-bottom: 1px solid #FFE0E8;
+  background: $bg-page;
+  padding: $space-3 $space-4;
+  gap: $space-2;
+  border-bottom: 1px solid $border-color;
 }
 
 .skeleton-table-row {
   display: flex;
-  padding: 14px 16px;
-  gap: 8px;
-  border-bottom: 1px solid #FFF5F3;
+  padding: 14px $space-4;
+  gap: $space-2;
+  border-bottom: 1px solid $skeleton-border;
 
   &:last-child {
     border-bottom: none;
@@ -131,8 +131,8 @@ withDefaults(defineProps<{
 .skeleton-td {
   flex: 1;
   height: 16px;
-  border-radius: 4px;
-  background: linear-gradient(90deg, #FFF0F3 25%, #FFF5F7 50%, #FFF0F3 75%);
+  border-radius: $radius-xs;
+  background: linear-gradient(90deg, $brand-primary-bg 25%, $skeleton-shimmer 50%, $brand-primary-bg 75%);
   background-size: 200% 100%;
   animation: skeleton-shimmer 1.5s ease-in-out infinite;
 }
@@ -146,21 +146,21 @@ withDefaults(defineProps<{
 .skeleton-cards {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 16px;
+  gap: $space-4;
 }
 
 .skeleton-card {
-  padding: 20px;
-  border-radius: 12px;
-  border: 1px solid #FFE0E8;
-  background: white;
+  padding: $space-5;
+  border-radius: $radius-xl;
+  border: 1px solid $border-color;
+  background: $bg-container;
 
   .skeleton-card-title {
     height: 18px;
     width: 60%;
-    margin-bottom: 16px;
-    border-radius: 6px;
-    background: linear-gradient(90deg, #FFF0F3 25%, #FFF5F7 50%, #FFF0F3 75%);
+    margin-bottom: $space-4;
+    border-radius: $radius-sm;
+    background: linear-gradient(90deg, $brand-primary-bg 25%, $skeleton-shimmer 50%, $brand-primary-bg 75%);
     background-size: 200% 100%;
     animation: skeleton-shimmer 1.5s ease-in-out infinite;
   }
@@ -174,8 +174,8 @@ withDefaults(defineProps<{
   .skeleton-progress {
     height: 8px;
     width: 80%;
-    border-radius: 4px;
-    background: linear-gradient(90deg, #FFF0F3 25%, #FFF5F7 50%, #FFF0F3 75%);
+    border-radius: $radius-xs;
+    background: linear-gradient(90deg, $brand-primary-bg 25%, $skeleton-shimmer 50%, $brand-primary-bg 75%);
     background-size: 200% 100%;
     animation: skeleton-shimmer 1.5s ease-in-out infinite;
   }
@@ -188,27 +188,27 @@ withDefaults(defineProps<{
 
 // Detail skeleton
 .skeleton-detail-card {
-  padding: 20px;
-  border-radius: 10px;
-  border: 1px solid #FFE0E8;
-  background: white;
+  padding: $space-5;
+  border-radius: $radius-lg;
+  border: 1px solid $border-color;
+  background: $bg-container;
 }
 
 .skeleton-detail-header {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 20px;
+  gap: $space-3;
+  margin-bottom: $space-5;
 }
 
 .skeleton-desc-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-  margin-bottom: 24px;
-  padding: 16px;
-  border-radius: 8px;
-  background: #FFF9F7;
+  gap: $space-4;
+  margin-bottom: $space-6;
+  padding: $space-4;
+  border-radius: $radius-md;
+  background: $bg-page;
 }
 
 .skeleton-desc-item {
@@ -219,9 +219,9 @@ withDefaults(defineProps<{
 .skeleton-section-title {
   height: 16px;
   width: 140px;
-  border-radius: 4px;
-  margin-bottom: 12px;
-  background: linear-gradient(90deg, #FFF0F3 25%, #FFF5F7 50%, #FFF0F3 75%);
+  border-radius: $radius-xs;
+  margin-bottom: $space-3;
+  background: linear-gradient(90deg, $brand-primary-bg 25%, $skeleton-shimmer 50%, $brand-primary-bg 75%);
   background-size: 200% 100%;
   animation: skeleton-shimmer 1.5s ease-in-out infinite;
 }

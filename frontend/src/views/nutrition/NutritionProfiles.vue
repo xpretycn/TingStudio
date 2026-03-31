@@ -306,41 +306,27 @@ onMounted(async () => {
 .nutrition-profiles {
   .content-card {
     min-height: 400px;
-    box-shadow: 0 2px 12px rgba(255, 107, 138, 0.06);
-    &:hover { box-shadow: 0 4px 20px rgba(255, 107, 138, 0.1); }
+    box-shadow: $shadow-xs;
+    &:hover { box-shadow: $shadow-md; }
   }
   .target-values-editor {
     width: 100%;
     .target-row {
-      display: flex; align-items: center; gap: 8px; margin-bottom: 8px;
+      display: flex; align-items: center; gap: $space-2; margin-bottom: $space-2;
     }
   }
   .detail-targets {
-    margin-top: 16px;
+    margin-top: $space-4;
     h4 {
-      margin: 0 0 12px 0; font-size: 15px; font-weight: 600; color: #5D4E60;
+      margin: 0 0 $space-3 0; font-size: 15px; font-weight: $font-weight-semibold; color: $text-primary;
       display: flex; align-items: center; gap: 6px;
       &::before {
-        content: ''; display: inline-block; width: 4px; height: 16px;
-        background: linear-gradient(135deg, #FF8FAB, #FF6B8A); border-radius: 2px;
+        content: ''; display: inline-block; width: $space-1; height: $font-size-h3;
+        background: $gradient-btn; border-radius: $radius-xs;
       }
     }
   }
-  :deep(.t-button) {
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    border-radius: 12px !important; font-weight: 600 !important;
-    &.t-button--theme-primary {
-      background: linear-gradient(135deg, #FF8FAB, #FF6B8A) !important;
-      border: none !important; color: #fff !important;
-      box-shadow: 0 4px 16px rgba(255, 107, 138, 0.3) !important;
-      &:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(255, 107, 138, 0.4) !important; }
-    }
-    &.t-button--theme-default {
-      background: rgba(255, 255, 255, 0.9) !important;
-      border: 2px solid #FFD6E0 !important; color: #5D4E60 !important;
-      &:hover { border-color: #FF8FAB !important; color: #FF6B8A !important; }
-    }
-  }
-  :deep(.t-table) { .t-table__row--hover { background-color: #FFFBFA; } }
+  // 按钮和表格样式由全局 main.scss 统一覆盖
+  :deep(.t-table) { .t-table__row--hover { background-color: $bg-hover; } }
 }
 </style>

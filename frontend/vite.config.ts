@@ -9,6 +9,14 @@ export default defineConfig({
       '@': resolve(__dirname, 'src')
     }
   },
+  css: {
+    preprocessorOptions: {
+      scss: {
+        additionalData: `@use "@/assets/styles/variables.scss" as *;\n`,
+        api: 'modern-compiler',
+      }
+    }
+  },
   server: {
     port: 5173,
     open: true,

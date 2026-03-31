@@ -454,59 +454,59 @@ onMounted(async () => {
   .form-header {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: $space-3;
 
     .form-title {
-      font-size: 16px;
-      font-weight: 600;
-      color: #5D4E60;
+      font-size: $font-size-h3;
+      font-weight: $font-weight-semibold;
+      color: $text-primary;
     }
   }
 
   .nutrition-section {
-    margin-top: 16px;
-    padding: 20px;
-    background: linear-gradient(135deg, #FFF9F7 0%, #FFF5FB 100%);
-    border-radius: 14px;
-    border: 1.5px solid rgba(255, 181, 200, 0.2);
+    margin-top: $space-4;
+    padding: $space-5;
+    background: linear-gradient(135deg, $bg-page 0%, $bg-pink-warm 100%);
+    border-radius: $radius-2xl;
+    border: 1.5px solid $overlay-pink-lighter-20;
 
     .section-title {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      font-size: 15px;
-      font-weight: 700;
-      color: #5D4E60;
-      margin-bottom: 16px;
-      padding-bottom: 12px;
-      border-bottom: 1px solid rgba(255, 181, 200, 0.15);
+      font-size: $font-size-body-sm;
+      font-weight: $font-weight-bold;
+      color: $text-primary;
+      margin-bottom: $space-4;
+      padding-bottom: $space-3;
+      border-bottom: 1px solid $overlay-pink-lighter-15;
 
       .title-left {
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: $space-2;
       }
 
       .title-actions {
         display: flex;
         align-items: center;
-        gap: 4px;
+        gap: $space-1;
       }
     }
 
     .group-header {
       display: flex;
       align-items: center;
-      gap: 8px;
-      font-weight: 600;
-      color: #5D4E60;
+      gap: $space-2;
+      font-weight: $font-weight-semibold;
+      color: $text-primary;
     }
 
     .nutrition-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 0 24px;
-      padding: 8px 0;
+      gap: 0 $space-6;
+      padding: $space-2 0;
 
       @media (max-width: 640px) {
         grid-template-columns: 1fr;
@@ -516,15 +516,15 @@ onMounted(async () => {
     .nutrition-input {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: $space-2;
 
       .nutrition-unit {
         flex-shrink: 0;
-        font-size: 12px;
-        color: #9B8FA0;
-        background: rgba(255, 255, 255, 0.7);
-        padding: 4px 10px;
-        border-radius: 8px;
+        font-size: $font-size-caption;
+        color: $text-secondary;
+        background: $overlay-white-70;
+        padding: $space-1 10px;
+        border-radius: $radius-md;
         white-space: nowrap;
         min-width: 60px;
         text-align: center;
@@ -532,34 +532,9 @@ onMounted(async () => {
     }
 
     .nutrition-meta {
-      margin-top: 16px;
-      padding-top: 16px;
-      border-top: 1px solid rgba(255, 181, 200, 0.15);
-    }
-
-    :deep(.t-collapse) {
-      background: transparent;
-      border: none;
-
-      .t-collapse-panel__header {
-        background: rgba(255, 255, 255, 0.6);
-        border-radius: 10px;
-        padding: 10px 14px;
-        margin-bottom: 8px;
-        border: 1px solid rgba(255, 181, 200, 0.15);
-        transition: all 0.3s;
-
-        &:hover {
-          background: rgba(255, 255, 255, 0.9);
-          border-color: rgba(255, 181, 200, 0.3);
-        }
-      }
-
-      .t-collapse-panel__content {
-        background: transparent;
-        border: none;
-        padding: 0 8px;
-      }
+      margin-top: $space-4;
+      padding-top: $space-4;
+      border-top: 1px solid $overlay-pink-lighter-15;
     }
   }
 }

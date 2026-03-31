@@ -137,27 +137,27 @@ onMounted(async () => {
 
 <style scoped lang="scss">
 .version-compare {
-  .page-header { display: flex; align-items: center; gap: 12px; .page-title { font-size: 16px; font-weight: 600; color: #5D4E60; } }
-  .compare-controls { margin-bottom: 20px; }
-  .diff-summary { margin-bottom: 20px;
-    .summary-stats { display: flex; gap: 24px; padding: 12px 0;
+  .page-header { display: flex; align-items: center; gap: $space-3; .page-title { font-size: $font-size-h3; font-weight: $font-weight-semibold; color: $text-primary; } }
+  .compare-controls { margin-bottom: $space-5; }
+  .diff-summary { margin-bottom: $space-5;
+    .summary-stats { display: flex; gap: $space-6; padding: $space-3 0;
       .stat-item { text-align: center;
-        .stat-value { display: block; font-size: 28px; font-weight: 700; color: #5D4E60; }
-        .stat-label { font-size: 12px; color: #9B8FA0; }
-        &.stat-add .stat-value { color: #2BA471; }
-        &.stat-modify .stat-value { color: #E37318; }
-        &.stat-delete .stat-value { color: #E34D59; }
+        .stat-value { display: block; font-size: $font-size-display; font-weight: $font-weight-bold; color: $text-primary; }
+        .stat-label { font-size: $font-size-caption; color: $text-secondary; }
+        &.stat-add .stat-value { color: $color-success; }
+        &.stat-modify .stat-value { color: $color-warning; }
+        &.stat-delete .stat-value { color: $color-danger; }
       }
     }
   }
-  .value-added { color: #2BA471; font-weight: 600; }
-  .value-deleted { color: #E34D59; text-decoration: line-through; }
+  .value-added { color: $color-success; font-weight: $font-weight-semibold; }
+  .value-deleted { color: $color-danger; text-decoration: line-through; }
   :deep(.t-button) {
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    border-radius: 12px !important; font-weight: 600 !important;
+    transition: $transition-smooth !important;
+    border-radius: $radius-xl !important; font-weight: $font-weight-semibold !important;
     &.t-button--theme-primary {
-      background: linear-gradient(135deg, #FF8FAB, #FF6B8A) !important;
-      border: none !important; color: #fff !important;
+      background: $gradient-btn !important;
+      border: none !important; color: $text-white !important;
     }
   }
 }

@@ -51,7 +51,7 @@
               v-if="nutritionStore.formulaNutrition?.per100gNutrition"
               theme="default"
               :loading="checking"
-              @click="handleCheckCompliance"
+              @click.prevent="handleCheckCompliance"
             >
               <template #icon><t-icon name="check-circle" /></template>合规检查
             </t-button>
@@ -142,7 +142,7 @@
               <span class="percentage-value">{{ row.percentage }}%</span>
               <t-progress
                 :percentage="row.percentage"
-                color="#FF8FAB"
+                :color="chartProtein"
                 :stroke-width="6"
                 :show-label="false"
                 style="width: 60px; margin-left: 8px;"
@@ -190,7 +190,7 @@
     </t-card>
 
     <!-- 合规检查结果（独立 card，避免嵌套条件渲染问题） -->
-    <t-card v-if="nutritionStore.complianceResult && nutritionStore.formulaNutrition" class="content-card" bordered style="margin-top: 16px;">
+    <t-card v-if="nutritionStore.complianceResult" class="content-card" bordered style="margin-top: 16px;">
       <template #header>
         <div class="section-header">
           <span>合规检查结果</span>
@@ -264,6 +264,17 @@ import { useFormulaStore } from '@/stores/formula'
 import { useNutritionStore } from '@/stores/nutrition'
 import { MessagePlugin } from 'tdesign-vue-next'
 import PageSkeleton from '@/components/Skeleton/PageSkeleton.vue'
+import {
+  chartProgressGood,
+  chartProgressWarn,
+  chartProgressBad,
+  chartProtein,
+  gradientEnergy,
+  gradientProtein,
+  gradientFat,
+  gradientCarb,
+  gradientSodium,
+} from '@/assets/styles/tokens'
 
 const formulaStore = useFormulaStore()
 const nutritionStore = useNutritionStore()
@@ -297,11 +308,11 @@ const NRV: Record<string, number> = {
 
 // 核心营养素配置
 const CORE_NUTRIENTS = [
-  { key: 'energy', label: '能量', unit: 'kJ', icon: 'flashlight', iconBg: 'linear-gradient(135deg, #FFE066, #FFD700)' },
-  { key: 'protein', label: '蛋白质', unit: 'g', icon: 'heart', iconBg: 'linear-gradient(135deg, #FF8FAB, #FF6B8A)' },
-  { key: 'fat', label: '脂肪', unit: 'g', icon: 'drop', iconBg: 'linear-gradient(135deg, #A8E6CF, #7BC96F)' },
-  { key: 'carbohydrate', label: '碳水化合物', unit: 'g', icon: 'chart-bar', iconBg: 'linear-gradient(135deg, #B8D4E3, #7EB6D9)' },
-  { key: 'sodium', label: '钠', unit: 'mg', icon: 'tips', iconBg: 'linear-gradient(135deg, #DDA0DD, #BA55D3)' },
+  { key: 'energy', label: '能量', unit: 'kJ', icon: 'flashlight', iconBg: gradientEnergy },
+  { key: 'protein', label: '蛋白质', unit: 'g', icon: 'heart', iconBg: gradientProtein },
+  { key: 'fat', label: '脂肪', unit: 'g', icon: 'drop', iconBg: gradientFat },
+  { key: 'carbohydrate', label: '碳水化合物', unit: 'g', icon: 'chart-bar', iconBg: gradientCarb },
+  { key: 'sodium', label: '钠', unit: 'mg', icon: 'tips', iconBg: gradientSodium },
 ] as const
 
 // 7.2.1 + 7.2.2 核心营养素卡片数据
@@ -328,32 +339,32 @@ const coreNutritionCards = computed<NutritionCard[]>(() => {
     const nrvPercent = Math.min(Math.round((rawValue / nrv) * 10000) / 100, 150)
 
     // 根据营养素类型和占比计算状态颜色
-    let progressColor = '#FF8FAB'
+    let progressColor = chartProtein
     let statusClass = ''
 
     // 能量和钠：限制型营养素，低为好
     if (nutrient.key === 'energy' || nutrient.key === 'fat' || nutrient.key === 'sodium') {
       if (nrvPercent < 80) {
-        progressColor = '#52C41A'
+        progressColor = chartProgressGood
         statusClass = 'status-good'
       } else if (nrvPercent <= 120) {
-        progressColor = '#FAAD14'
+        progressColor = chartProgressWarn
         statusClass = 'status-warning'
       } else {
-        progressColor = '#FF4D4F'
+        progressColor = chartProgressBad
         statusClass = 'status-danger'
       }
     }
     // 蛋白质和碳水化合物：推荐型营养素，高为好
     else {
       if (nrvPercent >= 80) {
-        progressColor = '#52C41A'
+        progressColor = chartProgressGood
         statusClass = 'status-good'
       } else if (nrvPercent >= 50) {
-        progressColor = '#FAAD14'
+        progressColor = chartProgressWarn
         statusClass = 'status-warning'
       } else {
-        progressColor = '#FF4D4F'
+        progressColor = chartProgressBad
         statusClass = 'status-danger'
       }
     }
@@ -501,6 +512,13 @@ watch(
 )
 
 onMounted(async () => {
+  // 清除上次残留的分析结果，确保页面状态一致
+  nutritionStore.formulaNutrition = null
+  nutritionStore.complianceResult = null
+  analysisForm.formulaId = ''
+  analysisForm.profileId = ''
+  initialized.value = false
+
   await Promise.all([
     formulaStore.fetchFormulas(),
     nutritionStore.fetchProfiles()
@@ -515,8 +533,8 @@ onMounted(async () => {
     display: flex; align-items: center; justify-content: space-between;
   }
   .content-card {
-    box-shadow: 0 2px 12px rgba(255, 107, 138, 0.06);
-    &:hover { box-shadow: 0 4px 20px rgba(255, 107, 138, 0.1); }
+    box-shadow: $shadow-xs;
+    &:hover { box-shadow: 0 4px $space-5 rgba(255, 107, 138, 0.1); }
   }
   .empty-card {
     min-height: 300px;
@@ -525,39 +543,39 @@ onMounted(async () => {
 
   // 统一 section 标题样式
   .section-title {
-    margin: 0 0 16px 0;
+    margin: 0 0 $space-4 0;
     font-size: 15px;
-    font-weight: 600;
-    color: #5D4E60;
+    font-weight: $font-weight-semibold;
+    color: $text-primary;
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding-bottom: 12px;
-    border-bottom: 1px solid rgba(255, 181, 200, 0.2);
+    gap: $space-2;
+    padding-bottom: $space-3;
+    border-bottom: 1px solid $overlay-pink-lighter-20;
 
     &::before {
       content: '';
       display: inline-block;
-      width: 4px;
-      height: 16px;
-      background: linear-gradient(135deg, #FF8FAB, #FF6B8A);
-      border-radius: 2px;
+      width: $space-1;
+      height: $font-size-h3;
+      background: $gradient-btn;
+      border-radius: $radius-xs;
     }
   }
 
   // 7.2.1 核心营养素卡片布局
   .core-nutrition-section {
-    margin-top: 24px;
-    padding: 20px;
-    background: linear-gradient(135deg, #FFF9F7 0%, #FFF5FB 100%);
-    border-radius: 14px;
-    border: 1.5px solid rgba(255, 181, 200, 0.2);
+    margin-top: $space-6;
+    padding: $space-5;
+    background: linear-gradient(135deg, $bg-page 0%, $brand-primary-bg 100%);
+    border-radius: $radius-2xl;
+    border: 1.5px solid $overlay-pink-lighter-20;
   }
 
   .nutrition-cards {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
-    gap: 16px;
+    gap: $space-4;
 
     @media (max-width: 1200px) {
       grid-template-columns: repeat(3, 1fr);
@@ -571,67 +589,67 @@ onMounted(async () => {
   }
 
   .nutrition-card {
-    background: #fff;
-    border-radius: 12px;
-    padding: 16px;
-    box-shadow: 0 2px 8px rgba(255, 107, 138, 0.08);
+    background: $bg-container;
+    border-radius: $radius-xl;
+    padding: $space-4;
+    box-shadow: $shadow-md;
     transition: all 0.3s ease;
-    border: 1px solid rgba(255, 181, 200, 0.15);
+    border: 1px solid $overlay-pink-lighter-15;
 
     &:hover {
       transform: translateY(-4px);
-      box-shadow: 0 8px 24px rgba(255, 107, 138, 0.15);
+      box-shadow: 0 $space-3 $space-6 rgba(255, 107, 138, 0.15);
     }
 
     &.status-good {
       border-color: rgba(82, 196, 26, 0.3);
-      .card-header .card-icon { box-shadow: 0 4px 12px rgba(82, 196, 26, 0.25); }
+      .card-header .card-icon { box-shadow: 0 4px $space-4 rgba(82, 196, 26, 0.25); }
     }
     &.status-warning {
       border-color: rgba(250, 173, 20, 0.3);
-      .card-header .card-icon { box-shadow: 0 4px 12px rgba(250, 173, 20, 0.25); }
+      .card-header .card-icon { box-shadow: 0 4px $space-4 rgba(250, 173, 20, 0.25); }
     }
     &.status-danger {
       border-color: rgba(255, 77, 79, 0.3);
-      .card-header .card-icon { box-shadow: 0 4px 12px rgba(255, 77, 79, 0.25); }
+      .card-header .card-icon { box-shadow: 0 4px $space-4 rgba(255, 77, 79, 0.25); }
     }
 
     .card-header {
       display: flex;
       align-items: center;
       gap: 10px;
-      margin-bottom: 12px;
+      margin-bottom: $space-3;
 
       .card-icon {
         width: 40px;
         height: 40px;
-        border-radius: 10px;
+        border-radius: $radius-lg;
         display: flex;
         align-items: center;
         justify-content: center;
-        color: #fff;
+        color: $text-white;
       }
 
       .card-title {
-        font-size: 14px;
-        font-weight: 600;
-        color: #5D4E60;
+        font-size: $font-size-body;
+        font-weight: $font-weight-semibold;
+        color: $text-primary;
       }
     }
 
     .card-value {
-      margin-bottom: 12px;
+      margin-bottom: $space-3;
 
       .value-number {
-        font-size: 24px;
-        font-weight: 700;
-        color: #2D2D2D;
-        margin-right: 4px;
+        font-size: $font-size-h1;
+        font-weight: $font-weight-bold;
+        color: $text-dark;
+        margin-right: $space-1;
       }
 
       .value-unit {
-        font-size: 12px;
-        color: #9B8FA0;
+        font-size: $font-size-caption;
+        color: $text-secondary;
       }
     }
 
@@ -644,13 +662,13 @@ onMounted(async () => {
         margin-bottom: 6px;
 
         .nrv-label {
-          font-size: 11px;
-          color: #9B8FA0;
+          font-size: $font-size-micro;
+          color: $text-secondary;
         }
 
         .nrv-percent {
-          font-size: 13px;
-          font-weight: 600;
+          font-size: $font-size-body-sm;
+          font-weight: $font-weight-semibold;
         }
       }
     }
@@ -658,17 +676,16 @@ onMounted(async () => {
 
   // 7.2.3 原料贡献明细
   .contribution-section {
-    margin-top: 24px;
-    padding: 20px;
-    background: #fff;
-    border-radius: 14px;
-    border: 1px solid rgba(255, 181, 200, 0.15);
+    margin-top: $space-6;
+    padding: $space-5;
+    background: $bg-container;
+    border-radius: $radius-2xl;
+    border: 1px solid $overlay-pink-lighter-15;
   }
 
   .material-name-cell {
-    display: flex;
     align-items: center;
-    gap: 8px;
+    gap: $space-2;
   }
 
   .percentage-cell {
@@ -676,47 +693,47 @@ onMounted(async () => {
     align-items: center;
 
     .percentage-value {
-      font-weight: 600;
-      color: #5D4E60;
+      font-weight: $font-weight-semibold;
+      color: $text-primary;
       min-width: 50px;
     }
   }
 
   .nutrition-popup {
-    padding: 8px 4px;
+    padding: $space-2 $space-1;
     max-height: 300px;
     overflow-y: auto;
 
     .nutrition-item {
-      padding: 4px 0;
+      padding: $space-1 0;
       display: flex;
       justify-content: space-between;
-      gap: 16px;
-      font-size: 12px;
+      gap: $space-4;
+      font-size: $font-size-caption;
 
       .item-label {
-        color: #9B8FA0;
+        color: $text-secondary;
       }
 
       .item-value {
-        color: #2D2D2D;
+        color: $text-dark;
         font-weight: 500;
       }
     }
   }
 
   .nutrition-table-section, .compliance-section {
-    margin-top: 20px;
+    margin-top: $space-5;
   }
 
   // 7.3.3 合规检查汇总统计
   .compliance-summary {
     display: flex;
-    gap: 24px;
-    margin-bottom: 16px;
-    padding: 16px;
-    background: linear-gradient(135deg, #F8F9FA 0%, #F1F3F4 100%);
-    border-radius: 12px;
+    gap: $space-6;
+    margin-bottom: $space-4;
+    padding: $space-4;
+    background: linear-gradient(135deg, $bg-cool-gray 0%, $bg-cool-gray-deep 100%);
+    border-radius: $radius-xl;
 
     .summary-item {
       display: flex;
@@ -724,7 +741,7 @@ onMounted(async () => {
       gap: 10px;
 
       .summary-icon {
-        font-size: 20px;
+        font-size: $font-size-h3;
       }
 
       .summary-content {
@@ -732,37 +749,37 @@ onMounted(async () => {
         flex-direction: column;
 
         .summary-count {
-          font-size: 24px;
-          font-weight: 700;
+          font-size: $font-size-h1;
+          font-weight: $font-weight-bold;
           line-height: 1.2;
         }
 
         .summary-label {
-          font-size: 12px;
-          color: #9B8FA0;
+          font-size: $font-size-caption;
+          color: $text-secondary;
         }
       }
 
-      &.pass .summary-count { color: #52C41A; }
-      &.warning .summary-count { color: #FAAD14; }
-      &.fail .summary-count { color: #FF4D4F; }
+      &.pass .summary-count { color: $color-success; }
+      &.warning .summary-count { color: $color-warning; }
+      &.fail .summary-count { color: $color-danger; }
     }
   }
 
-  .over-limit { color: #E34D59; font-weight: 600; }
+  .over-limit { color: $color-danger; font-weight: $font-weight-semibold; }
   :deep(.t-button) {
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    border-radius: 12px !important; font-weight: 600 !important;
+    transition: $transition-smooth !important;
+    border-radius: $radius-xl !important; font-weight: $font-weight-semibold !important;
     &.t-button--theme-primary {
-      background: linear-gradient(135deg, #FF8FAB, #FF6B8A) !important;
-      border: none !important; color: #fff !important;
-      box-shadow: 0 4px 16px rgba(255, 107, 138, 0.3) !important;
-      &:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(255, 107, 138, 0.4) !important; }
+      background: $gradient-btn !important;
+      border: none !important; color: $text-white !important;
+      box-shadow: $shadow-brand !important;
+      &:hover { transform: translateY(-2px); box-shadow: $shadow-lg !important; }
     }
     &.t-button--theme-default {
-      background: rgba(255, 255, 255, 0.9) !important;
-      border: 2px solid #FFD6E0 !important; color: #5D4E60 !important;
-      &:hover { border-color: #FF8FAB !important; color: #FF6B8A !important; }
+      background: $overlay-white-90 !important;
+      border: 2px solid $brand-primary-lightest !important; color: $text-primary !important;
+      &:hover { border-color: $brand-primary-light !important; color: $brand-primary !important; }
     }
   }
 }

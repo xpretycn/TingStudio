@@ -1,6 +1,15 @@
-@use './variables.scss' as *;
+// ═══════════════════════════════════════════════════════════════
+// TingStudio Global Styles — 全局样式入口
+// 导入顺序：主题 CSS 变量 → 设计令牌 → 重置 → 工具类 → 组件覆盖
+// ═══════════════════════════════════════════════════════════════
 
-* {
+@use './variables.scss' as *;
+@import './theme.css';
+
+// ─── CSS Reset ──────────────────────────────────────────────
+*,
+*::before,
+*::after {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
@@ -10,6 +19,8 @@ html,
 body {
   height: 100%;
   font-family: $font-family;
+  font-size: $font-size-body;
+  line-height: $line-height-normal;
   background-color: $bg-page;
   color: $text-primary;
   -webkit-font-smoothing: antialiased;
@@ -20,7 +31,17 @@ body {
   height: 100%;
 }
 
-// Scrollbar styling - cute pink theme
+a {
+  color: $brand-primary;
+  text-decoration: none;
+  transition: color $transition-fast;
+
+  &:hover {
+    color: $brand-primary-light;
+  }
+}
+
+// ─── Scrollbar（粉色主题）──────────────────────────────────
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -31,187 +52,360 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #FFD6E0;
-  border-radius: 3px;
+  background: $brand-primary-lightest;
+  border-radius: $radius-xs;
 
   &:hover {
-    background: #FFB5C8;
+    background: $brand-primary-lighter;
   }
 }
 
-// Global utility classes
-.text-center {
-  text-align: center;
+// Firefox
+* {
+  scrollbar-width: thin;
+  scrollbar-color: $brand-primary-lightest transparent;
 }
 
-.text-right {
-  text-align: right;
+// ─── Utility Classes ───────────────────────────────────────
+.text-center { text-align: center; }
+.text-right  { text-align: right; }
+.text-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.mt-xs { margin-top: $spacing-xs; }
-.mt-sm { margin-top: $spacing-sm; }
-.mt-md { margin-top: $spacing-md; }
-.mt-lg { margin-top: $spacing-lg; }
+// Spacing
+.mt-xs { margin-top: $space-1; }
+.mt-sm { margin-top: $space-2; }
+.mt-md { margin-top: $space-4; }
+.mt-lg { margin-top: $space-6; }
+.mb-xs { margin-bottom: $space-1; }
+.mb-sm { margin-bottom: $space-2; }
+.mb-md { margin-bottom: $space-4; }
+.mb-lg { margin-bottom: $space-6; }
+.p-xs { padding: $space-1; }
+.p-sm { padding: $space-2; }
+.p-md { padding: $space-4; }
+.p-lg { padding: $space-6; }
 
-.mb-xs { margin-bottom: $spacing-xs; }
-.mb-sm { margin-bottom: $spacing-sm; }
-.mb-md { margin-bottom: $spacing-md; }
-.mb-lg { margin-bottom: $spacing-lg; }
+// Flex
+.flex          { display: flex; }
+.flex-center   { display: flex; align-items: center; justify-content: center; }
+.flex-between  { display: flex; align-items: center; justify-content: space-between; }
+.flex-col      { display: flex; flex-direction: column; }
+.flex-1        { flex: 1; min-width: 0; }
+.flex-shrink-0 { flex-shrink: 0; }
+.gap-xs { gap: $space-1; }
+.gap-sm { gap: $space-2; }
+.gap-md { gap: $space-4; }
 
-.p-xs { padding: $spacing-xs; }
-.p-sm { padding: $spacing-sm; }
-.p-md { padding: $spacing-md; }
-.p-lg { padding: $spacing-lg; }
+// ─── TDesign Global Overrides（全局组件样式覆盖）─────────
+// 使用 CSS 自定义属性 + SCSS 变量，不使用硬编码色值
 
-.flex {
-  display: flex;
-}
+// Card
+.t-card {
+  border-radius: $radius-xl !important;
+  border-color: $border-color !important;
+  box-shadow: $shadow-xs !important;
 
-.flex-center {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
+  &__body {
+    padding: 0 !important;
+  }
 
-.flex-between {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.flex-col {
-  display: flex;
-  flex-direction: column;
-}
-
-// Global card style overrides for cute theme
-::v-deep(.t-card) {
-  border-radius: 12px !important;
-  border-color: #FFE0E8 !important;
-  box-shadow: 0 2px 12px rgba(255, 107, 138, 0.06) !important;
-}
-
-::v-deep(.t-button--variant-base.t-button--theme-primary) {
-  border-radius: 10px !important;
-  background: linear-gradient(135deg, #FF8FAB, #FF6B8A) !important;
-  border: none !important;
-  box-shadow: 0 2px 8px rgba(255, 107, 138, 0.2);
-  transition: all 0.25s ease;
-
-  &:hover {
-    box-shadow: 0 4px 16px rgba(255, 107, 138, 0.3);
-    transform: translateY(-1px);
+  &__header {
+    border-bottom: 1.5px solid rgba(255, 181, 200, 0.15);
+    padding: 12px 16px;
   }
 }
 
-::v-deep(.t-button--variant-outline.t-button--theme-primary) {
-  border-color: #FF6B8A !important;
-  color: #FF6B8A !important;
-  border-radius: 10px !important;
+// ─── Button（按钮）────────────────────────────────────────
+.t-button {
+  border-radius: $radius-lg !important;
+  font-weight: $font-weight-semibold !important;
+  transition: all $transition-smooth !important;
 
-  &:hover {
-    background: #FFF0F3 !important;
+  // Primary 实心
+  &--variant-base.t-button--theme-primary {
+    background: $gradient-btn !important;
+    border: none !important;
+    color: $text-white !important;
+    box-shadow: $shadow-brand;
+
+    &:hover {
+      background: $gradient-btn-hover !important;
+      box-shadow: $shadow-lg;
+      transform: translateY(-1px);
+    }
+
+    &:active {
+      transform: translateY(1px) scale(0.98);
+    }
+  }
+
+  // Default / Outline
+  &--variant-outline.t-button--theme-primary,
+  &--theme-default {
+    border: 1.5px solid $brand-primary-lighter !important;
+    color: $text-primary !important;
+    background: rgba(255, 255, 255, 0.9) !important;
+
+    &:hover {
+      border-color: $brand-primary !important;
+      color: $brand-primary !important;
+      transform: translateY(-1px);
+    }
+
+    &:active {
+      transform: translateY(1px) scale(0.98);
+    }
+
+    .t-button__icon {
+      color: $brand-primary-light !important;
+    }
+  }
+
+  // Danger
+  &--theme-danger.t-button--variant-base {
+    background: linear-gradient(135deg, $brand-primary, $color-danger) !important;
+    border: none !important;
+    color: $text-white !important;
+
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(227, 77, 89, 0.35);
+    }
+  }
+
+  // Text / Link variant
+  &--variant-text {
+    color: $brand-primary-light !important;
+
+    .t-button__text,
+    .t-button__icon {
+      color: $brand-primary-light !important;
+    }
+
+    &:hover {
+      background-color: $bg-hover !important;
+      color: $brand-primary !important;
+
+      .t-button__text,
+      .t-button__icon {
+        color: $brand-primary !important;
+      }
+    }
+  }
+
+  // Size overrides
+  &--size-medium {
+    height: 32px !important;
+    padding: 0 14px !important;
+    font-size: $font-size-caption !important;
+  }
+
+  &--size-small {
+    height: 28px !important;
+    padding: 0 8px !important;
+    font-size: $font-size-micro !important;
   }
 }
 
-::v-deep(.t-tag--theme-primary) {
-  background: #FFF0F3 !important;
-  color: #FF6B8A !important;
-  border-color: #FFD6E0 !important;
-}
-
-::v-deep(.t-tag--primary-light) {
-  background: #FFF0F3 !important;
-  color: #FF6B8A !important;
-}
-
-::v-deep(.t-link--theme-primary) {
-  color: #FF6B8A;
+// ─── Input（输入框）───────────────────────────────────────
+.t-input,
+.t-textarea,
+.t-select .t-input {
+  border-radius: $radius-lg;
+  border-color: $border-color;
 
   &:hover {
-    color: #FF8FAB;
+    border-color: $brand-primary-lighter;
   }
 }
 
-::v-deep(.t-input) {
-  border-radius: 10px;
-  border-color: #FFE0E8;
-
-  &:hover {
-    border-color: #FFB5C8;
-  }
+.t-input.t-is-focused,
+.t-input:focus-within,
+.t-textarea.t-is-focused,
+.t-textarea:focus-within {
+  border-color: $brand-primary-light;
+  box-shadow: 0 0 0 3px rgba(255, 143, 171, 0.1);
 }
 
-::v-deep(.t-input.t-is-focused),
-::v-deep(.t-input:focus-within) {
-  border-color: #FF8FAB;
-  box-shadow: 0 0 0 2px rgba(255, 107, 138, 0.1);
-}
-
-::v-deep(.t-select) {
-  border-radius: 10px;
-}
-
-::v-deep(.t-textarea) {
-  border-radius: 10px;
-  border-color: #FFE0E8;
-
-  &:hover {
-    border-color: #FFB5C8;
-  }
-}
-
-::v-deep(.t-textarea.t-is-focused) {
-  border-color: #FF8FAB;
-  box-shadow: 0 0 0 2px rgba(255, 107, 138, 0.1);
-}
-
-// Table cute theme
-::v-deep(.t-table) {
-  border-radius: 10px !important;
+// ─── Table（表格）─────────────────────────────────────────
+.t-table {
+  border-radius: $radius-lg !important;
 
   th {
-    background: #FFF9F7 !important;
-    color: #5D4E60 !important;
-    font-weight: 600 !important;
-    border-bottom-color: #FFE0E8 !important;
+    background: $bg-page !important;
+    color: $text-primary !important;
+    font-weight: $font-weight-semibold !important;
+    border-bottom-color: $border-color !important;
   }
 
   td {
-    border-bottom-color: #FFF5F3 !important;
+    border-bottom-color: $skeleton-border !important;
   }
 
-  .t-table__row--hover {
-    background-color: #FFFBFA !important;
+  .t-table__row--hover td {
+    background-color: $bg-table-row-hover !important;
   }
 
-  .t-table__row--stripe {
-    background-color: #FFFDFC !important;
+  .t-table__row--stripe td {
+    background-color: $bg-table-row-stripe !important;
+  }
+
+  // Sticky header（表格滚动时固定表头）
+  .t-table__header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: $gradient-brand-warm;
+    backdrop-filter: blur(8px);
+
+    th {
+      background: transparent !important;
+      font-weight: $font-weight-semibold !important;
+      font-size: $font-size-caption !important;
+      border-bottom: 1.5px solid rgba(255, 181, 200, 0.2) !important;
+      padding: 8px 12px !important;
+
+      .t-table__cell-text {
+        color: $text-primary !important;
+        font-weight: $font-weight-semibold !important;
+      }
+    }
+  }
+
+  // Expanded row
+  .t-table__expanded-row {
+    background: $bg-page !important;
+  }
+
+  // Hide inline pagination (when using external pagination bar)
+  &__pagination {
+    display: none;
   }
 }
 
-::v-deep(.t-pagination) {
+// ─── Tag（标签）───────────────────────────────────────────
+.t-tag--theme-primary,
+.t-tag--primary-light {
+  background: $brand-primary-bg !important;
+  color: $brand-primary !important;
+  border-color: $brand-primary-lightest !important;
+}
+
+// ─── Link（链接）──────────────────────────────────────────
+.t-link--theme-primary {
+  color: $brand-primary;
+
+  &:hover {
+    color: $brand-primary-light;
+  }
+}
+
+// ─── Pagination（分页）────────────────────────────────────
+.t-pagination {
   .t-pagination__total {
-    color: #9B8FA0;
+    color: $text-secondary;
+    font-size: $font-size-body-sm;
+  }
+
+  .t-pagination__btn {
+    color: $text-primary;
+    border-radius: $radius-md;
+    min-width: 32px;
+    height: 32px;
+    border: 1px solid transparent;
+    transition: all $transition-normal;
+
+    &:hover:not(.t-is-disabled):not(.t-is-current) {
+      color: $brand-primary;
+      border-color: $brand-primary-lighter;
+      background: rgba(255, 143, 171, 0.08);
+    }
+  }
+
+  .t-is-current {
+    background: $gradient-btn !important;
+    color: $text-white !important;
+    border-radius: $radius-md !important;
+    border: none !important;
+    box-shadow: $shadow-brand;
+    font-weight: $font-weight-semibold;
+  }
+
+  .t-pagination__select,
+  .t-pagination__jumper-input {
+    border-color: $brand-primary-lightest !important;
+    border-radius: $radius-md !important;
+    color: $text-primary !important;
+
+    &:hover,
+    &:focus {
+      border-color: $brand-primary-lighter !important;
+    }
   }
 }
 
-// Form validation styles
-::v-deep(.t-form-item__required-icon) {
-  color: #E34D59 !important;
+// ─── Form（表单）──────────────────────────────────────────
+.t-form-item__required-icon {
+  color: $color-danger !important;
 }
 
-::v-deep(.t-form__item.t-is-error) {
+.t-form__item.t-is-error {
   .t-input,
   .t-textarea,
   .t-select .t-input,
   .t-input-number {
-    border-color: #E34D59 !important;
+    border-color: $color-danger !important;
     box-shadow: 0 0 0 2px rgba(227, 77, 89, 0.12) !important;
   }
 }
 
-// Dialog
-::v-deep(.t-dialog) {
-  border-radius: 16px !important;
+// ─── Dialog（弹窗）───────────────────────────────────────
+.t-dialog {
+  border-radius: $radius-3xl !important;
+}
+
+// ─── Collapse（折叠面板）─────────────────────────────────
+.t-collapse {
+  background: transparent;
+  border: none;
+
+  .t-collapse-panel__header {
+    background: rgba(255, 255, 255, 0.6);
+    border-radius: $radius-lg;
+    padding: $space-3 $space-4;
+    margin-bottom: $space-2;
+    border: 1px solid rgba($brand-primary-lighter, 0.15);
+    transition: all $transition-normal;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.9);
+      border-color: rgba($brand-primary-lighter, 0.3);
+    }
+  }
+
+  .t-collapse-panel__content {
+    background: transparent;
+    border: none;
+    padding: 0 $space-2;
+  }
+}
+
+// ─── Empty（空状态）───────────────────────────────────────
+.t-empty {
+  padding: 40px 0;
+  background: transparent !important;
+
+  .t-empty__image svg {
+    color: $brand-primary-lighter;
+  }
+
+  .t-empty__description {
+    color: $text-secondary;
+    font-size: $font-size-body;
+    font-weight: $font-weight-medium;
+  }
 }

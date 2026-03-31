@@ -186,17 +186,17 @@ const handleBack = () => {
 <style scoped lang="scss">
 .app-layout {
   height: 100vh;
-  background-color: #FFF9F7;
+  background-color: $bg-page;
 }
 
 .app-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 24px;
-  background: linear-gradient(135deg, #FF8FAB 0%, #FF6B8A 50%, #E8A0B0 100%);
-  box-shadow: 0 2px 12px rgba(255, 107, 138, 0.2);
-  height: 64px;
+  padding: 0 $space-6;
+  background: $gradient-brand;
+  box-shadow: $shadow-header;
+  height: $header-height;
 
   .header-left {
     display: flex;
@@ -211,14 +211,14 @@ const handleBack = () => {
       .logo-avatar {
         width: 36px;
         height: 36px;
-        border-radius: 50%;
-        background: rgba(255, 255, 255, 0.25);
+        border-radius: $radius-circle;
+        background: $overlay-white-25;
         display: flex;
         align-items: center;
         justify-content: center;
         backdrop-filter: blur(4px);
         cursor: pointer;
-        transition: transform 0.3s;
+        transition: transform $transition-normal;
 
         svg {
           width: 28px;
@@ -232,9 +232,9 @@ const handleBack = () => {
 
       .app-title {
         margin: 0;
-        font-size: 20px;
-        font-weight: 700;
-        color: white;
+        font-size: $font-size-h2;
+        font-weight: $font-weight-bold;
+        color: $text-white;
         letter-spacing: 0.5px;
       }
     }
@@ -246,16 +246,16 @@ const handleBack = () => {
     justify-content: center;
 
     :deep(.t-breadcrumb) {
-      color: rgba(255, 255, 255, 0.9);
-      font-size: 14px;
+      color: $text-white-80;
+      font-size: $font-size-body;
     }
 
     :deep(.t-breadcrumb__item) {
-      color: rgba(255, 255, 255, 0.8);
+      color: $text-white-80;
 
       &:last-child {
-        color: white;
-        font-weight: 500;
+        color: $text-white;
+        font-weight: $font-weight-medium;
       }
     }
   }
@@ -265,137 +265,137 @@ const handleBack = () => {
     align-items: center;
 
     .header-button {
-      color: white;
-      padding: 8px 16px;
-      font-size: 14px;
-      transition: all 0.3s;
+      color: $text-white;
+      padding: $space-2 $space-4;
+      font-size: $font-size-body;
+      transition: all $transition-normal;
 
       :deep(.t-button__icon) {
-        color: white;
+        color: $text-white;
       }
 
       &:hover {
-        background-color: rgba(255, 255, 255, 0.2);
-        border-radius: 10px;
+        background-color: $overlay-white-20;
+        border-radius: $radius-lg;
       }
     }
 
     .user-button {
-      color: white;
-      padding: 8px 16px;
-      font-size: 14px;
-      transition: all 0.3s;
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      border-radius: 20px;
+      color: $text-white;
+      padding: $space-2 $space-4;
+      font-size: $font-size-body;
+      transition: all $transition-normal;
+      border: 1px solid $overlay-white-30;
+      border-radius: $radius-pill;
 
       :deep(.t-button__icon) {
-        color: white;
+        color: $text-white;
       }
 
       .username {
-        margin: 0 4px;
-        color: white;
-        font-size: 14px;
-        font-weight: 500;
+        margin: 0 $space-1;
+        color: $text-white;
+        font-size: $font-size-body;
+        font-weight: $font-weight-medium;
       }
 
       &:hover {
-        background-color: rgba(255, 255, 255, 0.2);
-        border-color: rgba(255, 255, 255, 0.4);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        background-color: $overlay-white-20;
+        border-color: $overlay-white-40;
+        box-shadow: $shadow-float;
       }
     }
   }
 }
 
 .app-aside {
-  width: 220px;
-  background: white;
-  border-right: 1px solid #FFE0E8;
+  width: $aside-width;
+  background: $bg-container;
+  border-right: 1px solid $border-color;
   overflow-y: auto;
-  box-shadow: 2px 0 8px rgba(255, 107, 138, 0.04);
+  box-shadow: $shadow-aside;
 
   .menu-header {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 16px 20px;
-    border-bottom: 1px solid #FFF0F3;
-    background: linear-gradient(135deg, #FFF9F7 0%, #FFF0F3 100%);
+    gap: $space-2;
+    padding: $space-4 $space-5;
+    border-bottom: 1px solid $border-color-light;
+    background: $bg-sidebar-header;
 
     .menu-emoji {
-      font-size: 16px;
-      color: #FF6B8A;
+      font-size: $font-size-body;
+      color: $brand-primary;
     }
 
     .menu-title {
-      font-size: 15px;
-      font-weight: 600;
-      color: #5D4E60;
+      font-size: $font-size-body-sm;
+      font-weight: $font-weight-semibold;
+      color: $text-primary;
     }
   }
 
   :deep(.t-menu) {
     height: calc(100% - 56px);
     border: none;
-    padding: 8px 12px;
+    padding: $space-2 $space-3;
   }
 
   :deep(.t-menu__item) {
-    height: 46px;
-    line-height: 46px;
-    font-size: 14px;
-    border-radius: 12px;
-    margin-bottom: 4px;
-    transition: all 0.3s;
-    padding: 0 16px;
+    height: $menu-item-height;
+    line-height: $menu-item-height;
+    font-size: $font-size-body;
+    border-radius: $menu-item-radius;
+    margin-bottom: $space-1;
+    transition: all $transition-normal;
+    padding: 0 $space-4;
     display: flex;
     align-items: center;
   }
 
   :deep(.t-menu__item .t-icon) {
     margin-right: 10px;
-    color: #9B8FA0;
-    transition: color 0.3s;
+    color: $text-secondary;
+    transition: color $transition-normal;
   }
 
   :deep(.t-menu__item .menu-text) {
-    color: #5D4E60;
-    font-weight: 500;
-    transition: color 0.3s;
+    color: $text-primary;
+    font-weight: $font-weight-medium;
+    transition: color $transition-normal;
   }
 
   :deep(.t-menu__item:hover) {
-    background-color: #FFF0F3;
+    background-color: $bg-hover;
     transform: translateX(2px);
   }
 
   :deep(.t-menu__item:hover .t-icon) {
-    color: #FF6B8A;
+    color: $brand-primary;
   }
 
   :deep(.t-menu__item:hover .menu-text) {
-    color: #FF6B8A;
+    color: $brand-primary;
   }
 
   :deep(.t-menu__item.t-menu__item--active) {
-    background: linear-gradient(135deg, #FF8FAB 0%, #FF6B8A 100%);
-    box-shadow: 0 2px 8px rgba(255, 107, 138, 0.25);
+    background: $gradient-btn;
+    box-shadow: $shadow-brand;
   }
 
   :deep(.t-menu__item.t-menu__item--active .t-icon) {
-    color: white;
+    color: $text-white;
   }
 
   :deep(.t-menu__item.t-menu__item--active .menu-text) {
-    color: white;
-    font-weight: 600;
+    color: $text-white;
+    font-weight: $font-weight-semibold;
   }
 }
 
 .app-content {
-  padding: 24px;
+  padding: $content-padding;
   overflow-y: auto;
-  background-color: #FFF9F7;
+  background-color: $bg-page;
 }
 </style>

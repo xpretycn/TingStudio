@@ -60,7 +60,7 @@
           <template #name="{ row }">
             <span :class="{ 'missing-nutrition': row.hasEmptyNutrition }">
               {{ row.name }}
-              <t-icon v-if="row.hasEmptyNutrition" name="error-circle" style="color: #E8703A; margin-left: 4px;" />
+              <t-icon v-if="row.hasEmptyNutrition" name="error-circle" class="missing-nutrition-icon" />
             </span>
           </template>
         </t-table>
@@ -175,87 +175,92 @@ onMounted(() => { loadData() })
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 16px;
+    margin-bottom: $space-4;
 
     .header-left {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: $space-3;
     }
 
     .detail-title {
-      font-size: 16px;
-      font-weight: 600;
-      color: #5D4E60;
+      font-size: $font-size-h3;
+      font-weight: $font-weight-semibold;
+      color: $text-primary;
     }
   }
 
   .table-card {
-    background: rgba(255, 255, 255, 0.92);
-    border-radius: 14px;
-    border: 1.5px solid rgba(255, 181, 200, 0.2);
-    box-shadow: 0 2px 12px rgba(255, 143, 171, 0.08);
-    padding: 20px 24px;
-    margin-bottom: 20px;
+    background: $overlay-white-92;
+    border-radius: $radius-2xl;
+    border: 1.5px solid $overlay-pink-lighter-20;
+    box-shadow: $shadow-md;
+    padding: $space-5 $space-6;
+    margin-bottom: $space-5;
   }
 
   .table-title-row {
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 12px;
+    margin-bottom: $space-3;
 
     .formula-name {
-      font-size: 18px;
-      font-weight: 700;
-      color: #5D4E60;
+      font-size: $font-size-h4;
+      font-weight: $font-weight-bold;
+      color: $text-primary;
     }
 
     .table-title {
       font-size: 15px;
-      font-weight: 600;
-      color: #5D4E60;
+      font-weight: $font-weight-semibold;
+      color: $text-primary;
     }
 
     .nutrition-label-title {
-      color: #3A7BD5;
+      color: $color-info;
     }
 
     .tech-basis-title {
-      color: #E8703A;
+      color: $color-warning;
     }
   }
 
   .formula-info-row {
     display: flex;
-    gap: 32px;
+    gap: $space-8;
     justify-content: center;
-    margin-bottom: 8px;
-    font-size: 13px;
-    color: #8B7E96;
+    margin-bottom: $space-2;
+    font-size: $font-size-body-sm;
+    color: $text-regular;
 
     b {
-      color: #5D4E60;
+      color: $text-primary;
     }
 
     .highlight-weight {
-      color: #E8703A;
-      font-weight: 700;
+      color: $color-warning;
+      font-weight: $font-weight-bold;
       font-size: 15px;
-      background: linear-gradient(135deg, rgba(232, 112, 58, 0.1), rgba(255, 143, 171, 0.1));
-      padding: 2px 10px;
-      border-radius: 6px;
-      border: 1px solid rgba(232, 112, 58, 0.25);
+      background: linear-gradient(135deg, $color-warning-light, $color-info-light);
+      padding: 2px $space-2;
+      border-radius: $radius-sm;
+      border: 1px solid rgba($color-warning, 0.25);
     }
   }
 
   .nutrition-warning {
-    margin-bottom: 16px;
-    border-radius: 10px;
+    margin-bottom: $space-4;
+    border-radius: $radius-lg;
   }
 
   .missing-nutrition {
-    color: #E8703A;
+    color: $color-warning;
+  }
+
+  .missing-nutrition-icon {
+    color: $color-warning-orange;
+    margin-left: $space-1;
   }
 
   .dual-title {
@@ -266,49 +271,49 @@ onMounted(() => { loadData() })
 
   // 技术处理依据列（第5、6列）着色
   :deep(.t-table) {
-    font-size: 13px;
+    font-size: $font-size-body-sm;
 
     .t-table__row--level-0:last-child {
-      font-weight: 600;
+      font-weight: $font-weight-semibold;
     }
 
     // 0界限值列
     th:nth-child(5),
     td:nth-child(5) {
-      background-color: rgba(232, 112, 58, 0.06) !important;
+      background-color: $color-warning-light !important;
     }
 
     // 允许误差范围列
     th:nth-child(6),
     td:nth-child(6) {
-      background-color: rgba(232, 112, 58, 0.1) !important;
+      background-color: $color-warning-medium !important;
     }
 
     // 表头加深
     th:nth-child(5),
     th:nth-child(6) {
-      color: #E8703A;
-      font-weight: 600;
+      color: $color-warning;
+      font-weight: $font-weight-semibold;
     }
   }
 
   .notes-card {
-    background: rgba(255, 255, 255, 0.92);
-    border-radius: 14px;
-    border: 1.5px solid rgba(255, 181, 200, 0.2);
-    box-shadow: 0 2px 12px rgba(255, 143, 171, 0.08);
-    padding: 16px 24px;
+    background: $overlay-white-92;
+    border-radius: $radius-2xl;
+    border: 1.5px solid $overlay-pink-lighter-20;
+    box-shadow: $shadow-md;
+    padding: $space-4 $space-6;
 
     .notes-title {
-      font-size: 14px;
-      font-weight: 600;
-      color: #5D4E60;
-      margin-bottom: 8px;
+      font-size: $font-size-body;
+      font-weight: $font-weight-semibold;
+      color: $text-primary;
+      margin-bottom: $space-2;
     }
 
     .notes-item {
-      font-size: 13px;
-      color: #9B8FA0;
+      font-size: $font-size-body-sm;
+      color: $text-secondary;
       line-height: 1.8;
     }
   }

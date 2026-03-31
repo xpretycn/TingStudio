@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="home-page">
     <!-- 左侧导航功能区 -->
     <div class="left-sidebar">
@@ -586,21 +586,6 @@ onMounted(() => {
 </script>
 
 <style scoped lang="scss">
-// ───── Palette ─────
-$pink-100: #FFF0F3;
-$pink-200: #FFD6E0;
-$pink-300: #FFB5C8;
-$pink-400: #FF8FAB;
-$pink-500: #FF6B8A;
-$peach: #FFE8D6;
-$cream: #FFF9F5;
-$lavender: #F0E6FF;
-$mauve: #E8D5F5;
-$text-main: #5D4E60;
-$text-sub: #9B8FA0;
-$white: #fff;
-$sidebar-w: 300px;
-
 // ═══════════════════════════════════════
 //  HOME PAGE — 禁止滚动，撑满视口
 // ═══════════════════════════════════════
@@ -609,7 +594,7 @@ $sidebar-w: 300px;
   height: 100vh;
   height: 100dvh;
   overflow: hidden;
-  background: $cream;
+  background: $bg-page;
   font-family: 'PingFang SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
@@ -624,8 +609,8 @@ $sidebar-w: 300px;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
-  background: linear-gradient(180deg, #FFF9F7 0%, #FFF0F3 50%, #F0E6FF 100%);
-  border-right: 2px solid rgba(255, 143, 171, 0.15);
+  background: $gradient-sidebar;
+  border-right: 2px solid $overlay-pink-15;
   position: relative;
   overflow: hidden;
 
@@ -636,7 +621,7 @@ $sidebar-w: 300px;
     right: -50%;
     width: 100%;
     height: 100%;
-    background: radial-gradient(circle, rgba(255, 143, 171, 0.08), transparent 70%);
+    background: radial-gradient(circle, $overlay-pink-08, transparent 70%);
     pointer-events: none;
     z-index: 0;
   }
@@ -658,7 +643,7 @@ $sidebar-w: 300px;
   gap: 10px;
   margin-bottom: 16px;
   padding-bottom: 14px;
-  border-bottom: 2px dashed rgba(255, 181, 200, 0.3);
+  border-bottom: 2px dashed $overlay-pink-lighter-30;
 
   .logo-cat {
     width: 38px;
@@ -668,7 +653,7 @@ $sidebar-w: 300px;
     svg {
       width: 100%;
       height: 100%;
-      filter: drop-shadow(0 4px 12px rgba(255, 143, 171, 0.15));
+      filter: drop-shadow(0 4px 12px $overlay-pink-15);
       animation: catBounce 4s ease-in-out infinite;
     }
   }
@@ -676,7 +661,7 @@ $sidebar-w: 300px;
   .logo-text {
     font-size: 18px;
     font-weight: 700;
-    color: $text-main;
+    color: $text-primary;
     margin: 0;
     letter-spacing: 0.5px;
   }
@@ -695,12 +680,12 @@ $sidebar-w: 300px;
   height: 80px;
   flex-shrink: 0;
   padding: 12px;
-  background: rgba(255, 255, 255, 0.6);
+  background: $overlay-white-60;
   backdrop-filter: blur(10px);
   border-radius: 14px;
   margin-bottom: 12px;
-  border: 1px solid rgba(255, 181, 200, 0.2);
-  box-shadow: 0 2px 12px rgba(255, 143, 171, 0.08);
+  border: 1px solid $overlay-pink-lighter-20;
+  box-shadow: 0 2px 12px $overlay-pink-08;
 
   .user-main {
     display: flex;
@@ -723,13 +708,13 @@ $sidebar-w: 300px;
       .user-name {
         font-size: 13px;
         font-weight: 600;
-        color: $text-main;
+        color: $text-primary;
         line-height: 1.3;
       }
 
       .user-role {
         font-size: 9px;
-        background: linear-gradient(135deg, $pink-300, $pink-400);
+        background: linear-gradient(135deg, $brand-primary-lighter, $brand-primary-light);
         color: white;
         padding: 1px 6px;
         border-radius: 6px;
@@ -746,9 +731,9 @@ $sidebar-w: 300px;
     align-items: center;
     gap: 4px;
     padding: 6px 10px;
-    background: linear-gradient(135deg, rgba(255, 143, 171, 0.08), rgba(240, 230, 255, 0.08));
+    background: linear-gradient(135deg, $overlay-pink-08, $color-lavender-alpha);
     border-radius: 8px;
-    border-left: 3px solid $pink-300;
+    border-left: 3px solid $brand-primary-lighter;
 
     .blessing-icon {
       font-size: 14px;
@@ -758,7 +743,7 @@ $sidebar-w: 300px;
 
     .blessing-text {
       font-size: 11px;
-      color: $text-main;
+      color: $text-primary;
       line-height: 1.5;
       font-weight: 500;
       white-space: normal;
@@ -785,19 +770,19 @@ $sidebar-w: 300px;
     align-items: center;
     gap: 8px;
     padding: 8px 10px;
-    background: rgba(255, 255, 255, 0.5);
+    background: $overlay-white-50;
     border-radius: 10px;
-    border: 1px solid rgba(255, 181, 200, 0.15);
+    border: 1px solid $overlay-pink-lighter-15;
     transition: all 0.3s;
 
     &:hover {
-      background: rgba(255, 255, 255, 0.8);
-      box-shadow: 0 4px 12px rgba(255, 143, 171, 0.1);
+      background: $overlay-white-80;
+      box-shadow: 0 4px 12px $overlay-pink-10;
     }
   }
 
   .info-date svg {
-    color: $pink-500;
+    color: $brand-primary;
     flex-shrink: 0;
   }
 
@@ -814,13 +799,13 @@ $sidebar-w: 300px;
     .chip-main {
       font-size: 12px;
       font-weight: 600;
-      color: $text-main;
+      color: $text-primary;
       line-height: 1.3;
     }
 
     .chip-sub {
       font-size: 10px;
-      color: $text-sub;
+      color: $text-secondary;
       line-height: 1.3;
     }
   }
@@ -833,7 +818,7 @@ $sidebar-w: 300px;
   overflow-y: auto;
   padding: 12px 18px;
   scrollbar-width: thin;
-  scrollbar-color: rgba(255, 143, 171, 0.25) transparent;
+  scrollbar-color: $overlay-pink-25 transparent;
 
   &::-webkit-scrollbar {
     width: 4px;
@@ -842,10 +827,10 @@ $sidebar-w: 300px;
     background: transparent;
   }
   &::-webkit-scrollbar-thumb {
-    background: rgba(255, 143, 171, 0.25);
+    background: $overlay-pink-25;
     border-radius: 2px;
     &:hover {
-      background: rgba(255, 143, 171, 0.45);
+      background: $overlay-pink-45;
     }
   }
 
@@ -854,16 +839,16 @@ $sidebar-w: 300px;
     align-items: center;
     justify-content: space-between;
     padding: 10px 12px;
-    background: linear-gradient(135deg, $pink-200, $pink-300);
+    background: linear-gradient(135deg, $brand-primary-lightest, $brand-primary-lighter);
     border-radius: 10px;
     margin-bottom: 8px;
     cursor: pointer;
     transition: all 0.3s;
-    box-shadow: 0 2px 8px rgba(255, 107, 138, 0.15);
+    box-shadow: $shadow-brand-xs;
 
     &:hover {
       transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(255, 107, 138, 0.25);
+      box-shadow: $shadow-brand;
     }
 
     .nav-icon { font-size: 16px; }
@@ -871,13 +856,13 @@ $sidebar-w: 300px;
     .nav-title {
       font-size: 13px;
       font-weight: 600;
-      color: $text-main;
+      color: $text-primary;
       flex: 1;
       margin-left: 6px;
     }
 
     .nav-toggle {
-      color: $text-main;
+      color: $text-primary;
       transition: transform 0.3s;
       &.expanded { transform: rotate(180deg); }
       svg { width: 14px; height: 14px; }
@@ -901,23 +886,23 @@ $sidebar-w: 300px;
       align-items: center;
       gap: 8px;
       padding: 10px 12px;
-      background: rgba(255, 255, 255, 0.6);
+      background: $overlay-white-60;
       border-radius: 10px;
       cursor: pointer;
       transition: all 0.3s;
       border: 1px solid transparent;
 
       &:hover {
-        background: rgba(255, 255, 255, 0.9);
+        background: $overlay-white-90;
         transform: translateX(4px);
-        border-color: $pink-200;
-        box-shadow: 0 2px 8px rgba(255, 143, 171, 0.1);
+        border-color: $brand-primary-lightest;
+        box-shadow: 0 2px 8px $overlay-pink-10;
       }
 
       &.active {
-        background: linear-gradient(135deg, $pink-400, $pink-500);
+        background: linear-gradient(135deg, $brand-primary-light, $brand-primary);
         color: white;
-        box-shadow: 0 4px 12px rgba(255, 107, 138, 0.3);
+        box-shadow: $shadow-brand-md;
 
         .nav-item-arrow {
           color: white;
@@ -938,12 +923,12 @@ $sidebar-w: 300px;
       .nav-item-text {
         flex: 1;
         font-size: 13px;
-        color: $text-main;
+        color: $text-primary;
         font-weight: 500;
       }
 
       .nav-item-arrow {
-        color: $text-sub;
+        color: $text-secondary;
         transition: all 0.3s;
         svg { width: 12px; height: 12px; }
       }
@@ -956,11 +941,11 @@ $sidebar-w: 300px;
   flex-shrink: 0;
   margin: 0 18px 16px;
   padding: 14px;
-  background: rgba(255, 255, 255, 0.7);
+  background: $overlay-white-70;
   backdrop-filter: blur(10px);
   border-radius: 14px;
-  border: 1.5px solid rgba(255, 181, 200, 0.25);
-  box-shadow: 0 4px 16px rgba(255, 143, 171, 0.1);
+  border: 1.5px solid $overlay-pink-lighter-25;
+  box-shadow: 0 4px 16px $overlay-pink-10;
 
   .guide-header {
     display: flex;
@@ -973,7 +958,7 @@ $sidebar-w: 300px;
       flex: 1;
       font-size: 13px;
       font-weight: 700;
-      color: $text-main;
+      color: $text-primary;
     }
     .guide-close {
       width: 20px;
@@ -983,13 +968,13 @@ $sidebar-w: 300px;
       justify-content: center;
       border-radius: 50%;
       font-size: 14px;
-      color: $text-sub;
+      color: $text-secondary;
       cursor: pointer;
       transition: all 0.2s;
 
       &:hover {
-        background: rgba(255, 143, 171, 0.15);
-        color: $pink-500;
+        background: $overlay-pink-15;
+        color: $brand-primary;
       }
     }
   }
@@ -1011,19 +996,19 @@ $sidebar-w: 300px;
       border: 1px solid transparent;
 
       &:hover {
-        background: rgba(255, 240, 243, 0.6);
-        border-color: $pink-200;
+        background: $overlay-pink-bg-60;
+        border-color: $brand-primary-lightest;
       }
 
       &.active {
-        background: linear-gradient(135deg, $pink-300, $pink-400);
-        .step-number { background: white; color: $pink-500; }
+        background: linear-gradient(135deg, $brand-primary-lighter, $brand-primary-light);
+        .step-number { background: white; color: $brand-primary; }
         .step-text { color: white; font-weight: 600; }
         .step-arrow { color: white; }
       }
 
       &.done .step-number {
-        background: #52C41A;
+        background: $chart-progress-good;
         color: white;
       }
 
@@ -1031,8 +1016,8 @@ $sidebar-w: 300px;
         width: 22px;
         height: 22px;
         border-radius: 50%;
-        background: $pink-100;
-        color: $pink-500;
+        background: $brand-primary-bg;
+        color: $brand-primary;
         font-size: 11px;
         font-weight: 700;
         display: flex;
@@ -1044,35 +1029,20 @@ $sidebar-w: 300px;
       .step-text {
         flex: 1;
         font-size: 12px;
-        color: $text-main;
+        color: $text-primary;
         font-weight: 500;
       }
 
       .step-arrow {
-        color: $text-sub;
+        color: $text-secondary;
         flex-shrink: 0;
       }
     }
   }
 
   .guide-action {
-    :deep(.t-button--theme-primary) {
-      background: linear-gradient(135deg, $pink-400, $pink-500) !important;
-      border: none !important;
-      color: white !important;
+    :deep(.t-button) {
       width: 100%;
-      height: 32px !important;
-      border-radius: 10px !important;
-      font-size: 12px !important;
-      font-weight: 600 !important;
-
-      &:hover {
-        background: linear-gradient(135deg, $pink-300, $pink-400) !important;
-        transform: translateY(-1px);
-      }
-
-      .t-button__text { color: white !important; }
-      .t-button__icon { color: white !important; }
     }
   }
 }
@@ -1096,11 +1066,11 @@ $sidebar-w: 300px;
   align-items: center;
   gap: 12px;
   padding: 8px 14px;
-  background: rgba(255, 255, 255, 0.92);
+  background: $overlay-white-92;
   backdrop-filter: blur(12px);
   border-radius: 14px;
-  border: 1.5px solid rgba(255, 181, 200, 0.2);
-  box-shadow: 0 2px 12px rgba(255, 143, 171, 0.08);
+  border: 1.5px solid $overlay-pink-lighter-20;
+  box-shadow: 0 2px 12px $overlay-pink-08;
 
   // 左侧：图标 + 标题 — 左对齐
   .header-left {
@@ -1115,7 +1085,7 @@ $sidebar-w: 300px;
       gap: 8px;
       margin-left: 16px;
       padding-left: 16px;
-      border-left: 1.5px solid rgba(255, 181, 200, 0.25);
+      border-left: 1.5px solid $overlay-pink-lighter-25;
     }
 
     .title-icon {
@@ -1126,34 +1096,23 @@ $sidebar-w: 300px;
     .content-title {
       font-size: 18px;
       font-weight: 700;
-      color: $text-main;
+      color: $text-primary;
       margin: 0;
       white-space: nowrap;
     }
   }
 
-  // 统一按钮样式（后退、前进、刷新、锁屏）
+  // 统一按钮样式（后退、前进、刷新、锁屏）— 尺寸由全局覆盖
   .header-btn {
-    height: 32px !important;
-    border-radius: 10px !important;
-    font-size: 12px !important;
-    font-weight: 600 !important;
     flex-shrink: 0;
-    padding: 0 12px;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
     &.t-button--theme-default {
-      border: 1.5px solid $pink-400 !important;
-      color: $pink-500 !important;
-      background: rgba(255, 255, 255, 0.9) !important;
-
       &:hover {
-        background: linear-gradient(135deg, $pink-400, $pink-500) !important;
+        background: linear-gradient(135deg, $brand-primary-light, $brand-primary) !important;
         color: white !important;
-        border-color: $pink-500 !important;
+        border-color: $brand-primary !important;
         :deep(.t-button__icon) { color: white !important; }
       }
-      :deep(.t-button__icon) { color: $pink-500 !important; }
     }
   }
 
@@ -1181,14 +1140,14 @@ $sidebar-w: 300px;
       transition: all 0.3s ease;
 
       &:hover {
-        background: rgba(255, 143, 171, 0.08);
+        background: $overlay-pink-08;
       }
 
       .user-avatar {
         width: 32px;
         height: 32px;
         border-radius: 50%;
-        background: linear-gradient(135deg, $pink-400, $pink-500);
+        background: linear-gradient(135deg, $brand-primary-light, $brand-primary);
         color: white;
         display: flex;
         align-items: center;
@@ -1196,11 +1155,11 @@ $sidebar-w: 300px;
         font-size: 14px;
         font-weight: 700;
         flex-shrink: 0;
-        box-shadow: 0 2px 8px rgba(255, 107, 138, 0.3);
+        box-shadow: $shadow-brand-xs;
       }
 
       .user-avatar-arrow {
-        color: $pink-400;
+        color: $brand-primary-light;
         flex-shrink: 0;
         transition: transform 0.3s ease;
       }
@@ -1218,10 +1177,10 @@ $sidebar-w: 300px;
   padding: 4px;
   min-width: 150px;
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.98);
+  background: $overlay-white-98;
   backdrop-filter: blur(12px);
-  border: 1.5px solid rgba(255, 181, 200, 0.2);
-  box-shadow: 0 8px 32px rgba(255, 107, 138, 0.12);
+  border: 1.5px solid $overlay-pink-lighter-20;
+  box-shadow: $shadow-xl;
 
   .user-menu-item {
     display: flex;
@@ -1230,21 +1189,21 @@ $sidebar-w: 300px;
     padding: 8px 12px;
     border-radius: 8px;
     font-size: 13px;
-    color: $text-main;
+    color: $text-primary;
     cursor: pointer;
     transition: all 0.2s ease;
 
     &:hover {
-      background: rgba(255, 143, 171, 0.08);
-      color: $pink-500;
+      background: $overlay-pink-08;
+      color: $brand-primary;
     }
 
     &--danger {
-      color: #E34D59;
+      color: $color-danger;
 
       &:hover {
-        background: rgba(227, 77, 89, 0.08);
-        color: #E34D59;
+        background: $color-danger-light;
+        color: $color-danger;
       }
     }
   }
@@ -1255,20 +1214,20 @@ $sidebar-w: 300px;
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  background: rgba(255, 255, 255, 0.92);
+  background: $overlay-white-92;
   backdrop-filter: blur(12px);
   border-radius: 14px;
-  border: 1.5px solid rgba(255, 181, 200, 0.2);
-  box-shadow: 0 2px 12px rgba(255, 143, 171, 0.08);
+  border: 1.5px solid $overlay-pink-lighter-20;
+  box-shadow: 0 2px 12px $overlay-pink-08;
   scrollbar-width: thin;
-  scrollbar-color: rgba(255, 143, 171, 0.2) transparent;
+  scrollbar-color: $overlay-pink-20 transparent;
 
   &::-webkit-scrollbar { width: 6px; }
   &::-webkit-scrollbar-track { background: transparent; }
   &::-webkit-scrollbar-thumb {
-    background: rgba(255, 143, 171, 0.2);
+    background: $overlay-pink-20;
     border-radius: 3px;
-    &:hover { background: rgba(255, 143, 171, 0.4); }
+    &:hover { background: $overlay-pink-40; }
   }
 
   .content-body-wrapper {
@@ -1299,50 +1258,22 @@ $sidebar-w: 300px;
             :deep(.t-input) {
               height: 32px;
               border-radius: 10px;
-              border: 1.5px solid $pink-200;
-              background: rgba(255, 240, 243, 0.3);
+              border: 1.5px solid $brand-primary-lightest;
+              background: $overlay-pink-bg-30;
 
-              &:hover { border-color: $pink-300; }
+              &:hover { border-color: $brand-primary-lighter; }
               &:focus-within {
-                border-color: $pink-400;
-                box-shadow: 0 0 0 3px rgba(255, 143, 171, 0.1);
+                border-color: $brand-primary-light;
+                box-shadow: 0 0 0 3px $overlay-pink-10;
               }
 
-              .t-input__wrap { color: $text-main; font-size: 12px; }
-              .t-input__prefix { color: $pink-400; }
+              .t-input__wrap { color: $text-primary; font-size: 12px; }
+              .t-input__prefix { color: $brand-primary-light; }
             }
           }
 
           .toolbar-btn {
-            height: 32px !important;
-            border-radius: 10px !important;
-            font-size: 12px !important;
-            font-weight: 600 !important;
             flex-shrink: 0;
-            padding: 0 12px;
-
-            &.t-button--theme-primary {
-              background: linear-gradient(135deg, $pink-400, $pink-500) !important;
-              border: none !important;
-
-              &:hover {
-                background: linear-gradient(135deg, $pink-300, $pink-400) !important;
-                transform: translateY(-1px);
-              }
-              :deep(.t-button__icon) { color: white !important; }
-            }
-
-            &.t-button--theme-default {
-              background: rgba(255, 255, 255, 0.9) !important;
-              border: 1.5px solid $pink-200 !important;
-              color: $text-main !important;
-
-              &:hover {
-                border-color: $pink-400 !important;
-                color: $pink-500 !important;
-              }
-              :deep(.t-button__icon) { color: $pink-400 !important; }
-            }
           }
         }
       }
@@ -1351,29 +1282,16 @@ $sidebar-w: 300px;
         flex-shrink: 0;
 
         .action-btn {
-          height: 32px !important;
-          border-radius: 10px !important;
-          font-size: 12px !important;
-          font-weight: 600 !important;
-          padding: 0 12px;
+          flex-shrink: 0;
           transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 
           &.t-button--theme-primary {
-            background: linear-gradient(135deg, $pink-400, $pink-500) !important;
-            border: none !important;
-            box-shadow: 0 4px 16px rgba(255, 107, 138, 0.3);
+            box-shadow: $shadow-brand-md;
 
             &:hover {
               transform: translateY(-2px);
-              box-shadow: 0 8px 24px rgba(255, 107, 138, 0.4);
-              background: linear-gradient(135deg, $pink-300, $pink-400) !important;
+              box-shadow: $shadow-brand-lg;
             }
-
-            &:active {
-              transform: translateY(1px) scale(0.98);
-            }
-
-            :deep(.t-button__icon) { color: white !important; }
           }
         }
       }
@@ -1383,187 +1301,19 @@ $sidebar-w: 300px;
       position: relative;
       z-index: 1;
 
-      // 隐藏子组件内置的 t-card 容器（content-body 已提供卡片效果）
-      :deep(.t-card) {
-        border: none !important;
-        box-shadow: none !important;
-        background: transparent !important;
-      }
-
-      :deep(.t-card__body) {
-        padding: 0 !important;
-      }
-
-      // ─── 表格统一样式 ───
+      // 表格样式增强（仅保留 main.scss 未覆盖的行级细节）
       :deep(.t-table) {
-        border: 1px solid rgba(255, 181, 200, 0.15);
+        border: 1px solid $overlay-pink-lighter-15;
 
-        // 固定表头 — 不随滚动
-        .t-table__header {
-          position: sticky;
-          top: 0;
-          z-index: 10;
-          background: linear-gradient(135deg, rgba(255, 248, 245, 0.98), rgba(255, 240, 243, 0.98));
-          backdrop-filter: blur(8px);
-
-          th {
-            background: transparent !important;
-            color: $text-main !important;
-            font-weight: 600 !important;
-            font-size: 12px !important;
-            border-bottom: 1.5px solid rgba(255, 181, 200, 0.2) !important;
-            padding: 8px 12px !important;
-
-            .t-table__cell-text {
-              color: $text-main !important;
-              font-weight: 600 !important;
-            }
-          }
+        .t-table__body td {
+          font-size: 12px;
+          color: $text-primary;
+          border-bottom: 1px solid $overlay-pink-bg-15 !important;
+          padding: 8px 12px !important;
         }
 
-        // 表体行
-        .t-table__body {
-          td {
-            font-size: 12px;
-            color: $text-main;
-            border-bottom: 1px solid rgba(255, 220, 230, 0.15) !important;
-            padding: 8px 12px !important;
-          }
-
-          tr:hover td {
-            background: rgba(255, 240, 243, 0.5) !important;
-          }
-
-          .t-table__row--stripe td {
-            background: rgba(255, 248, 245, 0.4) !important;
-          }
-        }
-
-        // 展开行
-        .t-table__expanded-row {
-          background: $cream !important;
-        }
-      }
-
-      // 隐藏子组件内置的分页（已迁移到 content-footer）
-      :deep(.t-table__pagination) {
-        display: none;
-      }
-
-      // ─── 空状态统一样式 ───
-      :deep(.t-empty) {
-        padding: 40px 0;
-        background: transparent !important;
-
-        .t-empty__image {
-          svg {
-            color: $pink-300;
-          }
-        }
-
-        .t-empty__description {
-          color: $text-sub;
-          font-size: 14px;
-          font-weight: 500;
-        }
-      }
-
-      // ─── 表单卡片统一样式 ───
-      :deep(.t-card) {
-        .t-card__header {
-          border-bottom: 1.5px solid rgba(255, 181, 200, 0.15);
-          padding: 12px 16px;
-        }
-      }
-
-      // ─── 按钮统一样式 ───
-      :deep(.t-button) {
-        border-radius: 10px !important;
-        font-weight: 600 !important;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-
-        &.t-button--theme-primary {
-          background: linear-gradient(135deg, $pink-400, $pink-500) !important;
-          border: none !important;
-          color: white !important;
-          box-shadow: 0 2px 8px rgba(255, 107, 138, 0.25);
-
-          &:hover {
-            background: linear-gradient(135deg, $pink-300, $pink-400) !important;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(255, 107, 138, 0.35);
-          }
-
-          &:active {
-            transform: translateY(1px) scale(0.98);
-          }
-
-          .t-button__text { color: white !important; }
-          .t-button__icon { color: white !important; }
-        }
-
-        &.t-button--theme-default {
-          background: rgba(255, 255, 255, 0.9) !important;
-          border: 1.5px solid $pink-200 !important;
-          color: $text-main !important;
-
-          &:hover {
-            border-color: $pink-400 !important;
-            color: $pink-500 !important;
-            transform: translateY(-1px);
-          }
-
-          &:active {
-            transform: translateY(1px) scale(0.98);
-          }
-
-          .t-button__icon { color: $pink-400 !important; }
-        }
-
-        &.t-button--theme-danger {
-          background: linear-gradient(135deg, #FF6B8A, #E34D59) !important;
-          border: none !important;
-          color: white !important;
-
-          &:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(227, 77, 89, 0.35);
-          }
-
-          .t-button__text { color: white !important; }
-          .t-button__icon { color: white !important; }
-        }
-
-        &.t-button--variant-text {
-          color: $pink-400 !important;
-          border-radius: 10px !important;
-
-          .t-button__text { color: $pink-400 !important; }
-          .t-button__icon { color: $pink-400 !important; }
-
-          &:hover {
-            background-color: rgba(255, 240, 243, 0.8) !important;
-            color: $pink-500 !important;
-
-            .t-button__text { color: $pink-500 !important; }
-            .t-button__icon { color: $pink-500 !important; }
-          }
-
-          &:active {
-            background-color: rgba(255, 214, 224, 0.5) !important;
-          }
-        }
-
-        &.t-button--size-medium {
-          height: 32px !important;
-          padding: 0 14px !important;
-          font-size: 12px !important;
-        }
-
-        &.t-button--size-small {
-          height: 28px !important;
-          padding: 0 8px !important;
-          font-size: 11px !important;
+        .t-table__body tr:hover td {
+          background: $bg-hover !important;
         }
       }
     }
@@ -1574,11 +1324,11 @@ $sidebar-w: 300px;
 .content-footer {
   flex-shrink: 0;
   padding: 6px 16px;
-  background: rgba(255, 255, 255, 0.92);
+  background: $overlay-white-92;
   backdrop-filter: blur(12px);
   border-radius: 14px;
-  border: 1.5px solid rgba(255, 181, 200, 0.2);
-  box-shadow: 0 2px 12px rgba(255, 143, 171, 0.08);
+  border: 1.5px solid $overlay-pink-lighter-20;
+  box-shadow: 0 2px 12px $overlay-pink-08;
 
   .content-footer-inner {
     display: flex;
@@ -1587,12 +1337,12 @@ $sidebar-w: 300px;
     // ─── 分页组件主题色 ───
     :deep(.t-pagination) {
       .t-pagination__total {
-        color: $text-sub;
+        color: $text-secondary;
         font-size: 13px;
       }
 
       .t-pagination__btn {
-        color: $text-main;
+        color: $text-primary;
         border-radius: 8px;
         min-width: 32px;
         height: 32px;
@@ -1600,41 +1350,41 @@ $sidebar-w: 300px;
         transition: all 0.3s;
 
         &:hover:not(.t-is-disabled):not(.t-is-current) {
-          color: $pink-500;
-          border-color: $pink-300;
-          background: rgba(255, 143, 171, 0.08);
+          color: $brand-primary;
+          border-color: $brand-primary-lighter;
+          background: $overlay-pink-08;
         }
       }
 
       .t-is-current {
-        background: linear-gradient(135deg, $pink-400, $pink-500) !important;
+        background: linear-gradient(135deg, $brand-primary-light, $brand-primary) !important;
         color: white !important;
         border-radius: 8px !important;
         border: none !important;
-        box-shadow: 0 2px 8px rgba(255, 107, 138, 0.3);
+        box-shadow: $shadow-brand-md;
         font-weight: 600;
       }
 
       .t-pagination__select {
-        border-color: $pink-200 !important;
+        border-color: $brand-primary-lightest !important;
         border-radius: 8px !important;
-        color: $text-main !important;
+        color: $text-primary !important;
 
         &:hover {
-          border-color: $pink-300 !important;
+          border-color: $brand-primary-lighter !important;
         }
       }
 
       .t-pagination__jumper-input {
-        border-color: $pink-200 !important;
+        border-color: $brand-primary-lightest !important;
         border-radius: 8px !important;
-        color: $text-main !important;
+        color: $text-primary !important;
         width: 48px;
 
         &:focus,
         &:hover {
-          border-color: $pink-400 !important;
-          box-shadow: 0 0 0 2px rgba(255, 143, 171, 0.1);
+          border-color: $brand-primary-light !important;
+          box-shadow: 0 0 0 2px $overlay-pink-10;
         }
       }
     }

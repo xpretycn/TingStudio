@@ -261,24 +261,24 @@ onMounted(async () => {
 <style scoped lang="scss">
 .version-list {
   .content-card {
-    box-shadow: 0 2px 12px rgba(255, 107, 138, 0.06);
+    box-shadow: $shadow-xs;
   }
   .page-header {
-    display: flex; align-items: center; gap: 12px;
-    .page-title { font-size: 16px; font-weight: 600; color: #5D4E60; }
+    display: flex; align-items: center; gap: $space-3;
+    .page-title { font-size: $font-size-h3; font-weight: $font-weight-semibold; color: $text-primary; }
   }
   .version-actions {
-    display: flex; align-items: center; gap: 12px; margin-bottom: 16px;
+    display: flex; align-items: center; gap: $space-3; margin-bottom: $space-4;
   }
   .snapshot-materials, .snapshot-desc, .snapshot-changes {
-    margin-top: 16px;
-    h4 { margin: 0 0 8px 0; font-size: 14px; font-weight: 600; color: #5D4E60; }
+    margin-top: $space-4;
+    h4 { margin: 0 0 $space-2 0; font-size: $font-size-body; font-weight: $font-weight-semibold; color: $text-primary; }
   }
   .snapshot-desc p {
-    margin: 0; padding: 12px; background: #FFF9F7; border-radius: 8px; border-left: 3px solid #FFD6E0; color: #5D4E60;
+    margin: 0; padding: $space-3; background: $bg-page; border-radius: $radius-md; border-left: 3px solid $brand-primary-lightest; color: $text-primary;
   }
   .change-item {
-    display: flex; align-items: center; gap: 6px; padding: 4px 0; font-size: 13px; color: #5D4E60;
+    display: flex; align-items: center; gap: 6px; padding: $space-1 0; font-size: $font-size-body-sm; color: $text-primary;
   }
   .cell-changes {
     .change-tag {
@@ -288,26 +288,26 @@ onMounted(async () => {
       white-space: nowrap;
     }
     .no-changes {
-      color: #C9C1CC;
+      color: $text-placeholder;
     }
   }
   .cell-reason {
-    font-size: 13px;
-    color: #5D4E60;
+    font-size: $font-size-body-sm;
+    color: $text-primary;
     line-height: 1.5;
   }
   .publish-confirm-content {
     .publish-warning {
-      border-radius: 8px;
+      border-radius: $radius-md;
     }
   }
   :deep(.t-button) {
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    border-radius: 12px !important; font-weight: 600 !important;
+    transition: $transition-smooth !important;
+    border-radius: $radius-xl !important; font-weight: $font-weight-semibold !important;
     &.t-button--theme-primary {
-      background: linear-gradient(135deg, #FF8FAB, #FF6B8A) !important;
-      border: none !important; color: #fff !important;
-      box-shadow: 0 4px 16px rgba(255, 107, 138, 0.3) !important;
+      background: $gradient-btn !important;
+      border: none !important; color: $text-white !important;
+      box-shadow: $shadow-brand !important;
     }
   }
 }

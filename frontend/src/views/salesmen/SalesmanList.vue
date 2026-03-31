@@ -119,40 +119,25 @@ const handleToggleStatus = async (row: Salesman) => {
 .salesman-list {
   .content-card {
     min-height: 400px;
-    box-shadow: 0 2px 12px rgba(255, 107, 138, 0.06);
-    &:hover { box-shadow: 0 4px 20px rgba(255, 107, 138, 0.1); }
+    box-shadow: $shadow-xs;
+    &:hover { box-shadow: $shadow-md; }
   }
   :deep(.btn-view) { display: none; }
   :deep(.btn-edit) {
-    color: #2952CC !important;
-    border-color: #C5D1F8 !important;
-    background: #EDF2FF !important;
-    :deep(.t-button__icon) { color: #2952CC !important; }
-    &:hover { color: #0052D9 !important; border-color: #0052D9 !important; background: #ECF3FF !important; }
+    color: $color-info !important;
+    border-color: $color-info-strong !important;
+    background: $color-info-light !important;
+    :deep(.t-button__icon) { color: $color-info !important; }
+    &:hover { color: $color-info-dark !important; border-color: $color-info-dark !important; background: $color-info-medium !important; }
   }
   :deep(.btn-delete) {
-    color: #D54941 !important;
-    border-color: #F5C6C2 !important;
-    background: #FFF1EF !important;
-    :deep(.t-button__icon) { color: #D54941 !important; }
-    &:hover { color: #E34D59 !important; border-color: #E34D59 !important; background: #FEF0EF !important; }
+    color: $color-danger !important;
+    border-color: $color-danger-medium !important;
+    background: $color-danger-light !important;
+    :deep(.t-button__icon) { color: $color-danger !important; }
+    &:hover { color: $color-danger !important; border-color: $color-danger !important; background: $color-danger-medium !important; }
   }
-  :deep(.t-button) {
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    border-radius: 12px !important; font-weight: 600 !important;
-    &.t-button--theme-primary {
-      background: linear-gradient(135deg, #FF8FAB, #FF6B8A) !important;
-      border: none !important; color: #fff !important;
-      box-shadow: 0 4px 16px rgba(255, 107, 138, 0.3) !important;
-      &:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(255, 107, 138, 0.4) !important; }
-    }
-    &.t-button--theme-default {
-      background: rgba(255, 255, 255, 0.9) !important;
-      border: 2px solid #FFD6E0 !important; color: #5D4E60 !important;
-      &:hover { border-color: #FF8FAB !important; color: #FF6B8A !important; }
-    }
-    &.t-button--variant-text { &:hover { background-color: #FFF0F3 !important; } }
-  }
-  :deep(.t-table) { .t-table__row--hover { background-color: #FFFBFA; } .t-table__row { cursor: pointer; } }
+  // 按钮和表格样式由全局 main.scss 统一覆盖
+  :deep(.t-table) { .t-table__row--hover { background-color: $bg-hover; } .t-table__row { cursor: pointer; } }
 }
 </style>

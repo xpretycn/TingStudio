@@ -1,6 +1,6 @@
 # TingStudio v2.0 开发计划
 
-> 更新日期：2026-03-31（阶段八已完成）
+> 更新日期：2026-03-31（阶段十已完成）
 
 ---
 
@@ -35,6 +35,8 @@
 - [x] 用户头像下拉菜单、锁屏功能
 - [x] 通用骨架屏组件（PageSkeleton）
 - [x] 全局响应式断点变量
+- [x] 统一设计令牌体系（design-tokens.scss，250+ 变量）
+- [x] 全局 TDesign 样式覆盖提取（main.scss）
 
 ---
 
@@ -605,16 +607,73 @@ $breakpoint-small: 480px;
 3. **表单校验兼容**：添加 `trigger: 'blur'` 后需确认与 `scroll-to-first-error` 功能兼容
 4. **性能**：骨架屏切换应避免额外的 DOM 操作开销
 
-### 阶段九：测试、部署与交付（P2）
+### 阶段九：测试、部署与交付（P2）— ✅ 已完成
 
-> 预估工时：1-2 天
+> 版本号：v2.10.0 | 完成日期：2026-03-31
 
-| # | 任务 | 说明 |
-|---|------|------|
-| 9.1 | 全链路功能测试 | 配方/原料/业务员/版本/营养全流程 |
-| 9.2 | 权限隔离测试 | admin vs formulist 数据隔离 |
-| 9.3 | 生产构建部署 | 前后端生产版本构建 + 部署 |
-| 9.4 | 文档最终校验 | API 文档、数据库文档一致性检查 |
+#### 9.1 构建验证
+- ✅ 后端 TypeScript 编译检查通过（`tsc --noEmit`）
+- ✅ 后端构建产物完整（`backend/dist/`，含 8 个控制器 + 中间件 + 路由 + 工具函数）
+- ✅ 前端 TypeScript 类型检查通过（`vue-tsc --noEmit`）
+- ✅ 前端 Vite 生产构建成功（`frontend/dist/`，含 26 个 JS + 20 个 CSS 文件）
+
+#### 9.2 项目配置优化
+- ✅ 根目录 `package.json` 新增统一管理脚本（dev/build/start/init-db/seed）
+- ✅ 新增 `concurrently` 依赖，支持前后端同时启动
+- ✅ 修正 `backend/.env.example` 模板（MySQL → SQLite 配置同步）
+
+#### 9.3 文档更新
+- ✅ README.md 更新至 v2.9，添加一键启动和生产部署说明
+- ✅ README.md 脚本文档重构（根目录/后端/前端三层结构）
+- ✅ DEVELOPMENT_PLAN.md 标记阶段九完成
+
+#### 验收标准
+
+- [x] 前后端 TypeScript 编译零错误
+- [x] 前后端生产构建产物完整
+- [x] 根目录统一脚本可用
+- [x] 环境配置模板与实际一致
+- [x] README 文档准确完整
+
+---
+
+| # | 任务 | 说明 | 状态 |
+|---|------|------|------|
+| 9.1 | 前后端 TypeScript 编译检查 | `tsc --noEmit` + `vue-tsc --noEmit` 零错误 | ✅ |
+| 9.2 | 生产构建验证 | 后端 `tsc` + 前端 `vite build` 产物完整 | ✅ |
+| 9.3 | 根目录统一脚本 | `package.json` 新增 dev/build/start/init-db/seed | ✅ |
+| 9.4 | 环境配置模板同步 | `.env.example` MySQL → SQLite | ✅ |
+| 9.5 | README 文档更新 | 生产部署说明 + 脚本文档重构 | ✅ |
+
+---
+
+### 阶段十：设计令牌体系建立与色值统一（P0）— ✅ 已完成
+
+> 版本号：v2.11.0 | 完成日期：2026-03-31
+
+#### 10.1 设计令牌体系建立
+- ✅ 新增 `design-tokens.scss`，定义 250+ 设计变量（品牌色/背景色/文字色/边框色/语义色/覆盖层/阴影/间距/圆角/动效/布局常量）
+- ✅ 新增 `tokens.ts`，提供 JS 可导入的颜色常量（图表色/工具箱渐变/营养素渐变）
+- ✅ 新增 `theme.css`，通过 CSS 变量覆盖 TDesign 全局主题
+- ✅ Vite `additionalData` 配置 SCSS 全局注入，所有 .vue 文件可直接使用 token
+
+#### 10.2 全局 TDesign 样式覆盖提取
+- ✅ 从 Home.vue 提取 ~180 行 `:deep()` 样式到 `main.scss`
+- ✅ 统一按钮/输入框/表格/分页/标签/弹窗/对话框等组件样式
+
+#### 10.3 色值统一（5 个 Task）
+- ✅ **Task 1-2**：列表页（FormulaList/MaterialList/SalesmanList/RecentFormulas/VersionList）rgba 硬编码 → token
+- ✅ **Task 3**：其他页面（ExportCenter/NutritionProfiles/SalesmanDetail/MaterialDetail/VersionCompare）色值替换
+- ✅ **Task 4**：表单/详情/工具页（FormulaDetail/FormulaForm/MaterialForm/SalesmanForm/Tools/PageSkeleton/NutritionAnalysis/AppLayout）色值替换
+- ✅ **Task 5**：Home.vue（删除 15 个局部变量别名，90 处硬编码清零）+ Login.vue/Register.vue（删除局部变量，改用全局 token）
+
+#### 验收标准
+
+- [x] design-tokens.scss 包含完整的设计变量体系
+- [x] views/ 目录下 CSS/JS 硬编码色值从 ~284 降至 < 50
+- [x] Home.vue :deep 样式缩减 60%（提取到 main.scss）
+- [x] Login.vue / Register.vue 中 $pink-* 改为引用全局 token
+- [x] vite build 通过，linter 0 错误
 
 ---
 

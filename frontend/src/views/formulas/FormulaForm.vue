@@ -130,7 +130,7 @@
                     </div>
                   </t-option>
                   <template #empty>
-                    <div style="padding: 8px 0; text-align: center; color: #999;">
+                    <div class="select-empty-tip">
                       {{ materialSearchKeyword ? '未找到匹配原料' : '暂无原料数据' }}
                     </div>
                   </template>
@@ -415,12 +415,12 @@ onMounted(async () => {
   .form-header {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: $space-3;
 
     .form-title {
-      font-size: 16px;
-      font-weight: 600;
-      color: #5D4E60;
+      font-size: $font-size-h3;
+      font-weight: $font-weight-semibold;
+      color: $text-primary;
     }
   }
 
@@ -428,29 +428,35 @@ onMounted(async () => {
     width: 100%;
 
     .manual-add {
-      margin-bottom: 12px;
+      margin-bottom: $space-3;
     }
 
     .materials-list {
-      margin-top: 12px;
+      margin-top: $space-3;
 
       .material-item {
         display: flex;
         align-items: center;
-        padding: 10px 12px;
-        margin-bottom: 8px;
-        background-color: #FFF9F7;
-        border-radius: 10px;
-        border: 1px solid #FFF0F3;
+        padding: $space-3 $space-3;
+        margin-bottom: $space-2;
+        background-color: $bg-page;
+        border-radius: $radius-lg;
+        border: 1px solid $border-color-light;
       }
     }
   }
 
   .help-text {
-    margin-left: 12px;
-    font-size: 12px;
-    color: #999;
+    margin-left: $space-3;
+    font-size: $font-size-caption;
+    color: $text-secondary;
     line-height: 32px;
+  }
+
+  .select-empty-tip {
+    padding: $space-2 0;
+    text-align: center;
+    color: $text-placeholder;
   }
 }
 </style>

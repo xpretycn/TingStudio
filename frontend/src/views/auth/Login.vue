@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="login-page">
     <!-- ─── Left Panel: Branding & Illustration ─── -->
     <div class="left-panel">
@@ -309,19 +309,7 @@ const handleSubmit = async ({ validateResult }: any) => {
 </script>
 
 <style scoped lang="scss">
-// ───── Palette ─────
-$pink-100: #FFF0F3;
-$pink-200: #FFD6E0;
-$pink-300: #FFB5C8;
-$pink-400: #FF8FAB;
-$pink-500: #FF6B8A;
-$peach:    #FFE8D6;
-$cream:    #FFF9F5;
-$lavender: #F0E6FF;
-$mauve:    #E8D5F5;
-$text-main: #5D4E60;
-$text-sub:  #9B8FA0;
-$white:     #fff;
+// ───── 使用全局 design-tokens（通过 Vite additionalData 自动注入）─────
 
 .login-page {
   display: flex;
@@ -363,21 +351,21 @@ $white:     #fff;
       height: 350px;
       top: -80px;
       right: -60px;
-      background: radial-gradient(circle, $pink-200, transparent 70%);
+      background: radial-gradient(circle, $brand-primary-lightest, transparent 70%);
     }
     &--2 {
       width: 280px;
       height: 280px;
       bottom: -60px;
       left: -40px;
-      background: radial-gradient(circle, $lavender, transparent 70%);
+      background: radial-gradient(circle, $color-lavender, transparent 70%);
     }
     &--3 {
       width: 180px;
       height: 180px;
       top: 50%;
       left: 20%;
-      background: radial-gradient(circle, $mauve, transparent 70%);
+      background: radial-gradient(circle, $decor-mauve, transparent 70%);
       opacity: 0.3;
     }
   }
@@ -437,7 +425,7 @@ $white:     #fff;
     svg {
       width: 100%;
       height: 100%;
-      filter: drop-shadow(0 8px 20px rgba(255, 143, 171, 0.2));
+      filter: drop-shadow(0 8px 20px $overlay-pink-20);
     }
   }
 
@@ -470,7 +458,7 @@ $white:     #fff;
   &__title {
     font-size: 30px;
     font-weight: 700;
-    color: $text-main;
+    color: $text-primary;
     margin: 0 0 8px 0;
     display: flex;
     align-items: center;
@@ -479,7 +467,7 @@ $white:     #fff;
   }
 
   &__icon {
-    color: $pink-400;
+    color: $brand-primary-light;
     font-size: 26px;
     animation: heartBeat 1.5s ease-in-out infinite;
   }
@@ -487,13 +475,13 @@ $white:     #fff;
   &__subtitle {
     font-size: 16px;
     font-weight: 600;
-    color: $pink-400;
+    color: $brand-primary-light;
     margin: 0 0 10px 0;
   }
 
   &__desc {
     font-size: 14px;
-    color: $text-sub;
+    color: $text-secondary;
     line-height: 1.7;
     margin: 0;
   }
@@ -519,19 +507,19 @@ $white:     #fff;
   align-items: center;
   gap: 6px;
   padding: 8px 16px;
-  background: rgba(255, 255, 255, 0.65);
+  background: $overlay-white-65;
   backdrop-filter: blur(8px);
   border-radius: 20px;
   font-size: 13px;
-  color: $text-main;
+  color: $text-primary;
   font-weight: 500;
-  border: 1px solid rgba(255, 181, 200, 0.2);
+  border: 1px solid $overlay-pink-lighter-20;
 
   &__dot {
     width: 6px;
     height: 6px;
     border-radius: 50%;
-    background: $pink-400;
+    background: $brand-primary-light;
     flex-shrink: 0;
   }
 }
@@ -546,14 +534,14 @@ $white:     #fff;
   align-items: center;
   justify-content: center;
   padding: 48px 40px;
-  background: $white;
+  background: $text-white;
   position: relative;
 
   &__copyright {
     position: absolute;
     bottom: 20px;
     font-size: 11px;
-    color: #C8C0CC;
+    color: $text-dim;
   }
 }
 
@@ -579,7 +567,7 @@ $white:     #fff;
   display: inline-block;
   padding: 3px;
   border-radius: 50%;
-  background: linear-gradient(135deg, $pink-300, $lavender);
+  background: linear-gradient(135deg, $brand-primary-lighter, $color-lavender);
   margin-bottom: 10px;
 }
 
@@ -587,7 +575,7 @@ $white:     #fff;
   width: 60px;
   height: 60px;
   border-radius: 50%;
-  background: $white;
+  background: $text-white;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -601,7 +589,7 @@ $white:     #fff;
 .mobile-title {
   font-size: 22px;
   font-weight: 700;
-  color: $text-main;
+  color: $text-primary;
   margin: 0;
 }
 
@@ -622,20 +610,20 @@ $white:     #fff;
       width: 100%;
       height: 100%;
       animation: catBounceSmall 4s ease-in-out infinite;
-      filter: drop-shadow(0 4px 12px rgba(255, 143, 171, 0.15));
+      filter: drop-shadow(0 4px 12px $overlay-pink-15);
     }
   }
 
   &__title {
     font-size: 24px;
     font-weight: 700;
-    color: $text-main;
+    color: $text-primary;
     margin: 0 0 8px 0;
   }
 
   &__desc {
     font-size: 14px;
-    color: $text-sub;
+    color: $text-secondary;
     margin: 0;
     line-height: 1.5;
   }
@@ -661,7 +649,7 @@ $white:     #fff;
   gap: 6px;
   font-size: 13px;
   font-weight: 600;
-  color: $text-main;
+  color: $text-primary;
   margin-bottom: 8px;
 }
 
@@ -669,50 +657,50 @@ $white:     #fff;
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: $pink-400;
+  background: $brand-primary-light;
   display: inline-block;
 }
 
 .cute-input {
   :deep(.t-input) {
     border-radius: 14px;
-    border: 1.5px solid $pink-200;
-    background: rgba(255, 240, 243, 0.4);
+    border: 1.5px solid $brand-primary-lightest;
+    background: $overlay-pink-bg-40;
     height: 48px;
     padding-left: 42px;
     transition: all 0.3s ease;
 
     &:hover {
-      border-color: $pink-300;
-      background: rgba(255, 240, 243, 0.6);
+      border-color: $brand-primary-lighter;
+      background: $overlay-pink-bg-60;
     }
 
     &:focus-within,
     &.t-is-focused {
-      border-color: $pink-400;
-      background: $white;
-      box-shadow: 0 0 0 4px rgba(255, 143, 171, 0.12);
+      border-color: $brand-primary-light;
+      background: $text-white;
+      box-shadow: 0 0 0 4px $overlay-pink-12;
     }
 
     .t-input__wrap {
-      color: $text-main;
+      color: $text-primary;
       font-size: 14px;
     }
 
     &::placeholder {
-      color: #C8AAB8 !important;
+      color: $text-caption-muted !important;
     }
   }
 
   :deep(.t-input__prefix) {
     margin-right: 10px;
-    color: $pink-400;
+    color: $brand-primary-light;
     display: flex;
     align-items: center;
   }
 
   :deep(.t-input__suffix) {
-    color: $pink-300;
+    color: $brand-primary-lighter;
   }
 }
 
@@ -724,9 +712,9 @@ $white:     #fff;
   font-size: 15px !important;
   font-weight: 600 !important;
   letter-spacing: 1px;
-  background: linear-gradient(135deg, $pink-400, $pink-500) !important;
+  background: linear-gradient(135deg, $brand-primary-light, $brand-primary) !important;
   border: none !important;
-  box-shadow: 0 4px 16px rgba(255, 107, 138, 0.3);
+  box-shadow: 0 4px 16px $shadow-brand-md;
   overflow: hidden;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 
@@ -739,7 +727,7 @@ $white:     #fff;
     width: 0;
     height: 0;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.35);
+    background: $overlay-white-35;
     transform: translate(-50%, -50%);
     transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1),
                 height 0.6s cubic-bezier(0.4, 0, 0.2, 1);
@@ -749,15 +737,15 @@ $white:     #fff;
 
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(255, 107, 138, 0.4);
-    background: linear-gradient(135deg, $pink-300, $pink-400) !important;
+    box-shadow: 0 8px 24px $shadow-brand-lg;
+    background: linear-gradient(135deg, $brand-primary-lighter, $brand-primary-light) !important;
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   &:active {
     transform: translateY(1px) scale(0.98);
-    box-shadow: 0 2px 12px rgba(255, 107, 138, 0.35);
-    background: linear-gradient(135deg, $pink-400, $pink-500) !important;
+    box-shadow: 0 2px 12px $shadow-brand-sm;
+    background: linear-gradient(135deg, $brand-primary-light, $brand-primary) !important;
     transition: all 0.15s ease-out;
 
     // Expand ripple effect
@@ -771,8 +759,8 @@ $white:     #fff;
 
   &:focus {
     outline: none;
-    box-shadow: 0 4px 16px rgba(255, 107, 138, 0.3),
-                0 0 0 4px rgba(255, 143, 171, 0.25);
+    box-shadow: 0 4px 16px $shadow-brand-md,
+                0 0 0 4px $overlay-pink-25;
   }
 
   // Loading state
@@ -780,11 +768,11 @@ $white:     #fff;
     opacity: 0.85;
     cursor: not-allowed;
     transform: none !important;
-    box-shadow: 0 2px 8px rgba(255, 107, 138, 0.2) !important;
+    box-shadow: 0 2px 8px $shadow-brand-xs !important;
   }
 
   .btn-text {
-    color: $white;
+    color: $text-white;
     position: relative;
     z-index: 2;
   }
@@ -798,18 +786,18 @@ $white:     #fff;
   gap: 6px;
   padding-top: 20px;
   margin-top: 8px;
-  border-top: 1px dashed $pink-200;
+  border-top: 1px dashed $brand-primary-lightest;
   font-size: 13px;
-  color: $text-sub;
+  color: $text-secondary;
 
   .go-register {
-    color: $pink-500;
+    color: $brand-primary;
     text-decoration: none;
     font-weight: 600;
     transition: all 0.2s;
 
     &:hover {
-      color: $pink-400;
+      color: $brand-primary-light;
       text-decoration: none;
     }
   }
@@ -856,7 +844,7 @@ $white:     #fff;
   }
 
   .right-panel {
-    background: linear-gradient(180deg, $pink-100 0%, $cream 50%, $white 100%);
+    background: linear-gradient(180deg, $brand-primary-bg 0%, $color-cream 50%, $text-white 100%);
     padding: 32px 24px;
     min-height: 100vh;
   }

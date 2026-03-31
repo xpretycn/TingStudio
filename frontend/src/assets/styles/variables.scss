@@ -1,54 +1,30 @@
-// Colors - Cute Pink Theme
-$primary-color: #FF6B8A;
-$primary-light: #FF8FAB;
-$primary-lighter: #FFB5C8;
-$primary-lightest: #FFD6E0;
-$primary-bg: #FFF0F3;
+// ═══════════════════════════════════════════════════════════════
+// TingStudio SCSS Variables — 向后兼容入口
+// 所有 Token 定义已迁移至 design-tokens.scss
+// 此文件通过 @forward 重新导出，保持现有组件引用路径不变
+// ═══════════════════════════════════════════════════════════════
 
-$success-color: #7BC67E;
-$warning-color: #F0A040;
-$danger-color: #E34D59;
+@use './design-tokens.scss' as *;
+@forward './design-tokens.scss';
 
-$text-primary: #5D4E60;
-$text-regular: #8B7E94;
-$text-secondary: #9B8FA0;
-$text-placeholder: #D4C5D0;
+// 向后兼容别名（旧变量名 -> 新变量名）
+$primary-color:       $brand-primary;
+$primary-light:       $brand-primary-light;
+$primary-lighter:     $brand-primary-lighter;
+$primary-lightest:    $brand-primary-lightest;
+$primary-bg:          $brand-primary-bg;
 
-$bg-page: #FFF9F7;
-$bg-container: #FFFFFF;
-$bg-secondary: #FFF0F3;
+$success-color:       $color-success;
+$warning-color:       $color-warning;
+$danger-color:        $color-danger;
 
-$border-color: #FFE0E8;
+$font-size-heading:   $font-size-h2;
+$font-weight-heading: $font-weight-semibold;
+$font-size-subheading: $font-size-h3;
+$font-weight-subheading: $font-weight-medium;
 
-// Typography
-$font-family: 'PingFang SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-$font-size-heading: 20px;
-$font-weight-heading: 600;
-$font-size-subheading: 16px;
-$font-weight-subheading: 500;
-$font-size-body: 14px;
-$font-weight-body: 400;
-
-// Spacing
-$spacing-xs: 4px;
-$spacing-sm: 8px;
-$spacing-md: 16px;
-$spacing-lg: 24px;
-$spacing-xl: 32px;
-
-// Border radius
-$radius-sm: 4px;
-$radius-md: 8px;
-$radius-lg: 12px;
-$radius-xl: 16px;
-$radius-round: 50%;
-
-// Shadows
-$shadow-sm: 0 1px 3px rgba(255, 107, 138, 0.06);
-$shadow-md: 0 4px 12px rgba(255, 107, 138, 0.08);
-$shadow-lg: 0 8px 24px rgba(255, 107, 138, 0.12);
-
-// Transitions
-$transition-fast: 0.15s ease;
-$transition-base: 0.25s ease;
-$transition-slow: 0.35s ease;
+$spacing-xs: $space-1;
+$spacing-sm: $space-2;
+$spacing-md: $space-4;
+$spacing-lg: $space-6;
+$spacing-xl: $space-8;

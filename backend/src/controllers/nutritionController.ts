@@ -397,6 +397,66 @@ export async function checkCompliance(req: any, res: Response) {
     const profile = profileId ? await getProfile(profileId) : null
     console.log('[Nutrition] profile:', profile ? profile.name : '无')
 
+    // 营养素中文名映射
+    const NUTRIENT_LABELS: Record<string, string> = {
+      energy: '能量', protein: '蛋白质', fat: '脂肪', carbohydrate: '碳水化合物',
+      fiber: '膳食纤维', sugars: '糖', sodium: '钠', potassium: '钾',
+      calcium: '钙', iron: '铁', zinc: '锌', magnesium: '镁', phosphorus: '磷',
+      vitaminA: '维生素A', vitaminC: '维生素C', vitaminD: '维生素D',
+      vitaminE: '维生素E', vitaminK: '维生素K', vitaminB1: '维生素B1',
+      vitaminB2: '维生素B2', vitaminB3: '烟酸', vitaminB6: '维生素B6',
+      vitaminB12: '维生素B12', folate: '叶酸', cholesterol: '胆固醇',
+      transFat: '反式脂肪', saturatedFat: '饱和脂肪',
+    }
+
+    // 将 profile 的 targetValues 和 toleranceRanges 标准化为统一的内部格式
+    // 数据库可能存储两种格式：
+    //   1) 数组格式: toleranceRanges=[{field, label, min, max, alertLevel}]
+    //   2) 对象格式: toleranceRanges={energy_kj:{min:0.9,max:1.1}} (倍率) + targetValues={energy_kj:1900}
+    let normalizedTolerances: Record<string, { min: number; max: number; label: string; alertLevel?: string }> = {}
+    let normalizedTargets: Record<string, number> = {}
+
+    if (profile) {
+      // 标准化 targetValues（兼容带单位后缀的键名）
+      const rawTargets = profile.targetValues || {}
+      for (const [key, val] of Object.entries(rawTargets)) {
+        const normalizedKey = normalizeNutrientKey(key)
+        if (typeof val === 'number') {
+          normalizedTargets[normalizedKey] = val
+        }
+      }
+
+      const rawRanges = profile.toleranceRanges
+      if (Array.isArray(rawRanges)) {
+        // 数组格式: [{field:"energy", label:"能量", min:10, max:15}, ...]
+        for (const r of rawRanges) {
+          const normalizedKey = normalizeNutrientKey(r.field || '')
+          normalizedTolerances[normalizedKey] = {
+            min: r.min,
+            max: r.max,
+            label: r.label || NUTRIENT_LABELS[normalizedKey] || normalizedKey,
+            alertLevel: r.alertLevel,
+          }
+        }
+      } else if (rawRanges && typeof rawRanges === 'object') {
+        // 对象格式: {energy_kj:{min:0.9,max:1.1}, protein_g:{min:0.8,max:1.2}}
+        // min/max 是倍率，需要乘以 target 得到实际范围
+        for (const [key, range] of Object.entries(rawRanges)) {
+          const normalizedKey = normalizeNutrientKey(key)
+          const target = normalizedTargets[normalizedKey]
+          const r = range as any
+          if (target && typeof r.min === 'number' && typeof r.max === 'number') {
+            normalizedTolerances[normalizedKey] = {
+              min: Math.round(target * r.min * 100) / 100,
+              max: Math.round(target * r.max * 100) / 100,
+              label: NUTRIENT_LABELS[normalizedKey] || normalizedKey,
+              alertLevel: 'warning',
+            }
+          }
+        }
+      }
+    }
+
     const complianceChecks: any[] = []
     const recommendations: any[] = []
 
@@ -405,8 +465,9 @@ export async function checkCompliance(req: any, res: Response) {
       if (actualValue === 0) continue
 
       if (profile) {
-        const tolerance = profile.toleranceRanges.find((r: any) => r.field === field)
-        const target = profile.targetValues[field]
+        const tolerance = normalizedTolerances[field]
+        const target = normalizedTargets[field]
+        const label = NUTRIENT_LABELS[field] || field
 
         if (tolerance) {
           let status: 'pass' | 'warning' | 'fail' = 'pass'
@@ -419,26 +480,26 @@ export async function checkCompliance(req: any, res: Response) {
 
             if (actualValue < tolerance.min) {
               status = 'fail'
-              message = `${tolerance.label} 不足: 实际 ${actualValue.toFixed(2)} < 最小值 ${tolerance.min}`
+              message = `${label} 不足: 实际 ${actualValue.toFixed(2)} < 最小值 ${tolerance.min}`
               suggestedActions = [
-                `增加富含${tolerance.label}的原料`,
-                `调整配方比例以提高${tolerance.label}含量`,
+                `增加富含${label}的原料`,
+                `调整配方比例以提高${label}含量`,
               ]
             } else if (actualValue > tolerance.max) {
               status = 'fail'
-              message = `${tolerance.label} 超标: 实际 ${actualValue.toFixed(2)} > 最大值 ${tolerance.max}`
+              message = `${label} 超标: 实际 ${actualValue.toFixed(2)} > 最大值 ${tolerance.max}`
               suggestedActions = [
-                `减少富含${tolerance.label}的原料`,
-                `调整配方比例以降低${tolerance.label}含量`,
+                `减少富含${label}的原料`,
+                `调整配方比例以降低${label}含量`,
               ]
             } else if (tolerance.alertLevel === 'warning') {
               const range = tolerance.max - tolerance.min
               const deviationPercent = Math.abs(deviation) / range
               if (deviationPercent > 0.8) {
                 status = 'warning'
-                message = `${tolerance.label} 接近临界值: 实际 ${actualValue.toFixed(2)}, 范围 ${tolerance.min}-${tolerance.max}`
+                message = `${label} 接近临界值: 实际 ${actualValue.toFixed(2)}, 范围 ${tolerance.min}-${tolerance.max}`
                 suggestedActions = [
-                  `关注${tolerance.label}含量变化`,
+                  `关注${label}含量变化`,
                   `考虑微调配方`,
                 ]
               }
@@ -447,9 +508,10 @@ export async function checkCompliance(req: any, res: Response) {
 
           complianceChecks.push({
             field,
-            label: tolerance.label,
+            label,
             actualValue,
             targetRange: { min: tolerance.min, max: tolerance.max },
+            target,
             status,
             deviation: Math.round(deviation * 100) / 100,
             message,
@@ -458,12 +520,13 @@ export async function checkCompliance(req: any, res: Response) {
         }
       } else {
         // 没有标准时，只显示数值
+        const label = NUTRIENT_LABELS[field] || field
         complianceChecks.push({
           field,
-          label: field,
+          label,
           actualValue,
           status: 'pass' as const,
-          message: `${field}: ${actualValue.toFixed(2)}`,
+          message: `${label}: ${actualValue.toFixed(2)}`,
           suggestedActions: [],
         })
       }

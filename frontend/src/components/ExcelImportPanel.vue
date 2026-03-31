@@ -256,81 +256,76 @@ function goToMaterials() {
 
 <style scoped lang="scss">
 .excel-import-panel {
-  padding: 16px;
-  background: #fafafa;
-  border-radius: 8px;
-  margin-bottom: 20px;
+  padding: $space-4;
+  background: $bg-container-alt;
+  border-radius: $radius-md;
+  margin-bottom: $space-5;
 }
 
 .guide-title {
-  font-weight: 600;
+  font-weight: $font-weight-semibold;
 }
 
 .guide-content {
-  margin-top: 8px;
-  font-size: 13px;
-  color: #666;
-  
+  margin-top: $space-2;
+  font-size: $font-size-body-sm;
+  color: $text-regular;
+
   p {
-    margin: 4px 0;
+    margin: $space-1 0;
   }
 }
 
 .import-actions {
   display: flex;
-  gap: 12px;
-  margin-top: 16px;
+  gap: $space-3;
+  margin-top: $space-4;
 }
 
 .parse-result {
-  margin-top: 16px;
-  
+  margin-top: $space-4;
+
   .result-summary {
-    margin-bottom: 12px;
-    background: #fff;
-    
+    margin-bottom: $space-3;
+    background: $bg-container;
+
     .summary-content {
       display: flex;
-      gap: 24px;
+      gap: $space-6;
       flex-wrap: wrap;
-      
+
       .summary-item {
         display: flex;
         align-items: center;
-        gap: 6px;
-        font-size: 14px;
-        
-        &.success {
-          color: #2ba471;
-        }
-        
-        &.warning {
-          color: #e37318;
-        }
+        gap: $space-1_5;
+        font-size: $font-size-body;
+
+        &.success { color: $color-success; }
+        &.warning { color: $color-warning; }
       }
     }
   }
-  
+
   .result-alert {
-    margin-bottom: 12px;
-    
+    margin-bottom: $space-3;
+
     ul {
-      margin: 8px 0 0;
+      margin: $space-2 0 0;
       padding-left: 20px;
     }
-    
+
     .missing-materials {
       display: flex;
       flex-wrap: wrap;
-      gap: 8px;
-      margin: 8px 0;
+      gap: $space-2;
+      margin: $space-2 0;
     }
-    
+
     .go-materials-btn {
-      margin-top: 8px;
+      margin-top: $space-2;
     }
   }
-  
+
   .preview-card {
     .preview-header {
       display: flex;

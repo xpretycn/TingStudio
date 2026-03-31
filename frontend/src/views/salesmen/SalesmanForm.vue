@@ -129,29 +129,29 @@ onMounted(async () => {
 <style scoped lang="scss">
 .salesman-form {
   .form-header {
-    display: flex; align-items: center; gap: 12px;
-    .form-title { font-size: 16px; font-weight: 600; color: #5D4E60; }
+    display: flex; align-items: center; gap: $space-3;
+    .form-title { font-size: $font-size-h3; font-weight: $font-weight-semibold; color: $text-primary; }
   }
 
   :deep(.t-form__item) {
     transition: background-color 0.3s;
-    border-radius: 8px;
-    padding: 2px 8px;
+    border-radius: $radius-md;
+    padding: 2px $space-2;
 
     // 校验失败时高亮
     &.t-is-error {
-      background-color: #FFF1EF;
+      background-color: $color-danger-light;
 
       .t-input,
       .t-is-focused .t-input__wrap {
-        border-color: #E34D59 !important;
-        box-shadow: 0 0 0 2px rgba(227, 77, 89, 0.15) !important;
+        border-color: $color-danger !important;
+        box-shadow: $shadow-danger-xs !important;
       }
     }
 
     .t-form__tips {
-      color: #9B8FA0;
-      font-size: 12px;
+      color: $text-secondary;
+      font-size: $font-size-caption;
     }
   }
 }

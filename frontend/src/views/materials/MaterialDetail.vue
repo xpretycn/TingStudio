@@ -174,25 +174,25 @@ onMounted(() => { loadData() })
 .material-detail {
   .detail-header {
     display: flex; align-items: center; justify-content: space-between; width: 100%;
-    .header-left { display: flex; align-items: center; gap: 12px; }
-    .detail-title { font-size: 16px; font-weight: 600; color: #5D4E60; }
+    .header-left { display: flex; align-items: center; gap: $space-3; }
+    .detail-title { font-size: $font-size-h3; font-weight: $font-weight-semibold; color: $text-primary; }
   }
 
   .nutrition-section {
-    margin-top: 20px;
+    margin-top: $space-5;
 
     .nutrition-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 12px;
+      margin-bottom: $space-3;
     }
 
     h4 {
       margin: 0;
       font-size: 15px;
-      font-weight: 600;
-      color: #5D4E60;
+      font-weight: $font-weight-semibold;
+      color: $text-primary;
       display: flex;
       align-items: center;
       gap: 6px;
@@ -200,17 +200,17 @@ onMounted(() => { loadData() })
       &::before {
         content: '';
         display: inline-block;
-        width: 4px;
-        height: 16px;
-        background: linear-gradient(135deg, #FF8FAB, #FF6B8A);
-        border-radius: 2px;
+        width: $space-1;
+        height: $font-size-h3;
+        background: $gradient-btn;
+        border-radius: $radius-xs;
       }
     }
 
     .nutrition-meta {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: $space-2;
     }
   }
 }
