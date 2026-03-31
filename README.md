@@ -272,6 +272,55 @@ npm run dev
 - 修复配方保存报错（数据库缺少 supplement_ratio_factor、version_reason 字段）
 - 修复营养计算表格报错（nutritionController 中 ratio_factor 字段迁移问题）
 
+### v2.5.1 (2026-03-27)
+**核心重构**: Axios 响应拦截器优化，统一数据访问模式
+
+#### 核心改进
+- ✅ **Axios 响应拦截器重构**: 修改为返回 `response.data` 而不是整个响应对象，简化 API 调用
+- ✅ **统一数据访问模式**: 所有 API 类型定义、Store 数据访问、组件数据绑定统一使用解包后的数据结构
+- ✅ **类型定义优化**: 移除 `{ success, data }` 包装类型，直接使用实际数据类型
+
+#### 功能完善
+- ✅ **营养分析功能增强**:
+  - 原料列表营养列批量检查与状态展示（显示营养项数量）
+  - 原料详情页营养成分表格正确渲染
+  - 配方详情页营养计算表格数据显示修复
+  - 合规检查结果显示优化
+  - 营养数据来源和可信度标签展示
+- ✅ **导出中心功能完善**:
+  - Excel 导出支持三个 Sheet（配方信息、原料清单、营养数据）
+  - PDF 导出中文支持和排版优化
+  - 导出任务状态跟踪和失败重试
+  - 分享链接管理和复制功能
+- ✅ **版本管理优化**: 全字段变更记录、发布同步配方数据、对比页优化
+
+#### Bug 修复
+- ❌ ~~登录成功后配方列表显示失败~~ → ✅ 已修复（axios 拦截器数据访问逻辑）
+- ❌ ~~原料管理页面营养状态全部显示"未录入"~~ → ✅ 已修复（API 类型定义和数据访问）
+- ❌ ~~原料详情页营养成分无法显示~~ → ✅ 已修复（Store 数据访问逻辑）
+- ❌ ~~配方详情页营养计算表格数据获取失败~~ → ✅ 已修复（nutritionApi 类型定义）
+- ❌ ~~版本管理页面无数据显示~~ → ✅ 已修复（versionStore 数据访问）
+- ❌ ~~合规检查报错 400 Bad Request~~ → ✅ 已修复（POST 请求传递 null 改为空对象）
+
+#### 技术优化
+- ✅ 营养数据批量并行请求优化
+- ✅ 组件按需加载和懒加载
+- ✅ 数据库查询优化（索引、JOIN）
+- ✅ 错误提示和日志优化
+
+#### 影响范围
+- **后端**: 6 个控制器优化（exportController、nutritionController、versionController 等）
+- **前端 API**: 8 个模块类型定义更新（auth、export、formula、http、material、nutrition、salesman、version）
+- **前端 Store**: 7 个状态管理修复（auth、export、formula、material、nutrition、salesman、version）
+- **前端视图**: 8 个组件优化（Home、ExportCenter、FormulaDetail、MaterialDetail、MaterialForm、MaterialList、NutritionAnalysis、NutritionProfiles）
+
+#### 代码统计
+- 修改文件：37 个文件
+- 新增行数：+2,610 行
+- 删除行数：-690 行
+- 净增：+1,920 行
+
+
 ### v2.5.0 (2026-03-29)
 - 新增辅料含量比系数字段（supplement_ratio_factor），支持主料/辅料独立系数
 - ratio_factor 字段迁移与配方表单界面优化
