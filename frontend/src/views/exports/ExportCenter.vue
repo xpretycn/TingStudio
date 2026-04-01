@@ -1,11 +1,12 @@
 <template>
-  <div class="export-center">
-    <PageSkeleton v-if="!initialized" type="table" :rows="5" :columns="5" />
-    <div v-else>
+  <div class="export-center" :aria-busy="!initialized">
+    <Transition name="content-fade" mode="out-in">
+      <PageSkeleton v-if="!initialized" type="table" :rows="5" :columns="5" />
+      <div v-else>
     <t-tabs v-model="activeTab" @change="handleTabChange">
       <!-- ====== Tab 1: 导出任务 ====== -->
       <t-tab-panel value="export" label="导出任务">
-        <t-card bordered>
+        <t-card bordered class="create-card">
           <template #header>
             <div class="section-header"><span>创建导出任务</span></div>
           </template>
@@ -18,12 +19,13 @@
                 clearable
                 :loading="formulaLoading"
                 style="width: 220px"
+                :popup-props="{ appendToBody: true }"
               >
                 <t-option v-for="f in formulaList" :key="f.id" :value="f.id" :label="f.name" />
               </t-select>
             </t-form-item>
             <t-form-item label="格式">
-              <t-select v-model="exportForm.exportType" style="width: 140px">
+              <t-select v-model="exportForm.exportType" style="width: 140px" :popup-props="{ appendToBody: true }">
                 <t-option value="excel" label="Excel" />
                 <t-option value="pdf" label="PDF" />
               </t-select>
@@ -34,7 +36,7 @@
           </t-form>
         </t-card>
 
-        <t-card class="content-card" bordered style="margin-top: 16px;">
+        <t-card class="content-card" bordered style="margin-top: 20px;">
           <template #header><span>导出任务列表</span></template>
           <t-table
             :data="exportStore.jobs"
@@ -43,11 +45,10 @@
             :pagination="jobPagination"
             row-key="jobId"
             hover
-            stripe
             size="small"
           >
             <template #empty>
-              <t-empty description="暂无导出任务">
+              <t-empty description="暂无导出任务" role="status">
                 <template #action>
                   <t-button theme="primary" @click="handleCreateJob">
                     <template #icon><t-icon name="add" /></template>创建导出任务
@@ -90,7 +91,7 @@
 
       <!-- ====== Tab 2: 分享管理 ====== -->
       <t-tab-panel value="share" label="分享管理">
-        <t-card bordered>
+        <t-card bordered class="create-card">
           <template #header>
             <div class="section-header"><span>创建分享链接</span></div>
           </template>
@@ -103,6 +104,7 @@
                 clearable
                 :loading="formulaLoading"
                 style="width: 220px"
+                :popup-props="{ appendToBody: true }"
               >
                 <t-option v-for="f in formulaList" :key="f.id" :value="f.id" :label="f.name" />
               </t-select>
@@ -111,7 +113,7 @@
               <t-input v-model="shareForm.password" placeholder="可选，留空则无需密码" style="width: 160px" />
             </t-form-item>
             <t-form-item label="有效期">
-              <t-date-picker v-model="shareForm.expireDate" style="width: 180px" placeholder="可选" />
+              <t-date-picker v-model="shareForm.expireDate" style="width: 180px" placeholder="可选" :popup-props="{ appendToBody: true }" />
             </t-form-item>
             <t-form-item>
               <t-button theme="primary" type="submit">创建分享</t-button>
@@ -119,7 +121,7 @@
           </t-form>
         </t-card>
 
-        <t-card class="content-card" bordered style="margin-top: 16px;">
+        <t-card class="content-card" bordered style="margin-top: 20px;">
           <template #header><span>分享历史</span></template>
           <t-table
             :data="exportStore.shares"
@@ -127,10 +129,9 @@
             :loading="exportStore.loading"
             row-key="shareId"
             hover
-            stripe
             size="small"
           >
-            <template #empty><t-empty description="暂无分享记录" /></template>
+            <template #empty><t-empty description="暂无分享记录" role="status" /></template>
             <template #shareUrl="{ row }">
               <t-tag variant="light" style="max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
                 {{ row.shareUrl }}
@@ -173,10 +174,9 @@
             :loading="exportStore.loading"
             row-key="templateId"
             hover
-            stripe
             size="small"
           >
-            <template #empty><t-empty description="暂无模板" /></template>
+            <template #empty><t-empty description="暂无模板" role="status" /></template>
             <template #type="{ row }">
               <t-tag variant="light">{{ row.type?.toUpperCase() }}</t-tag>
             </template>
@@ -216,10 +216,9 @@
             :loading="exportStore.loading"
             row-key="interfaceId"
             hover
-            stripe
             size="small"
           >
-            <template #empty><t-empty description="暂无API接口" /></template>
+            <template #empty><t-empty description="暂无API接口" role="status" /></template>
             <template #method="{ row }">
               <t-tag :theme="methodTheme(row.method)" variant="light">{{ row.method }}</t-tag>
             </template>
@@ -282,6 +281,7 @@
       </t-form>
     </t-dialog>
     </div>
+    </Transition>
   </div>
 </template>
 
@@ -339,7 +339,7 @@ const jobColumns = [
   { colKey: 'status', title: '状态', width: 100, cell: 'status' },
   { colKey: 'createdAt', title: '创建时间', width: 170 },
   { colKey: 'errorMessage', title: '错误信息', ellipsis: true },
-  { colKey: 'operation', title: '操作', width: 130, cell: 'operation' },
+  { colKey: 'operation', title: '操作', width: 130, cell: 'operation', align: 'center' },
 ]
 
 const jobPagination = computed(() => ({
@@ -402,7 +402,7 @@ const shareColumns = [
   { colKey: 'expireDate', title: '有效期', width: 120 },
   { colKey: 'downloadCount', title: '下载次数', width: 90 },
   { colKey: 'status', title: '状态', width: 80, cell: 'status' },
-  { colKey: 'operation', title: '操作', width: 150, cell: 'operation' },
+  { colKey: 'operation', title: '操作', width: 150, cell: 'operation', align: 'center' },
 ]
 
 async function handleCreateShare() {
@@ -557,7 +557,45 @@ onMounted(async () => {
 <style scoped lang="scss">
 .export-center {
   .section-header { display: flex; align-items: center; justify-content: space-between; }
-  .content-card { box-shadow: $shadow-xs; }
+
+  // 创建任务卡片 — 确保下拉菜单不被遮挡
+  :deep(.t-card) {
+    overflow: visible;
+
+    .t-card__body {
+      overflow: visible;
+    }
+  }
+
+  // 表单行内布局：换行 + 间距
+  :deep(.t-form--inline) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 16px;
+  }
+
+  // 下拉弹出层提升层级，确保不被卡片裁切
+  :deep(.t-select) {
+    .t-popup {
+      z-index: 2500 !important;
+    }
+  }
+
+  // t-date-picker 弹出层同理
+  :deep(.t-date-picker) {
+    .t-popup {
+      z-index: 2500 !important;
+    }
+  }
+
+  // 创建与列表之间的间距
+  .content-card {
+    box-shadow: $shadow-xs;
+    animation: fadeInUp 0.3s cubic-bezier(0.4, 0, 0.2, 1) both;
+    @include stagger-rows(10, 0.04s);
+  }
+
   :deep(.t-button--theme-primary) {
     background: $gradient-btn !important;
     border: none !important; color: $text-white !important;

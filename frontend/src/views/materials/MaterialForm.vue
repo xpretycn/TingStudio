@@ -217,11 +217,11 @@ const unitOptions = [
 const rules: Record<string, FormRule[]> = {
   code: [
     { required: true, message: '请输入原料编码', trigger: 'blur' },
-    { pattern: /^[A-Z0-9-]+$/, message: '编码只能包含大写字母、数字和横线', trigger: 'blur' },
+    { pattern: /^[A-Z0-9-]+$/, message: '编码只能包含大写字母、数字和横线', trigger: 'change' },
   ],
   name: [
     { required: true, message: '请输入原料名称', trigger: 'blur' },
-    { min: 2, message: '原料名称至少2个字符', trigger: 'blur' },
+    { min: 2, message: '原料名称至少2个字符', trigger: 'change' },
   ],
   unit: [{ required: true, message: '请选择单位', trigger: 'change' }],
   stock: [{ required: true, message: '请输入库存数量', trigger: 'blur' }],
@@ -451,6 +451,17 @@ onMounted(async () => {
 
 <style scoped lang="scss">
 .material-form {
+  // 表单卡片入场动画
+  :deep(.t-card) {
+    animation: fadeInUp 0.35s cubic-bezier(0.4, 0, 0.2, 1) both;
+  }
+
+  // 营养折叠面板 stagger 入场
+  :deep(.t-collapse-panel) {
+    animation: fadeInUp 0.3s cubic-bezier(0.4, 0, 0.2, 1) both;
+    @include stagger-rows(8, 0.06s);
+  }
+
   .form-header {
     display: flex;
     align-items: center;

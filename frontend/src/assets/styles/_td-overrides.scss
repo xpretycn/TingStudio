@@ -1,0 +1,453 @@
+// ═══════════════════════════════════════════════════════════════
+// TingStudio TDesign Global Overrides — 组件样式覆盖
+// 使用 SCSS 变量 + CSS 自定义属性，不使用硬编码色值
+// ═══════════════════════════════════════════════════════════════
+
+@use './variables.scss' as *;
+
+// ─── Card ───────────────────────────────────────────────────
+.t-card {
+  border-radius: $radius-xl !important;
+  border-color: $border-color !important;
+  box-shadow: $shadow-xs !important;
+
+  &__body {
+    padding: 0 !important;
+  }
+
+  &__header {
+    border-bottom: 1.5px solid rgba(255, 181, 200, 0.15);
+    padding: 12px 16px;
+  }
+}
+
+// ─── Button（按钮）────────────────────────────────────────
+.t-button {
+  border-radius: $radius-lg !important;
+  font-weight: $font-weight-semibold !important;
+  transition: all $transition-smooth !important;
+
+  // Primary 实心
+  &--variant-base.t-button--theme-primary {
+    background: $gradient-btn !important;
+    border: none !important;
+    color: $text-white !important;
+    box-shadow: $shadow-brand;
+
+    &:hover {
+      background: $gradient-btn-hover !important;
+      box-shadow: $shadow-lg;
+      transform: translateY(-1px);
+    }
+
+    &:active {
+      transform: translateY(1px) scale(0.98);
+    }
+  }
+
+  // Default / Outline
+  &--variant-outline.t-button--theme-primary,
+  &--theme-default {
+    border: 1.5px solid $brand-primary-lighter !important;
+    color: $text-primary !important;
+    background: rgba(255, 255, 255, 0.9) !important;
+
+    &:hover {
+      border-color: $brand-primary !important;
+      color: $brand-primary !important;
+      transform: translateY(-1px);
+    }
+
+    &:active {
+      transform: translateY(1px) scale(0.98);
+    }
+
+    .t-button__icon {
+      color: $brand-primary-light !important;
+    }
+  }
+
+  // Danger
+  &--theme-danger.t-button--variant-base {
+    background: linear-gradient(135deg, $brand-primary, $color-danger) !important;
+    border: none !important;
+    color: $text-white !important;
+
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(227, 77, 89, 0.35);
+    }
+  }
+
+  // Text / Link variant
+  &--variant-text {
+    color: $brand-primary-light !important;
+
+    .t-button__text,
+    .t-button__icon {
+      color: $brand-primary-light !important;
+    }
+
+    &:hover {
+      background-color: $bg-hover !important;
+      color: $brand-primary !important;
+
+      .t-button__text,
+      .t-button__icon {
+        color: $brand-primary !important;
+      }
+    }
+  }
+
+  // Size overrides
+  &--size-medium {
+    height: 36px !important;
+    padding: 0 16px !important;
+    font-size: 14px !important;
+  }
+
+  &--size-small {
+    height: 30px !important;
+    padding: 0 10px !important;
+    font-size: $font-size-body-sm !important;
+  }
+}
+
+// ─── Input（输入框）───────────────────────────────────────
+.t-input,
+.t-textarea,
+.t-textarea__inner,
+.t-select .t-input,
+.t-input-number {
+  border-radius: $radius-lg;
+  border-color: $border-color;
+  transition: border-color $transition-normal, box-shadow $transition-normal;
+
+  &:hover {
+    border-color: $brand-primary-lighter;
+  }
+}
+
+.t-input.t-is-focused,
+.t-input:focus-within,
+.t-textarea.t-is-focused,
+.t-textarea:focus-within {
+  border-color: $brand-primary-light;
+  box-shadow: 0 0 0 3px rgba(255, 143, 171, 0.1);
+}
+
+// ─── Table（表格）─────────────────────────────────────────
+.t-table {
+  border-radius: $radius-lg !important;
+
+  // 现代化表头：纯色背景 + 底部分割线
+  th {
+    background: $bg-page !important;
+    color: $text-primary !important;
+    font-weight: $font-weight-semibold !important;
+    font-size: $font-size-body-sm !important;
+    letter-spacing: 0.3px;
+    border-bottom: 1.5px solid $border-color !important;
+    padding: 12px 16px !important;
+  }
+
+  // 数据单元格：统一间距
+  td {
+    border-bottom-color: $skeleton-border !important;
+    padding: 12px 16px !important;
+    font-size: 13px;
+    color: $text-primary;
+    transition: background $transition-fast;
+  }
+
+  // 操作列居中
+  .t-table__body tr:last-child td .t-space {
+    justify-content: center;
+  }
+
+  // 统一 hover 效果：浅粉背景 + 左侧品牌色指示条
+  .t-table__row--hover td {
+    background-color: $bg-table-row-hover !important;
+    box-shadow: inset 3px 0 0 $brand-primary-light;
+  }
+
+  // 选中行样式
+  .t-table__row--selected td,
+  .t-table__row--selected.t-table__row--hover td {
+    background-color: $bg-table-row-selected !important;
+    box-shadow: inset 3px 0 0 $brand-primary;
+  }
+
+  .t-table__row--selected.t-table__row--hover td {
+    background-color: $bg-table-row-selected-hover !important;
+  }
+
+  // bordered 表格差异化
+  &.t-table--bordered td {
+    border-bottom-color: $border-color-light !important;
+  }
+
+  // Sticky header（表格滚动时固定表头）
+  .t-table__header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: $gradient-brand-warm;
+    backdrop-filter: blur(8px);
+
+    th {
+      background: transparent !important;
+      font-weight: $font-weight-semibold !important;
+      font-size: $font-size-body-sm !important;
+      letter-spacing: 0.3px;
+      border-bottom: 1.5px solid rgba(255, 181, 200, 0.2) !important;
+      padding: 10px 12px !important;
+
+      .t-table__cell-text {
+        color: $text-primary !important;
+        font-weight: $font-weight-semibold !important;
+      }
+
+      // 排序指示器品牌色
+      .t-table__cell--sortable:hover {
+        color: $brand-primary !important;
+      }
+    }
+  }
+
+  // Expanded row
+  .t-table__expanded-row {
+    background: $bg-page !important;
+  }
+
+  // Hide inline pagination (when using external pagination bar)
+  &__pagination {
+    display: none;
+  }
+}
+
+// ─── Table Operation Buttons（表格操作按钮 — 全局统一）───
+.btn-edit {
+  color: $color-info !important;
+  border-color: $color-info-strong !important;
+  background: $color-info-light !important;
+
+  .t-button__icon {
+    color: $color-info !important;
+  }
+
+  &:hover {
+    color: $color-info-dark !important;
+    border-color: $color-info-dark !important;
+    background: $color-info-medium !important;
+  }
+}
+
+.btn-delete {
+  color: $color-danger !important;
+  border-color: $color-danger-medium !important;
+  background: $color-danger-light !important;
+
+  .t-button__icon {
+    color: $color-danger !important;
+  }
+
+  &:hover {
+    color: $color-danger !important;
+    border-color: $color-danger !important;
+    background: $color-danger-medium !important;
+  }
+}
+
+.btn-more {
+  color: $text-primary !important;
+  border-color: $border-color !important;
+  background: $overlay-white-90 !important;
+
+  .t-button__icon {
+    color: $text-primary !important;
+  }
+
+  &:hover {
+    color: $color-info !important;
+    border-color: $color-info !important;
+  }
+}
+
+.btn-view {
+  display: none;
+}
+
+// ─── Tag（标签）───────────────────────────────────────────
+.t-tag--theme-primary,
+.t-tag--primary-light {
+  background: $brand-primary-bg !important;
+  color: $brand-primary !important;
+  border-color: $brand-primary-lightest !important;
+}
+
+// ─── Link（链接）──────────────────────────────────────────
+.t-link--theme-primary {
+  color: $brand-primary;
+
+  &:hover {
+    color: $brand-primary-light;
+  }
+}
+
+// ─── Pagination（分页）────────────────────────────────────
+.t-pagination {
+  .t-pagination__total {
+    color: $text-secondary;
+    font-size: $font-size-body-sm;
+  }
+
+  .t-pagination__btn {
+    color: $text-primary;
+    border-radius: $radius-md;
+    min-width: 32px;
+    height: 32px;
+    border: 1px solid transparent;
+    transition: all $transition-normal;
+
+    &:hover:not(.t-is-disabled):not(.t-is-current) {
+      color: $brand-primary;
+      border-color: $brand-primary-lighter;
+      background: rgba(255, 143, 171, 0.08);
+    }
+  }
+
+  .t-is-current {
+    background: $gradient-btn !important;
+    color: $text-white !important;
+    border-radius: $radius-md !important;
+    border: none !important;
+    box-shadow: $shadow-brand;
+    font-weight: $font-weight-semibold;
+  }
+
+  .t-pagination__select,
+  .t-pagination__jumper-input {
+    border-color: $brand-primary-lightest !important;
+    border-radius: $radius-md !important;
+    color: $text-primary !important;
+
+    &:hover,
+    &:focus {
+      border-color: $brand-primary-lighter !important;
+    }
+  }
+}
+
+// ─── Form（表单）──────────────────────────────────────────
+.t-form-item__required-icon {
+  color: $color-danger !important;
+}
+
+.t-form__item.t-is-error {
+  .t-input,
+  .t-textarea,
+  .t-select .t-input,
+  .t-input-number {
+    border-color: $color-danger !important;
+    box-shadow: 0 0 0 2px rgba(227, 77, 89, 0.12) !important;
+  }
+}
+
+// ─── Dialog（弹窗）───────────────────────────────────────
+.t-dialog {
+  border-radius: $radius-3xl !important;
+
+  // Level 3 玻璃态 — 弹窗层级
+  &__ctx {
+    background: rgba(255, 255, 255, 0.98) !important;
+    backdrop-filter: blur(16px);
+    border: 1.5px solid $overlay-pink-lighter-25;
+    box-shadow: 0 4px 8px rgba(255, 107, 138, 0.08), 0 8px 24px rgba(255, 107, 138, 0.12);
+  }
+}
+
+// ─── Popup / Dropdown — Level 3 玻璃态 ──────────────────
+.t-popup__content {
+  background: rgba(255, 255, 255, 0.98) !important;
+  backdrop-filter: blur(16px);
+  border: 1.5px solid $overlay-pink-lighter-25;
+  border-radius: $radius-xl !important;
+  box-shadow: 0 4px 8px rgba(255, 107, 138, 0.08), 0 8px 24px rgba(255, 107, 138, 0.12);
+}
+
+// ─── Collapse（折叠面板）─────────────────────────────────
+.t-collapse {
+  background: transparent;
+  border: none;
+
+  .t-collapse-panel__header {
+    background: rgba(255, 255, 255, 0.6);
+    border-radius: $radius-lg;
+    padding: $space-3 $space-4;
+    margin-bottom: $space-2;
+    border: 1px solid rgba($brand-primary-lighter, 0.15);
+    transition: all $transition-normal;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.9);
+      border-color: rgba($brand-primary-lighter, 0.3);
+    }
+  }
+
+  .t-collapse-panel__content {
+    background: transparent;
+    border: none;
+    padding: 0 $space-2;
+  }
+}
+
+// ─── Empty（空状态）───────────────────────────────────────
+.t-empty {
+  padding: 40px 0;
+  background: transparent !important;
+
+  .t-empty__image svg {
+    color: $brand-primary-lighter;
+    animation: emptyFloat 3s ease-in-out infinite;
+  }
+
+  .t-empty__description {
+    color: $text-secondary;
+    font-size: $font-size-body;
+    font-weight: $font-weight-medium;
+  }
+}
+
+// ─── Message / Toast 动效增强 ────────────────────────────
+.t-message {
+  border-radius: $radius-lg !important;
+  backdrop-filter: blur(12px);
+  animation: toastIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+
+  &.t-message--closing {
+    animation: toastOut 0.25s cubic-bezier(0.4, 0, 1, 1) forwards;
+  }
+}
+
+@keyframes toastIn {
+  from {
+    opacity: 0;
+    transform: translateY(-12px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes toastOut {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.95);
+  }
+}

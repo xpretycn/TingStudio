@@ -9,7 +9,7 @@
       </template>
 
       <div class="compare-controls">
-        <t-form layout="inline" @submit="doCompare">
+        <t-form layout="inline" aria-label="版本对比" @submit="doCompare">
           <t-form-item label="版本A">
             <t-select v-model="versionA" placeholder="选择版本A" clearable style="width: 220px">
               <t-option v-for="v in versions" :key="v.versionId" :value="v.versionId" :label="`${v.versionNumber} - ${v.versionName || ''}`" />
@@ -40,7 +40,7 @@
         </div>
 
         <!-- 差异详情 -->
-        <t-table :data="compareResult.differences" :columns="diffColumns" row-key="fieldId" hover stripe size="small">
+        <t-table :data="compareResult.differences" :columns="diffColumns" row-key="fieldId" hover size="small">
           <template #fieldType="{ row }">
             <t-tag size="small" :theme="fieldTypeTheme(row.fieldType)">{{ fieldTypeLabel(row.fieldType) }}</t-tag>
           </template>
@@ -53,11 +53,11 @@
           <template #newValue="{ row }">
             <span :class="{ 'value-added': row.changes.changeType === 'add' }">{{ row.changes.newValue ?? '-' }}</span>
           </template>
-          <template #empty><t-empty description="两个版本没有差异" /></template>
+          <template #empty><t-empty description="两个版本没有差异" role="status" /></template>
         </t-table>
       </div>
-      <t-empty v-else-if="hasCompared" description="两个版本没有差异" />
-      <t-empty v-else description="请选择两个版本进行对比" />
+      <t-empty v-else-if="hasCompared" description="两个版本没有差异" role="status" />
+      <t-empty v-else description="请选择两个版本进行对比" role="status" />
     </t-card>
   </div>
 </template>

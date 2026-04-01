@@ -1,7 +1,8 @@
 <template>
-  <div class="version-list">
-    <PageSkeleton v-if="!initialized" type="table" :rows="5" :columns="7" />
-    <t-card v-else class="content-card" bordered>
+  <div class="version-list" :aria-busy="!initialized">
+    <Transition name="content-fade" mode="out-in">
+      <PageSkeleton v-if="!initialized" type="table" :rows="5" :columns="7" />
+      <t-card v-else class="content-card" bordered>
       <template #header>
         <div class="page-header">
           <t-button variant="text" @click="handleBack"><template #icon><t-icon name="chevron-left" /></template>返回配方</t-button>
@@ -20,9 +21,9 @@
         <t-button theme="default" @click="handleCompare" size="small"><template #icon><t-icon name="compare" /></template>版本对比</t-button>
       </div>
 
-      <t-table :data="versionStore.versions" :columns="columns" :loading="versionStore.loading" row-key="versionId" hover stripe table-layout="auto">
+      <t-table :data="versionStore.versions" :columns="columns" :loading="versionStore.loading" row-key="versionId" hover table-layout="auto">
         <template #empty>
-          <t-empty description="暂无版本数据">
+          <t-empty description="暂无版本数据" role="status">
             <template #action>
               <t-button theme="primary" @click="handleCreateVersion">
                 <template #icon><t-icon name="add" /></template>创建第一个版本
@@ -71,6 +72,7 @@
         </template>
       </t-table>
     </t-card>
+    </Transition>
 
     <!-- 创建版本弹窗 -->
     <t-dialog
@@ -166,7 +168,7 @@ const columns = [
   { colKey: 'changes', title: '版本变更', width: 320 },
   { colKey: 'status', title: '状态', width: 80 },
   { colKey: 'createdAt', title: '创建时间', width: 170 },
-  { colKey: 'operation', title: '操作', width: 160 }
+  { colKey: 'operation', title: '操作', width: 160, align: 'center' }
 ]
 
 const materialColumns = [
@@ -262,6 +264,12 @@ onMounted(async () => {
 .version-list {
   .content-card {
     box-shadow: $shadow-xs;
+
+    // 表格行 stagger 入场动画
+    :deep(.t-table__body .t-table__row) {
+      animation: rowFadeIn 0.3s ease both;
+      @include stagger-rows(20, 0.03s);
+    }
   }
   .page-header {
     display: flex; align-items: center; gap: $space-3;

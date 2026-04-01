@@ -128,6 +128,11 @@ onMounted(async () => {
 
 <style scoped lang="scss">
 .salesman-form {
+  // 表单卡片入场动画
+  :deep(.t-card) {
+    animation: fadeInUp 0.35s cubic-bezier(0.4, 0, 0.2, 1) both;
+  }
+
   .form-header {
     display: flex; align-items: center; gap: $space-3;
     .form-title { font-size: $font-size-h3; font-weight: $font-weight-semibold; color: $text-primary; }

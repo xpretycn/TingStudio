@@ -1,7 +1,8 @@
 <template>
-  <div class="nutrition-analysis">
-    <PageSkeleton v-if="!initialized" type="cards" :rows="3" />
-    <div v-else>
+  <div class="nutrition-analysis" :aria-busy="!initialized">
+    <Transition name="content-fade" mode="out-in">
+      <PageSkeleton v-if="!initialized" type="cards" :rows="3" />
+      <div v-else>
     <!-- 选择器区域 -->
     <t-card class="content-card" bordered>
       <template #header>
@@ -10,7 +11,7 @@
         </div>
       </template>
 
-      <t-form :data="analysisForm" layout="inline" @submit="handleAnalyze">
+      <t-form :data="analysisForm" layout="inline" aria-label="分析参数" @submit="handleAnalyze">
         <t-form-item label="选择配方">
           <t-select
             v-model="analysisForm.formulaId"
@@ -128,7 +129,6 @@
           row-key="materialId"
           size="small"
           bordered
-          stripe
           max-height="400"
         >
           <template #materialName="{ row }">
@@ -180,7 +180,6 @@
           row-key="nutrient"
           size="small"
           bordered
-          stripe
         >
           <template #value="{ row }">
             <span :class="{ 'over-limit': row.overLimit }">{{ row.value }}</span>
@@ -246,7 +245,7 @@
 
     <!-- 空状态 -->
     <t-card v-else-if="!nutritionStore.formulaNutrition || !analysisForm.formulaId" class="content-card empty-card" bordered style="margin-top: 16px;">
-      <t-empty description="请选择一个配方进行营养分析">
+      <t-empty description="请选择一个配方进行营养分析" role="status">
         <template #action>
           <t-button theme="primary" @click="$router.push('/formulas')">
             <template #icon><t-icon name="chart" /></template>前往配方管理
@@ -255,6 +254,7 @@
       </t-empty>
     </t-card>
     </div>
+    </Transition>
   </div>
 </template>
 
@@ -534,7 +534,7 @@ onMounted(async () => {
   }
   .content-card {
     box-shadow: $shadow-xs;
-    &:hover { box-shadow: 0 4px $space-5 rgba(255, 107, 138, 0.1); }
+    &:hover { box-shadow: 0 4px $space-5 $overlay-pink-10; }
   }
   .empty-card {
     min-height: 300px;
@@ -595,23 +595,25 @@ onMounted(async () => {
     box-shadow: $shadow-md;
     transition: all 0.3s ease;
     border: 1px solid $overlay-pink-lighter-15;
+    animation: fadeInUp 0.3s cubic-bezier(0.4, 0, 0.2, 1) both;
+    @include stagger-rows(10, 0.05s);
 
     &:hover {
       transform: translateY(-4px);
-      box-shadow: 0 $space-3 $space-6 rgba(255, 107, 138, 0.15);
+      box-shadow: 0 $space-3 $space-6 $overlay-pink-15;
     }
 
     &.status-good {
-      border-color: rgba(82, 196, 26, 0.3);
-      .card-header .card-icon { box-shadow: 0 4px $space-4 rgba(82, 196, 26, 0.25); }
+      border-color: $color-success-alpha;
+      .card-header .card-icon { box-shadow: 0 4px $space-4 $color-success-alpha-light; }
     }
     &.status-warning {
-      border-color: rgba(250, 173, 20, 0.3);
-      .card-header .card-icon { box-shadow: 0 4px $space-4 rgba(250, 173, 20, 0.25); }
+      border-color: $color-warning-alpha;
+      .card-header .card-icon { box-shadow: 0 4px $space-4 $color-warning-alpha-light; }
     }
     &.status-danger {
-      border-color: rgba(255, 77, 79, 0.3);
-      .card-header .card-icon { box-shadow: 0 4px $space-4 rgba(255, 77, 79, 0.25); }
+      border-color: $color-danger-alpha;
+      .card-header .card-icon { box-shadow: 0 4px $space-4 $color-danger-alpha-light; }
     }
 
     .card-header {
@@ -670,6 +672,12 @@ onMounted(async () => {
           font-size: $font-size-body-sm;
           font-weight: $font-weight-semibold;
         }
+      }
+
+      // 进度条填充动画
+      :deep(.t-progress__bar) {
+        transform-origin: left;
+        animation: progressBarFill 0.8s cubic-bezier(0.4, 0, 0.2, 1) both;
       }
     }
   }

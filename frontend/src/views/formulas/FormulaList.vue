@@ -1,18 +1,44 @@
 <template>
-  <div class="formula-list">
-    <PageSkeleton v-if="!initialized" type="table" :rows="5" :columns="6" />
-    <t-card v-else class="content-card" bordered>
+  <div class="formula-list" :aria-busy="!initialized">
+    <Transition name="content-fade" mode="out-in">
+      <PageSkeleton v-if="!initialized" type="table" :rows="5" :columns="6" />
+      <t-card v-else class="content-card" bordered>
+      <!-- 批量操作栏 -->
+      <Transition name="batch-bar">
+        <div v-if="selectedRows.length > 0" class="batch-action-bar">
+          <div class="batch-info">
+            <t-checkbox :checked="isAllSelected" :indeterminate="isIndeterminate" @change="handleSelectAll" />
+            <span class="batch-count">已选 <strong>{{ selectedRows.length }}</strong> 项</span>
+          </div>
+          <div class="batch-actions">
+            <t-button theme="primary" variant="outline" size="small" @click="handleBatchExport">
+              <template #icon><t-icon name="download" /></template>批量导出
+            </t-button>
+            <t-popconfirm content="确定要删除所选配方吗？" @confirm="handleBatchDelete">
+              <t-button theme="danger" variant="outline" size="small">
+                <template #icon><t-icon name="delete" /></template>批量删除
+              </t-button>
+            </t-popconfirm>
+            <t-button theme="default" variant="outline" size="small" @click="clearSelection">
+              取消选择
+            </t-button>
+          </div>
+        </div>
+      </Transition>
       <t-table
-        :data="formulaStore.formulas"
+        :data="sortedFormulas"
         :columns="columns"
         :loading="formulaStore.loading"
         :pagination="undefined"
+        :sort="tableSort"
         row-key="id"
         hover
-        stripe
         table-layout="auto"
+        @sort-change="onSortChange"
         :expanded-row-keys="expandedRowKeys"
         @expand-change="onExpandChange"
+        @select-change="handleSelectChange"
+        :selected-row-keys="selectedRowKeys"
       >
         <template #expandedRow="{ row }">
           <div class="expanded-content">
@@ -126,7 +152,7 @@
         </template>
 
         <template #empty>
-          <t-empty description="暂无配方数据">
+          <t-empty description="暂无配方数据" role="status">
             <template #action>
               <t-button theme="primary" @click="handleCreate">
                 <template #icon><t-icon name="add" /></template>创建第一个配方
@@ -170,6 +196,7 @@
         </template>
       </t-table>
     </t-card>
+    </Transition>
 
     <t-dialog
       v-model:visible="deleteDialogVisible"
@@ -223,9 +250,88 @@ const deleteDialogVisible = ref(false)
 const deleteLoading = ref(false)
 const deleteTarget = ref<Formula | null>(null)
 const expandedRowKeys = ref<(string | number)[]>([])
+const selectedRowKeys = ref<(string | number)[]>([])
+const selectedRows = ref<Formula[]>([])
+const tableSort = ref<any>(undefined)
+const sortedFormulas = ref<Formula[]>([])
 
 const onExpandChange = (keys: Array<string | number>) => {
   expandedRowKeys.value = keys
+}
+
+const onSortChange = (sort: any, context: any) => {
+  tableSort.value = sort
+  if (!sort || !sort.sortBy) {
+    sortedFormulas.value = [...formulaStore.formulas]
+    return
+  }
+  const { sortBy, descending } = sort
+  const col = columns.find(c => c.colKey === sortBy)
+  if (col?.sorter) {
+    sortedFormulas.value = [...formulaStore.formulas].sort((a, b) => {
+      const result = (col.sorter as Function)(a, b)
+      return descending ? -result : result
+    })
+  } else {
+    sortedFormulas.value = [...formulaStore.formulas]
+  }
+}
+
+// Watch store data to sync sorted list
+watch(() => formulaStore.formulas, (val) => {
+  if (tableSort.value?.sortBy) {
+    onSortChange(tableSort.value, {})
+  } else {
+    sortedFormulas.value = [...val]
+  }
+}, { immediate: true })
+
+// ─── 批量操作 ───
+const isAllSelected = computed(() => {
+  return selectedRowKeys.value.length > 0 && selectedRowKeys.value.length === formulaStore.formulas.length
+})
+const isIndeterminate = computed(() => {
+  return selectedRowKeys.value.length > 0 && selectedRowKeys.value.length < formulaStore.formulas.length
+})
+
+const handleSelectChange = (value: Array<string | number>, { selectedRowData }: { selectedRowData: Formula[] }) => {
+  selectedRowKeys.value = value
+  selectedRows.value = selectedRowData
+}
+
+const handleSelectAll = (checked: boolean) => {
+  if (checked) {
+    selectedRowKeys.value = formulaStore.formulas.map(f => f.id)
+    selectedRows.value = [...formulaStore.formulas]
+  } else {
+    clearSelection()
+  }
+}
+
+const clearSelection = () => {
+  selectedRowKeys.value = []
+  selectedRows.value = []
+}
+
+const handleBatchExport = () => {
+  if (selectedRows.value.length === 0) return
+  const ids = selectedRows.value.map(f => f.id).join(',')
+  router.push({ path: '/exports', query: { formulaIds: ids } })
+  MessagePlugin.success(`已选择 ${selectedRows.value.length} 个配方进行导出`)
+  clearSelection()
+}
+
+const handleBatchDelete = async () => {
+  const count = selectedRows.value.length
+  try {
+    for (const f of selectedRows.value) {
+      await formulaStore.deleteFormula(f.id)
+    }
+    MessagePlugin.success(`成功删除 ${count} 个配方`)
+    clearSelection()
+  } catch {
+    MessagePlugin.error('批量删除失败')
+  }
 }
 
 const parseChanges = (changesJson: string): any[] => {
@@ -252,12 +358,13 @@ const getFormulaStatus = (row: any) => {
 }
 
 const columns = [
-  { colKey: 'name', title: '配方名称', width: 200 },
-  { colKey: 'salesmanName', title: '所属业务员', width: 150 },
+  { colKey: 'row-select', type: 'multiple', width: 50, resizable: false },
+  { colKey: 'name', title: '配方名称', width: 200, sorter: (a: any, b: any) => a.name.localeCompare(b.name, 'zh') },
+  { colKey: 'salesmanName', title: '所属业务员', width: 150, sorter: (a: any, b: any) => (a.salesmanName || '').localeCompare(b.salesmanName || '', 'zh') },
   { colKey: 'formulaStatus', title: '状态', width: 100 },
-  { colKey: 'materialCount', title: '原料数量', width: 120 },
-  { colKey: 'createdAt', title: '创建时间', width: 180 },
-  { colKey: 'operation', title: '操作', width: 230 }
+  { colKey: 'materialCount', title: '原料数量', width: 120, sorter: (a: any, b: any) => (a.materials?.length || 0) - (b.materials?.length || 0) },
+  { colKey: 'createdAt', title: '创建时间', width: 180, sorter: (a: any, b: any) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime() },
+  { colKey: 'operation', title: '操作', width: 230, align: 'center' }
 ]
 
 const pagination = computed(() => ({
@@ -367,6 +474,37 @@ const confirmDelete = async () => {
 
 <style scoped lang="scss">
 .formula-list {
+  // ─── 批量操作栏 ───
+  .batch-action-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: $space-3;
+    padding: $space-3 $space-4;
+    margin-bottom: $space-4;
+    background: linear-gradient(135deg, $brand-primary-bg, $overlay-pink-bg-60);
+    border: 1.5px solid $brand-primary-lightest;
+    border-radius: $radius-lg;
+    animation: batchBarSlideIn 0.3s ease both;
+
+    .batch-info {
+      display: flex;
+      align-items: center;
+      gap: $space-2;
+
+      .batch-count {
+        font-size: $font-size-body-sm;
+        color: $text-primary;
+      }
+    }
+
+    .batch-actions {
+      display: flex;
+      align-items: center;
+      gap: $space-2;
+    }
+  }
+
   .content-card {
     min-height: 400px;
     box-shadow: $shadow-xs;
@@ -375,6 +513,12 @@ const confirmDelete = async () => {
     &:hover {
       box-shadow: $shadow-md;
     }
+
+    // 表格行 stagger 入场动画
+    :deep(.t-table__body .t-table__row) {
+      animation: rowFadeIn 0.3s ease both;
+      @include stagger-rows(20, 0.03s);
+    }
   }
 
   .expanded-content {
@@ -382,6 +526,7 @@ const confirmDelete = async () => {
     background-color: $bg-page;
     border-radius: $radius-lg;
     border: 1px solid $border-color-light;
+    animation: expandRowFadeIn 0.3s ease both;
 
     .version-section {
       margin-bottom: $space-4;
@@ -612,60 +757,40 @@ const confirmDelete = async () => {
     border-left: 3px solid $brand-primary-lightest;
   }
 
-  :deep(.btn-view) {
-    display: none;
-  }
-
-  :deep(.btn-edit) {
-    color: $color-info !important;
-    border-color: $color-info-strong !important;
-    background: $color-info-light !important;
-
-    :deep(.t-button__icon) {
-      color: $color-info !important;
-    }
-
-    &:hover {
-      color: $color-info-dark !important;
-      border-color: $color-info-dark !important;
-      background: $color-info-medium !important;
-    }
-  }
-
-  :deep(.btn-delete) {
-    color: $color-danger !important;
-    border-color: $color-danger-medium !important;
-    background: $color-danger-light !important;
-
-    :deep(.t-button__icon) {
-      color: $color-danger !important;
-    }
-
-    &:hover {
-      color: $color-danger !important;
-      border-color: $color-danger !important;
-      background: $color-danger-medium !important;
-    }
-  }
-
-  :deep(.btn-more) {
-    color: $text-primary !important;
-    border-color: $border-color !important;
-    background: $overlay-white-90 !important;
-
-    :deep(.t-button__icon) {
-      color: $text-primary !important;
-    }
-
-    &:hover {
-      color: $color-info !important;
-      border-color: $color-info !important;
-    }
-  }
-
-  // 按钮和表格样式由全局 main.scss 统一覆盖，此处仅保留行级细节
+  // 按钮和表格样式由全局 _td-overrides.scss 统一覆盖，此处仅保留行级细节
   :deep(.t-table) {
     .t-table__row { cursor: pointer; }
+
+    // 展开行过渡动画
+    .t-table__expanded-row > td {
+      border-bottom: none !important;
+    }
+
+    .t-table__expanded-row .t-table__row--expanded {
+      animation: expandRowFadeIn 0.35s ease both;
+    }
+  }
+}
+
+@keyframes batchBarSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes expandRowFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 </style>

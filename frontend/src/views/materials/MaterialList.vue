@@ -1,16 +1,39 @@
 <template>
-  <div class="material-list">
-    <PageSkeleton v-if="!initialized" type="table" :rows="5" :columns="8" />
-    <t-card v-else class="content-card" bordered>
+  <div class="material-list" :aria-busy="!initialized">
+    <Transition name="content-fade" mode="out-in">
+      <PageSkeleton v-if="!initialized" type="table" :rows="5" :columns="8" />
+      <t-card v-else class="content-card" bordered>
+      <!-- 批量操作栏 -->
+      <Transition name="batch-bar">
+        <div v-if="selectedRows.length > 0" class="batch-action-bar">
+          <div class="batch-info">
+            <t-checkbox :checked="isAllSelected" :indeterminate="isIndeterminate" @change="handleSelectAll" />
+            <span class="batch-count">已选 <strong>{{ selectedRows.length }}</strong> 项</span>
+          </div>
+          <div class="batch-actions">
+            <t-popconfirm content="确定要删除所选原料吗？" @confirm="handleBatchDelete">
+              <t-button theme="danger" variant="outline" size="small">
+                <template #icon><t-icon name="delete" /></template>批量删除
+              </t-button>
+            </t-popconfirm>
+            <t-button theme="default" variant="outline" size="small" @click="clearSelection">
+              取消选择
+            </t-button>
+          </div>
+        </div>
+      </Transition>
       <t-table
-        :data="materialStore.materials"
+        :data="sortedMaterials"
         :columns="columns"
         :loading="materialStore.loading"
         :pagination="undefined"
+        :sort="tableSort"
         row-key="id"
         hover
-        stripe
         table-layout="auto"
+        @sort-change="onSortChange"
+        @select-change="handleSelectChange"
+        :selected-row-keys="selectedRowKeys"
       >
         <template #stock="{ row }">
           {{ row.stock }} {{ row.unit }}
@@ -40,7 +63,7 @@
         </template>
 
         <template #empty>
-          <t-empty description="暂无原料数据">
+          <t-empty description="暂无原料数据" role="status">
             <template #action>
               <t-button theme="primary" @click="handleCreate">
                 <template #icon><t-icon name="add" /></template>录入原料
@@ -76,6 +99,7 @@
         </template>
       </t-table>
     </t-card>
+    </Transition>
 
     <t-dialog
       v-model:visible="deleteDialogVisible"
@@ -119,16 +143,87 @@ const deleteDialogVisible = ref(false)
 const deleteLoading = ref(false)
 const deleteTarget = ref<Material | null>(null)
 const nutritionMap = ref<Record<string, string>>({})
+const selectedRowKeys = ref<(string | number)[]>([])
+const selectedRows = ref<Material[]>([])
+const tableSort = ref<any>(undefined)
+const sortedMaterials = ref<Material[]>([])
+
+const onSortChange = (sort: any) => {
+  tableSort.value = sort
+  if (!sort || !sort.sortBy) {
+    sortedMaterials.value = [...materialStore.materials]
+    return
+  }
+  const { sortBy, descending } = sort
+  const col = columns.find(c => c.colKey === sortBy)
+  if (col?.sorter) {
+    sortedMaterials.value = [...materialStore.materials].sort((a, b) => {
+      const result = (col.sorter as Function)(a, b)
+      return descending ? -result : result
+    })
+  } else {
+    sortedMaterials.value = [...materialStore.materials]
+  }
+}
+
+watch(() => materialStore.materials, (val) => {
+  if (tableSort.value?.sortBy) {
+    onSortChange(tableSort.value)
+  } else {
+    sortedMaterials.value = [...val]
+  }
+}, { immediate: true })
+
+// ─── 批量操作 ───
+const isAllSelected = computed(() => {
+  return selectedRowKeys.value.length > 0 && selectedRowKeys.value.length === materialStore.materials.length
+})
+const isIndeterminate = computed(() => {
+  return selectedRowKeys.value.length > 0 && selectedRowKeys.value.length < materialStore.materials.length
+})
+
+const handleSelectChange = (value: Array<string | number>, { selectedRowData }: { selectedRowData: Material[] }) => {
+  selectedRowKeys.value = value
+  selectedRows.value = selectedRowData
+}
+
+const handleSelectAll = (checked: boolean) => {
+  if (checked) {
+    selectedRowKeys.value = materialStore.materials.map(m => m.id)
+    selectedRows.value = [...materialStore.materials]
+  } else {
+    clearSelection()
+  }
+}
+
+const clearSelection = () => {
+  selectedRowKeys.value = []
+  selectedRows.value = []
+}
+
+const handleBatchDelete = async () => {
+  const count = selectedRows.value.length
+  try {
+    for (const m of selectedRows.value) {
+      await materialStore.deleteMaterial(m.id)
+    }
+    MessagePlugin.success(`成功删除 ${count} 个原料`)
+    clearSelection()
+  } catch {
+    MessagePlugin.error('批量删除失败')
+  }
+}
 
 const columns = [
-  { colKey: 'code', title: '原料编码', width: 100 },
-  { colKey: 'name', title: '原料名称', width: 200 },
-  { colKey: 'materialType', title: '类型', width: 90 },
+  { colKey: 'row-select', type: 'multiple', width: 50, resizable: false },
+  { colKey: 'code', title: '原料编码', width: 100, sorter: (a: any, b: any) => a.code.localeCompare(b.code) },
+  { colKey: 'name', title: '原料名称', width: 200, sorter: (a: any, b: any) => a.name.localeCompare(b.name, 'zh') },
+  { colKey: 'materialType', title: '类型', width: 90, sorter: (a: any, b: any) => (a.materialType || '').localeCompare(b.materialType || '') },
   { colKey: 'unit', title: '单位', width: 80 },
-  { colKey: 'stock', title: '库存', width: 90 },
+  { colKey: 'stock', title: '库存', width: 90, sorter: (a: any, b: any) => (a.stock || 0) - (b.stock || 0) },
   { colKey: 'nutrition', title: '营养', width: 90 },
-  { colKey: 'createdAt', title: '创建时间', width: 150 },
-  { colKey: 'operation', title: '操作', width: 200 }
+  { colKey: 'createdAt', title: '创建时间', width: 150, sorter: (a: any, b: any) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime() },
+  { colKey: 'operation', title: '操作', width: 200, align: 'center' }
 ]
 
 const pagination = computed(() => ({
@@ -234,6 +329,37 @@ const confirmDelete = async () => {
 
 <style scoped lang="scss">
 .material-list {
+  // ─── 批量操作栏 ───
+  .batch-action-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: $space-3;
+    padding: $space-3 $space-4;
+    margin-bottom: $space-4;
+    background: linear-gradient(135deg, $brand-primary-bg, $overlay-pink-bg-60);
+    border: 1.5px solid $brand-primary-lightest;
+    border-radius: $radius-lg;
+    animation: batchBarSlideIn 0.3s ease both;
+
+    .batch-info {
+      display: flex;
+      align-items: center;
+      gap: $space-2;
+
+      .batch-count {
+        font-size: $font-size-body-sm;
+        color: $text-primary;
+      }
+    }
+
+    .batch-actions {
+      display: flex;
+      align-items: center;
+      gap: $space-2;
+    }
+  }
+
   .content-card {
     min-height: 400px;
     box-shadow: $shadow-xs;
@@ -241,6 +367,12 @@ const confirmDelete = async () => {
 
     &:hover {
       box-shadow: $shadow-md;
+    }
+
+    // 表格行 stagger 入场动画
+    :deep(.t-table__body .t-table__row) {
+      animation: rowFadeIn 0.3s ease both;
+      @include stagger-rows(20, 0.03s);
     }
   }
 
@@ -264,46 +396,20 @@ const confirmDelete = async () => {
     border-left: 3px solid $brand-primary-lightest;
   }
 
-  :deep(.btn-view) {
-    display: none;
-  }
-
-  :deep(.btn-edit) {
-    color: $color-info !important;
-    border-color: $color-info-strong !important;
-    background: $color-info-light !important;
-
-    :deep(.t-button__icon) {
-      color: $color-info !important;
-    }
-
-    &:hover {
-      color: $color-info-dark !important;
-      border-color: $color-info-dark !important;
-      background: $color-info-medium !important;
-    }
-  }
-
-  :deep(.btn-delete) {
-    color: $color-danger !important;
-    border-color: $color-danger-medium !important;
-    background: $color-danger-light !important;
-
-    :deep(.t-button__icon) {
-      color: $color-danger !important;
-    }
-
-    &:hover {
-      color: $color-danger !important;
-      border-color: $color-danger !important;
-      background: $color-danger-medium !important;
-    }
-  }
-
-  // 按钮和表格样式由全局 main.scss 统一覆盖，此处仅保留行级细节
+  // 按钮和表格样式由全局 _td-overrides.scss 统一覆盖，此处仅保留行级细节
   :deep(.t-table) {
-    .t-table__row--hover { background-color: $bg-hover; }
     .t-table__row { cursor: pointer; }
+  }
+}
+
+@keyframes batchBarSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 </style>

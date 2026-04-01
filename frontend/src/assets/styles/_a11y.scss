@@ -1,0 +1,56 @@
+// ═══════════════════════════════════════════════════════════════
+// TingStudio Accessibility — 无障碍样式
+// ═══════════════════════════════════════════════════════════════
+
+@use './variables.scss' as *;
+
+// ─── Skip Link（跳到主内容）──────────────────────────────
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 16px;
+  z-index: 9999;
+  padding: 8px 16px;
+  background: $brand-primary;
+  color: $text-white;
+  border-radius: $radius-md;
+  font-weight: $font-weight-semibold;
+  transition: top 0.2s ease;
+
+  &:focus {
+    top: 8px;
+  }
+}
+
+// ─── Focus Visible（焦点可见）───────────────────────────
+:focus-visible {
+  outline: 2px solid $brand-primary;
+  outline-offset: 2px;
+}
+
+// 鼠标点击不显示焦点环（仅键盘导航显示）
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+// ─── TDesign 焦点环兼容 ────────────────────────────────
+.t-input.t-is-focused,
+.t-textarea.t-is-focused,
+.t-select-input.t-is-focused {
+  box-shadow: 0 0 0 3px rgba(255, 107, 138, 0.2) !important;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 主题切换过渡
+// 切换时由 themeStore 添加 data-theme-transitioning class 到 <html>
+// 300ms 后自动移除，避免影响正常交互
+// ═══════════════════════════════════════════════════════════════
+html[data-theme-transitioning] *,
+html[data-theme-transitioning] *::before,
+html[data-theme-transitioning] *::after {
+  transition: background-color 0.3s ease,
+              color 0.3s ease,
+              border-color 0.3s ease,
+              box-shadow 0.3s ease,
+              fill 0.3s ease !important;
+}

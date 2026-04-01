@@ -1,11 +1,17 @@
 ﻿<template>
-  <div class="home-page">
+  <div class="home-page" :class="{ collapsed: sidebarCollapsed }">
+    <!-- 跳到主要内容（仅键盘/屏幕阅读器可见） -->
+    <a href="#main-content" class="skip-link">跳到主要内容</a>
+    <!-- 移动端遮罩层 -->
+    <Transition name="drawer-fade">
+      <div v-if="mobileDrawerOpen" class="mobile-overlay" @click="closeMobileDrawer" />
+    </Transition>
     <!-- 左侧导航功能区 -->
-    <div class="left-sidebar">
+    <aside class="left-sidebar" :class="{ 'mobile-drawer-open': mobileDrawerOpen }" aria-label="主导航">
       <!-- Logo - 固定顶部 -->
-      <div class="sidebar-top">
-        <div class="sidebar-logo">
-          <div class="logo-cat">
+      <div class="sidebar-top" :class="{ collapsed: sidebarCollapsed }">
+        <div class="sidebar-logo" @click="toggleSidebarCollapse" title="折叠/展开侧边栏">
+          <div class="logo-cat" aria-hidden="true">
             <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
               <circle cx="30" cy="32" r="20" fill="#FFE8D6" />
               <path d="M14 22L10 4L26 16Z" fill="#FFB5C8" />
@@ -20,13 +26,20 @@
               <ellipse cx="40" cy="36" rx="4" ry="2.5" fill="#FFB5C2" opacity="0.35" />
             </svg>
           </div>
-          <h1 class="logo-text">TingStudio</h1>
+          <h1 v-show="!sidebarCollapsed" class="logo-text">TingStudio</h1>
+          <t-icon
+            v-show="sidebarCollapsed"
+            name="menu-unfold"
+            size="18px"
+            class="collapse-expand-icon"
+            @click.stop="toggleSidebarCollapse"
+          />
         </div>
 
         <!-- 个人信息 + 祝福语并排 -->
-        <div class="sidebar-user-card">
+        <div v-show="!sidebarCollapsed" class="sidebar-user-card">
           <div class="user-main">
-            <div class="user-avatar">
+            <div class="user-avatar" aria-hidden="true">
               <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="30" cy="20" r="14" fill="#FFB5C8" />
                 <ellipse cx="30" cy="52" rx="20" ry="14" fill="#FFE8D6" />
@@ -48,8 +61,8 @@
         </div>
 
         <!-- 日期和天气并排 -->
-        <div class="sidebar-info-row">
-          <div class="info-chip info-date">
+        <div v-show="!sidebarCollapsed" class="sidebar-info-row">
+          <div class="info-chip info-date" aria-hidden="true">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
               <line x1="16" y1="2" x2="16" y2="6" />
@@ -61,7 +74,7 @@
               <span class="chip-sub">{{ currentWeekday }}</span>
             </div>
           </div>
-          <div class="info-chip info-weather">
+          <div class="info-chip info-weather" aria-hidden="true">
             <span class="weather-icon">{{ weather }}</span>
             <div class="chip-text">
               <span class="chip-main">{{ temperature }}</span>
@@ -72,9 +85,9 @@
       </div>
 
       <!-- 可滚动导航区域 -->
-      <div class="sidebar-nav">
-        <div class="nav-header" @click="toggleNav">
-          <span class="nav-icon">📋</span>
+      <nav class="sidebar-nav" :class="{ collapsed: sidebarCollapsed }" aria-label="侧边栏导航">
+        <div v-show="!sidebarCollapsed" class="nav-header" @click="toggleNav">
+          <t-icon name="menu-fold" size="16px" class="nav-icon" />
           <span class="nav-title">功能导航</span>
           <span class="nav-toggle" :class="{ expanded: navExpanded }">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -82,31 +95,37 @@
             </svg>
           </span>
         </div>
-        <div class="nav-content" :class="{ expanded: navExpanded }">
+        <div class="nav-content" :class="{ expanded: navExpanded || sidebarCollapsed }" role="menubar">
           <div
             v-for="item in navItems"
             :key="item.path"
             class="nav-item"
             :class="{ active: activePath === item.path }"
+            role="menuitem"
+            tabindex="0"
+            :aria-current="activePath === item.path ? 'page' : undefined"
+            :title="sidebarCollapsed ? item.label : undefined"
             @click="navigateTo(item.path)"
+            @keydown="handleNavKeydown($event, item.path)"
           >
-            <div class="nav-item-icon">{{ item.icon }}</div>
-            <span class="nav-item-text">{{ item.label }}</span>
-            <div class="nav-item-arrow">
+            <div class="nav-item-icon" aria-hidden="true"><t-icon :name="item.icon" size="18px" /></div>
+            <span v-show="!sidebarCollapsed" class="nav-item-text">{{ item.label }}</span>
+            <div v-show="!sidebarCollapsed" class="nav-item-arrow">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="9 18 15 12 9 6" />
               </svg>
             </div>
           </div>
         </div>
-      </div>
+      </nav>
 
       <!-- 新用户引导卡片 -->
-      <div v-if="showGuideCard" class="sidebar-guide">
+      <div v-if="showGuideCard && !sidebarCollapsed" class="sidebar-guide">
         <div class="guide-header">
           <span class="guide-icon">🚀</span>
           <span class="guide-title">快速开始</span>
-          <span class="guide-close" @click="dismissGuide">&times;</span>
+          <span class="guide-close" role="button" tabindex="0" aria-label="关闭引导"
+                @click="dismissGuide" @keydown.enter="dismissGuide">&times;</span>
         </div>
         <div class="guide-steps">
           <div
@@ -127,14 +146,25 @@
           </t-button>
         </div>
       </div>
-    </div>
+    </aside>
 
     <!-- 右侧内容展示区 -->
     <div class="right-content">
-      <div class="content-header">
+      <header class="content-header" role="banner">
         <div class="header-left">
-          <span class="title-icon">{{ pageIcon }}</span>
-          <h2 class="content-title">{{ pageTitle }}</h2>
+          <!-- 移动端汉堡菜单 -->
+          <button class="mobile-menu-btn" aria-label="打开菜单" @click="openMobileDrawer">
+            <t-icon name="menu-fold" size="20px" />
+          </button>
+          <span class="title-icon" aria-hidden="true"><t-icon :name="pageIcon" size="20px" /></span>
+          <div class="header-title-area">
+            <t-breadcrumb max-item-width="200" separator=">" class="content-breadcrumb">
+              <t-breadcrumb-item v-for="crumb in breadcrumbs" :key="crumb.path" @click="crumb.path && router.push(crumb.path)">
+                {{ crumb.title }}
+              </t-breadcrumb-item>
+              <t-breadcrumb-item class="breadcrumb-current">{{ pageTitle }}</t-breadcrumb-item>
+            </t-breadcrumb>
+          </div>
           <div class="header-nav-buttons">
             <t-button theme="default" size="medium" @click="handleGoBack" class="header-btn">
               <template #icon>
@@ -176,15 +206,17 @@
               锁屏
             </t-button>
             <t-popup placement="bottom-right" trigger="click" :visible="userMenuVisible" @visible-change="(v: boolean) => userMenuVisible = v">
-              <div class="user-avatar-wrapper">
+              <div class="user-avatar-wrapper" role="button" tabindex="0"
+                   aria-haspopup="true" :aria-expanded="userMenuVisible"
+                   @keydown.enter="userMenuVisible = !userMenuVisible">
                 <div class="user-avatar">{{ userInitial }}</div>
                 <svg class="user-avatar-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <polyline points="6 9 12 15 18 9" />
                 </svg>
               </div>
               <template #content>
-                <div class="user-menu-popup">
-                  <div v-for="item in userMenuItems" :key="item.value" :class="['user-menu-item', { 'user-menu-item--danger': item.danger }]" @click="handleUserMenuClick(item.value)">
+                <div class="user-menu-popup" role="menu">
+                  <div v-for="item in userMenuItems" :key="item.value" :class="['user-menu-item', { 'user-menu-item--danger': item.danger }]" role="menuitem" tabindex="0" @click="handleUserMenuClick(item.value)" @keydown.enter="handleUserMenuClick(item.value)">
                     <t-icon :name="item.icon" size="16px" />
                     <span>{{ item.content }}</span>
                   </div>
@@ -193,10 +225,10 @@
             </t-popup>
           </div>
         </div>
-      </div>
+      </header>
 
       <!-- 滚动内容区域 -->
-      <div ref="contentBodyRef" class="content-body">
+      <main ref="contentBodyRef" id="main-content" class="content-body">
         <div class="content-body-wrapper">
           <!-- 工具栏：左侧搜索/重置，右侧新增（仅列表页可见） -->
           <div v-if="showAddBtn" class="content-toolbar">
@@ -205,6 +237,7 @@
                 <t-input
                   v-model="searchKeyword"
                   :placeholder="searchPlaceholder"
+                  :aria-label="searchPlaceholder"
                   clearable
                   class="search-input"
                   @enter="handleSearch"
@@ -243,18 +276,18 @@
           <!-- 页面内容 -->
           <div class="content-main">
             <router-view v-slot="{ Component }">
-              <transition name="fade-slide" mode="out-in">
+              <transition :name="transitionName" mode="out-in">
                 <component :is="Component" :key="refreshKey" />
               </transition>
             </router-view>
           </div>
         </div>
-      </div>
+      </main>
 
       <!-- 分页底栏 — 独立于 content-body，不随内容滚动 -->
       <div v-if="paginationStore.visible" class="content-footer">
         <div class="content-footer-inner">
-          <t-pagination v-bind="paginationStore.paginationConfig" />
+          <t-pagination aria-label="分页导航" v-bind="paginationStore.paginationConfig" />
         </div>
       </div>
     </div>
@@ -262,13 +295,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { usePaginationStore } from '@/stores/pagination'
 import { useFormulaStore } from '@/stores/formula'
 import { useMaterialStore } from '@/stores/material'
 import { useSalesmanStore } from '@/stores/salesman'
+import { useThemeStore } from '@/stores/theme'
+import { brandColorDots, brandColorLabels } from '@/assets/styles/tokens'
+import type { BrandColor } from '@/stores/theme'
 import { MessagePlugin } from 'tdesign-vue-next'
 
 const router = useRouter()
@@ -278,8 +314,25 @@ const paginationStore = usePaginationStore()
 const formulaStore = useFormulaStore()
 const materialStore = useMaterialStore()
 const salesmanStore = useSalesmanStore()
+const themeStore = useThemeStore()
+
+// 品牌色选项
+const brandColorOptions: Array<{ value: BrandColor; label: string; dot: string }> = [
+  { value: 'pink', label: brandColorLabels.pink, dot: brandColorDots.pink },
+  { value: 'yellow', label: brandColorLabels.yellow, dot: brandColorDots.yellow },
+  { value: 'blue', label: brandColorLabels.blue, dot: brandColorDots.blue },
+  { value: 'green', label: brandColorLabels.green, dot: brandColorDots.green },
+]
+
+const themeModeLabels: Record<string, string> = {
+  auto: '跟随系统',
+  light: '亮色模式',
+  dark: '暗色模式',
+}
 
 const navExpanded = ref(true)
+const sidebarCollapsed = ref(false)
+const mobileDrawerOpen = ref(false)
 const activePath = computed(() => {
   const path = route.path
   // 按最长前缀匹配，优先精确匹配，再按路径段前缀匹配
@@ -307,7 +360,8 @@ const userInitial = computed(() => {
 const userMenuVisible = ref(false)
 const userMenuItems = [
   { content: '账号设置', value: 'settings', icon: 'setting' },
-  { content: '主题', value: 'theme', icon: 'browse' },
+  { content: '切换外观', value: 'theme', icon: 'browse' },
+  { content: '切换品牌色', value: 'brand', icon: 'palette' },
   { content: '切换账号', value: 'switchAccount', icon: 'usergroup' },
   { content: '退出登录', value: 'logout', icon: 'poweroff', danger: true },
 ]
@@ -320,7 +374,12 @@ const handleUserMenuClick = (value: string) => {
       MessagePlugin.info('账号设置功能开发中')
       break
     case 'theme':
-      MessagePlugin.info('主题切换功能开发中')
+      themeStore.cycleTheme()
+      MessagePlugin.success(`已切换为${themeModeLabels[themeStore.mode]}`)
+      break
+    case 'brand':
+      themeStore.cycleBrandColor()
+      MessagePlugin.success(`品牌色已切换为${brandColorLabels[themeStore.brandColor]}`)
       break
     case 'switchAccount':
       handleLogout()
@@ -337,20 +396,20 @@ const handleUserMenuClick = (value: string) => {
 // 页面图标映射
 const pageIcon = computed(() => {
   const iconMap: Record<string, string> = {
-    '/recent-formulas': '🕐',
-    '/formulas': '📝',
-    '/materials': '🧪',
-    '/salesmen': '🤝',
-    '/exports': '📤',
-    '/nutrition': '🥗',
-    '/tools': '🛠️'
+    '/recent-formulas': 'time',
+    '/formulas': 'edit',
+    '/materials': 'chart-bar',
+    '/salesmen': 'usergroup',
+    '/exports': 'download',
+    '/nutrition': 'chart-pie',
+    '/tools': 'setting'
   }
   if (iconMap[route.path]) return iconMap[route.path]
   for (const key of Object.keys(iconMap)) {
     if (route.path.startsWith(key)) return iconMap[key]
   }
-  if (route.path.includes('/versions')) return '📋'
-  return '🏠'
+  if (route.path.includes('/versions')) return 'list'
+  return 'home'
 })
 
 // 搜索框占位符
@@ -373,13 +432,13 @@ const searchPlaceholder = computed(() => {
 
 // 导航菜单项
 const navItems = [
-  { path: '/recent-formulas', label: '最近配方', icon: '🕐' },
-  { path: '/formulas', label: '配方管理', icon: '📝' },
-  { path: '/materials', label: '原材管理', icon: '🧪' },
-  { path: '/salesmen', label: '业务员管理', icon: '🤝' },
-  { path: '/exports', label: '导出中心', icon: '📤' },
-  { path: '/nutrition', label: '营养分析', icon: '🥗' },
-  { path: '/tools', label: '工具箱', icon: '🛠️' }
+  { path: '/recent-formulas', label: '最近配方', icon: 'time' },
+  { path: '/formulas', label: '配方管理', icon: 'edit' },
+  { path: '/materials', label: '原材管理', icon: 'chart-bar' },
+  { path: '/salesmen', label: '业务员管理', icon: 'usergroup' },
+  { path: '/exports', label: '导出中心', icon: 'download' },
+  { path: '/nutrition', label: '营养分析', icon: 'chart-pie' },
+  { path: '/tools', label: '工具箱', icon: 'setting' }
 ]
 
 // 日期和星期
@@ -418,9 +477,59 @@ const toggleNav = () => {
   navExpanded.value = !navExpanded.value
 }
 
+// 切换侧边栏折叠
+const toggleSidebarCollapse = () => {
+  sidebarCollapsed.value = !sidebarCollapsed.value
+  if (sidebarCollapsed.value) {
+    navExpanded.value = true // 折叠时自动展开导航列表
+  }
+}
+
+// 移动端抽屉模式
+const openMobileDrawer = () => {
+  mobileDrawerOpen.value = true
+}
+const closeMobileDrawer = () => {
+  mobileDrawerOpen.value = false
+}
+
+// 面包屑 — 通过 route.matched 自动生成
+const breadcrumbs = computed(() => {
+  const matched = route.matched.filter(r => r.meta?.title)
+  const crumbs: Array<{ title: string; path: string }> = []
+  for (const r of matched) {
+    if (r.path === '/') continue
+    crumbs.push({
+      title: (r.meta.title as string) || '',
+      path: r.children?.length ? '' : r.path, // 有子路由的不跳转
+    })
+  }
+  // 去掉最后一项，最后一项由模板中的 pageTitle 面包屑承担
+  crumbs.pop()
+  return crumbs
+})
+
+// 路由过渡方向感知
+const transitionName = ref('fade-slide')
+watch(() => route.path, (to, from) => {
+  if (!from) { transitionName.value = 'fade-slide'; return }
+  // 列表→详情/新建/编辑 → slide-left
+  const detailPattern = /\/(new|\d+|edit)$/
+  const toIsDetail = detailPattern.test(to)
+  const fromIsDetail = detailPattern.test(from)
+  if (toIsDetail && !fromIsDetail) {
+    transitionName.value = 'slide-left'
+  } else if (!toIsDetail && fromIsDetail) {
+    transitionName.value = 'slide-right'
+  } else {
+    transitionName.value = 'fade-slide'
+  }
+})
+
 // 导航到指定路径
 const navigateTo = (path: string) => {
   router.push(path)
+  if (mobileDrawerOpen.value) closeMobileDrawer()
 }
 
 // 工具栏：仅在列表页显示，表单页/详情页/编辑页隐藏
@@ -577,11 +686,75 @@ const getLocation = () => {
   city.value = cities[Math.floor(Math.random() * cities.length)]
 }
 
+// ─── 键盘导航 ───
+const handleNavKeydown = (e: KeyboardEvent, path: string) => {
+  switch (e.key) {
+    case 'Enter':
+    case ' ':
+      e.preventDefault()
+      navigateTo(path)
+      break
+    case 'ArrowDown':
+    case 'ArrowRight':
+      e.preventDefault()
+      focusNextNavItem(e.target as HTMLElement)
+      break
+    case 'ArrowUp':
+    case 'ArrowLeft':
+      e.preventDefault()
+      focusPrevNavItem(e.target as HTMLElement)
+      break
+    case 'Home':
+      e.preventDefault()
+      focusFirstNavItem()
+      break
+    case 'End':
+      e.preventDefault()
+      focusLastNavItem()
+      break
+  }
+}
+
+const focusNextNavItem = (current: HTMLElement) => {
+  const items = current.parentElement?.querySelectorAll<HTMLElement>('[role="menuitem"]')
+  if (!items) return
+  const idx = Array.from(items).indexOf(current)
+  const next = items[(idx + 1) % items.length]
+  next?.focus()
+}
+
+const focusPrevNavItem = (current: HTMLElement) => {
+  const items = current.parentElement?.querySelectorAll<HTMLElement>('[role="menuitem"]')
+  if (!items) return
+  const idx = Array.from(items).indexOf(current)
+  const prev = items[(idx - 1 + items.length) % items.length]
+  prev?.focus()
+}
+
+const focusFirstNavItem = () => {
+  const first = document.querySelector<HTMLElement>('[role="menuitem"]')
+  first?.focus()
+}
+
+const focusLastNavItem = () => {
+  const items = document.querySelectorAll<HTMLElement>('[role="menuitem"]')
+  const last = items[items.length - 1]
+  last?.focus()
+}
+
 onMounted(() => {
   updateDateInfo()
   updateBlessing()
   updateWeather()
   getLocation()
+
+  // Ctrl+B 切换侧边栏折叠
+  document.addEventListener('keydown', (e: KeyboardEvent) => {
+    if (e.ctrlKey && e.key === 'b') {
+      e.preventDefault()
+      toggleSidebarCollapse()
+    }
+  })
 })
 </script>
 
@@ -602,48 +775,41 @@ onMounted(() => {
 //  LEFT SIDEBAR — flex 纵向三段布局
 // ═══════════════════════════════════════
 .left-sidebar {
-  width: 300px;
-  max-width: 300px;
-  min-width: 300px;
-  flex: 0 0 300px;
+  width: 220px;
+  max-width: 220px;
+  min-width: 220px;
+  flex: 0 0 220px;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
-  background: $gradient-sidebar;
-  border-right: 2px solid $overlay-pink-15;
+  background: $bg-container;
+  border-radius: 0;
   position: relative;
   overflow: hidden;
+  border-right: 1px solid $border-color-light;
+  box-shadow: $shadow-elevation-1;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              min-width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              flex-basis 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
-  &::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    right: -50%;
-    width: 100%;
-    height: 100%;
-    background: radial-gradient(circle, $overlay-pink-08, transparent 70%);
-    pointer-events: none;
-    z-index: 0;
-  }
-
-  // 确保子元素在伪元素之上
   > * { position: relative; z-index: 1; }
 }
 
 // ─── sidebar-top：Logo + 用户 + 日期天气（固定顶部）───
 .sidebar-top {
   flex-shrink: 0;
-  padding: 20px 18px 14px;
+  padding: 16px 14px 12px;
 }
 
 // Logo
 .sidebar-logo {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 16px;
-  padding-bottom: 14px;
-  border-bottom: 2px dashed $overlay-pink-lighter-30;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid $border-color-light;
 
   .logo-cat {
     width: 38px;
@@ -653,7 +819,7 @@ onMounted(() => {
     svg {
       width: 100%;
       height: 100%;
-      filter: drop-shadow(0 4px 12px $overlay-pink-15);
+      filter: drop-shadow(0 4px 12px var(--overlay-brand-15));
       animation: catBounce 4s ease-in-out infinite;
     }
   }
@@ -672,20 +838,17 @@ onMounted(() => {
   50% { transform: translateY(-5px); }
 }
 
-// ─── 个人信息 + 祝福语并排卡片 ───
+// ─── 个人信息卡片（卡片风格）───
 .sidebar-user-card {
   display: flex;
-  align-items: center;
-  gap: 10px;
-  height: 80px;
+  flex-direction: column;
+  gap: 8px;
   flex-shrink: 0;
   padding: 12px;
-  background: $overlay-white-60;
-  backdrop-filter: blur(10px);
-  border-radius: 14px;
-  margin-bottom: 12px;
-  border: 1px solid $overlay-pink-lighter-20;
-  box-shadow: 0 2px 12px $overlay-pink-08;
+  background: $bg-page;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  border: 1px solid $border-color-light;
 
   .user-main {
     display: flex;
@@ -694,8 +857,8 @@ onMounted(() => {
     flex-shrink: 0;
 
     .user-avatar {
-      width: 34px;
-      height: 34px;
+      width: 32px;
+      height: 32px;
       flex-shrink: 0;
 
       svg {
@@ -713,8 +876,8 @@ onMounted(() => {
       }
 
       .user-role {
-        font-size: 9px;
-        background: linear-gradient(135deg, $brand-primary-lighter, $brand-primary-light);
+        font-size: 10px;
+        background: linear-gradient(135deg, var(--color-primary-lighter), var(--color-primary-light));
         color: white;
         padding: 1px 6px;
         border-radius: 6px;
@@ -725,26 +888,24 @@ onMounted(() => {
   }
 
   .user-blessing {
-    flex: 1;
-    min-width: 0;
     display: flex;
     align-items: center;
     gap: 4px;
-    padding: 6px 10px;
-    background: linear-gradient(135deg, $overlay-pink-08, $color-lavender-alpha);
+    padding: 6px 8px;
+    background: $bg-container;
     border-radius: 8px;
-    border-left: 3px solid $brand-primary-lighter;
+    border-left: 3px solid var(--color-primary-lighter);
 
     .blessing-icon {
-      font-size: 14px;
+      font-size: 12px;
       animation: heartBeat 1.5s ease-in-out infinite;
       flex-shrink: 0;
     }
 
     .blessing-text {
       font-size: 11px;
-      color: $text-primary;
-      line-height: 1.5;
+      color: $text-secondary;
+      line-height: 1.4;
       font-weight: 500;
       white-space: normal;
       word-break: break-all;
@@ -768,21 +929,20 @@ onMounted(() => {
     flex: 1;
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 8px 10px;
-    background: $overlay-white-50;
-    border-radius: 10px;
-    border: 1px solid $overlay-pink-lighter-15;
+    gap: 6px;
+    padding: 8px;
+    background: $bg-page;
+    border-radius: 8px;
+    border: 1px solid $border-color-light;
     transition: all 0.3s;
 
     &:hover {
-      background: $overlay-white-80;
-      box-shadow: 0 4px 12px $overlay-pink-10;
+      box-shadow: $shadow-xs;
     }
   }
 
   .info-date svg {
-    color: $brand-primary;
+    color: var(--color-primary);
     flex-shrink: 0;
   }
 
@@ -816,9 +976,9 @@ onMounted(() => {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding: 12px 18px;
+  padding: 8px 14px;
   scrollbar-width: thin;
-  scrollbar-color: $overlay-pink-25 transparent;
+  scrollbar-color: var(--overlay-brand-25) transparent;
 
   &::-webkit-scrollbar {
     width: 4px;
@@ -827,10 +987,10 @@ onMounted(() => {
     background: transparent;
   }
   &::-webkit-scrollbar-thumb {
-    background: $overlay-pink-25;
+    background: var(--overlay-brand-25);
     border-radius: 2px;
     &:hover {
-      background: $overlay-pink-45;
+      background: var(--overlay-brand-45);
     }
   }
 
@@ -838,20 +998,22 @@ onMounted(() => {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 10px 12px;
-    background: linear-gradient(135deg, $brand-primary-lightest, $brand-primary-lighter);
-    border-radius: 10px;
-    margin-bottom: 8px;
+    padding: 8px 10px;
+    background: $bg-page;
+    border-radius: 8px;
+    margin-bottom: 6px;
     cursor: pointer;
     transition: all 0.3s;
-    box-shadow: $shadow-brand-xs;
+    border: 1px solid $border-color-light;
 
     &:hover {
-      transform: translateY(-2px);
-      box-shadow: $shadow-brand;
+      box-shadow: $shadow-xs;
     }
 
-    .nav-icon { font-size: 16px; }
+    .nav-icon {
+      color: $text-primary;
+      flex-shrink: 0;
+    }
 
     .nav-title {
       font-size: 13px;
@@ -885,24 +1047,34 @@ onMounted(() => {
       display: flex;
       align-items: center;
       gap: 8px;
-      padding: 10px 12px;
-      background: $overlay-white-60;
-      border-radius: 10px;
+      padding: 9px 10px;
+      background: $bg-page;
+      border-radius: 8px;
       cursor: pointer;
-      transition: all 0.3s;
+      transition: all 0.2s;
       border: 1px solid transparent;
 
       &:hover {
-        background: $overlay-white-90;
-        transform: translateX(4px);
-        border-color: $brand-primary-lightest;
-        box-shadow: 0 2px 8px $overlay-pink-10;
+        background: $bg-container;
+        border-color: $border-color-light;
+        box-shadow: $shadow-xs;
+      }
+
+      &:focus-visible {
+        background: $bg-page;
+        border-radius: 8px;
+        outline: none;
       }
 
       &.active {
-        background: linear-gradient(135deg, $brand-primary-light, $brand-primary);
+        background: linear-gradient(135deg, var(--color-primary-light), var(--color-primary));
         color: white;
-        box-shadow: $shadow-brand-md;
+        box-shadow: var(--shadow-brand-sm);
+        border-color: transparent;
+
+        .nav-item-icon {
+          color: white;
+        }
 
         .nav-item-arrow {
           color: white;
@@ -916,8 +1088,13 @@ onMounted(() => {
       }
 
       .nav-item-icon {
-        font-size: 16px;
         flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 18px;
+        height: 18px;
+        color: var(--color-primary-light);
       }
 
       .nav-item-text {
@@ -936,16 +1113,16 @@ onMounted(() => {
   }
 }
 
-// ─── 新用户引导卡片 ───
+// ─── 新用户引导卡片（Level 2 玻璃态） ───
 .sidebar-guide {
   flex-shrink: 0;
   margin: 0 18px 16px;
   padding: 14px;
-  background: $overlay-white-70;
+  background: $overlay-white-60;
   backdrop-filter: blur(10px);
   border-radius: 14px;
-  border: 1.5px solid $overlay-pink-lighter-25;
-  box-shadow: 0 4px 16px $overlay-pink-10;
+  border: 1px solid var(--overlay-brand-lighter-15);
+  box-shadow: 0 4px 16px var(--overlay-brand-10);
 
   .guide-header {
     display: flex;
@@ -973,8 +1150,8 @@ onMounted(() => {
       transition: all 0.2s;
 
       &:hover {
-        background: $overlay-pink-15;
-        color: $brand-primary;
+        background: var(--overlay-brand-15);
+        color: var(--color-primary);
       }
     }
   }
@@ -996,13 +1173,13 @@ onMounted(() => {
       border: 1px solid transparent;
 
       &:hover {
-        background: $overlay-pink-bg-60;
-        border-color: $brand-primary-lightest;
+        background: var(--overlay-brand-bg-60);
+        border-color: var(--color-primary-lightest);
       }
 
       &.active {
-        background: linear-gradient(135deg, $brand-primary-lighter, $brand-primary-light);
-        .step-number { background: white; color: $brand-primary; }
+        background: linear-gradient(135deg, var(--color-primary-lighter), var(--color-primary-light));
+        .step-number { background: white; color: var(--color-primary); }
         .step-text { color: white; font-weight: 600; }
         .step-arrow { color: white; }
       }
@@ -1016,8 +1193,8 @@ onMounted(() => {
         width: 22px;
         height: 22px;
         border-radius: 50%;
-        background: $brand-primary-bg;
-        color: $brand-primary;
+        background: var(--color-primary-bg);
+        color: var(--color-primary);
         font-size: 11px;
         font-weight: 700;
         display: flex;
@@ -1060,6 +1237,7 @@ onMounted(() => {
   padding: 8px 16px;
 }
 
+// ─── 内容头部（Level 1 玻璃态 — Header 层级）───
 .content-header {
   flex-shrink: 0;
   display: flex;
@@ -1069,8 +1247,8 @@ onMounted(() => {
   background: $overlay-white-92;
   backdrop-filter: blur(12px);
   border-radius: 14px;
-  border: 1.5px solid $overlay-pink-lighter-20;
-  box-shadow: 0 2px 12px $overlay-pink-08;
+  border: 1.5px solid var(--overlay-brand-lighter-20);
+  box-shadow: 0 2px 12px var(--overlay-brand-08);
 
   // 左侧：图标 + 标题 — 左对齐
   .header-left {
@@ -1085,20 +1263,14 @@ onMounted(() => {
       gap: 8px;
       margin-left: 16px;
       padding-left: 16px;
-      border-left: 1.5px solid $overlay-pink-lighter-25;
+      border-left: 1.5px solid var(--overlay-brand-lighter-25);
     }
 
     .title-icon {
-      font-size: 20px;
+      display: flex;
+      align-items: center;
+      color: var(--color-primary);
       line-height: 1;
-    }
-
-    .content-title {
-      font-size: 18px;
-      font-weight: 700;
-      color: $text-primary;
-      margin: 0;
-      white-space: nowrap;
     }
   }
 
@@ -1108,9 +1280,9 @@ onMounted(() => {
 
     &.t-button--theme-default {
       &:hover {
-        background: linear-gradient(135deg, $brand-primary-light, $brand-primary) !important;
+        background: linear-gradient(135deg, var(--color-primary-light), var(--color-primary)) !important;
         color: white !important;
-        border-color: $brand-primary !important;
+        border-color: var(--color-primary) !important;
         :deep(.t-button__icon) { color: white !important; }
       }
     }
@@ -1140,14 +1312,14 @@ onMounted(() => {
       transition: all 0.3s ease;
 
       &:hover {
-        background: $overlay-pink-08;
+        background: var(--overlay-brand-08);
       }
 
       .user-avatar {
         width: 32px;
         height: 32px;
         border-radius: 50%;
-        background: linear-gradient(135deg, $brand-primary-light, $brand-primary);
+        background: linear-gradient(135deg, var(--color-primary-light), var(--color-primary));
         color: white;
         display: flex;
         align-items: center;
@@ -1155,11 +1327,11 @@ onMounted(() => {
         font-size: 14px;
         font-weight: 700;
         flex-shrink: 0;
-        box-shadow: $shadow-brand-xs;
+        box-shadow: var(--shadow-brand-xs);
       }
 
       .user-avatar-arrow {
-        color: $brand-primary-light;
+        color: var(--color-primary-light);
         flex-shrink: 0;
         transition: transform 0.3s ease;
       }
@@ -1172,14 +1344,14 @@ onMounted(() => {
   }
 }
 
-// ─── 用户下拉菜单 ───
+// ─── 用户下拉菜单（Level 3 玻璃态 — Popup 层级）───
 .user-menu-popup {
   padding: 4px;
   min-width: 150px;
   border-radius: 10px;
   background: $overlay-white-98;
   backdrop-filter: blur(12px);
-  border: 1.5px solid $overlay-pink-lighter-20;
+  border: 1.5px solid var(--overlay-brand-lighter-20);
   box-shadow: $shadow-xl;
 
   .user-menu-item {
@@ -1194,8 +1366,8 @@ onMounted(() => {
     transition: all 0.2s ease;
 
     &:hover {
-      background: $overlay-pink-08;
-      color: $brand-primary;
+      background: var(--overlay-brand-08);
+      color: var(--color-primary);
     }
 
     &--danger {
@@ -1209,7 +1381,7 @@ onMounted(() => {
   }
 }
 
-// ─── 滚动内容卡片 ───
+// ─── 滚动内容卡片（Level 1 玻璃态 — Header 层级）───
 .content-body {
   flex: 1;
   min-height: 0;
@@ -1217,17 +1389,17 @@ onMounted(() => {
   background: $overlay-white-92;
   backdrop-filter: blur(12px);
   border-radius: 14px;
-  border: 1.5px solid $overlay-pink-lighter-20;
-  box-shadow: 0 2px 12px $overlay-pink-08;
+  border: 1.5px solid var(--overlay-brand-lighter-20);
+  box-shadow: 0 2px 12px var(--overlay-brand-08);
   scrollbar-width: thin;
-  scrollbar-color: $overlay-pink-20 transparent;
+  scrollbar-color: var(--overlay-brand-20) transparent;
 
   &::-webkit-scrollbar { width: 6px; }
   &::-webkit-scrollbar-track { background: transparent; }
   &::-webkit-scrollbar-thumb {
-    background: $overlay-pink-20;
+    background: var(--overlay-brand-20);
     border-radius: 3px;
-    &:hover { background: $overlay-pink-40; }
+    &:hover { background: var(--overlay-brand-40); }
   }
 
   .content-body-wrapper {
@@ -1258,17 +1430,17 @@ onMounted(() => {
             :deep(.t-input) {
               height: 32px;
               border-radius: 10px;
-              border: 1.5px solid $brand-primary-lightest;
-              background: $overlay-pink-bg-30;
+              border: 1.5px solid var(--color-primary-lightest);
+              background: var(--overlay-brand-bg-30);
 
-              &:hover { border-color: $brand-primary-lighter; }
+              &:hover { border-color: var(--color-primary-lighter); }
               &:focus-within {
-                border-color: $brand-primary-light;
-                box-shadow: 0 0 0 3px $overlay-pink-10;
+                border-color: var(--color-primary-light);
+                box-shadow: 0 0 0 3px var(--overlay-brand-10);
               }
 
               .t-input__wrap { color: $text-primary; font-size: 12px; }
-              .t-input__prefix { color: $brand-primary-light; }
+              .t-input__prefix { color: var(--color-primary-light); }
             }
           }
 
@@ -1286,11 +1458,11 @@ onMounted(() => {
           transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 
           &.t-button--theme-primary {
-            box-shadow: $shadow-brand-md;
+            box-shadow: var(--shadow-brand-md);
 
             &:hover {
               transform: translateY(-2px);
-              box-shadow: $shadow-brand-lg;
+              box-shadow: var(--shadow-brand-lg);
             }
           }
         }
@@ -1301,34 +1473,23 @@ onMounted(() => {
       position: relative;
       z-index: 1;
 
-      // 表格样式增强（仅保留 main.scss 未覆盖的行级细节）
+      // 表格边框装饰（td/hover/padding 等由全局 _td-overrides.scss 统一覆盖）
       :deep(.t-table) {
-        border: 1px solid $overlay-pink-lighter-15;
-
-        .t-table__body td {
-          font-size: 12px;
-          color: $text-primary;
-          border-bottom: 1px solid $overlay-pink-bg-15 !important;
-          padding: 8px 12px !important;
-        }
-
-        .t-table__body tr:hover td {
-          background: $bg-hover !important;
-        }
+        border: 1px solid var(--overlay-brand-lighter-15);
       }
     }
   }
 }
 
-// ─── 分页底栏 — 独立于 content-body，不随内容滚动 ───
+// ─── 分页底栏 — 独立于 content-body，不随内容滚动（Level 1 玻璃态）───
 .content-footer {
   flex-shrink: 0;
   padding: 6px 16px;
   background: $overlay-white-92;
   backdrop-filter: blur(12px);
   border-radius: 14px;
-  border: 1.5px solid $overlay-pink-lighter-20;
-  box-shadow: 0 2px 12px $overlay-pink-08;
+  border: 1.5px solid var(--overlay-brand-lighter-20);
+  box-shadow: 0 2px 12px var(--overlay-brand-08);
 
   .content-footer-inner {
     display: flex;
@@ -1350,41 +1511,41 @@ onMounted(() => {
         transition: all 0.3s;
 
         &:hover:not(.t-is-disabled):not(.t-is-current) {
-          color: $brand-primary;
-          border-color: $brand-primary-lighter;
-          background: $overlay-pink-08;
+          color: var(--color-primary);
+          border-color: var(--color-primary-lighter);
+          background: var(--overlay-brand-08);
         }
       }
 
       .t-is-current {
-        background: linear-gradient(135deg, $brand-primary-light, $brand-primary) !important;
+        background: linear-gradient(135deg, var(--color-primary-light), var(--color-primary)) !important;
         color: white !important;
         border-radius: 8px !important;
         border: none !important;
-        box-shadow: $shadow-brand-md;
+        box-shadow: var(--shadow-brand-md);
         font-weight: 600;
       }
 
       .t-pagination__select {
-        border-color: $brand-primary-lightest !important;
+        border-color: var(--color-primary-lightest) !important;
         border-radius: 8px !important;
         color: $text-primary !important;
 
         &:hover {
-          border-color: $brand-primary-lighter !important;
+          border-color: var(--color-primary-lighter) !important;
         }
       }
 
       .t-pagination__jumper-input {
-        border-color: $brand-primary-lightest !important;
+        border-color: var(--color-primary-lightest) !important;
         border-radius: 8px !important;
         color: $text-primary !important;
         width: 48px;
 
         &:focus,
         &:hover {
-          border-color: $brand-primary-light !important;
-          box-shadow: 0 0 0 2px $overlay-pink-10;
+          border-color: var(--color-primary-light) !important;
+          box-shadow: 0 0 0 2px var(--overlay-brand-10);
         }
       }
     }
@@ -1396,23 +1557,100 @@ onMounted(() => {
   50% { transform: translateY(-20px) rotate(5deg); }
 }
 
-// Transition
-.fade-slide-enter-active,
-.fade-slide-leave-active {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+// ═══════════════════════════════════════
+//  SIDEBAR COLLAPSED — 折叠态 72px 图标模式
+// ═══════════════════════════════════════
+.home-page.collapsed {
+  .left-sidebar {
+    width: 72px;
+    max-width: 72px;
+    min-width: 72px;
+    flex: 0 0 72px;
+  }
+
+  .sidebar-top {
+    padding: 16px 10px 12px;
+    align-items: center;
+
+    .sidebar-logo {
+      justify-content: center;
+      margin-bottom: 8px;
+      padding-bottom: 8px;
+    }
+  }
+
+  .sidebar-nav {
+    padding: 8px 10px;
+
+    .nav-content .nav-item {
+      justify-content: center;
+      padding: 10px;
+    }
+  }
 }
-.fade-slide-enter-from {
-  opacity: 0;
-  transform: translateY(20px);
+
+.sidebar-logo {
+  cursor: pointer;
+  transition: all 0.3s;
+
+  &:hover .logo-cat svg {
+    transform: translateY(-3px);
+  }
 }
-.fade-slide-leave-to {
-  opacity: 0;
-  transform: translateY(-20px);
+
+.collapse-expand-icon {
+  color: var(--color-primary-light);
+  cursor: pointer;
+  transition: color 0.2s;
+
+  &:hover {
+    color: var(--color-primary);
+  }
+}
+
+// ─── 面包屑 ───
+.header-title-area {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+
+  .content-breadcrumb {
+    :deep(.t-breadcrumb) {
+      font-size: 14px;
+
+      .t-breadcrumb-item {
+        .t-breadcrumb__inner {
+          color: $text-secondary;
+          &:hover { color: var(--color-primary); }
+        }
+
+        &:last-child .t-breadcrumb__inner {
+          color: $text-primary;
+          font-weight: 600;
+        }
+      }
+
+      .t-breadcrumb__separator {
+        color: $text-caption-muted;
+      }
+    }
+  }
 }
 
 // ═══════════════════════════════════════
 //  RESPONSIVE
 // ═══════════════════════════════════════
+
+// 桌面端隐藏移动端汉堡按钮
+.mobile-menu-btn {
+  display: none;
+}
+
+// 桌面端隐藏遮罩层
+.mobile-overlay {
+  display: none;
+}
+
 @media screen and (max-width: 1024px) {
   .left-sidebar {
     width: 260px;
@@ -1432,8 +1670,6 @@ onMounted(() => {
   .content-header {
     flex-wrap: wrap;
     padding: 10px 14px;
-
-    .header-left .content-title { font-size: 18px; }
   }
 
   .content-body {
@@ -1452,11 +1688,56 @@ onMounted(() => {
     flex-direction: column;
   }
 
+  // 移动端汉堡菜单按钮
+  .mobile-menu-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: $radius-md;
+    background: transparent;
+    color: var(--color-primary);
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background $transition-fast;
+
+    &:hover {
+      background: var(--overlay-brand-08);
+    }
+  }
+
+  // 移动端遮罩层
+  .mobile-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.35);
+    z-index: calc(#{$z-sidebar} - 1);
+    backdrop-filter: blur(2px);
+  }
+
+  // 侧边栏抽屉模式
   .left-sidebar {
-    width: 100%;
-    max-width: 300px;
-    flex: 0 0 auto;
-    max-height: 45vh;
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 280px !important;
+    max-width: 280px !important;
+    min-width: 280px !important;
+    flex: 0 0 280px !important;
+    z-index: $z-sidebar;
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 0;
+    box-shadow: none;
+
+    &.mobile-drawer-open {
+      transform: translateX(0);
+      box-shadow: $shadow-xl;
+    }
 
     .sidebar-nav { flex: 1; }
   }
@@ -1471,6 +1752,14 @@ onMounted(() => {
     flex-direction: column;
     gap: 12px;
     align-items: stretch;
+
+    .header-left {
+      .header-nav-buttons {
+        margin-left: 0;
+        padding-left: 0;
+        border-left: none;
+      }
+    }
   }
 
   .content-body {
@@ -1481,6 +1770,16 @@ onMounted(() => {
         gap: 8px;
       }
     }
+  }
+
+  // 抽屉过渡动画
+  .drawer-fade-enter-active,
+  .drawer-fade-leave-active {
+    transition: opacity 0.25s ease;
+  }
+  .drawer-fade-enter-from,
+  .drawer-fade-leave-to {
+    opacity: 0;
   }
 }
 </style>

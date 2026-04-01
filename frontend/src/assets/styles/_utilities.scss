@@ -1,0 +1,39 @@
+// ═══════════════════════════════════════════════════════════════
+// TingStudio Utility Classes — 工具类
+// ═══════════════════════════════════════════════════════════════
+
+@use './variables.scss' as *;
+
+// ─── Text ───────────────────────────────────────────────────
+.text-center { text-align: center; }
+.text-right  { text-align: right; }
+.text-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// ─── Spacing ────────────────────────────────────────────────
+.mt-xs { margin-top: $space-1; }
+.mt-sm { margin-top: $space-2; }
+.mt-md { margin-top: $space-4; }
+.mt-lg { margin-top: $space-6; }
+.mb-xs { margin-bottom: $space-1; }
+.mb-sm { margin-bottom: $space-2; }
+.mb-md { margin-bottom: $space-4; }
+.mb-lg { margin-bottom: $space-6; }
+.p-xs { padding: $space-1; }
+.p-sm { padding: $space-2; }
+.p-md { padding: $space-4; }
+.p-lg { padding: $space-6; }
+
+// ─── Flex ───────────────────────────────────────────────────
+.flex          { display: flex; }
+.flex-center   { display: flex; align-items: center; justify-content: center; }
+.flex-between  { display: flex; align-items: center; justify-content: space-between; }
+.flex-col      { display: flex; flex-direction: column; }
+.flex-1        { flex: 1; min-width: 0; }
+.flex-shrink-0 { flex-shrink: 0; }
+.gap-xs { gap: $space-1; }
+.gap-sm { gap: $space-2; }
+.gap-md { gap: $space-4; }

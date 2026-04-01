@@ -96,9 +96,16 @@ withDefaults(defineProps<{
 .skeleton-btn {
   height: 32px;
   border-radius: $radius-md;
-  background: linear-gradient(90deg, $brand-primary-bg 25%, $skeleton-shimmer 50%, $brand-primary-bg 75%);
-  background-size: 200% 100%;
-  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+  background: linear-gradient(
+    90deg,
+    $skeleton-border 0%,
+    $skeleton-shimmer 40%,
+    $brand-primary-lightest 50%,
+    $skeleton-shimmer 60%,
+    $skeleton-border 100%
+  );
+  background-size: 400% 100%;
+  animation: skeleton-shimmer 2s ease-in-out infinite;
 }
 
 // Table skeleton
@@ -132,9 +139,16 @@ withDefaults(defineProps<{
   flex: 1;
   height: 16px;
   border-radius: $radius-xs;
-  background: linear-gradient(90deg, $brand-primary-bg 25%, $skeleton-shimmer 50%, $brand-primary-bg 75%);
-  background-size: 200% 100%;
-  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+  background: linear-gradient(
+    90deg,
+    $skeleton-border 0%,
+    $skeleton-shimmer 40%,
+    $brand-primary-lightest 50%,
+    $skeleton-shimmer 60%,
+    $skeleton-border 100%
+  );
+  background-size: 400% 100%;
+  animation: skeleton-shimmer 2s ease-in-out infinite;
 }
 
 .skeleton-th {
@@ -160,9 +174,16 @@ withDefaults(defineProps<{
     width: 60%;
     margin-bottom: $space-4;
     border-radius: $radius-sm;
-    background: linear-gradient(90deg, $brand-primary-bg 25%, $skeleton-shimmer 50%, $brand-primary-bg 75%);
-    background-size: 200% 100%;
-    animation: skeleton-shimmer 1.5s ease-in-out infinite;
+    background: linear-gradient(
+      90deg,
+      $skeleton-border 0%,
+      $skeleton-shimmer 40%,
+      $brand-primary-lightest 50%,
+      $skeleton-shimmer 60%,
+      $skeleton-border 100%
+    );
+    background-size: 400% 100%;
+    animation: skeleton-shimmer 2s ease-in-out infinite;
   }
 
   .skeleton-card-body {
@@ -175,15 +196,22 @@ withDefaults(defineProps<{
     height: 8px;
     width: 80%;
     border-radius: $radius-xs;
-    background: linear-gradient(90deg, $brand-primary-bg 25%, $skeleton-shimmer 50%, $brand-primary-bg 75%);
-    background-size: 200% 100%;
-    animation: skeleton-shimmer 1.5s ease-in-out infinite;
+    background: linear-gradient(
+      90deg,
+      $skeleton-border 0%,
+      $skeleton-shimmer 40%,
+      $brand-primary-lightest 50%,
+      $skeleton-shimmer 60%,
+      $skeleton-border 100%
+    );
+    background-size: 400% 100%;
+    animation: skeleton-shimmer 2s ease-in-out infinite;
   }
 }
 
 @keyframes skeleton-shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
 }
 
 // Detail skeleton
@@ -221,8 +249,15 @@ withDefaults(defineProps<{
   width: 140px;
   border-radius: $radius-xs;
   margin-bottom: $space-3;
-  background: linear-gradient(90deg, $brand-primary-bg 25%, $skeleton-shimmer 50%, $brand-primary-bg 75%);
-  background-size: 200% 100%;
-  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+  background: linear-gradient(
+    90deg,
+    $skeleton-border 0%,
+    $skeleton-shimmer 40%,
+    $brand-primary-lightest 50%,
+    $skeleton-shimmer 60%,
+    $skeleton-border 100%
+  );
+  background-size: 400% 100%;
+  animation: skeleton-shimmer 2s ease-in-out infinite;
 }
 </style>

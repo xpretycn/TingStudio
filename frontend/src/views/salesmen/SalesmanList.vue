@@ -1,10 +1,11 @@
 <template>
-  <div class="salesman-list">
-    <PageSkeleton v-if="!initialized" type="table" :rows="5" :columns="8" />
-    <t-card v-else class="content-card" bordered>
-      <t-table :data="salesmanStore.salesmen" :columns="columns" :loading="salesmanStore.loading" :pagination="undefined" row-key="id" hover stripe table-layout="auto">
+  <div class="salesman-list" :aria-busy="!initialized">
+    <Transition name="content-fade" mode="out-in">
+      <PageSkeleton v-if="!initialized" type="table" :rows="5" :columns="8" />
+      <t-card v-else class="content-card" bordered>
+      <t-table :data="sortedSalesmen" :columns="columns" :loading="salesmanStore.loading" :pagination="undefined" :sort="tableSort" row-key="id" hover table-layout="auto" @sort-change="onSortChange">
         <template #empty>
-          <t-empty description="暂无业务员数据">
+          <t-empty description="暂无业务员数据" role="status">
             <template #action>
               <t-button theme="primary" @click="handleCreate">
                 <template #icon><t-icon name="add" /></template>添加业务员
@@ -26,6 +27,7 @@
         </template>
       </t-table>
     </t-card>
+    </Transition>
   </div>
 </template>
 
@@ -45,16 +47,44 @@ const paginationStore = usePaginationStore()
 const initialized = ref(false)
 
 const searchForm = reactive({ keyword: '', status: '' })
+const tableSort = ref<any>(undefined)
+const sortedSalesmen = ref<any[]>([])
+
+const onSortChange = (sort: any) => {
+  tableSort.value = sort
+  if (!sort || !sort.sortBy) {
+    sortedSalesmen.value = [...salesmanStore.salesmen]
+    return
+  }
+  const { sortBy, descending } = sort
+  const col = columns.find(c => c.colKey === sortBy)
+  if (col?.sorter) {
+    sortedSalesmen.value = [...salesmanStore.salesmen].sort((a, b) => {
+      const result = (col.sorter as Function)(a, b)
+      return descending ? -result : result
+    })
+  } else {
+    sortedSalesmen.value = [...salesmanStore.salesmen]
+  }
+}
+
+watch(() => salesmanStore.salesmen, (val) => {
+  if (tableSort.value?.sortBy) {
+    onSortChange(tableSort.value)
+  } else {
+    sortedSalesmen.value = [...val]
+  }
+}, { immediate: true })
 
 const columns = [
-  { colKey: 'name', title: '姓名', width: 120 },
-  { colKey: 'code', title: '工号', width: 120 },
-  { colKey: 'department', title: '部门', width: 140 },
+  { colKey: 'name', title: '姓名', width: 120, sorter: (a: any, b: any) => a.name.localeCompare(b.name, 'zh') },
+  { colKey: 'code', title: '工号', width: 120, sorter: (a: any, b: any) => a.code.localeCompare(b.code) },
+  { colKey: 'department', title: '部门', width: 140, sorter: (a: any, b: any) => (a.department || '').localeCompare(b.department || '', 'zh') },
   { colKey: 'phone', title: '电话', width: 150 },
   { colKey: 'email', title: '邮箱', width: 160 },
   { colKey: 'status', title: '状态', width: 100 },
-  { colKey: 'createdAt', title: '创建时间', width: 180 },
-  { colKey: 'operation', title: '操作', width: 180 }
+  { colKey: 'createdAt', title: '创建时间', width: 180, sorter: (a: any, b: any) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime() },
+  { colKey: 'operation', title: '操作', width: 180, align: 'center' }
 ]
 
 const pagination = computed(() => ({
@@ -121,23 +151,14 @@ const handleToggleStatus = async (row: Salesman) => {
     min-height: 400px;
     box-shadow: $shadow-xs;
     &:hover { box-shadow: $shadow-md; }
+
+    // 表格行 stagger 入场动画
+    :deep(.t-table__body .t-table__row) {
+      animation: rowFadeIn 0.3s ease both;
+      @include stagger-rows(20, 0.03s);
+    }
   }
-  :deep(.btn-view) { display: none; }
-  :deep(.btn-edit) {
-    color: $color-info !important;
-    border-color: $color-info-strong !important;
-    background: $color-info-light !important;
-    :deep(.t-button__icon) { color: $color-info !important; }
-    &:hover { color: $color-info-dark !important; border-color: $color-info-dark !important; background: $color-info-medium !important; }
-  }
-  :deep(.btn-delete) {
-    color: $color-danger !important;
-    border-color: $color-danger-medium !important;
-    background: $color-danger-light !important;
-    :deep(.t-button__icon) { color: $color-danger !important; }
-    &:hover { color: $color-danger !important; border-color: $color-danger !important; background: $color-danger-medium !important; }
-  }
-  // 按钮和表格样式由全局 main.scss 统一覆盖
-  :deep(.t-table) { .t-table__row--hover { background-color: $bg-hover; } .t-table__row { cursor: pointer; } }
+  // 按钮和表格样式由全局 _td-overrides.scss 统一覆盖
+  :deep(.t-table) { .t-table__row { cursor: pointer; } }
 }
 </style>

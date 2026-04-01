@@ -23,8 +23,8 @@ $bg-sidebar-header: linear-gradient(135deg, #FFF9F7 0%, #FFF0F3 100%);
 
 // 1.3 文字色
 $text-primary:    #5D4E60;  // 主要文字（暖紫灰）
-$text-regular:    #8B7E94;  // 常规正文
-$text-secondary:  #9B8FA0;  // 次要文字、描述
+$text-regular:    #6E6178;  // 常规正文（对比度 ≥ 4.5:1 ✅）
+$text-secondary:  #756A7C;  // 次要文字、描述（对比度 ≥ 4.5:1 ✅）
 $text-placeholder: #D4C5D0; // 占位符
 $text-white:      #FFFFFF;
 $text-white-80:   rgba(255, 255, 255, 0.8);
@@ -78,6 +78,12 @@ $font-weight-medium:  500;
 $font-weight-semibold: 600;
 $font-weight-bold:    700;
 
+// Letter-spacing 规范
+$ls-display: 0.5px;   // Display / H1
+$ls-heading:  0.3px;   // H2 / H3
+$ls-body:     0;       // Body / Body-sm
+$ls-caption:  0.2px;   // Caption / Micro
+
 // ─── 3. 间距系统（4px 基数）───────────────────────────────
 
 $space-1:  4px;
@@ -116,6 +122,12 @@ $shadow-float: 0 4px 12px rgba(0, 0, 0, 0.1);
 $shadow-aside: 2px 0 8px rgba(255, 107, 138, 0.04);
 $shadow-header: 0 2px 12px rgba(255, 107, 138, 0.2);
 
+// Elevation 阴影层级（统一卡片/浮层/弹窗阴影）
+$shadow-elevation-1: 0 1px 2px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.06);  // 卡片
+$shadow-elevation-2: 0 2px 4px rgba(255, 107, 138, 0.06), 0 4px 12px rgba(255, 107, 138, 0.08);  // 浮起
+$shadow-elevation-3: 0 4px 8px rgba(255, 107, 138, 0.08), 0 8px 24px rgba(255, 107, 138, 0.12);  // 弹窗
+$shadow-elevation-4: 0 8px 16px rgba(255, 107, 138, 0.10), 0 16px 48px rgba(255, 107, 138, 0.16); // 模态
+
 // ─── 6. 动效规范 ───────────────────────────────────────────
 
 $transition-fast:   0.15s ease;
@@ -144,6 +156,7 @@ $z-loading:     3000;
 // ─── 9. 覆盖层 / 半透明色 ──────────────────────────────────
 
 // 9.1 白色覆盖层
+$overlay-white-15:    rgba(255, 255, 255, 0.15);
 $overlay-white-20:    rgba(255, 255, 255, 0.2);
 $overlay-white-25:    rgba(255, 255, 255, 0.25);
 $overlay-white-30:    rgba(255, 255, 255, 0.3);
@@ -200,6 +213,15 @@ $color-info-light:      rgba(24, 144, 255, 0.06);
 $color-info-medium:     rgba(24, 144, 255, 0.1);
 $color-info-strong:     rgba(24, 144, 255, 0.3);
 
+// 9.6 功能色 alpha 变体（供营养卡片边框/阴影使用）
+$color-success-alpha:       rgba(82, 196, 26, 0.3);
+$color-success-alpha-light: rgba(82, 196, 26, 0.25);
+$color-warning-alpha:       rgba(250, 173, 20, 0.3);
+$color-warning-alpha-light: rgba(250, 173, 20, 0.25);
+$color-danger-alpha:        rgba(255, 77, 79, 0.3);
+$color-danger-alpha-light:  rgba(255, 77, 79, 0.25);
+$overlay-black-05:          rgba(0, 0, 0, 0.04);
+
 // ─── 10. 图表专用色板 ───────────────────────────────────
 
 $chart-energy:    #FFE066;
@@ -219,8 +241,10 @@ $chart-progress-bad:    #FF4D4F;
 // ─── 11. 附加背景 / 文字 / 装饰色 ──────────────────────────
 
 // 11.1 附加背景色
-$bg-table-row-hover:  #FFFBFA;
-$bg-table-row-stripe: #FFFDFC;
+$bg-table-row-hover:       #FFF5F8;
+$bg-table-row-stripe:      #FFFDFC;
+$bg-table-row-selected:    #FFF0F3;     // 选中行背景
+$bg-table-row-selected-hover: #FFE4EC;  // 选中行 hover 背景
 $bg-pink-warm:        #FFF5FB;
 $bg-pink-peach:       #FFF5EE;
 $bg-cool-gray:        #F8F9FA;

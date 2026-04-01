@@ -50,7 +50,6 @@
           row-key="name"
           size="small"
           bordered
-          stripe
           table-layout="auto"
         >
           <template #ratio="{ row }">
@@ -64,7 +63,7 @@
             </span>
           </template>
         </t-table>
-        <t-empty v-else description="请先为原料录入营养数据后再查看营养成分表" />
+        <t-empty v-else description="请先为原料录入营养数据后再查看营养成分表" role="status" />
       </div>
 
       <!-- 表2: 营养成分表 + 技术处理依据 -->
@@ -84,7 +83,6 @@
           row-key="item"
           size="small"
           bordered
-          stripe
           table-layout="auto"
         >
           <template #nrvPercent="{ row }">
@@ -176,6 +174,7 @@ onMounted(() => { loadData() })
     align-items: center;
     justify-content: space-between;
     margin-bottom: $space-4;
+    animation: fadeInUp 0.3s cubic-bezier(0.4, 0, 0.2, 1) both;
 
     .header-left {
       display: flex;
@@ -197,6 +196,7 @@ onMounted(() => { loadData() })
     box-shadow: $shadow-md;
     padding: $space-5 $space-6;
     margin-bottom: $space-5;
+    animation: fadeInUp 0.35s cubic-bezier(0.4, 0, 0.2, 1) both;
   }
 
   .table-title-row {
@@ -245,7 +245,7 @@ onMounted(() => { loadData() })
       background: linear-gradient(135deg, $color-warning-light, $color-info-light);
       padding: 2px $space-2;
       border-radius: $radius-sm;
-      border: 1px solid rgba($color-warning, 0.25);
+      border: 1px solid $color-warning-medium;
     }
   }
 
@@ -303,6 +303,7 @@ onMounted(() => { loadData() })
     border: 1.5px solid $overlay-pink-lighter-20;
     box-shadow: $shadow-md;
     padding: $space-4 $space-6;
+    animation: fadeInScale 0.3s cubic-bezier(0.4, 0, 0.2, 1) both;
 
     .notes-title {
       font-size: $font-size-body;

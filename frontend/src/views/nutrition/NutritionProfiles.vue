@@ -1,14 +1,15 @@
 <template>
-  <div class="nutrition-profiles">
-    <PageSkeleton v-if="!initialized" type="table" :rows="5" :columns="5" />
-    <t-card v-else class="content-card" bordered>
+  <div class="nutrition-profiles" :aria-busy="!initialized">
+    <Transition name="content-fade" mode="out-in">
+      <PageSkeleton v-if="!initialized" type="table" :rows="5" :columns="5" />
+      <t-card v-else class="content-card" bordered>
       <template #actions>
         <t-button theme="primary" size="large" @click="showDialog = true; resetForm()">
           <template #icon><t-icon name="add" /></template>新增营养标准
         </t-button>
       </template>
 
-      <t-form :data="filterForm" layout="inline" @submit="handleFilter" style="margin-bottom: 16px;">
+      <t-form :data="filterForm" layout="inline" aria-label="筛选条件" @submit="handleFilter" style="margin-bottom: 16px;">
         <t-form-item label="类别">
           <t-select v-model="filterForm.category" placeholder="全部" clearable style="width: 160px">
             <t-option value="infant" label="婴幼儿" />
@@ -35,10 +36,9 @@
         :loading="nutritionStore.loading"
         row-key="profileId"
         hover
-        stripe
         table-layout="auto"
       >
-        <template #empty><t-empty description="暂无营养标准" /></template>
+        <template #empty><t-empty description="暂无营养标准" role="status" /></template>
         <template #category="{ row }">
           <t-tag :theme="categoryTheme(row.category)" variant="light">{{ categoryLabel(row.category) }}</t-tag>
         </template>
@@ -64,6 +64,7 @@
         </template>
       </t-table>
     </t-card>
+    </Transition>
 
     <!-- 新增营养标准弹窗 -->
     <t-dialog v-model:visible="showDialog" :header="isEditMode ? '编辑营养标准' : '新增营养标准'" width="600px" @confirm="handleSave">
@@ -116,7 +117,6 @@
             :columns="targetDetailColumns"
             size="small"
             bordered
-            stripe
           />
         </div>
       </div>
@@ -161,7 +161,7 @@ const columns = [
   { colKey: 'isPreset', title: '预置', width: 80 },
   { colKey: 'targetCount', title: '指标数量', width: 120 },
   { colKey: 'createdAt', title: '创建时间', width: 180 },
-  { colKey: 'operation', title: '操作', width: 240 }
+  { colKey: 'operation', title: '操作', width: 240, align: 'center' }
 ]
 
 const targetDetailColumns = [
@@ -308,6 +308,12 @@ onMounted(async () => {
     min-height: 400px;
     box-shadow: $shadow-xs;
     &:hover { box-shadow: $shadow-md; }
+
+    // 表格行 stagger 入场动画
+    :deep(.t-table__body .t-table__row) {
+      animation: rowFadeIn 0.3s ease both;
+      @include stagger-rows(20, 0.03s);
+    }
   }
   .target-values-editor {
     width: 100%;

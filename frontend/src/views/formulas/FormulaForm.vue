@@ -278,7 +278,7 @@ const validateSupplementRatio = (val: number) => val >= 0.5 && val <= 1.5
 const rules: Record<string, FormRule[]> = {
   name: [
     { required: true, message: '请输入配方名称', trigger: 'blur' },
-    { min: 2, message: '配方名称至少2个字符', trigger: 'blur' },
+    { min: 2, message: '配方名称至少2个字符', trigger: 'change' },
   ],
   salesmanId: [{ required: true, message: '请选择所属业务员', trigger: 'change' }],
   finishedWeight: [
@@ -412,6 +412,11 @@ onMounted(async () => {
 
 <style scoped lang="scss">
 .formula-form {
+  // 表单卡片入场动画
+  :deep(.t-card) {
+    animation: fadeInUp 0.35s cubic-bezier(0.4, 0, 0.2, 1) both;
+  }
+
   .form-header {
     display: flex;
     align-items: center;

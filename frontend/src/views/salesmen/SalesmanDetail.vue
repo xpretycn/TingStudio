@@ -51,6 +51,7 @@ onMounted(() => { loadData() })
 .salesman-detail {
   .detail-header {
     display: flex; align-items: center; justify-content: space-between; width: 100%;
+    animation: fadeInUp 0.3s cubic-bezier(0.4, 0, 0.2, 1) both;
     .header-left { display: flex; align-items: center; gap: $space-3; }
     .detail-title { font-size: $font-size-h3; font-weight: $font-weight-semibold; color: $text-primary; }
   }

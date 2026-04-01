@@ -5,6 +5,20 @@
     <link rel="icon" type="image/svg+xml" href="/logo.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>TingStudio - 个人工作数据管理</title>
+    <script>
+      // 防闪烁：在 DOM 渲染前读取 localStorage 并设置 data-theme + data-brand
+      ;(function() {
+        var mode = localStorage.getItem('ting-theme') || 'auto'
+        var brand = localStorage.getItem('ting-brand-color') || 'pink'
+        // 解析实际明暗模式
+        var resolvedTheme = mode
+        if (mode === 'auto') {
+          resolvedTheme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+        }
+        document.documentElement.setAttribute('data-theme', resolvedTheme)
+        document.documentElement.setAttribute('data-brand', brand)
+      })()
+    </script>
   </head>
   <body>
     <div id="app"></div>

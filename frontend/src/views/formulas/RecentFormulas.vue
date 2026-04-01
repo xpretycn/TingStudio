@@ -9,12 +9,14 @@
       </template>
 
       <t-table
-        :data="recentFormulas"
+        :data="sortedFormulas"
         :columns="columns"
         :loading="formulaStore.loading"
         row-key="id"
         hover
-        stripe
+        table-layout="auto"
+        :sort="tableSort"
+        @sort-change="onSortChange"
         :expanded-row-keys="expandedRowKeys"
         @expand-change="onExpandChange"
       >
@@ -100,18 +102,37 @@
 
         <template #salesmanName="{ row }">
           <t-tag theme="primary" variant="light">
+            <template #icon>
+              <t-icon name="user" />
+            </template>
             {{ row.salesmanName }}
+          </t-tag>
+        </template>
+
+        <template #formulaStatus="{ row }">
+          <t-tag
+            :theme="getFormulaStatus(row).theme"
+            :variant="getFormulaStatus(row).variant"
+            size="medium"
+          >
+            <template #icon>
+              <t-icon :name="getFormulaStatus(row).icon" />
+            </template>
+            {{ getFormulaStatus(row).label }}
           </t-tag>
         </template>
 
         <template #materialCount="{ row }">
           <t-tag theme="success" variant="light">
+            <template #icon>
+              <t-icon name="layers" />
+            </template>
             {{ (row.materials || []).length }} 种原料
           </t-tag>
         </template>
 
         <template #empty>
-          <t-empty description="暂无最近配方数据">
+          <t-empty description="暂无最近配方数据" role="status">
             <template #action>
               <t-button theme="primary" @click="goToFormulas">
                 创建配方
@@ -140,7 +161,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useFormulaStore } from '@/stores/formula'
 import type { Formula } from '@/api/formula'
@@ -162,12 +183,12 @@ const getFormulaDesc = (description: string | null | undefined) => {
 }
 
 const columns = [
-  { colKey: 'name', title: '配方名称', width: 200 },
-  { colKey: 'salesmanName', title: '所属业务员', width: 150 },
-  { colKey: 'materialCount', title: '原料数量', width: 120 },
-  { colKey: 'createdAt', title: '创建时间', width: 180 },
-  { colKey: 'updatedAt', title: '更新时间', width: 180 },
-  { colKey: 'operation', title: '操作', width: 150 }
+  { colKey: 'name', title: '配方名称', width: 200, sorter: (a: any, b: any) => a.name.localeCompare(b.name, 'zh') },
+  { colKey: 'salesmanName', title: '所属业务员', width: 150, sorter: (a: any, b: any) => (a.salesmanName || '').localeCompare(b.salesmanName || '', 'zh') },
+  { colKey: 'formulaStatus', title: '状态', width: 100 },
+  { colKey: 'materialCount', title: '原料数量', width: 120, sorter: (a: any, b: any) => (a.materials?.length || 0) - (b.materials?.length || 0) },
+  { colKey: 'createdAt', title: '创建时间', width: 180, sorter: (a: any, b: any) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime() },
+  { colKey: 'operation', title: '操作', width: 150, align: 'center' }
 ]
 
 const expandedRowKeys = ref<(string | number)[]>([])
@@ -195,6 +216,49 @@ const recentFormulas = computed(() => {
     })
     .slice(0, 10)
 })
+
+const tableSort = ref<any>(undefined)
+const sortedFormulas = ref<Formula[]>([])
+
+const onSortChange = (sort: any) => {
+  tableSort.value = sort
+  if (!sort || !sort.sortBy) {
+    sortedFormulas.value = [...recentFormulas.value]
+    return
+  }
+  const { sortBy, descending } = sort
+  const col = columns.find(c => c.colKey === sortBy)
+  if (col?.sorter) {
+    sortedFormulas.value = [...recentFormulas.value].sort((a, b) => {
+      const result = (col.sorter as Function)(a, b)
+      return descending ? -result : result
+    })
+  } else {
+    sortedFormulas.value = [...recentFormulas.value]
+  }
+}
+
+watch(recentFormulas, (val) => {
+  if (tableSort.value?.sortBy) {
+    onSortChange(tableSort.value)
+  } else {
+    sortedFormulas.value = [...val]
+  }
+}, { immediate: true })
+
+const getFormulaStatus = (row: any) => {
+  const currentVersion = (row.versions || []).find((v: any) => v.isCurrent)
+  if (currentVersion && currentVersion.status === 'published') {
+    return { label: '已发布', theme: 'success', variant: 'light' as const, icon: 'check-circle' }
+  }
+  if (currentVersion && currentVersion.status === 'draft') {
+    return { label: '草稿', theme: 'warning', variant: 'light' as const, icon: 'edit' }
+  }
+  if (!row.versions || row.versions.length === 0) {
+    return { label: '未发布', theme: 'default', variant: 'light' as const, icon: 'time' }
+  }
+  return { label: '已归档', theme: 'default', variant: 'light' as const, icon: 'folder' }
+}
 
 const handleView = (row: Formula) => {
   router.push(`/formulas/${row.id}`)
@@ -229,6 +293,18 @@ onUnmounted(() => {
 .recent-formulas {
   .content-card {
     min-height: 400px;
+    box-shadow: $shadow-xs;
+    transition: box-shadow $transition-normal;
+
+    &:hover {
+      box-shadow: $shadow-md;
+    }
+
+    // 表格行 stagger 入场动画
+    :deep(.t-table__body .t-table__row) {
+      animation: rowFadeIn 0.3s ease both;
+      @include stagger-rows(20, 0.03s);
+    }
   }
 
   .title-section {
@@ -245,23 +321,12 @@ onUnmounted(() => {
     }
   }
 
-  :deep(.btn-view) { display: none; }
-
-  :deep(.btn-edit) {
-    color: $color-info !important;
-    border-color: $color-info-strong !important;
-    background: $color-info-light !important;
-
-    :deep(.t-button__icon) { color: $color-info !important; }
-
-    &:hover { color: $color-info-dark !important; border-color: $color-info-dark !important; background: $color-info-medium !important; }
-  }
-
   .expanded-content {
     padding: $space-4 $space-6;
     background-color: $bg-page;
     border-radius: $radius-lg;
     border: 1px solid $border-color-light;
+    animation: expandRowFadeIn 0.3s ease both;
 
     .version-section {
       margin-bottom: $space-4;
@@ -467,6 +532,27 @@ onUnmounted(() => {
         border-left: 3px solid $brand-primary-lightest;
       }
     }
+  }
+
+  :deep(.t-table) {
+    .t-table__expanded-row > td {
+      border-bottom: none !important;
+    }
+
+    .t-table__expanded-row .t-table__row--expanded {
+      animation: expandRowFadeIn 0.35s ease both;
+    }
+  }
+}
+
+@keyframes expandRowFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 </style>

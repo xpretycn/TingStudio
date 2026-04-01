@@ -7,6 +7,18 @@
 @use './design-tokens.scss' as *;
 @forward './design-tokens.scss';
 
+// ─── Stagger Mixin ──────────────────────────────────────────
+// 列表项依次入场延迟（供子组件 @include 调用）
+// 用法：@include stagger-rows(20, 0.03s);
+
+@mixin stagger-rows($count, $interval) {
+  @for $i from 1 through $count {
+    &:nth-child(#{$i}) {
+      animation-delay: #{$i * $interval};
+    }
+  }
+}
+
 // 向后兼容别名（旧变量名 -> 新变量名）
 $primary-color:       $brand-primary;
 $primary-light:       $brand-primary-light;

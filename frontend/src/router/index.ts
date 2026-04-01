@@ -28,14 +28,14 @@ const router = createRouter({
         {
           path: 'recent-formulas',
           name: 'RecentFormulas',
-          component: () => import('@/views/formulas/RecentFormulas.vue'),
+          component: () => import(/* webpackPrefetch: true */ '@/views/formulas/RecentFormulas.vue'),
           meta: { title: '最近配方' }
         },
 
         {
           path: 'materials',
           name: 'MaterialList',
-          component: () => import('@/views/materials/MaterialList.vue'),
+          component: () => import(/* webpackPrefetch: true */ '@/views/materials/MaterialList.vue'),
           meta: { title: '原料管理' }
         },
         {
@@ -59,7 +59,7 @@ const router = createRouter({
         {
           path: 'formulas',
           name: 'FormulaList',
-          component: () => import('@/views/formulas/FormulaList.vue'),
+          component: () => import(/* webpackPrefetch: true */ '@/views/formulas/FormulaList.vue'),
           meta: { title: '配方管理' }
         },
         {
@@ -83,7 +83,7 @@ const router = createRouter({
         {
           path: 'salesmen',
           name: 'SalesmanList',
-          component: () => import('@/views/salesmen/SalesmanList.vue'),
+          component: () => import(/* webpackPrefetch: true */ '@/views/salesmen/SalesmanList.vue'),
           meta: { title: '业务员管理' }
         },
         {
@@ -119,13 +119,13 @@ const router = createRouter({
         {
           path: 'exports',
           name: 'ExportCenter',
-          component: () => import('@/views/exports/ExportCenter.vue'),
+          component: () => import(/* webpackPrefetch: true */ '@/views/exports/ExportCenter.vue'),
           meta: { title: '导出中心' }
         },
         {
           path: 'nutrition',
           name: 'NutritionAnalysis',
-          component: () => import('@/views/nutrition/NutritionAnalysis.vue'),
+          component: () => import(/* webpackPrefetch: true */ '@/views/nutrition/NutritionAnalysis.vue'),
           meta: { title: '营养分析' }
         },
         {

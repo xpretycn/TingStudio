@@ -1,5 +1,5 @@
 <template>
-  <div class="material-detail">
+  <div class="material-detail" :aria-busy="!material">
     <PageSkeleton v-if="!material" type="detail" />
     <t-card v-else bordered>
       <template #header>
@@ -69,9 +69,8 @@
             size="small"
             bordered
             table-layout="auto"
-            stripe
           />
-          <t-empty v-else-if="!nutritionLoading" description="暂无营养数据" />
+          <t-empty v-else-if="!nutritionLoading" description="暂无营养数据" role="status" />
         </Transition>
       </div>
     </t-card>
@@ -162,24 +161,17 @@ onMounted(() => { loadData() })
 </script>
 
 <style scoped lang="scss">
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.3s ease;
-}
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-
 .material-detail {
   .detail-header {
     display: flex; align-items: center; justify-content: space-between; width: 100%;
+    animation: fadeInUp 0.3s cubic-bezier(0.4, 0, 0.2, 1) both;
     .header-left { display: flex; align-items: center; gap: $space-3; }
     .detail-title { font-size: $font-size-h3; font-weight: $font-weight-semibold; color: $text-primary; }
   }
 
   .nutrition-section {
     margin-top: $space-5;
+    animation: fadeInUp 0.35s cubic-bezier(0.4, 0, 0.2, 1) both;
 
     .nutrition-header {
       display: flex;

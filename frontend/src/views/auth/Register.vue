@@ -276,7 +276,7 @@ const handleSubmit = async ({ validateResult }: any) => {
   -webkit-backdrop-filter: blur(20px);
   border-radius: 24px;
   border: 1.5px solid $overlay-pink-lighter-25;
-  box-shadow: 0 4px 24px $overlay-pink-12, 0 1px 3px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 4px 24px $overlay-pink-12, 0 1px 3px $overlay-black-05;
   animation: cardIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
