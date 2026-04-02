@@ -36,7 +36,7 @@
           </t-form>
         </t-card>
 
-        <t-card class="content-card" bordered style="margin-top: 20px;">
+        <t-card class="content-card" bordered>
           <template #header><span>导出任务列表</span></template>
           <t-table
             :data="exportStore.jobs"
@@ -46,6 +46,7 @@
             row-key="jobId"
             hover
             size="small"
+            table-layout="auto"
           >
             <template #empty>
               <t-empty description="暂无导出任务" role="status">
@@ -63,10 +64,10 @@
               <t-tag variant="light">{{ row.exportType?.toUpperCase() }}</t-tag>
             </template>
             <template #operation="{ row }">
-              <t-space :size="4">
+              <t-space :size="6">
                 <t-button
                   v-if="row.status === 'completed'"
-                  variant="text"
+                  variant="outline"
                   theme="primary"
                   size="small"
                   @click="handleDownload(row)"
@@ -75,7 +76,7 @@
                 </t-button>
                 <t-button
                   v-if="row.status === 'failed'"
-                  variant="text"
+                  variant="outline"
                   theme="warning"
                   size="small"
                   :loading="retryingId === row.jobId"
@@ -121,7 +122,7 @@
           </t-form>
         </t-card>
 
-        <t-card class="content-card" bordered style="margin-top: 20px;">
+        <t-card class="content-card" bordered>
           <template #header><span>分享历史</span></template>
           <t-table
             :data="exportStore.shares"
@@ -130,6 +131,7 @@
             row-key="shareId"
             hover
             size="small"
+            table-layout="auto"
           >
             <template #empty><t-empty description="暂无分享记录" role="status" /></template>
             <template #shareUrl="{ row }">
@@ -142,12 +144,12 @@
               <t-tag v-else theme="success" variant="light">有效</t-tag>
             </template>
             <template #operation="{ row }">
-              <t-space :size="4">
-                <t-button variant="text" theme="primary" size="small" @click="handleCopyShareUrl(row)">
+              <t-space :size="6">
+                <t-button variant="outline" theme="primary" size="small" @click="handleCopyShareUrl(row)">
                   <template #icon><t-icon name="link" /></template>复制链接
                 </t-button>
                 <t-popconfirm content="确定要删除该分享吗？" @confirm="handleDeleteShare(row.shareId)">
-                  <t-button variant="text" theme="danger" size="small">
+                  <t-button variant="outline" theme="danger" size="small" class="btn-delete">
                     <template #icon><t-icon name="delete" /></template>删除
                   </t-button>
                 </t-popconfirm>
@@ -163,7 +165,7 @@
           <template #header>
             <div class="section-header">
               <span>模板列表</span>
-              <t-button theme="primary" size="small" @click="handleOpenTemplateDialog(null)">
+              <t-button theme="primary" @click="handleOpenTemplateDialog(null)">
                 <template #icon><t-icon name="add" /></template>新增模板
               </t-button>
             </div>
@@ -175,6 +177,7 @@
             row-key="templateId"
             hover
             size="small"
+            table-layout="auto"
           >
             <template #empty><t-empty description="暂无模板" role="status" /></template>
             <template #type="{ row }">
@@ -184,12 +187,12 @@
               <t-tag v-if="row.isDefault" theme="primary" variant="light">默认</t-tag>
             </template>
             <template #operation="{ row }">
-              <t-space :size="4">
-                <t-button variant="text" theme="primary" size="small" @click="handleOpenTemplateDialog(row)">
+              <t-space :size="6">
+                <t-button variant="outline" theme="primary" size="small" class="btn-edit" @click="handleOpenTemplateDialog(row)">
                   <template #icon><t-icon name="edit" /></template>编辑
                 </t-button>
                 <t-popconfirm content="确定要删除该模板吗？" @confirm="handleDeleteTemplate(row.templateId)">
-                  <t-button variant="text" theme="danger" size="small">
+                  <t-button variant="outline" theme="danger" size="small" class="btn-delete">
                     <template #icon><t-icon name="delete" /></template>删除
                   </t-button>
                 </t-popconfirm>
@@ -205,7 +208,7 @@
           <template #header>
             <div class="section-header">
               <span>接口列表</span>
-              <t-button theme="primary" size="small" @click="showApiDialog = true">
+              <t-button theme="primary" @click="showApiDialog = true">
                 <template #icon><t-icon name="add" /></template>新增接口
               </t-button>
             </div>
@@ -217,6 +220,7 @@
             row-key="interfaceId"
             hover
             size="small"
+            table-layout="auto"
           >
             <template #empty><t-empty description="暂无API接口" role="status" /></template>
             <template #method="{ row }">
@@ -240,7 +244,7 @@
       <t-form :data="templateForm" label-width="100px">
         <t-form-item label="模板名称"><t-input v-model="templateForm.name" placeholder="请输入模板名称" /></t-form-item>
         <t-form-item label="类型">
-          <t-select v-model="templateForm.type">
+          <t-select v-model="templateForm.type" :popup-props="{ appendToBody: true }">
             <t-option value="pdf" label="PDF" />
             <t-option value="excel" label="Excel" />
             <t-option value="api" label="API" />
@@ -262,7 +266,7 @@
         <t-form-item label="接口名称"><t-input v-model="apiForm.name" placeholder="请输入接口名称" /></t-form-item>
         <t-form-item label="端点URL"><t-input v-model="apiForm.endpoint" placeholder="/api/formulas/export" /></t-form-item>
         <t-form-item label="HTTP方法">
-          <t-select v-model="apiForm.method" style="width: 100%">
+          <t-select v-model="apiForm.method" :popup-props="{ appendToBody: true }">
             <t-option value="GET" label="GET" />
             <t-option value="POST" label="POST" />
             <t-option value="PUT" label="PUT" />
@@ -270,7 +274,7 @@
           </t-select>
         </t-form-item>
         <t-form-item label="认证方式">
-          <t-select v-model="apiForm.authentication" style="width: 100%">
+          <t-select v-model="apiForm.authentication" :popup-props="{ appendToBody: true }">
             <t-option value="none" label="无认证" />
             <t-option value="apiKey" label="API Key" />
             <t-option value="basic" label="Basic Auth" />
@@ -572,7 +576,7 @@ onMounted(async () => {
     display: flex;
     flex-wrap: wrap;
     align-items: flex-end;
-    gap: 16px;
+    gap: $space-4;
   }
 
   // 下拉弹出层提升层级，确保不被卡片裁切
@@ -589,17 +593,27 @@ onMounted(async () => {
     }
   }
 
-  // 创建与列表之间的间距
+  // 内容卡片 — 与配方管理保持一致
   .content-card {
+    min-height: 400px;
     box-shadow: $shadow-xs;
-    animation: fadeInUp 0.3s cubic-bezier(0.4, 0, 0.2, 1) both;
-    @include stagger-rows(10, 0.04s);
+    margin-top: $space-5;
+    transition: box-shadow $transition-normal;
+
+    &:hover {
+      box-shadow: $shadow-md;
+    }
+
+    // 表格行 stagger 入场动画（与 FormulaList 一致）
+    :deep(.t-table__body .t-table__row) {
+      animation: rowFadeIn 0.3s ease both;
+      @include stagger-rows(20, 0.03s);
+    }
   }
 
-  :deep(.t-button--theme-primary) {
-    background: $gradient-btn !important;
-    border: none !important; color: $text-white !important;
-    box-shadow: $shadow-brand !important;
+  // 按钮和表格样式由全局 _td-overrides.scss 统一覆盖，此处仅保留行级细节
+  :deep(.t-table) {
+    .t-table__row { cursor: pointer; }
   }
 }
 </style>

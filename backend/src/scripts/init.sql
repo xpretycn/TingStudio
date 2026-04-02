@@ -10,6 +10,11 @@ CREATE TABLE IF NOT EXISTS `users` (
   `username` TEXT NOT NULL UNIQUE,
   `password` TEXT NOT NULL,
   `role` TEXT NOT NULL DEFAULT 'formulist' CHECK(role IN ('admin', 'formulist')),
+  `display_name` TEXT DEFAULT NULL,
+  `avatar` TEXT DEFAULT NULL,
+  `bio` TEXT DEFAULT NULL,
+  `email` TEXT DEFAULT NULL,
+  `phone` TEXT DEFAULT NULL,
   `created_at` TEXT NOT NULL DEFAULT (datetime('now')),
   `updated_at` TEXT NOT NULL DEFAULT (datetime('now'))
 );

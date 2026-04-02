@@ -139,6 +139,18 @@ const router = createRouter({
           name: 'Tools',
           component: () => import('@/views/Tools.vue'),
           meta: { title: '工具箱' }
+        },
+        {
+          path: 'ai-assistant',
+          name: 'AiAssistant',
+          component: () => import('@/views/ai/AiAssistant.vue'),
+          meta: { title: 'AI 助手' }
+        },
+        {
+          path: 'settings',
+          name: 'AccountSettings',
+          component: () => import('@/views/settings/AccountSettings.vue'),
+          meta: { title: '账号设置' }
         }
       ]
     }

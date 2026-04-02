@@ -75,10 +75,15 @@
             </div>
           </div>
           <div class="info-chip info-weather" aria-hidden="true">
-            <span class="weather-icon">{{ weather }}</span>
+            <template v-if="weatherStore.loading || weatherStore.geoLoading">
+              <t-loading size="14px" />
+            </template>
+            <template v-else>
+              <span class="weather-icon">{{ weatherStore.weatherEmoji }}</span>
+            </template>
             <div class="chip-text">
-              <span class="chip-main">{{ temperature }}</span>
-              <span class="chip-sub">{{ city }}</span>
+              <span class="chip-main">{{ weatherStore.temperature }}°C</span>
+              <span class="chip-sub">{{ weatherStore.cityName }}</span>
             </div>
           </div>
         </div>
@@ -205,7 +210,7 @@
               </template>
               锁屏
             </t-button>
-            <t-popup placement="bottom-right" trigger="click" :visible="userMenuVisible" @visible-change="(v: boolean) => userMenuVisible = v">
+            <t-popup placement="bottom-right" trigger="hover" :visible="userMenuVisible" @visible-change="(v: boolean) => userMenuVisible = v">
               <div class="user-avatar-wrapper" role="button" tabindex="0"
                    aria-haspopup="true" :aria-expanded="userMenuVisible"
                    @keydown.enter="userMenuVisible = !userMenuVisible">
@@ -216,9 +221,70 @@
               </div>
               <template #content>
                 <div class="user-menu-popup" role="menu">
-                  <div v-for="item in userMenuItems" :key="item.value" :class="['user-menu-item', { 'user-menu-item--danger': item.danger }]" role="menuitem" tabindex="0" @click="handleUserMenuClick(item.value)" @keydown.enter="handleUserMenuClick(item.value)">
-                    <t-icon :name="item.icon" size="16px" />
-                    <span>{{ item.content }}</span>
+                  <!-- 账号设置 -->
+                  <div class="user-menu-item" role="menuitem" tabindex="0" @click="handleUserMenuClick('settings')" @keydown.enter="handleUserMenuClick('settings')">
+                    <t-icon name="setting" size="16px" />
+                    <span>账号设置</span>
+                  </div>
+
+                  <!-- 切换外观（hover 子菜单） -->
+                  <t-popup placement="right-top" trigger="hover">
+                    <div class="user-menu-item user-menu-item--has-sub" role="menuitem" aria-haspopup="true">
+                      <t-icon name="browse" size="16px" />
+                      <span>切换外观</span>
+                      <svg class="submenu-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
+                    </div>
+                    <template #content>
+                      <div class="user-submenu-popup" role="menu">
+                        <div
+                          v-for="opt in themeModeOptions"
+                          :key="opt.value"
+                          :class="['user-submenu-item', { active: themeStore.mode === opt.value }]"
+                          role="menuitem" tabindex="0"
+                          @click="handleThemeSelect(opt.value)" @keydown.enter="handleThemeSelect(opt.value)"
+                        >
+                          <t-icon :name="opt.icon" size="16px" />
+                          <span>{{ opt.label }}</span>
+                          <svg v-if="themeStore.mode === opt.value" class="check-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                        </div>
+                      </div>
+                    </template>
+                  </t-popup>
+
+                  <!-- 切换品牌色（hover 子菜单） -->
+                  <t-popup placement="right-top" trigger="hover">
+                    <div class="user-menu-item user-menu-item--has-sub" role="menuitem" aria-haspopup="true">
+                      <t-icon name="palette" size="16px" />
+                      <span>切换品牌色</span>
+                      <svg class="submenu-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
+                    </div>
+                    <template #content>
+                      <div class="user-submenu-popup" role="menu">
+                        <div
+                          v-for="opt in brandColorOptions"
+                          :key="opt.value"
+                          :class="['user-submenu-item', { active: themeStore.brandColor === opt.value }]"
+                          role="menuitem" tabindex="0"
+                          @click="handleBrandSelect(opt.value)" @keydown.enter="handleBrandSelect(opt.value)"
+                        >
+                          <span class="color-dot" :style="{ background: opt.dot }" />
+                          <span>{{ opt.label }}</span>
+                          <svg v-if="themeStore.brandColor === opt.value" class="check-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                        </div>
+                      </div>
+                    </template>
+                  </t-popup>
+
+                  <!-- 切换账号 -->
+                  <div class="user-menu-item" role="menuitem" tabindex="0" @click="handleUserMenuClick('switchAccount')" @keydown.enter="handleUserMenuClick('switchAccount')">
+                    <t-icon name="usergroup" size="16px" />
+                    <span>切换账号</span>
+                  </div>
+
+                  <!-- 退出登录 -->
+                  <div class="user-menu-item user-menu-item--danger" role="menuitem" tabindex="0" @click="handleUserMenuClick('logout')" @keydown.enter="handleUserMenuClick('logout')">
+                    <t-icon name="poweroff" size="16px" />
+                    <span>退出登录</span>
                   </div>
                 </div>
               </template>
@@ -303,6 +369,7 @@ import { useFormulaStore } from '@/stores/formula'
 import { useMaterialStore } from '@/stores/material'
 import { useSalesmanStore } from '@/stores/salesman'
 import { useThemeStore } from '@/stores/theme'
+import { useWeatherStore } from '@/stores/weather'
 import { brandColorDots, brandColorLabels } from '@/assets/styles/tokens'
 import type { BrandColor } from '@/stores/theme'
 import { MessagePlugin } from 'tdesign-vue-next'
@@ -315,6 +382,7 @@ const formulaStore = useFormulaStore()
 const materialStore = useMaterialStore()
 const salesmanStore = useSalesmanStore()
 const themeStore = useThemeStore()
+const weatherStore = useWeatherStore()
 
 // 品牌色选项
 const brandColorOptions: Array<{ value: BrandColor; label: string; dot: string }> = [
@@ -338,7 +406,7 @@ const activePath = computed(() => {
   // 按最长前缀匹配，优先精确匹配，再按路径段前缀匹配
   const pathMap = [
     '/recent-formulas', '/formulas', '/materials', '/salesmen',
-    '/exports', '/nutrition', '/tools'
+    '/exports', '/nutrition', '/tools', '/ai-assistant'
   ]
   for (const key of pathMap) {
     if (path === key || path.startsWith(key + '/')) return key
@@ -358,28 +426,31 @@ const userInitial = computed(() => {
 
 // 用户下拉菜单
 const userMenuVisible = ref(false)
-const userMenuItems = [
-  { content: '账号设置', value: 'settings', icon: 'setting' },
-  { content: '切换外观', value: 'theme', icon: 'browse' },
-  { content: '切换品牌色', value: 'brand', icon: 'palette' },
-  { content: '切换账号', value: 'switchAccount', icon: 'usergroup' },
-  { content: '退出登录', value: 'logout', icon: 'poweroff', danger: true },
-]
+// 主题模式选项
+const themeModeOptions = [
+  { value: 'auto' as const, label: '跟随系统', icon: 'laptop' },
+  { value: 'light' as const, label: '亮色模式', icon: 'browse' },
+  { value: 'dark' as const, label: '暗色模式', icon: 'browse' },
+] as const
 
-// 用户菜单点击
+// 选择主题模式
+const handleThemeSelect = (mode: 'auto' | 'light' | 'dark') => {
+  themeStore.setMode(mode)
+  MessagePlugin.success(`已切换为${themeModeLabels[mode]}`)
+}
+
+// 选择品牌色
+const handleBrandSelect = (color: BrandColor) => {
+  themeStore.setBrandColor(color)
+  MessagePlugin.success(`品牌色已切换为${brandColorLabels[color]}`)
+}
+
+// 用户菜单点击（保留 settings / switchAccount / logout）
 const handleUserMenuClick = (value: string) => {
   userMenuVisible.value = false
   switch (value) {
     case 'settings':
-      MessagePlugin.info('账号设置功能开发中')
-      break
-    case 'theme':
-      themeStore.cycleTheme()
-      MessagePlugin.success(`已切换为${themeModeLabels[themeStore.mode]}`)
-      break
-    case 'brand':
-      themeStore.cycleBrandColor()
-      MessagePlugin.success(`品牌色已切换为${brandColorLabels[themeStore.brandColor]}`)
+      router.push('/settings')
       break
     case 'switchAccount':
       handleLogout()
@@ -402,7 +473,9 @@ const pageIcon = computed(() => {
     '/salesmen': 'usergroup',
     '/exports': 'download',
     '/nutrition': 'chart-pie',
-    '/tools': 'setting'
+    '/tools': 'setting',
+    '/ai-assistant': 'precise-monitor',
+    '/settings': 'user-circle'
   }
   if (iconMap[route.path]) return iconMap[route.path]
   for (const key of Object.keys(iconMap)) {
@@ -421,7 +494,8 @@ const searchPlaceholder = computed(() => {
     '/salesmen': '搜索姓名、工号或电话...',
     '/exports': '搜索导出记录...',
     '/nutrition': '搜索营养标准...',
-    '/tools': '搜索工具...'
+    '/tools': '搜索工具...',
+    '/ai-assistant': '搜索 AI 功能...'
   }
   if (placeholderMap[route.path]) return placeholderMap[route.path]
   for (const key of Object.keys(placeholderMap)) {
@@ -432,29 +506,27 @@ const searchPlaceholder = computed(() => {
 
 // 导航菜单项
 const navItems = [
+  { path: '/ai-assistant', label: 'AI 助手', icon: 'precise-monitor' },
   { path: '/recent-formulas', label: '最近配方', icon: 'time' },
   { path: '/formulas', label: '配方管理', icon: 'edit' },
   { path: '/materials', label: '原材管理', icon: 'chart-bar' },
   { path: '/salesmen', label: '业务员管理', icon: 'usergroup' },
   { path: '/exports', label: '导出中心', icon: 'download' },
   { path: '/nutrition', label: '营养分析', icon: 'chart-pie' },
-  { path: '/tools', label: '工具箱', icon: 'setting' }
+  { path: '/tools', label: '工具箱', icon: 'setting' },
 ]
 
 // 日期和星期
 const currentDate = ref('')
 const currentWeekday = ref('')
 
-// 天气信息
-const city = ref('北京')
-const weather = ref('☀️')
-const temperature = ref('26°C')
-
 // 今日祝福语
 const todayBlessing = ref('愿你今天灵感如泉涌，创造美好配方！')
 
-// 页面标题
+// 页面标题 — 优先使用 route.meta.title
 const pageTitle = computed(() => {
+  const meta = route.meta?.title as string | undefined
+  if (meta) return meta
   const titleMap: Record<string, string> = {
     '/recent-formulas': '最近配方',
     '/formulas': '配方管理',
@@ -462,11 +534,12 @@ const pageTitle = computed(() => {
     '/salesmen': '业务员管理',
     '/exports': '导出中心',
     '/nutrition': '营养分析',
-    '/tools': '工具箱'
+    '/tools': '工具箱',
+    '/ai-assistant': 'AI 助手',
+    '/settings': '账号设置'
   }
-  if (titleMap[route.path]) return titleMap[route.path]
   for (const [key, value] of Object.entries(titleMap)) {
-    if (route.path.startsWith(key)) return value
+    if (route.path === key || route.path.startsWith(key + '/')) return value
   }
   if (route.path.includes('/versions')) return '版本管理'
   return '欢迎'
@@ -493,20 +566,71 @@ const closeMobileDrawer = () => {
   mobileDrawerOpen.value = false
 }
 
-// 面包屑 — 通过 route.matched 自动生成
+// 面包屑 — 根据当前路由路径构建层级
 const breadcrumbs = computed(() => {
-  const matched = route.matched.filter(r => r.meta?.title)
-  const crumbs: Array<{ title: string; path: string }> = []
-  for (const r of matched) {
-    if (r.path === '/') continue
-    crumbs.push({
-      title: (r.meta.title as string) || '',
-      path: r.children?.length ? '' : r.path, // 有子路由的不跳转
-    })
+  const path = route.path
+  const meta = route.meta?.title as string | undefined
+
+  // 列表页无父级，不需要面包屑
+  const listPaths = [
+    '/recent-formulas', '/formulas', '/materials', '/salesmen',
+    '/exports', '/nutrition', '/tools', '/ai-assistant', '/settings'
+  ]
+  if (listPaths.includes(path)) return []
+
+  // 面包屑层级定义：子页面 → 父页面（列表页）
+  // pathToParent 返回可导航的父路径和标题
+  const parentMap: Record<string, string> = {
+    // 原料子页面
+    '/materials/new': '/materials',
+    // 配方子页面
+    '/formulas/new': '/formulas',
+    // 业务员子页面
+    '/salesmen/new': '/salesmen',
   }
-  // 去掉最后一项，最后一项由模板中的 pageTitle 面包屑承担
-  crumbs.pop()
-  return crumbs
+
+  // 前缀匹配的父级
+  const prefixParents: Array<{ prefix: string; parentPath: string; parentTitle: string }> = [
+    { prefix: '/materials/', parentPath: '/materials', parentTitle: '原料管理' },
+    { prefix: '/formulas/', parentPath: '/formulas', parentTitle: '配方管理' },
+    { prefix: '/salesmen/', parentPath: '/salesmen', parentTitle: '业务员管理' },
+    { prefix: '/versions/', parentPath: '/formulas', parentTitle: '配方管理' },
+    { prefix: '/nutrition/profiles', parentPath: '/nutrition', parentTitle: '营养分析' },
+  ]
+
+  // 版本页面需要二级面包屑：配方管理 > 版本管理
+  if (path.startsWith('/versions/')) {
+    return [
+      { title: '配方管理', path: '/formulas' },
+    ]
+  }
+
+  // 营养标准页面：营养分析 > 营养标准
+  if (path === '/nutrition/profiles') {
+    return [
+      { title: '营养分析', path: '/nutrition' },
+    ]
+  }
+
+  // 精确匹配
+  if (parentMap[path]) {
+    const parentPath = parentMap[path]
+    const parentTitle = listPaths.includes(parentPath)
+      ? (navItems.find(n => n.path === parentPath)?.label || '')
+      : ''
+    return parentTitle ? [{ title: parentTitle, path: parentPath }] : []
+  }
+
+  // 前缀匹配（如 /materials/123, /formulas/123, /formulas/123/edit）
+  for (const { prefix, parentPath, parentTitle } of prefixParents) {
+    if (path.startsWith(prefix) && path !== parentPath) {
+      // 跳过营养分析本身（已归入 listPaths）
+      if (parentPath === '/nutrition' && path === '/nutrition') continue
+      return [{ title: parentTitle, path: parentPath }]
+    }
+  }
+
+  return []
 })
 
 // 路由过渡方向感知
@@ -665,26 +789,7 @@ const updateBlessing = () => {
   todayBlessing.value = blessings[index]
 }
 
-// 随机天气
-const weatherOptions = [
-  { icon: '☀️', text: '晴', temp: '26°C' },
-  { icon: '⛅', text: '多云', temp: '24°C' },
-  { icon: '🌤️', text: '晴间多云', temp: '25°C' },
-  { icon: '🌧️', text: '小雨', temp: '22°C' }
-]
 
-const updateWeather = () => {
-  const index = Math.floor(Math.random() * weatherOptions.length)
-  const w = weatherOptions[index]
-  weather.value = w.icon
-  temperature.value = w.temp
-}
-
-// 随机城市
-const getLocation = () => {
-  const cities = ['北京', '上海', '广州', '深圳', '杭州', '成都', '重庆', '武汉', '西安', '南京']
-  city.value = cities[Math.floor(Math.random() * cities.length)]
-}
 
 // ─── 键盘导航 ───
 const handleNavKeydown = (e: KeyboardEvent, path: string) => {
@@ -745,8 +850,7 @@ const focusLastNavItem = () => {
 onMounted(() => {
   updateDateInfo()
   updateBlessing()
-  updateWeather()
-  getLocation()
+  weatherStore.init()
 
   // Ctrl+B 切换侧边栏折叠
   document.addEventListener('keydown', (e: KeyboardEvent) => {
@@ -1377,6 +1481,66 @@ onMounted(() => {
         background: $color-danger-light;
         color: $color-danger;
       }
+    }
+
+    &--has-sub {
+      .submenu-arrow {
+        margin-left: auto;
+        opacity: 0.4;
+        transition: opacity 0.2s;
+      }
+
+      &:hover .submenu-arrow {
+        opacity: 0.7;
+      }
+    }
+  }
+}
+
+// ─── 用户菜单子菜单（Theme / Brand Color）───
+.user-submenu-popup {
+  padding: 4px;
+  min-width: 140px;
+  border-radius: 10px;
+  background: $overlay-white-98;
+  backdrop-filter: blur(12px);
+  border: 1.5px solid var(--overlay-brand-lighter-20);
+  box-shadow: $shadow-xl;
+
+  .user-submenu-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    color: $text-primary;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    .color-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      border: 1.5px solid $overlay-white-50;
+      box-shadow: 0 1px 3px $shadow-brand-xs;
+    }
+
+    .check-icon {
+      margin-left: auto;
+      color: var(--color-primary);
+    }
+
+    &:hover {
+      background: var(--overlay-brand-08);
+      color: var(--color-primary);
+    }
+
+    &.active {
+      background: var(--overlay-brand-08);
+      color: var(--color-primary);
+      font-weight: 500;
     }
   }
 }

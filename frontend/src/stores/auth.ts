@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { authApi, saveAuthData, clearAuthData, getCachedUser } from '@/api/auth'
-import type { UserInfo, LoginParams, RegisterParams } from '@/api/auth'
+import type { UserInfo, LoginParams, RegisterParams, UpdateProfileParams, ChangePasswordParams } from '@/api/auth'
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<UserInfo | null>(getCachedUser())
@@ -20,7 +20,6 @@ export const useAuthStore = defineStore('auth', () => {
     loading.value = true
     try {
       const res = await authApi.login(params)
-      // axios 拦截器已经提取了 res.data，所以这里直接使用 res
       const { user: userInfo, token } = res
       user.value = userInfo
       saveAuthData(userInfo, token)
@@ -36,7 +35,6 @@ export const useAuthStore = defineStore('auth', () => {
     loading.value = true
     try {
       const res = await authApi.register(params)
-      // axios 拦截器已经提取了 res.data，所以这里直接使用 res
       const { user: userInfo, token } = res
       user.value = userInfo
       saveAuthData(userInfo, token)
@@ -53,6 +51,42 @@ export const useAuthStore = defineStore('auth', () => {
     user.value = null
   }
 
+  const updateProfile = async (params: UpdateProfileParams) => {
+    loading.value = true
+    try {
+      const updatedUser = await authApi.updateProfile(params)
+      user.value = updatedUser
+      saveAuthData(updatedUser, localStorage.getItem('tingstudio_token') || '')
+      return { success: true }
+    } catch (error: any) {
+      return { success: false, message: error.message || '更新失败' }
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const changePassword = async (params: ChangePasswordParams) => {
+    loading.value = true
+    try {
+      await authApi.changePassword(params)
+      return { success: true }
+    } catch (error: any) {
+      return { success: false, message: error.message || '修改密码失败' }
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const fetchCurrentUser = async () => {
+    try {
+      const currentUser = await authApi.getMe()
+      user.value = currentUser
+      saveAuthData(currentUser, localStorage.getItem('tingstudio_token') || '')
+    } catch {
+      // 静默失败，不影响用户体验
+    }
+  }
+
   return {
     user,
     loading,
@@ -60,6 +94,9 @@ export const useAuthStore = defineStore('auth', () => {
     initAuth,
     login,
     register,
-    logout
+    logout,
+    updateProfile,
+    changePassword,
+    fetchCurrentUser
   }
 })

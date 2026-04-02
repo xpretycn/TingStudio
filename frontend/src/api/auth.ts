@@ -2,11 +2,31 @@ import http, { setToken, removeToken } from './http'
 
 export interface LoginParams { username: string; password: string }
 export interface RegisterParams { username: string; password: string }
-export interface UserInfo { id: string; username: string; role: string; createdAt: string }
+export interface UserInfo {
+  id: string
+  username: string
+  role: string
+  displayName?: string | null
+  avatar?: string | null
+  bio?: string | null
+  email?: string | null
+  phone?: string | null
+  createdAt: string
+}
+export interface UpdateProfileParams {
+  display_name?: string
+  avatar?: string
+  bio?: string
+  email?: string
+  phone?: string
+}
+export interface ChangePasswordParams {
+  oldPassword: string
+  newPassword: string
+}
 
 export const authApi = {
   login(params: LoginParams) {
-    // axios 拦截器会提取 res.data，所以这里直接返回内部的数据结构
     return http.post<any, { user: UserInfo; token: string }>('/auth/login', params)
   },
   register(params: RegisterParams) {
@@ -14,6 +34,12 @@ export const authApi = {
   },
   getMe() {
     return http.get<any, UserInfo>('/auth/me')
+  },
+  updateProfile(params: UpdateProfileParams) {
+    return http.put<any, UserInfo>('/auth/profile', params)
+  },
+  changePassword(params: ChangePasswordParams) {
+    return http.put<any, null>('/auth/password', params)
   },
 }
 
