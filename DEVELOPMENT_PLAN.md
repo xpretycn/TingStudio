@@ -1,6 +1,6 @@
 # TingStudio v2.0 开发计划
 
-> 更新日期：2026-03-31（阶段十已完成）
+> 更新日期：2026-04-02（阶段十二已完成）
 
 ---
 
@@ -18,8 +18,11 @@
 | 导出中心 | ✅ 完整 | ✅ 完整 | ✅ | 100% |
 | 营养分析 | ✅ 完整 | ✅ 完整 | ✅ | 100% |
 | 营养标准 | ✅ 完整 | ✅ 完整 | ✅ | 100% |
+| AI 智能助手 | ✅ 完整 | ✅ 完整 | ✅ | 100% |
+| 账号设置 | - | ✅ 完整 | - | 100% |
 | 首页/主布局 | - | ✅ 完整 | - | 100% |
-| 工具箱 | - | ⚠️ 占位页 | - | 10% |
+| 工具箱 | - | ⚠️ 天气卡片 | - | 30% |
+| 天气服务 | - | ✅ 完整（侧边栏 + 工具箱） | ✅ | 100% |
 
 ### 1.2 已完成的基础设施
 
@@ -676,6 +679,77 @@ $breakpoint-small: 480px;
 - [x] vite build 通过，linter 0 错误
 
 ---
+
+### 阶段十一：AI 智能助手集成（P0）— ✅ 已完成
+
+> 版本号：v2.13.0 | 完成日期：2026-04-01
+
+#### 11.1 后端 AI 服务层
+- ✅ `services/ai/AIService.ts`：统一 OpenAI 兼容接口封装，支持通义千问、智谱 GLM、DeepSeek 三厂商模型切换
+- ✅ `services/ai/prompts.ts`：配方解析 + NL2SQL 两种场景的 system/user 提示词模板
+- ✅ `controllers/aiController.ts`：三个 API 端点（解析配方、自然语言检索、模型列表）
+- ✅ `routes/ai.ts`：AI 路由注册 + multer 文件上传配置
+- ✅ `utils/sqlValidator.ts`：SQL 白名单安全校验（仅允许 SELECT）
+- ✅ 视觉模型自动切换：图片输入自动使用 `glm-4v-flash`，文本输入使用 `glm-4-flash`
+- ✅ 智谱视觉模型跳过 `response_format`，通过 prompt 引导 JSON 输出
+
+#### 11.2 前端 AI 模块
+- ✅ `api/ai.ts`：AI API 模块 + 类型定义
+- ✅ `stores/ai.ts`：AI 状态管理（模型列表、解析结果、检索结果）
+- ✅ `views/ai/AiAssistant.vue`：AI 助手页面（智能填单 + 智能检索双 Tab）
+
+#### 11.3 集成与导航
+- ✅ 路由注册：`/ai-assistant` 懒加载路由
+- ✅ Home.vue 侧边栏新增"AI 助手"导航项（`precise-monitor` 图标）
+- ✅ Home.vue 所有映射更新（pathMap、navItems、iconMap、placeholderMap、titleMap、listPaths）
+- ✅ `FormulaForm.vue` 支持 AI 预填数据（`route.query.ai=true` + materials JSON）
+
+#### 11.4 账号设置页
+- ✅ `views/settings/AccountSettings.vue`：个人信息管理页面
+
+#### 验收标准
+
+- [x] 前后端 TypeScript 编译零错误
+- [x] AI 服务支持三厂商模型切换
+- [x] 智能填单支持文本/图片文件上传解析
+- [x] 智能检索支持自然语言查询并返回结果
+- [x] SQL 安全校验通过（仅允许 SELECT + 数据隔离）
+- [x] 解析结果可一键填入配方表单
+
+### 阶段十二：天气服务与个人资料管理（P1）— ✅ 已完成
+
+> 版本号：v2.14.0 | 完成日期：2026-04-02
+
+#### 12.1 实时天气功能
+- ✅ `api/weather.ts`：和风天气免费订阅 API 封装（城市搜索、逆地理编码、实时天气），独立 axios 实例
+- ✅ `stores/weather.ts`：30 分钟内存缓存、Geolocation 自动定位（10s 超时）、城市 localStorage 持久化
+- ✅ Home.vue 侧边栏集成：移除假天气数据，展示真实天气 emoji + 温度 + 城市名
+- ✅ Tools.vue 天气详情卡片：温度/状况/体感温度/湿度/风向风力/风速/更新时间
+- ✅ 城市搜索输入框：300ms 防抖 + 下拉候选列表（8 条结果）
+- ✅ 自动定位按钮 + 加载/错误/限流状态展示
+- ✅ 天气图标码 → emoji 自动映射（50+ 图标码）
+- ✅ 429 限流指数退避重试（2s → 4s）
+
+#### 12.2 个人资料管理后端
+- ✅ users 表扩展：新增 display_name、avatar、bio、email、phone 字段
+- ✅ `PUT /api/auth/me`：更新个人资料（邮箱/手机号唯一性校验、格式验证）
+- ✅ `PUT /api/auth/change-password`：修改密码（旧密码验证）
+- ✅ `GET /api/auth/me`：返回完整用户信息
+- ✅ Auth Store 增强：updateProfile、changePassword、fetchCurrentUser 方法
+
+#### 12.3 UI 优化
+- ✅ Home.vue 用户菜单改为 hover 触发 + hover 子菜单（外观/品牌色切换）
+- ✅ 导出中心按钮样式从 text 改为 outline，表格添加 table-layout="auto"
+- ✅ 前端 `.env` 新增 `VITE_QWEATHER_KEY` 配置
+
+#### 验收标准
+
+- [x] 侧边栏展示真实天气数据（自动定位或缓存城市）
+- [x] 工具箱天气卡片完整展示天气详情
+- [x] 城市搜索支持模糊匹配 + 防抖
+- [x] 30 分钟缓存避免频繁 API 调用
+- [x] 个人资料修改/密码修改功能正常
+- [x] 邮箱/手机号唯一性校验
 
 ## 四、注意事项
 

@@ -1,4 +1,4 @@
-# TingStudio v2.12
+# TingStudio v2.14
 
 食品配方工作数据管理平台 — 前后端分离架构
 
@@ -32,10 +32,10 @@ TingStudio 是一个专业的食品配方工作数据管理平台，面向食品
 
 ### 首页与导航
 - 左右分栏布局：左侧固定导航 + 右侧动态内容区
-- 猫咪 Logo 动画、用户信息卡片、日期天气、每日祝福语
-- 可折叠功能导航栏（最近配方、配方管理、原材料管理、业务员管理、营养分析、版本管理、导出中心、工具箱）
+- 猫咪 Logo 动画、用户信息卡片、**实时天气**（和风天气 API，自动定位）、每日祝福语
+- 可折叠功能导航栏（最近配方、配方管理、原材料管理、业务员管理、营养分析、版本管理、导出中心、工具箱、AI 助手）
 - 内容区顶部工具栏：后退/前进/刷新导航、全局搜索、新增按钮
-- 用户头像下拉菜单（账号设置、切换外观、切换品牌色、切换账号、退出登录）
+- 用户头像下拉菜单（hover 子菜单切换外观/品牌色、账号设置、切换账号、退出登录）
 - 锁屏功能
 - **多品牌色换肤**：4 种品牌色（樱花粉/暖阳黄/天空蓝/清新绿）一键切换
 - **亮暗色主题切换**：支持跟随系统/亮色/暗色三种模式，自动检测系统偏好
@@ -45,6 +45,7 @@ TingStudio 是一个专业的食品配方工作数据管理平台，面向食品
 - 多角色支持（admin / formulist）
 - Token 自动续期与过期处理
 - 路由守卫（未认证自动跳转登录页）
+- **个人资料管理**：修改昵称/头像/简介/邮箱/手机号，修改密码，邮箱手机号唯一性校验
 
 ### 原料管理
 - 原料信息 CRUD
@@ -92,6 +93,23 @@ TingStudio 是一个专业的食品配方工作数据管理平台，面向食品
 - API 数据接口管理面板（创建、查看接口配置）
 - Excel 模板精简为两列（原料名称 + 数量），简化导入流程
 
+### AI 智能助手
+- **智能填单**：上传配方文档（Excel/文本/图片），AI 自动解析为结构化配方数据，原料自动匹配系统已有原料
+- **智能检索**：自然语言查询配方/原料/业务员数据，AI 生成安全 SQL 查询并执行返回结果
+- 多模型支持：通义千问、智谱 GLM、DeepSeek 三厂商模型切换，统一 OpenAI 兼容接口
+- 文件上传解析：支持 Excel/文本文件读取和图片（Base64）多模态解析
+- SQL 安全校验：白名单机制仅允许 SELECT 查询，自动注入数据隔离条件
+- 解析结果一键填入配方表单，支持 AI 预填提示和人工校对
+
+### 天气服务
+- **实时天气**：侧边栏展示当前城市天气 emoji + 温度，基于浏览器 Geolocation 自动定位
+- **天气详情卡片**：工具箱页面展示完整天气信息（温度/状况/体感温度/湿度/风向风力/风速/更新时间）
+- **城市搜索**：300ms 防抖输入 + 下拉候选列表，支持全球城市模糊搜索
+- **和风天气 API**：免费订阅版（devapi.qweather.com），独立 axios 实例直连，不走后端代理
+- **智能缓存**：30 分钟内存缓存避免频繁请求，429 限流指数退避重试（2s → 4s）
+- **城市持久化**：定位成功后城市信息存入 localStorage，下次打开直接使用缓存城市
+- 天气图标 emoji 自动映射（晴/多云/雨/雪/雾等 50+ 图标码）
+
 ## 项目结构
 
 ```
@@ -99,24 +117,30 @@ ting-studio/
 ├── backend/                          # 后端服务
 │   ├── src/
 │   │   ├── config/                   # 配置（数据库、JWT、应用）
-│   │   ├── controllers/              # 控制器（7个模块）
+│   │   ├── controllers/              # 控制器（8个模块）
 │   │   │   ├── authController.ts
 │   │   │   ├── materialController.ts
 │   │   │   ├── formulaController.ts
 │   │   │   ├── salesmanController.ts
 │   │   │   ├── versionController.ts
 │   │   │   ├── exportController.ts
-│   │   │   └── nutritionController.ts
+│   │   │   ├── nutritionController.ts
+│   │   │   └── aiController.ts
 │   │   ├── middleware/                # 中间件（认证、校验、错误处理）
-│   │   ├── routes/                   # 路由定义（7个模块）
+│   │   ├── routes/                   # 路由定义（8个模块）
 │   │   ├── scripts/                  # 数据库脚本
 │   │   │   ├── init.sql              # 建表 SQL（13张表）
 │   │   │   ├── initDatabase.ts       # 数据库初始化
 │   │   │   └── seedData.ts           # 种子数据
+│   │   ├── services/                 # 业务服务层
+│   │   │   └── ai/                   # AI 服务（统一 OpenAI 兼容接口）
+│   │   │       ├── AIService.ts      # AI 服务核心（多模型切换）
+│   │   │       └── prompts.ts        # 提示词模板（配方解析/NL2SQL）
 │   │   ├── utils/                    # 工具函数
 │   │   │   ├── helpers.ts            # 通用工具
 │   │   │   ├── formulaExporter.ts    # Excel 导出引擎
-│   │   │   └── formulaPdfExporter.ts # PDF 导出引擎
+│   │   │   ├── formulaPdfExporter.ts # PDF 导出引擎
+│   │   │   └── sqlValidator.ts       # SQL 白名单安全校验
 │   │   └── index.ts                  # 入口文件
 │   ├── data/                         # SQLite 数据库文件
 │   ├── API_DOC.md                    # API 接口文档
@@ -125,7 +149,13 @@ ting-studio/
 ├── frontend/                         # 前端应用
 │   ├── src/
 │   │   ├── api/                      # API 接口层（Axios 封装）
+│   │   │   ├── auth.ts               # 认证/个人资料
+│   │   │   ├── weather.ts            # 和风天气 API（独立实例）
+│   │   │   └── ...                   # 其他业务模块
 │   │   ├── stores/                   # Pinia 状态管理
+│   │   │   ├── auth.ts               # 认证 + 个人资料
+│   │   │   ├── weather.ts            # 天气缓存/定位/城市持久化
+│   │   │   └── ...                   # 其他业务模块
 │   │   ├── views/                    # 页面组件
 │   │   │   ├── auth/                 # 登录/注册
 │   │   │   ├── materials/            # 原料管理
@@ -134,6 +164,8 @@ ting-studio/
 │   │   │   ├── versions/             # 版本控制
 │   │   │   ├── exports/              # 导出管理
 │   │   │   ├── nutrition/            # 营养分析
+│   │   │   ├── ai/                   # AI 智能助手
+│   │   │   ├── settings/             # 账号设置
 │   │   │   ├── Home.vue              # 首页（左右分栏布局）
 │   │   │   └── Tools.vue             # 工具箱
 │   │   ├── components/               # 公共组件
@@ -161,6 +193,7 @@ ting-studio/
 
 - Node.js 18+
 - npm 9+
+- 和风天气 API Key（免费订阅，用于实时天气功能）
 
 ### 一键启动（推荐）
 
@@ -241,7 +274,7 @@ npm run start          # 后端监听端口 3000，提供 API 服务
 
 ## API 文档
 
-详细的接口文档请查看 [backend/API_DOC.md](./backend/API_DOC.md)，涵盖 7 个模块、30+ 个端点的完整说明。
+详细的接口文档请查看 [backend/API_DOC.md](./backend/API_DOC.md)，涵盖 8 个模块、30+ 个端点的完整说明。
 
 ## 数据隔离规则
 
@@ -286,7 +319,30 @@ npm run start          # 后端监听端口 3000，提供 API 服务
 
 ## 更新日志
 
-### v2.12.0 (2026-04-01)
+### v2.14.0 (2026-04-02)
+- **实时天气功能**：集成和风天气免费订阅 API，侧边栏展示当前城市天气 emoji + 温度
+- **天气详情卡片**：工具箱页面新增天气详情区域（温度/状况/体感温度/湿度/风向风力/更新时间）
+- **浏览器自动定位**：Geolocation API 获取用户位置，10s 超时降级，城市信息 localStorage 持久化
+- **城市搜索**：300ms 防抖输入 + 下拉候选列表，支持全球城市模糊搜索
+- **天气 API 模块**：`api/weather.ts` 独立 axios 实例（不走后端代理），30min 内存缓存，429 指数退避重试
+- **天气 Store**：`stores/weather.ts` 管理加载/错误/限流状态，天气图标码 → emoji 自动映射（50+ 图标）
+- **个人资料管理后端**：新增 `PUT /api/auth/me` 更新资料（昵称/头像/简介/邮箱/手机号）+ `PUT /api/auth/change-password` 修改密码
+- **用户表扩展**：users 表新增 display_name、avatar、bio、email、phone 字段
+- **Auth Store 增强**：新增 `updateProfile`、`changePassword`、`fetchCurrentUser` 方法
+- **用户菜单优化**：头像下拉菜单改为 hover 触发，外观/品牌色切换改为 hover 子菜单
+- **导出中心 UI 打磨**：按钮样式从 text 改为 outline，表格添加 `table-layout="auto"`，间距优化
+- **移除假天气数据**：侧边栏天气从随机生成改为真实 API 数据
+
+### v2.13.0 (2026-04-01)
+- **AI 智能助手模块**：新增 AI 集成功能，支持智能填单和智能检索两大场景
+- **智能填单**：上传配方文档（Excel/文本/图片），AI 自动解析为结构化配方数据，原料模糊匹配系统已有原料，解析结果一键填入配方表单
+- **智能检索**：自然语言查询数据，AI 生成安全 SQL 查询并执行返回结果，支持数据隔离
+- **多模型支持**：通义千问、智谱 GLM、DeepSeek 三厂商模型切换，统一 OpenAI 兼容接口封装
+- **后端 AI 服务**：`services/ai/AIService.ts` 核心服务 + `prompts.ts` 提示词模板，支持文本/多模态输入
+- **SQL 安全校验**：`sqlValidator.ts` 白名单机制仅允许 SELECT 查询，非 admin 用户自动注入数据隔离条件
+- **AI 助手页面**：新增 `AiAssistant.vue` 页面（智能填单 + 智能检索双 Tab），侧边栏新增导航入口
+- **账号设置页**：新增 `AccountSettings.vue` 个人信息管理页面
+- **配方表单 AI 预填**：`FormulaForm.vue` 支持 `route.query` 接收 AI 解析数据，显示预填提示
 - **多品牌色换肤系统**：支持 4 种品牌色（樱花粉/暖阳黄/天空蓝/清新绿）运行时切换，通过 CSS 自定义属性实现 4 色 x 2 明暗 = 8 种视觉组合
 - **亮暗色主题切换**：三模式切换（跟随系统/亮色/暗色），`matchMedia` 实时监听系统偏好，`localStorage` 持久化
 - **Theme Store 重写**：双维度状态管理（`brandColor` + `mode`），支持循环切换品牌色和主题模式

@@ -21,6 +21,16 @@
         scroll-to-first-error
         @submit="handleSubmit"
       >
+        <!-- AI 预填提示 -->
+        <t-alert
+          v-if="isAiPrefill"
+          theme="info"
+          closable
+          style="margin-bottom: 16px"
+        >
+          <template #message>已从 AI 解析结果预填配方信息，请核对原料匹配和参数后保存</template>
+        </t-alert>
+
         <t-form-item label="配方名称" name="name">
           <t-input
             v-model="formData.name"
@@ -256,6 +266,9 @@ const getFilteredMaterials = (currentIndex: number) => {
 
 const isEdit = computed(() => !!route.params.id)
 
+// AI 预填标志
+const isAiPrefill = ref(false)
+
 const formData = reactive<any>({
   name: '',
   salesmanId: '',
@@ -405,6 +418,43 @@ onMounted(async () => {
         supplementRatioFactor: formula.supplementRatioFactor ?? 1.0,
         description: formula.description || ''
       })
+    }
+  }
+
+  // AI 预填数据（从 route.query 读取）
+  if (route.query.ai === 'true') {
+    try {
+      const materials = JSON.parse(route.query.materials as string)
+      formData.name = (route.query.name as string) || ''
+      formData.materials = materials.map((m: any) => ({
+        materialId: m.materialId || '',
+        materialName: m.name || '',
+        quantity: m.quantity || 0,
+      }))
+      if (route.query.finishedWeight) {
+        formData.finishedWeight = Number(route.query.finishedWeight) || 0
+      }
+      // AI 解析的业务员姓名 → 匹配 salesmanId
+      if (route.query.salesmanName) {
+        const salesmanName = route.query.salesmanName as string
+        const matched = salesmanStore.salesmen.find(
+          (s: any) => s.name === salesmanName || s.name.includes(salesmanName)
+        )
+        if (matched) {
+          formData.salesmanId = matched.id
+        }
+      }
+      // AI 解析的配方日期（暂存备注，表单无日期字段）
+      if (route.query.formulaDate && route.query.description) {
+        formData.description = `${route.query.description}（配方时间：${route.query.formulaDate}）`
+      } else if (route.query.formulaDate) {
+        formData.description = `配方时间：${route.query.formulaDate}`
+      } else if (route.query.description) {
+        formData.description = route.query.description as string
+      }
+      isAiPrefill.value = true
+    } catch {
+      console.error('[FormulaForm] AI 预填数据解析失败')
     }
   }
 })

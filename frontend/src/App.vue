@@ -1,6 +1,6 @@
 <template>
   <t-config-provider :theme="themeStore.isDark ? 'dark' : 'light'" :t="tdesignTokens">
-    <router-view />
+    <router-view v-bind="$attrs" />
   </t-config-provider>
 </template>
 
