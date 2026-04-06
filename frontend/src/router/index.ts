@@ -23,13 +23,7 @@ const router = createRouter({
       children: [
         {
           path: '',
-          redirect: '/recent-formulas'
-        },
-        {
-          path: 'recent-formulas',
-          name: 'RecentFormulas',
-          component: () => import(/* webpackPrefetch: true */ '@/views/formulas/RecentFormulas.vue'),
-          meta: { title: '最近配方' }
+          redirect: '/formulas'
         },
 
         {
@@ -42,19 +36,19 @@ const router = createRouter({
           path: 'materials/:id',
           name: 'MaterialDetail',
           component: () => import('@/views/materials/MaterialDetail.vue'),
-          meta: { title: '原料详情' }
+          meta: { title: '原料详情', hideHeader: true }
         },
         {
           path: 'materials/new',
           name: 'MaterialNew',
           component: () => import('@/views/materials/MaterialForm.vue'),
-          meta: { title: '新增原料' }
+          meta: { title: '新增原料', hideHeader: true }
         },
         {
           path: 'materials/:id/edit',
           name: 'MaterialEdit',
           component: () => import('@/views/materials/MaterialForm.vue'),
-          meta: { title: '编辑原料' }
+          meta: { title: '编辑原料', hideHeader: true }
         },
         {
           path: 'formulas',
@@ -66,19 +60,19 @@ const router = createRouter({
           path: 'formulas/:id',
           name: 'FormulaDetail',
           component: () => import('@/views/formulas/FormulaDetail.vue'),
-          meta: { title: '配方详情' }
+          meta: { title: '配方详情', hideHeader: true }
         },
         {
           path: 'formulas/new',
           name: 'FormulaNew',
           component: () => import('@/views/formulas/FormulaForm.vue'),
-          meta: { title: '新增配方' }
+          meta: { title: '新增配方', hideHeader: true }
         },
         {
           path: 'formulas/:id/edit',
           name: 'FormulaEdit',
           component: () => import('@/views/formulas/FormulaForm.vue'),
-          meta: { title: '编辑配方' }
+          meta: { title: '编辑配方', hideHeader: true }
         },
         {
           path: 'salesmen',
@@ -90,31 +84,31 @@ const router = createRouter({
           path: 'salesmen/new',
           name: 'SalesmanNew',
           component: () => import('@/views/salesmen/SalesmanForm.vue'),
-          meta: { title: '新增业务员' }
+          meta: { title: '新增业务员', hideHeader: true }
         },
         {
           path: 'salesmen/:id/edit',
           name: 'SalesmanEdit',
           component: () => import('@/views/salesmen/SalesmanForm.vue'),
-          meta: { title: '编辑业务员' }
+          meta: { title: '编辑业务员', hideHeader: true }
         },
         {
           path: 'salesmen/:id',
           name: 'SalesmanDetail',
           component: () => import('@/views/salesmen/SalesmanDetail.vue'),
-          meta: { title: '业务员详情' }
+          meta: { title: '业务员详情', hideHeader: true }
         },
         {
           path: 'versions/formula/:formulaId',
           name: 'VersionList',
           component: () => import('@/views/versions/VersionList.vue'),
-          meta: { title: '版本管理' }
+          meta: { title: '版本管理', hideHeader: true }
         },
         {
           path: 'versions/compare/:formulaId',
           name: 'VersionCompare',
           component: () => import('@/views/versions/VersionCompare.vue'),
-          meta: { title: '版本对比' }
+          meta: { title: '版本对比', hideHeader: true }
         },
         {
           path: 'exports',

@@ -7,6 +7,35 @@ import path from 'path'
 
 let db: Database.Database | null = null
 
+/** 安全地添加列（如果不存在） */
+function ensureColumn(db: Database.Database, table: string, col: string, type: string, defaultValue: string) {
+  try {
+    const cols = db.pragma(`table_info(${table})`) as any[]
+    const exists = cols.some((c: any) => c.name === col)
+    if (!exists) {
+      db.exec(`ALTER TABLE ${table} ADD COLUMN ${col} ${type} DEFAULT ${defaultValue}`)
+      logger.info(`数据库迁移: 添加列 ${table}.${col}`)
+    }
+  } catch (_err) {
+    // 列已存在或表不存在时静默跳过
+  }
+}
+
+/** 自动迁移：确保旧数据库包含所有新增列 */
+function runAutoMigrations(db: Database.Database) {
+  // materials 表
+  ensureColumn(db, 'materials', 'material_type', "TEXT", "'herb'")
+
+  // formulas 表
+  ensureColumn(db, 'formulas', 'finished_weight', "REAL", "0")
+  ensureColumn(db, 'formulas', 'ratio_factor', "REAL", "0.18")
+  ensureColumn(db, 'formulas', 'supplement_ratio_factor', "REAL", "1.0")
+
+  // formula_versions 表
+  ensureColumn(db, 'formula_versions', 'ratio_factor', "REAL", "0.18")
+  ensureColumn(db, 'formula_versions', 'supplement_ratio_factor', "REAL", "1.0")
+}
+
 export async function connectDatabase(): Promise<void> {
   try {
     // 确保数据目录存在
@@ -21,6 +50,9 @@ export async function connectDatabase(): Promise<void> {
     // 启用 WAL 模式和外键约束
     db.pragma('journal_mode = WAL')
     db.pragma('foreign_keys = ON')
+
+    // 自动迁移：确保旧数据库包含所有新增列
+    runAutoMigrations(db)
 
     logger.info(`SQLite 数据库已连接: ${config.database.path}`)
   } catch (error) {

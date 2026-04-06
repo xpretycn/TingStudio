@@ -1,8 +1,7 @@
 <template>
   <div class="version-list" :aria-busy="!initialized">
-    <Transition name="content-fade" mode="out-in">
       <PageSkeleton v-if="!initialized" type="table" :rows="5" :columns="7" />
-      <t-card v-else class="content-card" bordered>
+      <t-card v-else class="content-card" :bordered="true">
       <template #header>
         <div class="page-header">
           <t-button variant="text" @click="handleBack"><template #icon><t-icon name="chevron-left" /></template>返回配方</t-button>
@@ -72,7 +71,6 @@
         </template>
       </t-table>
     </t-card>
-    </Transition>
 
     <!-- 创建版本弹窗 -->
     <t-dialog

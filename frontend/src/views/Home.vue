@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="home-page" :class="{ collapsed: sidebarCollapsed }">
     <!-- 跳到主要内容（仅键盘/屏幕阅读器可见） -->
     <a href="#main-content" class="skip-link">跳到主要内容</a>
@@ -36,54 +36,39 @@
           />
         </div>
 
-        <!-- 个人信息 + 祝福语并排 -->
-        <div v-show="!sidebarCollapsed" class="sidebar-user-card">
-          <div class="user-main">
-            <div class="user-avatar" aria-hidden="true">
-              <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="30" cy="20" r="14" fill="#FFB5C8" />
-                <ellipse cx="30" cy="52" rx="20" ry="14" fill="#FFE8D6" />
-                <circle cx="26" cy="19" r="2" fill="#5D4E60" />
-                <circle cx="34" cy="19" r="2" fill="#5D4E60" />
-                <ellipse cx="30" cy="23" rx="1.5" ry="1" fill="#FF8FAB" />
-                <path d="M26 26Q30 30 34 26" stroke="#E8A0B0" stroke-width="1" fill="none" stroke-linecap="round" />
-              </svg>
+        <!-- 日期和天气信息卡片（参照 index.html 设计） -->
+        <div v-show="!sidebarCollapsed" class="sidebar-info-card">
+          <div class="info-card-inner">
+            <!-- 左侧：日期 -->
+            <div class="info-card-date">
+              <p class="info-card-day">{{ currentDay }}</p>
+              <p class="info-card-meta">{{ currentDate }} · {{ currentWeekday }}</p>
             </div>
-            <div class="user-info">
-              <div class="user-name">{{ authStore.user?.username || '用户' }}</div>
-              <div class="user-role">配方师</div>
-            </div>
-          </div>
-          <div class="user-blessing">
-            <span class="blessing-icon">💖</span>
-            <span class="blessing-text">{{ todayBlessing }}</span>
-          </div>
-        </div>
-
-        <!-- 日期和天气并排 -->
-        <div v-show="!sidebarCollapsed" class="sidebar-info-row">
-          <div class="info-chip info-date" aria-hidden="true">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-              <line x1="16" y1="2" x2="16" y2="6" />
-              <line x1="8" y1="2" x2="8" y2="6" />
-              <line x1="3" y1="10" x2="21" y2="10" />
-            </svg>
-            <div class="chip-text">
-              <span class="chip-main">{{ currentDate }}</span>
-              <span class="chip-sub">{{ currentWeekday }}</span>
-            </div>
-          </div>
-          <div class="info-chip info-weather" aria-hidden="true">
-            <template v-if="weatherStore.loading || weatherStore.geoLoading">
-              <t-loading size="14px" />
-            </template>
-            <template v-else>
-              <span class="weather-icon">{{ weatherStore.weatherEmoji }}</span>
-            </template>
-            <div class="chip-text">
-              <span class="chip-main">{{ weatherStore.temperature }}°C</span>
-              <span class="chip-sub">{{ weatherStore.cityName }}</span>
+            <!-- 右侧：天气（右对齐，图标+文字在上，温度+城市在下） -->
+            <div class="info-card-weather">
+              <template v-if="weatherStore.loading || weatherStore.geoLoading">
+                <t-loading size="small" />
+              </template>
+              <template v-else>
+                <!-- 上行：图标 + 天气描述 -->
+                <div class="weather-top-row">
+                  <span class="weather-icon-text">{{ weatherStore.weatherEmoji }}</span>
+                  <span class="weather-status">{{ weatherStore.weatherText }}</span>
+                  <button
+                    class="weather-refresh-btn"
+                    :class="{ 'is-refreshing': weatherStore.loading }"
+                    :disabled="weatherStore.loading || weatherStore.geoLoading"
+                    title="刷新天气"
+                    @click.stop="handleRefreshWeather"
+                  >
+                    <svg class="refresh-svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+                    </svg>
+                  </button>
+                </div>
+                <!-- 下行：温度 + 城市 -->
+                <p class="weather-bottom">{{ weatherStore.temperature }}°C · {{ weatherStore.cityName }}</p>
+              </template>
             </div>
           </div>
         </div>
@@ -153,9 +138,10 @@
       </div>
     </aside>
 
-    <!-- 右侧内容展示区 -->
-    <div class="right-content">
-      <header class="content-header" role="banner">
+    <!-- 右侧内容展示区（hideHeader 页面移除顶部间距） -->
+    <div class="right-content" :class="{ 'no-top-padding': route.meta.hideHeader }">
+      <header v-if="!route.meta.hideHeader" class="content-header" role="banner">
+        <!-- 左侧导航功能区 -->
         <div class="header-left">
           <!-- 移动端汉堡菜单 -->
           <button class="mobile-menu-btn" aria-label="打开菜单" @click="openMobileDrawer">
@@ -167,54 +153,38 @@
               <t-breadcrumb-item v-for="crumb in breadcrumbs" :key="crumb.path" @click="crumb.path && router.push(crumb.path)">
                 {{ crumb.title }}
               </t-breadcrumb-item>
-              <t-breadcrumb-item class="breadcrumb-current">{{ pageTitle }}</t-breadcrumb-item>
+              <t-breadcrumb-item class="breadcrumb-current" :style="breadcrumbs.length > 0 ? { color: '#10B981' } : {}">{{ pageTitle }}</t-breadcrumb-item>
             </t-breadcrumb>
           </div>
-          <div class="header-nav-buttons">
-            <t-button theme="default" size="medium" @click="handleGoBack" class="header-btn">
-              <template #icon>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="15 18 9 12 15 6" />
-                </svg>
-              </template>
-              后退
-            </t-button>
-            <t-button theme="default" size="medium" @click="handleGoForward" class="header-btn">
-              <template #icon>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="9 18 15 12 9 6" />
-                </svg>
-              </template>
-              前进
-            </t-button>
-            <t-button theme="default" size="medium" @click="handleRefresh" class="header-btn">
-              <template #icon>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="23 4 23 10 17 10" />
-                  <polyline points="1 20 1 14 7 14" />
-                  <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
-                </svg>
-              </template>
-              刷新
-            </t-button>
-          </div>
         </div>
+        <!-- 右侧操作区 -->
         <div class="header-actions">
-          <div class="header-user-section">
-            <t-button theme="default" size="medium" @click="handleLock" class="header-btn">
-              <template #icon>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                </svg>
-              </template>
-              锁屏
-            </t-button>
+          <!-- 圆形导航按钮组 -->
+          <div class="header-nav-buttons">
+            <button class="nav-circle-btn" title="后退" @click="handleGoBack">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+            </button>
+            <button class="nav-circle-btn" title="前进" @click="handleGoForward">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </button>
+            <button class="nav-circle-btn" title="刷新" @click="handleRefresh">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+            </button>
+            <!-- 锁屏按钮（圆形） -->
+            <button class="nav-circle-btn" title="锁屏" @click="handleLock">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            </button>
+          </div>
+          <!-- 用户区 -->
+          <div class="header-user-section" style="margin-left: 8px;">
             <t-popup placement="bottom-right" trigger="hover" :visible="userMenuVisible" @visible-change="(v: boolean) => userMenuVisible = v">
               <div class="user-avatar-wrapper" role="button" tabindex="0"
                    aria-haspopup="true" :aria-expanded="userMenuVisible"
                    @keydown.enter="userMenuVisible = !userMenuVisible">
-                <div class="user-avatar">{{ userInitial }}</div>
+                <div class="user-avatar-wrap">
+                  <img class="user-avatar-img" :src="authStore.user?.avatar || '/avatar-default.jpg'" :alt="authStore.user?.username || '用户'" />
+                </div>
+                <span class="user-display-name">{{ authStore.user?.username || '用户' }}</span>
                 <svg class="user-avatar-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <polyline points="6 9 12 15 18 9" />
                 </svg>
@@ -292,70 +262,16 @@
           </div>
         </div>
       </header>
-
-      <!-- 滚动内容区域 -->
-      <main ref="contentBodyRef" id="main-content" class="content-body">
-        <div class="content-body-wrapper">
-          <!-- 工具栏：左侧搜索/重置，右侧新增（仅列表页可见） -->
-          <div v-if="showAddBtn" class="content-toolbar">
-            <div class="toolbar-left">
-              <div class="header-search">
-                <t-input
-                  v-model="searchKeyword"
-                  :placeholder="searchPlaceholder"
-                  :aria-label="searchPlaceholder"
-                  clearable
-                  class="search-input"
-                  @enter="handleSearch"
-                  @clear="handleSearch"
-                >
-                  <template #prefix-icon>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                      <circle cx="11" cy="11" r="8" />
-                      <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                    </svg>
-                  </template>
-                </t-input>
-                <t-button theme="primary" size="medium" @click="handleSearch" class="toolbar-btn">
-                  <template #icon><t-icon name="search" /></template>
-                  搜索
-                </t-button>
-                <t-button theme="default" size="medium" @click="handleReset" class="toolbar-btn">
-                  <template #icon><t-icon name="refresh" /></template>
-                  重置
-                </t-button>
-              </div>
-            </div>
-            <div class="toolbar-right">
-              <t-button theme="primary" size="medium" @click="handleAdd" class="action-btn">
-                <template #icon>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="12" y1="5" x2="12" y2="19" />
-                    <line x1="5" y1="12" x2="19" y2="12" />
-                  </svg>
-                </template>
-                新增
-              </t-button>
-            </div>
-          </div>
-
-          <!-- 页面内容 -->
-          <div class="content-main">
-            <router-view v-slot="{ Component }">
-              <transition :name="transitionName" mode="out-in">
-                <component :is="Component" :key="refreshKey" />
-              </transition>
-            </router-view>
-          </div>
+      <main id="main-content" class="content-body">
+        <!-- 页面内容 -->
+        <div class="content-main">
+          <router-view v-slot="{ Component }">
+            <transition :name="transitionName" mode="out-in">
+              <component v-if="Component" :is="Component" :key="route.fullPath" />
+            </transition>
+          </router-view>
         </div>
       </main>
-
-      <!-- 分页底栏 — 独立于 content-body，不随内容滚动 -->
-      <div v-if="paginationStore.visible" class="content-footer">
-        <div class="content-footer-inner">
-          <t-pagination aria-label="分页导航" v-bind="paginationStore.paginationConfig" />
-        </div>
-      </div>
     </div>
   </div>
 </template>
@@ -364,7 +280,6 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-import { usePaginationStore } from '@/stores/pagination'
 import { useFormulaStore } from '@/stores/formula'
 import { useMaterialStore } from '@/stores/material'
 import { useSalesmanStore } from '@/stores/salesman'
@@ -377,7 +292,6 @@ import { MessagePlugin } from 'tdesign-vue-next'
 const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
-const paginationStore = usePaginationStore()
 const formulaStore = useFormulaStore()
 const materialStore = useMaterialStore()
 const salesmanStore = useSalesmanStore()
@@ -405,7 +319,7 @@ const activePath = computed(() => {
   const path = route.path
   // 按最长前缀匹配，优先精确匹配，再按路径段前缀匹配
   const pathMap = [
-    '/recent-formulas', '/formulas', '/materials', '/salesmen',
+    '/formulas', '/materials', '/salesmen',
     '/exports', '/nutrition', '/tools', '/ai-assistant'
   ]
   for (const key of pathMap) {
@@ -415,8 +329,6 @@ const activePath = computed(() => {
   if (path.includes('/versions')) return '/formulas'
   return path
 })
-const searchKeyword = ref('')
-const contentBodyRef = ref<HTMLElement | null>(null)
 
 // 用户头像首字母
 const userInitial = computed(() => {
@@ -467,7 +379,6 @@ const handleUserMenuClick = (value: string) => {
 // 页面图标映射
 const pageIcon = computed(() => {
   const iconMap: Record<string, string> = {
-    '/recent-formulas': 'time',
     '/formulas': 'edit',
     '/materials': 'chart-bar',
     '/salesmen': 'usergroup',
@@ -488,7 +399,6 @@ const pageIcon = computed(() => {
 // 搜索框占位符
 const searchPlaceholder = computed(() => {
   const placeholderMap: Record<string, string> = {
-    '/recent-formulas': '搜索配方名称或业务员...',
     '/formulas': '搜索配方名称或业务员...',
     '/materials': '搜索原料名称或编码...',
     '/salesmen': '搜索姓名、工号或电话...',
@@ -507,7 +417,6 @@ const searchPlaceholder = computed(() => {
 // 导航菜单项
 const navItems = [
   { path: '/ai-assistant', label: 'AI 助手', icon: 'precise-monitor' },
-  { path: '/recent-formulas', label: '最近配方', icon: 'time' },
   { path: '/formulas', label: '配方管理', icon: 'edit' },
   { path: '/materials', label: '原材管理', icon: 'chart-bar' },
   { path: '/salesmen', label: '业务员管理', icon: 'usergroup' },
@@ -519,16 +428,13 @@ const navItems = [
 // 日期和星期
 const currentDate = ref('')
 const currentWeekday = ref('')
-
-// 今日祝福语
-const todayBlessing = ref('愿你今天灵感如泉涌，创造美好配方！')
+const currentDay = ref('')
 
 // 页面标题 — 优先使用 route.meta.title
 const pageTitle = computed(() => {
   const meta = route.meta?.title as string | undefined
   if (meta) return meta
   const titleMap: Record<string, string> = {
-    '/recent-formulas': '最近配方',
     '/formulas': '配方管理',
     '/materials': '原料管理',
     '/salesmen': '业务员管理',
@@ -573,7 +479,7 @@ const breadcrumbs = computed(() => {
 
   // 列表页无父级，不需要面包屑
   const listPaths = [
-    '/recent-formulas', '/formulas', '/materials', '/salesmen',
+    '/formulas', '/materials', '/salesmen',
     '/exports', '/nutrition', '/tools', '/ai-assistant', '/settings'
   ]
   if (listPaths.includes(path)) return []
@@ -677,17 +583,21 @@ const handleAdd = () => {
     MessagePlugin.info('请从配方列表选择配方进行导出')
   } else if (path === '/nutrition') {
     MessagePlugin.info('请从配方列表选择配方进行营养分析')
-  } else if (path === '/recent-formulas') {
-    MessagePlugin.info('请从配方管理新增配方')
   } else if (path === '/tools') {
     MessagePlugin.info('工具箱功能开发中')
   }
 }
 
 // 刷新子页面
-const refreshKey = ref(0)
 const handleRefresh = () => {
-  refreshKey.value++
+  // 通过导航到同一路由触发组件重建（比 refreshKey 更可靠）
+  router.go(0)
+}
+
+// 刷新天气
+const handleRefreshWeather = async () => {
+  if (weatherStore.loading || weatherStore.geoLoading) return
+  await weatherStore.refresh()
 }
 
 // 后退 — 返回上一级列表页
@@ -709,17 +619,6 @@ const handleGoBack = () => {
 // 前进
 const handleGoForward = () => {
   router.forward()
-}
-
-// 处理搜索 — 通过自定义事件传递给子页面
-const handleSearch = () => {
-  window.dispatchEvent(new CustomEvent('global-search', { detail: searchKeyword.value }))
-}
-
-// 处理重置 — 通过自定义事件通知子页面
-const handleReset = () => {
-  searchKeyword.value = ''
-  window.dispatchEvent(new CustomEvent('global-search', { detail: '' }))
 }
 
 // 处理退出登录
@@ -769,24 +668,10 @@ const updateDateInfo = () => {
   const now = new Date()
   const month = String(now.getMonth() + 1).padStart(2, '0')
   const day = String(now.getDate()).padStart(2, '0')
-  currentDate.value = `${month}月${day}日`
+  currentDay.value = day
+  currentDate.value = `${month}月`
   const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
   currentWeekday.value = weekdays[now.getDay()]
-}
-
-// 随机祝福语
-const blessings = [
-  '愿你今天灵感如泉涌！',
-  '每一份努力都有回报！',
-  '保持热爱，奔赴山海~',
-  '今天的你闪闪发光 ✨',
-  '美好如期而至',
-  '相信自己，加油！'
-]
-
-const updateBlessing = () => {
-  const index = Math.floor(Math.random() * blessings.length)
-  todayBlessing.value = blessings[index]
 }
 
 
@@ -849,7 +734,6 @@ const focusLastNavItem = () => {
 
 onMounted(() => {
   updateDateInfo()
-  updateBlessing()
   weatherStore.init()
 
   // Ctrl+B 切换侧边栏折叠
@@ -871,7 +755,7 @@ onMounted(() => {
   height: 100vh;
   height: 100dvh;
   overflow: hidden;
-  background: $bg-page;
+  background: #F8FAFC; // slate-50 — 匹配参考设计整体背景色
   font-family: 'PingFang SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
@@ -890,7 +774,7 @@ onMounted(() => {
   border-radius: 0;
   position: relative;
   overflow: hidden;
-  border-right: 1px solid $border-color-light;
+  border-right: 1px solid #F1F5F9; // slate-100 — 匹配参考设计 aside 右边框
   box-shadow: $shadow-elevation-1;
   transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
               min-width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
@@ -942,135 +826,118 @@ onMounted(() => {
   50% { transform: translateY(-5px); }
 }
 
-// ─── 个人信息卡片（卡片风格）───
-.sidebar-user-card {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+// ─── 日期 & 天气信息卡片（参照 index.html 设计：左日期右天气）───
+.sidebar-info-card {
   flex-shrink: 0;
-  padding: 12px;
-  background: $bg-page;
-  border-radius: 10px;
-  margin-bottom: 10px;
-  border: 1px solid $border-color-light;
+  margin-bottom: 12px;
+  background: var(--color-primary-dark);
+  border-radius: 16px;
+  padding: 16px;
+  color: #fff;
+  position: relative;
+  overflow: hidden;
 
-  .user-main {
+  .info-card-inner {
+    position: relative;
+    z-index: 1;
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    gap: 8px;
-    flex-shrink: 0;
+  }
 
-    .user-avatar {
-      width: 32px;
-      height: 32px;
-      flex-shrink: 0;
-
-      svg {
-        width: 100%;
-        height: 100%;
-      }
+  // ─── 左侧日期 ──
+  .info-card-date {
+    .info-card-day {
+      font-size: 24px;
+      font-weight: 700;
+      line-height: 1;
+      color: #fff;
     }
 
-    .user-info {
-      .user-name {
+    .info-card-meta {
+      font-size: 12px;
+      opacity: 0.7;
+      margin-top: 4px;
+    }
+  }
+
+  // ─── 右侧天气（右对齐，与参考设计一致）───
+  .info-card-weather {
+    text-align: right;
+
+    // 上行：图标 + 天气文字 + 刷新按钮（flex 右对齐）
+    .weather-top-row {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 4px;
+      margin-bottom: 2px;
+
+      .weather-icon-text {
+        font-size: 16px;
+        line-height: 1;
+      }
+
+      .weather-status {
         font-size: 13px;
-        font-weight: 600;
-        color: $text-primary;
-        line-height: 1.3;
-      }
-
-      .user-role {
-        font-size: 10px;
-        background: linear-gradient(135deg, var(--color-primary-lighter), var(--color-primary-light));
-        color: white;
-        padding: 1px 6px;
-        border-radius: 6px;
-        display: inline-block;
-        margin-top: 2px;
+        font-weight: 500;
       }
     }
-  }
 
-  .user-blessing {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    padding: 6px 8px;
-    background: $bg-container;
-    border-radius: 8px;
-    border-left: 3px solid var(--color-primary-lighter);
-
-    .blessing-icon {
+    // 下行：温度 · 城市（小字半透明，与参考设计一致）
+    .weather-bottom {
       font-size: 12px;
-      animation: heartBeat 1.5s ease-in-out infinite;
-      flex-shrink: 0;
+      opacity: 0.7;
+      margin: 0;
+      white-space: nowrap;
     }
 
-    .blessing-text {
-      font-size: 11px;
-      color: $text-secondary;
-      line-height: 1.4;
-      font-weight: 500;
-      white-space: normal;
-      word-break: break-all;
-    }
-  }
-}
-
-@keyframes heartBeat {
-  0%, 100% { transform: scale(1); }
-  15% { transform: scale(1.2); }
-  30% { transform: scale(1); }
-  45% { transform: scale(1.15); }
-}
-
-// ─── 日期 & 天气并排 ───
-.sidebar-info-row {
-  display: flex;
-  gap: 8px;
-
-  .info-chip {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 8px;
-    background: $bg-page;
-    border-radius: 8px;
-    border: 1px solid $border-color-light;
-    transition: all 0.3s;
-
-    &:hover {
-      box-shadow: $shadow-xs;
-    }
-  }
-
-  .info-date svg {
-    color: var(--color-primary);
-    flex-shrink: 0;
-  }
-
-  .weather-icon {
-    font-size: 18px;
-    flex-shrink: 0;
-  }
-
-  .chip-text {
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-
-    .chip-main {
-      font-size: 12px;
-      font-weight: 600;
-      color: $text-primary;
-      line-height: 1.3;
+    // ─── 刷新按钮（精致小巧，融入设计）───
+    @keyframes refresh-spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
     }
 
-    .chip-sub {
-      font-size: 10px;
-      color: $text-secondary;
-      line-height: 1.3;
+    .weather-refresh-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+      border: none;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.12);
+      color: rgba(255, 255, 255, 0.75);
+      cursor: pointer;
+      transition: all 0.25s ease;
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.25);
+        color: #fff;
+        transform: rotate(90deg);
+      }
+
+      &:active {
+        transform: scale(0.88) rotate(90deg);
+      }
+
+      &:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+      }
+
+      &.is-refreshing {
+        pointer-events: none;
+        .refresh-svg {
+          animation: refresh-spin 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
+        }
+      }
+
+      .refresh-svg {
+        width: 12px;
+        height: 12px;
+        transition: transform 0.3s ease;
+      }
     }
   }
 }
@@ -1329,76 +1196,98 @@ onMounted(() => {
 }
 
 // ═══════════════════════════════════════
-//  RIGHT CONTENT — 仅此区域滚动
+//  RIGHT CONTENT — 与 index.html main 区域一致
 // ═══════════════════════════════════════
 .right-content {
   flex: 1;
   display: flex;
   flex-direction: column;
   min-width: 0;
-  overflow: hidden;
-  gap: 2px;
-  padding: 8px 16px;
+  overflow-y: auto; // 页面滚动参照 index.html
+  padding: 32px; // p-8 与 index.html main 区域一致
+
+  &.no-top-padding {
+    padding-top: 0; // hideHeader 页面消除顶部间距（子组件自带 detail-header）
+  }
 }
 
-// ─── 内容头部（Level 1 玻璃态 — Header 层级）───
+// ─── 内容头部（Clean Minimalist 风格 — 匹配参考设计顶栏）───
 .content-header {
   flex-shrink: 0;
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 8px 14px;
-  background: $overlay-white-92;
-  backdrop-filter: blur(12px);
-  border-radius: 14px;
-  border: 1.5px solid var(--overlay-brand-lighter-20);
-  box-shadow: 0 2px 12px var(--overlay-brand-08);
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+  // 去除玻璃态，改为简洁透明（匹配参考设计的无背景顶栏）
 
-  // 左侧：图标 + 标题 — 左对齐
+  // 左侧：图标 + 面包屑
   .header-left {
     display: flex;
     align-items: center;
-    gap: 10px;
-    flex-shrink: 0;
-
-    .header-nav-buttons {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-left: 16px;
-      padding-left: 16px;
-      border-left: 1.5px solid var(--overlay-brand-lighter-25);
-    }
+    gap: 8px;
+    flex-shrink: 1;
+    min-width: 0;
 
     .title-icon {
       display: flex;
       align-items: center;
       color: var(--color-primary);
       line-height: 1;
+      flex-shrink: 0;
     }
   }
 
-  // 统一按钮样式（后退、前进、刷新、锁屏）— 尺寸由全局覆盖
-  .header-btn {
-    flex-shrink: 0;
-
-    &.t-button--theme-default {
-      &:hover {
-        background: linear-gradient(135deg, var(--color-primary-light), var(--color-primary)) !important;
-        color: white !important;
-        border-color: var(--color-primary) !important;
-        :deep(.t-button__icon) { color: white !important; }
-      }
-    }
-  }
-
-  // 右侧：导航 + 操作按钮
-  .header-actions {
+  // ─── 圆形导航按钮组（参考设计 w-10 h-10 rounded-full）───
+  .header-nav-buttons {
     display: flex;
     align-items: center;
     gap: 8px;
     flex-shrink: 0;
-    margin-left: auto;
+
+    .nav-circle-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 9999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #fff;
+      border: 1px solid $border-color-light;
+      color: $text-secondary; // slate-600 ≈ #475569
+      cursor: pointer;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+
+      svg {
+        flex-shrink: 0;
+      }
+
+      &:hover {
+        background: #F8FAFC; // slate-50
+        border-color: #E2E8F0; // slate-200
+        color: var(--color-primary);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06); // shadow-sm
+      }
+
+      &:active {
+        transform: scale(0.96);
+      }
+
+      &:focus-visible {
+        outline: none;
+        border-color: var(--color-primary);
+        box-shadow: 0 0 0 2px var(--color-primary-bg);
+      }
+    }
+  }
+
+  // 右侧：导航按钮 + 用户区
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
 
     .header-user-section {
       display: flex;
@@ -1406,45 +1295,60 @@ onMounted(() => {
       gap: 8px;
     }
 
+    // ─── 胶囊形用户头像区（参考设计 rounded-full p-1.5 pr-4）───
     .user-avatar-wrapper {
       display: flex;
       align-items: center;
-      gap: 4px;
+      gap: 6px;
       cursor: pointer;
-      padding: 2px 6px;
-      border-radius: 10px;
-      transition: all 0.3s ease;
+      padding: 6px 16px 6px 6px; // p-1.5 pr-4 → 6px 16px
+      border-radius: 9999px; // rounded-full / pill shape
+      background: #fff;
+      border: 1px solid $border-color-light;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05); // shadow-sm
+      transition: all 0.25s ease;
 
-      &:hover {
-        background: var(--overlay-brand-08);
-      }
-
-      .user-avatar {
+      .user-avatar-wrap {
         width: 32px;
         height: 32px;
         border-radius: 50%;
-        background: linear-gradient(135deg, var(--color-primary-light), var(--color-primary));
-        color: white;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 14px;
-        font-weight: 700;
+        overflow: hidden;
         flex-shrink: 0;
-        box-shadow: var(--shadow-brand-xs);
+        border: 2px solid var(--color-primary-bg);
+
+        .user-avatar-img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          display: block;
+        }
+      }
+
+      .user-display-name {
+        font-size: 14px;
+        font-weight: 500;
+        color: $text-primary; // slate-900
+        white-space: nowrap;
+        line-height: 1;
       }
 
       .user-avatar-arrow {
-        color: var(--color-primary-light);
+        color: $text-secondary; // slate-400
         flex-shrink: 0;
         transition: transform 0.3s ease;
       }
 
-      &:hover .user-avatar-arrow {
-        transform: rotate(180deg);
+      &:hover {
+        background: #F8FAFC; // slate-50
+        border-color: #E2E8F0; // slate-200
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+
+        .user-avatar-arrow {
+          transform: rotate(180deg);
+          color: var(--color-primary);
+        }
       }
     }
-
   }
 }
 
@@ -1545,174 +1449,14 @@ onMounted(() => {
   }
 }
 
-// ─── 滚动内容卡片（Level 1 玻璃态 — Header 层级）───
+// ─── 主体内容区域（参照 index.html 设计，取消内部滚动）───
 .content-body {
   flex: 1;
   min-height: 0;
-  overflow-y: auto;
-  background: $overlay-white-92;
-  backdrop-filter: blur(12px);
-  border-radius: 14px;
-  border: 1.5px solid var(--overlay-brand-lighter-20);
-  box-shadow: 0 2px 12px var(--overlay-brand-08);
-  scrollbar-width: thin;
-  scrollbar-color: var(--overlay-brand-20) transparent;
 
-  &::-webkit-scrollbar { width: 6px; }
-  &::-webkit-scrollbar-track { background: transparent; }
-  &::-webkit-scrollbar-thumb {
-    background: var(--overlay-brand-20);
-    border-radius: 3px;
-    &:hover { background: var(--overlay-brand-40); }
-  }
-
-  .content-body-wrapper {
+  .content-main {
     position: relative;
-    padding: 16px 20px;
-    min-height: 100%;
-
-    // 工具栏：左侧搜索/重置，右侧新增
-    .content-toolbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      padding-bottom: 12px;
-      flex-shrink: 0;
-
-      .toolbar-left {
-        flex-shrink: 0;
-
-        .header-search {
-          display: flex;
-            align-items: center;
-            gap: 8px;
-
-            .search-input {
-              width: 320px;
-
-            :deep(.t-input) {
-              height: 32px;
-              border-radius: 10px;
-              border: 1.5px solid var(--color-primary-lightest);
-              background: var(--overlay-brand-bg-30);
-
-              &:hover { border-color: var(--color-primary-lighter); }
-              &:focus-within {
-                border-color: var(--color-primary-light);
-                box-shadow: 0 0 0 3px var(--overlay-brand-10);
-              }
-
-              .t-input__wrap { color: $text-primary; font-size: 12px; }
-              .t-input__prefix { color: var(--color-primary-light); }
-            }
-          }
-
-          .toolbar-btn {
-            flex-shrink: 0;
-          }
-        }
-      }
-
-      .toolbar-right {
-        flex-shrink: 0;
-
-        .action-btn {
-          flex-shrink: 0;
-          transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-
-          &.t-button--theme-primary {
-            box-shadow: var(--shadow-brand-md);
-
-            &:hover {
-              transform: translateY(-2px);
-              box-shadow: var(--shadow-brand-lg);
-            }
-          }
-        }
-      }
-    }
-
-    .content-main {
-      position: relative;
-      z-index: 1;
-
-      // 表格边框装饰（td/hover/padding 等由全局 _td-overrides.scss 统一覆盖）
-      :deep(.t-table) {
-        border: 1px solid var(--overlay-brand-lighter-15);
-      }
-    }
-  }
-}
-
-// ─── 分页底栏 — 独立于 content-body，不随内容滚动（Level 1 玻璃态）───
-.content-footer {
-  flex-shrink: 0;
-  padding: 6px 16px;
-  background: $overlay-white-92;
-  backdrop-filter: blur(12px);
-  border-radius: 14px;
-  border: 1.5px solid var(--overlay-brand-lighter-20);
-  box-shadow: 0 2px 12px var(--overlay-brand-08);
-
-  .content-footer-inner {
-    display: flex;
-    justify-content: flex-end;
-
-    // ─── 分页组件主题色 ───
-    :deep(.t-pagination) {
-      .t-pagination__total {
-        color: $text-secondary;
-        font-size: 13px;
-      }
-
-      .t-pagination__btn {
-        color: $text-primary;
-        border-radius: 8px;
-        min-width: 32px;
-        height: 32px;
-        border: 1px solid transparent;
-        transition: all 0.3s;
-
-        &:hover:not(.t-is-disabled):not(.t-is-current) {
-          color: var(--color-primary);
-          border-color: var(--color-primary-lighter);
-          background: var(--overlay-brand-08);
-        }
-      }
-
-      .t-is-current {
-        background: linear-gradient(135deg, var(--color-primary-light), var(--color-primary)) !important;
-        color: white !important;
-        border-radius: 8px !important;
-        border: none !important;
-        box-shadow: var(--shadow-brand-md);
-        font-weight: 600;
-      }
-
-      .t-pagination__select {
-        border-color: var(--color-primary-lightest) !important;
-        border-radius: 8px !important;
-        color: $text-primary !important;
-
-        &:hover {
-          border-color: var(--color-primary-lighter) !important;
-        }
-      }
-
-      .t-pagination__jumper-input {
-        border-color: var(--color-primary-lightest) !important;
-        border-radius: 8px !important;
-        color: $text-primary !important;
-        width: 48px;
-
-        &:focus,
-        &:hover {
-          border-color: var(--color-primary-light) !important;
-          box-shadow: 0 0 0 2px var(--overlay-brand-10);
-        }
-      }
-    }
+    z-index: 1;
   }
 }
 
@@ -1772,7 +1516,7 @@ onMounted(() => {
   }
 }
 
-// ─── 面包屑 ───
+// ─── 面包屑（参考设计 text-sm text-slate-500 + 当前页品牌色）───
 .header-title-area {
   display: flex;
   align-items: center;
@@ -1780,22 +1524,25 @@ onMounted(() => {
 
   .content-breadcrumb {
     :deep(.t-breadcrumb) {
-      font-size: 14px;
+      font-size: 14px; // text-sm
 
       .t-breadcrumb-item {
         .t-breadcrumb__inner {
-          color: $text-secondary;
-          &:hover { color: var(--color-primary); }
+          color: var(--color-primary); // 绿色主题色，一直显示
+          font-weight: 400;
         }
+      }
 
-        &:last-child .t-breadcrumb__inner {
-          color: $text-primary;
-          font-weight: 600;
+      // 当前页：固定绿色 #10B981 (rgb(16, 185, 129)) + medium
+      .t-breadcrumb-item.breadcrumb-current {
+        .t-breadcrumb__inner {
+          color: #10B981 !important;
+          font-weight: 500 !important;
         }
       }
 
       .t-breadcrumb__separator {
-        color: $text-caption-muted;
+        color: #94A3B8; // slate-400
       }
     }
   }
@@ -1827,23 +1574,13 @@ onMounted(() => {
   }
 
   .right-content {
-    gap: 8px;
-    padding: 8px 12px;
+    padding: 24px; // 缩小为 p-6 以适应较小屏幕
   }
 
   .content-header {
     flex-wrap: wrap;
-    padding: 10px 14px;
-  }
-
-  .content-body {
-    .content-body-wrapper {
-      padding: 14px 16px;
-    }
-  }
-
-  .content-footer {
-    padding: 8px 14px;
+    gap: 12px;
+    margin-bottom: 24px; // 缩小底部间距
   }
 }
 
@@ -1908,31 +1645,22 @@ onMounted(() => {
 
   .right-content {
     flex: 1;
-    gap: 8px;
-    padding: 6px 10px;
+    padding: 16px; // 缩小为 p-4 以适应移动端
   }
 
   .content-header {
     flex-direction: column;
     gap: 12px;
     align-items: stretch;
+    margin-bottom: 16px;
 
     .header-left {
-      .header-nav-buttons {
-        margin-left: 0;
-        padding-left: 0;
-        border-left: none;
-      }
+      flex-wrap: wrap;
+      gap: 8px;
     }
-  }
 
-  .content-body {
-    .content-body-wrapper {
-      .content-toolbar {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 8px;
-      }
+    .header-actions {
+      justify-content: space-between;
     }
   }
 

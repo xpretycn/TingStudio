@@ -1,6 +1,6 @@
 # TingStudio v2.0 开发计划
 
-> 更新日期：2026-04-02（阶段十二已完成）
+> 更新日期：2026-04-06（阶段十三已完成）
 
 ---
 
@@ -23,6 +23,7 @@
 | 首页/主布局 | - | ✅ 完整 | - | 100% |
 | 工具箱 | - | ⚠️ 天气卡片 | - | 30% |
 | 天气服务 | - | ✅ 完整（侧边栏 + 工具箱） | ✅ | 100% |
+| 配方详情页 UI 打磨 | ✅ 接口扩展 + 布局优化 | ✅ 完整 | - | 100% |
 
 ### 1.2 已完成的基础设施
 
@@ -750,6 +751,67 @@ $breakpoint-small: 480px;
 - [x] 30 分钟缓存避免频繁 API 调用
 - [x] 个人资料修改/密码修改功能正常
 - [x] 邮箱/手机号唯一性校验
+
+### 阶段十三：配方详情页 UI 精细打磨与数据完整性（P0）— ✅ 已完成
+
+> 版本号：v2.15.0 | 完成日期：2026-04-06
+
+#### 13.1 配方详情页数据完善
+
+**目标**：消除详情页空数据显示，确保关联业务员/需求/版本历史从数据库获取真实数据
+
+| 变更项 | 技术方案 | 涉及文件 |
+|--------|----------|----------|
+| 业务员信息填充 | `getFormulaNutritionTables` 接口新增 salesman_id → salesmen 表关联查询 | `nutritionController.ts` |
+| 需求信息提取 | 从 formulas.description 提取需求描述填充 demandTitle/demandDesc | `nutritionController.ts` |
+| 版本历史数据化 | 新增 `getVersionHistory()` 函数查询 formula_versions 表最近 3 条记录 | `nutritionController.ts` |
+
+**后端接口返回数据扩展**：
+```typescript
+{
+  // 新增字段
+  formulaId: string,
+  ratioFactor: number,
+  salesmanName: string,      // 从 salesmen 表获取
+  salesmanDept: string,      // 业务员部门
+  demandTitle: string|null,  // 需求标题
+  demandCode: string,        // 需求编码（formula.id）
+  demandDesc: string|null,   // 需求描述
+  versionHistory: any[],     // 真实版本历史数据
+}
+```
+
+#### 13.2 配方详情页布局优化
+
+**目标**：按参考设计（recipe-detail.html）还原成品总重样式，优化表格区域比例和间距
+
+| 变更项 | 说明 |
+|--------|------|
+| 成品总重位置 | 从左侧副标题移至表头右侧，白底圆角徽章样式（bg-white rounded-2xl shadow-sm） |
+| 双栏比例 | 营养成分表 : 使用说明 = 6fr : 4fr（原 1:1） |
+| 营养表列合并 | "每100克(g)" + "单位" 合并为单列"每100克含量"，数值+单位同格显示 |
+| 底部内边距 | calc-table 增加 padding-bottom: $space-6；detail-main 增加 padding-bottom: $space-6 |
+| 导出导航 | 导出按钮跳转 `/exports?formulaId=xxx&formulaName=xxx` 回填配方名称 |
+
+#### 13.3 FormulaList 主题色适配
+
+**目标**：版本记录区域的 t-tag 和文本样式跟随品牌主题色动态变化
+
+| 变更项 | 说明 |
+|--------|------|
+| 当前标签 | `var(--color-primary)` 品牌色背景 + 白字 |
+| 已发布标签 | `--color-primary-lightest` 浅底 + 品牌色文字 |
+| version-reason | 移除 `$brand-primary-bg` 背景色，改用 `var(--color-primary)` 文字颜色 |
+
+#### 验收标准
+
+- [x] 关联业务员与需求信息显示真实数据（非占位符）
+- [x] 变更记录时间线显示 formula_versions 表中的历史版本
+- [x] 成品总重位于表头右侧，白底圆角徽章样式与参考设计一致
+- [x] 营养成分表与使用说明列比例为 6:4
+- [x] 营养表每100克数值+单位合并为单列显示
+- [x] 导出按钮正确跳转并回填配方名称
+- [x] FormulaList 版本标签跟随品牌主题色
 
 ## 四、注意事项
 

@@ -147,7 +147,12 @@ export async function calculateFormulaNutrition(req: any, res: Response) {
       return
     }
 
-    const materials = safeJsonParse(formula.materials_json, [])
+    // 安全解析 materials_json（可能存在双重编码）
+    let materials = safeJsonParse(formula.materials_json, [])
+    if (typeof materials === 'string') {
+      try { materials = JSON.parse(materials) } catch (_) { materials = [] }
+    }
+    if (!Array.isArray(materials)) materials = []
     const formulaRatioFactor = formula.ratio_factor ?? 0.18
 
     // 获取每个原料的营养数据
@@ -631,30 +636,72 @@ export async function getFormulaNutritionTables(req: any, res: Response) {
   try {
     const { formulaId } = req.params
 
+    // 检查 formulas 表是否包含必要列，避免旧数据库报错
+    let dbHasSupplementRatio = true
+    try {
+      const [[testRow]]: any[][] = await query(
+        "SELECT supplement_ratio_factor FROM formulas LIMIT 1", []
+      )
+      dbHasSupplementRatio = true
+    } catch (_err) {
+      dbHasSupplementRatio = false
+      console.warn('[Nutrition] 数据库缺少 supplement_ratio_factor 列，将使用默认值 1.0')
+    }
+
     const [[formula]]: any[][] = await query('SELECT * FROM formulas WHERE id = ?', [formulaId])
     if (!formula) {
       res.status(404).json({ success: false, message: '配方不存在' })
       return
     }
 
-    const materials = safeJsonParse(formula.materials_json, [])
+    // 查询关联的业务员详细信息（部门等）
+    let salesmanInfo: Record<string, any> | null = null
+    if (formula.salesman_id) {
+      const [[sm]]: any[][] = await query(
+        'SELECT id, name, code, department, phone, email FROM salesmen WHERE id = ?',
+        [formula.salesman_id]
+      )
+      if (sm) {
+        salesmanInfo = rowToCamelCase(sm)
+      }
+    }
+
+    // 安全解析 materials_json（可能存在双重编码）
+    let materials = safeJsonParse(formula.materials_json, [])
+    if (typeof materials === 'string') {
+      try { materials = JSON.parse(materials) } catch (_) { materials = [] }
+    }
+    if (!Array.isArray(materials)) {
+      console.warn('[Nutrition] materials_json 解析后非数组，原始值前200字:', String(formula.materials_json).substring(0, 200))
+      materials = []
+    }
     const NUTRIENT_COLS = ['protein', 'fat', 'carbohydrate', 'sodium'] as const
-    const finishedWeight = formula.finished_weight || 0
-    const formulaRatioFactor = formula.ratio_factor ?? 0.18
-    const supplementRatioFactor = formula.supplement_ratio_factor ?? 1.0
+    const finishedWeight = Number(formula.finished_weight) || 0
+    const formulaRatioFactor = Number(formula.ratio_factor) || 0.18
+    const supplementRatioFactor = dbHasSupplementRatio ? (Number(formula.supplement_ratio_factor) || 1.0) : 1.0
 
     // 批量获取所有原料的类型（区分药材和辅料）
     // ratio_factor 现在存储在 formulas 表中，不再从 materials 表获取
+    // 批量获取所有原料的类型（区分药材和辅料）
+    // 注意：直接 SELECT 返回的行是原始 snake_case 键名，不是 camelCase
     const materialTypes: Record<string, string> = {}
     if (materials.length > 0) {
-      const matIds = materials.map((m: any) => m.materialId)
-      const placeholders = matIds.map(() => '?').join(',')
-      const [matRows]: any[] = await query(
-        `SELECT id, material_type FROM materials WHERE id IN (${placeholders})`,
-        matIds
-      )
-      for (const row of matRows) {
-        materialTypes[row.id] = row.material_type || 'herb'
+      try {
+        const matIds = materials.map((m: any) => m.materialId).filter(Boolean)
+        console.log(`[Nutrition] 配方原料数: ${materials.length}, 有效ID数: ${matIds.length}`)
+        if (matIds.length > 0) {
+          const placeholders = matIds.map(() => '?').join(',')
+          const sql = `SELECT id, material_type FROM materials WHERE id IN (${placeholders})`
+          const [matRows]: any[] = await query(sql, matIds)
+          for (const row of matRows) {
+            materialTypes[row.id] = row.material_type || 'herb'
+          }
+          console.log(`[Nutrition] 查询到 ${matRows.length}/${matIds.length} 个原料类型`)
+        }
+      } catch (err: any) {
+        console.error('[Nutrition] material_type 查询失败:', err.message)
+        // 打印完整错误堆栈以便排查
+        if (err.stack) console.error('[Nutrition] 堆栈:', err.stack)
       }
     }
 
@@ -838,8 +885,20 @@ export async function getFormulaNutritionTables(req: any, res: Response) {
     }
 
     res.json(success({
+      // 配方基础信息
+      formulaId: formula.id,
       formulaName: formula.name,
       finishedWeight,
+      ratioFactor: formulaRatioFactor,
+      // 业务员信息
+      salesmanName: salesmanInfo?.name || formula.salesman_name || '',
+      salesmanDept: salesmanInfo?.department || '',
+      // 需求信息（从 description 提取）
+      demandTitle: formula.description ? `配方需求：${formula.name}` : null,
+      demandCode: formula.id,
+      demandDesc: formula.description,
+      demandPriority: null,
+      // 营养计算数据
       totalWeight: totalQuantity,
       calcRows,
       summaryRow,
@@ -847,8 +906,30 @@ export async function getFormulaNutritionTables(req: any, res: Response) {
       nrvPercentRow,
       labelRows,
       missingNutritionMaterials,
+      // 版本历史（取最近3条，排除当前版本）
+      versionHistory: await getVersionHistory(formulaId),
     }))
   } catch (error: any) {
+    console.error('[Nutrition] getFormulaNutritionTables 错误:', error.message)
+    console.error('[Nutrition] 错误堆栈:', error.stack)
     res.status(500).json({ success: false, message: '获取营养计算表格失败', error: error.message })
+  }
+}
+
+/** 获取配方的版本历史（用于详情页时间线展示） */
+async function getVersionHistory(formulaId: string): Promise<any[]> {
+  try {
+    const [versions]: any[] = await query(
+      `SELECT version_number, version_name, version_reason as note,
+              created_by, created_at, status
+       FROM formula_versions
+       WHERE formula_id = ? AND is_current = 0
+       ORDER BY created_at DESC LIMIT 3`,
+      [formulaId]
+    )
+    return rowsToCamelCase(versions)
+  } catch (err) {
+    console.error('[Nutrition] getVersionHistory 查询失败:', err)
+    return []
   }
 }
