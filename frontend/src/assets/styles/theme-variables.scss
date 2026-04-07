@@ -3,33 +3,33 @@
 // 双维度：data-brand (pink/yellow/blue/green) x data-theme (light/dark)
 // ═══════════════════════════════════════════════════════════════
 
-@use './variables.scss' as *;
+@use "./variables.scss" as *;
 
 // ═══════════════════════════════════════════════════════════════
 // 1. :root 默认值（粉色亮色 — 向后兼容，无 data-brand 时生效）
 // ═══════════════════════════════════════════════════════════════
 :root {
   // ─── 品牌色（粉色默认）───
-  --color-primary:            #{$brand-primary};
-  --color-primary-light:      #{$brand-primary-light};
-  --color-primary-lighter:    #{$brand-primary-lighter};
-  --color-primary-lightest:   #{$brand-primary-lightest};
-  --color-primary-bg:         #{$brand-primary-bg};
-  --color-primary-dark:       #{$brand-primary-dark};
-  --color-primary-deep:       #C94D6A;
+  --color-primary: #{$brand-primary};
+  --color-primary-light: #{$brand-primary-light};
+  --color-primary-lighter: #{$brand-primary-lighter};
+  --color-primary-lightest: #{$brand-primary-lightest};
+  --color-primary-bg: #{$brand-primary-bg};
+  --color-primary-dark: #{$brand-primary-dark};
+  --color-primary-deep: #c94d6a;
 
   // ─── 品牌色 alpha 系列 ───
-  --overlay-brand-05:     rgba(255, 143, 171, 0.05);
-  --overlay-brand-08:     rgba(255, 143, 171, 0.08);
-  --overlay-brand-10:     rgba(255, 143, 171, 0.1);
-  --overlay-brand-12:     rgba(255, 143, 171, 0.12);
-  --overlay-brand-15:     rgba(255, 143, 171, 0.15);
-  --overlay-brand-20:     rgba(255, 143, 171, 0.2);
-  --overlay-brand-25:     rgba(255, 143, 171, 0.25);
-  --overlay-brand-30:     rgba(255, 143, 171, 0.3);
-  --overlay-brand-35:     rgba(255, 143, 171, 0.35);
-  --overlay-brand-40:     rgba(255, 143, 171, 0.4);
-  --overlay-brand-45:     rgba(255, 143, 171, 0.45);
+  --overlay-brand-05: rgba(255, 143, 171, 0.05);
+  --overlay-brand-08: rgba(255, 143, 171, 0.08);
+  --overlay-brand-10: rgba(255, 143, 171, 0.1);
+  --overlay-brand-12: rgba(255, 143, 171, 0.12);
+  --overlay-brand-15: rgba(255, 143, 171, 0.15);
+  --overlay-brand-20: rgba(255, 143, 171, 0.2);
+  --overlay-brand-25: rgba(255, 143, 171, 0.25);
+  --overlay-brand-30: rgba(255, 143, 171, 0.3);
+  --overlay-brand-35: rgba(255, 143, 171, 0.35);
+  --overlay-brand-40: rgba(255, 143, 171, 0.4);
+  --overlay-brand-45: rgba(255, 143, 171, 0.45);
 
   // 浅品牌色 alpha 系列（基于 primary-lighter）
   --overlay-brand-lighter-15: rgba(255, 181, 200, 0.15);
@@ -38,65 +38,65 @@
   --overlay-brand-lighter-30: rgba(255, 181, 200, 0.3);
 
   // 品牌色 bg alpha 系列
-  --overlay-brand-bg-15:  rgba(255, 220, 230, 0.15);
-  --overlay-brand-bg-30:  rgba(255, 240, 243, 0.3);
-  --overlay-brand-bg-40:  rgba(255, 240, 243, 0.4);
-  --overlay-brand-bg-50:  rgba(255, 240, 243, 0.5);
-  --overlay-brand-bg-60:  rgba(255, 240, 243, 0.6);
+  --overlay-brand-bg-15: rgba(255, 220, 230, 0.15);
+  --overlay-brand-bg-30: rgba(255, 240, 243, 0.3);
+  --overlay-brand-bg-40: rgba(255, 240, 243, 0.4);
+  --overlay-brand-bg-50: rgba(255, 240, 243, 0.5);
+  --overlay-brand-bg-60: rgba(255, 240, 243, 0.6);
 
   // 品牌色阴影
-  --shadow-brand:     0 2px 8px rgba(255, 107, 138, 0.25);
-  --shadow-brand-xs:  0 2px 8px rgba(255, 107, 138, 0.15);
-  --shadow-brand-sm:  0 4px 12px rgba(255, 107, 138, 0.25);
-  --shadow-brand-md:  0 4px 16px rgba(255, 107, 138, 0.3);
-  --shadow-brand-lg:  0 8px 24px rgba(255, 107, 138, 0.4);
+  --shadow-brand: 0 2px 8px rgba(255, 107, 138, 0.25);
+  --shadow-brand-xs: 0 2px 8px rgba(255, 107, 138, 0.15);
+  --shadow-brand-sm: 0 4px 12px rgba(255, 107, 138, 0.25);
+  --shadow-brand-md: 0 4px 16px rgba(255, 107, 138, 0.3);
+  --shadow-brand-lg: 0 8px 24px rgba(255, 107, 138, 0.4);
 
   // 品牌色渐变
-  --gradient-brand: linear-gradient(135deg, #FF8FAB 0%, #FF6B8A 50%, #E8A0B0 100%);
-  --gradient-btn:   linear-gradient(135deg, #FF8FAB 0%, #FF6B8A 100%);
-  --gradient-btn-hover: linear-gradient(135deg, #FFB5C8 0%, #FF8FAB 100%);
+  --gradient-brand: linear-gradient(135deg, #ff8fab 0%, #ff6b8a 50%, #e8a0b0 100%);
+  --gradient-btn: linear-gradient(135deg, #ff8fab 0%, #ff6b8a 100%);
+  --gradient-btn-hover: linear-gradient(135deg, #ffb5c8 0%, #ff8fab 100%);
 
   // ─── 背景色（亮色）───
-  --color-bg-page:            #{$bg-page};
-  --color-bg-container:       #{$bg-container};
-  --color-bg-container-alt:   #{$bg-container-alt};
-  --color-bg-hover:           #{$bg-hover};
+  --color-bg-page: #{$bg-page};
+  --color-bg-container: #{$bg-container};
+  --color-bg-container-alt: #{$bg-container-alt};
+  --color-bg-hover: #{$bg-hover};
 
   // ─── 文字色（亮色）───
-  --color-text-primary:       #{$text-primary};
-  --color-text-regular:       #{$text-regular};
-  --color-text-secondary:     #{$text-secondary};
-  --color-text-placeholder:   #{$text-placeholder};
-  --color-text-white:         #{$text-white};
-  --color-text-white-80:      #{$text-white-80};
-  --color-text-white-60:      #{$text-white-60};
+  --color-text-primary: #{$text-primary};
+  --color-text-regular: #{$text-regular};
+  --color-text-secondary: #{$text-secondary};
+  --color-text-placeholder: #{$text-placeholder};
+  --color-text-white: #{$text-white};
+  --color-text-white-80: #{$text-white-80};
+  --color-text-white-60: #{$text-white-60};
 
   // ─── 边框色（亮色）───
-  --color-border:             #{$border-color};
-  --color-border-light:       #{$border-color-light};
+  --color-border: #{$border-color};
+  --color-border-light: #{$border-color-light};
 
   // ─── 状态色 ───
-  --color-success:            #{$color-success};
-  --color-warning:            #{$color-warning};
-  --color-danger:             #{$color-danger};
-  --color-info:               #{$color-info};
+  --color-success: #{$color-success};
+  --color-warning: #{$color-warning};
+  --color-danger: #{$color-danger};
+  --color-info: #{$color-info};
 
   // ─── 装饰色 ───
-  --color-blush:              #{$color-blush};
-  --color-ear:                #{$color-ear};
-  --color-skin:               #{$color-skin};
-  --color-lavender:           #{$color-lavender};
-  --color-lavender-alpha:     rgba(240, 230, 255, 0.08);
+  --color-blush: #{$color-blush};
+  --color-ear: #{$color-ear};
+  --color-skin: #{$color-skin};
+  --color-lavender: #{$color-lavender};
+  --color-lavender-alpha: rgba(240, 230, 255, 0.08);
 
   // ─── 通用阴影（亮色）───
-  --shadow-xs:        #{$shadow-xs};
-  --shadow-sm:        #{$shadow-sm};
-  --shadow-md:        #{$shadow-md};
-  --shadow-lg:        #{$shadow-lg};
-  --shadow-xl:        #{$shadow-xl};
-  --shadow-float:     #{$shadow-float};
-  --shadow-aside:     #{$shadow-aside};
-  --shadow-header:    #{$shadow-header};
+  --shadow-xs: #{$shadow-xs};
+  --shadow-sm: #{$shadow-sm};
+  --shadow-md: #{$shadow-md};
+  --shadow-lg: #{$shadow-lg};
+  --shadow-xl: #{$shadow-xl};
+  --shadow-float: #{$shadow-float};
+  --shadow-aside: #{$shadow-aside};
+  --shadow-header: #{$shadow-header};
 
   --shadow-elevation-1: #{$shadow-elevation-1};
   --shadow-elevation-2: #{$shadow-elevation-2};
@@ -104,51 +104,51 @@
   --shadow-elevation-4: #{$shadow-elevation-4};
 
   // ─── 圆角 ───
-  --radius-xs:    #{$radius-xs};
-  --radius-sm:    #{$radius-sm};
-  --radius-md:    #{$radius-md};
-  --radius-lg:    #{$radius-lg};
-  --radius-xl:    #{$radius-xl};
-  --radius-2xl:   #{$radius-2xl};
-  --radius-3xl:   #{$radius-3xl};
-  --radius-pill:  #{$radius-pill};
+  --radius-xs: #{$radius-xs};
+  --radius-sm: #{$radius-sm};
+  --radius-md: #{$radius-md};
+  --radius-lg: #{$radius-lg};
+  --radius-xl: #{$radius-xl};
+  --radius-2xl: #{$radius-2xl};
+  --radius-3xl: #{$radius-3xl};
+  --radius-pill: #{$radius-pill};
 
   // ─── 过渡 ───
-  --transition-fast:   #{$transition-fast};
+  --transition-fast: #{$transition-fast};
   --transition-normal: #{$transition-normal};
-  --transition-slow:   #{$transition-slow};
+  --transition-slow: #{$transition-slow};
   --transition-smooth: #{$transition-smooth};
 
   // ─── 布局 ───
-  --header-height:   #{$header-height};
-  --aside-width:     #{$aside-width};
+  --header-height: #{$header-height};
+  --aside-width: #{$aside-width};
   --content-padding: #{$content-padding};
-  --sidebar-width:   #{$sidebar-width};
+  --sidebar-width: #{$sidebar-width};
 
   // ─── 字体 ───
-  --font-size-display:   #{$font-size-display};
-  --font-size-h1:        #{$font-size-h1};
-  --font-size-h2:        #{$font-size-h2};
-  --font-size-h3:        #{$font-size-h3};
-  --font-size-body:      #{$font-size-body};
-  --font-size-body-sm:   #{$font-size-body-sm};
-  --font-size-caption:   #{$font-size-caption};
+  --font-size-display: #{$font-size-display};
+  --font-size-h1: #{$font-size-h1};
+  --font-size-h2: #{$font-size-h2};
+  --font-size-h3: #{$font-size-h3};
+  --font-size-body: #{$font-size-body};
+  --font-size-body-sm: #{$font-size-body-sm};
+  --font-size-caption: #{$font-size-caption};
 
   // ─── 间距 ───
-  --space-1:  #{$space-1};
-  --space-2:  #{$space-2};
-  --space-3:  #{$space-3};
-  --space-4:  #{$space-4};
-  --space-6:  #{$space-6};
-  --space-8:  #{$space-8};
+  --space-1: #{$space-1};
+  --space-2: #{$space-2};
+  --space-3: #{$space-3};
+  --space-4: #{$space-4};
+  --space-6: #{$space-6};
+  --space-8: #{$space-8};
 
   // ─── Z-index ───
-  --z-sidebar:  #{$z-sidebar};
-  --z-header:   #{$z-header};
+  --z-sidebar: #{$z-sidebar};
+  --z-header: #{$z-header};
   --z-dropdown: #{$z-dropdown};
-  --z-dialog:   #{$z-dialog};
-  --z-toast:    #{$z-toast};
-  --z-loading:  #{$z-loading};
+  --z-dialog: #{$z-dialog};
+  --z-toast: #{$z-toast};
+  --z-loading: #{$z-loading};
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -157,178 +157,178 @@
 
 // ─── 2a. 粉色 (pink) — 默认 ───
 [data-brand="pink"] {
-  --color-primary:            #FF6B8A;
-  --color-primary-light:      #FF8FAB;
-  --color-primary-lighter:    #FFB5C8;
-  --color-primary-lightest:   #FFD6E0;
-  --color-primary-bg:         #FFF0F3;
-  --color-primary-dark:       #E8A0B0;
-  --color-primary-deep:       #C94D6A;
+  --color-primary: #ff6b8a;
+  --color-primary-light: #ff8fab;
+  --color-primary-lighter: #ffb5c8;
+  --color-primary-lightest: #ffd6e0;
+  --color-primary-bg: #fff0f3;
+  --color-primary-dark: #e8a0b0;
+  --color-primary-deep: #c94d6a;
 
-  --overlay-brand-05:     rgba(255, 143, 171, 0.05);
-  --overlay-brand-08:     rgba(255, 143, 171, 0.08);
-  --overlay-brand-10:     rgba(255, 143, 171, 0.1);
-  --overlay-brand-12:     rgba(255, 143, 171, 0.12);
-  --overlay-brand-15:     rgba(255, 143, 171, 0.15);
-  --overlay-brand-20:     rgba(255, 143, 171, 0.2);
-  --overlay-brand-25:     rgba(255, 143, 171, 0.25);
-  --overlay-brand-30:     rgba(255, 143, 171, 0.3);
-  --overlay-brand-35:     rgba(255, 143, 171, 0.35);
-  --overlay-brand-40:     rgba(255, 143, 171, 0.4);
-  --overlay-brand-45:     rgba(255, 143, 171, 0.45);
+  --overlay-brand-05: rgba(255, 143, 171, 0.05);
+  --overlay-brand-08: rgba(255, 143, 171, 0.08);
+  --overlay-brand-10: rgba(255, 143, 171, 0.1);
+  --overlay-brand-12: rgba(255, 143, 171, 0.12);
+  --overlay-brand-15: rgba(255, 143, 171, 0.15);
+  --overlay-brand-20: rgba(255, 143, 171, 0.2);
+  --overlay-brand-25: rgba(255, 143, 171, 0.25);
+  --overlay-brand-30: rgba(255, 143, 171, 0.3);
+  --overlay-brand-35: rgba(255, 143, 171, 0.35);
+  --overlay-brand-40: rgba(255, 143, 171, 0.4);
+  --overlay-brand-45: rgba(255, 143, 171, 0.45);
 
   --overlay-brand-lighter-15: rgba(255, 181, 200, 0.15);
   --overlay-brand-lighter-20: rgba(255, 181, 200, 0.2);
   --overlay-brand-lighter-25: rgba(255, 181, 200, 0.25);
   --overlay-brand-lighter-30: rgba(255, 181, 200, 0.3);
 
-  --overlay-brand-bg-15:  rgba(255, 220, 230, 0.15);
-  --overlay-brand-bg-30:  rgba(255, 240, 243, 0.3);
-  --overlay-brand-bg-40:  rgba(255, 240, 243, 0.4);
-  --overlay-brand-bg-50:  rgba(255, 240, 243, 0.5);
-  --overlay-brand-bg-60:  rgba(255, 240, 243, 0.6);
+  --overlay-brand-bg-15: rgba(255, 220, 230, 0.15);
+  --overlay-brand-bg-30: rgba(255, 240, 243, 0.3);
+  --overlay-brand-bg-40: rgba(255, 240, 243, 0.4);
+  --overlay-brand-bg-50: rgba(255, 240, 243, 0.5);
+  --overlay-brand-bg-60: rgba(255, 240, 243, 0.6);
 
-  --shadow-brand:     0 2px 8px rgba(255, 107, 138, 0.25);
-  --shadow-brand-xs:  0 2px 8px rgba(255, 107, 138, 0.15);
-  --shadow-brand-sm:  0 4px 12px rgba(255, 107, 138, 0.25);
-  --shadow-brand-md:  0 4px 16px rgba(255, 107, 138, 0.3);
-  --shadow-brand-lg:  0 8px 24px rgba(255, 107, 138, 0.4);
+  --shadow-brand: 0 2px 8px rgba(255, 107, 138, 0.25);
+  --shadow-brand-xs: 0 2px 8px rgba(255, 107, 138, 0.15);
+  --shadow-brand-sm: 0 4px 12px rgba(255, 107, 138, 0.25);
+  --shadow-brand-md: 0 4px 16px rgba(255, 107, 138, 0.3);
+  --shadow-brand-lg: 0 8px 24px rgba(255, 107, 138, 0.4);
 
-  --gradient-brand: linear-gradient(135deg, #FF8FAB 0%, #FF6B8A 50%, #E8A0B0 100%);
-  --gradient-btn:   linear-gradient(135deg, #FF8FAB 0%, #FF6B8A 100%);
-  --gradient-btn-hover: linear-gradient(135deg, #FFB5C8 0%, #FF8FAB 100%);
+  --gradient-brand: linear-gradient(135deg, #ff8fab 0%, #ff6b8a 50%, #e8a0b0 100%);
+  --gradient-btn: linear-gradient(135deg, #ff8fab 0%, #ff6b8a 100%);
+  --gradient-btn-hover: linear-gradient(135deg, #ffb5c8 0%, #ff8fab 100%);
 }
 
 // ─── 2b. 黄色 (yellow) ───
 [data-brand="yellow"] {
-  --color-primary:            #F5A623;
-  --color-primary-light:      #FFBE4F;
-  --color-primary-lighter:    #FFD68A;
-  --color-primary-lightest:   #FFF0CC;
-  --color-primary-bg:         #FFF8E8;
-  --color-primary-dark:       #D9901A;
-  --color-primary-deep:       #B07A15;
+  --color-primary: #f5a623;
+  --color-primary-light: #ffbe4f;
+  --color-primary-lighter: #ffd68a;
+  --color-primary-lightest: #fff0cc;
+  --color-primary-bg: #fff8e8;
+  --color-primary-dark: #d9901a;
+  --color-primary-deep: #b07a15;
 
-  --overlay-brand-05:     rgba(245, 166, 35, 0.05);
-  --overlay-brand-08:     rgba(245, 166, 35, 0.08);
-  --overlay-brand-10:     rgba(245, 166, 35, 0.1);
-  --overlay-brand-12:     rgba(245, 166, 35, 0.12);
-  --overlay-brand-15:     rgba(245, 166, 35, 0.15);
-  --overlay-brand-20:     rgba(245, 166, 35, 0.2);
-  --overlay-brand-25:     rgba(245, 166, 35, 0.25);
-  --overlay-brand-30:     rgba(245, 166, 35, 0.3);
-  --overlay-brand-35:     rgba(245, 166, 35, 0.35);
-  --overlay-brand-40:     rgba(245, 166, 35, 0.4);
-  --overlay-brand-45:     rgba(245, 166, 35, 0.45);
+  --overlay-brand-05: rgba(245, 166, 35, 0.05);
+  --overlay-brand-08: rgba(245, 166, 35, 0.08);
+  --overlay-brand-10: rgba(245, 166, 35, 0.1);
+  --overlay-brand-12: rgba(245, 166, 35, 0.12);
+  --overlay-brand-15: rgba(245, 166, 35, 0.15);
+  --overlay-brand-20: rgba(245, 166, 35, 0.2);
+  --overlay-brand-25: rgba(245, 166, 35, 0.25);
+  --overlay-brand-30: rgba(245, 166, 35, 0.3);
+  --overlay-brand-35: rgba(245, 166, 35, 0.35);
+  --overlay-brand-40: rgba(245, 166, 35, 0.4);
+  --overlay-brand-45: rgba(245, 166, 35, 0.45);
 
   --overlay-brand-lighter-15: rgba(255, 214, 138, 0.15);
   --overlay-brand-lighter-20: rgba(255, 214, 138, 0.2);
   --overlay-brand-lighter-25: rgba(255, 214, 138, 0.25);
   --overlay-brand-lighter-30: rgba(255, 214, 138, 0.3);
 
-  --overlay-brand-bg-15:  rgba(255, 240, 204, 0.15);
-  --overlay-brand-bg-30:  rgba(255, 248, 232, 0.3);
-  --overlay-brand-bg-40:  rgba(255, 248, 232, 0.4);
-  --overlay-brand-bg-50:  rgba(255, 248, 232, 0.5);
-  --overlay-brand-bg-60:  rgba(255, 248, 232, 0.6);
+  --overlay-brand-bg-15: rgba(255, 240, 204, 0.15);
+  --overlay-brand-bg-30: rgba(255, 248, 232, 0.3);
+  --overlay-brand-bg-40: rgba(255, 248, 232, 0.4);
+  --overlay-brand-bg-50: rgba(255, 248, 232, 0.5);
+  --overlay-brand-bg-60: rgba(255, 248, 232, 0.6);
 
-  --shadow-brand:     0 2px 8px rgba(245, 166, 35, 0.25);
-  --shadow-brand-xs:  0 2px 8px rgba(245, 166, 35, 0.15);
-  --shadow-brand-sm:  0 4px 12px rgba(245, 166, 35, 0.25);
-  --shadow-brand-md:  0 4px 16px rgba(245, 166, 35, 0.3);
-  --shadow-brand-lg:  0 8px 24px rgba(245, 166, 35, 0.4);
+  --shadow-brand: 0 2px 8px rgba(245, 166, 35, 0.25);
+  --shadow-brand-xs: 0 2px 8px rgba(245, 166, 35, 0.15);
+  --shadow-brand-sm: 0 4px 12px rgba(245, 166, 35, 0.25);
+  --shadow-brand-md: 0 4px 16px rgba(245, 166, 35, 0.3);
+  --shadow-brand-lg: 0 8px 24px rgba(245, 166, 35, 0.4);
 
-  --gradient-brand: linear-gradient(135deg, #FFBE4F 0%, #F5A623 50%, #D9901A 100%);
-  --gradient-btn:   linear-gradient(135deg, #FFBE4F 0%, #F5A623 100%);
-  --gradient-btn-hover: linear-gradient(135deg, #FFD68A 0%, #FFBE4F 100%);
+  --gradient-brand: linear-gradient(135deg, #ffbe4f 0%, #f5a623 50%, #d9901a 100%);
+  --gradient-btn: linear-gradient(135deg, #ffbe4f 0%, #f5a623 100%);
+  --gradient-btn-hover: linear-gradient(135deg, #ffd68a 0%, #ffbe4f 100%);
 }
 
 // ─── 2c. 蓝色 (blue) ───
 [data-brand="blue"] {
-  --color-primary:            #4A90D9;
-  --color-primary-light:      #6BA8E8;
-  --color-primary-lighter:    #A3C8F0;
-  --color-primary-lightest:   #C8E0F8;
-  --color-primary-bg:         #EDF4FD;
-  --color-primary-dark:       #3570B0;
-  --color-primary-deep:       #2A5C96;
+  --color-primary: #4a90d9;
+  --color-primary-light: #6ba8e8;
+  --color-primary-lighter: #a3c8f0;
+  --color-primary-lightest: #c8e0f8;
+  --color-primary-bg: #edf4fd;
+  --color-primary-dark: #3570b0;
+  --color-primary-deep: #2a5c96;
 
-  --overlay-brand-05:     rgba(74, 144, 217, 0.05);
-  --overlay-brand-08:     rgba(74, 144, 217, 0.08);
-  --overlay-brand-10:     rgba(74, 144, 217, 0.1);
-  --overlay-brand-12:     rgba(74, 144, 217, 0.12);
-  --overlay-brand-15:     rgba(74, 144, 217, 0.15);
-  --overlay-brand-20:     rgba(74, 144, 217, 0.2);
-  --overlay-brand-25:     rgba(74, 144, 217, 0.25);
-  --overlay-brand-30:     rgba(74, 144, 217, 0.3);
-  --overlay-brand-35:     rgba(74, 144, 217, 0.35);
-  --overlay-brand-40:     rgba(74, 144, 217, 0.4);
-  --overlay-brand-45:     rgba(74, 144, 217, 0.45);
+  --overlay-brand-05: rgba(74, 144, 217, 0.05);
+  --overlay-brand-08: rgba(74, 144, 217, 0.08);
+  --overlay-brand-10: rgba(74, 144, 217, 0.1);
+  --overlay-brand-12: rgba(74, 144, 217, 0.12);
+  --overlay-brand-15: rgba(74, 144, 217, 0.15);
+  --overlay-brand-20: rgba(74, 144, 217, 0.2);
+  --overlay-brand-25: rgba(74, 144, 217, 0.25);
+  --overlay-brand-30: rgba(74, 144, 217, 0.3);
+  --overlay-brand-35: rgba(74, 144, 217, 0.35);
+  --overlay-brand-40: rgba(74, 144, 217, 0.4);
+  --overlay-brand-45: rgba(74, 144, 217, 0.45);
 
   --overlay-brand-lighter-15: rgba(163, 200, 240, 0.15);
   --overlay-brand-lighter-20: rgba(163, 200, 240, 0.2);
   --overlay-brand-lighter-25: rgba(163, 200, 240, 0.25);
   --overlay-brand-lighter-30: rgba(163, 200, 240, 0.3);
 
-  --overlay-brand-bg-15:  rgba(200, 224, 248, 0.15);
-  --overlay-brand-bg-30:  rgba(237, 244, 253, 0.3);
-  --overlay-brand-bg-40:  rgba(237, 244, 253, 0.4);
-  --overlay-brand-bg-50:  rgba(237, 244, 253, 0.5);
-  --overlay-brand-bg-60:  rgba(237, 244, 253, 0.6);
+  --overlay-brand-bg-15: rgba(200, 224, 248, 0.15);
+  --overlay-brand-bg-30: rgba(237, 244, 253, 0.3);
+  --overlay-brand-bg-40: rgba(237, 244, 253, 0.4);
+  --overlay-brand-bg-50: rgba(237, 244, 253, 0.5);
+  --overlay-brand-bg-60: rgba(237, 244, 253, 0.6);
 
-  --shadow-brand:     0 2px 8px rgba(74, 144, 217, 0.25);
-  --shadow-brand-xs:  0 2px 8px rgba(74, 144, 217, 0.15);
-  --shadow-brand-sm:  0 4px 12px rgba(74, 144, 217, 0.25);
-  --shadow-brand-md:  0 4px 16px rgba(74, 144, 217, 0.3);
-  --shadow-brand-lg:  0 8px 24px rgba(74, 144, 217, 0.4);
+  --shadow-brand: 0 2px 8px rgba(74, 144, 217, 0.25);
+  --shadow-brand-xs: 0 2px 8px rgba(74, 144, 217, 0.15);
+  --shadow-brand-sm: 0 4px 12px rgba(74, 144, 217, 0.25);
+  --shadow-brand-md: 0 4px 16px rgba(74, 144, 217, 0.3);
+  --shadow-brand-lg: 0 8px 24px rgba(74, 144, 217, 0.4);
 
-  --gradient-brand: linear-gradient(135deg, #6BA8E8 0%, #4A90D9 50%, #3570B0 100%);
-  --gradient-btn:   linear-gradient(135deg, #6BA8E8 0%, #4A90D9 100%);
-  --gradient-btn-hover: linear-gradient(135deg, #A3C8F0 0%, #6BA8E8 100%);
+  --gradient-brand: linear-gradient(135deg, #6ba8e8 0%, #4a90d9 50%, #3570b0 100%);
+  --gradient-btn: linear-gradient(135deg, #6ba8e8 0%, #4a90d9 100%);
+  --gradient-btn-hover: linear-gradient(135deg, #a3c8f0 0%, #6ba8e8 100%);
 }
 
 // ─── 2d. 绿色 (green) ───
 [data-brand="green"] {
-  --color-primary:            #5CB85C;
-  --color-primary-light:      #7DD87D;
-  --color-primary-lighter:    #A8E6A8;
-  --color-primary-lightest:   #D4F5D4;
-  --color-primary-bg:         #EFF8EF;
-  --color-primary-dark:       #4A9A4A;
-  --color-primary-deep:       #2D6B2D;
+  --color-primary: #10b981;
+  --color-primary-light: #34d399;
+  --color-primary-lighter: #6ee7b7;
+  --color-primary-lightest: #a7f3d0;
+  --color-primary-bg: #d1fae5;
+  --color-primary-dark: #059669;
+  --color-primary-deep: #047857;
 
-  --overlay-brand-05:     rgba(92, 184, 92, 0.05);
-  --overlay-brand-08:     rgba(92, 184, 92, 0.08);
-  --overlay-brand-10:     rgba(92, 184, 92, 0.1);
-  --overlay-brand-12:     rgba(92, 184, 92, 0.12);
-  --overlay-brand-15:     rgba(92, 184, 92, 0.15);
-  --overlay-brand-20:     rgba(92, 184, 92, 0.2);
-  --overlay-brand-25:     rgba(92, 184, 92, 0.25);
-  --overlay-brand-30:     rgba(92, 184, 92, 0.3);
-  --overlay-brand-35:     rgba(92, 184, 92, 0.35);
-  --overlay-brand-40:     rgba(92, 184, 92, 0.4);
-  --overlay-brand-45:     rgba(92, 184, 92, 0.45);
+  --overlay-brand-05: rgba(16, 185, 129, 0.05);
+  --overlay-brand-08: rgba(16, 185, 129, 0.08);
+  --overlay-brand-10: rgba(16, 185, 129, 0.1);
+  --overlay-brand-12: rgba(16, 185, 129, 0.12);
+  --overlay-brand-15: rgba(16, 185, 129, 0.15);
+  --overlay-brand-20: rgba(16, 185, 129, 0.2);
+  --overlay-brand-25: rgba(16, 185, 129, 0.25);
+  --overlay-brand-30: rgba(16, 185, 129, 0.3);
+  --overlay-brand-35: rgba(16, 185, 129, 0.35);
+  --overlay-brand-40: rgba(16, 185, 129, 0.4);
+  --overlay-brand-45: rgba(16, 185, 129, 0.45);
 
-  --overlay-brand-lighter-15: rgba(168, 230, 168, 0.15);
-  --overlay-brand-lighter-20: rgba(168, 230, 168, 0.2);
-  --overlay-brand-lighter-25: rgba(168, 230, 168, 0.25);
-  --overlay-brand-lighter-30: rgba(168, 230, 168, 0.3);
+  --overlay-brand-lighter-15: rgba(110, 231, 183, 0.15);
+  --overlay-brand-lighter-20: rgba(110, 231, 183, 0.2);
+  --overlay-brand-lighter-25: rgba(110, 231, 183, 0.25);
+  --overlay-brand-lighter-30: rgba(110, 231, 183, 0.3);
 
-  --overlay-brand-bg-15:  rgba(212, 245, 212, 0.15);
-  --overlay-brand-bg-30:  rgba(239, 248, 239, 0.3);
-  --overlay-brand-bg-40:  rgba(239, 248, 239, 0.4);
-  --overlay-brand-bg-50:  rgba(239, 248, 239, 0.5);
-  --overlay-brand-bg-60:  rgba(239, 248, 239, 0.6);
+  --overlay-brand-bg-15: rgba(167, 243, 208, 0.15);
+  --overlay-brand-bg-30: rgba(167, 243, 208, 0.3);
+  --overlay-brand-bg-40: rgba(167, 243, 208, 0.4);
+  --overlay-brand-bg-50: rgba(167, 243, 208, 0.5);
+  --overlay-brand-bg-60: rgba(167, 243, 208, 0.6);
 
-  --shadow-brand:     0 2px 8px rgba(92, 184, 92, 0.25);
-  --shadow-brand-xs:  0 2px 8px rgba(92, 184, 92, 0.15);
-  --shadow-brand-sm:  0 4px 12px rgba(92, 184, 92, 0.25);
-  --shadow-brand-md:  0 4px 16px rgba(92, 184, 92, 0.3);
-  --shadow-brand-lg:  0 8px 24px rgba(92, 184, 92, 0.4);
+  --shadow-brand: 0 2px 8px rgba(16, 185, 129, 0.25);
+  --shadow-brand-xs: 0 2px 8px rgba(16, 185, 129, 0.15);
+  --shadow-brand-sm: 0 4px 12px rgba(16, 185, 129, 0.25);
+  --shadow-brand-md: 0 4px 16px rgba(16, 185, 129, 0.3);
+  --shadow-brand-lg: 0 8px 24px rgba(16, 185, 129, 0.4);
 
-  --gradient-brand: linear-gradient(135deg, #7DD87D 0%, #5CB85C 50%, #4A9A4A 100%);
-  --gradient-btn:   linear-gradient(135deg, #7DD87D 0%, #5CB85C 100%);
-  --gradient-btn-hover: linear-gradient(135deg, #A8E6A8 0%, #7DD87D 100%);
+  --gradient-brand: linear-gradient(135deg, #34d399 0%, #10b981 50%, #059669 100%);
+  --gradient-btn: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+  --gradient-btn-hover: linear-gradient(135deg, #6ee7b7 0%, #34d399 100%);
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -336,46 +336,46 @@
 // ═══════════════════════════════════════════════════════════════
 [data-theme="dark"] {
   // ─── 背景色 ───
-  --color-bg-page:            #1A1520;
-  --color-bg-container:       #241E2B;
-  --color-bg-container-alt:   #1F1925;
-  --color-bg-hover:           #2D1525;
+  --color-bg-page: #1a1520;
+  --color-bg-container: #241e2b;
+  --color-bg-container-alt: #1f1925;
+  --color-bg-hover: #2d1525;
 
   // ─── 文字色 ───
-  --color-text-primary:       #E8DFE8;
-  --color-text-regular:       #B8AEC0;
-  --color-text-secondary:     #A99BB0;
-  --color-text-placeholder:   #6B5F70;
-  --color-text-white:         #FFFFFF;
-  --color-text-white-80:      rgba(255, 255, 255, 0.8);
-  --color-text-white-60:      rgba(255, 255, 255, 0.6);
+  --color-text-primary: #e8dfe8;
+  --color-text-regular: #b8aec0;
+  --color-text-secondary: #a99bb0;
+  --color-text-placeholder: #6b5f70;
+  --color-text-white: #ffffff;
+  --color-text-white-80: rgba(255, 255, 255, 0.8);
+  --color-text-white-60: rgba(255, 255, 255, 0.6);
 
   // ─── 边框色 ───
-  --color-border:             #3D3445;
-  --color-border-light:       #2D2535;
+  --color-border: #3d3445;
+  --color-border-light: #2d2535;
 
   // ─── 状态色 ───
-  --color-success:            #7BC67E;
-  --color-warning:            #F0A040;
-  --color-danger:             #E34D59;
-  --color-info:               #3DA1FF;
+  --color-success: #7bc67e;
+  --color-warning: #f0a040;
+  --color-danger: #e34d59;
+  --color-info: #3da1ff;
 
   // ─── 装饰色 ───
-  --color-blush:              #D4A0B0;
-  --color-ear:                #C8A0B5;
-  --color-skin:               #D4C0B0;
-  --color-lavender:           #3D3550;
-  --color-lavender-alpha:     rgba(61, 53, 80, 0.08);
+  --color-blush: #d4a0b0;
+  --color-ear: #c8a0b5;
+  --color-skin: #d4c0b0;
+  --color-lavender: #3d3550;
+  --color-lavender-alpha: rgba(61, 53, 80, 0.08);
 
   // ─── 通用阴影 ───
-  --shadow-xs:        0 1px 3px rgba(0, 0, 0, 0.2);
-  --shadow-sm:        0 1px 4px rgba(0, 0, 0, 0.3);
-  --shadow-md:        0 2px 12px rgba(0, 0, 0, 0.4);
-  --shadow-lg:        0 4px 16px rgba(0, 0, 0, 0.5);
-  --shadow-xl:        0 8px 32px rgba(0, 0, 0, 0.5);
-  --shadow-float:     0 4px 12px rgba(0, 0, 0, 0.4);
-  --shadow-aside:     2px 0 8px rgba(0, 0, 0, 0.2);
-  --shadow-header:    0 2px 12px rgba(0, 0, 0, 0.3);
+  --shadow-xs: 0 1px 3px rgba(0, 0, 0, 0.2);
+  --shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 2px 12px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.5);
+  --shadow-xl: 0 8px 32px rgba(0, 0, 0, 0.5);
+  --shadow-float: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-aside: 2px 0 8px rgba(0, 0, 0, 0.2);
+  --shadow-header: 0 2px 12px rgba(0, 0, 0, 0.3);
 
   --shadow-elevation-1: 0 1px 2px rgba(0, 0, 0, 0.12), 0 1px 3px rgba(0, 0, 0, 0.18);
   --shadow-elevation-2: 0 2px 4px rgba(0, 0, 0, 0.15), 0 4px 12px rgba(0, 0, 0, 0.2);
@@ -389,176 +389,176 @@
 
 // ─── 4a. 粉色暗色 ───
 [data-brand="pink"][data-theme="dark"] {
-  --color-primary:            #FF8FAB;
-  --color-primary-light:      #FFB5C8;
-  --color-primary-lighter:    #FFD6E0;
-  --color-primary-lightest:   #FFE0EB;
-  --color-primary-bg:         #2D1525;
-  --color-primary-dark:       #FF6B8A;
-  --color-primary-deep:       #A03D58;
+  --color-primary: #ff8fab;
+  --color-primary-light: #ffb5c8;
+  --color-primary-lighter: #ffd6e0;
+  --color-primary-lightest: #ffe0eb;
+  --color-primary-bg: #2d1525;
+  --color-primary-dark: #ff6b8a;
+  --color-primary-deep: #a03d58;
 
-  --shadow-brand:     0 2px 8px rgba(255, 143, 171, 0.2);
-  --shadow-brand-xs:  0 2px 8px rgba(255, 143, 171, 0.12);
-  --shadow-brand-sm:  0 4px 12px rgba(255, 143, 171, 0.18);
-  --shadow-brand-md:  0 4px 16px rgba(255, 143, 171, 0.22);
-  --shadow-brand-lg:  0 8px 24px rgba(255, 143, 171, 0.28);
+  --shadow-brand: 0 2px 8px rgba(255, 143, 171, 0.2);
+  --shadow-brand-xs: 0 2px 8px rgba(255, 143, 171, 0.12);
+  --shadow-brand-sm: 0 4px 12px rgba(255, 143, 171, 0.18);
+  --shadow-brand-md: 0 4px 16px rgba(255, 143, 171, 0.22);
+  --shadow-brand-lg: 0 8px 24px rgba(255, 143, 171, 0.28);
 
-  --overlay-brand-05:     rgba(255, 143, 171, 0.05);
-  --overlay-brand-08:     rgba(255, 143, 171, 0.06);
-  --overlay-brand-10:     rgba(255, 143, 171, 0.08);
-  --overlay-brand-12:     rgba(255, 143, 171, 0.1);
-  --overlay-brand-15:     rgba(255, 143, 171, 0.12);
-  --overlay-brand-20:     rgba(255, 143, 171, 0.15);
-  --overlay-brand-25:     rgba(255, 143, 171, 0.18);
-  --overlay-brand-30:     rgba(255, 143, 171, 0.2);
-  --overlay-brand-35:     rgba(255, 143, 171, 0.22);
-  --overlay-brand-40:     rgba(255, 143, 171, 0.25);
-  --overlay-brand-45:     rgba(255, 143, 171, 0.28);
+  --overlay-brand-05: rgba(255, 143, 171, 0.05);
+  --overlay-brand-08: rgba(255, 143, 171, 0.06);
+  --overlay-brand-10: rgba(255, 143, 171, 0.08);
+  --overlay-brand-12: rgba(255, 143, 171, 0.1);
+  --overlay-brand-15: rgba(255, 143, 171, 0.12);
+  --overlay-brand-20: rgba(255, 143, 171, 0.15);
+  --overlay-brand-25: rgba(255, 143, 171, 0.18);
+  --overlay-brand-30: rgba(255, 143, 171, 0.2);
+  --overlay-brand-35: rgba(255, 143, 171, 0.22);
+  --overlay-brand-40: rgba(255, 143, 171, 0.25);
+  --overlay-brand-45: rgba(255, 143, 171, 0.28);
 
   --overlay-brand-lighter-15: rgba(255, 214, 224, 0.12);
   --overlay-brand-lighter-20: rgba(255, 214, 224, 0.15);
   --overlay-brand-lighter-25: rgba(255, 214, 224, 0.18);
   --overlay-brand-lighter-30: rgba(255, 214, 224, 0.22);
 
-  --overlay-brand-bg-15:  rgba(45, 21, 37, 0.3);
-  --overlay-brand-bg-30:  rgba(45, 21, 37, 0.5);
-  --overlay-brand-bg-40:  rgba(45, 21, 37, 0.6);
-  --overlay-brand-bg-50:  rgba(45, 21, 37, 0.7);
-  --overlay-brand-bg-60:  rgba(45, 21, 37, 0.8);
+  --overlay-brand-bg-15: rgba(45, 21, 37, 0.3);
+  --overlay-brand-bg-30: rgba(45, 21, 37, 0.5);
+  --overlay-brand-bg-40: rgba(45, 21, 37, 0.6);
+  --overlay-brand-bg-50: rgba(45, 21, 37, 0.7);
+  --overlay-brand-bg-60: rgba(45, 21, 37, 0.8);
 
-  --gradient-brand: linear-gradient(135deg, #FFB5C8 0%, #FF8FAB 50%, #FF6B8A 100%);
-  --gradient-btn:   linear-gradient(135deg, #FFB5C8 0%, #FF8FAB 100%);
-  --gradient-btn-hover: linear-gradient(135deg, #FFD6E0 0%, #FFB5C8 100%);
+  --gradient-brand: linear-gradient(135deg, #ffb5c8 0%, #ff8fab 50%, #ff6b8a 100%);
+  --gradient-btn: linear-gradient(135deg, #ffb5c8 0%, #ff8fab 100%);
+  --gradient-btn-hover: linear-gradient(135deg, #ffd6e0 0%, #ffb5c8 100%);
 }
 
 // ─── 4b. 黄色暗色 ───
 [data-brand="yellow"][data-theme="dark"] {
-  --color-primary:            #FFBE4F;
-  --color-primary-light:      #FFD68A;
-  --color-primary-lighter:    #FFE8B3;
-  --color-primary-lightest:   #FFF0CC;
-  --color-primary-bg:         #2D2510;
-  --color-primary-dark:       #F5A623;
-  --color-primary-deep:       #7A5310;
+  --color-primary: #ffbe4f;
+  --color-primary-light: #ffd68a;
+  --color-primary-lighter: #ffe8b3;
+  --color-primary-lightest: #fff0cc;
+  --color-primary-bg: #2d2510;
+  --color-primary-dark: #f5a623;
+  --color-primary-deep: #7a5310;
 
-  --shadow-brand:     0 2px 8px rgba(245, 166, 35, 0.2);
-  --shadow-brand-xs:  0 2px 8px rgba(245, 166, 35, 0.12);
-  --shadow-brand-sm:  0 4px 12px rgba(245, 166, 35, 0.18);
-  --shadow-brand-md:  0 4px 16px rgba(245, 166, 35, 0.22);
-  --shadow-brand-lg:  0 8px 24px rgba(245, 166, 35, 0.28);
+  --shadow-brand: 0 2px 8px rgba(245, 166, 35, 0.2);
+  --shadow-brand-xs: 0 2px 8px rgba(245, 166, 35, 0.12);
+  --shadow-brand-sm: 0 4px 12px rgba(245, 166, 35, 0.18);
+  --shadow-brand-md: 0 4px 16px rgba(245, 166, 35, 0.22);
+  --shadow-brand-lg: 0 8px 24px rgba(245, 166, 35, 0.28);
 
-  --overlay-brand-05:     rgba(245, 166, 35, 0.05);
-  --overlay-brand-08:     rgba(245, 166, 35, 0.06);
-  --overlay-brand-10:     rgba(245, 166, 35, 0.08);
-  --overlay-brand-12:     rgba(245, 166, 35, 0.1);
-  --overlay-brand-15:     rgba(245, 166, 35, 0.12);
-  --overlay-brand-20:     rgba(245, 166, 35, 0.15);
-  --overlay-brand-25:     rgba(245, 166, 35, 0.18);
-  --overlay-brand-30:     rgba(245, 166, 35, 0.2);
-  --overlay-brand-35:     rgba(245, 166, 35, 0.22);
-  --overlay-brand-40:     rgba(245, 166, 35, 0.25);
-  --overlay-brand-45:     rgba(245, 166, 35, 0.28);
+  --overlay-brand-05: rgba(245, 166, 35, 0.05);
+  --overlay-brand-08: rgba(245, 166, 35, 0.06);
+  --overlay-brand-10: rgba(245, 166, 35, 0.08);
+  --overlay-brand-12: rgba(245, 166, 35, 0.1);
+  --overlay-brand-15: rgba(245, 166, 35, 0.12);
+  --overlay-brand-20: rgba(245, 166, 35, 0.15);
+  --overlay-brand-25: rgba(245, 166, 35, 0.18);
+  --overlay-brand-30: rgba(245, 166, 35, 0.2);
+  --overlay-brand-35: rgba(245, 166, 35, 0.22);
+  --overlay-brand-40: rgba(245, 166, 35, 0.25);
+  --overlay-brand-45: rgba(245, 166, 35, 0.28);
 
   --overlay-brand-lighter-15: rgba(255, 214, 138, 0.12);
   --overlay-brand-lighter-20: rgba(255, 214, 138, 0.15);
   --overlay-brand-lighter-25: rgba(255, 214, 138, 0.18);
   --overlay-brand-lighter-30: rgba(255, 214, 138, 0.22);
 
-  --overlay-brand-bg-15:  rgba(45, 37, 16, 0.3);
-  --overlay-brand-bg-30:  rgba(45, 37, 16, 0.5);
-  --overlay-brand-bg-40:  rgba(45, 37, 16, 0.6);
-  --overlay-brand-bg-50:  rgba(45, 37, 16, 0.7);
-  --overlay-brand-bg-60:  rgba(45, 37, 16, 0.8);
+  --overlay-brand-bg-15: rgba(45, 37, 16, 0.3);
+  --overlay-brand-bg-30: rgba(45, 37, 16, 0.5);
+  --overlay-brand-bg-40: rgba(45, 37, 16, 0.6);
+  --overlay-brand-bg-50: rgba(45, 37, 16, 0.7);
+  --overlay-brand-bg-60: rgba(45, 37, 16, 0.8);
 
-  --gradient-brand: linear-gradient(135deg, #FFD68A 0%, #FFBE4F 50%, #F5A623 100%);
-  --gradient-btn:   linear-gradient(135deg, #FFD68A 0%, #FFBE4F 100%);
-  --gradient-btn-hover: linear-gradient(135deg, #FFE8B3 0%, #FFD68A 100%);
+  --gradient-brand: linear-gradient(135deg, #ffd68a 0%, #ffbe4f 50%, #f5a623 100%);
+  --gradient-btn: linear-gradient(135deg, #ffd68a 0%, #ffbe4f 100%);
+  --gradient-btn-hover: linear-gradient(135deg, #ffe8b3 0%, #ffd68a 100%);
 }
 
 // ─── 4c. 蓝色暗色 ───
 [data-brand="blue"][data-theme="dark"] {
-  --color-primary:            #6BA8E8;
-  --color-primary-light:      #A3C8F0;
-  --color-primary-lighter:    #C8E0F8;
-  --color-primary-lightest:   #DEEEFF;
-  --color-primary-bg:         #151E2D;
-  --color-primary-dark:       #4A90D9;
-  --color-primary-deep:       #1E4A7A;
+  --color-primary: #6ba8e8;
+  --color-primary-light: #a3c8f0;
+  --color-primary-lighter: #c8e0f8;
+  --color-primary-lightest: #deeeff;
+  --color-primary-bg: #151e2d;
+  --color-primary-dark: #4a90d9;
+  --color-primary-deep: #1e4a7a;
 
-  --shadow-brand:     0 2px 8px rgba(74, 144, 217, 0.2);
-  --shadow-brand-xs:  0 2px 8px rgba(74, 144, 217, 0.12);
-  --shadow-brand-sm:  0 4px 12px rgba(74, 144, 217, 0.18);
-  --shadow-brand-md:  0 4px 16px rgba(74, 144, 217, 0.22);
-  --shadow-brand-lg:  0 8px 24px rgba(74, 144, 217, 0.28);
+  --shadow-brand: 0 2px 8px rgba(74, 144, 217, 0.2);
+  --shadow-brand-xs: 0 2px 8px rgba(74, 144, 217, 0.12);
+  --shadow-brand-sm: 0 4px 12px rgba(74, 144, 217, 0.18);
+  --shadow-brand-md: 0 4px 16px rgba(74, 144, 217, 0.22);
+  --shadow-brand-lg: 0 8px 24px rgba(74, 144, 217, 0.28);
 
-  --overlay-brand-05:     rgba(74, 144, 217, 0.05);
-  --overlay-brand-08:     rgba(74, 144, 217, 0.06);
-  --overlay-brand-10:     rgba(74, 144, 217, 0.08);
-  --overlay-brand-12:     rgba(74, 144, 217, 0.1);
-  --overlay-brand-15:     rgba(74, 144, 217, 0.12);
-  --overlay-brand-20:     rgba(74, 144, 217, 0.15);
-  --overlay-brand-25:     rgba(74, 144, 217, 0.18);
-  --overlay-brand-30:     rgba(74, 144, 217, 0.2);
-  --overlay-brand-35:     rgba(74, 144, 217, 0.22);
-  --overlay-brand-40:     rgba(74, 144, 217, 0.25);
-  --overlay-brand-45:     rgba(74, 144, 217, 0.28);
+  --overlay-brand-05: rgba(74, 144, 217, 0.05);
+  --overlay-brand-08: rgba(74, 144, 217, 0.06);
+  --overlay-brand-10: rgba(74, 144, 217, 0.08);
+  --overlay-brand-12: rgba(74, 144, 217, 0.1);
+  --overlay-brand-15: rgba(74, 144, 217, 0.12);
+  --overlay-brand-20: rgba(74, 144, 217, 0.15);
+  --overlay-brand-25: rgba(74, 144, 217, 0.18);
+  --overlay-brand-30: rgba(74, 144, 217, 0.2);
+  --overlay-brand-35: rgba(74, 144, 217, 0.22);
+  --overlay-brand-40: rgba(74, 144, 217, 0.25);
+  --overlay-brand-45: rgba(74, 144, 217, 0.28);
 
   --overlay-brand-lighter-15: rgba(163, 200, 240, 0.12);
   --overlay-brand-lighter-20: rgba(163, 200, 240, 0.15);
   --overlay-brand-lighter-25: rgba(163, 200, 240, 0.18);
   --overlay-brand-lighter-30: rgba(163, 200, 240, 0.22);
 
-  --overlay-brand-bg-15:  rgba(21, 30, 45, 0.3);
-  --overlay-brand-bg-30:  rgba(21, 30, 45, 0.5);
-  --overlay-brand-bg-40:  rgba(21, 30, 45, 0.6);
-  --overlay-brand-bg-50:  rgba(21, 30, 45, 0.7);
-  --overlay-brand-bg-60:  rgba(21, 30, 45, 0.8);
+  --overlay-brand-bg-15: rgba(21, 30, 45, 0.3);
+  --overlay-brand-bg-30: rgba(21, 30, 45, 0.5);
+  --overlay-brand-bg-40: rgba(21, 30, 45, 0.6);
+  --overlay-brand-bg-50: rgba(21, 30, 45, 0.7);
+  --overlay-brand-bg-60: rgba(21, 30, 45, 0.8);
 
-  --gradient-brand: linear-gradient(135deg, #A3C8F0 0%, #6BA8E8 50%, #4A90D9 100%);
-  --gradient-btn:   linear-gradient(135deg, #A3C8F0 0%, #6BA8E8 100%);
-  --gradient-btn-hover: linear-gradient(135deg, #C8E0F8 0%, #A3C8F0 100%);
+  --gradient-brand: linear-gradient(135deg, #a3c8f0 0%, #6ba8e8 50%, #4a90d9 100%);
+  --gradient-btn: linear-gradient(135deg, #a3c8f0 0%, #6ba8e8 100%);
+  --gradient-btn-hover: linear-gradient(135deg, #c8e0f8 0%, #a3c8f0 100%);
 }
 
 // ─── 4d. 绿色暗色 ───
 [data-brand="green"][data-theme="dark"] {
-  --color-primary:            #7DD87D;
-  --color-primary-light:      #A8E6A8;
-  --color-primary-lighter:    #C8F0C8;
-  --color-primary-lightest:   #DEFFDE;
-  --color-primary-bg:         #152515;
-  --color-primary-dark:       #5CB85C;
-  --color-primary-deep:       #1E4A1E;
+  --color-primary: #34d399;
+  --color-primary-light: #6ee7b7;
+  --color-primary-lighter: #a7f3d0;
+  --color-primary-lightest: #d1fae5;
+  --color-primary-bg: #064e3b;
+  --color-primary-dark: #10b981;
+  --color-primary-deep: #065f46;
 
-  --shadow-brand:     0 2px 8px rgba(92, 184, 92, 0.2);
-  --shadow-brand-xs:  0 2px 8px rgba(92, 184, 92, 0.12);
-  --shadow-brand-sm:  0 4px 12px rgba(92, 184, 92, 0.18);
-  --shadow-brand-md:  0 4px 16px rgba(92, 184, 92, 0.22);
-  --shadow-brand-lg:  0 8px 24px rgba(92, 184, 92, 0.28);
+  --shadow-brand: 0 2px 8px rgba(16, 185, 129, 0.2);
+  --shadow-brand-xs: 0 2px 8px rgba(16, 185, 129, 0.12);
+  --shadow-brand-sm: 0 4px 12px rgba(16, 185, 129, 0.18);
+  --shadow-brand-md: 0 4px 16px rgba(16, 185, 129, 0.22);
+  --shadow-brand-lg: 0 8px 24px rgba(16, 185, 129, 0.28);
 
-  --overlay-brand-05:     rgba(92, 184, 92, 0.05);
-  --overlay-brand-08:     rgba(92, 184, 92, 0.06);
-  --overlay-brand-10:     rgba(92, 184, 92, 0.08);
-  --overlay-brand-12:     rgba(92, 184, 92, 0.1);
-  --overlay-brand-15:     rgba(92, 184, 92, 0.12);
-  --overlay-brand-20:     rgba(92, 184, 92, 0.15);
-  --overlay-brand-25:     rgba(92, 184, 92, 0.18);
-  --overlay-brand-30:     rgba(92, 184, 92, 0.2);
-  --overlay-brand-35:     rgba(92, 184, 92, 0.22);
-  --overlay-brand-40:     rgba(92, 184, 92, 0.25);
-  --overlay-brand-45:     rgba(92, 184, 92, 0.28);
+  --overlay-brand-05: rgba(16, 185, 129, 0.05);
+  --overlay-brand-08: rgba(16, 185, 129, 0.06);
+  --overlay-brand-10: rgba(16, 185, 129, 0.08);
+  --overlay-brand-12: rgba(16, 185, 129, 0.1);
+  --overlay-brand-15: rgba(16, 185, 129, 0.12);
+  --overlay-brand-20: rgba(16, 185, 129, 0.15);
+  --overlay-brand-25: rgba(16, 185, 129, 0.18);
+  --overlay-brand-30: rgba(16, 185, 129, 0.2);
+  --overlay-brand-35: rgba(16, 185, 129, 0.22);
+  --overlay-brand-40: rgba(16, 185, 129, 0.25);
+  --overlay-brand-45: rgba(16, 185, 129, 0.28);
 
-  --overlay-brand-lighter-15: rgba(168, 230, 168, 0.12);
-  --overlay-brand-lighter-20: rgba(168, 230, 168, 0.15);
-  --overlay-brand-lighter-25: rgba(168, 230, 168, 0.18);
-  --overlay-brand-lighter-30: rgba(168, 230, 168, 0.22);
+  --overlay-brand-lighter-15: rgba(110, 231, 183, 0.12);
+  --overlay-brand-lighter-20: rgba(110, 231, 183, 0.15);
+  --overlay-brand-lighter-25: rgba(110, 231, 183, 0.18);
+  --overlay-brand-lighter-30: rgba(110, 231, 183, 0.22);
 
-  --overlay-brand-bg-15:  rgba(21, 37, 21, 0.3);
-  --overlay-brand-bg-30:  rgba(21, 37, 21, 0.5);
-  --overlay-brand-bg-40:  rgba(21, 37, 21, 0.6);
-  --overlay-brand-bg-50:  rgba(21, 37, 21, 0.7);
-  --overlay-brand-bg-60:  rgba(21, 37, 21, 0.8);
+  --overlay-brand-bg-15: rgba(6, 78, 59, 0.3);
+  --overlay-brand-bg-30: rgba(6, 78, 59, 0.5);
+  --overlay-brand-bg-40: rgba(6, 78, 59, 0.6);
+  --overlay-brand-bg-50: rgba(6, 78, 59, 0.7);
+  --overlay-brand-bg-60: rgba(6, 78, 59, 0.8);
 
-  --gradient-brand: linear-gradient(135deg, #A8E6A8 0%, #7DD87D 50%, #5CB85C 100%);
-  --gradient-btn:   linear-gradient(135deg, #A8E6A8 0%, #7DD87D 100%);
-  --gradient-btn-hover: linear-gradient(135deg, #C8F0C8 0%, #A8E6A8 100%);
+  --gradient-brand: linear-gradient(135deg, #6ee7b7 0%, #34d399 50%, #10b981 100%);
+  --gradient-btn: linear-gradient(135deg, #6ee7b7 0%, #34d399 100%);
+  --gradient-btn-hover: linear-gradient(135deg, #a7f3d0 0%, #6ee7b7 100%);
 }
