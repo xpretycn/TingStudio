@@ -50,6 +50,18 @@ export default defineConfig({
         target: 'http://localhost:3000',
         changeOrigin: true,
       },
+      // 高德地图 API 代理（解决 CORS）
+      '/amap': {
+        target: 'https://restapi.amap.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/amap/, ''),
+      },
+      // ip-api.com 代理（备用定位服务）
+      '/ip-api': {
+        target: 'http://ip-api.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/ip-api/, ''),
+      },
     },
   }
 })

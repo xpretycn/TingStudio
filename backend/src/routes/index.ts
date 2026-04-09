@@ -9,6 +9,7 @@ import { exportRoutes } from './exports.js'
 import { nutritionRoutes } from './nutrition.js'
 import { excelImportRoutes } from './excelImport.js'
 import { aiRoutes } from './ai.js'
+import { weatherRoutes } from './weather.js'
 
 export function createAppRouter(): Router {
   const router = Router()
@@ -22,6 +23,7 @@ export function createAppRouter(): Router {
   router.use('/nutrition', nutritionRoutes)
   router.use('/import', excelImportRoutes)
   router.use('/ai', aiRoutes)
+  router.use('/weather', weatherRoutes)
 
   return router
 }

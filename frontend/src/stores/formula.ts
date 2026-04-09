@@ -3,7 +3,6 @@ import { ref } from 'vue'
 import { formulaApi } from '@/api/formula'
 import type { Formula, FormulaForm, MaterialItem } from '@/api/formula'
 import { formatTimestamp } from '@/utils/timeFormat'
-import { usePaginationStore } from '@/stores/pagination'
 import { MessagePlugin } from 'tdesign-vue-next'
 
 export const useFormulaStore = defineStore('formula', () => {
@@ -18,8 +17,6 @@ export const useFormulaStore = defineStore('formula', () => {
   const fetchFormulas = async () => {
     loading.value = true
     try {
-      const { dynamicPageSize } = usePaginationStore()
-      pageSize.value = dynamicPageSize
       const res = await formulaApi.getList({
         keyword: keyword.value || undefined,
         salesmanId: salesmanId.value || undefined,
@@ -135,11 +132,19 @@ export const useFormulaStore = defineStore('formula', () => {
   }
 })
 
-/** 解析配方的 materialsJson 字段 */
+/** 解析配方的 materialsJson 字段（防御双重序列化） */
 function parseMaterials(formula: Formula): MaterialItem[] {
   if (formula.materials) return formula.materials
+  if (!formula.materialsJson) return []
+
   try {
-    return formula.materialsJson ? JSON.parse(formula.materialsJson) : []
+    const parsed = JSON.parse(formula.materialsJson)
+    // 防御双重序列化：解析结果可能是字符串（如 "[[{...}]]"）
+    if (typeof parsed === 'string') {
+      return JSON.parse(parsed)
+    }
+    // 确保返回数组
+    return Array.isArray(parsed) ? parsed : []
   } catch {
     return []
   }

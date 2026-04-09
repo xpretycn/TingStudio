@@ -26,6 +26,11 @@
           </t-space>
         </template>
       </t-table>
+      
+      <!-- 分页 -->
+      <div v-if="paginationStore.visible" class="table-pagination">
+        <t-pagination aria-label="分页导航" v-bind="paginationStore.paginationConfig" />
+      </div>
     </t-card>
     </Transition>
   </div>
@@ -160,5 +165,56 @@ const handleToggleStatus = async (row: Salesman) => {
   }
   // 按钮和表格样式由全局 _td-overrides.scss 统一覆盖
   :deep(.t-table) { .t-table__row { cursor: pointer; } }
+}
+
+// 分页样式
+.table-pagination {
+  margin-top: 16px;
+  padding: 12px 0;
+  display: flex;
+  justify-content: flex-end;
+  
+  :deep(.t-pagination) {
+    .t-pagination__total {
+      color: var(--text-secondary);
+      font-size: 13px;
+    }
+
+    .t-pagination__btn {
+      color: var(--text-primary);
+      border-radius: 8px;
+      min-width: 32px;
+      
+      &:hover {
+        color: var(--color-primary);
+        border-color: var(--color-primary-light);
+        background: var(--color-primary-lightest);
+      }
+
+      &.t-is-disabled {
+        color: var(--text-disabled);
+        border-color: var(--border-color-light);
+      }
+
+      &.t-is-current {
+        color: #fff;
+        background: var(--color-primary);
+        border-color: var(--color-primary);
+        font-weight: 600;
+      }
+    }
+
+    .t-pagination__select {
+      border-color: var(--color-primary-lightest);
+      border-radius: 8px;
+      color: var(--text-primary);
+    }
+
+    .t-pagination__jumper-input {
+      border-color: var(--color-primary-lightest);
+      border-radius: 8px;
+      color: var(--text-primary);
+    }
+  }
 }
 </style>

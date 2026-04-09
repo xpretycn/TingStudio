@@ -1,6 +1,6 @@
 # TingStudio v2.0 开发计划
 
-> 更新日期：2026-04-02（阶段十二已完成）
+> 更新日期：2026-04-07（阶段十四已完成）
 
 ---
 
@@ -8,21 +8,23 @@
 
 ### 1.1 已完成模块
 
-| 模块 | 后端 API | 前端页面 | Store | 完成度 |
-|------|---------|---------|-------|--------|
-| 认证（登录/注册） | ✅ 完整 | ✅ 完整 | ✅ | 100% |
-| 配方管理 CRUD | ✅ 完整 | ✅ 完整 | ✅ | 100% |
-| 原料管理 CRUD | ✅ 完整 | ✅ 完整 | ✅ | 100% |
-| 业务员管理 CRUD | ✅ 完整 | ✅ 完整 | ✅ | 100% |
-| 版本管理 | ✅ 完整 | ✅ 完整 | ✅ | 100% |
-| 导出中心 | ✅ 完整 | ✅ 完整 | ✅ | 100% |
-| 营养分析 | ✅ 完整 | ✅ 完整 | ✅ | 100% |
-| 营养标准 | ✅ 完整 | ✅ 完整 | ✅ | 100% |
-| AI 智能助手 | ✅ 完整 | ✅ 完整 | ✅ | 100% |
-| 账号设置 | - | ✅ 完整 | - | 100% |
-| 首页/主布局 | - | ✅ 完整 | - | 100% |
-| 工具箱 | - | ⚠️ 天气卡片 | - | 30% |
-| 天气服务 | - | ✅ 完整（侧边栏 + 工具箱） | ✅ | 100% |
+| 模块               | 后端 API               | 前端页面                   | Store | 完成度 |
+| ------------------ | ---------------------- | -------------------------- | ----- | ------ |
+| 认证（登录/注册）  | ✅ 完整                | ✅ 完整                    | ✅    | 100%   |
+| 配方管理 CRUD      | ✅ 完整                | ✅ 完整                    | ✅    | 100%   |
+| 原料管理 CRUD      | ✅ 完整                | ✅ 完整                    | ✅    | 100%   |
+| 业务员管理 CRUD    | ✅ 完整                | ✅ 完整                    | ✅    | 100%   |
+| 版本管理           | ✅ 完整                | ✅ 完整                    | ✅    | 100%   |
+| 导出中心           | ✅ 完整                | ✅ 完整                    | ✅    | 100%   |
+| 营养分析           | ✅ 完整                | ✅ 完整                    | ✅    | 100%   |
+| 营养标准           | ✅ 完整                | ✅ 完整                    | ✅    | 100%   |
+| AI 智能助手        | ✅ 完整                | ✅ 完整                    | ✅    | 100%   |
+| 账号设置           | -                      | ✅ 完整                    | -     | 100%   |
+| 首页/主布局        | -                      | ✅ 完整                    | -     | 100%   |
+| 工具箱             | -                      | ⚠️ 天气卡片                | -     | 30%    |
+| 天气服务           | -                      | ✅ 完整（侧边栏 + 工具箱） | ✅    | 100%   |
+| 配方详情页 UI 打磨 | ✅ 接口扩展 + 布局优化 | ✅ 完整                    | -     | 100%   |
+| 配方表单 UI 重构   | -                      | ✅ 双栏布局 + AI 面板      | -     | 100%   |
 
 ### 1.2 已完成的基础设施
 
@@ -46,26 +48,31 @@
 ## 二、已完成阶段
 
 ### ✅ 阶段一：数据库与后端重构（v2.1.0）
+
 - 移除客户管理模块，配方关联改为业务员
 - 数据库从 17 张表精简为 13 张表
 - 用户角色精简为 admin / formulist
 
 ### ✅ 阶段二：核心业务功能（v2.2.0）
+
 - 配方成品重量 + 含量比系数
 - 营养成分计算重构
 - 能量公式实现
 
 ### ✅ 阶段三：版本管理与数据修复（v2.3.0）
+
 - 配方列表展开行版本记录
 - 种子数据 ID 关联修复
 - 版本发布接口增强
 
 ### ✅ 阶段四：首页与 UI 优化（v2.4.0）
+
 - header 布局重构（导航按钮、搜索工具栏、用户菜单）
 - 按钮样式统一（粉色主题）
 - 原料/业务员列表优化
 
 ### ✅ 阶段五：版本控制增强与数据一致性（v2.5.0）
+
 - 辅料含量比系数字段与 ratio_factor 迁移
 - 全字段变更记录（配方名/业务员/参数/描述/原料）
 - 发布版本同步配方主表数据
@@ -73,6 +80,7 @@
 - 版本对比全字段可视化与动态列标题
 
 ### ✅ 阶段六：导出中心功能完善（v2.7.0）
+
 - Excel 导出引擎（配方信息 + 原料清单 + 营养数据三个 Sheet）
 - PDF 导出引擎（pdfkit 生成 A4 PDF，含表格和合计行）
 - 导出任务同步执行 + 下载/重试功能
@@ -103,13 +111,14 @@
 
 **目标**：将 25+ 营养字段按类别分组，提升录入体验
 
-| 子任务 | 技术方案 | 涉及文件 |
-|--------|----------|----------|
-| 7.1.1 营养字段分组展示 | 使用 t-collapse 折叠面板，分为基础营养/矿物质/维生素/其他四组 | `MaterialForm.vue` |
-| 7.1.2 营养数据来源管理 | 新增 confidence 字段记录数据可信度（high/medium/low） | `init.sql`, `MaterialDetail.vue` |
-| 7.1.3 快捷操作 | 添加一键清空、批量导入功能 | `MaterialForm.vue` |
+| 子任务                 | 技术方案                                                      | 涉及文件                         |
+| ---------------------- | ------------------------------------------------------------- | -------------------------------- |
+| 7.1.1 营养字段分组展示 | 使用 t-collapse 折叠面板，分为基础营养/矿物质/维生素/其他四组 | `MaterialForm.vue`               |
+| 7.1.2 营养数据来源管理 | 新增 confidence 字段记录数据可信度（high/medium/low）         | `init.sql`, `MaterialDetail.vue` |
+| 7.1.3 快捷操作         | 添加一键清空、批量导入功能                                    | `MaterialForm.vue`               |
 
 **数据库变更**：
+
 ```sql
 ALTER TABLE material_nutrition ADD COLUMN `confidence` TEXT DEFAULT 'medium'
   CHECK(confidence IN ('high', 'medium', 'low'));
@@ -119,11 +128,11 @@ ALTER TABLE material_nutrition ADD COLUMN `confidence` TEXT DEFAULT 'medium'
 
 **目标**：将表格展示改为卡片式布局，直观展示各项营养素
 
-| 子任务 | 技术方案 | 涉及文件 |
-|--------|----------|----------|
+| 子任务               | 技术方案                                                          | 涉及文件                |
+| -------------------- | ----------------------------------------------------------------- | ----------------------- |
 | 7.2.1 核心营养素卡片 | 使用 t-card + t-progress 展示能量/蛋白质/脂肪/碳水/钠五大核心指标 | `NutritionAnalysis.vue` |
-| 7.2.2 NRV 占比进度条 | 每个营养素显示占营养素参考值百分比，进度条颜色随占比变化 | `NutritionAnalysis.vue` |
-| 7.2.3 原料贡献明细 | 展示各原料对营养总量的贡献占比，缺少数据的原料高亮提醒 | `NutritionAnalysis.vue` |
+| 7.2.2 NRV 占比进度条 | 每个营养素显示占营养素参考值百分比，进度条颜色随占比变化          | `NutritionAnalysis.vue` |
+| 7.2.3 原料贡献明细   | 展示各原料对营养总量的贡献占比，缺少数据的原料高亮提醒            | `NutritionAnalysis.vue` |
 
 **核心营养素展示配置**：
 | 营养素 | 单位 | NRV 参考值 | 进度条阈值 |
@@ -138,13 +147,14 @@ ALTER TABLE material_nutrition ADD COLUMN `confidence` TEXT DEFAULT 'medium'
 
 **目标**：将合规检查结果分为三级，配合视觉反馈和操作建议
 
-| 子任务 | 技术方案 | 涉及文件 |
-|--------|----------|----------|
-| 7.3.1 检查结果分级 | pass(达标)/warning(警告)/fail(超标) 三级状态，配合颜色标签 | `nutritionController.ts` |
+| 子任务             | 技术方案                                                                         | 涉及文件                 |
+| ------------------ | -------------------------------------------------------------------------------- | ------------------------ |
+| 7.3.1 检查结果分级 | pass(达标)/warning(警告)/fail(超标) 三级状态，配合颜色标签                       | `nutritionController.ts` |
 | 7.3.2 建议列表优化 | 返回结构化建议，包含 type/priority/title/description/actionable/suggestedActions | `nutritionController.ts` |
-| 7.3.3 汇总统计 | 顶部展示达标/警告/超标数量汇总 | `NutritionAnalysis.vue` |
+| 7.3.3 汇总统计     | 顶部展示达标/警告/超标数量汇总                                                   | `NutritionAnalysis.vue`  |
 
 **UI 设计规范**：
+
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │  合规检查结果                                                │
@@ -161,11 +171,11 @@ ALTER TABLE material_nutrition ADD COLUMN `confidence` TEXT DEFAULT 'medium'
 
 **目标**：预置 6 类人群的基础营养标准
 
-| 子任务 | 技术方案 | 涉及文件 |
-|--------|----------|----------|
-| 7.4.1 国标数据准备 | 整理 GB 10765/10767/28050 等国家标准数据 | `seedNutritionProfiles.ts` |
-| 7.4.2 标准管理增强 | 新增编辑/删除 API，预置标准标识不可删除 | `nutritionController.ts`, `nutrition.ts` |
-| 7.4.3 前端 CRUD 完善 | 营养标准编辑弹窗、删除确认 | `NutritionProfiles.vue` |
+| 子任务               | 技术方案                                 | 涉及文件                                 |
+| -------------------- | ---------------------------------------- | ---------------------------------------- |
+| 7.4.1 国标数据准备   | 整理 GB 10765/10767/28050 等国家标准数据 | `seedNutritionProfiles.ts`               |
+| 7.4.2 标准管理增强   | 新增编辑/删除 API，预置标准标识不可删除  | `nutritionController.ts`, `nutrition.ts` |
+| 7.4.3 前端 CRUD 完善 | 营养标准编辑弹窗、删除确认               | `NutritionProfiles.vue`                  |
 
 **预置营养标准清单**：
 | 标准名称 | 适用类别 | 数据来源 |
@@ -178,6 +188,7 @@ ALTER TABLE material_nutrition ADD COLUMN `confidence` TEXT DEFAULT 'medium'
 | 特殊医学用途配方食品 | special | GB 29922 |
 
 **数据库变更**：
+
 ```sql
 ALTER TABLE nutrition_profiles ADD COLUMN `is_preset` INTEGER DEFAULT 0;
 ```
@@ -190,12 +201,12 @@ ALTER TABLE nutrition_profiles ADD COLUMN `is_preset` INTEGER DEFAULT 0;
 
 #### 时间安排
 
-| 时间 | 任务 |
-|------|------|
-| Day 1 上午 | 任务 7.1 原料营养数据编辑增强 |
-| Day 1 下午 | 任务 7.2 营养计算结果可视化 |
+| 时间       | 任务                                              |
+| ---------- | ------------------------------------------------- |
+| Day 1 上午 | 任务 7.1 原料营养数据编辑增强                     |
+| Day 1 下午 | 任务 7.2 营养计算结果可视化                       |
 | Day 2 上午 | 任务 7.3 合规检查结果优化 + 任务 7.4 预置营养标准 |
-| Day 2 下午 | 联调测试 + 文档更新 |
+| Day 2 下午 | 联调测试 + 文档更新                               |
 
 #### 验收标准
 
@@ -213,13 +224,13 @@ ALTER TABLE nutrition_profiles ADD COLUMN `is_preset` INTEGER DEFAULT 0;
 
 #### 现状分析
 
-| 维度 | 当前状态 | 问题 |
-|------|----------|------|
-| 加载状态 | 仅 `MaterialDetail.vue` 使用 `t-loading`，其余页面依赖 TDesign 表格内置 loading | 页面初始渲染时无骨架屏，首屏白屏闪烁 |
-| 空状态 | 所有表格均有 `<t-empty>` 占位 | 缺少新用户引导，空状态无操作建议按钮 |
-| 表单验证 | 4 个表单均配置 `rules`，但仅 Login/Register 设置了 `trigger: 'blur'` | 配方/原料/业务员表单仅在提交时校验，无实时反馈 |
-| 响应式 | `Home.vue` 有 1024px/768px 断点，Login/Register 有适配 | 列表页、表单页、详情页均无移动端适配 |
-| 代码质量 | 存在多处 `res.data` 重复解包 Bug | 已在阶段七后修复 8 处拦截器相关 Bug |
+| 维度     | 当前状态                                                                        | 问题                                           |
+| -------- | ------------------------------------------------------------------------------- | ---------------------------------------------- |
+| 加载状态 | 仅 `MaterialDetail.vue` 使用 `t-loading`，其余页面依赖 TDesign 表格内置 loading | 页面初始渲染时无骨架屏，首屏白屏闪烁           |
+| 空状态   | 所有表格均有 `<t-empty>` 占位                                                   | 缺少新用户引导，空状态无操作建议按钮           |
+| 表单验证 | 4 个表单均配置 `rules`，但仅 Login/Register 设置了 `trigger: 'blur'`            | 配方/原料/业务员表单仅在提交时校验，无实时反馈 |
+| 响应式   | `Home.vue` 有 1024px/768px 断点，Login/Register 有适配                          | 列表页、表单页、详情页均无移动端适配           |
+| 代码质量 | 存在多处 `res.data` 重复解包 Bug                                                | 已在阶段七后修复 8 处拦截器相关 Bug            |
 
 ---
 
@@ -232,14 +243,15 @@ ALTER TABLE nutrition_profiles ADD COLUMN `is_preset` INTEGER DEFAULT 0;
 **技术方案**：基于 TDesign `t-skeleton` 封装通用骨架屏组件，支持多种布局模式
 
 **组件接口设计**：
+
 ```typescript
 // components/Skeleton/PageSkeleton.vue
 interface Props {
-  type: 'table' | 'form' | 'detail' | 'cards'  // 布局类型
-  rows?: number    // 表格行数，默认 5
-  columns?: number // 表格列数，默认 4
-  showAvatar?: boolean  // 详情页是否显示头像区
-  showActions?: boolean // 是否显示操作栏骨架
+  type: "table" | "form" | "detail" | "cards"; // 布局类型
+  rows?: number; // 表格行数，默认 5
+  columns?: number; // 表格列数，默认 4
+  showAvatar?: boolean; // 详情页是否显示头像区
+  showActions?: boolean; // 是否显示操作栏骨架
 }
 ```
 
@@ -261,6 +273,7 @@ interface Props {
 **技术方案**：在各页面首次加载时展示骨架屏，数据加载完成后切换为真实内容
 
 **实现模式**：
+
 ```vue
 <template>
   <PageSkeleton v-if="!initialized" type="table" :rows="5" />
@@ -270,12 +283,12 @@ interface Props {
 </template>
 
 <script setup>
-const initialized = ref(false)
+const initialized = ref(false);
 
 onMounted(async () => {
-  await store.fetchData()
-  initialized.value = true
-})
+  await store.fetchData();
+  initialized.value = true;
+});
 </script>
 ```
 
@@ -294,6 +307,7 @@ onMounted(async () => {
 ##### 8.1.3 细节页加载状态增强（0.15天）
 
 **技术方案**：
+
 - 配方详情页：展开行版本数据异步加载时显示骨架行
 - 原料详情页：营养数据加载保留现有 `t-loading`，增加内容过渡动画
 - 导出中心：下载中增加文件类型图标 + 进度提示
@@ -330,6 +344,7 @@ onMounted(async () => {
 | 营养分析 | "请选择一个配方进行营养分析" | "前往配方管理" → 跳转配方列表 |
 
 **UI 规范**：
+
 ```vue
 <t-empty description="暂无配方数据">
   <template #action>
@@ -356,6 +371,7 @@ onMounted(async () => {
 **技术方案**：在侧边栏底部增加"快速开始"引导卡片，当用户无任何数据时显示
 
 **引导卡片设计**：
+
 ```
 ┌──────────────────────────┐
 │  🚀 快速开始              │
@@ -369,6 +385,7 @@ onMounted(async () => {
 ```
 
 **实现逻辑**：
+
 - 通过 store 检测用户是否为空数据状态（配方数=0 且原料数=0 且业务员数=0）
 - 空数据时在侧边栏底部显示引导卡片
 - 点击"开始引导"依次跳转：原料管理 → 配方管理 → 营养分析
@@ -401,22 +418,21 @@ onMounted(async () => {
 | 业务员表单 | `SalesmanForm.vue` | 所有 rules 添加 `trigger: 'blur'` |
 
 **rules 示例（修改后）**：
+
 ```typescript
 const rules: Record<string, FormRule[]> = {
   name: [
-    { required: true, message: '请输入配方名称', trigger: 'blur' },
-    { min: 2, message: '配方名称至少2个字符', trigger: 'blur' },
+    { required: true, message: "请输入配方名称", trigger: "blur" },
+    { min: 2, message: "配方名称至少2个字符", trigger: "blur" },
   ],
-  salesmanId: [{ required: true, message: '请选择所属业务员', trigger: 'change' }],
-  finishedWeight: [
-    { required: true, message: '请输入成品重量', trigger: 'blur' },
-  ],
+  salesmanId: [{ required: true, message: "请选择所属业务员", trigger: "change" }],
+  finishedWeight: [{ required: true, message: "请输入成品重量", trigger: "blur" }],
   ratioFactor: [
-    { required: true, message: '请输入主料含量比系数', trigger: 'blur' },
-    { validator: validateRatioFactor, message: '含量比系数范围 0.01-99.99', trigger: 'blur' },
+    { required: true, message: "请输入主料含量比系数", trigger: "blur" },
+    { validator: validateRatioFactor, message: "含量比系数范围 0.01-99.99", trigger: "blur" },
   ],
-  materials: [{ validator: validateMaterials, message: '请至少添加一种原料', trigger: 'change' }],
-}
+  materials: [{ validator: validateMaterials, message: "请至少添加一种原料", trigger: "change" }],
+};
 ```
 
 ##### 8.3.2 全局必填标识样式（0.1天）
@@ -426,13 +442,14 @@ const rules: Record<string, FormRule[]> = {
 ```scss
 // main.scss 新增
 :::v-deep(.t-form-item__required-icon) {
-  color: $danger-color;  // #E34D59 红色星号
+  color: $danger-color; // #E34D59 红色星号
 }
 ```
 
 ##### 8.3.3 表单提交防抖 + 错误提示优化（0.15天）
 
 **技术方案**：
+
 - 提交按钮增加防抖（300ms），防止重复提交
 - 校验失败时自动滚动到第一个错误字段（已有 `scroll-to-first-error`）
 - 错误提示使用 `MessagePlugin.warning` 替代默认的内联提示（可选）
@@ -469,19 +486,21 @@ $breakpoint-small: 480px;
 **适配方案**（两种方案选一）：
 
 **方案 A（推荐）：表格横向滚动 + 列隐藏**
+
 ```vue
 <t-table
   :columns="responsiveColumns"
   :scroll="{ type: 'virtual', maxHeight: 400 }"
   table-layout="auto"
-  table-content-width="800px"
-/>
+  table-content-width="800px" />
 ```
+
 - 移动端隐藏"描述/备注"等次要列
 - 表格容器允许横向滚动
 - 操作列固定右侧
 
 **方案 B：小屏卡片模式**
+
 - ≤768px 时将表格数据渲染为卡片列表
 - 通过 CSS 媒体查询切换显示
 
@@ -506,14 +525,18 @@ $breakpoint-small: 480px;
 ##### 8.4.3 表单页响应式适配（0.2天）
 
 **技术方案**：
+
 - `label-width` 根据屏幕宽度自适应（100px → 80px → 顶部标签）
 - 营养字段双列网格在小屏变为单列
 - 操作按钮在小屏变为全宽堆叠
 
 **实现要点**：
+
 ```scss
 @media (max-width: $breakpoint-mobile) {
-  .material-form, .formula-form, .salesman-form {
+  .material-form,
+  .formula-form,
+  .salesman-form {
     :deep(.t-form) {
       .t-form-item__label {
         text-align: left;
@@ -542,6 +565,7 @@ $breakpoint-small: 480px;
 ##### 8.4.4 详情页响应式适配（0.1天）
 
 **技术方案**：
+
 - 配方详情页：标签页在小屏变为下拉切换
 - 原料详情页：信息卡单列布局
 - 导出中心：Tab 在小屏变为图标导航
@@ -556,6 +580,7 @@ $breakpoint-small: 480px;
 ##### 8.4.5 侧边栏移动端折叠（0.1天）
 
 **技术方案**：
+
 - 移动端侧边栏变为抽屉式（点击汉堡菜单展开）
 - 顶部增加汉堡菜单按钮（仅移动端显示）
 - 抽屉展开时覆盖内容区，带遮罩层
@@ -569,14 +594,14 @@ $breakpoint-small: 480px;
 
 #### 时间安排
 
-| 时间 | 任务 | 产出 |
-|------|------|------|
-| Day 1 上午 | 8.1.1 通用骨架屏组件 + 8.1.2 页面集成 | `PageSkeleton.vue` + 8 个页面骨架屏 |
-| Day 1 下午 | 8.2.1 空状态增强 + 8.2.2 新用户引导 | 6 个页面 CTA + 侧边栏引导卡片 |
-| Day 2 上午 | 8.3.1 实时校验 + 8.3.2 必填标识 + 8.3.3 防抖 | 3 个表单验证增强 |
-| Day 2 下午 | 8.4.2 列表页响应式 + 8.4.3 表单页响应式 | 5+3 个页面响应式 |
-| Day 3 上午 | 8.4.4 详情页响应式 + 8.4.5 侧边栏折叠 + 8.1.3 细节优化 | 全页面响应式 |
-| Day 3 下午 | 联调测试 + 回归测试 + 文档更新 | 阶段八完成 |
+| 时间       | 任务                                                   | 产出                                |
+| ---------- | ------------------------------------------------------ | ----------------------------------- |
+| Day 1 上午 | 8.1.1 通用骨架屏组件 + 8.1.2 页面集成                  | `PageSkeleton.vue` + 8 个页面骨架屏 |
+| Day 1 下午 | 8.2.1 空状态增强 + 8.2.2 新用户引导                    | 6 个页面 CTA + 侧边栏引导卡片       |
+| Day 2 上午 | 8.3.1 实时校验 + 8.3.2 必填标识 + 8.3.3 防抖           | 3 个表单验证增强                    |
+| Day 2 下午 | 8.4.2 列表页响应式 + 8.4.3 表单页响应式                | 5+3 个页面响应式                    |
+| Day 3 上午 | 8.4.4 详情页响应式 + 8.4.5 侧边栏折叠 + 8.1.3 细节优化 | 全页面响应式                        |
+| Day 3 下午 | 联调测试 + 回归测试 + 文档更新                         | 阶段八完成                          |
 
 ---
 
@@ -615,17 +640,20 @@ $breakpoint-small: 480px;
 > 版本号：v2.10.0 | 完成日期：2026-03-31
 
 #### 9.1 构建验证
+
 - ✅ 后端 TypeScript 编译检查通过（`tsc --noEmit`）
 - ✅ 后端构建产物完整（`backend/dist/`，含 8 个控制器 + 中间件 + 路由 + 工具函数）
 - ✅ 前端 TypeScript 类型检查通过（`vue-tsc --noEmit`）
 - ✅ 前端 Vite 生产构建成功（`frontend/dist/`，含 26 个 JS + 20 个 CSS 文件）
 
 #### 9.2 项目配置优化
+
 - ✅ 根目录 `package.json` 新增统一管理脚本（dev/build/start/init-db/seed）
 - ✅ 新增 `concurrently` 依赖，支持前后端同时启动
 - ✅ 修正 `backend/.env.example` 模板（MySQL → SQLite 配置同步）
 
 #### 9.3 文档更新
+
 - ✅ README.md 更新至 v2.9，添加一键启动和生产部署说明
 - ✅ README.md 脚本文档重构（根目录/后端/前端三层结构）
 - ✅ DEVELOPMENT_PLAN.md 标记阶段九完成
@@ -640,13 +668,13 @@ $breakpoint-small: 480px;
 
 ---
 
-| # | 任务 | 说明 | 状态 |
-|---|------|------|------|
-| 9.1 | 前后端 TypeScript 编译检查 | `tsc --noEmit` + `vue-tsc --noEmit` 零错误 | ✅ |
-| 9.2 | 生产构建验证 | 后端 `tsc` + 前端 `vite build` 产物完整 | ✅ |
-| 9.3 | 根目录统一脚本 | `package.json` 新增 dev/build/start/init-db/seed | ✅ |
-| 9.4 | 环境配置模板同步 | `.env.example` MySQL → SQLite | ✅ |
-| 9.5 | README 文档更新 | 生产部署说明 + 脚本文档重构 | ✅ |
+| #   | 任务                       | 说明                                             | 状态 |
+| --- | -------------------------- | ------------------------------------------------ | ---- |
+| 9.1 | 前后端 TypeScript 编译检查 | `tsc --noEmit` + `vue-tsc --noEmit` 零错误       | ✅   |
+| 9.2 | 生产构建验证               | 后端 `tsc` + 前端 `vite build` 产物完整          | ✅   |
+| 9.3 | 根目录统一脚本             | `package.json` 新增 dev/build/start/init-db/seed | ✅   |
+| 9.4 | 环境配置模板同步           | `.env.example` MySQL → SQLite                    | ✅   |
+| 9.5 | README 文档更新            | 生产部署说明 + 脚本文档重构                      | ✅   |
 
 ---
 
@@ -655,16 +683,19 @@ $breakpoint-small: 480px;
 > 版本号：v2.11.0 | 完成日期：2026-03-31
 
 #### 10.1 设计令牌体系建立
+
 - ✅ 新增 `design-tokens.scss`，定义 250+ 设计变量（品牌色/背景色/文字色/边框色/语义色/覆盖层/阴影/间距/圆角/动效/布局常量）
 - ✅ 新增 `tokens.ts`，提供 JS 可导入的颜色常量（图表色/工具箱渐变/营养素渐变）
 - ✅ 新增 `theme.css`，通过 CSS 变量覆盖 TDesign 全局主题
 - ✅ Vite `additionalData` 配置 SCSS 全局注入，所有 .vue 文件可直接使用 token
 
 #### 10.2 全局 TDesign 样式覆盖提取
+
 - ✅ 从 Home.vue 提取 ~180 行 `:deep()` 样式到 `main.scss`
 - ✅ 统一按钮/输入框/表格/分页/标签/弹窗/对话框等组件样式
 
 #### 10.3 色值统一（5 个 Task）
+
 - ✅ **Task 1-2**：列表页（FormulaList/MaterialList/SalesmanList/RecentFormulas/VersionList）rgba 硬编码 → token
 - ✅ **Task 3**：其他页面（ExportCenter/NutritionProfiles/SalesmanDetail/MaterialDetail/VersionCompare）色值替换
 - ✅ **Task 4**：表单/详情/工具页（FormulaDetail/FormulaForm/MaterialForm/SalesmanForm/Tools/PageSkeleton/NutritionAnalysis/AppLayout）色值替换
@@ -675,7 +706,7 @@ $breakpoint-small: 480px;
 - [x] design-tokens.scss 包含完整的设计变量体系
 - [x] views/ 目录下 CSS/JS 硬编码色值从 ~284 降至 < 50
 - [x] Home.vue :deep 样式缩减 60%（提取到 main.scss）
-- [x] Login.vue / Register.vue 中 $pink-* 改为引用全局 token
+- [x] Login.vue / Register.vue 中 $pink-\* 改为引用全局 token
 - [x] vite build 通过，linter 0 错误
 
 ---
@@ -685,6 +716,7 @@ $breakpoint-small: 480px;
 > 版本号：v2.13.0 | 完成日期：2026-04-01
 
 #### 11.1 后端 AI 服务层
+
 - ✅ `services/ai/AIService.ts`：统一 OpenAI 兼容接口封装，支持通义千问、智谱 GLM、DeepSeek 三厂商模型切换
 - ✅ `services/ai/prompts.ts`：配方解析 + NL2SQL 两种场景的 system/user 提示词模板
 - ✅ `controllers/aiController.ts`：三个 API 端点（解析配方、自然语言检索、模型列表）
@@ -694,17 +726,20 @@ $breakpoint-small: 480px;
 - ✅ 智谱视觉模型跳过 `response_format`，通过 prompt 引导 JSON 输出
 
 #### 11.2 前端 AI 模块
+
 - ✅ `api/ai.ts`：AI API 模块 + 类型定义
 - ✅ `stores/ai.ts`：AI 状态管理（模型列表、解析结果、检索结果）
 - ✅ `views/ai/AiAssistant.vue`：AI 助手页面（智能填单 + 智能检索双 Tab）
 
 #### 11.3 集成与导航
+
 - ✅ 路由注册：`/ai-assistant` 懒加载路由
 - ✅ Home.vue 侧边栏新增"AI 助手"导航项（`precise-monitor` 图标）
 - ✅ Home.vue 所有映射更新（pathMap、navItems、iconMap、placeholderMap、titleMap、listPaths）
 - ✅ `FormulaForm.vue` 支持 AI 预填数据（`route.query.ai=true` + materials JSON）
 
 #### 11.4 账号设置页
+
 - ✅ `views/settings/AccountSettings.vue`：个人信息管理页面
 
 #### 验收标准
@@ -721,6 +756,7 @@ $breakpoint-small: 480px;
 > 版本号：v2.14.0 | 完成日期：2026-04-02
 
 #### 12.1 实时天气功能
+
 - ✅ `api/weather.ts`：和风天气免费订阅 API 封装（城市搜索、逆地理编码、实时天气），独立 axios 实例
 - ✅ `stores/weather.ts`：30 分钟内存缓存、Geolocation 自动定位（10s 超时）、城市 localStorage 持久化
 - ✅ Home.vue 侧边栏集成：移除假天气数据，展示真实天气 emoji + 温度 + 城市名
@@ -731,6 +767,7 @@ $breakpoint-small: 480px;
 - ✅ 429 限流指数退避重试（2s → 4s）
 
 #### 12.2 个人资料管理后端
+
 - ✅ users 表扩展：新增 display_name、avatar、bio、email、phone 字段
 - ✅ `PUT /api/auth/me`：更新个人资料（邮箱/手机号唯一性校验、格式验证）
 - ✅ `PUT /api/auth/change-password`：修改密码（旧密码验证）
@@ -738,6 +775,7 @@ $breakpoint-small: 480px;
 - ✅ Auth Store 增强：updateProfile、changePassword、fetchCurrentUser 方法
 
 #### 12.3 UI 优化
+
 - ✅ Home.vue 用户菜单改为 hover 触发 + hover 子菜单（外观/品牌色切换）
 - ✅ 导出中心按钮样式从 text 改为 outline，表格添加 table-layout="auto"
 - ✅ 前端 `.env` 新增 `VITE_QWEATHER_KEY` 配置
@@ -750,6 +788,164 @@ $breakpoint-small: 480px;
 - [x] 30 分钟缓存避免频繁 API 调用
 - [x] 个人资料修改/密码修改功能正常
 - [x] 邮箱/手机号唯一性校验
+
+### 阶段十三：配方详情页 UI 精细打磨与数据完整性（P0）— ✅ 已完成
+
+> 版本号：v2.15.0 | 完成日期：2026-04-06
+
+#### 13.1 配方详情页数据完善
+
+**目标**：消除详情页空数据显示，确保关联业务员/需求/版本历史从数据库获取真实数据
+
+| 变更项         | 技术方案                                                               | 涉及文件                 |
+| -------------- | ---------------------------------------------------------------------- | ------------------------ |
+| 业务员信息填充 | `getFormulaNutritionTables` 接口新增 salesman_id → salesmen 表关联查询 | `nutritionController.ts` |
+| 需求信息提取   | 从 formulas.description 提取需求描述填充 demandTitle/demandDesc        | `nutritionController.ts` |
+| 版本历史数据化 | 新增 `getVersionHistory()` 函数查询 formula_versions 表最近 3 条记录   | `nutritionController.ts` |
+
+**后端接口返回数据扩展**：
+
+```typescript
+{
+  // 新增字段
+  formulaId: string,
+  ratioFactor: number,
+  salesmanName: string,      // 从 salesmen 表获取
+  salesmanDept: string,      // 业务员部门
+  demandTitle: string|null,  // 需求标题
+  demandCode: string,        // 需求编码（formula.id）
+  demandDesc: string|null,   // 需求描述
+  versionHistory: any[],     // 真实版本历史数据
+}
+```
+
+#### 13.2 配方详情页布局优化
+
+**目标**：按参考设计（recipe-detail.html）还原成品总重样式，优化表格区域比例和间距
+
+| 变更项       | 说明                                                                                |
+| ------------ | ----------------------------------------------------------------------------------- |
+| 成品总重位置 | 从左侧副标题移至表头右侧，白底圆角徽章样式（bg-white rounded-2xl shadow-sm）        |
+| 双栏比例     | 营养成分表 : 使用说明 = 6fr : 4fr（原 1:1）                                         |
+| 营养表列合并 | "每100克(g)" + "单位" 合并为单列"每100克含量"，数值+单位同格显示                    |
+| 底部内边距   | calc-table 增加 padding-bottom: $space-6；detail-main 增加 padding-bottom: $space-6 |
+| 导出导航     | 导出按钮跳转 `/exports?formulaId=xxx&formulaName=xxx` 回填配方名称                  |
+
+#### 13.3 FormulaList 主题色适配
+
+**目标**：版本记录区域的 t-tag 和文本样式跟随品牌主题色动态变化
+
+| 变更项         | 说明                                                                  |
+| -------------- | --------------------------------------------------------------------- |
+| 当前标签       | `var(--color-primary)` 品牌色背景 + 白字                              |
+| 已发布标签     | `--color-primary-lightest` 浅底 + 品牌色文字                          |
+| version-reason | 移除 `$brand-primary-bg` 背景色，改用 `var(--color-primary)` 文字颜色 |
+
+#### 验收标准
+
+- [x] 关联业务员与需求信息显示真实数据（非占位符）
+- [x] 变更记录时间线显示 formula_versions 表中的历史版本
+- [x] 成品总重位于表头右侧，白底圆角徽章样式与参考设计一致
+- [x] 营养成分表与使用说明列比例为 6:4
+- [x] 营养表每100克数值+单位合并为单列显示
+- [x] 导出按钮正确跳转并回填配方名称
+- [x] FormulaList 版本标签跟随品牌主题色
+
+### 阶段十四：品牌色更新与配方表单 UI 重构（P0）— ✅ 已完成
+
+> 版本号：v2.16.0 | 完成日期：2026-04-07
+
+#### 14.1 品牌色统一更新
+
+**目标**：将"绿清新"品牌色更新为 RGB(16, 185, 129)，确保所有品牌应用场景统一
+
+| 变更项        | 技术方案                                                    | 涉及文件               |
+| ------------- | ----------------------------------------------------------- | ---------------------- |
+| CSS 变量更新  | theme-variables.scss 中 green 品牌色全部更新为 #10B981 系列 | `theme-variables.scss` |
+| JS Token 更新 | tokens.ts 中 green 色板同步更新                             | `tokens.ts`            |
+| 色值验证      | 全局搜索确认无其他绿色误用                                  | 全项目                 |
+
+**更新后的绿色色板**：
+
+```
+primary: #10B981
+primaryLight: #34D399
+primaryLighter: #6EE7B7
+primaryLightest: #A7F3D0
+primaryBg: #D1FAE5
+primaryDark: #059669
+primaryDeep: #047857
+```
+
+#### 14.2 配方表单 Header 统一
+
+**目标**：新增与 FormulaDetail.vue 相同的 header 区域，保持视觉一致性
+
+| 变更项     | 说明                                 |
+| ---------- | ------------------------------------ |
+| 面包屑导航 | 首页 > 配方管理 > 新建配方/编辑配方  |
+| 返回按钮   | 圆形按钮，hover emerald 色           |
+| 标题区域   | 配方名称 + 状态标签（编辑模式）      |
+| 操作按钮   | 保存按钮（emerald 主题色）、取消按钮 |
+| 动画效果   | fadeInDown 入场动画                  |
+
+#### 14.3 配方表单双栏布局重构
+
+**目标**：参考 new-recipe.html 实现左侧表单 + 右侧 AI 助手的双栏布局
+
+**布局结构**：
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Header（面包屑 + 标题 + 操作按钮）                          │
+├──────────────────────────────┬──────────────────────────────┤
+│  左侧表单区域 (col-span-7)   │  右侧 AI 助手 (col-span-5)   │
+│  ┌────────────────────────┐  │  ┌────────────────────────┐  │
+│  │ Section 1: 基础信息    │  │  │ AI 智能配方解析        │  │
+│  │ - 配方名称             │  │  │ - 模型选择             │  │
+│  │ - 所属业务员           │  │  │ - 文件上传区           │  │
+│  │ - 成品重量             │  │  │ - 解析进度动画         │  │
+│  │ - 主料/辅料系数        │  │  │ - 结果预览             │  │
+│  │ - 配方描述             │  │  │ - 操作按钮             │  │
+│  └────────────────────────┘  │  └────────────────────────┘  │
+│  ┌────────────────────────┐  │  ┌────────────────────────┐  │
+│  │ Section 2: 原料配比表  │  │  │ 操作提示               │  │
+│  │ - Excel 导入面板       │  │  │ - 5 条使用指南         │  │
+│  │ - 原料表格             │  │  └────────────────────────┘  │
+│  │ - 添加/删除行          │  │                              │
+│  │ - 合计行               │  │                              │
+│  └────────────────────────┘  │                              │
+└──────────────────────────────┴──────────────────────────────┘
+```
+
+#### 14.4 AI 助手面板功能实现
+
+**目标**：完整还原 AI 操作的所有行为及加载动画效果
+
+| 功能模块 | 实现细节                                                    |
+| -------- | ----------------------------------------------------------- |
+| 模型选择 | DeepFormulate v2 / 通用 OCR 解析 两种模型切换，选中状态高亮 |
+| 文件上传 | 点击上传 + 拖拽上传，支持 drag-over 状态视觉反馈            |
+| 解析进度 | 动态进度条（0-100%），状态文本动画切换，hint 提示           |
+| 结果预览 | 解析完成后显示配方名称、原料数量、置信度徽章                |
+| 操作按钮 | 确认回填（主按钮）、重新选择/清空/重新解析（文字按钮）      |
+| 操作提示 | 5 条使用指南（灯泡图标 + 提示文本）                         |
+
+**涉及文件**：
+
+- `FormulaForm.vue` - 主要重构文件
+
+#### 验收标准
+
+- [x] "绿清新"品牌色更新为 RGB(16, 185, 129)，所有应用场景一致
+- [x] 配方表单新增与详情页相同的 header 区域
+- [x] 表单采用 grid grid-cols-12 gap-8 双栏布局（7:5 比例）
+- [x] 左侧分为基础信息 Section 和原料配比 Section
+- [x] 右侧 AI 助手面板包含模型选择、上传区、进度动画、结果预览
+- [x] 拖拽上传支持 drag-over 状态视觉反馈
+- [x] 解析进度条动画流畅，状态提示文本动态切换
+- [x] 解析结果可一键回填到表单
+- [x] 操作提示面板显示 5 条使用指南
 
 ## 四、注意事项
 

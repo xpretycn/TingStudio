@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>配方详情 | PureFormulate</title>
+    <script src="https://modao.cc/agent-py/static/source/js/tailwindcss.3.4.3.js"></script>
+    <script src="https://modao.cc/agent-py/static/source/js/iconify-icon.min.1.0.7.js"></script>
+    <script src="https://modao.cc/agent-py/static/source/js/echarts.min.5.4.3.js"></script>
+    <style>
+        .custom-input:focus {
+            ring: 2px;
+            ring-color: #10b981;
+            outline: none;
+            border-color: transparent;
+        }
+
+        .version-tag {
+            clip-path: polygon(0% 0%, 90% 0%, 100% 50%, 90% 100%, 0% 100%);
+        }
+
+        .calc-row:hover {
+            background-color: #f0fdf4;
+        }
+    </style>
+</head>
+
+<body class="bg-[#f8fafc] text-slate-700 font-sans leading-relaxed">
+    <!-- 顶栏 -->
+    <header
+        class="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-100 px-8 py-4 flex justify-between items-center">
+        <div class="flex items-center gap-4">
+            <a class="p-2 text-slate-400 hover:text-emerald-500 hover:bg-emerald-50 rounded-xl transition-all"
+                href="https://modao.cc/agent-py/workspace/69cf7edcb97578b53dfe41dc/配方师配方管理系统_v9.html/index.html?render_html=true">
+                <iconify-icon class="text-2xl" icon="lucide:arrow-left"></iconify-icon>
+            </a>
+            <div>
+                <nav class="flex items-center gap-2 text-xs text-slate-400 mb-0.5">
+                    <a class="hover:text-emerald-500"
+                        href="https://modao.cc/agent-py/workspace/69cf7edcb97578b53dfe41dc/配方师配方管理系统_v9.html/index.html?render_html=true">配方管理</a>
+                    <iconify-icon icon="lucide:chevron-right"></iconify-icon>
+                    <span class="text-slate-600">配方详情</span>
+                </nav>
+                <h2 class="text-lg font-bold text-slate-800 flex items-center gap-3">
+                    草莓酸奶燕麦能量棒
+                    <span
+                        class="px-2 py-0.5 bg-emerald-100 text-emerald-600 text-[10px] font-black rounded-md">V3.2.0</span>
+                </h2>
+            </div>
+        </div>
+        <div class="flex items-center gap-3">
+            <button
+                class="px-4 py-2 bg-emerald-500 text-white rounded-xl text-sm font-bold shadow-lg shadow-emerald-100 hover:bg-emerald-600 transition-all flex items-center gap-2">
+                <iconify-icon class="text-lg" icon="lucide:edit"></iconify-icon>
+                编辑配方</button>
+            <button
+                class="px-4 py-2 bg-emerald-500 text-white rounded-xl text-sm font-bold shadow-lg shadow-emerald-100 hover:bg-emerald-600 transition-all flex items-center gap-2">
+                <iconify-icon class="text-lg" icon="lucide:send"></iconify-icon>
+                导出配方
+            </button>
+        </div>
+    </header>
+    <main class="max-w-[1400px] mx-auto p-8 grid grid-cols-12 gap-8">
+        <!-- 左侧：基础信息与版本管理 -->
+        <div class="col-span-12 lg:col-span-4 space-y-8">
+            <!-- 基础信息卡片 -->
+            <section class="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-50">
+                <h3 class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-6">配方概况</h3>
+                <div class="space-y-4">
+                    <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                        <label class="text-[10px] text-slate-400 font-bold uppercase block mb-1">配方编号</label>
+                        <p class="font-mono text-sm font-bold text-slate-700">FD-20260403-01</p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                            <label class="text-[10px] text-slate-400 font-bold uppercase block mb-1">所属分类</label>
+                            <p class="text-sm font-bold text-slate-700">休闲零食 / 能量棒</p>
+                        </div>
+                        <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                            <label class="text-[10px] text-slate-400 font-bold uppercase block mb-1">目标人群</label>
+                            <p class="text-sm font-bold text-slate-700">运动/健康人群</p>
+                        </div>
+                    </div>
+                    <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                        <label class="text-[10px] text-slate-400 font-bold uppercase block mb-1">负责人</label>
+                        <div class="flex items-center gap-2">
+                            <img class="w-6 h-6 rounded-full" src="/agent-py/static/source/images/placeholder.svg" />
+                            <p class="text-sm font-bold text-slate-700">陈子秋 (首席配方师)</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <!-- 业务关联 -->
+            <section class="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-50 overflow-hidden relative">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-full -mr-16 -mt-16 opacity-50"></div>
+                <h3 class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-6 relative z-10">关联业务员与需求</h3>
+                <div class="relative z-10 space-y-6">
+                    <div class="flex items-center gap-4">
+                        <img class="w-12 h-12 rounded-2xl" src="/agent-py/static/source/images/placeholder.svg" />
+                        <div>
+                            <p class="font-bold text-slate-800">业务经理：李雪</p>
+                            <p class="text-xs text-slate-400">华东区大客户部</p>
+                        </div>
+                    </div>
+                    <div class="bg-blue-50/50 p-4 rounded-2xl border border-blue-100">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-xs font-black text-blue-600 uppercase tracking-tighter">关联需求 #421</span>
+                            <span
+                                class="px-2 py-0.5 bg-blue-100 text-blue-700 text-[10px] font-bold rounded">紧急开发</span>
+                        </div>
+                        <p class="text-sm font-bold text-slate-700 mb-1">星选轻食 2026 夏季系列</p>
+                        <p class="text-xs text-slate-500 leading-relaxed">客户要求：草莓含量不低于15%，单棒热量控制在 150kcal 以内，口感需软糯。</p>
+                    </div>
+                    <button
+                        class="w-full py-3 border-2 border-dashed border-slate-200 text-slate-400 text-xs font-bold rounded-2xl hover:border-emerald-200 hover:text-emerald-500 transition-all">
+                        + 关联更多需求
+                    </button>
+                </div>
+            </section>
+            <!-- 版本与变更记录 -->
+            <section class="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-50">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-sm font-bold text-slate-400 uppercase tracking-widest">变更记录</h3>
+                    <iconify-icon class="text-slate-300" icon="lucide:history"></iconify-icon>
+                </div>
+                <div class="space-y-6">
+                    <div
+                        class="flex gap-4 relative pb-6 after:absolute after:left-[11px] after:top-[28px] after:bottom-0 after:w-0.5 after:bg-slate-50">
+                        <div class="w-6 h-6 rounded-full bg-emerald-500 border-4 border-emerald-100 z-10"></div>
+                        <div>
+                            <p class="text-sm font-bold text-slate-800">当前版本 v3.2.0</p>
+                            <p class="text-xs text-slate-500">2026-04-03 10:24 · 由 陈子秋 更新</p>
+                            <div class="mt-2 bg-slate-50 px-3 py-2 rounded-lg text-xs text-slate-400">优化了草莓冻干颗粒的配比，增强风味。
+                            </div>
+                        </div>
+                    </div>
+                    <div
+                        class="flex gap-4 relative pb-6 after:absolute after:left-[11px] after:top-[28px] after:bottom-0 after:w-0.5 after:bg-slate-50">
+                        <div class="w-6 h-6 rounded-full bg-slate-200 z-10"></div>
+                        <div>
+                            <p class="text-sm font-bold text-slate-600">历史版本 v3.1.5</p>
+                            <p class="text-xs text-slate-400">2026-03-25 14:12 · 由 陈子秋 更新</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-4">
+                        <div class="w-6 h-6 rounded-full bg-slate-200 z-10"></div>
+                        <div>
+                            <p class="text-sm font-bold text-slate-600">历史版本 v3.0.0</p>
+                            <p class="text-xs text-slate-400">2026-03-10 09:00 · 初始发布版本</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+        <!-- 右侧：配比计算器与原料 -->
+        <div class="col-span-12 lg:col-span-8 space-y-8">
+            <!-- 自动配比计算器 -->
+            <section class="bg-white rounded-[2rem] shadow-sm border border-slate-50 overflow-hidden">
+                <div class="p-8 border-b border-slate-50 bg-slate-50/50 flex justify-between items-center">
+                    <div>
+                        <h3 class="font-bold text-slate-800 text-xl">配比实时计算器</h3>
+                        <p class="text-xs text-slate-400">输入总重量或调整单项比例，系统将自动进行质量平衡计算</p>
+                    </div>
+                    <div class="flex items-center gap-3 bg-white p-2 rounded-2xl shadow-sm border border-slate-100">
+                        <label class="text-[10px] font-black text-slate-400 uppercase px-2">成品总重(g)</label>
+                        <input class="w-24 text-center font-bold text-emerald-600 outline-none" id="totalWeight"
+                            type="number" value="1000" />
+                    </div>
+                </div>
+                <div class="p-0">
+                    <table class="w-full text-left">
+                        <thead class="bg-slate-50/30 text-slate-400 text-[10px] uppercase font-black tracking-widest">
+                            <tr>
+                                <th class="px-8 py-4">原料名称/编号</th>
+                                <th class="px-6 py-4">百分比 (%)</th>
+                                <th class="px-6 py-4">质量 (g)</th>
+                                <th class="px-6 py-4">成本预估 (¥)</th>
+                                <th class="px-8 py-4 text-right">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-50" id="calcTableBody">
+                            <!-- 原料行 1 -->
+                            <tr class="calc-row transition-all group">
+                                <td class="px-8 py-5">
+                                    <div class="flex items-center gap-3">
+                                        <div
+                                            class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-500 flex items-center justify-center">
+                                            <iconify-icon icon="lucide:leaf"></iconify-icon>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm font-bold text-slate-700">澳洲进口燕麦片</p>
+                                            <p class="text-[10px] font-mono text-slate-400">ING-041-A</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-5">
+                                    <div class="flex items-center gap-2">
+                                        <input
+                                            class="w-16 bg-slate-50 border-none rounded-lg p-1.5 text-sm font-bold text-slate-700 text-center outline-none focus:ring-2 focus:ring-emerald-200"
+                                            step="0.1" type="number" value="45.0" />
+                                        <span class="text-xs text-slate-400">%</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-5">
+                                    <p class="text-sm font-bold text-slate-600 weight-cell">450.00</p>
+                                </td>
+                                <td class="px-6 py-5">
+                                    <p class="text-sm text-slate-500">¥ 12.50</p>
+                                </td>
+                                <td class="px-8 py-5 text-right">
+                                    <button class="text-slate-300 hover:text-red-400 transition-colors">
+                                        <iconify-icon class="text-xl" icon="lucide:x-circle"></iconify-icon>
+                                    </button>
+                                </td>
+                            </tr>
+                            <!-- 原料行 2 -->
+                            <tr class="calc-row transition-all group">
+                                <td class="px-8 py-5">
+                                    <div class="flex items-center gap-3">
+                                        <div
+                                            class="w-8 h-8 rounded-lg bg-rose-50 text-rose-500 flex items-center justify-center">
+                                            <iconify-icon icon="lucide:strawberry"></iconify-icon>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm font-bold text-slate-700">冻干草莓碎 (1-3mm)</p>
+                                            <p class="text-[10px] font-mono text-slate-400">ING-088-S</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-5">
+                                    <div class="flex items-center gap-2">
+                                        <input
+                                            class="w-16 bg-slate-50 border-none rounded-lg p-1.5 text-sm font-bold text-slate-700 text-center outline-none focus:ring-2 focus:ring-emerald-200"
+                                            step="0.1" type="number" value="18.5" />
+                                        <span class="text-xs text-slate-400">%</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-5">
+                                    <p class="text-sm font-bold text-slate-600 weight-cell">185.00</p>
+                                </td>
+                                <td class="px-6 py-5">
+                                    <p class="text-sm text-slate-500">¥ 45.80</p>
+                                </td>
+                                <td class="px-8 py-5 text-right">
+                                    <button class="text-slate-300 hover:text-red-400 transition-colors">
+                                        <iconify-icon class="text-xl" icon="lucide:x-circle"></iconify-icon>
+                                    </button>
+                                </td>
+                            </tr>
+                            <!-- 原料行 3 -->
+                            <tr class="calc-row transition-all group">
+                                <td class="px-8 py-5">
+                                    <div class="flex items-center gap-3">
+                                        <div
+                                            class="w-8 h-8 rounded-lg bg-blue-50 text-blue-500 flex items-center justify-center">
+                                            <iconify-icon icon="lucide:droplets"></iconify-icon>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm font-bold text-slate-700">低脂酸奶粉</p>
+                                            <p class="text-[10px] font-mono text-slate-400">ING-102-Y</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-5">
+                                    <div class="flex items-center gap-2">
+                                        <input
+                                            class="w-16 bg-slate-50 border-none rounded-lg p-1.5 text-sm font-bold text-slate-700 text-center outline-none focus:ring-2 focus:ring-emerald-200"
+                                            step="0.1" type="number" value="12.0" />
+                                        <span class="text-xs text-slate-400">%</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-5">
+                                    <p class="text-sm font-bold text-slate-600 weight-cell">120.00</p>
+                                </td>
+                                <td class="px-6 py-5">
+                                    <p class="text-sm text-slate-500">¥ 8.40</p>
+                                </td>
+                                <td class="px-8 py-5 text-right">
+                                    <button class="text-slate-300 hover:text-red-400 transition-colors">
+                                        <iconify-icon class="text-xl" icon="lucide:x-circle"></iconify-icon>
+                                    </button>
+                                </td>
+                            </tr>
+                            <!-- 原料行 4 -->
+                            <tr class="calc-row transition-all group">
+                                <td class="px-8 py-5">
+                                    <div class="flex items-center gap-3">
+                                        <div
+                                            class="w-8 h-8 rounded-lg bg-amber-50 text-amber-500 flex items-center justify-center">
+                                            <iconify-icon icon="lucide:cookie"></iconify-icon>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm font-bold text-slate-700">异麦芽酮糖醇</p>
+                                            <p class="text-[10px] font-mono text-slate-400">ING-005-I</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-5">
+                                    <div class="flex items-center gap-2">
+                                        <input
+                                            class="w-16 bg-slate-50 border-none rounded-lg p-1.5 text-sm font-bold text-slate-700 text-center outline-none focus:ring-2 focus:ring-emerald-200"
+                                            step="0.1" type="number" value="24.5" />
+                                        <span class="text-xs text-slate-400">%</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-5">
+                                    <p class="text-sm font-bold text-slate-600 weight-cell">245.00</p>
+                                </td>
+                                <td class="px-6 py-5">
+                                    <p class="text-sm text-slate-500">¥ 15.20</p>
+                                </td>
+                                <td class="px-8 py-5 text-right">
+                                    <button class="text-slate-300 hover:text-red-400 transition-colors">
+                                        <iconify-icon class="text-xl" icon="lucide:x-circle"></iconify-icon>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                        <tfoot class="bg-emerald-50/50">
+                            <tr>
+                                <td class="px-8 py-4 font-bold text-emerald-800">总计平衡 (Check Sum)</td>
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-lg font-black text-emerald-600">100.0</span>
+                                        <span class="text-xs text-emerald-600">%</span>
+                                        <iconify-icon class="text-emerald-500"
+                                            icon="lucide:check-circle-2"></iconify-icon>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 font-black text-emerald-800 text-lg">1000.00 <span
+                                        class="text-xs font-normal">g</span></td>
+                                <td class="px-6 py-4 font-bold text-slate-700">¥ 81.90</td>
+                                <td class="px-8 py-4"></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                <div class="p-8 bg-slate-50/20 border-t border-slate-50">
+                    <button
+                        class="flex items-center justify-center gap-2 w-full py-4 border-2 border-dashed border-slate-200 text-slate-400 hover:border-emerald-300 hover:bg-white hover:text-emerald-500 rounded-3xl transition-all font-bold text-sm uppercase tracking-widest">
+                        <iconify-icon class="text-xl" icon="lucide:package-plus"></iconify-icon>
+                        添加配方原料
+                    </button>
+                </div>
+            </section>
+            <!-- 营养雷达与风味分析 -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <section class="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-50">
+                    <h3 class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-6">营养分布模型</h3>
+                    <div class="h-64 w-full" id="radarChart"></div>
+                </section>
+                <section class="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-50">
+                    <h3 class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-6">感官评价</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <div class="flex justify-between text-xs font-bold mb-1">
+                                <span class="text-slate-600">硬度 / 硬脆性</span>
+                                <span class="text-emerald-500">7.5 / 10</span>
+                            </div>
+                            <div class="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                                <div class="h-full bg-emerald-400 rounded-full" style="width: 75%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs font-bold mb-1">
+                                <span class="text-slate-600">甜度反馈</span>
+                                <span class="text-amber-500">4.2 / 10</span>
+                            </div>
+                            <div class="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                                <div class="h-full bg-amber-400 rounded-full" style="width: 42%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs font-bold mb-1">
+                                <span class="text-slate-600">香气持久度</span>
+                                <span class="text-blue-500">8.8 / 10</span>
+                            </div>
+                            <div class="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                                <div class="h-full bg-blue-400 rounded-full" style="width: 88%"></div>
+                            </div>
+                        </div>
+                        <div class="pt-4 mt-4 border-t border-slate-50 italic text-xs text-slate-400 leading-relaxed">
+                            "评价总结：风味均衡，草莓的酸甜感能有效中和燕麦的谷物味，能量释放持久，符合客户对轻食能量棒的要求。"
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
+    <script>
+        // 初始化 ECharts
+        const radarDom = document.getElementById('radarChart');
+        const radarChart = echarts.init(radarDom);
+        const option = {
+            radar: {
+                indicator: [
+                    { name: '蛋白质', max: 100 },
+                    { name: '能量', max: 100 },
+                    { name: '碳水', max: 100 },
+                    { name: '脂肪', max: 100 },
+                    { name: '膳食纤维', max: 100 },
+                    { name: '钠', max: 100 }
+                ],
+                shape: 'circle',
+                splitNumber: 4,
+                axisName: { color: '#94a3b8', fontSize: 10 },
+                splitLine: { lineStyle: { color: '#f1f5f9' } },
+                splitArea: { show: false }
+            },
+            series: [{
+                name: '配方营养值',
+                type: 'radar',
+                data: [{
+                    value: [85, 70, 90, 45, 95, 20],
+                    name: '配方 V3.2.0',
+                    symbol: 'none',
+                    lineStyle: { color: '#10b981', width: 2 },
+                    areaStyle: { color: 'rgba(16, 185, 129, 0.1)' }
+                }]
+            }]
+        };
+        radarChart.setOption(option);
+
+        // 简易计算器逻辑
+        document.getElementById('totalWeight').addEventListener('input', function (e) {
+            const total = parseFloat(e.target.value) || 0;
+            const percentageInputs = document.querySelectorAll('#calcTableBody input[type="number"]');
+            const weightCells = document.querySelectorAll('.weight-cell');
+
+            percentageInputs.forEach((input, index) => {
+                const percent = parseFloat(input.value) || 0;
+                const weight = (total * percent / 100).toFixed(2);
+                weightCells[index].innerText = weight;
+            });
+        });
+    </script>
+</body>
+
+</html>
