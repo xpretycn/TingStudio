@@ -1,0 +1,270 @@
+<!doctype html>
+
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>版本对比 | PureFormulate</title>
+    <script src="https://modao.cc/agent-py/static/source/js/tailwindcss.3.4.3.js"></script>
+    <script src="https://modao.cc/agent-py/static/source/js/iconify-icon.min.1.0.7.js"></script>
+    <style>
+      @keyframes slideIn {
+        from {
+          opacity: 0;
+          transform: translateX(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+      .animate-slide-in {
+        animation: slideIn 0.5s ease-out forwards;
+      }
+      .diff-added {
+        background-color: #f0fdf4;
+        color: #16a34a;
+        font-weight: bold;
+      }
+      .diff-removed {
+        background-color: #fef2f2;
+        color: #dc2626;
+        text-decoration: line-through;
+        opacity: 0.6;
+      }
+      .diff-changed {
+        background-color: #fffbeb;
+        color: #d97706;
+        font-weight: bold;
+      }
+      .glass-header {
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(10px);
+      }
+      ::-webkit-scrollbar {
+        height: 8px;
+        width: 6px;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #d1fae5;
+        border-radius: 10px;
+      }
+    </style>
+  </head>
+  <body class="bg-[#f8fafc] text-slate-700 font-sans leading-relaxed">
+    <!-- 顶栏 -->
+    <header
+      class="sticky top-0 z-40 glass-header border-b border-slate-100 px-8 py-4 flex justify-between items-center">
+      <div class="flex items-center gap-4">
+        <a
+          class="p-2 text-slate-400 hover:text-emerald-500 hover:bg-emerald-50 rounded-xl transition-all"
+          href="https://modao.cc/agent-py/workspace/69cf7edcb97578b53dfe41dc/配方师配方管理系统_v11.html/version-management.html?render_html=true">
+          <iconify-icon class="text-2xl" icon="lucide:arrow-left"></iconify-icon>
+        </a>
+        <div>
+          <nav class="flex items-center gap-2 text-xs text-slate-400 mb-0.5">
+            <a
+              class="hover:text-emerald-500"
+              href="https://modao.cc/agent-py/workspace/69cf7edcb97578b53dfe41dc/配方师配方管理系统_v11.html/version-management.html?render_html=true"
+              >版本管理</a
+            >
+            <iconify-icon icon="lucide:chevron-right"></iconify-icon>
+            <span class="text-slate-600">版本差异对比</span>
+          </nav>
+          <h2 class="text-lg font-bold text-slate-800">版本多维对比视图</h2>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="text-xs text-slate-400 font-medium"
+          >当前对比版本数: <span class="text-emerald-600 font-bold" id="activeCount">0</span>/3</span
+        >
+        <button
+          class="px-4 py-2 text-rose-500 hover:bg-rose-50 rounded-xl text-sm font-medium transition-all"
+          onclick="clearCompare()">
+          重置对比
+        </button>
+      </div>
+    </header>
+    <main class="p-8">
+      <div class="flex gap-6 overflow-x-auto pb-6" id="compareGrid">
+        <!-- 对比列将在这里生成 -->
+        <div class="w-full flex flex-col items-center justify-center py-20 text-slate-400 space-y-4" id="emptyState">
+          <iconify-icon class="text-6xl opacity-20" icon="lucide:layout-template"></iconify-icon>
+          <p>暂无选中的版本，请先从版本管理页面添加</p>
+          <a
+            class="px-6 py-2 bg-emerald-500 text-white rounded-xl text-sm font-bold shadow-lg shadow-emerald-100"
+            href="https://modao.cc/agent-py/workspace/69cf7edcb97578b53dfe41dc/配方师配方管理系统_v11.html/version-management.html?render_html=true"
+            >返回选择</a
+          >
+        </div>
+      </div>
+    </main>
+    <script>
+      const allVersions = [
+        {
+          id: 1,
+          v: "V3.2.0",
+          name: "草莓酸奶能量棒-标准版",
+          status: "published",
+          date: "2026-04-10",
+          author: "张研发",
+          code: "FD-20260403-01",
+          ingredients: [
+            { n: "燕麦", p: 45 },
+            { n: "酸奶粉", p: 20 },
+            { n: "草莓干", p: 15 },
+            { n: "蜂蜜", p: 10 },
+            { n: "乳清蛋白", p: 10 },
+          ],
+        },
+        {
+          id: 2,
+          v: "V3.1.5",
+          name: "低糖测试版本",
+          status: "archived",
+          date: "2026-03-25",
+          author: "张研发",
+          code: "FD-20260325-02",
+          ingredients: [
+            { n: "燕麦", p: 50 },
+            { n: "酸奶粉", p: 15 },
+            { n: "草莓干", p: 15 },
+            { n: "木糖醇", p: 10 },
+            { n: "乳清蛋白", p: 10 },
+          ],
+        },
+        {
+          id: 3,
+          v: "V3.3.0-Draft",
+          name: "高蛋白强化版(内测)",
+          status: "draft",
+          date: "2026-04-13",
+          author: "李工程师",
+          code: "FD-20260413-01",
+          ingredients: [
+            { n: "燕麦", p: 40 },
+            { n: "酸奶粉", p: 15 },
+            { n: "草莓干", p: 10 },
+            { n: "蜂蜜", p: 10 },
+            { n: "乳清蛋白", p: 25 },
+          ],
+        },
+        {
+          id: 4,
+          v: "V3.0.0",
+          name: "首发基准版本",
+          status: "archived",
+          date: "2026-01-15",
+          author: "王主管",
+          code: "FD-20260115-01",
+          ingredients: [
+            { n: "燕麦", p: 60 },
+            { n: "白砂糖", p: 20 },
+            { n: "全脂奶粉", p: 20 },
+          ],
+        },
+      ];
+
+      let compareIds = JSON.parse(localStorage.getItem("compare_versions") || "[]");
+
+      function renderCompare() {
+        const grid = document.getElementById("compareGrid");
+        const empty = document.getElementById("emptyState");
+        const selected = allVersions.filter(v => compareIds.includes(v.id));
+
+        document.getElementById("activeCount").innerText = selected.length;
+
+        if (selected.length === 0) {
+          grid.innerHTML = "";
+          grid.appendChild(empty);
+          return;
+        }
+
+        // 清空除 emptyState 外的内容
+        grid.innerHTML = "";
+
+        selected.forEach((v, idx) => {
+          const col = document.createElement("div");
+          col.className = `min-w-[400px] flex-shrink-0 bg-white rounded-[2rem] shadow-sm border border-slate-50 overflow-hidden animate-slide-in`;
+          col.style.animationDelay = `${idx * 0.1}s`;
+
+          let ingredientsHtml = "";
+
+          // 简单的差异检测逻辑
+          v.ingredients.forEach(ing => {
+            let diffClass = "";
+            // 检查其他选中版本是否有这个原料且百分比是否不同
+            const others = selected.filter(o => o.id !== v.id);
+            const isShared = others.some(o => o.ingredients.some(oi => oi.n === ing.n));
+            if (isShared) {
+              const hasDiff = others.some(o => {
+                const match = o.ingredients.find(oi => oi.n === ing.n);
+                return match && match.p !== ing.p;
+              });
+              if (hasDiff) diffClass = "diff-changed";
+            } else {
+              diffClass = "diff-added";
+            }
+
+            ingredientsHtml += `
+                        <div class="p-4 mb-3 rounded-2xl border border-slate-50 transition-all ${diffClass || "bg-slate-50/50"}">
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="text-sm font-bold">${ing.n}</span>
+                                <span class="font-mono text-sm font-black">${ing.p.toFixed(2)}%</span>
+                            </div>
+                            <div class="w-full bg-slate-200/30 h-1.5 rounded-full overflow-hidden">
+                                <div class="h-full bg-emerald-500 rounded-full" style="width: ${ing.p}%"></div>
+                            </div>
+                        </div>
+                    `;
+          });
+
+          col.innerHTML = `
+                    <div class="p-6 border-b border-slate-50 bg-slate-50/30 relative">
+                        <div class="flex justify-between items-start mb-4">
+                            <span class="px-2 py-1 bg-emerald-100 text-emerald-600 text-[10px] font-black rounded-md font-mono">${v.v}</span>
+                            <button onclick="removeCompare(${v.id})" class="text-slate-300 hover:text-rose-500 transition-colors">
+                                <iconify-icon icon="lucide:trash-2"></iconify-icon>
+                            </button>
+                        </div>
+                        <h3 class="font-bold text-slate-800 text-lg mb-1">${v.name}</h3>
+                        <p class="text-xs text-slate-400 flex items-center gap-1">
+                            <iconify-icon icon="lucide:calendar"></iconify-icon> ${v.date} · ${v.author}
+                        </p>
+                    </div>
+                    <div class="p-6">
+                        <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">原料构成</h4>
+                        <div class="space-y-1">
+                            ${ingredientsHtml}
+                        </div>
+                        
+                        <div class="mt-8 pt-6 border-t border-slate-50">
+                            <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">版本摘要</h4>
+                            <div class="text-xs text-slate-500 leading-relaxed italic bg-emerald-50/50 p-4 rounded-2xl border border-emerald-100/30">
+                                "${v.status === "published" ? "正式投产版本，平衡了口感与成本的最佳方案。" : v.status === "draft" ? "实验性调整，大幅增加了蛋白质占比以验证风味。" : "历史存档，数据仅供参考。"}"
+                            </div>
+                        </div>
+                    </div>
+                `;
+          grid.appendChild(col);
+        });
+      }
+
+      function removeCompare(id) {
+        compareIds = compareIds.filter(cid => cid !== id);
+        localStorage.setItem("compare_versions", JSON.stringify(compareIds));
+        renderCompare();
+      }
+
+      function clearCompare() {
+        if (confirm("确定要清除所有对比项吗？")) {
+          compareIds = [];
+          localStorage.setItem("compare_versions", JSON.stringify(compareIds));
+          renderCompare();
+        }
+      }
+
+      renderCompare();
+    </script>
+  </body>
+</html>

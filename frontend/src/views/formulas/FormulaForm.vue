@@ -34,13 +34,12 @@
         </button>
       </div>
     </header>
-
     <!-- 主内容区域：左右两栏网格 -->
     <main class="form-main">
       <t-form ref="formRef" :data="formData" :rules="rules" scroll-to-first-error @submit="handleSubmit">
-        <div class="grid grid-cols-12 gap-8">
+        <div class="form-grid">
           <!-- 左侧表单区域 -->
-          <div class="col-span-12 lg:col-span-7 space-y-8">
+          <div class="form-grid-left animate-fade-in">
             <!-- AI 预填提示 -->
             <t-alert v-if="isAiPrefill" theme="info" closable class="ai-prefill-alert">
               <template #message>已从 AI 解析结果预填配方信息，请核对原料匹配和参数后保存</template>
@@ -55,7 +54,7 @@
               <div class="section-content space-y-6">
                 <div class="form-field">
                   <label class="field-label">配方名称 <span class="required">*</span></label>
-                  <t-input v-model="formData.name" placeholder="例如：草莓酸奶燕麦能量棒" clearable class="field-input" />
+                  <t-input v-model="formData.name" placeholder="例如：佛手玫苓膏" clearable class="field-input" />
                 </div>
 
                 <div class="form-field">
@@ -73,16 +72,16 @@
                       class="field-input" />
                   </div>
                   <div class="form-field">
-                    <label class="field-label">主料含量比系数</label>
+                    <label class="field-label">主料含量比系数 <span class="required">*</span></label>
                     <t-input-number v-model="formData.ratioFactor" :min="0.15" :max="0.25" :decimal-places="2"
                       placeholder="0.18" class="field-input" />
                   </div>
                 </div>
 
                 <div class="form-field">
-                  <label class="field-label">辅料含量比系数</label>
+                  <label class="field-label">辅料含量比系数 <span class="required">*</span></label>
                   <t-input-number v-model="formData.supplementRatioFactor" :min="0.5" :max="1.5" :decimal-places="2"
-                    placeholder="1.0" class="field-input" style="width: 50%;" />
+                    placeholder="1.0" class="field-input" />
                   <p class="field-help">用于营养成分含量比计算，主料系数范围0.15-0.25，辅料系数范围0.5-1.5</p>
                 </div>
 
@@ -104,15 +103,20 @@
             <section class="form-section">
               <div class="section-header">
                 <h3 class="section-title">
-                  <t-icon name="list" class="section-icon" />
+                  <t-icon name="view-list" class="section-icon" />
                   原料配比表
                 </h3>
-                <t-button theme="primary" variant="text" size="small" @click="addMaterial" class="add-row-btn">
-                  <template #icon>
+                <div class="row-actions">
+                  <button type="button" class="clear-btn" @click="clearMaterials"
+                    :disabled="formData.materials.length === 0">
+                    <t-icon name="delete" />
+                    清空
+                  </button>
+                  <button type="button" class="add-row-btn" @click="addMaterial">
                     <t-icon name="add" />
-                  </template>
-                  添加行
-                </t-button>
+                    添加行
+                  </button>
+                </div>
               </div>
               <div class="section-content">
                 <!-- Excel导入面板 -->
@@ -123,7 +127,7 @@
                     <thead>
                       <tr>
                         <th>原料名称</th>
-                        <th>数量</th>
+                        <th class="qty-header">数量</th>
                         <th class="w-16">操作</th>
                       </tr>
                     </thead>
@@ -154,8 +158,7 @@
                           <t-input-number v-model="item.quantity" :min="0" placeholder="数量" class="quantity-input" />
                         </td>
                         <td class="text-center">
-                          <t-button theme="danger" variant="text" size="small" @click="removeMaterial(index)"
-                            class="delete-btn">
+                          <t-button variant="text" size="small" @click="removeMaterial(index)" class="delete-btn">
                             <template #icon>
                               <t-icon name="delete" />
                             </template>
@@ -172,28 +175,25 @@
                     </tfoot>
                   </table>
 
-                  <div v-if="formData.materials.length === 0" class="empty-materials">
-                    <t-button theme="default" variant="dashed" @click="addMaterial" class="add-first-btn">
-                      <template #icon>
-                        <t-icon name="add" />
-                      </template>
-                      点击添加第一行原料
-                    </t-button>
+                  <div class="empty-materials">
+                    <button type="button" class="add-first-btn" @click="addMaterial">
+                      <t-icon name="add-rectangle" />
+                      继续添加配方原料
+                    </button>
                   </div>
                 </div>
               </div>
             </section>
           </div>
-
           <!-- 右侧 AI 助手区域 -->
-          <div class="col-span-12 lg:col-span-5 space-y-8">
+          <div class="form-grid-right animate-fade-in" style="animation-delay: 0.1s;">
             <!-- AI 智能解析卡片 -->
             <section class="ai-panel">
               <div class="ai-panel-bg"></div>
               <div class="ai-panel-content">
                 <div class="ai-header">
                   <div class="ai-icon">
-                    <t-icon name="sparkles" />
+                    <t-icon name="cloud" />
                   </div>
                   <div class="ai-title-group">
                     <h3 class="ai-title">AI 智能配方解析</h3>
@@ -203,27 +203,39 @@
 
                 <div class="ai-body">
                   <!-- 模型选择 -->
-                  <div class="model-select">
+                  <div ref="modelSelectRef" class="model-select">
                     <label class="model-label">选择 AI 模型</label>
                     <div class="model-grid">
-                      <button type="button" class="model-btn" :class="{ active: currentModel === 'DeepFormulate' }"
-                        @click="selectModel('DeepFormulate')">
-                        <t-icon name="brain" class="model-icon" />
-                        <span>DeepFormulate v2</span>
-                      </button>
-                      <button type="button" class="model-btn" :class="{ active: currentModel === 'Standard-Parse' }"
-                        @click="selectModel('Standard-Parse')">
-                        <t-icon name="cpu" class="model-icon" />
-                        <span>通用 OCR 解析</span>
-                      </button>
+                      <template v-if="aiStore.models.length > 0">
+                        <button v-for="model in aiStore.models" :key="model.provider" type="button" class="model-btn"
+                          :class="{ active: aiStore.selectedModel === model.provider }"
+                          @click="selectModel(model.provider)">
+                          <div class="model-logo-wrap">
+                            <img :src="getModelLogo(model)" :alt="model.name" class="model-logo"
+                              @error="(e: Event) => handleLogoError(e, model)" />
+                            <span class="model-fallback" :style="{ color: getFallbackColor(model) }">
+                              {{ getFallbackLetter(model) }}
+                            </span>
+                          </div>
+                          <div class="model-info-row">
+                            <span class="model-btn-name">{{ model.name }}</span>
+                            <span class="model-vision-badge">文本</span>
+                            <span v-if="model.supportsVision" class="model-vision-badge">图片</span>
+                          </div>
+                        </button>
+                      </template>
+                      <div v-else class="no-models">
+                        <t-icon name="error-circle" />
+                        <span>暂无可用模型</span>
+                      </div>
                     </div>
                   </div>
 
                   <!-- 文件上传区域 -->
-                  <div v-if="!isParsing && !showResult" class="upload-zone" :class="{ 'drag-over': isDragOver }"
-                    @click="triggerFileInput" @dragover.prevent="handleDragOver" @dragleave="handleDragLeave"
-                    @drop.prevent="handleDrop">
-                    <input ref="fileInputRef" type="file" accept=".xlsx,.xls,.png,.jpg,.jpeg" class="hidden"
+                  <div v-if="!aiStore.parseLoading && !aiStore.parseResult" class="upload-zone"
+                    :class="{ 'drag-over': isDragOver }" @click="triggerFileInput" @dragover.prevent="handleDragOver"
+                    @dragleave="handleDragLeave" @drop.prevent="handleDrop">
+                    <input ref="fileInputRef" type="file" accept=".xlsx,.xls,.png,.jpg,.jpeg" style="display: none;"
                       @change="handleFileChange" />
                     <div class="upload-icon">
                       <t-icon name="upload" />
@@ -235,35 +247,110 @@
                   </div>
 
                   <!-- 解析进度 -->
-                  <div v-if="isParsing" class="parsing-progress">
+                  <div v-if="aiStore.parseLoading" class="parsing-progress">
                     <div class="progress-header">
-                      <span class="progress-status">{{ parsingStatus }}</span>
-                      <span class="progress-percent">{{ parsingPercent }}%</span>
+                      <span class="progress-status">AI 正在解析文件内容...</span>
+                      <span class="progress-percent">{{ parseProgressText }}</span>
                     </div>
                     <div class="progress-bar">
-                      <div class="progress-fill" :style="{ width: parsingPercent + '%' }"></div>
+                      <div class="progress-fill progress-fill--indeterminate"></div>
                     </div>
-                    <p class="progress-hint">"{{ parsingHint }}"</p>
+                    <p class="progress-hint">{{ parseProgressHint }}</p>
+                  </div>
+
+                  <!-- 解析错误 -->
+                  <div v-if="aiStore.parseError" class="parse-error">
+                    <t-icon name="error-circle" />
+                    <span>{{ aiStore.parseError }}</span>
                   </div>
 
                   <!-- 解析结果 -->
-                  <div v-if="showResult" class="analysis-result">
+                  <div ref="resultRef" v-if="aiStore.parseResult" class="analysis-result">
                     <div class="result-card">
                       <h4 class="result-title">解析结果预览</h4>
                       <div class="result-items">
                         <div class="result-item">
                           <span class="result-label">配方名称</span>
-                          <span class="result-value">{{ aiResult.name }}</span>
+                          <span class="result-value">{{ aiStore.parseResult.name || '未识别' }}</span>
                         </div>
                         <div class="result-item">
-                          <span class="result-label">原料数量</span>
-                          <span class="result-value">{{ aiResult.ingredients.length }} 种</span>
+                          <span class="result-label">配方时间</span>
+                          <span class="result-value"
+                            :class="{ 'result-value--empty': !aiStore.parseResult.formulaDate }">
+                            {{ aiStore.parseResult.formulaDate || '未识别' }}
+                          </span>
                         </div>
                         <div class="result-item">
-                          <span class="result-label">解析置信度</span>
-                          <span class="result-badge">{{ aiResult.confidence }}%</span>
+                          <span class="result-label">业务员</span>
+                          <span class="result-value"
+                            :class="{ 'result-value--empty': !aiStore.parseResult.salesmanName }">
+                            {{ aiStore.parseResult.salesmanName || '未识别' }}
+                          </span>
+                        </div>
+                        <div class="result-item">
+                          <span class="result-label">成品重量</span>
+                          <span class="result-value"
+                            :class="{ 'result-value--empty': !aiStore.parseResult.finishedWeight }">
+                            {{ aiStore.parseResult.finishedWeight ? aiStore.parseResult.finishedWeight + 'g' : '未识别' }}
+                          </span>
+                        </div>
+                        <div v-if="aiStore.parseResult.confidence != null" class="result-item">
+                          <span class="result-label">解析可信度</span>
+                          <div class="confidence-wrap">
+                            <div class="confidence-bar">
+                              <div class="confidence-fill"
+                                :style="{ width: (aiStore.parseResult.confidence * 100) + '%' }"></div>
+                            </div>
+                            <span class="confidence-text" :class="getConfidenceLevel(aiStore.parseResult.confidence)">
+                              {{ (aiStore.parseResult.confidence * 100).toFixed(0) }}%
+                            </span>
+                          </div>
+                        </div>
+                        <div v-if="aiStore.parseResult.usage" class="result-item">
+                          <span class="result-label">Token 用量</span>
+                          <span class="result-badge">{{ aiStore.parseResult.usage.totalTokens }}</span>
                         </div>
                       </div>
+
+                      <!-- 原料列表 -->
+                      <div v-if="aiStore.parseResult.materials?.length" class="materials-table">
+                        <div class="materials-header">
+                          <span class="col-name">原料名称</span>
+                          <span class="col-qty">用量</span>
+                          <span class="col-unit">单位</span>
+                          <span class="col-status">匹配状态</span>
+                        </div>
+                        <div v-for="(m, idx) in aiStore.parseResult.materials" :key="idx" class="materials-row">
+                          <span class="col-name">{{ m.name }}</span>
+                          <span class="col-qty">{{ m.quantity }}</span>
+                          <span class="col-unit">{{ m.unit || 'g' }}</span>
+                          <span class="col-status">
+                            <t-tag v-if="m.matched" theme="success" variant="light" size="small">已匹配</t-tag>
+                            <t-tag v-else theme="warning" variant="light" size="small">未匹配</t-tag>
+                          </span>
+                        </div>
+                      </div>
+
+                      <!-- 可信度分条概述 -->
+                      <div v-if="getConfidenceItems().length" class="confidence-summary">
+                        <div class="summary-header">
+                          <t-icon name="info-circle" />
+                          <span>解析可信度概览</span>
+                        </div>
+                        <div class="summary-items">
+                          <div v-for="(item, idx) in getConfidenceItems()" :key="idx" class="summary-item"
+                            :class="'summary-item--' + item.level">
+                            <span class="item-label">{{ item.label }}</span>
+                            <div class="item-bar-wrap">
+                              <div class="item-bar">
+                                <div class="item-fill" :style="{ width: item.value + '%' }"></div>
+                              </div>
+                              <span class="item-value">{{ item.value }}%</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
                       <div class="result-actions">
                         <t-button theme="success" block @click="backfillData" class="backfill-btn">
                           <template #icon>
@@ -272,15 +359,40 @@
                           确认并回填数据
                         </t-button>
                         <div class="secondary-actions">
-                          <t-button theme="default" variant="text" size="small" @click="resetUpload">
+                          <button type="button" class="action-btn action-btn--default" @click.stop="resetUpload">
+                            <t-icon name="refresh" />
                             重新选择文件
-                          </t-button>
-                          <t-button theme="danger" variant="text" size="small" @click="clearResult">
+                          </button>
+                          <button type="button" class="action-btn action-btn--danger" @click.stop="clearResult">
+                            <t-icon name="delete" />
                             清空
-                          </t-button>
-                          <t-button theme="primary" variant="text" size="small" @click="reparse">
-                            重新解析
-                          </t-button>
+                          </button>
+                          <t-dropdown trigger="hover"
+                            :popup-props="{ appendToBody: true, placement: 'bottom-right', overlayClassName: 'reparse-dropdown-popup' }">
+                            <button type="button" class="action-btn action-btn--primary" @click.stop>
+                              <t-icon name="play-circle" />
+                              重新解析
+                              <t-icon name="chevron-down" size="12px" style="margin-left: 2px;" />
+                            </button>
+                            <t-dropdown-menu>
+                              <t-dropdown-item v-for="model in aiStore.models" :key="model.provider"
+                                :value="model.provider"
+                                @click="(ctx: { value: string }) => handleReparseWithModel({ value: ctx.value })">
+                                <div class="reparse-model-option">
+                                  <div class="reparse-model-logo">
+                                    <img :src="getModelLogo(model)" :alt="model.name"
+                                      @error="(e: Event) => handleLogoError(e, model)" />
+                                    <span class="reparse-model-fallback" :style="{ color: getFallbackColor(model) }">
+                                      {{ getFallbackLetter(model) }}
+                                    </span>
+                                  </div>
+                                  <span class="reparse-model-name">{{ model.name }}</span>
+                                  <t-icon v-if="aiStore.selectedModel === model.provider" name="check"
+                                    class="reparse-model-check reparse-model-check--active" />
+                                </div>
+                              </t-dropdown-item>
+                            </t-dropdown-menu>
+                          </t-dropdown>
                         </div>
                       </div>
                     </div>
@@ -323,11 +435,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue';
+import { ref, reactive, computed, onMounted, nextTick } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useFormulaStore } from '@/stores/formula';
 import { useSalesmanStore } from '@/stores/salesman';
 import { useMaterialStore } from '@/stores/material';
+import { useAiStore } from '@/stores/ai';
 import { MessagePlugin } from 'tdesign-vue-next';
 import type { FormRule } from 'tdesign-vue-next';
 import type { MaterialItem } from '@/api/formula';
@@ -339,30 +452,56 @@ const route = useRoute();
 const formulaStore = useFormulaStore();
 const salesmanStore = useSalesmanStore();
 const materialStore = useMaterialStore();
+const aiStore = useAiStore();
 
 const formRef = ref<any>(null);
 const fileInputRef = ref<HTMLInputElement | null>(null);
+const modelSelectRef = ref<HTMLElement | null>(null);
+const resultRef = ref<HTMLElement | null>(null);
 const loading = ref(false);
 const materialSelectLoading = ref(false);
 const materialSearchKeyword = ref('');
 
 // AI 相关状态
-const currentModel = ref('DeepFormulate');
+const selectedFile = ref<File | null>(null);
 const isDragOver = ref(false);
-const isParsing = ref(false);
-const parsingPercent = ref(0);
-const parsingStatus = ref('正在智能解析中...');
-const parsingHint = ref('正在提取原料清单并映射营养成分...');
-const showResult = ref(false);
-const aiResult = reactive({
-  name: '',
-  ingredients: [] as any[],
-  confidence: 98.2
+const parseStartTime = ref<number>(0);
+const parseProgressStage = ref(0);
+
+const IMAGE_EXTS = ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp'];
+const isImageFile = computed(() => {
+  if (!selectedFile.value) return false;
+  const ext = '.' + selectedFile.value.name.split('.').pop()?.toLowerCase();
+  return IMAGE_EXTS.includes(ext);
 });
 
 // 计算原料总数量
 const totalQuantity = computed(() => {
   return formData.materials.reduce((sum: number, item: any) => sum + (item.quantity || 0), 0).toFixed(2);
+});
+
+// 解析进度反馈
+const parseProgressText = computed(() => {
+  if (!aiStore.parseLoading) return '';
+  const elapsed = Date.now() - parseStartTime.value;
+  if (elapsed < 2000) return '连接 AI 服务...';
+  if (elapsed < 5000) return '上传文件中...';
+  if (elapsed < 10000) return 'AI 分析中...';
+  if (elapsed < 20000) return '提取配方数据...';
+  return '即将完成...';
+});
+
+const parseProgressHint = computed(() => {
+  const hints = [
+    '正在识别文档结构与内容',
+    '提取原料名称与用量信息',
+    '匹配系统原料数据库',
+    '计算配方比例与权重',
+    '生成结构化数据'
+  ];
+  if (!aiStore.parseLoading) return '';
+  const stage = Math.floor((Date.now() - parseStartTime.value) / 4000) % hints.length;
+  return hints[stage] + '...';
 });
 
 // 过滤原料列表：排除其他行已选的原料，防止重复添加
@@ -446,6 +585,11 @@ const removeMaterial = (index: number) => {
   formData.materials.splice(index, 1);
 };
 
+const clearMaterials = () => {
+  if (formData.materials.length === 0) return;
+  formData.materials.splice(0);
+};
+
 const handleMaterialChange = (index: number) => {
   const item = formData.materials[index];
   const material = materialStore.allMaterials.find(m => m.id === item.materialId);
@@ -510,7 +654,101 @@ const handleBack = () => {
 
 // AI 模型选择
 const selectModel = (model: string) => {
-  currentModel.value = model;
+  aiStore.selectedModel = model;
+};
+
+const MODEL_LOGO_MAP: Record<string, string> = {
+  openai: 'openai',
+  gpt: 'openai',
+  chatgpt: 'openai',
+  anthropic: 'claude',
+  claude: 'claude',
+  google: 'google',
+  gemini: 'google',
+  deepseek: 'deepseek',
+  qwen: 'qwen',
+  tongyi: 'qwen',
+  '通义千问': 'qwen',
+  zhipu: 'zhipu',
+  chatglm: 'zhipu',
+  智谱: 'zhipu',
+  glm: 'zhipu',
+  baidu: 'baidu',
+  wenxin: 'baidu',
+  文心: 'baidu',
+  doubao: 'bytedance',
+  豆包: 'bytedance',
+  bytedance: 'bytedance',
+  moonshot: 'moonshot',
+  kimi: 'moonshot',
+  月之暗面: 'moonshot',
+  minimax: 'minimax',
+  hunyuan: 'tencent',
+  腾讯: 'tencent',
+};
+
+const FALLBACK_ICONS: Record<string, { letter: string; color: string }> = {
+  openai: { letter: 'O', color: '#10a37f' },
+  claude: { letter: 'C', color: '#d97757' },
+  google: { letter: 'G', color: '#4285f4' },
+  deepseek: { letter: 'D', color: '#4b6bfb' },
+  qwen: { letter: 'Q', color: '#6366f1' },
+  alibabacloud: { letter: 'Q', color: '#ff6a00' },
+  zhipu: { letter: 'Z', color: '#4268fa' },
+  baidu: { letter: 'B', color: '#2932e1' },
+  bytedance: { letter: 'D', color: '#25f4ee' },
+  moonshot: { letter: 'M', color: '#000' },
+  minimax: { letter: 'M', color: '#615ced' },
+  tencent: { letter: 'T', color: '#0052d9' },
+};
+
+const getModelLogo = (model: any): string => {
+  const provider = (model.provider || '').toLowerCase();
+  const name = (model.name || '').toLowerCase();
+
+  for (const [key, slug] of Object.entries(MODEL_LOGO_MAP)) {
+    if (provider.includes(key) || name.includes(key)) {
+      return slug.startsWith('http') ? slug : `https://unpkg.com/@lobehub/icons-static-svg@latest/icons/${slug}.svg`;
+    }
+  }
+
+  return `https://unpkg.com/@lobehub/icons-static-svg@latest/icons/openai.svg`;
+};
+
+const getModelSlug = (model: any): string => {
+  const provider = (model.provider || '').toLowerCase();
+  const name = (model.name || '').toLowerCase();
+
+  for (const [key, slug] of Object.entries(MODEL_LOGO_MAP)) {
+    if (provider.includes(key) || name.includes(key)) {
+      if (slug.startsWith('http')) {
+        return key;
+      }
+      return slug;
+    }
+  }
+
+  return 'openai';
+};
+
+const getFallbackLetter = (model: any): string => {
+  const slug = getModelSlug(model);
+  return FALLBACK_ICONS[slug]?.letter || '?';
+};
+
+const getFallbackColor = (model: any): string => {
+  const slug = getModelSlug(model);
+  return FALLBACK_ICONS[slug]?.color || '#94a3b8';
+};
+
+const handleLogoError = (e: Event, model: any) => {
+  const img = e.target as HTMLImageElement;
+  img.style.display = 'none';
+  const wrap = img.parentElement;
+  if (wrap) {
+    const fallback = wrap.querySelector('.model-fallback');
+    if (fallback) fallback.style.display = 'flex';
+  }
 };
 
 // 文件上传相关方法
@@ -530,7 +768,7 @@ const handleDrop = (e: DragEvent) => {
   isDragOver.value = false;
   const files = e.dataTransfer?.files;
   if (files && files.length > 0) {
-    handleFile(files[0]);
+    handleFileSelect(files[0]);
   }
 };
 
@@ -538,109 +776,157 @@ const handleFileChange = (e: Event) => {
   const target = e.target as HTMLInputElement;
   const files = target.files;
   if (files && files.length > 0) {
-    handleFile(files[0]);
+    handleFileSelect(files[0]);
   }
 };
 
-const handleFile = (file: File) => {
-  // 开始解析
-  isParsing.value = true;
-  parsingPercent.value = 0;
-  parsingStatus.value = '正在智能解析中...';
-  parsingHint.value = '正在提取原料清单并映射营养成分...';
-
-  const interval = setInterval(() => {
-    parsingPercent.value += Math.floor(Math.random() * 15) + 5;
-    if (parsingPercent.value >= 100) {
-      parsingPercent.value = 100;
-      clearInterval(interval);
-      showAnalysisResult(file.name);
+const handleFileSelect = (file: File) => {
+  selectedFile.value = file;
+  const ext = '.' + file.name.split('.').pop()?.toLowerCase();
+  if (IMAGE_EXTS.includes(ext)) {
+    const currentModel = aiStore.models.find(m => m.provider === aiStore.selectedModel);
+    if (!currentModel?.supportsVision) {
+      const visionModel = aiStore.models.find(m => m.supportsVision);
+      if (visionModel) aiStore.selectedModel = visionModel.provider;
     }
-  }, 300);
+  }
+  handleParse();
 };
 
-const showAnalysisResult = (fileName: string) => {
-  setTimeout(() => {
-    isParsing.value = false;
-    showResult.value = true;
-
-    // 模拟生成的解析数据
-    aiResult.name = '草莓燕麦条-' + Date.now().toString().slice(-4);
-    aiResult.ingredients = [
-      { name: '大片燕麦', percent: 45.0 },
-      { name: '冻干草莓丁', percent: 15.0 },
-      { name: '低聚异麦芽糖浆', percent: 20.0 },
-      { name: '浓缩乳清蛋白粉', percent: 12.0 },
-      { name: '椰子油', percent: 8.0 }
-    ];
-    aiResult.confidence = 98.2;
-  }, 500);
+const handleParse = async () => {
+  if (!selectedFile.value) {
+    MessagePlugin.warning('请先选择要解析的文件');
+    return;
+  }
+  if (!aiStore.selectedModel) {
+    MessagePlugin.warning('请先选择 AI 模型');
+    return;
+  }
+  parseStartTime.value = Date.now();
+  await aiStore.parseFormula(selectedFile.value);
 };
 
 // 回填数据到表单
 const backfillData = () => {
-  if (!aiResult.name) return;
+  const data = aiStore.parseResult;
+  if (!data?.name) return;
 
-  // 填充基础信息
-  formData.name = aiResult.name;
-  formData.description = '基于智能解析生成的健康能量棒配方，高纤维低热量。';
-  formData.finishedWeight = 1000;
+  formData.name = data.name;
+  if (data.description) formData.description = data.description;
+  if (data.finishedWeight) formData.finishedWeight = data.finishedWeight;
 
-  // 清空并填充原料表
-  formData.materials.splice(0, formData.materials.length);
-
-  // 尝试匹配原料
-  aiResult.ingredients.forEach((ing: any) => {
-    const matched = materialStore.allMaterials.find(
-      (m: any) => m.name.includes(ing.name) || ing.name.includes(m.name)
+  if (data.salesmanName) {
+    const matched = salesmanStore.salesmen.find(
+      (s: any) => s.name === data.salesmanName || s.name.includes(data.salesmanName) || data.salesmanName.includes(s.name)
     );
+    if (matched) {
+      formData.salesmanId = matched.id;
+    }
+  }
+
+  formData.materials.splice(0, formData.materials.length);
+  data.materials.forEach((m: any) => {
     formData.materials.push({
-      materialId: matched?.id || '',
-      materialName: ing.name,
-      quantity: Math.round(ing.percent * 10) // 模拟数量
+      materialId: m.materialId || '',
+      materialName: m.name,
+      quantity: m.quantity
     });
   });
 
   MessagePlugin.success('AI 解析数据已回填到表单');
   isAiPrefill.value = true;
+  nextTick(() => {
+    const alertEl = document.querySelector('.ai-prefill-alert');
+    if (alertEl) {
+      alertEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      alertEl.classList.add('alert-flash');
+      setTimeout(() => {
+        alertEl.classList.remove('alert-flash');
+      }, 5000);
+    }
+  });
 };
 
 // 重置上传
 const resetUpload = () => {
-  showResult.value = false;
-  parsingPercent.value = 0;
-  if (fileInputRef.value) {
-    fileInputRef.value.value = '';
-  }
+  selectedFile.value = null;
+  aiStore.clearParseResult();
+  if (fileInputRef.value) fileInputRef.value = '';
+  nextTick(() => {
+    modelSelectRef.value?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
 };
 
 // 清空结果
 const clearResult = () => {
-  showResult.value = false;
-  parsingPercent.value = 0;
-  aiResult.name = '';
-  aiResult.ingredients = [];
-  if (fileInputRef.value) {
-    fileInputRef.value.value = '';
-  }
+  selectedFile.value = null;
+  aiStore.clearParseResult();
+  if (fileInputRef.value) fileInputRef.value = '';
 };
 
 // 重新解析
-const reparse = () => {
-  showResult.value = false;
-  parsingPercent.value = 0;
-  // 重新触发文件解析
-  const lastFile = fileInputRef.value?.files?.[0];
-  if (lastFile) {
-    handleFile(lastFile);
+const handleReparseWithModel = (data: { value: string }) => {
+  aiStore.selectedModel = data.value;
+  aiStore.clearParseResult();
+  if (selectedFile.value) {
+    nextTick(() => {
+      const progressEl = document.querySelector('.parsing-progress');
+      if (progressEl) {
+        progressEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      } else {
+        resultRef.value?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+    handleParse();
   }
+};
+
+// 获取可信度等级
+const getConfidenceLevel = (confidence: number) => {
+  if (confidence >= 0.8) return 'high';
+  if (confidence >= 0.5) return 'medium';
+  return 'low';
+};
+
+const getConfidenceItems = () => {
+  const data = aiStore.parseResult;
+  if (!data) return [];
+  const items: { label: string; value: number; level: string }[] = [];
+  const baseConf = data.confidence != null ? Math.round(data.confidence * 100) : null;
+  if (data.formulaDate) {
+    const v = baseConf ?? 100;
+    items.push({ label: '配方时间', value: v, level: getConfidenceLevel(v / 100) });
+  } else {
+    items.push({ label: '配方时间', value: 0, level: 'low' });
+  }
+  if (data.salesmanName) {
+    const v = baseConf ?? 100;
+    items.push({ label: '业务员', value: v, level: getConfidenceLevel(v / 100) });
+  } else {
+    items.push({ label: '业务员', value: 0, level: 'low' });
+  }
+  if (data.materials?.length) {
+    const matchedCount = data.materials.filter((m: any) => m.matched).length;
+    const v = matchedCount > 0 ? Math.round((matchedCount / data.materials.length) * 100) : 0;
+    items.push({ label: '原料清单', value: v, level: getConfidenceLevel(v / 100) });
+  }
+  if (data.finishedWeight) {
+    const v = baseConf ?? 100;
+    items.push({ label: '成品重量', value: v, level: getConfidenceLevel(v / 100) });
+  }
+  return items;
 };
 
 onMounted(async () => {
   await Promise.all([
     salesmanStore.fetchSalesmen(),
-    materialStore.fetchAllForSelect()
+    materialStore.fetchAllForSelect(),
+    aiStore.fetchModels()
   ]);
+
+  if (!aiStore.selectedModel && aiStore.models.length > 0) {
+    aiStore.selectedModel = aiStore.models[0].provider;
+  }
 
   const id = route.params.id as string;
   if (isEdit.value && id) {
@@ -866,53 +1152,59 @@ onMounted(async () => {
   // 主内容区域
   .form-main {
     margin-top: 24px;
+    padding-bottom: 32px;
     animation: fadeInUp 0.5s ease-out forwards;
 
-    // Grid 布局
-    .grid {
+    // ═══ 两栏 Grid 布局（参照 new-recipe.html grid grid-cols-12 gap-8）═══
+    .form-grid {
       display: grid;
-    }
-
-    .grid-cols-12 {
       grid-template-columns: repeat(12, 1fr);
-    }
-
-    .gap-8 {
       gap: 32px;
-    }
 
-    .col-span-12 {
-      grid-column: span 12;
-    }
-
-    @media (min-width: 1024px) {
-      .lg\\:col-span-7 {
-        grid-column: span 7;
-      }
-
-      .lg\\:col-span-5 {
-        grid-column: span 5;
+      @media (max-width: 1023px) {
+        grid-template-columns: 1fr;
       }
     }
 
-    .space-y-8 {
-      &>*+* {
-        margin-top: 32px;
+    .form-grid-left {
+      grid-column: span 7;
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+
+      @media (max-width: 1023px) {
+        grid-column: span 12;
       }
     }
 
-    .space-y-6 {
-      &>*+* {
-        margin-top: 24px;
+    .form-grid-right {
+      grid-column: span 5;
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+
+      @media (max-width: 1023px) {
+        grid-column: span 12;
       }
     }
 
+    // 内部嵌套的2列grid（表单字段用）
     .grid-cols-2 {
+      display: grid;
       grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
     }
 
     .gap-6 {
       gap: 24px;
+    }
+
+    .space-y-8>*+* {
+      margin-top: 32px;
+    }
+
+    .space-y-6>*+* {
+      margin-top: 24px;
     }
   }
 
@@ -920,6 +1212,11 @@ onMounted(async () => {
   .ai-prefill-alert {
     margin-bottom: 16px;
     animation: fadeInDown 0.3s ease;
+
+    &.alert-flash {
+      will-change: transform, opacity, box-shadow, border-color;
+      animation: alertFlash 2.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) 2;
+    }
   }
 
   // 表单 Section 样式
@@ -946,8 +1243,8 @@ onMounted(async () => {
       font-weight: 700;
       color: #94a3b8;
       text-transform: uppercase;
-      letter-spacing: 0.1em;
-      margin: 0;
+      letter-spacing: 0.12em;
+      margin: 0 0 24px;
 
       .section-icon {
         color: #10b981;
@@ -955,13 +1252,62 @@ onMounted(async () => {
       }
     }
 
+    .row-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
     .add-row-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
       font-size: 12px;
       font-weight: 700;
-      color: #10b981;
+      color: #059669;
+      padding: 6px 12px;
+      background-color: rgba(16, 185, 129, 0.08);
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+
+      .t-icon {
+        font-size: 14px;
+      }
 
       &:hover {
-        color: #059669;
+        color: #047857;
+        background-color: rgba(16, 185, 129, 0.15);
+      }
+    }
+
+    .clear-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #059669;
+      padding: 6px 12px;
+      background-color: rgba(16, 185, 129, 0.08);
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+
+      .t-icon {
+        font-size: 14px;
+      }
+
+      &:hover:not(:disabled) {
+        color: #047857;
+        background-color: rgba(16, 185, 129, 0.15);
+      }
+
+      &:disabled {
+        opacity: 0.35;
+        cursor: not-allowed;
       }
     }
 
@@ -987,6 +1333,164 @@ onMounted(async () => {
           margin-top: 4px;
           font-size: 12px;
           color: #64748b;
+        }
+
+        // ═══ 输入框 — 参照 new-recipe.html 样式 ═══
+        // w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-slate-700
+        // focus:ring-2 focus:ring-emerald-500 focus:bg-white
+
+        :deep(.t-input) {
+          background-color: #f8fafc !important;
+          border: 1px solid #f1f5f9 !important;
+          border-radius: 16px !important;
+          padding: 14px 20px !important;
+          min-height: 48px;
+          font-size: 14px !important;
+          color: #334155 !important;
+          transition: all 0.2s ease;
+
+          &:hover:not(.t-is-disabled) {
+            border-color: #e2e8f0 !important;
+          }
+
+          &.t-is-focused {
+            background-color: #fff !important;
+            border-color: transparent !important;
+            box-shadow: 0 0 0 2px #10b981 !important;
+            outline: none !important;
+          }
+
+          &::placeholder {
+            color: #94a3b8 !important;
+          }
+        }
+
+        :deep(.t-input__wrap) {
+          border: none !important;
+          box-shadow: none !important;
+          background: transparent !important;
+        }
+
+        :deep(.t-select) {
+          width: 100%;
+
+          .t-select__wrap {
+            background-color: #f8fafc !important;
+            border: 1px solid #f1f5f9 !important;
+            border-radius: 16px !important;
+            padding: 10px 12px !important;
+            min-height: 48px;
+            transition: all 0.2s ease;
+
+            &:hover:not(.t-is-disabled) {
+              border-color: #e2e8f0 !important;
+            }
+          }
+
+          &.t-is-focused .t-select__wrap {
+            background-color: #fff !important;
+            border-color: transparent !important;
+            box-shadow: 0 0 0 2px #10b981 !important;
+            outline: none !important;
+          }
+
+          .t-select__placeholder,
+          .t-select__single-value {
+            font-size: 14px !important;
+            color: #334155 !important;
+            line-height: 22px;
+          }
+
+          .t-select__placeholder {
+            color: #94a3b8 !important;
+          }
+
+          .t-icon {
+            color: #94a3b8 !important;
+          }
+        }
+
+        :deep(.t-input-number) {
+          width: 100%;
+          background-color: #f8fafc !important;
+          border: 1px solid #f1f5f9 !important;
+          border-radius: 16px !important;
+          min-height: 48px;
+          transition: all 0.2s ease;
+
+          &:hover:not(.t-is-disabled) {
+            border-color: #e2e8f0 !important;
+          }
+
+          &.t-is-focused {
+            background-color: #fff !important;
+            border-color: transparent !important;
+            box-shadow: 0 0 0 2px #10b981 !important;
+            outline: none !important;
+          }
+
+          .t-input__wrap {
+            border: none !important;
+            box-shadow: none !important;
+            background: transparent !important;
+          }
+
+          .t-input-number__decrease,
+          .t-input-number__increase {
+            border: none !important;
+            background: transparent !important;
+            color: #10b981 !important;
+            border-radius: 50% !important;
+            width: 28px !important;
+            height: 28px !important;
+            top: 50% !important;
+            transform: translateY(-50%) !important;
+            transition: all 0.15s ease;
+
+            &:hover {
+              background-color: rgba(16, 185, 129, 0.08) !important;
+              color: #059669 !important;
+            }
+          }
+
+          .t-input__inner {
+            background: transparent !important;
+            font-size: 14px !important;
+            color: #334155 !important;
+            padding: 14px 12px !important;
+            min-height: 46px;
+
+            &::placeholder {
+              color: #94a3b8 !important;
+            }
+          }
+        }
+
+        :deep(.t-textarea) {
+          .t-textarea__inner {
+            background-color: #f8fafc !important;
+            border: 1px solid #f1f5f9 !important;
+            border-radius: 16px !important;
+            padding: 14px 20px !important;
+            font-size: 14px !important;
+            color: #334155 !important;
+            transition: all 0.2s ease;
+
+            &:hover:not(:focus) {
+              border-color: #e2e8f0 !important;
+            }
+
+            &:focus {
+              background-color: #fff !important;
+              border-color: transparent !important;
+              box-shadow: 0 0 0 2px #10b981 !important;
+              outline: none !important;
+            }
+
+            &::placeholder {
+              color: #94a3b8 !important;
+            }
+          }
         }
       }
     }
@@ -1016,6 +1520,11 @@ onMounted(async () => {
               width: 64px;
               text-align: center;
             }
+
+            &.qty-header {
+              width: 150px;
+              text-align: center;
+            }
           }
         }
       }
@@ -1042,15 +1551,7 @@ onMounted(async () => {
             }
 
             .quantity-input {
-              width: 120px;
-            }
-
-            .delete-btn {
-              color: #cbd5e1;
-
-              &:hover {
-                color: #f43f5e;
-              }
+              width: 150px;
             }
           }
         }
@@ -1078,11 +1579,42 @@ onMounted(async () => {
     }
 
     .empty-materials {
-      padding: 48px;
-      text-align: center;
+      padding: 12px 0 0;
+      background-color: rgba(248, 250, 252, 0.2);
+      border-top: 1px solid #f8fafc;
 
       .add-first-btn {
-        border-style: dashed;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        width: 100%;
+        padding: 16px 0;
+        font-size: 14px;
+        font-weight: 700;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        background-color: transparent;
+        border: 2px dashed #e2e8f0;
+        border-radius: 24px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+
+        .t-icon {
+          font-size: 20px;
+          color: #94a3b8;
+        }
+
+        &:hover {
+          color: #10b981;
+          border-color: rgba(16, 185, 129, 0.4);
+          background-color: #fff;
+
+          .t-icon {
+            color: #10b981;
+          }
+        }
       }
     }
   }
@@ -1099,24 +1631,25 @@ onMounted(async () => {
 
   // AI 面板样式
   .ai-panel {
-    background: #0f172a;
+    background: linear-gradient(145deg, #ffffff 0%, #f8fafc 50%, #f1f5f9 100%);
     padding: 32px;
     border-radius: 2.5rem;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-    color: #fff;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.06), 0 8px 10px -6px rgba(16, 185, 129, 0.06);
+    color: #334155;
     position: relative;
     overflow: hidden;
     animation: fadeInUp 0.5s ease both;
     animation-delay: 0.1s;
+    border: 1px solid rgba(148, 163, 184, 0.15);
 
     .ai-panel-bg {
       position: absolute;
       top: -40px;
       right: -40px;
-      width: 160px;
-      height: 160px;
-      background: rgba(16, 185, 129, 0.2);
-      filter: blur(80px);
+      width: 180px;
+      height: 180px;
+      background: radial-gradient(circle, rgba(16, 185, 129, 0.12) 0%, transparent 70%);
+      filter: blur(60px);
       border-radius: 50%;
     }
 
@@ -1139,7 +1672,11 @@ onMounted(async () => {
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 20px;
+
+        .t-icon {
+          font-size: 24px;
+          color: #fff;
+        }
       }
 
       .ai-title-group {
@@ -1179,30 +1716,98 @@ onMounted(async () => {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 4px;
-            padding: 12px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            gap: 6px;
+            padding: 14px 10px;
+            background: rgba(16, 185, 129, 0.04);
+            border: 1px solid rgba(148, 163, 184, 0.18);
             border-radius: 16px;
-            color: #fff;
-            font-size: 12px;
-            font-weight: 700;
+            color: #64748b;
+            font-size: 11px;
+            font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s ease;
-            opacity: 0.5;
+            transition: all 0.25s ease;
+            opacity: 0.75;
 
             &:hover {
               opacity: 1;
+              background: rgba(16, 185, 129, 0.08);
+              border-color: rgba(16, 185, 129, 0.25);
+              transform: translateY(-1px);
             }
 
             &.active {
-              background: rgba(16, 185, 129, 0.2);
-              border-color: rgba(16, 185, 129, 0.5);
+              background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(45, 212, 191, 0.08) 100%);
+              border-color: rgba(16, 185, 129, 0.35);
               opacity: 1;
+              color: #059669;
+              box-shadow: 0 4px 12px -2px rgba(16, 185, 129, 0.12);
             }
 
-            .model-icon {
-              font-size: 20px;
+            .model-logo-wrap {
+              position: relative;
+              width: 36px;
+              height: 36px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            }
+
+            .model-logo {
+              width: 100%;
+              height: 100%;
+              object-fit: contain;
+            }
+
+            .model-fallback {
+              display: none;
+              position: absolute;
+              inset: 0;
+              align-items: center;
+              justify-content: center;
+              font-size: 16px;
+              font-weight: 700;
+              background: rgba(16, 185, 129, 0.08);
+              border-radius: 8px;
+            }
+
+            .model-btn-name {
+              line-height: 1.2;
+            }
+
+            .model-info-row {
+              display: inline-flex;
+              align-items: center;
+              gap: 4px;
+            }
+
+            .model-vision-badge {
+              display: inline-flex;
+              align-items: center;
+              justify-content: center;
+              font-size: 9px;
+              padding: 2px 6px;
+              line-height: 1;
+              background: linear-gradient(135deg, #10b981, #059669);
+              color: #fff;
+              border-radius: 8px;
+              font-weight: 700;
+              letter-spacing: 0.3px;
+              opacity: 0.85;
+            }
+          }
+
+          .no-models {
+            grid-column: span 2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 16px;
+            color: #94a3b8;
+            font-size: 13px;
+
+            .t-icon {
+              font-size: 18px;
             }
           }
         }
@@ -1210,7 +1815,7 @@ onMounted(async () => {
 
       // 上传区域
       .upload-zone {
-        border: 2px dashed rgba(255, 255, 255, 0.1);
+        border: 2px dashed rgba(148, 163, 184, 0.25);
         border-radius: 24px;
         padding: 32px;
         display: flex;
@@ -1224,19 +1829,19 @@ onMounted(async () => {
         &:hover,
         &.drag-over {
           border-color: rgba(16, 185, 129, 0.5);
-          background: rgba(255, 255, 255, 0.05);
+          background: rgba(16, 185, 129, 0.04);
         }
 
         .upload-icon {
           width: 64px;
           height: 64px;
-          background: rgba(255, 255, 255, 0.05);
+          background: rgba(16, 185, 129, 0.08);
           border-radius: 50%;
           display: flex;
           align-items: center;
           justify-content: center;
           font-size: 32px;
-          color: #34d399;
+          color: #10b981;
           transition: transform 0.2s ease;
         }
 
@@ -1264,9 +1869,9 @@ onMounted(async () => {
       // 解析进度
       .parsing-progress {
         padding: 24px;
-        background: rgba(255, 255, 255, 0.05);
+        background: rgba(16, 185, 129, 0.04);
         border-radius: 24px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(148, 163, 184, 0.18);
 
         .progress-header {
           display: flex;
@@ -1282,22 +1887,27 @@ onMounted(async () => {
           .progress-percent {
             font-size: 12px;
             font-family: monospace;
-            color: #34d399;
+            color: #10b981;
           }
         }
 
         .progress-bar {
           height: 6px;
-          background: rgba(255, 255, 255, 0.1);
+          background: rgba(148, 163, 184, 0.2);
           border-radius: 3px;
           overflow: hidden;
           margin-bottom: 12px;
 
           .progress-fill {
             height: 100%;
-            background: #10b981;
+            background: linear-gradient(90deg, #10b981, #34d399, #10b981);
+            background-size: 200% 100%;
             border-radius: 3px;
-            transition: width 0.3s ease;
+
+            &--indeterminate {
+              width: 40% !important;
+              animation: progressSlide 1.5s ease-in-out infinite;
+            }
           }
         }
 
@@ -1309,18 +1919,37 @@ onMounted(async () => {
         }
       }
 
+      // 解析错误
+      .parse-error {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 14px 18px;
+        background: rgba(239, 68, 68, 0.06);
+        border: 1px solid rgba(239, 68, 68, 0.15);
+        border-radius: 16px;
+        color: #dc2626;
+        font-size: 12px;
+        font-weight: 600;
+
+        .t-icon {
+          font-size: 18px;
+          flex-shrink: 0;
+        }
+      }
+
       // 解析结果
       .analysis-result {
         .result-card {
           padding: 24px;
-          background: rgba(255, 255, 255, 0.05);
+          background: rgba(16, 185, 129, 0.04);
           border-radius: 24px;
-          border: 1px solid rgba(255, 255, 255, 0.1);
+          border: 1px solid rgba(148, 163, 184, 0.18);
 
           .result-title {
             font-size: 12px;
             font-weight: 900;
-            color: #34d399;
+            color: #10b981;
             text-transform: uppercase;
             letter-spacing: 0.1em;
             margin: 0 0 16px;
@@ -1338,18 +1967,296 @@ onMounted(async () => {
 
               .result-label {
                 color: #64748b;
+                flex-shrink: 0;
               }
 
               .result-value {
                 font-weight: 700;
+                color: #334155;
+
+                &--empty {
+                  color: #94a3b8;
+                  font-weight: 500;
+                }
               }
 
               .result-badge {
                 padding: 2px 8px;
-                background: rgba(16, 185, 129, 0.2);
-                color: #34d399;
+                background: rgba(16, 185, 129, 0.12);
+                color: #059669;
                 border-radius: 4px;
                 font-size: 11px;
+              }
+            }
+
+            // 可信度
+            .confidence-wrap {
+              display: flex;
+              align-items: center;
+              gap: 8px;
+
+              .confidence-bar {
+                width: 80px;
+                height: 6px;
+                background: #e2e8f0;
+                border-radius: 3px;
+                overflow: hidden;
+
+                .confidence-fill {
+                  height: 100%;
+                  background: linear-gradient(90deg, #10b981, #34d399);
+                  border-radius: 3px;
+                  transition: width 0.5s ease;
+                }
+              }
+
+              .confidence-text {
+                font-size: 12px;
+                font-weight: 800;
+
+                &.high {
+                  color: #059669;
+                }
+
+                &.medium {
+                  color: #d97706;
+                }
+
+                &.low {
+                  color: #dc2626;
+                }
+              }
+            }
+
+            // 重新解析下拉选项
+            .reparse-model-option {
+              display: flex;
+              align-items: center;
+              gap: 10px;
+              width: 100%;
+              min-height: 36px;
+              padding: 2px 0;
+
+              .reparse-model-logo {
+                width: 24px;
+                height: 24px;
+                min-width: 24px;
+                border-radius: 6px;
+                overflow: hidden;
+                position: relative;
+                flex-shrink: 0;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: #f1f5f9;
+
+                img {
+                  width: 16px;
+                  height: 16px;
+                  object-fit: contain;
+                  display: block;
+                }
+
+                .reparse-model-fallback {
+                  font-size: 12px;
+                  font-weight: 800;
+                  line-height: 1;
+                }
+
+                img+.reparse-model-fallback {
+                  display: none;
+                }
+
+                img:error+.reparse-model-fallback {
+                  display: block;
+                }
+              }
+
+              .reparse-model-name {
+                flex: 1;
+                font-size: 13px;
+                color: #334155;
+                font-weight: 500;
+                line-height: 1.4;
+                white-space: nowrap;
+              }
+
+              .reparse-model-check {
+                font-size: 16px;
+                flex-shrink: 0;
+                color: #10b981;
+
+                &--active {
+                  background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(5, 150, 105, 0.08));
+                  padding: 3px 7px;
+                  border-radius: 6px;
+                }
+              }
+            }
+          }
+
+          // 原料表格
+          .materials-table {
+            margin-bottom: 20px;
+            border-radius: 14px;
+            overflow: hidden;
+            border: 1px solid rgba(148, 163, 184, 0.12);
+
+            .materials-header {
+              display: grid;
+              grid-template-columns: 1fr 70px 50px 80px;
+              background: rgba(16, 185, 129, 0.08);
+              padding: 10px 14px;
+              font-size: 11px;
+              font-weight: 800;
+              color: #059669;
+              text-transform: uppercase;
+              letter-spacing: 0.05em;
+
+              .col-status {
+                text-align: right;
+              }
+            }
+
+            .materials-row {
+              display: grid;
+              grid-template-columns: 1fr 70px 50px 80px;
+              padding: 10px 14px;
+              font-size: 12px;
+              color: #334155;
+              border-top: 1px solid rgba(148, 163, 184, 0.08);
+
+              &:nth-child(even) {
+                background: rgba(248, 250, 252, 0.5);
+              }
+
+              .col-name {
+                font-weight: 600;
+              }
+
+              .col-qty {
+                font-weight: 700;
+              }
+
+              .col-unit {
+                color: #64748b;
+              }
+
+              .col-status {
+                text-align: right;
+              }
+            }
+          }
+
+          // 可信度分条概述
+          .confidence-summary {
+            margin-bottom: 20px;
+            border-radius: 16px;
+            overflow: hidden;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.04) 0%, rgba(59, 130, 246, 0.03) 100%);
+            border: 1px solid rgba(148, 163, 184, 0.12);
+
+            .summary-header {
+              display: flex;
+              align-items: center;
+              gap: 6px;
+              padding: 10px 14px;
+              font-size: 11px;
+              font-weight: 800;
+              color: #059669;
+              text-transform: uppercase;
+              letter-spacing: 0.05em;
+
+              .t-icon {
+                font-size: 14px;
+              }
+            }
+
+            .summary-items {
+              padding: 0 14px 12px;
+              display: flex;
+              flex-direction: column;
+              gap: 8px;
+            }
+
+            .summary-item {
+              display: flex;
+              align-items: center;
+              gap: 10px;
+              padding: 6px 10px;
+              border-radius: 10px;
+              transition: background 0.2s;
+
+              &--high {
+                background: rgba(16, 185, 129, 0.06);
+              }
+
+              &--medium {
+                background: rgba(217, 119, 6, 0.06);
+              }
+
+              &--low {
+                background: rgba(239, 68, 68, 0.06);
+              }
+
+              .item-label {
+                width: 56px;
+                flex-shrink: 0;
+                font-size: 11px;
+                font-weight: 700;
+                color: #475569;
+              }
+
+              .item-bar-wrap {
+                flex: 1;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+
+                .item-bar {
+                  flex: 1;
+                  height: 5px;
+                  background: #e2e8f0;
+                  border-radius: 3px;
+                  overflow: hidden;
+
+                  .item-fill {
+                    height: 100%;
+                    border-radius: 3px;
+                    transition: width 0.5s ease;
+                  }
+                }
+
+                .item-value {
+                  font-size: 11px;
+                  font-weight: 800;
+                  min-width: 32px;
+                  text-align: right;
+                }
+              }
+
+              &--high .item-fill {
+                background: linear-gradient(90deg, #10b981, #34d399);
+              }
+
+              &--high .item-value {
+                color: #059669;
+              }
+
+              &--medium .item-fill {
+                background: linear-gradient(90deg, #d97706, #f59e0b);
+              }
+
+              &--medium .item-value {
+                color: #d97706;
+              }
+
+              &--low .item-fill {
+                background: linear-gradient(90deg, #dc2626, #ef4444);
+              }
+
+              &--low .item-value {
+                color: #dc2626;
               }
             }
           }
@@ -1357,12 +2264,51 @@ onMounted(async () => {
           .result-actions {
             .backfill-btn {
               margin-bottom: 12px;
+              border-radius: 14px;
+              font-weight: 700;
+              font-size: 13px;
+              padding: 10px 20px;
+              height: auto;
+              box-shadow: 0 4px 12px -2px rgba(16, 185, 129, 0.2);
             }
 
             .secondary-actions {
-              display: flex;
-              justify-content: center;
-              gap: 16px;
+              display: grid;
+              grid-template-columns: repeat(3, 1fr);
+              gap: 10px;
+
+              .action-btn {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                gap: 6px;
+                padding: 9px 12px;
+                border-radius: 14px;
+                font-size: 12px;
+                font-weight: 600;
+                border: 1px solid transparent;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                white-space: nowrap;
+
+                .t-icon {
+                  font-size: 15px;
+                }
+
+                &--default,
+                &--danger,
+                &--primary {
+                  background: #f1f5f9;
+                  color: #475569;
+                  border-color: #e2e8f0;
+
+                  &:hover {
+                    background: #e2e8f0;
+                    color: #334155;
+                    border-color: #cbd5e1;
+                  }
+                }
+              }
             }
           }
         }
@@ -1465,6 +2411,22 @@ onMounted(async () => {
   }
 
   // ═══ 动画关键帧 ═══
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-out forwards;
+  }
+
   @keyframes fadeInDown {
     from {
       opacity: 0;
@@ -1486,6 +2448,273 @@ onMounted(async () => {
     to {
       opacity: 1;
       transform: translateY(0);
+    }
+  }
+
+  @keyframes progressSlide {
+    0% {
+      transform: translateX(-100%);
+    }
+
+    100% {
+      transform: translateX(350%);
+    }
+  }
+
+  @keyframes alertFlash {
+    0% {
+      transform: scale(1);
+      opacity: 1;
+      box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+      border-color: transparent;
+    }
+
+    15% {
+      transform: scale(1.008);
+      opacity: 1;
+      box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.18), 0 2px 14px rgba(16, 185, 129, 0.12);
+      border-color: #10b981;
+    }
+
+    35% {
+      transform: scale(1.013);
+      opacity: 1;
+      box-shadow: 0 0 0 10px rgba(16, 185, 129, 0.12), 0 0 0 22px rgba(16, 185, 129, 0.06), 0 4px 24px rgba(16, 185, 129, 0.18);
+      border-color: #10b981;
+    }
+
+    55% {
+      transform: scale(1.01);
+      opacity: 0.92;
+      box-shadow: 0 0 0 20px rgba(16, 185, 129, 0.06), 0 0 0 34px rgba(16, 185, 129, 0.03), 0 3px 16px rgba(16, 185, 129, 0.10);
+      border-color: rgba(16, 185, 129, 0.55);
+    }
+
+    75% {
+      transform: scale(1.005);
+      opacity: 0.96;
+      box-shadow: 0 0 0 28px rgba(16, 185, 129, 0.02), 0 2px 10px rgba(16, 185, 129, 0.07);
+      border-color: rgba(16, 185, 129, 0.25);
+    }
+
+    90% {
+      transform: scale(1.002);
+      opacity: 0.98;
+      box-shadow: 0 0 0 36px transparent, 0 1px 6px rgba(16, 185, 129, 0.05);
+      border-color: rgba(16, 185, 129, 0.08);
+    }
+
+    100% {
+      transform: scale(1);
+      opacity: 1;
+      box-shadow: 0 0 0 0 transparent;
+      border-color: transparent;
+    }
+  }
+}
+</style>
+
+<style lang="scss">
+.reparse-dropdown-popup {
+  min-width: 160px !important;
+  width: auto !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: 0 6px 24px rgba(16, 185, 129, 0.28), 0 2px 8px rgba(16, 185, 129, 0.12) !important;
+
+  .t-dropdown__menu {
+    min-width: 140px !important;
+    width: auto !important;
+    padding: 4px !important;
+    border: none !important;
+    outline: none !important;
+  }
+
+  .t-dropdown__item {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    padding: 7px 12px !important;
+    min-height: 38px;
+    width: 100% !important;
+    max-width: none !important;
+    box-sizing: border-box !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    white-space: nowrap !important;
+
+    &:hover {
+      background-color: #f1f5f9 !important;
+    }
+
+    &.t-dropdown__item--active {
+      color: #059669 !important;
+      background-color: transparent !important;
+    }
+  }
+
+  .reparse-model-option {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 16px !important;
+    width: auto !important;
+    min-width: 120px !important;
+    max-width: none !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+
+    .reparse-model-logo {
+      width: 22px !important;
+      height: 22px !important;
+      min-width: 22px !important;
+      border-radius: 5px !important;
+      overflow: hidden !important;
+      flex-shrink: 0 !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      background: #f1f5f9 !important;
+
+      img {
+        width: 15px !important;
+        height: 15px !important;
+        object-fit: contain !important;
+        display: block !important;
+      }
+
+      .reparse-model-fallback {
+        font-size: 11px !important;
+        font-weight: 800 !important;
+        line-height: 1 !important;
+      }
+
+      img+.reparse-model-fallback {
+        display: none !important;
+      }
+
+      img:error+.reparse-model-fallback {
+        display: block !important;
+      }
+    }
+
+    .reparse-model-name {
+      flex: 0 0 auto !important;
+      font-size: 13px !important;
+      color: #334155 !important;
+      font-weight: 500 !important;
+      line-height: 1.3 !important;
+      white-space: nowrap !important;
+      text-overflow: clip !important;
+      overflow: visible !important;
+    }
+
+    .reparse-model-check {
+      font-size: 20px !important;
+      flex-shrink: 0 !important;
+      color: #10b981 !important;
+    }
+  }
+}
+</style>
+
+<style lang="scss">
+.formula-form .materials-table-wrapper {
+
+  // ── 选择框（原料名称）──
+  .t-select {
+
+    .t-input,
+    .t-select__wrap {
+      border-color: rgba(16, 185, 129, 0.25) !important;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+    }
+
+    &:hover:not(.t-is-disabled) .t-input,
+    &:hover:not(.t-is-disabled) .t-select__wrap {
+      border-color: rgba(16, 185, 129, 0.4) !important;
+    }
+  }
+
+  .t-select .t-input,
+  .t-select .t-input.t-is-focused,
+  .t-select .t-input:focus-within {
+    border-color: #10b981 !important;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.12) !important;
+  }
+
+  .t-select.t-is-focused .t-input,
+  .t-select.t-is-focused .t-select__wrap,
+  .t-select.t-is-focused .t-input.t-is-focused {
+    border-color: #10b981 !important;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.12) !important;
+  }
+
+  // ── 数量输入框 ──
+  .t-input-number {
+    border-color: rgba(16, 185, 129, 0.25) !important;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+
+    &:hover:not(.t-is-disabled) {
+      border-color: rgba(16, 185, 129, 0.4) !important;
+    }
+  }
+
+  .t-input-number .t-input,
+  .t-input-number .t-input.t-is-focused,
+  .t-input-number .t-input:focus-within {
+    border-color: #10b981 !important;
+    box-shadow: none !important;
+  }
+
+  .t-input-number.t-is-focused,
+  .t-input-number.t-is-focused .t-input,
+  .t-input-number.t-is-focused .t-input.t-is-focused {
+    border-color: #10b981 !important;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.12) !important;
+  }
+
+  .t-input-number__decrease,
+  .t-input-number__increase {
+    color: #10b981 !important;
+    border-color: rgba(16, 185, 129, 0.3) !important;
+
+    &:hover {
+      background: rgba(16, 185, 129, 0.1) !important;
+      color: #059669 !important;
+      border-color: rgba(16, 185, 129, 0.5) !important;
+    }
+  }
+
+  .t-input-number__increase {
+    border-left-color: rgba(16, 185, 129, 0.3) !important;
+  }
+
+  .t-input-number__decrease {
+    border-right-color: rgba(16, 185, 129, 0.3) !important;
+  }
+
+  // ── 删除按钮（去掉红色/粉色）──
+  .delete-btn,
+  .t-button--variant-text {
+    color: rgba(16, 185, 129, 0.6) !important;
+    border: none !important;
+
+    .t-button__text,
+    .t-button__icon,
+    .t-icon {
+      color: inherit !important;
+    }
+
+    &:hover {
+      color: #10b981 !important;
+      background: rgba(16, 185, 129, 0.08) !important;
+      border: none !important;
+
+      .t-button__text,
+      .t-button__icon,
+      .t-icon {
+        color: #10b981 !important;
+      }
     }
   }
 }

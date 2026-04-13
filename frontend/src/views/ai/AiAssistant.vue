@@ -7,8 +7,10 @@
             <div class="ai-icon">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                 <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="var(--color-primary)" opacity="0.8" />
-                <path d="M2 17L12 22L22 17" stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                <path d="M2 12L12 17L22 12" stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                <path d="M2 17L12 22L22 17" stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round"
+                  stroke-linejoin="round" />
+                <path d="M2 12L12 17L22 12" stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round"
+                  stroke-linejoin="round" />
               </svg>
             </div>
             <div>
@@ -26,16 +28,8 @@
       <div class="ai-body">
         <!-- 左侧 Tab 导航 -->
         <div class="ai-nav">
-          <div
-            v-for="tab in tabs"
-            :key="tab.value"
-            class="nav-tab"
-            :class="{ active: activeTab === tab.value }"
-            role="tab"
-            tabindex="0"
-            @click="activeTab = tab.value"
-            @keydown.enter="activeTab = tab.value"
-          >
+          <div v-for="tab in tabs" :key="tab.value" class="nav-tab" :class="{ active: activeTab === tab.value }"
+            role="tab" tabindex="0" @click="activeTab = tab.value" @keydown.enter="activeTab = tab.value">
             <t-icon :name="tab.icon" size="18px" />
             <span class="nav-tab-label">{{ tab.label }}</span>
           </div>
@@ -48,34 +42,17 @@
             <!-- 模型选择器 -->
             <div class="model-selector-row">
               <span class="selector-label">AI 模型</span>
-              <t-select
-                v-model="aiStore.selectedModel"
-                :options="modelOptions"
-                placeholder="选择 AI 模型"
-                :popup-props="{ appendToBody: true }"
-                style="width: 260px"
-                size="medium"
-              />
+              <t-select v-model="aiStore.selectedModel" :options="modelOptions" placeholder="选择 AI 模型"
+                :popup-props="{ appendToBody: true }" style="width: 260px" size="medium" />
             </div>
 
             <!-- 上传区域 -->
             <div class="upload-section">
-              <t-upload
-                :auto-upload="false"
-                :max="1"
-                :accept="'.xlsx,.xls,.csv,.png,.jpg,.jpeg,.gif,.webp'"
-                :size-limit="10485760"
-                theme="file-input"
-                :tips="'支持 Excel (.xlsx/.xls) 和图片 (.png/.jpg/.gif)，最大 10MB'"
-                @change="handleFileChange"
-              />
-              <t-button
-                v-if="selectedFile"
-                theme="primary"
-                :loading="aiStore.parseLoading"
-                style="margin-top: 12px"
-                @click="handleParse"
-              >
+              <t-upload :auto-upload="false" :max="1" :accept="'.xlsx,.xls,.csv,.png,.jpg,.jpeg,.gif,.webp'"
+                :size-limit="10485760" theme="file-input" :tips="'支持 Excel (.xlsx/.xls) 和图片 (.png/.jpg/.gif)，最大 10MB'"
+                @change="handleFileChange" />
+              <t-button v-if="selectedFile" theme="primary" :loading="aiStore.parseLoading" style="margin-top: 12px"
+                @click="handleParse">
                 <template #icon><t-icon name="precise-monitor" /></template>
                 AI 解析
               </t-button>
@@ -87,13 +64,8 @@
             </div>
 
             <!-- 解析错误 -->
-            <t-alert
-              v-if="aiStore.parseError"
-              :message="aiStore.parseError"
-              theme="error"
-              closable
-              style="margin-top: 12px"
-            />
+            <t-alert v-if="aiStore.parseError" :message="aiStore.parseError" theme="error" closable
+              style="margin-top: 12px" />
 
             <!-- 解析结果预览 -->
             <div v-if="aiStore.parseResult" class="parse-result">
@@ -135,15 +107,8 @@
                 </div>
               </div>
 
-              <t-table
-                :data="aiStore.parseResult.materials"
-                :columns="materialColumns"
-                row-key="name"
-                size="small"
-                table-layout="auto"
-                bordered
-                stripe
-              >
+              <t-table :data="aiStore.parseResult.materials" :columns="materialColumns" row-key="name" size="small"
+                table-layout="auto" bordered stripe>
                 <template #matched="{ row }">
                   <t-tag v-if="row.matched" theme="success" variant="light" size="small">已匹配</t-tag>
                   <t-tag v-else theme="warning" variant="light" size="small">未匹配</t-tag>
@@ -156,11 +121,7 @@
             </div>
 
             <!-- 未配置模型提示 -->
-            <t-alert
-              v-if="!aiStore.models.length && !aiStore.parseLoading"
-              message="未配置 AI 模型"
-              theme="warning"
-            >
+            <t-alert v-if="!aiStore.models.length && !aiStore.parseLoading" message="未配置 AI 模型" theme="warning">
               <template #default>
                 请在后端 .env 文件中配置至少一个 AI 模型的 API Key：
                 <code>AI_DASHSCOPE_API_KEY</code>、
@@ -175,31 +136,16 @@
             <!-- 模型选择器 -->
             <div class="model-selector-row">
               <span class="selector-label">AI 模型</span>
-              <t-select
-                v-model="aiStore.selectedModel"
-                :options="modelOptions"
-                placeholder="选择 AI 模型"
-                :popup-props="{ appendToBody: true }"
-                style="width: 260px"
-                size="medium"
-              />
+              <t-select v-model="aiStore.selectedModel" :options="modelOptions" placeholder="选择 AI 模型"
+                :popup-props="{ appendToBody: true }" style="width: 260px" size="medium" />
             </div>
 
             <!-- 输入区域 -->
             <div class="search-input-area">
-              <t-textarea
-                v-model="searchQuery"
-                placeholder="试试输入：查找含有黄芪且成品重量大于100g的配方"
-                :autosize="{ minRows: 3, maxRows: 6 }"
-                @keydown.enter.ctrl="handleSearch"
-              />
-              <t-button
-                theme="primary"
-                shape="circle"
-                :loading="aiStore.searchLoading"
-                class="search-send-btn"
-                @click="handleSearch"
-              >
+              <t-textarea v-model="searchQuery" placeholder="试试输入：查找含有黄芪且成品重量大于100g的配方"
+                :autosize="{ minRows: 3, maxRows: 6 }" @keydown.enter.ctrl="handleSearch" />
+              <t-button theme="primary" shape="circle" :loading="aiStore.searchLoading" class="search-send-btn"
+                @click="handleSearch">
                 <template #icon><t-icon name="send" /></template>
               </t-button>
             </div>
@@ -207,24 +153,13 @@
             <!-- 快捷提示标签 -->
             <div class="quick-tags">
               <span class="quick-tags-label">试试：</span>
-              <t-tag
-                v-for="tag in quickTags"
-                :key="tag"
-                size="medium"
-                variant="outline"
-                class="quick-tag"
-                @click="fillAndSearch(tag)"
-              >{{ tag }}</t-tag>
+              <t-tag v-for="tag in quickTags" :key="tag" size="medium" variant="outline" class="quick-tag"
+                @click="fillAndSearch(tag)">{{ tag }}</t-tag>
             </div>
 
             <!-- 搜索错误 -->
-            <t-alert
-              v-if="aiStore.searchError"
-              :message="aiStore.searchError"
-              theme="error"
-              closable
-              style="margin-top: 12px"
-            />
+            <t-alert v-if="aiStore.searchError" :message="aiStore.searchError" theme="error" closable
+              style="margin-top: 12px" />
 
             <!-- 搜索结果 -->
             <div v-if="aiStore.searchResult" class="search-result">
@@ -242,15 +177,8 @@
 
               <!-- 查询结果表格 -->
               <div v-if="aiStore.searchResult.rows.length" class="result-table">
-                <t-table
-                  :data="aiStore.searchResult.rows"
-                  :columns="searchResultColumns"
-                  size="small"
-                  table-layout="auto"
-                  bordered
-                  stripe
-                  max-height="400"
-                />
+                <t-table :data="aiStore.searchResult.rows" :columns="searchResultColumns" size="small"
+                  table-layout="auto" bordered stripe max-height="400" />
               </div>
 
               <!-- 无结果 -->
@@ -267,14 +195,8 @@
             <!-- 搜索历史 -->
             <div v-if="aiStore.searchHistory.length && !aiStore.searchResult" class="search-history">
               <span class="history-label">搜索历史</span>
-              <t-tag
-                v-for="(h, idx) in aiStore.searchHistory"
-                :key="idx"
-                size="medium"
-                variant="outline"
-                class="history-tag"
-                @click="fillAndSearch(h)"
-              >{{ h }}</t-tag>
+              <t-tag v-for="(h, idx) in aiStore.searchHistory" :key="idx" size="medium" variant="outline"
+                class="history-tag" @click="fillAndSearch(h)">{{ h }}</t-tag>
             </div>
           </div>
         </div>
@@ -481,7 +403,7 @@ onMounted(() => {
 
   // 左侧导航
   .ai-nav {
-    width: 180px;
+    width: 100px;
     flex-shrink: 0;
 
     .nav-tab {

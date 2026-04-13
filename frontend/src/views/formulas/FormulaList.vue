@@ -3,10 +3,11 @@
     <!-- 数据看板 -->
     <section class="dashboard-grid">
       <div class="stat-card" v-for="(card, idx) in dashboardCards" :key="card.label"
-           :style="{ animationDelay: `${(idx + 1) * 0.1}s` }">
+        :style="{ animationDelay: `${(idx + 1) * 0.1}s` }">
         <div class="stat-card-top">
           <div class="stat-icon" :style="{ background: card.iconBg, color: card.iconColor }">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" v-html="card.iconPath"></svg>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round" v-html="card.iconPath"></svg>
           </div>
           <span class="stat-badge" :style="{ color: card.badgeColor, background: card.badgeBg }">
             {{ card.badge }}
@@ -21,294 +22,244 @@
       <PageSkeleton v-if="!initialized" type="table" :rows="5" :columns="6" />
       <t-card v-else class="content-card" bordered>
 
-      <!-- 工具栏：参照数据中心列表样式 -->
-      <div class="data-center-toolbar">
-        <!-- 批量操作栏 (默认隐藏) - 与 index.html 完全一致 -->
-        <Transition name="batch-bar-slide">
-          <div v-if="selectedRows.length > 0" class="batch-action-bar">
-            <div class="batch-info">
-              <span class="batch-count"><strong>{{ selectedRows.length }}</strong> 项已选择</span>
-              <div class="batch-divider"></div>
-              <div class="batch-buttons">
-                <button class="batch-action-btn" @click="handleBatchDelete">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-                  批量删除
-                </button>
-                <button class="batch-action-btn" @click="handleBatchArchive">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8v13H3V8"/><rect x="1" y="3" width="22" height="5" rx="2"/></svg>
-                  批量归档
-                </button>
-                <button class="batch-action-btn" @click="handleBatchExport">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                  批量导出
-                </button>
+        <!-- 工具栏：参照数据中心列表样式 -->
+        <div class="data-center-toolbar">
+          <!-- 批量操作栏 (默认隐藏) - 与 index.html 完全一致 -->
+          <Transition name="batch-bar-slide">
+            <div v-if="selectedRows.length > 0" class="batch-action-bar">
+              <div class="batch-info">
+                <span class="batch-count"><strong>{{ selectedRows.length }}</strong> 项已选择</span>
+                <div class="batch-divider"></div>
+                <div class="batch-buttons">
+                  <button class="batch-action-btn" @click="handleBatchDelete">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                      stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="3 6 5 6 21 6" />
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                    </svg>
+                    批量删除
+                  </button>
+                  <button class="batch-action-btn" @click="handleBatchArchive">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                      stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M21 8v13H3V8" />
+                      <rect x="1" y="3" width="22" height="5" rx="2" />
+                    </svg>
+                    批量归档
+                  </button>
+                  <button class="batch-action-btn" @click="handleBatchExport">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                      stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                      <polyline points="7 10 12 15 17 10" />
+                      <line x1="12" y1="15" x2="12" y2="3" />
+                    </svg>
+                    批量导出
+                  </button>
+                </div>
               </div>
+              <button class="batch-cancel-btn" @click="clearSelection">取消</button>
             </div>
-            <button class="batch-cancel-btn" @click="clearSelection">取消</button>
-          </div>
-        </Transition>
+          </Transition>
 
-        <!-- 左侧：标题和描述 -->
-        <div class="toolbar-left-section">
-          <div class="toolbar-title-section">
-            <h3 class="toolbar-title">配方管理中心</h3>
-            <p class="toolbar-subtitle">点击列表查看详细配比、变更记录与关联业务需求</p>
+          <!-- 左侧：标题和描述 -->
+          <div class="toolbar-left-section">
+            <div class="toolbar-title-section">
+              <h3 class="toolbar-title">配方管理中心</h3>
+              <p class="toolbar-subtitle">点击列表查看详细配比、变更记录与关联业务需求</p>
+            </div>
+          </div>
+
+          <!-- 右侧：搜索和新增按钮 -->
+          <div class="toolbar-right-section">
+            <div class="search-container">
+              <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+              <t-input v-model="searchKeyword" class="search-input" placeholder="搜索配方名称、编号..."
+                @input="handleRealTimeSearch" @clear="handleRealTimeSearch" clearable />
+            </div>
+            <button class="add-formula-btn" @click="handleCreate">
+              <t-icon name="add" class="add-icon" />
+              创建新配方
+            </button>
+            <button class="filter-btn">
+              <t-icon name="filter" class="filter-icon" />
+              <span class="filter-dot"></span>
+            </button>
           </div>
         </div>
-
-        <!-- 右侧：搜索和新增按钮 -->
-        <div class="toolbar-right-section">
-          <div class="search-container">
-            <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="11" cy="11" r="8"></circle>
-              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-            </svg>
-            <t-input
-              v-model="searchKeyword"
-              class="search-input"
-              placeholder="搜索配方名称、编号..."
-              @input="handleRealTimeSearch"
-              @clear="handleRealTimeSearch"
-              clearable
-            />
-          </div>
-          <button class="add-formula-btn" @click="handleCreate">
-            <t-icon name="add" class="add-icon" />
-            创建新配方
-          </button>
-          <button class="filter-btn">
-            <t-icon name="filter" class="filter-icon" />
-            <span class="filter-dot"></span>
-          </button>
-        </div>
-      </div>
-      <t-table
-        :data="sortedFormulas"
-        :columns="columns"
-        :loading="formulaStore.loading"
-        :pagination="undefined"
-        :sort="tableSort"
-        row-key="id"
-        hover
-        table-layout="auto"
-        @sort-change="onSortChange"
-        :expanded-row-keys="expandedRowKeys"
-        @expand-change="onExpandChange"
-        @select-change="handleSelectChange"
-        :selected-row-keys="selectedRowKeys"
-      >
-        <template #name="{ row }">
-          <div class="formula-info">
-            <div
-              class="formula-avatar"
-              :style="{
+        <t-table :data="sortedFormulas" :columns="columns" :loading="formulaStore.loading" :pagination="undefined"
+          :sort="tableSort" row-key="id" hover table-layout="auto" @sort-change="onSortChange"
+          :expanded-row-keys="expandedRowKeys" @expand-change="onExpandChange" @select-change="handleSelectChange"
+          :selected-row-keys="selectedRowKeys">
+          <template #name="{ row }">
+            <div class="formula-info">
+              <div class="formula-avatar" :style="{
                 backgroundColor: getFormulaAvatar(row).bgColor,
                 color: getFormulaAvatar(row).textColor
-              }"
-            >
-              {{ getFormulaAvatar(row).text }}
-            </div>
-            <div class="formula-details">
-              <p class="formula-name">{{ row.name }}</p>
-              <p class="formula-code">CODE: {{ row.code }}</p>
-            </div>
-          </div>
-        </template>
-
-        <template #expandedRow="{ row }">
-          <div class="expanded-content">
-            <div class="description-section" v-if="getFormulaDesc(row.description)">
-              <h4>配方信息</h4>
-              <div class="desc-tags">
-                <t-tag v-if="getFormulaDesc(row.description).productType" theme="primary" variant="light" size="medium">
-                  {{ getFormulaDesc(row.description).productType }}
-                </t-tag>
-                <t-tag v-if="getFormulaDesc(row.description).dosage" theme="warning" variant="light" size="medium">
-                  {{ getFormulaDesc(row.description).dosage }}
-                </t-tag>
-                <t-tag v-if="getFormulaDesc(row.description).efficacy" theme="success" variant="light" size="medium">
-                  {{ getFormulaDesc(row.description).efficacy }}
-                </t-tag>
-                <t-tag v-if="getFormulaDesc(row.description).totalQuote != null" theme="danger" variant="light" size="medium">
-                  报价: ¥{{ getFormulaDesc(row.description).totalQuote.toFixed(4) }}
-                </t-tag>
+              }">
+                {{ getFormulaAvatar(row).text }}
+              </div>
+              <div class="formula-details">
+                <p class="formula-name">{{ row.name }}</p>
+                <p class="formula-code">CODE: {{ row.code }}</p>
               </div>
             </div>
-            <div class="version-section">
-              <h4>版本记录 <t-tag size="small" variant="light" theme="primary">{{ row.versions?.length || 0 }} 个版本</t-tag></h4>
-              <div v-if="row.versions && row.versions.length" class="version-list">
-                <div
-                  v-for="ver in row.versions"
-                  :key="ver.versionId"
-                  class="version-item"
-                  :class="{ 'is-current': ver.isCurrent }"
-                >
-                  <div class="version-left">
-                    <span class="version-number">{{ ver.versionNumber }}</span>
-                    <t-tag
-                      v-if="ver.isCurrent"
-                      size="small"
-                      variant="light"
-                      class="current-tag"
-                    >当前</t-tag>
-                    <t-tag
-                      v-else
-                      size="small"
-                      variant="light"
-                      class="status-tag"
-                      :class="'status-tag--' + ver.status"
-                    >{{ ver.status === 'published' ? '已发布' : ver.status === 'draft' ? '草稿' : '已归档' }}</t-tag>
-                  </div>
-                  <div class="version-center">
-                    <span class="version-name">{{ ver.versionName }}</span>
-                    <span v-if="ver.versionReason" class="version-reason">原因: {{ ver.versionReason }}</span>
-                    <span class="version-time">{{ ver.createdAt }}</span>
-                  </div>
-                  <div v-if="ver.changesJson && parseChanges(ver.changesJson).length" class="version-changes">
-                    <div class="changes-detail">
-                      <div class="changes-list">
-                        <div
-                          v-for="(change, ci) in parseChanges(ver.changesJson)"
-                          :key="ci"
-                          class="change-row"
-                        >
-                          <t-tag
-                            size="small"
-                            :theme="change.changeType === 'add' ? 'success' : change.changeType === 'delete' ? 'danger' : 'warning'"
-                            variant="light"
-                            class="change-type-tag"
-                          >{{ change.changeType === 'add' ? '新增' : change.changeType === 'delete' ? '删除' : '修改' }}</t-tag>
-                          <span class="change-label">{{ change.fieldLabel }}</span>
-                          <span class="change-values">
-                            <span v-if="change.oldValue !== null" class="change-old">{{ change.oldValue }}</span>
-                            <span v-if="change.oldValue !== null && change.newValue !== null" class="change-arrow">→</span>
-                            <span v-if="change.newValue !== null" class="change-new">{{ change.newValue }}</span>
-                          </span>
+          </template>
+
+          <template #expandedRow="{ row }">
+            <div class="expanded-content">
+              <div class="description-section" v-if="getFormulaDesc(row.description)">
+                <h4>配方信息</h4>
+                <div class="desc-tags">
+                  <t-tag v-if="getFormulaDesc(row.description).productType" theme="primary" variant="light"
+                    size="medium">
+                    {{ getFormulaDesc(row.description).productType }}
+                  </t-tag>
+                  <t-tag v-if="getFormulaDesc(row.description).dosage" theme="warning" variant="light" size="medium">
+                    {{ getFormulaDesc(row.description).dosage }}
+                  </t-tag>
+                  <t-tag v-if="getFormulaDesc(row.description).efficacy" theme="success" variant="light" size="medium">
+                    {{ getFormulaDesc(row.description).efficacy }}
+                  </t-tag>
+                  <t-tag v-if="getFormulaDesc(row.description).totalQuote != null" theme="danger" variant="light"
+                    size="medium">
+                    报价: ¥{{ getFormulaDesc(row.description).totalQuote.toFixed(4) }}
+                  </t-tag>
+                </div>
+              </div>
+              <div class="version-section">
+                <h4>版本记录 <t-tag size="small" variant="light" theme="primary">{{ row.versions?.length || 0 }} 个版本</t-tag>
+                </h4>
+                <div v-if="row.versions && row.versions.length" class="version-list">
+                  <div v-for="ver in row.versions" :key="ver.versionId" class="version-item"
+                    :class="{ 'is-current': ver.isCurrent }">
+                    <div class="version-left">
+                      <span class="version-number">{{ ver.versionNumber }}</span>
+                      <t-tag v-if="ver.isCurrent" size="small" variant="light" class="current-tag">当前</t-tag>
+                      <t-tag v-else size="small" variant="light" class="status-tag"
+                        :class="'status-tag--' + ver.status">{{ ver.status === 'published' ? '已发布' : ver.status ===
+                          'draft' ? '草稿' : '已归档' }}</t-tag>
+                    </div>
+                    <div class="version-center">
+                      <span class="version-name">{{ ver.versionName }}</span>
+                      <span v-if="ver.versionReason" class="version-reason">原因: {{ ver.versionReason }}</span>
+                      <span class="version-time">{{ ver.createdAt }}</span>
+                    </div>
+                    <div v-if="ver.changesJson && parseChanges(ver.changesJson).length" class="version-changes">
+                      <div class="changes-detail">
+                        <div class="changes-list">
+                          <div v-for="(change, ci) in parseChanges(ver.changesJson)" :key="ci" class="change-row">
+                            <t-tag size="small"
+                              :theme="change.changeType === 'add' ? 'success' : change.changeType === 'delete' ? 'danger' : 'warning'"
+                              variant="light" class="change-type-tag">{{ change.changeType === 'add' ? '新增' :
+                                change.changeType === 'delete' ? '删除' : '修改' }}</t-tag>
+                            <span class="change-label">{{ change.fieldLabel }}</span>
+                            <span class="change-values">
+                              <span v-if="change.oldValue !== null" class="change-old">{{ change.oldValue }}</span>
+                              <span v-if="change.oldValue !== null && change.newValue !== null"
+                                class="change-arrow">→</span>
+                              <span v-if="change.newValue !== null" class="change-new">{{ change.newValue }}</span>
+                            </span>
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
+                <div v-else class="empty-versions">暂无版本记录</div>
               </div>
-              <div v-else class="empty-versions">暂无版本记录</div>
             </div>
-          </div>
-        </template>
-
-        <template #formulaStatus="{ row }">
-          <div class="version-status">
-            <t-tag
-              :theme="getFormulaStatus(row).theme"
-              :variant="getFormulaStatus(row).variant"
-              size="small"
-              class="version-tag"
-            >
-              {{ getFormulaStatus(row).version }}
-            </t-tag>
-            <span class="status-text" :style="{ color: getFormulaStatus(row).color }">
-              <t-icon :name="getFormulaStatus(row).icon" />
-              {{ getFormulaStatus(row).label }}
-            </span>
-          </div>
-        </template>
-
-        <template #materialCount="{ row }">
-          <span class="material-count">
-            {{ (row.materials || []).length }}
-            <span class="material-unit">项</span>
-          </span>
-        </template>
-
-        <template #salesmanName="{ row }">
-          <div class="salesman-info">
-            <div class="salesman-avatar" :style="{ backgroundColor: getAvatarColor(row.salesmanName).bg }">
-              {{ getAvatarInitial(row.salesmanName) }}
-            </div>
-            <span class="salesman-name">{{ row.salesmanName }}</span>
-          </div>
-        </template>
-
-        <template #empty>
-          <t-empty description="暂无配方数据" role="status">
-            <template #action>
-              <t-button theme="primary" @click="handleCreate">
-                <template #icon><t-icon name="add" /></template>创建第一个配方
-              </t-button>
-            </template>
-          </t-empty>
-        </template>
-
-        <template #operation="{ row }">
-          <div class="action-buttons">
-            <button
-              class="action-btn view-btn"
-              @click="handleView(row)"
-              title="查看"
-            >
-              <t-icon name="browse" />
-            </button>
-            <button
-              class="action-btn edit-btn"
-              @click.stop="handleEdit(row)"
-              title="编辑"
-            >
-              <t-icon name="edit-1" />
-            </button>
-            <button
-              class="action-btn version-btn"
-              @click="handleVersion(row)"
-              title="版本管理"
-            >
-              <t-icon name="history" />
-            </button>
-            <t-popconfirm
-              content="确定要删除该配方吗？"
-              @confirm="handleDelete(row)"
-            >
-              <button
-                class="action-btn delete-btn"
-                @click.stop
-                title="删除"
-              >
-                <t-icon name="delete" />
-              </button>
-            </t-popconfirm>
-          </div>
-        </template>
-      </t-table>
-
-      <!-- 分页 -->
-      <div v-if="paginationStore.visible && formulaStore.total > 0" class="table-pagination">
-        <!-- 左侧：数据量信息 - 参照 index.html 第930行 -->
-        <div class="pagination-info">
-          显示第 {{ (formulaStore.currentPage - 1) * formulaStore.pageSize + 1 }}-{{ Math.min(formulaStore.currentPage * formulaStore.pageSize, formulaStore.total) }} 条，共 {{ formulaStore.total }} 条数据
-        </div>
-        <!-- 右侧：分页控件 -->
-        <div class="pagination-controls">
-          <button
-            class="pagination-btn"
-            :class="{ 'pagination-btn--disabled': formulaStore.currentPage === 1 }"
-            :disabled="formulaStore.currentPage === 1"
-            @click="formulaStore.setPage(formulaStore.currentPage - 1); formulaStore.fetchFormulas()"
-          >上一页</button>
-          <template v-for="page in pageNumbers" :key="page">
-            <button
-              v-if="page !== '...'"
-              class="pagination-btn"
-              :class="{ 'pagination-btn--active': page === formulaStore.currentPage }"
-              @click="typeof page === 'number' && (formulaStore.setPage(page), formulaStore.fetchFormulas())"
-            >{{ page }}</button>
-            <span v-else class="pagination-ellipsis">...</span>
           </template>
-          <button
-            class="pagination-btn"
-            :class="{ 'pagination-btn--disabled': formulaStore.currentPage === totalPages }"
-            :disabled="formulaStore.currentPage === totalPages"
-            @click="formulaStore.setPage(formulaStore.currentPage + 1); formulaStore.fetchFormulas()"
-          >下一页</button>
+
+          <template #formulaStatus="{ row }">
+            <div class="version-status">
+              <t-tag :theme="getFormulaStatus(row).theme" :variant="getFormulaStatus(row).variant" size="small"
+                class="version-tag">
+                {{ getFormulaStatus(row).version }}
+              </t-tag>
+              <span class="status-text" :style="{ color: getFormulaStatus(row).color }">
+                <t-icon :name="getFormulaStatus(row).icon" />
+                {{ getFormulaStatus(row).label }}
+              </span>
+            </div>
+          </template>
+
+          <template #materialCount="{ row }">
+            <span class="material-count">
+              {{ (row.materials || []).length }}
+              <span class="material-unit">项</span>
+            </span>
+          </template>
+
+          <template #salesmanName="{ row }">
+            <div class="salesman-info">
+              <div class="salesman-avatar" :style="{ backgroundColor: getAvatarColor(row.salesmanName).bg }">
+                {{ getAvatarInitial(row.salesmanName) }}
+              </div>
+              <span class="salesman-name">{{ row.salesmanName }}</span>
+            </div>
+          </template>
+
+          <template #empty>
+            <t-empty description="暂无配方数据" role="status">
+              <template #action>
+                <t-button theme="primary" @click="handleCreate">
+                  <template #icon><t-icon name="add" /></template>创建第一个配方
+                </t-button>
+              </template>
+            </t-empty>
+          </template>
+
+          <template #operation="{ row }">
+            <div class="action-buttons">
+              <button class="action-btn view-btn" @click="handleView(row)" title="查看">
+                <t-icon name="browse" />
+              </button>
+              <button class="action-btn edit-btn" @click.stop="handleEdit(row)" title="编辑">
+                <t-icon name="edit-1" />
+              </button>
+              <button class="action-btn version-btn" @click="handleVersion(row)" title="版本管理">
+                <t-icon name="history" />
+              </button>
+              <t-popconfirm content="确定要删除该配方吗？" @confirm="handleDelete(row)">
+                <button class="action-btn delete-btn" @click.stop title="删除">
+                  <t-icon name="delete" />
+                </button>
+              </t-popconfirm>
+            </div>
+          </template>
+        </t-table>
+
+        <!-- 分页 -->
+        <div v-if="paginationStore.visible && formulaStore.total > 0" class="table-pagination">
+          <!-- 左侧：数据量信息 - 参照 index.html 第930行 -->
+          <div class="pagination-info">
+            显示第 {{ (formulaStore.currentPage - 1) * formulaStore.pageSize + 1 }}-{{ Math.min(formulaStore.currentPage *
+              formulaStore.pageSize, formulaStore.total) }} 条，共 {{ formulaStore.total }} 条数据
+          </div>
+          <!-- 右侧：分页控件 -->
+          <div class="pagination-controls">
+            <button class="pagination-btn" :class="{ 'pagination-btn--disabled': formulaStore.currentPage === 1 }"
+              :disabled="formulaStore.currentPage === 1"
+              @click="formulaStore.setPage(formulaStore.currentPage - 1); formulaStore.fetchFormulas()">上一页</button>
+            <template v-for="page in pageNumbers" :key="page">
+              <button v-if="page !== '...'" class="pagination-btn"
+                :class="{ 'pagination-btn--active': page === formulaStore.currentPage }"
+                @click="typeof page === 'number' && (formulaStore.setPage(page), formulaStore.fetchFormulas())">{{ page
+                }}</button>
+              <span v-else class="pagination-ellipsis">...</span>
+            </template>
+            <button class="pagination-btn"
+              :class="{ 'pagination-btn--disabled': formulaStore.currentPage === totalPages }"
+              :disabled="formulaStore.currentPage === totalPages"
+              @click="formulaStore.setPage(formulaStore.currentPage + 1); formulaStore.fetchFormulas()">下一页</button>
+          </div>
         </div>
-      </div>
-    </t-card>
+      </t-card>
     </Transition>
 
     <!-- 底部快捷动态 - 参照 index.html 第945行 -->
@@ -317,18 +268,32 @@
       <div class="activity-card activity-card--timeline">
         <div class="activity-header">
           <h4 class="activity-title">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+            </svg>
             近期配方动态
           </h4>
-          <router-link to="/formulas" class="activity-link">查看全部</router-link>
+          <div class="activity-nav">
+            <button class="activity-nav-btn" :disabled="activityPage <= 1" @click="activityPrev" title="上一页">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
+            </button>
+            <span class="activity-nav-page">{{ activityPage }} / {{ activityTotalPages }}</span>
+            <button class="activity-nav-btn" :disabled="activityPage >= activityTotalPages" @click="activityNext"
+              title="下一页">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            </button>
+          </div>
         </div>
         <div class="timeline-list">
-          <div
-            v-for="(item, index) in activityList"
-            :key="index"
-            class="timeline-item"
-            :class="{ 'timeline-item--last': index === activityList.length - 1 }"
-          >
+          <div v-for="(item, index) in activityList" :key="index" class="timeline-item"
+            :class="{ 'timeline-item--last': index === activityList.length - 1 }">
             <div class="timeline-dot" :class="'timeline-dot--' + item.type">
               <span class="timeline-dot-inner"></span>
             </div>
@@ -355,22 +320,23 @@
             <span class="assistant-hint">{{ formulaStore.total }} 个配方在库</span>
           </div>
         </div>
-        <svg class="assistant-bg-icon" width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M12 4a8 8 0 0 1 7.89 6.7A4.5 4.5 0 1 1 17.5 19H12a8 8 0 0 1 0-16z"/><path d="M8 14h.01"/><path d="M16 14h.01"/><path d="M10 11h.01"/><path d="M14 11h.01"/></svg>
+        <svg class="assistant-bg-icon" width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="1">
+          <path d="M12 4a8 8 0 0 1 7.89 6.7A4.5 4.5 0 1 1 17.5 19H12a8 8 0 0 1 0-16z" />
+          <path d="M8 14h.01" />
+          <path d="M16 14h.01" />
+          <path d="M10 11h.01" />
+          <path d="M14 11h.01" />
+        </svg>
       </div>
     </section>
 
     <!-- 单个删除确认 -->
-    <t-dialog
-      v-model:visible="deleteDialogVisible"
-      header="确认删除"
-      :confirm-btn="{
-        content: '确定删除',
-        theme: 'danger',
-        loading: deleteLoading
-      }"
-      :show-overlay="false"
-      @confirm="confirmDelete"
-    >
+    <t-dialog v-model:visible="deleteDialogVisible" header="确认删除" :confirm-btn="{
+      content: '确定删除',
+      theme: 'danger',
+      loading: deleteLoading
+    }" :show-overlay="false" @confirm="confirmDelete">
       <p>确定要删除配方 <strong>{{ deleteTarget?.name }}</strong> 吗？</p>
       <p class="delete-info">删除后无法恢复，请谨慎操作。</p>
     </t-dialog>
@@ -378,22 +344,20 @@
     <!-- 批量删除确认（内联样式 — 100% 可靠，不受 scoped/全局干扰） -->
     <Teleport to="body">
       <Transition name="dialog-fade">
-        <div
-          v-if="batchDeleteDialogVisible"
+        <div v-if="batchDeleteDialogVisible"
           style="position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background-color:rgba(100,100,110,0.06);backdrop-filter:blur(1px)"
-          @click.self="batchDeleteDialogVisible = false"
-        >
+          @click.self="batchDeleteDialogVisible = false">
           <div
-            style="width:440px;max-width:90vw;background:#fff;border-radius:16px;box-shadow:0 24px 80px rgba(0,0,0,0.12),0 6px 24px rgba(0,0,0,0.08);overflow:hidden;animation:dialog-pop-in 0.28s cubic-bezier(0.34,1.56,0.64,1);font-family:inherit"
-          >
+            style="width:440px;max-width:90vw;background:#fff;border-radius:16px;box-shadow:0 24px 80px rgba(0,0,0,0.12),0 6px 24px rgba(0,0,0,0.08);overflow:hidden;animation:dialog-pop-in 0.28s cubic-bezier(0.34,1.56,0.64,1);font-family:inherit">
             <!-- 头部 -->
             <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px 14px">
               <h3 style="margin:0;font-size:16px;font-weight:600;color:#1e293b">确认批量删除</h3>
-              <button
-                @click="batchDeleteDialogVisible = false" aria-label="关闭"
-                class="batch-dialog-close-btn"
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg>
+              <button @click="batchDeleteDialogVisible = false" aria-label="关闭" class="batch-dialog-close-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round">
+                  <path d="M18 6L6 18" />
+                  <path d="M6 6l12 12" />
+                </svg>
               </button>
             </div>
 
@@ -402,7 +366,8 @@
               <p style="margin:0 0 10px;font-size:14px;color:#334155;line-height:1.7">
                 确定要删除所选的 <strong>{{ selectedRows.length }}</strong> 个配方吗？
               </p>
-              <p class="delete-info" style="color:#64748b;font-size:13px;margin-top:8px;padding:10px 12px;background:#f8fafc;border-radius:8px;border-left:3px solid #fecdd3">
+              <p class="delete-info"
+                style="color:#64748b;font-size:13px;margin-top:8px;padding:10px 12px;background:#f8fafc;border-radius:8px;border-left:3px solid #fecdd3">
                 批量删除后无法恢复，请谨慎操作。
               </p>
             </div>
@@ -410,7 +375,8 @@
             <!-- 底部按钮 -->
             <div style="display:flex;justify-content:flex-end;gap:10px;padding:6px 24px 22px">
               <t-button variant="outline" size="medium" @click="batchDeleteDialogVisible = false">取消</t-button>
-              <t-button variant="base" theme="danger" size="medium" :loading="batchDeleteLoading" @click="confirmBatchDelete">确定删除</t-button>
+              <t-button variant="base" theme="danger" size="medium" :loading="batchDeleteLoading"
+                @click="confirmBatchDelete">确定删除</t-button>
             </div>
           </div>
         </div>
@@ -441,7 +407,7 @@ const initialized = ref(false)
 // ─── 数据看板 ───
 const dashboardCards = computed(() => {
   const formulaCount = formulaStore.formulas?.length || 1284
-  const materialCount = materialStore.materials?.length || 452
+  const materialCount = materialStore.materials?.length ?? 0
   return [
     {
       label: '活跃配方总数',
@@ -455,7 +421,7 @@ const dashboardCards = computed(() => {
       iconPath: '<path d="M9 3h6v8l-3 4-3-4V3z"/><line x1="12" y1="7" x2="12" y2="3"/><line x1="9" y1="15" x2="15" y2="15"/><path d="M8 19h8"/>',
     },
     {
-      label: '库存储备原料',
+      label: '原料库',
       value: materialCount.toString(),
       unit: '种',
       badge: '持平',
@@ -689,11 +655,13 @@ const getFormulaStatus = (row: any) => {
 const columns = [
   { colKey: 'row-select', type: 'multiple', width: 50, resizable: false },
   { colKey: 'name', title: '配方信息', width: 200, sorter: (a: any, b: any) => a.name.localeCompare(b.name, 'zh') },
-  { colKey: 'formulaStatus', title: '版本状态', width: 150, sorter: (a: any, b: any) => {
-    const statusA = getFormulaStatus(a).label
-    const statusB = getFormulaStatus(b).label
-    return statusA.localeCompare(statusB, 'zh')
-  }},
+  {
+    colKey: 'formulaStatus', title: '版本状态', width: 150, sorter: (a: any, b: any) => {
+      const statusA = getFormulaStatus(a).label
+      const statusB = getFormulaStatus(b).label
+      return statusA.localeCompare(statusB, 'zh')
+    }
+  },
   { colKey: 'materialCount', title: '原料数量', width: 120, sorter: (a: any, b: any) => (a.materials?.length || 0) - (b.materials?.length || 0) },
   { colKey: 'salesmanName', title: '负责人', width: 150, sorter: (a: any, b: any) => (a.salesmanName || '').localeCompare(b.salesmanName || '', 'zh') },
   { colKey: 'createdAt', title: '更新时间', width: 180, sorter: (a: any, b: any) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime() },
@@ -724,44 +692,69 @@ const pageNumbers = computed<(number | string)[]>(() => {
 // 底部动态数据 - 基于实际配方数据生成
 interface ActivityItem { type: 'success' | 'warning' | 'info'; title: string; desc: string; time: string }
 
-const activityList = computed<ActivityItem[]>(() => {
+const ACTIVITY_PAGE_SIZE = 4
+const activityPage = ref(1)
+
+const allActivityItems = computed<ActivityItem[]>(() => {
   const list = formulaStore.formulas
   if (!list || list.length === 0) return []
 
-  // 取最近更新的3-4条配方生成动态
-  const sorted = [...list].sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+  const allVersions: { f: any; v: any }[] = []
+  for (const f of list) {
+    for (const v of (f.versions || [])) {
+      allVersions.push({ f, v })
+    }
+  }
+
+  allVersions.sort((a, b) => new Date(b.v.createdAt).getTime() - new Date(a.v.createdAt).getTime())
+
   const items: ActivityItem[] = []
+  for (let i = 0; i < allVersions.length; i++) {
+    const { f, v } = allVersions[i]
+    const verNum = v.versionNumber || 'v1.0'
+    const verName = v.versionName || ''
+    const matCount = f.materials?.length ?? 0
+    const weight = f.finishedWeight ? `${f.finishedWeight}g` : ''
+    const timeAgo = formatTimeAgo(v.createdAt)
 
-  for (let i = 0; i < Math.min(3, sorted.length); i++) {
-    const f = sorted[i]
-    const status = getFormulaStatus(f)
-    const timeAgo = formatTimeAgo(f.createdAt)
-    const matCount = f.materials?.length || 0
-
-    if (i === 0) {
+    if (v.status === 'published') {
       items.push({
         type: 'success',
-        title: '配方更新完成',
-        desc: `<strong>${f.salesmanName || '未知'}</strong> 更新了配方 <span class="text-emerald-600 font-bold">${f.name}</span>`,
+        title: verName || '配方已发布',
+        desc: `<strong>${f.salesmanName || '未知'}</strong> 发布了 <span class="text-emerald-600 font-bold">${f.name}</span> 的 ${verNum}${verName ? `（${verName}）` : ''}${matCount ? `，含 ${matCount} 种原料` : ''}${weight ? `，成品重 ${weight}` : ''}`,
         time: timeAgo
       })
+    } else if (v.isCurrent) {
+      const reason = parseChanges(v.changesJson).length > 0
+        ? `：${parseChanges(v.changesJson)[0].field}`
+        : ''
       items.push({
         type: 'warning',
-        title: '原料数量提醒',
-        desc: `配方 <span class="text-amber-600 font-bold">${f.name}</span> 当前包含 <strong>${matCount}</strong> 种原料`,
-        time: i + 1 < sorted.length ? formatTimeAgo(sorted[i + 1].createdAt) : timeAgo
+        title: verName || '配方更新中',
+        desc: `<strong>${f.salesmanName || '未知'}</strong> 更新 <span class="text-emerald-600 font-bold">${f.name}</span> 至 ${verNum}${reason}`,
+        time: timeAgo
       })
     } else {
       items.push({
         type: 'info',
-        title: status.label,
-        desc: `<strong>${f.salesmanName || '未知'}</strong> 负责的 <span class="text-blue-600 font-bold">${f.name}</span> 状态为 ${status.label}`,
+        title: verName || '版本记录',
+        desc: `<strong>${f.name}</strong> ${verNum} ${v.status === 'draft' ? '草稿' : '已归档'}${verName ? ` — ${verName}` : ''}`,
         time: timeAgo
       })
     }
   }
   return items
 })
+
+const activityTotalPages = computed(() => Math.max(1, Math.ceil(allActivityItems.value.length / ACTIVITY_PAGE_SIZE)))
+
+const activityList = computed<ActivityItem[]>(() => {
+  const start = (activityPage.value - 1) * ACTIVITY_PAGE_SIZE
+  return allActivityItems.value.slice(start, start + ACTIVITY_PAGE_SIZE)
+})
+
+const activityPrev = () => { if (activityPage.value > 1) activityPage.value-- }
+const activityNext = () => { if (activityPage.value < activityTotalPages.value) activityPage.value++ }
 
 const assistantMessage = computed(() => {
   const total = formulaStore.total
@@ -798,7 +791,8 @@ onMounted(() => {
 onMounted(async () => {
   await Promise.all([
     salesmanStore.fetchSalesmen(),
-    formulaStore.fetchFormulas()
+    formulaStore.fetchFormulas(),
+    materialStore.fetchMaterials()
   ])
   initialized.value = true
 })
@@ -855,6 +849,7 @@ const confirmDelete = async () => {
 
 <style scoped lang="scss">
 .formula-list {
+
   // ─── 数据看板 ───
   .dashboard-grid {
     display: grid;
@@ -886,22 +881,40 @@ const confirmDelete = async () => {
       }
 
       .stat-icon {
-        width: 48px; height: 48px;
+        width: 48px;
+        height: 48px;
         border-radius: 16px;
-        display: flex; align-items: center; justify-content: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         flex-shrink: 0;
       }
 
       .stat-badge {
-        font-size: 12px; font-weight: 700;
-        padding: 2px 8px; border-radius: 8px; white-space: nowrap;
+        font-size: 12px;
+        font-weight: 700;
+        padding: 2px 8px;
+        border-radius: 8px;
+        white-space: nowrap;
       }
 
-      .stat-label { font-size: 14px; color: #94A3B8; margin-bottom: 4px; }
+      .stat-label {
+        font-size: 14px;
+        color: #94A3B8;
+        margin-bottom: 4px;
+      }
 
       .stat-value {
-        font-size: 24px; font-weight: 700; color: #0F172A; line-height: 1.2;
-        .stat-unit { font-size: 14px; font-weight: 400; color: #94A3B8; }
+        font-size: 24px;
+        font-weight: 700;
+        color: #0F172A;
+        line-height: 1.2;
+
+        .stat-unit {
+          font-size: 14px;
+          font-weight: 400;
+          color: #94A3B8;
+        }
       }
     }
   }
@@ -915,12 +928,12 @@ const confirmDelete = async () => {
     border: 1px solid #f8fafc !important; // border border-slate-50
     overflow: hidden;
     // custom-shadow: 柔和阴影
-    box-shadow: 0 4px 20px rgba(15,23,42,0.06), 0 1px 3px rgba(15,23,42,0.04);
+    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
     transition: all 0.3s ease;
 
     // index.html hover: border-emerald-100
     &:hover {
-      box-shadow: 0 8px 30px rgba(15,23,42,0.1), 0 2px 6px rgba(15,23,42,0.05);
+      box-shadow: 0 8px 30px rgba(15, 23, 42, 0.1), 0 2px 6px rgba(15, 23, 42, 0.05);
       border-color: #ecfdf5 !important; // hover:border-emerald-100
     }
 
@@ -943,70 +956,248 @@ const confirmDelete = async () => {
     border: 1px solid $border-color-light;
     animation: expandRowFadeIn 0.3s ease both;
 
-    .version-section { margin-bottom: $space-4;
+    .version-section {
+      margin-bottom: $space-4;
 
       h4 {
         margin: 0 0 $space-3 0;
-        font-size: 15px; font-weight: $font-weight-semibold; color: $text-primary;
-        display: flex; align-items: center; gap: $space-2;
+        font-size: 15px;
+        font-weight: $font-weight-semibold;
+        color: $text-primary;
+        display: flex;
+        align-items: center;
+        gap: $space-2;
+
         &::before {
-          content: ''; display: inline-block; width: $space-1; height: $font-size-h3;
-          background: $gradient-btn; border-radius: $radius-xs;
+          content: '';
+          display: inline-block;
+          width: $space-1;
+          height: $font-size-h3;
+          background: $gradient-btn;
+          border-radius: $radius-xs;
         }
       }
     }
 
-    .version-list { display: flex; flex-direction: column; gap: $space-2; }
+    .version-list {
+      display: flex;
+      flex-direction: column;
+      gap: $space-2;
+    }
 
     .version-item {
-      display: flex; align-items: center; gap: $space-4;
-      padding: 10px $space-4; background: $bg-container;
-      border-radius: $radius-md; border: 1px solid $border-color; transition: $transition-fast;
-      &:hover { border-color: $brand-primary-lightest; background: $bg-container-alt; }
-      &.is-current { border-color: $color-success-strong; background: $color-success-light; }
+      display: flex;
+      align-items: center;
+      gap: $space-4;
+      padding: 10px $space-4;
+      background: $bg-container;
+      border-radius: $radius-md;
+      border: 1px solid $border-color;
+      transition: $transition-fast;
+
+      &:hover {
+        border-color: $brand-primary-lightest;
+        background: $bg-container-alt;
+      }
+
+      &.is-current {
+        border-color: $color-success-strong;
+        background: $color-success-light;
+      }
     }
 
-    .version-left { display: flex; align-items: center; gap: $space-2; flex-shrink: 0; min-width: 160px; }
-    .version-number { font-size: $font-size-body; font-weight: $font-weight-semibold; color: $text-primary; }
-    .current-tag { font-size: $font-size-micro; background: var(--color-primary); color: #fff; }
+    .version-left {
+      display: flex;
+      align-items: center;
+      gap: $space-2;
+      flex-shrink: 0;
+      min-width: 160px;
+    }
+
+    .version-number {
+      font-size: $font-size-body;
+      font-weight: $font-weight-semibold;
+      color: $text-primary;
+    }
+
+    .current-tag {
+      font-size: $font-size-micro;
+      background: var(--color-primary);
+      color: #fff;
+    }
+
     .status-tag {
       font-size: $font-size-micro;
-      &--published { background: var(--color-primary-lightest); color: var(--color-primary); border: none; }
-      &--draft { background: rgba(245, 158, 11, 0.1); color: #d97706; border: none; }
-      &--archived { background: #f1f5f9; color: #64748b; border: none; }
-    }
-    .version-center { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-    .version-name { font-size: $font-size-body; color: $text-primary; font-weight: $font-weight-medium; }
-    .version-reason { font-size: $font-size-caption; color: var(--color-primary); }
-    .version-time { font-size: $font-size-caption; color: $text-secondary; }
 
-    .version-changes { flex-shrink: 0;
-      .changes-detail { margin-top: $space-2; padding: $space-2 $space-3; background: $bg-container-alt; border-radius: $radius-sm; border: 1px solid $border-color; }
-      .changes-list { display: flex; flex-direction: column; gap: $space-1_5; }
-      .change-row { display: flex; align-items: center; gap: $space-2; font-size: $font-size-body-sm; padding: $space-1 0; }
-      .change-type-tag { flex-shrink: 0; }
-      .change-label { color: $text-primary; font-weight: $font-weight-medium; flex-shrink: 0; }
-      .change-values { display: flex; align-items: center; gap: $space-1_5; }
-      .change-old { color: $color-danger; text-decoration: line-through; background: $color-danger-light; padding: 1px $space-2; border-radius: $radius-xs; }
-      .change-arrow { color: $text-secondary; font-weight: $font-weight-semibold; }
-      .change-new { color: $color-success; background: $color-success-medium; padding: 1px $space-2; border-radius: $radius-xs; font-weight: $font-weight-semibold; }
+      &--published {
+        background: var(--color-primary-lightest);
+        color: var(--color-primary);
+        border: none;
+      }
+
+      &--draft {
+        background: rgba(245, 158, 11, 0.1);
+        color: #d97706;
+        border: none;
+      }
+
+      &--archived {
+        background: #f1f5f9;
+        color: #64748b;
+        border: none;
+      }
     }
 
-    .empty-versions { text-align: center; padding: $space-6; color: $text-secondary; font-size: $font-size-body; }
+    .version-center {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+
+    .version-name {
+      font-size: $font-size-body;
+      color: $text-primary;
+      font-weight: $font-weight-medium;
+    }
+
+    .version-reason {
+      font-size: $font-size-caption;
+      color: var(--color-primary);
+    }
+
+    .version-time {
+      font-size: $font-size-caption;
+      color: $text-secondary;
+    }
+
+    .version-changes {
+      flex-shrink: 0;
+
+      .changes-detail {
+        margin-top: $space-2;
+        padding: $space-2 $space-3;
+        background: $bg-container-alt;
+        border-radius: $radius-sm;
+        border: 1px solid $border-color;
+      }
+
+      .changes-list {
+        display: flex;
+        flex-direction: column;
+        gap: $space-1_5;
+      }
+
+      .change-row {
+        display: flex;
+        align-items: center;
+        gap: $space-2;
+        font-size: $font-size-body-sm;
+        padding: $space-1 0;
+      }
+
+      .change-type-tag {
+        flex-shrink: 0;
+      }
+
+      .change-label {
+        color: $text-primary;
+        font-weight: $font-weight-medium;
+        flex-shrink: 0;
+      }
+
+      .change-values {
+        display: flex;
+        align-items: center;
+        gap: $space-1_5;
+      }
+
+      .change-old {
+        color: $color-danger;
+        text-decoration: line-through;
+        background: $color-danger-light;
+        padding: 1px $space-2;
+        border-radius: $radius-xs;
+      }
+
+      .change-arrow {
+        color: $text-secondary;
+        font-weight: $font-weight-semibold;
+      }
+
+      .change-new {
+        color: $color-success;
+        background: $color-success-medium;
+        padding: 1px $space-2;
+        border-radius: $radius-xs;
+        font-weight: $font-weight-semibold;
+      }
+    }
+
+    .empty-versions {
+      text-align: center;
+      padding: $space-6;
+      color: $text-secondary;
+      font-size: $font-size-body;
+    }
   }
 
-  .description-section { margin-bottom: $space-4;
+  .description-section {
+    margin-bottom: $space-4;
+
     h4 {
-      margin: 0 0 $space-3 0; font-size: 15px; font-weight: $font-weight-semibold; color: $text-primary;
-      display: flex; align-items: center; gap: $space-1_5;
-      &::before { content: ''; display: inline-block; width: $space-1; height: $font-size-h3; background: $gradient-btn; border-radius: $radius-xs; }
+      margin: 0 0 $space-3 0;
+      font-size: 15px;
+      font-weight: $font-weight-semibold;
+      color: $text-primary;
+      display: flex;
+      align-items: center;
+      gap: $space-1_5;
+
+      &::before {
+        content: '';
+        display: inline-block;
+        width: $space-1;
+        height: $font-size-h3;
+        background: $gradient-btn;
+        border-radius: $radius-xs;
+      }
     }
-    .desc-tags { display: flex; flex-wrap: wrap; gap: $space-2; }
-    p { margin: 0; font-size: $font-size-body; color: $text-secondary; line-height: $line-height-normal; padding: $space-3; background: $bg-container; border-radius: $radius-md; border-left: 3px solid $brand-primary-lightest; }
+
+    .desc-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: $space-2;
+    }
+
+    p {
+      margin: 0;
+      font-size: $font-size-body;
+      color: $text-secondary;
+      line-height: $line-height-normal;
+      padding: $space-3;
+      background: $bg-container;
+      border-radius: $radius-md;
+      border-left: 3px solid $brand-primary-lightest;
+    }
   }
 
-  .delete-warning { color: $color-danger; font-size: $font-size-body; margin-top: $space-2; }
-  .delete-info { color: $text-primary; font-size: $font-size-body; margin-top: $space-2; padding: $space-3; background: $bg-page; border-radius: $radius-md; border-left: 3px solid $brand-primary-lightest; }
+  .delete-warning {
+    color: $color-danger;
+    font-size: $font-size-body;
+    margin-top: $space-2;
+  }
+
+  .delete-info {
+    color: $text-primary;
+    font-size: $font-size-body;
+    margin-top: $space-2;
+    padding: $space-3;
+    background: $bg-page;
+    border-radius: $radius-md;
+    border-left: 3px solid $brand-primary-lightest;
+  }
 
   // ─── 自定义半透明悬浮对话框（:global — Teleport 到 body 需要）───
   :global(.batch-dialog-overlay) {
@@ -1038,22 +1229,41 @@ const confirmDelete = async () => {
     padding: 18px 24px 14px !important;
 
     .batch-dialog-title {
-      margin: 0 !important; font-size: 16px !important; font-weight: 600 !important; color: #1e293b !important;
+      margin: 0 !important;
+      font-size: 16px !important;
+      font-weight: 600 !important;
+      color: #1e293b !important;
     }
 
     .batch-dialog-close {
-      display: inline-flex !important; align-items: center !important; justify-content: center !important;
-      width: 28px !important; height: 28px !important; border: none !important; border-radius: 8px !important;
-      background: transparent !important; color: #94a3b8 !important; cursor: pointer !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      width: 28px !important;
+      height: 28px !important;
+      border: none !important;
+      border-radius: 8px !important;
+      background: transparent !important;
+      color: #94a3b8 !important;
+      cursor: pointer !important;
       transition: all 0.2s ease !important;
-      &:hover { background: #f1f5f9 !important; color: #475569 !important; }
+
+      &:hover {
+        background: #f1f5f9 !important;
+        color: #475569 !important;
+      }
     }
   }
 
   :global(.batch-dialog-body) {
     padding: 2px 24px 20px !important;
 
-    p { margin: 0 0 10px !important; font-size: 14px !important; color: #334155 !important; line-height: 1.7 !important; }
+    p {
+      margin: 0 0 10px !important;
+      font-size: 14px !important;
+      color: #334155 !important;
+      line-height: 1.7 !important;
+    }
   }
 
   :global(.batch-dialog-footer) {
@@ -1064,41 +1274,134 @@ const confirmDelete = async () => {
   }
 
   :global(.batch-dialog-close-btn) {
-    display: inline-flex !important; align-items: center !important; justify-content: center !important;
-    width: 28px !important; height: 28px !important; border: none !important; border-radius: 8px !important;
-    background: transparent !important; color: #94a3b8 !important; cursor: pointer !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 28px !important;
+    height: 28px !important;
+    border: none !important;
+    border-radius: 8px !important;
+    background: transparent !important;
+    color: #94a3b8 !important;
+    cursor: pointer !important;
     transition: all 0.2s ease !important;
-    &:hover { background: #f1f5f9 !important; color: #475569 !important; }
+
+    &:hover {
+      background: #f1f5f9 !important;
+      color: #475569 !important;
+    }
   }
 
   :global(.dialog-fade-enter-active),
-  :global(.dialog-fade-leave-active) { transition: opacity 0.2s ease; }
+  :global(.dialog-fade-leave-active) {
+    transition: opacity 0.2s ease;
+  }
+
   :global(.dialog-fade-enter-from),
-  :global(.dialog-fade-leave-to) { opacity: 0; }
+  :global(.dialog-fade-leave-to) {
+    opacity: 0;
+  }
 
   :deep(.t-table) {
-    .t-table__row { cursor: pointer; }
-    .t-table__expanded-row > td { border-bottom: none !important; }
-    .t-table__expanded-row .t-table__row--expanded { animation: expandRowFadeIn 0.35s ease both; }
+    .t-table__row {
+      cursor: pointer;
+    }
+
+    .t-table__expanded-row>td {
+      border-bottom: none !important;
+    }
+
+    .t-checkbox {
+      .t-checkbox__input {
+        &:hover .t-checkbox__input__inner {
+          border-color: #10b981;
+        }
+
+        &.is-checked .t-checkbox__input__inner,
+        &.is-indeterminate .t-checkbox__input__inner {
+          background-color: #10b981;
+          border-color: #10b981;
+        }
+
+        &.is-checked .t-checkbox__input__inner::after,
+        &.is-indeterminate .t-checkbox__input__inner::after {
+          border-color: #fff;
+        }
+
+        &.is-focus .t-checkbox__input__inner {
+          box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+        }
+      }
+
+      .t-icon {
+        color: #10b981;
+      }
+    }
+
+    .t-table__header th:first-child .t-checkbox,
+    .t-table__body td:first-child .t-checkbox {
+
+      .t-checkbox__input.is-checked .t-checkbox__input__inner,
+      .t-checkbox__input.is-indeterminate .t-checkbox__input__inner {
+        background-color: #10b981;
+        border-color: #10b981;
+      }
+    }
+
+    .t-table__expanded-row .t-table__row--expanded {
+      animation: expandRowFadeIn 0.35s ease both;
+    }
   }
 }
 
 @keyframes dialog-pop-in {
-  from { opacity: 0; transform: scale(0.95) translateY(8px); }
-  to { opacity: 1; transform: scale(1) translateY(0); }
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 
 @keyframes expandRowFadeIn {
-  from { opacity: 0; transform: translateY(-6px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
-@keyframes dashboard-fade-in { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+@keyframes dashboard-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 
 @media screen and (max-width: 1024px) {
-  .formula-list .dashboard-grid { grid-template-columns: repeat(2, 1fr); }
+  .formula-list .dashboard-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
+
 @media screen and (max-width: 768px) {
-  .formula-list .dashboard-grid { grid-template-columns: 1fr; gap: 16px; margin-bottom: 24px; }
+  .formula-list .dashboard-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
 }
 
 // 分页样式 - 完全参照 index.html 第928行分页区域
@@ -1162,7 +1465,7 @@ const confirmDelete = async () => {
       color: #fff; // text-white
       border-color: #10b981;
       font-weight: 600; // font-medium
-      box-shadow: 0 1px 3px rgba(16,185,129,0.25); // shadow-sm shadow-emerald-100
+      box-shadow: 0 1px 3px rgba(16, 185, 129, 0.25); // shadow-sm shadow-emerald-100
       pointer-events: none;
     }
   }
@@ -1197,7 +1500,7 @@ const confirmDelete = async () => {
   background-color: #fff;
   border-radius: 24px; // rounded-3xl
   padding: 32px; // p-8
-  box-shadow: 0 4px 20px rgba(15,23,42,0.06), 0 1px 3px rgba(15,23,42,0.04); // custom-shadow
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04); // custom-shadow
   border: 1px solid #f8fafc; // border-slate-50
 
   // 右侧小助手卡片 - emerald 渐变背景
@@ -1207,7 +1510,7 @@ const confirmDelete = async () => {
     color: #fff;
     position: relative;
     overflow: hidden;
-    box-shadow: 0 20px 25px -5px rgba(16,185,129,0.15), 0 10px 10px -5px rgba(16,185,129,0.04); // shadow-xl shadow-emerald-200
+    box-shadow: 0 20px 25px -5px rgba(16, 185, 129, 0.15), 0 10px 10px -5px rgba(16, 185, 129, 0.04); // shadow-xl shadow-emerald-200
   }
 }
 
@@ -1229,13 +1532,51 @@ const confirmDelete = async () => {
   margin: 0;
 }
 
-.activity-link {
-  color: #059669; // text-emerald-600
-  font-size: 14px; // text-sm
-  font-weight: 500; // font-medium
-  cursor: pointer;
+.activity-nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 
-  &:hover { text-decoration: underline; }
+  .activity-nav-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    border: 1.5px solid rgba(16, 185, 129, 0.2);
+    background: rgba(16, 185, 129, 0.04);
+    color: #10b981;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover:not(:disabled) {
+      background: rgba(16, 185, 129, 0.12);
+      border-color: #10b981;
+      color: #059669;
+    }
+
+    &:active:not(:disabled) {
+      transform: scale(0.94);
+    }
+
+    &:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+      border-color: rgba(148, 163, 184, 0.15);
+      color: #cbd5e1;
+      background: transparent;
+    }
+  }
+
+  .activity-nav-page {
+    font-size: 12px;
+    font-weight: 600;
+    color: #94a3b8;
+    min-width: 36px;
+    text-align: center;
+    user-select: none;
+  }
 }
 
 // 时间线列表 - index.html 第955行
@@ -1257,16 +1598,16 @@ const confirmDelete = async () => {
     content: '';
     position: absolute;
     left: 11px; // left-[11px]
-    top: 28px;   // top-[28px]
+    top: 28px; // top-[28px]
     bottom: 0;
-    width: 1px;  // w-[1px]
+    width: 1px; // w-[1px]
     background-color: #f1f5f9; // bg-slate-100
   }
 }
 
 // 时间线圆点 - index.html 第958行
 .timeline-dot {
-  width: 24px;  // w-6
+  width: 24px; // w-6
   height: 24px; // h-6
   border-radius: 50%;
   display: flex;
@@ -1276,46 +1617,85 @@ const confirmDelete = async () => {
   z-index: 10;
   position: relative;
 
-  &--success { background-color: #d1fae5; } // bg-emerald-100
-  &--warning { background-color: #fef3c7; } // bg-amber-100
-  &--info    { background-color: #dbeafe; } // bg-blue-100
+  &--success {
+    background-color: #d1fae5;
+  }
+
+  // bg-emerald-100
+  &--warning {
+    background-color: #fef3c7;
+  }
+
+  // bg-amber-100
+  &--info {
+    background-color: #dbeafe;
+  }
+
+  // bg-blue-100
 }
 
 .timeline-dot-inner {
-  width: 8px;  // w-2
+  width: 8px; // w-2
   height: 8px; // h-2
   border-radius: 50%;
 
-  .timeline-dot--success & { background-color: #10b981; } // bg-emerald-500
-  .timeline-dot--warning & { background-color: #f59e0b; } // bg-amber-500
-  .timeline-dot--info    & { background-color: #3b82f6; } // bg-blue-500
+  .timeline-dot--success & {
+    background-color: #10b981;
+  }
+
+  // bg-emerald-500
+  .timeline-dot--warning & {
+    background-color: #f59e0b;
+  }
+
+  // bg-amber-500
+  .timeline-dot--info & {
+    background-color: #3b82f6;
+  }
+
+  // bg-blue-500
 }
 
 // 时间线内容
-.timeline-content { flex: 1; }
+.timeline-content {
+  flex: 1;
+}
 
 .timeline-title {
-  font-size: 14px;  // text-sm
+  font-size: 14px; // text-sm
   font-weight: 500; // font-medium
-  color: #334155;   // text-slate-700
+  color: #334155; // text-slate-700
   margin: 0 0 4px 0;
 }
 
 .timeline-desc {
   font-size: 12px; // text-xs
-  color: #94a3b8;  // text-slate-400
+  color: #94a3b8; // text-slate-400
   margin: 0 0 4px 0;
 
-  :deep(.text-emerald-600) { color: #059669 !important; font-weight: 700 !important; }
-  :deep(.text-amber-600) { color: #d97706 !important; font-weight: 700 !important; }
-  :deep(.text-blue-600) { color: #2563eb !important; font-weight: 700 !important; }
+  :deep(.text-emerald-600) {
+    color: #059669 !important;
+    font-weight: 700 !important;
+  }
 
-  :deep(strong) { font-weight: 700; }
+  :deep(.text-amber-600) {
+    color: #d97706 !important;
+    font-weight: 700 !important;
+  }
+
+  :deep(.text-blue-600) {
+    color: #2563eb !important;
+    font-weight: 700 !important;
+  }
+
+  :deep(strong) {
+    font-weight: 700;
+  }
 }
 
 .timeline-time {
-  font-size: 10px;      // text-[10px]
-  color: #cbd5e1;       // text-slate-300
+  font-size: 10px; // text-[10px]
+  color: #cbd5e1; // text-slate-300
   text-transform: uppercase;
   display: inline-block;
   margin-top: 4px;
@@ -1328,54 +1708,58 @@ const confirmDelete = async () => {
 }
 
 .assistant-title {
-  font-size: 20px;  // text-xl
+  font-size: 20px; // text-xl
   font-weight: 700; // font-bold
   margin: 0 0 16px 0; // mb-4(16px)
   color: #fff;
 }
 
 .assistant-desc {
-  font-size: 14px;     // text-sm
-  color: rgba(255,255,255,0.9); // text-emerald-50 opacity-90
-  line-height: 1.7;    // leading-relaxed
-  margin: 0 0 24px 0;  // mb-6(24px)
+  font-size: 14px; // text-sm
+  color: rgba(255, 255, 255, 0.9); // text-emerald-50 opacity-90
+  line-height: 1.7; // leading-relaxed
+  margin: 0 0 24px 0; // mb-6(24px)
 }
 
 .assistant-btn {
   width: 100%;
-  padding: 12px;      // py-3
+  padding: 12px; // py-3
   background-color: #fff;
-  color: #059669;     // text-emerald-600
-  font-weight: 700;   // font-bold
+  color: #059669; // text-emerald-600
+  font-weight: 700; // font-bold
   border-radius: 16px; // rounded-2xl
   border: none;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); // shadow-lg
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); // shadow-lg
 
-  &:hover { background-color: #ecfdf5; } // hover:bg-emerald-50
+  &:hover {
+    background-color: #ecfdf5;
+  }
+
+  // hover:bg-emerald-50
 }
 
 .assistant-footer {
-  margin-top: 24px;   // mt-6(24px)
-  padding-top: 24px;  // pt-6(24px)
-  border-top: 1px solid rgba(255,255,255,0.2);
+  margin-top: 24px; // mt-6(24px)
+  padding-top: 24px; // pt-6(24px)
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
   display: flex;
   align-items: center;
-  gap: 16px;         // gap-4(16px)
-  font-size: 12px;   // text-xs
-  color: rgba(209,250,229,1); // text-emerald-100
+  gap: 16px; // gap-4(16px)
+  font-size: 12px; // text-xs
+  color: rgba(209, 250, 229, 1); // text-emerald-100
 }
 
 .assistant-avatar-group {
   display: flex;
-  gap: -8px;         // -space-x-2
+  gap: -8px; // -space-x-2
 
   .assistant-avatar {
-    width: 24px;     // w-6
-    height: 24px;    // h-6
+    width: 24px; // w-6
+    height: 24px; // h-6
     border-radius: 50%;
-    background-color: rgba(255,255,255,0.3);
+    background-color: rgba(255, 255, 255, 0.3);
     border: 2px solid #34d399; // border-emerald-400
     display: inline-flex;
     align-items: center;
@@ -1384,7 +1768,9 @@ const confirmDelete = async () => {
     font-weight: 600;
     margin-left: -8px;
 
-    &:first-child { margin-left: 0; }
+    &:first-child {
+      margin-left: 0;
+    }
   }
 }
 
@@ -1395,60 +1781,104 @@ const confirmDelete = async () => {
 
 .assistant-bg-icon {
   position: absolute;
-  right: -32px;      // -right-8
-  bottom: -32px;     // -bottom-8
-  width: 12rem;      // text-[12rem] (192px)
+  right: -32px; // -right-8
+  bottom: -32px; // -bottom-8
+  width: 12rem; // text-[12rem] (192px)
   height: 12rem;
   opacity: 0.1;
   transform: rotate(12deg);
   color: currentColor;
   pointer-events: none;
 }
+
 .data-center-toolbar {
   // index.html: p-8(32px) + border-b border-slate-50 + flex justify-between items-center gap-4(16px) + relative
   padding: 32px;
   border-bottom: 1px solid #f8fafc;
-  display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
   position: relative;
 
-  .toolbar-left-section { flex: 1; min-width: 240px;
+  .toolbar-left-section {
+    flex: 1;
+    min-width: 240px;
+
     .toolbar-title-section {
+
       // index.html: text-xl font-bold text-slate-800
-      .toolbar-title { font-size: 20px; font-weight: 700; color: #1e293b; margin: 0 0 4px 0; }
+      .toolbar-title {
+        font-size: 20px;
+        font-weight: 700;
+        color: #1e293b;
+        margin: 0 0 4px 0;
+      }
+
       // index.html: text-sm text-slate-400
-      .toolbar-subtitle { font-size: 14px; color: #94a3b8; margin: 0; }
+      .toolbar-subtitle {
+        font-size: 14px;
+        color: #94a3b8;
+        margin: 0;
+      }
     }
   }
 
   // index.html 第258行: flex items-center gap-3(12px)
-  .toolbar-right-section { display: flex; align-items: center; gap: 12px; margin-left: auto; }
+  .toolbar-right-section {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-left: auto;
+  }
 
   // 搜索框 - index.html 第259-266行: pl-10 pr-4 py-2 bg-slate-50 border-none rounded-xl w-64 focus:ring-emerald-200
-  .search-container { position: relative;
-    .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 16px; z-index: 1; pointer-events: none; }
+  .search-container {
+    position: relative;
+
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #94a3b8;
+      font-size: 16px;
+      z-index: 1;
+      pointer-events: none;
+    }
+
     .search-input {
       :deep(.t-input) {
-        padding-left: 40px; padding-right: 16px;
-        padding-top: 8px; padding-bottom: 8px; // py-2
+        padding-left: 40px;
+        padding-right: 16px;
+        padding-top: 8px;
+        padding-bottom: 8px; // py-2
         background-color: #f8fafc; // bg-slate-50
         border: none !important; // border-none
         border-radius: 12px; // rounded-xl
         font-size: 14px; // text-sm
         transition: all 0.2s; // transition-all
         width: 256px; // w-64
+
         &:focus {
-          box-shadow: 0 0 0 2px rgba(167,243,208,0.5); // focus:ring-2 ring-emerald-200
+          box-shadow: 0 0 0 2px rgba(167, 243, 208, 0.5); // focus:ring-2 ring-emerald-200
           outline: none;
           background-color: #fff;
         }
-        &::placeholder { color: #94a3b8; }
+
+        &::placeholder {
+          color: #94a3b8;
+        }
       }
     }
   }
 
   // 创建新配方按钮 - index.html 第267-273行: px-4 py-2 bg-slate-800 text-white rounded-xl text-sm font-medium shadow-md hover:bg-slate-700
   .add-formula-btn {
-    display: inline-flex; align-items: center; gap: 8px; // gap-2
+    display: inline-flex;
+    align-items: center;
+    gap: 8px; // gap-2
     padding: 8px 16px; // px-4 py-2
     background-color: #1e293b; // bg-slate-800
     color: white;
@@ -1456,30 +1886,63 @@ const confirmDelete = async () => {
     font-size: 14px; // text-sm
     font-weight: 500; // font-medium
     transition: all 0.2s; // transition-colors
-    box-shadow: 0 4px 6px rgba(15,23,42,0.15); // shadow-md
-    border: none; cursor: pointer;
-    &:hover { background-color: #334155; } // hover:bg-slate-700 (无 translateY)
-    .add-icon { font-size: 18px; transition: transform 0.2s; }
-    &:hover .add-icon { transform: rotate(90deg); } // group-hover:rotate-90
+    box-shadow: 0 4px 6px rgba(15, 23, 42, 0.15); // shadow-md
+    border: none;
+    cursor: pointer;
+
+    &:hover {
+      background-color: #334155;
+    }
+
+    // hover:bg-slate-700 (无 translateY)
+    .add-icon {
+      font-size: 18px;
+      transition: transform 0.2s;
+    }
+
+    &:hover .add-icon {
+      transform: rotate(90deg);
+    }
+
+    // group-hover:rotate-90
   }
 
   // 筛选按钮 - index.html 第274-279行: p-2 text-slate-400 hover:bg-slate-50 rounded-lg transition-colors border border-slate-100
   .filter-btn {
-    position: relative; padding: 8px; // p-2
+    position: relative;
+    padding: 8px; // p-2
     color: #94a3b8; // text-slate-400
     background-color: transparent;
     border: 1px solid #f1f5f9; // border border-slate-100
     border-radius: 8px; // rounded-lg
     transition: all 0.2s; // transition-colors
     cursor: pointer;
-    &:hover { background-color: #f8fafc; } // hover:bg-slate-50
-    .filter-icon { font-size: 20px; }
-    .filter-dot {
-      position: absolute; top: -2px; right: -2px; width: 8px; height: 8px;
-      background-color: #10b981; border-radius: 50%; border: 2px solid white;
-      opacity: 0; transition: opacity 0.2s; // group-hover:opacity-100
+
+    &:hover {
+      background-color: #f8fafc;
     }
-    &:hover .filter-dot { opacity: 1; }
+
+    // hover:bg-slate-50
+    .filter-icon {
+      font-size: 20px;
+    }
+
+    .filter-dot {
+      position: absolute;
+      top: -2px;
+      right: -2px;
+      width: 8px;
+      height: 8px;
+      background-color: #10b981;
+      border-radius: 50%;
+      border: 2px solid white;
+      opacity: 0;
+      transition: opacity 0.2s; // group-hover:opacity-100
+    }
+
+    &:hover .filter-dot {
+      opacity: 1;
+    }
   }
 }
 
@@ -1487,51 +1950,114 @@ const confirmDelete = async () => {
 .batch-action-bar {
   // index.html: absolute inset-0 → 覆盖整个工具栏容器
   position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   z-index: 20; // index.html: z-20
   background-color: #059669; // bg-emerald-600
   color: #fff;
-  display: flex; align-items: center; justify-content: space-between;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   padding: 20px 32px; // px-8
   border-radius: 0; // 无圆角，与父容器边缘对齐
-  box-shadow: 0 4px 18px rgba(5,150,105,0.25);
+  box-shadow: 0 4px 18px rgba(5, 150, 105, 0.25);
 
   // index.html 第238行: flex items-center gap-6(24px)
   .batch-info {
-    display: flex; align-items: center; gap: 24px;
-    .batch-count { font-weight: 700; font-size: 14px; strong { font-weight: 800; margin-right: 4px; } }
+    display: flex;
+    align-items: center;
+    gap: 24px;
+
+    .batch-count {
+      font-weight: 700;
+      font-size: 14px;
+
+      strong {
+        font-weight: 800;
+        margin-right: 4px;
+      }
+    }
+
     // 分割线 - index.html 第240行: h-4 w-px bg-emerald-400/50
-    .batch-divider { width: 1px; height: 16px; background: rgba(52,211,153,0.5); }
+    .batch-divider {
+      width: 1px;
+      height: 16px;
+      background: rgba(52, 211, 153, 0.5);
+    }
+
     // 按钮组 - index.html: flex gap-4(16px)
-    .batch-buttons { display: flex; gap: 16px; }
+    .batch-buttons {
+      display: flex;
+      gap: 16px;
+    }
+
     // 批量操作按钮 - index.html: flex items-center gap-1 text-sm hover:text-emerald-100 transition-colors
     .batch-action-btn {
-      display: inline-flex; align-items: center; gap: 4px; // gap-1
+      display: inline-flex;
+      align-items: center;
+      gap: 4px; // gap-1
       font-size: 14px; // text-sm
       font-weight: 500;
-      background: none; border: none; color: #fff; cursor: pointer;
-      padding: 4px 8px; border-radius: 6px; transition: all 0.2s;
-      &:hover { color: #d1fae5; } // hover:text-emerald-100
-      svg { width: 14px; height: 14px; stroke-width: 2; }
+      background: none;
+      border: none;
+      color: #fff;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 6px;
+      transition: all 0.2s;
+
+      &:hover {
+        color: #d1fae5;
+      }
+
+      // hover:text-emerald-100
+      svg {
+        width: 14px;
+        height: 14px;
+        stroke-width: 2;
+      }
     }
   }
 
   // 取消按钮 - index.html: text-sm border border-emerald-400 px-3 py-1 rounded-lg hover:bg-emerald-700
   .batch-cancel-btn {
-    font-size: 14px; font-weight: 500;
+    font-size: 14px;
+    font-weight: 500;
     border: 1px solid #34d399; // border-emerald-400
     padding: 4px 12px; // px-3 py-1
     border-radius: 8px; // rounded-lg
-    background: transparent; color: #fff; cursor: pointer;
+    background: transparent;
+    color: #fff;
+    cursor: pointer;
     transition: all 0.2s;
-    &:hover { background-color: #047857; } // hover:bg-emerald-700
+
+    &:hover {
+      background-color: #047857;
+    }
+
+    // hover:bg-emerald-700
   }
 }
 
 // 批量操作栏动画
-.batch-bar-slide-enter-active, .batch-bar-slide-leave-active { transition: all 0.3s ease-out; }
-.batch-bar-slide-enter-from, .batch-bar-slide-leave-to { opacity: 0; transform: translateY(8px); }
-.batch-bar-slide-enter-to, .batch-bar-slide-leave-from { opacity: 1; transform: translateY(0); }
+.batch-bar-slide-enter-active,
+.batch-bar-slide-leave-active {
+  transition: all 0.3s ease-out;
+}
+
+.batch-bar-slide-enter-from,
+.batch-bar-slide-leave-to {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+.batch-bar-slide-enter-to,
+.batch-bar-slide-leave-from {
+  opacity: 1;
+  transform: translateY(0);
+}
 
 // 表格样式 - 覆盖全局 _td-overrides.scss 粉色主题
 ::deep(.t-table) {
@@ -1555,19 +2081,33 @@ const confirmDelete = async () => {
       padding: 14px 20px !important;
       border-bottom: 1px solid #e2e8f0 !important;
 
-      &:first-child { padding-left: 24px !important; padding-right: 24px !important; }
-      &:last-child { padding-left: 24px !important; padding-right: 24px !important; text-align: right !important; }
+      &:first-child {
+        padding-left: 24px !important;
+        padding-right: 24px !important;
+      }
+
+      &:last-child {
+        padding-left: 24px !important;
+        padding-right: 24px !important;
+        text-align: right !important;
+      }
 
       &.t-table__th--sortable {
-        cursor: pointer; transition: color 0.2s;
-        &:hover { color: #10b981 !important; }
+        cursor: pointer;
+        transition: color 0.2s;
+
+        &:hover {
+          color: #10b981 !important;
+        }
 
         .t-table__cell--title {
-          display: flex; align-items: center; gap: 4px;
+          display: flex;
+          align-items: center;
+          gap: 4px;
 
           // 排序图标缩小
           .t-table__sort-icon,
-          & > .t-icon,
+          &>.t-icon,
           .t-icon {
             font-size: 10px !important;
 
@@ -1577,7 +2117,10 @@ const confirmDelete = async () => {
               margin-top: -2px;
             }
           }
-          .t-table__sort-icon--active { color: #10b981 !important; }
+
+          .t-table__sort-icon--active {
+            color: #10b981 !important;
+          }
         }
       }
     }
@@ -1590,12 +2133,15 @@ const confirmDelete = async () => {
       transition: background-color 0.2s ease;
 
       // 悬停/选中 - emerald 色系，覆盖全局粉色
-      &:hover td, &.t-table__row--hover td {
-        background-color: rgba(209,250,229,0.35) !important;
+      &:hover td,
+      &.t-table__row--hover td {
+        background-color: rgba(209, 250, 229, 0.35) !important;
         box-shadow: inset 3px 0 0 #34d399 !important;
       }
-      &.t-table__row--selected td, &.t-table__row--selected.t-table__row--hover td {
-        background-color: rgba(209,250,229,0.55) !important;
+
+      &.t-table__row--selected td,
+      &.t-table__row--selected.t-table__row--hover td {
+        background-color: rgba(209, 250, 229, 0.55) !important;
         box-shadow: inset 3px 0 0 #10b981 !important;
       }
 
@@ -1603,76 +2149,191 @@ const confirmDelete = async () => {
         padding: 18px 20px !important;
         border-bottom: 1px solid #f1f5f9 !important;
         vertical-align: middle;
-        &:first-child { padding-left: 24px !important; padding-right: 24px !important; }
-        &:last-child { padding-left: 24px !important; padding-right: 24px !important; text-align: right; }
+
+        &:first-child {
+          padding-left: 24px !important;
+          padding-right: 24px !important;
+        }
+
+        &:last-child {
+          padding-left: 24px !important;
+          padding-right: 24px !important;
+          text-align: right;
+        }
       }
 
-      &:last-child td { border-bottom: none !important; }
+      &:last-child td {
+        border-bottom: none !important;
+      }
     }
   }
 
-  .t-table__expanded-row > td { border-bottom: none !important; }
+  .t-table__expanded-row>td {
+    border-bottom: none !important;
+  }
 }
 
 // 配方信息列
-.formula-info { display: flex; align-items: center; gap: 16px;
+.formula-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+
   .formula-avatar {
-    width: 40px; height: 40px; border-radius: 8px;
-    display: flex; align-items: center; justify-content: center;
-    font-weight: 700; font-size: 12px; text-transform: uppercase;
-    box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05); flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 12px;
+    text-transform: uppercase;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    flex-shrink: 0;
   }
+
   .formula-details {
-    .formula-name { font-weight: 700; color: #334155; transition: color 0.2s; font-size: 14px; margin: 0 0 4px 0; }
-    .formula-code { font-size: 12px; color: #94a3b8; text-transform: uppercase; letter-spacing: -0.05em; font-family: ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace; margin: 0; }
+    .formula-name {
+      font-weight: 700;
+      color: #334155;
+      transition: color 0.2s;
+      font-size: 14px;
+      margin: 0 0 4px 0;
+    }
+
+    .formula-code {
+      font-size: 12px;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: -0.05em;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      margin: 0;
+    }
   }
 }
 
 // 版本状态列
-.version-status { display: flex; align-items: center; gap: 8px;
-  .version-tag { padding: 4px 10px; font-size: 12px; font-weight: 700; border-radius: 9999px; }
-  .status-text { display: flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 500; }
+.version-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  .version-tag {
+    padding: 4px 10px;
+    font-size: 12px;
+    font-weight: 700;
+    border-radius: 9999px;
+  }
+
+  .status-text {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    font-weight: 500;
+  }
 }
 
 // 原料数量列
-.material-count { font-size: 14px; font-weight: 500; color: #475569; background-color: #f8fafc; padding: 4px 8px; border-radius: 6px;
-  .material-unit { font-size: 10px; color: #94a3b8; }
+.material-count {
+  font-size: 14px;
+  font-weight: 500;
+  color: #475569;
+  background-color: #f8fafc;
+  padding: 4px 8px;
+  border-radius: 6px;
+
+  .material-unit {
+    font-size: 10px;
+    color: #94a3b8;
+  }
 }
 
 // 负责人列 - 首字母头像（替代外部 dicebear API）
-.salesman-info { display: flex; align-items: center; gap: 8px;
+.salesman-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
   .salesman-avatar {
-    width: 28px; height: 28px; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     color: #fff;
     font-size: 11px;
     font-weight: 600;
     flex-shrink: 0;
     user-select: none;
   }
-  .salesman-name { font-size: 14px; color: #475569; }
+
+  .salesman-name {
+    font-size: 14px;
+    color: #475569;
+  }
 }
 
 // 操作按钮列
-.action-buttons { display: flex; justify-content: center; gap: 8px;
+.action-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+
   .action-btn {
-    padding: 8px; border-radius: 8px; color: #94a3b8;
-    transition: all 0.2s; background: transparent; border: none; cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
+    padding: 8px;
+    border-radius: 8px;
+    color: #94a3b8;
+    transition: all 0.2s;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
-    &:hover { transform: translateY(-1px); }
-    &.view-btn:hover { color: #10b981; background-color: rgba(209,250,229,0.5); }
-    &.edit-btn:hover { color: #3b82f6; background-color: rgba(219,234,254,0.5); }
-    &.version-btn:hover { color: #6366f1; background-color: rgba(224,231,255,0.5); }
-    &.delete-btn:hover { color: #ef4444; background-color: rgba(254,226,226,0.5); }
+    &:hover {
+      transform: translateY(-1px);
+    }
 
-    .t-icon { font-size: 18px; }
+    &.view-btn:hover {
+      color: #10b981;
+      background-color: rgba(209, 250, 229, 0.5);
+    }
+
+    &.edit-btn:hover {
+      color: #3b82f6;
+      background-color: rgba(219, 234, 254, 0.5);
+    }
+
+    &.version-btn:hover {
+      color: #6366f1;
+      background-color: rgba(224, 231, 255, 0.5);
+    }
+
+    &.delete-btn:hover {
+      color: #ef4444;
+      background-color: rgba(254, 226, 226, 0.5);
+    }
+
+    .t-icon {
+      font-size: 18px;
+    }
   }
 }
 
 @keyframes fade-in {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 </style>
 
@@ -1685,11 +2346,15 @@ const confirmDelete = async () => {
 .formula-list .content-card .t-table,
 .formula-list .content-card .t-table .t-table__body-wrapper,
 .formula-list .content-card .t-table .t-table__body-inner,
-.formula-list .content-card .t-table .t-table__body { background: #fff !important; }
+.formula-list .content-card .t-table .t-table__body {
+  background: #fff !important;
+}
 
 /* 2. 所有行 - 白色 */
 .formula-list .content-card .t-table .t-table__body tr,
-.formula-list .content-card .t-table .t-table__body .t-table__row { background-color: #fff !important; }
+.formula-list .content-card .t-table .t-table__body .t-table__row {
+  background-color: #fff !important;
+}
 
 /* 3. 所有单元格（含 TDesign --hover 类）- 无竖线 */
 .formula-list .content-card .t-table .t-table__body td,
@@ -1702,21 +2367,57 @@ const confirmDelete = async () => {
 }
 
 /* 4. CSS :hover 伪类（优先级最高）→ emerald 浅绿 + 首列绿条 */
-.formula-list .content-card .t-table .t-table__body tr:hover > td,
-.formula-list .content-card .t-table .t-table__body .t-table__row:hover > td {
-  background-color: rgba(209,250,229,0.35) !important;
+.formula-list .content-card .t-table .t-table__body tr:hover>td,
+.formula-list .content-card .t-table .t-table__body .t-table__row:hover>td {
+  background-color: rgba(209, 250, 229, 0.35) !important;
 }
-.formula-list .content-card .t-table .t-table__body tr:hover > td:first-child,
-.formula-list .content-card .t-table .t-table__body .t-table__row:hover > td:first-child {
+
+.formula-list .content-card .t-table .t-table__body tr:hover>td:first-child,
+.formula-list .content-card .t-table .t-table__body .t-table__row:hover>td:first-child {
   box-shadow: inset 3px 0 0 #34d399 !important;
 }
 
 /* 5. 选中行 → emerald 更深 + 绿条 */
-.formula-list .content-card .t-table .t-table__body .t-table__row.t-table__row--selected > td {
-  background-color: rgba(209,250,229,0.6) !important;
+.formula-list .content-card .t-table .t-table__body .t-table__row.t-table__row--selected>td {
+  background-color: rgba(209, 250, 229, 0.6) !important;
   box-shadow: inset 3px 0 0 #10b981 !important;
 }
 
 /* 6. 表头 */
-.formula-list .content-card .t-table .t-table__header th { background: #f8fafc !important; color: #64748b !important; }
+.formula-list .content-card .t-table .t-table__header th {
+  background: #f8fafc !important;
+  color: #64748b !important;
+}
+
+/* 7. Checkbox 主题色 — 绿色 #10b981 */
+.formula-list .content-card .t-table {
+  --td-brand-color: #10b981;
+  --td-brand-color-hover: #059669;
+  --td-brand-color-active: #047857;
+  --td-brand-color-disabled: #a7f3d0;
+  --td-brand-color-light: rgba(16, 185, 129, 0.1);
+  --td-brand-color-focus: rgba(16, 185, 129, 0.4);
+  --td-brand-color-border-active: #10b981;
+  --td-brand-color-border-hover: #10b981;
+  --td-brand-color-border-focus: #10b981;
+
+  .t-checkbox .t-checkbox__input.is-checked .t-checkbox__input__inner,
+  .t-checkbox .t-checkbox__input.is-indeterminate .t-checkbox__input__inner {
+    background-color: var(--td-brand-color) !important;
+    border-color: var(--td-brand-color) !important;
+  }
+
+  .t-checkbox .t-checkbox__input.is-checked .t-checkbox__input__inner::after,
+  .t-checkbox .t-checkbox__input.is-indeterminate .t-checkbox__input__inner::after {
+    border-color: #fff !important;
+  }
+
+  .t-checkbox .t-checkbox__input:hover .t-checkbox__input__inner {
+    border-color: var(--td-brand-color) !important;
+  }
+
+  .t-checkbox .t-checkbox__input.is-focus .t-checkbox__input__inner {
+    box-shadow: 0 0 0 2px var(--td-brand-color-focus) !important;
+  }
+}
 </style>

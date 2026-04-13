@@ -31,6 +31,7 @@ export interface ParsedFormula {
   materials: ParsedMaterial[]
   finishedWeight?: number
   description?: string
+  confidence?: number
   model?: string
   usage?: { promptTokens: number; completionTokens: number; totalTokens: number }
 }

@@ -27,13 +27,8 @@
             </svg>
           </div>
           <h1 v-show="!sidebarCollapsed" class="logo-text">TingStudio</h1>
-          <t-icon
-            v-show="sidebarCollapsed"
-            name="menu-unfold"
-            size="18px"
-            class="collapse-expand-icon"
-            @click.stop="toggleSidebarCollapse"
-          />
+          <t-icon v-show="sidebarCollapsed" name="menu-unfold" size="18px" class="collapse-expand-icon"
+            @click.stop="toggleSidebarCollapse" />
         </div>
 
         <!-- 日期和天气信息卡片（参照 index.html 设计） -->
@@ -54,15 +49,13 @@
                 <div class="weather-top-row">
                   <span class="weather-icon-text">{{ weatherStore.weatherEmoji }}</span>
                   <span class="weather-status">{{ weatherStore.weatherText }}</span>
-                  <button
-                    class="weather-refresh-btn"
-                    :class="{ 'is-refreshing': weatherStore.loading }"
-                    :disabled="weatherStore.loading || weatherStore.geoLoading"
-                    title="刷新天气"
-                    @click.stop="handleRefreshWeather"
-                  >
-                    <svg class="refresh-svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                      <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+                  <button class="weather-refresh-btn" :class="{ 'is-refreshing': weatherStore.loading }"
+                    :disabled="weatherStore.loading || weatherStore.geoLoading" title="刷新天气"
+                    @click.stop="handleRefreshWeather">
+                    <svg class="refresh-svg" width="12" height="12" viewBox="0 0 24 24" fill="none"
+                      stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="23 4 23 10 17 10" />
+                      <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
                     </svg>
                   </button>
                 </div>
@@ -80,28 +73,22 @@
           <t-icon name="menu-fold" size="16px" class="nav-icon" />
           <span class="nav-title">功能导航</span>
           <span class="nav-toggle" :class="{ expanded: navExpanded }">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
               <polyline points="6 9 12 15 18 9" />
             </svg>
           </span>
         </div>
         <div class="nav-content" :class="{ expanded: navExpanded || sidebarCollapsed }" role="menubar">
-          <div
-            v-for="item in navItems"
-            :key="item.path"
-            class="nav-item"
-            :class="{ active: activePath === item.path }"
-            role="menuitem"
-            tabindex="0"
-            :aria-current="activePath === item.path ? 'page' : undefined"
-            :title="sidebarCollapsed ? item.label : undefined"
-            @click="navigateTo(item.path)"
-            @keydown="handleNavKeydown($event, item.path)"
-          >
+          <div v-for="item in navItems" :key="item.path" class="nav-item" :class="{ active: activePath === item.path }"
+            role="menuitem" tabindex="0" :aria-current="activePath === item.path ? 'page' : undefined"
+            :title="sidebarCollapsed ? item.label : undefined" @click="navigateTo(item.path)"
+            @keydown="handleNavKeydown($event, item.path)">
             <div class="nav-item-icon" aria-hidden="true"><t-icon :name="item.icon" size="18px" /></div>
             <span v-show="!sidebarCollapsed" class="nav-item-text">{{ item.label }}</span>
             <div v-show="!sidebarCollapsed" class="nav-item-arrow">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="9 18 15 12 9 6" />
               </svg>
             </div>
@@ -114,20 +101,18 @@
         <div class="guide-header">
           <span class="guide-icon">🚀</span>
           <span class="guide-title">快速开始</span>
-          <span class="guide-close" role="button" tabindex="0" aria-label="关闭引导"
-                @click="dismissGuide" @keydown.enter="dismissGuide">&times;</span>
+          <span class="guide-close" role="button" tabindex="0" aria-label="关闭引导" @click="dismissGuide"
+            @keydown.enter="dismissGuide">&times;</span>
         </div>
         <div class="guide-steps">
-          <div
-            v-for="(step, index) in guideSteps"
-            :key="index"
-            class="guide-step"
-            :class="{ active: guideStep === index, done: guideStep > index }"
-            @click="handleGuideStep(index)"
-          >
+          <div v-for="(step, index) in guideSteps" :key="index" class="guide-step"
+            :class="{ active: guideStep === index, done: guideStep > index }" @click="handleGuideStep(index)">
             <div class="step-number">{{ guideStep > index ? '✓' : index + 1 }}</div>
             <span class="step-text">{{ step.label }}</span>
-            <svg class="step-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
+            <svg class="step-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
           </div>
         </div>
         <div class="guide-action">
@@ -150,10 +135,13 @@
           <span class="title-icon" aria-hidden="true"><t-icon :name="pageIcon" size="20px" /></span>
           <div class="header-title-area">
             <t-breadcrumb max-item-width="200" separator=">" class="content-breadcrumb">
-              <t-breadcrumb-item v-for="crumb in breadcrumbs" :key="crumb.path" @click="crumb.path && router.push(crumb.path)">
+              <t-breadcrumb-item v-for="crumb in breadcrumbs" :key="crumb.path"
+                @click="crumb.path && router.push(crumb.path)">
                 {{ crumb.title }}
               </t-breadcrumb-item>
-              <t-breadcrumb-item class="breadcrumb-current" :style="breadcrumbs.length > 0 ? { color: '#10B981' } : {}">{{ pageTitle }}</t-breadcrumb-item>
+              <t-breadcrumb-item class="breadcrumb-current"
+                :style="breadcrumbs.length > 0 ? { color: '#10B981' } : {}">{{
+                  pageTitle }}</t-breadcrumb-item>
             </t-breadcrumb>
           </div>
         </div>
@@ -162,37 +150,56 @@
           <!-- 圆形导航按钮组 -->
           <div class="header-nav-buttons">
             <button class="nav-circle-btn" title="后退" @click="handleGoBack">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <line x1="19" y1="12" x2="5" y2="12" />
+                <polyline points="12 19 5 12 12 5" />
+              </svg>
             </button>
             <button class="nav-circle-btn" title="前进" @click="handleGoForward">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12" />
+                <polyline points="12 5 19 12 12 19" />
+              </svg>
             </button>
             <button class="nav-circle-btn" title="刷新" @click="handleRefresh">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="23 4 23 10 17 10" />
+                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+              </svg>
             </button>
             <!-- 锁屏按钮（圆形） -->
             <button class="nav-circle-btn" title="锁屏" @click="handleLock">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+              </svg>
             </button>
           </div>
           <!-- 用户区 -->
           <div class="header-user-section" style="margin-left: 8px;">
-            <t-popup placement="bottom-right" trigger="hover" :visible="userMenuVisible" @visible-change="(v: boolean) => userMenuVisible = v">
-              <div class="user-avatar-wrapper" role="button" tabindex="0"
-                   aria-haspopup="true" :aria-expanded="userMenuVisible"
-                   @keydown.enter="userMenuVisible = !userMenuVisible">
+            <t-popup placement="bottom-right" trigger="hover" :visible="userMenuVisible"
+              @visible-change="(v: boolean) => userMenuVisible = v">
+              <div class="user-avatar-wrapper" role="button" tabindex="0" aria-haspopup="true"
+                :aria-expanded="userMenuVisible" @keydown.enter="userMenuVisible = !userMenuVisible">
                 <div class="user-avatar-wrap">
-                  <img class="user-avatar-img" :src="authStore.user?.avatar || '/avatar-default.jpg'" :alt="authStore.user?.username || '用户'" />
+                  <img class="user-avatar-img" :src="authStore.user?.avatar || '/avatar-default.jpg'"
+                    :alt="authStore.user?.username || '用户'" />
                 </div>
                 <span class="user-display-name">{{ authStore.user?.username || '用户' }}</span>
-                <svg class="user-avatar-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg class="user-avatar-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <polyline points="6 9 12 15 18 9" />
                 </svg>
               </div>
               <template #content>
                 <div class="user-menu-popup" role="menu">
                   <!-- 账号设置 -->
-                  <div class="user-menu-item" role="menuitem" tabindex="0" @click="handleUserMenuClick('settings')" @keydown.enter="handleUserMenuClick('settings')">
+                  <div class="user-menu-item" role="menuitem" tabindex="0" @click="handleUserMenuClick('settings')"
+                    @keydown.enter="handleUserMenuClick('settings')">
                     <t-icon name="setting" size="16px" />
                     <span>账号设置</span>
                   </div>
@@ -202,20 +209,24 @@
                     <div class="user-menu-item user-menu-item--has-sub" role="menuitem" aria-haspopup="true">
                       <t-icon name="browse" size="16px" />
                       <span>切换外观</span>
-                      <svg class="submenu-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
+                      <svg class="submenu-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="9 18 15 12 9 6" />
+                      </svg>
                     </div>
                     <template #content>
                       <div class="user-submenu-popup" role="menu">
-                        <div
-                          v-for="opt in themeModeOptions"
-                          :key="opt.value"
-                          :class="['user-submenu-item', { active: themeStore.mode === opt.value }]"
-                          role="menuitem" tabindex="0"
-                          @click="handleThemeSelect(opt.value)" @keydown.enter="handleThemeSelect(opt.value)"
-                        >
+                        <div v-for="opt in themeModeOptions" :key="opt.value"
+                          :class="['user-submenu-item', { active: themeStore.mode === opt.value }]" role="menuitem"
+                          tabindex="0" @click="handleThemeSelect(opt.value)"
+                          @keydown.enter="handleThemeSelect(opt.value)">
                           <t-icon :name="opt.icon" size="16px" />
                           <span>{{ opt.label }}</span>
-                          <svg v-if="themeStore.mode === opt.value" class="check-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                          <svg v-if="themeStore.mode === opt.value" class="check-icon" width="14" height="14"
+                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12" />
+                          </svg>
                         </div>
                       </div>
                     </template>
@@ -226,33 +237,39 @@
                     <div class="user-menu-item user-menu-item--has-sub" role="menuitem" aria-haspopup="true">
                       <t-icon name="palette" size="16px" />
                       <span>切换品牌色</span>
-                      <svg class="submenu-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
+                      <svg class="submenu-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="9 18 15 12 9 6" />
+                      </svg>
                     </div>
                     <template #content>
                       <div class="user-submenu-popup" role="menu">
-                        <div
-                          v-for="opt in brandColorOptions"
-                          :key="opt.value"
+                        <div v-for="opt in brandColorOptions" :key="opt.value"
                           :class="['user-submenu-item', { active: themeStore.brandColor === opt.value }]"
-                          role="menuitem" tabindex="0"
-                          @click="handleBrandSelect(opt.value)" @keydown.enter="handleBrandSelect(opt.value)"
-                        >
+                          role="menuitem" tabindex="0" @click="handleBrandSelect(opt.value)"
+                          @keydown.enter="handleBrandSelect(opt.value)">
                           <span class="color-dot" :style="{ background: opt.dot }" />
                           <span>{{ opt.label }}</span>
-                          <svg v-if="themeStore.brandColor === opt.value" class="check-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                          <svg v-if="themeStore.brandColor === opt.value" class="check-icon" width="14" height="14"
+                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12" />
+                          </svg>
                         </div>
                       </div>
                     </template>
                   </t-popup>
 
                   <!-- 切换账号 -->
-                  <div class="user-menu-item" role="menuitem" tabindex="0" @click="handleUserMenuClick('switchAccount')" @keydown.enter="handleUserMenuClick('switchAccount')">
+                  <div class="user-menu-item" role="menuitem" tabindex="0" @click="handleUserMenuClick('switchAccount')"
+                    @keydown.enter="handleUserMenuClick('switchAccount')">
                     <t-icon name="usergroup" size="16px" />
                     <span>切换账号</span>
                   </div>
 
                   <!-- 退出登录 -->
-                  <div class="user-menu-item user-menu-item--danger" role="menuitem" tabindex="0" @click="handleUserMenuClick('logout')" @keydown.enter="handleUserMenuClick('logout')">
+                  <div class="user-menu-item user-menu-item--danger" role="menuitem" tabindex="0"
+                    @click="handleUserMenuClick('logout')" @keydown.enter="handleUserMenuClick('logout')">
                     <t-icon name="poweroff" size="16px" />
                     <span>退出登录</span>
                   </div>
@@ -777,11 +794,14 @@ onMounted(() => {
   border-right: 1px solid #F1F5F9; // slate-100 — 匹配参考设计 aside 右边框
   box-shadow: $shadow-elevation-1;
   transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-              min-width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-              max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-              flex-basis 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    min-width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    flex-basis 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
-  > * { position: relative; z-index: 1; }
+  >* {
+    position: relative;
+    z-index: 1;
+  }
 }
 
 // ─── sidebar-top：Logo + 用户 + 日期天气（固定顶部）───
@@ -822,8 +842,15 @@ onMounted(() => {
 }
 
 @keyframes catBounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-5px); }
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-5px);
+  }
 }
 
 // ─── 日期 & 天气信息卡片（参照 index.html 设计：左日期右天气）───
@@ -894,8 +921,13 @@ onMounted(() => {
 
     // ─── 刷新按钮（精致小巧，融入设计）───
     @keyframes refresh-spin {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
+      from {
+        transform: rotate(0deg);
+      }
+
+      to {
+        transform: rotate(360deg);
+      }
     }
 
     .weather-refresh-btn {
@@ -928,6 +960,7 @@ onMounted(() => {
 
       &.is-refreshing {
         pointer-events: none;
+
         .refresh-svg {
           animation: refresh-spin 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
         }
@@ -948,20 +981,31 @@ onMounted(() => {
   min-height: 0;
   overflow-y: auto;
   padding: 8px 14px;
-  scrollbar-width: thin;
-  scrollbar-color: var(--overlay-brand-25) transparent;
 
-  &::-webkit-scrollbar {
-    width: 4px;
+  &,
+  * {
+    scrollbar-width: thin !important;
+    scrollbar-color: #10b981 transparent !important;
   }
-  &::-webkit-scrollbar-track {
-    background: transparent;
+
+  &::-webkit-scrollbar,
+  *::-webkit-scrollbar {
+    width: 5px !important;
+    height: 5px !important;
   }
-  &::-webkit-scrollbar-thumb {
-    background: var(--overlay-brand-25);
-    border-radius: 2px;
+
+  &::-webkit-scrollbar-track,
+  *::-webkit-scrollbar-track {
+    background: transparent !important;
+  }
+
+  &::-webkit-scrollbar-thumb,
+  *::-webkit-scrollbar-thumb {
+    background: #10b981 !important;
+    border-radius: 3px !important;
+
     &:hover {
-      background: var(--overlay-brand-45);
+      background: #059669 !important;
     }
   }
 
@@ -997,8 +1041,15 @@ onMounted(() => {
     .nav-toggle {
       color: $text-primary;
       transition: transform 0.3s;
-      &.expanded { transform: rotate(180deg); }
-      svg { width: 14px; height: 14px; }
+
+      &.expanded {
+        transform: rotate(180deg);
+      }
+
+      svg {
+        width: 14px;
+        height: 14px;
+      }
     }
   }
 
@@ -1078,7 +1129,11 @@ onMounted(() => {
       .nav-item-arrow {
         color: $text-secondary;
         transition: all 0.3s;
-        svg { width: 12px; height: 12px; }
+
+        svg {
+          width: 12px;
+          height: 12px;
+        }
       }
     }
   }
@@ -1101,13 +1156,17 @@ onMounted(() => {
     gap: 8px;
     margin-bottom: 12px;
 
-    .guide-icon { font-size: 18px; }
+    .guide-icon {
+      font-size: 18px;
+    }
+
     .guide-title {
       flex: 1;
       font-size: 13px;
       font-weight: 700;
       color: $text-primary;
     }
+
     .guide-close {
       width: 20px;
       height: 20px;
@@ -1150,9 +1209,20 @@ onMounted(() => {
 
       &.active {
         background: linear-gradient(135deg, var(--color-primary-lighter), var(--color-primary-light));
-        .step-number { background: white; color: var(--color-primary); }
-        .step-text { color: white; font-weight: 600; }
-        .step-arrow { color: white; }
+
+        .step-number {
+          background: white;
+          color: var(--color-primary);
+        }
+
+        .step-text {
+          color: white;
+          font-weight: 600;
+        }
+
+        .step-arrow {
+          color: white;
+        }
       }
 
       &.done .step-number {
@@ -1357,10 +1427,10 @@ onMounted(() => {
   padding: 4px;
   min-width: 150px;
   border-radius: 10px;
-  background: $overlay-white-98;
-  backdrop-filter: blur(12px);
-  border: 1.5px solid var(--overlay-brand-lighter-20);
-  box-shadow: $shadow-xl;
+  background: transparent;
+  backdrop-filter: none;
+  border: none;
+  box-shadow: none;
 
   .user-menu-item {
     display: flex;
@@ -1461,8 +1531,15 @@ onMounted(() => {
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  50% { transform: translateY(-20px) rotate(5deg); }
+
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+
+  50% {
+    transform: translateY(-20px) rotate(5deg);
+  }
 }
 
 // ═══════════════════════════════════════
@@ -1569,8 +1646,13 @@ onMounted(() => {
     min-width: 0;
     flex: 0 0 260px;
 
-    .sidebar-top { padding: 16px 14px 10px; }
-    .sidebar-nav { padding: 10px 14px; }
+    .sidebar-top {
+      padding: 16px 14px 10px;
+    }
+
+    .sidebar-nav {
+      padding: 10px 14px;
+    }
   }
 
   .right-content {
@@ -1640,7 +1722,9 @@ onMounted(() => {
       box-shadow: $shadow-xl;
     }
 
-    .sidebar-nav { flex: 1; }
+    .sidebar-nav {
+      flex: 1;
+    }
   }
 
   .right-content {
@@ -1669,9 +1753,30 @@ onMounted(() => {
   .drawer-fade-leave-active {
     transition: opacity 0.25s ease;
   }
+
   .drawer-fade-enter-from,
   .drawer-fade-leave-to {
     opacity: 0;
+  }
+}
+</style>
+
+<style lang="scss">
+.header-user-section {
+
+  .t-popup__content,
+  .t-popup__content>* {
+    border: none !important;
+    outline: none !important;
+  }
+
+  .t-popup__content {
+    padding: 4px !important;
+    min-width: 150px !important;
+    border-radius: 10px !important;
+    background: rgba(255, 255, 255, 0.98) !important;
+    backdrop-filter: blur(12px) !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08), 0 1px 4px rgba(16, 185, 129, 0.06) !important;
   }
 }
 </style>

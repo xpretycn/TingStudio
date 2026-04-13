@@ -1,100 +1,118 @@
 <template>
   <div class="version-list" :aria-busy="!initialized">
-      <PageSkeleton v-if="!initialized" type="table" :rows="5" :columns="7" />
-      <t-card v-else class="content-card" :bordered="true">
-      <template #header>
-        <div class="page-header">
-          <t-button variant="text" @click="handleBack"><template #icon><t-icon name="chevron-left" /></template>返回配方</t-button>
-          <span class="page-title">版本管理 - {{ formulaName || '加载中...' }}</span>
-        </div>
-      </template>
-
-      <div class="version-actions">
-        <t-radio-group v-model="statusFilter" variant="default-filled" @change="fetchVersions">
-          <t-radio-button value="">全部</t-radio-button>
-          <t-radio-button value="draft">草稿</t-radio-button>
-          <t-radio-button value="published">已发布</t-radio-button>
-          <t-radio-button value="archived">已归档</t-radio-button>
-        </t-radio-group>
-        <t-button theme="primary" @click="handleCreateVersion" size="small"><template #icon><t-icon name="add" /></template>创建版本</t-button>
-        <t-button theme="default" @click="handleCompare" size="small"><template #icon><t-icon name="compare" /></template>版本对比</t-button>
-      </div>
-
-      <t-table :data="versionStore.versions" :columns="columns" :loading="versionStore.loading" row-key="versionId" hover table-layout="auto">
-        <template #empty>
-          <t-empty description="暂无版本数据" role="status">
-            <template #action>
-              <t-button theme="primary" @click="handleCreateVersion">
-                <template #icon><t-icon name="add" /></template>创建第一个版本
-              </t-button>
-            </template>
-          </t-empty>
-        </template>
-        <template #status="{ row }">
-          <t-tag :theme="statusTheme(row.status)" variant="light">{{ statusLabel(row.status) }}</t-tag>
-        </template>
-        <template #versionNumber="{ row }">
-          <span>{{ row.versionNumber }}</span>
-          <t-tag v-if="row.isCurrent" size="small" theme="success" variant="dark" style="margin-left: 6px;">当前</t-tag>
-        </template>
-        <template #versionReason="{ row }">
-          <span v-if="row.versionReason" class="cell-reason">{{ row.versionReason }}</span>
-          <span v-else class="no-changes">-</span>
-        </template>
-        <template #changes="{ row }">
-          <div class="cell-changes">
-            <template v-if="row.changes?.length">
-              <t-space :size="4" wrap>
-                <t-tooltip v-for="(c, ci) in row.changes" :key="ci" :content="`${changeTypeLabel(c.changeType)} ${c.fieldLabel}${c.oldValue !== null ? '：' + c.oldValue : ''}${c.oldValue !== null && c.newValue !== null ? ' → ' : ''}${c.newValue !== null ? c.newValue : ''}`">
-                  <t-tag
-                    size="small"
-                    :theme="changeTypeTheme(c.changeType)"
-                    variant="light-outline"
-                    class="change-tag"
-                  >
-                    <template #icon>
-                      <t-icon :name="changeTypeIcon(c.changeType)" size="14px" />
-                    </template>
-                    {{ changeTypeLabel(c.changeType) }} {{ c.fieldLabel }}
-                  </t-tag>
-                </t-tooltip>
-              </t-space>
-            </template>
-            <span v-else class="no-changes">-</span>
+    <PageSkeleton v-if="!initialized" type="table" :rows="5" :columns="7" />
+    <template v-else>
+      <header class="detail-header">
+        <div class="header-left">
+          <button class="header-back-btn" @click="handleBack" title="返回列表">
+            <t-icon name="arrow-left" />
+          </button>
+          <div class="header-title-group">
+            <nav class="header-breadcrumb">
+              <a class="breadcrumb-link" @click="handleBack">配方管理</a>
+              <t-icon name="chevron-right" class="breadcrumb-sep" />
+              <span class="breadcrumb-current">版本管理</span>
+            </nav>
+            <h2 class="page-main-title">版本控制中心</h2>
           </div>
-        </template>
-        <template #operation="{ row }">
-          <t-space :size="8">
-            <t-button variant="text" size="small" @click="handleViewSnapshot(row)"><template #icon><t-icon name="browse" /></template>快照</t-button>
-            <t-button v-if="row.status === 'draft'" variant="text" theme="primary" size="small" @click="handlePublish(row)"><template #icon><t-icon name="check-circle" /></template>发布</t-button>
-          </t-space>
-        </template>
-      </t-table>
-    </t-card>
+        </div>
+        <div class="header-actions">
+          <t-radio-group v-model="statusFilter" variant="default-filled" @change="fetchVersions" size="small">
+            <t-radio-button value="">全部</t-radio-button>
+            <t-radio-button value="draft">草稿</t-radio-button>
+            <t-radio-button value="published">已发布</t-radio-button>
+            <t-radio-button value="archived">已归档</t-radio-button>
+          </t-radio-group>
+          <button class="header-action-btn" @click="handleCreateVersion">
+            <t-icon name="add" class="btn-icon" /> 创建版本
+          </button>
+          <button class="header-action-btn compare-btn" :class="{ 'has-selection': selectedForCompare.length > 0 }"
+            @click="handleCompare">
+            <t-icon name="book" class="btn-icon" /> 进入对比 (<span>{{ selectedForCompare.length }}</span>)
+          </button>
+        </div>
+      </header>
 
-    <!-- 创建版本弹窗 -->
-    <t-dialog
-      v-model:visible="createVersionVisible"
-      header="创建新版本"
-      :confirm-btn="{ content: '创建', theme: 'primary' }"
-      @confirm="confirmCreateVersion"
-    >
+      <main class="detail-main">
+        <div class="version-table-card">
+          <t-table :data="versionStore.versions" :columns="columns" :loading="versionStore.loading" row-key="versionId"
+            hover table-layout="auto">
+            <template #empty>
+              <t-empty description="暂无版本数据" role="status">
+                <template #action>
+                  <t-button theme="primary" @click="handleCreateVersion">
+                    <template #icon><t-icon name="add" /></template>创建第一个版本
+                  </t-button>
+                </template>
+              </t-empty>
+            </template>
+            <template #row-select="{ row }">
+              <div class="select-checkbox-wrap">
+                <input type="checkbox" class="custom-checkbox" :checked="selectedForCompare.includes(row.versionId)"
+                  @change="toggleSelect(row.versionId)" />
+              </div>
+            </template>
+            <template #status="{ row }">
+              <span class="status-pill" :class="'status-' + row.status">{{ statusLabel(row.status) }}</span>
+            </template>
+            <template #versionNumber="{ row }">
+              <span class="ver-num">{{ row.versionNumber }}</span>
+              <span v-if="row.isCurrent" class="ver-current-tag">当前</span>
+            </template>
+            <template #versionReason="{ row }">
+              <span v-if="row.versionReason" class="cell-reason">{{ row.versionReason }}</span>
+              <span v-else class="no-changes">-</span>
+            </template>
+            <template #createdAt="{ row }">
+              <div class="cell-date">
+                <span class="date-line">{{ formatCreatedAt(row.createdAt).date }}</span>
+                <span class="time-line">{{ formatCreatedAt(row.createdAt).time }}</span>
+              </div>
+            </template>
+            <template #changes="{ row }">
+              <div class="cell-changes">
+                <template v-if="row.changes?.length">
+                  <t-space :size="4" wrap>
+                    <t-tooltip v-for="(c, ci) in row.changes" :key="ci"
+                      :content="`${changeTypeLabel(c.changeType)} ${c.fieldLabel}${c.oldValue !== null ? '：' + c.oldValue : ''}${c.oldValue !== null && c.newValue !== null ? ' → ' : ''}${c.newValue !== null ? c.newValue : ''}`">
+                      <t-tag size="small" :theme="changeTypeTheme(c.changeType)" variant="light-outline"
+                        class="change-tag">
+                        <template #icon>
+                          <t-icon :name="changeTypeIcon(c.changeType)" size="14px" />
+                        </template>
+                        {{ changeTypeLabel(c.changeType) }} {{ c.fieldLabel }}
+                      </t-tag>
+                    </t-tooltip>
+                  </t-space>
+                </template>
+                <span v-else class="no-changes">-</span>
+              </div>
+            </template>
+            <template #operation="{ row }">
+              <div class="op-btns">
+                <button class="op-icon-btn" @click="handleViewSnapshot(row)" title="查看快照">
+                  <t-icon name="browse" />
+                </button>
+                <button v-if="row.status === 'draft'" class="op-icon-btn op-publish" @click="handlePublish(row)"
+                  title="发布版本">
+                  <t-icon name="send" />
+                </button>
+              </div>
+            </template>
+          </t-table>
+        </div>
+      </main>
+    </template>
+
+    <t-dialog v-model:visible="createVersionVisible" header="创建新版本" :confirm-btn="{ content: '创建', theme: 'primary' }"
+      @confirm="confirmCreateVersion">
       <t-form-item label="升版原因" style="margin-bottom: 0;">
-        <t-textarea
-          v-model="createVersionReason"
-          placeholder="请输入升版原因（必填）"
-          :autosize="{ minRows: 2, maxRows: 4 }"
-        />
+        <t-textarea v-model="createVersionReason" placeholder="请输入升版原因（必填）" :autosize="{ minRows: 2, maxRows: 4 }" />
       </t-form-item>
     </t-dialog>
 
-    <!-- 发布确认弹窗 -->
-    <t-dialog
-      v-model:visible="publishDialogVisible"
-      header="确认发布版本"
-      :confirm-btn="{ content: '确认发布', theme: 'primary', loading: publishLoading }"
-      @confirm="confirmPublish"
-    >
+    <t-dialog v-model:visible="publishDialogVisible" header="确认发布版本"
+      :confirm-btn="{ content: '确认发布', theme: 'primary', loading: publishLoading }" @confirm="confirmPublish">
       <div v-if="publishTarget" class="publish-confirm-content">
         <t-alert theme="warning" class="publish-warning">
           发布后将替换当前版本，配方数据将同步更新为该版本的快照数据。此操作不可撤销。
@@ -107,7 +125,6 @@
       </div>
     </t-dialog>
 
-    <!-- 版本快照弹窗 -->
     <t-dialog v-model:visible="snapshotVisible" header="版本快照" width="700px" @confirm="snapshotVisible = false">
       <div v-if="currentSnapshot">
         <t-descriptions :column="2" bordered>
@@ -118,7 +135,8 @@
         </t-descriptions>
         <div v-if="currentSnapshot.snapshot?.materials?.length" class="snapshot-materials">
           <h4>原料清单</h4>
-          <t-table :data="currentSnapshot.snapshot.materials" :columns="materialColumns" row-key="materialName" size="small" bordered />
+          <t-table :data="currentSnapshot.snapshot.materials" :columns="materialColumns" row-key="materialName"
+            size="small" bordered />
         </div>
         <div v-if="currentSnapshot.snapshot?.description" class="snapshot-desc">
           <h4>配方描述</h4>
@@ -127,7 +145,8 @@
         <div v-if="currentSnapshot.changes?.length" class="snapshot-changes">
           <h4>变更记录</h4>
           <div v-for="(change, i) in currentSnapshot.changes" :key="i" class="change-item">
-            <t-tag :theme="changeTypeTheme(change.changeType)" size="small">{{ changeTypeLabel(change.changeType) }}</t-tag>
+            <t-tag :theme="changeTypeTheme(change.changeType)" size="small">{{ changeTypeLabel(change.changeType)
+            }}</t-tag>
             <span>{{ change.fieldLabel }}</span>
             <span v-if="change.oldValue !== null">: {{ change.oldValue }} →</span>
             <span>{{ change.newValue }}</span>
@@ -158,15 +177,16 @@ const formulaName = ref('')
 const statusFilter = ref('')
 const snapshotVisible = ref(false)
 const currentSnapshot = ref<any>(null)
+const selectedForCompare = ref<string[]>([])
 
 const columns = [
-  { colKey: 'versionNumber', title: '版本号', width: 120 },
-  { colKey: 'versionName', title: '版本名称', width: 140, ellipsis: true },
-  { colKey: 'versionReason', title: '升版原因', width: 180, ellipsis: true },
-  { colKey: 'changes', title: '版本变更', width: 320 },
-  { colKey: 'status', title: '状态', width: 80 },
-  { colKey: 'createdAt', title: '创建时间', width: 170 },
-  { colKey: 'operation', title: '操作', width: 160, align: 'center' }
+  { colKey: 'row-select', title: '选择对比', width: 90 },
+  { colKey: 'versionNumber', title: '版本号', width: 125 },
+  { colKey: 'versionName', title: '版本名称', width: 220 },
+  { colKey: 'versionReason', title: '升版原因', width: 240 },
+  { colKey: 'status', title: '状态', width: 70, align: 'center' },
+  { colKey: 'createdAt', title: '创建日期', width: 130 },
+  { colKey: 'operation', title: '操作', width: 100, align: 'right' }
 ]
 
 const materialColumns = [
@@ -179,6 +199,33 @@ const statusLabel = (s: string) => s === 'published' ? '已发布' : s === 'draf
 const changeTypeTheme = (t: string) => t === 'add' ? 'success' : t === 'delete' ? 'danger' : 'warning'
 const changeTypeLabel = (t: string) => t === 'add' ? '新增' : t === 'delete' ? '删除' : '修改'
 const changeTypeIcon = (t: string) => t === 'add' ? 'add' : t === 'delete' ? 'remove' : 'edit'
+
+const formatCreatedAt = (val: string | undefined) => {
+  if (!val) return { date: '--', time: '' }
+  const d = new Date(val)
+  const pad = (n: number) => String(n).padStart(2, '0')
+  const y = d.getFullYear()
+  const m = pad(d.getMonth() + 1)
+  const day = pad(d.getDate())
+  const h = pad(d.getHours())
+  const min = pad(d.getMinutes())
+  const s = pad(d.getSeconds())
+  return { date: `${y}-${m}-${day}`, time: `${h}:${min}:${s}` }
+}
+
+const toggleSelect = (id: string) => {
+  const idx = selectedForCompare.value.indexOf(id)
+  if (idx >= 0) {
+    selectedForCompare.value.splice(idx, 1)
+  } else {
+    if (selectedForCompare.value.length >= 2) {
+      MessagePlugin.warning('最多选择2个版本进行对比')
+      return
+    }
+    selectedForCompare.value.push(id)
+  }
+  localStorage.setItem('compare_versions', JSON.stringify(selectedForCompare.value))
+}
 
 const fetchVersions = () => {
   versionStore.fetchVersions(formulaId, statusFilter.value ? { status: statusFilter.value } : undefined)
@@ -228,7 +275,6 @@ const confirmPublish = async () => {
       publishDialogVisible.value = false
       publishTarget.value = null
       fetchVersions()
-      // 刷新配方名称（可能已变更）
       const formula = await formulaStore.getFormula(formulaId)
       if (formula) formulaName.value = formula.name
     } else {
@@ -260,61 +306,422 @@ onMounted(async () => {
 
 <style scoped lang="scss">
 .version-list {
-  .content-card {
-    box-shadow: $shadow-xs;
+  .detail-header {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-left: -32px;
+    margin-right: -32px;
+    padding: 16px 32px;
+    background-color: rgba(255, 255, 255, 0.80);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid #f1f5f9;
+    animation: fadeInDown 0.3s cubic-bezier(0.4, 0, 0.2, 1) both;
 
-    // 表格行 stagger 入场动画
-    :deep(.t-table__body .t-table__row) {
-      animation: rowFadeIn 0.3s ease both;
-      @include stagger-rows(20, 0.03s);
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+
+      .header-back-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        border: none;
+        border-radius: 12px;
+        background: transparent;
+        color: #94a3b8;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-size: 20px;
+
+        &:hover {
+          color: $brand-primary;
+          background-color: $brand-primary-bg;
+        }
+      }
+
+      .header-title-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+
+        .header-breadcrumb {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 12px;
+          line-height: 1;
+
+          .breadcrumb-link {
+            color: #94a3b8;
+            cursor: pointer;
+            transition: color 0.15s;
+            text-decoration: none;
+
+            &:hover {
+              color: $brand-primary;
+            }
+          }
+
+          .breadcrumb-sep {
+            font-size: 12px;
+            color: #94a3b8;
+          }
+
+          .breadcrumb-current {
+            color: #475569;
+          }
+        }
+
+        .page-main-title {
+          margin: 0;
+          font-size: 24px;
+          font-weight: 700;
+          color: #1e293b;
+          line-height: 1.35;
+        }
+      }
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+
+      .header-action-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 24px;
+        background-color: #10b981;
+        color: #ffffff;
+        border: none;
+        border-radius: 12px;
+        font-size: 13px;
+        font-weight: 700;
+        box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.2);
+        cursor: pointer;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+
+        .btn-icon {
+          font-size: 18px;
+        }
+
+        &:hover {
+          background-color: #059669;
+          transform: translateY(-1px);
+          box-shadow: 0 14px 20px -3px rgba(16, 185, 129, 0.3);
+        }
+
+        &:active {
+          transform: translateY(0);
+          background-color: #047857;
+        }
+
+        &.compare-btn {
+          opacity: 0.5;
+
+          &.has-selection {
+            opacity: 1;
+          }
+        }
+      }
+
+      :deep(.t-radio-group) {
+        background: #f0fdf4;
+        border-radius: 10px;
+        padding: 3px;
+
+        .t-radio-button {
+          border-radius: 8px;
+          padding: 4px 12px;
+          font-size: 12px;
+          font-weight: 600;
+          color: #64748b;
+
+          &.t-is-checked {
+            background: #dcfce7;
+            color: #16a34a;
+            box-shadow: none;
+          }
+        }
+      }
     }
   }
-  .page-header {
-    display: flex; align-items: center; gap: $space-3;
-    .page-title { font-size: $font-size-h3; font-weight: $font-weight-semibold; color: $text-primary; }
-  }
-  .version-actions {
-    display: flex; align-items: center; gap: $space-3; margin-bottom: $space-4;
-  }
-  .snapshot-materials, .snapshot-desc, .snapshot-changes {
-    margin-top: $space-4;
-    h4 { margin: 0 0 $space-2 0; font-size: $font-size-body; font-weight: $font-weight-semibold; color: $text-primary; }
-  }
-  .snapshot-desc p {
-    margin: 0; padding: $space-3; background: $bg-page; border-radius: $radius-md; border-left: 3px solid $brand-primary-lightest; color: $text-primary;
-  }
-  .change-item {
-    display: flex; align-items: center; gap: 6px; padding: $space-1 0; font-size: $font-size-body-sm; color: $text-primary;
-  }
-  .cell-changes {
-    .change-tag {
-      max-width: 180px;
+
+  .detail-main {
+    margin-top: 24px;
+    animation: fadeInUp 0.35s ease both;
+    animation-delay: 0.1s;
+
+    .version-table-card {
+      background: #fff;
+      border-radius: $radius-2xl;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+      border: 1px solid #f8fafc;
       overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    .no-changes {
-      color: $text-placeholder;
+
+      :deep(.t-table) {
+        .t-table__header {
+          th {
+            background: rgba(248, 250, 252, 0.5) !important;
+            padding: 20px 28px !important;
+            font-size: 10px !important;
+            font-weight: 900 !important;
+            color: #94a3b8 !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.1em !important;
+            border-bottom: 1px solid rgba(248, 250, 252, 0.8) !important;
+          }
+        }
+
+        .t-table__body {
+          tr {
+            transition: background-color 0.15s;
+
+            &:hover td {
+              background: rgba(248, 250, 252, 0.5) !important;
+            }
+
+            td {
+              padding: 20px 28px !important;
+              border-bottom: 1px solid #f8fafc !important;
+              vertical-align: middle;
+              font-size: 14px;
+              color: #334155;
+            }
+          }
+        }
+
+        .t-table__empty-row td {
+          padding: 48px 24px !important;
+        }
+      }
+
+      .select-checkbox-wrap {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        .custom-checkbox {
+          appearance: none;
+          width: 20px;
+          height: 20px;
+          border: 2px solid #e2e8f0;
+          border-radius: 6px;
+          cursor: pointer;
+          position: relative;
+          transition: all 0.2s ease;
+
+          &:checked {
+            background: #10b981;
+            border-color: #10b981;
+
+            &::after {
+              content: '';
+              position: absolute;
+              top: 2px;
+              left: 6px;
+              width: 5px;
+              height: 10px;
+              border: solid #fff;
+              border-width: 0 2px 2px 0;
+              transform: rotate(45deg);
+            }
+          }
+
+          &:hover {
+            border-color: #d1fae5;
+          }
+        }
+      }
+
+      .ver-num {
+        font-family: ui-monospace, SFMono-Regular, 'Cascadia Code', monospace;
+        font-size: 13px;
+        font-weight: 700;
+        color: #059669;
+      }
+
+      .ver-current-tag {
+        display: inline-block;
+        margin-left: 8px;
+        padding: 2px 10px;
+        background: #d1fae5;
+        color: #059669;
+        font-size: 10px;
+        font-weight: 800;
+        border-radius: 999px;
+        letter-spacing: 0.04em;
+      }
+
+      .status-pill {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 999px;
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        white-space: nowrap;
+
+        &.status-draft {
+          background: #fef3c7;
+          color: #d97706;
+        }
+
+        &.status-published {
+          background: #d1fae5;
+          color: #059669;
+        }
+
+        &.status-archived {
+          background: #e2e8f0;
+          color: #94a3b8;
+        }
+      }
+
+      .cell-date {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.4;
+
+        .date-line {
+          font-size: 13px;
+          font-weight: 600;
+          color: #334155;
+        }
+
+        .time-line {
+          font-size: 12px;
+          color: #94a3b8;
+        }
+      }
+
+      .cell-reason {
+        font-size: 14px;
+        color: #334155;
+        line-height: 1.5;
+        word-break: break-word;
+      }
+
+      .cell-changes {
+        .change-tag {
+          max-width: 180px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        .no-changes {
+          color: #cbd5e1;
+        }
+      }
+
+      .no-changes {
+        color: #cbd5e1;
+      }
+
+      .op-btns {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 4px;
+
+        .op-icon-btn {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 32px;
+          height: 32px;
+          border: none;
+          border-radius: 8px;
+          background: transparent;
+          color: #94a3b8;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          font-size: 16px;
+
+          &:hover {
+            color: #10b981;
+            background: #ecfdf5;
+          }
+
+          &.op-publish:hover {
+            color: #3b82f6;
+            background: #eff6ff;
+          }
+        }
+      }
     }
   }
-  .cell-reason {
+
+  .snapshot-materials,
+  .snapshot-desc,
+  .snapshot-changes {
+    margin-top: $space-4;
+
+    h4 {
+      margin: 0 0 $space-2 0;
+      font-size: $font-size-body;
+      font-weight: $font-weight-semibold;
+      color: $text-primary;
+    }
+  }
+
+  .snapshot-desc p {
+    margin: 0;
+    padding: $space-3;
+    background: $bg-page;
+    border-radius: $radius-md;
+    border-left: 3px solid $brand-primary-lightest;
+    color: $text-primary;
+  }
+
+  .change-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: $space-1 0;
     font-size: $font-size-body-sm;
     color: $text-primary;
-    line-height: 1.5;
   }
+
   .publish-confirm-content {
     .publish-warning {
       border-radius: $radius-md;
     }
   }
-  :deep(.t-button) {
-    transition: $transition-smooth !important;
-    border-radius: $radius-xl !important; font-weight: $font-weight-semibold !important;
-    &.t-button--theme-primary {
-      background: $gradient-btn !important;
-      border: none !important; color: $text-white !important;
-      box-shadow: $shadow-brand !important;
-    }
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 </style>

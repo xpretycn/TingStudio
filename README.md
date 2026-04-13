@@ -332,6 +332,36 @@ npm run start          # 后端监听端口 3000，提供 API 服务
 
 ## 更新日志
 
+### v2.17.0 (2026-04-13)
+
+- **版本管理页面 UI 全面重构**：
+  - **VersionList.vue** 采用 `header + main` 双区域布局（参照 FormulaDetail.vue 结构）
+  - **Header 区域**：返回按钮 + 面包屑导航（配方管理 > 版本管理）+ 标题「版本控制中心」
+  - **Header 右侧**：状态筛选 RadioGroup（全部/草稿/已发布/已归档，emerald 主题色）+ 创建版本按钮 + 进入对比按钮（书本图标，emerald 绿色主题）
+  - **Main 区域**：版本列表表格完全还原 `version-management.html` 设计规范
+    - 表头：`bg-slate-50/50` 半透明背景 + `text-slate-400` 文字 + `uppercase tracking-widest`
+    - 列顺序：选择对比 → 版本号 → 版本名称 → 升版原因 → 状态 → 创建日期 → 操作
+    - 状态 Tag：精确还原 HTML 样式（草稿 amber / 已发布 emerald / 已归档 slate），`white-space: nowrap` 防换行
+    - 版本号：monospace 字体 + emerald 色系 + 当前版本 pill 标签
+    - 创建日期：年月日在上、时分秒在下双行格式（去除 T/Z）
+    - 升版原因：支持长文本自动换行
+    - 操作列：查看快照（eye 图标）+ 发布版本（send 纯图标按钮），hover 效果匹配设计稿
+    - 行悬浮：`hover:bg-slate-50/50` 半透明效果
+    - Checkbox：自定义样式，选中态 emerald-500
+  - **跨页面数据传递**：进入对比功能通过 `localStorage('compare_versions')` 实现版本 ID 持久化传递
+
+- **版本对比页面 UI 全面重构**：
+  - **VersionCompare.vue** 同样采用 `header + main` 双区域布局
+  - **Header 区域**：返回按钮 + 面包屑（版本管理 > 版本差异对比）+ 标题「版本多维对比视图」
+  - **Header 右侧**：当前对比版本数计数器（emerald 加粗）+ 重置对比按钮（rose 色，TDesign Dialog 弹窗确认）
+  - **空状态**：大图标 + 提示文字 + 返回选择按钮（emerald 主题）
+  - **对比卡片网格**：横向滚动布局（flex + overflow-x: auto），每张卡片独立 slideIn 动画
+    - 卡片头部：版本号 pill（emerald 底）+ 删除按钮 + 版本名称 + 日期/作者元信息
+    - 原料构成区域：从 `snapshot.materials` 读取数据，展示原料名称 + 百分比 + 进度条
+    - 差异高亮：新增(green)、删除(red strikethrough)、修改(amber) 三种 diff 样式
+    - 版本摘要区域：斜体文字 + emerald 半透明背景 + 根据 status 动态文本
+  - **弹窗交互**：重置对比使用 TDesign `<t-dialog>` 组件（非浏览器原生 confirm）
+
 ### v2.16.0 (2026-04-07)
 
 - **品牌色统一更新**："绿清新"品牌色更新为 RGB(16, 185, 129)，所有品牌应用场景统一使用新色号

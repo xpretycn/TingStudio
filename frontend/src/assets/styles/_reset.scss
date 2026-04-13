@@ -41,7 +41,7 @@ a {
   }
 }
 
-// ─── Scrollbar（粉色主题）──────────────────────────────────
+// ─── Scrollbar（绿色主题）──────────────────────────────────
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -52,16 +52,16 @@ a {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: $brand-primary-lightest;
+  background: #a7f3d0;
   border-radius: $radius-xs;
 
   &:hover {
-    background: $brand-primary-lighter;
+    background: #34d399;
   }
 }
 
 // Firefox
 * {
   scrollbar-width: thin;
-  scrollbar-color: $brand-primary-lightest transparent;
+  scrollbar-color: #a7f3d0 transparent;
 }

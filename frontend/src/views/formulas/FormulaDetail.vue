@@ -53,9 +53,9 @@
       </t-alert>
 
       <!-- ═══ 主内容区域：左右两栏网格（还原 recipe-detail.html main） ═══ -->
-      <!-- 布局：grid grid-cols-12 gap-8 | 左侧 col-span-4 | 右侧 col-span-8 -->
+      <!-- 布局：grid grid-cols-12 gap-8 | 左侧 col-span-3 | 右侧 col-span-9 -->
       <main class="detail-main">
-        <!-- ══ 左侧栏 (col-span-12 lg:col-span-4) ══ -->
+        <!-- ══ 左侧栏 (col-span-12 lg:col-span-3) ══ -->
         <div class="detail-left-col">
 
           <!-- 配方概况卡片 -->
@@ -154,11 +154,11 @@
           </section>
         </div>
 
-        <!-- ══ 右侧栏 (col-span-12 lg:col-span-8) ══ -->
+        <!-- ══ 右侧栏 (col-span-12 lg:col-span-9) ══ -->
         <div class="detail-right-col">
 
           <!-- 营养成分计算表格（对应参考设计的配比实时计算器） -->
-         <section class="calc-section">
+          <section class="calc-section">
             <!-- 表头区：左右分布 | 左：配方名+副标题 | 右：成品总重标签 -->
             <div class="calc-header">
               <div>
@@ -176,7 +176,7 @@
               row-key="name" size="small" bordered table-layout="auto" class="calc-table">
               <template #ratio="{ row }">
                 <template v-if="typeof row.ratio === 'number' && !row._isEmpty">{{ (row.ratio * 100).toFixed(2)
-                  }}%</template>
+                }}%</template>
                 <template v-else-if="!row._isEmpty">{{ row.ratio }}</template>
               </template>
               <template #name="{ row }">
@@ -473,12 +473,12 @@ onMounted(() => { loadData() })
     margin-bottom: $space-6; // mb-8 = 32px
     padding-bottom: $space-6;
 
-    // ── 左侧栏 (col-span-12 lg:col-span-4) ──
+    // ── 左侧栏 (col-span-12 lg:col-span-3) ──
     .detail-left-col {
       grid-column: span 12;
 
       @media (min-width: 1024px) {
-        grid-column: span 4;
+        grid-column: span 3;
       }
 
       display: flex;
@@ -486,12 +486,12 @@ onMounted(() => { loadData() })
       gap: $space-6;
     }
 
-    // ── 右侧栏 (col-span-12 lg:col-span-8) ──
+    // ── 右侧栏 (col-span-12 lg:col-span-9) ──
     .detail-right-col {
       grid-column: span 12;
 
       @media (min-width: 1024px) {
-        grid-column: span 8;
+        grid-column: span 9;
       }
 
       display: flex;
@@ -677,12 +677,12 @@ onMounted(() => { loadData() })
     // ══ 备注信息 ══
     .remark-content {
       font-size: 14px;
-      color: #475569;             // slate-600
+      color: #475569; // slate-600
       line-height: 1.7;
       padding: $space-3;
-      background: #f8fafc;         // slate-50
+      background: #f8fafc; // slate-50
       border-radius: $radius-xl;
-      border: 1px solid #f1f5f9;   // slate-100
+      border: 1px solid #f1f5f9; // slate-100
     }
 
     // ══ 变更记录时间线 ══
@@ -816,48 +816,49 @@ onMounted(() => { loadData() })
           color: #94a3b8; // slate-400
           margin: 0;
 
-        b.weight-val {
-          color: #059669; // emerald-600
-          font-weight: 700;
-        }
-      }
-
-      // 成品总重徽章 — 还原 recipe-detail.html 第166-170行右侧内嵌样式
-      .weight-badge {
-        display: flex;
-        align-items: center;
-        gap: $space-2;
-        background: #fff;
-        padding: 8px 12px; // p-2
-        border-radius: $radius-xl; // rounded-2xl
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04); // shadow-sm
-        border: 1px solid #f1f5f9; // border-slate-100
-
-        .weight-badge-label {
-          font-size: 10px; // text-[10px]
-          font-weight: 900; // font-black
-          color: #94a3b8; // text-slate-400
-          text-transform: uppercase;
-          letter-spacing: 0.04em;
-          white-space: nowrap;
+          b.weight-val {
+            color: #059669; // emerald-600
+            font-weight: 700;
+          }
         }
 
-        .weight-badge-value {
-          width: 64px; // w-16
-          text-align: center;
-          font-weight: 700; // font-bold
-          font-size: 15px;
-          color: #059669; // emerald-600
-          outline: none;
-          line-height: 1;
+        // 成品总重徽章 — 还原 recipe-detail.html 第166-170行右侧内嵌样式
+        .weight-badge {
+          display: flex;
+          align-items: center;
+          gap: $space-2;
+          background: #fff;
+          padding: 8px 12px; // p-2
+          border-radius: $radius-xl; // rounded-2xl
+          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04); // shadow-sm
+          border: 1px solid #f1f5f9; // border-slate-100
+
+          .weight-badge-label {
+            font-size: 10px; // text-[10px]
+            font-weight: 900; // font-black
+            color: #94a3b8; // text-slate-400
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            white-space: nowrap;
+          }
+
+          .weight-badge-value {
+            width: 64px; // w-16
+            text-align: center;
+            font-weight: 700; // font-bold
+            font-size: 15px;
+            color: #059669; // emerald-600
+            outline: none;
+            line-height: 1;
+          }
         }
-      }
       }
 
       .calc-table {
         :deep(.t-table) {
           font-size: 13px;
         }
+
         padding: 0 $space-6 $space-6;
       }
 
