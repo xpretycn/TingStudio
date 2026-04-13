@@ -93,10 +93,12 @@
                 <button class="op-icon-btn" @click="handleViewSnapshot(row)" title="查看快照">
                   <t-icon name="browse" />
                 </button>
-                <button v-if="row.status === 'draft'" class="op-icon-btn op-publish" @click="handlePublish(row)"
-                  title="发布版本">
-                  <t-icon name="send" />
-                </button>
+                <t-popconfirm v-if="row.status === 'draft'" content="确定要发布该版本吗？发布后将替换当前版本。"
+                  @confirm="handlePublish(row)">
+                  <button class="op-icon-btn op-publish" title="发布版本">
+                    <t-icon name="send" />
+                  </button>
+                </t-popconfirm>
               </div>
             </template>
           </t-table>
@@ -111,46 +113,43 @@
       </t-form-item>
     </t-dialog>
 
-    <t-dialog v-model:visible="publishDialogVisible" header="确认发布版本"
-      :confirm-btn="{ content: '确认发布', theme: 'primary', loading: publishLoading }" @confirm="confirmPublish">
-      <div v-if="publishTarget" class="publish-confirm-content">
-        <t-alert theme="warning" class="publish-warning">
-          发布后将替换当前版本，配方数据将同步更新为该版本的快照数据。此操作不可撤销。
-        </t-alert>
-        <t-descriptions :column="1" bordered size="small" style="margin-top: 12px;">
-          <t-descriptions-item label="版本号">{{ publishTarget.versionNumber }}</t-descriptions-item>
-          <t-descriptions-item label="版本名称">{{ publishTarget.versionName || '-' }}</t-descriptions-item>
-          <t-descriptions-item label="升版原因">{{ publishTarget.versionReason || '-' }}</t-descriptions-item>
-        </t-descriptions>
-      </div>
-    </t-dialog>
-
-    <t-dialog v-model:visible="snapshotVisible" header="版本快照" width="700px" @confirm="snapshotVisible = false">
-      <div v-if="currentSnapshot">
-        <t-descriptions :column="2" bordered>
-          <t-descriptions-item label="版本号">{{ currentSnapshot.versionNumber }}</t-descriptions-item>
-          <t-descriptions-item label="版本名称">{{ currentSnapshot.versionName || '-' }}</t-descriptions-item>
-          <t-descriptions-item label="配方名称">{{ currentSnapshot.snapshot?.name }}</t-descriptions-item>
-          <t-descriptions-item label="业务员">{{ currentSnapshot.snapshot?.salesmanName }}</t-descriptions-item>
-        </t-descriptions>
-        <div v-if="currentSnapshot.snapshot?.materials?.length" class="snapshot-materials">
-          <h4>原料清单</h4>
-          <t-table :data="currentSnapshot.snapshot.materials" :columns="materialColumns" row-key="materialName"
-            size="small" bordered />
-        </div>
-        <div v-if="currentSnapshot.snapshot?.description" class="snapshot-desc">
-          <h4>配方描述</h4>
-          <p>{{ currentSnapshot.snapshot.description }}</p>
-        </div>
-        <div v-if="currentSnapshot.changes?.length" class="snapshot-changes">
-          <h4>变更记录</h4>
-          <div v-for="(change, i) in currentSnapshot.changes" :key="i" class="change-item">
-            <t-tag :theme="changeTypeTheme(change.changeType)" size="small">{{ changeTypeLabel(change.changeType)
-            }}</t-tag>
-            <span>{{ change.fieldLabel }}</span>
-            <span v-if="change.oldValue !== null">: {{ change.oldValue }} →</span>
-            <span>{{ change.newValue }}</span>
+    <t-dialog v-model:visible="snapshotVisible" :footer="false" :width="672" :draggable="true"
+      :close-on-overlay-click="true" :show-close-button="false" class="snap-dialog">
+      <template #header>
+        <div class="snap-header">
+          <div class="snap-header-text">
+            <h3 class="snap-title">版本快照详情</h3>
+            <p class="snap-subtitle">配方数据备份记录</p>
           </div>
+          <button class="snap-close-btn" @click="snapshotVisible = false">
+            <t-icon name="close" />
+          </button>
+        </div>
+      </template>
+      <div v-if="currentSnapshot" class="snap-body">
+        <div class="snap-info-grid">
+          <div class="snap-info-card">
+            <label class="snap-info-label">版本号</label>
+            <p class="snap-info-value">{{ currentSnapshot.versionNumber }}</p>
+          </div>
+          <div class="snap-info-card">
+            <label class="snap-info-label">发布状态</label>
+            <p class="snap-info-value">{{ statusLabel(currentSnapshot.status) }}</p>
+          </div>
+        </div>
+
+        <div class="snap-ingredients-section">
+          <h4 class="snap-section-label">原料组成快照</h4>
+          <div v-if="currentSnapshot.snapshot?.materials?.length" class="snap-ingredient-list">
+            <div v-for="(m, i) in currentSnapshot.snapshot.materials" :key="i" class="snap-ingredient-item">
+              <span class="snap-ing-name">{{ m.materialName || '--' }}</span>
+              <span class="snap-ing-qty">{{ (m.quantity || 0).toFixed(2) }}%</span>
+              <div class="snap-ing-bar-track">
+                <div class="snap-ing-bar-fill" :style="{ width: Math.min(m.quantity || 0, 100) + '%' }"></div>
+              </div>
+            </div>
+          </div>
+          <p v-else class="snap-empty">暂无原料数据</p>
         </div>
       </div>
     </t-dialog>
@@ -189,11 +188,6 @@ const columns = [
   { colKey: 'operation', title: '操作', width: 100, align: 'right' }
 ]
 
-const materialColumns = [
-  { colKey: 'materialName', title: '原料名称', width: 200 },
-  { colKey: 'quantity', title: '数量', width: 120 }
-]
-
 const statusTheme = (s: string) => s === 'published' ? 'success' : s === 'draft' ? 'warning' : 'default'
 const statusLabel = (s: string) => s === 'published' ? '已发布' : s === 'draft' ? '草稿' : '已归档'
 const changeTypeTheme = (t: string) => t === 'add' ? 'success' : t === 'delete' ? 'danger' : 'warning'
@@ -218,8 +212,8 @@ const toggleSelect = (id: string) => {
   if (idx >= 0) {
     selectedForCompare.value.splice(idx, 1)
   } else {
-    if (selectedForCompare.value.length >= 2) {
-      MessagePlugin.warning('最多选择2个版本进行对比')
+    if (selectedForCompare.value.length >= 3) {
+      MessagePlugin.warning('最多选择3个版本进行对比')
       return
     }
     selectedForCompare.value.push(id)
@@ -256,32 +250,15 @@ const confirmCreateVersion = async () => {
   }
 }
 
-const publishDialogVisible = ref(false)
-const publishLoading = ref(false)
-const publishTarget = ref<any>(null)
-
-const handlePublish = (row: any) => {
-  publishTarget.value = row
-  publishDialogVisible.value = true
-}
-
-const confirmPublish = async () => {
-  if (!publishTarget.value) return
-  publishLoading.value = true
-  try {
-    const result = await versionStore.publishVersion(publishTarget.value.versionId)
-    if (result.success) {
-      MessagePlugin.success(result.message || '发布成功，配方数据已同步')
-      publishDialogVisible.value = false
-      publishTarget.value = null
-      fetchVersions()
-      const formula = await formulaStore.getFormula(formulaId)
-      if (formula) formulaName.value = formula.name
-    } else {
-      MessagePlugin.error(result.message || '发布失败')
-    }
-  } finally {
-    publishLoading.value = false
+const handlePublish = async (row: any) => {
+  const result = await versionStore.publishVersion(row.versionId)
+  if (result.success) {
+    MessagePlugin.success(result.message || '发布成功，配方数据已同步')
+    fetchVersions()
+    const formula = await formulaStore.getFormula(formulaId)
+    if (formula) formulaName.value = formula.name
+  } else {
+    MessagePlugin.error(result.message || '发布失败')
   }
 }
 
@@ -663,40 +640,181 @@ onMounted(async () => {
     }
   }
 
-  .snapshot-materials,
-  .snapshot-desc,
-  .snapshot-changes {
-    margin-top: $space-4;
+  :deep(.t-dialog) {
+    border-radius: 2.5rem;
+    overflow: hidden;
+    margin-top: 8vh;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
 
-    h4 {
-      margin: 0 0 $space-2 0;
-      font-size: $font-size-body;
-      font-weight: $font-weight-semibold;
-      color: $text-primary;
+    .t-dialog__header {
+      padding: 0;
+      cursor: move;
+      user-select: none;
+    }
+
+    .t-dialog__body {
+      padding: 0;
     }
   }
 
-  .snapshot-desc p {
-    margin: 0;
-    padding: $space-3;
-    background: $bg-page;
-    border-radius: $radius-md;
-    border-left: 3px solid $brand-primary-lightest;
-    color: $text-primary;
+  :deep(.t-popup) {
+    .t-popup__content {
+      backdrop-filter: blur(8px);
+      background-color: rgba(15, 23, 42, 0.4);
+    }
   }
 
-  .change-item {
+  :deep(.t-dialog__mask) {
+    backdrop-filter: blur(8px);
+    background-color: rgba(15, 23, 42, 0.4) !important;
+  }
+
+  .snap-header {
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    gap: 6px;
-    padding: $space-1 0;
-    font-size: $font-size-body-sm;
-    color: $text-primary;
+    padding: 32px;
+    border-bottom: 1px solid #f8fafc;
+
+    .snap-header-text {
+      .snap-title {
+        margin: 0;
+        font-size: 20px;
+        font-weight: 700;
+        color: #1e293b;
+      }
+
+      .snap-subtitle {
+        margin: 4px 0 0;
+        font-size: 13px;
+        color: #94a3b8;
+      }
+    }
+
+    .snap-close-btn {
+      width: 40px;
+      height: 40px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      border: none;
+      background: transparent;
+      color: #94a3b8;
+      cursor: pointer;
+      transition: background-color 0.2s, color 0.2s;
+      font-size: 20px;
+
+      &:hover {
+        background-color: #f1f5f9;
+        color: #475569;
+      }
+    }
   }
 
-  .publish-confirm-content {
-    .publish-warning {
-      border-radius: $radius-md;
+  .snap-body {
+    padding: 32px;
+    max-height: 70vh;
+    overflow-y: auto;
+
+    .snap-info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 32px;
+    }
+
+    .snap-info-card {
+      padding: 1rem;
+      background-color: #f8fafc;
+      border-radius: 1rem;
+
+      .snap-info-label {
+        display: block;
+        font-size: 10px;
+        font-weight: 900;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin-bottom: 6px;
+      }
+
+      .snap-info-value {
+        margin: 0;
+        font-family: ui-monospace, SFMono-Regular, 'Cascadia Code', monospace;
+        font-size: 14px;
+        font-weight: 700;
+        color: #334155;
+      }
+    }
+
+    .snap-ingredients-section {
+      .snap-section-label {
+        font-size: 10px;
+        font-weight: 900;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin: 0 0 16px;
+      }
+    }
+
+    .snap-ingredient-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .snap-ingredient-item {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding: 14px 18px;
+      background: rgba(248, 250, 252, 0.5);
+      border-radius: 1rem;
+      border: 1px solid #f8fafc;
+
+      .snap-ing-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .snap-ing-name {
+        font-size: 14px;
+        font-weight: 700;
+        color: #1e293b;
+      }
+
+      .snap-ing-qty {
+        font-family: ui-monospace, SFMono-Regular, 'Cascadia Code', monospace;
+        font-size: 14px;
+        font-weight: 900;
+        color: #059669;
+      }
+
+      .snap-ing-bar-track {
+        width: 100%;
+        height: 6px;
+        background: rgba(226, 232, 240, 0.3);
+        border-radius: 999px;
+        overflow: hidden;
+
+        .snap-ing-bar-fill {
+          height: 100%;
+          background: linear-gradient(90deg, #10b981, #059669);
+          border-radius: 999px;
+          transition: width 0.4s ease;
+        }
+      }
+    }
+
+    .snap-empty {
+      text-align: center;
+      color: #cbd5e1;
+      font-size: 13px;
+      padding: 24px 0;
+      margin: 0;
     }
   }
 }

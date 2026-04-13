@@ -349,18 +349,39 @@ npm run start          # 后端监听端口 3000，提供 API 服务
     - 行悬浮：`hover:bg-slate-50/50` 半透明效果
     - Checkbox：自定义样式，选中态 emerald-500
   - **跨页面数据传递**：进入对比功能通过 `localStorage('compare_versions')` 实现版本 ID 持久化传递
+  - **发布流程简化**：发布操作采用 `<t-popconfirm>` 二次确认弹窗，确认后直接执行发布，不再弹出中间 dialog
+  - **对比选择上限扩展**：支持最多选择 **3 个版本** 进行多维对比（原 2 个）
 
 - **版本对比页面 UI 全面重构**：
   - **VersionCompare.vue** 同样采用 `header + main` 双区域布局
   - **Header 区域**：返回按钮 + 面包屑（版本管理 > 版本差异对比）+ 标题「版本多维对比视图」
   - **Header 右侧**：当前对比版本数计数器（emerald 加粗）+ 重置对比按钮（rose 色，TDesign Dialog 弹窗确认）
   - **空状态**：大图标 + 提示文字 + 返回选择按钮（emerald 主题）
+  - **占位卡片内联版本选择**：
+    - 移除 popover 触发的下拉框方案，改为在占位卡片内部直接展示可选版本列表
+    - 用户点击即可选中版本，占位卡片实时切换为该版本的完整对比卡片
+    - 样式与正式对比卡片 (`compare-card`) 完全一致
+  - **基准卡片对比逻辑**：
+    - 以第一个卡片为基准进行差异比对（非两两交叉对比）
+    - 非基准卡片顶部新增「设为基准」pin 按钮（pin 图标），点击后将该卡片移至第一位作为新基准
+    - 基准有、当前无的原料项：红色虚线框空出（`diff-missing`），进度条归零，名称删除线
+    - 当前多出（基准无）的原料项：绿色高亮（`diff-added`），追加到原料列表末尾保持对齐
+    - 数量变更项：琥珀色高亮（`diff-changed`）
   - **对比卡片网格**：横向滚动布局（flex + overflow-x: auto），每张卡片独立 slideIn 动画
-    - 卡片头部：版本号 pill（emerald 底）+ 删除按钮 + 版本名称 + 日期/作者元信息
+    - 卡片头部：版本号 pill（emerald 底，基准卡带「· 基准」标识）+ pin 按钮 + 删除按钮 + 版本名称 + 日期/作者元信息
     - 原料构成区域：从 `snapshot.materials` 读取数据，展示原料名称 + 百分比 + 进度条
-    - 差异高亮：新增(green)、删除(red strikethrough)、修改(amber) 三种 diff 样式
+    - 差异高亮四种类型：新增(green/diff-added)、删除(red strikethrough/diff-removed)、修改(amber/diff-changed)、缺失(red dashed/diff-missing)
     - 版本摘要区域：斜体文字 + emerald 半透明背景 + 根据 status 动态文本
   - **弹窗交互**：重置对比使用 TDesign `<t-dialog>` 组件（非浏览器原生 confirm）
+
+- **版本快照 Dialog 重构**：
+  - 完全参照 `version-management.html#L147-180` 设计规范重新实现
+  - **Dialog 属性**：`:footer="false"` 取消底部按钮 + `:draggable="true"` 可拖拽 + `:show-close-button="false"` 隐藏默认关闭按钮 + `:close-on-overlay-click="true"` 点击遮罩关闭
+  - **尺寸规格**：宽度 672px（max-w-2xl）+ 圆角 2.5rem（40px）+ shadow-2xl 阴影 + overflow-hidden
+  - **定位**：`margin-top: 8vh` 靠上显示
+  - **遮罩层**：`backdrop-filter: blur(8px)` + `rgba(15,23,42,0.4)` 深色半透明虚化背景（对齐 HTML 的 `bg-slate-900/40 backdrop-blur-sm`）
+  - **自定义 Header**：标题「版本快照详情」+ 副标题「配方数据备份记录」+ 圆形 X 关闭按钮（w-10 h-10 rounded-full hover:bg-slate-100 text-slate-400 transition-colors）
+  - **Body 区域**：max-height 70vh 可滚动，包含版本号/发布状态 info-grid（gap-6 / p-4 bg-slate-50 rounded-2xl）+ 原料组成快照列表
 
 ### v2.16.0 (2026-04-07)
 
