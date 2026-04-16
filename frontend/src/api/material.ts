@@ -37,6 +37,9 @@ export const materialApi = {
   delete(id: string) {
     return http.delete<any, { success: boolean; message: string }>(`/materials/${id}`)
   },
+  getNextCode() {
+    return http.get<any, { code: string }>('/materials/next-code')
+  },
   getByFormula(formulaId: string) {
     return http.get<any, { success: boolean; data: Material[] }>(`/materials/by-formula/${formulaId}`)
   },

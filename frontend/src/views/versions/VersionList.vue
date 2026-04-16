@@ -113,28 +113,28 @@
       </t-form-item>
     </t-dialog>
 
-    <t-dialog v-model:visible="snapshotVisible" :footer="false" :width="672" :draggable="true"
-      :close-on-overlay-click="true" :show-close-button="false" class="snap-dialog">
+    <t-drawer v-model:visible="snapshotVisible" :footer="false" size="600px" placement="right" :show-overlay="true"
+      :close-on-overlay-click="true" :close-btn="true" class="snap-drawer">
       <template #header>
         <div class="snap-header">
           <div class="snap-header-text">
-            <h3 class="snap-title">版本快照详情</h3>
+            <h3 class="snap-title">{{ currentSnapshot?.versionName || '版本快照详情' }}<span
+                v-if="currentSnapshot?.versionNumber" class="snap-version-num"> {{ currentSnapshot.versionNumber
+                }}</span></h3>
             <p class="snap-subtitle">配方数据备份记录</p>
           </div>
-          <button class="snap-close-btn" @click="snapshotVisible = false">
-            <t-icon name="close" />
-          </button>
         </div>
       </template>
       <div v-if="currentSnapshot" class="snap-body">
         <div class="snap-info-grid">
           <div class="snap-info-card">
-            <label class="snap-info-label">版本号</label>
-            <p class="snap-info-value">{{ currentSnapshot.versionNumber }}</p>
+            <label class="snap-info-label">配方编码</label>
+            <p class="snap-info-value">{{ currentSnapshot.snapshot?.formulaCode || '--' }}</p>
           </div>
           <div class="snap-info-card">
             <label class="snap-info-label">发布状态</label>
-            <p class="snap-info-value">{{ statusLabel(currentSnapshot.status) }}</p>
+            <p class="snap-info-value"><span :class="'status-tag status-' + currentSnapshot.status">{{
+              statusLabel(currentSnapshot.status) }}</span></p>
           </div>
         </div>
 
@@ -142,41 +142,45 @@
           <h4 class="snap-section-label">原料组成快照</h4>
           <div v-if="currentSnapshot.snapshot?.materials?.length" class="snap-ingredient-list">
             <div v-for="(m, i) in currentSnapshot.snapshot.materials" :key="i" class="snap-ingredient-item">
-              <span class="snap-ing-name">{{ m.materialName || '--' }}</span>
-              <span class="snap-ing-qty">{{ (m.quantity || 0).toFixed(2) }}%</span>
-              <div class="snap-ing-bar-track">
-                <div class="snap-ing-bar-fill" :style="{ width: Math.min(m.quantity || 0, 100) + '%' }"></div>
+              <div class="snap-ing-left">
+                <span class="snap-ing-name">{{ m.materialName || '--' }}</span>
+                <span v-if="getMaterialType(m) === 'supplement'" class="snap-ing-tag snap-tag-supplement">辅料</span>
+                <span v-else-if="getMaterialType(m) === 'herb'" class="snap-ing-tag snap-tag-herb">主料</span>
               </div>
+              <span class="snap-ing-qty">{{ calcActualWeight(m).toFixed(1) }}g / {{ (m.quantity || 0).toFixed(2)
+              }}%</span>
             </div>
           </div>
           <p v-else class="snap-empty">暂无原料数据</p>
         </div>
       </div>
-    </t-dialog>
+    </t-drawer>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import { useVersionStore } from '@/stores/version'
-import { useFormulaStore } from '@/stores/formula'
-import { MessagePlugin } from 'tdesign-vue-next'
-import PageSkeleton from '@/components/Skeleton/PageSkeleton.vue'
+import { ref, onMounted } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
+import { useVersionStore } from '@/stores/version';
+import { useFormulaStore } from '@/stores/formula';
+import { useMaterialStore } from '@/stores/material';
+import { MessagePlugin } from 'tdesign-vue-next';
+import PageSkeleton from '@/components/Skeleton/PageSkeleton.vue';
 
-const router = useRouter()
-const route = useRoute()
-const versionStore = useVersionStore()
-const formulaStore = useFormulaStore()
+const router = useRouter();
+const route = useRoute();
+const versionStore = useVersionStore();
+const formulaStore = useFormulaStore();
+const materialStore = useMaterialStore();
 
-const initialized = ref(false)
+const initialized = ref(false);
 
-const formulaId = route.params.formulaId as string
-const formulaName = ref('')
-const statusFilter = ref('')
-const snapshotVisible = ref(false)
-const currentSnapshot = ref<any>(null)
-const selectedForCompare = ref<string[]>([])
+const formulaId = route.params.formulaId as string;
+const formulaName = ref('');
+const statusFilter = ref('');
+const snapshotVisible = ref(false);
+const currentSnapshot = ref<any>(null);
+const selectedForCompare = ref<string[]>([]);
 
 const columns = [
   { colKey: 'row-select', title: '选择对比', width: 90 },
@@ -186,99 +190,112 @@ const columns = [
   { colKey: 'status', title: '状态', width: 70, align: 'center' },
   { colKey: 'createdAt', title: '创建日期', width: 130 },
   { colKey: 'operation', title: '操作', width: 100, align: 'right' }
-]
+];
 
-const statusTheme = (s: string) => s === 'published' ? 'success' : s === 'draft' ? 'warning' : 'default'
-const statusLabel = (s: string) => s === 'published' ? '已发布' : s === 'draft' ? '草稿' : '已归档'
-const changeTypeTheme = (t: string) => t === 'add' ? 'success' : t === 'delete' ? 'danger' : 'warning'
-const changeTypeLabel = (t: string) => t === 'add' ? '新增' : t === 'delete' ? '删除' : '修改'
-const changeTypeIcon = (t: string) => t === 'add' ? 'add' : t === 'delete' ? 'remove' : 'edit'
+const statusTheme = (s: string) => s === 'published' ? 'success' : s === 'draft' ? 'warning' : 'default';
+const statusLabel = (s: string) => s === 'published' ? '已发布' : s === 'draft' ? '草稿' : '已归档';
+const changeTypeTheme = (t: string) => t === 'add' ? 'success' : t === 'delete' ? 'danger' : 'warning';
+const changeTypeLabel = (t: string) => t === 'add' ? '新增' : t === 'delete' ? '删除' : '修改';
+const changeTypeIcon = (t: string) => t === 'add' ? 'add' : t === 'delete' ? 'remove' : 'edit';
 
 const formatCreatedAt = (val: string | undefined) => {
-  if (!val) return { date: '--', time: '' }
-  const d = new Date(val)
-  const pad = (n: number) => String(n).padStart(2, '0')
-  const y = d.getFullYear()
-  const m = pad(d.getMonth() + 1)
-  const day = pad(d.getDate())
-  const h = pad(d.getHours())
-  const min = pad(d.getMinutes())
-  const s = pad(d.getSeconds())
-  return { date: `${y}-${m}-${day}`, time: `${h}:${min}:${s}` }
-}
+  if (!val) return { date: '--', time: '' };
+  const d = new Date(val);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const y = d.getFullYear();
+  const m = pad(d.getMonth() + 1);
+  const day = pad(d.getDate());
+  const h = pad(d.getHours());
+  const min = pad(d.getMinutes());
+  const s = pad(d.getSeconds());
+  return { date: `${y}-${m}-${day}`, time: `${h}:${min}:${s}` };
+};
 
 const toggleSelect = (id: string) => {
-  const idx = selectedForCompare.value.indexOf(id)
+  const idx = selectedForCompare.value.indexOf(id);
   if (idx >= 0) {
-    selectedForCompare.value.splice(idx, 1)
+    selectedForCompare.value.splice(idx, 1);
   } else {
     if (selectedForCompare.value.length >= 3) {
-      MessagePlugin.warning('最多选择3个版本进行对比')
-      return
+      MessagePlugin.warning('最多选择3个版本进行对比');
+      return;
     }
-    selectedForCompare.value.push(id)
+    selectedForCompare.value.push(id);
   }
-  localStorage.setItem('compare_versions', JSON.stringify(selectedForCompare.value))
-}
+  localStorage.setItem('compare_versions', JSON.stringify(selectedForCompare.value));
+};
 
 const fetchVersions = () => {
-  versionStore.fetchVersions(formulaId, statusFilter.value ? { status: statusFilter.value } : undefined)
-}
+  versionStore.fetchVersions(formulaId, statusFilter.value ? { status: statusFilter.value } : undefined);
+};
 
-const handleBack = () => router.push('/formulas')
+const handleBack = () => router.push('/formulas');
 
-const createVersionVisible = ref(false)
-const createVersionReason = ref('')
+const createVersionVisible = ref(false);
+const createVersionReason = ref('');
 
 const handleCreateVersion = () => {
-  createVersionReason.value = ''
-  createVersionVisible.value = true
-}
+  createVersionReason.value = '';
+  createVersionVisible.value = true;
+};
 
 const confirmCreateVersion = async () => {
   if (!createVersionReason.value?.trim()) {
-    MessagePlugin.warning('请填写升版原因')
-    return
+    MessagePlugin.warning('请填写升版原因');
+    return;
   }
-  const result = await versionStore.createVersion(formulaId, { versionReason: createVersionReason.value.trim(), status: 'draft' })
+  const result = await versionStore.createVersion(formulaId, { versionReason: createVersionReason.value.trim(), status: 'draft' });
   if (result.success) {
-    MessagePlugin.success(`版本 ${result.data?.versionNumber} 创建成功`)
-    createVersionVisible.value = false
-    fetchVersions()
+    MessagePlugin.success(`版本 ${result.data?.versionNumber} 创建成功`);
+    createVersionVisible.value = false;
+    fetchVersions();
   } else {
-    MessagePlugin.error(result.message || '创建失败')
+    MessagePlugin.error(result.message || '创建失败');
   }
-}
+};
 
 const handlePublish = async (row: any) => {
-  const result = await versionStore.publishVersion(row.versionId)
+  const result = await versionStore.publishVersion(row.versionId);
   if (result.success) {
-    MessagePlugin.success(result.message || '发布成功，配方数据已同步')
-    fetchVersions()
-    const formula = await formulaStore.getFormula(formulaId)
-    if (formula) formulaName.value = formula.name
+    MessagePlugin.success(result.message || '发布成功，配方数据已同步');
+    fetchVersions();
+    const formula = await formulaStore.getFormula(formulaId);
+    if (formula) formulaName.value = formula.name;
   } else {
-    MessagePlugin.error(result.message || '发布失败')
+    MessagePlugin.error(result.message || '发布失败');
   }
-}
+};
 
-const handleCompare = () => router.push(`/versions/compare/${formulaId}`)
+const handleCompare = () => router.push(`/versions/compare/${formulaId}`);
 
 const handleViewSnapshot = (row: any) => {
-  currentSnapshot.value = row
-  snapshotVisible.value = true
-}
+  currentSnapshot.value = row;
+  snapshotVisible.value = true;
+};
+
+const getMaterialType = (material: any): string => {
+  if (!material || !material.materialId) return '';
+  const mat = materialStore.allMaterials?.find((m: any) => m.id === material.materialId);
+  return mat?.materialType || '';
+};
+
+const calcActualWeight = (material: any): number => {
+  const finishedWeight = currentSnapshot.value?.snapshot?.finishedWeight || currentSnapshot.value?.snapshot?.finished_weight || 0;
+  const quantity = material.quantity || 0;
+  return (quantity / 100) * finishedWeight;
+};
 
 onMounted(async () => {
   await Promise.all([
     versionStore.fetchVersions(formulaId, statusFilter.value ? { status: statusFilter.value } : undefined),
     (async () => {
-      const formula = await formulaStore.getFormula(formulaId)
-      if (formula) formulaName.value = formula.name
-    })()
-  ])
-  initialized.value = true
-})
+      const formula = await formulaStore.getFormula(formulaId);
+      if (formula) formulaName.value = formula.name;
+    })(),
+    materialStore.fetchMaterials()
+  ]);
+  initialized.value = true;
+});
 </script>
 
 <style scoped lang="scss">
@@ -640,31 +657,44 @@ onMounted(async () => {
     }
   }
 
-  :deep(.t-dialog) {
-    border-radius: 2.5rem;
+  :deep(.t-drawer) {
+    border-radius: 0;
     overflow: hidden;
-    margin-top: 8vh;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    box-shadow: -10px 0 40px rgba(0, 0, 0, 0.15);
 
-    .t-dialog__header {
+    .t-drawer__header {
       padding: 0;
-      cursor: move;
-      user-select: none;
+      border-bottom: none;
     }
 
-    .t-dialog__body {
+    .t-drawer__body {
       padding: 0;
+      overflow-y: auto;
+    }
+
+    .t-drawer__close-btn {
+      position: absolute;
+      top: 24px;
+      right: 24px;
+      z-index: 10;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: transparent;
+      color: #94a3b8;
+      transition: all 0.15s ease;
+
+      &:hover {
+        background-color: #f1f5f9;
+        color: #64748b;
+      }
     }
   }
 
-  :deep(.t-popup) {
-    .t-popup__content {
-      backdrop-filter: blur(8px);
-      background-color: rgba(15, 23, 42, 0.4);
-    }
-  }
-
-  :deep(.t-dialog__mask) {
+  :deep(.t-drawer__mask) {
     backdrop-filter: blur(8px);
     background-color: rgba(15, 23, 42, 0.4) !important;
   }
@@ -673,61 +703,50 @@ onMounted(async () => {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 32px;
-    border-bottom: 1px solid #f8fafc;
+    padding: 32px 32px 24px;
+    border-bottom: 1px solid rgba(248, 250, 252, 0.8);
+    position: relative;
 
     .snap-header-text {
+      flex: 1;
+
       .snap-title {
         margin: 0;
         font-size: 20px;
         font-weight: 700;
         color: #1e293b;
+
+        .snap-version-num {
+          color: #10b981;
+          font-family: ui-monospace, SFMono-Regular, 'Cascadia Code', monospace;
+          font-size: 12px;
+          font-weight: 600;
+          margin-left: 8px;
+        }
       }
 
       .snap-subtitle {
         margin: 4px 0 0;
-        font-size: 13px;
+        font-size: 14px;
         color: #94a3b8;
-      }
-    }
-
-    .snap-close-btn {
-      width: 40px;
-      height: 40px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 50%;
-      border: none;
-      background: transparent;
-      color: #94a3b8;
-      cursor: pointer;
-      transition: background-color 0.2s, color 0.2s;
-      font-size: 20px;
-
-      &:hover {
-        background-color: #f1f5f9;
-        color: #475569;
       }
     }
   }
 
   .snap-body {
     padding: 32px;
-    max-height: 70vh;
-    overflow-y: auto;
 
     .snap-info-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: repeat(2, 1fr);
       gap: 24px;
       margin-bottom: 32px;
     }
 
     .snap-info-card {
-      padding: 1rem;
+      padding: 16px;
       background-color: #f8fafc;
-      border-radius: 1rem;
+      border-radius: 16px;
 
       .snap-info-label {
         display: block;
@@ -735,8 +754,8 @@ onMounted(async () => {
         font-weight: 900;
         color: #94a3b8;
         text-transform: uppercase;
-        letter-spacing: 0.1em;
-        margin-bottom: 6px;
+        letter-spacing: 0.05em;
+        margin-bottom: 4px;
       }
 
       .snap-info-value {
@@ -745,6 +764,29 @@ onMounted(async () => {
         font-size: 14px;
         font-weight: 700;
         color: #334155;
+
+        .status-tag {
+          display: inline-block;
+          padding: 4px 12px;
+          font-size: 12px;
+          font-weight: 600;
+          border-radius: 6px;
+
+          &.status-published {
+            background-color: #d1fae5;
+            color: #059669;
+          }
+
+          &.status-draft {
+            background-color: #fef3c7;
+            color: #d97706;
+          }
+
+          &.status-archived {
+            background-color: #f1f5f9;
+            color: #64748b;
+          }
+        }
       }
     }
 
@@ -754,7 +796,7 @@ onMounted(async () => {
         font-weight: 900;
         color: #94a3b8;
         text-transform: uppercase;
-        letter-spacing: 0.1em;
+        letter-spacing: 0.15em;
         margin: 0 0 16px;
       }
     }
@@ -762,50 +804,55 @@ onMounted(async () => {
     .snap-ingredient-list {
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 12px;
     }
 
     .snap-ingredient-item {
       display: flex;
-      flex-direction: column;
-      gap: 6px;
-      padding: 14px 18px;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 20px;
       background: rgba(248, 250, 252, 0.5);
-      border-radius: 1rem;
-      border: 1px solid #f8fafc;
+      border-radius: 12px;
+      border: 1px solid rgba(248, 250, 252, 0.8);
 
-      .snap-ing-top {
+      .snap-ing-left {
         display: flex;
-        justify-content: space-between;
         align-items: center;
+        gap: 8px;
       }
 
       .snap-ing-name {
         font-size: 14px;
+        font-weight: 500;
+        color: #334155;
+      }
+
+      .snap-ing-tag {
+        display: inline-block;
+        padding: 2px 8px;
+        font-size: 10px;
         font-weight: 700;
-        color: #1e293b;
+        border-radius: 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+
+        &.snap-tag-supplement {
+          background-color: #fef3c7;
+          color: #d97706;
+        }
+
+        &.snap-tag-herb {
+          background-color: #d1fae5;
+          color: #059669;
+        }
       }
 
       .snap-ing-qty {
         font-family: ui-monospace, SFMono-Regular, 'Cascadia Code', monospace;
         font-size: 14px;
-        font-weight: 900;
-        color: #059669;
-      }
-
-      .snap-ing-bar-track {
-        width: 100%;
-        height: 6px;
-        background: rgba(226, 232, 240, 0.3);
-        border-radius: 999px;
-        overflow: hidden;
-
-        .snap-ing-bar-fill {
-          height: 100%;
-          background: linear-gradient(90deg, #10b981, #059669);
-          border-radius: 999px;
-          transition: width 0.4s ease;
-        }
+        font-weight: 700;
+        color: #10b981;
       }
     }
 

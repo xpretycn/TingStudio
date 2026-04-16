@@ -54,6 +54,24 @@ export async function getMaterial(req: Request, res: Response) {
   }
 }
 
+/** 获取下一个原料编码 */
+export async function getNextCode(req: any, res: Response) {
+  try {
+    const userId = req.user.userId
+    const [rows]: any[] = await query(
+      "SELECT code FROM materials WHERE code LIKE 'MAT%' AND created_by = ? ORDER BY code DESC LIMIT 1",
+      [userId]
+    )
+    let nextNum = 1
+    if (rows && rows.length > 0) {
+      nextNum = parseInt(rows[0].code.replace('MAT', '')) + 1
+    }
+    res.json(success({ code: `MAT${String(nextNum).padStart(3, '0')}` }))
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: '获取编码失败', error: error.message })
+  }
+}
+
 /** 创建原料 */
 export async function createMaterial(req: any, res: Response) {
   try {

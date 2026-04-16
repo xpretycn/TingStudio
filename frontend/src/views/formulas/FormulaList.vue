@@ -21,7 +21,6 @@
     <Transition name="content-fade" mode="out-in">
       <PageSkeleton v-if="!initialized" type="table" :rows="5" :columns="6" />
       <t-card v-else class="content-card" bordered>
-
         <!-- 工具栏：参照数据中心列表样式 -->
         <div class="data-center-toolbar">
           <!-- 批量操作栏 (默认隐藏) - 与 index.html 完全一致 -->
@@ -386,28 +385,28 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
-import { useRouter } from 'vue-router'
-import { useFormulaStore } from '@/stores/formula'
-import { useMaterialStore } from '@/stores/material'
-import { useSalesmanStore } from '@/stores/salesman'
-import { usePaginationStore } from '@/stores/pagination'
-import { MessagePlugin } from 'tdesign-vue-next'
-import type { Formula } from '@/api/formula'
-import PageSkeleton from '@/components/Skeleton/PageSkeleton.vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
+import { useRouter } from 'vue-router';
+import { useFormulaStore } from '@/stores/formula';
+import { useMaterialStore } from '@/stores/material';
+import { useSalesmanStore } from '@/stores/salesman';
+import { usePaginationStore } from '@/stores/pagination';
+import { MessagePlugin } from 'tdesign-vue-next';
+import type { Formula } from '@/api/formula';
+import PageSkeleton from '@/components/Skeleton/PageSkeleton.vue';
 
-const router = useRouter()
-const formulaStore = useFormulaStore()
-const materialStore = useMaterialStore()
-const salesmanStore = useSalesmanStore()
-const paginationStore = usePaginationStore()
+const router = useRouter();
+const formulaStore = useFormulaStore();
+const materialStore = useMaterialStore();
+const salesmanStore = useSalesmanStore();
+const paginationStore = usePaginationStore();
 
-const initialized = ref(false)
+const initialized = ref(false);
 
 // ─── 数据看板 ───
 const dashboardCards = computed(() => {
-  const formulaCount = formulaStore.formulas?.length || 1284
-  const materialCount = materialStore.materials?.length ?? 0
+  const formulaCount = formulaStore.formulas?.length || 1284;
+  const materialCount = materialStore.materials?.length ?? 0;
   return [
     {
       label: '活跃配方总数',
@@ -453,145 +452,145 @@ const dashboardCards = computed(() => {
       iconColor: '#10B981',
       iconPath: '<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>',
     },
-  ]
-})
+  ];
+});
 
 const getFormulaDesc = (description: string | null | undefined) => {
-  if (!description || typeof description !== 'string') return null
+  if (!description || typeof description !== 'string') return null;
   try {
-    const obj = JSON.parse(description)
-    return typeof obj === 'object' && obj !== null ? obj : null
+    const obj = JSON.parse(description);
+    return typeof obj === 'object' && obj !== null ? obj : null;
   } catch {
-    return null
+    return null;
   }
-}
+};
 
-const deleteDialogVisible = ref(false)
-const deleteLoading = ref(false)
-const deleteTarget = ref<Formula | null>(null)
-const batchDeleteDialogVisible = ref(false)
-const batchDeleteLoading = ref(false)
-const expandedRowKeys = ref<(string | number)[]>([])
-const selectedRowKeys = ref<(string | number)[]>([])
-const selectedRows = ref<Formula[]>([])
-const searchKeyword = ref('')
-const tableSort = ref<any>(undefined)
-const sortedFormulas = ref<Formula[]>([])
+const deleteDialogVisible = ref(false);
+const deleteLoading = ref(false);
+const deleteTarget = ref<Formula | null>(null);
+const batchDeleteDialogVisible = ref(false);
+const batchDeleteLoading = ref(false);
+const expandedRowKeys = ref<(string | number)[]>([]);
+const selectedRowKeys = ref<(string | number)[]>([]);
+const selectedRows = ref<Formula[]>([]);
+const searchKeyword = ref('');
+const tableSort = ref<any>(undefined);
+const sortedFormulas = ref<Formula[]>([]);
 
 const onExpandChange = (keys: Array<string | number>) => {
-  expandedRowKeys.value = keys
-}
+  expandedRowKeys.value = keys;
+};
 
 const onSortChange = (sort: any, context: any) => {
-  tableSort.value = sort
+  tableSort.value = sort;
   if (!sort || !sort.sortBy) {
-    sortedFormulas.value = [...formulaStore.formulas]
-    return
+    sortedFormulas.value = [...formulaStore.formulas];
+    return;
   }
-  const { sortBy, descending } = sort
-  const col = columns.find(c => c.colKey === sortBy)
+  const { sortBy, descending } = sort;
+  const col = columns.find(c => c.colKey === sortBy);
   if (col?.sorter) {
     sortedFormulas.value = [...formulaStore.formulas].sort((a, b) => {
-      const result = (col.sorter as Function)(a, b)
-      return descending ? -result : result
-    })
+      const result = (col.sorter as Function)(a, b);
+      return descending ? -result : result;
+    });
   } else {
-    sortedFormulas.value = [...formulaStore.formulas]
+    sortedFormulas.value = [...formulaStore.formulas];
   }
-}
+};
 
 // Watch store data to sync sorted list
 watch(() => formulaStore.formulas, (val) => {
   if (tableSort.value?.sortBy) {
-    onSortChange(tableSort.value, {})
+    onSortChange(tableSort.value, {});
   } else {
-    sortedFormulas.value = [...val]
+    sortedFormulas.value = [...val];
   }
-}, { immediate: true })
+}, { immediate: true });
 
 // ─── 批量操作 ───
-const handleSelectChange = (value: Array<string | number>, { selectedRowData }: { selectedRowData: Formula[] }) => {
-  selectedRowKeys.value = value
-  selectedRows.value = selectedRowData
-}
+const handleSelectChange = (value: Array<string | number>, { selectedRowData }: { selectedRowData: Formula[]; }) => {
+  selectedRowKeys.value = value;
+  selectedRows.value = selectedRowData;
+};
 
 const clearSelection = () => {
-  selectedRowKeys.value = []
-  selectedRows.value = []
-}
+  selectedRowKeys.value = [];
+  selectedRows.value = [];
+};
 
 const handleBatchExport = () => {
-  if (selectedRows.value.length === 0) return
-  const ids = selectedRows.value.map(f => f.id).join(',')
-  router.push({ path: '/exports', query: { formulaIds: ids } })
-  MessagePlugin.success(`已选择 ${selectedRows.value.length} 个配方进行导出`)
-  clearSelection()
-}
+  if (selectedRows.value.length === 0) return;
+  const ids = selectedRows.value.map(f => f.id).join(',');
+  router.push({ path: '/exports', query: { formulaIds: ids } });
+  MessagePlugin.success(`已选择 ${selectedRows.value.length} 个配方进行导出`);
+  clearSelection();
+};
 
 const handleBatchDelete = () => {
-  if (selectedRows.value.length === 0) return
-  batchDeleteDialogVisible.value = true
-}
+  if (selectedRows.value.length === 0) return;
+  batchDeleteDialogVisible.value = true;
+};
 
 const confirmBatchDelete = async () => {
-  const count = selectedRows.value.length
-  batchDeleteLoading.value = true
+  const count = selectedRows.value.length;
+  batchDeleteLoading.value = true;
   try {
     for (const f of selectedRows.value) {
-      await formulaStore.deleteFormula(f.id)
+      await formulaStore.deleteFormula(f.id);
     }
-    MessagePlugin.success(`成功删除 ${count} 个配方`)
-    clearSelection()
-    batchDeleteDialogVisible.value = false
+    MessagePlugin.success(`成功删除 ${count} 个配方`);
+    clearSelection();
+    batchDeleteDialogVisible.value = false;
   } catch {
-    MessagePlugin.error('批量删除失败')
+    MessagePlugin.error('批量删除失败');
   } finally {
-    batchDeleteLoading.value = false
+    batchDeleteLoading.value = false;
   }
-}
+};
 
 // 批量归档
 const handleBatchArchive = async () => {
-  const count = selectedRows.value.length
+  const count = selectedRows.value.length;
   try {
     for (const f of selectedRows.value) {
       // 使用 API 直接更新状态字段（status 不在 FormulaForm 表单类型中）
-      await formulaStore.updateFormula(f.id, { name: f.name, description: f.description || '' } as any)
+      await formulaStore.updateFormula(f.id, { name: f.name, description: f.description || '' } as any);
     }
-    MessagePlugin.success(`已归档 ${count} 个配方`)
-    clearSelection()
+    MessagePlugin.success(`已归档 ${count} 个配方`);
+    clearSelection();
   } catch {
-    MessagePlugin.error('批量归档失败')
+    MessagePlugin.error('批量归档失败');
   }
-}
+};
 
 const parseChanges = (changesJson: string): any[] => {
   try {
-    const arr = JSON.parse(changesJson)
-    return Array.isArray(arr) ? arr : []
+    const arr = JSON.parse(changesJson);
+    return Array.isArray(arr) ? arr : [];
   } catch {
-    return []
+    return [];
   }
-}
+};
 
 const getFormulaAvatar = (row: any) => {
-  const code = row.code || ''
-  const name = row.name || ''
-  const codeMatch = code.match(/^([A-Z]+)/)
+  const code = row.code || '';
+  const name = row.name || '';
+  const codeMatch = code.match(/^([A-Z]+)/);
   if (codeMatch) {
     return {
       text: codeMatch[1],
       bgColor: getAvatarColor(codeMatch[1]).bg,
       textColor: getAvatarColor(codeMatch[1]).text
-    }
+    };
   }
-  const initials = name.split(' ').map((word: string) => word[0]).join('').substring(0, 3).toUpperCase()
+  const initials = name.split(' ').map((word: string) => word[0]).join('').substring(0, 3).toUpperCase();
   return {
     text: initials || 'BDR',
     bgColor: getAvatarColor(initials).bg,
     textColor: getAvatarColor(initials).text
-  }
-}
+  };
+};
 
 const getAvatarColor = (text: string) => {
   const colors = [
@@ -603,14 +602,14 @@ const getAvatarColor = (text: string) => {
     { bg: '#F3E8FF', text: '#A855F7' },
     { bg: '#E0F2FE', text: '#0EA5E9' },
     { bg: '#FFEDD5', text: '#F97316' }
-  ]
-  const index = text.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % colors.length
-  return colors[index]
-}
+  ];
+  const index = text.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % colors.length;
+  return colors[index];
+};
 
 const getFormulaStatus = (row: any) => {
-  const currentVersion = (row.versions || []).find((v: any) => v.isCurrent)
-  const versionNumber = currentVersion?.versionNumber || 'v1.0.0'
+  const currentVersion = (row.versions || []).find((v: any) => v.isCurrent);
+  const versionNumber = currentVersion?.versionNumber || 'v1.0.0';
 
   if (currentVersion && currentVersion.status === 'published') {
     return {
@@ -620,7 +619,7 @@ const getFormulaStatus = (row: any) => {
       icon: 'check-circle',
       version: versionNumber,
       color: '#10B981'
-    }
+    };
   }
   if (currentVersion && currentVersion.status === 'draft') {
     return {
@@ -630,7 +629,7 @@ const getFormulaStatus = (row: any) => {
       icon: 'time',
       version: versionNumber,
       color: '#F59E0B'
-    }
+    };
   }
   if (!row.versions || row.versions.length === 0) {
     return {
@@ -640,7 +639,7 @@ const getFormulaStatus = (row: any) => {
       icon: 'edit',
       version: 'v0.0.0',
       color: '#94A3B8'
-    }
+    };
   }
   return {
     label: '已归档',
@@ -649,73 +648,73 @@ const getFormulaStatus = (row: any) => {
     icon: 'folder',
     version: versionNumber,
     color: '#94A3B8'
-  }
-}
+  };
+};
 
 const columns = [
   { colKey: 'row-select', type: 'multiple', width: 50, resizable: false },
   { colKey: 'name', title: '配方信息', width: 200, sorter: (a: any, b: any) => a.name.localeCompare(b.name, 'zh') },
   {
     colKey: 'formulaStatus', title: '版本状态', width: 150, sorter: (a: any, b: any) => {
-      const statusA = getFormulaStatus(a).label
-      const statusB = getFormulaStatus(b).label
-      return statusA.localeCompare(statusB, 'zh')
+      const statusA = getFormulaStatus(a).label;
+      const statusB = getFormulaStatus(b).label;
+      return statusA.localeCompare(statusB, 'zh');
     }
   },
   { colKey: 'materialCount', title: '原料数量', width: 120, sorter: (a: any, b: any) => (a.materials?.length || 0) - (b.materials?.length || 0) },
   { colKey: 'salesmanName', title: '负责人', width: 150, sorter: (a: any, b: any) => (a.salesmanName || '').localeCompare(b.salesmanName || '', 'zh') },
   { colKey: 'createdAt', title: '更新时间', width: 180, sorter: (a: any, b: any) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime() },
   { colKey: 'operation', title: '操作', width: 120, align: 'center' }
-]
+];
 
 const pagination = computed(() => ({
   current: formulaStore.currentPage,
   pageSize: formulaStore.pageSize,
   total: formulaStore.total,
   onChange: (pageInfo: any) => {
-    formulaStore.setPage(pageInfo.current)
-    formulaStore.fetchFormulas()
+    formulaStore.setPage(pageInfo.current);
+    formulaStore.fetchFormulas();
   }
-}))
+}));
 
 // 分页页码计算（用于手动分页按钮）
-const totalPages = computed(() => Math.ceil(formulaStore.total / formulaStore.pageSize) || 1)
+const totalPages = computed(() => Math.ceil(formulaStore.total / formulaStore.pageSize) || 1);
 const pageNumbers = computed<(number | string)[]>(() => {
-  const total = totalPages.value
-  const current = formulaStore.currentPage
-  if (total <= 5) return Array.from({ length: total }, (_, i) => i + 1)
-  if (current <= 3) return [1, 2, 3, '...', total]
-  if (current >= total - 2) return [1, '...', total - 2, total - 1, total]
-  return [1, '...', current - 1, current, current + 1, '...', total]
-})
+  const total = totalPages.value;
+  const current = formulaStore.currentPage;
+  if (total <= 5) return Array.from({ length: total }, (_, i) => i + 1);
+  if (current <= 3) return [1, 2, 3, '...', total];
+  if (current >= total - 2) return [1, '...', total - 2, total - 1, total];
+  return [1, '...', current - 1, current, current + 1, '...', total];
+});
 
 // 底部动态数据 - 基于实际配方数据生成
-interface ActivityItem { type: 'success' | 'warning' | 'info'; title: string; desc: string; time: string }
+interface ActivityItem { type: 'success' | 'warning' | 'info'; title: string; desc: string; time: string; }
 
-const ACTIVITY_PAGE_SIZE = 4
-const activityPage = ref(1)
+const ACTIVITY_PAGE_SIZE = 4;
+const activityPage = ref(1);
 
 const allActivityItems = computed<ActivityItem[]>(() => {
-  const list = formulaStore.formulas
-  if (!list || list.length === 0) return []
+  const list = formulaStore.formulas;
+  if (!list || list.length === 0) return [];
 
-  const allVersions: { f: any; v: any }[] = []
+  const allVersions: { f: any; v: any; }[] = [];
   for (const f of list) {
     for (const v of (f.versions || [])) {
-      allVersions.push({ f, v })
+      allVersions.push({ f, v });
     }
   }
 
-  allVersions.sort((a, b) => new Date(b.v.createdAt).getTime() - new Date(a.v.createdAt).getTime())
+  allVersions.sort((a, b) => new Date(b.v.createdAt).getTime() - new Date(a.v.createdAt).getTime());
 
-  const items: ActivityItem[] = []
+  const items: ActivityItem[] = [];
   for (let i = 0; i < allVersions.length; i++) {
-    const { f, v } = allVersions[i]
-    const verNum = v.versionNumber || 'v1.0'
-    const verName = v.versionName || ''
-    const matCount = f.materials?.length ?? 0
-    const weight = f.finishedWeight ? `${f.finishedWeight}g` : ''
-    const timeAgo = formatTimeAgo(v.createdAt)
+    const { f, v } = allVersions[i];
+    const verNum = v.versionNumber || 'v1.0';
+    const verName = v.versionName || '';
+    const matCount = f.materials?.length ?? 0;
+    const weight = f.finishedWeight ? `${f.finishedWeight}g` : '';
+    const timeAgo = formatTimeAgo(v.createdAt);
 
     if (v.status === 'published') {
       items.push({
@@ -723,128 +722,128 @@ const allActivityItems = computed<ActivityItem[]>(() => {
         title: verName || '配方已发布',
         desc: `<strong>${f.salesmanName || '未知'}</strong> 发布了 <span class="text-emerald-600 font-bold">${f.name}</span> 的 ${verNum}${verName ? `（${verName}）` : ''}${matCount ? `，含 ${matCount} 种原料` : ''}${weight ? `，成品重 ${weight}` : ''}`,
         time: timeAgo
-      })
+      });
     } else if (v.isCurrent) {
       const reason = parseChanges(v.changesJson).length > 0
         ? `：${parseChanges(v.changesJson)[0].field}`
-        : ''
+        : '';
       items.push({
         type: 'warning',
         title: verName || '配方更新中',
         desc: `<strong>${f.salesmanName || '未知'}</strong> 更新 <span class="text-emerald-600 font-bold">${f.name}</span> 至 ${verNum}${reason}`,
         time: timeAgo
-      })
+      });
     } else {
       items.push({
         type: 'info',
         title: verName || '版本记录',
         desc: `<strong>${f.name}</strong> ${verNum} ${v.status === 'draft' ? '草稿' : '已归档'}${verName ? ` — ${verName}` : ''}`,
         time: timeAgo
-      })
+      });
     }
   }
-  return items
-})
+  return items;
+});
 
-const activityTotalPages = computed(() => Math.max(1, Math.ceil(allActivityItems.value.length / ACTIVITY_PAGE_SIZE)))
+const activityTotalPages = computed(() => Math.max(1, Math.ceil(allActivityItems.value.length / ACTIVITY_PAGE_SIZE)));
 
 const activityList = computed<ActivityItem[]>(() => {
-  const start = (activityPage.value - 1) * ACTIVITY_PAGE_SIZE
-  return allActivityItems.value.slice(start, start + ACTIVITY_PAGE_SIZE)
-})
+  const start = (activityPage.value - 1) * ACTIVITY_PAGE_SIZE;
+  return allActivityItems.value.slice(start, start + ACTIVITY_PAGE_SIZE);
+});
 
-const activityPrev = () => { if (activityPage.value > 1) activityPage.value-- }
-const activityNext = () => { if (activityPage.value < activityTotalPages.value) activityPage.value++ }
+const activityPrev = () => { if (activityPage.value > 1) activityPage.value--; };
+const activityNext = () => { if (activityPage.value < activityTotalPages.value) activityPage.value++; };
 
 const assistantMessage = computed(() => {
-  const total = formulaStore.total
-  if (total === 0) return '您还没有创建任何配方，点击下方按钮开始您的第一个配方吧！'
-  if (total < 5) return `当前共有 ${total} 个配方在库，建议继续丰富配方库内容。`
-  return `当前共有 ${total} 个配方在库，建议优先处理近期更新的配方。`
-})
+  const total = formulaStore.total;
+  if (total === 0) return '您还没有创建任何配方，点击下方按钮开始您的第一个配方吧！';
+  if (total < 5) return `当前共有 ${total} 个配方在库，建议继续丰富配方库内容。`;
+  return `当前共有 ${total} 个配方在库，建议优先处理近期更新的配方。`;
+});
 
 // 时间格式化辅助
 function formatTimeAgo(dateStr: string): string {
-  if (!dateStr) return '刚刚'
-  const diff = Date.now() - new Date(dateStr).getTime()
-  const mins = Math.floor(diff / 60000)
-  if (mins < 1) return '刚刚'
-  if (mins < 60) return `${mins}分钟前`
-  const hours = Math.floor(mins / 60)
-  if (hours < 24) return `${hours}小时前`
-  const days = Math.floor(hours / 24)
-  return `${days}天前`
+  if (!dateStr) return '刚刚';
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return '刚刚';
+  if (mins < 60) return `${mins}分钟前`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}小时前`;
+  const days = Math.floor(hours / 24);
+  return `${days}天前`;
 }
 
 // 头像辅助函数 - 替代外部 dicebear API
 function getAvatarInitial(name: string): string {
-  if (!name) return '?'
+  if (!name) return '?';
   // 取第一个字符（支持中文/英文）
-  return name.charAt(0).toUpperCase()
+  return name.charAt(0).toUpperCase();
 }
 
 onMounted(() => {
-  paginationStore.register(pagination.value)
-  watch(pagination, (val) => paginationStore.update(val), { deep: true })
-})
+  paginationStore.register(pagination.value);
+  watch(pagination, (val) => paginationStore.update(val), { deep: true });
+});
 
 onMounted(async () => {
   await Promise.all([
     salesmanStore.fetchSalesmen(),
     formulaStore.fetchFormulas(),
     materialStore.fetchMaterials()
-  ])
-  initialized.value = true
-})
+  ]);
+  initialized.value = true;
+});
 
 onUnmounted(() => {
-  paginationStore.unregister()
-})
+  paginationStore.unregister();
+});
 
 // 实时搜索 - 监听输入框内容变化
 const handleRealTimeSearch = () => {
-  formulaStore.setKeyword(searchKeyword.value)
-  formulaStore.fetchFormulas()
-}
+  formulaStore.setKeyword(searchKeyword.value);
+  formulaStore.fetchFormulas();
+};
 
 const handleCreate = () => {
-  router.push('/formulas/new')
-}
+  router.push('/formulas/new');
+};
 
 const handleView = (row: Formula) => {
-  router.push(`/formulas/${row.id}`)
-}
+  router.push(`/formulas/${row.id}`);
+};
 
 const handleEdit = (row: Formula) => {
-  router.push(`/formulas/${row.id}/edit`)
-}
+  router.push(`/formulas/${row.id}/edit`);
+};
 
 const handleVersion = (row: Formula) => {
-  router.push(`/versions/formula/${row.id}`)
-}
+  router.push(`/versions/formula/${row.id}`);
+};
 
 const handleDelete = (row: Formula) => {
-  deleteTarget.value = row
-  deleteDialogVisible.value = true
-}
+  deleteTarget.value = row;
+  deleteDialogVisible.value = true;
+};
 
 const confirmDelete = async () => {
-  if (!deleteTarget.value) return
+  if (!deleteTarget.value) return;
 
-  deleteLoading.value = true
+  deleteLoading.value = true;
   try {
-    const result = await formulaStore.deleteFormula(deleteTarget.value.id)
+    const result = await formulaStore.deleteFormula(deleteTarget.value.id);
     if (result.success) {
-      MessagePlugin.success('删除成功')
-      deleteDialogVisible.value = false
-      deleteTarget.value = null
+      MessagePlugin.success('删除成功');
+      deleteDialogVisible.value = false;
+      deleteTarget.value = null;
     } else {
-      MessagePlugin.error(result.message || '删除失败')
+      MessagePlugin.error(result.message || '删除失败');
     }
   } finally {
-    deleteLoading.value = false
+    deleteLoading.value = false;
   }
-}
+};
 </script>
 
 <style scoped lang="scss">

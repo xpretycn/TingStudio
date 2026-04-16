@@ -337,6 +337,7 @@
                           <t-icon name="info-circle" />
                           <span>解析可信度概览</span>
                         </div>
+                        <!-- 解析可信度概览： -->
                         <div class="summary-items">
                           <div v-for="(item, idx) in getConfidenceItems()" :key="idx" class="summary-item"
                             :class="'summary-item--' + item.level">
@@ -377,7 +378,7 @@
                             <t-dropdown-menu>
                               <t-dropdown-item v-for="model in aiStore.models" :key="model.provider"
                                 :value="model.provider"
-                                @click="(ctx: { value: string }) => handleReparseWithModel({ value: ctx.value })">
+                                @click="(ctx: { value: string; }) => handleReparseWithModel({ value: ctx.value })">
                                 <div class="reparse-model-option">
                                   <div class="reparse-model-logo">
                                     <img :src="getModelLogo(model)" :alt="model.name"
@@ -687,7 +688,7 @@ const MODEL_LOGO_MAP: Record<string, string> = {
   腾讯: 'tencent',
 };
 
-const FALLBACK_ICONS: Record<string, { letter: string; color: string }> = {
+const FALLBACK_ICONS: Record<string, { letter: string; color: string; }> = {
   openai: { letter: 'O', color: '#10a37f' },
   claude: { letter: 'C', color: '#d97757' },
   google: { letter: 'G', color: '#4285f4' },
@@ -865,7 +866,7 @@ const clearResult = () => {
 };
 
 // 重新解析
-const handleReparseWithModel = (data: { value: string }) => {
+const handleReparseWithModel = (data: { value: string; }) => {
   aiStore.selectedModel = data.value;
   aiStore.clearParseResult();
   if (selectedFile.value) {
@@ -891,7 +892,7 @@ const getConfidenceLevel = (confidence: number) => {
 const getConfidenceItems = () => {
   const data = aiStore.parseResult;
   if (!data) return [];
-  const items: { label: string; value: number; level: string }[] = [];
+  const items: { label: string; value: number; level: string; }[] = [];
   const baseConf = data.confidence != null ? Math.round(data.confidence * 100) : null;
   if (data.formulaDate) {
     const v = baseConf ?? 100;
