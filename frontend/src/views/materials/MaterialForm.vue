@@ -87,15 +87,15 @@
                 <div class="row-actions">
                   <button type="button" class="clear-btn" @click="handleClearNutrition">
                     <t-icon name="delete" />
-                    清空数据
+                    清空
                   </button>
                   <button type="button" class="add-row-btn" @click="expandAllGroups">
                     <t-icon name="unfold-more" />
-                    展开全部
+                    展开
                   </button>
                   <button type="button" class="add-row-btn" @click="collapseAllGroups">
                     <t-icon name="unfold-less" />
-                    收起全部
+                    收起
                   </button>
                 </div>
               </div>
@@ -115,18 +115,24 @@
                       </div>
                     </template>
                     <div class="nutrition-grid">
-                      <div v-for="field in group.fields" :key="field.key" class="nutrition-field-item"
-                        :class="{ 'nf-calculated': field.key === 'energy' }">
+                      <!-- 普通营养字段（能量单独处理） -->
+                      <div v-for="field in group.fields.filter(f => f.key !== 'energy')" :key="field.key"
+                        class="nutrition-field-item">
                         <label class="nf-label">{{ field.label }}</label>
-                        <div v-if="field.key === 'energy'" class="nf-calc-wrap">
+                        <div class="nf-input-wrap">
+                          <t-input-number v-model="nutritionData[field.key]" :min="0" :decimal-places="field.decimals"
+                            :placeholder="field.placeholder" theme="normal" style="width: 100px" />
+                          <span class="nf-unit">{{ field.unit }}</span>
+                        </div>
+                      </div>
+                      <!-- 能量计算：独占一行 -->
+                      <div v-if="group.fields.some(f => f.key === 'energy')"
+                        class="nutrition-field-item nf-calculated nf-full-width" style="margin-top: 12px;">
+                        <label class="nf-label">能量</label>
+                        <div class="nf-calc-wrap">
                           <span class="nf-calc-value">{{ calculatedEnergy }}</span>
                           <span class="nf-unit">kJ</span>
                           <span class="nf-calc-formula">= 蛋白×17 + 脂肪×37 + 碳水×17</span>
-                        </div>
-                        <div v-else class="nf-input-wrap">
-                          <t-input-number v-model="nutritionData[field.key]" :min="0" :decimal-places="field.decimals"
-                            :placeholder="field.placeholder" theme="normal" style="width: 140px" />
-                          <span class="nf-unit">{{ field.unit }}</span>
                         </div>
                       </div>
                     </div>
@@ -139,10 +145,11 @@
                     <t-input v-model="nutritionMeta.dataSource" placeholder="如：中国食物成分表（第6版）" clearable
                       style="width: 280px" />
                   </div>
-                  <div class="nm-row">
+                  <div class="nm-row nm-row--confidence">
                     <label class="nm-label">数据可信度</label>
-                    <t-radio-group v-model="nutritionMeta.confidence" variant="default-filled">
-                      <t-radio-button v-for="opt in confidenceOptions" :key="opt.value" :value="opt.value">
+                    <t-radio-group v-model="nutritionMeta.confidence" variant="default-filled" size="small">
+                      <t-radio-button v-for="opt in confidenceOptions" :key="opt.value" :value="opt.value"
+                        class="confidence-opt-btn">
                         {{ opt.label }}
                       </t-radio-button>
                     </t-radio-group>
@@ -265,6 +272,7 @@
                       </div>
 
                       <div v-if="parseNutritionItems.length" class="nutrition-materials-table">
+                        <!-- 表头行 -->
                         <div class="nm-header">
                           <span class="col-name">原料名称</span>
                           <span class="col-protein">蛋白质(g)</span>
@@ -274,6 +282,7 @@
                           <span class="col-status">匹配状态</span>
                           <span class="col-operation">操作</span>
                         </div>
+                        <!-- 数据行 -->
                         <div v-for="(item, idx) in parseNutritionItems" :key="idx" class="nm-row">
                           <span class="col-name">{{ item.name || '未命名' }}</span>
                           <span class="col-protein">{{ item.protein ?? '-' }}</span>
@@ -334,9 +343,10 @@
                       </div>
 
                       <div class="result-actions">
-                        <t-button theme="success" block @click="backfillData" class="backfill-btn">
-                          <template #icon><t-icon name="check-circle" /></template>
-                          确认并回填数据
+                        <t-button theme="success" block @click="handleBatchRegister" :loading="batchRegistering"
+                          class="backfill-btn">
+                          <template #icon><t-icon name="backup" /></template>
+                          一键录入
                         </t-button>
                         <div class="secondary-actions">
                           <button type="button" class="action-btn action-btn--default" @click.stop="resetUpload">
@@ -729,23 +739,72 @@ const startParse = async (file: File) => {
   await handleFileSelect(file);
 };
 
-const backfillData = () => {
+const batchRegistering = ref(false);
+
+const handleBatchRegister = async () => {
   const items = parseNutritionItems.value;
-  if (!items.length) return;
+  const unregistered = items.filter((item: any, idx: number) => !item.isRecorded && registerStatusMap[idx] !== 'success');
+  if (!unregistered.length) {
+    MessagePlugin.info('没有需要录入的原料');
+    return;
+  }
 
-  showNutrition.value = true;
-  hasNutrition.value = true;
+  batchRegistering.value = true;
+  let successCount = 0;
+  let failCount = 0;
 
-  const item = items[0];
+  for (const item of unregistered) {
+    const idx = items.indexOf(item);
+    if (registerStatusMap[idx] === 'loading' || registerStatusMap[idx] === 'success') continue;
 
-  if (item.protein != null) nutritionData.protein = Number(item.protein);
-  if (item.fat != null) nutritionData.fat = Number(item.fat);
-  if (item.carbohydrate != null) nutritionData.carbohydrate = Number(item.carbohydrate);
-  if (item.sodium != null) nutritionData.sodium = Number(item.sodium);
+    registerStatusMap[idx] = 'loading';
+    try {
+      const codeRes: any = await materialApi.getNextCode();
+      const code = codeRes?.code || codeRes?.data?.code || `MAT${String(Date.now()).slice(-3)}`;
+      const fileName = selectedFile.value?.name || 'AI导入';
 
-  if (aiStore.materialParseResult?.materials?.[0]?.dataSource) nutritionMeta.dataSource = aiStore.materialParseResult.materials[0].dataSource;
+      const matRes: any = await materialApi.create({
+        name: item.name,
+        code,
+        unit: 'g',
+        stock: 0,
+        materialType: 'herb',
+      });
 
-  MessagePlugin.success('营养数据已回填，请核对后保存');
+      const matId = matRes?.id || matRes?.data?.id;
+      if (!matId) throw new Error('创建原料失败：未返回原料ID');
+
+      const per100g: Record<string, number> = {};
+      if (item.protein != null) per100g.protein = Number(item.protein);
+      if (item.fat != null) per100g.fat = Number(item.fat);
+      if (item.carbohydrate != null) per100g.carbohydrate = Number(item.carbohydrate);
+      if (item.sodium != null) per100g.sodium = Number(item.sodium);
+
+      const confLevel = (item.confidence ?? 0.7) >= 0.8 ? 'high' : (item.confidence ?? 0.7) >= 0.5 ? 'medium' : 'low';
+      await nutritionApi.setMaterialNutrition(matId, {
+        per100g,
+        dataSource: item.dataSource || 'AI导入',
+        notes: fileName,
+        confidence: confLevel,
+      });
+
+      registerStatusMap[idx] = 'success';
+      item.isRecorded = true;
+      successCount++;
+    } catch (err: any) {
+      console.error('[批量录入失败]', item.name, err);
+      registerStatusMap[idx] = 'error';
+      failCount++;
+    }
+  }
+
+  batchRegistering.value = false;
+
+  if (failCount === 0) {
+    MessagePlugin.success(`批量录入完成，共 ${successCount} 条原料录入成功`);
+  } else {
+    MessagePlugin.warning(`批量录入完成：${successCount} 条成功，${failCount} 条失败（可点击重试）`);
+  }
 };
 
 const resetUpload = () => { aiStore.clearMaterialParseResult(); };
@@ -1084,7 +1143,7 @@ onMounted(async () => {
 
     .form-grid {
       display: grid;
-      grid-template-columns: repeat(12, 1fr);
+      grid-template-columns: 40% 60%;
       gap: 32px;
 
       @media (max-width: 1023px) {
@@ -1093,25 +1152,25 @@ onMounted(async () => {
     }
 
     .form-grid-left {
-      grid-column: span 7;
       display: flex;
       flex-direction: column;
       gap: 32px;
+      min-width: 0;
 
       @media (max-width: 1023px) {
-        grid-column: span 12;
+        grid-column: 1 / -1;
       }
     }
 
     .form-grid-right {
-      grid-column: span 5;
       display: flex;
       flex-direction: column;
       gap: 32px;
       position: relative;
+      min-width: 0;
 
       @media (max-width: 1023px) {
-        grid-column: span 12;
+        grid-column: 1 / -1;
       }
 
       &--disabled {
@@ -1153,6 +1212,22 @@ onMounted(async () => {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
         gap: 24px;
+
+        >.form-field {
+          min-width: 0;
+          overflow: hidden;
+
+          .field-input {
+            width: 100%;
+
+            :deep(.t-select),
+            :deep(.t-input),
+            :deep(.t-input-number) {
+              width: 100%;
+              min-width: 0;
+            }
+          }
+        }
       }
     }
 
@@ -1264,6 +1339,12 @@ onMounted(async () => {
 
         .field-input {
           width: 100%;
+
+          :deep(.t-select),
+          :deep(.t-input),
+          :deep(.t-input-number) {
+            width: 100%;
+          }
         }
 
         :deep(.t-input) {
@@ -1475,9 +1556,18 @@ onMounted(async () => {
       @media (max-width: 640px) {
         grid-template-columns: 1fr;
       }
+
+      >.nutrition-field-item {
+        min-width: 0;
+        overflow: hidden;
+      }
     }
 
     .nutrition-field-item {
+      &.nf-full-width {
+        grid-column: 1 / -1;
+      }
+
       &.nf-calculated {
         background: linear-gradient(135deg, rgba(16, 185, 129, 0.04), rgba(45, 212, 191, 0.03));
         border: 1px solid rgba(16, 185, 129, 0.12);
@@ -1512,6 +1602,10 @@ onMounted(async () => {
           padding: 3px 8px;
           border-radius: 6px;
           white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          flex-shrink: 0;
+          min-width: 0;
         }
       }
 
@@ -1544,6 +1638,7 @@ onMounted(async () => {
         align-items: center;
         gap: 12px;
         margin-bottom: 16px;
+        flex-wrap: nowrap;
 
         &:last-child {
           margin-bottom: 0;
@@ -1555,6 +1650,21 @@ onMounted(async () => {
           color: #475569;
           white-space: nowrap;
           min-width: 80px;
+          flex-shrink: 0;
+        }
+
+        :deep(.t-radio-group) {
+          flex-wrap: nowrap !important;
+          flex: 1;
+          min-width: 0;
+          background: transparent !important;
+        }
+
+        :deep(.t-radio-button) {
+          font-size: 11px !important;
+          padding: 2px 8px !important;
+          height: auto !important;
+          line-height: 1.6 !important;
         }
       }
     }
@@ -2019,28 +2129,82 @@ onMounted(async () => {
 
           .nutrition-materials-table {
             margin-bottom: 20px;
+            display: grid;
+            grid-template-columns: 1fr 80px 70px 75px 68px 72px 100px;
+            gap: 0;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #f8fafc;
 
             .nm-header {
-              display: grid;
-              grid-template-columns: 1.2fr 70px 60px 70px 65px 70px 110px;
-              gap: 6px;
-              padding: 10px 12px;
+              grid-row: 1;
+              display: contents;
+            }
+
+            .nm-header>span {
+              padding: 12px 14px;
               font-size: 11px;
               font-weight: 700;
-              color: #64748b;
-              letter-spacing: 0.02em;
-              background: #f8fafc;
-              border-radius: 8px;
-              align-items: center;
+              color: #94a3b8;
+              letter-spacing: 0.04em;
+              text-transform: uppercase;
+              background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+              align-self: center;
+
+              &.col-name {
+                text-align: left;
+                white-space: nowrap;
+              }
+
+              &.col-protein,
+              &.col-fat,
+              &.col-carb,
+              &.col-sodium {
+                text-align: right;
+                white-space: nowrap;
+              }
+
+              &.col-status {
+                text-align: center;
+                white-space: nowrap;
+              }
+
+              &.col-operation {
+                text-align: right;
+              }
+            }
+
+            .nm-row {
+              display: contents;
+
+              >span {
+                padding: 11px 14px;
+                font-size: 13px;
+                color: #334155;
+                align-self: center;
+
+                &:nth-child(odd) {
+                  background: #ffffff;
+                }
+
+                &:nth-child(even) {
+                  background: #fafbfc;
+                }
+              }
 
               .col-name {
-                text-align: left;
+                font-weight: 600;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
               }
 
               .col-protein,
               .col-fat,
               .col-carb,
               .col-sodium {
+                font-weight: 700;
+                font-family: ui-monospace, monospace;
                 text-align: right;
               }
 
@@ -2081,41 +2245,6 @@ onMounted(async () => {
                   color: #cbd5e1;
                   font-size: 12px;
                 }
-              }
-            }
-
-            .nm-row {
-              display: grid;
-              grid-template-columns: 1.2fr 70px 60px 70px 65px 70px 110px;
-              gap: 6px;
-              padding: 10px 12px;
-              font-size: 12px;
-              color: #334155;
-              border-bottom: 1px solid #f1f5f9;
-              align-items: center;
-
-              &:last-child {
-                border-bottom: none;
-              }
-
-              .col-name {
-                font-weight: 600;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-              }
-
-              .col-protein,
-              .col-fat,
-              .col-carb,
-              .col-sodium {
-                font-weight: 700;
-                font-family: ui-monospace, monospace;
-                text-align: right;
-              }
-
-              .col-status {
-                text-align: center;
               }
             }
           }

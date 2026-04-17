@@ -69,8 +69,7 @@
                 <circle cx="11" cy="11" r="8"></circle>
                 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
               </svg>
-              <t-input v-model="searchKeyword" class="search-input" placeholder="搜索原料名称、编码..."
-                @input="handleRealTimeSearch" @clear="handleRealTimeSearch" clearable />
+              <t-input v-model="searchKeyword" class="search-input" placeholder="搜索原料名称、编码..." clearable />
             </div>
             <button class="add-formula-btn" @click="handleCreate">
               <t-icon name="add" class="add-icon" />
@@ -180,8 +179,8 @@
               <button class="action-btn edit-btn" @click.stop="handleEdit(row)" title="编辑">
                 <t-icon name="edit-1" />
               </button>
-              <t-popconfirm content="确定要删除该原料吗？" @confirm="handleDelete(row)">
-                <button class="action-btn delete-btn" @click.stop title="删除">
+              <t-popconfirm theme="danger" :content="`确定要删除原料「${row.name}」吗？`" @confirm="handleDelete(row)">
+                <button class="action-btn delete-btn" title="删除">
                   <t-icon name="delete" />
                 </button>
               </t-popconfirm>
@@ -284,16 +283,7 @@
       </div>
     </section>
 
-    <t-dialog v-model:visible="deleteDialogVisible" header="确认删除" :confirm-btn="{
-      content: '确定',
-      theme: 'danger',
-      loading: deleteLoading
-    }" @confirm="confirmDelete">
-      <p>确定要删除原料 <strong>{{ deleteTarget?.name }}</strong> 吗？</p>
-      <p class="delete-info">
-        删除后无法恢复，请谨慎操作。
-      </p>
-    </t-dialog>
+
   </div>
 </template>
 
@@ -314,9 +304,6 @@ const paginationStore = usePaginationStore();
 const initialized = ref(false);
 
 const searchKeyword = ref('');
-const deleteDialogVisible = ref(false);
-const deleteLoading = ref(false);
-const deleteTarget = ref<Material | null>(null);
 const nutritionMap = ref<Record<string, string>>({});
 const expandedNutrition = ref<Record<string, Record<string, number>>>({});
 const selectedRowKeys = ref<(string | number)[]>([]);
@@ -426,6 +413,7 @@ const onSortChange = (sort: any) => {
 };
 
 watch(() => materialStore.materials, (val) => {
+  console.log('[MaterialList] materials watcher, count=', val.length);
   if (tableSort.value?.sortBy) {
     onSortChange(tableSort.value);
   } else {
@@ -586,26 +574,37 @@ const allActivityItems = computed<ActivityItem[]>(() => {
   if (!list || list.length === 0) return [];
 
   const items: ActivityItem[] = [];
-  const sorted = [...list].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  const events: { m: typeof list[0]; action: 'created' | 'updated'; time: string }[] = [];
 
-  for (let i = 0; i < sorted.length; i++) {
-    const m = sorted[i];
+  for (const m of list) {
+    const created = new Date(m.createdAt).getTime();
+    const updated = new Date(m.updatedAt).getTime();
+    if (updated > created) {
+      events.push({ m, action: 'updated', time: m.updatedAt });
+    }
+    events.push({ m, action: 'created', time: m.createdAt });
+  }
+
+  events.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
+
+  for (let i = 0; i < events.length; i++) {
+    const { m, action, time } = events[i];
     const type = m.materialType === 'supplement' ? 'warning' : 'success';
     const typeName = m.materialType === 'supplement' ? '辅料' : '药材';
-    const timeAgo = formatTimeAgo(m.createdAt);
+    const timeAgo = formatTimeAgo(time);
 
-    if (i < 3) {
+    if (action === 'created') {
       items.push({
         type,
         title: `新录入：${m.name}`,
         desc: `<strong>${m.name}</strong> 已加入原料库（${typeName}），编码 <span class="text-emerald-600 font-bold">${m.code}</span>，当前库存 ${m.stock}${m.unit}`,
         time: timeAgo
       });
-    } else if ((m.stock || 0) < 50) {
+    } else {
       items.push({
         type: 'info',
-        title: `库存预警：${m.name}`,
-        desc: `<strong>${m.name}</strong> 当前库存仅剩 <span class="text-amber-600 font-bold">${m.stock}${m.unit}</span>，建议及时补货`,
+        title: `信息更新：${m.name}`,
+        desc: `<strong>${m.name}</strong> 原料信息已更新，编码 <span class="text-emerald-600 font-bold">${m.code}</span>，当前库存 ${m.stock}${m.unit}`,
         time: timeAgo
       });
     }
@@ -692,19 +691,14 @@ const handleGlobalSearch = (e: Event) => {
 };
 
 const handleRealTimeSearch = () => {
-  const keyword = searchKeyword.value.trim();
-  materialStore.setKeyword(keyword);
-  if (keyword) {
-    const filtered = materialStore.materials.filter((m: Material) =>
-      m.name.toLowerCase().includes(keyword.toLowerCase()) ||
-      m.code.toLowerCase().includes(keyword.toLowerCase()) ||
-      (m.materialType || '').toLowerCase().includes(keyword.toLowerCase())
-    );
-    sortedMaterials.value = filtered;
-  } else {
-    sortedMaterials.value = [...materialStore.materials];
-  }
+  materialStore.setKeyword(searchKeyword.value);
+  materialStore.fetchMaterials();
 };
+
+// 监听 searchKeyword 变化后触发搜索（此时 v-model 已更新）
+watch(searchKeyword, () => {
+  handleRealTimeSearch();
+});
 
 const handleCreate = () => {
   router.push('/materials/new');
@@ -718,26 +712,17 @@ const handleEdit = (row: Material) => {
   router.push(`/materials/${row.id}/edit`);
 };
 
-const handleDelete = (row: Material) => {
-  deleteTarget.value = row;
-  deleteDialogVisible.value = true;
-};
-
-const confirmDelete = async () => {
-  if (!deleteTarget.value) return;
-  deleteLoading.value = true;
+const handleDelete = async (row: Material) => {
   try {
-    const result = await materialStore.deleteMaterial(deleteTarget.value.id);
+    const result = await materialStore.deleteMaterial(row.id);
     if (result.success) {
       MessagePlugin.success('删除成功');
-      deleteDialogVisible.value = false;
-      deleteTarget.value = null;
       loadNutritionStatus();
     } else {
       MessagePlugin.error(result.message || '删除失败');
     }
-  } finally {
-    deleteLoading.value = false;
+  } catch (e) {
+    MessagePlugin.error('删除失败');
   }
 };
 </script>

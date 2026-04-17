@@ -15,12 +15,12 @@ export const useMaterialStore = defineStore("material", () => {
   const fetchMaterials = async () => {
     loading.value = true;
     try {
+      console.log('[MaterialStore] fetchMaterials START, keyword=', JSON.stringify(keyword.value));
       const res = await materialApi.getList({
         keyword: keyword.value || undefined,
         page: currentPage.value,
         pageSize: pageSize.value,
       });
-      // axios 拦截器已经提取了 res.data，所以这里直接使用 res
       materials.value = res.list.map((m: Material) => ({
         ...m,
         createdAt: formatTimestamp(m.createdAt),

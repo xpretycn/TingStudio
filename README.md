@@ -403,6 +403,20 @@ npm run start          # 后端监听端口 3000，提供 API 服务
 - **后端服务**: AIService.ts, prompts.ts（新增材料营养解析提示词）
 - **样式体系**: theme-variables.scss, tokens.ts
 
+### v2.18.1 (2026-04-17)
+
+- **原料列表删除交互优化**：
+  - 删除确认从 `t-dialog` 全屏弹窗改为 `t-popconfirm` 气泡确认（theme="danger" 红色警告风格）
+  - 点击删除按钮后弹出气泡浮层，显示「确定要删除原料「xxx」吗？删除后无法恢复。」
+  - 用户确认后直接执行删除，无需额外弹窗遮罩层，交互更轻量流畅
+  - 移除 `deleteDialogVisible`、`deleteLoading`、`deleteTarget` 三个冗余 ref 变量
+  - `handleDelete` 函数简化为直接调用 `materialStore.deleteMaterial()` 的 async 函数
+  - 移除独立的 `confirmDelete` 函数
+
+#### 影响范围
+
+- **前端视图**: MaterialList.vue（模板 + script 双向精简）
+
 ### v2.17.0 (2026-04-13)
 
 - **版本管理页面 UI 全面重构**：

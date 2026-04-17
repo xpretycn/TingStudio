@@ -222,6 +222,8 @@ export async function setMaterialNutrition(req: any, res: Response) {
       }
     }
 
+    await query("UPDATE materials SET updated_at = datetime('now') WHERE id = ?", [materialId]);
+
     res.json(success(null, "营养成分保存成功"));
   } catch (error: any) {
     res.status(500).json({ success: false, message: "保存营养成分失败", error: error.message });

@@ -7,6 +7,8 @@ import { generateId, now, success, successWithPagination, buildPagination, build
 export async function getMaterials(req: any, res: Response) {
   try {
     const { keyword, page, pageSize } = req.query
+    // 兼容 keyword 为数组的情况
+    const kw = Array.isArray(keyword) ? keyword[0] : (keyword || '')
     const { page: p, pageSize: size, offset } = buildPagination(
       Number(page), Number(pageSize)
     )
@@ -15,9 +17,9 @@ export async function getMaterials(req: any, res: Response) {
     let whereSql = 'WHERE created_by = ?'
     const params: any[] = [userId]
 
-    if (keyword) {
+    if (kw) {
       whereSql += ' AND (name LIKE ? OR code LIKE ?)'
-      const like = buildLike(keyword as string)
+      const like = buildLike(kw)
       params.push(like, like)
     }
 
