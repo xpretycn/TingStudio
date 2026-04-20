@@ -186,7 +186,7 @@
               <div class="user-avatar-wrapper" role="button" tabindex="0" aria-haspopup="true"
                 :aria-expanded="userMenuVisible" @keydown.enter="userMenuVisible = !userMenuVisible">
                 <div class="user-avatar-wrap">
-                  <img class="user-avatar-img" :src="authStore.user?.avatar || '/avatar-default.jpg'"
+                  <img loading="lazy" class="user-avatar-img" :src="authStore.user?.avatar || '/avatar-default.jpg'"
                     :alt="authStore.user?.username || '用户'" />
                 </div>
                 <span class="user-display-name">{{ authStore.user?.username || '用户' }}</span>
@@ -941,7 +941,7 @@ onMounted(() => {
       background: rgba(255, 255, 255, 0.12);
       color: rgba(255, 255, 255, 0.75);
       cursor: pointer;
-      transition: all 0.25s ease;
+      transition: all $transition-normal;
 
       &:hover {
         background: rgba(255, 255, 255, 0.25);
@@ -1018,7 +1018,7 @@ onMounted(() => {
     border-radius: 8px;
     margin-bottom: 6px;
     cursor: pointer;
-    transition: all 0.3s;
+    transition: all $transition-slow;
     border: 1px solid $border-color-light;
 
     &:hover {
@@ -1073,7 +1073,7 @@ onMounted(() => {
       background: $bg-page;
       border-radius: 8px;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: all $transition-fast;
       border: 1px solid transparent;
 
       &:hover {
@@ -1128,7 +1128,7 @@ onMounted(() => {
 
       .nav-item-arrow {
         color: $text-secondary;
-        transition: all 0.3s;
+        transition: all $transition-slow;
 
         svg {
           width: 12px;
@@ -1177,7 +1177,7 @@ onMounted(() => {
       font-size: 14px;
       color: $text-secondary;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: all $transition-fast;
 
       &:hover {
         background: var(--overlay-brand-15);
@@ -1199,7 +1199,7 @@ onMounted(() => {
       padding: 6px 10px;
       border-radius: 8px;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: all $transition-fast;
       border: 1px solid transparent;
 
       &:hover {
@@ -1326,7 +1326,7 @@ onMounted(() => {
       border: 1px solid $border-color-light;
       color: $text-secondary; // slate-600 ≈ #475569
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: all $transition-fast;
       flex-shrink: 0;
 
       svg {
@@ -1376,7 +1376,7 @@ onMounted(() => {
       background: #fff;
       border: 1px solid $border-color-light;
       box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05); // shadow-sm
-      transition: all 0.25s ease;
+      transition: all $transition-normal;
 
       .user-avatar-wrap {
         width: 32px;
@@ -1441,7 +1441,7 @@ onMounted(() => {
     font-size: 13px;
     color: $text-primary;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all $transition-fast;
 
     &:hover {
       background: var(--overlay-brand-08);
@@ -1490,7 +1490,7 @@ onMounted(() => {
     font-size: 13px;
     color: $text-primary;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all $transition-fast;
 
     .color-dot {
       width: 14px;
@@ -1576,7 +1576,7 @@ onMounted(() => {
 
 .sidebar-logo {
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all $transition-slow;
 
   &:hover .logo-cat svg {
     transform: translateY(-3px);
@@ -1780,3 +1780,5 @@ onMounted(() => {
   }
 }
 </style>
+
+

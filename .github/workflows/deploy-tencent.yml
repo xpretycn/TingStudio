@@ -1,0 +1,118 @@
+name: Deploy to TencentCloud (EdgeOne + TCB)
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '20'
+  PNPM_VERSION: '9'
+
+jobs:
+  test-and-build:
+    name: 测试 & 构建
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+          cache-dependency-path: '**/pnpm-lock.yaml'
+
+      - name: Install dependencies & Test
+        run: |
+          cd frontend && pnpm install --frozen-lockfile && pnpm test:run
+          cd ../backend && pnpm install --frozen-lockfile
+
+      - name: Build Frontend
+        run: cd frontend && pnpm build
+
+      - name: Build Backend
+        run: cd backend && pnpm build
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-output
+          path: |
+            frontend/dist/
+            backend/dist/
+            backend/scf/
+          retention-days: 1
+
+  deploy-tcb:
+    name: 部署后端到 TCB
+    needs: test-and-build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-output
+          path: .
+
+      - name: Install TencentCloud CLI
+        run: npm install -g @cloudbase/cli @tencent/edgeone-cli
+
+      - name: Configure TencentCloud Credentials
+        env:
+          TC_SECRET_ID: ${{ secrets.TC_SECRET_ID }}
+          TC_SECRET_KEY: ${{ secrets.TC_SECRET_KEY }}
+        run: |
+          cat > ~/.tccli.default.configure.json << EOF
+          {
+            "secretId": "${TC_SECRET_ID}",
+            "secretKey": "${TC_SECRET_KEY}"
+          }
+          EOF
+
+      - name: Deploy to TCB
+        env:
+          TCB_ENV_ID: ${{ secrets.TCB_ENV_ID }}
+        run: |
+          cd backend
+          tcb fn deploy tingstudio-api ./scf --env ${TCB_ENV_ID}
+
+  deploy-edgeone:
+    name: 部署前端到 EdgeOne
+    needs: test-and-build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-output
+          path: .
+
+      - name: Deploy to EdgeOne Pages
+        env:
+          EDGEONE_TOKEN: ${{ secrets.EDGEONE_TOKEN }}
+          EDGEONE_ZONE_ID: ${{ secrets.EDGEONE_ZONE_ID }}
+        run: |
+          npm install -g @tencent/edgeone-cli
+          eo login --token ${EDGEONE_TOKEN}
+          eo deploy frontend/dist --zone-id ${EDGEONE_ZONE_ID}
+
+  notify:
+    name: 部署通知
+    needs: [deploy-tcb, deploy-edgeone]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send notification
+        env:
+          JOB_STATUS: ${{ job.status }}
+        run: echo "部署状态: ${JOB_STATUS}"

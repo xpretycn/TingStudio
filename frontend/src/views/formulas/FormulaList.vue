@@ -1,7 +1,7 @@
 <template>
-  <div class="formula-list" :aria-busy="!initialized">
+  <div class="formula-list" :aria-busy="!initialized" data-testid="formula-list">
     <!-- 数据看板 -->
-    <section class="dashboard-grid">
+    <section class="dashboard-grid" data-testid="formula-dashboard">
       <div class="stat-card" v-for="(card, idx) in dashboardCards" :key="card.label"
         :style="{ animationDelay: `${(idx + 1) * 0.1}s` }">
         <div class="stat-card-top">
@@ -71,20 +71,22 @@
 
           <!-- 右侧：搜索和新增按钮 -->
           <div class="toolbar-right-section">
-            <div class="search-container">
+            <div class="search-container" role="search">
+              <label for="formula-search-input" class="sr-only">搜索配方</label>
               <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <circle cx="11" cy="11" r="8"></circle>
                 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
               </svg>
-              <t-input v-model="searchKeyword" class="search-input" placeholder="搜索配方名称、编号..."
-                @input="handleRealTimeSearch" @clear="handleRealTimeSearch" clearable />
+              <t-input id="formula-search-input" v-model="searchKeyword" class="search-input" placeholder="搜索配方名称、编号..."
+                @input="handleRealTimeSearch" @clear="handleRealTimeSearch" clearable aria-label="按配方名称或编号搜索"
+                data-testid="formula-search" />
             </div>
-            <button class="add-formula-btn" @click="handleCreate">
+            <button class="add-formula-btn" @click="handleCreate" aria-label="创建新配方" data-testid="formula-add-btn">
               <t-icon name="add" class="add-icon" />
               创建新配方
             </button>
-            <button class="filter-btn">
+            <button class="filter-btn" aria-label="筛选配方类型" aria-haspopup="true">
               <t-icon name="filter" class="filter-icon" />
               <span class="filter-dot"></span>
             </button>
@@ -214,18 +216,20 @@
           </template>
 
           <template #operation="{ row }">
-            <div class="action-buttons">
-              <button class="action-btn view-btn" @click="handleView(row)" title="查看">
+            <div class="action-buttons" role="group" aria-label="配方操作">
+              <button class="action-btn view-btn" @click="handleView(row)" title="查看" :aria-label="`查看配方${row.name}详情`">
                 <t-icon name="browse" />
               </button>
-              <button class="action-btn edit-btn" @click.stop="handleEdit(row)" title="编辑">
+              <button class="action-btn edit-btn" @click.stop="handleEdit(row)" title="编辑"
+                :aria-label="`编辑配方${row.name}`">
                 <t-icon name="edit-1" />
               </button>
-              <button class="action-btn version-btn" @click="handleVersion(row)" title="版本管理">
+              <button class="action-btn version-btn" @click="handleVersion(row)" title="版本管理"
+                :aria-label="`管理配方${row.name}的版本`">
                 <t-icon name="history" />
               </button>
               <t-popconfirm content="确定要删除该配方吗？" @confirm="handleDelete(row)">
-                <button class="action-btn delete-btn" @click.stop title="删除">
+                <button class="action-btn delete-btn" @click.stop title="删除" :aria-label="`删除配方${row.name}`">
                   <t-icon name="delete" />
                 </button>
               </t-popconfirm>
@@ -329,16 +333,6 @@
         </svg>
       </div>
     </section>
-
-    <!-- 单个删除确认 -->
-    <t-dialog v-model:visible="deleteDialogVisible" header="确认删除" :confirm-btn="{
-      content: '确定删除',
-      theme: 'danger',
-      loading: deleteLoading
-    }" :show-overlay="false" @confirm="confirmDelete">
-      <p>确定要删除配方 <strong>{{ deleteTarget?.name }}</strong> 吗？</p>
-      <p class="delete-info">删除后无法恢复，请谨慎操作。</p>
-    </t-dialog>
 
     <!-- 批量删除确认（内联样式 — 100% 可靠，不受 scoped/全局干扰） -->
     <Teleport to="body">
@@ -465,9 +459,6 @@ const getFormulaDesc = (description: string | null | undefined) => {
   }
 };
 
-const deleteDialogVisible = ref(false);
-const deleteLoading = ref(false);
-const deleteTarget = ref<Formula | null>(null);
 const batchDeleteDialogVisible = ref(false);
 const batchDeleteLoading = ref(false);
 const expandedRowKeys = ref<(string | number)[]>([]);
@@ -822,31 +813,23 @@ const handleVersion = (row: Formula) => {
   router.push(`/versions/formula/${row.id}`);
 };
 
-const handleDelete = (row: Formula) => {
-  deleteTarget.value = row;
-  deleteDialogVisible.value = true;
-};
-
-const confirmDelete = async () => {
-  if (!deleteTarget.value) return;
-
-  deleteLoading.value = true;
+const handleDelete = async (row: Formula) => {
   try {
-    const result = await formulaStore.deleteFormula(deleteTarget.value.id);
+    const result = await formulaStore.deleteFormula(row.id);
     if (result.success) {
       MessagePlugin.success('删除成功');
-      deleteDialogVisible.value = false;
-      deleteTarget.value = null;
     } else {
       MessagePlugin.error(result.message || '删除失败');
     }
-  } finally {
-    deleteLoading.value = false;
+  } catch {
+    MessagePlugin.error('删除失败');
   }
 };
 </script>
 
 <style scoped lang="scss">
+@use '@/assets/styles/variables.scss' as *;
+
 .formula-list {
 
   // ─── 数据看板 ───
@@ -862,7 +845,7 @@ const confirmDelete = async () => {
       border-radius: 24px;
       border: 1px solid #fff;
       box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
-      transition: all 0.3s ease;
+      transition: all $transition-slow;
       animation: dashboard-fade-in 0.5s ease forwards;
       opacity: 0;
 
@@ -921,18 +904,18 @@ const confirmDelete = async () => {
   // ─── 内容卡片 - 参照 index.html 第226行 "数据中心列表" ───
   .content-card {
     min-height: 400px;
-    // index.html 第226行: bg-white rounded-[2rem](32px) custom-shadow border border-slate-50 overflow-hidden
+    // index.html 第226行: bg-white rounded-[2rem](32px) custom-shadow border border-slate-50
     background-color: #fff;
     border-radius: 32px !important; // rounded-[2rem]
     border: 1px solid #f8fafc !important; // border border-slate-50
-    overflow: hidden;
+    // 移除 overflow-hidden 以避免裁剪绝对定位的批量操作栏
     // custom-shadow: 柔和阴影
     box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
-    transition: all 0.3s ease;
+    transition: all $transition-slow;
 
     // index.html hover: border-emerald-100
     &:hover {
-      box-shadow: 0 8px 30px rgba(15, 23, 42, 0.1), 0 2px 6px rgba(15, 23, 42, 0.05);
+      box-shadow: 0 8px 30px rgba(15, 23, 42, 0.10), 0 2px 6px rgba(15, 23, 42, 0.05);
       border-color: #ecfdf5 !important; // hover:border-emerald-100
     }
 
@@ -1035,7 +1018,7 @@ const confirmDelete = async () => {
       }
 
       &--draft {
-        background: rgba(245, 158, 11, 0.1);
+        background: rgba(245, 158, 11, 0.10);
         color: #d97706;
         border: none;
       }
@@ -1245,7 +1228,7 @@ const confirmDelete = async () => {
       background: transparent !important;
       color: #94a3b8 !important;
       cursor: pointer !important;
-      transition: all 0.2s ease !important;
+      transition: all $transition-fast !important;
 
       &:hover {
         background: #f1f5f9 !important;
@@ -1283,7 +1266,7 @@ const confirmDelete = async () => {
     background: transparent !important;
     color: #94a3b8 !important;
     cursor: pointer !important;
-    transition: all 0.2s ease !important;
+    transition: all $transition-fast !important;
 
     &:hover {
       background: #f1f5f9 !important;
@@ -1328,7 +1311,7 @@ const confirmDelete = async () => {
         }
 
         &.is-focus .t-checkbox__input__inner {
-          box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+          box-shadow: 0 0 0 2px $overlay-emerald-20;
         }
       }
 
@@ -1432,39 +1415,38 @@ const confirmDelete = async () => {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 6px 12px; // px-3 py-1.5
-    border: 1px solid #e2e8f0; // border-slate-200
-    border-radius: 8px; // rounded-lg
+    padding: 6px 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: var(--radius-md, 8px);
     background-color: transparent;
-    color: #64748b; // text-slate-500
-    font-size: 14px; // text-sm
+    color: var(--color-text-regular, #6e6178);
+    font-size: 14px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all var(--transition-fast, 0.15s);
     white-space: nowrap;
     user-select: none;
 
     &:hover:not(.pagination-btn--disabled):not(.pagination-btn--active) {
-      background-color: #f8fafc; // hover:bg-slate-50
-      border-color: #cbd5e1;
-      color: #334155;
+      background-color: var(--color-primary-bg, #fff0f3);
+      border-color: var(--color-primary-lighter, #ffb5c8);
+      color: var(--color-primary-dark, #e8a0b0);
     }
 
     &.pagination-btn--disabled {
       opacity: 0.5;
       cursor: not-allowed !important;
-      color: #94a3b8;
+      color: var(--color-text-placeholder, #d4c5d0);
       background-color: transparent;
       border-color: #e2e8f0;
       pointer-events: none;
     }
 
-    // 当前激活页码 - 参照 index.html 第936行
     &.pagination-btn--active {
-      background-color: #10b981; // bg-emerald-500
-      color: #fff; // text-white
-      border-color: #10b981;
-      font-weight: 600; // font-medium
-      box-shadow: 0 1px 3px rgba(16, 185, 129, 0.25); // shadow-sm shadow-emerald-100
+      background-color: var(--color-primary, #ff6b8a);
+      color: #fff;
+      border-color: var(--color-primary, #ff6b8a);
+      font-weight: 600;
+      box-shadow: 0 1px 3px var(--overlay-brand-25, rgba(255, 107, 138, 0.25));
       pointer-events: none;
     }
   }
@@ -1502,14 +1484,14 @@ const confirmDelete = async () => {
   box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04); // custom-shadow
   border: 1px solid #f8fafc; // border-slate-50
 
-  // 右侧小助手卡片 - emerald 渐变背景
+  // 右侧小助手卡片 - 主题色绿色渐变背景
   &--assistant {
-    background: linear-gradient(135deg, #34d399, #14b8a6); // from-emerald-400 to-teal-500
+    background: linear-gradient(135deg, #10B981, #059669);
     border: none;
     color: #fff;
     position: relative;
     overflow: hidden;
-    box-shadow: 0 20px 25px -5px rgba(16, 185, 129, 0.15), 0 10px 10px -5px rgba(16, 185, 129, 0.04); // shadow-xl shadow-emerald-200
+    box-shadow: 0 20px 25px -5px $overlay-emerald-15, 0 10px 10px -5px $overlay-emerald-04; // shadow-xl shadow-emerald-200
   }
 }
 
@@ -1543,14 +1525,14 @@ const confirmDelete = async () => {
     width: 28px;
     height: 28px;
     border-radius: 8px;
-    border: 1.5px solid rgba(16, 185, 129, 0.2);
-    background: rgba(16, 185, 129, 0.04);
+    border: 1.5px solid $overlay-emerald-20;
+    background: $overlay-emerald-04;
     color: #10b981;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all $transition-fast;
 
     &:hover:not(:disabled) {
-      background: rgba(16, 185, 129, 0.12);
+      background: $overlay-emerald-12;
       border-color: #10b981;
       color: #059669;
     }
@@ -1715,7 +1697,7 @@ const confirmDelete = async () => {
 
 .assistant-desc {
   font-size: 14px; // text-sm
-  color: rgba(255, 255, 255, 0.9); // text-emerald-50 opacity-90
+  color: $overlay-white-90; // text-emerald-50 opacity-90
   line-height: 1.7; // leading-relaxed
   margin: 0 0 24px 0; // mb-6(24px)
 }
@@ -1729,8 +1711,8 @@ const confirmDelete = async () => {
   border-radius: 16px; // rounded-2xl
   border: none;
   cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); // shadow-lg
+  transition: all $transition-fast;
+  box-shadow: 0 10px 15px -3px $shadow-float; // shadow-lg
 
   &:hover {
     background-color: #ecfdf5;
@@ -1742,7 +1724,7 @@ const confirmDelete = async () => {
 .assistant-footer {
   margin-top: 24px; // mt-6(24px)
   padding-top: 24px; // pt-6(24px)
-  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  border-top: 1px solid $overlay-white-20;
   display: flex;
   align-items: center;
   gap: 16px; // gap-4(16px)
@@ -1758,7 +1740,7 @@ const confirmDelete = async () => {
     width: 24px; // w-6
     height: 24px; // h-6
     border-radius: 50%;
-    background-color: rgba(255, 255, 255, 0.3);
+    background-color: $overlay-white-30;
     border: 2px solid #34d399; // border-emerald-400
     display: inline-flex;
     align-items: center;
@@ -1800,6 +1782,7 @@ const confirmDelete = async () => {
   align-items: center;
   gap: 16px;
   position: relative;
+  min-height: 88px; // 固定最小高度避免批量操作栏显示时布局跳动
 
   .toolbar-left-section {
     flex: 1;
@@ -1857,11 +1840,11 @@ const confirmDelete = async () => {
         border: none !important; // border-none
         border-radius: 12px; // rounded-xl
         font-size: 14px; // text-sm
-        transition: all 0.2s; // transition-all
+        transition: all $transition-fast; // transition-all
         width: 256px; // w-64
 
         &:focus {
-          box-shadow: 0 0 0 2px rgba(167, 243, 208, 0.5); // focus:ring-2 ring-emerald-200
+          box-shadow: 0 0 0 2px rgba(167, 243, 208, 0.50); // focus:ring-2 ring-emerald-200
           outline: none;
           background-color: #fff;
         }
@@ -1884,7 +1867,7 @@ const confirmDelete = async () => {
     border-radius: 12px; // rounded-xl
     font-size: 14px; // text-sm
     font-weight: 500; // font-medium
-    transition: all 0.2s; // transition-colors
+    transition: all $transition-fast; // transition-colors
     box-shadow: 0 4px 6px rgba(15, 23, 42, 0.15); // shadow-md
     border: none;
     cursor: pointer;
@@ -1914,7 +1897,7 @@ const confirmDelete = async () => {
     background-color: transparent;
     border: 1px solid #f1f5f9; // border border-slate-100
     border-radius: 8px; // rounded-lg
-    transition: all 0.2s; // transition-colors
+    transition: all $transition-fast; // transition-colors
     cursor: pointer;
 
     &:hover {
@@ -1960,7 +1943,8 @@ const confirmDelete = async () => {
   align-items: center;
   justify-content: space-between;
   padding: 20px 32px; // px-8
-  border-radius: 0; // 无圆角，与父容器边缘对齐
+  // 上方圆角匹配 content-card 的 32px 圆角
+  border-radius: 32px 32px 0 0;
   box-shadow: 0 4px 18px rgba(5, 150, 105, 0.25);
 
   // index.html 第238行: flex items-center gap-6(24px)
@@ -2005,7 +1989,7 @@ const confirmDelete = async () => {
       cursor: pointer;
       padding: 4px 8px;
       border-radius: 6px;
-      transition: all 0.2s;
+      transition: all $transition-fast;
 
       &:hover {
         color: #d1fae5;
@@ -2030,7 +2014,7 @@ const confirmDelete = async () => {
     background: transparent;
     color: #fff;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all $transition-fast;
 
     &:hover {
       background-color: #047857;
@@ -2043,7 +2027,7 @@ const confirmDelete = async () => {
 // 批量操作栏动画
 .batch-bar-slide-enter-active,
 .batch-bar-slide-leave-active {
-  transition: all 0.3s ease-out;
+  transition: all $transition-slow;
 }
 
 .batch-bar-slide-enter-from,
@@ -2285,7 +2269,7 @@ const confirmDelete = async () => {
     padding: 8px;
     border-radius: 8px;
     color: #94a3b8;
-    transition: all 0.2s;
+    transition: all $transition-fast;
     background: transparent;
     border: none;
     cursor: pointer;
@@ -2338,6 +2322,7 @@ const confirmDelete = async () => {
 
 <!-- ═══════════ 非 scoped 覆盖块：彻底消除全局 _td-overrides.scss 粉色残留 ═══════════ -->
 <style>
+@use '@/assets/styles/variables.scss' as *;
 /* 全局粉色变量值: $bg-page=#FFF9F7, $bg-table-row-hover=#FFF5F8, $bg-table-row-selected=#FFF0F3
    策略: 默认全部清除(box-shadow:none), 仅在 :hover 伪类和 .selected 时添加 */
 

@@ -1,7 +1,7 @@
 <template>
-  <div class="material-list" :aria-busy="!initialized">
+  <div class="material-list" :aria-busy="!initialized" data-testid="material-list">
     <!-- 数据看板 -->
-    <section class="dashboard-grid">
+    <section class="dashboard-grid" data-testid="dashboard-grid">
       <div class="stat-card" v-for="(card, idx) in dashboardCards" :key="card.label"
         :style="{ animationDelay: `${(idx + 1) * 0.1}s` }">
         <div class="stat-card-top">
@@ -22,7 +22,7 @@
       <PageSkeleton v-if="!initialized" type="table" :rows="5" :columns="8" />
       <t-card v-else class="content-card" bordered>
         <!-- 工具栏 -->
-        <div class="data-center-toolbar">
+        <div class="data-center-toolbar" data-testid="material-toolbar">
           <!-- 批量操作栏 (默认隐藏) -->
           <Transition name="batch-bar-slide">
             <div v-if="selectedRows.length > 0" class="batch-action-bar">
@@ -63,19 +63,21 @@
 
           <!-- 右侧：搜索和新增按钮 -->
           <div class="toolbar-right-section">
-            <div class="search-container">
+            <div class="search-container" role="search">
+              <label for="material-search-input" class="sr-only">搜索原料</label>
               <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <circle cx="11" cy="11" r="8"></circle>
                 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
               </svg>
-              <t-input v-model="searchKeyword" class="search-input" placeholder="搜索原料名称、编码..." clearable />
+              <t-input id="material-search-input" v-model="searchKeyword" class="search-input"
+                placeholder="搜索原料名称、编码..." clearable aria-label="按原料名称或编码搜索" data-testid="material-search" />
             </div>
-            <button class="add-formula-btn" @click="handleCreate">
+            <button class="add-formula-btn" @click="handleCreate" aria-label="录入新原料" data-testid="material-add-btn">
               <t-icon name="add" class="add-icon" />
               录入原料
             </button>
-            <button class="filter-btn">
+            <button class="filter-btn" aria-label="筛选原料类型" aria-haspopup="true">
               <t-icon name="filter" class="filter-icon" />
               <span class="filter-dot"></span>
             </button>
@@ -172,15 +174,16 @@
           </template>
 
           <template #operation="{ row }">
-            <div class="action-buttons">
-              <button class="action-btn view-btn" @click="handleView(row)" title="查看">
+            <div class="action-buttons" role="group" aria-label="原料操作">
+              <button class="action-btn view-btn" @click="handleView(row)" title="查看" :aria-label="`查看原料${row.name}详情`">
                 <t-icon name="browse" />
               </button>
-              <button class="action-btn edit-btn" @click.stop="handleEdit(row)" title="编辑">
+              <button class="action-btn edit-btn" @click.stop="handleEdit(row)" title="编辑"
+                :aria-label="`编辑原料${row.name}`">
                 <t-icon name="edit-1" />
               </button>
               <t-popconfirm theme="danger" :content="`确定要删除原料「${row.name}」吗？`" @confirm="handleDelete(row)">
-                <button class="action-btn delete-btn" title="删除">
+                <button class="action-btn delete-btn" title="删除" :aria-label="`删除原料${row.name}`">
                   <t-icon name="delete" />
                 </button>
               </t-popconfirm>
@@ -574,7 +577,7 @@ const allActivityItems = computed<ActivityItem[]>(() => {
   if (!list || list.length === 0) return [];
 
   const items: ActivityItem[] = [];
-  const events: { m: typeof list[0]; action: 'created' | 'updated'; time: string }[] = [];
+  const events: { m: typeof list[0]; action: 'created' | 'updated'; time: string; }[] = [];
 
   for (const m of list) {
     const created = new Date(m.createdAt).getTime();
@@ -728,6 +731,8 @@ const handleDelete = async (row: Material) => {
 </script>
 
 <style scoped lang="scss">
+@use '@/assets/styles/variables.scss' as *;
+
 .material-list {
 
   // ─── 数据看板 ───
@@ -743,7 +748,7 @@ const handleDelete = async (row: Material) => {
       border-radius: 24px;
       border: 1px solid #fff;
       box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
-      transition: all 0.3s ease;
+      transition: all $transition-slow;
       animation: dashboard-fade-in 0.5s ease forwards;
       opacity: 0;
 
@@ -807,10 +812,10 @@ const handleDelete = async (row: Material) => {
     border: 1px solid #f8fafc !important;
     overflow: hidden;
     box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
-    transition: all 0.3s ease;
+    transition: all $transition-slow;
 
     &:hover {
-      box-shadow: 0 8px 30px rgba(15, 23, 42, 0.1), 0 2px 6px rgba(15, 23, 42, 0.05);
+      box-shadow: 0 8px 30px rgba(15, 23, 42, 0.10), 0 2px 6px rgba(15, 23, 42, 0.05);
       border-color: #ecfdf5 !important;
     }
 
@@ -870,12 +875,12 @@ const handleDelete = async (row: Material) => {
       background: #fff;
       border-radius: 12px;
       border: 1px solid #f1f5f9;
-      transition: all 0.2s ease;
+      transition: all $transition-fast;
       position: relative;
 
       &:hover {
         border-color: #d1fae5;
-        box-shadow: 0 2px 8px rgba(16, 185, 129, 0.08);
+        box-shadow: 0 2px 8px $overlay-emerald-08;
         transform: translateY(-2px);
       }
 
@@ -1031,11 +1036,11 @@ const handleDelete = async (row: Material) => {
           border: none !important;
           border-radius: 12px;
           font-size: 14px;
-          transition: all 0.2s;
+          transition: all $transition-fast;
           width: 256px;
 
           &:focus {
-            box-shadow: 0 0 0 2px rgba(167, 243, 208, 0.5);
+            box-shadow: 0 0 0 2px rgba(167, 243, 208, 0.50);
             outline: none;
             background-color: #fff;
           }
@@ -1057,7 +1062,7 @@ const handleDelete = async (row: Material) => {
       border-radius: 12px;
       font-size: 14px;
       font-weight: 500;
-      transition: all 0.2s;
+      transition: all $transition-fast;
       box-shadow: 0 4px 6px rgba(15, 23, 42, 0.15);
       border: none;
       cursor: pointer;
@@ -1083,7 +1088,7 @@ const handleDelete = async (row: Material) => {
       background-color: transparent;
       border: 1px solid #f1f5f9;
       border-radius: 8px;
-      transition: all 0.2s;
+      transition: all $transition-fast;
       cursor: pointer;
 
       &:hover {
@@ -1148,7 +1153,7 @@ const handleDelete = async (row: Material) => {
       .batch-divider {
         width: 1px;
         height: 16px;
-        background: rgba(52, 211, 153, 0.5);
+        background: rgba(52, 211, 153, 0.50);
       }
 
       .batch-buttons {
@@ -1168,7 +1173,7 @@ const handleDelete = async (row: Material) => {
         cursor: pointer;
         padding: 4px 8px;
         border-radius: 6px;
-        transition: all 0.2s;
+        transition: all $transition-fast;
 
         &:hover {
           color: #d1fae5;
@@ -1191,7 +1196,7 @@ const handleDelete = async (row: Material) => {
       background: transparent;
       color: #fff;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: all $transition-fast;
 
       &:hover {
         background-color: #047857;
@@ -1354,7 +1359,7 @@ const handleDelete = async (row: Material) => {
   font-weight: 500;
   padding: 4px 10px;
   border-radius: 999px;
-  transition: all 0.2s ease;
+  transition: all $transition-fast;
 
   .t-icon {
     font-size: 14px;
@@ -1392,7 +1397,7 @@ const handleDelete = async (row: Material) => {
     padding: 8px;
     border-radius: 8px;
     color: #94a3b8;
-    transition: all 0.2s;
+    transition: all $transition-fast;
     background: transparent;
     border: none;
     cursor: pointer;
@@ -1406,17 +1411,17 @@ const handleDelete = async (row: Material) => {
 
     &.view-btn:hover {
       color: #10b981;
-      background-color: rgba(209, 250, 229, 0.5);
+      background-color: rgba(209, 250, 229, 0.50);
     }
 
     &.edit-btn:hover {
       color: #3b82f6;
-      background-color: rgba(219, 234, 254, 0.5);
+      background-color: rgba(219, 234, 254, 0.50);
     }
 
     &.delete-btn:hover {
       color: #ef4444;
-      background-color: rgba(254, 226, 226, 0.5);
+      background-color: rgba(254, 226, 226, 0.50);
     }
 
     .t-icon {
@@ -1453,34 +1458,36 @@ const handleDelete = async (row: Material) => {
     justify-content: center;
     padding: 6px 12px;
     border: 1px solid #e2e8f0;
-    border-radius: 8px;
+    border-radius: var(--radius-md, 8px);
     background-color: transparent;
-    color: #64748b;
+    color: var(--color-text-regular, #6e6178);
     font-size: 14px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all var(--transition-fast, 0.15s);
     white-space: nowrap;
     user-select: none;
 
     &:hover:not(.pagination-btn--disabled):not(.pagination-btn--active) {
-      background-color: #f8fafc;
-      border-color: #cbd5e1;
-      color: #334155;
+      background-color: var(--color-primary-bg, #fff0f3);
+      border-color: var(--color-primary-lighter, #ffb5c8);
+      color: var(--color-primary-dark, #e8a0b0);
     }
 
     &.pagination-btn--disabled {
       opacity: 0.5;
       cursor: not-allowed !important;
-      color: #94a3b8;
+      color: var(--color-text-placeholder, #d4c5d0);
+      background-color: transparent;
+      border-color: #e2e8f0;
       pointer-events: none;
     }
 
     &.pagination-btn--active {
-      background-color: #10b981;
+      background-color: var(--color-primary, #ff6b8a);
       color: #fff;
-      border-color: #10b981;
+      border-color: var(--color-primary, #ff6b8a);
       font-weight: 600;
-      box-shadow: 0 1px 3px rgba(16, 185, 129, 0.25);
+      box-shadow: 0 1px 3px var(--overlay-brand-25, rgba(255, 107, 138, 0.25));
       pointer-events: none;
     }
   }
@@ -1523,7 +1530,7 @@ const handleDelete = async (row: Material) => {
     color: #fff;
     position: relative;
     overflow: hidden;
-    box-shadow: 0 20px 25px -5px rgba(16, 185, 129, 0.15), 0 10px 10px -5px rgba(16, 185, 129, 0.04);
+    box-shadow: 0 20px 25px -5px $overlay-emerald-15, 0 10px 10px -5px $overlay-emerald-04;
   }
 }
 
@@ -1556,14 +1563,14 @@ const handleDelete = async (row: Material) => {
     width: 28px;
     height: 28px;
     border-radius: 8px;
-    border: 1.5px solid rgba(16, 185, 129, 0.2);
-    background: rgba(16, 185, 129, 0.04);
+    border: 1.5px solid $overlay-emerald-20;
+    background: $overlay-emerald-04;
     color: #10b981;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all $transition-fast;
 
     &:hover:not(:disabled) {
-      background: rgba(16, 185, 129, 0.12);
+      background: $overlay-emerald-12;
       border-color: #10b981;
       color: #059669;
     }
@@ -1720,7 +1727,7 @@ const handleDelete = async (row: Material) => {
   border-radius: 16px;
   border: none;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all $transition-fast;
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 
   &:hover {
@@ -1816,7 +1823,7 @@ const handleDelete = async (row: Material) => {
 
 .batch-bar-slide-enter-active,
 .batch-bar-slide-leave-active {
-  transition: all 0.3s ease-out;
+  transition: all $transition-slow;
 }
 
 .batch-bar-slide-enter-from,
@@ -1849,6 +1856,8 @@ const handleDelete = async (row: Material) => {
 </style>
 
 <style>
+@use '@/assets/styles/variables.scss' as *;
+
 .material-list .content-card .t-table,
 .material-list .content-card .t-table .t-table__body-wrapper,
 .material-list .content-card .t-table .t-table__body-inner,

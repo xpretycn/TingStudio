@@ -34,21 +34,41 @@ export interface ParseResult {
 }
 
 export const excelImportApi = {
-  // 下载配方导入模板
   downloadTemplate() {
     return http.get('/import/formula/template', { responseType: 'blob' })
   },
 
-  // 解析配方Excel文件
   async parseFormulaExcel(file: File): Promise<{ success: boolean; data: ParseResult; message?: string }> {
     const formData = new FormData()
     formData.append('file', file)
-    
+
     const response = await http.post('/import/formula/parse', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
+      headers: { 'Content-Type': 'multipart/form-data' },
     })
     return response as any
+  },
+}
+
+// ─── 营养素 Excel 导入（专用） ──────────────────────
+
+export interface NutritionParseResult {
+  nutritionData: Record<string, number>
+  dataSource: string
+  confidence: string
+  notes: string
+}
+
+export const nutritionExcelApi = {
+  downloadTemplate() {
+    return http.get('/import/nutrition/template', { responseType: 'blob' })
+  },
+
+  async parse(file: File): Promise<NutritionParseResult> {
+    const formData = new FormData()
+    formData.append('file', file)
+
+    return await http.post('/import/nutrition/parse', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }) as any
   },
 }

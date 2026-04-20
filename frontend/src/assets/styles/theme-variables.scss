@@ -197,6 +197,19 @@
   --gradient-brand: linear-gradient(135deg, #ff8fab 0%, #ff6b8a 50%, #e8a0b0 100%);
   --gradient-btn: linear-gradient(135deg, #ff8fab 0%, #ff6b8a 100%);
   --gradient-btn-hover: linear-gradient(135deg, #ffb5c8 0%, #ff8fab 100%);
+
+  // ─── Emerald 主题色（表单/创建页语义主色）───
+  --color-emerald-50: #{$emerald-50};
+  --color-emerald-100: #{$emerald-100};
+  --color-emerald-400: #{$emerald-400};
+  --color-emerald-500: #{$emerald-500};
+  --color-emerald-600: #{$emerald-600};
+  --color-emerald-teal: #{$emerald-teal};
+
+  --overlay-emerald-04: #{$overlay-emerald-04};
+  --overlay-emerald-05: #{$overlay-emerald-05};
+  --overlay-emerald-06: #{$overlay-emerald-06};
+  --overlay-emerald-08: #{$overlay-emerald-08};
 }
 
 // ─── 2b. 黄色 (yellow) ───

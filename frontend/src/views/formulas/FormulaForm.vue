@@ -1,11 +1,11 @@
 <template>
-  <div class="formula-form">
+  <div class="formula-form" data-testid="formula-form">
     <!-- 顶部 Header（还原 FormulaDetail.vue 设计） -->
     <header class="detail-header">
       <!-- 左侧区域 -->
       <div class="header-left">
         <!-- 返回按钮 -->
-        <button class="header-back-btn" @click="handleBack" title="返回列表">
+        <button class="header-back-btn" @click="handleBack" title="返回列表" aria-label="返回配方列表">
           <t-icon name="arrow-left" />
         </button>
         <!-- 标题区（面包屑 + 名称 + 版本标签） -->
@@ -24,11 +24,13 @@
       </div>
       <!-- 右侧：操作按钮组 -->
       <div class="header-actions">
-        <button class="header-action-btn secondary" @click="handleBack">
+        <button class="header-action-btn secondary" @click="handleBack" aria-label="取消编辑，返回列表"
+          data-testid="formula-cancel-btn">
           <t-icon name="close" class="btn-icon" />
           取消
         </button>
-        <button class="header-action-btn" @click="handleSubmit({ validateResult: true })">
+        <button class="header-action-btn" @click="handleSubmit({ validateResult: true })" aria-label="保存配方"
+          data-testid="formula-save-btn">
           <t-icon name="save" class="btn-icon" />
           {{ isEdit ? '保存' : '创建' }}
         </button>
@@ -53,13 +55,15 @@
               </h3>
               <div class="section-content space-y-6">
                 <div class="form-field">
-                  <label class="field-label">配方名称 <span class="required">*</span></label>
-                  <t-input v-model="formData.name" placeholder="例如：佛手玫苓膏" clearable class="field-input" />
+                  <label class="field-label" id="lbl-formula-name">配方名称 <span class="required">*</span></label>
+                  <t-input v-model="formData.name" placeholder="例如：佛手玫苓膏" clearable class="field-input"
+                    aria-required="true" aria-labelledby="lbl-formula-name" data-testid="formula-name-input" />
                 </div>
 
                 <div class="form-field">
-                  <label class="field-label">所属业务员 <span class="required">*</span></label>
-                  <t-select v-model="formData.salesmanId" placeholder="请选择业务员" clearable filterable class="field-input">
+                  <label class="field-label" id="lbl-salesman">所属业务员 <span class="required">*</span></label>
+                  <t-select v-model="formData.salesmanId" placeholder="请选择业务员" clearable filterable class="field-input"
+                    aria-required="true" aria-labelledby="lbl-salesman">
                     <t-option v-for="salesman in salesmanStore.salesmen" :key="salesman.id" :value="salesman.id"
                       :label="salesman.name" />
                   </t-select>
@@ -67,34 +71,36 @@
 
                 <div class="grid grid-cols-2 gap-6">
                   <div class="form-field">
-                    <label class="field-label">成品重量(g) <span class="required">*</span></label>
+                    <label class="field-label" id="lbl-weight">成品重量(g) <span class="required">*</span></label>
                     <t-input-number v-model="formData.finishedWeight" :min="0" :decimal-places="2" placeholder="1000"
-                      class="field-input" />
+                      class="field-input" aria-required="true" aria-labelledby="lbl-weight" />
                   </div>
                   <div class="form-field">
-                    <label class="field-label">主料含量比系数 <span class="required">*</span></label>
+                    <label class="field-label" id="lbl-ratio-factor">主料含量比系数 <span class="required">*</span></label>
                     <t-input-number v-model="formData.ratioFactor" :min="0.15" :max="0.25" :decimal-places="2"
-                      placeholder="0.18" class="field-input" />
+                      placeholder="0.18" class="field-input" aria-required="true" aria-labelledby="lbl-ratio-factor" />
                   </div>
                 </div>
 
                 <div class="form-field">
-                  <label class="field-label">辅料含量比系数 <span class="required">*</span></label>
+                  <label class="field-label" id="lbl-supplement-factor">辅料含量比系数 <span class="required">*</span></label>
                   <t-input-number v-model="formData.supplementRatioFactor" :min="0.5" :max="1.5" :decimal-places="2"
-                    placeholder="1.0" class="field-input" />
+                    placeholder="1.0" class="field-input" aria-required="true"
+                    aria-labelledby="lbl-supplement-factor" />
                   <p class="field-help">用于营养成分含量比计算，主料系数范围0.15-0.25，辅料系数范围0.5-1.5</p>
                 </div>
 
                 <div class="form-field">
-                  <label class="field-label">配方描述</label>
+                  <label class="field-label" id="lbl-description">配方描述</label>
                   <t-textarea v-model="formData.description" placeholder="简述该配方的研发目标和主要特点..."
-                    :autosize="{ minRows: 3, maxRows: 6 }" class="field-input" />
+                    :autosize="{ minRows: 3, maxRows: 6 }" class="field-input" aria-labelledby="lbl-description" />
                 </div>
 
                 <div v-if="isEdit" class="form-field">
-                  <label class="field-label">升版原因 <span class="required">*</span></label>
+                  <label class="field-label" id="lbl-version-reason">升版原因 <span class="required">*</span></label>
                   <t-textarea v-model="formData.versionReason" placeholder="请输入升版原因（必填）"
-                    :autosize="{ minRows: 2, maxRows: 4 }" class="field-input" />
+                    :autosize="{ minRows: 2, maxRows: 4 }" class="field-input" aria-required="true"
+                    aria-labelledby="lbl-version-reason" />
                 </div>
               </div>
             </section>
@@ -108,11 +114,11 @@
                 </h3>
                 <div class="row-actions">
                   <button type="button" class="clear-btn" @click="clearMaterials"
-                    :disabled="formData.materials.length === 0">
+                    :disabled="formData.materials.length === 0" aria-label="清空所有原料">
                     <t-icon name="delete" />
                     清空
                   </button>
-                  <button type="button" class="add-row-btn" @click="addMaterial">
+                  <button type="button" class="add-row-btn" @click="addMaterial" aria-label="添加原料行">
                     <t-icon name="add" />
                     添加行
                   </button>
@@ -136,7 +142,7 @@
                         <td>
                           <t-select v-model="item.materialId" placeholder="搜索或选择原料" clearable filterable
                             :loading="materialSelectLoading" class="material-select" :filter-icon="() => null"
-                            @search="handleMaterialSearch" @change="handleMaterialChange(index)"
+                            aria-label="选择原料" @search="handleMaterialSearch" @change="handleMaterialChange(index)"
                             @focus="handleMaterialFocus">
                             <t-option v-for="material in getFilteredMaterials(index)" :key="material.id"
                               :value="material.id" :label="`${material.name} (${material.unit})`">
@@ -155,10 +161,12 @@
                           </t-select>
                         </td>
                         <td>
-                          <t-input-number v-model="item.quantity" :min="0" placeholder="数量" class="quantity-input" />
+                          <t-input-number v-model="item.quantity" :min="0" placeholder="数量" class="quantity-input"
+                            :aria-label="`原料数量第${index + 1}行`" />
                         </td>
                         <td class="text-center">
-                          <t-button variant="text" size="small" @click="removeMaterial(index)" class="delete-btn">
+                          <t-button variant="text" size="small" @click="removeMaterial(index)" class="delete-btn"
+                            :aria-label="`删除第${index + 1}行原料`">
                             <template #icon>
                               <t-icon name="delete" />
                             </template>
@@ -176,7 +184,7 @@
                   </table>
 
                   <div class="empty-materials">
-                    <button type="button" class="add-first-btn" @click="addMaterial">
+                    <button type="button" class="add-first-btn" @click="addMaterial" aria-label="添加第一条原料">
                       <t-icon name="add-rectangle" />
                       继续添加配方原料
                     </button>
@@ -209,9 +217,10 @@
                       <template v-if="aiStore.models.length > 0">
                         <button v-for="model in aiStore.models" :key="model.provider" type="button" class="model-btn"
                           :class="{ active: aiStore.selectedModel === model.provider }"
-                          @click="selectModel(model.provider)">
+                          @click="selectModel(model.provider)" :aria-label="`选择${model.name}模型`"
+                          :aria-pressed="aiStore.selectedModel === model.provider">
                           <div class="model-logo-wrap">
-                            <img :src="getModelLogo(model)" :alt="model.name" class="model-logo"
+                            <img loading="lazy" :src="getModelLogo(model)" :alt="model.name" class="model-logo"
                               @error="(e: Event) => handleLogoError(e, model)" />
                             <span class="model-fallback" :style="{ color: getFallbackColor(model) }">
                               {{ getFallbackLetter(model) }}
@@ -353,18 +362,21 @@
                       </div>
 
                       <div class="result-actions">
-                        <t-button theme="success" block @click="backfillData" class="backfill-btn">
+                        <t-button theme="success" block @click="backfillData" class="backfill-btn"
+                          aria-label="确认并回填AI解析数据到表单">
                           <template #icon>
                             <t-icon name="check-circle" />
                           </template>
                           确认并回填数据
                         </t-button>
                         <div class="secondary-actions">
-                          <button type="button" class="action-btn action-btn--default" @click.stop="resetUpload">
+                          <button type="button" class="action-btn action-btn--default" @click.stop="resetUpload"
+                            aria-label="重新选择文件">
                             <t-icon name="refresh" />
                             重新选择文件
                           </button>
-                          <button type="button" class="action-btn action-btn--danger" @click.stop="clearResult">
+                          <button type="button" class="action-btn action-btn--danger" @click.stop="clearResult"
+                            aria-label="清空AI解析结果">
                             <t-icon name="delete" />
                             清空
                           </button>
@@ -378,10 +390,10 @@
                             <t-dropdown-menu>
                               <t-dropdown-item v-for="model in aiStore.models" :key="model.provider"
                                 :value="model.provider"
-                                @click="(ctx: { value: string; }) => handleReparseWithModel({ value: ctx.value })">
+                                @click="(ctx) => handleReparseWithModel({ value: ctx.value })">
                                 <div class="reparse-model-option">
                                   <div class="reparse-model-logo">
-                                    <img :src="getModelLogo(model)" :alt="model.name"
+                                    <img loading="lazy" :src="getModelLogo(model)" :alt="model.name"
                                       @error="(e: Event) => handleLogoError(e, model)" />
                                     <span class="reparse-model-fallback" :style="{ color: getFallbackColor(model) }">
                                       {{ getFallbackLetter(model) }}
@@ -739,7 +751,7 @@ const getFallbackLetter = (model: any): string => {
 
 const getFallbackColor = (model: any): string => {
   const slug = getModelSlug(model);
-  return FALLBACK_ICONS[slug]?.color || '#94a3b8';
+  return FALLBACK_ICONS[slug]?.color || '$text-placeholder';
 };
 
 const handleLogoError = (e: Event, model: any) => {
@@ -995,6 +1007,8 @@ onMounted(async () => {
 </script>
 
 <style scoped lang="scss">
+@use '@/assets/styles/variables.scss' as *;
+
 .formula-form {
 
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -1013,9 +1027,9 @@ onMounted(async () => {
     margin-left: -32px;
     margin-right: -32px;
     padding: 16px 32px; // px-8 py-4（内部内容仍保持间距）
-    background-color: rgba(255, 255, 255, 0.80); // bg-white/80
+    background-color: $overlay-white-80; // bg-white/80
     backdrop-filter: blur(12px); // backdrop-blur-md
-    border-bottom: 1px solid #f1f5f9; // border-slate-100
+    border-bottom: 1px solid $border-color-light; // border-slate-100
     animation: fadeInDown 0.3s cubic-bezier(0.4, 0, 0.2, 1) both;
 
     // ── 左侧：返回按钮 + 标题组 ──
@@ -1034,14 +1048,14 @@ onMounted(async () => {
         border: none;
         border-radius: 12px; // rounded-xl
         background: transparent;
-        color: #94a3b8; // text-slate-400
+        color: $text-placeholder; // text-slate-400
         cursor: pointer;
-        transition: all 0.2s ease; // transition-all
+        transition: all $transition-fast; // transition-all
         font-size: 20px; // text-2xl
 
         &:hover {
-          color: #10b981; // hover:text-emerald-500
-          background-color: #ecfdf5; // hover:bg-emerald-50
+          color: $emerald-500; // hover:text-emerald-500
+          background-color: $emerald-50; // hover:bg-emerald-50
         }
       }
 
@@ -1060,19 +1074,19 @@ onMounted(async () => {
           line-height: 1;
 
           .breadcrumb-link {
-            color: #94a3b8; // text-slate-400
+            color: $text-placeholder; // text-slate-400
             cursor: pointer;
             transition: color 0.15s;
             text-decoration: none;
 
             &:hover {
-              color: #10b981; // hover:text-emerald-500
+              color: $emerald-500; // hover:text-emerald-500
             }
           }
 
           .breadcrumb-sep {
             font-size: 12px;
-            color: #94a3b8;
+            color: $text-placeholder;
           }
 
           .breadcrumb-current {
@@ -1105,24 +1119,24 @@ onMounted(async () => {
         align-items: center;
         gap: 8px; // gap-2
         padding: 8px 16px; // px-4 py-2
-        background-color: #10b981; // bg-emerald-500
+        background-color: $emerald-500; // bg-emerald-500
         color: #ffffff;
         border: none;
         border-radius: 12px; // rounded-xl
         font-size: 14px; // text-sm
         font-weight: 700; // font-bold
-        box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.25); // shadow-lg shadow-emerald-100
+        box-shadow: 0 10px 15px -3px $overlay-emerald-25; // shadow-lg shadow-emerald-100
         cursor: pointer;
-        transition: all 0.2s ease; // transition-all
+        transition: all $transition-fast; // transition-all
 
         .btn-icon {
           font-size: 18px; // text-lg (图标略大于文字)
         }
 
         &:hover {
-          background-color: #059669; // hover:bg-emerald-600
+          background-color: $emerald-600; // hover:bg-emerald-600
           transform: translateY(-1px);
-          box-shadow: 0 14px 20px -3px rgba(16, 185, 129, 0.35);
+          box-shadow: 0 14px 20px -3px $overlay-emerald-35;
         }
 
         &:active {
@@ -1132,14 +1146,14 @@ onMounted(async () => {
 
         // 次要按钮样式
         &.secondary {
-          background-color: #f1f5f9; // slate-100
+          background-color: $border-color-light; // slate-100
           color: #64748b; // slate-500
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.10);
 
           &:hover {
             background-color: #e2e8f0; // slate-200
             color: #475569; // slate-600
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.10);
           }
 
           &:active {
@@ -1225,7 +1239,7 @@ onMounted(async () => {
     background: #fff;
     padding: 32px;
     border-radius: 2.5rem;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    box-shadow: 0 1px 3px $overlay-black-05;
     border: 1px solid #f8fafc;
     animation: fadeInUp 0.35s ease both;
 
@@ -1242,13 +1256,13 @@ onMounted(async () => {
       gap: 8px;
       font-size: 14px;
       font-weight: 700;
-      color: #94a3b8;
+      color: $text-placeholder;
       text-transform: uppercase;
       letter-spacing: 0.12em;
       margin: 0 0 24px;
 
       .section-icon {
-        color: #10b981;
+        color: $emerald-500;
         font-size: 16px;
       }
     }
@@ -1265,13 +1279,13 @@ onMounted(async () => {
       gap: 4px;
       font-size: 12px;
       font-weight: 700;
-      color: #059669;
+      color: $emerald-600;
       padding: 6px 12px;
-      background-color: rgba(16, 185, 129, 0.08);
+      background-color: $overlay-emerald-08;
       border: none;
       border-radius: 8px;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: all $transition-fast;
 
       .t-icon {
         font-size: 14px;
@@ -1279,7 +1293,7 @@ onMounted(async () => {
 
       &:hover {
         color: #047857;
-        background-color: rgba(16, 185, 129, 0.15);
+        background-color: $overlay-emerald-15;
       }
     }
 
@@ -1289,13 +1303,13 @@ onMounted(async () => {
       gap: 4px;
       font-size: 12px;
       font-weight: 700;
-      color: #059669;
+      color: $emerald-600;
       padding: 6px 12px;
-      background-color: rgba(16, 185, 129, 0.08);
+      background-color: $overlay-emerald-08;
       border: none;
       border-radius: 8px;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: all $transition-fast;
 
       .t-icon {
         font-size: 14px;
@@ -1303,7 +1317,7 @@ onMounted(async () => {
 
       &:hover:not(:disabled) {
         color: #047857;
-        background-color: rgba(16, 185, 129, 0.15);
+        background-color: $overlay-emerald-15;
       }
 
       &:disabled {
@@ -1342,13 +1356,13 @@ onMounted(async () => {
 
         :deep(.t-input) {
           background-color: #f8fafc !important;
-          border: 1px solid #f1f5f9 !important;
+          border: 1px solid $border-color-light !important;
           border-radius: 16px !important;
           padding: 14px 20px !important;
           min-height: 48px;
           font-size: 14px !important;
           color: #334155 !important;
-          transition: all 0.2s ease;
+          transition: all $transition-fast;
 
           &:hover:not(.t-is-disabled) {
             border-color: #e2e8f0 !important;
@@ -1357,12 +1371,12 @@ onMounted(async () => {
           &.t-is-focused {
             background-color: #fff !important;
             border-color: transparent !important;
-            box-shadow: 0 0 0 2px #10b981 !important;
+            box-shadow: 0 0 0 2px $emerald-500 !important;
             outline: none !important;
           }
 
           &::placeholder {
-            color: #94a3b8 !important;
+            color: $text-placeholder !important;
           }
         }
 
@@ -1377,11 +1391,11 @@ onMounted(async () => {
 
           .t-select__wrap {
             background-color: #f8fafc !important;
-            border: 1px solid #f1f5f9 !important;
+            border: 1px solid $border-color-light !important;
             border-radius: 16px !important;
             padding: 10px 12px !important;
             min-height: 48px;
-            transition: all 0.2s ease;
+            transition: all $transition-fast;
 
             &:hover:not(.t-is-disabled) {
               border-color: #e2e8f0 !important;
@@ -1391,7 +1405,7 @@ onMounted(async () => {
           &.t-is-focused .t-select__wrap {
             background-color: #fff !important;
             border-color: transparent !important;
-            box-shadow: 0 0 0 2px #10b981 !important;
+            box-shadow: 0 0 0 2px $emerald-500 !important;
             outline: none !important;
           }
 
@@ -1403,21 +1417,21 @@ onMounted(async () => {
           }
 
           .t-select__placeholder {
-            color: #94a3b8 !important;
+            color: $text-placeholder !important;
           }
 
           .t-icon {
-            color: #94a3b8 !important;
+            color: $text-placeholder !important;
           }
         }
 
         :deep(.t-input-number) {
           width: 100%;
           background-color: #f8fafc !important;
-          border: 1px solid #f1f5f9 !important;
+          border: 1px solid $border-color-light !important;
           border-radius: 16px !important;
           min-height: 48px;
-          transition: all 0.2s ease;
+          transition: all $transition-fast;
 
           &:hover:not(.t-is-disabled) {
             border-color: #e2e8f0 !important;
@@ -1426,7 +1440,7 @@ onMounted(async () => {
           &.t-is-focused {
             background-color: #fff !important;
             border-color: transparent !important;
-            box-shadow: 0 0 0 2px #10b981 !important;
+            box-shadow: 0 0 0 2px $emerald-500 !important;
             outline: none !important;
           }
 
@@ -1440,7 +1454,7 @@ onMounted(async () => {
           .t-input-number__increase {
             border: none !important;
             background: transparent !important;
-            color: #10b981 !important;
+            color: $emerald-500 !important;
             border-radius: 50% !important;
             width: 28px !important;
             height: 28px !important;
@@ -1449,8 +1463,8 @@ onMounted(async () => {
             transition: all 0.15s ease;
 
             &:hover {
-              background-color: rgba(16, 185, 129, 0.08) !important;
-              color: #059669 !important;
+              background-color: $overlay-emerald-08 !important;
+              color: $emerald-600 !important;
             }
           }
 
@@ -1462,7 +1476,7 @@ onMounted(async () => {
             min-height: 46px;
 
             &::placeholder {
-              color: #94a3b8 !important;
+              color: $text-placeholder !important;
             }
           }
         }
@@ -1470,12 +1484,12 @@ onMounted(async () => {
         :deep(.t-textarea) {
           .t-textarea__inner {
             background-color: #f8fafc !important;
-            border: 1px solid #f1f5f9 !important;
+            border: 1px solid $border-color-light !important;
             border-radius: 16px !important;
             padding: 14px 20px !important;
             font-size: 14px !important;
             color: #334155 !important;
-            transition: all 0.2s ease;
+            transition: all $transition-fast;
 
             &:hover:not(:focus) {
               border-color: #e2e8f0 !important;
@@ -1484,12 +1498,12 @@ onMounted(async () => {
             &:focus {
               background-color: #fff !important;
               border-color: transparent !important;
-              box-shadow: 0 0 0 2px #10b981 !important;
+              box-shadow: 0 0 0 2px $emerald-500 !important;
               outline: none !important;
             }
 
             &::placeholder {
-              color: #94a3b8 !important;
+              color: $text-placeholder !important;
             }
           }
         }
@@ -1512,7 +1526,7 @@ onMounted(async () => {
             padding: 8px 16px;
             font-size: 10px;
             font-weight: 900;
-            color: #94a3b8;
+            color: $text-placeholder;
             text-transform: uppercase;
             letter-spacing: 0.05em;
             text-align: left;
@@ -1560,12 +1574,12 @@ onMounted(async () => {
 
       tfoot {
         .total-row {
-          background: rgba(16, 185, 129, 0.05);
+          background: $overlay-emerald-05;
           border-radius: 12px;
 
           td {
             padding: 16px;
-            color: #059669;
+            color: $emerald-600;
 
             &:first-child {
               border-radius: 12px 0 0 12px;
@@ -1593,27 +1607,27 @@ onMounted(async () => {
         padding: 16px 0;
         font-size: 14px;
         font-weight: 700;
-        color: #94a3b8;
+        color: $text-placeholder;
         text-transform: uppercase;
         letter-spacing: 0.1em;
         background-color: transparent;
         border: 2px dashed #e2e8f0;
         border-radius: 24px;
         cursor: pointer;
-        transition: all 0.2s ease;
+        transition: all $transition-fast;
 
         .t-icon {
           font-size: 20px;
-          color: #94a3b8;
+          color: $text-placeholder;
         }
 
         &:hover {
-          color: #10b981;
-          border-color: rgba(16, 185, 129, 0.4);
+          color: $emerald-500;
+          border-color: $overlay-emerald-40;
           background-color: #fff;
 
           .t-icon {
-            color: #10b981;
+            color: $emerald-500;
           }
         }
       }
@@ -1632,10 +1646,10 @@ onMounted(async () => {
 
   // AI 面板样式
   .ai-panel {
-    background: linear-gradient(145deg, #ffffff 0%, #f8fafc 50%, #f1f5f9 100%);
+    background: linear-gradient(145deg, #ffffff 0%, #f8fafc 50%, $border-color-light 100%);
     padding: 32px;
     border-radius: 2.5rem;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.06), 0 8px 10px -6px rgba(16, 185, 129, 0.06);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.06), 0 8px 10px -6px $overlay-emerald-06;
     color: #334155;
     position: relative;
     overflow: hidden;
@@ -1649,7 +1663,7 @@ onMounted(async () => {
       right: -40px;
       width: 180px;
       height: 180px;
-      background: radial-gradient(circle, rgba(16, 185, 129, 0.12) 0%, transparent 70%);
+      background: radial-gradient(circle, $overlay-emerald-12 0%, transparent 70%);
       filter: blur(60px);
       border-radius: 50%;
     }
@@ -1668,7 +1682,7 @@ onMounted(async () => {
       .ai-icon {
         width: 40px;
         height: 40px;
-        background: linear-gradient(135deg, #10b981, #2dd4bf);
+        background: linear-gradient(135deg, $emerald-500, $emerald-teal);
         border-radius: 12px;
         display: flex;
         align-items: center;
@@ -1689,7 +1703,7 @@ onMounted(async () => {
 
         .ai-subtitle {
           font-size: 12px;
-          color: #94a3b8;
+          color: $text-placeholder;
           margin: 4px 0 0;
         }
       }
@@ -1719,29 +1733,29 @@ onMounted(async () => {
             align-items: center;
             gap: 6px;
             padding: 14px 10px;
-            background: rgba(16, 185, 129, 0.04);
+            background: $overlay-emerald-04;
             border: 1px solid rgba(148, 163, 184, 0.18);
             border-radius: 16px;
             color: #64748b;
             font-size: 11px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.25s ease;
+            transition: all $transition-normal;
             opacity: 0.75;
 
             &:hover {
               opacity: 1;
-              background: rgba(16, 185, 129, 0.08);
-              border-color: rgba(16, 185, 129, 0.25);
+              background: $overlay-emerald-08;
+              border-color: $overlay-emerald-25;
               transform: translateY(-1px);
             }
 
             &.active {
-              background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(45, 212, 191, 0.08) 100%);
-              border-color: rgba(16, 185, 129, 0.35);
+              background: linear-gradient(135deg, $overlay-emerald-12 0%, rgba(45, 212, 191, 0.08) 100%);
+              border-color: $overlay-emerald-35;
               opacity: 1;
-              color: #059669;
-              box-shadow: 0 4px 12px -2px rgba(16, 185, 129, 0.12);
+              color: $emerald-600;
+              box-shadow: 0 4px 12px -2px $overlay-emerald-12;
             }
 
             .model-logo-wrap {
@@ -1767,7 +1781,7 @@ onMounted(async () => {
               justify-content: center;
               font-size: 16px;
               font-weight: 700;
-              background: rgba(16, 185, 129, 0.08);
+              background: $overlay-emerald-08;
               border-radius: 8px;
             }
 
@@ -1788,7 +1802,7 @@ onMounted(async () => {
               font-size: 9px;
               padding: 2px 6px;
               line-height: 1;
-              background: linear-gradient(135deg, #10b981, #059669);
+              background: $gradient-emerald-strong;
               color: #fff;
               border-radius: 8px;
               font-weight: 700;
@@ -1804,7 +1818,7 @@ onMounted(async () => {
             justify-content: center;
             gap: 8px;
             padding: 16px;
-            color: #94a3b8;
+            color: $text-placeholder;
             font-size: 13px;
 
             .t-icon {
@@ -1825,24 +1839,24 @@ onMounted(async () => {
         justify-content: center;
         gap: 16px;
         cursor: pointer;
-        transition: all 0.2s ease;
+        transition: all $transition-fast;
 
         &:hover,
         &.drag-over {
-          border-color: rgba(16, 185, 129, 0.5);
-          background: rgba(16, 185, 129, 0.04);
+          border-color: $overlay-emerald-50;
+          background: $overlay-emerald-04;
         }
 
         .upload-icon {
           width: 64px;
           height: 64px;
-          background: rgba(16, 185, 129, 0.08);
+          background: $overlay-emerald-08;
           border-radius: 50%;
           display: flex;
           align-items: center;
           justify-content: center;
           font-size: 32px;
-          color: #10b981;
+          color: $emerald-500;
           transition: transform 0.2s ease;
         }
 
@@ -1870,7 +1884,7 @@ onMounted(async () => {
       // 解析进度
       .parsing-progress {
         padding: 24px;
-        background: rgba(16, 185, 129, 0.04);
+        background: $overlay-emerald-04;
         border-radius: 24px;
         border: 1px solid rgba(148, 163, 184, 0.18);
 
@@ -1888,20 +1902,20 @@ onMounted(async () => {
           .progress-percent {
             font-size: 12px;
             font-family: monospace;
-            color: #10b981;
+            color: $emerald-500;
           }
         }
 
         .progress-bar {
           height: 6px;
-          background: rgba(148, 163, 184, 0.2);
+          background: rgba(148, 163, 184, 0.20);
           border-radius: 3px;
           overflow: hidden;
           margin-bottom: 12px;
 
           .progress-fill {
             height: 100%;
-            background: linear-gradient(90deg, #10b981, #34d399, #10b981);
+            background: $gradient-emerald-light;
             background-size: 200% 100%;
             border-radius: 3px;
 
@@ -1926,8 +1940,8 @@ onMounted(async () => {
         align-items: center;
         gap: 8px;
         padding: 14px 18px;
-        background: rgba(239, 68, 68, 0.06);
-        border: 1px solid rgba(239, 68, 68, 0.15);
+        background: $color-danger-bg;
+        border: 1px solid $color-danger-medium;
         border-radius: 16px;
         color: #dc2626;
         font-size: 12px;
@@ -1943,14 +1957,14 @@ onMounted(async () => {
       .analysis-result {
         .result-card {
           padding: 24px;
-          background: rgba(16, 185, 129, 0.04);
+          background: $overlay-emerald-04;
           border-radius: 24px;
           border: 1px solid rgba(148, 163, 184, 0.18);
 
           .result-title {
             font-size: 12px;
             font-weight: 900;
-            color: #10b981;
+            color: $emerald-500;
             text-transform: uppercase;
             letter-spacing: 0.1em;
             margin: 0 0 16px;
@@ -1976,15 +1990,15 @@ onMounted(async () => {
                 color: #334155;
 
                 &--empty {
-                  color: #94a3b8;
+                  color: $text-placeholder;
                   font-weight: 500;
                 }
               }
 
               .result-badge {
                 padding: 2px 8px;
-                background: rgba(16, 185, 129, 0.12);
-                color: #059669;
+                background: $overlay-emerald-12;
+                color: $emerald-600;
                 border-radius: 4px;
                 font-size: 11px;
               }
@@ -2005,7 +2019,7 @@ onMounted(async () => {
 
                 .confidence-fill {
                   height: 100%;
-                  background: linear-gradient(90deg, #10b981, #34d399);
+                  background: linear-gradient(90deg, $emerald-500, $emerald-400);
                   border-radius: 3px;
                   transition: width 0.5s ease;
                 }
@@ -2016,7 +2030,7 @@ onMounted(async () => {
                 font-weight: 800;
 
                 &.high {
-                  color: #059669;
+                  color: $emerald-600;
                 }
 
                 &.medium {
@@ -2049,7 +2063,7 @@ onMounted(async () => {
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                background: #f1f5f9;
+                background: $border-color-light;
 
                 img {
                   width: 16px;
@@ -2085,10 +2099,10 @@ onMounted(async () => {
               .reparse-model-check {
                 font-size: 16px;
                 flex-shrink: 0;
-                color: #10b981;
+                color: $emerald-500;
 
                 &--active {
-                  background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(5, 150, 105, 0.08));
+                  background: linear-gradient(135deg, $overlay-emerald-12, rgba(5, 150, 105, 0.08));
                   padding: 3px 7px;
                   border-radius: 6px;
                 }
@@ -2106,11 +2120,11 @@ onMounted(async () => {
             .materials-header {
               display: grid;
               grid-template-columns: 1fr 70px 50px 80px;
-              background: rgba(16, 185, 129, 0.08);
+              background: $overlay-emerald-08;
               padding: 10px 14px;
               font-size: 11px;
               font-weight: 800;
-              color: #059669;
+              color: $emerald-600;
               text-transform: uppercase;
               letter-spacing: 0.05em;
 
@@ -2154,7 +2168,7 @@ onMounted(async () => {
             margin-bottom: 20px;
             border-radius: 16px;
             overflow: hidden;
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.04) 0%, rgba(59, 130, 246, 0.03) 100%);
+            background: linear-gradient(135deg, $overlay-emerald-04 0%, rgba(59, 130, 246, 0.03) 100%);
             border: 1px solid rgba(148, 163, 184, 0.12);
 
             .summary-header {
@@ -2164,7 +2178,7 @@ onMounted(async () => {
               padding: 10px 14px;
               font-size: 11px;
               font-weight: 800;
-              color: #059669;
+              color: $emerald-600;
               text-transform: uppercase;
               letter-spacing: 0.05em;
 
@@ -2189,15 +2203,15 @@ onMounted(async () => {
               transition: background 0.2s;
 
               &--high {
-                background: rgba(16, 185, 129, 0.06);
+                background: $overlay-emerald-06;
               }
 
               &--medium {
-                background: rgba(217, 119, 6, 0.06);
+                background: $color-warning-bg;
               }
 
               &--low {
-                background: rgba(239, 68, 68, 0.06);
+                background: $color-danger-bg;
               }
 
               .item-label {
@@ -2237,11 +2251,11 @@ onMounted(async () => {
               }
 
               &--high .item-fill {
-                background: linear-gradient(90deg, #10b981, #34d399);
+                background: linear-gradient(90deg, $emerald-500, $emerald-400);
               }
 
               &--high .item-value {
-                color: #059669;
+                color: $emerald-600;
               }
 
               &--medium .item-fill {
@@ -2270,7 +2284,7 @@ onMounted(async () => {
               font-size: 13px;
               padding: 10px 20px;
               height: auto;
-              box-shadow: 0 4px 12px -2px rgba(16, 185, 129, 0.2);
+              box-shadow: 0 4px 12px -2px $overlay-emerald-20;
             }
 
             .secondary-actions {
@@ -2289,7 +2303,7 @@ onMounted(async () => {
                 font-weight: 600;
                 border: 1px solid transparent;
                 cursor: pointer;
-                transition: all 0.2s ease;
+                transition: all $transition-fast;
                 white-space: nowrap;
 
                 .t-icon {
@@ -2299,7 +2313,7 @@ onMounted(async () => {
                 &--default,
                 &--danger,
                 &--primary {
-                  background: #f1f5f9;
+                  background: $border-color-light;
                   color: #475569;
                   border-color: #e2e8f0;
 
@@ -2322,7 +2336,7 @@ onMounted(async () => {
     background: #fff;
     padding: 32px;
     border-radius: 2.5rem;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    box-shadow: 0 1px 3px $overlay-black-05;
     border: 1px solid #f8fafc;
     animation: fadeInUp 0.5s ease both;
     animation-delay: 0.2s;
@@ -2330,7 +2344,7 @@ onMounted(async () => {
     .tips-title {
       font-size: 14px;
       font-weight: 700;
-      color: #94a3b8;
+      color: $text-placeholder;
       text-transform: uppercase;
       letter-spacing: 0.1em;
       margin: 0 0 16px;
@@ -2473,36 +2487,36 @@ onMounted(async () => {
     15% {
       transform: scale(1.008);
       opacity: 1;
-      box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.18), 0 2px 14px rgba(16, 185, 129, 0.12);
-      border-color: #10b981;
+      box-shadow: 0 0 0 4px $overlay-emerald-18, 0 2px 14px $overlay-emerald-12;
+      border-color: $emerald-500;
     }
 
     35% {
       transform: scale(1.013);
       opacity: 1;
-      box-shadow: 0 0 0 10px rgba(16, 185, 129, 0.12), 0 0 0 22px rgba(16, 185, 129, 0.06), 0 4px 24px rgba(16, 185, 129, 0.18);
-      border-color: #10b981;
+      box-shadow: 0 0 0 10px $overlay-emerald-12, 0 0 0 22px $overlay-emerald-06, 0 4px 24px $overlay-emerald-18;
+      border-color: $emerald-500;
     }
 
     55% {
       transform: scale(1.01);
       opacity: 0.92;
-      box-shadow: 0 0 0 20px rgba(16, 185, 129, 0.06), 0 0 0 34px rgba(16, 185, 129, 0.03), 0 3px 16px rgba(16, 185, 129, 0.10);
-      border-color: rgba(16, 185, 129, 0.55);
+      box-shadow: 0 0 0 20px $overlay-emerald-06, 0 0 0 34px rgba(16, 185, 129, 0.03), 0 3px 16px $overlay-emerald-10;
+      border-color: $overlay-emerald-55;
     }
 
     75% {
       transform: scale(1.005);
       opacity: 0.96;
       box-shadow: 0 0 0 28px rgba(16, 185, 129, 0.02), 0 2px 10px rgba(16, 185, 129, 0.07);
-      border-color: rgba(16, 185, 129, 0.25);
+      border-color: $overlay-emerald-25;
     }
 
     90% {
       transform: scale(1.002);
       opacity: 0.98;
-      box-shadow: 0 0 0 36px transparent, 0 1px 6px rgba(16, 185, 129, 0.05);
-      border-color: rgba(16, 185, 129, 0.08);
+      box-shadow: 0 0 0 36px transparent, 0 1px 6px $overlay-emerald-05;
+      border-color: $overlay-emerald-08;
     }
 
     100% {
@@ -2516,12 +2530,14 @@ onMounted(async () => {
 </style>
 
 <style lang="scss">
+@use '@/assets/styles/variables.scss' as *;
+
 .reparse-dropdown-popup {
   min-width: 160px !important;
   width: auto !important;
   border: none !important;
   outline: none !important;
-  box-shadow: 0 6px 24px rgba(16, 185, 129, 0.28), 0 2px 8px rgba(16, 185, 129, 0.12) !important;
+  box-shadow: 0 6px 24px $overlay-emerald-28, 0 2px 8px $overlay-emerald-12 !important;
 
   .t-dropdown__menu {
     min-width: 140px !important;
@@ -2545,11 +2561,11 @@ onMounted(async () => {
     white-space: nowrap !important;
 
     &:hover {
-      background-color: #f1f5f9 !important;
+      background-color: $border-color-light !important;
     }
 
     &.t-dropdown__item--active {
-      color: #059669 !important;
+      color: $emerald-600 !important;
       background-color: transparent !important;
     }
   }
@@ -2574,7 +2590,7 @@ onMounted(async () => {
       display: flex !important;
       align-items: center !important;
       justify-content: center !important;
-      background: #f1f5f9 !important;
+      background: $border-color-light !important;
 
       img {
         width: 15px !important;
@@ -2612,13 +2628,15 @@ onMounted(async () => {
     .reparse-model-check {
       font-size: 20px !important;
       flex-shrink: 0 !important;
-      color: #10b981 !important;
+      color: $emerald-500 !important;
     }
   }
 }
 </style>
 
 <style lang="scss">
+@use '@/assets/styles/variables.scss' as *;
+
 .formula-form .materials-table-wrapper {
 
   // ── 选择框（原料名称）──
@@ -2626,72 +2644,72 @@ onMounted(async () => {
 
     .t-input,
     .t-select__wrap {
-      border-color: rgba(16, 185, 129, 0.25) !important;
+      border-color: $overlay-emerald-25 !important;
       transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
     }
 
     &:hover:not(.t-is-disabled) .t-input,
     &:hover:not(.t-is-disabled) .t-select__wrap {
-      border-color: rgba(16, 185, 129, 0.4) !important;
+      border-color: $overlay-emerald-40 !important;
     }
   }
 
   .t-select .t-input,
   .t-select .t-input.t-is-focused,
   .t-select .t-input:focus-within {
-    border-color: #10b981 !important;
-    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.12) !important;
+    border-color: $emerald-500 !important;
+    box-shadow: 0 0 0 3px $overlay-emerald-12 !important;
   }
 
   .t-select.t-is-focused .t-input,
   .t-select.t-is-focused .t-select__wrap,
   .t-select.t-is-focused .t-input.t-is-focused {
-    border-color: #10b981 !important;
-    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.12) !important;
+    border-color: $emerald-500 !important;
+    box-shadow: 0 0 0 3px $overlay-emerald-12 !important;
   }
 
   // ── 数量输入框 ──
   .t-input-number {
-    border-color: rgba(16, 185, 129, 0.25) !important;
+    border-color: $overlay-emerald-25 !important;
     transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
 
     &:hover:not(.t-is-disabled) {
-      border-color: rgba(16, 185, 129, 0.4) !important;
+      border-color: $overlay-emerald-40 !important;
     }
   }
 
   .t-input-number .t-input,
   .t-input-number .t-input.t-is-focused,
   .t-input-number .t-input:focus-within {
-    border-color: #10b981 !important;
+    border-color: $emerald-500 !important;
     box-shadow: none !important;
   }
 
   .t-input-number.t-is-focused,
   .t-input-number.t-is-focused .t-input,
   .t-input-number.t-is-focused .t-input.t-is-focused {
-    border-color: #10b981 !important;
-    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.12) !important;
+    border-color: $emerald-500 !important;
+    box-shadow: 0 0 0 3px $overlay-emerald-12 !important;
   }
 
   .t-input-number__decrease,
   .t-input-number__increase {
-    color: #10b981 !important;
-    border-color: rgba(16, 185, 129, 0.3) !important;
+    color: $emerald-500 !important;
+    border-color: $overlay-emerald-30 !important;
 
     &:hover {
-      background: rgba(16, 185, 129, 0.1) !important;
-      color: #059669 !important;
-      border-color: rgba(16, 185, 129, 0.5) !important;
+      background: $overlay-emerald-10 !important;
+      color: $emerald-600 !important;
+      border-color: $overlay-emerald-50 !important;
     }
   }
 
   .t-input-number__increase {
-    border-left-color: rgba(16, 185, 129, 0.3) !important;
+    border-left-color: $overlay-emerald-30 !important;
   }
 
   .t-input-number__decrease {
-    border-right-color: rgba(16, 185, 129, 0.3) !important;
+    border-right-color: $overlay-emerald-30 !important;
   }
 
   // ── 删除按钮（去掉红色/粉色）──
@@ -2707,14 +2725,14 @@ onMounted(async () => {
     }
 
     &:hover {
-      color: #10b981 !important;
-      background: rgba(16, 185, 129, 0.08) !important;
+      color: $emerald-500 !important;
+      background: $overlay-emerald-08 !important;
       border: none !important;
 
       .t-button__text,
       .t-button__icon,
       .t-icon {
-        color: #10b981 !important;
+        color: $emerald-500 !important;
       }
     }
   }

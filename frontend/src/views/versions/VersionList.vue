@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="version-list" :aria-busy="!initialized">
     <PageSkeleton v-if="!initialized" type="table" :rows="5" :columns="7" />
     <template v-else>
@@ -331,7 +331,7 @@ onMounted(async () => {
         background: transparent;
         color: #94a3b8;
         cursor: pointer;
-        transition: all 0.2s ease;
+        transition: all $transition-fast;
         font-size: 20px;
 
         &:hover {
@@ -401,7 +401,7 @@ onMounted(async () => {
         font-weight: 700;
         box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.2);
         cursor: pointer;
-        transition: all 0.2s ease;
+        transition: all $transition-fast;
         white-space: nowrap;
 
         .btn-icon {
@@ -512,7 +512,7 @@ onMounted(async () => {
           border-radius: 6px;
           cursor: pointer;
           position: relative;
-          transition: all 0.2s ease;
+          transition: all $transition-fast;
 
           &:checked {
             background: #10b981;
@@ -640,7 +640,7 @@ onMounted(async () => {
           background: transparent;
           color: #94a3b8;
           cursor: pointer;
-          transition: all 0.2s ease;
+          transition: all $transition-fast;
           font-size: 16px;
 
           &:hover {
@@ -890,3 +890,5 @@ onMounted(async () => {
   }
 }
 </style>
+
+

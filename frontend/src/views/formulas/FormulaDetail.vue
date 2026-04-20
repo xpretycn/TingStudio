@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="formula-detail" v-loading="loading">
     <template v-if="!loading && data">
       <!-- 顶部 Header（还原 recipe-detail.html 设计） -->
@@ -348,7 +348,7 @@ onMounted(() => { loadData() })
         background: transparent;
         color: #94a3b8; // text-slate-400
         cursor: pointer;
-        transition: all 0.2s ease; // transition-all
+        transition: all $transition-fast; // transition-all
         font-size: 20px; // text-2xl
 
         &:hover {
@@ -440,7 +440,7 @@ onMounted(() => { loadData() })
         font-weight: 700; // font-bold
         box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.25); // shadow-lg shadow-emerald-100
         cursor: pointer;
-        transition: all 0.2s ease; // transition-all
+        transition: all $transition-fast; // transition-all
 
         .btn-icon {
           font-size: 18px; // text-lg (图标略大于文字)
@@ -1045,3 +1045,4 @@ onMounted(() => { loadData() })
   }
 }
 </style>
+

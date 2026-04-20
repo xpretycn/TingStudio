@@ -351,7 +351,7 @@ const handleSubmit = async ({ validateResult }: any) => {
     background: $overlay-pink-bg-40;
     height: 46px;
     padding-left: 42px;
-    transition: all 0.3s ease;
+    transition: all $transition-slow;
     &:hover { border-color: $brand-primary-lighter; background: $overlay-pink-bg-60; }
     &:focus-within, &.t-is-focused { border-color: $brand-primary-light; background: $text-white; box-shadow: 0 0 0 4px $overlay-pink-12; }
     .t-input__wrap { color: $text-primary; font-size: 14px; }
@@ -369,7 +369,7 @@ const handleSubmit = async ({ validateResult }: any) => {
   background: linear-gradient(135deg, $brand-primary-light, $brand-primary) !important;
   border: none !important;
   box-shadow: 0 4px 16px $shadow-brand-md;
-  transition: all 0.3s ease;
+  transition: all $transition-slow;
   &:hover { transform: translateY(-2px); box-shadow: 0 8px 24px $shadow-brand-lg; }
   &:active { transform: translateY(0); }
   .btn-text { color: $text-white; }
@@ -411,3 +411,4 @@ const handleSubmit = async ({ validateResult }: any) => {
   .cute-btn { height: 44px !important; border-radius: 12px !important; }
 }
 </style>
+

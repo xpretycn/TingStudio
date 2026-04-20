@@ -9,7 +9,8 @@ import type { CityLocation, WeatherData } from "@/api/weather";
 
 const CACHE_TTL = 30 * 60 * 1000; // 30 分钟
 const CITY_STORAGE_KEY = "ting-weather-city";
-const FALLBACK_CITY = "北京"; // 默认城市，定位失败时的兜底
+const FALLBACK_CITY = "武汉";
+const FALLBACK_ADCODE = "420100";
 
 // 高德地图 Web服务 Key
 const AMAP_KEY = import.meta.env.VITE_AMAP_KEY || "";
@@ -141,31 +142,23 @@ export const useWeatherStore = defineStore("weather", () => {
   async function autoLocate() {
     geoLoading.value = true;
     errorMsg.value = "";
-    console.log("[Weather] autoLocate 开始...");
 
     try {
-      // ── 第一优先级：高德地图 IP 定位 ──
       if (AMAP_KEY) {
         try {
           const result = await locateByAmap();
           if (result) return;
-          console.warn("[Weather] 高德返回空数据，尝试备用服务...");
         } catch (err: any) {
           console.warn("[Weather] 高德定位失败:", err.message);
         }
-      } else {
-        console.warn("[Weather] 未配置 AMAP_KEY，跳过高德");
       }
 
-      // ── 第二优先级：ip-api.com 备用定位（免费无需Key）──
       console.log("[Weather] 尝试 ip-api.com 备用定位...");
       const result = await locateByIpApi();
       if (result) return;
 
-      // ── 第三优先级：默认城市兜底 ──
       throw new Error("所有IP定位服务均无法获取位置信息");
     } catch (err: any) {
-      console.error("[Weather] 定位异常:", err);
       const reason =
         err.name === "AbortError" || err.message?.includes("timeout") ? "定位请求超时" : `定位失败(${err.message})`;
       await fallbackToDefaultCity(reason + `，已切换至${FALLBACK_CITY}`);
@@ -179,51 +172,33 @@ export const useWeatherStore = defineStore("weather", () => {
     const isDev = import.meta.env.DEV;
     const url = isDev ? `/amap/v3/ip?key=${AMAP_KEY}&type=4` : `/api/weather/location`;
 
-    console.log("[Weather] 高德请求:", url);
-
     const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
     if (!res.ok) throw new Error(`高德HTTP ${res.status}`);
 
     const json = await res.json();
-    console.log("[Weather] 高德响应:", JSON.stringify(json));
-
     const data: Record<string, any> = isDev ? json : json?.data;
 
     if (!isDev && !json?.success) throw new Error(json?.message || "后端代理失败");
     if (!data || data.status !== "1") throw new Error(data?.info || "高德失败");
 
-    // 检查是否有有效数据（非空数组）
     const hasValidData =
       (typeof data.province === "string" && data.province.trim() && data.province !== "[]") ||
       (Array.isArray(data.province) && data.province.length > 0);
 
-    if (!hasValidData) {
-      console.warn("[Weather] 高德返回空数据，跳过");
-      return false;
-    }
+    if (!hasValidData) return false;
 
-    // 提取城市名
     const rawProvince = Array.isArray(data.province) ? data.province[0] : String(data.province || "");
     const rawCity = Array.isArray(data.city) ? data.city[0] : String(data.city || "");
     const province = rawProvince.replace(/^\[|\]$/g, "").trim();
     const city = rawCity.replace(/^\[|\]$/g, "").trim();
 
     const searchKeyword = province && city && city !== province ? city : province || city;
-    if (!searchKeyword) {
-      console.warn("[Weather] 无法提取城市名");
-      return false;
-    }
-
-    console.log("[Weather] 高德城市:", searchKeyword);
+    if (!searchKeyword) return false;
 
     const cities = await searchCity(searchKeyword);
-    if (cities.length === 0) {
-      console.warn("[Weather] 城市搜索无结果");
-      return false;
-    }
+    if (cities.length === 0) return false;
 
     const best = cities[0];
-    console.log("[Weather] 精确定位:", best.name, "→", best.id);
     await getWeather(best.id, best.name);
     persistCity(best.name);
     return true;
@@ -235,13 +210,10 @@ export const useWeatherStore = defineStore("weather", () => {
     const MAX_RETRIES = 2;
 
     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-      console.log(`[Weather] ip-api 请求 (第${attempt}次):`, url);
-
       try {
         const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
         if (!res.ok) {
           if (res.status >= 500 && attempt < MAX_RETRIES) {
-            console.warn(`[Weather] ip-api ${res.status}，第${attempt}次重试...`);
             await new Promise(r => setTimeout(r, 1000 * attempt));
             continue;
           }
@@ -249,8 +221,6 @@ export const useWeatherStore = defineStore("weather", () => {
         }
 
         const data = await res.json();
-        console.log("[Weather] ip-api 响应:", JSON.stringify(data));
-
         if (data.status === "fail") throw new Error(data.message || "ip-api失败");
 
         const lat = data.lat;
@@ -261,28 +231,19 @@ export const useWeatherStore = defineStore("weather", () => {
         if (!lat || !lon) throw new Error("ip-api 无坐标数据");
 
         let searchKeyword = "";
-        if (cityName && region && cityName !== region) {
-          searchKeyword = cityName;
-        } else if (region) {
-          searchKeyword = region;
-        } else if (cityName) {
-          searchKeyword = cityName;
-        }
+        if (cityName && region && cityName !== region) searchKeyword = cityName;
+        else if (region) searchKeyword = region;
+        else if (cityName) searchKeyword = cityName;
 
         if (searchKeyword) {
-          console.log("[Weather] ip-api 城市:", searchKeyword, "| 坐标:", lat, lon);
           const cities = await searchCity(searchKeyword);
           if (cities.length > 0) {
-            const best = cities[0];
-            console.log("[Weather] 精确定位:", best.name, "→", best.id);
-            await getWeather(best.id, best.name);
-            persistCity(best.name);
+            await getWeather(cities[0].id, cities[0].name);
+            persistCity(cities[0].name);
             return true;
           }
-          console.log("[Weather] ip-api 城市搜索无结果，尝试逆地理编码");
         }
 
-        console.log("[Weather] 使用 ip-api 坐标做逆地理编码:", lat, lon);
         const geo = await reverseGeocode(lat, lon);
         if (geo && geo.adcode) {
           await getWeather(geo.adcode, geo.name);
@@ -291,13 +252,10 @@ export const useWeatherStore = defineStore("weather", () => {
         }
 
         const locationId = `${lat},${lon}`;
-        const displayName = `${lat.toFixed(2)},${lon.toFixed(2)}`;
-        console.log("[Weather] 逆地理编码无效，使用原始坐标:", locationId);
-        await getWeather(locationId, displayName);
-        persistCity(displayName);
+        await getWeather(locationId, `${lat.toFixed(2)},${lon.toFixed(2)}`);
+        persistCity(`${lat.toFixed(2)},${lon.toFixed(2)}`);
         return true;
       } catch (err: any) {
-        console.warn(`[Weather] ip-api 第${attempt}次失败:`, err.message);
         if (attempt < MAX_RETRIES) continue;
         return false;
       }
@@ -307,15 +265,22 @@ export const useWeatherStore = defineStore("weather", () => {
 
   /** 定位失败时的默认城市兜底 */
   async function fallbackToDefaultCity(reason: string) {
-    errorMsg.value = reason;
     console.warn(`[Weather] ${reason}，使用默认城市: ${FALLBACK_CITY}`);
     try {
       const cities = await searchCity(FALLBACK_CITY);
       if (cities.length > 0) {
         await getWeather(cities[0].id, cities[0].name);
         persistCity(FALLBACK_CITY);
-        errorMsg.value = ""; // 成功获取后清除错误提示
+        errorMsg.value = "";
+        return;
       }
+    } catch {
+      console.warn("[Weather] searchCity 不可用，使用硬编码 adcode 兜底");
+    }
+    try {
+      await getWeather(FALLBACK_ADCODE, FALLBACK_CITY);
+      persistCity(FALLBACK_CITY);
+      errorMsg.value = "";
     } catch {
       errorMsg.value = reason + "，请手动搜索城市名";
     }
@@ -330,9 +295,8 @@ export const useWeatherStore = defineStore("weather", () => {
     return localStorage.getItem(CITY_STORAGE_KEY);
   }
 
-  /** 初始化：先恢复上次城市，再通过高德IP定位获取最新位置天气 */
+  /** 初始化：先恢复缓存，再尝试定位更新 */
   async function init() {
-    // 1. 先恢复上次城市缓存
     const lastCity = getLastCity();
     let hasCache = false;
 
@@ -344,16 +308,20 @@ export const useWeatherStore = defineStore("weather", () => {
           hasCache = true;
         }
       } catch {
-        // 搜索失败，继续走定位流程
+        console.warn("[Weather] 缓存城市搜索失败，继续定位");
       }
     }
 
-    // 2. 通过高德IP定位获取最新位置
-    try {
-      await autoLocate();
-    } catch {
-      // 定位失败时，如果有缓存则不报错
-      if (!hasCache) {
+    if (hasCache) {
+      try {
+        await autoLocate();
+      } catch {
+        console.warn("[Weather] 后台定位更新失败，使用缓存数据");
+      }
+    } else {
+      try {
+        await autoLocate();
+      } catch {
         await fallbackToDefaultCity("定位失败");
       }
     }

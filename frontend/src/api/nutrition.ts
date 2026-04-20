@@ -14,9 +14,8 @@ export interface NutritionProfile {
 }
 
 export const nutritionApi = {
-  getMaterialNutrition(materialId: string) {
-    // axios 拦截器会提取 res.data，所以这里直接返回内部的数据结构
-    return http.get<any, any>(`/nutrition/material/${materialId}`)
+  getMaterialNutrition(materialId: string, silent = false) {
+    return http.get<any, any>(`/nutrition/material/${materialId}`, { _silent: silent, _logLabel: '差异对比-获取原料营养' })
   },
   setMaterialNutrition(materialId: string, data: { per100g: Record<string, number>; dataSource?: string; notes?: string; confidence?: 'high' | 'medium' | 'low' }) {
     return http.put<any, { success: boolean; message: string }>(`/nutrition/material/${materialId}`, data)

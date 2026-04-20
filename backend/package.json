@@ -6,12 +6,18 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
+    "build:deploy": "esbuild src/index.ts --bundle --platform=node --target=node18 --format=cjs --outdir=dist --external:sql.js --external:express --external:cors --external:jsonwebtoken --external:bcryptjs --external:helmet --external:compression --external:morgan --external:multer --external:pdfkit --external:xlsx --external:express-rate-limit --external:dotenv --entry-names=[dir]/[name].js",
+    "build:scf": "esbuild src/index.ts --bundle --platform=node --target=node18 --format=cjs --outdir=scf/dist --external:sql.js --external:express --external:cors --external:jsonwebtoken --external:bcryptjs --external:helmet --external:compression --external:morgan --external:multer --external:pdfkit --external:xlsx --external:express-rate-limit --external:dotenv --external:mysql2 --entry-names=[dir]/[name].js",
     "start": "node dist/index.js",
     "init-db": "tsx src/scripts/initDatabase.ts",
     "seed": "tsx src/scripts/seedData.ts",
-    "import-nutrition": "tsx src/scripts/importNutritionData.ts"
+    "import-nutrition": "tsx src/scripts/importNutritionData.ts",
+    "test-mysql": "tsx src/scripts/test-mysql-connection.ts",
+    "init-mysql": "tsx src/scripts/init-mysql-database.ts",
+    "migrate-to-mysql": "tsx src/scripts/migrate-to-mysql.ts"
   },
   "dependencies": {
+    "axios": "^1.15.1",
     "bcryptjs": "^2.4.3",
     "better-sqlite3": "^12.8.0",
     "compression": "^1.7.4",
@@ -23,7 +29,9 @@
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.0",
     "multer": "^1.4.5-lts.1",
+    "mysql2": "^3.11.4",
     "pdfkit": "^0.18.0",
+    "sql.js": "^1.14.1",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
@@ -37,6 +45,7 @@
     "@types/multer": "^1.4.13",
     "@types/node": "^22.5.0",
     "@types/uuid": "^10.0.0",
+    "esbuild": "^0.28.0",
     "tsx": "^4.21.0",
     "typescript": "^5.6.2"
   }

@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="login-page">
     <!-- ─── Left Panel: Branding & Illustration ─── -->
     <div class="left-panel">
@@ -6,8 +6,8 @@
         <div class="left-panel__blob left-panel__blob--1"></div>
         <div class="left-panel__blob left-panel__blob--2"></div>
         <div class="left-panel__blob left-panel__blob--3"></div>
-        <span v-for="i in 8" :key="'h'+i" class="float-heart" :style="heartStyle(i)">♥</span>
-        <span v-for="i in 10" :key="'s'+i" class="twinkle-star" :style="starStyle(i)">✦</span>
+        <span v-for="i in 8" :key="'h' + i" class="float-heart" :style="heartStyle(i)">♥</span>
+        <span v-for="i in 10" :key="'s' + i" class="twinkle-star" :style="starStyle(i)">✦</span>
       </div>
 
       <div class="left-panel__content">
@@ -35,7 +35,8 @@
               <!-- Nose -->
               <ellipse cx="160" cy="132" rx="4" ry="3" fill="#FFB5C2" />
               <!-- Mouth -->
-              <path d="M152 138Q160 145 168 138" stroke="#E8A0B0" stroke-width="1.5" fill="none" stroke-linecap="round" />
+              <path d="M152 138Q160 145 168 138" stroke="#E8A0B0" stroke-width="1.5" fill="none"
+                stroke-linecap="round" />
               <!-- Blush -->
               <ellipse cx="130" cy="130" rx="10" ry="6" fill="#FFB5C2" opacity="0.35" />
               <ellipse cx="190" cy="130" rx="10" ry="6" fill="#FFB5C2" opacity="0.35" />
@@ -53,10 +54,12 @@
               <circle cx="181" cy="226" r="3" fill="#FFB5C2" opacity="0.4" />
               <circle cx="190" cy="228" r="3" fill="#FFB5C2" opacity="0.4" />
               <!-- Tail -->
-              <path d="M230 190Q260 160 250 130Q245 115 255 105" stroke="#FFE8D6" stroke-width="10" fill="none" stroke-linecap="round" />
+              <path d="M230 190Q260 160 250 130Q245 115 255 105" stroke="#FFE8D6" stroke-width="10" fill="none"
+                stroke-linecap="round" />
               <!-- Holding a small heart -->
               <g transform="translate(95, 200) scale(0.6)">
-                <path d="M10 6C10 2 6 0 3 0S0 2 0 4C0 8 10 16 10 16S20 8 20 4C20 2 17 0 14 0S10 2 10 6Z" fill="#FF8FAB" />
+                <path d="M10 6C10 2 6 0 3 0S0 2 0 4C0 8 10 16 10 16S20 8 20 4C20 2 17 0 14 0S10 2 10 6Z"
+                  fill="#FF8FAB" />
               </g>
             </svg>
           </div>
@@ -154,7 +157,9 @@
               <ellipse cx="35" cy="88" rx="10" ry="6" fill="#FFE8D6" />
               <ellipse cx="65" cy="88" rx="10" ry="6" fill="#FFE8D6" />
               <!-- Heart in paw -->
-              <path d="M35 88C35 85 33 84 31 84C29 84 27 85 27 86C27 88 35 92 35 92C35 92 43 88 43 86C43 85 41 84 39 84C37 84 35 85 35 88Z" fill="#FF8FAB" />
+              <path
+                d="M35 88C35 85 33 84 31 84C29 84 27 85 27 86C27 88 35 92 35 92C35 92 43 88 43 86C43 85 41 84 39 84C37 84 35 85 35 88Z"
+                fill="#FF8FAB" />
             </svg>
           </div>
           <h2 class="form-header__title">欢迎回来 ~</h2>
@@ -162,28 +167,19 @@
         </div>
 
         <!-- Login form -->
-        <t-form
-          ref="formRef"
-          :data="formData"
-          :rules="rules"
-          label-width="0"
-          @submit="handleSubmit"
-        >
+        <t-form ref="formRef" :data="formData" :rules="rules" label-width="0" data-testid="login-form"
+          @submit="handleSubmit">
           <t-form-item name="username">
             <div class="field-wrap">
               <label class="field-label">
                 <span class="label-dot"></span>
                 用户名
               </label>
-              <t-input
-                v-model="formData.username"
-                placeholder="请输入用户名"
-                size="large"
-                clearable
-                class="cute-input"
-              >
+              <t-input v-model="formData.username" placeholder="请输入用户名" size="large" clearable class="cute-input"
+                data-testid="login-username">
                 <template #prefix-icon>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                    stroke-linecap="round" stroke-linejoin="round">
                     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                     <circle cx="12" cy="7" r="4" />
                   </svg>
@@ -198,16 +194,11 @@
                 <span class="label-dot"></span>
                 密码
               </label>
-              <t-input
-                v-model="formData.password"
-                type="password"
-                placeholder="请输入密码"
-                size="large"
-                clearable
-                class="cute-input"
-              >
+              <t-input v-model="formData.password" type="password" placeholder="请输入密码" size="large" clearable
+                class="cute-input" data-testid="login-password">
                 <template #prefix-icon>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                    stroke-linecap="round" stroke-linejoin="round">
                     <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
                     <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                   </svg>
@@ -217,14 +208,9 @@
           </t-form-item>
 
           <t-form-item>
-            <t-button
-              type="submit"
-              theme="primary"
-              size="large"
-              block
-              :loading="loading"
-              class="cute-btn"
-            >
+            <t-button type="submit" theme="primary" size="large" block :loading="loading" class="cute-btn"
+              data-testid="login-btn">
+
               <span class="btn-text">♥ 登 录</span>
             </t-button>
           </t-form-item>
@@ -244,22 +230,22 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
-import { useRouter } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
-import { MessagePlugin } from 'tdesign-vue-next'
-import type { FormInstanceFunctions, FormRule } from 'tdesign-vue-next'
+import { ref, reactive } from 'vue';
+import { useRouter } from 'vue-router';
+import { useAuthStore } from '@/stores/auth';
+import { MessagePlugin } from 'tdesign-vue-next';
+import type { FormInstanceFunctions, FormRule } from 'tdesign-vue-next';
 
-const router = useRouter()
-const authStore = useAuthStore()
+const router = useRouter();
+const authStore = useAuthStore();
 
-const formRef = ref<FormInstanceFunctions>()
-const loading = ref(false)
+const formRef = ref<FormInstanceFunctions>();
+const loading = ref(false);
 
 const formData = reactive({
   username: 'admin',
   password: 'admin123'
-})
+});
 
 const rules: Record<string, FormRule[]> = {
   username: [
@@ -270,14 +256,14 @@ const rules: Record<string, FormRule[]> = {
     { required: true, message: '请输入密码哦~', trigger: 'blur' },
     { min: 6, message: '密码至少6个字符呢', trigger: 'blur' }
   ]
-}
+};
 
 const heartStyle = (i: number) => ({
   left: `${5 + i * 12}%`,
   animationDelay: `${i * 1.5}s`,
   fontSize: `${14 + (i % 3) * 8}px`,
   color: `hsl(${340 + i * 6}, 80%, ${72 + i * 2}%)`
-})
+});
 
 const starStyle = (i: number) => ({
   left: `${3 + i * 10}%`,
@@ -285,27 +271,27 @@ const starStyle = (i: number) => ({
   animationDelay: `${i * 0.7}s`,
   fontSize: `${10 + (i % 3) * 5}px`,
   color: `hsl(${280 + i * 12}, 70%, ${75 + i * 2}%)`
-})
+});
 
 const handleSubmit = async ({ validateResult }: any) => {
   if (validateResult === true) {
-    loading.value = true
+    loading.value = true;
     try {
       const result = await authStore.login({
         username: formData.username,
         password: formData.password
-      })
+      });
       if (result.success) {
-        MessagePlugin.success('登录成功啦~ 欢迎回来！')
-        router.push('/')
+        MessagePlugin.success('登录成功啦~ 欢迎回来！');
+        router.push('/');
       } else {
-        MessagePlugin.error(result.message || '登录失败了，再试试吧~')
+        MessagePlugin.error(result.message || '登录失败了，再试试吧~');
       }
     } finally {
-      loading.value = false
+      loading.value = false;
     }
   }
-}
+};
 </script>
 
 <style scoped lang="scss">
@@ -353,6 +339,7 @@ const handleSubmit = async ({ validateResult }: any) => {
       right: -60px;
       background: radial-gradient(circle, $brand-primary-lightest, transparent 70%);
     }
+
     &--2 {
       width: 280px;
       height: 280px;
@@ -360,6 +347,7 @@ const handleSubmit = async ({ validateResult }: any) => {
       left: -40px;
       background: radial-gradient(circle, $color-lavender, transparent 70%);
     }
+
     &--3 {
       width: 180px;
       height: 180px;
@@ -394,20 +382,49 @@ const handleSubmit = async ({ validateResult }: any) => {
 }
 
 @keyframes floatUp {
-  0% { transform: translateY(0) rotate(0deg) scale(0.5); opacity: 0; }
-  12% { opacity: 0.55; }
-  80% { opacity: 0.2; }
-  100% { transform: translateY(-100vh) rotate(20deg) scale(1); opacity: 0; }
+  0% {
+    transform: translateY(0) rotate(0deg) scale(0.5);
+    opacity: 0;
+  }
+
+  12% {
+    opacity: 0.55;
+  }
+
+  80% {
+    opacity: 0.2;
+  }
+
+  100% {
+    transform: translateY(-100vh) rotate(20deg) scale(1);
+    opacity: 0;
+  }
 }
 
 @keyframes twinkle {
-  0%, 100% { opacity: 0.15; transform: scale(0.7); }
-  50% { opacity: 0.6; transform: scale(1.15); }
+
+  0%,
+  100% {
+    opacity: 0.15;
+    transform: scale(0.7);
+  }
+
+  50% {
+    opacity: 0.6;
+    transform: scale(1.15);
+  }
 }
 
 @keyframes fadeSlideRight {
-  from { opacity: 0; transform: translateX(-30px); }
-  to   { opacity: 1; transform: translateX(0); }
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 // ───── Illustration ─────
@@ -434,21 +451,60 @@ const handleSubmit = async ({ validateResult }: any) => {
     font-size: 20px;
     animation: sparkleFloat 3s ease-in-out infinite;
 
-    &--1 { top: 10px; right: 10px; animation-delay: 0s; font-size: 22px; }
-    &--2 { top: 50%; left: -10px; animation-delay: 0.8s; font-size: 18px; }
-    &--3 { bottom: 30px; right: 0; animation-delay: 1.6s; font-size: 20px; }
-    &--4 { top: 20px; left: 20px; animation-delay: 2.2s; font-size: 16px; }
+    &--1 {
+      top: 10px;
+      right: 10px;
+      animation-delay: 0s;
+      font-size: 22px;
+    }
+
+    &--2 {
+      top: 50%;
+      left: -10px;
+      animation-delay: 0.8s;
+      font-size: 18px;
+    }
+
+    &--3 {
+      bottom: 30px;
+      right: 0;
+      animation-delay: 1.6s;
+      font-size: 20px;
+    }
+
+    &--4 {
+      top: 20px;
+      left: 20px;
+      animation-delay: 2.2s;
+      font-size: 16px;
+    }
   }
 }
 
 @keyframes catBounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-8px);
+  }
 }
 
 @keyframes sparkleFloat {
-  0%, 100% { opacity: 0.3; transform: translateY(0) scale(0.8); }
-  50% { opacity: 1; transform: translateY(-6px) scale(1.1); }
+
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: translateY(0) scale(0.8);
+  }
+
+  50% {
+    opacity: 1;
+    transform: translateY(-6px) scale(1.1);
+  }
 }
 
 // ───── Brand Text ─────
@@ -488,10 +544,23 @@ const handleSubmit = async ({ validateResult }: any) => {
 }
 
 @keyframes heartBeat {
-  0%, 100% { transform: scale(1); }
-  15% { transform: scale(1.2); }
-  30% { transform: scale(1); }
-  45% { transform: scale(1.15); }
+
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  15% {
+    transform: scale(1.2);
+  }
+
+  30% {
+    transform: scale(1);
+  }
+
+  45% {
+    transform: scale(1.15);
+  }
 }
 
 // ───── Feature Tags ─────
@@ -552,8 +621,15 @@ const handleSubmit = async ({ validateResult }: any) => {
 }
 
 @keyframes fadeSlideUp {
-  from { opacity: 0; transform: translateY(24px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 // ───── Mobile Avatar (hidden on desktop) ─────
@@ -630,15 +706,22 @@ const handleSubmit = async ({ validateResult }: any) => {
 }
 
 @keyframes catBounceSmall {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-5px); }
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-5px);
+  }
 }
 
 // ───── Form Fields ─────
 .field-wrap {
   width: 100%;
 
-  + .field-wrap {
+  +.field-wrap {
     margin-top: 4px;
   }
 }
@@ -668,7 +751,7 @@ const handleSubmit = async ({ validateResult }: any) => {
     background: $overlay-pink-bg-40;
     height: 48px;
     padding-left: 42px;
-    transition: all 0.3s ease;
+    transition: all $transition-slow;
 
     &:hover {
       border-color: $brand-primary-lighter;
@@ -730,7 +813,7 @@ const handleSubmit = async ({ validateResult }: any) => {
     background: $overlay-white-35;
     transform: translate(-50%, -50%);
     transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1),
-                height 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+      height 0.6s cubic-bezier(0.4, 0, 0.2, 1);
     pointer-events: none;
     z-index: 1;
   }
@@ -753,14 +836,14 @@ const handleSubmit = async ({ validateResult }: any) => {
       width: 300px;
       height: 300px;
       transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1),
-                  height 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        height 0.6s cubic-bezier(0.4, 0, 0.2, 1);
     }
   }
 
   &:focus {
     outline: none;
     box-shadow: 0 4px 16px $shadow-brand-md,
-                0 0 0 4px $overlay-pink-25;
+      0 0 0 4px $overlay-pink-25;
   }
 
   // Loading state
@@ -794,7 +877,7 @@ const handleSubmit = async ({ validateResult }: any) => {
     color: $brand-primary;
     text-decoration: none;
     font-weight: 600;
-    transition: all 0.2s;
+    transition: all $transition-fast;
 
     &:hover {
       color: $brand-primary-light;

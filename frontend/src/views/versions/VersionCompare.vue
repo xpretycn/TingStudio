@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="version-compare">
     <header class="detail-header">
       <div class="header-left">
@@ -291,7 +291,7 @@ $radius-2xl: 2rem;
         background: transparent;
         color: #94a3b8;
         cursor: pointer;
-        transition: all 0.2s ease;
+        transition: all $transition-fast;
         font-size: 20px;
 
         &:hover {
@@ -366,7 +366,7 @@ $radius-2xl: 2rem;
         font-size: 13px;
         font-weight: 500;
         cursor: pointer;
-        transition: all 0.2s ease;
+        transition: all $transition-fast;
 
         &:hover {
           background: #fff1f2;
@@ -410,7 +410,7 @@ $radius-2xl: 2rem;
       font-weight: 700;
       cursor: pointer;
       box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.2);
-      transition: all 0.2s ease;
+      transition: all $transition-fast;
 
       &:hover {
         background: #059669;
@@ -504,7 +504,7 @@ $radius-2xl: 2rem;
         background: transparent;
         color: #94a3b8;
         cursor: pointer;
-        transition: all 0.2s;
+        transition: all $transition-fast;
         font-size: 15px;
 
         &:hover {
@@ -574,7 +574,7 @@ $radius-2xl: 2rem;
         margin-bottom: 10px;
         border-radius: 16px;
         border: 1px solid #f8fafc;
-        transition: all 0.2s;
+        transition: all $transition-fast;
         background: rgba(248, 250, 252, 0.50);
 
         &.diff-added {
@@ -713,7 +713,7 @@ $radius-2xl: 2rem;
         border: 1px solid #f1f5f9;
         background: #ffffff;
         cursor: pointer;
-        transition: all 0.2s ease;
+        transition: all $transition-fast;
 
         &:hover {
           border-color: #10b981;
@@ -754,7 +754,7 @@ $radius-2xl: 2rem;
           .avail-arrow {
             font-size: 16px;
             color: #cbd5e1;
-            transition: all 0.2s;
+            transition: all $transition-fast;
           }
         }
 
@@ -790,3 +790,4 @@ $radius-2xl: 2rem;
   }
 }
 </style>
+

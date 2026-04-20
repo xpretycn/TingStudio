@@ -22,3 +22,9 @@ uploads/
 *.db
 *.db-wal
 *.db-shm
+
+# Tencent Cloud EdgeOne
+.env
+.edgeone/*
+.tef_dist/*
+  

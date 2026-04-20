@@ -299,6 +299,7 @@ export async function parseMaterialNutrition(req: any, res: Response) {
         userId,
       ]);
       mat.isRecorded = !!(matches && matches.length > 0);
+      mat.materialId = matches?.[0]?.id || null;
     }
 
     try {

@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="tools-page">
     <!-- 工具卡片网格 -->
     <div class="tools-grid">
@@ -308,7 +308,7 @@ function formatTime(updateTime: string): string {
 
   .tool-arrow {
     color: $text-secondary;
-    transition: all 0.3s;
+    transition: all $transition-slow;
     flex-shrink: 0;
   }
 
@@ -397,7 +397,7 @@ function formatTime(updateTime: string): string {
     padding: 10px 12px;
     border-radius: 8px;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all $transition-fast;
 
     &:hover {
       background: var(--overlay-brand-08);
@@ -500,7 +500,7 @@ function formatTime(updateTime: string): string {
     background: $bg-page;
     border-radius: 12px;
     border: 1px solid $border-color-light;
-    transition: all 0.3s;
+    transition: all $transition-slow;
 
     &:hover {
       box-shadow: $shadow-xs;
@@ -574,3 +574,5 @@ function formatTime(updateTime: string): string {
   }
 }
 </style>
+
+

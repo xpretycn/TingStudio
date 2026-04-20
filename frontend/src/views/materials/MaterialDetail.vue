@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="material-detail" :aria-busy="!material">
     <PageSkeleton v-if="!material" type="detail" />
     <template v-else>
@@ -419,7 +419,7 @@ onMounted(() => { loadData(); });
         background: transparent;
         color: #94a3b8;
         cursor: pointer;
-        transition: all 0.2s ease;
+        transition: all $transition-fast;
         font-size: 20px;
 
         &:hover {
@@ -514,7 +514,7 @@ onMounted(() => { loadData(); });
         font-weight: 700;
         box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.25);
         cursor: pointer;
-        transition: all 0.2s ease;
+        transition: all $transition-fast;
 
         .btn-icon {
           font-size: 18px;
@@ -766,7 +766,7 @@ onMounted(() => { loadData(); });
         background: #f8fafc;
         border-radius: 16px;
         border: 1px solid #f1f5f9;
-        transition: all 0.2s ease;
+        transition: all $transition-fast;
 
         &:hover {
           box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
@@ -1127,3 +1127,4 @@ onMounted(() => { loadData(); });
   opacity: 0;
 }
 </style>
+

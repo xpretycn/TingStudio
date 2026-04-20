@@ -44,30 +44,184 @@
 
 // 空状态插画呼吸浮动
 @keyframes emptyFloat {
-  0%, 100% { transform: translateY(0); }
-  50%      { transform: translateY(-8px); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
 }
 
 // 成功状态弹跳
 @keyframes successPop {
-  0%   { transform: scale(0.8); opacity: 0; }
-  50%  { transform: scale(1.05); }
-  100% { transform: scale(1); opacity: 1; }
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 // 脉冲（状态指示点）
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50%      { opacity: 0.5; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
 
 // 进度条从 0 填充到目标值
 @keyframes progressBarFill {
-  from { transform: scaleX(0); }
-  to   { transform: scaleX(1); }
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
 }
 
-// ─── 2. 通用过渡类 ──────────────────────────────────────────
+// 淡入下浮（Header/顶栏入场）
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// 看板卡片依次淡入
+@keyframes dashboard-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+// 弹窗弹出
+@keyframes dialog-pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.92) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+// 展开行滑入
+@keyframes expandRowFadeIn {
+  from {
+    opacity: 0;
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    max-height: 500px;
+  }
+}
+
+// 进度条滑入
+@keyframes progressSlide {
+  from {
+    width: 0;
+    opacity: 0;
+  }
+  to {
+    width: var(--progress-width, 100%);
+    opacity: 1;
+  }
+}
+
+// 图标弹跳
+@keyframes iconBounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  30% {
+    transform: translateY(-8px);
+  }
+  60% {
+    transform: translateY(-4px);
+  }
+}
+
+// ─── 2. 公共动画 Mixin ──────────────────────────────────────
+
+@mixin animation-fadeInUp($duration: 0.35s, $delay: 0s) {
+  animation: fadeInUp $duration cubic-bezier(0.4, 0, 0.2, 1) both;
+  animation-delay: $delay;
+}
+
+@mixin animation-fadeInDown($duration: 0.3s, $delay: 0s) {
+  animation: fadeInDown $duration cubic-bezier(0.4, 0, 0.2, 1) both;
+  animation-delay: $delay;
+}
+
+@mixin animation-dashboardFadeIn($duration: 0.5s) {
+  animation: dashboard-fade-in $duration ease forwards;
+}
+
+@mixin animation-rowFadeIn($index: 1, $step: 0.03s) {
+  animation: rowFadeIn 0.3s ease both;
+  animation-delay: calc(#{$index} * #{$step});
+}
+
+// ─── 3. 微交互 Mixin ────────────────────────────────────────
+
+// 按钮悬停反馈：上浮 + 阴影增强
+@mixin btn-hover-feedback($translateY: -2px) {
+  transition:
+    transform $transition-fast,
+    box-shadow $transition-fast;
+
+  &:hover {
+    transform: translateY($translateY);
+    box-shadow: $shadow-md;
+  }
+
+  &:active {
+    transform: scale(0.97);
+    transition-duration: 0.1s;
+  }
+}
+
+// 输入框聚焦发光
+@mixin input-focus-glow($color: rgba(16, 185, 129, 0.15)) {
+  border-color: $emerald-500 !important;
+  box-shadow: 0 0 0 3px $color !important;
+}
+
+// 卡片悬浮效果
+@mixin card-hover-lift($translateY: -4px, $shadow: $shadow-elevation-2) {
+  transition:
+    transform $transition-normal,
+    box-shadow $transition-normal;
+
+  &:hover {
+    transform: translateY($translateY);
+    box-shadow: $shadow;
+  }
+}
+
+// ─── 4. 通用过渡类 ──────────────────────────────────────────
 
 .anim-fade-in-up {
   animation: fadeInUp 0.35s cubic-bezier(0.4, 0, 0.2, 1) both;
@@ -124,7 +278,9 @@
 // ─── 5. 骨架屏 → 内容切换过渡 ─────────────────────────────
 
 .content-fade-enter-active {
-  transition: opacity 0.3s ease, transform 0.3s ease;
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s ease;
 }
 .content-fade-enter-from {
   opacity: 0;
@@ -143,4 +299,19 @@
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+// ─── 7. 屏幕阅读器专用样式 ──────────────────────────────
+// 视觉隐藏但屏幕阅读器可访问
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
 }

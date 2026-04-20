@@ -45,6 +45,7 @@ export interface MaterialNutritionItem {
   dataSource?: string;
   confidence?: number;
   isRecorded?: boolean;
+  materialId?: string | null;
 }
 
 export interface ParsedMaterialNutrition {

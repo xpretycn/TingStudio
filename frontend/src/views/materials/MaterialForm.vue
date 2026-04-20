@@ -1,8 +1,8 @@
 <template>
-  <div class="material-form">
+  <div class="material-form" data-testid="material-form">
     <header class="detail-header">
       <div class="header-left">
-        <button class="header-back-btn" @click="handleBack" title="返回列表">
+        <button class="header-back-btn" @click="handleBack" title="返回列表" aria-label="返回原料列表">
           <t-icon name="arrow-left" />
         </button>
         <div class="header-title-group">
@@ -17,11 +17,13 @@
         </div>
       </div>
       <div class="header-actions">
-        <button class="header-action-btn secondary" @click="handleBack">
+        <button class="header-action-btn secondary" @click="handleBack" aria-label="取消编辑，返回列表"
+          data-testid="material-cancel-btn">
           <t-icon name="close" class="btn-icon" />
           取消
         </button>
-        <button class="header-action-btn" @click="handleSubmit({ validateResult: true })">
+        <button class="header-action-btn" @click="handleSubmit({ validateResult: true })" aria-label="保存原料"
+          data-testid="material-save-btn">
           <t-icon name="save" class="btn-icon" />
           {{ isEdit ? '保存' : '创建' }}
         </button>
@@ -42,32 +44,36 @@
               <div class="section-content space-y-6">
                 <!-- 原料名称 -->
                 <div class="form-field">
-                  <label class="field-label">原料名称 <span class="required">*</span></label>
-                  <t-input v-model="formData.name" placeholder="请输入原料名称" clearable class="field-input" />
+                  <label class="field-label" id="lbl-material-name">原料名称 <span class="required">*</span></label>
+                  <t-input v-model="formData.name" placeholder="请输入原料名称" clearable class="field-input"
+                    aria-required="true" aria-labelledby="lbl-material-name" data-testid="material-name-input" />
                 </div>
                 <!-- 原料类型 -->
                 <div class="form-field">
-                  <label class="field-label">原料类型 <span class="required">*</span></label>
-                  <t-radio-group v-model="formData.materialType" class="field-input">
+                  <label class="field-label" id="lbl-material-type">原料类型 <span class="required">*</span></label>
+                  <t-radio-group v-model="formData.materialType" class="field-input" aria-required="true"
+                    role="radiogroup" aria-labelledby="lbl-material-type">
                     <t-radio value="herb">药材</t-radio>
                     <t-radio value="supplement">辅料</t-radio>
                   </t-radio-group>
                 </div>
                 <!-- 原料编码 -->
                 <div class="form-field">
-                  <label class="field-label">原料编码 <span class="required">*</span></label>
-                  <t-input v-model="formData.code" placeholder="请输入原料编码（大写字母、数字、横线）" clearable class="field-input" />
+                  <label class="field-label" id="lbl-material-code">原料编码 <span class="required">*</span></label>
+                  <t-input v-model="formData.code" placeholder="请输入原料编码（大写字母、数字、横线）" clearable class="field-input"
+                    aria-required="true" aria-labelledby="lbl-material-code" />
                 </div>
                 <!-- 单位 -->
                 <div class="grid grid-cols-2 gap-6">
                   <div class="form-field">
-                    <label class="field-label">单位 <span class="required">*</span></label>
+                    <label class="field-label" id="lbl-unit">单位 <span class="required">*</span></label>
                     <t-select v-model="formData.unit" placeholder="请选择单位" :options="unitOptions" clearable
-                      class="field-input" />
+                      class="field-input" aria-required="true" aria-labelledby="lbl-unit" />
                   </div>
                   <div class="form-field">
-                    <label class="field-label">库存数量 <span class="required">*</span></label>
-                    <t-input-number v-model="formData.stock" :min="0" placeholder="0" class="field-input" />
+                    <label class="field-label" id="lbl-stock">库存数量 <span class="required">*</span></label>
+                    <t-input-number v-model="formData.stock" :min="0" placeholder="0" class="field-input"
+                      aria-required="true" aria-labelledby="lbl-stock" />
                   </div>
                 </div>
               </div>
@@ -84,23 +90,24 @@
                   营养成分（每100g）
                   <t-tag v-if="hasNutrition" theme="success" variant="light" size="small" shape="round">已录入</t-tag>
                 </h3>
-                <div class="row-actions">
-                  <button type="button" class="clear-btn" @click="handleClearNutrition">
+              </div>
+              <div class="section-content">
+                <NutritionExcelImport @import="handleNutritionExcelImport" class="excel-panel" />
+
+                <div class="row-actions collapse-toolbar">
+                  <button type="button" class="clear-btn" @click="handleClearNutrition" aria-label="清空所有营养成分">
                     <t-icon name="delete" />
                     清空
                   </button>
-                  <button type="button" class="add-row-btn" @click="expandAllGroups">
+                  <button type="button" class="add-row-btn" @click="expandAllGroups" aria-label="展开所有营养成分分组">
                     <t-icon name="unfold-more" />
                     展开
                   </button>
-                  <button type="button" class="add-row-btn" @click="collapseAllGroups">
+                  <button type="button" class="add-row-btn" @click="collapseAllGroups" aria-label="收起所有营养成分分组">
                     <t-icon name="unfold-less" />
                     收起
                   </button>
                 </div>
-              </div>
-              <div class="section-content">
-                <ExcelImportPanel @import="handleNutritionExcelImport" class="excel-panel" />
 
                 <t-collapse :value="Object.keys(collapseExpanded).filter(k => collapseExpanded[k])"
                   @change="handleCollapseChange">
@@ -186,9 +193,10 @@
                       <template v-if="aiStore.models.length > 0">
                         <button v-for="model in aiStore.models" :key="model.provider" type="button" class="model-btn"
                           :class="{ active: aiStore.selectedModel === model.provider }"
-                          @click="selectModel(model.provider)">
+                          @click="selectModel(model.provider)" :aria-label="`选择${model.name}模型`"
+                          :aria-pressed="aiStore.selectedModel === model.provider">
                           <div class="model-logo-wrap">
-                            <img :src="getModelLogo(model)" :alt="model.name" class="model-logo"
+                            <img loading="lazy" :src="getModelLogo(model)" :alt="model.name" class="model-logo"
                               @error="(e: Event) => handleLogoError(e, model)" />
                             <span class="model-fallback" :style="{ color: getFallbackColor(model) }">
                               {{ getFallbackLetter(model) }}
@@ -270,58 +278,176 @@
                         </div>
 
                       </div>
-
-                      <div v-if="parseNutritionItems.length" class="nutrition-materials-table">
-                        <!-- 表头行 -->
-                        <div class="nm-header">
-                          <span class="col-name">原料名称</span>
-                          <span class="col-protein">蛋白质(g)</span>
-                          <span class="col-fat">脂肪(g)</span>
-                          <span class="col-carb">碳水(g)</span>
-                          <span class="col-sodium">钠(mg)</span>
-                          <span class="col-status">匹配状态</span>
-                          <span class="col-operation">操作</span>
-                        </div>
-                        <!-- 数据行 -->
-                        <div v-for="(item, idx) in parseNutritionItems" :key="idx" class="nm-row">
-                          <span class="col-name">{{ item.name || '未命名' }}</span>
-                          <span class="col-protein">{{ item.protein ?? '-' }}</span>
-                          <span class="col-fat">{{ item.fat ?? '-' }}</span>
-                          <span class="col-carb">{{ item.carbohydrate ?? '-' }}</span>
-                          <span class="col-sodium">{{ item.sodium ?? '-' }}</span>
-                          <span class="col-status">
-                            <t-tag v-if="item.isRecorded || registerStatusMap[idx] === 'success'" theme="success"
-                              variant="light" size="small">已录入</t-tag>
-                            <t-tag v-else theme="warning" variant="light" size="small">未录入</t-tag>
-                          </span>
-                          <span class="col-operation">
-                            <template v-if="registerStatusMap[idx] === 'loading'">
-                              <t-button size="small" theme="success" variant="outline" loading>录入中</t-button>
-                            </template>
-                            <template v-else-if="registerStatusMap[idx] === 'success'">
-                              <span class="reg-success"><t-icon name="check-circle" /> 录入成功</span>
-                            </template>
-                            <template v-else-if="registerStatusMap[idx] === 'error'">
-                              <t-button size="small" theme="danger" variant="outline"
-                                @click="handleImmediateRegister(item, idx)">
-                                <template #icon><t-icon name="close-circle" /></template>
-                                重试
-                              </t-button>
-                            </template>
-                            <template v-else-if="!item.isRecorded">
-                              <t-button size="small" theme="success" class="reg-btn--primary"
-                                @click="handleImmediateRegister(item, idx)">
-                                <template #icon><t-icon name="send" /></template>
-                                录入
-                              </t-button>
-                            </template>
-                            <template v-else>
-                              <span class="reg-done">—</span>
-                            </template>
-                          </span>
+                      <!-- 原料营养表 -->
+                      <table v-if="parseNutritionItems.length" class="nutrition-materials-table">
+                        <thead>
+                          <tr>
+                            <th class="col-name">原料名称</th>
+                            <th class="col-protein">蛋白质(g)</th>
+                            <th class="col-fat">脂肪(g)</th>
+                            <th class="col-carb">碳水(g)</th>
+                            <th class="col-sodium">钠(mg)</th>
+                            <th class="col-status">匹配状态</th>
+                            <th class="col-operation">操作</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <template v-for="(item, idx) in parseNutritionItems" :key="idx">
+                            <tr :class="{ 'row--diff': item.isRecorded && hasDiff(item) }">
+                              <td class="col-name">{{ item.name || '未命名' }}</td>
+                              <td class="col-protein" :class="{ 'cell--diff': getDiffInfo(item, 'protein') }">
+                                {{ item.protein ?? '-' }}
+                                <span
+                                  v-if="getDiffInfo(item, 'protein') && Math.abs(getDiffInfo(item, 'protein')!.diff) > 0.01"
+                                  class="diff-badge" :class="getDiffInfo(item, 'protein')!.diff > 0 ? 'up' : 'down'">
+                                  {{ getDiffInfo(item, 'protein')!.diff > 0 ? '↑' : '↓' }}
+                                </span>
+                              </td>
+                              <td class="col-fat" :class="{ 'cell--diff': getDiffInfo(item, 'fat') }">
+                                {{ item.fat ?? '-' }}
+                                <span v-if="getDiffInfo(item, 'fat') && Math.abs(getDiffInfo(item, 'fat')!.diff) > 0.01"
+                                  class="diff-badge" :class="getDiffInfo(item, 'fat')!.diff > 0 ? 'up' : 'down'">
+                                  {{ getDiffInfo(item, 'fat')!.diff > 0 ? '↑' : '↓' }}
+                                </span>
+                              </td>
+                              <td class="col-carb" :class="{ 'cell--diff': getDiffInfo(item, 'carbohydrate') }">
+                                {{ item.carbohydrate ?? '-' }}
+                                <span
+                                  v-if="getDiffInfo(item, 'carbohydrate') && Math.abs(getDiffInfo(item, 'carbohydrate')!.diff) > 0.01"
+                                  class="diff-badge"
+                                  :class="getDiffInfo(item, 'carbohydrate')!.diff > 0 ? 'up' : 'down'">
+                                  {{ getDiffInfo(item, 'carbohydrate')!.diff > 0 ? '↑' : '↓' }}
+                                </span>
+                              </td>
+                              <td class="col-sodium" :class="{ 'cell--diff': getDiffInfo(item, 'sodium') }">
+                                {{ item.sodium ?? '-' }}
+                                <span
+                                  v-if="getDiffInfo(item, 'sodium') && Math.abs(getDiffInfo(item, 'sodium')!.diff) > 0.01"
+                                  class="diff-badge" :class="getDiffInfo(item, 'sodium')!.diff > 0 ? 'up' : 'down'">
+                                  {{ getDiffInfo(item, 'sodium')!.diff > 0 ? '↑' : '↓' }}
+                                </span>
+                              </td>
+                              <td class="col-status">
+                                <t-tag v-if="item.isRecorded && !hasDiff(item)" theme="success" variant="light"
+                                  size="small">已录入</t-tag>
+                                <t-tag v-else-if="item.isRecorded && hasDiff(item)" theme="warning" variant="light"
+                                  size="small">已录入 ⚠</t-tag>
+                                <t-tag v-else theme="warning" variant="light" size="small">未录入</t-tag>
+                              </td>
+                              <td class="col-operation">
+                                <template v-if="registerStatusMap[idx] === 'loading'">
+                                  <t-button size="small" theme="success" variant="outline" loading>录入中</t-button>
+                                </template>
+                                <template v-else-if="registerStatusMap[idx] === 'success'">
+                                  <span class="reg-success"><t-icon name="check-circle" /> 录入成功</span>
+                                </template>
+                                <template v-else-if="registerStatusMap[idx] === 'error'">
+                                  <t-button size="small" theme="danger" variant="outline"
+                                    @click="handleImmediateRegister(item, idx)">
+                                    <template #icon><t-icon name="close-circle" /></template>
+                                    重试
+                                  </t-button>
+                                </template>
+                                <template v-else-if="!item.isRecorded">
+                                  <t-button size="small" theme="success" class="reg-btn--primary"
+                                    @click="handleImmediateRegister(item, idx)">
+                                    <template #icon><t-icon name="send" /></template>
+                                    录入
+                                  </t-button>
+                                </template>
+                                <template v-else-if="hasDiff(item)">
+                                  <button type="button" class="diff-toggle-btn" @click="toggleDiffRow(idx)">
+                                    差异
+                                    <t-icon :name="expandedDiffRow === idx ? 'chevron-up' : 'chevron-down'"
+                                      size="12px" />
+                                  </button>
+                                </template>
+                                <template v-else>
+                                  <span class="reg-done">—</span>
+                                </template>
+                              </td>
+                            </tr>
+                            <tr v-if="expandedDiffRow === idx" class="diff-detail-row">
+                              <td colspan="7">
+                                <div class="diff-panel">
+                                  <table class="diff-inner-table">
+                                    <thead>
+                                      <tr>
+                                        <th>指标</th>
+                                        <th>数据库(旧)</th>
+                                        <th>AI解析(新)</th>
+                                        <th>差异</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      <tr v-for="field in NUTRITION_FIELDS" :key="field"
+                                        :class="'diff-row--' + diffDirection(item, field)">
+                                        <td>{{ NUTRITION_LABELS[field] }}</td>
+                                        <td>{{ (existingNutritionMap[item.materialId ? String(item.materialId) :
+                                          '']?.[field] ??
+                                          0).toFixed(1) }}
+                                        </td>
+                                        <td>{{ (item[field] ?? '-').toString() }}</td>
+                                        <td class="diff-val">{{ diffArrow(item, field) }}</td>
+                                      </tr>
+                                    </tbody>
+                                  </table>
+                                  <div class="diff-actions">
+                                    <button type="button" class="diff-btn diff-btn--apply"
+                                      @click="handleUseNewData(item, idx)">使用新数据</button>
+                                    <button type="button" class="diff-btn diff-btn--keep"
+                                      @click="toggleDiffRow(idx)">保留原数据</button>
+                                  </div>
+                                </div>
+                              </td>
+                            </tr>
+                          </template>
+                        </tbody>
+                      </table>
+                      <!-- 操作按键 -->
+                      <div class="result-actions">
+                        <t-button theme="success" block @click="handleBatchRegister" :loading="batchRegistering"
+                          :disabled="allRecorded" class="backfill-btn" aria-label="一键录入所有AI解析的原料数据">
+                          <template #icon><t-icon name="check-circle" /></template>
+                          一键录入
+                        </t-button>
+                        <div class="secondary-actions">
+                          <button type="button" class="action-btn action-btn--default" @click.stop="resetUpload"
+                            aria-label="重新选择文件">
+                            <t-icon name="refresh" />重新选择文件
+                          </button>
+                          <button type="button" class="action-btn action-btn--danger" @click.stop="clearResult"
+                            aria-label="清空AI解析结果">
+                            <t-icon name="delete" />清空
+                          </button>
+                          <t-dropdown trigger="hover"
+                            :popup-props="{ appendToBody: true, placement: 'bottom-right', overlayClassName: 'reparse-dropdown-popup' }">
+                            <button type="button" class="action-btn action-btn--primary" @click.stop>
+                              <t-icon name="play-circle" />
+                              重新解析
+                              <t-icon name="chevron-down" size="12px" style="margin-left: 2px;" />
+                            </button>
+                            <t-dropdown-menu>
+                              <t-dropdown-item v-for="model in aiStore.models" :key="model.provider"
+                                :value="model.provider"
+                                @click="(ctx) => handleReparseWithModel({ value: ctx.value })">
+                                <div class="reparse-model-option">
+                                  <div class="reparse-model-logo">
+                                    <img loading="lazy" :src="getModelLogo(model)" :alt="model.name"
+                                      @error="(e: Event) => handleLogoError(e, model)" />
+                                    <span class="reparse-model-fallback" :style="{ color: getFallbackColor(model) }">
+                                      {{ getFallbackLetter(model) }}
+                                    </span>
+                                  </div>
+                                  <span class="reparse-model-name">{{ model.name }}</span>
+                                  <t-icon v-if="aiStore.selectedModel === model.provider" name="check"
+                                    class="reparse-model-check reparse-model-check--active" />
+                                </div>
+                              </t-dropdown-item>
+                            </t-dropdown-menu>
+                          </t-dropdown>
                         </div>
                       </div>
-
                       <!-- 可信度分条概述 -->
                       <div v-if="getConfidenceItems().length" class="confidence-summary">
                         <div class="summary-header">
@@ -342,55 +468,14 @@
                         </div>
                       </div>
 
-                      <div class="result-actions">
-                        <t-button theme="success" block @click="handleBatchRegister" :loading="batchRegistering"
-                          class="backfill-btn">
-                          <template #icon><t-icon name="backup" /></template>
-                          一键录入
-                        </t-button>
-                        <div class="secondary-actions">
-                          <button type="button" class="action-btn action-btn--default" @click.stop="resetUpload">
-                            <t-icon name="refresh" />重新选择文件
-                          </button>
-                          <button type="button" class="action-btn action-btn--danger" @click.stop="clearResult">
-                            <t-icon name="delete" />清空
-                          </button>
-                          <t-dropdown trigger="hover"
-                            :popup-props="{ appendToBody: true, placement: 'bottom-right', overlayClassName: 'reparse-dropdown-popup' }">
-                            <button type="button" class="action-btn action-btn--primary" @click.stop>
-                              <t-icon name="play-circle" />
-                              重新解析
-                              <t-icon name="chevron-down" size="12px" style="margin-left: 2px;" />
-                            </button>
-                            <t-dropdown-menu>
-                              <t-dropdown-item v-for="model in aiStore.models" :key="model.provider"
-                                :value="model.provider"
-                                @click="(ctx: { value: string; }) => handleReparseWithModel({ value: ctx.value })">
-                                <div class="reparse-model-option">
-                                  <div class="reparse-model-logo">
-                                    <img :src="getModelLogo(model)" :alt="model.name"
-                                      @error="(e: Event) => handleLogoError(e, model)" />
-                                    <span class="reparse-model-fallback" :style="{ color: getFallbackColor(model) }">
-                                      {{ getFallbackLetter(model) }}
-                                    </span>
-                                  </div>
-                                  <span class="reparse-model-name">{{ model.name }}</span>
-                                  <t-icon v-if="aiStore.selectedModel === model.provider" name="check"
-                                    class="reparse-model-check reparse-model-check--active" />
-                                </div>
-                              </t-dropdown-item>
-                            </t-dropdown-menu>
-                          </t-dropdown>
-                        </div>
-                      </div>
                     </div>
                   </div>
                 </div>
               </div>
+              <div v-if="isEdit" class="ai-disabled-overlay">
+                <span class="ai-disabled-text">编辑模式下不可操作</span>
+              </div>
             </section>
-            <div v-if="isEdit" class="ai-disabled-overlay">
-              <span class="ai-disabled-text">编辑模式下不可操作</span>
-            </div>
           </div>
         </div>
       </t-form>
@@ -399,7 +484,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted, nextTick } from 'vue';
+import { ref, reactive, computed, onMounted, nextTick, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useMaterialStore } from '@/stores/material';
 import { useAiStore } from '@/stores/ai';
@@ -407,7 +492,7 @@ import { nutritionApi } from '@/api/nutrition';
 import { materialApi } from '@/api/material';
 import { MessagePlugin } from 'tdesign-vue-next';
 import type { FormInstanceFunctions, FormRule } from 'tdesign-vue-next';
-import ExcelImportPanel from '@/components/ExcelImportPanel.vue';
+import NutritionExcelImport from '@/components/NutritionExcelImport.vue';
 
 const router = useRouter();
 const route = useRoute();
@@ -602,8 +687,12 @@ const getConfidenceItems = () => {
   return items;
 };
 
-const handleReparseWithModel = (data: { value: string; }) => {
+const handleReparseWithModel = async (data: { value: string; }) => {
   aiStore.selectedModel = data.value;
+  Object.keys(registerStatusMap).forEach(k => delete registerStatusMap[k]);
+  existingNutritionMap.value = {};
+  expandedDiffRow.value = null;
+  batchRegistering.value = false;
   aiStore.clearMaterialParseResult();
   if (selectedFile.value) {
     nextTick(() => {
@@ -614,7 +703,11 @@ const handleReparseWithModel = (data: { value: string; }) => {
         resultRef.value?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
     });
-    handleFileSelect(selectedFile.value);
+    try {
+      await handleFileSelect(selectedFile.value);
+    } catch (err: any) {
+      console.error('[重新解析失败]', err);
+    }
   }
 };
 
@@ -627,9 +720,115 @@ const parseNutritionItems = computed(() => {
     fat: item.fat,
     carbohydrate: item.carbohydrate,
     sodium: item.sodium,
+    dataSource: item.dataSource,
+    confidence: item.confidence,
     isRecorded: !!item.isRecorded,
+    materialId: item.materialId || null,
   }));
 });
+
+const allRecorded = computed(() => {
+  const items = parseNutritionItems.value;
+  if (!items.length) return true;
+  return items.every((item: any) => item.isRecorded);
+});
+
+const existingNutritionMap = ref<Record<string, { protein: number; fat: number; carbohydrate: number; sodium: number; }>>({});
+const expandedDiffRow = ref<number | null>(null);
+
+watch(() => aiStore.materialParseResult, async (result) => {
+  if (!result?.materials) return;
+  const recordedItems = result.materials.filter((m: any) => m.isRecorded && m.materialId);
+  await Promise.allSettled(
+    recordedItems.map(async (mat: any) => {
+      try {
+        const key = mat.materialId ? String(mat.materialId) : '';
+        if (!key) {
+          console.warn('[差异对比] 跳过无materialId的原料:', mat.name);
+          return;
+        }
+        if (existingNutritionMap.value[key]) return;
+        const res: any = await nutritionApi.getMaterialNutrition(key, true);
+        if (res?.per100g) {
+          existingNutritionMap.value[key] = {
+            protein: res.per100g.protein ?? 0,
+            fat: res.per100g.fat ?? 0,
+            carbohydrate: res.per100g.carbohydrate ?? 0,
+            sodium: res.per100g.sodium ?? 0,
+          };
+        }
+      } catch (err: any) {
+        console.error(`[差异对比] 获取 ${mat.name || '未知'} 营养数据失败 [${err?.response?.status || 'N/A'}]:`, err?.message || err);
+      }
+    })
+  );
+}, { immediate: true });
+
+const NUTRITION_FIELDS = ['protein', 'fat', 'carbohydrate', 'sodium'] as const;
+const NUTRITION_LABELS: Record<string, string> = { protein: '蛋白质(g)', fat: '脂肪(g)', carbohydrate: '碳水(g)', sodium: '钠(mg)' };
+
+function hasDiff(item: any): boolean {
+  const key = item.materialId ? String(item.materialId) : '';
+  const existing = existingNutritionMap.value[key];
+  if (!existing || !item.materialId) return false;
+  return NUTRITION_FIELDS.some(f => Math.abs((existing[f] ?? 0) - (item[f] ?? 0)) > 0.01);
+}
+
+function getDiffInfo(item: any, field: string): { old: number; new: number; diff: number; } | null {
+  const key = item.materialId ? String(item.materialId) : '';
+  const existing = existingNutritionMap.value[key];
+  if (!existing) return null;
+  const oldVal = existing[field] ?? 0;
+  const newVal = item[field] ?? 0;
+  return { old: oldVal, new: newVal, diff: newVal - oldVal };
+}
+
+function diffDirection(item: any, field: string): string {
+  const info = getDiffInfo(item, field);
+  if (!info) return '';
+  return info.diff > 0 ? 'up' : info.diff < 0 ? 'down' : 'same';
+}
+
+function diffArrow(item: any, field: string): string {
+  const info = getDiffInfo(item, field);
+  if (!info) return '—';
+  if (Math.abs(info.diff) <= 0.01) return '—';
+  const sign = info.diff > 0 ? '↑' : '↓';
+  return `${sign} ${Math.abs(info.diff).toFixed(1)}`;
+}
+
+function toggleDiffRow(idx: number) {
+  expandedDiffRow.value = expandedDiffRow.value === idx ? null : idx;
+}
+
+async function handleUseNewData(item: any, idx: number) {
+  if (!item.materialId) return;
+  try {
+    const per100g: Record<string, number> = {};
+    if (item.protein != null) per100g.protein = Number(item.protein);
+    if (item.fat != null) per100g.fat = Number(item.fat);
+    if (item.carbohydrate != null) per100g.carbohydrate = Number(item.carbohydrate);
+    if (item.sodium != null) per100g.sodium = Number(item.sodium);
+
+    await nutritionApi.setMaterialNutrition(item.materialId, {
+      per100g,
+      dataSource: item.dataSource || 'AI导入',
+      confidence: (item.confidence ?? 0.7) >= 0.8 ? 'high' : 'medium',
+    });
+
+    existingNutritionMap.value[String(item.materialId)] = {
+      protein: Number(item.protein ?? 0),
+      fat: Number(item.fat ?? 0),
+      carbohydrate: Number(item.carbohydrate ?? 0),
+      sodium: Number(item.sodium ?? 0),
+    };
+
+    expandedDiffRow.value = null;
+    MessagePlugin.success(`${item.name} 营养数据已更新`);
+  } catch (err: any) {
+    MessagePlugin.error(`更新失败: ${err.message}`);
+  }
+}
 
 const firstResultDataSource = computed(() => {
   const result = aiStore.materialParseResult;
@@ -790,6 +989,21 @@ const handleBatchRegister = async () => {
 
       registerStatusMap[idx] = 'success';
       item.isRecorded = true;
+      item.materialId = matId;
+
+      const batchMaterials = aiStore.materialParseResult?.materials;
+      if (batchMaterials && batchMaterials[idx]) {
+        batchMaterials[idx].isRecorded = true;
+        batchMaterials[idx].materialId = matId;
+      }
+
+      existingNutritionMap.value[String(matId)] = {
+        protein: Number(item.protein ?? 0),
+        fat: Number(item.fat ?? 0),
+        carbohydrate: Number(item.carbohydrate ?? 0),
+        sodium: Number(item.sodium ?? 0),
+      };
+
       successCount++;
     } catch (err: any) {
       console.error('[批量录入失败]', item.name, err);
@@ -807,8 +1021,22 @@ const handleBatchRegister = async () => {
   }
 };
 
-const resetUpload = () => { aiStore.clearMaterialParseResult(); };
-const clearResult = () => { aiStore.clearMaterialParseResult(); };
+const resetUpload = () => {
+  aiStore.clearMaterialParseResult();
+  selectedFile.value = null;
+  if (fileInputRef.value) fileInputRef.value.value = '';
+  Object.keys(registerStatusMap).forEach(k => delete registerStatusMap[k]);
+  existingNutritionMap.value = {};
+  expandedDiffRow.value = null;
+  batchRegistering.value = false;
+};
+const clearResult = () => {
+  aiStore.clearMaterialParseResult();
+  Object.keys(registerStatusMap).forEach(k => delete registerStatusMap[k]);
+  existingNutritionMap.value = {};
+  expandedDiffRow.value = null;
+  batchRegistering.value = false;
+};
 
 const registerStatusMap = reactive<Record<number, 'idle' | 'loading' | 'success' | 'error'>>({});
 
@@ -847,11 +1075,20 @@ const handleImmediateRegister = async (item: any, idx: number) => {
 
     registerStatusMap[idx] = 'success';
     item.isRecorded = true;
+    item.materialId = matId;
 
     const materials = aiStore.materialParseResult?.materials;
     if (materials && materials[idx]) {
       materials[idx].isRecorded = true;
+      materials[idx].materialId = matId;
     }
+
+    existingNutritionMap.value[String(matId)] = {
+      protein: Number(item.protein ?? 0),
+      fat: Number(item.fat ?? 0),
+      carbohydrate: Number(item.carbohydrate ?? 0),
+      sodium: Number(item.sodium ?? 0),
+    };
 
     MessagePlugin.success(`${item.name} 录入成功`);
   } catch (err: any) {
@@ -869,32 +1106,20 @@ const handleClearNutrition = () => {
   hasNutrition.value = false;
 };
 
-const handleNutritionExcelImport = (materials: any[]) => {
+const handleNutritionExcelImport = (data: { nutritionData: Record<string, number>; dataSource: string; confidence: string; notes: string; }) => {
   showNutrition.value = true;
   hasNutrition.value = true;
 
-  const keyMap: Record<string, string> = {
-    '能量': 'energy', '蛋白质': 'protein', '脂肪': 'fat',
-    '碳水化合物': 'carbohydrate', '膳食纤维': 'fiber', '糖': 'sugars',
-    '钠': 'sodium', '钾': 'potassium', '钙': 'calcium',
-    '铁': 'iron', '锌': 'zinc', '镁': 'magnesium', '磷': 'phosphorus',
-    '维生素A': 'vitaminA', '维生素C': 'vitaminC', '维生素D': 'vitaminD',
-    '维生素E': 'vitaminE', '维生素B1': 'vitaminB1', '维生素B2': 'vitaminB2',
-    '烟酸(B3)': 'vitaminB3', '维生素B6': 'vitaminB6', '维生素B12': 'vitaminB12',
-    '叶酸': 'folate', '胆固醇': 'cholesterol', '饱和脂肪': 'saturatedFat', '反式脂肪': 'transFat',
-  };
-
-  if (materials.length > 0 && materials[0].nutritionData) {
-    const imported = materials[0].nutritionData;
-    for (const [name, val] of Object.entries(imported)) {
-      const key = keyMap[name];
-      if (key && nutritionData[key] !== undefined) nutritionData[key] = Number(val);
-    }
-    if (materials[0].dataSource) nutritionMeta.dataSource = materials[0].dataSource;
-    if (materials[0].confidence) nutritionMeta.confidence = materials[0].confidence;
+  for (const [key, val] of Object.entries(data.nutritionData)) {
+    if (nutritionData[key] !== undefined) nutritionData[key] = Number(val);
   }
 
-  MessagePlugin.success(`已导入 ${materials.length} 条营养数据`);
+  if (data.dataSource) nutritionMeta.dataSource = data.dataSource;
+  if (data.confidence) nutritionMeta.confidence = data.confidence;
+  if (data.notes) nutritionMeta.notes = data.notes;
+
+  const count = Object.values(data.nutritionData).filter(v => v > 0).length;
+  MessagePlugin.success(`已导入 ${count} 项营养素数据`);
 };
 
 const handleCollapseChange = (value: string[]) => {
@@ -994,6 +1219,8 @@ onMounted(async () => {
 </script>
 
 <style scoped lang="scss">
+@use '@/assets/styles/variables.scss' as *;
+
 .material-form {
 
   .detail-header {
@@ -1006,7 +1233,7 @@ onMounted(async () => {
     margin-left: -32px;
     margin-right: -32px;
     padding: 16px 32px;
-    background-color: rgba(255, 255, 255, 0.80);
+    background-color: $overlay-white-80;
     backdrop-filter: blur(12px);
     border-bottom: 1px solid #f1f5f9;
     animation: fadeInDown 0.3s cubic-bezier(0.4, 0, 0.2, 1) both;
@@ -1027,7 +1254,7 @@ onMounted(async () => {
         background: transparent;
         color: #94a3b8;
         cursor: pointer;
-        transition: all 0.2s ease;
+        transition: all $transition-fast;
         font-size: 20px;
 
         &:hover {
@@ -1098,9 +1325,9 @@ onMounted(async () => {
         border-radius: 12px;
         font-size: 14px;
         font-weight: 700;
-        box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.25);
+        box-shadow: 0 10px 15px -3px $overlay-emerald-25;
         cursor: pointer;
-        transition: all 0.2s ease;
+        transition: all $transition-fast;
 
         .btn-icon {
           font-size: 18px;
@@ -1109,7 +1336,7 @@ onMounted(async () => {
         &:hover {
           background-color: #059669;
           transform: translateY(-1px);
-          box-shadow: 0 14px 20px -3px rgba(16, 185, 129, 0.35);
+          box-shadow: 0 14px 20px -3px $overlay-emerald-35;
         }
 
         &:active {
@@ -1120,12 +1347,12 @@ onMounted(async () => {
         &.secondary {
           background-color: #f1f5f9;
           color: #64748b;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+          box-shadow: 0 1px 3px $shadow-float;
 
           &:hover {
             background-color: #e2e8f0;
             color: #475569;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 6px $shadow-float;
           }
 
           &:active {
@@ -1183,7 +1410,7 @@ onMounted(async () => {
         display: flex;
         align-items: center;
         justify-content: center;
-        background: rgba(248, 250, 252, 0.6);
+        background: rgba(248, 250, 252, 0.60);
         backdrop-filter: blur(1.5px);
         border-radius: 20px;
         z-index: 30;
@@ -1193,7 +1420,7 @@ onMounted(async () => {
           font-weight: 600;
           color: #94a3b8;
           letter-spacing: 0.5px;
-          background: rgba(255, 255, 255, 0.85);
+          background: $overlay-white-90;
           padding: 10px 24px;
           border-radius: 20px;
           box-shadow: 0 2px 12px rgba(148, 163, 184, 0.15);
@@ -1244,7 +1471,7 @@ onMounted(async () => {
     background: #fff;
     padding: 32px;
     border-radius: 2.5rem;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    box-shadow: 0 1px 3px $overlay-black-05;
     border: 1px solid #f8fafc;
     animation: fadeInUp 0.35s ease both;
 
@@ -1276,6 +1503,12 @@ onMounted(async () => {
       display: flex;
       align-items: center;
       gap: 8px;
+
+      &.collapse-toolbar {
+        justify-content: flex-end;
+        margin-bottom: 10px;
+        padding: 0 4px;
+      }
     }
 
     .add-row-btn {
@@ -1286,15 +1519,15 @@ onMounted(async () => {
       font-weight: 700;
       color: #059669;
       padding: 6px 12px;
-      background-color: rgba(16, 185, 129, 0.08);
+      background-color: $overlay-emerald-08;
       border: none;
       border-radius: 8px;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: all $transition-fast;
 
       &:hover {
         color: #047857;
-        background-color: rgba(16, 185, 129, 0.15);
+        background-color: $overlay-emerald-15;
       }
     }
 
@@ -1306,15 +1539,15 @@ onMounted(async () => {
       font-weight: 700;
       color: #ef4444;
       padding: 6px 12px;
-      background-color: rgba(239, 68, 68, 0.06);
+      background-color: $color-danger-bg;
       border: none;
       border-radius: 8px;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: all $transition-fast;
 
       &:hover:not(:disabled) {
         color: #dc2626;
-        background-color: rgba(239, 68, 68, 0.12);
+        background-color: $color-danger-medium;
       }
 
       &:disabled {
@@ -1355,7 +1588,7 @@ onMounted(async () => {
           min-height: 48px;
           font-size: 14px !important;
           color: #334155 !important;
-          transition: all 0.2s ease;
+          transition: all $transition-fast;
 
           &:hover:not(.t-is-disabled) {
             border-color: #e2e8f0 !important;
@@ -1388,7 +1621,7 @@ onMounted(async () => {
             border-radius: 16px !important;
             padding: 10px 12px !important;
             min-height: 48px;
-            transition: all 0.2s ease;
+            transition: all $transition-fast;
 
             &:hover:not(.t-is-disabled) {
               border-color: #e2e8f0 !important;
@@ -1424,7 +1657,7 @@ onMounted(async () => {
           border: 1px solid #f1f5f9 !important;
           border-radius: 16px !important;
           min-height: 48px;
-          transition: all 0.2s ease;
+          transition: all $transition-fast;
 
           &:hover:not(.t-is-disabled) {
             border-color: #e2e8f0 !important;
@@ -1456,7 +1689,7 @@ onMounted(async () => {
             transition: all 0.15s ease;
 
             &:hover {
-              background-color: rgba(16, 185, 129, 0.08) !important;
+              background-color: $overlay-emerald-08 !important;
               color: #059669 !important;
             }
           }
@@ -1484,6 +1717,14 @@ onMounted(async () => {
 
   // 营养成分 section 特殊样式
   .nutrition-sec {
+    .section-header {
+      margin-bottom: 12px;
+    }
+
+    .section-title {
+      margin-bottom: 8px;
+    }
+
     :deep(.t-collapse) {
       background-color: #f8fafc;
       border-radius: 16px;
@@ -1524,7 +1765,7 @@ onMounted(async () => {
         background-color: #f8fafc !important;
         border: 1px solid #f1f5f9 !important;
         border-radius: 10px !important;
-        transition: all 0.2s ease;
+        transition: all $transition-fast;
 
         &:hover:not(.t-is-checked) {
           background-color: #f1f5f9 !important;
@@ -1532,7 +1773,7 @@ onMounted(async () => {
         }
 
         &.t-is-checked {
-          background-color: rgba(16, 185, 129, 0.08) !important;
+          background-color: $overlay-emerald-08 !important;
           border-color: #10b981 !important;
           color: #059669 !important;
         }
@@ -1569,8 +1810,8 @@ onMounted(async () => {
       }
 
       &.nf-calculated {
-        background: linear-gradient(135deg, rgba(16, 185, 129, 0.04), rgba(45, 212, 191, 0.03));
-        border: 1px solid rgba(16, 185, 129, 0.12);
+        background: linear-gradient(135deg, $overlay-emerald-04, rgba(45, 212, 191, 0.03));
+        border: 1px solid $overlay-emerald-12;
         border-radius: 12px;
         padding: 12px 14px;
       }
@@ -1686,23 +1927,23 @@ onMounted(async () => {
       font-size: 13px;
       font-weight: 700;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: all $transition-fast;
 
       &--outline {
-        background: rgba(16, 185, 129, 0.08);
+        background: $overlay-emerald-08;
         color: #059669;
 
         &:hover {
-          background: rgba(16, 185, 129, 0.15);
+          background: $overlay-emerald-15;
         }
       }
 
       &--danger {
-        background: rgba(239, 68, 68, 0.06);
+        background: $color-danger-bg;
         color: #ef4444;
 
         &:hover {
-          background: rgba(239, 68, 68, 0.12);
+          background: $color-danger-medium;
         }
       }
     }
@@ -1717,7 +1958,7 @@ onMounted(async () => {
     background: linear-gradient(145deg, #ffffff 0%, #f8fafc 50%, #f1f5f9 100%);
     padding: 32px;
     border-radius: 2.5rem;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.06), 0 8px 10px -6px rgba(16, 185, 129, 0.06);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.06), 0 8px 10px -6px $overlay-emerald-06;
     color: #334155;
     position: relative;
     overflow: hidden;
@@ -1731,7 +1972,7 @@ onMounted(async () => {
       right: -40px;
       width: 180px;
       height: 180px;
-      background: radial-gradient(circle, rgba(16, 185, 129, 0.12) 0%, transparent 70%);
+      background: radial-gradient(circle, $overlay-emerald-12 0%, transparent 70%);
       filter: blur(60px);
       border-radius: 50%;
     }
@@ -1801,29 +2042,29 @@ onMounted(async () => {
             align-items: center;
             gap: 6px;
             padding: 14px 10px;
-            background: rgba(16, 185, 129, 0.04);
+            background: $overlay-emerald-04;
             border: 1px solid rgba(148, 163, 184, 0.18);
             border-radius: 16px;
             color: #64748b;
             font-size: 11px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.25s ease;
+            transition: all $transition-normal;
             opacity: 0.75;
 
             &:hover {
               opacity: 1;
-              background: rgba(16, 185, 129, 0.08);
-              border-color: rgba(16, 185, 129, 0.25);
+              background: $overlay-emerald-08;
+              border-color: $overlay-emerald-25;
               transform: translateY(-1px);
             }
 
             &.active {
-              background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(45, 212, 191, 0.08) 100%);
-              border-color: rgba(16, 185, 129, 0.35);
+              background: linear-gradient(135deg, $overlay-emerald-12 0%, rgba(45, 212, 191, 0.08) 100%);
+              border-color: $overlay-emerald-35;
               opacity: 1;
               color: #059669;
-              box-shadow: 0 4px 12px -2px rgba(16, 185, 129, 0.12);
+              box-shadow: 0 4px 12px -2px $overlay-emerald-12;
             }
 
             .model-logo-wrap {
@@ -1848,7 +2089,7 @@ onMounted(async () => {
               justify-content: center;
               font-size: 16px;
               font-weight: 700;
-              background: rgba(16, 185, 129, 0.08);
+              background: $overlay-emerald-08;
               border-radius: 8px;
               width: 36px;
               height: 36px;
@@ -1909,18 +2150,18 @@ onMounted(async () => {
         justify-content: center;
         gap: 16px;
         cursor: pointer;
-        transition: all 0.2s ease;
+        transition: all $transition-fast;
 
         &:hover,
         &.drag-over {
           border-color: rgba(16, 185, 129, 0.5);
-          background: rgba(16, 185, 129, 0.04);
+          background: $overlay-emerald-04;
         }
 
         .upload-icon {
           width: 64px;
           height: 64px;
-          background: rgba(16, 185, 129, 0.08);
+          background: $overlay-emerald-08;
           border-radius: 50%;
           display: flex;
           align-items: center;
@@ -1953,7 +2194,7 @@ onMounted(async () => {
 
       .parsing-progress {
         padding: 24px;
-        background: rgba(16, 185, 129, 0.04);
+        background: $overlay-emerald-04;
         border-radius: 24px;
         border: 1px solid rgba(148, 163, 184, 0.18);
 
@@ -2008,7 +2249,7 @@ onMounted(async () => {
         align-items: center;
         gap: 8px;
         padding: 14px 18px;
-        background: rgba(239, 68, 68, 0.06);
+        background: $color-danger-bg;
         border: 1px solid rgba(239, 68, 68, 0.15);
         border-radius: 16px;
         color: #dc2626;
@@ -2040,7 +2281,7 @@ onMounted(async () => {
       .analysis-result {
         .result-card {
           padding: 24px;
-          background: rgba(16, 185, 129, 0.04);
+          background: $overlay-emerald-04;
           border-radius: 24px;
           border: 1px solid rgba(148, 163, 184, 0.18);
 
@@ -2080,7 +2321,7 @@ onMounted(async () => {
 
               .result-badge {
                 padding: 2px 8px;
-                background: rgba(16, 185, 129, 0.12);
+                background: $overlay-emerald-12;
                 color: #059669;
                 border-radius: 4px;
                 font-size: 11px;
@@ -2128,68 +2369,65 @@ onMounted(async () => {
           }
 
           .nutrition-materials-table {
+            width: 100%;
             margin-bottom: 20px;
-            display: grid;
-            grid-template-columns: 1fr 80px 70px 75px 68px 72px 100px;
-            gap: 0;
+            border-collapse: separate;
+            border-spacing: 0;
             border-radius: 12px;
             overflow: hidden;
             background: #f8fafc;
 
-            .nm-header {
-              grid-row: 1;
-              display: contents;
+            thead {
+              th {
+                padding: 12px 14px;
+                font-size: 11px;
+                font-weight: 700;
+                color: #94a3b8;
+                letter-spacing: 0.04em;
+                text-transform: uppercase;
+                background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+                white-space: nowrap;
+
+                &.col-name {
+                  text-align: left;
+                  width: 22%;
+                }
+
+                &.col-protein,
+                &.col-fat,
+                &.col-carb,
+                &.col-sodium {
+                  text-align: right;
+                  width: 13%;
+                }
+
+                &.col-status {
+                  text-align: center;
+                  width: 13%;
+                }
+
+                &.col-operation {
+                  text-align: right;
+                  width: 13%;
+                }
+              }
             }
 
-            .nm-header>span {
-              padding: 12px 14px;
-              font-size: 11px;
-              font-weight: 700;
-              color: #94a3b8;
-              letter-spacing: 0.04em;
-              text-transform: uppercase;
-              background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
-              align-self: center;
-
-              &.col-name {
-                text-align: left;
-                white-space: nowrap;
-              }
-
-              &.col-protein,
-              &.col-fat,
-              &.col-carb,
-              &.col-sodium {
-                text-align: right;
-                white-space: nowrap;
-              }
-
-              &.col-status {
-                text-align: center;
-                white-space: nowrap;
-              }
-
-              &.col-operation {
-                text-align: right;
-              }
-            }
-
-            .nm-row {
-              display: contents;
-
-              >span {
-                padding: 11px 14px;
-                font-size: 13px;
-                color: #334155;
-                align-self: center;
-
-                &:nth-child(odd) {
+            tbody {
+              tr {
+                &:nth-child(odd) td {
                   background: #ffffff;
                 }
 
-                &:nth-child(even) {
+                &:nth-child(even) td {
                   background: #fafbfc;
                 }
+              }
+
+              td {
+                padding: 11px 14px;
+                font-size: 13px;
+                color: #334155;
               }
 
               .col-name {
@@ -2213,9 +2451,7 @@ onMounted(async () => {
               }
 
               .col-operation {
-                display: flex;
-                justify-content: flex-end;
-                align-items: center;
+                text-align: right;
 
                 .reg-btn--primary {
                   border-radius: 10px;
@@ -2247,14 +2483,161 @@ onMounted(async () => {
                 }
               }
             }
+
+            .row--diff {
+              td {
+                background-color: #fff7ed !important;
+              }
+            }
+
+            .cell--diff {
+              position: relative;
+            }
+
+            .diff-badge {
+              font-size: 10px;
+              font-weight: 700;
+              margin-left: 4px;
+
+              &.up {
+                color: #059669;
+              }
+
+              &.down {
+                color: #f59e0b;
+              }
+            }
+
+            .diff-toggle-btn {
+              display: inline-flex;
+              align-items: center;
+              gap: 4px;
+              font-size: 11px;
+              font-weight: 600;
+              padding: 4px 10px;
+              background: #fff7ed;
+              color: #d97706;
+              border: 1px solid #fcd34d;
+              border-radius: 8px;
+              cursor: pointer;
+              transition: all $transition-fast;
+
+              &:hover {
+                background: #ffedd5;
+                border-color: #fbbf24;
+              }
+            }
+
+            .diff-detail-row {
+              td {
+                padding: 0 !important;
+                background: transparent !important;
+              }
+            }
+
+            .diff-panel {
+              background: linear-gradient(135deg, #fefce8 0%, #fffbeb 100%);
+              border-top: 2px solid #fde68a;
+              padding: 16px 20px;
+              animation: diffSlideIn 0.25s ease both;
+            }
+
+            @keyframes diffSlideIn {
+              from {
+                opacity: 0;
+                transform: translateY(-6px);
+              }
+
+              to {
+                opacity: 1;
+                transform: translateY(0);
+              }
+            }
+
+            .diff-inner-table {
+              width: 100%;
+              border-collapse: collapse;
+
+              th,
+              td {
+                padding: 8px 14px;
+                text-align: center;
+                font-size: 12px;
+                border-bottom: 1px solid rgba(253, 230, 138, 0.5);
+              }
+
+              th {
+                color: #94a3b8;
+                font-weight: 700;
+                letter-spacing: 0.04em;
+                text-transform: uppercase;
+                font-size: 10px;
+                background: rgba(254, 243, 199, 0.4);
+              }
+
+              tbody tr:last-child td {
+                border-bottom: none;
+              }
+
+              .diff-row--up .diff-val {
+                color: #059669;
+                font-weight: 700;
+              }
+
+              .diff-row--down .diff-val {
+                color: #f59e0b;
+                font-weight: 700;
+              }
+
+              .diff-row--same .diff-val {
+                color: #94a3b8;
+              }
+            }
+
+            .diff-actions {
+              display: flex;
+              gap: 12px;
+              justify-content: center;
+              margin-top: 14px;
+            }
+
+            .diff-btn {
+              padding: 8px 28px;
+              border-radius: 10px;
+              font-weight: 700;
+              font-size: 13px;
+              cursor: pointer;
+              transition: all $transition-fast;
+              border: none;
+
+              &--apply {
+                background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                color: white;
+
+                &:hover {
+                  opacity: 0.9;
+                  box-shadow: 0 4px 12px $overlay-emerald-30;
+                }
+              }
+
+              &--keep {
+                background: #e2e8f0;
+                color: #64748b;
+
+                &:hover {
+                  background: #cbd5e1;
+                }
+              }
+            }
           }
 
           // 可信度分条概述
           .confidence-summary {
+            margin-top: 20px;
             margin-bottom: 20px;
             border-radius: 16px;
             overflow: hidden;
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.04) 0%, rgba(59, 130, 246, 0.03) 100%);
+            background: linear-gradient(135deg, $overlay-emerald-04 0%, rgba(59, 130, 246, 0.03) 100%);
             border: 1px solid rgba(148, 163, 184, 0.12);
 
             .summary-header {
@@ -2289,7 +2672,7 @@ onMounted(async () => {
               transition: background 0.2s;
 
               &--high {
-                background: rgba(16, 185, 129, 0.06);
+                background: $overlay-emerald-06;
               }
 
               &--medium {
@@ -2364,16 +2747,17 @@ onMounted(async () => {
           }
 
           .result-actions {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+
             .backfill-btn {
               border-radius: 12px;
               font-weight: 700;
             }
 
             .secondary-actions {
-              display: grid;
-              grid-template-columns: repeat(3, 1fr);
-              gap: 10px;
-              margin-top: 12px;
+              display: contents;
 
               .action-btn {
                 display: inline-flex;
@@ -2386,7 +2770,7 @@ onMounted(async () => {
                 font-weight: 600;
                 border: 1px solid transparent;
                 cursor: pointer;
-                transition: all 0.2s ease;
+                transition: all $transition-fast;
                 white-space: nowrap;
 
                 .t-icon {
@@ -2455,12 +2839,14 @@ onMounted(async () => {
 </style>
 
 <style lang="scss">
+@use '@/assets/styles/variables.scss' as *;
+
 .reparse-dropdown-popup {
   min-width: 160px !important;
   width: auto !important;
   border: none !important;
   outline: none !important;
-  box-shadow: 0 6px 24px rgba(16, 185, 129, 0.28), 0 2px 8px rgba(16, 185, 129, 0.12) !important;
+  box-shadow: 0 6px 24px $overlay-emerald-28, 0 2px 8px $overlay-emerald-12 !important;
 
   .t-dropdown__menu {
     min-width: 140px !important;
@@ -2547,7 +2933,7 @@ onMounted(async () => {
     .reparse-model-check {
       font-size: 14px !important;
       color: #cbd5e1 !important;
-      transition: all 0.2s ease;
+      transition: all $transition-fast;
 
       &--active {
         color: #10b981 !important;

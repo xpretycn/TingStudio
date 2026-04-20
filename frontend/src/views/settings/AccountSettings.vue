@@ -43,7 +43,7 @@
               <t-form-item label="头像">
                 <div class="avatar-upload">
                   <div class="avatar-preview" @click="triggerAvatarUpload">
-                    <img v-if="profileForm.avatar" :src="profileForm.avatar" alt="头像" class="avatar-img" />
+                    <img v-if="profileForm.avatar" loading="lazy" :src="profileForm.avatar" alt="头像" class="avatar-img" />
                     <div v-else class="avatar-placeholder">
                       <t-icon name="user-circle" size="48px" />
                     </div>
@@ -436,7 +436,7 @@ onMounted(async () => {
       padding: $space-3 $space-4;
       border-radius: $radius-md;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: all $transition-fast;
       color: $text-secondary;
       font-size: $font-size-body;
       border: 1px solid transparent;
@@ -636,3 +636,5 @@ onMounted(async () => {
   }
 }
 </style>
+
+
