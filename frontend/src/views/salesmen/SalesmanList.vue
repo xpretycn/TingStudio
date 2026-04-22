@@ -323,9 +323,9 @@ const dashboardCards = computed(() => {
       iconPath: '<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>',
     },
     {
-      label: '部门数量',
       value: departments.size.toString(),
-      label: '个',
+      unit: '个',
+      label: '部门数量',
       badge: '组织',
       badgeColor: '#94A3B8',
       badgeBg: '#F1F5F9',

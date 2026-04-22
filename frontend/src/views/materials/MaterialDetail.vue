@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="material-detail" :aria-busy="!material">
     <PageSkeleton v-if="!material" type="detail" />
     <template v-else>
@@ -364,7 +364,7 @@ const loadData = async () => {
     const res = await nutritionStore.getMaterialNutrition(id);
     if (res?.success && res.data?.per100g) {
       nutritionData.value = Object.entries(res.data.per100g)
-        .filter(([, value]) => value > 0)
+        .filter(([, value]) => (value as number) > 0)
         .map(([key, value]) => {
           const [name, unit] = nutrientInfoMap[key] || [key, ''];
           return {

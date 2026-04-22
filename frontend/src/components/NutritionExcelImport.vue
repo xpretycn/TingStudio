@@ -84,7 +84,15 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { MessagePlugin } from 'tdesign-vue-next';
+// @ts-ignore
 import * as XLSX from 'xlsx';
+
+interface NutritionParseResult {
+  nutritionData: Record<string, number>;
+  dataSource: string;
+  confidence: string;
+  notes: string;
+}
 
 const emit = defineEmits<{
   (e: 'import', data: { nutritionData: Record<string, number>; dataSource: string; confidence: string; notes: string; }): void;

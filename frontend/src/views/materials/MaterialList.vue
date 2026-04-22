@@ -291,7 +291,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted, onUnmounted, watch } from 'vue';
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useMaterialStore } from '@/stores/material';
 import { usePaginationStore } from '@/stores/pagination';
@@ -678,12 +678,6 @@ const loadNutritionStatus = async () => {
   });
   await Promise.all(promises);
   nutritionMap.value = map;
-};
-
-const handleReset = () => {
-  searchKeyword.value = '';
-  materialStore.setKeyword('');
-  loadMaterials();
 };
 
 const handleGlobalSearch = (e: Event) => {

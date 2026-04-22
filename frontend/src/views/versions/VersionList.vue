@@ -192,7 +192,6 @@ const columns = [
   { colKey: 'operation', title: '操作', width: 100, align: 'right' }
 ];
 
-const statusTheme = (s: string) => s === 'published' ? 'success' : s === 'draft' ? 'warning' : 'default';
 const statusLabel = (s: string) => s === 'published' ? '已发布' : s === 'draft' ? '草稿' : '已归档';
 const changeTypeTheme = (t: string) => t === 'add' ? 'success' : t === 'delete' ? 'danger' : 'warning';
 const changeTypeLabel = (t: string) => t === 'add' ? '新增' : t === 'delete' ? '删除' : '修改';
@@ -890,5 +889,3 @@ onMounted(async () => {
   }
 }
 </style>
-
-

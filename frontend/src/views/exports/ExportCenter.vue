@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="export-center" :aria-busy="!initialized">
     <!-- 数据看板 -->
     <section class="dashboard-grid">
@@ -494,14 +494,15 @@ const allActivityItems = computed<ActivityItem[]>(() => {
   const items: ActivityItem[] = [];
   const jobs = exportStore.jobs || [];
   for (const j of jobs.slice(0, 20)) {
-    if (j.status === 'completed') items.push({
-      type: 'success', title: '导出完成', desc: `配方 <strong>${j.formulaName || '未知'}</strong> 已成功导出`, time: formatDateTime(j.createdAt)
+    const job = j as any;
+    if (job.status === 'completed') items.push({
+      type: 'success', title: '导出完成', desc: `配方 <strong>${job.formulaName || '未知'}</strong> 已成功导出`, time: formatDateTime(job.createdAt)
     });
-    else if (j.status === 'failed') items.push({
-      type: 'warning', title: '导出失败', desc: `配方 <strong>${j.formulaName || '未知'}</strong> 导出失败${j.errorMessage ? ': ' + j.errorMessage : ''}`, time: formatDateTime(j.createdAt)
+    else if (job.status === 'failed') items.push({
+      type: 'warning', title: '导出失败', desc: `配方 <strong>${job.formulaName || '未知'}</strong> 导出失败${job.errorMessage ? ': ' + job.errorMessage : ''}`, time: formatDateTime(job.createdAt)
     });
-    else if (j.status === 'processing') items.push({
-      type: 'info', title: '处理中', desc: `配方 <strong>${j.formulaName || '未知'}</strong> 正在导出中...`, time: formatDateTime(j.createdAt)
+    else if (job.status === 'processing') items.push({
+      type: 'info', title: '处理中', desc: `配方 <strong>${job.formulaName || '未知'}</strong> 正在导出中...`, time: formatDateTime(job.createdAt)
     });
   }
   if (items.length === 0) items.push({ type: 'info', title: '暂无动态', desc: '最近没有导出操作记录', time: '' });
@@ -564,12 +565,12 @@ async function handleCreateJob() {
   const result = await exportStore.createJob(exportForm);
   creating.value = false;
   if (result.success) {
-    if (result.data?.status === 'completed') {
+    const data = result.data as { jobId: string; status: string; fileName?: string; errorMessage?: string } | undefined;
+    if (data?.status === 'completed') {
       MessagePlugin.success('导出完成，正在下载...');
-      const ext = exportForm.exportType === 'pdf' ? 'pdf' : 'xlsx';
-      await exportStore.downloadFile(result.data.jobId, result.data.fileName || `配方导出.${ext}`, exportForm.exportType);
-    } else if (result.data?.status === 'failed') {
-      MessagePlugin.error(`导出失败: ${result.data.errorMessage || '未知错误'}`);
+      await exportStore.downloadFile(data.jobId, data.fileName || `配方导出.${exportForm.exportType === 'pdf' ? 'pdf' : 'xlsx'}`, exportForm.exportType);
+    } else if (data?.status === 'failed') {
+      MessagePlugin.error(`导出失败: ${data.errorMessage || '未知错误'}`);
     } else {
       MessagePlugin.success('导出任务已创建');
     }
@@ -614,7 +615,8 @@ async function handleCreateShare() {
     password: shareForm.password || undefined,
     expireDate: shareForm.expireDate || undefined,
   });
-  if (result.success) {
+  if (result.success && result.data) {
+    // @ts-ignore
     MessagePlugin.success(`分享链接已创建: ${result.data.shareUrl}`);
     shareForm.formulaId = '';
     shareForm.password = '';
@@ -1449,4 +1451,3 @@ onMounted(async () => {
   }
 }
 </style>
-

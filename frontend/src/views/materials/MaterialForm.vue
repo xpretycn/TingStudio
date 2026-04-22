@@ -430,7 +430,7 @@
                             <t-dropdown-menu>
                               <t-dropdown-item v-for="model in aiStore.models" :key="model.provider"
                                 :value="model.provider"
-                                @click="(ctx) => handleReparseWithModel({ value: ctx.value })">
+                                @click="(ctx: any) => handleReparseWithModel({ value: ctx.value })">
                                 <div class="reparse-model-option">
                                   <div class="reparse-model-logo">
                                     <img loading="lazy" :src="getModelLogo(model)" :alt="model.name"
@@ -620,16 +620,8 @@ const modelSelectRef = ref<HTMLElement>();
 const resultRef = ref<HTMLElement>();
 const isDragOver = ref(false);
 const parseStartTime = ref<number>(0);
-const parseStep = ref(0);
-const parseSteps = ['读取文件内容', '调用AI模型解析', '结构化提取数据', '校验并返回结果'];
 
-const IMAGE_EXTS = ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp'];
 const selectedFile = ref<File | null>(null);
-const isImageFile = computed(() => {
-  if (!selectedFile.value) return false;
-  const ext = '.' + selectedFile.value.name.split('.').pop()?.toLowerCase();
-  return IMAGE_EXTS.includes(ext);
-});
 
 const parseProgressText = computed(() => {
   if (!aiStore.materialParseLoading) return '';
@@ -689,7 +681,7 @@ const getConfidenceItems = () => {
 
 const handleReparseWithModel = async (data: { value: string; }) => {
   aiStore.selectedModel = data.value;
-  Object.keys(registerStatusMap).forEach(k => delete registerStatusMap[k]);
+  (Object.keys(registerStatusMap) as string[]).forEach(k => delete registerStatusMap[k]);
   existingNutritionMap.value = {};
   expandedDiffRow.value = null;
   batchRegistering.value = false;
@@ -778,7 +770,7 @@ function getDiffInfo(item: any, field: string): { old: number; new: number; diff
   const key = item.materialId ? String(item.materialId) : '';
   const existing = existingNutritionMap.value[key];
   if (!existing) return null;
-  const oldVal = existing[field] ?? 0;
+  const oldVal = (existing as Record<string, number>)[field] ?? 0;
   const newVal = item[field] ?? 0;
   return { old: oldVal, new: newVal, diff: newVal - oldVal };
 }
@@ -801,7 +793,7 @@ function toggleDiffRow(idx: number) {
   expandedDiffRow.value = expandedDiffRow.value === idx ? null : idx;
 }
 
-async function handleUseNewData(item: any, idx: number) {
+async function handleUseNewData(item: any, _idx: number) {
   if (!item.materialId) return;
   try {
     const per100g: Record<string, number> = {};
@@ -901,7 +893,7 @@ const getFallbackColor = (model: any): string => {
   return FALLBACK_ICONS[slug]?.color || '#94a3b8';
 };
 
-const handleLogoError = (e: Event, model: any) => {
+const handleLogoError = (e: Event, _model: any) => {
   const img = e.target as HTMLImageElement;
   img.style.display = 'none';
   const wrap = img.parentElement;
@@ -1025,20 +1017,20 @@ const resetUpload = () => {
   aiStore.clearMaterialParseResult();
   selectedFile.value = null;
   if (fileInputRef.value) fileInputRef.value.value = '';
-  Object.keys(registerStatusMap).forEach(k => delete registerStatusMap[k]);
+  (Object.keys(registerStatusMap) as string[]).forEach(k => delete registerStatusMap[k]);
   existingNutritionMap.value = {};
   expandedDiffRow.value = null;
   batchRegistering.value = false;
 };
 const clearResult = () => {
   aiStore.clearMaterialParseResult();
-  Object.keys(registerStatusMap).forEach(k => delete registerStatusMap[k]);
+  (Object.keys(registerStatusMap) as string[]).forEach(k => delete registerStatusMap[k]);
   existingNutritionMap.value = {};
   expandedDiffRow.value = null;
   batchRegistering.value = false;
 };
 
-const registerStatusMap = reactive<Record<number, 'idle' | 'loading' | 'success' | 'error'>>({});
+const registerStatusMap = reactive<Record<string, 'idle' | 'loading' | 'success' | 'error'>>({});
 
 const handleImmediateRegister = async (item: any, idx: number) => {
   if (registerStatusMap[idx] === 'loading') return;
@@ -1115,7 +1107,7 @@ const handleNutritionExcelImport = (data: { nutritionData: Record<string, number
   }
 
   if (data.dataSource) nutritionMeta.dataSource = data.dataSource;
-  if (data.confidence) nutritionMeta.confidence = data.confidence;
+  if (data.confidence) nutritionMeta.confidence = data.confidence as 'high' | 'medium' | 'low';
   if (data.notes) nutritionMeta.notes = data.notes;
 
   const count = Object.values(data.nutritionData).filter(v => v > 0).length;

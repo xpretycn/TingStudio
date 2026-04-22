@@ -472,7 +472,7 @@ const onExpandChange = (keys: Array<string | number>) => {
   expandedRowKeys.value = keys;
 };
 
-const onSortChange = (sort: any, context: any) => {
+const onSortChange = (sort: any, _context: any) => {
   tableSort.value = sort;
   if (!sort || !sort.sortBy) {
     sortedFormulas.value = [...formulaStore.formulas];

@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="ai-assistant" :aria-busy="!initialized">
     <section class="dashboard-grid">
       <div v-for="(card, idx) in dashboardCards" :key="card.label" class="stat-card"
@@ -33,7 +33,7 @@
                     :class="{ active: aiStore.selectedModel === model.provider }" @click="selectModel(model.provider)">
                     <div class="model-logo-wrap">
                       <img loading="lazy" :src="getModelLogo(model)" :alt="model.name" class="model-logo"
-                        @error="(e: Event) => handleLogoError(e, model)" />
+                        @error="(e: Event) => handleLogoError(e)" />
                       <span class="model-fallback" :style="{ color: getFallbackColor(model) }">
                         {{ getFallbackLetter(model) }}
                       </span>
@@ -366,11 +366,6 @@ const tabs = [
 const activeTab = ref('smart-form');
 
 const IMAGE_EXTS = ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp'];
-const isImageFile = computed(() => {
-  if (!selectedFile.value) return false;
-  const ext = '.' + selectedFile.value.name.split('.').pop()?.toLowerCase();
-  return IMAGE_EXTS.includes(ext);
-});
 
 const selectModel = (model: string) => {
   aiStore.selectedModel = model;

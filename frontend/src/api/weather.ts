@@ -17,6 +17,8 @@ export interface CityLocation {
   lon: number
   country: string
   admin1?: string     // 一级行政区（省/州）
+  adm1?: string       // alias for admin1
+  adm2?: string       // 二级行政区（市）
 }
 
 export interface WeatherNow {

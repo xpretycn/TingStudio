@@ -53,7 +53,7 @@ export const useNutritionStore = defineStore('nutrition', () => {
     loading.value = true
     try {
       const res = await nutritionApi.getProfiles(params)
-      profiles.value = res
+      profiles.value = Array.isArray(res) ? res : (res as any)?.data ?? []
     } catch (error) {
       console.error('获取营养标准失败:', error)
     } finally {

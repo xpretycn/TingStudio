@@ -390,7 +390,7 @@
                             <t-dropdown-menu>
                               <t-dropdown-item v-for="model in aiStore.models" :key="model.provider"
                                 :value="model.provider"
-                                @click="(ctx) => handleReparseWithModel({ value: ctx.value })">
+                                @click="(ctx: any) => handleReparseWithModel({ value: ctx.value })">
                                 <div class="reparse-model-option">
                                   <div class="reparse-model-logo">
                                     <img loading="lazy" :src="getModelLogo(model)" :alt="model.name"
@@ -479,14 +479,8 @@ const materialSearchKeyword = ref('');
 const selectedFile = ref<File | null>(null);
 const isDragOver = ref(false);
 const parseStartTime = ref<number>(0);
-const parseProgressStage = ref(0);
 
 const IMAGE_EXTS = ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp'];
-const isImageFile = computed(() => {
-  if (!selectedFile.value) return false;
-  const ext = '.' + selectedFile.value.name.split('.').pop()?.toLowerCase();
-  return IMAGE_EXTS.includes(ext);
-});
 
 // 计算原料总数量
 const totalQuantity = computed(() => {
@@ -754,13 +748,13 @@ const getFallbackColor = (model: any): string => {
   return FALLBACK_ICONS[slug]?.color || '$text-placeholder';
 };
 
-const handleLogoError = (e: Event, model: any) => {
+const handleLogoError = (e: Event, _model: any) => {
   const img = e.target as HTMLImageElement;
   img.style.display = 'none';
   const wrap = img.parentElement;
   if (wrap) {
     const fallback = wrap.querySelector('.model-fallback');
-    if (fallback) fallback.style.display = 'flex';
+    if (fallback) (fallback as HTMLElement).style.display = 'flex';
   }
 };
 
@@ -829,8 +823,9 @@ const backfillData = () => {
   if (data.finishedWeight) formData.finishedWeight = data.finishedWeight;
 
   if (data.salesmanName) {
+    const salesmanName = data.salesmanName;
     const matched = salesmanStore.salesmen.find(
-      (s: any) => s.name === data.salesmanName || s.name.includes(data.salesmanName) || data.salesmanName.includes(s.name)
+      (s: any) => s.name === salesmanName || s.name.includes(salesmanName) || salesmanName.includes(s.name)
     );
     if (matched) {
       formData.salesmanId = matched.id;
@@ -864,7 +859,7 @@ const backfillData = () => {
 const resetUpload = () => {
   selectedFile.value = null;
   aiStore.clearParseResult();
-  if (fileInputRef.value) fileInputRef.value = '';
+  if (fileInputRef.value) fileInputRef.value.value = '';
   nextTick(() => {
     modelSelectRef.value?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   });
@@ -874,7 +869,7 @@ const resetUpload = () => {
 const clearResult = () => {
   selectedFile.value = null;
   aiStore.clearParseResult();
-  if (fileInputRef.value) fileInputRef.value = '';
+  if (fileInputRef.value) fileInputRef.value.value = '';
 };
 
 // 重新解析

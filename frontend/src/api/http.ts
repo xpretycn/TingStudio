@@ -3,8 +3,15 @@ import { MessagePlugin } from "tdesign-vue-next";
 
 const TOKEN_KEY = "tingstudio_token";
 
+declare module "axios" {
+  interface AxiosRequestConfig {
+    _logLabel?: string;
+    _silent?: boolean;
+  }
+}
+
 const http = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || "/api",
+  baseURL: import.meta.env?.VITE_API_BASE_URL || "/api",
   timeout: 15000,
   headers: { "Content-Type": "application/json" },
 });

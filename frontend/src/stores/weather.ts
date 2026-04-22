@@ -28,6 +28,7 @@ export const useWeatherStore = defineStore("weather", () => {
   const errorMsg = ref("");
   const searchResults = ref<CityLocation[]>([]);
   const searchLoading = ref(false);
+  const rateLimited = ref(false);
 
   // ─── 缓存 ───
   const cache = new Map<string, CacheEntry>();
@@ -335,6 +336,7 @@ export const useWeatherStore = defineStore("weather", () => {
     errorMsg,
     searchResults,
     searchLoading,
+    rateLimited,
     // 计算属性
     temperature,
     weatherText,

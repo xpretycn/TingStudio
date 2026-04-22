@@ -19,14 +19,9 @@
         <template #icon><t-icon name="download" /></template>
         下载模板
       </t-button>
-      
-      <t-upload
-        ref="uploadRef"
-        :show-upload-file="false"
-        :before-upload="beforeUpload"
-        :request-method="handleUpload"
-        accept=".xlsx,.xls"
-      >
+
+      <t-upload ref="uploadRef" :show-upload-file="false" :before-upload="beforeUpload" :request-method="handleUpload"
+        accept=".xlsx,.xls">
         <t-button theme="success" :loading="uploading">
           <template #icon><t-icon name="upload" /></template>
           上传文件
@@ -55,55 +50,29 @@
       </t-card>
 
       <!-- 错误信息 -->
-      <t-alert
-        v-if="parseResult.errors.length > 0"
-        theme="error"
-        title="解析错误"
-        :close-btn="null"
-        class="result-alert"
-      >
+      <t-alert v-if="parseResult.errors.length > 0" theme="error" title="解析错误" :close-btn="null" class="result-alert">
         <ul class="error-list">
           <li v-for="(err, idx) in parseResult.errors" :key="idx">{{ err }}</li>
         </ul>
       </t-alert>
 
       <!-- 缺失原料提示 -->
-      <t-alert
-        v-if="parseResult.missingMaterials.length > 0"
-        theme="warning"
-        title="以下原料在系统中不存在，请先录入原料信息"
-        :close-btn="null"
-        class="result-alert"
-      >
+      <t-alert v-if="parseResult.missingMaterials.length > 0" theme="warning" title="以下原料在系统中不存在，请先录入原料信息"
+        :close-btn="null" class="result-alert">
         <div class="missing-materials">
-          <t-tag
-            v-for="name in parseResult.missingMaterials"
-            :key="name"
-            theme="warning"
-            variant="light"
-            class="missing-tag"
-          >
+          <t-tag v-for="name in parseResult.missingMaterials" :key="name" theme="warning" variant="light"
+            class="missing-tag">
             {{ name }}
           </t-tag>
         </div>
-        <t-button
-          theme="primary"
-          size="small"
-          class="go-materials-btn"
-          @click="goToMaterials"
-        >
+        <t-button theme="primary" size="small" class="go-materials-btn" @click="goToMaterials">
           前往原料管理
         </t-button>
       </t-alert>
 
       <!-- 警告信息 -->
-      <t-alert
-        v-if="parseResult.warnings.length > 0"
-        theme="warning"
-        title="提示信息"
-        :close-btn="null"
-        class="result-alert"
-      >
+      <t-alert v-if="parseResult.warnings.length > 0" theme="warning" title="提示信息" :close-btn="null"
+        class="result-alert">
         <ul class="warning-list">
           <li v-for="(warn, idx) in parseResult.warnings" :key="idx">{{ warn }}</li>
         </ul>
@@ -210,16 +179,17 @@ function beforeUpload(file: { raw: File }) {
 async function handleUpload(options: { raw: File }) {
   uploading.value = true
   parseResult.value = null
-  
+
   try {
     const result = await excelImportApi.parseFormulaExcel(options.raw)
-    parseResult.value = result
-    if (result.errors.length > 0) {
-      MessagePlugin.warning(`解析完成，但有 ${result.errors.length} 个错误`)
-    } else if (result.missingMaterials.length > 0) {
-      MessagePlugin.warning(`解析完成，有 ${result.missingMaterials.length} 个原料未录入`)
+    parseResult.value = result as any
+    const data = (result as any).data ?? result
+    if (data.errors?.length > 0) {
+      MessagePlugin.warning(`解析完成，但有 ${data.errors.length} 个错误`)
+    } else if (data.missingMaterials?.length > 0) {
+      MessagePlugin.warning(`解析完成，有 ${data.missingMaterials.length} 个原料未录入`)
     } else {
-      MessagePlugin.success(`解析成功，共 ${result.summary.total} 条原料`)
+      MessagePlugin.success(`解析成功，共 ${data.summary?.total ?? 0} 条原料`)
     }
   } catch (error: any) {
     MessagePlugin.error(error.message || '解析文件失败')
@@ -231,12 +201,12 @@ async function handleUpload(options: { raw: File }) {
 // 确认导入
 function confirmImport() {
   if (!parseResult.value) return
-  
+
   if (parseResult.value.missingMaterials.length > 0) {
     MessagePlugin.warning('请先录入缺失的原料')
     return
   }
-  
+
   emit('import', parseResult.value.materials)
   parseResult.value = null
   MessagePlugin.success('原料已导入配方')
@@ -300,8 +270,13 @@ function goToMaterials() {
         gap: $space-1_5;
         font-size: $font-size-body;
 
-        &.success { color: $color-success; }
-        &.warning { color: $color-warning; }
+        &.success {
+          color: $color-success;
+        }
+
+        &.warning {
+          color: $color-warning;
+        }
       }
     }
   }

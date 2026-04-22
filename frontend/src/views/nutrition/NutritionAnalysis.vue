@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="nutrition-analysis" :aria-busy="!initialized">
     <section class="dashboard-grid">
       <div v-for="(card, idx) in dashboardCards" :key="card.label" class="stat-card"
@@ -27,8 +27,8 @@
               </div>
             </div>
             <div class="toolbar-right-section">
-              <t-select v-model="analysisForm.formulaId" placeholder="选择配方" filterable clearable
-                style="width: 260px" :popup-props="{ appendToBody: true }">
+              <t-select v-model="analysisForm.formulaId" placeholder="选择配方" filterable clearable style="width: 260px"
+                :popup-props="{ appendToBody: true }">
                 <t-option v-for="f in formulaStore.formulas" :key="f.id" :value="f.id"
                   :label="`${f.name} (${f.salesmanName})`" />
               </t-select>
@@ -37,17 +37,22 @@
                 <t-option v-for="p in nutritionStore.profiles" :key="p.profileId" :value="p.profileId"
                   :label="`${p.name} (${categoryLabel(p.category)})`" />
               </t-select>
-              <button class="add-formula-btn" @click.prevent="handleAnalyze" :disabled="analyzing || !analysisForm.formulaId">
+              <button class="add-formula-btn" @click.prevent="handleAnalyze"
+                :disabled="analyzing || !analysisForm.formulaId">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                  stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/>
-                  <line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="18" y1="20" x2="18" y2="10" />
+                  <line x1="12" y1="20" x2="12" y2="4" />
+                  <line x1="6" y1="20" x2="6" y2="14" />
+                </svg>
                 {{ analyzing ? '计算中...' : '开始分析' }}
               </button>
             </div>
           </div>
         </t-card>
 
-        <t-card v-if="nutritionStore.formulaNutrition && analysisForm.formulaId" class="content-card content-card--result" bordered>
+        <t-card v-if="nutritionStore.formulaNutrition && analysisForm.formulaId"
+          class="content-card content-card--result" bordered>
           <template #header>
             <div class="result-header">
               <h4 class="result-title">
@@ -63,15 +68,19 @@
 
           <t-descriptions :column="2" bordered size="medium" title="配方信息">
             <t-descriptions-item label="配方名称">{{ nutritionStore.formulaNutrition.formulaName }}</t-descriptions-item>
-            <t-descriptions-item label="总重量">{{ nutritionStore.formulaNutrition.totalWeight ?? '-' }} g</t-descriptions-item>
+            <t-descriptions-item label="总重量">{{ nutritionStore.formulaNutrition.totalWeight ?? '-' }}
+              g</t-descriptions-item>
           </t-descriptions>
 
           <div class="core-nutrition-section">
             <h4 class="section-title">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/>
-                <rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
-                <rect x="3" y="14" width="7" height="7"/></svg>
+                stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="7" height="7" />
+                <rect x="14" y="3" width="7" height="7" />
+                <rect x="14" y="14" width="7" height="7" />
+                <rect x="3" y="14" width="7" height="7" />
+              </svg>
               核心营养素（每100g）
             </h4>
             <div class="nutrition-cards">
@@ -101,12 +110,14 @@
           <div v-if="materialBreakdown.length" class="contribution-section">
             <h4 class="section-title">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/>
-                <path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21.21 15.89A10 10 0 1 1 8 2.83" />
+                <path d="M22 12A10 10 0 0 0 12 2v10z" />
+              </svg>
               原料营养贡献明细
             </h4>
-            <t-table :data="materialBreakdown" :columns="contributionColumns" row-key="materialId" size="small"
-              bordered max-height="400">
+            <t-table :data="materialBreakdown" :columns="contributionColumns" row-key="materialId" size="small" bordered
+              max-height="400">
               <template #materialName="{ row }">
                 <div class="material-name-cell">
                   <span>{{ row.materialName }}</span>
@@ -132,11 +143,17 @@
                   </template>
                   <button class="table-action-btn table-action-btn--primary" :disabled="!row.hasNutritionData">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                      stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/>
-                      <line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/>
-                      <line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/>
-                      <line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/>
-                      <line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>详情
+                      stroke-linecap="round" stroke-linejoin="round">
+                      <line x1="4" y1="21" x2="4" y2="14" />
+                      <line x1="4" y1="10" x2="4" y2="3" />
+                      <line x1="12" y1="21" x2="12" y2="12" />
+                      <line x1="12" y1="8" x2="12" y2="3" />
+                      <line x1="20" y1="21" x2="20" y2="16" />
+                      <line x1="20" y1="12" x2="20" y2="3" />
+                      <line x1="1" y1="14" x2="7" y2="14" />
+                      <line x1="9" y1="8" x2="15" y2="8" />
+                      <line x1="17" y1="16" x2="23" y2="16" />
+                    </svg>详情
                   </button>
                 </t-popup>
               </template>
@@ -146,9 +163,12 @@
           <div class="nutrition-table-section">
             <h4 class="section-title">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#06b6d4" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
-                <polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/>
-                <line x1="16" y1="17" x2="8" y2="17"/></svg>
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+                <line x1="16" y1="13" x2="8" y2="13" />
+                <line x1="16" y1="17" x2="8" y2="17" />
+              </svg>
               完整营养成分
             </h4>
             <t-table :data="nutritionDataList" :columns="nutritionColumns" row-key="nutrient" size="small" bordered>
@@ -166,8 +186,8 @@
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
                   :stroke="nutritionStore.complianceResult.summary?.failed === 0 ? '#10B981' : '#F59E0B'"
                   stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-                  <polyline points="22 4 12 14.01 9 11.01"/>
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                  <polyline points="22 4 12 14.01 9 11.01" />
                 </svg>
                 合规检查结果
               </h4>
@@ -179,8 +199,10 @@
             <div class="summary-item pass">
               <div class="summary-icon">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5"
-                  stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-                  <polyline points="22 4 12 14.01 9 11.01"/></svg>
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                  <polyline points="22 4 12 14.01 9 11.01" />
+                </svg>
               </div>
               <div class="summary-content">
                 <span class="summary-count">{{ nutritionStore.complianceResult.summary?.passed || 0 }}</span>
@@ -190,8 +212,11 @@
             <div class="summary-item warning">
               <div class="summary-icon">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2.5"
-                  stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
-                  <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                  <line x1="12" y1="9" x2="12" y2="13" />
+                  <line x1="12" y1="17" x2="12.01" y2="17" />
+                </svg>
               </div>
               <div class="summary-content">
                 <span class="summary-count">{{ nutritionStore.complianceResult.summary?.warnings || 0 }}</span>
@@ -201,8 +226,11 @@
             <div class="summary-item fail">
               <div class="summary-icon">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2.5"
-                  stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/>
-                  <line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="15" y1="9" x2="9" y2="15" />
+                  <line x1="9" y1="9" x2="15" y2="15" />
+                </svg>
               </div>
               <div class="summary-content">
                 <span class="summary-count">{{ nutritionStore.complianceResult.summary?.failed || 0 }}</span>
@@ -210,14 +238,14 @@
               </div>
             </div>
           </div>
-          <t-alert
-            :theme="nutritionStore.complianceResult.summary?.failed === 0 ? 'success' : 'warning'"
+          <t-alert :theme="nutritionStore.complianceResult.summary?.failed === 0 ? 'success' : 'warning'"
             :message="nutritionStore.complianceResult.summary?.failed === 0 ? '配方符合所选营养标准要求' : `配方有 ${nutritionStore.complianceResult.summary?.failed} 项指标不达标`"
             style="margin-bottom: 12px;" />
           <t-table v-if="nutritionStore.complianceResult?.complianceCheck?.length" :data="complianceDataList"
             :columns="complianceColumns" row-key="field" size="small" bordered>
             <template #status="{ row }">
-              <t-tag :theme="row.status === 'pass' ? 'success' : row.status === 'warning' ? 'warning' : 'danger'" variant="light">
+              <t-tag :theme="row.status === 'pass' ? 'success' : row.status === 'warning' ? 'warning' : 'danger'"
+                variant="light">
                 {{ row.status === 'pass' ? '达标' : row.status === 'warning' ? '警告' : '超标' }}
               </t-tag>
             </template>
@@ -230,7 +258,9 @@
             <template #action>
               <button class="add-formula-btn" @click="$router.push('/formulas')">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                  stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+                </svg>
                 前往配方管理
               </button>
             </template>
@@ -252,12 +282,17 @@
           <div class="activity-nav">
             <button class="activity-nav-btn" :disabled="activityPage <= 1" @click="activityPrev" title="上一页">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
+                stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
             </button>
             <span class="activity-nav-page">{{ activityPage }} / {{ activityTotalPages }}</span>
-            <button class="activity-nav-btn" :disabled="activityPage >= activityTotalPages" @click="activityNext" title="下一页">
+            <button class="activity-nav-btn" :disabled="activityPage >= activityTotalPages" @click="activityNext"
+              title="下一页">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
+                stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
             </button>
           </div>
         </div>
@@ -293,8 +328,9 @@
         </div>
         <svg class="assistant-bg-icon" width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor"
           stroke-width="1">
-          <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/>
-          <line x1="6" y1="20" x2="6" y2="14"/>
+          <line x1="18" y1="20" x2="18" y2="10" />
+          <line x1="12" y1="20" x2="12" y2="4" />
+          <line x1="6" y1="20" x2="6" y2="14" />
         </svg>
       </div>
     </section>
@@ -379,8 +415,10 @@ const coreNutritionCards = computed<NutritionCard[]>(() => {
       else if (nrvPercent >= 50) { progressColor = chartProgressWarn; statusClass = 'status-warning' }
       else { progressColor = chartProgressBad; statusClass = 'status-danger' }
     }
-    return { key: nutrient.key, label: nutrient.label, unit: nutrient.unit, value, icon: nutrient.icon,
-      iconBg: nutrient.iconBg, nrvPercent, progressColor, statusClass }
+    return {
+      key: nutrient.key, label: nutrient.label, unit: nutrient.unit, value, icon: nutrient.icon,
+      iconBg: nutrient.iconBg, nrvPercent, progressColor, statusClass
+    }
   })
 })
 
@@ -410,9 +448,11 @@ const materialBreakdown = computed<MaterialBreakdownRow[]>(() => {
         if (info && val && Number(val) > 0) nutritionDetails.push({ key, label: info[0], value: Number(val).toFixed(2), unit: info[1] })
       }
     }
-    return { materialId: item.materialId || item.materialName, materialName: item.materialName,
+    return {
+      materialId: item.materialId || item.materialName, materialName: item.materialName,
       quantity: item.quantity || 0, percentage: Math.round(item.percentage * 100) / 100,
-      hasNutritionData: nutritionDetails.length > 0, noNutritionData, nutritionDetails }
+      hasNutritionData: nutritionDetails.length > 0, noNutritionData, nutritionDetails
+    }
   })
 })
 
@@ -448,7 +488,6 @@ const complianceDataList = computed(() => {
 
 const dashboardCards = computed(() => {
   const hasResult = !!nutritionStore.formulaNutrition
-  const per100g = nutritionStore.formulaNutrition?.per100gNutrition
   const compliance = nutritionStore.complianceResult
   return [
     {
@@ -498,7 +537,7 @@ const dashboardCards = computed(() => {
   ]
 })
 
-interface ActivityItem { type: 'success' | 'info'; title: string; desc: string; time: string }
+interface ActivityItem { type: 'success' | 'info' | 'warning'; title: string; desc: string; time: string }
 const ACTIVITY_PAGE_SIZE = 4
 const activityPage = ref(1)
 
@@ -554,7 +593,9 @@ const handleAnalyze = async () => {
   if (!result.success) MessagePlugin.error(result.message || '计算失败')
 }
 
-const handleCheckCompliance = async () => {
+// handleCheckCompliance is used programmatically
+// @ts-ignore
+async function handleCheckCompliance() {
   if (!analysisForm.formulaId) return
   checking.value = true
   nutritionStore.complianceResult = null
@@ -705,7 +746,9 @@ onMounted(async () => {
       }
     }
 
-    &--result, &--compliance, &--empty {
+    &--result,
+    &--compliance,
+    &--empty {
       :deep(.t-card__header) {
         padding: 24px 28px 16px;
         border-bottom: 1px solid #f1f5f9;
@@ -785,9 +828,16 @@ onMounted(async () => {
 
     &--primary {
       color: #3b82f6;
-      &:hover { background: #eff6ff; }
+
+      &:hover {
+        background: #eff6ff;
+      }
     }
-    &:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    &:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
   }
 
   .section-title {
@@ -830,9 +880,17 @@ onMounted(async () => {
       box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
     }
 
-    &.status-good { border-color: rgba(16, 185, 129, 0.3); }
-    &.status-warning { border-color: rgba(245, 158, 11, 0.3); }
-    &.status-danger { border-color: rgba(239, 68, 68, 0.3); }
+    &.status-good {
+      border-color: rgba(16, 185, 129, 0.3);
+    }
+
+    &.status-warning {
+      border-color: rgba(245, 158, 11, 0.3);
+    }
+
+    &.status-danger {
+      border-color: rgba(239, 68, 68, 0.3);
+    }
 
     .card-header {
       display: flex;
@@ -880,8 +938,15 @@ onMounted(async () => {
         align-items: center;
         margin-bottom: 6px;
 
-        .nrv-label { font-size: 12px; color: #94a3b8; }
-        .nrv-percent { font-size: 13px; font-weight: 600; }
+        .nrv-label {
+          font-size: 12px;
+          color: #94a3b8;
+        }
+
+        .nrv-percent {
+          font-size: 13px;
+          font-weight: 600;
+        }
       }
 
       :deep(.t-progress__bar) {
@@ -928,8 +993,14 @@ onMounted(async () => {
       gap: 16px;
       font-size: 13px;
 
-      .item-label { color: #64748b; }
-      .item-value { color: #1e293b; font-weight: 500; }
+      .item-label {
+        color: #64748b;
+      }
+
+      .item-value {
+        color: #1e293b;
+        font-weight: 500;
+      }
     }
   }
 
@@ -980,13 +1051,24 @@ onMounted(async () => {
         }
       }
 
-      &.pass .summary-count { color: #10b981; }
-      &.warning .summary-count { color: #f59e0b; }
-      &.fail .summary-count { color: #ef4444; }
+      &.pass .summary-count {
+        color: #10b981;
+      }
+
+      &.warning .summary-count {
+        color: #f59e0b;
+      }
+
+      &.fail .summary-count {
+        color: #ef4444;
+      }
     }
   }
 
-  .over-limit { color: #ef4444; font-weight: 600; }
+  .over-limit {
+    color: #ef4444;
+    font-weight: 600;
+  }
 
   .activity-section {
     margin-top: 40px;
@@ -1053,8 +1135,15 @@ onMounted(async () => {
     cursor: pointer;
     transition: all $transition-fast;
 
-    &:hover:not(:disabled) { background: #e2e8f0; color: #334155; }
-    &:disabled { opacity: 0.4; cursor: not-allowed; }
+    &:hover:not(:disabled) {
+      background: #e2e8f0;
+      color: #334155;
+    }
+
+    &:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
   }
 
   .activity-nav-page {
@@ -1085,7 +1174,10 @@ onMounted(async () => {
     gap: 16px;
     position: relative;
     padding-bottom: 20px;
-    &:last-child { padding-bottom: 0; }
+
+    &:last-child {
+      padding-bottom: 0;
+    }
   }
 
   .timeline-dot {
@@ -1102,15 +1194,35 @@ onMounted(async () => {
 
     &--success {
       border-color: #10b981;
-      .timeline-dot-inner { width: 8px; height: 8px; border-radius: 50%; background: #10b981; }
+
+      .timeline-dot-inner {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #10b981;
+      }
     }
+
     &--info {
       border-color: #3b82f6;
-      .timeline-dot-inner { width: 8px; height: 8px; border-radius: 50%; background: #3b82f6; }
+
+      .timeline-dot-inner {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #3b82f6;
+      }
     }
+
     &--warning {
       border-color: #f59e0b;
-      .timeline-dot-inner { width: 8px; height: 8px; border-radius: 50%; background: #f59e0b; }
+
+      .timeline-dot-inner {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #f59e0b;
+      }
     }
   }
 
@@ -1131,7 +1243,11 @@ onMounted(async () => {
     color: #64748b;
     line-height: 1.5;
     margin: 0 0 4px 0;
-    strong { color: #334155; font-weight: 600; }
+
+    strong {
+      color: #334155;
+      font-weight: 600;
+    }
   }
 
   .timeline-time {
@@ -1225,24 +1341,49 @@ onMounted(async () => {
   }
 
   @keyframes dashboard-fade-in {
-    from { opacity: 0; transform: translateY(12px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 
   @keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(16px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 
   @keyframes rowFadeIn {
-    from { opacity: 0; transform: translateX(-8px); }
-    to { opacity: 1; transform: translateX(0); }
+    from {
+      opacity: 0;
+      transform: translateX(-8px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
   }
 
   @keyframes progressBarFill {
-    from { width: 0; }
-    to { width: var(--td-progress-percent); }
+    from {
+      width: 0;
+    }
+
+    to {
+      width: var(--td-progress-percent);
+    }
   }
 }
 </style>
-

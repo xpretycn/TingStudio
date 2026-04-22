@@ -347,12 +347,6 @@ const activePath = computed(() => {
   return path
 })
 
-// 用户头像首字母
-const userInitial = computed(() => {
-  const name = authStore.user?.username || 'U'
-  return name.charAt(0).toUpperCase()
-})
-
 // 用户下拉菜单
 const userMenuVisible = ref(false)
 // 主题模式选项
@@ -411,24 +405,6 @@ const pageIcon = computed(() => {
   }
   if (route.path.includes('/versions')) return 'list'
   return 'home'
-})
-
-// 搜索框占位符
-const searchPlaceholder = computed(() => {
-  const placeholderMap: Record<string, string> = {
-    '/formulas': '搜索配方名称或业务员...',
-    '/materials': '搜索原料名称或编码...',
-    '/salesmen': '搜索姓名、工号或电话...',
-    '/exports': '搜索导出记录...',
-    '/nutrition': '搜索营养标准...',
-    '/tools': '搜索工具...',
-    '/ai-assistant': '搜索 AI 功能...'
-  }
-  if (placeholderMap[route.path]) return placeholderMap[route.path]
-  for (const key of Object.keys(placeholderMap)) {
-    if (route.path.startsWith(key)) return placeholderMap[key]
-  }
-  return '搜索...'
 })
 
 // 导航菜单项
@@ -492,7 +468,6 @@ const closeMobileDrawer = () => {
 // 面包屑 — 根据当前路由路径构建层级
 const breadcrumbs = computed(() => {
   const path = route.path
-  const meta = route.meta?.title as string | undefined
 
   // 列表页无父级，不需要面包屑
   const listPaths = [
@@ -577,32 +552,6 @@ watch(() => route.path, (to, from) => {
 const navigateTo = (path: string) => {
   router.push(path)
   if (mobileDrawerOpen.value) closeMobileDrawer()
-}
-
-// 工具栏：仅在列表页显示，表单页/详情页/编辑页隐藏
-const showAddBtn = computed(() => {
-  const path = route.path
-  const listPages = ['/materials', '/formulas', '/salesmen', '/nutrition/profiles', '/tools']
-  // 精确匹配列表页（不含子路径），导出中心和营养分析页隐藏新增按钮
-  return listPages.some(p => path === p)
-})
-
-// 处理新增
-const handleAdd = () => {
-  const path = route.path
-  if (path === '/formulas') {
-    router.push('/formulas/new')
-  } else if (path === '/materials') {
-    router.push('/materials/new')
-  } else if (path === '/salesmen') {
-    router.push('/salesmen/new')
-  } else if (path === '/exports') {
-    MessagePlugin.info('请从配方列表选择配方进行导出')
-  } else if (path === '/nutrition') {
-    MessagePlugin.info('请从配方列表选择配方进行营养分析')
-  } else if (path === '/tools') {
-    MessagePlugin.info('工具箱功能开发中')
-  }
 }
 
 // 刷新子页面
@@ -1780,5 +1729,3 @@ onMounted(() => {
   }
 }
 </style>
-
-

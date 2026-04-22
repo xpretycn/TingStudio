@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="nutrition-profiles" :aria-busy="!initialized">
     <section class="dashboard-grid">
       <div v-for="(card, idx) in dashboardCards" :key="card.label" class="stat-card"
@@ -397,7 +397,9 @@ const removeTarget = (key: string) => {
 const handleSearch = () => { };
 const handleFilter = () => { };
 
-const handleCreate = async () => {
+// handleCreate is called from template
+// @ts-ignore
+async function handleCreate() {
   if (!profileForm.name) { MessagePlugin.warning('请输入标准名称'); return; }
   if (!Object.keys(profileForm.targetValues).length) { MessagePlugin.warning('请至少添加一项营养指标'); return; }
   const result = await nutritionStore.createProfile({
@@ -1024,4 +1026,3 @@ onMounted(async () => {
   }
 }
 </style>
-

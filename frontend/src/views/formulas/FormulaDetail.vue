@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="formula-detail" v-loading="loading">
     <template v-if="!loading && data">
       <!-- 顶部 Header（还原 recipe-detail.html 设计） -->
@@ -226,7 +226,6 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { nutritionApi } from '@/api/nutrition'
-import { MessagePlugin } from 'tdesign-vue-next'
 
 const router = useRouter()
 const route = useRoute()
