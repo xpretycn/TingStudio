@@ -310,7 +310,7 @@ const handleSubmit = async ({ validateResult }: any) => {
 // ═══════════════════════════════════════
 .left-panel {
   position: relative;
-  flex: 0 0 52%;
+  flex: 0 0 30%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -597,7 +597,7 @@ const handleSubmit = async ({ validateResult }: any) => {
 //  RIGHT PANEL
 // ═══════════════════════════════════════
 .right-panel {
-  flex: 1;
+  flex: 0 0 70%;
   display: flex;
   flex-direction: column;
   align-items: center;

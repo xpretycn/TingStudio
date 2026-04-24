@@ -1,6 +1,6 @@
-// 数据库适配器 - 支持 SQLite 和 MySQL
+// 数据库适配器 - 支持 SQLite (better-sqlite3) 和 MySQL
 import { config } from './index.js';
-import { query as sqliteQuery, getDb as getSqliteDb, connectDatabase as connectSqlite } from './database.js';
+import { query as sqliteQuery, getDb as getSqliteDb, connectDatabase as connectSqlite } from './database-better-sqlite3.js';
 import { query as mysqlQuery, connectMySQL, closeMySQL, getMySQLPool } from './mysql.js';
 import { logger } from '../utils/logger.js';
 

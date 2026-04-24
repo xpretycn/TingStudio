@@ -20,7 +20,7 @@
         "MYSQL_DATABASE": "tingstudio",
         "JWT_SECRET": "tingstudio_jwt_secret_key_2024_production",
         "JWT_EXPIRES_IN": "7d",
-        "CORS_ORIGIN": "https://tingstudio-frontend-e3hnbwbu.edgeone.cool"
+        "CORS_ORIGIN": "https://tingstudio-frontend-jnvxqqcv.edgeone.cool"
       },
       "memorySize": 512
     }

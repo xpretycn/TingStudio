@@ -7,7 +7,7 @@ import morgan from "morgan";
 import { createAppRouter } from "./routes/index.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import { logger } from "./utils/logger.js";
-import { connectDatabase } from "./config/database.js";
+import { connectDatabase } from "./config/database-better-sqlite3.js";
 
 export async function createApp() {
   const app = express();

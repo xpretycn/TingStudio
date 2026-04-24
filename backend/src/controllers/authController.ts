@@ -29,7 +29,17 @@ export async function register(req: Request, res: Response) {
     res.status(201).json(
       success(
         {
-          user: { id: userId, username, role: "formulist" },
+          user: {
+            id: userId,
+            username,
+            role: "formulist",
+            display_name: null,
+            avatar: null,
+            bio: null,
+            email: null,
+            phone: null,
+            created_at: now(),
+          },
           token,
         },
         "注册成功",
@@ -45,9 +55,12 @@ export async function login(req: Request, res: Response) {
   try {
     const { username, password } = req.body;
 
-    const userResult = await query(adaptSQL("SELECT id, username, password, role FROM users WHERE username = ?"), [
-      username,
-    ]);
+    const userResult = await query(
+      adaptSQL(
+        "SELECT id, username, password, role, display_name, avatar, bio, email, phone, created_at FROM users WHERE username = ?",
+      ),
+      [username],
+    );
     const user = userResult.rows[0];
     if (!user) {
       res.status(401).json({ success: false, message: "用户名或密码错误" });

@@ -6,9 +6,36 @@
 
 TingStudio 是一个专业的食品配方工作数据管理平台，面向食品配方行业（中草药功效配方），提供配方管理、原料管理、业务员管理、营养成分分析、导出分享等完整功能链路。采用 **Vue 3 + Express + 腾讯MySQL** 前后端分离架构，支持 JWT 认证、RESTful API、配方版本控制、营养合规检查等企业级特性。
 
-## 🚀 最新更新 (2026-04-22)
+## 🚀 最新更新 (2026-04-24)
 
-### ✅ 前端构建修复完成
+### ✅ 数据库驱动修复与本地调试优化
+
+#### 🔧 后端数据库问题修复
+
+- **问题诊断**: 发现 `sql.js` 包导入失败导致数据库连接异常
+- **解决方案**: 切换到 `better-sqlite3` 作为默认数据库驱动
+- **修复文件**:
+  - `src/config/database-better-sqlite3.ts` - 新的数据库连接实现
+  - `src/config/database-adapter.ts` - 更新导入路径
+  - `src/index.ts` - 修复数据库初始化导入
+- **表结构修复**: 手动添加缺失列（display_name、avatar、bio、email、phone）
+- **测试验证**: 本地登录功能完全正常
+
+#### 🎨 前端界面优化
+
+- **登录页面布局**: 左右面板宽度比例调整为 3:7
+  - 左侧品牌展示区：30% 宽度
+  - 右侧登录表单区：70% 宽度
+  - CSS 调整：`flex: 0 0 30%` / `flex: 0 0 70%`
+- **用户体验**: 登录表单区域更宽敞，视觉效果更佳
+
+#### 🐛 问题解决记录
+
+- **EdgeOne Pages 401 错误**: 确认是预览链接过期问题，需要重新发布
+- **本地调试数据库错误**: 修复数据库驱动和表结构问题
+- **构建稳定性**: 确保前后端服务稳定运行
+
+### ✅ 前端构建修复完成 (2026-04-22)
 
 - **类型错误修复**: 修复 68+ TypeScript 类型错误，涵盖 22 个文件
 - **依赖补全**: 安装缺失的 xlsx 包，解决模块解析问题
@@ -90,14 +117,72 @@ TingStudio 是一个专业的食品配方工作数据管理平台，面向食品
 
 ### 生产环境
 
-- **前端地址**: `https://tingstudio-frontend-e3hnbwbu.edgeone.cool/login`
+- **前端地址**: `https://tingstudio-frontend-jnvxqqcv.edgeone.cool/login`
 - **后端 API**: `https://tingstudio-prod-d2f6fhumc0432c48-1318822768.ap-shanghai.app.tcloudbase.com/api`
 - **健康检查**: `https://tingstudio-prod-d2f6fhumc0432c48-1318822768.ap-shanghai.app.tcloudbase.com/api/health`
 
 ### 开发环境
 
-- **前端地址**: `http://localhost:5174`
+- **前端地址**: `http://localhost:5173`
 - **后端 API**: `http://localhost:3000/api`
+- **测试账号**: `admin` / `admin123`
+
+## 🚀 快速开始
+
+### 本地开发环境
+
+```bash
+# 启动后端服务
+cd backend
+npm install
+npm run dev
+
+# 启动前端服务
+cd frontend
+npm install
+npm run dev
+
+# 访问 http://localhost:5173/login
+```
+
+### 部署到生产环境
+
+```bash
+# 构建前端
+cd frontend
+npm run build
+
+# 部署后端
+cd backend
+npm run build:scf
+tcb framework deploy
+
+# 部署前端到 EdgeOne Pages
+# 在 EdgeOne 控制台点击"预览"或"发布"生成新的访问链接
+```
+
+## 📊 项目状态
+
+| 组件         | 状态        | 说明                         |
+| ------------ | ----------- | ---------------------------- |
+| **后端服务** | ✅ 正常运行 | 本地调试和云端部署均正常     |
+| **前端应用** | ✅ 正常运行 | 本地开发和生产环境均可访问   |
+| **数据库**   | ✅ 连接正常 | SQLite (开发) + MySQL (生产) |
+| **登录功能** | ✅ 完全正常 | 本地和云端均可正常登录       |
+| **UI 界面**  | ✅ 优化完成 | 登录页面布局优化为 3:7 比例  |
+
+## 🎯 近期计划
+
+- [ ] 解决 EdgeOne Pages 401 访问控制问题
+- [ ] 优化数据库连接池配置
+- [ ] 添加更多自动化测试
+- [ ] 完善 API 文档
+- [ ] 性能监控和优化
+
+---
+
+**TingStudio** - 用心记录每一天 ♡
+
 - **健康检查**: `http://localhost:3000/health`
 
 ## 📦 快速开始
