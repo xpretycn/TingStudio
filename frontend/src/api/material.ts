@@ -1,46 +1,53 @@
-import http from './http'
+import http from "./http";
 
 export interface Material {
-  id: string
-  name: string
-  code: string
-  unit: string
-  stock: number
-  materialType: string
-  createdBy: string
-  createdAt: string
-  updatedAt: string
+  id: string;
+  name: string;
+  code: string;
+  unit: string;
+  stock: number;
+  materialType: string;
+  unitPrice?: number | null;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface MaterialForm {
-  name: string
-  code: string
-  unit?: string
-  stock?: number
-  materialType?: string
+  name: string;
+  code: string;
+  unit?: string;
+  stock?: number;
+  materialType?: string;
+  unitPrice?: number;
 }
 
 export const materialApi = {
   getList(params?: { keyword?: string; page?: number; pageSize?: number }) {
     // axios 拦截器会提取 res.data，所以这里直接返回内部的数据结构
-    return http.get<any, { list: Material[]; pagination: any }>('/materials', { params })
+    return http.get<any, { list: Material[]; pagination: any }>("/materials", { params });
   },
   getById(id: string) {
-    return http.get<any, Material>(`/materials/${id}`)
+    return http.get<any, Material>(`/materials/${id}`);
   },
   create(data: MaterialForm) {
-    return http.post<any, Material>('/materials', data)
+    return http.post<any, Material>("/materials", data);
   },
   update(id: string, data: Partial<MaterialForm>) {
-    return http.put<any, Material>(`/materials/${id}`, data)
+    return http.put<any, Material>(`/materials/${id}`, data);
   },
   delete(id: string) {
-    return http.delete<any, { success: boolean; message: string }>(`/materials/${id}`)
+    return http.delete<any, { success: boolean; message: string }>(`/materials/${id}`);
   },
   getNextCode() {
-    return http.get<any, { code: string }>('/materials/next-code')
+    return http.get<any, { code: string }>("/materials/next-code");
   },
   getByFormula(formulaId: string) {
-    return http.get<any, { success: boolean; data: Material[] }>(`/materials/by-formula/${formulaId}`)
+    return http.get<any, { success: boolean; data: Material[] }>(`/materials/by-formula/${formulaId}`);
   },
-}
+  getStats() {
+    return http.get<any, { total: number; herbCount: number; supplementCount: number; nutritionCount: number }>(
+      "/materials/stats",
+    );
+  },
+};

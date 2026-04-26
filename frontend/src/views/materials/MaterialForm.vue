@@ -44,36 +44,49 @@
               <div class="section-content space-y-6">
                 <!-- 原料名称 -->
                 <div class="form-field">
-                  <label class="field-label" id="lbl-material-name">原料名称 <span class="required">*</span></label>
+                  <label class="field-label" id="lbl-material-name"><t-icon name="edit-1" size="12px"
+                      class="label-icon" /> 原料名称 <span class="required">*</span></label>
                   <t-input v-model="formData.name" placeholder="请输入原料名称" clearable class="field-input"
                     aria-required="true" aria-labelledby="lbl-material-name" data-testid="material-name-input" />
                 </div>
                 <!-- 原料类型 -->
                 <div class="form-field">
-                  <label class="field-label" id="lbl-material-type">原料类型 <span class="required">*</span></label>
+                  <label class="field-label" id="lbl-material-type"><t-icon name="layers" size="12px"
+                      class="label-icon" /> 原料类型 <span class="required">*</span></label>
                   <t-radio-group v-model="formData.materialType" class="field-input" aria-required="true"
                     role="radiogroup" aria-labelledby="lbl-material-type">
                     <t-radio value="herb">药材</t-radio>
                     <t-radio value="supplement">辅料</t-radio>
                   </t-radio-group>
                 </div>
-                <!-- 原料编码 -->
+                <!-- 原料编码（自动根据名称拼音缩写生成） -->
                 <div class="form-field">
-                  <label class="field-label" id="lbl-material-code">原料编码 <span class="required">*</span></label>
-                  <t-input v-model="formData.code" placeholder="请输入原料编码（大写字母、数字、横线）" clearable class="field-input"
-                    aria-required="true" aria-labelledby="lbl-material-code" />
+                  <label class="field-label" id="lbl-material-code"><t-icon name="barcode" size="12px"
+                      class="label-icon" /> 原料编码 <span class="required">*</span></label>
+                  <t-input v-model="formData.code" placeholder="输入原料名称后自动生成" :disabled="!formData.name" clearable
+                    class="field-input" aria-required="true" aria-labelledby="lbl-material-code" />
+                  <span class="field-help">根据原料名称拼音首字母自动生成，可手动修改</span>
                 </div>
                 <!-- 单位 -->
                 <div class="grid grid-cols-2 gap-6">
                   <div class="form-field">
-                    <label class="field-label" id="lbl-unit">单位 <span class="required">*</span></label>
+                    <label class="field-label" id="lbl-unit"><t-icon name="ruler" size="12px" class="label-icon" /> 单位
+                      <span class="required">*</span></label>
                     <t-select v-model="formData.unit" placeholder="请选择单位" :options="unitOptions" clearable
                       class="field-input" aria-required="true" aria-labelledby="lbl-unit" />
                   </div>
                   <div class="form-field">
-                    <label class="field-label" id="lbl-stock">库存数量 <span class="required">*</span></label>
+                    <label class="field-label" id="lbl-stock"><t-icon name="box" size="12px" class="label-icon" /> 库存数量
+                      <span class="required">*</span></label>
                     <t-input-number v-model="formData.stock" :min="0" placeholder="0" class="field-input"
                       aria-required="true" aria-labelledby="lbl-stock" />
+                  </div>
+                  <div class="form-field">
+                    <label class="field-label" id="lbl-unit-price"><t-icon name="currency-exchange" size="12px"
+                        class="label-icon" /> 单价（元/kg）</label>
+                    <t-input-number v-model="formData.unitPrice" :min="0" :precision="2" placeholder="暂不录入"
+                      class="field-input" aria-labelledby="lbl-unit-price" />
+                    <span class="field-help">可选，用于配方报价自动计算</span>
                   </div>
                 </div>
               </div>
@@ -512,6 +525,7 @@ const formData = reactive<any>({
   unit: '',
   stock: 0,
   materialType: 'herb',
+  unitPrice: undefined as number | undefined,
 });
 
 const unitOptions = [
@@ -524,6 +538,38 @@ const unitOptions = [
   { label: '包', value: '包' },
   { label: '箱', value: '箱' }
 ];
+
+const pinyinCodeMap: Record<string, string> = {
+  佛手: 'FS', 重瓣玫瑰: 'RBPL', 茯苓: 'FL', 熟地: 'SD', 党参: 'DS', 益母草: 'YMC',
+  高果糖浆: 'GGTJ', 蜂蜜: 'FM', 巴戟天: 'BJT', 佛手玫苓膏: 'FSQLG', 纯净水: 'CJS',
+  龙眼肉: 'LYR', 黄精: 'HJ', 酸枣仁: 'SZR', 灵芝: 'LZ', 石斛: 'SH', 西洋参: 'XYX',
+  陈皮: 'CP', 当归: 'DG', 黄芪: 'HQ', 红枣: 'HZ', 枸杞: 'GQ', 桑葚: 'SS', 阿胶: 'EJ',
+  人参: 'RS', 鹿茸: 'LR', 冬虫夏草: 'DCXC', 藏红花: 'ZHH', 川贝: 'CB', 百合: 'BH',
+  麦冬: 'MD', 五味子: 'WWZ', 远志: 'YZ', 酸梅膏: 'SMG', 甘草: 'GC', 白术: 'BS',
+  山药: 'SY', 莲子: 'LZ', 芡实: 'QS', 薏米: 'YM', 赤小豆: 'CXD', 扁豆: 'BD',
+  山楂: 'SZ', 神曲: 'SQ', 麦芽: 'MY', 谷芽: 'GY', 鸡内金: 'JNJ', 莱菔子: 'LFZ',
+  决明子: 'JMZ', 菊花: 'JH', 金银花: 'JYH', 连翘: 'LQ', 板蓝根: 'BLG', 蒲公英: 'PGY',
+  鱼腥草: 'YXC', 薄荷: 'BH2', 紫苏: 'ZS', 香附: 'XF', 郁金: 'YJ', 延胡索: 'YHS',
+  丹参: 'DS2', 红花: 'HH', 桃仁: 'TR', 三棱: 'SL', 莪术: 'EW', 水蛭: 'SZ2',
+  地龙: 'DL', 全蝎: 'QX', 蜈蚣: 'WG', 僵蚕: 'JC', 蝉蜕: 'CT', 牛黄: 'NH'
+};
+
+const generatePinyinCode = (name: string): string => {
+  if (!name.trim()) return '';
+  if (pinyinCodeMap[name]) return pinyinCodeMap[name];
+  return name.substring(0, Math.min(5, name.length)).split('').map(c => {
+    const code = c.charCodeAt(0);
+    if (code >= 0x4e00 && code <= 0x9fff) return String.fromCharCode(0x41 + ((code - 0x4e00) % 26));
+    return c.toUpperCase();
+  }).join('');
+};
+
+watch(() => formData.name, (newName) => {
+  if (!isEdit.value && newName && newName.length >= 2) {
+    const autoCode = generatePinyinCode(newName);
+    if (autoCode) formData.code = autoCode;
+  }
+});
 
 const rules: Record<string, FormRule[]> = {
   code: [
@@ -950,8 +996,7 @@ const handleBatchRegister = async () => {
 
     registerStatusMap[idx] = 'loading';
     try {
-      const codeRes: any = await materialApi.getNextCode();
-      const code = codeRes?.code || codeRes?.data?.code || `MAT${String(Date.now()).slice(-3)}`;
+      const code = generatePinyinCode(item.name) || `MAT${String(Date.now()).slice(-3)}`;
       const fileName = selectedFile.value?.name || 'AI导入';
 
       const matRes: any = await materialApi.create({
@@ -1036,8 +1081,7 @@ const handleImmediateRegister = async (item: any, idx: number) => {
   if (registerStatusMap[idx] === 'loading') return;
   registerStatusMap[idx] = 'loading';
   try {
-    const codeRes: any = await materialApi.getNextCode();
-    const code = codeRes?.code || codeRes?.data?.code || `MAT${String(Date.now()).slice(-3)}`;
+    const code = generatePinyinCode(item.name) || `MAT${String(Date.now()).slice(-3)}`;
     const fileName = selectedFile.value?.name || 'AI导入';
 
     const matRes: any = await materialApi.create({
@@ -1191,6 +1235,10 @@ onMounted(async () => {
     else aiStore.selectedModel = aiStore.models[0].provider;
   }
 
+  if (!isEdit.value) {
+    aiStore.clearParseResult();
+  }
+
   const id = route.params.id as string;
   if (isEdit.value && id) {
     const material = await materialStore.getMaterial(id);
@@ -1198,14 +1246,12 @@ onMounted(async () => {
       Object.assign(formData, {
         code: material.code, name: material.name, unit: material.unit,
         stock: material.stock, materialType: material.materialType || 'herb',
+        unitPrice: material.unitPrice ?? undefined,
       });
       await loadNutrition(id);
     }
   } else {
     showNutrition.value = true;
-    materialApi.getNextCode().then((res: any) => {
-      if (res?.code) formData.code = res.code;
-    }).catch(() => { });
   }
 });
 </script>
@@ -1551,11 +1597,18 @@ onMounted(async () => {
     .section-content {
       .form-field {
         .field-label {
-          display: block;
+          display: flex;
+          align-items: center;
+          gap: 6px;
           font-size: 14px;
           font-weight: 700;
           color: #334155;
           margin-bottom: 8px;
+
+          .label-icon {
+            color: #10b981;
+            flex-shrink: 0;
+          }
 
           .required {
             color: #f43f5e;

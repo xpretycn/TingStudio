@@ -8,6 +8,7 @@ import {
   updateMaterial,
   deleteMaterial,
   getNextCode,
+  getMaterialStats,
 } from "../controllers/materialController.js";
 import { validateBody } from "../middleware/validate.js";
 
@@ -16,6 +17,7 @@ export const materialRoutes = Router();
 materialRoutes.use(authMiddleware);
 
 materialRoutes.get("/", getMaterials);
+materialRoutes.get("/stats", getMaterialStats);
 materialRoutes.get("/next-code", getNextCode);
 materialRoutes.get("/:id", getMaterial);
 materialRoutes.post(

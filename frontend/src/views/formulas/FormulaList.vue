@@ -19,7 +19,7 @@
     </section>
 
     <Transition name="content-fade" mode="out-in">
-      <PageSkeleton v-if="!initialized" type="table" :rows="5" :columns="6" />
+      <PageSkeleton v-if="!initialized" type="table" :rows="5" :columns="8" />
       <t-card v-else class="content-card" bordered>
         <!-- 工具栏：参照数据中心列表样式 -->
         <div class="data-center-toolbar">
@@ -93,9 +93,37 @@
           </div>
         </div>
         <t-table :data="sortedFormulas" :columns="columns" :loading="formulaStore.loading" :pagination="undefined"
-          :sort="tableSort" row-key="id" hover table-layout="auto" @sort-change="onSortChange"
-          :expanded-row-keys="expandedRowKeys" @expand-change="onExpandChange" @select-change="handleSelectChange"
-          :selected-row-keys="selectedRowKeys">
+          row-key="id" hover table-layout="auto" :expanded-row-keys="expandedRowKeys" @expand-change="onExpandChange"
+          @select-change="handleSelectChange" :selected-row-keys="selectedRowKeys">
+          <template #name-title>
+            <span class="custom-sort-header" @click.stop="toggleSort('name')">配方信息<span
+                :class="sortIconClass('name')"></span></span>
+          </template>
+          <template #formulaStatus-title>
+            <span class="custom-sort-header" @click.stop="toggleSort('formulaStatus')">版本状态<span
+                :class="sortIconClass('formulaStatus')"></span></span>
+          </template>
+          <template #materialCount-title>
+            <span class="custom-sort-header" @click.stop="toggleSort('materialCount')">原料数量<span
+                :class="sortIconClass('materialCount')"></span></span>
+          </template>
+          <template #salesmanName-title>
+            <span class="custom-sort-header" @click.stop="toggleSort('salesmanName')">负责人<span
+                :class="sortIconClass('salesmanName')"></span></span>
+          </template>
+          <template #costSubtotal-title>
+            <span class="custom-sort-header" @click.stop="toggleSort('costSubtotal')">成本小计<span
+                :class="sortIconClass('costSubtotal')"></span></span>
+          </template>
+          <template #totalPrice-title>
+            <span class="custom-sort-header" @click.stop="toggleSort('totalPrice')">报价<span
+                :class="sortIconClass('totalPrice')"></span></span>
+          </template>
+          <template #createdAt-title>
+            <span class="custom-sort-header" @click.stop="toggleSort('createdAt')">更新时间<span
+                :class="sortIconClass('createdAt')"></span></span>
+          </template>
+
           <template #name="{ row }">
             <div class="formula-info">
               <div class="formula-avatar" :style="{
@@ -205,6 +233,22 @@
             </div>
           </template>
 
+          <template #costSubtotal="{ row }">
+            <span class="price-cell" :class="{ 'price-cell--empty': getRowCostSubtotal(row) === 0 }">
+              {{ getRowCostSubtotal(row) > 0 ? `¥${getRowCostSubtotal(row).toFixed(2)}` : '--' }}
+            </span>
+            <t-icon v-if="row.missingPrices?.length" name="error-circle" size="12px" class="price-warn-icon"
+              :title="`缺少单价：${row.missingPrices.join('、')}`" />
+          </template>
+
+          <template #totalPrice="{ row }">
+            <span class="price-cell price-cell--quote" :class="{ 'price-cell--empty': getRowTotalPrice(row) === 0 }">
+              {{ getRowTotalPrice(row) > 0 ? `¥${getRowTotalPrice(row).toFixed(2)}` : '--' }}
+            </span>
+            <t-icon v-if="row.missingPrices?.length" name="error-circle" size="12px"
+              class="price-warn-icon price-warn-icon--quote" :title="`缺少单价：${row.missingPrices.join('、')}`" />
+          </template>
+
           <template #empty>
             <t-empty description="暂无配方数据" role="status">
               <template #action>
@@ -275,7 +319,7 @@
               stroke-linecap="round" stroke-linejoin="round">
               <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
             </svg>
-            近期配方动态
+            近期动态
           </h4>
           <div class="activity-nav">
             <button class="activity-nav-btn" :disabled="activityPage <= 1" @click="activityPrev" title="上一页">
@@ -459,41 +503,88 @@ const getFormulaDesc = (description: string | null | undefined) => {
   }
 };
 
+const getRowCostSubtotal = (row: any): number => {
+  if (row.costSubtotal != null && !isNaN(Number(row.costSubtotal))) return Number(row.costSubtotal);
+  const desc = getFormulaDesc(row.description);
+  if (desc?.costSubtotal != null) return Number(desc.costSubtotal);
+  if (desc?.materialTotal != null) {
+    const pack = desc.packagingPrice ?? 0;
+    const other = desc.otherPrice ?? 0;
+    return Number(desc.materialTotal) + pack + other;
+  }
+  return 0;
+};
+
+const getRowTotalPrice = (row: any): number => {
+  if (row.totalPrice != null && !isNaN(Number(row.totalPrice))) return Number(row.totalPrice);
+  const desc = getFormulaDesc(row.description);
+  if (desc?.totalQuote != null) return Number(desc.totalQuote);
+  if (desc?.costSubtotal != null && desc.profitMargin != null) {
+    return Number(desc.costSubtotal) * (1 + Number(desc.profitMargin) / 100);
+  }
+  const cost = getRowCostSubtotal(row);
+  const margin = desc?.profitMargin ?? row.profitMargin ?? 20;
+  if (cost > 0) return cost * (1 + Number(margin) / 100);
+  return 0;
+};
+
 const batchDeleteDialogVisible = ref(false);
 const batchDeleteLoading = ref(false);
 const expandedRowKeys = ref<(string | number)[]>([]);
 const selectedRowKeys = ref<(string | number)[]>([]);
 const selectedRows = ref<Formula[]>([]);
 const searchKeyword = ref('');
-const tableSort = ref<any>(undefined);
+const sortKey = ref<string>('');
+const sortOrder = ref<'asc' | 'desc' | ''>('');
 const sortedFormulas = ref<Formula[]>([]);
 
 const onExpandChange = (keys: Array<string | number>) => {
   expandedRowKeys.value = keys;
 };
 
-const onSortChange = (sort: any, _context: any) => {
-  tableSort.value = sort;
-  if (!sort || !sort.sortBy) {
+const toggleSort = (key: string) => {
+  if (sortKey.value !== key) {
+    sortKey.value = key;
+    sortOrder.value = 'asc';
+  } else {
+    sortOrder.value = sortOrder.value === 'asc' ? 'desc' : (sortOrder.value === 'desc' ? '' : 'asc');
+    if (sortOrder.value === '') sortKey.value = '';
+  }
+  applySort();
+};
+
+const sortIconClass = (key: string) => {
+  if (sortKey.value !== key) return 'custom-sort custom-sort--none';
+  return sortOrder.value === 'asc' ? 'custom-sort custom-sort--asc' : 'custom-sort custom-sort--desc';
+};
+
+const applySort = () => {
+  if (!sortKey.value || !sortOrder.value) {
     sortedFormulas.value = [...formulaStore.formulas];
     return;
   }
-  const { sortBy, descending } = sort;
-  const col = columns.find(c => c.colKey === sortBy);
-  if (col?.sorter) {
-    sortedFormulas.value = [...formulaStore.formulas].sort((a, b) => {
-      const result = (col.sorter as Function)(a, b);
-      return descending ? -result : result;
-    });
-  } else {
-    sortedFormulas.value = [...formulaStore.formulas];
-  }
+  const dir = sortOrder.value === 'desc' ? -1 : 1;
+
+  const sortFns: Record<string, (a: any, b: any) => number> = {
+    name: (a, b) => a.name.localeCompare(b.name, 'zh'),
+    formulaStatus: (a, b) => getFormulaStatus(a).label.localeCompare(getFormulaStatus(b).label, 'zh'),
+    materialCount: (a, b) => (a.materials?.length || 0) - (b.materials?.length || 0),
+    salesmanName: (a, b) => (a.salesmanName || '').localeCompare(b.salesmanName || '', 'zh'),
+    costSubtotal: (a, b) => getRowCostSubtotal(a) - getRowCostSubtotal(b),
+    totalPrice: (a, b) => getRowTotalPrice(a) - getRowTotalPrice(b),
+    createdAt: (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+  };
+
+  const fn = sortFns[sortKey.value];
+  sortedFormulas.value = fn
+    ? [...formulaStore.formulas].sort((a, b) => fn(a, b) * dir)
+    : [...formulaStore.formulas];
 };
 
 // Watch store data to sync sorted list
 watch(() => formulaStore.formulas, (val) => {
-  if (tableSort.value?.sortBy) {
-    onSortChange(tableSort.value, {});
+  if (sortKey.value && sortOrder.value) {
+    applySort();
   } else {
     sortedFormulas.value = [...val];
   }
@@ -644,17 +735,15 @@ const getFormulaStatus = (row: any) => {
 
 const columns = [
   { colKey: 'row-select', type: 'multiple', width: 50, resizable: false },
-  { colKey: 'name', title: '配方信息', width: 200, sorter: (a: any, b: any) => a.name.localeCompare(b.name, 'zh') },
+  { colKey: 'name', title: '配方信息', width: 200 },
   {
-    colKey: 'formulaStatus', title: '版本状态', width: 150, sorter: (a: any, b: any) => {
-      const statusA = getFormulaStatus(a).label;
-      const statusB = getFormulaStatus(b).label;
-      return statusA.localeCompare(statusB, 'zh');
-    }
+    colKey: 'formulaStatus', title: '版本状态', width: 150
   },
-  { colKey: 'materialCount', title: '原料数量', width: 120, sorter: (a: any, b: any) => (a.materials?.length || 0) - (b.materials?.length || 0) },
-  { colKey: 'salesmanName', title: '负责人', width: 150, sorter: (a: any, b: any) => (a.salesmanName || '').localeCompare(b.salesmanName || '', 'zh') },
-  { colKey: 'createdAt', title: '更新时间', width: 180, sorter: (a: any, b: any) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime() },
+  { colKey: 'materialCount', title: '原料数量', width: 120 },
+  { colKey: 'salesmanName', title: '负责人', width: 150 },
+  { colKey: 'costSubtotal', title: '成本小计', width: 120, align: 'left' },
+  { colKey: 'totalPrice', title: '报价', width: 120, align: 'left' },
+  { colKey: 'createdAt', title: '更新时间', width: 180 },
   { colKey: 'operation', title: '操作', width: 120, align: 'center' }
 ];
 
@@ -699,24 +788,27 @@ const allActivityItems = computed<ActivityItem[]>(() => {
   allVersions.sort((a, b) => new Date(b.v.createdAt).getTime() - new Date(a.v.createdAt).getTime());
 
   const items: ActivityItem[] = [];
+
   for (let i = 0; i < allVersions.length; i++) {
     const { f, v } = allVersions[i];
     const verNum = v.versionNumber || 'v1.0';
     const verName = v.versionName || '';
     const matCount = f.materials?.length ?? 0;
-    const weight = f.finishedWeight ? `${f.finishedWeight}g` : '';
     const timeAgo = formatTimeAgo(v.createdAt);
+    const changes = parseChanges(v.changesJson);
+    const priceChanges = changes.filter((c: any) => c.field === 'adjustedPrice');
 
     if (v.status === 'published') {
       items.push({
         type: 'success',
         title: verName || '配方已发布',
-        desc: `<strong>${f.salesmanName || '未知'}</strong> 发布了 <span class="text-emerald-600 font-bold">${f.name}</span> 的 ${verNum}${verName ? `（${verName}）` : ''}${matCount ? `，含 ${matCount} 种原料` : ''}${weight ? `，成品重 ${weight}` : ''}`,
+        desc: `<strong>${f.salesmanName || '未知'}</strong> 发布了 <span class="text-emerald-600 font-bold">${f.name}</span> 的 ${verNum}${verName ? `（${verName}）` : ''}${matCount ? `，含 ${matCount} 种原料` : ''}`,
         time: timeAgo
       });
     } else if (v.isCurrent) {
-      const reason = parseChanges(v.changesJson).length > 0
-        ? `：${parseChanges(v.changesJson)[0].field}`
+      const nonPriceChanges = changes.filter((c: any) => c.field !== 'adjustedPrice');
+      const reason = nonPriceChanges.length > 0
+        ? `：${nonPriceChanges[0].field}`
         : '';
       items.push({
         type: 'warning',
@@ -724,15 +816,58 @@ const allActivityItems = computed<ActivityItem[]>(() => {
         desc: `<strong>${f.salesmanName || '未知'}</strong> 更新 <span class="text-emerald-600 font-bold">${f.name}</span> 至 ${verNum}${reason}`,
         time: timeAgo
       });
+
+      if (priceChanges.length > 0) {
+        const priceNames = priceChanges.map((c: any) => c.fieldLabel.replace('原料单价: ', '')).join('、');
+        items.push({
+          type: 'warning',
+          title: '原料单价调整',
+          desc: `<strong>${f.name}</strong> ${verNum} 调整了 <span class="text-amber-600 font-bold">${priceNames}</span> 的单价`,
+          time: timeAgo
+        });
+      }
     } else {
       items.push({
         type: 'info',
         title: verName || '版本记录',
-        desc: `<strong>${f.name}</strong> ${verNum} ${v.status === 'draft' ? '草稿' : '已归档'}${verName ? ` — ${verName}` : ''}`,
+        desc: `<strong>${f.name}</strong> ${verNum} ${v.status === 'draft' ? '草稿' : '已归档'}${verName ? ` — ${verName}` : ''}${priceChanges.length > 0 ? `（含 ${priceChanges.length} 项单价调整）` : ''}`,
         time: timeAgo
       });
     }
   }
+
+  const materials = materialStore.allMaterials;
+  if (materials && materials.length > 0) {
+    const sortedMaterials = [...materials].sort((a, b) =>
+      new Date(b.updatedAt || b.createdAt).getTime() - new Date(a.updatedAt || a.createdAt).getTime()
+    );
+    const recentMaterials = sortedMaterials.slice(0, 15);
+    for (const m of recentMaterials) {
+      const matTime = m.updatedAt || m.createdAt;
+      if (!matTime) continue;
+      const timeAgo = formatTimeAgo(matTime);
+      const typeName = m.materialType === 'supplement' ? '辅料' : '药材';
+      const isNewlyUpdated = !!m.updatedAt && m.updatedAt !== m.createdAt;
+      if (isNewlyUpdated) {
+        if (m.unitPrice != null && m.unitPrice > 0) {
+          items.push({
+            type: 'warning',
+            title: '原料单价更新',
+            desc: `<strong>${m.name}</strong>（${typeName}，编码 <span class="text-blue-600">${m.code}</span>）单价更新为 <span class="text-amber-600 font-bold">¥${m.unitPrice}/kg</span>`,
+            time: timeAgo
+          });
+        } else {
+          items.push({
+            type: 'info',
+            title: '原料信息变更',
+            desc: `<strong>${m.name}</strong>（${typeName}，编码 <span class="text-blue-600">${m.code}</span>）信息已更新，当前库存 <span class="font-bold">${m.stock ?? 0}</span> ${m.unit || 'g'}`,
+            time: timeAgo
+          });
+        }
+      }
+    }
+  }
+
   return items;
 });
 
@@ -782,9 +917,14 @@ onMounted(async () => {
   await Promise.all([
     salesmanStore.fetchSalesmen(),
     formulaStore.fetchFormulas(),
-    materialStore.fetchMaterials()
+    materialStore.fetchMaterials(),
+    materialStore.fetchAllForSelect()
   ]);
   initialized.value = true;
+});
+
+watch(() => router.currentRoute.value.path, (path) => {
+  if (path === '/formulas') formulaStore.fetchFormulas();
 });
 
 onUnmounted(() => {
@@ -904,12 +1044,10 @@ const handleDelete = async (row: Formula) => {
   // ─── 内容卡片 - 参照 index.html 第226行 "数据中心列表" ───
   .content-card {
     min-height: 400px;
-    // index.html 第226行: bg-white rounded-[2rem](32px) custom-shadow border border-slate-50
     background-color: #fff;
-    border-radius: 32px !important; // rounded-[2rem]
-    border: 1px solid #f8fafc !important; // border border-slate-50
-    // 移除 overflow-hidden 以避免裁剪绝对定位的批量操作栏
-    // custom-shadow: 柔和阴影
+    border-radius: 32px !important;
+    border: 1px solid #f8fafc !important;
+    overflow: visible;
     box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
     transition: all $transition-slow;
 
@@ -922,6 +1060,7 @@ const handleDelete = async (row: Formula) => {
     // 覆盖 TDesign t-card 默认 body padding（index.html 无额外 padding，工具栏自带 p-8）
     :deep(.t-card__body) {
       padding: 0 !important;
+      overflow: visible;
     }
 
     :deep(.t-table__body .t-table__row) {
@@ -2045,7 +2184,13 @@ const handleDelete = async (row: Formula) => {
 // 表格样式 - 覆盖全局 _td-overrides.scss 粉色主题
 ::deep(.t-table) {
   border-radius: 16px !important;
-  overflow: hidden;
+  overflow: visible;
+
+  .t-table__content,
+  .t-table__body-wrapper {
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
 
   .t-table__header {
     position: sticky !important;
@@ -2053,6 +2198,7 @@ const handleDelete = async (row: Formula) => {
     z-index: 5 !important;
     background: #f8fafc !important;
     backdrop-filter: none !important;
+    overflow: visible !important;
 
     th {
       background: #f8fafc !important;
@@ -2063,6 +2209,7 @@ const handleDelete = async (row: Formula) => {
       font-weight: 600 !important;
       padding: 14px 20px !important;
       border-bottom: 1px solid #e2e8f0 !important;
+      overflow: visible !important;
 
       &:first-child {
         padding-left: 24px !important;
@@ -2082,78 +2229,55 @@ const handleDelete = async (row: Formula) => {
         &:hover {
           color: #10b981 !important;
         }
-
-        .t-table__cell--title {
-          display: flex;
-          align-items: center;
-          gap: 4px;
-
-          // 排序图标缩小
-          .t-table__sort-icon,
-          &>.t-icon,
-          .t-icon {
-            font-size: 10px !important;
-
-            svg {
-              width: 12px !important;
-              height: 12px !important;
-              margin-top: -2px;
-            }
-          }
-
-          .t-table__sort-icon--active {
-            color: #10b981 !important;
-          }
-        }
       }
     }
   }
+}
 
-  .t-table__body {
-    background: #fff !important;
+.t-table__body {
+  background: #fff !important;
 
-    .t-table__row {
-      transition: background-color 0.2s ease;
+  .t-table__row {
+    transition: background-color 0.2s ease;
 
-      // 悬停/选中 - emerald 色系，覆盖全局粉色
-      &:hover td,
-      &.t-table__row--hover td {
-        background-color: rgba(209, 250, 229, 0.35) !important;
-        box-shadow: inset 3px 0 0 #34d399 !important;
+    // 悬停/选中 - emerald 色系，覆盖全局粉色
+    &:hover td,
+    &.t-table__row--hover td {
+      background-color: rgba(209, 250, 229, 0.35) !important;
+      box-shadow: inset 3px 0 0 #34d399 !important;
+    }
+
+    &.t-table__row--selected td,
+    &.t-table__row--selected.t-table__row--hover td {
+      background-color: rgba(209, 250, 229, 0.55) !important;
+      box-shadow: inset 3px 0 0 #10b981 !important;
+    }
+
+    td {
+      padding: 18px 20px !important;
+      border-bottom: 1px solid #f1f5f9 !important;
+      vertical-align: middle;
+
+      &:first-child {
+        padding-left: 24px !important;
+        padding-right: 24px !important;
       }
 
-      &.t-table__row--selected td,
-      &.t-table__row--selected.t-table__row--hover td {
-        background-color: rgba(209, 250, 229, 0.55) !important;
-        box-shadow: inset 3px 0 0 #10b981 !important;
-      }
-
-      td {
-        padding: 18px 20px !important;
-        border-bottom: 1px solid #f1f5f9 !important;
-        vertical-align: middle;
-
-        &:first-child {
-          padding-left: 24px !important;
-          padding-right: 24px !important;
-        }
-
-        &:last-child {
-          padding-left: 24px !important;
-          padding-right: 24px !important;
-          text-align: right;
-        }
-      }
-
-      &:last-child td {
-        border-bottom: none !important;
+      &:last-child {
+        padding-left: 24px !important;
+        padding-right: 24px !important;
+        text-align: right;
       }
     }
-  }
 
-  .t-table__expanded-row>td {
-    border-bottom: none !important;
+    &:last-child td {
+      border-bottom: none !important;
+    }
   }
+}
+
+.t-table__expanded-row>td {
+  border-bottom: none !important;
 }
 
 // 配方信息列
@@ -2259,6 +2383,95 @@ const handleDelete = async (row: Formula) => {
   }
 }
 
+// 价格列
+.price-cell {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 2px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+  font-family: ui-monospace, SFMono-Regular, 'Cascadia Code', monospace;
+  white-space: nowrap;
+
+  &--quote {
+    color: #059669;
+
+    &::before {
+      content: '';
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      background: #10b981;
+      border-radius: 50%;
+      margin-right: 4px;
+      vertical-align: middle;
+    }
+  }
+
+  &--empty {
+    font-weight: 400;
+    color: #94a3b8;
+    font-family: inherit;
+
+    &::before {
+      display: none;
+    }
+  }
+}
+
+.price-warn-icon {
+  color: #f59e0b;
+  margin-left: 4px;
+  vertical-align: middle;
+  cursor: help;
+
+  &--quote {
+    color: #f59e0b;
+  }
+}
+
+// 自定义排序（无 TDesign 弹窗）
+.custom-sort-header {
+  cursor: pointer;
+  user-select: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+
+  &:hover {
+    color: #10b981;
+  }
+}
+
+.custom-sort {
+  display: inline-block;
+  width: 0;
+  height: 0;
+  margin-left: 2px;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  opacity: 0.25;
+  transition: all 0.2s;
+}
+
+.custom-sort--none {
+  border-top: 5px solid #94a3b8;
+  border-bottom: none;
+}
+
+.custom-sort--asc {
+  border-bottom: 5px solid #10b981;
+  border-top: none;
+  opacity: 1;
+}
+
+.custom-sort--desc {
+  border-top: 5px solid #10b981;
+  border-bottom: none;
+  opacity: 1;
+}
+
 // 操作按钮列
 .action-buttons {
   display: flex;
@@ -2317,6 +2530,13 @@ const handleDelete = async (row: Formula) => {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* 8. 排序弹窗 — 确保不被裁剪 */
+.formula-list .content-card .t-table,
+.formula-list .content-card .t-table .t-table__header,
+.formula-list .content-card .t-table .t-table__body-wrapper {
+  overflow: visible !important;
 }
 </style>
 

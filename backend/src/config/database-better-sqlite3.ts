@@ -20,9 +20,13 @@ function ensureColumn(dbInstance: Database.Database, table: string, col: string,
 
 function runAutoMigrations(dbInstance: Database.Database) {
   ensureColumn(dbInstance, "materials", "material_type", "TEXT", "'herb'");
+  ensureColumn(dbInstance, "materials", "unit_price", "REAL", "NULL");
   ensureColumn(dbInstance, "formulas", "finished_weight", "REAL", "0");
   ensureColumn(dbInstance, "formulas", "ratio_factor", "REAL", "0.18");
   ensureColumn(dbInstance, "formulas", "supplement_ratio_factor", "REAL", "1.0");
+  ensureColumn(dbInstance, "formulas", "packaging_price", "REAL", "0");
+  ensureColumn(dbInstance, "formulas", "other_price", "REAL", "0");
+  ensureColumn(dbInstance, "formulas", "profit_margin", "REAL", "20");
   ensureColumn(dbInstance, "formula_versions", "ratio_factor", "REAL", "0.18");
   ensureColumn(dbInstance, "formula_versions", "supplement_ratio_factor", "REAL", "1.0");
 }
@@ -48,6 +52,7 @@ CREATE TABLE IF NOT EXISTS materials (
   unit TEXT NOT NULL DEFAULT 'g',
   stock REAL NOT NULL DEFAULT 0,
   material_type TEXT NOT NULL DEFAULT 'herb' CHECK(material_type IN ('herb', 'supplement')),
+  unit_price REAL DEFAULT NULL,
   created_by TEXT NOT NULL,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))
@@ -56,6 +61,7 @@ CREATE INDEX IF NOT EXISTS idx_material_name ON materials(name);
 CREATE INDEX IF NOT EXISTS idx_material_code ON materials(code);
 CREATE TABLE IF NOT EXISTS formulas (
   id TEXT PRIMARY KEY,
+  code TEXT NOT NULL UNIQUE,
   name TEXT NOT NULL,
   salesman_id TEXT NOT NULL,
   salesman_name TEXT NOT NULL,
@@ -63,6 +69,9 @@ CREATE TABLE IF NOT EXISTS formulas (
   finished_weight REAL NOT NULL DEFAULT 0,
   ratio_factor REAL NOT NULL DEFAULT 0.18 CHECK(ratio_factor >= 0.15 AND ratio_factor <= 0.25),
   supplement_ratio_factor REAL NOT NULL DEFAULT 1.0 CHECK(supplement_ratio_factor >= 0.5 AND supplement_ratio_factor <= 1.5),
+  packaging_price REAL NOT NULL DEFAULT 0,
+  other_price REAL NOT NULL DEFAULT 0,
+  profit_margin REAL NOT NULL DEFAULT 20,
   description TEXT DEFAULT NULL,
   created_by TEXT NOT NULL,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
@@ -70,6 +79,7 @@ CREATE TABLE IF NOT EXISTS formulas (
   FOREIGN KEY (salesman_id) REFERENCES salesmen(id) ON DELETE RESTRICT
 );
 CREATE INDEX IF NOT EXISTS idx_formula_name ON formulas(name);
+CREATE INDEX IF NOT EXISTS idx_formula_code ON formulas(code);
 CREATE INDEX IF NOT EXISTS idx_formula_salesman_id ON formulas(salesman_id);
 CREATE INDEX IF NOT EXISTS idx_formula_created_by ON formulas(created_by);
 CREATE TABLE IF NOT EXISTS salesmen (

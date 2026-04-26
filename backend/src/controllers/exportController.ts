@@ -2,7 +2,7 @@
 import { Request, Response } from "express";
 import path from "path";
 import fs from "fs";
-import { query } from "../config/database.js";
+import { query } from "../config/database-better-sqlite3.js";
 import {
   generateId,
   now,

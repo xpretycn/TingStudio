@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="version-compare">
     <header class="detail-header">
       <div class="header-left">
@@ -18,6 +18,11 @@
         <span class="compare-count">
           当前对比版本数: <strong>{{ compareVersions.length }}</strong>/3
         </span>
+        <button class="mode-toggle-btn" :class="{ 'mode-toggle-btn--price': compareMode === 'price' }"
+          @click="toggleMode" :title="compareMode === 'content' ? '切换到报价对比' : '切换到含量对比'">
+          <span class="mode-toggle-icon">{{ compareMode === 'content' ? '¥' : '%' }}</span>
+          <span>{{ compareMode === 'content' ? '报价对比' : '含量对比' }}</span>
+        </button>
         <t-popconfirm content="确定要清除所有对比项吗？" @confirm="onConfirmReset">
           <button class="reset-btn" title="重置对比">重置对比</button>
         </t-popconfirm>
@@ -55,8 +60,9 @@
           </div>
 
           <div class="card-body">
-            <h4 class="section-label">原料构成</h4>
-            <div class="ingredients-list">
+            <h4 v-if="compareMode === 'content'" class="section-label">原料构成</h4>
+            <h4 v-else class="section-label">原料报价</h4>
+            <div v-if="compareMode === 'content'" class="ingredients-list">
               <template v-for="ing in getIngredients(ver, idx)" :key="ing.name">
                 <div v-if="ing.missing" class="ingredient-item diff-missing">
                   <div class="ing-top">
@@ -74,6 +80,33 @@
                   </div>
                   <div class="ing-bar-track">
                     <div class="ing-bar-fill" :style="{ width: ing.value + '%' }"></div>
+                  </div>
+                </div>
+              </template>
+            </div>
+
+            <div v-else class="price-list">
+              <template v-for="item in getPriceItems(ver, idx)" :key="item.name">
+                <div v-if="item.missing" class="price-item diff-missing">
+                  <div class="pi-top">
+                    <span class="pi-name">{{ item.name }}</span>
+                    <span class="pi-value">--</span>
+                  </div>
+                  <span class="pi-sub">{{ item.quantity }}g</span>
+                </div>
+                <div v-else class="price-item" :class="getPriceDiffClass(item, ver, idx)">
+                  <div class="pi-top">
+                    <span class="pi-name">{{ item.name }}</span>
+                    <div class="pi-right">
+                      <span class="pi-value" :class="{ 'pi-adjusted': item.isAdjusted }">
+                        {{ formatPrice(item.unitPrice) }}
+                      </span>
+                      <span v-if="item.isAdjusted" class="pi-adjust-badge">调</span>
+                    </div>
+                  </div>
+                  <div class="pi-bottom">
+                    <span class="pi-sub">{{ item.quantity }}g</span>
+                    <span class="pi-cost">小计: ¥{{ (item.quantity / 1000 * item.unitPrice).toFixed(2) }}</span>
                   </div>
                 </div>
               </template>
@@ -126,110 +159,161 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import { useVersionStore } from '@/stores/version'
+import { ref, onMounted, computed } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
+import { useVersionStore } from '@/stores/version';
 
-const router = useRouter()
-const route = useRoute()
-const versionStore = useVersionStore()
+const router = useRouter();
+const route = useRoute();
+const versionStore = useVersionStore();
 
-const formulaId = route.params.formulaId as string
-const compareVersions = ref<any[]>([])
+const formulaId = route.params.formulaId as string;
+const compareVersions = ref<any[]>([]);
+const compareMode = ref<'content' | 'price'>('content');
 
-const handleBack = () => router.push(`/versions/formula/${formulaId}`)
+const toggleMode = () => {
+  compareMode.value = compareMode.value === 'content' ? 'price' : 'content';
+};
+
+const handleBack = () => router.push(`/versions/formula/${formulaId}`);
 
 const handleRemove = (id: string) => {
-  compareVersions.value = compareVersions.value.filter(v => v.versionId !== id)
-  syncLocalStorage()
-}
+  compareVersions.value = compareVersions.value.filter(v => v.versionId !== id);
+  syncLocalStorage();
+};
 
 const handleSetBase = (idx: number) => {
-  if (idx <= 0) return
-  const [target] = compareVersions.value.splice(idx, 1)
-  compareVersions.value.unshift(target)
-  syncLocalStorage()
-}
+  if (idx <= 0) return;
+  const [target] = compareVersions.value.splice(idx, 1);
+  compareVersions.value.unshift(target);
+  syncLocalStorage();
+};
 
 const onConfirmReset = () => {
-  compareVersions.value = []
-  localStorage.removeItem('compare_versions')
-}
+  compareVersions.value = [];
+  localStorage.removeItem('compare_versions');
+};
 
 const availableList = computed(() => {
-  const currentIds = new Set(compareVersions.value.map(v => v.versionId))
-  return (versionStore.versions || []).filter((v: any) => !currentIds.has(v.versionId))
-})
+  const currentIds = new Set(compareVersions.value.map(v => v.versionId));
+  return (versionStore.versions || []).filter((v: any) => !currentIds.has(v.versionId));
+});
 
 const handleAddVersion = (versionId: string) => {
-  const ver = versionStore.versions.find((v: any) => v.versionId === versionId)
+  const ver = versionStore.versions.find((v: any) => v.versionId === versionId);
   if (ver && !compareVersions.value.find(v => v.versionId === versionId)) {
-    compareVersions.value.push(ver)
-    syncLocalStorage()
+    compareVersions.value.push(ver);
+    syncLocalStorage();
   }
-}
+};
 
 const syncLocalStorage = () => {
-  const ids = compareVersions.value.map(v => v.versionId)
-  localStorage.setItem('compare_versions', JSON.stringify(ids))
-}
+  const ids = compareVersions.value.map(v => v.versionId);
+  localStorage.setItem('compare_versions', JSON.stringify(ids));
+};
 
 const formatDate = (val: string | undefined) => {
-  if (!val) return '--'
-  const d = new Date(val)
-  const pad = (n: number) => String(n).padStart(2, '0')
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
-}
+  if (!val) return '--';
+  const d = new Date(val);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+};
 
 const getIngredients = (ver: any, idx: number) => {
-  const materials = ver.snapshot?.materials || []
+  const materials = ver.snapshot?.materials || [];
   if (idx === 0) {
-    return materials.map((m: any) => ({ name: m.materialName || '--', value: m.quantity || 0 }))
+    return materials.map((m: any) => ({ name: m.materialName || '--', value: m.quantity || 0 }));
   }
-  const baseVer = compareVersions.value[0]
-  const baseIngs = baseVer?.snapshot?.materials || []
-  const currentMap = new Map(materials.map((m: any) => [m.materialName, m.quantity || 0]))
-  const aligned: any[] = []
+  const baseVer = compareVersions.value[0];
+  const baseIngs = baseVer?.snapshot?.materials || [];
+  const currentMap = new Map(materials.map((m: any) => [m.materialName, m.quantity || 0]));
+  const aligned: any[] = [];
   baseIngs.forEach((b: any) => {
-    const name = b.materialName || '--'
+    const name = b.materialName || '--';
     if (currentMap.has(name)) {
-      aligned.push({ name, value: currentMap.get(name), missing: false })
-      currentMap.delete(name)
+      aligned.push({ name, value: currentMap.get(name), missing: false });
+      currentMap.delete(name);
     } else {
-      aligned.push({ name, value: 0, missing: true })
+      aligned.push({ name, value: 0, missing: true });
     }
-  })
+  });
   currentMap.forEach((value, name) => {
-    aligned.push({ name, value, missing: false })
-  })
-  return aligned
-}
+    aligned.push({ name, value, missing: false });
+  });
+  return aligned;
+};
 
 const getDiffClass = (ing: any, _ver: any, idx: number) => {
-  if (idx === 0) return ''
-  const baseVer = compareVersions.value[0]
-  if (!baseVer) return ''
-  const baseIngs = baseVer.snapshot?.materials || []
-  const match = baseIngs.find((oi: any) => oi.materialName === ing.name)
-  if (!match) return 'diff-added'
-  if ((match.quantity || 0) !== ing.value) return 'diff-changed'
-  return ''
-}
+  if (idx === 0) return '';
+  const baseVer = compareVersions.value[0];
+  if (!baseVer) return '';
+  const baseIngs = baseVer.snapshot?.materials || [];
+  const match = baseIngs.find((oi: any) => oi.materialName === ing.name);
+  if (!match) return 'diff-added';
+  if ((match.quantity || 0) !== ing.value) return 'diff-changed';
+  return '';
+};
+
+const getPriceItems = (ver: any, idx: number) => {
+  const materials = ver.snapshot?.materials || [];
+  if (idx === 0) {
+    return materials.map((m: any) => ({
+      name: m.materialName || '--',
+      quantity: m.quantity || 0,
+      unitPrice: m.adjustedPrice ?? null,
+      isAdjusted: m.adjustedPrice != null,
+    }));
+  }
+  const baseVer = compareVersions.value[0];
+  const baseItems = baseVer?.snapshot?.materials || [];
+  const currentMap = new Map(materials.map((m: any) => [m.materialName, { quantity: m.quantity || 0, unitPrice: m.adjustedPrice ?? null, isAdjusted: m.adjustedPrice != null }]));
+  const aligned: any[] = [];
+  baseItems.forEach((b: any) => {
+    const name = b.materialName || '--';
+    if (currentMap.has(name)) {
+      aligned.push({ name, ...currentMap.get(name), missing: false });
+      currentMap.delete(name);
+    } else {
+      aligned.push({ name, quantity: b.quantity || 0, unitPrice: null, isAdjusted: false, missing: true });
+    }
+  });
+  currentMap.forEach((val, name) => {
+    aligned.push({ name, ...val, missing: false });
+  });
+  return aligned;
+};
+
+const getPriceDiffClass = (item: any, _ver: any, idx: number) => {
+  if (idx === 0) return '';
+  const baseVer = compareVersions.value[0];
+  if (!baseVer) return '';
+  const baseItems = baseVer.snapshot?.materials || [];
+  const match = baseItems.find((oi: any) => oi.materialName === item.name);
+  if (!match) return 'diff-added';
+  const basePrice = match.adjustedPrice ?? null;
+  if ((basePrice ?? 'null') !== (item.unitPrice ?? 'null')) return 'diff-changed';
+  return '';
+};
+
+const formatPrice = (val: number | null) => {
+  if (val == null) return '--';
+  return `¥${val.toFixed(2)}/kg`;
+};
 
 const getSummaryText = (status: string) => {
-  if (status === 'published') return '正式投产版本，平衡了口感与成本的最佳方案。'
-  if (status === 'draft') return '实验性调整，大幅增加了蛋白质占比以验证风味。'
-  return '历史存档，数据仅供参考。'
-}
+  if (status === 'published') return '正式投产版本，平衡了口感与成本的最佳方案。';
+  if (status === 'draft') return '实验性调整，大幅增加了蛋白质占比以验证风味。';
+  return '历史存档，数据仅供参考。';
+};
 
 onMounted(async () => {
-  await versionStore.fetchVersions(formulaId)
-  const ids = localStorage.getItem('compare_versions')
+  await versionStore.fetchVersions(formulaId);
+  const ids = localStorage.getItem('compare_versions');
   if (ids) {
-    const parsed = JSON.parse(ids)
-    compareVersions.value = versionStore.versions.filter((v: any) => parsed.includes(v.versionId)).slice(0, 3)
+    const parsed = JSON.parse(ids);
+    compareVersions.value = versionStore.versions.filter((v: any) => parsed.includes(v.versionId)).slice(0, 3);
   }
-})
+});
 </script>
 
 <style scoped lang="scss">
@@ -358,18 +442,61 @@ $radius-2xl: 2rem;
       }
 
       .reset-btn {
-        padding: 8px 20px;
-        background: transparent;
+        padding: 8px 18px;
+        background: rgba(244, 63, 94, 0.08);
         color: #f43f5e;
-        border: none;
+        border: 1px solid rgba(244, 63, 94, 0.2);
         border-radius: 12px;
         font-size: 13px;
-        font-weight: 500;
+        font-weight: 600;
         cursor: pointer;
         transition: all $transition-fast;
 
         &:hover {
-          background: #fff1f2;
+          background: rgba(244, 63, 94, 0.15);
+          border-color: rgba(244, 63, 94, 0.35);
+        }
+      }
+
+      .mode-toggle-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 18px;
+        background: rgba(16, 185, 129, 0.08);
+        color: #059669;
+        border: 1px solid rgba(16, 185, 129, 0.2);
+        border-radius: 12px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all $transition-fast;
+
+        &:hover {
+          background: rgba(16, 185, 129, 0.15);
+          border-color: rgba(16, 185, 129, 0.35);
+        }
+
+        &--price {
+          background: rgba(245, 158, 11, 0.08);
+          color: #d97706;
+          border-color: rgba(245, 158, 11, 0.2);
+
+          &:hover {
+            background: rgba(245, 158, 11, 0.15);
+            border-color: rgba(245, 158, 11, 0.35);
+          }
+        }
+
+        .mode-toggle-icon {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 20px;
+          height: 20px;
+          font-size: 14px;
+          font-weight: 800;
+          line-height: 1;
         }
       }
     }
@@ -654,6 +781,106 @@ $radius-2xl: 2rem;
         }
       }
 
+      .price-list {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        margin-bottom: 32px;
+      }
+
+      .price-item {
+        padding: 14px 16px;
+        margin-bottom: 10px;
+        border-radius: 16px;
+        border: 1px solid #f8fafc;
+        transition: all $transition-fast;
+        background: rgba(248, 250, 252, 0.50);
+
+        &.diff-added {
+          background: #ecfdf5;
+          color: #059669;
+          font-weight: 700;
+        }
+
+        &.diff-changed {
+          background: #fffbeb;
+          color: #d97706;
+          font-weight: 700;
+        }
+
+        &.diff-missing {
+          border-style: dashed;
+          border-color: #fca5a5;
+          background: #fef2f2;
+
+          .pi-name {
+            color: #ef4444 !important;
+            text-decoration: line-through;
+            font-weight: 700;
+          }
+        }
+
+        .pi-top {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 6px;
+
+          .pi-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: inherit;
+          }
+
+          .pi-right {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+
+            .pi-value {
+              font-family: ui-monospace, SFMono-Regular, 'Cascadia Code', monospace;
+              font-size: 14px;
+              font-weight: 900;
+              color: #334155;
+
+              &.pi-adjusted {
+                color: #d97706;
+              }
+            }
+
+            .pi-adjust-badge {
+              display: inline-block;
+              font-size: 10px;
+              line-height: 1;
+              padding: 1px 4px;
+              border-radius: 4px;
+              background: #fef3c7;
+              color: #d97706;
+              font-weight: 600;
+              flex-shrink: 0;
+            }
+          }
+        }
+
+        .pi-bottom {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+
+          .pi-sub {
+            font-size: 12px;
+            color: #94a3b8;
+          }
+
+          .pi-cost {
+            font-family: ui-monospace, SFMono-Regular, 'Cascadia Code', monospace;
+            font-size: 12px;
+            font-weight: 600;
+            color: #10b981;
+          }
+        }
+      }
+
       .summary-section {
         margin-top: 32px;
         padding-top: 24px;
@@ -790,4 +1017,3 @@ $radius-2xl: 2rem;
   }
 }
 </style>
-

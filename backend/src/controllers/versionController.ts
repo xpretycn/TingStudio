@@ -1,6 +1,6 @@
 // 配方版本控制控制器
 import { Request, Response } from 'express'
-import { query } from '../config/database.js'
+import { query } from '../config/database-better-sqlite3.js'
 import { generateId, now, success, rowToCamelCase, rowsToCamelCase, safeJsonParse } from '../utils/helpers.js'
 
 /** 获取配方的所有版本 */

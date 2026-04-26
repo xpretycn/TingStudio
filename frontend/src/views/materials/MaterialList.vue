@@ -85,9 +85,28 @@
         </div>
 
         <t-table :data="sortedMaterials" :columns="columns" :loading="materialStore.loading" :pagination="undefined"
-          :sort="tableSort" row-key="id" hover table-layout="auto" @sort-change="onSortChange"
-          :expanded-row-keys="expandedRowKeys" @expand-change="onExpandChange" @select-change="handleSelectChange"
-          :selected-row-keys="selectedRowKeys">
+          row-key="id" hover table-layout="auto" :expanded-row-keys="expandedRowKeys" @expand-change="onExpandChange"
+          @select-change="handleSelectChange" :selected-row-keys="selectedRowKeys">
+          <template #name-title>
+            <span class="custom-sort-header" @click.stop="toggleSort('name')">原料信息<span
+                :class="sortIconClass('name')"></span></span>
+          </template>
+          <template #materialType-title>
+            <span class="custom-sort-header" @click.stop="toggleSort('materialType')">类型<span
+                :class="sortIconClass('materialType')"></span></span>
+          </template>
+          <template #unitPrice-title>
+            <span class="custom-sort-header" @click.stop="toggleSort('unitPrice')">单价(元/kg)<span
+                :class="sortIconClass('unitPrice')"></span></span>
+          </template>
+          <template #stock-title>
+            <span class="custom-sort-header" @click.stop="toggleSort('stock')">库存<span
+                :class="sortIconClass('stock')"></span></span>
+          </template>
+          <template #createdAt-title>
+            <span class="custom-sort-header" @click.stop="toggleSort('createdAt')">创建时间<span
+                :class="sortIconClass('createdAt')"></span></span>
+          </template>
           <template #name="{ row }">
             <div class="material-info">
               <div class="material-avatar" :style="{
@@ -120,6 +139,11 @@
 
           <template #stock="{ row }">
             <span class="stock-value" :class="{ 'stock-low': row.stock < 50 }">{{ row.stock }} {{ row.unit }}</span>
+          </template>
+
+          <template #unitPrice="{ row }">
+            <span v-if="row.unitPrice != null" class="mat-price-cell">¥{{ Number(row.unitPrice).toFixed(2) }}</span>
+            <span v-else class="mat-price-cell mat-price-empty">--</span>
           </template>
 
           <template #nutrition="{ row }">
@@ -166,9 +190,25 @@
           <template #empty>
             <t-empty description="暂无原料数据" role="status">
               <template #action>
-                <t-button theme="primary" @click="handleCreate">
-                  <template #icon><t-icon name="add" /></template>录入第一个原料
-                </t-button>
+                <button class="empty-add-btn" @click="handleCreate" :style="{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  padding: '12px 28px',
+                  backgroundColor: primaryColor,
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '12px',
+                  fontSize: '15px',
+                  fontWeight: '600',
+                  lineHeight: '1.4',
+                  cursor: 'pointer',
+                  outline: 'none',
+                  boxShadow: '0 4px 14px rgba(0,0,0,0.12)'
+                }">
+                  <t-icon name="add" style="font-size:18px;color:#fff" />录入第一个原料
+                </button>
               </template>
             </t-empty>
           </template>
@@ -295,14 +335,22 @@ import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useMaterialStore } from '@/stores/material';
 import { usePaginationStore } from '@/stores/pagination';
+import { useThemeStore } from '@/stores/theme';
+import { getThemeTokens } from '@/assets/styles/tokens';
 import { nutritionApi } from '@/api/nutrition';
 import { MessagePlugin } from 'tdesign-vue-next';
 import type { Material } from '@/api/material';
+import { materialApi } from '@/api/material';
 import PageSkeleton from '@/components/Skeleton/PageSkeleton.vue';
 
 const router = useRouter();
 const materialStore = useMaterialStore();
 const paginationStore = usePaginationStore();
+const themeStore = useThemeStore();
+
+const themeTokens = computed(() => getThemeTokens(themeStore.isDark, themeStore.brandColor));
+const primaryColor = computed(() => themeTokens.value.primary);
+const primaryDark = computed(() => themeTokens.value.primaryDark);
 
 const initialized = ref(false);
 
@@ -312,14 +360,25 @@ const expandedNutrition = ref<Record<string, Record<string, number>>>({});
 const selectedRowKeys = ref<(string | number)[]>([]);
 const selectedRows = ref<Material[]>([]);
 const tableSort = ref<any>(undefined);
+const sortKey = ref<string>('');
+const sortOrder = ref<'asc' | 'desc' | ''>('');
 const sortedMaterials = ref<Material[]>([]);
 const expandedRowKeys = ref<(string | number)[]>([]);
 
-// ─── 数据看板 ───
+// ─── 数据看板（使用数据库全量统计）───
+const stats = ref({ total: 0, herbCount: 0, supplementCount: 0, nutritionCount: 0 });
+
+const fetchStats = async () => {
+  try {
+    const res = await materialApi.getStats();
+    stats.value = res;
+  } catch (e) {
+    console.error('获取原料统计数据失败', e);
+  }
+};
+
 const dashboardCards = computed(() => {
-  const total = materialStore.total || materialStore.materials?.length || 0;
-  const herbCount = materialStore.materials?.filter((m: Material) => m.materialType !== 'supplement').length || 0;
-  const supplementCount = materialStore.materials?.filter((m: Material) => m.materialType === 'supplement').length || 0;
+  const { total, herbCount, supplementCount } = stats.value;
   const nutritionCount = Object.keys(nutritionMap.value).length;
 
   return [
@@ -397,28 +456,47 @@ const getNutrientPercent = (value: number, key: string): number => {
 };
 const isHighlightNutrient = (key: string): boolean => ['protein', 'fat', 'carbohydrate'].includes(key);
 
-const onSortChange = (sort: any) => {
-  tableSort.value = sort;
-  if (!sort || !sort.sortBy) {
+const toggleSort = (key: string) => {
+  if (sortKey.value !== key) {
+    sortKey.value = key;
+    sortOrder.value = 'asc';
+  } else {
+    sortOrder.value = sortOrder.value === 'asc' ? 'desc' : (sortOrder.value === 'desc' ? '' : 'asc');
+    if (sortOrder.value === '') sortKey.value = '';
+  }
+  applySort();
+};
+
+const sortIconClass = (key: string) => {
+  if (sortKey.value !== key) return 'custom-sort custom-sort--none';
+  return sortOrder.value === 'asc' ? 'custom-sort custom-sort--asc' : 'custom-sort custom-sort--desc';
+};
+
+const applySort = () => {
+  if (!sortKey.value || !sortOrder.value) {
     sortedMaterials.value = [...materialStore.materials];
     return;
   }
-  const { sortBy, descending } = sort;
-  const col = columns.find(c => c.colKey === sortBy);
-  if (col?.sorter) {
-    sortedMaterials.value = [...materialStore.materials].sort((a, b) => {
-      const result = (col.sorter as Function)(a, b);
-      return descending ? -result : result;
-    });
-  } else {
-    sortedMaterials.value = [...materialStore.materials];
-  }
+  const dir = sortOrder.value === 'desc' ? -1 : 1;
+
+  const sortFns: Record<string, (a: any, b: any) => number> = {
+    name: (a, b) => a.name.localeCompare(b.name, 'zh'),
+    materialType: (a, b) => (a.materialType || '').localeCompare(b.materialType || ''),
+    unitPrice: (a, b) => (a.unitPrice ?? 0) - (b.unitPrice ?? 0),
+    stock: (a, b) => (a.stock || 0) - (b.stock || 0),
+    createdAt: (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+  };
+
+  const fn = sortFns[sortKey.value];
+  sortedMaterials.value = fn
+    ? [...materialStore.materials].sort((a, b) => fn(a, b) * dir)
+    : [...materialStore.materials];
 };
 
 watch(() => materialStore.materials, (val) => {
   console.log('[MaterialList] materials watcher, count=', val.length);
-  if (tableSort.value?.sortBy) {
-    onSortChange(tableSort.value);
+  if (sortKey.value && sortOrder.value) {
+    applySort();
   } else {
     sortedMaterials.value = [...val];
   }
@@ -536,13 +614,14 @@ const handleBatchExport = () => {
 
 const columns = [
   { colKey: 'row-select', type: 'multiple', width: 50, resizable: false },
-  { colKey: 'name', title: '原料信息', width: 180, sorter: (a: any, b: any) => a.name.localeCompare(b.name, 'zh') },
+  { colKey: 'name', title: '原料信息', width: 180 },
   { colKey: 'dataSource', title: '数据源', width: 100, align: 'center' },
-  { colKey: 'materialType', title: '类型', width: 100, align: 'center', sorter: (a: any, b: any) => (a.materialType || '').localeCompare(b.materialType || '') },
-  { colKey: 'unit', title: '单位', width: 80, align: 'center' },
-  { colKey: 'stock', title: '库存', width: 100, sorter: (a: any, b: any) => (a.stock || 0) - (b.stock || 0) },
+  { colKey: 'materialType', title: '类型', width: 100, align: 'center' },
+  { colKey: 'unitPrice', title: '单价(元/kg)', width: 120, align: 'center' },
   { colKey: 'nutrition', title: '营养', width: 110, align: 'center' },
-  { colKey: 'createdAt', title: '创建时间', width: 160, sorter: (a: any, b: any) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime() },
+  { colKey: 'unit', title: '单位', width: 80, align: 'center' },
+  { colKey: 'stock', title: '库存', width: 100, align: 'center' },
+  { colKey: 'createdAt', title: '创建时间', width: 160 },
   { colKey: 'operation', title: '操作', width: 120, align: 'center', className: 'operation-col-center' }
 ];
 
@@ -573,7 +652,7 @@ const ACTIVITY_PAGE_SIZE = 4;
 const activityPage = ref(1);
 
 const allActivityItems = computed<ActivityItem[]>(() => {
-  const list = materialStore.materials;
+  const list = materialStore.allMaterials;
   if (!list || list.length === 0) return [];
 
   const items: ActivityItem[] = [];
@@ -604,10 +683,13 @@ const allActivityItems = computed<ActivityItem[]>(() => {
         time: timeAgo
       });
     } else {
+      const hasPrice = m.unitPrice != null && m.unitPrice > 0;
       items.push({
-        type: 'info',
-        title: `信息更新：${m.name}`,
-        desc: `<strong>${m.name}</strong> 原料信息已更新，编码 <span class="text-emerald-600 font-bold">${m.code}</span>，当前库存 ${m.stock}${m.unit}`,
+        type: hasPrice ? 'warning' : 'info',
+        title: hasPrice ? `单价更新：${m.name}` : `信息更新：${m.name}`,
+        desc: hasPrice
+          ? `<strong>${m.name}</strong>（${typeName}，编码 <span class="text-blue-600">${m.code}</span>）单价更新为 <span class="text-amber-600 font-bold">¥${m.unitPrice}/kg</span>`
+          : `<strong>${m.name}</strong> 原料信息已更新，编码 <span class="text-emerald-600 font-bold">${m.code}</span>，当前库存 ${m.stock}${m.unit}`,
         time: timeAgo
       });
     }
@@ -650,6 +732,7 @@ onMounted(() => {
   paginationStore.register(pagination.value);
   watch(pagination, (val) => paginationStore.update(val), { deep: true });
   loadMaterials();
+  fetchStats();
 });
 
 onUnmounted(() => {
@@ -658,7 +741,10 @@ onUnmounted(() => {
 });
 
 const loadMaterials = async () => {
-  await materialStore.fetchMaterials();
+  await Promise.all([
+    materialStore.fetchMaterials(),
+    materialStore.fetchAllForSelect()
+  ]);
   initialized.value = true;
   loadNutritionStatus();
 };
@@ -966,6 +1052,21 @@ const handleDelete = async (row: Material) => {
         margin-top: 8px;
       }
     }
+
+    :deep(.empty-add-btn) {
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18) !important;
+        filter: brightness(1.08);
+      }
+
+      &:active {
+        transform: translateY(0) scale(0.98);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12) !important;
+      }
+    }
   }
 
   // 工具栏
@@ -1267,8 +1368,15 @@ const handleDelete = async (row: Material) => {
           }
 
           &:last-child {
-            text-align: right;
             padding-right: 24px !important;
+
+            &:not(.operation-col-center) {
+              text-align: right;
+            }
+          }
+
+          &.operation-col-center {
+            text-align: center !important;
           }
         }
 
@@ -1333,6 +1441,62 @@ const handleDelete = async (row: Material) => {
   &.stock-low {
     color: #ef4444;
   }
+}
+
+.mat-price-cell {
+  display: inline-block;
+  text-align: center;
+  font-family: ui-monospace, SFMono-Regular, 'Cascadia Code', monospace;
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+
+  &.mat-price-empty {
+    font-weight: 400;
+    color: #94a3b8;
+    font-family: inherit;
+  }
+}
+
+// 自定义排序（无 TDesign 弹窗）
+.custom-sort-header {
+  cursor: pointer;
+  user-select: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+
+  &:hover {
+    color: #10b981;
+  }
+}
+
+.custom-sort {
+  display: inline-block;
+  width: 0;
+  height: 0;
+  margin-left: 2px;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  opacity: 0.25;
+  transition: all 0.2s;
+}
+
+.custom-sort--none {
+  border-top: 5px solid #94a3b8;
+  border-bottom: none;
+}
+
+.custom-sort--asc {
+  border-bottom: 5px solid #10b981;
+  border-top: none;
+  opacity: 1;
+}
+
+.custom-sort--desc {
+  border-top: 5px solid #10b981;
+  border-bottom: none;
+  opacity: 1;
 }
 
 // 营养空标签
@@ -1902,7 +2066,7 @@ const handleDelete = async (row: Material) => {
   text-align: center !important;
 }
 
-.material-list .content-card .t-table .t-table__body td[data-colkey="operation"],
+.material-list .content-card .t-table .t-table__body td.operation-col-center,
 .material-list .content-card .t-table .t-table__body td[data-colkey="materialType"],
 .material-list .content-card .t-table .t-table__body td[data-colkey="unit"],
 .material-list .content-card .t-table .t-table__body td[data-colkey="nutrition"],
@@ -1911,17 +2075,12 @@ const handleDelete = async (row: Material) => {
   vertical-align: middle !important;
 }
 
-/* 操作列居中 - 使用 className 选择器 */
+/* 操作列强制居中 */
 .material-list .operation-col-center {
   text-align: center !important;
 }
 
-.material-list :deep(.operation-col-center) {
-  text-align: center !important;
-  justify-content: center !important;
-}
-
-/* 操作按钮容器强制居中 */
+.material-list .operation-col-center>div,
 .material-list .action-buttons {
   display: flex !important;
   justify-content: center !important;

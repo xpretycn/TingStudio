@@ -55,13 +55,17 @@
               </h3>
               <div class="section-content space-y-6">
                 <div class="form-field">
-                  <label class="field-label" id="lbl-formula-name">配方名称 <span class="required">*</span></label>
+                  <label class="field-label" id="lbl-formula-name"><t-icon name="edit-1" size="12px"
+                      class="label-icon" /> 配方名称
+                    <span class="required">*</span></label>
                   <t-input v-model="formData.name" placeholder="例如：佛手玫苓膏" clearable class="field-input"
                     aria-required="true" aria-labelledby="lbl-formula-name" data-testid="formula-name-input" />
                 </div>
 
                 <div class="form-field">
-                  <label class="field-label" id="lbl-salesman">所属业务员 <span class="required">*</span></label>
+                  <label class="field-label" id="lbl-salesman"><t-icon name="user-circle" size="12px"
+                      class="label-icon" /> 所属业务员
+                    <span class="required">*</span></label>
                   <t-select v-model="formData.salesmanId" placeholder="请选择业务员" clearable filterable class="field-input"
                     aria-required="true" aria-labelledby="lbl-salesman">
                     <t-option v-for="salesman in salesmanStore.salesmen" :key="salesman.id" :value="salesman.id"
@@ -69,38 +73,46 @@
                   </t-select>
                 </div>
 
+                <div class="form-field">
+                  <label class="field-label" id="lbl-weight"><t-icon name="measurement" size="12px"
+                      class="label-icon" /> 成品重量(g)
+                    <span class="required">*</span><span class="field-help-inline">成品规格，用于营养成分含量比计算的核心数据</span></label>
+                  <t-input-number v-model="formData.finishedWeight" :min="0" :decimal-places="2" placeholder="1000"
+                    class="field-input" aria-required="true" aria-labelledby="lbl-weight" />
+                </div>
+
                 <div class="grid grid-cols-2 gap-6">
                   <div class="form-field">
-                    <label class="field-label" id="lbl-weight">成品重量(g) <span class="required">*</span></label>
-                    <t-input-number v-model="formData.finishedWeight" :min="0" :decimal-places="2" placeholder="1000"
-                      class="field-input" aria-required="true" aria-labelledby="lbl-weight" />
-                  </div>
-                  <div class="form-field">
-                    <label class="field-label" id="lbl-ratio-factor">主料含量比系数 <span class="required">*</span></label>
+                    <label class="field-label" id="lbl-ratio-factor"><t-icon name="control-platform" size="12px"
+                        class="label-icon" /> 主料含量比系数 <span class="required">*</span></label>
                     <t-input-number v-model="formData.ratioFactor" :min="0.15" :max="0.25" :decimal-places="2"
                       placeholder="0.18" class="field-input" aria-required="true" aria-labelledby="lbl-ratio-factor" />
                   </div>
-                </div>
 
-                <div class="form-field">
-                  <label class="field-label" id="lbl-supplement-factor">辅料含量比系数 <span class="required">*</span></label>
-                  <t-input-number v-model="formData.supplementRatioFactor" :min="0.5" :max="1.5" :decimal-places="2"
-                    placeholder="1.0" class="field-input" aria-required="true"
-                    aria-labelledby="lbl-supplement-factor" />
-                  <p class="field-help">用于营养成分含量比计算，主料系数范围0.15-0.25，辅料系数范围0.5-1.5</p>
+                  <div class="form-field">
+                    <label class="field-label" id="lbl-supplement-factor"><t-icon name="chart-bar" size="12px"
+                        class="label-icon" />
+                      辅料含量比系数 <span class="required">*</span></label>
+                    <t-input-number v-model="formData.supplementRatioFactor" :min="0.5" :max="1.5" :decimal-places="2"
+                      placeholder="1.0" class="field-input" aria-required="true"
+                      aria-labelledby="lbl-supplement-factor" />
+                    <p class="field-help">用于营养成分含量比计算，主料系数范围0.15-0.25，辅料系数范围0.5-1.5</p>
+                  </div>
+                  <div v-if="isEdit" class="form-field">
+                    <label class="field-label" id="lbl-version-reason"><t-icon name="history" size="12px"
+                        class="label-icon" /> 升版原因
+                      <span class="required">*</span></label>
+                    <t-textarea v-model="formData.versionReason" placeholder="请输入升版原因（必填）"
+                      :autosize="{ minRows: 2, maxRows: 4 }" class="field-input" aria-required="true"
+                      aria-labelledby="lbl-version-reason" />
+                  </div>
                 </div>
-
                 <div class="form-field">
-                  <label class="field-label" id="lbl-description">配方描述</label>
+                  <label class="field-label" id="lbl-description"><t-icon name="chat-bubble" size="12px"
+                      class="label-icon" />
+                    配方描述</label>
                   <t-textarea v-model="formData.description" placeholder="简述该配方的研发目标和主要特点..."
                     :autosize="{ minRows: 3, maxRows: 6 }" class="field-input" aria-labelledby="lbl-description" />
-                </div>
-
-                <div v-if="isEdit" class="form-field">
-                  <label class="field-label" id="lbl-version-reason">升版原因 <span class="required">*</span></label>
-                  <t-textarea v-model="formData.versionReason" placeholder="请输入升版原因（必填）"
-                    :autosize="{ minRows: 2, maxRows: 4 }" class="field-input" aria-required="true"
-                    aria-labelledby="lbl-version-reason" />
                 </div>
               </div>
             </section>
@@ -296,12 +308,12 @@
                             {{ aiStore.parseResult.salesmanName || '未识别' }}
                           </span>
                         </div>
-                        <div class="result-item">
-                          <span class="result-label">成品重量</span>
-                          <span class="result-value"
-                            :class="{ 'result-value--empty': !aiStore.parseResult.finishedWeight }">
-                            {{ aiStore.parseResult.finishedWeight ? aiStore.parseResult.finishedWeight + 'g' : '未识别' }}
-                          </span>
+                        <div class="result-item result-item--desc">
+                          <span class="result-label">配方描述</span>
+                          <div class="result-desc-wrap"
+                            :class="{ 'result-value--empty': !aiStore.parseResult.description }">
+                            {{ aiStore.parseResult.description || '未识别' }}
+                          </div>
                         </div>
                         <div v-if="aiStore.parseResult.confidence != null" class="result-item">
                           <span class="result-label">解析可信度</span>
@@ -361,9 +373,22 @@
                         </div>
                       </div>
 
+                      <div v-if="hasUnmatchedMaterials" class="unmatched-warning">
+                        <div class="unmatched-warning-header">
+                          <t-icon name="error-circle" />
+                          <span>以下原料未匹配到系统数据库，需要补充后才能回填</span>
+                        </div>
+                        <ul class="unmatched-list">
+                          <li v-for="(m, idx) in unmatchedMaterials" :key="idx" class="unmatched-item">
+                            <span class="unmatched-name">{{ m.name }}</span>
+                            <span class="unmatched-qty">{{ m.quantity }}{{ m.unit || 'g' }}</span>
+                          </li>
+                        </ul>
+                      </div>
+
                       <div class="result-actions">
                         <t-button theme="success" block @click="backfillData" class="backfill-btn"
-                          aria-label="确认并回填AI解析数据到表单">
+                          :disabled="hasUnmatchedMaterials" aria-label="确认并回填AI解析数据到表单">
                           <template #icon>
                             <t-icon name="check-circle" />
                           </template>
@@ -414,13 +439,81 @@
               </div>
             </section>
 
+            <!-- 报价预览 -->
+            <section class="form-section quote-sec">
+              <div class="section-header">
+                <h3 class="section-title">
+                  <t-icon name="currency-exchange" class="section-icon" />
+                  配方报价
+                </h3>
+              </div>
+              <div class="quote-body">
+                <div class="quote-mat-list" v-if="priceQuote.materials.length > 0">
+                  <div class="quote-mat-header">
+                    <span class="qm-name">原料</span><span class="qm-qty">用量</span><span class="qm-price">单价</span><span
+                      class="qm-sub">小计</span>
+                  </div>
+                  <div v-for="(m, idx) in priceQuote.materials" :key="idx" class="quote-mat-row"
+                    :class="{ 'quote-mat--warn': m.unitPrice === null, 'quote-mat--adjusted': m.isAdjusted }">
+                    <span class="qm-name">{{ m.name || '--' }}</span>
+                    <span class="qm-qty">{{ m.quantity }}g</span>
+                    <span class="qm-price" v-if="m.unitPrice === null">未录入</span>
+                    <div class="qm-price-edit" v-else>
+                      <t-input-number :model-value="m.unitPrice" @change="(val: number) => handlePriceAdjust(idx, val)"
+                        :min="0" :precision="2" size="small" theme="normal"
+                        :style="{ width: '80px', color: m.isAdjusted ? '#f59e0b' : '#334155', fontWeight: m.isAdjusted ? 600 : 400 }" />
+                      <span class="qm-price-unit">/kg</span>
+                      <span v-if="m.isAdjusted" class="qm-adjust-badge">调</span>
+                    </div>
+                    <span class="qm-sub">{{ m.unitPrice != null ? `¥${m.subtotal.toFixed(2)}` : '--' }}</span>
+                  </div>
+                </div>
+                <p v-if="priceQuote.missingPrices.length > 0" class="quote-warn-text">
+                  <t-icon name="error-circle" /> 以下原料未录入单价：{{ priceQuote.missingPrices.join('、') }}
+                </p>
+                <div class="quote-summary">
+                  <div class="qs-row qs-total">
+                    <label><t-icon name="outbox" size="14px" class="qs-label-icon" /> 原料成本</label>
+                    <span>¥{{ priceQuote.materialTotal.toFixed(2) }}</span>
+                  </div>
+                  <div class="qs-row">
+                    <label><t-icon name="shop" size="14px" class="qs-label-icon" /> 包材费用</label>
+                    <div class="qs-input-wrap"><t-input-number v-model="formData.packagingPrice" :min="0" :precision="2"
+                        size="small" theme="normal" style="width:100px" /><span class="qs-unit">元</span></div>
+                  </div>
+                  <div class="qs-row">
+                    <label><t-icon name="edit-1" size="14px" class="qs-label-icon" /> 其他费用</label>
+                    <div class="qs-input-wrap"><t-input-number v-model="formData.otherPrice" :min="0" :precision="2"
+                        size="small" theme="normal" style="width:100px" /><span class="qs-unit">元</span></div>
+                  </div>
+                  <div class="qs-divider"></div>
+                  <div class="qs-row qs-subtotal">
+                    <label><t-icon name="wallet" size="14px" class="qs-label-icon" /> 成本小计</label>
+                    <span>¥{{ priceQuote.costSubtotal.toFixed(2) }}</span>
+                  </div>
+                  <div class="qs-row">
+                    <label><t-icon name="chart-pie" size="14px" class="qs-label-icon" /> 利润率</label>
+                    <div class="qs-input-wrap"><t-input-number v-model="formData.profitMargin" :min="0" :max="999"
+                        :precision="1" size="small" theme="normal" style="width:80px" /><span class="qs-unit">%</span>
+                    </div>
+                  </div>
+                  <div class="qs-divider qs-divider--bold"></div>
+                  <div class="qs-row qs-final">
+                    <label><t-icon name="money-filled" size="16px" class="qs-label-icon qs-label-icon--final" />
+                      最终报价</label>
+                    <span>¥{{ priceQuote.totalPrice.toFixed(2) }}</span>
+                  </div>
+                </div>
+              </div>
+            </section>
+
             <!-- 操作提示卡片 -->
             <section class="tips-panel">
               <h3 class="tips-title">操作提示</h3>
               <ul class="tips-list">
                 <li class="tip-item">
                   <t-icon name="lightbulb" class="tip-icon" />
-                  <span>点击「下载模板」获取Excel模板文件</span>
+                  <span>点击<a class="tip-link" @click="downloadTemplate">「下载模板」</a>获取Excel模板文件</span>
                 </li>
                 <li class="tip-item">
                   <t-icon name="lightbulb" class="tip-icon" />
@@ -458,6 +551,7 @@ import { MessagePlugin } from 'tdesign-vue-next';
 import type { FormRule } from 'tdesign-vue-next';
 import type { MaterialItem } from '@/api/formula';
 import type { ParsedMaterial } from '@/api/excelImport';
+import { excelImportApi } from '@/api/excelImport';
 import ExcelImportPanel from '@/components/ExcelImportPanel.vue';
 
 const router = useRouter();
@@ -486,6 +580,37 @@ const IMAGE_EXTS = ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp'];
 const totalQuantity = computed(() => {
   return formData.materials.reduce((sum: number, item: any) => sum + (item.quantity || 0), 0).toFixed(2);
 });
+
+const priceQuote = computed(() => {
+  const allMats = materialStore.allMaterials ?? [];
+  const matDetails = formData.materials.map((item: any) => {
+    const mat = allMats.find((m: any) => m.id === item.materialId);
+    const basePrice = mat?.unitPrice ?? null;
+    const effectivePrice = (item.adjustedPrice != null && item.adjustedPrice !== basePrice) ? item.adjustedPrice : basePrice;
+    const isAdjusted = item.adjustedPrice != null && item.adjustedPrice !== basePrice;
+    const subtotal = effectivePrice != null ? Number((item.quantity / 1000 * effectivePrice).toFixed(4)) : 0;
+    return { ...item, unitPrice: effectivePrice, basePrice, isAdjusted, subtotal, name: item.materialName || '' };
+  });
+  const materialTotal = matDetails.reduce((s: number, m: any) => s + (m.subtotal || 0), 0);
+  const costSubtotal = Number((materialTotal + (formData.packagingPrice || 0) + (formData.otherPrice || 0)).toFixed(4));
+  const margin = formData.profitMargin ?? 20;
+  const totalPrice = Number((costSubtotal * (1 + margin / 100)).toFixed(4));
+  const missingPrices = matDetails.filter((m: any) => m.unitPrice === null).map((m: any) => m.name);
+  return { materials: matDetails, materialTotal, packagingPrice: formData.packagingPrice || 0, otherPrice: formData.otherPrice || 0, costSubtotal, profitMargin: margin, totalPrice, missingPrices };
+});
+
+const handlePriceAdjust = (idx: number, val: number | undefined) => {
+  if (formData.materials[idx]) {
+    const allMats = materialStore.allMaterials ?? [];
+    const mat = allMats.find((m: any) => m.id === formData.materials[idx].materialId);
+    const basePrice = mat?.unitPrice ?? null;
+    if (val === undefined || val === null || val === basePrice) {
+      delete formData.materials[idx].adjustedPrice;
+    } else {
+      formData.materials[idx].adjustedPrice = val;
+    }
+  }
+};
 
 // 解析进度反馈
 const parseProgressText = computed(() => {
@@ -534,6 +659,18 @@ const isEdit = computed(() => !!route.params.id);
 // AI 预填标志
 const isAiPrefill = ref(false);
 
+const hasUnmatchedMaterials = computed(() => {
+  const data = aiStore.parseResult;
+  if (!data?.materials?.length) return false;
+  return data.materials.some((m: any) => !m.matched);
+});
+
+const unmatchedMaterials = computed(() => {
+  const data = aiStore.parseResult;
+  if (!data?.materials?.length) return [];
+  return data.materials.filter((m: any) => !m.matched);
+});
+
 const formData = reactive<any>({
   name: '',
   salesmanId: '',
@@ -541,6 +678,9 @@ const formData = reactive<any>({
   finishedWeight: 0,
   ratioFactor: 0.18,
   supplementRatioFactor: 1.0,
+  packagingPrice: 0,
+  otherPrice: 0,
+  profitMargin: 20,
   description: '',
   versionReason: ''
 });
@@ -813,12 +953,38 @@ const handleParse = async () => {
   await aiStore.parseFormula(selectedFile.value);
 };
 
+// 下载Excel模板
+const downloadingTemplate = ref(false);
+const downloadTemplate = async () => {
+  downloadingTemplate.value = true;
+  try {
+    const response = await excelImportApi.downloadTemplate();
+    const blob = new Blob([response as any], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = '配方导入模板.xlsx';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+    MessagePlugin.success('模板下载成功');
+  } catch (error: any) {
+    MessagePlugin.error(error.message || '下载模板失败');
+  } finally {
+    downloadingTemplate.value = false;
+  }
+};
+
 // 回填数据到表单
 const backfillData = () => {
   const data = aiStore.parseResult;
   if (!data?.name) return;
 
   formData.name = data.name;
+
   if (data.description) formData.description = data.description;
   if (data.finishedWeight) formData.finishedWeight = data.finishedWeight;
 
@@ -918,9 +1084,9 @@ const getConfidenceItems = () => {
     const v = matchedCount > 0 ? Math.round((matchedCount / data.materials.length) * 100) : 0;
     items.push({ label: '原料清单', value: v, level: getConfidenceLevel(v / 100) });
   }
-  if (data.finishedWeight) {
+  if (data.description) {
     const v = baseConf ?? 100;
-    items.push({ label: '成品重量', value: v, level: getConfidenceLevel(v / 100) });
+    items.push({ label: '配方描述', value: v, level: getConfidenceLevel(v / 100) });
   }
   return items;
 };
@@ -936,19 +1102,26 @@ onMounted(async () => {
     aiStore.selectedModel = aiStore.models[0].provider;
   }
 
+  if (!isEdit.value) {
+    aiStore.clearParseResult();
+    selectedFile.value = null;
+    if (fileInputRef.value) fileInputRef.value.value = '';
+  }
+
   const id = route.params.id as string;
   if (isEdit.value && id) {
     const formula = await formulaStore.getFormula(id);
     if (formula) {
       const allMats = materialStore.allMaterials ?? [];
       const materials = (formula.materials || []).map((m: any) => {
-        // 校正 materialId：若当前原料列表中找不到该 ID，则通过名称匹配
         let materialId = m.materialId;
         if (!allMats.find(mat => mat.id === materialId) && m.materialName) {
           const matched = allMats.find(mat => mat.name === m.materialName);
           if (matched) materialId = matched.id;
         }
-        return { materialId, materialName: m.materialName, quantity: m.quantity };
+        const item: any = { materialId, materialName: m.materialName, quantity: m.quantity };
+        if (m.adjustedPrice != null) item.adjustedPrice = m.adjustedPrice;
+        return item;
       });
       Object.assign(formData, {
         name: formula.name,
@@ -957,6 +1130,9 @@ onMounted(async () => {
         finishedWeight: formula.finishedWeight || 0,
         ratioFactor: formula.ratioFactor ?? 0.18,
         supplementRatioFactor: formula.supplementRatioFactor ?? 1.0,
+        packagingPrice: formula.packagingPrice ?? 0,
+        otherPrice: formula.otherPrice ?? 0,
+        profitMargin: formula.profitMargin ?? 20,
         description: formula.description || ''
       });
     }
@@ -1324,14 +1500,28 @@ onMounted(async () => {
     .section-content {
       .form-field {
         .field-label {
-          display: block;
+          display: flex;
+          align-items: center;
+          gap: 6px;
           font-size: 14px;
           font-weight: 700;
           color: #334155;
           margin-bottom: 8px;
 
+          .label-icon {
+            color: #10b981;
+            flex-shrink: 0;
+          }
+
           .required {
             color: #f43f5e;
+          }
+
+          .field-help-inline {
+            font-size: 12px;
+            font-weight: 400;
+            color: #94a3b8;
+            margin-left: 4px;
           }
         }
 
@@ -1343,6 +1533,7 @@ onMounted(async () => {
           margin-top: 4px;
           font-size: 12px;
           color: #64748b;
+          text-align: left;
         }
 
         // ═══ 输入框 — 参照 new-recipe.html 样式 ═══
@@ -1997,6 +2188,39 @@ onMounted(async () => {
                 border-radius: 4px;
                 font-size: 11px;
               }
+
+              &--desc {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 6px;
+                padding: 12px 0;
+
+                .result-desc-wrap {
+                  font-size: 13px;
+                  line-height: 1.7;
+                  color: #334155;
+                  text-align: justify;
+                  word-break: break-word;
+                  white-space: pre-wrap;
+                  background: rgba(16, 185, 129, 0.04);
+                  border: 1px solid rgba(16, 185, 129, 0.12);
+                  border-radius: 8px;
+                  padding: 12px 14px;
+                  width: 100%;
+                  max-height: 180px;
+                  overflow-y: auto;
+
+                  &--empty {
+                    color: $text-placeholder;
+                    font-weight: 500;
+                  }
+                }
+
+                .result-label {
+                  font-weight: 600;
+                  color: #475569;
+                }
+              }
             }
 
             // 可信度
@@ -2271,6 +2495,62 @@ onMounted(async () => {
             }
           }
 
+          .unmatched-warning {
+            margin: 12px 0;
+            padding: 12px 16px;
+            background: #fffbeb;
+            border: 1px solid #fcd34d;
+            border-radius: 12px;
+            animation: fadeInUp 0.3s ease both;
+
+            .unmatched-warning-header {
+              display: flex;
+              align-items: center;
+              gap: 6px;
+              font-size: 12px;
+              font-weight: 700;
+              color: #b45309;
+              margin-bottom: 8px;
+
+              .t-icon {
+                font-size: 14px;
+                color: #f59e0b;
+              }
+            }
+
+            .unmatched-list {
+              list-style: none;
+              padding: 0;
+              margin: 0;
+
+              .unmatched-item {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 4px 0;
+                font-size: 12px;
+                color: #92400e;
+                border-bottom: 1px dashed #fde68a;
+
+                &:last-child {
+                  border-bottom: none;
+                }
+
+                .unmatched-name {
+                  font-weight: 600;
+                }
+
+                .unmatched-qty {
+                  font-size: 11px;
+                  color: #a16207;
+                  background: #fef3c7;
+                  padding: 1px 8px;
+                  border-radius: 6px;
+                }
+              }
+            }
+          }
+
           .result-actions {
             .backfill-btn {
               margin-bottom: 12px;
@@ -2326,6 +2606,196 @@ onMounted(async () => {
     }
   }
 
+  // 报价预览
+  .quote-sec {
+    margin-top: -12px;
+
+    .section-header {
+      margin-bottom: 0px;
+    }
+
+    .quote-body {
+      display: flex;
+      flex-direction: column;
+      gap: $space-4;
+    }
+
+    .quote-mat-list {
+      background: #f8fafc;
+      border-radius: $radius-lg;
+      padding: 12px 16px;
+      border: 1px solid #e2e8f0;
+    }
+
+    .quote-mat-header {
+      display: grid;
+      grid-template-columns: 1fr 70px 145px 85px;
+      gap: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      padding-bottom: 6px;
+      border-bottom: 1px solid #e2e8f0;
+      margin-bottom: 4px;
+    }
+
+    .quote-mat-row {
+      display: grid;
+      grid-template-columns: 1fr 70px 145px 85px;
+      gap: 8px;
+      align-items: center;
+      padding: 5px 0;
+      font-size: 13px;
+      color: #334155;
+
+      &--warn {
+        color: #94a3b8;
+
+        .qm-price {
+          color: #f59e0b;
+        }
+
+        .qm-sub {
+          color: #94a3b8;
+        }
+      }
+
+      &--adjusted {
+        .qm-name {
+          color: #d97706;
+          font-weight: 500;
+        }
+      }
+    }
+
+    .qm-price-edit {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+
+      .t-input-number {
+        width: 80px;
+      }
+
+      :deep(.t-input-number .t-input__inner) {
+        text-align: right;
+        font-size: 13px;
+      }
+    }
+
+    .qm-price-unit {
+      font-size: 12px;
+      color: #94a3b8;
+      flex-shrink: 0;
+    }
+
+    .qm-adjust-badge {
+      display: inline-block;
+      font-size: 10px;
+      line-height: 1;
+      padding: 1px 4px;
+      border-radius: 4px;
+      background: #fef3c7;
+      color: #d97706;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    .quote-warn-text {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: #f59e0b;
+      background: #fffbeb;
+      padding: 8px 14px;
+      border-radius: $radius-lg;
+      border: 1px solid #fde68a;
+    }
+
+    .quote-summary {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .qs-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 14px;
+
+      label {
+        color: #64748b;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      span {
+        font-family: ui-monospace, SFMono-Regular, 'Cascadia Code', monospace;
+        font-weight: 600;
+        color: #334155;
+      }
+    }
+
+    .qs-label-icon {
+      color: #94a3b8;
+      flex-shrink: 0;
+    }
+
+    .qs-label-icon--final {
+      color: #059669;
+    }
+
+    .qs-total span,
+    .qs-subtotal span {
+      color: #059669;
+    }
+
+    .qs-final {
+      label {
+        color: #059669;
+        font-weight: 700;
+        font-size: 15px;
+      }
+
+      span {
+        font-size: 18px;
+        color: #059669;
+        font-weight: 800;
+      }
+    }
+
+    .qs-input-wrap {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+
+      :deep(.t-input-number),
+      :deep(.t-input-number .t-input__inner) {
+        text-align: right;
+      }
+    }
+
+    .qs-unit {
+      font-size: 12px;
+      color: #94a3b8;
+    }
+
+    .qs-divider {
+      height: 1px;
+      background: #e2e8f0;
+
+      &--bold {
+        background: #cbd5e1;
+      }
+    }
+  }
+
   // 提示面板
   .tips-panel {
     background: #fff;
@@ -2363,6 +2833,20 @@ onMounted(async () => {
           font-size: 14px;
           margin-top: 2px;
           flex-shrink: 0;
+        }
+
+        .tip-link {
+          color: $emerald-500;
+          font-weight: 700;
+          cursor: pointer;
+          text-decoration: none;
+          border-bottom: 1px dashed $emerald-100;
+          transition: all $transition-fast;
+
+          &:hover {
+            color: $emerald-600;
+            border-bottom-color: $emerald-500;
+          }
         }
       }
     }

@@ -144,7 +144,7 @@ const router = createRouter({
           path: "settings",
           name: "AccountSettings",
           component: () => import("@/views/settings/AccountSettings.vue"),
-          meta: { title: "账号设置" },
+          meta: { title: "账号设置", hideHeader: true },
         },
       ],
     },

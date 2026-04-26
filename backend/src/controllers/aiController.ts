@@ -12,7 +12,7 @@ import {
   NL2SQL_USER_PROMPT,
 } from "../services/ai/prompts.js";
 import { validateSQL, readFileAsBase64 } from "../utils/sqlValidator.js";
-import { query } from "../config/database.js";
+import { query } from "../config/database-better-sqlite3.js";
 import fs from "node:fs";
 import path from "node:path";
 import XLSX from "xlsx";
@@ -291,6 +291,17 @@ export async function parseMaterialNutrition(req: any, res: Response) {
       }
     }
 
+    // ─── 智能数据验证与修正：检测并修复列错位问题 ───
+    for (const mat of parsed.materials) {
+      const corrected = validateAndFixNutritionData(mat);
+      if (corrected.wasFixed) {
+        console.log(
+          `[AI] 数据修正 [${mat.name}]: protein ${mat.protein}->${corrected.data.protein}, fat ${mat.fat}->${corrected.data.fat}`,
+        );
+        Object.assign(mat, corrected.data);
+      }
+    }
+
     const userId = req.user.userId;
 
     for (const mat of parsed.materials) {
@@ -541,4 +552,76 @@ async function matchMaterials(materials: ParsedMaterial[], userId: string): Prom
     }
   }
   return materials;
+}
+
+// ─── 营养数据智能验证与修正 ───
+
+interface NutritionFixResult {
+  data: MaterialNutritionItem;
+  wasFixed: boolean;
+}
+
+function validateAndFixNutritionData(mat: MaterialNutritionItem): NutritionFixResult {
+  const p = mat.protein;
+  const f = mat.fat;
+  const c = mat.carbohydrate;
+  const s = mat.sodium;
+
+  if (p == null && f == null && c == null && s == null) {
+    return { data: mat, wasFixed: false };
+  }
+
+  let wasFixed = false;
+  const fixed = { ...mat };
+
+  const numericValues = [p, f, c].filter(v => v != null && !isNaN(Number(v))) as number[];
+
+  if (numericValues.length >= 2) {
+    const maxVal = Math.max(...numericValues);
+
+    if (c == null || (maxVal > 0 && maxVal !== c)) {
+      const candidates = [p, f, c].filter(v => v != null && v === maxVal);
+      if (candidates.length === 1 && c !== maxVal) {
+        if (p === maxVal && f != null && f < p) {
+          console.log(`[AI] 检测到可能的列错位 [${mat.name}]: protein=${p} 异常高，与 fat=${f} 可能互换`);
+          fixed.protein = f;
+          fixed.fat = p;
+          wasFixed = true;
+        }
+      }
+    }
+
+    if (!wasFixed && p != null && f != null) {
+      const PROTEIN_TYPICAL_MAX = 25;
+      const FAT_TYPICAL_MAX = 15;
+
+      if (p > PROTEIN_TYPICAL_MAX && f <= FAT_TYPICAL_MAX && p > f * 2.5) {
+        console.log(`[AI] 检测到可能的列错位 [${mat.name}]: protein=${p} 超出典型范围，与 fat=${f} 交换`);
+        const temp = fixed.protein;
+        fixed.protein = fixed.fat;
+        fixed.fat = temp;
+        wasFixed = true;
+      }
+    }
+  }
+
+  if (!wasFixed && c != null && p != null && f != null) {
+    const sorted = [p, f, c].sort((a, b) => a - b);
+    if (c < sorted[1]) {
+      console.log(`[AI] 检测到可能的列错位 [${mat.name}]: carbohydrate=${c} 不是最大值，尝试修正`);
+      if (p > f && p > c) {
+        const temp = fixed.protein;
+        fixed.protein = fixed.carbohydrate;
+        fixed.carbohydrate = temp;
+        wasFixed = true;
+      } else if (f > p && f > c) {
+        const temp = fixed.fat;
+        fixed.fat = fixed.carbohydrate;
+        fixed.carbohydrate = temp;
+        wasFixed = true;
+      }
+    }
+  }
+
+  return { data: fixed, wasFixed };
 }

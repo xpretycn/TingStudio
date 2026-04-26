@@ -1,70 +1,103 @@
-import http from './http'
+import http from "./http";
 
 export interface MaterialItem {
-  materialId: string
-  materialName: string
-  quantity: number
+  materialId: string;
+  materialName: string;
+  quantity: number;
+  adjustedPrice?: number | null;
 }
 
 export interface FormulaVersion {
-  versionId: string
-  formulaId: string
-  versionNumber: string
-  versionName: string | null
-  changesJson: string | null
-  snapshotJson: string
-  status: string
-  isCurrent: number
-  createdBy: string
-  createdAt: string
+  versionId: string;
+  formulaId: string;
+  versionNumber: string;
+  versionName: string | null;
+  changesJson: string | null;
+  snapshotJson: string;
+  status: string;
+  isCurrent: number;
+  createdBy: string;
+  createdAt: string;
 }
 
 export interface Formula {
-  id: string
-  name: string
-  salesmanId: string
-  salesmanName: string
-  materialsJson: string
-  finishedWeight: number
-  ratioFactor: number
-  supplementRatioFactor: number
-  description: string | null
-  createdBy: string
-  createdAt: string
-  updatedAt: string
-  materials?: MaterialItem[]
-  versions?: FormulaVersion[]
+  id: string;
+  name: string;
+  salesmanId: string;
+  salesmanName: string;
+  materialsJson: string;
+  finishedWeight: number;
+  ratioFactor: number;
+  supplementRatioFactor: number;
+  packagingPrice?: number;
+  otherPrice?: number;
+  profitMargin?: number;
+  costSubtotal?: number;
+  totalPrice?: number;
+  description: string | null;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+  materials?: MaterialItem[];
+  versions?: FormulaVersion[];
 }
 
 export interface FormulaForm {
-  name: string
-  salesmanId: string
-  materials: { materialId: string; materialName?: string; quantity: number }[]
-  finishedWeight: number
-  ratioFactor?: number
-  supplementRatioFactor?: number
-  description?: string
-  versionReason?: string
+  name: string;
+  salesmanId: string;
+  materials: { materialId: string; materialName?: string; quantity: number }[];
+  finishedWeight: number;
+  ratioFactor?: number;
+  supplementRatioFactor?: number;
+  packagingPrice?: number;
+  otherPrice?: number;
+  profitMargin?: number;
+  description?: string;
+  versionReason?: string;
+}
+
+export interface PriceQuoteMaterial {
+  materialId: string;
+  materialName: string;
+  quantity: number;
+  unitPrice: number | null;
+  basePrice: number | null;
+  isAdjusted: boolean;
+  subtotal: number;
+}
+
+export interface PriceQuote {
+  materials: PriceQuoteMaterial[];
+  materialTotal: number;
+  packagingPrice: number;
+  otherPrice: number;
+  costSubtotal: number;
+  profitMargin: number;
+  totalPrice: number;
+  missingPrices: string[];
 }
 
 export const formulaApi = {
   getList(params?: { keyword?: string; salesmanId?: string; page?: number; pageSize?: number }) {
     // axios 拦截器会提取 res.data，所以这里直接返回内部的数据结构
-    return http.get<any, { list: Formula[]; pagination: any }>('/formulas', { params })
+    return http.get<any, { list: Formula[]; pagination: any }>("/formulas", { params });
   },
   getById(id: string) {
-    return http.get<any, Formula>(`/formulas/${id}`)
+    return http.get<any, Formula>(`/formulas/${id}`);
   },
   create(data: FormulaForm) {
-    return http.post<any, Formula>('/formulas', data)
+    return http.post<any, Formula>("/formulas", data);
   },
   update(id: string, data: Partial<FormulaForm>) {
-    return http.put<any, Formula>(`/formulas/${id}`, data)
+    return http.put<any, Formula>(`/formulas/${id}`, data);
   },
   delete(id: string) {
-    return http.delete<any, { message: string }>(`/formulas/${id}`)
+    return http.delete<any, { message: string }>(`/formulas/${id}`);
   },
   getByMaterial(materialId: string) {
-    return http.get<any, Formula[]>(`/formulas/by-material/${materialId}`)
+    return http.get<any, Formula[]>(`/formulas/by-material/${materialId}`);
   },
-}
+  getPriceQuote(id: string) {
+    return http.get<any, PriceQuote>(`/formulas/${id}/price-quote`);
+  },
+};

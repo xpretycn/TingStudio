@@ -12,8 +12,34 @@ function ensureTmpDirs() {
   });
 }
 
+function loadEnvConfig() {
+  const envPath = path.join(__dirname, '.env.production');
+
+  if (fs.existsSync(envPath)) {
+    const envContent = fs.readFileSync(envPath, 'utf8');
+    const lines = envContent.split('\n');
+
+    lines.forEach(line => {
+      line = line.trim();
+      if (!line || line.startsWith('#')) return;
+
+      const [key, ...valueParts] = line.split('=');
+      if (key && valueParts.length > 0) {
+        const value = valueParts.join('=').trim();
+        process.env[key.trim()] = value.replace(/^["']|["']$/g, '');
+      }
+    });
+
+    console.log('✅ 已加载 .env.production 配置');
+  } else {
+    console.warn('⚠️  未找到 .env.production 文件');
+  }
+}
+
 async function bootstrap() {
   ensureTmpDirs();
+
+  loadEnvConfig();
 
   process.env.UPLOAD_DIR = "/tmp/uploads";
   process.env.EXPORT_DIR = "/tmp/exports";

@@ -1,4 +1,4 @@
-# TingStudio v2.18
+# TingStudio v2.19
 
 食品配方工作数据管理平台 — 前后端分离架构
 
@@ -6,9 +6,68 @@
 
 TingStudio 是一个专业的食品配方工作数据管理平台，面向食品配方行业（中草药功效配方），提供配方管理、原料管理、业务员管理、营养成分分析、导出分享等完整功能链路。采用 **Vue 3 + Express + 腾讯MySQL** 前后端分离架构，支持 JWT 认证、RESTful API、配方版本控制、营养合规检查等企业级特性。
 
-## 🚀 最新更新 (2026-04-24)
+## 🚀 最新更新 (2026-04-26)
 
-### ✅ 数据库驱动修复与本地调试优化
+### ✅ P1 阶段 — 配方定价系统（可调整原料单价）
+
+#### 💰 核心功能
+
+- **原料单价微调**: 配方编辑时支持单独调整每个原料的单价，覆盖原料库基价
+- **微调标记**: 调整后的原料显示橙色「**调**」文字 badge，清晰标识
+- **成本自动重算**: 单价变更后实时更新原料小计、配方总成本、报价
+- **版本快照记录**: 保存时将 adjustedPrice 写入 snapshot_json，永久保留
+
+#### 📋 版本历史增强
+
+- **基价调整追踪**: `buildChanges()` 新增 `adjustedPrice` 字段对比检测
+  - 旧值显示为「**基价**」（表示使用原始库价）
+  - 新值显示为「**¥xx.xx/kg**」
+- **版本名称智能生成**: `buildVersionName()` 新增基价分支
+  - 例：修改肉豆蔻基价、修改藿香基价
+- **变更明细展示**: 版本详情右侧面板展示完整的单价变更前后值
+
+#### 📡 近期动态增强
+
+- **基价变动事件**: 近期动态新增独立的「**原料单价调整**」warning 类型条目
+  - 显示格式：`正阳御湿膏 v1.7 调整了 肉豆蔻 的单价`
+  - 支持多原料批量调整合并展示
+- **排序修复**: 移除类型优先级排序（success > warning > info），改为纯时间倒序
+  - 确保最新变动（含基价调整）始终在第 1 页可见
+- **路由监听**: 列表页新增路由变化 watch，保存后跳转回列表时强制刷新数据
+
+#### 🔄 版本多维对比视图升级
+
+- **含量/报价双模式切换**: 重置按钮旁新增切换按钮
+  - 含量模式：显示原料名称 + 百分比 + 进度条（原有）
+  - 报价模式：显示原料名称 + 单价(¥/kg) + 用量(g) + 小计成本(¥)
+- **差异高亮**: 报价模式下与基准版本的差异同样高亮
+  - 🟢 绿色 — 新增原料 | 🟡 黄色 — 单价有变 | 🔴 虚线 — 缺失
+- **微调标识**: 报价模式下调整过的单价显示橙色 + 「**调**」badge
+- **按钮风格统一**: 切换按钮与重置按钮统一采用边框+浅底风格
+  - 含量/报价: 绿/橙主题 | 重置: 红色主题
+
+#### 🔧 修复清单
+
+| 问题 | 根因 | 方案 |
+|---|---|---|
+| ⚡ 图标不显示 (FormulaForm / FormulaDetail) | TDesign 图标名渲染异常 | 改为文字 badge「调」 |
+| 近期动态不显示基价调整 | 类型优先级排序把 warning 挤到后面 | 改为时间倒序 |
+| 保存后列表数据不刷新 | 组件复用时不触发 onMounted | 添加路由 watch 监听 |
+| 切换按钮图标不显示 (VersionCompare) | TDesign `money-circle` / `chart-bar` 不存在 | 改为 ¥ / % 符号 |
+
+#### 影响范围
+
+| 文件 | 改动 |
+|---|---|
+| [FormulaForm.vue](frontend/src/views/formulas/FormulaForm.vue) | 「调」badge + 路由监听 |
+| [FormulaDetail.vue](frontend/src/views/formulas/FormulaDetail.vue) | 「调」badge |
+| [FormulaList.vue](frontend/src/views/formulas/FormulaList.vue) | 近期动态排序修复 + 路由监听 |
+| [VersionCompare.vue](frontend/src/views/versions/VersionCompare.vue) | 含量/报价双模式切换 |
+| [formulaController.ts](backend/src/controllers/formulaController.ts) | buildChanges + buildVersionName 基价处理 |
+
+---
+
+### ✅ 数据库驱动修复与本地调试优化 (2026-04-24)
 
 #### 🔧 后端数据库问题修复
 

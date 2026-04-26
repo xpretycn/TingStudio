@@ -284,7 +284,7 @@
         <div class="content-main">
           <router-view v-slot="{ Component }">
             <transition :name="transitionName" mode="out-in">
-              <component v-if="Component" :is="Component" :key="route.fullPath" />
+              <component v-if="Component" :is="Component" :key="contentRefreshKey + route.fullPath" />
             </transition>
           </router-view>
         </div>
@@ -294,95 +294,96 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
-import { useFormulaStore } from '@/stores/formula'
-import { useMaterialStore } from '@/stores/material'
-import { useSalesmanStore } from '@/stores/salesman'
-import { useThemeStore } from '@/stores/theme'
-import { useWeatherStore } from '@/stores/weather'
-import { brandColorDots, brandColorLabels } from '@/assets/styles/tokens'
-import type { BrandColor } from '@/stores/theme'
-import { MessagePlugin } from 'tdesign-vue-next'
+import { ref, computed, onMounted, watch } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
+import { useAuthStore } from '@/stores/auth';
+import { useFormulaStore } from '@/stores/formula';
+import { useMaterialStore } from '@/stores/material';
+import { useSalesmanStore } from '@/stores/salesman';
+import { useThemeStore } from '@/stores/theme';
+import { useWeatherStore } from '@/stores/weather';
+import { brandColorDots, brandColorLabels } from '@/assets/styles/tokens';
+import type { BrandColor } from '@/stores/theme';
+import { MessagePlugin } from 'tdesign-vue-next';
 
-const router = useRouter()
-const route = useRoute()
-const authStore = useAuthStore()
-const formulaStore = useFormulaStore()
-const materialStore = useMaterialStore()
-const salesmanStore = useSalesmanStore()
-const themeStore = useThemeStore()
-const weatherStore = useWeatherStore()
+const router = useRouter();
+const route = useRoute();
+const authStore = useAuthStore();
+const formulaStore = useFormulaStore();
+const materialStore = useMaterialStore();
+const salesmanStore = useSalesmanStore();
+const themeStore = useThemeStore();
+const weatherStore = useWeatherStore();
 
 // 品牌色选项
-const brandColorOptions: Array<{ value: BrandColor; label: string; dot: string }> = [
+const brandColorOptions: Array<{ value: BrandColor; label: string; dot: string; }> = [
   { value: 'pink', label: brandColorLabels.pink, dot: brandColorDots.pink },
   { value: 'yellow', label: brandColorLabels.yellow, dot: brandColorDots.yellow },
   { value: 'blue', label: brandColorLabels.blue, dot: brandColorDots.blue },
   { value: 'green', label: brandColorLabels.green, dot: brandColorDots.green },
-]
+];
 
 const themeModeLabels: Record<string, string> = {
   auto: '跟随系统',
   light: '亮色模式',
   dark: '暗色模式',
-}
+};
 
-const navExpanded = ref(true)
-const sidebarCollapsed = ref(false)
-const mobileDrawerOpen = ref(false)
+const navExpanded = ref(true);
+const sidebarCollapsed = ref(false);
+const mobileDrawerOpen = ref(false);
+const contentRefreshKey = ref(0);
 const activePath = computed(() => {
-  const path = route.path
+  const path = route.path;
   // 按最长前缀匹配，优先精确匹配，再按路径段前缀匹配
   const pathMap = [
     '/formulas', '/materials', '/salesmen',
     '/exports', '/nutrition', '/tools', '/ai-assistant'
-  ]
+  ];
   for (const key of pathMap) {
-    if (path === key || path.startsWith(key + '/')) return key
+    if (path === key || path.startsWith(key + '/')) return key;
   }
   // /versions/* 归属配方管理
-  if (path.includes('/versions')) return '/formulas'
-  return path
-})
+  if (path.includes('/versions')) return '/formulas';
+  return path;
+});
 
 // 用户下拉菜单
-const userMenuVisible = ref(false)
+const userMenuVisible = ref(false);
 // 主题模式选项
 const themeModeOptions = [
   { value: 'auto' as const, label: '跟随系统', icon: 'laptop' },
   { value: 'light' as const, label: '亮色模式', icon: 'browse' },
   { value: 'dark' as const, label: '暗色模式', icon: 'browse' },
-] as const
+] as const;
 
 // 选择主题模式
 const handleThemeSelect = (mode: 'auto' | 'light' | 'dark') => {
-  themeStore.setMode(mode)
-  MessagePlugin.success(`已切换为${themeModeLabels[mode]}`)
-}
+  themeStore.setMode(mode);
+  MessagePlugin.success(`已切换为${themeModeLabels[mode]}`);
+};
 
 // 选择品牌色
 const handleBrandSelect = (color: BrandColor) => {
-  themeStore.setBrandColor(color)
-  MessagePlugin.success(`品牌色已切换为${brandColorLabels[color]}`)
-}
+  themeStore.setBrandColor(color);
+  MessagePlugin.success(`品牌色已切换为${brandColorLabels[color]}`);
+};
 
 // 用户菜单点击（保留 settings / switchAccount / logout）
 const handleUserMenuClick = (value: string) => {
-  userMenuVisible.value = false
+  userMenuVisible.value = false;
   switch (value) {
     case 'settings':
-      router.push('/settings')
-      break
+      router.push('/settings');
+      break;
     case 'switchAccount':
-      handleLogout()
-      break
+      handleLogout();
+      break;
     case 'logout':
-      handleLogout()
-      break
+      handleLogout();
+      break;
   }
-}
+};
 
 
 
@@ -398,14 +399,14 @@ const pageIcon = computed(() => {
     '/tools': 'setting',
     '/ai-assistant': 'precise-monitor',
     '/settings': 'user-circle'
-  }
-  if (iconMap[route.path]) return iconMap[route.path]
+  };
+  if (iconMap[route.path]) return iconMap[route.path];
   for (const key of Object.keys(iconMap)) {
-    if (route.path.startsWith(key)) return iconMap[key]
+    if (route.path.startsWith(key)) return iconMap[key];
   }
-  if (route.path.includes('/versions')) return 'list'
-  return 'home'
-})
+  if (route.path.includes('/versions')) return 'list';
+  return 'home';
+});
 
 // 导航菜单项
 const navItems = [
@@ -416,17 +417,17 @@ const navItems = [
   { path: '/exports', label: '导出中心', icon: 'download' },
   { path: '/nutrition', label: '营养分析', icon: 'chart-pie' },
   { path: '/tools', label: '工具箱', icon: 'setting' },
-]
+];
 
 // 日期和星期
-const currentDate = ref('')
-const currentWeekday = ref('')
-const currentDay = ref('')
+const currentDate = ref('');
+const currentWeekday = ref('');
+const currentDay = ref('');
 
 // 页面标题 — 优先使用 route.meta.title
 const pageTitle = computed(() => {
-  const meta = route.meta?.title as string | undefined
-  if (meta) return meta
+  const meta = route.meta?.title as string | undefined;
+  if (meta) return meta;
   const titleMap: Record<string, string> = {
     '/formulas': '配方管理',
     '/materials': '原料管理',
@@ -436,45 +437,45 @@ const pageTitle = computed(() => {
     '/tools': '工具箱',
     '/ai-assistant': 'AI 助手',
     '/settings': '账号设置'
-  }
+  };
   for (const [key, value] of Object.entries(titleMap)) {
-    if (route.path === key || route.path.startsWith(key + '/')) return value
+    if (route.path === key || route.path.startsWith(key + '/')) return value;
   }
-  if (route.path.includes('/versions')) return '版本管理'
-  return '欢迎'
-})
+  if (route.path.includes('/versions')) return '版本管理';
+  return '欢迎';
+});
 
 // 切换导航栏展开状态
 const toggleNav = () => {
-  navExpanded.value = !navExpanded.value
-}
+  navExpanded.value = !navExpanded.value;
+};
 
 // 切换侧边栏折叠
 const toggleSidebarCollapse = () => {
-  sidebarCollapsed.value = !sidebarCollapsed.value
+  sidebarCollapsed.value = !sidebarCollapsed.value;
   if (sidebarCollapsed.value) {
-    navExpanded.value = true // 折叠时自动展开导航列表
+    navExpanded.value = true; // 折叠时自动展开导航列表
   }
-}
+};
 
 // 移动端抽屉模式
 const openMobileDrawer = () => {
-  mobileDrawerOpen.value = true
-}
+  mobileDrawerOpen.value = true;
+};
 const closeMobileDrawer = () => {
-  mobileDrawerOpen.value = false
-}
+  mobileDrawerOpen.value = false;
+};
 
 // 面包屑 — 根据当前路由路径构建层级
 const breadcrumbs = computed(() => {
-  const path = route.path
+  const path = route.path;
 
   // 列表页无父级，不需要面包屑
   const listPaths = [
     '/formulas', '/materials', '/salesmen',
     '/exports', '/nutrition', '/tools', '/ai-assistant', '/settings'
-  ]
-  if (listPaths.includes(path)) return []
+  ];
+  if (listPaths.includes(path)) return [];
 
   // 面包屑层级定义：子页面 → 父页面（列表页）
   // pathToParent 返回可导航的父路径和标题
@@ -485,160 +486,159 @@ const breadcrumbs = computed(() => {
     '/formulas/new': '/formulas',
     // 业务员子页面
     '/salesmen/new': '/salesmen',
-  }
+  };
 
   // 前缀匹配的父级
-  const prefixParents: Array<{ prefix: string; parentPath: string; parentTitle: string }> = [
+  const prefixParents: Array<{ prefix: string; parentPath: string; parentTitle: string; }> = [
     { prefix: '/materials/', parentPath: '/materials', parentTitle: '原料管理' },
     { prefix: '/formulas/', parentPath: '/formulas', parentTitle: '配方管理' },
     { prefix: '/salesmen/', parentPath: '/salesmen', parentTitle: '业务员管理' },
     { prefix: '/versions/', parentPath: '/formulas', parentTitle: '配方管理' },
     { prefix: '/nutrition/profiles', parentPath: '/nutrition', parentTitle: '营养分析' },
-  ]
+  ];
 
   // 版本页面需要二级面包屑：配方管理 > 版本管理
   if (path.startsWith('/versions/')) {
     return [
       { title: '配方管理', path: '/formulas' },
-    ]
+    ];
   }
 
   // 营养标准页面：营养分析 > 营养标准
   if (path === '/nutrition/profiles') {
     return [
       { title: '营养分析', path: '/nutrition' },
-    ]
+    ];
   }
 
   // 精确匹配
   if (parentMap[path]) {
-    const parentPath = parentMap[path]
+    const parentPath = parentMap[path];
     const parentTitle = listPaths.includes(parentPath)
       ? (navItems.find(n => n.path === parentPath)?.label || '')
-      : ''
-    return parentTitle ? [{ title: parentTitle, path: parentPath }] : []
+      : '';
+    return parentTitle ? [{ title: parentTitle, path: parentPath }] : [];
   }
 
   // 前缀匹配（如 /materials/123, /formulas/123, /formulas/123/edit）
   for (const { prefix, parentPath, parentTitle } of prefixParents) {
     if (path.startsWith(prefix) && path !== parentPath) {
       // 跳过营养分析本身（已归入 listPaths）
-      if (parentPath === '/nutrition' && path === '/nutrition') continue
-      return [{ title: parentTitle, path: parentPath }]
+      if (parentPath === '/nutrition' && path === '/nutrition') continue;
+      return [{ title: parentTitle, path: parentPath }];
     }
   }
 
-  return []
-})
+  return [];
+});
 
 // 路由过渡方向感知
-const transitionName = ref('fade-slide')
+const transitionName = ref('fade-slide');
 watch(() => route.path, (to, from) => {
-  if (!from) { transitionName.value = 'fade-slide'; return }
+  if (!from) { transitionName.value = 'fade-slide'; return; }
   // 列表→详情/新建/编辑 → slide-left
-  const detailPattern = /\/(new|\d+|edit)$/
-  const toIsDetail = detailPattern.test(to)
-  const fromIsDetail = detailPattern.test(from)
+  const detailPattern = /\/(new|\d+|edit)$/;
+  const toIsDetail = detailPattern.test(to);
+  const fromIsDetail = detailPattern.test(from);
   if (toIsDetail && !fromIsDetail) {
-    transitionName.value = 'slide-left'
+    transitionName.value = 'slide-left';
   } else if (!toIsDetail && fromIsDetail) {
-    transitionName.value = 'slide-right'
+    transitionName.value = 'slide-right';
   } else {
-    transitionName.value = 'fade-slide'
+    transitionName.value = 'fade-slide';
   }
-})
+});
 
 // 导航到指定路径
 const navigateTo = (path: string) => {
-  router.push(path)
-  if (mobileDrawerOpen.value) closeMobileDrawer()
-}
+  router.push(path);
+  if (mobileDrawerOpen.value) closeMobileDrawer();
+};
 
-// 刷新子页面
+// 刷新子页面（只刷新右侧内容区域）
 const handleRefresh = () => {
-  // 通过导航到同一路由触发组件重建（比 refreshKey 更可靠）
-  router.go(0)
-}
+  contentRefreshKey.value++;
+};
 
 // 刷新天气
 const handleRefreshWeather = async () => {
-  if (weatherStore.loading || weatherStore.geoLoading) return
-  await weatherStore.refresh()
-}
+  if (weatherStore.loading || weatherStore.geoLoading) return;
+  await weatherStore.refresh();
+};
 
 // 后退 — 返回上一级列表页
 const handleGoBack = () => {
-  const path = route.path
+  const path = route.path;
   if (path === '/formulas/new') {
-    router.push('/formulas')
+    router.push('/formulas');
   } else if (path.startsWith('/formulas/') && path !== '/formulas') {
-    router.push('/formulas')
+    router.push('/formulas');
   } else if (path === '/materials/new') {
-    router.push('/materials')
+    router.push('/materials');
   } else if (path.startsWith('/materials/') && path !== '/materials') {
-    router.push('/materials')
+    router.push('/materials');
   } else {
-    router.back()
+    router.back();
   }
-}
+};
 
 // 前进
 const handleGoForward = () => {
-  router.forward()
-}
+  router.forward();
+};
 
 // 处理退出登录
 const handleLogout = () => {
-  authStore.logout()
-  MessagePlugin.success('已退出登录~')
-  router.push('/login')
-}
+  authStore.logout();
+  MessagePlugin.success('已退出登录~');
+  router.push('/login');
+};
 
 // 处理锁屏
 const handleLock = () => {
-  MessagePlugin.info('锁屏功能开发中')
-}
+  MessagePlugin.info('锁屏功能开发中');
+};
 
 // ─── 新用户引导 ───
-const GUIDE_DISMISSED_KEY = 'ting-guide-dismissed'
-const guideStep = ref(0)
+const GUIDE_DISMISSED_KEY = 'ting-guide-dismissed';
+const guideStep = ref(0);
 const guideSteps = [
   { label: '录入原料库', path: '/materials' },
   { label: '创建配方', path: '/formulas/new' },
   { label: '分析营养成分', path: '/nutrition' },
-]
+];
 
 const showGuideCard = computed(() => {
-  if (localStorage.getItem(GUIDE_DISMISSED_KEY)) return false
+  if (localStorage.getItem(GUIDE_DISMISSED_KEY)) return false;
   return formulaStore.formulas.length === 0 &&
     materialStore.materials.length === 0 &&
-    salesmanStore.salesmen.length === 0
-})
+    salesmanStore.salesmen.length === 0;
+});
 
 const dismissGuide = () => {
-  localStorage.setItem(GUIDE_DISMISSED_KEY, '1')
-  guideStep.value = 0
-}
+  localStorage.setItem(GUIDE_DISMISSED_KEY, '1');
+  guideStep.value = 0;
+};
 
 const handleGuideStep = (index: number) => {
-  router.push(guideSteps[index].path)
-  guideStep.value = index + 1
-}
+  router.push(guideSteps[index].path);
+  guideStep.value = index + 1;
+};
 
 const handleStartGuide = () => {
-  handleGuideStep(0)
-}
+  handleGuideStep(0);
+};
 
 // 更新日期信息
 const updateDateInfo = () => {
-  const now = new Date()
-  const month = String(now.getMonth() + 1).padStart(2, '0')
-  const day = String(now.getDate()).padStart(2, '0')
-  currentDay.value = day
-  currentDate.value = `${month}月`
-  const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
-  currentWeekday.value = weekdays[now.getDay()]
-}
+  const now = new Date();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  currentDay.value = day;
+  currentDate.value = `${month}月`;
+  const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+  currentWeekday.value = weekdays[now.getDay()];
+};
 
 
 
@@ -647,69 +647,69 @@ const handleNavKeydown = (e: KeyboardEvent, path: string) => {
   switch (e.key) {
     case 'Enter':
     case ' ':
-      e.preventDefault()
-      navigateTo(path)
-      break
+      e.preventDefault();
+      navigateTo(path);
+      break;
     case 'ArrowDown':
     case 'ArrowRight':
-      e.preventDefault()
-      focusNextNavItem(e.target as HTMLElement)
-      break
+      e.preventDefault();
+      focusNextNavItem(e.target as HTMLElement);
+      break;
     case 'ArrowUp':
     case 'ArrowLeft':
-      e.preventDefault()
-      focusPrevNavItem(e.target as HTMLElement)
-      break
+      e.preventDefault();
+      focusPrevNavItem(e.target as HTMLElement);
+      break;
     case 'Home':
-      e.preventDefault()
-      focusFirstNavItem()
-      break
+      e.preventDefault();
+      focusFirstNavItem();
+      break;
     case 'End':
-      e.preventDefault()
-      focusLastNavItem()
-      break
+      e.preventDefault();
+      focusLastNavItem();
+      break;
   }
-}
+};
 
 const focusNextNavItem = (current: HTMLElement) => {
-  const items = current.parentElement?.querySelectorAll<HTMLElement>('[role="menuitem"]')
-  if (!items) return
-  const idx = Array.from(items).indexOf(current)
-  const next = items[(idx + 1) % items.length]
-  next?.focus()
-}
+  const items = current.parentElement?.querySelectorAll<HTMLElement>('[role="menuitem"]');
+  if (!items) return;
+  const idx = Array.from(items).indexOf(current);
+  const next = items[(idx + 1) % items.length];
+  next?.focus();
+};
 
 const focusPrevNavItem = (current: HTMLElement) => {
-  const items = current.parentElement?.querySelectorAll<HTMLElement>('[role="menuitem"]')
-  if (!items) return
-  const idx = Array.from(items).indexOf(current)
-  const prev = items[(idx - 1 + items.length) % items.length]
-  prev?.focus()
-}
+  const items = current.parentElement?.querySelectorAll<HTMLElement>('[role="menuitem"]');
+  if (!items) return;
+  const idx = Array.from(items).indexOf(current);
+  const prev = items[(idx - 1 + items.length) % items.length];
+  prev?.focus();
+};
 
 const focusFirstNavItem = () => {
-  const first = document.querySelector<HTMLElement>('[role="menuitem"]')
-  first?.focus()
-}
+  const first = document.querySelector<HTMLElement>('[role="menuitem"]');
+  first?.focus();
+};
 
 const focusLastNavItem = () => {
-  const items = document.querySelectorAll<HTMLElement>('[role="menuitem"]')
-  const last = items[items.length - 1]
-  last?.focus()
-}
+  const items = document.querySelectorAll<HTMLElement>('[role="menuitem"]');
+  const last = items[items.length - 1];
+  last?.focus();
+};
 
 onMounted(() => {
-  updateDateInfo()
-  weatherStore.init()
+  updateDateInfo();
+  weatherStore.init();
 
   // Ctrl+B 切换侧边栏折叠
   document.addEventListener('keydown', (e: KeyboardEvent) => {
     if (e.ctrlKey && e.key === 'b') {
-      e.preventDefault()
-      toggleSidebarCollapse()
+      e.preventDefault();
+      toggleSidebarCollapse();
     }
-  })
-})
+  });
+});
 </script>
 
 <style scoped lang="scss">
@@ -1223,7 +1223,7 @@ onMounted(() => {
   flex-direction: column;
   min-width: 0;
   overflow-y: auto; // 页面滚动参照 index.html
-  padding: 32px; // p-8 与 index.html main 区域一致
+  padding: 12px 32px 32px; // padding-top 减少10px，其他保持32px
 
   &.no-top-padding {
     padding-top: 0; // hideHeader 页面消除顶部间距（子组件自带 detail-header）

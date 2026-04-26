@@ -60,29 +60,32 @@
 
           <!-- 配方概况卡片 -->
           <section class="info-card">
-            <h3 class="card-label">配方概况</h3>
+            <h3 class="card-label">
+              <t-icon name="file-paste" class="label-icon" />
+              配方概况
+            </h3>
             <div class="card-fields">
               <div class="field-item">
-                <label>配方编号</label>
+                <label><t-icon name="barcode" size="12px" /> 配方编号</label>
                 <p>{{ data.formulaId || '--' }}</p>
               </div>
               <div class="field-grid-2">
                 <div class="field-item">
-                  <label>成品重量</label>
+                  <label><t-icon name="measurement" size="12px" /> 成品重量</label>
                   <p>{{ data.finishedWeight || 0 }}g</p>
                 </div>
                 <div class="field-item">
-                  <label>比例因子</label>
+                  <label><t-icon name="control-platform" size="12px" /> 比例因子</label>
                   <p>{{ (data.ratioFactor || 0) * 100 }}%</p>
                 </div>
               </div>
               <div class="field-grid-2">
                 <div class="field-item">
-                  <label>原料数量</label>
+                  <label><t-icon name="layers" size="12px" /> 原料数量</label>
                   <p>{{ data.calcRows?.length || 0 }} 种</p>
                 </div>
                 <div class="field-item">
-                  <label>营养状态</label>
+                  <label><t-icon name="check-circle" size="12px" /> 营养状态</label>
                   <p
                     :class="{ 'status-warn': missingMaterials.length > 0, 'status-ok': missingMaterials.length === 0 }">
                     {{ missingMaterials.length > 0 ? `${missingMaterials.length}项缺数据` : '完整' }}
@@ -95,7 +98,10 @@
           <!-- 关联业务员与需求 -->
           <section class="info-card salesman-card">
             <div class="salesman-bg-circle"></div>
-            <h3 class="card-label">关联业务员与需求</h3>
+            <h3 class="card-label">
+              <t-icon name="user-circle" class="label-icon" />
+              关联业务员与需求
+            </h3>
             <div class="salesman-content">
               <div class="salesman-profile">
                 <div class="salesman-avatar">
@@ -119,16 +125,78 @@
 
           <!-- 备注信息 -->
           <section class="info-card" v-if="data.remark || data.note">
-            <h3 class="card-label">备注信息</h3>
+            <h3 class="card-label">
+              <t-icon name="chat-bubble" class="label-icon" />
+              备注信息
+            </h3>
             <div class="remark-content">
               {{ data.remark || data.note }}
+            </div>
+          </section>
+
+          <!-- 报价明细卡 -->
+          <section v-if="priceQuote" class="info-card quote-card">
+            <h3 class="card-label">
+              <t-icon name="currency-exchange" class="label-icon" />
+              配方报价
+            </h3>
+            <div class="quote-card-body">
+              <!-- 原料明细列表 -->
+              <div v-if="priceQuote.materials?.length" class="qt-mat-list">
+                <div v-for="(m, i) in priceQuote.materials" :key="i" class="qt-mat-item"
+                  :class="{ 'qt-mat--warn': m.unitPrice === null, 'qt-mat--adjusted': m.isAdjusted }">
+                  <span class="qtm-name">{{ m.materialName }}</span>
+                  <span class="qtm-detail">{{ m.quantity }}g × ¥{{ m.unitPrice ?? '--' }}/kg
+                    <span v-if="m.isAdjusted" class="qtm-adjust-badge">调</span></span>
+                  <span class="qtm-sub"><strong>{{ m.unitPrice != null ? `¥${m.subtotal.toFixed(2)}` : '--'
+                  }}</strong></span>
+                </div>
+              </div>
+              <p v-if="priceQuote.missingPrices?.length" class="qt-warn">
+                <t-icon name="error-circle" /> 未录入单价：{{ priceQuote.missingPrices.join('、') }}
+              </p>
+              <!-- 汇总区域 -->
+              <div class="qt-summary">
+                <div class="qts-item qts-item--primary">
+                  <t-icon name="outbox" size="14px" class="qts-icon" />
+                  <span>原料成本</span><strong class="green">¥{{ (priceQuote.materialTotal ?? 0).toFixed(2)
+                  }}</strong>
+                </div>
+                <div class="qts-item">
+                  <t-icon name="shop" size="14px" class="qts-icon" />
+                  <span>包材费用</span><strong>¥{{ (priceQuote.packagingPrice ?? 0).toFixed(2) }}</strong>
+                </div>
+                <div class="qts-item">
+                  <t-icon name="edit-1" size="14px" class="qts-icon" />
+                  <span>其他费用</span><strong>¥{{ (priceQuote.otherPrice ?? 0).toFixed(2) }}</strong>
+                </div>
+                <div class="qts-divider"></div>
+                <div class="qts-item qts-item--primary">
+                  <t-icon name="wallet" size="14px" class="qts-icon" />
+                  <span>成本小计</span><strong class="green">¥{{ (priceQuote.costSubtotal ?? 0).toFixed(2)
+                  }}</strong>
+                </div>
+                <div class="qts-item">
+                  <t-icon name="chart-pie" size="14px" class="qts-icon" />
+                  <span>利润率</span><strong>{{ priceQuote.profitMargin ?? 20 }}%</strong>
+                </div>
+                <div class="qts-divider qts-divider--bold"></div>
+                <div class="qts-item qts-item--final">
+                  <t-icon name="money-filled" size="16px" class="qts-icon" />
+                  <span>最终报价</span><strong class="final-price">¥{{ (priceQuote.totalPrice ?? 0).toFixed(2)
+                  }}</strong>
+                </div>
+              </div>
             </div>
           </section>
 
           <!-- 变更记录时间线 -->
           <section class="info-card">
             <div class="timeline-header">
-              <h3 class="card-label" style="margin-bottom: 0;">变更记录</h3>
+              <h3 class="card-label" style="margin-bottom: 0;">
+                <t-icon name="history" class="label-icon" />
+                变更记录
+              </h3>
               <router-link :to="`/versions/formula/${route.params.id}`" class="timeline-link">
                 <t-icon name="history" /> 查看全部
               </router-link>
@@ -215,6 +283,7 @@
               </div>
             </section>
           </div>
+
         </div>
 
       </main>
@@ -223,27 +292,29 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import { nutritionApi } from '@/api/nutrition'
+import { ref, computed, onMounted } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
+import { nutritionApi } from '@/api/nutrition';
+import { formulaApi } from '@/api/formula';
 
-const router = useRouter()
-const route = useRoute()
+const router = useRouter();
+const route = useRoute();
 
-const loading = ref(false)
-const data = ref<any>(null)
+const loading = ref(false);
+const data = ref<any>(null);
+const priceQuote = ref<any>(null);
 const missingMaterials = computed<string[]>(() => {
-  return data.value?.missingNutritionMaterials || []
-})
+  return data.value?.missingNutritionMaterials || [];
+});
 
 // 当前版本号：优先取 URL query，其次取 API 数据的 version 字段
 const currentVersion = computed(() => {
-  const v = (route.query as any).v
-  if (v) return String(v)
+  const v = (route.query as any).v;
+  if (v) return String(v);
   // 从 API 数据中获取版本信息
-  if (data.value?.version) return String(data.value.version)
-  return null
-})
+  if (data.value?.version) return String(data.value.version);
+  return null;
+});
 
 const calcColumns = [
   { colKey: 'name', title: '原料名', width: 140 },
@@ -254,7 +325,7 @@ const calcColumns = [
   { colKey: 'fat', title: '脂肪(g/100g)', width: 130 },
   { colKey: 'carbohydrate', title: '碳水化合物(g/100g)', width: 170 },
   { colKey: 'sodium', title: '钠(mg/100g)', width: 140 },
-]
+];
 
 const labelColumns = [
   { colKey: 'item', title: '项目', width: 110 },
@@ -263,49 +334,54 @@ const labelColumns = [
   { colKey: 'nrvPercent', title: '营养素参考值%', width: 120 },
   { colKey: 'zeroThreshold', title: '0界限值', width: 130 },
   { colKey: 'tolerance', title: '允许误差范围', width: 140 },
-]
+];
 
 const calcTableData = computed(() => {
-  if (!data.value) return []
+  if (!data.value) return [];
   return [
     ...data.value.calcRows,
     { name: '', quantity: '', ratio: '', energy: '', protein: '', fat: '', carbohydrate: '', sodium: '', _isEmpty: true },
     data.value.summaryRow,
     data.value.nrvRow,
     data.value.nrvPercentRow,
-  ]
-})
+  ];
+});
 
-const handleBack = () => router.push('/formulas')
+const handleBack = () => router.push('/formulas');
 
 // 格式化日期
 const formatDate = (date: string | Date) => {
-  if (!date) return '--'
-  const d = new Date(date)
-  const pad = (n: number) => String(n).padStart(2, '0')
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
-}
+  if (!date) return '--';
+  const d = new Date(date);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+};
 
 const handleExport = () => {
-  router.push({ path: '/exports', query: { formulaId: route.params.id, formulaName: data.value?.formulaName } })
-}
+  router.push({ path: '/exports', query: { formulaId: route.params.id, formulaName: data.value?.formulaName } });
+};
 
 const loadData = async () => {
-  loading.value = true
+  loading.value = true;
   try {
-    const res = await nutritionApi.getFormulaNutritionTables(route.params.id as string)
-    data.value = res
+    const res = await nutritionApi.getFormulaNutritionTables(route.params.id as string);
+    data.value = res;
+    try {
+      priceQuote.value = await formulaApi.getPriceQuote(route.params.id as string);
+    } catch { /* 报价数据可选 */ }
   } catch (error: any) {
-    console.error('获取营养计算表格失败:', error)
+    console.error('获取营养计算表格失败:', error);
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-}
+};
 
-onMounted(() => { loadData() })
+onMounted(() => { loadData(); });
 </script>
 
 <style scoped lang="scss">
+@use '@/assets/styles/variables.scss' as *;
+
 .formula-detail {
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   // Header 区域 — 精确复刻 recipe-detail.html (第32-64行)
@@ -514,6 +590,196 @@ onMounted(() => { loadData() })
         text-transform: uppercase;
         letter-spacing: 0.1em; // tracking-widest
         margin-bottom: $space-5; // mb-6 = 24px
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        .label-icon {
+          font-size: 16px;
+          color: #10b981;
+          opacity: 0.7;
+        }
+      }
+    }
+
+    // ══ 报价卡 — 列表式布局 ══
+    .quote-card {
+      .quote-card-body {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+
+      .qt-mat-list {
+        background: #f8fafc;
+        border-radius: 10px;
+        padding: 12px 16px;
+        border: 1px solid #e2e8f0;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+
+      .qt-mat-item {
+        display: flex !important;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 8px;
+        font-size: 13px;
+        color: #334155;
+        border-radius: 6px;
+
+        &:hover {
+          background-color: #f1f5f9;
+        }
+
+        &--warn {
+          opacity: 0.55;
+
+          .qtm-sub strong {
+            color: #94a3b8 !important;
+          }
+        }
+
+        &--adjusted {
+          .qtm-name {
+            color: #d97706;
+          }
+        }
+
+        .qtm-name {
+          display: inline-block;
+          min-width: 70px;
+          font-weight: 600;
+          white-space: nowrap;
+        }
+
+        .qtm-detail {
+          flex: 1;
+          color: #64748b;
+          font-size: 12px;
+        }
+
+        .qtm-adjust-badge {
+          display: inline-block;
+          font-size: 10px;
+          line-height: 1;
+          padding: 1px 4px;
+          border-radius: 4px;
+          background: #fef3c7;
+          color: #d97706;
+          font-weight: 600;
+          margin-left: 4px;
+          vertical-align: middle;
+        }
+
+        .qtm-sub {
+          text-align: right;
+          font-weight: 700;
+          color: #059669;
+          min-width: 60px;
+        }
+      }
+
+      .qt-warn {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        color: #f59e0b;
+        background: #fffbeb;
+        padding: 10px 14px;
+        border-radius: 10px;
+        border: 1px solid #fde68a;
+      }
+
+      .qt-summary {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        background: #f8fafc;
+        border-radius: 16px;
+        border: 1px solid #f1f5f9;
+        padding: 10px 16px;
+      }
+
+      .qts-item {
+        display: flex !important;
+        align-items: center;
+        justify-content: space-between;
+        padding: 7px 8px;
+        border-radius: 8px;
+        font-size: 13px;
+
+        &:hover {
+          background-color: #fff;
+        }
+
+        &--primary {
+          background: #ecfdf5;
+
+          span,
+          .qts-icon {
+            color: #047857;
+          }
+        }
+
+        &--final {
+          margin-top: 4px;
+          padding-top: 10px;
+          padding-bottom: 10px;
+
+          span {
+            color: #059669;
+            font-weight: 700;
+            font-size: 15px;
+          }
+
+          .qts-icon {
+            color: #059669;
+          }
+
+          strong.final-price {
+            font-size: 20px;
+            color: #059669;
+            font-weight: 800;
+          }
+        }
+
+        >span {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          color: #64748b;
+          font-weight: 500;
+        }
+
+        .qts-icon {
+          color: #94a3b8;
+          flex-shrink: 0;
+        }
+
+        strong {
+          font-family: ui-monospace, SFMono-Regular, 'Cascadia Code', monospace;
+          color: #334155;
+          font-weight: 600;
+        }
+
+        strong.green {
+          color: #059669;
+          font-weight: 700;
+        }
+      }
+
+      .qts-divider {
+        height: 1px;
+        background: #e2e8f0;
+        margin: 4px 0;
+
+        &--bold {
+          background: #cbd5e1;
+          margin: 6px 0;
+        }
       }
     }
 
@@ -530,12 +796,20 @@ onMounted(() => { loadData() })
         border: 1px solid #f1f5f9; // border-slate-100
 
         label {
-          display: block;
+          display: flex;
+          align-items: center;
+          gap: 6px;
           font-size: 10px; // text-[10px]
           font-weight: 700; // font-bold
           color: #94a3b8; // text-slate-400
           text-transform: uppercase;
           margin-bottom: 4px;
+
+          .t-icon {
+            color: #10b981;
+            opacity: 0.55;
+            flex-shrink: 0;
+          }
         }
 
         p {
@@ -659,7 +933,7 @@ onMounted(() => { loadData() })
 
         .demand-title {
           font-weight: 700;
-          color: #334155; // slate-700
+          color: #334155;
           font-size: 14px;
           margin: 0 0 4px;
         }
@@ -939,109 +1213,108 @@ onMounted(() => { loadData() })
           }
         }
       }
+
+      // ══ 营养警告 ══
+      .nutrition-warning {
+        grid-column: 1 / -1;
+        margin-bottom: 0;
+        border-radius: $radius-lg;
+        animation: fadeInUp 0.3s ease both;
+      }
     }
 
-    // ══ 营养警告 ══
-    .nutrition-warning {
-      grid-column: 1 / -1;
-      margin-bottom: 0;
-      border-radius: $radius-lg;
-      animation: fadeInUp 0.3s ease both;
-    }
-  }
-
-  // ═══ 通用样式（保留） ═══
-  .missing-nutrition {
-    color: #f59e0b;
-  }
-
-  .missing-nutrition-icon {
-    color: #f97316;
-    margin-left: 4px;
-  }
-
-  // ═══ 动画关键帧 ═══
-  @keyframes fadeInDown {
-    from {
-      opacity: 0;
-      transform: translateY(-12px);
+    // ═══ 通用样式（保留） ═══
+    .missing-nutrition {
+      color: #f59e0b;
     }
 
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  @keyframes fadeInUp {
-    from {
-      opacity: 0;
-      transform: translateY(16px);
+    .missing-nutrition-icon {
+      color: #f97316;
+      margin-left: 4px;
     }
 
-    to {
-      opacity: 1;
-      transform: translateY(0);
+    // ═══ 动画关键帧 ═══
+    @keyframes fadeInDown {
+      from {
+        opacity: 0;
+        transform: translateY(-12px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
-  }
 
-  @keyframes fadeInScale {
-    from {
-      opacity: 0;
-      transform: scale(0.96);
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(16px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
-    to {
-      opacity: 1;
-      transform: scale(1);
+    @keyframes fadeInScale {
+      from {
+        opacity: 0;
+        transform: scale(0.96);
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
     }
-  }
 
-  // ═══ 响应式适配 ═══
-  @media (max-width: 640px) {
-    .detail-header {
-      padding: 12px 16px;
-      flex-direction: column;
-      gap: 12px;
+    // ═══ 响应式适配 ═══
+    @media (max-width: 640px) {
+      .detail-header {
+        padding: 12px 16px;
+        flex-direction: column;
+        gap: 12px;
 
-      .header-left {
-        width: 100%;
-        justify-content: flex-start;
+        .header-left {
+          width: 100%;
+          justify-content: flex-start;
 
-        .header-title-group {
-          .formula-title {
-            font-size: 16px;
+          .header-title-group {
+            .formula-title {
+              font-size: 16px;
 
-            .version-tag {
-              display: none;
+              .version-tag {
+                display: none;
+              }
+            }
+
+            .header-breadcrumb {
+              font-size: 11px;
             }
           }
+        }
 
-          .header-breadcrumb {
-            font-size: 11px;
+        .header-actions {
+          width: 100%;
+          justify-content: flex-end;
+
+          .header-action-btn {
+            padding: 6px 14px;
+            font-size: 13px;
+
+            .btn-icon {
+              font-size: 16px;
+            }
           }
         }
       }
 
-      .header-actions {
-        width: 100%;
-        justify-content: flex-end;
-
-        .header-action-btn {
-          padding: 6px 14px;
-          font-size: 13px;
-
-          .btn-icon {
-            font-size: 16px;
-          }
-        }
+      .detail-main {
+        grid-template-columns: 1fr;
       }
-    }
-
-    .detail-main {
-      grid-template-columns: 1fr;
     }
   }
 }
 </style>
-

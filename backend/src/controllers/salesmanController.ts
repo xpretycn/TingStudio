@@ -1,6 +1,6 @@
 // 业务员管理控制器
 import { Request, Response } from 'express'
-import { query } from '../config/database.js'
+import { query } from '../config/database-better-sqlite3.js'
 import { generateId, now, success, successWithPagination, buildPagination, buildLike, rowToCamelCase, rowsToCamelCase } from '../utils/helpers.js'
 
 /** 获取业务员列表 */

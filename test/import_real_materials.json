@@ -1,0 +1,1046 @@
+{
+  "materials": [
+    {
+      "id": "96bd8cf8-74e5-4b6a-b13d-9fd1db3d9ce0",
+      "name": "阿胶",
+      "code": "EJ",
+      "unit": "g",
+      "stock": 0,
+      "material_type": "supplement",
+      "created_by": "admin",
+      "created_at": "2026-04-25T01:19:54.652Z",
+      "updated_at": "2026-04-25T01:19:54.652Z"
+    },
+    {
+      "id": "ac709b00-d350-4cdd-bc75-3d864d8190a2",
+      "name": "白芷",
+      "code": "RB",
+      "unit": "g",
+      "stock": 0,
+      "material_type": "supplement",
+      "created_by": "admin",
+      "created_at": "2026-04-25T01:19:54.653Z",
+      "updated_at": "2026-04-25T01:19:54.653Z"
+    },
+    {
+      "id": "cd9eb810-06d1-4600-8d08-f8a7cb570646",
+      "name": "百合",
+      "code": "BH",
+      "unit": "g",
+      "stock": 0,
+      "material_type": "supplement",
+      "created_by": "admin",
+      "created_at": "2026-04-25T01:19:54.653Z",
+      "updated_at": "2026-04-25T01:19:54.653Z"
+    },
+    {
+      "id": "08dd2ce9-e340-4cbb-938f-fe00f72df2f9",
+      "name": "草果",
+      "code": "RE",
+      "unit": "g",
+      "stock": 0,
+      "material_type": "supplement",
+      "created_by": "admin",
+      "created_at": "2026-04-25T01:19:54.653Z",
+      "updated_at": "2026-04-25T01:19:54.653Z"
+    },
+    {
+      "id": "521ee0de-2101-412a-a404-1756a4733a3b",
+      "name": "炒白扁豆",
+      "code": "KRLE",
+      "unit": "g",
+      "stock": 0,
+      "material_type": "supplement",
+      "created_by": "admin",
+      "created_at": "2026-04-25T01:19:54.653Z",
+      "updated_at": "2026-04-25T01:19:54.653Z"
+    },
+    {
+      "id": "29677d26-095e-41a4-8d12-a8bec7bc58c9",
+      "name": "陈皮",
+      "code": "CP",
+      "unit": "g",
+      "stock": 0,
+      "material_type": "supplement",
+      "created_by": "admin",
+      "created_at": "2026-04-25T01:19:54.653Z",
+      "updated_at": "2026-04-25T01:19:54.653Z"
+    },
+    {
+      "id": "e20241e0-f339-4d2c-91e6-6fbff9e27cf4",
+      "name": "大枣",
+      "code": "VL",
+      "unit": "g",
+      "stock": 0,
+      "material_type": "supplement",
+      "created_by": "admin",
+      "created_at": "2026-04-25T01:19:54.653Z",
+      "updated_at": "2026-04-25T01:19:54.653Z"
+    },
+    {
+      "id": "c88e1a3c-aabf-4003-b01f-5fa8f0292fa3",
+      "name": "当归",
+      "code": "DG",
+      "unit": "g",
+      "stock": 0,
+      "material_type": "supplement",
+      "created_by": "admin",
+      "created_at": "2026-04-25T01:19:54.654Z",
+      "updated_at": "2026-04-25T01:19:54.654Z"
+    },
+    {
+      "id": "b4e8558a-3120-4091-995f-fd48d0e14ef5",
+      "name": "党参",
+      "code": "DS",
+      "unit": "g",
+      "stock": 0,
+      "material_type": "supplement",
+      "created_by": "admin",
+      "created_at": "2026-04-25T01:19:54.655Z",
+      "updated_at": "2026-04-25T01:19:54.655Z"
+    },
+    {
+      "id": "946c6533-0a75-4c2c-8df6-6f9114b6c68c",
+      "name": "地龙蛋白肽粉",
+      "code": "MLFR",
+      "unit": "g",
+      "stock": 0,
+      "material_type": "supplement",
+      "created_by": "admin",
+      "created_at": "2026-04-25T01:19:54.655Z",
+      "updated_at": "2026-04-25T01:19:54.655Z"
+    },
+    {
+      "id": "40bb9619-6106-43b2-9402-17bc6939c9e8",
+      "name": "低聚异麦芽糖",
+      "code": "WUMC",
+      "unit": "g",
+      "stock": 0,
+      "material_type": "supplement",
+      "created_by": "admin",
+      "created_at": "2026-04-25T01:19:54.655Z",
+      "updated_at": "2026-04-25T01:19:54.655Z"
+    },
+    {
+      "id": "3d7116e5-ca37-4d11-b670-2d68391764a2",
+      "name": "短梗五加",
+      "code": "VVSO",
+      "unit": "g",
+      "stock": 0,
+      "material_type": "supplement",
+      "created_by": "admin",
+      "created_at": "2026-04-25T01:19:54.655Z",
+      "updated_at": "2026-04-25T01:19:54.655Z"
+    },
+    {
+      "id": "dbf13746-1736-4493-b0dc-2d6fb691bf36",
+      "name": "佛手",
+      "code": "FS",
+      "unit": "g",
+      "stock": 0,
+      "material_type": "supplement",
+      "created_by": "admin",
+      "created_at": "2026-04-25T01:19:54.655Z",
+      "updated_at": "2026-04-25T01:19:54.655Z"
+    },
+    {
+      "id": "8a363608-b9df-46ad-b58f-c442e3b96c2c",
+      "name": "佛手玫苓膏",
+      "code": "FSQLG",
+      "unit": "g",
+      "stock": 0,
+      "material_type": "supplement",
+      "created_by": "admin",
+      "created_at": "2026-04-25T01:19:54.656Z",
+      "updated_at": "2026-04-25T01:19:54.656Z"
+    },
+    {
+      "id": "2877e108-8bf3-4df3-9ce5-0e566ee18444",
+      "name": "茯苓",
+      "code": "FL",
+      "unit": "g",
+      "stock": 0,
+      "material_type": "supplement",
+      "created_by": "admin",
+      "created_at": "2026-04-25T01:19:54.656Z",
+      "updated_at": "2026-04-25T01:19:54.656Z"
+    },
+    {
+      "id": "cbd63f05-116f-4c92-ab32-e09e402f7d8b",
+      "name": "甘草",
+      "code": "GC",
+      "unit": "g",
+      "stock": 0,
+      "material_type": "supplement",
+      "created_by": "admin",
+      "created_at": "2026-04-25T01:19:54.656Z",
+      "updated_at": "2026-04-25T01:19:54.656Z"
+    },
+    {
+      "id": "b05ac750-265a-446f-b082-554218b997b8",
+      "name": "葛根",
+      "code": "FF",
+      "unit": "g",
+      "stock": 0,
+      "material_type": "supplement",
+      "created_by": "admin",
+      "created_at": "2026-04-25T01:19:54.656Z",
+      "updated_at": "2026-04-25T01:19:54.656Z"
+    },
+    {
+      "id": "6b539b44-9c22-4b26-9c5b-d981427d6131",
+      "name": "枸杞子",
+      "code": "GUC",
+      "unit": "g",
+      "stock": 0,
+      "material_type": "supplement",
+      "created_by": "admin",
+      "created_at": "2026-04-25T01:19:54.656Z",
+      "updated_at": "2026-04-25T01:19:54.656Z"
+    },
+    {
+      "id": "12fe1a90-53be-4156-a5e5-7023132e574a",
+      "name": "荷叶",
+      "code": "LS",
+      "unit": "g",
+      "stock": 0,
+      "material_type": "supplement",
+      "created_by": "admin",
+      "created_at": "2026-04-25T01:19:54.656Z",
+      "updated_at": "2026-04-25T01:19:54.656Z"
+    },
+    {
+      "id": "8e7fa4e2-3a9a-4f99-b06d-c744c5e5d221",
+      "name": "黄精",
+      "code": "HJ",
+      "unit": "g",
+      "stock": 0,
+      "material_type": "supplement",
+      "created_by": "admin",
+      "created_at": "2026-04-25T01:19:54.656Z",
+      "updated_at": "2026-04-25T01:19:54.656Z"
+    },
+    {
+      "id": "dbc6f873-2419-4aeb-a2ba-c7ada8292b2d",
+      "name": "黄芪",
+      "code": "HQ",
+      "unit": "g",
+      "stock": 0,
+      "material_type": "supplement",
+      "created_by": "admin",
+      "created_at": "2026-04-25T01:19:54.656Z",
+      "updated_at": "2026-04-25T01:19:54.656Z"
+    },
+    {
+      "id": "9b09c850-bdca-46dd-91f3-627c2d4e83b5",
+      "name": "藿香",
+      "code": "JJ",
+      "unit": "g",
+      "stock": 0,
+      "material_type": "supplement",
+      "created_by": "admin",
+      "created_at": "2026-04-25T01:19:54.656Z",
+      "updated_at": "2026-04-25T01:19:54.656Z"
+    },
+    {
+      "id": "8d74d2ea-7b4a-4f7c-8514-d3836da27247",
+      "name": "桔梗",
+      "code": "GV",
+      "unit": "g",
+      "stock": 0,
+      "material_type": "supplement",
+      "created_by": "admin",
+      "created_at": "2026-04-25T01:19:54.656Z",
+      "updated_at": "2026-04-25T01:19:54.656Z"
+    },
+    {
+      "id": "1c92892a-9965-44bc-a6cf-fa40fdc7de8e",
+      "name": "金银花",
+      "code": "JYH",
+      "unit": "g",
+      "stock": 0,
+      "material_type": "supplement",
+      "created_by": "admin",
+      "created_at": "2026-04-25T01:19:54.656Z",
+      "updated_at": "2026-04-25T01:19:54.656Z"
+    },
+    {
+      "id": "9f853c45-a344-47bc-b579-56f3f6420560",
+      "name": "莲子",
+      "code": "LZ",
+      "unit": "g",
+      "stock": 0,
+      "material_type": "supplement",
+      "created_by": "admin",
+      "created_at": "2026-04-25T01:19:54.656Z",
+      "updated_at": "2026-04-25T01:19:54.656Z"
+    },
+    {
+      "id": "1802738b-e872-454e-949e-78810cdbcaeb",
+      "name": "灵芝",
+      "code": "LZ",
+      "unit": "g",
+      "stock": 0,
+      "material_type": "supplement",
+      "created_by": "admin",
+      "created_at": "2026-04-25T01:19:54.656Z",
+      "updated_at": "2026-04-25T01:19:54.656Z"
+    },
+    {
+      "id": "f5bddcd9-b6ff-47ae-9bb3-99536bbdc95e",
+      "name": "沫彐淳膏",
+      "code": "ZMPR",
+      "unit": "g",
+      "stock": 0,
+      "material_type": "supplement",
+      "created_by": "admin",
+      "created_at": "2026-04-25T01:19:54.656Z",
+      "updated_at": "2026-04-25T01:19:54.656Z"
+    },
+    {
+      "id": "f7218cdd-24e9-45c8-9d58-34652dfe7c04",
+      "name": "纳豆",
+      "code": "NE",
+      "unit": "g",
+      "stock": 0,
+      "material_type": "supplement",
+      "created_by": "admin",
+      "created_at": "2026-04-25T01:19:54.656Z",
+      "updated_at": "2026-04-25T01:19:54.656Z"
+    },
+    {
+      "id": "6f3758ef-b6bf-43ad-8d2d-2a494e06bfc2",
+      "name": "平卧菊三七",
+      "code": "ZFQJ",
+      "unit": "g",
+      "stock": 0,
+      "material_type": "supplement",
+      "created_by": "admin",
+      "created_at": "2026-04-25T01:19:54.656Z",
+      "updated_at": "2026-04-25T01:19:54.656Z"
+    },
+    {
+      "id": "f7f08752-d17e-4732-9dae-a429edb61668",
+      "name": "芡实",
+      "code": "QS",
+      "unit": "g",
+      "stock": 0,
+      "material_type": "supplement",
+      "created_by": "admin",
+      "created_at": "2026-04-25T01:19:54.656Z",
+      "updated_at": "2026-04-25T01:19:54.656Z"
+    },
+    {
+      "id": "047479ad-b178-4b4b-862a-7728874c2dbd",
+      "name": "肉豆蔻",
+      "code": "PEV",
+      "unit": "g",
+      "stock": 0,
+      "material_type": "supplement",
+      "created_by": "admin",
+      "created_at": "2026-04-25T01:19:54.656Z",
+      "updated_at": "2026-04-25T01:19:54.656Z"
+    },
+    {
+      "id": "8fb861f0-66b5-4ec7-b74c-082b6f48f3d4",
+      "name": "肉桂",
+      "code": "PO",
+      "unit": "g",
+      "stock": 0,
+      "material_type": "supplement",
+      "created_by": "admin",
+      "created_at": "2026-04-25T01:19:54.657Z",
+      "updated_at": "2026-04-25T01:19:54.657Z"
+    },
+    {
+      "id": "b051002a-ed63-410b-ad93-8ce5fbe7784e",
+      "name": "桑椹",
+      "code": "DB",
+      "unit": "g",
+      "stock": 0,
+      "material_type": "supplement",
+      "created_by": "admin",
+      "created_at": "2026-04-25T01:19:54.657Z",
+      "updated_at": "2026-04-25T01:19:54.657Z"
+    },
+    {
+      "id": "19f2c241-7027-45dd-ba6b-43d4b653457f",
+      "name": "沙棘",
+      "code": "HI",
+      "unit": "g",
+      "stock": 0,
+      "material_type": "supplement",
+      "created_by": "admin",
+      "created_at": "2026-04-25T01:19:54.657Z",
+      "updated_at": "2026-04-25T01:19:54.657Z"
+    },
+    {
+      "id": "c27dea5f-e73a-473c-b24e-d8eb155557fd",
+      "name": "山药",
+      "code": "SY",
+      "unit": "g",
+      "stock": 0,
+      "material_type": "supplement",
+      "created_by": "admin",
+      "created_at": "2026-04-25T01:19:54.657Z",
+      "updated_at": "2026-04-25T01:19:54.657Z"
+    },
+    {
+      "id": "d655cfe7-bbdf-4c94-8dd3-fc4f59785288",
+      "name": "使用说明：",
+      "code": "TOAW",
+      "unit": "g",
+      "stock": 0,
+      "material_type": "supplement",
+      "created_by": "admin",
+      "created_at": "2026-04-25T01:19:54.657Z",
+      "updated_at": "2026-04-25T01:19:54.657Z"
+    },
+    {
+      "id": "a80c55a9-8c54-43f9-8506-56d0eaf4f57a",
+      "name": "酸枣仁",
+      "code": "SZR",
+      "unit": "g",
+      "stock": 0,
+      "material_type": "supplement",
+      "created_by": "admin",
+      "created_at": "2026-04-25T01:19:54.657Z",
+      "updated_at": "2026-04-25T01:19:54.657Z"
+    },
+    {
+      "id": "ef9bd758-9b33-4a85-94ba-c3787b951e79",
+      "name": "酸枣仁灵芝石斛膏",
+      "code": "ILLH",
+      "unit": "g",
+      "stock": 0,
+      "material_type": "supplement",
+      "created_by": "admin",
+      "created_at": "2026-04-25T01:19:54.657Z",
+      "updated_at": "2026-04-25T01:19:54.657Z"
+    },
+    {
+      "id": "a8261cbb-7580-425a-bf40-323dfaba187b",
+      "name": "桃仁",
+      "code": "TR",
+      "unit": "g",
+      "stock": 0,
+      "material_type": "supplement",
+      "created_by": "admin",
+      "created_at": "2026-04-25T01:19:54.657Z",
+      "updated_at": "2026-04-25T01:19:54.657Z"
+    },
+    {
+      "id": "a07636cf-999b-46da-a776-ec11de8bbe79",
+      "name": "铁皮石斛",
+      "code": "ROBL",
+      "unit": "g",
+      "stock": 0,
+      "material_type": "supplement",
+      "created_by": "admin",
+      "created_at": "2026-04-25T01:19:54.657Z",
+      "updated_at": "2026-04-25T01:19:54.657Z"
+    },
+    {
+      "id": "808270c3-ebe9-4c9f-9e71-b98f5506e490",
+      "name": "乌梅",
+      "code": "YD",
+      "unit": "g",
+      "stock": 0,
+      "material_type": "supplement",
+      "created_by": "admin",
+      "created_at": "2026-04-25T01:19:54.657Z",
+      "updated_at": "2026-04-25T01:19:54.657Z"
+    },
+    {
+      "id": "4a2b1762-7be3-456a-b0fe-3b644b065b02",
+      "name": "西红花",
+      "code": "VWV",
+      "unit": "g",
+      "stock": 0,
+      "material_type": "supplement",
+      "created_by": "admin",
+      "created_at": "2026-04-25T01:19:54.657Z",
+      "updated_at": "2026-04-25T01:19:54.657Z"
+    },
+    {
+      "id": "d8d832ac-ac12-4150-8901-00d3b9c2bb1f",
+      "name": "显脉旋覆花",
+      "code": "SNHC",
+      "unit": "g",
+      "stock": 0,
+      "material_type": "supplement",
+      "created_by": "admin",
+      "created_at": "2026-04-25T01:19:54.657Z",
+      "updated_at": "2026-04-25T01:19:54.657Z"
+    },
+    {
+      "id": "1ebed193-8129-4fce-a3c5-ce7e3ad8940d",
+      "name": "香橼",
+      "code": "JM",
+      "unit": "g",
+      "stock": 0,
+      "material_type": "supplement",
+      "created_by": "admin",
+      "created_at": "2026-04-25T01:19:54.657Z",
+      "updated_at": "2026-04-25T01:19:54.657Z"
+    },
+    {
+      "id": "4387c8cf-1387-4d46-8426-7c46628314d1",
+      "name": "项目",
+      "code": "HA",
+      "unit": "g",
+      "stock": 0,
+      "material_type": "supplement",
+      "created_by": "admin",
+      "created_at": "2026-04-25T01:19:54.657Z",
+      "updated_at": "2026-04-25T01:19:54.657Z"
+    },
+    {
+      "id": "f02f892b-594e-4aa9-9897-46106c1ee2ab",
+      "name": "小茴香",
+      "code": "LWJ",
+      "unit": "g",
+      "stock": 0,
+      "material_type": "supplement",
+      "created_by": "admin",
+      "created_at": "2026-04-25T01:19:54.657Z",
+      "updated_at": "2026-04-25T01:19:54.657Z"
+    },
+    {
+      "id": "0955b393-376b-48e8-bed6-3c15ba62b56b",
+      "name": "小麦",
+      "code": "LC",
+      "unit": "g",
+      "stock": 0,
+      "material_type": "supplement",
+      "created_by": "admin",
+      "created_at": "2026-04-25T01:19:54.657Z",
+      "updated_at": "2026-04-25T01:19:54.657Z"
+    },
+    {
+      "id": "a17b87f8-18c5-4158-8ecf-6d00e1ac7aab",
+      "name": "正阳御湿膏",
+      "code": "JXPZ",
+      "unit": "g",
+      "stock": 0,
+      "material_type": "supplement",
+      "created_by": "admin",
+      "created_at": "2026-04-25T01:19:54.657Z",
+      "updated_at": "2026-04-25T01:19:54.657Z"
+    },
+    {
+      "id": "7af62f84-8002-400d-b165-82fa84cd247b",
+      "name": "栀子",
+      "code": "AC",
+      "unit": "g",
+      "stock": 0,
+      "material_type": "supplement",
+      "created_by": "admin",
+      "created_at": "2026-04-25T01:19:54.657Z",
+      "updated_at": "2026-04-25T01:19:54.657Z"
+    },
+    {
+      "id": "cf6a560c-ff16-4e75-8bc1-c6b6d48853e5",
+      "name": "重瓣红玫瑰",
+      "code": "PXWX",
+      "unit": "g",
+      "stock": 0,
+      "material_type": "supplement",
+      "created_by": "admin",
+      "created_at": "2026-04-25T01:19:54.657Z",
+      "updated_at": "2026-04-25T01:19:54.657Z"
+    },
+    {
+      "id": "84dc838a-4663-4e68-93dc-30a2e26278cd",
+      "name": "重瓣玫瑰花",
+      "code": "PXXM",
+      "unit": "g",
+      "stock": 0,
+      "material_type": "supplement",
+      "created_by": "admin",
+      "created_at": "2026-04-25T01:19:54.657Z",
+      "updated_at": "2026-04-25T01:19:54.657Z"
+    },
+    {
+      "id": "ae9cc2ae-7190-4903-97ca-d6d62c89120b",
+      "name": "竹叶黄酮",
+      "code": "VSGY",
+      "unit": "g",
+      "stock": 0,
+      "material_type": "supplement",
+      "created_by": "admin",
+      "created_at": "2026-04-25T01:19:54.657Z",
+      "updated_at": "2026-04-25T01:19:54.657Z"
+    }
+  ],
+  "nutritions": [
+    {
+      "nutrition_id": "6a2ace9b-171c-432c-8a92-a81906af2ca9",
+      "material_id": "96bd8cf8-74e5-4b6a-b13d-9fd1db3d9ce0",
+      "per_100g_json": "{\"protein\":80,\"fat\":8,\"carbohydrate\":2,\"sodium\":null,\"unit\":\"per_100g\"}",
+      "data_version": "1.0",
+      "data_source": "酸枣仁灵芝石斛膏",
+      "confidence": "high",
+      "last_updated": "2026-04-25T01:19:54.652Z"
+    },
+    {
+      "nutrition_id": "743d6ab2-3931-43c7-87b2-72b3cc90dec6",
+      "material_id": "ac709b00-d350-4cdd-bc75-3d864d8190a2",
+      "per_100g_json": "{\"protein\":8.9,\"fat\":1.5,\"carbohydrate\":74.1,\"sodium\":27,\"unit\":\"per_100g\"}",
+      "data_version": "1.0",
+      "data_source": "正阳御湿膏",
+      "confidence": "high",
+      "last_updated": "2026-04-25T01:19:54.653Z"
+    },
+    {
+      "nutrition_id": "24b4474d-60e0-4103-ae5d-e06fce1a016e",
+      "material_id": "cd9eb810-06d1-4600-8d08-f8a7cb570646",
+      "per_100g_json": "{\"protein\":6.7,\"fat\":0.5,\"carbohydrate\":79.5,\"sodium\":37,\"unit\":\"per_100g\"}",
+      "data_version": "1.0",
+      "data_source": "酸枣仁灵芝石斛膏",
+      "confidence": "high",
+      "last_updated": "2026-04-25T01:19:54.653Z"
+    },
+    {
+      "nutrition_id": "8ad690b0-9559-42fc-897b-7bc0e7ab02f1",
+      "material_id": "08dd2ce9-e340-4cbb-938f-fe00f72df2f9",
+      "per_100g_json": "{\"protein\":2.9,\"fat\":0.4,\"carbohydrate\":5.6,\"sodium\":5,\"unit\":\"per_100g\"}",
+      "data_version": "1.0",
+      "data_source": "正阳御湿膏",
+      "confidence": "high",
+      "last_updated": "2026-04-25T01:19:54.653Z"
+    },
+    {
+      "nutrition_id": "ae81877f-f145-4221-a98a-2b7b780260cc",
+      "material_id": "521ee0de-2101-412a-a404-1756a4733a3b",
+      "per_100g_json": "{\"protein\":19,\"fat\":1.3,\"carbohydrate\":55.6,\"sodium\":null,\"unit\":\"per_100g\"}",
+      "data_version": "1.0",
+      "data_source": "正阳御湿膏",
+      "confidence": "high",
+      "last_updated": "2026-04-25T01:19:54.653Z"
+    },
+    {
+      "nutrition_id": "7082d556-f509-455d-88da-259ca22f00c8",
+      "material_id": "29677d26-095e-41a4-8d12-a8bec7bc58c9",
+      "per_100g_json": "{\"protein\":8,\"fat\":1.4,\"carbohydrate\":79,\"sodium\":21,\"unit\":\"per_100g\"}",
+      "data_version": "1.0",
+      "data_source": "酸枣仁灵芝石斛膏",
+      "confidence": "high",
+      "last_updated": "2026-04-25T01:19:54.653Z"
+    },
+    {
+      "nutrition_id": "04097c2b-2f29-437a-99a5-96139c0a0e1c",
+      "material_id": "e20241e0-f339-4d2c-91e6-6fbff9e27cf4",
+      "per_100g_json": "{\"protein\":3.2,\"fat\":0.5,\"carbohydrate\":67.8,\"sodium\":6,\"unit\":\"per_100g\"}",
+      "data_version": "1.0",
+      "data_source": "酸枣仁灵芝石斛膏",
+      "confidence": "high",
+      "last_updated": "2026-04-25T01:19:54.653Z"
+    },
+    {
+      "nutrition_id": "063841a3-fee8-4146-b5df-396377109dad",
+      "material_id": "c88e1a3c-aabf-4003-b01f-5fa8f0292fa3",
+      "per_100g_json": "{\"protein\":44.2,\"fat\":2.4,\"carbohydrate\":18.2,\"sodium\":null,\"unit\":\"per_100g\"}",
+      "data_version": "1.0",
+      "data_source": "沫彐淳膏",
+      "confidence": "high",
+      "last_updated": "2026-04-25T01:19:54.654Z"
+    },
+    {
+      "nutrition_id": "6283037a-3cdd-47e8-9b2f-7e86522f4659",
+      "material_id": "b4e8558a-3120-4091-995f-fd48d0e14ef5",
+      "per_100g_json": "{\"protein\":53.7,\"fat\":1.8,\"carbohydrate\":10.4,\"sodium\":null,\"unit\":\"per_100g\"}",
+      "data_version": "1.0",
+      "data_source": "正阳御湿膏",
+      "confidence": "high",
+      "last_updated": "2026-04-25T01:19:54.655Z"
+    },
+    {
+      "nutrition_id": "d112da1d-ecd6-4544-9646-9cb559f6f9f0",
+      "material_id": "946c6533-0a75-4c2c-8df6-6f9114b6c68c",
+      "per_100g_json": "{\"protein\":60,\"fat\":1,\"carbohydrate\":15,\"sodium\":null,\"unit\":\"per_100g\"}",
+      "data_version": "1.0",
+      "data_source": "沫彐淳膏",
+      "confidence": "high",
+      "last_updated": "2026-04-25T01:19:54.655Z"
+    },
+    {
+      "nutrition_id": "1636f0d9-60cb-4910-a925-adc9991831b6",
+      "material_id": "40bb9619-6106-43b2-9402-17bc6939c9e8",
+      "per_100g_json": "{\"protein\":null,\"fat\":null,\"carbohydrate\":90,\"sodium\":null,\"unit\":\"per_100g\"}",
+      "data_version": "1.0",
+      "data_source": "酸枣仁灵芝石斛膏",
+      "confidence": "high",
+      "last_updated": "2026-04-25T01:19:54.655Z"
+    },
+    {
+      "nutrition_id": "32be689e-daf0-433d-a569-0e85039d6ba9",
+      "material_id": "3d7116e5-ca37-4d11-b670-2d68391764a2",
+      "per_100g_json": "{\"protein\":12,\"fat\":null,\"carbohydrate\":65,\"sodium\":null,\"unit\":\"per_100g\"}",
+      "data_version": "1.0",
+      "data_source": "沫彐淳膏",
+      "confidence": "high",
+      "last_updated": "2026-04-25T01:19:54.655Z"
+    },
+    {
+      "nutrition_id": "295670ac-dc4f-45b5-a734-d8377edc017b",
+      "material_id": "dbf13746-1736-4493-b0dc-2d6fb691bf36",
+      "per_100g_json": "{\"protein\":1.2,\"fat\":7.7,\"carbohydrate\":92,\"sodium\":null,\"unit\":\"per_100g\"}",
+      "data_version": "1.0",
+      "data_source": "佛手玫苓膏",
+      "confidence": "high",
+      "last_updated": "2026-04-25T01:19:54.655Z"
+    },
+    {
+      "nutrition_id": "387c1973-0ad2-40b5-8bd1-67c967856469",
+      "material_id": "8a363608-b9df-46ad-b58f-c442e3b96c2c",
+      "per_100g_json": "{\"protein\":null,\"fat\":null,\"carbohydrate\":null,\"sodium\":null,\"unit\":\"per_100g\"}",
+      "data_version": "1.0",
+      "data_source": "佛手玫苓膏",
+      "confidence": "high",
+      "last_updated": "2026-04-25T01:19:54.656Z"
+    },
+    {
+      "nutrition_id": "9674e239-3602-4c4a-860d-48a07cd8d9d2",
+      "material_id": "2877e108-8bf3-4df3-9ce5-0e566ee18444",
+      "per_100g_json": "{\"protein\":1.2,\"fat\":0.5,\"carbohydrate\":82.6,\"sodium\":1,\"unit\":\"per_100g\"}",
+      "data_version": "1.0",
+      "data_source": "酸枣仁灵芝石斛膏",
+      "confidence": "high",
+      "last_updated": "2026-04-25T01:19:54.656Z"
+    },
+    {
+      "nutrition_id": "8dabff9d-7cfc-48a5-b563-6e764233f463",
+      "material_id": "cbd63f05-116f-4c92-ab32-e09e402f7d8b",
+      "per_100g_json": "{\"protein\":4.9,\"fat\":4.2,\"carbohydrate\":75,\"sodium\":155,\"unit\":\"per_100g\"}",
+      "data_version": "1.0",
+      "data_source": "酸枣仁灵芝石斛膏",
+      "confidence": "high",
+      "last_updated": "2026-04-25T01:19:54.656Z"
+    },
+    {
+      "nutrition_id": "5cf57f03-5d25-4ed4-a70b-56b44ea5b9b0",
+      "material_id": "b05ac750-265a-446f-b082-554218b997b8",
+      "per_100g_json": "{\"protein\":0.4,\"fat\":0.1,\"carbohydrate\":94,\"sodium\":5,\"unit\":\"per_100g\"}",
+      "data_version": "1.0",
+      "data_source": "沫彐淳膏",
+      "confidence": "high",
+      "last_updated": "2026-04-25T01:19:54.656Z"
+    },
+    {
+      "nutrition_id": "4334a784-425d-4ca1-a44d-98e87566260e",
+      "material_id": "6b539b44-9c22-4b26-9c5b-d981427d6131",
+      "per_100g_json": "{\"protein\":13.9,\"fat\":1.5,\"carbohydrate\":64.1,\"sodium\":252,\"unit\":\"per_100g\"}",
+      "data_version": "1.0",
+      "data_source": "沫彐淳膏",
+      "confidence": "high",
+      "last_updated": "2026-04-25T01:19:54.656Z"
+    },
+    {
+      "nutrition_id": "30cbc6f1-a5c0-4ad3-bb1a-55fe2195d042",
+      "material_id": "12fe1a90-53be-4156-a5e5-7023132e574a",
+      "per_100g_json": "{\"protein\":3.1,\"fat\":0.2,\"carbohydrate\":5.6,\"sodium\":5,\"unit\":\"per_100g\"}",
+      "data_version": "1.0",
+      "data_source": "沫彐淳膏",
+      "confidence": "high",
+      "last_updated": "2026-04-25T01:19:54.656Z"
+    },
+    {
+      "nutrition_id": "0a6deea7-2f44-4fa0-8ade-191b7ad82cac",
+      "material_id": "8e7fa4e2-3a9a-4f99-b06d-c744c5e5d221",
+      "per_100g_json": "{\"protein\":11.6,\"fat\":3.7,\"carbohydrate\":52.3,\"sodium\":null,\"unit\":\"per_100g\"}",
+      "data_version": "1.0",
+      "data_source": "沫彐淳膏",
+      "confidence": "high",
+      "last_updated": "2026-04-25T01:19:54.656Z"
+    },
+    {
+      "nutrition_id": "546e2a84-afcb-4f0b-a108-18b0cd9ae802",
+      "material_id": "dbc6f873-2419-4aeb-a2ba-c7ada8292b2d",
+      "per_100g_json": "{\"protein\":14.9,\"fat\":1.1,\"carbohydrate\":33.4,\"sodium\":null,\"unit\":\"per_100g\"}",
+      "data_version": "1.0",
+      "data_source": "沫彐淳膏",
+      "confidence": "high",
+      "last_updated": "2026-04-25T01:19:54.656Z"
+    },
+    {
+      "nutrition_id": "cb71142a-0c40-48fc-8e17-5a14250fbb8b",
+      "material_id": "9b09c850-bdca-46dd-91f3-627c2d4e83b5",
+      "per_100g_json": "{\"protein\":10.5,\"fat\":5,\"carbohydrate\":63.1,\"sodium\":46,\"unit\":\"per_100g\"}",
+      "data_version": "1.0",
+      "data_source": "正阳御湿膏",
+      "confidence": "high",
+      "last_updated": "2026-04-25T01:19:54.656Z"
+    },
+    {
+      "nutrition_id": "d6eb20ee-f12c-4e77-bf32-85b9983ae587",
+      "material_id": "8d74d2ea-7b4a-4f7c-8514-d3836da27247",
+      "per_100g_json": "{\"protein\":10.7,\"fat\":0.9,\"carbohydrate\":74.6,\"sodium\":12,\"unit\":\"per_100g\"}",
+      "data_version": "1.0",
+      "data_source": "佛手玫苓膏",
+      "confidence": "high",
+      "last_updated": "2026-04-25T01:19:54.656Z"
+    },
+    {
+      "nutrition_id": "71858187-f629-4069-a4b8-ac0cba8dc4ba",
+      "material_id": "1c92892a-9965-44bc-a6cf-fa40fdc7de8e",
+      "per_100g_json": "{\"protein\":13.1,\"fat\":4.5,\"carbohydrate\":32.8,\"sodium\":null,\"unit\":\"per_100g\"}",
+      "data_version": "1.0",
+      "data_source": "沫彐淳膏",
+      "confidence": "high",
+      "last_updated": "2026-04-25T01:19:54.656Z"
+    },
+    {
+      "nutrition_id": "7cb60309-14ae-47f2-add2-6606c68aa0a7",
+      "material_id": "9f853c45-a344-47bc-b579-56f3f6420560",
+      "per_100g_json": "{\"protein\":17.2,\"fat\":2,\"carbohydrate\":67.2,\"sodium\":5,\"unit\":\"per_100g\"}",
+      "data_version": "1.0",
+      "data_source": "酸枣仁灵芝石斛膏",
+      "confidence": "high",
+      "last_updated": "2026-04-25T01:19:54.656Z"
+    },
+    {
+      "nutrition_id": "5ddf08ca-ee83-49e8-bcbd-fa29306e656f",
+      "material_id": "1802738b-e872-454e-949e-78810cdbcaeb",
+      "per_100g_json": "{\"protein\":88.8,\"fat\":2.2,\"carbohydrate\":4.7,\"sodium\":224,\"unit\":\"per_100g\"}",
+      "data_version": "1.0",
+      "data_source": "酸枣仁灵芝石斛膏",
+      "confidence": "high",
+      "last_updated": "2026-04-25T01:19:54.656Z"
+    },
+    {
+      "nutrition_id": "7188ce69-4fdb-4ab9-977a-4b13db63475b",
+      "material_id": "f5bddcd9-b6ff-47ae-9bb3-99536bbdc95e",
+      "per_100g_json": "{\"protein\":null,\"fat\":null,\"carbohydrate\":null,\"sodium\":null,\"unit\":\"per_100g\"}",
+      "data_version": "1.0",
+      "data_source": "沫彐淳膏",
+      "confidence": "high",
+      "last_updated": "2026-04-25T01:19:54.656Z"
+    },
+    {
+      "nutrition_id": "007a49bd-f132-42b1-b477-1fb10b9131cd",
+      "material_id": "f7218cdd-24e9-45c8-9d58-34652dfe7c04",
+      "per_100g_json": "{\"protein\":20.2,\"fat\":0.6,\"carbohydrate\":63.4,\"sodium\":2,\"unit\":\"per_100g\"}",
+      "data_version": "1.0",
+      "data_source": "沫彐淳膏",
+      "confidence": "high",
+      "last_updated": "2026-04-25T01:19:54.656Z"
+    },
+    {
+      "nutrition_id": "5fa2afcb-b49b-4487-bf4e-c4fc1e58f13f",
+      "material_id": "6f3758ef-b6bf-43ad-8d2d-2a494e06bfc2",
+      "per_100g_json": "{\"protein\":6.8,\"fat\":3.9,\"carbohydrate\":67.6,\"sodium\":17.5,\"unit\":\"per_100g\"}",
+      "data_version": "1.0",
+      "data_source": "沫彐淳膏",
+      "confidence": "high",
+      "last_updated": "2026-04-25T01:19:54.656Z"
+    },
+    {
+      "nutrition_id": "478062fb-1647-498c-8005-a097e55a8e7b",
+      "material_id": "f7f08752-d17e-4732-9dae-a429edb61668",
+      "per_100g_json": "{\"protein\":8.3,\"fat\":0.3,\"carbohydrate\":79.6,\"sodium\":28,\"unit\":\"per_100g\"}",
+      "data_version": "1.0",
+      "data_source": "酸枣仁灵芝石斛膏",
+      "confidence": "high",
+      "last_updated": "2026-04-25T01:19:54.656Z"
+    },
+    {
+      "nutrition_id": "03d832c6-dee9-4f99-acda-461e7a161a3f",
+      "material_id": "047479ad-b178-4b4b-862a-7728874c2dbd",
+      "per_100g_json": "{\"protein\":8.1,\"fat\":35.2,\"carbohydrate\":43.3,\"sodium\":26,\"unit\":\"per_100g\"}",
+      "data_version": "1.0",
+      "data_source": "正阳御湿膏",
+      "confidence": "high",
+      "last_updated": "2026-04-25T01:19:54.656Z"
+    },
+    {
+      "nutrition_id": "8b9f2913-0abd-45ce-be48-0ba7366d32c1",
+      "material_id": "8fb861f0-66b5-4ec7-b74c-082b6f48f3d4",
+      "per_100g_json": "{\"protein\":4,\"fat\":1.9,\"carbohydrate\":36.6,\"sodium\":15,\"unit\":\"per_100g\"}",
+      "data_version": "1.0",
+      "data_source": "正阳御湿膏",
+      "confidence": "high",
+      "last_updated": "2026-04-25T01:19:54.657Z"
+    },
+    {
+      "nutrition_id": "a3fd2498-cdc2-441c-889e-c61e52e169ef",
+      "material_id": "b051002a-ed63-410b-ad93-8ce5fbe7784e",
+      "per_100g_json": "{\"protein\":1.7,\"fat\":0.4,\"carbohydrate\":13.8,\"sodium\":2,\"unit\":\"per_100g\"}",
+      "data_version": "1.0",
+      "data_source": "酸枣仁灵芝石斛膏",
+      "confidence": "high",
+      "last_updated": "2026-04-25T01:19:54.657Z"
+    },
+    {
+      "nutrition_id": "075fef2f-f343-4615-8a54-4b5d8497967d",
+      "material_id": "19f2c241-7027-45dd-ba6b-43d4b653457f",
+      "per_100g_json": "{\"protein\":0.9,\"fat\":1.8,\"carbohydrate\":25.5,\"sodium\":28,\"unit\":\"per_100g\"}",
+      "data_version": "1.0",
+      "data_source": "沫彐淳膏",
+      "confidence": "high",
+      "last_updated": "2026-04-25T01:19:54.657Z"
+    },
+    {
+      "nutrition_id": "04320517-6898-4bca-b774-a3ae164dc820",
+      "material_id": "c27dea5f-e73a-473c-b24e-d8eb155557fd",
+      "per_100g_json": "{\"protein\":9.4,\"fat\":1,\"carbohydrate\":70.8,\"sodium\":104,\"unit\":\"per_100g\"}",
+      "data_version": "1.0",
+      "data_source": "佛手玫苓膏",
+      "confidence": "high",
+      "last_updated": "2026-04-25T01:19:54.657Z"
+    },
+    {
+      "nutrition_id": "3fc23a71-a2f7-4f10-9a3a-2cd40087e077",
+      "material_id": "d655cfe7-bbdf-4c94-8dd3-fc4f59785288",
+      "per_100g_json": "{\"protein\":null,\"fat\":null,\"carbohydrate\":null,\"sodium\":null,\"unit\":\"per_100g\"}",
+      "data_version": "1.0",
+      "data_source": "酸枣仁灵芝石斛膏",
+      "confidence": "high",
+      "last_updated": "2026-04-25T01:19:54.657Z"
+    },
+    {
+      "nutrition_id": "0403e833-7f34-44c3-bd19-950c0efa7e57",
+      "material_id": "a80c55a9-8c54-43f9-8506-56d0eaf4f57a",
+      "per_100g_json": "{\"protein\":31.8,\"fat\":25.7,\"carbohydrate\":null,\"sodium\":null,\"unit\":\"per_100g\"}",
+      "data_version": "1.0",
+      "data_source": "酸枣仁灵芝石斛膏",
+      "confidence": "high",
+      "last_updated": "2026-04-25T01:19:54.657Z"
+    },
+    {
+      "nutrition_id": "e1674fcc-c932-4fa5-9eb3-e94df482cd1e",
+      "material_id": "ef9bd758-9b33-4a85-94ba-c3787b951e79",
+      "per_100g_json": "{\"protein\":null,\"fat\":null,\"carbohydrate\":null,\"sodium\":null,\"unit\":\"per_100g\"}",
+      "data_version": "1.0",
+      "data_source": "酸枣仁灵芝石斛膏",
+      "confidence": "high",
+      "last_updated": "2026-04-25T01:19:54.657Z"
+    },
+    {
+      "nutrition_id": "4222e47e-9bd7-4160-942f-8d34125939d4",
+      "material_id": "a8261cbb-7580-425a-bf40-323dfaba187b",
+      "per_100g_json": "{\"protein\":7.4,\"fat\":0.8,\"carbohydrate\":77.9,\"sodium\":3.8,\"unit\":\"per_100g\"}",
+      "data_version": "1.0",
+      "data_source": "沫彐淳膏",
+      "confidence": "high",
+      "last_updated": "2026-04-25T01:19:54.657Z"
+    },
+    {
+      "nutrition_id": "fe771b30-f9d5-4dca-bd44-02b0a7a5daa8",
+      "material_id": "a07636cf-999b-46da-a776-ec11de8bbe79",
+      "per_100g_json": "{\"protein\":1.6,\"fat\":2,\"carbohydrate\":9.5,\"sodium\":null,\"unit\":\"per_100g\"}",
+      "data_version": "1.0",
+      "data_source": "酸枣仁灵芝石斛膏",
+      "confidence": "high",
+      "last_updated": "2026-04-25T01:19:54.657Z"
+    },
+    {
+      "nutrition_id": "ef6d3b90-4b27-4026-80e6-58e1b62fbf2a",
+      "material_id": "808270c3-ebe9-4c9f-9e71-b98f5506e490",
+      "per_100g_json": "{\"protein\":6.8,\"fat\":2.3,\"carbohydrate\":76.6,\"sodium\":19,\"unit\":\"per_100g\"}",
+      "data_version": "1.0",
+      "data_source": "酸枣仁灵芝石斛膏",
+      "confidence": "high",
+      "last_updated": "2026-04-25T01:19:54.657Z"
+    },
+    {
+      "nutrition_id": "75fa4b5b-30f3-4eb3-9559-1c4aa077ba6f",
+      "material_id": "4a2b1762-7be3-456a-b0fe-3b644b065b02",
+      "per_100g_json": "{\"protein\":11.4,\"fat\":5.9,\"carbohydrate\":65.4,\"sodium\":null,\"unit\":\"per_100g\"}",
+      "data_version": "1.0",
+      "data_source": "沫彐淳膏",
+      "confidence": "high",
+      "last_updated": "2026-04-25T01:19:54.657Z"
+    },
+    {
+      "nutrition_id": "b683b75e-87f7-4428-b03f-d2a82fdfb4c3",
+      "material_id": "d8d832ac-ac12-4150-8901-00d3b9c2bb1f",
+      "per_100g_json": "{\"protein\":5.5,\"fat\":1.8,\"carbohydrate\":62,\"sodium\":null,\"unit\":\"per_100g\"}",
+      "data_version": "1.0",
+      "data_source": "沫彐淳膏",
+      "confidence": "high",
+      "last_updated": "2026-04-25T01:19:54.657Z"
+    },
+    {
+      "nutrition_id": "3267c90a-f757-4cdb-92b4-ec49ff63b92d",
+      "material_id": "1ebed193-8129-4fce-a3c5-ce7e3ad8940d",
+      "per_100g_json": "{\"protein\":6.9,\"fat\":0.9,\"carbohydrate\":29.5,\"sodium\":null,\"unit\":\"per_100g\"}",
+      "data_version": "1.0",
+      "data_source": "正阳御湿膏",
+      "confidence": "high",
+      "last_updated": "2026-04-25T01:19:54.657Z"
+    },
+    {
+      "nutrition_id": "c50afbd3-1197-4200-b0fc-19f1c101b86f",
+      "material_id": "4387c8cf-1387-4d46-8426-7c46628314d1",
+      "per_100g_json": "{\"protein\":null,\"fat\":null,\"carbohydrate\":null,\"sodium\":null,\"unit\":\"per_100g\"}",
+      "data_version": "1.0",
+      "data_source": "酸枣仁灵芝石斛膏",
+      "confidence": "high",
+      "last_updated": "2026-04-25T01:19:54.657Z"
+    },
+    {
+      "nutrition_id": "584597bc-6b7a-4faa-a85c-0fe22cc4ffa5",
+      "material_id": "f02f892b-594e-4aa9-9897-46106c1ee2ab",
+      "per_100g_json": "{\"protein\":2.5,\"fat\":0.4,\"carbohydrate\":4.2,\"sodium\":null,\"unit\":\"per_100g\"}",
+      "data_version": "1.0",
+      "data_source": "正阳御湿膏",
+      "confidence": "high",
+      "last_updated": "2026-04-25T01:19:54.657Z"
+    },
+    {
+      "nutrition_id": "f47d451f-0228-4364-bbb3-402f8c567515",
+      "material_id": "0955b393-376b-48e8-bed6-3c15ba62b56b",
+      "per_100g_json": "{\"protein\":11.9,\"fat\":1.3,\"carbohydrate\":75.2,\"sodium\":7,\"unit\":\"per_100g\"}",
+      "data_version": "1.0",
+      "data_source": "酸枣仁灵芝石斛膏",
+      "confidence": "high",
+      "last_updated": "2026-04-25T01:19:54.657Z"
+    },
+    {
+      "nutrition_id": "9e931017-44b5-4955-89c6-889178dba83a",
+      "material_id": "a17b87f8-18c5-4158-8ecf-6d00e1ac7aab",
+      "per_100g_json": "{\"protein\":null,\"fat\":null,\"carbohydrate\":null,\"sodium\":null,\"unit\":\"per_100g\"}",
+      "data_version": "1.0",
+      "data_source": "正阳御湿膏",
+      "confidence": "high",
+      "last_updated": "2026-04-25T01:19:54.657Z"
+    },
+    {
+      "nutrition_id": "d394fa5d-613b-4921-8068-579f67583568",
+      "material_id": "7af62f84-8002-400d-b165-82fa84cd247b",
+      "per_100g_json": "{\"protein\":2.9,\"fat\":0.4,\"carbohydrate\":5.6,\"sodium\":5,\"unit\":\"per_100g\"}",
+      "data_version": "1.0",
+      "data_source": "沫彐淳膏",
+      "confidence": "high",
+      "last_updated": "2026-04-25T01:19:54.657Z"
+    },
+    {
+      "nutrition_id": "37b2eece-7aa6-4b79-8a37-3998274ee3cc",
+      "material_id": "cf6a560c-ff16-4e75-8bc1-c6b6d48853e5",
+      "per_100g_json": "{\"protein\":8.5,\"fat\":4.7,\"carbohydrate\":68,\"sodium\":null,\"unit\":\"per_100g\"}",
+      "data_version": "1.0",
+      "data_source": "沫彐淳膏",
+      "confidence": "high",
+      "last_updated": "2026-04-25T01:19:54.657Z"
+    },
+    {
+      "nutrition_id": "3eadba38-77d0-49e9-9b4c-fe7b174139b3",
+      "material_id": "84dc838a-4663-4e68-93dc-30a2e26278cd",
+      "per_100g_json": "{\"protein\":8.5,\"fat\":4.7,\"carbohydrate\":68,\"sodium\":null,\"unit\":\"per_100g\"}",
+      "data_version": "1.0",
+      "data_source": "佛手玫苓膏",
+      "confidence": "high",
+      "last_updated": "2026-04-25T01:19:54.657Z"
+    },
+    {
+      "nutrition_id": "3154fafc-b8bf-4153-98ec-a0b3be39aeca",
+      "material_id": "ae9cc2ae-7190-4903-97ca-d6d62c89120b",
+      "per_100g_json": "{\"protein\":null,\"fat\":null,\"carbohydrate\":null,\"sodium\":null,\"unit\":\"per_100g\"}",
+      "data_version": "1.0",
+      "data_source": "沫彐淳膏",
+      "confidence": "high",
+      "last_updated": "2026-04-25T01:19:54.657Z"
+    }
+  ]
+}

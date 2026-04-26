@@ -38,47 +38,56 @@
 
           <!-- 原料概况卡片 -->
           <section class="info-card">
-            <h3 class="card-label">原料概况</h3>
+            <h3 class="card-label">
+              <t-icon name="browse" class="label-icon" />
+              原料概况
+            </h3>
             <div class="card-fields">
               <div class="field-item">
-                <label>原料编码</label>
+                <label><t-icon name="barcode" size="12px" /> 原料编码</label>
                 <p>{{ material.code || '--' }}</p>
               </div>
               <div class="field-item">
-                <label>原料名称</label>
+                <label><t-icon name="edit-1" size="12px" /> 原料名称</label>
                 <p>{{ material.name }}</p>
               </div>
               <div class="field-grid-2">
                 <div class="field-item">
-                  <label>原料类型</label>
+                  <label><t-icon name="root-list" size="12px" /> 原料类型</label>
                   <p>{{ material.materialType === 'supplement' ? '辅料' : '药材' }}</p>
                 </div>
                 <div class="field-item">
-                  <label>单位</label>
+                  <label><t-icon name="ruler" size="12px" /> 单位</label>
                   <p>{{ material.unit || '--' }}</p>
                 </div>
               </div>
               <div class="field-grid-2">
                 <div class="field-item">
-                  <label>库存数量</label>
+                  <label><t-icon name="shop" size="12px" /> 库存数量</label>
                   <p :class="{ 'status-warn': (material.stock ?? 0) <= 0, 'status-ok': (material.stock ?? 0) > 0 }">
                     {{ material.stock ?? 0 }} {{ material.unit }}
                   </p>
                 </div>
                 <div class="field-item">
-                  <label>营养状态</label>
+                  <label><t-icon name="heart" size="12px" /> 营养状态</label>
                   <p :class="{ 'status-warn': nutritionData.length === 0, 'status-ok': nutritionData.length > 0 }">
                     {{ nutritionData.length > 0 ? `${nutritionData.length}项` : '未录入' }}
                   </p>
                 </div>
               </div>
+              <div class="field-item">
+                <label><t-icon name="currency-exchange" size="12px" /> 单价</label>
+                <p :class="{ 'status-warn': material.unitPrice == null, 'status-ok': material.unitPrice != null }">
+                  {{ material.unitPrice != null ? `¥${Number(material.unitPrice).toFixed(2)}/kg` : '暂未录入' }}
+                </p>
+              </div>
               <div class="field-grid-2">
                 <div class="field-item">
-                  <label>创建时间</label>
+                  <label><t-icon name="time" size="12px" /> 创建时间</label>
                   <p>{{ material.createdAt }}</p>
                 </div>
                 <div class="field-item">
-                  <label>更新时间</label>
+                  <label><t-icon name="edit-1" size="12px" /> 更新时间</label>
                   <p>{{ material.updatedAt }}</p>
                 </div>
               </div>
@@ -88,7 +97,10 @@
           <!-- 变更记录时间线 -->
           <section class="info-card">
             <div class="timeline-header">
-              <h3 class="card-label" style="margin-bottom: 0;">变更记录</h3>
+              <h3 class="card-label" style="margin-bottom: 0;">
+                <t-icon name="history" class="label-icon" />
+                变更记录
+              </h3>
             </div>
             <div class="timeline-list">
               <div class="timeline-item current">
@@ -581,6 +593,15 @@ onMounted(() => { loadData(); });
         text-transform: uppercase;
         letter-spacing: 0.1em;
         margin-bottom: 24px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        .label-icon {
+          font-size: 16px;
+          color: #10b981;
+          opacity: 0.7;
+        }
       }
     }
 
@@ -596,12 +617,20 @@ onMounted(() => { loadData(); });
         border: 1px solid #f1f5f9;
 
         label {
-          display: block;
+          display: flex;
+          align-items: center;
+          gap: 6px;
           font-size: 10px;
           font-weight: 700;
           color: #94a3b8;
           text-transform: uppercase;
           margin-bottom: 4px;
+
+          .t-icon {
+            color: #10b981;
+            opacity: 0.55;
+            flex-shrink: 0;
+          }
         }
 
         p {
@@ -1127,4 +1156,3 @@ onMounted(() => { loadData(); });
   opacity: 0;
 }
 </style>
-

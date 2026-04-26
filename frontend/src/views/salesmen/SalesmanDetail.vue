@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="salesman-detail" :aria-busy="!salesman">
     <PageSkeleton v-if="!salesman" type="detail" />
     <template v-else>
@@ -165,7 +165,7 @@
                   </div>
                   <div class="formula-item-meta">
                     <span class="meta-item">
-                      <t-icon name="weight-pounds" size="14px" />
+                      <t-icon name="measurement" size="14px" />
                       {{ item.finishedWeight || 0 }}g
                     </span>
                     <span class="meta-item">
