@@ -36,7 +36,7 @@
                       <polyline points="3 6 5 6 21 6" />
                       <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
                     </svg>
-                    批量停用
+                    批量删除
                   </button>
                 </div>
               </div>
@@ -109,9 +109,10 @@
           <template #empty>
             <t-empty description="暂无业务员数据" role="status">
               <template #action>
-                <t-button theme="primary" @click="handleCreate">
-                  <template #icon><t-icon name="add" /></template>添加业务员
-                </t-button>
+                <button class="add-formula-btn" @click="handleCreate">
+                  <t-icon name="add" class="add-icon" />
+                  添加业务员
+                </button>
               </template>
             </t-empty>
           </template>
@@ -127,8 +128,13 @@
                 <t-icon name="edit-1" />
               </button>
               <t-popconfirm v-if="row.status === 'active'" content="确定要停用该业务员吗？" @confirm="handleToggleStatus(row)">
-                <button class="action-btn delete-btn" @click.stop title="停用" :aria-label="`停用业务员${row.name}`">
+                <button class="action-btn status-btn" @click.stop title="停用" :aria-label="`停用业务员${row.name}`">
                   <t-icon name="poweroff" />
+                </button>
+              </t-popconfirm>
+              <t-popconfirm content="确定要删除该业务员吗？删除后无法恢复。" @confirm="handleDelete(row)">
+                <button class="action-btn delete-btn" @click.stop title="删除" :aria-label="`删除业务员${row.name}`">
+                  <t-icon name="delete" />
                 </button>
               </t-popconfirm>
             </div>
@@ -240,7 +246,7 @@
           <div
             style="width:440px;max-width:90vw;background:#fff;border-radius:16px;box-shadow:0 24px 80px rgba(0,0,0,0.12),0 6px 24px rgba(0,0,0,0.08);overflow:hidden;animation:dialog-pop-in 0.28s cubic-bezier(0.34,1.56,0.64,1);font-family:inherit">
             <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px 14px">
-              <h3 style="margin:0;font-size:16px;font-weight:600;color:#1e293b">确认批量停用</h3>
+              <h3 style="margin:0;font-size:16px;font-weight:600;color:#1e293b">确认批量删除</h3>
               <button @click="batchDeleteDialogVisible = false" aria-label="关闭" class="batch-dialog-close-btn">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                   stroke-linecap="round">
@@ -251,17 +257,17 @@
             </div>
             <div style="padding:2px 24px 18px">
               <p style="margin:0 0 10px;font-size:14px;color:#334155;line-height:1.7">
-                确定要停用所选的 <strong>{{ selectedRows.length }}</strong> 个业务员吗？
+                确定要删除所选的 <strong>{{ selectedRows.length }}</strong> 个业务员吗？
               </p>
               <p class="delete-info"
                 style="color:#64748b;font-size:13px;margin-top:8px;padding:10px 12px;background:#f8fafc;border-radius:8px;border-left:3px solid #fecdd3">
-                停用后该业务员将无法登录系统，请谨慎操作。
+                批量删除后无法恢复，请谨慎操作。
               </p>
             </div>
             <div style="display:flex;justify-content:flex-end;gap:10px;padding:6px 24px 22px">
               <t-button variant="outline" size="medium" @click="batchDeleteDialogVisible = false">取消</t-button>
               <t-button variant="base" theme="danger" size="medium" :loading="batchDeleteLoading"
-                @click="confirmBatchDelete">确定停用</t-button>
+                @click="confirmBatchDelete">确定删除</t-button>
             </div>
           </div>
         </div>
@@ -271,8 +277,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
-import { useRouter } from 'vue-router';
+import { ref, computed, onMounted, onUnmounted, onActivated, watch, nextTick } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
 import { useSalesmanStore } from '@/stores/salesman';
 import { usePaginationStore } from '@/stores/pagination';
 import { MessagePlugin } from 'tdesign-vue-next';
@@ -280,6 +286,7 @@ import type { Salesman } from '@/api/salesman';
 import PageSkeleton from '@/components/Skeleton/PageSkeleton.vue';
 
 const router = useRouter();
+const route = useRoute();
 const salesmanStore = useSalesmanStore();
 const paginationStore = usePaginationStore();
 
@@ -397,11 +404,11 @@ const confirmBatchDelete = async () => {
     for (const s of selectedRows.value) {
       await salesmanStore.deleteSalesman(s.id);
     }
-    MessagePlugin.success(`成功停用 ${count} 个业务员`);
+    MessagePlugin.success(`成功删除 ${count} 个业务员`);
     clearSelection();
     batchDeleteDialogVisible.value = false;
   } catch {
-    MessagePlugin.error('批量停用失败');
+    MessagePlugin.error('批量删除失败');
   } finally {
     batchDeleteLoading.value = false;
   }
@@ -515,15 +522,49 @@ const handleGlobalSearch = (e: Event) => {
   const keyword = (e as CustomEvent).detail || '';
   searchKeyword.value = keyword;
   salesmanStore.setKeyword(keyword);
+
+  // 更新路由查询参数
+  const query = { ...route.query };
+  if (keyword) {
+    query.keyword = keyword;
+  } else {
+    delete query.keyword;
+  }
+  router.replace({ query });
+
   salesmanStore.fetchSalesmen();
 };
+
+let isRestoringFromRoute = false;
 
 onMounted(async () => {
   window.addEventListener('global-search', handleGlobalSearch);
   paginationStore.register(pagination.value);
   watch(pagination, (val) => paginationStore.update(val), { deep: true });
+
+  // 从路由查询参数恢复搜索关键字
+  if (route.query.keyword) {
+    const keyword = route.query.keyword as string;
+    isRestoringFromRoute = true;
+    searchKeyword.value = keyword;
+    salesmanStore.setKeyword(keyword);
+    await nextTick();
+  }
+
   await salesmanStore.fetchSalesmen();
   initialized.value = true;
+});
+
+// 处理 keep-alive 缓存的组件重新激活时恢复搜索状态
+onActivated(async () => {
+  if (route.query.keyword && route.query.keyword !== searchKeyword.value) {
+    const keyword = route.query.keyword as string;
+    isRestoringFromRoute = true;
+    searchKeyword.value = keyword;
+    salesmanStore.setKeyword(keyword);
+    await nextTick();
+    salesmanStore.fetchSalesmen();
+  }
 });
 
 onUnmounted(() => {
@@ -537,20 +578,67 @@ const handleRealTimeSearch = () => {
   searchTimer = setTimeout(() => {
     salesmanStore.setKeyword(searchKeyword.value);
     salesmanStore.fetchSalesmen();
+
+    // 更新路由查询参数（不触发页面刷新）
+    const query = { ...route.query };
+    if (searchKeyword.value) {
+      query.keyword = searchKeyword.value;
+    } else {
+      delete query.keyword;
+    }
+
+    // 只在关键字变化时更新路由
+    if (query.keyword !== route.query.keyword) {
+      router.replace({ query });
+    }
   }, 300);
 };
 
-const handleCreate = () => router.push('/salesmen/new');
-const handleView = (row: Salesman) => router.push(`/salesmen/${row.id}`);
-const handleEdit = (row: Salesman) => router.push(`/salesmen/${row.id}/edit`);
+const handleCreate = () => {
+  router.push({
+    path: '/salesmen/new',
+    query: route.query
+  });
+};
+const handleView = (row: Salesman) => {
+  router.push({
+    path: `/salesmen/${row.id}`,
+    query: route.query
+  });
+};
+const handleEdit = (row: Salesman) => {
+  router.push({
+    path: `/salesmen/${row.id}/edit`,
+    query: route.query
+  });
+};
 
 const handleToggleStatus = async (row: Salesman) => {
   try {
-    const result = await salesmanStore.deleteSalesman(row.id);
-    if (result.success) MessagePlugin.success(`${row.name} 已停用`);
-    else MessagePlugin.error(result.message || '操作失败');
+    const newStatus = row.status === 'active' ? 'inactive' : 'active';
+    const result = await salesmanStore.toggleSalesmanStatus(row.id, newStatus);
+    if (result.success) {
+      MessagePlugin.success(result.message || `${row.name} 已${newStatus === 'inactive' ? '停用' : '启用'}`);
+      clearSelection();
+    } else {
+      MessagePlugin.error(result.message || '操作失败');
+    }
   } catch {
-    MessagePlugin.error('停用失败');
+    MessagePlugin.error('操作失败');
+  }
+};
+
+const handleDelete = async (row: Salesman) => {
+  try {
+    const result = await salesmanStore.deleteSalesman(row.id);
+    if (result.success) {
+      MessagePlugin.success(`${row.name} 已删除`);
+      clearSelection();
+    } else {
+      MessagePlugin.error(result.message || '删除失败');
+    }
+  } catch {
+    MessagePlugin.error('删除失败');
   }
 };
 </script>
@@ -696,20 +784,26 @@ const handleToggleStatus = async (row: Salesman) => {
     .add-formula-btn {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      padding: 8px 16px;
-      background-color: #1e293b;
-      color: white;
+      gap: 6px;
+      padding: 10px 20px;
       border-radius: 12px;
-      font-size: 14px;
-      font-weight: 500;
-      transition: all $transition-fast;
-      box-shadow: 0 4px 6px rgba(15, 23, 42, 0.15);
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
       border: none;
       cursor: pointer;
+      transition: all $transition-normal;
+      white-space: nowrap;
 
-      &:hover {
-        background-color: #334155;
+      &:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(16, 185, 129, 0.35);
+      }
+
+      &:active:not(:disabled) {
+        transform: translateY(0);
+        box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
       }
 
       .add-icon {
@@ -996,6 +1090,12 @@ const handleToggleStatus = async (row: Salesman) => {
       color: #10B981;
       border-color: #a7f3d0;
       background: #ecfdf5;
+    }
+
+    &.status-btn:hover {
+      color: #F59E0B;
+      border-color: #fde68a;
+      background: #fffbeb;
     }
 
     &.delete-btn:hover {
@@ -1601,6 +1701,42 @@ const handleToggleStatus = async (row: Salesman) => {
 
 <style lang="scss">
 @use '@/assets/styles/variables.scss' as *;
+
+.salesman-list .add-formula-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  padding: 10px 20px !important;
+  border-radius: 12px !important;
+  background: linear-gradient(135deg, #10b981, #059669) !important;
+  color: #fff !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  border: none !important;
+  cursor: pointer !important;
+  transition: all $transition-normal !important;
+  white-space: nowrap !important;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.35) !important;
+    background: linear-gradient(135deg, #10b981, #059669) !important;
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0) !important;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25) !important;
+  }
+
+  .add-icon {
+    font-size: 18px !important;
+    transition: transform 0.2s !important;
+  }
+
+  &:hover .add-icon {
+    transform: rotate(90deg) !important;
+  }
+}
 
 .salesman-list .content-card .t-table .t-table__body tr td,
 .salesman-list .content-card .t-table .t-table__body .t-table__row--selected td,

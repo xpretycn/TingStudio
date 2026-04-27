@@ -85,6 +85,19 @@ export const useSalesmanStore = defineStore("salesman", () => {
     }
   };
 
+  const toggleSalesmanStatus = async (id: string, status: "active" | "inactive") => {
+    loading.value = true;
+    try {
+      const result = await salesmanApi.toggleStatus(id, status);
+      await fetchSalesmen();
+      return { success: true, message: result.message };
+    } catch (error: any) {
+      return { success: false, message: error.message || "更新状态失败" };
+    } finally {
+      loading.value = false;
+    }
+  };
+
   const setKeyword = (val: string) => {
     keyword.value = val;
     currentPage.value = 1;
@@ -112,6 +125,7 @@ export const useSalesmanStore = defineStore("salesman", () => {
     createSalesman,
     updateSalesman,
     deleteSalesman,
+    toggleSalesmanStatus,
     setKeyword,
     setStatusFilter,
     setPage,

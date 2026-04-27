@@ -1202,13 +1202,21 @@ const handleSubmit = async ({ validateResult }: any) => {
           if (materialId) await saveNutrition(materialId);
         }
         MessagePlugin.success(isEdit.value ? '保存成功' : '创建成功');
-        router.push('/materials');
+        router.push({
+          path: '/materials',
+          query: route.query
+        });
       } else MessagePlugin.error(result.message || '操作失败');
     } finally { loading.value = false; }
   }
 };
 
-const handleBack = () => { router.push('/materials'); };
+const handleBack = () => {
+  router.push({
+    path: '/materials',
+    query: route.query
+  });
+};
 
 const loadNutrition = async (materialId: string) => {
   try {

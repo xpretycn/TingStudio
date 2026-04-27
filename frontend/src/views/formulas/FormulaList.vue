@@ -252,9 +252,14 @@
           <template #empty>
             <t-empty description="暂无配方数据" role="status">
               <template #action>
-                <t-button theme="primary" @click="handleCreate">
-                  <template #icon><t-icon name="add" /></template>创建第一个配方
-                </t-button>
+                <button class="add-formula-btn" @click="handleCreate">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                  </svg>
+                  创建第一个配方
+                </button>
               </template>
             </t-empty>
           </template>
@@ -423,8 +428,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
-import { useRouter } from 'vue-router';
+import { ref, computed, onMounted, onUnmounted, onActivated, watch, nextTick } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
 import { useFormulaStore } from '@/stores/formula';
 import { useMaterialStore } from '@/stores/material';
 import { useSalesmanStore } from '@/stores/salesman';
@@ -434,6 +439,7 @@ import type { Formula } from '@/api/formula';
 import PageSkeleton from '@/components/Skeleton/PageSkeleton.vue';
 
 const router = useRouter();
+const route = useRoute();
 const formulaStore = useFormulaStore();
 const materialStore = useMaterialStore();
 const salesmanStore = useSalesmanStore();
@@ -913,7 +919,18 @@ onMounted(() => {
   watch(pagination, (val) => paginationStore.update(val), { deep: true });
 });
 
+let isRestoringFromRoute = false;
+
 onMounted(async () => {
+  // 从路由查询参数恢复搜索关键字
+  if (route.query.keyword) {
+    const keyword = route.query.keyword as string;
+    isRestoringFromRoute = true;
+    searchKeyword.value = keyword;
+    formulaStore.setKeyword(keyword);
+    await nextTick();
+  }
+
   await Promise.all([
     salesmanStore.fetchSalesmen(),
     formulaStore.fetchFormulas(),
@@ -921,6 +938,18 @@ onMounted(async () => {
     materialStore.fetchAllForSelect()
   ]);
   initialized.value = true;
+});
+
+// 处理 keep-alive 缓存的组件重新激活时恢复搜索状态
+onActivated(async () => {
+  if (route.query.keyword && route.query.keyword !== searchKeyword.value) {
+    const keyword = route.query.keyword as string;
+    isRestoringFromRoute = true;
+    searchKeyword.value = keyword;
+    formulaStore.setKeyword(keyword);
+    await nextTick();
+    formulaStore.fetchFormulas();
+  }
 });
 
 watch(() => router.currentRoute.value.path, (path) => {
@@ -935,22 +964,47 @@ onUnmounted(() => {
 const handleRealTimeSearch = () => {
   formulaStore.setKeyword(searchKeyword.value);
   formulaStore.fetchFormulas();
+
+  // 更新路由查询参数（不触发页面刷新）
+  const query = { ...route.query };
+  if (searchKeyword.value) {
+    query.keyword = searchKeyword.value;
+  } else {
+    delete query.keyword;
+  }
+
+  // 只在关键字变化时更新路由
+  if (query.keyword !== route.query.keyword) {
+    router.replace({ query });
+  }
 };
 
 const handleCreate = () => {
-  router.push('/formulas/new');
+  router.push({
+    path: '/formulas/new',
+    query: route.query
+  });
 };
 
 const handleView = (row: Formula) => {
-  router.push(`/formulas/${row.id}`);
+  router.push({
+    path: `/formulas/${row.id}`,
+    query: route.query
+  });
 };
 
 const handleEdit = (row: Formula) => {
-  router.push(`/formulas/${row.id}/edit`);
+  router.push({
+    path: `/formulas/${row.id}/edit`,
+    query: route.query
+  });
 };
 
 const handleVersion = (row: Formula) => {
-  router.push(`/versions/formula/${row.id}`);
+  router.push({
+    path: `/versions/formula/${row.id}`,
+    query: route.query
+  });
 };
 
 const handleDelete = async (row: Formula) => {
@@ -2622,6 +2676,41 @@ const handleDelete = async (row: Formula) => {
 
   .t-checkbox .t-checkbox__input.is-focus .t-checkbox__input__inner {
     box-shadow: 0 0 0 2px var(--td-brand-color-focus) !important;
+  }
+}
+
+.formula-list .add-formula-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  padding: 10px 20px !important;
+  border-radius: 12px !important;
+  background: linear-gradient(135deg, #10b981, #059669) !important;
+  color: #fff !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  border: none !important;
+  cursor: pointer !important;
+  transition: all $transition-normal !important;
+  white-space: nowrap !important;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.35) !important;
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0) !important;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25) !important;
+  }
+
+  &:disabled {
+    opacity: 0.5 !important;
+    cursor: not-allowed !important;
+  }
+
+  svg {
+    flex-shrink: 0 !important;
   }
 }
 </style>

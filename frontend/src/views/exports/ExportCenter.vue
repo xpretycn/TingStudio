@@ -80,9 +80,14 @@
                     <template #empty>
                       <t-empty description="暂无导出任务" role="status">
                         <template #action>
-                          <t-button theme="primary" @click="handleCreateJob">
-                            <template #icon><t-icon name="add" /></template>创建导出任务
-                          </t-button>
+                          <button class="create-job-btn" @click="handleCreateJob">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                              stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                              <line x1="12" y1="5" x2="12" y2="19"></line>
+                              <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                            创建导出任务
+                          </button>
                         </template>
                       </t-empty>
                     </template>
@@ -942,6 +947,41 @@ onMounted(async () => {
   // ─── 面板内部布局 ───
   .panel-inner {
     padding: 24px 32px;
+  }
+
+  .create-job-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 20px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    transition: all $transition-normal;
+    white-space: nowrap;
+
+    &:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(16, 185, 129, 0.35);
+    }
+
+    &:active:not(:disabled) {
+      transform: translateY(0);
+      box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    svg {
+      flex-shrink: 0;
+    }
   }
 
   .create-form-bar {

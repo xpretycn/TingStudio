@@ -190,24 +190,13 @@
           <template #empty>
             <t-empty description="暂无原料数据" role="status">
               <template #action>
-                <button class="empty-add-btn" @click="handleCreate" :style="{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '8px',
-                  padding: '12px 28px',
-                  backgroundColor: primaryColor,
-                  color: '#fff',
-                  border: 'none',
-                  borderRadius: '12px',
-                  fontSize: '15px',
-                  fontWeight: '600',
-                  lineHeight: '1.4',
-                  cursor: 'pointer',
-                  outline: 'none',
-                  boxShadow: '0 4px 14px rgba(0,0,0,0.12)'
-                }">
-                  <t-icon name="add" style="font-size:18px;color:#fff" />录入第一个原料
+                <button class="empty-add-btn" @click="handleCreate">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                  </svg>
+                  录入第一个原料
                 </button>
               </template>
             </t-empty>
@@ -331,8 +320,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
-import { useRouter } from 'vue-router';
+import { ref, computed, onMounted, onUnmounted, onActivated, watch, nextTick } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
 import { useMaterialStore } from '@/stores/material';
 import { usePaginationStore } from '@/stores/pagination';
 import { useThemeStore } from '@/stores/theme';
@@ -344,6 +333,7 @@ import { materialApi } from '@/api/material';
 import PageSkeleton from '@/components/Skeleton/PageSkeleton.vue';
 
 const router = useRouter();
+const route = useRoute();
 const materialStore = useMaterialStore();
 const paginationStore = usePaginationStore();
 const themeStore = useThemeStore();
@@ -727,12 +717,41 @@ function formatTimeAgo(dateStr: string): string {
   return `${days}天前`;
 }
 
-onMounted(() => {
+onMounted(async () => {
   window.addEventListener('global-search', handleGlobalSearch);
   paginationStore.register(pagination.value);
   watch(pagination, (val) => paginationStore.update(val), { deep: true });
+
+  // 从路由查询参数恢复搜索关键字（在加载数据之前）
+  if (route.query.keyword) {
+    const keyword = route.query.keyword as string;
+
+    // 设置标志位，防止 watch 触发重复搜索
+    isRestoringFromRoute = true;
+    searchKeyword.value = keyword;
+    materialStore.setKeyword(keyword);
+
+    // 等待 DOM 更新，确保输入框显示关键字
+    await nextTick();
+  }
+
   loadMaterials();
   fetchStats();
+});
+
+// 处理 keep-alive 缓存的组件重新激活时恢复搜索状态
+onActivated(async () => {
+  if (route.query.keyword && route.query.keyword !== searchKeyword.value) {
+    const keyword = route.query.keyword as string;
+
+    // 设置标志位，防止 watch 触发重复搜索
+    isRestoringFromRoute = true;
+    searchKeyword.value = keyword;
+    materialStore.setKeyword(keyword);
+
+    await nextTick();
+    materialStore.fetchMaterials();
+  }
 });
 
 onUnmounted(() => {
@@ -770,16 +789,45 @@ const handleGlobalSearch = (e: Event) => {
   const keyword = (e as CustomEvent).detail || '';
   searchKeyword.value = keyword;
   materialStore.setKeyword(keyword);
+
+  // 更新路由查询参数
+  const query = { ...route.query };
+  if (keyword) {
+    query.keyword = keyword;
+  } else {
+    delete query.keyword;
+  }
+  router.replace({ query });
+
   loadMaterials();
 };
 
 const handleRealTimeSearch = () => {
   materialStore.setKeyword(searchKeyword.value);
   materialStore.fetchMaterials();
+
+  // 更新路由查询参数（不触发页面刷新）
+  const query = { ...route.query };
+  if (searchKeyword.value) {
+    query.keyword = searchKeyword.value;
+  } else {
+    delete query.keyword;
+  }
+
+  // 只在关键字变化时更新路由
+  if (query.keyword !== route.query.keyword) {
+    router.replace({ query });
+  }
 };
 
-// 监听 searchKeyword 变化后触发搜索（此时 v-model 已更新）
-watch(searchKeyword, () => {
+// 监听 searchKeyword 变化后触发搜索（仅在用户主动输入时触发）
+let isRestoringFromRoute = false;
+watch(searchKeyword, (newVal) => {
+  // 如果正在从路由参数恢复，不触发搜索（避免重复请求）
+  if (isRestoringFromRoute) {
+    isRestoringFromRoute = false;
+    return;
+  }
   handleRealTimeSearch();
 });
 
@@ -788,11 +836,17 @@ const handleCreate = () => {
 };
 
 const handleView = (row: Material) => {
-  router.push(`/materials/${row.id}`);
+  router.push({
+    path: `/materials/${row.id}`,
+    query: route.query
+  });
 };
 
 const handleEdit = (row: Material) => {
-  router.push(`/materials/${row.id}/edit`);
+  router.push({
+    path: `/materials/${row.id}/edit`,
+    query: route.query
+  });
 };
 
 const handleDelete = async (row: Material) => {
@@ -1050,21 +1104,6 @@ const handleDelete = async (row: Material) => {
         font-size: 13px;
         color: #cbd5e1;
         margin-top: 8px;
-      }
-    }
-
-    :deep(.empty-add-btn) {
-      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-
-      &:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18) !important;
-        filter: brightness(1.08);
-      }
-
-      &:active {
-        transform: translateY(0) scale(0.98);
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12) !important;
       }
     }
   }
@@ -2040,6 +2079,41 @@ const handleDelete = async (row: Material) => {
 .material-list .content-card .t-table .t-table__body tr:hover>td,
 .material-list .content-card .t-table .t-table__body .t-table__row:hover>td {
   background-color: rgba(209, 250, 229, 0.35) !important;
+}
+
+.material-list .empty-add-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  padding: 10px 20px !important;
+  border-radius: 12px !important;
+  background: linear-gradient(135deg, #10b981, #059669) !important;
+  color: #fff !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  border: none !important;
+  cursor: pointer !important;
+  transition: all $transition-normal !important;
+  white-space: nowrap !important;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.35) !important;
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0) !important;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25) !important;
+  }
+
+  &:disabled {
+    opacity: 0.5 !important;
+    cursor: not-allowed !important;
+  }
+
+  svg {
+    flex-shrink: 0 !important;
+  }
 }
 
 .material-list .content-card .t-table .t-table__body tr:hover>td:first-child,

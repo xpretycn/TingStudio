@@ -365,7 +365,12 @@ const nrvData = computed(() => {
   }).filter(d => d.value > 0);
 });
 
-const handleBack = () => router.push('/materials');
+const handleBack = () => {
+  router.push({
+    path: '/materials',
+    query: route.query
+  });
+};
 
 const loadData = async () => {
   const id = route.params.id as string;

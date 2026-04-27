@@ -347,7 +347,12 @@ const calcTableData = computed(() => {
   ];
 });
 
-const handleBack = () => router.push('/formulas');
+const handleBack = () => {
+  router.push({
+    path: '/formulas',
+    query: route.query
+  });
+};
 
 // 格式化日期
 const formatDate = (date: string | Date) => {

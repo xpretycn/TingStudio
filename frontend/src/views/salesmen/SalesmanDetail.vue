@@ -248,7 +248,12 @@ const formulaTotal = ref(0);
 const formulaPage = ref(1);
 const FORMULA_PAGE_SIZE = 10;
 
-const handleBack = () => router.push('/salesmen');
+const handleBack = () => {
+  router.push({
+    path: '/salesmen',
+    query: route.query
+  });
+};
 
 const formatDate = (dateStr: string | Date): string => {
   const date = new Date(dateStr);

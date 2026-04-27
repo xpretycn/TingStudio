@@ -38,4 +38,7 @@ export const salesmanApi = {
   delete(id: string) {
     return http.delete<any, { success: boolean; message: string }>(`/salesmen/${id}`)
   },
+  toggleStatus(id: string, status: 'active' | 'inactive') {
+    return http.patch<any, { success: boolean; message: string }>(`/salesmen/${id}/status`, { status })
+  },
 }

@@ -48,22 +48,43 @@ TingStudio 是一个专业的食品配方工作数据管理平台，面向食品
 
 #### 🔧 修复清单
 
-| 问题 | 根因 | 方案 |
-|---|---|---|
-| ⚡ 图标不显示 (FormulaForm / FormulaDetail) | TDesign 图标名渲染异常 | 改为文字 badge「调」 |
-| 近期动态不显示基价调整 | 类型优先级排序把 warning 挤到后面 | 改为时间倒序 |
-| 保存后列表数据不刷新 | 组件复用时不触发 onMounted | 添加路由 watch 监听 |
-| 切换按钮图标不显示 (VersionCompare) | TDesign `money-circle` / `chart-bar` 不存在 | 改为 ¥ / % 符号 |
+| 问题                                        | 根因                                        | 方案                 |
+| ------------------------------------------- | ------------------------------------------- | -------------------- |
+| ⚡ 图标不显示 (FormulaForm / FormulaDetail) | TDesign 图标名渲染异常                      | 改为文字 badge「调」 |
+| 近期动态不显示基价调整                      | 类型优先级排序把 warning 挤到后面           | 改为时间倒序         |
+| 保存后列表数据不刷新                        | 组件复用时不触发 onMounted                  | 添加路由 watch 监听  |
+| 切换按钮图标不显示 (VersionCompare)         | TDesign `money-circle` / `chart-bar` 不存在 | 改为 ¥ / % 符号      |
 
 #### 影响范围
 
-| 文件 | 改动 |
-|---|---|
-| [FormulaForm.vue](frontend/src/views/formulas/FormulaForm.vue) | 「调」badge + 路由监听 |
-| [FormulaDetail.vue](frontend/src/views/formulas/FormulaDetail.vue) | 「调」badge |
-| [FormulaList.vue](frontend/src/views/formulas/FormulaList.vue) | 近期动态排序修复 + 路由监听 |
-| [VersionCompare.vue](frontend/src/views/versions/VersionCompare.vue) | 含量/报价双模式切换 |
+| 文件                                                                 | 改动                                     |
+| -------------------------------------------------------------------- | ---------------------------------------- |
+| [FormulaForm.vue](frontend/src/views/formulas/FormulaForm.vue)       | 「调」badge + 路由监听                   |
+| [FormulaDetail.vue](frontend/src/views/formulas/FormulaDetail.vue)   | 「调」badge                              |
+| [FormulaList.vue](frontend/src/views/formulas/FormulaList.vue)       | 近期动态排序修复 + 路由监听              |
+| [VersionCompare.vue](frontend/src/views/versions/VersionCompare.vue) | 含量/报价双模式切换                      |
 | [formulaController.ts](backend/src/controllers/formulaController.ts) | buildChanges + buildVersionName 基价处理 |
+
+---
+
+### ✅ 业务员模块 UI 修复与测试便利性优化 (2026-04-27)
+
+#### 🎨 添加业务员按钮颜色修复
+
+- **问题诊断**: 空数据状态下按钮使用 `<t-button theme="primary">`，走 TDesign 默认粉色主题，与配方列表的绿色渐变风格不一致
+- **解决方案**: 改为原生 `<button class="add-formula-btn">`，统一复用绿色渐变样式
+- **样式穿透**: 在非 scoped `<style>` 中添加 `.salesman-list .add-formula-btn` 规则
+  - `background: linear-gradient(135deg, #10b981, #059669)` — 绿色渐变
+  - hover 时上浮 2px + 绿色光晕阴影
+- **影响文件**: `SalesmanList.vue`（模板 + 样式穿透规则）
+
+#### 🧪 新增业务员表单自动填充
+
+- **工号自动生成**: `YW` + 时间戳后5位 + 2位随机数（共8位），避免手动输入
+- **部门**: 默认填充「销售部」
+- **电话**: 自动生成 `138` 开头的 11 位手机号
+- **邮箱**: 自动生成 `salesman` + 时间戳 + `@tingstudio.com` 格式
+- **影响文件**: `SalesmanForm.vue`（onMounted 新增分支）
 
 ---
 

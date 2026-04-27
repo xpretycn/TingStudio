@@ -238,7 +238,10 @@ const handleSubmit = async ({ validateResult }: any) => {
         : await salesmanStore.createSalesman(formData);
       if (result.success) {
         MessagePlugin.success(isEdit.value ? '保存成功' : '创建成功');
-        router.push('/salesmen');
+        router.push({
+          path: '/salesmen',
+          query: route.query
+        });
       } else {
         MessagePlugin.error(result.message || '操作失败');
       }
@@ -248,7 +251,12 @@ const handleSubmit = async ({ validateResult }: any) => {
   }
 };
 
-const handleBack = () => router.push('/salesmen');
+const handleBack = () => {
+  router.push({
+    path: '/salesmen',
+    query: route.query
+  });
+};
 
 onMounted(async () => {
   const id = route.params.id as string;
@@ -263,6 +271,13 @@ onMounted(async () => {
         email: salesman.email || ''
       });
     }
+  } else {
+    const now = Date.now();
+    const random = Math.floor(Math.random() * 100).toString().padStart(2, '0');
+    formData.code = `YW${now.toString().slice(-5)}${random}`;
+    formData.department = '销售部';
+    formData.phone = `138${Math.floor(Math.random() * 100000000).toString().padStart(8, '0')}`;
+    formData.email = `salesman${now.toString().slice(-6)}@tingstudio.com`;
   }
 });
 </script>
@@ -768,5 +783,3 @@ onMounted(async () => {
   }
 }
 </style>
-
-

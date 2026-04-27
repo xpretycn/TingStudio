@@ -1,5 +1,7 @@
 <template>
   <div class="nutrition-analysis" :aria-busy="!initialized">
+
+    <!-- 数据中心 -->
     <section class="dashboard-grid">
       <div v-for="(card, idx) in dashboardCards" :key="card.label" class="stat-card"
         :style="{ animationDelay: `${(idx + 1) * 0.1}s` }">
@@ -14,7 +16,7 @@
         <p class="stat-value">{{ card.value }} <small class="stat-unit">{{ card.unit }}</small></p>
       </div>
     </section>
-
+    <!-- 营养分析 -->
     <Transition name="content-fade" mode="out-in">
       <PageSkeleton v-if="!initialized" type="cards" :rows="3" />
       <div v-else class="main-content-wrapper">
@@ -268,7 +270,7 @@
         </t-card>
       </div>
     </Transition>
-
+    <!-- 分析历史记录 -->
     <section class="activity-section">
       <div class="activity-card activity-card--timeline">
         <div class="activity-header">

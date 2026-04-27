@@ -785,7 +785,10 @@ const handleSubmit = async ({ validateResult }: any) => {
 
       if (result.success) {
         MessagePlugin.success(isEdit.value ? '保存成功' : '创建成功');
-        router.push('/formulas');
+        router.push({
+          path: '/formulas',
+          query: route.query
+        });
       } else {
         MessagePlugin.error(result.message || '操作失败');
       }
@@ -796,7 +799,10 @@ const handleSubmit = async ({ validateResult }: any) => {
 };
 
 const handleBack = () => {
-  router.push('/formulas');
+  router.push({
+    path: '/formulas',
+    query: route.query
+  });
 };
 
 // AI 模型选择
