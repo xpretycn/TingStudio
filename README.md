@@ -1,12 +1,85 @@
-# TingStudio v2.19
+# TingStudio v2.20
 
 食品配方工作数据管理平台 — 前后端分离架构
 
 ## 项目简介
 
-TingStudio 是一个专业的食品配方工作数据管理平台，面向食品配方行业（中草药功效配方），提供配方管理、原料管理、业务员管理、营养成分分析、导出分享等完整功能链路。采用 **Vue 3 + Express + 腾讯MySQL** 前后端分离架构，支持 JWT 认证、RESTful API、配方版本控制、营养合规检查等企业级特性。
+TingStudio 是一个专业的食品配方工作数据管理平台，面向食品配方行业（中草药功效配方），提供配方管理、原料管理、业务员管理、营养成分分析、导出分享等完整功能链路。采用 **Vue 3 + Express + SQLite** 前后端分离架构，支持 JWT 认证、RESTful API、配方版本控制、营养合规检查、AI 智能解析等企业级特性。
 
-## 🚀 最新更新 (2026-04-26)
+## 🚀 最新更新 (2026-04-29)
+
+### ✅ AI 解析匹配全面升级 + 数据库完整备份工具
+
+#### 🔧 Bug 修复（3项）
+
+| 问题                  | 根因                                                                    | 修复方案                                                 |
+| --------------------- | ----------------------------------------------------------------------- | -------------------------------------------------------- |
+| 配方列表搜索失效      | TDesign `t-input` 的 `@input` 在 `v-model` 更新前触发，keyword 始终为空 | 改为 `watch(searchKeyword)` 响应式监听（与原料管理一致） |
+| AI 回填原料名称未显示 | `backfillData()` 缺少按名称二次匹配逻辑                                 | 新增 `allMats.find(x => x.name === m.name)` 兜底查找     |
+| 营养接口重复日志      | `getMaterialNutrition` 的 `_logLabel` 参数导致每次调用打印日志          | 移除 `_logLabel` 参数                                    |
+
+#### 📦 原料数据库全面补全
+
+从 `test/` 目录全部 **14 个 Excel 营养成分表** 批量导入：
+
+- **新增 70 种原料** → 数据库总计 **132 种原料**（全部含营养数据）
+- 覆盖截图未匹配的 6 种：**芦根、化橘红、乌药叶、黄芥子、蒲公英、西洋参**
+- 新增脚本：[importAllTestMaterials.ts](backend/src/scripts/importAllTestMaterials.ts)
+
+#### 🤖 AI 别名映射扩展
+
+[aiController.ts](backend/src/controllers/aiController.ts) 别名表从 **12 条 → 150+ 条**：
+
+```
+芦根 ← 干芦根/鲜芦根/芦茅根
+化橘红 ← 化州橘红/橘红/毛橘红
+西洋参 ← 西洋人参/美国参/花旗参
+蒲公英 ← 蒲公草/黄花地丁
+... (40+ 种原料的常见变体)
+```
+
+#### 💾 数据库备份/恢复工具
+
+新增两个脚本，支持换电脑后完整恢复：
+
+| 脚本                                                         | 用途                                     |
+| ------------------------------------------------------------ | ---------------------------------------- |
+| [exportDatabase.ts](backend/src/scripts/exportDatabase.ts)   | 导出全部 13 张表结构 + 392 条记录 → JSON |
+| [restoreDatabase.ts](backend/src/scripts/restoreDatabase.ts) | 从 JSON 恢复完整数据库（按外键依赖顺序） |
+
+```bash
+# 导出备份
+cd backend && npx tsx src/scripts/exportDatabase.ts
+
+# 恢复数据库（自动使用最新备份）
+cd backend && npx tsx src/scripts/restoreDatabase.ts
+
+# 强制覆盖已有数据库
+npx tsx src/scripts/restoreDatabase.ts --force
+
+# 仅预览不写入
+npx tsx src/scripts/restoreDatabase.ts --dry-run
+```
+
+备份文件位置：`backend/data/backup/tingstudio_backup_时间戳.json`
+
+#### 📊 当前数据库快照
+
+| 表名                                                                                   | 记录数  | 说明                          |
+| -------------------------------------------------------------------------------------- | ------- | ----------------------------- |
+| users                                                                                  | 20      | 用户表（含 admin/admin123）   |
+| materials                                                                              | **132** | 原料表（药材 + 辅料）         |
+| material_nutrition                                                                     | **132** | 营养数据（蛋白/脂肪/碳水/钠） |
+| formulas                                                                               | 6       | 配方表                        |
+| formula_versions                                                                       | 13      | 版本快照                      |
+| salesmen                                                                               | 29      | 业务员表                      |
+| nutrition_profiles                                                                     | 20      | 营养档案模板                  |
+| export_templates                                                                       | 20      | 导出模板                      |
+| api_data_interfaces                                                                    | 20      | API 接口配置                  |
+| export_jobs / formula_nutrition_summaries / nutrition_analysis_reports / share_configs | 0       | 空表（已建结构）              |
+| **合计**                                                                               | **392** | 13 张表                       |
+
+---
 
 ### ✅ P1 阶段 — 配方定价系统（可调整原料单价）
 
@@ -158,15 +231,11 @@ TingStudio 是一个专业的食品配方工作数据管理平台，面向食品
 
 ## 技术栈
 
-### 后端 (Production)
+### 后端 (Development)
 
 - **运行时**: Node.js 18+ (TypeScript)
 - **Web 框架**: Express 4.21+
-- **数据库**:
-  - **生产环境**: 腾讯云 MySQL (CynosDB)
-  - **开发环境**: SQLite (better-sqlite3) + WAL 模式
-  - **双模式支持**: 自动适配开发/生产环境
-- **云服务**: 腾讯云函数 SCF (Serverless)
+- **数据库**: SQLite (better-sqlite3) + WAL 模式
 - **认证**: JWT (jsonwebtoken + bcryptjs)
 - **安全**: Helmet + CORS + express-rate-limit
 - **日志**: Morgan
@@ -186,78 +255,40 @@ TingStudio 是一个专业的食品配方工作数据管理平台，面向食品
 
 ### 基础设施
 
-| 服务     | 提供商                 | 用途              |
-| -------- | ---------------------- | ----------------- |
-| 云函数   | 腾讯云 SCF             | 后端 API 服务     |
-| 数据库   | 腾讯云 CynosDB (MySQL) | 数据持久化存储    |
-| 前端托管 | EdgeOne Pages          | 静态资源 CDN 分发 |
-| 对象存储 | 腾讯云 COS (可选)      | 文件上传存储      |
+| 服务     | 技术选型                  | 用途                  |
+| -------- | ------------------------- | --------------------- |
+| 前端构建 | Vite 5.1                  | 开发服务器 + 生产构建 |
+| 后端框架 | Express 4.21              | RESTful API 服务      |
+| 数据库   | SQLite (better-sqlite3)   | 数据持久化 (WAL 模式) |
+| AI 服务  | 通义千问 / GLM / DeepSeek | 配方解析 + 营养分析   |
+| 天气服务 | 和风天气 API              | 实时天气展示          |
 
 ## 🌐 访问地址
 
-### 生产环境
-
-- **前端地址**: `https://tingstudio-frontend-jnvxqqcv.edgeone.cool/login`
-- **后端 API**: `https://tingstudio-prod-d2f6fhumc0432c48-1318822768.ap-shanghai.app.tcloudbase.com/api`
-- **健康检查**: `https://tingstudio-prod-d2f6fhumc0432c48-1318822768.ap-shanghai.app.tcloudbase.com/api/health`
-
 ### 开发环境
 
-- **前端地址**: `http://localhost:5173`
+- **前端地址**: `http://localhost:5174` (或 5173)
 - **后端 API**: `http://localhost:3000/api`
+- **健康检查**: `http://localhost:3000/api/health`
 - **测试账号**: `admin` / `admin123`
 
-## 🚀 快速开始
+## 📦 快速开始
 
-### 本地开发环境
-
-```bash
-# 启动后端服务
-cd backend
-npm install
-npm run dev
-
-# 启动前端服务
-cd frontend
-npm install
-npm run dev
-
-# 访问 http://localhost:5173/login
-```
-
-### 部署到生产环境
-
-```bash
-# 构建前端
-cd frontend
-npm run build
-
-# 部署后端
-cd backend
-npm run build:scf
-tcb framework deploy
-
-# 部署前端到 EdgeOne Pages
-# 在 EdgeOne 控制台点击"预览"或"发布"生成新的访问链接
-```
-
-## 📊 项目状态
-
-| 组件         | 状态        | 说明                         |
-| ------------ | ----------- | ---------------------------- |
-| **后端服务** | ✅ 正常运行 | 本地调试和云端部署均正常     |
-| **前端应用** | ✅ 正常运行 | 本地开发和生产环境均可访问   |
-| **数据库**   | ✅ 连接正常 | SQLite (开发) + MySQL (生产) |
-| **登录功能** | ✅ 完全正常 | 本地和云端均可正常登录       |
-| **UI 界面**  | ✅ 优化完成 | 登录页面布局优化为 3:7 比例  |
+| 组件         | 状态                    | 说明                                    |
+| ------------ | ----------------------- | --------------------------------------- |
+| **后端服务** | ✅ 正常运行             | Express + SQLite (better-sqlite3)       |
+| **前端应用** | ✅ 正常运行             | Vue 3 + TDesign + Vite                  |
+| **数据库**   | ✅ 13 张表 / 392 条记录 | SQLite WAL 模式，含 132 种原料+营养数据 |
+| **AI 解析**  | ✅ 匹配率显著提升       | 150+ 别名映射 + 模糊匹配 + 名称标准化   |
+| **配方搜索** | ✅ 已修复               | watch 响应式监听模式                    |
+| **数据备份** | ✅ 可用                 | exportDatabase / restoreDatabase 脚本   |
 
 ## 🎯 近期计划
 
-- [ ] 解决 EdgeOne Pages 401 访问控制问题
-- [ ] 优化数据库连接池配置
-- [ ] 添加更多自动化测试
-- [ ] 完善 API 文档
-- [ ] 性能监控和优化
+- [ ] 配方管理功能持续优化
+- [ ] 更多自动化测试覆盖
+- [ ] API 文档完善
+- [ ] 性能监控与优化
 
 ---
 
@@ -352,22 +383,25 @@ npm run seed         # 导入种子数据（可选）
 │                   用户浏览器                          │
 │         (Vue 3 + TDesign UI + Pinia)                │
 └──────────────────┬──────────────────────────────────┘
-                   │ HTTPS
+                   │ HTTP
 ┌──────────────────▼──────────────────────────────────┐
-│              EdgeOne Pages (CDN)                     │
-│          静态资源分发 + 全球加速                      │
+│              前端开发服务器 (Vite)                     │
+│          热更新 + TypeScript 编译                     │
 └──────────────────┬──────────────────────────────────┘
                    │ API 调用
 ┌──────────────────▼──────────────────────────────────┐
-│           腾讯云函数 SCF (Serverless)                 │
-│        Express + TypeScript + JWT 认证               │
+│           后端服务 (Express + TypeScript)             │
+│        JWT 认证 + RESTful API + 中间件               │
 └──────────────────┬──────────────────────────────────┘
                    │ 数据库连接
 ┌──────────────────▼──────────────────────────────────┐
-│           腾讯云 CynosDB (MySQL)                      │
-│            企业级关系型数据库                         │
-│     (12张表 · 153条记录 · 自动备份)                  │
+│           SQLite 数据库 (better-sqlite3)              │
+│            WAL 模式 + 外键约束                       │
+│     (13张表 · 392条记录 · 132种原料)                 │
 └─────────────────────────────────────────────────────┘
+
+数据备份: backend/data/backup/tingstudio_backup_*.json
+恢复工具: npx tsx src/scripts/restoreDatabase.ts
 ```
 
 ### 目录结构
@@ -384,9 +418,12 @@ ting-studio/
 │   │   ├── middleware/                   # 中间件 (认证/校验/错误处理)
 │   │   ├── routes/                       # 路由定义 (8个模块)
 │   │   ├── scripts/                      # 工具脚本
-│   │   │   ├── migrate-to-mysql.ts       # 数据迁移脚本
-│   │   │   ├── init-mysql-database.ts    # MySQL 初始化
-│   │   │   └── manual-migrate.js         # 手动迁移工具
+│   │   │   ├── seedData.ts              # 种子数据（52种原料 + 4个配方）
+│   │   │   ├── importRealData.ts        # 真实Excel配方导入
+│   │   │   ├── importAllTestMaterials.ts # test/目录全部原料批量导入
+│   │   │   ├── exportDatabase.ts        # 数据库完整导出（表结构+数据→JSON）
+│   │   │   ├── restoreDatabase.ts       # 数据库恢复（JSON→数据库）
+│   │   │   └── test-api.cjs            # API 测试脚本
 │   │   ├── services/                     # 业务服务层
 │   │   │   └── ai/                       # AI 服务 (多模型)
 │   │   └── utils/                        # 工具函数
@@ -489,19 +526,54 @@ ting-studio/
 
 ### 表结构概览
 
-| 表名                        | 说明       | 记录数 | 关键字段                                 |
-| --------------------------- | ---------- | ------ | ---------------------------------------- |
-| users                       | 用户表     | 12     | id, username, password, role             |
-| materials                   | 材料表     | 12     | id, name, code, material_type            |
-| formulas                    | 配方表     | 12     | id, name, salesman_id, materials_json    |
-| salesmen                    | 销售员表   | 12     | id, name, code, department               |
-| formula_versions            | 配方版本表 | 36     | version_id, formula_id, version_number   |
-| material_nutrition          | 材料营养表 | 56     | nutrition_id, material_id, per_100g_json |
-| nutrition_profiles          | 营养配置表 | 6      | profile_id, name, category               |
-| export_templates            | 导出模板表 | 6      | template_id, name, type                  |
-| export_jobs                 | 导出任务表 | 10     | job_id, status, file_url                 |
-| share_configs               | 分享配置表 | 2      | share_id, share_url                      |
-| formula_nutrition_summaries | 营养汇总表 | 5      | summary_id, formula_id                   |
+| 表名                        | 说明         | 记录数  | 关键字段                                                    |
+| --------------------------- | ------------ | ------- | ----------------------------------------------------------- |
+| users                       | 用户表       | 20      | id, username, password, role (admin/formulist)              |
+| materials                   | 原料表       | **132** | id, name, code, material_type (herb/supplement), unit_price |
+| material_nutrition          | 营养数据表   | **132** | nutrition_id, material_id(FK), per_100g_json                |
+| formulas                    | 配方表       | 6       | id, name, salesman_id(FK), materials_json, finished_weight  |
+| formula_versions            | 版本快照表   | 13      | version_id, formula_id(FK), snapshot_json, status           |
+| salesmen                    | 业务员表     | 29      | id, name, code, department, status                          |
+| nutrition_profiles          | 营养档案模板 | 20      | profile_id, name, category, target_values_json              |
+| export_templates            | 导出模板     | 20      | template_id, name, type (pdf/excel/api/print)               |
+| export_jobs                 | 导出任务     | 0       | job_id, formula_id(FK), status, file_url                    |
+| formula_nutrition_summaries | 营养汇总     | 0       | summary_id, formula_id(FK), total_nutrition_json            |
+| nutrition_analysis_reports  | 营养分析报告 | 0       | report_id, formula_id(FK)                                   |
+| share_configs               | 分享配置     | 0       | config_id, share_code, expires_at                           |
+| api_data_interfaces         | API 接口配置 | 20      | interface_id, name, endpoint                                |
+
+### ER 关系核心链路
+
+```
+users ──1:N──→ formulas ──1:N──→ formula_versions
+                    │
+salesmen ──1:N──────┘
+materials ──1:1──→ material_nutrition
+```
+
+### 数据库工具命令
+
+```bash
+# 导出完整备份（13张表 + 392条记录）
+npx tsx src/scripts/exportDatabase.ts
+
+# 恢复数据库（自动使用最新备份）
+npx tsx src/scripts/restoreDatabase.ts
+
+# 从test/目录Excel批量导入原料+营养数据
+npx tsx src/scripts/importAllTestMaterials.ts
+
+# 初始化种子数据（首次部署）
+npx tsx src/scripts/seedData.ts
+```
+
+| formula_versions | 配方版本表 | 36 | version_id, formula_id, version_number |
+| material_nutrition | 材料营养表 | 56 | nutrition_id, material_id, per_100g_json |
+| nutrition_profiles | 营养配置表 | 6 | profile_id, name, category |
+| export_templates | 导出模板表 | 6 | template_id, name, type |
+| export_jobs | 导出任务表 | 10 | job_id, status, file_url |
+| share_configs | 分享配置表 | 2 | share_id, share_url |
+| formula_nutrition_summaries | 营养汇总表 | 5 | summary_id, formula_id |
 
 **总计**: 11 张表, 153 条业务记录
 

@@ -23,7 +23,7 @@ export interface MaterialForm {
 }
 
 export const materialApi = {
-  getList(params?: { keyword?: string; page?: number; pageSize?: number }) {
+  getList(params?: { keyword?: string; page?: number; pageSize?: number; scope?: string }) {
     // axios 拦截器会提取 res.data，所以这里直接返回内部的数据结构
     return http.get<any, { list: Material[]; pagination: any }>("/materials", { params });
   },

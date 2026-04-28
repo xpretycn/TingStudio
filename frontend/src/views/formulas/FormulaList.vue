@@ -79,8 +79,7 @@
                 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
               </svg>
               <t-input id="formula-search-input" v-model="searchKeyword" class="search-input" placeholder="搜索配方名称、编号..."
-                @input="handleRealTimeSearch" @clear="handleRealTimeSearch" clearable aria-label="按配方名称或编号搜索"
-                data-testid="formula-search" />
+                clearable aria-label="按配方名称或编号搜索" data-testid="formula-search" />
             </div>
             <button class="add-formula-btn" @click="handleCreate" aria-label="创建新配方" data-testid="formula-add-btn">
               <t-icon name="add" class="add-icon" />
@@ -978,6 +977,15 @@ const handleRealTimeSearch = () => {
     router.replace({ query });
   }
 };
+
+// 监听 searchKeyword 变化后触发搜索（仅在用户主动输入时触发）
+watch(searchKeyword, (newVal) => {
+  if (isRestoringFromRoute) {
+    isRestoringFromRoute = false;
+    return;
+  }
+  handleRealTimeSearch();
+});
 
 const handleCreate = () => {
   router.push({
@@ -2682,31 +2690,29 @@ const handleDelete = async (row: Formula) => {
 .formula-list .add-formula-btn {
   display: inline-flex !important;
   align-items: center !important;
-  gap: 6px !important;
-  padding: 10px 20px !important;
+  gap: 8px !important;
+  padding: 8px 16px !important;
   border-radius: 12px !important;
-  background: linear-gradient(135deg, #10b981, #059669) !important;
-  color: #fff !important;
-  font-size: 13px !important;
-  font-weight: 700 !important;
+  background-color: #1e293b !important;
+  color: white !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
   border: none !important;
   cursor: pointer !important;
-  transition: all $transition-normal !important;
-  white-space: nowrap !important;
+  transition: all $transition-fast !important;
+  box-shadow: 0 4px 6px rgba(15, 23, 42, 0.15) !important;
 
-  &:hover:not(:disabled) {
-    transform: translateY(-2px) !important;
-    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.35) !important;
+  &:hover {
+    background-color: #334155 !important;
   }
 
-  &:active:not(:disabled) {
-    transform: translateY(0) !important;
-    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25) !important;
+  .add-icon {
+    font-size: 18px !important;
+    transition: transform 0.2s !important;
   }
 
-  &:disabled {
-    opacity: 0.5 !important;
-    cursor: not-allowed !important;
+  &:hover .add-icon {
+    transform: rotate(90deg) !important;
   }
 
   svg {

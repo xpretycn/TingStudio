@@ -107,6 +107,11 @@ const NRV: Record<string, number> = {
   dietaryFiber: 25,
 };
 
+function normalizeMaterialName(name: string): string {
+  if (!name) return name;
+  return name.replace(/[\uFEFF\u200B\u200C\u200D\u00A0\u3000]/g, "").trim();
+}
+
 /** 获取原料营养成分 */
 export async function getMaterialNutrition(req: Request, res: Response) {
   try {
@@ -270,8 +275,9 @@ export async function calculateFormulaNutrition(req: any, res: Response) {
 
       // 备选查找：如果通过 materialId 找不到营养数据，尝试通过原料名称匹配
       if (!nutrition && mat.materialName) {
+        const normalizedName = normalizeMaterialName(mat.materialName);
         const [[altMaterial]]: any[][] = await query("SELECT id FROM materials WHERE name = ? LIMIT 1", [
-          mat.materialName,
+          normalizedName,
         ]);
         if (altMaterial) {
           const [[altNutrition]]: any[][] = await query(
@@ -875,8 +881,9 @@ export async function getFormulaNutritionTables(req: any, res: Response) {
 
       // 备选查找：如果通过 materialId 找不到营养数据，尝试通过原料名称匹配
       if (!nutrition && mat.materialName) {
+        const normalizedName = normalizeMaterialName(mat.materialName);
         const [[altMaterial]]: any[][] = await query("SELECT id FROM materials WHERE name = ? LIMIT 1", [
-          mat.materialName,
+          normalizedName,
         ]);
         if (altMaterial) {
           const [[altNutrition]]: any[][] = await query(

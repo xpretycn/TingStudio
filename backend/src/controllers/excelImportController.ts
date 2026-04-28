@@ -109,7 +109,7 @@ export async function parseFormulaExcel(req: any, res: Response) {
       // 跳过空行
       if (!row['原料名称'] && !row['materialName']) continue
 
-      const materialName = String(row['原料名称'] || row['materialName'] || '').trim()
+      const materialName = String(row['原料名称'] || row['materialName'] || '').replace(/[\uFEFF\u200B\u200C\u200D\u00A0\u3000]/g, '').trim()
       const quantity = parseFloat(row['数量(g)'] || row['quantity'] || 0)
       
       // 验证必填字段

@@ -784,31 +784,29 @@ const handleDelete = async (row: Salesman) => {
     .add-formula-btn {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      padding: 10px 20px;
+      gap: 8px;
+      padding: 8px 16px;
+      background-color: #1e293b;
+      color: white;
       border-radius: 12px;
-      background: linear-gradient(135deg, #10b981, #059669);
-      color: #fff;
-      font-size: 13px;
-      font-weight: 700;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all $transition-fast;
+      box-shadow: 0 4px 6px rgba(15, 23, 42, 0.15);
       border: none;
       cursor: pointer;
-      transition: all $transition-normal;
-      white-space: nowrap;
 
-      &:hover:not(:disabled) {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(16, 185, 129, 0.35);
-      }
-
-      &:active:not(:disabled) {
-        transform: translateY(0);
-        box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
+      &:hover {
+        background-color: #334155;
       }
 
       .add-icon {
         font-size: 18px;
         transition: transform 0.2s;
+      }
+
+      &:hover .add-icon {
+        transform: rotate(90deg);
       }
 
       &:hover .add-icon {
@@ -1705,27 +1703,20 @@ const handleDelete = async (row: Salesman) => {
 .salesman-list .add-formula-btn {
   display: inline-flex !important;
   align-items: center !important;
-  gap: 6px !important;
-  padding: 10px 20px !important;
+  gap: 8px !important;
+  padding: 8px 16px !important;
   border-radius: 12px !important;
-  background: linear-gradient(135deg, #10b981, #059669) !important;
-  color: #fff !important;
-  font-size: 13px !important;
-  font-weight: 700 !important;
+  background-color: #1e293b !important;
+  color: white !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
   border: none !important;
   cursor: pointer !important;
-  transition: all $transition-normal !important;
-  white-space: nowrap !important;
+  transition: all $transition-fast !important;
+  box-shadow: 0 4px 6px rgba(15, 23, 42, 0.15) !important;
 
-  &:hover:not(:disabled) {
-    transform: translateY(-2px) !important;
-    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.35) !important;
-    background: linear-gradient(135deg, #10b981, #059669) !important;
-  }
-
-  &:active:not(:disabled) {
-    transform: translateY(0) !important;
-    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25) !important;
+  &:hover {
+    background-color: #334155 !important;
   }
 
   .add-icon {

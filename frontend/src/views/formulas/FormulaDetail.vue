@@ -134,6 +134,17 @@
             </div>
           </section>
 
+          <!-- 制法 -->
+          <section class="info-card" v-if="data.preparationMethod">
+            <h3 class="card-label">
+              <t-icon name="setting" class="label-icon" />
+              制法
+            </h3>
+            <div class="remark-content">
+              {{ data.preparationMethod }}
+            </div>
+          </section>
+
           <!-- 报价明细卡 -->
           <section v-if="priceQuote" class="info-card quote-card">
             <h3 class="card-label">
@@ -147,9 +158,17 @@
                   :class="{ 'qt-mat--warn': m.unitPrice === null, 'qt-mat--adjusted': m.isAdjusted }">
                   <span class="qtm-name">{{ m.materialName }}</span>
                   <span class="qtm-detail">{{ m.quantity }}g × ¥{{ m.unitPrice ?? '--' }}/kg
-                    <span v-if="m.isAdjusted" class="qtm-adjust-badge">调</span></span>
+                    <span v-if="m.isAdjusted" class="qtm-adjust-badge" :title="'基价: ¥' + (m.basePrice ?? '--') + '/kg'">
+                      <svg viewBox="0 0 12 12" width="10" height="10">
+                        <path d="M6 1L7.5 4.5L11 5L8.5 7.5L9 11L6 9L3 11L3.5 7.5L1 5L4.5 4.5Z" fill="#b45309" />
+                      </svg>调
+                    </span></span>
                   <span class="qtm-sub"><strong>{{ m.unitPrice != null ? `¥${m.subtotal.toFixed(2)}` : '--'
-                  }}</strong></span>
+                      }}</strong>
+                    <span v-if="m.isAdjusted && m.basePrice != null" class="qtm-base-hint"
+                      :title="'原始基价: ¥' + m.basePrice + '/kg · 差额: ¥' + ((m.unitPrice - m.basePrice)).toFixed(2) + '/kg'">({{
+                        ((m.unitPrice - m.basePrice) / m.basePrice * 100).toFixed(1) }}%)</span>
+                  </span>
                 </div>
               </div>
               <p v-if="priceQuote.missingPrices?.length" class="qt-warn">
@@ -647,8 +666,20 @@ onMounted(() => { loadData(); });
         }
 
         &--adjusted {
+          border-left: 3px solid #f59e0b;
+          background: linear-gradient(90deg, rgba(254, 243, 199, 0.4) 0%, transparent 100%);
+
           .qtm-name {
-            color: #d97706;
+            color: #92400e;
+            font-weight: 600;
+          }
+
+          .qtm-sub {
+            color: #78716c;
+
+            .qtm-base-hint {
+              color: #d97706;
+            }
           }
         }
 
@@ -666,16 +697,19 @@ onMounted(() => { loadData(); });
         }
 
         .qtm-adjust-badge {
-          display: inline-block;
+          display: inline-flex;
+          align-items: center;
+          gap: 2px;
           font-size: 10px;
-          line-height: 1;
-          padding: 1px 4px;
-          border-radius: 4px;
-          background: #fef3c7;
-          color: #d97706;
-          font-weight: 600;
+          line-height: 1.4;
+          padding: 2px 6px;
+          border-radius: 6px;
+          background: linear-gradient(135deg, #fef3c7, #fde68a);
+          color: #b45309;
+          font-weight: 700;
           margin-left: 4px;
           vertical-align: middle;
+          cursor: help;
         }
 
         .qtm-sub {
@@ -683,6 +717,18 @@ onMounted(() => { loadData(); });
           font-weight: 700;
           color: #059669;
           min-width: 60px;
+
+          .qtm-base-hint {
+            margin-left: 4px;
+            font-size: 11px;
+            color: #f59e0b;
+            font-weight: 600;
+            cursor: help;
+
+            &:hover {
+              text-decoration: underline;
+            }
+          }
         }
       }
 

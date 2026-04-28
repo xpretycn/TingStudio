@@ -101,12 +101,20 @@
                       <span class="pi-value" :class="{ 'pi-adjusted': item.isAdjusted }">
                         {{ formatPrice(item.unitPrice) }}
                       </span>
-                      <span v-if="item.isAdjusted" class="pi-adjust-badge">调</span>
+                      <span v-if="item.isAdjusted" class="pi-adjust-badge"
+                        :title="'基价: ¥' + (item.basePrice ?? '--') + '/kg'">
+                        <svg viewBox="0 0 12 12" width="10" height="10">
+                          <path d="M6 1L7.5 4.5L11 5L8.5 7.5L9 11L6 9L3 11L3.5 7.5L1 5L4.5 4.5Z" fill="#b45309" />
+                        </svg>调
+                      </span>
                     </div>
                   </div>
                   <div class="pi-bottom">
                     <span class="pi-sub">{{ item.quantity }}g</span>
-                    <span class="pi-cost">小计: ¥{{ (item.quantity / 1000 * item.unitPrice).toFixed(2) }}</span>
+                    <span class="pi-cost">小计: ¥{{ (item.quantity / 1000 * item.unitPrice).toFixed(2) }}
+                      <span v-if="item.isAdjusted && item.basePrice != null" class="pi-base-hint"
+                        :title="'原始基价: ¥' + item.basePrice + '/kg'">[基价¥{{ item.basePrice }}]</span>
+                    </span>
                   </div>
                 </div>
               </template>
@@ -257,16 +265,26 @@ const getDiffClass = (ing: any, _ver: any, idx: number) => {
 const getPriceItems = (ver: any, idx: number) => {
   const materials = ver.snapshot?.materials || [];
   if (idx === 0) {
-    return materials.map((m: any) => ({
-      name: m.materialName || '--',
-      quantity: m.quantity || 0,
-      unitPrice: m.adjustedPrice ?? null,
-      isAdjusted: m.adjustedPrice != null,
-    }));
+    return materials.map((m: any) => {
+      const basePrice = m.basePriceAtSave ?? null;
+      const adjPrice = m.adjustedPrice ?? null;
+      const effectivePrice = adjPrice != null ? adjPrice : basePrice;
+      return {
+        name: m.materialName || '--',
+        quantity: m.quantity || 0,
+        unitPrice: effectivePrice,
+        basePrice: basePrice,
+        isAdjusted: adjPrice != null && adjPrice !== basePrice,
+      };
+    });
   }
   const baseVer = compareVersions.value[0];
   const baseItems = baseVer?.snapshot?.materials || [];
-  const currentMap = new Map(materials.map((m: any) => [m.materialName, { quantity: m.quantity || 0, unitPrice: m.adjustedPrice ?? null, isAdjusted: m.adjustedPrice != null }]));
+  const currentMap = new Map(materials.map((m: any) => {
+    const bp = m.basePriceAtSave ?? null;
+    const ap = m.adjustedPrice ?? null;
+    return [m.materialName, { quantity: m.quantity || 0, unitPrice: ap != null ? ap : bp, basePrice: bp, isAdjusted: ap != null && ap !== bp }];
+  }));
   const aligned: any[] = [];
   baseItems.forEach((b: any) => {
     const name = b.materialName || '--';
@@ -274,7 +292,7 @@ const getPriceItems = (ver: any, idx: number) => {
       aligned.push({ name, ...currentMap.get(name), missing: false });
       currentMap.delete(name);
     } else {
-      aligned.push({ name, quantity: b.quantity || 0, unitPrice: null, isAdjusted: false, missing: true });
+      aligned.push({ name, quantity: b.quantity || 0, unitPrice: null, basePrice: b.basePriceAtSave ?? null, isAdjusted: false, missing: true });
     }
   });
   currentMap.forEach((val, name) => {
@@ -849,15 +867,18 @@ $radius-2xl: 2rem;
             }
 
             .pi-adjust-badge {
-              display: inline-block;
+              display: inline-flex;
+              align-items: center;
+              gap: 2px;
               font-size: 10px;
-              line-height: 1;
-              padding: 1px 4px;
-              border-radius: 4px;
-              background: #fef3c7;
-              color: #d97706;
-              font-weight: 600;
+              line-height: 1.4;
+              padding: 2px 6px;
+              border-radius: 6px;
+              background: linear-gradient(135deg, #fef3c7, #fde68a);
+              color: #b45309;
+              font-weight: 700;
               flex-shrink: 0;
+              cursor: help;
             }
           }
         }
@@ -877,6 +898,18 @@ $radius-2xl: 2rem;
             font-size: 12px;
             font-weight: 600;
             color: #10b981;
+
+            .pi-base-hint {
+              margin-left: 4px;
+              font-size: 11px;
+              color: #f59e0b;
+              font-weight: 500;
+              cursor: help;
+
+              &:hover {
+                text-decoration: underline;
+              }
+            }
           }
         }
       }

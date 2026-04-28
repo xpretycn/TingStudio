@@ -16,7 +16,8 @@ CREATE TABLE IF NOT EXISTS `users` (
   `email` TEXT DEFAULT NULL,
   `phone` TEXT DEFAULT NULL,
   `created_at` TEXT NOT NULL DEFAULT (datetime('now')),
-  `updated_at` TEXT NOT NULL DEFAULT (datetime('now'))
+  `updated_at` TEXT NOT NULL DEFAULT (datetime('now')),
+  `data_source` TEXT NOT NULL DEFAULT 'manual' CHECK(data_source IN ('manual', 'batch_import', 'api_sync'))
 );
 
 -- 原料表
@@ -27,6 +28,8 @@ CREATE TABLE IF NOT EXISTS `materials` (
   `unit` TEXT NOT NULL DEFAULT 'g',
   `stock` REAL NOT NULL DEFAULT 0,
   `material_type` TEXT NOT NULL DEFAULT 'herb' CHECK(material_type IN ('herb', 'supplement')),
+  `unit_price` REAL DEFAULT NULL,
+  `data_source` TEXT NOT NULL DEFAULT 'manual',
   `created_by` TEXT NOT NULL,
   `created_at` TEXT NOT NULL DEFAULT (datetime('now')),
   `updated_at` TEXT NOT NULL DEFAULT (datetime('now'))
@@ -45,6 +48,7 @@ CREATE TABLE IF NOT EXISTS `formulas` (
   `ratio_factor` REAL NOT NULL DEFAULT 0.18 CHECK(ratio_factor >= 0.15 AND ratio_factor <= 0.25),
   `supplement_ratio_factor` REAL NOT NULL DEFAULT 1.0 CHECK(supplement_ratio_factor >= 0.5 AND supplement_ratio_factor <= 1.5),
   `description` TEXT DEFAULT NULL,
+  `preparation_method` TEXT DEFAULT NULL,
   `created_by` TEXT NOT NULL,
   `created_at` TEXT NOT NULL DEFAULT (datetime('now')),
   `updated_at` TEXT NOT NULL DEFAULT (datetime('now')),

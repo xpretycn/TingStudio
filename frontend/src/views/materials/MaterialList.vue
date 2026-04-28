@@ -107,6 +107,10 @@
             <span class="custom-sort-header" @click.stop="toggleSort('createdAt')">创建时间<span
                 :class="sortIconClass('createdAt')"></span></span>
           </template>
+          <template #dataSource-title>
+            <span class="custom-sort-header" @click.stop="toggleSort('dataSource')">数据源<span
+                :class="sortIconClass('dataSource')"></span></span>
+          </template>
           <template #name="{ row }">
             <div class="material-info">
               <div class="material-avatar" :style="{
@@ -474,6 +478,7 @@ const applySort = () => {
     materialType: (a, b) => (a.materialType || '').localeCompare(b.materialType || ''),
     unitPrice: (a, b) => (a.unitPrice ?? 0) - (b.unitPrice ?? 0),
     stock: (a, b) => (a.stock || 0) - (b.stock || 0),
+    dataSource: (a, b) => (a.dataSource || 'manual').localeCompare(b.dataSource || 'manual'),
     createdAt: (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
   };
 
@@ -545,29 +550,22 @@ const getAvatarColor = (text: string) => {
   return colors[index];
 };
 
-// 数据源相关（模拟数据）
+// 数据源相关（真实数据）
 const dataSourceMap: Record<string, string> = {
   'manual': '手动录入',
-  'import': '批量导入',
-  'api': 'API同步',
-  'ai': 'AI生成'
+  'batch_import': '批量导入',
+  'api_sync': 'API同步',
 };
 
-const getDataSource = (row: any): string => {
-  if (!row.id) return 'manual';
-  const hash = row.id.split('').reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0);
-  const sources = ['manual', 'import', 'api', 'ai'];
-  return sources[hash % sources.length];
-};
+const getDataSource = (row: any): string => row.dataSource || 'manual';
 
 const getDataSourceLabel = (row: any): string => dataSourceMap[getDataSource(row)] || '手动录入';
 const getDataSourceIcon = (row: any): string => {
   const source = getDataSource(row);
   const icons: Record<string, string> = {
     manual: 'edit',
-    import: 'upload',
-    api: 'cloud',
-    ai: 'lightbulb'
+    batch_import: 'upload',
+    api_sync: 'cloud',
   };
   return icons[source] || 'edit';
 };
@@ -1567,19 +1565,14 @@ const handleDelete = async (row: Material) => {
     color: #3B82F6;
   }
 
-  &--import {
+  &--batch_import {
     background-color: #F0FDF4;
     color: #10B981;
   }
 
-  &--api {
+  &--api_sync {
     background-color: #FFFBEB;
     color: #F59E0B;
-  }
-
-  &--ai {
-    background-color: #FAF5FF;
-    color: #A855F7;
   }
 }
 

@@ -526,6 +526,7 @@ const formData = reactive<any>({
   stock: 0,
   materialType: 'herb',
   unitPrice: undefined as number | undefined,
+  dataSource: 'manual',
 });
 
 const unitOptions = [

@@ -73,14 +73,24 @@ export async function parseFormula(req: any, res: Response) {
     const excelExts = [".xlsx", ".xls"];
     const isExcel = excelExts.includes(ext);
 
+    const userId = req.user.userId;
+    const [materialRows]: any[][] = await query("SELECT name FROM materials WHERE created_by = ? ORDER BY name ASC", [
+      userId,
+    ]);
+    const knownMaterials = materialRows ? materialRows.map((r: any) => r.name) : [];
+
     let messages: AIService.ChatMessage[];
 
     if (isImage) {
       // 图片文件：构建多模态 prompt（附带文件名信息）
       const { base64, mimeType } = readFileAsBase64(file.path);
+      const materialsHint =
+        knownMaterials.length > 0
+          ? `\n\n## 系统已知原料列表（共${knownMaterials.length}种）\n${knownMaterials.join("、")}\n\n提取原料时请优先匹配上述标准名称。`
+          : "";
       const imagePrompt = file.originalname
-        ? `${FORMULA_PARSE_IMAGE_PROMPT}\n\n文件名：${file.originalname}\n请从文件名中提取业务员姓名、配方名称、配方日期等元信息。`
-        : FORMULA_PARSE_IMAGE_PROMPT;
+        ? `${FORMULA_PARSE_IMAGE_PROMPT}${materialsHint}\n\n文件名：${file.originalname}\n请从文件名中提取业务员姓名、配方名称、配方日期等元信息。`
+        : `${FORMULA_PARSE_IMAGE_PROMPT}${materialsHint}`;
       messages = [
         { role: "system", content: FORMULA_PARSE_SYSTEM_PROMPT },
         {
@@ -100,7 +110,7 @@ export async function parseFormula(req: any, res: Response) {
       }
       messages = [
         { role: "system", content: FORMULA_PARSE_SYSTEM_PROMPT },
-        { role: "user", content: FORMULA_PARSE_USER_PROMPT(textContent, file.originalname) },
+        { role: "user", content: FORMULA_PARSE_USER_PROMPT(textContent, file.originalname, knownMaterials) },
       ];
     } else {
       // 纯文本文件
@@ -111,7 +121,7 @@ export async function parseFormula(req: any, res: Response) {
       }
       messages = [
         { role: "system", content: FORMULA_PARSE_SYSTEM_PROMPT },
-        { role: "user", content: FORMULA_PARSE_USER_PROMPT(textContent, file.originalname) },
+        { role: "user", content: FORMULA_PARSE_USER_PROMPT(textContent, file.originalname, knownMaterials) },
       ];
     }
 
@@ -147,8 +157,15 @@ export async function parseFormula(req: any, res: Response) {
       return;
     }
 
+    // 标准化原料用量（四舍五入到整数，消除AI返回的异常小数）
+    // 标准化原料名称（去除空格、全角字符、不可见字符等，解决AI返回名称与数据库不一致导致的匹配失败问题）
+    parsed.materials = parsed.materials.map((m: ParsedMaterial) => ({
+      ...m,
+      quantity: Number.isFinite(m.quantity) ? Math.round(m.quantity) : m.quantity,
+      name: normalizeMaterialName(m.name),
+    }));
+
     // 模糊匹配原料 ID
-    const userId = req.user.userId;
     const materialsWithName = await matchMaterials(parsed.materials, userId);
 
     // 清理临时文件
@@ -288,6 +305,8 @@ export async function parseMaterialNutrition(req: any, res: Response) {
     for (const mat of parsed.materials) {
       if (!mat.name) {
         mat.name = "未识别";
+      } else {
+        mat.name = normalizeMaterialName(mat.name);
       }
     }
 
@@ -513,44 +532,355 @@ function readExcelAsText(filePath: string): string {
   return parts.join("\n");
 }
 
-/** 模糊匹配原料 ID */
-async function matchMaterials(materials: ParsedMaterial[], userId: string): Promise<ParsedMaterial[]> {
-  for (const mat of materials) {
-    // 模糊查找原料
-    const [matches]: any[][] = await query(
-      `SELECT id, name, code, unit FROM materials 
-       WHERE name LIKE ? AND created_by = ?
-       ORDER BY LENGTH(name) ASC LIMIT 1`,
-      [`%${mat.name}%`, userId],
-    );
+/** 标准化原料名称：去除前后空格、全角空格、不可见字符等，解决AI返回名称与数据库不一致导致的匹配失败 */
+function normalizeMaterialName(name: string): string {
+  if (!name) return name;
+  return name.replace(/[\uFEFF\u200B\u200C\u200D\u00A0\u3000]/g, "").trim();
+}
 
-    if (matches && matches.length > 0) {
-      mat.materialId = matches[0].id;
-      mat.matched = true;
-      // 如果 AI 未提供单位，使用数据库中的单位
-      if (!mat.unit && matches[0].unit) {
-        mat.unit = matches[0].unit;
-      }
-    } else {
-      // 尝试不限制 created_by（admin 创建的公共原料）
-      const [globalMatches]: any[][] = await query(
-        `SELECT id, name, code, unit FROM materials 
-         WHERE name LIKE ?
-         ORDER BY LENGTH(name) ASC LIMIT 1`,
-        [`%${mat.name}%`],
-      );
-      if (globalMatches && globalMatches.length > 0) {
-        mat.materialId = globalMatches[0].id;
-        mat.matched = true;
-        if (!mat.unit && globalMatches[0].unit) {
-          mat.unit = globalMatches[0].unit;
-        }
-      } else {
-        mat.materialId = "";
-        mat.matched = false;
-      }
+/** 原料名称别名映射：将常见变体/错写/简写映射到数据库中的标准名称 */
+const INGREDIENT_ALIASES: Record<string, string> = {
+  低聚异麦芽糖: "低聚异麦芽糖",
+  异麦芽低聚糖: "低聚异麦芽糖",
+  异麦芽寡糖: "低聚异麦芽糖",
+  IMO: "低聚异麦芽糖",
+  IMO糖: "低聚异麦芽糖",
+  isomaltooligosaccharide: "低聚异麦芽糖",
+  低聚果糖: "低聚果糖",
+  FOS: "低聚果糖",
+  低聚半乳糖: "低聚半乳糖",
+  GOS: "低聚半乳糖",
+  竹叶黄酮: "竹叶黄酮",
+  竹叶提取物: "竹叶黄酮",
+  显脉旋覆花: "显脉旋覆花",
+  旋覆花: "显脉旋覆花",
+  "r-氨基丁酸": "r-氨基丁酸",
+  "γ-氨基丁酸": "r-氨基丁酸",
+  GABA: "r-氨基丁酸",
+  地龙蛋白肽粉: "地龙蛋白肽粉",
+  地龙蛋白: "地龙蛋白肽粉",
+
+  芦根: "芦根",
+  干芦根: "芦根",
+  鲜芦根: "芦根",
+  芦茅根: "芦根",
+
+  化橘红: "化橘红",
+  化州橘红: "化橘红",
+  橘红: "化橘红",
+  毛橘红: "化橘红",
+
+  乌药叶: "乌药叶",
+  乌药: "乌药叶",
+  乌药根: "乌药叶",
+
+  黄芥子: "黄芥子",
+  芥子: "黄芥子",
+  白芥子: "黄芥子",
+  黄芥籽: "黄芥子",
+
+  蒲公英: "蒲公英",
+  蒲公草: "蒲公英",
+  蒲公英草: "蒲公英",
+  黄花地丁: "蒲公英",
+
+  西洋参: "西洋参",
+  西洋人参: "西洋参",
+  美国参: "西洋参",
+  花旗参: "西洋参",
+  西洋参片: "西洋参",
+
+  重瓣红玫瑰: "重瓣红玫瑰",
+  玫瑰花: "重瓣红玫瑰",
+  平阴玫瑰: "重瓣红玫瑰",
+  红玫瑰: "重瓣红玫瑰",
+
+  丹凤牡丹花: "丹凤牡丹花",
+  牡丹花瓣: "丹凤牡丹花",
+  牡丹花: "丹凤牡丹花",
+
+  平卧菊三七: "平卧菊三七",
+  菊三七: "平卧菊三七",
+
+  酸枣仁: "酸枣仁",
+  枣仁: "酸枣仁",
+  炒酸枣仁: "酸枣仁",
+
+  牡蛎: "牡蛎",
+  生牡蛎: "牡蛎",
+  牡蛎壳: "牡蛎",
+
+  昆布: "昆布",
+  海带: "昆布",
+  海藻: "昆布",
+
+  山茱萸: "山茱萸",
+  山萸肉: "山茱萸",
+  枣皮: "山茱萸",
+
+  鸡内金: "鸡内金",
+  内金: "鸡内金",
+
+  苦杏仁: "苦杏仁",
+  杏仁: "苦杏仁",
+  北杏仁: "苦杏仁",
+
+  炒白扁豆: "炒白扁豆",
+  白扁豆: "炒白扁豆",
+
+  纳豆: "纳豆",
+  纳豆激酶: "纳豆",
+
+  栀子: "栀子",
+  栀子仁: "栀子",
+  山栀子: "栀子",
+
+  当归: "当归",
+  全当归: "当归",
+  当归头: "当归",
+
+  白芷: "白芷",
+  川白芷: "白芷",
+
+  薄荷: "薄荷",
+  薄荷叶: "薄荷",
+  留兰香: "薄荷",
+
+  薏苡仁: "薏苡仁",
+  薏米: "薏苡仁",
+  薏仁: "薏苡仁",
+  薏仁米: "薏苡仁",
+
+  百合: "百合",
+  食用百合: "百合",
+
+  麦冬: "麦冬",
+  麦门冬: "麦冬",
+
+  麦芽: "麦芽",
+  生麦芽: "麦芽",
+  炒麦芽: "麦芽",
+
+  姜黄: "姜黄",
+  黄姜: "姜黄",
+
+  肉桂: "肉桂",
+  桂皮: "肉桂",
+  官桂: "肉桂",
+
+  山楂: "山楂",
+  山楂片: "山楂",
+  北山楂: "山楂",
+
+  鱼腥草: "鱼腥草",
+  折耳根: "鱼腥草",
+
+  金银花: "金银花",
+  双花: "金银花",
+  忍冬花: "金银花",
+
+  葛根: "葛根",
+  粉葛: "葛根",
+  野葛: "葛根",
+
+  荷叶: "荷叶",
+  干荷叶: "荷叶",
+  鲜荷叶: "荷叶",
+
+  陈皮: "陈皮",
+  橘皮: "陈皮",
+  广陈皮: "陈皮",
+
+  大枣: "大枣",
+  红枣: "大枣",
+  干大枣: "大枣",
+
+  党参: "党参",
+  上党参: "党参",
+  潞党参: "党参",
+
+  甘草: "甘草",
+  炙甘草: "甘草",
+  生甘草: "甘草",
+
+  茯苓: "茯苓",
+  云苓: "茯苓",
+  茯神: "茯苓",
+
+  佛手: "佛手",
+  佛手柑: "佛手",
+  佛手片: "佛手",
+
+  桑葚: "桑葚",
+  桑椹: "桑葚",
+  桑葚干: "桑葚",
+
+  龙眼肉: "龙眼肉",
+  桂圆肉: "龙眼肉",
+  桂圆干: "龙眼肉",
+
+  阿胶: "阿胶",
+  驴皮胶: "阿胶",
+  东阿胶: "阿胶",
+
+  草果: "草果",
+  草果子: "草果",
+
+  西红花: "西红花",
+  藏红花: "西红花",
+  番红花: "西红花",
+};
+
+/** 解析别名：尝试通过别名映射找到标准名称 */
+function resolveAlias(name: string): string {
+  const normalized = normalizeMaterialName(name);
+  if (INGREDIENT_ALIASES[normalized]) return INGREDIENT_ALIASES[normalized];
+  const lowerKey = normalized.toLowerCase();
+  for (const [alias, canonical] of Object.entries(INGREDIENT_ALIASES)) {
+    if (alias.toLowerCase() === lowerKey || canonical.toLowerCase() === lowerKey) return canonical;
+  }
+  return normalized;
+}
+
+/** 计算两个字符串的相似度（基于编辑距离，返回0-1） */
+function similarity(a: string, b: string): number {
+  const sa = normalizeMaterialName(a).toLowerCase();
+  const sb = normalizeMaterialName(b).toLowerCase();
+  if (sa === sb) return 1;
+  if (sa.includes(sb) || sb.includes(sa)) return 0.85;
+  const lenA = sa.length;
+  const lenB = sb.length;
+  const maxLen = Math.max(lenA, lenB);
+  if (maxLen === 0) return 1;
+  const dp: number[][] = Array.from({ length: lenA + 1 }, () => Array(lenB + 1).fill(0));
+  for (let i = 0; i <= lenA; i++) dp[i][0] = i;
+  for (let j = 0; j <= lenB; j++) dp[0][j] = j;
+  for (let i = 1; i <= lenA; i++) {
+    for (let j = 1; j <= lenB; j++) {
+      const cost = sa[i - 1] === sb[j - 1] ? 0 : 1;
+      dp[i][j] = Math.min(dp[i - 1][j] + 1, dp[i][j - 1] + 1, dp[i - 1][j - 1] + cost);
     }
   }
+  return 1 - dp[lenA][lenB] / maxLen;
+}
+
+/** 模糊匹配原料 ID */
+async function matchMaterials(materials: ParsedMaterial[], userId: string): Promise<ParsedMaterial[]> {
+  console.log(`[AI] 开始原料匹配，共${materials.length}种原料，用户ID=${userId}`);
+  const usedIds = new Set<string>();
+  for (const mat of materials) {
+    let matched = false;
+    console.log(`[AI] ┌─ 匹配原料: "${mat.name}" (原始AI返回)`);
+
+    const tryMatch = async (sql: string, params: any[], label: string) => {
+      const [rows]: any[][] = await query(sql, params);
+      if (rows && rows.length > 0) {
+        for (const row of rows) {
+          if (!usedIds.has(row.id)) {
+            return row;
+          }
+        }
+      }
+      return null;
+    };
+
+    const applyMatch = (row: any) => {
+      mat.materialId = row.id;
+      mat.matched = true;
+      usedIds.add(row.id);
+      if (!mat.unit && row.unit) mat.unit = row.unit;
+      matched = true;
+    };
+
+    const aliasName = resolveAlias(mat.name);
+    console.log(`[AI] │  标准化后: "${normalizeMaterialName(mat.name)}"`);
+    console.log(`[AI] │  别名解析: "${aliasName}" ${aliasName !== mat.name ? "(✓别名映射)" : "(无映射)"}`);
+
+    const candidates = [mat.name];
+    if (aliasName !== mat.name) candidates.push(aliasName);
+
+    for (const candidate of candidates) {
+      if (matched) break;
+      console.log(`[AI] │  尝试候选: "${candidate}"`);
+
+      const exactRow = await tryMatch(
+        `SELECT id, name, code, unit FROM materials WHERE name = ? AND created_by = ? LIMIT 1`,
+        [candidate, userId],
+        "用户精确",
+      );
+      if (exactRow) {
+        applyMatch(exactRow);
+        console.log(`[AI] │  ✓ Layer1-用户精确匹配命中`);
+        break;
+      }
+
+      const likeRow = await tryMatch(
+        `SELECT id, name, code, unit FROM materials WHERE name LIKE ? AND created_by = ? ORDER BY LENGTH(name) ASC`,
+        [`%${candidate}%`, userId],
+        "用户LIKE",
+      );
+      if (likeRow) {
+        applyMatch(likeRow);
+        console.log(`[AI] │  ✓ Layer2-用户LIKE匹配命中`);
+        break;
+      }
+
+      const globalExactRow = await tryMatch(
+        `SELECT id, name, code, unit FROM materials WHERE name = ? LIMIT 1`,
+        [candidate],
+        "全局精确",
+      );
+      if (globalExactRow) {
+        applyMatch(globalExactRow);
+        console.log(`[AI] │  ✓ Layer3-全局精确匹配命中`);
+        break;
+      }
+
+      const globalLikeRow = await tryMatch(
+        `SELECT id, name, code, unit FROM materials WHERE name LIKE ? ORDER BY LENGTH(name) ASC`,
+        [`%${candidate}%`],
+        "全局LIKE",
+      );
+      if (globalLikeRow) {
+        applyMatch(globalLikeRow);
+        console.log(`[AI] │  ✓ Layer4-全局LIKE匹配命中`);
+        break;
+      }
+    }
+
+    if (!matched) {
+      const [allMaterials]: any[][] = await query(
+        `SELECT id, name, code, unit FROM materials ORDER BY LENGTH(name) ASC`,
+        [],
+      );
+      let bestMatch: any = null;
+      let bestSim = 0.75;
+      for (const dbMat of allMaterials) {
+        if (usedIds.has(dbMat.id)) continue;
+        const sim = similarity(mat.name, dbMat.name);
+        if (sim > bestSim) {
+          bestSim = sim;
+          bestMatch = dbMat;
+        }
+      }
+      if (bestMatch) {
+        applyMatch(bestMatch);
+        console.log(`[AI] 模糊匹配成功: "${mat.name}" → "${bestMatch.name}" (相似度: ${(bestSim * 100).toFixed(0)}%)`);
+      } else {
+        console.log(
+          `[AI] 匹配失败: "${mat.name}" (别名:${aliasName}) 在全部${allMaterials.length}种原料中未找到匹配 (最佳相似度:${(bestSim * 100).toFixed(0)}%)`,
+        );
+      }
+    }
+
+    if (!matched) {
+      mat.materialId = "";
+      mat.matched = false;
+    }
+    console.log(`[AI] └─ 结果: ${matched ? "✓已匹配 (ID=" + mat.materialId + ")" : "✗未匹配"}`);
+  }
+  const matchedCount = materials.filter(m => m.matched).length;
+  console.log(`[AI] 匹配完成: ${matchedCount}/${materials.length} 成功`);
   return materials;
 }
 

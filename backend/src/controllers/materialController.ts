@@ -15,14 +15,20 @@ import {
 /** 获取原料列表 */
 export async function getMaterials(req: any, res: Response) {
   try {
-    const { keyword, page, pageSize } = req.query;
-    // 兼容 keyword 为数组的情况
+    const { keyword, page, pageSize, scope } = req.query;
     const kw = Array.isArray(keyword) ? keyword[0] : keyword || "";
     const { page: p, pageSize: size, offset } = buildPagination(Number(page), Number(pageSize));
     const userId = req.user.userId;
 
-    let whereSql = "WHERE created_by = ?";
-    const params: any[] = [userId];
+    let whereSql: string;
+    const params: any[] = [];
+
+    if (scope === 'all') {
+      whereSql = "WHERE 1=1";
+    } else {
+      whereSql = "WHERE created_by = ?";
+      params.push(userId);
+    }
 
     if (kw) {
       whereSql += " AND (name LIKE ? OR code LIKE ?)";
@@ -82,14 +88,25 @@ export async function getNextCode(req: any, res: Response) {
 /** 创建原料 */
 export async function createMaterial(req: any, res: Response) {
   try {
-    const { name, code, unit, stock, materialType, unitPrice } = req.body;
+    const { name, code, unit, stock, materialType, unitPrice, dataSource } = req.body;
     const userId = req.user.userId;
     const id = generateId();
 
     await query(
-      `INSERT INTO materials (id, name, code, unit, stock, material_type, unit_price, created_by, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [id, name, code, unit || "g", stock || 0, materialType || "herb", unitPrice ?? null, userId, now()],
+      `INSERT INTO materials (id, name, code, unit, stock, material_type, unit_price, data_source, created_by, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        id,
+        name,
+        code,
+        unit || "g",
+        stock || 0,
+        materialType || "herb",
+        unitPrice ?? null,
+        dataSource || "manual",
+        userId,
+        now(),
+      ],
     );
 
     const [[material]]: any[][] = await query("SELECT * FROM materials WHERE id = ?", [id]);
@@ -107,18 +124,12 @@ export async function createMaterial(req: any, res: Response) {
 export async function updateMaterial(req: Request, res: Response) {
   try {
     const { id } = req.params;
-    const { name, code, unit, stock, materialType, unitPrice } = req.body;
+    const { name, code, unit, stock, materialType, unitPrice, dataSource } = req.body;
 
-    await query("UPDATE materials SET name=?, code=?, unit=?, stock=?, material_type=?, unit_price=?, updated_at=? WHERE id=?", [
-      name,
-      code,
-      unit,
-      stock,
-      materialType || "herb",
-      unitPrice ?? null,
-      now(),
-      id,
-    ]);
+    await query(
+      "UPDATE materials SET name=?, code=?, unit=?, stock=?, material_type=?, unit_price=?, data_source=?, updated_at=? WHERE id=?",
+      [name, code, unit, stock, materialType || "herb", unitPrice ?? null, dataSource || undefined, now(), id],
+    );
 
     const [[material]]: any[][] = await query("SELECT * FROM materials WHERE id = ?", [id]);
     if (!material) {

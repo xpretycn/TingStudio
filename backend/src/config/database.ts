@@ -30,8 +30,14 @@ function runAutoMigrations(dbInstance: SqlJsDatabase) {
   ensureColumn(dbInstance, "formulas", "finished_weight", "REAL", "0");
   ensureColumn(dbInstance, "formulas", "ratio_factor", "REAL", "0.18");
   ensureColumn(dbInstance, "formulas", "supplement_ratio_factor", "REAL", "1.0");
+  ensureColumn(dbInstance, "formulas", "packaging_price", "REAL", "0");
+  ensureColumn(dbInstance, "formulas", "other_price", "REAL", "0");
+  ensureColumn(dbInstance, "formulas", "profit_margin", "REAL", "20");
+  ensureColumn(dbInstance, "formulas", "preparation_method", "TEXT", "NULL");
   ensureColumn(dbInstance, "formula_versions", "ratio_factor", "REAL", "0.18");
   ensureColumn(dbInstance, "formula_versions", "supplement_ratio_factor", "REAL", "1.0");
+  ensureColumn(dbInstance, "materials", "unit_price", "REAL", "NULL");
+  ensureColumn(dbInstance, "materials", "data_source", "TEXT", "'manual'");
 }
 
 const INIT_SQL = `
@@ -55,6 +61,8 @@ CREATE TABLE IF NOT EXISTS materials (
   unit TEXT NOT NULL DEFAULT 'g',
   stock REAL NOT NULL DEFAULT 0,
   material_type TEXT NOT NULL DEFAULT 'herb' CHECK(material_type IN ('herb', 'supplement')),
+  unit_price REAL DEFAULT NULL,
+  data_source TEXT DEFAULT 'manual',
   created_by TEXT NOT NULL,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))
@@ -71,6 +79,7 @@ CREATE TABLE IF NOT EXISTS formulas (
   ratio_factor REAL NOT NULL DEFAULT 0.18 CHECK(ratio_factor >= 0.15 AND ratio_factor <= 0.25),
   supplement_ratio_factor REAL NOT NULL DEFAULT 1.0 CHECK(supplement_ratio_factor >= 0.5 AND supplement_ratio_factor <= 1.5),
   description TEXT DEFAULT NULL,
+  preparation_method TEXT DEFAULT NULL,
   created_by TEXT NOT NULL,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now')),

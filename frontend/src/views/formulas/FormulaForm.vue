@@ -114,6 +114,13 @@
                   <t-textarea v-model="formData.description" placeholder="简述该配方的研发目标和主要特点..."
                     :autosize="{ minRows: 3, maxRows: 6 }" class="field-input" aria-labelledby="lbl-description" />
                 </div>
+                <div class="form-field">
+                  <label class="field-label" id="lbl-preparation"><t-icon name="setting" size="12px"
+                      class="label-icon" />
+                    制法</label>
+                  <t-textarea v-model="formData.preparationMethod" placeholder="记录配方的制取方法、工艺流程或特殊操作要求（可选）"
+                    :autosize="{ minRows: 2, maxRows: 5 }" class="field-input" aria-labelledby="lbl-preparation" />
+                </div>
               </div>
             </section>
 
@@ -160,7 +167,9 @@
                               :value="material.id" :label="`${material.name} (${material.unit})`">
                               <div class="material-option">
                                 <span>{{ material.name }} ({{ material.unit }})</span>
-                                <t-tag v-if="material.materialType === 'supplement'" theme="primary"
+                                <t-tag v-if="material.__pending" theme="warning" variant="light-outline"
+                                  size="small">待确认</t-tag>
+                                <t-tag v-else-if="material.materialType === 'supplement'" theme="primary"
                                   variant="light-outline" size="small">辅料</t-tag>
                                 <t-tag v-else theme="success" variant="light-outline" size="small">药材</t-tag>
                               </div>
@@ -306,6 +315,13 @@
                           <span class="result-value"
                             :class="{ 'result-value--empty': !aiStore.parseResult.salesmanName }">
                             {{ aiStore.parseResult.salesmanName || '未识别' }}
+                          </span>
+                        </div>
+                        <div class="result-item">
+                          <span class="result-label">成品重量</span>
+                          <span class="result-value"
+                            :class="{ 'result-value--empty': !aiStore.parseResult.finishedWeight }">
+                            {{ aiStore.parseResult.finishedWeight ? aiStore.parseResult.finishedWeight + ' g' : '未识别' }}
                           </span>
                         </div>
                         <div class="result-item result-item--desc">
@@ -461,12 +477,35 @@
                     <div class="qm-price-edit" v-else>
                       <t-input-number :model-value="m.unitPrice" @change="(val: number) => handlePriceAdjust(idx, val)"
                         :min="0" :precision="2" size="small" theme="normal"
-                        :style="{ width: '80px', color: m.isAdjusted ? '#f59e0b' : '#334155', fontWeight: m.isAdjusted ? 600 : 400 }" />
+                        :style="{ width: '80px', color: m.isAdjusted ? '#d97706' : '#334155', fontWeight: m.isAdjusted ? 600 : 400 }" />
                       <span class="qm-price-unit">/kg</span>
-                      <span v-if="m.isAdjusted" class="qm-adjust-badge">调</span>
+                      <span v-if="m.isAdjusted" class="qm-adjust-badge"
+                        :title="'基价: ¥' + (m.basePrice ?? '--') + '/kg'">
+                        <svg viewBox="0 0 12 12" width="10" height="10">
+                          <path d="M6 1L7.5 4.5L11 5L8.5 7.5L9 11L6 9L3 11L3.5 7.5L1 5L4.5 4.5Z" fill="#d97706" />
+                        </svg>
+                        调
+                      </span>
                     </div>
-                    <span class="qm-sub">{{ m.unitPrice != null ? `¥${m.subtotal.toFixed(2)}` : '--' }}</span>
+                    <span class="qm-sub">
+                      {{ m.unitPrice != null ? `¥${m.subtotal.toFixed(2)}` : '--' }}
+                      <span v-if="m.isAdjusted && m.basePrice != null" class="qm-base-hint"
+                        :title="'原始基价: ¥' + m.basePrice + '/kg · 差额: ¥' + ((m.unitPrice - m.basePrice)).toFixed(2) + '/kg'">({{
+                          ((m.unitPrice - m.basePrice) / m.basePrice * 100).toFixed(1) }}%)</span>
+                    </span>
                   </div>
+                </div>
+                <div class="quote-toolbar" v-if="priceQuote.adjustedCount > 0">
+                  <span class="qt-badge-info">
+                    <svg viewBox="0 0 14 14" width="13" height="13">
+                      <path d="M7 1L8.75 5.25L13 6L9.75 9L10.5 13.25L7 11L3.5 13.25L4.25 9L1 6L5.25 5.25Z"
+                        fill="#f59e0b" />
+                    </svg>
+                    {{ priceQuote.adjustedCount }} 项单价已调整
+                  </span>
+                  <button class="qt-reset-btn" @click="handleRestoreAllBasePrices" title="将所有已调整的单价恢复为原料库基价">
+                    <t-icon name="refresh" size="14px" /> 全部恢复基价
+                  </button>
                 </div>
                 <p v-if="priceQuote.missingPrices.length > 0" class="quote-warn-text">
                   <t-icon name="error-circle" /> 以下原料未录入单价：{{ priceQuote.missingPrices.join('、') }}
@@ -596,7 +635,8 @@ const priceQuote = computed(() => {
   const margin = formData.profitMargin ?? 20;
   const totalPrice = Number((costSubtotal * (1 + margin / 100)).toFixed(4));
   const missingPrices = matDetails.filter((m: any) => m.unitPrice === null).map((m: any) => m.name);
-  return { materials: matDetails, materialTotal, packagingPrice: formData.packagingPrice || 0, otherPrice: formData.otherPrice || 0, costSubtotal, profitMargin: margin, totalPrice, missingPrices };
+  const adjustedCount = matDetails.filter((m: any) => m.isAdjusted).length;
+  return { materials: matDetails, materialTotal, packagingPrice: formData.packagingPrice || 0, otherPrice: formData.otherPrice || 0, costSubtotal, profitMargin: margin, totalPrice, missingPrices, adjustedCount };
 });
 
 const handlePriceAdjust = (idx: number, val: number | undefined) => {
@@ -610,6 +650,17 @@ const handlePriceAdjust = (idx: number, val: number | undefined) => {
       formData.materials[idx].adjustedPrice = val;
     }
   }
+};
+
+const handleRestoreAllBasePrices = () => {
+  let restored = 0;
+  formData.materials.forEach((m: any) => {
+    if (m.adjustedPrice != null) {
+      delete m.adjustedPrice;
+      restored++;
+    }
+  });
+  if (restored > 0) MessagePlugin.success(`已恢复 ${restored} 项原料单价为基价`);
 };
 
 // 解析进度反馈
@@ -647,7 +698,13 @@ const getFilteredMaterials = (currentIndex: number) => {
     const idSet = new Set(selectedIds);
     result = list.filter(m => !idSet.has(m.id));
   }
-  if (!materialSearchKeyword.value) return result;
+  if (!materialSearchKeyword.value) {
+    const currentItem = formData.materials[currentIndex];
+    if (currentItem?.materialName && currentItem?.materialId && !result.find((m: any) => m.id === currentItem.materialId)) {
+      result = [{ id: currentItem.materialId, name: currentItem.materialName, unit: currentItem.unit || 'g', __pending: true }, ...result];
+    }
+    return result;
+  }
   const kw = materialSearchKeyword.value.toLowerCase();
   return result.filter(
     m => m.name.toLowerCase().includes(kw) || m.code.toLowerCase().includes(kw)
@@ -682,6 +739,7 @@ const formData = reactive<any>({
   otherPrice: 0,
   profitMargin: 20,
   description: '',
+  preparationMethod: '',
   versionReason: ''
 });
 
@@ -1005,9 +1063,19 @@ const backfillData = () => {
   }
 
   formData.materials.splice(0, formData.materials.length);
+  const allMats = materialStore.allMaterials || [];
+  const matsLoaded = allMats.length > 0;
   data.materials.forEach((m: any) => {
+    let matId = m.materialId || '';
+    if (matsLoaded && matId && !allMats.find((x: any) => x.id === matId)) {
+      matId = '';
+    }
+    if (!matId && matsLoaded && m.name) {
+      const byName = allMats.find((x: any) => x.name === m.name);
+      if (byName) matId = byName.id;
+    }
     formData.materials.push({
-      materialId: m.materialId || '',
+      materialId: matId,
       materialName: m.name,
       quantity: m.quantity
     });
@@ -1085,6 +1153,12 @@ const getConfidenceItems = () => {
   } else {
     items.push({ label: '业务员', value: 0, level: 'low' });
   }
+  if (data.finishedWeight) {
+    const v = baseConf ?? 100;
+    items.push({ label: '成品重量', value: v, level: getConfidenceLevel(v / 100) });
+  } else {
+    items.push({ label: '成品重量', value: 0, level: 'low' });
+  }
   if (data.materials?.length) {
     const matchedCount = data.materials.filter((m: any) => m.matched).length;
     const v = matchedCount > 0 ? Math.round((matchedCount / data.materials.length) * 100) : 0;
@@ -1139,7 +1213,8 @@ onMounted(async () => {
         packagingPrice: formula.packagingPrice ?? 0,
         otherPrice: formula.otherPrice ?? 0,
         profitMargin: formula.profitMargin ?? 20,
-        description: formula.description || ''
+        description: formula.description || '',
+        preparationMethod: formula.preparationMethod || ''
       });
     }
   }
@@ -1151,7 +1226,7 @@ onMounted(async () => {
       formData.name = (route.query.name as string) || '';
       formData.materials = materials.map((m: any) => ({
         materialId: m.materialId || '',
-        materialName: m.name || '',
+        materialName: (m.name || '').replace(/[\uFEFF\u200B\u200C\u200D\u00A0\u3000]/g, '').trim(),
         quantity: m.quantity || 0,
       }));
       if (route.query.finishedWeight) {
@@ -2665,13 +2740,36 @@ onMounted(async () => {
 
         .qm-sub {
           color: #94a3b8;
+
+          .qm-base-hint {
+            margin-left: 4px;
+            font-size: 11px;
+            color: #f59e0b;
+            font-weight: 600;
+            cursor: help;
+
+            &:hover {
+              text-decoration: underline;
+            }
+          }
         }
       }
 
       &--adjusted {
+        border-left: 3px solid #f59e0b;
+        background: linear-gradient(90deg, rgba(254, 243, 199, 0.5) 0%, transparent 100%);
+
         .qm-name {
-          color: #d97706;
-          font-weight: 500;
+          color: #92400e;
+          font-weight: 600;
+        }
+
+        .qm-sub {
+          color: #78716c;
+
+          .qm-base-hint {
+            color: #d97706;
+          }
         }
       }
     }
@@ -2698,15 +2796,69 @@ onMounted(async () => {
     }
 
     .qm-adjust-badge {
-      display: inline-block;
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
       font-size: 10px;
-      line-height: 1;
-      padding: 1px 4px;
-      border-radius: 4px;
-      background: #fef3c7;
-      color: #d97706;
-      font-weight: 600;
+      line-height: 1.4;
+      padding: 2px 6px;
+      border-radius: 6px;
+      background: linear-gradient(135deg, #fef3c7, #fde68a);
+      color: #b45309;
+      font-weight: 700;
       flex-shrink: 0;
+      cursor: help;
+      transition: all 0.2s;
+
+      &:hover {
+        background: linear-gradient(135deg, #fde68a, #fcd34d);
+        transform: scale(1.05);
+      }
+    }
+
+    .quote-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 12px;
+      padding: 10px 14px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #fffbeb, #fef3c7);
+      border: 1px solid #fcd34d;
+
+      .qt-badge-info {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        color: #92400e;
+        font-weight: 600;
+      }
+
+      .qt-reset-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 5px 14px;
+        border: 1px solid rgba(217, 119, 6, 0.25);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.8);
+        color: #d97706;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+
+        &:hover {
+          background: #fff7ed;
+          border-color: rgba(217, 119, 6, 0.45);
+          box-shadow: 0 2px 8px rgba(245, 158, 11, 0.15);
+        }
+
+        &:active {
+          transform: scale(0.97);
+        }
+      }
     }
 
     .quote-warn-text {

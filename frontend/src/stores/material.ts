@@ -98,7 +98,7 @@ export const useMaterialStore = defineStore("material", () => {
   const fetchAllForSelect = async () => {
     loading.value = true;
     try {
-      const res = await materialApi.getList({ page: 1, pageSize: 9999 });
+      const res = await materialApi.getList({ page: 1, pageSize: 9999, scope: 'all' });
       allMaterials.value = res.list.map((m: Material) => ({
         ...m,
         createdAt: formatTimestamp(m.createdAt),

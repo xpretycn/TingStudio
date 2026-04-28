@@ -21,14 +21,109 @@ function ensureColumn(dbInstance: Database.Database, table: string, col: string,
 function runAutoMigrations(dbInstance: Database.Database) {
   ensureColumn(dbInstance, "materials", "material_type", "TEXT", "'herb'");
   ensureColumn(dbInstance, "materials", "unit_price", "REAL", "NULL");
+  ensureColumn(dbInstance, "materials", "data_source", "TEXT", "'manual'");
   ensureColumn(dbInstance, "formulas", "finished_weight", "REAL", "0");
   ensureColumn(dbInstance, "formulas", "ratio_factor", "REAL", "0.18");
   ensureColumn(dbInstance, "formulas", "supplement_ratio_factor", "REAL", "1.0");
   ensureColumn(dbInstance, "formulas", "packaging_price", "REAL", "0");
   ensureColumn(dbInstance, "formulas", "other_price", "REAL", "0");
   ensureColumn(dbInstance, "formulas", "profit_margin", "REAL", "20");
+  ensureColumn(dbInstance, "formulas", "preparation_method", "TEXT", "NULL");
   ensureColumn(dbInstance, "formula_versions", "ratio_factor", "REAL", "0.18");
   ensureColumn(dbInstance, "formula_versions", "supplement_ratio_factor", "REAL", "1.0");
+  ensureMaterialPrices(dbInstance);
+}
+
+const MATERIAL_DEFAULT_PRICES: Record<string, number> = {
+  佛手: 60,
+  重瓣玫瑰花: 80,
+  茯苓: 55,
+  山药: 28,
+  桔梗: 50,
+  甘草: 35,
+  低聚异麦芽糖: 8,
+  桃仁: 70,
+  短梗五加: 45,
+  桑椹: 65,
+  黄精: 55,
+  黄芪: 42,
+  沙棘: 48,
+  枸杞子: 58,
+  香橼: 40,
+  陈皮: 38,
+  平卧菊三七: 50,
+  重瓣红玫瑰: 75,
+  金银花: 52,
+  葛根: 32,
+  荷叶: 25,
+  竹叶黄酮: 120,
+  纳豆: 60,
+  显脉旋覆花: 45,
+  栀子: 35,
+  西红花: 800,
+  当归: 55,
+  芦根: 20,
+  薄荷: 42,
+  白芷: 40,
+  薏苡仁: 22,
+  化橘红: 48,
+  鱼腥草: 18,
+  乌药叶: 35,
+  黄芥子: 30,
+  苦杏仁: 45,
+  蒲公英: 22,
+  麦冬: 50,
+  西洋参: 300,
+  牡蛎: 80,
+  昆布: 25,
+  丹凤牡丹花: 70,
+  百合: 35,
+  麦芽: 18,
+  姜黄: 48,
+  山茱萸: 60,
+  肉桂: 35,
+  山楂: 20,
+  酸枣仁: 80,
+  鸡内金: 55,
+  人参: 280,
+  大黄: 25,
+  小茴香: 28,
+  炮姜: 55,
+  菊花: 38,
+  槐花: 18,
+  炒白扁豆: 15,
+  肉豆蔻: 66,
+  铁皮石斛: 350,
+  "r-氨基丁酸": 200,
+  地龙蛋白肽粉: 150,
+  白术: 38,
+  淡竹叶: 15,
+  马齿苋: 12,
+  杏仁: 45,
+  赤小豆: 16,
+  阿胶: 280,
+  莲子: 35,
+  芡实: 30,
+  小麦: 5,
+  桑葫鲜果: 45,
+  酸枣蜜炼: 120,
+  黄精蜜炼: 95,
+};
+
+function ensureMaterialPrices(dbInstance: Database.Database) {
+  try {
+    const rows = dbInstance.prepare("SELECT id, name, unit_price FROM materials").all() as any[];
+    let fixed = 0;
+    for (const row of rows) {
+      if (row.unit_price !== null && row.unit_price !== undefined) continue;
+      const price = MATERIAL_DEFAULT_PRICES[row.name as string];
+      if (price !== undefined) {
+        dbInstance.prepare("UPDATE materials SET unit_price = ? WHERE id = ?").run(price, row.id);
+        fixed++;
+      }
+    }
+    if (fixed > 0) logger.info(`自动迁移: 补全 ${fixed} 条原料单价`);
+  } catch (_err) {}
 }
 
 const INIT_SQL = `
@@ -53,6 +148,7 @@ CREATE TABLE IF NOT EXISTS materials (
   stock REAL NOT NULL DEFAULT 0,
   material_type TEXT NOT NULL DEFAULT 'herb' CHECK(material_type IN ('herb', 'supplement')),
   unit_price REAL DEFAULT NULL,
+  data_source TEXT DEFAULT 'manual',
   created_by TEXT NOT NULL,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))
@@ -73,6 +169,7 @@ CREATE TABLE IF NOT EXISTS formulas (
   other_price REAL NOT NULL DEFAULT 0,
   profit_margin REAL NOT NULL DEFAULT 20,
   description TEXT DEFAULT NULL,
+  preparation_method TEXT DEFAULT NULL,
   created_by TEXT NOT NULL,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now')),

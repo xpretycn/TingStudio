@@ -157,6 +157,7 @@ export async function createFormula(req: any, res: Response) {
       salesmanId,
       materials,
       description,
+      preparationMethod,
       finishedWeight,
       ratioFactor,
       supplementRatioFactor,
@@ -185,8 +186,8 @@ export async function createFormula(req: any, res: Response) {
     const supRatio = supplementRatioFactor ?? 1.0;
 
     await query(
-      `INSERT INTO formulas (id, code, name, salesman_id, salesman_name, materials_json, finished_weight, ratio_factor, supplement_ratio_factor, packaging_price, other_price, profit_margin, description, created_by, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO formulas (id, code, name, salesman_id, salesman_name, materials_json, finished_weight, ratio_factor, supplement_ratio_factor, packaging_price, other_price, profit_margin, description, preparation_method, created_by, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         id,
         code,
@@ -201,6 +202,7 @@ export async function createFormula(req: any, res: Response) {
         otherPrice ?? 0,
         profitMargin ?? 20,
         description,
+        preparationMethod || null,
         userId,
         now(),
       ],
@@ -208,6 +210,25 @@ export async function createFormula(req: any, res: Response) {
 
     // 自动创建初始版本
     const versionId = generateId();
+
+    // 查询当时原料库的基价，记录到快照中
+    const matIds = materialItems.map((m: any) => m.materialId).filter(Boolean);
+    let basePriceMap: Record<string, number> = {};
+    if (matIds.length > 0) {
+      const placeholders = matIds.map(() => "?").join(",");
+      const [priceRows]: any[] = await query(
+        `SELECT id, unit_price FROM materials WHERE id IN (${placeholders})`,
+        matIds,
+      );
+      for (const r of priceRows) {
+        if (r.unit_price != null) basePriceMap[r.id] = Number(r.unit_price);
+      }
+    }
+    const snapshotMaterials = materialItems.map((m: any) => ({
+      ...m,
+      basePriceAtSave: basePriceMap[m.materialId] ?? null,
+    }));
+
     await query(
       `INSERT INTO formula_versions (version_id, formula_id, version_number, version_name, snapshot_json, status, is_current, ratio_factor, supplement_ratio_factor, created_by, created_at)
        VALUES (?, ?, ?, ?, ?, 'published', 1, ?, ?, ?, ?)`,
@@ -221,11 +242,12 @@ export async function createFormula(req: any, res: Response) {
           name,
           salesmanId,
           salesmanName: salesman.name,
-          materials: materialItems,
+          materials: snapshotMaterials,
           finishedWeight,
           ratioFactor,
           supplementRatioFactor: supRatio,
           description,
+          preparationMethod: preparationMethod || null,
           formulaData: {
             code,
             name,
@@ -235,6 +257,7 @@ export async function createFormula(req: any, res: Response) {
             ratioFactor,
             supplementRatioFactor: supRatio,
             description,
+            preparationMethod: preparationMethod || null,
           },
         }),
         ratioFactor ?? 0.18,
@@ -260,6 +283,7 @@ export async function updateFormula(req: any, res: Response) {
       salesmanId,
       materials,
       description,
+      preparationMethod,
       finishedWeight,
       ratioFactor,
       supplementRatioFactor,
@@ -302,7 +326,7 @@ export async function updateFormula(req: any, res: Response) {
       : oldFormula.materials_json;
 
     await query(
-      `UPDATE formulas SET name=?, salesman_id=?, salesman_name=?, materials_json=?, finished_weight=?, ratio_factor=?, supplement_ratio_factor=?, packaging_price=?, other_price=?, profit_margin=?, description=? WHERE id=?`,
+      `UPDATE formulas SET name=?, salesman_id=?, salesman_name=?, materials_json=?, finished_weight=?, ratio_factor=?, supplement_ratio_factor=?, packaging_price=?, other_price=?, profit_margin=?, description=?, preparation_method=? WHERE id=?`,
       [
         name || oldFormula.name,
         salesmanId || oldFormula.salesman_id,
@@ -315,6 +339,7 @@ export async function updateFormula(req: any, res: Response) {
         otherPrice !== undefined ? otherPrice : oldFormula.other_price,
         profitMargin !== undefined ? profitMargin : oldFormula.profit_margin,
         description !== undefined ? description : oldFormula.description,
+        preparationMethod !== undefined ? preparationMethod : oldFormula.preparation_method,
         id,
       ],
     );
@@ -352,6 +377,24 @@ export async function updateFormula(req: any, res: Response) {
       // 空变更存 null，避免前端误显示"查看变更"按钮后展示"暂无变更记录"
       const changesJsonStr = changes.length > 0 ? JSON.stringify(changes) : null;
 
+      // 查询当时原料库的基价，记录到快照中（报价历史快照）
+      const matIds = materialItems.map((m: any) => m.materialId).filter(Boolean);
+      let basePriceMap: Record<string, number> = {};
+      if (matIds.length > 0) {
+        const placeholders = matIds.map(() => "?").join(",");
+        const [priceRows]: any[] = await query(
+          `SELECT id, unit_price FROM materials WHERE id IN (${placeholders})`,
+          matIds,
+        );
+        for (const r of priceRows) {
+          if (r.unit_price != null) basePriceMap[r.id] = Number(r.unit_price);
+        }
+      }
+      const snapshotMaterials = materialItems.map((m: any) => ({
+        ...m,
+        basePriceAtSave: basePriceMap[m.materialId] ?? null,
+      }));
+
       // 将旧的当前版本设为非当前（保留其原始状态，不归档）
       await query(`UPDATE formula_versions SET is_current = 0 WHERE formula_id = ? AND is_current = 1`, [id]);
 
@@ -369,12 +412,13 @@ export async function updateFormula(req: any, res: Response) {
             name: name || oldFormula.name,
             salesmanId: salesmanId || oldFormula.salesman_id,
             salesmanName,
-            materials: materialItems,
+            materials: snapshotMaterials,
             finishedWeight: finishedWeight !== undefined ? finishedWeight : oldFormula.finished_weight,
             ratioFactor: ratioFactor !== undefined ? ratioFactor : oldFormula.ratio_factor,
             supplementRatioFactor:
               supplementRatioFactor !== undefined ? supplementRatioFactor : oldFormula.supplement_ratio_factor,
             description: description !== undefined ? description : oldFormula.description,
+            preparationMethod: preparationMethod !== undefined ? preparationMethod : oldFormula.preparation_method,
             formulaData: {
               name,
               salesmanId,
@@ -383,6 +427,7 @@ export async function updateFormula(req: any, res: Response) {
               ratioFactor,
               supplementRatioFactor,
               description,
+              preparationMethod: preparationMethod || null,
             },
           }),
           ratioFactor !== undefined ? ratioFactor : oldFormula.ratio_factor,
