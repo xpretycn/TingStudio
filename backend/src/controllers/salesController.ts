@@ -42,7 +42,10 @@ export async function getSalesList(req: any, res: Response) {
     );
 
     const [countResult]: any[] = await query(
-      `SELECT COUNT(*) as total FROM formula_sales fs ${whereSql}`, params
+      `SELECT COUNT(*) as total FROM formula_sales fs
+       LEFT JOIN formulas f ON fs.formula_id = f.id
+       LEFT JOIN salesmen sm ON fs.salesman_id = sm.id
+       ${whereSql}`, params
     );
 
     res.json(successWithPagination(rowsToCamelCase(list), countResult[0].total, p, size));

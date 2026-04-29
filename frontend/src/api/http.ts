@@ -29,7 +29,7 @@ http.interceptors.request.use(config => {
 
 http.interceptors.response.use(
   response => {
-    if (response.config.responseType === 'blob') {
+    if (response.config.responseType === "blob") {
       return response.data;
     }
     const res = response.data;
@@ -42,6 +42,27 @@ http.interceptors.response.use(
     return res.data;
   },
   error => {
+    const isNetworkError =
+      !error.response &&
+      error.code &&
+      (error.code === "ERR_CONNECTION_REFUSED" ||
+        error.code === "ERR_NETWORK" ||
+        error.code === "ECONNREFUSED" ||
+        error.code === "ERR_ABORTED" ||
+        error.message?.includes("Network Error") ||
+        error.message?.includes("Failed to fetch"));
+
+    if (isNetworkError) {
+      console.warn("[HTTP] 后端服务不可用，即将跳转服务器故障页");
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem("tingstudio_user");
+      MessagePlugin.error("后端服务未启动或网络连接失败，请检查后端服务状态");
+      setTimeout(() => {
+        window.location.href = "/server-error";
+      }, 1200);
+      return Promise.reject(error);
+    }
+
     const msg = error.response?.data?.message || error.message || "网络错误";
     const label = error.config?._logLabel || "";
     console.error(

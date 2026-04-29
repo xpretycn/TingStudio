@@ -395,7 +395,7 @@
     </section>
 
     <SalesRecordDrawer v-model:visible="salesDialogVisible" :formula-id="salesDialogFormulaId"
-      @success="onSalesDialogSuccess" />
+      :edit-record="salesEditRecord" @success="onSalesDialogSuccess" />
   </div>
 </template>
 
@@ -409,6 +409,7 @@ import { useSalesStore } from '@/stores/sales';
 import { usePaginationStore } from '@/stores/pagination';
 import { MessagePlugin } from 'tdesign-vue-next';
 import type { Formula } from '@/api/formula';
+import type { SaleRecord } from '@/api/sales';
 import SalesRecordDrawer from '@/components/SalesRecordDrawer.vue';
 import PageSkeleton from '@/components/Skeleton/PageSkeleton.vue';
 
@@ -1016,10 +1017,24 @@ const handleDelete = async (row: Formula) => {
 // ─── 销量录入弹窗 ───
 const salesDialogVisible = ref(false);
 const salesDialogFormulaId = ref('');
+const salesEditRecord = ref<SaleRecord | null>(null);
 const salesDataMap = ref<Record<string, { quantity: number; revenue: number }>>({});
 
-const openSalesDialog = (row: Formula) => {
+const openSalesDialog = async (row: Formula) => {
   salesDialogFormulaId.value = row.id;
+
+  // 查找该配方最新的销量记录用于回填
+  const records = await salesStore.getSalesByFormula(row.id);
+  if (records && records.length > 0) {
+    // 按创建时间降序排序，取最新的一条
+    const sortedRecords = [...records].sort((a, b) =>
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+    salesEditRecord.value = sortedRecords[0];
+  } else {
+    salesEditRecord.value = null;
+  }
+
   salesDialogVisible.value = true;
 };
 

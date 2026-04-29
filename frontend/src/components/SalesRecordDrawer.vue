@@ -1,5 +1,5 @@
 <template>
-  <t-drawer :visible="visible" :on-close="handleClose" :close-btn="true" size="520px" placement="right"
+  <t-drawer :visible="visible" :on-close="handleClose" :close-btn="false" :footer="false" size="520px" placement="right"
     class="sales-record-drawer" destroy-on-close>
     <template #header>
       <div class="drawer-header">
@@ -12,9 +12,14 @@
           <span class="header-title">{{ isEdit ? '编辑销量记录' : '录入销量数据' }}</span>
         </div>
         <div class="header-actions">
-          <button class="action-btn confirm-btn" :class="{ loading: submitting }" @click="handleConfirm"
-            :disabled="submitting">
-            <t-loading v-if="submitting" size="12px" />
+          <button class="confirm-btn" :class="[submitting ? 'loading' : '', isEdit ? 'update-btn' : 'create-btn']"
+            @click="handleConfirm" :disabled="submitting">
+            <t-loading v-if="submitting" size="14px" />
+            <svg v-else-if="isEdit" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+            </svg>
             <svg v-else width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
               stroke-linecap="round" stroke-linejoin="round">
               <polyline points="20 6 9 17 4 12" />
@@ -38,26 +43,24 @@
           <span>配方信息</span>
         </div>
         <div class="card-body">
-          <div class="form-row two-col">
-            <t-form-item label="选择配方" name="formulaId">
-              <t-select v-model="formData.formulaId" placeholder="请选择配方" :disabled="!!formulaId" filterable clearable
-                @change="handleFormulaChange">
-                <t-option v-for="f in formulaOptions" :key="f.id" :value="f.id" :label="f.name" />
-              </t-select>
-            </t-form-item>
-            <t-form-item label="关联业务员">
-              <div class="readonly-field">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2"
-                  stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                  <circle cx="9" cy="7" r="4" />
-                  <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-                  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                </svg>
-                <span>{{ formData.salesmanId ? currentSalesmanName : '选择配方后自动关联' }}</span>
-              </div>
-            </t-form-item>
-          </div>
+          <t-form-item label="选择配方" name="formulaId">
+            <t-select v-model="formData.formulaId" placeholder="请选择配方" :disabled="!!formulaId" filterable clearable
+              @change="handleFormulaChange">
+              <t-option v-for="f in formulaOptions" :key="f.id" :value="f.id" :label="f.name" />
+            </t-select>
+          </t-form-item>
+          <t-form-item label="关联业务员">
+            <div class="readonly-field">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+              </svg>
+              <span>{{ formData.salesmanId ? currentSalesmanName : '选择配方后自动关联' }}</span>
+            </div>
+          </t-form-item>
         </div>
       </div>
 
@@ -124,7 +127,7 @@
         <div class="card-body">
           <t-form-item label="" name="notes" class="form-item-full">
             <t-textarea v-model="formData.notes" placeholder="可选备注，如促销活动、渠道来源等" :maxlength="200"
-              :autosize="{ minRows: 2, maxRows: 4 }" />
+              :autosize="{ minRows: 4, maxRows: 8 }" />
           </t-form-item>
         </div>
       </div>
@@ -219,9 +222,9 @@ watch(() => props.visible, async (val) => {
         formulaId: props.editRecord.formulaId,
         salesmanId: props.editRecord.salesmanId,
         periodType: props.editRecord.periodType,
-        periodStart: props.editRecord.periodStart,
+        periodStart: props.editRecord.periodStart?.substring(0, 7),
         quantity: props.editRecord.quantity,
-        revenue: props.editRecord.revenue,
+        revenue: Math.round((props.editRecord.revenue || 0) / 10000 * 100) / 100,
         notes: props.editRecord.notes || '',
       }
     } else {
@@ -360,13 +363,12 @@ const handleConfirm = async () => {
   .header-actions {
     display: flex;
     align-items: center;
-    gap: 8px;
 
-    .action-btn {
+    .confirm-btn {
       display: inline-flex;
       align-items: center;
-      gap: 5px;
-      padding: 7px 14px;
+      gap: 6px;
+      padding: 8px 18px;
       border-radius: 8px;
       font-size: 13px;
       font-weight: 600;
@@ -374,7 +376,7 @@ const handleConfirm = async () => {
       transition: all 0.2s;
       border: none;
 
-      &.confirm-btn {
+      &.create-btn {
         background: linear-gradient(135deg, #10B981, #059669);
         color: #fff;
         box-shadow: 0 2px 8px rgba(16, 185, 129, 0.35);
@@ -383,15 +385,26 @@ const handleConfirm = async () => {
           transform: translateY(-1px);
           box-shadow: 0 4px 14px rgba(16, 185, 129, 0.45);
         }
+      }
 
-        &:disabled {
-          opacity: 0.65;
-          cursor: not-allowed;
-        }
+      &.update-btn {
+        background: linear-gradient(135deg, #F59E0B, #D97706);
+        color: #fff;
+        box-shadow: 0 2px 8px rgba(245, 158, 11, 0.35);
 
-        &.loading {
-          opacity: 0.85;
+        &:hover:not(:disabled) {
+          transform: translateY(-1px);
+          box-shadow: 0 4px 14px rgba(245, 158, 11, 0.45);
         }
+      }
+
+      &:disabled {
+        opacity: 0.65;
+        cursor: not-allowed;
+      }
+
+      &.loading {
+        opacity: 0.85;
       }
     }
   }

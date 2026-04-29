@@ -68,7 +68,7 @@
                   <label><t-icon name="call" size="12px" /> 电话</label>
                   <p>{{ salesman.phone || '--' }}</p>
                 </div>
-                <div class="field-item">
+                <div class="field-item field-item--email">
                   <label><t-icon name="mail" size="12px" /> 邮箱</label>
                   <p>{{ salesman.email || '--' }}</p>
                 </div>
@@ -91,11 +91,17 @@
               <div class="field-grid-2">
                 <div class="field-item">
                   <label><t-icon name="time" size="12px" /> 创建时间</label>
-                  <p>{{ formatDateTime(salesman.createdAt) }}</p>
+                  <p class="time-split">
+                    <span class="time-date">{{ formatTimeDate(salesman.createdAt) }}</span>
+                    <span class="time-clock">{{ formatTimeClock(salesman.createdAt) }}</span>
+                  </p>
                 </div>
                 <div class="field-item">
                   <label><t-icon name="edit-1" size="12px" /> 更新时间</label>
-                  <p>{{ formatDateTime(salesman.updatedAt) }}</p>
+                  <p class="time-split">
+                    <span class="time-date">{{ formatTimeDate(salesman.updatedAt) }}</span>
+                    <span class="time-clock">{{ formatTimeClock(salesman.updatedAt) }}</span>
+                  </p>
                 </div>
               </div>
             </div>
@@ -270,6 +276,24 @@ const formatDateTime = (raw: string | null | undefined): string => {
   if (!raw) return '--';
   const s = raw.replace('T', ' ').replace('Z', '');
   return s.substring(0, 19);
+};
+
+const formatTimeDate = (raw: string | null | undefined): string => {
+  if (!raw) return '--';
+  const d = new Date(raw.replace('T', ' ').replace('Z', ''));
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+};
+
+const formatTimeClock = (raw: string | null | undefined): string => {
+  if (!raw) return '--';
+  const d = new Date(raw.replace('T', ' ').replace('Z', ''));
+  const h = String(d.getHours()).padStart(2, '0');
+  const min = String(d.getMinutes()).padStart(2, '0');
+  const sec = String(d.getSeconds()).padStart(2, '0');
+  return `${h}:${min}:${sec}`;
 };
 
 const formulaTotalPages = computed(() => Math.ceil(formulaTotal.value / FORMULA_PAGE_SIZE) || 1);
@@ -574,11 +598,38 @@ onMounted(() => { loadData(); });
         }
 
         p {
-          font-size: 14px;
-          font-weight: 700;
+          font-size: 12px;
+          font-weight: 600;
           color: #334155;
           margin: 0;
-          font-family: ui-monospace, SFMono-Regular, 'Cascadia Code', monospace;
+          line-height: 1.5;
+        }
+
+        &--email p {
+          word-break: break-all;
+          overflow-wrap: anywhere;
+          font-size: 13px;
+          line-height: 1.5;
+        }
+
+        .time-split {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+
+          .time-date {
+            font-size: 12px;
+            font-weight: 600;
+            color: #334155;
+            letter-spacing: 0.02em;
+          }
+
+          .time-clock {
+            font-size: 12px;
+            font-weight: 600;
+            color: #94a3b8;
+            font-family: ui-monospace, SFMono-Regular, 'Cascadia Code', monospace;
+          }
         }
       }
 
@@ -910,4 +961,3 @@ onMounted(() => { loadData(); });
   }
 }
 </style>
-

@@ -428,7 +428,7 @@ npm run seed         # 导入种子数据（可选）
 ┌──────────────────▼──────────────────────────────────┐
 │           SQLite 数据库 (better-sqlite3)              │
 │            WAL 模式 + 外键约束                       │
-│     (13张表 · 392条记录 · 132种原料)                 │
+│     (14张表 · 392条记录 · 132种原料+销量数据)                 │
 └─────────────────────────────────────────────────────┘
 
 数据备份: backend/data/backup/tingstudio_backup_*.json
@@ -585,7 +585,7 @@ materials ──1:1──→ material_nutrition
 ### 数据库工具命令
 
 ```bash
-# 导出完整备份（13张表 + 392条记录）
+# 导出完整备份（14张表 + 392条记录）
 npx tsx src/scripts/exportDatabase.ts
 
 # 恢复数据库（自动使用最新备份）
@@ -598,15 +598,24 @@ npx tsx src/scripts/importAllTestMaterials.ts
 npx tsx src/scripts/seedData.ts
 ```
 
-\| formula_versions | 配方版本表 | 36 | version_id, formula_id, version_number |
-\| material_nutrition | 材料营养表 | 56 | nutrition_id, material_id, per_100g_json |
-\| nutrition_profiles | 营养配置表 | 6 | profile_id, name, category |
-\| export_templates | 导出模板表 | 6 | template_id, name, type |
-\| export_jobs | 导出任务表 | 10 | job_id, status, file_url |
-\| share_configs | 分享配置表 | 2 | share_id, share_url |
-\| formula_nutrition_summaries | 营养汇总表 | 5 | summary_id, formula_id |
+| 表名 | 说明 | 记录数 | 关键字段 |
+|------|------|--------|----------|
+| users | 用户表 | 20 | id, username, password, role (admin/formulist) |
+| materials | 原料表 | 132 | id, name, code, material_type, unit_price |
+| material_nutrition | 营养数据表 | 132 | nutrition_id, material_id(FK), per_100g_json |
+| formulas | 配方表 | 6 | id, name, salesman_id(FK), materials_json |
+| formula_versions | 版本快照表 | 13 | version_id, formula_id(FK), snapshot_json |
+| salesmen | 业务员表 | 29 | id, name, code, department |
+| **formula_sales** | **销量数据表** | **0** | **id, formula_id(FK), salesman_id(FK), quantity, revenue** |
+| nutrition_profiles | 营养档案模板 | 20 | profile_id, name, category |
+| export_templates | 导出模板 | 20 | template_id, name, type |
+| api_data_interfaces | API 接口配置 | 20 | interface_id, name, endpoint |
+| export_jobs | 导出任务 | 0 | job_id, formula_id(FK), status |
+| formula_nutrition_summaries | 营养汇总 | 0 | summary_id, formula_id(FK) |
+| nutrition_analysis_reports | 营养分析报告 | 0 | report_id, formula_id(FK) |
+| share_configs | 分享配置 | 0 | config_id, share_code |
 
-**总计**: 11 张表, 153 条业务记录
+**总计**: 14 张表, 392 条记录
 
 ### 数据库双模式
 

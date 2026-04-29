@@ -40,7 +40,7 @@
               </div>
             </section>
 
-            <div class="analysis-grid">
+            <div class="analysis-grid analysis-grid--four-col">
               <section class="chart-card trend-card">
                 <div class="chart-header">
                   <h3 class="chart-title">
@@ -92,6 +92,88 @@
               <section class="chart-card rank-card">
                 <div class="chart-header">
                   <h3 class="chart-title">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" stroke-width="2"
+                      stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                      <circle cx="9" cy="7" r="4" />
+                      <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                    </svg>
+                    业务员销售额排行 TOP{{ topSalesmenByRevenue.length }}
+                  </h3>
+                </div>
+                <div class="chart-body">
+                  <div v-if="topSalesmenByRevenue.length === 0" class="chart-empty">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" stroke-width="1.5"
+                      stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                      <circle cx="9" cy="7" r="4" />
+                      <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                    </svg>
+                    <p>暂无业务员销售数据</p>
+                  </div>
+                  <div v-else class="rank-list">
+                    <div v-for="(item, idx) in topSalesmenByRevenue" :key="item.salesmanId"
+                      class="rank-item rank-item--purple">
+                      <span class="rank-number" :class="{ 'rank-top': idx < 3, 'rank-top--purple': idx < 3 }">{{ idx + 1
+                      }}</span>
+                      <div class="rank-info">
+                        <p class="rank-name">{{ item.salesmanName }}</p>
+                        <div class="rank-bar-track">
+                          <div class="rank-bar-fill rank-bar-fill--purple"
+                            :style="{ width: getSalesmanRevenueWidth(item.totalRevenue) + '%' }"></div>
+                        </div>
+                      </div>
+                      <span class="rank-value rank-value--purple">¥{{ (item.totalRevenue / 10000).toFixed(1)
+                      }}<small>万</small></span>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <section class="chart-card rank-card">
+                <div class="chart-header">
+                  <h3 class="chart-title">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2"
+                      stroke-linecap="round" stroke-linejoin="round">
+                      <line x1="12" y1="1" x2="12" y2="23" />
+                      <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                    </svg>
+                    配方销售额排行 TOP{{ revenueTopFormulas.length }}
+                  </h3>
+                </div>
+                <div class="chart-body">
+                  <div v-if="revenueTopFormulas.length === 0" class="chart-empty">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" stroke-width="1.5"
+                      stroke-linecap="round" stroke-linejoin="round">
+                      <line x1="12" y1="1" x2="12" y2="23" />
+                      <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                    </svg>
+                    <p>暂无销售额排行数据</p>
+                  </div>
+                  <div v-else class="rank-list">
+                    <div v-for="(item, idx) in revenueTopFormulas" :key="item.formulaId"
+                      class="rank-item rank-item--revenue">
+                      <span class="rank-number" :class="{ 'rank-top': idx < 3, 'rank-top--green': idx < 3 }">{{ idx + 1
+                      }}</span>
+                      <div class="rank-info">
+                        <p class="rank-name">{{ item.formulaName }}</p>
+                        <div class="rank-bar-track">
+                          <div class="rank-bar-fill rank-bar-fill--green"
+                            :style="{ width: getRevenueRankWidth(item.totalRevenue) + '%' }"></div>
+                        </div>
+                      </div>
+                      <span class="rank-value rank-value--green">¥{{ (item.totalRevenue / 10000).toFixed(1)
+                      }}<small>万</small></span>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <section class="chart-card rank-card">
+                <div class="chart-header">
+                  <h3 class="chart-title">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"
                       stroke-linecap="round" stroke-linejoin="round">
                       <path d="M12 20V10" />
@@ -128,7 +210,39 @@
             </div>
 
             <t-card class="content-card" bordered>
-              <div class="data-center-toolbar">
+              <div class="data-center-toolbar" :class="{ 'has-batch-bar': selectedRows.length > 0 }">
+                <Transition name="batch-bar-slide">
+                  <div v-if="selectedRows.length > 0" class="batch-action-bar">
+                    <div class="batch-info">
+                      <span class="batch-count"><strong>{{ selectedRows.length }}</strong> 项已选择</span>
+                      <div class="batch-divider"></div>
+                      <div class="batch-buttons">
+                        <t-popconfirm theme="danger" :content="`确定要删除所选的 ${selectedRows.length} 条销量记录吗？删除后无法恢复。`"
+                          @confirm="handleBatchDelete">
+                          <button class="batch-action-btn">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                              stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                              <polyline points="3 6 5 6 21 6" />
+                              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2" />
+                            </svg>
+                            批量删除
+                          </button>
+                        </t-popconfirm>
+                        <button class="batch-action-btn" @click="handleBatchExport">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                            <polyline points="7 10 12 15 17 10" />
+                            <line x1="12" y1="15" x2="12" y2="3" />
+                          </svg>
+                          批量导出
+                        </button>
+                      </div>
+                    </div>
+                    <button class="batch-cancel-btn" @click="clearSelection">取消</button>
+                  </div>
+                </Transition>
+
                 <div class="toolbar-left-section">
                   <div class="toolbar-title-section">
                     <h3 class="toolbar-title">销量明细</h3>
@@ -191,7 +305,8 @@
               </div>
 
               <t-table :data="salesStore.sales" :columns="tableColumns" :loading="salesStore.loading" row-key="id" hover
-                table-layout="auto">
+                table-layout="auto" :selected-row-keys="selectedRowKeys" @select-change="handleSelectChange"
+                @row-click="handleRowClick">
                 <template #empty>
                   <t-empty description="暂无销量数据">
                     <template #action>
@@ -249,10 +364,7 @@
                 </template>
                 <template #revenue="{ row }">
                   <span class="rev-cell">
-                    ¥{{ (row.revenue || 0).toLocaleString('zh-CN', {
-                      minimumFractionDigits: 2, maximumFractionDigits: 2
-                    })
-                    }}
+                    ¥{{ ((row.revenue || 0) / 10000).toFixed(2) }}<small class="rev-unit">万</small>
                   </span>
                 </template>
                 <template #operation="{ row }">
@@ -300,47 +412,115 @@
       </div>
     </Transition>
 
+    <section v-if="initialized && !loadError" class="activity-section">
+      <div class="activity-card activity-card--timeline">
+        <div class="activity-header">
+          <h4 class="activity-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+            </svg>
+            近期动态
+          </h4>
+          <div class="activity-nav">
+            <button class="activity-nav-btn" :disabled="activityPage <= 1" @click="activityPrev" title="上一页">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
+            </button>
+            <span class="activity-nav-page">{{ activityPage }} / {{ activityTotalPages }}</span>
+            <button class="activity-nav-btn" :disabled="activityPage >= activityTotalPages" @click="activityNext"
+              title="下一页">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div class="timeline-list">
+          <div v-for="(item, index) in activityList" :key="index" class="timeline-item"
+            :class="{ 'timeline-item--last': index === activityList.length - 1 }">
+            <div class="timeline-dot" :class="'timeline-dot--' + item.type">
+              <span class="timeline-dot-inner"></span>
+            </div>
+            <div class="timeline-content">
+              <p class="timeline-title">{{ item.title }}</p>
+              <p class="timeline-desc" v-html="item.desc"></p>
+              <span class="timeline-time">{{ item.time }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="activity-card activity-card--assistant">
+        <div class="assistant-content">
+          <h4 class="assistant-title">销量管理助手</h4>
+          <p class="assistant-desc">{{ assistantMessage }}</p>
+          <button class="assistant-btn" @click="openCreateDrawer">录入销量</button>
+          <div class="assistant-footer">
+            <div class="assistant-avatar-group">
+              <span class="assistant-avatar">销</span>
+              <span class="assistant-avatar">量</span>
+              <span class="assistant-avatar">助</span>
+            </div>
+            <span class="assistant-hint">{{ salesStore.total }} 条销量记录</span>
+          </div>
+        </div>
+        <svg class="assistant-bg-icon" width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="1">
+          <path d="M12 20V10" />
+          <path d="M18 20V4" />
+          <path d="M6 20v-4" />
+        </svg>
+      </div>
+    </section>
+
     <SalesRecordDrawer v-model:visible="drawerVisible" :formula-id="drawerFormulaId" :edit-record="drawerEditRecord"
       @success="onDrawerSuccess" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { useSalesStore } from '@/stores/sales'
-import { useSalesmanStore } from '@/stores/salesman'
-import type { SaleRecord } from '@/api/sales'
-import SalesRecordDrawer from '@/components/SalesRecordDrawer.vue'
+import { ref, computed, onMounted } from 'vue';
+import { useSalesStore } from '@/stores/sales';
+import { useSalesmanStore } from '@/stores/salesman';
+import { MessagePlugin } from 'tdesign-vue-next';
+import type { SaleRecord } from '@/api/sales';
+import SalesRecordDrawer from '@/components/SalesRecordDrawer.vue';
+import PageSkeleton from '@/components/Skeleton/PageSkeleton.vue';
 
-const salesStore = useSalesStore()
-const salesmanStore = useSalesmanStore()
+const salesStore = useSalesStore();
+const salesmanStore = useSalesmanStore();
 
-const initialized = ref(false)
-const loadError = ref('')
+const initialized = ref(false);
+const loadError = ref('');
 
-const filterPeriodStart = ref('')
-const filterPeriodEnd = ref('')
-const filterSalesmanId = ref('')
-const filterKeyword = ref('')
+const filterPeriodStart = ref('');
+const filterPeriodEnd = ref('');
+const filterSalesmanId = ref('');
+const filterKeyword = ref('');
 
-const drawerVisible = ref(false)
-const drawerFormulaId = ref('')
-const drawerEditRecord = ref<SaleRecord | null>(null)
+const drawerVisible = ref(false);
+const drawerFormulaId = ref('');
+const drawerEditRecord = ref<SaleRecord | null>(null);
 
 const tableColumns = [
+  { colKey: 'row-select', type: 'multiple', width: 50, resizable: false },
   { colKey: 'formulaName', title: '配方信息', width: 220 },
   { colKey: 'salesmanName', title: '业务员', width: 120 },
   { colKey: 'periodStart', title: '统计周期', width: 130 },
   { colKey: 'periodType', title: '周期类型', width: 100 },
-  { colKey: 'quantity', title: '销量', width: 110 },
-  { colKey: 'revenue', title: '销售额', width: 140 },
+  { colKey: 'quantity', title: '销量（件）', width: 110 },
+  { colKey: 'revenue', title: '销售额（万元）', width: 140 },
   { colKey: 'notes', title: '备注', width: 140, ellipsis: true },
-  { colKey: 'operation', title: '操作', width: 100, align: 'center' as const },
-]
+  { colKey: 'operation', title: '操作', width: 100, align: 'center' as const, titleAlign: 'center' },
+];
 
 const dashboardCards = computed(() => {
-  const stats = salesStore.stats
-  const comp = stats?.periodComparison
+  const stats = salesStore.stats;
+  const comp = stats?.periodComparison;
   return [
     {
       label: '总销量',
@@ -386,86 +566,127 @@ const dashboardCards = computed(() => {
       iconColor: '#A855F7',
       iconPath: '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
     },
-  ]
-})
+  ];
+});
 
-const trendData = computed(() => salesStore.stats?.monthlyTrend || [])
-const topFormulas = computed(() => salesStore.stats?.topFormulas || [])
+const trendData = computed(() => salesStore.stats?.monthlyTrend || []);
+const topFormulas = computed(() => salesStore.stats?.topFormulas || []);
+
+const revenueTopFormulas = computed(() => {
+  const formulas = topFormulas.value;
+  if (!formulas || formulas.length === 0) return [];
+  return [...formulas]
+    .sort((a, b) => (b.totalRevenue || 0) - (a.totalRevenue || 0))
+    .slice(0, 10);
+});
+
+const topSalesmenByRevenue = computed(() => {
+  const salesList = salesStore.sales;
+  if (!salesList || salesList.length === 0) return [];
+
+  const salesmanMap: Record<string, { salesmanId: string; salesmanName: string; totalRevenue: number; }> = {};
+
+  for (const sale of salesList) {
+    if (!sale.salesmanId) continue;
+    if (!salesmanMap[sale.salesmanId]) {
+      salesmanMap[sale.salesmanId] = {
+        salesmanId: sale.salesmanId,
+        salesmanName: sale.salesmanName || '未知',
+        totalRevenue: 0
+      };
+    }
+    salesmanMap[sale.salesmanId].totalRevenue += (sale.revenue || 0);
+  }
+
+  return Object.values(salesmanMap)
+    .sort((a, b) => b.totalRevenue - a.totalRevenue)
+    .slice(0, 10);
+});
+
+const getSalesmanRevenueWidth = (val: number) => {
+  const max = Math.max(...topSalesmenByRevenue.value.map(s => s.totalRevenue), 1);
+  return Math.max(5, val / max * 100);
+};
 
 const maxTrendValue = computed(() => {
-  const qMax = Math.max(...trendData.value.map(t => t.quantity), 1)
-  return Math.ceil(qMax / 10) * 10
-})
+  const qMax = Math.max(...trendData.value.map(t => t.quantity), 1);
+  return Math.ceil(qMax / 10) * 10;
+});
 
 const maxTrendRevenue = computed(() => {
-  const rMax = Math.max(...trendData.value.map(t => t.revenue), 1)
-  return Math.ceil(rMax / 10000)
-})
+  const rMax = Math.max(...trendData.value.map(t => t.revenue), 1);
+  return Math.ceil(rMax / 10000);
+});
 
 const getBarHeight = (val: number, isRevenue = false) => {
-  if (isRevenue) return Math.max(2, (val / 10000) / maxTrendRevenue.value * 100)
-  return Math.max(2, val / maxTrendValue.value * 100)
-}
+  if (isRevenue) return Math.max(2, (val / 10000) / maxTrendRevenue.value * 100);
+  return Math.max(2, val / maxTrendValue.value * 100);
+};
 
 const getRankWidth = (val: number) => {
-  const max = Math.max(...topFormulas.value.map(f => f.totalQuantity), 1)
-  return Math.max(5, val / max * 100)
-}
+  const max = Math.max(...topFormulas.value.map(f => f.totalQuantity), 1);
+  return Math.max(5, val / max * 100);
+};
+
+const getRevenueRankWidth = (val: number) => {
+  const max = Math.max(...revenueTopFormulas.value.map(f => f.totalRevenue || 0), 1);
+  return Math.max(5, val / max * 100);
+};
 
 const formatMonth = (month: string) => {
-  if (!month) return ''
-  const parts = month.split('-')
-  return `${parseInt(parts[1])}月`
-}
+  if (!month) return '';
+  const parts = month.split('-');
+  return `${parseInt(parts[1])}月`;
+};
 
 const formatPeriod = (periodStart: string) => {
-  if (!periodStart) return '--'
-  const parts = periodStart.split('-')
-  return `${parts[0]}年${parseInt(parts[1])}月`
-}
+  if (!periodStart) return '--';
+  const parts = periodStart.split('-');
+  return `${parts[0]}年${parseInt(parts[1])}月`;
+};
 
-const getPeriodLabel = (type: string) => ({ monthly: '月度', quarterly: '季度', yearly: '年度' }[type] || type)
-const getPeriodTheme = (type: string) => ({ monthly: 'primary', quarterly: 'warning', yearly: 'default' }[type] as any || 'default')
+const getPeriodLabel = (type: string) => ({ monthly: '月度', quarterly: '季度', yearly: '年度' }[type] || type);
+const getPeriodTheme = (type: string) => ({ monthly: 'primary', quarterly: 'warning', yearly: 'default' }[type] as any || 'default');
 
 const getAvatarColor = (text: string) => {
   const colors = [
     { bg: '#DBEAFE', text: '#3B82F6' }, { bg: '#FEE2E2', text: '#EF4444' },
     { bg: '#FEF3C7', text: '#F59E0B' }, { bg: '#D1FAE5', text: '#10B981' },
     { bg: '#E0E7FF', text: '#6366F1' }, { bg: '#F3E8FF', text: '#A855F7' },
-  ]
-  const index = (text || '').split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % colors.length
-  return colors[index]
-}
+  ];
+  const index = (text || '').split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % colors.length;
+  return colors[index];
+};
 
-const getInitial = (name: string) => (name || '?').charAt(0).toUpperCase()
+const getInitial = (name: string) => (name || '?').charAt(0).toUpperCase();
 
-const totalPages = computed(() => Math.ceil(salesStore.total / salesStore.pageSize) || 1)
+const totalPages = computed(() => Math.ceil(salesStore.total / salesStore.pageSize) || 1);
 const pageNumbers = computed<(number | string)[]>(() => {
-  const total = totalPages.value
-  const current = salesStore.currentPage
-  if (total <= 5) return Array.from({ length: total }, (_, i) => i + 1)
-  if (current <= 3) return [1, 2, 3, '...', total]
-  if (current >= total - 2) return [1, '...', total - 2, total - 1, total]
-  return [1, '...', current - 1, current, current + 1, '...', total]
-})
+  const total = totalPages.value;
+  const current = salesStore.currentPage;
+  if (total <= 5) return Array.from({ length: total }, (_, i) => i + 1);
+  if (current <= 3) return [1, 2, 3, '...', total];
+  if (current >= total - 2) return [1, '...', total - 2, total - 1, total];
+  return [1, '...', current - 1, current, current + 1, '...', total];
+});
 
 const goPage = (page: number) => {
-  if (page < 1 || page > totalPages.value) return
-  salesStore.currentPage = page
-  loadData()
-}
+  if (page < 1 || page > totalPages.value) return;
+  salesStore.currentPage = page;
+  loadData();
+};
 
 const loadData = async () => {
-  loadError.value = ''
+  loadError.value = '';
   try {
     const params: Record<string, any> = {
       page: salesStore.currentPage,
       pageSize: salesStore.pageSize,
-    }
-    if (filterPeriodStart.value) params.periodStart = filterPeriodStart.value + '-01'
-    if (filterPeriodEnd.value) params.periodEnd = filterPeriodEnd.value + '-01'
-    if (filterSalesmanId.value) params.salesmanId = filterSalesmanId.value
-    if (filterKeyword.value) params.keyword = filterKeyword.value
+    };
+    if (filterPeriodStart.value) params.periodStart = filterPeriodStart.value + '-01';
+    if (filterPeriodEnd.value) params.periodEnd = filterPeriodEnd.value + '-01';
+    if (filterSalesmanId.value) params.salesmanId = filterSalesmanId.value;
+    if (filterKeyword.value) params.keyword = filterKeyword.value;
 
     await Promise.all([
       salesStore.fetchSales(params),
@@ -473,56 +694,192 @@ const loadData = async () => {
         periodStart: params.periodStart,
         periodEnd: params.periodEnd,
       }),
-    ])
+    ]);
   } catch (e: any) {
-    loadError.value = e.message || '加载失败，请稍后重试'
+    loadError.value = e.message || '加载失败，请稍后重试';
   }
-}
+};
 
 const retryLoad = async () => {
-  loadError.value = ''
-  await loadData()
-}
+  loadError.value = '';
+  await loadData();
+};
 
 const handleFilter = () => {
-  salesStore.currentPage = 1
-  loadData()
-}
+  salesStore.currentPage = 1;
+  loadData();
+};
 
 const openCreateDrawer = () => {
-  drawerFormulaId.value = ''
-  drawerEditRecord.value = null
-  drawerVisible.value = true
-}
+  drawerFormulaId.value = '';
+  drawerEditRecord.value = null;
+  drawerVisible.value = true;
+};
 
 const openEditDrawer = (row: SaleRecord) => {
-  drawerFormulaId.value = row.formulaId
-  drawerEditRecord.value = row
-  drawerVisible.value = true
-}
+  drawerFormulaId.value = row.formulaId;
+  drawerEditRecord.value = row;
+  drawerVisible.value = true;
+};
+
+const handleRowClick = (ctx: { row: SaleRecord; col?: { colKey: string; }; }) => {
+  if (!ctx.col || ctx.col.colKey !== 'row-select') {
+    openEditDrawer(ctx.row);
+  }
+};
 
 const onDrawerSuccess = () => {
-  loadData()
-}
+  loadData();
+};
 
 const handleDelete = async (row: SaleRecord) => {
-  const ok = await salesStore.deleteSale(row.id)
-  if (ok) await loadData()
+  const ok = await salesStore.deleteSale(row.id);
+  if (ok) await loadData();
+};
+
+const selectedRowKeys = ref<(string | number)[]>([]);
+const selectedRows = ref<SaleRecord[]>([]);
+
+const handleSelectChange = (value: Array<string | number>, { selectedRowData }: { selectedRowData: SaleRecord[]; }) => {
+  selectedRowKeys.value = value;
+  selectedRows.value = selectedRowData;
+};
+
+const clearSelection = () => {
+  selectedRowKeys.value = [];
+  selectedRows.value = [];
+};
+
+const handleBatchDelete = async () => {
+  if (selectedRows.value.length === 0) return;
+  const count = selectedRows.value.length;
+  let successCount = 0;
+  for (const row of selectedRows.value) {
+    const ok = await salesStore.deleteSale(row.id);
+    if (ok) successCount++;
+  }
+  MessagePlugin.success(`成功删除 ${successCount}/${count} 条销量记录`);
+  clearSelection();
+  await loadData();
+};
+
+const handleBatchExport = () => {
+  if (selectedRows.value.length === 0) return;
+  const data = selectedRows.value.map(r => ({
+    配方名称: r.formulaName,
+    业务员: r.salesmanName,
+    统计周期: formatPeriod(r.periodStart),
+    周期类型: getPeriodLabel(r.periodType),
+    销量: r.quantity,
+    销售额: r.revenue,
+    备注: r.notes || '',
+  }));
+  const csv = [
+    Object.keys(data[0]).join(','),
+    ...data.map(row => Object.values(row).map(v => `"${v}"`).join(',')),
+  ].join('\n');
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `销量数据导出_${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+  MessagePlugin.success(`已导出 ${selectedRows.value.length} 条销量记录`);
+  clearSelection();
+};
+
+interface ActivityItem { type: 'success' | 'warning' | 'info'; title: string; desc: string; time: string; }
+
+const ACTIVITY_PAGE_SIZE = 4;
+const activityPage = ref(1);
+
+const allActivityItems = computed<ActivityItem[]>(() => {
+  const items: ActivityItem[] = [];
+  const salesList = salesStore.sales;
+
+  if (!salesList || salesList.length === 0) return items;
+
+  const sortedSales = [...salesList].sort((a, b) =>
+    new Date(b.updatedAt || b.createdAt || '').getTime() -
+    new Date(a.updatedAt || a.createdAt || '').getTime()
+  );
+
+  for (const s of sortedSales.slice(0, 20)) {
+    const timeAgo = formatTimeAgo(s.updatedAt || s.createdAt || '');
+    if (s.quantity > 100) {
+      items.push({
+        type: 'success',
+        title: '高销量录入',
+        desc: `<strong>${s.salesmanName || '未知'}</strong> 录入 <span class="text-emerald-600 font-bold">${s.formulaName}</span> 销量 <span class="text-emerald-600 font-bold">${s.quantity}</span> 件，销售额 <span class="text-emerald-600 font-bold">¥${(s.revenue || 0).toLocaleString()}</span>`,
+        time: timeAgo
+      });
+    } else if (s.revenue > 10000) {
+      items.push({
+        type: 'warning',
+        title: '高销售额',
+        desc: `<strong>${s.formulaName}</strong> 在 ${formatPeriod(s.periodStart)} 创造销售额 <span class="text-amber-600 font-bold">¥${(s.revenue / 10000).toFixed(1)}万</span>`,
+        time: timeAgo
+      });
+    } else {
+      items.push({
+        type: 'info',
+        title: '销量更新',
+        desc: `<strong>${s.salesmanName || '未知'}</strong> 更新了 <span class="text-blue-600 font-bold">${s.formulaName}</span> 的 ${getPeriodLabel(s.periodType)}数据`,
+        time: timeAgo
+      });
+    }
+  }
+
+  return items;
+});
+
+const activityTotalPages = computed(() => Math.max(1, Math.ceil(allActivityItems.value.length / ACTIVITY_PAGE_SIZE)));
+
+const activityList = computed<ActivityItem[]>(() => {
+  const start = (activityPage.value - 1) * ACTIVITY_PAGE_SIZE;
+  return allActivityItems.value.slice(start, start + ACTIVITY_PAGE_SIZE);
+});
+
+const activityPrev = () => { if (activityPage.value > 1) activityPage.value--; };
+const activityNext = () => { if (activityPage.value < activityTotalPages.value) activityPage.value++; };
+
+const assistantMessage = computed(() => {
+  const total = salesStore.total;
+  const stats = salesStore.stats;
+  const activeFormulas = stats?.topFormulas?.length || 0;
+  if (total === 0) return '您还没有录入任何销量数据，点击下方按钮开始第一条销量记录吧！';
+  if (total < 10) return `当前共有 ${total} 条销量记录，建议继续补充各配方的销售数据。`;
+  return `当前共有 ${total} 条销量记录，覆盖 ${activeFormulas} 个配方，数据表现良好！`;
+});
+
+function formatTimeAgo(dateStr: string): string {
+  if (!dateStr) return '刚刚';
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return '刚刚';
+  if (mins < 60) return `${mins}分钟前`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}小时前`;
+  const days = Math.floor(hours / 24);
+  if (days < 30) return `${days}天前`;
+  return `${Math.floor(days / 30)}个月前`;
 }
 
 onMounted(async () => {
   try {
-    await salesmanStore.fetchSalesmen()
-    await loadData()
+    await salesmanStore.fetchSalesmen();
+    await loadData();
   } catch (e: any) {
-    loadError.value = e.message || '初始化失败'
+    loadError.value = e.message || '初始化失败';
   } finally {
-    initialized.value = true
+    initialized.value = true;
   }
-})
+});
 </script>
 
 <style scoped lang="scss">
+@use 'sass:color';
 @use '@/assets/styles/variables.scss' as *;
 
 .sales-analysis {
@@ -585,7 +942,7 @@ onMounted(async () => {
     transition: all 0.2s;
 
     &:hover {
-      background: darken($brand-primary, 8%);
+      background: color.adjust($brand-primary, $lightness: -8%);
       transform: translateY(-1px);
     }
   }
@@ -673,9 +1030,29 @@ onMounted(async () => {
 
 .analysis-grid {
   display: grid;
-  grid-template-columns: 1.3fr 0.7fr;
+  grid-template-columns: repeat(4, 1fr);
   gap: 24px;
   margin-bottom: 30px;
+
+  &--four-col {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  @media (max-width: 1600px) {
+    grid-template-columns: repeat(2, 1fr);
+
+    &--four-col {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 1024px) {
+    grid-template-columns: 1fr;
+
+    &--four-col {
+      grid-template-columns: 1fr;
+    }
+  }
 }
 
 .chart-card {
@@ -968,6 +1345,12 @@ onMounted(async () => {
   border-bottom: 1px solid #F1F5F9;
   flex-wrap: wrap;
   gap: 12px;
+  position: relative;
+  min-height: 88px;
+
+  &.has-batch-bar {
+    border-bottom: none;
+  }
 
   .toolbar-left-section {
     .toolbar-title-section {
@@ -1138,11 +1521,19 @@ onMounted(async () => {
   font-size: 14px;
   font-weight: 600;
   color: #059669;
+
+  .rev-unit {
+    font-size: 11px;
+    font-weight: 400;
+    color: #94a3b8;
+    margin-left: 2px;
+  }
 }
 
 .action-buttons {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 4px;
 
   .action-btn {
@@ -1172,12 +1563,86 @@ onMounted(async () => {
   }
 }
 
+:deep(.t-table) {
+  .t-table__body tr {
+    cursor: pointer;
+    transition: background-color 0.2s;
+
+    &:hover td {
+      background-color: #F0FDF4 !important;
+      border-color: transparent !important;
+      box-shadow: none !important;
+    }
+  }
+
+  .t-table__row--selected td,
+  .t-table__body .t-table__row--selected:hover td {
+    background-color: transparent !important;
+    border-right-color: transparent !important;
+    box-shadow: none !important;
+  }
+
+  td {
+    border-bottom: 1px solid #f1f5f9 !important;
+    vertical-align: middle !important;
+
+    &:last-child {
+      text-align: center !important;
+
+      .action-buttons {
+        justify-content: center !important;
+      }
+    }
+  }
+
+  th:last-child {
+    text-align: center !important;
+
+    .t-table__th-cell-inner {
+      display: flex !important;
+      justify-content: center !important;
+      align-items: center !important;
+      width: 100% !important;
+    }
+  }
+
+  --td-brand-color: #10b981;
+  --td-brand-color-hover: #059669;
+  --td-brand-color-active: #047857;
+  --td-brand-color-disabled: #a7f3d0;
+  --td-brand-color-light: rgba(16, 185, 129, 0.1);
+  --td-brand-color-focus: rgba(16, 185, 129, 0.4);
+  --td-brand-color-border-active: #10b981;
+  --td-brand-color-border-hover: #10b981;
+  --td-brand-color-border-focus: #10b981;
+
+  .t-checkbox .t-checkbox__input.is-checked .t-checkbox__input__inner,
+  .t-checkbox .t-checkbox__input.is-indeterminate .t-checkbox__input__inner {
+    background-color: var(--td-brand-color) !important;
+    border-color: var(--td-brand-color) !important;
+  }
+
+  .t-checkbox .t-checkbox__input.is-checked .t-checkbox__input__inner::after,
+  .t-checkbox .t-checkbox__input.is-indeterminate .t-checkbox__input__inner::after {
+    border-color: #fff !important;
+  }
+
+  .t-checkbox .t-checkbox__input:hover .t-checkbox__input__inner {
+    border-color: var(--td-brand-color) !important;
+  }
+
+  .t-checkbox .t-checkbox__input.is-focus .t-checkbox__input__inner {
+    box-shadow: 0 0 0 2px var(--td-brand-color-focus) !important;
+  }
+}
+
 .table-pagination {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 28px;
-  border-top: 1px solid #F1F5F9;
+  padding: 24px;
+  background-color: #fff;
+  border-top: 1px solid #f8fafc;
 
   .pagination-info {
     font-size: 13px;
@@ -1203,15 +1668,16 @@ onMounted(async () => {
       transition: all 0.2s;
 
       &:hover:not(.pagination-btn--disabled) {
-        border-color: #93C5FD;
-        color: #3B82F6;
-        background: #EFF6FF;
+        border-color: #6EE7B7;
+        color: #059669;
+        background: #ECFDF5;
       }
 
       &.pagination-btn--active {
-        background: #3B82F6;
+        background: linear-gradient(135deg, #10B981, #059669);
         color: #fff;
-        border-color: #3B82F6;
+        border-color: transparent;
+        box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
       }
 
       &.pagination-btn--disabled {
@@ -1226,5 +1692,413 @@ onMounted(async () => {
       font-size: 13px;
     }
   }
+}
+
+
+.rank-item--revenue {
+  .rank-top--green {
+    background: linear-gradient(135deg, #D1FAE5, #A7F3D0);
+    color: #059669;
+  }
+
+  .rank-value--green {
+    color: #059669;
+  }
+
+  .rank-bar-fill--green {
+    background: linear-gradient(90deg, #A7F3D0, #10B981);
+  }
+}
+
+.rank-item--purple {
+  .rank-top--purple {
+    background: linear-gradient(135deg, #EDE9FE, #DDD6FE);
+    color: #7C3AED;
+  }
+
+  .rank-value--purple {
+    color: #7C3AED;
+  }
+
+  .rank-bar-fill--purple {
+    background: linear-gradient(90deg, #DDD6FE, #8B5CF6);
+  }
+}
+
+.batch-action-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  background-color: #059669;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 28px;
+  border-radius: 32px 32px 0 0;
+
+  .batch-info {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+
+    .batch-count {
+      font-weight: 700;
+      font-size: 14px;
+
+      strong {
+        font-weight: 800;
+        margin-right: 4px;
+      }
+    }
+
+    .batch-divider {
+      width: 1px;
+      height: 16px;
+      background: rgba(52, 211, 153, 0.5);
+    }
+
+    .batch-buttons {
+      display: flex;
+      gap: 16px;
+    }
+
+    .batch-action-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 14px;
+      font-weight: 500;
+      background: none;
+      border: none;
+      color: #fff;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 6px;
+      transition: all 0.2s;
+
+      &:hover {
+        color: #d1fae5;
+        background: rgba(255, 255, 255, 0.1);
+      }
+    }
+  }
+
+  .batch-cancel-btn {
+    padding: 6px 16px;
+    border-radius: 8px;
+    border: 1.5px solid rgba(255, 255, 255, 0.4);
+    background: transparent;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.15);
+      border-color: rgba(255, 255, 255, 0.6);
+    }
+  }
+}
+
+.batch-bar-slide-enter-active,
+.batch-bar-slide-leave-active {
+  transition: all 0.25s ease;
+}
+
+.batch-bar-slide-enter-from,
+.batch-bar-slide-leave-to {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+
+.activity-section {
+  margin-top: 40px;
+  padding-bottom: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 32px;
+
+  @media (min-width: 1024px) {
+    grid-template-columns: 2fr 1fr;
+  }
+}
+
+.activity-card {
+  background-color: #fff;
+  border-radius: 24px;
+  padding: 32px;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
+  border: 1px solid #f8fafc;
+
+  &--assistant {
+    background: linear-gradient(135deg, #10B981, #059669);
+    border: none;
+    color: #fff;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 20px 25px -5px rgba(16, 185, 129, 0.15), 0 10px 10px -5px rgba(16, 185, 129, 0.04);
+  }
+}
+
+.activity-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.activity-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1e293b;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+
+.activity-nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  .activity-nav-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    border: 1.5px solid rgba(16, 185, 129, 0.2);
+    background: rgba(16, 185, 129, 0.04);
+    color: #10b981;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover:not(:disabled) {
+      background: rgba(16, 185, 129, 0.12);
+      border-color: #10b981;
+      color: #059669;
+    }
+
+    &:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+      border-color: rgba(148, 163, 184, 0.15);
+      color: #cbd5e1;
+      background: transparent;
+    }
+  }
+
+  .activity-nav-page {
+    font-size: 12px;
+    font-weight: 600;
+    color: #94a3b8;
+    min-width: 36px;
+    text-align: center;
+    user-select: none;
+  }
+}
+
+.timeline-list {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.timeline-item {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  position: relative;
+  padding-bottom: 24px;
+
+  &:not(.timeline-item--last)::after {
+    content: '';
+    position: absolute;
+    left: 11px;
+    top: 28px;
+    bottom: 0;
+    width: 1px;
+    background-color: #f1f5f9;
+  }
+}
+
+.timeline-dot {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  z-index: 10;
+  position: relative;
+
+  &--success {
+    background-color: #d1fae5;
+  }
+
+  &--warning {
+    background-color: #fef3c7;
+  }
+
+  &--info {
+    background-color: #dbeafe;
+  }
+}
+
+.timeline-dot-inner {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+
+  .timeline-dot--success & {
+    background-color: #10b981;
+  }
+
+  .timeline-dot--warning & {
+    background-color: #f59e0b;
+  }
+
+  .timeline-dot--info & {
+    background-color: #3b82f6;
+  }
+}
+
+.timeline-content {
+  flex: 1;
+}
+
+.timeline-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #334155;
+  margin: 0 0 4px 0;
+}
+
+.timeline-desc {
+  font-size: 12px;
+  color: #94a3b8;
+  margin: 0 0 4px 0;
+
+  :deep(.text-emerald-600) {
+    color: #059669 !important;
+    font-weight: 700 !important;
+  }
+
+  :deep(.text-amber-600) {
+    color: #d97706 !important;
+    font-weight: 700 !important;
+  }
+
+  :deep(.text-blue-600) {
+    color: #2563eb !important;
+    font-weight: 700 !important;
+  }
+
+  :deep(strong) {
+    font-weight: 700;
+  }
+}
+
+.timeline-time {
+  font-size: 10px;
+  color: #cbd5e1;
+  text-transform: uppercase;
+  display: inline-block;
+  margin-top: 4px;
+}
+
+.assistant-content {
+  position: relative;
+  z-index: 10;
+}
+
+.assistant-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0 0 16px 0;
+  color: #fff;
+}
+
+.assistant-desc {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.7;
+  margin: 0 0 24px 0;
+}
+
+.assistant-btn {
+  width: 100%;
+  padding: 12px;
+  background-color: #fff;
+  color: #059669;
+  font-weight: 700;
+  border-radius: 16px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+
+  &:hover {
+    background-color: #ecfdf5;
+  }
+}
+
+.assistant-footer {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 12px;
+  color: rgba(209, 213, 219, 1);
+}
+
+.assistant-avatar-group {
+  display: flex;
+  gap: 0;
+
+  .assistant-avatar {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.3);
+    border: 2px solid #34d399;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 600;
+    margin-left: -8px;
+
+    &:first-child {
+      margin-left: 0;
+    }
+  }
+}
+
+.assistant-hint {
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.assistant-bg-icon {
+  position: absolute;
+  right: -32px;
+  bottom: -32px;
+  width: 12rem;
+  height: 12rem;
+  opacity: 0.1;
+  transform: rotate(12deg);
+  color: currentColor;
+  pointer-events: none;
 }
 </style>

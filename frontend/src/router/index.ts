@@ -17,6 +17,12 @@ const router = createRouter({
       meta: { requiresAuth: false },
     },
     {
+      path: "/server-error",
+      name: "ServerError",
+      component: () => import("@/views/errors/ServerError.vue"),
+      meta: { requiresAuth: false },
+    },
+    {
       path: "/",
       component: () => import("@/views/Home.vue"),
       meta: { requiresAuth: true },

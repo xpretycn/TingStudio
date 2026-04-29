@@ -274,7 +274,7 @@ onMounted(async () => {
   } else {
     const now = Date.now();
     const random = Math.floor(Math.random() * 100).toString().padStart(2, '0');
-    formData.code = `YW${now.toString().slice(-5)}${random}`;
+    formData.code = `YW${now.toString().slice(-3)}${random}`;
     formData.department = '销售部';
     formData.phone = `138${Math.floor(Math.random() * 100000000).toString().padStart(8, '0')}`;
     formData.email = `salesman${now.toString().slice(-6)}@tingstudio.com`;
