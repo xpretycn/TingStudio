@@ -337,7 +337,7 @@ const activePath = computed(() => {
   const path = route.path;
   // 按最长前缀匹配，优先精确匹配，再按路径段前缀匹配
   const pathMap = [
-    '/formulas', '/materials', '/salesmen',
+    '/formulas', '/materials', '/salesmen', '/sales',
     '/exports', '/nutrition', '/tools', '/ai-assistant'
   ];
   for (const key of pathMap) {
@@ -394,6 +394,7 @@ const pageIcon = computed(() => {
     '/formulas': 'edit',
     '/materials': 'chart-bar',
     '/salesmen': 'usergroup',
+    '/sales': 'chart',
     '/exports': 'download',
     '/nutrition': 'chart-pie',
     '/tools': 'setting',
@@ -414,6 +415,7 @@ const navItems = [
   { path: '/formulas', label: '配方管理', icon: 'edit' },
   { path: '/materials', label: '原材管理', icon: 'chart-bar' },
   { path: '/salesmen', label: '业务员管理', icon: 'usergroup' },
+  { path: '/sales', label: '销量分析', icon: 'chart' },
   { path: '/exports', label: '导出中心', icon: 'download' },
   { path: '/nutrition', label: '营养分析', icon: 'chart-pie' },
   { path: '/tools', label: '工具箱', icon: 'setting' },
@@ -432,6 +434,7 @@ const pageTitle = computed(() => {
     '/formulas': '配方管理',
     '/materials': '原料管理',
     '/salesmen': '业务员管理',
+    '/sales': '销量分析',
     '/exports': '导出中心',
     '/nutrition': '营养分析',
     '/tools': '工具箱',
@@ -472,7 +475,7 @@ const breadcrumbs = computed(() => {
 
   // 列表页无父级，不需要面包屑
   const listPaths = [
-    '/formulas', '/materials', '/salesmen',
+    '/formulas', '/materials', '/salesmen', '/sales',
     '/exports', '/nutrition', '/tools', '/ai-assistant', '/settings'
   ];
   if (listPaths.includes(path)) return [];

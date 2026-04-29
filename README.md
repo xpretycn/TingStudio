@@ -44,7 +44,7 @@ TingStudio 是一个专业的食品配方工作数据管理平台，面向食品
 
 | 脚本                                                         | 用途                                     |
 | ------------------------------------------------------------ | ---------------------------------------- |
-| [exportDatabase.ts](backend/src/scripts/exportDatabase.ts)   | 导出全部 13 张表结构 + 392 条记录 → JSON |
+| [exportDatabase.ts](backend/src/scripts/exportDatabase.ts)   | 导出全部 14 张表结构 + 全部记录 → JSON   |
 | [restoreDatabase.ts](backend/src/scripts/restoreDatabase.ts) | 从 JSON 恢复完整数据库（按外键依赖顺序） |
 
 ```bash
@@ -73,11 +73,51 @@ npx tsx src/scripts/restoreDatabase.ts --dry-run
 | formulas                                                                               | 6       | 配方表                        |
 | formula_versions                                                                       | 13      | 版本快照                      |
 | salesmen                                                                               | 29      | 业务员表                      |
+| formula_sales                                                                          | 0       | 销量数据（运行时录入）        |
 | nutrition_profiles                                                                     | 20      | 营养档案模板                  |
 | export_templates                                                                       | 20      | 导出模板                      |
 | api_data_interfaces                                                                    | 20      | API 接口配置                  |
 | export_jobs / formula_nutrition_summaries / nutrition_analysis_reports / share_configs | 0       | 空表（已建结构）              |
-| **合计**                                                                               | **392** | 13 张表                       |
+| **合计**                                                                               | **392** | **14 张表**                   |
+
+---
+
+### ✅ 销量录入 UI 全面重构 + 页面样式统一 (2026-04-29)
+
+#### 🎨 销量录入抽屉（SalesRecordDrawer）全面改造
+
+- **Card 卡片布局**: 内部信息按功能分区为 4 张卡片
+  - 配方信息 Card（蓝色左边框）— 选择配方 + 关联业务员（同行展示）
+  - 统计周期 Card（橙色左边框）— 统计月份 + 周期类型
+  - 销售数据 Card（绿色左边框）— 销售数量 + **销售金额（万元）**
+  - 备注信息 Card（灰色左边框）— 备注文本域
+- **按钮位置调整**: 取消/确认按钮从底部移至标题行右侧，仅保留「确认录入」绿色按钮 + 关闭 X
+- **金额单位优化**: 销售金额输入单位从「元」改为「**万元**」，提交时自动 ×10000 转元存储
+- **保存功能修复**: 表单校验逻辑重写（try/catch），确保数值类型转换正确
+
+#### 📐 配方列表列宽微调
+
+| 列       | 调整     | 新宽度        |
+| -------- | -------- | ------------- |
+| 版本状态 | +20px    | 170px         |
+| 更新时间 | -15px    | 165px         |
+| 操作     | -5px     | 155px         |
+| 负责人   | 居中对齐 | align: center |
+
+#### 📊 销量分析页样式对齐
+
+- **底部边距**: 添加 `padding-bottom: 32px`，与配方管理页一致
+- **录入销量按钮**: 蓝色渐变 → **深色 #1e293b 实心**（与「创建新配方」按钮统一）
+- **空状态**: 简单文字 → `<t-empty>` + 操作按钮（点击打开抽屉录入）
+- **按钮样式提升**: `.add-formula-btn` 从嵌套作用域提升到组件根级，确保空状态按钮样式生效
+
+#### 影响范围
+
+| 文件                                                                   | 改动                                        |
+| ---------------------------------------------------------------------- | ------------------------------------------- |
+| [FormulaList.vue](frontend/src/views/formulas/FormulaList.vue)         | 列宽调整 + 负责人居中                       |
+| [SalesRecordDrawer.vue](frontend/src/components/SalesRecordDrawer.vue) | Card布局 + 按钮右上角 + 万元单位 + 保存修复 |
+| [SalesAnalysis.vue](frontend/src/views/sales/SalesAnalysis.vue)        | 底部边距 + 按钮样式 + 空状态                |
 
 ---
 
@@ -274,14 +314,14 @@ npx tsx src/scripts/restoreDatabase.ts --dry-run
 
 ## 📊 项目状态
 
-| 组件 | 状态 | 说明 |
-|------|------|------|
-| **后端服务** | ✅ 正常运行 | Express + SQLite (better-sqlite3) |
-| **前端应用** | ✅ 正常运行 | Vue 3 + TDesign + Vite |
-| **数据库** | ✅ 13 张表 / 392 条记录 | SQLite WAL 模式，含 132 种原料+营养数据 |
-| **AI 解析** | ✅ 匹配率显著提升 | 150+ 别名映射 + 模糊匹配 + 名称标准化 |
-| **配方搜索** | ✅ 已修复 | watch 响应式监听模式 |
-| **数据备份** | ✅ 可用 | exportDatabase / restoreDatabase 脚本 |
+| 组件         | 状态                    | 说明                                             |
+| ------------ | ----------------------- | ------------------------------------------------ |
+| **后端服务** | ✅ 正常运行             | Express + SQLite (better-sqlite3)                |
+| **前端应用** | ✅ 正常运行             | Vue 3 + TDesign + Vite                           |
+| **数据库**   | ✅ 14 张表 / 392 条记录 | SQLite WAL 模式，含 132 种原料+营养数据+销量数据 |
+| **AI 解析**  | ✅ 匹配率显著提升       | 150+ 别名映射 + 模糊匹配 + 名称标准化            |
+| **配方搜索** | ✅ 已修复               | watch 响应式监听模式                             |
+| **数据备份** | ✅ 可用                 | exportDatabase / restoreDatabase 脚本            |
 
 ---
 
@@ -558,13 +598,13 @@ npx tsx src/scripts/importAllTestMaterials.ts
 npx tsx src/scripts/seedData.ts
 ```
 
-| formula_versions | 配方版本表 | 36 | version_id, formula_id, version_number |
-| material_nutrition | 材料营养表 | 56 | nutrition_id, material_id, per_100g_json |
-| nutrition_profiles | 营养配置表 | 6 | profile_id, name, category |
-| export_templates | 导出模板表 | 6 | template_id, name, type |
-| export_jobs | 导出任务表 | 10 | job_id, status, file_url |
-| share_configs | 分享配置表 | 2 | share_id, share_url |
-| formula_nutrition_summaries | 营养汇总表 | 5 | summary_id, formula_id |
+\| formula_versions | 配方版本表 | 36 | version_id, formula_id, version_number |
+\| material_nutrition | 材料营养表 | 56 | nutrition_id, material_id, per_100g_json |
+\| nutrition_profiles | 营养配置表 | 6 | profile_id, name, category |
+\| export_templates | 导出模板表 | 6 | template_id, name, type |
+\| export_jobs | 导出任务表 | 10 | job_id, status, file_url |
+\| share_configs | 分享配置表 | 2 | share_id, share_url |
+\| formula_nutrition_summaries | 营养汇总表 | 5 | summary_id, formula_id |
 
 **总计**: 11 张表, 153 条业务记录
 
@@ -596,21 +636,21 @@ cd frontend
 npm run build:deploy
 ```
 
-2. **构建后端**
+1. **构建后端**
 
 ```bash
 cd backend
 npm run build:scf
 ```
 
-3. **部署云函数**
+1. **部署云函数**
 
 ```bash
 tcb login --apiKeyId YOUR_ID --apiKey YOUR_KEY
 tcb fn deploy tingstudio-api --force
 ```
 
-4. **部署前端到 EdgeOne**
+1. **部署前端到 EdgeOne**
 
 ```bash
 edgeone pages deploy \
@@ -619,7 +659,7 @@ edgeone pages deploy \
     --env production
 ```
 
-5. **验证部署**
+1. **验证部署**
 
 ```bash
 curl https://tingstudio-prod-d2f6fhumc0432c48-1318822768.ap-shanghai.app.tcloudbase.com/api/health
@@ -851,6 +891,6 @@ MIT License
 
 ---
 
-**最后更新**: 2026-04-22  
-**版本**: v2.18.2 (Build Fixed)  
+**最后更新**: 2026-04-22\
+**版本**: v2.18.2 (Build Fixed)\
 **维护者**: TingStudio Team

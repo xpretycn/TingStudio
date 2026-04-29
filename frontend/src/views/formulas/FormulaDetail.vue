@@ -164,7 +164,7 @@
                       </svg>调
                     </span></span>
                   <span class="qtm-sub"><strong>{{ m.unitPrice != null ? `¥${m.subtotal.toFixed(2)}` : '--'
-                      }}</strong>
+                  }}</strong>
                     <span v-if="m.isAdjusted && m.basePrice != null" class="qtm-base-hint"
                       :title="'原始基价: ¥' + m.basePrice + '/kg · 差额: ¥' + ((m.unitPrice - m.basePrice)).toFixed(2) + '/kg'">({{
                         ((m.unitPrice - m.basePrice) / m.basePrice * 100).toFixed(1) }}%)</span>
@@ -311,7 +311,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { nutritionApi } from '@/api/nutrition';
 import { formulaApi } from '@/api/formula';
@@ -386,12 +386,19 @@ const handleExport = () => {
 };
 
 const loadData = async () => {
+  const formulaId = (route.params.id || '') as string;
+  console.log('[FormulaDetail] loadData called, route.params.id:', JSON.stringify(route.params.id), 'formulaId:', JSON.stringify(formulaId));
+  if (!formulaId || formulaId === 'undefined') {
+    console.warn('[FormulaDetail] 无效的 formulaId，跳过加载');
+    return;
+  }
+
   loading.value = true;
   try {
-    const res = await nutritionApi.getFormulaNutritionTables(route.params.id as string);
+    const res = await nutritionApi.getFormulaNutritionTables(formulaId);
     data.value = res;
     try {
-      priceQuote.value = await formulaApi.getPriceQuote(route.params.id as string);
+      priceQuote.value = await formulaApi.getPriceQuote(formulaId);
     } catch { /* 报价数据可选 */ }
   } catch (error: any) {
     console.error('获取营养计算表格失败:', error);
@@ -401,6 +408,13 @@ const loadData = async () => {
 };
 
 onMounted(() => { loadData(); });
+
+watch(() => route.params.id, (newId) => {
+  console.log('[FormulaDetail] route.params.id changed:', JSON.stringify(newId));
+  if (newId && newId !== 'undefined') {
+    loadData();
+  }
+});
 </script>
 
 <style scoped lang="scss">

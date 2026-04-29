@@ -30,14 +30,16 @@
                 <span class="batch-count"><strong>{{ selectedRows.length }}</strong> 项已选择</span>
                 <div class="batch-divider"></div>
                 <div class="batch-buttons">
-                  <button class="batch-action-btn" @click="handleBatchDelete">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                      stroke-linecap="round" stroke-linejoin="round">
-                      <polyline points="3 6 5 6 21 6" />
-                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                    </svg>
-                    批量删除
-                  </button>
+                  <t-popconfirm theme="danger" :content="`确定要删除所选的 ${selectedRows.length} 个业务员吗？删除后无法恢复。`" @confirm="handleBatchDelete">
+                    <button class="batch-action-btn">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="3 6 5 6 21 6" />
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2" />
+                      </svg>
+                      批量删除
+                    </button>
+                  </t-popconfirm>
                 </div>
               </div>
               <button class="batch-cancel-btn" @click="clearSelection">取消</button>
@@ -236,43 +238,6 @@
         </svg>
       </div>
     </section>
-
-    <!-- 批量停用确认 -->
-    <Teleport to="body">
-      <Transition name="dialog-fade">
-        <div v-if="batchDeleteDialogVisible"
-          style="position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background-color:rgba(100,100,110,0.06);backdrop-filter:blur(1px)"
-          @click.self="batchDeleteDialogVisible = false">
-          <div
-            style="width:440px;max-width:90vw;background:#fff;border-radius:16px;box-shadow:0 24px 80px rgba(0,0,0,0.12),0 6px 24px rgba(0,0,0,0.08);overflow:hidden;animation:dialog-pop-in 0.28s cubic-bezier(0.34,1.56,0.64,1);font-family:inherit">
-            <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px 14px">
-              <h3 style="margin:0;font-size:16px;font-weight:600;color:#1e293b">确认批量删除</h3>
-              <button @click="batchDeleteDialogVisible = false" aria-label="关闭" class="batch-dialog-close-btn">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                  stroke-linecap="round">
-                  <path d="M18 6L6 18" />
-                  <path d="M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            <div style="padding:2px 24px 18px">
-              <p style="margin:0 0 10px;font-size:14px;color:#334155;line-height:1.7">
-                确定要删除所选的 <strong>{{ selectedRows.length }}</strong> 个业务员吗？
-              </p>
-              <p class="delete-info"
-                style="color:#64748b;font-size:13px;margin-top:8px;padding:10px 12px;background:#f8fafc;border-radius:8px;border-left:3px solid #fecdd3">
-                批量删除后无法恢复，请谨慎操作。
-              </p>
-            </div>
-            <div style="display:flex;justify-content:flex-end;gap:10px;padding:6px 24px 22px">
-              <t-button variant="outline" size="medium" @click="batchDeleteDialogVisible = false">取消</t-button>
-              <t-button variant="base" theme="danger" size="medium" :loading="batchDeleteLoading"
-                @click="confirmBatchDelete">确定删除</t-button>
-            </div>
-          </div>
-        </div>
-      </Transition>
-    </Teleport>
   </div>
 </template>
 
@@ -297,13 +262,11 @@ const tableSort = ref<any>(undefined);
 const sortedSalesmen = ref<Salesman[]>([]);
 const selectedRowKeys = ref<(string | number)[]>([]);
 const selectedRows = ref<Salesman[]>([]);
-const batchDeleteDialogVisible = ref(false);
-const batchDeleteLoading = ref(false);
 let searchTimer: ReturnType<typeof setTimeout> | null = null;
 
 // ─── 数据看板 ───
 const dashboardCards = computed(() => {
-  const total = salesmanStore.salesmen?.length || 0;
+  const total = salesmanStore.total ?? 0;
   const activeCount = salesmanStore.salesmen?.filter((s: Salesman) => s.status === 'active').length || 0;
   const departments = new Set((salesmanStore.salesmen || []).map((s: Salesman) => s.department).filter(Boolean));
   return [
@@ -392,26 +355,28 @@ const clearSelection = () => {
   selectedRows.value = [];
 };
 
-const handleBatchDelete = () => {
+const handleBatchDelete = async () => {
   if (selectedRows.value.length === 0) return;
-  batchDeleteDialogVisible.value = true;
-};
-
-const confirmBatchDelete = async () => {
   const count = selectedRows.value.length;
-  batchDeleteLoading.value = true;
-  try {
-    for (const s of selectedRows.value) {
+  let successCount = 0;
+  const failedNames: string[] = [];
+  for (const s of selectedRows.value) {
+    try {
       await salesmanStore.deleteSalesman(s.id);
+      successCount++;
+    } catch (err: any) {
+      failedNames.push(s.name || s.id);
     }
-    MessagePlugin.success(`成功删除 ${count} 个业务员`);
-    clearSelection();
-    batchDeleteDialogVisible.value = false;
-  } catch {
-    MessagePlugin.error('批量删除失败');
-  } finally {
-    batchDeleteLoading.value = false;
   }
+  if (failedNames.length === 0) {
+    MessagePlugin.success(`成功删除 ${count} 个业务员`);
+  } else if (successCount > 0) {
+    MessagePlugin.warning(`成功删除 ${successCount} 个，${failedNames.length} 个删除失败（可能被配方引用）`);
+  } else {
+    MessagePlugin.error('删除失败，所选业务员可能已被配方引用');
+  }
+  clearSelection();
+  await salesmanStore.fetchSalesmen();
 };
 
 // ─── 表格列定义 ───

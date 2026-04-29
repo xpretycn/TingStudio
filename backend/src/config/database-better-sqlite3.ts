@@ -18,6 +18,16 @@ function ensureColumn(dbInstance: Database.Database, table: string, col: string,
   } catch (_err) {}
 }
 
+function ensureTable(dbInstance: Database.Database, tableName: string, createSql: string) {
+  try {
+    const exists = dbInstance.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name=?").get(tableName);
+    if (!exists) {
+      dbInstance.exec(createSql);
+      logger.info(`数据库迁移: 创建表 ${tableName}`);
+    }
+  } catch (_err) {}
+}
+
 function runAutoMigrations(dbInstance: Database.Database) {
   ensureColumn(dbInstance, "materials", "material_type", "TEXT", "'herb'");
   ensureColumn(dbInstance, "materials", "unit_price", "REAL", "NULL");
@@ -32,6 +42,32 @@ function runAutoMigrations(dbInstance: Database.Database) {
   ensureColumn(dbInstance, "formula_versions", "ratio_factor", "REAL", "0.18");
   ensureColumn(dbInstance, "formula_versions", "supplement_ratio_factor", "REAL", "1.0");
   ensureMaterialPrices(dbInstance);
+  ensureTable(
+    dbInstance,
+    "formula_sales",
+    `
+    CREATE TABLE formula_sales (
+      id TEXT PRIMARY KEY,
+      formula_id TEXT NOT NULL,
+      salesman_id TEXT NOT NULL,
+      period_type TEXT NOT NULL DEFAULT 'monthly' CHECK(period_type IN ('monthly', 'quarterly', 'yearly')),
+      period_start TEXT NOT NULL,
+      period_end TEXT NOT NULL,
+      quantity INTEGER NOT NULL DEFAULT 0,
+      revenue REAL NOT NULL DEFAULT 0,
+      notes TEXT DEFAULT NULL,
+      created_by TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+      FOREIGN KEY (formula_id) REFERENCES formulas(id) ON DELETE CASCADE,
+      FOREIGN KEY (salesman_id) REFERENCES salesmen(id) ON DELETE RESTRICT,
+      UNIQUE(formula_id, period_type, period_start)
+    );
+    CREATE INDEX IF NOT EXISTS idx_fs_formula ON formula_sales(formula_id);
+    CREATE INDEX IF NOT EXISTS idx_fs_salesman ON formula_sales(salesman_id);
+    CREATE INDEX IF NOT EXISTS idx_fs_period ON formula_sales(period_start)
+  `,
+  );
 }
 
 const MATERIAL_DEFAULT_PRICES: Record<string, number> = {
@@ -272,6 +308,26 @@ CREATE TABLE IF NOT EXISTS nutrition_profiles (
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
+CREATE TABLE IF NOT EXISTS formula_sales (
+  id TEXT PRIMARY KEY,
+  formula_id TEXT NOT NULL,
+  salesman_id TEXT NOT NULL,
+  period_type TEXT NOT NULL DEFAULT 'monthly' CHECK(period_type IN ('monthly', 'quarterly', 'yearly')),
+  period_start TEXT NOT NULL,
+  period_end TEXT NOT NULL,
+  quantity INTEGER NOT NULL DEFAULT 0,
+  revenue REAL NOT NULL DEFAULT 0,
+  notes TEXT DEFAULT NULL,
+  created_by TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+  FOREIGN KEY (formula_id) REFERENCES formulas(id) ON DELETE CASCADE,
+  FOREIGN KEY (salesman_id) REFERENCES salesmen(id) ON DELETE RESTRICT,
+  UNIQUE(formula_id, period_type, period_start)
+);
+CREATE INDEX IF NOT EXISTS idx_fs_formula ON formula_sales(formula_id);
+CREATE INDEX IF NOT EXISTS idx_fs_salesman ON formula_sales(salesman_id);
+CREATE INDEX IF NOT EXISTS idx_fs_period ON formula_sales(period_start);
 `;
 
 export async function connectDatabase(): Promise<void> {

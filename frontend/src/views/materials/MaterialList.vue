@@ -30,14 +30,16 @@
                 <span class="batch-count"><strong>{{ selectedRows.length }}</strong> 项已选择</span>
                 <div class="batch-divider"></div>
                 <div class="batch-buttons">
-                  <button class="batch-action-btn" @click="handleBatchDelete">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                      stroke-linecap="round" stroke-linejoin="round">
-                      <polyline points="3 6 5 6 21 6" />
-                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                    </svg>
-                    批量删除
-                  </button>
+                  <t-popconfirm theme="danger" :content="`确定要删除所选的 ${selectedRows.length} 个原料吗？删除后无法恢复。`" @confirm="handleBatchDelete">
+                    <button class="batch-action-btn">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="3 6 5 6 21 6" />
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2" />
+                      </svg>
+                      批量删除
+                    </button>
+                  </t-popconfirm>
                   <button class="batch-action-btn" @click="handleBatchExport">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                       stroke-linecap="round" stroke-linejoin="round">
@@ -582,16 +584,28 @@ const clearSelection = () => {
 };
 
 const handleBatchDelete = async () => {
+  if (selectedRows.value.length === 0) return;
   const count = selectedRows.value.length;
-  try {
-    for (const m of selectedRows.value) {
+  let successCount = 0;
+  const failedNames: string[] = [];
+  for (const m of selectedRows.value) {
+    try {
       await materialStore.deleteMaterial(m.id);
+      successCount++;
+    } catch (err: any) {
+      failedNames.push(m.name || m.id);
     }
-    MessagePlugin.success(`成功删除 ${count} 个原料`);
-    clearSelection();
-  } catch {
-    MessagePlugin.error('批量删除失败');
   }
+  if (failedNames.length === 0) {
+    MessagePlugin.success(`成功删除 ${count} 个原料`);
+  } else if (successCount > 0) {
+    MessagePlugin.warning(`成功删除 ${successCount} 个，${failedNames.length} 个删除失败`);
+  } else {
+    MessagePlugin.error('删除失败，所选原料可能已被配方引用');
+  }
+  clearSelection();
+  await Promise.all([materialStore.fetchMaterials(), materialStore.fetchAllForSelect()]);
+  loadNutritionStatus();
 };
 
 const handleBatchExport = () => {

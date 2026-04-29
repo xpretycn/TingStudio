@@ -132,10 +132,24 @@ export async function updateSalesman(req: Request, res: Response) {
 export async function deleteSalesman(req: Request, res: Response) {
   try {
     const { id } = req.params;
-    const result = await query("DELETE FROM salesmen WHERE id = ?", [id]);
-    if (result.changes === 0) {
+
+    const [[salesman]]: any[][] = await query("SELECT id, name FROM salesmen WHERE id = ?", [id]);
+    if (!salesman) {
       return res.status(404).json({ success: false, message: "业务员不存在" });
     }
+
+    const [[usageResult]]: any[][] = await query(
+      `SELECT COUNT(*) as cnt FROM formulas WHERE salesman_id = ?`,
+      [id],
+    );
+    if (usageResult && usageResult.cnt > 0) {
+      return res.status(400).json({
+        success: false,
+        message: `业务员「${salesman.name}」已被 ${usageResult.cnt} 个配方引用，无法删除。请先移除或转移相关配方。`,
+      });
+    }
+
+    await query("DELETE FROM salesmen WHERE id = ?", [id]);
     res.json(success({ message: "业务员已删除" }, "业务员已删除"));
   } catch (error: any) {
     res.status(500).json({ success: false, message: "删除业务员失败", error: error.message });

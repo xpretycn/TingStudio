@@ -30,14 +30,17 @@
                 <span class="batch-count"><strong>{{ selectedRows.length }}</strong> 项已选择</span>
                 <div class="batch-divider"></div>
                 <div class="batch-buttons">
-                  <button class="batch-action-btn" @click="handleBatchDelete">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                      stroke-linecap="round" stroke-linejoin="round">
-                      <polyline points="3 6 5 6 21 6" />
-                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                    </svg>
-                    批量删除
-                  </button>
+                  <t-popconfirm theme="danger" :content="`确定要删除所选的 ${selectedRows.length} 个配方吗？删除后无法恢复。`"
+                    @confirm="handleBatchDelete">
+                    <button class="batch-action-btn">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="3 6 5 6 21 6" />
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2" />
+                      </svg>
+                      批量删除
+                    </button>
+                  </t-popconfirm>
                   <button class="batch-action-btn" @click="handleBatchArchive">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                       stroke-linecap="round" stroke-linejoin="round">
@@ -93,7 +96,7 @@
         </div>
         <t-table :data="sortedFormulas" :columns="columns" :loading="formulaStore.loading" :pagination="undefined"
           row-key="id" hover table-layout="auto" :expanded-row-keys="expandedRowKeys" @expand-change="onExpandChange"
-          @select-change="handleSelectChange" :selected-row-keys="selectedRowKeys">
+          @select-change="handleSelectChange" :selected-row-keys="selectedRowKeys" @row-click="handleRowClick">
           <template #name-title>
             <span class="custom-sort-header" @click.stop="toggleSort('name')">配方信息<span
                 :class="sortIconClass('name')"></span></span>
@@ -232,6 +235,14 @@
             </div>
           </template>
 
+          <template #salesQuantity="{ row }">
+            <div class="sales-quantity-cell" @click.stop="openSalesDialog(row)">
+              <span v-if="row._salesQuantity != null" class="sales-qty-value">{{ row._salesQuantity.toLocaleString()
+              }}<small class="sales-qty-unit">件</small></span>
+              <span v-else class="sales-qty-empty">录入</span>
+            </div>
+          </template>
+
           <template #costSubtotal="{ row }">
             <span class="price-cell" :class="{ 'price-cell--empty': getRowCostSubtotal(row) === 0 }">
               {{ getRowCostSubtotal(row) > 0 ? `¥${getRowCostSubtotal(row).toFixed(2)}` : '--' }}
@@ -265,16 +276,17 @@
 
           <template #operation="{ row }">
             <div class="action-buttons" role="group" aria-label="配方操作">
-              <button class="action-btn view-btn" @click="handleView(row)" title="查看" :aria-label="`查看配方${row.name}详情`">
-                <t-icon name="browse" />
+              <button class="action-btn version-btn" @click.stop="handleVersion(row)" title="版本管理"
+                :aria-label="`查看配方${row.name}的版本记录`">
+                <t-icon name="history" />
               </button>
               <button class="action-btn edit-btn" @click.stop="handleEdit(row)" title="编辑"
                 :aria-label="`编辑配方${row.name}`">
                 <t-icon name="edit-1" />
               </button>
-              <button class="action-btn version-btn" @click="handleVersion(row)" title="版本管理"
-                :aria-label="`管理配方${row.name}的版本`">
-                <t-icon name="history" />
+              <button class="action-btn sales-btn" @click.stop="openSalesDialog(row)" title="录入销量"
+                :aria-label="`录入配方${row.name}的销量`">
+                <t-icon name="chart-bar" />
               </button>
               <t-popconfirm content="确定要删除该配方吗？" @confirm="handleDelete(row)">
                 <button class="action-btn delete-btn" @click.stop title="删除" :aria-label="`删除配方${row.name}`">
@@ -382,47 +394,8 @@
       </div>
     </section>
 
-    <!-- 批量删除确认（内联样式 — 100% 可靠，不受 scoped/全局干扰） -->
-    <Teleport to="body">
-      <Transition name="dialog-fade">
-        <div v-if="batchDeleteDialogVisible"
-          style="position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background-color:rgba(100,100,110,0.06);backdrop-filter:blur(1px)"
-          @click.self="batchDeleteDialogVisible = false">
-          <div
-            style="width:440px;max-width:90vw;background:#fff;border-radius:16px;box-shadow:0 24px 80px rgba(0,0,0,0.12),0 6px 24px rgba(0,0,0,0.08);overflow:hidden;animation:dialog-pop-in 0.28s cubic-bezier(0.34,1.56,0.64,1);font-family:inherit">
-            <!-- 头部 -->
-            <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px 14px">
-              <h3 style="margin:0;font-size:16px;font-weight:600;color:#1e293b">确认批量删除</h3>
-              <button @click="batchDeleteDialogVisible = false" aria-label="关闭" class="batch-dialog-close-btn">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                  stroke-linecap="round">
-                  <path d="M18 6L6 18" />
-                  <path d="M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-
-            <!-- 内容 -->
-            <div style="padding:2px 24px 18px">
-              <p style="margin:0 0 10px;font-size:14px;color:#334155;line-height:1.7">
-                确定要删除所选的 <strong>{{ selectedRows.length }}</strong> 个配方吗？
-              </p>
-              <p class="delete-info"
-                style="color:#64748b;font-size:13px;margin-top:8px;padding:10px 12px;background:#f8fafc;border-radius:8px;border-left:3px solid #fecdd3">
-                批量删除后无法恢复，请谨慎操作。
-              </p>
-            </div>
-
-            <!-- 底部按钮 -->
-            <div style="display:flex;justify-content:flex-end;gap:10px;padding:6px 24px 22px">
-              <t-button variant="outline" size="medium" @click="batchDeleteDialogVisible = false">取消</t-button>
-              <t-button variant="base" theme="danger" size="medium" :loading="batchDeleteLoading"
-                @click="confirmBatchDelete">确定删除</t-button>
-            </div>
-          </div>
-        </div>
-      </Transition>
-    </Teleport>
+    <SalesRecordDrawer v-model:visible="salesDialogVisible" :formula-id="salesDialogFormulaId"
+      @success="onSalesDialogSuccess" />
   </div>
 </template>
 
@@ -432,9 +405,11 @@ import { useRouter, useRoute } from 'vue-router';
 import { useFormulaStore } from '@/stores/formula';
 import { useMaterialStore } from '@/stores/material';
 import { useSalesmanStore } from '@/stores/salesman';
+import { useSalesStore } from '@/stores/sales';
 import { usePaginationStore } from '@/stores/pagination';
 import { MessagePlugin } from 'tdesign-vue-next';
 import type { Formula } from '@/api/formula';
+import SalesRecordDrawer from '@/components/SalesRecordDrawer.vue';
 import PageSkeleton from '@/components/Skeleton/PageSkeleton.vue';
 
 const router = useRouter();
@@ -442,14 +417,20 @@ const route = useRoute();
 const formulaStore = useFormulaStore();
 const materialStore = useMaterialStore();
 const salesmanStore = useSalesmanStore();
+const salesStore = useSalesStore();
 const paginationStore = usePaginationStore();
 
 const initialized = ref(false);
 
 // ─── 数据看板 ───
 const dashboardCards = computed(() => {
-  const formulaCount = formulaStore.formulas?.length || 1284;
-  const materialCount = materialStore.materials?.length ?? 0;
+  const formulaCount = formulaStore.total ?? 0;
+  const materialCount = materialStore.total ?? 0;
+  const salesStats = salesStore.stats;
+  const curQty = salesStats?.periodComparison?.current?.quantity ?? 0;
+  const curRev = salesStats?.periodComparison?.current?.revenue ?? 0;
+  const qtyGrowth = salesStats?.periodComparison?.quantityGrowthRate ?? 0;
+  const revGrowth = salesStats?.periodComparison?.revenueGrowthRate ?? 0;
   return [
     {
       label: '活跃配方总数',
@@ -474,26 +455,26 @@ const dashboardCards = computed(() => {
       iconPath: '<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="M3.27 6.96L12 12.01l8.73-5.05"/><line x1="12" y1="22.08" x2="12" y2="12"/>',
     },
     {
-      label: '待处理研发需求',
-      value: '18',
-      unit: '单',
-      badge: '紧急 3',
-      badgeColor: '#EF4444',
-      badgeBg: '#FEF2F2',
-      iconBg: '#FAF5FF',
-      iconColor: '#A855F7',
-      iconPath: '<rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><line x1="8" y1="11" x2="8" y2="11.01"/><line x1="8" y1="16" x2="8" y2="16.01"/>',
-    },
-    {
-      label: '本月配方上新',
-      value: '24',
-      unit: '款',
-      badge: '新高',
-      badgeColor: '#10B981',
-      badgeBg: '#ECFDF5',
+      label: '本月销量',
+      value: curQty.toLocaleString(),
+      unit: '件',
+      badge: qtyGrowth !== 0 ? `${qtyGrowth > 0 ? '+' : ''}${qtyGrowth}%` : '--',
+      badgeColor: qtyGrowth >= 0 ? '#10B981' : '#EF4444',
+      badgeBg: qtyGrowth >= 0 ? '#ECFDF5' : '#FEF2F2',
       iconBg: '#ECFDF5',
       iconColor: '#10B981',
       iconPath: '<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>',
+    },
+    {
+      label: '本月销售额',
+      value: curRev > 0 ? (curRev / 10000).toFixed(1) : '0',
+      unit: '万元',
+      badge: revGrowth !== 0 ? `${revGrowth > 0 ? '+' : ''}${revGrowth}%` : '--',
+      badgeColor: revGrowth >= 0 ? '#10B981' : '#EF4444',
+      badgeBg: revGrowth >= 0 ? '#ECFDF5' : '#FEF2F2',
+      iconBg: '#FAF5FF',
+      iconColor: '#A855F7',
+      iconPath: '<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',
     },
   ];
 });
@@ -533,8 +514,6 @@ const getRowTotalPrice = (row: any): number => {
   return 0;
 };
 
-const batchDeleteDialogVisible = ref(false);
-const batchDeleteLoading = ref(false);
 const expandedRowKeys = ref<(string | number)[]>([]);
 const selectedRowKeys = ref<(string | number)[]>([]);
 const selectedRows = ref<Formula[]>([]);
@@ -614,26 +593,28 @@ const handleBatchExport = () => {
   clearSelection();
 };
 
-const handleBatchDelete = () => {
+const handleBatchDelete = async () => {
   if (selectedRows.value.length === 0) return;
-  batchDeleteDialogVisible.value = true;
-};
-
-const confirmBatchDelete = async () => {
   const count = selectedRows.value.length;
-  batchDeleteLoading.value = true;
-  try {
-    for (const f of selectedRows.value) {
+  let successCount = 0;
+  const failedNames: string[] = [];
+  for (const f of selectedRows.value) {
+    try {
       await formulaStore.deleteFormula(f.id);
+      successCount++;
+    } catch (err: any) {
+      failedNames.push(f.name || f.id);
     }
-    MessagePlugin.success(`成功删除 ${count} 个配方`);
-    clearSelection();
-    batchDeleteDialogVisible.value = false;
-  } catch {
-    MessagePlugin.error('批量删除失败');
-  } finally {
-    batchDeleteLoading.value = false;
   }
+  if (failedNames.length === 0) {
+    MessagePlugin.success(`成功删除 ${count} 个配方`);
+  } else if (successCount > 0) {
+    MessagePlugin.warning(`成功删除 ${successCount} 个，${failedNames.length} 个删除失败`);
+  } else {
+    MessagePlugin.error('删除失败');
+  }
+  clearSelection();
+  await Promise.all([formulaStore.fetchFormulas(), formulaStore.fetchAllForSelect()]);
 };
 
 // 批量归档
@@ -742,14 +723,15 @@ const columns = [
   { colKey: 'row-select', type: 'multiple', width: 50, resizable: false },
   { colKey: 'name', title: '配方信息', width: 200 },
   {
-    colKey: 'formulaStatus', title: '版本状态', width: 150
+    colKey: 'formulaStatus', title: '版本状态', width: 170
   },
   { colKey: 'materialCount', title: '原料数量', width: 120 },
-  { colKey: 'salesmanName', title: '负责人', width: 150 },
+  { colKey: 'salesmanName', title: '负责人', width: 150, align: 'center' },
+  { colKey: 'salesQuantity', title: '本月销量', width: 120, align: 'left' },
   { colKey: 'costSubtotal', title: '成本小计', width: 120, align: 'left' },
   { colKey: 'totalPrice', title: '报价', width: 120, align: 'left' },
-  { colKey: 'createdAt', title: '更新时间', width: 180 },
-  { colKey: 'operation', title: '操作', width: 120, align: 'center' }
+  { colKey: 'createdAt', title: '更新时间', width: 165 },
+  { colKey: 'operation', title: '操作', width: 155, align: 'center' }
 ];
 
 const pagination = computed(() => ({
@@ -936,6 +918,8 @@ onMounted(async () => {
     materialStore.fetchMaterials(),
     materialStore.fetchAllForSelect()
   ]);
+  await loadSalesData();
+  await salesStore.fetchStats();
   initialized.value = true;
 });
 
@@ -994,7 +978,8 @@ const handleCreate = () => {
   });
 };
 
-const handleView = (row: Formula) => {
+const handleRowClick = ({ row }: { row: Formula }) => {
+  console.log('[FormulaList] row clicked, row:', JSON.stringify({ id: row.id, name: row.name }));
   router.push({
     path: `/formulas/${row.id}`,
     query: route.query
@@ -1025,6 +1010,42 @@ const handleDelete = async (row: Formula) => {
     }
   } catch {
     MessagePlugin.error('删除失败');
+  }
+};
+
+// ─── 销量录入弹窗 ───
+const salesDialogVisible = ref(false);
+const salesDialogFormulaId = ref('');
+const salesDataMap = ref<Record<string, { quantity: number; revenue: number }>>({});
+
+const openSalesDialog = (row: Formula) => {
+  salesDialogFormulaId.value = row.id;
+  salesDialogVisible.value = true;
+};
+
+const onSalesDialogSuccess = async () => {
+  await loadSalesData();
+};
+
+const loadSalesData = async () => {
+  try {
+    const now = new Date();
+    const curMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
+    const res = await salesStore.fetchSales({ periodStart: curMonth, pageSize: 9999 });
+    const map: Record<string, { quantity: number; revenue: number }> = {};
+    for (const s of salesStore.sales) {
+      if (s.formulaId) {
+        if (!map[s.formulaId]) map[s.formulaId] = { quantity: 0, revenue: 0 };
+        map[s.formulaId].quantity += s.quantity;
+        map[s.formulaId].revenue += s.revenue;
+      }
+    }
+    salesDataMap.value = map;
+    for (const f of formulaStore.formulas) {
+      (f as any)._salesQuantity = map[f.id]?.quantity ?? null;
+    }
+  } catch (e) {
+    console.error('加载销量数据失败:', e);
   }
 };
 </script>
@@ -2445,6 +2466,56 @@ const handleDelete = async (row: Formula) => {
   }
 }
 
+.sales-quantity-cell {
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 8px;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+
+  &:hover {
+    background: #eff6ff;
+  }
+
+  .sales-qty-value {
+    font-size: 14px;
+    font-weight: 700;
+    color: #3b82f6;
+
+    .sales-qty-unit {
+      font-size: 12px;
+      font-weight: 400;
+      color: #94a3b8;
+      margin-left: 2px;
+    }
+  }
+
+  .sales-qty-empty {
+    font-size: 12px;
+    color: #94a3b8;
+    padding: 2px 8px;
+    border: 1px dashed #cbd5e1;
+    border-radius: 6px;
+    transition: all 0.2s;
+
+    &:hover {
+      color: #3b82f6;
+      border-color: #3b82f6;
+      background: #eff6ff;
+    }
+  }
+}
+
+.action-btn.sales-btn {
+  color: #8b5cf6;
+
+  &:hover {
+    color: #7c3aed;
+    background: #f5f3ff;
+  }
+}
+
 // 价格列
 .price-cell {
   display: inline-flex;
@@ -2556,9 +2627,9 @@ const handleDelete = async (row: Formula) => {
       transform: translateY(-1px);
     }
 
-    &.view-btn:hover {
-      color: #10b981;
-      background-color: rgba(209, 250, 229, 0.5);
+    &.version-btn:hover {
+      color: #8B5CF6;
+      background-color: rgba(237, 233, 254, 0.7);
     }
 
     &.edit-btn:hover {

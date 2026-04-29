@@ -44,7 +44,8 @@ function parseArgs(): { inputFile: string; force: boolean; dryRun: boolean } {
 
   if (!inputFile) {
     // 自动查找最新的备份文件
-    const files = fs.readdirSync(BACKUP_DIR)
+    const files = fs
+      .readdirSync(BACKUP_DIR)
       .filter(f => f.startsWith("tingstudio_backup_") && f.endsWith(".json"))
       .sort()
       .reverse();
@@ -133,6 +134,25 @@ function getInsertOrder(tables: ExportData["tables"]): ExportData["tables"] {
       remaining.delete(name);
     }
   }
+
+  // 依赖基础表的第二层（formulas 依赖 salesmen，需在 salesmen 之后）
+  const level2Tables = ["formulas"];
+  for (const name of level2Tables) {
+    if (remaining.has(name)) {
+      order.push(name);
+      remaining.delete(name);
+    }
+  }
+
+  // 依赖 formulas/salesmen 的第三层（formula_sales 依赖两者）
+  const level3Tables = ["formula_sales"];
+  for (const name of level3Tables) {
+    if (remaining.has(name)) {
+      order.push(name);
+      remaining.delete(name);
+    }
+  }
+
   // 其余按原始顺序
   for (const t of tables) {
     if (remaining.has(t.schema.name)) {
@@ -214,9 +234,7 @@ async function main() {
       // 创建索引
       try {
         const indexes = db
-          .prepare(
-            `SELECT sql FROM sqlite_master WHERE type='index' AND tbl_name=? AND sql IS NOT NULL`
-          )
+          .prepare(`SELECT sql FROM sqlite_master WHERE type='index' AND tbl_name=? AND sql IS NOT NULL`)
           .all(tableName) as { sql: string }[];
         for (const idx of indexes) {
           try {
@@ -239,23 +257,38 @@ async function main() {
         const columns = Object.keys(rows[0]);
         const placeholders = columns.map(() => "?").join(", ");
         const colNames = columns.map(c => `"${c}"`).join(", ");
-        const insertSql = `INSERT OR IGNORE INTO "${tableName}" (${colNames}) VALUES (${placeholders})`;
+        const insertSql = `INSERT INTO "${tableName}" (${colNames}) VALUES (${placeholders})`;
         const stmt = db.prepare(insertSql);
 
         let inserted = 0;
+        let skipped = 0;
         for (const row of rows) {
-          const values = columns.map(col => row[col] ?? null);
-          const result = stmt.run(...values);
-          inserted += result.changes;
+          try {
+            const values = columns.map(col => row[col] ?? null);
+            const result = stmt.run(...values);
+            inserted += result.changes;
+          } catch (rowErr: any) {
+            skipped++;
+            if (skipped <= 3) {
+              console.log(`    ⚠ 跳过行 ${tableName}:${JSON.stringify(row).slice(0, 80)}: ${rowErr.message}`);
+            }
+          }
+        }
+        if (skipped > 3) {
+          console.log(`    ⚠ ... 共跳过 ${skipped} 行`);
         }
 
         insertedTotal += inserted;
-        console.log(`  ✓ ${tableName}: 插入 ${inserted}/${rows.length} 条记录`);
+        console.log(
+          `  ✓ ${tableName}: 插入 ${inserted}/${rows.length} 条记录${skipped > 0 ? ` (跳过 ${skipped} 条)` : ""}`,
+        );
       }
     }
   });
 
   tx();
+
+  db.pragma("wal_checkpoint(TRUNCATE)");
 
   // 4. 重新启用外键约束并验证
   db.pragma("foreign_keys = ON");
@@ -284,7 +317,7 @@ async function main() {
   console.log("   cd backend && npm run dev\n");
 }
 
-main().catch((err) => {
+main().catch(err => {
   console.error("恢复失败:", err);
   process.exit(1);
 });

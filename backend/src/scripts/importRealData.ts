@@ -14,6 +14,7 @@ import XLSX from "xlsx";
 import path from "path";
 import { fileURLToPath } from "url";
 import { connectDatabase, getDb, closeDatabase } from "../config/database.js";
+import { generateMaterialCode } from "../utils/helpers.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -295,19 +296,10 @@ async function importData() {
 
   // 导入原料和营养数据
   const materialIdMap = new Map<string, string>();
-  let matCode = 1;
-
-  // 获取当前最大编号
-  const maxCode = db
-    .prepare("SELECT code FROM materials WHERE code LIKE 'MAT%' ORDER BY code DESC LIMIT 1")
-    .get() as any;
-  if (maxCode) {
-    matCode = parseInt(maxCode.code.replace("MAT", "")) + 1;
-  }
 
   const importMaterials = db.transaction(() => {
     for (const [name, mat] of allMaterials) {
-      const code = `MAT${String(matCode++).padStart(3, "0")}`;
+      const code = generateMaterialCode(name);
       const materialId = generateId();
       const timestamp = now();
 

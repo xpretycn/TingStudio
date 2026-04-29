@@ -99,6 +99,12 @@ const router = createRouter({
           meta: { title: "业务员详情", hideHeader: true },
         },
         {
+          path: "sales",
+          name: "SalesAnalysis",
+          component: () => import(/* webpackPrefetch: true */ "@/views/sales/SalesAnalysis.vue"),
+          meta: { title: "销量分析" },
+        },
+        {
           path: "versions/formula/:formulaId",
           name: "VersionList",
           component: () => import(/* webpackPrefetch: true */ "@/views/versions/VersionList.vue"),

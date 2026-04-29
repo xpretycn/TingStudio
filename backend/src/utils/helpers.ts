@@ -464,3 +464,40 @@ export function generateFormulaCode(name: string): string {
   }
   return code;
 }
+
+const MATERIAL_CODE_MAP: Record<string, string> = {
+  '铁皮石斛': 'TPSH', '乌梅': 'WM', '酸枣仁': 'SZR', '百合': 'BH', '灵芝': 'LZ',
+  '阿胶': 'EJ', '莲子': 'LZ2', '芡实': 'QS', '桑椹': 'SS', '大枣': 'DZ',
+  '茯苓': 'FL', '小麦': 'XM', '甘草': 'GC', '陈皮': 'CP', '低聚异麦芽糖': 'DJTMYT',
+  '佛手': 'FS', '重瓣玫瑰花': 'PXXM', '重瓣红玫瑰': 'PXWX', '金银花': 'JYH',
+  '葛根': 'GG', '荷叶': 'HY', '竹叶黄酮': 'ZYHT', '纳豆': 'ND',
+  '显脉旋覆花': 'XMFFH', '栀子': 'ZZ', '西红花': 'XHH', '当归': 'DG',
+  '芦根': 'LG', '薄荷': 'BH2', '白芷': 'BZ', '薏苡仁': 'YYR', '化橘红': 'HXH',
+  '鱼腥草': 'YXC', '乌药叶': 'WYY', '黄芥子': 'HJZ', '苦杏仁': 'KXR',
+  '蒲公英': 'PGY', '麦冬': 'MD', '西洋参': 'XYX', '牡蛎': 'ML', '昆布': 'KB',
+  '丹凤牡丹花': 'DFMDH', '麦芽': 'MY', '姜黄': 'JH', '山茱萸': 'SZY',
+  '肉桂': 'RG', '山楂': 'SZ', '鸡内金': 'JNJ', 'r-氨基丁酸': 'AJDAS',
+  '地龙蛋白肽粉': 'DLBTTF', '黄芪': 'HQ', '沙棘': 'SJ', '枸杞子': 'GQZ',
+  '香橼': 'XQ', '平卧菊三七': 'PWJSQ', '桔梗': 'JG', '短梗五加': 'DGWJ',
+  '黄精': 'HJ', '桃仁': 'TR', '山药': 'SY', '淡竹叶': 'DZY', '槐花': 'HH2',
+  '马齿苋': 'MCX', '藿香': 'HX', '莱菔子': 'LFZ', '杏仁': 'XR', '火麻仁': 'HMR',
+  '赤小豆': 'CXD', '党参': 'DS', '炒白扁豆': 'CBD', '草果': 'CG',
+  '肉豆蔻': 'RYK', '小茴香': 'XFX', '地龙': 'DL', '全蝎': 'QX', '蜈蚣': 'WC',
+  '僵蚕': 'JC', '蝉蜕': 'CT', '牛黄': 'NH', '人参': 'RS', '鹿茸': 'LR',
+  '冬虫夏草': 'DCXC', '藏红花': 'ZHH', '川贝': 'CB', '红花': 'HH3',
+  '五味子': 'WWZ', '远志': 'YZ', '酸梅膏': 'SMG', '白术': 'BS',
+  '薏米': 'YM', '扁豆': 'BD', '神曲': 'SQ', '谷芽': 'GY', '菊花': 'JH2',
+  '连翘': 'LQ', '板蓝根': 'BLG', '决明子': 'JMZ', '紫苏': 'ZS',
+  '香附': 'XF', '郁金': 'YJ', '延胡索': 'YHS', '丹参': 'DS2', '水蛭': 'SZ2'
+};
+
+export function generateMaterialCode(name: string): string {
+  const trimmed = (name || '').trim();
+  if (!trimmed) return '';
+  if (MATERIAL_CODE_MAP[trimmed]) return MATERIAL_CODE_MAP[trimmed];
+  return trimmed.split('').map(c => {
+    const code = c.charCodeAt(0);
+    if (code >= 0x4e00 && code <= 0x9fff) return String.fromCharCode(0x41 + ((code - 0x4e00) % 26));
+    return c.toUpperCase();
+  }).join('').substring(0, 6) || 'MAT' + String(Date.now()).slice(-4);
+}

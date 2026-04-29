@@ -3,6 +3,7 @@ import { Request, Response } from "express";
 import { query } from "../config/database-better-sqlite3.js";
 import {
   generateId,
+  generateMaterialCode,
   now,
   success,
   successWithPagination,
@@ -23,7 +24,7 @@ export async function getMaterials(req: any, res: Response) {
     let whereSql: string;
     const params: any[] = [];
 
-    if (scope === 'all') {
+    if (scope === "all") {
       whereSql = "WHERE 1=1";
     } else {
       whereSql = "WHERE created_by = ?";
@@ -67,19 +68,26 @@ export async function getMaterial(req: Request, res: Response) {
   }
 }
 
-/** 获取下一个原料编码 */
+/** 根据原料名称生成编码 */
 export async function getNextCode(req: any, res: Response) {
   try {
-    const userId = req.user.userId;
-    const [rows]: any[] = await query(
-      "SELECT code FROM materials WHERE code LIKE 'MAT%' AND created_by = ? ORDER BY code DESC LIMIT 1",
-      [userId],
-    );
-    let nextNum = 1;
-    if (rows && rows.length > 0) {
-      nextNum = parseInt(rows[0].code.replace("MAT", "")) + 1;
+    const { name } = req.query;
+    if (!name || typeof name !== "string" || !name.trim()) {
+      return res.status(400).json({ success: false, message: "请提供原料名称" });
     }
-    res.json(success({ code: `MAT${String(nextNum).padStart(3, "0")}` }));
+    const code = generateMaterialCode(name.trim());
+    if (!code) {
+      return res.status(500).json({ success: false, message: "无法生成编码" });
+    }
+    const [existing]: any[] = await query("SELECT id, name FROM materials WHERE code = ?", [code]);
+    if (existing && existing.length > 0) {
+      return res.status(409).json({
+        success: false,
+        message: `编码 ${code} 已被「${existing[0].name}」占用`,
+        data: { code, conflictName: existing[0].name },
+      });
+    }
+    res.json(success({ code }));
   } catch (error: any) {
     res.status(500).json({ success: false, message: "获取编码失败", error: error.message });
   }

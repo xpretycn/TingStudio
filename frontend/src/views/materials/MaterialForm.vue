@@ -540,35 +540,18 @@ const unitOptions = [
   { label: '箱', value: '箱' }
 ];
 
-const pinyinCodeMap: Record<string, string> = {
-  佛手: 'FS', 重瓣玫瑰: 'RBPL', 茯苓: 'FL', 熟地: 'SD', 党参: 'DS', 益母草: 'YMC',
-  高果糖浆: 'GGTJ', 蜂蜜: 'FM', 巴戟天: 'BJT', 佛手玫苓膏: 'FSQLG', 纯净水: 'CJS',
-  龙眼肉: 'LYR', 黄精: 'HJ', 酸枣仁: 'SZR', 灵芝: 'LZ', 石斛: 'SH', 西洋参: 'XYX',
-  陈皮: 'CP', 当归: 'DG', 黄芪: 'HQ', 红枣: 'HZ', 枸杞: 'GQ', 桑葚: 'SS', 阿胶: 'EJ',
-  人参: 'RS', 鹿茸: 'LR', 冬虫夏草: 'DCXC', 藏红花: 'ZHH', 川贝: 'CB', 百合: 'BH',
-  麦冬: 'MD', 五味子: 'WWZ', 远志: 'YZ', 酸梅膏: 'SMG', 甘草: 'GC', 白术: 'BS',
-  山药: 'SY', 莲子: 'LZ', 芡实: 'QS', 薏米: 'YM', 赤小豆: 'CXD', 扁豆: 'BD',
-  山楂: 'SZ', 神曲: 'SQ', 麦芽: 'MY', 谷芽: 'GY', 鸡内金: 'JNJ', 莱菔子: 'LFZ',
-  决明子: 'JMZ', 菊花: 'JH', 金银花: 'JYH', 连翘: 'LQ', 板蓝根: 'BLG', 蒲公英: 'PGY',
-  鱼腥草: 'YXC', 薄荷: 'BH2', 紫苏: 'ZS', 香附: 'XF', 郁金: 'YJ', 延胡索: 'YHS',
-  丹参: 'DS2', 红花: 'HH', 桃仁: 'TR', 三棱: 'SL', 莪术: 'EW', 水蛭: 'SZ2',
-  地龙: 'DL', 全蝎: 'QX', 蜈蚣: 'WG', 僵蚕: 'JC', 蝉蜕: 'CT', 牛黄: 'NH'
-};
-
-const generatePinyinCode = (name: string): string => {
-  if (!name.trim()) return '';
-  if (pinyinCodeMap[name]) return pinyinCodeMap[name];
-  return name.substring(0, Math.min(5, name.length)).split('').map(c => {
-    const code = c.charCodeAt(0);
-    if (code >= 0x4e00 && code <= 0x9fff) return String.fromCharCode(0x41 + ((code - 0x4e00) % 26));
-    return c.toUpperCase();
-  }).join('');
+const fetchCodeForName = async (name: string) => {
+  if (!name || name.trim().length < 2) return;
+  try {
+    const res: any = await materialApi.getNextCode(name.trim());
+    if (res?.data?.code) formData.code = res.data.code;
+  } catch {
+  }
 };
 
 watch(() => formData.name, (newName) => {
   if (!isEdit.value && newName && newName.length >= 2) {
-    const autoCode = generatePinyinCode(newName);
-    if (autoCode) formData.code = autoCode;
+    fetchCodeForName(newName);
   }
 });
 
@@ -997,7 +980,8 @@ const handleBatchRegister = async () => {
 
     registerStatusMap[idx] = 'loading';
     try {
-      const code = generatePinyinCode(item.name) || `MAT${String(Date.now()).slice(-3)}`;
+      const codeRes: any = await materialApi.getNextCode(item.name);
+      const code = codeRes?.data?.code || `MAT${String(Date.now()).slice(-3)}`;
       const fileName = selectedFile.value?.name || 'AI导入';
 
       const matRes: any = await materialApi.create({
@@ -1082,7 +1066,8 @@ const handleImmediateRegister = async (item: any, idx: number) => {
   if (registerStatusMap[idx] === 'loading') return;
   registerStatusMap[idx] = 'loading';
   try {
-    const code = generatePinyinCode(item.name) || `MAT${String(Date.now()).slice(-3)}`;
+    const codeRes: any = await materialApi.getNextCode(item.name);
+    const code = codeRes?.data?.code || `MAT${String(Date.now()).slice(-3)}`;
     const fileName = selectedFile.value?.name || 'AI导入';
 
     const matRes: any = await materialApi.create({
