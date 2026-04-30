@@ -23,20 +23,22 @@
           </div>
 
           <template v-else>
-            <section class="dashboard-grid">
-              <div class="stat-card" v-for="(card, idx) in dashboardCards" :key="card.label"
-                :style="{ animationDelay: `${(idx + 1) * 0.1}s` }">
-                <div class="stat-card-top">
-                  <div class="stat-icon" :style="{ background: card.iconBg, color: card.iconColor }">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                      stroke-linecap="round" stroke-linejoin="round" v-html="card.iconPath"></svg>
+            <section class="dashboard-section">
+              <div class="dashboard-grid">
+                <div class="stat-card" v-for="(card, idx) in dashboardCards" :key="card.label"
+                  :style="{ animationDelay: `${(idx + 1) * 0.1}s` }">
+                  <div class="stat-card-top">
+                    <div class="stat-icon" :style="{ background: card.iconBg, color: card.iconColor }">
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round" v-html="card.iconPath"></svg>
+                    </div>
+                    <span class="stat-badge" :style="{ color: card.badgeColor, background: card.badgeBg }">
+                      {{ card.badge }}
+                    </span>
                   </div>
-                  <span class="stat-badge" :style="{ color: card.badgeColor, background: card.badgeBg }">
-                    {{ card.badge }}
-                  </span>
+                  <p class="stat-label">{{ card.label }}</p>
+                  <p class="stat-value">{{ card.value }} <small class="stat-unit">{{ card.unit }}</small></p>
                 </div>
-                <p class="stat-label">{{ card.label }}</p>
-                <p class="stat-value">{{ card.value }} <small class="stat-unit">{{ card.unit }}</small></p>
               </div>
             </section>
 
@@ -101,6 +103,21 @@
                     </svg>
                     业务员销售额排行 TOP{{ topSalesmenByRevenue.length }}
                   </h3>
+                  <div class="rank-nav" v-if="salesmanRankTotalPages > 1">
+                    <button class="rank-nav-btn" :disabled="salesmanRankPage <= 1" @click="salesmanRankPage--" title="上一页">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="15 18 9 12 15 6" />
+                      </svg>
+                    </button>
+                    <span class="rank-nav-page">{{ salesmanRankPage }} / {{ salesmanRankTotalPages }}</span>
+                    <button class="rank-nav-btn" :disabled="salesmanRankPage >= salesmanRankTotalPages" @click="salesmanRankPage++" title="下一页">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="9 18 15 12 9 6" />
+                      </svg>
+                    </button>
+                  </div>
                 </div>
                 <div class="chart-body">
                   <div v-if="topSalesmenByRevenue.length === 0" class="chart-empty">
@@ -114,9 +131,9 @@
                     <p>暂无业务员销售数据</p>
                   </div>
                   <div v-else class="rank-list">
-                    <div v-for="(item, idx) in topSalesmenByRevenue" :key="item.salesmanId"
+                    <div v-for="(item, idx) in paginatedTopSalesmenByRevenue" :key="item.salesmanId"
                       class="rank-item rank-item--purple">
-                      <span class="rank-number" :class="{ 'rank-top': idx < 3, 'rank-top--purple': idx < 3 }">{{ idx + 1
+                      <span class="rank-number" :class="{ 'rank-top': idx < 3, 'rank-top--purple': idx < 3 }">{{ (salesmanRankPage - 1) * 5 + idx + 1
                       }}</span>
                       <div class="rank-info">
                         <p class="rank-name">{{ item.salesmanName }}</p>
@@ -142,6 +159,21 @@
                     </svg>
                     配方销售额排行 TOP{{ revenueTopFormulas.length }}
                   </h3>
+                  <div class="rank-nav" v-if="revenueFormulaRankTotalPages > 1">
+                    <button class="rank-nav-btn" :disabled="revenueFormulaRankPage <= 1" @click="revenueFormulaRankPage--" title="上一页">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="15 18 9 12 15 6" />
+                      </svg>
+                    </button>
+                    <span class="rank-nav-page">{{ revenueFormulaRankPage }} / {{ revenueFormulaRankTotalPages }}</span>
+                    <button class="rank-nav-btn" :disabled="revenueFormulaRankPage >= revenueFormulaRankTotalPages" @click="revenueFormulaRankPage++" title="下一页">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="9 18 15 12 9 6" />
+                      </svg>
+                    </button>
+                  </div>
                 </div>
                 <div class="chart-body">
                   <div v-if="revenueTopFormulas.length === 0" class="chart-empty">
@@ -153,9 +185,9 @@
                     <p>暂无销售额排行数据</p>
                   </div>
                   <div v-else class="rank-list">
-                    <div v-for="(item, idx) in revenueTopFormulas" :key="item.formulaId"
+                    <div v-for="(item, idx) in paginatedRevenueTopFormulas" :key="item.formulaId"
                       class="rank-item rank-item--revenue">
-                      <span class="rank-number" :class="{ 'rank-top': idx < 3, 'rank-top--green': idx < 3 }">{{ idx + 1
+                      <span class="rank-number" :class="{ 'rank-top': idx < 3, 'rank-top--green': idx < 3 }">{{ (revenueFormulaRankPage - 1) * 5 + idx + 1
                       }}</span>
                       <div class="rank-info">
                         <p class="rank-name">{{ item.formulaName }}</p>
@@ -182,6 +214,21 @@
                     </svg>
                     配方销量排行 TOP{{ topFormulas.length }}
                   </h3>
+                  <div class="rank-nav" v-if="formulaRankTotalPages > 1">
+                    <button class="rank-nav-btn" :disabled="formulaRankPage <= 1" @click="formulaRankPage--" title="上一页">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="15 18 9 12 15 6" />
+                      </svg>
+                    </button>
+                    <span class="rank-nav-page">{{ formulaRankPage }} / {{ formulaRankTotalPages }}</span>
+                    <button class="rank-nav-btn" :disabled="formulaRankPage >= formulaRankTotalPages" @click="formulaRankPage++" title="下一页">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="9 18 15 12 9 6" />
+                      </svg>
+                    </button>
+                  </div>
                 </div>
                 <div class="chart-body">
                   <div v-if="topFormulas.length === 0" class="chart-empty">
@@ -194,8 +241,8 @@
                     <p>暂无排行数据</p>
                   </div>
                   <div v-else class="rank-list">
-                    <div v-for="(item, idx) in topFormulas" :key="item.formulaId" class="rank-item">
-                      <span class="rank-number" :class="{ 'rank-top': idx < 3 }">{{ idx + 1 }}</span>
+                    <div v-for="(item, idx) in paginatedTopFormulas" :key="item.formulaId" class="rank-item">
+                      <span class="rank-number" :class="{ 'rank-top': idx < 3 }">{{ (formulaRankPage - 1) * 5 + idx + 1 }}</span>
                       <div class="rank-info">
                         <p class="rank-name">{{ item.formulaName }}</p>
                         <div class="rank-bar-track">
@@ -357,15 +404,10 @@
                   </t-tag>
                 </template>
                 <template #quantity="{ row }">
-                  <span class="qty-cell">
-                    <span class="qty-value">{{ row.quantity?.toLocaleString() || 0 }}</span>
-                    <small class="qty-unit">件</small>
-                  </span>
+                  <span class="qty-cell">{{ row.quantity?.toLocaleString() || 0 }}</span>
                 </template>
                 <template #revenue="{ row }">
-                  <span class="rev-cell">
-                    ¥{{ ((row.revenue || 0) / 10000).toFixed(2) }}<small class="rev-unit">万</small>
-                  </span>
+                  <span class="rev-cell">¥{{ ((row.revenue || 0) / 10000).toFixed(2) }}</span>
                 </template>
                 <template #operation="{ row }">
                   <div class="action-buttons" role="group" :aria-label="`操作 ${row.formulaName}`">
@@ -412,7 +454,12 @@
       </div>
     </Transition>
 
+    <SalesRecordDrawer v-model:visible="drawerVisible" :formula-id="drawerFormulaId" :edit-record="drawerEditRecord"
+      @success="onDrawerSuccess" />
+
+    <!-- 底部快捷动态 -->
     <section v-if="initialized && !loadError" class="activity-section">
+      <!-- 左：近期销量动态 -->
       <div class="activity-card activity-card--timeline">
         <div class="activity-header">
           <h4 class="activity-title">
@@ -454,31 +501,81 @@
         </div>
       </div>
 
+      <!-- 右：销量管理助手 -->
       <div class="activity-card activity-card--assistant">
-        <div class="assistant-content">
-          <h4 class="assistant-title">销量管理助手</h4>
-          <p class="assistant-desc">{{ assistantMessage }}</p>
-          <button class="assistant-btn" @click="openCreateDrawer">录入销量</button>
-          <div class="assistant-footer">
-            <div class="assistant-avatar-group">
-              <span class="assistant-avatar">销</span>
-              <span class="assistant-avatar">量</span>
-              <span class="assistant-avatar">助</span>
-            </div>
-            <span class="assistant-hint">{{ salesStore.total }} 条销量记录</span>
+        <div class="assistant-header">
+          <h4 class="assistant-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/>
+            </svg>
+            销量管理助手
+          </h4>
+          <div class="sales-nav" v-if="salesTodoTotalPages > 1">
+            <button class="activity-nav-btn" :disabled="salesTodoPage <= 1" @click="salesTodoPrev" title="上一页">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+            <span class="activity-nav-page">{{ salesTodoPage }} / {{ salesTodoTotalPages }}</span>
+            <button class="activity-nav-btn" :disabled="salesTodoPage >= salesTodoTotalPages" @click="salesTodoNext" title="下一页">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
           </div>
         </div>
-        <svg class="assistant-bg-icon" width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-          stroke-width="1">
-          <path d="M12 20V10" />
-          <path d="M18 20V4" />
-          <path d="M6 20v-4" />
+
+        <div class="todo-list" v-if="paginatedSalesTodoItems.length > 0">
+          <TransitionGroup name="todo-list" tag="div" class="todo-list__inner">
+            <div v-for="(item, idx) in paginatedSalesTodoItems" :key="item.id"
+              class="todo-item" :class="'todo-item--' + item.priority">
+              <div class="todo-item__icon" :class="'todo-item__icon--' + item.type">
+                <svg v-if="item.type === 'warning'" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                  <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+                <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
+                </svg>
+              </div>
+              <div class="todo-item__content">
+                <p class="todo-item__title">{{ item.title }}</p>
+                <p class="todo-item__desc">{{ item.desc }}</p>
+              </div>
+              <button class="todo-item__action" @click="handleSalesTodoAction(item)" :title="item.actionText">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+              </button>
+            </div>
+          </TransitionGroup>
+        </div>
+
+        <div class="assistant-empty" v-else>
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="1.5"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+          </svg>
+          <p>太棒了！暂无待处理事项</p>
+          <span>所有配方销量数据完整~</span>
+        </div>
+
+        <div class="assistant-footer">
+          <span class="assistant-hint">{{ formulaStore.formulas?.length || 0 }} 个配方 · 共 {{ displaySalesPendingItems.length }} 项待办</span>
+          <button class="assistant-refresh-btn" @click="refreshSalesPending" title="刷新">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+            </svg>
+          </button>
+        </div>
+
+        <svg class="assistant-bg-icon" width="140" height="140" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/>
         </svg>
       </div>
     </section>
-
-    <SalesRecordDrawer v-model:visible="drawerVisible" :formula-id="drawerFormulaId" :edit-record="drawerEditRecord"
-      @success="onDrawerSuccess" />
   </div>
 </template>
 
@@ -486,6 +583,7 @@
 import { ref, computed, onMounted } from 'vue';
 import { useSalesStore } from '@/stores/sales';
 import { useSalesmanStore } from '@/stores/salesman';
+import { useFormulaStore } from '@/stores/formula';
 import { MessagePlugin } from 'tdesign-vue-next';
 import type { SaleRecord } from '@/api/sales';
 import SalesRecordDrawer from '@/components/SalesRecordDrawer.vue';
@@ -493,6 +591,7 @@ import PageSkeleton from '@/components/Skeleton/PageSkeleton.vue';
 
 const salesStore = useSalesStore();
 const salesmanStore = useSalesmanStore();
+const formulaStore = useFormulaStore();
 
 const initialized = ref(false);
 const loadError = ref('');
@@ -572,6 +671,12 @@ const dashboardCards = computed(() => {
 const trendData = computed(() => salesStore.stats?.monthlyTrend || []);
 const topFormulas = computed(() => salesStore.stats?.topFormulas || []);
 
+const RANK_PAGE_SIZE = 5;
+
+const salesmanRankPage = ref(1);
+const revenueFormulaRankPage = ref(1);
+const formulaRankPage = ref(1);
+
 const revenueTopFormulas = computed(() => {
   const formulas = topFormulas.value;
   if (!formulas || formulas.length === 0) return [];
@@ -601,6 +706,25 @@ const topSalesmenByRevenue = computed(() => {
   return Object.values(salesmanMap)
     .sort((a, b) => b.totalRevenue - a.totalRevenue)
     .slice(0, 10);
+});
+
+const salesmanRankTotalPages = computed(() => Math.max(1, Math.ceil(topSalesmenByRevenue.value.length / RANK_PAGE_SIZE)));
+const revenueFormulaRankTotalPages = computed(() => Math.max(1, Math.ceil(revenueTopFormulas.value.length / RANK_PAGE_SIZE)));
+const formulaRankTotalPages = computed(() => Math.max(1, Math.ceil(topFormulas.value.length / RANK_PAGE_SIZE)));
+
+const paginatedTopSalesmenByRevenue = computed(() => {
+  const start = (salesmanRankPage.value - 1) * RANK_PAGE_SIZE;
+  return topSalesmenByRevenue.value.slice(start, start + RANK_PAGE_SIZE);
+});
+
+const paginatedRevenueTopFormulas = computed(() => {
+  const start = (revenueFormulaRankPage.value - 1) * RANK_PAGE_SIZE;
+  return revenueTopFormulas.value.slice(start, start + RANK_PAGE_SIZE);
+});
+
+const paginatedTopFormulas = computed(() => {
+  const start = (formulaRankPage.value - 1) * RANK_PAGE_SIZE;
+  return topFormulas.value.slice(start, start + RANK_PAGE_SIZE);
 });
 
 const getSalesmanRevenueWidth = (val: number) => {
@@ -791,6 +915,99 @@ const handleBatchExport = () => {
 
 interface ActivityItem { type: 'success' | 'warning' | 'info'; title: string; desc: string; time: string; }
 
+interface SalesTodoItem {
+  id: string;
+  type: 'warning' | 'info' | 'default';
+  priority: 'high' | 'medium' | 'low';
+  title: string;
+  desc: string;
+  actionText: string;
+  actionType: 'edit' | 'view' | 'create';
+  formulaId?: string;
+}
+
+const SALES_TODO_PAGE_SIZE = 3;
+const salesTodoPage = ref(1);
+
+const displaySalesPendingItems = computed<SalesTodoItem[]>(() => {
+  const items: SalesTodoItem[] = [];
+  const formulas = formulaStore.formulas || [];
+  const salesList = salesStore.sales || [];
+
+  for (const f of formulas) {
+    const hasSalesData = salesList.some((s: any) => s.formulaId === f.id);
+    if (!hasSalesData && f.status === 'published') {
+      items.push({
+        id: `nosales-${f.id}`,
+        type: 'warning',
+        priority: 'high',
+        title: '销量数据待录入',
+        desc: `「${f.name}」本月暂无销量数据`,
+        actionText: '去录入',
+        actionType: 'edit',
+        formulaId: f.id
+      });
+    }
+
+    if (f.status === 'draft') {
+      items.push({
+        id: `draft-${f.id}`,
+        type: 'info',
+        priority: 'medium',
+        title: '配方未发布',
+        desc: `「${f.name}」仍为草稿状态，无法统计销量`,
+        actionText: '查看详情',
+        actionType: 'view',
+        formulaId: f.id
+      });
+    }
+  }
+
+  if (formulas.length === 0 || items.length === 0) {
+    items.push(
+      { id: 'mock-1', type: 'warning' as const, priority: 'high' as const,
+        title: '销量待录入', desc: '「人参养荣汤」本月暂无销量数据', actionText: '去录入', actionType: 'edit' as const, formulaId: 'demo-001' },
+      { id: 'mock-2', type: 'warning' as const, priority: 'high' as const,
+        title: '销量待录入', desc: '「十全大补汤」本月暂无销量数据', actionText: '去录入', actionType: 'edit' as const, formulaId: 'demo-002' },
+      { id: 'mock-3', type: 'info' as const, priority: 'medium' as const,
+        title: '配方未发布', desc: '「归脾汤」仍为草稿状态，无法统计销量', actionText: '查看详情', actionType: 'view' as const, formulaId: 'demo-003' },
+      { id: 'mock-4', type: 'default' as const, priority: 'low' as const,
+        title: '数据更新提示', desc: '「补中益气汤」超过30天未更新销量', actionText: '去更新', actionType: 'edit' as const, formulaId: 'demo-004' },
+    );
+  }
+
+  const priorityOrder = { high: 0, medium: 1, low: 2 };
+  items.sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
+
+  return items.slice(0, 8);
+});
+
+const salesTodoTotalPages = computed(() => Math.max(1, Math.ceil(displaySalesPendingItems.value.length / SALES_TODO_PAGE_SIZE)));
+
+const paginatedSalesTodoItems = computed<SalesTodoItem[]>(() => {
+  const start = (salesTodoPage.value - 1) * SALES_TODO_PAGE_SIZE;
+  return displaySalesPendingItems.value.slice(start, start + SALES_TODO_PAGE_SIZE);
+});
+
+const salesTodoPrev = () => { if (salesTodoPage.value > 1) salesTodoPage.value--; };
+const salesTodoNext = () => { if (salesTodoPage.value < salesTodoTotalPages.value) salesTodoPage.value++; };
+
+const handleSalesTodoAction = (item: SalesTodoItem) => {
+  if (item.actionType === 'edit' && item.formulaId) {
+    drawerFormulaId.value = item.formulaId;
+    drawerEditRecord.value = null;
+    drawerVisible.value = true;
+  }
+};
+
+const refreshSalesPending = async () => {
+  await Promise.all([
+    formulaStore.fetchFormulas(),
+    loadData()
+  ]);
+  salesTodoPage.value = 1;
+};
+
 const ACTIVITY_PAGE_SIZE = 4;
 const activityPage = ref(1);
 
@@ -868,8 +1085,11 @@ function formatTimeAgo(dateStr: string): string {
 
 onMounted(async () => {
   try {
-    await salesmanStore.fetchSalesmen();
-    await loadData();
+    await Promise.all([
+      salesmanStore.fetchSalesmen(),
+      formulaStore.fetchFormulas(),
+      loadData()
+    ]);
   } catch (e: any) {
     loadError.value = e.message || '初始化失败';
   } finally {
@@ -886,6 +1106,436 @@ onMounted(async () => {
   padding: 0;
   padding-bottom: 32px;
   animation: page-fade-in 0.4s ease;
+}
+
+.dashboard-section {
+  margin-bottom: 30px;
+
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+
+    @media (max-width: 1200px) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+}
+
+.activity-section {
+  margin-top: 40px;
+  padding-bottom: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 32px;
+
+  @media (min-width: 1024px) {
+    grid-template-columns: 2fr 1fr;
+  }
+}
+
+.activity-card {
+  background-color: #fff;
+  border-radius: 24px;
+  padding: 32px;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
+  border: 1px solid #f8fafc;
+
+  &--assistant {
+    background: #fff;
+    border: 1px solid #f8fafc;
+    color: #0F172A;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
+  }
+}
+
+.activity-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.activity-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1e293b;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+
+.activity-nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  .activity-nav-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    border: 1.5px solid rgba(16, 185, 129, 0.2);
+    background: rgba(16, 185, 129, 0.04);
+    color: #10b981;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover:not(:disabled) {
+      background: rgba(16, 185, 129, 0.12);
+      border-color: #10b981;
+      color: #059669;
+    }
+
+    &:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+      border-color: rgba(148, 163, 184, 0.15);
+      color: #cbd5e1;
+      background: transparent;
+    }
+  }
+
+  .activity-nav-page {
+    font-size: 12px;
+    font-weight: 600;
+    color: #94a3b8;
+    min-width: 36px;
+    text-align: center;
+    user-select: none;
+  }
+}
+
+.timeline-list {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.timeline-item {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  position: relative;
+  padding-bottom: 24px;
+
+  &:not(.timeline-item--last)::after {
+    content: '';
+    position: absolute;
+    left: 11px;
+    top: 28px;
+    bottom: 0;
+    width: 1px;
+    background-color: #f1f5f9;
+  }
+}
+
+.timeline-dot {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  z-index: 10;
+  position: relative;
+
+  &--success {
+    background-color: #d1fae5;
+  }
+
+  &--warning {
+    background-color: #fef3c7;
+  }
+
+  &--info {
+    background-color: #dbeafe;
+  }
+}
+
+.timeline-dot-inner {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+
+  .timeline-dot--success & {
+    background-color: #10b981;
+  }
+
+  .timeline-dot--warning & {
+    background-color: #f59e0b;
+  }
+
+  .timeline-dot--info & {
+    background-color: #3b82f6;
+  }
+}
+
+.timeline-content {
+  flex: 1;
+}
+
+.timeline-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #334155;
+  margin: 0 0 4px 0;
+}
+
+.timeline-desc {
+  font-size: 12px;
+  color: #94a3b8;
+  margin: 0 0 4px 0;
+
+  :deep(.text-emerald-600) {
+    color: #059669 !important;
+    font-weight: 700 !important;
+  }
+
+  :deep(.text-amber-600) {
+    color: #d97706 !important;
+    font-weight: 700 !important;
+  }
+
+  :deep(.text-blue-600) {
+    color: #2563eb !important;
+    font-weight: 700 !important;
+  }
+
+  :deep(strong) {
+    font-weight: 700;
+  }
+}
+
+.timeline-time {
+  font-size: 10px;
+  color: #cbd5e1;
+  text-transform: uppercase;
+  display: inline-block;
+  margin-top: 4px;
+}
+
+.activity-card--assistant {
+  .assistant-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: -32px -32px 16px -32px;
+    padding: 20px 24px;
+    background: linear-gradient(135deg, #10B981, #059669);
+    border-radius: 24px 24px 0 0;
+
+    .assistant-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 16px;
+      font-weight: 700;
+      color: #fff;
+      margin: 0;
+    }
+  }
+
+  .sales-nav {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    .activity-nav-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 26px;
+      height: 26px;
+      border-radius: 8px;
+      border: 1.5px solid rgba(255, 255, 255, 0.3);
+      background: rgba(255, 255, 255, 0.15);
+      color: #fff;
+      cursor: pointer;
+      transition: all 0.2s;
+
+      &:hover:not(:disabled) {
+        background: rgba(255, 255, 255, 0.25);
+        border-color: rgba(255, 255, 255, 0.5);
+      }
+
+      &:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+        border-color: rgba(255, 255, 255, 0.15);
+        color: rgba(255, 255, 255, 0.5);
+        background: transparent;
+      }
+    }
+
+    .activity-nav-page {
+      font-size: 12px;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.85);
+      min-width: 32px;
+      text-align: center;
+      user-select: none;
+    }
+  }
+
+  .todo-list {
+    &__inner {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+  }
+
+  .todo-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px;
+    background: #f8fafc;
+    border-radius: 14px;
+    border: 1px solid #f1f5f9;
+    transition: all 0.25s ease;
+    cursor: default;
+    animation: todoSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+
+    &:hover {
+      background: #f1f5f9;
+      border-color: #e2e8f0;
+      transform: translateX(4px);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    &--high {
+      background: #FFFBEB;
+      border-color: #FEF08A;
+
+      &:hover { background: #FEF9C3; border-color: #FDE047; }
+      .todo-item__title { color: #92400E; }
+      .todo-item__desc { color: #78716C; }
+    }
+
+    &--medium {
+      background: #EFF6FF;
+      border-color: #BFDBFE;
+
+      &:hover { background: #DBEAFE; border-color: #93C5FD; }
+      .todo-item__title { color: #1E40AF; }
+      .todo-item__desc { color: #475569; }
+    }
+
+    &--low,
+    &:not(&--high):not(&--medium) {
+      background: #F5F3FF;
+      border-color: #DDD6FE;
+
+      &:hover { background: #EDE9FE; border-color: #C4B5FD; }
+      .todo-item__title { color: #5B21B6; }
+      .todo-item__desc { color: #6B7280; }
+    }
+
+    &__icon {
+      flex-shrink: 0;
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      &--warning { background: linear-gradient(135deg, #FEF3C7, #FDE68A); color: #D97706; }
+      &--info { background: linear-gradient(135deg, #DBEAFE, #BFDBFE); color: #2563EB; }
+      &--default { background: linear-gradient(135deg, #EDE9FE, #DDD6FE); color: #7C3AED; }
+    }
+
+    &__content { flex: 1; min-width: 0; }
+    &__title { font-size: 13px; font-weight: 600; color: #1e293b; margin: 0 0 3px 0; line-height: 1.3; }
+    &__desc { font-size: 12px; color: #64748b; margin: 0; line-height: 1.4; }
+
+    &__action {
+      flex-shrink: 0;
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      border: 1.5px solid #E2E8F0;
+      background: #fff;
+      color: #64748b;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+
+      &:hover {
+        background: linear-gradient(135deg, #10B981, #059669);
+        border-color: transparent;
+        color: #fff;
+        transform: scale(1.05);
+      }
+    }
+  }
+
+  @keyframes todoSlideIn {
+    from { opacity: 0; transform: translateX(-12px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  .assistant-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 36px 20px 24px;
+
+    svg { margin-bottom: 12px; stroke: #10b981; }
+    p { font-size: 15px; font-weight: 600; color: #0F172A; margin: 0 0 6px 0; }
+    span { font-size: 13px; color: #94a3b8; }
+  }
+
+  .assistant-footer {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid #f1f5f9;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .assistant-hint { font-size: 12px; color: #94a3b8; }
+
+  .assistant-refresh-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    border: 1.5px solid #E2E8F0;
+    background: #fff;
+    color: #64748b;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+
+    &:hover { background: #f1f5f9; border-color: #cbd5e1; color: #475569; transform: rotate(180deg); }
+  }
+
+  .assistant-bg-icon {
+    position: absolute;
+    right: -20px;
+    bottom: -20px;
+    width: 140px;
+    height: 140px;
+    opacity: 0.08;
+    transform: rotate(-12deg);
+    color: #10b981;
+    pointer-events: none;
+    z-index: 0;
+  }
 }
 
 @keyframes page-fade-in {
@@ -1064,6 +1714,9 @@ onMounted(async () => {
 
   .chart-header {
     padding: 20px 24px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 
     .chart-title {
       display: flex;
@@ -1227,6 +1880,49 @@ onMounted(async () => {
   gap: 8px;
 }
 
+.rank-nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  .rank-nav-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 8px;
+    border: 1.5px solid rgba(59, 130, 246, 0.2);
+    background: rgba(59, 130, 246, 0.04);
+    color: #3B82F6;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover:not(:disabled) {
+      background: rgba(59, 130, 246, 0.12);
+      border-color: #3B82F6;
+      color: #2563eb;
+    }
+
+    &:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+      border-color: rgba(148, 163, 184, 0.15);
+      color: #cbd5e1;
+      background: transparent;
+    }
+  }
+
+  .rank-nav-page {
+    font-size: 12px;
+    font-weight: 600;
+    color: #94a3b8;
+    min-width: 32px;
+    text-align: center;
+    user-select: none;
+  }
+}
+
 .rank-item {
   display: flex;
   align-items: center;
@@ -1306,7 +2002,7 @@ onMounted(async () => {
   background-color: #fff;
   border-radius: 32px !important;
   border: 1px solid #f8fafc !important;
-  overflow: visible;
+  overflow: hidden;
   box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
   transition: all $transition-slow;
 
@@ -1317,7 +2013,8 @@ onMounted(async () => {
 
   :deep(.t-card__body) {
     padding: 0 !important;
-    overflow: visible;
+    overflow: hidden;
+    border-radius: 0 0 32px 32px;
   }
 
   :deep(.t-table__body .t-table__row) {
@@ -1375,6 +2072,10 @@ onMounted(async () => {
       align-items: center;
       gap: 12px;
       flex-wrap: wrap;
+
+      .add-formula-btn {
+        margin-left: auto;
+      }
     }
 
     .filter-item {
@@ -1503,31 +2204,15 @@ onMounted(async () => {
 }
 
 .qty-cell {
-  .qty-value {
-    font-size: 14px;
-    font-weight: 700;
-    color: #3B82F6;
-  }
-
-  .qty-unit {
-    font-size: 11px;
-    color: #94A3B8;
-    font-weight: 400;
-    margin-left: 2px;
-  }
+  font-size: 14px;
+  font-weight: 700;
+  color: #3B82F6;
 }
 
 .rev-cell {
   font-size: 14px;
   font-weight: 600;
   color: #059669;
-
-  .rev-unit {
-    font-size: 11px;
-    font-weight: 400;
-    color: #94a3b8;
-    margin-left: 2px;
-  }
 }
 
 .action-buttons {
@@ -1643,6 +2328,7 @@ onMounted(async () => {
   padding: 24px;
   background-color: #fff;
   border-top: 1px solid #f8fafc;
+  border-radius: 0 0 32px 32px;
 
   .pagination-info {
     font-size: 13px;
@@ -1816,6 +2502,25 @@ onMounted(async () => {
   transform: translateY(-8px);
 }
 
+.todo-list-enter-active,
+.todo-list-leave-active {
+  transition: all 0.3s ease;
+}
+
+.todo-list-enter-from {
+  opacity: 0;
+  transform: translateX(-20px);
+}
+
+.todo-list-leave-to {
+  opacity: 0;
+  transform: translateX(20px);
+}
+
+.todo-list-move {
+  transition: transform 0.3s ease;
+}
+
 .activity-section {
   margin-top: 40px;
   padding-bottom: 0;
@@ -1836,12 +2541,12 @@ onMounted(async () => {
   border: 1px solid #f8fafc;
 
   &--assistant {
-    background: linear-gradient(135deg, #10B981, #059669);
-    border: none;
-    color: #fff;
+    background: #fff;
+    border: 1px solid #f8fafc;
+    color: #0F172A;
     position: relative;
     overflow: hidden;
-    box-shadow: 0 20px 25px -5px rgba(16, 185, 129, 0.15), 0 10px 10px -5px rgba(16, 185, 129, 0.04);
+    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
   }
 }
 

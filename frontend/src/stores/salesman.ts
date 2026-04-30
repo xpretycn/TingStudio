@@ -9,7 +9,7 @@ export const useSalesmanStore = defineStore("salesman", () => {
   const loading = ref(false);
   const total = ref(0);
   const currentPage = ref(1);
-  const pageSize = ref(10);
+  const pageSize = ref(8);
   const keyword = ref("");
   const statusFilter = ref("");
 

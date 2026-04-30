@@ -88,6 +88,7 @@
 
         <t-table :data="sortedMaterials" :columns="columns" :loading="materialStore.loading" :pagination="undefined"
           row-key="id" hover table-layout="auto" :expanded-row-keys="expandedRowKeys" @expand-change="onExpandChange"
+          @row-click="handleRowClick"
           @select-change="handleSelectChange" :selected-row-keys="selectedRowKeys">
           <template #name-title>
             <span class="custom-sort-header" @click.stop="toggleSort('name')">原料信息<span
@@ -145,6 +146,11 @@
 
           <template #stock="{ row }">
             <span class="stock-value" :class="{ 'stock-low': row.stock < 50 }">{{ row.stock }} {{ row.unit }}</span>
+          </template>
+
+          <template #createdAt="{ row }">
+            <span v-if="row.createdAt" class="date-cell">{{ formatDateCell(row.createdAt) }}</span>
+            <span v-else class="text-muted">—</span>
           </template>
 
           <template #unitPrice="{ row }">
@@ -210,9 +216,6 @@
 
           <template #operation="{ row }">
             <div class="action-buttons" role="group" aria-label="原料操作">
-              <button class="action-btn view-btn" @click="handleView(row)" title="查看" :aria-label="`查看原料${row.name}详情`">
-                <t-icon name="browse" />
-              </button>
               <button class="action-btn edit-btn" @click.stop="handleEdit(row)" title="编辑"
                 :aria-label="`编辑原料${row.name}`">
                 <t-icon name="edit-1" />
@@ -298,25 +301,99 @@
       </div>
       <!-- 右：原料管理助手 -->
       <div class="activity-card activity-card--assistant">
-        <div class="assistant-content">
-          <h4 class="assistant-title">原料管理助手</h4>
-          <p class="assistant-desc">{{ assistantMessage }}</p>
-          <button class="assistant-btn" @click="handleCreate">录入新原料</button>
-          <div class="assistant-footer">
-            <div class="assistant-avatar-group">
-              <span class="assistant-avatar">原</span>
-              <span class="assistant-avatar">料</span>
-              <span class="assistant-avatar">库</span>
-            </div>
-            <span class="assistant-hint">{{ materialStore.total }} 种原料在库</span>
+        <div class="assistant-header">
+          <h4 class="assistant-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 7h-9"/>
+              <path d="M14 17H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-3"/>
+              <circle cx="9" cy="11" r="2"/>
+            </svg>
+            原料管理助手
+          </h4>
+          <div class="assistant-nav" v-if="matTodoTotalPages > 1">
+            <button class="activity-nav-btn" :disabled="matTodoPage <= 1" @click="matTodoPrev" title="上一页">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
+            </button>
+            <span class="activity-nav-page">{{ matTodoPage }} / {{ matTodoTotalPages }}</span>
+            <button class="activity-nav-btn" :disabled="matTodoPage >= matTodoTotalPages" @click="matTodoNext" title="下一页">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            </button>
           </div>
         </div>
-        <svg class="assistant-bg-icon" width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-          stroke-width="1">
-          <path
-            d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
-          <path d="M3.27 6.96L12 12.01l8.73-5.05" />
-          <line x1="12" y1="22.08" x2="12" y2="12" />
+
+        <div class="todo-list" v-if="paginatedMatTodoItems.length > 0">
+          <TransitionGroup name="todo-list" tag="div" class="todo-list__inner">
+            <div v-for="(item, idx) in paginatedMatTodoItems" :key="item.id"
+              class="todo-item" :class="'todo-item--' + item.priority">
+              <div class="todo-item__icon" :class="'todo-item__icon--' + item.type">
+                <svg v-if="item.type === 'warning'" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                  <line x1="12" y1="9" x2="12" y2="13" />
+                  <line x1="12" y1="17" x2="12.01" y2="17" />
+                </svg>
+                <svg v-else-if="item.type === 'info'" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="16" x2="12" y2="12" />
+                  <line x1="12" y1="8" x2="12.01" y2="8" />
+                </svg>
+                <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <polyline points="14 2 14 8 20 8" />
+                  <line x1="16" y1="13" x2="8" y2="13" />
+                  <line x1="16" y1="17" x2="8" y2="17" />
+                  <polyline points="10 9 9 9 8 9" />
+                </svg>
+              </div>
+              <div class="todo-item__content">
+                <p class="todo-item__title">{{ item.title }}</p>
+                <p class="todo-item__desc">{{ item.desc }}</p>
+              </div>
+              <button class="todo-item__action" @click="handleMatTodoAction(item)" :title="item.actionText">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
+              </button>
+            </div>
+          </TransitionGroup>
+        </div>
+
+        <div class="assistant-empty" v-else>
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#34D399" stroke-width="1.5"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+            <polyline points="22 4 12 14.01 9 11.01" />
+          </svg>
+          <p>太棒了！暂无待处理事项</p>
+          <span>所有原料数据完整，继续保持~</span>
+        </div>
+
+        <div class="assistant-footer">
+          <span class="assistant-hint">{{ materialStore.total }} 种原料在库 · 共 {{ displayMatPendingItems.length }} 项待办</span>
+          <button class="assistant-refresh-btn" @click="refreshMatPending" title="刷新">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="23 4 23 10 17 10" />
+              <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+            </svg>
+          </button>
+        </div>
+
+        <svg class="assistant-bg-icon" width="140" height="140" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+          <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+          <line x1="12" y1="22.08" x2="12" y2="12"/>
         </svg>
       </div>
     </section>
@@ -617,11 +694,10 @@ const handleBatchExport = () => {
 const columns = [
   { colKey: 'row-select', type: 'multiple', width: 50, resizable: false },
   { colKey: 'name', title: '原料信息', width: 180 },
-  { colKey: 'dataSource', title: '数据源', width: 100, align: 'center' },
+  { colKey: 'dataSource', title: '数据源', width: 120, align: 'center' },
   { colKey: 'materialType', title: '类型', width: 100, align: 'center' },
   { colKey: 'unitPrice', title: '单价(元/kg)', width: 120, align: 'center' },
   { colKey: 'nutrition', title: '营养', width: 110, align: 'center' },
-  { colKey: 'unit', title: '单位', width: 80, align: 'center' },
   { colKey: 'stock', title: '库存', width: 100, align: 'center' },
   { colKey: 'createdAt', title: '创建时间', width: 160 },
   { colKey: 'operation', title: '操作', width: 120, align: 'center', className: 'operation-col-center' }
@@ -716,6 +792,112 @@ const assistantMessage = computed(() => {
   if (total < 10) return `当前共有 ${total} 种原料在库，建议继续丰富原料种类。`;
   return `当前共有 ${total} 种原料在库，建议定期检查营养数据和库存状态。`;
 });
+
+interface MatTodoItem {
+  id: string;
+  type: 'warning' | 'info' | 'default';
+  priority: 'high' | 'medium' | 'low';
+  title: string;
+  desc: string;
+  actionText: string;
+  actionType: 'edit' | 'view' | 'create';
+  materialId?: string;
+}
+
+const displayMatPendingItems = computed<MatTodoItem[]>(() => {
+  const items: MatTodoItem[] = [];
+  const materials = materialStore.materials || [];
+
+  for (const m of materials) {
+    if (!m.unitPrice && m.unitPrice !== 0) {
+      items.push({
+        id: `noprice-${m.id}`,
+        type: 'warning',
+        priority: 'high',
+        title: '单价未录入',
+        desc: `「${m.name}」尚未设置单价信息`,
+        actionText: '去编辑',
+        actionType: 'edit',
+        materialId: m.id
+      });
+    }
+
+    if (!m.nutrition || Object.keys(m.nutrition || {}).length === 0) {
+      items.push({
+        id: `nonutri-${m.id}`,
+        type: 'info',
+        priority: 'medium',
+        title: '营养素缺失',
+        desc: `「${m.name}」营养素数据为空`,
+        actionText: '去补充',
+        actionType: 'edit',
+        materialId: m.id
+      });
+    }
+
+    if (m.stock != null && m.stock < 50 && m.stock > 0) {
+      items.push({
+        id: `lowstock-${m.id}`,
+        type: 'warning',
+        priority: 'low',
+        title: '库存偏低',
+        desc: `「${m.name}」仅剩 ${m.stock} ${m.unit || 'g'}`,
+        actionText: '查看详情',
+        actionType: 'view',
+        materialId: m.id
+      });
+    }
+  }
+
+  if (materials.length === 0) {
+    items.push(
+      { id: 'mock-1', type: 'warning' as const, priority: 'high' as const,
+        title: '单价待录入', desc: '「人参提取物」尚未设置单价信息', actionText: '去编辑', actionType: 'edit' as const, materialId: 'demo-001' },
+      { id: 'mock-2', type: 'info' as const, priority: 'medium' as const,
+        title: '营养素缺失', desc: '「甘草」营养素数据为空，请及时补充', actionText: '去补充', actionType: 'edit' as const, materialId: 'demo-002' },
+      { id: 'mock-3', type: 'default' as const, priority: 'medium' as const,
+        title: '库存偏低提醒', desc: '「当归」仅剩 30g，建议尽快补货', actionText: '查看详情', actionType: 'view' as const, materialId: 'demo-003' },
+      { id: 'mock-4', type: 'warning' as const, priority: 'low' as const,
+        title: '数据更新提示', desc: '「黄芪」超过30天未更新信息', actionText: '去更新', actionType: 'edit' as const, materialId: 'demo-004' },
+    );
+  }
+
+  const priorityOrder = { high: 0, medium: 1, low: 2 };
+  items.sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
+
+  return items.slice(0, 8);
+});
+
+const MAT_TODO_PAGE_SIZE = 3;
+const matTodoPage = ref(1);
+
+const matTodoTotalPages = computed(() => Math.max(1, Math.ceil(displayMatPendingItems.value.length / MAT_TODO_PAGE_SIZE)));
+
+const paginatedMatTodoItems = computed(() => {
+  const start = (matTodoPage.value - 1) * MAT_TODO_PAGE_SIZE;
+  return displayMatPendingItems.value.slice(start, start + MAT_TODO_PAGE_SIZE);
+});
+
+const matTodoPrev = () => { if (matTodoPage.value > 1) matTodoPage.value--; };
+const matTodoNext = () => { if (matTodoPage.value < matTodoTotalPages.value) matTodoPage.value++; };
+
+const handleMatTodoAction = (item: MatTodoItem) => {
+  switch (item.actionType) {
+    case 'edit':
+      if (item.materialId) handleEdit({ id: item.materialId } as Material);
+      break;
+    case 'view':
+      if (item.materialId) handleView({ id: item.materialId } as Material);
+      break;
+    case 'create':
+      handleCreate();
+      break;
+  }
+};
+
+const refreshMatPending = () => {
+  materialStore.fetchMaterials();
+};
 
 function formatTimeAgo(dateStr: string): string {
   if (!dateStr) return '刚刚';
@@ -852,6 +1034,21 @@ const handleView = (row: Material) => {
     path: `/materials/${row.id}`,
     query: route.query
   });
+};
+
+const formatDateCell = (dateStr: string) => {
+  if (!dateStr) return '';
+  const date = new Date(dateStr);
+  if (isNaN(date.getTime())) return dateStr;
+  const datePart = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+  const timePart = `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}:${String(date.getSeconds()).padStart(2, '0')}`;
+  return `${datePart}\n${timePart}`;
+};
+
+const handleRowClick = (ctx: { row: Material; col?: { colKey: string; }; }) => {
+  if (!ctx.col || ctx.col.colKey !== 'row-select') {
+    handleView(ctx.row);
+  }
 };
 
 const handleEdit = (row: Material) => {
@@ -1509,6 +1706,15 @@ const handleDelete = async (row: Material) => {
   }
 }
 
+.date-cell {
+  display: inline-flex;
+  flex-direction: column;
+  line-height: 1.4;
+  font-size: 12px;
+  color: #475569;
+  white-space: pre-line;
+}
+
 // 自定义排序（无 TDesign 弹窗）
 .custom-sort-header {
   cursor: pointer;
@@ -1729,12 +1935,12 @@ const handleDelete = async (row: Material) => {
   border: 1px solid #f8fafc;
 
   &--assistant {
-    background: linear-gradient(135deg, #34d399, #14b8a6);
-    border: none;
-    color: #fff;
+    background: #fff;
+    border: 1px solid #f8fafc;
+    color: #0F172A;
     position: relative;
     overflow: hidden;
-    box-shadow: 0 20px 25px -5px $overlay-emerald-15, 0 10px 10px -5px $overlay-emerald-04;
+    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
   }
 }
 
@@ -1903,90 +2109,225 @@ const handleDelete = async (row: Material) => {
   margin-top: 4px;
 }
 
-.assistant-content {
-  position: relative;
-  z-index: 10;
-}
+// 小助手卡片 - 待处理事项
+.assistant-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: -32px -32px 16px -32px;
+  padding: 20px 24px;
+  background: linear-gradient(135deg, #10B981, #059669);
+  border-radius: 24px 24px 0 0;
 
-.assistant-title {
-  font-size: 20px;
-  font-weight: 700;
-  margin: 0 0 16px 0;
-  color: #fff;
-}
-
-.assistant-desc {
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.9);
-  line-height: 1.7;
-  margin: 0 0 24px 0;
-}
-
-.assistant-btn {
-  width: 100%;
-  padding: 12px;
-  background-color: #fff;
-  color: #059669;
-  font-weight: 700;
-  border-radius: 16px;
-  border: none;
-  cursor: pointer;
-  transition: all $transition-fast;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-
-  &:hover {
-    background-color: #ecfdf5;
+  .assistant-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+    margin: 0;
   }
 }
 
-.assistant-footer {
-  margin-top: 24px;
-  padding-top: 24px;
-  border-top: 1px solid rgba(255, 255, 255, 0.2);
+.assistant-nav {
   display: flex;
   align-items: center;
-  gap: 16px;
-  font-size: 12px;
-  color: rgba(209, 250, 229, 1);
-}
+  gap: 6px;
 
-.assistant-avatar-group {
-  display: flex;
-
-  .assistant-avatar {
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    background-color: rgba(255, 255, 255, 0.3);
-    border: 2px solid #34d399;
+  .activity-nav-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 10px;
-    font-weight: 600;
-    margin-left: -8px;
+    width: 26px;
+    height: 26px;
+    border-radius: 8px;
+    border: 1.5px solid rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.2s;
 
-    &:first-child {
-      margin-left: 0;
+    &:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.25);
+      border-color: rgba(255, 255, 255, 0.5);
+    }
+
+    &:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+      border-color: rgba(255, 255, 255, 0.15);
+      color: rgba(255, 255, 255, 0.5);
+      background: transparent;
+    }
+  }
+
+  .activity-nav-page {
+    font-size: 12px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.85);
+    min-width: 32px;
+    text-align: center;
+    user-select: none;
+  }
+}
+
+.todo-list {
+  &__inner {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+}
+
+.todo-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px;
+  background: #f8fafc;
+  border-radius: 14px;
+  border: 1px solid #f1f5f9;
+  transition: all 0.25s ease;
+  cursor: default;
+  animation: todoSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+
+  &:hover {
+    background: #f1f5f9;
+    border-color: #e2e8f0;
+    transform: translateX(4px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  }
+
+  &--high {
+    background: #FFFBEB;
+    border-color: #FEF08A;
+
+    &:hover { background: #FEF9C3; border-color: #FDE047; }
+    .todo-item__title { color: #92400E; }
+    .todo-item__desc { color: #78716C; }
+  }
+
+  &--medium {
+    background: #EFF6FF;
+    border-color: #BFDBFE;
+
+    &:hover { background: #DBEAFE; border-color: #93C5FD; }
+    .todo-item__title { color: #1E40AF; }
+    .todo-item__desc { color: #475569; }
+  }
+
+  &--low,
+  &:not(&--high):not(&--medium) {
+    background: #F5F3FF;
+    border-color: #DDD6FE;
+
+    &:hover { background: #EDE9FE; border-color: #C4B5FD; }
+    .todo-item__title { color: #5B21B6; }
+    .todo-item__desc { color: #6B7280; }
+  }
+
+  &__icon {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &--warning { background: linear-gradient(135deg, #FEF3C7, #FDE68A); color: #D97706; }
+    &--info { background: linear-gradient(135deg, #DBEAFE, #BFDBFE); color: #2563EB; }
+    &--default { background: linear-gradient(135deg, #EDE9FE, #DDD6FE); color: #7C3AED; }
+  }
+
+  &__content { flex: 1; min-width: 0; }
+  &__title { font-size: 13px; font-weight: 600; color: #1e293b; margin: 0 0 3px 0; line-height: 1.3; }
+  &__desc { font-size: 12px; color: #64748b; margin: 0; line-height: 1.4; }
+
+  &__action {
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    border: 1.5px solid #E2E8F0;
+    background: #fff;
+    color: #64748b;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: linear-gradient(135deg, #10B981, #059669);
+      border-color: transparent;
+      color: #fff;
+      transform: scale(1.05);
     }
   }
 }
 
-.assistant-hint {
-  font-size: 12px;
-  white-space: nowrap;
+@keyframes todoSlideIn {
+  from { opacity: 0; transform: translateX(-12px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.todo-list-enter-active,
+.todo-list-leave-active { transition: all 0.35s ease; }
+.todo-list-enter-from { opacity: 0; transform: translateY(-8px); }
+.todo-list-leave-to { opacity: 0; transform: translateX(20px); }
+
+.assistant-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 36px 20px 24px;
+
+  svg { margin-bottom: 12px; stroke: #10b981; }
+  p { font-size: 15px; font-weight: 600; color: #0F172A; margin: 0 0 6px 0; }
+  span { font-size: 13px; color: #94a3b8; }
+}
+
+.assistant-footer {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.assistant-hint { font-size: 12px; color: #94a3b8; }
+
+.assistant-refresh-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  border: 1.5px solid #E2E8F0;
+  background: #fff;
+  color: #64748b;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+
+  &:hover { background: #f1f5f9; border-color: #cbd5e1; color: #475569; transform: rotate(180deg); }
 }
 
 .assistant-bg-icon {
   position: absolute;
-  right: -32px;
-  bottom: -32px;
-  width: 12rem;
-  height: 12rem;
-  opacity: 0.1;
-  transform: rotate(12deg);
-  color: currentColor;
+  right: -20px;
+  bottom: -20px;
+  width: 140px;
+  height: 140px;
+  opacity: 0.08;
+  transform: rotate(-12deg);
+  color: #10b981;
   pointer-events: none;
+  z-index: 0;
 }
 
 @keyframes dashboard-fade-in {

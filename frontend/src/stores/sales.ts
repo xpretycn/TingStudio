@@ -10,7 +10,7 @@ export const useSalesStore = defineStore('sales', () => {
   const loading = ref(false)
   const total = ref(0)
   const currentPage = ref(1)
-  const pageSize = ref(20)
+  const pageSize = ref(8)
 
   const fetchSales = async (params?: {
     formulaId?: string;

@@ -1,20 +1,22 @@
 <template>
   <div class="salesman-list" :aria-busy="!initialized">
     <!-- 数据看板 -->
-    <section class="dashboard-grid">
-      <div class="stat-card" v-for="(card, idx) in dashboardCards" :key="card.label"
-        :style="{ animationDelay: `${(idx + 1) * 0.1}s` }">
-        <div class="stat-card-top">
-          <div class="stat-icon" :style="{ background: card.iconBg, color: card.iconColor }">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-              stroke-linecap="round" stroke-linejoin="round" v-html="card.iconPath"></svg>
+    <section class="dashboard-section">
+      <div class="dashboard-grid">
+        <div class="stat-card" v-for="(card, idx) in dashboardCards" :key="card.label"
+          :style="{ animationDelay: `${(idx + 1) * 0.1}s` }">
+          <div class="stat-card-top">
+            <div class="stat-icon" :style="{ background: card.iconBg, color: card.iconColor }">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" v-html="card.iconPath"></svg>
+            </div>
+            <span class="stat-badge" :style="{ color: card.badgeColor, background: card.badgeBg }">
+              {{ card.badge }}
+            </span>
           </div>
-          <span class="stat-badge" :style="{ color: card.badgeColor, background: card.badgeBg }">
-            {{ card.badge }}
-          </span>
+          <p class="stat-label">{{ card.label }}</p>
+          <p class="stat-value">{{ card.value }} <small class="stat-unit">{{ card.unit }}</small></p>
         </div>
-        <p class="stat-label">{{ card.label }}</p>
-        <p class="stat-value">{{ card.value }} <small class="stat-unit">{{ card.unit }}</small></p>
       </div>
     </section>
 
@@ -80,6 +82,7 @@
 
         <t-table :data="sortedSalesmen" :columns="columns" :loading="salesmanStore.loading" :pagination="undefined"
           :sort="tableSort" row-key="id" hover table-layout="auto" @sort-change="onSortChange"
+          @row-click="handleRowClick"
           :selected-row-keys="selectedRowKeys" @select-change="handleSelectChange">
           <template #name="{ row }">
             <div class="salesman-info">
@@ -108,6 +111,11 @@
             </div>
           </template>
 
+          <template #email="{ row }">
+            <span v-if="row.email" class="email-cell">{{ formatEmail(row.email) }}</span>
+            <span v-else class="text-muted">—</span>
+          </template>
+
           <template #empty>
             <t-empty description="暂无业务员数据" role="status">
               <template #action>
@@ -121,10 +129,6 @@
 
           <template #operation="{ row }">
             <div class="action-buttons" role="group" aria-label="业务员操作">
-              <button class="action-btn view-btn" @click="handleView(row)" title="查看"
-                :aria-label="`查看业务员${row.name}详情`">
-                <t-icon name="browse" />
-              </button>
               <button class="action-btn edit-btn" @click.stop="handleEdit(row)" title="编辑"
                 :aria-label="`编辑业务员${row.name}`">
                 <t-icon name="edit-1" />
@@ -216,25 +220,82 @@
       </div>
       <!-- 业务员小助手 -->
       <div class="activity-card activity-card--assistant">
-        <div class="assistant-content">
-          <h4 class="assistant-title">业务员小助手</h4>
-          <p class="assistant-desc">{{ assistantMessage }}</p>
-          <button class="assistant-btn" @click="handleCreate">添加业务员</button>
-          <div class="assistant-footer">
-            <div class="assistant-avatar-group">
-              <span class="assistant-avatar">业</span>
-              <span class="assistant-avatar">务</span>
-              <span class="assistant-avatar">员</span>
-            </div>
-            <span class="assistant-hint">{{ salesmanStore.total }} 个业务员在库</span>
+        <div class="assistant-header">
+          <h4 class="assistant-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+            业务员小助手
+          </h4>
+          <div class="sm-nav" v-if="smTodoTotalPages > 1">
+            <button class="activity-nav-btn" :disabled="smTodoPage <= 1" @click="smTodoPrev" title="上一页">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+            <span class="activity-nav-page">{{ smTodoPage }} / {{ smTodoTotalPages }}</span>
+            <button class="activity-nav-btn" :disabled="smTodoPage >= smTodoTotalPages" @click="smTodoNext" title="下一页">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
           </div>
         </div>
-        <svg class="assistant-bg-icon" width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-          stroke-width="1">
-          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-          <circle cx="9" cy="7" r="4" />
-          <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+
+        <div class="todo-list" v-if="paginatedSmTodoItems.length > 0">
+          <TransitionGroup name="todo-list" tag="div" class="todo-list__inner">
+            <div v-for="(item, idx) in paginatedSmTodoItems" :key="item.id"
+              class="todo-item" :class="'todo-item--' + item.priority">
+              <div class="todo-item__icon" :class="'todo-item__icon--' + item.type">
+                <svg v-if="item.type === 'warning'" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                  <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+                <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
+                </svg>
+              </div>
+              <div class="todo-item__content">
+                <p class="todo-item__title">{{ item.title }}</p>
+                <p class="todo-item__desc">{{ item.desc }}</p>
+              </div>
+              <button class="todo-item__action" @click="handleSmTodoAction(item)" :title="item.actionText">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+              </button>
+            </div>
+          </TransitionGroup>
+        </div>
+
+        <div class="assistant-empty" v-else>
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="1.5"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+          </svg>
+          <p>太棒了！暂无待处理事项</p>
+          <span>所有业务员配方状态正常~</span>
+        </div>
+
+        <div class="assistant-footer">
+          <span class="assistant-hint">{{ salesmanStore.total }} 名业务员 · 共 {{ displaySmPendingItems.length }} 项待办</span>
+          <button class="assistant-refresh-btn" @click="refreshSmPending" title="刷新">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+            </svg>
+          </button>
+        </div>
+
+        <svg class="assistant-bg-icon" width="140" height="140" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
         </svg>
       </div>
     </section>
@@ -245,6 +306,8 @@
 import { ref, computed, onMounted, onUnmounted, onActivated, watch, nextTick } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useSalesmanStore } from '@/stores/salesman';
+import { useSalesStore } from '@/stores/sales';
+import { useFormulaStore } from '@/stores/formula';
 import { usePaginationStore } from '@/stores/pagination';
 import { MessagePlugin } from 'tdesign-vue-next';
 import type { Salesman } from '@/api/salesman';
@@ -253,6 +316,8 @@ import PageSkeleton from '@/components/Skeleton/PageSkeleton.vue';
 const router = useRouter();
 const route = useRoute();
 const salesmanStore = useSalesmanStore();
+const salesStore = useSalesStore();
+const formulaStore = useFormulaStore();
 const paginationStore = usePaginationStore();
 
 const initialized = ref(false);
@@ -268,7 +333,30 @@ let searchTimer: ReturnType<typeof setTimeout> | null = null;
 const dashboardCards = computed(() => {
   const total = salesmanStore.total ?? 0;
   const activeCount = salesmanStore.salesmen?.filter((s: Salesman) => s.status === 'active').length || 0;
-  const departments = new Set((salesmanStore.salesmen || []).map((s: Salesman) => s.department).filter(Boolean));
+
+  const salesList = salesStore.sales || [];
+  const salesmanRevenueMap: Record<string, { name: string; revenue: number; }> = {};
+  const salesmanQuantityMap: Record<string, { name: string; quantity: number; }> = {};
+
+  for (const sale of salesList) {
+    const saleSalesmanId = String(sale.salesmanId || '');
+    if (!saleSalesmanId) continue;
+    if (!salesmanRevenueMap[saleSalesmanId]) {
+      const salesman = salesmanStore.salesmen?.find((s: Salesman) => String(s.id) === saleSalesmanId);
+      const salesmanName = salesman?.name || '未知';
+      salesmanRevenueMap[saleSalesmanId] = { name: salesmanName, revenue: 0 };
+      salesmanQuantityMap[saleSalesmanId] = { name: salesmanName, quantity: 0 };
+    }
+    salesmanRevenueMap[saleSalesmanId].revenue += (sale.revenue || 0);
+    salesmanQuantityMap[saleSalesmanId].quantity += (sale.quantity || 0);
+  }
+
+  const revenueRanking = Object.values(salesmanRevenueMap).sort((a, b) => b.revenue - a.revenue);
+  const quantityRanking = Object.values(salesmanQuantityMap).sort((a, b) => b.quantity - a.quantity);
+
+  const topRevenueSalesman = revenueRanking[0];
+  const topQuantitySalesman = quantityRanking[0];
+
   return [
     {
       label: '业务员总数',
@@ -282,26 +370,26 @@ const dashboardCards = computed(() => {
       iconPath: '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
     },
     {
-      label: '活跃业务员',
-      value: activeCount.toString(),
-      unit: '人',
-      badge: activeCount > 0 ? '在线' : '无',
-      badgeColor: '#10B981',
-      badgeBg: '#ECFDF5',
-      iconBg: '#ECFDF5',
-      iconColor: '#10B981',
-      iconPath: '<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>',
+      label: '销售额第一',
+      value: topRevenueSalesman ? `${topRevenueSalesman.name}\n¥${(topRevenueSalesman.revenue / 10000).toFixed(1)}万` : '—',
+      unit: '',
+      badge: topRevenueSalesman ? 'TOP1' : '—',
+      badgeColor: '#8B5CF6',
+      badgeBg: '#F5F3FF',
+      iconBg: '#F5F3FF',
+      iconColor: '#8B5CF6',
+      iconPath: '<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',
     },
     {
-      value: departments.size.toString(),
-      unit: '个',
-      label: '部门数量',
-      badge: '组织',
-      badgeColor: '#94A3B8',
-      badgeBg: '#F1F5F9',
+      label: '销量第一',
+      value: topQuantitySalesman ? `${topQuantitySalesman.name}\n${(topQuantitySalesman.quantity / 10000).toFixed(2)}万件` : '—',
+      unit: '',
+      badge: topQuantitySalesman ? 'TOP1' : '—',
+      badgeColor: '#F59E0B',
+      badgeBg: '#FFFBEB',
       iconBg: '#FFFBEB',
       iconColor: '#F59E0B',
-      iconPath: '<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>',
+      iconPath: '<path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/>',
     },
     {
       label: '本月新增',
@@ -389,7 +477,7 @@ const columns = [
   { colKey: 'email', title: '邮箱', width: 200 },
   { colKey: 'status', title: '状态', width: 100, sorter: (a: any, b: any) => a.status.localeCompare(b.status) },
   { colKey: 'createdAt', title: '创建时间', width: 180, sorter: (a: any, b: any) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime() },
-  { colKey: 'operation', title: '操作', width: 120, align: 'center' }
+  { colKey: 'operation', title: '操作', width: 120, align: 'center', className: 'operation-col-center' }
 ];
 
 // ─── 分页 ───
@@ -559,6 +647,121 @@ const handleRealTimeSearch = () => {
   }, 300);
 };
 
+interface SmTodoItem {
+  id: string;
+  type: 'warning' | 'info' | 'default';
+  priority: 'high' | 'medium' | 'low';
+  title: string;
+  desc: string;
+  actionText: string;
+  actionType: 'view' | 'formulas';
+  salesmanId?: string;
+}
+
+const displaySmPendingItems = computed<SmTodoItem[]>(() => {
+  const items: SmTodoItem[] = [];
+  const salesmen = salesmanStore.salesmen || [];
+  const salesList = salesStore.sales || [];
+
+  for (const s of salesmen) {
+    const salesmanFormulas = formulaStore.formulas?.filter((f: any) => f.salesmanId === s.id) || [];
+
+    if (salesmanFormulas.length > 0) {
+      for (const f of salesmanFormulas) {
+        const currentVersion = (f.versions || []).find((v: any) => v.isCurrent);
+        if (!currentVersion && f.versions && f.versions.length > 0) {
+          items.push({
+            id: `draft-${s.id}-${f.id}`,
+            type: 'warning',
+            priority: 'high',
+            title: '配方草稿未发布',
+            desc: `${s.name} 的「${f.name}」有草稿版本`,
+            actionText: '去发布',
+            actionType: 'view',
+            salesmanId: s.id
+          });
+        }
+      }
+
+      const hasPublishedFormula = salesmanFormulas.some((f: any) => {
+        const cv = (f.versions || []).find((v: any) => v.isCurrent);
+        return cv?.status === 'published';
+      });
+
+      if (!hasPublishedFormula && salesmanFormulas.length > 0 && !items.find(i => i.salesmanId === s.id)) {
+        items.push({
+          id: `nopub-${s.id}`,
+          type: 'info',
+          priority: 'medium',
+          title: '暂无已发布配方',
+          desc: `${s.name} 尚无已发布的配方`,
+          actionText: '查看配方',
+          actionType: 'formulas',
+          salesmanId: s.id
+        });
+      }
+    } else {
+      const hasSalesRecord = salesList.some((sale: any) => sale.salesmanId === s.id);
+      if (!hasSalesRecord && s.status === 'active') {
+        items.push({
+          id: `nosales-${s.id}`,
+          type: 'default',
+          priority: 'low',
+          title: '无销售记录',
+          desc: `${s.name} 本月暂无销售记录`,
+          actionText: '录入销量',
+          actionType: 'view',
+          salesmanId: s.id
+        });
+      }
+    }
+  }
+
+  if (salesmen.length === 0 || items.length === 0) {
+    items.push(
+      { id: 'sm-mock-1', type: 'warning' as const, priority: 'high' as const,
+        title: '配方待发布', desc: '周伯通 的「人参养颜膏」有新版本草稿未发布', actionText: '去处理', actionType: 'view' as const },
+      { id: 'sm-mock-2', type: 'info' as const, priority: 'medium' as const,
+        title: '配方状态提醒', desc: '杨康 有2个配方处于草稿状态', actionText: '查看详情', actionType: 'formulas' as const },
+      { id: 'sm-mock-3', type: 'default' as const, priority: 'low' as const,
+        title: '销售数据缺失', desc: '杨过 本月暂无销售数据，请及时录入', actionText: '去录入', actionType: 'view' as const },
+    );
+  }
+
+  const priorityOrder = { high: 0, medium: 1, low: 2 };
+  items.sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
+
+  return items.slice(0, 6);
+});
+
+const SM_TODO_PAGE_SIZE = 3;
+const smTodoPage = ref(1);
+
+const smTodoTotalPages = computed(() => Math.max(1, Math.ceil(displaySmPendingItems.value.length / SM_TODO_PAGE_SIZE)));
+
+const paginatedSmTodoItems = computed(() => {
+  const start = (smTodoPage.value - 1) * SM_TODO_PAGE_SIZE;
+  return displaySmPendingItems.value.slice(start, start + SM_TODO_PAGE_SIZE);
+});
+
+const smTodoPrev = () => { if (smTodoPage.value > 1) smTodoPage.value--; };
+const smTodoNext = () => { if (smTodoPage.value < smTodoTotalPages.value) smTodoPage.value++; };
+
+const handleSmTodoAction = (item: SmTodoItem) => {
+  switch (item.actionType) {
+    case 'view':
+      if (item.salesmanId) handleView({ id: item.salesmanId } as Salesman);
+      break;
+    case 'formulas':
+      router.push('/formulas');
+      break;
+  }
+};
+
+const refreshSmPending = () => {
+  salesmanStore.fetchSalesmen();
+};
+
 const handleCreate = () => {
   router.push({
     path: '/salesmen/new',
@@ -571,6 +774,22 @@ const handleView = (row: Salesman) => {
     query: route.query
   });
 };
+
+const formatEmail = (email: string) => {
+  if (!email) return '';
+  const atIndex = email.indexOf('@');
+  if (atIndex === -1) return email;
+  const username = email.substring(0, atIndex);
+  const domain = email.substring(atIndex);
+  return `${username}\n${domain}`;
+};
+
+const handleRowClick = (ctx: { row: Salesman; col?: { colKey: string; }; }) => {
+  if (!ctx.col || ctx.col.colKey !== 'row-select') {
+    handleView(ctx.row);
+  }
+};
+
 const handleEdit = (row: Salesman) => {
   router.push({
     path: `/salesmen/${row.id}/edit`,
@@ -613,12 +832,20 @@ const handleDelete = async (row: Salesman) => {
 
 .salesman-list {
 
+  // ─── 数据看板布局 ───
+  .dashboard-section {
+    margin-bottom: 30px;
+  }
+
   // ─── 数据看板 ───
   .dashboard-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 24px;
-    margin-bottom: 30px;
+
+    @media (max-width: 1200px) {
+      grid-template-columns: repeat(2, 1fr);
+    }
 
     .stat-card {
       background: #fff;
@@ -668,10 +895,12 @@ const handleDelete = async (row: Salesman) => {
       }
 
       .stat-value {
-        font-size: 24px;
+        font-size: 20px;
         font-weight: 700;
         color: #0F172A;
-        line-height: 1.2;
+        line-height: 1.35;
+        white-space: pre-line;
+        word-break: break-word;
 
         .stat-unit {
           font-size: 14px;
@@ -920,7 +1149,7 @@ const handleDelete = async (row: Salesman) => {
     background-color: #fff;
     border-radius: 32px !important;
     border: 1px solid #f8fafc !important;
-    // 移除 overflow-hidden 以避免裁剪绝对定位的批量操作栏
+    overflow: hidden;
     box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
     transition: all $transition-slow;
 
@@ -931,6 +1160,8 @@ const handleDelete = async (row: Salesman) => {
 
     :deep(.t-card__body) {
       padding: 0 !important;
+      overflow: hidden;
+      border-radius: 0 0 32px 32px;
     }
 
     :deep(.t-table__body .t-table__row) {
@@ -981,6 +1212,16 @@ const handleDelete = async (row: Salesman) => {
   .text-muted {
     color: #CBD5E1;
     font-size: 13px;
+  }
+
+  .email-cell {
+    display: inline-flex;
+    flex-direction: column;
+    line-height: 1.4;
+    font-size: 13px;
+    color: #475569;
+    white-space: pre-line;
+    word-break: break-all;
   }
 
   // ─── 状态标签 ───
@@ -1076,6 +1317,7 @@ const handleDelete = async (row: Salesman) => {
     align-items: center;
     background-color: #fff;
     border-top: 1px solid #f8fafc;
+    border-radius: 0 0 32px 32px;
 
     .pagination-info {
       font-size: 14px;
@@ -1302,12 +1544,12 @@ const handleDelete = async (row: Salesman) => {
     border: 1px solid #f8fafc;
 
     &--assistant {
-      background: linear-gradient(135deg, #10B981, #059669);
-      border: none;
-      color: #fff;
+      background: #fff;
+      border: 1px solid #f8fafc;
+      color: #0F172A;
       position: relative;
       overflow: hidden;
-      box-shadow: 0 20px 25px -5px $overlay-emerald-15, 0 10px 10px -5px $overlay-emerald-04;
+      box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
     }
   }
 
@@ -1647,15 +1889,236 @@ const handleDelete = async (row: Salesman) => {
   }
 }
 
+// ─── 业务员小助手卡片 ───
+.activity-card {
+  background-color: #fff;
+  border-radius: 24px;
+  padding: 32px;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
+  border: 1px solid #f8fafc;
+
+  &--assistant {
+    background: #fff;
+    border: 1px solid #f8fafc;
+    color: #0F172A;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
+  }
+}
+
+.activity-section {
+  margin-top: 40px;
+  padding-bottom: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 32px;
+
+  @media (min-width: 1024px) {
+    grid-template-columns: 2fr 1fr;
+  }
+}
+
+.activity-card--assistant {
+  .assistant-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: -32px -32px 16px -32px;
+    padding: 20px 24px;
+    background: linear-gradient(135deg, #10B981, #059669);
+    border-radius: 24px 24px 0 0;
+
+    .assistant-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 16px;
+      font-weight: 700;
+      color: #fff;
+      margin: 0;
+    }
+  }
+
+  .sm-nav {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    .activity-nav-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 26px;
+      height: 26px;
+      border-radius: 8px;
+      border: 1.5px solid rgba(255, 255, 255, 0.3);
+      background: rgba(255, 255, 255, 0.15);
+      color: #fff;
+      cursor: pointer;
+      transition: all 0.2s;
+
+      &:hover:not(:disabled) { background: rgba(255, 255, 255, 0.25); border-color: rgba(255, 255, 255, 0.5); }
+      &:disabled { opacity: 0.3; cursor: not-allowed; border-color: rgba(255, 255, 255, 0.15); color: rgba(255, 255, 255, 0.5); background: transparent; }
+    }
+
+    .activity-nav-page { font-size: 12px; font-weight: 600; color: rgba(255, 255, 255, 0.85); min-width: 32px; text-align: center; user-select: none; }
+  }
+
+  .todo-list {
+    &__inner { display: flex; flex-direction: column; gap: 10px; }
+  }
+
+  .todo-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px;
+    background: #f8fafc;
+    border-radius: 14px;
+    border: 1px solid #f1f5f9;
+    transition: all 0.25s ease;
+    cursor: default;
+    animation: todoSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+
+    &:hover { background: #f1f5f9; border-color: #e2e8f0; transform: translateX(4px); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); }
+
+    &--high {
+      background: #FFFBEB;
+      border-color: #FEF08A;
+
+      &:hover { background: #FEF9C3; border-color: #FDE047; }
+      .todo-item__title { color: #92400E; }
+      .todo-item__desc { color: #78716C; }
+    }
+
+    &--medium {
+      background: #EFF6FF;
+      border-color: #BFDBFE;
+
+      &:hover { background: #DBEAFE; border-color: #93C5FD; }
+      .todo-item__title { color: #1E40AF; }
+      .todo-item__desc { color: #475569; }
+    }
+
+    &--low,
+    &:not(&--high):not(&--medium) {
+      background: #F5F3FF;
+      border-color: #DDD6FE;
+
+      &:hover { background: #EDE9FE; border-color: #C4B5FD; }
+      .todo-item__title { color: #5B21B6; }
+      .todo-item__desc { color: #6B7280; }
+    }
+
+    &__icon {
+      flex-shrink: 0;
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      &--warning { background: linear-gradient(135deg, #FEF3C7, #FDE68A); color: #D97706; }
+      &--info { background: linear-gradient(135deg, #DBEAFE, #BFDBFE); color: #2563EB; }
+      &--default { background: linear-gradient(135deg, #EDE9FE, #DDD6FE); color: #7C3AED; }
+    }
+
+    &__content { flex: 1; min-width: 0; }
+    &__title { font-size: 13px; font-weight: 600; color: #1e293b; margin: 0 0 3px 0; line-height: 1.3; }
+    &__desc { font-size: 12px; color: #64748b; margin: 0; line-height: 1.4; }
+
+    &__action {
+      flex-shrink: 0;
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      border: 1.5px solid #E2E8F0;
+      background: #fff;
+      color: #64748b;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+
+      &:hover { background: linear-gradient(135deg, #10B981, #059669); border-color: transparent; color: #fff; transform: scale(1.05); }
+    }
+  }
+
+  @keyframes todoSlideIn { from { opacity: 0; transform: translateX(-12px); } to { opacity: 1; transform: translateX(0); } }
+}
+
+.todo-list-enter-active,
+.todo-list-leave-active { transition: all 0.35s ease; }
+.todo-list-enter-from { opacity: 0; transform: translateY(-8px); }
+.todo-list-leave-to { opacity: 0; transform: translateX(20px); }
+
+.assistant-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 36px 20px 24px;
+
+  svg { margin-bottom: 12px; stroke: #10b981; }
+  p { font-size: 15px; font-weight: 600; color: #0F172A; margin: 0 0 6px 0; }
+  span { font-size: 13px; color: #94a3b8; }
+}
+
+.assistant-footer {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.assistant-hint { font-size: 12px; color: #94a3b8; }
+
+.assistant-refresh-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  border: 1.5px solid #E2E8F0;
+  background: #fff;
+  color: #64748b;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+
+  &:hover { background: #f1f5f9; border-color: #cbd5e1; color: #475569; transform: rotate(180deg); }
+}
+
+.assistant-bg-icon {
+  position: absolute;
+  right: -20px;
+  bottom: -20px;
+  width: 140px;
+  height: 140px;
+  opacity: 0.08;
+  transform: rotate(-12deg);
+  color: #10b981;
+  pointer-events: none;
+  z-index: 0;
+}
+
 @media screen and (max-width: 1024px) {
   .salesman-list .dashboard-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .salesman-list .activity-section {
+    grid-template-columns: 1fr;
   }
 }
 
 @media screen and (max-width: 768px) {
   .salesman-list .dashboard-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
     gap: 16px;
     margin-bottom: 24px;
   }
@@ -1701,5 +2164,22 @@ const handleDelete = async (row: Salesman) => {
   background-color: #fff !important;
   box-shadow: none !important;
   border-left: none !important;
+}
+
+/* 操作列强制居中 */
+.salesman-list .content-card .t-table .t-table__body td.operation-col-center {
+  text-align: center !important;
+  vertical-align: middle !important;
+}
+
+.salesman-list .operation-col-center {
+  text-align: center !important;
+}
+
+.salesman-list .operation-col-center > div,
+.salesman-list .action-buttons {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
 }
 </style>

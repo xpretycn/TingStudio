@@ -6,9 +6,79 @@
 
 TingStudio 是一个专业的食品配方工作数据管理平台，面向食品配方行业（中草药功效配方），提供配方管理、原料管理、业务员管理、营养成分分析、导出分享等完整功能链路。采用 **Vue 3 + Express + SQLite** 前后端分离架构，支持 JWT 认证、RESTful API、配方版本控制、营养合规检查、AI 智能解析等企业级特性。
 
-## 🚀 最新更新 (2026-04-29)
+## 🚀 最新更新 (2026-04-30)
 
-### ✅ AI 解析匹配全面升级 + 数据库完整备份工具
+### ✅ UI 统一优化：助手组件 + 近期动态布局重构
+
+#### 🎨 四页面助手样式统一（参照配方师小助手）
+
+所有管理页面的助手组件统一为**白色主体 + 绿色Header**的配方师小助手风格：
+
+| 页面       | 助手名称     | 状态        |
+| ---------- | ------------ | ----------- |
+| 配方管理   | 配方师小助手 | ✅ 参照标准 |
+| 销量分析   | 销量管理助手 | ✅ 已统一   |
+| 业务员管理 | 业务员小助手 | ✅ 已统一   |
+| 原料管理   | 原料管理助手 | ✅ 已统一   |
+
+**统一后的样式规范**：
+
+```
+┌─────────────────────────────────────┐
+│  🟢 绿色渐变 Header (负边距拉伸)     │ ← linear-gradient(135deg, #10B981, #059669)
+│  标题 + 分页按钮 (白色文字)          │
+├─────────────────────────────────────┤
+│  ⬜ 白色主体背景                      │
+│                                     │
+│  🟡 黄色卡片 - 高优先级 (#FFFBEB)    │
+│  🔵 蓝色卡片 - 中优先级 (#EFF6FF)    │
+│  🟣 紫色卡片 - 低优先级 (#F5F3FF)    │
+│                                     │
+├─────────────────────────────────────┤
+│  Footer: 灰色分隔线 + 提示文字        │
+│                        💚 装饰图标   │
+└─────────────────────────────────────┘
+```
+
+#### 📐 底部近期动态区域布局
+
+三个管理页面底部新增/调整 **activity-section**，采用 **2:1 Grid 布局**（左侧近期动态 + 右侧助手）：
+
+| 页面       | 左侧内容           | 右侧内容             |
+| ---------- | ------------------ | -------------------- |
+| 销量分析   | 近期动态（时间线） | 销量管理助手（待办） |
+| 业务员管理 | 近期业务员动态     | 业务员小助手（待办） |
+| 配方管理   | 近期动态           | 配方师小助手（待办） |
+
+**响应式设计**：
+
+- 大屏（≥1024px）：`grid-template-columns: 2fr 1fr`
+- 小屏（<1024px）：单列堆叠
+
+#### 🔧 Bug 修复
+
+| 问题                      | 根因                                                 | 修复方案                       |
+| ------------------------- | ---------------------------------------------------- | ------------------------------ |
+| MaterialList.vue 编译错误 | 模拟数据中使用中文引号「」代替英文引号               | 改为标准英文单引号包裹字符串   |
+| 助手背景色未生效          | 存在重复的 `&--assistant` 样式定义，旧样式覆盖新样式 | 删除重复定义，保留白色背景版本 |
+
+#### 📄 ServerError 页面优化
+
+- **布局调整**：左右面板比例从 `45:55` 改为 `30:70`（与登录页一致）
+- **返回按钮增强**：新增登录图标 SVG（箭头进入门框样式）
+
+#### 影响范围
+
+| 文件                                                              | 改动内容                                               |
+| ----------------------------------------------------------------- | ------------------------------------------------------ |
+| [SalesAnalysis.vue](frontend/src/views/sales/SalesAnalysis.vue)   | 新增 activity-section（近期动态+助手）、录入按钮右对齐 |
+| [SalesmanList.vue](frontend/src/views/salesmen/SalesmanList.vue)  | 助手样式统一为配方师风格、移除 dashboard 内助手        |
+| [MaterialList.vue](frontend/src/views/materials/MaterialList.vue) | 助手样式统一为配方师风格、修复中文引号语法错误         |
+| [ServerError.vue](frontend/src/views/errors/ServerError.vue)      | 布局 3:7 调整、返回登录按钮增加图标                    |
+
+---
+
+### ✅ AI 解析匹配全面升级 + 数据库完整备份工具 (2026-04-29)
 
 #### 🔧 Bug 修复（3项）
 
@@ -44,7 +114,7 @@ TingStudio 是一个专业的食品配方工作数据管理平台，面向食品
 
 | 脚本                                                         | 用途                                     |
 | ------------------------------------------------------------ | ---------------------------------------- |
-| [exportDatabase.ts](backend/src/scripts/exportDatabase.ts)   | 导出全部 14 张表结构 + 全部记录 → JSON   |
+| [exportDatabase.ts](backend/src/scripts/exportDatabase.ts)   | 导出全部 13 张表结构 + 392 条记录 → JSON |
 | [restoreDatabase.ts](backend/src/scripts/restoreDatabase.ts) | 从 JSON 恢复完整数据库（按外键依赖顺序） |
 
 ```bash
@@ -73,12 +143,11 @@ npx tsx src/scripts/restoreDatabase.ts --dry-run
 | formulas                                                                               | 6       | 配方表                        |
 | formula_versions                                                                       | 13      | 版本快照                      |
 | salesmen                                                                               | 29      | 业务员表                      |
-| formula_sales                                                                          | 0       | 销量数据（运行时录入）        |
 | nutrition_profiles                                                                     | 20      | 营养档案模板                  |
 | export_templates                                                                       | 20      | 导出模板                      |
 | api_data_interfaces                                                                    | 20      | API 接口配置                  |
 | export_jobs / formula_nutrition_summaries / nutrition_analysis_reports / share_configs | 0       | 空表（已建结构）              |
-| **合计**                                                                               | **392** | **14 张表**                   |
+| **合计**                                                                               | **392** | 13 张表                       |
 
 ---
 
@@ -314,14 +383,14 @@ npx tsx src/scripts/restoreDatabase.ts --dry-run
 
 ## 📊 项目状态
 
-| 组件         | 状态                    | 说明                                             |
-| ------------ | ----------------------- | ------------------------------------------------ |
-| **后端服务** | ✅ 正常运行             | Express + SQLite (better-sqlite3)                |
-| **前端应用** | ✅ 正常运行             | Vue 3 + TDesign + Vite                           |
-| **数据库**   | ✅ 14 张表 / 392 条记录 | SQLite WAL 模式，含 132 种原料+营养数据+销量数据 |
-| **AI 解析**  | ✅ 匹配率显著提升       | 150+ 别名映射 + 模糊匹配 + 名称标准化            |
-| **配方搜索** | ✅ 已修复               | watch 响应式监听模式                             |
-| **数据备份** | ✅ 可用                 | exportDatabase / restoreDatabase 脚本            |
+| 组件         | 状态                    | 说明                                    |
+| ------------ | ----------------------- | --------------------------------------- |
+| **后端服务** | ✅ 正常运行             | Express + SQLite (better-sqlite3)       |
+| **前端应用** | ✅ 正常运行             | Vue 3 + TDesign + Vite                  |
+| **数据库**   | ✅ 13 张表 / 392 条记录 | SQLite WAL 模式，含 132 种原料+营养数据 |
+| **AI 解析**  | ✅ 匹配率显著提升       | 150+ 别名映射 + 模糊匹配 + 名称标准化   |
+| **配方搜索** | ✅ 已修复               | watch 响应式监听模式                    |
+| **数据备份** | ✅ 可用                 | exportDatabase / restoreDatabase 脚本   |
 
 ---
 
@@ -598,13 +667,13 @@ npx tsx src/scripts/importAllTestMaterials.ts
 npx tsx src/scripts/seedData.ts
 ```
 
-| 表名 | 说明 | 记录数 | 关键字段 |
-|------|------|--------|----------|
-| users | 用户表 | 20 | id, username, password, role (admin/formulist) |
-| materials | 原料表 | 132 | id, name, code, material_type, unit_price |
-| material_nutrition | 营养数据表 | 132 | nutrition_id, material_id(FK), per_100g_json |
-| formulas | 配方表 | 6 | id, name, salesman_id(FK), materials_json |
-| formula_versions | 版本快照表 | 13 | version_id, formula_id(FK), snapshot_json |
+\| formula_versions | 配方版本表 | 36 | version_id, formula_id, version_number |
+\| material_nutrition | 材料营养表 | 56 | nutrition_id, material_id, per_100g_json |
+\| nutrition_profiles | 营养配置表 | 6 | profile_id, name, category |
+\| export_templates | 导出模板表 | 6 | template_id, name, type |
+\| export_jobs | 导出任务表 | 10 | job_id, status, file_url |
+\| share_configs | 分享配置表 | 2 | share_id, share_url |
+\| formula_nutrition_summaries | 营养汇总表 | 5 | summary_id, formula_id |
 | salesmen | 业务员表 | 29 | id, name, code, department |
 | **formula_sales** | **销量数据表** | **0** | **id, formula_id(FK), salesman_id(FK), quantity, revenue** |
 | nutrition_profiles | 营养档案模板 | 20 | profile_id, name, category |
@@ -625,7 +694,7 @@ npx tsx src/scripts/seedData.ts
 // database-adapter.ts 自动适配
 if (process.env.DB_TYPE === "mysql") {
   // 生产环境: 使用腾讯云 MySQL
-} else {
+详见 [PRODUCTION\_DEPLOYMENT\_GUIDE.md](file:///d:/ProgramData/workspace-codeby/ting-studio/PRODUCTION_DEPLOYMENT_GUIDE.md)
   // 开发环境: 使用本地 SQLite
 }
 ```
@@ -667,6 +736,8 @@ edgeone pages deploy \
     --dist-dir dist \
     --env production
 ```
+
+如果遇到 **401 UNAUTHORIZED** 错误，请参考 [EDGEONE_DEPLOYMENT_FIX.md](file:///d:/ProgramData/workspace-codeby/ting-studio/EDGEONE_DEPLOYMENT_FIX.md)
 
 1. **验证部署**
 
@@ -784,14 +855,14 @@ npm run dev                    # 启动开发服务器 (端口 5174)
 # 构建命令
 npm run build                  # 类型检查 + 构建
 npm run build:deploy           # 仅构建 (跳过类型检查)
-
-# 测试命令
-npm run test                   # 单元测试 (vitest)
-npm run test:e2e               # E2E 测试 (playwright)
-npm run test:coverage          # 测试覆盖率报告
-```
-
-## 📚 文档索引
+| 文档             | 说明         | 路径                                                                                                                      |
+| -------------- | ---------- | ----------------------------------------------------------------------------------------------------------------------- |
+| **README**     | 项目总览 (本文件) | [README.md](file:///d:/ProgramData/workspace-codeby/ting-studio/README.md)                                              |
+| **API 文档**     | 接口定义与说明    | [backend/API\_DOC.md](file:///d:/ProgramData/workspace-codeby/ting-studio/backend/API_DOC.md)                           |
+| **数据库文档**      | 表结构与关系     | [backend/DATABASE\_DOC.md](file:///d:/ProgramData/workspace-codeby/ting-studio/backend/DATABASE_DOC.md)                 |
+| **生产部署指南**     | 完整部署流程     | [PRODUCTION\_DEPLOYMENT\_GUIDE.md](file:///d:/ProgramData/workspace-codeby/ting-studio/PRODUCTION_DEPLOYMENT_GUIDE.md)  |
+| **EdgeOne 修复** | 401 错误解决   | [EDGEONE\_DEPLOYMENT\_FIX.md](file:///d:/ProgramData/workspace-codeby/ting-studio/EDGEONE_DEPLOYMENT_FIX.md)            |
+| **SCF 部署指南**   | 云函数手动部署    | [SCF\_MANUAL\_DEPLOYMENT\_GUIDE.md](file:///d:/ProgramData/workspace-codeby/ting-studio/SCF_MANUAL_DEPLOYMENT_GUIDE.md) |
 
 | 文档             | 说明              | 路径                                                                                                                 |
 | ---------------- | ----------------- | -------------------------------------------------------------------------------------------------------------------- |
@@ -850,6 +921,7 @@ npm run test:coverage          # 测试覆盖率报告
 ### Commit 规范
 
 ```
+
 feat: 新功能
 fix: Bug 修复
 docs: 文档更新
@@ -857,11 +929,12 @@ style: 代码格式调整
 refactor: 重构
 test: 测试相关
 chore: 构建/工具链
+
 ```
 
 ## ❓ 常见问题
 
-### Q: 如何切换数据库模式？
+A: 参考 [EDGEONE\_DEPLOYMENT\_FIX.md](file:///d:/ProgramData/workspace-codeby/ting-studio/EDGEONE_DEPLOYMENT_FIX.md)，通常重新生成预览链接即可解决。
 
 A: 修改 `.env` 中的 `DB_TYPE` 参数:
 
@@ -889,7 +962,7 @@ A: 在 `.env` 中配置对应的 API Key:
 MIT License
 
 ## 👥 致谢
-
+***
 感谢以下开源项目和服务的支持:
 
 - Vue.js 团队
@@ -900,6 +973,7 @@ MIT License
 
 ---
 
-**最后更新**: 2026-04-22\
-**版本**: v2.18.2 (Build Fixed)\
+**最后更新**: 2026-04-30\
+**版本**: v2.21.0 (UI 统一优化)\
 **维护者**: TingStudio Team
+```

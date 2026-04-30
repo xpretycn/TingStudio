@@ -237,8 +237,7 @@
 
           <template #salesQuantity="{ row }">
             <div class="sales-quantity-cell" @click.stop="openSalesDialog(row)">
-              <span v-if="row._salesQuantity != null" class="sales-qty-value">{{ row._salesQuantity.toLocaleString()
-              }}<small class="sales-qty-unit">件</small></span>
+              <span v-if="row._salesQuantity != null" class="sales-qty-value">{{ row._salesQuantity.toLocaleString() }}</span>
               <span v-else class="sales-qty-empty">录入</span>
             </div>
           </template>
@@ -370,26 +369,99 @@
       </div>
       <!-- 右：配方师小助手 -->
       <div class="activity-card activity-card--assistant">
-        <div class="assistant-content">
-          <h4 class="assistant-title">配方师小助手</h4>
-          <p class="assistant-desc">{{ assistantMessage }}</p>
-          <button class="assistant-btn" @click="handleCreate">新建配方</button>
-          <div class="assistant-footer">
-            <div class="assistant-avatar-group">
-              <span class="assistant-avatar">配</span>
-              <span class="assistant-avatar">方</span>
-              <span class="assistant-avatar">师</span>
-            </div>
-            <span class="assistant-hint">{{ formulaStore.total }} 个配方在库</span>
+        <div class="assistant-header">
+          <h4 class="assistant-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2a4 4 0 0 1 4 4v1h5a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h5V6a4 4 0 0 1 4-4z"/>
+              <path d="M9 22V12h6v10"/>
+              <circle cx="12" cy="7" r="1"/>
+            </svg>
+            配方师小助手
+          </h4>
+          <div class="assistant-nav" v-if="todoTotalPages > 1">
+            <button class="activity-nav-btn" :disabled="todoPage <= 1" @click="todoPrev" title="上一页">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
+            </button>
+            <span class="activity-nav-page">{{ todoPage }} / {{ todoTotalPages }}</span>
+            <button class="activity-nav-btn" :disabled="todoPage >= todoTotalPages" @click="todoNext" title="下一页">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            </button>
           </div>
         </div>
-        <svg class="assistant-bg-icon" width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-          stroke-width="1">
-          <path d="M12 4a8 8 0 0 1 7.89 6.7A4.5 4.5 0 1 1 17.5 19H12a8 8 0 0 1 0-16z" />
-          <path d="M8 14h.01" />
-          <path d="M16 14h.01" />
-          <path d="M10 11h.01" />
-          <path d="M14 11h.01" />
+
+        <div class="todo-list" v-if="paginatedTodoItems.length > 0">
+          <TransitionGroup name="todo-list" tag="div" class="todo-list__inner">
+            <div v-for="(item, idx) in paginatedTodoItems" :key="item.id"
+              class="todo-item" :class="'todo-item--' + item.priority">
+              <div class="todo-item__icon" :class="'todo-item__icon--' + item.type">
+                <svg v-if="item.type === 'warning'" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                  <line x1="12" y1="9" x2="12" y2="13" />
+                  <line x1="12" y1="17" x2="12.01" y2="17" />
+                </svg>
+                <svg v-else-if="item.type === 'info'" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="16" x2="12" y2="12" />
+                  <line x1="12" y1="8" x2="12.01" y2="8" />
+                </svg>
+                <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <polyline points="14 2 14 8 20 8" />
+                  <line x1="16" y1="13" x2="8" y2="13" />
+                  <line x1="16" y1="17" x2="8" y2="17" />
+                  <polyline points="10 9 9 9 8 9" />
+                </svg>
+              </div>
+              <div class="todo-item__content">
+                <p class="todo-item__title">{{ item.title }}</p>
+                <p class="todo-item__desc">{{ item.desc }}</p>
+              </div>
+              <button class="todo-item__action" @click="handleTodoAction(item)" :title="item.actionText">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
+              </button>
+            </div>
+          </TransitionGroup>
+        </div>
+
+        <div class="assistant-empty" v-else>
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="1.5"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+            <polyline points="22 4 12 14.01 9 11.01" />
+          </svg>
+          <p>太棒了！暂无待处理事项</p>
+          <span>所有配方状态正常，继续保持~</span>
+        </div>
+
+        <div class="assistant-footer">
+          <span class="assistant-hint">{{ formulaStore.total }} 个配方在库 · 共 {{ displayPendingItems.length }} 项待办</span>
+          <button class="assistant-refresh-btn" @click="refreshPending" title="刷新">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="23 4 23 10 17 10" />
+              <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+            </svg>
+          </button>
+        </div>
+
+        <svg class="assistant-bg-icon" width="140" height="140" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+          <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+          <line x1="12" y1="22.08" x2="12" y2="12"/>
         </svg>
       </div>
     </section>
@@ -724,15 +796,15 @@ const columns = [
   { colKey: 'row-select', type: 'multiple', width: 50, resizable: false },
   { colKey: 'name', title: '配方信息', width: 200 },
   {
-    colKey: 'formulaStatus', title: '版本状态', width: 170
+    colKey: 'formulaStatus', title: '版本状态', width: 170, align: 'center'
   },
-  { colKey: 'materialCount', title: '原料数量', width: 120 },
+  { colKey: 'materialCount', title: '原料数量', width: 120, align: 'center' },
   { colKey: 'salesmanName', title: '负责人', width: 150, align: 'center' },
-  { colKey: 'salesQuantity', title: '本月销量', width: 120, align: 'left' },
-  { colKey: 'costSubtotal', title: '成本小计', width: 120, align: 'left' },
-  { colKey: 'totalPrice', title: '报价', width: 120, align: 'left' },
+  { colKey: 'salesQuantity', title: '本月销量(件)', width: 120, align: 'center' },
+  { colKey: 'costSubtotal', title: '成本小计(元)', width: 140, align: 'center' },
+  { colKey: 'totalPrice', title: '报价(元)', width: 135, align: 'center' },
   { colKey: 'createdAt', title: '更新时间', width: 165 },
-  { colKey: 'operation', title: '操作', width: 155, align: 'center' }
+  { colKey: 'operation', title: '操作', width: 135, align: 'center' }
 ];
 
 const pagination = computed(() => ({
@@ -856,6 +928,41 @@ const allActivityItems = computed<ActivityItem[]>(() => {
     }
   }
 
+  // 销量与销售额动态
+  const salesList = salesStore.sales || [];
+  if (salesList.length > 0) {
+    const sortedSales = [...salesList].sort((a, b) =>
+      new Date(b.createdAt || b.saleDate).getTime() - new Date(a.createdAt || a.saleDate).getTime()
+    );
+    const recentSales = sortedSales.slice(0, 8);
+    for (const s of recentSales) {
+      const saleTime = s.createdAt || s.saleDate;
+      if (!saleTime) continue;
+      const timeAgo = formatTimeAgo(saleTime);
+      const formulaName = s.formulaName || '未知配方';
+      const qty = s.quantity || 0;
+      const revenue = s.revenue || 0;
+
+      if (qty > 0) {
+        items.push({
+          type: 'success',
+          title: '销量记录',
+          desc: `<strong>${formulaName}</strong> 新增销量 <span class="text-emerald-600 font-bold">${qty.toLocaleString()}件</span>${s.salesmanName ? `，业务员 <span class="text-blue-600">${s.salesmanName}</span>` : ''}`,
+          time: timeAgo
+        });
+      }
+
+      if (revenue > 0) {
+        items.push({
+          type: 'success',
+          title: '销售额录入',
+          desc: `<strong>${formulaName}</strong> 销售额 <span class="text-purple-600 font-bold">¥${(revenue / 10000).toFixed(2)}万</span>${s.salesmanName ? `，业务员 <span class="text-blue-600">${s.salesmanName}</span>` : ''}`,
+          time: timeAgo
+        });
+      }
+    }
+  }
+
   return items;
 });
 
@@ -875,6 +982,158 @@ const assistantMessage = computed(() => {
   if (total < 5) return `当前共有 ${total} 个配方在库，建议继续丰富配方库内容。`;
   return `当前共有 ${total} 个配方在库，建议优先处理近期更新的配方。`;
 });
+
+interface PendingItem {
+  id: string;
+  type: 'warning' | 'info' | 'default';
+  priority: 'high' | 'medium' | 'low';
+  title: string;
+  desc: string;
+  actionText: string;
+  actionType: 'sales' | 'publish' | 'view' | 'create';
+  formulaId?: string;
+}
+
+const pendingItems = computed<PendingItem[]>(() => {
+  const items: PendingItem[] = [];
+  const formulas = formulaStore.formulas || [];
+  const salesList = salesStore.sales || [];
+
+  for (const f of formulas) {
+    const currentVersion = (f.versions || []).find((v: any) => v.isCurrent);
+    if (!currentVersion && f.versions && f.versions.length > 0) {
+      items.push({
+        id: `draft-${f.id}`,
+        type: 'warning',
+        priority: 'high',
+        title: '配方待发布',
+        desc: `「${f.name}」有草稿版本尚未发布`,
+        actionText: '去发布',
+        actionType: 'publish',
+        formulaId: f.id
+      });
+    }
+
+    const hasSalesData = salesList.some((s: any) => s.formulaId === f.id);
+    if (!hasSalesData && currentVersion?.status === 'published') {
+      items.push({
+        id: `nosales-${f.id}`,
+        type: 'info',
+        priority: 'medium',
+        title: '销量待录入',
+        desc: `「${f.name}」本月暂无销量数据`,
+        actionText: '去录入',
+        actionType: 'sales',
+        formulaId: f.id
+      });
+    }
+  }
+
+  if (formulas.length === 0) {
+    items.push({
+      id: 'no-formula',
+      type: 'default',
+      priority: 'high',
+      title: '创建首个配方',
+      desc: '您还没有创建任何配方，开始您的配方之旅吧！',
+      actionText: '立即创建',
+      actionType: 'create'
+    });
+  }
+
+  const priorityOrder = { high: 0, medium: 1, low: 2 };
+  items.sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
+
+  return items.slice(0, 6);
+});
+
+const displayPendingItems = computed<PendingItem[]>(() => {
+  const realItems = pendingItems.value;
+  if (realItems.length > 0) return realItems;
+
+  return [
+    {
+      id: 'mock-1',
+      type: 'warning' as const,
+      priority: 'high' as const,
+      title: '配方待发布',
+      desc: '「人参养颜膏 v2.0」有新版本草稿尚未发布',
+      actionText: '去发布',
+      actionType: 'publish' as const,
+      formulaId: 'demo-001'
+    },
+    {
+      id: 'mock-2',
+      type: 'info' as const,
+      priority: 'medium' as const,
+      title: '销量数据待录入',
+      desc: '「美白霜精华」本月暂无销量数据，请及时录入',
+      actionText: '去录入',
+      actionType: 'sales' as const,
+      formulaId: 'demo-002'
+    },
+    {
+      id: 'mock-3',
+      type: 'default' as const,
+      priority: 'medium' as const,
+      title: '原料价格变动提醒',
+      desc: '「甘草」单价近期波动较大，建议关注成本变化',
+      actionText: '查看详情',
+      actionType: 'view' as const,
+      formulaId: 'demo-003'
+    },
+    {
+      id: 'mock-4',
+      type: 'warning' as const,
+      priority: 'low' as const,
+      title: '版本即将过期',
+      desc: '「祛痘修护膏」v1.0 已发布超过30天，建议更新版本',
+      actionText: '去更新',
+      actionType: 'publish' as const,
+      formulaId: 'demo-004'
+    },
+  ];
+});
+
+const TODO_PAGE_SIZE = 3;
+const todoPage = ref(1);
+
+const todoTotalPages = computed(() => Math.max(1, Math.ceil(displayPendingItems.value.length / TODO_PAGE_SIZE)));
+
+const paginatedTodoItems = computed(() => {
+  const start = (todoPage.value - 1) * TODO_PAGE_SIZE;
+  return displayPendingItems.value.slice(start, start + TODO_PAGE_SIZE);
+});
+
+const todoPrev = () => {
+  if (todoPage.value > 1) todoPage.value--;
+};
+
+const todoNext = () => {
+  if (todoPage.value < todoTotalPages.value) todoPage.value++;
+};
+
+const handleTodoAction = (item: PendingItem) => {
+  switch (item.actionType) {
+    case 'sales':
+      if (item.formulaId) openSalesDialog({ id: item.formulaId } as any);
+      break;
+    case 'publish':
+      if (item.formulaId) router.push(`/formulas/${item.formulaId}`);
+      break;
+    case 'view':
+      if (item.formulaId) router.push(`/formulas/${item.formulaId}`);
+      break;
+    case 'create':
+      handleCreate();
+      break;
+  }
+};
+
+const refreshPending = () => {
+  formulaStore.fetchFormulas();
+  loadSalesData();
+};
 
 // 时间格式化辅助
 function formatTimeAgo(dateStr: string): string {
@@ -1721,14 +1980,14 @@ const loadSalesData = async () => {
   box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04); // custom-shadow
   border: 1px solid #f8fafc; // border-slate-50
 
-  // 右侧小助手卡片 - 主题色绿色渐变背景
+  // 右侧小助手卡片 - 白色背景
   &--assistant {
-    background: linear-gradient(135deg, #10B981, #059669);
-    border: none;
-    color: #fff;
+    background: #fff;
+    border: 1px solid #f8fafc;
+    color: #0F172A;
     position: relative;
     overflow: hidden;
-    box-shadow: 0 20px 25px -5px $overlay-emerald-15, 0 10px 10px -5px $overlay-emerald-04; // shadow-xl shadow-emerald-200
+    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
   }
 }
 
@@ -1919,94 +2178,302 @@ const loadSalesData = async () => {
   margin-top: 4px;
 }
 
-// 小助手卡片内部 - index.html 第996行
-.assistant-content {
-  position: relative;
-  z-index: 10;
-}
-
-.assistant-title {
-  font-size: 20px; // text-xl
-  font-weight: 700; // font-bold
-  margin: 0 0 16px 0; // mb-4(16px)
-  color: #fff;
-}
-
-.assistant-desc {
-  font-size: 14px; // text-sm
-  color: $overlay-white-90; // text-emerald-50 opacity-90
-  line-height: 1.7; // leading-relaxed
-  margin: 0 0 24px 0; // mb-6(24px)
-}
-
-.assistant-btn {
-  width: 100%;
-  padding: 12px; // py-3
-  background-color: #fff;
-  color: #059669; // text-emerald-600
-  font-weight: 700; // font-bold
-  border-radius: 16px; // rounded-2xl
-  border: none;
-  cursor: pointer;
-  transition: all $transition-fast;
-  box-shadow: 0 10px 15px -3px $shadow-float; // shadow-lg
-
-  &:hover {
-    background-color: #ecfdf5;
-  }
-
-  // hover:bg-emerald-50
-}
-
-.assistant-footer {
-  margin-top: 24px; // mt-6(24px)
-  padding-top: 24px; // pt-6(24px)
-  border-top: 1px solid $overlay-white-20;
+// 小助手卡片 - 待处理事项
+.assistant-header {
   display: flex;
   align-items: center;
-  gap: 16px; // gap-4(16px)
-  font-size: 12px; // text-xs
-  color: rgba(209, 250, 229, 1); // text-emerald-100
+  justify-content: space-between;
+  margin: -32px -32px 16px -32px;
+  padding: 20px 24px;
+  background: linear-gradient(135deg, #10B981, #059669);
+  border-radius: 24px 24px 0 0;
+
+  .assistant-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+    margin: 0;
+  }
 }
 
-.assistant-avatar-group {
+.assistant-nav {
   display: flex;
-  gap: -8px; // -space-x-2
+  align-items: center;
+  gap: 6px;
 
-  .assistant-avatar {
-    width: 24px; // w-6
-    height: 24px; // h-6
-    border-radius: 50%;
-    background-color: $overlay-white-30;
-    border: 2px solid #34d399; // border-emerald-400
+  .activity-nav-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 10px;
-    font-weight: 600;
-    margin-left: -8px;
+    width: 26px;
+    height: 26px;
+    border-radius: 8px;
+    border: 1.5px solid rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.2s;
 
-    &:first-child {
-      margin-left: 0;
+    &:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.25);
+      border-color: rgba(255, 255, 255, 0.5);
+    }
+
+    &:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+      border-color: rgba(255, 255, 255, 0.15);
+      color: rgba(255, 255, 255, 0.5);
+      background: transparent;
+    }
+  }
+
+  .activity-nav-page {
+    font-size: 12px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.85);
+    min-width: 32px;
+    text-align: center;
+    user-select: none;
+  }
+}
+
+.todo-list {
+  &__inner {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+}
+
+.todo-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px;
+  background: #f8fafc;
+  border-radius: 14px;
+  border: 1px solid #f1f5f9;
+  transition: all 0.25s ease;
+  cursor: default;
+  animation: todoSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+
+  &:hover {
+    background: #f1f5f9;
+    border-color: #e2e8f0;
+    transform: translateX(4px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  }
+
+  &--high {
+    background: #FFFBEB;
+    border-color: #FEF08A;
+
+    &:hover {
+      background: #FEF9C3;
+      border-color: #FDE047;
+    }
+
+    .todo-item__title { color: #92400E; }
+    .todo-item__desc { color: #78716C; }
+  }
+
+  &--medium {
+    background: #EFF6FF;
+    border-color: #BFDBFE;
+
+    &:hover {
+      background: #DBEAFE;
+      border-color: #93C5FD;
+    }
+
+    .todo-item__title { color: #1E40AF; }
+    .todo-item__desc { color: #475569; }
+  }
+
+  &--low,
+  &:not(&--high):not(&--medium) {
+    background: #F5F3FF;
+    border-color: #DDD6FE;
+
+    &:hover {
+      background: #EDE9FE;
+      border-color: #C4B5FD;
+    }
+
+    .todo-item__title { color: #5B21B6; }
+    .todo-item__desc { color: #6B7280; }
+  }
+
+  &__icon {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &--warning {
+      background: linear-gradient(135deg, #FEF3C7, #FDE68A);
+      color: #D97706;
+    }
+
+    &--info {
+      background: linear-gradient(135deg, #DBEAFE, #BFDBFE);
+      color: #2563EB;
+    }
+
+    &--default {
+      background: linear-gradient(135deg, #EDE9FE, #DDD6FE);
+      color: #7C3AED;
+    }
+  }
+
+  &__content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1e293b;
+    margin: 0 0 3px 0;
+    line-height: 1.3;
+  }
+
+  &__desc {
+    font-size: 12px;
+    color: #64748b;
+    margin: 0;
+    line-height: 1.4;
+  }
+
+  &__action {
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    border: 1.5px solid #E2E8F0;
+    background: #fff;
+    color: #64748b;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: linear-gradient(135deg, #10B981, #059669);
+      border-color: transparent;
+      color: #fff;
+      transform: scale(1.05);
     }
   }
 }
 
+@keyframes todoSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.todo-list-enter-active,
+.todo-list-leave-active {
+  transition: all 0.35s ease;
+}
+
+.todo-list-enter-from {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+
+.todo-list-leave-to {
+  opacity: 0;
+  transform: translateX(20px);
+}
+
+.assistant-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 36px 20px 24px;
+
+  svg {
+    margin-bottom: 12px;
+    color: #10b981;
+    stroke: #10b981;
+  }
+
+  p {
+    font-size: 15px;
+    font-weight: 600;
+    color: #0F172A;
+    margin: 0 0 6px 0;
+  }
+
+  span {
+    font-size: 13px;
+    color: #94a3b8;
+  }
+}
+
+.assistant-footer {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
 .assistant-hint {
   font-size: 12px;
-  white-space: nowrap;
+  color: #94a3b8;
+}
+
+.assistant-refresh-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  border: 1.5px solid #E2E8F0;
+  background: #fff;
+  color: #64748b;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+    color: #475569;
+    transform: rotate(180deg);
+  }
 }
 
 .assistant-bg-icon {
   position: absolute;
-  right: -32px; // -right-8
-  bottom: -32px; // -bottom-8
-  width: 12rem; // text-[12rem] (192px)
-  height: 12rem;
-  opacity: 0.1;
-  transform: rotate(12deg);
-  color: currentColor;
+  right: -20px;
+  bottom: -20px;
+  width: 140px;
+  height: 140px;
+  opacity: 0.08;
+  transform: rotate(-12deg);
+  color: #10b981;
   pointer-events: none;
+  z-index: 0;
 }
 
 .data-center-toolbar {
