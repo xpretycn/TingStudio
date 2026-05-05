@@ -136,6 +136,9 @@ export async function createVersion(req: any, res: Response) {
           name: formula.name, salesmanId: formula.salesman_id,
           salesmanName: formula.salesman_name,
           materials: safeJsonParse(formula.materials_json, []),
+          packagingPrice: formula.packaging_price ?? 0,
+          otherPrice: formula.other_price ?? 0,
+          profitMargin: formula.profit_margin ?? 20,
           description: formula.description,
           formulaData: formula,
         }),
@@ -194,7 +197,7 @@ export async function publishVersion(req: Request, res: Response) {
     
     if (snapshot.name || snapshot.materials || formulaData.name) {
       await query(
-        `UPDATE formulas SET name=?, salesman_id=?, salesman_name=?, materials_json=?, finished_weight=?, ratio_factor=?, supplement_ratio_factor=?, description=? WHERE id=?`,
+        `UPDATE formulas SET name=?, salesman_id=?, salesman_name=?, materials_json=?, finished_weight=?, ratio_factor=?, supplement_ratio_factor=?, packaging_price=?, other_price=?, profit_margin=?, description=? WHERE id=?`,
         [
           snapshot.name || formulaData.name || formula.name,
           snapshot.salesmanId || formulaData.salesmanId || formulaData.salesman_id || formula.salesman_id,
@@ -203,6 +206,9 @@ export async function publishVersion(req: Request, res: Response) {
           formulaData.finished_weight ?? formulaData.finishedWeight ?? formula.finished_weight ?? 0,
           formulaData.ratio_factor ?? formulaData.ratioFactor ?? formula.ratio_factor ?? 0.18,
           formulaData.supplement_ratio_factor ?? formulaData.supplementRatioFactor ?? formula.supplement_ratio_factor ?? 1.0,
+          snapshot.packagingPrice ?? formulaData.packaging_price ?? formulaData.packagingPrice ?? formula.packaging_price ?? 0,
+          snapshot.otherPrice ?? formulaData.other_price ?? formulaData.otherPrice ?? formula.other_price ?? 0,
+          snapshot.profitMargin ?? formulaData.profit_margin ?? formulaData.profitMargin ?? formula.profit_margin ?? 20,
           snapshot.description ?? formulaData.description ?? formula.description,
           formulaId,
         ]

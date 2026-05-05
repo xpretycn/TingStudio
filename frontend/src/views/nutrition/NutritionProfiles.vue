@@ -736,7 +736,7 @@ onMounted(async () => {
   }
 
   .activity-section {
-    margin-top: 40px;
+    margin-top: 30px;
     padding-bottom: 32px;
     display: grid;
     grid-template-columns: 1fr;

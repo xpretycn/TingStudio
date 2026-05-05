@@ -63,9 +63,9 @@ export const useFormulaStore = defineStore('formula', () => {
   const createFormula = async (form: FormulaForm) => {
     loading.value = true
     try {
-      await formulaApi.create(form)
+      const data = await formulaApi.create(form)
       await fetchFormulas()
-      return { success: true }
+      return { success: true, data }
     } catch (error: any) {
       return { success: false, message: error.message || '创建失败' }
     } finally {

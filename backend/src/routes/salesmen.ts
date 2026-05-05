@@ -21,7 +21,6 @@ salesmanRoutes.post(
   "/",
   validateBody({
     name: { type: "string", required: true, minLength: 1, message: "请输入业务员姓名" },
-    code: { type: "string", required: true, minLength: 1, message: "请输入业务员工号" },
   }),
   createSalesman,
 );

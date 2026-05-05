@@ -40,6 +40,7 @@ export interface Formula {
   updatedAt: string;
   materials?: MaterialItem[];
   versions?: FormulaVersion[];
+  salesQuantity?: number;
 }
 
 export interface FormulaForm {
@@ -54,6 +55,8 @@ export interface FormulaForm {
   profitMargin?: number;
   description?: string;
   versionReason?: string;
+  originalName?: string;
+  originalWeight?: number;
 }
 
 export interface PriceQuoteMaterial {

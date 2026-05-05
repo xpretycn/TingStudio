@@ -40,348 +40,366 @@
           </div>
         </div>
 
-        <div class="tab-content-wrapper">
-          <t-tabs v-model="activeTab" @change="handleTabChange">
-            <!-- ====== Tab 1: 导出任务 ====== -->
-            <t-tab-panel value="export" label="导出任务">
-              <div class="panel-inner">
-                <div class="create-form-bar">
-                  <t-form :data="exportForm" layout="inline" @submit="handleCreateJob">
-                    <t-form-item label="配方">
-                      <t-select v-model="exportForm.formulaId" placeholder="选择配方" filterable clearable
-                        :loading="formulaLoading" style="width: 220px" :popup-props="{ appendToBody: true }">
-                        <t-option v-for="f in formulaList" :key="f.id" :value="f.id" :label="f.name" />
-                      </t-select>
-                    </t-form-item>
-                    <t-form-item label="格式">
-                      <t-select v-model="exportForm.exportType" style="width: 140px"
-                        :popup-props="{ appendToBody: true }">
-                        <t-option value="excel" label="Excel" />
-                        <t-option value="pdf" label="PDF" />
-                      </t-select>
-                    </t-form-item>
-                    <t-form-item>
-                      <button type="submit" class="create-action-btn" :disabled="creating">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                          stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
-                          <polyline points="7 10 12 15 17 10" />
-                          <line x1="12" y1="15" x2="12" y2="3" />
-                        </svg>
-                        {{ creating ? '创建中...' : '创建导出' }}
-                      </button>
-                    </t-form-item>
-                  </t-form>
-                </div>
+        <div class="export-body">
+          <div class="export-nav" :class="{ 'export-nav--collapsed': navCollapsed }">
+            <div v-for="tab in exportTabs" :key="tab.value" class="nav-tab" :class="{ active: activeTab === tab.value }"
+              :title="navCollapsed ? tab.label : ''" role="tab" tabindex="0" @click="switchTab(tab.value)"
+              @keydown.enter="switchTab(tab.value)">
+              <svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" v-html="tab.iconPath"></svg>
+              <span class="nav-tab-label">{{ tab.label }}</span>
+            </div>
+            <button type="button" class="nav-collapse-btn" @click="toggleNavCollapse"
+              :title="navCollapsed ? '展开导航' : '折叠导航'" aria-label="切换导航折叠状态">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round"
+                :style="{ transform: navCollapsed ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s ease' }">
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
+            </button>
+          </div>
+          <div class="export-content">
+            <div class="export-tab-panels">
+              <!-- ====== Tab 1: 导出任务 ====== -->
+              <div v-show="activeTab === 'export'" class="tab-panel">
+                <div class="panel-inner">
+                  <div class="create-form-bar">
+                    <t-form :data="exportForm" layout="inline" @submit="handleCreateJob">
+                      <t-form-item label="配方">
+                        <t-select v-model="exportForm.formulaId" placeholder="选择配方" filterable clearable
+                          :loading="formulaLoading" style="width: 220px" :popup-props="{ appendToBody: true }">
+                          <t-option v-for="f in formulaList" :key="f.id" :value="f.id" :label="f.name" />
+                        </t-select>
+                      </t-form-item>
+                      <t-form-item label="格式">
+                        <t-select v-model="exportForm.exportType" style="width: 140px"
+                          :popup-props="{ appendToBody: true }">
+                          <t-option value="excel" label="Excel" />
+                          <t-option value="pdf" label="PDF" />
+                        </t-select>
+                      </t-form-item>
+                      <t-form-item>
+                        <button type="submit" class="create-action-btn" :disabled="creating">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                            <polyline points="7 10 12 15 17 10" />
+                            <line x1="12" y1="15" x2="12" y2="3" />
+                          </svg>
+                          {{ creating ? '创建中...' : '创建导出' }}
+                        </button>
+                      </t-form-item>
+                    </t-form>
+                  </div>
 
-                <div class="table-area">
-                  <t-table :data="exportStore.jobs" :columns="jobColumns" :loading="exportStore.loading" row-key="jobId"
-                    hover size="small" table-layout="auto">
-                    <template #empty>
-                      <t-empty description="暂无导出任务" role="status">
-                        <template #action>
-                          <button class="create-job-btn" @click="handleCreateJob">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                              stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                              <line x1="12" y1="5" x2="12" y2="19"></line>
-                              <line x1="5" y1="12" x2="19" y2="12"></line>
-                            </svg>
-                            创建导出任务
-                          </button>
-                        </template>
-                      </t-empty>
-                    </template>
-                    <template #status="{ row }">
-                      <t-tag :theme="jobStatusTheme(row.status)" variant="light">{{ jobStatusLabel(row.status)
-                      }}</t-tag>
-                    </template>
-                    <template #exportType="{ row }">
-                      <t-tag variant="light">{{ row.exportType?.toUpperCase() }}</t-tag>
-                    </template>
-                    <template #createdAt="{ row }">
-                      {{ formatDateTime(row.createdAt) }}
-                    </template>
-                    <template #operation="{ row }">
-                      <t-space :size="6">
-                        <t-button v-if="row.status === 'completed'" variant="outline" theme="primary" size="small"
-                          @click="handleDownload(row)">
-                          <template #icon><t-icon name="download" /></template>下载
-                        </t-button>
-                        <t-button v-if="row.status === 'failed'" variant="outline" theme="warning" size="small"
-                          :loading="retryingId === row.jobId" @click="handleRetry(row)">
-                          <template #icon><t-icon name="refresh" /></template>重试
-                        </t-button>
-                      </t-space>
-                    </template>
-                  </t-table>
-
-                  <div v-if="exportStore.total > 0 && activeTab === 'export'" class="table-pagination">
-                    <div class="pagination-info">
-                      显示第 {{ (exportStore.currentPage - 1) * exportStore.pageSize + 1 }}-{{
-                        Math.min(exportStore.currentPage * exportStore.pageSize, exportStore.total)
-                      }} 条，共 {{ exportStore.total }} 条数据
-                    </div>
-                    <div class="pagination-controls">
-                      <button class="pagination-btn"
-                        :class="{ 'pagination-btn--disabled': exportStore.currentPage === 1 }"
-                        :disabled="exportStore.currentPage === 1"
-                        @click="goToPage(exportStore.currentPage - 1)">上一页</button>
-                      <template v-for="page in jobPageNumbers" :key="page">
-                        <button v-if="page !== '...'" class="pagination-btn"
-                          :class="{ 'pagination-btn--active': page === exportStore.currentPage }"
-                          @click="typeof page === 'number' && goToPage(page)">{{ page }}</button>
-                        <span v-else class="pagination-ellipsis">...</span>
+                  <div class="table-area">
+                    <t-table :data="exportStore.jobs" :columns="jobColumns" :loading="exportStore.loading"
+                      row-key="jobId" hover size="small" table-layout="auto">
+                      <template #empty>
+                        <t-empty description="暂无导出任务" role="status">
+                          <template #action>
+                            <button class="create-job-btn" @click="handleCreateJob">
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                              </svg>
+                              创建导出任务
+                            </button>
+                          </template>
+                        </t-empty>
                       </template>
-                      <button class="pagination-btn"
-                        :class="{ 'pagination-btn--disabled': exportStore.currentPage === jobTotalPages }"
-                        :disabled="exportStore.currentPage === jobTotalPages"
-                        @click="goToPage(exportStore.currentPage + 1)">下一页</button>
+                      <template #status="{ row }">
+                        <t-tag :theme="jobStatusTheme(row.status)" variant="light">{{ jobStatusLabel(row.status)
+                        }}</t-tag>
+                      </template>
+                      <template #exportType="{ row }">
+                        <t-tag variant="light">{{ row.exportType?.toUpperCase() }}</t-tag>
+                      </template>
+                      <template #createdAt="{ row }">
+                        {{ formatDateTime(row.createdAt) }}
+                      </template>
+                      <template #operation="{ row }">
+                        <t-space :size="6">
+                          <t-button v-if="row.status === 'completed'" variant="outline" theme="primary" size="small"
+                            @click="handleDownload(row)">
+                            <template #icon><t-icon name="download" /></template>下载
+                          </t-button>
+                          <t-button v-if="row.status === 'failed'" variant="outline" theme="warning" size="small"
+                            :loading="retryingId === row.jobId" @click="handleRetry(row)">
+                            <template #icon><t-icon name="refresh" /></template>重试
+                          </t-button>
+                        </t-space>
+                      </template>
+                    </t-table>
+
+                    <div v-if="exportStore.total > 0 && activeTab === 'export'" class="table-pagination">
+                      <div class="pagination-info">
+                        显示第 {{ (exportStore.currentPage - 1) * exportStore.pageSize + 1 }}-{{
+                          Math.min(exportStore.currentPage * exportStore.pageSize, exportStore.total)
+                        }} 条，共 {{ exportStore.total }} 条数据
+                      </div>
+                      <div class="pagination-controls">
+                        <button class="pagination-btn"
+                          :class="{ 'pagination-btn--disabled': exportStore.currentPage === 1 }"
+                          :disabled="exportStore.currentPage === 1"
+                          @click="goToPage(exportStore.currentPage - 1)">上一页</button>
+                        <template v-for="page in jobPageNumbers" :key="page">
+                          <button v-if="page !== '...'" class="pagination-btn"
+                            :class="{ 'pagination-btn--active': page === exportStore.currentPage }"
+                            @click="typeof page === 'number' && goToPage(page)">{{ page }}</button>
+                          <span v-else class="pagination-ellipsis">...</span>
+                        </template>
+                        <button class="pagination-btn"
+                          :class="{ 'pagination-btn--disabled': exportStore.currentPage === jobTotalPages }"
+                          :disabled="exportStore.currentPage === jobTotalPages"
+                          @click="goToPage(exportStore.currentPage + 1)">下一页</button>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </t-tab-panel>
 
-            <!-- ====== Tab 2: 分享管理 ====== -->
-            <t-tab-panel value="share" label="分享管理">
-              <div class="panel-inner">
-                <div class="create-form-bar">
-                  <t-form :data="shareForm" layout="inline" @submit="handleCreateShare">
-                    <t-form-item label="配方">
-                      <t-select v-model="shareForm.formulaId" placeholder="选择配方" filterable clearable
-                        :loading="formulaLoading" style="width: 220px" :popup-props="{ appendToBody: true }">
-                        <t-option v-for="f in formulaList" :key="f.id" :value="f.id" :label="f.name" />
-                      </t-select>
-                    </t-form-item>
-                    <t-form-item label="密码">
-                      <t-input v-model="shareForm.password" placeholder="可选，留空则无需密码" style="width: 160px" />
-                    </t-form-item>
-                    <t-form-item label="有效期">
-                      <t-date-picker v-model="shareForm.expireDate" style="width: 180px" placeholder="可选"
-                        :popup-props="{ appendToBody: true }" />
-                    </t-form-item>
-                    <t-form-item>
-                      <button type="submit" class="create-action-btn">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                          stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                          <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8" />
-                          <polyline points="16 6 12 2 8 6" />
-                          <line x1="12" y1="2" x2="12" y2="15" />
-                        </svg>
-                        创建分享
-                      </button>
-                    </t-form-item>
-                  </t-form>
-                </div>
+              <!-- ====== Tab 2: 分享管理 ====== -->
+              <div v-show="activeTab === 'share'" class="tab-panel">
+                <div class="panel-inner">
+                  <div class="create-form-bar">
+                    <t-form :data="shareForm" layout="inline" @submit="handleCreateShare">
+                      <t-form-item label="配方">
+                        <t-select v-model="shareForm.formulaId" placeholder="选择配方" filterable clearable
+                          :loading="formulaLoading" style="width: 220px" :popup-props="{ appendToBody: true }">
+                          <t-option v-for="f in formulaList" :key="f.id" :value="f.id" :label="f.name" />
+                        </t-select>
+                      </t-form-item>
+                      <t-form-item label="密码">
+                        <t-input v-model="shareForm.password" placeholder="可选，留空则无需密码" style="width: 160px" />
+                      </t-form-item>
+                      <t-form-item label="有效期">
+                        <t-date-picker v-model="shareForm.expireDate" style="width: 180px" placeholder="可选"
+                          :popup-props="{ appendToBody: true }" />
+                      </t-form-item>
+                      <t-form-item>
+                        <button type="submit" class="create-action-btn">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8" />
+                            <polyline points="16 6 12 2 8 6" />
+                            <line x1="12" y1="2" x2="12" y2="15" />
+                          </svg>
+                          创建分享
+                        </button>
+                      </t-form-item>
+                    </t-form>
+                  </div>
 
-                <div class="table-area">
-                  <t-table :data="exportStore.shares" :columns="shareColumns" :loading="exportStore.loading"
-                    row-key="shareId" hover size="small" table-layout="auto">
-                    <template #empty><t-empty description="暂无分享记录" role="status" /></template>
-                    <template #shareUrl="{ row }">
-                      <t-tag variant="light" style="max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-                        {{ row.shareUrl }}
-                      </t-tag>
-                    </template>
-                    <template #status="{ row }">
-                      <t-tag v-if="row.expireDate && new Date(row.expireDate) < new Date()" theme="danger"
-                        variant="light">已过期</t-tag>
-                      <t-tag v-else theme="success" variant="light">有效</t-tag>
-                    </template>
-                    <template #operation="{ row }">
-                      <t-space :size="6">
-                        <t-button variant="outline" theme="primary" size="small" @click="handleCopyShareUrl(row)">
-                          <template #icon><t-icon name="link" /></template>复制链接
-                        </t-button>
-                        <t-popconfirm content="确定要删除该分享吗？" @confirm="handleDeleteShare(row.shareId)">
-                          <t-button variant="outline" theme="danger" size="small" class="btn-delete">
-                            <template #icon><t-icon name="delete" /></template>删除
+                  <div class="table-area">
+                    <t-table :data="exportStore.shares" :columns="shareColumns" :loading="exportStore.loading"
+                      row-key="shareId" hover size="small" table-layout="auto">
+                      <template #empty><t-empty description="暂无分享记录" role="status" /></template>
+                      <template #shareUrl="{ row }">
+                        <t-tag variant="light" style="max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+                          {{ row.shareUrl }}
+                        </t-tag>
+                      </template>
+                      <template #status="{ row }">
+                        <t-tag v-if="row.expireDate && new Date(row.expireDate) < new Date()" theme="danger"
+                          variant="light">已过期</t-tag>
+                        <t-tag v-else theme="success" variant="light">有效</t-tag>
+                      </template>
+                      <template #operation="{ row }">
+                        <t-space :size="6">
+                          <t-button variant="outline" theme="primary" size="small" @click="handleCopyShareUrl(row)">
+                            <template #icon><t-icon name="link" /></template>复制链接
                           </t-button>
-                        </t-popconfirm>
-                      </t-space>
-                    </template>
-                  </t-table>
+                          <t-popconfirm content="确定要删除该分享吗？" @confirm="handleDeleteShare(row.shareId)">
+                            <t-button variant="outline" theme="danger" size="small" class="btn-delete">
+                              <template #icon><t-icon name="delete" /></template>删除
+                            </t-button>
+                          </t-popconfirm>
+                        </t-space>
+                      </template>
+                    </t-table>
+                  </div>
                 </div>
               </div>
-            </t-tab-panel>
 
-            <!-- ====== Tab 3: 导出模板 ====== -->
-            <t-tab-panel value="templates" label="导出模板">
-              <div class="panel-inner">
-                <div class="create-form-bar create-form-bar--header">
-                  <span class="form-bar-title">模板列表</span>
-                  <t-button theme="primary" @click="handleOpenTemplateDialog(null)">
-                    <template #icon><t-icon name="add" /></template>新增模板
-                  </t-button>
-                </div>
-                <div class="table-area">
-                  <t-table :data="exportStore.templates" :columns="templateColumns" :loading="exportStore.loading"
-                    row-key="templateId" hover size="small" table-layout="auto">
-                    <template #empty><t-empty description="暂无模板" role="status" /></template>
-                    <template #type="{ row }">
-                      <t-tag variant="light">{{ row.type?.toUpperCase() }}</t-tag>
-                    </template>
-                    <template #isDefault="{ row }">
-                      <t-tag v-if="row.isDefault" theme="primary" variant="light">默认</t-tag>
-                    </template>
-                    <template #createdAt="{ row }">
-                      {{ formatDateTime(row.createdAt) }}
-                    </template>
-                    <template #operation="{ row }">
-                      <t-space :size="6">
-                        <t-button variant="outline" theme="primary" size="small" class="btn-edit"
-                          @click="handleOpenTemplateDialog(row)">
-                          <template #icon><t-icon name="edit" /></template>编辑
-                        </t-button>
-                        <t-popconfirm content="确定要删除该模板吗？" @confirm="handleDeleteTemplate(row.templateId)">
-                          <t-button variant="outline" theme="danger" size="small" class="btn-delete">
-                            <template #icon><t-icon name="delete" /></template>删除
+              <!-- ====== Tab 3: 导出模板 ====== -->
+              <div v-show="activeTab === 'templates'" class="tab-panel">
+                <div class="panel-inner">
+                  <div class="create-form-bar create-form-bar--header">
+                    <span class="form-bar-title">模板列表</span>
+                    <t-button theme="primary" @click="handleOpenTemplateDialog(null)">
+                      <template #icon><t-icon name="add" /></template>新增模板
+                    </t-button>
+                  </div>
+                  <div class="table-area">
+                    <t-table :data="exportStore.templates" :columns="templateColumns" :loading="exportStore.loading"
+                      row-key="templateId" hover size="small" table-layout="auto">
+                      <template #empty><t-empty description="暂无模板" role="status" /></template>
+                      <template #type="{ row }">
+                        <t-tag variant="light">{{ row.type?.toUpperCase() }}</t-tag>
+                      </template>
+                      <template #isDefault="{ row }">
+                        <t-tag v-if="row.isDefault" theme="primary" variant="light">默认</t-tag>
+                      </template>
+                      <template #createdAt="{ row }">
+                        {{ formatDateTime(row.createdAt) }}
+                      </template>
+                      <template #operation="{ row }">
+                        <t-space :size="6">
+                          <t-button variant="outline" theme="primary" size="small" class="btn-edit"
+                            @click="handleOpenTemplateDialog(row)">
+                            <template #icon><t-icon name="edit" /></template>编辑
                           </t-button>
-                        </t-popconfirm>
-                      </t-space>
-                    </template>
-                  </t-table>
+                          <t-popconfirm content="确定要删除该模板吗？" @confirm="handleDeleteTemplate(row.templateId)">
+                            <t-button variant="outline" theme="danger" size="small" class="btn-delete">
+                              <template #icon><t-icon name="delete" /></template>删除
+                            </t-button>
+                          </t-popconfirm>
+                        </t-space>
+                      </template>
+                    </t-table>
+                  </div>
                 </div>
               </div>
-            </t-tab-panel>
 
-            <!-- ====== Tab 4: API 接口 ====== -->
-            <t-tab-panel value="api" label="API 接口">
-              <div class="panel-inner">
-                <div class="create-form-bar create-form-bar--header">
-                  <span class="form-bar-title">接口列表</span>
-                  <t-button theme="primary" @click="showApiDialog = true">
-                    <template #icon><t-icon name="add" /></template>新增接口
-                  </t-button>
-                </div>
-                <div class="table-area">
-                  <t-table :data="exportStore.apiInterfaces" :columns="apiColumns" :loading="exportStore.loading"
-                    row-key="interfaceId" hover size="small" table-layout="auto">
-                    <template #empty><t-empty description="暂无API接口" role="status" /></template>
-                    <template #method="{ row }">
-                      <t-tag :theme="methodTheme(row.method)" variant="light">{{ row.method }}</t-tag>
-                    </template>
-                    <template #auth="{ row }">
-                      <t-tag variant="light">{{ authLabel(row.authentication) }}</t-tag>
-                    </template>
-                  </t-table>
+              <!-- ====== Tab 4: API 接口 ====== -->
+              <div v-show="activeTab === 'api'" class="tab-panel">
+                <div class="panel-inner">
+                  <div class="create-form-bar create-form-bar--header">
+                    <span class="form-bar-title">接口列表</span>
+                    <t-button theme="primary" @click="showApiDialog = true">
+                      <template #icon><t-icon name="add" /></template>新增接口
+                    </t-button>
+                  </div>
+                  <div class="table-area">
+                    <t-table :data="exportStore.apiInterfaces" :columns="apiColumns" :loading="exportStore.loading"
+                      row-key="interfaceId" hover size="small" table-layout="auto">
+                      <template #empty><t-empty description="暂无API接口" role="status" /></template>
+                      <template #method="{ row }">
+                        <t-tag :theme="methodTheme(row.method)" variant="light">{{ row.method }}</t-tag>
+                      </template>
+                      <template #auth="{ row }">
+                        <t-tag variant="light">{{ authLabel(row.authentication) }}</t-tag>
+                      </template>
+                    </t-table>
+                  </div>
                 </div>
               </div>
-            </t-tab-panel>
-          </t-tabs>
+            </div>
+          </div>
         </div>
       </t-card>
     </Transition>
 
-    <!-- 底部快捷动态 -->
-    <section class="activity-section">
-      <div class="activity-card activity-card--timeline">
-        <div class="activity-header">
-          <h4 class="activity-title">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"
+  <!-- 底部快捷动态 -->
+  <section class="activity-section">
+    <div class="activity-card activity-card--timeline">
+      <div class="activity-header">
+        <h4 class="activity-title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+          </svg>
+          近期导出动态
+        </h4>
+        <div class="activity-nav">
+          <button class="activity-nav-btn" :disabled="activityPage <= 1" @click="activityPrev" title="上一页">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
               stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+              <polyline points="15 18 9 12 15 6" />
             </svg>
-            近期导出动态
-          </h4>
-          <div class="activity-nav">
-            <button class="activity-nav-btn" :disabled="activityPage <= 1" @click="activityPrev" title="上一页">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="15 18 9 12 15 6" />
-              </svg>
-            </button>
-            <span class="activity-nav-page">{{ activityPage }} / {{ activityTotalPages }}</span>
-            <button class="activity-nav-btn" :disabled="activityPage >= activityTotalPages" @click="activityNext"
-              title="下一页">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="9 18 15 12 9 6" />
-              </svg>
-            </button>
-          </div>
+          </button>
+          <span class="activity-nav-page">{{ activityPage }} / {{ activityTotalPages }}</span>
+          <button class="activity-nav-btn" :disabled="activityPage >= activityTotalPages" @click="activityNext"
+            title="下一页">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+              stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          </button>
         </div>
-        <div class="timeline-list">
-          <div v-for="(item, index) in pagedActivityItems" :key="index" class="timeline-item"
-            :class="{ 'timeline-item--last': index === pagedActivityItems.length - 1 }">
-            <div class="timeline-dot" :class="'timeline-dot--' + item.type">
-              <span class="timeline-dot-inner"></span>
-            </div>
-            <div class="timeline-content">
-              <p class="timeline-title">{{ item.title }}</p>
-              <p class="timeline-desc" v-html="item.desc"></p>
-              <span class="timeline-time">{{ item.time }}</span>
-            </div>
+      </div>
+      <div class="timeline-list">
+        <div v-for="(item, index) in pagedActivityItems" :key="index" class="timeline-item"
+          :class="{ 'timeline-item--last': index === pagedActivityItems.length - 1 }">
+          <div class="timeline-dot" :class="'timeline-dot--' + item.type">
+            <span class="timeline-dot-inner"></span>
+          </div>
+          <div class="timeline-content">
+            <p class="timeline-title">{{ item.title }}</p>
+            <p class="timeline-desc" v-html="item.desc"></p>
+            <span class="timeline-time">{{ item.time }}</span>
           </div>
         </div>
       </div>
-      <div class="activity-card activity-card--assistant">
-        <div class="assistant-content">
-          <h4 class="assistant-title">导出小助手</h4>
-          <p class="assistant-desc">{{ assistantMessage }}</p>
-          <button class="assistant-btn" @click="activeTab = 'export'">创建导出任务</button>
-          <div class="assistant-footer">
-            <div class="assistant-avatar-group">
-              <span class="assistant-avatar">导</span>
-              <span class="assistant-avatar">出</span>
-              <span class="assistant-avatar">中</span>
-            </div>
-            <span class="assistant-hint">{{ exportStore.jobs?.length || 0 }} 个任务在列</span>
+    </div>
+    <div class="activity-card activity-card--assistant">
+      <div class="assistant-content">
+        <h4 class="assistant-title">导出小助手</h4>
+        <p class="assistant-desc">{{ assistantMessage }}</p>
+        <button class="assistant-btn" @click="activeTab = 'export'">创建导出任务</button>
+        <div class="assistant-footer">
+          <div class="assistant-avatar-group">
+            <span class="assistant-avatar">导</span>
+            <span class="assistant-avatar">出</span>
+            <span class="assistant-avatar">中</span>
           </div>
+          <span class="assistant-hint">{{ exportStore.jobs?.length || 0 }} 个任务在列</span>
         </div>
-        <svg class="assistant-bg-icon" width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-          stroke-width="1">
-          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
-          <polyline points="14 2 14 8 20 8" />
-          <line x1="16" y1="13" x2="8" y2="13" />
-          <line x1="16" y1="17" x2="8" y2="17" />
-          <polyline points="10 9 9 9 8 9" />
-        </svg>
       </div>
-    </section>
+      <svg class="assistant-bg-icon" width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        stroke-width="1">
+        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+        <polyline points="14 2 14 8 20 8" />
+        <line x1="16" y1="13" x2="8" y2="13" />
+        <line x1="16" y1="17" x2="8" y2="17" />
+        <polyline points="10 9 9 9 8 9" />
+      </svg>
+    </div>
+  </section>
 
-    <!-- 模板编辑弹窗 -->
-    <t-dialog v-model:visible="showTemplateDialog" :header="editingTemplate ? '编辑模板' : '创建导出模板'"
-      @confirm="handleSaveTemplate" @close="resetTemplateForm">
-      <t-form :data="templateForm" label-width="100px">
-        <t-form-item label="模板名称"><t-input v-model="templateForm.name" placeholder="请输入模板名称" /></t-form-item>
-        <t-form-item label="类型">
-          <t-select v-model="templateForm.type" :popup-props="{ appendToBody: true }">
-            <t-option value="pdf" label="PDF" />
-            <t-option value="excel" label="Excel" />
-            <t-option value="api" label="API" />
-          </t-select>
-        </t-form-item>
-        <t-form-item label="描述"><t-textarea v-model="templateForm.description" placeholder="可选" /></t-form-item>
-        <t-form-item label="设为默认"><t-switch v-model="templateForm.isDefault" /></t-form-item>
-      </t-form>
-    </t-dialog>
+  <!-- 模板编辑弹窗 -->
+  <t-dialog v-model:visible="showTemplateDialog" :header="editingTemplate ? '编辑模板' : '创建导出模板'"
+    @confirm="handleSaveTemplate" @close="resetTemplateForm">
+    <t-form :data="templateForm" label-width="100px">
+      <t-form-item label="模板名称"><t-input v-model="templateForm.name" placeholder="请输入模板名称" /></t-form-item>
+      <t-form-item label="类型">
+        <t-select v-model="templateForm.type" :popup-props="{ appendToBody: true }">
+          <t-option value="pdf" label="PDF" />
+          <t-option value="excel" label="Excel" />
+          <t-option value="api" label="API" />
+        </t-select>
+      </t-form-item>
+      <t-form-item label="描述"><t-textarea v-model="templateForm.description" placeholder="可选" /></t-form-item>
+      <t-form-item label="设为默认"><t-switch v-model="templateForm.isDefault" /></t-form-item>
+    </t-form>
+  </t-dialog>
 
-    <!-- API接口创建弹窗 -->
-    <t-dialog v-model:visible="showApiDialog" header="创建API接口" @confirm="handleCreateApi" @close="resetApiForm">
-      <t-form :data="apiForm" label-width="100px">
-        <t-form-item label="接口名称"><t-input v-model="apiForm.name" placeholder="请输入接口名称" /></t-form-item>
-        <t-form-item label="端点URL"><t-input v-model="apiForm.endpoint"
-            placeholder="/api/formulas/export" /></t-form-item>
-        <t-form-item label="HTTP方法">
-          <t-select v-model="apiForm.method" :popup-props="{ appendToBody: true }">
-            <t-option value="GET" label="GET" />
-            <t-option value="POST" label="POST" />
-            <t-option value="PUT" label="PUT" />
-            <t-option value="DELETE" label="DELETE" />
-          </t-select>
-        </t-form-item>
-        <t-form-item label="认证方式">
-          <t-select v-model="apiForm.authentication" :popup-props="{ appendToBody: true }">
-            <t-option value="none" label="无认证" />
-            <t-option value="apiKey" label="API Key" />
-            <t-option value="basic" label="Basic Auth" />
-            <t-option value="oauth" label="OAuth" />
-          </t-select>
-        </t-form-item>
-        <t-form-item label="描述"><t-textarea v-model="apiForm.description" placeholder="可选" /></t-form-item>
-      </t-form>
-    </t-dialog>
+  <!-- API接口创建弹窗 -->
+  <t-dialog v-model:visible="showApiDialog" header="创建API接口" @confirm="handleCreateApi" @close="resetApiForm">
+    <t-form :data="apiForm" label-width="100px">
+      <t-form-item label="接口名称"><t-input v-model="apiForm.name" placeholder="请输入接口名称" /></t-form-item>
+      <t-form-item label="端点URL"><t-input v-model="apiForm.endpoint" placeholder="/api/formulas/export" /></t-form-item>
+      <t-form-item label="HTTP方法">
+        <t-select v-model="apiForm.method" :popup-props="{ appendToBody: true }">
+          <t-option value="GET" label="GET" />
+          <t-option value="POST" label="POST" />
+          <t-option value="PUT" label="PUT" />
+          <t-option value="DELETE" label="DELETE" />
+        </t-select>
+      </t-form-item>
+      <t-form-item label="认证方式">
+        <t-select v-model="apiForm.authentication" :popup-props="{ appendToBody: true }">
+          <t-option value="none" label="无认证" />
+          <t-option value="apiKey" label="API Key" />
+          <t-option value="basic" label="Basic Auth" />
+          <t-option value="oauth" label="OAuth" />
+        </t-select>
+      </t-form-item>
+      <t-form-item label="描述"><t-textarea v-model="apiForm.description" placeholder="可选" /></t-form-item>
+    </t-form>
+  </t-dialog>
   </div>
 </template>
 
@@ -395,6 +413,39 @@ import PageSkeleton from '@/components/Skeleton/PageSkeleton.vue';
 const exportStore = useExportStore();
 const initialized = ref(false);
 const activeTab = ref('export');
+const navCollapsed = ref(false);
+
+function toggleNavCollapse() {
+  navCollapsed.value = !navCollapsed.value;
+}
+
+const exportTabs = [
+  {
+    value: 'export',
+    label: '导出任务',
+    iconPath: '<path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>',
+  },
+  {
+    value: 'share',
+    label: '分享管理',
+    iconPath: '<path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/>',
+  },
+  {
+    value: 'templates',
+    label: '导出模板',
+    iconPath: '<rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/>',
+  },
+  {
+    value: 'api',
+    label: 'API 接口',
+    iconPath: '<polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>',
+  },
+];
+
+function switchTab(tab: string) {
+  activeTab.value = tab;
+  handleTabChange(tab);
+}
 const showTemplateDialog = ref(false);
 const showApiDialog = ref(false);
 const editingTemplate = ref<any>(null);
@@ -570,7 +621,7 @@ async function handleCreateJob() {
   const result = await exportStore.createJob(exportForm);
   creating.value = false;
   if (result.success) {
-    const data = result.data as { jobId: string; status: string; fileName?: string; errorMessage?: string } | undefined;
+    const data = result.data as { jobId: string; status: string; fileName?: string; errorMessage?: string; } | undefined;
     if (data?.status === 'completed') {
       MessagePlugin.success('导出完成，正在下载...');
       await exportStore.downloadFile(data.jobId, data.fileName || `配方导出.${exportForm.exportType === 'pdf' ? 'pdf' : 'xlsx'}`, exportForm.exportType);
@@ -890,14 +941,18 @@ onMounted(async () => {
 
   // ─── 内容卡片 ───
   .content-card {
-    border-radius: 24px;
+    border-radius: 32px !important;
     overflow: hidden;
     box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
-    border: 1px solid #f1f5f9;
+    border: 1px solid #f8fafc !important;
     transition: all $transition-slow;
 
     &:hover {
       box-shadow: 0 10px 28px rgba(15, 23, 42, 0.09), 0 2px 6px rgba(15, 23, 42, 0.04);
+    }
+
+    :deep(.t-card__body) {
+      padding: 0 !important;
     }
 
     :deep(.t-tabs__nav-container) {
@@ -910,35 +965,143 @@ onMounted(async () => {
     }
 
     :deep(.t-tabs__nav-item) {
-      font-size: 15px;
+      font-size: 14px;
       font-weight: 500;
-      padding: 12px 20px;
+      padding: 12px 16px;
       color: #64748b;
       transition: all $transition-normal;
+      border-radius: 12px;
+      margin-right: 4px;
 
       &:hover {
         color: #334155;
+        background: #f1f5f9;
       }
 
       &.t-tabs__nav-item--active {
-        color: #10b981;
+        background: linear-gradient(135deg, #10B981, #059669);
+        color: white;
         font-weight: 600;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
       }
     }
 
     :deep(.t-tabs__bar) {
-      background: linear-gradient(90deg, #10b981, #34d399);
-      height: 3px;
-      border-radius: 2px;
+      display: none;
     }
 
-    .tab-content-wrapper {
-      :deep(.t-tabs__content) {
-        padding: 0;
+    .export-body {
+      display: flex;
+      gap: 0;
+      min-height: 480px;
+    }
+
+    .export-nav {
+      width: 170px;
+      flex-shrink: 0;
+      padding: 24px 12px;
+      transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), padding 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+
+      &--collapsed {
+        width: 56px;
+        padding: 24px 6px;
+
+        .nav-tab {
+          justify-content: center;
+          padding: 12px 0;
+
+          .nav-tab-icon {
+            width: 24px;
+            height: 24px;
+          }
+
+          .nav-tab-label {
+            display: none;
+          }
+        }
+
+        .nav-collapse-btn {
+          margin: 0 auto;
+          width: 36px;
+          height: 36px;
+        }
+      }
+
+      .nav-tab {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 16px;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all $transition-normal;
+        color: #64748b;
+        font-size: 14px;
+        font-weight: 500;
+        border: 1px solid transparent;
+        margin-bottom: 8px;
+        white-space: nowrap;
+        overflow: hidden;
+
+        .nav-tab-icon {
+          width: 18px;
+          height: 18px;
+          flex-shrink: 0;
+          transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        &:hover {
+          background: #f1f5f9;
+          color: #334155;
+        }
+
+        &.active {
+          background: linear-gradient(135deg, #10B981, #059669);
+          color: white;
+          box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+          border-color: transparent;
+          font-weight: 600;
+        }
+
+        .nav-tab-label {
+          flex: 1;
+          transition: opacity 0.2s ease;
+        }
+      }
+
+      .nav-collapse-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+        background: transparent;
+        color: #94a3b8;
+        cursor: pointer;
+        margin-top: 12px;
+        transition: all 0.2s;
+
+        &:hover {
+          background: #f1f5f9;
+          color: #334155;
+          border-color: #cbd5e1;
+        }
       }
     }
 
-    // 表格行 stagger 入场动画
+    .export-content {
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    .export-tab-panels {}
+
     :deep(.t-table__body .t-table__row) {
       animation: rowFadeIn 0.3s ease both;
     }
@@ -1154,7 +1317,7 @@ onMounted(async () => {
 
   // ─── 底部活动区域 ───
   .activity-section {
-    margin-top: 40px;
+    margin-top: 30px;
     padding-bottom: 32px;
     display: grid;
     grid-template-columns: 1fr;

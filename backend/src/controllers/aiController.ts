@@ -1,6 +1,6 @@
 // AI 助手控制器
 import { Request, Response } from "express";
-import { aiService, AIService } from "../services/ai/AIService.js";
+import { aiService, AIService, type ChatMessage } from "../services/ai/AIService.js";
 import {
   FORMULA_PARSE_SYSTEM_PROMPT,
   FORMULA_PARSE_USER_PROMPT,
@@ -27,6 +27,7 @@ interface ParsedMaterial {
   ratioDivisor?: number;
   materialId?: string;
   matched?: boolean;
+  unitPrice?: number | null;
 }
 
 interface ParsedFormula {
@@ -43,7 +44,7 @@ interface ParsedFormula {
 export async function parseFormula(req: any, res: Response) {
   try {
     const file = req.file as Express.Multer.File | undefined;
-    const { model: provider } = req.body;
+    const { model: provider, version } = req.body;
 
     if (!file) {
       res.status(400).json({ success: false, message: "请上传文件" });
@@ -74,12 +75,10 @@ export async function parseFormula(req: any, res: Response) {
     const isExcel = excelExts.includes(ext);
 
     const userId = req.user.userId;
-    const [materialRows]: any[][] = await query("SELECT name FROM materials WHERE created_by = ? ORDER BY name ASC", [
-      userId,
-    ]);
+    const [materialRows]: any[][] = await query("SELECT name FROM materials ORDER BY name ASC", []);
     const knownMaterials = materialRows ? materialRows.map((r: any) => r.name) : [];
 
-    let messages: AIService.ChatMessage[];
+    let messages: ChatMessage[];
 
     if (isImage) {
       // 图片文件：构建多模态 prompt（附带文件名信息）
@@ -130,6 +129,10 @@ export async function parseFormula(req: any, res: Response) {
       temperature: 0.2,
       responseFormat: { type: "json_object" },
       useVision: isImage,
+      callType: "parse_formula",
+      userId: (req as any).user?.userId,
+      requestSummary: `解析配方文件: ${file.originalname}`,
+      overrideModel: version || undefined,
     });
 
     // 解析 AI 返回的 JSON
@@ -163,7 +166,14 @@ export async function parseFormula(req: any, res: Response) {
       ...m,
       quantity: Number.isFinite(m.quantity) ? Math.round(m.quantity) : m.quantity,
       name: normalizeMaterialName(m.name),
+      matched: undefined,
+      materialId: undefined,
+      confidence: undefined,
     }));
+
+    if (parsed.salesmanName) {
+      parsed.salesmanName = normalizeSalesmanName(parsed.salesmanName);
+    }
 
     // 模糊匹配原料 ID
     const materialsWithName = await matchMaterials(parsed.materials, userId);
@@ -209,7 +219,7 @@ interface MaterialNutritionParseResult {
 export async function parseMaterialNutrition(req: any, res: Response) {
   try {
     const file = req.file as Express.Multer.File | undefined;
-    const { model: provider } = req.body;
+    const { model: provider, version } = req.body;
 
     if (!file) {
       res.status(400).json({ success: false, message: "请上传文件" });
@@ -237,7 +247,7 @@ export async function parseMaterialNutrition(req: any, res: Response) {
       }
     }
 
-    let messages: AIService.ChatMessage[];
+    let messages: ChatMessage[];
 
     if (isImage) {
       const { base64, mimeType } = readFileAsBase64(file.path);
@@ -273,10 +283,16 @@ export async function parseMaterialNutrition(req: any, res: Response) {
       ];
     }
 
+    const excelNutritionMap = isExcel ? parseExcelNutritionMap(file.path) : undefined;
+
     const result = await aiService.chatCompletion(provider, messages, {
       temperature: 0.2,
       responseFormat: { type: "json_object" },
       useVision: isImage,
+      callType: "parse_nutrition",
+      userId: (req as any).user?.userId,
+      requestSummary: `解析原料营养文件: ${file.originalname}`,
+      overrideModel: version || undefined,
     });
 
     let parsed: MaterialNutritionParseResult;
@@ -312,7 +328,7 @@ export async function parseMaterialNutrition(req: any, res: Response) {
 
     // ─── 智能数据验证与修正：检测并修复列错位问题 ───
     for (const mat of parsed.materials) {
-      const corrected = validateAndFixNutritionData(mat);
+      const corrected = validateAndFixNutritionData(mat, excelNutritionMap);
       if (corrected.wasFixed) {
         console.log(
           `[AI] 数据修正 [${mat.name}]: protein ${mat.protein}->${corrected.data.protein}, fat ${mat.fat}->${corrected.data.fat}`,
@@ -355,7 +371,7 @@ export async function parseMaterialNutrition(req: any, res: Response) {
 /** POST /api/ai/natural-search — 自然语言转 SQL 查询 */
 export async function naturalSearch(req: any, res: Response) {
   try {
-    const { query: userQuery, model: provider } = req.body;
+    const { query: userQuery, model: provider, version } = req.body;
 
     if (!userQuery?.trim()) {
       res.status(400).json({ success: false, message: "请输入查询内容" });
@@ -367,13 +383,17 @@ export async function naturalSearch(req: any, res: Response) {
     }
 
     // 调用 AI 生成 SQL
-    const messages: AIService.ChatMessage[] = [
+    const messages: ChatMessage[] = [
       { role: "system", content: NL2SQL_SYSTEM_PROMPT },
       { role: "user", content: NL2SQL_USER_PROMPT(userQuery) },
     ];
 
     const aiResult = await aiService.chatCompletion(provider, messages, {
       temperature: 0.1,
+      callType: "natural_search",
+      userId: (req as any).user?.userId,
+      requestSummary: `自然语言检索: ${userQuery.substring(0, 50)}`,
+      overrideModel: version || undefined,
     });
 
     // 提取 SQL（去除 markdown 代码块）
@@ -465,28 +485,48 @@ export async function getModels(_req: Request, res: Response) {
 
 /** 读取 Excel 文件并转为可读文本（含公式信息，所有 Sheet 拼接） */
 function readExcelAsText(filePath: string): string {
-  const workbook = XLSX.readFile(filePath);
+  const workbook = XLSX.readFile(filePath, { cellText: true, cellDates: true, codepage: 936 });
   const parts: string[] = [];
 
   for (const sheetName of workbook.SheetNames) {
     const sheet = workbook.Sheets[sheetName];
     if (!sheet["!ref"]) continue;
 
-    // 用 sheet_to_json 获取值，同时遍历原始单元格提取公式
+    const range = XLSX.utils.decode_range(sheet["!ref"]);
+
+    const metadataLines: string[] = [];
+    const a1 = sheet["A1"];
+    const b1 = sheet["B1"];
+    const c1 = sheet["C1"];
+    if (a1 && a1.v != null && String(a1.v).trim() !== "") {
+      const a1Val = String(a1.v).trim();
+      const c1Val = c1 && c1.v != null ? String(c1.v).trim() : "";
+      const b1Val = b1 && b1.v != null ? String(b1.v).trim() : "";
+      if (c1Val && /^\d+(\.\d+)?$/.test(c1Val)) {
+        metadataLines.push(`【文件元数据 - 第一行信息】`);
+        metadataLines.push(`  配方名称: ${a1Val}`);
+        if (b1Val) metadataLines.push(`  B1单元格: ${b1Val}`);
+        metadataLines.push(`  成品重量(规格): ${c1Val}g`);
+        metadataLines.push(`  (以上信息来自Excel第一行A1/C1单元格，请务必将其作为finishedWeight和name字段的值)`);
+        metadataLines.push("");
+      }
+    }
+
     const data = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, { defval: "" });
     if (data.length === 0) continue;
 
-    // 获取列标题行（第一行的 key）
     const headers = Object.keys(data[0]);
 
-    // 找到"含量比"列的索引
     const ratioColIndex = headers.findIndex(h => /含量比|含量|比例|ratio/i.test(h));
 
     parts.push(`=== ${sheetName} ===`);
-    // 输出表头
+
+    if (metadataLines.length > 0) {
+      parts.push(...metadataLines);
+    }
+
     parts.push(headers.join(" | "));
 
-    // 遍历数据行
     for (let rowIdx = 0; rowIdx < data.length; rowIdx++) {
       const row = data[rowIdx];
       const values: string[] = [];
@@ -495,30 +535,28 @@ function readExcelAsText(filePath: string): string {
         const header = headers[colIdx];
         const rawVal = String(row[header] ?? "").trim();
 
-        // 对含量比列，尝试提取单元格公式
         if (colIdx === ratioColIndex) {
-          // xlsx 内部单元格地址：第一数据行 = 2（第1行是表头）
           const cellRef = XLSX.utils.encode_cell({ r: rowIdx + 1, c: colIdx });
           const cell = sheet[cellRef];
           const formula = cell?.f ? String(cell.f) : "";
 
           if (formula && formula !== rawVal) {
-            values.push(`${rawVal} 【公式: ${formula}】`);
-          } else {
-            values.push(rawVal);
+            values.push(`${header}=${rawVal} 【公式: ${formula}】`);
+          } else if (rawVal !== "") {
+            values.push(`${header}=${rawVal}`);
           }
         } else {
-          values.push(rawVal);
+          if (rawVal !== "") {
+            values.push(`${header}=${rawVal}`);
+          }
         }
       }
 
-      const filtered = values.filter(v => v !== "");
-      if (filtered.length > 0) {
-        parts.push(filtered.join(" | "));
+      if (values.length > 0) {
+        parts.push(values.join(" | "));
       }
     }
 
-    // 输出公式汇总提示（帮助 AI 理解公式结构）
     if (ratioColIndex >= 0) {
       parts.push("");
       parts.push(
@@ -532,10 +570,122 @@ function readExcelAsText(filePath: string): string {
   return parts.join("\n");
 }
 
+interface ExcelNutritionColumnMap {
+  [columnHeader: string]: number | string;
+}
+
+interface ExcelNutritionMap {
+  [materialName: string]: ExcelNutritionColumnMap;
+}
+
+function parseExcelNutritionMap(filePath: string): ExcelNutritionMap {
+  const workbook = XLSX.readFile(filePath, { cellText: true, cellDates: true, codepage: 936 });
+  const result: ExcelNutritionMap = {};
+
+  for (const sheetName of workbook.SheetNames) {
+    const sheet = workbook.Sheets[sheetName];
+    if (!sheet["!ref"]) continue;
+
+    const rawRows: unknown[][] = XLSX.utils.sheet_to_json<unknown[]>(sheet, { header: 1, defval: "" });
+    if (rawRows.length === 0) continue;
+
+    let headerRowIdx = -1;
+    for (let i = 0; i < Math.min(rawRows.length, 10); i++) {
+      const row = rawRows[i].map(c => String(c ?? "").trim());
+      const hasNameCol = row.some(h => /名称|原料|材料|品名/i.test(h));
+      const hasNutritionCol = row.some(h => /蛋白质|蛋白|脂肪|脂类|碳水/i.test(h));
+      if (hasNameCol && hasNutritionCol) {
+        headerRowIdx = i;
+        break;
+      }
+    }
+
+    if (headerRowIdx < 0) {
+      for (let i = 0; i < Math.min(rawRows.length, 10); i++) {
+        const row = rawRows[i].map(c => String(c ?? "").trim());
+        const hasNutritionCol = row.some(h => /蛋白质|蛋白|脂肪|脂类|碳水/i.test(h));
+        if (hasNutritionCol) {
+          headerRowIdx = i;
+          break;
+        }
+      }
+    }
+
+    if (headerRowIdx < 0) continue;
+
+    const headers = rawRows[headerRowIdx].map(c => String(c ?? "").trim());
+    const nameColIdx = headers.findIndex(h => /名称|原料|材料|品名/i.test(h));
+    const nameHeader = nameColIdx >= 0 ? headers[nameColIdx] : headers[0];
+
+    for (let r = headerRowIdx + 1; r < rawRows.length; r++) {
+      const rawRow = rawRows[r];
+      const name = String(rawRow[nameColIdx] ?? "").trim();
+      if (!name) continue;
+      if (/^\d+(\.\d+)?$/.test(name)) continue;
+
+      const rowData: ExcelNutritionColumnMap = {};
+      for (let c = 0; c < headers.length; c++) {
+        if (c === nameColIdx) continue;
+        const header = headers[c];
+        if (!header) continue;
+        const val = rawRow[c];
+        if (val != null && String(val).trim() !== "") {
+          const numVal = Number(val);
+          rowData[header] = isNaN(numVal) ? String(val).trim() : numVal;
+        }
+      }
+
+      const normalizedName = normalizeMaterialName(name);
+      if (!result[normalizedName]) {
+        result[normalizedName] = rowData;
+      }
+    }
+  }
+
+  return result;
+}
+
 /** 标准化原料名称：去除前后空格、全角空格、不可见字符等，解决AI返回名称与数据库不一致导致的匹配失败 */
 function normalizeMaterialName(name: string): string {
   if (!name) return name;
-  return name.replace(/[\uFEFF\u200B\u200C\u200D\u00A0\u3000]/g, "").trim();
+  return name
+    .replace(/[\uFEFF\u200B\u200C\u200D\u00A0\u3000]/g, "")
+    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/** 检测字符串是否包含乱码特征 */
+function isGarbled(text: string): boolean {
+  if (!text) return false;
+  const hasReplacementChar = text.includes("\uFFFD");
+  const hasControlChars = /[\x00-\x08\x0B\x0C\x0E-\x1F]/.test(text);
+  const hasSurrogateIssues = /[\uD800-\uDFFF]/.test(text) && !/[\uD800-\uDBFF][\uDC00-\uDFFF]/.test(text);
+  const hasHighGarbledRatio = (() => {
+    const cjkCount = (text.match(/[\u4e00-\u9fff]/g) || []).length;
+    const symbolCount = (text.match(/[^\w\s\u4e00-\u9fff\u3000-\u303f\uff00-\uffef]/g) || []).length;
+    return cjkCount > 0 && symbolCount / (cjkCount + symbolCount) > 0.4;
+  })();
+  return hasReplacementChar || hasControlChars || hasSurrogateIssues || hasHighGarbledRatio;
+}
+
+/** 标准化业务员名称：比原料名称更严格的清洗，处理AI模型返回的乱码 */
+function normalizeSalesmanName(name: string): string {
+  if (!name) return name;
+  let cleaned = normalizeMaterialName(name);
+  cleaned = cleaned
+    .replace(/[\uFFFD]/g, "")
+    .replace(/[\uD800-\uDFFF]/g, "")
+    .replace(/[^\w\s\u4e00-\u9fff\u3000-\u303f\uff00-\uffef·\-]/g, "")
+    .replace(/\s+/g, "")
+    .trim();
+  if (isGarbled(cleaned) || cleaned.length === 0) {
+    return "";
+  }
+  if (cleaned.length > 10) {
+    return "";
+  }
+  return cleaned;
 }
 
 /** 原料名称别名映射：将常见变体/错写/简写映射到数据库中的标准名称 */
@@ -789,6 +939,7 @@ async function matchMaterials(materials: ParsedMaterial[], userId: string): Prom
       mat.matched = true;
       usedIds.add(row.id);
       if (!mat.unit && row.unit) mat.unit = row.unit;
+      mat.unitPrice = row.unit_price != null ? Number(row.unit_price) : null;
       matched = true;
     };
 
@@ -804,7 +955,7 @@ async function matchMaterials(materials: ParsedMaterial[], userId: string): Prom
       console.log(`[AI] │  尝试候选: "${candidate}"`);
 
       const exactRow = await tryMatch(
-        `SELECT id, name, code, unit FROM materials WHERE name = ? AND created_by = ? LIMIT 1`,
+        `SELECT id, name, code, unit, unit_price FROM materials WHERE name = ? AND created_by = ? LIMIT 1`,
         [candidate, userId],
         "用户精确",
       );
@@ -815,7 +966,7 @@ async function matchMaterials(materials: ParsedMaterial[], userId: string): Prom
       }
 
       const likeRow = await tryMatch(
-        `SELECT id, name, code, unit FROM materials WHERE name LIKE ? AND created_by = ? ORDER BY LENGTH(name) ASC`,
+        `SELECT id, name, code, unit, unit_price FROM materials WHERE name LIKE ? AND created_by = ? ORDER BY LENGTH(name) ASC`,
         [`%${candidate}%`, userId],
         "用户LIKE",
       );
@@ -826,7 +977,7 @@ async function matchMaterials(materials: ParsedMaterial[], userId: string): Prom
       }
 
       const globalExactRow = await tryMatch(
-        `SELECT id, name, code, unit FROM materials WHERE name = ? LIMIT 1`,
+        `SELECT id, name, code, unit, unit_price FROM materials WHERE name = ? LIMIT 1`,
         [candidate],
         "全局精确",
       );
@@ -837,7 +988,7 @@ async function matchMaterials(materials: ParsedMaterial[], userId: string): Prom
       }
 
       const globalLikeRow = await tryMatch(
-        `SELECT id, name, code, unit FROM materials WHERE name LIKE ? ORDER BY LENGTH(name) ASC`,
+        `SELECT id, name, code, unit, unit_price FROM materials WHERE name LIKE ? ORDER BY LENGTH(name) ASC`,
         [`%${candidate}%`],
         "全局LIKE",
       );
@@ -850,7 +1001,7 @@ async function matchMaterials(materials: ParsedMaterial[], userId: string): Prom
 
     if (!matched) {
       const [allMaterials]: any[][] = await query(
-        `SELECT id, name, code, unit FROM materials ORDER BY LENGTH(name) ASC`,
+        `SELECT id, name, code, unit, unit_price FROM materials ORDER BY LENGTH(name) ASC`,
         [],
       );
       let bestMatch: any = null;
@@ -876,6 +1027,7 @@ async function matchMaterials(materials: ParsedMaterial[], userId: string): Prom
     if (!matched) {
       mat.materialId = "";
       mat.matched = false;
+      mat.unitPrice = null;
     }
     console.log(`[AI] └─ 结果: ${matched ? "✓已匹配 (ID=" + mat.materialId + ")" : "✗未匹配"}`);
   }
@@ -891,7 +1043,7 @@ interface NutritionFixResult {
   wasFixed: boolean;
 }
 
-function validateAndFixNutritionData(mat: MaterialNutritionItem): NutritionFixResult {
+function validateAndFixNutritionData(mat: MaterialNutritionItem, excelMap?: ExcelNutritionMap): NutritionFixResult {
   const p = mat.protein;
   const f = mat.fat;
   const c = mat.carbohydrate;
@@ -904,51 +1056,144 @@ function validateAndFixNutritionData(mat: MaterialNutritionItem): NutritionFixRe
   let wasFixed = false;
   const fixed = { ...mat };
 
-  const numericValues = [p, f, c].filter(v => v != null && !isNaN(Number(v))) as number[];
+  if (excelMap) {
+    const normalizedName = normalizeMaterialName(mat.name);
+    let excelData: ExcelNutritionColumnMap | undefined = excelMap[normalizedName];
 
-  if (numericValues.length >= 2) {
-    const maxVal = Math.max(...numericValues);
+    if (!excelData) {
+      for (const [key, val] of Object.entries(excelMap)) {
+        if (similarity(normalizedName, key) > 0.7) {
+          excelData = val;
+          break;
+        }
+      }
+    }
 
-    if (c == null || (maxVal > 0 && maxVal !== c)) {
-      const candidates = [p, f, c].filter(v => v != null && v === maxVal);
-      if (candidates.length === 1 && c !== maxVal) {
-        if (p === maxVal && f != null && f < p) {
-          console.log(`[AI] 检测到可能的列错位 [${mat.name}]: protein=${p} 异常高，与 fat=${f} 可能互换`);
-          fixed.protein = f;
-          fixed.fat = p;
+    if (excelData) {
+      type FieldName = "protein" | "fat" | "carbohydrate" | "sodium";
+      const fieldPatterns: Record<FieldName, RegExp> = {
+        protein: /蛋白质|蛋白/i,
+        fat: /脂肪|脂类/i,
+        carbohydrate: /碳水|碳水化合物|淀粉/i,
+        sodium: /钠|Na/i,
+      };
+
+      const excelGroundTruth: Partial<Record<FieldName, number>> = {};
+      for (const [field, pattern] of Object.entries(fieldPatterns)) {
+        const matchingCols = Object.keys(excelData).filter(h => pattern.test(h));
+        if (matchingCols.length > 0 && typeof excelData[matchingCols[0]] === "number") {
+          excelGroundTruth[field as FieldName] = excelData[matchingCols[0]] as number;
+        }
+      }
+
+      const aiFields: Record<FieldName, number | null> = {
+        protein: fixed.protein ?? null,
+        fat: fixed.fat ?? null,
+        carbohydrate: fixed.carbohydrate ?? null,
+        sodium: fixed.sodium ?? null,
+      };
+
+      const fieldNames = Object.keys(fieldPatterns) as FieldName[];
+      for (let i = 0; i < fieldNames.length && !wasFixed; i++) {
+        for (let j = i + 1; j < fieldNames.length && !wasFixed; j++) {
+          const fieldA = fieldNames[i];
+          const fieldB = fieldNames[j];
+          const aiA = aiFields[fieldA];
+          const aiB = aiFields[fieldB];
+          const excelA = excelGroundTruth[fieldA];
+          const excelB = excelGroundTruth[fieldB];
+
+          if (aiA != null && aiB != null && excelA != null && excelB != null) {
+            const aMatchesB = Math.abs(aiA - excelB) < 0.05;
+            const bMatchesA = Math.abs(aiB - excelA) < 0.05;
+            const aMatchesA = Math.abs(aiA - excelA) < 0.05;
+            const bMatchesB = Math.abs(aiB - excelB) < 0.05;
+
+            if (aMatchesB && bMatchesA && !aMatchesA && !bMatchesB) {
+              console.log(
+                `[AI] 交叉校验: [${mat.name}] ${fieldA}/${fieldB} 互换已纠正 (AI: ${fieldA}=${aiA}, ${fieldB}=${aiB} → 正确: ${fieldA}=${excelA}, ${fieldB}=${excelB})`,
+              );
+              (fixed as any)[fieldA] = excelA;
+              (fixed as any)[fieldB] = excelB;
+              wasFixed = true;
+            }
+          }
+        }
+      }
+
+      if (!wasFixed) {
+        let anyCorrected = false;
+        for (const field of fieldNames) {
+          const excelVal = excelGroundTruth[field];
+          const aiVal = aiFields[field];
+          if (excelVal != null && aiVal != null && Math.abs(aiVal - excelVal) > 0.05) {
+            let matchedOther = false;
+            for (const otherField of fieldNames) {
+              if (otherField === field) continue;
+              const otherExcelVal = excelGroundTruth[otherField];
+              if (otherExcelVal != null && Math.abs(aiVal - otherExcelVal) < 0.05) {
+                matchedOther = true;
+                break;
+              }
+            }
+            if (matchedOther) {
+              console.log(`[AI] 交叉校验: [${mat.name}] ${field} 值 ${aiVal} 与Excel不符(Excel=${excelVal})，已纠正`);
+              (fixed as any)[field] = excelVal;
+              anyCorrected = true;
+            }
+          }
+        }
+        if (anyCorrected) wasFixed = true;
+      }
+    }
+  }
+
+  if (!wasFixed && !excelMap) {
+    const numericValues = [p, f, c].filter(v => v != null && !isNaN(Number(v))) as number[];
+    if (numericValues.length >= 2) {
+      const maxVal = Math.max(...numericValues);
+
+      if (c == null || (maxVal > 0 && maxVal !== c)) {
+        const candidates = [p, f, c].filter(v => v != null && v === maxVal);
+        if (candidates.length === 1 && c !== maxVal) {
+          if (p === maxVal && f != null && f < p) {
+            console.log(`[AI] 检测到可能的列错位 [${mat.name}]: protein=${p} 异常高，与 fat=${f} 可能互换`);
+            fixed.protein = f;
+            fixed.fat = p;
+            wasFixed = true;
+          }
+        }
+      }
+
+      if (!wasFixed && p != null && f != null) {
+        const PROTEIN_TYPICAL_MAX = 25;
+        const FAT_TYPICAL_MAX = 15;
+
+        if (p > PROTEIN_TYPICAL_MAX && f <= FAT_TYPICAL_MAX && p > f * 2.5) {
+          console.log(`[AI] 检测到可能的列错位 [${mat.name}]: protein=${p} 超出典型范围，与 fat=${f} 交换`);
+          const temp = fixed.protein;
+          fixed.protein = fixed.fat;
+          fixed.fat = temp;
           wasFixed = true;
         }
       }
     }
 
-    if (!wasFixed && p != null && f != null) {
-      const PROTEIN_TYPICAL_MAX = 25;
-      const FAT_TYPICAL_MAX = 15;
-
-      if (p > PROTEIN_TYPICAL_MAX && f <= FAT_TYPICAL_MAX && p > f * 2.5) {
-        console.log(`[AI] 检测到可能的列错位 [${mat.name}]: protein=${p} 超出典型范围，与 fat=${f} 交换`);
-        const temp = fixed.protein;
-        fixed.protein = fixed.fat;
-        fixed.fat = temp;
-        wasFixed = true;
-      }
-    }
-  }
-
-  if (!wasFixed && c != null && p != null && f != null) {
-    const sorted = [p, f, c].sort((a, b) => a - b);
-    if (c < sorted[1]) {
-      console.log(`[AI] 检测到可能的列错位 [${mat.name}]: carbohydrate=${c} 不是最大值，尝试修正`);
-      if (p > f && p > c) {
-        const temp = fixed.protein;
-        fixed.protein = fixed.carbohydrate;
-        fixed.carbohydrate = temp;
-        wasFixed = true;
-      } else if (f > p && f > c) {
-        const temp = fixed.fat;
-        fixed.fat = fixed.carbohydrate;
-        fixed.carbohydrate = temp;
-        wasFixed = true;
+    if (!wasFixed && c != null && p != null && f != null) {
+      const sorted = [p, f, c].sort((a, b) => a - b);
+      if (c < sorted[1]) {
+        console.log(`[AI] 检测到可能的列错位 [${mat.name}]: carbohydrate=${c} 不是最大值，尝试修正`);
+        if (p > f && p > c) {
+          const temp = fixed.protein;
+          fixed.protein = fixed.carbohydrate;
+          fixed.carbohydrate = temp;
+          wasFixed = true;
+        } else if (f > p && f > c) {
+          const temp = fixed.fat;
+          fixed.fat = fixed.carbohydrate;
+          fixed.carbohydrate = temp;
+          wasFixed = true;
+        }
       }
     }
   }

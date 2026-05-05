@@ -172,7 +172,7 @@
                 </div>
               </div>
               <p v-if="priceQuote.missingPrices?.length" class="qt-warn">
-                <t-icon name="error-circle" /> 未录入单价：{{ priceQuote.missingPrices.join('、') }}
+                <t-icon name="error-circle" /> 未录入单价：{{ priceQuote.missingPrices.join('、') }}，成本计算不完整，请补充原料价格
               </p>
               <!-- 汇总区域 -->
               <div class="qt-summary">
@@ -190,20 +190,30 @@
                   <span>其他费用</span><strong>¥{{ (priceQuote.otherPrice ?? 0).toFixed(2) }}</strong>
                 </div>
                 <div class="qts-divider"></div>
-                <div class="qts-item qts-item--primary">
+                <div class="qts-item qts-item--primary" :class="{ 'qts-item--warn': priceQuote.missingPrices?.length }">
                   <t-icon name="wallet" size="14px" class="qts-icon" />
-                  <span>成本小计</span><strong class="green">¥{{ (priceQuote.costSubtotal ?? 0).toFixed(2)
-                  }}</strong>
+                  <span>成本小计</span>
+                  <div class="qts-value-group">
+                    <strong :class="priceQuote.missingPrices?.length ? 'warn-text' : 'green'">¥{{ (priceQuote.costSubtotal ?? 0).toFixed(2) }}</strong>
+                    <span v-if="priceQuote.missingPrices?.length" class="qts-warn-tag">
+                      <t-icon name="error-circle" size="11px" /> 不完整
+                    </span>
+                  </div>
                 </div>
                 <div class="qts-item">
                   <t-icon name="chart-pie" size="14px" class="qts-icon" />
                   <span>利润率</span><strong>{{ priceQuote.profitMargin ?? 20 }}%</strong>
                 </div>
                 <div class="qts-divider qts-divider--bold"></div>
-                <div class="qts-item qts-item--final">
+                <div class="qts-item qts-item--final" :class="{ 'qts-item--warn': priceQuote.missingPrices?.length }">
                   <t-icon name="money-filled" size="16px" class="qts-icon" />
-                  <span>最终报价</span><strong class="final-price">¥{{ (priceQuote.totalPrice ?? 0).toFixed(2)
-                  }}</strong>
+                  <span>最终报价</span>
+                  <div class="qts-value-group">
+                    <strong :class="priceQuote.missingPrices?.length ? 'warn-text' : 'final-price'">¥{{ (priceQuote.totalPrice ?? 0).toFixed(2) }}</strong>
+                    <span v-if="priceQuote.missingPrices?.length" class="qts-warn-tag">
+                      <t-icon name="error-circle" size="11px" /> 仅供参考
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -789,6 +799,15 @@ watch(() => route.params.id, (newId) => {
           }
         }
 
+        &--warn {
+          background: #fffbeb !important;
+
+          span,
+          .qts-icon {
+            color: #b45309 !important;
+          }
+        }
+
         &--final {
           margin-top: 4px;
           padding-top: 10px;
@@ -808,6 +827,20 @@ watch(() => route.params.id, (newId) => {
             font-size: 20px;
             color: #059669;
             font-weight: 800;
+          }
+
+          &.qts-item--warn {
+            background: #fef3c7 !important;
+            border: 1px solid #fde68a;
+            border-radius: 10px;
+
+            span {
+              color: #b45309 !important;
+            }
+
+            .qts-icon {
+              color: #b45309 !important;
+            }
           }
         }
 
@@ -833,6 +866,31 @@ watch(() => route.params.id, (newId) => {
         strong.green {
           color: #059669;
           font-weight: 700;
+        }
+
+        strong.warn-text {
+          color: #b45309;
+          font-weight: 700;
+        }
+
+        .qts-value-group {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
+
+        .qts-warn-tag {
+          display: inline-flex;
+          align-items: center;
+          gap: 2px;
+          font-size: 10px;
+          font-weight: 500;
+          color: #b45309;
+          background: #fef3c7;
+          padding: 1px 6px;
+          border-radius: 8px;
+          border: 1px solid #fde68a;
+          white-space: nowrap;
         }
       }
 

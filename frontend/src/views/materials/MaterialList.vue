@@ -30,7 +30,8 @@
                 <span class="batch-count"><strong>{{ selectedRows.length }}</strong> 项已选择</span>
                 <div class="batch-divider"></div>
                 <div class="batch-buttons">
-                  <t-popconfirm theme="danger" :content="`确定要删除所选的 ${selectedRows.length} 个原料吗？删除后无法恢复。`" @confirm="handleBatchDelete">
+                  <t-popconfirm theme="danger" :content="`确定要删除所选的 ${selectedRows.length} 个原料吗？删除后无法恢复。`"
+                    @confirm="handleBatchDelete">
                     <button class="batch-action-btn">
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                         stroke-linecap="round" stroke-linejoin="round">
@@ -88,32 +89,7 @@
 
         <t-table :data="sortedMaterials" :columns="columns" :loading="materialStore.loading" :pagination="undefined"
           row-key="id" hover table-layout="auto" :expanded-row-keys="expandedRowKeys" @expand-change="onExpandChange"
-          @row-click="handleRowClick"
-          @select-change="handleSelectChange" :selected-row-keys="selectedRowKeys">
-          <template #name-title>
-            <span class="custom-sort-header" @click.stop="toggleSort('name')">原料信息<span
-                :class="sortIconClass('name')"></span></span>
-          </template>
-          <template #materialType-title>
-            <span class="custom-sort-header" @click.stop="toggleSort('materialType')">类型<span
-                :class="sortIconClass('materialType')"></span></span>
-          </template>
-          <template #unitPrice-title>
-            <span class="custom-sort-header" @click.stop="toggleSort('unitPrice')">单价(元/kg)<span
-                :class="sortIconClass('unitPrice')"></span></span>
-          </template>
-          <template #stock-title>
-            <span class="custom-sort-header" @click.stop="toggleSort('stock')">库存<span
-                :class="sortIconClass('stock')"></span></span>
-          </template>
-          <template #createdAt-title>
-            <span class="custom-sort-header" @click.stop="toggleSort('createdAt')">创建时间<span
-                :class="sortIconClass('createdAt')"></span></span>
-          </template>
-          <template #dataSource-title>
-            <span class="custom-sort-header" @click.stop="toggleSort('dataSource')">数据源<span
-                :class="sortIconClass('dataSource')"></span></span>
-          </template>
+          @row-click="handleRowClick" @select-change="handleSelectChange" :selected-row-keys="selectedRowKeys">
           <template #name="{ row }">
             <div class="material-info">
               <div class="material-avatar" :style="{
@@ -305,9 +281,9 @@
           <h4 class="assistant-title">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"
               stroke-linecap="round" stroke-linejoin="round">
-              <path d="M20 7h-9"/>
-              <path d="M14 17H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-3"/>
-              <circle cx="9" cy="11" r="2"/>
+              <path d="M20 7h-9" />
+              <path d="M14 17H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-3" />
+              <circle cx="9" cy="11" r="2" />
             </svg>
             原料管理助手
           </h4>
@@ -319,7 +295,8 @@
               </svg>
             </button>
             <span class="activity-nav-page">{{ matTodoPage }} / {{ matTodoTotalPages }}</span>
-            <button class="activity-nav-btn" :disabled="matTodoPage >= matTodoTotalPages" @click="matTodoNext" title="下一页">
+            <button class="activity-nav-btn" :disabled="matTodoPage >= matTodoTotalPages" @click="matTodoNext"
+              title="下一页">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
                 stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="9 18 15 12 9 6" />
@@ -330,8 +307,8 @@
 
         <div class="todo-list" v-if="paginatedMatTodoItems.length > 0">
           <TransitionGroup name="todo-list" tag="div" class="todo-list__inner">
-            <div v-for="(item, idx) in paginatedMatTodoItems" :key="item.id"
-              class="todo-item" :class="'todo-item--' + item.priority">
+            <div v-for="(item, idx) in paginatedMatTodoItems" :key="item.id" class="todo-item"
+              :class="'todo-item--' + item.priority">
               <div class="todo-item__icon" :class="'todo-item__icon--' + item.type">
                 <svg v-if="item.type === 'warning'" width="16" height="16" viewBox="0 0 24 24" fill="none"
                   stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -379,7 +356,8 @@
         </div>
 
         <div class="assistant-footer">
-          <span class="assistant-hint">{{ materialStore.total }} 种原料在库 · 共 {{ displayMatPendingItems.length }} 项待办</span>
+          <span class="assistant-hint">{{ materialStore.total }} 种原料在库 · 共 {{ displayMatPendingItems.length }}
+            项待办</span>
           <button class="assistant-refresh-btn" @click="refreshMatPending" title="刷新">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
               stroke-linecap="round" stroke-linejoin="round">
@@ -389,11 +367,12 @@
           </button>
         </div>
 
-        <svg class="assistant-bg-icon" width="140" height="140" viewBox="0 0 24 24" fill="none"
-          stroke="currentColor" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
-          <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
-          <line x1="12" y1="22.08" x2="12" y2="12"/>
+        <svg class="assistant-bg-icon" width="140" height="140" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round">
+          <path
+            d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+          <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+          <line x1="12" y1="22.08" x2="12" y2="12" />
         </svg>
       </div>
     </section>
@@ -403,7 +382,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, onActivated, watch, nextTick } from 'vue';
+import { ref, computed, onMounted, onUnmounted, onActivated, watch, nextTick, h } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useMaterialStore } from '@/stores/material';
 import { usePaginationStore } from '@/stores/pagination';
@@ -545,6 +524,13 @@ const sortIconClass = (key: string) => {
   return sortOrder.value === 'asc' ? 'custom-sort custom-sort--asc' : 'custom-sort custom-sort--desc';
 };
 
+const sortTitle = (label: string, key: string) => {
+  return () => h('span', {
+    class: 'custom-sort-header',
+    onClick: (e: Event) => { e.stopPropagation(); toggleSort(key); }
+  }, [label, h('span', { class: sortIconClass(key) })]);
+};
+
 const applySort = () => {
   if (!sortKey.value || !sortOrder.value) {
     sortedMaterials.value = [...materialStore.materials];
@@ -579,27 +565,30 @@ watch(() => materialStore.materials, (val) => {
 // 展开行
 const onExpandChange = (keys: Array<string | number>) => {
   expandedRowKeys.value = keys;
+  const newKeys = keys.filter(k => !expandedNutrition.value[String(k)]);
+  newKeys.forEach(key => {
+    const row = materialStore.materials.find((m: any) => String(m.id) === String(key));
+    if (row) loadExpandedNutrition(row);
+  });
 };
 
 const getExpandedNutrition = (row: any): Record<string, number> => {
   if (!row?.id) return {};
-  if (!expandedNutrition.value[row.id]) {
-    expandedNutrition.value[row.id] = getMockNutritionData(row);
-  }
-  return expandedNutrition.value[row.id];
+  return expandedNutrition.value[row.id] || {};
 };
 
-// 模拟营养数据（当API无数据时使用fallback）
-const getMockNutritionData = (row: any): Record<string, number> => {
-  const idHash = row.id ? row.id.split('').reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0) : 0;
-  return {
-    protein: Math.round((15 + (idHash % 25)) * 10) / 10,
-    fat: Math.round((5 + (idHash % 15)) * 10) / 10,
-    carbohydrate: Math.round((30 + (idHash % 40)) * 10) / 10,
-    sodium: Math.round(((idHash % 200) / 100) * 10) / 10,
-    calories: Math.round(150 + (idHash % 300)),
-    dietaryFiber: Math.round((3 + (idHash % 12)) * 10) / 10
-  };
+const loadExpandedNutrition = async (row: any) => {
+  if (!row?.id) return;
+  if (expandedNutrition.value[row.id]) return;
+  try {
+    const res = await nutritionApi.getMaterialNutrition(row.id, true) as any;
+    const per100g = res?.per100g || res?.data?.per100g || {};
+    if (Object.keys(per100g).length > 0) {
+      expandedNutrition.value[row.id] = per100g;
+    }
+  } catch {
+    // API无数据时不设置，展开行显示空状态
+  }
 };
 
 // 原料头像
@@ -691,17 +680,17 @@ const handleBatchExport = () => {
   clearSelection();
 };
 
-const columns = [
+const columns = computed(() => [
   { colKey: 'row-select', type: 'multiple', width: 50, resizable: false },
-  { colKey: 'name', title: '原料信息', width: 180 },
-  { colKey: 'dataSource', title: '数据源', width: 120, align: 'center' },
-  { colKey: 'materialType', title: '类型', width: 100, align: 'center' },
-  { colKey: 'unitPrice', title: '单价(元/kg)', width: 120, align: 'center' },
+  { colKey: 'name', title: sortTitle('原料信息', 'name'), width: 180 },
+  { colKey: 'dataSource', title: sortTitle('数据源', 'dataSource'), width: 120, align: 'center' },
+  { colKey: 'materialType', title: sortTitle('类型', 'materialType'), width: 100, align: 'center' },
+  { colKey: 'unitPrice', title: sortTitle('单价(元/kg)', 'unitPrice'), width: 120, align: 'center' },
   { colKey: 'nutrition', title: '营养', width: 110, align: 'center' },
-  { colKey: 'stock', title: '库存', width: 100, align: 'center' },
-  { colKey: 'createdAt', title: '创建时间', width: 160 },
+  { colKey: 'stock', title: sortTitle('库存', 'stock'), width: 100, align: 'center' },
+  { colKey: 'createdAt', title: sortTitle('创建时间', 'createdAt'), width: 160 },
   { colKey: 'operation', title: '操作', width: 120, align: 'center', className: 'operation-col-center' }
-];
+]);
 
 const pagination = computed(() => ({
   current: materialStore.currentPage,
@@ -850,16 +839,7 @@ const displayMatPendingItems = computed<MatTodoItem[]>(() => {
   }
 
   if (materials.length === 0) {
-    items.push(
-      { id: 'mock-1', type: 'warning' as const, priority: 'high' as const,
-        title: '单价待录入', desc: '「人参提取物」尚未设置单价信息', actionText: '去编辑', actionType: 'edit' as const, materialId: 'demo-001' },
-      { id: 'mock-2', type: 'info' as const, priority: 'medium' as const,
-        title: '营养素缺失', desc: '「甘草」营养素数据为空，请及时补充', actionText: '去补充', actionType: 'edit' as const, materialId: 'demo-002' },
-      { id: 'mock-3', type: 'default' as const, priority: 'medium' as const,
-        title: '库存偏低提醒', desc: '「当归」仅剩 30g，建议尽快补货', actionText: '查看详情', actionType: 'view' as const, materialId: 'demo-003' },
-      { id: 'mock-4', type: 'warning' as const, priority: 'low' as const,
-        title: '数据更新提示', desc: '「黄芪」超过30天未更新信息', actionText: '去更新', actionType: 'edit' as const, materialId: 'demo-004' },
-    );
+    // 无数据时不显示模拟提醒
   }
 
   const priorityOrder = { high: 0, medium: 1, low: 2 };
@@ -1715,47 +1695,6 @@ const handleDelete = async (row: Material) => {
   white-space: pre-line;
 }
 
-// 自定义排序（无 TDesign 弹窗）
-.custom-sort-header {
-  cursor: pointer;
-  user-select: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-
-  &:hover {
-    color: #10b981;
-  }
-}
-
-.custom-sort {
-  display: inline-block;
-  width: 0;
-  height: 0;
-  margin-left: 2px;
-  border-left: 4px solid transparent;
-  border-right: 4px solid transparent;
-  opacity: 0.25;
-  transition: all 0.2s;
-}
-
-.custom-sort--none {
-  border-top: 5px solid #94a3b8;
-  border-bottom: none;
-}
-
-.custom-sort--asc {
-  border-bottom: 5px solid #10b981;
-  border-top: none;
-  opacity: 1;
-}
-
-.custom-sort--desc {
-  border-top: 5px solid #10b981;
-  border-bottom: none;
-  opacity: 1;
-}
-
 // 营养空标签
 .nutrition-empty {
   color: #cbd5e1;
@@ -1916,7 +1855,7 @@ const handleDelete = async (row: Material) => {
 
 // 活动区域
 .activity-section {
-  margin-top: 40px;
+  margin-top: 30px;
   padding-bottom: 32px;
   display: grid;
   grid-template-columns: 1fr;
@@ -2203,18 +2142,36 @@ const handleDelete = async (row: Material) => {
     background: #FFFBEB;
     border-color: #FEF08A;
 
-    &:hover { background: #FEF9C3; border-color: #FDE047; }
-    .todo-item__title { color: #92400E; }
-    .todo-item__desc { color: #78716C; }
+    &:hover {
+      background: #FEF9C3;
+      border-color: #FDE047;
+    }
+
+    .todo-item__title {
+      color: #92400E;
+    }
+
+    .todo-item__desc {
+      color: #78716C;
+    }
   }
 
   &--medium {
     background: #EFF6FF;
     border-color: #BFDBFE;
 
-    &:hover { background: #DBEAFE; border-color: #93C5FD; }
-    .todo-item__title { color: #1E40AF; }
-    .todo-item__desc { color: #475569; }
+    &:hover {
+      background: #DBEAFE;
+      border-color: #93C5FD;
+    }
+
+    .todo-item__title {
+      color: #1E40AF;
+    }
+
+    .todo-item__desc {
+      color: #475569;
+    }
   }
 
   &--low,
@@ -2222,9 +2179,18 @@ const handleDelete = async (row: Material) => {
     background: #F5F3FF;
     border-color: #DDD6FE;
 
-    &:hover { background: #EDE9FE; border-color: #C4B5FD; }
-    .todo-item__title { color: #5B21B6; }
-    .todo-item__desc { color: #6B7280; }
+    &:hover {
+      background: #EDE9FE;
+      border-color: #C4B5FD;
+    }
+
+    .todo-item__title {
+      color: #5B21B6;
+    }
+
+    .todo-item__desc {
+      color: #6B7280;
+    }
   }
 
   &__icon {
@@ -2236,14 +2202,41 @@ const handleDelete = async (row: Material) => {
     align-items: center;
     justify-content: center;
 
-    &--warning { background: linear-gradient(135deg, #FEF3C7, #FDE68A); color: #D97706; }
-    &--info { background: linear-gradient(135deg, #DBEAFE, #BFDBFE); color: #2563EB; }
-    &--default { background: linear-gradient(135deg, #EDE9FE, #DDD6FE); color: #7C3AED; }
+    &--warning {
+      background: linear-gradient(135deg, #FEF3C7, #FDE68A);
+      color: #D97706;
+    }
+
+    &--info {
+      background: linear-gradient(135deg, #DBEAFE, #BFDBFE);
+      color: #2563EB;
+    }
+
+    &--default {
+      background: linear-gradient(135deg, #EDE9FE, #DDD6FE);
+      color: #7C3AED;
+    }
   }
 
-  &__content { flex: 1; min-width: 0; }
-  &__title { font-size: 13px; font-weight: 600; color: #1e293b; margin: 0 0 3px 0; line-height: 1.3; }
-  &__desc { font-size: 12px; color: #64748b; margin: 0; line-height: 1.4; }
+  &__content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1e293b;
+    margin: 0 0 3px 0;
+    line-height: 1.3;
+  }
+
+  &__desc {
+    font-size: 12px;
+    color: #64748b;
+    margin: 0;
+    line-height: 1.4;
+  }
 
   &__action {
     flex-shrink: 0;
@@ -2269,14 +2262,31 @@ const handleDelete = async (row: Material) => {
 }
 
 @keyframes todoSlideIn {
-  from { opacity: 0; transform: translateX(-12px); }
-  to { opacity: 1; transform: translateX(0); }
+  from {
+    opacity: 0;
+    transform: translateX(-12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 .todo-list-enter-active,
-.todo-list-leave-active { transition: all 0.35s ease; }
-.todo-list-enter-from { opacity: 0; transform: translateY(-8px); }
-.todo-list-leave-to { opacity: 0; transform: translateX(20px); }
+.todo-list-leave-active {
+  transition: all 0.35s ease;
+}
+
+.todo-list-enter-from {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+
+.todo-list-leave-to {
+  opacity: 0;
+  transform: translateX(20px);
+}
 
 .assistant-empty {
   display: flex;
@@ -2285,9 +2295,22 @@ const handleDelete = async (row: Material) => {
   text-align: center;
   padding: 36px 20px 24px;
 
-  svg { margin-bottom: 12px; stroke: #10b981; }
-  p { font-size: 15px; font-weight: 600; color: #0F172A; margin: 0 0 6px 0; }
-  span { font-size: 13px; color: #94a3b8; }
+  svg {
+    margin-bottom: 12px;
+    stroke: #10b981;
+  }
+
+  p {
+    font-size: 15px;
+    font-weight: 600;
+    color: #0F172A;
+    margin: 0 0 6px 0;
+  }
+
+  span {
+    font-size: 13px;
+    color: #94a3b8;
+  }
 }
 
 .assistant-footer {
@@ -2299,7 +2322,10 @@ const handleDelete = async (row: Material) => {
   justify-content: space-between;
 }
 
-.assistant-hint { font-size: 12px; color: #94a3b8; }
+.assistant-hint {
+  font-size: 12px;
+  color: #94a3b8;
+}
 
 .assistant-refresh-btn {
   width: 28px;
@@ -2314,7 +2340,12 @@ const handleDelete = async (row: Material) => {
   justify-content: center;
   transition: all 0.2s ease;
 
-  &:hover { background: #f1f5f9; border-color: #cbd5e1; color: #475569; transform: rotate(180deg); }
+  &:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+    color: #475569;
+    transform: rotate(180deg);
+  }
 }
 
 .assistant-bg-icon {
@@ -2507,5 +2538,46 @@ const handleDelete = async (row: Material) => {
   display: flex !important;
   justify-content: center !important;
   align-items: center !important;
+}
+
+/* 自定义排序 */
+.material-list .custom-sort-header {
+  cursor: pointer;
+  user-select: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.material-list .custom-sort-header:hover {
+  color: #10b981;
+}
+
+.material-list .custom-sort {
+  display: inline-block;
+  width: 0;
+  height: 0;
+  margin-left: 2px;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  opacity: 0.25;
+  transition: all 0.2s;
+}
+
+.material-list .custom-sort--none {
+  border-top: 5px solid #94a3b8;
+  border-bottom: none;
+}
+
+.material-list .custom-sort--asc {
+  border-bottom: 5px solid #10b981;
+  border-top: none;
+  opacity: 1;
+}
+
+.material-list .custom-sort--desc {
+  border-top: 5px solid #10b981;
+  border-bottom: none;
+  opacity: 1;
 }
 </style>

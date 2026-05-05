@@ -58,6 +58,15 @@
                     </svg>
                     批量导出
                   </button>
+                  <button class="batch-action-btn batch-action-btn--compare" @click="handleCompare"
+                    :disabled="selectedRows.length > 3" :title="selectedRows.length > 3 ? '最多选择3个配方进行对比' : '对比所选配方'">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                      stroke-linecap="round" stroke-linejoin="round">
+                      <rect x="3" y="3" width="7" height="18" rx="1" />
+                      <rect x="14" y="3" width="7" height="18" rx="1" />
+                    </svg>
+                    配方对比 ({{ selectedRows.length }})
+                  </button>
                 </div>
               </div>
               <button class="batch-cancel-btn" @click="clearSelection">取消</button>
@@ -97,35 +106,6 @@
         <t-table :data="sortedFormulas" :columns="columns" :loading="formulaStore.loading" :pagination="undefined"
           row-key="id" hover table-layout="auto" :expanded-row-keys="expandedRowKeys" @expand-change="onExpandChange"
           @select-change="handleSelectChange" :selected-row-keys="selectedRowKeys" @row-click="handleRowClick">
-          <template #name-title>
-            <span class="custom-sort-header" @click.stop="toggleSort('name')">配方信息<span
-                :class="sortIconClass('name')"></span></span>
-          </template>
-          <template #formulaStatus-title>
-            <span class="custom-sort-header" @click.stop="toggleSort('formulaStatus')">版本状态<span
-                :class="sortIconClass('formulaStatus')"></span></span>
-          </template>
-          <template #materialCount-title>
-            <span class="custom-sort-header" @click.stop="toggleSort('materialCount')">原料数量<span
-                :class="sortIconClass('materialCount')"></span></span>
-          </template>
-          <template #salesmanName-title>
-            <span class="custom-sort-header" @click.stop="toggleSort('salesmanName')">负责人<span
-                :class="sortIconClass('salesmanName')"></span></span>
-          </template>
-          <template #costSubtotal-title>
-            <span class="custom-sort-header" @click.stop="toggleSort('costSubtotal')">成本小计<span
-                :class="sortIconClass('costSubtotal')"></span></span>
-          </template>
-          <template #totalPrice-title>
-            <span class="custom-sort-header" @click.stop="toggleSort('totalPrice')">报价<span
-                :class="sortIconClass('totalPrice')"></span></span>
-          </template>
-          <template #createdAt-title>
-            <span class="custom-sort-header" @click.stop="toggleSort('createdAt')">更新时间<span
-                :class="sortIconClass('createdAt')"></span></span>
-          </template>
-
           <template #name="{ row }">
             <div class="formula-info">
               <div class="formula-avatar" :style="{
@@ -178,7 +158,7 @@
                     <div class="version-center">
                       <span class="version-name">{{ ver.versionName }}</span>
                       <span v-if="ver.versionReason" class="version-reason">原因: {{ ver.versionReason }}</span>
-                      <span class="version-time">{{ ver.createdAt }}</span>
+                      <span class="version-time">{{ formatVersionTime(ver.createdAt) }}</span>
                     </div>
                     <div v-if="ver.changesJson && parseChanges(ver.changesJson).length" class="version-changes">
                       <div class="changes-detail">
@@ -188,13 +168,8 @@
                               :theme="change.changeType === 'add' ? 'success' : change.changeType === 'delete' ? 'danger' : 'warning'"
                               variant="light" class="change-type-tag">{{ change.changeType === 'add' ? '新增' :
                                 change.changeType === 'delete' ? '删除' : '修改' }}</t-tag>
-                            <span class="change-label">{{ change.fieldLabel }}</span>
-                            <span class="change-values">
-                              <span v-if="change.oldValue !== null" class="change-old">{{ change.oldValue }}</span>
-                              <span v-if="change.oldValue !== null && change.newValue !== null"
-                                class="change-arrow">→</span>
-                              <span v-if="change.newValue !== null" class="change-new">{{ change.newValue }}</span>
-                            </span>
+                            <span class="change-label">{{ change.fieldLabel }}由{{ change.oldValue ?? '-' }}→{{
+                              change.newValue ?? '-' }}</span>
                           </div>
                         </div>
                       </div>
@@ -237,25 +212,40 @@
 
           <template #salesQuantity="{ row }">
             <div class="sales-quantity-cell" @click.stop="openSalesDialog(row)">
-              <span v-if="row._salesQuantity != null" class="sales-qty-value">{{ row._salesQuantity.toLocaleString() }}</span>
-              <span v-else class="sales-qty-empty">录入</span>
+              <span v-if="getSalesQuantity(row) > 0" class="sales-qty-value">{{ getSalesQuantity(row).toLocaleString()
+                }}</span>
+              <span v-else class="sales-qty-empty">--</span>
             </div>
           </template>
 
           <template #costSubtotal="{ row }">
-            <span class="price-cell" :class="{ 'price-cell--empty': getRowCostSubtotal(row) === 0 }">
-              {{ getRowCostSubtotal(row) > 0 ? `¥${getRowCostSubtotal(row).toFixed(2)}` : '--' }}
-            </span>
-            <t-icon v-if="row.missingPrices?.length" name="error-circle" size="12px" class="price-warn-icon"
-              :title="`缺少单价：${row.missingPrices.join('、')}`" />
+            <div class="price-cell-wrapper">
+              <span class="price-cell" :class="{ 'price-cell--empty': getRowCostSubtotal(row) === 0 }">
+                {{ getRowCostSubtotal(row) > 0 ? `¥${getRowCostSubtotal(row).toFixed(2)}` : '--' }}
+              </span>
+              <t-tooltip v-if="row.missingPrices?.length"
+                :content="`成本不完整：缺少 ${row.missingPrices.join('、')} 的单价，请补充原料价格`" theme="warning">
+                <span class="price-warn-badge" @click.stop>
+                  <t-icon name="error-circle" size="12px" />
+                  价格缺失
+                </span>
+              </t-tooltip>
+            </div>
           </template>
 
           <template #totalPrice="{ row }">
-            <span class="price-cell price-cell--quote" :class="{ 'price-cell--empty': getRowTotalPrice(row) === 0 }">
-              {{ getRowTotalPrice(row) > 0 ? `¥${getRowTotalPrice(row).toFixed(2)}` : '--' }}
-            </span>
-            <t-icon v-if="row.missingPrices?.length" name="error-circle" size="12px"
-              class="price-warn-icon price-warn-icon--quote" :title="`缺少单价：${row.missingPrices.join('、')}`" />
+            <div class="price-cell-wrapper">
+              <span class="price-cell price-cell--quote" :class="{ 'price-cell--empty': getRowTotalPrice(row) === 0 }">
+                {{ getRowTotalPrice(row) > 0 ? `¥${getRowTotalPrice(row).toFixed(2)}` : '--' }}
+              </span>
+              <t-tooltip v-if="row.missingPrices?.length"
+                :content="`报价不准确：缺少 ${row.missingPrices.join('、')} 的单价，请补充原料价格`" theme="warning">
+                <span class="price-warn-badge" @click.stop>
+                  <t-icon name="error-circle" size="12px" />
+                  报价不准
+                </span>
+              </t-tooltip>
+            </div>
           </template>
 
           <template #empty>
@@ -373,9 +363,10 @@
           <h4 class="assistant-title">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"
               stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 2a4 4 0 0 1 4 4v1h5a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h5V6a4 4 0 0 1 4-4z"/>
-              <path d="M9 22V12h6v10"/>
-              <circle cx="12" cy="7" r="1"/>
+              <path
+                d="M12 2a4 4 0 0 1 4 4v1h5a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h5V6a4 4 0 0 1 4-4z" />
+              <path d="M9 22V12h6v10" />
+              <circle cx="12" cy="7" r="1" />
             </svg>
             配方师小助手
           </h4>
@@ -398,8 +389,8 @@
 
         <div class="todo-list" v-if="paginatedTodoItems.length > 0">
           <TransitionGroup name="todo-list" tag="div" class="todo-list__inner">
-            <div v-for="(item, idx) in paginatedTodoItems" :key="item.id"
-              class="todo-item" :class="'todo-item--' + item.priority">
+            <div v-for="(item, idx) in paginatedTodoItems" :key="item.id" class="todo-item"
+              :class="'todo-item--' + item.priority">
               <div class="todo-item__icon" :class="'todo-item__icon--' + item.type">
                 <svg v-if="item.type === 'warning'" width="16" height="16" viewBox="0 0 24 24" fill="none"
                   stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -457,11 +448,12 @@
           </button>
         </div>
 
-        <svg class="assistant-bg-icon" width="140" height="140" viewBox="0 0 24 24" fill="none"
-          stroke="currentColor" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
-          <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
-          <line x1="12" y1="22.08" x2="12" y2="12"/>
+        <svg class="assistant-bg-icon" width="140" height="140" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round">
+          <path
+            d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+          <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+          <line x1="12" y1="22.08" x2="12" y2="12" />
         </svg>
       </div>
     </section>
@@ -472,7 +464,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, onActivated, watch, nextTick } from 'vue';
+import { ref, computed, onMounted, onUnmounted, onActivated, watch, nextTick, h } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useFormulaStore } from '@/stores/formula';
 import { useMaterialStore } from '@/stores/material';
@@ -615,6 +607,13 @@ const sortIconClass = (key: string) => {
   return sortOrder.value === 'asc' ? 'custom-sort custom-sort--asc' : 'custom-sort custom-sort--desc';
 };
 
+const sortTitle = (label: string, key: string) => {
+  return () => h('span', {
+    class: 'custom-sort-header',
+    onClick: (e: Event) => { e.stopPropagation(); toggleSort(key); }
+  }, [label, h('span', { class: sortIconClass(key) })]);
+};
+
 const applySort = () => {
   if (!sortKey.value || !sortOrder.value) {
     sortedFormulas.value = [...formulaStore.formulas];
@@ -666,6 +665,17 @@ const handleBatchExport = () => {
   clearSelection();
 };
 
+const handleCompare = () => {
+  if (selectedRows.value.length === 0) return;
+  if (selectedRows.value.length > 3) {
+    MessagePlugin.warning('最多选择3个配方进行对比');
+    return;
+  }
+  const ids = selectedRows.value.map(f => f.id);
+  localStorage.setItem('compare_formulas', JSON.stringify(ids));
+  router.push('/formulas/compare');
+};
+
 const handleBatchDelete = async () => {
   if (selectedRows.value.length === 0) return;
   const count = selectedRows.value.length;
@@ -703,6 +713,11 @@ const handleBatchArchive = async () => {
   } catch {
     MessagePlugin.error('批量归档失败');
   }
+};
+
+const formatVersionTime = (timeStr: string): string => {
+  if (!timeStr) return '--';
+  return timeStr.replace(/[TZ]/g, ' ').trim();
 };
 
 const parseChanges = (changesJson: string): any[] => {
@@ -792,20 +807,18 @@ const getFormulaStatus = (row: any) => {
   };
 };
 
-const columns = [
+const columns = computed(() => [
   { colKey: 'row-select', type: 'multiple', width: 50, resizable: false },
-  { colKey: 'name', title: '配方信息', width: 200 },
-  {
-    colKey: 'formulaStatus', title: '版本状态', width: 170, align: 'center'
-  },
-  { colKey: 'materialCount', title: '原料数量', width: 120, align: 'center' },
-  { colKey: 'salesmanName', title: '负责人', width: 150, align: 'center' },
+  { colKey: 'name', title: sortTitle('配方信息', 'name'), width: 200 },
+  { colKey: 'formulaStatus', title: sortTitle('版本状态', 'formulaStatus'), width: 170, align: 'center' },
+  { colKey: 'materialCount', title: sortTitle('原料数量', 'materialCount'), width: 120, align: 'center' },
+  { colKey: 'salesmanName', title: '负责人', width: 150, align: 'left' },
   { colKey: 'salesQuantity', title: '本月销量(件)', width: 120, align: 'center' },
-  { colKey: 'costSubtotal', title: '成本小计(元)', width: 140, align: 'center' },
-  { colKey: 'totalPrice', title: '报价(元)', width: 135, align: 'center' },
-  { colKey: 'createdAt', title: '更新时间', width: 165 },
+  { colKey: 'costSubtotal', title: sortTitle('成本小计(元)', 'costSubtotal'), width: 140, align: 'center' },
+  { colKey: 'totalPrice', title: sortTitle('报价(元)', 'totalPrice'), width: 135, align: 'center' },
+  { colKey: 'createdAt', title: sortTitle('更新时间', 'createdAt'), width: 165 },
   { colKey: 'operation', title: '操作', width: 135, align: 'center' }
-];
+]);
 
 const pagination = computed(() => ({
   current: formulaStore.currentPage,
@@ -998,16 +1011,18 @@ const pendingItems = computed<PendingItem[]>(() => {
   const items: PendingItem[] = [];
   const formulas = formulaStore.formulas || [];
   const salesList = salesStore.sales || [];
+  const materials = materialStore.materials || [];
 
   for (const f of formulas) {
     const currentVersion = (f.versions || []).find((v: any) => v.isCurrent);
-    if (!currentVersion && f.versions && f.versions.length > 0) {
+    const publishedVersion = (f.versions || []).find((v: any) => v.status === 'published');
+    if (currentVersion?.status === 'draft' && publishedVersion) {
       items.push({
         id: `draft-${f.id}`,
         type: 'warning',
         priority: 'high',
         title: '配方待发布',
-        desc: `「${f.name}」有草稿版本尚未发布`,
+        desc: `「${f.name}」有新版本草稿尚未发布`,
         actionText: '去发布',
         actionType: 'publish',
         formulaId: f.id
@@ -1027,6 +1042,36 @@ const pendingItems = computed<PendingItem[]>(() => {
         formulaId: f.id
       });
     }
+
+    if (currentVersion?.status === 'published' && currentVersion?.createdAt) {
+      const daysSinceUpdate = Math.floor((Date.now() - new Date(currentVersion.createdAt).getTime()) / 86400000);
+      if (daysSinceUpdate > 30) {
+        items.push({
+          id: `stale-${f.id}`,
+          type: 'info',
+          priority: 'low',
+          title: '版本长期未更新',
+          desc: `「${f.name}」已发布超过${daysSinceUpdate}天，建议更新版本`,
+          actionText: '去更新',
+          actionType: 'publish',
+          formulaId: f.id
+        });
+      }
+    }
+  }
+
+  const missingPriceMaterials = materials.filter((m: any) => !m.unitPrice || m.unitPrice === 0);
+  if (missingPriceMaterials.length > 0) {
+    items.push({
+      id: 'missing-prices',
+      type: 'warning',
+      priority: 'high',
+      title: '原料价格缺失',
+      desc: `有 ${missingPriceMaterials.length} 种原料未设置单价，影响成本核算准确性`,
+      actionText: '去补充',
+      actionType: 'view',
+      formulaId: ''
+    });
   }
 
   if (formulas.length === 0) {
@@ -1048,51 +1093,7 @@ const pendingItems = computed<PendingItem[]>(() => {
 });
 
 const displayPendingItems = computed<PendingItem[]>(() => {
-  const realItems = pendingItems.value;
-  if (realItems.length > 0) return realItems;
-
-  return [
-    {
-      id: 'mock-1',
-      type: 'warning' as const,
-      priority: 'high' as const,
-      title: '配方待发布',
-      desc: '「人参养颜膏 v2.0」有新版本草稿尚未发布',
-      actionText: '去发布',
-      actionType: 'publish' as const,
-      formulaId: 'demo-001'
-    },
-    {
-      id: 'mock-2',
-      type: 'info' as const,
-      priority: 'medium' as const,
-      title: '销量数据待录入',
-      desc: '「美白霜精华」本月暂无销量数据，请及时录入',
-      actionText: '去录入',
-      actionType: 'sales' as const,
-      formulaId: 'demo-002'
-    },
-    {
-      id: 'mock-3',
-      type: 'default' as const,
-      priority: 'medium' as const,
-      title: '原料价格变动提醒',
-      desc: '「甘草」单价近期波动较大，建议关注成本变化',
-      actionText: '查看详情',
-      actionType: 'view' as const,
-      formulaId: 'demo-003'
-    },
-    {
-      id: 'mock-4',
-      type: 'warning' as const,
-      priority: 'low' as const,
-      title: '版本即将过期',
-      desc: '「祛痘修护膏」v1.0 已发布超过30天，建议更新版本',
-      actionText: '去更新',
-      actionType: 'publish' as const,
-      formulaId: 'demo-004'
-    },
-  ];
+  return pendingItems.value;
 });
 
 const TODO_PAGE_SIZE = 3;
@@ -1122,7 +1123,11 @@ const handleTodoAction = (item: PendingItem) => {
       if (item.formulaId) router.push(`/formulas/${item.formulaId}`);
       break;
     case 'view':
-      if (item.formulaId) router.push(`/formulas/${item.formulaId}`);
+      if (item.formulaId) {
+        router.push(`/formulas/${item.formulaId}`);
+      } else {
+        router.push('/materials');
+      }
       break;
     case 'create':
       handleCreate();
@@ -1162,8 +1167,9 @@ onMounted(() => {
 
 let isRestoringFromRoute = false;
 
+let pendingRefreshTimer: ReturnType<typeof setInterval> | null = null;
+
 onMounted(async () => {
-  // 从路由查询参数恢复搜索关键字
   if (route.query.keyword) {
     const keyword = route.query.keyword as string;
     isRestoringFromRoute = true;
@@ -1181,6 +1187,18 @@ onMounted(async () => {
   await loadSalesData();
   await salesStore.fetchStats();
   initialized.value = true;
+
+  pendingRefreshTimer = setInterval(() => {
+    formulaStore.fetchFormulas();
+    materialStore.fetchMaterials();
+  }, 5 * 60 * 1000);
+});
+
+onUnmounted(() => {
+  if (pendingRefreshTimer) {
+    clearInterval(pendingRefreshTimer);
+    pendingRefreshTimer = null;
+  }
 });
 
 // 处理 keep-alive 缓存的组件重新激活时恢复搜索状态
@@ -1238,7 +1256,7 @@ const handleCreate = () => {
   });
 };
 
-const handleRowClick = ({ row }: { row: Formula }) => {
+const handleRowClick = ({ row }: { row: Formula; }) => {
   console.log('[FormulaList] row clicked, row:', JSON.stringify({ id: row.id, name: row.name }));
   router.push({
     path: `/formulas/${row.id}`,
@@ -1277,7 +1295,7 @@ const handleDelete = async (row: Formula) => {
 const salesDialogVisible = ref(false);
 const salesDialogFormulaId = ref('');
 const salesEditRecord = ref<SaleRecord | null>(null);
-const salesDataMap = ref<Record<string, { quantity: number; revenue: number }>>({});
+const salesDataMap = ref<Record<string, number>>({});
 
 const openSalesDialog = async (row: Formula) => {
   salesDialogFormulaId.value = row.id;
@@ -1304,23 +1322,25 @@ const onSalesDialogSuccess = async () => {
 const loadSalesData = async () => {
   try {
     const now = new Date();
-    const curMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
-    const res = await salesStore.fetchSales({ periodStart: curMonth, pageSize: 9999 });
-    const map: Record<string, { quantity: number; revenue: number }> = {};
+    const periodStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
+    await salesStore.fetchSales({ pageSize: 9999, periodStart });
+    const map: Record<string, number> = {};
     for (const s of salesStore.sales) {
       if (s.formulaId) {
-        if (!map[s.formulaId]) map[s.formulaId] = { quantity: 0, revenue: 0 };
-        map[s.formulaId].quantity += s.quantity;
-        map[s.formulaId].revenue += s.revenue;
+        map[s.formulaId] = (map[s.formulaId] || 0) + s.quantity;
       }
     }
     salesDataMap.value = map;
-    for (const f of formulaStore.formulas) {
-      (f as any)._salesQuantity = map[f.id]?.quantity ?? null;
-    }
   } catch (e) {
     console.error('加载销量数据失败:', e);
   }
+};
+
+const getSalesQuantity = (row: any): number => {
+  if (row.salesQuantity != null && row.salesQuantity > 0) return row.salesQuantity;
+  const fromMap = salesDataMap.value[row.id];
+  if (fromMap != null && fromMap > 0) return fromMap;
+  return 0;
 };
 </script>
 
@@ -1404,7 +1424,7 @@ const loadSalesData = async () => {
     background-color: #fff;
     border-radius: 32px !important;
     border: 1px solid #f8fafc !important;
-    overflow: visible;
+    overflow: hidden;
     box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
     transition: all $transition-slow;
 
@@ -1417,7 +1437,6 @@ const loadSalesData = async () => {
     // 覆盖 TDesign t-card 默认 body padding（index.html 无额外 padding，工具栏自带 p-8）
     :deep(.t-card__body) {
       padding: 0 !important;
-      overflow: visible;
     }
 
     :deep(.t-table__body .t-table__row) {
@@ -1961,7 +1980,7 @@ const loadSalesData = async () => {
 
 // 底部快捷动态区域 - 参照 index.html 第945行
 .activity-section {
-  margin-top: 40px; // mt-10(40px)
+  margin-top: 30px;
   padding-bottom: 32px; // pb-8 - 对应 index.html main 容器的 p-8 底部间距
   display: grid;
   grid-template-columns: 1fr;
@@ -2277,8 +2296,13 @@ const loadSalesData = async () => {
       border-color: #FDE047;
     }
 
-    .todo-item__title { color: #92400E; }
-    .todo-item__desc { color: #78716C; }
+    .todo-item__title {
+      color: #92400E;
+    }
+
+    .todo-item__desc {
+      color: #78716C;
+    }
   }
 
   &--medium {
@@ -2290,8 +2314,13 @@ const loadSalesData = async () => {
       border-color: #93C5FD;
     }
 
-    .todo-item__title { color: #1E40AF; }
-    .todo-item__desc { color: #475569; }
+    .todo-item__title {
+      color: #1E40AF;
+    }
+
+    .todo-item__desc {
+      color: #475569;
+    }
   }
 
   &--low,
@@ -2304,8 +2333,13 @@ const loadSalesData = async () => {
       border-color: #C4B5FD;
     }
 
-    .todo-item__title { color: #5B21B6; }
-    .todo-item__desc { color: #6B7280; }
+    .todo-item__title {
+      color: #5B21B6;
+    }
+
+    .todo-item__desc {
+      color: #6B7280;
+    }
   }
 
   &__icon {
@@ -2381,6 +2415,7 @@ const loadSalesData = async () => {
     opacity: 0;
     transform: translateX(-12px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -2705,6 +2740,19 @@ const loadSalesData = async () => {
         height: 14px;
         stroke-width: 2;
       }
+
+      &--compare {
+        font-weight: 700;
+
+        &:hover:not(:disabled) {
+          color: #d1fae5;
+        }
+
+        &:disabled {
+          opacity: 0.4;
+          cursor: not-allowed;
+        }
+      }
     }
   }
 
@@ -2889,6 +2937,7 @@ const loadSalesData = async () => {
 .version-status {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
 
   .version-tag {
@@ -2926,6 +2975,7 @@ const loadSalesData = async () => {
 .salesman-info {
   display: flex;
   align-items: center;
+  justify-content: left;
   gap: 8px;
 
   .salesman-avatar {
@@ -2957,13 +3007,13 @@ const loadSalesData = async () => {
   align-items: center;
 
   &:hover {
-    background: #eff6ff;
+    background: #ecfdf5;
   }
 
   .sales-qty-value {
     font-size: 14px;
     font-weight: 700;
-    color: #3b82f6;
+    color: #059669;
 
     .sales-qty-unit {
       font-size: 12px;
@@ -2982,9 +3032,9 @@ const loadSalesData = async () => {
     transition: all 0.2s;
 
     &:hover {
-      color: #3b82f6;
-      border-color: #3b82f6;
-      background: #eff6ff;
+      color: #059669;
+      border-color: #059669;
+      background: #ecfdf5;
     }
   }
 }
@@ -2999,6 +3049,13 @@ const loadSalesData = async () => {
 }
 
 // 价格列
+.price-cell-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
 .price-cell {
   display: inline-flex;
   align-items: baseline;
@@ -3035,56 +3092,20 @@ const loadSalesData = async () => {
   }
 }
 
-.price-warn-icon {
-  color: #f59e0b;
-  margin-left: 4px;
-  vertical-align: middle;
-  cursor: help;
-
-  &--quote {
-    color: #f59e0b;
-  }
-}
-
-// 自定义排序（无 TDesign 弹窗）
-.custom-sort-header {
-  cursor: pointer;
-  user-select: none;
+.price-warn-badge {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-
-  &:hover {
-    color: #10b981;
-  }
-}
-
-.custom-sort {
-  display: inline-block;
-  width: 0;
-  height: 0;
-  margin-left: 2px;
-  border-left: 4px solid transparent;
-  border-right: 4px solid transparent;
-  opacity: 0.25;
-  transition: all 0.2s;
-}
-
-.custom-sort--none {
-  border-top: 5px solid #94a3b8;
-  border-bottom: none;
-}
-
-.custom-sort--asc {
-  border-bottom: 5px solid #10b981;
-  border-top: none;
-  opacity: 1;
-}
-
-.custom-sort--desc {
-  border-top: 5px solid #10b981;
-  border-bottom: none;
-  opacity: 1;
+  gap: 3px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #b45309;
+  background: #fffbeb;
+  padding: 2px 8px;
+  border-radius: 10px;
+  border: 1px solid #fde68a;
+  cursor: help;
+  white-space: nowrap;
+  line-height: 1.5;
 }
 
 // 操作按钮列
@@ -3151,7 +3172,7 @@ const loadSalesData = async () => {
 .formula-list .content-card .t-table,
 .formula-list .content-card .t-table .t-table__header,
 .formula-list .content-card .t-table .t-table__body-wrapper {
-  overflow: visible !important;
+  overflow: hidden !important;
 }
 </style>
 
@@ -3271,5 +3292,46 @@ const loadSalesData = async () => {
   svg {
     flex-shrink: 0 !important;
   }
+}
+
+/* 自定义排序 */
+.formula-list .custom-sort-header {
+  cursor: pointer;
+  user-select: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.formula-list .custom-sort-header:hover {
+  color: #10b981;
+}
+
+.formula-list .custom-sort {
+  display: inline-block;
+  width: 0;
+  height: 0;
+  margin-left: 2px;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  opacity: 0.25;
+  transition: all 0.2s;
+}
+
+.formula-list .custom-sort--none {
+  border-top: 5px solid #94a3b8;
+  border-bottom: none;
+}
+
+.formula-list .custom-sort--asc {
+  border-bottom: 5px solid #10b981;
+  border-top: none;
+  opacity: 1;
+}
+
+.formula-list .custom-sort--desc {
+  border-top: 5px solid #10b981;
+  border-bottom: none;
+  opacity: 1;
 }
 </style>

@@ -59,13 +59,13 @@
                     <t-radio value="supplement">辅料</t-radio>
                   </t-radio-group>
                 </div>
-                <!-- 原料编码（自动根据名称拼音缩写生成） -->
-                <div class="form-field">
+                <!-- 原料编码（编辑时只读展示，新增时由后端自动生成） -->
+                <div v-if="isEdit" class="form-field">
                   <label class="field-label" id="lbl-material-code"><t-icon name="barcode" size="12px"
-                      class="label-icon" /> 原料编码 <span class="required">*</span></label>
-                  <t-input v-model="formData.code" placeholder="输入原料名称后自动生成" :disabled="!formData.name" clearable
-                    class="field-input" aria-required="true" aria-labelledby="lbl-material-code" />
-                  <span class="field-help">根据原料名称拼音首字母自动生成，可手动修改</span>
+                      class="label-icon" /> 原料编码</label>
+                  <t-input v-model="formData.code" disabled class="field-input field-input--disabled"
+                    aria-labelledby="lbl-material-code" />
+                  <span class="field-help">系统自动生成，不可修改</span>
                 </div>
                 <!-- 单位 -->
                 <div class="grid grid-cols-2 gap-6">
@@ -85,8 +85,8 @@
                     <label class="field-label" id="lbl-unit-price"><t-icon name="currency-exchange" size="12px"
                         class="label-icon" /> 单价（元/kg）</label>
                     <t-input-number v-model="formData.unitPrice" :min="0" :precision="2" placeholder="暂不录入"
-                      class="field-input" aria-labelledby="lbl-unit-price" />
-                    <span class="field-help">可选，用于配方报价自动计算</span>
+                      class="field-input" aria-labelledby="lbl-unit-price" @change="handleUnitPriceChange" />
+                    <span class="field-help">可选，由用户手动输入，不录入时保持为空</span>
                   </div>
                 </div>
               </div>
@@ -520,7 +520,6 @@ const hasNutrition = ref(false);
 const isEdit = computed(() => !!route.params.id);
 
 const formData = reactive<any>({
-  code: '',
   name: '',
   unit: '',
   stock: 0,
@@ -540,26 +539,7 @@ const unitOptions = [
   { label: '箱', value: '箱' }
 ];
 
-const fetchCodeForName = async (name: string) => {
-  if (!name || name.trim().length < 2) return;
-  try {
-    const res: any = await materialApi.getNextCode(name.trim());
-    if (res?.data?.code) formData.code = res.data.code;
-  } catch {
-  }
-};
-
-watch(() => formData.name, (newName) => {
-  if (!isEdit.value && newName && newName.length >= 2) {
-    fetchCodeForName(newName);
-  }
-});
-
 const rules: Record<string, FormRule[]> = {
-  code: [
-    { required: true, message: '请输入原料编码', trigger: 'blur' },
-    { pattern: /^[A-Z0-9-]+$/, message: '编码只能包含大写字母、数字和横线', trigger: 'change' },
-  ],
   name: [
     { required: true, message: '请输入原料名称', trigger: 'blur' },
     { min: 2, message: '原料名称至少2个字符', trigger: 'change' },
@@ -981,7 +961,7 @@ const handleBatchRegister = async () => {
     registerStatusMap[idx] = 'loading';
     try {
       const codeRes: any = await materialApi.getNextCode(item.name);
-      const code = codeRes?.data?.code || `MAT${String(Date.now()).slice(-3)}`;
+      const code = codeRes?.code || `MAT${String(Date.now()).slice(-3)}`;
       const fileName = selectedFile.value?.name || 'AI导入';
 
       const matRes: any = await materialApi.create({
@@ -1067,7 +1047,7 @@ const handleImmediateRegister = async (item: any, idx: number) => {
   registerStatusMap[idx] = 'loading';
   try {
     const codeRes: any = await materialApi.getNextCode(item.name);
-    const code = codeRes?.data?.code || `MAT${String(Date.now()).slice(-3)}`;
+    const code = codeRes?.code || `MAT${String(Date.now()).slice(-3)}`;
     const fileName = selectedFile.value?.name || 'AI导入';
 
     const matRes: any = await materialApi.create({
@@ -1172,6 +1152,12 @@ const saveNutrition = async (materialId: string) => {
   } catch (error: any) { console.error('保存营养成分失败:', error); }
 };
 
+const handleUnitPriceChange = (val: number | undefined) => {
+  if (val === undefined || val === null) {
+    formData.unitPrice = undefined;
+  }
+};
+
 const handleSubmit = async ({ validateResult }: any) => {
   if (validateResult === true) {
     if (loading.value) return;
@@ -1179,8 +1165,23 @@ const handleSubmit = async ({ validateResult }: any) => {
     try {
       const id = route.params.id as string;
       let result;
-      if (isEdit.value && id) result = await materialStore.updateMaterial(id, formData);
-      else result = await materialStore.createMaterial(formData);
+      if (isEdit.value && id) {
+        result = await materialStore.updateMaterial(id, formData);
+      } else {
+        let code = '';
+        try {
+          const codeRes: any = await materialApi.getNextCode(formData.name);
+          code = codeRes?.code || '';
+        } catch (err) {
+          console.error('[MaterialForm] 获取原料编码失败:', err);
+        }
+        if (!code) {
+          MessagePlugin.error('获取原料编码失败，请重试');
+          loading.value = false;
+          return;
+        }
+        result = await materialStore.createMaterial({ ...formData, code });
+      }
 
       if (result.success) {
         if (showNutrition.value) {
@@ -1240,7 +1241,7 @@ onMounted(async () => {
       Object.assign(formData, {
         code: material.code, name: material.name, unit: material.unit,
         stock: material.stock, materialType: material.materialType || 'herb',
-        unitPrice: material.unitPrice ?? undefined,
+        unitPrice: material.unitPrice != null ? material.unitPrice : undefined,
       });
       await loadNutrition(id);
     }
@@ -1617,6 +1618,24 @@ onMounted(async () => {
           :deep(.t-input-number) {
             width: 100%;
           }
+
+          &.field-input--disabled {
+            :deep(.t-input) {
+              background-color: #f1f5f9 !important;
+              border-color: #e2e8f0 !important;
+              color: #94a3b8 !important;
+              cursor: not-allowed;
+              opacity: 0.7;
+            }
+          }
+        }
+
+        .field-help {
+          display: block;
+          margin-top: 4px;
+          font-size: 12px;
+          color: #94a3b8;
+          line-height: 1.4;
         }
 
         :deep(.t-input) {

@@ -340,11 +340,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted, watch } from 'vue'
-import { useFormulaStore } from '@/stores/formula'
-import { useNutritionStore } from '@/stores/nutrition'
-import { MessagePlugin } from 'tdesign-vue-next'
-import PageSkeleton from '@/components/Skeleton/PageSkeleton.vue'
+import { ref, reactive, computed, onMounted, watch } from 'vue';
+import { useFormulaStore } from '@/stores/formula';
+import { useNutritionStore } from '@/stores/nutrition';
+import { MessagePlugin } from 'tdesign-vue-next';
+import PageSkeleton from '@/components/Skeleton/PageSkeleton.vue';
 import {
   chartProgressGood,
   chartProgressWarn,
@@ -354,21 +354,21 @@ import {
   gradientFat,
   gradientCarb,
   gradientSodium,
-} from '@/assets/styles/tokens'
+} from '@/assets/styles/tokens';
 
-const formulaStore = useFormulaStore()
-const nutritionStore = useNutritionStore()
+const formulaStore = useFormulaStore();
+const nutritionStore = useNutritionStore();
 
-const initialized = ref(false)
+const initialized = ref(false);
 
-const analysisForm = reactive({ formulaId: '', profileId: '' })
-const analyzing = ref(false)
-const checking = ref(false)
+const analysisForm = reactive({ formulaId: '', profileId: '' });
+const analyzing = ref(false);
+const checking = ref(false);
 
 const categoryMap: Record<string, string> = {
   infant: '婴幼儿', child: '儿童', adult: '成人', elderly: '老年', pregnant: '孕妇', special: '特殊'
-}
-const categoryLabel = (c: string) => categoryMap[c] || c
+};
+const categoryLabel = (c: string) => categoryMap[c] || c;
 
 const nutrientInfoMap: Record<string, [string, string]> = {
   energy: ['能量', 'kJ'], protein: ['蛋白质', 'g'], fat: ['脂肪', 'g'], carbohydrate: ['碳水化合物', 'g'],
@@ -379,11 +379,11 @@ const nutrientInfoMap: Record<string, [string, string]> = {
   vitaminB1: ['维生素B1', 'mg'], vitaminB2: ['维生素B2', 'mg'], vitaminB3: ['维生素B3', 'mg'],
   vitaminB6: ['维生素B6', 'mg'], vitaminB12: ['维生素B12', 'μg'], folate: ['叶酸', 'μg'],
   cholesterol: ['胆固醇', 'mg'], transFat: ['反式脂肪', 'g'], saturatedFat: ['饱和脂肪', 'g'],
-}
+};
 
 const NRV: Record<string, number> = {
   energy: 8400, protein: 60, fat: 60, carbohydrate: 300, sodium: 2000,
-}
+};
 
 const CORE_NUTRIENTS = [
   { key: 'energy', label: '能量', unit: 'kJ', icon: 'flashlight', iconBg: gradientEnergy },
@@ -391,106 +391,106 @@ const CORE_NUTRIENTS = [
   { key: 'fat', label: '脂肪', unit: 'g', icon: 'drop', iconBg: gradientFat },
   { key: 'carbohydrate', label: '碳水化合物', unit: 'g', icon: 'chart-bar', iconBg: gradientCarb },
   { key: 'sodium', label: '钠', unit: 'mg', icon: 'tips', iconBg: gradientSodium },
-] as const
+] as const;
 
 interface NutritionCard {
   key: string; label: string; unit: string; value: string;
-  icon: string; iconBg: string; nrvPercent: number; progressColor: string; statusClass: string
+  icon: string; iconBg: string; nrvPercent: number; progressColor: string; statusClass: string;
 }
 
 const coreNutritionCards = computed<NutritionCard[]>(() => {
-  const per100g = nutritionStore.formulaNutrition?.per100gNutrition
-  if (!per100g) return []
+  const per100g = nutritionStore.formulaNutrition?.per100gNutrition;
+  if (!per100g) return [];
   return CORE_NUTRIENTS.map(nutrient => {
-    const rawValue = per100g[nutrient.key] || 0
-    const value = typeof rawValue === 'number' ? rawValue.toFixed(2) : String(rawValue)
-    const nrv = NRV[nutrient.key] || 1
-    const nrvPercent = Math.min(Math.round((rawValue / nrv) * 10000) / 100, 150)
-    let progressColor = chartProgressGood
-    let statusClass = ''
+    const rawValue = per100g[nutrient.key] || 0;
+    const value = typeof rawValue === 'number' ? rawValue.toFixed(2) : String(rawValue);
+    const nrv = NRV[nutrient.key] || 1;
+    const nrvPercent = Math.min(Math.round((rawValue / nrv) * 10000) / 100, 150);
+    let progressColor = chartProgressGood;
+    let statusClass = '';
     if (nutrient.key === 'energy' || nutrient.key === 'fat' || nutrient.key === 'sodium') {
-      if (nrvPercent < 80) { progressColor = chartProgressGood; statusClass = 'status-good' }
-      else if (nrvPercent <= 120) { progressColor = chartProgressWarn; statusClass = 'status-warning' }
-      else { progressColor = chartProgressBad; statusClass = 'status-danger' }
+      if (nrvPercent < 80) { progressColor = chartProgressGood; statusClass = 'status-good'; }
+      else if (nrvPercent <= 120) { progressColor = chartProgressWarn; statusClass = 'status-warning'; }
+      else { progressColor = chartProgressBad; statusClass = 'status-danger'; }
     } else {
-      if (nrvPercent >= 80) { progressColor = chartProgressGood; statusClass = 'status-good' }
-      else if (nrvPercent >= 50) { progressColor = chartProgressWarn; statusClass = 'status-warning' }
-      else { progressColor = chartProgressBad; statusClass = 'status-danger' }
+      if (nrvPercent >= 80) { progressColor = chartProgressGood; statusClass = 'status-good'; }
+      else if (nrvPercent >= 50) { progressColor = chartProgressWarn; statusClass = 'status-warning'; }
+      else { progressColor = chartProgressBad; statusClass = 'status-danger'; }
     }
     return {
       key: nutrient.key, label: nutrient.label, unit: nutrient.unit, value, icon: nutrient.icon,
       iconBg: nutrient.iconBg, nrvPercent, progressColor, statusClass
-    }
-  })
-})
+    };
+  });
+});
 
 const contributionColumns = [
   { colKey: 'materialName', title: '原料名称', width: 200, ellipsis: true },
   { colKey: 'quantity', title: '用量(g)', width: 100 },
   { colKey: 'percentage', title: '重量占比', width: 180 },
   { colKey: 'nutritionContribution', title: '营养贡献', width: 120 },
-]
+];
 
 interface MaterialBreakdownRow {
   materialId: string; materialName: string; quantity: number; percentage: number;
   hasNutritionData: boolean; noNutritionData: boolean;
-  nutritionDetails: Array<{ key: string; label: string; value: string; unit: string }>
+  nutritionDetails: Array<{ key: string; label: string; value: string; unit: string; }>;
 }
 
 const materialBreakdown = computed<MaterialBreakdownRow[]>(() => {
-  const breakdown = nutritionStore.formulaNutrition?.materialBreakdown
-  if (!breakdown || !Array.isArray(breakdown)) return []
+  const breakdown = nutritionStore.formulaNutrition?.materialBreakdown;
+  if (!breakdown || !Array.isArray(breakdown)) return [];
   return breakdown.map((item: any) => {
-    const hasNutritionData = item.nutritionContribution && Object.keys(item.nutritionContribution).length > 0
-    const noNutritionData = !hasNutritionData || (item.nutritionContribution && Object.values(item.nutritionContribution).every((v: any) => v === 0))
-    const nutritionDetails: Array<{ key: string; label: string; value: string; unit: string }> = []
+    const hasNutritionData = item.nutritionContribution && Object.keys(item.nutritionContribution).length > 0;
+    const noNutritionData = !hasNutritionData || (item.nutritionContribution && Object.values(item.nutritionContribution).every((v: any) => v === 0));
+    const nutritionDetails: Array<{ key: string; label: string; value: string; unit: string; }> = [];
     if (item.nutritionContribution) {
       for (const [key, val] of Object.entries(item.nutritionContribution)) {
-        const info = nutrientInfoMap[key]
-        if (info && val && Number(val) > 0) nutritionDetails.push({ key, label: info[0], value: Number(val).toFixed(2), unit: info[1] })
+        const info = nutrientInfoMap[key];
+        if (info && val && Number(val) > 0) nutritionDetails.push({ key, label: info[0], value: Number(val).toFixed(2), unit: info[1] });
       }
     }
     return {
       materialId: item.materialId || item.materialName, materialName: item.materialName,
       quantity: item.quantity || 0, percentage: Math.round(item.percentage * 100) / 100,
       hasNutritionData: nutritionDetails.length > 0, noNutritionData, nutritionDetails
-    }
-  })
-})
+    };
+  });
+});
 
 const nutritionDataList = computed(() => {
-  if (!nutritionStore.formulaNutrition?.per100gNutrition) return []
+  if (!nutritionStore.formulaNutrition?.per100gNutrition) return [];
   return Object.entries(nutritionStore.formulaNutrition.per100gNutrition)
     .map(([key, value]) => {
-      const [name, unit] = nutrientInfoMap[key] || [key, '']
-      return { nutrient: name, value: typeof value === 'number' ? value.toFixed(2) : String(value), unit, overLimit: false }
-    })
-})
+      const [name, unit] = nutrientInfoMap[key] || [key, ''];
+      return { nutrient: name, value: typeof value === 'number' ? value.toFixed(2) : String(value), unit, overLimit: false };
+    });
+});
 
 const nutritionColumns = [
   { colKey: 'nutrient', title: '营养成分', width: 200 },
   { colKey: 'value', title: '含量', width: 150 },
   { colKey: 'unit', title: '单位', width: 100 },
-]
+];
 
 const complianceColumns = [
   { colKey: 'label', title: '营养成分', width: 150 },
   { colKey: 'actualValue', title: '实际值', width: 120 },
   { colKey: 'status', title: '状态', width: 100 },
   { colKey: 'message', title: '说明', width: 300 }
-]
+];
 
 const complianceDataList = computed(() => {
-  if (!nutritionStore.complianceResult?.complianceCheck) return []
+  if (!nutritionStore.complianceResult?.complianceCheck) return [];
   return nutritionStore.complianceResult.complianceCheck.map((item: any) => ({
     ...item,
     actualValue: typeof item.actualValue === 'number' ? item.actualValue.toFixed(2) : String(item.actualValue),
-  }))
-})
+  }));
+});
 
 const dashboardCards = computed(() => {
-  const hasResult = !!nutritionStore.formulaNutrition
-  const compliance = nutritionStore.complianceResult
+  const hasResult = !!nutritionStore.formulaNutrition;
+  const compliance = nutritionStore.complianceResult;
   return [
     {
       label: '分析状态',
@@ -536,22 +536,22 @@ const dashboardCards = computed(() => {
       iconColor: compliance ? (compliance.summary?.failed === 0 ? '#10B981' : '#EF4444') : '#94A3B8',
       iconPath: '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>',
     },
-  ]
-})
+  ];
+});
 
-interface ActivityItem { type: 'success' | 'info' | 'warning'; title: string; desc: string; time: string }
-const ACTIVITY_PAGE_SIZE = 4
-const activityPage = ref(1)
+interface ActivityItem { type: 'success' | 'info' | 'warning'; title: string; desc: string; time: string; }
+const ACTIVITY_PAGE_SIZE = 4;
+const activityPage = ref(1);
 
 const allActivityItems = computed<ActivityItem[]>(() => {
-  const items: ActivityItem[] = []
+  const items: ActivityItem[] = [];
   if (nutritionStore.formulaNutrition && analysisForm.formulaId) {
     items.push({
       type: 'success',
       title: '营养分析完成',
       desc: `配方 <strong>${nutritionStore.formulaNutrition.formulaName || '未知'}</strong> 的营养成分已计算完成`,
       time: new Date().toLocaleString('zh-CN'),
-    })
+    });
   }
   if (nutritionStore.complianceResult) {
     items.push({
@@ -561,70 +561,70 @@ const allActivityItems = computed<ActivityItem[]>(() => {
         ? '所有指标均符合所选营养标准要求'
         : `存在 <strong>${nutritionStore.complianceResult.summary?.failed}</strong> 项指标不达标，需要关注`,
       time: new Date().toLocaleString('zh-CN'),
-    })
+    });
   }
-  if (items.length === 0) items.push({ type: 'info', title: '等待分析', desc: '选择配方并点击"开始分析"按钮查看营养数据', time: '' })
-  return items
-})
+  if (items.length === 0) items.push({ type: 'info', title: '等待分析', desc: '选择配方并点击"开始分析"按钮查看营养数据', time: '' });
+  return items;
+});
 
-const activityTotalPages = computed(() => Math.max(1, Math.ceil(allActivityItems.value.length / ACTIVITY_PAGE_SIZE)))
+const activityTotalPages = computed(() => Math.max(1, Math.ceil(allActivityItems.value.length / ACTIVITY_PAGE_SIZE)));
 const pagedActivityItems = computed(() => {
-  const start = (activityPage.value - 1) * ACTIVITY_PAGE_SIZE
-  return allActivityItems.value.slice(start, start + ACTIVITY_PAGE_SIZE)
-})
-const activityPrev = () => { if (activityPage.value > 1) activityPage.value-- }
-const activityNext = () => { if (activityPage.value < activityTotalPages.value) activityPage.value++ }
+  const start = (activityPage.value - 1) * ACTIVITY_PAGE_SIZE;
+  return allActivityItems.value.slice(start, start + ACTIVITY_PAGE_SIZE);
+});
+const activityPrev = () => { if (activityPage.value > 1) activityPage.value--; };
+const activityNext = () => { if (activityPage.value < activityTotalPages.value) activityPage.value++; };
 
 const assistantMessage = computed(() => {
-  if (!analysisForm.formulaId) return '在上方选择一个配方，系统将自动计算其营养成分含量和NRV占比。'
-  if (!nutritionStore.formulaNutrition) return '已选择配方，点击"开始分析"按钮即可查看详细的营养数据。'
-  if (nutritionStore.complianceResult?.summary?.failed === 0) return '分析完成！该配方的各项营养指标均符合所选标准，表现优秀。'
-  if (nutritionStore.complianceResult) return `分析完成！发现 ${nutritionStore.complianceResult.summary?.failed} 项超标指标，建议调整配方比例。`
-  return '营养分析已完成，您可以查看详细数据和合规性报告。'
-})
+  if (!analysisForm.formulaId) return '在上方选择一个配方，系统将自动计算其营养成分含量和NRV占比。';
+  if (!nutritionStore.formulaNutrition) return '已选择配方，点击"开始分析"按钮即可查看详细的营养数据。';
+  if (nutritionStore.complianceResult?.summary?.failed === 0) return '分析完成！该配方的各项营养指标均符合所选标准，表现优秀。';
+  if (nutritionStore.complianceResult) return `分析完成！发现 ${nutritionStore.complianceResult.summary?.failed} 项超标指标，建议调整配方比例。`;
+  return '营养分析已完成，您可以查看详细数据和合规性报告。';
+});
 
-const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' })
+const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
 
 const handleAnalyze = async () => {
-  if (!analysisForm.formulaId) { MessagePlugin.warning('请选择配方'); return }
-  analyzing.value = true
-  nutritionStore.formulaNutrition = null
-  nutritionStore.complianceResult = null
-  const result = await nutritionStore.calculateFormulaNutrition(analysisForm.formulaId)
-  analyzing.value = false
-  if (!result.success) MessagePlugin.error(result.message || '计算失败')
-}
+  if (!analysisForm.formulaId) { MessagePlugin.warning('请选择配方'); return; }
+  analyzing.value = true;
+  nutritionStore.formulaNutrition = null;
+  nutritionStore.complianceResult = null;
+  const result = await nutritionStore.calculateFormulaNutrition(analysisForm.formulaId);
+  analyzing.value = false;
+  if (!result.success) MessagePlugin.error(result.message || '计算失败');
+};
 
 // handleCheckCompliance is used programmatically
 // @ts-ignore
 async function handleCheckCompliance() {
-  if (!analysisForm.formulaId) return
-  checking.value = true
-  nutritionStore.complianceResult = null
-  const result = await nutritionStore.checkCompliance(analysisForm.formulaId, analysisForm.profileId || undefined)
-  checking.value = false
-  if (!result.success) MessagePlugin.error(result.message || '合规检查失败')
+  if (!analysisForm.formulaId) return;
+  checking.value = true;
+  nutritionStore.complianceResult = null;
+  const result = await nutritionStore.checkCompliance(analysisForm.formulaId, analysisForm.profileId || undefined);
+  checking.value = false;
+  if (!result.success) MessagePlugin.error(result.message || '合规检查失败');
 }
 
 watch(
   () => analysisForm.formulaId,
   (newFormulaId, oldFormulaId) => {
     if (!newFormulaId || newFormulaId !== oldFormulaId) {
-      nutritionStore.formulaNutrition = null
-      nutritionStore.complianceResult = null
+      nutritionStore.formulaNutrition = null;
+      nutritionStore.complianceResult = null;
     }
   }
-)
+);
 
 onMounted(async () => {
-  nutritionStore.formulaNutrition = null
-  nutritionStore.complianceResult = null
-  analysisForm.formulaId = ''
-  analysisForm.profileId = ''
-  initialized.value = false
-  await Promise.all([formulaStore.fetchFormulas(), nutritionStore.fetchProfiles()])
-  initialized.value = true
-})
+  nutritionStore.formulaNutrition = null;
+  nutritionStore.complianceResult = null;
+  analysisForm.formulaId = '';
+  analysisForm.profileId = '';
+  initialized.value = false;
+  await Promise.all([formulaStore.fetchFormulas(), nutritionStore.fetchProfiles()]);
+  initialized.value = true;
+});
 </script>
 
 <style scoped lang="scss">
@@ -1073,7 +1073,7 @@ onMounted(async () => {
   }
 
   .activity-section {
-    margin-top: 40px;
+    margin-top: 30px;
     padding-bottom: 32px;
     display: grid;
     grid-template-columns: 1fr;

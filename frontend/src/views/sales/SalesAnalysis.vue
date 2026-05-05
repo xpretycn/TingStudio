@@ -104,16 +104,18 @@
                     业务员销售额排行 TOP{{ topSalesmenByRevenue.length }}
                   </h3>
                   <div class="rank-nav" v-if="salesmanRankTotalPages > 1">
-                    <button class="rank-nav-btn" :disabled="salesmanRankPage <= 1" @click="salesmanRankPage--" title="上一页">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                        stroke-linecap="round" stroke-linejoin="round">
+                    <button class="rank-nav-btn" :disabled="salesmanRankPage <= 1" @click="salesmanRankPage--"
+                      title="上一页">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <polyline points="15 18 9 12 15 6" />
                       </svg>
                     </button>
                     <span class="rank-nav-page">{{ salesmanRankPage }} / {{ salesmanRankTotalPages }}</span>
-                    <button class="rank-nav-btn" :disabled="salesmanRankPage >= salesmanRankTotalPages" @click="salesmanRankPage++" title="下一页">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                        stroke-linecap="round" stroke-linejoin="round">
+                    <button class="rank-nav-btn" :disabled="salesmanRankPage >= salesmanRankTotalPages"
+                      @click="salesmanRankPage++" title="下一页">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <polyline points="9 18 15 12 9 6" />
                       </svg>
                     </button>
@@ -133,7 +135,8 @@
                   <div v-else class="rank-list">
                     <div v-for="(item, idx) in paginatedTopSalesmenByRevenue" :key="item.salesmanId"
                       class="rank-item rank-item--purple">
-                      <span class="rank-number" :class="{ 'rank-top': idx < 3, 'rank-top--purple': idx < 3 }">{{ (salesmanRankPage - 1) * 5 + idx + 1
+                      <span class="rank-number" :class="{ 'rank-top': idx < 3, 'rank-top--purple': idx < 3 }">{{
+                        (salesmanRankPage - 1) * 5 + idx + 1
                       }}</span>
                       <div class="rank-info">
                         <p class="rank-name">{{ item.salesmanName }}</p>
@@ -160,16 +163,18 @@
                     配方销售额排行 TOP{{ revenueTopFormulas.length }}
                   </h3>
                   <div class="rank-nav" v-if="revenueFormulaRankTotalPages > 1">
-                    <button class="rank-nav-btn" :disabled="revenueFormulaRankPage <= 1" @click="revenueFormulaRankPage--" title="上一页">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                        stroke-linecap="round" stroke-linejoin="round">
+                    <button class="rank-nav-btn" :disabled="revenueFormulaRankPage <= 1"
+                      @click="revenueFormulaRankPage--" title="上一页">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <polyline points="15 18 9 12 15 6" />
                       </svg>
                     </button>
                     <span class="rank-nav-page">{{ revenueFormulaRankPage }} / {{ revenueFormulaRankTotalPages }}</span>
-                    <button class="rank-nav-btn" :disabled="revenueFormulaRankPage >= revenueFormulaRankTotalPages" @click="revenueFormulaRankPage++" title="下一页">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                        stroke-linecap="round" stroke-linejoin="round">
+                    <button class="rank-nav-btn" :disabled="revenueFormulaRankPage >= revenueFormulaRankTotalPages"
+                      @click="revenueFormulaRankPage++" title="下一页">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <polyline points="9 18 15 12 9 6" />
                       </svg>
                     </button>
@@ -187,7 +192,8 @@
                   <div v-else class="rank-list">
                     <div v-for="(item, idx) in paginatedRevenueTopFormulas" :key="item.formulaId"
                       class="rank-item rank-item--revenue">
-                      <span class="rank-number" :class="{ 'rank-top': idx < 3, 'rank-top--green': idx < 3 }">{{ (revenueFormulaRankPage - 1) * 5 + idx + 1
+                      <span class="rank-number" :class="{ 'rank-top': idx < 3, 'rank-top--green': idx < 3 }">{{
+                        (revenueFormulaRankPage - 1) * 5 + idx + 1
                       }}</span>
                       <div class="rank-info">
                         <p class="rank-name">{{ item.formulaName }}</p>
@@ -215,16 +221,18 @@
                     配方销量排行 TOP{{ topFormulas.length }}
                   </h3>
                   <div class="rank-nav" v-if="formulaRankTotalPages > 1">
-                    <button class="rank-nav-btn" :disabled="formulaRankPage <= 1" @click="formulaRankPage--" title="上一页">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                        stroke-linecap="round" stroke-linejoin="round">
+                    <button class="rank-nav-btn" :disabled="formulaRankPage <= 1" @click="formulaRankPage--"
+                      title="上一页">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <polyline points="15 18 9 12 15 6" />
                       </svg>
                     </button>
                     <span class="rank-nav-page">{{ formulaRankPage }} / {{ formulaRankTotalPages }}</span>
-                    <button class="rank-nav-btn" :disabled="formulaRankPage >= formulaRankTotalPages" @click="formulaRankPage++" title="下一页">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                        stroke-linecap="round" stroke-linejoin="round">
+                    <button class="rank-nav-btn" :disabled="formulaRankPage >= formulaRankTotalPages"
+                      @click="formulaRankPage++" title="下一页">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <polyline points="9 18 15 12 9 6" />
                       </svg>
                     </button>
@@ -242,7 +250,8 @@
                   </div>
                   <div v-else class="rank-list">
                     <div v-for="(item, idx) in paginatedTopFormulas" :key="item.formulaId" class="rank-item">
-                      <span class="rank-number" :class="{ 'rank-top': idx < 3 }">{{ (formulaRankPage - 1) * 5 + idx + 1 }}</span>
+                      <span class="rank-number" :class="{ 'rank-top': idx < 3 }">{{ (formulaRankPage - 1) * 5 + idx + 1
+                      }}</span>
                       <div class="rank-info">
                         <p class="rank-name">{{ item.formulaName }}</p>
                         <div class="rank-bar-track">
@@ -507,36 +516,46 @@
           <h4 class="assistant-title">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"
               stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/>
+              <path d="M12 20V10" />
+              <path d="M18 20V4" />
+              <path d="M6 20v-4" />
             </svg>
             销量管理助手
           </h4>
           <div class="sales-nav" v-if="salesTodoTotalPages > 1">
             <button class="activity-nav-btn" :disabled="salesTodoPage <= 1" @click="salesTodoPrev" title="上一页">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
             </button>
             <span class="activity-nav-page">{{ salesTodoPage }} / {{ salesTodoTotalPages }}</span>
-            <button class="activity-nav-btn" :disabled="salesTodoPage >= salesTodoTotalPages" @click="salesTodoNext" title="下一页">
+            <button class="activity-nav-btn" :disabled="salesTodoPage >= salesTodoTotalPages" @click="salesTodoNext"
+              title="下一页">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
             </button>
           </div>
         </div>
 
         <div class="todo-list" v-if="paginatedSalesTodoItems.length > 0">
           <TransitionGroup name="todo-list" tag="div" class="todo-list__inner">
-            <div v-for="(item, idx) in paginatedSalesTodoItems" :key="item.id"
-              class="todo-item" :class="'todo-item--' + item.priority">
+            <div v-for="(item, idx) in paginatedSalesTodoItems" :key="item.id" class="todo-item"
+              :class="'todo-item--' + item.priority">
               <div class="todo-item__icon" :class="'todo-item__icon--' + item.type">
                 <svg v-if="item.type === 'warning'" width="16" height="16" viewBox="0 0 24 24" fill="none"
                   stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-                  <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                  <line x1="12" y1="9" x2="12" y2="13" />
+                  <line x1="12" y1="17" x2="12.01" y2="17" />
                 </svg>
                 <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                   stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="16" x2="12" y2="12" />
+                  <line x1="12" y1="8" x2="12.01" y2="8" />
                 </svg>
               </div>
               <div class="todo-item__content">
@@ -545,7 +564,9 @@
               </div>
               <button class="todo-item__action" @click="handleSalesTodoAction(item)" :title="item.actionText">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                  stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
               </button>
             </div>
           </TransitionGroup>
@@ -554,25 +575,31 @@
         <div class="assistant-empty" v-else>
           <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="1.5"
             stroke-linecap="round" stroke-linejoin="round">
-            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+            <polyline points="22 4 12 14.01 9 11.01" />
           </svg>
           <p>太棒了！暂无待处理事项</p>
           <span>所有配方销量数据完整~</span>
         </div>
 
         <div class="assistant-footer">
-          <span class="assistant-hint">{{ formulaStore.formulas?.length || 0 }} 个配方 · 共 {{ displaySalesPendingItems.length }} 项待办</span>
+          <span class="assistant-hint">{{ formulaStore.formulas?.length || 0 }} 个配方 · 共 {{
+            displaySalesPendingItems.length
+          }} 项待办</span>
           <button class="assistant-refresh-btn" @click="refreshSalesPending" title="刷新">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
               stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+              <polyline points="23 4 23 10 17 10" />
+              <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
             </svg>
           </button>
         </div>
 
-        <svg class="assistant-bg-icon" width="140" height="140" viewBox="0 0 24 24" fill="none"
-          stroke="currentColor" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/>
+        <svg class="assistant-bg-icon" width="140" height="140" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 20V10" />
+          <path d="M18 20V4" />
+          <path d="M6 20v-4" />
         </svg>
       </div>
     </section>
@@ -965,14 +992,22 @@ const displaySalesPendingItems = computed<SalesTodoItem[]>(() => {
 
   if (formulas.length === 0 || items.length === 0) {
     items.push(
-      { id: 'mock-1', type: 'warning' as const, priority: 'high' as const,
-        title: '销量待录入', desc: '「人参养荣汤」本月暂无销量数据', actionText: '去录入', actionType: 'edit' as const, formulaId: 'demo-001' },
-      { id: 'mock-2', type: 'warning' as const, priority: 'high' as const,
-        title: '销量待录入', desc: '「十全大补汤」本月暂无销量数据', actionText: '去录入', actionType: 'edit' as const, formulaId: 'demo-002' },
-      { id: 'mock-3', type: 'info' as const, priority: 'medium' as const,
-        title: '配方未发布', desc: '「归脾汤」仍为草稿状态，无法统计销量', actionText: '查看详情', actionType: 'view' as const, formulaId: 'demo-003' },
-      { id: 'mock-4', type: 'default' as const, priority: 'low' as const,
-        title: '数据更新提示', desc: '「补中益气汤」超过30天未更新销量', actionText: '去更新', actionType: 'edit' as const, formulaId: 'demo-004' },
+      {
+        id: 'mock-1', type: 'warning' as const, priority: 'high' as const,
+        title: '销量待录入', desc: '「人参养荣汤」本月暂无销量数据', actionText: '去录入', actionType: 'edit' as const, formulaId: 'demo-001'
+      },
+      {
+        id: 'mock-2', type: 'warning' as const, priority: 'high' as const,
+        title: '销量待录入', desc: '「十全大补汤」本月暂无销量数据', actionText: '去录入', actionType: 'edit' as const, formulaId: 'demo-002'
+      },
+      {
+        id: 'mock-3', type: 'info' as const, priority: 'medium' as const,
+        title: '配方未发布', desc: '「归脾汤」仍为草稿状态，无法统计销量', actionText: '查看详情', actionType: 'view' as const, formulaId: 'demo-003'
+      },
+      {
+        id: 'mock-4', type: 'default' as const, priority: 'low' as const,
+        title: '数据更新提示', desc: '「补中益气汤」超过30天未更新销量', actionText: '去更新', actionType: 'edit' as const, formulaId: 'demo-004'
+      },
     );
   }
 
@@ -1123,7 +1158,7 @@ onMounted(async () => {
 }
 
 .activity-section {
-  margin-top: 40px;
+  margin-top: 30px;
   padding-bottom: 0;
   display: grid;
   grid-template-columns: 1fr;
@@ -1415,18 +1450,36 @@ onMounted(async () => {
       background: #FFFBEB;
       border-color: #FEF08A;
 
-      &:hover { background: #FEF9C3; border-color: #FDE047; }
-      .todo-item__title { color: #92400E; }
-      .todo-item__desc { color: #78716C; }
+      &:hover {
+        background: #FEF9C3;
+        border-color: #FDE047;
+      }
+
+      .todo-item__title {
+        color: #92400E;
+      }
+
+      .todo-item__desc {
+        color: #78716C;
+      }
     }
 
     &--medium {
       background: #EFF6FF;
       border-color: #BFDBFE;
 
-      &:hover { background: #DBEAFE; border-color: #93C5FD; }
-      .todo-item__title { color: #1E40AF; }
-      .todo-item__desc { color: #475569; }
+      &:hover {
+        background: #DBEAFE;
+        border-color: #93C5FD;
+      }
+
+      .todo-item__title {
+        color: #1E40AF;
+      }
+
+      .todo-item__desc {
+        color: #475569;
+      }
     }
 
     &--low,
@@ -1434,9 +1487,18 @@ onMounted(async () => {
       background: #F5F3FF;
       border-color: #DDD6FE;
 
-      &:hover { background: #EDE9FE; border-color: #C4B5FD; }
-      .todo-item__title { color: #5B21B6; }
-      .todo-item__desc { color: #6B7280; }
+      &:hover {
+        background: #EDE9FE;
+        border-color: #C4B5FD;
+      }
+
+      .todo-item__title {
+        color: #5B21B6;
+      }
+
+      .todo-item__desc {
+        color: #6B7280;
+      }
     }
 
     &__icon {
@@ -1448,14 +1510,41 @@ onMounted(async () => {
       align-items: center;
       justify-content: center;
 
-      &--warning { background: linear-gradient(135deg, #FEF3C7, #FDE68A); color: #D97706; }
-      &--info { background: linear-gradient(135deg, #DBEAFE, #BFDBFE); color: #2563EB; }
-      &--default { background: linear-gradient(135deg, #EDE9FE, #DDD6FE); color: #7C3AED; }
+      &--warning {
+        background: linear-gradient(135deg, #FEF3C7, #FDE68A);
+        color: #D97706;
+      }
+
+      &--info {
+        background: linear-gradient(135deg, #DBEAFE, #BFDBFE);
+        color: #2563EB;
+      }
+
+      &--default {
+        background: linear-gradient(135deg, #EDE9FE, #DDD6FE);
+        color: #7C3AED;
+      }
     }
 
-    &__content { flex: 1; min-width: 0; }
-    &__title { font-size: 13px; font-weight: 600; color: #1e293b; margin: 0 0 3px 0; line-height: 1.3; }
-    &__desc { font-size: 12px; color: #64748b; margin: 0; line-height: 1.4; }
+    &__content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    &__title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #1e293b;
+      margin: 0 0 3px 0;
+      line-height: 1.3;
+    }
+
+    &__desc {
+      font-size: 12px;
+      color: #64748b;
+      margin: 0;
+      line-height: 1.4;
+    }
 
     &__action {
       flex-shrink: 0;
@@ -1481,8 +1570,15 @@ onMounted(async () => {
   }
 
   @keyframes todoSlideIn {
-    from { opacity: 0; transform: translateX(-12px); }
-    to { opacity: 1; transform: translateX(0); }
+    from {
+      opacity: 0;
+      transform: translateX(-12px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
   }
 
   .assistant-empty {
@@ -1492,9 +1588,22 @@ onMounted(async () => {
     text-align: center;
     padding: 36px 20px 24px;
 
-    svg { margin-bottom: 12px; stroke: #10b981; }
-    p { font-size: 15px; font-weight: 600; color: #0F172A; margin: 0 0 6px 0; }
-    span { font-size: 13px; color: #94a3b8; }
+    svg {
+      margin-bottom: 12px;
+      stroke: #10b981;
+    }
+
+    p {
+      font-size: 15px;
+      font-weight: 600;
+      color: #0F172A;
+      margin: 0 0 6px 0;
+    }
+
+    span {
+      font-size: 13px;
+      color: #94a3b8;
+    }
   }
 
   .assistant-footer {
@@ -1506,7 +1615,10 @@ onMounted(async () => {
     justify-content: space-between;
   }
 
-  .assistant-hint { font-size: 12px; color: #94a3b8; }
+  .assistant-hint {
+    font-size: 12px;
+    color: #94a3b8;
+  }
 
   .assistant-refresh-btn {
     width: 28px;
@@ -1521,7 +1633,12 @@ onMounted(async () => {
     justify-content: center;
     transition: all 0.2s ease;
 
-    &:hover { background: #f1f5f9; border-color: #cbd5e1; color: #475569; transform: rotate(180deg); }
+    &:hover {
+      background: #f1f5f9;
+      border-color: #cbd5e1;
+      color: #475569;
+      transform: rotate(180deg);
+    }
   }
 
   .assistant-bg-icon {
@@ -2522,7 +2639,7 @@ onMounted(async () => {
 }
 
 .activity-section {
-  margin-top: 40px;
+  margin-top: 30px;
   padding-bottom: 0;
   display: grid;
   grid-template-columns: 1fr;

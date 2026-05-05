@@ -283,8 +283,9 @@
         <!-- 页面内容 -->
         <div class="content-main">
           <router-view v-slot="{ Component }">
-            <transition :name="transitionName" mode="out-in">
-              <component v-if="Component" :is="Component" :key="contentRefreshKey + route.fullPath" />
+            <transition :name="transitionName" mode="out-in" @before-leave="onTransitionBeforeLeave"
+              @after-leave="onTransitionAfterLeave">
+              <component :is="Component" :key="contentRefreshKey + route.fullPath" />
             </transition>
           </router-view>
         </div>
@@ -337,8 +338,8 @@ const activePath = computed(() => {
   const path = route.path;
   // 按最长前缀匹配，优先精确匹配，再按路径段前缀匹配
   const pathMap = [
-    '/formulas', '/materials', '/salesmen', '/sales',
-    '/exports', '/nutrition', '/tools', '/ai-assistant'
+    '/formulas', '/materials', '/files', '/salesmen', '/sales',
+    '/reports', '/exports', '/nutrition', '/tools', '/ai-assistant'
   ];
   for (const key of pathMap) {
     if (path === key || path.startsWith(key + '/')) return key;
@@ -393,12 +394,15 @@ const pageIcon = computed(() => {
   const iconMap: Record<string, string> = {
     '/formulas': 'edit',
     '/materials': 'chart-bar',
+    '/files': 'folder',
     '/salesmen': 'usergroup',
     '/sales': 'chart',
+    '/reports': 'file-icon',
     '/exports': 'download',
     '/nutrition': 'chart-pie',
     '/tools': 'setting',
     '/ai-assistant': 'precise-monitor',
+    '/model-management': 'control-platform',
     '/settings': 'user-circle'
   };
   if (iconMap[route.path]) return iconMap[route.path];
@@ -410,16 +414,24 @@ const pageIcon = computed(() => {
 });
 
 // 导航菜单项
-const navItems = [
-  { path: '/ai-assistant', label: 'AI 助手', icon: 'precise-monitor' },
-  { path: '/formulas', label: '配方管理', icon: 'edit' },
-  { path: '/materials', label: '原材管理', icon: 'chart-bar' },
-  { path: '/salesmen', label: '业务员管理', icon: 'usergroup' },
-  { path: '/sales', label: '销量分析', icon: 'chart' },
-  { path: '/exports', label: '导出中心', icon: 'download' },
-  { path: '/nutrition', label: '营养分析', icon: 'chart-pie' },
-  { path: '/tools', label: '工具箱', icon: 'setting' },
-];
+const navItems = computed(() => {
+  const items = [
+    { path: '/ai-assistant', label: 'AI 助手', icon: 'precise-monitor' },
+    { path: '/formulas', label: '配方管理', icon: 'edit' },
+    { path: '/materials', label: '原料管理', icon: 'chart-bar' },
+    { path: '/files', label: '文件管理', icon: 'folder' },
+    { path: '/salesmen', label: '业务员管理', icon: 'usergroup' },
+    { path: '/sales', label: '销量分析', icon: 'chart' },
+    { path: '/reports', label: '报告中心', icon: 'file-icon' },
+    { path: '/exports', label: '导出中心', icon: 'download' },
+    { path: '/nutrition', label: '营养分析', icon: 'chart-pie' },
+    { path: '/tools', label: '工具箱', icon: 'setting' },
+  ];
+  if (authStore.user?.role === 'admin') {
+    items.push({ path: '/model-management', label: '模型管理', icon: 'control-platform' });
+  }
+  return items;
+});
 
 // 日期和星期
 const currentDate = ref('');
@@ -433,12 +445,15 @@ const pageTitle = computed(() => {
   const titleMap: Record<string, string> = {
     '/formulas': '配方管理',
     '/materials': '原料管理',
+    '/files': '文件管理',
     '/salesmen': '业务员管理',
     '/sales': '销量分析',
+    '/reports': '报告中心',
     '/exports': '导出中心',
     '/nutrition': '营养分析',
     '/tools': '工具箱',
     '/ai-assistant': 'AI 助手',
+    '/model-management': '模型管理',
     '/settings': '账号设置'
   };
   for (const [key, value] of Object.entries(titleMap)) {
@@ -476,7 +491,7 @@ const breadcrumbs = computed(() => {
   // 列表页无父级，不需要面包屑
   const listPaths = [
     '/formulas', '/materials', '/salesmen', '/sales',
-    '/exports', '/nutrition', '/tools', '/ai-assistant', '/settings'
+    '/reports', '/exports', '/nutrition', '/tools', '/ai-assistant', '/settings'
   ];
   if (listPaths.includes(path)) return [];
 
@@ -498,6 +513,9 @@ const breadcrumbs = computed(() => {
     { prefix: '/salesmen/', parentPath: '/salesmen', parentTitle: '业务员管理' },
     { prefix: '/versions/', parentPath: '/formulas', parentTitle: '配方管理' },
     { prefix: '/nutrition/profiles', parentPath: '/nutrition', parentTitle: '营养分析' },
+    { prefix: '/reports/weekly', parentPath: '/reports', parentTitle: '报告中心' },
+    { prefix: '/reports/monthly', parentPath: '/reports', parentTitle: '报告中心' },
+    { prefix: '/reports/generate', parentPath: '/reports', parentTitle: '报告中心' },
   ];
 
   // 版本页面需要二级面包屑：配方管理 > 版本管理
@@ -518,7 +536,7 @@ const breadcrumbs = computed(() => {
   if (parentMap[path]) {
     const parentPath = parentMap[path];
     const parentTitle = listPaths.includes(parentPath)
-      ? (navItems.find(n => n.path === parentPath)?.label || '')
+      ? (navItems.value.find((n: any) => n.path === parentPath)?.label || '')
       : '';
     return parentTitle ? [{ title: parentTitle, path: parentPath }] : [];
   }
@@ -560,8 +578,14 @@ const navigateTo = (path: string) => {
 
 // 刷新子页面（只刷新右侧内容区域）
 const handleRefresh = () => {
+  if (isTransitioning) return;
   contentRefreshKey.value++;
 };
+
+// Transition 安全钩子
+let isTransitioning = false;
+const onTransitionBeforeLeave = () => { isTransitioning = true; };
+const onTransitionAfterLeave = () => { isTransitioning = false; };
 
 // 刷新天气
 const handleRefreshWeather = async () => {
@@ -580,6 +604,8 @@ const handleGoBack = () => {
     router.push('/materials');
   } else if (path.startsWith('/materials/') && path !== '/materials') {
     router.push('/materials');
+  } else if (path.startsWith('/reports/weekly') || path.startsWith('/reports/monthly') || path.startsWith('/reports/generate')) {
+    router.push('/reports');
   } else {
     router.back();
   }
@@ -937,7 +963,7 @@ onMounted(() => {
   &,
   * {
     scrollbar-width: thin !important;
-    scrollbar-color: #10b981 transparent !important;
+    scrollbar-color: var(--color-primary) transparent !important;
   }
 
   &::-webkit-scrollbar,
@@ -953,11 +979,11 @@ onMounted(() => {
 
   &::-webkit-scrollbar-thumb,
   *::-webkit-scrollbar-thumb {
-    background: #10b981 !important;
+    background: var(--color-primary) !important;
     border-radius: 3px !important;
 
     &:hover {
-      background: #059669 !important;
+      background: var(--color-primary-dark) !important;
     }
   }
 
@@ -1014,7 +1040,7 @@ onMounted(() => {
     transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 
     &.expanded {
-      max-height: 500px;
+      max-height: 800px;
     }
 
     .nav-item {
@@ -1076,6 +1102,10 @@ onMounted(() => {
         font-size: 13px;
         color: $text-primary;
         font-weight: 500;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        min-width: 0;
       }
 
       .nav-item-arrow {

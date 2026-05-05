@@ -126,7 +126,7 @@
         </div>
         <div class="card-body">
           <t-form-item label="" name="notes" class="form-item-full">
-            <t-textarea v-model="formData.notes" placeholder="可选备注，如促销活动、渠道来源等" :maxlength="200"
+            <t-textarea v-model="formData.notes" placeholder="数据来自财务统计" :maxlength="200"
               :autosize="{ minRows: 4, maxRows: 8 }" />
           </t-form-item>
         </div>
@@ -284,7 +284,7 @@ const formatPeriod = (ps: string) => {
 }
 
 const getPeriodLabel = (type: string) => ({ monthly: '月度', quarterly: '季度', yearly: '年度' }[type] || type)
-const getPeriodTheme = (type: string) => ({ monthly: 'primary', quarterly: 'warning', yearly: 'default' } as any || 'default')
+const getPeriodTheme = (type: string) => ({ monthly: 'primary', quarterly: 'warning', yearly: 'default' }[type] || 'default')
 
 const handleClose = () => emit('update:visible', false)
 
@@ -377,24 +377,24 @@ const handleConfirm = async () => {
       border: none;
 
       &.create-btn {
-        background: linear-gradient(135deg, #10B981, #059669);
+        background: var(--gradient-btn, linear-gradient(135deg, var(--color-primary), var(--color-primary-dark)));
         color: #fff;
-        box-shadow: 0 2px 8px rgba(16, 185, 129, 0.35);
+        box-shadow: 0 2px 8px var(--overlay-brand-25, rgba(0, 0, 0, 0.2));
 
         &:hover:not(:disabled) {
           transform: translateY(-1px);
-          box-shadow: 0 4px 14px rgba(16, 185, 129, 0.45);
+          box-shadow: 0 4px 14px var(--overlay-brand-35, rgba(0, 0, 0, 0.3));
         }
       }
 
       &.update-btn {
-        background: linear-gradient(135deg, #F59E0B, #D97706);
+        background: var(--gradient-btn, linear-gradient(135deg, var(--color-primary), var(--color-primary-dark)));
         color: #fff;
-        box-shadow: 0 2px 8px rgba(245, 158, 11, 0.35);
+        box-shadow: 0 2px 8px var(--overlay-brand-25, rgba(0, 0, 0, 0.2));
 
         &:hover:not(:disabled) {
           transform: translateY(-1px);
-          box-shadow: 0 4px 14px rgba(245, 158, 11, 0.45);
+          box-shadow: 0 4px 14px var(--overlay-brand-35, rgba(0, 0, 0, 0.3));
         }
       }
 

@@ -9,7 +9,7 @@ async function fixAllMaterialCodes() {
   await connectDatabase();
 
   const [badRows]: any[] = await query(
-    "SELECT id, name, code, data_source FROM materials WHERE code LIKE 'MAT___' AND length(code) = 6 ORDER BY name",
+    "SELECT id, name, code, data_source FROM materials WHERE code LIKE 'MAT%' ORDER BY name",
   );
   console.log(`发现 ${badRows.length} 条 MAT### 记录\n`);
 
@@ -24,7 +24,7 @@ async function fixAllMaterialCodes() {
 
     // 检查同名非 MAT 记录
     const [duplicates]: any[] = await query(
-      "SELECT id, name, code FROM materials WHERE name = ? AND code NOT LIKE 'MAT___'",
+      "SELECT id, name, code FROM materials WHERE name = ? AND code NOT LIKE 'MAT%'",
       [bad.name],
     );
 
@@ -118,7 +118,7 @@ async function fixAllMaterialCodes() {
   console.log("═".repeat(60));
 
   const [remainingBad]: any[] = await query(
-    "SELECT name, code FROM materials WHERE code LIKE 'MAT___' AND length(code) = 6",
+    "SELECT name, code FROM materials WHERE code LIKE 'MAT%'",
   );
 
   const [allMats]: any[] = await query("SELECT name, code FROM materials");

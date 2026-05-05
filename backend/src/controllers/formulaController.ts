@@ -126,7 +126,33 @@ export async function getFormulas(req: any, res: Response) {
       };
     });
 
-    res.json(successWithPagination(listWithVersions, countResult[0].total, p, size));
+    const nowDate = new Date();
+    const currentMonthStart = `${nowDate.getFullYear()}-${String(nowDate.getMonth() + 1).padStart(2, "0")}-01`;
+    const nextMonth = nowDate.getMonth() + 2;
+    const nextYear = nextMonth > 12 ? nowDate.getFullYear() + 1 : nowDate.getFullYear();
+    const nextMonthStr = nextMonth > 12 ? String(nextMonth - 12).padStart(2, "0") : String(nextMonth).padStart(2, "0");
+    const currentMonthEnd = `${nextYear}-${nextMonthStr}-01`;
+
+    let salesMap: Record<string, number> = {};
+    if (formulaIds.length > 0) {
+      const placeholders = formulaIds.map(() => "?").join(",");
+      const [salesRows]: any[] = await query(
+        `SELECT formula_id, SUM(quantity) as total_qty FROM formula_sales
+         WHERE formula_id IN (${placeholders}) AND period_start >= ? AND period_start < ?
+         GROUP BY formula_id`,
+        [...formulaIds, currentMonthStart, currentMonthEnd],
+      );
+      for (const sr of salesRows) {
+        salesMap[sr.formula_id] = sr.total_qty;
+      }
+    }
+
+    const listWithSales = listWithVersions.map((f: any) => ({
+      ...f,
+      salesQuantity: salesMap[f.id] ?? 0,
+    }));
+
+    res.json(successWithPagination(listWithSales, countResult[0].total, p, size));
   } catch (error: any) {
     res.status(500).json({ success: false, message: "获取配方列表失败", error: error.message });
   }
@@ -164,6 +190,8 @@ export async function createFormula(req: any, res: Response) {
       packagingPrice,
       otherPrice,
       profitMargin,
+      originalName,
+      originalWeight,
     } = req.body;
     const userId = req.user.userId;
     const id = generateId();
@@ -186,8 +214,8 @@ export async function createFormula(req: any, res: Response) {
     const supRatio = supplementRatioFactor ?? 1.0;
 
     await query(
-      `INSERT INTO formulas (id, code, name, salesman_id, salesman_name, materials_json, finished_weight, ratio_factor, supplement_ratio_factor, packaging_price, other_price, profit_margin, description, preparation_method, created_by, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO formulas (id, code, name, salesman_id, salesman_name, materials_json, finished_weight, ratio_factor, supplement_ratio_factor, packaging_price, other_price, profit_margin, description, preparation_method, original_name, original_weight, created_by, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         id,
         code,
@@ -203,6 +231,8 @@ export async function createFormula(req: any, res: Response) {
         profitMargin ?? 20,
         description,
         preparationMethod || null,
+        originalName || null,
+        originalWeight != null ? originalWeight : null,
         userId,
         now(),
       ],
@@ -246,6 +276,9 @@ export async function createFormula(req: any, res: Response) {
           finishedWeight,
           ratioFactor,
           supplementRatioFactor: supRatio,
+          packagingPrice: packagingPrice ?? 0,
+          otherPrice: otherPrice ?? 0,
+          profitMargin: profitMargin ?? 20,
           description,
           preparationMethod: preparationMethod || null,
           formulaData: {
@@ -256,6 +289,9 @@ export async function createFormula(req: any, res: Response) {
             finishedWeight,
             ratioFactor,
             supplementRatioFactor: supRatio,
+            packagingPrice: packagingPrice ?? 0,
+            otherPrice: otherPrice ?? 0,
+            profitMargin: profitMargin ?? 20,
             description,
             preparationMethod: preparationMethod || null,
           },
@@ -417,6 +453,9 @@ export async function updateFormula(req: any, res: Response) {
             ratioFactor: ratioFactor !== undefined ? ratioFactor : oldFormula.ratio_factor,
             supplementRatioFactor:
               supplementRatioFactor !== undefined ? supplementRatioFactor : oldFormula.supplement_ratio_factor,
+            packagingPrice: packagingPrice !== undefined ? packagingPrice : oldFormula.packaging_price,
+            otherPrice: otherPrice !== undefined ? otherPrice : oldFormula.other_price,
+            profitMargin: profitMargin !== undefined ? profitMargin : oldFormula.profit_margin,
             description: description !== undefined ? description : oldFormula.description,
             preparationMethod: preparationMethod !== undefined ? preparationMethod : oldFormula.preparation_method,
             formulaData: {
@@ -426,6 +465,9 @@ export async function updateFormula(req: any, res: Response) {
               finishedWeight,
               ratioFactor,
               supplementRatioFactor,
+              packagingPrice: packagingPrice !== undefined ? packagingPrice : oldFormula.packaging_price,
+              otherPrice: otherPrice !== undefined ? otherPrice : oldFormula.other_price,
+              profitMargin: profitMargin !== undefined ? profitMargin : oldFormula.profit_margin,
               description,
               preparationMethod: preparationMethod || null,
             },

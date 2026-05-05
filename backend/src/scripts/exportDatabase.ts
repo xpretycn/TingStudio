@@ -1,6 +1,7 @@
 import Database from "better-sqlite3";
 import path from "path";
 import fs from "fs";
+import crypto from "crypto";
 import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -8,21 +9,64 @@ const __dirname = path.dirname(__filename);
 const DB_PATH = path.resolve(__dirname, "../../data/tingstudio.db");
 const OUTPUT_DIR = path.resolve(__dirname, "../../data/backup");
 
+interface ColumnInfo {
+  cid: number;
+  name: string;
+  type: string;
+  notnull: number;
+  dflt_value: any;
+  pk: number;
+}
+
+interface ForeignKeyInfo {
+  from: string;
+  table: string;
+  to: string;
+}
+
 interface TableSchema {
   name: string;
   sql: string;
-  columns: { name: string; type: string; notnull: number; dflt_value: any; pk: number }[];
+  columns: ColumnInfo[];
+  foreignKeys: ForeignKeyInfo[];
+  rowCount: number;
+  dataHash: string;
+}
+
+interface IndexInfo {
+  name: string;
+  tbl_name: string;
+  sql: string;
+}
+
+interface TriggerInfo {
+  name: string;
+  tbl_name: string;
+  sql: string;
 }
 
 interface ExportData {
   version: string;
   exportedAt: string;
   dbPath: string;
+  sqliteVersion: string;
   tables: {
     schema: TableSchema;
     rows: Record<string, any>[];
-    rowCount: number;
   }[];
+  indexes: IndexInfo[];
+  triggers: TriggerInfo[];
+  meta: {
+    totalRows: number;
+    totalTables: number;
+    totalIndexes: number;
+    totalTriggers: number;
+    schemaHash: string;
+  };
+}
+
+function computeHash(data: string): string {
+  return crypto.createHash("sha256").update(data, "utf-8").digest("hex");
 }
 
 function getDb(): Database.Database {
@@ -35,12 +79,11 @@ function getDb(): Database.Database {
 
 async function main() {
   console.log("════════════════════════════════════════════════════════");
-  console.log(" TingStudio 数据库完整导出工具");
+  console.log(" TingStudio 数据库完整导出工具 v2.0");
   console.log("════════════════════════════════════════════════════════\n");
 
   const db = getDb();
 
-  // 确保输出目录存在
   if (!fs.existsSync(OUTPUT_DIR)) {
     fs.mkdirSync(OUTPUT_DIR, { recursive: true });
   }
@@ -48,15 +91,12 @@ async function main() {
   const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
   const outputFile = path.join(OUTPUT_DIR, `tingstudio_backup_${timestamp}.json`);
 
-  // 1. 获取所有表
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
   console.log("步骤1: 扫描数据库表结构");
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 
   const tables = db
-    .prepare(
-      "SELECT name, sql FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name"
-    )
+    .prepare("SELECT name, sql FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name")
     .all() as { name: string; sql: string }[];
 
   console.log(`  发现 ${tables.length} 张数据表:`);
@@ -66,52 +106,103 @@ async function main() {
   }
   console.log("");
 
-  // 2. 导出每张表的结构和数据
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-  console.log("步骤2: 导出表结构 + 全部数据");
+  console.log("步骤2: 扫描索引和触发器");
+  console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+
+  const indexes = db
+    .prepare(
+      "SELECT name, tbl_name, sql FROM sqlite_master WHERE type='index' AND sql IS NOT NULL AND name NOT LIKE 'sqlite_%' ORDER BY name",
+    )
+    .all() as IndexInfo[];
+
+  console.log(`  发现 ${indexes.length} 个索引:`);
+  for (const idx of indexes) {
+    console.log(`    - ${idx.name} (表: ${idx.tbl_name})`);
+  }
+
+  const triggers = db
+    .prepare(
+      "SELECT name, tbl_name, sql FROM sqlite_master WHERE type='trigger' AND name NOT LIKE 'sqlite_%' ORDER BY name",
+    )
+    .all() as TriggerInfo[];
+
+  console.log(`  发现 ${triggers.length} 个触发器:`);
+  for (const trg of triggers) {
+    console.log(`    - ${trg.name} (表: ${trg.tbl_name})`);
+  }
+  console.log("");
+
+  console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+  console.log("步骤3: 导出表结构 + 全部数据 + 校验哈希");
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 
   const exportData: ExportData = {
-    version: "1.0",
+    version: "2.0",
     exportedAt: new Date().toISOString(),
     dbPath: DB_PATH,
+    sqliteVersion: db.prepare("SELECT sqlite_version() as v").get() as any,
     tables: [],
+    indexes,
+    triggers,
+    meta: {
+      totalRows: 0,
+      totalTables: tables.length,
+      totalIndexes: indexes.length,
+      totalTriggers: triggers.length,
+      schemaHash: "",
+    },
   };
 
   let totalRows = 0;
+  const schemaHashParts: string[] = [];
 
   for (const table of tables) {
     const tableName = table.name;
 
-    // 获取列信息
-    const columns = db.pragma(`table_info("${tableName}")`) as {
-      name: string;
-      type: string;
-      notnull: number;
-      dflt_value: any;
-      pk: number;
-    }[];
+    const columns = db.pragma(`table_info("${tableName}")`) as ColumnInfo[];
 
-    // 获取所有行数据
-    const rows = db.prepare(`SELECT * FROM "${tableName}"`).all();
+    const fkList = db.pragma(`foreign_key_list("${tableName}")`) as {
+      from: string;
+      table: string;
+      to: string;
+      id: number;
+      seq: number;
+    }[];
+    const foreignKeys: ForeignKeyInfo[] = fkList.map(fk => ({
+      from: fk.from,
+      table: fk.table,
+      to: fk.to,
+    }));
+
+    const rows = db.prepare(`SELECT * FROM "${tableName}"`).all() as Record<string, any>[];
+
+    const rowsJson = JSON.stringify(rows);
+    const dataHash = computeHash(rowsJson);
+
+    schemaHashParts.push(table.sql || "");
 
     exportData.tables.push({
       schema: {
         name: tableName,
         sql: table.sql,
         columns,
+        foreignKeys,
+        rowCount: rows.length,
+        dataHash,
       },
-      rows: rows as Record<string, any>[],
-      rowCount: rows.length,
+      rows,
     });
 
     totalRows += rows.length;
-    console.log(`  ✓ ${tableName}: ${rows.length} 条记录, ${columns.length} 个字段`);
+    console.log(`  ✓ ${tableName}: ${rows.length} 条记录, ${columns.length} 个字段, 哈希: ${dataHash.slice(0, 12)}...`);
   }
 
-  // 3. 写入JSON文件
+  exportData.meta.totalRows = totalRows;
+  exportData.meta.schemaHash = computeHash(schemaHashParts.join("|"));
+
   console.log("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-  console.log("步骤3: 写入备份文件");
+  console.log("步骤4: 写入备份文件");
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 
   const jsonStr = JSON.stringify(exportData, null, 2);
@@ -126,6 +217,9 @@ async function main() {
   console.log(`  📦 文件大小: ${fileSize} KB`);
   console.log(`  📊 数据表数: ${tables.length}`);
   console.log(`  📝 总记录数: ${totalRows}`);
+  console.log(`  🔑 索引数量: ${indexes.length}`);
+  console.log(`  ⚡ 触发器数: ${triggers.length}`);
+  console.log(`  🔒 结构哈希: ${exportData.meta.schemaHash.slice(0, 16)}...`);
   console.log(`  🕐 导出时间: ${exportData.exportedAt}`);
   console.log("\n💡 恢复方法:");
   console.log(`   npx tsx src/scripts/restoreDatabase.ts --file "${path.basename(outputFile)}"`);
@@ -135,7 +229,7 @@ async function main() {
   process.exit(0);
 }
 
-main().catch((err) => {
+main().catch(err => {
   console.error("导出失败:", err);
   process.exit(1);
 });

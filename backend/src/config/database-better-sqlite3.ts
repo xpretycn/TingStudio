@@ -39,6 +39,8 @@ function runAutoMigrations(dbInstance: Database.Database) {
   ensureColumn(dbInstance, "formulas", "other_price", "REAL", "0");
   ensureColumn(dbInstance, "formulas", "profit_margin", "REAL", "20");
   ensureColumn(dbInstance, "formulas", "preparation_method", "TEXT", "NULL");
+  ensureColumn(dbInstance, "formulas", "original_name", "TEXT", "NULL");
+  ensureColumn(dbInstance, "formulas", "original_weight", "REAL", "NULL");
   ensureColumn(dbInstance, "formula_versions", "ratio_factor", "REAL", "0.18");
   ensureColumn(dbInstance, "formula_versions", "supplement_ratio_factor", "REAL", "1.0");
   ensureMaterialPrices(dbInstance);
@@ -68,6 +70,322 @@ function runAutoMigrations(dbInstance: Database.Database) {
     CREATE INDEX IF NOT EXISTS idx_fs_period ON formula_sales(period_start)
   `,
   );
+  ensureTable(
+    dbInstance,
+    "reports",
+    `
+    CREATE TABLE reports (
+      id TEXT PRIMARY KEY,
+      type TEXT NOT NULL CHECK(type IN ('weekly', 'monthly')),
+      title TEXT NOT NULL,
+      period_start TEXT NOT NULL,
+      period_end TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'draft' CHECK(status IN ('draft', 'published', 'archived')),
+      data_json TEXT NOT NULL DEFAULT '{}',
+      generated_by TEXT NOT NULL DEFAULT 'manual' CHECK(generated_by IN ('auto', 'manual')),
+      created_by TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+      published_at TEXT DEFAULT NULL,
+      FOREIGN KEY (created_by) REFERENCES users(id)
+    );
+    CREATE INDEX IF NOT EXISTS idx_reports_type ON reports(type);
+    CREATE INDEX IF NOT EXISTS idx_reports_period ON reports(period_start, period_end);
+    CREATE INDEX IF NOT EXISTS idx_reports_status ON reports(status);
+    CREATE INDEX IF NOT EXISTS idx_reports_created_by ON reports(created_by)
+    `,
+  );
+  ensureTable(
+    dbInstance,
+    "report_targets",
+    `
+    CREATE TABLE report_targets (
+      id TEXT PRIMARY KEY,
+      period_type TEXT NOT NULL CHECK(period_type IN ('quarterly', 'yearly')),
+      period_start TEXT NOT NULL,
+      period_end TEXT NOT NULL,
+      targets_json TEXT NOT NULL DEFAULT '{}',
+      created_by TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+      FOREIGN KEY (created_by) REFERENCES users(id)
+    )
+    `,
+  );
+  ensureTable(
+    dbInstance,
+    "uploaded_files",
+    `
+    CREATE TABLE uploaded_files (
+      file_id TEXT PRIMARY KEY,
+      original_name TEXT NOT NULL,
+      storage_path TEXT NOT NULL,
+      file_size INTEGER NOT NULL,
+      mime_type TEXT NOT NULL,
+      file_type TEXT NOT NULL CHECK(file_type IN ('formula', 'material')),
+      status TEXT NOT NULL DEFAULT 'uploaded' CHECK(status IN ('uploaded', 'parsed', 'linked', 'orphaned', 'archived')),
+      related_id TEXT DEFAULT NULL,
+      related_type TEXT DEFAULT NULL CHECK(related_type IS NULL OR related_type IN ('formula', 'material')),
+      parse_result_json TEXT DEFAULT NULL,
+      parse_model TEXT DEFAULT NULL,
+      parse_confidence REAL DEFAULT NULL,
+      parse_usage_json TEXT DEFAULT NULL,
+      version INTEGER NOT NULL DEFAULT 1,
+      uploaded_by TEXT NOT NULL,
+      uploaded_at TEXT NOT NULL DEFAULT (datetime('now')),
+      last_accessed_at TEXT DEFAULT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_uploaded_files_related ON uploaded_files(related_id, related_type);
+    CREATE INDEX IF NOT EXISTS idx_uploaded_files_type ON uploaded_files(file_type);
+    CREATE INDEX IF NOT EXISTS idx_uploaded_files_status ON uploaded_files(status);
+    CREATE INDEX IF NOT EXISTS idx_uploaded_files_uploaded_by ON uploaded_files(uploaded_by);
+    CREATE INDEX IF NOT EXISTS idx_uploaded_files_uploaded_at ON uploaded_files(uploaded_at)
+    `,
+  );
+  ensureTable(
+    dbInstance,
+    "file_audit_log",
+    `
+    CREATE TABLE file_audit_log (
+      log_id TEXT PRIMARY KEY,
+      file_id TEXT NOT NULL,
+      action TEXT NOT NULL CHECK(action IN ('upload', 'parse', 'link', 'unlink', 'reparse', 'download', 'delete', 'archive')),
+      operator TEXT NOT NULL,
+      timestamp TEXT NOT NULL DEFAULT (datetime('now')),
+      detail_json TEXT DEFAULT NULL,
+      ip_address TEXT DEFAULT NULL,
+      FOREIGN KEY (file_id) REFERENCES uploaded_files(file_id) ON DELETE CASCADE
+    );
+    CREATE INDEX IF NOT EXISTS idx_file_audit_file ON file_audit_log(file_id);
+    CREATE INDEX IF NOT EXISTS idx_file_audit_operator ON file_audit_log(operator);
+    CREATE INDEX IF NOT EXISTS idx_file_audit_timestamp ON file_audit_log(timestamp)
+    `,
+  );
+  ensureTable(
+    dbInstance,
+    "file_relations",
+    `
+    CREATE TABLE file_relations (
+      relation_id TEXT PRIMARY KEY,
+      file_id TEXT NOT NULL,
+      related_id TEXT NOT NULL,
+      related_type TEXT NOT NULL CHECK(related_type IN ('formula', 'material')),
+      related_name TEXT NOT NULL,
+      created_by TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      FOREIGN KEY (file_id) REFERENCES uploaded_files(file_id) ON DELETE CASCADE,
+      UNIQUE(file_id, related_id, related_type)
+    );
+    CREATE INDEX IF NOT EXISTS idx_fr_file ON file_relations(file_id);
+    CREATE INDEX IF NOT EXISTS idx_fr_related ON file_relations(related_id, related_type)
+    `,
+  );
+  ensureTable(
+    dbInstance,
+    "ai_models",
+    `
+    CREATE TABLE ai_models (
+      id TEXT PRIMARY KEY,
+      provider TEXT NOT NULL UNIQUE,
+      name TEXT NOT NULL,
+      base_url TEXT NOT NULL,
+      api_key TEXT DEFAULT '',
+      model TEXT NOT NULL,
+      vision_model TEXT DEFAULT '',
+      vision_max_tokens INTEGER DEFAULT NULL,
+      description TEXT DEFAULT '',
+      supports_vision INTEGER NOT NULL DEFAULT 0,
+      health_status TEXT NOT NULL DEFAULT 'unknown',
+      last_health_check TEXT DEFAULT NULL,
+      last_health_latency INTEGER DEFAULT NULL,
+      health_check_interval_days INTEGER NOT NULL DEFAULT 1,
+      sort_order INTEGER NOT NULL DEFAULT 0,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+    CREATE INDEX IF NOT EXISTS idx_ai_models_provider ON ai_models(provider);
+    CREATE INDEX IF NOT EXISTS idx_ai_models_health ON ai_models(health_status)
+    `,
+  );
+  ensureTable(
+    dbInstance,
+    "ai_usage_logs",
+    `
+    CREATE TABLE ai_usage_logs (
+      id TEXT PRIMARY KEY,
+      provider TEXT NOT NULL,
+      model TEXT NOT NULL,
+      call_type TEXT NOT NULL,
+      prompt_tokens INTEGER NOT NULL DEFAULT 0,
+      completion_tokens INTEGER NOT NULL DEFAULT 0,
+      total_tokens INTEGER NOT NULL DEFAULT 0,
+      latency_ms INTEGER DEFAULT NULL,
+      status TEXT NOT NULL DEFAULT 'success',
+      error_message TEXT DEFAULT NULL,
+      request_summary TEXT DEFAULT NULL,
+      fallback_from TEXT DEFAULT NULL,
+      user_id TEXT DEFAULT NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+    CREATE INDEX IF NOT EXISTS idx_ai_usage_provider_date ON ai_usage_logs(provider, created_at);
+    CREATE INDEX IF NOT EXISTS idx_ai_usage_call_type ON ai_usage_logs(call_type);
+    CREATE INDEX IF NOT EXISTS idx_ai_usage_user ON ai_usage_logs(user_id, created_at);
+    CREATE INDEX IF NOT EXISTS idx_ai_usage_status ON ai_usage_logs(status)
+    `,
+  );
+  ensureTable(
+    dbInstance,
+    "ai_alert_configs",
+    `
+    CREATE TABLE ai_alert_configs (
+      id TEXT PRIMARY KEY,
+      model_id TEXT NOT NULL UNIQUE,
+      provider TEXT NOT NULL,
+      daily_call_limit INTEGER NOT NULL DEFAULT 0,
+      monthly_token_limit INTEGER NOT NULL DEFAULT 0,
+      warning_threshold INTEGER NOT NULL DEFAULT 80,
+      critical_threshold INTEGER NOT NULL DEFAULT 95,
+      enabled INTEGER NOT NULL DEFAULT 1,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+      FOREIGN KEY (model_id) REFERENCES ai_models(id) ON DELETE CASCADE
+    );
+    CREATE INDEX IF NOT EXISTS idx_ai_alert_model ON ai_alert_configs(model_id)
+    `,
+  );
+  ensureTable(
+    dbInstance,
+    "ai_alert_records",
+    `
+    CREATE TABLE ai_alert_records (
+      id TEXT PRIMARY KEY,
+      provider TEXT NOT NULL,
+      model_name TEXT NOT NULL,
+      alert_type TEXT NOT NULL,
+      level TEXT NOT NULL,
+      threshold INTEGER NOT NULL,
+      current_value INTEGER NOT NULL,
+      limit_value INTEGER NOT NULL,
+      message TEXT NOT NULL,
+      is_read INTEGER NOT NULL DEFAULT 0,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+    CREATE INDEX IF NOT EXISTS idx_ai_alert_rec_provider ON ai_alert_records(provider, created_at);
+    CREATE INDEX IF NOT EXISTS idx_ai_alert_rec_level ON ai_alert_records(level, is_read)
+    `,
+  );
+  ensureTable(
+    dbInstance,
+    "ai_health_records",
+    `
+    CREATE TABLE ai_health_records (
+      id TEXT PRIMARY KEY,
+      provider TEXT NOT NULL,
+      status TEXT NOT NULL,
+      latency_ms INTEGER DEFAULT NULL,
+      error_message TEXT DEFAULT NULL,
+      checked_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+    CREATE INDEX IF NOT EXISTS idx_ai_health_provider_date ON ai_health_records(provider, checked_at)
+    `,
+  );
+  ensureTable(
+    dbInstance,
+    "ai_fallback_configs",
+    `
+    CREATE TABLE ai_fallback_configs (
+      id TEXT PRIMARY KEY,
+      model_id TEXT NOT NULL,
+      provider TEXT NOT NULL,
+      fallback_provider TEXT NOT NULL,
+      fallback_priority INTEGER NOT NULL DEFAULT 1,
+      enabled INTEGER NOT NULL DEFAULT 1,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+      FOREIGN KEY (model_id) REFERENCES ai_models(id) ON DELETE CASCADE,
+      UNIQUE(model_id, fallback_provider)
+    );
+    CREATE INDEX IF NOT EXISTS idx_ai_fallback_model ON ai_fallback_configs(model_id)
+    `,
+  );
+  ensureInitialAiModels(dbInstance);
+}
+
+function ensureInitialAiModels(dbInstance: Database.Database) {
+  try {
+    const count = (dbInstance.prepare("SELECT COUNT(*) as cnt FROM ai_models").get() as any).cnt;
+    if (count > 0) return;
+
+    const models = [
+      {
+        provider: "dashscope",
+        name: "通义千问",
+        base_url: "https://dashscope.aliyuncs.com/compatible-mode/v1",
+        api_key: process.env.AI_DASHSCOPE_API_KEY || "",
+        model: process.env.AI_DASHSCOPE_MODEL || "qwen-plus",
+        vision_model: process.env.AI_DASHSCOPE_VISION_MODEL || "qwen-vl-plus",
+        vision_max_tokens: null,
+        description: "阿里云通义千问大模型",
+        supports_vision: 1,
+        sort_order: 0,
+      },
+      {
+        provider: "zhipu",
+        name: "智谱GLM",
+        base_url: "https://open.bigmodel.cn/api/paas/v4",
+        api_key: process.env.AI_ZHIPU_API_KEY || "",
+        model: process.env.AI_ZHIPU_MODEL || "glm-4-flash",
+        vision_model: process.env.AI_ZHIPU_VISION_MODEL || "glm-4v-flash",
+        vision_max_tokens: 1024,
+        description: "智谱AI GLM系列大模型",
+        supports_vision: 1,
+        sort_order: 1,
+      },
+      {
+        provider: "deepseek",
+        name: "DeepSeek",
+        base_url: "https://api.deepseek.com/v1",
+        api_key: process.env.AI_DEEPSEEK_API_KEY || "",
+        model: process.env.AI_DEEPSEEK_MODEL || "deepseek-chat",
+        vision_model: "",
+        vision_max_tokens: null,
+        description: "DeepSeek深度求索大模型",
+        supports_vision: 0,
+        sort_order: 2,
+      },
+    ];
+
+    const insertModel = dbInstance.prepare(`
+      INSERT INTO ai_models (id, provider, name, base_url, api_key, model, vision_model, vision_max_tokens, description, supports_vision, sort_order)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+    const insertAlert = dbInstance.prepare(`
+      INSERT INTO ai_alert_configs (id, model_id, provider, daily_call_limit, monthly_token_limit, warning_threshold, critical_threshold, enabled)
+      VALUES (?, ?, ?, 500, 5000000, 80, 95, 1)
+    `);
+
+    const now = new Date().toISOString();
+    for (const m of models) {
+      const modelId = `model_${m.provider}`;
+      insertModel.run(
+        modelId,
+        m.provider,
+        m.name,
+        m.base_url,
+        m.api_key,
+        m.model,
+        m.vision_model,
+        m.vision_max_tokens,
+        m.description,
+        m.supports_vision,
+        m.sort_order,
+      );
+      insertAlert.run(`alert_${m.provider}`, modelId, m.provider);
+    }
+    logger.info(`自动迁移: 初始化 ${models.length} 个AI模型配置`);
+  } catch (err) {
+    logger.error("初始化AI模型数据失败:", err);
+  }
 }
 
 const MATERIAL_DEFAULT_PRICES: Record<string, number> = {
@@ -328,6 +646,36 @@ CREATE TABLE IF NOT EXISTS formula_sales (
 CREATE INDEX IF NOT EXISTS idx_fs_formula ON formula_sales(formula_id);
 CREATE INDEX IF NOT EXISTS idx_fs_salesman ON formula_sales(salesman_id);
 CREATE INDEX IF NOT EXISTS idx_fs_period ON formula_sales(period_start);
+CREATE TABLE IF NOT EXISTS reports (
+  id TEXT PRIMARY KEY,
+  type TEXT NOT NULL CHECK(type IN ('weekly', 'monthly')),
+  title TEXT NOT NULL,
+  period_start TEXT NOT NULL,
+  period_end TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'draft' CHECK(status IN ('draft', 'published', 'archived')),
+  data_json TEXT NOT NULL DEFAULT '{}',
+  generated_by TEXT NOT NULL DEFAULT 'manual' CHECK(generated_by IN ('auto', 'manual')),
+  created_by TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+  published_at TEXT DEFAULT NULL,
+  FOREIGN KEY (created_by) REFERENCES users(id)
+);
+CREATE INDEX IF NOT EXISTS idx_reports_type ON reports(type);
+CREATE INDEX IF NOT EXISTS idx_reports_period ON reports(period_start, period_end);
+CREATE INDEX IF NOT EXISTS idx_reports_status ON reports(status);
+CREATE INDEX IF NOT EXISTS idx_reports_created_by ON reports(created_by);
+CREATE TABLE IF NOT EXISTS report_targets (
+  id TEXT PRIMARY KEY,
+  period_type TEXT NOT NULL CHECK(period_type IN ('quarterly', 'yearly')),
+  period_start TEXT NOT NULL,
+  period_end TEXT NOT NULL,
+  targets_json TEXT NOT NULL DEFAULT '{}',
+  created_by TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+  FOREIGN KEY (created_by) REFERENCES users(id)
+);
 `;
 
 export async function connectDatabase(): Promise<void> {

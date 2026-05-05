@@ -316,7 +316,7 @@ const handleSubmit = async ({ validateResult }: any) => {
   align-items: center;
   justify-content: center;
   padding: 48px;
-  background: linear-gradient(155deg, #FFF0F3 0%, #FFE4EE 25%, #F0E6FF 55%, #FFF0F3 100%);
+  background: linear-gradient(155deg, #FFF0F5 0%, #FFE4EC 25%, #E8D5F5 55%, #FFF0F5 100%);
   overflow: hidden;
 
   &__decor {
@@ -337,7 +337,7 @@ const handleSubmit = async ({ validateResult }: any) => {
       height: 350px;
       top: -80px;
       right: -60px;
-      background: radial-gradient(circle, $brand-primary-lightest, transparent 70%);
+      background: radial-gradient(circle, #FFE4EC, transparent 70%);
     }
 
     &--2 {
@@ -345,7 +345,7 @@ const handleSubmit = async ({ validateResult }: any) => {
       height: 280px;
       bottom: -60px;
       left: -40px;
-      background: radial-gradient(circle, $color-lavender, transparent 70%);
+      background: radial-gradient(circle, #E8D5F5, transparent 70%);
     }
 
     &--3 {
@@ -353,7 +353,7 @@ const handleSubmit = async ({ validateResult }: any) => {
       height: 180px;
       top: 50%;
       left: 20%;
-      background: radial-gradient(circle, $decor-mauve, transparent 70%);
+      background: radial-gradient(circle, #FFB5C8, transparent 70%);
       opacity: 0.3;
     }
   }
@@ -442,7 +442,7 @@ const handleSubmit = async ({ validateResult }: any) => {
     svg {
       width: 100%;
       height: 100%;
-      filter: drop-shadow(0 8px 20px $overlay-pink-20);
+      filter: drop-shadow(0 8px 20px var(--overlay-brand-20));
     }
   }
 
@@ -523,7 +523,7 @@ const handleSubmit = async ({ validateResult }: any) => {
   }
 
   &__icon {
-    color: $brand-primary-light;
+    color: var(--color-primary-light);
     font-size: 26px;
     animation: heartBeat 1.5s ease-in-out infinite;
   }
@@ -531,7 +531,7 @@ const handleSubmit = async ({ validateResult }: any) => {
   &__subtitle {
     font-size: 16px;
     font-weight: 600;
-    color: $brand-primary-light;
+    color: var(--color-primary-light);
     margin: 0 0 10px 0;
   }
 
@@ -582,13 +582,13 @@ const handleSubmit = async ({ validateResult }: any) => {
   font-size: 13px;
   color: $text-primary;
   font-weight: 500;
-  border: 1px solid $overlay-pink-lighter-20;
+  border: 1px solid var(--overlay-brand-lighter-20);
 
   &__dot {
     width: 6px;
     height: 6px;
     border-radius: 50%;
-    background: $brand-primary-light;
+    background: var(--color-primary-light);
     flex-shrink: 0;
   }
 }
@@ -643,7 +643,7 @@ const handleSubmit = async ({ validateResult }: any) => {
   display: inline-block;
   padding: 3px;
   border-radius: 50%;
-  background: linear-gradient(135deg, $brand-primary-lighter, $color-lavender);
+  background: linear-gradient(135deg, var(--color-primary-lighter), var(--color-lavender));
   margin-bottom: 10px;
 }
 
@@ -686,7 +686,7 @@ const handleSubmit = async ({ validateResult }: any) => {
       width: 100%;
       height: 100%;
       animation: catBounceSmall 4s ease-in-out infinite;
-      filter: drop-shadow(0 4px 12px $overlay-pink-15);
+      filter: drop-shadow(0 4px 12px var(--overlay-brand-15));
     }
   }
 
@@ -740,29 +740,34 @@ const handleSubmit = async ({ validateResult }: any) => {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: $brand-primary-light;
+  background: var(--color-primary-light);
   display: inline-block;
 }
 
 .cute-input {
   :deep(.t-input) {
     border-radius: 14px;
-    border: 1.5px solid $brand-primary-lightest;
-    background: $overlay-pink-bg-40;
+    border: 1.5px solid var(--color-primary-lightest);
+    background: transparent;
     height: 48px;
     padding-left: 42px;
     transition: all $transition-slow;
 
     &:hover {
-      border-color: $brand-primary-lighter;
-      background: $overlay-pink-bg-60;
+      border-color: var(--color-primary-lighter);
+      background: transparent;
     }
 
     &:focus-within,
     &.t-is-focused {
-      border-color: $brand-primary-light;
-      background: $text-white;
-      box-shadow: 0 0 0 4px $overlay-pink-12;
+      border-color: var(--color-primary-light);
+      background: transparent;
+      box-shadow: 0 0 0 4px var(--overlay-brand-12);
+    }
+
+    &.t-is-error {
+      border-color: var(--color-danger);
+      box-shadow: 0 0 0 4px rgba(227, 77, 89, 0.12);
     }
 
     .t-input__wrap {
@@ -777,13 +782,13 @@ const handleSubmit = async ({ validateResult }: any) => {
 
   :deep(.t-input__prefix) {
     margin-right: 10px;
-    color: $brand-primary-light;
+    color: var(--color-primary-light);
     display: flex;
     align-items: center;
   }
 
   :deep(.t-input__suffix) {
-    color: $brand-primary-lighter;
+    color: var(--color-primary-lighter);
   }
 }
 
@@ -795,13 +800,12 @@ const handleSubmit = async ({ validateResult }: any) => {
   font-size: 15px !important;
   font-weight: 600 !important;
   letter-spacing: 1px;
-  background: linear-gradient(135deg, $brand-primary-light, $brand-primary) !important;
+  background: var(--gradient-btn) !important;
   border: none !important;
-  box-shadow: 0 4px 16px $shadow-brand-md;
+  box-shadow: var(--shadow-brand-md);
   overflow: hidden;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 
-  // Ripple effect background
   &::before {
     content: '';
     position: absolute;
@@ -820,18 +824,17 @@ const handleSubmit = async ({ validateResult }: any) => {
 
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 24px $shadow-brand-lg;
-    background: linear-gradient(135deg, $brand-primary-lighter, $brand-primary-light) !important;
+    box-shadow: var(--shadow-brand-lg);
+    background: var(--gradient-btn-hover) !important;
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   &:active {
     transform: translateY(1px) scale(0.98);
-    box-shadow: 0 2px 12px $shadow-brand-sm;
-    background: linear-gradient(135deg, $brand-primary-light, $brand-primary) !important;
+    box-shadow: var(--shadow-brand-sm);
+    background: var(--gradient-btn) !important;
     transition: all 0.15s ease-out;
 
-    // Expand ripple effect
     &::before {
       width: 300px;
       height: 300px;
@@ -842,16 +845,15 @@ const handleSubmit = async ({ validateResult }: any) => {
 
   &:focus {
     outline: none;
-    box-shadow: 0 4px 16px $shadow-brand-md,
-      0 0 0 4px $overlay-pink-25;
+    box-shadow: var(--shadow-brand-md),
+      0 0 0 4px var(--overlay-brand-25);
   }
 
-  // Loading state
   &[class*='loading'] {
     opacity: 0.85;
     cursor: not-allowed;
     transform: none !important;
-    box-shadow: 0 2px 8px $shadow-brand-xs !important;
+    box-shadow: var(--shadow-brand-xs) !important;
   }
 
   .btn-text {
@@ -869,18 +871,18 @@ const handleSubmit = async ({ validateResult }: any) => {
   gap: 6px;
   padding-top: 20px;
   margin-top: 8px;
-  border-top: 1px dashed $brand-primary-lightest;
+  border-top: 1px dashed var(--color-primary-lightest);
   font-size: 13px;
   color: $text-secondary;
 
   .go-register {
-    color: $brand-primary;
+    color: var(--color-primary);
     text-decoration: none;
     font-weight: 600;
     transition: all $transition-fast;
 
     &:hover {
-      color: $brand-primary-light;
+      color: var(--color-primary-light);
       text-decoration: none;
     }
   }
@@ -927,7 +929,7 @@ const handleSubmit = async ({ validateResult }: any) => {
   }
 
   .right-panel {
-    background: linear-gradient(180deg, $brand-primary-bg 0%, $color-cream 50%, $text-white 100%);
+    background: linear-gradient(180deg, var(--color-primary-bg) 0%, var(--color-primary-lightest) 50%, $text-white 100%);
     padding: 32px 24px;
     min-height: 100vh;
   }

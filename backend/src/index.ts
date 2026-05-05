@@ -8,12 +8,22 @@ import { createAppRouter } from "./routes/index.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import { logger } from "./utils/logger.js";
 import { connectDatabase } from "./config/database-better-sqlite3.js";
+import { startScheduledTasks, stopScheduledTasks } from "./services/reportGenerator.js";
+import { autoFixGarbledFilenames } from "./controllers/fileController.js";
+import { aiService } from "./services/ai/AIService.js";
+import { modelHealthChecker } from "./services/ai/ModelHealthChecker.js";
 
 export async function createApp() {
   const app = express();
 
   // 数据库连接
   await connectDatabase();
+
+  // 自动修复乱码文件名
+  await autoFixGarbledFilenames();
+
+  // 从数据库加载AI模型配置
+  aiService.reloadModels();
 
   // 全局中间件
   app.use(helmet());
@@ -68,8 +78,22 @@ async function bootstrap() {
   app.listen(PORT, () => {
     logger.info(`TingStudio 后端服务启动成功: http://localhost:${PORT}`);
     logger.info(`环境: ${process.env.NODE_ENV || "development"}`);
+    startScheduledTasks();
+    modelHealthChecker.start();
   });
 }
+
+process.on("SIGINT", () => {
+  stopScheduledTasks();
+  modelHealthChecker.stop();
+  process.exit(0);
+});
+
+process.on("SIGTERM", () => {
+  stopScheduledTasks();
+  modelHealthChecker.stop();
+  process.exit(0);
+});
 
 bootstrap().catch(err => {
   logger.error("服务启动失败:", err);

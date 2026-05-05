@@ -25,7 +25,7 @@ export async function register(req: Request, res: Response) {
       [userId, username, hashedPassword, now()],
     );
 
-    const token = generateToken({ userId, username });
+    const token = generateToken({ userId, username, role: "formulist" });
     res.status(201).json(
       success(
         {
@@ -73,7 +73,7 @@ export async function login(req: Request, res: Response) {
       return;
     }
 
-    const token = generateToken({ userId: user.id, username: user.username });
+    const token = generateToken({ userId: user.id, username: user.username, role: user.role });
     const { password: _, ...userWithoutPassword } = user;
 
     res.json(

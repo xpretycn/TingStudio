@@ -1,5 +1,7 @@
 // 通用工具函数
 
+import { pinyin } from 'pinyin-pro';
+
 /** 生成唯一 ID */
 export function generateId(): string {
   return Date.now().toString(36) + Math.random().toString(36).substring(2, 10);
@@ -495,9 +497,25 @@ export function generateMaterialCode(name: string): string {
   const trimmed = (name || '').trim();
   if (!trimmed) return '';
   if (MATERIAL_CODE_MAP[trimmed]) return MATERIAL_CODE_MAP[trimmed];
-  return trimmed.split('').map(c => {
-    const code = c.charCodeAt(0);
-    if (code >= 0x4e00 && code <= 0x9fff) return String.fromCharCode(0x41 + ((code - 0x4e00) % 26));
-    return c.toUpperCase();
-  }).join('').substring(0, 6) || 'MAT' + String(Date.now()).slice(-4);
+  const py = pinyin(trimmed, { pattern: 'first', toneType: 'none', type: 'array' });
+  const code = py.map(s => s.charAt(0).toUpperCase()).join('').substring(0, 6);
+  return code || 'MAT' + String(Date.now()).slice(-4);
+}
+
+export function fixMulterOriginalname(originalname: string): string {
+  try {
+    const fixed = Buffer.from(originalname, 'latin1').toString('utf8');
+    if (fixed !== originalname && !/\ufffd/.test(fixed)) {
+      return fixed;
+    }
+    return originalname;
+  } catch {
+    return originalname;
+  }
+}
+
+export function buildContentDisposition(fileName: string): string {
+  const fallback = fileName.replace(/[^\x20-\x7e]/g, '_');
+  const encoded = encodeURIComponent(fileName);
+  return `attachment; filename="${fallback}"; filename*=UTF-8''${encoded}`;
 }

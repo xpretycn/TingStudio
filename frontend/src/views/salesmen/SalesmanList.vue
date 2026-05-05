@@ -15,7 +15,15 @@
             </span>
           </div>
           <p class="stat-label">{{ card.label }}</p>
-          <p class="stat-value">{{ card.value }} <small class="stat-unit">{{ card.unit }}</small></p>
+          <p class="stat-value">
+            <span class="stat-value-left">
+              {{ card.value }} <small class="stat-unit">{{ card.unit }}</small>
+            </span>
+            <span v-if="card.topName" class="stat-top-name">
+              <span class="champion-icon">🏆</span>
+              {{ card.topName }}
+            </span>
+          </p>
         </div>
       </div>
     </section>
@@ -32,7 +40,8 @@
                 <span class="batch-count"><strong>{{ selectedRows.length }}</strong> 项已选择</span>
                 <div class="batch-divider"></div>
                 <div class="batch-buttons">
-                  <t-popconfirm theme="danger" :content="`确定要删除所选的 ${selectedRows.length} 个业务员吗？删除后无法恢复。`" @confirm="handleBatchDelete">
+                  <t-popconfirm theme="danger" :content="`确定要删除所选的 ${selectedRows.length} 个业务员吗？删除后无法恢复。`"
+                    @confirm="handleBatchDelete">
                     <button class="batch-action-btn">
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                         stroke-linecap="round" stroke-linejoin="round">
@@ -81,9 +90,8 @@
         </div>
 
         <t-table :data="sortedSalesmen" :columns="columns" :loading="salesmanStore.loading" :pagination="undefined"
-          :sort="tableSort" row-key="id" hover table-layout="auto" @sort-change="onSortChange"
-          @row-click="handleRowClick"
-          :selected-row-keys="selectedRowKeys" @select-change="handleSelectChange">
+          row-key="id" hover table-layout="auto" @row-click="handleRowClick" :selected-row-keys="selectedRowKeys"
+          @select-change="handleSelectChange">
           <template #name="{ row }">
             <div class="salesman-info">
               <div class="salesman-avatar" :style="{ backgroundColor: getAvatarColor(row.name).bg }">
@@ -224,39 +232,46 @@
           <h4 class="assistant-title">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"
               stroke-linecap="round" stroke-linejoin="round">
-              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-              <circle cx="9" cy="7" r="4"/>
-              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
             </svg>
             业务员小助手
           </h4>
           <div class="sm-nav" v-if="smTodoTotalPages > 1">
             <button class="activity-nav-btn" :disabled="smTodoPage <= 1" @click="smTodoPrev" title="上一页">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
             </button>
             <span class="activity-nav-page">{{ smTodoPage }} / {{ smTodoTotalPages }}</span>
             <button class="activity-nav-btn" :disabled="smTodoPage >= smTodoTotalPages" @click="smTodoNext" title="下一页">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
             </button>
           </div>
         </div>
 
         <div class="todo-list" v-if="paginatedSmTodoItems.length > 0">
           <TransitionGroup name="todo-list" tag="div" class="todo-list__inner">
-            <div v-for="(item, idx) in paginatedSmTodoItems" :key="item.id"
-              class="todo-item" :class="'todo-item--' + item.priority">
+            <div v-for="(item, idx) in paginatedSmTodoItems" :key="item.id" class="todo-item"
+              :class="'todo-item--' + item.priority">
               <div class="todo-item__icon" :class="'todo-item__icon--' + item.type">
                 <svg v-if="item.type === 'warning'" width="16" height="16" viewBox="0 0 24 24" fill="none"
                   stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-                  <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                  <line x1="12" y1="9" x2="12" y2="13" />
+                  <line x1="12" y1="17" x2="12.01" y2="17" />
                 </svg>
                 <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                   stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="16" x2="12" y2="12" />
+                  <line x1="12" y1="8" x2="12.01" y2="8" />
                 </svg>
               </div>
               <div class="todo-item__content">
@@ -265,7 +280,9 @@
               </div>
               <button class="todo-item__action" @click="handleSmTodoAction(item)" :title="item.actionText">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                  stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
               </button>
             </div>
           </TransitionGroup>
@@ -274,7 +291,8 @@
         <div class="assistant-empty" v-else>
           <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="1.5"
             stroke-linecap="round" stroke-linejoin="round">
-            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+            <polyline points="22 4 12 14.01 9 11.01" />
           </svg>
           <p>太棒了！暂无待处理事项</p>
           <span>所有业务员配方状态正常~</span>
@@ -285,17 +303,18 @@
           <button class="assistant-refresh-btn" @click="refreshSmPending" title="刷新">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
               stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+              <polyline points="23 4 23 10 17 10" />
+              <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
             </svg>
           </button>
         </div>
 
-        <svg class="assistant-bg-icon" width="140" height="140" viewBox="0 0 24 24" fill="none"
-          stroke="currentColor" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-          <circle cx="9" cy="7" r="4"/>
-          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        <svg class="assistant-bg-icon" width="140" height="140" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+          <circle cx="9" cy="7" r="4" />
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
         </svg>
       </div>
     </section>
@@ -303,7 +322,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, onActivated, watch, nextTick } from 'vue';
+import { ref, computed, onMounted, onUnmounted, onActivated, watch, nextTick, h } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useSalesmanStore } from '@/stores/salesman';
 import { useSalesStore } from '@/stores/sales';
@@ -323,7 +342,8 @@ const paginationStore = usePaginationStore();
 const initialized = ref(false);
 
 const searchKeyword = ref('');
-const tableSort = ref<any>(undefined);
+const sortKey = ref<string>('');
+const sortOrder = ref<'asc' | 'desc' | ''>('');
 const sortedSalesmen = ref<Salesman[]>([]);
 const selectedRowKeys = ref<(string | number)[]>([]);
 const selectedRows = ref<Salesman[]>([]);
@@ -371,8 +391,9 @@ const dashboardCards = computed(() => {
     },
     {
       label: '销售额第一',
-      value: topRevenueSalesman ? `${topRevenueSalesman.name}\n¥${(topRevenueSalesman.revenue / 10000).toFixed(1)}万` : '—',
+      value: topRevenueSalesman ? `¥${(topRevenueSalesman.revenue / 10000).toFixed(1)}万` : '—',
       unit: '',
+      topName: topRevenueSalesman ? topRevenueSalesman.name : '',
       badge: topRevenueSalesman ? 'TOP1' : '—',
       badgeColor: '#8B5CF6',
       badgeBg: '#F5F3FF',
@@ -382,8 +403,9 @@ const dashboardCards = computed(() => {
     },
     {
       label: '销量第一',
-      value: topQuantitySalesman ? `${topQuantitySalesman.name}\n${(topQuantitySalesman.quantity / 10000).toFixed(2)}万件` : '—',
+      value: topQuantitySalesman ? `${(topQuantitySalesman.quantity / 10000).toFixed(2)}万件` : '—',
       unit: '',
+      topName: topQuantitySalesman ? topQuantitySalesman.name : '',
       badge: topQuantitySalesman ? 'TOP1' : '—',
       badgeColor: '#F59E0B',
       badgeBg: '#FFFBEB',
@@ -406,27 +428,53 @@ const dashboardCards = computed(() => {
 });
 
 // ─── 排序 ───
-const onSortChange = (sort: any) => {
-  tableSort.value = sort;
-  if (!sort || !sort.sortBy) {
+const toggleSort = (key: string) => {
+  if (sortKey.value !== key) {
+    sortKey.value = key;
+    sortOrder.value = 'asc';
+  } else {
+    sortOrder.value = sortOrder.value === 'asc' ? 'desc' : (sortOrder.value === 'desc' ? '' : 'asc');
+    if (sortOrder.value === '') sortKey.value = '';
+  }
+  applySort();
+};
+
+const sortIconClass = (key: string) => {
+  if (sortKey.value !== key) return 'custom-sort custom-sort--none';
+  return sortOrder.value === 'asc' ? 'custom-sort custom-sort--asc' : 'custom-sort custom-sort--desc';
+};
+
+const sortTitle = (label: string, key: string) => {
+  return () => h('span', {
+    class: 'custom-sort-header',
+    onClick: (e: Event) => { e.stopPropagation(); toggleSort(key); }
+  }, [label, h('span', { class: sortIconClass(key) })]);
+};
+
+const applySort = () => {
+  if (!sortKey.value || !sortOrder.value) {
     sortedSalesmen.value = [...salesmanStore.salesmen];
     return;
   }
-  const { sortBy, descending } = sort;
-  const col = columns.find(c => c.colKey === sortBy);
-  if (col?.sorter) {
-    sortedSalesmen.value = [...salesmanStore.salesmen].sort((a, b) => {
-      const result = (col.sorter as Function)(a, b);
-      return descending ? -result : result;
-    });
-  } else {
-    sortedSalesmen.value = [...salesmanStore.salesmen];
-  }
+  const dir = sortOrder.value === 'desc' ? -1 : 1;
+
+  const sortFns: Record<string, (a: any, b: any) => number> = {
+    name: (a, b) => a.name.localeCompare(b.name, 'zh'),
+    code: (a, b) => a.code.localeCompare(b.code),
+    department: (a, b) => (a.department || '').localeCompare(b.department || '', 'zh'),
+    status: (a, b) => a.status.localeCompare(b.status),
+    createdAt: (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+  };
+
+  const fn = sortFns[sortKey.value];
+  sortedSalesmen.value = fn
+    ? [...salesmanStore.salesmen].sort((a, b) => fn(a, b) * dir)
+    : [...salesmanStore.salesmen];
 };
 
 watch(() => salesmanStore.salesmen, (val) => {
-  if (tableSort.value?.sortBy) {
-    onSortChange(tableSort.value);
+  if (sortKey.value && sortOrder.value) {
+    applySort();
   } else {
     sortedSalesmen.value = [...val];
   }
@@ -468,17 +516,17 @@ const handleBatchDelete = async () => {
 };
 
 // ─── 表格列定义 ───
-const columns = [
+const columns = computed(() => [
   { colKey: 'row-select', type: 'multiple', width: 50, resizable: false },
-  { colKey: 'name', title: '姓名', width: 180, sorter: (a: any, b: any) => a.name.localeCompare(b.name, 'zh') },
-  { colKey: 'code', title: '工号', width: 120, sorter: (a: any, b: any) => a.code.localeCompare(b.code) },
-  { colKey: 'department', title: '部门', width: 140, sorter: (a: any, b: any) => (a.department || '').localeCompare(b.department || '', 'zh') },
+  { colKey: 'name', title: sortTitle('姓名', 'name'), width: 180 },
+  { colKey: 'code', title: sortTitle('工号', 'code'), width: 120 },
+  { colKey: 'department', title: sortTitle('部门', 'department'), width: 140 },
   { colKey: 'phone', title: '电话', width: 150 },
   { colKey: 'email', title: '邮箱', width: 200 },
-  { colKey: 'status', title: '状态', width: 100, sorter: (a: any, b: any) => a.status.localeCompare(b.status) },
-  { colKey: 'createdAt', title: '创建时间', width: 180, sorter: (a: any, b: any) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime() },
+  { colKey: 'status', title: sortTitle('状态', 'status'), width: 100 },
+  { colKey: 'createdAt', title: sortTitle('创建时间', 'createdAt'), width: 180 },
   { colKey: 'operation', title: '操作', width: 120, align: 'center', className: 'operation-col-center' }
-];
+]);
 
 // ─── 分页 ───
 const pagination = computed(() => ({
@@ -719,12 +767,18 @@ const displaySmPendingItems = computed<SmTodoItem[]>(() => {
 
   if (salesmen.length === 0 || items.length === 0) {
     items.push(
-      { id: 'sm-mock-1', type: 'warning' as const, priority: 'high' as const,
-        title: '配方待发布', desc: '周伯通 的「人参养颜膏」有新版本草稿未发布', actionText: '去处理', actionType: 'view' as const },
-      { id: 'sm-mock-2', type: 'info' as const, priority: 'medium' as const,
-        title: '配方状态提醒', desc: '杨康 有2个配方处于草稿状态', actionText: '查看详情', actionType: 'formulas' as const },
-      { id: 'sm-mock-3', type: 'default' as const, priority: 'low' as const,
-        title: '销售数据缺失', desc: '杨过 本月暂无销售数据，请及时录入', actionText: '去录入', actionType: 'view' as const },
+      {
+        id: 'sm-mock-1', type: 'warning' as const, priority: 'high' as const,
+        title: '配方待发布', desc: '周伯通 的「人参养颜膏」有新版本草稿未发布', actionText: '去处理', actionType: 'view' as const
+      },
+      {
+        id: 'sm-mock-2', type: 'info' as const, priority: 'medium' as const,
+        title: '配方状态提醒', desc: '杨康 有2个配方处于草稿状态', actionText: '查看详情', actionType: 'formulas' as const
+      },
+      {
+        id: 'sm-mock-3', type: 'default' as const, priority: 'low' as const,
+        title: '销售数据缺失', desc: '杨过 本月暂无销售数据，请及时录入', actionText: '去录入', actionType: 'view' as const
+      },
     );
   }
 
@@ -901,6 +955,33 @@ const handleDelete = async (row: Salesman) => {
         line-height: 1.35;
         white-space: pre-line;
         word-break: break-word;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+
+        .stat-value-left {
+          display: inline-flex;
+          align-items: baseline;
+          gap: 2px;
+        }
+
+        .stat-top-name {
+          font-size: 14px;
+          font-weight: 600;
+          margin-left: auto;
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          color: #D97706;
+          flex-shrink: 0;
+
+          .champion-icon {
+            display: inline-block;
+            font-size: 16px;
+            animation: championFloat 2s ease-in-out infinite;
+          }
+        }
 
         .stat-unit {
           font-size: 14px;
@@ -1525,7 +1606,7 @@ const handleDelete = async (row: Salesman) => {
 
   // ─── 动态区域 ───
   .activity-section {
-    margin-top: 40px;
+    margin-top: 30px;
     padding-bottom: 32px;
     display: grid;
     grid-template-columns: 1fr;
@@ -1889,6 +1970,18 @@ const handleDelete = async (row: Salesman) => {
   }
 }
 
+@keyframes championFloat {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
 // ─── 业务员小助手卡片 ───
 .activity-card {
   background-color: #fff;
@@ -1908,7 +2001,7 @@ const handleDelete = async (row: Salesman) => {
 }
 
 .activity-section {
-  margin-top: 40px;
+  margin-top: 30px;
   padding-bottom: 0;
   display: grid;
   grid-template-columns: 1fr;
@@ -1958,15 +2051,36 @@ const handleDelete = async (row: Salesman) => {
       cursor: pointer;
       transition: all 0.2s;
 
-      &:hover:not(:disabled) { background: rgba(255, 255, 255, 0.25); border-color: rgba(255, 255, 255, 0.5); }
-      &:disabled { opacity: 0.3; cursor: not-allowed; border-color: rgba(255, 255, 255, 0.15); color: rgba(255, 255, 255, 0.5); background: transparent; }
+      &:hover:not(:disabled) {
+        background: rgba(255, 255, 255, 0.25);
+        border-color: rgba(255, 255, 255, 0.5);
+      }
+
+      &:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+        border-color: rgba(255, 255, 255, 0.15);
+        color: rgba(255, 255, 255, 0.5);
+        background: transparent;
+      }
     }
 
-    .activity-nav-page { font-size: 12px; font-weight: 600; color: rgba(255, 255, 255, 0.85); min-width: 32px; text-align: center; user-select: none; }
+    .activity-nav-page {
+      font-size: 12px;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.85);
+      min-width: 32px;
+      text-align: center;
+      user-select: none;
+    }
   }
 
   .todo-list {
-    &__inner { display: flex; flex-direction: column; gap: 10px; }
+    &__inner {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
   }
 
   .todo-item {
@@ -1981,24 +2095,47 @@ const handleDelete = async (row: Salesman) => {
     cursor: default;
     animation: todoSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
 
-    &:hover { background: #f1f5f9; border-color: #e2e8f0; transform: translateX(4px); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); }
+    &:hover {
+      background: #f1f5f9;
+      border-color: #e2e8f0;
+      transform: translateX(4px);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
 
     &--high {
       background: #FFFBEB;
       border-color: #FEF08A;
 
-      &:hover { background: #FEF9C3; border-color: #FDE047; }
-      .todo-item__title { color: #92400E; }
-      .todo-item__desc { color: #78716C; }
+      &:hover {
+        background: #FEF9C3;
+        border-color: #FDE047;
+      }
+
+      .todo-item__title {
+        color: #92400E;
+      }
+
+      .todo-item__desc {
+        color: #78716C;
+      }
     }
 
     &--medium {
       background: #EFF6FF;
       border-color: #BFDBFE;
 
-      &:hover { background: #DBEAFE; border-color: #93C5FD; }
-      .todo-item__title { color: #1E40AF; }
-      .todo-item__desc { color: #475569; }
+      &:hover {
+        background: #DBEAFE;
+        border-color: #93C5FD;
+      }
+
+      .todo-item__title {
+        color: #1E40AF;
+      }
+
+      .todo-item__desc {
+        color: #475569;
+      }
     }
 
     &--low,
@@ -2006,9 +2143,18 @@ const handleDelete = async (row: Salesman) => {
       background: #F5F3FF;
       border-color: #DDD6FE;
 
-      &:hover { background: #EDE9FE; border-color: #C4B5FD; }
-      .todo-item__title { color: #5B21B6; }
-      .todo-item__desc { color: #6B7280; }
+      &:hover {
+        background: #EDE9FE;
+        border-color: #C4B5FD;
+      }
+
+      .todo-item__title {
+        color: #5B21B6;
+      }
+
+      .todo-item__desc {
+        color: #6B7280;
+      }
     }
 
     &__icon {
@@ -2020,14 +2166,41 @@ const handleDelete = async (row: Salesman) => {
       align-items: center;
       justify-content: center;
 
-      &--warning { background: linear-gradient(135deg, #FEF3C7, #FDE68A); color: #D97706; }
-      &--info { background: linear-gradient(135deg, #DBEAFE, #BFDBFE); color: #2563EB; }
-      &--default { background: linear-gradient(135deg, #EDE9FE, #DDD6FE); color: #7C3AED; }
+      &--warning {
+        background: linear-gradient(135deg, #FEF3C7, #FDE68A);
+        color: #D97706;
+      }
+
+      &--info {
+        background: linear-gradient(135deg, #DBEAFE, #BFDBFE);
+        color: #2563EB;
+      }
+
+      &--default {
+        background: linear-gradient(135deg, #EDE9FE, #DDD6FE);
+        color: #7C3AED;
+      }
     }
 
-    &__content { flex: 1; min-width: 0; }
-    &__title { font-size: 13px; font-weight: 600; color: #1e293b; margin: 0 0 3px 0; line-height: 1.3; }
-    &__desc { font-size: 12px; color: #64748b; margin: 0; line-height: 1.4; }
+    &__content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    &__title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #1e293b;
+      margin: 0 0 3px 0;
+      line-height: 1.3;
+    }
+
+    &__desc {
+      font-size: 12px;
+      color: #64748b;
+      margin: 0;
+      line-height: 1.4;
+    }
 
     &__action {
       flex-shrink: 0;
@@ -2043,17 +2216,42 @@ const handleDelete = async (row: Salesman) => {
       justify-content: center;
       transition: all 0.2s ease;
 
-      &:hover { background: linear-gradient(135deg, #10B981, #059669); border-color: transparent; color: #fff; transform: scale(1.05); }
+      &:hover {
+        background: linear-gradient(135deg, #10B981, #059669);
+        border-color: transparent;
+        color: #fff;
+        transform: scale(1.05);
+      }
     }
   }
 
-  @keyframes todoSlideIn { from { opacity: 0; transform: translateX(-12px); } to { opacity: 1; transform: translateX(0); } }
+  @keyframes todoSlideIn {
+    from {
+      opacity: 0;
+      transform: translateX(-12px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
 }
 
 .todo-list-enter-active,
-.todo-list-leave-active { transition: all 0.35s ease; }
-.todo-list-enter-from { opacity: 0; transform: translateY(-8px); }
-.todo-list-leave-to { opacity: 0; transform: translateX(20px); }
+.todo-list-leave-active {
+  transition: all 0.35s ease;
+}
+
+.todo-list-enter-from {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+
+.todo-list-leave-to {
+  opacity: 0;
+  transform: translateX(20px);
+}
 
 .assistant-empty {
   display: flex;
@@ -2062,9 +2260,22 @@ const handleDelete = async (row: Salesman) => {
   text-align: center;
   padding: 36px 20px 24px;
 
-  svg { margin-bottom: 12px; stroke: #10b981; }
-  p { font-size: 15px; font-weight: 600; color: #0F172A; margin: 0 0 6px 0; }
-  span { font-size: 13px; color: #94a3b8; }
+  svg {
+    margin-bottom: 12px;
+    stroke: #10b981;
+  }
+
+  p {
+    font-size: 15px;
+    font-weight: 600;
+    color: #0F172A;
+    margin: 0 0 6px 0;
+  }
+
+  span {
+    font-size: 13px;
+    color: #94a3b8;
+  }
 }
 
 .assistant-footer {
@@ -2075,7 +2286,11 @@ const handleDelete = async (row: Salesman) => {
   align-items: center;
   justify-content: space-between;
 }
-.assistant-hint { font-size: 12px; color: #94a3b8; }
+
+.assistant-hint {
+  font-size: 12px;
+  color: #94a3b8;
+}
 
 .assistant-refresh-btn {
   width: 28px;
@@ -2090,7 +2305,12 @@ const handleDelete = async (row: Salesman) => {
   justify-content: center;
   transition: all 0.2s ease;
 
-  &:hover { background: #f1f5f9; border-color: #cbd5e1; color: #475569; transform: rotate(180deg); }
+  &:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+    color: #475569;
+    transform: rotate(180deg);
+  }
 }
 
 .assistant-bg-icon {
@@ -2176,10 +2396,51 @@ const handleDelete = async (row: Salesman) => {
   text-align: center !important;
 }
 
-.salesman-list .operation-col-center > div,
+.salesman-list .operation-col-center>div,
 .salesman-list .action-buttons {
   display: flex !important;
   justify-content: center !important;
   align-items: center !important;
+}
+
+/* 自定义排序 */
+.salesman-list .custom-sort-header {
+  cursor: pointer;
+  user-select: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.salesman-list .custom-sort-header:hover {
+  color: #10b981;
+}
+
+.salesman-list .custom-sort {
+  display: inline-block;
+  width: 0;
+  height: 0;
+  margin-left: 2px;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  opacity: 0.25;
+  transition: all 0.2s;
+}
+
+.salesman-list .custom-sort--none {
+  border-top: 5px solid #94a3b8;
+  border-bottom: none;
+}
+
+.salesman-list .custom-sort--asc {
+  border-bottom: 5px solid #10b981;
+  border-top: none;
+  opacity: 1;
+}
+
+.salesman-list .custom-sort--desc {
+  border-top: 5px solid #10b981;
+  border-bottom: none;
+  opacity: 1;
 }
 </style>

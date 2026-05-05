@@ -12,6 +12,7 @@ import {
   rowToCamelCase,
   rowsToCamelCase,
   safeJsonParse,
+  buildContentDisposition,
 } from "../utils/helpers.js";
 import { exportFormulaToExcel } from "../utils/formulaExporter.js";
 import { exportFormulaToPdf } from "../utils/formulaPdfExporter.js";
@@ -341,7 +342,7 @@ export async function downloadExportFile(req: Request, res: Response) {
     const contentType =
       ext === "pdf" ? "application/pdf" : "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
     res.setHeader("Content-Type", contentType);
-    res.setHeader("Content-Disposition", `attachment; filename="${encodeURIComponent(fileName)}"`);
+    res.setHeader("Content-Disposition", buildContentDisposition(fileName));
     res.sendFile(filePath);
   } catch (error: any) {
     res.status(500).json({ success: false, message: "下载失败", error: error.message });

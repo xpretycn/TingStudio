@@ -1,0 +1,1245 @@
+<template>
+  <div class="formula-compare">
+    <header class="detail-header">
+      <div class="header-left">
+        <button class="header-back-btn" @click="handleBack" title="返回配方管理">
+          <t-icon name="arrow-left" />
+        </button>
+        <div class="header-title-group">
+          <nav class="header-breadcrumb">
+            <a class="breadcrumb-link" @click="handleBack">配方管理</a>
+            <t-icon name="chevron-right" class="breadcrumb-sep" />
+            <span class="breadcrumb-current">配方信息对比</span>
+          </nav>
+          <h2 class="page-main-title">配方多维对比视图</h2>
+        </div>
+      </div>
+      <div class="header-actions">
+        <span class="compare-count">
+          当前对比配方数: <strong>{{ compareFormulas.length }}</strong>/3
+        </span>
+        <button class="mode-toggle-btn" :class="{ 'mode-toggle-btn--price': compareMode === 'price' }"
+          @click="toggleMode" :title="compareMode === 'content' ? '切换到报价对比' : '切换到含量对比'">
+          <span class="mode-toggle-icon">{{ compareMode === 'content' ? '¥' : '%' }}</span>
+          <span>{{ compareMode === 'content' ? '报价对比' : '含量对比' }}</span>
+        </button>
+        <t-popconfirm content="确定要清除所有对比项吗？" @confirm="onConfirmReset">
+          <button class="reset-btn" title="重置对比">重置对比</button>
+        </t-popconfirm>
+      </div>
+    </header>
+
+    <main class="detail-main">
+      <div v-if="compareFormulas.length === 0" class="empty-state">
+        <t-icon name="view-module" class="empty-icon" />
+        <p class="empty-text">暂无选中的配方，请先从配方管理页面添加</p>
+        <button class="back-select-btn" @click="handleBack">返回选择</button>
+      </div>
+
+      <div v-else class="compare-grid">
+        <div v-for="(formula, idx) in compareFormulas" :key="formula.id" class="compare-card"
+          :class="{ 'is-base-card': idx === 0 }" :style="{ animationDelay: `${idx * 0.1}s` }">
+          <div class="card-header">
+            <div class="card-header-top">
+              <span class="version-tag-pill" :class="{ 'base-pill': idx === 0 }">
+                {{ formula.code || formula.id.slice(0, 6) }}<template v-if="idx === 0"> · 基准</template>
+              </span>
+              <div class="card-actions-right">
+                <button v-if="idx !== 0" class="pin-btn" @click="handleSetBase(idx)" title="设为基准配方">
+                  <t-icon name="pin" />
+                </button>
+                <button class="remove-btn" @click="handleRemove(formula.id)" title="移除对比">
+                  <t-icon name="delete" />
+                </button>
+              </div>
+            </div>
+            <h3 class="card-title">{{ formula.name }}</h3>
+            <p class="card-meta">
+              <t-icon name="user" /> {{ formula.salesmanName || '--' }} · {{ formatDate(formula.createdAt) }}
+            </p>
+          </div>
+
+          <div class="card-body">
+            <h4 v-if="compareMode === 'content'" class="section-label">原料构成</h4>
+            <h4 v-else class="section-label">原料报价</h4>
+            <div v-if="compareMode === 'content'" class="ingredients-list">
+              <template v-for="ing in getIngredients(formula, idx)" :key="ing.name">
+                <div v-if="ing.missing" class="ingredient-item diff-missing">
+                  <div class="ing-top">
+                    <span class="ing-name">{{ ing.name }}</span>
+                    <span class="ing-value">--</span>
+                  </div>
+                  <div class="ing-bar-track">
+                    <div class="ing-bar-fill missing-bar"></div>
+                  </div>
+                </div>
+                <div v-else class="ingredient-item" :class="getDiffClass(ing, formula, idx)">
+                  <div class="ing-top">
+                    <span class="ing-name">{{ ing.name }}</span>
+                    <span class="ing-value">{{ ing.value.toFixed(2) }}%</span>
+                  </div>
+                  <div class="ing-bar-track">
+                    <div class="ing-bar-fill" :style="{ width: ing.value + '%' }"></div>
+                  </div>
+                </div>
+              </template>
+            </div>
+
+            <div v-else class="price-list">
+              <template v-for="item in getPriceItems(formula, idx)" :key="item.name">
+                <div v-if="item.missing" class="price-item diff-missing">
+                  <div class="pi-top">
+                    <span class="pi-name">{{ item.name }}</span>
+                    <span class="pi-value">--</span>
+                  </div>
+                  <span class="pi-sub">{{ item.quantity }}g</span>
+                </div>
+                <div v-else class="price-item" :class="getPriceDiffClass(item, formula, idx)">
+                  <div class="pi-top">
+                    <span class="pi-name">{{ item.name }}</span>
+                    <div class="pi-right">
+                      <span class="pi-value" :class="{ 'pi-adjusted': item.isAdjusted }">
+                        {{ formatPrice(item.unitPrice) }}
+                      </span>
+                      <span v-if="item.isAdjusted" class="pi-adjust-badge"
+                        :title="'基价: ¥' + (item.basePrice ?? '--') + '/kg'">
+                        <svg viewBox="0 0 12 12" width="10" height="10">
+                          <path d="M6 1L7.5 4.5L11 5L8.5 7.5L9 11L6 9L3 11L3.5 7.5L1 5L4.5 4.5Z" fill="#b45309" />
+                        </svg>调
+                      </span>
+                    </div>
+                  </div>
+                  <div class="pi-bottom">
+                    <span class="pi-sub">{{ item.quantity }}g</span>
+                    <span class="pi-cost">小计: ¥{{ (item.quantity / 1000 * item.unitPrice).toFixed(2) }}
+                      <span v-if="item.isAdjusted && item.basePrice != null" class="pi-base-hint"
+                        :title="'原始基价: ¥' + item.basePrice + '/kg'">[基价¥{{ item.basePrice }}]</span>
+                    </span>
+                  </div>
+                </div>
+              </template>
+
+              <div class="cost-summary-section">
+                <h4 class="section-label">费用与利润</h4>
+                <template v-for="csItem in getCostSummaryItems(formula, idx)" :key="csItem.label">
+                  <div class="cost-summary-item" :class="csItem.diffClass">
+                    <span class="cs-label">{{ csItem.label }}</span>
+                    <span class="cs-value" :class="csItem.valueClass">{{ csItem.displayValue }}</span>
+                  </div>
+                </template>
+              </div>
+            </div>
+
+            <div class="summary-section">
+              <h4 class="section-label">配方摘要</h4>
+              <div class="summary-box">
+                "{{ getSummaryText(formula) }}"
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div v-if="compareFormulas.length < 3" class="compare-card add-placeholder-card"
+          :style="{ animationDelay: `${compareFormulas.length * 0.1}s` }">
+          <div class="card-header">
+            <div class="card-header-top">
+              <span class="version-tag-pill placeholder-tag">待选择</span>
+            </div>
+            <h3 class="card-title placeholder-title">添加对比配方</h3>
+            <p class="card-meta">
+              还可添加 <strong>{{ 3 - compareFormulas.length }}</strong> 个配方
+            </p>
+          </div>
+
+          <div class="card-body">
+            <h4 class="section-label">可选配方</h4>
+            <div class="available-list" v-if="availableList.length > 0">
+              <div v-for="item in availableList" :key="item.id" class="available-item"
+                @click="handleAddFormula(item.id)">
+                <div class="avail-top">
+                  <span class="avail-ver-num">{{ item.code || item.id.slice(0, 6) }}</span>
+                  <t-icon name="chevron-right" class="avail-arrow" />
+                </div>
+                <p class="avail-name">{{ item.name }}</p>
+                <p class="avail-date">{{ item.salesmanName || '--' }} · {{ formatDate(item.createdAt) }}</p>
+              </div>
+            </div>
+            <div v-else class="no-available">
+              <t-icon name="info-circle" />
+              <span>暂无更多可对比配方</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, onMounted, computed } from 'vue';
+import { useRouter } from 'vue-router';
+import { useFormulaStore } from '@/stores/formula';
+import type { Formula, MaterialItem } from '@/api/formula';
+import { formulaApi } from '@/api/formula';
+
+const router = useRouter();
+const formulaStore = useFormulaStore();
+
+const compareFormulas = ref<Formula[]>([]);
+const compareMode = ref<'content' | 'price'>('content');
+const allFormulas = ref<Formula[]>([]);
+
+const toggleMode = () => {
+  compareMode.value = compareMode.value === 'content' ? 'price' : 'content';
+};
+
+const handleBack = () => router.push('/formulas');
+
+const handleRemove = (id: string) => {
+  compareFormulas.value = compareFormulas.value.filter(f => f.id !== id);
+  syncLocalStorage();
+};
+
+const handleSetBase = (idx: number) => {
+  if (idx <= 0) return;
+  const [target] = compareFormulas.value.splice(idx, 1);
+  compareFormulas.value.unshift(target);
+  syncLocalStorage();
+};
+
+const onConfirmReset = () => {
+  compareFormulas.value = [];
+  localStorage.removeItem('compare_formulas');
+};
+
+const availableList = computed(() => {
+  const currentIds = new Set(compareFormulas.value.map(f => f.id));
+  return allFormulas.value.filter(f => !currentIds.has(f.id));
+});
+
+const handleAddFormula = async (id: string) => {
+  if (compareFormulas.value.find(f => f.id === id)) return;
+  try {
+    const formula = await formulaApi.getById(id);
+    if (formula) {
+      const parsed = {
+        ...formula,
+        materials: parseMaterials(formula),
+      };
+      compareFormulas.value.push(parsed);
+      syncLocalStorage();
+    }
+  } catch {
+    // ignore
+  }
+};
+
+const syncLocalStorage = () => {
+  const ids = compareFormulas.value.map(f => f.id);
+  localStorage.setItem('compare_formulas', JSON.stringify(ids));
+};
+
+const formatDate = (val: string | undefined) => {
+  if (!val) return '--';
+  const d = new Date(val);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+};
+
+const formatPrice = (val: number | null) => {
+  if (val == null) return '--';
+  return `¥${val.toFixed(2)}/kg`;
+};
+
+function parseMaterials(formula: Formula): MaterialItem[] {
+  if (formula.materials && formula.materials.length > 0) return formula.materials;
+  if (!formula.materialsJson) return [];
+  try {
+    const parsed = JSON.parse(formula.materialsJson);
+    if (typeof parsed === 'string') return JSON.parse(parsed);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function getMaterials(formula: Formula): MaterialItem[] {
+  return (formula as any).materials || parseMaterials(formula);
+}
+
+function getTotalWeight(formula: Formula): number {
+  const materials = getMaterials(formula);
+  return materials.reduce((sum, m) => sum + (m.quantity || 0), 0);
+}
+
+const getIngredients = (formula: Formula, idx: number) => {
+  const materials = getMaterials(formula);
+  const totalWeight = getTotalWeight(formula) || 1;
+
+  if (idx === 0) {
+    return materials.map(m => ({
+      name: m.materialName || '--',
+      value: ((m.quantity || 0) / totalWeight) * 100,
+    }));
+  }
+
+  const baseFormula = compareFormulas.value[0];
+  const baseMaterials = getMaterials(baseFormula);
+  const currentMap = new Map(materials.map(m => [m.materialName, m.quantity || 0]));
+  const aligned: any[] = [];
+
+  baseMaterials.forEach(b => {
+    const name = b.materialName || '--';
+    if (currentMap.has(name)) {
+      aligned.push({ name, value: (currentMap.get(name)! / totalWeight) * 100, missing: false });
+      currentMap.delete(name);
+    } else {
+      aligned.push({ name, value: 0, missing: true });
+    }
+  });
+
+  currentMap.forEach((quantity, name) => {
+    aligned.push({ name, value: (quantity / totalWeight) * 100, missing: false });
+  });
+
+  return aligned;
+};
+
+const getDiffClass = (ing: any, _formula: Formula, idx: number) => {
+  if (idx === 0) return '';
+  const baseFormula = compareFormulas.value[0];
+  if (!baseFormula) return '';
+  const baseMaterials = getMaterials(baseFormula);
+  const baseTotalWeight = getTotalWeight(baseFormula) || 1;
+  const match = baseMaterials.find((oi: MaterialItem) => oi.materialName === ing.name);
+  if (!match) return 'diff-added';
+  const basePercent = (match.quantity || 0) / baseTotalWeight * 100;
+  if (Math.abs(basePercent - ing.value) > 0.01) return 'diff-changed';
+  return '';
+};
+
+const getPriceItems = (formula: Formula, idx: number) => {
+  const materials = getMaterials(formula);
+
+  if (idx === 0) {
+    return materials.map(m => {
+      const basePrice = (m as any).basePriceAtSave ?? null;
+      const adjPrice = m.adjustedPrice ?? null;
+      const effectivePrice = adjPrice != null ? adjPrice : basePrice;
+      return {
+        name: m.materialName || '--',
+        quantity: m.quantity || 0,
+        unitPrice: effectivePrice,
+        basePrice,
+        isAdjusted: adjPrice != null && adjPrice !== basePrice,
+      };
+    });
+  }
+
+  const baseFormula = compareFormulas.value[0];
+  const baseMaterials = getMaterials(baseFormula);
+  const currentMap = new Map(materials.map(m => {
+    const bp = (m as any).basePriceAtSave ?? null;
+    const ap = m.adjustedPrice ?? null;
+    return [m.materialName, { quantity: m.quantity || 0, unitPrice: ap != null ? ap : bp, basePrice: bp, isAdjusted: ap != null && ap !== bp }];
+  }));
+  const aligned: any[] = [];
+
+  baseMaterials.forEach(b => {
+    const name = b.materialName || '--';
+    if (currentMap.has(name)) {
+      const cur = currentMap.get(name)!;
+      aligned.push({ name, ...cur, missing: false });
+      currentMap.delete(name);
+    } else {
+      aligned.push({
+        name,
+        quantity: b.quantity || 0,
+        unitPrice: null,
+        basePrice: (b as any).basePriceAtSave ?? null,
+        isAdjusted: false,
+        missing: true,
+      });
+    }
+  });
+
+  currentMap.forEach((val, name) => {
+    aligned.push({ name, ...val as object, missing: false });
+  });
+
+  return aligned;
+};
+
+const getPriceDiffClass = (item: any, _formula: Formula, idx: number) => {
+  if (idx === 0) return '';
+  const baseFormula = compareFormulas.value[0];
+  if (!baseFormula) return '';
+  const baseMaterials = getMaterials(baseFormula);
+  const match = baseMaterials.find((oi: MaterialItem) => oi.materialName === item.name);
+  if (!match) return 'diff-added';
+  const baseEffectivePrice = match.adjustedPrice ?? (match as any).basePriceAtSave ?? null;
+  if ((baseEffectivePrice ?? 'null') !== (item.unitPrice ?? 'null')) return 'diff-changed';
+  return '';
+};
+
+const getCostSummaryItems = (formula: Formula, idx: number) => {
+  const packagingPrice = formula.packagingPrice ?? null;
+  const otherPrice = formula.otherPrice ?? null;
+  const profitMargin = formula.profitMargin ?? null;
+
+  const baseFormula = idx === 0 ? null : compareFormulas.value[0];
+  const basePackaging = baseFormula?.packagingPrice ?? null;
+  const baseOther = baseFormula?.otherPrice ?? null;
+  const baseMargin = baseFormula?.profitMargin ?? null;
+
+  const getDiffInfo = (current: number | null | undefined, base: number | null | undefined) => {
+    if (idx === 0) return { diffClass: '', valueClass: '' };
+    const c = current ?? null;
+    const b = base ?? null;
+    if (c === null && b === null) return { diffClass: '', valueClass: '' };
+    if (c === null || b === null) return { diffClass: 'cs-diff-changed', valueClass: 'cs-val-warn' };
+    if (c === b) return { diffClass: '', valueClass: '' };
+    const increased = c > b;
+    return {
+      diffClass: increased ? 'cs-diff-up' : 'cs-diff-down',
+      valueClass: increased ? 'cs-val-up' : 'cs-val-down',
+    };
+  };
+
+  return [
+    {
+      label: '包材费用',
+      displayValue: packagingPrice != null ? `¥${packagingPrice.toFixed(2)}` : '--',
+      ...getDiffInfo(packagingPrice, basePackaging),
+    },
+    {
+      label: '其他费用',
+      displayValue: otherPrice != null ? `¥${otherPrice.toFixed(2)}` : '--',
+      ...getDiffInfo(otherPrice, baseOther),
+    },
+    {
+      label: '利润率',
+      displayValue: profitMargin != null ? `${profitMargin.toFixed(1)}%` : '--',
+      ...getDiffInfo(profitMargin, baseMargin),
+    },
+  ];
+};
+
+const getSummaryText = (formula: Formula) => {
+  const materials = getMaterials(formula);
+  const totalWeight = getTotalWeight(formula);
+  return `共 ${materials.length} 种原料，成品重量 ${totalWeight.toFixed(1)}g，由 ${formula.salesmanName || '未知'} 负责。`;
+};
+
+onMounted(async () => {
+  await formulaStore.fetchFormulas();
+  allFormulas.value = [...formulaStore.formulas];
+
+  const ids = localStorage.getItem('compare_formulas');
+  if (ids) {
+    try {
+      const parsed: string[] = JSON.parse(ids);
+      const loaded: Formula[] = [];
+      for (const id of parsed.slice(0, 3)) {
+        const found = allFormulas.value.find(f => f.id === id);
+        if (found) {
+          loaded.push({
+            ...found,
+            materials: parseMaterials(found),
+          });
+        } else {
+          try {
+            const detail = await formulaApi.getById(id);
+            if (detail) {
+              loaded.push({
+                ...detail,
+                materials: parseMaterials(detail),
+              });
+            }
+          } catch { /* ignore */ }
+        }
+      }
+      compareFormulas.value = loaded;
+    } catch { /* ignore */ }
+  }
+});
+</script>
+
+<style scoped lang="scss">
+$radius-2xl: 2rem;
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.formula-compare {
+  .detail-header {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-left: -32px;
+    margin-right: -32px;
+    padding: 16px 32px;
+    background-color: rgba(255, 255, 255, 0.80);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid #f1f5f9;
+    animation: fadeInDown 0.35s ease both;
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+
+      .header-back-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        border: none;
+        border-radius: 12px;
+        background: transparent;
+        color: #94a3b8;
+        cursor: pointer;
+        transition: all 0.15s;
+        font-size: 20px;
+
+        &:hover {
+          color: #10b981;
+          background-color: #ecfdf5;
+        }
+      }
+
+      .header-title-group {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+
+        .header-breadcrumb {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 12px;
+
+          .breadcrumb-link {
+            color: #94a3b8;
+            cursor: pointer;
+            text-decoration: none;
+            transition: color 0.15s;
+
+            &:hover {
+              color: #10b981;
+            }
+          }
+
+          .breadcrumb-sep {
+            font-size: 12px;
+            color: #94a3b8;
+          }
+
+          .breadcrumb-current {
+            color: #475569;
+          }
+        }
+
+        .page-main-title {
+          margin: 0;
+          font-size: 18px;
+          font-weight: 700;
+          color: #1e293b;
+        }
+      }
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+
+      .compare-count {
+        font-size: 12px;
+        color: #94a3b8;
+        font-weight: 500;
+
+        strong {
+          color: #10b981;
+          font-weight: 700;
+        }
+      }
+
+      .reset-btn {
+        padding: 8px 18px;
+        background: rgba(244, 63, 94, 0.08);
+        color: #f43f5e;
+        border: 1px solid rgba(244, 63, 94, 0.2);
+        border-radius: 12px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.15s;
+
+        &:hover {
+          background: rgba(244, 63, 94, 0.15);
+          border-color: rgba(244, 63, 94, 0.35);
+        }
+      }
+
+      .mode-toggle-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 18px;
+        background: rgba(16, 185, 129, 0.08);
+        color: #059669;
+        border: 1px solid rgba(16, 185, 129, 0.2);
+        border-radius: 12px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.15s;
+
+        &:hover {
+          background: rgba(16, 185, 129, 0.15);
+          border-color: rgba(16, 185, 129, 0.35);
+        }
+
+        &--price {
+          background: rgba(245, 158, 11, 0.08);
+          color: #d97706;
+          border-color: rgba(245, 158, 11, 0.2);
+
+          &:hover {
+            background: rgba(245, 158, 11, 0.15);
+            border-color: rgba(245, 158, 11, 0.35);
+          }
+        }
+
+        .mode-toggle-icon {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 20px;
+          height: 20px;
+          font-size: 14px;
+          font-weight: 800;
+          line-height: 1;
+        }
+      }
+    }
+  }
+
+  .detail-main {
+    padding: 32px 0;
+    animation: fadeInDown 0.35s ease both;
+    animation-delay: 0.05s;
+  }
+
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 24px;
+    gap: 16px;
+
+    .empty-icon {
+      font-size: 64px;
+      color: #94a3b8;
+      opacity: 0.2;
+    }
+
+    .empty-text {
+      font-size: 14px;
+      color: #94a3b8;
+    }
+
+    .back-select-btn {
+      padding: 10px 28px;
+      background: #10b981;
+      color: #ffffff;
+      border: none;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.2);
+      transition: all 0.15s;
+
+      &:hover {
+        background: #059669;
+        transform: translateY(-1px);
+        box-shadow: 0 14px 20px -3px rgba(16, 185, 129, 0.3);
+      }
+    }
+  }
+
+  .compare-grid {
+    display: flex;
+    gap: 24px;
+    overflow-x: auto;
+    padding-bottom: 24px;
+
+    &::-webkit-scrollbar {
+      height: 8px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: #d1fae5;
+      border-radius: 10px;
+    }
+  }
+
+  .compare-card {
+    min-width: 400px;
+    max-width: 420px;
+    flex-shrink: 0;
+    background: #ffffff;
+    border-radius: $radius-2xl;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    border: 1px solid #f8fafc;
+    overflow: hidden;
+    animation: slideIn 0.5s ease-out both;
+
+    &.is-base-card {
+      border-color: #bbf7d0;
+      box-shadow: 0 1px 3px rgba(16, 185, 129, 0.08);
+
+      .card-header {
+        background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 100%);
+        border-bottom-color: #d1fae5;
+      }
+    }
+
+    .card-header {
+      padding: 24px;
+      border-bottom: 1px solid #f8fafc;
+      background: rgba(248, 250, 252, 0.30);
+      position: relative;
+
+      .card-header-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 12px;
+      }
+
+      .version-tag-pill {
+        display: inline-block;
+        padding: 4px 10px;
+        background: #d1fae5;
+        color: #059669;
+        font-size: 10px;
+        font-weight: 900;
+        border-radius: 6px;
+        font-family: ui-monospace, SFMono-Regular, 'Cascadia Code', monospace;
+
+        &.base-pill {
+          background: linear-gradient(135deg, #10b981, #059669);
+          color: #ffffff;
+          letter-spacing: 0.05em;
+        }
+      }
+
+      .card-actions-right {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+
+      .pin-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        border: none;
+        border-radius: 8px;
+        background: transparent;
+        color: #94a3b8;
+        cursor: pointer;
+        transition: all 0.15s;
+        font-size: 15px;
+
+        &:hover {
+          color: #10b981;
+          background-color: #ecfdf5;
+          transform: rotate(-30deg);
+        }
+      }
+
+      .remove-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        border: none;
+        border-radius: 8px;
+        background: transparent;
+        color: #cbd5e1;
+        cursor: pointer;
+        transition: color 0.2s;
+        font-size: 16px;
+
+        &:hover {
+          color: #f43f5e;
+        }
+      }
+
+      .card-title {
+        margin: 0 0 6px;
+        font-size: 18px;
+        font-weight: 700;
+        color: #1e293b;
+      }
+
+      .card-meta {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        margin: 0;
+        font-size: 12px;
+        color: #94a3b8;
+      }
+    }
+
+    .card-body {
+      padding: 24px;
+
+      .section-label {
+        font-size: 10px;
+        font-weight: 900;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin: 0 0 16px;
+      }
+
+      .ingredients-list {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        margin-bottom: 32px;
+      }
+
+      .ingredient-item {
+        padding: 14px 16px;
+        margin-bottom: 10px;
+        border-radius: 16px;
+        border: 1px solid #f8fafc;
+        transition: all 0.15s;
+        background: rgba(248, 250, 252, 0.50);
+
+        &.diff-added {
+          background: #ecfdf5;
+          color: #059669;
+          font-weight: 700;
+        }
+
+        &.diff-removed {
+          background: #fef2f2;
+          color: #dc2626;
+          text-decoration: line-through;
+          opacity: 0.6;
+        }
+
+        &.diff-changed {
+          background: #fffbeb;
+          color: #d97706;
+          font-weight: 700;
+        }
+
+        &.diff-missing {
+          border-style: dashed;
+          border-color: #fca5a5;
+          background: #fef2f2;
+
+          .ing-name {
+            color: #ef4444 !important;
+            text-decoration: line-through;
+            font-weight: 700;
+          }
+
+          .ing-value {
+            color: #f87171 !important;
+            font-weight: 900;
+          }
+
+          .missing-bar {
+            width: 0 !important;
+            background: transparent;
+          }
+        }
+
+        .ing-top {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 6px;
+
+          .ing-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: inherit;
+          }
+
+          .ing-value {
+            font-family: ui-monospace, SFMono-Regular, 'Cascadia Code', monospace;
+            font-size: 14px;
+            font-weight: 900;
+            color: inherit;
+          }
+        }
+
+        .ing-bar-track {
+          width: 100%;
+          height: 6px;
+          background: rgba(226, 232, 240, 0.30);
+          border-radius: 999px;
+          overflow: hidden;
+
+          .ing-bar-fill {
+            height: 100%;
+            background: #10b981;
+            border-radius: 999px;
+            transition: width 0.4s ease;
+          }
+        }
+      }
+
+      .price-list {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        margin-bottom: 32px;
+      }
+
+      .cost-summary-section {
+        margin-top: 20px;
+        padding-top: 16px;
+        border-top: 1px dashed #e2e8f0;
+
+        .section-label {
+          margin-bottom: 12px;
+        }
+
+        .cost-summary-item {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 10px 14px;
+          margin-bottom: 6px;
+          border-radius: 12px;
+          background: rgba(248, 250, 252, 0.50);
+          border: 1px solid #f8fafc;
+          transition: all 0.15s;
+
+          &.cs-diff-up {
+            background: #fef2f2;
+            border-color: #fecaca;
+          }
+
+          &.cs-diff-down {
+            background: #f0fdf4;
+            border-color: #bbf7d0;
+          }
+
+          &.cs-diff-changed {
+            background: #fffbeb;
+            border-color: #fde68a;
+          }
+
+          .cs-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #475569;
+          }
+
+          .cs-value {
+            font-family: ui-monospace, SFMono-Regular, 'Cascadia Code', monospace;
+            font-size: 14px;
+            font-weight: 700;
+            color: #334155;
+
+            &.cs-val-up {
+              color: #dc2626;
+            }
+
+            &.cs-val-down {
+              color: #16a34a;
+            }
+
+            &.cs-val-warn {
+              color: #d97706;
+            }
+          }
+        }
+      }
+
+      .price-item {
+        padding: 14px 16px;
+        margin-bottom: 10px;
+        border-radius: 16px;
+        border: 1px solid #f8fafc;
+        transition: all 0.15s;
+        background: rgba(248, 250, 252, 0.50);
+
+        &.diff-added {
+          background: #ecfdf5;
+          color: #059669;
+          font-weight: 700;
+        }
+
+        &.diff-changed {
+          background: #fffbeb;
+          color: #d97706;
+          font-weight: 700;
+        }
+
+        &.diff-missing {
+          border-style: dashed;
+          border-color: #fca5a5;
+          background: #fef2f2;
+
+          .pi-name {
+            color: #ef4444 !important;
+            text-decoration: line-through;
+            font-weight: 700;
+          }
+        }
+
+        .pi-top {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 6px;
+
+          .pi-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: inherit;
+          }
+
+          .pi-right {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+
+            .pi-value {
+              font-family: ui-monospace, SFMono-Regular, 'Cascadia Code', monospace;
+              font-size: 14px;
+              font-weight: 900;
+              color: #334155;
+
+              &.pi-adjusted {
+                color: #d97706;
+              }
+            }
+
+            .pi-adjust-badge {
+              display: inline-flex;
+              align-items: center;
+              gap: 2px;
+              font-size: 10px;
+              line-height: 1.4;
+              padding: 2px 6px;
+              border-radius: 6px;
+              background: linear-gradient(135deg, #fef3c7, #fde68a);
+              color: #b45309;
+              font-weight: 700;
+              flex-shrink: 0;
+              cursor: help;
+            }
+          }
+        }
+
+        .pi-bottom {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+
+          .pi-sub {
+            font-size: 12px;
+            color: #94a3b8;
+          }
+
+          .pi-cost {
+            font-family: ui-monospace, SFMono-Regular, 'Cascadia Code', monospace;
+            font-size: 12px;
+            font-weight: 600;
+            color: #10b981;
+
+            .pi-base-hint {
+              margin-left: 4px;
+              font-size: 11px;
+              color: #f59e0b;
+              font-weight: 500;
+              cursor: help;
+
+              &:hover {
+                text-decoration: underline;
+              }
+            }
+          }
+        }
+      }
+
+      .summary-section {
+        margin-top: 32px;
+        padding-top: 24px;
+        border-top: 1px solid #f8fafc;
+
+        .summary-box {
+          font-size: 12px;
+          color: #64748b;
+          line-height: 1.7;
+          font-style: italic;
+          padding: 16px;
+          background: rgba(209, 250, 229, 0.50);
+          border-radius: 16px;
+          border: 1px solid rgba(209, 250, 229, 0.30);
+        }
+      }
+    }
+  }
+
+  .add-placeholder-card {
+    border: 2px dashed #e2e8f0;
+    background: #fafbfc;
+    overflow: visible;
+
+    .placeholder-tag {
+      background: #f1f5f9;
+      color: #94a3b8;
+    }
+
+    .placeholder-title {
+      color: #94a3b8;
+    }
+
+    .card-header {
+      background: transparent;
+      border-bottom: 1px dashed #e2e8f0;
+
+      .card-meta strong {
+        color: #10b981;
+        font-weight: 700;
+      }
+    }
+
+    .card-body {
+      .available-list {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .available-item {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        padding: 14px 16px;
+        border-radius: 12px;
+        border: 1px solid #f1f5f9;
+        background: #ffffff;
+        cursor: pointer;
+        transition: all 0.15s;
+
+        &:hover {
+          border-color: #10b981;
+          background: #ecfdf5;
+          box-shadow: 0 1px 3px rgba(16, 185, 129, 0.08);
+
+          .avail-ver-num {
+            color: #10b981;
+          }
+
+          .avail-arrow {
+            color: #10b981;
+            transform: translateX(3px);
+          }
+
+          .avail-name {
+            color: #059669;
+          }
+        }
+
+        &:active {
+          transform: scale(0.98);
+        }
+
+        .avail-top {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+
+          .avail-ver-num {
+            font-family: ui-monospace, SFMono-Regular, 'Cascadia Code', monospace;
+            font-size: 13px;
+            font-weight: 900;
+            color: #475569;
+            transition: color 0.2s;
+          }
+
+          .avail-arrow {
+            font-size: 16px;
+            color: #cbd5e1;
+            transition: all 0.15s;
+          }
+        }
+
+        .avail-name {
+          margin: 0;
+          font-size: 14px;
+          font-weight: 600;
+          color: #334155;
+          transition: color 0.2s;
+        }
+
+        .avail-date {
+          margin: 0;
+          font-size: 11px;
+          color: #94a3b8;
+        }
+      }
+
+      .no-available {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 32px 16px;
+        font-size: 13px;
+        color: #94a3b8;
+
+        .t-icon {
+          font-size: 18px;
+        }
+      }
+    }
+  }
+}
+</style>

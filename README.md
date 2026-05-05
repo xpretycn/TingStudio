@@ -1,4 +1,4 @@
-# TingStudio v2.20
+# TingStudio v2.22
 
 食品配方工作数据管理平台 — 前后端分离架构
 
@@ -6,7 +6,72 @@
 
 TingStudio 是一个专业的食品配方工作数据管理平台，面向食品配方行业（中草药功效配方），提供配方管理、原料管理、业务员管理、营养成分分析、导出分享等完整功能链路。采用 **Vue 3 + Express + SQLite** 前后端分离架构，支持 JWT 认证、RESTful API、配方版本控制、营养合规检查、AI 智能解析等企业级特性。
 
-## 🚀 最新更新 (2026-04-30)
+## 🚀 最新更新 (2026-05-05)
+
+### ✅ AI 智能助手全面升级 + Bug 修复
+
+#### 🤖 AI 解析标签页加载异常修复
+
+| 问题                     | 根因                                                              | 修复方案                                           |
+| ------------------------ | ----------------------------------------------------------------- | -------------------------------------------------- |
+| AI 解析标签页持续加载    | `onMounted` 中调用已重命名的 `loadModelVersions`，抛出 ReferenceError，阻止 `initialized = true` | 改为 `loadModelVersionsWithLoading` + try-catch-finally 确保初始化完成 |
+| 未使用的导入导致编译警告 | `modelApi` 和 `ModelVersionOption` 已移至 store 但未清理导入      | 移除冗余 import 声明                               |
+
+#### 🧠 AI 助手模型选择一致性修复
+
+| 问题                           | 根因                                                      | 修复方案                                                    |
+| ------------------------------ | --------------------------------------------------------- | ----------------------------------------------------------- |
+| 切换模型后版本显示不一致       | `handleReparseWithModel` 未重置 `selectedVersion`         | 添加 `selectedVersion = ''` + `loadModelVersions` 重置逻辑 |
+| 版本显示技术标识符而非友好名称 | 进度条直接显示 `qwen-max` 等技术 ID                       | 使用 `getVersionLabel()` 渲染可读标签                       |
+| 版本数据未跨组件共享           | `modelVersions` 仅在 `AiAssistant.vue` 局部维护           | 提升到 Pinia store 层，子组件通过 store 访问                |
+
+#### 💰 原料单价显示异常修复
+
+| 问题                           | 根因                                                      | 修复方案                                                    |
+| ------------------------------ | --------------------------------------------------------- | ----------------------------------------------------------- |
+| 炒白扁豆、草果单价未录入       | 后端匹配成功但 `unitPrice` 未显式设置，前端 computed 未追踪 `allMaterials` 依赖 | 后端 `applyMatch` 显式设置 `unitPrice = null`；前端 `quoteItems` 引入 `allMats` 依赖 |
+| 解析前原料数据未加载           | `materialStore.allMaterials` 加载时序问题                  | `handleParse` 中解析前确保 `fetchAllForSelect()` 完成       |
+
+#### 📊 模型用量监控数据同步修复
+
+| 问题                       | 根因                                       | 修复方案                                              |
+| -------------------------- | ------------------------------------------ | ----------------------------------------------------- |
+| 用量统计不实时更新         | 数据仅在 tab 切换时加载一次，无定时刷新    | 用量 tab 每 15s 自动刷新 + 模型 tab 每 60s 自动刷新   |
+| 无手动刷新入口             | 用户调用模型后无法主动查看最新用量         | 新增刷新按钮 + `refreshUsageStats` 函数               |
+
+#### 🎨 模型管理刷新按钮 UI 美化
+
+- **专属样式类**: `refresh-usage-btn` 替代通用 `action-btn action-btn--ghost`
+- **视觉优化**: 圆角 10px、柔和边框 + 微阴影、hover 上浮效果、active 按压反馈
+- **加载动画**: 刷新期间图标旋转 + 蓝色主题 + 禁止重复点击
+- **布局改进**: flex gap 布局替代内联 margin，与日期选择器对齐
+
+#### 📄 文件详情页全屏预览优化
+
+- **全屏预览对话框**: 新增 `FilePreviewDialog` 组件，支持文件内容全屏查看
+- **预览入口**: 文件详情页预览区域添加全屏按钮（TDesign `fullscreen` 图标）
+- **文件管理列表**: 预览按钮同样接入全屏对话框
+
+#### 📋 模型管理告警设置 Tab UI 优化
+
+- 告警设置标签页视觉风格与用量统计、模型列表统一
+- 优化表单布局和交互体验
+
+#### 影响范围
+
+| 文件                                                                     | 改动                                        |
+| ------------------------------------------------------------------------ | ------------------------------------------- |
+| [AiAssistant.vue](frontend/src/views/ai/AiAssistant.vue)                 | 修复加载异常 + 清理导入 + 版本数据从 store 读取 |
+| [SmartFormTab.vue](frontend/src/views/ai/tabs/SmartFormTab.vue)          | 模型版本一致性 + 原料单价依赖追踪 + 价格计算修复 |
+| [ModelManagement.vue](frontend/src/views/models/ModelManagement.vue)     | 刷新按钮 UI + 自动刷新定时器 + 手动刷新函数  |
+| [ai.ts (store)](frontend/src/stores/ai.ts)                               | 版本管理提升到 store + getVersionLabel       |
+| [aiController.ts](backend/src/controllers/aiController.ts)               | unitPrice 显式设置 + 匹配失败时清空          |
+| [FileDetail.vue](frontend/src/views/files/FileDetail.vue)                | 全屏预览对话框                               |
+| [FileManagement.vue](frontend/src/views/files/FileManagement.vue)        | 预览按钮接入全屏对话框                       |
+
+---
+
+## 🚀 更新 (2026-04-30)
 
 ### ✅ UI 统一优化：助手组件 + 近期动态布局重构
 
@@ -108,28 +173,58 @@ TingStudio 是一个专业的食品配方工作数据管理平台，面向食品
 ... (40+ 种原料的常见变体)
 ```
 
-#### 💾 数据库备份/恢复工具
+#### 💾 数据库备份/恢复工具（v2.0）
 
-新增两个脚本，支持换电脑后完整恢复：
+换电脑后一键完整同步数据库，包含表结构、索引、触发器及全量数据，并自动校验一致性：
 
-| 脚本                                                         | 用途                                     |
-| ------------------------------------------------------------ | ---------------------------------------- |
-| [exportDatabase.ts](backend/src/scripts/exportDatabase.ts)   | 导出全部 13 张表结构 + 392 条记录 → JSON |
-| [restoreDatabase.ts](backend/src/scripts/restoreDatabase.ts) | 从 JSON 恢复完整数据库（按外键依赖顺序） |
+| 脚本                                                         | 用途                                                                                   |
+| ------------------------------------------------------------ | -------------------------------------------------------------------------------------- |
+| [exportDatabase.ts](backend/src/scripts/exportDatabase.ts)   | 导出全部表结构 + 索引 + 触发器 + 全量数据 → JSON（含 SHA-256 数据哈希 + 结构哈希）     |
+| [restoreDatabase.ts](backend/src/scripts/restoreDatabase.ts) | 从 JSON 恢复完整数据库（自动拓扑排序建表 → 数据迁移 → 索引/触发器重建 → 一致性校验）   |
+
+**v2.0 新增能力：**
+
+- 🏗️ **自动拓扑排序建表**：根据外键依赖自动计算建表顺序，无需硬编码，新增表时脚本自动适配
+- 🔑 **索引完整导出/恢复**：导出所有索引定义，恢复时自动重建（`CREATE INDEX IF NOT EXISTS`）
+- ⚡ **触发器导出/恢复**：支持触发器的完整迁移
+- 🔒 **SHA-256 数据哈希校验**：每张表数据生成哈希，恢复后逐表比对，确保零差异
+- 🧬 **结构哈希校验**：整体表结构生成哈希，验证表结构一致性
+- 🔄 **自增序列重置**：恢复后自动重置 SQLite rowid 序列
+- 🔙 **v1 向后兼容**：自动识别 v1/v2 备份格式，v1 备份仍可正常恢复（不含索引/哈希校验）
 
 ```bash
-# 导出备份
+# ─── 导出备份 ───
 cd backend && npx tsx src/scripts/exportDatabase.ts
 
-# 恢复数据库（自动使用最新备份）
+# ─── 恢复数据库 ───
+# 自动使用最新备份
 cd backend && npx tsx src/scripts/restoreDatabase.ts
 
-# 强制覆盖已有数据库
+# 指定备份文件
+npx tsx src/scripts/restoreDatabase.ts -f tingstudio_backup_2026-04-28.json
+
+# 强制覆盖已有数据库（旧库自动备份为 .before_restore）
 npx tsx src/scripts/restoreDatabase.ts --force
 
 # 仅预览不写入
 npx tsx src/scripts/restoreDatabase.ts --dry-run
+
+# 跳过一致性校验（加速恢复，不推荐）
+npx tsx src/scripts/restoreDatabase.ts --force --skip-verify
 ```
+
+**依赖条件：**
+
+- Node.js ≥ 18，项目依赖已安装（`npm install`）
+- `better-sqlite3`、`crypto`（Node.js 内置）
+- 导出时需存在源数据库文件 `backend/data/tingstudio.db`
+
+**注意事项：**
+
+- 恢复时若数据库已存在，必须加 `--force`，旧库会自动备份为 `tingstudio.db.before_restore`
+- 备份文件为纯 JSON，可通过 Git 管理，但含用户密码哈希，**勿公开分享**
+- 不同 SQLite 版本间 SQL 格式可能微有差异，结构哈希不一致时属正常现象，不影响数据正确性
+- 换电脑流程：① 旧电脑执行导出 → ② 将 `backend/data/backup/` 下的 JSON 文件复制到新电脑同目录 → ③ 新电脑执行恢复
 
 备份文件位置：`backend/data/backup/tingstudio_backup_时间戳.json`
 

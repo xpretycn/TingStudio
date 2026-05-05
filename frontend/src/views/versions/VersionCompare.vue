@@ -118,6 +118,16 @@
                   </div>
                 </div>
               </template>
+
+              <div class="cost-summary-section">
+                <h4 class="section-label">费用与利润</h4>
+                <template v-for="csItem in getCostSummaryItems(ver, idx)" :key="csItem.label">
+                  <div class="cost-summary-item" :class="csItem.diffClass">
+                    <span class="cs-label">{{ csItem.label }}</span>
+                    <span class="cs-value" :class="csItem.valueClass">{{ csItem.displayValue }}</span>
+                  </div>
+                </template>
+              </div>
             </div>
 
             <div class="summary-section">
@@ -289,14 +299,15 @@ const getPriceItems = (ver: any, idx: number) => {
   baseItems.forEach((b: any) => {
     const name = b.materialName || '--';
     if (currentMap.has(name)) {
-      aligned.push({ name, ...currentMap.get(name), missing: false });
+      const cur = currentMap.get(name)!;
+      aligned.push({ name, ...cur, missing: false });
       currentMap.delete(name);
     } else {
       aligned.push({ name, quantity: b.quantity || 0, unitPrice: null, basePrice: b.basePriceAtSave ?? null, isAdjusted: false, missing: true });
     }
   });
   currentMap.forEach((val, name) => {
-    aligned.push({ name, ...val, missing: false });
+    aligned.push({ name, ...val as object, missing: false });
   });
   return aligned;
 };
@@ -308,14 +319,59 @@ const getPriceDiffClass = (item: any, _ver: any, idx: number) => {
   const baseItems = baseVer.snapshot?.materials || [];
   const match = baseItems.find((oi: any) => oi.materialName === item.name);
   if (!match) return 'diff-added';
-  const basePrice = match.adjustedPrice ?? null;
-  if ((basePrice ?? 'null') !== (item.unitPrice ?? 'null')) return 'diff-changed';
+  const baseEffectivePrice = match.adjustedPrice ?? match.basePriceAtSave ?? null;
+  if ((baseEffectivePrice ?? 'null') !== (item.unitPrice ?? 'null')) return 'diff-changed';
   return '';
 };
 
 const formatPrice = (val: number | null) => {
   if (val == null) return '--';
   return `¥${val.toFixed(2)}/kg`;
+};
+
+const getCostSummaryItems = (ver: any, idx: number) => {
+  const snapshot = ver.snapshot || {};
+  const formulaData = snapshot.formulaData || {};
+  const packagingPrice = snapshot.packagingPrice ?? formulaData.packaging_price ?? formulaData.packagingPrice ?? null;
+  const otherPrice = snapshot.otherPrice ?? formulaData.other_price ?? formulaData.otherPrice ?? null;
+  const profitMargin = snapshot.profitMargin ?? formulaData.profit_margin ?? formulaData.profitMargin ?? null;
+
+  const baseVer = idx === 0 ? null : compareVersions.value[0];
+  const baseSnapshot = baseVer?.snapshot || {};
+  const baseFormulaData = baseSnapshot.formulaData || {};
+  const basePackaging = baseSnapshot.packagingPrice ?? baseFormulaData.packaging_price ?? baseFormulaData.packagingPrice ?? null;
+  const baseOther = baseSnapshot.otherPrice ?? baseFormulaData.other_price ?? baseFormulaData.otherPrice ?? null;
+  const baseMargin = baseSnapshot.profitMargin ?? baseFormulaData.profit_margin ?? baseFormulaData.profitMargin ?? null;
+
+  const getDiffInfo = (current: number | null, base: number | null) => {
+    if (idx === 0) return { diffClass: '', valueClass: '' };
+    if (current === null && base === null) return { diffClass: '', valueClass: '' };
+    if (current === null || base === null) return { diffClass: 'cs-diff-changed', valueClass: 'cs-val-warn' };
+    if (current === base) return { diffClass: '', valueClass: '' };
+    const increased = current > base;
+    return {
+      diffClass: increased ? 'cs-diff-up' : 'cs-diff-down',
+      valueClass: increased ? 'cs-val-up' : 'cs-val-down',
+    };
+  };
+
+  return [
+    {
+      label: '包材费用',
+      displayValue: packagingPrice != null ? `¥${packagingPrice.toFixed(2)}` : '--',
+      ...getDiffInfo(packagingPrice, basePackaging),
+    },
+    {
+      label: '其他费用',
+      displayValue: otherPrice != null ? `¥${otherPrice.toFixed(2)}` : '--',
+      ...getDiffInfo(otherPrice, baseOther),
+    },
+    {
+      label: '利润率',
+      displayValue: profitMargin != null ? `${profitMargin.toFixed(1)}%` : '--',
+      ...getDiffInfo(profitMargin, baseMargin),
+    },
+  ];
 };
 
 const getSummaryText = (status: string) => {
@@ -804,6 +860,68 @@ $radius-2xl: 2rem;
         flex-direction: column;
         gap: 4px;
         margin-bottom: 32px;
+      }
+
+      .cost-summary-section {
+        margin-top: 20px;
+        padding-top: 16px;
+        border-top: 1px dashed #e2e8f0;
+
+        .section-label {
+          margin-bottom: 12px;
+        }
+
+        .cost-summary-item {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 10px 14px;
+          margin-bottom: 6px;
+          border-radius: 12px;
+          background: rgba(248, 250, 252, 0.50);
+          border: 1px solid #f8fafc;
+          transition: all $transition-fast;
+
+          &.cs-diff-up {
+            background: #fef2f2;
+            border-color: #fecaca;
+          }
+
+          &.cs-diff-down {
+            background: #f0fdf4;
+            border-color: #bbf7d0;
+          }
+
+          &.cs-diff-changed {
+            background: #fffbeb;
+            border-color: #fde68a;
+          }
+
+          .cs-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #475569;
+          }
+
+          .cs-value {
+            font-family: ui-monospace, SFMono-Regular, 'Cascadia Code', monospace;
+            font-size: 14px;
+            font-weight: 700;
+            color: #334155;
+
+            &.cs-val-up {
+              color: #dc2626;
+            }
+
+            &.cs-val-down {
+              color: #16a34a;
+            }
+
+            &.cs-val-warn {
+              color: #d97706;
+            }
+          }
+        }
       }
 
       .price-item {

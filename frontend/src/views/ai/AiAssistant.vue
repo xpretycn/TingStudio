@@ -22,7 +22,7 @@
           <div class="toolbar-left-section">
             <div class="toolbar-title-section">
               <h3 class="toolbar-title">AI 智能助手</h3>
-              <p class="toolbar-subtitle">智能配方解析、数据检索与营养分析</p>
+              <p class="toolbar-subtitle">智能配方解析、原料导入与数据检索</p>
             </div>
           </div>
           <div class="toolbar-right-section">
@@ -38,7 +38,16 @@
                         {{ getFallbackLetter(model) }}
                       </span>
                     </div>
-                    <span class="model-btn-name">{{ model.name }}</span>
+                    <div class="model-info-row">
+                      <span class="model-btn-name">{{ model.name }}</span>
+                      <span class="model-type-badge">文本</span>
+                      <span v-if="model.supportsVision" class="model-type-badge model-type-badge--vision">图片</span>
+                    </div>
+                    <svg v-if="aiStore.selectedModel === model.provider" class="model-check-icon" width="16" height="16"
+                      viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                      stroke-linejoin="round">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
                   </button>
                 </template>
                 <div v-else class="no-models-inline">
@@ -51,156 +60,42 @@
                   <span>暂无模型</span>
                 </div>
               </div>
+              <div v-if="modelVersions.length > 1 && aiStore.selectedModel" class="model-version-select">
+                <t-select v-model="selectedVersion" size="small" :loading="loadingVersions"
+                  style="width: 100%; min-width: 160px;" @change="(val: any) => { selectedVersion = String(val); }">
+                  <t-option v-for="ver in modelVersions" :key="ver.value" :value="ver.value" :label="ver.label" />
+                </t-select>
+              </div>
             </div>
           </div>
         </div>
 
         <div class="ai-body">
-          <div class="ai-nav">
+          <div class="ai-nav" :class="{ 'ai-nav--collapsed': navCollapsed }">
             <div v-for="tab in tabs" :key="tab.value" class="nav-tab" :class="{ active: activeTab === tab.value }"
-              role="tab" tabindex="0" @click="activeTab = tab.value" @keydown.enter="activeTab = tab.value">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              :title="navCollapsed ? tab.label : ''" role="tab" tabindex="0" @click="activeTab = tab.value"
+              @keydown.enter="activeTab = tab.value">
+              <svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                 stroke-linecap="round" stroke-linejoin="round" v-html="tab.iconPath"></svg>
               <span class="nav-tab-label">{{ tab.label }}</span>
             </div>
+            <button type="button" class="nav-collapse-btn" @click="toggleNavCollapse"
+              :title="navCollapsed ? '展开导航' : '折叠导航'" aria-label="切换导航折叠状态">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round"
+                :style="{ transform: navCollapsed ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s ease' }">
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
+            </button>
           </div>
 
           <div class="ai-content">
             <div v-show="activeTab === 'smart-form'" class="tab-panel">
-              <div class="upload-section">
-                <div class="upload-area" :class="{ 'upload-area--active': selectedFile }" @click="triggerFileUpload"
-                  @dragover.prevent @drop.prevent="handleDrop">
-                  <input type="file" ref="fileInput" accept=".xlsx,.xls,.csv,.png,.jpg,.jpeg,.gif,.webp"
-                    @change="handleFileInputChange" style="display:none" />
-                  <div class="upload-placeholder">
-                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5"
-                      stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
-                      <polyline points="17 8 12 3 7 8" />
-                      <line x1="12" y1="3" x2="12" y2="15" />
-                    </svg>
-                    <p class="upload-text">{{ selectedFile ? selectedFile.name : '点击或拖拽上传文件' }}</p>
-                    <p class="upload-hint">支持 Excel (.xlsx/.xls) 和图片 (.png/.jpg)，最大 10MB</p>
-                  </div>
-                </div>
-                <div v-if="selectedFile" class="file-selected-row">
-                  <div class="file-info">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"
-                      stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
-                      <polyline points="14 2 14 8 20 8" />
-                    </svg>
-                    <span>{{ selectedFile.name }}</span>
-                    <span class="file-size">{{ (selectedFile.size / 1024).toFixed(1) }}KB</span>
-                  </div>
-                  <div class="file-actions">
-                    <button class="parse-btn" :disabled="!aiStore.selectedModel || aiStore.parseLoading"
-                      @click="handleParse">
-                      <svg v-if="!aiStore.parseLoading" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M12 2L2 7L12 12L22 7L12 2Z" />
-                        <path d="M2 17L12 22L22 17" stroke-linecap="round" stroke-linejoin="round" />
-                        <path d="M2 12L12 17L22 12" stroke-linecap="round" stroke-linejoin="round" />
-                      </svg>
-                      {{ aiStore.parseLoading ? '解析中...' : 'AI 解析' }}
-                    </button>
-                    <button class="clear-file-btn" @click="clearSelectedFile">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="18" y1="6" x2="6" y2="18" />
-                        <line x1="6" y1="6" x2="18" y2="18" />
-                      </svg>
-                    </button>
-                  </div>
-                </div>
-              </div>
+              <SmartFormTab @activity-add="addActivity" />
+            </div>
 
-              <div v-if="aiStore.parseLoading" class="parse-loading">
-                <t-loading size="large" text="AI 正在解析文件内容..." />
-              </div>
-
-              <t-alert v-if="aiStore.parseError" :message="aiStore.parseError" theme="error" closable
-                style="margin-top: 16px; border-radius: 12px;" />
-
-              <div v-if="aiStore.parseResult" class="parse-result">
-                <div class="result-header">
-                  <h4 class="result-title">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"
-                      stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                      <polyline points="22 4 12 14.01 9 11.01" />
-                    </svg>
-                    解析结果预览
-                  </h4>
-                  <div class="result-actions">
-                    <button class="table-action-btn table-action-btn--danger" @click="aiStore.clearParseResult()">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
-                        <polyline points="3 6 5 6 21 6" />
-                        <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
-                      </svg>清空
-                    </button>
-                    <button class="table-action-btn table-action-btn--primary" @click="handleReparse">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
-                        <polyline points="23 4 23 10 17 10" />
-                        <path d="M20.49 15a9 9 0 11-2.12-9.36L23 10" />
-                      </svg>重新解析
-                    </button>
-                    <button class="add-formula-btn add-formula-btn--sm" @click="handleConfirmFormula">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
-                        <polyline points="20 6 9 17 4 12" />
-                      </svg>确认填入配方
-                    </button>
-                  </div>
-                </div>
-
-                <div class="result-info">
-                  <div class="info-row">
-                    <span class="label">配方名称</span>
-                    <span class="value highlight">{{ aiStore.parseResult.name }}</span>
-                  </div>
-                  <div v-if="aiStore.parseResult.salesmanName" class="info-row">
-                    <span class="label">业务员</span>
-                    <span class="value">{{ aiStore.parseResult.salesmanName }}</span>
-                  </div>
-                  <div v-if="aiStore.parseResult.formulaDate" class="info-row">
-                    <span class="label">配方时间</span>
-                    <span class="value">{{ aiStore.parseResult.formulaDate }}</span>
-                  </div>
-                  <div v-if="aiStore.parseResult.finishedWeight" class="info-row">
-                    <span class="label">成品重量</span>
-                    <span class="value">{{ aiStore.parseResult.finishedWeight }}g</span>
-                  </div>
-                  <div v-if="aiStore.parseResult.usage" class="info-row">
-                    <span class="label">Token 用量</span>
-                    <span class="value token-value">{{ aiStore.parseResult.usage.totalTokens }}</span>
-                  </div>
-                  <div v-if="aiStore.parseResult.description" class="info-row">
-                    <span class="label">备注</span>
-                    <span class="value">{{ aiStore.parseResult.description }}</span>
-                  </div>
-                </div>
-
-                <t-table :data="aiStore.parseResult.materials" :columns="materialColumns" row-key="name" size="small"
-                  table-layout="auto" bordered stripe>
-                  <template #matched="{ row }">
-                    <t-tag v-if="row.matched" theme="success" variant="light" size="small">已匹配</t-tag>
-                    <t-tag v-else theme="warning" variant="light" size="small">未匹配</t-tag>
-                  </template>
-                </t-table>
-              </div>
-
-              <t-alert v-if="!aiStore.models.length && !aiStore.parseLoading" message="未配置 AI 模型" theme="warning"
-                style="border-radius: 12px; margin-top: 16px;">
-                <template #default>
-                  请在后端 .env 文件中配置至少一个 AI 模型的 API Key：
-                  <code>AI_DASHSCOPE_API_KEY</code>、
-                  <code>AI_ZHIPU_API_KEY</code> 或
-                  <code>AI_DEEPSEEK_API_KEY</code>
-                </template>
-              </t-alert>
+            <div v-show="activeTab === 'smart-import'" class="tab-panel">
+              <SmartImportTab @activity-add="addActivity" />
             </div>
 
             <div v-show="activeTab === 'smart-search'" class="tab-panel">
@@ -315,8 +210,8 @@
         <div class="assistant-content">
           <h4 class="assistant-title">AI 助手中心</h4>
           <p class="assistant-desc">{{ assistantMessage }}</p>
-          <button class="assistant-btn" @click="activeTab = 'smart-form'">
-            {{ activeTab === 'smart-form' ? '切换到智能检索' : '开始智能填单' }}
+          <button class="assistant-btn" @click="handleAssistantAction">
+            {{ assistantButtonText }}
           </button>
           <div class="assistant-footer">
             <div class="assistant-avatar-group">
@@ -340,22 +235,26 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue';
-import { useRouter } from 'vue-router';
 import { useAiStore } from '@/stores/ai';
 import { MessagePlugin } from 'tdesign-vue-next';
 import PageSkeleton from '@/components/Skeleton/PageSkeleton.vue';
+import SmartFormTab from './tabs/SmartFormTab.vue';
+import SmartImportTab from './tabs/SmartImportTab.vue';
 
-const router = useRouter();
 const aiStore = useAiStore();
 
 const initialized = ref(false);
-const fileInput = ref<HTMLInputElement | null>(null);
 
 const tabs = [
   {
     value: 'smart-form',
     label: '智能填单',
     iconPath: '<path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>',
+  },
+  {
+    value: 'smart-import',
+    label: '智能导入',
+    iconPath: '<path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>',
   },
   {
     value: 'smart-search',
@@ -365,10 +264,34 @@ const tabs = [
 ];
 const activeTab = ref('smart-form');
 
-const IMAGE_EXTS = ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp'];
+const navCollapsed = ref(localStorage.getItem('ai-nav-collapsed') === 'true');
+
+const toggleNavCollapse = () => {
+  navCollapsed.value = !navCollapsed.value;
+  localStorage.setItem('ai-nav-collapsed', String(navCollapsed.value));
+};
 
 const selectModel = (model: string) => {
   aiStore.selectedModel = model;
+  loadModelVersionsWithLoading(model);
+};
+
+const loadingVersions = ref(false);
+
+const selectedVersion = computed({
+  get: () => aiStore.selectedVersion,
+  set: (val: string) => { aiStore.selectedVersion = val; },
+});
+
+const modelVersions = computed(() => aiStore.modelVersions);
+
+const loadModelVersionsWithLoading = async (provider: string) => {
+  try {
+    loadingVersions.value = true;
+    await aiStore.loadModelVersions(provider);
+  } finally {
+    loadingVersions.value = false;
+  }
 };
 
 const MODEL_LOGO_MAP: Record<string, string> = {
@@ -456,89 +379,6 @@ const handleLogoError = (e: Event) => {
     if (fallback) (fallback as HTMLElement).style.display = 'flex';
   }
 };
-
-const selectedFile = ref<File | null>(null);
-
-const handleDrop = (e: DragEvent) => {
-  const files = e.dataTransfer?.files;
-  if (files && files.length > 0) {
-    processFile(files[0]);
-  }
-};
-
-const triggerFileUpload = () => {
-  fileInput.value?.click();
-};
-
-const handleFileInputChange = (e: Event) => {
-  const input = e.target as HTMLInputElement;
-  if (input.files && input.files.length > 0) {
-    processFile(input.files[0]);
-  }
-};
-
-const processFile = (file: File) => {
-  const maxSize = 10 * 1024 * 1024;
-  if (file.size > maxSize) {
-    MessagePlugin.warning('文件大小不能超过 10MB');
-    return;
-  }
-  selectedFile.value = file;
-  const ext = '.' + file.name.split('.').pop()?.toLowerCase();
-  if (IMAGE_EXTS.includes(ext)) {
-    const currentModel = aiStore.models.find(m => m.provider === aiStore.selectedModel);
-    if (!currentModel?.supportsVision) {
-      const visionModel = aiStore.models.find(m => m.supportsVision);
-      if (visionModel) aiStore.selectedModel = visionModel.provider;
-    }
-  }
-};
-
-const clearSelectedFile = () => {
-  selectedFile.value = null;
-  if (fileInput.value) fileInput.value.value = '';
-};
-
-const handleParse = async () => {
-  if (!selectedFile.value) {
-    MessagePlugin.warning('请先选择要解析的文件');
-    return;
-  }
-  if (!aiStore.selectedModel) {
-    MessagePlugin.warning('请先选择 AI 模型');
-    return;
-  }
-  await aiStore.parseFormula(selectedFile.value);
-};
-
-const handleReparse = () => {
-  aiStore.clearParseResult();
-  if (selectedFile.value) {
-    handleParse();
-  }
-};
-
-const handleConfirmFormula = () => {
-  if (!aiStore.parseResult) return;
-  const data = aiStore.parseResult;
-  const params = new URLSearchParams({
-    ai: 'true',
-    name: data.name,
-    materials: JSON.stringify(data.materials),
-    ...(data.finishedWeight ? { finishedWeight: String(data.finishedWeight) } : {}),
-    ...(data.salesmanName ? { salesmanName: data.salesmanName } : {}),
-    ...(data.formulaDate ? { formulaDate: data.formulaDate } : {}),
-    ...(data.description ? { description: data.description } : {}),
-  });
-  router.push(`/formulas/new?${params.toString()}`);
-};
-
-const materialColumns = [
-  { colKey: 'name', title: '原料名称', width: 160 },
-  { colKey: 'quantity', title: '用量', width: 100 },
-  { colKey: 'unit', title: '单位', width: 80 },
-  { colKey: 'matched', title: '匹配状态', width: 100, cell: 'matched' },
-];
 
 const searchQuery = ref('');
 const quickTags = [
@@ -635,8 +475,9 @@ const ACTIVITY_PAGE_SIZE = 4;
 const activityPage = ref(1);
 const activityHistory = ref<ActivityItem[]>([]);
 
-const addActivity = (item: ActivityItem) => {
-  activityHistory.value.unshift(item);
+const addActivity = (item: { type: string; title: string; desc: string; time: string; }) => {
+  const typedItem: ActivityItem = { ...item, type: (['success', 'info', 'warning'].includes(item.type) ? item.type : 'info') as ActivityItem['type'] };
+  activityHistory.value.unshift(typedItem);
   if (activityHistory.value.length > 50) activityHistory.value = activityHistory.value.slice(0, 50);
   activityPage.value = 1;
 };
@@ -646,7 +487,7 @@ const allActivityItems = computed<ActivityItem[]>(() => {
   return [{
     type: 'info',
     title: '等待操作',
-    desc: '选择 AI 模型后，可以开始智能填单或智能检索功能',
+    desc: '选择 AI 模型后，可以开始智能填单、智能导入或智能检索功能',
     time: '',
   }];
 });
@@ -664,10 +505,14 @@ const assistantMessage = computed(() => {
   if (models === 0) return '尚未配置 AI 模型，请在工具栏选择或联系管理员配置。';
   if (!aiStore.selectedModel) return `已配置 ${models} 个 AI 模型，请在上方选择一个模型开始使用。`;
   if (activeTab.value === 'smart-form') {
-    if (!selectedFile.value) return '上传配方图片或 Excel 文件，AI 将自动识别原料信息并填入表单。';
     if (aiStore.parseLoading) return '正在解析文件内容，请稍候...';
-    if (aiStore.parseResult) return '解析完成！点击「确认填入配方」将结果导入到新配方表单。';
-    return '已选择文件，点击「AI 解析」按钮开始智能识别。';
+    if (aiStore.parseResult) return '解析完成！可在结果中确认并创建配方。';
+    return '上传配方图片或 Excel 文件，AI 将自动识别原料信息并填入表单。';
+  }
+  if (activeTab.value === 'smart-import') {
+    if (aiStore.materialParseLoading) return '正在解析原料营养数据，请稍候...';
+    if (aiStore.materialParseResult) return '解析完成！可一键录入或逐条导入原料营养数据。';
+    return '上传 Excel 文件，AI 将自动识别原料名称和营养成分数据。';
   }
   if (!searchQuery.value) return '输入自然语言描述，AI 将自动生成 SQL 并查询数据库。';
   if (aiStore.searchLoading) return '正在执行智能检索，请稍候...';
@@ -675,16 +520,17 @@ const assistantMessage = computed(() => {
   return '输入查询条件后，按 Ctrl+Enter 或点击发送按钮进行检索。';
 });
 
-watch(() => aiStore.parseResult, (newVal, oldVal) => {
-  if (newVal && !oldVal) {
-    addActivity({
-      type: 'success',
-      title: '配方解析完成',
-      desc: `配方 <strong>${newVal.name}</strong> 已解析，包含 <strong>${newVal.materials?.length || 0}</strong> 种原料`,
-      time: new Date().toLocaleString('zh-CN'),
-    });
-  }
+const assistantButtonText = computed(() => {
+  if (activeTab.value === 'smart-form') return '切换到智能导入';
+  if (activeTab.value === 'smart-import') return '切换到智能检索';
+  return '开始智能填单';
 });
+
+const handleAssistantAction = () => {
+  if (activeTab.value === 'smart-form') activeTab.value = 'smart-import';
+  else if (activeTab.value === 'smart-import') activeTab.value = 'smart-search';
+  else activeTab.value = 'smart-form';
+};
 
 watch(() => aiStore.searchResult, (newVal, oldVal) => {
   if (newVal && !oldVal) {
@@ -692,17 +538,6 @@ watch(() => aiStore.searchResult, (newVal, oldVal) => {
       type: 'success',
       title: '智能检索完成',
       desc: `查询返回 <strong>${newVal.rowCount}</strong> 条结果${newVal.usage ? `，消耗 ${newVal.usage.totalTokens} Token` : ''}`,
-      time: new Date().toLocaleString('zh-CN'),
-    });
-  }
-});
-
-watch(() => aiStore.parseError, (newVal, oldVal) => {
-  if (newVal && newVal !== oldVal) {
-    addActivity({
-      type: 'warning',
-      title: '解析异常',
-      desc: `配方解析遇到错误：${newVal}`,
       time: new Date().toLocaleString('zh-CN'),
     });
   }
@@ -720,8 +555,16 @@ watch(() => aiStore.searchError, (newVal, oldVal) => {
 });
 
 onMounted(async () => {
-  await aiStore.fetchModels();
-  initialized.value = true;
+  try {
+    await aiStore.fetchModels();
+    if (aiStore.selectedModel) {
+      await loadModelVersionsWithLoading(aiStore.selectedModel);
+    }
+  } catch (e) {
+    console.error('[AiAssistant] 初始化失败:', e);
+  } finally {
+    initialized.value = true;
+  }
 });
 </script>
 
@@ -882,6 +725,13 @@ onMounted(async () => {
               box-shadow: 0 4px 12px -2px $overlay-emerald-12;
             }
 
+            .model-check-icon {
+              width: 16px;
+              height: 16px;
+              flex-shrink: 0;
+              margin-left: 4px;
+            }
+
             .model-logo-wrap {
               position: relative;
               width: 26px;
@@ -913,6 +763,31 @@ onMounted(async () => {
             .model-btn-name {
               line-height: 1.2;
             }
+
+            .model-info-row {
+              display: inline-flex;
+              align-items: center;
+              gap: 4px;
+            }
+
+            .model-type-badge {
+              display: inline-flex;
+              align-items: center;
+              justify-content: center;
+              font-size: 9px;
+              padding: 2px 6px;
+              line-height: 1;
+              background: var(--gradient-brand, linear-gradient(135deg, var(--color-primary), var(--color-primary-dark)));
+              color: #fff;
+              border-radius: 8px;
+              font-weight: 700;
+              letter-spacing: 0.3px;
+              opacity: 0.85;
+            }
+
+            .model-type-badge--vision {
+              background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+            }
           }
 
           .no-models-inline {
@@ -922,6 +797,18 @@ onMounted(async () => {
             padding: 8px 14px;
             font-size: 12px;
             color: #94a3b8;
+          }
+        }
+
+        .model-version-select {
+          margin-top: 8px;
+
+          :deep(.t-select) {
+            .t-input {
+              border-radius: 10px;
+              font-size: 12px;
+              height: 32px;
+            }
           }
         }
       }
@@ -935,9 +822,38 @@ onMounted(async () => {
   }
 
   .ai-nav {
-    width: 140px;
+    width: 170px;
     flex-shrink: 0;
     padding: 24px 12px;
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), padding 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+
+    &--collapsed {
+      width: 56px;
+      padding: 24px 6px;
+
+      .nav-tab {
+        justify-content: center;
+        padding: 12px 0;
+
+        .nav-tab-icon {
+          width: 24px;
+          height: 24px;
+        }
+
+        .nav-tab-label {
+          display: none;
+        }
+      }
+
+      .nav-collapse-btn {
+        margin: 0 auto;
+        width: 36px;
+        height: 36px;
+      }
+    }
 
     .nav-tab {
       display: flex;
@@ -952,6 +868,15 @@ onMounted(async () => {
       font-weight: 500;
       border: 1px solid transparent;
       margin-bottom: 8px;
+      white-space: nowrap;
+      overflow: hidden;
+
+      .nav-tab-icon {
+        width: 18px;
+        height: 18px;
+        flex-shrink: 0;
+        transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
 
       &:hover {
         background: #f1f5f9;
@@ -968,6 +893,28 @@ onMounted(async () => {
 
       .nav-tab-label {
         flex: 1;
+        transition: opacity 0.2s ease;
+      }
+    }
+
+    .nav-collapse-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+      background: transparent;
+      color: #94a3b8;
+      cursor: pointer;
+      margin-top: 12px;
+      transition: all 0.2s;
+
+      &:hover {
+        background: #f1f5f9;
+        color: #334155;
+        border-color: #cbd5e1;
       }
     }
   }
@@ -980,275 +927,6 @@ onMounted(async () => {
 
   .tab-panel {
     animation: fadeInUp 0.35s cubic-bezier(0.4, 0, 0.2, 1) both;
-  }
-
-  .upload-section {
-    margin-bottom: 24px;
-  }
-
-  .upload-area {
-    border: 2px dashed #e2e8f0;
-    border-radius: 16px;
-    padding: 40px 24px;
-    text-align: center;
-    cursor: pointer;
-    transition: all $transition-slow;
-    background: #fafbfc;
-
-    &:hover {
-      border-color: #10B981;
-      background: #f0fdf4;
-    }
-
-    &--active {
-      border-color: #10B981;
-      border-style: solid;
-      background: #ecfdf5;
-    }
-
-    .upload-placeholder {
-      .upload-text {
-        font-size: 15px;
-        font-weight: 600;
-        color: #334155;
-        margin: 12px 0 4px;
-      }
-
-      .upload-hint {
-        font-size: 13px;
-        color: #94a3b8;
-        margin: 0;
-      }
-    }
-  }
-
-  .file-selected-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-top: 16px;
-    padding: 14px 18px;
-    background: linear-gradient(135deg, #ecfdf5, #f0fdf4);
-    border: 1px solid #bbf7d0;
-    border-radius: 12px;
-
-    .file-info {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 14px;
-      color: #334155;
-      font-weight: 500;
-
-      .file-size {
-        color: #94a3b8;
-        font-size: 12px;
-        font-weight: 400;
-      }
-    }
-
-    .file-actions {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-  }
-
-  .parse-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 8px 18px;
-    border-radius: 10px;
-    background: linear-gradient(135deg, #10b981, #059669);
-    color: #fff;
-    font-size: 13px;
-    font-weight: 700;
-    border: none;
-    cursor: pointer;
-    transition: all $transition-normal;
-
-    &:hover:not(:disabled) {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px $overlay-emerald-35;
-    }
-
-    &:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-  }
-
-  .clear-file-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
-    border: none;
-    background: #fff;
-    color: #94a3b8;
-    cursor: pointer;
-    transition: all $transition-fast;
-
-    &:hover {
-      background: #fef2f2;
-      color: #ef4444;
-    }
-  }
-
-  .add-formula-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 10px 20px;
-    border-radius: 12px;
-    background: linear-gradient(135deg, #374151, #1f2937);
-    color: #fff;
-    font-size: 13px;
-    font-weight: 700;
-    border: none;
-    cursor: pointer;
-    transition: all $transition-normal;
-    white-space: nowrap;
-    margin-left: 12px;
-
-    &:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(55, 65, 81, 0.35);
-    }
-
-    &:active {
-      transform: translateY(0);
-    }
-
-    &--sm {
-      padding: 8px 16px;
-      font-size: 12px;
-      margin-left: 0;
-      background: linear-gradient(135deg, #10b981, #059669);
-
-      &:hover {
-        box-shadow: 0 6px 20px $overlay-emerald-35;
-      }
-    }
-  }
-
-  .parse-loading {
-    display: flex;
-    justify-content: center;
-    padding: 32px 0;
-  }
-
-  .parse-result {
-    margin-top: 20px;
-
-    .result-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 20px;
-      flex-wrap: wrap;
-      gap: 12px;
-
-      .result-title {
-        font-size: 16px;
-        font-weight: 700;
-        color: #1e293b;
-        margin: 0;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-      }
-
-      .result-actions {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-      }
-    }
-
-    .result-info {
-      background: linear-gradient(135deg, #f8fafc, #f1f5f9);
-      border-radius: 16px;
-      padding: 20px 24px;
-      margin-bottom: 20px;
-      border: 1px solid #f1f5f9;
-
-      .info-row {
-        display: flex;
-        align-items: flex-start;
-        padding: 10px 0;
-
-        &:not(:last-child) {
-          border-bottom: 1px dashed #e2e8f0;
-        }
-
-        .label {
-          width: 80px;
-          flex-shrink: 0;
-          font-size: 13px;
-          color: #64748b;
-          font-weight: 500;
-        }
-
-        .value {
-          font-size: 14px;
-          color: #1e293b;
-          font-weight: 500;
-
-          &.highlight {
-            color: #10B981;
-            font-weight: 700;
-            font-size: 16px;
-          }
-
-          &.token-value {
-            color: #F59E0B;
-            font-weight: 700;
-          }
-        }
-      }
-    }
-  }
-
-  .table-action-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    padding: 6px 12px;
-    border-radius: 8px;
-    font-size: 12px;
-    font-weight: 500;
-    border: none;
-    cursor: pointer;
-    transition: all $transition-fast;
-    background: transparent;
-
-    &--primary {
-      color: #3b82f6;
-
-      &:hover {
-        background: #eff6ff;
-      }
-    }
-
-    &--success {
-      color: #10b981;
-
-      &:hover {
-        background: #ecfdf5;
-      }
-    }
-
-    &--danger {
-      color: #ef4444;
-
-      &:hover {
-        background: #fef2f2;
-      }
-    }
   }
 
   .search-input-area {
@@ -1388,7 +1066,7 @@ onMounted(async () => {
   }
 
   .activity-section {
-    margin-top: 40px;
+    margin-top: 30px;
     padding-bottom: 32px;
     display: grid;
     grid-template-columns: 1fr;

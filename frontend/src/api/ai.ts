@@ -20,8 +20,18 @@ export interface ParsedMaterial {
   name: string;
   quantity: number;
   unit: string;
+  ratioFormula?: string;
+  ratioDivisor?: number;
+  protein?: number | null;
+  fat?: number | null;
+  carbohydrate?: number | null;
+  sodium?: number | null;
   materialId?: string;
   matched?: boolean;
+  unitPrice?: number | null;
+  confidence?: number;
+  fieldConfidence?: { name?: number; quantity?: number; unit?: number };
+  missingFields?: string[];
 }
 
 export interface ParsedFormula {
@@ -32,6 +42,8 @@ export interface ParsedFormula {
   finishedWeight?: number;
   description?: string;
   confidence?: number;
+  fieldConfidence?: { name?: number; salesmanName?: number; materials?: number; finishedWeight?: number };
+  missingFields?: string[];
   model?: string;
   usage?: { promptTokens: number; completionTokens: number; totalTokens: number };
 }
@@ -42,14 +54,20 @@ export interface MaterialNutritionItem {
   fat: number | null;
   carbohydrate: number | null;
   sodium: number | null;
+  materialType?: string;
+  unitPrice?: number | null;
   dataSource?: string;
   confidence?: number;
+  fieldConfidence?: { protein?: number; fat?: number; carbohydrate?: number; sodium?: number };
+  missingFields?: string[];
   isRecorded?: boolean;
   materialId?: string | null;
 }
 
 export interface ParsedMaterialNutrition {
   materials: MaterialNutritionItem[];
+  confidence?: number;
+  missingFields?: string[];
   model?: string;
   usage?: { promptTokens: number; completionTokens: number; totalTokens: number };
 }
@@ -72,10 +90,11 @@ export const aiApi = {
   },
 
   /** AI 解析配方文件 */
-  parseFormula(file: File, provider: string) {
+  parseFormula(file: File, provider: string, version?: string) {
     const formData = new FormData();
     formData.append("file", file);
     formData.append("model", provider);
+    if (version) formData.append("version", version);
     return http.post<any, ParsedFormula>("/ai/parse-formula", formData, {
       headers: { "Content-Type": "multipart/form-data" },
       timeout: 120_000,
@@ -83,10 +102,11 @@ export const aiApi = {
   },
 
   /** AI 解析原料营养文件（Excel/PDF/图片） */
-  parseMaterial(file: File, provider: string) {
+  parseMaterial(file: File, provider: string, version?: string) {
     const formData = new FormData();
     formData.append("file", file);
     formData.append("model", provider);
+    if (version) formData.append("version", version);
     return http.post<any, ParsedMaterialNutrition>("/ai/parse-material-nutrition", formData, {
       headers: { "Content-Type": "multipart/form-data" },
       timeout: 120_000,
@@ -94,12 +114,13 @@ export const aiApi = {
   },
 
   /** 自然语言检索 */
-  naturalSearch(queryText: string, provider: string) {
+  naturalSearch(queryText: string, provider: string, version?: string) {
     return http.post<any, SearchResult>(
       "/ai/natural-search",
       {
         query: queryText,
         model: provider,
+        version: version || undefined,
       },
       {
         timeout: 60_000,

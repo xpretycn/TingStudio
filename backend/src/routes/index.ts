@@ -11,6 +11,8 @@ import { excelImportRoutes } from "./excelImport.js";
 import { aiRoutes } from "./ai.js";
 import { weatherRoutes } from "./weather.js";
 import { salesRoutes } from "./sales.js";
+import { reportRoutes } from "./reports.js";
+import { fileRoutes } from "./files.js";
 
 export function createAppRouter(): Router {
   const router = Router();
@@ -26,6 +28,8 @@ export function createAppRouter(): Router {
   router.use("/ai", aiRoutes);
   router.use("/weather", weatherRoutes);
   router.use("/sales", salesRoutes);
+  router.use("/reports", reportRoutes);
+  router.use("/files", fileRoutes);
 
   return router;
 }

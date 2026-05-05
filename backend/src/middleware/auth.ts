@@ -7,6 +7,7 @@ export interface AuthRequest extends Request {
   user?: {
     userId: string
     username: string
+    role: string
   }
 }
 
@@ -22,16 +23,21 @@ export function authMiddleware(req: AuthRequest, res: Response, next: NextFuncti
     const decoded = jwt.verify(token, config.jwt.secret) as {
       userId: string
       username: string
+      role?: string
     }
-    req.user = decoded
+    req.user = {
+      userId: decoded.userId,
+      username: decoded.username,
+      role: decoded.role || 'formulist',
+    }
     next()
   } catch {
     res.status(401).json({ success: false, message: '令牌无效或已过期' })
   }
 }
 
-export function generateToken(payload: { userId: string; username: string }): string {
+export function generateToken(payload: { userId: string; username: string; role?: string }): string {
   return jwt.sign(payload, config.jwt.secret, {
-    expiresIn: config.jwt.expiresIn,
+    expiresIn: config.jwt.expiresIn as string,
   })
 }

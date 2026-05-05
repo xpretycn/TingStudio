@@ -57,6 +57,12 @@ const router = createRouter({
           meta: { title: "编辑原料", hideHeader: true },
         },
         {
+          path: "formulas/compare",
+          name: "FormulaCompare",
+          component: () => import(/* webpackPrefetch: true */ "@/views/formulas/FormulaCompare.vue"),
+          meta: { title: "配方对比", hideHeader: true },
+        },
+        {
           path: "formulas",
           name: "FormulaList",
           component: () => import(/* webpackPrefetch: true */ "@/views/formulas/FormulaList.vue"),
@@ -111,6 +117,48 @@ const router = createRouter({
           meta: { title: "销量分析" },
         },
         {
+          path: "reports",
+          name: "ReportCenter",
+          component: () => import(/* webpackPrefetch: true */ "@/views/reports/ReportCenter.vue"),
+          meta: { title: "报告中心" },
+        },
+        {
+          path: "reports/weekly",
+          name: "WeeklyReport",
+          component: () => import(/* webpackPrefetch: true */ "@/views/reports/WeeklyReport.vue"),
+          meta: { title: "周报详情", hideHeader: true },
+        },
+        {
+          path: "reports/weekly/:id",
+          name: "WeeklyReportDetail",
+          component: () => import(/* webpackPrefetch: true */ "@/views/reports/WeeklyReport.vue"),
+          meta: { title: "周报详情", hideHeader: true },
+        },
+        {
+          path: "reports/monthly",
+          name: "MonthlyReport",
+          component: () => import(/* webpackPrefetch: true */ "@/views/reports/MonthlyReport.vue"),
+          meta: { title: "月报详情", hideHeader: true },
+        },
+        {
+          path: "reports/monthly/:id",
+          name: "MonthlyReportDetail",
+          component: () => import(/* webpackPrefetch: true */ "@/views/reports/MonthlyReport.vue"),
+          meta: { title: "月报详情", hideHeader: true },
+        },
+        {
+          path: "reports/generate",
+          name: "ReportGenerate",
+          component: () => import(/* webpackPrefetch: true */ "@/views/reports/ReportGenerate.vue"),
+          meta: { title: "生成报告", hideHeader: true },
+        },
+        {
+          path: "reports/compare",
+          name: "ReportCompare",
+          component: () => import(/* webpackPrefetch: true */ "@/views/reports/ReportCompare.vue"),
+          meta: { title: "报告对比", hideHeader: true },
+        },
+        {
           path: "versions/formula/:formulaId",
           name: "VersionList",
           component: () => import(/* webpackPrefetch: true */ "@/views/versions/VersionList.vue"),
@@ -127,6 +175,18 @@ const router = createRouter({
           name: "ExportCenter",
           component: () => import(/* webpackPrefetch: true */ "@/views/exports/ExportCenter.vue"),
           meta: { title: "导出中心" },
+        },
+        {
+          path: "files",
+          name: "FileManagement",
+          component: () => import(/* webpackPrefetch: true */ "@/views/files/FileManagement.vue"),
+          meta: { title: "文件管理" },
+        },
+        {
+          path: "files/:id",
+          name: "FileDetail",
+          component: () => import(/* webpackPrefetch: true */ "@/views/files/FileDetail.vue"),
+          meta: { title: "文件详情", hideHeader: true },
         },
         {
           path: "nutrition",
@@ -151,6 +211,12 @@ const router = createRouter({
           name: "AiAssistant",
           component: () => import("@/views/ai/AiAssistant.vue"),
           meta: { title: "AI 助手" },
+        },
+        {
+          path: "model-management",
+          name: "ModelManagement",
+          component: () => import("@/views/models/ModelManagement.vue"),
+          meta: { title: "模型管理", requiresAdmin: true },
         },
         {
           path: "settings",

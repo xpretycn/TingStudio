@@ -1,13 +1,15 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
 import { aiApi } from "@/api/ai";
+import { modelApi, type ModelVersionOption } from "@/api/model";
 import type { AIModel, ParsedFormula, ParsedMaterialNutrition, SearchResult } from "@/api/ai";
 
 export const useAiStore = defineStore("ai", () => {
-  // ─── 模型列表 ───
   const models = ref<AIModel[]>([]);
   const allModels = ref<AIModel[]>([]);
   const selectedModel = ref("");
+  const selectedVersion = ref("");
+  const modelVersions = ref<ModelVersionOption[]>([]);
 
   // ─── 智能填单（配方） ───
   const parseLoading = ref(false);
@@ -31,13 +33,30 @@ export const useAiStore = defineStore("ai", () => {
       const res = await aiApi.getModels();
       models.value = res.available;
       allModels.value = res.all;
-      // 默认选中第一个可用模型
       if (!selectedModel.value && res.available.length > 0) {
         selectedModel.value = res.available[0].provider;
       }
     } catch (error: any) {
       console.error("[AI Store] 获取模型列表失败:", error);
     }
+  };
+
+  const loadModelVersions = async (provider: string) => {
+    try {
+      const res = await modelApi.getVersionsByProvider(provider);
+      modelVersions.value = res.versions || [];
+      selectedVersion.value = res.currentModel || "";
+    } catch {
+      modelVersions.value = [];
+      const model = models.value.find(m => m.provider === provider);
+      selectedVersion.value = model?.model || "";
+    }
+  };
+
+  const getVersionLabel = (versionValue?: string): string => {
+    if (!versionValue) return "";
+    const found = modelVersions.value.find(v => v.value === versionValue);
+    return found ? found.label : versionValue;
   };
 
   /** AI 解析配方文件 */
@@ -47,7 +66,7 @@ export const useAiStore = defineStore("ai", () => {
     parseResult.value = null;
     parseError.value = "";
     try {
-      const res = await aiApi.parseFormula(file, selectedModel.value);
+      const res = await aiApi.parseFormula(file, selectedModel.value, selectedVersion.value || undefined);
       parseResult.value = res;
     } catch (error: any) {
       parseError.value = error?.response?.data?.message || error.message || "AI 解析失败";
@@ -63,7 +82,7 @@ export const useAiStore = defineStore("ai", () => {
     searchResult.value = null;
     searchError.value = "";
     try {
-      const res = await aiApi.naturalSearch(queryText, selectedModel.value);
+      const res = await aiApi.naturalSearch(queryText, selectedModel.value, selectedVersion.value || undefined);
       searchResult.value = res;
       // 记录搜索历史（最多保留 10 条）
       const history = [queryText, ...searchHistory.value.filter(h => h !== queryText)];
@@ -88,7 +107,7 @@ export const useAiStore = defineStore("ai", () => {
     materialParseResult.value = null;
     materialParseError.value = "";
     try {
-      const res = await aiApi.parseMaterial(file, selectedModel.value);
+      const res = await aiApi.parseMaterial(file, selectedModel.value, selectedVersion.value || undefined);
       materialParseResult.value = res;
     } catch (error: any) {
       materialParseError.value = error?.response?.data?.message || error.message || "AI 解析失败";
@@ -113,6 +132,8 @@ export const useAiStore = defineStore("ai", () => {
     models,
     allModels,
     selectedModel,
+    selectedVersion,
+    modelVersions,
     parseLoading,
     parseResult,
     parseError,
@@ -124,6 +145,8 @@ export const useAiStore = defineStore("ai", () => {
     searchError,
     searchHistory,
     fetchModels,
+    loadModelVersions,
+    getVersionLabel,
     parseFormula,
     parseMaterial,
     naturalSearch,

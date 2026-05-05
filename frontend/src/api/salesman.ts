@@ -15,7 +15,7 @@ export interface Salesman {
 
 export interface SalesmanForm {
   name: string
-  code: string
+  code?: string
   department?: string
   phone?: string
   email?: string

@@ -32,7 +32,9 @@ function ensureTable(dbInstance: SqlJsDatabase, tableName: string, createSql: st
       dbInstance.exec(createSql);
       logger.info(`数据库迁移: 创建表 ${tableName}`);
     }
-  } catch (_err) {}
+  } catch (err) {
+    logger.error(`数据库迁移失败: 创建表 ${tableName}`, err);
+  }
 }
 
 function runAutoMigrations(dbInstance: SqlJsDatabase) {
@@ -73,6 +75,56 @@ function runAutoMigrations(dbInstance: SqlJsDatabase) {
     CREATE INDEX IF NOT EXISTS idx_fs_salesman ON formula_sales(salesman_id);
     CREATE INDEX IF NOT EXISTS idx_fs_period ON formula_sales(period_start)
   `,
+  );
+  ensureTable(
+    dbInstance,
+    "uploaded_files",
+    `
+    CREATE TABLE uploaded_files (
+      file_id TEXT PRIMARY KEY,
+      original_name TEXT NOT NULL,
+      storage_path TEXT NOT NULL,
+      file_size INTEGER NOT NULL,
+      mime_type TEXT NOT NULL,
+      file_type TEXT NOT NULL CHECK(file_type IN ('formula', 'material')),
+      status TEXT NOT NULL DEFAULT 'uploaded' CHECK(status IN ('uploaded', 'parsed', 'linked', 'orphaned', 'archived')),
+      related_id TEXT DEFAULT NULL,
+      related_type TEXT DEFAULT NULL CHECK(related_type IS NULL OR related_type IN ('formula', 'material')),
+      parse_result_json TEXT DEFAULT NULL,
+      parse_model TEXT DEFAULT NULL,
+      parse_confidence REAL DEFAULT NULL,
+      parse_usage_json TEXT DEFAULT NULL,
+      version INTEGER NOT NULL DEFAULT 1,
+      uploaded_by TEXT NOT NULL,
+      uploaded_at TEXT NOT NULL DEFAULT (datetime('now')),
+      last_accessed_at TEXT DEFAULT NULL,
+      FOREIGN KEY (uploaded_by) REFERENCES users(id)
+    );
+    CREATE INDEX IF NOT EXISTS idx_uploaded_files_related ON uploaded_files(related_id, related_type);
+    CREATE INDEX IF NOT EXISTS idx_uploaded_files_type ON uploaded_files(file_type);
+    CREATE INDEX IF NOT EXISTS idx_uploaded_files_status ON uploaded_files(status);
+    CREATE INDEX IF NOT EXISTS idx_uploaded_files_uploaded_by ON uploaded_files(uploaded_by);
+    CREATE INDEX IF NOT EXISTS idx_uploaded_files_uploaded_at ON uploaded_files(uploaded_at)
+    `,
+  );
+  ensureTable(
+    dbInstance,
+    "file_audit_log",
+    `
+    CREATE TABLE file_audit_log (
+      log_id TEXT PRIMARY KEY,
+      file_id TEXT NOT NULL,
+      action TEXT NOT NULL CHECK(action IN ('upload', 'parse', 'link', 'unlink', 'reparse', 'download', 'delete', 'archive')),
+      operator TEXT NOT NULL,
+      timestamp TEXT NOT NULL DEFAULT (datetime('now')),
+      detail_json TEXT DEFAULT NULL,
+      ip_address TEXT DEFAULT NULL,
+      FOREIGN KEY (file_id) REFERENCES uploaded_files(file_id) ON DELETE CASCADE
+    );
+    CREATE INDEX IF NOT EXISTS idx_file_audit_file ON file_audit_log(file_id);
+    CREATE INDEX IF NOT EXISTS idx_file_audit_operator ON file_audit_log(operator);
+    CREATE INDEX IF NOT EXISTS idx_file_audit_timestamp ON file_audit_log(timestamp)
+    `,
   );
 }
 
@@ -265,6 +317,10 @@ export async function connectDatabase(): Promise<void> {
     }
 
     runAutoMigrations(db);
+
+    const data = db.export();
+    const buffer = Buffer.from(data);
+    fs.writeFileSync(config.database.path, buffer);
 
     logger.info(`SQLite 数据库已连接: ${config.database.path}`);
   } catch (error) {

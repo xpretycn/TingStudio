@@ -70,7 +70,19 @@
                     aria-required="true" aria-labelledby="lbl-salesman">
                     <t-option v-for="salesman in salesmanStore.salesmen" :key="salesman.id" :value="salesman.id"
                       :label="salesman.name" />
+                    <template #panelTopContent>
+                      <div class="quick-create-salesman-option" @click="openQuickCreateSalesman">
+                        <t-icon name="add" size="14px" style="color: #10b981" />
+                        快速创建业务员
+                      </div>
+                    </template>
                   </t-select>
+                  <t-alert v-if="salesmanNotMatched && !formData.salesmanId" theme="warning"
+                    style="margin-top: 6px; border-radius: 10px; font-size: 12px;">
+                    业务员「{{ parsedSalesmanName || aiStore.parseResult?.salesmanName }}」不在系统中，请选择已有业务员或
+                    <a style="color: #10b981; cursor: pointer; font-weight: 600;"
+                      @click="openQuickCreateSalesman">快速创建</a>
+                  </t-alert>
                 </div>
 
                 <div class="form-field">
@@ -98,13 +110,19 @@
                       aria-labelledby="lbl-supplement-factor" />
                     <p class="field-help">用于营养成分含量比计算，主料系数范围0.15-0.25，辅料系数范围0.5-1.5</p>
                   </div>
-                  <div v-if="isEdit" class="form-field">
+                  <div v-if="isEdit" class="form-field" :class="{ 'field-error': versionReasonError }">
                     <label class="field-label" id="lbl-version-reason"><t-icon name="history" size="12px"
                         class="label-icon" /> 升版原因
                       <span class="required">*</span></label>
-                    <t-textarea v-model="formData.versionReason" placeholder="请输入升版原因（必填）"
-                      :autosize="{ minRows: 2, maxRows: 4 }" class="field-input" aria-required="true"
-                      aria-labelledby="lbl-version-reason" />
+                    <t-textarea ref="versionReasonRef" v-model="formData.versionReason" placeholder="请输入升版原因（必填）"
+                      :autosize="{ minRows: 2, maxRows: 4 }" class="field-input"
+                      :class="{ 'input-error': versionReasonError }" aria-required="true"
+                      aria-labelledby="lbl-version-reason" @input="clearVersionReasonError" />
+                    <transition name="error-fade">
+                      <p v-if="versionReasonError" class="field-error-msg">
+                        <t-icon name="error-circle" size="14px" /> 请填写升版原因
+                      </p>
+                    </transition>
                   </div>
                 </div>
                 <div class="form-field">
@@ -454,7 +472,6 @@
                 </div>
               </div>
             </section>
-
             <!-- 报价预览 -->
             <section class="form-section quote-sec">
               <div class="section-header">
@@ -576,6 +593,9 @@
         </div>
       </t-form>
     </main>
+
+    <QuickCreateSalesmanDialog v-model:visible="showQuickCreateSalesman" :default-name="parsedSalesmanName"
+      @created="onQuickSalesmanCreated" />
   </div>
 </template>
 
@@ -592,6 +612,7 @@ import type { MaterialItem } from '@/api/formula';
 import type { ParsedMaterial } from '@/api/excelImport';
 import { excelImportApi } from '@/api/excelImport';
 import ExcelImportPanel from '@/components/ExcelImportPanel.vue';
+import QuickCreateSalesmanDialog from '@/components/QuickCreateSalesmanDialog.vue';
 
 const router = useRouter();
 const route = useRoute();
@@ -604,9 +625,11 @@ const formRef = ref<any>(null);
 const fileInputRef = ref<HTMLInputElement | null>(null);
 const modelSelectRef = ref<HTMLElement | null>(null);
 const resultRef = ref<HTMLElement | null>(null);
+const versionReasonRef = ref<any>(null);
 const loading = ref(false);
 const materialSelectLoading = ref(false);
 const materialSearchKeyword = ref('');
+const versionReasonError = ref(false);
 
 // AI 相关状态
 const selectedFile = ref<File | null>(null);
@@ -715,6 +738,33 @@ const isEdit = computed(() => !!route.params.id);
 
 // AI 预填标志
 const isAiPrefill = ref(false);
+const showQuickCreateSalesman = ref(false);
+const parsedSalesmanName = ref('');
+
+const salesmanNotMatched = computed(() => {
+  const data = aiStore.parseResult;
+  if (!data?.salesmanName) return false;
+  const name = data.salesmanName;
+  return !salesmanStore.salesmen.find(
+    (s: any) => s.name === name || s.name.includes(name) || name.includes(s.name)
+  );
+});
+
+const openQuickCreateSalesman = () => {
+  if (aiStore.parseResult?.salesmanName) {
+    parsedSalesmanName.value = aiStore.parseResult.salesmanName;
+  }
+  showQuickCreateSalesman.value = true;
+};
+
+const onQuickSalesmanCreated = async (salesman: any) => {
+  await salesmanStore.fetchSalesmen();
+  const matched = salesmanStore.salesmen.find((s: any) => s.id === salesman.id || s.name === salesman.name);
+  if (matched) {
+    formData.salesmanId = matched.id;
+    MessagePlugin.success(`业务员「${matched.name}」已创建并自动选中`);
+  }
+};
 
 const hasUnmatchedMaterials = computed(() => {
   const data = aiStore.parseResult;
@@ -775,7 +825,6 @@ const rules: Record<string, FormRule[]> = {
       message: '请完整填写所有原料信息', trigger: 'change',
     },
   ],
-  versionReason: [{ required: true, message: '请填写升版原因', trigger: 'blur' }],
 };
 
 const addMaterial = () => {
@@ -827,8 +876,25 @@ const handleExcelImport = (materials: ParsedMaterial[]) => {
   MessagePlugin.success(`已导入 ${materials.length} 条原料`);
 };
 
+const clearVersionReasonError = () => {
+  if (versionReasonError.value && formData.versionReason?.trim()) {
+    versionReasonError.value = false;
+  }
+};
+
 const handleSubmit = async ({ validateResult }: any) => {
   if (validateResult === true) {
+    if (isEdit.value && !formData.versionReason?.trim()) {
+      versionReasonError.value = true;
+      await nextTick();
+      const textareaEl = versionReasonRef.value?.$el?.querySelector('textarea')
+        || versionReasonRef.value?.$el;
+      if (textareaEl) {
+        textareaEl.focus?.();
+        textareaEl.scrollIntoView?.({ behavior: 'smooth', block: 'center' });
+      }
+      return;
+    }
     if (loading.value) return;
     loading.value = true;
     try {
@@ -1054,6 +1120,7 @@ const backfillData = () => {
 
   if (data.salesmanName) {
     const salesmanName = data.salesmanName;
+    parsedSalesmanName.value = salesmanName;
     const matched = salesmanStore.salesmen.find(
       (s: any) => s.name === salesmanName || s.name.includes(salesmanName) || salesmanName.includes(s.name)
     );
@@ -1615,6 +1682,53 @@ onMounted(async () => {
           font-size: 12px;
           color: #64748b;
           text-align: left;
+        }
+
+        &.field-error {
+          .field-label {
+            color: #dc2626;
+          }
+
+          :deep(.t-textarea .t-textarea__inner) {
+            border-color: #fca5a5 !important;
+            background-color: #fef2f2 !important;
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1) !important;
+
+            &:focus {
+              border-color: #ef4444 !important;
+              box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15) !important;
+            }
+          }
+        }
+
+        .field-error-msg {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          margin: 6px 0 0;
+          font-size: 12px;
+          font-weight: 600;
+          color: #dc2626;
+        }
+
+        .error-fade-enter-active {
+          animation: errorFadeIn 0.3s ease;
+        }
+
+        .error-fade-leave-active {
+          animation: errorFadeIn 0.2s ease reverse;
+        }
+
+        @keyframes errorFadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(-4px);
+          }
+
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
         }
 
         // ═══ 输入框 — 参照 new-recipe.html 样式 ═══
@@ -3162,6 +3276,21 @@ onMounted(async () => {
       box-shadow: 0 0 0 0 transparent;
       border-color: transparent;
     }
+  }
+}
+
+.quick-create-salesman-option {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  font-size: 13px;
+  color: #10B981;
+  cursor: pointer;
+  transition: background 0.2s;
+
+  &:hover {
+    background: #ecfdf5;
   }
 }
 </style>

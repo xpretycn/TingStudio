@@ -75,17 +75,17 @@ export async function getNextCode(req: any, res: Response) {
     if (!name || typeof name !== "string" || !name.trim()) {
       return res.status(400).json({ success: false, message: "请提供原料名称" });
     }
-    const code = generateMaterialCode(name.trim());
-    if (!code) {
+    const baseCode = generateMaterialCode(name.trim());
+    if (!baseCode) {
       return res.status(500).json({ success: false, message: "无法生成编码" });
     }
-    const [existing]: any[] = await query("SELECT id, name FROM materials WHERE code = ?", [code]);
-    if (existing && existing.length > 0) {
-      return res.status(409).json({
-        success: false,
-        message: `编码 ${code} 已被「${existing[0].name}」占用`,
-        data: { code, conflictName: existing[0].name },
-      });
+    let code = baseCode;
+    let suffix = 2;
+    while (true) {
+      const [existing]: any[] = await query("SELECT id FROM materials WHERE code = ?", [code]);
+      if (!existing || existing.length === 0) break;
+      code = baseCode + suffix;
+      suffix++;
     }
     res.json(success({ code }));
   } catch (error: any) {

@@ -65,12 +65,41 @@ export async function getSalesman(req: Request, res: Response) {
   }
 }
 
+/** 生成业务员工号 YW+5位数字 */
+async function generateSalesmanCode(): Promise<string> {
+  const [[result]]: any[][] = await query(
+    "SELECT code FROM salesmen WHERE code LIKE 'YW%' ORDER BY code DESC LIMIT 1"
+  );
+
+  let nextNum = 1;
+  if (result?.code) {
+    const numPart = result.code.replace('YW', '');
+    const currentNum = parseInt(numPart, 10);
+    if (!isNaN(currentNum)) {
+      nextNum = currentNum + 1;
+    }
+  }
+
+  let code = 'YW' + String(nextNum).padStart(5, '0');
+  let attempts = 0;
+  while (attempts < 10) {
+    const [[existing]]: any[][] = await query("SELECT id FROM salesmen WHERE code = ?", [code]);
+    if (!existing) break;
+    nextNum++;
+    code = 'YW' + String(nextNum).padStart(5, '0');
+    attempts++;
+  }
+
+  return code;
+}
+
 /** 创建业务员 */
 export async function createSalesman(req: any, res: Response) {
   try {
-    const { name, code, department, phone, email } = req.body;
+    const { name, department, phone, email } = req.body;
     const userId = req.user.userId;
     const id = generateId();
+    const code = await generateSalesmanCode();
 
     await query(
       `INSERT INTO salesmen (id, name, code, department, phone, email, status, created_by, created_at)
