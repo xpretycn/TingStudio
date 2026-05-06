@@ -215,15 +215,32 @@
           <FilePreviewDialog v-model:visible="previewDialogVisible" :fileId="data.fileId" />
 
           <section class="info-card audit-card">
-            <h3 class="card-label">
-              <t-icon name="history" class="label-icon" />
-              审计日志
-            </h3>
+            <div class="audit-header">
+              <h3 class="card-label">
+                <t-icon name="history" class="label-icon" />
+                审计日志
+              </h3>
+              <div v-if="auditLogs.length > AUDIT_PAGE_SIZE" class="audit-pagination">
+                <button class="audit-nav-btn" :disabled="auditPage <= 1" @click="auditPrev" title="上一页">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="15 18 9 12 15 6" />
+                  </svg>
+                </button>
+                <span class="audit-nav-page">{{ auditPage }} / {{ auditTotalPages }}</span>
+                <button class="audit-nav-btn" :disabled="auditPage >= auditTotalPages" @click="auditNext" title="下一页">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="9 18 15 12 9 6" />
+                  </svg>
+                </button>
+              </div>
+            </div>
             <div class="audit-timeline">
               <div v-if="auditLogs.length === 0" class="audit-empty">
                 <t-empty description="暂无审计日志" size="small" />
               </div>
-              <div v-for="log in auditLogs" :key="log.logId" class="audit-item">
+              <div v-for="log in pagedAuditLogs" :key="log.logId" class="audit-item">
                 <div class="audit-dot" :class="`audit-dot--${getAuditActionColor(log.action)}`"></div>
                 <div class="audit-content">
                   <div class="audit-top">
@@ -373,6 +390,18 @@ const loading = ref(false);
 const previewDialogVisible = ref(false);
 const data = ref<any>(null);
 const auditLogs = ref<AuditLog[]>([]);
+const AUDIT_PAGE_SIZE = 8;
+const auditPage = ref(1);
+
+const auditTotalPages = computed(() => Math.max(1, Math.ceil(auditLogs.value.length / AUDIT_PAGE_SIZE)));
+
+const pagedAuditLogs = computed(() => {
+  const start = (auditPage.value - 1) * AUDIT_PAGE_SIZE;
+  return auditLogs.value.slice(start, start + AUDIT_PAGE_SIZE);
+});
+
+const auditPrev = () => { if (auditPage.value > 1) auditPage.value--; };
+const auditNext = () => { if (auditPage.value < auditTotalPages.value) auditPage.value++; };
 const showLinkDialog = ref(false);
 const linkOperating = ref(false);
 const linkForm = ref({
@@ -1270,6 +1299,16 @@ watch(() => route.query.action, (action) => {
     }
 
     .audit-card {
+      .audit-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: $space-5;
+
+        .card-label {
+          margin-bottom: 0;
+        }
+      }
       .audit-timeline {
         display: flex;
         flex-direction: column;
@@ -1373,6 +1412,45 @@ watch(() => route.query.action, (action) => {
               margin: 0;
             }
           }
+        }
+      }
+
+      .audit-pagination {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-shrink: 0;
+
+        .audit-nav-btn {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 36px;
+          height: 36px;
+          border: 1px solid #e2e8f0;
+          border-radius: 10px;
+          background: transparent;
+          color: #64748b;
+          cursor: pointer;
+          transition: all 0.15s;
+
+          &:hover:not(:disabled) {
+            background: #ecfdf5;
+            border-color: #a7f3d0;
+            color: #059669;
+          }
+
+          &:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+          }
+        }
+
+        .audit-nav-page {
+          font-size: 14px;
+          font-weight: 600;
+          color: #94a3b8;
+          user-select: none;
         }
       }
     }

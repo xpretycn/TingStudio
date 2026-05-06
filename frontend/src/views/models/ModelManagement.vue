@@ -384,122 +384,210 @@
       </div>
     </t-card>
 
-    <t-drawer v-model:visible="showAddDrawer" header="新增模型" size="920px" :footer="true" placement="right"
-      :confirm-btn="{ content: '确认新增', theme: 'primary' }" :cancel-btn="{ content: '取消' }" @confirm="handleAddModel">
-      <t-form :data="addForm" label-align="top">
-        <div class="drawer-form-section">
-          <div class="drawer-section-title">
-            <t-icon name="control-platform" size="18px" style="color: #10B981;" />
+    <t-drawer v-model:visible="showAddDrawer" :footer="false" size="520px" placement="right" class="model-drawer"
+      destroy-on-close :close-btn="false">
+      <template #header>
+        <div class="drawer-header">
+          <div class="header-left">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5" />
+              <line x1="12" y1="22" x2="12" y2="15.5" />
+              <polyline points="22 8.5 12 15.5 2 8.5" />
+            </svg>
+            <span class="header-title">新增模型</span>
+          </div>
+          <div class="header-actions">
+            <button class="confirm-btn create-btn" @click="handleAddModel">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+              确认新增
+            </button>
+          </div>
+        </div>
+      </template>
+      <t-form ref="addFormRef" :data="addForm" label-align="top">
+        <div class="drawer-card info-card">
+          <div class="card-header">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 3h6v8l-3 4-3-4V3z" />
+              <line x1="12" y1="7" x2="12" y2="3" />
+              <line x1="9" y1="15" x2="15" y2="15" />
+              <path d="M8 19h8" />
+            </svg>
             <span>基本信息</span>
           </div>
-          <div class="drawer-form-row">
-            <t-form-item label="Provider 标识" class="drawer-form-item">
-              <t-input v-model="addForm.provider" placeholder="如: dashscope, zhipu, deepseek" />
-            </t-form-item>
-            <t-form-item label="显示名称" class="drawer-form-item">
-              <t-input v-model="addForm.name" placeholder="如: 通义千问" />
+          <div class="card-body">
+            <div class="form-row two-col">
+              <t-form-item label="Provider 标识">
+                <t-input v-model="addForm.provider" placeholder="如: dashscope, zhipu, deepseek" />
+              </t-form-item>
+              <t-form-item label="显示名称">
+                <t-input v-model="addForm.name" placeholder="如: 通义千问" />
+              </t-form-item>
+            </div>
+            <t-form-item label="描述">
+              <t-textarea v-model="addForm.description" :maxlength="200" :autosize="{ minRows: 2, maxRows: 3 }" />
             </t-form-item>
           </div>
-          <t-form-item label="描述">
-            <t-textarea v-model="addForm.description" :maxlength="200" :autosize="{ minRows: 2, maxRows: 3 }" />
-          </t-form-item>
         </div>
-
-        <div class="drawer-form-section">
-          <div class="drawer-section-title">
-            <t-icon name="lock-on" size="18px" style="color: #3B82F6;" />
+        <div class="drawer-card api-card">
+          <div class="card-header">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+            </svg>
             <span>接口配置</span>
           </div>
-          <div class="drawer-form-row">
-            <t-form-item label="API 基础地址" class="drawer-form-item">
-              <t-input v-model="addForm.baseUrl" placeholder="https://api.example.com/v1" />
-            </t-form-item>
-            <t-form-item label="API Key" class="drawer-form-item">
-              <t-input v-model="addForm.apiKey" type="password" placeholder="sk-..." />
-            </t-form-item>
+          <div class="card-body">
+            <div class="form-row two-col">
+              <t-form-item label="API 基础地址">
+                <t-input v-model="addForm.baseUrl" placeholder="https://api.example.com/v1" />
+              </t-form-item>
+              <t-form-item label="API Key">
+                <t-input v-model="addForm.apiKey" type="password" placeholder="sk-..." />
+              </t-form-item>
+            </div>
           </div>
         </div>
-
-        <div class="drawer-form-section">
-          <div class="drawer-section-title">
-            <t-icon name="setting-1" size="18px" style="color: #F59E0B;" />
+        <div class="drawer-card param-card">
+          <div class="card-header">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="3" />
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+            </svg>
             <span>模型参数</span>
           </div>
-          <div class="drawer-form-row">
-            <t-form-item label="默认模型版本" class="drawer-form-item">
-              <t-input v-model="addForm.model" placeholder="如: qwen-plus" />
-            </t-form-item>
-            <t-form-item label="视觉模型（可选）" class="drawer-form-item">
-              <t-input v-model="addForm.visionModel" placeholder="如: qwen-vl-plus" />
+          <div class="card-body">
+            <div class="form-row two-col">
+              <t-form-item label="默认模型版本">
+                <t-input v-model="addForm.model" placeholder="如: qwen-plus" />
+              </t-form-item>
+              <t-form-item label="视觉模型（可选）">
+                <t-input v-model="addForm.visionModel" placeholder="如: qwen-vl-plus" />
+              </t-form-item>
+            </div>
+            <t-form-item label="支持视觉">
+              <t-switch v-model="addForm.supportsVision" />
             </t-form-item>
           </div>
-          <t-form-item label="支持视觉">
-            <t-switch v-model="addForm.supportsVision" />
-          </t-form-item>
         </div>
       </t-form>
     </t-drawer>
 
-    <t-drawer v-model:visible="showEditDrawer" header="编辑模型" size="920px" :footer="true" placement="right"
-      :confirm-btn="{ content: '保存修改', theme: 'primary' }" :cancel-btn="{ content: '取消' }" @confirm="handleEditModel">
-      <t-form :data="editForm" label-align="top">
-        <div class="drawer-form-section">
-          <div class="drawer-section-title">
-            <t-icon name="control-platform" size="18px" style="color: #10B981;" />
-            <span>基本信息</span>
+    <t-drawer v-model:visible="showEditDrawer" :footer="false" size="520px" placement="right" class="model-drawer"
+      destroy-on-close :close-btn="false">
+      <template #header>
+        <div class="drawer-header">
+          <div class="header-left">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+            </svg>
+            <span class="header-title">编辑模型</span>
           </div>
-          <div class="drawer-form-row">
-            <t-form-item label="显示名称" class="drawer-form-item">
-              <t-input v-model="editForm.name" />
-            </t-form-item>
-            <t-form-item label="描述" class="drawer-form-item">
-              <t-textarea v-model="editForm.description" :maxlength="200" :autosize="{ minRows: 1, maxRows: 3 }" />
-            </t-form-item>
+          <div class="header-actions">
+            <button class="confirm-btn update-btn" @click="handleEditModel">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+              </svg>
+              保存修改
+            </button>
           </div>
         </div>
-
-        <div class="drawer-form-section">
-          <div class="drawer-section-title">
-            <t-icon name="lock-on" size="18px" style="color: #3B82F6;" />
+      </template>
+      <t-form ref="editFormRef" :data="editForm" label-align="top">
+        <div class="drawer-card info-card">
+          <div class="card-header">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 3h6v8l-3 4-3-4V3z" />
+              <line x1="12" y1="7" x2="12" y2="3" />
+              <line x1="9" y1="15" x2="15" y2="15" />
+              <path d="M8 19h8" />
+            </svg>
+            <span>基本信息</span>
+          </div>
+          <div class="card-body">
+            <div class="form-row two-col">
+              <t-form-item label="显示名称">
+                <t-input v-model="editForm.name" />
+              </t-form-item>
+              <t-form-item label="描述">
+                <t-textarea v-model="editForm.description" :maxlength="200" :autosize="{ minRows: 1, maxRows: 3 }" />
+              </t-form-item>
+            </div>
+          </div>
+        </div>
+        <div class="drawer-card api-card">
+          <div class="card-header">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+            </svg>
             <span>接口配置</span>
           </div>
-          <div class="drawer-form-row">
-            <t-form-item label="API 基础地址" class="drawer-form-item">
+          <div class="card-body">
+            <t-form-item label="API 基础地址">
               <t-input v-model="editForm.baseUrl" />
             </t-form-item>
-            <t-form-item label="API Key" class="drawer-form-item">
+            <t-form-item label="API Key">
               <t-input v-model="editForm.apiKey" type="password" placeholder="留空则不修改" />
             </t-form-item>
           </div>
         </div>
-
-        <div class="drawer-form-section">
-          <div class="drawer-section-title">
-            <t-icon name="setting-1" size="18px" style="color: #F59E0B;" />
+        <div class="drawer-card param-card">
+          <div class="card-header">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="3" />
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+            </svg>
             <span>模型参数</span>
           </div>
-          <div class="drawer-form-row">
-            <t-form-item label="默认模型版本" class="drawer-form-item">
-              <t-input v-model="editForm.model" />
-            </t-form-item>
-            <t-form-item label="视觉模型" class="drawer-form-item">
-              <t-input v-model="editForm.visionModel" />
+          <div class="card-body">
+            <div class="form-row two-col">
+              <t-form-item label="默认模型版本">
+                <t-input v-model="editForm.model" />
+              </t-form-item>
+              <t-form-item label="视觉模型">
+                <t-input v-model="editForm.visionModel" />
+              </t-form-item>
+            </div>
+            <div class="form-row two-col">
+              <t-form-item label="支持视觉">
+                <t-switch v-model="editForm.supportsVision" />
+              </t-form-item>
+              <t-form-item label="健康检测间隔（天）">
+                <t-input-number v-model="editForm.healthCheckIntervalDays" :min="1" :max="30" />
+              </t-form-item>
+            </div>
+            <t-form-item label="备用模型">
+              <div class="fallback-model-field">
+                <div v-if="editForm.fallbackProvider" class="fallback-logo-wrap">
+                  <img loading="lazy" :src="getModelLogo(editForm.fallbackProvider)"
+                    :alt="getFallbackModelName()" class="fallback-logo"
+                    @error="(e: Event) => handleLogoError(e)" />
+                  <span class="model-fallback" :style="{ color: getFallbackColor(editForm.fallbackProvider) }">
+                    {{ getFallbackLetter(editForm.fallbackProvider) }}
+                  </span>
+                </div>
+                <t-select v-model="editForm.fallbackProvider" clearable placeholder="选择备用模型" style="flex: 1">
+                  <t-option v-for="m in modelStore.models.filter(x => x.id !== editingModelId)" :key="m.provider"
+                    :value="m.provider" :label="m.name" />
+                </t-select>
+              </div>
             </t-form-item>
           </div>
-          <div class="drawer-form-row">
-            <t-form-item label="支持视觉" class="drawer-form-item">
-              <t-switch v-model="editForm.supportsVision" />
-            </t-form-item>
-            <t-form-item label="健康检测间隔（天）" class="drawer-form-item">
-              <t-input-number v-model="editForm.healthCheckIntervalDays" :min="1" :max="30" />
-            </t-form-item>
-          </div>
-          <t-form-item label="备用模型">
-            <t-select v-model="editForm.fallbackProvider" clearable placeholder="选择备用模型">
-              <t-option v-for="m in modelStore.models.filter(x => x.id !== editingModelId)" :key="m.provider"
-                :value="m.provider" :label="m.name" />
-            </t-select>
-          </t-form-item>
         </div>
       </t-form>
     </t-drawer>
@@ -873,6 +961,12 @@ async function handleDeleteModel(model: ModelItem) {
   } catch (err: any) {
     MessagePlugin.error(err.message || "移除失败");
   }
+}
+
+function getFallbackModelName(): string {
+  if (!editForm.value.fallbackProvider) return '';
+  const found = modelStore.models.find(m => m.provider === editForm.value.fallbackProvider);
+  return found?.name || '';
 }
 
 function openEditDialog(model: ModelItem) {
@@ -1998,36 +2092,157 @@ $transition-normal: 0.25s ease;
   overflow-x: hidden;
 }
 
-.drawer-form-section {
-  margin-bottom: 20px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid #f1f5f9;
-
-  &:last-child {
-    border-bottom: none;
-    margin-bottom: 0;
-    padding-bottom: 0;
-  }
-
-  .drawer-section-title {
+.model-drawer {
+  :deep(.drawer-header) {
     display: flex;
     align-items: center;
-    gap: 8px;
-    font-size: 15px;
-    font-weight: 600;
-    color: #1e293b;
-    margin-bottom: 12px;
-    padding-bottom: 6px;
-    border-bottom: 2px solid #f8fafc;
+    justify-content: space-between;
+    padding: 0 4px;
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+
+      .header-title {
+        font-size: 17px;
+        font-weight: 600;
+        color: #1e293b;
+      }
+    }
+
+    .header-actions {
+      .confirm-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 7px 18px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+
+        &.create-btn {
+          background: #10b981;
+          color: #fff;
+
+          &:hover {
+            background: #059669;
+          }
+        }
+
+        &.update-btn {
+          background: #3b82f6;
+          color: #fff;
+
+          &:hover {
+            background: #2563eb;
+          }
+        }
+
+        svg {
+          flex-shrink: 0;
+        }
+      }
+    }
   }
 
-  .drawer-form-row {
-    display: flex;
-    gap: 16px;
+  .drawer-card {
+    margin-bottom: 16px;
+    border: 1px solid #f1f5f9;
+    border-radius: 12px;
+    overflow: hidden;
 
-    .drawer-form-item {
-      flex: 1;
-      min-width: 0;
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    &.info-card {
+      border-left: 3px solid #10b981;
+    }
+
+    &.api-card {
+      border-left: 3px solid #3b82f6;
+    }
+
+    &.param-card {
+      border-left: 3px solid #f59e0b;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 16px;
+      background: #f8fafc;
+      border-bottom: 1px solid #f1f5f9;
+
+      span {
+        font-size: 14px;
+        font-weight: 600;
+        color: #334155;
+      }
+    }
+
+    .card-body {
+      padding: 16px;
+
+      :deep(.t-form__item) {
+        margin-bottom: 20px;
+
+        &:last-child {
+          margin-bottom: 0;
+        }
+      }
+
+      .form-row {
+        display: flex;
+        gap: 16px;
+
+        &.two-col > * {
+          flex: 1;
+          min-width: 0;
+        }
+      }
+
+      .fallback-model-field {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+
+        .fallback-logo-wrap {
+          position: relative;
+          width: 28px;
+          height: 28px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+          border-radius: 8px;
+          background: #f8fafc;
+          overflow: hidden;
+
+          .fallback-logo {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+          }
+
+          .model-fallback {
+            display: none;
+            position: absolute;
+            inset: 0;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 700;
+            background: #f1f5f9;
+            border-radius: 8px;
+          }
+        }
+      }
     }
   }
 }

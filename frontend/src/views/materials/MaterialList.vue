@@ -1743,34 +1743,40 @@ const handleDelete = async (row: Material) => {
   gap: 8px;
 
   .action-btn {
-    padding: 8px;
-    border-radius: 8px;
-    color: #94a3b8;
-    transition: all $transition-fast;
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    color: #64748b;
+    transition: all 0.2s ease;
     background: transparent;
-    border: none;
+    border: 1px solid transparent;
     cursor: pointer;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
 
     &:hover {
       transform: translateY(-1px);
+      background: #f8fafc;
+      border-color: #e2e8f0;
     }
 
     &.view-btn:hover {
-      color: #10b981;
-      background-color: rgba(209, 250, 229, 0.50);
+      color: #8b5cf6;
+      background: #f5f3ff;
+      border-color: #ddd6fe;
     }
 
     &.edit-btn:hover {
-      color: #3b82f6;
-      background-color: rgba(219, 234, 254, 0.50);
+      color: #10b981;
+      background: #ecfdf5;
+      border-color: #a7f3d0;
     }
 
     &.delete-btn:hover {
       color: #ef4444;
-      background-color: rgba(254, 226, 226, 0.50);
+      background: #fef2f2;
+      border-color: #fecaca;
     }
 
     .t-icon {

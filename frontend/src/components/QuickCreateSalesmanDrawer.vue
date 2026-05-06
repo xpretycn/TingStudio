@@ -2,10 +2,10 @@
   <t-drawer
     :visible="visible"
     :on-close="handleClose"
-    :header="false"
+    :close-btn="false"
     :footer="false"
     placement="right"
-    size="680px"
+    size="520px"
     class="quick-create-salesman-drawer"
     destroy-on-close
     :close-on-overlay-click="false"
@@ -14,147 +14,132 @@
     aria-label="快速创建业务员"
     role="dialog"
   >
-    <div class="drawer-content">
+    <template #header>
       <div class="drawer-header">
-        <div class="drawer-header-left">
-          <div class="drawer-header-icon">
-            <t-icon name="user-add" size="20px" />
+        <div class="header-left">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+          </svg>
+          <span class="header-title">快速创建业务员</span>
+        </div>
+        <div class="header-actions">
+          <button class="confirm-btn create-btn" @click="handleSubmit" :disabled="submitting">
+            <t-loading v-if="submitting" size="14px" />
+            <svg v-else width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+              stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+            {{ submitting ? '创建中...' : '确认创建' }}
+          </button>
+        </div>
+      </div>
+    </template>
+
+    <t-form
+      ref="formRef"
+      :data="formData"
+      :rules="formRules"
+      label-align="top"
+      @submit.prevent
+    >
+      <div class="drawer-card info-card">
+        <div class="card-header">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+            <circle cx="12" cy="7" r="4" />
+          </svg>
+          <span>基本信息</span>
+        </div>
+        <div class="card-body">
+          <t-form-item label="姓名" name="name">
+            <t-input
+              ref="nameInputRef"
+              v-model="formData.name"
+              placeholder="请输入业务员姓名"
+              clearable
+              :disabled="submitting"
+              aria-label="业务员姓名"
+              aria-required="true"
+            />
+          </t-form-item>
+          <div class="form-row two-col">
+            <t-form-item label="联系电话" name="phone" class="form-col">
+              <t-input
+                v-model="formData.phone"
+                placeholder="系统自动生成"
+                clearable
+                :disabled="submitting"
+                aria-label="联系电话"
+              />
+            </t-form-item>
+            <t-form-item label="员工工号" name="code" class="form-col">
+              <t-input
+                v-model="formData.code"
+                placeholder="后端自动生成"
+                readonly
+                :disabled="true"
+                aria-label="员工工号（自动生成，不可编辑）"
+                class="code-readonly"
+              >
+                <template #suffixIcon>
+                  <t-tooltip content="工号由系统自动生成，格式：YW+5位数字" placement="top">
+                    <t-icon name="lock-on" style="color: #94a3b8; cursor: help;" />
+                  </t-tooltip>
+                </template>
+              </t-input>
+            </t-form-item>
           </div>
-          <div class="drawer-header-text">
-            <span class="drawer-header-title">快速创建业务员</span>
-            <span class="drawer-header-desc">填写业务员基本信息，系统将自动生成工号</span>
+          <div class="form-row two-col">
+            <t-form-item label="部门" name="department" class="form-col">
+              <t-input
+                v-model="formData.department"
+                placeholder="请输入部门名称"
+                clearable
+                :disabled="submitting"
+                aria-label="部门"
+              />
+            </t-form-item>
+            <t-form-item label="邮箱" name="email" class="form-col">
+              <t-input
+                v-model="formData.email"
+                placeholder="系统自动生成"
+                clearable
+                :disabled="submitting"
+                aria-label="邮箱"
+              />
+            </t-form-item>
           </div>
         </div>
-        <button type="button" class="drawer-close-btn" @click="handleClose" aria-label="关闭">
-          <t-icon name="close" size="18px" />
-        </button>
       </div>
 
-      <t-form
-        ref="formRef"
-        :data="formData"
-        :rules="formRules"
-        label-align="top"
-        @submit.prevent
-        class="drawer-form"
-      >
-        <t-form-item label="姓名" name="name">
-          <t-input
-            ref="nameInputRef"
-            v-model="formData.name"
-            placeholder="请输入业务员姓名"
-            clearable
-            :disabled="submitting"
-            aria-label="业务员姓名"
-            aria-required="true"
-          >
-            <template #prefixIcon>
-              <t-icon name="user" />
-            </template>
-          </t-input>
-        </t-form-item>
-
-        <div class="form-row-2col">
-          <t-form-item label="联系电话" name="phone" class="form-col">
-            <t-input
-              v-model="formData.phone"
-              placeholder="系统自动生成"
-              clearable
+      <div class="drawer-card note-card">
+        <div class="card-header">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="1" x2="12" y2="23" />
+            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+          </svg>
+          <span>备注信息</span>
+        </div>
+        <div class="card-body">
+          <t-form-item label="备注" name="notes">
+            <t-textarea
+              v-model="formData.notes"
+              placeholder="备注信息（选填）"
+              :maxlength="200"
+              :autosize="{ minRows: 2, maxRows: 5 }"
               :disabled="submitting"
-              aria-label="联系电话"
-            >
-              <template #prefixIcon>
-                <t-icon name="call" />
-              </template>
-            </t-input>
-          </t-form-item>
-
-          <t-form-item label="员工工号" name="code" class="form-col">
-            <t-input
-              v-model="formData.code"
-              placeholder="后端自动生成"
-              readonly
-              :disabled="true"
-              aria-label="员工工号（自动生成，不可编辑）"
-              class="code-readonly"
-            >
-              <template #prefixIcon>
-                <t-icon name="certificate-1" />
-              </template>
-              <template #suffixIcon>
-                <t-tooltip content="工号由系统自动生成，格式：YW+5位数字" placement="top">
-                  <t-icon name="lock-on" style="color: #94a3b8; cursor: help;" />
-                </t-tooltip>
-              </template>
-            </t-input>
+              aria-label="备注信息"
+            />
           </t-form-item>
         </div>
-
-        <div class="form-row-2col">
-          <t-form-item label="部门" name="department" class="form-col">
-            <t-input
-              v-model="formData.department"
-              placeholder="请输入部门名称"
-              clearable
-              :disabled="submitting"
-              aria-label="部门"
-            >
-              <template #prefixIcon>
-                <t-icon name="folder" />
-              </template>
-            </t-input>
-          </t-form-item>
-
-          <t-form-item label="邮箱" name="email" class="form-col">
-            <t-input
-              v-model="formData.email"
-              placeholder="系统自动生成"
-              clearable
-              :disabled="submitting"
-              aria-label="邮箱"
-            >
-              <template #prefixIcon>
-                <t-icon name="mail" />
-              </template>
-            </t-input>
-          </t-form-item>
-        </div>
-
-        <t-form-item label="备注" name="notes">
-          <t-textarea
-            v-model="formData.notes"
-            placeholder="备注信息（选填）"
-            :maxlength="200"
-            :autosize="{ minRows: 2, maxRows: 5 }"
-            :disabled="submitting"
-            aria-label="备注信息"
-          />
-        </t-form-item>
-      </t-form>
-    </div>
-
-    <div class="drawer-footer">
-      <t-button
-        variant="outline"
-        :disabled="submitting"
-        @click="handleClose"
-        aria-label="取消创建业务员"
-        class="drawer-footer-btn drawer-footer-btn--cancel"
-      >
-        <template #icon><t-icon name="close-circle" /></template>
-        取消
-      </t-button>
-      <t-button
-        theme="primary"
-        :loading="submitting"
-        @click="handleSubmit"
-        aria-label="确认创建业务员"
-        class="drawer-footer-btn drawer-footer-btn--primary"
-      >
-        <template #icon><t-icon name="check" /></template>
-        {{ submitting ? '创建中...' : '确认创建' }}
-      </t-button>
-    </div>
+      </div>
+    </t-form>
   </t-drawer>
 </template>
 
@@ -298,30 +283,6 @@ const handleSubmit = async () => {
     overflow: hidden;
   }
 
-  :deep(.drawer-footer-btn.t-btn--primary),
-  :deep(.t-btn.t-btn--primary) {
-    background: var(--gradient-btn, linear-gradient(135deg, var(--color-primary), var(--color-primary-dark))) !important;
-    border-color: transparent !important;
-    color: #fff !important;
-    box-shadow: var(--shadow-brand-sm, 0 4px 12px var(--overlay-brand-30)) !important;
-  }
-
-  :deep(.drawer-footer-btn.t-btn--primary:hover):not(.t-btn--disabled),
-  :deep(.t-btn.t-btn--primary:hover):not(.t-btn--disabled) {
-    background: var(--gradient-btn-hover, linear-gradient(135deg, var(--color-primary-dark), var(--color-primary-deep))) !important;
-    box-shadow: var(--shadow-brand-md, 0 6px 16px var(--overlay-brand-35)) !important;
-  }
-
-  :deep(.t-btn.t-btn--outline) {
-    border-color: #e2e8f0 !important;
-    color: #64748b !important;
-  }
-
-  :deep(.t-btn.t-btn--outline:hover):not(.t-btn--disabled) {
-    border-color: #cbd5e1 !important;
-    background: #f8fafc !important;
-    color: #334155 !important;
-  }
 
   :deep(.t-input.t-is-focused),
   :deep(.t-input-number.t-is-focused) {
@@ -334,107 +295,127 @@ const handleSubmit = async () => {
   }
 }
 
-.drawer-content {
-  flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding: 0 28px 20px;
-
-  &::-webkit-scrollbar {
-    width: 4px;
+.quick-create-salesman-drawer {
+  :deep(.t-drawer__content-wrapper) {
+    box-shadow: -8px 0 30px rgba(0, 0, 0, 0.08);
   }
 
-  &::-webkit-scrollbar-track {
-    background: transparent;
+  :deep(.t-drawer__body) {
+    padding: 0;
+    overflow-x: hidden;
   }
 
-  &::-webkit-scrollbar-thumb {
-    background: #e2e8f0;
-    border-radius: 4px;
-
-    &:hover {
-      background: #cbd5e1;
-    }
-  }
-}
-
-.drawer-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 24px 28px 20px;
-  border-bottom: 1px solid #f1f5f9;
-  margin-bottom: 12px;
-  position: sticky;
-  top: 0;
-  background: #fff;
-  z-index: 1;
-
-  .drawer-header-left {
+  .drawer-header {
     display: flex;
     align-items: center;
-    gap: 12px;
+    justify-content: space-between;
+    padding: 0 4px;
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+
+      .header-title {
+        font-size: 17px;
+        font-weight: 600;
+        color: #1e293b;
+      }
+    }
+
+    .header-actions {
+      .confirm-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 7px 18px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+
+        &.create-btn {
+          background: #10b981;
+          color: #fff;
+
+          &:hover {
+            background: #059669;
+          }
+        }
+
+        &:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+
+        svg {
+          flex-shrink: 0;
+        }
+      }
+    }
   }
 
-  .drawer-header-icon {
-    width: 40px;
-    height: 40px;
-    background: var(--gradient-brand, linear-gradient(135deg, var(--color-primary), var(--color-primary-dark)));
+  .drawer-card {
+    margin: 0 28px 16px;
+
+    &:first-of-type {
+      margin-top: 16px;
+    }
+
+    border: 1px solid #f1f5f9;
     border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
-    flex-shrink: 0;
-    box-shadow: var(--shadow-brand-sm, 0 4px 12px var(--overlay-brand-25));
-  }
+    overflow: hidden;
 
-  .drawer-header-text {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
-
-  .drawer-header-title {
-    font-size: 17px;
-    font-weight: 700;
-    color: #0f172a;
-  }
-
-  .drawer-header-desc {
-    font-size: 12px;
-    color: #94a3b8;
-  }
-
-  .drawer-close-btn {
-    width: 36px;
-    height: 36px;
-    border-radius: 10px;
-    border: 1px solid #e2e8f0;
-    background: transparent;
-    color: #94a3b8;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
-
-    &:hover {
-      background: #fef2f2;
-      border-color: #fecaca;
-      color: #ef4444;
-      transform: scale(1.05);
+    &:last-child {
+      margin-bottom: 20px;
     }
 
-    &:active {
-      transform: scale(0.95);
+    &.info-card {
+      border-left: 3px solid #3b82f6;
+    }
+
+    &.note-card {
+      border-left: 3px solid #f59e0b;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 16px;
+      background: #f8fafc;
+      border-bottom: 1px solid #f1f5f9;
+
+      span {
+        font-size: 14px;
+        font-weight: 600;
+        color: #334155;
+      }
+    }
+
+    .card-body {
+      padding: 16px;
+
+      .form-row {
+        display: flex;
+        gap: 16px;
+
+        &.two-col > * {
+          flex: 1;
+          min-width: 0;
+        }
+      }
     }
   }
-}
 
-.drawer-form {
   :deep(.t-form__item) {
-    margin-bottom: 24px;
+    margin-bottom: 20px;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
   }
 
   :deep(.t-form__label) {
@@ -445,165 +426,26 @@ const handleSubmit = async () => {
   }
 
   :deep(.t-input) {
-    border-radius: 12px;
-    min-height: 46px;
-    background: #f8fafc;
-    transition: all 0.2s;
-
-    .t-input__wrap {
-      border-radius: 12px;
-      min-height: 46px;
-      border-color: #e2e8f0;
-    }
+    border-radius: 8px;
+    min-height: 38px;
 
     .t-input__inner {
       font-size: 14px;
     }
-
-    &:hover .t-input__wrap {
-      border-color: var(--color-primary);
-    }
-
-    &.t-is-focused {
-      box-shadow: 0 0 0 3px var(--overlay-brand-15);
-
-      .t-input__wrap {
-        border-color: var(--color-primary);
-      }
-    }
   }
 
   :deep(.t-textarea) {
-    border-radius: 12px;
-    background: #f8fafc;
-    transition: all 0.2s;
-
-    .t-textarea__wrap {
-      border-radius: 12px;
-      border-color: #e2e8f0;
-    }
-
-    &:hover .t-textarea__wrap {
-      border-color: var(--color-primary);
-    }
-
-    &.t-is-focused {
-      box-shadow: 0 0 0 3px var(--overlay-brand-15);
-
-      .t-textarea__wrap {
-        border-color: var(--color-primary);
-      }
-    }
+    border-radius: 8px;
   }
-}
 
-.form-row-2col {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-
-  .form-col {
-    margin-bottom: 0;
-  }
-}
-
-.code-readonly {
-  :deep(.t-input) {
+  .code-readonly :deep(.t-input) {
     background: #f1f5f9;
     cursor: not-allowed;
 
-    .t-input__wrap {
-      background: #f1f5f9;
-      border-color: #e2e8f0;
-    }
-
     .t-input__inner {
       color: #64748b;
-      cursor: not-allowed;
       -webkit-text-fill-color: #64748b;
     }
-
-    &:hover .t-input__wrap {
-      border-color: #e2e8f0;
-    }
   }
-}
-
-.drawer-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  padding: 20px 28px;
-  border-top: 1px solid #f1f5f9;
-  background: #fff;
-  flex-shrink: 0;
-
-  .drawer-footer-btn {
-    min-width: 120px;
-    height: 44px;
-    border-radius: 12px;
-    font-size: 14px;
-    font-weight: 600;
-    gap: 6px;
-    transition: all 0.2s;
-
-    &--cancel {
-      border-color: #e2e8f0;
-      color: #64748b;
-
-      &:hover {
-        border-color: #cbd5e1;
-        background: #f8fafc;
-        color: #334155;
-        transform: translateY(-1px);
-      }
-
-      &:active {
-        transform: translateY(0);
-      }
-    }
-
-    &--primary {
-      background: var(--gradient-btn, linear-gradient(135deg, var(--color-primary), var(--color-primary-dark)));
-      border: none;
-      color: #fff;
-      box-shadow: var(--shadow-brand-sm, 0 4px 12px var(--overlay-brand-30));
-
-      &:hover {
-        background: var(--gradient-btn-hover, linear-gradient(135deg, var(--color-primary-dark), var(--color-primary-deep)));
-        box-shadow: var(--shadow-brand-md, 0 6px 16px var(--overlay-brand-35));
-        transform: translateY(-1px);
-      }
-
-      &:active {
-        transform: translateY(0);
-        box-shadow: var(--shadow-brand-xs, 0 2px 8px var(--overlay-brand-25));
-      }
-    }
-  }
-}
-</style>
-
-<style lang="scss">
-/* TDesign drawer renders in portal, need global styles */
-.t-drawer__body .drawer-footer .drawer-footer-btn.t-btn--primary {
-  background: linear-gradient(135deg, #10b981, #059669) !important;
-  border-color: transparent !important;
-  color: #fff !important;
-}
-
-.t-drawer__body .drawer-footer .drawer-footer-btn.t-btn--primary:hover:not(.t-btn--disabled) {
-  background: linear-gradient(135deg, #059669, #047857) !important;
-}
-
-.t-drawer__body .drawer-footer .drawer-footer-btn.t-btn--outline {
-  border-color: #e2e8f0 !important;
-  color: #64748b !important;
-}
-
-.t-drawer__body .drawer-footer .drawer-footer-btn.t-btn--outline:hover:not(.t-btn--disabled) {
-  border-color: #cbd5e1 !important;
-  background: #f8fafc !important;
-  color: #334155 !important;
 }
 </style>

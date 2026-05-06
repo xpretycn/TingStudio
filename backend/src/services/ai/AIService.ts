@@ -1,4 +1,5 @@
 import crypto from "node:crypto";
+import { getDb } from "../../config/database-better-sqlite3.js";
 
 export interface AIModelConfig {
   name: string;
@@ -135,7 +136,6 @@ export class AIService {
 
   reloadModels(): void {
     try {
-      const { getDb } = require("../config/database-better-sqlite3.js");
       const db = getDb();
       const rows = db
         .prepare(

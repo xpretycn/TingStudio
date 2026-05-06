@@ -2,10 +2,10 @@
   <t-drawer
     :visible="visible"
     :on-close="handleClose"
-    :header="false"
+    :close-btn="false"
     :footer="false"
     placement="right"
-    size="620px"
+    size="520px"
     class="quick-create-material-drawer"
     destroy-on-close
     :close-on-overlay-click="false"
@@ -13,111 +13,128 @@
     aria-label="快速录入原料"
     role="dialog"
   >
-    <div class="drawer-content">
+    <template #header>
       <div class="drawer-header">
-        <div class="drawer-header-left">
-          <div class="drawer-header-icon">
-            <t-icon name="add" size="20px" />
-          </div>
-          <span class="drawer-header-title">快速录入原料</span>
+        <div class="header-left">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2L2 7L12 12L22 7L12 2Z" />
+            <path d="M2 17L12 22L22 17" />
+            <path d="M2 12L12 17L22 12" />
+          </svg>
+          <span class="header-title">快速录入原料</span>
         </div>
-        <button type="button" class="drawer-close-btn" @click="handleClose" aria-label="关闭">
-          <t-icon name="close" size="18px" />
-        </button>
+        <div class="header-actions">
+          <button class="confirm-btn create-btn" @click="handleSubmit" :disabled="submitting">
+            <t-loading v-if="submitting" size="14px" />
+            <svg v-else width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+              stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+            {{ submitting ? '创建中...' : '确认录入' }}
+          </button>
+        </div>
+      </div>
+    </template>
+
+    <t-form
+      ref="formRef"
+      :data="formData"
+      :rules="formRules"
+      label-align="top"
+      @submit.prevent
+    >
+      <div class="drawer-card info-card">
+        <div class="card-header">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+            <circle cx="12" cy="7" r="4" />
+          </svg>
+          <span>基本信息</span>
+        </div>
+        <div class="card-body">
+          <t-form-item label="原料名称" name="name">
+            <t-input
+              ref="nameInputRef"
+              v-model="formData.name"
+              placeholder="请输入原料名称"
+              clearable
+              :disabled="submitting"
+            />
+          </t-form-item>
+          <div class="form-row two-col">
+            <t-form-item label="原料编号">
+              <t-input
+                v-model="formData.code"
+                placeholder="系统自动生成"
+                readonly
+                :disabled="true"
+                class="code-readonly"
+              />
+            </t-form-item>
+            <t-form-item label="单位" name="unit">
+              <t-select v-model="formData.unit" :disabled="submitting" placeholder="选择单位">
+                <t-option value="g" label="克(g)" />
+                <t-option value="kg" label="千克(kg)" />
+                <t-option value="ml" label="毫升(ml)" />
+                <t-option value="L" label="升(L)" />
+                <t-option value="个" label="个" />
+                <t-option value="片" label="片" />
+              </t-select>
+            </t-form-item>
+          </div>
+          <div class="form-row two-col">
+            <t-form-item label="类型" name="materialType">
+              <t-select v-model="formData.materialType" :disabled="submitting" placeholder="选择类型">
+                <t-option value="herb" label="药材" />
+                <t-option value="supplement" label="辅料" />
+              </t-select>
+              <div v-if="typeInferred" class="field-hint field-hint--info">
+                <t-icon name="info-circle" size="12px" />
+                <span>根据含量比公式自动判断</span>
+              </div>
+            </t-form-item>
+            <t-form-item label="单价(元/KG)" name="unitPrice">
+              <t-input-number
+                v-model="formData.unitPrice"
+                :min="0"
+                :decimal-places="2"
+                placeholder="手动输入单价"
+                theme="normal"
+                :disabled="submitting"
+                style="width: 100%"
+              />
+              <div class="field-hint field-hint--warn">
+                <t-icon name="info-circle" size="12px" />
+                <span>需手动输入，不自动填充</span>
+              </div>
+            </t-form-item>
+          </div>
+        </div>
       </div>
 
-      <t-form
-        ref="formRef"
-        :data="formData"
-        :rules="formRules"
-        label-align="top"
-        @submit.prevent
-        class="drawer-form"
-      >
-        <t-form-item label="原料名称" name="name">
-          <t-input
-            ref="nameInputRef"
-            v-model="formData.name"
-            placeholder="请输入原料名称"
-            clearable
-            :disabled="submitting"
-          >
-            <template #prefixIcon>
-              <t-icon name="root-list" />
-            </template>
-          </t-input>
-        </t-form-item>
-
-        <div class="form-row-2col">
-          <t-form-item label="原料编号" name="code" class="form-col">
-            <t-input
-              v-model="formData.code"
-              placeholder="系统自动生成"
-              readonly
-              :disabled="true"
-              class="code-readonly"
-            >
-              <template #prefixIcon>
-                <t-icon name="certificate-1" />
-              </template>
-            </t-input>
-          </t-form-item>
-
-          <t-form-item label="单位" name="unit" class="form-col">
-            <t-select v-model="formData.unit" :disabled="submitting" placeholder="选择单位">
-              <t-option value="g" label="克(g)" />
-              <t-option value="kg" label="千克(kg)" />
-              <t-option value="ml" label="毫升(ml)" />
-              <t-option value="L" label="升(L)" />
-              <t-option value="个" label="个" />
-              <t-option value="片" label="片" />
-            </t-select>
-          </t-form-item>
+      <div class="drawer-card nutrition-card">
+        <div class="card-header">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 8h1a4 4 0 0 1 0 8h-1" />
+            <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z" />
+            <line x1="6" y1="1" x2="6" y2="4" />
+            <line x1="10" y1="1" x2="10" y2="4" />
+            <line x1="14" y1="1" x2="14" y2="4" />
+          </svg>
+          <span>营养数据（每100g）</span>
+          <span v-if="nutritionAutoFilledCount > 0" class="nutrition-auto-badge">
+            {{ nutritionAutoFilledCount }} 项自动填充
+          </span>
         </div>
-
-        <div class="form-row-2col">
-          <t-form-item label="类型" name="materialType" class="form-col">
-            <t-select v-model="formData.materialType" :disabled="submitting" placeholder="选择类型">
-              <t-option value="herb" label="药材" />
-              <t-option value="supplement" label="辅料" />
-            </t-select>
-            <div v-if="typeInferred" class="field-hint field-hint--info">
-              <t-icon name="info-circle" size="12px" />
-              <span>根据含量比公式自动判断</span>
-            </div>
-          </t-form-item>
-
-          <t-form-item label="单价(元/KG)" name="unitPrice" class="form-col">
-            <t-input-number
-              v-model="formData.unitPrice"
-              :min="0"
-              :decimal-places="2"
-              placeholder="手动输入单价"
-              theme="normal"
-              :disabled="submitting"
-              style="width: 100%"
-            />
-            <div class="field-hint field-hint--warn">
-              <t-icon name="info-circle" size="12px" />
-              <span>需手动输入，不自动填充</span>
-            </div>
-          </t-form-item>
-        </div>
-
-        <div v-if="!hasNutritionData && !showNutritionSection" class="nutrition-expand-wrapper">
-          <t-button variant="text" size="small" @click="showNutritionSection = true" class="nutrition-expand-btn">
-            <template #icon><t-icon name="add" size="14px" /></template>
-            添加营养数据
-          </t-button>
-        </div>
-
-        <div class="nutrition-section" v-if="hasNutritionData || showNutritionSection">
-          <div class="nutrition-header">
-            <t-icon name="chart-bar" size="16px" />
-            <span>营养数据（每100g）</span>
-            <span v-if="nutritionAutoFilledCount > 0" class="nutrition-auto-badge">
-              {{ nutritionAutoFilledCount }} 项自动填充
-            </span>
+        <div class="card-body">
+          <div v-if="!hasNutritionData && !showNutritionSection" class="nutrition-expand-wrapper">
+            <t-button variant="text" size="small" @click="showNutritionSection = true" class="nutrition-expand-btn">
+              <template #icon><t-icon name="add" size="14px" /></template>
+              添加营养数据
+            </t-button>
           </div>
           <div class="nutrition-grid">
             <t-form-item label="蛋白质(g)" name="protein" class="nutrition-col">
@@ -174,12 +191,19 @@
             </t-form-item>
           </div>
         </div>
+      </div>
 
-        <div v-if="missingFieldHints.length > 0" class="missing-fields-section">
-          <div class="missing-fields-header">
-            <t-icon name="error-circle" size="14px" />
-            <span>建议补充以下信息</span>
-          </div>
+      <div v-if="missingFieldHints.length > 0" class="drawer-card hint-card">
+        <div class="card-header">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="8" x2="12" y2="12" />
+            <line x1="12" y1="16" x2="12.01" y2="16" />
+          </svg>
+          <span>建议补充以下信息</span>
+        </div>
+        <div class="card-body">
           <div class="missing-fields-list">
             <span v-for="hint in missingFieldHints" :key="hint.field" class="missing-field-tag"
               @click="hint.focus && hint.focus()">
@@ -187,29 +211,8 @@
             </span>
           </div>
         </div>
-      </t-form>
-    </div>
-
-    <div class="drawer-footer">
-      <t-button
-        variant="outline"
-        :disabled="submitting"
-        @click="handleClose"
-        class="drawer-footer-btn"
-      >
-        <template #icon><t-icon name="close-circle" /></template>
-        取消
-      </t-button>
-      <t-button
-        theme="primary"
-        :loading="submitting"
-        @click="handleSubmit"
-        class="drawer-footer-btn drawer-footer-btn--primary"
-      >
-        <template #icon><t-icon name="check" /></template>
-        {{ submitting ? '创建中...' : '确认录入' }}
-      </t-button>
-    </div>
+      </div>
+    </t-form>
   </t-drawer>
 </template>
 
@@ -428,193 +431,186 @@ const handleSubmit = async () => {
 
 <style scoped lang="scss">
 .quick-create-material-drawer {
-  --td-brand-color: #10b981;
-  --td-brand-color-hover: #059669;
-  --td-brand-color-active: #047857;
-  --td-brand-color-light: rgba(16, 185, 129, 0.1);
-  --td-brand-color-focus: rgba(16, 185, 129, 0.4);
-  --td-brand-color-disabled: #a7f3d0;
-  --td-brand-color-border-active: #10b981;
-  --td-brand-color-border-hover: #10b981;
-  --td-brand-color-border-focus: #10b981;
-
-  :deep(.t-btn.t-btn--primary) {
-    background-color: var(--td-brand-color) !important;
-    border-color: var(--td-brand-color) !important;
-  }
-
-  :deep(.t-btn.t-btn--primary:hover:not(.t-btn--disabled)) {
-    background-color: var(--td-brand-color-hover) !important;
-    border-color: var(--td-brand-color-hover) !important;
-  }
-
-  :deep(.t-input.t-is-focused),
-  :deep(.t-input-number.t-is-focused) {
-    border-color: var(--td-brand-color) !important;
-  }
-
-  :deep(.t-input.t-is-focused .t-input__inner),
-  :deep(.t-input-number.t-is-focused .t-input__inner) {
-    box-shadow: 0 0 0 2px var(--td-brand-color-focus) !important;
-  }
   :deep(.t-drawer__content-wrapper) {
-    display: flex;
-    flex-direction: column;
+    box-shadow: -8px 0 30px rgba(0, 0, 0, 0.08);
   }
 
   :deep(.t-drawer__body) {
     padding: 0;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
+    overflow-x: hidden;
   }
-}
 
-.drawer-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 0 24px 16px;
-}
+  :deep(.t-input.t-is-focused),
+  :deep(.t-input-number.t-is-focused) {
+    border-color: #10b981 !important;
+  }
 
-.drawer-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 20px 24px 16px;
-  border-bottom: 1px solid #f1f5f9;
-  margin-bottom: 8px;
-  position: sticky;
-  top: 0;
-  background: #fff;
-  z-index: 1;
+  :deep(.t-input.t-is-focused .t-input__inner),
+  :deep(.t-input-number.t-is-focused .t-input__inner) {
+    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.4) !important;
+  }
 
-  .drawer-header-left {
+  .drawer-header {
     display: flex;
     align-items: center;
-    gap: 10px;
-  }
+    justify-content: space-between;
+    padding: 0 4px;
 
-  .drawer-header-icon {
-    width: 36px;
-    height: 36px;
-    background: linear-gradient(135deg, #10b981, #059669);
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
-    flex-shrink: 0;
-  }
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
 
-  .drawer-header-title {
-    font-size: 17px;
-    font-weight: 700;
-    color: #0f172a;
-  }
+      .header-title {
+        font-size: 17px;
+        font-weight: 600;
+        color: #1e293b;
+      }
+    }
 
-  .drawer-close-btn {
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
-    border: none;
-    background: transparent;
-    color: #94a3b8;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
+    .header-actions {
+      .confirm-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 7px 18px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
 
-    &:hover {
-      background: #f1f5f9;
-      color: #334155;
+        &.create-btn {
+          background: #10b981;
+          color: #fff;
+
+          &:hover {
+            background: #059669;
+          }
+        }
+
+        &:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+
+        svg {
+          flex-shrink: 0;
+        }
+      }
     }
   }
-}
 
-.drawer-form {
+  .drawer-card {
+    margin: 0 28px 16px;
+
+    &:first-of-type {
+      margin-top: 16px;
+    }
+
+    border: 1px solid #f1f5f9;
+    border-radius: 12px;
+    overflow: hidden;
+
+    &:last-child {
+      margin-bottom: 20px;
+    }
+
+    &.info-card {
+      border-left: 3px solid #3b82f6;
+    }
+
+    &.nutrition-card {
+      border-left: 3px solid #10b981;
+    }
+
+    &.hint-card {
+      border-left: 3px solid #f59e0b;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 16px;
+      background: #f8fafc;
+      border-bottom: 1px solid #f1f5f9;
+
+      span {
+        font-size: 14px;
+        font-weight: 600;
+        color: #334155;
+      }
+    }
+
+    .card-body {
+      padding: 16px;
+
+      .form-row {
+        display: flex;
+        gap: 16px;
+
+        &.two-col > * {
+          flex: 1;
+          min-width: 0;
+        }
+      }
+    }
+  }
+
   :deep(.t-form__item) {
-    margin-bottom: 18px;
+    margin-bottom: 20px;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
   }
 
   :deep(.t-form__label) {
     font-size: 13px;
     font-weight: 600;
     color: #334155;
+    margin-bottom: 6px;
   }
 
   :deep(.t-input),
   :deep(.t-select),
   :deep(.t-input-number) {
-    border-radius: 12px;
-    min-height: 44px;
-    background: #f8fafc;
-
-    &.t-is-focused {
-      box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);
-    }
+    border-radius: 8px;
+    min-height: 38px;
   }
-}
 
-.form-row-2col {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-
-  .form-col {
-    margin-bottom: 0;
-  }
-}
-
-.code-readonly {
-  :deep(.t-input) {
+  .code-readonly :deep(.t-input) {
     background: #f1f5f9;
     cursor: not-allowed;
 
-    .t-input__wrap {
-      background: #f1f5f9;
-    }
-
     .t-input__inner {
       color: #64748b;
-      cursor: not-allowed;
       -webkit-text-fill-color: #64748b;
     }
   }
-}
 
-.field-hint {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  margin-top: 4px;
-  font-size: 11px;
-
-  &--info {
-    color: #10b981;
-  }
-
-  &--warn {
-    color: #f59e0b;
-  }
-}
-
-.nutrition-section {
-  margin-top: 4px;
-  padding: 16px;
-  background: #f0fdf4;
-  border-radius: 12px;
-  border: 1px solid #bbf7d0;
-
-  .nutrition-header {
+  .field-hint {
     display: flex;
     align-items: center;
-    gap: 6px;
-    font-size: 13px;
-    font-weight: 600;
-    color: #15803d;
-    margin-bottom: 12px;
+    gap: 4px;
+    margin-top: 4px;
+    font-size: 11px;
+
+    &--info {
+      color: #10b981;
+    }
+
+    &--warn {
+      color: #f59e0b;
+    }
+  }
+
+  .nutrition-expand-wrapper {
+    padding: 16px 0;
+    display: flex;
+    justify-content: center;
   }
 
   .nutrition-auto-badge {
@@ -633,8 +629,8 @@ const handleSubmit = async () => {
     gap: 16px;
 
     .nutrition-col {
-      margin-bottom: 0;
       position: relative;
+      margin-bottom: 0;
 
       :deep(.t-form__label) {
         font-size: 12px;
@@ -647,105 +643,36 @@ const handleSubmit = async () => {
       }
     }
   }
-}
 
-.field-auto-tag {
-  position: absolute;
-  top: 0;
-  right: 0;
-  font-size: 10px;
-  color: #059669;
-  background: #d1fae5;
-  padding: 1px 6px;
-  border-radius: 4px;
-  font-weight: 600;
-}
-
-.missing-fields-section {
-  margin-top: 12px;
-  padding: 12px 14px;
-  background: #fffbeb;
-  border-radius: 10px;
-  border: 1px solid #fde68a;
-
-  .missing-fields-header {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 12px;
+  .field-auto-tag {
+    position: absolute;
+    top: 0;
+    right: 0;
+    font-size: 10px;
+    color: #059669;
+    background: #d1fae5;
+    padding: 1px 6px;
+    border-radius: 4px;
     font-weight: 600;
-    color: #92400e;
-    margin-bottom: 8px;
   }
 
   .missing-fields-list {
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
-  }
 
-  .missing-field-tag {
-    font-size: 11px;
-    color: #b45309;
-    background: #fef3c7;
-    padding: 3px 10px;
-    border-radius: 6px;
-    font-weight: 600;
-    cursor: default;
-    border: 1px dashed #fcd34d;
-  }
-}
-
-.drawer-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  padding: 16px 24px;
-  border-top: 1px solid #f1f5f9;
-  background: #fff;
-  flex-shrink: 0;
-
-  .drawer-footer-btn {
-    min-width: 110px;
-    height: 40px;
-    border-radius: 12px;
-    font-size: 14px;
-    font-weight: 600;
-    gap: 6px;
-
-    &--primary {
-      background: linear-gradient(135deg, var(--td-brand-color, #10b981), var(--td-brand-color-hover, #059669));
-      border: none;
-      color: #fff;
-
-      &:hover {
-        background: linear-gradient(135deg, var(--td-brand-color-hover, #059669), var(--td-brand-color-active, #047857));
-      }
+    .missing-field-tag {
+      font-size: 11px;
+      color: #b45309;
+      background: #fef3c7;
+      padding: 3px 10px;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: default;
+      border: 1px dashed #fcd34d;
     }
   }
 }
 </style>
 
-<style lang="scss">
-/* TDesign drawer renders in portal, need global styles */
-.t-drawer__body .drawer-footer .drawer-footer-btn.t-btn--primary {
-  background: linear-gradient(135deg, #10b981, #059669) !important;
-  border-color: transparent !important;
-  color: #fff !important;
-}
 
-.t-drawer__body .drawer-footer .drawer-footer-btn.t-btn--primary:hover:not(.t-btn--disabled) {
-  background: linear-gradient(135deg, #059669, #047857) !important;
-}
-
-.t-drawer__body .drawer-footer .drawer-footer-btn.t-btn--outline {
-  border-color: #e2e8f0 !important;
-  color: #64748b !important;
-}
-
-.t-drawer__body .drawer-footer .drawer-footer-btn.t-btn--outline:hover:not(.t-btn--disabled) {
-  border-color: #cbd5e1 !important;
-  background: #f8fafc !important;
-  color: #334155 !important;
-}
-</style>

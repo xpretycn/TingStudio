@@ -144,13 +144,9 @@
 
           <template #operation="{ row }">
             <div class="action-buttons" role="group" aria-label="文件操作">
-              <button class="action-btn link-action-btn" @click.stop="handleEditLink(row)" title="编辑关联"
+              <button class="action-btn edit-btn" @click.stop="handleEditLink(row)" title="编辑关联"
                 :aria-label="`编辑文件${row.originalName}关联`">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                  stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-                  <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-                </svg>
+                <t-icon name="edit-1" />
               </button>
               <button class="action-btn preview-btn" @click.stop="handlePreview(row)" title="预览"
                 :aria-label="`预览文件${row.originalName}`">
@@ -1421,44 +1417,52 @@ watch(() => router.currentRoute.value.path, (path) => {
   gap: 8px;
 
   .action-btn {
-    padding: 8px;
-    border-radius: 8px;
-    color: #94a3b8;
-    transition: all $transition-fast;
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    color: #64748b;
+    transition: all 0.2s ease;
     background: transparent;
-    border: none;
+    border: 1px solid transparent;
     cursor: pointer;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
 
     &:hover {
       transform: translateY(-1px);
+      background: #f8fafc;
+      border-color: #e2e8f0;
+    }
+
+    &.edit-btn:hover {
+      color: #10b981;
+      background: #ecfdf5;
+      border-color: #a7f3d0;
     }
 
     &.preview-btn:hover {
       color: #3b82f6;
-      background-color: rgba(219, 234, 254, 0.5);
+      background: #eff6ff;
+      border-color: #bfdbfe;
     }
 
     &.detail-btn:hover {
-      color: #8B5CF6;
-      background-color: rgba(237, 233, 254, 0.7);
+      color: #8b5cf6;
+      background: #f5f3ff;
+      border-color: #ddd6fe;
     }
 
     &.reparse-btn:hover {
-      color: #10b981;
-      background-color: rgba(209, 250, 229, 0.5);
-    }
-
-    &.link-action-btn:hover {
-      color: #8b5cf6;
-      background-color: rgba(237, 233, 254, 0.5);
+      color: #f59e0b;
+      background: #fffbeb;
+      border-color: #fde68a;
     }
 
     &.delete-btn:hover {
       color: #ef4444;
-      background-color: rgba(254, 226, 226, 0.5);
+      background: #fef2f2;
+      border-color: #fecaca;
     }
 
     .t-icon {

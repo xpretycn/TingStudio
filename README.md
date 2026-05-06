@@ -1,4 +1,4 @@
-# TingStudio v2.23
+# TingStudio v2.24
 
 食品配方工作数据管理平台 — 前后端分离架构
 
@@ -93,6 +93,89 @@ TingStudio 是一个专业的食品配方工作数据管理平台，面向食品
 | [FormulaForm.vue](frontend/src/views/formulas/FormulaForm.vue)          | 含量比校验UI + AI面板重构 + 容错恢复                           |
 | [MaterialForm.vue](frontend/src/views/materials/MaterialForm.vue)       | AI营养解析面板重构 + 容错恢复                                 |
 | [SmartImportTab.vue](frontend/src/views/ai/tabs/SmartImportTab.vue)     | 容错恢复按钮                                            |
+
+#### 🎨 UI 组件标准化统一
+
+##### 📄 文件详情页审计日志分页
+
+| 变更 | 说明 |
+|------|------|
+| 📄 分页机制 | 审计日志新增分页控件，`pageSize = 8` |
+| 📐 布局优化 | 分页控件与标题置于同一水平行（标题左对齐，分页右对齐） |
+| 🎨 视觉统一 | 分页按钮样式参照 FileManagement "近期动态" 区域 |
+
+##### 🔧 操作列图标标准化
+
+所有管理列表页的操作列按钮统一为标准规格，严格参照 [SalesmanList.vue](frontend/src/views/salesmen/SalesmanList.vue) ：
+
+| 规范 | 说明 |
+|------|------|
+| 📏 统一尺寸 | `32×32px`，圆角 `10px` |
+| 🎨 统一配色 | 默认 `#64748B`，hover 按语义区分（编辑→🟢绿、删除→🔴红、查看→🟣紫） |
+| 🔤 统一图标 | 相同语义使用完全一致的 TDesign 图标（`edit-1`、`poweroff`、`delete`） |
+
+| 文件 | 改动 |
+|------|------|
+| [FileManagement.vue](frontend/src/views/files/FileManagement.vue) | 替换自定义 SVG 为 `edit-1` 图标，更新按钮样式 |
+| [MaterialList.vue](frontend/src/views/materials/MaterialList.vue) | 更新 action-btn 样式匹配规范 |
+| [FormulaList.vue](frontend/src/views/formulas/FormulaList.vue) | 标准化按钮尺寸 + 修复重复 `.version-btn` 样式 |
+
+##### 🎨 抽屉组件样式重构
+
+以下 4 个抽屉重构为与 [SalesRecordDrawer.vue](frontend/src/components/SalesRecordDrawer.vue) 一致的视觉模式（保留所有业务逻辑不变）：
+
+| 抽屉 | 文件 | 变更 |
+|------|------|------|
+| 新增模型 | [ModelManagement.vue](frontend/src/views/models/ModelManagement.vue) | `#header` 插槽 + `drawer-card` 卡片布局（info/api/param） |
+| 编辑模型 | [ModelManagement.vue](frontend/src/views/models/ModelManagement.vue) | 同上 + API 字段分行 + 备用模型 Logo |
+| 快速创建业务员 | [QuickCreateSalesmanDrawer.vue](frontend/src/components/QuickCreateSalesmanDrawer.vue) | 完整重构，确认按钮移至 header |
+| 快速录入原料 | [QuickCreateMaterialDrawer.vue](frontend/src/components/QuickCreateMaterialDrawer.vue) | 完整重构，清理已废弃全局 footer 样式 |
+
+**统一后的布局模式**：
+```
+┌─────────────────────────────────────────┐
+│ Header: 🔹 SVG图标 + 标题  [确认按钮]   │ ← #header 插槽
+├─────────────────────────────────────────┤
+│ 🟢 info-card (绿色左边框)               │
+│   card-header (SVG + 标签)             │
+│   card-body (表单字段)                  │
+├─────────────────────────────────────────┤
+│ 🔵 data-card (蓝色左边框)               │
+│   ...                                  │
+└─────────────────────────────────────────┘
+```
+
+##### 📐 抽屉宽度统一规范
+
+所有页面抽屉组件宽度统一为 `520px`（参照 SalesRecordDrawer）：
+
+| 文件 | 原宽度 | 新宽度 |
+|------|--------|--------|
+| [ModelManagement.vue](frontend/src/views/models/ModelManagement.vue) — 新增模型 | `920px` | `520px` |
+| [ModelManagement.vue](frontend/src/views/models/ModelManagement.vue) — 编辑模型 | `920px` | `520px` |
+| [QuickCreateSalesmanDrawer.vue](frontend/src/components/QuickCreateSalesmanDrawer.vue) | `680px` | `520px` |
+| [QuickCreateMaterialDrawer.vue](frontend/src/components/QuickCreateMaterialDrawer.vue) | `680px` | `520px` |
+| [VersionList.vue](frontend/src/views/versions/VersionList.vue) — 快照抽屉 | `600px` | `520px` |
+
+##### 🔧 Bug 修复
+
+| 问题 | 根因 | 修复方案 |
+|------|------|----------|
+| AIService.ts `require is not defined` | ESM 模式 (`"type": "module"`) 中混用 CJS `require()` | `import { getDb }` 改为顶层静态 import |
+
+##### 影响范围
+
+| 文件 | 改动 |
+|------|------|
+| [AIService.ts](backend/src/services/ai/AIService.ts) | ESM/CJS 兼容修复 |
+| [FileDetail.vue](frontend/src/views/files/FileDetail.vue) | 审计日志分页 + 分页/标题同行布局 |
+| [FileManagement.vue](frontend/src/views/files/FileManagement.vue) | 操作图标标准化 |
+| [MaterialList.vue](frontend/src/views/materials/MaterialList.vue) | 操作图标标准化 |
+| [FormulaList.vue](frontend/src/views/formulas/FormulaList.vue) | 操作图标标准化 + 重复样式修复 |
+| [ModelManagement.vue](frontend/src/views/models/ModelManagement.vue) | 抽屉重构 + 布局优化 + Logo |
+| [QuickCreateSalesmanDrawer.vue](frontend/src/components/QuickCreateSalesmanDrawer.vue) | 抽屉重构 |
+| [QuickCreateMaterialDrawer.vue](frontend/src/components/QuickCreateMaterialDrawer.vue) | 抽屉重构 + 全局样式清理 |
+| [VersionList.vue](frontend/src/views/versions/VersionList.vue) | 抽屉宽度统一 |
 
 ***
 
@@ -852,25 +935,6 @@ npx tsx src/scripts/importAllTestMaterials.ts
 npx tsx src/scripts/seedData.ts
 ```
 
-\| formula\_versions | 配方版本表 | 36 | version\_id, formula\_id, version\_number |
-\| material\_nutrition | 材料营养表 | 56 | nutrition\_id, material\_id, per\_100g\_json |
-\| nutrition\_profiles | 营养配置表 | 6 | profile\_id, name, category |
-\| export\_templates | 导出模板表 | 6 | template\_id, name, type |
-\| export\_jobs | 导出任务表 | 10 | job\_id, status, file\_url |
-\| share\_configs | 分享配置表 | 2 | share\_id, share\_url |
-\| formula\_nutrition\_summaries | 营养汇总表 | 5 | summary\_id, formula\_id |
-\| salesmen | 业务员表 | 29 | id, name, code, department |
-\| **formula\_sales** | **销量数据表** | **0** | **id, formula\_id(FK), salesman\_id(FK), quantity, revenue** |
-\| nutrition\_profiles | 营养档案模板 | 20 | profile\_id, name, category |
-\| export\_templates | 导出模板 | 20 | template\_id, name, type |
-\| api\_data\_interfaces | API 接口配置 | 20 | interface\_id, name, endpoint |
-\| export\_jobs | 导出任务 | 0 | job\_id, formula\_id(FK), status |
-\| formula\_nutrition\_summaries | 营养汇总 | 0 | summary\_id, formula\_id(FK) |
-\| nutrition\_analysis\_reports | 营养分析报告 | 0 | report\_id, formula\_id(FK) |
-\| share\_configs | 分享配置 | 0 | config\_id, share\_code |
-
-**总计**: 14 张表, 392 条记录
-
 ### 数据库双模式
 
 项目支持 **SQLite (开发)** 和 **MySQL (生产)** 双模式：
@@ -1040,14 +1104,8 @@ npm run dev                    # 启动开发服务器 (端口 5174)
 # 构建命令
 npm run build                  # 类型检查 + 构建
 npm run build:deploy           # 仅构建 (跳过类型检查)
-| 文档             | 说明         | 路径                                                                                                                      |
-| -------------- | ---------- | ----------------------------------------------------------------------------------------------------------------------- |
-| **README**     | 项目总览 (本文件) | [README.md](file:///d:/ProgramData/workspace-codeby/ting-studio/README.md)                                              |
-| **API 文档**     | 接口定义与说明    | [backend/API\_DOC.md](file:///d:/ProgramData/workspace-codeby/ting-studio/backend/API_DOC.md)                           |
-| **数据库文档**      | 表结构与关系     | [backend/DATABASE\_DOC.md](file:///d:/ProgramData/workspace-codeby/ting-studio/backend/DATABASE_DOC.md)                 |
-| **生产部署指南**     | 完整部署流程     | [PRODUCTION\_DEPLOYMENT\_GUIDE.md](file:///d:/ProgramData/workspace-codeby/ting-studio/PRODUCTION_DEPLOYMENT_GUIDE.md)  |
-| **EdgeOne 修复** | 401 错误解决   | [EDGEONE\_DEPLOYMENT\_FIX.md](file:///d:/ProgramData/workspace-codeby/ting-studio/EDGEONE_DEPLOYMENT_FIX.md)            |
-| **SCF 部署指南**   | 云函数手动部署    | [SCF\_MANUAL\_DEPLOYMENT\_GUIDE.md](file:///d:/ProgramData/workspace-codeby/ting-studio/SCF_MANUAL_DEPLOYMENT_GUIDE.md) |
+
+## 📚 文档
 
 | 文档             | 说明              | 路径                                                                                                                 |
 | ---------------- | ----------------- | -------------------------------------------------------------------------------------------------------------------- |
@@ -1158,8 +1216,8 @@ MIT License
 
 ---
 
-**最后更新**: 2026-04-30\
-**版本**: v2.21.0 (UI 统一优化)\
+**最后更新**: 2026-05-06\
+**版本**: v2.24.0 (UI 组件标准化统一)\
 **维护者**: TingStudio Team
 ```
 

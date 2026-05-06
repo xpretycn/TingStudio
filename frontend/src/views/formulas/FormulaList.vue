@@ -3115,39 +3115,46 @@ const getSalesQuantity = (row: any): number => {
   gap: 8px;
 
   .action-btn {
-    padding: 8px;
-    border-radius: 8px;
-    color: #94a3b8;
-    transition: all $transition-fast;
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    color: #64748b;
+    transition: all 0.2s ease;
     background: transparent;
-    border: none;
+    border: 1px solid transparent;
     cursor: pointer;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
 
     &:hover {
       transform: translateY(-1px);
+      background: #f8fafc;
+      border-color: #e2e8f0;
     }
 
     &.version-btn:hover {
-      color: #8B5CF6;
-      background-color: rgba(237, 233, 254, 0.7);
+      color: #8b5cf6;
+      background: #f5f3ff;
+      border-color: #ddd6fe;
     }
 
     &.edit-btn:hover {
-      color: #3b82f6;
-      background-color: rgba(219, 234, 254, 0.5);
+      color: #10b981;
+      background: #ecfdf5;
+      border-color: #a7f3d0;
     }
 
-    &.version-btn:hover {
-      color: #6366f1;
-      background-color: rgba(224, 231, 255, 0.5);
+    &.sales-btn:hover {
+      color: #f59e0b;
+      background: #fffbeb;
+      border-color: #fde68a;
     }
 
     &.delete-btn:hover {
       color: #ef4444;
-      background-color: rgba(254, 226, 226, 0.5);
+      background: #fef2f2;
+      border-color: #fecaca;
     }
 
     .t-icon {

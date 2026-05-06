@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="version-list" :aria-busy="!initialized">
     <PageSkeleton v-if="!initialized" type="table" :rows="5" :columns="7" />
     <template v-else>
@@ -113,7 +113,7 @@
       </t-form-item>
     </t-dialog>
 
-    <t-drawer v-model:visible="snapshotVisible" :footer="false" size="600px" placement="right" :show-overlay="true"
+    <t-drawer v-model:visible="snapshotVisible" :footer="false" size="520px" placement="right" :show-overlay="true"
       :close-on-overlay-click="true" :close-btn="true" class="snap-drawer">
       <template #header>
         <div class="snap-header">
