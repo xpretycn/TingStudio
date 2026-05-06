@@ -107,8 +107,20 @@
           </div>
 
           <div v-if="aiStore.materialParseError" class="parse-error">
-            <t-icon name="error-circle" />
-            <span>{{ aiStore.materialParseError }}</span>
+            <div class="parse-error-content">
+              <t-icon name="error-circle" />
+              <span>{{ aiStore.materialParseError }}</span>
+            </div>
+            <div class="parse-error-actions">
+              <button type="button" class="error-dismiss" @click="aiStore.materialParseError = ''">✕</button>
+              <button type="button" class="error-recovery-btn" @click="handleRecoveryParse">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="23 4 23 10 17 10" />
+                  <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+                </svg>
+                切换模型重试
+              </button>
+            </div>
           </div>
 
           <div v-if="parsedItems.length" class="parse-result">
@@ -693,6 +705,32 @@ const handleReparseWithModel = (data: { value: string; }) => {
   batchSummary.value = null;
   if (selectedFile.value) {
     handleParse();
+  }
+};
+
+const handleRecoveryParse = async () => {
+  aiStore.materialParseError = '';
+  aiStore.clearMaterialParseResult();
+  parsedItems.value = [];
+  batchSummary.value = null;
+  if (!selectedFile.value) return;
+
+  const currentModelIdx = aiStore.models.findIndex(m => m.provider === aiStore.selectedModel);
+  const nextModel = aiStore.models[(currentModelIdx + 1) % aiStore.models.length];
+  if (nextModel && nextModel.provider !== aiStore.selectedModel) {
+    aiStore.selectedModel = nextModel.provider;
+  }
+
+  parseStartTime.value = Date.now();
+  try {
+    await aiStore.parseMaterial(selectedFile.value);
+    if (aiStore.materialParseResult) {
+      parsedItems.value = aiStore.materialParseResult.materials.map(m => ({ ...m }));
+      await materialStore.fetchAllForSelect();
+      matchExistingMaterials();
+    }
+  } catch {
+    // 错误由 aiStore 处理
   }
 };
 
@@ -1645,6 +1683,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
     .parse-error {
       display: flex;
       align-items: center;
+      justify-content: space-between;
       gap: 8px;
       padding: 14px 18px;
       background: $color-danger-bg;
@@ -1654,9 +1693,70 @@ watch(() => aiStore.materialParseResult, (newVal) => {
       font-size: 12px;
       font-weight: 600;
 
-      .t-icon {
-        font-size: 18px;
+      .parse-error-content {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex: 1;
+        min-width: 0;
+
+        .t-icon {
+          font-size: 18px;
+          flex-shrink: 0;
+        }
+
+        span {
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+      }
+
+      .parse-error-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
         flex-shrink: 0;
+      }
+
+      .error-dismiss {
+        background: none;
+        border: none;
+        color: #dc2626;
+        cursor: pointer;
+        font-size: 14px;
+        opacity: 0.5;
+        padding: 2px 4px;
+        transition: opacity 0.2s;
+
+        &:hover {
+          opacity: 1;
+        }
+      }
+
+      .error-recovery-btn {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        padding: 5px 12px;
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        font-size: 11px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+
+        &:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px -2px rgba(245, 158, 11, 0.35);
+        }
+
+        &:active {
+          transform: translateY(0);
+        }
       }
     }
 

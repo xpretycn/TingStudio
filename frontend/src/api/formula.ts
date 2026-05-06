@@ -59,6 +59,30 @@ export interface FormulaForm {
   originalWeight?: number;
 }
 
+export interface RatioFactorValidationResult {
+  level: 'normal' | 'warning' | 'high_warning' | 'error';
+  totalRatio: number;
+  breakdown: {
+    materialId: string;
+    materialName: string;
+    quantity: number;
+    materialType: string;
+    ratioFactor: number;
+  }[];
+  thresholds: {
+    normalLow: number;
+    normalHigh: number;
+    warningLow: number;
+    warningHigh: number;
+    highWarningLow: number;
+    highWarningHigh: number;
+  };
+  message: string;
+  description: string;
+  allowed: boolean;
+  requiresManualReview: boolean;
+}
+
 export interface PriceQuoteMaterial {
   materialId: string;
   materialName: string;
@@ -102,5 +126,13 @@ export const formulaApi = {
   },
   getPriceQuote(id: string) {
     return http.get<any, PriceQuote>(`/formulas/${id}/price-quote`);
+  },
+  validateRatio(data: {
+    materials: { materialId: string; materialName?: string; quantity: number }[];
+    finishedWeight: number;
+    ratioFactor: number;
+    supplementRatioFactor: number;
+  }) {
+    return http.post<any, RatioFactorValidationResult>('/formulas/validate-ratio', data);
   },
 };

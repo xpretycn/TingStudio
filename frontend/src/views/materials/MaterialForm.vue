@@ -197,6 +197,11 @@
                     <h3 class="ai-title">AI 智能营养解析</h3>
                     <p class="ai-subtitle">支持识别 Excel、图片及手写草稿中的营养数据</p>
                   </div>
+                  <div v-if="aiStatusConfig.show" class="ai-header-status" :class="'status-indicator--' + aiStatusConfig.state">
+                    <span class="status-dot" :class="'status-dot--' + aiStatusConfig.state"></span>
+                    <t-icon :name="aiStatusConfig.icon" size="14px" />
+                    <span class="status-text">{{ aiStatusConfig.text }}</span>
+                  </div>
                 </div>
 
                 <div class="ai-body">
@@ -229,35 +234,77 @@
                     </div>
                   </div>
 
-                  <div v-if="!aiStore.materialParseLoading && !aiStore.materialParseResult" class="upload-zone"
-                    :class="{ 'drag-over': isDragOver }" @click="triggerFileInput" @dragover.prevent="handleDragOver"
-                    @dragleave="handleDragLeave" @drop.prevent="handleDrop">
-                    <input ref="fileInputRef" type="file" accept=".xlsx,.xls,.png,.jpg,.jpeg" style="display: none;"
-                      @change="handleFileChange" />
-                    <div class="upload-icon">
-                      <t-icon name="upload" />
+                  <div v-if="!aiStore.materialParseLoading && !aiStore.materialParseResult && !aiStore.materialParseError" class="upload-area">
+                    <div class="upload-zone"
+                      :class="{ 'drag-over': isDragOver }" @click="triggerFileInput" @dragover.prevent="handleDragOver"
+                      @dragleave="handleDragLeave" @drop.prevent="handleDrop">
+                      <input ref="fileInputRef" type="file" accept=".xlsx,.xls,.png,.jpg,.jpeg" style="display: none;"
+                        @change="handleFileChange" />
+                      <div class="upload-icon">
+                        <t-icon name="upload" />
+                      </div>
+                      <div class="upload-text">
+                        <p class="upload-title">点击或拖拽文件上传</p>
+                        <p class="upload-hint">支持 .xlsx, .jpg, .png (最大 10MB)</p>
+                      </div>
                     </div>
-                    <div class="upload-text">
-                      <p class="upload-title">点击或拖拽文件上传</p>
-                      <p class="upload-hint">支持 .xlsx, .jpg, .png (最大 10MB)</p>
+                    <div v-if="selectedFile && !aiStore.materialParseLoading" class="file-selected-row">
+                      <div class="file-info">
+                        <t-icon name="attach" size="16px" />
+                        <span class="file-name">{{ selectedFile.name }}</span>
+                        <span class="file-size">{{ formatFileSize(selectedFile.size) }}</span>
+                        <span class="file-model-badge">{{ selectedModelName }}</span>
+                      </div>
+                      <div class="file-actions">
+                        <button type="button" class="parse-btn" @click="handleParse"
+                          :disabled="aiStore.materialParseLoading" aria-label="开始解析文件">
+                          <t-icon name="play-circle" size="16px" />
+                          开始解析
+                        </button>
+                        <button type="button" class="clear-btn" @click="cancelFileSelection"
+                          aria-label="取消文件选择">
+                          <t-icon name="close" size="16px" />
+                          取消
+                        </button>
+                      </div>
                     </div>
                   </div>
 
                   <div v-if="aiStore.materialParseLoading" class="parsing-progress">
                     <div class="progress-header">
-                      <span class="progress-status">AI 正在解析文件内容...</span>
+                      <div class="progress-file-info">
+                        <t-icon name="attach" size="16px" />
+                        <span class="progress-filename">{{ selectedFile?.name }}</span>
+                        <span class="progress-model">{{ selectedModelName }}</span>
+                      </div>
                       <span class="progress-percent">{{ parseProgressText }}</span>
                     </div>
-                    <div class="progress-bar">
-                      <div class="progress-fill progress-fill--indeterminate"></div>
+                    <div class="progress-bar-wrapper">
+                      <div class="progress-bar">
+                        <div class="progress-fill progress-fill--indeterminate"></div>
+                      </div>
                     </div>
                     <p class="progress-hint">{{ parseProgressHint }}</p>
+                    <div v-if="currentModelInfo" class="progress-model-info">
+                      <t-icon name="laptop" size="12px" />
+                      <span class="model-name">{{ currentModelInfo.name }}</span>
+                      <span class="model-version">{{ currentModelInfo.model }}</span>
+                      <span v-if="currentModelInfo.supportsVision" class="model-feature">支持图片识别</span>
+                    </div>
                   </div>
 
                   <div v-if="aiStore.materialParseError" class="parse-error">
-                    <t-icon name="error-circle" />
-                    <span>{{ aiStore.materialParseError }}</span>
-                    <button type="button" class="error-dismiss" @click="aiStore.materialParseError = ''">✕</button>
+                    <div class="parse-error-content">
+                      <t-icon name="error-circle" />
+                      <span>{{ aiStore.materialParseError }}</span>
+                    </div>
+                    <div class="parse-error-actions">
+                      <button type="button" class="error-dismiss" @click="aiStore.materialParseError = ''">✕</button>
+                      <button type="button" class="error-recovery-btn" @click="handleRecoveryParse">
+                        <t-icon name="refresh" size="14px" />
+                        切换模型重试
+                      </button>
+                    </div>
                   </div>
 
                   <div v-if="aiStore.materialParseResult" class="analysis-result">
@@ -656,6 +703,45 @@ const parseProgressHint = computed(() => {
   return hints[stage] + '...';
 });
 
+const selectedModelName = computed(() => {
+  const m = aiStore.models.find(x => x.provider === aiStore.selectedModel);
+  return m ? m.name : '';
+});
+
+const currentModelInfo = computed(() => {
+  if (!aiStore.selectedModel) return null;
+  return aiStore.models.find(m => m.provider === aiStore.selectedModel) || null;
+});
+
+const formatFileSize = (bytes: number) => {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+};
+
+const cancelFileSelection = () => {
+  selectedFile.value = null;
+  if (fileInputRef.value) {
+    fileInputRef.value.value = '';
+  }
+};
+
+const aiStatusConfig = computed(() => {
+  if (aiStore.materialParseLoading) {
+    return { show: true, state: 'pulse', icon: 'loading', text: '解析中...' };
+  }
+  if (aiStore.materialParseError) {
+    return { show: true, state: 'done', icon: 'error-circle', text: '解析失败' };
+  }
+  if (aiStore.materialParseResult) {
+    return { show: true, state: 'done', icon: 'check-circle', text: '解析完成' };
+  }
+  if (selectedFile.value) {
+    return { show: true, state: 'ready', icon: 'attach', text: '文件已就绪' };
+  }
+  return { show: false, state: 'done', icon: '', text: '' };
+});
+
 const getConfidenceLevel = (c: number): string => c >= 0.8 ? 'conf-high' : c >= 0.5 ? 'conf-mid' : 'conf-low';
 
 const getConfidenceItems = () => {
@@ -922,12 +1008,29 @@ const handleDragLeave = () => { isDragOver.value = false; };
 const handleDrop = (e: DragEvent) => {
   isDragOver.value = false;
   const files = e.dataTransfer?.files;
-  if (files?.length) startParse(files[0]);
+  if (files?.length) {
+    selectedFile.value = files[0];
+  }
 };
 
 const handleFileChange = (e: Event) => {
   const files = (e.target as HTMLInputElement).files;
-  if (files?.length) startParse(files[0]);
+  if (files?.length) {
+    selectedFile.value = files[0];
+  }
+};
+
+const handleParse = async () => {
+  if (!selectedFile.value) {
+    MessagePlugin.warning('请先选择要解析的文件');
+    return;
+  }
+  if (!aiStore.selectedModel) {
+    MessagePlugin.warning('请先选择 AI 模型');
+    return;
+  }
+  parseStartTime.value = Date.now();
+  await aiStore.parseMaterial(selectedFile.value);
 };
 
 const handleFileSelect = async (file: File) => {
@@ -936,8 +1039,23 @@ const handleFileSelect = async (file: File) => {
   await aiStore.parseMaterial(file);
 };
 
-const startParse = async (file: File) => {
-  await handleFileSelect(file);
+const handleRecoveryParse = async () => {
+  aiStore.materialParseError = '';
+  aiStore.clearMaterialParseResult();
+  if (!selectedFile.value) return;
+
+  const currentModelIdx = aiStore.models.findIndex(m => m.provider === aiStore.selectedModel);
+  const nextModel = aiStore.models[(currentModelIdx + 1) % aiStore.models.length];
+  if (nextModel && nextModel.provider !== aiStore.selectedModel) {
+    aiStore.selectedModel = nextModel.provider;
+  }
+
+  parseStartTime.value = Date.now();
+  try {
+    await aiStore.parseMaterial(selectedFile.value);
+  } catch {
+    // 错误由 aiStore 处理
+  }
 };
 
 const batchRegistering = ref(false);
@@ -2076,6 +2194,63 @@ onMounted(async () => {
       }
     }
 
+    .ai-header-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      margin-left: auto;
+
+      &.status-indicator--done {
+        background: rgba(16, 185, 129, 0.08);
+        color: #059669;
+        border: 1px solid rgba(16, 185, 129, 0.15);
+      }
+
+      &.status-indicator--ready {
+        background: rgba(245, 158, 11, 0.08);
+        color: #d97706;
+        border: 1px solid rgba(245, 158, 11, 0.15);
+      }
+
+      &.status-indicator--pulse {
+        background: rgba(59, 130, 246, 0.08);
+        color: #2563eb;
+        border: 1px solid rgba(59, 130, 246, 0.15);
+      }
+
+      .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+
+      .status-dot--pulse {
+        background: #3b82f6;
+        animation: dot-pulse 1.4s ease-in-out infinite;
+      }
+
+      .status-dot--done {
+        background: #10b981;
+      }
+
+      .status-dot--ready {
+        background: #f59e0b;
+        animation: dot-blink 2s ease-in-out infinite;
+      }
+
+      .status-text {
+        max-width: 200px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    }
+
     .ai-body {
       .model-select {
         margin-bottom: 24px;
@@ -2198,54 +2373,171 @@ onMounted(async () => {
         }
       }
 
-      .upload-zone {
-        border: 2px dashed rgba(148, 163, 184, 0.25);
-        border-radius: 24px;
-        padding: 32px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 16px;
-        cursor: pointer;
-        transition: all $transition-fast;
-
-        &:hover,
-        &.drag-over {
-          border-color: rgba(16, 185, 129, 0.5);
-          background: $overlay-emerald-04;
-        }
-
-        .upload-icon {
-          width: 64px;
-          height: 64px;
-          background: $overlay-emerald-08;
-          border-radius: 50%;
+      .upload-area {
+        .upload-zone {
+          border: 2px dashed rgba(148, 163, 184, 0.25);
+          border-radius: 24px;
+          padding: 32px;
           display: flex;
+          flex-direction: column;
           align-items: center;
           justify-content: center;
-          font-size: 32px;
-          color: #10b981;
-          transition: transform 0.2s ease;
-        }
+          gap: 16px;
+          cursor: pointer;
+          transition: all $transition-fast;
 
-        &:hover .upload-icon {
-          transform: scale(1.1);
-        }
-
-        .upload-text {
-          text-align: center;
-
-          .upload-title {
-            font-size: 14px;
-            font-weight: 700;
-            margin: 0;
+          &:hover,
+          &.drag-over {
+            border-color: rgba(16, 185, 129, 0.5);
+            background: $overlay-emerald-04;
           }
 
-          .upload-hint {
-            font-size: 10px;
-            color: #64748b;
-            margin: 4px 0 0;
+          .upload-icon {
+            width: 64px;
+            height: 64px;
+            background: $overlay-emerald-08;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            color: #10b981;
+            transition: transform 0.2s ease;
+          }
+
+          &:hover .upload-icon {
+            transform: scale(1.1);
+          }
+
+          .upload-text {
+            text-align: center;
+
+            .upload-title {
+              font-size: 14px;
+              font-weight: 700;
+              margin: 0;
+            }
+
+            .upload-hint {
+              font-size: 10px;
+              color: #64748b;
+              margin: 4px 0 0;
+            }
+          }
+        }
+
+        .file-selected-row {
+          margin-top: 16px;
+          padding: 14px 18px;
+          background: #f8fafc;
+          border: 1px solid $border-color-light;
+          border-radius: 16px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+
+          .file-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 0;
+            flex: 1;
+
+            .t-icon {
+              color: #64748b;
+              flex-shrink: 0;
+            }
+
+            .file-name {
+              font-size: 13px;
+              font-weight: 600;
+              color: #334155;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              white-space: nowrap;
+            }
+
+            .file-size {
+              font-size: 11px;
+              color: $text-placeholder;
+              flex-shrink: 0;
+            }
+
+            .file-model-badge {
+              font-size: 10px;
+              padding: 2px 8px;
+              background: $overlay-emerald-08;
+              color: #059669;
+              border-radius: 10px;
+              font-weight: 600;
+              flex-shrink: 0;
+              margin-left: auto;
+            }
+          }
+
+          .file-actions {
+            display: flex;
+            gap: 8px;
+            flex-shrink: 0;
+
+            .parse-btn {
+              display: flex;
+              align-items: center;
+              gap: 6px;
+              padding: 8px 20px;
+              background: linear-gradient(135deg, #10b981, #2dd4bf);
+              color: #fff;
+              border: none;
+              border-radius: 12px;
+              font-size: 13px;
+              font-weight: 700;
+              cursor: pointer;
+              transition: all $transition-fast;
+              box-shadow: 0 4px 12px -2px $overlay-emerald-25;
+
+              &:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 6px 16px -2px $overlay-emerald-35;
+              }
+
+              &:active {
+                transform: translateY(0);
+              }
+
+              &:disabled {
+                opacity: 0.5;
+                cursor: not-allowed;
+                transform: none;
+              }
+            }
+
+            .clear-btn {
+              display: flex;
+              align-items: center;
+              gap: 6px;
+              padding: 8px 16px;
+              background: #fff;
+              color: #64748b;
+              border: 1px solid rgba(148, 163, 184, 0.25);
+              border-radius: 12px;
+              font-size: 13px;
+              font-weight: 600;
+              cursor: pointer;
+              transition: all $transition-fast;
+              white-space: nowrap;
+
+              &:hover {
+                background: #fef2f2;
+                color: #dc2626;
+                border-color: rgba(220, 38, 38, 0.18);
+                transform: translateY(-1px);
+              }
+
+              &:active {
+                transform: translateY(0);
+              }
+            }
           }
         }
       }
@@ -2259,37 +2551,68 @@ onMounted(async () => {
         .progress-header {
           display: flex;
           justify-content: space-between;
+          align-items: center;
           margin-bottom: 12px;
 
-          .progress-status {
-            font-size: 12px;
-            font-weight: 700;
-            color: #64748b;
+          .progress-file-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 0;
+
+            .t-icon {
+              color: #64748b;
+              flex-shrink: 0;
+            }
+
+            .progress-filename {
+              font-size: 12px;
+              font-weight: 600;
+              color: #334155;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              white-space: nowrap;
+            }
+
+            .progress-model {
+              font-size: 10px;
+              padding: 2px 6px;
+              background: rgba(16, 185, 129, 0.1);
+              color: #059669;
+              border-radius: 6px;
+              flex-shrink: 0;
+            }
           }
 
           .progress-percent {
             font-size: 12px;
             font-family: monospace;
+            font-weight: 700;
             color: #10b981;
+            flex-shrink: 0;
+            margin-left: 12px;
           }
         }
 
-        .progress-bar {
-          height: 6px;
-          background: rgba(148, 163, 184, 0.2);
-          border-radius: 3px;
-          overflow: hidden;
+        .progress-bar-wrapper {
           margin-bottom: 12px;
 
-          .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #10b981, #34d399, #10b981);
-            background-size: 200% 100%;
+          .progress-bar {
+            height: 6px;
+            background: rgba(148, 163, 184, 0.2);
             border-radius: 3px;
+            overflow: hidden;
 
-            &--indeterminate {
-              width: 40% !important;
-              animation: progressSlide 1.5s ease-in-out infinite;
+            .progress-fill {
+              height: 100%;
+              background: linear-gradient(90deg, #10b981, #34d399, #10b981);
+              background-size: 200% 100%;
+              border-radius: 3px;
+
+              &--indeterminate {
+                width: 40% !important;
+                animation: progressSlide 1.5s ease-in-out infinite;
+              }
             }
           }
         }
@@ -2300,11 +2623,48 @@ onMounted(async () => {
           font-style: italic;
           margin: 0;
         }
+
+        .progress-model-info {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          margin-top: 10px;
+          padding: 6px 10px;
+          background: rgba(99, 102, 241, 0.06);
+          border: 1px solid rgba(99, 102, 241, 0.12);
+          border-radius: 8px;
+          color: #6366f1;
+          font-size: 11px;
+
+          .t-icon {
+            flex-shrink: 0;
+            opacity: 0.7;
+          }
+
+          .model-name {
+            font-weight: 700;
+          }
+
+          .model-version {
+            color: #94a3b8;
+            font-family: monospace;
+            font-size: 10px;
+          }
+
+          .model-feature {
+            padding: 1px 6px;
+            background: rgba(99, 102, 241, 0.1);
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+          }
+        }
       }
 
       .parse-error {
         display: flex;
         align-items: center;
+        justify-content: space-between;
         gap: 8px;
         padding: 14px 18px;
         background: $color-danger-bg;
@@ -2314,13 +2674,33 @@ onMounted(async () => {
         font-size: 12px;
         font-weight: 600;
 
-        .t-icon {
-          font-size: 18px;
+        .parse-error-content {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          flex: 1;
+          min-width: 0;
+
+          .t-icon {
+            font-size: 18px;
+            flex-shrink: 0;
+          }
+
+          span {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+        }
+
+        .parse-error-actions {
+          display: flex;
+          align-items: center;
+          gap: 8px;
           flex-shrink: 0;
         }
 
         .error-dismiss {
-          margin-left: auto;
           background: none;
           border: none;
           color: #dc2626;
@@ -2332,6 +2712,31 @@ onMounted(async () => {
 
           &:hover {
             opacity: 1;
+          }
+        }
+
+        .error-recovery-btn {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          padding: 5px 12px;
+          background: linear-gradient(135deg, #f59e0b, #d97706);
+          color: #fff;
+          border: none;
+          border-radius: 8px;
+          font-size: 11px;
+          font-weight: 700;
+          cursor: pointer;
+          transition: all $transition-fast;
+          white-space: nowrap;
+
+          &:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px -2px rgba(245, 158, 11, 0.35);
+          }
+
+          &:active {
+            transform: translateY(0);
           }
         }
       }
@@ -2893,6 +3298,16 @@ onMounted(async () => {
   100% {
     background-position: -200% 0;
   }
+}
+
+@keyframes dot-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.7); }
+}
+
+@keyframes dot-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
 }
 </style>
 

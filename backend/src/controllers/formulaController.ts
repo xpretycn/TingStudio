@@ -13,6 +13,7 @@ import {
   rowsToCamelCase,
   generateFormulaCode,
 } from "../utils/helpers.js";
+import { validateRatioFactor, DEFAULT_THRESHOLDS } from "../services/ratioFactorValidator.js";
 
 /** 获取配方列表 */
 export async function getFormulas(req: any, res: Response) {
@@ -213,6 +214,23 @@ export async function createFormula(req: any, res: Response) {
 
     const supRatio = supplementRatioFactor ?? 1.0;
 
+    // ratioFactor 含量比校验（创建时拦截）
+    const ratioValidation = validateRatioFactor(
+      materialItems,
+      finishedWeight || 0,
+      ratioFactor ?? 0.18,
+      supRatio,
+    );
+    if (!ratioValidation.allowed) {
+      res.status(400).json({
+        success: false,
+        message: ratioValidation.message,
+        description: ratioValidation.description,
+        validation: ratioValidation,
+      });
+      return;
+    }
+
     await query(
       `INSERT INTO formulas (id, code, name, salesman_id, salesman_name, materials_json, finished_weight, ratio_factor, supplement_ratio_factor, packaging_price, other_price, profit_margin, description, preparation_method, original_name, original_weight, created_by, created_at)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -360,6 +378,25 @@ export async function updateFormula(req: any, res: Response) {
           return item;
         })
       : oldFormula.materials_json;
+
+    // ratioFactor 含量比校验（更新时拦截，仅当原料变更时）
+    if (materials) {
+      const ratioValidation = validateRatioFactor(
+        materialItems,
+        finishedWeight !== undefined ? finishedWeight : oldFormula.finished_weight,
+        ratioFactor !== undefined ? ratioFactor : oldFormula.ratio_factor,
+        supplementRatioFactor !== undefined ? supplementRatioFactor : oldFormula.supplement_ratio_factor,
+      );
+      if (!ratioValidation.allowed) {
+        res.status(400).json({
+          success: false,
+          message: ratioValidation.message,
+          description: ratioValidation.description,
+          validation: ratioValidation,
+        });
+        return;
+      }
+    }
 
     await query(
       `UPDATE formulas SET name=?, salesman_id=?, salesman_name=?, materials_json=?, finished_weight=?, ratio_factor=?, supplement_ratio_factor=?, packaging_price=?, other_price=?, profit_margin=?, description=?, preparation_method=? WHERE id=?`,
@@ -759,4 +796,43 @@ function buildVersionName(changes: any[], materialCount: number): string {
     return summary.slice(0, 37) + "...";
   }
   return summary || "原料调整";
+}
+
+/** ratioFactor 实时校验端点 */
+export async function validateFormulaRatio(req: any, res: Response) {
+  try {
+    const { materials, finishedWeight, ratioFactor, supplementRatioFactor } = req.body;
+
+    // 批量查询原料类型
+    const materialIds = (materials || []).map((m: any) => m.materialId).filter(Boolean);
+    const materialTypeMap: Record<string, string> = {};
+    if (materialIds.length > 0) {
+      const placeholders = materialIds.map(() => "?").join(",");
+      const [matRows]: any[] = await query(
+        `SELECT id, material_type FROM materials WHERE id IN (${placeholders})`,
+        materialIds,
+      );
+      for (const r of matRows) {
+        materialTypeMap[r.id] = r.material_type || "herb";
+      }
+    }
+
+    const materialsWithType = (materials || []).map((m: any) => ({
+      materialId: m.materialId,
+      materialName: m.materialName || "",
+      quantity: m.quantity || 0,
+      materialType: materialTypeMap[m.materialId] || "herb",
+    }));
+
+    const result = validateRatioFactor(
+      materialsWithType,
+      Number(finishedWeight) || 0,
+      Number(ratioFactor) || 0.18,
+      Number(supplementRatioFactor) || 1.0,
+    );
+
+    res.json(success(result));
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: "含量比校验失败", error: error.message });
+  }
 }

@@ -9,6 +9,7 @@ import {
   deleteFormula,
   getFormulasByMaterial,
   getPriceQuote,
+  validateFormulaRatio,
 } from "../controllers/formulaController.js";
 import { validateBody } from "../middleware/validate.js";
 
@@ -55,3 +56,15 @@ formulaRoutes.put(
 formulaRoutes.delete("/:id", deleteFormula);
 formulaRoutes.get("/:id/price-quote", getPriceQuote);
 formulaRoutes.get("/by-material/:materialId", getFormulasByMaterial);
+
+// ratioFactor 实时校验端点
+formulaRoutes.post(
+  "/validate-ratio",
+  validateBody({
+    materials: { type: "array", required: true, message: "请提供原料列表" },
+    finishedWeight: { type: "number", required: true, message: "请提供成品重量" },
+    ratioFactor: { type: "number", required: true, message: "请提供主料含量比系数" },
+    supplementRatioFactor: { type: "number", required: true, message: "请提供辅料含量比系数" },
+  }),
+  validateFormulaRatio,
+);
