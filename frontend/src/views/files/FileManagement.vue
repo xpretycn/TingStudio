@@ -122,6 +122,12 @@
             <t-tag v-else size="small" variant="light" theme="default">未关联</t-tag>
           </template>
 
+          <template #fileFormat="{ row }">
+            <t-tag :theme="row.mimeType?.startsWith('image/') ? 'warning' : 'primary'" variant="light" size="small">
+              {{ row.mimeType?.startsWith('image/') ? '图片' : 'Excel' }}
+            </t-tag>
+          </template>
+
           <template #uploadedAt="{ row }">
             <span class="time-text">{{ formatDate(row.uploadedAt) }}</span>
           </template>
@@ -151,10 +157,6 @@
               <button class="action-btn preview-btn" @click.stop="handlePreview(row)" title="预览"
                 :aria-label="`预览文件${row.originalName}`">
                 <t-icon name="browse" />
-              </button>
-              <button class="action-btn detail-btn" @click.stop="handleDetail(row)" title="详情"
-                :aria-label="`查看文件${row.originalName}详情`">
-                <t-icon name="file" />
               </button>
               <button class="action-btn reparse-btn" @click.stop="handleReparse(row)" title="重新解析"
                 :aria-label="`重新解析文件${row.originalName}`">
@@ -479,6 +481,7 @@ const applySort = () => {
     fileType: (a, b) => (a.fileType || '').localeCompare(b.fileType || '', 'zh'),
     fileSize: (a, b) => (a.fileSize || 0) - (b.fileSize || 0),
     relatedName: (a, b) => (a.relatedName || '').localeCompare(b.relatedName || '', 'zh'),
+    mimeType: (a, b) => (a.mimeType || '').localeCompare(b.mimeType || ''),
     uploadedByName: (a, b) => (a.uploadedByName || '').localeCompare(b.uploadedByName || '', 'zh'),
     uploadedAt: (a, b) => new Date(a.uploadedAt).getTime() - new Date(b.uploadedAt).getTime(),
   };
@@ -515,6 +518,7 @@ const columns = computed(() => [
   { colKey: 'fileType', title: sortTitle('文件类型', 'fileType'), width: 100, align: 'center' },
   { colKey: 'fileSize', title: sortTitle('文件大小', 'fileSize'), width: 100, align: 'center' },
   { colKey: 'relatedName', title: sortTitle('关联数据', 'relatedName'), width: 150 },
+  { colKey: 'fileFormat', title: sortTitle('文件形式', 'mimeType'), width: 100, align: 'center' },
   { colKey: 'uploadedByName', title: sortTitle('上传者', 'uploadedByName'), width: 120 },
   { colKey: 'uploadedAt', title: sortTitle('上传时间', 'uploadedAt'), width: 165 },
   { colKey: 'operation', title: '操作', width: 160, align: 'center' },
@@ -584,10 +588,6 @@ const handleRowDblClick = ({ row }: { row: UploadedFile; }) => {
 const handlePreview = (row: UploadedFile) => {
   previewFileId.value = row.fileId;
   previewDialogVisible.value = true;
-};
-
-const handleDetail = (row: UploadedFile) => {
-  router.push({ path: `/files/${row.fileId}`, query: route.query });
 };
 
 const handleReparse = async (row: UploadedFile) => {
@@ -1445,12 +1445,6 @@ watch(() => router.currentRoute.value.path, (path) => {
       color: #3b82f6;
       background: #eff6ff;
       border-color: #bfdbfe;
-    }
-
-    &.detail-btn:hover {
-      color: #8b5cf6;
-      background: #f5f3ff;
-      border-color: #ddd6fe;
     }
 
     &.reparse-btn:hover {

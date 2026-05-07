@@ -19,6 +19,7 @@ import {
   getHealthStatus,
   getHealthHistory,
   setFallback,
+  switchModelVersion,
 } from "../controllers/modelController.js";
 
 const router = Router();
@@ -67,6 +68,7 @@ router.delete("/models-manage/:id", deleteModel);
 router.post("/models-manage/:id/test", testModelConnection);
 router.get("/models-manage/:id/versions", getModelVersions);
 router.get("/models/:provider/versions", getModelVersionsByProvider);
+router.put("/models/:provider/version", switchModelVersion);
 router.put("/models-manage/:id/fallback", setFallback);
 
 router.get("/usage", getUsageStats);

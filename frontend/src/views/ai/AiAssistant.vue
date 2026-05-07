@@ -2,7 +2,7 @@
   <div class="ai-assistant" :aria-busy="!initialized">
     <section class="dashboard-grid">
       <div v-for="(card, idx) in dashboardCards" :key="card.label" class="stat-card"
-        :style="{ animationDelay: `${(idx + 1) * 0.1}s` }">
+        :class="{ 'stat-card--aborted': card.aborted }" :style="{ animationDelay: `${(idx + 1) * 0.1}s` }">
         <div class="stat-card-top">
           <div class="stat-icon" :style="{ background: card.iconBg, color: card.iconColor }">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -62,7 +62,7 @@
               </div>
               <div v-if="modelVersions.length > 1 && aiStore.selectedModel" class="model-version-select">
                 <t-select v-model="selectedVersion" size="small" :loading="loadingVersions"
-                  style="width: 100%; min-width: 160px;" @change="(val: any) => { selectedVersion = String(val); }">
+                  style="width: 100%; min-width: 160px;" @change="handleVersionSelect">
                   <t-option v-for="ver in modelVersions" :key="ver.value" :value="ver.value" :label="ver.label" />
                 </t-select>
               </div>
@@ -236,6 +236,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue';
 import { useAiStore } from '@/stores/ai';
+import { modelApi } from '@/api/model';
 import { MessagePlugin } from 'tdesign-vue-next';
 import PageSkeleton from '@/components/Skeleton/PageSkeleton.vue';
 import SmartFormTab from './tabs/SmartFormTab.vue';
@@ -244,6 +245,13 @@ import SmartImportTab from './tabs/SmartImportTab.vue';
 const aiStore = useAiStore();
 
 const initialized = ref(false);
+
+const usageStats = ref<{
+  totalCalls: number;
+  todayTokens: number;
+  monthTokens: number;
+  totalTokens: number;
+} | null>(null);
 
 const tabs = [
   {
@@ -291,6 +299,18 @@ const loadModelVersionsWithLoading = async (provider: string) => {
     await aiStore.loadModelVersions(provider);
   } finally {
     loadingVersions.value = false;
+  }
+};
+
+const handleVersionSelect = async (val: string | number) => {
+  const version = String(val);
+  selectedVersion.value = version;
+  try {
+    await aiStore.switchVersion(version);
+    const currentModel = aiStore.models.find(m => m.provider === aiStore.selectedModel);
+    MessagePlugin.success(`已切换 ${currentModel?.name || aiStore.selectedModel} 版本为 ${version}`);
+  } catch {
+    MessagePlugin.error("版本切换失败，请重试");
   }
 };
 
@@ -420,8 +440,13 @@ const dashboardCards = computed(() => {
   const models = aiStore.models.length;
   const hasResult = !!aiStore.parseResult;
   const hasSearch = !!aiStore.searchResult;
-  const totalTokens = (aiStore.parseResult?.usage?.totalTokens || 0) +
+  const isAborted = aiStore.parseAborted || aiStore.materialParseAborted;
+
+  const displayTokens = usageStats.value
+    ? usageStats.value.monthTokens
+    : (aiStore.parseResult?.usage?.totalTokens || 0) +
     (aiStore.searchResult?.usage?.totalTokens || 0);
+
   return [
     {
       label: '可用模型',
@@ -436,14 +461,15 @@ const dashboardCards = computed(() => {
     },
     {
       label: '解析状态',
-      value: hasResult ? '已完成' : '待解析',
+      value: isAborted ? '已终止' : hasResult ? '已完成' : '待解析',
       unit: '',
-      badge: aiStore.parseLoading ? '解析中...' : hasResult ? '成功' : '等待',
-      badgeColor: aiStore.parseLoading ? '#F59E0B' : hasResult ? '#10B981' : '#94A3B8',
-      badgeBg: aiStore.parseLoading ? '#FFFBEB' : hasResult ? '#ECFDF5' : '#F1F5F9',
-      iconBg: hasResult ? '#ECFDF5' : '#EFF6FF',
-      iconColor: hasResult ? '#10B981' : '#3B82F6',
+      badge: isAborted ? '已终止' : aiStore.parseLoading || aiStore.materialParseLoading ? '解析中...' : hasResult ? '成功' : '等待',
+      badgeColor: isAborted ? '#EF4444' : aiStore.parseLoading || aiStore.materialParseLoading ? '#F59E0B' : hasResult ? '#10B981' : '#94A3B8',
+      badgeBg: isAborted ? '#FEF2F2' : aiStore.parseLoading || aiStore.materialParseLoading ? '#FFFBEB' : hasResult ? '#ECFDF5' : '#F1F5F9',
+      iconBg: isAborted ? '#FEF2F2' : hasResult ? '#ECFDF5' : '#EFF6FF',
+      iconColor: isAborted ? '#EF4444' : hasResult ? '#10B981' : '#3B82F6',
       iconPath: '<path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>',
+      aborted: isAborted,
     },
     {
       label: '检索状态',
@@ -458,11 +484,15 @@ const dashboardCards = computed(() => {
     },
     {
       label: 'Token 用量',
-      value: totalTokens > 0 ? totalTokens.toLocaleString() : '—',
+      value: displayTokens > 0 ? displayTokens.toLocaleString() : '—',
       unit: '',
-      badge: totalTokens > 0 ? `已消耗 ${totalTokens}` : '暂无',
-      badgeColor: totalTokens > 0 ? '#F59E0B' : '#94A3B8',
-      badgeBg: totalTokens > 0 ? '#FFFBEB' : '#F1F5F9',
+      badge: usageStats.value
+        ? `本月 ${displayTokens.toLocaleString()}`
+        : displayTokens > 0
+          ? `已消耗 ${displayTokens}`
+          : '暂无',
+      badgeColor: displayTokens > 0 ? '#F59E0B' : '#94A3B8',
+      badgeBg: displayTokens > 0 ? '#FFFBEB' : '#F1F5F9',
       iconBg: '#FFFBEB',
       iconColor: '#F59E0B',
       iconPath: '<path d="M12 1v22M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>',
@@ -505,13 +535,17 @@ const assistantMessage = computed(() => {
   if (models === 0) return '尚未配置 AI 模型，请在工具栏选择或联系管理员配置。';
   if (!aiStore.selectedModel) return `已配置 ${models} 个 AI 模型，请在上方选择一个模型开始使用。`;
   if (activeTab.value === 'smart-form') {
+    if (aiStore.parseAborted) return 'AI 解析已终止，可重新上传文件进行解析。';
     if (aiStore.parseLoading) return '正在解析文件内容，请稍候...';
     if (aiStore.parseResult) return '解析完成！可在结果中确认并创建配方。';
+    if (aiStore.parseError) return '解析失败：' + aiStore.parseError;
     return '上传配方图片或 Excel 文件，AI 将自动识别原料信息并填入表单。';
   }
   if (activeTab.value === 'smart-import') {
+    if (aiStore.materialParseAborted) return 'AI 解析已终止，可重新上传文件进行解析。';
     if (aiStore.materialParseLoading) return '正在解析原料营养数据，请稍候...';
     if (aiStore.materialParseResult) return '解析完成！可一键录入或逐条导入原料营养数据。';
+    if (aiStore.materialParseError) return '解析失败：' + aiStore.materialParseError;
     return '上传 Excel 文件，AI 将自动识别原料名称和营养成分数据。';
   }
   if (!searchQuery.value) return '输入自然语言描述，AI 将自动生成 SQL 并查询数据库。';
@@ -531,6 +565,17 @@ const handleAssistantAction = () => {
   else if (activeTab.value === 'smart-import') activeTab.value = 'smart-search';
   else activeTab.value = 'smart-form';
 };
+
+watch(() => aiStore.parseResult, (newVal, oldVal) => {
+  if (newVal && !oldVal && !aiStore.parseAborted) {
+    addActivity({
+      type: 'success',
+      title: '智能配方解析完成',
+      desc: `消耗 <strong>${newVal.usage?.totalTokens || 0}</strong> Token${newVal.usage?.model ? `（模型: ${newVal.usage.model}）` : ''}`,
+      time: new Date().toLocaleString('zh-CN'),
+    });
+  }
+});
 
 watch(() => aiStore.searchResult, (newVal, oldVal) => {
   if (newVal && !oldVal) {
@@ -559,6 +604,16 @@ onMounted(async () => {
     await aiStore.fetchModels();
     if (aiStore.selectedModel) {
       await loadModelVersionsWithLoading(aiStore.selectedModel);
+    }
+
+    const statsRes = await modelApi.getUsageStats();
+    if (statsRes.summary && statsRes.summary.length > 0) {
+      usageStats.value = {
+        totalCalls: statsRes.summary.reduce((sum, item) => sum + (item.total_calls || 0), 0),
+        todayTokens: statsRes.summary.reduce((sum, item) => sum + (item.today_tokens || 0), 0),
+        monthTokens: statsRes.summary.reduce((sum, item) => sum + (item.month_tokens || 0), 0),
+        totalTokens: statsRes.summary.reduce((sum, item) => sum + (item.total_tokens || 0), 0),
+      };
     }
   } catch (e) {
     console.error('[AiAssistant] 初始化失败:', e);
@@ -635,6 +690,18 @@ onMounted(async () => {
           font-size: 14px;
           font-weight: 400;
           color: #94A3B8;
+        }
+      }
+
+      &--aborted {
+        margin-top: 12px;
+        border-color: rgba(239, 68, 68, 0.2);
+        box-shadow: 0 10px 30px -5px rgba(239, 68, 68, 0.1);
+        animation: aborted-pulse 0.5s ease-in-out, dashboard-fade-in 0.5s ease forwards;
+
+        &:hover {
+          border-color: rgba(239, 68, 68, 0.3);
+          box-shadow: 0 14px 36px -6px rgba(239, 68, 68, 0.15);
         }
       }
     }
@@ -1328,6 +1395,18 @@ onMounted(async () => {
     bottom: -10px;
     opacity: 0.08;
     transform: rotate(-15deg);
+  }
+
+  @keyframes aborted-pulse {
+
+    0%,
+    100% {
+      transform: scale(1);
+    }
+
+    50% {
+      transform: scale(1.02);
+    }
   }
 
   @keyframes dashboard-fade-in {

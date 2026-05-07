@@ -91,11 +91,19 @@
                   </div>
                   <div class="model-card-body">
                     <div class="model-field">
-                      <span class="field-label">当前版本</span>
+                      <span class="field-label">可用版本</span>
                       <t-select v-model="model.model" :disabled="!isAdmin" size="small" style="flex: 1"
                         @change="(val: any) => handleVersionChange(model, String(val))">
-                        <t-option v-for="v in getVersionsForProvider(model.provider)" :key="v.value" :value="v.value"
-                          :label="v.label" />
+                        <t-option v-for="v in getAvailableVersionsForProvider(model)" :key="v.value" :value="v.value"
+                          :label="v.label" :disabled="v.value === model.model">
+                          <span style="display:inline-flex;align-items:center;gap:4px;">
+                            {{ v.label }}
+                            <svg v-if="v.value === model.model" width="14" height="14" viewBox="0 0 24 24"
+                              fill="none" stroke="#10B981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                              <polyline points="20 6 9 17 4 12" />
+                            </svg>
+                          </span>
+                        </t-option>
                       </t-select>
                     </div>
                     <div v-if="model.visionModel" class="model-field">
@@ -398,9 +406,11 @@
             <span class="header-title">新增模型</span>
           </div>
           <div class="header-actions">
-            <button class="confirm-btn create-btn" @click="handleAddModel">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                stroke-linecap="round" stroke-linejoin="round">
+            <button class="confirm-btn" :class="[addSubmitting ? 'loading' : '', 'create-btn']" @click="handleAddModel"
+              :disabled="addSubmitting">
+              <t-loading v-if="addSubmitting" size="14px" />
+              <svg v-else width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="20 6 9 17 4 12" />
               </svg>
               确认新增
@@ -459,7 +469,8 @@
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2"
               stroke-linecap="round" stroke-linejoin="round">
               <circle cx="12" cy="12" r="3" />
-              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+              <path
+                d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
             </svg>
             <span>模型参数</span>
           </div>
@@ -493,9 +504,11 @@
             <span class="header-title">编辑模型</span>
           </div>
           <div class="header-actions">
-            <button class="confirm-btn update-btn" @click="handleEditModel">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                stroke-linecap="round" stroke-linejoin="round">
+            <button class="confirm-btn" :class="[editSubmitting ? 'loading' : '', 'update-btn']"
+              @click="handleEditModel" :disabled="editSubmitting">
+              <t-loading v-if="editSubmitting" size="14px" />
+              <svg v-else width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
               </svg>
@@ -518,7 +531,8 @@
           </div>
           <div class="card-body">
             <div class="form-row two-col">
-              <t-form-item label="显示名称">
+              <t-form-item>
+                <template #label>显示名称<span class="required-mark">*</span></template>
                 <t-input v-model="editForm.name" />
               </t-form-item>
               <t-form-item label="描述">
@@ -537,7 +551,8 @@
             <span>接口配置</span>
           </div>
           <div class="card-body">
-            <t-form-item label="API 基础地址">
+            <t-form-item>
+              <template #label>API 基础地址<span class="required-mark">*</span></template>
               <t-input v-model="editForm.baseUrl" />
             </t-form-item>
             <t-form-item label="API Key">
@@ -550,13 +565,15 @@
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2"
               stroke-linecap="round" stroke-linejoin="round">
               <circle cx="12" cy="12" r="3" />
-              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+              <path
+                d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
             </svg>
             <span>模型参数</span>
           </div>
           <div class="card-body">
             <div class="form-row two-col">
-              <t-form-item label="默认模型版本">
+              <t-form-item>
+                <template #label>默认模型版本<span class="required-mark">*</span></template>
                 <t-input v-model="editForm.model" />
               </t-form-item>
               <t-form-item label="视觉模型">
@@ -572,20 +589,26 @@
               </t-form-item>
             </div>
             <t-form-item label="备用模型">
-              <div class="fallback-model-field">
-                <div v-if="editForm.fallbackProvider" class="fallback-logo-wrap">
-                  <img loading="lazy" :src="getModelLogo(editForm.fallbackProvider)"
-                    :alt="getFallbackModelName()" class="fallback-logo"
-                    @error="(e: Event) => handleLogoError(e)" />
-                  <span class="model-fallback" :style="{ color: getFallbackColor(editForm.fallbackProvider) }">
-                    {{ getFallbackLetter(editForm.fallbackProvider) }}
-                  </span>
-                </div>
-                <t-select v-model="editForm.fallbackProvider" clearable placeholder="选择备用模型" style="flex: 1">
-                  <t-option v-for="m in modelStore.models.filter(x => x.id !== editingModelId)" :key="m.provider"
-                    :value="m.provider" :label="m.name" />
-                </t-select>
-              </div>
+              <t-select v-model="editForm.fallbackProvider" clearable placeholder="选择备用模型" style="width: 100%">
+                <template #valueDisplay="{ value }">
+                  <div v-if="value" class="select-value-with-logo">
+                    <img loading="lazy" :src="getModelLogo(value)" :alt="getFallbackModelName()"
+                      class="fallback-logo-sm" @error="(e: Event) => handleLogoError(e)" />
+                    <span>{{ getFallbackModelName() }}</span>
+                  </div>
+                </template>
+                <t-option v-for="m in modelStore.models.filter(x => x.id !== editingModelId)" :key="m.provider"
+                  :value="m.provider" :label="m.name">
+                  <template #default>
+                    <div class="option-with-logo" style="display:flex;align-items:flex-end;gap:14px;">
+                      <img loading="lazy" :src="getModelLogo(m.provider)" :alt="m.name"
+                        class="fallback-logo-sm" @error="(e: Event) => handleLogoError(e)"
+                        style="width:16px;height:16px;border-radius:4px;object-fit:contain;flex-shrink:0;padding-bottom:2px;" />
+                      <span style="line-height:1.4;font-size:14px;">{{ m.name }}</span>
+                    </div>
+                  </template>
+                </t-option>
+              </t-select>
             </t-form-item>
           </div>
         </div>
@@ -676,6 +699,8 @@ const activeTab = ref("models");
 const navCollapsed = ref(false);
 const showAddDrawer = ref(false);
 const showEditDrawer = ref(false);
+const addSubmitting = ref(false);
+const editSubmitting = ref(false);
 const editingModelId = ref("");
 const usageDateRange = ref<string[]>([]);
 const logPage = ref(1);
@@ -913,6 +938,14 @@ function getVersionsForProvider(provider: string) {
   return PROVIDER_VERSIONS[provider] || [];
 }
 
+function getAvailableVersionsForProvider(model: ModelItem) {
+  const provider = model.provider?.toLowerCase().trim();
+  const versions = PROVIDER_VERSIONS[provider] || PROVIDER_VERSIONS[model.provider] || [];
+  if (versions.length > 0) return versions;
+  if (model.model) return [{ value: model.model, label: model.model }];
+  return [];
+}
+
 function healthStatusText(status: string) {
   const map: Record<string, string> = { healthy: "正常", degraded: "延迟", unhealthy: "不可用", unknown: "未知" };
   return map[status] || status;
@@ -986,6 +1019,7 @@ function openEditDialog(model: ModelItem) {
 }
 
 async function handleAddModel() {
+  addSubmitting.value = true;
   try {
     await modelStore.createModel(addForm.value);
     MessagePlugin.success("模型添加成功");
@@ -993,10 +1027,13 @@ async function handleAddModel() {
     addForm.value = { provider: "", name: "", baseUrl: "", apiKey: "", model: "", visionModel: "", description: "", supportsVision: false };
   } catch (err: any) {
     MessagePlugin.error(err.message || "添加失败");
+  } finally {
+    addSubmitting.value = false;
   }
 }
 
 async function handleEditModel() {
+  editSubmitting.value = true;
   try {
     const data: any = { ...editForm.value };
     if (!data.apiKey) delete data.apiKey;
@@ -1005,6 +1042,8 @@ async function handleEditModel() {
     showEditDrawer.value = false;
   } catch (err: any) {
     MessagePlugin.error(err.message || "更新失败");
+  } finally {
+    editSubmitting.value = false;
   }
 }
 
@@ -2092,61 +2131,82 @@ $transition-normal: 0.25s ease;
   overflow-x: hidden;
 }
 
-.model-drawer {
-  :deep(.drawer-header) {
+.drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+
+  .header-left {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding: 0 4px;
+    gap: 8px;
 
-    .header-left {
-      display: flex;
+    .header-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #0F172A;
+    }
+  }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+
+    .confirm-btn {
+      display: inline-flex;
       align-items: center;
-      gap: 10px;
+      gap: 6px;
+      padding: 8px 18px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: none;
 
-      .header-title {
-        font-size: 17px;
-        font-weight: 600;
-        color: #1e293b;
-      }
-    }
+      &.create-btn {
+        background: var(--gradient-btn, linear-gradient(135deg, var(--color-primary), var(--color-primary-dark)));
+        color: #fff;
+        box-shadow: 0 2px 8px var(--overlay-brand-25, rgba(0, 0, 0, 0.2));
 
-    .header-actions {
-      .confirm-btn {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 7px 18px;
-        border-radius: 8px;
-        font-size: 13px;
-        font-weight: 600;
-        border: none;
-        cursor: pointer;
-        transition: all 0.2s ease;
-
-        &.create-btn {
-          background: #10b981;
-          color: #fff;
-
-          &:hover {
-            background: #059669;
-          }
-        }
-
-        &.update-btn {
-          background: #3b82f6;
-          color: #fff;
-
-          &:hover {
-            background: #2563eb;
-          }
-        }
-
-        svg {
-          flex-shrink: 0;
+        &:hover:not(:disabled) {
+          transform: translateY(-1px);
+          box-shadow: 0 4px 14px var(--overlay-brand-35, rgba(0, 0, 0, 0.3));
         }
       }
+
+      &.update-btn {
+        background: var(--gradient-btn, linear-gradient(135deg, var(--color-primary), var(--color-primary-dark)));
+        color: #fff;
+        box-shadow: 0 2px 8px var(--overlay-brand-25, rgba(0, 0, 0, 0.2));
+
+        &:hover:not(:disabled) {
+          transform: translateY(-1px);
+          box-shadow: 0 4px 14px var(--overlay-brand-35, rgba(0, 0, 0, 0.3));
+        }
+      }
+
+      &:disabled {
+        opacity: 0.65;
+        cursor: not-allowed;
+      }
+
+      &.loading {
+        opacity: 0.85;
+      }
+
+      svg {
+        flex-shrink: 0;
+      }
     }
+  }
+}
+
+.model-drawer {
+  :deep(.t-drawer__header) {
+    padding: 16px 20px;
+    border-bottom: 1px solid #E2E8F0;
   }
 
   .drawer-card {
@@ -2195,52 +2255,42 @@ $transition-normal: 0.25s ease;
         &:last-child {
           margin-bottom: 0;
         }
+
+        .required-mark {
+          color: #ef4444;
+          margin-left: 2px;
+          font-weight: 700;
+        }
       }
 
       .form-row {
         display: flex;
         gap: 16px;
 
-        &.two-col > * {
+        &.two-col>* {
           flex: 1;
           min-width: 0;
         }
       }
 
-      .fallback-model-field {
+      .select-value-with-logo,
+      .option-with-logo {
         display: flex;
-        align-items: center;
-        gap: 10px;
+        align-items: flex-end;
+        gap: 14px;
 
-        .fallback-logo-wrap {
-          position: relative;
-          width: 28px;
-          height: 28px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
+        .fallback-logo-sm {
+          width: 16px;
+          height: 16px;
+          border-radius: 4px;
+          object-fit: contain;
           flex-shrink: 0;
-          border-radius: 8px;
-          background: #f8fafc;
-          overflow: hidden;
+          padding-bottom: 2px;
+        }
 
-          .fallback-logo {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-          }
-
-          .model-fallback {
-            display: none;
-            position: absolute;
-            inset: 0;
-            align-items: center;
-            justify-content: center;
-            font-size: 13px;
-            font-weight: 700;
-            background: #f1f5f9;
-            border-radius: 8px;
-          }
+        span {
+          line-height: 1.4;
+          font-size: 14px;
         }
       }
     }

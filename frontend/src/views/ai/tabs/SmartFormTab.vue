@@ -11,10 +11,15 @@
             <h3 class="ai-title">AI 智能配方解析</h3>
             <p class="ai-subtitle">支持识别 Excel、图片及手写草稿</p>
           </div>
-          <div v-if="selectedFile || aiStore.parseResult" class="ai-header-status">
+          <div v-if="selectedFile || aiStore.parseResult || aiStore.parseAborted" class="ai-header-status"
+            :class="{ 'aborted-status': aiStore.parseAborted }">
             <div v-if="aiStore.parseLoading" class="status-indicator status-indicator--loading">
               <span class="status-dot status-dot--pulse"></span>
               <span class="status-text">正在解析: {{ selectedFile?.name || '文件' }}</span>
+            </div>
+            <div v-else-if="aiStore.parseAborted" class="status-indicator status-indicator--aborted">
+              <span class="status-dot status-dot--aborted"></span>
+              <span class="status-text">已终止: {{ selectedFile?.name || '文件' }}</span>
             </div>
             <div v-else-if="aiStore.parseResult" class="status-indicator status-indicator--done">
               <span class="status-dot status-dot--done"></span>
@@ -28,7 +33,7 @@
         </div>
 
         <div class="ai-body">
-          <div v-if="!aiStore.parseLoading && !aiStore.parseResult" class="upload-zone"
+          <div v-if="!aiStore.parseLoading && !aiStore.parseResult && !aiStore.parseAborted" class="upload-zone"
             :class="{ 'drag-over': isDragOver }" @click="triggerFileInput" @dragover.prevent="handleDragOver"
             @dragleave="handleDragLeave" @drop.prevent="handleDrop">
             <input ref="fileInputRef" type="file" accept=".xlsx,.xls,.csv,.png,.jpg,.jpeg,.gif,.webp"
@@ -42,7 +47,8 @@
             </div>
           </div>
 
-          <div v-if="selectedFile && !aiStore.parseLoading && !aiStore.parseResult" class="file-selected-row">
+          <div v-if="selectedFile && !aiStore.parseLoading && !aiStore.parseResult && !aiStore.parseAborted"
+            class="file-selected-row">
             <div class="file-info">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"
                 stroke-linecap="round" stroke-linejoin="round">
@@ -76,8 +82,19 @@
 
           <div v-if="aiStore.parseLoading" class="parsing-progress">
             <div class="progress-header">
-              <span class="progress-status">AI 正在解析文件内容...</span>
-              <span class="progress-percent">{{ parseProgressText }}</span>
+              <span class="progress-status">{{ aiStore.parseAborted ? 'AI 解析已终止' : 'AI 正在解析文件内容...' }}</span>
+              <div class="progress-right">
+                <span class="progress-percent">{{ parseProgressText }}</span>
+                <span class="progress-timer" :key="parseElapsedTime">{{ parseElapsedTimeFormatted }}</span>
+                <button v-if="!aiStore.parseAborted" class="abort-btn" @click="handleAbortParse" title="终止解析"
+                  aria-label="终止当前解析任务">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="6" y="6" width="12" height="12" rx="2" />
+                  </svg>
+                  终止
+                </button>
+              </div>
             </div>
             <div v-if="selectedFile" class="progress-file-info">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"
@@ -111,7 +128,8 @@
             <span>{{ aiStore.parseError }}</span>
           </div>
 
-          <div ref="resultRef" v-if="aiStore.parseResult && !submitSuccess" class="analysis-result">
+          <div ref="resultRef" v-if="aiStore.parseResult && !submitSuccess && !aiStore.parseAborted"
+            class="analysis-result">
             <div class="result-two-col">
               <div class="result-left">
                 <div class="info-card">
@@ -495,7 +513,7 @@
       </div>
     </section>
 
-    <div v-if="showFormSection && aiStore.parseResult && !submitSuccess" class="form-section">
+    <div v-if="showFormSection && aiStore.parseResult && !submitSuccess && !aiStore.parseAborted" class="form-section">
       <div class="form-card">
         <div class="form-card-header">
           <h4 class="form-card-title">
@@ -552,7 +570,7 @@
               style="width: 100%" />
             <p class="field-help">用于营养成分含量比计算，范围0.5-1.5</p>
             <span v-if="formErrors.supplementRatioFactor" class="inline-error">{{ formErrors.supplementRatioFactor
-              }}</span>
+            }}</span>
           </t-form-item>
 
           <t-form-item label="原料列表" name="materials">
@@ -649,7 +667,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, nextTick, onMounted } from 'vue';
+import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useAiStore } from '@/stores/ai';
 import { useFormulaStore } from '@/stores/formula';
@@ -670,6 +688,10 @@ const emit = defineEmits<{
 const aiStore = useAiStore();
 const formulaStore = useFormulaStore();
 const materialStore = useMaterialStore();
+
+const safeParseResult = computed(() => {
+  return aiStore.parseAborted ? null : aiStore.parseResult;
+});
 
 const route = useRoute();
 const router = useRouter();
@@ -735,6 +757,8 @@ const submittedName = ref('');
 const uploadedFileInfo = ref<{ fileId: string; fileName: string; fileSize: number; } | null>(null);
 const formRef = ref();
 const parseStartTime = ref(Date.now());
+const parseElapsedTime = ref(0);
+let parseTimer: ReturnType<typeof setInterval> | null = null;
 
 const salesmanLoading = ref(false);
 const allSalesmen = ref<Salesman[]>([]);
@@ -1025,6 +1049,58 @@ const getQuoteItemSubtotal = (idx: number): number | null => {
   if (!item || item.unitPrice == null) return null;
   return item.subtotal;
 };
+
+const parseElapsedTimeFormatted = computed(() => {
+  if (!aiStore.parseLoading) return '0s';
+  const seconds = Math.floor(parseElapsedTime.value / 1000);
+  if (seconds < 60) return `${seconds}s`;
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = seconds % 60;
+  return `${minutes}m ${remainingSeconds}s`;
+});
+
+const startParseTimer = () => {
+  parseElapsedTime.value = 0;
+  if (parseTimer) clearInterval(parseTimer);
+  parseTimer = setInterval(() => {
+    parseElapsedTime.value += 1000;
+  }, 1000);
+};
+
+const stopParseTimer = () => {
+  if (parseTimer) {
+    clearInterval(parseTimer);
+    parseTimer = null;
+  }
+};
+
+const handleAbortParse = () => {
+  if (!aiStore.parseLoading || aiStore.parseAborted) return;
+
+  aiStore.abortParseFormula();
+  stopParseTimer();
+
+  showFormSection.value = false;
+  editedName.value = '';
+  editedWeight.value = 0;
+
+  MessagePlugin.warning({
+    content: 'AI 解析已终止',
+    duration: 3000,
+  });
+};
+
+watch(() => aiStore.parseLoading, (loading) => {
+  if (loading) {
+    startParseTimer();
+  } else {
+    stopParseTimer();
+  }
+});
+
+onUnmounted(() => {
+  stopParseTimer();
+});
 
 const parseProgressText = computed(() => {
   if (!aiStore.parseLoading) return '';
@@ -1449,7 +1525,7 @@ const populateFormFromResult = (result: ParsedFormula) => {
 };
 
 watch(() => aiStore.parseResult, (newVal) => {
-  if (newVal) {
+  if (newVal && !aiStore.parseAborted) {
     populateFormFromResult(newVal);
     quoteAdjustments.value = {};
     qtyAdjustments.value = {};
@@ -1822,6 +1898,11 @@ const goToFileDetail = () => {
       margin-left: auto;
       flex-shrink: 0;
 
+      &.aborted-status {
+        padding-top: 8px;
+        margin-bottom: 16px;
+      }
+
       .status-indicator {
         display: inline-flex;
         align-items: center;
@@ -1851,11 +1932,22 @@ const goToFileDetail = () => {
         border: 1px solid rgba(245, 158, 11, 0.15);
       }
 
+      .status-indicator--aborted {
+        background: rgba(239, 68, 68, 0.08);
+        color: #dc2626;
+        border: 1px solid rgba(239, 68, 68, 0.15);
+        margin-top: 24px;
+        padding: 10px 14px;
+        transition: all 0.3s ease;
+        animation: aborted-fade-in 0.3s ease-out;
+      }
+
       .status-dot {
         width: 8px;
         height: 8px;
         border-radius: 50%;
         flex-shrink: 0;
+        transition: background 0.3s ease;
       }
 
       .status-dot--pulse {
@@ -1870,6 +1962,10 @@ const goToFileDetail = () => {
       .status-dot--ready {
         background: #f59e0b;
         animation: dot-blink 2s ease-in-out infinite;
+      }
+
+      .status-dot--aborted {
+        background: #ef4444;
       }
 
       .status-text {
@@ -1889,6 +1985,18 @@ const goToFileDetail = () => {
         50% {
           opacity: 0.4;
           transform: scale(0.7);
+        }
+      }
+
+      @keyframes aborted-fade-in {
+        from {
+          opacity: 0;
+          transform: translateY(-4px);
+        }
+
+        to {
+          opacity: 1;
+          transform: translateY(0);
         }
       }
 
@@ -2079,6 +2187,7 @@ const goToFileDetail = () => {
       .progress-header {
         display: flex;
         justify-content: space-between;
+        align-items: center;
         margin-bottom: 12px;
 
         .progress-status {
@@ -2087,10 +2196,77 @@ const goToFileDetail = () => {
           color: #64748b;
         }
 
+        .progress-right {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+
         .progress-percent {
           font-size: 12px;
           font-family: monospace;
           color: $emerald-500;
+        }
+
+        .progress-timer {
+          display: inline-flex;
+          align-items: center;
+          padding: 2px 10px;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: #fff;
+          font-size: 11px;
+          font-weight: 700;
+          font-family: 'SF Mono', 'Fira Code', monospace;
+          border-radius: 20px;
+          box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+          animation: timerPulse 1s ease-in-out infinite;
+
+          @keyframes timerPulse {
+
+            0%,
+            100% {
+              transform: scale(1);
+            }
+
+            50% {
+              transform: scale(1.05);
+            }
+          }
+        }
+
+        .abort-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          padding: 5px 14px;
+          background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+          color: #fff;
+          font-size: 12px;
+          font-weight: 600;
+          border: none;
+          border-radius: 20px;
+          cursor: pointer;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+          margin-left: 10px;
+
+          &:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.45);
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+          }
+
+          &:active {
+            transform: translateY(0) scale(0.98);
+          }
+
+          svg {
+            transition: transform 0.3s ease;
+          }
+
+          &:hover svg {
+            transform: rotate(90deg);
+          }
         }
       }
 

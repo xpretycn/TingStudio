@@ -1,4 +1,5 @@
 import crypto from 'node:crypto'
+import { getDb } from '../../config/database-better-sqlite3.js'
 import { aiService } from './AIService.js'
 
 export class ModelHealthChecker {
@@ -36,7 +37,6 @@ export class ModelHealthChecker {
 
   async checkAll(): Promise<void> {
     try {
-      const { getDb } = require('../../config/database-better-sqlite3.js')
       const db = getDb()
       const models = db.prepare('SELECT * FROM ai_models WHERE api_key != ""').all() as any[]
 
@@ -58,7 +58,7 @@ export class ModelHealthChecker {
   async checkOne(model: any): Promise<void> {
     const start = Date.now()
     const now = new Date().toISOString()
-    const db = require('../../config/database-better-sqlite3.js').getDb()
+    const db = getDb()
 
     try {
       await aiService.chatCompletion(model.provider, [

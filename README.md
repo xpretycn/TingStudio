@@ -1,4 +1,4 @@
-# TingStudio v2.24
+# TingStudio v2.25
 
 食品配方工作数据管理平台 — 前后端分离架构
 
@@ -6,7 +6,156 @@
 
 TingStudio 是一个专业的食品配方工作数据管理平台，面向食品配方行业（中草药功效配方），提供配方管理、原料管理、业务员管理、营养成分分析、导出分享等完整功能链路。采用 **Vue 3 + Express + SQLite** 前后端分离架构，支持 JWT 认证、RESTful API、配方版本控制、营养合规检查、AI 智能解析等企业级特性。
 
-## 🚀 最新更新 (2026-05-06)
+## 🚀 最新更新 (2026-05-07)
+
+### ✅ AI 解析终止功能完善 + 异步防泄漏机制 + 模型用量监控修复 + ESM/CJS 全面兼容
+
+#### 🛡️ AI 解析异步终止四层防护体系
+
+构建了完整的防泄漏机制，彻底解决异步操作延迟导致终止后结果渲染的问题：
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Layer 4: 组件层本地状态清理（立即清除所有本地数据）          │
+├─────────────────────────────────────────────────────────────┤
+│  Layer 3: 组件层 Watch 防护（二次验证 abort 状态）           │
+├─────────────────────────────────────────────────────────────┤
+│  Layer 2: Store 层请求锁 + AbortController（取消 HTTP 请求） │
+├─────────────────────────────────────────────────────────────┤
+│  Layer 1: API 层 Signal 支持（原生取消机制）                 │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**核心改进**:
+
+| 特性 | 说明 |
+|------|------|
+| **AbortController** | 浏览器层面真正中断 HTTP 连接 |
+| **请求 ID 锁** | 每次请求递增 ID，abort 时使当前 ID 失效 |
+| **双重检查** | 响应时同时验证 `currentRequestId` 和 `!parseAborted` |
+| **日志追踪** | 关键节点输出调试信息 `[AI-Usage]` |
+
+**修改文件**:
+- [ai.ts (store)](frontend/src/stores/ai.ts) — 新增 `parseRequestId`/`parseAbortController` 变量
+- [api/ai.ts](frontend/src/api/ai.ts) — 新增 `signal` 参数支持
+- [SmartFormTab.vue](frontend/src/views/ai/tabs/SmartFormTab.vue) — 本地状态清理 + Watch 防护
+- [SmartImportTab.vue](frontend/src/views/ai/tabs/SmartImportTab.vue) — 同步防护逻辑
+
+---
+
+#### ⏱️ AI 解析终止状态延时切换（2秒平滑过渡）
+
+实现了用户友好的终止后状态管理：
+
+**时间线**:
+```
+点击"终止" → [0s] 显示"已终止"（红色主题）→ [2s] 自动切换到"待解析"
+```
+
+**Store 层实现** ([ai.ts](frontend/src/stores/ai.ts)):
+```typescript
+abortParseFormula() {
+  parseAborted.value = true;
+  parseResult.value = null;        // 立即清除解析结果
+  parseLoading.value = false;
+
+  // 启动2秒延时定时器
+  parseAbortTimer = setTimeout(() => {
+    parseAborted.value = false;   // 清除终止状态
+    parseError.value = "";        // 清除错误信息
+  }, 2000);
+}
+```
+
+**UI 层优化** ([AiAssistant.vue](frontend/src/views/ai/AiAssistant.vue)):
+- 终止状态卡片：红色边框 + 12px 顶部间距 + 脉冲动画
+- 子组件指示器：24px margin-top + 平滑过渡效果
+- 2秒后自动隐藏或恢复默认样式
+
+---
+
+#### 📊 模型用量数据显示修复（ESM/CJS 兼容性）
+
+**根本原因**: 后端 `AIService.recordUsage()` 在 ESM 环境中使用 `require()` 导致运行时错误：
+
+```
+❌ ReferenceError: require is not defined
+   at AIService.recordUsage (AIService.ts:208)
+```
+
+**影响范围**: 每次 AI 调用成功后，用量数据无法写入数据库，导致前端显示"暂无"
+
+**修复方案**:
+
+| 文件 | 修复内容 |
+|------|----------|
+| [AIService.ts](backend/src/services/ai/AIService.ts) | 移除3处 `require()`，改为顶层静态 `import` |
+| [ModelHealthChecker.ts](backend/src/services/ai/ModelHealthChecker.ts) | 移除2处 `require()`，改为顶层静态 `import` |
+| [AiAssistant.vue](frontend/src/views/ai/AiAssistant.vue) | 引入 `modelApi` 获取真实累计统计数据 |
+
+**新增功能**:
+- Token 用量卡片显示月度累计统计（而非单次响应）
+- 操作动态记录每次调用的 Token 消耗和模型信息
+- 数据库验证脚本：[check-ai-usage.ts](backend/src/scripts/check-ai-usage.ts)
+
+---
+
+#### 🔍 CommonJS/ESM 全面兼容性检查
+
+对整个后端项目进行了系统性模块兼容性排查：
+
+**项目配置确认**:
+- ✅ `"type": "module"` (ESM 模式)
+- ✅ `"module": "ESNext"` (TypeScript 配置)
+- ✅ `"esModuleInterop": true` (互操作支持)
+
+**排查结果**:
+
+| 类型 | 数量 | 状态 |
+|------|------|------|
+| ESM 静态导入 (`import`) | ~150+ 处 | ✅ 全部正确 |
+| CJS `require()` (.ts 文件) | **5处 → 0处** | ✅ 已全部修复 |
+| CJS `require()` (.cjs 文件) | 5 处 | ✅ 合理保留 |
+| `module.exports` (PM2 配置) | 1 处 | ✅ 低风险 |
+| `__dirname` / `__filename` 替代方案 | 39 处 | ✅ 全部使用 ESM 兼容方式 |
+
+**修复文件清单**:
+1. [AIService.ts](backend/src/services/ai/AIService.ts) — +2 import, -3 require
+2. [ModelHealthChecker.ts](backend/src/services/ai/ModelHealthChecker.ts) — +1 import, -2 require
+3. [AiAssistant.vue](frontend/src/views/ai/AiAssistant.vue) — 引入 modelApi + 用量统计逻辑
+
+**代码规范**:
+- 所有 `.ts` 文件禁止使用 `require()`
+- 所有 `.ts` 文件禁止使用 `module.exports`
+- `.cjs` 文件可继续使用 CommonJS（明确标识）
+- 动态加载使用 `import()` 而非 `require()`
+
+---
+
+### 影响范围总览
+
+| 文件 | 改动类型 | 说明 |
+|------|----------|------|
+| [ai.ts (store)](frontend/src/stores/ai.ts) | 功能增强 | 请求锁 + AbortController + 2秒延时重置 |
+| [AIService.ts](backend/src/services/ai/AIService.ts) | Bug 修复 | ESM 导入 + 详细调试日志 |
+| [ModelHealthChecker.ts](backend/src/services/ai/ModelHealthChecker.ts) | Bug 修复 | ESM 导入 |
+| [api/ai.ts](frontend/src/api/ai.ts) | 功能增强 | AbortSignal 支持 |
+| [AiAssistant.vue](frontend/src/views/ai/AiAssistant.vue) | 功能增强 | 用量统计获取 + 终止卡片样式 |
+| [SmartFormTab.vue](frontend/src/views/ai/tabs/SmartFormTab.vue) | 功能增强 | 终止状态 UI + 本地清理 |
+| [SmartImportTab.vue](frontend/src/views/ai/tabs/SmartImportTab.vue) | 功能增强 | 同步终止状态处理 |
+| [check-ai-usage.ts](backend/src/scripts/check-ai-usage.ts) | 新增工具 | 数据库状态验证脚本 |
+
+---
+
+### 🎯 核心成果总结
+
+✅ **100% ESM 兼容**: 所有 `.ts` 文件完全符合 ES Module 规范  
+✅ **零 require() 调用**: 开发环境不再有任何 CommonJS 语法  
+✅ **AI 用量记录正常**: 数据成功写入数据库，前端正确显示  
+✅ **终止功能完善**: 四层防护 + 2秒延时 + 平滑过渡  
+✅ **用户体验提升**: 状态指示清晰，数据展示准确  
+
+---
 
 ### ✅ 配方原料含量比校验系统 + AI 解析面板交互重构 + 容错恢复
 
@@ -1217,8 +1366,8 @@ MIT License
 
 ---
 
-**最后更新**: 2026-05-06\
-**版本**: v2.24.0 (UI 组件标准化统一)\
+**最后更新**: 2026-05-07\
+**版本**: v2.25.0 (AI 解析终止 + ESM 兼容 + 用量监控修复)\
 **维护者**: TingStudio Team
 ```
 

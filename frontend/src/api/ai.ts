@@ -90,7 +90,7 @@ export const aiApi = {
   },
 
   /** AI 解析配方文件 */
-  parseFormula(file: File, provider: string, version?: string) {
+  parseFormula(file: File, provider: string, version?: string, options?: { signal?: AbortSignal }) {
     const formData = new FormData();
     formData.append("file", file);
     formData.append("model", provider);
@@ -98,11 +98,12 @@ export const aiApi = {
     return http.post<any, ParsedFormula>("/ai/parse-formula", formData, {
       headers: { "Content-Type": "multipart/form-data" },
       timeout: 120_000,
+      signal: options?.signal,
     });
   },
 
   /** AI 解析原料营养文件（Excel/PDF/图片） */
-  parseMaterial(file: File, provider: string, version?: string) {
+  parseMaterial(file: File, provider: string, version?: string, options?: { signal?: AbortSignal }) {
     const formData = new FormData();
     formData.append("file", file);
     formData.append("model", provider);
@@ -110,6 +111,7 @@ export const aiApi = {
     return http.post<any, ParsedMaterialNutrition>("/ai/parse-material-nutrition", formData, {
       headers: { "Content-Type": "multipart/form-data" },
       timeout: 120_000,
+      signal: options?.signal,
     });
   },
 

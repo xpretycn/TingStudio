@@ -11,10 +11,15 @@
             <h3 class="ai-title">AI 智能原料导入</h3>
             <p class="ai-subtitle">支持识别 Excel 原料营养数据</p>
           </div>
-          <div v-if="selectedFile || parsedItems.length" class="ai-header-status">
+          <div v-if="selectedFile || parsedItems.length || aiStore.materialParseAborted" class="ai-header-status"
+            :class="{ 'aborted-status': aiStore.materialParseAborted }">
             <div v-if="aiStore.materialParseLoading" class="status-indicator status-indicator--loading">
               <span class="status-dot status-dot--pulse"></span>
               <span class="status-text">正在解析: {{ selectedFile?.name || '文件' }}</span>
+            </div>
+            <div v-else-if="aiStore.materialParseAborted" class="status-indicator status-indicator--aborted">
+              <span class="status-dot status-dot--aborted"></span>
+              <span class="status-text">已终止: {{ selectedFile?.name || '文件' }}</span>
             </div>
             <div v-else-if="parsedItems.length" class="status-indicator status-indicator--done">
               <span class="status-dot status-dot--done"></span>
@@ -28,9 +33,9 @@
         </div>
 
         <div class="ai-body">
-          <div v-if="!aiStore.materialParseLoading && !parsedItems.length" class="upload-zone"
-            :class="{ 'drag-over': isDragOver }" @click="triggerFileUpload" @dragover.prevent="handleDragOver"
-            @dragleave="handleDragLeave" @drop.prevent="handleDrop">
+          <div v-if="!aiStore.materialParseLoading && !parsedItems.length && !aiStore.materialParseAborted"
+            class="upload-zone" :class="{ 'drag-over': isDragOver }" @click="triggerFileUpload"
+            @dragover.prevent="handleDragOver" @dragleave="handleDragLeave" @drop.prevent="handleDrop">
             <input ref="fileInputRef" type="file" accept=".xlsx,.xls,.csv,.png,.jpg,.jpeg,.gif,.webp"
               style="display: none" @change="handleFileInputChange" />
             <div class="upload-icon">
@@ -42,7 +47,9 @@
             </div>
           </div>
 
-          <div v-if="selectedFile && !aiStore.materialParseLoading && !parsedItems.length" class="file-selected-row">
+          <div
+            v-if="selectedFile && !aiStore.materialParseLoading && !parsedItems.length && !aiStore.materialParseAborted"
+            class="file-selected-row">
             <div class="file-info">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"
                 stroke-linecap="round" stroke-linejoin="round">
@@ -77,8 +84,19 @@
 
           <div v-if="aiStore.materialParseLoading" class="parsing-progress">
             <div class="progress-header">
-              <span class="progress-status">AI 正在解析原料营养数据...</span>
-              <span class="progress-percent">{{ parseProgressText }}</span>
+              <span class="progress-status">{{ aiStore.materialParseAborted ? 'AI 解析已终止' : 'AI 正在解析原料营养数据...' }}</span>
+              <div class="progress-right">
+                <span class="progress-percent">{{ parseProgressText }}</span>
+                <span class="progress-timer" :key="parseElapsedTime">{{ parseElapsedTimeFormatted }}</span>
+                <button v-if="!aiStore.materialParseAborted" class="abort-btn" @click="handleAbortParse" title="终止解析"
+                  aria-label="终止当前解析任务">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="6" y="6" width="12" height="12" rx="2" />
+                  </svg>
+                  终止
+                </button>
+              </div>
             </div>
             <div v-if="selectedFile" class="progress-file-info">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"
@@ -114,7 +132,8 @@
             <div class="parse-error-actions">
               <button type="button" class="error-dismiss" @click="aiStore.materialParseError = ''">✕</button>
               <button type="button" class="error-recovery-btn" @click="handleRecoveryParse">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
                   <polyline points="23 4 23 10 17 10" />
                   <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
                 </svg>
@@ -123,7 +142,7 @@
             </div>
           </div>
 
-          <div v-if="parsedItems.length" class="parse-result">
+          <div v-if="parsedItems.length && !aiStore.materialParseAborted" class="parse-result">
             <div class="result-header">
               <h4 class="result-title">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"
@@ -215,7 +234,7 @@
                 </thead>
                 <tbody>
                   <tr v-for="(item, index) in parsedItems" :key="index"
-                    :class="{ 'row-recorded': item.isRecorded, 'row-duplicate': isDuplicateName(item.name, index) }">
+                    :class="{ 'row-recorded': item.isRecorded, 'row-duplicate': isDuplicateName(item.name, index), 'row-pending': pendingConfirmSet.has(index) }">
                     <td class="cell-name" :class="{ 'cell-missing': !item.name }">
                       <div class="cell-content" v-if="editingCell?.index !== index || editingCell?.field !== 'name'"
                         @click="startEdit(index, 'name')">
@@ -329,10 +348,20 @@
                       </button>
                     </td>
                     <td class="cell-status">
-                      <t-tag v-if="item.isRecorded" theme="success" variant="light" size="small">已存在</t-tag>
-                      <t-tag v-else-if="isDuplicateName(item.name, index)" theme="danger" variant="light"
-                        size="small">重复</t-tag>
-                      <t-tag v-else theme="primary" variant="light" size="small">新增</t-tag>
+                      <t-tag v-if="pendingConfirmSet.has(parsedItems.indexOf(item))" theme="warning" variant="light"
+                        size="small">
+                        <template #icon><t-icon name="error-circle" /></template>
+                        待定
+                      </t-tag>
+                      <t-tag v-else-if="confirmedSet.has(parsedItems.indexOf(item))" theme="primary" variant="light"
+                        size="small">
+                        <template #icon><t-icon name="swap" /></template>
+                        已变更
+                      </t-tag>
+                      <t-tag v-else-if="item.isRecorded" theme="success" variant="light" size="small">已存在</t-tag>
+                      <t-tag v-else-if="isDuplicateName(item.name, parsedItems.indexOf(item))" theme="danger"
+                        variant="light" size="small">重复</t-tag>
+                      <t-tag v-else theme="default" variant="light" size="small">新增</t-tag>
                     </td>
                     <td class="cell-action">
                       <div class="action-btns">
@@ -360,28 +389,39 @@
             </div>
 
             <div class="batch-actions">
-              <button class="batch-btn batch-btn--all" :disabled="batchSubmitting || validItems.length === 0"
-                @click="handleBatchSubmit">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              <div v-if="pendingItems.length > 0" class="batch-pending-hint">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2"
                   stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="20 6 9 17 4 12" />
+                  <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                  <line x1="12" y1="9" x2="12" y2="13" />
+                  <line x1="12" y1="17" x2="12.01" y2="17" />
                 </svg>
-                一键录入 ({{ validItems.length }})
-              </button>
-              <button class="batch-btn batch-btn--sequential"
-                :disabled="batchSubmitting || validItems.length === 0 || sequentialActive"
-                @click="startSequentialImport">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                  stroke-linecap="round" stroke-linejoin="round">
-                  <line x1="8" y1="6" x2="21" y2="6" />
-                  <line x1="8" y1="12" x2="21" y2="12" />
-                  <line x1="8" y1="18" x2="21" y2="18" />
-                  <line x1="3" y1="6" x2="3.01" y2="6" />
-                  <line x1="3" y1="12" x2="3.01" y2="12" />
-                  <line x1="3" y1="18" x2="3.01" y2="18" />
-                </svg>
-                逐条录入 ({{ validItems.length }})
-              </button>
+                <span>{{ pendingItems.length }} 条原料存在数据差异，需先确认后方可录入</span>
+              </div>
+              <div class="batch-btn-group">
+                <button class="batch-btn batch-btn--all" :disabled="batchSubmitting || validItems.length === 0"
+                  @click="handleBatchSubmit">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                  一键录入 ({{ validItems.length }})
+                </button>
+                <button class="batch-btn batch-btn--sequential"
+                  :disabled="batchSubmitting || validItems.length === 0 || sequentialActive"
+                  @click="startSequentialImport">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="8" y1="6" x2="21" y2="6" />
+                    <line x1="8" y1="12" x2="21" y2="12" />
+                    <line x1="8" y1="18" x2="21" y2="18" />
+                    <line x1="3" y1="6" x2="3.01" y2="6" />
+                    <line x1="3" y1="12" x2="3.01" y2="12" />
+                    <line x1="3" y1="18" x2="3.01" y2="18" />
+                  </svg>
+                  逐条录入 ({{ validItems.length }})
+                </button>
+              </div>
             </div>
 
             <div v-if="sequentialActive && sequentialCurrentItem" class="sequential-confirm-card">
@@ -527,6 +567,10 @@
             <line x1="15" y1="17" x2="9" y2="17" />
           </svg>
           <span>营养数据对比</span>
+          <t-tag v-if="confirmedSet.has(diffIndex)" theme="primary" variant="light" size="small"
+            style="margin-left: auto;">
+            已变更
+          </t-tag>
         </div>
       </template>
       <div v-if="diffData" class="diff-content">
@@ -537,35 +581,68 @@
               <th>字段</th>
               <th>现有数据</th>
               <th>新数据</th>
-              <th>操作</th>
+              <th style="width: 220px;">选择保留</th>
+              <th style="width: 100px;">预览值</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="field in diffFields" :key="field.key" :class="{ 'diff-row-changed': field.changed }">
+            <tr v-for="field in diffFields" :key="field.key"
+              :class="{ 'diff-row-changed': field.changed, 'diff-row-preview': field.changed && diffChoices[diffIndex]?.[field.key] === 'old' }">
               <td class="diff-field-label">{{ field.label }}</td>
               <td class="diff-old">{{ field.oldVal != null ? field.oldVal : '—' }}</td>
               <td class="diff-new" :class="{ 'diff-highlight': field.changed }">{{ field.newVal != null ? field.newVal :
                 '—' }}</td>
               <td class="diff-action">
-                <div v-if="field.changed" class="diff-choice">
-                  <button class="diff-btn diff-btn--new" :class="{ active: diffChoices[field.key] === 'new' }"
-                    @click="diffChoices[field.key] = 'new'">使用新数据</button>
-                  <button class="diff-btn diff-btn--old" :class="{ active: diffChoices[field.key] === 'old' }"
-                    @click="diffChoices[field.key] = 'old'">保留原数据</button>
+                <div v-if="field.changed" class="diff-choice" :key="`choice-${diffIndex}-${field.key}-${resetVersion}`">
+                  <t-radio-group :value="diffChoices[diffIndex]?.[field.key] === 'old' ? 'old' : 'new'"
+                    @change="(val: string) => handleDiffChoice(field.key, val as 'new' | 'old')" size="small"
+                    variant="default-filled" :style="{ '--td-radio-bg-color': primaryColor }">
+                    <t-radio-button value="new">新</t-radio-button>
+                    <t-radio-button value="old">旧</t-radio-button>
+                  </t-radio-group>
                 </div>
                 <span v-else class="diff-same">一致</span>
+              </td>
+              <td class="diff-preview-value"
+                :class="{ 'preview-old': field.changed && diffChoices[diffIndex]?.[field.key] === 'old' }">
+                {{ getPreviewValue(field) }}
               </td>
             </tr>
           </tbody>
         </table>
+        <div class="diff-summary" v-if="hasAnyChange">
+          <div class="diff-summary-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
+              <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
+            </svg>
+          </div>
+          <div class="diff-summary-text">
+            <span class="summary-label">应用后将更新：</span>
+            <span v-for="f in changedFieldsList" :key="f.key" class="summary-item"
+              :class="{ 'item-keep': diffChoices[diffIndex]?.[f.key] === 'old' }">
+              {{ f.label }}={{ getPreviewValue(f) }}
+              <small>({{ diffChoices[diffIndex]?.[f.key] === 'old' ? '保留旧值' : '使用新值' }})</small>
+            </span>
+          </div>
+        </div>
         <div class="diff-footer">
-          <button class="diff-cancel-btn" @click="diffDialogVisible = false">
+          <button class="diff-cancel-btn" @click="cancelDiff">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
               stroke-linecap="round" stroke-linejoin="round">
               <line x1="18" y1="6" x2="6" y2="18" />
               <line x1="6" y1="6" x2="18" y2="18" />
             </svg>
             取消
+          </button>
+          <button class="diff-reset-btn" @click="resetDiffChoices">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+              <path d="M3 3v5h5" />
+            </svg>
+            重置
           </button>
           <button class="diff-apply-btn" @click="applyDiff">应用选择</button>
         </div>
@@ -575,10 +652,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, watch, onMounted } from 'vue';
+import { ref, reactive, computed, watch, onMounted, onUnmounted, nextTick } from 'vue';
 import { useRoute } from 'vue-router';
 import { useAiStore } from '@/stores/ai';
 import { useMaterialStore } from '@/stores/material';
+import { useThemeStore } from '@/stores/theme';
+import { getThemeTokens } from '@/assets/styles/tokens';
 import { materialApi } from '@/api/material';
 import { nutritionApi } from '@/api/nutrition';
 import { fileApi } from '@/api/file';
@@ -591,13 +670,23 @@ const emit = defineEmits<{
 
 const aiStore = useAiStore();
 const materialStore = useMaterialStore();
+const themeStore = useThemeStore();
+
+const safeMaterialParseResult = computed(() => {
+  return aiStore.materialParseAborted ? null : aiStore.materialParseResult;
+});
 const route = useRoute();
+
+const themeTokens = computed(() => getThemeTokens(themeStore.isDark, themeStore.brandColor));
+const primaryColor = computed(() => themeTokens.value.primary);
 
 const fileInputRef = ref<HTMLInputElement | null>(null);
 const selectedFile = ref<File | null>(null);
 const parsedItems = ref<MaterialNutritionItem[]>([]);
 const editingCell = ref<{ index: number; field: string; } | null>(null);
 const parseStartTime = ref(Date.now());
+const parseElapsedTime = ref(0);
+let parseTimer: ReturnType<typeof setInterval> | null = null;
 const isDragOver = ref(false);
 
 const batchSubmitting = ref(false);
@@ -619,11 +708,18 @@ const diffDialogVisible = ref(false);
 const diffData = ref<MaterialNutritionItem | null>(null);
 const diffIndex = ref(-1);
 const diffExistingNutrition = ref<Record<string, number>>({});
-const diffChoices = reactive<Record<string, 'new' | 'old'>>({});
+const originalAiDataMap = ref<Record<number, Record<string, any>>>({});
+const currentDisplayData = ref<Record<string, any> | null>(null);
+const diffChoices = reactive<Record<number, Record<string, 'new' | 'old'>>>({});
+const resetVersion = ref(0);
 
 const diffStatusMap = ref<Record<number, Record<string, boolean>>>({});
 
 const fieldSourceMap = ref<Record<number, Record<string, 'new' | 'old'>>>({});
+
+const pendingConfirmSet = ref<Set<number>>(new Set());
+
+const confirmedSet = ref<Set<number>>(new Set());
 
 const fileUploadStatus = ref<{ uploaded: boolean; fileName: string; fileSize: number; fileId?: string; error?: string; } | null>(null);
 
@@ -809,10 +905,13 @@ const handleClearResult = () => {
   fileUploadStatus.value = null;
   diffStatusMap.value = {};
   fieldSourceMap.value = {};
+  pendingConfirmSet.value.clear();
+  confirmedSet.value.clear();
 };
 
 const matchExistingMaterials = async () => {
   const existing = materialStore.allMaterials;
+  pendingConfirmSet.value.clear();
   for (let i = 0; i < parsedItems.value.length; i++) {
     const item = parsedItems.value[i];
     if (!item.name) continue;
@@ -825,17 +924,24 @@ const matchExistingMaterials = async () => {
         if (existingNutrition?.per100g) {
           const fields = ['protein', 'fat', 'carbohydrate', 'sodium'] as const;
           const fieldDiffs: Record<string, boolean> = {};
+          let hasAnyDiff = false;
           for (const f of fields) {
             const oldVal = existingNutrition.per100g[f];
             const newVal = (item as any)[f];
             fieldDiffs[f] = oldVal !== newVal && !(oldVal == null && newVal == null);
+            if (fieldDiffs[f]) hasAnyDiff = true;
           }
           diffStatusMap.value[i] = fieldDiffs;
+          if (hasAnyDiff) {
+            pendingConfirmSet.value.add(i);
+          }
         } else {
           diffStatusMap.value[i] = { protein: true, fat: true, carbohydrate: true, sodium: true };
+          pendingConfirmSet.value.add(i);
         }
       } catch {
         diffStatusMap.value[i] = { protein: true, fat: true, carbohydrate: true, sodium: true };
+        pendingConfirmSet.value.add(i);
       }
     }
   }
@@ -934,7 +1040,15 @@ const validationIssues = computed(() => {
 });
 
 const validItems = computed(() => {
-  return parsedItems.value.filter(item => item.name && !isDuplicateName(item.name, parsedItems.value.indexOf(item)));
+  return parsedItems.value.filter((item, idx) =>
+    item.name && !isDuplicateName(item.name, idx) && !pendingConfirmSet.value.has(idx)
+  );
+});
+
+const pendingItems = computed(() => {
+  return parsedItems.value.filter((item, idx) =>
+    item.name && !isDuplicateName(item.name, idx) && pendingConfirmSet.value.has(idx)
+  );
 });
 
 const batchProgressPercent = computed(() => {
@@ -945,6 +1059,61 @@ const batchProgressPercent = computed(() => {
 const currentModelInfo = computed(() => {
   if (!aiStore.selectedModel) return null;
   return aiStore.models.find(m => m.provider === aiStore.selectedModel) || null;
+});
+
+const parseElapsedTimeFormatted = computed(() => {
+  if (!aiStore.materialParseLoading) return '0s';
+  const seconds = Math.floor(parseElapsedTime.value / 1000);
+  if (seconds < 60) return `${seconds}s`;
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = seconds % 60;
+  return `${minutes}m ${remainingSeconds}s`;
+});
+
+const startParseTimer = () => {
+  parseElapsedTime.value = 0;
+  if (parseTimer) clearInterval(parseTimer);
+  parseTimer = setInterval(() => {
+    parseElapsedTime.value += 1000;
+  }, 1000);
+};
+
+const stopParseTimer = () => {
+  if (parseTimer) {
+    clearInterval(parseTimer);
+    parseTimer = null;
+  }
+};
+
+const handleAbortParse = () => {
+  if (!aiStore.materialParseLoading || aiStore.materialParseAborted) return;
+
+  aiStore.abortParseMaterial();
+  stopParseTimer();
+
+  parsedItems.value = [];
+  originalAiDataMap.value = {};
+  diffChoices.value = {};
+  diffStatusMap.value = {};
+  fieldSourceMap.value = {};
+  priceAdjustments.value = {};
+
+  MessagePlugin.warning({
+    content: 'AI 解析已终止',
+    duration: 3000,
+  });
+};
+
+watch(() => aiStore.materialParseLoading, (loading) => {
+  if (loading) {
+    startParseTimer();
+  } else {
+    stopParseTimer();
+  }
+});
+
+onUnmounted(() => {
+  stopParseTimer();
 });
 
 const parseProgressText = computed(() => {
@@ -1153,19 +1322,65 @@ const openDiff = async (index: number) => {
     diffExistingNutrition.value = {};
   }
 
+  if (originalAiDataMap.value[index]) {
+    currentDisplayData.value = { ...originalAiDataMap.value[index] };
+  } else {
+    const fields = ['protein', 'fat', 'carbohydrate', 'sodium'] as const;
+    const aiDataCopy: Record<string, any> = {};
+    for (const f of fields) {
+      aiDataCopy[f] = (item as any)[f];
+    }
+    currentDisplayData.value = aiDataCopy;
+  }
+
   const fields = ['protein', 'fat', 'carbohydrate', 'sodium'] as const;
+  if (!diffChoices[diffIndex.value]) {
+    diffChoices[diffIndex.value] = {};
+  }
   for (const f of fields) {
-    const oldVal = diffExistingNutrition.value[f];
-    const newVal = (item as any)[f];
-    const changed = oldVal !== newVal && !(oldVal == null && newVal == null);
-    diffChoices[f] = changed ? 'new' : 'new';
+    if (!(f in diffChoices[diffIndex.value])) {
+      diffChoices[diffIndex.value][f] = 'new';
+    }
   }
 
   diffDialogVisible.value = true;
 };
 
+const handleDiffChoice = (fieldKey: string, choice: 'new' | 'old') => {
+  if (!diffChoices[diffIndex.value]) return;
+  if (diffChoices[diffIndex.value][fieldKey] === choice) return;
+  diffChoices[diffIndex.value][fieldKey] = choice;
+
+  if (currentDisplayData.value && diffExistingNutrition.value) {
+    if (choice === 'old') {
+      currentDisplayData.value[fieldKey] = diffExistingNutrition.value[fieldKey] ?? null;
+    } else {
+      currentDisplayData.value[fieldKey] = originalAiDataMap.value[diffIndex.value]?.[fieldKey] ?? null;
+    }
+  }
+};
+
+const getPreviewValue = (field: { key: string; oldVal: any; newVal: any; changed: boolean }): string => {
+  if (!field.changed) return field.newVal != null ? String(field.newVal) : '—';
+  const currentChoices = diffChoices[diffIndex.value];
+  if (!currentChoices) return field.newVal != null ? String(field.newVal) : '—';
+  return currentChoices[field.key] === 'old'
+    ? (field.oldVal != null ? String(field.oldVal) : '—')
+    : (currentDisplayData.value?.[field.key] != null ? String(currentDisplayData.value[field.key]) : '—');
+};
+
+const hasAnyChange = computed(() => {
+  if (!diffData.value || diffIndex.value < 0) return false;
+  const diffs = diffStatusMap.value[diffIndex.value];
+  return diffs ? Object.values(diffs).some(Boolean) : false;
+});
+
+const changedFieldsList = computed(() => {
+  return diffFields.value.filter(f => f.changed);
+});
+
 const diffFields = computed(() => {
-  if (!diffData.value) return [];
+  if (!currentDisplayData.value) return [];
   const fields = [
     { key: 'protein', label: '蛋白质' },
     { key: 'fat', label: '脂肪' },
@@ -1174,7 +1389,7 @@ const diffFields = computed(() => {
   ];
   return fields.map(f => {
     const oldVal = (diffExistingNutrition.value as any)[f.key] ?? null;
-    const newVal = (diffData.value as any)[f.key] ?? null;
+    const newVal = (currentDisplayData.value as any)[f.key] ?? null;
     const changed = oldVal !== newVal && !(oldVal == null && newVal == null);
     return { ...f, oldVal, newVal, changed };
   });
@@ -1187,16 +1402,44 @@ const applyDiff = () => {
   if (!fieldSourceMap.value[diffIndex.value]) {
     fieldSourceMap.value[diffIndex.value] = {};
   }
+  const currentChoices = diffChoices[diffIndex.value];
   for (const f of fields) {
-    if (diffChoices[f] === 'old') {
+    if (currentChoices?.[f] === 'old') {
       (item as any)[f] = (diffExistingNutrition.value as any)[f] ?? null;
       fieldSourceMap.value[diffIndex.value][f] = 'old';
     } else {
       fieldSourceMap.value[diffIndex.value][f] = 'new';
     }
   }
+  pendingConfirmSet.value.delete(diffIndex.value);
+  confirmedSet.value.add(diffIndex.value);
   diffDialogVisible.value = false;
-  MessagePlugin.success('已应用选择');
+  MessagePlugin.success('已应用选择，原料状态已更新为「已变更」');
+};
+
+const cancelDiff = () => {
+  diffDialogVisible.value = false;
+  currentDisplayData.value = null;
+};
+
+const resetDiffChoices = async () => {
+  if (diffIndex.value < 0 || !originalAiDataMap.value[diffIndex.value]) return;
+
+  const fields = ['protein', 'fat', 'carbohydrate', 'sodium'] as const;
+
+  currentDisplayData.value = { ...originalAiDataMap.value[diffIndex.value] };
+
+  const newChoices: Record<string, 'new' | 'old'> = {};
+  for (const f of fields) {
+    newChoices[f] = 'new';
+  }
+
+  diffChoices[diffIndex.value] = newChoices;
+  resetVersion.value++;
+
+  await nextTick();
+
+  MessagePlugin.success('已重置为最新AI解析数据');
 };
 
 const resetAllData = () => {
@@ -1212,9 +1455,13 @@ const resetAllData = () => {
   diffData.value = null;
   diffIndex.value = -1;
   diffExistingNutrition.value = {};
-  Object.keys(diffChoices).forEach(k => delete diffChoices[k]);
+  Object.keys(diffChoices).forEach(k => delete diffChoices[Number(k)]);
   fileUploadStatus.value = null;
   aiStore.clearMaterialParseResult();
+  pendingConfirmSet.value.clear();
+  confirmedSet.value.clear();
+  diffStatusMap.value = {};
+  fieldSourceMap.value = {};
   if (fileInputRef.value) fileInputRef.value.value = '';
 };
 
@@ -1236,8 +1483,20 @@ onMounted(() => {
 });
 
 watch(() => aiStore.materialParseResult, (newVal) => {
-  if (newVal) {
+  if (newVal && !aiStore.materialParseAborted) {
     parsedItems.value = newVal.materials.map(m => ({ ...m }));
+
+    const fields = ['protein', 'fat', 'carbohydrate', 'sodium'] as const;
+    const newMap: Record<number, Record<string, any>> = {};
+    newVal.materials.forEach((m, idx) => {
+      const itemData: Record<string, any> = {};
+      for (const f of fields) {
+        itemData[f] = (m as any)[f];
+      }
+      newMap[idx] = itemData;
+    });
+    originalAiDataMap.value = newMap;
+
     materialStore.fetchAllForSelect().then(() => matchExistingMaterials());
   }
 });
@@ -1318,6 +1577,11 @@ watch(() => aiStore.materialParseResult, (newVal) => {
       margin-left: auto;
       flex-shrink: 0;
 
+      &.aborted-status {
+        padding-top: 8px;
+        margin-bottom: 16px;
+      }
+
       .status-indicator {
         display: inline-flex;
         align-items: center;
@@ -1347,11 +1611,22 @@ watch(() => aiStore.materialParseResult, (newVal) => {
         border: 1px solid rgba(245, 158, 11, 0.15);
       }
 
+      .status-indicator--aborted {
+        background: rgba(239, 68, 68, 0.08);
+        color: #dc2626;
+        border: 1px solid rgba(239, 68, 68, 0.15);
+        margin-top: 24px;
+        padding: 10px 14px;
+        transition: all 0.3s ease;
+        animation: aborted-fade-in 0.3s ease-out;
+      }
+
       .status-dot {
         width: 8px;
         height: 8px;
         border-radius: 50%;
         flex-shrink: 0;
+        transition: background 0.3s ease;
       }
 
       .status-dot--pulse {
@@ -1366,6 +1641,10 @@ watch(() => aiStore.materialParseResult, (newVal) => {
       .status-dot--ready {
         background: #f59e0b;
         animation: dot-blink 2s ease-in-out infinite;
+      }
+
+      .status-dot--aborted {
+        background: #ef4444;
       }
 
       .status-text {
@@ -1385,6 +1664,18 @@ watch(() => aiStore.materialParseResult, (newVal) => {
         50% {
           opacity: 0.4;
           transform: scale(0.7);
+        }
+      }
+
+      @keyframes aborted-fade-in {
+        from {
+          opacity: 0;
+          transform: translateY(-4px);
+        }
+
+        to {
+          opacity: 1;
+          transform: translateY(0);
         }
       }
 
@@ -1575,6 +1866,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
       .progress-header {
         display: flex;
         justify-content: space-between;
+        align-items: center;
         margin-bottom: 12px;
 
         .progress-status {
@@ -1583,10 +1875,77 @@ watch(() => aiStore.materialParseResult, (newVal) => {
           color: #64748b;
         }
 
+        .progress-right {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+
         .progress-percent {
           font-size: 12px;
           font-family: monospace;
           color: $emerald-500;
+        }
+
+        .progress-timer {
+          display: inline-flex;
+          align-items: center;
+          padding: 2px 10px;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: #fff;
+          font-size: 11px;
+          font-weight: 700;
+          font-family: 'SF Mono', 'Fira Code', monospace;
+          border-radius: 20px;
+          box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+          animation: timerPulse 1s ease-in-out infinite;
+
+          @keyframes timerPulse {
+
+            0%,
+            100% {
+              transform: scale(1);
+            }
+
+            50% {
+              transform: scale(1.05);
+            }
+          }
+        }
+
+        .abort-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          padding: 5px 14px;
+          background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+          color: #fff;
+          font-size: 12px;
+          font-weight: 600;
+          border: none;
+          border-radius: 20px;
+          cursor: pointer;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+          margin-left: 10px;
+
+          &:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.45);
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+          }
+
+          &:active {
+            transform: translateY(0) scale(0.98);
+          }
+
+          svg {
+            transition: transform 0.3s ease;
+          }
+
+          &:hover svg {
+            transform: rotate(90deg);
+          }
         }
       }
 
@@ -1944,6 +2303,11 @@ watch(() => aiStore.materialParseResult, (newVal) => {
         &.row-duplicate {
           background: rgba(239, 68, 68, 0.04);
         }
+
+        &.row-pending {
+          background: rgba(245, 158, 11, 0.05);
+          border-left: 3px solid #F59E0B;
+        }
       }
 
       .col-name {
@@ -2165,8 +2529,30 @@ watch(() => aiStore.materialParseResult, (newVal) => {
 
     .batch-actions {
       display: flex;
-      gap: 12px;
+      flex-direction: column;
+      gap: 10px;
       margin-top: 24px;
+    }
+
+    .batch-pending-hint {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      background: rgba(245, 158, 11, 0.06);
+      border: 1px solid rgba(245, 158, 11, 0.2);
+      font-size: 13px;
+      color: #B45309;
+
+      svg {
+        flex-shrink: 0;
+      }
+    }
+
+    .batch-btn-group {
+      display: flex;
+      gap: 12px;
     }
 
     .batch-btn {
@@ -2567,6 +2953,10 @@ watch(() => aiStore.materialParseResult, (newVal) => {
     background: rgba(245, 158, 11, 0.04);
   }
 
+  .diff-row-preview {
+    background: rgba(59, 130, 246, 0.04);
+  }
+
   .diff-field-label {
     font-weight: 500;
     color: #64748b;
@@ -2584,41 +2974,101 @@ watch(() => aiStore.materialParseResult, (newVal) => {
     font-size: 12px;
     color: #94a3b8;
   }
+
+  .diff-preview-value {
+    font-weight: 600;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 13px;
+    text-align: center;
+
+    &.preview-old {
+      color: #2563eb;
+      background: rgba(59, 130, 246, 0.08);
+      border-radius: 4px;
+      padding: 2px 8px;
+    }
+  }
 }
 
 .diff-choice {
   display: flex;
-  gap: 6px;
-}
+  gap: 0;
+  animation: choiceReset 0.3s ease-out;
 
-.diff-btn {
-  padding: 4px 10px;
-  border-radius: 6px;
-  font-size: 11px;
-  font-weight: 600;
-  border: 1px solid #e2e8f0;
-  cursor: pointer;
-  transition: all $transition-fast;
-  background: #fff;
-  color: #64748b;
+  @keyframes choiceReset {
+    0% {
+      opacity: 0.5;
+      transform: scale(0.95);
+    }
 
-  &--new {
+    50% {
+      opacity: 0.8;
+      transform: scale(1.02);
+    }
 
-    &:hover,
-    &.active {
-      background: #ecfdf5;
-      border-color: #10B981;
-      color: #059669;
+    100% {
+      opacity: 1;
+      transform: scale(1);
     }
   }
 
-  &--old {
+  :deep(.t-radio-group) {
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+  }
 
-    &:hover,
-    &.active {
-      background: #eff6ff;
-      border-color: #3b82f6;
-      color: #2563eb;
+  :deep(.t-radio-button) {
+    padding: 4px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    border: none !important;
+    background: #f8fafc;
+    color: #64748b;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    min-width: 40px;
+    text-align: center;
+    position: relative;
+
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), transparent);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      pointer-events: none;
+    }
+
+    &:hover {
+      background: #f1f5f9;
+      color: var(--td-radio-bg-color, #3b82f6);
+
+      &::after {
+        opacity: 1;
+      }
+    }
+
+    &.t-is-checked {
+      background: var(--td-radio-bg-color, #3b82f6);
+      color: #fff;
+      box-shadow: 0 2px 4px rgba(59, 130, 246, 0.25);
+      transform: scale(1);
+
+      &:hover {
+        opacity: 0.9;
+        color: #fff;
+
+        &::after {
+          opacity: 0;
+        }
+      }
+
+      &::after {
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), transparent);
+        opacity: 1;
+      }
     }
   }
 }
@@ -2639,6 +3089,58 @@ watch(() => aiStore.materialParseResult, (newVal) => {
   gap: 10px;
 }
 
+.diff-summary {
+  margin-top: 16px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.05), rgba(139, 92, 246, 0.04));
+  border: 1px solid rgba(99, 102, 241, 0.15);
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+
+  .diff-summary-icon {
+    color: #6366f1;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .diff-summary-text {
+    font-size: 13px;
+    line-height: 1.6;
+
+    .summary-label {
+      font-weight: 600;
+      color: #4338ca;
+      margin-right: 6px;
+    }
+
+    .summary-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+      margin-right: 8px;
+      padding: 1px 6px;
+      border-radius: 4px;
+      background: rgba(16, 185, 129, 0.08);
+      color: #059669;
+      font-weight: 500;
+
+      small {
+        font-size: 11px;
+        color: #94a3b8;
+        font-weight: 400;
+        margin-left: 3px;
+      }
+
+      &.item-keep {
+        background: rgba(59, 130, 246, 0.08);
+        color: #2563eb;
+      }
+    }
+  }
+}
+
 .diff-cancel-btn {
   display: inline-flex;
   align-items: center;
@@ -2656,6 +3158,75 @@ watch(() => aiStore.materialParseResult, (newVal) => {
   &:hover {
     background: #f1f5f9;
     border-color: #cbd5e1;
+  }
+}
+
+.diff-reset-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 16px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all $transition-normal;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.25);
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.4s ease, height 0.4s ease;
+  }
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.35);
+    background: linear-gradient(135deg, #d97706, #b45309);
+
+    &::before {
+      width: 200px;
+      height: 200px;
+    }
+  }
+
+  &:active {
+    transform: translateY(0) scale(0.98);
+    box-shadow: 0 1px 4px rgba(245, 158, 11, 0.25);
+  }
+
+  svg {
+    transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+    @keyframes resetRotate {
+      from {
+        transform: rotate(0deg);
+      }
+
+      to {
+        transform: rotate(-360deg);
+      }
+    }
+  }
+
+  &:hover svg {
+    transform: rotate(-15deg);
+  }
+
+  &:active svg {
+    animation: resetRotate 0.4s ease-out;
   }
 }
 

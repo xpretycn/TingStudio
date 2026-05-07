@@ -1,5 +1,6 @@
 import crypto from "node:crypto";
 import { getDb } from "../../config/database-better-sqlite3.js";
+import { checkAndFireAlerts } from "../../controllers/modelController.js";
 
 export interface AIModelConfig {
   name: string;
@@ -170,7 +171,6 @@ export class AIService {
 
   private async getFallbackProvider(provider: string): Promise<string | null> {
     try {
-      const { getDb } = require("../config/database-better-sqlite3.js");
       const db = getDb();
       const row = db
         .prepare(
@@ -205,9 +205,17 @@ export class AIService {
     userId?: string;
   }): void {
     try {
-      const { getDb } = require("../config/database-better-sqlite3.js");
       const db = getDb();
+
+      if (!db) {
+        console.error("[AI] 记录用量失败: 数据库实例为空");
+        return;
+      }
+
       const id = `ul_${crypto.randomUUID().slice(0, 8)}`;
+
+      console.log(`[AI-Usage] 准备记录用量: provider=${params.provider}, model=${params.model}, callType=${params.callType}, totalTokens=${params.totalTokens}`);
+
       db.prepare(
         `
         INSERT INTO ai_usage_logs (id, provider, model, call_type, prompt_tokens, completion_tokens, total_tokens, latency_ms, status, error_message, request_summary, fallback_from, user_id, created_at)
@@ -229,10 +237,23 @@ export class AIService {
         params.userId || null,
       );
 
-      const { checkAndFireAlerts } = require("../controllers/modelController.js");
-      checkAndFireAlerts(params.provider, params.totalTokens, db);
+      console.log(`[AI-Usage] ✅ 用量记录成功: id=${id}, tokens=${params.totalTokens}`);
+
+      try {
+        checkAndFireAlerts(params.provider, params.totalTokens, db);
+      } catch (alertErr) {
+        console.warn("[AI-Usage] ⚠️ 告警检查失败（不影响主流程）:", alertErr);
+      }
     } catch (err) {
-      console.warn("[AI] 记录用量失败:", err);
+      console.error("[AI-Usage] ❌ 记录用量失败:", err);
+      console.error("[AI-Usage] 错误详情:", {
+        provider: params.provider,
+        model: params.model,
+        callType: params.callType,
+        totalTokens: params.totalTokens,
+        error: err instanceof Error ? err.message : err,
+        stack: err instanceof Error ? err.stack : undefined,
+      });
     }
   }
 
@@ -304,6 +325,8 @@ export class AIService {
 
     const latencyMs = Date.now() - start;
     const effectiveConfig = fallbackFrom ? this.getModel(provider)! : modelConfig;
+
+    console.log(`[AI-Chat] 调用完成: provider=${provider}, model=${result.model}, usage=`, result.usage);
 
     this.recordUsage({
       provider,

@@ -417,6 +417,32 @@ export async function getModelVersionsByProvider(req: Request, res: Response) {
   }
 }
 
+export async function switchModelVersion(req: Request, res: Response) {
+  try {
+    if (!isAdmin(req)) {
+      res.status(403).json({ success: false, message: "仅管理员可操作" });
+      return;
+    }
+    const { provider } = req.params;
+    const { model } = req.body;
+    if (!model || typeof model !== "string") {
+      res.status(400).json({ success: false, message: "请提供有效的模型版本" });
+      return;
+    }
+    const db = getDb();
+    const existing = db.prepare("SELECT id FROM ai_models WHERE provider = ?").get(provider);
+    if (!existing) {
+      res.status(404).json({ success: false, message: "模型不存在" });
+      return;
+    }
+    db.prepare("UPDATE ai_models SET model = ?, updated_at = datetime('now') WHERE provider = ?").run(model, provider);
+    aiService.reloadModels();
+    res.json({ success: true, data: { provider, model } });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+}
+
 export async function getUsageStats(req: Request, res: Response) {
   try {
     const db = getDb();

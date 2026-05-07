@@ -176,6 +176,10 @@ export const modelApi = {
     );
   },
 
+  switchVersion(provider: string, model: string) {
+    return http.put<any, any>(`/ai/models/${provider}/version`, { model });
+  },
+
   setFallback(id: string, fallbackProvider: string) {
     return http.put<any, any>(`/ai/models-manage/${id}/fallback`, { fallbackProvider });
   },
