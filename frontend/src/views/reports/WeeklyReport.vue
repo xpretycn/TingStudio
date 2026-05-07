@@ -627,9 +627,20 @@ const savePlans = async () => {
 
 const handlePublish = async () => {
   if (!report.value || report.value.status === 'published') return;
-  const res = await reportStore.publishReport(report.value.id);
+
+  // 准备报告数据用于AI分析
+  const reportDataForAI = {
+    id: report.value.id,
+    type: 'weekly',
+    title: report.value.title,
+    periodStart: report.value.periodStart,
+    periodEnd: report.value.periodEnd,
+    dataJson: report.value.dataJson
+  };
+
+  const res = await reportStore.publishReport(report.value.id, reportDataForAI, 'weekly');
   if (res) {
-    MessagePlugin.success('报告已发布');
+    MessagePlugin.success('报告已发布，AI智能分析正在生成中...');
   }
 };
 

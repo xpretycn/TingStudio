@@ -91,6 +91,11 @@ export const reportApi = {
     return http.post<any, any>('/reports/compare', { reportId1, reportId2 });
   },
   getAIAnalysis(reportData: any, type: string) {
-    return http.post<any, any>('/reports/ai-analysis', { reportData, type });
+    return http.post<any, any>('/reports/ai-analysis', { reportData, type }, {
+      timeout: 120000 // AI分析可能需要较长时间，设置2分钟超时
+    });
+  },
+  saveAIAnalysis(reportId: string, aiAnalysisData: any) {
+    return http.put<any, any>(`/reports/${reportId}/ai-analysis`, { aiAnalysis: aiAnalysisData });
   },
 };

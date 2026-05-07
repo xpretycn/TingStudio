@@ -794,8 +794,9 @@ const handleParse = async () => {
   }
 };
 
-const handleReparseWithModel = (data: { value: string; }) => {
+const handleReparseWithModel = async (data: { value: string; }) => {
   aiStore.selectedModel = data.value;
+  await aiStore.loadModelVersions(data.value);
   aiStore.clearMaterialParseResult();
   parsedItems.value = [];
   batchSummary.value = null;
@@ -815,6 +816,7 @@ const handleRecoveryParse = async () => {
   const nextModel = aiStore.models[(currentModelIdx + 1) % aiStore.models.length];
   if (nextModel && nextModel.provider !== aiStore.selectedModel) {
     aiStore.selectedModel = nextModel.provider;
+    await aiStore.loadModelVersions(nextModel.provider);
   }
 
   parseStartTime.value = Date.now();
@@ -2044,6 +2046,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
       align-items: center;
       justify-content: space-between;
       gap: 8px;
+      margin-top: 16px;
       padding: 14px 18px;
       background: $color-danger-bg;
       border: 1px solid $color-danger-medium;

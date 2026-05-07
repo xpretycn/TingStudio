@@ -1,4 +1,4 @@
-# TingStudio v2.25
+# TingStudio v2.26
 
 食品配方工作数据管理平台 — 前后端分离架构
 
@@ -6,7 +6,126 @@
 
 TingStudio 是一个专业的食品配方工作数据管理平台，面向食品配方行业（中草药功效配方），提供配方管理、原料管理、业务员管理、营养成分分析、导出分享等完整功能链路。采用 **Vue 3 + Express + SQLite** 前后端分离架构，支持 JWT 认证、RESTful API、配方版本控制、营养合规检查、AI 智能解析等企业级特性。
 
-## 🚀 最新更新 (2026-05-07)
+## 🚀 最新更新 (2026-05-08)
+
+### ✅ AI智能分析自动化 + 智谱GLM默认模型 + Markdown格式优化
+
+#### 🤖 报告AI分析完全自动化（发布即触发）
+
+实现了月报/周报发布时**自动生成AI分析**的完整流程，无需手动点击：
+
+**核心改进**：
+
+| 特性 | 说明 |
+|------|------|
+| **发布即分析** | 点击"发布"按钮后，系统后台自动调用AI生成分析报告 |
+| **异步非阻塞** | AI分析在后台执行（30-120秒），不阻塞用户操作 |
+| **持久化存储** | 分析结果自动保存到数据库，下次查看直接展示 |
+| **即时加载** | 打开已发布的报告，AI分析区域立即显示完整结果 |
+
+**数据流架构**：
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  用户点击"发布" → publishReport(id, data, type)            │
+│       ↓                                                     │
+│  后端发布API成功 → 异步触发 generateAndSaveAIAnalysis()     │
+│       ↓                                                     │
+│  调用智谱GLM AI模型 → 生成分析报告（30-120秒）              │
+│       ↓                                                     │
+│  saveAIAnalysis() → 保存到 reports.dataJson.aiAnalysis      │
+│       ↓                                                     │
+│  下次打开报告 → fetchReportById() 自动加载 → UI直接展示     │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**修改文件**：
+- [report.ts (store)](frontend/src/stores/report.ts) — `publishReport()` 支持异步AI分析 + `generateAndSaveAIAnalysis()` 新增 + `fetchReportById()` 自动加载已保存的分析
+- [report.ts (api)](frontend/src/api/report.ts) — 新增 `saveAIAnalysis()` API方法
+- [MonthlyReport.vue](frontend/src/views/reports/MonthlyReport.vue) — `handlePublish()` 传递完整报告数据用于AI分析
+- [WeeklyReport.vue](frontend/src/views/reports/WeeklyReport.vue) — 同步修改发布逻辑
+- [AIAnalysisPanel.vue](frontend/src/components/AIAnalysisPanel.vue) — 移除手动按钮，改为自动展示 + 状态指示器（loading/pending/complete）
+
+---
+
+#### 🎯 默认使用智谱GLM模型进行报告分析
+
+将AI分析报告的默认模型从通义千问切换为**智谱GLM (glm-4-flash)**：
+
+**模型选择逻辑**：
+
+```
+请求到达 → 检查 provider 参数
+              ↓
+        ┌─────────────────┐
+        │ 传入了 provider? │
+        └────┬────────┬───┘
+             是 ↓    ↓ 否
+        使用指定值  优先查找 zhipu (智谱GLM)
+                     ↓
+               ┌──────────┐
+               │ 找到了?   │
+               └───┬───┬───┘
+                  是↓   ↓否
+              使用 zhipu  使用第一个可用模型（降级）
+```
+
+**配置信息**：
+- **默认模型**: `glm-4-flash`（快速版）
+- **备选模型**: `glm-4-air` / `glm-4-plus` / `glm-5`
+- **降级策略**: 智谱不可用时自动降级到通义千问 qwen-plus
+
+**修改文件**：
+- [reportController.ts](backend/src/controllers/reportController.ts) — `getAIAnalysis()` 优先选择智谱GLM模型 + 日志输出当前使用的模型信息
+
+---
+
+#### ✨ AI分析结果Markdown格式清理
+
+修复了AI分析结果显示大量Markdown符号（`##`、`**`、`*`）的问题：
+
+**清理规则**：
+
+| Markdown语法 | 清理后 |
+|-------------|--------|
+| `### 标题` | 标题 |
+| `**粗体**` | 粗体 |
+| `*斜体*` | 斜体 |
+| `` `代码` `` | 代码 |
+| `[链接](url)` | 链接 |
+| `![图片](url)` | （图片） |
+| `- 列表项` | • 列表项 |
+| `1. 有序列表` | 列表项 |
+
+**关键修复**：
+- 修复了 `cleanMarkdown()` 函数中的语法错误（缺少 `.replace(` 方法调用）
+- 移除了800字符截断限制，显示完整的AI分析内容
+- 保留段落结构和语义完整性
+
+---
+
+#### 影响范围总览
+
+| 文件 | 改动类型 | 说明 |
+|------|----------|------|
+| [report.ts (store)](frontend/src/stores/report.ts) | 功能增强 | 发布时自动生成AI分析 + 加载时自动读取 |
+| [report.ts (api)](frontend/src/api/report.ts) | 功能增强 | 新增保存AI分析的API接口 |
+| [AIAnalysisPanel.vue](frontend/src/components/AIAnalysisPanel.vue) | 重构 | 移除手动按钮 + 自动展示 + Markdown清理 |
+| [MonthlyReport.vue](frontend/src/views/reports/MonthlyReport.vue) | 功能增强 | 发布时传递完整数据给AI分析 |
+| [WeeklyReport.vue](frontend/src/views/reports/WeeklyReport.vue) | 功能增强 | 同步修改发布逻辑 |
+| [reportController.ts](backend/src/controllers/reportController.ts) | 配置优化 | 默认使用智谱GLM模型 |
+
+---
+
+### 🎯 核心成果总结
+
+✅ **完全自动化**: 发布报告后AI分析自动生成，无需人工干预  
+✅ **智谱GLM优先**: 默认使用国产大模型，响应快速且中文理解优秀  
+✅ **持久化存储**: 分析结果永久保存，刷新页面不丢失  
+✅ **用户体验提升**: 无需等待，下次查看即时展示  
+✅ **格式清晰**: Markdown符号完全清理，阅读体验友好  
+
+---
 
 ### ✅ AI 解析终止功能完善 + 异步防泄漏机制 + 模型用量监控修复 + ESM/CJS 全面兼容
 
@@ -1366,8 +1485,8 @@ MIT License
 
 ---
 
-**最后更新**: 2026-05-07\
-**版本**: v2.25.0 (AI 解析终止 + ESM 兼容 + 用量监控修复)\
+**最后更新**: 2026-05-08
+**版本**: v2.26.0 (AI分析自动化 + 智谱GLM默认 + Markdown优化)
 **维护者**: TingStudio Team
 ```
 

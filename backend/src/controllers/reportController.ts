@@ -475,7 +475,12 @@ export async function getAIAnalysis(req: any, res: Response) {
       return res.status(503).json({ success: false, message: "未配置AI模型，请在环境变量中设置API Key" });
     }
 
-    const selectedProvider = provider || availableModels[0].provider;
+    // 优先使用智谱GLM模型进行报告分析
+    const zhipuModel = availableModels.find(m => m.provider === 'zhipu');
+    const defaultProvider = zhipuModel ? 'zhipu' : availableModels[0].provider;
+    const selectedProvider = provider || defaultProvider;
+
+    console.log(`[ReportController] 🤖 AI分析使用模型: ${selectedProvider} (${zhipuModel?.model || availableModels[0]?.model})`);
 
     const prompt = `你是一位专业的数据分析顾问。请根据以下报告数据，提供深入的分析和建议：
 

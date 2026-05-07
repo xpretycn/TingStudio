@@ -185,7 +185,11 @@
                       <h4 class="section-title-text section-title-text--sm">Token 消耗趋势</h4>
                     </div>
                   </div>
-                  <div v-if="modelStore.usageTrend.length > 0" ref="trendChartRef" class="chart-container"></div>
+                  <div v-if="usageLoading" class="chart-loading">
+                    <div class="chart-loading-spinner"></div>
+                    <p class="chart-loading-text">正在加载Token消耗数据...</p>
+                  </div>
+                  <div v-else-if="modelStore.usageTrend.length > 0" ref="trendChartRef" class="chart-container"></div>
                   <div v-else class="chart-empty">
                     <div class="chart-empty-icon-wrap">
                       <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.2"
@@ -209,7 +213,11 @@
                       <h4 class="section-title-text section-title-text--sm">模型用量占比</h4>
                     </div>
                   </div>
-                  <div v-if="modelStore.usageDistribution.some(d => d.tokens > 0)" ref="pieChartRef"
+                  <div v-if="usageLoading" class="chart-loading">
+                    <div class="chart-loading-spinner"></div>
+                    <p class="chart-loading-text">正在加载用量占比数据...</p>
+                  </div>
+                  <div v-else-if="modelStore.usageDistribution.some(d => d.tokens > 0)" ref="pieChartRef"
                     class="chart-container"></div>
                   <div v-else class="chart-empty">
                     <div class="chart-empty-icon-wrap">
@@ -364,9 +372,28 @@
                 </div>
               </div>
               <t-table v-if="modelStore.usageLogs.length > 0" :data="modelStore.usageLogs" :columns="logColumns"
-                size="small" row-key="id"
-                :pagination="{ current: logPage, pageSize: 20, total: modelStore.usageLogsTotal }"
-                @page-change="handleLogPageChange" />
+                size="small" row-key="id" :pagination="null" />
+              <div v-if="modelStore.usageLogs.length > 0" class="log-table-pagination">
+                <div class="pagination-info">
+                  显示第 {{ (logPage - 1) * logPageSize + 1 }}-{{
+                    Math.min(logPage * logPageSize, modelStore.usageLogsTotal) }} 条，
+                  共 {{ modelStore.usageLogsTotal }} 条数据
+                </div>
+                <div class="pagination-controls">
+                  <button class="pagination-btn" :class="{ 'pagination-btn--disabled': logPage === 1 }"
+                    :disabled="logPage === 1" @click="goLogPage(logPage - 1)">上一页</button>
+                  <template v-for="page in logPageNumbers" :key="page">
+                    <button v-if="page !== '...'" class="pagination-btn"
+                      :class="{ 'pagination-btn--active': page === logPage }"
+                      @click="typeof page === 'number' && goLogPage(page)">{{ page }}</button>
+                    <span v-else class="pagination-ellipsis">...</span>
+                  </template>
+                  <button class="pagination-btn"
+                    :class="{ 'pagination-btn--disabled': logPage === logTotalPages }"
+                    :disabled="logPage === logTotalPages"
+                    @click="goLogPage(logPage + 1)">下一页</button>
+                </div>
+              </div>
               <div v-else class="data-empty">
                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="1.5"
                   stroke-linecap="round" stroke-linejoin="round">
@@ -704,7 +731,46 @@ const editSubmitting = ref(false);
 const editingModelId = ref("");
 const usageDateRange = ref<string[]>([]);
 const logPage = ref(1);
+const logPageSize = ref(10); // 每页显示10条
 const logFilters = ref({ provider: "", callType: "", status: "" });
+const usageLoading = ref(false);
+
+const fetchUsageWithMinLoading = async (showLoading = true) => {
+  if (showLoading) {
+    console.log('[Loading] === 开始显示loading状态 ===');
+    usageLoading.value = true;
+    await nextTick();
+    await new Promise(resolve => setTimeout(resolve, 100));
+    console.log('[Loading] Loading动画已显示');
+  }
+
+  try {
+    console.log('[Loading] 开始加载API数据...');
+    await modelStore.fetchUsageStats();
+    console.log('[Loading] ✅ API数据加载完成');
+
+    // 关键：先关闭loading，让图表容器的DOM元素出现
+    if (showLoading) {
+      console.log('[Loading] 关闭loading以显示图表容器...');
+      usageLoading.value = false;
+      await nextTick(); // 等待Vue创建chart-container的DOM
+      await new Promise(resolve => setTimeout(resolve, 300)); // 等待浏览器完成DOM渲染
+      console.log('[Loading] ✅ 图表容器DOM已准备就绪');
+    }
+
+    console.log('[Loading] 开始渲染ECharts图表...');
+    renderCharts();
+    await nextTick();
+    await new Promise(resolve => setTimeout(resolve, 200));
+    console.log('[Loading] ✅ ECharts图表渲染完成');
+
+  } catch (error) {
+    console.error('[Loading] ❌ 加载过程出错:', error);
+    if (showLoading) {
+      usageLoading.value = false;
+    }
+  }
+};
 
 interface ActivityItem { type: 'success' | 'info' | 'warning'; title: string; desc: string; time: string; }
 const ACTIVITY_PAGE_SIZE = 4;
@@ -874,9 +940,14 @@ const MODEL_LOGO_MAP: Record<string, string> = {
   qwen: "qwen",
   tongyi: "qwen",
   dashscope: "qwen",
+  "通义千问": "qwen",
+  "通义": "qwen",
   zhipu: "zhipu",
   chatglm: "zhipu",
   glm: "zhipu",
+  "智谱": "zhipu",
+  "智谱glm": "zhipu",
+  "智谱GLM": "zhipu",
   baidu: "baidu",
   wenxin: "baidu",
   doubao: "bytedance",
@@ -1089,7 +1160,24 @@ async function refreshUsageStats() {
 
 async function handleLogPageChange({ current }: { current: number; }) {
   logPage.value = current;
-  await modelStore.fetchUsageLogs({ page: current, pageSize: 20, ...logFilters.value });
+  await modelStore.fetchUsageLogs({ page: current, pageSize: logPageSize.value, ...logFilters.value });
+}
+
+// 分页计算
+const logTotalPages = computed(() => Math.ceil(modelStore.usageLogsTotal / logPageSize.value) || 1);
+const logPageNumbers = computed<(number | string)[]>(() => {
+  const total = logTotalPages.value;
+  const current = logPage.value;
+  if (total <= 5) return Array.from({ length: total }, (_, i) => i + 1);
+  if (current <= 3) return [1, 2, 3, '...', total];
+  if (current >= total - 2) return [1, '...', total - 2, total - 1, total];
+  return [1, '...', current - 1, current, current + 1, '...', total];
+});
+
+async function goLogPage(page: number) {
+  if (page < 1 || page > logTotalPages.value || page === logPage.value) return;
+  logPage.value = page;
+  await modelStore.fetchUsageLogs({ page, pageSize: logPageSize.value, ...logFilters.value });
 }
 
 const usageColumns = [
@@ -1128,23 +1216,102 @@ const alertRecordColumns = [
 ];
 
 const logColumns = [
-  { colKey: "modelName", title: "模型", width: 100 },
   {
-    colKey: "callType", title: "类型", width: 100, cell: (_h: any, { row }: any) => {
+    colKey: "modelName", title: "模型", width: 160, cell: (h: any, { row }: any) => {
+      const provider = row.modelName || row.provider || '';
+      const logoUrl = getModelLogo(provider);
+      return h('div', { style: 'display: flex; align-items: center; gap: 8px; flex-wrap: nowrap; white-space: nowrap; overflow: hidden; width: 100%;' }, [
+        h('div', { style: 'position: relative; width: 20px; height: 20px; min-width: 20px; flex-shrink: 0;' }, [
+          h('img', {
+            style: 'width: 100%; height: 100%; border-radius: 6px; object-fit: contain; display: block;',
+            src: logoUrl,
+            alt: provider,
+            onError: (e: Event) => {
+              const img = e.target as HTMLImageElement;
+              if (img) img.style.display = 'none';
+              const fallback = img.parentElement?.querySelector('.model-fallback-icon');
+              if (fallback) (fallback as HTMLElement).style.display = 'flex';
+            }
+          }),
+          h('span', {
+            style: `position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 10px; font-weight: 700; display: none; color: ${getFallbackColor(provider)};`
+          }, getFallbackLetter(provider))
+        ]),
+        h('span', { style: 'font-size: 13px; font-weight: 500; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 1;' }, row.modelName)
+      ]);
+    }
+  },
+  {
+    colKey: "callType", title: "类型", width: 110, cell: (_h: any, { row }: any) => {
       const map: Record<string, string> = { parse_formula: "解析配方", parse_nutrition: "解析营养", natural_search: "自然检索", health_check: "健康检测" };
       return map[row.callType] || row.callType;
     }
   },
-  { colKey: "totalTokens", title: "Token", width: 80, cell: (_h: any, { row }: any) => formatTokens(row.totalTokens) },
-  { colKey: "latencyMs", title: "耗时", width: 80, cell: (_h: any, { row }: any) => row.latencyMs ? `${row.latencyMs}ms` : "-" },
+  { colKey: "totalTokens", title: "Token", width: 100, cell: (_h: any, { row }: any) => formatTokens(row.totalTokens) },
+  { colKey: "latencyMs", title: "耗时", width: 100, cell: (_h: any, { row }: any) => row.latencyMs ? `${row.latencyMs}ms` : "-" },
   {
-    colKey: "status", title: "状态", width: 90, cell: (h: any, { row }: any) => {
-      const themeMap: Record<string, string> = { success: "success", error: "danger", fallback: "warning" };
-      const labelMap: Record<string, string> = { success: "成功", error: "失败", fallback: "切换" };
-      return h("t-tag", { props: { theme: themeMap[row.status] || "default", size: "small" } }, labelMap[row.status] || row.status);
+    colKey: "status", title: "状态", width: 100, cell: (h: any, { row }: any) => {
+      const statusConfig: Record<string, { color: string; label: string }> = {
+        success: { color: '#10b981', label: '成功' },
+        error: { color: '#ef4444', label: '失败' },
+        fallback: { color: '#f59e0b', label: '切换' }
+      };
+      const config = statusConfig[row.status] || { color: '#94a3b8', label: row.status || '-' };
+      return h('div', { style: 'display: flex; align-items: center; gap: 6px;' }, [
+        h('span', {
+          style: `width: 8px; height: 8px; border-radius: 50%; background-color: ${config.color}; flex-shrink: 0;`
+        }),
+        h('span', { style: 'font-size: 13px; font-weight: 500; color: #475569;' }, config.label)
+      ]);
     }
   },
-  { colKey: "requestSummary", title: "摘要", ellipsis: true },
+  {
+    colKey: "requestSummary", title: "摘要", ellipsis: true, cell: (h: any, { row }: any) => {
+      if (!row.requestSummary) return row.requestSummary || '';
+      try {
+        const text = row.requestSummary;
+        // 检测是否包含乱码特征（非ASCII字符）
+        if (/[\x80-\xFF]/.test(text)) {
+          // 尝试智能分离：找到文件名部分（通常在引号、冒号后面，或包含文件扩展名）
+          const filePatterns = [
+            /(['"])([^'"]+\.(?:xlsx?|csv|txt))\1/i,  // 引号包围的文件名
+            /[:：]\s*([^\s:]+\.(?:xlsx?|csv|txt))/i,   // 冒号后面的文件名
+            /(.*[\\\/])?([^\s:]+\.(?:xlsx?|csv|txt))/i  // 任意位置的文件名
+          ];
+
+          for (const pattern of filePatterns) {
+            const match = text.match(pattern);
+            if (match) {
+              const prefix = text.substring(0, text.indexOf(match[0]));
+              const filenamePart = match[0];
+              // 只对文件名部分进行Latin-1到UTF-8转换
+              if (/[\x80-\xFF]/.test(filenamePart)) {
+                const bytes = new Uint8Array([...filenamePart].map(char => char.charCodeAt(0)));
+                const decoder = new TextDecoder('utf-8', { fatal: false });
+                const decodedFilename = decoder.decode(bytes);
+                // 验证解码结果是否包含中文或正常ASCII
+                if (/[\u4e00-\u9fa5a-zA-Z0-9._\-]/.test(decodedFilename) && !/[\x80-\xFF]/.test(decodedFilename)) {
+                  return prefix + decodedFilename;
+                }
+              }
+            }
+          }
+
+          // 如果没有匹配到文件名模式，尝试整体解码（兼容旧数据）
+          const bytes = new Uint8Array([...text].map(char => char.charCodeAt(0)));
+          const decoder = new TextDecoder('utf-8', { fatal: false });
+          const decoded = decoder.decode(bytes);
+          if (/[\u4e00-\u9fa5]/.test(decoded) && decoded.length < text.length * 2) {
+            return decoded;
+          }
+        }
+        return text;
+      } catch (e) {
+        console.warn('Failed to decode requestSummary:', e);
+        return row.requestSummary;
+      }
+    }
+  },
   { colKey: "createdAt", title: "时间", width: 160 },
 ];
 
@@ -1215,9 +1382,7 @@ const startUsageRefresh = () => {
   stopUsageRefresh();
   usageRefreshTimer = setInterval(async () => {
     if (activeTab.value === 'usage') {
-      await modelStore.fetchUsageStats();
-      await nextTick();
-      renderCharts();
+      await fetchUsageWithMinLoading(false); // 后台静默刷新，不显示loading
     }
   }, 15000);
 };
@@ -1249,9 +1414,7 @@ watch(activeTab, async (tab) => {
   stopUsageRefresh();
   stopModelsRefresh();
   if (tab === "usage") {
-    await modelStore.fetchUsageStats();
-    await nextTick();
-    renderCharts();
+    await fetchUsageWithMinLoading();
     startUsageRefresh();
   } else if (tab === "models") {
     await modelStore.fetchModels();
@@ -1261,18 +1424,24 @@ watch(activeTab, async (tab) => {
     await modelStore.fetchAlertRecords();
   } else if (tab === "logs") {
     logPage.value = 1;
-    await modelStore.fetchUsageLogs({ page: 1, pageSize: 20 });
+    await modelStore.fetchUsageLogs({ page: 1, pageSize: logPageSize.value });
   }
 });
 
 watch(logFilters, async () => {
   logPage.value = 1;
-  await modelStore.fetchUsageLogs({ page: 1, pageSize: 20, ...logFilters.value });
+  await modelStore.fetchUsageLogs({ page: 1, pageSize: logPageSize.value, ...logFilters.value });
 }, { deep: true });
 
 onMounted(async () => {
   await modelStore.fetchModels();
   startModelsRefresh();
+
+  if (activeTab.value === 'usage') {
+    await fetchUsageWithMinLoading();
+    startUsageRefresh();
+  }
+
   resizeHandler = () => {
     trendChart?.resize();
     pieChart?.resize();
@@ -1619,6 +1788,66 @@ $transition-normal: 0.25s ease;
   animation: dashboard-fade-in 0.3s ease forwards;
 }
 
+// 调用日志表格分页样式（严格参照销量明细列表）
+.log-table-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px;
+  background-color: #fff;
+  border-top: 1px solid #f8fafc;
+  border-radius: 0 0 32px 32px;
+
+  .pagination-info {
+    font-size: 13px;
+    color: #64748B;
+  }
+
+  .pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+
+    .pagination-btn {
+      min-width: 36px;
+      height: 34px;
+      padding: 0 10px;
+      border-radius: 10px;
+      border: 1px solid #E2E8F0;
+      background: #fff;
+      font-size: 13px;
+      font-weight: 500;
+      color: #475569;
+      cursor: pointer;
+      transition: all 0.2s;
+
+      &:hover:not(.pagination-btn--disabled) {
+        border-color: #6EE7B7;
+        color: #059669;
+        background: #ECFDF5;
+      }
+
+      &.pagination-btn--active {
+        background: linear-gradient(135deg, #10B981, #059669);
+        color: #fff;
+        border-color: transparent;
+        box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+      }
+
+      &.pagination-btn--disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+    }
+
+    .pagination-ellipsis {
+      padding: 0 6px;
+      color: #94A3B8;
+      font-size: 14px;
+    }
+  }
+}
+
 .data-empty {
   display: flex;
   flex-direction: column;
@@ -1751,6 +1980,68 @@ $transition-normal: 0.25s ease;
 
   to {
     transform: rotate(360deg);
+  }
+}
+
+@keyframes chart-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+// 调用日志表格样式优化
+.model-cell-with-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+  overflow: hidden;
+  width: 100%;
+
+  .model-logo-wrap-mini {
+    position: relative;
+    width: 20px;
+    height: 20px;
+    min-width: 20px;
+    flex-shrink: 0;
+
+    .model-logo-img-mini {
+      width: 100%;
+      height: 100%;
+      border-radius: 6px;
+      object-fit: contain;
+      display: block;
+    }
+
+    .model-fallback-icon {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 10px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+    }
+  }
+
+  .model-name-text {
+    font-size: 13px;
+    font-weight: 500;
+    color: #1e293b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+    flex: 1;
   }
 }
 
@@ -1971,6 +2262,34 @@ $transition-normal: 0.25s ease;
 
   .chart-container {
     height: 280px;
+  }
+
+  .chart-loading {
+    height: 280px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border-radius: 16px;
+    margin-top: 8px;
+
+    .chart-loading-text {
+      font-size: 13px;
+      color: #64748b;
+      margin: 0;
+      font-weight: 500;
+    }
+
+    .chart-loading-spinner {
+      width: 36px;
+      height: 36px;
+      border: 3px solid #e2e8f0;
+      border-top: 3px solid #8B5CF6;
+      border-radius: 50%;
+      animation: chart-spin 0.8s linear infinite;
+    }
   }
 
   .chart-empty {

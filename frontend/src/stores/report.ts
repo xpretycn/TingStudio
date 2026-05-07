@@ -49,6 +49,17 @@ export const useReportStore = defineStore('report', () => {
     try {
       const res = await reportApi.getById(id)
       currentReport.value = res
+
+      // 自动加载已保存的AI分析数据
+      if (res?.dataJson?.aiAnalysis) {
+        console.log('[ReportStore] 📂 发现已保存的AI分析数据')
+        aiAnalysis.value = res.dataJson.aiAnalysis
+        console.log('[ReportStore] ✅ 已加载AI分析数据:', aiAnalysis.value)
+      } else {
+        aiAnalysis.value = null
+        console.log('[ReportStore] ℹ️ 该报告暂无AI分析数据')
+      }
+
       return res
     } catch (error: any) {
       console.error('获取报告详情失败:', error)
@@ -98,18 +109,66 @@ export const useReportStore = defineStore('report', () => {
     }
   }
 
-  const publishReport = async (id: string) => {
+  const publishReport = async (id: string, reportData?: any, type?: string) => {
     try {
+      console.log('[ReportStore] 🚀 开始发布报告，ID:', id)
+
       const res = await reportApi.publish(id)
-      MessagePlugin.success('报告已发布')
+      console.log('[ReportStore] ✅ 报告发布成功')
+
       if (currentReport.value?.id === id) {
         currentReport.value = res
       }
+
+      // 发布成功后自动生成AI分析（异步执行，不阻塞用户）
+      if (reportData && type) {
+        console.log('[ReportStore] 🤖 开始自动生成AI分析...')
+        generateAndSaveAIAnalysis(id, reportData, type).catch(error => {
+          console.error('[ReportStore] ⚠️ 自动生成AI分析失败（不影响发布）:', error)
+        })
+      }
+
+      MessagePlugin.success('报告已发布，正在生成智能分析...')
       return res
     } catch (error: any) {
       console.error('发布报告失败:', error)
       MessagePlugin.error(error.message || '发布报告失败')
       return null
+    }
+  }
+
+  const generateAndSaveAIAnalysis = async (reportId: string, reportData: any, type: string) => {
+    try {
+      aiAnalysisLoading.value = true
+      console.log('[ReportStore] 🤖 调用AI分析API...')
+
+      const analysisResult = await reportApi.getAIAnalysis(reportData, type)
+      console.log('[ReportStore] ✅ AI分析完成:', analysisResult)
+
+      // 保存AI分析结果到报告
+      await reportApi.saveAIAnalysis(reportId, analysisResult)
+      console.log('[ReportStore] 💾 AI分析结果已保存到报告')
+
+      // 更新本地状态
+      aiAnalysis.value = analysisResult
+
+      // 如果当前正在查看这个报告，更新currentReport中的数据
+      if (currentReport.value?.id === reportId) {
+        currentReport.value = {
+          ...currentReport.value,
+          dataJson: {
+            ...currentReport.value.dataJson,
+            aiAnalysis: analysisResult
+          }
+        }
+      }
+
+      return analysisResult
+    } catch (error: any) {
+      console.error('[ReportStore] ❌ 生成或保存AI分析失败:', error)
+      throw error
+    } finally {
+      aiAnalysisLoading.value = false
     }
   }
 
@@ -179,8 +238,14 @@ export const useReportStore = defineStore('report', () => {
   const getAIAnalysis = async (reportData: any, type: string) => {
     aiAnalysisLoading.value = true
     try {
+      console.log('[ReportStore] 开始调用AI分析API...')
       const res = await reportApi.getAIAnalysis(reportData, type)
+      console.log('[ReportStore] ✅ AI分析API响应:', res)
+      console.log('[ReportStore] 响应类型:', typeof res)
+      console.log('[ReportStore] 响应字段:', res ? Object.keys(res) : 'null/undefined')
+      
       aiAnalysis.value = res
+      console.log('[ReportStore] aiAnalysis.value 已更新:', aiAnalysis.value)
       return res
     } catch (error: any) {
       console.error('AI 分析失败:', error)
@@ -223,6 +288,7 @@ export const useReportStore = defineStore('report', () => {
     exportExcel,
     compareReports,
     getAIAnalysis,
+    generateAndSaveAIAnalysis,
     setFilters,
     setPage,
   }

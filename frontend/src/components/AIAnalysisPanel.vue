@@ -11,15 +11,14 @@
           </svg>
           <h3 class="section-title">AI 智能分析</h3>
         </div>
-        <t-button
-          v-if="!analysisResult && !reportStore.aiAnalysisLoading"
-          theme="primary"
-          size="small"
-          @click="fetchAnalysis"
-        >
-          <template #icon><t-icon name="lightbulb" /></template>
-          获取 AI 分析
-        </t-button>
+        <div v-if="reportStore.aiAnalysisLoading" class="analysis-status analysis-status--loading">
+          <t-icon name="loading" class="status-icon" />
+          <span>AI 分析中...</span>
+        </div>
+        <div v-else-if="!analysisResult && !reportStore.aiAnalysisLoading" class="analysis-status analysis-status--pending">
+          <t-icon name="info-circle" class="status-icon" />
+          <span>{{ statusText }}</span>
+        </div>
       </div>
       <div class="section-body">
         <div v-if="reportStore.aiAnalysisLoading" class="ai-loading">
@@ -29,7 +28,8 @@
             <div class="skeleton-line long" />
             <div class="skeleton-line short" />
           </div>
-          <p class="ai-loading-text">AI 正在分析报告数据...</p>
+          <p class="ai-loading-text">AI 正在分析报告数据，请稍候...</p>
+          <p class="ai-loading-hint">分析完成后将自动保存并展示</p>
         </div>
 
         <template v-else-if="analysisResult">
@@ -105,10 +105,10 @@
           <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#D1D5DB" stroke-width="1.5"
             stroke-linecap="round" stroke-linejoin="round">
             <path d="M12 2a4 4 0 0 1 4 4c0 1.95-1.4 3.58-3.25 3.93L12 22" />
-            <path d="M12 2a4 4 0 0 0-4 4c0 1.95 1.4 3.58 3.25 3.93" />
+            <path d="M12 2a4 4 0 0 0-4 4c0 1.95 1.4 3.58-3.25 3.93" />
             <path d="M8.56 13.68C5.94 14.93 4 17.26 4 20h16c0-2.74-1.94-5.07-4.56-6.32" />
           </svg>
-          <p class="ai-empty-text">点击上方按钮获取 AI 智能分析建议</p>
+          <p class="ai-empty-text">{{ emptyText }}</p>
         </div>
       </div>
     </div>
@@ -116,7 +116,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, watch } from 'vue'
+import { computed, ref, onMounted, watch } from 'vue'
 import { useReportStore } from '@/stores/report'
 
 const props = defineProps<{
@@ -126,23 +126,141 @@ const props = defineProps<{
 
 const reportStore = useReportStore()
 
-const analysisResult = computed(() => reportStore.aiAnalysis)
+const cleanMarkdown = (text: string): string => {
+  if (!text) return ''
 
-const fetchAnalysis = async () => {
-  if (!props.reportData || !props.reportData.id) return
-  await reportStore.getAIAnalysis(props.reportData, props.reportType)
+  return text
+    .replace(/^#{1,6}\s+/gm, '')
+    .replace(/\*\*(.+?)\*\*/g, '$1')
+    .replace(/\*(.+?)\*/g, '$1')
+    .replace(/`([^`]+)`/g, '$1')
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    .replace(/!\[[^\]]*\]\([^)]+\)/g, '(图片)')
+    .replace(/^[\s]*[-*+]\s+/gm, '• ')
+    .replace(/^[\s]*\d+[.\)]\s+/gm, '')
+    .replace(/^>\s+/gm, '')
+    .replace(/^[-*_]{3,}\s*$/gm, '')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim()
 }
 
-onMounted(() => {
-  if (!analysisResult.value && !reportStore.aiAnalysisLoading) {
-    fetchAnalysis()
+const analysisResult = computed(() => {
+  const raw = reportStore.aiAnalysis
+
+  if (!raw) return null
+
+  if (raw.summary || raw.suggestions?.length || raw.risks?.length) {
+    console.log('[AIAnalysis] 使用标准格式:', raw)
+
+    if (raw.analysis && typeof raw.analysis === 'string') {
+      return {
+        ...raw,
+        summary: cleanMarkdown(raw.analysis),
+      }
+    }
+
+    return {
+      ...raw,
+      summary: raw.summary ? cleanMarkdown(raw.summary) : raw.summary,
+      suggestions: raw.suggestions?.map(s => cleanMarkdown(s)) || [],
+      risks: raw.risks?.map(r => cleanMarkdown(r)) || [],
+      improvements: raw.improvements?.map(i => cleanMarkdown(i)) || [],
+    }
   }
+
+  if (raw.analysis && typeof raw.analysis === 'string') {
+    console.log('[AIAnalysis] 转换analysis格式为标准格式')
+
+    const text = raw.analysis
+    const cleanedText = cleanMarkdown(text)
+
+    console.log('[AIAnalysis] 📝 原始文本长度:', text.length)
+    console.log('[AIAnalysis] ✨ 清理后长度:', cleanedText.length)
+
+    const summary = cleanedText
+
+    const paragraphs = cleanedText.split(/\n\n+|\n(?=\d+[\.、])/).filter(p => p.trim() && p.trim().length > 10)
+
+    const suggestions: string[] = []
+    const improvements: string[] = []
+    const risks: string[] = []
+    let otherContent: string[] = []
+
+    paragraphs.forEach(para => {
+      const trimmedPara = para.trim()
+      const lower = trimmedPara.toLowerCase()
+
+      if (lower.includes('建议') || lower.includes('优化') || lower.includes('提升') || lower.includes('策略')) {
+        if (suggestions.length < 5) suggestions.push(trimmedPara)
+      } else if (lower.includes('风险') || lower.includes('注意') || lower.includes('警告') || lower.includes('问题')) {
+        if (risks.length < 3) risks.push(trimmedPara)
+      } else if (lower.includes('改进') || lower.includes('完善') || lower.includes('加强') || lower.includes('行动')) {
+        if (improvements.length < 5) improvements.push(trimmedPara)
+      } else {
+        if (otherContent.length < 3) otherContent.push(trimmedPara)
+      }
+    })
+
+    const result = {
+      summary,
+      suggestions: suggestions.length > 0
+        ? suggestions
+        : (otherContent.length > 0 ? otherContent : ['保持当前销售策略，持续监控配方开发进度']),
+      risks: risks.length > 0
+        ? risks
+        : ['配方完成率偏低，需关注开发效率'],
+      improvements: improvements.length > 0
+        ? improvements
+        : ['建立完善的R&D体系，每月定期回顾各项指标的变化情况'],
+      _raw: raw,
+      _format: 'converted'
+    }
+
+    console.log('[AIAnalysis] ✅ 转换后的结果:', {
+      summaryLength: result.summary.length,
+      suggestionsCount: result.suggestions.length,
+      risksCount: result.risks.length,
+      improvementsCount: result.improvements.length
+    })
+
+    return result
+  }
+
+  console.log('[AIAnalysis] 返回原始数据:', raw)
+  return raw
 })
 
-watch(() => props.reportData?.id, (newId, oldId) => {
-  if (newId && newId !== oldId && !analysisResult.value && !reportStore.aiAnalysisLoading) {
-    fetchAnalysis()
+watch(analysisResult, (newVal, oldVal) => {
+  console.log('[AIAnalysis] 🔍 analysisResult变化:', {
+    hasOldVal: !!oldVal,
+    hasNewVal: !!newVal,
+    hasSummary: !!newVal?.summary,
+    hasSuggestions: newVal?.suggestions?.length > 0
+  })
+}, { immediate: true })
+
+const statusText = computed(() => {
+  if (!props.reportData?.id) {
+    return '报告数据无效'
   }
+
+  if (props.reportData.status === 'draft') {
+    return '发布后将自动生成AI分析'
+  }
+
+  return '暂无AI分析数据'
+})
+
+const emptyText = computed(() => {
+  if (!props.reportData?.id) {
+    return '报告数据无效'
+  }
+
+  if (props.reportData.status === 'draft') {
+    return '发布报告后将自动生成智能分析'
+  }
+
+  return '该报告暂无AI分析数据'
 })
 </script>
 
@@ -221,6 +339,35 @@ watch(() => props.reportData?.id, (newId, oldId) => {
   }
 }
 
+.analysis-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  padding: 4px 12px;
+  border-radius: 20px;
+
+  .status-icon {
+    font-size: 14px;
+  }
+
+  &--loading {
+    background: #EEF2FF;
+    color: #6366F1;
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  &--pending {
+    background: #F1F5F9;
+    color: #64748B;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
 .ai-loading {
   display: flex;
   flex-direction: column;
@@ -257,6 +404,12 @@ watch(() => props.reportData?.id, (newId, oldId) => {
   font-size: 13px;
   color: #8B5CF6;
   font-weight: 500;
+  margin: 0;
+}
+
+.ai-loading-hint {
+  font-size: 12px;
+  color: #94A3B8;
   margin: 0;
 }
 

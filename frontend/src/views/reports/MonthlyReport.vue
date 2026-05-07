@@ -461,7 +461,7 @@
                 </div>
               </div>
 
-              <AIAnalysisPanel :report-data="reportData" report-type="monthly" />
+              <AIAnalysisPanel :report-data="report" report-type="monthly" />
             </div>
           </template>
         </template>
@@ -505,8 +505,14 @@ const reportData = computed(() => {
   if (!report.value?.dataJson) return null;
   if (typeof report.value.dataJson === 'string') {
     try {
-      return JSON.parse(report.value.dataJson);
-    } catch {
+      const parsed = JSON.parse(report.value.dataJson);
+      console.log('[MonthlyReport] 解析报告数据:', parsed);
+      console.log('[MonthlyReport] formula数据:', parsed?.formula);
+      console.log('[MonthlyReport] sales数据:', parsed?.sales);
+      console.log('[MonthlyReport] monthlySummary数据:', parsed?.monthlySummary);
+      return parsed;
+    } catch (e) {
+      console.error('[MonthlyReport] JSON解析失败:', e);
       return null;
     }
   }
@@ -522,24 +528,28 @@ const setChartRef = (key: string) => (el: any) => {
 
 const dailyFormulaTrendOption = computed(() => {
   const data = reportData.value?.formula?.dailyFormulaTrend;
+  console.log('[MonthlyReport] dailyFormulaTrendOption - 数据:', data, '长度:', data?.length);
   if (!data || data.length === 0) return null;
   return buildDailyFormulaTrendChart(data);
 });
 
 const statusDistributionOption = computed(() => {
   const data = reportData.value?.formula?.statusDistribution;
+  console.log('[MonthlyReport] statusDistributionOption - 数据:', data, '长度:', data?.length);
   if (!data || data.length === 0) return null;
   return buildStatusDistributionChart(data);
 });
 
 const dailySalesTrendOption = computed(() => {
   const data = reportData.value?.sales?.dailySalesTrend;
+  console.log('[MonthlyReport] dailySalesTrendOption - 数据:', data, '长度:', data?.length);
   if (!data || data.length === 0) return null;
   return buildDailySalesTrendChart(data);
 });
 
 const topFormulasOption = computed(() => {
   const data = reportData.value?.sales?.topFormulas;
+  console.log('[MonthlyReport] topFormulasOption - 数据:', data, '长度:', data?.length);
   if (!data || data.length === 0) return null;
   return buildTopFormulasChart(data);
 });
@@ -626,40 +636,48 @@ const hasTrendData = computed(() => !!monthlyTrendOption.value);
 
 const initChart = (key: string, option: EChartsOption) => {
   const el = chartRefs.value[key];
-  if (!el) return;
-  if (chartInstances.value[key]) {
-    chartInstances.value[key]!.dispose();
+  console.log(`[MonthlyReport] 🎨 initChart('${key}') - DOM元素:`, el, 'option存在:', !!option);
+  
+  if (!el) {
+    console.warn(`[MonthlyReport] ⚠️ 图表'${key}'的DOM元素未找到，跳过渲染`);
+    return;
   }
-  const instance = echarts.init(el);
-  instance.setOption(option);
-  chartInstances.value[key] = instance;
+  
+  try {
+    if (chartInstances.value[key]) {
+      chartInstances.value[key]!.dispose();
+    }
+    const instance = echarts.init(el);
+    instance.setOption(option);
+    chartInstances.value[key] = instance;
+    console.log(`[MonthlyReport] ✅ 图表'${key}'渲染成功`);
+  } catch (error) {
+    console.error(`[MonthlyReport] ❌ 图表'${key}'渲染失败:`, error);
+  }
 };
 
 const initAllCharts = () => {
-  if (dailyFormulaTrendOption.value) {
-    initChart('dailyFormulaTrend', dailyFormulaTrendOption.value);
-  }
-  if (statusDistributionOption.value) {
-    initChart('statusDistribution', statusDistributionOption.value);
-  }
-  if (dailySalesTrendOption.value) {
-    initChart('dailySalesTrend', dailySalesTrendOption.value);
-  }
-  if (topFormulasOption.value) {
-    initChart('topFormulas', topFormulasOption.value);
-  }
-  if (weeklyComparisonOption.value) {
-    initChart('weeklyComparison', weeklyComparisonOption.value);
-  }
-  if (weeklyBreakdownOption.value) {
-    initChart('weeklyBreakdown', weeklyBreakdownOption.value);
-  }
-  if (formulaTypeDistributionOption.value) {
-    initChart('formulaTypeDistribution', formulaTypeDistributionOption.value);
-  }
-  if (monthlyTrendOption.value) {
-    initChart('monthlyTrend', monthlyTrendOption.value);
-  }
+  console.log('[MonthlyReport] 📊 initAllCharts() 开始执行...');
+  const options = {
+    dailyFormulaTrend: dailyFormulaTrendOption.value,
+    statusDistribution: statusDistributionOption.value,
+    dailySalesTrend: dailySalesTrendOption.value,
+    topFormulas: topFormulasOption.value,
+    weeklyComparison: weeklyComparisonOption.value,
+    weeklyBreakdown: weeklyBreakdownOption.value,
+    formulaTypeDistribution: formulaTypeDistributionOption.value,
+    monthlyTrend: monthlyTrendOption.value,
+  };
+  
+  Object.entries(options).forEach(([key, option]) => {
+    if (option) {
+      initChart(key, option);
+    } else {
+      console.log(`[MonthlyReport] ⏭️ 跳过图表'${key}': 无数据或配置无效`);
+    }
+  });
+  
+  console.log('[MonthlyReport] ✅ initAllCharts() 执行完成');
 };
 
 const handleResize = () => {
@@ -686,58 +704,63 @@ const statusTheme = computed(() => {
 
 const dashboardCards = computed(() => {
   const data = reportData.value;
+  const formula = data?.formula || {};
+  const sales = data?.sales || {};
+  const monthlySummary = data?.monthlySummary || {};
+  const trend = data?.trend || {};
+
   return [
     {
       label: '新增配方',
-      value: data?.newFormulas ?? 0,
+      value: formula.newFormulaCount ?? data?.newFormulas ?? 0,
       unit: '个',
-      badge: data?.newFormulasGrowth ? `${data.newFormulasGrowth > 0 ? '+' : ''}${data.newFormulasGrowth}%` : '--',
-      badgeColor: (data?.newFormulasGrowth || 0) >= 0 ? '#10B981' : '#EF4444',
-      badgeBg: (data?.newFormulasGrowth || 0) >= 0 ? '#ECFDF5' : '#FEF2F2',
+      badge: formula.newFormulaCount != null ? `${formula.newFormulaCount}个` : (data?.newFormulasGrowth ? `${data.newFormulasGrowth > 0 ? '+' : ''}${data.newFormulasGrowth}%` : '--'),
+      badgeColor: '#10B981',
+      badgeBg: '#ECFDF5',
       iconBg: '#EFF6FF',
       iconColor: '#3B82F6',
       iconPath: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/>',
     },
     {
       label: '完成配方',
-      value: data?.completedFormulas ?? 0,
+      value: formula.completedFormulaCount ?? data?.completedFormulas ?? 0,
       unit: '个',
-      badge: data?.completedFormulasGrowth ? `${data.completedFormulasGrowth > 0 ? '+' : ''}${data.completedFormulasGrowth}%` : '--',
-      badgeColor: (data?.completedFormulasGrowth || 0) >= 0 ? '#10B981' : '#EF4444',
-      badgeBg: (data?.completedFormulasGrowth || 0) >= 0 ? '#ECFDF5' : '#FEF2F2',
+      badge: formula.completionRate != null ? `完成率${formula.completionRate}%` : (data?.completedFormulasGrowth ? `${data.completedFormulasGrowth > 0 ? '+' : ''}${data.completedFormulasGrowth}%` : '--'),
+      badgeColor: '#10B981',
+      badgeBg: '#ECFDF5',
       iconBg: '#ECFDF5',
       iconColor: '#10B981',
       iconPath: '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>',
     },
     {
       label: '月度完成率',
-      value: data?.completionRate ?? 0,
+      value: formula.completionRate ?? data?.completionRate ?? 0,
       unit: '%',
-      badge: data?.completionRateGrowth ? `${data.completionRateGrowth > 0 ? '+' : ''}${data.completionRateGrowth}%` : '--',
-      badgeColor: (data?.completionRateGrowth || 0) >= 0 ? '#10B981' : '#EF4444',
-      badgeBg: (data?.completionRateGrowth || 0) >= 0 ? '#ECFDF5' : '#FEF2F2',
+      badge: formula.completionRate != null ? `${formula.completionRate}%` : (data?.completionRateGrowth ? `${data.completionRateGrowth > 0 ? '+' : ''}${data.completionRateGrowth}%` : '--'),
+      badgeColor: (formula.completionRate || 0) >= 70 ? '#10B981' : (formula.completionRate || 0) >= 50 ? '#F59E0B' : '#EF4444',
+      badgeBg: (formula.completionRate || 0) >= 70 ? '#ECFDF5' : (formula.completionRate || 0) >= 50 ? '#FFFBEB' : '#FEF2F2',
       iconBg: '#FFFBEB',
       iconColor: '#F59E0B',
       iconPath: '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
     },
     {
       label: '销售总量',
-      value: (data?.totalQuantity ?? 0).toLocaleString(),
+      value: (sales.weeklyQuantity ?? monthlySummary.monthlyQuantity ?? data?.totalQuantity ?? 0).toLocaleString(),
       unit: '件',
-      badge: data?.quantityGrowth ? `${data.quantityGrowth > 0 ? '+' : ''}${data.quantityGrowth}%` : '--',
-      badgeColor: (data?.quantityGrowth || 0) >= 0 ? '#10B981' : '#EF4444',
-      badgeBg: (data?.quantityGrowth || 0) >= 0 ? '#ECFDF5' : '#FEF2F2',
+      badge: sales.quantityGrowthRate != null ? `${sales.quantityGrowthRate > 0 ? '+' : ''}${sales.quantityGrowthRate}%` : (data?.quantityGrowth ? `${data.quantityGrowth > 0 ? '+' : ''}${data.quantityGrowth}%` : '--'),
+      badgeColor: (sales.quantityGrowthRate || 0) >= 0 ? '#10B981' : '#EF4444',
+      badgeBg: (sales.quantityGrowthRate || 0) >= 0 ? '#ECFDF5' : '#FEF2F2',
       iconBg: '#F0FDF4',
       iconColor: '#22C55E',
       iconPath: '<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>',
     },
     {
       label: '销售额',
-      value: data?.totalRevenue ? (data.totalRevenue / 10000).toFixed(1) : '0',
+      value: (sales.weeklyRevenue ?? monthlySummary.monthlyRevenue ?? data?.totalRevenue ?? 0) ? ((sales.weeklyRevenue ?? monthlySummary.monthlyRevenue ?? data?.totalRevenue ?? 0) / 10000).toFixed(1) : '0',
       unit: '万元',
-      badge: data?.revenueGrowth ? `${data.revenueGrowth > 0 ? '+' : ''}${data.revenueGrowth}%` : '--',
-      badgeColor: (data?.revenueGrowth || 0) >= 0 ? '#10B981' : '#EF4444',
-      badgeBg: (data?.revenueGrowth || 0) >= 0 ? '#ECFDF5' : '#FEF2F2',
+      badge: sales.revenueGrowthRate != null ? `${sales.revenueGrowthRate > 0 ? '+' : ''}${sales.revenueGrowthRate}%` : (data?.revenueGrowth ? `${data.revenueGrowth > 0 ? '+' : ''}${data.revenueGrowth}%` : '--'),
+      badgeColor: (sales.revenueGrowthRate || 0) >= 0 ? '#10B981' : '#EF4444',
+      badgeBg: (sales.revenueGrowthRate || 0) >= 0 ? '#ECFDF5' : '#FEF2F2',
       iconBg: '#FAF5FF',
       iconColor: '#A855F7',
       iconPath: '<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',
@@ -745,34 +768,28 @@ const dashboardCards = computed(() => {
     {
       label: '环比增长',
       value: (() => {
-        const v = data?.monthOverMonthGrowth;
-        if (v == null) return 0;
-        if (typeof v === 'number') return v;
-        if (typeof v === 'object') {
-          const q = v.quantity ?? 0;
-          return q;
-        }
-        return 0;
+        const mom = trend.monthOverMonth;
+        if (!mom) return 0;
+        if (typeof mom === 'number') return mom;
+        return mom.quantity ?? 0;
       })(),
       unit: '%',
       badge: (() => {
-        const v = data?.monthOverMonthGrowth;
-        if (v == null) return '--';
-        if (typeof v === 'number') return `${v > 0 ? '+' : ''}${v}%`;
-        if (typeof v === 'object') {
-          const q = v.quantity ?? 0;
-          return `销量${q > 0 ? '+' : ''}${q}%`;
-        }
-        return '--';
+        const mom = trend.monthOverMonth;
+        if (!mom) return '--';
+        if (typeof mom === 'number') return `${mom > 0 ? '+' : ''}${mom}%`;
+        return `销量${mom.quantity > 0 ? '+' : ''}${mom.quantity}%`;
       })(),
       badgeColor: (() => {
-        const v = data?.monthOverMonthGrowth;
-        const n = typeof v === 'number' ? v : typeof v === 'object' ? (v?.quantity ?? 0) : 0;
+        const mom = trend.monthOverMonth;
+        if (!mom) return '#94A3B8';
+        const n = typeof mom === 'number' ? mom : (mom.quantity ?? 0);
         return n >= 0 ? '#10B981' : '#EF4444';
       })(),
       badgeBg: (() => {
-        const v = data?.monthOverMonthGrowth;
-        const n = typeof v === 'number' ? v : typeof v === 'object' ? (v?.quantity ?? 0) : 0;
+        const mom = trend.monthOverMonth;
+        if (!mom) return '#F1F5F9';
+        const n = typeof mom === 'number' ? mom : (mom.quantity ?? 0);
         return n >= 0 ? '#ECFDF5' : '#FEF2F2';
       })(),
       iconBg: '#ECFEFF',
@@ -867,9 +884,20 @@ const savePlans = async () => {
 
 const handlePublish = async () => {
   if (!report.value || report.value.status === 'published') return;
-  const res = await reportStore.publishReport(report.value.id);
+
+  // 准备报告数据用于AI分析
+  const reportDataForAI = {
+    id: report.value.id,
+    type: 'monthly',
+    title: report.value.title,
+    periodStart: report.value.periodStart,
+    periodEnd: report.value.periodEnd,
+    dataJson: report.value.dataJson
+  };
+
+  const res = await reportStore.publishReport(report.value.id, reportDataForAI, 'monthly');
   if (res) {
-    MessagePlugin.success('报告已发布');
+    MessagePlugin.success('报告已发布，AI智能分析正在生成中...');
   }
 };
 
@@ -894,8 +922,14 @@ const retryLoad = async () => {
 
 watch(() => reportStore.currentReport, (report) => {
   if (report?.dataJson) {
+    console.log('[MonthlyReport] 📊 检测到报告数据变化，准备初始化图表...');
     nextTick(() => {
-      initAllCharts();
+      // 延迟执行，确保DOM元素已渲染
+      setTimeout(() => {
+        console.log('[MonthlyReport] 🎨 开始调用initAllCharts()');
+        console.log('[MonthlyReport] chartRefs:', chartRefs.value);
+        initAllCharts();
+      }, 300);
     });
   }
 }, { immediate: true });
