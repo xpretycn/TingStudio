@@ -98,40 +98,41 @@ TingStudio 是一个专业的食品配方工作数据管理平台，面向食品
 
 ##### 📄 文件详情页审计日志分页
 
-| 变更 | 说明 |
-|------|------|
-| 📄 分页机制 | 审计日志新增分页控件，`pageSize = 8` |
-| 📐 布局优化 | 分页控件与标题置于同一水平行（标题左对齐，分页右对齐） |
+| 变更      | 说明                                |
+| ------- | --------------------------------- |
+| 📄 分页机制 | 审计日志新增分页控件，`pageSize = 8`         |
+| 📐 布局优化 | 分页控件与标题置于同一水平行（标题左对齐，分页右对齐）       |
 | 🎨 视觉统一 | 分页按钮样式参照 FileManagement "近期动态" 区域 |
 
 ##### 🔧 操作列图标标准化
 
 所有管理列表页的操作列按钮统一为标准规格，严格参照 [SalesmanList.vue](frontend/src/views/salesmen/SalesmanList.vue) ：
 
-| 规范 | 说明 |
-|------|------|
-| 📏 统一尺寸 | `32×32px`，圆角 `10px` |
-| 🎨 统一配色 | 默认 `#64748B`，hover 按语义区分（编辑→🟢绿、删除→🔴红、查看→🟣紫） |
+| 规范      | 说明                                                   |
+| ------- | ---------------------------------------------------- |
+| 📏 统一尺寸 | `32×32px`，圆角 `10px`                                  |
+| 🎨 统一配色 | 默认 `#64748B`，hover 按语义区分（编辑→🟢绿、删除→🔴红、查看→🟣紫）       |
 | 🔤 统一图标 | 相同语义使用完全一致的 TDesign 图标（`edit-1`、`poweroff`、`delete`） |
 
-| 文件 | 改动 |
-|------|------|
-| [FileManagement.vue](frontend/src/views/files/FileManagement.vue) | 替换自定义 SVG 为 `edit-1` 图标，更新按钮样式 |
-| [MaterialList.vue](frontend/src/views/materials/MaterialList.vue) | 更新 action-btn 样式匹配规范 |
-| [FormulaList.vue](frontend/src/views/formulas/FormulaList.vue) | 标准化按钮尺寸 + 修复重复 `.version-btn` 样式 |
+| 文件                                                                | 改动                               |
+| ----------------------------------------------------------------- | -------------------------------- |
+| [FileManagement.vue](frontend/src/views/files/FileManagement.vue) | 替换自定义 SVG 为 `edit-1` 图标，更新按钮样式   |
+| [MaterialList.vue](frontend/src/views/materials/MaterialList.vue) | 更新 action-btn 样式匹配规范             |
+| [FormulaList.vue](frontend/src/views/formulas/FormulaList.vue)    | 标准化按钮尺寸 + 修复重复 `.version-btn` 样式 |
 
 ##### 🎨 抽屉组件样式重构
 
 以下 4 个抽屉重构为与 [SalesRecordDrawer.vue](frontend/src/components/SalesRecordDrawer.vue) 一致的视觉模式（保留所有业务逻辑不变）：
 
-| 抽屉 | 文件 | 变更 |
-|------|------|------|
-| 新增模型 | [ModelManagement.vue](frontend/src/views/models/ModelManagement.vue) | `#header` 插槽 + `drawer-card` 卡片布局（info/api/param） |
-| 编辑模型 | [ModelManagement.vue](frontend/src/views/models/ModelManagement.vue) | 同上 + API 字段分行 + 备用模型 Logo |
-| 快速创建业务员 | [QuickCreateSalesmanDrawer.vue](frontend/src/components/QuickCreateSalesmanDrawer.vue) | 完整重构，确认按钮移至 header |
-| 快速录入原料 | [QuickCreateMaterialDrawer.vue](frontend/src/components/QuickCreateMaterialDrawer.vue) | 完整重构，清理已废弃全局 footer 样式 |
+| 抽屉      | 文件                                                                                     | 变更                                                |
+| ------- | -------------------------------------------------------------------------------------- | ------------------------------------------------- |
+| 新增模型    | [ModelManagement.vue](frontend/src/views/models/ModelManagement.vue)                   | `#header` 插槽 + `drawer-card` 卡片布局（info/api/param） |
+| 编辑模型    | [ModelManagement.vue](frontend/src/views/models/ModelManagement.vue)                   | 同上 + API 字段分行 + 备用模型 Logo                         |
+| 快速创建业务员 | [QuickCreateSalesmanDrawer.vue](frontend/src/components/QuickCreateSalesmanDrawer.vue) | 完整重构，确认按钮移至 header                                |
+| 快速录入原料  | [QuickCreateMaterialDrawer.vue](frontend/src/components/QuickCreateMaterialDrawer.vue) | 完整重构，清理已废弃全局 footer 样式                            |
 
 **统一后的布局模式**：
+
 ```
 ┌─────────────────────────────────────────┐
 │ Header: 🔹 SVG图标 + 标题  [确认按钮]   │ ← #header 插槽
@@ -149,33 +150,33 @@ TingStudio 是一个专业的食品配方工作数据管理平台，面向食品
 
 所有页面抽屉组件宽度统一为 `520px`（参照 SalesRecordDrawer）：
 
-| 文件 | 原宽度 | 新宽度 |
-|------|--------|--------|
-| [ModelManagement.vue](frontend/src/views/models/ModelManagement.vue) — 新增模型 | `920px` | `520px` |
-| [ModelManagement.vue](frontend/src/views/models/ModelManagement.vue) — 编辑模型 | `920px` | `520px` |
+| 文件                                                                                     | 原宽度     | 新宽度     |
+| -------------------------------------------------------------------------------------- | ------- | ------- |
+| [ModelManagement.vue](frontend/src/views/models/ModelManagement.vue) — 新增模型            | `920px` | `520px` |
+| [ModelManagement.vue](frontend/src/views/models/ModelManagement.vue) — 编辑模型            | `920px` | `520px` |
 | [QuickCreateSalesmanDrawer.vue](frontend/src/components/QuickCreateSalesmanDrawer.vue) | `680px` | `520px` |
 | [QuickCreateMaterialDrawer.vue](frontend/src/components/QuickCreateMaterialDrawer.vue) | `680px` | `520px` |
-| [VersionList.vue](frontend/src/views/versions/VersionList.vue) — 快照抽屉 | `600px` | `520px` |
+| [VersionList.vue](frontend/src/views/versions/VersionList.vue) — 快照抽屉                  | `600px` | `520px` |
 
 ##### 🔧 Bug 修复
 
-| 问题 | 根因 | 修复方案 |
-|------|------|----------|
+| 问题                                    | 根因                                              | 修复方案                             |
+| ------------------------------------- | ----------------------------------------------- | -------------------------------- |
 | AIService.ts `require is not defined` | ESM 模式 (`"type": "module"`) 中混用 CJS `require()` | `import { getDb }` 改为顶层静态 import |
 
 ##### 影响范围
 
-| 文件 | 改动 |
-|------|------|
-| [AIService.ts](backend/src/services/ai/AIService.ts) | ESM/CJS 兼容修复 |
-| [FileDetail.vue](frontend/src/views/files/FileDetail.vue) | 审计日志分页 + 分页/标题同行布局 |
-| [FileManagement.vue](frontend/src/views/files/FileManagement.vue) | 操作图标标准化 |
-| [MaterialList.vue](frontend/src/views/materials/MaterialList.vue) | 操作图标标准化 |
-| [FormulaList.vue](frontend/src/views/formulas/FormulaList.vue) | 操作图标标准化 + 重复样式修复 |
-| [ModelManagement.vue](frontend/src/views/models/ModelManagement.vue) | 抽屉重构 + 布局优化 + Logo |
-| [QuickCreateSalesmanDrawer.vue](frontend/src/components/QuickCreateSalesmanDrawer.vue) | 抽屉重构 |
-| [QuickCreateMaterialDrawer.vue](frontend/src/components/QuickCreateMaterialDrawer.vue) | 抽屉重构 + 全局样式清理 |
-| [VersionList.vue](frontend/src/views/versions/VersionList.vue) | 抽屉宽度统一 |
+| 文件                                                                                     | 改动                 |
+| -------------------------------------------------------------------------------------- | ------------------ |
+| [AIService.ts](backend/src/services/ai/AIService.ts)                                   | ESM/CJS 兼容修复       |
+| [FileDetail.vue](frontend/src/views/files/FileDetail.vue)                              | 审计日志分页 + 分页/标题同行布局 |
+| [FileManagement.vue](frontend/src/views/files/FileManagement.vue)                      | 操作图标标准化            |
+| [MaterialList.vue](frontend/src/views/materials/MaterialList.vue)                      | 操作图标标准化            |
+| [FormulaList.vue](frontend/src/views/formulas/FormulaList.vue)                         | 操作图标标准化 + 重复样式修复   |
+| [ModelManagement.vue](frontend/src/views/models/ModelManagement.vue)                   | 抽屉重构 + 布局优化 + Logo |
+| [QuickCreateSalesmanDrawer.vue](frontend/src/components/QuickCreateSalesmanDrawer.vue) | 抽屉重构               |
+| [QuickCreateMaterialDrawer.vue](frontend/src/components/QuickCreateMaterialDrawer.vue) | 抽屉重构 + 全局样式清理      |
+| [VersionList.vue](frontend/src/views/versions/VersionList.vue)                         | 抽屉宽度统一             |
 
 ***
 
