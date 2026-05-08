@@ -20,6 +20,11 @@ import {
   getHealthHistory,
   setFallback,
   switchModelVersion,
+  getModelApplications,
+  createModelApplication,
+  updateModelApplication,
+  patchModelApplication,
+  deleteModelApplication,
 } from "../controllers/modelController.js";
 
 const router = Router();
@@ -80,5 +85,11 @@ router.get("/alerts/records", getAlertRecords);
 
 router.get("/health", getHealthStatus);
 router.get("/health/:provider/history", getHealthHistory);
+
+router.get("/model-applications", getModelApplications);
+router.post("/model-applications", createModelApplication);
+router.put("/model-applications/:id", updateModelApplication);
+router.patch("/model-applications/:id", patchModelApplication);
+router.delete("/model-applications/:id", deleteModelApplication);
 
 export const aiRoutes = router;

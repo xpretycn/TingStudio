@@ -145,6 +145,110 @@
                 </div>
               </div>
             </div>
+            <!-- 模型应用 -->
+            <div v-else-if="activeTab === 'applications'" key="applications" class="tab-panel">
+              <div class="section-header-enhanced">
+                <div class="section-title-group">
+                  <svg class="section-title-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                    stroke="#8B5CF6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                    <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+                    <line x1="12" y1="22.08" x2="12" y2="12"/>
+                  </svg>
+                  <h4 class="section-title-text">功能模块模型配置</h4>
+                </div>
+                <span class="section-title-count">共 {{ modelApplications.length }} 个配置</span>
+              </div>
+
+              <div v-if="isAdmin" class="app-actions-bar">
+                <button class="add-app-btn" @click="showAddAppDialog = true">
+                  <t-icon name="add" />
+                  添加配置
+                </button>
+              </div>
+
+              <div v-if="modelApplications.length === 0" class="empty-state">
+                <div class="empty-icon-wrap">
+                  <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                    <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+                    <line x1="12" y1="22.08" x2="12" y2="12"/>
+                  </svg>
+                </div>
+                <p class="empty-text">暂无功能模块配置</p>
+                <p class="empty-hint">为系统中的AI功能模块配置专属模型</p>
+                <button v-if="isAdmin" class="empty-action-btn" @click="showAddAppDialog = true">
+                  <t-icon name="add" />
+                  添加第一个配置
+                </button>
+              </div>
+
+              <div v-else class="applications-grid">
+                <div v-for="app in modelApplications" :key="app.id" class="application-card">
+                  <div class="application-card-header">
+                    <div class="app-module-info">
+                      <div class="app-module-icon" :style="{ background: getModuleIconBg(app.module) }">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                          stroke-linecap="round" stroke-linejoin="round" v-html="getModuleIcon(app.module)"></svg>
+                      </div>
+                      <div class="app-module-details">
+                        <h5 class="app-module-name">{{ app.moduleName }}</h5>
+                        <span class="app-module-id">{{ app.module }}</span>
+                      </div>
+                    </div>
+                    <div :class="['app-status-badge', app.enabled ? 'enabled' : 'disabled']">
+                      {{ app.enabled ? '已启用' : '已禁用' }}
+                    </div>
+                  </div>
+
+                  <div class="application-card-body">
+                    <div class="app-field">
+                      <span class="field-label">模型厂商</span>
+                      <div class="model-provider-display">
+                        <div class="model-logo-wrap-sm">
+                          <img loading="lazy" :src="getModelLogo(app.provider)" :alt="app.provider" class="model-logo-sm"
+                            @error="(e: Event) => handleLogoError(e)" />
+                          <span class="model-fallback-sm" :style="{ color: getFallbackColor(app.provider) }">
+                            {{ getFallbackLetter(app.provider) }}
+                          </span>
+                        </div>
+                        <span class="provider-name">{{ getModelNameByProvider(app.provider) }}</span>
+                      </div>
+                    </div>
+
+                    <div class="app-field">
+                      <span class="field-label">模型类型</span>
+                      <span class="field-value">{{ app.model }}</span>
+                    </div>
+
+                    <div v-if="app.description" class="app-field">
+                      <span class="field-label">描述说明</span>
+                      <span class="field-value field-value--desc">{{ app.description }}</span>
+                    </div>
+
+                    <div class="app-field">
+                      <span class="field-label">更新时间</span>
+                      <span class="field-value">{{ formatDateTime(app.updatedAt) }}</span>
+                    </div>
+                  </div>
+
+                  <div class="application-card-footer">
+                    <div v-if="isAdmin" class="app-actions">
+                      <t-button size="small" variant="text" @click="openEditAppDialog(app)">
+                        编辑
+                      </t-button>
+                      <t-button size="small" variant="text" @click="toggleAppStatus(app)">
+                        {{ app.enabled ? '禁用' : '启用' }}
+                      </t-button>
+                      <t-popconfirm content="确认删除此配置？" @confirm="deleteApplication(app.id)">
+                        <t-button size="small" variant="text" theme="danger">删除</t-button>
+                      </t-popconfirm>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
             <!-- 用量统计 -->
             <div v-else-if="activeTab === 'usage'" key="usage" class="tab-panel">
               <!-- 用量统计标题 -->
@@ -417,6 +521,84 @@
           </Transition>
         </div>
       </div>
+
+      <t-dialog v-model:visible="showAddAppDialog" header="添加功能模块配置" :confirm-btn="null" :cancel-btn="null"
+        width="560px" class="app-dialog" destroy-on-close>
+        <t-form ref="addAppFormRef" :data="appFormData" :rules="appFormRules" label-width="100px" @submit="handleAddApp">
+          <t-form-item label="功能模块" name="module">
+            <t-select v-model="appFormData.module" placeholder="请选择功能模块" clearable>
+              <t-option v-for="mod in availableModules" :key="mod.value" :value="mod.value" :label="mod.label">
+                <span style="display: flex; align-items: center; gap: 8px;">
+                  {{ mod.label }}
+                  <small style="color: #94a3b8;">({{ mod.value }})</small>
+                </span>
+              </t-option>
+            </t-select>
+          </t-form-item>
+          <t-form-item label="模型厂商" name="provider">
+            <t-select v-model="appFormData.provider" placeholder="请选择模型厂商" clearable
+              @change="handleAppProviderChange">
+              <t-option v-for="model in modelStore.models" :key="model.provider" :value="model.provider"
+                :label="model.name" />
+            </t-select>
+          </t-form-item>
+          <t-form-item label="模型类型" name="model">
+            <t-select v-model="appFormData.model" placeholder="请选择模型类型" clearable>
+              <t-option v-for="ver in getAvailableVersionsForProviderByString(appFormData.provider)" :key="ver.value"
+                :value="ver.value" :label="ver.label" />
+            </t-select>
+          </t-form-item>
+          <t-form-item label="描述说明" name="description">
+            <t-textarea v-model="appFormData.description" placeholder="可选：配置描述说明"
+              :autosize="{ minRows: 2, maxRows: 4 }" />
+          </t-form-item>
+          <t-form-item label="启用状态">
+            <t-switch v-model="appFormData.enabled" />
+          </t-form-item>
+        </t-form>
+        <template #footer>
+          <div class="dialog-footer">
+            <t-button variant="outline" @click="showAddAppDialog = false">取消</t-button>
+            <t-button theme="primary" :loading="appSubmitting" @click="submitAddApp">确认添加</t-button>
+          </div>
+        </template>
+      </t-dialog>
+
+      <t-dialog v-model:visible="showEditAppDialog" header="编辑功能模块配置" :confirm-btn="null" :cancel-btn="null"
+        width="560px" class="app-dialog" destroy-on-close>
+        <t-form ref="editAppFormRef" :data="editAppFormData" :rules="appFormRules" label-width="100px"
+          @submit="handleEditApp">
+          <t-form-item label="功能模块" name="module">
+            <t-input v-model="editAppFormData.module" disabled />
+          </t-form-item>
+          <t-form-item label="模型厂商" name="provider">
+            <t-select v-model="editAppFormData.provider" placeholder="请选择模型厂商" clearable
+              @change="handleEditAppProviderChange">
+              <t-option v-for="model in modelStore.models" :key="model.provider" :value="model.provider"
+                :label="model.name" />
+            </t-select>
+          </t-form-item>
+          <t-form-item label="模型类型" name="model">
+            <t-select v-model="editAppFormData.model" placeholder="请选择模型类型" clearable>
+              <t-option v-for="ver in getAvailableVersionsForProviderByString(editAppFormData.provider)" :key="ver.value"
+                :value="ver.value" :label="ver.label" />
+            </t-select>
+          </t-form-item>
+          <t-form-item label="描述说明" name="description">
+            <t-textarea v-model="editAppFormData.description" placeholder="可选：配置描述说明"
+              :autosize="{ minRows: 2, maxRows: 4 }" />
+          </t-form-item>
+          <t-form-item label="启用状态">
+            <t-switch v-model="editAppFormData.enabled" />
+          </t-form-item>
+        </t-form>
+        <template #footer>
+          <div class="dialog-footer">
+            <t-button variant="outline" @click="showEditAppDialog = false">取消</t-button>
+            <t-button theme="primary" :loading="appSubmitting" @click="submitEditApp">保存修改</t-button>
+          </div>
+        </template>
+      </t-dialog>
     </t-card>
 
     <t-drawer v-model:visible="showAddDrawer" :footer="false" size="520px" placement="right" class="model-drawer"
@@ -711,7 +893,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, nextTick, watch } from "vue";
+import { ref, reactive, computed, onMounted, onUnmounted, nextTick, watch } from "vue";
 import { MessagePlugin } from "tdesign-vue-next";
 import { useModelStore } from "@/stores/model";
 import { useAuthStore } from "@/stores/auth";
@@ -734,6 +916,50 @@ const logPage = ref(1);
 const logPageSize = ref(10); // 每页显示10条
 const logFilters = ref({ provider: "", callType: "", status: "" });
 const usageLoading = ref(false);
+
+const modelApplications = ref<any[]>([]);
+const showAddAppDialog = ref(false);
+const showEditAppDialog = ref(false);
+const appSubmitting = ref(false);
+const editingAppId = ref("");
+
+interface AppFormData {
+  module: string;
+  provider: string;
+  model: string;
+  description: string;
+  enabled: boolean;
+}
+
+const appFormData = reactive<AppFormData>({
+  module: "",
+  provider: "",
+  model: "",
+  description: "",
+  enabled: true,
+});
+
+const editAppFormData = reactive<AppFormData>({
+  module: "",
+  provider: "",
+  model: "",
+  description: "",
+  enabled: true,
+});
+
+const appFormRules = {
+  module: [{ required: true, message: "请选择功能模块", trigger: "change" }],
+  provider: [{ required: true, message: "请选择模型厂商", trigger: "change" }],
+  model: [{ required: true, message: "请选择模型类型", trigger: "change" }],
+};
+
+const availableModules = [
+  { value: "weekly-report", label: "周报AI分析", icon: "calendar" },
+  { value: "monthly-report", label: "月报AI分析", icon: "document" },
+  { value: "smart-form", label: "智能配方解析", icon: "form" },
+  { value: "smart-import", label: "智能原料导入", icon: "upload" },
+  { value: "smart-search", label: "智能数据检索", icon: "search" },
+];
 
 const fetchUsageWithMinLoading = async (showLoading = true) => {
   if (showLoading) {
@@ -827,6 +1053,7 @@ const handleAssistantAction = () => {
 
 const tabs = [
   { value: "models", label: "模型管理", iconPath: '<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>' },
+  { value: "applications", label: "模型应用", iconPath: '<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>' },
   { value: "usage", label: "用量监控", iconPath: '<line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>' },
   { value: "alerts", label: "预警设置", iconPath: '<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>' },
   { value: "logs", label: "调用日志", iconPath: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>' },
@@ -1410,6 +1637,193 @@ const stopModelsRefresh = () => {
   }
 };
 
+const fetchModelApplications = async () => {
+  try {
+    const token = localStorage.getItem('tingstudio_token') || '';
+    const res = await fetch("/api/ai/model-applications", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = await res.json();
+    if (data.success) {
+      modelApplications.value = data.data || [];
+    }
+  } catch (error) {
+    console.error("获取模型应用配置失败:", error);
+  }
+};
+
+const getModuleIcon = (module: string): string => {
+  const iconMap: Record<string, string> = {
+    "weekly-report": '<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
+    "monthly-report": '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>',
+    "smart-form": '<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>',
+    "smart-import": '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>',
+    "smart-search": '<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>',
+  };
+  return iconMap[module] || '<circle cx="12" cy="12" r="10"/>';
+};
+
+const getModuleIconBg = (module: string): string => {
+  const bgMap: Record<string, string> = {
+    "weekly-report": "linear-gradient(135deg, #DBEAFE, #BFDBFE)",
+    "monthly-report": "linear-gradient(135deg, #FCE7F3, #FBCFE8)",
+    "smart-form": "linear-gradient(135deg, #D1FAE5, #A7F3D0)",
+    "smart-import": "linear-gradient(135deg, #FEF3C7, #FDE68A)",
+    "smart-search": "linear-gradient(135deg, #EDE9FE, #DDD6FE)",
+  };
+  return bgMap[module] || "#F1F5F9";
+};
+
+const getModelNameByProvider = (provider: string): string => {
+  const model = modelStore.models.find((m: any) => m.provider === provider);
+  return model?.name || provider;
+};
+
+const formatDateTime = (dateStr: string): string => {
+  if (!dateStr) return "-";
+  const date = new Date(dateStr);
+  return date.toLocaleString("zh-CN", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
+
+const getAvailableVersionsForProviderByString = (provider: string) => {
+  if (!provider) return [];
+  const model = modelStore.models.find((m: any) => m.provider === provider);
+  if (!model) return [];
+  const versions = [
+    { value: model.model, label: `${model.model} (默认)` },
+  ];
+  if (model.visionModel) {
+    versions.push({ value: model.visionModel, label: model.visionModel });
+  }
+  return versions;
+};
+
+const handleAppProviderChange = () => {
+  appFormData.model = "";
+};
+
+const handleEditAppProviderChange = () => {
+  editAppFormData.model = "";
+};
+
+const openEditAppDialog = (app: any) => {
+  editingAppId.value = app.id;
+  editAppFormData.module = app.module;
+  editAppFormData.provider = app.provider;
+  editAppFormData.model = app.model;
+  editAppFormData.description = app.description || "";
+  editAppFormData.enabled = app.enabled;
+  showEditAppDialog.value = true;
+};
+
+const submitAddApp = async () => {
+  try {
+    appSubmitting.value = true;
+    const token = localStorage.getItem('tingstudio_token') || '';
+    const res = await fetch("/api/ai/model-applications", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(appFormData),
+    });
+    const data = await res.json();
+    if (data.success) {
+      MessagePlugin.success("添加成功");
+      showAddAppDialog.value = false;
+      Object.assign(appFormData, { module: "", provider: "", model: "", description: "", enabled: true });
+      await fetchModelApplications();
+    } else {
+      MessagePlugin.error(data.message || "添加失败");
+    }
+  } catch (error) {
+    console.error("添加配置失败:", error);
+    MessagePlugin.error("添加失败");
+  } finally {
+    appSubmitting.value = false;
+  }
+};
+
+const submitEditApp = async () => {
+  try {
+    appSubmitting.value = true;
+    const token = localStorage.getItem('tingstudio_token') || '';
+    const res = await fetch(`/api/ai/model-applications/${editingAppId.value}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(editAppFormData),
+    });
+    const data = await res.json();
+    if (data.success) {
+      MessagePlugin.success("保存成功");
+      showEditAppDialog.value = false;
+      await fetchModelApplications();
+    } else {
+      MessagePlugin.error(data.message || "保存失败");
+    }
+  } catch (error) {
+    console.error("保存配置失败:", error);
+    MessagePlugin.error("保存失败");
+  } finally {
+    appSubmitting.value = false;
+  }
+};
+
+const toggleAppStatus = async (app: any) => {
+  try {
+    const newStatus = !app.enabled;
+    const token = localStorage.getItem('tingstudio_token') || '';
+    const res = await fetch(`/api/ai/model-applications/${app.id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ enabled: newStatus }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      app.enabled = newStatus;
+      MessagePlugin.success(newStatus ? "已启用" : "已禁用");
+    } else {
+      MessagePlugin.error(data.message || "操作失败");
+    }
+  } catch (error) {
+    console.error("切换状态失败:", error);
+    MessagePlugin.error("操作失败");
+  }
+};
+
+const deleteApplication = async (id: string) => {
+  try {
+    const token = localStorage.getItem('tingstudio_token') || '';
+    const res = await fetch(`/api/ai/model-applications/${id}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = await res.json();
+    if (data.success) {
+      MessagePlugin.success("删除成功");
+      await fetchModelApplications();
+    } else {
+      MessagePlugin.error(data.message || "删除失败");
+    }
+  } catch (error) {
+    console.error("删除配置失败:", error);
+    MessagePlugin.error("删除失败");
+  }
+};
+
 watch(activeTab, async (tab) => {
   stopUsageRefresh();
   stopModelsRefresh();
@@ -1419,6 +1833,8 @@ watch(activeTab, async (tab) => {
   } else if (tab === "models") {
     await modelStore.fetchModels();
     startModelsRefresh();
+  } else if (tab === "applications") {
+    await fetchModelApplications();
   } else if (tab === "alerts") {
     await modelStore.fetchAlertConfigs();
     await modelStore.fetchAlertRecords();
@@ -2971,6 +3387,255 @@ $transition-normal: 0.25s ease;
 
   .activity-section {
     grid-template-columns: 1fr;
+  }
+}
+
+.applications-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.application-card {
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  padding: 20px;
+  transition: all $transition-normal;
+
+  &:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border-color: #cbd5e1;
+    transform: translateY(-2px);
+  }
+
+  .application-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #f1f5f9;
+
+    .app-module-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+
+      .app-module-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        flex-shrink: 0;
+      }
+
+      .app-module-details {
+        .app-module-name {
+          font-size: 15px;
+          font-weight: 600;
+          color: #1e293b;
+          margin: 0 0 4px 0;
+        }
+
+        .app-module-id {
+          font-size: 12px;
+          color: #94a3b8;
+          font-family: "Courier New", monospace;
+        }
+      }
+    }
+
+    .app-status-badge {
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+
+      &.enabled {
+        background: #d1fae5;
+        color: #059669;
+      }
+
+      &.disabled {
+        background: #fee2e2;
+        color: #dc2626;
+      }
+    }
+  }
+
+  .application-card-body {
+    .app-field {
+      margin-bottom: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+
+      .field-label {
+        font-size: 12px;
+        color: #64748b;
+        font-weight: 500;
+      }
+
+      .field-value {
+        font-size: 14px;
+        color: #334155;
+        font-weight: 500;
+
+        &--desc {
+          color: #475569;
+          line-height: 1.5;
+        }
+      }
+
+      .model-provider-display {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+
+        .model-logo-wrap-sm {
+          position: relative;
+          width: 28px;
+          height: 28px;
+
+          .model-logo-sm {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: 6px;
+            display: block;
+          }
+
+          .model-fallback-sm {
+            position: absolute;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 700;
+            background: #f1f5f9;
+            border-radius: 6px;
+          }
+
+          .model-logo-sm[src=""],
+          .model-logo-sm:not([src]) {
+            + .model-fallback-sm {
+              display: flex;
+            }
+          }
+        }
+
+        .provider-name {
+          font-size: 14px;
+          font-weight: 600;
+          color: #1e293b;
+        }
+      }
+    }
+  }
+
+  .application-card-footer {
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid #f1f5f9;
+
+    .app-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+  }
+}
+
+.app-actions-bar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 20px;
+
+  .add-app-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 18px;
+    background: linear-gradient(135deg, #8B5CF6, #7C3AED);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all $transition-fast;
+
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+    }
+  }
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+
+  .empty-icon-wrap {
+    margin-bottom: 20px;
+    opacity: 0.6;
+  }
+
+  .empty-text {
+    font-size: 16px;
+    font-weight: 600;
+    color: #334155;
+    margin: 0 0 8px 0;
+  }
+
+  .empty-hint {
+    font-size: 14px;
+    color: #94a3b8;
+    margin: 0 0 24px 0;
+  }
+
+  .empty-action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 22px;
+    background: linear-gradient(135deg, #8B5CF6, #7C3AED);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all $transition-fast;
+
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+    }
+  }
+}
+
+.app-dialog {
+  :deep(.t-dialog__body) {
+    padding: 24px;
+  }
+
+  .dialog-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding-top: 16px;
+    border-top: 1px solid #f1f5f9;
   }
 }
 </style>

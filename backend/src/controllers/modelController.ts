@@ -925,3 +925,204 @@ export async function checkAndFireAlerts(provider: string, totalTokens: number, 
     }
   }
 }
+
+function ensureModelApplicationsTable(db: any) {
+  try {
+    const tableExists = db
+      .prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='model_applications'")
+      .get();
+    if (!tableExists) {
+      db.exec(`
+        CREATE TABLE model_applications (
+          id TEXT PRIMARY KEY,
+          module TEXT NOT NULL UNIQUE,
+          module_name TEXT NOT NULL,
+          provider TEXT NOT NULL,
+          model TEXT NOT NULL,
+          description TEXT DEFAULT '',
+          enabled INTEGER NOT NULL DEFAULT 1,
+          created_by TEXT DEFAULT NULL,
+          created_at TEXT NOT NULL DEFAULT (datetime('now')),
+          updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+        CREATE INDEX IF NOT EXISTS idx_model_app_module ON model_applications(module);
+        CREATE INDEX IF NOT EXISTS idx_model_app_provider ON model_applications(provider)
+      `);
+      console.log("✅ 数据库迁移: 创建表 model_applications");
+    }
+  } catch (err: any) {
+    console.error("创建 model_applications 表失败:", err.message);
+  }
+}
+
+export async function getModelApplications(req: Request, res: Response) {
+  try {
+    if (!isAdmin(req)) {
+      return res.status(403).json({ success: false, message: "仅管理员可访问" });
+    }
+
+    const db = getDb();
+    ensureModelApplicationsTable(db);
+    const applications = db
+      .prepare(
+        `
+        SELECT * FROM model_applications ORDER BY created_at DESC
+      `,
+      )
+      .all();
+
+    return res.json({ success: true, data: applications });
+  } catch (error: any) {
+    console.error("获取模型应用配置失败:", error);
+    return res.status(500).json({ success: false, message: "获取配置失败", error: error.message });
+  }
+}
+
+export async function createModelApplication(req: Request, res: Response) {
+  try {
+    if (!isAdmin(req)) {
+      return res.status(403).json({ success: false, message: "仅管理员可操作" });
+    }
+
+    const { module: moduleName, provider, model, description, enabled } = req.body;
+
+    if (!moduleName || !provider || !model) {
+      return res.status(400).json({ success: false, message: "缺少必要字段" });
+    }
+
+    const db = getDb();
+    const existing = db.prepare("SELECT id FROM model_applications WHERE module = ?").get(moduleName);
+
+    if (existing) {
+      return res.status(400).json({ success: false, message: "该功能模块已存在配置" });
+    }
+
+    const id = `ma_${crypto.randomUUID().slice(0, 8)}`;
+    const now = new Date().toISOString();
+    const userId = getUserId(req);
+
+    const moduleNames: Record<string, string> = {
+      "weekly-report": "周报AI分析",
+      "monthly-report": "月报AI分析",
+      "smart-form": "智能配方解析",
+      "smart-import": "智能原料导入",
+      "smart-search": "智能数据检索",
+    };
+
+    db.prepare(
+      `
+      INSERT INTO model_applications (id, module, module_name, provider, model, description, enabled, created_by, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `,
+    ).run(
+      id,
+      moduleName,
+      moduleNames[moduleName] || moduleName,
+      provider,
+      model,
+      description || "",
+      enabled !== false ? 1 : 0,
+      userId,
+      now,
+      now,
+    );
+
+    const newApp = db.prepare("SELECT * FROM model_applications WHERE id = ?").get(id);
+    return res.status(201).json({ success: true, data: newApp, message: "创建成功" });
+  } catch (error: any) {
+    console.error("创建模型应用配置失败:", error);
+    return res.status(500).json({ success: false, message: "创建失败", error: error.message });
+  }
+}
+
+export async function updateModelApplication(req: Request, res: Response) {
+  try {
+    if (!isAdmin(req)) {
+      return res.status(403).json({ success: false, message: "仅管理员可操作" });
+    }
+
+    const { id } = req.params;
+    const { provider, model, description, enabled } = req.body;
+
+    if (!provider || !model) {
+      return res.status(400).json({ success: false, message: "缺少必要字段" });
+    }
+
+    const db = getDb();
+    const existing = db.prepare("SELECT * FROM model_applications WHERE id = ?").get(id);
+
+    if (!existing) {
+      return res.status(404).json({ success: false, message: "配置不存在" });
+    }
+
+    const now = new Date().toISOString();
+
+    db.prepare(
+      `
+      UPDATE model_applications SET provider = ?, model = ?, description = ?, enabled = ?, updated_at = ?
+      WHERE id = ?
+    `,
+    ).run(provider, model, description || "", enabled !== false ? 1 : 0, now, id);
+
+    const updated = db.prepare("SELECT * FROM model_applications WHERE id = ?").get(id);
+    return res.json({ success: true, data: updated, message: "更新成功" });
+  } catch (error: any) {
+    console.error("更新模型应用配置失败:", error);
+    return res.status(500).json({ success: false, message: "更新失败", error: error.message });
+  }
+}
+
+export async function patchModelApplication(req: Request, res: Response) {
+  try {
+    if (!isAdmin(req)) {
+      return res.status(403).json({ success: false, message: "仅管理员可操作" });
+    }
+
+    const { id } = req.params;
+    const { enabled } = req.body;
+
+    const db = getDb();
+    const existing = db.prepare("SELECT * FROM model_applications WHERE id = ?").get(id);
+
+    if (!existing) {
+      return res.status(404).json({ success: false, message: "配置不存在" });
+    }
+
+    const now = new Date().toISOString();
+
+    db.prepare(
+      `
+      UPDATE model_applications SET enabled = ?, updated_at = ? WHERE id = ?
+    `,
+    ).run(enabled !== false ? 1 : 0, now, id);
+
+    return res.json({ success: true, message: "状态更新成功" });
+  } catch (error: any) {
+    console.error("更新模型应用状态失败:", error);
+    return res.status(500).json({ success: false, message: "更新失败", error: error.message });
+  }
+}
+
+export async function deleteModelApplication(req: Request, res: Response) {
+  try {
+    if (!isAdmin(req)) {
+      return res.status(403).json({ success: false, message: "仅管理员可操作" });
+    }
+
+    const { id } = req.params;
+
+    const db = getDb();
+    const existing = db.prepare("SELECT * FROM model_applications WHERE id = ?").get(id);
+
+    if (!existing) {
+      return res.status(404).json({ success: false, message: "配置不存在" });
+    }
+
+    db.prepare("DELETE FROM model_applications WHERE id = ?").run(id);
+
+    return res.json({ success: true, message: "删除成功" });
+  } catch (error: any) {
+    console.error("删除模型应用配置失败:", error);
+    return res.status(500).json({ success: false, message: "删除失败", error: error.message });
+  }
+}

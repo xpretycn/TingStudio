@@ -181,6 +181,39 @@
                       <div v-for="report in group.monthlyReports" :key="report.id" class="report-list-card"
                         :class="{ 'report-list-card--selected': selectedReportIds.includes(report.id) }"
                         @click="handleCardClick(report)">
+                        <div class="card-actions" @click.stop>
+                          <button class="card-action-btn card-action-btn--export" title="导出报告" @click="handleSingleExport(report)">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                              stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                              <polyline points="7 10 12 15 17 10" />
+                              <line x1="12" y1="15" x2="12" y2="3" />
+                            </svg>
+                          </button>
+                          <button class="card-action-btn" :class="report.status === 'draft' ? 'card-action-btn--publish' : 'card-action-btn--archive'"
+                            :title="report.status === 'draft' ? '发布报告' : '归档报告'" @click="handleSinglePublish(report)">
+                            <svg v-if="report.status === 'draft'" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                              stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                              <polyline points="22 4 12 14.01 9 11.01" />
+                            </svg>
+                            <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                              stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                              <path d="M21 8v13H3V8" />
+                              <rect x="1" y="3" width="22" height="5" rx="2" />
+                            </svg>
+                          </button>
+                          <t-popconfirm theme="danger" :content="`确定要删除「${report.title}」吗？`"
+                            @confirm="handleSingleDelete(report)">
+                            <button class="card-action-btn card-action-btn--delete" title="删除报告">
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="3 6 5 6 21 6" />
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2" />
+                              </svg>
+                            </button>
+                          </t-popconfirm>
+                        </div>
                         <div class="card-checkbox" @click.stop="toggleSelect(report)">
                           <svg v-if="selectedReportIds.includes(report.id)" width="18" height="18" viewBox="0 0 24 24"
                             fill="#059669" stroke="#059669" stroke-width="2">
@@ -263,6 +296,39 @@
                       <div v-for="report in group.weeklyReports" :key="report.id" class="report-list-card"
                         :class="{ 'report-list-card--selected': selectedReportIds.includes(report.id) }"
                         @click="handleCardClick(report)">
+                        <div class="card-actions" @click.stop>
+                          <button class="card-action-btn card-action-btn--export" title="导出报告" @click="handleSingleExport(report)">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                              stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                              <polyline points="7 10 12 15 17 10" />
+                              <line x1="12" y1="15" x2="12" y2="3" />
+                            </svg>
+                          </button>
+                          <button class="card-action-btn" :class="report.status === 'draft' ? 'card-action-btn--publish' : 'card-action-btn--archive'"
+                            :title="report.status === 'draft' ? '发布报告' : '归档报告'" @click="handleSinglePublish(report)">
+                            <svg v-if="report.status === 'draft'" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                              stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                              <polyline points="22 4 12 14.01 9 11.01" />
+                            </svg>
+                            <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                              stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                              <path d="M21 8v13H3V8" />
+                              <rect x="1" y="3" width="22" height="5" rx="2" />
+                            </svg>
+                          </button>
+                          <t-popconfirm theme="danger" :content="`确定要删除「${report.title}」吗？`"
+                            @confirm="handleSingleDelete(report)">
+                            <button class="card-action-btn card-action-btn--delete" title="删除报告">
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="3 6 5 6 21 6" />
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2" />
+                              </svg>
+                            </button>
+                          </t-popconfirm>
+                        </div>
                         <div class="card-checkbox" @click.stop="toggleSelect(report)">
                           <svg v-if="selectedReportIds.includes(report.id)" width="18" height="18" viewBox="0 0 24 24"
                             fill="#059669" stroke="#059669" stroke-width="2">
@@ -712,14 +778,54 @@ const clearSelection = () => {
   selectedReports.value = [];
 };
 
+const handleSingleExport = (report: Report) => {
+  router.push({ path: `/reports/${report.type}/${report.id}` });
+};
+
+const handleSinglePublish = async (report: Report) => {
+  if (report.status === 'draft') {
+    try {
+      await reportStore.publishReport(report.id);
+      MessagePlugin.success(`「${report.title}」已发布`);
+      await loadData();
+    } catch (e: any) {
+      MessagePlugin.error(e.message || '发布失败');
+    }
+  } else {
+    try {
+      await reportStore.updateReport(report.id, { status: 'archived' });
+      MessagePlugin.success(`「${report.title}」已归档`);
+      await loadData();
+    } catch (e: any) {
+      MessagePlugin.error(e.message || '归档失败');
+    }
+  }
+};
+
+const handleSingleDelete = async (report: Report) => {
+  const ok = await reportStore.deleteReport(report.id);
+  if (ok) {
+    await loadData();
+  }
+};
+
 const handleBatchDelete = async () => {
   if (selectedReports.value.length === 0) return;
   const count = selectedReports.value.length;
+  console.log(`[ReportCenter] 🗑️ 批量删除开始: 共 ${count} 个报告`)
+  console.log(`[ReportCenter] 待删除报告列表:`, selectedReports.value.map(r => ({ id: r.id, title: r.title, status: r.status, createdBy: r.createdBy })))
   let successCount = 0;
   for (const report of selectedReports.value) {
+    console.log(`[ReportCenter] → 正在删除报告: id=${report.id}, title="${report.title}"`)
     const ok = await reportStore.deleteReport(report.id);
-    if (ok) successCount++;
+    if (ok) {
+      successCount++;
+      console.log(`[ReportCenter]   ✅ 删除成功: ${report.id}`)
+    } else {
+      console.warn(`[ReportCenter]   ❌ 删除失败: ${report.id}`)
+    }
   }
+  console.log(`[ReportCenter] 📊 批量删除结果: ${successCount}/${count} 成功`)
   MessagePlugin.success(`成功删除 ${successCount}/${count} 个报告`);
   clearSelection();
   await loadData();
@@ -1371,6 +1477,66 @@ onMounted(async () => {
     border-color: #10B981;
     background: rgba(209, 250, 229, 0.15);
     box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.15);
+  }
+
+  .card-actions {
+    position: absolute;
+    top: 16px;
+    right: 48px;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    z-index: 3;
+    opacity: 0;
+    transition: opacity $transition-fast;
+
+    svg {
+      display: block;
+    }
+  }
+
+  &:hover .card-actions,
+  &--selected .card-actions {
+    opacity: 1;
+  }
+
+  .card-action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 18px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: #94A3B8;
+    cursor: pointer;
+    transition: all $transition-fast;
+
+    &:hover {
+      background: #F1F5F9;
+      color: #475569;
+    }
+
+    &--export:hover {
+      background: #EFF6FF;
+      color: #3B82F6;
+    }
+
+    &--publish:hover {
+      background: #ECFDF5;
+      color: #10B981;
+    }
+
+    &--archive:hover {
+      background: #FFFBEB;
+      color: #F59E0B;
+    }
+
+    &--delete:hover {
+      background: #FEF2F2;
+      color: #EF4444;
+    }
   }
 
   .card-checkbox {

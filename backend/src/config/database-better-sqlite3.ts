@@ -306,7 +306,27 @@ function runAutoMigrations(dbInstance: Database.Database) {
       UNIQUE(model_id, fallback_provider)
     );
     CREATE INDEX IF NOT EXISTS idx_ai_fallback_model ON ai_fallback_configs(model_id)
-    `,
+  `,
+  );
+  ensureTable(
+    dbInstance,
+    "model_applications",
+    `
+    CREATE TABLE model_applications (
+      id TEXT PRIMARY KEY,
+      module TEXT NOT NULL UNIQUE,
+      module_name TEXT NOT NULL,
+      provider TEXT NOT NULL,
+      model TEXT NOT NULL,
+      description TEXT DEFAULT '',
+      enabled INTEGER NOT NULL DEFAULT 1,
+      created_by TEXT DEFAULT NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+    CREATE INDEX IF NOT EXISTS idx_model_app_module ON model_applications(module);
+    CREATE INDEX IF NOT EXISTS idx_model_app_provider ON model_applications(provider)
+  `,
   );
   ensureInitialAiModels(dbInstance);
 }

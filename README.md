@@ -1,4 +1,4 @@
-# TingStudio v2.26
+# TingStudio v2.27
 
 食品配方工作数据管理平台 — 前后端分离架构
 
@@ -7,6 +7,79 @@
 TingStudio 是一个专业的食品配方工作数据管理平台，面向食品配方行业（中草药功效配方），提供配方管理、原料管理、业务员管理、营养成分分析、导出分享等完整功能链路。采用 **Vue 3 + Express + SQLite** 前后端分离架构，支持 JWT 认证、RESTful API、配方版本控制、营养合规检查、AI 智能解析等企业级特性。
 
 ## 🚀 最新更新 (2026-05-08)
+
+### ✅ 模型管理新增"模型应用"功能模块配置 + UI对齐优化
+
+#### 🎯 新增"模型应用"Tab（模型管理页面）
+
+在模型管理页面的**用量监控**Tab上方新增**"模型应用"**Tab，用于管理系统中的AI功能模块的专属模型配置：
+
+**核心功能：**
+
+| 特性 | 说明 |
+|------|------|
+| **功能模块管理** | 为周报、月报、智能配方解析等5个AI功能模块配置专属模型 |
+| **完整CRUD操作** | 支持添加、查看、编辑、删除、启用/禁用配置 |
+| **实时生效** | 配置变更立即保存到数据库 |
+| **权限控制** | 仅管理员可进行增删改操作 |
+
+**支持的功能模块：**
+
+| 模块ID | 显示名称 | 用途 |
+|--------|----------|------|
+| `weekly-report` | 周报AI分析 | 周工作报告的AI智能分析 |
+| `monthly-report` | 月报AI分析 | 月度报告的AI智能分析 |
+| `smart-form` | 智能配方解析 | AI智能配方解析功能 |
+| `smart-import` | 智能原料导入 | AI智能原料导入功能 |
+| `smart-search` | 智能数据检索 | AI自然语言检索功能 |
+
+**UI设计特点：**
+- 🎨 卡片式布局（响应式网格，最小380px自动填充）
+- 🎨 彩色图标系统（每个模块独特渐变色背景）
+- 🎨 状态徽章（绿色=启用，红色=禁用）
+- 🎨 完整对话框表单（带验证和确认机制）
+
+**技术实现：**
+
+```
+前端: ModelManagement.vue
+  ├── tabs数组新增 "applications" 项
+  ├── 完整UI模板（列表/空状态/对话框）
+  ├── CRUD方法（fetch/create/update/delete/toggle）
+  └── SCSS样式（250+行响应式布局）
+
+后端:
+  ├── modelController.ts — 5个API端点
+  ├── routes/ai.ts — 路由注册 (/api/ai/model-applications)
+  └── database-better-sqlite3.ts — model_applications表定义
+
+数据库表: model_applications
+  ├── id (TEXT, PK)
+  ├── module (TEXT, UNIQUE) — 功能模块标识
+  ├── module_name (TEXT) — 显示名称
+  ├── provider (TEXT) — 模型厂商
+  ├── model (TEXT) — 模型类型
+  ├── description (TEXT) — 描述说明
+  ├── enabled (INTEGER) — 启用状态 (0/1)
+  ├── created_by / created_at / updated_at
+```
+
+---
+
+#### 🔧 报告中心按钮与复选框垂直对齐优化
+
+修复了报告中心列表中操作按钮与复选框高度不一致的问题：
+
+**调整内容：**
+- 按钮容器 top位置：14px → **16px**（与复选框对齐）
+- 单个按钮高度：18px（保持不变）
+- 图标尺寸：16×16px（未改变）
+- 复选框尺寸：18×18px（未改变）
+
+**修改文件：**
+- [ReportCenter.vue](frontend/src/views/reports/ReportCenter.vue) — `.card-actions` 和 `.card-action-btn` 样式调整
+
+---
 
 ### ✅ AI智能分析自动化 + 智谱GLM默认模型 + Markdown格式优化
 
@@ -1486,7 +1559,7 @@ MIT License
 ---
 
 **最后更新**: 2026-05-08
-**版本**: v2.26.0 (AI分析自动化 + 智谱GLM默认 + Markdown优化)
+**版本**: v2.27.0 (模型应用配置 + UI对齐优化)
 **维护者**: TingStudio Team
 ```
 
