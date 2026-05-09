@@ -64,34 +64,112 @@
               </template>
             </div>
           </div>
+          <!-- AI 俏皮话（单独一行） -->
+          <div v-show="!sidebarCollapsed" class="info-card-witty" @click="refreshWittyComment"
+            :title="wittyLoading ? '加载中...' : '点击换一条'">
+            <span class="witty-icon">💬</span>
+            <span class="witty-text">{{ wittyComment || '正在生成...' }}</span>
+            <t-loading v-if="wittyLoading" size="extra-small" />
+          </div>
         </div>
       </div>
 
       <!-- 可滚动导航区域 -->
       <nav class="sidebar-nav" :class="{ collapsed: sidebarCollapsed }" aria-label="侧边栏导航">
-        <div v-show="!sidebarCollapsed" class="nav-header" @click="toggleNav">
-          <t-icon name="menu-fold" size="16px" class="nav-icon" />
-          <span class="nav-title">功能导航</span>
-          <span class="nav-toggle" :class="{ expanded: navExpanded }">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-              stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="6 9 12 15 18 9" />
-            </svg>
-          </span>
-        </div>
-        <div class="nav-content" :class="{ expanded: navExpanded || sidebarCollapsed }" role="menubar">
-          <div v-for="item in navItems" :key="item.path" class="nav-item" :class="{ active: activePath === item.path }"
-            role="menuitem" tabindex="0" :aria-current="activePath === item.path ? 'page' : undefined"
-            :title="sidebarCollapsed ? item.label : undefined" @click="navigateTo(item.path)"
-            @keydown="handleNavKeydown($event, item.path)">
-            <div class="nav-item-icon" aria-hidden="true"><t-icon :name="item.icon" size="18px" /></div>
-            <span v-show="!sidebarCollapsed" class="nav-item-text">{{ item.label }}</span>
+        <div class="nav-content expanded" role="menubar">
+          <!-- AI助手 - 独立顶级入口 -->
+          <div class="nav-item nav-item--top-level" :class="{ active: activePath === '/ai-assistant' }" role="menuitem"
+            tabindex="0" :aria-current="activePath === '/ai-assistant' ? 'page' : undefined" title="AI助手工作台"
+            @click="navigateTo('/ai-assistant')" @keydown="handleNavKeydown($event, '/ai-assistant')">
+            <div class="nav-item-icon nav-item-icon--highlight" aria-hidden="true">
+              <t-icon name="precise-monitor" size="18px" />
+              <span v-if="!sidebarCollapsed" class="nav-item-badge">NEW</span>
+            </div>
+            <span v-show="!sidebarCollapsed" class="nav-item-text nav-item-text--highlight">AI 助手</span>
             <div v-show="!sidebarCollapsed" class="nav-item-arrow">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                 stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="9 18 15 12 9 6" />
               </svg>
             </div>
+          </div>
+
+          <!-- 分隔线 -->
+          <div v-if="!sidebarCollapsed" class="nav-divider"></div>
+
+          <!-- 分组1: 业务管理 -->
+          <div class="nav-group">
+            <button class="nav-group-header" :class="{ expanded: isGroupExpanded('business') }"
+              @click="toggleGroup('business')">
+              <t-icon name="root-list" size="16px" />
+              <span>业务管理</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" class="group-arrow">
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </button>
+            <Transition name="group-expand">
+              <div v-show="isGroupExpanded('business')" class="nav-group-content">
+                <div v-for="item in getGroupItems('business')" :key="item.path" class="nav-item nav-item--grouped"
+                  :class="{ active: activePath === item.path }" role="menuitem" tabindex="0"
+                  :aria-current="activePath === item.path ? 'page' : undefined"
+                  :title="sidebarCollapsed ? item.label : undefined" @click="navigateTo(item.path)"
+                  @keydown="handleNavKeydown($event, item.path)">
+                  <div class="nav-item-icon" aria-hidden="true"><t-icon :name="item.icon" size="18px" /></div>
+                  <span v-show="!sidebarCollapsed" class="nav-item-text">{{ item.label }}</span>
+                </div>
+              </div>
+            </Transition>
+          </div>
+
+          <!-- 分组2: 数据分析 -->
+          <div class="nav-group">
+            <button class="nav-group-header" :class="{ expanded: isGroupExpanded('analytics') }"
+              @click="toggleGroup('analytics')">
+              <t-icon name="chart-bar" size="16px" />
+              <span>数据分析</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" class="group-arrow">
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </button>
+            <Transition name="group-expand">
+              <div v-show="isGroupExpanded('analytics')" class="nav-group-content">
+                <div v-for="item in getGroupItems('analytics')" :key="item.path" class="nav-item nav-item--grouped"
+                  :class="{ active: activePath === item.path }" role="menuitem" tabindex="0"
+                  :aria-current="activePath === item.path ? 'page' : undefined"
+                  :title="sidebarCollapsed ? item.label : undefined" @click="navigateTo(item.path)"
+                  @keydown="handleNavKeydown($event, item.path)">
+                  <div class="nav-item-icon" aria-hidden="true"><t-icon :name="item.icon" size="18px" /></div>
+                  <span v-show="!sidebarCollapsed" class="nav-item-text">{{ item.label }}</span>
+                </div>
+              </div>
+            </Transition>
+          </div>
+
+          <!-- 分组3: 系统工具 -->
+          <div class="nav-group">
+            <button class="nav-group-header" :class="{ expanded: isGroupExpanded('tools') }"
+              @click="toggleGroup('tools')">
+              <t-icon name="setting" size="16px" />
+              <span>系统工具</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" class="group-arrow">
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </button>
+            <Transition name="group-expand">
+              <div v-show="isGroupExpanded('tools')" class="nav-group-content">
+                <div v-for="item in getGroupItems('tools')" :key="item.path" class="nav-item nav-item--grouped"
+                  :class="{ active: activePath === item.path }" role="menuitem" tabindex="0"
+                  :aria-current="activePath === item.path ? 'page' : undefined"
+                  :title="sidebarCollapsed ? item.label : undefined" @click="navigateTo(item.path)"
+                  @keydown="handleNavKeydown($event, item.path)">
+                  <div class="nav-item-icon" aria-hidden="true"><t-icon :name="item.icon" size="18px" /></div>
+                  <span v-show="!sidebarCollapsed" class="nav-item-text">{{ item.label }}</span>
+                </div>
+              </div>
+            </Transition>
           </div>
         </div>
       </nav>
@@ -119,6 +197,23 @@
           <t-button theme="primary" size="small" @click="handleStartGuide">
             <template #icon><t-icon name="chevron-right" /></template>开始引导
           </t-button>
+        </div>
+      </div>
+
+      <!-- AI 问候卡片（系统版本信息） -->
+      <div v-show="!sidebarCollapsed" class="sidebar-welcome-card">
+        <div class="welcome-card-inner">
+          <!-- 左侧：系统版本信息 -->
+          <div class="welcome-card-left">
+            <p class="version-label">系统版本</p>
+            <p class="version-text">v2.4.5 企业版</p>
+          </div>
+          <!-- 右侧：装饰图标 -->
+          <svg class="welcome-decor-icon" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
+            <path
+              d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
+          </svg>
         </div>
       </div>
     </aside>
@@ -414,29 +509,159 @@ const pageIcon = computed(() => {
 });
 
 // 导航菜单项
-const navItems = computed(() => {
-  const items = [
-    { path: '/ai-assistant', label: 'AI 助手', icon: 'precise-monitor' },
-    { path: '/formulas', label: '配方管理', icon: 'edit' },
-    { path: '/materials', label: '原料管理', icon: 'chart-bar' },
-    { path: '/files', label: '文件管理', icon: 'folder' },
-    { path: '/salesmen', label: '业务员管理', icon: 'usergroup' },
-    { path: '/sales', label: '销量分析', icon: 'chart' },
-    { path: '/reports', label: '报告中心', icon: 'file-icon' },
-    { path: '/exports', label: '导出中心', icon: 'download' },
-    { path: '/nutrition', label: '营养分析', icon: 'chart-pie' },
-    { path: '/tools', label: '工具箱', icon: 'setting' },
-  ];
-  if (authStore.user?.role === 'admin') {
-    items.push({ path: '/model-management', label: '模型管理', icon: 'control-platform' });
+// 导航菜单项 - 分组结构
+interface NavItem {
+  path: string
+  label: string
+  icon: string
+}
+
+// 分组定义
+const navGroups = {
+  business: {
+    label: '业务管理',
+    items: [
+      { path: '/formulas', label: '配方管理', icon: 'edit' },
+      { path: '/materials', label: '原料管理', icon: 'chart-bar' },
+      { path: '/files', label: '文件管理', icon: 'folder' },
+      { path: '/salesmen', label: '业务员管理', icon: 'usergroup' }
+    ] as NavItem[]
+  },
+  analytics: {
+    label: '数据分析',
+    items: [
+      { path: '/sales', label: '销量分析', icon: 'chart' },
+      { path: '/reports', label: '报告中心', icon: 'file-icon' },
+      { path: '/exports', label: '导出中心', icon: 'download' },
+      { path: '/nutrition', label: '营养分析', icon: 'chart-pie' }
+    ] as NavItem[]
+  },
+  tools: {
+    label: '系统工具',
+    items: [
+      { path: '/tools', label: '工具箱', icon: 'setting' }
+    ] as NavItem[]
   }
-  return items;
-});
+} as const
+
+type GroupKey = keyof typeof navGroups
+
+// 分组展开状态（规则C：只展开当前所在分组）
+const expandedGroup = ref<GroupKey | null>(null)
+
+// 获取当前路径所属的分组
+const currentGroup = computed((): GroupKey | null => {
+  const path = activePath.value
+
+  // AI助手不属于任何分组
+  if (path === '/ai-assistant') return null
+
+  for (const [key, group] of Object.entries(navGroups)) {
+    if (group.items.some(item => item.path === path || path.startsWith(item.path + '/'))) {
+      return key as GroupKey
+    }
+  }
+
+  return null
+})
+
+// 判断分组是否应该展开（规则C）
+const isGroupExpanded = (groupId: GroupKey): boolean => {
+  if (sidebarCollapsed.value) return true // 折叠模式下全部展开
+  return expandedGroup.value === groupId
+}
+
+// 切换分组展开状态
+const toggleGroup = (groupId: GroupKey) => {
+  if (expandedGroup.value === groupId) {
+    expandedGroup.value = null
+  } else {
+    expandedGroup.value = groupId
+  }
+}
+
+// 获取分组的导航项
+const getGroupItems = (groupId: GroupKey): NavItem[] => {
+  const baseItems = navGroups[groupId].items
+
+  // 如果是系统工具组且用户是管理员，追加模型管理
+  if (groupId === 'tools' && authStore.user?.role === 'admin') {
+    return [...baseItems, { path: '/model-management', label: '模型管理', icon: 'control-platform' }]
+  }
+
+  return baseItems
+}
+
+// 监听路由变化，自动更新当前分组
+watch(currentGroup, (newGroup) => {
+  if (newGroup && !sidebarCollapsed.value) {
+    expandedGroup.value = newGroup
+  }
+}, { immediate: true })
+
+// 兼容旧接口（保持向后兼容）
+const navItems = computed(() => {
+  const allItems: NavItem[] = []
+  for (const group of Object.values(navGroups)) {
+    allItems.push(...group.items)
+  }
+  if (authStore.user?.role === 'admin') {
+    allItems.push({ path: '/model-management', label: '模型管理', icon: 'control-platform' })
+  }
+  return allItems
+})
 
 // 日期和星期
 const currentDate = ref('');
 const currentWeekday = ref('');
 const currentDay = ref('');
+
+// AI 俏皮话
+const wittyComment = ref('');
+const wittyLoading = ref(false);
+const WITTY_FALLBACK_POOL = [
+  "又是搬砖的一天，今天也要加油哦 💪",
+  "配方调得再好，也别忘了喝水 🥤",
+  "据说周五的配方成功率最高，是真的吗？🤔",
+  "今天的原料价格波动了吗？快去看看吧 👀",
+  "连续工作2小时记得站起来活动一下 🏃",
+  "周一综合症？不存在的，我们有AI助手呀 😎",
+  "库存不足预警比闹钟还准时呢 ⏰",
+  "今天的目标：完成3个配方优化任务 🎯"
+];
+
+const refreshWittyComment = async () => {
+  if (wittyLoading.value) return;
+  wittyLoading.value = true;
+  try {
+    const cacheKey = 'ai_witty_comment';
+    const cached = localStorage.getItem(cacheKey);
+    const today = new Date().toDateString();
+
+    if (cached) {
+      const { comment, timestamp } = JSON.parse(cached);
+      if (new Date(timestamp).toDateString() === today) {
+        wittyComment.value = comment;
+        wittyLoading.value = false;
+        return;
+      }
+    }
+
+    await new Promise(resolve => setTimeout(resolve, 300));
+    const randomComment = WITTY_FALLBACK_POOL[Math.floor(Math.random() * WITTY_FALLBACK_POOL.length)];
+    wittyComment.value = randomComment;
+
+    localStorage.setItem(cacheKey, JSON.stringify({
+      comment: randomComment,
+      timestamp: Date.now()
+    }));
+  } catch (error) {
+    console.error('Failed to load witty comment:', error);
+    wittyComment.value = WITTY_FALLBACK_POOL[Math.floor(Math.random() * WITTY_FALLBACK_POOL.length)];
+  } finally {
+    wittyLoading.value = false;
+  }
+};
 
 // 页面标题 — 优先使用 route.meta.title
 const pageTitle = computed(() => {
@@ -462,11 +687,6 @@ const pageTitle = computed(() => {
   if (route.path.includes('/versions')) return '版本管理';
   return '欢迎';
 });
-
-// 切换导航栏展开状态
-const toggleNav = () => {
-  navExpanded.value = !navExpanded.value;
-};
 
 // 切换侧边栏折叠
 const toggleSidebarCollapse = () => {
@@ -730,6 +950,7 @@ const focusLastNavItem = () => {
 onMounted(() => {
   updateDateInfo();
   weatherStore.init();
+  refreshWittyComment();
 
   // Ctrl+B 切换侧边栏折叠
   document.addEventListener('keydown', (e: KeyboardEvent) => {
@@ -953,6 +1174,107 @@ onMounted(() => {
   }
 }
 
+// ─── AI 问候卡片（系统版本信息）───
+.sidebar-welcome-card {
+  flex-shrink: 0;
+  margin: 0 18px 16px;
+  background: linear-gradient(135deg, #1a5c3a 0%, #0d4a2f 100%);
+  border-radius: 14px;
+  padding: 16px;
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -20%;
+    right: -10%;
+    width: 100px;
+    height: 100px;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.06), transparent);
+    border-radius: 50%;
+  }
+
+  .welcome-card-inner {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  // ─── 左侧：版本信息 ──
+  .welcome-card-left {
+    flex-shrink: 0;
+
+    .version-label {
+      font-size: 12px;
+      opacity: 0.75;
+      margin: 0 0 4px 0;
+      font-weight: 400;
+      letter-spacing: 0.5px;
+    }
+
+    .version-text {
+      font-size: 17px;
+      font-weight: 700;
+      line-height: 1.2;
+      color: #fff;
+      margin: 0;
+      letter-spacing: 0.5px;
+    }
+  }
+
+  // ─── 右侧：装饰图标（星形）───
+  .welcome-decor-icon {
+    flex-shrink: 0;
+    opacity: 0.25;
+    transition: all $transition-normal;
+
+    &:hover {
+      opacity: 0.4;
+      transform: rotate(15deg) scale(1.05);
+    }
+  }
+}
+
+// ─── AI 俏皮话卡片（天气卡片下方，简洁风格）───
+// ─── AI 俏皮话（单独一行，在日期天气下方）───
+.info-card-witty {
+  position: relative;
+  z-index: 1;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  cursor: pointer;
+  transition: opacity $transition-normal;
+
+  &:hover {
+    opacity: 0.85;
+  }
+
+  .witty-icon {
+    font-size: 13px;
+    flex-shrink: 0;
+    line-height: 1.5;
+    margin-top: 1px;
+  }
+
+  .witty-text {
+    flex: 1;
+    min-width: 0;
+    font-size: 12px;
+    line-height: 1.5;
+    color: rgba(255, 255, 255, 0.85);
+    overflow: visible;
+    text-indent: 2em;
+  }
+}
+
 // ─── sidebar-nav：可滚动导航区域 ───
 .sidebar-nav {
   flex: 1;
@@ -1036,7 +1358,7 @@ onMounted(() => {
     flex-direction: column;
     gap: 6px;
     max-height: 0;
-    overflow: hidden;
+    overflow: visible;
     transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 
     &.expanded {
@@ -1048,16 +1370,16 @@ onMounted(() => {
       align-items: center;
       gap: 8px;
       padding: 9px 10px;
-      background: $bg-page;
+      background: transparent;
       border-radius: 8px;
       cursor: pointer;
       transition: all $transition-fast;
       border: 1px solid transparent;
 
       &:hover {
-        background: $bg-container;
-        border-color: $border-color-light;
-        box-shadow: $shadow-xs;
+        background: rgba(16, 185, 129, 0.06);
+        border-color: transparent;
+        box-shadow: none;
       }
 
       &:focus-visible {
@@ -1117,6 +1439,143 @@ onMounted(() => {
           height: 12px;
         }
       }
+
+      // AI助手顶级入口特殊样式
+      &--top-level {
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(5, 150, 105, 0.12));
+        border-color: rgba(16, 185, 129, 0.2);
+
+        &:hover {
+          background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(5, 150, 105, 0.18));
+          border-color: #10B981;
+          box-shadow: 0 4px 20px rgba(16, 185, 129, 0.25);
+          transform: translateY(-2px);
+        }
+
+        &.active {
+          background: linear-gradient(135deg, #10B981, #059669);
+          border-color: transparent;
+
+          .nav-item-icon--highlight {
+            color: white;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+          }
+
+          .nav-item-text--highlight {
+            color: white;
+            font-weight: 600;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+          }
+        }
+      }
+
+      // 高亮图标和文字
+      &-icon--highlight {
+        position: relative;
+        color: #10B981 !important;
+      }
+
+      &-text--highlight {
+        font-weight: 600;
+        color: #059669;
+      }
+
+      // NEW徽章
+      .nav-item-badge {
+        position: absolute;
+        top: -4px;
+        right: -6px;
+        background: #EF4444;
+        color: white;
+        font-size: 9px;
+        padding: 1px 5px;
+        border-radius: 8px;
+        font-weight: 700;
+        letter-spacing: 0.3px;
+        animation: badgePulse 2s ease-in-out infinite;
+      }
+
+      // 分组内的导航项
+      &--grouped {
+        padding-left: 24px; // 缩进显示层级关系
+
+        &:hover {
+          border-left: 3px solid var(--color-primary);
+          padding-left: 21px;
+        }
+
+        &.active {
+          border-left: 3px solid white;
+          padding-left: 21px;
+        }
+      }
+    }
+
+    // 分隔线
+    .nav-divider {
+      height: 1px;
+      background: $border-color-light;
+      margin: 8px 14px;
+      opacity: 0.6;
+    }
+
+    // 分组容器
+    .nav-group {
+      margin-bottom: 6px;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+
+    // 分组头部（可折叠）
+    .nav-group-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      margin: 4px 8px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all $transition-fast;
+      border: none;
+      background: transparent;
+      width: calc(100% - 16px);
+      color: $text-secondary;
+      font-size: 13px;
+      font-weight: 500;
+
+      &:hover {
+        background: $bg-container;
+        color: $text-primary;
+      }
+
+      &.expanded {
+        color: var(--color-primary);
+        background: transparent;
+
+        .group-arrow {
+          transform: rotate(180deg);
+          color: var(--color-primary);
+        }
+      }
+
+      span {
+        flex: 1;
+        text-align: left;
+      }
+
+      .group-arrow {
+        transition: all $transition-fast;
+        flex-shrink: 0;
+        opacity: 0.7;
+      }
+    }
+
+    // 分组内容区域
+    .nav-group-content {
+      overflow: hidden;
+      padding-left: 8px;
     }
   }
 }
@@ -1525,6 +1984,39 @@ onMounted(() => {
 }
 
 // ═══════════════════════════════════════
+//  分组导航动画
+// ═══════════════════════════════════════
+@keyframes badgePulse {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.6;
+  }
+}
+
+.group-expand-enter-active,
+.group-expand-leave-active {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.group-expand-enter-from,
+.group-expand-leave-to {
+  opacity: 0;
+  max-height: 0;
+  overflow: hidden;
+}
+
+.group-expand-enter-to,
+.group-expand-leave-from {
+  opacity: 1;
+  max-height: 500px; // 足够大的值以容纳所有子项
+}
+
+// ═══════════════════════════════════════
 //  SIDEBAR COLLAPSED — 折叠态 72px 图标模式
 // ═══════════════════════════════════════
 .home-page.collapsed {
@@ -1543,15 +2035,86 @@ onMounted(() => {
       justify-content: center;
       margin-bottom: 8px;
       padding-bottom: 8px;
+
+      .logo-text {
+        display: none;
+      }
+    }
+
+    .sidebar-info-card {
+      padding: 12px 8px;
+
+      .info-card-inner {
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+      }
+
+      .info-card-date {
+        text-align: center;
+
+        .info-card-meta {
+          display: none;
+        }
+      }
+
+      .info-card-weather {
+        text-align: center;
+
+        .weather-bottom {
+          display: none;
+        }
+      }
+
+      .info-card-witty {
+        display: none;
+      }
     }
   }
 
   .sidebar-nav {
     padding: 8px 10px;
 
-    .nav-content .nav-item {
-      justify-content: center;
-      padding: 10px;
+    .nav-content {
+      .nav-item {
+        justify-content: center;
+        padding: 10px;
+
+        .nav-item-text,
+        .nav-item-arrow,
+        .nav-item-badge {
+          display: none;
+        }
+      }
+
+      .nav-divider {
+        display: none;
+      }
+
+      .nav-group {
+        .nav-group-header {
+          justify-content: center;
+          padding: 10px;
+
+          span,
+          .group-arrow {
+            display: none;
+          }
+        }
+
+        .nav-group-content {
+          padding-left: 0;
+
+          .nav-subitem {
+            justify-content: center;
+            padding: 10px;
+
+            .subitem-text {
+              display: none;
+            }
+          }
+        }
+      }
     }
   }
 }

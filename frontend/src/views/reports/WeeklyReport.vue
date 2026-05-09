@@ -245,7 +245,7 @@
 
               <div ref="futurePlansRef" class="report-section-card" :class="{ 'editing-overflow': isEditingPlans }"
                 :style="{ borderLeftColor: '#8B5CF6' }">
-                <div class="section-header">
+                <div class="section-header" @click="plansExpanded = !plansExpanded" style="cursor: pointer;">
                   <div class="section-title-group">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" stroke-width="2"
                       stroke-linecap="round" stroke-linejoin="round">
@@ -255,11 +255,16 @@
                     </svg>
                     <h3 class="section-title">未来规划</h3>
                   </div>
-                  <t-button v-if="!isEditingPlans" variant="text" theme="primary" size="small" @click="startEditPlans">
-                    <template #icon><t-icon name="edit-1" /></template>
-                    编辑
-                  </t-button>
-                  <div v-else class="edit-actions">
+                  <div class="header-right-actions">
+                    <svg :class="{ 'collapse-icon': true, 'collapsed': !plansExpanded }" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                      stroke="#94A3B8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" @click.stop="plansExpanded = !plansExpanded">
+                      <polyline points="6 9 12 15 18 9" />
+                    </svg>
+                    <t-button v-if="!isEditingPlans" variant="text" theme="primary" size="small" @click.stop="startEditPlans">
+                      <template #icon><t-icon name="edit-1" /></template>
+                      编辑
+                    </t-button>
+                    <div v-else class="edit-actions" @click.stop>
                     <t-button variant="text" size="small" theme="primary" @click="savePlans">
                       <template #icon><t-icon name="check" /></template>
                       保存
@@ -270,7 +275,8 @@
                     </t-button>
                   </div>
                 </div>
-                <div class="section-body" :class="{ 'editing-mode': isEditingPlans }">
+              </div>
+              <div class="section-body" :class="{ 'editing-mode': isEditingPlans }" v-show="plansExpanded || isEditingPlans">
                   <template v-if="isEditingPlans">
                     <div class="edit-field">
                       <label class="edit-label">下周计划</label>
@@ -388,14 +394,33 @@ const setChartRef = (key: string) => (el: any) => {
 
 const dailyFormulaTrendOption = computed(() => {
   const data = reportData.value?.formula?.dailyFormulaTrend;
+  console.log(`[WeeklyReport] 🔍 dailyFormulaTrendOption 计算:`);
+  console.log(`   reportData 存在: ${!!reportData.value}`);
+  console.log(`   formula 存在: ${!!reportData.value?.formula}`);
+  console.log(`   dailyFormulaTrend:`, data ? `${data.length} 条` : 'null/undefined');
   if (!data || data.length === 0) return null;
-  return buildDailyFormulaTrendChart(data);
+  try {
+    const opt = buildDailyFormulaTrendChart(data);
+    console.log(`   ✅ buildDailyFormulaTrendChart 返回有效 option`);
+    return opt;
+  } catch (e) {
+    console.error(`   ❌ buildDailyFormulaTrendChart 异常:`, e);
+    return null;
+  }
 });
 
 const statusDistributionOption = computed(() => {
   const data = reportData.value?.formula?.statusDistribution;
+  console.log(`[WeeklyReport] 🔍 statusDistributionOption 计算:`, data ? `${data.length} 条` : 'null');
   if (!data || data.length === 0) return null;
-  return buildStatusDistributionChart(data);
+  try {
+    const opt = buildStatusDistributionChart(data);
+    console.log(`   ✅ buildStatusDistributionChart 返回有效 option`);
+    return opt;
+  } catch (e) {
+    console.error(`   ❌ buildStatusDistributionChart 异常:`, e);
+    return null;
+  }
 });
 
 const dailySalesTrendOption = computed(() => {
@@ -444,30 +469,64 @@ const salesIndicators = computed(() => {
 const initChart = (key: string, option: EChartsOption) => {
   const el = chartRefs.value[key];
   if (!el) return;
-  if (chartInstances.value[key]) {
-    chartInstances.value[key]!.dispose();
+
+  const existingInstance = chartInstances.value[key];
+  if (existingInstance) {
+    try {
+      existingInstance.setOption(option);
+      return;
+    } catch {
+      existingInstance.dispose();
+    }
   }
-  const instance = echarts.init(el);
-  instance.setOption(option);
-  chartInstances.value[key] = instance;
+
+  try {
+    const instance = echarts.init(el);
+    instance.setOption(option);
+    chartInstances.value[key] = instance;
+  } catch (e) {
+    console.error(`[WeeklyReport] ❌ initChart("${key}") 异常:`, e);
+  }
 };
 
 const initAllCharts = () => {
-  if (dailyFormulaTrendOption.value) {
-    initChart('dailyFormulaTrend', dailyFormulaTrendOption.value);
+  const chartMap = [
+    { key: 'dailyFormulaTrend', option: dailyFormulaTrendOption.value },
+    { key: 'statusDistribution', option: statusDistributionOption.value },
+    { key: 'dailySalesTrend', option: dailySalesTrendOption.value },
+    { key: 'topFormulas', option: topFormulasOption.value },
+    { key: 'weeklyComparison', option: weeklyComparisonOption.value },
+  ];
+
+  for (const { key, option } of chartMap) {
+    if (option && chartRefs.value[key]) {
+      initChart(key, option);
+    }
   }
-  if (statusDistributionOption.value) {
-    initChart('statusDistribution', statusDistributionOption.value);
+};
+
+const waitForDomAndInitCharts = (attempt = 0) => {
+  const MAX_ATTEMPTS = 8;
+  if (attempt >= MAX_ATTEMPTS) return;
+
+  const pendingKeys = ['dailyFormulaTrend', 'statusDistribution', 'dailySalesTrend', 'topFormulas', 'weeklyComparison']
+    .filter(key => {
+      const option = (
+        key === 'dailyFormulaTrend' ? dailyFormulaTrendOption.value :
+        key === 'statusDistribution' ? statusDistributionOption.value :
+        key === 'dailySalesTrend' ? dailySalesTrendOption.value :
+        key === 'topFormulas' ? topFormulasOption.value :
+        weeklyComparisonOption.value
+      );
+      return option && !chartRefs.value[key];
+    });
+
+  if (pendingKeys.length === 0) {
+    initAllCharts();
+    return;
   }
-  if (dailySalesTrendOption.value) {
-    initChart('dailySalesTrend', dailySalesTrendOption.value);
-  }
-  if (topFormulasOption.value) {
-    initChart('topFormulas', topFormulasOption.value);
-  }
-  if (weeklyComparisonOption.value) {
-    initChart('weeklyComparison', weeklyComparisonOption.value);
-  }
+
+  setTimeout(() => waitForDomAndInitCharts(attempt + 1), 80 + attempt * 60);
 };
 
 const handleResize = () => {
@@ -494,47 +553,49 @@ const statusTheme = computed(() => {
 
 const dashboardCards = computed(() => {
   const data = reportData.value;
+  const formula = data?.formula || {};
+  const sales = data?.sales || {};
   return [
     {
       label: '新增配方',
-      value: data?.newFormulas ?? 0,
+      value: formula.newFormulaCount ?? 0,
       unit: '个',
-      badge: data?.newFormulasGrowth ? `${data.newFormulasGrowth > 0 ? '+' : ''}${data.newFormulasGrowth}%` : '--',
-      badgeColor: (data?.newFormulasGrowth || 0) >= 0 ? '#10B981' : '#EF4444',
-      badgeBg: (data?.newFormulasGrowth || 0) >= 0 ? '#ECFDF5' : '#FEF2F2',
+      badge: formula.newFormulaCountGrowth != null ? `${formula.newFormulaCountGrowth > 0 ? '+' : ''}${formula.newFormulaCountGrowth}%` : '--',
+      badgeColor: (formula.newFormulaCountGrowth || 0) >= 0 ? '#10B981' : '#EF4444',
+      badgeBg: (formula.newFormulaCountGrowth || 0) >= 0 ? '#ECFDF5' : '#FEF2F2',
       iconBg: '#EFF6FF',
       iconColor: '#3B82F6',
       iconPath: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/>',
     },
     {
       label: '完成配方',
-      value: data?.completedFormulas ?? 0,
+      value: formula.completedFormulaCount ?? 0,
       unit: '个',
-      badge: data?.completedFormulasGrowth ? `${data.completedFormulasGrowth > 0 ? '+' : ''}${data.completedFormulasGrowth}%` : '--',
-      badgeColor: (data?.completedFormulasGrowth || 0) >= 0 ? '#10B981' : '#EF4444',
-      badgeBg: (data?.completedFormulasGrowth || 0) >= 0 ? '#ECFDF5' : '#FEF2F2',
+      badge: formula.completedFormulaCountGrowth != null ? `${formula.completedFormulaCountGrowth > 0 ? '+' : ''}${formula.completedFormulaCountGrowth}%` : '--',
+      badgeColor: (formula.completedFormulaCountGrowth || 0) >= 0 ? '#10B981' : '#EF4444',
+      badgeBg: (formula.completedFormulaCountGrowth || 0) >= 0 ? '#ECFDF5' : '#FEF2F2',
       iconBg: '#ECFDF5',
       iconColor: '#10B981',
       iconPath: '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>',
     },
     {
       label: '销售总量',
-      value: (data?.totalQuantity ?? 0).toLocaleString(),
+      value: (sales.weeklyQuantity ?? 0).toLocaleString(),
       unit: '件',
-      badge: data?.quantityGrowth ? `${data.quantityGrowth > 0 ? '+' : ''}${data.quantityGrowth}%` : '--',
-      badgeColor: (data?.quantityGrowth || 0) >= 0 ? '#10B981' : '#EF4444',
-      badgeBg: (data?.quantityGrowth || 0) >= 0 ? '#ECFDF5' : '#FEF2F2',
+      badge: sales.quantityGrowthRate != null ? `${sales.quantityGrowthRate > 0 ? '+' : ''}${sales.quantityGrowthRate}%` : '--',
+      badgeColor: (sales.quantityGrowthRate || 0) >= 0 ? '#10B981' : '#EF4444',
+      badgeBg: (sales.quantityGrowthRate || 0) >= 0 ? '#ECFDF5' : '#FEF2F2',
       iconBg: '#FFFBEB',
       iconColor: '#F59E0B',
       iconPath: '<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>',
     },
     {
       label: '销售额',
-      value: data?.totalRevenue ? (data.totalRevenue / 10000).toFixed(1) : '0',
+      value: sales.weeklyRevenue ? (sales.weeklyRevenue / 10000).toFixed(1) : '0',
       unit: '万元',
-      badge: data?.revenueGrowth ? `${data.revenueGrowth > 0 ? '+' : ''}${data.revenueGrowth}%` : '--',
-      badgeColor: (data?.revenueGrowth || 0) >= 0 ? '#10B981' : '#EF4444',
-      badgeBg: (data?.revenueGrowth || 0) >= 0 ? '#ECFDF5' : '#FEF2F2',
+      badge: sales.revenueGrowthRate != null ? `${sales.revenueGrowthRate > 0 ? '+' : ''}${sales.revenueGrowthRate}%` : '--',
+      badgeColor: (sales.revenueGrowthRate || 0) >= 0 ? '#10B981' : '#EF4444',
+      badgeBg: (sales.revenueGrowthRate || 0) >= 0 ? '#ECFDF5' : '#FEF2F2',
       iconBg: '#FAF5FF',
       iconColor: '#A855F7',
       iconPath: '<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',
@@ -587,6 +648,22 @@ const handleExportExcel = () => {
 };
 
 const isEditingPlans = ref(false);
+const plansExpanded = ref(true);
+
+const hasAnyPlansData = computed(() => {
+  const data = reportData.value;
+  if (!data) return false;
+  if (data.plans) {
+    const p = data.plans;
+    if (hasPlanContent(p.nextWeekPlans) || hasPlanContent(p.resourceNeeds) || hasPlanContent(p.expectedTargets) || hasPlanContent(p.riskAssessment)) return true;
+  }
+  if (data.futurePlans && data.futurePlans.trim()) return true;
+  return false;
+});
+
+watch(hasAnyPlansData, (val) => {
+  plansExpanded.value = val;
+}, { immediate: true });
 const editForm = ref({
   nextWeekPlans: '',
   resourceNeeds: '',
@@ -666,7 +743,7 @@ const retryLoad = async () => {
 watch(() => reportStore.currentReport, (report) => {
   if (report?.dataJson) {
     nextTick(() => {
-      initAllCharts();
+      setTimeout(() => waitForDomAndInitCharts(0), 60);
     });
   }
 }, { immediate: true });
@@ -997,6 +1074,25 @@ onUnmounted(() => {
 
     :deep(.t-button:hover) {
       color: var(--color-primary-dark);
+    }
+  }
+
+  .header-right-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .collapse-icon {
+    transition: transform 0.25s ease;
+    cursor: pointer;
+
+    &:hover {
+      stroke: #64748B;
+    }
+
+    &.collapsed {
+      transform: rotate(-90deg);
     }
   }
 

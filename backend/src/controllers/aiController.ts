@@ -1200,3 +1200,100 @@ function validateAndFixNutritionData(mat: MaterialNutritionItem, excelMap?: Exce
 
   return { data: fixed, wasFixed };
 }
+
+// ─── AI 对话（SSE 流式） ───
+
+const DASHBOARD_SYSTEM_PROMPT = `你是 TingStudio AI 助手，一个专业的配方管理和数据分析助手。你的主要职责包括：
+
+1. **配方分析**：帮助用户分析、优化和创建饲料/食品配方
+2. **数据查询**：回答关于销量、原料库存、成本等业务数据的问题
+3. **报告生成**：协助生成周报、月报等业务报告
+4. **智能建议**：基于数据提供业务优化建议
+
+**重要规则**：
+- 回答要简洁专业，使用中文
+- 涉及数据时，尽量使用表格或列表格式
+- 如果不确定的数据，明确告知用户需要核实
+- 可以使用 emoji 增强可读性，但不要过度使用
+- 当用户询问具体操作时，提供清晰的步骤指导`;
+
+/** POST /api/ai/chat — SSE 流式对话 */
+export async function chatStream(req: any, res: Response) {
+  try {
+    const { message, conversationId, model: provider } = req.body;
+
+    if (!message || typeof message !== 'string' || message.trim().length === 0) {
+      res.status(400).json({ success: false, message: "消息内容不能为空" });
+      return;
+    }
+
+    // 设置 SSE 响应头
+    res.writeHead(200, {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      'Connection': 'keep-alive',
+      'X-Accel-Buffering': 'no'
+    });
+
+    const startTime = Date.now();
+    
+    // 构建消息历史（Phase 3完善：从数据库加载会话历史）
+    const messages: ChatMessage[] = [
+      { role: 'system', content: DASHBOARD_SYSTEM_PROMPT },
+      { role: 'user', content: message.trim() }
+    ];
+
+    // 使用默认模型（如果没有指定）
+    const selectedProvider = provider || 'deepseek';
+
+    try {
+      // 调用 AI 服务的流式聊天方法
+      const result = await aiService.chatCompletion(selectedProvider, messages, {
+        stream: true,
+        onToken: (token: string) => {
+          // 发送 SSE 数据块
+          const data = JSON.stringify({ type: 'token', content: token });
+          res.write(`data: ${data}\n\n`);
+        }
+      });
+
+      // 发送完成信号
+      const latency = Date.now() - startTime;
+      const completionData = JSON.stringify({
+        type: 'complete',
+        content: result.content,
+        model: result.model || selectedProvider,
+        tokens: result.tokens || 0,
+        latency
+      });
+      res.write(`data: ${completionData}\n\n`);
+      res.write('data: [DONE]\n\n');
+      res.end();
+
+      console.log(`[AI Chat] 流式对话完成, 模型=${selectedProvider}, 耗时=${latency}ms`);
+      
+    } catch (aiError: any) {
+      console.error('[AI Chat] AI 服务错误:', aiError.message);
+      
+      const errorData = JSON.stringify({
+        type: 'error',
+        message: aiError.message || 'AI 服务暂时不可用'
+      });
+      res.write(`data: ${errorData}\n\n`);
+      res.end();
+    }
+
+  } catch (error: any) {
+    console.error('[AI Chat] 对话处理错误:', error);
+    if (!res.headersSent) {
+      res.status(500).json({ success: false, message: "对话处理失败", error: error.message });
+    } else {
+      const errorData = JSON.stringify({
+        type: 'error',
+        message: error.message || '服务器内部错误'
+      });
+      res.write(`data: ${errorData}\n\n`);
+      res.end();
+    }
+  }
+}

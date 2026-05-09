@@ -17,6 +17,7 @@ import {
   exportReportExcel,
   compareReports,
   getAIAnalysis,
+  saveAIAnalysis,
 } from "../controllers/reportController.js";
 import { validateBody } from "../middleware/validate.js";
 
@@ -36,6 +37,7 @@ reportRoutes.put("/targets/:id", updateTarget);
 reportRoutes.delete("/targets/:id", deleteTarget);
 reportRoutes.post("/compare", compareReports);
 reportRoutes.post("/ai-analysis", getAIAnalysis);
+reportRoutes.put("/:id/ai-analysis", saveAIAnalysis);
 reportRoutes.post("/generate", validateBody({
   type: { type: "string", required: true, message: "请选择报告类型" },
   periodStart: { type: "string", required: true, message: "请选择开始日期" },

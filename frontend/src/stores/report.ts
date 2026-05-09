@@ -98,13 +98,33 @@ export const useReportStore = defineStore('report', () => {
   }
 
   const deleteReport = async (id: string) => {
+    console.log('\n[ReportStore] ========== 前端删除报告请求开始 ==========')
+    console.log(`[ReportStore] 📥 报告ID: ${id}`)
     try {
-      await reportApi.delete(id)
+      console.log(`[ReportStore] 🌐 调用后端 DELETE /api/reports/${id} ...`)
+      const res = await reportApi.delete(id)
+      console.log(`[ReportStore] ✅ 后端响应成功:`, JSON.stringify(res))
       MessagePlugin.success('报告删除成功')
+      console.log(`[ReportStore] ✅ ========== 删除完成 ==========\n`)
       return true
     } catch (error: any) {
-      console.error('删除报告失败:', error)
-      MessagePlugin.error(error.message || '删除报告失败')
+      console.error(`[ReportStore] ❌ ========== 删除失败 ==========`)
+      console.error(`[ReportStore] 错误消息:`, error.message || '未知错误')
+      console.error(`[ReportStore] 错误详情:`, error)
+      console.error(`[ReportStore] HTTP状态:`, error.response?.status, error.response?.statusText)
+
+      let errorMsg = error.message || '删除报告失败'
+      if (error.response?.status === 403) {
+        errorMsg = error.response?.data?.message || '无权限删除此报告（仅管理员或创建者可操作）'
+        console.warn(`[ReportStore] ⚠️ 权限不足! 可能原因:`)
+        console.warn(`[ReportStore]   - 当前用户非管理员且非报告创建者`)
+        console.warn(`[ReportStore]   - 报告状态可能不允许删除`)
+      } else if (error.response?.status === 404) {
+        errorMsg = '报告不存在或已被删除'
+        console.warn(`[ReportStore] ⚠️ 报告不存在! id=${id}`)
+      }
+
+      MessagePlugin.error(errorMsg)
       return false
     }
   }

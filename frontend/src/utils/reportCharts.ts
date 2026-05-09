@@ -41,7 +41,7 @@ const baseChartConfig = {
 export function buildDailyFormulaTrendChart(data: Array<{ date: string; new: number; completed: number }>): EChartsOption {
   return {
     ...baseChartConfig,
-    title: { text: '每日配方新增/完成趋势', left: 'center', textStyle: { fontSize: 14, fontWeight: 600, color: '#334155' } },
+    title: { text: '每日配方新增/完成趋势', left: 'center', top: 0, textStyle: { fontSize: 13, fontWeight: 600, color: '#334155', padding: [8, 0, 0, 0] } },
     xAxis: {
       type: 'category',
       data: data.map(d => d.date.substring(5)),
@@ -63,15 +63,18 @@ export function buildDailyFormulaTrendChart(data: Array<{ date: string; new: num
 }
 
 export function buildStatusDistributionChart(data: Array<{ status: string; count: number }>): EChartsOption {
+  const hasManyItems = data.length > 6
   return {
     color: reportChartPalette,
     tooltip: { trigger: 'item', formatter: '{b}: {c} ({d}%)' },
-    legend: { bottom: 0, textStyle: { color: '#64748B', fontSize: 12 } },
+    legend: hasManyItems
+      ? { orient: 'vertical' as const, right: 0, top: 'middle', textStyle: { color: '#64748B', fontSize: 11 } }
+      : { bottom: 0, textStyle: { color: '#64748B', fontSize: 12 } },
     series: [{
       type: 'pie',
       radius: ['40%', '70%'],
-      center: ['50%', '45%'],
-      avoidLabelOverlap: false,
+      center: hasManyItems ? ['35%', '50%'] : ['50%', '45%'],
+      avoidLabelOverlap: true,
       itemStyle: { borderRadius: 8, borderColor: '#fff', borderWidth: 2 },
       label: { show: false },
       emphasis: { label: { show: true, fontSize: 14, fontWeight: 'bold' } },
@@ -216,15 +219,18 @@ export function buildMonthlyTrendChart(data: Array<{ month: string; quantity: nu
 }
 
 export function buildFormulaTypeDistributionChart(data: Array<{ type: string; quantity: number; revenue: number }>): EChartsOption {
+  const hasManyItems = data.length > 6
   return {
     color: reportChartPalette,
     tooltip: { trigger: 'item', formatter: '{b}: {c} ({d}%)' },
-    legend: { bottom: 0, textStyle: { color: '#64748B', fontSize: 12 } },
+    legend: hasManyItems
+      ? { orient: 'vertical' as const, right: 0, top: 'middle', textStyle: { color: '#64748B', fontSize: 11 } }
+      : { bottom: 0, textStyle: { color: '#64748B', fontSize: 12 } },
     series: [{
       type: 'pie',
       radius: ['40%', '70%'],
-      center: ['50%', '45%'],
-      avoidLabelOverlap: false,
+      center: hasManyItems ? ['35%', '50%'] : ['50%', '45%'],
+      avoidLabelOverlap: true,
       itemStyle: { borderRadius: 8, borderColor: '#fff', borderWidth: 2 },
       label: { show: false },
       emphasis: { label: { show: true, fontSize: 14, fontWeight: 'bold' } },

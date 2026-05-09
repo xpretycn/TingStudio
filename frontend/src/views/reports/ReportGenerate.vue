@@ -397,19 +397,33 @@ onMounted(() => {
 
 .date-range-row {
   display: flex;
-  align-items: flex-end;
+  align-items: stretch;
   gap: 16px;
 
   .date-field {
     flex: 1;
+
+    :deep(.t-form__item) {
+      margin-bottom: 0;
+    }
+
+    :deep(.t-form__label) {
+      margin-bottom: 6px;
+      min-height: 22px;
+      display: flex;
+      align-items: center;
+    }
   }
 
   .date-separator {
     font-size: $font-size-body;
     color: #94A3B8;
     font-weight: $font-weight-medium;
-    padding-bottom: 12px;
     flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    align-self: center;
   }
 }
 

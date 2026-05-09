@@ -1367,9 +1367,9 @@ const getSalesQuantity = (row: any): number => {
       opacity: 0;
 
       &:hover {
-        border-color: #D1FAE5;
-        transform: translateY(-2px);
-        box-shadow: 0 14px 36px -6px rgba(0, 0, 0, 0.08);
+        transform: translateY(-4px);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+        border-color: transparent;
       }
 
       .stat-card-top {

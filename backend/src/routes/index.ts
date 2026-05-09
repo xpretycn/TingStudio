@@ -13,6 +13,7 @@ import { weatherRoutes } from "./weather.js";
 import { salesRoutes } from "./sales.js";
 import { reportRoutes } from "./reports.js";
 import { fileRoutes } from "./files.js";
+import { dashboardRoutes } from "./dashboard.js";
 
 export function createAppRouter(): Router {
   const router = Router();
@@ -30,6 +31,7 @@ export function createAppRouter(): Router {
   router.use("/sales", salesRoutes);
   router.use("/reports", reportRoutes);
   router.use("/files", fileRoutes);
+  router.use("/dashboard", dashboardRoutes);
 
   return router;
 }

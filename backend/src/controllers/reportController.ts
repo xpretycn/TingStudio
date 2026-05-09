@@ -184,21 +184,57 @@ export async function updateReport(req: any, res: Response) {
 }
 
 export async function deleteReport(req: any, res: Response) {
+  const startTime = Date.now()
+  console.log('\n[ReportController] ========== 报告删除请求开始 ==========')
+  console.log(`[ReportController] 📥 请求参数: id=${req.params?.id}`)
+  console.log(`[ReportController] 👤 请求用户: userId=${req.user?.userId}, username=${req.user?.username || 'N/A'}`)
+
   try {
     const { id } = req.params;
+
+    console.log(`[ReportController] 🔍 步骤1: 查询报告是否存在 (id=${id})...`)
     const [[existing]]: any[][] = await query("SELECT * FROM reports WHERE id = ?", [id]);
+
     if (!existing) {
+      console.warn(`[ReportController] ⚠️ 步骤1结果: 报告不存在! id=${id}`)
       return res.status(404).json({ success: false, message: "报告不存在" });
     }
 
+    console.log(`[ReportController] ✅ 步骤1结果: 报告已找到`)
+    console.log(`[ReportController]   - id: ${existing.id}`)
+    console.log(`[ReportController]   - title: ${existing.title}`)
+    console.log(`[ReportController]   - type: ${existing.type}`)
+    console.log(`[ReportController]   - status: ${existing.status}`)
+    console.log(`[ReportController]   - created_by: ${existing.created_by}`)
+    console.log(`[ReportController]   - created_at: ${existing.created_at}`)
+
+    console.log(`[ReportController] 🔐 步骤2: 验证用户权限...`)
     const userRole = await getUserRole(req.user.userId);
-    if (userRole !== "admin") {
-      return res.status(403).json({ success: false, message: "仅管理员可删除报告" });
+    console.log(`[ReportController]   - 用户角色: ${userRole}`)
+    console.log(`[ReportController]   - 用户ID: ${req.user?.userId}`)
+    console.log(`[ReportController]   - 报告创建者ID: ${existing.created_by}`)
+
+    if (userRole === "admin" || existing.created_by === req.user.userId) {
+      console.log(`[ReportController] ✅ 步骤2结果: 权限验证通过 (role=${userRole}, isOwner=${existing.created_by === req.user.userId})`)
+
+      console.log(`[ReportController] 🗑️  步骤3: 执行删除操作 (id=${id})...`)
+      const result = await query("DELETE FROM reports WHERE id = ?", [id]);
+      console.log(`[ReportController] ✅ 步骤3结果: 删除执行成功`)
+      console.log(`[ReportController]   - 影响行数: ${JSON.stringify(result)}`)
+
+      const elapsed = Date.now() - startTime
+      console.log(`[ReportController] ✅ ========== 删除成功 (耗时 ${elapsed}ms) ==========\n`)
+      return res.json(success({ id }, "删除成功"));
     }
 
-    await query("DELETE FROM reports WHERE id = ?", [id]);
-    res.json(success({ id }, "删除成功"));
+    console.warn(`[ReportController] ❌ 步骤2结果: 权限验证失败!`)
+    console.warn(`[ReportController]   - 原因: role="${userRole}" !== "admin" 且 created_by="${existing.created_by}" !== userId="${req.user?.userId}"`)
+    return res.status(403).json({ success: false, message: "仅管理员或报告创建者可删除报告" });
   } catch (error: any) {
+    console.error(`[ReportController] ❌ ========== 删除异常 ==========`)
+    console.error(`[ReportController] 错误类型: ${error.name}`)
+    console.error(`[ReportController] 错误消息: ${error.message}`)
+    console.error(`[ReportController] 错误堆栈:`, error.stack)
     res.status(500).json({ success: false, message: "删除报告失败", error: error.message });
   }
 }
@@ -475,7 +511,6 @@ export async function getAIAnalysis(req: any, res: Response) {
       return res.status(503).json({ success: false, message: "未配置AI模型，请在环境变量中设置API Key" });
     }
 
-    // 优先使用智谱GLM模型进行报告分析
     const zhipuModel = availableModels.find(m => m.provider === 'zhipu');
     const defaultProvider = zhipuModel ? 'zhipu' : availableModels[0].provider;
     const selectedProvider = provider || defaultProvider;
@@ -520,6 +555,43 @@ export async function getAIAnalysis(req: any, res: Response) {
     }));
   } catch (error: any) {
     res.status(500).json({ success: false, message: "AI分析失败", error: error.message });
+  }
+}
+
+export async function saveAIAnalysis(req: any, res: Response) {
+  try {
+    const { id } = req.params;
+    const { aiAnalysis } = req.body;
+
+    if (!aiAnalysis) {
+      return res.status(400).json({ success: false, message: "请提供AI分析数据" });
+    }
+
+    const [[existing]]: any[][] = await query("SELECT * FROM reports WHERE id = ?", [id]);
+    if (!existing) {
+      return res.status(404).json({ success: false, message: "报告不存在" });
+    }
+
+    const userRole = await getUserRole(req.user.userId);
+    if (userRole === "formulist" && existing.created_by !== req.user.userId) {
+      return res.status(403).json({ success: false, message: "无权编辑此报告" });
+    }
+
+    const currentData = safeJsonParse(existing.data_json, {});
+    const updatedData = { ...currentData, aiAnalysis };
+
+    await query(
+      "UPDATE reports SET data_json = ?, updated_at = ? WHERE id = ?",
+      [JSON.stringify(updatedData), now(), id]
+    );
+
+    const [[updated]]: any[][] = await query("SELECT * FROM reports WHERE id = ?", [id]);
+    res.json(success({
+      ...rowToCamelCase(updated),
+      dataJson: safeJsonParse(updated.data_json, {}),
+    }, "AI分析保存成功"));
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: "保存AI分析失败", error: error.message });
   }
 }
 

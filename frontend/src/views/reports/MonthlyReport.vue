@@ -245,7 +245,7 @@
 
               <div ref="futurePlansRef" class="report-section-card" :class="{ 'editing-overflow': isEditingPlans }"
                 :style="{ borderLeftColor: '#8B5CF6' }">
-                <div class="section-header">
+                <div class="section-header" @click="plansExpanded = !plansExpanded" style="cursor: pointer;">
                   <div class="section-title-group">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" stroke-width="2"
                       stroke-linecap="round" stroke-linejoin="round">
@@ -255,11 +255,16 @@
                     </svg>
                     <h3 class="section-title">未来规划</h3>
                   </div>
-                  <t-button v-if="!isEditingPlans" variant="text" theme="primary" size="small" @click="startEditPlans">
-                    <template #icon><t-icon name="edit-1" /></template>
-                    编辑
-                  </t-button>
-                  <div v-else class="edit-actions">
+                  <div class="header-right-actions">
+                    <svg :class="{ 'collapse-icon': true, 'collapsed': !plansExpanded }" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                      stroke="#94A3B8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" @click.stop="plansExpanded = !plansExpanded">
+                      <polyline points="6 9 12 15 18 9" />
+                    </svg>
+                    <t-button v-if="!isEditingPlans" variant="text" theme="primary" size="small" @click.stop="startEditPlans">
+                      <template #icon><t-icon name="edit-1" /></template>
+                      编辑
+                    </t-button>
+                    <div v-else class="edit-actions" @click.stop>
                     <t-button variant="text" size="small" theme="primary" @click="savePlans">
                       <template #icon><t-icon name="check" /></template>
                       保存
@@ -270,7 +275,8 @@
                     </t-button>
                   </div>
                 </div>
-                <div class="section-body" :class="{ 'editing-mode': isEditingPlans }">
+              </div>
+              <div class="section-body" :class="{ 'editing-mode': isEditingPlans }" v-show="plansExpanded || isEditingPlans">
                   <template v-if="isEditingPlans">
                     <div class="edit-field">
                       <label class="edit-label">下月计划</label>
@@ -844,6 +850,22 @@ const handleExportExcel = () => {
 };
 
 const isEditingPlans = ref(false);
+const plansExpanded = ref(true);
+
+const hasAnyPlansData = computed(() => {
+  const data = reportData.value;
+  if (!data) return false;
+  if (data.plans) {
+    const p = data.plans;
+    if (hasPlanContent(p.nextWeekPlans) || hasPlanContent(p.resourceNeeds) || hasPlanContent(p.expectedTargets) || hasPlanContent(p.riskAssessment)) return true;
+  }
+  if (data.futurePlans && data.futurePlans.trim()) return true;
+  return false;
+});
+
+watch(hasAnyPlansData, (val) => {
+  plansExpanded.value = val;
+}, { immediate: true });
 const editForm = ref({
   nextWeekPlans: '',
   resourceNeeds: '',
@@ -1268,6 +1290,25 @@ onUnmounted(() => {
 
     :deep(.t-button:hover) {
       color: var(--color-primary-dark);
+    }
+  }
+
+  .header-right-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .collapse-icon {
+    transition: transform 0.25s ease;
+    cursor: pointer;
+
+    &:hover {
+      stroke: #64748B;
+    }
+
+    &.collapsed {
+      transform: rotate(-90deg);
     }
   }
 

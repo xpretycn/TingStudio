@@ -2,7 +2,13 @@
 import { Router } from "express";
 import { authMiddleware } from "../middleware/auth.js";
 import multer from "multer";
-import { parseFormula, parseMaterialNutrition, naturalSearch, getModels } from "../controllers/aiController.js";
+import {
+  parseFormula,
+  parseMaterialNutrition,
+  naturalSearch,
+  getModels,
+  chatStream,
+} from "../controllers/aiController.js";
 import {
   getModelsList,
   createModel,
@@ -65,6 +71,9 @@ router.post(
 );
 router.post("/natural-search", naturalSearch);
 router.get("/models", getModels);
+
+// AI 对话（SSE 流式）
+router.post("/chat", chatStream);
 
 router.get("/models-manage", getModelsList);
 router.post("/models-manage", createModel);

@@ -6,7 +6,91 @@
 
 TingStudio 是一个专业的食品配方工作数据管理平台，面向食品配方行业（中草药功效配方），提供配方管理、原料管理、业务员管理、营养成分分析、导出分享等完整功能链路。采用 **Vue 3 + Express + SQLite** 前后端分离架构，支持 JWT 认证、RESTful API、配方版本控制、营养合规检查、AI 智能解析等企业级特性。
 
-## 🚀 最新更新 (2026-05-08)
+## 🚀 最新更新 (2026-05-09)
+
+### ✅ AI助手工作台UI优化 + 仪表盘样式统一 + 俏皮话优化
+
+#### 🎨 左侧导航栏俏皮话优化
+
+**修改内容：**
+
+- 删除"AI提示："前缀，直接显示内容
+- 文本首行缩进2字符（`text-indent: 2em`）
+- 保留点击换一条功能
+- 优化显示效果，提升阅读体验
+
+**修改文件：**
+
+- [Home.vue](frontend/src/views/Home.vue) — `WITTY_FALLBACK_POOL` 数据源 + `.witty-text` 样式
+
+---
+
+#### 🎯 仪表盘卡片 Hover 效果统一
+
+将所有页面的仪表盘数据卡片的 hover 效果统一为与 **AI助手工作台** 一致的交互体验：
+
+**统一后的 Hover 效果规范：**
+
+| 属性           | 值                                      | 说明           |
+| -------------- | --------------------------------------- | -------------- |
+| `transform`    | `translateY(-4px)`                      | 上浮4px动画    |
+| `box-shadow`   | `0 12px 30px rgba(0, 0, 0, 0.1)`        | 柔和阴影效果   |
+| `border-color` | `transparent`                           | 无边框颜色变化 |
+| `transition`   | `all 0.3s cubic-bezier(0.4, 0, 0.2, 1)` | 平滑过渡动画   |
+
+**影响的页面：**
+
+| 页面         | 组件      | 文件路径                                                             |
+| ------------ | --------- | -------------------------------------------------------------------- |
+| 配方管理     | stat-card | [FormulaList.vue](frontend/src/views/formulas/FormulaList.vue)       |
+| 原料管理     | stat-card | [MaterialList.vue](frontend/src/views/materials/MaterialList.vue)    |
+| 业务员管理   | stat-card | [SalesmanList.vue](frontend/src/views/salesmen/SalesmanList.vue)     |
+| AI助手工作台 | data-card | [AIDashboard.vue](frontend/src/views/ai/AIDashboard.vue) ✅ 参考标准 |
+
+**设计理念：**
+
+- 🎯 **一致性**：所有页面使用相同的 hover 动画参数
+- 🎯 **流畅性**：使用 cubic-bezier 缓动函数实现自然过渡
+- 🎯 **视觉层次**：上浮 + 阴影组合增强空间感
+- 🎯 **简洁性**：移除边框颜色变化，保持界面清爽
+
+---
+
+#### 🔧 SCSS 编译错误修复
+
+修复了 Home.vue 中 SCSS 样式的括号匹配问题：
+
+**问题原因：**
+
+- 在 `.info-card-witty` 样式块中存在多余的闭合大括号 `}`
+- 导致 SASS 编译器报错：`unmatched "}"`
+
+**修复方案：**
+
+- 删除第1278行的多余 `}`
+- 验证所有样式块的括号匹配正确
+- 确保嵌套层级清晰
+
+**验证结果：**
+
+- ✅ SCSS 编译通过
+- ✅ 样式渲染正常
+- ✅ 无语法错误
+
+---
+
+### 影响范围总览
+
+| 文件                                                              | 改动类型 | 说明                                 |
+| ----------------------------------------------------------------- | -------- | ------------------------------------ |
+| [Home.vue](frontend/src/views/Home.vue)                           | UI优化   | 俏皮话文本处理 + 首行缩进 + SCSS修复 |
+| [FormulaList.vue](frontend/src/views/formulas/FormulaList.vue)    | 样式统一 | stat-card hover 效果对齐 AIDashboard |
+| [MaterialList.vue](frontend/src/views/materials/MaterialList.vue) | 样式统一 | stat-card hover 效果对齐 AIDashboard |
+| [SalesmanList.vue](frontend/src/views/salesmen/SalesmanList.vue)  | 样式统一 | stat-card hover 效果对齐 AIDashboard |
+
+---
+
+## 🚀 历史更新 (2026-05-08)
 
 ### ✅ 模型管理新增"模型应用"功能模块配置 + UI对齐优化
 
@@ -16,24 +100,25 @@ TingStudio 是一个专业的食品配方工作数据管理平台，面向食品
 
 **核心功能：**
 
-| 特性 | 说明 |
-|------|------|
+| 特性             | 说明                                                  |
+| ---------------- | ----------------------------------------------------- |
 | **功能模块管理** | 为周报、月报、智能配方解析等5个AI功能模块配置专属模型 |
-| **完整CRUD操作** | 支持添加、查看、编辑、删除、启用/禁用配置 |
-| **实时生效** | 配置变更立即保存到数据库 |
-| **权限控制** | 仅管理员可进行增删改操作 |
+| **完整CRUD操作** | 支持添加、查看、编辑、删除、启用/禁用配置             |
+| **实时生效**     | 配置变更立即保存到数据库                              |
+| **权限控制**     | 仅管理员可进行增删改操作                              |
 
 **支持的功能模块：**
 
-| 模块ID | 显示名称 | 用途 |
-|--------|----------|------|
-| `weekly-report` | 周报AI分析 | 周工作报告的AI智能分析 |
-| `monthly-report` | 月报AI分析 | 月度报告的AI智能分析 |
-| `smart-form` | 智能配方解析 | AI智能配方解析功能 |
-| `smart-import` | 智能原料导入 | AI智能原料导入功能 |
-| `smart-search` | 智能数据检索 | AI自然语言检索功能 |
+| 模块ID           | 显示名称     | 用途                   |
+| ---------------- | ------------ | ---------------------- |
+| `weekly-report`  | 周报AI分析   | 周工作报告的AI智能分析 |
+| `monthly-report` | 月报AI分析   | 月度报告的AI智能分析   |
+| `smart-form`     | 智能配方解析 | AI智能配方解析功能     |
+| `smart-import`   | 智能原料导入 | AI智能原料导入功能     |
+| `smart-search`   | 智能数据检索 | AI自然语言检索功能     |
 
 **UI设计特点：**
+
 - 🎨 卡片式布局（响应式网格，最小380px自动填充）
 - 🎨 彩色图标系统（每个模块独特渐变色背景）
 - 🎨 状态徽章（绿色=启用，红色=禁用）
@@ -71,12 +156,14 @@ TingStudio 是一个专业的食品配方工作数据管理平台，面向食品
 修复了报告中心列表中操作按钮与复选框高度不一致的问题：
 
 **调整内容：**
+
 - 按钮容器 top位置：14px → **16px**（与复选框对齐）
 - 单个按钮高度：18px（保持不变）
 - 图标尺寸：16×16px（未改变）
 - 复选框尺寸：18×18px（未改变）
 
 **修改文件：**
+
 - [ReportCenter.vue](frontend/src/views/reports/ReportCenter.vue) — `.card-actions` 和 `.card-action-btn` 样式调整
 
 ---
@@ -89,12 +176,12 @@ TingStudio 是一个专业的食品配方工作数据管理平台，面向食品
 
 **核心改进**：
 
-| 特性 | 说明 |
-|------|------|
+| 特性           | 说明                                             |
+| -------------- | ------------------------------------------------ |
 | **发布即分析** | 点击"发布"按钮后，系统后台自动调用AI生成分析报告 |
-| **异步非阻塞** | AI分析在后台执行（30-120秒），不阻塞用户操作 |
-| **持久化存储** | 分析结果自动保存到数据库，下次查看直接展示 |
-| **即时加载** | 打开已发布的报告，AI分析区域立即显示完整结果 |
+| **异步非阻塞** | AI分析在后台执行（30-120秒），不阻塞用户操作     |
+| **持久化存储** | 分析结果自动保存到数据库，下次查看直接展示       |
+| **即时加载**   | 打开已发布的报告，AI分析区域立即显示完整结果     |
 
 **数据流架构**：
 
@@ -113,6 +200,7 @@ TingStudio 是一个专业的食品配方工作数据管理平台，面向食品
 ```
 
 **修改文件**：
+
 - [report.ts (store)](frontend/src/stores/report.ts) — `publishReport()` 支持异步AI分析 + `generateAndSaveAIAnalysis()` 新增 + `fetchReportById()` 自动加载已保存的分析
 - [report.ts (api)](frontend/src/api/report.ts) — 新增 `saveAIAnalysis()` API方法
 - [MonthlyReport.vue](frontend/src/views/reports/MonthlyReport.vue) — `handlePublish()` 传递完整报告数据用于AI分析
@@ -144,11 +232,13 @@ TingStudio 是一个专业的食品配方工作数据管理平台，面向食品
 ```
 
 **配置信息**：
+
 - **默认模型**: `glm-4-flash`（快速版）
 - **备选模型**: `glm-4-air` / `glm-4-plus` / `glm-5`
 - **降级策略**: 智谱不可用时自动降级到通义千问 qwen-plus
 
 **修改文件**：
+
 - [reportController.ts](backend/src/controllers/reportController.ts) — `getAIAnalysis()` 优先选择智谱GLM模型 + 日志输出当前使用的模型信息
 
 ---
@@ -159,18 +249,19 @@ TingStudio 是一个专业的食品配方工作数据管理平台，面向食品
 
 **清理规则**：
 
-| Markdown语法 | 清理后 |
-|-------------|--------|
-| `### 标题` | 标题 |
-| `**粗体**` | 粗体 |
-| `*斜体*` | 斜体 |
-| `` `代码` `` | 代码 |
-| `[链接](url)` | 链接 |
+| Markdown语法   | 清理后   |
+| -------------- | -------- |
+| `### 标题`     | 标题     |
+| `**粗体**`     | 粗体     |
+| `*斜体*`       | 斜体     |
+| `` `代码` ``   | 代码     |
+| `[链接](url)`  | 链接     |
 | `![图片](url)` | （图片） |
-| `- 列表项` | • 列表项 |
-| `1. 有序列表` | 列表项 |
+| `- 列表项`     | • 列表项 |
+| `1. 有序列表`  | 列表项   |
 
 **关键修复**：
+
 - 修复了 `cleanMarkdown()` 函数中的语法错误（缺少 `.replace(` 方法调用）
 - 移除了800字符截断限制，显示完整的AI分析内容
 - 保留段落结构和语义完整性
@@ -179,14 +270,14 @@ TingStudio 是一个专业的食品配方工作数据管理平台，面向食品
 
 #### 影响范围总览
 
-| 文件 | 改动类型 | 说明 |
-|------|----------|------|
-| [report.ts (store)](frontend/src/stores/report.ts) | 功能增强 | 发布时自动生成AI分析 + 加载时自动读取 |
-| [report.ts (api)](frontend/src/api/report.ts) | 功能增强 | 新增保存AI分析的API接口 |
-| [AIAnalysisPanel.vue](frontend/src/components/AIAnalysisPanel.vue) | 重构 | 移除手动按钮 + 自动展示 + Markdown清理 |
-| [MonthlyReport.vue](frontend/src/views/reports/MonthlyReport.vue) | 功能增强 | 发布时传递完整数据给AI分析 |
-| [WeeklyReport.vue](frontend/src/views/reports/WeeklyReport.vue) | 功能增强 | 同步修改发布逻辑 |
-| [reportController.ts](backend/src/controllers/reportController.ts) | 配置优化 | 默认使用智谱GLM模型 |
+| 文件                                                               | 改动类型 | 说明                                   |
+| ------------------------------------------------------------------ | -------- | -------------------------------------- |
+| [report.ts (store)](frontend/src/stores/report.ts)                 | 功能增强 | 发布时自动生成AI分析 + 加载时自动读取  |
+| [report.ts (api)](frontend/src/api/report.ts)                      | 功能增强 | 新增保存AI分析的API接口                |
+| [AIAnalysisPanel.vue](frontend/src/components/AIAnalysisPanel.vue) | 重构     | 移除手动按钮 + 自动展示 + Markdown清理 |
+| [MonthlyReport.vue](frontend/src/views/reports/MonthlyReport.vue)  | 功能增强 | 发布时传递完整数据给AI分析             |
+| [WeeklyReport.vue](frontend/src/views/reports/WeeklyReport.vue)    | 功能增强 | 同步修改发布逻辑                       |
+| [reportController.ts](backend/src/controllers/reportController.ts) | 配置优化 | 默认使用智谱GLM模型                    |
 
 ---
 
@@ -196,7 +287,7 @@ TingStudio 是一个专业的食品配方工作数据管理平台，面向食品
 ✅ **智谱GLM优先**: 默认使用国产大模型，响应快速且中文理解优秀  
 ✅ **持久化存储**: 分析结果永久保存，刷新页面不丢失  
 ✅ **用户体验提升**: 无需等待，下次查看即时展示  
-✅ **格式清晰**: Markdown符号完全清理，阅读体验友好  
+✅ **格式清晰**: Markdown符号完全清理，阅读体验友好
 
 ---
 
@@ -220,14 +311,15 @@ TingStudio 是一个专业的食品配方工作数据管理平台，面向食品
 
 **核心改进**:
 
-| 特性 | 说明 |
-|------|------|
-| **AbortController** | 浏览器层面真正中断 HTTP 连接 |
-| **请求 ID 锁** | 每次请求递增 ID，abort 时使当前 ID 失效 |
-| **双重检查** | 响应时同时验证 `currentRequestId` 和 `!parseAborted` |
-| **日志追踪** | 关键节点输出调试信息 `[AI-Usage]` |
+| 特性                | 说明                                                 |
+| ------------------- | ---------------------------------------------------- |
+| **AbortController** | 浏览器层面真正中断 HTTP 连接                         |
+| **请求 ID 锁**      | 每次请求递增 ID，abort 时使当前 ID 失效              |
+| **双重检查**        | 响应时同时验证 `currentRequestId` 和 `!parseAborted` |
+| **日志追踪**        | 关键节点输出调试信息 `[AI-Usage]`                    |
 
 **修改文件**:
+
 - [ai.ts (store)](frontend/src/stores/ai.ts) — 新增 `parseRequestId`/`parseAbortController` 变量
 - [api/ai.ts](frontend/src/api/ai.ts) — 新增 `signal` 参数支持
 - [SmartFormTab.vue](frontend/src/views/ai/tabs/SmartFormTab.vue) — 本地状态清理 + Watch 防护
@@ -240,11 +332,13 @@ TingStudio 是一个专业的食品配方工作数据管理平台，面向食品
 实现了用户友好的终止后状态管理：
 
 **时间线**:
+
 ```
 点击"终止" → [0s] 显示"已终止"（红色主题）→ [2s] 自动切换到"待解析"
 ```
 
 **Store 层实现** ([ai.ts](frontend/src/stores/ai.ts)):
+
 ```typescript
 abortParseFormula() {
   parseAborted.value = true;
@@ -260,6 +354,7 @@ abortParseFormula() {
 ```
 
 **UI 层优化** ([AiAssistant.vue](frontend/src/views/ai/AiAssistant.vue)):
+
 - 终止状态卡片：红色边框 + 12px 顶部间距 + 脉冲动画
 - 子组件指示器：24px margin-top + 平滑过渡效果
 - 2秒后自动隐藏或恢复默认样式
@@ -279,13 +374,14 @@ abortParseFormula() {
 
 **修复方案**:
 
-| 文件 | 修复内容 |
-|------|----------|
-| [AIService.ts](backend/src/services/ai/AIService.ts) | 移除3处 `require()`，改为顶层静态 `import` |
+| 文件                                                                   | 修复内容                                   |
+| ---------------------------------------------------------------------- | ------------------------------------------ |
+| [AIService.ts](backend/src/services/ai/AIService.ts)                   | 移除3处 `require()`，改为顶层静态 `import` |
 | [ModelHealthChecker.ts](backend/src/services/ai/ModelHealthChecker.ts) | 移除2处 `require()`，改为顶层静态 `import` |
-| [AiAssistant.vue](frontend/src/views/ai/AiAssistant.vue) | 引入 `modelApi` 获取真实累计统计数据 |
+| [AiAssistant.vue](frontend/src/views/ai/AiAssistant.vue)               | 引入 `modelApi` 获取真实累计统计数据       |
 
 **新增功能**:
+
 - Token 用量卡片显示月度累计统计（而非单次响应）
 - 操作动态记录每次调用的 Token 消耗和模型信息
 - 数据库验证脚本：[check-ai-usage.ts](backend/src/scripts/check-ai-usage.ts)
@@ -297,26 +393,29 @@ abortParseFormula() {
 对整个后端项目进行了系统性模块兼容性排查：
 
 **项目配置确认**:
+
 - ✅ `"type": "module"` (ESM 模式)
 - ✅ `"module": "ESNext"` (TypeScript 配置)
 - ✅ `"esModuleInterop": true` (互操作支持)
 
 **排查结果**:
 
-| 类型 | 数量 | 状态 |
-|------|------|------|
-| ESM 静态导入 (`import`) | ~150+ 处 | ✅ 全部正确 |
-| CJS `require()` (.ts 文件) | **5处 → 0处** | ✅ 已全部修复 |
-| CJS `require()` (.cjs 文件) | 5 处 | ✅ 合理保留 |
-| `module.exports` (PM2 配置) | 1 处 | ✅ 低风险 |
-| `__dirname` / `__filename` 替代方案 | 39 处 | ✅ 全部使用 ESM 兼容方式 |
+| 类型                                | 数量          | 状态                     |
+| ----------------------------------- | ------------- | ------------------------ |
+| ESM 静态导入 (`import`)             | ~150+ 处      | ✅ 全部正确              |
+| CJS `require()` (.ts 文件)          | **5处 → 0处** | ✅ 已全部修复            |
+| CJS `require()` (.cjs 文件)         | 5 处          | ✅ 合理保留              |
+| `module.exports` (PM2 配置)         | 1 处          | ✅ 低风险                |
+| `__dirname` / `__filename` 替代方案 | 39 处         | ✅ 全部使用 ESM 兼容方式 |
 
 **修复文件清单**:
+
 1. [AIService.ts](backend/src/services/ai/AIService.ts) — +2 import, -3 require
 2. [ModelHealthChecker.ts](backend/src/services/ai/ModelHealthChecker.ts) — +1 import, -2 require
 3. [AiAssistant.vue](frontend/src/views/ai/AiAssistant.vue) — 引入 modelApi + 用量统计逻辑
 
 **代码规范**:
+
 - 所有 `.ts` 文件禁止使用 `require()`
 - 所有 `.ts` 文件禁止使用 `module.exports`
 - `.cjs` 文件可继续使用 CommonJS（明确标识）
@@ -326,16 +425,16 @@ abortParseFormula() {
 
 ### 影响范围总览
 
-| 文件 | 改动类型 | 说明 |
-|------|----------|------|
-| [ai.ts (store)](frontend/src/stores/ai.ts) | 功能增强 | 请求锁 + AbortController + 2秒延时重置 |
-| [AIService.ts](backend/src/services/ai/AIService.ts) | Bug 修复 | ESM 导入 + 详细调试日志 |
-| [ModelHealthChecker.ts](backend/src/services/ai/ModelHealthChecker.ts) | Bug 修复 | ESM 导入 |
-| [api/ai.ts](frontend/src/api/ai.ts) | 功能增强 | AbortSignal 支持 |
-| [AiAssistant.vue](frontend/src/views/ai/AiAssistant.vue) | 功能增强 | 用量统计获取 + 终止卡片样式 |
-| [SmartFormTab.vue](frontend/src/views/ai/tabs/SmartFormTab.vue) | 功能增强 | 终止状态 UI + 本地清理 |
-| [SmartImportTab.vue](frontend/src/views/ai/tabs/SmartImportTab.vue) | 功能增强 | 同步终止状态处理 |
-| [check-ai-usage.ts](backend/src/scripts/check-ai-usage.ts) | 新增工具 | 数据库状态验证脚本 |
+| 文件                                                                   | 改动类型 | 说明                                   |
+| ---------------------------------------------------------------------- | -------- | -------------------------------------- |
+| [ai.ts (store)](frontend/src/stores/ai.ts)                             | 功能增强 | 请求锁 + AbortController + 2秒延时重置 |
+| [AIService.ts](backend/src/services/ai/AIService.ts)                   | Bug 修复 | ESM 导入 + 详细调试日志                |
+| [ModelHealthChecker.ts](backend/src/services/ai/ModelHealthChecker.ts) | Bug 修复 | ESM 导入                               |
+| [api/ai.ts](frontend/src/api/ai.ts)                                    | 功能增强 | AbortSignal 支持                       |
+| [AiAssistant.vue](frontend/src/views/ai/AiAssistant.vue)               | 功能增强 | 用量统计获取 + 终止卡片样式            |
+| [SmartFormTab.vue](frontend/src/views/ai/tabs/SmartFormTab.vue)        | 功能增强 | 终止状态 UI + 本地清理                 |
+| [SmartImportTab.vue](frontend/src/views/ai/tabs/SmartImportTab.vue)    | 功能增强 | 同步终止状态处理                       |
+| [check-ai-usage.ts](backend/src/scripts/check-ai-usage.ts)             | 新增工具 | 数据库状态验证脚本                     |
 
 ---
 
@@ -345,7 +444,7 @@ abortParseFormula() {
 ✅ **零 require() 调用**: 开发环境不再有任何 CommonJS 语法  
 ✅ **AI 用量记录正常**: 数据成功写入数据库，前端正确显示  
 ✅ **终止功能完善**: 四层防护 + 2秒延时 + 平滑过渡  
-✅ **用户体验提升**: 状态指示清晰，数据展示准确  
+✅ **用户体验提升**: 状态指示清晰，数据展示准确
 
 ---
 
@@ -355,12 +454,12 @@ abortParseFormula() {
 
 实现了配方创建时对原料含量比总和的严格校验，前后端双重保障：
 
-| 校验级别             | 范围                           | 行为                |
-| ---------------- | ---------------------------- | ----------------- |
-| 🟢 normal        | \[0.98, 1.02]                | 校验通过，正常创建         |
-| 🟡 warning       | \[0.95, 0.98) ∪ (1.02, 1.05] | 弹出确认对话框，用户确认后继续   |
-| 🟠 high\_warning | \[0.92, 0.95) ∪ (1.05, 1.08] | 弹出确认对话框 + 标记需人工审核 |
-| 🔴 error         | <0.92 or >1.08               | **拒绝创建**，提示修正原料用量 |
+| 校验级别        | 范围                         | 行为                            |
+| --------------- | ---------------------------- | ------------------------------- |
+| 🟢 normal       | \[0.98, 1.02]                | 校验通过，正常创建              |
+| 🟡 warning      | \[0.95, 0.98) ∪ (1.02, 1.05] | 弹出确认对话框，用户确认后继续  |
+| 🟠 high_warning | \[0.92, 0.95) ∪ (1.05, 1.08] | 弹出确认对话框 + 标记需人工审核 |
+| 🔴 error        | <0.92 or >1.08               | **拒绝创建**，提示修正原料用量  |
 
 **设计特点**：
 
@@ -373,41 +472,41 @@ abortParseFormula() {
 
 **后端文件**：
 
-| 文件                                                                      | 说明                                           |
-| ----------------------------------------------------------------------- | -------------------------------------------- |
-| [ratioFactorValidator.ts](backend/src/services/ratioFactorValidator.ts) | 核心校验服务（类型定义 + 分级判定 + 消息生成）                   |
+| 文件                                                                    | 说明                                             |
+| ----------------------------------------------------------------------- | ------------------------------------------------ |
+| [ratioFactorValidator.ts](backend/src/services/ratioFactorValidator.ts) | 核心校验服务（类型定义 + 分级判定 + 消息生成）   |
 | [formulaController.ts](backend/src/controllers/formulaController.ts)    | `validateFormulaRatio` 端点 + create/update 拦截 |
 | [formulas.ts (routes)](backend/src/routes/formulas.ts)                  | `POST /validate-ratio` 校验端点                  |
 
 **前端文件**：
 
-| 文件                                                             | 说明                                                       |
-| -------------------------------------------------------------- | -------------------------------------------------------- |
+| 文件                                                           | 说明                                                       |
+| -------------------------------------------------------------- | ---------------------------------------------------------- |
 | [formula.ts (api)](frontend/src/api/formula.ts)                | `RatioFactorValidationResult` 类型 + `validateRatio()` API |
-| [FormulaForm.vue](frontend/src/views/formulas/FormulaForm.vue) | 实时校验 UI + 提交拦截 + 确认对话框                                   |
+| [FormulaForm.vue](frontend/src/views/formulas/FormulaForm.vue) | 实时校验 UI + 提交拦截 + 确认对话框                        |
 
 #### 🎨 AI 智能配方解析 Panel 交互重构（配方管理页）
 
-| 变更        | 说明                                                     |
-| --------- | ------------------------------------------------------ |
-| 🔘 手动解析   | 移除文件上传后自动解析，改为「开始解析」+「取消」按钮                            |
-| 📊 进度指示器  | 头部居右显示解析状态（解析中🔵/完成🟢/就绪🟠/失败🔴），含脉冲动画                 |
-| 📈 进度条优化  | 显示文件名 + 模型标签 + 百分比，完全参照 AI 助手页 SmartImportTab          |
-| 🖥 模型信息   | 解析进度下方展示模型名称、版本号、「支持图片识别」标签                            |
-| 🐛 Bug 修复 | AI 回填原料时显示原料名称而非 ID（修复 `backfillData` 取值逻辑）            |
-| 🏷 未匹配标识  | `getFilteredMaterials` 支持 materialId 为空时仍显示名称（标注"未匹配"） |
+| 变更          | 说明                                                                    |
+| ------------- | ----------------------------------------------------------------------- |
+| 🔘 手动解析   | 移除文件上传后自动解析，改为「开始解析」+「取消」按钮                   |
+| 📊 进度指示器 | 头部居右显示解析状态（解析中🔵/完成🟢/就绪🟠/失败🔴），含脉冲动画       |
+| 📈 进度条优化 | 显示文件名 + 模型标签 + 百分比，完全参照 AI 助手页 SmartImportTab       |
+| 🖥 模型信息   | 解析进度下方展示模型名称、版本号、「支持图片识别」标签                  |
+| 🐛 Bug 修复   | AI 回填原料时显示原料名称而非 ID（修复 `backfillData` 取值逻辑）        |
+| 🏷 未匹配标识 | `getFilteredMaterials` 支持 materialId 为空时仍显示名称（标注"未匹配"） |
 
 #### 🎨 AI 智能营养解析 Panel 交互重构（原料管理页）
 
 与配方管理页的 AI 卡片保持完全一致的交互逻辑和视觉风格：
 
-| 变更       | 说明                                  |
-| -------- | ----------------------------------- |
-| 🔘 手动解析  | 移除文件上传后自动解析，改为「开始解析」+「取消」按钮         |
-| 📊 进度指示器 | 头部居右显示解析状态，含 dot-pulse/dot-blink 动画 |
-| 📈 进度条优化 | 显示文件名 + 模型标签 + 百分比，完全参照 AI 助手页      |
-| 🖥 模型信息  | 解析进度下方展示模型名称、版本号、图片识别标签             |
-| 🎨 按钮样式  | 绿渐变异形按钮 + 白底灰框取消按钮，hover 上浮 + 阴影    |
+| 变更          | 说明                                                  |
+| ------------- | ----------------------------------------------------- |
+| 🔘 手动解析   | 移除文件上传后自动解析，改为「开始解析」+「取消」按钮 |
+| 📊 进度指示器 | 头部居右显示解析状态，含 dot-pulse/dot-blink 动画     |
+| 📈 进度条优化 | 显示文件名 + 模型标签 + 百分比，完全参照 AI 助手页    |
+| 🖥 模型信息   | 解析进度下方展示模型名称、版本号、图片识别标签        |
+| 🎨 按钮样式   | 绿渐变异形按钮 + 白底灰框取消按钮，hover 上浮 + 阴影  |
 
 #### 🔄 AI 解析失败容错恢复机制
 
@@ -425,52 +524,52 @@ abortParseFormula() {
 
 #### 影响范围
 
-| 文件                                                                      | 改动                                                |
-| ----------------------------------------------------------------------- | ------------------------------------------------- |
-| [ratioFactorValidator.ts](backend/src/services/ratioFactorValidator.ts) | **新建** — 含量比校验服务                                  |
+| 文件                                                                    | 改动                                                |
+| ----------------------------------------------------------------------- | --------------------------------------------------- |
+| [ratioFactorValidator.ts](backend/src/services/ratioFactorValidator.ts) | **新建** — 含量比校验服务                           |
 | [formulaController.ts](backend/src/controllers/formulaController.ts)    | +validateFormulaRatio + create/update 拦截          |
-| [formulas.ts (routes)](backend/src/routes/formulas.ts)                  | +POST /validate-ratio                             |
+| [formulas.ts (routes)](backend/src/routes/formulas.ts)                  | +POST /validate-ratio                               |
 | [formula.ts (api)](frontend/src/api/formula.ts)                         | +RatioFactorValidationResult 类型 + validateRatio() |
-| [FormulaForm.vue](frontend/src/views/formulas/FormulaForm.vue)          | 含量比校验UI + AI面板重构 + 容错恢复                           |
-| [MaterialForm.vue](frontend/src/views/materials/MaterialForm.vue)       | AI营养解析面板重构 + 容错恢复                                 |
-| [SmartImportTab.vue](frontend/src/views/ai/tabs/SmartImportTab.vue)     | 容错恢复按钮                                            |
+| [FormulaForm.vue](frontend/src/views/formulas/FormulaForm.vue)          | 含量比校验UI + AI面板重构 + 容错恢复                |
+| [MaterialForm.vue](frontend/src/views/materials/MaterialForm.vue)       | AI营养解析面板重构 + 容错恢复                       |
+| [SmartImportTab.vue](frontend/src/views/ai/tabs/SmartImportTab.vue)     | 容错恢复按钮                                        |
 
 #### 🎨 UI 组件标准化统一
 
 ##### 📄 文件详情页审计日志分页
 
-| 变更      | 说明                                |
-| ------- | --------------------------------- |
-| 📄 分页机制 | 审计日志新增分页控件，`pageSize = 8`         |
-| 📐 布局优化 | 分页控件与标题置于同一水平行（标题左对齐，分页右对齐）       |
-| 🎨 视觉统一 | 分页按钮样式参照 FileManagement "近期动态" 区域 |
+| 变更        | 说明                                                   |
+| ----------- | ------------------------------------------------------ |
+| 📄 分页机制 | 审计日志新增分页控件，`pageSize = 8`                   |
+| 📐 布局优化 | 分页控件与标题置于同一水平行（标题左对齐，分页右对齐） |
+| 🎨 视觉统一 | 分页按钮样式参照 FileManagement "近期动态" 区域        |
 
 ##### 🔧 操作列图标标准化
 
 所有管理列表页的操作列按钮统一为标准规格，严格参照 [SalesmanList.vue](frontend/src/views/salesmen/SalesmanList.vue) ：
 
-| 规范      | 说明                                                   |
-| ------- | ---------------------------------------------------- |
-| 📏 统一尺寸 | `32×32px`，圆角 `10px`                                  |
-| 🎨 统一配色 | 默认 `#64748B`，hover 按语义区分（编辑→🟢绿、删除→🔴红、查看→🟣紫）       |
+| 规范        | 说明                                                                  |
+| ----------- | --------------------------------------------------------------------- |
+| 📏 统一尺寸 | `32×32px`，圆角 `10px`                                                |
+| 🎨 统一配色 | 默认 `#64748B`，hover 按语义区分（编辑→🟢绿、删除→🔴红、查看→🟣紫）   |
 | 🔤 统一图标 | 相同语义使用完全一致的 TDesign 图标（`edit-1`、`poweroff`、`delete`） |
 
-| 文件                                                                | 改动                               |
-| ----------------------------------------------------------------- | -------------------------------- |
-| [FileManagement.vue](frontend/src/views/files/FileManagement.vue) | 替换自定义 SVG 为 `edit-1` 图标，更新按钮样式   |
-| [MaterialList.vue](frontend/src/views/materials/MaterialList.vue) | 更新 action-btn 样式匹配规范             |
+| 文件                                                              | 改动                                          |
+| ----------------------------------------------------------------- | --------------------------------------------- |
+| [FileManagement.vue](frontend/src/views/files/FileManagement.vue) | 替换自定义 SVG 为 `edit-1` 图标，更新按钮样式 |
+| [MaterialList.vue](frontend/src/views/materials/MaterialList.vue) | 更新 action-btn 样式匹配规范                  |
 | [FormulaList.vue](frontend/src/views/formulas/FormulaList.vue)    | 标准化按钮尺寸 + 修复重复 `.version-btn` 样式 |
 
 ##### 🎨 抽屉组件样式重构
 
 以下 4 个抽屉重构为与 [SalesRecordDrawer.vue](frontend/src/components/SalesRecordDrawer.vue) 一致的视觉模式（保留所有业务逻辑不变）：
 
-| 抽屉      | 文件                                                                                     | 变更                                                |
-| ------- | -------------------------------------------------------------------------------------- | ------------------------------------------------- |
-| 新增模型    | [ModelManagement.vue](frontend/src/views/models/ModelManagement.vue)                   | `#header` 插槽 + `drawer-card` 卡片布局（info/api/param） |
-| 编辑模型    | [ModelManagement.vue](frontend/src/views/models/ModelManagement.vue)                   | 同上 + API 字段分行 + 备用模型 Logo                         |
-| 快速创建业务员 | [QuickCreateSalesmanDrawer.vue](frontend/src/components/QuickCreateSalesmanDrawer.vue) | 完整重构，确认按钮移至 header                                |
-| 快速录入原料  | [QuickCreateMaterialDrawer.vue](frontend/src/components/QuickCreateMaterialDrawer.vue) | 完整重构，清理已废弃全局 footer 样式                            |
+| 抽屉           | 文件                                                                                   | 变更                                                      |
+| -------------- | -------------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| 新增模型       | [ModelManagement.vue](frontend/src/views/models/ModelManagement.vue)                   | `#header` 插槽 + `drawer-card` 卡片布局（info/api/param） |
+| 编辑模型       | [ModelManagement.vue](frontend/src/views/models/ModelManagement.vue)                   | 同上 + API 字段分行 + 备用模型 Logo                       |
+| 快速创建业务员 | [QuickCreateSalesmanDrawer.vue](frontend/src/components/QuickCreateSalesmanDrawer.vue) | 完整重构，确认按钮移至 header                             |
+| 快速录入原料   | [QuickCreateMaterialDrawer.vue](frontend/src/components/QuickCreateMaterialDrawer.vue) | 完整重构，清理已废弃全局 footer 样式                      |
 
 **统一后的布局模式**：
 
@@ -491,35 +590,35 @@ abortParseFormula() {
 
 所有页面抽屉组件宽度统一为 `520px`（参照 SalesRecordDrawer）：
 
-| 文件                                                                                     | 原宽度     | 新宽度     |
+| 文件                                                                                   | 原宽度  | 新宽度  |
 | -------------------------------------------------------------------------------------- | ------- | ------- |
-| [ModelManagement.vue](frontend/src/views/models/ModelManagement.vue) — 新增模型            | `920px` | `520px` |
-| [ModelManagement.vue](frontend/src/views/models/ModelManagement.vue) — 编辑模型            | `920px` | `520px` |
+| [ModelManagement.vue](frontend/src/views/models/ModelManagement.vue) — 新增模型        | `920px` | `520px` |
+| [ModelManagement.vue](frontend/src/views/models/ModelManagement.vue) — 编辑模型        | `920px` | `520px` |
 | [QuickCreateSalesmanDrawer.vue](frontend/src/components/QuickCreateSalesmanDrawer.vue) | `680px` | `520px` |
 | [QuickCreateMaterialDrawer.vue](frontend/src/components/QuickCreateMaterialDrawer.vue) | `680px` | `520px` |
-| [VersionList.vue](frontend/src/views/versions/VersionList.vue) — 快照抽屉                  | `600px` | `520px` |
+| [VersionList.vue](frontend/src/views/versions/VersionList.vue) — 快照抽屉              | `600px` | `520px` |
 
 ##### 🔧 Bug 修复
 
-| 问题                                    | 根因                                              | 修复方案                             |
-| ------------------------------------- | ----------------------------------------------- | -------------------------------- |
+| 问题                                  | 根因                                                 | 修复方案                               |
+| ------------------------------------- | ---------------------------------------------------- | -------------------------------------- |
 | AIService.ts `require is not defined` | ESM 模式 (`"type": "module"`) 中混用 CJS `require()` | `import { getDb }` 改为顶层静态 import |
 
 ##### 影响范围
 
-| 文件                                                                                     | 改动                 |
-| -------------------------------------------------------------------------------------- | ------------------ |
-| [AIService.ts](backend/src/services/ai/AIService.ts)                                   | ESM/CJS 兼容修复       |
+| 文件                                                                                   | 改动                             |
+| -------------------------------------------------------------------------------------- | -------------------------------- |
+| [AIService.ts](backend/src/services/ai/AIService.ts)                                   | ESM/CJS 兼容修复                 |
 | [FileDetail.vue](frontend/src/views/files/FileDetail.vue)                              | 审计日志分页 + 分页/标题同行布局 |
-| [FileManagement.vue](frontend/src/views/files/FileManagement.vue)                      | 操作图标标准化            |
-| [MaterialList.vue](frontend/src/views/materials/MaterialList.vue)                      | 操作图标标准化            |
-| [FormulaList.vue](frontend/src/views/formulas/FormulaList.vue)                         | 操作图标标准化 + 重复样式修复   |
-| [ModelManagement.vue](frontend/src/views/models/ModelManagement.vue)                   | 抽屉重构 + 布局优化 + Logo |
-| [QuickCreateSalesmanDrawer.vue](frontend/src/components/QuickCreateSalesmanDrawer.vue) | 抽屉重构               |
-| [QuickCreateMaterialDrawer.vue](frontend/src/components/QuickCreateMaterialDrawer.vue) | 抽屉重构 + 全局样式清理      |
-| [VersionList.vue](frontend/src/views/versions/VersionList.vue)                         | 抽屉宽度统一             |
+| [FileManagement.vue](frontend/src/views/files/FileManagement.vue)                      | 操作图标标准化                   |
+| [MaterialList.vue](frontend/src/views/materials/MaterialList.vue)                      | 操作图标标准化                   |
+| [FormulaList.vue](frontend/src/views/formulas/FormulaList.vue)                         | 操作图标标准化 + 重复样式修复    |
+| [ModelManagement.vue](frontend/src/views/models/ModelManagement.vue)                   | 抽屉重构 + 布局优化 + Logo       |
+| [QuickCreateSalesmanDrawer.vue](frontend/src/components/QuickCreateSalesmanDrawer.vue) | 抽屉重构                         |
+| [QuickCreateMaterialDrawer.vue](frontend/src/components/QuickCreateMaterialDrawer.vue) | 抽屉重构 + 全局样式清理          |
+| [VersionList.vue](frontend/src/views/versions/VersionList.vue)                         | 抽屉宽度统一                     |
 
-***
+---
 
 ## 🚀 更新 (2026-05-05)
 
@@ -527,32 +626,32 @@ abortParseFormula() {
 
 #### 🤖 AI 解析标签页加载异常修复
 
-| 问题           | 根因                                                                                 | 修复方案                                                          |
-| ------------ | ---------------------------------------------------------------------------------- | ------------------------------------------------------------- |
-| AI 解析标签页持续加载 | `onMounted` 中调用已重命名的 `loadModelVersions`，抛出 ReferenceError，阻止 `initialized = true` | 改为 `loadModelVersionsWithLoading` + try-catch-finally 确保初始化完成 |
-| 未使用的导入导致编译警告 | `modelApi` 和 `ModelVersionOption` 已移至 store 但未清理导入                                 | 移除冗余 import 声明                                                |
+| 问题                     | 根因                                                                                             | 修复方案                                                               |
+| ------------------------ | ------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------- |
+| AI 解析标签页持续加载    | `onMounted` 中调用已重命名的 `loadModelVersions`，抛出 ReferenceError，阻止 `initialized = true` | 改为 `loadModelVersionsWithLoading` + try-catch-finally 确保初始化完成 |
+| 未使用的导入导致编译警告 | `modelApi` 和 `ModelVersionOption` 已移至 store 但未清理导入                                     | 移除冗余 import 声明                                                   |
 
 #### 🧠 AI 助手模型选择一致性修复
 
-| 问题              | 根因                                             | 修复方案                                                 |
-| --------------- | ---------------------------------------------- | ---------------------------------------------------- |
-| 切换模型后版本显示不一致    | `handleReparseWithModel` 未重置 `selectedVersion` | 添加 `selectedVersion = ''` + `loadModelVersions` 重置逻辑 |
-| 版本显示技术标识符而非友好名称 | 进度条直接显示 `qwen-max` 等技术 ID                      | 使用 `getVersionLabel()` 渲染可读标签                        |
-| 版本数据未跨组件共享      | `modelVersions` 仅在 `AiAssistant.vue` 局部维护      | 提升到 Pinia store 层，子组件通过 store 访问                     |
+| 问题                           | 根因                                              | 修复方案                                                   |
+| ------------------------------ | ------------------------------------------------- | ---------------------------------------------------------- |
+| 切换模型后版本显示不一致       | `handleReparseWithModel` 未重置 `selectedVersion` | 添加 `selectedVersion = ''` + `loadModelVersions` 重置逻辑 |
+| 版本显示技术标识符而非友好名称 | 进度条直接显示 `qwen-max` 等技术 ID               | 使用 `getVersionLabel()` 渲染可读标签                      |
+| 版本数据未跨组件共享           | `modelVersions` 仅在 `AiAssistant.vue` 局部维护   | 提升到 Pinia store 层，子组件通过 store 访问               |
 
 #### 💰 原料单价显示异常修复
 
-| 问题           | 根因                                                          | 修复方案                                                                    |
-| ------------ | ----------------------------------------------------------- | ----------------------------------------------------------------------- |
+| 问题                     | 根因                                                                            | 修复方案                                                                             |
+| ------------------------ | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
 | 炒白扁豆、草果单价未录入 | 后端匹配成功但 `unitPrice` 未显式设置，前端 computed 未追踪 `allMaterials` 依赖 | 后端 `applyMatch` 显式设置 `unitPrice = null`；前端 `quoteItems` 引入 `allMats` 依赖 |
-| 解析前原料数据未加载   | `materialStore.allMaterials` 加载时序问题                         | `handleParse` 中解析前确保 `fetchAllForSelect()` 完成                           |
+| 解析前原料数据未加载     | `materialStore.allMaterials` 加载时序问题                                       | `handleParse` 中解析前确保 `fetchAllForSelect()` 完成                                |
 
 #### 📊 模型用量监控数据同步修复
 
-| 问题        | 根因                     | 修复方案                                  |
-| --------- | ---------------------- | ------------------------------------- |
+| 问题               | 根因                                    | 修复方案                                            |
+| ------------------ | --------------------------------------- | --------------------------------------------------- |
 | 用量统计不实时更新 | 数据仅在 tab 切换时加载一次，无定时刷新 | 用量 tab 每 15s 自动刷新 + 模型 tab 每 60s 自动刷新 |
-| 无手动刷新入口   | 用户调用模型后无法主动查看最新用量      | 新增刷新按钮 + `refreshUsageStats` 函数       |
+| 无手动刷新入口     | 用户调用模型后无法主动查看最新用量      | 新增刷新按钮 + `refreshUsageStats` 函数             |
 
 #### 🎨 模型管理刷新按钮 UI 美化
 
@@ -574,17 +673,17 @@ abortParseFormula() {
 
 #### 影响范围
 
-| 文件                                                                   | 改动                              |
-| -------------------------------------------------------------------- | ------------------------------- |
+| 文件                                                                 | 改动                                             |
+| -------------------------------------------------------------------- | ------------------------------------------------ |
 | [AiAssistant.vue](frontend/src/views/ai/AiAssistant.vue)             | 修复加载异常 + 清理导入 + 版本数据从 store 读取  |
-| [SmartFormTab.vue](frontend/src/views/ai/tabs/SmartFormTab.vue)      | 模型版本一致性 + 原料单价依赖追踪 + 价格计算修复     |
+| [SmartFormTab.vue](frontend/src/views/ai/tabs/SmartFormTab.vue)      | 模型版本一致性 + 原料单价依赖追踪 + 价格计算修复 |
 | [ModelManagement.vue](frontend/src/views/models/ModelManagement.vue) | 刷新按钮 UI + 自动刷新定时器 + 手动刷新函数      |
-| [ai.ts (store)](frontend/src/stores/ai.ts)                           | 版本管理提升到 store + getVersionLabel |
-| [aiController.ts](backend/src/controllers/aiController.ts)           | unitPrice 显式设置 + 匹配失败时清空        |
-| [FileDetail.vue](frontend/src/views/files/FileDetail.vue)            | 全屏预览对话框                         |
-| [FileManagement.vue](frontend/src/views/files/FileManagement.vue)    | 预览按钮接入全屏对话框                     |
+| [ai.ts (store)](frontend/src/stores/ai.ts)                           | 版本管理提升到 store + getVersionLabel           |
+| [aiController.ts](backend/src/controllers/aiController.ts)           | unitPrice 显式设置 + 匹配失败时清空              |
+| [FileDetail.vue](frontend/src/views/files/FileDetail.vue)            | 全屏预览对话框                                   |
+| [FileManagement.vue](frontend/src/views/files/FileManagement.vue)    | 预览按钮接入全屏对话框                           |
 
-***
+---
 
 ## 🚀 更新 (2026-04-30)
 
@@ -594,12 +693,12 @@ abortParseFormula() {
 
 所有管理页面的助手组件统一为**白色主体 + 绿色Header**的配方师小助手风格：
 
-| 页面    | 助手名称   | 状态     |
-| ----- | ------ | ------ |
-| 配方管理  | 配方师小助手 | ✅ 参照标准 |
-| 销量分析  | 销量管理助手 | ✅ 已统一  |
-| 业务员管理 | 业务员小助手 | ✅ 已统一  |
-| 原料管理  | 原料管理助手 | ✅ 已统一  |
+| 页面       | 助手名称     | 状态        |
+| ---------- | ------------ | ----------- |
+| 配方管理   | 配方师小助手 | ✅ 参照标准 |
+| 销量分析   | 销量管理助手 | ✅ 已统一   |
+| 业务员管理 | 业务员小助手 | ✅ 已统一   |
+| 原料管理   | 原料管理助手 | ✅ 已统一   |
 
 **统一后的样式规范**：
 
@@ -624,11 +723,11 @@ abortParseFormula() {
 
 三个管理页面底部新增/调整 **activity-section**，采用 **2:1 Grid 布局**（左侧近期动态 + 右侧助手）：
 
-| 页面    | 左侧内容      | 右侧内容       |
-| ----- | --------- | ---------- |
-| 销量分析  | 近期动态（时间线） | 销量管理助手（待办） |
-| 业务员管理 | 近期业务员动态   | 业务员小助手（待办） |
-| 配方管理  | 近期动态      | 配方师小助手（待办） |
+| 页面       | 左侧内容           | 右侧内容             |
+| ---------- | ------------------ | -------------------- |
+| 销量分析   | 近期动态（时间线） | 销量管理助手（待办） |
+| 业务员管理 | 近期业务员动态     | 业务员小助手（待办） |
+| 配方管理   | 近期动态           | 配方师小助手（待办） |
 
 **响应式设计**：
 
@@ -637,10 +736,10 @@ abortParseFormula() {
 
 #### 🔧 Bug 修复
 
-| 问题                    | 根因                                 | 修复方案            |
-| --------------------- | ---------------------------------- | --------------- |
-| MaterialList.vue 编译错误 | 模拟数据中使用中文引号「」代替英文引号                | 改为标准英文单引号包裹字符串  |
-| 助手背景色未生效              | 存在重复的 `&--assistant` 样式定义，旧样式覆盖新样式 | 删除重复定义，保留白色背景版本 |
+| 问题                      | 根因                                                 | 修复方案                       |
+| ------------------------- | ---------------------------------------------------- | ------------------------------ |
+| MaterialList.vue 编译错误 | 模拟数据中使用中文引号「」代替英文引号               | 改为标准英文单引号包裹字符串   |
+| 助手背景色未生效          | 存在重复的 `&--assistant` 样式定义，旧样式覆盖新样式 | 删除重复定义，保留白色背景版本 |
 
 #### 📄 ServerError 页面优化
 
@@ -649,24 +748,24 @@ abortParseFormula() {
 
 #### 影响范围
 
-| 文件                                                                | 改动内容                                 |
-| ----------------------------------------------------------------- | ------------------------------------ |
+| 文件                                                              | 改动内容                                               |
+| ----------------------------------------------------------------- | ------------------------------------------------------ |
 | [SalesAnalysis.vue](frontend/src/views/sales/SalesAnalysis.vue)   | 新增 activity-section（近期动态+助手）、录入按钮右对齐 |
 | [SalesmanList.vue](frontend/src/views/salesmen/SalesmanList.vue)  | 助手样式统一为配方师风格、移除 dashboard 内助手        |
-| [MaterialList.vue](frontend/src/views/materials/MaterialList.vue) | 助手样式统一为配方师风格、修复中文引号语法错误              |
-| [ServerError.vue](frontend/src/views/errors/ServerError.vue)      | 布局 3:7 调整、返回登录按钮增加图标                 |
+| [MaterialList.vue](frontend/src/views/materials/MaterialList.vue) | 助手样式统一为配方师风格、修复中文引号语法错误         |
+| [ServerError.vue](frontend/src/views/errors/ServerError.vue)      | 布局 3:7 调整、返回登录按钮增加图标                    |
 
-***
+---
 
 ### ✅ AI 解析匹配全面升级 + 数据库完整备份工具 (2026-04-29)
 
 #### 🔧 Bug 修复（3项）
 
-| 问题           | 根因                                                          | 修复方案                                           |
-| ------------ | ----------------------------------------------------------- | ---------------------------------------------- |
-| 配方列表搜索失效     | TDesign `t-input` 的 `@input` 在 `v-model` 更新前触发，keyword 始终为空 | 改为 `watch(searchKeyword)` 响应式监听（与原料管理一致）       |
-| AI 回填原料名称未显示 | `backfillData()` 缺少按名称二次匹配逻辑                                | 新增 `allMats.find(x => x.name === m.name)` 兜底查找 |
-| 营养接口重复日志     | `getMaterialNutrition` 的 `_logLabel` 参数导致每次调用打印日志           | 移除 `_logLabel` 参数                              |
+| 问题                  | 根因                                                                    | 修复方案                                                 |
+| --------------------- | ----------------------------------------------------------------------- | -------------------------------------------------------- |
+| 配方列表搜索失效      | TDesign `t-input` 的 `@input` 在 `v-model` 更新前触发，keyword 始终为空 | 改为 `watch(searchKeyword)` 响应式监听（与原料管理一致） |
+| AI 回填原料名称未显示 | `backfillData()` 缺少按名称二次匹配逻辑                                 | 新增 `allMats.find(x => x.name === m.name)` 兜底查找     |
+| 营养接口重复日志      | `getMaterialNutrition` 的 `_logLabel` 参数导致每次调用打印日志          | 移除 `_logLabel` 参数                                    |
 
 #### 📦 原料数据库全面补全
 
@@ -692,10 +791,10 @@ abortParseFormula() {
 
 换电脑后一键完整同步数据库，包含表结构、索引、触发器及全量数据，并自动校验一致性：
 
-| 脚本                                                           | 用途                                                      |
-| ------------------------------------------------------------ | ------------------------------------------------------- |
-| [exportDatabase.ts](backend/src/scripts/exportDatabase.ts)   | 导出全部表结构 + 索引 + 触发器 + 全量数据 → JSON（含 SHA-256 数据哈希 + 结构哈希） |
-| [restoreDatabase.ts](backend/src/scripts/restoreDatabase.ts) | 从 JSON 恢复完整数据库（自动拓扑排序建表 → 数据迁移 → 索引/触发器重建 → 一致性校验）      |
+| 脚本                                                         | 用途                                                                                 |
+| ------------------------------------------------------------ | ------------------------------------------------------------------------------------ |
+| [exportDatabase.ts](backend/src/scripts/exportDatabase.ts)   | 导出全部表结构 + 索引 + 触发器 + 全量数据 → JSON（含 SHA-256 数据哈希 + 结构哈希）   |
+| [restoreDatabase.ts](backend/src/scripts/restoreDatabase.ts) | 从 JSON 恢复完整数据库（自动拓扑排序建表 → 数据迁移 → 索引/触发器重建 → 一致性校验） |
 
 **v2.0 新增能力：**
 
@@ -745,21 +844,21 @@ npx tsx src/scripts/restoreDatabase.ts --force --skip-verify
 
 #### 📊 当前数据库快照
 
-| 表名                                                                                           | 记录数     | 说明                    |
-| -------------------------------------------------------------------------------------------- | ------- | --------------------- |
-| users                                                                                        | 20      | 用户表（含 admin/admin123） |
-| materials                                                                                    | **132** | 原料表（药材 + 辅料）          |
-| material\_nutrition                                                                          | **132** | 营养数据（蛋白/脂肪/碳水/钠）      |
-| formulas                                                                                     | 6       | 配方表                   |
-| formula\_versions                                                                            | 13      | 版本快照                  |
-| salesmen                                                                                     | 29      | 业务员表                  |
-| nutrition\_profiles                                                                          | 20      | 营养档案模板                |
-| export\_templates                                                                            | 20      | 导出模板                  |
-| api\_data\_interfaces                                                                        | 20      | API 接口配置              |
-| export\_jobs / formula\_nutrition\_summaries / nutrition\_analysis\_reports / share\_configs | 0       | 空表（已建结构）              |
-| **合计**                                                                                       | **392** | 13 张表                 |
+| 表名                                                                                   | 记录数  | 说明                          |
+| -------------------------------------------------------------------------------------- | ------- | ----------------------------- |
+| users                                                                                  | 20      | 用户表（含 admin/admin123）   |
+| materials                                                                              | **132** | 原料表（药材 + 辅料）         |
+| material_nutrition                                                                     | **132** | 营养数据（蛋白/脂肪/碳水/钠） |
+| formulas                                                                               | 6       | 配方表                        |
+| formula_versions                                                                       | 13      | 版本快照                      |
+| salesmen                                                                               | 29      | 业务员表                      |
+| nutrition_profiles                                                                     | 20      | 营养档案模板                  |
+| export_templates                                                                       | 20      | 导出模板                      |
+| api_data_interfaces                                                                    | 20      | API 接口配置                  |
+| export_jobs / formula_nutrition_summaries / nutrition_analysis_reports / share_configs | 0       | 空表（已建结构）              |
+| **合计**                                                                               | **392** | 13 张表                       |
 
-***
+---
 
 ### ✅ 销量录入 UI 全面重构 + 页面样式统一 (2026-04-29)
 
@@ -776,12 +875,12 @@ npx tsx src/scripts/restoreDatabase.ts --force --skip-verify
 
 #### 📐 配方列表列宽微调
 
-| 列    | 调整    | 新宽度           |
-| ---- | ----- | ------------- |
-| 版本状态 | +20px | 170px         |
-| 更新时间 | -15px | 165px         |
-| 操作   | -5px  | 155px         |
-| 负责人  | 居中对齐  | align: center |
+| 列       | 调整     | 新宽度        |
+| -------- | -------- | ------------- |
+| 版本状态 | +20px    | 170px         |
+| 更新时间 | -15px    | 165px         |
+| 操作     | -5px     | 155px         |
+| 负责人   | 居中对齐 | align: center |
 
 #### 📊 销量分析页样式对齐
 
@@ -792,13 +891,13 @@ npx tsx src/scripts/restoreDatabase.ts --force --skip-verify
 
 #### 影响范围
 
-| 文件                                                                     | 改动                           |
-| ---------------------------------------------------------------------- | ---------------------------- |
-| [FormulaList.vue](frontend/src/views/formulas/FormulaList.vue)         | 列宽调整 + 负责人居中                 |
+| 文件                                                                   | 改动                                        |
+| ---------------------------------------------------------------------- | ------------------------------------------- |
+| [FormulaList.vue](frontend/src/views/formulas/FormulaList.vue)         | 列宽调整 + 负责人居中                       |
 | [SalesRecordDrawer.vue](frontend/src/components/SalesRecordDrawer.vue) | Card布局 + 按钮右上角 + 万元单位 + 保存修复 |
-| [SalesAnalysis.vue](frontend/src/views/sales/SalesAnalysis.vue)        | 底部边距 + 按钮样式 + 空状态            |
+| [SalesAnalysis.vue](frontend/src/views/sales/SalesAnalysis.vue)        | 底部边距 + 按钮样式 + 空状态                |
 
-***
+---
 
 ### ✅ P1 阶段 — 配方定价系统（可调整原料单价）
 
@@ -807,7 +906,7 @@ npx tsx src/scripts/restoreDatabase.ts --force --skip-verify
 - **原料单价微调**: 配方编辑时支持单独调整每个原料的单价，覆盖原料库基价
 - **微调标记**: 调整后的原料显示橙色「**调**」文字 badge，清晰标识
 - **成本自动重算**: 单价变更后实时更新原料小计、配方总成本、报价
-- **版本快照记录**: 保存时将 adjustedPrice 写入 snapshot\_json，永久保留
+- **版本快照记录**: 保存时将 adjustedPrice 写入 snapshot_json，永久保留
 
 #### 📋 版本历史增强
 
@@ -840,24 +939,24 @@ npx tsx src/scripts/restoreDatabase.ts --force --skip-verify
 
 #### 🔧 修复清单
 
-| 问题                                    | 根因                                       | 方案            |
-| ------------------------------------- | ---------------------------------------- | ------------- |
-| ⚡ 图标不显示 (FormulaForm / FormulaDetail) | TDesign 图标名渲染异常                          | 改为文字 badge「调」 |
-| 近期动态不显示基价调整                           | 类型优先级排序把 warning 挤到后面                    | 改为时间倒序        |
-| 保存后列表数据不刷新                            | 组件复用时不触发 onMounted                       | 添加路由 watch 监听 |
-| 切换按钮图标不显示 (VersionCompare)            | TDesign `money-circle` / `chart-bar` 不存在 | 改为 ¥ / % 符号   |
+| 问题                                        | 根因                                        | 方案                 |
+| ------------------------------------------- | ------------------------------------------- | -------------------- |
+| ⚡ 图标不显示 (FormulaForm / FormulaDetail) | TDesign 图标名渲染异常                      | 改为文字 badge「调」 |
+| 近期动态不显示基价调整                      | 类型优先级排序把 warning 挤到后面           | 改为时间倒序         |
+| 保存后列表数据不刷新                        | 组件复用时不触发 onMounted                  | 添加路由 watch 监听  |
+| 切换按钮图标不显示 (VersionCompare)         | TDesign `money-circle` / `chart-bar` 不存在 | 改为 ¥ / % 符号      |
 
 #### 影响范围
 
-| 文件                                                                   | 改动                                   |
-| -------------------------------------------------------------------- | ------------------------------------ |
-| [FormulaForm.vue](frontend/src/views/formulas/FormulaForm.vue)       | 「调」badge + 路由监听                      |
-| [FormulaDetail.vue](frontend/src/views/formulas/FormulaDetail.vue)   | 「调」badge                             |
-| [FormulaList.vue](frontend/src/views/formulas/FormulaList.vue)       | 近期动态排序修复 + 路由监听                      |
-| [VersionCompare.vue](frontend/src/views/versions/VersionCompare.vue) | 含量/报价双模式切换                           |
+| 文件                                                                 | 改动                                     |
+| -------------------------------------------------------------------- | ---------------------------------------- |
+| [FormulaForm.vue](frontend/src/views/formulas/FormulaForm.vue)       | 「调」badge + 路由监听                   |
+| [FormulaDetail.vue](frontend/src/views/formulas/FormulaDetail.vue)   | 「调」badge                              |
+| [FormulaList.vue](frontend/src/views/formulas/FormulaList.vue)       | 近期动态排序修复 + 路由监听              |
+| [VersionCompare.vue](frontend/src/views/versions/VersionCompare.vue) | 含量/报价双模式切换                      |
 | [formulaController.ts](backend/src/controllers/formulaController.ts) | buildChanges + buildVersionName 基价处理 |
 
-***
+---
 
 ### ✅ 业务员模块 UI 修复与测试便利性优化 (2026-04-27)
 
@@ -878,7 +977,7 @@ npx tsx src/scripts/restoreDatabase.ts --force --skip-verify
 - **邮箱**: 自动生成 `salesman` + 时间戳 + `@tingstudio.com` 格式
 - **影响文件**: `SalesmanForm.vue`（onMounted 新增分支）
 
-***
+---
 
 ### ✅ 数据库驱动修复与本地调试优化 (2026-04-24)
 
@@ -890,7 +989,7 @@ npx tsx src/scripts/restoreDatabase.ts --force --skip-verify
   - `src/config/database-better-sqlite3.ts` - 新的数据库连接实现
   - `src/config/database-adapter.ts` - 更新导入路径
   - `src/index.ts` - 修复数据库初始化导入
-- **表结构修复**: 手动添加缺失列（display\_name、avatar、bio、email、phone）
+- **表结构修复**: 手动添加缺失列（display_name、avatar、bio、email、phone）
 - **测试验证**: 本地登录功能完全正常
 
 #### 🎨 前端界面优化
@@ -974,13 +1073,13 @@ npx tsx src/scripts/restoreDatabase.ts --force --skip-verify
 
 ### 基础设施
 
-| 服务    | 技术选型                    | 用途             |
-| ----- | ----------------------- | -------------- |
-| 前端构建  | Vite 5.1                | 开发服务器 + 生产构建   |
-| 后端框架  | Express 4.21            | RESTful API 服务 |
-| 数据库   | SQLite (better-sqlite3) | 数据持久化 (WAL 模式) |
-| AI 服务 | 通义千问 / GLM / DeepSeek   | 配方解析 + 营养分析    |
-| 天气服务  | 和风天气 API                | 实时天气展示         |
+| 服务     | 技术选型                  | 用途                  |
+| -------- | ------------------------- | --------------------- |
+| 前端构建 | Vite 5.1                  | 开发服务器 + 生产构建 |
+| 后端框架 | Express 4.21              | RESTful API 服务      |
+| 数据库   | SQLite (better-sqlite3)   | 数据持久化 (WAL 模式) |
+| AI 服务  | 通义千问 / GLM / DeepSeek | 配方解析 + 营养分析   |
+| 天气服务 | 和风天气 API              | 实时天气展示          |
 
 ## 🌐 访问地址
 
@@ -993,16 +1092,16 @@ npx tsx src/scripts/restoreDatabase.ts --force --skip-verify
 
 ## 📊 项目状态
 
-| 组件        | 状态                | 说明                                  |
-| --------- | ----------------- | ----------------------------------- |
-| **后端服务**  | ✅ 正常运行            | Express + SQLite (better-sqlite3)   |
-| **前端应用**  | ✅ 正常运行            | Vue 3 + TDesign + Vite              |
-| **数据库**   | ✅ 13 张表 / 392 条记录 | SQLite WAL 模式，含 132 种原料+营养数据        |
-| **AI 解析** | ✅ 匹配率显著提升         | 150+ 别名映射 + 模糊匹配 + 名称标准化            |
-| **配方搜索**  | ✅ 已修复             | watch 响应式监听模式                       |
-| **数据备份**  | ✅ 可用              | exportDatabase / restoreDatabase 脚本 |
+| 组件         | 状态                    | 说明                                    |
+| ------------ | ----------------------- | --------------------------------------- |
+| **后端服务** | ✅ 正常运行             | Express + SQLite (better-sqlite3)       |
+| **前端应用** | ✅ 正常运行             | Vue 3 + TDesign + Vite                  |
+| **数据库**   | ✅ 13 张表 / 392 条记录 | SQLite WAL 模式，含 132 种原料+营养数据 |
+| **AI 解析**  | ✅ 匹配率显著提升       | 150+ 别名映射 + 模糊匹配 + 名称标准化   |
+| **配方搜索** | ✅ 已修复               | watch 响应式监听模式                    |
+| **数据备份** | ✅ 可用                 | exportDatabase / restoreDatabase 脚本   |
 
-***
+---
 
 **TingStudio** - 用心记录每一天 ♡
 
@@ -1236,21 +1335,21 @@ ting-studio/
 
 ### 表结构概览
 
-| 表名                            | 说明       | 记录数     | 关键字段                                                          |
-| ----------------------------- | -------- | ------- | ------------------------------------------------------------- |
-| users                         | 用户表      | 20      | id, username, password, role (admin/formulist)                |
-| materials                     | 原料表      | **132** | id, name, code, material\_type (herb/supplement), unit\_price |
-| material\_nutrition           | 营养数据表    | **132** | nutrition\_id, material\_id(FK), per\_100g\_json              |
-| formulas                      | 配方表      | 6       | id, name, salesman\_id(FK), materials\_json, finished\_weight |
-| formula\_versions             | 版本快照表    | 13      | version\_id, formula\_id(FK), snapshot\_json, status          |
-| salesmen                      | 业务员表     | 29      | id, name, code, department, status                            |
-| nutrition\_profiles           | 营养档案模板   | 20      | profile\_id, name, category, target\_values\_json             |
-| export\_templates             | 导出模板     | 20      | template\_id, name, type (pdf/excel/api/print)                |
-| export\_jobs                  | 导出任务     | 0       | job\_id, formula\_id(FK), status, file\_url                   |
-| formula\_nutrition\_summaries | 营养汇总     | 0       | summary\_id, formula\_id(FK), total\_nutrition\_json          |
-| nutrition\_analysis\_reports  | 营养分析报告   | 0       | report\_id, formula\_id(FK)                                   |
-| share\_configs                | 分享配置     | 0       | config\_id, share\_code, expires\_at                          |
-| api\_data\_interfaces         | API 接口配置 | 20      | interface\_id, name, endpoint                                 |
+| 表名                        | 说明         | 记录数  | 关键字段                                                    |
+| --------------------------- | ------------ | ------- | ----------------------------------------------------------- |
+| users                       | 用户表       | 20      | id, username, password, role (admin/formulist)              |
+| materials                   | 原料表       | **132** | id, name, code, material_type (herb/supplement), unit_price |
+| material_nutrition          | 营养数据表   | **132** | nutrition_id, material_id(FK), per_100g_json                |
+| formulas                    | 配方表       | 6       | id, name, salesman_id(FK), materials_json, finished_weight  |
+| formula_versions            | 版本快照表   | 13      | version_id, formula_id(FK), snapshot_json, status           |
+| salesmen                    | 业务员表     | 29      | id, name, code, department, status                          |
+| nutrition_profiles          | 营养档案模板 | 20      | profile_id, name, category, target_values_json              |
+| export_templates            | 导出模板     | 20      | template_id, name, type (pdf/excel/api/print)               |
+| export_jobs                 | 导出任务     | 0       | job_id, formula_id(FK), status, file_url                    |
+| formula_nutrition_summaries | 营养汇总     | 0       | summary_id, formula_id(FK), total_nutrition_json            |
+| nutrition_analysis_reports  | 营养分析报告 | 0       | report_id, formula_id(FK)                                   |
+| share_configs               | 分享配置     | 0       | config_id, share_code, expires_at                           |
+| api_data_interfaces         | API 接口配置 | 20      | interface_id, name, endpoint                                |
 
 ### ER 关系核心链路
 
@@ -1294,7 +1393,7 @@ if (process.env.DB_TYPE === "mysql") {
 
 ### 生产环境部署
 
-详见 [PRODUCTION\_DEPLOYMENT\_GUIDE.md](file:///d:/ProgramData/workspace-codeby/ting-studio/PRODUCTION_DEPLOYMENT_GUIDE.md)
+详见 [PRODUCTION_DEPLOYMENT_GUIDE.md](file:///d:/ProgramData/workspace-codeby/ting-studio/PRODUCTION_DEPLOYMENT_GUIDE.md)
 
 #### 快速部署步骤
 
@@ -1328,7 +1427,7 @@ edgeone pages deploy \
     --env production
 ```
 
-如果遇到 **401 UNAUTHORIZED** 错误，请参考 [EDGEONE\_DEPLOYMENT\_FIX.md](file:///d:/ProgramData/workspace-codeby/ting-studio/EDGEONE_DEPLOYMENT_FIX.md)
+如果遇到 **401 UNAUTHORIZED** 错误，请参考 [EDGEONE_DEPLOYMENT_FIX.md](file:///d:/ProgramData/workspace-codeby/ting-studio/EDGEONE_DEPLOYMENT_FIX.md)
 
 1. **验证部署**
 
@@ -1338,7 +1437,7 @@ curl https://tingstudio-prod-d2f6fhumc0432c48-1318822768.ap-shanghai.app.tcloudb
 
 ### EdgeOne 故障修复
 
-如果遇到 **401 UNAUTHORIZED** 错误，请参考 [EDGEONE\_DEPLOYMENT\_FIX.md](file:///d:/ProgramData/workspace-codeby/ting-studio/EDGEONE_DEPLOYMENT_FIX.md)
+如果遇到 **401 UNAUTHORIZED** 错误，请参考 [EDGEONE_DEPLOYMENT_FIX.md](file:///d:/ProgramData/workspace-codeby/ting-studio/EDGEONE_DEPLOYMENT_FIX.md)
 
 **常见解决方案：**
 
@@ -1562,4 +1661,3 @@ MIT License
 **版本**: v2.27.0 (模型应用配置 + UI对齐优化)
 **维护者**: TingStudio Team
 ```
-
