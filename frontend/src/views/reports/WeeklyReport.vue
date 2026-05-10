@@ -256,10 +256,6 @@
                     <h3 class="section-title">未来规划</h3>
                   </div>
                   <div class="header-right-actions">
-                    <svg :class="{ 'collapse-icon': true, 'collapsed': !plansExpanded }" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                      stroke="#94A3B8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" @click.stop="plansExpanded = !plansExpanded">
-                      <polyline points="6 9 12 15 18 9" />
-                    </svg>
                     <t-button v-if="!isEditingPlans" variant="text" theme="primary" size="small" @click.stop="startEditPlans">
                       <template #icon><t-icon name="edit-1" /></template>
                       编辑
@@ -273,9 +269,13 @@
                       <template #icon><t-icon name="close" /></template>
                       取消
                     </t-button>
+                    </div>
+                    <svg :class="{ 'collapse-icon': true, 'collapsed': !plansExpanded }" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                      stroke="#94A3B8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" @click.stop="plansExpanded = !plansExpanded">
+                      <polyline points="6 9 12 15 18 9" />
+                    </svg>
                   </div>
                 </div>
-              </div>
               <div class="section-body" :class="{ 'editing-mode': isEditingPlans }" v-show="plansExpanded || isEditingPlans">
                   <template v-if="isEditingPlans">
                     <div class="edit-field">
@@ -336,7 +336,7 @@
                 </div>
               </div>
 
-              <AIAnalysisPanel :report-data="reportData" report-type="weekly" />
+              <AIAnalysisPanel :report-data="report" report-type="weekly" />
             </div>
           </template>
         </template>

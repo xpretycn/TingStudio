@@ -1,4 +1,4 @@
-# TingStudio v2.27
+# TingStudio v2.28
 
 食品配方工作数据管理平台 — 前后端分离架构
 
@@ -6,7 +6,188 @@
 
 TingStudio 是一个专业的食品配方工作数据管理平台，面向食品配方行业（中草药功效配方），提供配方管理、原料管理、业务员管理、营养成分分析、导出分享等完整功能链路。采用 **Vue 3 + Express + SQLite** 前后端分离架构，支持 JWT 认证、RESTful API、配方版本控制、营养合规检查、AI 智能解析等企业级特性。
 
-## 🚀 最新更新 (2026-05-09)
+## 🚀 最新更新 (2026-05-11)
+
+### ✅ AI智能录入功能整合 + AI对话SSE流式修复 + UI优化
+
+#### 🎯 智能填单/智能导入功能整合到AI助手工作台
+
+将原来独立的 `AiAssistant.vue` 页面的**智能填单**和**智能导入**功能整合到 **AIDashboard.vue** 中，实现统一入口：
+
+**新增Tab导航系统：**
+
+| Tab | 图标 | 功能 | 组件 |
+|-----|------|------|------|
+| 💬 AI 对话 | 💬 | 与AI助手自由对话（SSE流式响应） | 内置聊天界面 |
+| 📝 智能填单 | 📝 | AI辅助填写表单（配方、原料） | [SmartFormTab.vue](frontend/src/views/ai/tabs/SmartFormTab.vue) |
+| 📥 智能导入 | 📥 | AI解析Excel/文件导入数据 | [SmartImportTab.vue](frontend/src/views/ai/tabs/SmartImportTab.vue) |
+
+**快捷方式入口调整：**
+
+左侧栏快捷操作区域新增两个AI功能入口：
+
+```
+┌─────────────────────────────────────┐
+│  [+ 新建配方] [+ 添加原料]           │
+│  [生成周报]   [导出数据]             │
+│  📝 智能填单(AI) 📥 智能导入(AI)  ← 新 │
+└─────────────────────────────────────┘
+```
+
+- 点击后自动切换到对应Tab（无需页面跳转）
+- 带 **AI** 标识突出显示为AI功能
+- 使用 `handleQuickAction()` 统一处理点击事件
+
+---
+
+#### 🔧 AI对话SSE流式响应修复
+
+**问题现象：**
+- 和AI对话没有回应
+- 前端控制台报警：`[未找到 IL] 非法 DeepSeek V3`
+- SSE解析警告
+
+**根本原因分析：**
+
+| 问题点 | 详情 |
+|--------|------|
+| 模型名称不匹配 | 前端发送 `DeepSeek V3`（显示名），后端期望 `deepseek`（provider标识） |
+| 环境变量未加载 | 后端 `index.ts` 未导入 `dotenv/config`，API Key无法读取 |
+| 流式响应缺失 | `_doChatCompletion()` 未处理 `stream: true` 参数 |
+
+**修复方案：**
+
+1. **模型名称映射系统**
+
+```typescript
+// AIDashboard.vue - 新增映射表
+const modelDisplayNames = {
+  'deepseek': 'DeepSeek V3',    // 实际发送 deepseek，显示 DeepSeek V3
+  'dashscope': '通义千问',
+  'zhipu': '智谱GLM'
+};
+
+const displayModelName = computed(() => 
+  modelDisplayNames[currentModel.value] || currentModel.value
+);
+```
+
+2. **环境变量加载**
+
+```typescript
+// index.ts - 顶部添加
+import "dotenv/config";
+```
+
+3. **SSE流式响应实现**
+
+```typescript
+// AIService.ts - 新增 _handleStreamResponse() 方法
+private async _handleStreamResponse(response, model, onToken?) {
+  const reader = response.body?.getReader();
+  // 解析 data: {"choices":[{"delta":{"content":"token"}}]} 格式
+  // 逐个调用 onToken(token) 回调转发给前端
+}
+```
+
+---
+
+#### 🎨 UI优化改进
+
+**1. Logo位置修正**
+
+将品牌Logo从标题上方移到与标题同行显示：
+
+```html
+<!-- 修改前 -->
+<div class="welcome-logo">🐱</div>   <!-- 单独一行 -->
+<h3>你好！我是TingStudio AI助手</h3>
+
+<!-- 修改后 -->
+<div class="welcome-header">          <!-- 同行显示 -->
+  <div class="welcome-logo">🐱</div>
+  <h3>你好！我是TingStudio AI助手</h3>
+</div>
+```
+
+**2. 背景色统一**
+
+将"最近访问/待办区域"背景色调整为与"AI推荐操作区域"一致：
+
+```css
+/* 统一样式 */
+background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+border: 2px solid #bae6fd;
+border-radius: 16px;
+```
+
+**3. 欢迎消息功能列表可点击**
+
+```html
+<ul class="welcome-features">
+  <li @click="handleQuickQuestion('分析销售数据和趋势')">
+    ✨ 分析销售数据和趋势
+  </li>
+  <!-- ... 其他3项 -->
+</ul>
+```
+
+交互效果：
+- 🖱️ Hover：蓝色渐变背景 + 右移4px + 阴影
+- 👆 点击：自动填充输入框并发送消息
+
+**4. 销售数字格式化**
+
+大数自动以"万"为单位显示：
+
+```typescript
+const formatNumber = (num) => {
+  if (num >= 10000) {
+    const wan = (num / 10000).toFixed(num % 10000 === 0 ? 0 : 1);
+    return `${wan}万`;  // 例：2400000 → 240万
+  }
+  return num.toLocaleString('zh-CN');
+};
+```
+
+---
+
+#### 🛠️ 模板结构错误修复
+
+**问题：** 多次出现 `Element is missing end tag` 编译错误
+
+**根因：** `<template>` 标签嵌套结构混乱，`.chat-container` 的 `</div>` 提前关闭
+
+**修复后的正确结构：**
+
+```html
+<div class="chat-container">
+  <template v-if="activeTab === 'chat'">
+    <!-- 所有聊天内容... -->
+    <div class="messages-wrapper">...</div>
+    <div class="quick-tags-bar">...</div>
+    <div class="chat-input-bar">...</div>
+  </template>                          <!-- 正确闭合 -->
+
+  <div v-if="smart-form">...</div>   <!-- 智能填单 Tab -->
+  <div v-if="smart-import">...</div> <!-- 智能导入 Tab -->
+</div>                                <!-- 关闭 chat-container -->
+```
+
+---
+
+### 影响范围总览
+
+| 文件 | 改动类型 | 说明 |
+|------|---------|------|
+| [AIDashboard.vue](frontend/src/views/ai/AIDashboard.vue) | 重构+优化 | Tab导航 + 智能填单/导入整合 + Logo位置 + 可点击功能列表 + 背景色统一 + 数字格式化 + 模板修复 |
+| [AIService.ts](backend/src/services/ai/AIService.ts) | 功能增强 | SSE流式响应 `_handleStreamResponse()` 方法 |
+| [index.ts](backend/src/index.ts) | 配置修复 | 添加 `import "dotenv/config"` 加载环境变量 |
+| [aiController.ts](backend/src/controllers/aiController.ts) | 优化 | SSE响应头设置 + 流式数据转发 |
+
+---
+
+## 🚀 历史更新 (2026-05-09)
 
 ### ✅ AI助手工作台UI优化 + 仪表盘样式统一 + 俏皮话优化
 

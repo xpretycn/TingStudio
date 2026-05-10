@@ -1,9 +1,6 @@
 import { Request, Response } from "express";
 import { query } from "../config/database-better-sqlite3.js";
-import {
-  success,
-  rowToCamelCase,
-} from "../utils/helpers.js";
+import { success, rowToCamelCase } from "../utils/helpers.js";
 
 export async function getDashboardStats(req: any, res: Response) {
   try {
@@ -13,14 +10,10 @@ export async function getDashboardStats(req: any, res: Response) {
     }
 
     // 并行查询4个核心指标
-    const [formulasResult]: any[] = await query(
-      "SELECT COUNT(*) as total FROM formulas WHERE deleted_at IS NULL"
-    );
-    
-    const [materialsResult]: any[] = await query(
-      "SELECT COUNT(*) as total FROM materials WHERE deleted_at IS NULL"
-    );
-    
+    const [formulasResult]: any[] = await query("SELECT COUNT(*) as total FROM formulas");
+
+    const [materialsResult]: any[] = await query("SELECT COUNT(*) as total FROM materials");
+
     const [salesResult]: any[] = await query(`
       SELECT 
         COALESCE(SUM(fs.quantity), 0) as totalQuantity,
@@ -39,9 +32,9 @@ export async function getDashboardStats(req: any, res: Response) {
       sales: {
         quantity: Number(salesResult[0]?.totalQuantity || 0),
         revenue: Number(salesResult[0]?.totalRevenue || 0),
-        formulaCount: salesResult[0]?.formulaCount || 0
+        formulaCount: salesResult[0]?.formulaCount || 0,
       },
-      pendingTasks: pendingTasksCount
+      pendingTasks: pendingTasksCount,
     };
 
     res.json(success(stats));
@@ -57,27 +50,29 @@ export async function getRecentActivity(req: any, res: Response) {
     const limitNum = Math.min(Number(limit), 20);
 
     // 获取最近更新的配方（最近5条）
-    const [recentFormulas]: any[] = await query(`
+    const [recentFormulas]: any[] = await query(
+      `
       SELECT id, name, code, updated_at as updatedAt, 'formula' as type
-      FROM formulas 
-      WHERE deleted_at IS NULL
+      FROM formulas
       ORDER BY updated_at DESC LIMIT ?
-    `, [Math.floor(limitNum / 2)]);
+    `,
+      [Math.floor(limitNum / 2)],
+    );
 
     // 获取最近更新的原料（最近5条）
-    const [recentMaterials]: any[] = await query(`
+    const [recentMaterials]: any[] = await query(
+      `
       SELECT id, name, code, updated_at as updatedAt, 'material' as type
-      FROM materials 
-      WHERE deleted_at IS NULL
+      FROM materials
       ORDER BY updated_at DESC LIMIT ?
-    `, [Math.floor(limitNum / 2)]);
+    `,
+      [Math.floor(limitNum / 2)],
+    );
 
     // 合并并按时间排序
-    const allActivities = [
-      ...rowToCamelCase(recentFormulas),
-      ...rowToCamelCase(recentMaterials)
-    ].sort((a: any, b: any) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
-     .slice(0, limitNum);
+    const allActivities = [...rowToCamelCase(recentFormulas), ...rowToCamelCase(recentMaterials)]
+      .sort((a: any, b: any) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+      .slice(0, limitNum);
 
     res.json(success(allActivities));
   } catch (error: any) {
@@ -88,17 +83,17 @@ export async function getRecentActivity(req: any, res: Response) {
 
 export async function getSalesTrend(req: any, res: Response) {
   try {
-    const { period = 'month' } = req.query;
-    
+    const { period = "month" } = req.query;
+
     let dateFormat: string;
     let groupBy: string;
-    
+
     switch (period) {
-      case 'week':
+      case "week":
         dateFormat = "%Y-%W";
         groupBy = "strftime('%Y-%W', fs.period_start)";
         break;
-      case 'year':
+      case "year":
         dateFormat = "%Y";
         groupBy = "strftime('%Y', fs.period_start)";
         break;

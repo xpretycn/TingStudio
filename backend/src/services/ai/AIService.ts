@@ -364,6 +364,7 @@ export class AIService {
       temperature: options?.temperature ?? 0.3,
       max_tokens:
         options?.maxTokens ?? (useVisionModel && modelConfig.visionMaxTokens ? modelConfig.visionMaxTokens : 4096),
+      stream: options?.stream ?? false,
     };
 
     if (options?.responseFormat && !useVisionModel) {
@@ -403,6 +404,10 @@ export class AIService {
           throw new Error(`AI API 请求失败 (${response.status}): ${errorText}`);
         }
 
+        if (options?.stream) {
+          return await this._handleStreamResponse(response, effectiveModel, options.onToken);
+        }
+
         const data = (await response.json()) as {
           id: string;
           choices: { message: { content: string } }[];
@@ -430,6 +435,60 @@ export class AIService {
     }
 
     throw new Error(`AI 请求失败 (requestId: ${requestId})：已达最大重试次数`);
+  }
+
+  private async _handleStreamResponse(
+    response: Response,
+    model: string,
+    onToken?: (token: string) => void
+  ): Promise<ChatCompletionResult> {
+    const reader = response.body?.getReader();
+    if (!reader) {
+      throw new Error("无法获取响应流");
+    }
+
+    const decoder = new TextDecoder();
+    let fullContent = "";
+    let buffer = "";
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() || "";
+
+        for (const line of lines) {
+          const trimmedLine = line.trim();
+          if (!trimmedLine || !trimmedLine.startsWith("data:")) continue;
+
+          const data = trimmedLine.slice(5).trim();
+          if (data === "[DONE]") continue;
+
+          try {
+            const parsed = JSON.parse(data);
+            const token = parsed.choices?.[0]?.delta?.content || "";
+            if (token) {
+              fullContent += token;
+              if (onToken) {
+                onToken(token);
+              }
+            }
+          } catch {
+            // 忽略解析错误，继续处理下一行
+          }
+        }
+      }
+    } finally {
+      reader.releaseLock();
+    }
+
+    return {
+      content: fullContent,
+      model,
+    };
   }
 
   static parseJSONResponse(text: string): unknown {

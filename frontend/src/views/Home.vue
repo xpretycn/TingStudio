@@ -1715,7 +1715,7 @@ onMounted(() => {
   flex-direction: column;
   min-width: 0;
   overflow-y: auto; // 页面滚动参照 index.html
-  padding: 12px 32px 32px; // padding-top 减少10px，其他保持32px
+  padding: 20px 20px 10px; // 水平间距20px，底部10px
 
   &.no-top-padding {
     padding-top: 0; // hideHeader 页面消除顶部间距（子组件自带 detail-header）

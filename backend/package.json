@@ -14,7 +14,10 @@
     "import-nutrition": "tsx src/scripts/importNutritionData.ts",
     "test-mysql": "tsx src/scripts/test-mysql-connection.ts",
     "init-mysql": "tsx src/scripts/init-mysql-database.ts",
-    "migrate-to-mysql": "tsx src/scripts/migrate-to-mysql.ts"
+    "migrate-to-mysql": "tsx src/scripts/migrate-to-mysql.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@types/node-cron": "^3.0.11",
@@ -47,9 +50,14 @@
     "@types/morgan": "^1.9.9",
     "@types/multer": "^1.4.13",
     "@types/node": "^22.5.0",
+    "@types/supertest": "^7.2.0",
     "@types/uuid": "^10.0.0",
+    "@vitest/coverage-v8": "^4.1.5",
     "esbuild": "^0.28.0",
+    "supertest": "^7.2.2",
     "tsx": "^4.21.0",
-    "typescript": "^5.6.2"
+    "typescript": "^5.6.2",
+    "vitest": "^4.1.5",
+    "zod": "^4.4.3"
   }
 }

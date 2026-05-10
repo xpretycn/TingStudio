@@ -4,98 +4,150 @@ import cors from "cors";
 import helmet from "helmet";
 import compression from "compression";
 import morgan from "morgan";
+
 import { createAppRouter } from "./routes/index.js";
-import { errorHandler } from "./middleware/errorHandler.js";
-import { logger } from "./utils/logger.js";
-import { connectDatabase } from "./config/database-better-sqlite3.js";
-import { startScheduledTasks, stopScheduledTasks } from "./services/reportGenerator.js";
-import { autoFixGarbledFilenames } from "./controllers/fileController.js";
-import { aiService } from "./services/ai/AIService.js";
-import { modelHealthChecker } from "./services/ai/ModelHealthChecker.js";
 
-export async function createApp() {
-  const app = express();
+import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js";
+import { requestLogger } from "./middleware/logger.js";
+import { optionalAuth } from "./middleware/auth.js";
 
-  // 数据库连接
-  await connectDatabase();
+import { connectDatabase } from "./config/database-adapter.js";
+import { AIService } from "./services/ai/AIService.js";
+import { initializeLLMAgentService } from "./services/ai/agent/index.js";
+import { registerAllTools } from "./services/ai/agent/toolRegistration.js";
 
-  // 自动修复乱码文件名
-  await autoFixGarbledFilenames();
+const app = express();
+const PORT = process.env.PORT || 3000;
 
-  // 从数据库加载AI模型配置
-  aiService.reloadModels();
+function setupApp(app: express.Application): void {
+  configureMiddleware(app);
+  configureRoutes(app);
+  configureErrorHandling(app);
+}
 
-  // 全局中间件
-  app.use(helmet());
+function initializeApp(): void {
+  console.log("[Startup] Initializing TingStudio AI Agent Backend...");
+
+  connectDatabase()
+    .then(() => {
+      const aiService = new AIService();
+      initializeLLMAgentService(aiService);
+
+      registerAllTools();
+
+      setupApp(app);
+
+      startServer(app, PORT);
+
+      console.log(`[Startup] ✓ Application initialized successfully`);
+    })
+    .catch(error => {
+      console.error("[Startup] ✗ Failed to connect database:", error);
+      process.exit(1);
+    });
+}
+
+function configureMiddleware(app: express.Application): void {
   app.use(
-    cors({
-      origin: "*",
-      credentials: true,
+    helmet({
+      contentSecurityPolicy: false,
+      crossOriginEmbedderPolicy: false,
     }),
   );
+
+  app.use(
+    cors({
+      origin: process.env.CORS_ORIGIN || "*",
+      credentials: true,
+      methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+      allowedHeaders: ["Content-Type", "Authorization"],
+    }),
+  );
+
   app.use(compression());
-  app.use(morgan("dev"));
-  app.use(express.json({ limit: "10mb" }));
-  app.use(express.urlencoded({ extended: true }));
 
-  // 静态文件
-  app.use("/uploads", express.static("uploads"));
-
-  // Serverless 环境路径重写（TCB 会去掉 /api 前缀）
-  if (process.env.DATA_DIR === "/tmp/data") {
-    app.use((req, _res, next) => {
-      if (!req.url.startsWith("/api") && req.url !== "/health") {
-        req.url = "/api" + req.url;
-      }
-      next();
-    });
+  if (process.env.NODE_ENV !== "test") {
+    app.use(morgan("combined"));
   }
 
-  // API 路由
-  app.use("/api", createAppRouter());
+  app.use(express.json({ limit: "10mb" }));
+  app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
-  // 健康检查
+  app.use(requestLogger);
+  app.use(optionalAuth);
+}
+
+function configureRoutes(app: express.Application): void {
   app.get("/health", (_req, res) => {
-    res.json({ status: "ok", timestamp: new Date().toISOString() });
+    res.json({
+      status: "healthy",
+      timestamp: new Date().toISOString(),
+      version: "2.0.0",
+      service: "TingStudio AI Agent Backend",
+    });
   });
 
-  // 404 处理
-  app.use((_req, res) => {
-    res.status(404).json({ success: false, message: "接口不存在" });
+  app.get("/api/status", (_req, res) => {
+    res.json({
+      success: true,
+      data: {
+        status: "running",
+        uptime: process.uptime(),
+        memory: process.memoryUsage(),
+        node_version: process.version,
+        environment: process.env.NODE_ENV || "development",
+      },
+    });
   });
 
-  // 错误处理
+  const apiRouter = createAppRouter();
+  app.use("/api", apiRouter);
+}
+
+function configureErrorHandling(app: express.Application): void {
+  app.use(notFoundHandler);
   app.use(errorHandler);
-
-  return app;
 }
 
-// 直接运行时启动服务器
-async function bootstrap() {
-  const app = await createApp();
-  const PORT = process.env.PORT || 3000;
+function startServer(app: express.Application, port: number): void {
+  app.listen(port, () => {
+    console.log(`
+╔═══════════════════════════════════════════════════════╗
+║     TingStudio AI Agent Backend - Running            ║
+║                                                       ║
+║     🚀 Server: http://localhost:${port}                  ║
+║     📊 API Docs: http://localhost:${port}/api/status     ║
+║     ❤️  Health: http://localhost:${port}/health          ║
+║                                                       ║
+║     Environment: ${process.env.NODE_ENV || "development"}                    ║
+║     Started at: ${new Date().toISOString()}   ║
+╚═══════════════════════════════════════════════════════╝
+    `);
+  });
 
-  app.listen(PORT, () => {
-    logger.info(`TingStudio 后端服务启动成功: http://localhost:${PORT}`);
-    logger.info(`环境: ${process.env.NODE_ENV || "development"}`);
-    startScheduledTasks();
-    modelHealthChecker.start();
+  app.on("error", (error: NodeJS.ErrnoException) => {
+    if (error.syscall !== "listen") throw error;
+
+    switch (error.code) {
+      case "EACCES":
+        console.error(`[Error] Port ${port} requires elevated privileges`);
+        process.exit(1);
+        break;
+      case "EADDRINUSE":
+        console.error(`[Error] Port ${port} is already in use`);
+        process.exit(1);
+        break;
+      default:
+        throw error;
+    }
   });
 }
 
-process.on("SIGINT", () => {
-  stopScheduledTasks();
-  modelHealthChecker.stop();
-  process.exit(0);
-});
+if (process.env.NODE_ENV !== "test") {
+  initializeApp();
+} else {
+  registerAllTools();
+  setupApp(app);
+}
 
-process.on("SIGTERM", () => {
-  stopScheduledTasks();
-  modelHealthChecker.stop();
-  process.exit(0);
-});
-
-bootstrap().catch(err => {
-  logger.error("服务启动失败:", err);
-  process.exit(1);
-});
+export default app;
