@@ -193,7 +193,7 @@
                           stroke-linecap="round" stroke-linejoin="round" v-html="getModuleIcon(app.module)"></svg>
                       </div>
                       <div class="app-module-details">
-                        <h5 class="app-module-name">{{ app.moduleName }}</h5>
+                        <h5 class="app-module-name">{{ app.moduleName || getModuleDisplayName(app.module) }}</h5>
                         <span class="app-module-id">{{ app.module }}</span>
                       </div>
                     </div>
@@ -522,8 +522,19 @@
         </div>
       </div>
 
-      <t-dialog v-model:visible="showAddAppDialog" header="添加功能模块配置" :confirm-btn="null" :cancel-btn="null"
+      <t-dialog v-model:visible="showAddAppDialog" :confirm-btn="null" :cancel-btn="null"
         width="560px" class="app-dialog" destroy-on-close>
+        <template #header>
+          <div class="app-dialog-header">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+              <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+              <line x1="12" y1="22.08" x2="12" y2="12"/>
+            </svg>
+            <span>添加功能模块配置</span>
+          </div>
+        </template>
         <t-form ref="addAppFormRef" :data="appFormData" :rules="appFormRules" label-width="100px" @submit="handleAddApp">
           <t-form-item label="功能模块" name="module">
             <t-select v-model="appFormData.module" placeholder="请选择功能模块" clearable>
@@ -539,7 +550,28 @@
             <t-select v-model="appFormData.provider" placeholder="请选择模型厂商" clearable
               @change="handleAppProviderChange">
               <t-option v-for="model in modelStore.models" :key="model.provider" :value="model.provider"
-                :label="model.name" />
+                :label="model.name">
+                <template #default>
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <div :style="{
+                      width: '20px',
+                      height: '20px',
+                      borderRadius: '4px',
+                      overflow: 'hidden',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      background: getFallbackColor(model.provider) + '18',
+                      flexShrink: 0
+                    }">
+                      <img :src="getModelLogo(model.provider)" :alt="model.name"
+                        style="width: 100%; height: 100%; object-fit: contain; display: block;"
+                        @error="(e: Event) => { (e.target as HTMLElement).style.display = 'none'; }" />
+                    </div>
+                    <span style="font-size: 14px; color: #1e293b;">{{ model.name }}</span>
+                  </div>
+                </template>
+              </t-option>
             </t-select>
           </t-form-item>
           <t-form-item label="模型类型" name="model">
@@ -558,14 +590,37 @@
         </t-form>
         <template #footer>
           <div class="dialog-footer">
-            <t-button variant="outline" @click="showAddAppDialog = false">取消</t-button>
-            <t-button theme="primary" :loading="appSubmitting" @click="submitAddApp">确认添加</t-button>
+            <button type="button" class="dialog-cancel-btn" @click="showAddAppDialog = false">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+              取消
+            </button>
+            <button type="button" class="app-confirm-btn" :disabled="appSubmitting" @click="submitAddApp">
+              <t-loading v-if="appSubmitting" size="14px" />
+              <svg v-else width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+              确认添加
+            </button>
           </div>
         </template>
       </t-dialog>
 
-      <t-dialog v-model:visible="showEditAppDialog" header="编辑功能模块配置" :confirm-btn="null" :cancel-btn="null"
+      <t-dialog v-model:visible="showEditAppDialog" :confirm-btn="null" :cancel-btn="null"
         width="560px" class="app-dialog" destroy-on-close>
+        <template #header>
+          <div class="app-dialog-header">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+            </svg>
+            <span>编辑功能模块配置</span>
+          </div>
+        </template>
         <t-form ref="editAppFormRef" :data="editAppFormData" :rules="appFormRules" label-width="100px"
           @submit="handleEditApp">
           <t-form-item label="功能模块" name="module">
@@ -575,7 +630,28 @@
             <t-select v-model="editAppFormData.provider" placeholder="请选择模型厂商" clearable
               @change="handleEditAppProviderChange">
               <t-option v-for="model in modelStore.models" :key="model.provider" :value="model.provider"
-                :label="model.name" />
+                :label="model.name">
+                <template #default>
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <div :style="{
+                      width: '20px',
+                      height: '20px',
+                      borderRadius: '4px',
+                      overflow: 'hidden',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      background: getFallbackColor(model.provider) + '18',
+                      flexShrink: 0
+                    }">
+                      <img :src="getModelLogo(model.provider)" :alt="model.name"
+                        style="width: 100%; height: 100%; object-fit: contain; display: block;"
+                        @error="(e: Event) => { (e.target as HTMLElement).style.display = 'none'; }" />
+                    </div>
+                    <span style="font-size: 14px; color: #1e293b;">{{ model.name }}</span>
+                  </div>
+                </template>
+              </t-option>
             </t-select>
           </t-form-item>
           <t-form-item label="模型类型" name="model">
@@ -594,8 +670,21 @@
         </t-form>
         <template #footer>
           <div class="dialog-footer">
-            <t-button variant="outline" @click="showEditAppDialog = false">取消</t-button>
-            <t-button theme="primary" :loading="appSubmitting" @click="submitEditApp">保存修改</t-button>
+            <button type="button" class="dialog-cancel-btn" @click="showEditAppDialog = false">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+              取消
+            </button>
+            <button type="button" class="app-confirm-btn" :disabled="appSubmitting" @click="submitEditApp">
+              <t-loading v-if="appSubmitting" size="14px" />
+              <svg v-else width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+              保存修改
+            </button>
           </div>
         </template>
       </t-dialog>
@@ -663,14 +752,12 @@
             <span>接口配置</span>
           </div>
           <div class="card-body">
-            <div class="form-row two-col">
-              <t-form-item label="API 基础地址">
-                <t-input v-model="addForm.baseUrl" placeholder="https://api.example.com/v1" />
-              </t-form-item>
-              <t-form-item label="API Key">
-                <t-input v-model="addForm.apiKey" type="password" placeholder="sk-..." />
-              </t-form-item>
-            </div>
+            <t-form-item label="API 基础地址">
+              <t-input v-model="addForm.baseUrl" placeholder="https://api.example.com/v1" />
+            </t-form-item>
+            <t-form-item label="API Key">
+              <t-input v-model="addForm.apiKey" type="password" placeholder="sk-..." />
+            </t-form-item>
           </div>
         </div>
         <div class="drawer-card param-card">
@@ -953,13 +1040,22 @@ const appFormRules = {
   model: [{ required: true, message: "请选择模型类型", trigger: "change" }],
 };
 
-const availableModules = [
+const allModules = [
   { value: "weekly-report", label: "周报AI分析", icon: "calendar" },
   { value: "monthly-report", label: "月报AI分析", icon: "document" },
   { value: "smart-form", label: "智能配方解析", icon: "form" },
   { value: "smart-import", label: "智能原料导入", icon: "upload" },
   { value: "smart-search", label: "智能数据检索", icon: "search" },
 ];
+
+const excludeModules = ['smart-form', 'smart-import'];
+
+const availableModules = computed(() => {
+  const configuredModuleValues = modelApplications.value.map((app: any) => app.module);
+  return allModules.filter(
+    (mod) => !configuredModuleValues.includes(mod.value) && !excludeModules.includes(mod.value)
+  );
+});
 
 const fetchUsageWithMinLoading = async (showLoading = true) => {
   if (showLoading) {
@@ -1470,7 +1566,15 @@ const logColumns = [
   },
   {
     colKey: "callType", title: "类型", width: 110, cell: (_h: any, { row }: any) => {
-      const map: Record<string, string> = { parse_formula: "解析配方", parse_nutrition: "解析营养", natural_search: "自然检索", health_check: "健康检测" };
+      const map: Record<string, string> = {
+        parse_formula: "解析配方",
+        parse_nutrition: "解析营养",
+        natural_search: "自然检索",
+        health_check: "健康检测",
+        "weekly-report": "周报AI分析",
+        "monthly-report": "月报AI分析",
+        "smart-search": "智能数据检索",
+      };
       return map[row.callType] || row.callType;
     }
   },
@@ -1494,16 +1598,30 @@ const logColumns = [
   },
   {
     colKey: "requestSummary", title: "摘要", ellipsis: true, cell: (h: any, { row }: any) => {
-      if (!row.requestSummary) return row.requestSummary || '';
+      const appInfoMap: Record<string, string> = {
+        parse_formula: "智能配方解析",
+        parse_nutrition: "智能原料导入",
+        natural_search: "智能数据检索",
+        health_check: "健康检测",
+        "weekly-report": "周报AI分析",
+        "monthly-report": "月报AI分析",
+        "smart-search": "智能数据检索",
+      };
+
+      const appName = appInfoMap[row.callType] || '';
+      const summaryText = row.requestSummary || '';
+
+      if (!summaryText) return '';
+
+      let displayText = summaryText;
+
       try {
-        const text = row.requestSummary;
-        // 检测是否包含乱码特征（非ASCII字符）
+        const text = summaryText;
         if (/[\x80-\xFF]/.test(text)) {
-          // 尝试智能分离：找到文件名部分（通常在引号、冒号后面，或包含文件扩展名）
           const filePatterns = [
-            /(['"])([^'"]+\.(?:xlsx?|csv|txt))\1/i,  // 引号包围的文件名
-            /[:：]\s*([^\s:]+\.(?:xlsx?|csv|txt))/i,   // 冒号后面的文件名
-            /(.*[\\\/])?([^\s:]+\.(?:xlsx?|csv|txt))/i  // 任意位置的文件名
+            /(['"])([^'"]+\.(?:xlsx?|csv|txt))\1/i,
+            /[:：]\s*([^\s:]+\.(?:xlsx?|csv|txt))/i,
+            /(.*[\\\/])?([^\s:]+\.(?:xlsx?|csv|txt))/i
           ];
 
           for (const pattern of filePatterns) {
@@ -1511,12 +1629,10 @@ const logColumns = [
             if (match) {
               const prefix = text.substring(0, text.indexOf(match[0]));
               const filenamePart = match[0];
-              // 只对文件名部分进行Latin-1到UTF-8转换
               if (/[\x80-\xFF]/.test(filenamePart)) {
                 const bytes = new Uint8Array([...filenamePart].map(char => char.charCodeAt(0)));
                 const decoder = new TextDecoder('utf-8', { fatal: false });
                 const decodedFilename = decoder.decode(bytes);
-                // 验证解码结果是否包含中文或正常ASCII
                 if (/[\u4e00-\u9fa5a-zA-Z0-9._\-]/.test(decodedFilename) && !/[\x80-\xFF]/.test(decodedFilename)) {
                   return prefix + decodedFilename;
                 }
@@ -1524,19 +1640,25 @@ const logColumns = [
             }
           }
 
-          // 如果没有匹配到文件名模式，尝试整体解码（兼容旧数据）
           const bytes = new Uint8Array([...text].map(char => char.charCodeAt(0)));
           const decoder = new TextDecoder('utf-8', { fatal: false });
           const decoded = decoder.decode(bytes);
           if (/[\u4e00-\u9fa5]/.test(decoded) && decoded.length < text.length * 2) {
-            return decoded;
+            displayText = decoded;
           }
         }
-        return text;
       } catch (e) {
         console.warn('Failed to decode requestSummary:', e);
-        return row.requestSummary;
       }
+
+      if (appName) {
+        return h('div', { style: 'display: flex; flex-direction: column; gap: 2px;' }, [
+          h('span', { style: 'font-size: 12px; color: #8B5CF6; font-weight: 600;' }, `[${appName}]`),
+          h('span', { style: 'font-size: 13px; color: #475569;' }, displayText)
+        ]);
+      }
+
+      return displayText;
     }
   },
   { colKey: "createdAt", title: "时间", width: 160 },
@@ -1652,6 +1774,17 @@ const fetchModelApplications = async () => {
   }
 };
 
+const getModuleDisplayName = (module: string): string => {
+  const nameMap: Record<string, string> = {
+    "weekly-report": "周报AI分析",
+    "monthly-report": "月报AI分析",
+    "smart-form": "智能配方解析",
+    "smart-import": "智能原料导入",
+    "smart-search": "智能数据检索",
+  };
+  return nameMap[module] || module;
+};
+
 const getModuleIcon = (module: string): string => {
   const iconMap: Record<string, string> = {
     "weekly-report": '<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
@@ -1695,6 +1828,14 @@ const getAvailableVersionsForProviderByString = (provider: string) => {
   if (!provider) return [];
   const model = modelStore.models.find((m: any) => m.provider === provider);
   if (!model) return [];
+
+  const providerKey = provider.toLowerCase().trim();
+  const predefinedVersions = PROVIDER_VERSIONS[providerKey] || PROVIDER_VERSIONS[provider] || [];
+
+  if (predefinedVersions.length > 0) {
+    return predefinedVersions;
+  }
+
   const versions = [
     { value: model.model, label: `${model.model} (默认)` },
   ];
@@ -3472,8 +3613,9 @@ $transition-normal: 0.25s ease;
     .app-field {
       margin-bottom: 12px;
       display: flex;
-      flex-direction: column;
-      gap: 4px;
+      flex-direction: row;
+      align-items: center;
+      gap: 8px;
 
       &:last-child {
         margin-bottom: 0;
@@ -3483,6 +3625,8 @@ $transition-normal: 0.25s ease;
         font-size: 12px;
         color: #64748b;
         font-weight: 500;
+        white-space: nowrap;
+        min-width: 70px;
       }
 
       .field-value {
@@ -3628,6 +3772,72 @@ $transition-normal: 0.25s ease;
 .app-dialog {
   :deep(.t-dialog__body) {
     padding: 24px;
+  }
+
+  .app-dialog-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #1e293b;
+  }
+
+  .app-confirm-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 18px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+    color: #fff;
+    background-color: var(--color-primary, #10B981);
+    box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);
+
+    &:hover:not(:disabled) {
+      background-color: var(--color-primary-dark, #059669);
+      box-shadow: 0 4px 8px rgba(16, 185, 129, 0.4);
+      transform: translateY(-1px);
+    }
+
+    &:active:not(:disabled) {
+      background-color: var(--color-primary-deep, #047857);
+      transform: translateY(0);
+    }
+
+    &:disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
+    }
+
+    svg {
+      flex-shrink: 0;
+    }
+  }
+
+  .dialog-cancel-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 18px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    color: #64748b;
+
+    &:hover {
+      background: #f8fafc;
+      border-color: #cbd5e1;
+      color: #334155;
+    }
   }
 
   .dialog-footer {
