@@ -210,7 +210,7 @@ const router = createRouter({
           path: "ai-assistant",
           name: "AiAssistant",
           component: () => import("@/views/ai/AIDashboard.vue"),
-          meta: { title: "AI 助手工作台" },
+          meta: { title: "AI 助手工作台", hideHeader: true, fullBleed: true },
         },
         {
           path: "model-management",

@@ -12,76 +12,18 @@
     <!-- ═══ 三栏布局容器 ═══ -->
     <div class="dashboard-layout">
 
-      <!-- ═══ 左侧栏：数据卡片 + 快捷操作 ═══ -->
-      <aside class="layout-sidebar layout-left">
-        <section class="data-overview-cards">
-          <TransitionGroup name="card-fade" tag="div" class="cards-grid">
-            <div v-for="(card, index) in dataCards" :key="card.id" class="data-card"
-              :class="[`card-${card.color}`, { loading: card.loading }]" :style="{ animationDelay: `${index * 0.1}s` }"
-              @click="handleCardClick(card)">
-              <div class="card-header">
-                <t-icon :name="card.icon" size="24px" />
-                <span class="card-title">{{ card.title }}</span>
-              </div>
-
-              <div class="card-value">
-                <template v-if="card.loading">
-                  <div class="skeleton-value"></div>
-                </template>
-                <template v-else>
-                  <span class="value-number" :ref="el => { if (el) valueRefs[index] = el; }">
-                    {{ formatNumber(card.value) }}
-                  </span>
-                </template>
-              </div>
-
-              <div class="card-trend" v-if="card.trend && !card.loading">
-                <t-icon :name="getTrendIcon(card.trend.direction)" size="14px" />
-                <span :class="`trend-${card.trend.direction}`">{{ card.trend.value }}</span>
-              </div>
-
-              <div class="card-badge" v-if="card.showBadge && (card.value ?? 0) > 0 && !card.loading">
-                {{ card.value ?? 0 }}
-              </div>
-            </div>
-          </TransitionGroup>
-        </section>
-
-        <!-- ═══ 快捷操作 ═══ -->
-        <section class="quick-actions-row">
-          <div class="quick-actions-grid">
-            <button v-for="action in quickActions" :key="action.path" class="action-item"
-              :class="{ primary: action.primary, 'ai-feature': action.isAIFeature }" @click="handleQuickAction(action)">
-              <t-icon :name="action.icon" size="24px" />
-              <span class="action-label">{{ action.label }}</span>
-              <span v-if="action.badge" class="action-badge">{{ action.badge }}</span>
-            </button>
-          </div>
-        </section>
-      </aside>
-
       <!-- ═══ 中间主区：区域3 - AI对话区（核心） ═══ -->
       <main class="layout-main">
         <section class="ai-chat-section">
-          <div class="chat-header">
-            <div class="header-left">
-              <h3 class="chat-title">💬 AI 智能助手</h3>
-              <span class="model-indicator">当前模型: {{ displayModelName }}</span>
-            </div>
-            <div class="header-right">
-              <button class="history-btn" @click="toggleHistory">
-                <t-icon name="history" size="16px" /> 历史记录
-              </button>
-              <button class="new-chat-btn" @click="createNewSession">
-                <t-icon name="add" size="16px" /> 新对话
-              </button>
-            </div>
-          </div>
-
           <div class="chat-container">
             <!-- AI 对话 Tab 内容 -->
             <template v-if="activeTab === 'chat'">
-              <!-- 历史会话侧边栏 -->
+              <!-- 历史记录触发器 -->
+              <button class="history-trigger" @click="toggleHistory" :class="{ active: showHistory }" title="历史记录">
+                <t-icon name="history" size="18px" />
+              </button>
+
+              <!-- 历史会话侧边栏（覆盖层） -->
               <Transition name="slide">
                 <aside v-if="showHistory" class="history-sidebar">
                   <div class="history-header">
@@ -126,10 +68,10 @@
                   </div>
                   <p>我可以帮你：</p>
                   <ul class="welcome-features">
-                    <li @click="handleQuickQuestion('分析销售数据和趋势')">✨ 分析销售数据和趋势</li>
-                    <li @click="handleQuickQuestion('优化配方和降低成本')">✨ 优化配方和降低成本</li>
-                    <li @click="handleQuickQuestion('管理原料库存和采购')">✨ 管理原料库存和采购</li>
-                    <li @click="handleQuickQuestion('生成各类业务报告')">✨ 生成各类业务报告</li>
+                    <li @click="handleQuickQuestion('分析销售数据和趋势')">分析销售数据和趋势</li>
+                    <li @click="handleQuickQuestion('优化配方和降低成本')">优化配方和降低成本</li>
+                    <li @click="handleQuickQuestion('管理原料库存和采购')">管理原料库存和采购</li>
+                    <li @click="handleQuickQuestion('生成各类业务报告')">生成各类业务报告</li>
                   </ul>
                   <p class="welcome-hint">试试问我一个问题吧！</p>
                 </div>
@@ -138,8 +80,14 @@
                 <div v-for="msg in messages" :key="msg.id" class="message-item" :class="[`message-${msg.role}`]">
                   <!-- 用户消息 -->
                   <template v-if="msg.role === 'user'">
-                    <div class="user-bubble">{{ msg.content }}</div>
-                    <span class="message-time">{{ formatTime(msg.timestamp) }}</span>
+                    <div class="user-avatar">
+                      <img loading="lazy" class="user-avatar-img" :src="authStore.user?.avatar || '/avatar-default.jpg'"
+                        :alt="authStore.user?.username || '用户'" />
+                    </div>
+                    <div class="user-message-content">
+                      <div class="user-bubble">{{ msg.content }}</div>
+                      <span class="message-time">{{ formatTime(msg.timestamp) }}</span>
+                    </div>
                   </template>
 
                   <!-- AI消息 -->
@@ -211,20 +159,19 @@
                 </div>
               </div>
 
-              <!-- 快捷标签栏 -->
-              <div class="quick-tags-bar">
-                <button v-for="tag in quickTags" :key="tag" class="quick-tag" @click="inputText = tag; handleSend()">
-                  {{ tag }}
-                </button>
-              </div>
-
               <!-- 输入框区域 -->
               <div class="chat-input-bar">
                 <div class="input-wrapper">
+                  <div class="model-selector">
+                    <t-select v-model="currentModel" :options="modelOptions" size="small" style="width: 110px;" />
+                  </div>
                   <textarea v-model="inputText" placeholder="输入问题或指令... (Shift+Enter换行)"
                     @keydown.enter.exact="handleSend" :disabled="isLoading" rows="1" ref="textareaRef"></textarea>
                   <div class="input-actions">
-                    <label class="attach-btn" title="上传图片">
+                    <button class="action-circle-btn new-chat-btn" @click="createNewSession" title="新建对话">
+                      <t-icon name="add" size="18px" />
+                    </button>
+                    <label class="action-circle-btn attach-btn" title="上传图片">
                       <t-icon name="attach" size="18px" />
                       <input type="file" accept="image/*,.pdf,.xlsx" @change="handleFileUpload" hidden />
                     </label>
@@ -234,14 +181,59 @@
                     </button>
                   </div>
                 </div>
-                <div class="input-hint">
-                  AI基于 {{ displayModelName }} 模型 · 内容可能存在误差 · 支持图片上传
-                </div>
               </div>
             </template>
           </div>
         </section>
       </main>
+
+      <!-- ═══ 右侧栏：数据卡片 + 快捷操作 ═══ -->
+      <aside class="layout-sidebar layout-right">
+        <section class="data-overview-cards">
+          <TransitionGroup name="card-fade" tag="div" class="cards-grid">
+            <div v-for="(card, index) in dataCards" :key="card.id" class="data-card"
+              :class="[`card-${card.color}`, { loading: card.loading }]" :style="{ animationDelay: `${index * 0.1}s` }"
+              @click="handleCardClick(card)">
+              <div class="card-header">
+                <t-icon :name="card.icon" size="24px" />
+                <span class="card-title">{{ card.title }}</span>
+              </div>
+
+              <div class="card-value">
+                <template v-if="card.loading">
+                  <div class="skeleton-value"></div>
+                </template>
+                <template v-else>
+                  <span class="value-number" :ref="el => { if (el) valueRefs[index] = el; }">
+                    {{ formatNumber(card.value) }}
+                  </span>
+                </template>
+              </div>
+
+              <div class="card-trend" v-if="card.trend && !card.loading">
+                <t-icon :name="getTrendIcon(card.trend.direction)" size="14px" />
+                <span :class="`trend-${card.trend.direction}`">{{ card.trend.value }}</span>
+              </div>
+
+              <div class="card-badge" v-if="card.showBadge && (card.value ?? 0) > 0 && !card.loading">
+                {{ card.value ?? 0 }}
+              </div>
+            </div>
+          </TransitionGroup>
+        </section>
+
+        <!-- ═══ 快捷操作 ═══ -->
+        <section class="quick-actions-row">
+          <div class="quick-actions-grid">
+            <button v-for="action in quickActions" :key="action.path" class="action-item"
+              :class="{ primary: action.primary, 'ai-feature': action.isAIFeature }" @click="handleQuickAction(action)">
+              <t-icon :name="action.icon" size="24px" />
+              <span class="action-label">{{ action.label }}</span>
+              <span v-if="action.badge" class="action-badge">{{ action.badge }}</span>
+            </button>
+          </div>
+        </section>
+      </aside>
 
       <!-- ═══ 智能填单模态框 ═══ -->
       <Teleport to="body">
@@ -276,94 +268,6 @@
           </div>
         </Transition>
       </Teleport>
-
-      <!-- ═══ 右侧栏：AI推荐 + 最近访问&待办 ═══ -->
-      <aside class="layout-sidebar layout-right">
-        <div class="ai-suggestion-bubble">
-          <div class="bubble-header">
-            <div class="ai-logo">
-              <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="30" cy="32" r="20" fill="#FFE8D6" />
-                <path d="M14 22L10 4L26 16Z" fill="#FFB5C8" />
-                <path d="M46 22L50 4L34 16Z" fill="#FFB5C8" />
-                <ellipse cx="24" cy="30" rx="3.5" ry="4" fill="#5D4E60" />
-                <ellipse cx="36" cy="30" rx="3.5" ry="4" fill="#5D4E60" />
-                <ellipse cx="25" cy="28.5" rx="1.2" ry="1.5" fill="#fff" />
-                <ellipse cx="37" cy="28.5" rx="1.2" ry="1.5" fill="#fff" />
-                <ellipse cx="30" cy="35.5" rx="2.5" ry="1.8" fill="#FFB5C2" />
-                <path d="M27 38Q30 42 33 38" stroke="#E8A0B0" stroke-width="1" fill="none" stroke-linecap="round" />
-                <ellipse cx="20" cy="36" rx="4" ry="2.5" fill="#FFB5C2" opacity="0.35" />
-                <ellipse cx="40" cy="36" rx="4" ry="2.5" fill="#FFB5C2" opacity="0.35" />
-              </svg>
-            </div>
-            <span class="bubble-title">AI 推荐操作</span>
-            <button class="refresh-btn" @click="shuffleSuggestions" title="刷新推荐">
-              <t-icon name="refresh" size="14px" />
-            </button>
-          </div>
-          <div class="bubble-content">
-            <div v-for="(suggestion, index) in displayedSuggestions" :key="index" class="suggestion-item"
-              @click="handleSuggestionClick(suggestion.text)">
-              <span class="suggestion-text">{{ suggestion.text }}</span>
-              <t-icon name="chevron-right" size="14px" class="arrow-icon" />
-            </div>
-          </div>
-          <div class="bubble-footer">
-            <span class="footer-hint">基于你的使用习惯智能推荐</span>
-          </div>
-        </div>
-
-        <!-- ═══ 最近访问 & 待办事项 ═══ -->
-        <section class="activity-footer">
-          <div class="recent-visits">
-            <div class="section-header">
-              <h4>🕐 最近访问</h4>
-              <button class="clear-btn" @click="clearVisits" title="清除记录">清除</button>
-            </div>
-            <div class="visits-list">
-              <div v-for="visit in recentVisits.slice(0, 5)" :key="visit.path" class="visit-item"
-                @click="navigateTo(visit.path)">
-                <t-icon :name="visit.icon" size="16px" />
-                <span class="visit-title">{{ visit.title }}</span>
-                <span class="visit-time">{{ formatRelativeTime(visit.timestamp) }}</span>
-              </div>
-              <div v-if="recentVisits.length === 0" class="empty-state">
-                暂无访问记录
-              </div>
-            </div>
-          </div>
-
-          <div class="pending-tasks">
-            <div class="section-header">
-              <h4>📋 我的待办</h4>
-            </div>
-            <div class="tasks-list">
-              <div v-for="task in pendingTasks" :key="task.id" class="task-item"
-                :class="[`type-${task.type}`, `priority-${task.priority}`]">
-                <button class="check-btn" @click="toggleTaskComplete(task.id)" title="标记完成">
-                  <t-icon v-if="task.completed" name="check" size="12px" />
-                  <span v-else class="check-circle"></span>
-                </button>
-                <div class="task-content">
-                  <span class="task-title">{{ task.title }}</span>
-                  <span class="task-meta">
-                    {{ getTypeLabel(task.type) }} · {{ formatRelativeTime(task.createdAt) }}
-                  </span>
-                </div>
-                <button v-if="task.relatedPath" class="go-btn" @click="navigateTo(task.relatedPath)">
-                  <t-icon name="chevron-right" size="14px" />
-                </button>
-              </div>
-              <div v-if="pendingTasks.length === 0 && !tasksLoading" class="empty-state">
-                🎉 太棒了！没有待处理任务
-              </div>
-              <div v-if="tasksLoading" class="loading-state">
-                <t-loading size="small" />
-              </div>
-            </div>
-          </div>
-        </section>
-      </aside>
     </div>
   </div>
 </template>
@@ -375,9 +279,11 @@ import { marked } from 'marked';
 import http from '@/api/http';
 import SmartFormTab from './tabs/SmartFormTab.vue';
 import SmartImportTab from './tabs/SmartImportTab.vue';
+import { useAuthStore } from '@/stores/auth';
 
 const router = useRouter();
 const route = useRoute();
+const authStore = useAuthStore();
 
 // ════════════════════════════════════════
 // Tab 切换状态
@@ -564,6 +470,10 @@ const modelDisplayNames: Record<string, string> = {
 };
 
 const displayModelName = computed(() => modelDisplayNames[currentModel.value] || currentModel.value);
+
+const modelOptions = computed(() =>
+  Object.entries(modelDisplayNames).map(([value, label]) => ({ value, label }))
+);
 
 const quickTags = ['📊 本月销量概况', '📝 创建新配方', '🧪 库存不足预警'];
 
@@ -1365,28 +1275,33 @@ onUnmounted(() => {
 .ai-dashboard {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 106px);
-  overflow: hidden;
+  height: 100% !important;
+  overflow: hidden !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
 }
 
 .dashboard-layout {
   display: grid;
-  grid-template-columns: 260px 1fr 280px;
+  grid-template-columns: 1fr 260px;
   gap: 20px;
-  align-items: start;
-  height: 100%;
-  overflow: hidden;
+  align-items: stretch;
+  height: 100% !important;
+  overflow: hidden !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
 }
 
 .layout-sidebar {
   display: flex;
   flex-direction: column;
   gap: 20px;
-}
-
-.layout-left {
-  max-height: 100%;
-  overflow-y: auto;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+  max-height: 100% !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
 
   &::-webkit-scrollbar {
     width: 4px;
@@ -1402,22 +1317,10 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   min-width: 0;
-  height: 100%;
-  overflow: hidden;
-}
-
-.layout-right {
-  max-height: 100%;
-  overflow-y: auto;
-
-  &::-webkit-scrollbar {
-    width: 4px;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
-    border-radius: 2px;
-  }
+  height: 100% !important;
+  overflow: hidden !important;
+  padding: 0 !important; // 不再添加额外padding
+  margin: 0 !important;
 }
 
 // ════════════════════════════════════════
@@ -1600,12 +1503,16 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  overflow-x: hidden;
+  padding-top: 4px;
 }
 
 .quick-actions-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
+  padding-top: 4px;
+  padding-bottom: 4px;
 
   .action-item {
     padding: 14px 12px;
@@ -1803,7 +1710,7 @@ onUnmounted(() => {
 // ════════════════════════════════════════
 .ai-chat-section {
   flex: 1;
-  min-height: 520px;
+  min-height: 0; // 移除固定最小高度，让内容自适应
   display: flex;
   flex-direction: column;
   background: white;
@@ -1812,52 +1719,34 @@ onUnmounted(() => {
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   overflow: hidden;
 
-  .chat-header {
-    padding: 16px 24px;
-    border-bottom: 1px solid #f1f5f9;
+  .history-trigger {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    z-index: 20;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid #e2e8f0;
+    background: white;
+    cursor: pointer;
+    color: #64748b;
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    background: #fafbfc;
+    justify-content: center;
+    transition: all 0.2s;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 
-    .chat-title {
-      font-size: 18px;
-      font-weight: 600;
-      color: #1e293b;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .model-indicator {
-      font-size: 12px;
-      color: #64748b;
+    &:hover {
       background: #f1f5f9;
-      padding: 4px 12px;
-      border-radius: 12px;
-      margin-left: 12px;
+      color: #10B981;
+      border-color: #cbd5e1;
     }
 
-    .header-actions,
-    .header-right {
-      display: flex;
-      gap: 8px;
-
-      button {
-        padding: 6px 14px;
-        border: 1px solid #e2e8f0;
-        border-radius: 8px;
-        background: white;
-        cursor: pointer;
-        font-size: 13px;
-        color: #475569;
-        transition: all 0.2s;
-
-        &:hover {
-          background: #f8fafc;
-          border-color: #cbd5e1;
-        }
-      }
+    &.active {
+      background: #10B981;
+      color: white;
+      border-color: #10B981;
     }
   }
 
@@ -1940,11 +1829,16 @@ onUnmounted(() => {
   }
 
   .history-sidebar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
     width: 280px;
+    z-index: 15;
     border-right: 1px solid #e2e8f0;
     background: #fafbfc;
     overflow-y: auto;
-    transition: transform 0.3s ease;
+    box-shadow: 4px 0 16px rgba(0, 0, 0, 0.08);
 
     .history-header {
       padding: 16px;
@@ -2034,11 +1928,38 @@ onUnmounted(() => {
 
     &.message-user {
       flex-direction: row-reverse;
+      align-items: flex-start;
+
+      .user-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        flex-shrink: 0;
+        background: white;
+        padding: 2px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15);
+
+        .user-avatar-img {
+          width: 100%;
+          height: 100%;
+          border-radius: 50%;
+          object-fit: cover;
+          display: block;
+        }
+      }
+
+      .user-message-content {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        max-width: 70%;
+      }
 
       .user-bubble {
         background: linear-gradient(135deg, #10B981, #059669);
         color: white;
-        max-width: 70%;
+        max-width: 100%;
         padding: 12px 18px;
         border-radius: 18px 18px 4px 18px;
         word-wrap: break-word;
@@ -2316,7 +2237,7 @@ onUnmounted(() => {
   }
 
   .chat-input-bar {
-    padding: 16px 24px;
+    padding: 10px 24px;
     border-top: 1px solid #e2e8f0;
     background: white;
 
@@ -2354,12 +2275,34 @@ onUnmounted(() => {
         }
       }
 
+      .model-selector {
+        display: flex;
+        align-items: center;
+        flex-shrink: 0;
+        margin-right: 4px;
+
+        :deep(.t-select) {
+          .t-input {
+            border: none;
+            background: transparent;
+            padding: 0 4px;
+            height: 28px;
+            font-size: 12px;
+          }
+
+          .t-input__wrap {
+            border: none;
+            box-shadow: none !important;
+          }
+        }
+      }
+
       .input-actions {
         display: flex;
         align-items: center;
         gap: 8px;
 
-        .attach-btn {
+        .action-circle-btn {
           width: 36px;
           height: 36px;
           border-radius: 50%;
@@ -2373,16 +2316,18 @@ onUnmounted(() => {
           transition: all 0.2s;
           position: relative;
 
+          &:hover {
+            background: #f1f5f9;
+            color: #10B981;
+          }
+        }
+
+        .attach-btn {
           input[type="file"] {
             position: absolute;
             inset: 0;
             opacity: 0;
             cursor: pointer;
-          }
-
-          &:hover {
-            background: #f1f5f9;
-            color: #10B981;
           }
         }
 
@@ -2472,14 +2417,14 @@ onUnmounted(() => {
 // ════════════════════════════════════════
 @media (max-width: 1400px) {
   .dashboard-layout {
-    grid-template-columns: 220px 1fr 240px;
+    grid-template-columns: 1fr 220px;
     gap: 16px;
   }
 }
 
 @media (max-width: 1200px) {
   .dashboard-layout {
-    grid-template-columns: 200px 1fr 200px;
+    grid-template-columns: 1fr 200px;
     gap: 12px;
   }
 
@@ -2500,7 +2445,7 @@ onUnmounted(() => {
   }
 
   .layout-left,
-  .layout-right {
+  .layout-main {
     position: static;
     max-height: none;
   }
@@ -2525,13 +2470,12 @@ onUnmounted(() => {
   }
 
   .layout-left,
-  .layout-main,
-  .layout-right {
+  .layout-main {
     order: unset;
   }
 
   .ai-chat-section {
-    min-height: 400px;
+    min-height: 0; // 响应式模式下也移除固定高度
   }
 
   .global-error-toast {
@@ -2897,5 +2841,38 @@ onUnmounted(() => {
 .modal-fade-enter-from,
 .modal-fade-leave-to {
   opacity: 0;
+}
+</style>
+
+<!-- 全局样式重置：强制移除父容器间距 -->
+<style lang="scss">
+body:has(.ai-dashboard) {
+
+  .right-content.no-padding {
+    padding: 14px 20px !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+  }
+
+  .content-body,
+  .content-main,
+  #main-content {
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1 !important;
+    min-height: 0 !important;
+    max-height: none !important;
+  }
+
+  .ai-dashboard {
+    padding: 0 !important;
+    height: 100% !important;
+    box-sizing: border-box !important;
+  }
 }
 </style>

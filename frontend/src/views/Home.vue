@@ -219,7 +219,7 @@
     </aside>
 
     <!-- 右侧内容展示区（hideHeader 页面移除顶部间距） -->
-    <div class="right-content" :class="{ 'no-top-padding': route.meta.hideHeader }">
+    <div class="right-content" :class="{ 'no-top-padding': route.meta.hideHeader, 'no-padding': route.meta.fullBleed }">
       <header v-if="!route.meta.hideHeader" class="content-header" role="banner">
         <!-- 左侧导航功能区 -->
         <div class="header-left">
@@ -1719,6 +1719,11 @@ onMounted(() => {
 
   &.no-top-padding {
     padding-top: 0; // hideHeader 页面消除顶部间距（子组件自带 detail-header）
+  }
+
+  &.no-padding {
+    padding: 0 !important; // fullBleed页面移除所有间距（AI助手工作台等全屏页面）
+    margin: 0 !important;
   }
 }
 
