@@ -94,6 +94,22 @@
             </div>
           </div>
 
+          <!-- 智能工具 - 独立顶级入口 -->
+          <div class="nav-item nav-item--top-level" :class="{ active: activePath === '/smart-tools' }" role="menuitem"
+            tabindex="0" :aria-current="activePath === '/smart-tools' ? 'page' : undefined" title="智能工具"
+            @click="navigateTo('/smart-tools')" @keydown="handleNavKeydown($event, '/smart-tools')">
+            <div class="nav-item-icon nav-item-icon--highlight" aria-hidden="true">
+              <t-icon name="ai-tool" size="18px" />
+            </div>
+            <span v-show="!sidebarCollapsed" class="nav-item-text nav-item-text--highlight">智能工具</span>
+            <div v-show="!sidebarCollapsed" class="nav-item-arrow">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            </div>
+          </div>
+
           <!-- 分隔线 -->
           <div v-if="!sidebarCollapsed" class="nav-divider"></div>
 
@@ -434,7 +450,7 @@ const activePath = computed(() => {
   // 按最长前缀匹配，优先精确匹配，再按路径段前缀匹配
   const pathMap = [
     '/formulas', '/materials', '/files', '/salesmen', '/sales',
-    '/reports', '/exports', '/nutrition', '/tools', '/ai-assistant'
+    '/reports', '/exports', '/nutrition', '/tools', '/ai-assistant', '/smart-tools'
   ];
   for (const key of pathMap) {
     if (path === key || path.startsWith(key + '/')) return key;
@@ -497,6 +513,7 @@ const pageIcon = computed(() => {
     '/nutrition': 'chart-pie',
     '/tools': 'setting',
     '/ai-assistant': 'precise-monitor',
+    '/smart-tools': 'ai-tool',
     '/model-management': 'control-platform',
     '/settings': 'user-circle'
   };
@@ -511,9 +528,9 @@ const pageIcon = computed(() => {
 // 导航菜单项
 // 导航菜单项 - 分组结构
 interface NavItem {
-  path: string
-  label: string
-  icon: string
+  path: string;
+  label: string;
+  icon: string;
 }
 
 // 分组定义
@@ -542,74 +559,74 @@ const navGroups = {
       { path: '/tools', label: '工具箱', icon: 'setting' }
     ] as NavItem[]
   }
-} as const
+} as const;
 
-type GroupKey = keyof typeof navGroups
+type GroupKey = keyof typeof navGroups;
 
 // 分组展开状态（规则C：只展开当前所在分组）
-const expandedGroup = ref<GroupKey | null>(null)
+const expandedGroup = ref<GroupKey | null>(null);
 
 // 获取当前路径所属的分组
 const currentGroup = computed((): GroupKey | null => {
-  const path = activePath.value
+  const path = activePath.value;
 
   // AI助手不属于任何分组
-  if (path === '/ai-assistant') return null
+  if (path === '/ai-assistant' || path === '/smart-tools') return null;
 
   for (const [key, group] of Object.entries(navGroups)) {
     if (group.items.some(item => item.path === path || path.startsWith(item.path + '/'))) {
-      return key as GroupKey
+      return key as GroupKey;
     }
   }
 
-  return null
-})
+  return null;
+});
 
 // 判断分组是否应该展开（规则C）
 const isGroupExpanded = (groupId: GroupKey): boolean => {
-  if (sidebarCollapsed.value) return true // 折叠模式下全部展开
-  return expandedGroup.value === groupId
-}
+  if (sidebarCollapsed.value) return true; // 折叠模式下全部展开
+  return expandedGroup.value === groupId;
+};
 
 // 切换分组展开状态
 const toggleGroup = (groupId: GroupKey) => {
   if (expandedGroup.value === groupId) {
-    expandedGroup.value = null
+    expandedGroup.value = null;
   } else {
-    expandedGroup.value = groupId
+    expandedGroup.value = groupId;
   }
-}
+};
 
 // 获取分组的导航项
 const getGroupItems = (groupId: GroupKey): NavItem[] => {
-  const baseItems = navGroups[groupId].items
+  const baseItems = navGroups[groupId].items;
 
   // 如果是系统工具组且用户是管理员，追加模型管理
   if (groupId === 'tools' && authStore.user?.role === 'admin') {
-    return [...baseItems, { path: '/model-management', label: '模型管理', icon: 'control-platform' }]
+    return [...baseItems, { path: '/model-management', label: '模型管理', icon: 'control-platform' }];
   }
 
-  return baseItems
-}
+  return baseItems;
+};
 
 // 监听路由变化，自动更新当前分组
 watch(currentGroup, (newGroup) => {
   if (newGroup && !sidebarCollapsed.value) {
-    expandedGroup.value = newGroup
+    expandedGroup.value = newGroup;
   }
-}, { immediate: true })
+}, { immediate: true });
 
 // 兼容旧接口（保持向后兼容）
 const navItems = computed(() => {
-  const allItems: NavItem[] = []
+  const allItems: NavItem[] = [];
   for (const group of Object.values(navGroups)) {
-    allItems.push(...group.items)
+    allItems.push(...group.items);
   }
   if (authStore.user?.role === 'admin') {
-    allItems.push({ path: '/model-management', label: '模型管理', icon: 'control-platform' })
+    allItems.push({ path: '/model-management', label: '模型管理', icon: 'control-platform' });
   }
-  return allItems
-})
+  return allItems;
+});
 
 // 日期和星期
 const currentDate = ref('');
@@ -678,6 +695,7 @@ const pageTitle = computed(() => {
     '/nutrition': '营养分析',
     '/tools': '工具箱',
     '/ai-assistant': 'AI 助手',
+    '/smart-tools': '智能工具',
     '/model-management': '模型管理',
     '/settings': '账号设置'
   };
@@ -711,7 +729,7 @@ const breadcrumbs = computed(() => {
   // 列表页无父级，不需要面包屑
   const listPaths = [
     '/formulas', '/materials', '/salesmen', '/sales',
-    '/reports', '/exports', '/nutrition', '/tools', '/ai-assistant', '/settings'
+    '/reports', '/exports', '/nutrition', '/tools', '/ai-assistant', '/smart-tools', '/settings'
   ];
   if (listPaths.includes(path)) return [];
 

@@ -1,5 +1,5 @@
 <template>
-  <div class="ai-assistant" :aria-busy="!initialized">
+  <div class="smart-tools" :aria-busy="!initialized">
     <section class="dashboard-grid">
       <div v-for="(card, idx) in dashboardCards" :key="card.label" class="stat-card"
         :class="{ 'stat-card--aborted': card.aborted }" :style="{ animationDelay: `${(idx + 1) * 0.1}s` }">
@@ -21,8 +21,11 @@
         <div class="data-center-toolbar">
           <div class="toolbar-left-section">
             <div class="toolbar-title-section">
-              <h3 class="toolbar-title">AI 智能助手</h3>
-              <p class="toolbar-subtitle">智能配方解析、原料导入与数据检索</p>
+              <h3 class="toolbar-title">
+                <t-icon name="ai-tool" size="22px" class="toolbar-title-icon" />
+                智能工具
+              </h3>
+              <p class="toolbar-subtitle">AI 驱动的配方解析与原料导入</p>
             </div>
           </div>
           <div class="toolbar-right-section">
@@ -72,18 +75,12 @@
 
         <div class="ai-body">
           <div class="ai-nav" :class="{ 'ai-nav--collapsed': navCollapsed }">
-            <div v-for="tab in tabs" :key="tab.value" class="nav-tab"
-              :class="{ active: activeTab === tab.value, 'nav-tab--link': !!tab.link }"
-              :title="navCollapsed ? tab.label : ''" role="tab" tabindex="0"
-              @click="tab.link ? router.push(tab.link) : (activeTab = tab.value)"
-              @keydown.enter="tab.link ? router.push(tab.link) : (activeTab = tab.value)">
+            <div v-for="tab in tabs" :key="tab.value" class="nav-tab" :class="{ active: activeTab === tab.value }"
+              :title="navCollapsed ? tab.label : ''" role="tab" tabindex="0" @click="activeTab = tab.value"
+              @keydown.enter="activeTab = tab.value">
               <svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                 stroke-linecap="round" stroke-linejoin="round" v-html="tab.iconPath"></svg>
               <span class="nav-tab-label">{{ tab.label }}</span>
-              <svg v-if="tab.link" class="nav-tab-link-icon" width="14" height="14" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="9 18 15 12 9 6" />
-              </svg>
             </div>
             <button type="button" class="nav-collapse-btn" @click="toggleNavCollapse"
               :title="navCollapsed ? '展开导航' : '折叠导航'" aria-label="切换导航折叠状态">
@@ -96,67 +93,12 @@
           </div>
 
           <div class="ai-content">
-            <div v-show="activeTab === 'smart-search'" class="tab-panel">
-              <div class="search-input-area">
-                <t-textarea v-model="searchQuery" placeholder="试试输入：查找含有黄芪且成品重量大于100g的配方"
-                  :autosize="{ minRows: 3, maxRows: 6 }" @keydown.enter.ctrl="handleSearch" />
-                <button class="search-send-btn" :disabled="!searchQuery.trim() || !aiStore.selectedModel"
-                  :class="{ 'search-send-btn--loading': aiStore.searchLoading }" @click="handleSearch">
-                  <svg v-if="!aiStore.searchLoading" width="18" height="18" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="22" y1="2" x2="11" y2="13" />
-                    <polygon points="22 2 15 22 11 13 2 9 22 2" />
-                  </svg>
-                  <t-loading v-else size="small" />
-                </button>
-              </div>
+            <div v-show="activeTab === 'smart-form'" class="tab-panel">
+              <SmartFormTab @activity-add="addActivity" />
+            </div>
 
-              <div class="quick-tags">
-                <span class="quick-tags-label">试试：</span>
-                <t-tag v-for="tag in quickTags" :key="tag" size="medium" variant="outline" class="quick-tag"
-                  @click="fillAndSearch(tag)">{{ tag }}</t-tag>
-              </div>
-
-              <t-alert v-if="aiStore.searchError" :message="aiStore.searchError" theme="error" closable
-                style="margin-top: 16px; border-radius: 12px;" />
-
-              <div v-if="aiStore.searchResult" class="search-result">
-                <div class="sql-card">
-                  <div class="sql-header">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2"
-                      stroke-linecap="round" stroke-linejoin="round">
-                      <polyline points="16 18 22 12 16 6" />
-                      <polyline points="8 6 2 12 8 18" />
-                    </svg>
-                    <span class="sql-label">生成的 SQL</span>
-                    <t-tag theme="primary" variant="light" size="small" style="margin-left: auto">
-                      {{ aiStore.searchResult.rowCount }} 条结果
-                    </t-tag>
-                  </div>
-                  <pre class="sql-code">{{ aiStore.searchResult.sql }}</pre>
-                </div>
-
-                <div v-if="aiStore.searchResult.rows.length" class="result-table">
-                  <t-table :data="aiStore.searchResult.rows" :columns="searchResultColumns" size="small"
-                    table-layout="auto" bordered stripe max-height="400" />
-                </div>
-
-                <div v-else class="empty-result">
-                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="1.5"
-                    stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="10" />
-                    <line x1="12" y1="8" x2="12" y2="12" />
-                    <line x1="12" y1="16" x2="12.01" y2="16" />
-                  </svg>
-                  <span>未查询到匹配的数据</span>
-                </div>
-              </div>
-
-              <div v-if="aiStore.searchHistory.length && !aiStore.searchResult" class="search-history">
-                <span class="history-label">搜索历史</span>
-                <t-tag v-for="(h, idx) in aiStore.searchHistory" :key="idx" size="medium" variant="outline"
-                  class="history-tag" @click="fillAndSearch(h)">{{ h }}</t-tag>
-              </div>
+            <div v-show="activeTab === 'smart-import'" class="tab-panel">
+              <SmartImportTab @activity-add="addActivity" />
             </div>
           </div>
         </div>
@@ -206,7 +148,7 @@
       </div>
       <div class="activity-card activity-card--assistant">
         <div class="assistant-content">
-          <h4 class="assistant-title">AI 助手中心</h4>
+          <h4 class="assistant-title">智能工具中心</h4>
           <p class="assistant-desc">{{ assistantMessage }}</p>
           <button class="assistant-btn" @click="handleAssistantAction">
             {{ assistantButtonText }}
@@ -222,9 +164,9 @@
         </div>
         <svg class="assistant-bg-icon" width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor"
           stroke-width="1">
-          <path d="M12 2L2 7L12 12L22 7L12 2Z" />
-          <path d="M2 17L12 22L22 17" stroke-linecap="round" stroke-linejoin="round" />
-          <path d="M2 12L12 17L22 12" stroke-linecap="round" stroke-linejoin="round" />
+          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+          <polyline points="17 8 12 3 7 8" />
+          <line x1="12" y1="3" x2="12" y2="15" />
         </svg>
       </div>
     </section>
@@ -238,6 +180,8 @@ import { modelApi } from '@/api/model';
 import { MessagePlugin } from 'tdesign-vue-next';
 import { useRouter } from 'vue-router';
 import PageSkeleton from '@/components/Skeleton/PageSkeleton.vue';
+import SmartFormTab from './tabs/SmartFormTab.vue';
+import SmartImportTab from './tabs/SmartImportTab.vue';
 
 const router = useRouter();
 
@@ -257,27 +201,20 @@ const tabs = [
     value: 'smart-form',
     label: '智能填单',
     iconPath: '<path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>',
-    link: '/smart-tools',
   },
   {
     value: 'smart-import',
     label: '智能导入',
     iconPath: '<path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>',
-    link: '/smart-tools',
-  },
-  {
-    value: 'smart-search',
-    label: '智能检索',
-    iconPath: '<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>',
   },
 ];
-const activeTab = ref('smart-search');
+const activeTab = ref('smart-form');
 
-const navCollapsed = ref(localStorage.getItem('ai-nav-collapsed') === 'true');
+const navCollapsed = ref(localStorage.getItem('smart-tools-nav-collapsed') === 'true');
 
 const toggleNavCollapse = () => {
   navCollapsed.value = !navCollapsed.value;
-  localStorage.setItem('ai-nav-collapsed', String(navCollapsed.value));
+  localStorage.setItem('smart-tools-nav-collapsed', String(navCollapsed.value));
 };
 
 const selectModel = (model: string) => {
@@ -401,47 +338,11 @@ const handleLogoError = (e: Event) => {
   }
 };
 
-const searchQuery = ref('');
-const quickTags = [
-  '含黄芪的配方有哪些',
-  '最近创建的5个配方',
-  '库存大于100的药材',
-  '成品重量大于200g的配方',
-];
-
-const handleSearch = async () => {
-  if (!searchQuery.value.trim()) {
-    MessagePlugin.warning('请输入查询内容');
-    return;
-  }
-  if (!aiStore.selectedModel) {
-    MessagePlugin.warning('请先选择 AI 模型');
-    return;
-  }
-  await aiStore.naturalSearch(searchQuery.value.trim());
-};
-
-const fillAndSearch = (text: string) => {
-  searchQuery.value = text;
-  handleSearch();
-};
-
-const searchResultColumns = computed(() => {
-  if (!aiStore.searchResult?.rows?.length) return [];
-  const keys = Object.keys(aiStore.searchResult.rows[0]);
-  return keys.map(key => ({
-    colKey: key,
-    title: key,
-    ellipsis: true,
-    width: 150,
-  }));
-});
-
 const dashboardCards = computed(() => {
   const models = aiStore.models.length;
   const hasResult = !!aiStore.parseResult;
-  const hasSearch = !!aiStore.searchResult;
   const isAborted = aiStore.parseAborted || aiStore.materialParseAborted;
+  const isLoading = aiStore.parseLoading || aiStore.materialParseLoading;
 
   const displayTokens = usageStats.value
     ? usageStats.value.monthTokens
@@ -461,27 +362,27 @@ const dashboardCards = computed(() => {
       iconPath: '<path d="M12 2L2 7L12 12L22 7L12 2Z"/><path d="M2 17L12 22L22 17" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 12L12 17L22 12" stroke-linecap="round" stroke-linejoin="round"/>',
     },
     {
-      label: '解析状态',
+      label: '填单状态',
       value: isAborted ? '已终止' : hasResult ? '已完成' : '待解析',
       unit: '',
-      badge: isAborted ? '已终止' : aiStore.parseLoading || aiStore.materialParseLoading ? '解析中...' : hasResult ? '成功' : '等待',
-      badgeColor: isAborted ? '#EF4444' : aiStore.parseLoading || aiStore.materialParseLoading ? '#F59E0B' : hasResult ? '#10B981' : '#94A3B8',
-      badgeBg: isAborted ? '#FEF2F2' : aiStore.parseLoading || aiStore.materialParseLoading ? '#FFFBEB' : hasResult ? '#ECFDF5' : '#F1F5F9',
+      badge: isAborted ? '已终止' : isLoading ? '解析中...' : hasResult ? '成功' : '等待',
+      badgeColor: isAborted ? '#EF4444' : isLoading ? '#F59E0B' : hasResult ? '#10B981' : '#94A3B8',
+      badgeBg: isAborted ? '#FEF2F2' : isLoading ? '#FFFBEB' : hasResult ? '#ECFDF5' : '#F1F5F9',
       iconBg: isAborted ? '#FEF2F2' : hasResult ? '#ECFDF5' : '#EFF6FF',
       iconColor: isAborted ? '#EF4444' : hasResult ? '#10B981' : '#3B82F6',
       iconPath: '<path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>',
       aborted: isAborted,
     },
     {
-      label: '检索状态',
-      value: hasSearch ? '已完成' : '待检索',
+      label: '导入状态',
+      value: aiStore.materialParseResult ? '已完成' : '待导入',
       unit: '',
-      badge: aiStore.searchLoading ? '查询中...' : hasSearch ? '完成' : '空闲',
-      badgeColor: aiStore.searchLoading ? '#F59E0B' : hasSearch ? '#10B981' : '#94A3B8',
-      badgeBg: aiStore.searchLoading ? '#FFFBEB' : hasSearch ? '#ECFDF5' : '#F1F5F9',
-      iconBg: hasSearch ? '#ECFDF5' : '#FAF5FF',
-      iconColor: hasSearch ? '#A855F7' : '#A855F7',
-      iconPath: '<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>',
+      badge: aiStore.materialParseLoading ? '导入中...' : aiStore.materialParseResult ? '完成' : '空闲',
+      badgeColor: aiStore.materialParseLoading ? '#F59E0B' : aiStore.materialParseResult ? '#10B981' : '#94A3B8',
+      badgeBg: aiStore.materialParseLoading ? '#FFFBEB' : aiStore.materialParseResult ? '#ECFDF5' : '#F1F5F9',
+      iconBg: aiStore.materialParseResult ? '#ECFDF5' : '#FAF5FF',
+      iconColor: aiStore.materialParseResult ? '#10B981' : '#A855F7',
+      iconPath: '<path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>',
     },
     {
       label: 'Token 用量',
@@ -518,7 +419,7 @@ const allActivityItems = computed<ActivityItem[]>(() => {
   return [{
     type: 'info',
     title: '等待操作',
-    desc: '选择 AI 模型后，可以开始智能填单、智能导入或智能检索功能',
+    desc: '选择 AI 模型后，可以开始智能填单或智能导入功能',
     time: '',
   }];
 });
@@ -535,18 +436,15 @@ const assistantMessage = computed(() => {
   const models = aiStore.models.length;
   if (models === 0) return '尚未配置 AI 模型，请在工具栏选择或联系管理员配置。';
   if (!aiStore.selectedModel) return `已配置 ${models} 个 AI 模型，请在上方选择一个模型开始使用。`;
-  if (!searchQuery.value) return '输入自然语言描述，AI 将自动生成 SQL 并查询数据库。';
-  if (aiStore.searchLoading) return '正在执行智能检索，请稍候...';
-  if (aiStore.searchResult) return '检索完成！您可以查看生成的 SQL 和查询结果。';
-  return '输入查询条件后，按 Ctrl+Enter 或点击发送按钮进行检索。';
+  return '选择左侧功能标签，开始智能填单或智能导入操作。';
 });
 
 const assistantButtonText = computed(() => {
-  return '前往智能工具';
+  return '前往 AI 助手';
 });
 
 const handleAssistantAction = () => {
-  router.push('/smart-tools');
+  router.push('/ai-assistant');
 };
 
 watch(() => aiStore.parseResult, (newVal, oldVal) => {
@@ -554,29 +452,29 @@ watch(() => aiStore.parseResult, (newVal, oldVal) => {
     addActivity({
       type: 'success',
       title: '智能配方解析完成',
-      desc: `消耗 <strong>${newVal.usage?.totalTokens || 0}</strong> Token${newVal.usage?.model ? `（模型: ${newVal.usage.model}）` : ''}`,
+      desc: `消耗 <strong>${newVal.usage?.totalTokens || 0}</strong> Token`,
       time: new Date().toLocaleString('zh-CN'),
     });
   }
 });
 
-watch(() => aiStore.searchResult, (newVal, oldVal) => {
+watch(() => aiStore.materialParseResult, (newVal, oldVal) => {
   if (newVal && !oldVal) {
     addActivity({
       type: 'success',
-      title: '智能检索完成',
-      desc: `查询返回 <strong>${newVal.rowCount}</strong> 条结果${newVal.usage ? `，消耗 ${newVal.usage.totalTokens} Token` : ''}`,
+      title: '智能原料导入完成',
+      desc: `成功导入原料数据`,
       time: new Date().toLocaleString('zh-CN'),
     });
   }
 });
 
-watch(() => aiStore.searchError, (newVal, oldVal) => {
+watch(() => aiStore.parseError, (newVal, oldVal) => {
   if (newVal && newVal !== oldVal) {
     addActivity({
       type: 'warning',
-      title: '检索异常',
-      desc: `智能检索遇到错误：${newVal}`,
+      title: '解析异常',
+      desc: `智能解析遇到错误：${newVal}`,
       time: new Date().toLocaleString('zh-CN'),
     });
   }
@@ -599,7 +497,7 @@ onMounted(async () => {
       };
     }
   } catch (e) {
-    console.error('[AiAssistant] 初始化失败:', e);
+    console.error('[SmartTools] 初始化失败:', e);
   } finally {
     initialized.value = true;
   }
@@ -609,7 +507,9 @@ onMounted(async () => {
 <style scoped lang="scss">
 @use '@/assets/styles/variables.scss' as *;
 
-.ai-assistant {
+.smart-tools {
+  padding-bottom: 24px;
+
   .dashboard-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -723,6 +623,14 @@ onMounted(async () => {
           font-weight: 700;
           color: #1e293b;
           margin: 0 0 4px 0;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+
+          .toolbar-title-icon {
+            color: #10B981;
+            flex-shrink: 0;
+          }
         }
 
         .toolbar-subtitle {
@@ -941,23 +849,6 @@ onMounted(async () => {
         font-weight: 600;
       }
 
-      &--link {
-        .nav-tab-label {
-          flex: 1;
-        }
-
-        .nav-tab-link-icon {
-          flex-shrink: 0;
-          opacity: 0.5;
-          transition: opacity $transition-fast, transform $transition-fast;
-        }
-
-        &:hover .nav-tab-link-icon {
-          opacity: 1;
-          transform: translateX(2px);
-        }
-      }
-
       .nav-tab-label {
         flex: 1;
         transition: opacity 0.2s ease;
@@ -994,142 +885,6 @@ onMounted(async () => {
 
   .tab-panel {
     animation: fadeInUp 0.35s cubic-bezier(0.4, 0, 0.2, 1) both;
-  }
-
-  .search-input-area {
-    position: relative;
-    margin-bottom: 16px;
-
-    .search-send-btn {
-      position: absolute;
-      right: 12px;
-      bottom: 12px;
-      z-index: 1;
-      width: 38px;
-      height: 38px;
-      border-radius: 10px;
-      border: none;
-      background: linear-gradient(135deg, #10b981, #059669);
-      color: #fff;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all $transition-normal;
-      box-shadow: 0 4px 12px $overlay-emerald-25;
-
-      &:hover:not(:disabled) {
-        transform: scale(1.05);
-        box-shadow: 0 6px 16px $overlay-emerald-35;
-      }
-
-      &:disabled {
-        opacity: 0.4;
-        cursor: not-allowed;
-      }
-
-      &--loading {
-        background: #e2e8f0;
-        box-shadow: none;
-      }
-    }
-  }
-
-  .quick-tags {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 20px;
-    flex-wrap: wrap;
-
-    .quick-tags-label {
-      font-size: 13px;
-      color: #64748b;
-      flex-shrink: 0;
-      font-weight: 500;
-    }
-
-    .quick-tag {
-      cursor: pointer;
-      transition: all $transition-fast;
-      border-radius: 8px;
-
-      &:hover {
-        color: #10B981;
-        border-color: #86efac;
-        background: #ecfdf5;
-      }
-    }
-  }
-
-  .sql-card {
-    border-radius: 16px;
-    padding: 20px 24px;
-    margin-bottom: 20px;
-    background: #1e293b;
-    border: 1px solid #334155;
-
-    .sql-header {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 14px;
-
-      .sql-label {
-        font-size: 14px;
-        font-weight: 600;
-        color: #e2e8f0;
-      }
-    }
-
-    .sql-code {
-      font-family: 'Fira Code', 'Consolas', 'Monaco', monospace;
-      font-size: 13px;
-      line-height: 1.7;
-      color: #93c5fd;
-      margin: 0;
-      white-space: pre-wrap;
-      word-break: break-all;
-    }
-  }
-
-  .empty-result {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 12px;
-    padding: 48px 0;
-    color: #94a3b8;
-    font-size: 14px;
-  }
-
-  .search-history {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-    margin-top: 20px;
-    padding: 16px 20px;
-    background: #f8fafc;
-    border-radius: 12px;
-
-    .history-label {
-      font-size: 12px;
-      color: #94a3b8;
-      font-weight: 500;
-    }
-
-    .history-tag {
-      cursor: pointer;
-      transition: all $transition-fast;
-      border-radius: 8px;
-
-      &:hover {
-        color: #10B981;
-        border-color: #86efac;
-        background: #ecfdf5;
-      }
-    }
   }
 
   .activity-section {
@@ -1429,18 +1184,6 @@ onMounted(async () => {
     to {
       opacity: 1;
       transform: translateY(0);
-    }
-  }
-
-  @keyframes rowFadeIn {
-    from {
-      opacity: 0;
-      transform: translateX(-8px);
-    }
-
-    to {
-      opacity: 1;
-      transform: translateX(0);
     }
   }
 }

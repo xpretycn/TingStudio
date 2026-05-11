@@ -1,5 +1,5 @@
-import { AIService, type ChatMessage, type ChatCompletionOptions } from '../AIService.js';
-import type { LLMRequest, LLMResponse, ToolDefinition } from '../../types/ai.js';
+import { AIService, type ChatMessage, type ChatCompletionOptions } from "../AIService.js";
+import type { LLMRequest, LLMResponse, ToolDefinition } from "../../types/ai.js";
 
 export class LLMAgentService {
   private aiService: AIService;
@@ -7,7 +7,7 @@ export class LLMAgentService {
 
   constructor(aiService: AIService) {
     this.aiService = aiService;
-    this.fallbackChain = ['deepseek', 'dashscope', 'zhipu'];
+    this.fallbackChain = ["deepseek", "dashscope", "zhipu"];
   }
 
   async chat(request: LLMRequest): Promise<LLMResponse> {
@@ -19,18 +19,16 @@ export class LLMAgentService {
         const options: ChatCompletionOptions = {
           temperature: request.temperature ?? 0.7,
           maxTokens: request.max_tokens ?? 2000,
+          callType: "agent_chat",
+          requestSummary: `Agent对话: ${((request.messages[request.messages.length - 1]?.content as string) || "").substring(0, 50)}`,
         };
 
         const messages = request.messages.map(m => ({
           role: m.role,
-          content: typeof m.content === 'string' ? m.content : m.content,
+          content: typeof m.content === "string" ? m.content : m.content,
         }));
 
-        const result = await this.aiService.chatCompletion(
-          provider,
-          messages as ChatMessage[],
-          options
-        );
+        const result = await this.aiService.chatCompletion(provider, messages as ChatMessage[], options);
 
         return {
           id: `chatcmpl-${Date.now()}`,
@@ -48,13 +46,13 @@ export class LLMAgentService {
       }
     }
 
-    throw new Error('All LLM providers unavailable');
+    throw new Error("All LLM providers unavailable");
   }
 
   async streamChat(
     request: LLMRequest,
     onChunk: (chunk: string) => void,
-    onToolCall?: (toolCall: { id: string; name: string; arguments: string }) => void
+    onToolCall?: (toolCall: { id: string; name: string; arguments: string }) => void,
   ): Promise<LLMResponse> {
     for (const provider of this.fallbackChain) {
       try {
@@ -63,7 +61,7 @@ export class LLMAgentService {
 
         const messages = request.messages.map(m => ({
           role: m.role,
-          content: typeof m.content === 'string' ? m.content : m.content,
+          content: typeof m.content === "string" ? m.content : m.content,
         }));
 
         const fullContent = await this.aiService.streamChat(
@@ -72,9 +70,11 @@ export class LLMAgentService {
           {
             temperature: request.temperature ?? 0.7,
             maxTokens: request.max_tokens ?? 2000,
+            callType: "agent_chat",
+            requestSummary: `Agent对话: ${((request.messages[request.messages.length - 1]?.content as string) || "").substring(0, 50)}`,
           } as ChatCompletionOptions,
           onChunk,
-          onToolCall
+          onToolCall,
         );
 
         return {
@@ -89,7 +89,7 @@ export class LLMAgentService {
       }
     }
 
-    throw new Error('All LLM streaming providers unavailable');
+    throw new Error("All LLM streaming providers unavailable");
   }
 
   setFallbackChain(chain: string[]): void {

@@ -90,7 +90,10 @@ class FileParserService {
             { type: "image_url", image_url: { url: `data:${mimeType};base64,${base64Image}` } },
           ],
         },
-      ]);
+      ], {
+        callType: "parse_file_image",
+        requestSummary: `图片内容提取: ${filename}`,
+      });
 
       const extractedText = result.content;
       const parsedData = this.parseTextToRecords(extractedText);

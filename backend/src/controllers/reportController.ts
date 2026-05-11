@@ -545,7 +545,13 @@ export async function getAIAnalysis(req: any, res: Response) {
     const result = await aiService.chatCompletion(selectedProvider, [
       { role: "system", content: "你是一位专业的数据分析顾问，擅长从数据中发现问题并提出改进建议。" },
       { role: "user", content: prompt },
-    ], { temperature: 0.7, maxTokens: 2048 });
+    ], {
+      temperature: 0.7,
+      maxTokens: 2048,
+      callType: reportData.type === "weekly" ? "weekly-report" : "monthly-report",
+      userId: (req as any).user?.userId,
+      requestSummary: `${reportData.type === "weekly" ? "周报" : "月报"}AI分析: ${reportData.periodStart} ~ ${reportData.periodEnd}`,
+    });
 
     res.json(success({
       analysis: result.content,

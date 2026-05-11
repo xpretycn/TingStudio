@@ -336,6 +336,8 @@ export async function testModelConnection(req: Request, res: Response) {
       const result = await aiService.chatCompletion(model.provider, [{ role: "user", content: "hi" }], {
         maxTokens: 5,
         temperature: 0,
+        callType: "health_check",
+        requestSummary: `健康检测: ${model.name}`,
       });
 
       const latencyMs = Date.now() - start;

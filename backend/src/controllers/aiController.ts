@@ -1250,8 +1250,10 @@ export async function chatStream(req: any, res: Response) {
       // 调用 AI 服务的流式聊天方法
       const result = await aiService.chatCompletion(selectedProvider, messages, {
         stream: true,
+        callType: "dashboard_chat",
+        userId: req.user?.userId,
+        requestSummary: `AI对话: ${message.trim().substring(0, 50)}`,
         onToken: (token: string) => {
-          // 发送 SSE 数据块
           const data = JSON.stringify({ type: 'token', content: token });
           res.write(`data: ${data}\n\n`);
         }

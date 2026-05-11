@@ -98,8 +98,8 @@
                           :label="v.label" :disabled="v.value === model.model">
                           <span style="display:inline-flex;align-items:center;gap:4px;">
                             {{ v.label }}
-                            <svg v-if="v.value === model.model" width="14" height="14" viewBox="0 0 24 24"
-                              fill="none" stroke="#10B981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <svg v-if="v.value === model.model" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                              stroke="#10B981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                               <polyline points="20 6 9 17 4 12" />
                             </svg>
                           </span>
@@ -151,9 +151,10 @@
                 <div class="section-title-group">
                   <svg class="section-title-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
                     stroke="#8B5CF6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
-                    <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
-                    <line x1="12" y1="22.08" x2="12" y2="12"/>
+                    <path
+                      d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+                    <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+                    <line x1="12" y1="22.08" x2="12" y2="12" />
                   </svg>
                   <h4 class="section-title-text">功能模块模型配置</h4>
                 </div>
@@ -171,9 +172,10 @@
                 <div class="empty-icon-wrap">
                   <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.2"
                     stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
-                    <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
-                    <line x1="12" y1="22.08" x2="12" y2="12"/>
+                    <path
+                      d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+                    <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+                    <line x1="12" y1="22.08" x2="12" y2="12" />
                   </svg>
                 </div>
                 <p class="empty-text">暂无功能模块配置</p>
@@ -189,8 +191,9 @@
                   <div class="application-card-header">
                     <div class="app-module-info">
                       <div class="app-module-icon" :style="{ background: getModuleIconBg(app.module) }">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                          stroke-linecap="round" stroke-linejoin="round" v-html="getModuleIcon(app.module)"></svg>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                          stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                          v-html="getModuleIcon(app.module)"></svg>
                       </div>
                       <div class="app-module-details">
                         <h5 class="app-module-name">{{ app.moduleName || getModuleDisplayName(app.module) }}</h5>
@@ -207,8 +210,8 @@
                       <span class="field-label">模型厂商</span>
                       <div class="model-provider-display">
                         <div class="model-logo-wrap-sm">
-                          <img loading="lazy" :src="getModelLogo(app.provider)" :alt="app.provider" class="model-logo-sm"
-                            @error="(e: Event) => handleLogoError(e)" />
+                          <img loading="lazy" :src="getModelLogo(app.provider)" :alt="app.provider"
+                            class="model-logo-sm" @error="(e: Event) => handleLogoError(e)" />
                           <span class="model-fallback-sm" :style="{ color: getFallbackColor(app.provider) }">
                             {{ getFallbackLetter(app.provider) }}
                           </span>
@@ -467,6 +470,9 @@
                     <t-option value="parse_nutrition" label="解析营养" />
                     <t-option value="natural_search" label="自然检索" />
                     <t-option value="health_check" label="健康检测" />
+                    <t-option value="dashboard_chat" label="AI对话" />
+                    <t-option value="agent_chat" label="Agent对话" />
+                    <t-option value="parse_file_image" label="图片内容提取" />
                   </t-select>
                   <t-select v-model="logFilters.status" placeholder="状态" clearable size="small" style="width: 100px">
                     <t-option value="success" label="成功" />
@@ -492,10 +498,8 @@
                       @click="typeof page === 'number' && goLogPage(page)">{{ page }}</button>
                     <span v-else class="pagination-ellipsis">...</span>
                   </template>
-                  <button class="pagination-btn"
-                    :class="{ 'pagination-btn--disabled': logPage === logTotalPages }"
-                    :disabled="logPage === logTotalPages"
-                    @click="goLogPage(logPage + 1)">下一页</button>
+                  <button class="pagination-btn" :class="{ 'pagination-btn--disabled': logPage === logTotalPages }"
+                    :disabled="logPage === logTotalPages" @click="goLogPage(logPage + 1)">下一页</button>
                 </div>
               </div>
               <div v-else class="data-empty">
@@ -522,20 +526,22 @@
         </div>
       </div>
 
-      <t-dialog v-model:visible="showAddAppDialog" :confirm-btn="null" :cancel-btn="null"
-        width="560px" class="app-dialog" destroy-on-close>
+      <t-dialog v-model:visible="showAddAppDialog" :confirm-btn="null" :cancel-btn="null" width="560px"
+        class="app-dialog" destroy-on-close>
         <template #header>
           <div class="app-dialog-header">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" stroke-width="2"
               stroke-linecap="round" stroke-linejoin="round">
-              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
-              <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
-              <line x1="12" y1="22.08" x2="12" y2="12"/>
+              <path
+                d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+              <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+              <line x1="12" y1="22.08" x2="12" y2="12" />
             </svg>
             <span>添加功能模块配置</span>
           </div>
         </template>
-        <t-form ref="addAppFormRef" :data="appFormData" :rules="appFormRules" label-width="100px" @submit="handleAddApp">
+        <t-form ref="addAppFormRef" :data="appFormData" :rules="appFormRules" label-width="100px"
+          @submit="handleAddApp">
           <t-form-item label="功能模块" name="module">
             <t-select v-model="appFormData.module" placeholder="请选择功能模块" clearable>
               <t-option v-for="mod in availableModules" :key="mod.value" :value="mod.value" :label="mod.label">
@@ -547,8 +553,7 @@
             </t-select>
           </t-form-item>
           <t-form-item label="模型厂商" name="provider">
-            <t-select v-model="appFormData.provider" placeholder="请选择模型厂商" clearable
-              @change="handleAppProviderChange">
+            <t-select v-model="appFormData.provider" placeholder="请选择模型厂商" clearable @change="handleAppProviderChange">
               <t-option v-for="model in modelStore.models" :key="model.provider" :value="model.provider"
                 :label="model.name">
                 <template #default>
@@ -591,9 +596,10 @@
         <template #footer>
           <div class="dialog-footer">
             <button type="button" class="dialog-cancel-btn" @click="showAddAppDialog = false">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
               </svg>
               取消
             </button>
@@ -601,7 +607,7 @@
               <t-loading v-if="appSubmitting" size="14px" />
               <svg v-else width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                 stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="20 6 9 17 4 12"/>
+                <polyline points="20 6 9 17 4 12" />
               </svg>
               确认添加
             </button>
@@ -609,14 +615,14 @@
         </template>
       </t-dialog>
 
-      <t-dialog v-model:visible="showEditAppDialog" :confirm-btn="null" :cancel-btn="null"
-        width="560px" class="app-dialog" destroy-on-close>
+      <t-dialog v-model:visible="showEditAppDialog" :confirm-btn="null" :cancel-btn="null" width="560px"
+        class="app-dialog" destroy-on-close>
         <template #header>
           <div class="app-dialog-header">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2"
               stroke-linecap="round" stroke-linejoin="round">
-              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
             </svg>
             <span>编辑功能模块配置</span>
           </div>
@@ -656,8 +662,8 @@
           </t-form-item>
           <t-form-item label="模型类型" name="model">
             <t-select v-model="editAppFormData.model" placeholder="请选择模型类型" clearable>
-              <t-option v-for="ver in getAvailableVersionsForProviderByString(editAppFormData.provider)" :key="ver.value"
-                :value="ver.value" :label="ver.label" />
+              <t-option v-for="ver in getAvailableVersionsForProviderByString(editAppFormData.provider)"
+                :key="ver.value" :value="ver.value" :label="ver.label" />
             </t-select>
           </t-form-item>
           <t-form-item label="描述说明" name="description">
@@ -671,9 +677,10 @@
         <template #footer>
           <div class="dialog-footer">
             <button type="button" class="dialog-cancel-btn" @click="showEditAppDialog = false">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
               </svg>
               取消
             </button>
@@ -681,7 +688,7 @@
               <t-loading v-if="appSubmitting" size="14px" />
               <svg v-else width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                 stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="20 6 9 17 4 12"/>
+                <polyline points="20 6 9 17 4 12" />
               </svg>
               保存修改
             </button>
@@ -897,8 +904,8 @@
                   :value="m.provider" :label="m.name">
                   <template #default>
                     <div class="option-with-logo" style="display:flex;align-items:flex-end;gap:14px;">
-                      <img loading="lazy" :src="getModelLogo(m.provider)" :alt="m.name"
-                        class="fallback-logo-sm" @error="(e: Event) => handleLogoError(e)"
+                      <img loading="lazy" :src="getModelLogo(m.provider)" :alt="m.name" class="fallback-logo-sm"
+                        @error="(e: Event) => handleLogoError(e)"
                         style="width:16px;height:16px;border-radius:4px;object-fit:contain;flex-shrink:0;padding-bottom:2px;" />
                       <span style="line-height:1.4;font-size:14px;">{{ m.name }}</span>
                     </div>
@@ -1574,6 +1581,9 @@ const logColumns = [
         "weekly-report": "周报AI分析",
         "monthly-report": "月报AI分析",
         "smart-search": "智能数据检索",
+        dashboard_chat: "AI对话",
+        agent_chat: "Agent对话",
+        parse_file_image: "图片内容提取",
       };
       return map[row.callType] || row.callType;
     }
@@ -1582,7 +1592,7 @@ const logColumns = [
   { colKey: "latencyMs", title: "耗时", width: 100, cell: (_h: any, { row }: any) => row.latencyMs ? `${row.latencyMs}ms` : "-" },
   {
     colKey: "status", title: "状态", width: 100, cell: (h: any, { row }: any) => {
-      const statusConfig: Record<string, { color: string; label: string }> = {
+      const statusConfig: Record<string, { color: string; label: string; }> = {
         success: { color: '#10b981', label: '成功' },
         error: { color: '#ef4444', label: '失败' },
         fallback: { color: '#f59e0b', label: '切换' }
@@ -1606,6 +1616,9 @@ const logColumns = [
         "weekly-report": "周报AI分析",
         "monthly-report": "月报AI分析",
         "smart-search": "智能数据检索",
+        dashboard_chat: "AI对话",
+        agent_chat: "Agent对话",
+        parse_file_image: "图片内容提取",
       };
 
       const appName = appInfoMap[row.callType] || '';
@@ -3672,7 +3685,7 @@ $transition-normal: 0.25s ease;
 
           .model-logo-sm[src=""],
           .model-logo-sm:not([src]) {
-            + .model-fallback-sm {
+            +.model-fallback-sm {
               display: flex;
             }
           }

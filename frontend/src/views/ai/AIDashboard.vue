@@ -18,167 +18,187 @@
           <div class="chat-container">
             <!-- AI 对话 Tab 内容 -->
             <template v-if="activeTab === 'chat'">
-              <!-- 历史记录触发器 -->
-              <button class="history-trigger" @click="toggleHistory" :class="{ active: showHistory }" title="历史记录">
-                <t-icon name="history" size="18px" />
-              </button>
-
-              <!-- 历史会话侧边栏（覆盖层） -->
-              <Transition name="slide">
-                <aside v-if="showHistory" class="history-sidebar">
-                  <div class="history-header">
-                    <h4>历史会话</h4>
-                    <button @click="showHistory = false" class="close-btn">×</button>
-                  </div>
-                  <div class="history-list">
-                    <div v-for="session in sessions" :key="session.id" class="history-item"
-                      :class="{ active: conversationId === session.id }" @click="switchToSession(session.id)">
-                      <span class="session-title">{{ session.title }}</span>
-                      <span class="session-time">{{ formatRelativeTime(session.updatedAt) }}</span>
+              <!-- 历史会话侧边栏 + 聊天内容 并排区域 -->
+              <div class="chat-body-row">
+                <!-- 历史会话侧边栏 -->
+                <aside class="history-sidebar" :class="{ collapsed: !showHistory }">
+                  <div class="history-sidebar-inner">
+                    <div class="history-header">
+                      <button class="action-circle-btn" @click="toggleHistory" :class="{ active: showHistory }"
+                        title="历史记录">
+                        <t-icon name="history" size="18px" />
+                      </button>
+                      <h4 v-if="showHistory">历史会话</h4>
+                      <button v-if="showHistory" @click="showHistory = false" class="close-btn">×</button>
                     </div>
-                    <div v-if="sessions.length === 0" class="empty-sessions">
-                      暂无历史会话
+                    <button v-if="showHistory" class="new-session-btn" @click="createNewSession" title="新建对话">
+                      <t-icon name="add" size="16px" />
+                      <span>新建对话</span>
+                    </button>
+                    <div v-if="showHistory" class="history-list">
+                      <div v-for="session in sessions" :key="session.id" class="history-item"
+                        :class="{ active: conversationId === session.id }" @click="switchToSession(session.id)">
+                        <span class="session-title">{{ session.title }}</span>
+                        <span class="session-time">{{ formatRelativeTime(session.updatedAt) }}</span>
+                      </div>
+                      <div v-if="sessions.length === 0" class="empty-sessions">
+                        暂无历史会话
+                      </div>
                     </div>
                   </div>
                 </aside>
-              </Transition>
-
-              <!-- 消息区域 -->
-              <div class="messages-wrapper" ref="messagesContainer">
-                <!-- 欢迎消息 -->
-                <div v-if="messages.length === 0" class="welcome-message">
-                  <div class="welcome-header">
-                    <div class="welcome-logo">
-                      <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <circle cx="30" cy="32" r="20" fill="#FFE8D6" />
-                        <path d="M14 22L10 4L26 16Z" fill="#FFB5C8" />
-                        <path d="M46 22L50 4L34 16Z" fill="#FFB5C8" />
-                        <ellipse cx="24" cy="30" rx="3.5" ry="4" fill="#5D4E60" />
-                        <ellipse cx="36" cy="30" rx="3.5" ry="4" fill="#5D4E60" />
-                        <ellipse cx="25" cy="28.5" rx="1.2" ry="1.5" fill="#fff" />
-                        <ellipse cx="37" cy="28.5" rx="1.2" ry="1.5" fill="#fff" />
-                        <ellipse cx="30" cy="35.5" rx="2.5" ry="1.8" fill="#FFB5C2" />
-                        <path d="M27 38Q30 42 33 38" stroke="#E8A0B0" stroke-width="1" fill="none"
-                          stroke-linecap="round" />
-                        <ellipse cx="20" cy="36" rx="4" ry="2.5" fill="#FFB5C2" opacity="0.35" />
-                        <ellipse cx="40" cy="36" rx="4" ry="2.5" fill="#FFB5C2" opacity="0.35" />
-                      </svg>
+                <!-- 聊天主区域（消息 + 输入框，整体随侧边栏右移） -->
+                <div class="chat-main">
+                  <!-- 消息区域 -->
+                  <div class="messages-wrapper" ref="messagesContainer">
+                    <!-- 欢迎消息 -->
+                    <div v-if="messages.length === 0" class="welcome-message">
+                      <div class="welcome-header">
+                        <div class="welcome-logo">
+                          <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="30" cy="32" r="20" fill="#FFE8D6" />
+                            <path d="M14 22L10 4L26 16Z" fill="#FFB5C8" />
+                            <path d="M46 22L50 4L34 16Z" fill="#FFB5C8" />
+                            <ellipse cx="24" cy="30" rx="3.5" ry="4" fill="#5D4E60" />
+                            <ellipse cx="36" cy="30" rx="3.5" ry="4" fill="#5D4E60" />
+                            <ellipse cx="25" cy="28.5" rx="1.2" ry="1.5" fill="#fff" />
+                            <ellipse cx="37" cy="28.5" rx="1.2" ry="1.5" fill="#fff" />
+                            <ellipse cx="30" cy="35.5" rx="2.5" ry="1.8" fill="#FFB5C2" />
+                            <path d="M27 38Q30 42 33 38" stroke="#E8A0B0" stroke-width="1" fill="none"
+                              stroke-linecap="round" />
+                            <ellipse cx="20" cy="36" rx="4" ry="2.5" fill="#FFB5C2" opacity="0.35" />
+                            <ellipse cx="40" cy="36" rx="4" ry="2.5" fill="#FFB5C2" opacity="0.35" />
+                          </svg>
+                        </div>
+                        <h3>你好！我是TingStudio AI助手</h3>
+                      </div>
+                      <p>我可以帮你：</p>
+                      <ul class="welcome-features">
+                        <li @click="handleQuickQuestion('分析销售数据和趋势')">分析销售数据和趋势</li>
+                        <li @click="handleQuickQuestion('优化配方和降低成本')">优化配方和降低成本</li>
+                        <li @click="handleQuickQuestion('管理原料库存和采购')">管理原料库存和采购</li>
+                        <li @click="handleQuickQuestion('生成各类业务报告')">生成各类业务报告</li>
+                      </ul>
+                      <p class="welcome-hint">试试问我一个问题吧！</p>
                     </div>
-                    <h3>你好！我是TingStudio AI助手</h3>
+
+                    <!-- 消息列表 -->
+                    <div v-for="msg in messages" :key="msg.id" class="message-item" :class="[`message-${msg.role}`]">
+                      <!-- 用户消息 -->
+                      <template v-if="msg.role === 'user'">
+                        <div class="user-avatar">
+                          <img loading="lazy" class="user-avatar-img"
+                            :src="authStore.user?.avatar || '/avatar-default.jpg'"
+                            :alt="authStore.user?.username || '用户'" />
+                        </div>
+                        <div class="user-message-content">
+                          <div class="user-bubble">{{ msg.content }}</div>
+                          <span class="message-time">{{ formatTime(msg.timestamp) }}</span>
+                        </div>
+                      </template>
+
+                      <!-- AI消息 -->
+                      <template v-else-if="msg.role === 'assistant'">
+                        <div class="avatar-logo">
+                          <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="30" cy="32" r="20" fill="#FFE8D6" />
+                            <path d="M14 22L10 4L26 16Z" fill="#FFB5C8" />
+                            <path d="M46 22L50 4L34 16Z" fill="#FFB5C8" />
+                            <ellipse cx="24" cy="30" rx="3.5" ry="4" fill="#5D4E60" />
+                            <ellipse cx="36" cy="30" rx="3.5" ry="4" fill="#5D4E60" />
+                            <ellipse cx="25" cy="28.5" rx="1.2" ry="1.5" fill="#fff" />
+                            <ellipse cx="37" cy="28.5" rx="1.2" ry="1.5" fill="#fff" />
+                            <ellipse cx="30" cy="35.5" rx="2.5" ry="1.8" fill="#FFB5C2" />
+                            <path d="M27 38Q30 42 33 38" stroke="#E8A0B0" stroke-width="1" fill="none"
+                              stroke-linecap="round" />
+                            <ellipse cx="20" cy="36" rx="4" ry="2.5" fill="#FFB5C2" opacity="0.35" />
+                            <ellipse cx="40" cy="36" rx="4" ry="2.5" fill="#FFB5C2" opacity="0.35" />
+                          </svg>
+                        </div>
+                        <div class="assistant-bubble">
+                          <div class="markdown-content" v-html="renderMarkdown(msg.content)"></div>
+
+                          <!-- 可执行操作按钮组 -->
+                          <div v-if="msg.actions?.length > 0" class="message-actions">
+                            <button v-for="action in msg.actions" :key="action.id" class="action-btn"
+                              @click="executeAction(action)">
+                              <t-icon v-if="action.icon" :name="action.icon" size="14px" />
+                              {{ action.label }}
+                            </button>
+                          </div>
+
+                          <div class="message-meta" v-if="msg.metadata">
+                            <span>{{ msg.metadata.model }}</span>
+                            <span>·</span>
+                            <span>{{ msg.metadata.latency }}ms</span>
+                          </div>
+                        </div>
+                      </template>
+                    </div>
+
+                    <!-- 流式输出中的临时消息 -->
+                    <div v-if="isLoading && streamingContent" class="message-item message-assistant">
+                      <div class="avatar-logo">
+                        <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <circle cx="30" cy="32" r="20" fill="#FFE8D6" />
+                          <path d="M14 22L10 4L26 16Z" fill="#FFB5C8" />
+                          <path d="M46 22L50 4L34 16Z" fill="#FFB5C8" />
+                          <ellipse cx="24" cy="30" rx="3.5" ry="4" fill="#5D4E60" />
+                          <ellipse cx="36" cy="30" rx="3.5" ry="4" fill="#5D4E60" />
+                          <ellipse cx="25" cy="28.5" rx="1.2" ry="1.5" fill="#fff" />
+                          <ellipse cx="37" cy="28.5" rx="1.2" ry="1.5" fill="#fff" />
+                          <ellipse cx="30" cy="35.5" rx="2.5" ry="1.8" fill="#FFB5C2" />
+                          <path d="M27 38Q30 42 33 38" stroke="#E8A0B0" stroke-width="1" fill="none"
+                            stroke-linecap="round" />
+                          <ellipse cx="20" cy="36" rx="4" ry="2.5" fill="#FFB5C2" opacity="0.35" />
+                          <ellipse cx="40" cy="36" rx="4" ry="2.5" fill="#FFB5C2" opacity="0.35" />
+                        </svg>
+                      </div>
+                      <div class="assistant-bubble typing">
+                        <div class="markdown-content" v-html="renderMarkdown(streamingContent)"></div>
+                        <span class="cursor-blink">|</span>
+                      </div>
+                    </div>
+
+                    <!-- 加载指示器 -->
+                    <div v-if="isLoading && !streamingContent" class="typing-indicator">
+                      <span></span><span></span><span></span>
+                    </div>
                   </div>
-                  <p>我可以帮你：</p>
-                  <ul class="welcome-features">
-                    <li @click="handleQuickQuestion('分析销售数据和趋势')">分析销售数据和趋势</li>
-                    <li @click="handleQuickQuestion('优化配方和降低成本')">优化配方和降低成本</li>
-                    <li @click="handleQuickQuestion('管理原料库存和采购')">管理原料库存和采购</li>
-                    <li @click="handleQuickQuestion('生成各类业务报告')">生成各类业务报告</li>
-                  </ul>
-                  <p class="welcome-hint">试试问我一个问题吧！</p>
-                </div>
-
-                <!-- 消息列表 -->
-                <div v-for="msg in messages" :key="msg.id" class="message-item" :class="[`message-${msg.role}`]">
-                  <!-- 用户消息 -->
-                  <template v-if="msg.role === 'user'">
-                    <div class="user-avatar">
-                      <img loading="lazy" class="user-avatar-img" :src="authStore.user?.avatar || '/avatar-default.jpg'"
-                        :alt="authStore.user?.username || '用户'" />
-                    </div>
-                    <div class="user-message-content">
-                      <div class="user-bubble">{{ msg.content }}</div>
-                      <span class="message-time">{{ formatTime(msg.timestamp) }}</span>
-                    </div>
-                  </template>
-
-                  <!-- AI消息 -->
-                  <template v-else-if="msg.role === 'assistant'">
-                    <div class="avatar-logo">
-                      <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <circle cx="30" cy="32" r="20" fill="#FFE8D6" />
-                        <path d="M14 22L10 4L26 16Z" fill="#FFB5C8" />
-                        <path d="M46 22L50 4L34 16Z" fill="#FFB5C8" />
-                        <ellipse cx="24" cy="30" rx="3.5" ry="4" fill="#5D4E60" />
-                        <ellipse cx="36" cy="30" rx="3.5" ry="4" fill="#5D4E60" />
-                        <ellipse cx="25" cy="28.5" rx="1.2" ry="1.5" fill="#fff" />
-                        <ellipse cx="37" cy="28.5" rx="1.2" ry="1.5" fill="#fff" />
-                        <ellipse cx="30" cy="35.5" rx="2.5" ry="1.8" fill="#FFB5C2" />
-                        <path d="M27 38Q30 42 33 38" stroke="#E8A0B0" stroke-width="1" fill="none"
-                          stroke-linecap="round" />
-                        <ellipse cx="20" cy="36" rx="4" ry="2.5" fill="#FFB5C2" opacity="0.35" />
-                        <ellipse cx="40" cy="36" rx="4" ry="2.5" fill="#FFB5C2" opacity="0.35" />
-                      </svg>
-                    </div>
-                    <div class="assistant-bubble">
-                      <div class="markdown-content" v-html="renderMarkdown(msg.content)"></div>
-
-                      <!-- 可执行操作按钮组 -->
-                      <div v-if="msg.actions?.length > 0" class="message-actions">
-                        <button v-for="action in msg.actions" :key="action.id" class="action-btn"
-                          @click="executeAction(action)">
-                          <t-icon v-if="action.icon" :name="action.icon" size="14px" />
-                          {{ action.label }}
+                  <!-- 输入框区域 -->
+                  <div class="chat-input-bar">
+                    <div class="input-wrapper">
+                      <textarea v-model="inputText" placeholder="输入问题或指令... (Shift+Enter换行)"
+                        @keydown.enter.exact="handleSend" :disabled="isLoading" rows="1" ref="textareaRef"></textarea>
+                      <div class="input-actions">
+                        <div class="model-selector-wrap">
+                          <div class="model-selector-btn" @click="toggleModelMenu" :title="displayModelName">
+                            <img :src="currentModelLogo" class="model-logo" alt="" />
+                            <span class="model-name">{{ displayModelName }}</span>
+                            <t-icon name="chevron-down" size="12px" class="model-arrow" />
+                          </div>
+                          <Transition name="dropdown">
+                            <div v-if="showModelMenu" class="model-dropdown">
+                              <div v-for="opt in modelOptions" :key="opt.value" class="model-option"
+                                :class="{ active: currentModel === opt.value }" @click="selectModel(opt.value)">
+                                <img v-if="modelLogos[opt.value]" :src="modelLogos[opt.value]" class="model-logo-sm"
+                                  alt="" />
+                                <span>{{ opt.label }}</span>
+                                <t-icon v-if="currentModel === opt.value" name="check" size="14px" class="check-icon" />
+                              </div>
+                            </div>
+                          </Transition>
+                        </div>
+                        <label class="action-circle-btn attach-btn" title="上传图片">
+                          <t-icon name="attach" size="18px" />
+                          <input type="file" accept="image/*,.pdf,.xlsx" @change="handleFileUpload" hidden />
+                        </label>
+                        <button class="send-btn" @click="handleSend" :disabled="!inputText.trim() && !selectedFile"
+                          :loading="isLoading">
+                          <t-icon name="send" size="18px" />
                         </button>
                       </div>
-
-                      <div class="message-meta" v-if="msg.metadata">
-                        <span>{{ msg.metadata.model }}</span>
-                        <span>·</span>
-                        <span>{{ msg.metadata.latency }}ms</span>
-                      </div>
                     </div>
-                  </template>
-                </div>
-
-                <!-- 流式输出中的临时消息 -->
-                <div v-if="isLoading && streamingContent" class="message-item message-assistant">
-                  <div class="avatar-logo">
-                    <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <circle cx="30" cy="32" r="20" fill="#FFE8D6" />
-                      <path d="M14 22L10 4L26 16Z" fill="#FFB5C8" />
-                      <path d="M46 22L50 4L34 16Z" fill="#FFB5C8" />
-                      <ellipse cx="24" cy="30" rx="3.5" ry="4" fill="#5D4E60" />
-                      <ellipse cx="36" cy="30" rx="3.5" ry="4" fill="#5D4E60" />
-                      <ellipse cx="25" cy="28.5" rx="1.2" ry="1.5" fill="#fff" />
-                      <ellipse cx="37" cy="28.5" rx="1.2" ry="1.5" fill="#fff" />
-                      <ellipse cx="30" cy="35.5" rx="2.5" ry="1.8" fill="#FFB5C2" />
-                      <path d="M27 38Q30 42 33 38" stroke="#E8A0B0" stroke-width="1" fill="none"
-                        stroke-linecap="round" />
-                      <ellipse cx="20" cy="36" rx="4" ry="2.5" fill="#FFB5C2" opacity="0.35" />
-                      <ellipse cx="40" cy="36" rx="4" ry="2.5" fill="#FFB5C2" opacity="0.35" />
-                    </svg>
-                  </div>
-                  <div class="assistant-bubble typing">
-                    <div class="markdown-content" v-html="renderMarkdown(streamingContent)"></div>
-                    <span class="cursor-blink">|</span>
-                  </div>
-                </div>
-
-                <!-- 加载指示器 -->
-                <div v-if="isLoading && !streamingContent" class="typing-indicator">
-                  <span></span><span></span><span></span>
-                </div>
-              </div>
-
-              <!-- 输入框区域 -->
-              <div class="chat-input-bar">
-                <div class="input-wrapper">
-                  <div class="model-selector">
-                    <t-select v-model="currentModel" :options="modelOptions" size="small" style="width: 110px;" />
-                  </div>
-                  <textarea v-model="inputText" placeholder="输入问题或指令... (Shift+Enter换行)"
-                    @keydown.enter.exact="handleSend" :disabled="isLoading" rows="1" ref="textareaRef"></textarea>
-                  <div class="input-actions">
-                    <button class="action-circle-btn new-chat-btn" @click="createNewSession" title="新建对话">
-                      <t-icon name="add" size="18px" />
-                    </button>
-                    <label class="action-circle-btn attach-btn" title="上传图片">
-                      <t-icon name="attach" size="18px" />
-                      <input type="file" accept="image/*,.pdf,.xlsx" @change="handleFileUpload" hidden />
-                    </label>
-                    <button class="send-btn" @click="handleSend" :disabled="!inputText.trim() && !selectedFile"
-                      :loading="isLoading">
-                      <t-icon name="send" size="18px" />
-                    </button>
                   </div>
                 </div>
               </div>
@@ -461,19 +481,36 @@ const showHistory = ref(false);
 const sessions = ref<any[]>([]);
 const currentModel = ref('deepseek');
 const selectedFile = ref<File | null>(null);
+const showModelMenu = ref(false);
 
-// 模型显示名称映射
 const modelDisplayNames: Record<string, string> = {
   'deepseek': 'DeepSeek V3',
   'dashscope': '通义千问',
   'zhipu': '智谱GLM'
 };
 
+const modelLogos: Record<string, string> = {
+  'deepseek': 'https://unpkg.com/@lobehub/icons-static-svg@latest/icons/deepseek.svg',
+  'dashscope': 'https://unpkg.com/@lobehub/icons-static-svg@latest/icons/qwen.svg',
+  'zhipu': 'https://unpkg.com/@lobehub/icons-static-svg@latest/icons/zhipu.svg'
+};
+
 const displayModelName = computed(() => modelDisplayNames[currentModel.value] || currentModel.value);
+
+const currentModelLogo = computed(() => modelLogos[currentModel.value] || '');
 
 const modelOptions = computed(() =>
   Object.entries(modelDisplayNames).map(([value, label]) => ({ value, label }))
 );
+
+const toggleModelMenu = () => {
+  showModelMenu.value = !showModelMenu.value;
+};
+
+const selectModel = (model: string) => {
+  currentModel.value = model;
+  showModelMenu.value = false;
+};
 
 const quickTags = ['📊 本月销量概况', '📝 创建新配方', '🧪 库存不足预警'];
 
@@ -1719,37 +1756,6 @@ onUnmounted(() => {
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   overflow: hidden;
 
-  .history-trigger {
-    position: absolute;
-    top: 12px;
-    left: 12px;
-    z-index: 20;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    border: 1px solid #e2e8f0;
-    background: white;
-    cursor: pointer;
-    color: #64748b;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-
-    &:hover {
-      background: #f1f5f9;
-      color: #10B981;
-      border-color: #cbd5e1;
-    }
-
-    &.active {
-      background: #10B981;
-      color: white;
-      border-color: #10B981;
-    }
-  }
-
   // Tab 导航栏样式
   .ai-tabs-nav {
     display: flex;
@@ -1828,33 +1834,128 @@ onUnmounted(() => {
     position: relative;
   }
 
+  .chat-body-row {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+  }
+
+  .chat-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-width: 0;
+    transition: flex 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
   .history-sidebar {
-    position: absolute;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    width: 280px;
-    z-index: 15;
+    width: 260px;
+    flex-shrink: 0;
     border-right: 1px solid #e2e8f0;
     background: #fafbfc;
-    overflow-y: auto;
-    box-shadow: 4px 0 16px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
-    .history-header {
-      padding: 16px;
-      border-bottom: 1px solid #e2e8f0;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-weight: 600;
+    &.collapsed {
+      width: 52px;
+      border-right: 1px solid #e2e8f0;
     }
 
-    .close-btn {
-      background: none;
-      border: none;
-      font-size: 20px;
+    .history-sidebar-inner {
+      width: 260px;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .history-header {
+      padding: 12px;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+
+      h4 {
+        flex: 1;
+        font-size: 14px;
+        color: #334155;
+        white-space: nowrap;
+      }
+
+      .action-circle-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        border: none;
+        background: transparent;
+        cursor: pointer;
+        color: #64748b;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+        flex-shrink: 0;
+
+        &:hover {
+          background: #f1f5f9;
+          color: #10B981;
+        }
+
+        &.active {
+          color: #10B981;
+          background: #ecfdf5;
+        }
+      }
+
+      .close-btn {
+        background: none;
+        border: none;
+        font-size: 18px;
+        cursor: pointer;
+        color: #64748b;
+        width: 28px;
+        height: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 6px;
+        flex-shrink: 0;
+        transition: all 0.2s;
+
+        &:hover {
+          background: #f1f5f9;
+          color: #334155;
+        }
+      }
+    }
+
+    .new-session-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 8px 12px;
+      padding: 8px 12px;
+      border: 1px dashed #cbd5e1;
+      border-radius: 8px;
+      background: white;
       cursor: pointer;
-      color: #64748b;
+      color: #475569;
+      font-size: 13px;
+      transition: all 0.2s;
+      white-space: nowrap;
+
+      &:hover {
+        border-color: #10B981;
+        color: #10B981;
+        background: #f0fdf4;
+      }
+    }
+
+    .history-list {
+      flex: 1;
+      overflow-y: auto;
     }
 
     .history-item {
@@ -1900,6 +2001,7 @@ onUnmounted(() => {
     flex: 1;
     overflow-y: auto;
     padding: 24px;
+    padding-top: 24px;
     scroll-behavior: smooth;
 
     &::-webkit-scrollbar {
@@ -2238,7 +2340,6 @@ onUnmounted(() => {
 
   .chat-input-bar {
     padding: 10px 24px;
-    border-top: 1px solid #e2e8f0;
     background: white;
 
     .input-wrapper {
@@ -2275,32 +2376,97 @@ onUnmounted(() => {
         }
       }
 
-      .model-selector {
-        display: flex;
-        align-items: center;
-        flex-shrink: 0;
-        margin-right: 4px;
-
-        :deep(.t-select) {
-          .t-input {
-            border: none;
-            background: transparent;
-            padding: 0 4px;
-            height: 28px;
-            font-size: 12px;
-          }
-
-          .t-input__wrap {
-            border: none;
-            box-shadow: none !important;
-          }
-        }
-      }
-
       .input-actions {
         display: flex;
         align-items: center;
         gap: 8px;
+
+        .model-selector-wrap {
+          position: relative;
+
+          .model-selector-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            border: 1px solid #e2e8f0;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+
+            &:hover {
+              border-color: #10B981;
+              background: #f0fdf4;
+            }
+
+            .model-logo {
+              width: 18px;
+              height: 18px;
+              border-radius: 4px;
+              object-fit: contain;
+            }
+
+            .model-name {
+              font-size: 12px;
+              color: #475569;
+              font-weight: 500;
+            }
+
+            .model-arrow {
+              color: #94a3b8;
+              transition: transform 0.2s;
+            }
+          }
+
+          .model-dropdown {
+            position: absolute;
+            bottom: calc(100% + 8px);
+            left: 0;
+            min-width: 180px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+            padding: 6px;
+            z-index: 100;
+
+            .model-option {
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              padding: 10px 12px;
+              border-radius: 8px;
+              cursor: pointer;
+              transition: all 0.15s;
+              font-size: 13px;
+              color: #475569;
+
+              &:hover {
+                background: #f1f5f9;
+              }
+
+              &.active {
+                background: #f0fdf4;
+                color: #10B981;
+                font-weight: 500;
+              }
+
+              .model-logo-sm {
+                width: 20px;
+                height: 20px;
+                border-radius: 4px;
+                object-fit: contain;
+              }
+
+              .check-icon {
+                margin-left: auto;
+                color: #10B981;
+              }
+            }
+          }
+        }
 
         .action-circle-btn {
           width: 36px;
@@ -2410,6 +2576,17 @@ onUnmounted(() => {
 .slide-enter-from,
 .slide-leave-to {
   transform: translateX(-100%);
+}
+
+.dropdown-enter-active,
+.dropdown-leave-active {
+  transition: all 0.2s ease;
+}
+
+.dropdown-enter-from,
+.dropdown-leave-to {
+  opacity: 0;
+  transform: translateY(8px);
 }
 
 // ════════════════════════════════════════
