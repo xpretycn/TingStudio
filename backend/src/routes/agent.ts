@@ -1,19 +1,10 @@
 import { Router } from "express";
 import { aiAgentController } from "../services/ai/agent/agentController.js";
+import { authMiddleware, optionalAuth } from "../middleware/auth.js";
 
 export const agentRouter = Router();
 
-agentRouter.post("/chat", (req, res) => aiAgentController.handleChat(req, res));
-agentRouter.get("/sessions", (req, res) => {
-  const sessions = aiAgentController.getAllSessions();
-  res.json({ success: true, data: sessions });
-});
-agentRouter.delete("/sessions/:sessionId", (req, res) => {
-  const { sessionId } = req.params;
-  const deleted = aiAgentController.clearSession(sessionId);
-  if (deleted) {
-    res.json({ success: true, message: `Session ${sessionId} cleared` });
-  } else {
-    res.status(404).json({ success: false, error: "Session not found" });
-  }
-});
+agentRouter.post("/chat", authMiddleware, (req, res) => aiAgentController.handleChat(req, res));
+agentRouter.get("/sessions", authMiddleware, (req, res) => aiAgentController.getSessions(req, res));
+agentRouter.get("/sessions/:sessionId", authMiddleware, (req, res) => aiAgentController.getSessionMessages(req, res));
+agentRouter.delete("/sessions/:sessionId", authMiddleware, (req, res) => aiAgentController.deleteSession(req, res));

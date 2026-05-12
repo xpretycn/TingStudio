@@ -371,7 +371,7 @@ export async function parseMaterialNutrition(req: any, res: Response) {
 /** POST /api/ai/natural-search — 自然语言转 SQL 查询 */
 export async function naturalSearch(req: any, res: Response) {
   try {
-    const { query: userQuery, model: provider, version } = req.body;
+    const { query: userQuery, model: provider, version, exportFormat } = req.body;
 
     if (!userQuery?.trim()) {
       res.status(400).json({ success: false, message: "请输入查询内容" });
@@ -382,7 +382,6 @@ export async function naturalSearch(req: any, res: Response) {
       return;
     }
 
-    // 调用 AI 生成 SQL
     const messages: ChatMessage[] = [
       { role: "system", content: NL2SQL_SYSTEM_PROMPT },
       { role: "user", content: NL2SQL_USER_PROMPT(userQuery) },
@@ -396,14 +395,12 @@ export async function naturalSearch(req: any, res: Response) {
       overrideModel: version || undefined,
     });
 
-    // 提取 SQL（去除 markdown 代码块）
     let sql = aiResult.content.trim();
     const sqlMatch = sql.match(/```(?:sql)?\s*([\s\S]*?)```/);
     if (sqlMatch) {
       sql = sqlMatch[1].trim();
     }
 
-    // 安全校验
     const validation = validateSQL(sql);
     if (!validation.valid) {
       res.status(422).json({
@@ -414,21 +411,25 @@ export async function naturalSearch(req: any, res: Response) {
       return;
     }
 
-    // 执行查询
     const userId = req.user.userId;
     const [[userRow]]: any[][] = await query("SELECT role FROM users WHERE id = ?", [userId]);
     const isAdmin = userRow?.role === "admin";
 
-    // 非 admin 用户强制添加数据隔离条件
     let finalSQL = validation.sql;
     if (!isAdmin) {
-      // 如果查询涉及 formulas 表且没有 created_by 条件，添加数据隔离
       if (/formulas/i.test(finalSQL) && !/created_by/i.test(finalSQL)) {
         finalSQL = finalSQL.replace(/FROM\s+formulas/i, "FROM formulas WHERE created_by = ?");
       }
     }
 
     const [rows]: any[][] = await query(finalSQL, isAdmin ? [] : [userId]);
+
+    const queryType = detectQueryType(finalSQL);
+
+    let exportUrl: string | undefined;
+    if (exportFormat === "csv" && rows.length > 0) {
+      exportUrl = await generateCSVExport(rows, userId, finalSQL);
+    }
 
     res.json({
       success: true,
@@ -439,12 +440,72 @@ export async function naturalSearch(req: any, res: Response) {
         rowCount: rows.length,
         model: aiResult.model,
         usage: aiResult.usage,
+        queryType,
+        exportUrl,
       },
     });
   } catch (error: any) {
     console.error("[AI] naturalSearch error:", error);
     res.status(500).json({ success: false, message: `AI 检索失败: ${error.message}` });
   }
+}
+
+function detectQueryType(sql: string): string {
+  const upper = sql.toUpperCase();
+  if (/GROUP BY/i.test(sql)) return "aggregate";
+  if (/JOIN/i.test(sql)) return "join";
+  return "simple";
+}
+
+async function generateCSVExport(
+  rows: Record<string, any>[],
+  userId: string,
+  sql: string
+): Promise<string> {
+  const fs = await import("fs");
+  const path = await import("path");
+  const os = await import("os");
+
+  const exportId = `export_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  const filename = `${exportId}.csv`;
+  const exportDir = path.join(os.tmpdir(), "tingstudio-exports");
+
+  if (!fs.existsSync(exportDir)) {
+    fs.mkdirSync(exportDir, { recursive: true });
+  }
+
+  const filePath = path.join(exportDir, filename);
+
+  if (rows.length === 0) return "";
+
+  const headers = Object.keys(rows[0]);
+  const csvLines = [headers.join(",")];
+
+  for (const row of rows) {
+    const values = headers.map((h) => {
+      const val = row[h];
+      const str = val === null || val === undefined ? "" : String(val);
+      return str.includes(",") || str.includes('"') || str.includes("\n")
+        ? `"${str.replace(/"/g, '""')}"`
+        : str;
+    });
+    csvLines.push(values.join(","));
+  }
+
+  fs.writeFileSync(filePath, "\uFEFF" + csvLines.join("\n"), "utf-8");
+
+  try {
+    const { getDb } = await import("../config/database-better-sqlite3.js");
+    const db = getDb();
+    const now = new Date().toISOString();
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+    db.prepare(
+      `INSERT INTO search_export_cache (id, user_id, filename, sql, row_count, file_path, expires_at, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+    ).run(exportId, userId, filename, sql, rows.length, filePath, expiresAt, now);
+  } catch {}
+
+  return `/api/ai/export/${filename}`;
 }
 
 // ─── 获取可用模型列表 ───

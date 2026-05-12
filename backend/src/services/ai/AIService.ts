@@ -34,6 +34,9 @@ export interface ChatCompletionOptions {
   userId?: string;
   requestSummary?: string;
   overrideModel?: string;
+  stream?: boolean;
+  onToken?: (token: string) => void;
+  tools?: unknown[];
 }
 
 export interface ChatCompletionResult {
@@ -190,7 +193,7 @@ export class AIService {
     }
   }
 
-  private recordUsage(params: {
+  recordUsage(params: {
     provider: string;
     model: string;
     callType: string;
@@ -405,7 +408,7 @@ export class AIService {
         }
 
         if (options?.stream) {
-          return await this._handleStreamResponse(response, effectiveModel, options.onToken);
+          return await this._handleStreamResponse(response, effectiveModel || modelConfig.model, options.onToken);
         }
 
         const data = (await response.json()) as {
@@ -489,6 +492,125 @@ export class AIService {
       content: fullContent,
       model,
     };
+  }
+
+  async streamChat(
+    provider: string,
+    messages: ChatMessage[],
+    options?: ChatCompletionOptions,
+    onChunk?: (chunk: string) => void,
+    onToolCall?: (toolCall: { id: string; name: string; arguments: string }) => void,
+  ): Promise<string> {
+    const modelConfig = this.getModel(provider);
+    if (!modelConfig) {
+      throw new Error(`未知的 AI 模型: ${provider}`);
+    }
+    if (!modelConfig.apiKey || modelConfig.apiKey === "***configured***") {
+      throw new Error(`AI 模型 "${modelConfig.name}" 未配置 API Key`);
+    }
+
+    const effectiveModel = options?.overrideModel || modelConfig.model;
+    const url = `${modelConfig.baseUrl}/chat/completions`;
+
+    const body: Record<string, unknown> = {
+      model: effectiveModel,
+      messages,
+      temperature: options?.temperature ?? 0.7,
+      max_tokens: options?.maxTokens ?? 2000,
+      stream: true,
+    };
+
+    if (options?.tools && options.tools.length > 0) {
+      body.tools = options.tools;
+    }
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 120_000);
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${modelConfig.apiKey}`,
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeout);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`AI Stream API 请求失败 (${response.status}): ${errorText}`);
+    }
+
+    const reader = response.body?.getReader();
+    if (!reader) {
+      throw new Error("无法获取响应流");
+    }
+
+    const decoder = new TextDecoder();
+    let fullContent = "";
+    let buffer = "";
+    const toolCalls: Map<number, { id: string; name: string; arguments: string }> = new Map();
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() || "";
+
+        for (const line of lines) {
+          const trimmedLine = line.trim();
+          if (!trimmedLine || !trimmedLine.startsWith("data:")) continue;
+
+          const data = trimmedLine.slice(5).trim();
+          if (data === "[DONE]") continue;
+
+          try {
+            const parsed = JSON.parse(data);
+            const delta = parsed.choices?.[0]?.delta;
+
+            if (delta?.content) {
+              fullContent += delta.content;
+              if (onChunk) {
+                onChunk(delta.content);
+              }
+              if (options?.onToken) {
+                options.onToken(delta.content);
+              }
+            }
+
+            if (delta?.tool_calls && onToolCall) {
+              for (const tc of delta.tool_calls) {
+                const existing = toolCalls.get(tc.index) || { id: tc.id || "", name: "", arguments: "" };
+                if (tc.id) existing.id = tc.id;
+                if (tc.function?.name) existing.name = tc.function.name;
+                if (tc.function?.arguments) existing.arguments += tc.function.arguments;
+                toolCalls.set(tc.index, existing);
+              }
+            }
+          } catch {
+            // ignore parse errors
+          }
+        }
+      }
+    } finally {
+      reader.releaseLock();
+    }
+
+    if (onToolCall) {
+      for (const [, tc] of toolCalls) {
+        if (tc.name) {
+          onToolCall({ id: tc.id, name: tc.name, arguments: tc.arguments });
+        }
+      }
+    }
+
+    return fullContent;
   }
 
   static parseJSONResponse(text: string): unknown {

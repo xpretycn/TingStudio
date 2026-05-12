@@ -1,4 +1,4 @@
-# TingStudio v2.29
+# TingStudio v2.30
 
 食品配方工作数据管理平台 — 前后端分离架构
 
@@ -7,6 +7,93 @@
 TingStudio 是一个专业的食品配方工作数据管理平台，面向食品配方行业（中草药功效配方），提供配方管理、原料管理、业务员管理、营养成分分析、导出分享等完整功能链路。采用 **Vue 3 + Express + SQLite** 前后端分离架构，支持 JWT 认证、RESTful API、配方版本控制、营养合规检查、AI 智能解析等企业级特性。
 
 ## 🚀 最新更新 (2026-05-12)
+
+### ✅ AI Agent 功能模块审查与修复
+
+#### 🔒 配方创建数据校验增强
+
+修复 AI Agent 创建配方时原料不匹配导致垃圾数据的问题：
+
+| 校验项 | 修复前 | 修复后 |
+|--------|--------|--------|
+| 原料存在性 | ❌ 不校验，LLM幻觉直接写入 | ✅ 必须匹配数据库已有原料，否则返回错误并列出可用原料 |
+| 业务员存在性 | ❌ 不存在时自动创建（脏数据） | ✅ 不存在时返回错误，要求先确认或创建 |
+| 含量比校验 | ❌ 不校验 | ✅ 调用 `ratioFactorValidator.validate()` 校验，不通过拒绝创建 |
+
+**修改文件**：
+- [toolRegistration.ts](backend/src/services/ai/agent/toolRegistration.ts) — `create_formula` 和 `update_formula` 工具增加完整校验逻辑
+
+***
+
+#### 💬 对话信息持久化修复
+
+修复切换会话后对话内容丢失的问题：
+
+| 问题 | 根因 | 修复 |
+|------|------|------|
+| 恢复会话缺少工具结果 | `switchToSession` 未解析 `tool_results`、`display_type` 字段 | 增加 `toolResultData` 映射，正确恢复工具执行结果 |
+
+**修改文件**：
+- [AIDashboard.vue](frontend/src/views/ai/AIDashboard.vue) — `switchToSession` 增加扩展字段解析
+
+***
+
+#### 📊 Agent 调用日志优化
+
+| 问题 | 修复 |
+|------|------|
+| 类型显示 `intent_recognition` 英文 | `callType` 映射表增加 `intent_recognition: "意图识别"` 等中文翻译 |
+| 摘要内容缺失 | `llmService.streamChat` 增加 `recordUsage` 调用，记录成功/失败日志 |
+| 摘要重复前缀 | 优化显示逻辑，去除 `[Agent对话] Agent对话: xxx` 重复 |
+
+**修改文件**：
+- [ModelManagement.vue](frontend/src/views/models/ModelManagement.vue) — 类型映射 + 摘要显示优化
+- [llmService.ts](backend/src/services/ai/agent/llmService.ts) — 流式调用日志记录
+- [AIService.ts](backend/src/services/ai/AIService.ts) — `recordUsage` 改为 `public`
+
+***
+
+#### 🔍 智能检索搜索修复
+
+| 问题 | 根因 | 修复 |
+|------|------|------|
+| 搜索无结果 | `aiStore.naturalSearch` 没有 `return res` | 添加 `return res`，调用方正确获取搜索结果 |
+
+**修改文件**：
+- [ai.ts](frontend/src/stores/ai.ts) — `naturalSearch` 函数返回结果
+
+***
+
+#### 🎨 智能检索结果 Markdown 格式展示
+
+将搜索结果从简陋的 `t-table` 替换为美观的 Markdown 表格渲染：
+
+| 改进项 | 说明 |
+|--------|------|
+| 表格样式 | 绿色渐变表头 + 斑马纹 + 悬停高亮 + 10px圆角 |
+| SQL 折叠 | 可折叠展示，默认收起，点击标题栏切换 |
+| 结果摘要 | 带图标 + 数字高亮 + 模型标签 |
+| 空结果 | 虚线边框卡片 + SVG 图标 |
+| 导出功能 | 不受影响，仍使用原始 `rows` 数据 |
+
+**修改文件**：
+- [SmartSearchTab.vue](frontend/src/views/ai/tabs/SmartSearchTab.vue) — Markdown 渲染 + 样式优化
+
+***
+
+### 影响范围总览
+
+| 文件 | 改动类型 | 说明 |
+|------|----------|------|
+| [toolRegistration.ts](backend/src/services/ai/agent/toolRegistration.ts) | 功能增强 | 配方创建校验 + 原料匹配 |
+| [AIDashboard.vue](frontend/src/views/ai/AIDashboard.vue) | Bug修复 | 会话恢复扩展字段解析 |
+| [ModelManagement.vue](frontend/src/views/models/ModelManagement.vue) | UI优化 | 类型中文映射 + 摘要显示优化 |
+| [llmService.ts](backend/src/services/ai/agent/llmService.ts) | 功能增强 | 流式调用日志记录 |
+| [AIService.ts](backend/src/services/ai/AIService.ts) | 权限调整 | `recordUsage` 改为 public |
+| [ai.ts](frontend/src/stores/ai.ts) | Bug修复 | `naturalSearch` 返回结果 |
+| [SmartSearchTab.vue](frontend/src/views/ai/tabs/SmartSearchTab.vue) | UI重构 | Markdown 表格渲染 + 样式优化 |
+
+***
 
 ### ✅ 智能工具页面UI优化 + 图标语义化
 
@@ -2068,8 +2155,8 @@ MIT License
 
 ---
 
-**最后更新**: 2026-05-08
-**版本**: v2.27.0 (模型应用配置 + UI对齐优化)
+**最后更新**: 2026-05-12
+**版本**: v2.30.0 (AI Agent 审查修复 + 智能检索优化)
 **维护者**: TingStudio Team
 ```
 

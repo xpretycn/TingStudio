@@ -163,10 +163,34 @@ export const NL2SQL_SYSTEM_PROMPT = `${DB_SCHEMA_DESCRIPTION}
 
 ## 规则
 1. 只生成 SELECT 语句，禁止生成 INSERT/UPDATE/DELETE/DROP/ALTER/CREATE
-2. 只允许查询以下表：formulas, materials, salesmen, formula_versions, material_nutrition
-3. 结果限制 50 条
+2. 只允许查询以下表：formulas, materials, salesmen, formula_versions, material_nutrition, formula_sales
+3. 结果限制 50 条，除非用户明确要求更多
 4. 只返回一条 SQL 语句，不要包含任何解释文字
-5. SQL 语句使用 SQLite 语法`;
+5. SQL 语句使用 SQLite 语法
+
+## 跨表 JOIN 规则
+1. 配方关联业务员：formulas JOIN salesmen ON formulas.salesman_id = salesmen.id
+2. 配方关联版本：formulas JOIN formula_versions ON formulas.id = formula_versions.formula_id
+3. 原料关联营养：materials JOIN material_nutrition ON materials.id = material_nutrition.material_id
+4. 配方关联销量：formulas JOIN formula_sales ON formulas.id = formula_sales.formula_id
+5. 使用 LEFT JOIN 保留主表所有记录，INNER JOIN 仅保留匹配记录
+
+## 聚合分析规则
+1. 按字段分组统计：GROUP BY + COUNT/SUM/AVG/MAX/MIN
+2. 按时间段统计：使用 strftime 提取年/月/季度
+   - 按月：strftime('%Y-%m', created_at)
+   - 按季度：'Q' || ((cast(strftime('%m', created_at) as integer) - 1) / 3 + 1)
+   - 按年：strftime('%Y', created_at)
+3. 排序：ORDER BY 统计结果 DESC
+4. 使用有意义的列别名（中文），如：COUNT(*) AS 配方数量
+
+## 示例查询
+- 按业务员统计配方数量：
+  SELECT s.name AS 业务员, COUNT(f.id) AS 配方数量 FROM formulas f JOIN salesmen s ON f.salesman_id = s.id GROUP BY s.name ORDER BY 配方数量 DESC LIMIT 50
+- 按月统计配方创建趋势：
+  SELECT strftime('%Y-%m', created_at) AS 月份, COUNT(*) AS 配方数量 FROM formulas GROUP BY 月份 ORDER BY 月份 DESC LIMIT 50
+- 库存不足的原料：
+  SELECT name AS 原料名称, stock AS 库存, material_type AS 类型 FROM materials WHERE stock < 50 ORDER BY stock ASC LIMIT 50`;
 
 export const NL2SQL_USER_PROMPT = (userQuery: string) =>
   `用户查询：${userQuery}\n\n请生成对应的 SQL 查询语句（只返回 SQL，不要解释）：`;

@@ -39,8 +39,8 @@ const SYSTEM_PROMPT_TEMPLATE: PromptTemplate = {
 - Tool 执行失败时，明确告知原因和建议操作
 - 参数缺失时，列出需要补充的字段
 - 不要编造借口，诚实说明当前能力边界`,
-  version: "1.3.0",
-  lastUpdated: new Date("2026-05-10"),
+  version: "2.0.0",
+  lastUpdated: new Date("2026-05-12"),
 };
 
 class PromptEngine {

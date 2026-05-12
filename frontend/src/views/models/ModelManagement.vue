@@ -1583,7 +1583,10 @@ const logColumns = [
         "smart-search": "智能数据检索",
         dashboard_chat: "AI对话",
         agent_chat: "Agent对话",
+        intent_recognition: "意图识别",
         parse_file_image: "图片内容提取",
+        nl2sql: "NL2SQL查询",
+        unknown: "其他",
       };
       return map[row.callType] || row.callType;
     }
@@ -1618,15 +1621,27 @@ const logColumns = [
         "smart-search": "智能数据检索",
         dashboard_chat: "AI对话",
         agent_chat: "Agent对话",
+        intent_recognition: "意图识别",
         parse_file_image: "图片内容提取",
+        nl2sql: "NL2SQL查询",
+        unknown: "其他",
       };
 
       const appName = appInfoMap[row.callType] || '';
       const summaryText = row.requestSummary || '';
 
-      if (!summaryText) return '';
+      if (!summaryText && !appName) return '';
 
       let displayText = summaryText;
+      if (appName && displayText.startsWith(appName)) {
+        displayText = displayText.slice(appName.length).replace(/^[:：\s]+/, '');
+      }
+
+      if (!displayText && appName) {
+        return h('div', { style: 'display: flex; flex-direction: column; gap: 2px;' }, [
+          h('span', { style: 'font-size: 12px; color: #8B5CF6; font-weight: 600;' }, `[${appName}]`),
+        ]);
+      }
 
       try {
         const text = summaryText;

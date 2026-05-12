@@ -62,7 +62,7 @@ class ToolRegistry {
     if (!tool) {
       return {
         success: false,
-        error: `Unknown tool: ${toolName}`,
+        error: `未知工具: ${toolName}`,
         metadata: { availableTools: Array.from(this.tools.keys()) },
       };
     }
@@ -71,14 +71,14 @@ class ToolRegistry {
     if (!parseResult.success) {
       return {
         success: false,
-        error: `Invalid parameters for tool "${toolName}": ${parseResult.error.message}`,
+        error: `工具"${toolName}"的参数无效: ${parseResult.error.message}`,
       };
     }
 
     if (tool.rateLimit && !this.checkRateLimit(toolName, context.userId)) {
       return {
         success: false,
-        error: `Rate limit exceeded for tool: ${toolName}. Please try again later.`,
+        error: `工具 ${toolName} 调用频率超限，请稍后再试`,
       };
     }
 
@@ -97,7 +97,7 @@ class ToolRegistry {
       console.error(`[ToolRegistry] Error executing ${toolName}:`, error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : "Unknown error occurred",
+        error: error instanceof Error ? error.message : "未知错误",
       };
     }
   }
@@ -117,12 +117,29 @@ class ToolRegistry {
 
     const tool = this.tools.get(toolName);
     if (tool && calls.length >= (tool.rateLimit || 60)) {
+      this.rateLimitTracker.set(key, calls);
       return false;
     }
 
     calls.push(now);
     this.rateLimitTracker.set(key, calls);
+
+    if (this.rateLimitTracker.size > 10000) {
+      this.cleanupRateLimitTracker(now, windowMs);
+    }
+
     return true;
+  }
+
+  private cleanupRateLimitTracker(now: number, windowMs: number): void {
+    for (const [key, calls] of this.rateLimitTracker.entries()) {
+      const filtered = calls.filter(timestamp => now - timestamp < windowMs);
+      if (filtered.length === 0) {
+        this.rateLimitTracker.delete(key);
+      } else if (filtered.length !== calls.length) {
+        this.rateLimitTracker.set(key, filtered);
+      }
+    }
   }
 
   private async auditLog(toolName: string, params: unknown, result: ToolResult, context: ToolContext): Promise<void> {

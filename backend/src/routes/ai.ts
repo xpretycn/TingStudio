@@ -70,6 +70,32 @@ router.post(
   parseMaterialNutrition,
 );
 router.post("/natural-search", naturalSearch);
+router.get("/export/:filename", async (req: any, res: any) => {
+  try {
+    const { filename } = req.params;
+    const { getDb } = await import("../config/database-better-sqlite3.js");
+    const db = getDb();
+    const record = db.prepare("SELECT * FROM search_export_cache WHERE filename = ?").get(filename) as any;
+    if (!record) {
+      res.status(404).json({ success: false, message: "导出文件不存在或已过期" });
+      return;
+    }
+    if (new Date(record.expires_at) < new Date()) {
+      res.status(410).json({ success: false, message: "导出文件已过期" });
+      return;
+    }
+    const fs = await import("fs");
+    if (!fs.existsSync(record.file_path)) {
+      res.status(404).json({ success: false, message: "文件不存在" });
+      return;
+    }
+    res.setHeader("Content-Type", "text/csv; charset=utf-8");
+    res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+    fs.createReadStream(record.file_path).pipe(res);
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
 router.get("/models", getModels);
 
 // AI 对话（SSE 流式）

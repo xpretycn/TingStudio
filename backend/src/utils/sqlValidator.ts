@@ -14,6 +14,7 @@ const ALLOWED_TABLES = [
   'formula_nutrition_summaries',
   'nutrition_profiles',
   'users',
+  'formula_sales',
 ]
 
 /** 禁止的 SQL 关键字（不区分大小写） */

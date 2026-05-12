@@ -328,6 +328,78 @@ function runAutoMigrations(dbInstance: Database.Database) {
     CREATE INDEX IF NOT EXISTS idx_model_app_provider ON model_applications(provider)
   `,
   );
+  ensureTable(
+    dbInstance,
+    "agent_sessions",
+    `
+    CREATE TABLE agent_sessions (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      title TEXT DEFAULT '',
+      message_count INTEGER DEFAULT 0,
+      last_intent TEXT DEFAULT NULL,
+      last_active_at TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+    CREATE INDEX IF NOT EXISTS idx_agent_sessions_user_id ON agent_sessions(user_id);
+    CREATE INDEX IF NOT EXISTS idx_agent_sessions_last_active ON agent_sessions(user_id, last_active_at DESC)
+  `,
+  );
+  ensureTable(
+    dbInstance,
+    "agent_messages",
+    `
+    CREATE TABLE agent_messages (
+      id TEXT PRIMARY KEY,
+      session_id TEXT NOT NULL,
+      role TEXT NOT NULL CHECK(role IN ('user', 'assistant', 'system', 'tool')),
+      content TEXT DEFAULT '',
+      intent TEXT DEFAULT NULL,
+      tool_calls TEXT DEFAULT NULL,
+      tool_results TEXT DEFAULT NULL,
+      display_type TEXT DEFAULT NULL,
+      metadata TEXT DEFAULT NULL,
+      created_at TEXT NOT NULL,
+      FOREIGN KEY (session_id) REFERENCES agent_sessions(id) ON DELETE CASCADE
+    );
+    CREATE INDEX IF NOT EXISTS idx_agent_messages_session_id ON agent_messages(session_id);
+    CREATE INDEX IF NOT EXISTS idx_agent_messages_session_created ON agent_messages(session_id, created_at)
+  `,
+  );
+  ensureTable(
+    dbInstance,
+    "search_export_cache",
+    `
+    CREATE TABLE search_export_cache (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      filename TEXT NOT NULL,
+      sql TEXT NOT NULL,
+      row_count INTEGER DEFAULT 0,
+      file_path TEXT NOT NULL,
+      expires_at TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+    CREATE INDEX IF NOT EXISTS idx_search_export_user ON search_export_cache(user_id);
+    CREATE INDEX IF NOT EXISTS idx_search_export_expires ON search_export_cache(expires_at)
+  `,
+  );
+  ensureTable(
+    dbInstance,
+    "agent_pending_confirmations",
+    `
+    CREATE TABLE agent_pending_confirmations (
+      session_id TEXT PRIMARY KEY,
+      tool_name TEXT NOT NULL,
+      params_json TEXT NOT NULL,
+      confirm_message TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      FOREIGN KEY (session_id) REFERENCES agent_sessions(id) ON DELETE CASCADE
+    )
+  `,
+  );
   ensureInitialAiModels(dbInstance);
 }
 

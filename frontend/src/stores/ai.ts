@@ -152,9 +152,9 @@ export const useAiStore = defineStore("ai", () => {
     try {
       const res = await aiApi.naturalSearch(queryText, selectedModel.value, selectedVersion.value || undefined);
       searchResult.value = res;
-      // 记录搜索历史（最多保留 10 条）
       const history = [queryText, ...searchHistory.value.filter(h => h !== queryText)];
       searchHistory.value = history.slice(0, 10);
+      return res;
     } catch (error: any) {
       searchError.value = error?.response?.data?.message || error.message || "AI 检索失败";
     } finally {

@@ -53,12 +53,20 @@ export class LLMAgentService {
     request: LLMRequest,
     onChunk: (chunk: string) => void,
     onToolCall?: (toolCall: { id: string; name: string; arguments: string }) => void,
+    preferredProvider?: string,
   ): Promise<LLMResponse> {
-    for (const provider of this.fallbackChain) {
-      try {
-        const modelConfig = this.aiService.getModel(provider);
-        if (!modelConfig?.apiKey) continue;
+    const requestSummary = `Agent对话: ${((request.messages[request.messages.length - 1]?.content as string) || "").substring(0, 50)}`;
 
+    const providers = preferredProvider
+      ? [preferredProvider, ...this.fallbackChain.filter(p => p !== preferredProvider)]
+      : this.fallbackChain;
+
+    for (const provider of providers) {
+      const startTime = Date.now();
+      const modelConfig = this.aiService.getModel(provider);
+      if (!modelConfig?.apiKey) continue;
+
+      try {
         const messages = request.messages.map(m => ({
           role: m.role,
           content: typeof m.content === "string" ? m.content : m.content,
@@ -71,19 +79,46 @@ export class LLMAgentService {
             temperature: request.temperature ?? 0.7,
             maxTokens: request.max_tokens ?? 2000,
             callType: "agent_chat",
-            requestSummary: `Agent对话: ${((request.messages[request.messages.length - 1]?.content as string) || "").substring(0, 50)}`,
+            requestSummary,
           } as ChatCompletionOptions,
           onChunk,
           onToolCall,
         );
 
+        const latencyMs = Date.now() - startTime;
+        const estimatedTokens = Math.ceil(fullContent.length / 4);
+        this.aiService.recordUsage({
+          provider,
+          model: modelConfig.model,
+          callType: "agent_chat",
+          promptTokens: 0,
+          completionTokens: estimatedTokens,
+          totalTokens: estimatedTokens,
+          latencyMs,
+          status: "success",
+          requestSummary,
+        });
+
         return {
           id: `streamcmpl-${Date.now()}`,
           content: fullContent,
-          usage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 },
+          usage: { prompt_tokens: 0, completion_tokens: estimatedTokens, total_tokens: estimatedTokens },
           model: modelConfig.model,
         };
       } catch (error) {
+        const latencyMs = Date.now() - startTime;
+        this.aiService.recordUsage({
+          provider,
+          model: modelConfig.model,
+          callType: "agent_chat",
+          promptTokens: 0,
+          completionTokens: 0,
+          totalTokens: 0,
+          latencyMs,
+          status: "error",
+          errorMessage: (error as Error).message,
+          requestSummary,
+        });
         console.error(`[LLMAgent Stream] Provider ${provider} failed:`, error);
         continue;
       }

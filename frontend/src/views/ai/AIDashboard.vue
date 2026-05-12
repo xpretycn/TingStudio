@@ -9,6 +9,14 @@
       </div>
     </Transition>
 
+    <!-- 操作反馈提示 -->
+    <Transition name="error-fade">
+      <div v-if="toastVisible" class="action-toast" role="status" aria-live="polite">
+        <t-icon name="check-circle" size="16px" />
+        <span>{{ toastMessage }}</span>
+      </div>
+    </Transition>
+
     <!-- ═══ 三栏布局容器 ═══ -->
     <div class="dashboard-layout">
 
@@ -93,7 +101,17 @@
                         </div>
                         <div class="user-message-content">
                           <div class="user-bubble">{{ msg.content }}</div>
-                          <span class="message-time">{{ formatTime(msg.timestamp) }}</span>
+                          <div class="user-message-footer">
+                            <span class="message-time">{{ formatTime(msg.timestamp) }}</span>
+                            <div class="message-action-icons user-actions">
+                              <button class="msg-icon-btn" @click="copyMessageContent(msg.content)" title="复制">
+                                <t-icon name="file-copy" size="14px" />
+                              </button>
+                              <button class="msg-icon-btn" @click="deleteMessage(msg.id)" title="删除">
+                                <t-icon name="delete" size="14px" />
+                              </button>
+                            </div>
+                          </div>
                         </div>
                       </template>
 
@@ -115,22 +133,38 @@
                             <ellipse cx="40" cy="36" rx="4" ry="2.5" fill="#FFB5C2" opacity="0.35" />
                           </svg>
                         </div>
-                        <div class="assistant-bubble">
-                          <div class="markdown-content" v-html="renderMarkdown(msg.content)"></div>
+                        <div class="assistant-message-content">
+                          <div class="assistant-bubble">
+                            <div class="markdown-content" v-html="renderMarkdown(msg.content)"></div>
 
-                          <!-- 可执行操作按钮组 -->
-                          <div v-if="msg.actions?.length > 0" class="message-actions">
-                            <button v-for="action in msg.actions" :key="action.id" class="action-btn"
-                              @click="executeAction(action)">
-                              <t-icon v-if="action.icon" :name="action.icon" size="14px" />
-                              {{ action.label }}
-                            </button>
+                            <AgentResultRenderer
+                              v-if="msg.toolResultData"
+                              :display-type="msg.toolResultData.displayType || 'card'"
+                              :data="msg.toolResultData.data"
+                              :is-success="msg.toolResultData.success"
+                            />
+
+                            <div v-if="msg.actions?.length > 0" class="message-actions">
+                              <button v-for="action in msg.actions" :key="action.id" class="action-btn"
+                                @click="executeAction(action)">
+                                <t-icon v-if="action.icon" :name="action.icon" size="14px" />
+                                {{ action.label }}
+                              </button>
+                            </div>
+
+                            <div class="message-meta" v-if="msg.metadata">
+                              <span>{{ msg.metadata.model }}</span>
+                              <span>·</span>
+                              <span>{{ msg.metadata.latency }}ms</span>
+                            </div>
                           </div>
-
-                          <div class="message-meta" v-if="msg.metadata">
-                            <span>{{ msg.metadata.model }}</span>
-                            <span>·</span>
-                            <span>{{ msg.metadata.latency }}ms</span>
+                          <div class="message-action-icons">
+                            <button class="msg-icon-btn" @click="copyMessageContent(msg.content)" title="复制">
+                              <t-icon name="file-copy" size="14px" />
+                            </button>
+                            <button class="msg-icon-btn" @click="retryMessage(msg)" title="重试">
+                              <t-icon name="refresh" size="14px" />
+                            </button>
                           </div>
                         </div>
                       </template>
@@ -169,31 +203,41 @@
                   <div class="chat-input-bar">
                     <div class="input-wrapper">
                       <textarea v-model="inputText" placeholder="输入问题或指令... (Shift+Enter换行)"
-                        @keydown.enter.exact="handleSend" :disabled="isLoading" rows="1" ref="textareaRef"></textarea>
+                        @keydown.enter.exact="() => handleSend()" :disabled="isLoading" rows="1" ref="textareaRef"></textarea>
                       <div class="input-actions">
-                        <div class="model-selector-wrap">
-                          <div class="model-selector-btn" @click="toggleModelMenu" :title="displayModelName">
-                            <img :src="currentModelLogo" class="model-logo" alt="" />
-                            <span class="model-name">{{ displayModelName }}</span>
-                            <t-icon name="chevron-down" size="12px" class="model-arrow" />
-                          </div>
-                          <Transition name="dropdown">
-                            <div v-if="showModelMenu" class="model-dropdown">
-                              <div v-for="opt in modelOptions" :key="opt.value" class="model-option"
-                                :class="{ active: currentModel === opt.value }" @click="selectModel(opt.value)">
-                                <img v-if="modelLogos[opt.value]" :src="modelLogos[opt.value]" class="model-logo-sm"
-                                  alt="" />
-                                <span>{{ opt.label }}</span>
-                                <t-icon v-if="currentModel === opt.value" name="check" size="14px" class="check-icon" />
+                        <div class="model-selector">
+                          <div class="model-dropdown-wrap" ref="modelDropdownRef">
+                            <button class="model-dropdown-trigger" @click="toggleModelMenu">
+                              <img v-if="currentModelLogo" :src="currentModelLogo" :alt="displayModelName"
+                                class="model-trigger-logo" @error="(e: Event) => handleLogoError(e)" />
+                              <span class="model-trigger-name">{{ displayModelName }}</span>
+                              <t-icon name="chevron-down" size="14px" />
+                            </button>
+                            <Transition name="dropdown">
+                              <div v-if="showModelMenu" class="model-dropdown-panel">
+                                <div v-for="m in availableModels" :key="m.value" class="model-dropdown-item"
+                                  :class="{ active: currentModel === m.value }" @click="selectModel(m.value)">
+                                  <div class="model-item-logo-wrap">
+                                    <img :src="m.logo" :alt="m.label" class="model-item-logo"
+                                      @error="(e: Event) => handleLogoError(e)" />
+                                    <span class="model-item-fallback" :style="{ color: m.fallbackColor }">
+                                      {{ m.fallbackLetter }}
+                                    </span>
+                                  </div>
+                                  <span class="model-item-name">{{ m.label }}</span>
+                                  <span v-if="currentModel === m.value" class="model-item-check">
+                                    <t-icon name="check" size="14px" />
+                                  </span>
+                                </div>
                               </div>
-                            </div>
-                          </Transition>
+                            </Transition>
+                          </div>
                         </div>
                         <label class="action-circle-btn attach-btn" title="上传图片">
                           <t-icon name="attach" size="18px" />
                           <input type="file" accept="image/*,.pdf,.xlsx" @change="handleFileUpload" hidden />
                         </label>
-                        <button class="send-btn" @click="handleSend" :disabled="!inputText.trim() && !selectedFile"
+                        <button class="send-btn" @click="() => handleSend()" :disabled="!inputText.trim() && !selectedFile"
                           :loading="isLoading">
                           <t-icon name="send" size="18px" />
                         </button>
@@ -255,6 +299,15 @@
         </section>
       </aside>
 
+      <ToolConfirmDialog
+        :show="confirmDialogVisible"
+        :message="confirmMessage"
+        :tool-name="confirmToolName"
+        :params="confirmParams"
+        @confirm="handleConfirmAction"
+        @cancel="handleCancelAction"
+      />
+
       <!-- ═══ 智能填单模态框 ═══ -->
       <Teleport to="body">
         <Transition name="modal-fade">
@@ -299,11 +352,35 @@ import { marked } from 'marked';
 import http from '@/api/http';
 import SmartFormTab from './tabs/SmartFormTab.vue';
 import SmartImportTab from './tabs/SmartImportTab.vue';
+import ToolConfirmDialog from '@/components/ToolConfirmDialog.vue';
+import AgentResultRenderer from '@/components/AgentResultRenderer.vue';
 import { useAuthStore } from '@/stores/auth';
+import { useAgentStore } from '@/stores/agent';
+import { useModelStore } from '@/stores/model';
 
 const router = useRouter();
 const route = useRoute();
 const authStore = useAuthStore();
+const agentStore = useAgentStore();
+const modelStore = useModelStore();
+
+const confirmDialogVisible = ref(false);
+const confirmMessage = ref('');
+const confirmToolName = ref('');
+const confirmParams = ref<Record<string, any>>({});
+
+const toastMessage = ref('');
+const toastVisible = ref(false);
+let toastTimer: ReturnType<typeof setTimeout> | null = null;
+
+const showActionToast = (message: string) => {
+  toastMessage.value = message;
+  toastVisible.value = true;
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => {
+    toastVisible.value = false;
+  }, 2000);
+};
 
 // ════════════════════════════════════════
 // Tab 切换状态
@@ -482,26 +559,115 @@ const sessions = ref<any[]>([]);
 const currentModel = ref('deepseek');
 const selectedFile = ref<File | null>(null);
 const showModelMenu = ref(false);
+const modelDropdownRef = ref<HTMLElement | null>(null);
 
-const modelDisplayNames: Record<string, string> = {
-  'deepseek': 'DeepSeek V3',
-  'dashscope': '通义千问',
-  'zhipu': '智谱GLM'
+const MODEL_LOGO_MAP: Record<string, string> = {
+  openai: 'openai', gpt: 'openai', chatgpt: 'openai',
+  anthropic: 'claude', claude: 'claude',
+  google: 'google', gemini: 'google',
+  deepseek: 'deepseek',
+  qwen: 'qwen', tongyi: 'qwen', dashscope: 'qwen',
+  zhipu: 'zhipu', chatglm: 'zhipu', glm: 'zhipu',
+  baidu: 'baidu', wenxin: 'baidu',
+  doubao: 'bytedance', bytedance: 'bytedance',
+  moonshot: 'moonshot', kimi: 'moonshot',
+  minimax: 'minimax',
+  hunyuan: 'tencent', tencent: 'tencent',
 };
 
-const modelLogos: Record<string, string> = {
-  'deepseek': 'https://unpkg.com/@lobehub/icons-static-svg@latest/icons/deepseek.svg',
-  'dashscope': 'https://unpkg.com/@lobehub/icons-static-svg@latest/icons/qwen.svg',
-  'zhipu': 'https://unpkg.com/@lobehub/icons-static-svg@latest/icons/zhipu.svg'
+const FALLBACK_ICONS: Record<string, { letter: string; color: string }> = {
+  openai: { letter: 'O', color: '#10a37f' },
+  claude: { letter: 'C', color: '#d97757' },
+  google: { letter: 'G', color: '#4285f4' },
+  deepseek: { letter: 'D', color: '#4b6bfb' },
+  qwen: { letter: 'Q', color: '#6366f1' },
+  dashscope: { letter: 'Q', color: '#6366f1' },
+  zhipu: { letter: 'Z', color: '#4268fa' },
+  baidu: { letter: 'B', color: '#2932e1' },
+  bytedance: { letter: 'D', color: '#25f4ee' },
+  moonshot: { letter: 'M', color: '#000' },
+  minimax: { letter: 'M', color: '#615ced' },
+  tencent: { letter: 'T', color: '#0052d9' },
+};
+
+const getModelSlug = (provider: string): string => {
+  const p = (provider || '').toLowerCase();
+  for (const [key, slug] of Object.entries(MODEL_LOGO_MAP)) {
+    if (p.includes(key)) return slug;
+  }
+  return 'openai';
+};
+
+const getModelLogoUrl = (provider: string): string => {
+  const slug = getModelSlug(provider);
+  return `https://unpkg.com/@lobehub/icons-static-svg@latest/icons/${slug}.svg`;
+};
+
+const getFallbackLetter = (provider: string): string => {
+  const p = (provider || '').toLowerCase();
+  for (const [key, val] of Object.entries(FALLBACK_ICONS)) {
+    if (p.includes(key)) return val.letter;
+  }
+  return 'AI';
+};
+
+const getFallbackColor = (provider: string): string => {
+  const p = (provider || '').toLowerCase();
+  for (const [key, val] of Object.entries(FALLBACK_ICONS)) {
+    if (p.includes(key)) return val.color;
+  }
+  return '#64748b';
+};
+
+const handleLogoError = (e: Event) => {
+  const img = e.target as HTMLImageElement;
+  if (!img || !img.parentElement) return;
+  img.style.display = 'none';
+  const fallback = img.parentElement.querySelector('.model-item-fallback, .model-trigger-fallback');
+  if (fallback) (fallback as HTMLElement).style.display = 'flex';
+};
+
+const modelDisplayNames: Record<string, string> = {
+  deepseek: 'DeepSeek V3',
+  dashscope: '通义千问',
+  zhipu: '智谱GLM',
 };
 
 const displayModelName = computed(() => modelDisplayNames[currentModel.value] || currentModel.value);
 
-const currentModelLogo = computed(() => modelLogos[currentModel.value] || '');
+const currentModelLogo = computed(() => getModelLogoUrl(currentModel.value));
 
-const modelOptions = computed(() =>
-  Object.entries(modelDisplayNames).map(([value, label]) => ({ value, label }))
-);
+const availableModels = computed(() => {
+  const storeModels = modelStore.models;
+  if (storeModels && storeModels.length > 0) {
+    const seen = new Set<string>();
+    return storeModels
+      .filter((m: any) => {
+        const key = m.provider?.toLowerCase() || m.model?.toLowerCase();
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      })
+      .map((m: any) => {
+        const provider = m.provider || '';
+        const slug = provider.toLowerCase();
+        return {
+          value: slug,
+          label: m.name || provider,
+          logo: getModelLogoUrl(provider),
+          fallbackLetter: getFallbackLetter(provider),
+          fallbackColor: getFallbackColor(provider),
+        };
+      });
+  }
+  return Object.entries(modelDisplayNames).map(([value, label]) => ({
+    value,
+    label,
+    logo: getModelLogoUrl(value),
+    fallbackLetter: getFallbackLetter(value),
+    fallbackColor: getFallbackColor(value),
+  }));
+});
 
 const toggleModelMenu = () => {
   showModelMenu.value = !showModelMenu.value;
@@ -510,6 +676,48 @@ const toggleModelMenu = () => {
 const selectModel = (model: string) => {
   currentModel.value = model;
   showModelMenu.value = false;
+};
+
+const copyMessageContent = async (content: string) => {
+  try {
+    await navigator.clipboard.writeText(content);
+    showActionToast('内容已复制');
+  } catch {
+    const textarea = document.createElement('textarea');
+    textarea.value = content;
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textarea);
+    showActionToast('内容已复制');
+  }
+};
+
+const retryMessage = (msg: any) => {
+  const msgIndex = messages.value.indexOf(msg);
+  let retryContent = '';
+  for (let i = msgIndex - 1; i >= 0; i--) {
+    if (messages.value[i].role === 'user') {
+      retryContent = messages.value[i].content;
+      break;
+    }
+  }
+  if (!retryContent) return;
+  showActionToast('正在重新请求...');
+  inputText.value = retryContent;
+  nextTick(() => {
+    handleSend();
+  });
+};
+
+const deleteMessage = (msgId: string) => {
+  const index = messages.value.findIndex((m: any) => m.id === msgId);
+  if (index !== -1) {
+    messages.value.splice(index, 1);
+    showActionToast('消息已删除');
+  }
 };
 
 const quickTags = ['📊 本月销量概况', '📝 创建新配方', '🧪 库存不足预警'];
@@ -629,46 +837,44 @@ const addActivity = (activity: any) => {
 };
 
 // 发送消息
-const handleSend = async () => {
+const handleSend = async (confirmed = false) => {
   const content = inputText.value.trim();
-  if (!content && !selectedFile.value) return;
+  if (!content && !selectedFile.value && !confirmed) return;
   if (isLoading.value) return;
 
-  // 添加用户消息
-  messages.value.push({
-    id: Date.now().toString(),
-    role: 'user',
-    content,
-    timestamp: new Date()
-  });
-
-  inputText.value = '';
-  selectedFile.value = null;
+  if (!confirmed) {
+    messages.value.push({
+      id: Date.now().toString(),
+      role: 'user',
+      content,
+      timestamp: new Date()
+    });
+    inputText.value = '';
+    selectedFile.value = null;
+  }
 
   await nextTick();
   scrollToBottom();
 
-  // 记录开始时间
   const startTime = Date.now();
-
-  // 显示加载状态
   isLoading.value = true;
   streamingContent.value = '';
 
   try {
     const token = localStorage.getItem('tingstudio_token');
 
-    // 使用 fetch + SSE 流式接收响应
-    const response = await fetch('/api/ai/chat', {
+    const response = await fetch('/api/agent/chat', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify({
-        message: content,
-        model: currentModel.value,
-        conversationId: conversationId.value
+        message: confirmed ? '确认' : content,
+        sessionId: conversationId.value,
+        stream: true,
+        confirmed,
+        model: currentModel.value
       })
     });
 
@@ -679,11 +885,14 @@ const handleSend = async () => {
     const reader = response.body?.getReader();
     const decoder = new TextDecoder();
     let fullContent = '';
+    let currentToolCalls: any[] = [];
+    let currentIntent: any = null;
+    let pendingConfirm: any = null;
+    let lastToolResult: any = null;
 
     if (reader) {
       while (true) {
         const { done, value } = await reader.read();
-
         if (done) break;
 
         const chunk = decoder.decode(value, { stream: true });
@@ -692,68 +901,101 @@ const handleSend = async () => {
         for (const line of lines) {
           if (line.startsWith('data: ')) {
             const data = line.slice(6);
-
-            if (data === '[DONE]') {
-              // 流式传输完成
-              messages.value.push({
-                id: (Date.now() + 1).toString(),
-                role: 'assistant',
-                content: fullContent,
-                timestamp: new Date(),
-                metadata: {
-                  model: currentModel.value,
-                  tokens: fullContent.length,
-                  latency: Date.now() - startTime
-                }
-              });
-
-              streamingContent.value = '';
-              isLoading.value = false;
-              return;
-            }
+            if (data === '[DONE]') continue;
 
             try {
               const parsed = JSON.parse(data);
 
-              if (parsed.type === 'token') {
-                // 接收到文本 token
-                streamingContent.value += parsed.content;
-                fullContent += parsed.content;
-                autoScrollToBottom();
-              } else if (parsed.type === 'complete') {
-                // 接收完成（包含完整元数据）
-                const responseContent = parsed.content || fullContent;
-                messages.value.push({
-                  id: (Date.now() + 1).toString(),
-                  role: 'assistant',
-                  content: responseContent,
-                  timestamp: new Date(),
-                  metadata: {
-                    model: parsed.model || currentModel.value,
-                    tokens: parsed.tokens || fullContent.length,
-                    latency: parsed.latency || 0
-                  },
-                  // Phase 4: 自动提取可执行操作
-                  actions: parseActionsFromResponse(responseContent)
-                });
+              switch (parsed.type) {
+                case 'chunk':
+                  streamingContent.value += parsed.content;
+                  fullContent += parsed.content;
+                  autoScrollToBottom();
+                  break;
 
-                streamingContent.value = '';
-                isLoading.value = false;
-                return;
-              } else if (parsed.type === 'error') {
-                throw new Error(parsed.message || 'AI 服务错误');
+                case 'intent':
+                  currentIntent = parsed;
+                  break;
+
+                case 'follow_up':
+                  fullContent += parsed.message;
+                  streamingContent.value += parsed.message;
+                  autoScrollToBottom();
+                  break;
+
+                case 'confirm':
+                  pendingConfirm = {
+                    toolName: parsed.toolName,
+                    params: parsed.params,
+                    message: parsed.message
+                  };
+                  fullContent += parsed.message;
+                  streamingContent.value += parsed.message;
+                  autoScrollToBottom();
+                  break;
+
+                case 'tool_calls':
+                  currentToolCalls = parsed.calls || [];
+                  break;
+
+                case 'tool_result':
+                  currentToolCalls = currentToolCalls.filter(
+                    (tc: any) => tc.name !== parsed.name
+                  );
+                  lastToolResult = {
+                    displayType: parsed.displayType || 'card',
+                    data: parsed.data,
+                    success: parsed.success,
+                  };
+                  break;
+
+                case 'done':
+                  if (parsed.sessionId && !conversationId.value) {
+                    conversationId.value = parsed.sessionId;
+                  }
+
+                  messages.value.push({
+                    id: (Date.now() + 1).toString(),
+                    role: 'assistant',
+                    content: fullContent,
+                    timestamp: new Date(),
+                    metadata: {
+                      model: currentModel.value,
+                      tokens: fullContent.length,
+                      latency: Date.now() - startTime,
+                      intent: currentIntent?.intent
+                    },
+                    actions: parseActionsFromResponse(fullContent),
+                    toolResult: currentToolCalls.length === 0 ? undefined : currentToolCalls,
+                    toolResultData: lastToolResult,
+                    pendingConfirm
+                  });
+
+                  if (pendingConfirm) {
+                    confirmMessage.value = pendingConfirm.message;
+                    confirmToolName.value = pendingConfirm.toolName;
+                    confirmParams.value = pendingConfirm.params;
+                    confirmDialogVisible.value = true;
+                  }
+
+                  streamingContent.value = '';
+                  isLoading.value = false;
+                  return;
+
+                case 'error':
+                  throw new Error(parsed.message || 'AI 服务错误');
               }
-            } catch (parseError) {
-              // 忽略解析错误，继续处理下一行
-              console.warn('SSE parse warning:', parseError);
+            } catch (parseError: any) {
+              if (parseError.message && !parseError.message.includes('JSON')) {
+                throw parseError;
+              }
             }
           }
         }
       }
     }
 
-    // 如果没有通过 SSE 完成，手动完成
-    if (fullContent && !messages.value.find(m => m.id === (Date.now() + 1).toString())) {
+    if (fullContent) {
       messages.value.push({
         id: (Date.now() + 1).toString(),
         role: 'assistant',
@@ -764,7 +1006,6 @@ const handleSend = async () => {
           tokens: fullContent.length,
           latency: Date.now() - startTime
         },
-        // Phase 4: 自动提取可执行操作
         actions: parseActionsFromResponse(fullContent)
       });
       streamingContent.value = '';
@@ -774,18 +1015,14 @@ const handleSend = async () => {
 
   } catch (error: any) {
     console.error('Chat error:', error);
-
-    // Phase 5: 显示错误提示给用户
     recordPerformance('errors');
     showErrorToast(`AI 对话失败: ${error.message || '网络连接异常'}`);
 
-    // Fallback 到 mock 响应（当后端不可用时）
     console.warn('Falling back to mock response due to:', error.message);
 
     await new Promise(resolve => setTimeout(resolve, 800));
     const mockResponse = getMockResponse(content);
 
-    // 模拟流式输出效果
     let currentIndex = 0;
     const streamInterval = setInterval(() => {
       if (currentIndex < mockResponse.length) {
@@ -805,7 +1042,6 @@ const handleSend = async () => {
             tokens: mockResponse.length,
             latency: 800
           },
-          // Phase 4: 自动提取可执行操作
           actions: parseActionsFromResponse(mockResponse)
         });
 
@@ -1001,17 +1237,62 @@ const createNewSession = () => {
   conversationId.value = null;
   messages.value = [];
   showHistory.value = false;
+  agentStore.clearCurrentSession();
 };
 
 const loadSessions = async () => {
-  // Phase 3对接API
-  sessions.value = [];
+  await agentStore.loadSessions();
+  sessions.value = agentStore.sessions.map((s) => ({
+    id: s.id,
+    title: s.title,
+    updatedAt: s.last_active_at,
+  }));
 };
 
 const switchToSession = async (sessionId: string) => {
-  // Phase 3对接API
-  console.log('Switch to session:', sessionId);
+  await agentStore.loadSessionMessages(sessionId);
+  conversationId.value = sessionId;
+  messages.value = agentStore.messages.map((m) => {
+    const metadata = m.metadata ? (typeof m.metadata === 'string' ? JSON.parse(m.metadata) : m.metadata) : {};
+    const toolResults = m.tool_results ? (typeof m.tool_results === 'string' ? JSON.parse(m.tool_results) : m.tool_results) : null;
+    const displayType = m.display_type || null;
+
+    let toolResultData = null;
+    if (toolResults && toolResults.length > 0) {
+      const firstResult = toolResults[0];
+      toolResultData = {
+        displayType: displayType || 'card',
+        data: firstResult.result?.data || firstResult.data,
+        success: firstResult.result?.success ?? firstResult.success ?? true,
+      };
+    }
+
+    return {
+      id: m.id,
+      role: m.role,
+      content: m.content,
+      timestamp: new Date(m.created_at),
+      metadata,
+      toolResultData,
+      actions: [],
+    };
+  });
   showHistory.value = false;
+};
+
+const handleConfirmAction = () => {
+  confirmDialogVisible.value = false;
+  handleSend(true);
+};
+
+const handleCancelAction = () => {
+  confirmDialogVisible.value = false;
+  messages.value.push({
+    id: Date.now().toString(),
+    role: 'assistant',
+    content: '操作已取消。',
+    timestamp: new Date(),
+  });
 };
 
 // 文件上传
@@ -1177,16 +1458,15 @@ const fetchDashboardData = async () => {
 // ════════════════════════════════════════
 
 onMounted(async () => {
-  // Phase 5: 记录加载开始时间
   const loadStartTime = Date.now();
 
-  // 并行加载数据
   await Promise.all([
     refreshWittyComment(),
     fetchDashboardData(),
     loadRecentVisits(),
     fetchPendingTasks(),
-    shuffleSuggestions()
+    shuffleSuggestions(),
+    modelStore.fetchModels().catch(() => {}),
   ]);
 
   // Phase 4: 根据当前路由初始化推荐内容
@@ -1229,6 +1509,13 @@ onMounted(async () => {
 
   window.addEventListener('keydown', handleKeyboardShortcuts);
 
+  const handleClickOutside = (e: MouseEvent) => {
+    if (showModelMenu.value && modelDropdownRef.value && !modelDropdownRef.value.contains(e.target as Node)) {
+      showModelMenu.value = false;
+    }
+  };
+  document.addEventListener('click', handleClickOutside);
+
   // Phase 5: 记录性能指标
   recordPerformance('loadTime', Date.now() - loadStartTime);
   console.log(`[Dashboard] 加载完成, 耗时=${Date.now() - loadStartTime}ms`)
@@ -1236,6 +1523,7 @@ onMounted(async () => {
     // 清理函数（在 onUnmounted 中调用）
     ; (window as any).__dashboardCleanup = () => {
       window.removeEventListener('keydown', handleKeyboardShortcuts);
+      document.removeEventListener('click', handleClickOutside);
     };
 });
 
@@ -1307,6 +1595,37 @@ onUnmounted(() => {
 .error-fade-leave-to {
   transform: translateX(100%);
   opacity: 0;
+}
+
+.action-toast {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10000;
+  background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+  color: #065f46;
+  padding: 10px 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.2);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  border: 1px solid #a7f3d0;
+  animation: toastIn 0.3s ease-out;
+}
+
+@keyframes toastIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
 }
 
 .ai-dashboard {
@@ -2068,11 +2387,25 @@ onUnmounted(() => {
         line-height: 1.5;
       }
 
+      .user-message-footer {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 4px;
+      }
+
       .message-time {
         font-size: 11px;
         color: #94a3b8;
-        margin-top: 4px;
       }
+      .user-actions {
+        opacity: 0;
+        transition: opacity 0.2s;
+      }
+    }
+
+    &:hover .user-actions {
+      opacity: 1;
     }
 
     &.message-assistant {
@@ -2091,10 +2424,15 @@ onUnmounted(() => {
         }
       }
 
+      .assistant-message-content {
+        display: flex;
+        flex-direction: column;
+        max-width: 80%;
+      }
+
       .assistant-bubble {
         background: #f8fafc;
         border: 1px solid #e2e8f0;
-        max-width: 80%;
         padding: 16px 20px;
         border-radius: 18px 18px 18px 4px;
 
@@ -2187,12 +2525,48 @@ onUnmounted(() => {
         }
       }
 
-      &.typing .cursor-blink {
-        animation: blink 1s step-end infinite;
-        color: #10B981;
-        font-weight: bold;
-        margin-left: 2px;
+      .message-action-icons {
+        display: flex;
+        gap: 4px;
+        margin-top: 6px;
+        padding-left: 4px;
+        opacity: 0;
+        transition: opacity 0.2s;
+
+        .msg-icon-btn {
+          width: 28px;
+          height: 28px;
+          border-radius: 6px;
+          border: none;
+          background: transparent;
+          cursor: pointer;
+          color: #94a3b8;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.2s;
+
+          &:hover {
+            background: #f1f5f9;
+            color: #10B981;
+          }
+
+          &:active {
+            transform: scale(0.92);
+          }
+        }
       }
+    }
+
+    &:hover .message-action-icons {
+      opacity: 1;
+    }
+
+    &.typing .cursor-blink {
+      animation: blink 1s step-end infinite;
+      color: #10B981;
+      font-weight: bold;
+      margin-left: 2px;
     }
   }
 
@@ -2381,16 +2755,23 @@ onUnmounted(() => {
         align-items: center;
         gap: 8px;
 
-        .model-selector-wrap {
-          position: relative;
+        .model-selector {
+          display: flex;
+          align-items: center;
+          flex-shrink: 0;
+          margin-right: 4px;
 
-          .model-selector-btn {
+          .model-dropdown-wrap {
+            position: relative;
+          }
+
+          .model-dropdown-trigger {
             display: flex;
             align-items: center;
             gap: 6px;
-            padding: 4px 10px;
-            border-radius: 20px;
+            padding: 4px 8px;
             border: 1px solid #e2e8f0;
+            border-radius: 8px;
             background: white;
             cursor: pointer;
             transition: all 0.2s;
@@ -2401,69 +2782,103 @@ onUnmounted(() => {
               background: #f0fdf4;
             }
 
-            .model-logo {
+            .model-trigger-logo {
               width: 18px;
               height: 18px;
-              border-radius: 4px;
               object-fit: contain;
+              border-radius: 3px;
             }
 
-            .model-name {
+            .model-trigger-name {
               font-size: 12px;
-              color: #475569;
+              color: #334155;
               font-weight: 500;
-            }
-
-            .model-arrow {
-              color: #94a3b8;
-              transition: transform 0.2s;
             }
           }
 
-          .model-dropdown {
+          .model-dropdown-panel {
             position: absolute;
             bottom: calc(100% + 8px);
             left: 0;
-            min-width: 180px;
+            min-width: 200px;
+            max-height: 280px;
+            overflow-y: auto;
             background: white;
             border: 1px solid #e2e8f0;
             border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-            padding: 6px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
             z-index: 100;
+            padding: 6px;
 
-            .model-option {
+            &::-webkit-scrollbar {
+              width: 4px;
+            }
+
+            &::-webkit-scrollbar-thumb {
+              background: #cbd5e1;
+              border-radius: 2px;
+            }
+          }
+
+          .model-dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.15s;
+
+            &:hover {
+              background: #f1f5f9;
+            }
+
+            &.active {
+              background: #ecfdf5;
+            }
+
+            .model-item-logo-wrap {
+              position: relative;
+              width: 24px;
+              height: 24px;
               display: flex;
               align-items: center;
-              gap: 8px;
-              padding: 10px 12px;
-              border-radius: 8px;
-              cursor: pointer;
-              transition: all 0.15s;
-              font-size: 13px;
-              color: #475569;
+              justify-content: center;
+              flex-shrink: 0;
+              border-radius: 6px;
+              background: #f8fafc;
+              overflow: hidden;
 
-              &:hover {
-                background: #f1f5f9;
-              }
-
-              &.active {
-                background: #f0fdf4;
-                color: #10B981;
-                font-weight: 500;
-              }
-
-              .model-logo-sm {
-                width: 20px;
-                height: 20px;
-                border-radius: 4px;
+              .model-item-logo {
+                width: 100%;
+                height: 100%;
                 object-fit: contain;
               }
 
-              .check-icon {
-                margin-left: auto;
-                color: #10B981;
+              .model-item-fallback {
+                display: none;
+                position: absolute;
+                inset: 0;
+                align-items: center;
+                justify-content: center;
+                font-size: 11px;
+                font-weight: 700;
+                background: #f1f5f9;
+                border-radius: 6px;
               }
+            }
+
+            .model-item-name {
+              flex: 1;
+              font-size: 13px;
+              color: #334155;
+              font-weight: 500;
+            }
+
+            .model-item-check {
+              color: #10B981;
+              display: flex;
+              align-items: center;
             }
           }
         }
