@@ -2008,7 +2008,7 @@ users ──1:1──→ agent_role_config
 ### 数据库工具命令
 
 ```bash
-# 导出完整备份（14张表 + 392条记录）
+# 导出完整备份（31张表 + 全量记录）
 npx tsx src/scripts/exportDatabase.ts
 
 # 恢复数据库（自动使用最新备份）
