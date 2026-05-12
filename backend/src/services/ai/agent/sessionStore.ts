@@ -89,6 +89,8 @@ export class SessionStore {
 
   deleteSession(sessionId: string): boolean {
     const db = getDb();
+    db.prepare("DELETE FROM agent_messages WHERE session_id = ?").run(sessionId);
+    db.prepare("DELETE FROM agent_pending_confirmations WHERE session_id = ?").run(sessionId);
     const result = db.prepare("DELETE FROM agent_sessions WHERE id = ?").run(
       sessionId
     );

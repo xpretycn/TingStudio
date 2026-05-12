@@ -26,9 +26,9 @@ const pendingConfirmations = new Map<string, PendingConfirmation>();
 function savePendingConfirmation(sessionId: string, pending: PendingConfirmation): void {
   try {
     const db = getDb();
-    db.prepare("INSERT OR REPLACE INTO agent_pending_confirmations (session_id, tool_name, params_json, confirm_message) VALUES (?, ?, ?, ?)").run(
-      sessionId, pending.toolName, JSON.stringify(pending.params), pending.confirmMessage
-    );
+    db.prepare(
+      "INSERT OR REPLACE INTO agent_pending_confirmations (session_id, tool_name, params_json, confirm_message) VALUES (?, ?, ?, ?)",
+    ).run(sessionId, pending.toolName, JSON.stringify(pending.params), pending.confirmMessage);
   } catch (error) {
     console.error("[AIAgent] 保存确认状态失败:", error);
   }
@@ -62,11 +62,28 @@ function deletePendingConfirmation(sessionId: string): void {
 
 let cachedSystemPrompt: string | null = null;
 
-function getSystemPrompt(): string {
+function getSystemPrompt(userId?: string): string {
+  if (!userId) {
+    if (!cachedSystemPrompt) {
+      cachedSystemPrompt = promptEngine.buildSystemPrompt(JSON.stringify(toolRegistry.getToolsForLLM(), null, 2));
+    }
+    return cachedSystemPrompt;
+  }
+  try {
+    const db = getDb();
+    const roleRow = db
+      .prepare(
+        "SELECT agent_name, user_title, greeting, tone_style, custom_instructions FROM agent_role_config WHERE user_id = ?",
+      )
+      .get(userId) as any;
+    if (roleRow) {
+      return promptEngine.buildSystemPrompt(JSON.stringify(toolRegistry.getToolsForLLM(), null, 2), roleRow);
+    }
+  } catch (error) {
+    console.error("[AIAgent] 读取身份配置失败，使用默认:", error);
+  }
   if (!cachedSystemPrompt) {
-    cachedSystemPrompt = promptEngine.buildSystemPrompt(
-      JSON.stringify(toolRegistry.getToolsForLLM(), null, 2)
-    );
+    cachedSystemPrompt = promptEngine.buildSystemPrompt(JSON.stringify(toolRegistry.getToolsForLLM(), null, 2));
   }
   return cachedSystemPrompt;
 }
@@ -77,13 +94,14 @@ function invalidateSystemPromptCache(): void {
 
 class AIAgentController {
   async handleChat(req: Request, res: Response): Promise<void> {
-    const { message, sessionId, stream = true, confirmed = false, model } = req.body;
+    const { message, sessionId, stream = true, confirmed = false, model, modelVersion } = req.body;
     const userId = (req as any).user?.userId;
     if (!userId) {
       res.status(401).json({ success: false, error: "认证信息缺失，请重新登录" });
       return;
     }
     const selectedModel = model || "deepseek";
+    const selectedModelVersion = modelVersion || undefined;
 
     if (!message || typeof message !== "string") {
       res.status(400).json({
@@ -95,7 +113,8 @@ class AIAgentController {
 
     let session = sessionId ? sessionStore.getSession(sessionId) : null;
     if (!session) {
-      const title = message.slice(0, MAX_SESSION_TITLE_LENGTH) + (message.length > MAX_SESSION_TITLE_LENGTH ? "..." : "");
+      const title =
+        message.slice(0, MAX_SESSION_TITLE_LENGTH) + (message.length > MAX_SESSION_TITLE_LENGTH ? "..." : "");
       session = sessionStore.createSession(userId, title);
     }
 
@@ -104,13 +123,13 @@ class AIAgentController {
     if (confirmed) {
       const pending = loadPendingConfirmation(session.id);
       if (pending) {
-        await this.handleConfirmedAction(req, res, session.id, userId, selectedModel);
+        await this.handleConfirmedAction(req, res, session.id, userId, selectedModel, selectedModelVersion);
         return;
       }
     }
 
     if (stream) {
-      await this.handleReActStream(req, res, session.id, userId, message, selectedModel);
+      await this.handleReActStream(req, res, session.id, userId, message, selectedModel, selectedModelVersion);
     } else {
       await this.handleNormalChat(res, session.id, userId, message);
     }
@@ -137,17 +156,18 @@ class AIAgentController {
     sessionId: string,
     userId: string,
     userMessage: string,
-    selectedModel: string = "deepseek"
+    selectedModel: string = "deepseek",
+    selectedModelVersion?: string,
   ): Promise<void> {
     const abortController = this.setupSSE(res);
 
     try {
       const recentMessages = sessionStore.getRecentMessages(sessionId, 10);
       const contextMessages: Array<{ role: "user" | "assistant"; content: string }> = recentMessages
-        .filter((m) => m.role === "user" || m.role === "assistant")
-        .map((m) => ({ role: m.role as "user" | "assistant", content: m.content }));
+        .filter(m => m.role === "user" || m.role === "assistant")
+        .map(m => ({ role: m.role as "user" | "assistant", content: m.content }));
 
-      const systemPrompt = getSystemPrompt();
+      const systemPrompt = getSystemPrompt(userId);
       let messages: ChatMessage[] = [
         { role: "system", content: systemPrompt },
         ...contextMessages.slice(-MAX_CONTEXT_MESSAGES),
@@ -156,23 +176,42 @@ class AIAgentController {
 
       let iteration = 0;
       let finalContent = "";
+      let streamedContent = "";
       const allToolCalls: any[] = [];
       const allToolResults: any[] = [];
+      let totalTokenUsage = { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 };
 
       while (iteration < MAX_REACT_ITERATIONS) {
         if (abortController.signal.aborted) break;
         iteration++;
 
-        const llmResponse = await this.callLLMWithTools(messages, selectedModel, abortController);
+        let iterationContent = "";
+        const llmResponse = await this.callLLMWithTools(
+          messages,
+          selectedModel,
+          abortController,
+          selectedModelVersion,
+          chunk => {
+            iterationContent += chunk;
+            streamedContent += chunk;
+            this.sendSSEEvent(res, "chunk", { content: chunk });
+          },
+        );
+
+        if (llmResponse.usage) {
+          totalTokenUsage.prompt_tokens += llmResponse.usage.prompt_tokens || 0;
+          totalTokenUsage.completion_tokens += llmResponse.usage.completion_tokens || 0;
+          totalTokenUsage.total_tokens += llmResponse.usage.total_tokens || 0;
+        }
 
         if (!llmResponse.tool_calls || llmResponse.tool_calls.length === 0) {
-          finalContent = llmResponse.content || "";
+          finalContent = iterationContent || llmResponse.content || "";
           break;
         }
 
         const assistantMsg: ChatMessage = {
           role: "assistant",
-          content: llmResponse.content || "",
+          content: iterationContent || llmResponse.content || "",
           tool_calls: llmResponse.tool_calls,
         };
         messages.push(assistantMsg);
@@ -256,39 +295,42 @@ class AIAgentController {
         }
       }
 
-      if (!finalContent) {
+      if (!finalContent && !streamedContent) {
         const summaryMessages: ChatMessage[] = [
           ...messages,
           { role: "user", content: "请根据以上工具调用结果，生成简洁的中文总结回复。" },
         ];
         let streamContent = "";
-        await llmAgentService.streamChat(
+        const summaryResult = await llmAgentService.streamChat(
           { messages: summaryMessages },
-          (chunk) => {
+          chunk => {
             if (abortController.signal.aborted) return;
             streamContent += chunk;
             this.sendSSEEvent(res, "chunk", { content: chunk });
           },
           undefined,
           selectedModel,
+          selectedModelVersion,
         );
         finalContent = streamContent || "已完成工具调用，但未生成最终回复。";
-      } else {
-        const chunkSize = 2;
-        for (let i = 0; i < finalContent.length; i += chunkSize) {
-          const chunk = finalContent.slice(i, i + chunkSize);
-          this.sendSSEEvent(res, "chunk", { content: chunk });
+        if (summaryResult.usage) {
+          totalTokenUsage.prompt_tokens += summaryResult.usage.prompt_tokens || 0;
+          totalTokenUsage.completion_tokens += summaryResult.usage.completion_tokens || 0;
+          totalTokenUsage.total_tokens += summaryResult.usage.total_tokens || 0;
         }
+      } else {
+        finalContent = finalContent || streamedContent;
       }
 
       sessionStore.addMessage(sessionId, "assistant", finalContent, {
         toolCalls: allToolCalls.length > 0 ? allToolCalls : undefined,
         toolResults: allToolResults.length > 0 ? allToolResults : undefined,
-        displayType: allToolResults.length > 0 ? this.inferDisplayType(allToolCalls[0]?.name || "", allToolResults[0]) : undefined,
+        displayType:
+          allToolResults.length > 0 ? this.inferDisplayType(allToolCalls[0]?.name || "", allToolResults[0]) : undefined,
       });
       sessionStore.updateSessionActivity(sessionId);
 
-      this.sendSSEEvent(res, "done", { sessionId });
+      this.sendSSEEvent(res, "done", { sessionId, usage: totalTokenUsage });
       res.end();
     } catch (error) {
       console.error("[AIAgent] ReAct stream error:", error);
@@ -302,8 +344,14 @@ class AIAgentController {
   private async callLLMWithTools(
     messages: ChatMessage[],
     provider: string,
-    abortController: AbortController
-  ): Promise<{ content: string; tool_calls?: Array<{ id: string; type: "function"; function: { name: string; arguments: string } }> }> {
+    abortController: AbortController,
+    modelVersion?: string,
+    onChunk?: (chunk: string) => void,
+  ): Promise<{
+    content: string;
+    tool_calls?: Array<{ id: string; type: "function"; function: { name: string; arguments: string } }>;
+    usage?: { prompt_tokens: number; completion_tokens: number; total_tokens: number };
+  }> {
     if (abortController.signal.aborted) {
       return { content: "" };
     }
@@ -313,20 +361,29 @@ class AIAgentController {
 
     const result = await llmAgentService.streamChat(
       { messages, tools },
-      (chunk) => {},
-      (toolCall) => {
+      chunk => {
+        if (onChunk && !abortController.signal.aborted) {
+          onChunk(chunk);
+        }
+      },
+      toolCall => {
         toolCallResults.push(toolCall);
       },
       provider,
+      modelVersion,
     );
 
     return {
       content: result.content,
-      tool_calls: toolCallResults.length > 0 ? toolCallResults.map(tc => ({
-        id: tc.id,
-        type: "function" as const,
-        function: { name: tc.name, arguments: tc.arguments },
-      })) : undefined,
+      tool_calls:
+        toolCallResults.length > 0
+          ? toolCallResults.map(tc => ({
+              id: tc.id,
+              type: "function" as const,
+              function: { name: tc.name, arguments: tc.arguments },
+            }))
+          : undefined,
+      usage: result.usage,
     };
   }
 
@@ -355,7 +412,8 @@ class AIAgentController {
     res: Response,
     sessionId: string,
     userId: string,
-    selectedModel: string = "deepseek"
+    selectedModel: string = "deepseek",
+    selectedModelVersion?: string,
   ): Promise<void> {
     const abortController = this.setupSSE(res);
 
@@ -402,10 +460,10 @@ class AIAgentController {
 
       const recentMessages = sessionStore.getRecentMessages(sessionId, 10);
       const contextMessages: Array<{ role: "user" | "assistant"; content: string }> = recentMessages
-        .filter((m) => m.role === "user" || m.role === "assistant")
-        .map((m) => ({ role: m.role as "user" | "assistant", content: m.content }));
+        .filter(m => m.role === "user" || m.role === "assistant")
+        .map(m => ({ role: m.role as "user" | "assistant", content: m.content }));
 
-      const systemPrompt = getSystemPrompt();
+      const systemPrompt = getSystemPrompt(userId);
       const toolResultStr = JSON.stringify(toolResult.data || toolResult.error).slice(0, MAX_TOOL_RESULT_LENGTH);
       const finalMessages: ChatMessage[] = [
         { role: "system", content: systemPrompt },
@@ -417,16 +475,25 @@ class AIAgentController {
       ];
 
       let fullContent = "";
-      await llmAgentService.streamChat(
+      const confirmResult = await llmAgentService.streamChat(
         { messages: finalMessages },
-        (chunk) => {
+        chunk => {
           if (abortController.signal.aborted) return;
           fullContent += chunk;
           this.sendSSEEvent(res, "chunk", { content: chunk });
         },
         undefined,
         selectedModel,
+        selectedModelVersion,
       );
+
+      const confirmTokenUsage = confirmResult.usage
+        ? {
+            prompt_tokens: confirmResult.usage.prompt_tokens || 0,
+            completion_tokens: confirmResult.usage.completion_tokens || 0,
+            total_tokens: confirmResult.usage.total_tokens || 0,
+          }
+        : { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 };
 
       sessionStore.addMessage(sessionId, "assistant", fullContent, {
         toolCalls: [{ name: pending.toolName, arguments: pending.params }],
@@ -435,7 +502,7 @@ class AIAgentController {
       });
       sessionStore.updateSessionActivity(sessionId);
 
-      this.sendSSEEvent(res, "done", { sessionId });
+      this.sendSSEEvent(res, "done", { sessionId, usage: confirmTokenUsage });
       res.end();
     } catch (error) {
       console.error("[AIAgent] Confirmed action error:", error);
@@ -447,7 +514,12 @@ class AIAgentController {
   }
 
   private inferDisplayType(toolName: string, result: ToolResult): string {
-    if (toolName.includes("query") || toolName.includes("search") || toolName.includes("analyze") || toolName.includes("nl2sql")) {
+    if (
+      toolName.includes("query") ||
+      toolName.includes("search") ||
+      toolName.includes("analyze") ||
+      toolName.includes("nl2sql")
+    ) {
       return "table";
     }
     if (toolName.includes("calculate") || toolName.includes("validate")) {
@@ -456,7 +528,7 @@ class AIAgentController {
     if (toolName.includes("create") || toolName.includes("update") || toolName.includes("delete")) {
       return "toast";
     }
-    if (result.data && (Array.isArray(result.data) || (Array.isArray((result.data as any)?.rows)))) {
+    if (result.data && (Array.isArray(result.data) || Array.isArray((result.data as any)?.rows))) {
       return "table";
     }
     return "card";
@@ -509,14 +581,9 @@ class AIAgentController {
     }
   }
 
-  private async handleNormalChat(
-    res: Response,
-    sessionId: string,
-    userId: string,
-    userMessage: string
-  ): Promise<void> {
+  private async handleNormalChat(res: Response, sessionId: string, userId: string, userMessage: string): Promise<void> {
     try {
-      const systemPrompt = getSystemPrompt();
+      const systemPrompt = getSystemPrompt(userId);
       const recentMessages = sessionStore.getRecentMessages(sessionId, 20);
       const chatHistory = sessionStore.messagesToChatHistory(recentMessages) as ChatMessage[];
 
@@ -532,11 +599,7 @@ class AIAgentController {
       });
 
       if (result.tool_calls && result.tool_calls.length > 0) {
-        const toolResults = await this.executeToolCalls(
-          result.tool_calls,
-          userId,
-          sessionId
-        );
+        const toolResults = await this.executeToolCalls(result.tool_calls, userId, sessionId);
 
         sessionStore.addMessage(sessionId, "assistant", result.content || "", {
           toolCalls: result.tool_calls,
@@ -577,7 +640,7 @@ class AIAgentController {
   private async executeToolCalls(
     toolCalls: Array<{ id: string; name: string; arguments: string }>,
     userId: string,
-    sessionId: string
+    sessionId: string,
   ): Promise<Array<{ id: string; name: string; result: ToolResult }>> {
     const results = [];
 
@@ -611,6 +674,90 @@ class AIAgentController {
   private sendSSEEvent(res: Response, type: string, data: any): void {
     if (!res.writableEnded) {
       res.write(`data: ${JSON.stringify({ type, ...data })}\n\n`);
+    }
+  }
+
+  async getRoleConfig(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = (req as any).user?.userId;
+      if (!userId) {
+        res.status(401).json({ success: false, error: "认证信息缺失" });
+        return;
+      }
+      const db = getDb();
+      let row = db.prepare("SELECT * FROM agent_role_config WHERE user_id = ?").get(userId) as any;
+      if (!row) {
+        const id = crypto.randomUUID();
+        db.prepare(
+          "INSERT INTO agent_role_config (id, user_id, agent_name, user_title, greeting, tone_style, custom_instructions) VALUES (?, ?, '小听', '老板', '', 'professional', '')",
+        ).run(id, userId);
+        row = db.prepare("SELECT * FROM agent_role_config WHERE user_id = ?").get(userId) as any;
+      }
+      res.json({ success: true, data: row });
+    } catch (error) {
+      res.status(500).json({ success: false, error: error instanceof Error ? error.message : "获取身份配置失败" });
+    }
+  }
+
+  async updateRoleConfig(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = (req as any).user?.userId;
+      if (!userId) {
+        res.status(401).json({ success: false, error: "认证信息缺失" });
+        return;
+      }
+      const { agent_name, user_title, greeting, tone_style, custom_instructions } = req.body;
+
+      const db = getDb();
+      const existing = db.prepare("SELECT id FROM agent_role_config WHERE user_id = ?").get(userId) as any;
+      if (!existing) {
+        const id = crypto.randomUUID();
+        db.prepare(
+          "INSERT INTO agent_role_config (id, user_id, agent_name, user_title, greeting, tone_style, custom_instructions) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        ).run(
+          id,
+          userId,
+          agent_name || "小听",
+          user_title || "老板",
+          greeting || "",
+          tone_style || "professional",
+          custom_instructions || "",
+        );
+      } else {
+        const setClauses: string[] = [];
+        const sqlParams: any[] = [];
+        if (agent_name !== undefined) {
+          setClauses.push("agent_name = ?");
+          sqlParams.push(agent_name);
+        }
+        if (user_title !== undefined) {
+          setClauses.push("user_title = ?");
+          sqlParams.push(user_title);
+        }
+        if (greeting !== undefined) {
+          setClauses.push("greeting = ?");
+          sqlParams.push(greeting);
+        }
+        if (tone_style !== undefined) {
+          setClauses.push("tone_style = ?");
+          sqlParams.push(tone_style);
+        }
+        if (custom_instructions !== undefined) {
+          setClauses.push("custom_instructions = ?");
+          sqlParams.push(custom_instructions);
+        }
+        if (setClauses.length > 0) {
+          setClauses.push("updated_at = datetime('now')");
+          sqlParams.push(userId);
+          db.prepare(`UPDATE agent_role_config SET ${setClauses.join(", ")} WHERE user_id = ?`).run(...sqlParams);
+        }
+      }
+
+      invalidateSystemPromptCache();
+      const row = db.prepare("SELECT * FROM agent_role_config WHERE user_id = ?").get(userId) as any;
+      res.json({ success: true, data: row });
+    } catch (error) {
+      res.status(500).json({ success: false, error: error instanceof Error ? error.message : "更新身份配置失败" });
     }
   }
 }

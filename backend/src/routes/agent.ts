@@ -8,3 +8,5 @@ agentRouter.post("/chat", authMiddleware, (req, res) => aiAgentController.handle
 agentRouter.get("/sessions", authMiddleware, (req, res) => aiAgentController.getSessions(req, res));
 agentRouter.get("/sessions/:sessionId", authMiddleware, (req, res) => aiAgentController.getSessionMessages(req, res));
 agentRouter.delete("/sessions/:sessionId", authMiddleware, (req, res) => aiAgentController.deleteSession(req, res));
+agentRouter.get("/role-config", authMiddleware, (req, res) => aiAgentController.getRoleConfig(req, res));
+agentRouter.put("/role-config", authMiddleware, (req, res) => aiAgentController.updateRoleConfig(req, res));

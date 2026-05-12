@@ -400,6 +400,26 @@ function runAutoMigrations(dbInstance: Database.Database) {
     )
   `,
   );
+
+  ensureTable(
+    dbInstance,
+    "agent_role_config",
+    `
+    CREATE TABLE agent_role_config (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL UNIQUE,
+      agent_name TEXT NOT NULL DEFAULT '小听',
+      user_title TEXT NOT NULL DEFAULT '老板',
+      greeting TEXT DEFAULT '',
+      tone_style TEXT DEFAULT 'professional',
+      custom_instructions TEXT DEFAULT '',
+      updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    )
+  `,
+  );
+
   ensureInitialAiModels(dbInstance);
 }
 

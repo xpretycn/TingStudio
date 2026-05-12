@@ -44,6 +44,18 @@ export interface ChatResponse {
   error?: string;
 }
 
+export interface AgentRoleConfig {
+  id: string;
+  user_id: string;
+  agent_name: string;
+  user_title: string;
+  greeting: string;
+  tone_style: string;
+  custom_instructions: string;
+  updated_at: string;
+  created_at: string;
+}
+
 export const agentApi = {
   getSessions() {
     return http.get<any, { success: boolean; data: AgentSession[] }>("/agent/sessions");
@@ -67,5 +79,13 @@ export const agentApi = {
       confirmed: params.confirmed ?? false,
       model: params.model,
     });
+  },
+
+  getRoleConfig() {
+    return http.get<any, { success: boolean; data: AgentRoleConfig }>("/agent/role-config");
+  },
+
+  updateRoleConfig(data: Partial<AgentRoleConfig>) {
+    return http.put<any, { success: boolean; data: AgentRoleConfig }>("/agent/role-config", data);
   },
 };

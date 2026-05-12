@@ -11,10 +11,8 @@ export const useAgentStore = defineStore("agent", () => {
   async function loadSessions() {
     try {
       loading.value = true;
-      const res = await agentApi.getSessions();
-      if (res.success) {
-        sessions.value = res.data;
-      }
+      const data = await agentApi.getSessions();
+      sessions.value = Array.isArray(data) ? data : [];
     } catch (error) {
       console.error("[AgentStore] loadSessions error:", error);
     } finally {
@@ -25,11 +23,9 @@ export const useAgentStore = defineStore("agent", () => {
   async function loadSessionMessages(sessionId: string) {
     try {
       loading.value = true;
-      const res = await agentApi.getSessionMessages(sessionId);
-      if (res.success) {
-        currentSessionId.value = sessionId;
-        messages.value = res.data.messages;
-      }
+      const data = await agentApi.getSessionMessages(sessionId);
+      currentSessionId.value = sessionId;
+      messages.value = data?.messages || [];
     } catch (error) {
       console.error("[AgentStore] loadSessionMessages error:", error);
     } finally {

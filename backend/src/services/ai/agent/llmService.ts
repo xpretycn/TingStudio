@@ -1,5 +1,5 @@
 import { AIService, type ChatMessage, type ChatCompletionOptions } from "../AIService.js";
-import type { LLMRequest, LLMResponse, ToolDefinition } from "../../types/ai.js";
+import type { LLMRequest, LLMResponse } from "../../../types/ai.js";
 
 export class LLMAgentService {
   private aiService: AIService;
@@ -23,12 +23,21 @@ export class LLMAgentService {
           requestSummary: `Agent对话: ${((request.messages[request.messages.length - 1]?.content as string) || "").substring(0, 50)}`,
         };
 
-        const messages = request.messages.map(m => ({
-          role: m.role,
-          content: typeof m.content === "string" ? m.content : m.content,
-        }));
+        const messages = request.messages.map((m: LLMRequest["messages"][number]) => {
+          const msg: Record<string, unknown> = {
+            role: m.role,
+            content: typeof m.content === "string" ? m.content : m.content,
+          };
+          if (m.tool_calls) {
+            msg.tool_calls = m.tool_calls;
+          }
+          if (m.tool_call_id) {
+            msg.tool_call_id = m.tool_call_id;
+          }
+          return msg;
+        }) as ChatMessage[];
 
-        const result = await this.aiService.chatCompletion(provider, messages as ChatMessage[], options);
+        const result = await this.aiService.chatCompletion(provider, messages, options);
 
         return {
           id: `chatcmpl-${Date.now()}`,
@@ -54,6 +63,7 @@ export class LLMAgentService {
     onChunk: (chunk: string) => void,
     onToolCall?: (toolCall: { id: string; name: string; arguments: string }) => void,
     preferredProvider?: string,
+    modelVersion?: string,
   ): Promise<LLMResponse> {
     const requestSummary = `Agent对话: ${((request.messages[request.messages.length - 1]?.content as string) || "").substring(0, 50)}`;
 
@@ -67,19 +77,30 @@ export class LLMAgentService {
       if (!modelConfig?.apiKey) continue;
 
       try {
-        const messages = request.messages.map(m => ({
-          role: m.role,
-          content: typeof m.content === "string" ? m.content : m.content,
-        }));
+        const messages = request.messages.map((m: LLMRequest["messages"][number]) => {
+          const msg: Record<string, unknown> = {
+            role: m.role,
+            content: typeof m.content === "string" ? m.content : m.content,
+          };
+          if (m.tool_calls) {
+            msg.tool_calls = m.tool_calls;
+          }
+          if (m.tool_call_id) {
+            msg.tool_call_id = m.tool_call_id;
+          }
+          return msg;
+        }) as ChatMessage[];
 
         const fullContent = await this.aiService.streamChat(
           provider,
-          messages as ChatMessage[],
+          messages,
           {
             temperature: request.temperature ?? 0.7,
             maxTokens: request.max_tokens ?? 2000,
             callType: "agent_chat",
             requestSummary,
+            overrideModel: modelVersion,
+            tools: request.tools,
           } as ChatCompletionOptions,
           onChunk,
           onToolCall,

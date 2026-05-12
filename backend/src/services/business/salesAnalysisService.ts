@@ -1,18 +1,20 @@
-import type { SalesRecord, SalesAnalysisInput, SalesTrend } from "../../types/sales.js";
+import { getDb } from "../../config/database-better-sqlite3.js";
+
+interface SalesAnalysisInput {
+  start_date?: string;
+  end_date?: string;
+  group_by?: "day" | "week" | "month" | "salesperson" | "region" | "category";
+}
+
+interface SalesTrend {
+  period: string;
+  total_quantity: number;
+  total_amount: number;
+  order_count: number;
+  avg_order_value: number;
+}
 
 class SalesAnalysisService {
-  private records: Map<number, SalesRecord> = new Map();
-  private nextId = 1;
-
-  async addRecord(record: Omit<SalesRecord, "id">): Promise<SalesRecord> {
-    const newRecord: SalesRecord = {
-      ...record,
-      id: this.nextId++,
-    };
-    this.records.set(newRecord.id!, newRecord);
-    return { ...newRecord };
-  }
-
   async analyze(input: SalesAnalysisInput): Promise<{
     summary: {
       total_records: number;
@@ -22,229 +24,136 @@ class SalesAnalysisService {
       avg_amount_per_order: number;
     };
     trends: SalesTrend[];
-    top_products: Array<{ name: string; quantity: number; amount: number }>;
-    top_salespersons: Array<{ id: number; name: string; total_amount: number }>;
-    regional_breakdown: Array<{ region: string; count: number; amount: number }>;
-    anomalies: Array<{
-      date: string;
-      metric: string;
-      value: number;
-      expected_range: [number, number];
-      severity: "low" | "medium" | "high";
-    }>;
+    top_formulas: Array<{ name: string; quantity: number; amount: number }>;
+    top_salespersons: Array<{ id: string; name: string; total_amount: number }>;
+    period_breakdown: Array<{ period_type: string; count: number; amount: number }>;
+    has_data: boolean;
   }> {
-    let filtered = Array.from(this.records.values());
+    const db = getDb();
+
+    const conditions: string[] = [];
+    const sqlParams: any[] = [];
 
     if (input.start_date) {
-      filtered = filtered.filter(r => r.sale_date >= input.start_date!);
+      conditions.push("fs.period_start >= ?");
+      sqlParams.push(input.start_date);
     }
     if (input.end_date) {
-      filtered = filtered.filter(r => r.sale_date <= input.end_date!);
-    }
-    if (input.salesperson_id) {
-      filtered = filtered.filter(r => r.salesperson_id === input.salesperson_id);
-    }
-    if (input.region) {
-      filtered = filtered.filter(r => r.region === input.region);
-    }
-    if (input.category) {
-      filtered = filtered.filter(r => r.category === input.category);
+      conditions.push("fs.period_end <= ?");
+      sqlParams.push(input.end_date);
     }
 
-    const summary = this.calculateSummary(filtered);
-    const trends = this.calculateTrends(filtered, input.group_by || "day");
-    const topProducts = this.getTopProducts(filtered, 10);
-    const topSalespersons = this.getTopSalespersons(filtered, 5);
-    const regionalBreakdown = this.getRegionalBreakdown(filtered);
-    const anomalies = this.detectAnomalies(filtered);
+    const whereSql = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+
+    const totalRow = db.prepare(
+      `SELECT COUNT(*) as total_records, COALESCE(SUM(fs.quantity), 0) as total_quantity, COALESCE(SUM(fs.revenue), 0) as total_amount FROM formula_sales fs ${whereSql}`
+    ).get(...sqlParams) as any;
+
+    const hasData = totalRow?.total_records > 0;
+
+    if (!hasData) {
+      return {
+        summary: { total_records: 0, total_quantity: 0, total_amount: 0, avg_quantity_per_order: 0, avg_amount_per_order: 0 },
+        trends: [],
+        top_formulas: [],
+        top_salespersons: [],
+        period_breakdown: [],
+        has_data: false,
+      };
+    }
+
+    const summary = {
+      total_records: totalRow.total_records,
+      total_quantity: Math.round(totalRow.total_quantity * 100) / 100,
+      total_amount: Math.round(totalRow.total_amount * 100) / 100,
+      avg_quantity_per_order: totalRow.total_records > 0 ? Math.round((totalRow.total_quantity / totalRow.total_records) * 100) / 100 : 0,
+      avg_amount_per_order: totalRow.total_records > 0 ? Math.round((totalRow.total_amount / totalRow.total_records) * 100) / 100 : 0,
+    };
+
+    const groupBy = input.group_by || "month";
+
+    let trends: SalesTrend[] = [];
+    if (groupBy === "month") {
+      const trendRows = db.prepare(
+        `SELECT strftime('%Y-%m', fs.period_start) as period, SUM(fs.quantity) as total_quantity, SUM(fs.revenue) as total_amount, COUNT(*) as order_count FROM formula_sales fs ${whereSql} GROUP BY period ORDER BY period DESC LIMIT 24`
+      ).all(...sqlParams) as any[];
+      trends = trendRows.map(r => ({
+        period: r.period,
+        total_quantity: Math.round(r.total_quantity * 100) / 100,
+        total_amount: Math.round(r.total_amount * 100) / 100,
+        order_count: r.order_count,
+        avg_order_value: r.order_count > 0 ? Math.round((r.total_amount / r.order_count) * 100) / 100 : 0,
+      }));
+    } else if (groupBy === "salesperson") {
+      const trendRows = db.prepare(
+        `SELECT s.name as period, SUM(fs.quantity) as total_quantity, SUM(fs.revenue) as total_amount, COUNT(*) as order_count FROM formula_sales fs JOIN salesmen s ON fs.salesman_id = s.id ${whereSql} GROUP BY fs.salesman_id ORDER BY total_amount DESC LIMIT 20`
+      ).all(...sqlParams) as any[];
+      trends = trendRows.map(r => ({
+        period: r.period,
+        total_quantity: Math.round(r.total_quantity * 100) / 100,
+        total_amount: Math.round(r.total_amount * 100) / 100,
+        order_count: r.order_count,
+        avg_order_value: r.order_count > 0 ? Math.round((r.total_amount / r.order_count) * 100) / 100 : 0,
+      }));
+    } else if (groupBy === "category" || groupBy === "region") {
+      const trendRows = db.prepare(
+        `SELECT fs.period_type as period, SUM(fs.quantity) as total_quantity, SUM(fs.revenue) as total_amount, COUNT(*) as order_count FROM formula_sales fs ${whereSql} GROUP BY fs.period_type ORDER BY total_amount DESC`
+      ).all(...sqlParams) as any[];
+      trends = trendRows.map(r => ({
+        period: r.period,
+        total_quantity: Math.round(r.total_quantity * 100) / 100,
+        total_amount: Math.round(r.total_amount * 100) / 100,
+        order_count: r.order_count,
+        avg_order_value: r.order_count > 0 ? Math.round((r.total_amount / r.order_count) * 100) / 100 : 0,
+      }));
+    } else {
+      const trendRows = db.prepare(
+        `SELECT strftime('%Y-%m-%d', fs.period_start) as period, SUM(fs.quantity) as total_quantity, SUM(fs.revenue) as total_amount, COUNT(*) as order_count FROM formula_sales fs ${whereSql} GROUP BY period ORDER BY period DESC LIMIT 60`
+      ).all(...sqlParams) as any[];
+      trends = trendRows.map(r => ({
+        period: r.period,
+        total_quantity: Math.round(r.total_quantity * 100) / 100,
+        total_amount: Math.round(r.total_amount * 100) / 100,
+        order_count: r.order_count,
+        avg_order_value: r.order_count > 0 ? Math.round((r.total_amount / r.order_count) * 100) / 100 : 0,
+      }));
+    }
+
+    const topFormulaRows = db.prepare(
+      `SELECT f.name, SUM(fs.quantity) as quantity, SUM(fs.revenue) as amount FROM formula_sales fs JOIN formulas f ON fs.formula_id = f.id ${whereSql} GROUP BY fs.formula_id ORDER BY amount DESC LIMIT 10`
+    ).all(...sqlParams) as any[];
+    const top_formulas = topFormulaRows.map(r => ({
+      name: r.name,
+      quantity: Math.round(r.quantity * 100) / 100,
+      amount: Math.round(r.amount * 100) / 100,
+    }));
+
+    const topSalespersonRows = db.prepare(
+      `SELECT s.id, s.name, SUM(fs.revenue) as total_amount FROM formula_sales fs JOIN salesmen s ON fs.salesman_id = s.id ${whereSql} GROUP BY fs.salesman_id ORDER BY total_amount DESC LIMIT 10`
+    ).all(...sqlParams) as any[];
+    const top_salespersons = topSalespersonRows.map(r => ({
+      id: r.id,
+      name: r.name,
+      total_amount: Math.round(r.total_amount * 100) / 100,
+    }));
+
+    const periodRows = db.prepare(
+      `SELECT period_type, COUNT(*) as count, SUM(fs.revenue) as amount FROM formula_sales fs ${whereSql} GROUP BY period_type ORDER BY amount DESC`
+    ).all(...sqlParams) as any[];
+    const period_breakdown = periodRows.map(r => ({
+      period_type: r.period_type,
+      count: r.count,
+      amount: Math.round(r.amount * 100) / 100,
+    }));
 
     return {
       summary,
       trends,
-      top_products: topProducts,
-      top_salespersons: topSalespersons,
-      regional_breakdown: regionalBreakdown,
-      anomalies,
+      top_formulas,
+      top_salespersons,
+      period_breakdown,
+      has_data: true,
     };
-  }
-
-  private calculateSummary(records: SalesRecord[]) {
-    if (records.length === 0) {
-      return {
-        total_records: 0,
-        total_quantity: 0,
-        total_amount: 0,
-        avg_quantity_per_order: 0,
-        avg_amount_per_order: 0,
-      };
-    }
-
-    const totalQuantity = records.reduce((sum, r) => sum + r.quantity, 0);
-    const totalAmount = records.reduce((sum, r) => sum + r.total_amount, 0);
-
-    return {
-      total_records: records.length,
-      total_quantity: Math.round(totalQuantity * 100) / 100,
-      total_amount: Math.round(totalAmount * 100) / 100,
-      avg_quantity_per_order: Math.round((totalQuantity / records.length) * 100) / 100,
-      avg_amount_per_order: Math.round((totalAmount / records.length) * 100) / 100,
-    };
-  }
-
-  private calculateTrends(records: SalesRecord[], groupBy: string): SalesTrend[] {
-    const grouped = new Map<string, SalesRecord[]>();
-
-    for (const record of records) {
-      let key: string;
-
-      switch (groupBy) {
-        case "day":
-          key = record.sale_date.substring(0, 10);
-          break;
-        case "week":
-          const date = new Date(record.sale_date);
-          const weekStart = new Date(date);
-          weekStart.setDate(date.getDate() - date.getDay());
-          key = weekStart.toISOString().substring(0, 10);
-          break;
-        case "month":
-          key = record.sale_date.substring(0, 7);
-          break;
-        case "salesperson":
-          key = `salesperson_${record.salesperson_id}`;
-          break;
-        case "region":
-          key = record.region || "unknown";
-          break;
-        case "category":
-          key = record.category || "unknown";
-          break;
-        default:
-          key = record.sale_date.substring(0, 10);
-      }
-
-      if (!grouped.has(key)) {
-        grouped.set(key, []);
-      }
-      grouped.get(key)!.push(record);
-    }
-
-    const trends: SalesTrend[] = [];
-    for (const [period, groupRecords] of grouped) {
-      const totalQty = groupRecords.reduce((sum, r) => sum + r.quantity, 0);
-      const totalAmt = groupRecords.reduce((sum, r) => sum + r.total_amount, 0);
-
-      trends.push({
-        period,
-        total_quantity: Math.round(totalQty * 100) / 100,
-        total_amount: Math.round(totalAmt * 100) / 100,
-        order_count: groupRecords.length,
-        avg_order_value: Math.round((totalAmt / groupRecords.length) * 100) / 100,
-      });
-    }
-
-    return trends.sort((a, b) => a.period.localeCompare(b.period));
-  }
-
-  private getTopProducts(records: SalesRecord[], limit: number) {
-    const productMap = new Map<string, { quantity: number; amount: number }>();
-
-    for (const record of records) {
-      const existing = productMap.get(record.product_name) || { quantity: 0, amount: 0 };
-      productMap.set(record.product_name, {
-        quantity: existing.quantity + record.quantity,
-        amount: existing.amount + record.total_amount,
-      });
-    }
-
-    return Array.from(productMap.entries())
-      .map(([name, data]) => ({ name, ...data }))
-      .sort((a, b) => b.amount - a.amount)
-      .slice(0, limit);
-  }
-
-  private getTopSalespersons(records: SalesRecord[], limit: number) {
-    const spMap = new Map<number, { total_amount: number }>();
-
-    for (const record of records) {
-      const existing = spMap.get(record.salesperson_id) || { total_amount: 0 };
-      spMap.set(record.salesperson_id, {
-        total_amount: existing.total_amount + record.total_amount,
-      });
-    }
-
-    return Array.from(spMap.entries())
-      .map(([id, data]) => ({ id, name: `业务员${id}`, ...data }))
-      .sort((a, b) => b.total_amount - a.total_amount)
-      .slice(0, limit);
-  }
-
-  private getRegionalBreakdown(records: SalesRecord[]) {
-    const regionMap = new Map<string, { count: number; amount: number }>();
-
-    for (const record of records) {
-      const region = record.region || "未知区域";
-      const existing = regionMap.get(region) || { count: 0, amount: 0 };
-      regionMap.set(region, {
-        count: existing.count + 1,
-        amount: existing.amount + record.total_amount,
-      });
-    }
-
-    return Array.from(regionMap.entries())
-      .map(([region, data]) => ({ region, ...data }))
-      .sort((a, b) => b.amount - a.amount);
-  }
-
-  private detectAnomalies(records: SalesRecord[]) {
-    const anomalies: Array<{
-      date: string;
-      metric: string;
-      value: number;
-      expected_range: [number, number];
-      severity: "low" | "medium" | "high";
-    }> = [];
-
-    if (records.length < 7) return anomalies;
-
-    const dailyData = new Map<string, { count: number; amount: number }>();
-    for (const record of records) {
-      const day = record.sale_date.substring(0, 10);
-      const existing = dailyData.get(day) || { count: 0, amount: 0 };
-      dailyData.set(day, {
-        count: existing.count + 1,
-        amount: existing.amount + record.total_amount,
-      });
-    }
-
-    const amounts = Array.from(dailyData.values())
-      .map(d => d.amount)
-      .sort((a, b) => a - b);
-    const q1 = amounts[Math.floor(amounts.length * 0.25)];
-    const q3 = amounts[Math.floor(amounts.length * 0.75)];
-    const iqr = q3 - q1;
-    const lowerBound = q1 - 1.5 * iqr;
-    const upperBound = q3 + 1.5 * iqr;
-
-    for (const [date, data] of dailyData) {
-      if (data.amount < lowerBound || data.amount > upperBound) {
-        let severity: "low" | "medium" | "high" = "low";
-        const deviation = Math.abs(data.amount - (q1 + q3) / 2) / iqr;
-
-        if (deviation > 2) severity = "high";
-        else if (deviation > 1.5) severity = "medium";
-
-        anomalies.push({
-          date,
-          metric: "total_amount",
-          value: data.amount,
-          expected_range: [lowerBound, upperBound],
-          severity,
-        });
-      }
-    }
-
-    return anomalies;
   }
 }
 

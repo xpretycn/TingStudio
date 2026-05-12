@@ -276,7 +276,6 @@
                     </svg>
                   </div>
                 </div>
-              </div>
               <div class="section-body" :class="{ 'editing-mode': isEditingPlans }" v-show="plansExpanded || isEditingPlans">
                   <template v-if="isEditingPlans">
                     <div class="edit-field">

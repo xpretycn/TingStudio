@@ -153,7 +153,7 @@ export function registerAllTools(): void {
 
   toolRegistry.register({
     name: "create_salesperson",
-    description: "创建新的业务员记录",
+    description: "创建新的业务员记录，数据将写入数据库",
     paramsSchema: z.object({
       name: z.string().min(1).describe("业务员姓名"),
       phone: z.string().optional().describe("联系电话"),
@@ -161,15 +161,20 @@ export function registerAllTools(): void {
       department: z.string().optional().describe("所属部门"),
     }),
     handler: async params => {
-      const result = await salespersonService.create(params);
-      return { success: true, data: result };
+      try {
+        const result = await salespersonService.create(params);
+        return { success: true, data: result };
+      } catch (error) {
+        const msg = error instanceof Error ? error.message : "创建业务员失败";
+        return { success: false, error: `创建业务员失败：${msg}。请检查姓名是否重复或联系管理员` };
+      }
     },
     requiresConfirmation: true,
   });
 
   toolRegistry.register({
     name: "query_salespersons",
-    description: "查询业务员列表，支持搜索和筛选",
+    description: "查询业务员列表，数据来源于数据库salesmen表，支持搜索和筛选",
     paramsSchema: z.object({
       search: z.string().optional().describe("搜索关键词（姓名/电话/邮箱）"),
       status: z.enum(["active", "inactive"]).optional().describe("状态筛选"),
@@ -178,8 +183,15 @@ export function registerAllTools(): void {
       limit: z.number().int().positive().max(100).optional().default(20).describe("每页数量"),
     }),
     handler: async params => {
-      const result = await salespersonService.query(params);
-      return { success: true, data: result };
+      try {
+        const result = await salespersonService.query(params);
+        if (result.data.length === 0) {
+          return { success: true, data: result, message: "数据库中暂无业务员数据。您可以通过「创建业务员」功能添加新的业务员记录。" };
+        }
+        return { success: true, data: result };
+      } catch (error) {
+        return { success: false, error: error instanceof Error ? error.message : "查询业务员失败" };
+      }
     },
     requiresConfirmation: false,
   });
@@ -188,7 +200,7 @@ export function registerAllTools(): void {
     name: "update_salesperson",
     description: "更新业务员信息",
     paramsSchema: z.object({
-      id: z.number().int().positive().describe("业务员ID"),
+      id: z.string().describe("业务员ID"),
       name: z.string().min(1).optional().describe("姓名"),
       phone: z.string().optional().describe("电话"),
       email: z.string().email().optional().describe("邮箱"),
@@ -210,7 +222,7 @@ export function registerAllTools(): void {
     name: "delete_salesperson",
     description: "删除业务员记录",
     paramsSchema: z.object({
-      id: z.number().int().positive().describe("业务员ID"),
+      id: z.string().describe("业务员ID"),
     }),
     handler: async params => {
       const deleted = await salespersonService.delete(params.id);
@@ -224,25 +236,36 @@ export function registerAllTools(): void {
 
   toolRegistry.register({
     name: "analyze_sales",
-    description: "分析销售数据，提供统计摘要、趋势图数据、TOP排行、区域分布和异常检测",
+    description: "分析销售数据，提供统计摘要、趋势、TOP排行等。数据来源于formula_sales表，如果数据库中没有销售记录，会明确告知用户。",
     paramsSchema: z.object({
       start_date: z.string().optional().describe("开始日期 (YYYY-MM-DD)"),
       end_date: z.string().optional().describe("结束日期 (YYYY-MM-DD)"),
       group_by: z
         .enum(["day", "week", "month", "salesperson", "region", "category"])
         .optional()
-        .default("day")
+        .default("month")
         .describe("分组维度"),
     }),
     handler: async params => {
-      const result = await salesAnalysisService.analyze(params);
-      return { success: true, data: result };
+      try {
+        const result = await salesAnalysisService.analyze(params);
+        if (!result.has_data) {
+          return {
+            success: true,
+            data: result,
+            message: "数据库中暂无销售数据。请先通过配方管理页面录入销售数据，或使用「创建销售记录」功能添加数据后再进行分析。",
+          };
+        }
+        return { success: true, data: result };
+      } catch (error) {
+        return { success: false, error: error instanceof Error ? error.message : "销售分析失败，请检查数据库连接是否正常" };
+      }
     },
   });
 
   toolRegistry.register({
     name: "query_formulas",
-    description: "查询配方列表，支持按名称、业务员搜索，返回配方基本信息",
+    description: "查询配方列表，数据来源于数据库formulas表，支持按名称、业务员搜索",
     paramsSchema: z.object({
       keyword: z.string().optional().describe("搜索关键词（配方名称/业务员名称）"),
       salesman_id: z.string().optional().describe("业务员ID筛选"),
@@ -271,6 +294,10 @@ export function registerAllTools(): void {
         const rows = db.prepare(`SELECT f.id, f.code, f.name, f.salesman_name, f.finished_weight, f.ratio_factor, f.description, f.created_at FROM formulas f ${whereSql} ORDER BY f.created_at DESC LIMIT ? OFFSET ?`).all(...sqlParams, limit, offset);
         const countRow = db.prepare(`SELECT COUNT(*) as total FROM formulas f ${whereSql}`).get(...sqlParams) as any;
 
+        if (rows.length === 0) {
+          return { success: true, data: { rows, total: countRow?.total || 0, page, limit }, message: "数据库中暂无配方数据。您可以通过「创建配方」功能添加新的配方。" };
+        }
+
         return { success: true, data: { rows, total: countRow?.total || 0, page, limit } };
       } catch (error) {
         return { success: false, error: error instanceof Error ? error.message : "查询配方失败" };
@@ -280,7 +307,7 @@ export function registerAllTools(): void {
 
   toolRegistry.register({
     name: "query_materials",
-    description: "查询原料列表，支持按名称、编码搜索，返回原料基本信息",
+    description: "查询原料列表，数据来源于数据库materials表，支持按名称、编码搜索",
     paramsSchema: z.object({
       keyword: z.string().optional().describe("搜索关键词（原料名称/编码）"),
       material_type: z.enum(["herb", "supplement"]).optional().describe("原料类型筛选：herb=药材, supplement=辅料"),
@@ -309,6 +336,10 @@ export function registerAllTools(): void {
         const rows = db.prepare(`SELECT id, code, name, unit, stock, material_type, unit_price FROM materials ${whereSql} ORDER BY created_at DESC LIMIT ? OFFSET ?`).all(...sqlParams, limit, offset);
         const countRow = db.prepare(`SELECT COUNT(*) as total FROM materials ${whereSql}`).get(...sqlParams) as any;
 
+        if (rows.length === 0) {
+          return { success: true, data: { rows, total: countRow?.total || 0, page, limit }, message: "数据库中暂无原料数据。您可以通过「创建原料」功能添加新的原料。" };
+        }
+
         return { success: true, data: { rows, total: countRow?.total || 0, page, limit } };
       } catch (error) {
         return { success: false, error: error instanceof Error ? error.message : "查询原料失败" };
@@ -318,7 +349,7 @@ export function registerAllTools(): void {
 
   toolRegistry.register({
     name: "create_formula",
-    description: "创建新配方，需要提供配方名称、业务员信息和原料列表。原料必须使用数据库中已存在的原料ID或名称，不支持凭空创建原料。",
+    description: "创建新配方，需要提供配方名称和原料列表。如果未指定业务员，将自动分配一个活跃的业务员。原料必须使用数据库中已存在的原料ID或名称，不支持凭空创建原料。",
     paramsSchema: z.object({
       name: z.string().min(1).describe("配方名称"),
       salesman_name: z.string().optional().describe("业务员姓名（必须是数据库中已存在的业务员）"),
@@ -354,6 +385,14 @@ export function registerAllTools(): void {
           }
           salesmanId = salesman.id;
           salesmanName = salesman.name;
+        } else {
+          const firstSalesman = db.prepare("SELECT id, name FROM salesmen WHERE status = 'active' ORDER BY created_at DESC LIMIT 1").get() as any;
+          if (firstSalesman) {
+            salesmanId = firstSalesman.id;
+            salesmanName = firstSalesman.name;
+          } else {
+            return { success: false, error: "数据库中没有业务员记录，请先创建业务员后再创建配方" };
+          }
         }
 
         const resolvedMaterials: Array<{
@@ -428,7 +467,8 @@ export function registerAllTools(): void {
           },
         };
       } catch (error) {
-        return { success: false, error: error instanceof Error ? error.message : "创建配方失败" };
+        const msg = error instanceof Error ? error.message : "创建配方失败";
+        return { success: false, error: `创建配方失败：${msg}。请检查：1) 原料名称是否存在于数据库中；2) 业务员信息是否正确；3) 成品重量和原料用量是否合理。您也可以在配方管理页面手动创建。` };
       }
     },
     requiresConfirmation: true,
@@ -436,7 +476,7 @@ export function registerAllTools(): void {
 
   toolRegistry.register({
     name: "create_material",
-    description: "创建新原料，需要提供原料名称",
+    description: "创建新原料，数据将写入数据库",
     paramsSchema: z.object({
       name: z.string().min(1).describe("原料名称"),
       unit: z.string().optional().default("g").describe("计量单位"),
@@ -454,7 +494,8 @@ export function registerAllTools(): void {
         );
         return { success: true, data: { id, code, name: params.name } };
       } catch (error) {
-        return { success: false, error: error instanceof Error ? error.message : "创建原料失败" };
+        const msg = error instanceof Error ? error.message : "创建原料失败";
+        return { success: false, error: `创建原料失败：${msg}。请检查原料名称是否重复，或联系管理员` };
       }
     },
     requiresConfirmation: true,
@@ -562,7 +603,8 @@ export function registerAllTools(): void {
 
         return { success: true, data: { id, updated: Object.keys(updates) } };
       } catch (error) {
-        return { success: false, error: error instanceof Error ? error.message : "更新配方失败" };
+        const msg = error instanceof Error ? error.message : "更新配方失败";
+        return { success: false, error: `更新配方失败：${msg}。请检查配方ID是否正确，或联系管理员` };
       }
     },
     requiresConfirmation: true,
@@ -570,7 +612,7 @@ export function registerAllTools(): void {
 
   toolRegistry.register({
     name: "update_material",
-    description: "更新原料信息，如名称、单价、库存等",
+    description: "更新原料信息，数据将写入数据库",
     paramsSchema: z.object({
       id: z.string().describe("原料ID"),
       name: z.string().optional().describe("原料名称"),
@@ -604,7 +646,8 @@ export function registerAllTools(): void {
 
         return { success: true, data: { id, updated: Object.keys(updates) } };
       } catch (error) {
-        return { success: false, error: error instanceof Error ? error.message : "更新原料失败" };
+        const msg = error instanceof Error ? error.message : "更新原料失败";
+        return { success: false, error: `更新原料失败：${msg}。请检查原料ID是否正确，或联系管理员` };
       }
     },
     requiresConfirmation: true,
@@ -626,7 +669,8 @@ export function registerAllTools(): void {
         db.prepare("DELETE FROM formulas WHERE id = ?").run(params.id);
         return { success: true, data: { id: params.id, name: existing.name } };
       } catch (error) {
-        return { success: false, error: error instanceof Error ? error.message : "删除配方失败" };
+        const msg = error instanceof Error ? error.message : "删除配方失败";
+        return { success: false, error: `删除配方失败：${msg}。请检查配方ID是否正确，或联系管理员` };
       }
     },
     requiresConfirmation: true,
@@ -648,7 +692,8 @@ export function registerAllTools(): void {
         db.prepare("DELETE FROM materials WHERE id = ?").run(params.id);
         return { success: true, data: { id: params.id, name: existing.name } };
       } catch (error) {
-        return { success: false, error: error instanceof Error ? error.message : "删除原料失败" };
+        const msg = error instanceof Error ? error.message : "删除原料失败";
+        return { success: false, error: `删除原料失败：${msg}。请检查原料ID是否正确，或联系管理员` };
       }
     },
     requiresConfirmation: true,

@@ -1,12 +1,122 @@
-# TingStudio v2.30
+# TingStudio v2.31
 
 食品配方工作数据管理平台 — 前后端分离架构
 
 ## 项目简介
 
-TingStudio 是一个专业的食品配方工作数据管理平台，面向食品配方行业（中草药功效配方），提供配方管理、原料管理、业务员管理、营养成分分析、导出分享等完整功能链路。采用 **Vue 3 + Express + SQLite** 前后端分离架构，支持 JWT 认证、RESTful API、配方版本控制、营养合规检查、AI 智能解析等企业级特性。
+TingStudio 是一个专业的食品配方工作数据管理平台，面向食品配方行业（中草药功效配方），提供配方管理、原料管理、业务员管理、营养成分分析、导出分享等完整功能链路。采用 **Vue 3 + Express + SQLite** 前后端分离架构，支持 JWT 认证、RESTful API、配方版本控制、营养合规检查、AI 智能解析、AI Agent 对话助手等企业级特性。
 
-## 🚀 最新更新 (2026-05-12)
+## 🚀 最新更新 (2026-05-13)
+
+### ✅ AI Agent 身份定义系统 + 聊天交互优化 + 数据真实性保障
+
+#### 🤖 AI Agent 身份定义系统
+
+为 AI Agent 增加完整的身份定义功能，支持自定义助手称呼、用户称呼、语气风格、开场问候语和自定义指令：
+
+**新增数据库表 `agent_role_config`**：
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | TEXT PK | 主键 |
+| user_id | TEXT UNIQUE | 用户ID（每用户唯一） |
+| agent_name | TEXT | 助手称呼（默认：小听） |
+| user_title | TEXT | 对用户的称呼（默认：老板） |
+| greeting | TEXT | 开场问候语 |
+| tone_style | TEXT | 语气风格（professional/friendly/respectful/casual） |
+| custom_instructions | TEXT | 自定义行为指令 |
+| updated_at / created_at | TEXT | 时间戳 |
+
+**新增 API 端点**：
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/api/agent/role-config` | 获取当前用户的身份配置 |
+| PUT | `/api/agent/role-config` | 更新当前用户的身份配置 |
+
+**Prompt Engine v3.0.0**：
+
+- 系统提示词模板新增 `{{ROLE_CONFIG}}` 占位符
+- `buildSystemPrompt(toolsDefinition, roleConfig?)` 支持注入身份配置
+- 4 种语气风格映射：专业·简洁高效 / 亲切·温暖活泼 / 恭敬·礼貌正式 / 轻松·随意自然
+- 首次对话时引导用户确认 Agent 身份设置
+
+**前端身份设置弹窗**：
+
+- 历史会话侧边栏新增身份设置按钮（`user-circle` 图标）
+- 表单包含：助手称呼、对您的称呼、语气风格选择、开场问候语、自定义指令
+- 保存后即时生效，自动刷新系统提示词缓存
+
+***
+
+#### 🔽 聊天区域一键回到底部按钮
+
+当用户向上滚动查看历史消息时，聊天区域右下角显示圆形「回到底部」按钮：
+
+| 特性 | 说明 |
+|------|------|
+| 触发条件 | 滚动位置距底部超过 300px 时自动显示 |
+| 按钮位置 | 聊天区域右下角（距底部 80px），`position: absolute` |
+| 按钮样式 | 40×40px 圆形，白底灰边框，hover 变绿色 + 上浮 |
+| 加载指示 | Agent 回复中时，按钮右上角显示绿色脉冲动画小圆点 |
+| 动画效果 | `Transition` 组件淡入淡出 + 上移 |
+| 点击行为 | 一键滚动到底部并隐藏按钮 |
+
+***
+
+#### 🛡️ Agent 数据真实性保障
+
+全面审查 Agent 工具，确保所有数据查询和写入操作基于真实数据库，杜绝 AI 编造数据：
+
+**查询工具增强**：
+
+| 工具 | 修复前 | 修复后 |
+|------|--------|--------|
+| `query_salespersons` | 使用内存 Map | ✅ 查询 SQLite `salesmen` 表 |
+| `analyze_sales` | 使用内存 Map | ✅ 查询 SQLite `formula_sales` 表 |
+| 所有查询工具 | 空数据时编造示例 | ✅ 返回空数据提示信息，引导用户录入 |
+
+**写入工具增强**：
+
+| 工具 | 修复前 | 修复后 |
+|------|--------|--------|
+| `create_formula` | 无业务员时写入空字符串导致 NOT NULL 错误 | ✅ 自动分配第一个活跃业务员 |
+| 所有写入工具 | 失败时无明确提示 | ✅ 具体 try/catch 错误信息 + 用户引导 |
+
+**Prompt Engine v2.2.0 → v3.0.0 数据约束**：
+
+- 新增「数据真实性约束」：禁止编造任何配方、原料、业务员、报告、营养数据
+- 新增「写入操作约束」：写入失败必须明确告知用户并引导下一步操作
+- 系统提示词版本从 v2.2.0 升级到 v3.0.0
+
+***
+
+#### 🎨 其他修复与优化
+
+| 修复项 | 说明 |
+|--------|------|
+| Agent 自动滚动 | `autoScrollToBottom` 包裹 `nextTick()`，阈值从 100px 调整到 300px |
+| 默认模型切换 | Agent 聊天默认模型从 DeepSeek V3 改为 **DeepSeek V4 Flash** |
+| 助手消息区域 padding | `.assistant-bubble` padding 从 `16px 20px` 调整为 `26px 30px` |
+| 身份设置弹窗样式 | 修复 `.role-config-modal` 背景色消失问题（`modal-content` → `modal-container`） |
+
+***
+
+### 影响范围总览
+
+| 文件 | 改动类型 | 说明 |
+|------|----------|------|
+| [database-better-sqlite3.ts](backend/src/config/database-better-sqlite3.ts) | 新增表 | `agent_role_config` 表定义 |
+| [agentController.ts](backend/src/services/ai/agent/agentController.ts) | 功能增强 | 身份配置 API + 按用户注入 roleConfig + 缓存失效 |
+| [promptEngine.ts](backend/src/services/ai/agent/promptEngine.ts) | 重大升级 | v3.0.0 + `{{ROLE_CONFIG}}` + 数据真实性约束 |
+| [toolRegistration.ts](backend/src/services/ai/agent/toolRegistration.ts) | 功能增强 | 查询工具空数据提示 + 写入工具错误处理 + 业务员自动分配 |
+| [salespersonService.ts](backend/src/services/business/salespersonService.ts) | 重写 | 内存 Map → SQLite 查询 |
+| [salesAnalysisService.ts](backend/src/services/business/salesAnalysisService.ts) | 重写 | 内存 Map → SQLite 查询 |
+| [agent.ts (routes)](backend/src/routes/agent.ts) | 新增路由 | GET/PUT `/role-config` |
+| [agent.ts (api)](frontend/src/api/agent.ts) | 新增方法 | `getRoleConfig()` / `updateRoleConfig()` |
+| [AIDashboard.vue](frontend/src/views/ai/AIDashboard.vue) | 多项增强 | 身份设置弹窗 + 回到底部按钮 + 自动滚动修复 + 默认模型 + padding |
+
+***
 
 ### ✅ AI Agent 功能模块审查与修复
 
@@ -1594,7 +1704,7 @@ npx tsx src/scripts/restoreDatabase.ts --force --skip-verify
 | --------- | ----------------- | ----------------------------------- |
 | **后端服务**  | ✅ 正常运行            | Express + SQLite (better-sqlite3)   |
 | **前端应用**  | ✅ 正常运行            | Vue 3 + TDesign + Vite              |
-| **数据库**   | ✅ 13 张表 / 392 条记录 | SQLite WAL 模式，含 132 种原料+营养数据        |
+| **数据库**   | ✅ 31 张表 / 392+ 条记录 | SQLite WAL 模式，含 132 种原料+营养数据+Agent会话 |
 | **AI 解析** | ✅ 匹配率显著提升         | 150+ 别名映射 + 模糊匹配 + 名称标准化            |
 | **配方搜索**  | ✅ 已修复             | watch 响应式监听模式                       |
 | **数据备份**  | ✅ 可用              | exportDatabase / restoreDatabase 脚本 |
@@ -1704,7 +1814,7 @@ npm run seed         # 导入种子数据（可选）
 ┌──────────────────▼──────────────────────────────────┐
 │           SQLite 数据库 (better-sqlite3)              │
 │            WAL 模式 + 外键约束                       │
-│     (14张表 · 392条记录 · 132种原料+销量数据)                 │
+│     (31张表 · 392+条记录 · 132种原料+Agent会话)                │
 └─────────────────────────────────────────────────────┘
 
 数据备份: backend/data/backup/tingstudio_backup_*.json
@@ -1732,7 +1842,19 @@ ting-studio/
 │   │   │   ├── restoreDatabase.ts       # 数据库恢复（JSON→数据库）
 │   │   │   └── test-api.cjs            # API 测试脚本
 │   │   ├── services/                     # 业务服务层
-│   │   │   └── ai/                       # AI 服务 (多模型)
+│   │   │   ├── ai/                       # AI 服务 (多模型)
+│   │   │   │   └── agent/                # AI Agent 对话引擎
+│   │   │   │       ├── agentController.ts # Agent 控制器（聊天/会话/身份配置）
+│   │   │   │       ├── promptEngine.ts   # 提示词引擎 v3.0.0
+│   │   │   │       ├── toolRegistration.ts # 工具注册（查询/创建/修改/删除）
+│   │   │   │       ├── llmService.ts     # LLM 流式调用服务
+│   │   │   │       ├── sessionStore.ts   # 会话持久化（SQLite）
+│   │   │   │       ├── dialogManager.ts  # 对话管理器
+│   │   │   │       ├── intentEngine.ts   # 意图识别引擎
+│   │   │   │       └── toolRegistry.ts   # 工具注册表
+│   │   │   └── business/                # 业务服务
+│   │   │       ├── salespersonService.ts # 业务员服务（SQLite）
+│   │   │       └── salesAnalysisService.ts # 销量分析服务（SQLite）
 │   │   └── utils/                        # 工具函数
 │   ├── scf/                             # 云函数部署包
 │   │   ├── index.js                     # 函数入口
@@ -1814,12 +1936,17 @@ ting-studio/
 
 ### 🤖 AI 智能助手
 
+- **Agent 对话助手**: 自然语言交互，支持创建配方/原料/业务员、查询数据、分析销量
+- **Agent 身份定义**: 自定义助手称呼、用户称呼、语气风格、开场问候语、自定义指令
 - **智能填单**: 上传配方文档 → AI 解析为结构化数据
 - **智能营养解析**: 上传营养文档 → 解析核心营养素
 - **智能检索**: 自然语言查询 → SQL 安全执行
-- **多模型支持**: 通义千问 / 智谱 GLM / DeepSeek
+- **多模型支持**: 通义千问 / 智谱 GLM / DeepSeek（默认 DeepSeek V4 Flash）
+- **SSE 流式响应**: 实时逐字输出，支持自动滚动 + 一键回到底部
+- **会话持久化**: 对话历史自动保存，支持多会话管理
+- **工具确认机制**: 危险操作（删除/修改）需用户确认后执行
 - **文件格式**: Excel / 文本 / 图片 (多模态解析)
-- **安全机制**: SQL 白名单校验 + 数据隔离
+- **安全机制**: SQL 白名单校验 + 数据隔离 + 数据真实性约束
 
 ### 🌤️ 天气服务
 
@@ -1848,6 +1975,24 @@ ting-studio/
 | nutrition\_analysis\_reports  | 营养分析报告   | 0       | report\_id, formula\_id(FK)                                   |
 | share\_configs                | 分享配置     | 0       | config\_id, share\_code, expires\_at                          |
 | api\_data\_interfaces         | API 接口配置 | 20      | interface\_id, name, endpoint                                 |
+| formula\_sales                | 销量数据表    | —       | id, formula\_id(FK), salesman\_id(FK), period, quantity, revenue |
+| reports                       | 报告表      | —       | id, type (weekly/monthly), data\_json, status                 |
+| report\_targets               | 报告指标表    | —       | id, report\_id(FK), target\_name, target\_value               |
+| uploaded\_files               | 文件管理表    | —       | id, filename, mime\_type, size, uploader\_id(FK)              |
+| file\_audit\_log              | 文件审计日志   | —       | id, file\_id(FK), action, operator\_id(FK)                    |
+| file\_relations               | 文件关联表    | —       | id, file\_id(FK), entity\_type, entity\_id                    |
+| ai\_models                    | AI 模型配置  | —       | id, provider, model, api\_key, enabled                        |
+| ai\_usage\_logs               | AI 用量日志  | —       | id, model, tokens, latency, created\_at                      |
+| ai\_alert\_configs            | AI 告警配置  | —       | id, metric, threshold, enabled                                |
+| ai\_alert\_records            | AI 告警记录  | —       | id, config\_id(FK), value, triggered\_at                      |
+| ai\_health\_records           | AI 健康检查  | —       | id, model, status, latency, checked\_at                      |
+| ai\_fallback\_configs         | AI 降级配置  | —       | id, primary\_model, fallback\_model, priority                 |
+| model\_applications           | 模型应用配置   | —       | id, module, provider, model, enabled                          |
+| agent\_sessions               | Agent 会话 | —       | id, user\_id(FK), title, last\_active\_at                     |
+| agent\_messages               | Agent 消息 | —       | id, session\_id(FK), role, content, tool\_results, metadata   |
+| agent\_pending\_confirmations | Agent 待确认 | —      | id, session\_id(FK), tool\_name, params, confirmed            |
+| agent\_role\_config           | Agent 身份 | —       | id, user\_id(UNIQUE), agent\_name, user\_title, tone\_style   |
+| search\_export\_cache         | 搜索导出缓存  | —       | id, query\_hash, result\_json, expires\_at                    |
 
 ### ER 关系核心链路
 
@@ -1856,6 +2001,8 @@ users ──1:N──→ formulas ──1:N──→ formula_versions
                     │
 salesmen ──1:N──────┘
 materials ──1:1──→ material_nutrition
+users ──1:N──→ agent_sessions ──1:N──→ agent_messages
+users ──1:1──→ agent_role_config
 ```
 
 ### 数据库工具命令
@@ -2155,8 +2302,8 @@ MIT License
 
 ---
 
-**最后更新**: 2026-05-12
-**版本**: v2.30.0 (AI Agent 审查修复 + 智能检索优化)
+**最后更新**: 2026-05-13
+**版本**: v2.31.0 (AI Agent 身份定义 + 聊天交互优化 + 数据真实性保障)
 **维护者**: TingStudio Team
 ```
 
