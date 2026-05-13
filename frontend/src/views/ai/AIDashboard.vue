@@ -152,6 +152,14 @@
                               :display-type="msg.toolResultData.displayType || 'card'" :data="msg.toolResultData.data"
                               :is-success="msg.toolResultData.success" />
 
+                            <AgentFormRenderer v-if="msg.formSchema && !msg.formSubmitted" :form-schema="msg.formSchema"
+                              @submit="(data) => handleFormSubmit(msg, data)" @cancel="handleFormCancel(msg)" />
+
+                            <div v-if="msg.formSubmitted" class="form-submitted-notice">
+                              <t-icon name="check-circle" size="16px" />
+                              <span>{{ msg.formSubmitSuccess ? '表单提交成功' : '表单提交失败' }}</span>
+                            </div>
+
                             <div v-if="msg.actions?.length > 0" class="message-actions">
                               <button v-for="action in msg.actions" :key="action.id" class="action-btn"
                                 @click="executeAction(action)">
@@ -160,17 +168,32 @@
                               </button>
                             </div>
 
-                            <div class="message-meta" v-if="msg.metadata">
-                              <span>{{ msg.metadata.model }}</span>
-                              <span>·</span>
-                              <span>{{ msg.metadata.latency }}ms</span>
+                            <div class="message-meta"
+                              v-if="msg.metadata && (msg.metadata.model || msg.metadata.latency || msg.metadata.tokens || msg.metadata.tokenUsage)">
+                              <template v-if="msg.metadata.model">
+                                <img :src="getModelLogoUrl(getProviderFromModel(msg.metadata.model))"
+                                  :alt="msg.metadata.model" class="meta-model-logo"
+                                  @error="(e) => { const img = e.target as HTMLImageElement; img.style.display = 'none'; const fb = img.nextElementSibling as HTMLElement; if (fb) fb.style.display = 'flex'; }" />
+                                <span class="meta-model-logo-fallback"
+                                  :style="{ background: getFallbackColor(getProviderFromModel(msg.metadata.model)), color: '#fff' }"
+                                  style="display: none;">{{ getFallbackLetter(getProviderFromModel(msg.metadata.model))
+                                  }}</span>
+                                <span class="meta-model">{{ msg.metadata.model }}</span>
+                              </template>
+                              <template v-if="msg.metadata.latency && msg.metadata.latency > 0">
+                                <span v-if="msg.metadata.model" class="meta-sep">·</span>
+                                <span class="meta-latency">{{ msg.metadata.latency < 1000 ? msg.metadata.latency + 'ms'
+                                  : (msg.metadata.latency / 1000).toFixed(1) + 's' }}</span>
+                              </template>
                               <template v-if="msg.metadata.tokenUsage && msg.metadata.tokenUsage.total_tokens > 0">
-                                <span>·</span>
-                                <span class="token-usage">Token消耗：{{ msg.metadata.tokenUsage.total_tokens }}</span>
+                                <span class="meta-sep">·</span>
+                                <span class="token-usage"
+                                  :title="`输入: ${msg.metadata.tokenUsage.prompt_tokens || 0} / 输出: ${msg.metadata.tokenUsage.completion_tokens || 0}`">Token：{{
+                                    msg.metadata.tokenUsage.total_tokens }}</span>
                               </template>
                               <template v-else-if="msg.metadata.tokens && msg.metadata.tokens > 0">
-                                <span>·</span>
-                                <span class="token-usage">Token消耗：{{ msg.metadata.tokens }}</span>
+                                <span class="meta-sep">·</span>
+                                <span class="token-usage">Token：{{ msg.metadata.tokens }}</span>
                               </template>
                             </div>
                           </div>
@@ -217,18 +240,44 @@
                   </div>
                   <!-- 回到底部按钮 -->
                   <Transition name="scroll-btn-fade">
-                    <button v-if="showScrollBottom" class="scroll-bottom-btn" @click="scrollToBottomClick"
-                      title="回到底部">
+                    <button v-if="showScrollBottom" class="scroll-bottom-btn" @click="scrollToBottomClick" title="回到底部">
                       <t-icon name="arrow-down" size="18px" />
                       <span v-if="isLoading" class="scroll-btn-pulse"></span>
                     </button>
                   </Transition>
                   <!-- 输入框区域 -->
                   <div class="chat-input-bar">
-                    <div class="input-wrapper">
-                      <textarea v-model="inputText" placeholder="输入问题或指令... (Shift+Enter换行)"
-                        @keydown.enter.exact="() => handleSend()" :disabled="isLoading" rows="1"
-                        ref="textareaRef"></textarea>
+                    <div class="input-wrapper" ref="inputWrapperRef">
+                      <!-- 斜杠指令弹出面板 -->
+                      <Transition name="command-fade">
+                        <div v-if="showCommandPalette" class="command-palette" ref="commandPaletteRef">
+                          <div class="command-palette-header">
+                            <t-icon name="app" size="14px" />
+                            <span>快捷指令</span>
+                          </div>
+                          <div class="command-palette-list">
+                            <div v-for="(cmd, idx) in filteredCommands" :key="cmd.id" class="command-item"
+                              :class="{ active: activeCommandIndex === idx }" @click="selectCommand(cmd)"
+                              @mouseenter="activeCommandIndex = idx">
+                              <div class="command-item-icon" :style="{ background: cmd.iconBg }">
+                                <t-icon :name="cmd.icon" size="16px" :style="{ color: cmd.iconColor }" />
+                              </div>
+                              <div class="command-item-info">
+                                <span class="command-item-name">/{{ cmd.id }}</span>
+                                <span class="command-item-desc">{{ cmd.description }}</span>
+                              </div>
+                              <span v-if="cmd.shortcut" class="command-item-shortcut">{{ cmd.shortcut }}</span>
+                            </div>
+                            <div v-if="filteredCommands.length === 0" class="command-empty">
+                              <t-icon name="search" size="16px" />
+                              <span>未找到匹配的指令</span>
+                            </div>
+                          </div>
+                        </div>
+                      </Transition>
+                      <textarea v-model="inputText" placeholder="输入问题或 / 调用指令... (Shift+Enter换行)"
+                        @keydown.enter.exact="() => handleSend()" @input="handleInputChange"
+                        @keydown="handleInputKeydown" :disabled="isLoading" rows="1" ref="textareaRef"></textarea>
                       <div class="input-actions">
                         <div class="model-selector">
                           <div class="model-dropdown-wrap" ref="modelDropdownRef">
@@ -439,6 +488,7 @@ import SmartFormTab from './tabs/SmartFormTab.vue';
 import SmartImportTab from './tabs/SmartImportTab.vue';
 import ToolConfirmDialog from '@/components/ToolConfirmDialog.vue';
 import AgentResultRenderer from '@/components/AgentResultRenderer.vue';
+import AgentFormRenderer from '@/components/AgentFormRenderer.vue';
 import { useAuthStore } from '@/stores/auth';
 import { useAgentStore } from '@/stores/agent';
 import { useModelStore } from '@/stores/model';
@@ -454,6 +504,9 @@ const confirmDialogVisible = ref(false);
 const confirmMessage = ref('');
 const confirmToolName = ref('');
 const confirmParams = ref<Record<string, any>>({});
+
+const pendingFormSchema = ref<any>(null);
+const pendingFormSessionId = ref<string>('');
 
 const toastMessage = ref('');
 const toastVisible = ref(false);
@@ -716,6 +769,22 @@ const getModelLogoUrl = (provider: string): string => {
   return `https://unpkg.com/@lobehub/icons-static-svg@latest/icons/${slug}.svg`;
 };
 
+const getProviderFromModel = (modelName: string): string => {
+  const m = (modelName || '').toLowerCase();
+  if (m.includes('deepseek')) return 'deepseek';
+  if (m.includes('qwen') || m.includes('tongyi') || m.includes('dashscope') || m.includes('通义')) return 'dashscope';
+  if (m.includes('glm') || m.includes('zhipu') || m.includes('智谱') || m.includes('chatglm')) return 'zhipu';
+  if (m.includes('claude') || m.includes('anthropic')) return 'claude';
+  if (m.includes('gpt') || m.includes('openai') || m.includes('chatgpt')) return 'openai';
+  if (m.includes('gemini') || m.includes('google')) return 'google';
+  if (m.includes('baidu') || m.includes('wenxin') || m.includes('文心')) return 'baidu';
+  if (m.includes('kimi') || m.includes('moonshot')) return 'moonshot';
+  if (m.includes('douyin') || m.includes('doubao') || m.includes('豆包')) return 'bytedance';
+  if (m.includes('hunyuan') || m.includes('tencent')) return 'tencent';
+  if (m.includes('minimax')) return 'minimax';
+  return 'openai';
+};
+
 const getFallbackLetter = (provider: string): string => {
   const p = (provider || '').toLowerCase();
   for (const [key, val] of Object.entries(FALLBACK_ICONS)) {
@@ -908,6 +977,214 @@ const deleteMessage = (msgId: string) => {
 
 const quickTags = ['📊 本月销量概况', '📝 创建新配方', '🧪 库存不足预警'];
 
+// ════════════════════════════════════════
+// 斜杠指令系统
+// ════════════════════════════════════════
+interface SlashCommand {
+  id: string;
+  label: string;
+  description: string;
+  icon: string;
+  iconBg: string;
+  iconColor: string;
+  shortcut?: string;
+  prefix: string;
+  keywords: string[];
+}
+
+const commandRegistry = ref<SlashCommand[]>([
+  {
+    id: '创建配方',
+    label: '创建配方',
+    description: '新建烹饪或饮品配方',
+    icon: 'add-circle',
+    iconBg: '#ecfdf5',
+    iconColor: '#10B981',
+    prefix: '请帮我创建一个新配方，',
+    keywords: ['配方', '创建', '新建', '添加', 'formula', 'create'],
+  },
+  {
+    id: '录入原料',
+    label: '录入原料',
+    description: '添加新的食材原料信息',
+    icon: 'add',
+    iconBg: '#eff6ff',
+    iconColor: '#3B82F6',
+    prefix: '请帮我录入新原料，',
+    keywords: ['原料', '录入', '添加', '食材', 'material', 'add'],
+  },
+  {
+    id: '查询营养',
+    label: '查询营养',
+    description: '查询特定食材或配方的营养成分数据',
+    icon: 'chart-bar',
+    iconBg: '#fef3c7',
+    iconColor: '#F59E0B',
+    prefix: '请帮我查询营养成分，',
+    keywords: ['营养', '查询', '成分', '含量', 'nutrition', 'query'],
+  },
+  {
+    id: '查询月报',
+    label: '查询月报',
+    description: '获取月度统计报告',
+    icon: 'file-icon',
+    iconBg: '#f3e8ff',
+    iconColor: '#8B5CF6',
+    prefix: '请帮我生成本月月报，',
+    keywords: ['月报', '报告', '统计', '月度', 'report', 'monthly'],
+  },
+  {
+    id: '查询库存',
+    label: '查询库存',
+    description: '查看原料库存状态和预警',
+    icon: 'warehouse',
+    iconBg: '#fff7ed',
+    iconColor: '#EA580C',
+    prefix: '请帮我查询库存情况，',
+    keywords: ['库存', '预警', '不足', 'inventory', 'stock'],
+  },
+  {
+    id: '分析销量',
+    label: '分析销量',
+    description: '分析销售数据和趋势',
+    icon: 'chart',
+    iconBg: '#fce7f3',
+    iconColor: '#EC4899',
+    prefix: '请帮我分析销量数据，',
+    keywords: ['销量', '销售', '趋势', '分析', 'sales', 'trend'],
+  },
+  {
+    id: '优化配方',
+    label: '优化配方',
+    description: '优化配方成本和配比结构',
+    icon: 'root-list',
+    iconBg: '#f0fdf4',
+    iconColor: '#16A34A',
+    prefix: '请帮我优化配方，',
+    keywords: ['优化', '成本', '配比', '降低', 'optimize', 'cost'],
+  },
+  {
+    id: '导出数据',
+    label: '导出数据',
+    description: '导出业务数据为报表文件',
+    icon: 'download',
+    iconBg: '#f1f5f9',
+    iconColor: '#475569',
+    prefix: '请帮我导出数据，',
+    keywords: ['导出', '下载', '报表', 'export', 'download'],
+  },
+]);
+
+const registerCommand = (cmd: SlashCommand) => {
+  const exists = commandRegistry.value.some(c => c.id === cmd.id);
+  if (!exists) {
+    commandRegistry.value.push(cmd);
+  }
+};
+
+const unregisterCommand = (id: string) => {
+  const idx = commandRegistry.value.findIndex(c => c.id === id);
+  if (idx !== -1) {
+    commandRegistry.value.splice(idx, 1);
+  }
+};
+
+defineExpose({
+  registerCommand,
+  unregisterCommand,
+  commandRegistry,
+});
+
+const showCommandPalette = ref(false);
+const commandPaletteRef = ref<HTMLElement | null>(null);
+const inputWrapperRef = ref<HTMLElement | null>(null);
+const activeCommandIndex = ref(0);
+const commandQuery = ref('');
+
+const filteredCommands = computed(() => {
+  const q = commandQuery.value.toLowerCase().trim();
+  if (!q) return commandRegistry.value;
+
+  return commandRegistry.value.filter(cmd => {
+    if (cmd.id.toLowerCase().includes(q)) return true;
+    if (cmd.label.toLowerCase().includes(q)) return true;
+    if (cmd.description.toLowerCase().includes(q)) return true;
+    return cmd.keywords.some(kw => kw.toLowerCase().includes(q));
+  });
+});
+
+const openCommandPalette = () => {
+  showCommandPalette.value = true;
+  activeCommandIndex.value = 0;
+  commandQuery.value = '';
+};
+
+const closeCommandPalette = () => {
+  showCommandPalette.value = false;
+  commandQuery.value = '';
+  activeCommandIndex.value = 0;
+};
+
+const selectCommand = (cmd: SlashCommand) => {
+  inputText.value = cmd.prefix;
+  closeCommandPalette();
+  nextTick(() => {
+    if (textareaRef.value) {
+      textareaRef.value.focus();
+      const len = inputText.value.length;
+      textareaRef.value.setSelectionRange(len, len);
+    }
+  });
+};
+
+const handleInputChange = () => {
+  const text = inputText.value;
+  const cursorPos = textareaRef.value?.selectionStart ?? text.length;
+  const textBeforeCursor = text.slice(0, cursorPos);
+  const slashMatch = textBeforeCursor.match(/\/([^/\s]*)$/);
+
+  if (slashMatch) {
+    commandQuery.value = slashMatch[1];
+    if (!showCommandPalette.value) {
+      openCommandPalette();
+    }
+    activeCommandIndex.value = 0;
+  } else if (showCommandPalette.value) {
+    closeCommandPalette();
+  }
+};
+
+const handleInputKeydown = (e: KeyboardEvent) => {
+  if (!showCommandPalette.value) return;
+
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    activeCommandIndex.value = (activeCommandIndex.value + 1) % filteredCommands.value.length;
+    return;
+  }
+
+  if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    activeCommandIndex.value =
+      (activeCommandIndex.value - 1 + filteredCommands.value.length) % filteredCommands.value.length;
+    return;
+  }
+
+  if (e.key === 'Enter' || e.key === 'Tab') {
+    e.preventDefault();
+    if (filteredCommands.value.length > 0) {
+      selectCommand(filteredCommands.value[activeCommandIndex.value]);
+    }
+    return;
+  }
+
+  if (e.key === 'Escape') {
+    e.preventDefault();
+    closeCommandPalette();
+    return;
+  }
+};
+
 // 最近访问
 const recentVisits = ref<any[]>([]);
 
@@ -1029,6 +1306,8 @@ const handleSend = async (confirmed = false) => {
   if (!content && !selectedFile.value && !confirmed) return;
   if (isLoading.value) return;
 
+  closeCommandPalette();
+
   if (!confirmed) {
     messages.value.push({
       id: Date.now().toString(),
@@ -1122,6 +1401,15 @@ const handleSend = async (confirmed = false) => {
                   autoScrollToBottom();
                   break;
 
+                case 'form':
+                  pendingFormSchema.value = parsed.formSchema;
+                  pendingFormSessionId.value = parsed.sessionId || conversationId.value || '';
+                  if (parsed.message) {
+                    fullContent += parsed.message;
+                    streamingContent.value += parsed.message;
+                  }
+                  break;
+
                 case 'tool_calls':
                   currentToolCalls = parsed.calls || [];
                   break;
@@ -1149,16 +1437,17 @@ const handleSend = async (confirmed = false) => {
                     content: fullContent,
                     timestamp: new Date(),
                     metadata: {
-                      model: displayModelName.value,
+                      model: parsed.model || displayModelName.value,
                       tokens: parsed.usage?.total_tokens || fullContent.length,
-                      latency: Date.now() - startTime,
+                      latency: parsed.latency || (Date.now() - startTime),
                       intent: currentIntent?.intent,
                       tokenUsage: parsed.usage || null,
                     },
                     actions: parseActionsFromResponse(fullContent),
                     toolResult: currentToolCalls.length === 0 ? undefined : currentToolCalls,
                     toolResultData: lastToolResult,
-                    pendingConfirm
+                    pendingConfirm,
+                    formSchema: pendingFormSchema.value,
                   });
 
                   if (pendingConfirm) {
@@ -1170,6 +1459,7 @@ const handleSend = async (confirmed = false) => {
 
                   streamingContent.value = '';
                   isLoading.value = false;
+                  pendingFormSchema.value = null;
                   loadSessions();
                   scrollToBottom();
                   return;
@@ -1188,6 +1478,14 @@ const handleSend = async (confirmed = false) => {
     }
 
     if (fullContent) {
+      let recoveredFormSchema = null;
+      try {
+        const formRes = await agentApi.getPendingForm(conversationId.value || '');
+        if (formRes.success && formRes.data) {
+          recoveredFormSchema = formRes.data;
+        }
+      } catch {}
+
       messages.value.push({
         id: (Date.now() + 1).toString(),
         role: 'assistant',
@@ -1199,7 +1497,8 @@ const handleSend = async (confirmed = false) => {
           latency: Date.now() - startTime,
           tokenUsage: null,
         },
-        actions: parseActionsFromResponse(fullContent)
+        actions: parseActionsFromResponse(fullContent),
+        formSchema: recoveredFormSchema || undefined,
       });
       streamingContent.value = '';
     }
@@ -1621,6 +1920,17 @@ const switchToSession = async (sessionId: string) => {
       actions: [],
     };
   });
+
+  try {
+    const res = await agentApi.getPendingForm(sessionId);
+    if (res.success && res.data) {
+      const lastAssistantMsg = messages.value.filter(m => m.role === 'assistant').pop();
+      if (lastAssistantMsg && !lastAssistantMsg.formSchema) {
+        lastAssistantMsg.formSchema = res.data;
+        lastAssistantMsg.formSubmitted = false;
+      }
+    }
+  } catch {}
 };
 
 const handleConfirmAction = () => {
@@ -1634,6 +1944,54 @@ const handleCancelAction = () => {
     id: Date.now().toString(),
     role: 'assistant',
     content: '操作已取消。',
+    timestamp: new Date(),
+  });
+};
+
+const handleFormSubmit = async (msg: any, formData: Record<string, any>) => {
+  try {
+    const token = localStorage.getItem('tingstudio_token');
+    const response = await fetch('/api/agent/submit-form', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        sessionId: conversationId.value,
+        formId: msg.formSchema.formId,
+        formData,
+      }),
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+      msg.formSubmitted = true;
+      msg.formSubmitSuccess = true;
+      showActionToast('操作成功');
+    } else if (result.validationErrors && result.validationErrors.length > 0) {
+      const errorMessages = result.validationErrors.map((e: any) => e.message).join('；');
+      showActionToast(errorMessages);
+    } else {
+      msg.formSubmitted = true;
+      msg.formSubmitSuccess = false;
+      showActionToast(result.error || '操作失败');
+    }
+  } catch (error: any) {
+    msg.formSubmitted = true;
+    msg.formSubmitSuccess = false;
+    showActionToast(`提交失败：${error.message}`);
+  }
+};
+
+const handleFormCancel = (msg: any) => {
+  msg.formSubmitted = true;
+  msg.formSubmitSuccess = false;
+  messages.value.push({
+    id: Date.now().toString(),
+    role: 'assistant',
+    content: '表单已取消。',
     timestamp: new Date(),
   });
 };
@@ -1874,6 +2232,9 @@ onMounted(async () => {
     if (showModelMenu.value && modelDropdownRef.value && !modelDropdownRef.value.contains(e.target as Node)) {
       showModelMenu.value = false;
     }
+    if (showCommandPalette.value && inputWrapperRef.value && !inputWrapperRef.value.contains(e.target as Node)) {
+      closeCommandPalette();
+    }
   };
   document.addEventListener('click', handleClickOutside);
 
@@ -1986,6 +2347,19 @@ onUnmounted(() => {
     opacity: 1;
     transform: translateX(-50%) translateY(0);
   }
+}
+
+.form-submitted-notice {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  background: #f0f9ff;
+  color: #0369a1;
+  margin-top: 4px;
 }
 
 .ai-dashboard {
@@ -3088,6 +3462,38 @@ onUnmounted(() => {
           gap: 6px;
           align-items: center;
 
+          .meta-model-logo {
+            width: 14px;
+            height: 14px;
+            border-radius: 2px;
+            vertical-align: middle;
+          }
+
+          .meta-model-logo-fallback {
+            width: 14px;
+            height: 14px;
+            border-radius: 2px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 9px;
+            font-weight: 700;
+            vertical-align: middle;
+            flex-shrink: 0;
+          }
+
+          .meta-model {
+            background: #f1f5f9;
+            color: #475569;
+            padding: 1px 6px;
+            border-radius: 4px;
+            font-weight: 500;
+          }
+
+          .meta-latency {
+            color: #64748b;
+          }
+
           .token-usage {
             color: #6366f1;
             font-weight: 500;
@@ -3295,11 +3701,126 @@ onUnmounted(() => {
       border-radius: 24px;
       padding: 8px 16px;
       transition: all 0.25s ease;
+      position: relative;
 
       &:focus-within {
         border-color: #10B981;
         box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
         background: white;
+      }
+
+      .command-palette {
+        position: absolute;
+        bottom: calc(100% + 8px);
+        left: 0;
+        right: 0;
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.04);
+        z-index: 200;
+        overflow: hidden;
+        max-height: 360px;
+        display: flex;
+        flex-direction: column;
+
+        .command-palette-header {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          padding: 10px 14px;
+          font-size: 12px;
+          font-weight: 600;
+          color: #64748b;
+          border-bottom: 1px solid #f1f5f9;
+          background: #fafbfc;
+          flex-shrink: 0;
+        }
+
+        .command-palette-list {
+          overflow-y: auto;
+          padding: 6px;
+
+          &::-webkit-scrollbar {
+            width: 4px;
+          }
+
+          &::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 2px;
+          }
+        }
+
+        .command-item {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding: 10px 12px;
+          border-radius: 10px;
+          cursor: pointer;
+          transition: all 0.15s ease;
+
+          &:hover,
+          &.active {
+            background: #f0fdf4;
+          }
+
+          &.active {
+            box-shadow: inset 3px 0 0 #10B981;
+          }
+
+          .command-item-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+          }
+
+          .command-item-info {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+
+            .command-item-name {
+              font-size: 13px;
+              font-weight: 600;
+              color: #1e293b;
+            }
+
+            .command-item-desc {
+              font-size: 11px;
+              color: #94a3b8;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              white-space: nowrap;
+            }
+          }
+
+          .command-item-shortcut {
+            font-size: 11px;
+            color: #94a3b8;
+            background: #f1f5f9;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 500;
+            flex-shrink: 0;
+          }
+        }
+
+        .command-empty {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          padding: 24px;
+          color: #94a3b8;
+          font-size: 13px;
+        }
       }
 
       textarea {
@@ -3638,6 +4159,17 @@ onUnmounted(() => {
 .dropdown-leave-to {
   opacity: 0;
   transform: translateY(8px);
+}
+
+.command-fade-enter-active,
+.command-fade-leave-active {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.command-fade-enter-from,
+.command-fade-leave-to {
+  opacity: 0;
+  transform: translateY(6px) scale(0.98);
 }
 
 // ════════════════════════════════════════

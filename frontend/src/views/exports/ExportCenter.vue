@@ -259,6 +259,30 @@
                         </t-space>
                       </template>
                     </t-table>
+
+                    <div v-if="exportStore.templateTotal > 0 && activeTab === 'templates'" class="table-pagination">
+                      <div class="pagination-info">
+                        显示第 {{ (exportStore.templateCurrentPage - 1) * exportStore.templatePageSize + 1 }}-{{
+                          Math.min(exportStore.templateCurrentPage * exportStore.templatePageSize, exportStore.templateTotal)
+                        }} 条，共 {{ exportStore.templateTotal }} 条数据
+                      </div>
+                      <div class="pagination-controls">
+                        <button class="pagination-btn"
+                          :class="{ 'pagination-btn--disabled': exportStore.templateCurrentPage === 1 }"
+                          :disabled="exportStore.templateCurrentPage === 1"
+                          @click="goToTemplatePage(exportStore.templateCurrentPage - 1)">上一页</button>
+                        <template v-for="page in templatePageNumbers" :key="page">
+                          <button v-if="page !== '...'" class="pagination-btn"
+                            :class="{ 'pagination-btn--active': page === exportStore.templateCurrentPage }"
+                            @click="typeof page === 'number' && goToTemplatePage(page)">{{ page }}</button>
+                          <span v-else class="pagination-ellipsis">...</span>
+                        </template>
+                        <button class="pagination-btn"
+                          :class="{ 'pagination-btn--disabled': exportStore.templateCurrentPage === templateTotalPages }"
+                          :disabled="exportStore.templateCurrentPage === templateTotalPages"
+                          @click="goToTemplatePage(exportStore.templateCurrentPage + 1)">下一页</button>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -283,6 +307,30 @@
                         <t-tag variant="light">{{ authLabel(row.authentication) }}</t-tag>
                       </template>
                     </t-table>
+
+                    <div v-if="exportStore.apiTotal > 0 && activeTab === 'api'" class="table-pagination">
+                      <div class="pagination-info">
+                        显示第 {{ (exportStore.apiCurrentPage - 1) * exportStore.apiPageSize + 1 }}-{{
+                          Math.min(exportStore.apiCurrentPage * exportStore.apiPageSize, exportStore.apiTotal)
+                        }} 条，共 {{ exportStore.apiTotal }} 条数据
+                      </div>
+                      <div class="pagination-controls">
+                        <button class="pagination-btn"
+                          :class="{ 'pagination-btn--disabled': exportStore.apiCurrentPage === 1 }"
+                          :disabled="exportStore.apiCurrentPage === 1"
+                          @click="goToApiPage(exportStore.apiCurrentPage - 1)">上一页</button>
+                        <template v-for="page in apiPageNumbers" :key="page">
+                          <button v-if="page !== '...'" class="pagination-btn"
+                            :class="{ 'pagination-btn--active': page === exportStore.apiCurrentPage }"
+                            @click="typeof page === 'number' && goToApiPage(page)">{{ page }}</button>
+                          <span v-else class="pagination-ellipsis">...</span>
+                        </template>
+                        <button class="pagination-btn"
+                          :class="{ 'pagination-btn--disabled': exportStore.apiCurrentPage === apiTotalPages }"
+                          :disabled="exportStore.apiCurrentPage === apiTotalPages"
+                          @click="goToApiPage(exportStore.apiCurrentPage + 1)">下一页</button>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -530,6 +578,34 @@ const goToPage = (page: number) => {
   exportStore.fetchJobs({ page, pageSize: exportStore.pageSize });
 };
 
+const templateTotalPages = computed(() => Math.ceil(exportStore.templateTotal / exportStore.templatePageSize) || 1);
+const templatePageNumbers = computed<(number | string)[]>(() => {
+  const total = templateTotalPages.value;
+  const current = exportStore.templateCurrentPage;
+  if (total <= 5) return Array.from({ length: total }, (_, i) => i + 1);
+  if (current <= 3) return [1, 2, 3, '...', total];
+  if (current >= total - 2) return [1, '...', total - 2, total - 1, total];
+  return [1, '...', current - 1, current, current + 1, '...', total];
+});
+const goToTemplatePage = (page: number) => {
+  exportStore.setTemplatePage(page);
+  exportStore.fetchTemplates({ page, pageSize: exportStore.templatePageSize });
+};
+
+const apiTotalPages = computed(() => Math.ceil(exportStore.apiTotal / exportStore.apiPageSize) || 1);
+const apiPageNumbers = computed<(number | string)[]>(() => {
+  const total = apiTotalPages.value;
+  const current = exportStore.apiCurrentPage;
+  if (total <= 5) return Array.from({ length: total }, (_, i) => i + 1);
+  if (current <= 3) return [1, 2, 3, '...', total];
+  if (current >= total - 2) return [1, '...', total - 2, total - 1, total];
+  return [1, '...', current - 1, current, current + 1, '...', total];
+});
+const goToApiPage = (page: number) => {
+  exportStore.setApiPage(page);
+  exportStore.fetchApiInterfaces({ page, pageSize: exportStore.apiPageSize });
+};
+
 // ─── 搜索 ───
 let searchTimer: ReturnType<typeof setTimeout> | null = null;
 const handleSearch = () => {
@@ -597,8 +673,8 @@ async function fetchFormulaList() {
 function handleTabChange(tab: string) {
   if (tab === 'export') exportStore.fetchJobs({ page: 1 });
   else if (tab === 'share') exportStore.fetchShares();
-  else if (tab === 'templates') exportStore.fetchTemplates();
-  else if (tab === 'api') exportStore.fetchApiInterfaces();
+  else if (tab === 'templates') exportStore.fetchTemplates({ page: 1, pageSize: exportStore.templatePageSize });
+  else if (tab === 'api') exportStore.fetchApiInterfaces({ page: 1, pageSize: exportStore.apiPageSize });
 }
 
 // ====== 导出任务 ======

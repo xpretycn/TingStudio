@@ -502,7 +502,7 @@ export class AIService {
     options?: ChatCompletionOptions,
     onChunk?: (chunk: string) => void,
     onToolCall?: (toolCall: { id: string; name: string; arguments: string }) => void,
-  ): Promise<string> {
+  ): Promise<{ content: string; usage?: { promptTokens: number; completionTokens: number; totalTokens: number } }> {
     const modelConfig = this.getModel(provider);
     if (!modelConfig) {
       throw new Error(`未知的 AI 模型: ${provider}`);
@@ -520,6 +520,7 @@ export class AIService {
       temperature: options?.temperature ?? 0.7,
       max_tokens: options?.maxTokens ?? 2000,
       stream: true,
+      stream_options: { include_usage: true },
     };
 
     if (options?.tools && options.tools.length > 0) {
@@ -554,6 +555,7 @@ export class AIService {
     const decoder = new TextDecoder();
     let fullContent = "";
     let buffer = "";
+    let streamUsage: { promptTokens: number; completionTokens: number; totalTokens: number } | undefined;
     const toolCalls: Map<number, { id: string; name: string; arguments: string }> = new Map();
 
     try {
@@ -586,14 +588,24 @@ export class AIService {
               }
             }
 
-            if (delta?.tool_calls && onToolCall) {
-              for (const tc of delta.tool_calls) {
-                const existing = toolCalls.get(tc.index) || { id: tc.id || "", name: "", arguments: "" };
-                if (tc.id) existing.id = tc.id;
-                if (tc.function?.name) existing.name = tc.function.name;
-                if (tc.function?.arguments) existing.arguments += tc.function.arguments;
-                toolCalls.set(tc.index, existing);
+            if (delta?.tool_calls) {
+              if (onToolCall) {
+                for (const tc of delta.tool_calls) {
+                  const existing = toolCalls.get(tc.index) || { id: tc.id || "", name: "", arguments: "" };
+                  if (tc.id) existing.id = tc.id;
+                  if (tc.function?.name) existing.name = tc.function.name;
+                  if (tc.function?.arguments) existing.arguments += tc.function.arguments;
+                  toolCalls.set(tc.index, existing);
+                }
               }
+            }
+
+            if (parsed.usage) {
+              streamUsage = {
+                promptTokens: parsed.usage.prompt_tokens || 0,
+                completionTokens: parsed.usage.completion_tokens || 0,
+                totalTokens: parsed.usage.total_tokens || 0,
+              };
             }
           } catch {
             // ignore parse errors
@@ -612,7 +624,7 @@ export class AIService {
       }
     }
 
-    return fullContent;
+    return { content: fullContent, usage: streamUsage };
   }
 
   static parseJSONResponse(text: string): unknown {

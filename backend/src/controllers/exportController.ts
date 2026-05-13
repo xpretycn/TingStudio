@@ -28,24 +28,29 @@ function getExportDir(): string {
 /** 获取导出模板列表 */
 export async function getExportTemplates(req: Request, res: Response) {
   try {
-    const { type } = req.query;
-    let sql = "SELECT * FROM export_templates";
+    const { type, page, pageSize } = req.query;
+    const { page: p, pageSize: size, offset } = buildPagination(Number(page), Number(pageSize));
+
+    let whereSql = "";
     const params: any[] = [];
 
     if (type) {
-      sql += " WHERE type = ?";
+      whereSql = " WHERE type = ?";
       params.push(type);
     }
 
-    sql += " ORDER BY is_default DESC, created_at DESC";
-    const [templates]: any[] = await query(sql, params);
+    const [templates]: any[] = await query(
+      `SELECT * FROM export_templates${whereSql} ORDER BY is_default DESC, created_at DESC LIMIT ? OFFSET ?`,
+      [...params, size, offset],
+    );
+    const [countResult]: any[] = await query(`SELECT COUNT(*) as total FROM export_templates${whereSql}`, params);
 
     const result = templates.map((t: any) => ({
       ...rowToCamelCase(t),
       formatConfig: safeJsonParse(t.format_config_json, {}),
     }));
 
-    res.json(success(result));
+    res.json(successWithPagination(result, countResult[0].total, p, size));
   } catch (error: any) {
     res.status(500).json({ success: false, message: "获取导出模板失败", error: error.message });
   }
@@ -121,14 +126,19 @@ export async function createExportJob(req: any, res: Response) {
 
       res.status(201).json(success({ jobId: id, status: "completed", fileName }, "导出完成"));
     } catch (exportError: any) {
-      // 导出失败，更新任务状态
+      const errMsg = exportError.message || "导出失败";
+      const userMsg = errMsg.includes("数据库未初始化")
+        ? "系统数据库连接异常，请稍后重试或联系管理员"
+        : errMsg.includes("配方不存在")
+          ? "配方数据不存在，请检查配方是否已被删除"
+          : errMsg;
       await query(`UPDATE export_jobs SET status = 'failed', error_message = ? WHERE job_id = ?`, [
-        exportError.message || "导出失败",
+        userMsg,
         id,
       ]);
       res
         .status(201)
-        .json(success({ jobId: id, status: "failed", errorMessage: exportError.message }, "导出任务已创建但执行失败"));
+        .json(success({ jobId: id, status: "failed", errorMessage: userMsg }, "导出任务已创建但执行失败"));
     }
   } catch (error: any) {
     res.status(500).json({ success: false, message: "创建导出任务失败", error: error.message });
@@ -304,7 +314,15 @@ export async function createApiInterface(req: any, res: Response) {
 /** 获取API接口列表 */
 export async function getApiInterfaces(req: Request, res: Response) {
   try {
-    const [interfaces]: any[] = await query("SELECT * FROM api_data_interfaces ORDER BY created_at DESC");
+    const { page, pageSize } = req.query;
+    const { page: p, pageSize: size, offset } = buildPagination(Number(page), Number(pageSize));
+
+    const [interfaces]: any[] = await query(
+      "SELECT * FROM api_data_interfaces ORDER BY created_at DESC LIMIT ? OFFSET ?",
+      [size, offset],
+    );
+    const [countResult]: any[] = await query("SELECT COUNT(*) as total FROM api_data_interfaces");
+
     const result = interfaces.map((i: any) => ({
       ...rowToCamelCase(i),
       authConfig: safeJsonParse(i.auth_config_json, {}),
@@ -312,7 +330,7 @@ export async function getApiInterfaces(req: Request, res: Response) {
       rateLimit: safeJsonParse(i.rate_limit_json, {}),
       retryConfig: safeJsonParse(i.retry_config_json, {}),
     }));
-    res.json(success(result));
+    res.json(successWithPagination(result, countResult[0].total, p, size));
   } catch (error: any) {
     res.status(500).json({ success: false, message: "获取API接口列表失败", error: error.message });
   }

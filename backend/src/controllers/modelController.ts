@@ -618,7 +618,7 @@ export async function getUsageLogs(req: Request, res: Response) {
           requestSummary: l.request_summary,
           userId: l.user_id,
           fallbackFrom: l.fallback_from,
-          createdAt: l.created_at,
+          createdAt: l.created_at ? (l.created_at.includes('T') ? l.created_at : l.created_at.replace(' ', 'T') + 'Z') : l.created_at,
         })),
         total,
         page: parseInt(page as string),
@@ -717,7 +717,10 @@ export async function getAlertRecords(req: Request, res: Response) {
     res.json({
       success: true,
       data: {
-        records,
+        records: (records as any[]).map((r: any) => ({
+          ...r,
+          created_at: r.created_at ? (r.created_at.includes('T') ? r.created_at : r.created_at.replace(' ', 'T') + 'Z') : r.created_at,
+        })),
         total,
         activeAlerts,
         page: parseInt(page as string),

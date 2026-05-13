@@ -1542,7 +1542,7 @@ const alertRecordColumns = [
   { colKey: "alert_type", title: "类型", width: 100, cell: (_h: any, { row }: any) => row.alert_type === "daily_call" ? "日调用" : "月Token" },
   { colKey: "level", title: "级别", width: 80, cell: (h: any, { row }: any) => h("t-tag", { props: { theme: row.level === "critical" ? "danger" : "warning", size: "small" } }, row.level === "critical" ? "严重" : "预警") },
   { colKey: "message", title: "消息", ellipsis: true },
-  { colKey: "created_at", title: "时间", width: 160 },
+  { colKey: "created_at", title: "时间", width: 160, cell: (_h: any, { row }: any) => formatDateTime(row.created_at) },
 ];
 
 const logColumns = [
@@ -1689,7 +1689,7 @@ const logColumns = [
       return displayText;
     }
   },
-  { colKey: "createdAt", title: "时间", width: 160 },
+  { colKey: "createdAt", title: "时间", width: 160, cell: (_h: any, { row }: any) => formatDateTime(row.createdAt) },
 ];
 
 function renderCharts() {

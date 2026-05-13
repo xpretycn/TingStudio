@@ -4,7 +4,7 @@
 
 ## 项目简介
 
-TingStudio 是一个专业的食品配方工作数据管理平台，面向食品配方行业（中草药功效配方），提供配方管理、原料管理、业务员管理、营养成分分析、导出分享等完整功能链路。采用 **Vue 3 + Express + SQLite** 前后端分离架构，支持 JWT 认证、RESTful API、配方版本控制、营养合规检查、AI 智能解析、AI Agent 对话助手等企业级特性。
+TingStudio 是一个专业的食品配方工作数据管理平台，面向食品配方行业（中草药功效配方），提供配方管理、原料管理、业务员管理、销量分析、报告中心、文件管理、营养成分分析、导出分享等完整功能链路。采用 **Vue 3 + Express + SQLite** 前后端分离架构，支持 JWT 认证、RESTful API、配方版本控制、营养合规检查、AI 智能解析、AI Agent 对话助手等企业级特性。
 
 ## 🚀 最新更新 (2026-05-13)
 
@@ -1456,15 +1456,14 @@ npx tsx src/scripts/restoreDatabase.ts --force --skip-verify
 | -------------------------------------------------------------------------------------------- | ------- | --------------------- |
 | users                                                                                        | 20      | 用户表（含 admin/admin123） |
 | materials                                                                                    | **132** | 原料表（药材 + 辅料）          |
-| material\_nutrition                                                                          | **132** | 营养数据（蛋白/脂肪/碳水/钠）      |
+| material_nutrition                                                                          | **132** | 营养数据（蛋白/脂肪/碳水/钠）      |
 | formulas                                                                                     | 6       | 配方表                   |
-| formula\_versions                                                                            | 13      | 版本快照                  |
+| formula_versions                                                                            | 13      | 版本快照                  |
 | salesmen                                                                                     | 29      | 业务员表                  |
-| nutrition\_profiles                                                                          | 20      | 营养档案模板                |
-| export\_templates                                                                            | 20      | 导出模板                  |
-| api\_data\_interfaces                                                                        | 20      | API 接口配置              |
-| export\_jobs / formula\_nutrition\_summaries / nutrition\_analysis\_reports / share\_configs | 0       | 空表（已建结构）              |
-| **合计**                                                                                       | **392** | 13 张表                 |
+| nutrition_profiles                                                                          | 20      | 营养档案模板                |
+| export_templates                                                                            | 20      | 导出模板                  |
+| formula_sales / reports / report_targets / uploaded_files / ai_models / agent_sessions 等 | —       | 功能支撑表（已建结构）              |
+| **合计**                                                                                       | **29 张表** | 完整数据模型                |
 
 ***
 
@@ -1659,13 +1658,18 @@ npx tsx src/scripts/restoreDatabase.ts --force --skip-verify
 
 ### 后端 (Development)
 
-- **运行时**: Node.js 18+ (TypeScript)
+- **运行时**: Node.js 18+ (TypeScript 5.6+)
 - **Web 框架**: Express 4.21+
 - **数据库**: SQLite (better-sqlite3) + WAL 模式
 - **认证**: JWT (jsonwebtoken + bcryptjs)
-- **安全**: Helmet + CORS + express-rate-limit
-- **日志**: Morgan
+- **安全**: Helmet + CORS + express-rate-limit + compression
+- **日志**: Morgan + 自定义 logger
 - **Excel**: xlsx | **PDF**: pdfkit
+- **文件上传**: multer
+- **定时任务**: node-cron
+- **拼音处理**: pinyin-pro
+- **校验**: zod
+- **测试**: Vitest + supertest
 - **AI 服务**: 通义千问 / 智谱 GLM / DeepSeek 多模型支持
 
 ### 前端 (Production)
@@ -1676,7 +1680,11 @@ npx tsx src/scripts/restoreDatabase.ts --force --skip-verify
 - **状态管理**: Pinia 2.1+
 - **UI 组件库**: TDesign Vue Next 1.9+
 - **HTTP 客户端**: Axios
+- **图表**: ECharts 6.0+
+- **Markdown 渲染**: marked
+- **表单校验**: vee-validate + Yup
 - **样式**: SCSS + CSS 自定义属性
+- **测试**: Vitest + @vue/test-utils + Playwright
 - **托管服务**: EdgeOne Pages (CDN 加速)
 
 ### 基础设施
@@ -1686,8 +1694,10 @@ npx tsx src/scripts/restoreDatabase.ts --force --skip-verify
 | 前端构建  | Vite 5.1                | 开发服务器 + 生产构建   |
 | 后端框架  | Express 4.21            | RESTful API 服务 |
 | 数据库   | SQLite (better-sqlite3) | 数据持久化 (WAL 模式) |
-| AI 服务 | 通义千问 / GLM / DeepSeek   | 配方解析 + 营养分析    |
+| AI 服务 | 通义千问 / GLM / DeepSeek   | 配方解析 + 营养分析 + Agent 对话 |
 | 天气服务  | 和风天气 API                | 实时天气展示         |
+| 图表可视化 | ECharts 6.0             | 销量/报告数据可视化     |
+| 测试框架  | Vitest + Playwright     | 单元测试 + E2E 测试  |
 
 ## 🌐 访问地址
 
@@ -1704,7 +1714,7 @@ npx tsx src/scripts/restoreDatabase.ts --force --skip-verify
 | --------- | ----------------- | ----------------------------------- |
 | **后端服务**  | ✅ 正常运行            | Express + SQLite (better-sqlite3)   |
 | **前端应用**  | ✅ 正常运行            | Vue 3 + TDesign + Vite              |
-| **数据库**   | ✅ 31 张表 / 392+ 条记录 | SQLite WAL 模式，含 132 种原料+营养数据+Agent会话 |
+| **数据库**   | ✅ 29 张表 / 392+ 条记录 | SQLite WAL 模式，含 132 种原料+营养数据+Agent会话 |
 | **AI 解析** | ✅ 匹配率显著提升         | 150+ 别名映射 + 模糊匹配 + 名称标准化            |
 | **配方搜索**  | ✅ 已修复             | watch 响应式监听模式                       |
 | **数据备份**  | ✅ 可用              | exportDatabase / restoreDatabase 脚本 |
@@ -1744,7 +1754,7 @@ npm install
 
 #### 3. 配置环境变量
 
-**后端配置** ([backend/.env](file:///d:/ProgramData/workspace-codeby/ting-studio/backend/.env)):
+**后端配置** (backend/.env):
 
 ```bash
 # 开发环境使用 SQLite
@@ -1759,7 +1769,7 @@ JWT_EXPIRES_IN=7d
 CORS_ORIGIN=http://localhost:5174
 ```
 
-**前端配置** ([frontend/.env.development](file:///d:/ProgramData/workspace-codeby/ting-studio/frontend/.env.development)):
+**前端配置** (frontend/.env.development):
 
 ```bash
 VITE_API_BASE_URL=http://localhost:3000/api
@@ -1814,7 +1824,7 @@ npm run seed         # 导入种子数据（可选）
 ┌──────────────────▼──────────────────────────────────┐
 │           SQLite 数据库 (better-sqlite3)              │
 │            WAL 模式 + 外键约束                       │
-│     (31张表 · 392+条记录 · 132种原料+Agent会话)                │
+│     (29张表 · 392+条记录 · 132种原料+Agent会话)                │
 └─────────────────────────────────────────────────────┘
 
 数据备份: backend/data/backup/tingstudio_backup_*.json
@@ -1828,12 +1838,46 @@ ting-studio/
 ├── backend/                              # 后端服务
 │   ├── src/
 │   │   ├── config/                       # 配置模块
-│   │   │   ├── database.ts              # SQLite 连接配置
+│   │   │   ├── database-better-sqlite3.ts # SQLite 连接配置 + 自动迁移
+│   │   │   ├── database.ts              # 数据库连接入口
+│   │   │   ├── database-adapter.ts      # 双模式数据库适配器
 │   │   │   ├── mysql.ts                 # MySQL 连接配置
-│   │   │   └── database-adapter.ts      # 双模式数据库适配器
-│   │   ├── controllers/                  # 控制器层 (8个模块)
-│   │   ├── middleware/                   # 中间件 (认证/校验/错误处理)
-│   │   ├── routes/                       # 路由定义 (8个模块)
+│   │   │   ├── nutritionConstants.ts    # 营养常量配置
+│   │   │   ├── rateLimit.ts             # 速率限制配置
+│   │   │   └── security.ts              # 安全配置
+│   │   ├── controllers/                  # 控制器层 (14个模块)
+│   │   │   ├── aiController.ts          # AI 解析/匹配控制器
+│   │   │   ├── authController.ts        # 认证控制器
+│   │   │   ├── dashboardController.ts   # 仪表盘控制器
+│   │   │   ├── excelImportController.ts # Excel 导入控制器
+│   │   │   ├── exportController.ts      # 导出控制器
+│   │   │   ├── fileController.ts        # 文件管理控制器
+│   │   │   ├── formulaController.ts     # 配方控制器
+│   │   │   ├── materialController.ts    # 原料控制器
+│   │   │   ├── modelController.ts       # 模型管理控制器
+│   │   │   ├── nutritionController.ts   # 营养分析控制器
+│   │   │   ├── reportController.ts      # 报告控制器
+│   │   │   ├── salesController.ts       # 销量控制器
+│   │   │   ├── salesmanController.ts    # 业务员控制器
+│   │   │   └── versionController.ts     # 版本控制器
+│   │   ├── middleware/                   # 中间件 (认证/校验/错误处理/日志)
+│   │   ├── routes/                       # 路由定义 (15个模块)
+│   │   │   ├── index.ts                 # 路由汇总注册
+│   │   │   ├── agent.ts                 # Agent 对话路由
+│   │   │   ├── ai.ts                    # AI 服务路由
+│   │   │   ├── auth.ts                  # 认证路由
+│   │   │   ├── dashboard.ts             # 仪表盘路由
+│   │   │   ├── excelImport.ts           # Excel 导入路由
+│   │   │   ├── exports.ts               # 导出路由
+│   │   │   ├── files.ts                 # 文件管理路由
+│   │   │   ├── formulas.ts              # 配方路由
+│   │   │   ├── materials.ts             # 原料路由
+│   │   │   ├── nutrition.ts             # 营养路由
+│   │   │   ├── reports.ts               # 报告路由
+│   │   │   ├── sales.ts                 # 销量路由
+│   │   │   ├── salesmen.ts              # 业务员路由
+│   │   │   ├── versions.ts              # 版本路由
+│   │   │   └── weather.ts               # 天气路由
 │   │   ├── scripts/                      # 工具脚本
 │   │   │   ├── seedData.ts              # 种子数据（52种原料 + 4个配方）
 │   │   │   ├── importRealData.ts        # 真实Excel配方导入
@@ -1843,6 +1887,9 @@ ting-studio/
 │   │   │   └── test-api.cjs            # API 测试脚本
 │   │   ├── services/                     # 业务服务层
 │   │   │   ├── ai/                       # AI 服务 (多模型)
+│   │   │   │   ├── AIService.ts         # AI 核心服务（多模型调用/流式响应/降级）
+│   │   │   │   ├── ModelHealthChecker.ts # 模型健康检查
+│   │   │   │   ├── prompts.ts           # 提示词模板
 │   │   │   │   └── agent/                # AI Agent 对话引擎
 │   │   │   │       ├── agentController.ts # Agent 控制器（聊天/会话/身份配置）
 │   │   │   │       ├── promptEngine.ts   # 提示词引擎 v3.0.0
@@ -1851,32 +1898,171 @@ ting-studio/
 │   │   │   │       ├── sessionStore.ts   # 会话持久化（SQLite）
 │   │   │   │       ├── dialogManager.ts  # 对话管理器
 │   │   │   │       ├── intentEngine.ts   # 意图识别引擎
-│   │   │   │       └── toolRegistry.ts   # 工具注册表
-│   │   │   └── business/                # 业务服务
-│   │   │       ├── salespersonService.ts # 业务员服务（SQLite）
-│   │   │       └── salesAnalysisService.ts # 销量分析服务（SQLite）
+│   │   │   │       ├── toolRegistry.ts   # 工具注册表
+│   │   │   │       └── index.ts         # 模块入口
+│   │   │   ├── business/                # 业务服务
+│   │   │   │   ├── salespersonService.ts # 业务员服务（SQLite）
+│   │   │   │   ├── salesAnalysisService.ts # 销量分析服务（SQLite）
+│   │   │   │   └── index.ts            # 模块入口
+│   │   │   ├── file/                    # 文件服务
+│   │   │   │   ├── fileParser.ts        # 文件解析器
+│   │   │   │   └── index.ts            # 模块入口
+│   │   │   ├── formula/                 # 配方服务
+│   │   │   │   ├── costCalculator.ts    # 成本计算器
+│   │   │   │   ├── nutritionEngine.ts   # 营养计算引擎
+│   │   │   │   ├── ratioFactorValidator.ts # 含量比校验器
+│   │   │   │   └── index.ts            # 模块入口
+│   │   │   ├── ratioFactorValidator.ts  # 含量比校验服务（兼容入口）
+│   │   │   └── reportGenerator.ts       # 报告生成器
+│   │   ├── types/                        # 类型定义
+│   │   │   ├── ai.ts                    # AI 相关类型
+│   │   │   ├── file.ts                  # 文件相关类型
+│   │   │   ├── nutrition.ts             # 营养相关类型
+│   │   │   ├── sales.ts                 # 销量相关类型
+│   │   │   └── salesperson.ts           # 业务员相关类型
 │   │   └── utils/                        # 工具函数
+│   │       ├── formulaExporter.ts        # 配方 Excel 导出
+│   │       ├── formulaPdfExporter.ts     # 配方 PDF 导出
+│   │       ├── reportExcelExporter.ts    # 报告 Excel 导出
+│   │       ├── reportPdfExporter.ts      # 报告 PDF 导出
+│   │       ├── sqlValidator.ts           # SQL 安全校验器
+│   │       ├── helpers.ts               # 通用工具函数
+│   │       └── logger.ts                # 日志工具
+│   ├── tests/                           # 测试文件 (Vitest)
 │   ├── scf/                             # 云函数部署包
 │   │   ├── index.js                     # 函数入口
 │   │   ├── package.json                 # 云函数依赖
 │   │   └── .env.production              # 生产环境配置
 │   ├── data/                            # SQLite 数据库 (开发环境)
+│   │   └── backup/                      # 数据库备份文件
 │   ├── cloudbaserc.json                  # 云函数配置
 │   ├── ecosystem.config.js              # PM2 生产配置
+│   ├── vitest.config.ts                 # Vitest 测试配置
 │   └── package.json
 │
 ├── frontend/                            # 前端应用
 │   ├── src/
 │   │   ├── api/                         # API 接口层
+│   │   │   ├── agent.ts                # Agent 对话接口
+│   │   │   ├── ai.ts                   # AI 解析接口
+│   │   │   ├── auth.ts                 # 认证接口
+│   │   │   ├── excelImport.ts          # Excel 导入接口
+│   │   │   ├── export.ts              # 导出接口
+│   │   │   ├── file.ts                # 文件管理接口
+│   │   │   ├── formula.ts             # 配方接口
+│   │   │   ├── http.ts                # Axios 封装
+│   │   │   ├── material.ts            # 原料接口
+│   │   │   ├── model.ts               # 模型管理接口
+│   │   │   ├── nutrition.ts           # 营养接口
+│   │   │   ├── report.ts              # 报告接口
+│   │   │   ├── sales.ts               # 销量接口
+│   │   │   ├── salesman.ts            # 业务员接口
+│   │   │   ├── version.ts             # 版本接口
+│   │   │   └── weather.ts             # 天气接口
 │   │   ├── stores/                      # Pinia 状态管理
+│   │   │   ├── agent.ts                # Agent 对话状态
+│   │   │   ├── ai.ts                   # AI 解析状态
+│   │   │   ├── auth.ts                 # 认证状态
+│   │   │   ├── export.ts              # 导出状态
+│   │   │   ├── file.ts                # 文件管理状态
+│   │   │   ├── formula.ts             # 配方状态
+│   │   │   ├── material.ts            # 原料状态
+│   │   │   ├── model.ts               # 模型管理状态
+│   │   │   ├── nutrition.ts           # 营养状态
+│   │   │   ├── pagination.ts          # 分页状态
+│   │   │   ├── report.ts              # 报告状态
+│   │   │   ├── sales.ts               # 销量状态
+│   │   │   ├── salesman.ts            # 业务员状态
+│   │   │   ├── theme.ts               # 主题状态
+│   │   │   ├── version.ts             # 版本状态
+│   │   │   └── weather.ts             # 天气状态
 │   │   ├── views/                       # 页面组件
+│   │   │   ├── ai/                     # AI 模块
+│   │   │   │   ├── AIDashboard.vue     # AI 助手工作台（聊天/填单/导入/检索）
+│   │   │   │   ├── AiAssistant.vue     # AI 助手（独立页）
+│   │   │   │   ├── SmartTools.vue      # 智能工具
+│   │   │   │   └── tabs/              # AI 子标签页
+│   │   │   │       ├── SmartFormTab.vue     # 智能填单
+│   │   │   │       ├── SmartImportTab.vue   # 智能导入
+│   │   │   │       └── SmartSearchTab.vue   # 智能检索
+│   │   │   ├── auth/                   # 认证模块
+│   │   │   │   ├── Login.vue           # 登录
+│   │   │   │   └── Register.vue        # 注册
+│   │   │   ├── errors/                 # 错误页面
+│   │   │   │   └── ServerError.vue     # 服务器错误
+│   │   │   ├── exports/               # 导出模块
+│   │   │   │   └── ExportCenter.vue    # 导出中心
+│   │   │   ├── files/                  # 文件管理模块
+│   │   │   │   ├── FileManagement.vue  # 文件列表
+│   │   │   │   └── FileDetail.vue      # 文件详情
+│   │   │   ├── formulas/              # 配方模块
+│   │   │   │   ├── FormulaList.vue     # 配方列表
+│   │   │   │   ├── FormulaForm.vue     # 配方表单
+│   │   │   │   ├── FormulaDetail.vue   # 配方详情
+│   │   │   │   └── FormulaCompare.vue  # 配方对比
+│   │   │   ├── materials/             # 原料模块
+│   │   │   │   ├── MaterialList.vue    # 原料列表
+│   │   │   │   ├── MaterialForm.vue    # 原料表单
+│   │   │   │   └── MaterialDetail.vue  # 原料详情
+│   │   │   ├── models/                # 模型管理模块
+│   │   │   │   └── ModelManagement.vue # 模型管理
+│   │   │   ├── nutrition/             # 营养模块
+│   │   │   │   ├── NutritionAnalysis.vue # 营养分析
+│   │   │   │   └── NutritionProfiles.vue # 营养标准
+│   │   │   ├── reports/               # 报告模块
+│   │   │   │   ├── ReportCenter.vue    # 报告中心
+│   │   │   │   ├── WeeklyReport.vue    # 周报
+│   │   │   │   ├── MonthlyReport.vue   # 月报
+│   │   │   │   ├── ReportGenerate.vue  # 生成报告
+│   │   │   │   └── ReportCompare.vue   # 报告对比
+│   │   │   ├── sales/                  # 销量模块
+│   │   │   │   └── SalesAnalysis.vue   # 销量分析
+│   │   │   ├── salesmen/              # 业务员模块
+│   │   │   │   ├── SalesmanList.vue    # 业务员列表
+│   │   │   │   ├── SalesmanForm.vue    # 业务员表单
+│   │   │   │   └── SalesmanDetail.vue  # 业务员详情
+│   │   │   ├── settings/              # 设置模块
+│   │   │   │   └── AccountSettings.vue # 账号设置
+│   │   │   ├── versions/              # 版本模块
+│   │   │   │   ├── VersionList.vue     # 版本列表
+│   │   │   │   └── VersionCompare.vue  # 版本对比
+│   │   │   ├── Home.vue               # 主布局（侧边栏+内容区）
+│   │   │   └── Tools.vue              # 工具箱
 │   │   ├── components/                  # 公共组件
+│   │   │   ├── AIAnalysisPanel.vue     # AI 分析面板
+│   │   │   ├── AgentFormRenderer.vue   # Agent 表单渲染器
+│   │   │   ├── AgentResultRenderer.vue # Agent 结果渲染器
+│   │   │   ├── ToolConfirmDialog.vue   # 工具确认对话框
+│   │   │   ├── ExcelImportPanel.vue    # Excel 导入面板
+│   │   │   ├── NutritionExcelImport.vue # 营养 Excel 导入
+│   │   │   ├── FilePreviewCard.vue     # 文件预览卡片
+│   │   │   ├── FilePreviewDialog.vue   # 文件全屏预览对话框
+│   │   │   ├── QuickCreateSalesmanDrawer.vue  # 快速创建业务员抽屉
+│   │   │   ├── QuickCreateSalesmanDialog.vue  # 快速创建业务员对话框
+│   │   │   ├── QuickCreateMaterialDrawer.vue  # 快速录入原料抽屉
+│   │   │   ├── SalesRecordDrawer.vue   # 销量录入抽屉
+│   │   │   ├── SalesRecordDialog.vue   # 销量录入对话框
+│   │   │   ├── ReportChart.vue         # 报告图表
+│   │   │   ├── ReportExport.vue        # 报告导出
+│   │   │   ├── ReportSection.vue       # 报告段落
+│   │   │   ├── TargetManagement.vue    # 指标管理
+│   │   │   ├── EmptyState.vue          # 空状态
+│   │   │   └── Skeleton/              # 骨架屏
+│   │   │       └── PageSkeleton.vue    # 页面骨架屏
 │   │   ├── assets/styles/               # 样式体系
 │   │   └── router/                      # 路由配置
+│   │       └── index.ts                # 路由定义 + 守卫
 │   ├── edgeone/                        # EdgeOne 配置
 │   ├── dist/                           # 构建输出
 │   └── package.json
 │
+├── docs/                                # 项目文档
+│   ├── agent-system/                    # Agent 系统设计文档
+│   └── ting-studio/                     # 模型管理设计文档
+├── data/                                # 测试数据
+│   └── test-formula.xlsx               # 测试配方文件
+├── .github/                             # GitHub Actions
+│   └── workflows/                       # CI/CD 工作流
 ├── PRODUCTION_DEPLOYMENT_GUIDE.md       # 生产环境部署指南
 ├── EDGEONE_DEPLOYMENT_FIX.md           # EdgeOne 故障修复指南
 ├── SCF_MANUAL_DEPLOYMENT_GUIDE.md      # 云函数手动部署指南
@@ -1934,6 +2120,30 @@ ting-studio/
 - 分享链接创建与管理
 - API 数据接口管理面板
 
+### 📋 报告中心
+
+- 周报/月报创建、编辑、发布
+- 报告数据自动汇总（销量、配方、业务员维度）
+- AI 分析自动生成（发布即触发，智谱 GLM 默认模型）
+- 报告对比视图（多期数据对照）
+- 报告生成器（自定义指标和周期）
+- 指标管理（季度/年度目标设定与追踪）
+
+### 📁 文件管理
+
+- 文件上传与分类（配方/原料关联）
+- 文件解析状态追踪（上传→解析→关联→归档）
+- 文件详情页（预览 + 审计日志 + 关联管理）
+- 全屏预览对话框
+- 文件审计日志（分页展示）
+- 文件关联管理（配方/原料多对多）
+
+### 📊 仪表盘
+
+- 数据概览卡片（配方/原料/业务员/销量统计）
+- 首页快捷操作入口
+- 俏皮话提示（点击换一条）
+
 ### 🤖 AI 智能助手
 
 - **Agent 对话助手**: 自然语言交互，支持创建配方/原料/业务员、查询数据、分析销量
@@ -1962,53 +2172,56 @@ ting-studio/
 
 | 表名                            | 说明       | 记录数     | 关键字段                                                          |
 | ----------------------------- | -------- | ------- | ------------------------------------------------------------- |
-| users                         | 用户表      | 20      | id, username, password, role (admin/formulist)                |
-| materials                     | 原料表      | **132** | id, name, code, material\_type (herb/supplement), unit\_price |
-| material\_nutrition           | 营养数据表    | **132** | nutrition\_id, material\_id(FK), per\_100g\_json              |
-| formulas                      | 配方表      | 6       | id, name, salesman\_id(FK), materials\_json, finished\_weight |
-| formula\_versions             | 版本快照表    | 13      | version\_id, formula\_id(FK), snapshot\_json, status          |
-| salesmen                      | 业务员表     | 29      | id, name, code, department, status                            |
-| nutrition\_profiles           | 营养档案模板   | 20      | profile\_id, name, category, target\_values\_json             |
-| export\_templates             | 导出模板     | 20      | template\_id, name, type (pdf/excel/api/print)                |
-| export\_jobs                  | 导出任务     | 0       | job\_id, formula\_id(FK), status, file\_url                   |
-| formula\_nutrition\_summaries | 营养汇总     | 0       | summary\_id, formula\_id(FK), total\_nutrition\_json          |
-| nutrition\_analysis\_reports  | 营养分析报告   | 0       | report\_id, formula\_id(FK)                                   |
-| share\_configs                | 分享配置     | 0       | config\_id, share\_code, expires\_at                          |
-| api\_data\_interfaces         | API 接口配置 | 20      | interface\_id, name, endpoint                                 |
-| formula\_sales                | 销量数据表    | —       | id, formula\_id(FK), salesman\_id(FK), period, quantity, revenue |
-| reports                       | 报告表      | —       | id, type (weekly/monthly), data\_json, status                 |
-| report\_targets               | 报告指标表    | —       | id, report\_id(FK), target\_name, target\_value               |
-| uploaded\_files               | 文件管理表    | —       | id, filename, mime\_type, size, uploader\_id(FK)              |
-| file\_audit\_log              | 文件审计日志   | —       | id, file\_id(FK), action, operator\_id(FK)                    |
-| file\_relations               | 文件关联表    | —       | id, file\_id(FK), entity\_type, entity\_id                    |
-| ai\_models                    | AI 模型配置  | —       | id, provider, model, api\_key, enabled                        |
-| ai\_usage\_logs               | AI 用量日志  | —       | id, model, tokens, latency, created\_at                      |
-| ai\_alert\_configs            | AI 告警配置  | —       | id, metric, threshold, enabled                                |
-| ai\_alert\_records            | AI 告警记录  | —       | id, config\_id(FK), value, triggered\_at                      |
-| ai\_health\_records           | AI 健康检查  | —       | id, model, status, latency, checked\_at                      |
-| ai\_fallback\_configs         | AI 降级配置  | —       | id, primary\_model, fallback\_model, priority                 |
-| model\_applications           | 模型应用配置   | —       | id, module, provider, model, enabled                          |
-| agent\_sessions               | Agent 会话 | —       | id, user\_id(FK), title, last\_active\_at                     |
-| agent\_messages               | Agent 消息 | —       | id, session\_id(FK), role, content, tool\_results, metadata   |
-| agent\_pending\_confirmations | Agent 待确认 | —      | id, session\_id(FK), tool\_name, params, confirmed            |
-| agent\_role\_config           | Agent 身份 | —       | id, user\_id(UNIQUE), agent\_name, user\_title, tone\_style   |
-| search\_export\_cache         | 搜索导出缓存  | —       | id, query\_hash, result\_json, expires\_at                    |
+| users                         | 用户表      | 20      | id, username, password, role (admin/formulist), display_name, avatar, bio, email, phone |
+| materials                     | 原料表      | **132** | id, name, code, material_type (herb/supplement), unit_price, data_source |
+| material_nutrition           | 营养数据表    | **132** | nutrition_id, material_id(FK), per_100g_json, confidence, data_version |
+| formulas                      | 配方表      | 6       | id, code, name, salesman_id(FK), materials_json, finished_weight, ratio_factor, supplement_ratio_factor |
+| formula_versions             | 版本快照表    | 13      | version_id, formula_id(FK), snapshot_json, status, ratio_factor, supplement_ratio_factor |
+| salesmen                      | 业务员表     | 29      | id, name, code, department, phone, email, status |
+| nutrition_profiles           | 营养档案模板   | 20      | profile_id, name, category, target_values_json, is_preset |
+| export_templates             | 导出模板     | 20      | template_id, name, type (pdf/excel/api/print), format_config_json |
+| export_jobs                  | 导出任务     | 0       | job_id, formula_id(FK), status, file_url, export_type |
+| formula_nutrition_summaries | 营养汇总     | 0       | summary_id, formula_id(FK), total_nutrition_json, per_100g_nutrition_json |
+| formula_sales                | 销量数据表    | —       | id, formula_id(FK), salesman_id(FK), period_type, period_start, quantity, revenue |
+| reports                      | 报告表      | —       | id, type (weekly/monthly), title, data_json, status, generated_by |
+| report_targets               | 报告指标表    | —       | id, report_id(FK), period_type, targets_json |
+| uploaded_files               | 文件管理表    | —       | file_id, original_name, storage_path, mime_type, file_type, status, parse_result_json |
+| file_audit_log               | 文件审计日志   | —       | log_id, file_id(FK), action, operator, timestamp |
+| file_relations               | 文件关联表    | —       | relation_id, file_id(FK), related_id, related_type, related_name |
+| ai_models                    | AI 模型配置  | —       | id, provider, name, base_url, api_key, model, vision_model, supports_vision, health_status |
+| ai_usage_logs                | AI 用量日志  | —       | id, provider, model, call_type, prompt_tokens, completion_tokens, total_tokens, latency_ms |
+| ai_alert_configs             | AI 告警配置  | —       | id, model_id(FK), provider, daily_call_limit, monthly_token_limit, warning_threshold |
+| ai_alert_records             | AI 告警记录  | —       | id, provider, model_name, alert_type, level, threshold, current_value |
+| ai_health_records            | AI 健康检查  | —       | id, provider, status, latency_ms, checked_at |
+| ai_fallback_configs          | AI 降级配置  | —       | id, model_id(FK), provider, fallback_provider, fallback_priority |
+| model_applications           | 模型应用配置   | —       | id, module, module_name, provider, model, enabled |
+| agent_sessions               | Agent 会话 | —       | id, user_id(FK), title, message_count, last_intent, last_active_at |
+| agent_messages               | Agent 消息 | —       | id, session_id(FK), role, content, intent, tool_calls, tool_results, display_type |
+| agent_pending_confirmations | Agent 待确认 | —      | session_id(FK), tool_name, params_json, confirm_message |
+| agent_pending_forms          | Agent 待表单 | —      | session_id(FK), form_id, tool_name, form_json |
+| agent_role_config            | Agent 身份 | —       | id, user_id(UNIQUE), agent_name, user_title, tone_style, greeting, custom_instructions |
+| search_export_cache          | 搜索导出缓存  | —       | id, user_id(FK), filename, sql, row_count, file_path, expires_at |
 
 ### ER 关系核心链路
 
 ```
 users ──1:N──→ formulas ──1:N──→ formula_versions
-                    │
-salesmen ──1:N──────┘
+     │              │
+     │              └──1:N──→ formula_sales ←──N:1── salesmen
+     │
+     ├──1:N──→ agent_sessions ──1:N──→ agent_messages
+     ├──1:1──→ agent_role_config
+     ├──1:N──→ uploaded_files ──1:N──→ file_audit_log
+     │                          └──1:N──→ file_relations
+     └──1:N──→ reports ──1:N──→ report_targets
+
 materials ──1:1──→ material_nutrition
-users ──1:N──→ agent_sessions ──1:N──→ agent_messages
-users ──1:1──→ agent_role_config
 ```
 
 ### 数据库工具命令
 
 ```bash
-# 导出完整备份（31张表 + 全量记录）
+# 导出完整备份（29张表 + 全量记录）
 npx tsx src/scripts/exportDatabase.ts
 
 # 恢复数据库（自动使用最新备份）
@@ -2019,6 +2232,12 @@ npx tsx src/scripts/importAllTestMaterials.ts
 
 # 初始化种子数据（首次部署）
 npx tsx src/scripts/seedData.ts
+
+# 创建管理员账户
+npx tsx src/scripts/createAdmin.ts
+
+# 检查AI用量数据
+npx tsx src/scripts/check-ai-usage.ts
 ```
 
 ### 数据库双模式
@@ -2029,7 +2248,8 @@ npx tsx src/scripts/seedData.ts
 // database-adapter.ts 自动适配
 if (process.env.DB_TYPE === "mysql") {
   // 生产环境: 使用腾讯云 MySQL
-详见 [PRODUCTION\_DEPLOYMENT\_GUIDE.md](file:///d:/ProgramData/workspace-codeby/ting-studio/PRODUCTION_DEPLOYMENT_GUIDE.md)
+  // 详见 PRODUCTION_DEPLOYMENT_GUIDE.md
+} else {
   // 开发环境: 使用本地 SQLite
 }
 ```
@@ -2038,7 +2258,7 @@ if (process.env.DB_TYPE === "mysql") {
 
 ### 生产环境部署
 
-详见 [PRODUCTION\_DEPLOYMENT\_GUIDE.md](file:///d:/ProgramData/workspace-codeby/ting-studio/PRODUCTION_DEPLOYMENT_GUIDE.md)
+详见 PRODUCTION_DEPLOYMENT_GUIDE.md
 
 #### 快速部署步骤
 
@@ -2072,7 +2292,7 @@ edgeone pages deploy \
     --env production
 ```
 
-如果遇到 **401 UNAUTHORIZED** 错误，请参考 [EDGEONE\_DEPLOYMENT\_FIX.md](file:///d:/ProgramData/workspace-codeby/ting-studio/EDGEONE_DEPLOYMENT_FIX.md)
+如果遇到 **401 UNAUTHORIZED** 错误，请参考 EDGEONE_DEPLOYMENT_FIX.md
 
 1. **验证部署**
 
@@ -2082,7 +2302,7 @@ curl https://tingstudio-prod-d2f6fhumc0432c48-1318822768.ap-shanghai.app.tcloudb
 
 ### EdgeOne 故障修复
 
-如果遇到 **401 UNAUTHORIZED** 错误，请参考 [EDGEONE\_DEPLOYMENT\_FIX.md](file:///d:/ProgramData/workspace-codeby/ting-studio/EDGEONE_DEPLOYMENT_FIX.md)
+如果遇到 **401 UNAUTHORIZED** 错误，请参考 EDGEONE_DEPLOYMENT_FIX.md
 
 **常见解决方案：**
 
@@ -2106,7 +2326,7 @@ node src/scripts/manual-migrate.js
 
 ### 后端环境变量
 
-**开发环境** ([backend/.env](file:///d:/ProgramData/workspace-codeby/ting-studio/backend/.env)):
+**开发环境** (backend/.env):
 
 ```bash
 DB_TYPE=sqlite
@@ -2117,7 +2337,7 @@ JWT_EXPIRES_IN=7d
 CORS_ORIGIN=http://localhost:5174
 ```
 
-**生产环境** ([backend/.env.production](file:///d:/ProgramData/workspace-codeby/ting-studio/backend/.env.production)):
+**生产环境** (backend/.env.production):
 
 ```bash
 NODE_ENV=production
@@ -2144,14 +2364,14 @@ AI_DEEPSEEK_MODEL=deepseek-chat
 
 ### 前端环境变量
 
-**开发环境** ([frontend/.env.development](file:///d:/ProgramData/workspace-codeby/ting-studio/frontend/.env.development)):
+**开发环境** (frontend/.env.development):
 
 ```bash
 VITE_API_BASE_URL=http://localhost:3000/api
 VITE_APP_TITLE=TingStudio (开发环境)
 ```
 
-**生产环境** ([frontend/.env.production](file:///d:/ProgramData/workspace-codeby/ting-studio/frontend/.env.production)):
+**生产环境** (frontend/.env.production):
 
 ```bash
 VITE_API_BASE_URL=https://tingstudio-prod-d2f6fhumc0432c48-1318822768.ap-shanghai.app.tcloudbase.com/api
@@ -2178,6 +2398,9 @@ npm run seed                   # 导入种子数据
 npm run migrate-to-mysql       # 迁移数据到 MySQL
 
 # 测试命令
+npm run test                   # 运行 Vitest 单元测试
+npm run test:watch             # 运行 Vitest 监听模式
+npm run test:coverage          # 运行测试并生成覆盖率报告
 npm run test-mysql             # 测试 MySQL 连接
 ```
 
@@ -2191,45 +2414,56 @@ npm run dev                    # 启动开发服务器 (端口 5174)
 npm run build                  # 类型检查 + 构建
 npm run build:deploy           # 仅构建 (跳过类型检查)
 
+# 测试命令
+npm run test                   # 运行 Vitest 单元测试
+npm run test:run               # 运行 Vitest 单次执行
+npm run test:coverage          # 运行测试并生成覆盖率报告
+npm run test:e2e               # 运行 Playwright E2E 测试
+npm run test:e2e:ui            # 运行 Playwright E2E 测试 (UI 模式)
+```
+
 ## 📚 文档
 
-| 文档             | 说明              | 路径                                                                                                                 |
-| ---------------- | ----------------- | -------------------------------------------------------------------------------------------------------------------- |
-| **README**       | 项目总览 (本文件) | [README.md](file:///d:/ProgramData/workspace-codeby/ting-studio/README.md)                                           |
-| **API 文档**     | 接口定义与说明    | [backend/API_DOC.md](file:///d:/ProgramData/workspace-codeby/ting-studio/backend/API_DOC.md)                         |
-| **数据库文档**   | 表结构与关系      | [backend/DATABASE_DOC.md](file:///d:/ProgramData/workspace-codeby/ting-studio/backend/DATABASE_DOC.md)               |
-| **生产部署指南** | 完整部署流程      | [PRODUCTION_DEPLOYMENT_GUIDE.md](file:///d:/ProgramData/workspace-codeby/ting-studio/PRODUCTION_DEPLOYMENT_GUIDE.md) |
-| **EdgeOne 修复** | 401 错误解决      | [EDGEONE_DEPLOYMENT_FIX.md](file:///d:/ProgramData/workspace-codeby/ting-studio/EDGEONE_DEPLOYMENT_FIX.md)           |
-| **SCF 部署指南** | 云函数手动部署    | [SCF_MANUAL_DEPLOYMENT_GUIDE.md](file:///d:/ProgramData/workspace-codeby/ting-studio/SCF_MANUAL_DEPLOYMENT_GUIDE.md) |
+| 文档             | 说明              | 路径                                    |
+| ---------------- | ----------------- | --------------------------------------- |
+| **README**       | 项目总览 (本文件) | README.md                               |
+| **API 文档**     | 接口定义与说明    | backend/API_DOC.md                      |
+| **数据库文档**   | 表结构与关系      | backend/DATABASE_DOC.md                 |
+| **生产部署指南** | 完整部署流程      | PRODUCTION_DEPLOYMENT_GUIDE.md          |
+| **EdgeOne 修复** | 401 错误解决      | EDGEONE_DEPLOYMENT_FIX.md              |
+| **SCF 部署指南** | 云函数手动部署    | SCF_MANUAL_DEPLOYMENT_GUIDE.md         |
 
 ## 🔒 安全特性
 
 - **认证机制**: JWT Token + bcryptjs 密码加密
-- **输入校验**: vee-validate + Yup schema 校验
-- **SQL 注入防护**: 参数化查询 + 白名单机制
+- **输入校验**: vee-validate + Yup schema 校验 + zod 后端校验
+- **SQL 注入防护**: 参数化查询 + 白名单机制 + sqlValidator 校验
 - **XSS 防护**: Helmet 中间件 + 输出转义
 - **CSRF 防护**: SameSite Cookie 属性
 - **速率限制**: express-rate-limit 防暴力破解
 - **CORS 配置**: 严格的跨域访问控制
-- **日志审计**: Morgan 请求日志记录
+- **日志审计**: Morgan 请求日志 + 文件审计日志
+- **数据真实性**: Agent 工具查询约束，禁止 AI 编造数据
 
 ## 📈 性能优化
 
 ### 前端优化
 
 - **代码分割**: 路由级懒加载
-- **资源压缩**: Gzip/Brotli 压缩
+- **资源压缩**: Gzip/Brotli 压缩 (vite-plugin-compression)
 - **CDN 加速**: EdgeOne 全球节点分发
 - **图片优化**: SVG 图标 + 懒加载
 - **缓存策略**: 浏览器缓存 + CDN 缓存
+- **骨架屏**: PageSkeleton 组件减少白屏时间
 
 ### 后端优化
 
+- **WAL 模式**: SQLite WAL 并发读写
 - **连接池**: MySQL 连接池管理
 - **查询优化**: 索引优化 + 查询缓存
-- **响应压缩**: Gzip 压缩中间件
+- **响应压缩**: compression Gzip 压缩中间件
 - **并发处理**: PM2 集群模式 (多核 CPU)
-- **监控告警**: 健康检查 + 日志监控
+- **监控告警**: 健康检查 + AI 模型状态监控 + 用量告警
 
 ## 🤝 贡献指南
 
@@ -2263,16 +2497,16 @@ chore: 构建/工具链
 
 ## ❓ 常见问题
 
-A: 参考 [EDGEONE\_DEPLOYMENT\_FIX.md](file:///d:/ProgramData/workspace-codeby/ting-studio/EDGEONE_DEPLOYMENT_FIX.md)，通常重新生成预览链接即可解决。
+### Q: EdgeOne 显示 401 UNAUTHORIZED 怎么办？
+
+A: 参考 EDGEONE_DEPLOYMENT_FIX.md，通常重新生成预览链接即可解决。
+
+### Q: 如何切换数据库模式？
 
 A: 修改 `.env` 中的 `DB_TYPE` 参数:
 
 - `sqlite` - 本地开发环境
 - `mysql` - 生产环境 (需要配置 MySQL 连接信息)
-
-### Q: EdgeOne 显示 401 UNAUTHORIZED 怎么办？
-
-A: 参考 [EDGEONE_DEPLOYMENT_FIX.md](file:///d:/ProgramData/workspace-codeby/ting-studio/EDGEONE_DEPLOYMENT_FIX.md)，通常重新生成预览链接即可解决。
 
 ### Q: 如何备份数据？
 

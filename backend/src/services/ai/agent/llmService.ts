@@ -91,7 +91,7 @@ export class LLMAgentService {
           return msg;
         }) as ChatMessage[];
 
-        const fullContent = await this.aiService.streamChat(
+        const streamResult = await this.aiService.streamChat(
           provider,
           messages,
           {
@@ -106,15 +106,20 @@ export class LLMAgentService {
           onToolCall,
         );
 
+        const fullContent = streamResult.content;
         const latencyMs = Date.now() - startTime;
-        const estimatedTokens = Math.ceil(fullContent.length / 4);
+        const usage = streamResult.usage;
+        const promptTokens = usage?.promptTokens || 0;
+        const completionTokens = usage?.completionTokens || Math.ceil(fullContent.length / 4);
+        const totalTokens = usage?.totalTokens || promptTokens + completionTokens;
+
         this.aiService.recordUsage({
           provider,
           model: modelConfig.model,
           callType: "agent_chat",
-          promptTokens: 0,
-          completionTokens: estimatedTokens,
-          totalTokens: estimatedTokens,
+          promptTokens,
+          completionTokens,
+          totalTokens,
           latencyMs,
           status: "success",
           requestSummary,
@@ -123,7 +128,7 @@ export class LLMAgentService {
         return {
           id: `streamcmpl-${Date.now()}`,
           content: fullContent,
-          usage: { prompt_tokens: 0, completion_tokens: estimatedTokens, total_tokens: estimatedTokens },
+          usage: { prompt_tokens: promptTokens, completion_tokens: completionTokens, total_tokens: totalTokens },
           model: modelConfig.model,
         };
       } catch (error) {

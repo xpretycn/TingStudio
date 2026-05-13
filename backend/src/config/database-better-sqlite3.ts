@@ -403,6 +403,21 @@ function runAutoMigrations(dbInstance: Database.Database) {
 
   ensureTable(
     dbInstance,
+    "agent_pending_forms",
+    `
+    CREATE TABLE agent_pending_forms (
+      session_id TEXT PRIMARY KEY,
+      form_id TEXT NOT NULL,
+      tool_name TEXT NOT NULL,
+      form_json TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      FOREIGN KEY (session_id) REFERENCES agent_sessions(id) ON DELETE CASCADE
+    )
+  `,
+  );
+
+  ensureTable(
+    dbInstance,
     "agent_role_config",
     `
     CREATE TABLE agent_role_config (

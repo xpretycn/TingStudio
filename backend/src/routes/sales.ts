@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { query, adaptSQL } from "../config/database-adapter.js";
+import { query } from "../config/database-better-sqlite3.js";
 import { success } from "../utils/helpers.js";
 
 export const salesRoutes = Router();
@@ -30,16 +30,16 @@ salesRoutes.get("/", async (req, res) => {
     }
     if (keyword) {
       whereClause += " AND (f.name LIKE ? OR s.name LIKE ?)";
-      params.push(`%${keyword}%`, `%{keyword}%`);
+      params.push(`%${keyword}%`, `%${keyword}%`);
     }
 
-    const countResult: any[] = await query(
+    const [countRows]: any[] = await query(
       `SELECT COUNT(*) as total FROM formula_sales fs LEFT JOIN formulas f ON fs.formula_id = f.id LEFT JOIN salesmen s ON fs.salesman_id = s.id WHERE ${whereClause}`,
       params,
     );
-    const total = countResult[0]?.[0]?.total || 0;
+    const total = countRows?.[0]?.total || 0;
 
-    const sales: any[] = await query(
+    const [salesRows]: any[] = await query(
       `SELECT fs.*, f.name as formulaName, f.code as formulaCode, s.name as salesmanName
        FROM formula_sales fs
        LEFT JOIN formulas f ON fs.formula_id = f.id
@@ -52,7 +52,7 @@ salesRoutes.get("/", async (req, res) => {
 
     res.json(
       success({
-        list: sales[0] || [],
+        list: salesRows || [],
         pagination: { page: Number(page), pageSize: Number(pageSize), total },
       }),
     );
@@ -76,39 +76,93 @@ salesRoutes.get("/stats", async (req, res) => {
       params.push(periodEnd);
     }
 
-    const totalStats: any[] = await query(
+    const [totalStatsRows]: any[] = await query(
       `SELECT COALESCE(SUM(fs.quantity), 0) as totalQuantity, COALESCE(SUM(fs.revenue), 0) as totalRevenue
        FROM formula_sales fs WHERE 1=1 ${dateFilter}`,
       params,
     );
 
-    const topFormulas: any[] = await query(
+    const [topFormulasRows]: any[] = await query(
       `SELECT fs.formula_id, f.name as formulaName, SUM(fs.quantity) as totalQuantity, SUM(fs.revenue) as totalRevenue
        FROM formula_sales fs LEFT JOIN formulas f ON fs.formula_id = f.id
        WHERE 1=1 ${dateFilter} GROUP BY fs.formula_id ORDER BY totalRevenue DESC LIMIT 5`,
       params,
     );
 
-    const topSalesmen: any[] = await query(
+    const [topSalesmenRows]: any[] = await query(
       `SELECT fs.salesman_id, s.name as salesmanName, SUM(fs.quantity) as totalQuantity, SUM(fs.revenue) as totalRevenue
        FROM formula_sales fs LEFT JOIN salesmen s ON fs.salesman_id = s.id
        WHERE 1=1 ${dateFilter} GROUP BY fs.salesman_id ORDER BY totalRevenue DESC LIMIT 5`,
       params,
     );
 
-    const monthlyTrend: any[] = await query(
+    const [monthlyTrendRows]: any[] = await query(
       `SELECT strftime('%Y-%m', fs.period_start) as month, SUM(fs.quantity) as quantity, SUM(fs.revenue) as revenue
        FROM formula_sales fs WHERE 1=1 ${dateFilter} GROUP BY month ORDER BY month DESC LIMIT 12`,
       params,
     );
 
+    const [currentPeriodRows]: any[] = await query(
+      `SELECT COALESCE(SUM(fs.quantity), 0) as quantity, COALESCE(SUM(fs.revenue), 0) as revenue,
+              strftime('%Y-%m', MAX(fs.period_start)) as month
+       FROM formula_sales fs WHERE 1=1 ${dateFilter}`,
+      params,
+    );
+
+    let prevDateFilter = "";
+    const prevParams: any[] = [];
+    if (periodStart) {
+      const prevStart = new Date(periodStart as string);
+      prevStart.setMonth(prevStart.getMonth() - 1);
+      prevDateFilter += " AND fs.period_start >= ?";
+      prevParams.push(prevStart.toISOString().substring(0, 7));
+    }
+    if (periodEnd) {
+      const prevEnd = new Date(periodEnd as string);
+      prevEnd.setMonth(prevEnd.getMonth() - 1);
+      prevDateFilter += " AND fs.period_end <= ?";
+      prevParams.push(prevEnd.toISOString().substring(0, 7));
+    }
+
+    const [previousPeriodRows]: any[] = await query(
+      `SELECT COALESCE(SUM(fs.quantity), 0) as quantity, COALESCE(SUM(fs.revenue), 0) as revenue,
+              strftime('%Y-%m', MAX(fs.period_start)) as month
+       FROM formula_sales fs WHERE 1=1 ${prevDateFilter}`,
+      prevParams,
+    );
+
+    const currentData = currentPeriodRows?.[0] || { quantity: 0, revenue: 0, month: null };
+    const previousData = previousPeriodRows?.[0] || { quantity: 0, revenue: 0, month: null };
+    const quantityGrowthRate =
+      previousData.quantity > 0
+        ? Number((((currentData.quantity - previousData.quantity) / previousData.quantity) * 100).toFixed(1))
+        : 0;
+    const revenueGrowthRate =
+      previousData.revenue > 0
+        ? Number((((currentData.revenue - previousData.revenue) / previousData.revenue) * 100).toFixed(1))
+        : 0;
+
     res.json(
       success({
-        totalQuantity: Number(totalStats[0]?.[0]?.totalQuantity || 0),
-        totalRevenue: Number(totalStats[0]?.[0]?.totalRevenue || 0),
-        topFormulas: topFormulas[0] || [],
-        topSalesmen: topSalesmen[0] || [],
-        monthlyTrend: monthlyTrend[0] || [],
+        totalQuantity: Number(totalStatsRows?.[0]?.totalQuantity || 0),
+        totalRevenue: Number(totalStatsRows?.[0]?.totalRevenue || 0),
+        topFormulas: topFormulasRows || [],
+        topSalesmen: topSalesmenRows || [],
+        monthlyTrend: monthlyTrendRows || [],
+        periodComparison: {
+          current: {
+            quantity: Number(currentData.quantity),
+            revenue: Number(currentData.revenue),
+            month: currentData.month,
+          },
+          previous: {
+            quantity: Number(previousData.quantity),
+            revenue: Number(previousData.revenue),
+            month: previousData.month,
+          },
+          quantityGrowthRate,
+          revenueGrowthRate,
+        },
       }),
     );
   } catch (error: any) {
@@ -119,11 +173,11 @@ salesRoutes.get("/stats", async (req, res) => {
 salesRoutes.get("/formula/:formulaId", async (req, res) => {
   try {
     const { formulaId } = req.params;
-    const sales: any[] = await query(
+    const [salesRows]: any[] = await query(
       `SELECT fs.*, s.name as salesmanName FROM formula_sales fs LEFT JOIN salesmen s ON fs.salesman_id = s.id WHERE fs.formula_id = ? ORDER BY fs.created_at DESC`,
       [formulaId],
     );
-    res.json(success(sales[0] || []));
+    res.json(success(salesRows || []));
   } catch (error: any) {
     res.status(500).json({ success: false, message: "获取配方销售记录失败", error: error.message });
   }
@@ -142,8 +196,8 @@ salesRoutes.post("/", async (req, res) => {
       [id, formulaId, salesmanId, periodType, periodStart, periodStart, quantity, revenue, notes, "system", now, now],
     );
 
-    const newSale: any[] = await query("SELECT * FROM formula_sales WHERE id = ?", [id]);
-    res.status(201).json(success(newSale[0]?.[0], "销售记录创建成功"));
+    const [newSaleRows]: any[] = await query("SELECT * FROM formula_sales WHERE id = ?", [id]);
+    res.status(201).json(success(newSaleRows?.[0], "销售记录创建成功"));
   } catch (error: any) {
     res.status(400).json({ success: false, message: "创建销售记录失败", error: error.message });
   }
@@ -163,8 +217,8 @@ salesRoutes.put("/:id", async (req, res) => {
       id,
     ]);
 
-    const updated: any[] = await query("SELECT * FROM formula_sales WHERE id = ?", [id]);
-    res.json(success(updated[0]?.[0], "销售记录更新成功"));
+    const [updatedRows]: any[] = await query("SELECT * FROM formula_sales WHERE id = ?", [id]);
+    res.json(success(updatedRows?.[0], "销售记录更新成功"));
   } catch (error: any) {
     res.status(400).json({ success: false, message: "更新销售记录失败", error: error.message });
   }

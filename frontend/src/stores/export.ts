@@ -12,14 +12,22 @@ export const useExportStore = defineStore('export', () => {
   const total = ref(0)
   const currentPage = ref(1)
   const pageSize = ref(10)
+  const templateTotal = ref(0)
+  const templateCurrentPage = ref(1)
+  const templatePageSize = ref(10)
+  const apiTotal = ref(0)
+  const apiCurrentPage = ref(1)
+  const apiPageSize = ref(10)
 
   // ===== 模板 =====
-  const fetchTemplates = async (params?: { type?: string }) => {
+  const fetchTemplates = async (params?: { type?: string; page?: number; pageSize?: number }) => {
     loading.value = true
     try {
       const res = await exportApi.getTemplates(params)
-      // axios 拦截器已经提取了 res.data，所以这里直接使用 res
-      templates.value = res
+      templates.value = res.list
+      templateTotal.value = res.pagination.total
+      templateCurrentPage.value = res.pagination.page
+      templatePageSize.value = res.pagination.pageSize
     } catch (error) {
       console.error('获取导出模板失败:', error)
     } finally {
@@ -30,7 +38,7 @@ export const useExportStore = defineStore('export', () => {
   const createTemplate = async (data: { name: string; description?: string; type: string; formatConfig: any; isDefault?: boolean }) => {
     try {
       await exportApi.createTemplate(data)
-      await fetchTemplates()
+      await fetchTemplates({ page: templateCurrentPage.value, pageSize: templatePageSize.value })
       return { success: true }
     } catch (error: any) {
       return { success: false, message: error.message || '创建模板失败' }
@@ -40,7 +48,7 @@ export const useExportStore = defineStore('export', () => {
   const updateTemplate = async (templateId: string, data: { name: string; description?: string; type: string; formatConfig: any; isDefault?: boolean }) => {
     try {
       await exportApi.updateTemplate(templateId, data)
-      await fetchTemplates()
+      await fetchTemplates({ page: templateCurrentPage.value, pageSize: templatePageSize.value })
       return { success: true }
     } catch (error: any) {
       return { success: false, message: error.message || '更新模板失败' }
@@ -50,7 +58,7 @@ export const useExportStore = defineStore('export', () => {
   const deleteTemplate = async (templateId: string) => {
     try {
       await exportApi.deleteTemplate(templateId)
-      await fetchTemplates()
+      await fetchTemplates({ page: templateCurrentPage.value, pageSize: templatePageSize.value })
       return { success: true }
     } catch (error: any) {
       return { success: false, message: error.message || '删除模板失败' }
@@ -156,11 +164,13 @@ export const useExportStore = defineStore('export', () => {
   }
   
   // ===== API 接口 =====
-  const fetchApiInterfaces = async () => {
+  const fetchApiInterfaces = async (params?: { page?: number; pageSize?: number }) => {
     try {
-      const res = await exportApi.getApiInterfaces()
-      // axios 拦截器已经提取了 res.data，所以这里直接使用 res
-      apiInterfaces.value = res
+      const res = await exportApi.getApiInterfaces(params)
+      apiInterfaces.value = res.list
+      apiTotal.value = res.pagination.total
+      apiCurrentPage.value = res.pagination.page
+      apiPageSize.value = res.pagination.pageSize
     } catch (error) {
       console.error('获取 API 接口列表失败:', error)
     }
@@ -169,7 +179,7 @@ export const useExportStore = defineStore('export', () => {
   const createApiInterface = async (data: any) => {
     try {
       await exportApi.createApiInterface(data)
-      await fetchApiInterfaces()
+      await fetchApiInterfaces({ page: apiCurrentPage.value, pageSize: apiPageSize.value })
       return { success: true }
     } catch (error: any) {
       return { success: false, message: error.message || '创建 API 接口失败' }
@@ -180,14 +190,22 @@ export const useExportStore = defineStore('export', () => {
   const setPage = (page: number) => {
     currentPage.value = page
   }
+  const setTemplatePage = (page: number) => {
+    templateCurrentPage.value = page
+  }
+  const setApiPage = (page: number) => {
+    apiCurrentPage.value = page
+  }
 
   return {
     templates, jobs, shares, apiInterfaces,
     loading, total, currentPage, pageSize,
+    templateTotal, templateCurrentPage, templatePageSize,
+    apiTotal, apiCurrentPage, apiPageSize,
     fetchTemplates, createTemplate, updateTemplate, deleteTemplate,
     createJob, fetchJobs, getJob, retryJob, downloadFile,
     createShare, fetchShares, deleteShare,
     fetchApiInterfaces, createApiInterface,
-    setPage,
+    setPage, setTemplatePage, setApiPage,
   }
 })

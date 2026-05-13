@@ -64,9 +64,8 @@ export interface ApiInterface {
 }
 
 export const exportApi = {
-  getTemplates(params?: { type?: string }) {
-    // axios 拦截器会提取 res.data，所以这里直接返回内部的数据结构
-    return http.get<any, ExportTemplate[]>('/exports/templates', { params })
+  getTemplates(params?: { type?: string; page?: number; pageSize?: number }) {
+    return http.get<any, { list: ExportTemplate[]; pagination: any }>('/exports/templates', { params })
   },
   createTemplate(data: { name: string; description?: string; type: string; formatConfig: any; isDefault?: boolean }) {
     return http.post<any, { success: boolean; message: string; data: { templateId: string } }>('/exports/templates', data)
@@ -107,9 +106,8 @@ export const exportApi = {
   deleteShare(shareId: string) {
     return http.delete<any, { message: string }>(`/exports/share/${shareId}`)
   },
-  getApiInterfaces() {
-    // axios 拦截器会提取 res.data，所以这里直接返回内部的数据结构
-    return http.get<any, ApiInterface[]>('/exports/api-interfaces')
+  getApiInterfaces(params?: { page?: number; pageSize?: number }) {
+    return http.get<any, { list: ApiInterface[]; pagination: any }>('/exports/api-interfaces', { params })
   },
   createApiInterface(data: any) {
     return http.post<any, { success: boolean; message: string; data: { interfaceId: string } }>('/exports/api-interfaces', data)

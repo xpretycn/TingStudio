@@ -3,7 +3,7 @@
  * 将配方数据导出为 Excel 文件
  */
 import XLSX from "xlsx";
-import { query } from "../config/database.js";
+import { query } from "../config/database-better-sqlite3.js";
 import { safeJsonParse, rowToCamelCase } from "./helpers.js";
 
 interface FormulaRow {
@@ -14,6 +14,7 @@ interface FormulaRow {
   ratioFactor: number;
   supplementRatioFactor: number;
   description: string | null;
+  preparationMethod: string | null;
   materialsJson: string;
   createdAt: string;
   updatedAt: string;
@@ -38,6 +39,7 @@ interface MaterialRow {
   code: string;
   unit: string;
   materialType: string;
+  unitPrice: number | null;
 }
 
 interface NutritionRow {
@@ -63,14 +65,14 @@ export async function exportFormulaToExcel(
   const formula = rowToCamelCase<FormulaRow>(formulas[0]);
 
   // 确定使用的版本
-  let version: rowToCamelCase<VersionRow> | null = null;
+  let version: VersionRow | null = null;
   let snapshot: any = null;
 
   if (versionId) {
     const [versions]: any[][] = await query("SELECT * FROM formula_versions WHERE version_id = ?", [versionId]);
     if (versions.length) {
       version = rowToCamelCase(versions[0]);
-      snapshot = safeJsonParse(version.snapshotJson, null);
+      snapshot = safeJsonParse(version!.snapshotJson, null);
     }
   }
 

@@ -81,6 +81,14 @@ export const agentApi = {
     });
   },
 
+  submitForm(data: { sessionId: string; formId: string; formData: Record<string, any> }) {
+    return http.post<any, { success: boolean; data?: any; error?: string; displayType?: string; toolName?: string; validationErrors?: Array<{ field: string; message: string }> }>("/agent/submit-form", data);
+  },
+
+  getPendingForm(sessionId: string) {
+    return http.get<any, { success: boolean; data: any }>(`/agent/pending-form/${sessionId}`);
+  },
+
   getRoleConfig() {
     return http.get<any, { success: boolean; data: AgentRoleConfig }>("/agent/role-config");
   },

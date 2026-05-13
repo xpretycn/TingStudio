@@ -4,7 +4,7 @@
  * 支持中文字体显示
  */
 import PDFDocument from "pdfkit";
-import { query } from "../config/database.js";
+import { query } from "../config/database-better-sqlite3.js";
 import { safeJsonParse, rowToCamelCase } from "./helpers.js";
 import path from "path";
 import fs from "fs";
@@ -17,6 +17,7 @@ interface FormulaRow {
   ratioFactor: number;
   supplementRatioFactor: number;
   description: string | null;
+  preparationMethod: string | null;
   materialsJson: string;
   createdAt: string;
   updatedAt: string;
@@ -41,6 +42,7 @@ interface MaterialRow {
   code: string;
   unit: string;
   materialType: string;
+  unitPrice: number | null;
 }
 
 interface NutritionRow {

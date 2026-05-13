@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { llmAgentService } from "./llmService.js";
 import { toolRegistry } from "./toolRegistry.js";
 import { promptEngine } from "./promptEngine.js";
-import { DialogManager, PendingConfirmation } from "./dialogManager.js";
+import { DialogManager, PendingConfirmation, FormSchema } from "./dialogManager.js";
 import { sessionStore } from "./sessionStore.js";
 import type { ToolContext, ToolResult } from "../../../types/ai.js";
 import { getDb } from "../../../config/database-better-sqlite3.js";
@@ -22,6 +22,40 @@ interface ChatMessage {
 }
 
 const pendingConfirmations = new Map<string, PendingConfirmation>();
+const pendingForms = new Map<string, FormSchema>();
+
+function savePendingForm(sessionId: string, formSchema: FormSchema): void {
+  try {
+    const db = getDb();
+    db.prepare(
+      "INSERT OR REPLACE INTO agent_pending_forms (session_id, form_id, tool_name, form_json) VALUES (?, ?, ?, ?)",
+    ).run(sessionId, formSchema.formId, formSchema.toolName, JSON.stringify(formSchema));
+  } catch (error) {
+    console.error("[AIAgent] 保存表单状态失败:", error);
+  }
+}
+
+function loadPendingForm(sessionId: string): FormSchema | null {
+  try {
+    const db = getDb();
+    const row = db.prepare("SELECT * FROM agent_pending_forms WHERE session_id = ?").get(sessionId) as any;
+    if (!row) return null;
+    return JSON.parse(row.form_json);
+  } catch (error) {
+    console.error("[AIAgent] 加载表单状态失败:", error);
+    return pendingForms.get(sessionId) || null;
+  }
+}
+
+function deletePendingForm(sessionId: string): void {
+  try {
+    const db = getDb();
+    db.prepare("DELETE FROM agent_pending_forms WHERE session_id = ?").run(sessionId);
+  } catch (error) {
+    console.error("[AIAgent] 删除表单状态失败:", error);
+  }
+  pendingForms.delete(sessionId);
+}
 
 function savePendingConfirmation(sessionId: string, pending: PendingConfirmation): void {
   try {
@@ -140,12 +174,27 @@ class AIAgentController {
     res.setHeader("Cache-Control", "no-cache");
     res.setHeader("Connection", "keep-alive");
     res.setHeader("X-Accel-Buffering", "no");
+    res.flushHeaders();
 
     const abortController = new AbortController();
-    req_on_close(res, () => {
-      abortController.abort();
-      console.log("[AIAgent] 客户端断开SSE连接");
-    });
+    const onClose = () => {
+      if (!abortController.signal.aborted) {
+        abortController.abort();
+        console.log("[AIAgent] 客户端断开SSE连接");
+      }
+    };
+    (res as any).req?.on?.("close", onClose);
+    res.on?.("close", onClose);
+
+    const heartbeat = setInterval(() => {
+      if (!res.writableEnded && !res.destroyed) {
+        res.write(": heartbeat\n\n");
+      } else {
+        clearInterval(heartbeat);
+      }
+    }, 15000);
+
+    (res as any)._sseHeartbeat = heartbeat;
 
     return abortController;
   }
@@ -160,6 +209,7 @@ class AIAgentController {
     selectedModelVersion?: string,
   ): Promise<void> {
     const abortController = this.setupSSE(res);
+    const startTime = Date.now();
 
     try {
       const recentMessages = sessionStore.getRecentMessages(sessionId, 10);
@@ -182,7 +232,6 @@ class AIAgentController {
       let totalTokenUsage = { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 };
 
       while (iteration < MAX_REACT_ITERATIONS) {
-        if (abortController.signal.aborted) break;
         iteration++;
 
         let iterationContent = "";
@@ -206,8 +255,21 @@ class AIAgentController {
 
         if (!llmResponse.tool_calls || llmResponse.tool_calls.length === 0) {
           finalContent = iterationContent || llmResponse.content || "";
+
+          console.log(`[AIAgent-Form] No tool calls. Trying form generation. userMessage="${userMessage.substring(0, 50)}", llmContent="${finalContent.substring(0, 80)}"`);
+
+          const formResult = this.tryGenerateFormFromResponse(userMessage, finalContent, sessionId, res);
+          if (formResult) {
+            this.sendSSEEvent(res, "done", { sessionId });
+            clearInterval((res as any)._sseHeartbeat);
+            res.end();
+            return;
+          }
+
           break;
         }
+
+        console.log(`[AIAgent-Form] LLM called tools: ${llmResponse.tool_calls.map((tc: any) => tc.function.name).join(", ")}`);
 
         const assistantMsg: ChatMessage = {
           role: "assistant",
@@ -217,17 +279,65 @@ class AIAgentController {
         messages.push(assistantMsg);
 
         for (const toolCall of llmResponse.tool_calls) {
-          if (abortController.signal.aborted) break;
+          console.log(`[AIAgent-Form] Processing tool call, aborted=${abortController.signal.aborted}`);
 
           const toolName = toolCall.function.name;
+          console.log(`[AIAgent-Form] Tool name: ${toolName}`);
           let params: Record<string, any>;
           try {
             params = JSON.parse(toolCall.function.arguments);
-          } catch {
+          } catch (e) {
+            console.log(`[AIAgent-Form] JSON parse error for tool args:`, e);
             params = {};
           }
+          console.log(`[AIAgent-Form] Parsed params:`, JSON.stringify(params).substring(0, 200));
 
-          if (toolRegistry.requiresConfirmation(toolName)) {
+          const requiresConfirm = toolRegistry.requiresConfirmation(toolName);
+          console.log(`[AIAgent-Form] requiresConfirmation(${toolName}) = ${requiresConfirm}`);
+
+          if (requiresConfirm) {
+            console.log(`[AIAgent-Form] Tool ${toolName} requires confirmation. Params:`, JSON.stringify(params).substring(0, 200));
+
+            try {
+              const dialogManager = new DialogManager();
+              const missingParams = this.findMissingParams(toolName, params);
+              console.log(`[AIAgent-Form] Missing params for ${toolName}:`, missingParams);
+
+              const formSchema = dialogManager.generateFormSchema({
+                intent: "create_data" as any,
+                targetTable: this.inferTargetTable(toolName),
+                targetAction: toolName,
+                params,
+                missingParams,
+                confidence: 1,
+              });
+
+              if (formSchema) {
+                console.log(`[AIAgent-Form] ✅ Form generated! formId=${formSchema.formId}, fields=${formSchema.fields.length}`);
+                pendingForms.set(sessionId, formSchema);
+                savePendingForm(sessionId, formSchema);
+
+                this.sendSSEEvent(res, "form", {
+                  formSchema,
+                  message: "",
+                });
+
+                sessionStore.addMessage(sessionId, "assistant", finalContent || iterationContent || "请填写以下信息：", {
+                  toolCalls: [{ name: toolName, arguments: params }],
+                });
+                sessionStore.updateSessionActivity(sessionId);
+
+                this.sendSSEEvent(res, "done", { sessionId });
+                clearInterval((res as any)._sseHeartbeat);
+                res.end();
+                return;
+              }
+
+              console.log(`[AIAgent-Form] Form generation returned null, falling back to confirm dialog`);
+            } catch (formError) {
+              console.error(`[AIAgent-Form] Error generating form:`, formError);
+            }
+
             const confirmMessage = this.buildConfirmMessage(toolName, params);
             const pending: PendingConfirmation = {
               toolName,
@@ -249,6 +359,7 @@ class AIAgentController {
             sessionStore.updateSessionActivity(sessionId);
 
             this.sendSSEEvent(res, "done", { sessionId });
+            clearInterval((res as any)._sseHeartbeat);
             res.end();
             return;
           }
@@ -304,7 +415,6 @@ class AIAgentController {
         const summaryResult = await llmAgentService.streamChat(
           { messages: summaryMessages },
           chunk => {
-            if (abortController.signal.aborted) return;
             streamContent += chunk;
             this.sendSSEEvent(res, "chunk", { content: chunk });
           },
@@ -322,18 +432,34 @@ class AIAgentController {
         finalContent = finalContent || streamedContent;
       }
 
+      if (finalContent && !streamedContent && !res.writableEnded) {
+        this.sendSSEEvent(res, "chunk", { content: finalContent });
+      }
+
       sessionStore.addMessage(sessionId, "assistant", finalContent, {
         toolCalls: allToolCalls.length > 0 ? allToolCalls : undefined,
         toolResults: allToolResults.length > 0 ? allToolResults : undefined,
         displayType:
           allToolResults.length > 0 ? this.inferDisplayType(allToolCalls[0]?.name || "", allToolResults[0]) : undefined,
+        metadata: {
+          model: selectedModel,
+          latency: Date.now() - startTime,
+          tokenUsage: totalTokenUsage,
+        },
       });
       sessionStore.updateSessionActivity(sessionId);
 
-      this.sendSSEEvent(res, "done", { sessionId, usage: totalTokenUsage });
+      this.sendSSEEvent(res, "done", {
+        sessionId,
+        usage: totalTokenUsage,
+        model: selectedModel,
+        latency: Date.now() - startTime,
+      });
+      clearInterval((res as any)._sseHeartbeat);
       res.end();
     } catch (error) {
       console.error("[AIAgent] ReAct stream error:", error);
+      clearInterval((res as any)._sseHeartbeat);
       if (!res.writableEnded) {
         this.sendSSEEvent(res, "error", { message: (error as Error).message });
         res.end();
@@ -362,7 +488,7 @@ class AIAgentController {
     const result = await llmAgentService.streamChat(
       { messages, tools },
       chunk => {
-        if (onChunk && !abortController.signal.aborted) {
+        if (onChunk) {
           onChunk(chunk);
         }
       },
@@ -374,7 +500,7 @@ class AIAgentController {
     );
 
     return {
-      content: result.content,
+      content: result.content || "",
       tool_calls:
         toolCallResults.length > 0
           ? toolCallResults.map(tc => ({
@@ -416,6 +542,7 @@ class AIAgentController {
     selectedModelVersion?: string,
   ): Promise<void> {
     const abortController = this.setupSSE(res);
+    const startTime = Date.now();
 
     try {
       const pending = loadPendingConfirmation(sessionId);
@@ -478,7 +605,6 @@ class AIAgentController {
       const confirmResult = await llmAgentService.streamChat(
         { messages: finalMessages },
         chunk => {
-          if (abortController.signal.aborted) return;
           fullContent += chunk;
           this.sendSSEEvent(res, "chunk", { content: chunk });
         },
@@ -499,10 +625,20 @@ class AIAgentController {
         toolCalls: [{ name: pending.toolName, arguments: pending.params }],
         toolResults: [toolResult],
         displayType,
+        metadata: {
+          model: selectedModel,
+          latency: Date.now() - startTime,
+          tokenUsage: confirmTokenUsage,
+        },
       });
       sessionStore.updateSessionActivity(sessionId);
 
-      this.sendSSEEvent(res, "done", { sessionId, usage: confirmTokenUsage });
+      this.sendSSEEvent(res, "done", {
+        sessionId,
+        usage: confirmTokenUsage,
+        model: selectedModel,
+        latency: Date.now() - startTime,
+      });
       res.end();
     } catch (error) {
       console.error("[AIAgent] Confirmed action error:", error);
@@ -532,6 +668,299 @@ class AIAgentController {
       return "table";
     }
     return "card";
+  }
+
+  private tryGenerateFormFromResponse(
+    userMessage: string,
+    llmContent: string,
+    sessionId: string,
+    res: Response,
+  ): boolean {
+    const allText = (userMessage + " " + llmContent).toLowerCase();
+
+    const intentRules: Array<{
+      toolName: string;
+      exactKeywords: string[];
+      looseKeywords: string[][];
+    }> = [
+      {
+        toolName: "create_formula",
+        exactKeywords: ["创建配方", "新建配方", "添加配方", "新增配方"],
+        looseKeywords: [["配方", "创建"], ["配方", "新建"], ["配方", "添加"], ["配方", "表单"]],
+      },
+      {
+        toolName: "update_formula",
+        exactKeywords: ["修改配方", "更新配方", "编辑配方"],
+        looseKeywords: [["配方", "修改"], ["配方", "更新"], ["配方", "编辑"]],
+      },
+      {
+        toolName: "delete_formula",
+        exactKeywords: ["删除配方"],
+        looseKeywords: [["配方", "删除"]],
+      },
+      {
+        toolName: "create_material",
+        exactKeywords: ["创建原料", "新建原料", "添加原料", "新增原料"],
+        looseKeywords: [["原料", "创建"], ["原料", "新建"], ["原料", "添加"], ["原料", "表单"]],
+      },
+      {
+        toolName: "update_material",
+        exactKeywords: ["修改原料", "更新原料", "编辑原料"],
+        looseKeywords: [["原料", "修改"], ["原料", "更新"]],
+      },
+      {
+        toolName: "delete_material",
+        exactKeywords: ["删除原料"],
+        looseKeywords: [["原料", "删除"]],
+      },
+      {
+        toolName: "create_salesperson",
+        exactKeywords: ["创建业务员", "新建业务员", "添加业务员"],
+        looseKeywords: [["业务员", "创建"], ["业务员", "新建"], ["业务员", "添加"], ["业务员", "表单"]],
+      },
+      {
+        toolName: "update_salesperson",
+        exactKeywords: ["修改业务员", "更新业务员", "编辑业务员"],
+        looseKeywords: [["业务员", "修改"], ["业务员", "更新"]],
+      },
+      {
+        toolName: "delete_salesperson",
+        exactKeywords: ["删除业务员"],
+        looseKeywords: [["业务员", "删除"]],
+      },
+    ];
+
+    let matchedTool: string | null = null;
+
+    for (const rule of intentRules) {
+      if (rule.exactKeywords.some(kw => allText.includes(kw))) {
+        matchedTool = rule.toolName;
+        break;
+      }
+    }
+
+    if (!matchedTool) {
+      for (const rule of intentRules) {
+        if (rule.looseKeywords.some(wordPair => wordPair.every(w => allText.includes(w)))) {
+          matchedTool = rule.toolName;
+          break;
+        }
+      }
+    }
+
+    if (!matchedTool) return false;
+
+    console.log(`[AIAgent-Form] Matched tool: ${matchedTool} from allText="${allText.substring(0, 100)}"`);
+
+    const tool = toolRegistry.getTool(matchedTool);
+    if (!tool) {
+      console.log(`[AIAgent-Form] Tool not found: ${matchedTool}`);
+      return false;
+    }
+
+    const missingParams = this.findMissingParams(matchedTool, {});
+    console.log(`[AIAgent-Form] Missing params for ${matchedTool}:`, missingParams);
+
+    const dialogManager = new DialogManager();
+    const formSchema = dialogManager.generateFormSchema({
+      intent: "create_data" as any,
+      targetTable: this.inferTargetTable(matchedTool),
+      targetAction: matchedTool,
+      params: {},
+      missingParams,
+      confidence: 1,
+    });
+
+    if (!formSchema) {
+      console.log(`[AIAgent-Form] generateFormSchema returned null for ${matchedTool}`);
+      return false;
+    }
+
+    console.log(`[AIAgent-Form] ✅ Form generated via post-processing! formId=${formSchema.formId}, fields=${formSchema.fields.length}`);
+
+    pendingForms.set(sessionId, formSchema);
+    savePendingForm(sessionId, formSchema);
+
+    this.sendSSEEvent(res, "form", {
+      formSchema,
+      message: "",
+    });
+
+    sessionStore.addMessage(sessionId, "assistant", llmContent || "请填写以下信息：", {
+      toolCalls: [{ name: matchedTool, arguments: {} }],
+    });
+    sessionStore.updateSessionActivity(sessionId);
+
+    return true;
+  }
+
+  private inferTargetTable(toolName: string): string {
+    if (toolName.includes("formula")) return "formula";
+    if (toolName.includes("material")) return "material";
+    if (toolName.includes("salesperson") || toolName.includes("salesman")) return "salesperson";
+    return "";
+  }
+
+  private findMissingParams(toolName: string, params: Record<string, any>): string[] {
+    const tool = toolRegistry.getTool(toolName);
+    if (!tool) return [];
+    const missing: string[] = [];
+    try {
+      const schemaDef = (tool.paramsSchema as any)?._def || (tool.paramsSchema as any)?.def;
+      const shape = schemaDef?.shape;
+      if (shape) {
+        for (const [key, fieldSchema] of Object.entries(shape)) {
+          const f = fieldSchema as any;
+          const fieldType = f.type || f._def?.typeName || "";
+          const fieldDefType = f.def?.type || f._def?.typeName || "";
+          const isOptional = fieldType === "optional" || fieldDefType === "optional";
+          if (!isOptional && (params[key] === undefined || params[key] === null || params[key] === "")) {
+            missing.push(key);
+          }
+        }
+      }
+    } catch {
+      // schema parsing failed, return empty
+    }
+    return missing;
+  }
+
+  async getPendingForm(req: Request, res: Response): Promise<void> {
+    const userId = (req as any).user?.userId;
+    const { sessionId } = req.params;
+
+    if (!userId) {
+      res.status(401).json({ success: false, error: "认证信息缺失" });
+      return;
+    }
+
+    const formSchema = loadPendingForm(sessionId);
+    if (!formSchema) {
+      res.json({ success: true, data: null });
+      return;
+    }
+
+    res.json({ success: true, data: formSchema });
+  }
+
+  async submitForm(req: Request, res: Response): Promise<void> {
+    const { sessionId, formId, formData } = req.body;
+    const userId = (req as any).user?.userId;
+
+    if (!userId) {
+      res.status(401).json({ success: false, error: "认证信息缺失" });
+      return;
+    }
+
+    if (!sessionId || !formId || !formData) {
+      res.status(400).json({ success: false, error: "缺少必要参数" });
+      return;
+    }
+
+    const formSchema = loadPendingForm(sessionId);
+    if (!formSchema || formSchema.formId !== formId) {
+      res.status(400).json({ success: false, error: "表单已过期或不存在，请重新发起操作" });
+      return;
+    }
+
+    const validationErrors = this.validateFormData(formSchema, formData);
+    if (validationErrors.length > 0) {
+      res.json({
+        success: false,
+        error: "表单校验失败",
+        validationErrors,
+      });
+      return;
+    }
+
+    deletePendingForm(sessionId);
+
+    const toolName = formSchema.toolName;
+    const context: ToolContext = {
+      userId,
+      userRole: "user",
+      sessionId,
+      requestId: `req_${crypto.randomUUID().substring(0, 9)}`,
+    };
+
+    let toolResult: ToolResult;
+    try {
+      toolResult = await toolRegistry.execute(toolName, formData, context);
+    } catch (error) {
+      toolResult = {
+        success: false,
+        error: error instanceof Error ? error.message : "工具执行失败",
+      };
+    }
+
+    const displayType = this.inferDisplayType(toolName, toolResult);
+
+    sessionStore.addMessage(sessionId, "user", `[表单提交] ${formSchema.title}`);
+    sessionStore.addMessage(
+      sessionId,
+      "assistant",
+      toolResult.success ? `${formSchema.title}操作成功` : `操作失败：${toolResult.error}`,
+      {
+        toolCalls: [{ name: toolName, arguments: formData }],
+        toolResults: [toolResult],
+        displayType,
+      },
+    );
+    sessionStore.updateSessionActivity(sessionId);
+
+    res.json({
+      success: toolResult.success,
+      data: toolResult.data || toolResult.error,
+      displayType,
+      toolName,
+    });
+  }
+
+  private validateFormData(
+    formSchema: FormSchema,
+    formData: Record<string, any>,
+  ): Array<{ field: string; message: string }> {
+    const errors: Array<{ field: string; message: string }> = [];
+
+    for (const field of formSchema.fields) {
+      const value = formData[field.name];
+
+      if (field.required && (value === undefined || value === null || value === "")) {
+        errors.push({ field: field.name, message: `${field.label}不能为空` });
+        continue;
+      }
+
+      if (value === undefined || value === null || value === "") continue;
+
+      if (field.type === "number") {
+        const num = Number(value);
+        if (isNaN(num)) {
+          errors.push({ field: field.name, message: `${field.label}必须是数字` });
+          continue;
+        }
+        if (field.validation?.min !== undefined && num < field.validation.min) {
+          errors.push({
+            field: field.name,
+            message: field.validation.message || `${field.label}不能小于${field.validation.min}`,
+          });
+        }
+        if (field.validation?.max !== undefined && num > field.validation.max) {
+          errors.push({
+            field: field.name,
+            message: field.validation.message || `${field.label}不能大于${field.validation.max}`,
+          });
+        }
+      }
+
+      if (field.validation?.pattern) {
+        const regex = new RegExp(field.validation.pattern);
+        if (!regex.test(String(value))) {
+          errors.push({ field: field.name, message: field.validation.message || `${field.label}格式不正确` });
+        }
+      }
+    }
+
+    return errors;
   }
 
   async getSessions(req: Request, res: Response): Promise<void> {
@@ -575,6 +1004,7 @@ class AIAgentController {
     const deleted = sessionStore.deleteSession(sessionId);
     if (deleted) {
       deletePendingConfirmation(sessionId);
+      deletePendingForm(sessionId);
       res.json({ success: true, message: "会话已删除" });
     } else {
       res.status(404).json({ success: false, error: "会话不存在" });
@@ -672,8 +1102,11 @@ class AIAgentController {
   }
 
   private sendSSEEvent(res: Response, type: string, data: any): void {
-    if (!res.writableEnded) {
+    if (!res.writableEnded && !res.destroyed) {
       res.write(`data: ${JSON.stringify({ type, ...data })}\n\n`);
+      if (typeof (res as any).flush === "function") {
+        (res as any).flush();
+      }
     }
   }
 
@@ -760,10 +1193,6 @@ class AIAgentController {
       res.status(500).json({ success: false, error: error instanceof Error ? error.message : "更新身份配置失败" });
     }
   }
-}
-
-function req_on_close(res: Response, callback: () => void): void {
-  (res as any).req?.on?.("close", callback);
 }
 
 export const aiAgentController = new AIAgentController();

@@ -46,14 +46,27 @@ class ToolRegistry {
       parameters: Record<string, unknown>;
     };
   }> {
-    return this.getAllTools().map(tool => ({
-      type: "function" as const,
-      function: {
-        name: tool.name,
-        description: tool.description,
-        parameters: (tool.parameters as any)?.toJSON?.() || {},
-      },
-    }));
+    return this.getAllTools().map(tool => {
+      let parameters: Record<string, unknown>;
+      const schema = tool.parameters as any;
+      if (schema?.toJSONSchema) {
+        const jsonSchema = schema.toJSONSchema({});
+        const { $schema, ...rest } = jsonSchema;
+        parameters = rest;
+      } else if (schema?.toJSON) {
+        parameters = schema.toJSON();
+      } else {
+        parameters = { type: "object", properties: {} };
+      }
+      return {
+        type: "function" as const,
+        function: {
+          name: tool.name,
+          description: tool.description,
+          parameters,
+        },
+      };
+    });
   }
 
   async execute(toolName: string, rawParams: unknown, context: ToolContext): Promise<ToolResult> {
