@@ -121,14 +121,34 @@
                       </template>
                       <template #operation="{ row }">
                         <t-space :size="6">
-                          <t-button v-if="row.status === 'completed'" variant="outline" theme="primary" size="small"
+                          <button v-if="row.status === 'completed'" class="action-btn action-btn--download"
                             @click="handleDownload(row)">
-                            <template #icon><t-icon name="download" /></template>下载
-                          </t-button>
-                          <t-button v-if="row.status === 'failed'" variant="outline" theme="warning" size="small"
-                            :loading="retryingId === row.jobId" @click="handleRetry(row)">
-                            <template #icon><t-icon name="refresh" /></template>重试
-                          </t-button>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                              stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                              <polyline points="7 10 12 15 17 10" />
+                              <line x1="12" y1="15" x2="12" y2="3" />
+                            </svg>
+                            下载
+                          </button>
+                          <button v-if="row.status === 'completed' || row.status === 'failed'" class="action-btn action-btn--reexport"
+                            :disabled="reExportingId === row.jobId" @click="handleReExport(row)">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                              stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                              <polyline points="23 4 23 10 17 10" />
+                              <path d="M20.49 15a9 9 0 11-2.12-9.36L23 10" />
+                            </svg>
+                            {{ reExportingId === row.jobId ? '导出中...' : '重新导出' }}
+                          </button>
+                          <button v-if="row.status === 'failed' && reExportingId !== row.jobId" class="action-btn action-btn--retry"
+                            @click="handleRetry(row)">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                              stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                              <polyline points="23 4 23 10 17 10" />
+                              <path d="M20.49 15a9 9 0 11-2.12-9.36L23 10" />
+                            </svg>
+                            重试
+                          </button>
                         </t-space>
                       </template>
                     </t-table>
@@ -499,6 +519,7 @@ const showApiDialog = ref(false);
 const editingTemplate = ref<any>(null);
 const creating = ref(false);
 const retryingId = ref('');
+const reExportingId = ref('');
 const formulaLoading = ref(false);
 const formulaList = ref<any[]>([]);
 const searchKeyword = ref('');
@@ -685,7 +706,7 @@ const jobColumns = [
   { colKey: 'status', title: '状态', width: 100, cell: 'status' },
   { colKey: 'createdAt', title: '创建时间', width: 170, cell: 'createdAt' },
   { colKey: 'errorMessage', title: '错误信息', ellipsis: true },
-  { colKey: 'operation', title: '操作', width: 130, cell: 'operation', align: 'center' },
+  { colKey: 'operation', title: '操作', width: 200, cell: 'operation', align: 'center' },
 ];
 
 const jobStatusTheme = (s: string) => s === 'completed' ? 'success' : s === 'failed' ? 'danger' : s === 'processing' ? 'warning' : 'default';
@@ -699,8 +720,7 @@ async function handleCreateJob() {
   if (result.success) {
     const data = result.data as { jobId: string; status: string; fileName?: string; errorMessage?: string; } | undefined;
     if (data?.status === 'completed') {
-      MessagePlugin.success('导出完成，正在下载...');
-      await exportStore.downloadFile(data.jobId, data.fileName || `配方导出.${exportForm.exportType === 'pdf' ? 'pdf' : 'xlsx'}`, exportForm.exportType);
+      MessagePlugin.success('导出任务已完成，请在任务列表中点击下载');
     } else if (data?.status === 'failed') {
       MessagePlugin.error(`导出失败: ${data.errorMessage || '未知错误'}`);
     } else {
@@ -725,6 +745,17 @@ async function handleRetry(row: any) {
     MessagePlugin.success('重试成功');
   } else {
     MessagePlugin.error(result.message || '重试失败');
+  }
+}
+
+async function handleReExport(row: any) {
+  reExportingId.value = row.jobId;
+  const result = await exportStore.reExportJob(row.jobId);
+  reExportingId.value = '';
+  if (result.success) {
+    MessagePlugin.success('重新导出完成，请在任务列表中点击下载');
+  } else {
+    MessagePlugin.error(result.message || '重新导出失败');
   }
 }
 
@@ -1317,6 +1348,86 @@ onMounted(async () => {
 
     :deep(.t-table__body tr:hover td) {
       background: #f0fdf4;
+    }
+  }
+
+  .action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all $transition-fast;
+    white-space: nowrap;
+    border: 1px solid transparent;
+    line-height: 1.5;
+
+    &--download {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #fff;
+      border-color: transparent;
+      box-shadow: 0 1px 4px rgba(16, 185, 129, 0.2);
+
+      &:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 3px 10px rgba(16, 185, 129, 0.35);
+      }
+
+      &:active {
+        transform: translateY(0);
+        box-shadow: 0 1px 3px rgba(16, 185, 129, 0.2);
+      }
+    }
+
+    &--reexport {
+      background: transparent;
+      color: #059669;
+      border-color: #6ee7b7;
+      background-color: #ecfdf5;
+
+      &:hover:not(:disabled) {
+        background: #d1fae5;
+        border-color: #10b981;
+        color: #047857;
+      }
+
+      &:active:not(:disabled) {
+        background: #a7f3d0;
+      }
+
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+    }
+
+    &--retry {
+      background: transparent;
+      color: #f59e0b;
+      border-color: #fcd34d;
+      background-color: #fffbeb;
+
+      &:hover:not(:disabled) {
+        background: #fef3c7;
+        border-color: #f59e0b;
+        color: #d97706;
+      }
+
+      &:active:not(:disabled) {
+        background: #fde68a;
+      }
+
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+    }
+
+    svg {
+      flex-shrink: 0;
     }
   }
 

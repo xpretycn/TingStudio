@@ -515,6 +515,153 @@
               </div>
             </div>
 
+            <div v-else-if="activeTab === 'float-agent'" key="float-agent" class="tab-panel">
+              <div class="section-header-enhanced">
+                <div class="section-title-group">
+                  <svg class="section-title-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                    stroke="#ff6b8a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="M8 14s1.5 2 4 2 4-2 4-2" />
+                    <line x1="9" y1="9" x2="9.01" y2="9" />
+                    <line x1="15" y1="9" x2="15.01" y2="9" />
+                  </svg>
+                  <h4 class="section-title-text">悬浮助手配置</h4>
+                </div>
+              </div>
+
+              <div class="float-agent-config">
+                <div class="fa-card">
+                  <div class="fa-card-header">
+                    <div class="fa-card-header-left">
+                      <svg class="fa-card-icon" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                        stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                      </svg>
+                      <span class="fa-card-title">基本配置</span>
+                    </div>
+                    <t-switch v-model="floatConfig.enabled" size="small" @change="saveFloatConfig('enabled')" />
+                  </div>
+                  <div class="fa-card-body">
+                    <div class="fa-field">
+                      <span class="fa-field-label">AI 模型</span>
+                      <t-select v-model="floatModelKey" placeholder="选择模型" size="small" style="width: 100%"
+                        @change="onFloatModelChange">
+                        <t-option-group v-for="group in allFloatModelGroups" :key="group.provider" :label="group.name">
+                          <t-option v-for="v in group.versions" :key="v.value" :value="v.value" :label="v.label" />
+                        </t-option-group>
+                      </t-select>
+                    </div>
+                    <div class="fa-field">
+                      <span class="fa-field-label">备用模型</span>
+                      <t-select v-model="floatFallbackModelKey" placeholder="可选" clearable size="small"
+                        style="width: 100%" @change="onFloatFallbackModelChange">
+                        <t-option-group v-for="group in allFloatModelGroups" :key="group.provider" :label="group.name">
+                          <t-option v-for="v in group.versions" :key="v.value" :value="v.value" :label="v.label" />
+                        </t-option-group>
+                      </t-select>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="fa-card">
+                  <div class="fa-card-header">
+                    <div class="fa-card-header-left">
+                      <svg class="fa-card-icon" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                        stroke="#8B5CF6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                      </svg>
+                      <span class="fa-card-title">外观设置</span>
+                    </div>
+                  </div>
+                  <div class="fa-card-body">
+                    <div class="fa-field">
+                      <span class="fa-field-label">悬浮球位置</span>
+                      <div class="fa-toggle-group" @change="(e: any) => { if (e?.target?.value) floatConfig.position = e.target.value; saveFloatConfig('position'); }">
+                        <button type="button" class="fa-toggle-btn" :class="{ active: floatConfig.position === 'right' }"
+                          @click="floatConfig.position = 'right'; saveFloatConfig('position')">
+                          右侧
+                        </button>
+                        <button type="button" class="fa-toggle-btn" :class="{ active: floatConfig.position === 'left' }"
+                          @click="floatConfig.position = 'left'; saveFloatConfig('position')">
+                          左侧
+                        </button>
+                      </div>
+                    </div>
+                    <div class="fa-field">
+                      <span class="fa-field-label">抽屉宽度</span>
+                      <t-input-number v-model="floatConfig.drawerWidth" :min="320" :max="600" :step="10" size="small"
+                        theme="normal" style="width: 180px" @change="saveFloatConfig('drawerWidth')" />
+                    </div>
+                    <div class="fa-field">
+                      <span class="fa-field-label">主题色</span>
+                      <t-input v-model="floatConfig.themeColor" placeholder="默认跟随品牌色" clearable size="small"
+                        style="width: 180px" @change="saveFloatConfig('themeColor')" />
+                    </div>
+                    <div class="fa-field">
+                      <span class="fa-field-label">呼吸脉冲</span>
+                      <t-switch v-model="floatConfig.showPulse" size="small" @change="saveFloatConfig('showPulse')" />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="fa-card">
+                  <div class="fa-card-header">
+                    <div class="fa-card-header-left">
+                      <svg class="fa-card-icon" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                        stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                      </svg>
+                      <span class="fa-card-title">行为策略</span>
+                    </div>
+                  </div>
+                  <div class="fa-card-body">
+                    <div class="fa-field fa-field--block">
+                      <span class="fa-field-label">启用页面</span>
+                      <t-checkbox-group v-model="floatConfig.enabledPages" @change="(val: any) => saveFloatConfig('enabledPages', val)">
+                        <t-checkbox value="formula-add">新增配方</t-checkbox>
+                        <t-checkbox value="formula-edit">编辑配方</t-checkbox>
+                        <t-checkbox value="material-add">新增原料</t-checkbox>
+                        <t-checkbox value="material-edit">编辑原料</t-checkbox>
+                        <t-checkbox value="salesman-add">新增业务员</t-checkbox>
+                        <t-checkbox value="salesman-edit">编辑业务员</t-checkbox>
+                      </t-checkbox-group>
+                    </div>
+                    <div class="fa-field">
+                      <span class="fa-field-label">最大对话轮次</span>
+                      <t-input-number v-model="floatConfig.maxRounds" :min="3" :max="30" :step="1" size="small"
+                        theme="normal" style="width: 180px" @change="saveFloatConfig('maxRounds')" />
+                    </div>
+                    <div class="fa-field">
+                      <span class="fa-field-label">回填策略</span>
+                      <div class="fa-toggle-group">
+                        <button type="button" class="fa-toggle-btn" :class="{ active: floatConfig.fillStrategy === 'overwrite' }"
+                          @click="floatConfig.fillStrategy = 'overwrite'; saveFloatConfig('fillStrategy')">
+                          覆盖填充
+                        </button>
+                        <button type="button" class="fa-toggle-btn" :class="{ active: floatConfig.fillStrategy === 'preserve' }"
+                          @click="floatConfig.fillStrategy = 'preserve'; saveFloatConfig('fillStrategy')">
+                          仅填空值
+                        </button>
+                      </div>
+                    </div>
+                    <div class="fa-field">
+                      <span class="fa-field-label">上下文模式</span>
+                      <div class="fa-toggle-group">
+                        <button type="button" class="fa-toggle-btn" :class="{ active: floatConfig.contextMode === 'page' }"
+                          @click="floatConfig.contextMode = 'page'; saveFloatConfig('contextMode')">
+                          按页面隔离
+                        </button>
+                        <button type="button" class="fa-toggle-btn" :class="{ active: floatConfig.contextMode === 'clear' }"
+                          @click="floatConfig.contextMode = 'clear'; saveFloatConfig('contextMode')">
+                          每次清空
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div v-else key="empty" class="tab-panel">
               <div class="section-header-enhanced">
                 <div class="section-title-group">
@@ -541,7 +688,7 @@
           </div>
         </template>
         <t-form ref="addAppFormRef" :data="appFormData" :rules="appFormRules" label-width="100px"
-          @submit="handleAddApp">
+          @submit="submitAddApp">
           <t-form-item label="功能模块" name="module">
             <t-select v-model="appFormData.module" placeholder="请选择功能模块" clearable>
               <t-option v-for="mod in availableModules" :key="mod.value" :value="mod.value" :label="mod.label">
@@ -628,7 +775,7 @@
           </div>
         </template>
         <t-form ref="editAppFormRef" :data="editAppFormData" :rules="appFormRules" label-width="100px"
-          @submit="handleEditApp">
+          @submit="submitEditApp">
           <t-form-item label="功能模块" name="module">
             <t-input v-model="editAppFormData.module" disabled />
           </t-form-item>
@@ -992,6 +1139,8 @@ import { MessagePlugin } from "tdesign-vue-next";
 import { useModelStore } from "@/stores/model";
 import { useAuthStore } from "@/stores/auth";
 import type { ModelItem, AlertConfigItem } from "@/api/model";
+import { modelApi, type ModelVersionOption } from "@/api/model";
+import { agentApi } from "@/api/agent";
 import * as echarts from "echarts";
 
 const modelStore = useModelStore();
@@ -1000,6 +1149,124 @@ const authStore = useAuthStore();
 const isAdmin = computed(() => authStore.user?.role === "admin");
 const activeTab = ref("models");
 const navCollapsed = ref(false);
+
+const floatConfig = reactive({
+  enabled: true,
+  model: "deepseek",
+  modelName: "",
+  fallbackModel: "",
+  fallbackModelName: "",
+  position: "right" as "right" | "left",
+  drawerWidth: 400,
+  themeColor: "",
+  showPulse: true,
+  enabledPages: [] as string[],
+  maxRounds: 10,
+  fillStrategy: "overwrite" as "overwrite" | "preserve",
+  contextMode: "page" as "page" | "clear",
+});
+
+
+interface FloatModelGroup {
+  provider: string;
+  name: string;
+  versions: ModelVersionOption[];
+}
+
+const allFloatModelGroups = ref<FloatModelGroup[]>([]);
+
+async function loadAllFloatModelGroups() {
+  const groups: FloatModelGroup[] = [];
+  for (const m of modelStore.models) {
+    try {
+      const res = await modelApi.getVersionsByProvider(m.provider);
+      const versions = res.versions || [];
+      if (versions.length > 0) {
+        groups.push({ provider: m.provider, name: m.name, versions });
+      }
+    } catch {
+      // skip
+    }
+  }
+  allFloatModelGroups.value = groups;
+}
+
+const floatModelKey = computed({
+  get: () => floatConfig.model && floatConfig.modelName ? `${floatConfig.model}|${floatConfig.modelName}` : "",
+  set: () => {},
+});
+
+const floatFallbackModelKey = computed({
+  get: () => floatConfig.fallbackModel && floatConfig.fallbackModelName ? `${floatConfig.fallbackModel}|${floatConfig.fallbackModelName}` : "",
+  set: () => {},
+});
+
+function onFloatModelChange(val: string) {
+  if (!val) {
+    floatConfig.modelName = "";
+    saveFloatConfig("modelName", "");
+    return;
+  }
+  const [provider, modelName] = val.split("|");
+  floatConfig.model = provider;
+  floatConfig.modelName = modelName;
+  saveFloatConfig("model", provider);
+  saveFloatConfig("modelName", modelName);
+}
+
+function onFloatFallbackModelChange(val: string) {
+  if (!val) {
+    floatConfig.fallbackModel = "";
+    floatConfig.fallbackModelName = "";
+    saveFloatConfig("fallbackModel", "");
+    saveFloatConfig("fallbackModelName", "");
+    return;
+  }
+  const [provider, modelName] = val.split("|");
+  floatConfig.fallbackModel = provider;
+  floatConfig.fallbackModelName = modelName;
+  saveFloatConfig("fallbackModel", provider);
+  saveFloatConfig("fallbackModelName", modelName);
+}
+
+async function loadFloatConfig() {
+  try {
+    const data = await agentApi.getFloatConfig();
+    if (data) {
+      Object.assign(floatConfig, {
+        enabled: data.enabled,
+        model: data.model,
+        modelName: data.modelName || "",
+        fallbackModel: data.fallbackModel,
+        fallbackModelName: data.fallbackModelName || "",
+        position: data.position,
+        drawerWidth: data.drawerWidth,
+        themeColor: data.themeColor,
+        showPulse: data.showPulse,
+        enabledPages: data.enabledPages,
+        maxRounds: data.maxRounds,
+        fillStrategy: data.fillStrategy,
+        contextMode: data.contextMode,
+      });
+    }
+    await loadAllFloatModelGroups();
+  } catch (e) {
+    console.error("[FloatAgentConfig] 加载失败:", e);
+  }
+}
+
+async function saveFloatConfig(field: string, eventValue?: any) {
+  try {
+    const data: Record<string, any> = {};
+    data[field] = eventValue !== undefined ? eventValue : (floatConfig as any)[field];
+    await agentApi.updateFloatConfig(data as any);
+    MessagePlugin.success("配置已保存");
+  } catch (e: any) {
+    const msg = e?.response?.data?.error || e?.message || "保存失败";
+    console.error(`[FloatAgentConfig] 保存 ${field} 失败:`, msg, e);
+    MessagePlugin.error(msg);
+  }
+}
 const showAddDrawer = ref(false);
 const showEditDrawer = ref(false);
 const addSubmitting = ref(false);
@@ -1157,6 +1424,7 @@ const handleAssistantAction = () => {
 const tabs = [
   { value: "models", label: "模型管理", iconPath: '<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>' },
   { value: "applications", label: "模型应用", iconPath: '<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>' },
+  { value: "float-agent", label: "悬浮助手", iconPath: '<circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/>' },
   { value: "usage", label: "用量监控", iconPath: '<line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>' },
   { value: "alerts", label: "预警设置", iconPath: '<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>' },
   { value: "logs", label: "调用日志", iconPath: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>' },
@@ -1333,10 +1601,6 @@ function handleLogoError(e: Event) {
   img.style.display = "none";
   const fallback = img.parentElement.querySelector(".model-fallback");
   if (fallback) (fallback as HTMLElement).style.display = "flex";
-}
-
-function getVersionsForProvider(provider: string) {
-  return PROVIDER_VERSIONS[provider] || [];
 }
 
 function getAvailableVersionsForProvider(model: ModelItem) {
@@ -2010,6 +2274,8 @@ watch(activeTab, async (tab) => {
   } else if (tab === "logs") {
     logPage.value = 1;
     await modelStore.fetchUsageLogs({ page: 1, pageSize: logPageSize.value });
+  } else if (tab === "float-agent") {
+    await loadFloatConfig();
   }
 });
 
@@ -2026,6 +2292,8 @@ onMounted(async () => {
     await fetchUsageWithMinLoading();
     startUsageRefresh();
   }
+
+  await loadFloatConfig();
 
   resizeHandler = () => {
     trendChart?.resize();
@@ -3874,6 +4142,129 @@ $transition-normal: 0.25s ease;
     gap: 12px;
     padding-top: 16px;
     border-top: 1px solid #f1f5f9;
+  }
+}
+
+.float-agent-config {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 20px;
+  padding: 4px 0;
+
+  .fa-card {
+    background: #fff;
+    border-radius: 20px;
+    border: 1px solid #f1f5f9;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+    overflow: hidden;
+    transition: all 0.3s ease;
+
+    &:hover {
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+      border-color: #e2e8f0;
+      transform: translateY(-1px);
+    }
+
+    .fa-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px 12px;
+      border-bottom: 1px solid #f8fafc;
+
+      .fa-card-header-left {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .fa-card-icon {
+        flex-shrink: 0;
+      }
+
+      .fa-card-title {
+        font-size: 15px;
+        font-weight: 600;
+        color: #1e293b;
+      }
+    }
+
+    .fa-card-body {
+      padding: 12px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+  }
+
+  .fa-field {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 7px 0;
+    gap: 12px;
+
+    &--block {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+
+      :deep(.t-checkbox-group) {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px 16px;
+      }
+    }
+
+    .fa-field-label {
+      font-size: 13px;
+      color: #94a3b8;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    :deep(.t-select),
+    :deep(.t-input),
+    :deep(.t-input-number) {
+      width: 180px;
+      flex-shrink: 0;
+    }
+  }
+
+  .fa-toggle-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    background: #f1f5f9;
+    border-radius: 10px;
+    padding: 3px;
+    flex-shrink: 0;
+
+    .fa-toggle-btn {
+      font-size: 13px;
+      font-weight: 500;
+      color: #64748b;
+      background: transparent;
+      border: none;
+      border-radius: 8px;
+      padding: 5px 16px;
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      white-space: nowrap;
+      line-height: 1.4;
+
+      &:hover:not(.active) {
+        color: #334155;
+        background: rgba(255, 255, 255, 0.7);
+      }
+
+      &.active {
+        background: #fff;
+        color: #10B981;
+        box-shadow: 0 1px 4px rgba(16, 185, 129, 0.18);
+        font-weight: 600;
+      }
+    }
   }
 }
 </style>

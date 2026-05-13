@@ -435,6 +435,70 @@ function runAutoMigrations(dbInstance: Database.Database) {
   `,
   );
 
+  ensureTable(
+    dbInstance,
+    "agent_float_config",
+    `
+    CREATE TABLE agent_float_config (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL UNIQUE,
+      enabled INTEGER DEFAULT 1,
+      model TEXT DEFAULT 'deepseek',
+      model_name TEXT DEFAULT '',
+      fallback_model TEXT DEFAULT '',
+      fallback_model_name TEXT DEFAULT '',
+      position TEXT DEFAULT 'right',
+      drawer_width INTEGER DEFAULT 400,
+      theme_color TEXT DEFAULT '',
+      show_pulse INTEGER DEFAULT 1,
+      enabled_pages TEXT DEFAULT '[]',
+      max_rounds INTEGER DEFAULT 10,
+      fill_strategy TEXT DEFAULT 'overwrite',
+      context_mode TEXT DEFAULT 'page',
+      updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    )
+  `,
+  );
+
+  ensureColumn(dbInstance, "agent_float_config", "model_name", "TEXT", "''");
+  ensureColumn(dbInstance, "agent_float_config", "fallback_model_name", "TEXT", "''");
+
+  ensureTable(
+    dbInstance,
+    "agent_provider_health",
+    `
+    CREATE TABLE agent_provider_health (
+      provider TEXT PRIMARY KEY,
+      consecutive_failures INTEGER DEFAULT 0,
+      circuit_open INTEGER DEFAULT 0,
+      circuit_open_until TEXT DEFAULT NULL,
+      last_error TEXT DEFAULT NULL,
+      last_failure_at TEXT DEFAULT NULL,
+      last_success_at TEXT DEFAULT NULL,
+      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+    CREATE INDEX IF NOT EXISTS idx_agent_provider_health_circuit ON agent_provider_health(circuit_open, circuit_open_until)
+  `,
+  );
+
+  ensureTable(
+    dbInstance,
+    "agent_session_cleanup_log",
+    `
+    CREATE TABLE agent_session_cleanup_log (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      cleaned_sessions INTEGER DEFAULT 0,
+      cleaned_messages INTEGER DEFAULT 0,
+      cleaned_confirmations INTEGER DEFAULT 0,
+      cleaned_forms INTEGER DEFAULT 0,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+    CREATE INDEX IF NOT EXISTS idx_agent_cleanup_log_created ON agent_session_cleanup_log(created_at DESC)
+  `,
+  );
+
   ensureInitialAiModels(dbInstance);
 }
 

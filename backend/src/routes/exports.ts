@@ -3,7 +3,7 @@ import { Router } from 'express'
 import { authMiddleware } from '../middleware/auth.js'
 import {
   getExportTemplates, createExportTemplate, updateExportTemplate, deleteExportTemplate,
-  createExportJob, getExportJobs, getExportJob, downloadExportFile, retryExportJob,
+  createExportJob, getExportJobs, getExportJob, downloadExportFile, retryExportJob, reExportJob,
   createShare, getShare, getShares, deleteShare,
   createApiInterface, getApiInterfaces,
 } from '../controllers/exportController.js'
@@ -24,6 +24,7 @@ exportRoutes.get('/jobs', getExportJobs)
 exportRoutes.get('/jobs/:jobId', getExportJob)
 exportRoutes.get('/jobs/:jobId/download', downloadExportFile)
 exportRoutes.post('/jobs/:jobId/retry', retryExportJob)
+exportRoutes.post('/jobs/:jobId/re-export', reExportJob)
 
 // 分享
 exportRoutes.get('/shares', getShares)

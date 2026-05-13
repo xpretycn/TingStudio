@@ -112,6 +112,16 @@ export const useExportStore = defineStore('export', () => {
     }
   }
 
+  const reExportJob = async (jobId: string) => {
+    try {
+      await exportApi.reExportJob(jobId)
+      await fetchJobs({ page: currentPage.value, pageSize: pageSize.value })
+      return { success: true }
+    } catch (error: any) {
+      return { success: false, message: error.message || '重新导出失败' }
+    }
+  }
+
   const downloadFile = async (jobId: string, fileName: string, exportType: string = 'excel') => {
     try {
       const res = await exportApi.downloadFile(jobId)
@@ -203,7 +213,7 @@ export const useExportStore = defineStore('export', () => {
     templateTotal, templateCurrentPage, templatePageSize,
     apiTotal, apiCurrentPage, apiPageSize,
     fetchTemplates, createTemplate, updateTemplate, deleteTemplate,
-    createJob, fetchJobs, getJob, retryJob, downloadFile,
+    createJob, fetchJobs, getJob, retryJob, reExportJob, downloadFile,
     createShare, fetchShares, deleteShare,
     fetchApiInterfaces, createApiInterface,
     setPage, setTemplatePage, setApiPage,

@@ -89,6 +89,9 @@ export const exportApi = {
   retryJob(jobId: string) {
     return http.post<any, { success: boolean; message: string; data: { jobId: string; status: string } }>(`/exports/jobs/${jobId}/retry`)
   },
+  reExportJob(jobId: string) {
+    return http.post<any, { success: boolean; message: string; data: { jobId: string; status: string; fileName?: string } }>(`/exports/jobs/${jobId}/re-export`)
+  },
   downloadFile(jobId: string) {
     // 文件下载单独处理，不走 http 拦截器（blob 响应没有 success 字段）
     return axios.get(`/api/exports/jobs/${jobId}/download`, {

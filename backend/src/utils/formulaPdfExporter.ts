@@ -16,6 +16,9 @@ interface FormulaRow {
   finishedWeight: number;
   ratioFactor: number;
   supplementRatioFactor: number;
+  packagingPrice: number;
+  otherPrice: number;
+  profitMargin: number;
   description: string | null;
   preparationMethod: string | null;
   materialsJson: string;
@@ -300,6 +303,54 @@ export async function exportFormulaToPdf(
   });
 
   y += 20;
+
+  // ===== 报价信息 =====
+  doc.fontSize(14).fillColor("#333333");
+  doc.text("报价信息", startX, y);
+  y = doc.y + 10;
+
+  const materialTotalCost = materials.reduce((sum: number, m: any) => {
+    const detail = m.materialId ? materialDetails.get(m.materialId) : null;
+    const basePrice = m.basePriceAtSave ?? detail?.unitPrice ?? null;
+    const adjPrice = m.adjustedPrice ?? null;
+    const effectivePrice = adjPrice != null ? adjPrice : basePrice;
+    return sum + (effectivePrice != null ? ((m.quantity || 0) / 1000) * effectivePrice : 0);
+  }, 0);
+  const pPackagingPrice = formula.packagingPrice ?? 0;
+  const pOtherPrice = formula.otherPrice ?? 0;
+  const pProfitMargin = formula.profitMargin ?? 20;
+  const pCostSubtotal = materialTotalCost + pPackagingPrice + pOtherPrice;
+  const pProfitAmount = (pCostSubtotal * pProfitMargin) / 100;
+  const pTotalPrice = pCostSubtotal + pProfitAmount;
+
+  const pFw = formula.finishedWeight;
+  const pFwLabel = pFw > 0 ? `${pFw}g` : '0g';
+
+  const quotationItems: [string, string][] = [
+    ["规格(成品重量)", pFwLabel],
+    ["", ""],
+    ["原料总成本", `¥ ${materialTotalCost.toFixed(2)}`],
+    ["包装费", `¥ ${pPackagingPrice.toFixed(2)}`],
+    ["其他费用", `¥ ${pOtherPrice.toFixed(2)}`],
+    ["成本小计", `¥ ${pCostSubtotal.toFixed(2)}`],
+    ["利润率", `${pProfitMargin}%`],
+    ["利润金额", `¥ ${pProfitAmount.toFixed(2)}`],
+    ["", ""],
+    ["报价总价", `¥ ${pTotalPrice.toFixed(2)}`],
+  ];
+
+  doc.fontSize(10);
+  for (const [label, value] of quotationItems) {
+    if (!label && !value) { y += 6; continue; }
+    doc.fillColor("#666666").text(label + ":", startX, y, { continued: false });
+    doc.fillColor(label === "报价总价" ? "#D97706" : "#333333").text(value, startX + 125, y);
+    y = doc.y + 4;
+  }
+
+  doc.fontSize(9).fillColor("#999999");
+  y += 4;
+  doc.text("计算公式: 报价 = (原料总成本 + 包装费 + 其他费) × (1 + 利润率%)", startX, y, { width: pageWidth });
+  y = doc.y + 20;
 
   // ===== 营养数据表格 =====
   doc.fontSize(14).fillColor("#333333");

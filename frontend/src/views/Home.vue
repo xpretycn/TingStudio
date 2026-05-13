@@ -216,21 +216,36 @@
         </div>
       </div>
 
-      <!-- AI 问候卡片（系统版本信息） -->
-      <div v-show="!sidebarCollapsed" class="sidebar-welcome-card">
-        <div class="welcome-card-inner">
-          <!-- 左侧：系统版本信息 -->
-          <div class="welcome-card-left">
-            <p class="version-label">系统版本</p>
-            <p class="version-text">v2.4.5 企业版</p>
+      <!-- 系统版本信息（hover整体滑出式） -->
+      <div class="version-trigger-wrapper" @mouseenter="showVersionCard = true" @mouseleave="showVersionCard = false">
+        <div class="sidebar-welcome-card">
+          <div class="welcome-card-inner">
+            <div class="welcome-card-left">
+              <p class="version-label">系统版本</p>
+              <p class="version-text">v2.4.5 企业版</p>
+            </div>
+            <svg class="welcome-decor-icon" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
+              <path
+                d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
+            </svg>
           </div>
-          <!-- 右侧：装饰图标 -->
-          <svg class="welcome-decor-icon" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-            stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
-            <path
-              d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
-          </svg>
         </div>
+        <button class="version-trigger-btn" :class="{ active: showVersionCard }" title="系统版本">
+          <svg class="version-cat-logo" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="30" cy="32" r="20" fill="#FFE8D6" />
+            <path d="M14 22L10 4L26 16Z" fill="#FFB5C8" />
+            <path d="M46 22L50 4L34 16Z" fill="#FFB5C8" />
+            <ellipse cx="24" cy="30" rx="3.5" ry="4" fill="#5D4E60" />
+            <ellipse cx="36" cy="30" rx="3.5" ry="4" fill="#5D4E60" />
+            <ellipse cx="25" cy="28.5" rx="1.2" ry="1.5" fill="#fff" />
+            <ellipse cx="37" cy="28.5" rx="1.2" ry="1.5" fill="#fff" />
+            <ellipse cx="30" cy="35.5" rx="2.5" ry="1.8" fill="#FFB5C2" />
+            <path d="M27 38Q30 42 33 38" stroke="#E8A0B0" stroke-width="1" fill="none" stroke-linecap="round" />
+            <ellipse cx="20" cy="36" rx="4" ry="2.5" fill="#FFB5C2" opacity="0.35" />
+            <ellipse cx="40" cy="36" rx="4" ry="2.5" fill="#FFB5C2" opacity="0.35" />
+          </svg>
+        </button>
       </div>
     </aside>
 
@@ -445,6 +460,7 @@ const navExpanded = ref(true);
 const sidebarCollapsed = ref(false);
 const mobileDrawerOpen = ref(false);
 const contentRefreshKey = ref(0);
+const showVersionCard = ref(false);
 const activePath = computed(() => {
   const path = route.path;
   // 按最长前缀匹配，优先精确匹配，再按路径段前缀匹配
@@ -1192,24 +1208,82 @@ onMounted(() => {
   }
 }
 
-// ─── AI 问候卡片（系统版本信息）───
-.sidebar-welcome-card {
+// ─── 系统版本信息（hover整体滑出式）───
+.version-trigger-wrapper {
+  position: relative;
   flex-shrink: 0;
-  margin: 0 18px 16px;
+  margin: 0 -14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  overflow: hidden;
+  width: 36px;
+  transition: width 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+  z-index: 5;
+
+  &:hover,
+  &.expanded {
+    width: 248px;
+  }
+}
+
+.version-trigger-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: linear-gradient(135deg, #1a5c3a 0%, #0d4a2f 100%);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(26, 92, 58, 0.25);
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  z-index: 10;
+
+  .version-cat-logo {
+    width: 24px;
+    height: 24px;
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  &:hover,
+  &.active {
+    transform: scale(1.08);
+    box-shadow: 0 4px 16px rgba(26, 92, 58, 0.4);
+
+    .version-cat-logo {
+      transform: rotate(-8deg) scale(1.05);
+    }
+  }
+
+  &:active {
+    transform: scale(0.96);
+  }
+}
+
+.sidebar-welcome-card {
   background: linear-gradient(135deg, #1a5c3a 0%, #0d4a2f 100%);
   border-radius: 14px;
-  padding: 16px;
+  padding: 14px 18px;
   color: #fff;
   position: relative;
   overflow: hidden;
+  flex-shrink: 0;
+  margin-right: 8px;
+  white-space: nowrap;
 
   &::before {
     content: '';
     position: absolute;
     top: -20%;
     right: -10%;
-    width: 100px;
-    height: 100px;
+    width: 80px;
+    height: 80px;
     background: radial-gradient(circle, rgba(255, 255, 255, 0.06), transparent);
     border-radius: 50%;
   }
@@ -1220,34 +1294,34 @@ onMounted(() => {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 12px;
   }
 
-  // ─── 左侧：版本信息 ──
   .welcome-card-left {
     flex-shrink: 0;
 
     .version-label {
-      font-size: 12px;
+      font-size: 11px;
       opacity: 0.75;
-      margin: 0 0 4px 0;
+      margin: 0 0 3px 0;
       font-weight: 400;
       letter-spacing: 0.5px;
     }
 
     .version-text {
-      font-size: 17px;
+      font-size: 15px;
       font-weight: 700;
       line-height: 1.2;
       color: #fff;
       margin: 0;
       letter-spacing: 0.5px;
+      white-space: nowrap;
     }
   }
 
-  // ─── 右侧：装饰图标（星形）───
   .welcome-decor-icon {
     flex-shrink: 0;
-    opacity: 0.25;
+    opacity: 0.22;
     transition: all $transition-normal;
 
     &:hover {
@@ -1523,8 +1597,10 @@ onMounted(() => {
         }
 
         &.active {
+          margin-left: -8px;
+          padding-left: 28px;
           border-left: 3px solid white;
-          padding-left: 21px;
+          border-radius: 0 8px 8px 0;
         }
       }
     }

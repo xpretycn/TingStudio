@@ -160,6 +160,15 @@
                               <span>{{ msg.formSubmitSuccess ? '表单提交成功' : '表单提交失败' }}</span>
                             </div>
 
+                            <div v-if="msg.writeGuidanceLinks?.length" class="write-guidance-links">
+                              <div v-for="(gl, idx) in msg.writeGuidanceLinks" :key="idx" class="guidance-link-item">
+                                <t-icon name="link" size="14px" />
+                                <a :href="gl.navigationLink" @click.prevent="navigateTo(gl.navigationLink)" class="guidance-nav-link">
+                                  前往操作 →
+                                </a>
+                              </div>
+                            </div>
+
                             <div v-if="msg.actions?.length > 0" class="message-actions">
                               <button v-for="action in msg.actions" :key="action.id" class="action-btn"
                                 @click="executeAction(action)">
@@ -255,6 +264,18 @@
                             <t-icon name="app" size="14px" />
                             <span>快捷指令</span>
                           </div>
+                          <div class="command-category-tabs">
+                            <button class="category-tab" :class="{ active: !activeCommandCategory }" @click="setCommandCategory(null)">
+                              全部
+                            </button>
+                            <button v-for="(cat, key) in COMMAND_CATEGORIES" :key="key" class="category-tab"
+                              :class="{ active: activeCommandCategory === key }"
+                              :style="activeCommandCategory === key ? { color: cat.color, borderColor: cat.color, background: cat.color + '10' } : {}"
+                              @click="setCommandCategory(key as string)">
+                              <t-icon :name="cat.icon" size="12px" />
+                              <span>{{ cat.label }}</span>
+                            </button>
+                          </div>
                           <div class="command-palette-list">
                             <div v-for="(cmd, idx) in filteredCommands" :key="cmd.id" class="command-item"
                               :class="{ active: activeCommandIndex === idx }" @click="selectCommand(cmd)"
@@ -266,6 +287,10 @@
                                 <span class="command-item-name">/{{ cmd.id }}</span>
                                 <span class="command-item-desc">{{ cmd.description }}</span>
                               </div>
+                              <span class="command-item-category"
+                                :style="{ color: COMMAND_CATEGORIES[cmd.category]?.color, background: COMMAND_CATEGORIES[cmd.category]?.color + '15' }">
+                                {{ COMMAND_CATEGORIES[cmd.category]?.label }}
+                              </span>
                               <span v-if="cmd.shortcut" class="command-item-shortcut">{{ cmd.shortcut }}</span>
                             </div>
                             <div v-if="filteredCommands.length === 0" class="command-empty">
@@ -990,88 +1015,217 @@ interface SlashCommand {
   shortcut?: string;
   prefix: string;
   keywords: string[];
+  category: 'formula' | 'material' | 'salesperson' | 'analytics' | 'report';
 }
+
+const COMMAND_CATEGORIES: Record<string, { label: string; icon: string; color: string }> = {
+  formula: { label: '配方查询', icon: 'edit', color: '#10B981' },
+  material: { label: '原料查询', icon: 'chart-bar', color: '#3B82F6' },
+  salesperson: { label: '业务员查询', icon: 'user', color: '#8B5CF6' },
+  analytics: { label: '数据分析', icon: 'chart', color: '#EC4899' },
+  report: { label: '报表报告', icon: 'file-icon', color: '#F59E0B' },
+};
+
+const activeCommandCategory = ref<string | null>(null);
 
 const commandRegistry = ref<SlashCommand[]>([
   {
-    id: '创建配方',
-    label: '创建配方',
-    description: '新建烹饪或饮品配方',
-    icon: 'add-circle',
+    id: '查询配方',
+    label: '查询配方',
+    description: '按名称、编号或条件搜索配方',
+    icon: 'search',
     iconBg: '#ecfdf5',
     iconColor: '#10B981',
-    prefix: '请帮我创建一个新配方，',
-    keywords: ['配方', '创建', '新建', '添加', 'formula', 'create'],
+    prefix: '请帮我查询配方，',
+    keywords: ['配方', '查询', '搜索', '查找', 'formula', 'query', 'search'],
+    category: 'formula',
   },
   {
-    id: '录入原料',
-    label: '录入原料',
-    description: '添加新的食材原料信息',
-    icon: 'add',
+    id: '配方详情',
+    label: '配方详情',
+    description: '查看指定配方的详细信息、原料组成和用量',
+    icon: 'file-icon',
+    iconBg: '#d1fae5',
+    iconColor: '#059669',
+    prefix: '请帮我查看配方详情，',
+    keywords: ['配方', '详情', '信息', '组成', '用量', 'formula', 'detail'],
+    category: 'formula',
+  },
+  {
+    id: '配方对比',
+    label: '配方对比',
+    description: '对比多个配方的原料、成本和营养成分差异',
+    icon: 'swap',
+    iconBg: '#a7f3d0',
+    iconColor: '#047857',
+    prefix: '请帮我对比配方，',
+    keywords: ['配方', '对比', '比较', '差异', 'formula', 'compare', 'diff'],
+    category: 'formula',
+  },
+  {
+    id: '配方成本分析',
+    label: '配方成本分析',
+    description: '分析配方的原料成本构成和占比',
+    icon: 'chart-bar',
+    iconBg: '#6ee7b7',
+    iconColor: '#065f46',
+    prefix: '请帮我分析配方成本，',
+    keywords: ['配方', '成本', '分析', '费用', 'formula', 'cost', 'analysis'],
+    category: 'formula',
+  },
+  {
+    id: '查询原料',
+    label: '查询原料',
+    description: '按名称、编码或类型搜索原料信息',
+    icon: 'search',
     iconBg: '#eff6ff',
     iconColor: '#3B82F6',
-    prefix: '请帮我录入新原料，',
-    keywords: ['原料', '录入', '添加', '食材', 'material', 'add'],
+    prefix: '请帮我查询原料，',
+    keywords: ['原料', '查询', '搜索', '查找', 'material', 'query', 'search'],
+    category: 'material',
+  },
+  {
+    id: '原料详情',
+    label: '原料详情',
+    description: '查看指定原料的详细属性、价格和供应商',
+    icon: 'file-icon',
+    iconBg: '#dbeafe',
+    iconColor: '#2563eb',
+    prefix: '请帮我查看原料详情，',
+    keywords: ['原料', '详情', '信息', '属性', 'material', 'detail'],
+    category: 'material',
+  },
+  {
+    id: '库存查询',
+    label: '库存查询',
+    description: '查看原料库存状态、库存量及预警信息',
+    icon: 'warehouse',
+    iconBg: '#bfdbfe',
+    iconColor: '#1d4ed8',
+    prefix: '请帮我查询库存情况，',
+    keywords: ['库存', '查询', '预警', '不足', 'inventory', 'stock'],
+    category: 'material',
+  },
+  {
+    id: '原料价格趋势',
+    label: '原料价格趋势',
+    description: '查看原料价格的历史变化和趋势预测',
+    icon: 'chart-line',
+    iconBg: '#93c5fd',
+    iconColor: '#1e40af',
+    prefix: '请帮我查看原料价格趋势，',
+    keywords: ['原料', '价格', '趋势', '波动', 'material', 'price', 'trend'],
+    category: 'material',
+  },
+  {
+    id: '查询业务员',
+    label: '查询业务员',
+    description: '按姓名、工号或区域搜索业务员信息',
+    icon: 'search',
+    iconBg: '#f3e8ff',
+    iconColor: '#8B5CF6',
+    prefix: '请帮我查询业务员，',
+    keywords: ['业务员', '查询', '搜索', '查找', 'salesman', 'query', 'search'],
+    category: 'salesperson',
+  },
+  {
+    id: '业务员详情',
+    label: '业务员详情',
+    description: '查看业务员的详细信息、负责区域和业绩',
+    icon: 'user',
+    iconBg: '#e9d5ff',
+    iconColor: '#7c3aed',
+    prefix: '请帮我查看业务员详情，',
+    keywords: ['业务员', '详情', '信息', '业绩', 'salesman', 'detail'],
+    category: 'salesperson',
+  },
+  {
+    id: '业务员业绩',
+    label: '业务员业绩',
+    description: '查看业务员的销售业绩排名和完成率',
+    icon: 'chart',
+    iconBg: '#c4b5fd',
+    iconColor: '#6d28d9',
+    prefix: '请帮我查看业务员业绩，',
+    keywords: ['业务员', '业绩', '排名', '完成率', 'salesman', 'performance'],
+    category: 'salesperson',
+  },
+  {
+    id: '销量分析',
+    label: '销量分析',
+    description: '分析销售数据、趋势和同比环比变化',
+    icon: 'chart',
+    iconBg: '#fce7f3',
+    iconColor: '#EC4899',
+    prefix: '请帮我分析销量数据，',
+    keywords: ['销量', '销售', '趋势', '分析', '同比', '环比', 'sales', 'trend', 'analysis'],
+    category: 'analytics',
+  },
+  {
+    id: '数据概览',
+    label: '数据概览',
+    description: '查看关键业务指标和整体运营概况',
+    icon: 'dashboard',
+    iconBg: '#fbcfe8',
+    iconColor: '#db2777',
+    prefix: '请帮我查看数据概览，',
+    keywords: ['概览', '指标', '概况', '总览', 'dashboard', 'overview', 'kpi'],
+    category: 'analytics',
+  },
+  {
+    id: '配方用量统计',
+    label: '配方用量统计',
+    description: '统计各配方的使用频次和原料消耗量',
+    icon: 'chart-pie',
+    iconBg: '#f9a8d4',
+    iconColor: '#be185d',
+    prefix: '请帮我统计配方用量，',
+    keywords: ['配方', '用量', '统计', '频次', '消耗', 'formula', 'usage', 'stats'],
+    category: 'analytics',
+  },
+  {
+    id: '成本趋势分析',
+    label: '成本趋势分析',
+    description: '分析配方成本的变化趋势和影响因素',
+    icon: 'chart-line',
+    iconBg: '#fecdd3',
+    iconColor: '#9f1239',
+    prefix: '请帮我分析成本趋势，',
+    keywords: ['成本', '趋势', '分析', '变化', 'cost', 'trend'],
+    category: 'analytics',
+  },
+  {
+    id: '查询月报',
+    label: '查询月报',
+    description: '获取月度统计报告和关键指标汇总',
+    icon: 'file-icon',
+    iconBg: '#fef3c7',
+    iconColor: '#F59E0B',
+    prefix: '请帮我查看本月月报，',
+    keywords: ['月报', '报告', '统计', '月度', 'report', 'monthly'],
+    category: 'report',
+  },
+  {
+    id: '查询周报',
+    label: '查询周报',
+    description: '获取周度统计报告和环比变化',
+    icon: 'file-icon',
+    iconBg: '#fde68a',
+    iconColor: '#d97706',
+    prefix: '请帮我查看本周周报，',
+    keywords: ['周报', '报告', '统计', '周度', 'report', 'weekly'],
+    category: 'report',
   },
   {
     id: '查询营养',
     label: '查询营养',
     description: '查询特定食材或配方的营养成分数据',
-    icon: 'chart-bar',
-    iconBg: '#fef3c7',
-    iconColor: '#F59E0B',
-    prefix: '请帮我查询营养成分，',
-    keywords: ['营养', '查询', '成分', '含量', 'nutrition', 'query'],
-  },
-  {
-    id: '查询月报',
-    label: '查询月报',
-    description: '获取月度统计报告',
-    icon: 'file-icon',
-    iconBg: '#f3e8ff',
-    iconColor: '#8B5CF6',
-    prefix: '请帮我生成本月月报，',
-    keywords: ['月报', '报告', '统计', '月度', 'report', 'monthly'],
-  },
-  {
-    id: '查询库存',
-    label: '查询库存',
-    description: '查看原料库存状态和预警',
-    icon: 'warehouse',
+    icon: 'heart',
     iconBg: '#fff7ed',
     iconColor: '#EA580C',
-    prefix: '请帮我查询库存情况，',
-    keywords: ['库存', '预警', '不足', 'inventory', 'stock'],
-  },
-  {
-    id: '分析销量',
-    label: '分析销量',
-    description: '分析销售数据和趋势',
-    icon: 'chart',
-    iconBg: '#fce7f3',
-    iconColor: '#EC4899',
-    prefix: '请帮我分析销量数据，',
-    keywords: ['销量', '销售', '趋势', '分析', 'sales', 'trend'],
-  },
-  {
-    id: '优化配方',
-    label: '优化配方',
-    description: '优化配方成本和配比结构',
-    icon: 'root-list',
-    iconBg: '#f0fdf4',
-    iconColor: '#16A34A',
-    prefix: '请帮我优化配方，',
-    keywords: ['优化', '成本', '配比', '降低', 'optimize', 'cost'],
-  },
-  {
-    id: '导出数据',
-    label: '导出数据',
-    description: '导出业务数据为报表文件',
-    icon: 'download',
-    iconBg: '#f1f5f9',
-    iconColor: '#475569',
-    prefix: '请帮我导出数据，',
-    keywords: ['导出', '下载', '报表', 'export', 'download'],
+    prefix: '请帮我查询营养成分，',
+    keywords: ['营养', '查询', '成分', '含量', 'nutrition', 'query'],
+    category: 'report',
   },
 ]);
 
@@ -1102,16 +1256,55 @@ const activeCommandIndex = ref(0);
 const commandQuery = ref('');
 
 const filteredCommands = computed(() => {
-  const q = commandQuery.value.toLowerCase().trim();
-  if (!q) return commandRegistry.value;
+  let commands = commandRegistry.value;
 
-  return commandRegistry.value.filter(cmd => {
+  if (activeCommandCategory.value) {
+    commands = commands.filter(cmd => cmd.category === activeCommandCategory.value);
+  }
+
+  const q = commandQuery.value.toLowerCase().trim();
+  if (!q) return commands;
+
+  return commands.filter(cmd => {
     if (cmd.id.toLowerCase().includes(q)) return true;
     if (cmd.label.toLowerCase().includes(q)) return true;
     if (cmd.description.toLowerCase().includes(q)) return true;
+    if (cmd.category.toLowerCase().includes(q)) return true;
     return cmd.keywords.some(kw => kw.toLowerCase().includes(q));
   });
 });
+
+const WRITE_INTENT_PATTERNS = [
+  /创建|新建|添加|录入|新增|增加/i,
+  /修改|编辑|更新|调整|变更/i,
+  /删除|移除|清除|作废/i,
+  /提交|保存|确认|发布/i,
+];
+
+const isWriteIntentPrefix = (text: string): boolean => {
+  const trimmed = text.trim();
+  for (const pattern of WRITE_INTENT_PATTERNS) {
+    if (pattern.test(trimmed)) return true;
+  }
+  return false;
+};
+
+const WRITE_NAV_MAP: Record<string, { route: string; label: string }> = {
+  '配方': { route: '/formula', label: '配方管理' },
+  '原料': { route: '/material', label: '原料管理' },
+  '业务员': { route: '/salesman', label: '业务员管理' },
+  '销售': { route: '/salesman', label: '销售管理' },
+};
+
+const extractWriteNavigationLinks = (text: string): Array<{ route: string; label: string }> => {
+  const links: Array<{ route: string; label: string }> = [];
+  for (const [keyword, nav] of Object.entries(WRITE_NAV_MAP)) {
+    if (text.includes(keyword)) {
+      links.push(nav);
+    }
+  }
+  return links;
+};
 
 const openCommandPalette = () => {
   showCommandPalette.value = true;
@@ -1135,6 +1328,15 @@ const selectCommand = (cmd: SlashCommand) => {
       textareaRef.value.setSelectionRange(len, len);
     }
   });
+};
+
+const setCommandCategory = (cat: string | null) => {
+  if (activeCommandCategory.value === cat) {
+    activeCommandCategory.value = null;
+  } else {
+    activeCommandCategory.value = cat;
+  }
+  activeCommandIndex.value = 0;
 };
 
 const handleInputChange = () => {
@@ -1308,6 +1510,25 @@ const handleSend = async (confirmed = false) => {
 
   closeCommandPalette();
 
+  if (!confirmed && isWriteIntentPrefix(content)) {
+    const guidanceMsg = `⚠️ 该操作需要前往管理页面完成，AI助手仅支持数据查询。\n\n如需继续查询相关信息，请修改提问方式（如"查询配方"而非"创建配方"）。`;
+    messages.value.push({
+      id: Date.now().toString(),
+      role: 'user',
+      content,
+      timestamp: new Date()
+    });
+    messages.value.push({
+      id: (Date.now() + 1).toString(),
+      role: 'assistant',
+      content: guidanceMsg,
+      timestamp: new Date(),
+      writeGuidanceLinks: extractWriteNavigationLinks(content),
+    });
+    inputText.value = '';
+    return;
+  }
+
   if (!confirmed) {
     messages.value.push({
       id: Date.now().toString(),
@@ -1356,11 +1577,23 @@ const handleSend = async (confirmed = false) => {
     let currentIntent: any = null;
     let pendingConfirm: any = null;
     let lastToolResult: any = null;
+    let writeGuidanceLinks: Array<{ message: string; navigationLink: string }> = [];
+    let lastDataTime = Date.now();
+    const SSE_TIMEOUT_MS = 20000;
+
+    const heartbeatCheck = setInterval(() => {
+      if (Date.now() - lastDataTime > SSE_TIMEOUT_MS && isLoading.value) {
+        console.warn('[AIDashboard] SSE心跳超时，尝试重连...');
+        clearInterval(heartbeatCheck);
+      }
+    }, 5000);
 
     if (reader) {
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
+
+        lastDataTime = Date.now();
 
         const chunk = decoder.decode(value, { stream: true });
         const lines = chunk.split('\n');
@@ -1425,7 +1658,22 @@ const handleSend = async (confirmed = false) => {
                   };
                   break;
 
+                case 'write_guidance':
+                  if (parsed.message) {
+                    fullContent += parsed.message;
+                    streamingContent.value += parsed.message;
+                    autoScrollToBottom();
+                  }
+                  if (parsed.navigationLink) {
+                    writeGuidanceLinks.push({
+                      message: parsed.message || '',
+                      navigationLink: parsed.navigationLink,
+                    });
+                  }
+                  break;
+
                 case 'done':
+                  clearInterval(heartbeatCheck);
                   if (parsed.sessionId) {
                     conversationId.value = parsed.sessionId;
                     sessionStorage.setItem(CONVERSATION_ID_KEY, parsed.sessionId);
@@ -1448,6 +1696,7 @@ const handleSend = async (confirmed = false) => {
                     toolResultData: lastToolResult,
                     pendingConfirm,
                     formSchema: pendingFormSchema.value,
+                    writeGuidanceLinks: writeGuidanceLinks.length > 0 ? writeGuidanceLinks : undefined,
                   });
 
                   if (pendingConfirm) {
@@ -1465,6 +1714,7 @@ const handleSend = async (confirmed = false) => {
                   return;
 
                 case 'error':
+                  clearInterval(heartbeatCheck);
                   throw new Error(parsed.message || 'AI 服务错误');
               }
             } catch (parseError: any) {
@@ -2248,10 +2498,13 @@ onMounted(async () => {
 });
 
 onUnmounted(() => {
-  // Phase 5: 清理键盘事件监听器
   if ((window as any).__dashboardCleanup) {
     ; (window as any).__dashboardCleanup();
     delete (window as any).__dashboardCleanup;
+  }
+  if ((window as any).__sseHeartbeatCheck) {
+    clearInterval((window as any).__sseHeartbeatCheck);
+    delete (window as any).__sseHeartbeatCheck;
   }
 });
 </script>
@@ -2360,6 +2613,36 @@ onUnmounted(() => {
   background: #f0f9ff;
   color: #0369a1;
   margin-top: 4px;
+}
+
+.write-guidance-links {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 8px 12px;
+  background: linear-gradient(135deg, #f0fdf4, #ecfdf5);
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+}
+
+.guidance-link-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.guidance-nav-link {
+  color: #16a34a;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.2s;
+
+  &:hover {
+    color: #15803d;
+    text-decoration: underline;
+  }
 }
 
 .ai-dashboard {
@@ -3720,7 +4003,7 @@ onUnmounted(() => {
         box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.04);
         z-index: 200;
         overflow: hidden;
-        max-height: 360px;
+        max-height: 440px;
         display: flex;
         flex-direction: column;
 
@@ -3735,6 +4018,46 @@ onUnmounted(() => {
           border-bottom: 1px solid #f1f5f9;
           background: #fafbfc;
           flex-shrink: 0;
+        }
+
+        .command-category-tabs {
+          display: flex;
+          gap: 4px;
+          padding: 8px 10px;
+          border-bottom: 1px solid #f1f5f9;
+          overflow-x: auto;
+          flex-shrink: 0;
+
+          &::-webkit-scrollbar {
+            height: 0;
+          }
+
+          .category-tab {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            background: white;
+            font-size: 11px;
+            font-weight: 500;
+            color: #64748b;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.15s ease;
+
+            &:hover {
+              border-color: #cbd5e1;
+              background: #f8fafc;
+            }
+
+            &.active {
+              border-color: #10B981;
+              color: #10B981;
+              background: #f0fdf4;
+            }
+          }
         }
 
         .command-palette-list {
@@ -3809,6 +4132,15 @@ onUnmounted(() => {
             border-radius: 4px;
             font-weight: 500;
             flex-shrink: 0;
+          }
+
+          .command-item-category {
+            font-size: 10px;
+            font-weight: 500;
+            padding: 2px 7px;
+            border-radius: 8px;
+            flex-shrink: 0;
+            white-space: nowrap;
           }
         }
 

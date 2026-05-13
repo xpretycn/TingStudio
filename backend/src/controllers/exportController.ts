@@ -426,6 +426,65 @@ export async function retryExportJob(req: any, res: Response) {
   }
 }
 
+/** 重新导出任务（适用于已完成或失败的任务，重新生成导出文件） */
+export async function reExportJob(req: any, res: Response) {
+  try {
+    const { jobId } = req.params;
+    const userId = req.user.userId;
+    const [[job]]: any[][] = await query("SELECT * FROM export_jobs WHERE job_id = ? AND created_by = ?", [
+      jobId,
+      userId,
+    ]);
+    if (!job) {
+      res.status(404).json({ success: false, message: "任务不存在" });
+      return;
+    }
+    if (job.status !== "completed" && job.status !== "failed") {
+      res.status(400).json({ success: false, message: "只能重新导出已完成或失败的任务" });
+      return;
+    }
+
+    await query(
+      "UPDATE export_jobs SET status = 'processing', error_message = NULL, completed_at = NULL WHERE job_id = ?",
+      [jobId],
+    );
+
+    try {
+      let buffer: Buffer;
+      let fileName: string;
+      const ext = job.export_type === "pdf" ? "pdf" : "xlsx";
+
+      if (job.export_type === "pdf") {
+        const result = await exportFormulaToPdf(job.formula_id, job.version_id);
+        buffer = result.buffer;
+        fileName = result.fileName;
+      } else {
+        const result = await exportFormulaToExcel(job.formula_id, job.version_id);
+        buffer = result.buffer;
+        fileName = result.fileName;
+      }
+
+      const filePath = path.join(getExportDir(), `${jobId}.${ext}`);
+      fs.writeFileSync(filePath, buffer);
+      await query(
+        "UPDATE export_jobs SET status = ?, file_name = ?, progress = 100, completed_at = ? WHERE job_id = ?",
+        ["completed", fileName, now(), jobId],
+      );
+      res.json(success({ jobId, status: "completed", fileName }, "重新导出成功"));
+    } catch (exportError: any) {
+      const errMsg = exportError.message || "重新导出失败";
+      await query("UPDATE export_jobs SET status = ?, error_message = ? WHERE job_id = ?", [
+        "failed",
+        errMsg,
+        jobId,
+      ]);
+      res.status(500).json({ success: false, message: "重新导出失败", error: errMsg });
+    }
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: "重新导出失败", error: error.message });
+  }
+}
+
 /** 获取分享列表 */
 export async function getShares(req: any, res: Response) {
   try {

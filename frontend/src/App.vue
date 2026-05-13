@@ -1,6 +1,7 @@
 <template>
   <t-config-provider :theme="themeStore.isDark ? 'dark' : 'light'" :t="tdesignTokens">
     <router-view v-bind="$attrs" />
+    <AiAssistantFloat />
   </t-config-provider>
 </template>
 
@@ -8,6 +9,7 @@
 import { computed } from 'vue'
 import { useThemeStore } from '@/stores/theme'
 import { getTDesignTokens } from '@/assets/styles/tokens'
+import { AiAssistantFloat } from '@/components/AiAssistantFloat'
 
 const themeStore = useThemeStore()
 

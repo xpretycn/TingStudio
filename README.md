@@ -1,12 +1,109 @@
-# TingStudio v2.31
+# TingStudio v2.32
 
 食品配方工作数据管理平台 — 前后端分离架构
 
 ## 项目简介
 
-TingStudio 是一个专业的食品配方工作数据管理平台，面向食品配方行业（中草药功效配方），提供配方管理、原料管理、业务员管理、销量分析、报告中心、文件管理、营养成分分析、导出分享等完整功能链路。采用 **Vue 3 + Express + SQLite** 前后端分离架构，支持 JWT 认证、RESTful API、配方版本控制、营养合规检查、AI 智能解析、AI Agent 对话助手等企业级特性。
+TingStudio 是一个专业的食品配方工作数据管理平台，面向食品配方行业（中草药功效配方），提供配方管理、原料管理、业务员管理、销量分析、报告中心、文件管理、营养成分分析、导出分享等完整功能链路。采用 **Vue 3 + Express + SQLite** 前后端分离架构，支持 JWT 认证、RESTful API、配方版本控制、营养合规检查、AI 智能解析、AI Agent 对话助手、悬浮助手等企业级特性。
 
-## 🚀 最新更新 (2026-05-13)
+## 🚀 最新更新 (2026-05-14)
+
+### ✅ 悬浮助手配置模块 + 模型管理 UI 优化
+
+#### 🔵 悬浮助手配置 Tab（模型管理页面）
+
+在模型管理页面新增**悬浮助手**Tab（位于"模型应用"与"用量监控"之间），支持完整的悬浮助手行为与外观配置：
+
+**配置项一览**：
+
+| 分类 | 配置项 | 类型 | 说明 |
+|------|--------|------|------|
+| 基本配置 | AI 模型 | 下拉框（含模型 Logo） | 选择悬浮助手使用的 AI 模型 |
+| 基本配置 | 备用模型 | 下拉框（含模型 Logo） | 主模型不可用时的降级模型 |
+| 基本配置 | 启用状态 | 开关 | 全局启用/禁用悬浮助手 |
+| 外观设置 | 悬浮球位置 | Toggle 按钮 | 左侧/右侧 |
+| 外观设置 | 抽屉宽度 | 数字输入 | 300-800px |
+| 外观设置 | 主题色 | 颜色选择器 | 自定义悬浮球/抽屉主题色 |
+| 外观设置 | 呼吸脉冲 | 开关 | 悬浮球呼吸动画效果 |
+| 行为策略 | 启用页面 | 复选框组 | 限定悬浮助手出现的页面 |
+| 行为策略 | 最大对话轮次 | 数字输入 | 单次对话最大轮数 |
+| 行为策略 | 回填策略 | Toggle 按钮 | 覆盖/追加/仅预览 |
+| 行为策略 | 上下文模式 | Toggle 按钮 | 页面级/全局/无上下文 |
+
+**UI 设计特点**：
+
+- 🎨 白色卡片布局（`.fa-card`），20px 圆角 + 柔和阴影 + hover 上浮效果
+- 🎨 Toggle 按钮组（`.fa-toggle-group`），灰色底 + 白色激活态 + 绿色文字
+- 🎨 下拉框内模型 Logo 展示（`<img>` + inline style，兼容 TDesign teleport 机制）
+- 🎨 所有输入控件统一 180px 宽度
+
+**新增数据库表 `agent_float_config`**：
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | TEXT PK | 主键 |
+| user_id | TEXT UNIQUE | 用户 ID（每用户唯一） |
+| enabled | INTEGER | 启用状态 |
+| model / model_name | TEXT | AI 模型标识/显示名 |
+| fallback_model / fallback_model_name | TEXT | 备用模型标识/显示名 |
+| position | TEXT | 悬浮球位置（left/right） |
+| drawer_width | INTEGER | 抽屉宽度 |
+| theme_color | TEXT | 主题色 |
+| show_pulse | INTEGER | 呼吸脉冲 |
+| enabled_pages | TEXT | 启用页面 JSON 数组 |
+| max_rounds | INTEGER | 最大对话轮次 |
+| fill_strategy | TEXT | 回填策略（overwrite/append/preview） |
+| context_mode | TEXT | 上下文模式（page/global/none） |
+
+**新增 API 端点**：
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/api/agent/float-config` | 获取当前用户的悬浮助手配置 |
+| PUT | `/api/agent/float-config` | 更新当前用户的悬浮助手配置 |
+
+***
+
+#### 🛡️ Agent 写入守卫 + 会话清理 + 熔断保护
+
+**写入守卫 (`agentWriteGuard.ts`)**：
+
+对 Agent 的创建/修改/删除操作增加写入权限校验，防止未授权操作。
+
+**会话清理器 (`sessionCleaner.ts`)**：
+
+自动清理过期 Agent 会话及相关数据（消息、待确认、待表单），并记录清理日志到 `agent_session_cleanup_log` 表。
+
+**熔断保护 (`agent_provider_health` 表)**：
+
+跟踪各 AI Provider 的连续失败次数，当超过阈值时自动开启熔断，避免持续请求不可用的 Provider。
+
+**新增数据库表**：
+
+| 表名 | 说明 |
+|------|------|
+| agent_provider_health | AI Provider 熔断状态（连续失败次数、熔断开关、恢复时间） |
+| agent_session_cleanup_log | 会话清理日志（清理会话数、消息数、确认数、表单数） |
+
+***
+
+### 影响范围总览
+
+| 文件 | 改动类型 | 说明 |
+|------|----------|------|
+| [ModelManagement.vue](frontend/src/views/models/ModelManagement.vue) | 新增 Tab | 悬浮助手配置面板（基本配置/外观设置/行为策略） |
+| [floatAgent.ts](frontend/src/stores/floatAgent.ts) | 新增 Store | 悬浮助手状态管理 |
+| [agent.ts (api)](frontend/src/api/agent.ts) | 新增方法 | `getFloatConfig()` / `updateFloatConfig()` / `parseForm()` |
+| [agent.ts (routes)](backend/src/routes/agent.ts) | 新增路由 | GET/PUT `/float-config` + POST `/parse-form` |
+| [agentController.ts](backend/src/services/ai/agent/agentController.ts) | 功能增强 | 悬浮助手配置 API + 缓存失效 |
+| [agentChatController.ts](backend/src/services/ai/agent/agentChatController.ts) | 新增 | Agent 聊天控制器（写入守卫集成） |
+| [agentWriteGuard.ts](backend/src/services/ai/agent/agentWriteGuard.ts) | 新增 | Agent 写入权限校验 |
+| [sessionCleaner.ts](backend/src/services/ai/agent/sessionCleaner.ts) | 新增 | 过期会话自动清理 |
+| [database-better-sqlite3.ts](backend/src/config/database-better-sqlite3.ts) | 新增表 | `agent_float_config` + `agent_provider_health` + `agent_session_cleanup_log` |
+
+***
+
+## 🚀 历史更新 (2026-05-13)
 
 ### ✅ AI Agent 身份定义系统 + 聊天交互优化 + 数据真实性保障
 
@@ -1714,7 +1811,7 @@ npx tsx src/scripts/restoreDatabase.ts --force --skip-verify
 | --------- | ----------------- | ----------------------------------- |
 | **后端服务**  | ✅ 正常运行            | Express + SQLite (better-sqlite3)   |
 | **前端应用**  | ✅ 正常运行            | Vue 3 + TDesign + Vite              |
-| **数据库**   | ✅ 29 张表 / 392+ 条记录 | SQLite WAL 模式，含 132 种原料+营养数据+Agent会话 |
+| **数据库**   | ✅ 30 张表 / 392+ 条记录 | SQLite WAL 模式，含 132 种原料+营养数据+Agent会话 |
 | **AI 解析** | ✅ 匹配率显著提升         | 150+ 别名映射 + 模糊匹配 + 名称标准化            |
 | **配方搜索**  | ✅ 已修复             | watch 响应式监听模式                       |
 | **数据备份**  | ✅ 可用              | exportDatabase / restoreDatabase 脚本 |
@@ -1824,7 +1921,7 @@ npm run seed         # 导入种子数据（可选）
 ┌──────────────────▼──────────────────────────────────┐
 │           SQLite 数据库 (better-sqlite3)              │
 │            WAL 模式 + 外键约束                       │
-│     (29张表 · 392+条记录 · 132种原料+Agent会话)                │
+│     (30张表 · 392+条记录 · 132种原料+Agent会话)                │
 └─────────────────────────────────────────────────────┘
 
 数据备份: backend/data/backup/tingstudio_backup_*.json
@@ -1891,11 +1988,14 @@ ting-studio/
 │   │   │   │   ├── ModelHealthChecker.ts # 模型健康检查
 │   │   │   │   ├── prompts.ts           # 提示词模板
 │   │   │   │   └── agent/                # AI Agent 对话引擎
-│   │   │   │       ├── agentController.ts # Agent 控制器（聊天/会话/身份配置）
+│   │   │   │       ├── agentController.ts # Agent 控制器（聊天/会话/身份配置/悬浮助手配置）
+│   │   │   │       ├── agentChatController.ts # Agent 聊天控制器
+│   │   │   │       ├── agentWriteGuard.ts # Agent 写入权限守卫
 │   │   │   │       ├── promptEngine.ts   # 提示词引擎 v3.0.0
 │   │   │   │       ├── toolRegistration.ts # 工具注册（查询/创建/修改/删除）
 │   │   │   │       ├── llmService.ts     # LLM 流式调用服务
 │   │   │   │       ├── sessionStore.ts   # 会话持久化（SQLite）
+│   │   │   │       ├── sessionCleaner.ts # 过期会话自动清理
 │   │   │   │       ├── dialogManager.ts  # 对话管理器
 │   │   │   │       ├── intentEngine.ts   # 意图识别引擎
 │   │   │   │       ├── toolRegistry.ts   # 工具注册表
@@ -2148,6 +2248,7 @@ ting-studio/
 
 - **Agent 对话助手**: 自然语言交互，支持创建配方/原料/业务员、查询数据、分析销量
 - **Agent 身份定义**: 自定义助手称呼、用户称呼、语气风格、开场问候语、自定义指令
+- **悬浮助手**: 可配置的页面级 AI 助手，支持模型选择/降级、外观自定义、行为策略控制
 - **智能填单**: 上传配方文档 → AI 解析为结构化数据
 - **智能营养解析**: 上传营养文档 → 解析核心营养素
 - **智能检索**: 自然语言查询 → SQL 安全执行
@@ -2200,6 +2301,9 @@ ting-studio/
 | agent_pending_confirmations | Agent 待确认 | —      | session_id(FK), tool_name, params_json, confirm_message |
 | agent_pending_forms          | Agent 待表单 | —      | session_id(FK), form_id, tool_name, form_json |
 | agent_role_config            | Agent 身份 | —       | id, user_id(UNIQUE), agent_name, user_title, tone_style, greeting, custom_instructions |
+| agent_float_config           | 悬浮助手配置 | —       | id, user_id(UNIQUE), enabled, model, model_name, fallback_model, fallback_model_name, position, drawer_width, theme_color, show_pulse, enabled_pages, max_rounds, fill_strategy, context_mode |
+| agent_provider_health        | Provider 熔断 | —    | provider(PK), consecutive_failures, circuit_open, circuit_open_until, last_error |
+| agent_session_cleanup_log    | 会话清理日志 | —      | id(AUTO), cleaned_sessions, cleaned_messages, cleaned_confirmations, cleaned_forms, created_at |
 | search_export_cache          | 搜索导出缓存  | —       | id, user_id(FK), filename, sql, row_count, file_path, expires_at |
 
 ### ER 关系核心链路
@@ -2211,6 +2315,7 @@ users ──1:N──→ formulas ──1:N──→ formula_versions
      │
      ├──1:N──→ agent_sessions ──1:N──→ agent_messages
      ├──1:1──→ agent_role_config
+     ├──1:1──→ agent_float_config
      ├──1:N──→ uploaded_files ──1:N──→ file_audit_log
      │                          └──1:N──→ file_relations
      └──1:N──→ reports ──1:N──→ report_targets
@@ -2221,7 +2326,7 @@ materials ──1:1──→ material_nutrition
 ### 数据库工具命令
 
 ```bash
-# 导出完整备份（29张表 + 全量记录）
+# 导出完整备份（30张表 + 全量记录）
 npx tsx src/scripts/exportDatabase.ts
 
 # 恢复数据库（自动使用最新备份）
@@ -2536,8 +2641,8 @@ MIT License
 
 ---
 
-**最后更新**: 2026-05-13
-**版本**: v2.31.0 (AI Agent 身份定义 + 聊天交互优化 + 数据真实性保障)
+**最后更新**: 2026-05-14
+**版本**: v2.32.0 (悬浮助手配置模块 + Agent 写入守卫/会话清理/熔断保护)
 **维护者**: TingStudio Team
 ```
 

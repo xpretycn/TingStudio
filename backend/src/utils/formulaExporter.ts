@@ -13,6 +13,9 @@ interface FormulaRow {
   finishedWeight: number;
   ratioFactor: number;
   supplementRatioFactor: number;
+  packagingPrice: number;
+  otherPrice: number;
+  profitMargin: number;
   description: string | null;
   preparationMethod: string | null;
   materialsJson: string;
@@ -197,7 +200,45 @@ export async function exportFormulaToExcel(
   }
   XLSX.utils.book_append_sheet(workbook, materialSheet, "原料清单");
 
-  // ===== Sheet 3: 营养数据 =====
+  // ===== Sheet 3: 报价信息 =====
+  const materialTotalCost = materials.reduce((sum: number, m: any) => {
+    const detail = m.materialId ? materialDetails.get(m.materialId) : null;
+    const basePrice = m.basePriceAtSave ?? detail?.unitPrice ?? null;
+    const adjPrice = m.adjustedPrice ?? null;
+    const effectivePrice = adjPrice != null ? adjPrice : basePrice;
+    return sum + (effectivePrice != null ? ((m.quantity || 0) / 1000) * effectivePrice : 0);
+  }, 0);
+  const packagingPrice = formula.packagingPrice ?? 0;
+  const otherPrice = formula.otherPrice ?? 0;
+  const profitMargin = formula.profitMargin ?? 20;
+  const costSubtotal = materialTotalCost + packagingPrice + otherPrice;
+  const profitAmount = (costSubtotal * profitMargin) / 100;
+  const totalPrice = costSubtotal + profitAmount;
+
+  const fw = formula.finishedWeight;
+  const fwLabel = fw > 0 ? `${fw}g` : '0g';
+
+  const quotationData = [
+    ["报价信息"],
+    [""],
+    ["规格(成品重量)", `${fwLabel}`],
+    [""],
+    ["原料总成本(¥)", Number(materialTotalCost.toFixed(2))],
+    ["包装费(¥)", Number(packagingPrice.toFixed(2))],
+    ["其他费用(¥)", Number(otherPrice.toFixed(2))],
+    ["成本小计(¥)", Number(costSubtotal.toFixed(2))],
+    ["利润率(%)", profitMargin],
+    ["利润金额(¥)", Number(profitAmount.toFixed(2))],
+    [""],
+    ["报价总价(¥)", Number(totalPrice.toFixed(2))],
+    [""],
+    ["计算公式", "报价 = (原料总成本 + 包装费 + 其他费) × (1 + 利润率%)"],
+  ];
+  const quotationSheet = XLSX.utils.aoa_to_sheet(quotationData);
+  quotationSheet["!cols"] = [{ wch: 30 }, { wch: 50 }];
+  XLSX.utils.book_append_sheet(workbook, quotationSheet, "报价信息");
+
+  // ===== Sheet 4: 营养数据 =====
   const nutritionHeader = [
     "序号",
     "原料名称",
