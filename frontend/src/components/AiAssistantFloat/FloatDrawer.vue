@@ -167,8 +167,6 @@ onUnmounted(() => {
 </script>
 
 <style scoped lang="scss">
-@use "@/assets/styles/design-tokens" as *;
-
 .float-drawer {
   position: fixed;
   z-index: 10000;

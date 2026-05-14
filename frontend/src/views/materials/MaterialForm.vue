@@ -47,14 +47,14 @@
                   <label class="field-label" id="lbl-material-name"><t-icon name="edit-1" size="12px"
                       class="label-icon" /> 原料名称 <span class="required">*</span></label>
                   <t-input v-model="formData.name" placeholder="请输入原料名称" clearable class="field-input"
-                    aria-required="true" aria-labelledby="lbl-material-name" data-testid="material-name-input" />
+                    aria-required="true" aria-labelledby="lbl-material-name" data-testid="material-name-input" data-field="name" />
                 </div>
                 <!-- 原料类型 -->
                 <div class="form-field">
                   <label class="field-label" id="lbl-material-type"><t-icon name="layers" size="12px"
                       class="label-icon" /> 原料类型 <span class="required">*</span></label>
                   <t-radio-group v-model="formData.materialType" class="field-input" aria-required="true"
-                    role="radiogroup" aria-labelledby="lbl-material-type">
+                    role="radiogroup" aria-labelledby="lbl-material-type" data-field="material_type">
                     <t-radio value="herb">药材</t-radio>
                     <t-radio value="supplement">辅料</t-radio>
                   </t-radio-group>
@@ -73,19 +73,19 @@
                     <label class="field-label" id="lbl-unit"><t-icon name="ruler" size="12px" class="label-icon" /> 单位
                       <span class="required">*</span></label>
                     <t-select v-model="formData.unit" placeholder="请选择单位" :options="unitOptions" clearable
-                      class="field-input" aria-required="true" aria-labelledby="lbl-unit" />
+                      class="field-input" aria-required="true" aria-labelledby="lbl-unit" data-field="unit" />
                   </div>
                   <div class="form-field">
                     <label class="field-label" id="lbl-stock"><t-icon name="box" size="12px" class="label-icon" /> 库存数量
                       <span class="required">*</span></label>
                     <t-input-number v-model="formData.stock" :min="0" placeholder="0" class="field-input"
-                      aria-required="true" aria-labelledby="lbl-stock" />
+                      aria-required="true" aria-labelledby="lbl-stock" data-field="stock" />
                   </div>
                   <div class="form-field">
                     <label class="field-label" id="lbl-unit-price"><t-icon name="currency-exchange" size="12px"
                         class="label-icon" /> 单价（元/kg）</label>
                     <t-input-number v-model="formData.unitPrice" :min="0" :precision="2" placeholder="暂不录入"
-                      class="field-input" aria-labelledby="lbl-unit-price" @change="handleUnitPriceChange" />
+                      class="field-input" aria-labelledby="lbl-unit-price" data-field="unit_price" @change="handleUnitPriceChange" />
                     <span class="field-help">可选，由用户手动输入，不录入时保持为空</span>
                   </div>
                 </div>
@@ -105,7 +105,28 @@
                 </h3>
               </div>
               <div class="section-content">
-                <NutritionExcelImport @import="handleNutritionExcelImport" class="excel-panel" />
+                <div class="excel-panel-wrapper">
+                  <div v-if="!nutritionExcelExpanded" class="excel-collapsed-bar" @click="nutritionExcelExpanded = true">
+                    <div class="excel-collapsed-left">
+                      <div class="excel-collapsed-icon">
+                        <t-icon name="upload" size="18px" />
+                      </div>
+                      <span class="excel-collapsed-text">上传 Excel 文件批量导入营养成分</span>
+                      <span class="excel-collapsed-hint">点击展开</span>
+                    </div>
+                    <t-icon name="chevron-down" size="16px" class="excel-collapsed-arrow" />
+                  </div>
+                  <div v-else class="excel-expanded-area">
+                    <div class="excel-expanded-header" @click="nutritionExcelExpanded = false">
+                      <span class="excel-expanded-title">
+                        <t-icon name="file-excel" size="14px" />
+                        Excel 导入
+                      </span>
+                      <t-icon name="chevron-up" size="16px" class="excel-expanded-arrow" />
+                    </div>
+                    <NutritionExcelImport @import="handleNutritionExcelImport" class="excel-panel" />
+                  </div>
+                </div>
 
                 <div class="row-actions collapse-toolbar">
                   <button type="button" class="clear-btn" @click="handleClearNutrition" aria-label="清空所有营养成分">
@@ -563,6 +584,7 @@ const formRef = ref<FormInstanceFunctions>();
 const loading = ref(false);
 const showNutrition = ref(false);
 const hasNutrition = ref(false);
+const nutritionExcelExpanded = ref(false);
 
 const isEdit = computed(() => !!route.params.id);
 
@@ -2125,8 +2147,123 @@ onMounted(async () => {
     }
   }
 
-  .excel-panel {
+  .excel-panel-wrapper {
     margin-bottom: 16px;
+  }
+
+  .excel-collapsed-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 50%, #f0f9ff 100%);
+    border: 1.5px dashed #86efac;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    user-select: none;
+
+    &:hover {
+      background: linear-gradient(135deg, #dcfce7 0%, #d1fae5 50%, #e0f2fe 100%);
+      border-color: #4ade80;
+      box-shadow: 0 2px 8px rgba(34, 197, 94, 0.12);
+      transform: translateY(-1px);
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+  }
+
+  .excel-collapsed-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .excel-collapsed-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    color: #fff;
+    flex-shrink: 0;
+    box-shadow: 0 2px 6px rgba(34, 197, 94, 0.3);
+  }
+
+  .excel-collapsed-text {
+    font-size: 14px;
+    font-weight: 600;
+    color: #15803d;
+  }
+
+  .excel-collapsed-hint {
+    font-size: 11px;
+    color: #86efac;
+    background: rgba(34, 197, 94, 0.1);
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-weight: 500;
+  }
+
+  .excel-collapsed-arrow {
+    color: #86efac;
+    transition: transform 0.2s;
+  }
+
+  .excel-expanded-area {
+    border: 1.5px solid #e2e8f0;
+    border-radius: 12px;
+    overflow: hidden;
+    animation: excel-expand 0.25s ease;
+  }
+
+  @keyframes excel-expand {
+    from {
+      opacity: 0;
+      max-height: 0;
+    }
+
+    to {
+      opacity: 1;
+      max-height: 800px;
+    }
+  }
+
+  .excel-expanded-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 16px;
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+    cursor: pointer;
+    transition: background 0.2s;
+
+    &:hover {
+      background: #f1f5f9;
+    }
+  }
+
+  .excel-expanded-title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #64748b;
+  }
+
+  .excel-expanded-arrow {
+    color: #94a3b8;
+    transition: transform 0.2s;
+  }
+
+  .excel-panel {
+    margin-bottom: 0;
   }
 
   // ━━ AI 面板样式 ━━

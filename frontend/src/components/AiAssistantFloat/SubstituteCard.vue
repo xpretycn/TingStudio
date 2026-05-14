@@ -49,8 +49,6 @@ function typeLabel(t: string): string {
 </script>
 
 <style scoped lang="scss">
-@use "@/assets/styles/design-tokens" as *;
-
 .substitute-card {
   background: $bg-container;
   border: 1px solid $border-color-light;

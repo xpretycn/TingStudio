@@ -38,17 +38,17 @@
               <div class="section-content space-y-6">
                 <div class="form-field">
                   <label class="field-label">姓名 <span class="required">*</span></label>
-                  <t-input v-model="formData.name" placeholder="请输入姓名" clearable class="field-input" />
+                  <t-input v-model="formData.name" placeholder="请输入姓名" clearable class="field-input" data-field="name" />
                 </div>
 
                 <div class="grid grid-cols-2 gap-6">
                   <div class="form-field">
                     <label class="field-label">工号 <span class="required">*</span></label>
-                    <t-input v-model="formData.code" placeholder="请输入工号" clearable class="field-input" />
+                    <t-input v-model="formData.code" placeholder="请输入工号" clearable class="field-input" data-field="code" />
                   </div>
                   <div class="form-field">
                     <label class="field-label">部门</label>
-                    <t-input v-model="formData.department" placeholder="请输入部门" clearable class="field-input" />
+                    <t-input v-model="formData.department" placeholder="请输入部门" clearable class="field-input" data-field="department" />
                   </div>
                 </div>
 
@@ -56,12 +56,12 @@
                   <div class="form-field">
                     <label class="field-label">电话</label>
                     <t-input v-model="formData.phone" placeholder="请输入 11 位手机号" clearable maxlength="11"
-                      class="field-input" />
+                      class="field-input" data-field="phone" />
                     <p class="field-help">选填，格式如 13800138000</p>
                   </div>
                   <div class="form-field">
                     <label class="field-label">邮箱</label>
-                    <t-input v-model="formData.email" placeholder="请输入邮箱地址" clearable class="field-input" />
+                    <t-input v-model="formData.email" placeholder="请输入邮箱地址" clearable class="field-input" data-field="email" />
                     <p class="field-help">选填，格式如 user@example.com</p>
                   </div>
                 </div>

@@ -89,8 +89,6 @@ function diffClass(v: number): string {
 </script>
 
 <style scoped lang="scss">
-@use "@/assets/styles/design-tokens" as *;
-
 .compare-card {
   background: $bg-container;
   border: 1px solid $border-color-light;

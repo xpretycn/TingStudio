@@ -60,6 +60,7 @@ export const useFloatAgentStore = defineStore("floatAgent", () => {
   const config = ref<AgentFloatConfig>({ ...DEFAULT_CONFIG });
   const configLoaded = ref(false);
   const fieldHintsCount = ref(0);
+  const missingFieldsList = ref<string[]>([]);
   const agentHealthStatus = ref<"online" | "loading" | "error">("online");
 
   const isVisible = computed(() => {
@@ -138,20 +139,37 @@ export const useFloatAgentStore = defineStore("floatAgent", () => {
   async function fetchFieldHints() {
     if (!currentPageId.value) return;
     try {
-      const res = await agentApi.getFieldHints(currentPageId.value);
-      if (res.success && res.data) {
-        fieldHintsCount.value = res.data.count;
+      const data = await agentApi.getFieldHints(currentPageId.value);
+      if (data && typeof data.count === "number") {
+        missingFieldsList.value = data.missingFields || [];
       }
     } catch {
-      fieldHintsCount.value = 0;
+      missingFieldsList.value = [];
     }
+  }
+
+  function updateFieldHintsLocal(missingFields: string[], count: number) {
+    missingFieldsList.value = missingFields;
+    fieldHintsCount.value = count;
+  }
+
+  function showMissingFieldsHint() {
+    if (missingFieldsList.value.length === 0 || messages.value.length > 0) return;
+    const aiMsg: FloatMessage = {
+      id: `msg_${Date.now()}_ai`,
+      role: "assistant",
+      content: "检测到表单存在未填写的必填字段，请提供以下信息：",
+      missingFields: missingFieldsList.value,
+      timestamp: Date.now(),
+    };
+    messages.value.push(aiMsg);
   }
 
   async function fetchHealth() {
     try {
-      const res = await agentApi.getHealth();
-      if (res.success && res.data) {
-        agentHealthStatus.value = res.data.status as any;
+      const data = await agentApi.getHealth();
+      if (data && data.status) {
+        agentHealthStatus.value = data.status as any;
       }
     } catch {
       agentHealthStatus.value = "error";
@@ -192,16 +210,17 @@ export const useFloatAgentStore = defineStore("floatAgent", () => {
         context,
         sessionId: sessionId.value || undefined,
       };
-      const res = await agentApi.parseForm(params);
+      const data = await agentApi.parseForm(params);
 
-      if (res.code === 0 && res.data) {
-        sessionId.value = res.data.sessionId;
+      if (data && (data.fields || data.missingFields)) {
+        sessionId.value = data.sessionId;
+        const fieldCount = data.fields ? Object.keys(data.fields).length : 0;
         const aiMsg: FloatMessage = {
           id: `msg_${Date.now()}_ai`,
           role: "assistant",
-          content: res.data.message,
-          fields: res.data.fields,
-          missingFields: res.data.missingFields,
+          content: data.message || (fieldCount > 0 ? `已解析${fieldCount}个字段` : "请提供更多信息"),
+          fields: data.fields || {},
+          missingFields: data.missingFields || [],
           timestamp: Date.now(),
         };
         messages.value.push(aiMsg);
@@ -209,16 +228,16 @@ export const useFloatAgentStore = defineStore("floatAgent", () => {
         const aiMsg: FloatMessage = {
           id: `msg_${Date.now()}_ai`,
           role: "assistant",
-          content: res.error || "解析失败，请重新描述",
+          content: (data as any)?.message || "解析失败，请重新描述",
           timestamp: Date.now(),
         };
         messages.value.push(aiMsg);
       }
-    } catch (error) {
+    } catch (error: any) {
       const aiMsg: FloatMessage = {
         id: `msg_${Date.now()}_ai`,
         role: "assistant",
-        content: "网络异常，请稍后重试",
+        content: error?.message || "网络异常，请稍后重试",
         timestamp: Date.now(),
       };
       messages.value.push(aiMsg);
@@ -327,6 +346,7 @@ export const useFloatAgentStore = defineStore("floatAgent", () => {
       case "done":
         if (evt.sessionId) sessionId.value = evt.sessionId;
         updateMessage(aiMsgId, {
+          displayType: evt.displayType || undefined,
           metadata: {
             model: evt.model,
             latency: evt.latency,
@@ -354,6 +374,26 @@ export const useFloatAgentStore = defineStore("floatAgent", () => {
     }
   }
 
+  function deleteMessage(msgId: string) {
+    const index = messages.value.findIndex(m => m.id === msgId);
+    if (index !== -1) {
+      messages.value.splice(index, 1);
+    }
+  }
+
+  function retryMessage(msg: FloatMessage) {
+    const msgIndex = messages.value.indexOf(msg);
+    let retryContent = "";
+    for (let i = msgIndex - 1; i >= 0; i--) {
+      if (messages.value[i].role === "user") {
+        retryContent = messages.value[i].content;
+        break;
+      }
+    }
+    if (!retryContent) return;
+    sendMessage(retryContent);
+  }
+
   function sendQuickCommand(command: string) {
     sendMessage(command);
   }
@@ -369,6 +409,7 @@ export const useFloatAgentStore = defineStore("floatAgent", () => {
     configLoaded,
     isVisible,
     fieldHintsCount,
+    missingFieldsList,
     agentHealthStatus,
     badgeCount,
     dynamicTitle,
@@ -381,7 +422,11 @@ export const useFloatAgentStore = defineStore("floatAgent", () => {
     toggleFullscreen,
     clearMessages,
     sendMessage,
+    deleteMessage,
+    retryMessage,
     sendQuickCommand,
+    showMissingFieldsHint,
+    updateFieldHintsLocal,
     fetchFieldHints,
     fetchHealth,
   };

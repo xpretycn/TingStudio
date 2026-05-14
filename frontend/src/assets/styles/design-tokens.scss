@@ -13,6 +13,7 @@ $brand-primary-lighter: #ffb5c8;
 $brand-primary-lightest: #ffd6e0;
 $brand-primary-bg: #fff0f3;
 $brand-primary-dark: #e8a0b0;
+$brand-emerald: #10b981;
 
 // 1.2 背景色
 $bg-page: #fff9f7; // 页面整体背景（暖白）
@@ -25,6 +26,7 @@ $bg-sidebar-header: linear-gradient(135deg, #fff9f7 0%, #fff0f3 100%);
 $text-primary: #5d4e60; // 主要文字（暖紫灰）
 $text-regular: #6e6178; // 常规正文（对比度 ≥ 4.5:1 ✅）
 $text-secondary: #756a7c; // 次要文字、描述（对比度 ≥ 4.5:1 ✅）
+$text-tertiary: #9a8da2; // 辅助文字、表头、标签
 $text-placeholder: #d4c5d0; // 占位符
 $text-white: #ffffff;
 $text-white-80: rgba(255, 255, 255, 0.8);

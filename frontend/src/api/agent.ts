@@ -84,14 +84,10 @@ export interface ParseFormRequest {
 }
 
 export interface ParseFormResponse {
-  code: 0 | 1;
-  data?: {
-    fields: Record<string, any>;
-    missingFields: string[];
-    message: string;
-    sessionId: string;
-  };
-  error?: string;
+  fields: Record<string, any>;
+  missingFields: string[];
+  message: string;
+  sessionId: string;
 }
 
 export const agentApi = {
@@ -189,12 +185,12 @@ export const agentApi = {
   },
 
   getFieldHints(pageId: string) {
-    return http.get<any, { success: boolean; data: { missingFields: string[]; hints: any[]; count: number } }>(
+    return http.get<any, { missingFields: string[]; hints: any[]; count: number }>(
       "/agent/field-hints", { params: { pageId } },
     );
   },
 
   getHealth() {
-    return http.get<any, { success: boolean; data: { status: string } }>("/agent/health");
+    return http.get<any, { status: string }>("/agent/health");
   },
 };

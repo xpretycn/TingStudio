@@ -59,7 +59,8 @@
                       class="label-icon" /> 配方名称
                     <span class="required">*</span></label>
                   <t-input v-model="formData.name" placeholder="例如：佛手玫苓膏" clearable class="field-input"
-                    aria-required="true" aria-labelledby="lbl-formula-name" data-testid="formula-name-input" />
+                    aria-required="true" aria-labelledby="lbl-formula-name" data-testid="formula-name-input"
+                    data-field="name" />
                 </div>
 
                 <div class="form-field">
@@ -67,7 +68,7 @@
                       class="label-icon" /> 所属业务员
                     <span class="required">*</span></label>
                   <t-select v-model="formData.salesmanId" placeholder="请选择业务员" clearable filterable class="field-input"
-                    aria-required="true" aria-labelledby="lbl-salesman">
+                    aria-required="true" aria-labelledby="lbl-salesman" data-field="salesman_name">
                     <t-option v-for="salesman in salesmanStore.allSalesmen" :key="salesman.id" :value="salesman.id"
                       :label="salesman.name" />
                     <template #panelTopContent>
@@ -90,7 +91,8 @@
                       class="label-icon" /> 成品重量(g)
                     <span class="required">*</span><span class="field-help-inline">成品规格，用于营养成分含量比计算的核心数据</span></label>
                   <t-input-number v-model="formData.finishedWeight" :min="0" :decimal-places="2" placeholder="1000"
-                    class="field-input" aria-required="true" aria-labelledby="lbl-weight" />
+                    class="field-input" aria-required="true" aria-labelledby="lbl-weight"
+                    data-field="finished_weight" />
                 </div>
 
                 <div class="grid grid-cols-2 gap-6">
@@ -98,7 +100,8 @@
                     <label class="field-label" id="lbl-ratio-factor"><t-icon name="control-platform" size="12px"
                         class="label-icon" /> 主料含量比系数 <span class="required">*</span></label>
                     <t-input-number v-model="formData.ratioFactor" :min="0.15" :max="0.25" :decimal-places="2"
-                      placeholder="0.18" class="field-input" aria-required="true" aria-labelledby="lbl-ratio-factor" />
+                      placeholder="0.18" class="field-input" aria-required="true" aria-labelledby="lbl-ratio-factor"
+                      data-field="ratio_factor" />
                   </div>
 
                   <div class="form-field">
@@ -106,8 +109,8 @@
                         class="label-icon" />
                       辅料含量比系数 <span class="required">*</span></label>
                     <t-input-number v-model="formData.supplementRatioFactor" :min="0.5" :max="1.5" :decimal-places="2"
-                      placeholder="1.0" class="field-input" aria-required="true"
-                      aria-labelledby="lbl-supplement-factor" />
+                      placeholder="1.0" class="field-input" aria-required="true" aria-labelledby="lbl-supplement-factor"
+                      data-field="supplement_ratio_factor" />
                     <p class="field-help">用于营养成分含量比计算，主料系数范围0.15-0.25，辅料系数范围0.5-1.5</p>
                   </div>
                   <div v-if="isEdit" class="form-field" :class="{ 'field-error': versionReasonError }">
@@ -117,7 +120,8 @@
                     <t-textarea ref="versionReasonRef" v-model="formData.versionReason" placeholder="请输入升版原因（必填）"
                       :autosize="{ minRows: 2, maxRows: 4 }" class="field-input"
                       :class="{ 'input-error': versionReasonError }" aria-required="true"
-                      aria-labelledby="lbl-version-reason" @input="clearVersionReasonError" />
+                      aria-labelledby="lbl-version-reason" data-field="version_reason"
+                      @input="clearVersionReasonError" />
                     <transition name="error-fade">
                       <p v-if="versionReasonError" class="field-error-msg">
                         <t-icon name="error-circle" size="14px" /> 请填写升版原因
@@ -136,7 +140,8 @@
                     </button>
                   </label>
                   <t-textarea v-model="formData.description" placeholder="简述该配方的研发目标和主要特点..."
-                    :autosize="{ minRows: 3, maxRows: 6 }" class="field-input" aria-labelledby="lbl-description" />
+                    :autosize="{ minRows: 3, maxRows: 6 }" class="field-input" aria-labelledby="lbl-description"
+                    data-field="description" />
                 </div>
                 <div class="form-field">
                   <label class="field-label" id="lbl-preparation"><t-icon name="setting" size="12px"
@@ -149,7 +154,8 @@
                     </button>
                   </label>
                   <t-textarea v-model="formData.preparationMethod" placeholder="记录配方的制取方法、工艺流程或特殊操作要求（可选）"
-                    :autosize="{ minRows: 2, maxRows: 5 }" class="field-input" aria-labelledby="lbl-preparation" />
+                    :autosize="{ minRows: 2, maxRows: 5 }" class="field-input" aria-labelledby="lbl-preparation"
+                    data-field="preparation_method" />
                 </div>
               </div>
             </section>
@@ -208,7 +214,8 @@
                       </tr>
                     </thead>
                     <tbody>
-                      <tr v-for="(item, index) in formData.materials" :key="index" class="material-row">
+                      <tr v-for="(item, index) in formData.materials" :key="index" class="material-row"
+                        :id="'mat-row-' + index" :class="{ 'material-row--highlight': highlightRowIdx === index }">
                         <td>
                           <t-select v-model="item.materialId" placeholder="搜索或选择原料" clearable filterable
                             :loading="materialSelectLoading" class="material-select" :filter-icon="() => null"
@@ -252,6 +259,15 @@
                       <tr class="total-row">
                         <td class="font-bold">合计</td>
                         <td class="font-mono font-bold">{{ totalQuantity }} g</td>
+                        <td></td>
+                      </tr>
+                      <tr v-if="priceQuote.materialTotal > 0" class="total-row cost-row">
+                        <td class="font-bold">成本</td>
+                        <td class="font-mono font-bold">
+                          <span :class="{ 'cost-incomplete': priceQuote.missingPrices.length > 0 }">¥{{
+                            priceQuote.materialTotal.toFixed(2) }}</span>
+                          <span v-if="priceQuote.missingPrices.length > 0" class="cost-incomplete-tag">不完整</span>
+                        </td>
                         <td></td>
                       </tr>
                     </tfoot>
@@ -639,7 +655,7 @@
                   </div>
                   <div v-for="(m, idx) in priceQuote.materials" :key="idx" class="quote-mat-row"
                     :class="{ 'quote-mat--warn': m.unitPrice === null, 'quote-mat--adjusted': m.isAdjusted }">
-                    <span class="qm-name">{{ m.name || '--' }}</span>
+                    <span class="qm-name qm-name--link" @click="scrollToMaterialRow(idx)">{{ m.name || '--' }}</span>
                     <span class="qm-qty">{{ m.quantity }}g</span>
                     <span class="qm-price" v-if="m.unitPrice === null">未录入</span>
                     <div class="qm-price-edit" v-else>
@@ -840,7 +856,7 @@ const ratioValidation = computed<RatioFactorValidationResult>(() => {
     };
   });
 
-  const totalRatio = Math.round(breakdown.reduce((sum: number, item: { ratioFactor: number }) => sum + item.ratioFactor, 0) * 100000) / 100000;
+  const totalRatio = Math.round(breakdown.reduce((sum: number, item: { ratioFactor: number; }) => sum + item.ratioFactor, 0) * 100000) / 100000;
 
   const thresholds = { normalLow: 0.98, normalHigh: 1.02, warningLow: 0.95, warningHigh: 1.05, highWarningLow: 0.92, highWarningHigh: 1.08 };
 
@@ -862,7 +878,7 @@ const ratioValidation = computed<RatioFactorValidationResult>(() => {
   }
 
   const deviation = ((totalRatio - 1) * 100).toFixed(2);
-  const messages: Record<string, { message: string; description: string; allowed: boolean; requiresManualReview: boolean }> = {
+  const messages: Record<string, { message: string; description: string; allowed: boolean; requiresManualReview: boolean; }> = {
     normal: {
       message: '含量比校验通过',
       description: `原料含量比总和为 ${totalRatio.toFixed(5)}（偏差 ${deviation}%），在正常范围内 [${thresholds.normalLow}, ${thresholds.normalHigh}]`,
@@ -968,6 +984,16 @@ const handleRestoreAllBasePrices = () => {
 };
 
 const restoreFlashIdx = ref<number | null>(null);
+const highlightRowIdx = ref<number | null>(null);
+
+const scrollToMaterialRow = (idx: number) => {
+  const el = document.getElementById('mat-row-' + idx);
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    highlightRowIdx.value = idx;
+    setTimeout(() => { highlightRowIdx.value = null; }, 1500);
+  }
+};
 
 const handleRestoreSinglePrice = (idx: number) => {
   if (!formData.materials[idx]) return;
@@ -2524,6 +2550,12 @@ onMounted(async () => {
               width: 150px;
             }
           }
+
+          &--highlight {
+            background: linear-gradient(90deg, rgba(16, 185, 129, 0.12) 0%, rgba(16, 185, 129, 0.04) 100%);
+            border-left: 3px solid #10b981;
+            transition: background 0.3s ease, border-color 0.3s ease;
+          }
         }
       }
 
@@ -2543,6 +2575,39 @@ onMounted(async () => {
             &:last-child {
               border-radius: 0 12px 12px 0;
             }
+          }
+        }
+
+        .cost-row {
+          background: rgba(248, 250, 252, 0.6);
+          margin-top: 4px;
+
+          td {
+            padding: 12px 16px;
+            color: #64748b;
+            font-size: 13px;
+
+            &:first-child {
+              border-radius: 12px 0 0 12px;
+            }
+
+            &:last-child {
+              border-radius: 0 12px 12px 0;
+            }
+          }
+
+          .cost-incomplete {
+            color: #f59e0b;
+          }
+
+          .cost-incomplete-tag {
+            font-size: 10px;
+            padding: 1px 4px;
+            border-radius: 4px;
+            background: #fef3c7;
+            color: #b45309;
+            margin-left: 4px;
+            font-weight: 600;
           }
         }
       }
@@ -3877,6 +3942,16 @@ onMounted(async () => {
             color: #d97706;
           }
         }
+      }
+    }
+
+    .qm-name--link {
+      cursor: pointer;
+      transition: color 0.2s;
+
+      &:hover {
+        color: #10b981;
+        text-decoration: underline;
       }
     }
 

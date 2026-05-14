@@ -4,10 +4,12 @@ import { DialogManager, PendingConfirmation, FormSchema } from "./dialogManager.
 import { sessionStore } from "./sessionStore.js";
 import type { ToolContext, ToolResult } from "../../../types/ai.js";
 import { getDb } from "../../../config/database-better-sqlite3.js";
+import { checkWriteIntentFromText } from "./agentWriteGuard.js";
 import crypto from "node:crypto";
 
 const MAX_INTENT_CONTEXT_MESSAGES = 6;
 const MAX_SESSION_TITLE_LENGTH = 20;
+const FORM_PAGE_IDS = ["formula-add", "formula-edit", "material-add", "material-edit", "salesman-add", "salesman-edit"];
 
 interface ChatMessage {
   role: "user" | "assistant" | "system" | "tool";
@@ -626,7 +628,7 @@ class AIAgentController {
       "material-add": {
         name: "原料名称",
         code: "编码",
-        material_type: "类型",
+        material_type: "原料类型(herb=药材,supplement=辅料)",
         unit: "单位",
         stock: "库存",
         unit_price: "单价(元/kg)",
@@ -635,7 +637,7 @@ class AIAgentController {
       "material-edit": {
         name: "原料名称",
         code: "编码",
-        material_type: "类型",
+        material_type: "原料类型(herb=药材,supplement=辅料)",
         unit: "单位",
         stock: "库存",
         unit_price: "单价(元/kg)",
@@ -684,7 +686,12 @@ ${fieldDesc}
 2. 数值类型字段请返回数字而非字符串
 3. missingFields 列出用户未提及的必填字段
 4. message 用中文简要说明解析结果
-5. 如果用户描述含糊，将匹配度最高的字段填入 fields，并在 missingFields 中标注不确定的字段`;
+5. 如果用户描述含糊，将匹配度最高的字段填入 fields，并在 missingFields 中标注不确定的字段
+6. 对话历史中可能包含之前的问答，你需要结合上下文理解用户当前输入的含义
+7. 如果用户在回答之前的问题（如确认类型、补充信息等），请将回答内容解析为对应字段值
+8. 对于原料类型(material_type)，"药材"对应"herb"，"辅料"对应"supplement"
+9. 对于业务员名称(salesman_name)，直接使用用户提供的名称字符串
+10. 当用户表达"创建/新建/添加"意图但未提供具体字段值时，将所有必填字段放入 missingFields，并在 message 中给出引导文案，格式如："您想创建新{资源名}，请提供：{字段1}、{字段2}(单位)、{字段3}(格式说明)"`;
   }
 
   private classifyFloatIntent(utterance: string): "fill" | "consult" | "calculate" | "compare" | "substitute" | "quotation" | "generate" {
@@ -710,6 +717,24 @@ ${fieldDesc}
     if (!utterance || !pageId) {
       res.status(400).json({ success: false, error: "pageId 和 utterance 不能为空" });
       return;
+    }
+
+    const writeGuard = checkWriteIntentFromText(utterance);
+    if (writeGuard && writeGuard.blocked) {
+      const isOnFormPage = FORM_PAGE_IDS.includes(pageId);
+      if (!isOnFormPage) {
+        res.setHeader("Content-Type", "text/event-stream");
+        res.setHeader("Cache-Control", "no-cache");
+        res.setHeader("Connection", "keep-alive");
+        res.flushHeaders();
+
+        const guidanceMessage = writeGuard.guidanceMessage || "此操作需要前往对应页面完成";
+
+        res.write(`data: ${JSON.stringify({ type: "write_guidance", toolName: writeGuard.toolName, message: guidanceMessage, navigationLink: writeGuard.navigationLink })}\n\n`);
+        res.write(`data: ${JSON.stringify({ type: "done", sessionId: "", model: "" })}\n\n`);
+        res.end();
+        return;
+      }
     }
 
     const intent = this.classifyFloatIntent(utterance);

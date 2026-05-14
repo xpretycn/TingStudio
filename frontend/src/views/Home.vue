@@ -556,8 +556,8 @@ const navGroups = {
     items: [
       { path: '/formulas', label: '配方管理', icon: 'edit' },
       { path: '/materials', label: '原料管理', icon: 'chart-bar' },
-      { path: '/files', label: '文件管理', icon: 'folder' },
-      { path: '/salesmen', label: '业务员管理', icon: 'usergroup' }
+      { path: '/salesmen', label: '业务员管理', icon: 'usergroup' },
+      { path: '/files', label: '文件管理', icon: 'folder' }
     ] as NavItem[]
   },
   analytics: {

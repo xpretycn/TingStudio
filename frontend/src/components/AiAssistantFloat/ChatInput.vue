@@ -79,8 +79,6 @@ function autoResize() {
 </script>
 
 <style scoped lang="scss">
-@use "@/assets/styles/design-tokens" as *;
-
 .chat-input {
   padding: 12px 16px;
   border-top: 1px solid $border-color-light;

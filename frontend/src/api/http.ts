@@ -73,7 +73,9 @@ http.interceptors.response.use(
     if (error.response?.status === 401) {
       localStorage.removeItem(TOKEN_KEY);
       localStorage.removeItem("tingstudio_user");
-      window.location.href = "/login";
+      if (!window.location.pathname.startsWith("/login")) {
+        window.location.href = "/login";
+      }
       MessagePlugin.error("登录已过期，请重新登录");
     } else if (!error.config?._silent) {
       MessagePlugin.error(msg);

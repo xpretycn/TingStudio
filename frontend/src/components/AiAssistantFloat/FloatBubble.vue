@@ -33,7 +33,7 @@
     <!-- 快捷命令弹出层 -->
     <Transition name="cmd-fade">
       <div v-if="showCommands && !dragging" class="cmd-popup"
-        :class="position === 'right' ? 'cmd-popup--left' : 'cmd-popup--right'">
+        :class="[popupPlacement.hClass, { 'cmd-popup--below': !popupPlacement.showAbove }]">
         <button v-for="cmd in commandList" :key="cmd.label" class="cmd-item"
           @mousedown.stop @click.stop="handleCommand(cmd.command)">
           <span class="cmd-icon" v-html="cmd.icon"></span>
@@ -69,11 +69,39 @@ const commandList = [
 ];
 
 const BUBBLE_SIZE = 56;
-const MARGIN = 16;
+const MARGIN = 80;
+const POPUP_W_EST = 140;
+const POPUP_H_EST = 150;
 
 const posX = ref(0);
 const posY = ref(0);
 const initialized = ref(false);
+const viewportW = ref(window.innerWidth);
+const viewportH = ref(window.innerHeight);
+
+const popupPlacement = computed(() => {
+  const vw = viewportW.value;
+  const bx = posX.value;
+  const by = posY.value;
+
+  let hClass: string;
+  const overflowRight = bx + POPUP_W_EST > vw;
+  const overflowLeft = bx + BUBBLE_SIZE - POPUP_W_EST < 0;
+
+  if (overflowRight && !overflowLeft) {
+    hClass = "cmd-popup--right";
+  } else if (overflowLeft && !overflowRight) {
+    hClass = "cmd-popup--left";
+  } else {
+    hClass = bx + BUBBLE_SIZE / 2 > vw / 2 ? "cmd-popup--right" : "cmd-popup--left";
+  }
+
+  const spaceAbove = by;
+  const spaceBelow = viewportH.value - by - BUBBLE_SIZE;
+  const showAbove = spaceAbove >= POPUP_H_EST || spaceAbove >= spaceBelow;
+
+  return { hClass, showAbove };
+});
 
 const dragging = ref(false);
 const dragMoved = ref(false);
@@ -162,6 +190,8 @@ function handleCommand(cmd: string) {
 }
 
 function onResize() {
+  viewportW.value = window.innerWidth;
+  viewportH.value = window.innerHeight;
   if (!initialized.value) return;
   const clamped = clamp(posX.value, posY.value);
   posX.value = clamped.x;
@@ -179,8 +209,6 @@ onUnmounted(() => {
 </script>
 
 <style scoped lang="scss">
-@use "@/assets/styles/design-tokens" as *;
-
 .float-bubble {
   position: fixed;
   z-index: 9999;
@@ -270,6 +298,8 @@ onUnmounted(() => {
     border-radius: 12px;
     box-shadow: 0 8px 24px rgba(93, 78, 96, 0.18);
     min-width: 110px;
+    max-height: calc(100vh - 140px);
+    overflow-y: auto;
 
     &--left {
       left: 0;
@@ -277,6 +307,11 @@ onUnmounted(() => {
 
     &--right {
       right: 0;
+    }
+
+    &--below {
+      bottom: auto;
+      top: 68px;
     }
 
     .cmd-item {

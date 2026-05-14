@@ -2,8 +2,8 @@
   <div class="quotation-card">
     <div class="card-header">
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-        <rect x="2" y="2" width="12" height="12" rx="2" stroke="#10b981" stroke-width="1.2" fill="none"/>
-        <path d="M4 6h8M4 9h5" stroke="#10b981" stroke-width="1.2" stroke-linecap="round"/>
+        <rect x="2" y="2" width="12" height="12" rx="2" stroke="#10b981" stroke-width="1.2" fill="none" />
+        <path d="M4 6h8M4 9h5" stroke="#10b981" stroke-width="1.2" stroke-linecap="round" />
       </svg>
       <span>智能报价单</span>
       <span class="formula-name">{{ data.formula?.name }}</span>
@@ -73,8 +73,6 @@ defineProps<{
 </script>
 
 <style scoped lang="scss">
-@use "@/assets/styles/design-tokens" as *;
-
 .quotation-card {
   background: $bg-container;
   border: 1px solid $border-color-light;
@@ -122,8 +120,13 @@ defineProps<{
     font-weight: 500;
     color: $text-primary;
 
-    &--sub { color: #f59e0b; }
-    &--profit { color: #10b981; }
+    &--sub {
+      color: #f59e0b;
+    }
+
+    &--profit {
+      color: #10b981;
+    }
   }
 }
 

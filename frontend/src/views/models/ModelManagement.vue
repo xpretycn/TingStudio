@@ -547,7 +547,12 @@
                       <t-select v-model="floatModelKey" placeholder="选择模型" size="small" style="width: 100%"
                         @change="onFloatModelChange">
                         <t-option-group v-for="group in allFloatModelGroups" :key="group.provider" :label="group.name">
-                          <t-option v-for="v in group.versions" :key="group.provider + '|' + v.value" :value="group.provider + '|' + v.value" :label="v.label" />
+                          <t-option v-for="v in group.versions" :key="group.provider + '|' + v.value" :value="group.provider + '|' + v.value" :label="v.label">
+                            <span style="display:inline-flex;align-items:center;gap:6px;">
+                              <img :src="getModelLogo(group.provider)" :alt="group.name" style="width:16px;height:16px;object-fit:contain;flex-shrink:0;" @error="(e: Event) => handleLogoError(e)" />
+                              {{ v.label }}
+                            </span>
+                          </t-option>
                         </t-option-group>
                       </t-select>
                     </div>
@@ -556,7 +561,12 @@
                       <t-select v-model="floatFallbackModelKey" placeholder="可选" clearable size="small"
                         style="width: 100%" @change="onFloatFallbackModelChange">
                         <t-option-group v-for="group in allFloatModelGroups" :key="group.provider" :label="group.name">
-                          <t-option v-for="v in group.versions" :key="group.provider + '|' + v.value" :value="group.provider + '|' + v.value" :label="v.label" />
+                          <t-option v-for="v in group.versions" :key="group.provider + '|' + v.value" :value="group.provider + '|' + v.value" :label="v.label">
+                            <span style="display:inline-flex;align-items:center;gap:6px;">
+                              <img :src="getModelLogo(group.provider)" :alt="group.name" style="width:16px;height:16px;object-fit:contain;flex-shrink:0;" @error="(e: Event) => handleLogoError(e)" />
+                              {{ v.label }}
+                            </span>
+                          </t-option>
                         </t-option-group>
                       </t-select>
                     </div>
@@ -590,7 +600,7 @@
                     <div class="fa-field">
                       <span class="fa-field-label">抽屉宽度</span>
                       <t-input-number v-model="floatConfig.drawerWidth" :min="320" :max="600" :step="10" size="small"
-                        theme="normal" style="width: 180px" @change="saveFloatConfig('drawerWidth')" />
+                        theme="normal" style="width: 180px" @change="(val: any) => { const v = Math.min(600, Math.max(320, Number(val) || 320)); floatConfig.drawerWidth = v; saveFloatConfig('drawerWidth', v); }" />
                     </div>
                     <div class="fa-field">
                       <span class="fa-field-label">主题色</span>
@@ -629,7 +639,7 @@
                     <div class="fa-field">
                       <span class="fa-field-label">最大对话轮次</span>
                       <t-input-number v-model="floatConfig.maxRounds" :min="3" :max="30" :step="1" size="small"
-                        theme="normal" style="width: 180px" @change="saveFloatConfig('maxRounds')" />
+                        theme="normal" style="width: 180px" @change="(val: any) => { const v = Math.min(30, Math.max(3, Number(val) || 10)); floatConfig.maxRounds = v; saveFloatConfig('maxRounds', v); }" />
                     </div>
                     <div class="fa-field">
                       <span class="fa-field-label">回填策略</span>
@@ -1138,6 +1148,7 @@ import { ref, reactive, computed, onMounted, onUnmounted, nextTick, watch } from
 import { MessagePlugin } from "tdesign-vue-next";
 import { useModelStore } from "@/stores/model";
 import { useAuthStore } from "@/stores/auth";
+import { useFloatAgentStore } from "@/stores/floatAgent";
 import type { ModelItem, AlertConfigItem } from "@/api/model";
 import { modelApi, type ModelVersionOption } from "@/api/model";
 import { agentApi } from "@/api/agent";
@@ -1145,6 +1156,7 @@ import * as echarts from "echarts";
 
 const modelStore = useModelStore();
 const authStore = useAuthStore();
+const floatAgentStore = useFloatAgentStore();
 
 const isAdmin = computed(() => authStore.user?.role === "admin");
 const activeTab = ref("models");
@@ -1254,6 +1266,7 @@ async function saveFloatConfig(field: string, eventValue?: any) {
     const data: Record<string, any> = {};
     data[field] = eventValue !== undefined ? eventValue : (floatConfig as any)[field];
     await agentApi.updateFloatConfig(data as any);
+    floatAgentStore.loadConfig();
     MessagePlugin.success("配置已保存");
   } catch (e: any) {
     const msg = e?.response?.data?.error || e?.message || "保存失败";
@@ -1265,6 +1278,7 @@ async function saveFloatConfig(field: string, eventValue?: any) {
 async function saveFloatConfigMulti(fields: Record<string, any>) {
   try {
     await agentApi.updateFloatConfig(fields as any);
+    floatAgentStore.loadConfig();
     MessagePlugin.success("配置已保存");
   } catch (e: any) {
     const msg = e?.response?.data?.error || e?.message || "保存失败";

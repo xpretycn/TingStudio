@@ -307,8 +307,13 @@ class AgentChatController {
       }
 
       const hasToolCalls = allToolCalls.length > 0;
+      const mainDisplayType =
+        allToolResults.length > 0 ? this.inferDisplayType(allToolCalls[0]?.name || "", allToolResults[0]) : undefined;
+      const isCardDisplay = ["compare", "quotation", "substitute"].includes(mainDisplayType || "");
+
       const needsSummary =
-        (!finalContent && !streamedContent) || (hasToolCalls && (!finalContent || finalContent.trim().length < 20));
+        !isCardDisplay &&
+        ((!finalContent && !streamedContent) || (hasToolCalls && (!finalContent || finalContent.trim().length < 20)));
 
       if (needsSummary) {
         const summaryMessages: ChatMessage[] = [
@@ -316,7 +321,7 @@ class AgentChatController {
           {
             role: "user",
             content: hasToolCalls
-              ? "请根据以上工具调用结果，生成简洁的中文总结回复。必须包含关键数据信息，不要只说'我来查查'之类的空话。"
+              ? "请根据以上工具调用结果，生成简洁的中文总结。要求：1.用markdown表格展示关键数据；2.文字精简，不超过3句话；3.不要重复工具已返回的完整数据，只提炼要点。"
               : "请根据以上对话内容，生成简洁的中文回复。",
           },
         ];
@@ -435,6 +440,15 @@ class AgentChatController {
   private inferDisplayType(toolName: string, result: ToolResult): string {
     if (toolName === "nl2sql_query") {
       return "nl2sql";
+    }
+    if (toolName === "compare_formulas") {
+      return "compare";
+    }
+    if (toolName === "generate_quotation") {
+      return "quotation";
+    }
+    if (toolName === "suggest_material_substitute") {
+      return "substitute";
     }
     if (toolName.includes("query") || toolName.includes("search") || toolName.includes("analyze")) {
       return "table";
@@ -701,8 +715,13 @@ class AgentChatController {
     }
 
     const hasToolCalls = allToolCalls.length > 0;
+    const displayType =
+      allToolResults.length > 0 ? this.inferDisplayType(allToolCalls[0]?.name || "", allToolResults[0]) : undefined;
+    const isCardDisplay = ["compare", "quotation", "substitute"].includes(displayType || "");
+
     const needsSummary =
-      (!finalContent && !streamedContent) || (hasToolCalls && (!finalContent || finalContent.trim().length < 20));
+      !isCardDisplay &&
+      ((!finalContent && !streamedContent) || (hasToolCalls && (!finalContent || finalContent.trim().length < 20)));
 
     if (needsSummary) {
       const summaryMessages: ChatMessage[] = [
@@ -710,7 +729,7 @@ class AgentChatController {
         {
           role: "user",
           content: hasToolCalls
-            ? "请根据以上工具调用结果，生成简洁的中文总结回复。必须包含关键数据信息。"
+            ? "请根据以上工具调用结果，生成简洁的中文总结。要求：1.用markdown表格展示关键数据；2.文字精简，不超过3句话；3.不要重复工具已返回的完整数据，只提炼要点。"
             : "请根据以上对话内容，生成简洁的中文回复。",
         },
       ];
@@ -742,8 +761,7 @@ class AgentChatController {
     sessionStore.addMessage(sessionId, "assistant", finalContent, {
       toolCalls: allToolCalls.length > 0 ? allToolCalls : undefined,
       toolResults: allToolResults.length > 0 ? allToolResults : undefined,
-      displayType:
-        allToolResults.length > 0 ? this.inferDisplayType(allToolCalls[0]?.name || "", allToolResults[0]) : undefined,
+      displayType,
       metadata: { model: selectedModel, latency: Date.now() - startTime, tokenUsage: totalTokenUsage },
     });
     sessionStore.updateSessionActivity(sessionId);
@@ -753,6 +771,7 @@ class AgentChatController {
       usage: totalTokenUsage,
       model: selectedModel,
       latency: Date.now() - startTime,
+      displayType,
     });
     this.cleanupSSE(res);
     res.end();

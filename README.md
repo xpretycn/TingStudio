@@ -86,7 +86,7 @@ TingStudio/
 │   │   ├── config/                   # 数据库配置、安全配置、限流
 │   │   ├── controllers/              # 控制器层（14个模块）
 │   │   ├── middleware/               # 认证、错误处理、日志、校验
-│   │   ├── routes/                   # 路由定义（20+ 端点）
+│   │   ├── routes/                   # 路由定义（15+ Agent端点 + 20+ 其他端点）
 │   │   ├── services/                 # 业务逻辑层
 │   │   │   ├── ai/                   # AI 服务（Agent/LLM/意图引擎）
 │   │   │   │   └── agent/            # Agent 系统（工具注册/ReAct/提示词）
@@ -104,9 +104,9 @@ TingStudio/
 │   │   ├── api/                      # API 客户端（axios 封装）
 │   │   ├── assets/                   # 样式（Design Tokens/变量/主题）
 │   │   ├── components/               # 公共组件
-│   │   │   └── AiAssistantFloat/     # 悬浮助手组件体系（7个子组件）
+│   │   │   └── AiAssistantFloat/     # 悬浮助手组件体系（8 Vue + 2 TS）
 │   │   ├── router/                   # Vue Router 配置
-│   │   ├── stores/                   # Pinia 状态管理（16个 Store）
+│   │   ├── stores/                   # Pinia 状态管理（17个 Store）
 │   │   ├── utils/                    # 工具函数
 │   │   ├── views/                    # 页面视图（15+ 功能页面）
 │   │   │   ├── ai/                   # AI 助手工作台
@@ -145,7 +145,7 @@ TingStudio/
 | **📎 文件管理** | 文件上传/预览、Excel/PDF/图片解析、批量导入 |
 | **📦 导出中心** | Excel/PDF 导出、自定义模板、API 接口管理 |
 | **🤖 AI 助手** | Agent 对话（ReAct 循环）、意图识别、工具调用、写操作守卫 |
-| **🔮 悬浮助手** | 表单字段解析、智能对话、配方对比/成本/替代建议、指令模板 |
+| **🔮 悬浮助手** | 表单字段解析、智能对话、配方对比/成本/替代建议、指令模板、双模路由 |
 | **🔍 智能检索** | NL2SQL 自然语言查询、跨表关联查询、聚合分析 |
 | **🛠️ 模型管理** | AI 模型配置、功能模块分配、用量监控、悬浮助手配置 |
 | **🔐 权限系统** | JWT 认证、角色控制（admin/user）、数据隔离 |
@@ -322,13 +322,16 @@ cd frontend && npm run test:coverage
 | 文件 | 改动类型 | 说明 |
 |------|----------|------|
 | [ModelManagement.vue](frontend/src/views/models/ModelManagement.vue) | 新增 Tab | 悬浮助手配置面板（基本配置/外观设置/行为策略） |
+| [AiAssistantFloat/](frontend/src/components/AiAssistantFloat/) | 新增组件体系 | FloatBubble / FloatDrawer / ChatInput / ChatMessages / CompareCard / QuotationCard / SubstituteCard + formFillAdapter |
 | [floatAgent.ts](frontend/src/stores/floatAgent.ts) | 新增 Store | 悬浮助手状态管理 |
-| [agent.ts (api)](frontend/src/api/agent.ts) | 新增方法 | `getFloatConfig()` / `updateFloatConfig()` / `parseForm()` |
-| [agent.ts (routes)](backend/src/routes/agent.ts) | 新增路由 | GET/PUT `/float-config` + POST `/parse-form` |
-| [agentController.ts](backend/src/services/ai/agent/agentController.ts) | 功能增强 | 悬浮助手配置 API + 缓存失效 |
-| [agentChatController.ts](backend/src/services/ai/agent/agentChatController.ts) | 新增 | Agent 聊天控制器（写入守卫集成） |
+| [agent.ts (api)](frontend/src/api/agent.ts) | 新增方法 | `getFloatConfig()` / `updateFloatConfig()` / `parseForm()` / `floatChat()` / `generateDescription()` / `getFieldHints()` / `getHealth()` |
+| [agent.ts (routes)](backend/src/routes/agent.ts) | 新增路由 | 15 个端点：chat / sessions / role-config / float-config / parse-form / float-chat / generate-description / field-hints / health 等 |
+| [agentController.ts](backend/src/services/ai/agent/agentController.ts) | 功能增强 | 悬浮助手配置 API + 意图路由 + 智能生成 + 缓存失效 |
+| [agentChatController.ts](backend/src/services/ai/agent/agentChatController.ts) | 新增 | Agent 聊天控制器（ReAct 流式 + 页面上下文） |
 | [agentWriteGuard.ts](backend/src/services/ai/agent/agentWriteGuard.ts) | 新增 | Agent 写入权限校验 |
 | [sessionCleaner.ts](backend/src/services/ai/agent/sessionCleaner.ts) | 新增 | 过期会话自动清理 |
+| [toolRegistration.ts](backend/src/services/ai/agent/toolRegistration.ts) | 功能增强 | +3 工具：compare_formulas / suggest_material_substitute / generate_quotation |
+| [promptEngine.ts](backend/src/services/ai/agent/promptEngine.ts) | 功能增强 | +字段咨询知识库（8条） |
 | [database-better-sqlite3.ts](backend/src/config/database-better-sqlite3.ts) | 新增表 | `agent_float_config` + `agent_provider_health` + `agent_session_cleanup_log` |
 
 ***
