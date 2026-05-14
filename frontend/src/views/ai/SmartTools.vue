@@ -100,10 +100,6 @@
             <div v-show="activeTab === 'smart-import'" class="tab-panel">
               <SmartImportTab @activity-add="addActivity" />
             </div>
-
-            <div v-show="activeTab === 'smart-search'" class="tab-panel">
-              <SmartSearchTab />
-            </div>
           </div>
         </div>
       </t-card>
@@ -186,7 +182,6 @@ import { useRouter } from 'vue-router';
 import PageSkeleton from '@/components/Skeleton/PageSkeleton.vue';
 import SmartFormTab from './tabs/SmartFormTab.vue';
 import SmartImportTab from './tabs/SmartImportTab.vue';
-import SmartSearchTab from './tabs/SmartSearchTab.vue';
 
 const router = useRouter();
 
@@ -211,11 +206,6 @@ const tabs = [
     value: 'smart-import',
     label: '智能导入',
     iconPath: '<path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>',
-  },
-  {
-    value: 'smart-search',
-    label: '智能检索',
-    iconPath: '<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>',
   },
 ];
 const activeTab = ref('smart-form');

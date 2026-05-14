@@ -16,3 +16,7 @@ agentRouter.put("/role-config", authMiddleware, (req, res) => aiAgentController.
 agentRouter.get("/float-config", authMiddleware, (req, res) => aiAgentController.getFloatConfig(req, res));
 agentRouter.put("/float-config", authMiddleware, (req, res) => aiAgentController.updateFloatConfig(req, res));
 agentRouter.post("/parse-form", authMiddleware, (req, res) => aiAgentController.parseForm(req, res));
+agentRouter.post("/float-chat", authMiddleware, (req, res) => aiAgentController.floatChat(req, res));
+agentRouter.post("/generate-description", authMiddleware, (req, res) => aiAgentController.generateDescription(req, res));
+agentRouter.get("/field-hints", authMiddleware, (req, res) => aiAgentController.getFieldHints(req, res));
+agentRouter.get("/health", authMiddleware, (req, res) => aiAgentController.getHealth(req, res));

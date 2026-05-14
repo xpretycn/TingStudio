@@ -288,6 +288,73 @@
               <t-empty description="请先为原料录入营养数据后再查看营养成分表" role="status" />
             </div>
           </section>
+
+          <!-- 含量比校验信息卡片 -->
+          <section v-if="data.calcRows?.length > 0 && data.finishedWeight > 0" class="ratio-validation-section">
+            <h3 class="section-title">
+              <t-icon name="check-circle" class="section-icon" />
+              含量比校验
+            </h3>
+            <div class="section-content">
+              <div class="ratio-summary" :class="'ratio-summary--' + ratioValidation.level">
+                <div class="ratio-summary-header">
+                  <t-icon :name="ratioValidationIcon" size="20px" />
+                  <span class="ratio-summary-title">{{ ratioValidation.message }}</span>
+                </div>
+                <div class="ratio-summary-bar">
+                  <div class="ratio-bar-track">
+                    <div class="ratio-bar-fill" :style="{ width: ratioBarWidth }"></div>
+                    <div class="ratio-bar-marker" :style="{ left: ratioMarkerLeft }"></div>
+                  </div>
+                  <div class="ratio-bar-labels">
+                    <span>0.92</span><span>0.95</span><span>0.98</span><span class="ratio-bar-center">1.00</span><span>1.02</span><span>1.05</span><span>1.08</span>
+                  </div>
+                </div>
+                <div class="ratio-summary-value">
+                  <span class="ratio-value-label">含量比总和：</span>
+                  <span class="ratio-value-num">{{ ratioValidation.totalRatio.toFixed(5) }}</span>
+                  <span class="ratio-value-deviation" :class="'deviation--' + ratioValidation.level">
+                    ({{ ratioDeviationText }})
+                  </span>
+                </div>
+                <p class="ratio-summary-desc">{{ ratioValidation.description }}</p>
+                <div v-if="ratioValidation.level === 'high_warning'" class="ratio-review-notice">
+                  <t-icon name="user-checked" size="16px" />
+                  <span>此配方需要人工审核确认</span>
+                </div>
+              </div>
+              <details class="ratio-breakdown">
+                <summary class="ratio-breakdown-toggle">
+                  <t-icon name="view-list" size="14px" />
+                  <span>查看各原料含量比明细</span>
+                  <t-icon name="chevron-down" size="14px" class="toggle-arrow" />
+                </summary>
+                <table class="ratio-detail-table">
+                  <thead>
+                    <tr>
+                      <th>原料名称</th>
+                      <th>类型</th>
+                      <th>用量(g)</th>
+                      <th>含量比</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="item in ratioValidation.breakdown" :key="item.materialId">
+                      <td>{{ item.materialName }}</td>
+                      <td>
+                        <t-tag :theme="item.materialType === 'supplement' ? 'primary' : 'success'" variant="light" size="small">
+                          {{ item.materialType === 'supplement' ? '辅料' : '药材' }}
+                        </t-tag>
+                      </td>
+                      <td>{{ item.quantity }}g</td>
+                      <td class="font-mono">{{ item.ratioFactor.toFixed(5) }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </details>
+            </div>
+          </section>
+
           <!-- 营养成分表 + 技术处理依据（双栏卡片） -->
           <div v-if="missingMaterials.length < data.calcRows?.length" class="dual-cards-row">
             <!-- 营养成分表 -->
@@ -325,6 +392,7 @@ import { ref, computed, onMounted, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { nutritionApi } from '@/api/nutrition';
 import { formulaApi } from '@/api/formula';
+import type { RatioFactorValidationResult } from '@/api/formula';
 
 const router = useRouter();
 const route = useRoute();
@@ -374,6 +442,123 @@ const calcTableData = computed(() => {
     data.value.nrvRow,
     data.value.nrvPercentRow,
   ];
+});
+
+const ratioValidation = computed<RatioFactorValidationResult>(() => {
+  const d = data.value;
+  if (!d || !d.calcRows || d.calcRows.length === 0 || !d.finishedWeight || d.finishedWeight <= 0) {
+    return {
+      level: 'normal',
+      totalRatio: 0,
+      breakdown: [],
+      thresholds: { normalLow: 0.98, normalHigh: 1.02, warningLow: 0.95, warningHigh: 1.05, highWarningLow: 0.92, highWarningHigh: 1.08 },
+      message: '待计算',
+      description: '配方数据不完整，无法进行含量比校验',
+      allowed: true,
+      requiresManualReview: false,
+    };
+  }
+
+  const finishedWeight = d.finishedWeight;
+  const ratioFactor = d.ratioFactor ?? 0.18;
+  const supplementRatioFactor = d.supplementRatioFactor ?? 1.0;
+
+  const breakdown = d.calcRows.map((row: any) => {
+    const materialType = row.materialType || 'herb';
+    const isSupplement = materialType === 'supplement';
+    const quantity = row.quantity || 0;
+    const baseRatio = quantity / finishedWeight;
+    const ratio = Math.round(baseRatio * (isSupplement ? supplementRatioFactor : ratioFactor) * 100000) / 100000;
+    return {
+      materialId: row.materialId || row.name || '',
+      materialName: row.name || '',
+      quantity,
+      materialType,
+      ratioFactor: ratio,
+    };
+  });
+
+  const totalRatio = Math.round(breakdown.reduce((sum: number, item: { ratioFactor: number }) => sum + item.ratioFactor, 0) * 100000) / 100000;
+
+  const thresholds = { normalLow: 0.98, normalHigh: 1.02, warningLow: 0.95, warningHigh: 1.05, highWarningLow: 0.92, highWarningHigh: 1.08 };
+
+  let level: RatioFactorValidationResult['level'];
+  if (totalRatio >= thresholds.normalLow && totalRatio <= thresholds.normalHigh) {
+    level = 'normal';
+  } else if (
+    (totalRatio >= thresholds.warningLow && totalRatio < thresholds.normalLow) ||
+    (totalRatio > thresholds.normalHigh && totalRatio <= thresholds.warningHigh)
+  ) {
+    level = 'warning';
+  } else if (
+    (totalRatio >= thresholds.highWarningLow && totalRatio < thresholds.warningLow) ||
+    (totalRatio > thresholds.warningHigh && totalRatio <= thresholds.highWarningHigh)
+  ) {
+    level = 'high_warning';
+  } else {
+    level = 'error';
+  }
+
+  const deviation = ((totalRatio - 1) * 100).toFixed(2);
+  const messages: Record<string, { message: string; description: string; allowed: boolean; requiresManualReview: boolean }> = {
+    normal: {
+      message: '含量比校验通过',
+      description: `原料含量比总和为 ${totalRatio.toFixed(5)}（偏差 ${deviation}%），在正常范围内 [${thresholds.normalLow}, ${thresholds.normalHigh}]`,
+      allowed: true,
+      requiresManualReview: false,
+    },
+    warning: {
+      message: `含量比偏差预警（偏差 ${deviation}%）`,
+      description: `原料含量比总和为 ${totalRatio.toFixed(5)}，超出正常范围 [${thresholds.normalLow}, ${thresholds.normalHigh}]，偏差 ${deviation}%。建议检查原料用量是否合理。`,
+      allowed: true,
+      requiresManualReview: false,
+    },
+    high_warning: {
+      message: `含量比严重偏差（偏差 ${deviation}%）`,
+      description: `原料含量比总和为 ${totalRatio.toFixed(5)}，严重偏离标准值 1.0，偏差 ${deviation}%。需要人工审核确认，请仔细核对原料用量数据。`,
+      allowed: true,
+      requiresManualReview: true,
+    },
+    error: {
+      message: `含量比校验失败（偏差 ${deviation}%）`,
+      description: `原料含量比总和为 ${totalRatio.toFixed(5)}，偏差 ${deviation}% 超出允许范围 [${thresholds.highWarningLow}, ${thresholds.highWarningHigh}]。配方数据存在错误，请修正原料用量后重试。`,
+      allowed: false,
+      requiresManualReview: false,
+    },
+  };
+
+  const msg = messages[level];
+  return { level, totalRatio, breakdown, thresholds, ...msg };
+});
+
+const ratioValidationIcon = computed(() => {
+  const icons: Record<string, string> = {
+    normal: 'check-circle-filled',
+    warning: 'error-circle',
+    high_warning: 'error-circle',
+    error: 'close-circle-filled',
+  };
+  return icons[ratioValidation.value.level] || 'info-circle';
+});
+
+const ratioDeviationText = computed(() => {
+  const d = ((ratioValidation.value.totalRatio - 1) * 100).toFixed(2);
+  const prefix = Number(d) >= 0 ? '+' : '';
+  return `${prefix}${d}%`;
+});
+
+const ratioBarWidth = computed(() => {
+  const val = ratioValidation.value.totalRatio;
+  if (val <= 0) return '0%';
+  const pct = Math.min(Math.max((val / 1.16) * 100, 0), 100);
+  return `${pct}%`;
+});
+
+const ratioMarkerLeft = computed(() => {
+  const val = ratioValidation.value.totalRatio;
+  if (val <= 0) return '0%';
+  const pct = Math.min(Math.max((val / 1.16) * 100, 0), 100);
+  return `${pct}%`;
 });
 
 const handleBack = () => {
@@ -1260,6 +1445,245 @@ watch(() => route.params.id, (newId) => {
 
       .calc-empty {
         padding: $space-8;
+      }
+    }
+
+    // ══ 含量比校验信息卡片 ══
+    .ratio-validation-section {
+      background: #fff;
+      border-radius: $radius-2xl;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+      border: 1px solid #f8fafc;
+      padding: $space-6;
+      animation: fadeInUp 0.4s ease both;
+
+      .section-title {
+        font-size: 14px;
+        font-weight: 700;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin-bottom: $space-5;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        .section-icon {
+          font-size: 16px;
+          color: #10b981;
+          opacity: 0.7;
+        }
+      }
+
+      .section-content {
+        .ratio-summary {
+          padding: 16px;
+          border-radius: 12px;
+          border: 1px solid;
+          transition: all 0.3s ease;
+
+          &--normal {
+            background: #f0fdf4;
+            border-color: #bbf7d0;
+          }
+          &--warning {
+            background: #fffbeb;
+            border-color: #fde68a;
+          }
+          &--high_warning {
+            background: #fff7ed;
+            border-color: #fed7aa;
+          }
+          &--error {
+            background: #fef2f2;
+            border-color: #fecaca;
+          }
+        }
+
+        .ratio-summary-header {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin-bottom: 12px;
+
+          .ratio-summary--normal & {
+            color: #16a34a;
+          }
+          .ratio-summary--warning & {
+            color: #d97706;
+          }
+          .ratio-summary--high_warning & {
+            color: #ea580c;
+          }
+          .ratio-summary--error & {
+            color: #dc2626;
+          }
+        }
+
+        .ratio-summary-title {
+          font-size: 15px;
+          font-weight: 700;
+        }
+
+        .ratio-summary-bar {
+          margin-bottom: 12px;
+        }
+
+        .ratio-bar-track {
+          position: relative;
+          height: 8px;
+          background: linear-gradient(
+            to right,
+            #ef4444 0%,
+            #f97316 15%,
+            #eab308 30%,
+            #22c55e 45%,
+            #22c55e 55%,
+            #eab308 70%,
+            #f97316 85%,
+            #ef4444 100%
+          );
+          border-radius: 4px;
+          overflow: visible;
+        }
+
+        .ratio-bar-fill {
+          display: none;
+        }
+
+        .ratio-bar-marker {
+          position: absolute;
+          top: -4px;
+          width: 16px;
+          height: 16px;
+          background: #fff;
+          border: 3px solid #1e293b;
+          border-radius: 50%;
+          transform: translateX(-50%);
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+          transition: left 0.3s ease;
+          z-index: 2;
+        }
+
+        .ratio-bar-labels {
+          display: flex;
+          justify-content: space-between;
+          margin-top: 6px;
+          font-size: 10px;
+          color: #94a3b8;
+
+          .ratio-bar-center {
+            font-weight: 700;
+            color: #64748b;
+          }
+        }
+
+        .ratio-summary-value {
+          display: flex;
+          align-items: baseline;
+          gap: 6px;
+          margin-bottom: 8px;
+        }
+
+        .ratio-value-label {
+          font-size: 13px;
+          color: #64748b;
+        }
+
+        .ratio-value-num {
+          font-size: 20px;
+          font-weight: 800;
+          font-family: 'SF Mono', 'Fira Code', monospace;
+          color: #1e293b;
+        }
+
+        .ratio-value-deviation {
+          font-size: 13px;
+          font-weight: 600;
+
+          &.deviation--normal { color: #16a34a; }
+          &.deviation--warning { color: #d97706; }
+          &.deviation--high_warning { color: #ea580c; }
+          &.deviation--error { color: #dc2626; }
+        }
+
+        .ratio-summary-desc {
+          font-size: 12px;
+          color: #64748b;
+          line-height: 1.5;
+          margin: 0;
+        }
+
+        .ratio-review-notice {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          margin-top: 10px;
+          padding: 8px 12px;
+          background: rgba(234, 88, 12, 0.08);
+          border-radius: 8px;
+          font-size: 13px;
+          font-weight: 600;
+          color: #ea580c;
+        }
+
+        .ratio-breakdown {
+          margin-top: 12px;
+
+          &[open] .toggle-arrow {
+            transform: rotate(180deg);
+          }
+        }
+
+        .ratio-breakdown-toggle {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          padding: 8px 0;
+          font-size: 13px;
+          color: #64748b;
+          cursor: pointer;
+          list-style: none;
+          user-select: none;
+
+          &::-webkit-details-marker {
+            display: none;
+          }
+
+          &:hover {
+            color: #10b981;
+          }
+
+          .toggle-arrow {
+            transition: transform 0.2s ease;
+          }
+        }
+
+        .ratio-detail-table {
+          width: 100%;
+          border-collapse: collapse;
+          font-size: 13px;
+
+          th {
+            padding: 8px 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #64748b;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+          }
+
+          td {
+            padding: 8px 12px;
+            border-bottom: 1px solid #f1f5f9;
+            color: #334155;
+          }
+
+          .font-mono {
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-weight: 600;
+          }
+        }
       }
     }
 

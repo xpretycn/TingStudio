@@ -31,9 +31,7 @@ let cachedSystemPrompt: string | null = null;
 function getSystemPrompt(userId?: string): string {
   if (!userId) {
     if (!cachedSystemPrompt) {
-      cachedSystemPrompt = promptEngine.buildSystemPrompt(
-        JSON.stringify(toolRegistry.getToolsForLLM(), null, 2),
-      );
+      cachedSystemPrompt = promptEngine.buildSystemPrompt(JSON.stringify(toolRegistry.getToolsForLLM(), null, 2));
     }
     return cachedSystemPrompt;
   }
@@ -45,18 +43,13 @@ function getSystemPrompt(userId?: string): string {
       )
       .get(userId) as any;
     if (roleRow) {
-      return promptEngine.buildSystemPrompt(
-        JSON.stringify(toolRegistry.getToolsForLLM(), null, 2),
-        roleRow,
-      );
+      return promptEngine.buildSystemPrompt(JSON.stringify(toolRegistry.getToolsForLLM(), null, 2), roleRow);
     }
   } catch (error) {
     console.error("[AIAgent] 读取身份配置失败，使用默认:", error);
   }
   if (!cachedSystemPrompt) {
-    cachedSystemPrompt = promptEngine.buildSystemPrompt(
-      JSON.stringify(toolRegistry.getToolsForLLM(), null, 2),
-    );
+    cachedSystemPrompt = promptEngine.buildSystemPrompt(JSON.stringify(toolRegistry.getToolsForLLM(), null, 2));
   }
   return cachedSystemPrompt;
 }
@@ -67,13 +60,7 @@ export function invalidateChatSystemPromptCache(): void {
 
 class AgentChatController {
   async handleChat(req: Request, res: Response): Promise<void> {
-    const {
-      message,
-      sessionId,
-      stream = true,
-      model,
-      modelVersion,
-    } = req.body;
+    const { message, sessionId, stream = true, model, modelVersion } = req.body;
     const userId = (req as any).user?.userId;
     if (!userId) {
       res.status(401).json({ success: false, error: "认证信息缺失，请重新登录" });
@@ -93,23 +80,14 @@ class AgentChatController {
     let session = sessionId ? sessionStore.getSession(sessionId) : null;
     if (!session) {
       const title =
-        message.slice(0, MAX_SESSION_TITLE_LENGTH) +
-        (message.length > MAX_SESSION_TITLE_LENGTH ? "..." : "");
+        message.slice(0, MAX_SESSION_TITLE_LENGTH) + (message.length > MAX_SESSION_TITLE_LENGTH ? "..." : "");
       session = sessionStore.createSession(userId, title);
     }
 
     sessionStore.addMessage(session.id, "user", message);
 
     if (stream) {
-      await this.handleReActStream(
-        req,
-        res,
-        session.id,
-        userId,
-        message,
-        selectedModel,
-        selectedModelVersion,
-      );
+      await this.handleReActStream(req, res, session.id, userId, message, selectedModel, selectedModelVersion);
     } else {
       await this.handleNormalChat(res, session.id, userId, message);
     }
@@ -173,13 +151,12 @@ class AgentChatController {
 
     try {
       const recentMessages = sessionStore.getRecentMessages(sessionId, 10);
-      const contextMessages: Array<{ role: "user" | "assistant"; content: string }> =
-        recentMessages
-          .filter((m) => m.role === "user" || m.role === "assistant")
-          .map((m) => ({
-            role: m.role as "user" | "assistant",
-            content: m.content,
-          }));
+      const contextMessages: Array<{ role: "user" | "assistant"; content: string }> = recentMessages
+        .filter(m => m.role === "user" || m.role === "assistant")
+        .map(m => ({
+          role: m.role as "user" | "assistant",
+          content: m.content,
+        }));
 
       const systemPrompt = getSystemPrompt(userId);
       let messages: ChatMessage[] = [
@@ -208,7 +185,7 @@ class AgentChatController {
           selectedModel,
           abortController,
           selectedModelVersion,
-          (chunk) => {
+          chunk => {
             iterationContent += chunk;
             streamedContent += chunk;
             this.sendSSEEvent(res, "chunk", { content: chunk });
@@ -224,6 +201,11 @@ class AgentChatController {
         if (!llmResponse.tool_calls || llmResponse.tool_calls.length === 0) {
           finalContent = iterationContent || llmResponse.content || "";
           break;
+        }
+
+        if (iterationContent.trim()) {
+          this.sendSSEEvent(res, "content_clear", {});
+          streamedContent = "";
         }
 
         const assistantMsg: ChatMessage = {
@@ -302,6 +284,7 @@ class AgentChatController {
 
           this.sendSSEEvent(res, "tool_result", {
             name: toolName,
+            toolName,
             success: toolResult.success,
             data: toolResult.data || toolResult.error,
             displayType,
@@ -310,10 +293,7 @@ class AgentChatController {
           allToolCalls.push({ name: toolName, arguments: params });
           allToolResults.push(toolResult);
 
-          const toolResultStr = JSON.stringify(toolResult.data || toolResult.error).slice(
-            0,
-            MAX_TOOL_RESULT_LENGTH,
-          );
+          const toolResultStr = JSON.stringify(toolResult.data || toolResult.error).slice(0, MAX_TOOL_RESULT_LENGTH);
           messages.push({
             role: "tool",
             content: toolResultStr,
@@ -326,18 +306,24 @@ class AgentChatController {
         }
       }
 
-      if (!finalContent && !streamedContent) {
+      const hasToolCalls = allToolCalls.length > 0;
+      const needsSummary =
+        (!finalContent && !streamedContent) || (hasToolCalls && (!finalContent || finalContent.trim().length < 20));
+
+      if (needsSummary) {
         const summaryMessages: ChatMessage[] = [
           ...messages,
           {
             role: "user",
-            content: "请根据以上工具调用结果，生成简洁的中文总结回复。",
+            content: hasToolCalls
+              ? "请根据以上工具调用结果，生成简洁的中文总结回复。必须包含关键数据信息，不要只说'我来查查'之类的空话。"
+              : "请根据以上对话内容，生成简洁的中文回复。",
           },
         ];
         let streamContent = "";
         const summaryResult = await llmAgentService.streamChat(
           { messages: summaryMessages },
-          (chunk) => {
+          chunk => {
             streamContent += chunk;
             this.sendSSEEvent(res, "chunk", { content: chunk });
           },
@@ -363,9 +349,7 @@ class AgentChatController {
         toolCalls: allToolCalls.length > 0 ? allToolCalls : undefined,
         toolResults: allToolResults.length > 0 ? allToolResults : undefined,
         displayType:
-          allToolResults.length > 0
-            ? this.inferDisplayType(allToolCalls[0]?.name || "", allToolResults[0])
-            : undefined,
+          allToolResults.length > 0 ? this.inferDisplayType(allToolCalls[0]?.name || "", allToolResults[0]) : undefined,
         metadata: {
           model: selectedModel,
           latency: Date.now() - startTime,
@@ -422,12 +406,12 @@ class AgentChatController {
 
     const result = await llmAgentService.streamChat(
       { messages, tools },
-      (chunk) => {
+      chunk => {
         if (onChunk) {
           onChunk(chunk);
         }
       },
-      (toolCall) => {
+      toolCall => {
         toolCallResults.push(toolCall);
       },
       provider,
@@ -438,7 +422,7 @@ class AgentChatController {
       content: result.content || "",
       tool_calls:
         toolCallResults.length > 0
-          ? toolCallResults.map((tc) => ({
+          ? toolCallResults.map(tc => ({
               id: tc.id,
               type: "function" as const,
               function: { name: tc.name, arguments: tc.arguments },
@@ -449,12 +433,10 @@ class AgentChatController {
   }
 
   private inferDisplayType(toolName: string, result: ToolResult): string {
-    if (
-      toolName.includes("query") ||
-      toolName.includes("search") ||
-      toolName.includes("analyze") ||
-      toolName.includes("nl2sql")
-    ) {
+    if (toolName === "nl2sql_query") {
+      return "nl2sql";
+    }
+    if (toolName.includes("query") || toolName.includes("search") || toolName.includes("analyze")) {
       return "table";
     }
     if (toolName.includes("calculate") || toolName.includes("validate")) {
@@ -466,12 +448,7 @@ class AgentChatController {
     return "card";
   }
 
-  private async handleNormalChat(
-    res: Response,
-    sessionId: string,
-    userId: string,
-    userMessage: string,
-  ): Promise<void> {
+  private async handleNormalChat(res: Response, sessionId: string, userId: string, userMessage: string): Promise<void> {
     try {
       const systemPrompt = getSystemPrompt(userId);
       const recentMessages = sessionStore.getRecentMessages(sessionId, 20);
@@ -585,6 +562,212 @@ class AgentChatController {
         (res as any).flush();
       }
     }
+  }
+
+  async handleFloatReActStream(
+    res: Response,
+    sessionId: string,
+    userId: string,
+    userMessage: string,
+    selectedModel: string,
+    selectedModelVersion: string | undefined,
+    pageId: string,
+    contextMessages: Array<{ role: string; content: string }>,
+  ): Promise<void> {
+    const abortController = this.setupSSE(res);
+    const startTime = Date.now();
+
+    const systemPrompt = getSystemPrompt(userId);
+    const pageContext = this.buildPageContext(pageId);
+
+    const messages: ChatMessage[] = [
+      { role: "system", content: systemPrompt + (pageContext ? "\n\n" + pageContext : "") },
+      ...contextMessages.map(m => ({ role: m.role as "user" | "assistant", content: m.content })),
+      { role: "user", content: userMessage },
+    ];
+
+    let iteration = 0;
+    let finalContent = "";
+    let streamedContent = "";
+    const allToolCalls: any[] = [];
+    const allToolResults: any[] = [];
+    let totalTokenUsage = { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 };
+
+    while (iteration < MAX_REACT_ITERATIONS) {
+      iteration++;
+      let iterationContent = "";
+
+      const llmResponse = await this.callLLMWithTools(
+        messages,
+        selectedModel,
+        abortController,
+        selectedModelVersion,
+        chunk => {
+          iterationContent += chunk;
+          streamedContent += chunk;
+          this.sendSSEEvent(res, "chunk", { content: chunk });
+        },
+      );
+
+      if (llmResponse.usage) {
+        totalTokenUsage.prompt_tokens += llmResponse.usage.prompt_tokens || 0;
+        totalTokenUsage.completion_tokens += llmResponse.usage.completion_tokens || 0;
+        totalTokenUsage.total_tokens += llmResponse.usage.total_tokens || 0;
+      }
+
+      if (!llmResponse.tool_calls || llmResponse.tool_calls.length === 0) {
+        finalContent = iterationContent || llmResponse.content || "";
+        break;
+      }
+
+      if (iterationContent.trim()) {
+        this.sendSSEEvent(res, "content_clear", {});
+        streamedContent = "";
+      }
+
+      const assistantMsg: ChatMessage = {
+        role: "assistant",
+        content: iterationContent || llmResponse.content || "",
+        tool_calls: llmResponse.tool_calls,
+      };
+      messages.push(assistantMsg);
+
+      for (const toolCall of llmResponse.tool_calls) {
+        if (abortController.signal.aborted) break;
+
+        const toolName = toolCall.function.name;
+        let params: Record<string, any>;
+        try {
+          params = JSON.parse(toolCall.function.arguments);
+        } catch {
+          params = {};
+        }
+
+        const guardResult = checkWriteGuard(toolName, params);
+        if (guardResult.blocked) {
+          this.sendSSEEvent(res, "write_guidance", {
+            toolName: guardResult.toolName,
+            params: guardResult.params,
+            message: guardResult.guidanceMessage,
+            navigationLink: guardResult.navigationLink,
+          });
+          allToolCalls.push({ name: toolName, arguments: params });
+          allToolResults.push({ success: true, data: { guidance: guardResult.guidanceMessage } });
+          messages.push({
+            role: "tool",
+            content: JSON.stringify({ blocked: true, guidance: guardResult.guidanceMessage }).slice(
+              0,
+              MAX_TOOL_RESULT_LENGTH,
+            ),
+            tool_call_id: toolCall.id,
+          });
+          continue;
+        }
+
+        this.sendSSEEvent(res, "tool_calls", { calls: [{ name: toolName, arguments: params }] });
+
+        const context: ToolContext = {
+          userId,
+          userRole: "user",
+          sessionId,
+          requestId: `req_${crypto.randomUUID().substring(0, 9)}`,
+        };
+        let toolResult: ToolResult;
+        try {
+          toolResult = await toolRegistry.execute(toolName, params, context);
+        } catch (error) {
+          toolResult = { success: false, error: error instanceof Error ? error.message : "工具执行失败" };
+        }
+
+        allToolCalls.push({ name: toolName, arguments: params });
+        allToolResults.push(toolResult);
+
+        this.sendSSEEvent(res, "tool_result", {
+          name: toolName,
+          toolName,
+          data: toolResult.data || toolResult.error,
+          success: toolResult.success,
+          displayType: this.inferDisplayType(toolName, toolResult),
+        });
+
+        messages.push({
+          role: "tool",
+          content: JSON.stringify(toolResult).slice(0, MAX_TOOL_RESULT_LENGTH),
+          tool_call_id: toolCall.id,
+        });
+      }
+
+      if (abortController.signal.aborted) break;
+    }
+
+    const hasToolCalls = allToolCalls.length > 0;
+    const needsSummary =
+      (!finalContent && !streamedContent) || (hasToolCalls && (!finalContent || finalContent.trim().length < 20));
+
+    if (needsSummary) {
+      const summaryMessages: ChatMessage[] = [
+        ...messages,
+        {
+          role: "user",
+          content: hasToolCalls
+            ? "请根据以上工具调用结果，生成简洁的中文总结回复。必须包含关键数据信息。"
+            : "请根据以上对话内容，生成简洁的中文回复。",
+        },
+      ];
+      let streamContent = "";
+      const summaryResult = await llmAgentService.streamChat(
+        { messages: summaryMessages },
+        chunk => {
+          streamContent += chunk;
+          this.sendSSEEvent(res, "chunk", { content: chunk });
+        },
+        undefined,
+        selectedModel,
+        selectedModelVersion,
+      );
+      finalContent = streamContent || "已完成工具调用";
+      if (summaryResult.usage) {
+        totalTokenUsage.prompt_tokens += summaryResult.usage.prompt_tokens || 0;
+        totalTokenUsage.completion_tokens += summaryResult.usage.completion_tokens || 0;
+        totalTokenUsage.total_tokens += summaryResult.usage.total_tokens || 0;
+      }
+    } else {
+      finalContent = finalContent || streamedContent;
+    }
+
+    if (finalContent && !streamedContent && !res.writableEnded) {
+      this.sendSSEEvent(res, "chunk", { content: finalContent });
+    }
+
+    sessionStore.addMessage(sessionId, "assistant", finalContent, {
+      toolCalls: allToolCalls.length > 0 ? allToolCalls : undefined,
+      toolResults: allToolResults.length > 0 ? allToolResults : undefined,
+      displayType:
+        allToolResults.length > 0 ? this.inferDisplayType(allToolCalls[0]?.name || "", allToolResults[0]) : undefined,
+      metadata: { model: selectedModel, latency: Date.now() - startTime, tokenUsage: totalTokenUsage },
+    });
+    sessionStore.updateSessionActivity(sessionId);
+
+    this.sendSSEEvent(res, "done", {
+      sessionId,
+      usage: totalTokenUsage,
+      model: selectedModel,
+      latency: Date.now() - startTime,
+    });
+    this.cleanupSSE(res);
+    res.end();
+  }
+
+  private buildPageContext(pageId: string): string {
+    const contextMap: Record<string, string> = {
+      "formula-add": "当前页面：新增配方表单。用户正在创建新配方。",
+      "formula-edit": "当前页面：编辑配方表单。用户正在修改已有配方。",
+      "material-add": "当前页面：新增原料表单。用户正在创建新原料。",
+      "material-edit": "当前页面：编辑原料表单。用户正在修改已有原料。",
+      "salesman-add": "当前页面：新增业务员表单。用户正在创建新业务员。",
+      "salesman-edit": "当前页面：编辑业务员表单。用户正在修改已有业务员。",
+    };
+    return contextMap[pageId] || "";
   }
 }
 

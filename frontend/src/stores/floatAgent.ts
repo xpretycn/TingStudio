@@ -8,6 +8,10 @@ export interface FloatMessage {
   content: string;
   fields?: Record<string, any>;
   missingFields?: string[];
+  toolName?: string;
+  displayType?: string;
+  toolData?: any;
+  metadata?: { model?: string; latency?: number; tokenUsage?: any };
   timestamp: number;
 }
 
@@ -31,14 +35,20 @@ const DEFAULT_CONFIG: AgentFloatConfig = {
   createdAt: "",
 };
 
-const FORM_PAGE_IDS = [
-  "formula-add",
-  "formula-edit",
-  "material-add",
-  "material-edit",
-  "salesman-add",
-  "salesman-edit",
-];
+const FORM_PAGE_IDS = ["formula-add", "formula-edit", "material-add", "material-edit", "salesman-add", "salesman-edit"];
+
+const API_BASE = import.meta.env?.VITE_API_BASE_URL || "/api";
+
+function classifyFloatIntent(utterance: string): "fill" | "agent" {
+  const text = utterance.toLowerCase();
+  if (/对比|比较|vs|区别|差异/.test(text)) return "agent";
+  if (/替代|替换|代替|换掉|替补/.test(text)) return "agent";
+  if (/报价|报价单|多少钱|售价|定价|价格/.test(text)) return "agent";
+  if (/生成描述|生成制法|智能生成|写描述|写制法|帮我写/.test(text)) return "agent";
+  if (/算|计算|校验|合规|营养|成本|含量比|系数/.test(text)) return "agent";
+  if (/什么意思|合规吗|范围|规范|单位|标准|规则|是什么|怎么填|能不能|可以吗/.test(text)) return "agent";
+  return "fill";
+}
 
 export const useFloatAgentStore = defineStore("floatAgent", () => {
   const isOpen = ref(false);
@@ -49,11 +59,27 @@ export const useFloatAgentStore = defineStore("floatAgent", () => {
   const sessionId = ref<string | null>(null);
   const config = ref<AgentFloatConfig>({ ...DEFAULT_CONFIG });
   const configLoaded = ref(false);
+  const fieldHintsCount = ref(0);
+  const agentHealthStatus = ref<"online" | "loading" | "error">("online");
 
   const isVisible = computed(() => {
     if (!config.value.enabled) return false;
     if (config.value.enabledPages.length === 0) return FORM_PAGE_IDS.includes(currentPageId.value);
     return config.value.enabledPages.includes(currentPageId.value);
+  });
+
+  const badgeCount = computed(() => fieldHintsCount.value);
+
+  const dynamicTitle = computed(() => {
+    const titleMap: Record<string, string> = {
+      "formula-add": "新增配方",
+      "formula-edit": "编辑配方",
+      "material-add": "新增原料",
+      "material-edit": "编辑原料",
+      "salesman-add": "新增业务员",
+      "salesman-edit": "编辑业务员",
+    };
+    return titleMap[currentPageId.value] || "AI 助手";
   });
 
   async function loadConfig() {
@@ -109,6 +135,29 @@ export const useFloatAgentStore = defineStore("floatAgent", () => {
     sessionId.value = null;
   }
 
+  async function fetchFieldHints() {
+    if (!currentPageId.value) return;
+    try {
+      const res = await agentApi.getFieldHints(currentPageId.value);
+      if (res.success && res.data) {
+        fieldHintsCount.value = res.data.count;
+      }
+    } catch {
+      fieldHintsCount.value = 0;
+    }
+  }
+
+  async function fetchHealth() {
+    try {
+      const res = await agentApi.getHealth();
+      if (res.success && res.data) {
+        agentHealthStatus.value = res.data.status as any;
+      }
+    } catch {
+      agentHealthStatus.value = "error";
+    }
+  }
+
   async function sendMessage(utterance: string) {
     if (!utterance.trim() || !currentPageId.value) return;
 
@@ -120,6 +169,16 @@ export const useFloatAgentStore = defineStore("floatAgent", () => {
     };
     messages.value.push(userMsg);
 
+    const intent = classifyFloatIntent(utterance);
+
+    if (intent === "fill") {
+      await sendFillMessage(utterance);
+    } else {
+      await sendAgentMessage(utterance);
+    }
+  }
+
+  async function sendFillMessage(utterance: string) {
     loading.value = true;
     try {
       const context = messages.value
@@ -133,7 +192,6 @@ export const useFloatAgentStore = defineStore("floatAgent", () => {
         context,
         sessionId: sessionId.value || undefined,
       };
-
       const res = await agentApi.parseForm(params);
 
       if (res.code === 0 && res.data) {
@@ -169,6 +227,137 @@ export const useFloatAgentStore = defineStore("floatAgent", () => {
     }
   }
 
+  async function sendAgentMessage(utterance: string) {
+    loading.value = true;
+
+    const aiMsgId = `msg_${Date.now()}_ai`;
+    const aiMsg: FloatMessage = {
+      id: aiMsgId,
+      role: "assistant",
+      content: "",
+      timestamp: Date.now(),
+    };
+    messages.value.push(aiMsg);
+
+    try {
+      const context = messages.value
+        .slice(-6)
+        .filter(m => m.role === "user" || m.role === "assistant" && m.id !== aiMsgId)
+        .map(m => ({ role: m.role, content: m.content }));
+
+      const token = localStorage.getItem("tingstudio_token");
+      const resp = await fetch(`${API_BASE}/agent/float-chat`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          pageId: currentPageId.value,
+          utterance,
+          context,
+          sessionId: sessionId.value || undefined,
+        }),
+      });
+
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}));
+        updateMessage(aiMsgId, { content: err.error || "请求失败" });
+        return;
+      }
+
+      const reader = resp.body?.getReader();
+      if (!reader) {
+        updateMessage(aiMsgId, { content: "无法读取响应流" });
+        return;
+      }
+
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() || "";
+
+        for (const line of lines) {
+          if (!line.startsWith("data: ")) continue;
+          const jsonStr = line.slice(6).trim();
+          if (!jsonStr || jsonStr === "[DONE]") continue;
+
+          try {
+            const evt = JSON.parse(jsonStr);
+            handleSSEEvent(evt, aiMsgId);
+          } catch {}
+        }
+      }
+    } catch (error) {
+      updateMessage(aiMsgId, { content: "网络异常，请稍后重试" });
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  function handleSSEEvent(evt: any, aiMsgId: string) {
+    switch (evt.type) {
+      case "chunk":
+        appendMessageContent(aiMsgId, evt.content || "");
+        break;
+      case "content_clear":
+        updateMessage(aiMsgId, { content: "" });
+        break;
+      case "tool_calls":
+        break;
+      case "tool_result":
+        updateMessage(aiMsgId, {
+          toolName: evt.toolName,
+          displayType: evt.displayType,
+          toolData: evt.data,
+        });
+        break;
+      case "write_guidance":
+        updateMessage(aiMsgId, {
+          content: evt.message || "此操作需要前往对应页面完成",
+          toolName: evt.toolName,
+        });
+        break;
+      case "done":
+        if (evt.sessionId) sessionId.value = evt.sessionId;
+        updateMessage(aiMsgId, {
+          metadata: {
+            model: evt.model,
+            latency: evt.latency,
+            tokenUsage: evt.usage,
+          },
+        });
+        break;
+      case "error":
+        updateMessage(aiMsgId, { content: evt.message || "发生错误" });
+        break;
+    }
+  }
+
+  function updateMessage(id: string, patch: Partial<FloatMessage>) {
+    const idx = messages.value.findIndex(m => m.id === id);
+    if (idx >= 0) {
+      messages.value[idx] = { ...messages.value[idx], ...patch };
+    }
+  }
+
+  function appendMessageContent(id: string, chunk: string) {
+    const idx = messages.value.findIndex(m => m.id === id);
+    if (idx >= 0) {
+      messages.value[idx] = { ...messages.value[idx], content: (messages.value[idx].content || "") + chunk };
+    }
+  }
+
+  function sendQuickCommand(command: string) {
+    sendMessage(command);
+  }
+
   return {
     isOpen,
     isFullscreen,
@@ -179,6 +368,10 @@ export const useFloatAgentStore = defineStore("floatAgent", () => {
     config,
     configLoaded,
     isVisible,
+    fieldHintsCount,
+    agentHealthStatus,
+    badgeCount,
+    dynamicTitle,
     FORM_PAGE_IDS,
     loadConfig,
     saveConfig,
@@ -188,5 +381,8 @@ export const useFloatAgentStore = defineStore("floatAgent", () => {
     toggleFullscreen,
     clearMessages,
     sendMessage,
+    sendQuickCommand,
+    fetchFieldHints,
+    fetchHealth,
   };
 });

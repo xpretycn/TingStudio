@@ -13,6 +13,21 @@ export const useSalesmanStore = defineStore("salesman", () => {
   const keyword = ref("");
   const statusFilter = ref("");
 
+  const allSalesmen = ref<Salesman[]>([]);
+
+  const fetchAllForSelect = async () => {
+    try {
+      const res = await salesmanApi.getList({ pageSize: 9999 });
+      allSalesmen.value = res.list.map((s: Salesman) => ({
+        ...s,
+        createdAt: formatTimestamp(s.createdAt),
+        updatedAt: formatTimestamp(s.updatedAt),
+      }));
+    } catch (error) {
+      console.error("获取业务员全量列表失败:", error);
+    }
+  };
+
   const fetchSalesmen = async () => {
     loading.value = true;
     try {
@@ -114,6 +129,7 @@ export const useSalesmanStore = defineStore("salesman", () => {
 
   return {
     salesmen,
+    allSalesmen,
     loading,
     total,
     currentPage,
@@ -121,6 +137,7 @@ export const useSalesmanStore = defineStore("salesman", () => {
     keyword,
     statusFilter,
     fetchSalesmen,
+    fetchAllForSelect,
     getSalesman,
     createSalesman,
     updateSalesman,

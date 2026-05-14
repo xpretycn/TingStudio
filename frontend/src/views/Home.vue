@@ -1808,8 +1808,9 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   min-width: 0;
-  overflow-y: auto; // 页面滚动参照 index.html
-  padding: 20px 20px 10px; // 水平间距20px，底部10px
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 20px 20px 10px;
 
   &.no-top-padding {
     padding-top: 0; // hideHeader 页面消除顶部间距（子组件自带 detail-header）

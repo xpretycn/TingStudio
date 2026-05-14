@@ -166,8 +166,35 @@ export const agentApi = {
     if (data.contextMode !== undefined) payload.context_mode = data.contextMode;
     return http.put<any, AgentFloatConfig>("/agent/float-config", payload);
   },
-
+  // 解析表单
   parseForm(params: ParseFormRequest) {
     return http.post<any, ParseFormResponse>("/agent/parse-form", params);
+  },
+
+  floatChat(params: ParseFormRequest) {
+    return http.post<any, any>("/agent/float-chat", params);
+  },
+
+  generateDescription(data: {
+    formulaName: string;
+    materials?: any[];
+    finishedWeight?: number;
+    revisionReason?: string;
+    existingDescription?: string;
+    type?: "description" | "preparation";
+  }) {
+    return http.post<any, { success: boolean; data?: { content: string; type: string }; error?: string }>(
+      "/agent/generate-description", data,
+    );
+  },
+
+  getFieldHints(pageId: string) {
+    return http.get<any, { success: boolean; data: { missingFields: string[]; hints: any[]; count: number } }>(
+      "/agent/field-hints", { params: { pageId } },
+    );
+  },
+
+  getHealth() {
+    return http.get<any, { success: boolean; data: { status: string } }>("/agent/health");
   },
 };

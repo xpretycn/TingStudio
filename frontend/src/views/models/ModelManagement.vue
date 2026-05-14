@@ -547,7 +547,7 @@
                       <t-select v-model="floatModelKey" placeholder="选择模型" size="small" style="width: 100%"
                         @change="onFloatModelChange">
                         <t-option-group v-for="group in allFloatModelGroups" :key="group.provider" :label="group.name">
-                          <t-option v-for="v in group.versions" :key="v.value" :value="v.value" :label="v.label" />
+                          <t-option v-for="v in group.versions" :key="group.provider + '|' + v.value" :value="group.provider + '|' + v.value" :label="v.label" />
                         </t-option-group>
                       </t-select>
                     </div>
@@ -556,7 +556,7 @@
                       <t-select v-model="floatFallbackModelKey" placeholder="可选" clearable size="small"
                         style="width: 100%" @change="onFloatFallbackModelChange">
                         <t-option-group v-for="group in allFloatModelGroups" :key="group.provider" :label="group.name">
-                          <t-option v-for="v in group.versions" :key="v.value" :value="v.value" :label="v.label" />
+                          <t-option v-for="v in group.versions" :key="group.provider + '|' + v.value" :value="group.provider + '|' + v.value" :label="v.label" />
                         </t-option-group>
                       </t-select>
                     </div>
@@ -1191,42 +1191,34 @@ async function loadAllFloatModelGroups() {
   allFloatModelGroups.value = groups;
 }
 
-const floatModelKey = computed({
-  get: () => floatConfig.model && floatConfig.modelName ? `${floatConfig.model}|${floatConfig.modelName}` : "",
-  set: () => {},
-});
+const floatModelKey = ref("");
 
-const floatFallbackModelKey = computed({
-  get: () => floatConfig.fallbackModel && floatConfig.fallbackModelName ? `${floatConfig.fallbackModel}|${floatConfig.fallbackModelName}` : "",
-  set: () => {},
-});
+const floatFallbackModelKey = ref("");
 
 function onFloatModelChange(val: string) {
   if (!val) {
+    floatConfig.model = "";
     floatConfig.modelName = "";
-    saveFloatConfig("modelName", "");
+    saveFloatConfigMulti({ model: "", modelName: "" });
     return;
   }
   const [provider, modelName] = val.split("|");
   floatConfig.model = provider;
   floatConfig.modelName = modelName;
-  saveFloatConfig("model", provider);
-  saveFloatConfig("modelName", modelName);
+  saveFloatConfigMulti({ model: provider, modelName });
 }
 
 function onFloatFallbackModelChange(val: string) {
   if (!val) {
     floatConfig.fallbackModel = "";
     floatConfig.fallbackModelName = "";
-    saveFloatConfig("fallbackModel", "");
-    saveFloatConfig("fallbackModelName", "");
+    saveFloatConfigMulti({ fallbackModel: "", fallbackModelName: "" });
     return;
   }
   const [provider, modelName] = val.split("|");
   floatConfig.fallbackModel = provider;
   floatConfig.fallbackModelName = modelName;
-  saveFloatConfig("fallbackModel", provider);
-  saveFloatConfig("fallbackModelName", modelName);
+  saveFloatConfigMulti({ fallbackModel: provider, fallbackModelName: modelName });
 }
 
 async function loadFloatConfig() {
@@ -1250,6 +1242,8 @@ async function loadFloatConfig() {
       });
     }
     await loadAllFloatModelGroups();
+    floatModelKey.value = floatConfig.model && floatConfig.modelName ? `${floatConfig.model}|${floatConfig.modelName}` : "";
+    floatFallbackModelKey.value = floatConfig.fallbackModel && floatConfig.fallbackModelName ? `${floatConfig.fallbackModel}|${floatConfig.fallbackModelName}` : "";
   } catch (e) {
     console.error("[FloatAgentConfig] 加载失败:", e);
   }
@@ -1267,6 +1261,18 @@ async function saveFloatConfig(field: string, eventValue?: any) {
     MessagePlugin.error(msg);
   }
 }
+
+async function saveFloatConfigMulti(fields: Record<string, any>) {
+  try {
+    await agentApi.updateFloatConfig(fields as any);
+    MessagePlugin.success("配置已保存");
+  } catch (e: any) {
+    const msg = e?.response?.data?.error || e?.message || "保存失败";
+    console.error("[FloatAgentConfig] 批量保存失败:", msg, e);
+    MessagePlugin.error(msg);
+  }
+}
+
 const showAddDrawer = ref(false);
 const showEditDrawer = ref(false);
 const addSubmitting = ref(false);

@@ -1,5 +1,21 @@
 <template>
   <div class="chat-input">
+    <!-- 指令模板栏 -->
+    <Transition name="cmd-slide">
+      <div v-if="showCommands" class="cmd-bar">
+        <button v-for="cmd in commandTemplates" :key="cmd.text" class="cmd-chip"
+          :disabled="disabled" @click="handleCommandClick(cmd.text)">
+          <span class="cmd-chip-icon" v-html="cmd.icon"></span>
+          <span class="cmd-chip-label">{{ cmd.label }}</span>
+        </button>
+      </div>
+    </Transition>
+    <button v-if="!showCommands" class="cmd-toggle" @click="showCommands = true">
+      <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+        <path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      指令模板
+    </button>
     <div class="input-wrapper">
       <textarea ref="textareaRef" v-model="text" :placeholder="placeholder" :disabled="disabled"
         rows="1" @keydown.enter.exact.prevent="handleSend" @input="autoResize" />
@@ -32,6 +48,19 @@ const emit = defineEmits<{
 
 const text = ref("");
 const textareaRef = ref<HTMLTextAreaElement | null>(null);
+const showCommands = ref(false);
+
+const commandTemplates = [
+  { label: "含量比校验", text: "含量比校验", icon: '<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M8 2v12M2 8h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>' },
+  { label: "营养成分", text: "计算营养成分", icon: '<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.2" fill="none"/><path d="M8 5v6M5 8h6" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>' },
+  { label: "成本计算", text: "计算成本", icon: '<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M2 5h12v8H2z" stroke="currentColor" stroke-width="1.2" fill="none"/><circle cx="8" cy="9" r="2" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>' },
+  { label: "配方对比", text: "对比配方", icon: '<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="5" height="10" rx="1" stroke="currentColor" stroke-width="1.2" fill="none"/><rect x="9" y="3" width="5" height="10" rx="1" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>' },
+];
+
+function handleCommandClick(cmdText: string) {
+  emit("send", cmdText);
+  showCommands.value = false;
+}
 
 function handleSend() {
   const val = text.value.trim();
@@ -57,6 +86,69 @@ function autoResize() {
   border-top: 1px solid $border-color-light;
   background: $bg-container;
   flex-shrink: 0;
+}
+
+.cmd-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  margin-bottom: 8px;
+  border: 1px dashed $border-color;
+  border-radius: 6px;
+  background: transparent;
+  color: $text-tertiary;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.15s;
+
+  &:hover {
+    border-color: $brand-primary;
+    color: $brand-primary;
+    background: rgba(255, 107, 138, 0.05);
+  }
+}
+
+.cmd-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.cmd-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border: 1px solid $border-color;
+  border-radius: 6px;
+  background: $bg-page;
+  color: $text-secondary;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.15s;
+
+  &:hover:not(:disabled) {
+    border-color: $brand-emerald;
+    color: $brand-emerald;
+    background: rgba(16, 185, 129, 0.06);
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .cmd-chip-icon {
+    display: flex;
+    align-items: center;
+    color: $brand-emerald;
+  }
+
+  .cmd-chip-label {
+    font-weight: 500;
+  }
 }
 
 .input-wrapper {
@@ -126,5 +218,15 @@ function autoResize() {
   text-align: right;
   font-size: $font-size-micro;
   color: $text-placeholder;
+}
+
+.cmd-slide-enter-active,
+.cmd-slide-leave-active {
+  transition: all 0.2s ease;
+}
+.cmd-slide-enter-from,
+.cmd-slide-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
 }
 </style>

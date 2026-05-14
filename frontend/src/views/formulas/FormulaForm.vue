@@ -68,7 +68,7 @@
                     <span class="required">*</span></label>
                   <t-select v-model="formData.salesmanId" placeholder="请选择业务员" clearable filterable class="field-input"
                     aria-required="true" aria-labelledby="lbl-salesman">
-                    <t-option v-for="salesman in salesmanStore.salesmen" :key="salesman.id" :value="salesman.id"
+                    <t-option v-for="salesman in salesmanStore.allSalesmen" :key="salesman.id" :value="salesman.id"
                       :label="salesman.name" />
                     <template #panelTopContent>
                       <div class="quick-create-salesman-option" @click="openQuickCreateSalesman">
@@ -128,14 +128,26 @@
                 <div class="form-field">
                   <label class="field-label" id="lbl-description"><t-icon name="chat-bubble" size="12px"
                       class="label-icon" />
-                    配方描述</label>
+                    配方描述
+                    <button type="button" class="btn-ai-generate" :disabled="aiGenerating || !formData.name"
+                      @click="handleGenerateDescription">
+                      <t-icon name="logo-github" size="12px" />
+                      {{ aiGenerating ? '生成中...' : '智能生成' }}
+                    </button>
+                  </label>
                   <t-textarea v-model="formData.description" placeholder="简述该配方的研发目标和主要特点..."
                     :autosize="{ minRows: 3, maxRows: 6 }" class="field-input" aria-labelledby="lbl-description" />
                 </div>
                 <div class="form-field">
                   <label class="field-label" id="lbl-preparation"><t-icon name="setting" size="12px"
                       class="label-icon" />
-                    制法</label>
+                    制法
+                    <button type="button" class="btn-ai-generate" :disabled="aiGenerating || !formData.name"
+                      @click="handleGeneratePreparation">
+                      <t-icon name="logo-github" size="12px" />
+                      {{ aiGenerating ? '生成中...' : '智能生成' }}
+                    </button>
+                  </label>
                   <t-textarea v-model="formData.preparationMethod" placeholder="记录配方的制取方法、工艺流程或特殊操作要求（可选）"
                     :autosize="{ minRows: 2, maxRows: 5 }" class="field-input" aria-labelledby="lbl-preparation" />
                 </div>
@@ -163,7 +175,28 @@
               </div>
               <div class="section-content">
                 <!-- Excel导入面板 -->
-                <ExcelImportPanel @import="handleExcelImport" class="excel-panel" />
+                <div class="excel-panel-wrapper">
+                  <div v-if="!excelPanelExpanded" class="excel-collapsed-bar" @click="excelPanelExpanded = true">
+                    <div class="excel-collapsed-left">
+                      <div class="excel-collapsed-icon">
+                        <t-icon name="upload" size="18px" />
+                      </div>
+                      <span class="excel-collapsed-text">上传 Excel 文件批量导入原料</span>
+                      <span class="excel-collapsed-hint">点击展开</span>
+                    </div>
+                    <t-icon name="chevron-down" size="16px" class="excel-collapsed-arrow" />
+                  </div>
+                  <div v-else class="excel-expanded-area">
+                    <div class="excel-expanded-header" @click="excelPanelExpanded = false">
+                      <span class="excel-expanded-title">
+                        <t-icon name="file-excel" size="14px" />
+                        Excel 导入
+                      </span>
+                      <t-icon name="chevron-up" size="16px" class="excel-expanded-arrow" />
+                    </div>
+                    <ExcelImportPanel @import="handleExcelImport" class="excel-panel" />
+                  </div>
+                </div>
 
                 <div class="materials-table-wrapper">
                   <table class="materials-table">
@@ -185,8 +218,8 @@
                               :value="material.id" :label="`${material.name} (${material.unit})`">
                               <div class="material-option">
                                 <span>{{ material.name }} ({{ material.unit }})</span>
-                                <t-tag v-if="(material as any).raw && material.id?.startsWith('__pending_')" theme="warning" variant="light-outline"
-                                  size="small">未匹配</t-tag>
+                                <t-tag v-if="(material as any).raw && material.id?.startsWith('__pending_')"
+                                  theme="warning" variant="light-outline" size="small">未匹配</t-tag>
                                 <t-tag v-else-if="(material as any).raw" theme="warning" variant="light-outline"
                                   size="small">待确认</t-tag>
                                 <t-tag v-else-if="material.materialType === 'supplement'" theme="primary"
@@ -235,7 +268,8 @@
             </section>
 
             <!-- ratioFactor 含量比实时校验反馈 -->
-            <section v-if="formData.materials.length > 0 && formData.finishedWeight > 0" class="form-section ratio-validation-section">
+            <section v-if="formData.materials.length > 0 && formData.finishedWeight > 0"
+              class="form-section ratio-validation-section">
               <h3 class="section-title">
                 <t-icon name="check-circle" class="section-icon" />
                 含量比校验
@@ -252,7 +286,8 @@
                       <div class="ratio-bar-marker" :style="{ left: ratioMarkerLeft }"></div>
                     </div>
                     <div class="ratio-bar-labels">
-                      <span>0.92</span><span>0.95</span><span>0.98</span><span class="ratio-bar-center">1.00</span><span>1.02</span><span>1.05</span><span>1.08</span>
+                      <span>0.92</span><span>0.95</span><span>0.98</span><span
+                        class="ratio-bar-center">1.00</span><span>1.02</span><span>1.05</span><span>1.08</span>
                     </div>
                   </div>
                   <div class="ratio-summary-value">
@@ -287,7 +322,8 @@
                       <tr v-for="item in ratioValidation.breakdown" :key="item.materialId">
                         <td>{{ item.materialName }}</td>
                         <td>
-                          <t-tag :theme="item.materialType === 'supplement' ? 'primary' : 'success'" variant="light" size="small">
+                          <t-tag :theme="item.materialType === 'supplement' ? 'primary' : 'success'" variant="light"
+                            size="small">
                             {{ item.materialType === 'supplement' ? '辅料' : '药材' }}
                           </t-tag>
                         </td>
@@ -314,7 +350,8 @@
                     <h3 class="ai-title">AI 智能配方解析</h3>
                     <p class="ai-subtitle">支持识别 Excel、图片及手写草稿</p>
                   </div>
-                  <div v-if="aiStatusConfig.show" class="ai-header-status" :class="'status-indicator--' + aiStatusConfig.state">
+                  <div v-if="aiStatusConfig.show" class="ai-header-status"
+                    :class="'status-indicator--' + aiStatusConfig.state">
                     <span class="status-dot" :class="'status-dot--' + aiStatusConfig.state"></span>
                     <t-icon :name="aiStatusConfig.icon" size="14px" />
                     <span class="status-text">{{ aiStatusConfig.text }}</span>
@@ -354,9 +391,8 @@
 
                   <!-- 上传 + 文件信息区域 -->
                   <div v-if="!aiStore.parseLoading && !aiStore.parseResult && !aiStore.parseError" class="upload-area">
-                    <div class="upload-zone"
-                      :class="{ 'drag-over': isDragOver }" @click="triggerFileInput" @dragover.prevent="handleDragOver"
-                      @dragleave="handleDragLeave" @drop.prevent="handleDrop">
+                    <div class="upload-zone" :class="{ 'drag-over': isDragOver }" @click="triggerFileInput"
+                      @dragover.prevent="handleDragOver" @dragleave="handleDragLeave" @drop.prevent="handleDrop">
                       <input ref="fileInputRef" type="file" accept=".xlsx,.xls,.png,.jpg,.jpeg" style="display: none;"
                         @change="handleFileChange" />
                       <div class="upload-icon">
@@ -375,13 +411,12 @@
                         <span class="file-model-badge">{{ selectedModelName }}</span>
                       </div>
                       <div class="file-actions">
-                        <button type="button" class="parse-btn" @click="handleParse"
-                          :disabled="aiStore.parseLoading" aria-label="开始解析文件">
+                        <button type="button" class="parse-btn" @click="handleParse" :disabled="aiStore.parseLoading"
+                          aria-label="开始解析文件">
                           <t-icon name="play-circle" size="16px" />
                           开始解析
                         </button>
-                        <button type="button" class="clear-btn" @click="cancelFileSelection"
-                          aria-label="取消文件选择">
+                        <button type="button" class="clear-btn" @click="cancelFileSelection" aria-label="取消文件选择">
                           <t-icon name="close" size="16px" />
                           取消
                         </button>
@@ -619,6 +654,11 @@
                         </svg>
                         调
                       </span>
+                      <button v-if="m.isAdjusted" type="button" class="qm-restore-btn"
+                        :class="{ 'qm-restore-btn--flash': restoreFlashIdx === idx }"
+                        @click="handleRestoreSinglePrice(idx)" :title="'恢复基价: ¥' + (m.basePrice ?? '--') + '/kg'">
+                        <t-icon name="rollback" size="12px" />
+                      </button>
                     </div>
                     <span class="qm-sub">
                       {{ m.unitPrice != null ? `¥${m.subtotal.toFixed(2)}` : '--' }}
@@ -727,7 +767,9 @@ import type { FormRule } from 'tdesign-vue-next';
 import type { MaterialItem } from '@/api/formula';
 import type { ParsedMaterial } from '@/api/excelImport';
 import type { RatioFactorValidationResult } from '@/api/formula';
+import { formulaApi } from '@/api/formula';
 import { excelImportApi } from '@/api/excelImport';
+import { agentApi } from '@/api/agent';
 import ExcelImportPanel from '@/components/ExcelImportPanel.vue';
 import QuickCreateSalesmanDialog from '@/components/QuickCreateSalesmanDialog.vue';
 
@@ -744,6 +786,8 @@ const modelSelectRef = ref<HTMLElement | null>(null);
 const resultRef = ref<HTMLElement | null>(null);
 const versionReasonRef = ref<any>(null);
 const loading = ref(false);
+const supplementPriceMap = ref<Record<string, number>>({});
+const excelPanelExpanded = ref(false);
 const materialSelectLoading = ref(false);
 const materialSearchKeyword = ref('');
 const versionReasonError = ref(false);
@@ -881,9 +925,10 @@ const ratioMarkerLeft = computed(() => {
 
 const priceQuote = computed(() => {
   const allMats = materialStore.allMaterials ?? [];
+  const priceMap = supplementPriceMap.value;
   const matDetails = formData.materials.map((item: any) => {
     const mat = allMats.find((m: any) => m.id === item.materialId);
-    const basePrice = mat?.unitPrice ?? null;
+    const basePrice = mat?.unitPrice ?? priceMap[item.materialId] ?? null;
     const effectivePrice = (item.adjustedPrice != null && item.adjustedPrice !== basePrice) ? item.adjustedPrice : basePrice;
     const isAdjusted = item.adjustedPrice != null && item.adjustedPrice !== basePrice;
     const subtotal = effectivePrice != null ? Number((item.quantity / 1000 * effectivePrice).toFixed(4)) : 0;
@@ -920,6 +965,26 @@ const handleRestoreAllBasePrices = () => {
     }
   });
   if (restored > 0) MessagePlugin.success(`已恢复 ${restored} 项原料单价为基价`);
+};
+
+const restoreFlashIdx = ref<number | null>(null);
+
+const handleRestoreSinglePrice = (idx: number) => {
+  if (!formData.materials[idx]) return;
+  const allMats = materialStore.allMaterials ?? [];
+  const mat = allMats.find((m: any) => m.id === formData.materials[idx].materialId);
+  const basePrice = mat?.unitPrice ?? supplementPriceMap.value[formData.materials[idx].materialId] ?? null;
+  if (formData.materials[idx].adjustedPrice == null) return;
+
+  delete formData.materials[idx].adjustedPrice;
+
+  restoreFlashIdx.value = idx;
+  setTimeout(() => {
+    restoreFlashIdx.value = null;
+  }, 600);
+
+  const matName = formData.materials[idx].materialName || mat?.name || '原料';
+  MessagePlugin.success(`已恢复「${matName}」单价为基价 ¥${basePrice?.toFixed(2) ?? '--'}`);
 };
 
 // 解析进度反馈
@@ -1041,6 +1106,95 @@ const getFilteredMaterials = (currentIndex: number) => {
 
 const isEdit = computed(() => !!route.params.id);
 
+const aiGenerating = ref(false);
+
+async function handleGenerateDescription() {
+  if (aiGenerating.value) return;
+  if (!formData.name) {
+    MessagePlugin.warning('请先填写配方名称');
+    return;
+  }
+  const materials = formData.materials.map((m: any) => ({
+    name: m.materialName || m.name,
+    quantity: m.quantity,
+    type: m.supplement ? 'supplement' : 'herb',
+  }));
+  if (isEdit.value && formData.description) {
+    const reason = formData.versionReason || '';
+    if (!reason) {
+      MessagePlugin.warning('编辑模式下请先填写升版原因');
+      return;
+    }
+    aiGenerating.value = true;
+    try {
+      const res = await agentApi.generateDescription({
+        formulaName: formData.name,
+        materials,
+        finishedWeight: formData.finishedWeight || undefined,
+        revisionReason: reason,
+        existingDescription: formData.description,
+        type: 'description',
+      });
+      if (res.success && res.data) {
+        formData.description = res.data.content;
+        MessagePlugin.success('配方描述已智能生成');
+      }
+    } catch {
+      MessagePlugin.error('生成失败');
+    } finally {
+      aiGenerating.value = false;
+    }
+  } else {
+    aiGenerating.value = true;
+    try {
+      const res = await agentApi.generateDescription({
+        formulaName: formData.name,
+        materials,
+        finishedWeight: formData.finishedWeight || undefined,
+        type: 'description',
+      });
+      if (res.success && res.data) {
+        formData.description = res.data.content;
+        MessagePlugin.success('配方描述已智能生成');
+      }
+    } catch {
+      MessagePlugin.error('生成失败');
+    } finally {
+      aiGenerating.value = false;
+    }
+  }
+}
+
+async function handleGeneratePreparation() {
+  if (aiGenerating.value) return;
+  if (!formData.name) {
+    MessagePlugin.warning('请先填写配方名称');
+    return;
+  }
+  const materials = formData.materials.map((m: any) => ({
+    name: m.materialName || m.name,
+    quantity: m.quantity,
+    type: m.supplement ? 'supplement' : 'herb',
+  }));
+  aiGenerating.value = true;
+  try {
+    const res = await agentApi.generateDescription({
+      formulaName: formData.name,
+      materials,
+      finishedWeight: formData.finishedWeight || undefined,
+      type: 'preparation',
+    });
+    if (res.success && res.data) {
+      formData.preparationMethod = res.data.content;
+      MessagePlugin.success('制法已智能生成');
+    }
+  } catch {
+    MessagePlugin.error('生成失败');
+  } finally {
+    aiGenerating.value = false;
+  }
+}
+
 // AI 预填标志
 const isAiPrefill = ref(false);
 const showQuickCreateSalesman = ref(false);
@@ -1050,7 +1204,7 @@ const salesmanNotMatched = computed(() => {
   const data = aiStore.parseResult;
   if (!data?.salesmanName) return false;
   const name = data.salesmanName;
-  return !salesmanStore.salesmen.find(
+  return !salesmanStore.allSalesmen.find(
     (s: any) => s.name === name || s.name.includes(name) || name.includes(s.name)
   );
 });
@@ -1063,8 +1217,8 @@ const openQuickCreateSalesman = () => {
 };
 
 const onQuickSalesmanCreated = async (salesman: any) => {
-  await salesmanStore.fetchSalesmen();
-  const matched = salesmanStore.salesmen.find((s: any) => s.id === salesman.id || s.name === salesman.name);
+  await salesmanStore.fetchAllForSelect();
+  const matched = salesmanStore.allSalesmen.find((s: any) => s.id === salesman.id || s.name === salesman.name);
   if (matched) {
     formData.salesmanId = matched.id;
     MessagePlugin.success(`业务员「${matched.name}」已创建并自动选中`);
@@ -1475,7 +1629,7 @@ const backfillData = () => {
   if (data.salesmanName) {
     const salesmanName = data.salesmanName;
     parsedSalesmanName.value = salesmanName;
-    const matched = salesmanStore.salesmen.find(
+    const matched = salesmanStore.allSalesmen.find(
       (s: any) => s.name === salesmanName || s.name.includes(salesmanName) || salesmanName.includes(s.name)
     );
     if (matched) {
@@ -1615,7 +1769,7 @@ const getConfidenceItems = () => {
 
 onMounted(async () => {
   await Promise.all([
-    salesmanStore.fetchSalesmen(),
+    salesmanStore.fetchAllForSelect(),
     materialStore.fetchAllForSelect(),
     aiStore.fetchModels()
   ]);
@@ -1656,8 +1810,23 @@ onMounted(async () => {
         otherPrice: formula.otherPrice ?? 0,
         profitMargin: formula.profitMargin ?? 20,
         description: formula.description || '',
-        preparationMethod: formula.preparationMethod || ''
+        preparationMethod: (formula as any).preparationMethod || ''
       });
+
+      try {
+        const quoteData = await formulaApi.getPriceQuote(id);
+        if (quoteData?.materials) {
+          const map: Record<string, number> = {};
+          quoteData.materials.forEach((m: any) => {
+            if (m.unitPrice != null && m.materialId) {
+              map[m.materialId] = m.unitPrice;
+            }
+          });
+          supplementPriceMap.value = map;
+        }
+      } catch (e) {
+        console.warn('获取报价补充数据失败:', e);
+      }
     }
   }
 
@@ -1677,7 +1846,7 @@ onMounted(async () => {
       // AI 解析的业务员姓名 → 匹配 salesmanId
       if (route.query.salesmanName) {
         const salesmanName = route.query.salesmanName as string;
-        const matched = salesmanStore.salesmen.find(
+        const matched = salesmanStore.allSalesmen.find(
           (s: any) => s.name === salesmanName || s.name.includes(salesmanName)
         );
         if (matched) {
@@ -2040,6 +2209,36 @@ onMounted(async () => {
             color: #f43f5e;
           }
 
+          .btn-ai-generate {
+            margin-left: auto;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 10px;
+            border: 1px solid #10b981;
+            border-radius: 6px;
+            background: rgba(16, 185, 129, 0.08);
+            color: #10b981;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            line-height: 22px;
+
+            &:hover:not(:disabled) {
+              background: rgba(16, 185, 129, 0.16);
+              box-shadow: 0 1px 4px rgba(16, 185, 129, 0.2);
+            }
+
+            &:disabled {
+              opacity: 0.45;
+              cursor: not-allowed;
+              border-color: #cbd5e1;
+              color: #94a3b8;
+              background: transparent;
+            }
+          }
+
           .field-help-inline {
             font-size: 12px;
             font-weight: 400;
@@ -2396,8 +2595,123 @@ onMounted(async () => {
     justify-content: space-between;
   }
 
-  .excel-panel {
+  .excel-panel-wrapper {
     margin-bottom: 16px;
+  }
+
+  .excel-collapsed-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 50%, #f0f9ff 100%);
+    border: 1.5px dashed #86efac;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    user-select: none;
+
+    &:hover {
+      background: linear-gradient(135deg, #dcfce7 0%, #d1fae5 50%, #e0f2fe 100%);
+      border-color: #4ade80;
+      box-shadow: 0 2px 8px rgba(34, 197, 94, 0.12);
+      transform: translateY(-1px);
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+  }
+
+  .excel-collapsed-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .excel-collapsed-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    color: #fff;
+    flex-shrink: 0;
+    box-shadow: 0 2px 6px rgba(34, 197, 94, 0.3);
+  }
+
+  .excel-collapsed-text {
+    font-size: 14px;
+    font-weight: 600;
+    color: #15803d;
+  }
+
+  .excel-collapsed-hint {
+    font-size: 11px;
+    color: #86efac;
+    background: rgba(34, 197, 94, 0.1);
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-weight: 500;
+  }
+
+  .excel-collapsed-arrow {
+    color: #86efac;
+    transition: transform 0.2s;
+  }
+
+  .excel-expanded-area {
+    border: 1.5px solid #e2e8f0;
+    border-radius: 12px;
+    overflow: hidden;
+    animation: excel-expand 0.25s ease;
+  }
+
+  @keyframes excel-expand {
+    from {
+      opacity: 0;
+      max-height: 0;
+    }
+
+    to {
+      opacity: 1;
+      max-height: 800px;
+    }
+  }
+
+  .excel-expanded-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 16px;
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+    cursor: pointer;
+    transition: background 0.2s;
+
+    &:hover {
+      background: #f1f5f9;
+    }
+  }
+
+  .excel-expanded-title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #64748b;
+  }
+
+  .excel-expanded-arrow {
+    color: #94a3b8;
+    transition: transform 0.2s;
+  }
+
+  .excel-panel {
+    margin-bottom: 0;
   }
 
   // AI 面板样式
@@ -3608,6 +3922,51 @@ onMounted(async () => {
       }
     }
 
+    .qm-restore-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+      border-radius: 5px;
+      border: 1px solid #e2e8f0;
+      background: #fff;
+      color: #64748b;
+      cursor: pointer;
+      transition: all 0.2s;
+      flex-shrink: 0;
+      padding: 0;
+
+      &:hover {
+        background: #f1f5f9;
+        border-color: #cbd5e1;
+        color: #059669;
+        transform: scale(1.1);
+      }
+
+      &:active {
+        transform: scale(0.95);
+      }
+
+      &--flash {
+        animation: qm-restore-flash 0.5s ease;
+      }
+    }
+
+    @keyframes qm-restore-flash {
+      0% {
+        background: #d1fae5;
+        border-color: #6ee7b7;
+        color: #059669;
+      }
+
+      100% {
+        background: #fff;
+        border-color: #e2e8f0;
+        color: #64748b;
+      }
+    }
+
     .quote-toolbar {
       display: flex;
       align-items: center;
@@ -3906,13 +4265,29 @@ onMounted(async () => {
   }
 
   @keyframes dot-pulse {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.4; transform: scale(0.7); }
+
+    0%,
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    50% {
+      opacity: 0.4;
+      transform: scale(0.7);
+    }
   }
 
   @keyframes dot-blink {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.3; }
+
+    0%,
+    100% {
+      opacity: 1;
+    }
+
+    50% {
+      opacity: 0.3;
+    }
   }
 
   @keyframes alertFlash {
@@ -3996,14 +4371,17 @@ onMounted(async () => {
       background: #f0fdf4;
       border-color: #bbf7d0;
     }
+
     &--warning {
       background: #fffbeb;
       border-color: #fde68a;
     }
+
     &--high_warning {
       background: #fff7ed;
       border-color: #fed7aa;
     }
+
     &--error {
       background: #fef2f2;
       border-color: #fecaca;
@@ -4019,12 +4397,15 @@ onMounted(async () => {
     .ratio-summary--normal & {
       color: #16a34a;
     }
+
     .ratio-summary--warning & {
       color: #d97706;
     }
+
     .ratio-summary--high_warning & {
       color: #ea580c;
     }
+
     .ratio-summary--error & {
       color: #dc2626;
     }
@@ -4042,17 +4423,15 @@ onMounted(async () => {
   .ratio-bar-track {
     position: relative;
     height: 8px;
-    background: linear-gradient(
-      to right,
-      #ef4444 0%,
-      #f97316 15%,
-      #eab308 30%,
-      #22c55e 45%,
-      #22c55e 55%,
-      #eab308 70%,
-      #f97316 85%,
-      #ef4444 100%
-    );
+    background: linear-gradient(to right,
+        #ef4444 0%,
+        #f97316 15%,
+        #eab308 30%,
+        #22c55e 45%,
+        #22c55e 55%,
+        #eab308 70%,
+        #f97316 85%,
+        #ef4444 100%);
     border-radius: 4px;
     overflow: visible;
   }
@@ -4070,7 +4449,7 @@ onMounted(async () => {
     border: 3px solid #1e293b;
     border-radius: 50%;
     transform: translateX(-50%);
-    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
     transition: left 0.3s ease;
     z-index: 2;
   }
@@ -4111,10 +4490,21 @@ onMounted(async () => {
     font-size: 13px;
     font-weight: 600;
 
-    &.deviation--normal { color: #16a34a; }
-    &.deviation--warning { color: #d97706; }
-    &.deviation--high_warning { color: #ea580c; }
-    &.deviation--error { color: #dc2626; }
+    &.deviation--normal {
+      color: #16a34a;
+    }
+
+    &.deviation--warning {
+      color: #d97706;
+    }
+
+    &.deviation--high_warning {
+      color: #ea580c;
+    }
+
+    &.deviation--error {
+      color: #dc2626;
+    }
   }
 
   .ratio-summary-desc {

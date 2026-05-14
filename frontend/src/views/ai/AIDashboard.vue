@@ -150,7 +150,7 @@
 
                             <AgentResultRenderer v-if="msg.toolResultData"
                               :display-type="msg.toolResultData.displayType || 'card'" :data="msg.toolResultData.data"
-                              :is-success="msg.toolResultData.success" />
+                              :is-success="msg.toolResultData.success" :tool-name="msg.toolResultData.toolName" />
 
                             <AgentFormRenderer v-if="msg.formSchema && !msg.formSubmitted" :form-schema="msg.formSchema"
                               @submit="(data) => handleFormSubmit(msg, data)" @cancel="handleFormCancel(msg)" />
@@ -1647,12 +1647,18 @@ const handleSend = async (confirmed = false) => {
                   currentToolCalls = parsed.calls || [];
                   break;
 
+                case 'content_clear':
+                  streamingContent.value = '';
+                  fullContent = '';
+                  break;
+
                 case 'tool_result':
                   currentToolCalls = currentToolCalls.filter(
                     (tc: any) => tc.name !== parsed.name
                   );
                   lastToolResult = {
                     displayType: parsed.displayType || 'card',
+                    toolName: parsed.toolName || parsed.name,
                     data: parsed.data,
                     success: parsed.success,
                   };
@@ -2155,6 +2161,7 @@ const switchToSession = async (sessionId: string) => {
       const firstResult = toolResults[0];
       toolResultData = {
         displayType: displayType || 'card',
+        toolName: firstResult.toolName || firstResult.name || null,
         data: firstResult.result?.data || firstResult.data,
         success: firstResult.result?.success ?? firstResult.success ?? true,
       };
@@ -2181,6 +2188,8 @@ const switchToSession = async (sessionId: string) => {
       }
     }
   } catch {}
+
+  scrollToBottom();
 };
 
 const handleConfirmAction = () => {

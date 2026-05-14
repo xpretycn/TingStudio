@@ -23,6 +23,10 @@
       <div class="message-bubble" :class="`message-bubble--${msg.role}`">
         <div class="bubble-text">{{ msg.content }}</div>
 
+          <CompareCard v-if="msg.displayType === 'compare' && msg.toolData" :data="msg.toolData" />
+          <QuotationCard v-if="msg.displayType === 'quotation' && msg.toolData" :data="msg.toolData" />
+          <SubstituteCard v-if="msg.displayType === 'substitute' && msg.toolData" :data="msg.toolData" />
+
         <div v-if="msg.fields && Object.keys(msg.fields).length > 0" class="parsed-fields">
           <div class="fields-header">
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M2 4l4 4-4 4M8 12h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -47,7 +51,8 @@
       </div>
 
       <div v-if="msg.role === 'user'" class="avatar-mini avatar-mini--user">
-        <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.5"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <img v-if="userAvatar" :src="userAvatar" alt="用户头像" class="avatar-img" />
+        <img v-else src="/avatar-default.jpg" alt="默认头像" class="avatar-img" />
       </div>
     </div>
 
@@ -65,14 +70,22 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, nextTick } from "vue";
+import { ref, watch, nextTick, computed } from "vue";
 import type { FloatMessage } from "@/stores/floatAgent";
+import { useAuthStore } from "@/stores/auth";
+import CompareCard from "./CompareCard.vue";
+import QuotationCard from "./QuotationCard.vue";
+import SubstituteCard from "./SubstituteCard.vue";
+
+const authStore = useAuthStore();
 
 const props = defineProps<{
   messages: FloatMessage[];
   loading: boolean;
   fieldLabelMap: Record<string, string>;
 }>();
+
+const userAvatar = computed(() => authStore.user?.avatar || "");
 
 defineEmits<{
   fill: [fields: Record<string, any>];
@@ -152,6 +165,13 @@ watch(() => props.loading, scrollToBottom);
 
   &--user {
     background: $color-lavender;
+  }
+
+  .avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
   }
 }
 

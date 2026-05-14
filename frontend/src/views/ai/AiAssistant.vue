@@ -96,68 +96,6 @@
           </div>
 
           <div class="ai-content">
-            <div v-show="activeTab === 'smart-search'" class="tab-panel">
-              <div class="search-input-area">
-                <t-textarea v-model="searchQuery" placeholder="试试输入：查找含有黄芪且成品重量大于100g的配方"
-                  :autosize="{ minRows: 3, maxRows: 6 }" @keydown.enter.ctrl="handleSearch" />
-                <button class="search-send-btn" :disabled="!searchQuery.trim() || !aiStore.selectedModel"
-                  :class="{ 'search-send-btn--loading': aiStore.searchLoading }" @click="handleSearch">
-                  <svg v-if="!aiStore.searchLoading" width="18" height="18" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="22" y1="2" x2="11" y2="13" />
-                    <polygon points="22 2 15 22 11 13 2 9 22 2" />
-                  </svg>
-                  <t-loading v-else size="small" />
-                </button>
-              </div>
-
-              <div class="quick-tags">
-                <span class="quick-tags-label">试试：</span>
-                <t-tag v-for="tag in quickTags" :key="tag" size="medium" variant="outline" class="quick-tag"
-                  @click="fillAndSearch(tag)">{{ tag }}</t-tag>
-              </div>
-
-              <t-alert v-if="aiStore.searchError" :message="aiStore.searchError" theme="error" closable
-                style="margin-top: 16px; border-radius: 12px;" />
-
-              <div v-if="aiStore.searchResult" class="search-result">
-                <div class="sql-card">
-                  <div class="sql-header">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2"
-                      stroke-linecap="round" stroke-linejoin="round">
-                      <polyline points="16 18 22 12 16 6" />
-                      <polyline points="8 6 2 12 8 18" />
-                    </svg>
-                    <span class="sql-label">生成的 SQL</span>
-                    <t-tag theme="primary" variant="light" size="small" style="margin-left: auto">
-                      {{ aiStore.searchResult.rowCount }} 条结果
-                    </t-tag>
-                  </div>
-                  <pre class="sql-code">{{ aiStore.searchResult.sql }}</pre>
-                </div>
-
-                <div v-if="aiStore.searchResult.rows.length" class="result-table">
-                  <t-table :data="aiStore.searchResult.rows" :columns="searchResultColumns" size="small"
-                    table-layout="auto" bordered stripe max-height="400" />
-                </div>
-
-                <div v-else class="empty-result">
-                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="1.5"
-                    stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="10" />
-                    <line x1="12" y1="8" x2="12" y2="12" />
-                    <line x1="12" y1="16" x2="12.01" y2="16" />
-                  </svg>
-                  <span>未查询到匹配的数据</span>
-                </div>
-              </div>
-
-              <div v-if="aiStore.searchHistory.length && !aiStore.searchResult" class="search-history">
-                <span class="history-label">搜索历史</span>
-                <t-tag v-for="(h, idx) in aiStore.searchHistory" :key="idx" size="medium" variant="outline"
-                  class="history-tag" @click="fillAndSearch(h)">{{ h }}</t-tag>
-              </div>
-            </div>
           </div>
         </div>
       </t-card>
@@ -265,13 +203,8 @@ const tabs = [
     iconPath: '<path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>',
     link: '/smart-tools',
   },
-  {
-    value: 'smart-search',
-    label: '智能检索',
-    iconPath: '<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>',
-  },
 ];
-const activeTab = ref('smart-search');
+const activeTab = ref('smart-form');
 
 const navCollapsed = ref(localStorage.getItem('ai-nav-collapsed') === 'true');
 
@@ -401,52 +334,14 @@ const handleLogoError = (e: Event) => {
   }
 };
 
-const searchQuery = ref('');
-const quickTags = [
-  '含黄芪的配方有哪些',
-  '最近创建的5个配方',
-  '库存大于100的药材',
-  '成品重量大于200g的配方',
-];
-
-const handleSearch = async () => {
-  if (!searchQuery.value.trim()) {
-    MessagePlugin.warning('请输入查询内容');
-    return;
-  }
-  if (!aiStore.selectedModel) {
-    MessagePlugin.warning('请先选择 AI 模型');
-    return;
-  }
-  await aiStore.naturalSearch(searchQuery.value.trim());
-};
-
-const fillAndSearch = (text: string) => {
-  searchQuery.value = text;
-  handleSearch();
-};
-
-const searchResultColumns = computed(() => {
-  if (!aiStore.searchResult?.rows?.length) return [];
-  const keys = Object.keys(aiStore.searchResult.rows[0]);
-  return keys.map(key => ({
-    colKey: key,
-    title: key,
-    ellipsis: true,
-    width: 150,
-  }));
-});
-
 const dashboardCards = computed(() => {
   const models = aiStore.models.length;
   const hasResult = !!aiStore.parseResult;
-  const hasSearch = !!aiStore.searchResult;
   const isAborted = aiStore.parseAborted || aiStore.materialParseAborted;
 
   const displayTokens = usageStats.value
     ? usageStats.value.monthTokens
-    : (aiStore.parseResult?.usage?.totalTokens || 0) +
-    (aiStore.searchResult?.usage?.totalTokens || 0);
+    : (aiStore.parseResult?.usage?.totalTokens || 0);
 
   return [
     {
@@ -471,17 +366,6 @@ const dashboardCards = computed(() => {
       iconColor: isAborted ? '#EF4444' : hasResult ? '#10B981' : '#3B82F6',
       iconPath: '<path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>',
       aborted: isAborted,
-    },
-    {
-      label: '检索状态',
-      value: hasSearch ? '已完成' : '待检索',
-      unit: '',
-      badge: aiStore.searchLoading ? '查询中...' : hasSearch ? '完成' : '空闲',
-      badgeColor: aiStore.searchLoading ? '#F59E0B' : hasSearch ? '#10B981' : '#94A3B8',
-      badgeBg: aiStore.searchLoading ? '#FFFBEB' : hasSearch ? '#ECFDF5' : '#F1F5F9',
-      iconBg: hasSearch ? '#ECFDF5' : '#FAF5FF',
-      iconColor: hasSearch ? '#A855F7' : '#A855F7',
-      iconPath: '<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>',
     },
     {
       label: 'Token 用量',
@@ -535,10 +419,7 @@ const assistantMessage = computed(() => {
   const models = aiStore.models.length;
   if (models === 0) return '尚未配置 AI 模型，请在工具栏选择或联系管理员配置。';
   if (!aiStore.selectedModel) return `已配置 ${models} 个 AI 模型，请在上方选择一个模型开始使用。`;
-  if (!searchQuery.value) return '输入自然语言描述，AI 将自动生成 SQL 并查询数据库。';
-  if (aiStore.searchLoading) return '正在执行智能检索，请稍候...';
-  if (aiStore.searchResult) return '检索完成！您可以查看生成的 SQL 和查询结果。';
-  return '输入查询条件后，按 Ctrl+Enter 或点击发送按钮进行检索。';
+  return '请在 AI 助手对话中直接输入查询，Agent 将自动识别并执行智能检索。';
 });
 
 const assistantButtonText = computed(() => {

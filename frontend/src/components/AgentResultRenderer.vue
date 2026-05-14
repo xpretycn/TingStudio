@@ -1,6 +1,73 @@
 <template>
   <div class="agent-result-renderer">
-    <template v-if="displayType === 'table'">
+    <template v-if="displayType === 'nl2sql'">
+      <div class="nl2sql-result">
+        <div class="sql-card">
+          <div class="sql-header">
+            <div class="sql-header-left">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="16 18 22 12 16 6" />
+                <polyline points="8 6 2 12 8 18" />
+              </svg>
+              <span class="sql-label">生成的 SQL</span>
+            </div>
+            <div class="sql-header-right">
+              <t-tag v-if="nl2sqlData.queryType" theme="primary" variant="light" size="small">
+                {{ queryTypeLabel }}
+              </t-tag>
+              <t-tag theme="success" variant="light" size="small">
+                {{ nl2sqlData.rowCount ?? 0 }} 条结果
+              </t-tag>
+              <button class="sql-copy-btn" @click="copySQL" title="复制SQL">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                  <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+                </svg>
+              </button>
+            </div>
+          </div>
+          <pre class="sql-code">{{ nl2sqlData.sql }}</pre>
+        </div>
+
+        <div v-if="nl2sqlTableData.length" class="nl2sql-table-wrapper">
+          <t-table
+            :data="nl2sqlTableData"
+            :columns="nl2sqlColumns"
+            :max-height="400"
+            size="small"
+            stripe
+            bordered
+            table-layout="auto"
+          />
+          <div class="nl2sql-table-footer">
+            <span class="result-count">共 {{ nl2sqlData.rowCount ?? nl2sqlTableData.length }} 条记录</span>
+            <button class="export-btn" @click="exportCSV" title="导出CSV">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
+              <span>导出 CSV</span>
+            </button>
+          </div>
+        </div>
+
+        <div v-else class="nl2sql-empty">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="1.5"
+            stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="8" x2="12" y2="12" />
+            <line x1="12" y1="16" x2="12.01" y2="16" />
+          </svg>
+          <span>未查询到匹配的数据</span>
+        </div>
+      </div>
+    </template>
+
+    <template v-else-if="displayType === 'table'">
       <div class="result-table-wrapper">
         <t-table
           :data="tableData"
@@ -43,12 +110,79 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
+import { MessagePlugin } from "tdesign-vue-next";
 
 const props = defineProps<{
   displayType: string;
   data: any;
   isSuccess?: boolean;
 }>();
+
+const nl2sqlData = computed(() => {
+  if (props.displayType !== "nl2sql") return { sql: "", rows: [], rowCount: 0, queryType: "" };
+  const d = props.data || {};
+  return {
+    sql: d.sql || "",
+    rows: d.rows || [],
+    rowCount: d.rowCount ?? (d.rows?.length ?? 0),
+    queryType: d.queryType || "simple",
+    query: d.query || "",
+  };
+});
+
+const nl2sqlTableData = computed(() => nl2sqlData.value.rows);
+
+const nl2sqlColumns = computed(() => {
+  const first = nl2sqlTableData.value[0];
+  if (!first || typeof first !== "object") return [];
+  return Object.keys(first).map((key) => ({
+    colKey: key,
+    title: key,
+    ellipsis: true,
+    width: 150,
+  }));
+});
+
+const queryTypeLabel = computed(() => {
+  const map: Record<string, string> = {
+    aggregate: "聚合统计",
+    join: "跨表关联",
+    simple: "简单查询",
+  };
+  return map[nl2sqlData.value.queryType] || "查询";
+});
+
+const copySQL = () => {
+  navigator.clipboard.writeText(nl2sqlData.value.sql).then(() => {
+    MessagePlugin.success("SQL 已复制到剪贴板");
+  }).catch(() => {
+    MessagePlugin.error("复制失败");
+  });
+};
+
+const exportCSV = () => {
+  const rows = nl2sqlTableData.value;
+  if (!rows.length) return;
+  const keys = Object.keys(rows[0]);
+  const header = keys.join(",");
+  const body = rows.map((row: any) =>
+    keys.map((k) => {
+      const val = row[k] ?? "";
+      const str = String(val);
+      return str.includes(",") || str.includes('"') || str.includes("\n")
+        ? `"${str.replace(/"/g, '""')}"`
+        : str;
+    }).join(",")
+  );
+  const csv = "\uFEFF" + header + "\n" + body.join("\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `query_result_${Date.now()}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+};
 
 const tableData = computed(() => {
   if (Array.isArray(props.data)) return props.data;
@@ -86,6 +220,121 @@ const cardItems = computed(() => {
 <style scoped lang="scss">
 .agent-result-renderer {
   margin: 8px 0;
+
+  .nl2sql-result {
+    .sql-card {
+      border: 1px solid #dbeafe;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 12px;
+
+      .sql-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 14px;
+        background: #eff6ff;
+
+        .sql-header-left {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+
+          .sql-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #1e40af;
+          }
+        }
+
+        .sql-header-right {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+
+          .sql-copy-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            border: 1px solid #bfdbfe;
+            border-radius: 6px;
+            background: #fff;
+            color: #3b82f6;
+            cursor: pointer;
+            transition: all 0.2s;
+
+            &:hover {
+              background: #dbeafe;
+              border-color: #93c5fd;
+            }
+          }
+        }
+      }
+
+      .sql-code {
+        margin: 0;
+        padding: 12px 14px;
+        font-size: 12px;
+        font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+        color: #334155;
+        background: #f8fafc;
+        white-space: pre-wrap;
+        word-break: break-all;
+        line-height: 1.6;
+      }
+    }
+
+    .nl2sql-table-wrapper {
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      overflow: hidden;
+
+      .nl2sql-table-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 14px;
+        background: #f8fafc;
+        border-top: 1px solid #e2e8f0;
+
+        .result-count {
+          font-size: 12px;
+          color: #64748b;
+        }
+
+        .export-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          padding: 5px 12px;
+          border: 1px solid #d1d5db;
+          border-radius: 6px;
+          background: #fff;
+          color: #374151;
+          font-size: 12px;
+          cursor: pointer;
+          transition: all 0.2s;
+
+          &:hover {
+            background: #f3f4f6;
+            border-color: #9ca3af;
+          }
+        }
+      }
+    }
+
+    .nl2sql-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding: 24px;
+      color: #94a3b8;
+      font-size: 14px;
+    }
+  }
 
   .result-table-wrapper {
     border: 1px solid #e2e8f0;

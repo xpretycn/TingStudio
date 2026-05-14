@@ -37,9 +37,7 @@ function savePendingForm(sessionId: string, formSchema: FormSchema): void {
 function loadPendingForm(sessionId: string): FormSchema | null {
   try {
     const db = getDb();
-    const row = db
-      .prepare("SELECT * FROM agent_pending_forms WHERE session_id = ?")
-      .get(sessionId) as any;
+    const row = db.prepare("SELECT * FROM agent_pending_forms WHERE session_id = ?").get(sessionId) as any;
     if (!row) return null;
     return JSON.parse(row.form_json);
   } catch (error) {
@@ -72,9 +70,7 @@ function savePendingConfirmation(sessionId: string, pending: PendingConfirmation
 function loadPendingConfirmation(sessionId: string): PendingConfirmation | null {
   try {
     const db = getDb();
-    const row = db
-      .prepare("SELECT * FROM agent_pending_confirmations WHERE session_id = ?")
-      .get(sessionId) as any;
+    const row = db.prepare("SELECT * FROM agent_pending_confirmations WHERE session_id = ?").get(sessionId) as any;
     if (!row) return null;
     return {
       toolName: row.tool_name,
@@ -154,23 +150,17 @@ class AIAgentController {
         return;
       }
       const db = getDb();
-      let row = db
-        .prepare("SELECT * FROM agent_role_config WHERE user_id = ?")
-        .get(userId) as any;
+      let row = db.prepare("SELECT * FROM agent_role_config WHERE user_id = ?").get(userId) as any;
       if (!row) {
         const id = crypto.randomUUID();
         db.prepare(
           "INSERT INTO agent_role_config (id, user_id, agent_name, user_title, greeting, tone_style, custom_instructions) VALUES (?, ?, '小听', '老板', '', 'professional', '')",
         ).run(id, userId);
-        row = db
-          .prepare("SELECT * FROM agent_role_config WHERE user_id = ?")
-          .get(userId) as any;
+        row = db.prepare("SELECT * FROM agent_role_config WHERE user_id = ?").get(userId) as any;
       }
       res.json({ success: true, data: row });
     } catch (error) {
-      res
-        .status(500)
-        .json({ success: false, error: error instanceof Error ? error.message : "获取身份配置失败" });
+      res.status(500).json({ success: false, error: error instanceof Error ? error.message : "获取身份配置失败" });
     }
   }
 
@@ -184,9 +174,7 @@ class AIAgentController {
       const { agent_name, user_title, greeting, tone_style, custom_instructions } = req.body;
 
       const db = getDb();
-      const existing = db
-        .prepare("SELECT id FROM agent_role_config WHERE user_id = ?")
-        .get(userId) as any;
+      const existing = db.prepare("SELECT id FROM agent_role_config WHERE user_id = ?").get(userId) as any;
       if (!existing) {
         const id = crypto.randomUUID();
         db.prepare(
@@ -226,23 +214,17 @@ class AIAgentController {
         if (setClauses.length > 0) {
           setClauses.push("updated_at = datetime('now')");
           sqlParams.push(userId);
-          db.prepare(
-            `UPDATE agent_role_config SET ${setClauses.join(", ")} WHERE user_id = ?`,
-          ).run(...sqlParams);
+          db.prepare(`UPDATE agent_role_config SET ${setClauses.join(", ")} WHERE user_id = ?`).run(...sqlParams);
         }
       }
 
       const { invalidateChatSystemPromptCache } = await import("./agentChatController.js");
       invalidateChatSystemPromptCache();
 
-      const row = db
-        .prepare("SELECT * FROM agent_role_config WHERE user_id = ?")
-        .get(userId) as any;
+      const row = db.prepare("SELECT * FROM agent_role_config WHERE user_id = ?").get(userId) as any;
       res.json({ success: true, data: row });
     } catch (error) {
-      res
-        .status(500)
-        .json({ success: false, error: error instanceof Error ? error.message : "更新身份配置失败" });
+      res.status(500).json({ success: false, error: error instanceof Error ? error.message : "更新身份配置失败" });
     }
   }
 
@@ -254,22 +236,16 @@ class AIAgentController {
         return;
       }
       const db = getDb();
-      let row = db
-        .prepare("SELECT * FROM agent_float_config WHERE user_id = ?")
-        .get(userId) as any;
+      let row = db.prepare("SELECT * FROM agent_float_config WHERE user_id = ?").get(userId) as any;
       if (!row) {
         const id = crypto.randomUUID();
         db.prepare("INSERT INTO agent_float_config (id, user_id) VALUES (?, ?)").run(id, userId);
-        row = db
-          .prepare("SELECT * FROM agent_float_config WHERE user_id = ?")
-          .get(userId) as any;
+        row = db.prepare("SELECT * FROM agent_float_config WHERE user_id = ?").get(userId) as any;
       }
       const config = this.deserializeFloatConfig(row);
       res.json({ success: true, data: config });
     } catch (error) {
-      res
-        .status(500)
-        .json({ success: false, error: error instanceof Error ? error.message : "获取悬浮球配置失败" });
+      res.status(500).json({ success: false, error: error instanceof Error ? error.message : "获取悬浮球配置失败" });
     }
   }
 
@@ -302,9 +278,7 @@ class AIAgentController {
         "context_mode",
       ];
       const db = getDb();
-      const existing = db
-        .prepare("SELECT id FROM agent_float_config WHERE user_id = ?")
-        .get(userId) as any;
+      const existing = db.prepare("SELECT id FROM agent_float_config WHERE user_id = ?").get(userId) as any;
 
       if (!existing) {
         const id = crypto.randomUUID();
@@ -361,21 +335,15 @@ class AIAgentController {
         if (setClauses.length > 0) {
           setClauses.push("updated_at = datetime('now')");
           sqlParams.push(userId);
-          db.prepare(
-            `UPDATE agent_float_config SET ${setClauses.join(", ")} WHERE user_id = ?`,
-          ).run(...sqlParams);
+          db.prepare(`UPDATE agent_float_config SET ${setClauses.join(", ")} WHERE user_id = ?`).run(...sqlParams);
         }
       }
 
-      const row = db
-        .prepare("SELECT * FROM agent_float_config WHERE user_id = ?")
-        .get(userId) as any;
+      const row = db.prepare("SELECT * FROM agent_float_config WHERE user_id = ?").get(userId) as any;
       const config = this.deserializeFloatConfig(row);
       res.json({ success: true, data: config });
     } catch (error) {
-      res
-        .status(500)
-        .json({ success: false, error: error instanceof Error ? error.message : "更新悬浮球配置失败" });
+      res.status(500).json({ success: false, error: error instanceof Error ? error.message : "更新悬浮球配置失败" });
     }
   }
 
@@ -393,17 +361,13 @@ class AIAgentController {
       }
 
       const db = getDb();
-      const configRow = db
-        .prepare("SELECT * FROM agent_float_config WHERE user_id = ?")
-        .get(userId) as any;
+      const configRow = db.prepare("SELECT * FROM agent_float_config WHERE user_id = ?").get(userId) as any;
       if (configRow && !configRow.enabled) {
         res.json({ code: 1, error: "悬浮球 Agent 已禁用" });
         return;
       }
 
-      const enabledPages: string[] = configRow
-        ? JSON.parse(configRow.enabled_pages || "[]")
-        : [];
+      const enabledPages: string[] = configRow ? JSON.parse(configRow.enabled_pages || "[]") : [];
       if (enabledPages.length > 0 && !enabledPages.includes(pageId)) {
         res.json({ code: 1, error: "当前页面未启用 Agent" });
         return;
@@ -415,17 +379,16 @@ class AIAgentController {
       let session = sessionId ? sessionStore.getSession(sessionId) : null;
       if (!session) {
         const title =
-          utterance.slice(0, MAX_SESSION_TITLE_LENGTH) +
-          (utterance.length > MAX_SESSION_TITLE_LENGTH ? "..." : "");
+          utterance.slice(0, MAX_SESSION_TITLE_LENGTH) + (utterance.length > MAX_SESSION_TITLE_LENGTH ? "..." : "");
         session = sessionStore.createSession(userId, title);
       }
 
       const pageFieldMap = this.getPageFieldMap(pageId);
       const systemPrompt = this.buildParseFormPrompt(pageId, pageFieldMap);
 
-      const contextMessages: Array<{ role: "user" | "assistant"; content: string }> = (
-        context || []
-      ).slice(-MAX_INTENT_CONTEXT_MESSAGES);
+      const contextMessages: Array<{ role: "user" | "assistant"; content: string }> = (context || []).slice(
+        -MAX_INTENT_CONTEXT_MESSAGES,
+      );
       const messages: ChatMessage[] = [
         { role: "system", content: systemPrompt },
         ...contextMessages.map((m: any) => ({
@@ -456,11 +419,7 @@ class AIAgentController {
       }
 
       sessionStore.addMessage(session.id, "user", utterance);
-      sessionStore.addMessage(
-        session.id,
-        "assistant",
-        aiMessage || `已解析${Object.keys(parsedFields).length}个字段`,
-      );
+      sessionStore.addMessage(session.id, "assistant", aiMessage || `已解析${Object.keys(parsedFields).length}个字段`);
       sessionStore.updateSessionActivity(session.id);
 
       res.json({
@@ -476,9 +435,7 @@ class AIAgentController {
       });
     } catch (error) {
       console.error("[AIAgent] parseForm error:", error);
-      res
-        .status(500)
-        .json({ code: 1, error: error instanceof Error ? error.message : "表单解析失败" });
+      res.status(500).json({ code: 1, error: error instanceof Error ? error.message : "表单解析失败" });
     }
   }
 
@@ -728,6 +685,226 @@ ${fieldDesc}
 3. missingFields 列出用户未提及的必填字段
 4. message 用中文简要说明解析结果
 5. 如果用户描述含糊，将匹配度最高的字段填入 fields，并在 missingFields 中标注不确定的字段`;
+  }
+
+  private classifyFloatIntent(utterance: string): "fill" | "consult" | "calculate" | "compare" | "substitute" | "quotation" | "generate" {
+    const text = utterance.toLowerCase();
+
+    if (/对比|比较|vs| versus|区别|差异/.test(text)) return "compare";
+    if (/替代|替换|代替|换掉|替补/.test(text)) return "substitute";
+    if (/报价|报价单|多少钱|售价|定价|价格/.test(text)) return "quotation";
+    if (/生成描述|生成制法|智能生成|写描述|写制法|帮我写/.test(text)) return "generate";
+    if (/算|计算|校验|合规|营养|成本|含量比|系数/.test(text)) return "calculate";
+    if (/什么意思|合规吗|范围|规范|单位|标准|规则|是什么|怎么填|能不能|可以吗/.test(text)) return "consult";
+
+    return "fill";
+  }
+
+  async floatChat(req: Request, res: Response): Promise<void> {
+    const { pageId, utterance, context, sessionId } = req.body;
+    const userId = (req as any).user?.userId;
+    if (!userId) {
+      res.status(401).json({ success: false, error: "认证信息缺失" });
+      return;
+    }
+    if (!utterance || !pageId) {
+      res.status(400).json({ success: false, error: "pageId 和 utterance 不能为空" });
+      return;
+    }
+
+    const intent = this.classifyFloatIntent(utterance);
+
+    if (intent === "fill") {
+      return this.parseForm(req, res);
+    }
+
+    if (intent === "generate") {
+      return this.handleGenerateIntent(req, res, utterance, pageId, context, sessionId, userId);
+    }
+
+    const db = getDb();
+    const configRow = db.prepare("SELECT * FROM agent_float_config WHERE user_id = ?").get(userId) as any;
+    const selectedModel = configRow?.model || "deepseek";
+    const selectedModelName = configRow?.model_name || undefined;
+
+    let session = sessionId ? sessionStore.getSession(sessionId) : null;
+    if (!session) {
+      const title = utterance.slice(0, MAX_SESSION_TITLE_LENGTH) + (utterance.length > MAX_SESSION_TITLE_LENGTH ? "..." : "");
+      session = sessionStore.createSession(userId, title);
+    }
+    sessionStore.addMessage(session.id, "user", utterance);
+
+    const { agentChatController } = await import("./agentChatController.js");
+    const contextMessages: Array<{ role: "user" | "assistant"; content: string }> = (context || []).slice(-6);
+    await agentChatController.handleFloatReActStream(
+      res, session.id, userId, utterance, selectedModel, selectedModelName, pageId, contextMessages,
+    );
+  }
+
+  private async handleGenerateIntent(
+    req: Request, res: Response, utterance: string,
+    pageId: string, context: any, sessionId: string | undefined, userId: string,
+  ): Promise<void> {
+    const type = /制法|工艺|制备|流程|制作方法/.test(utterance) ? "preparation" : "description";
+
+    const db = getDb();
+    const configRow = db.prepare("SELECT * FROM agent_float_config WHERE user_id = ?").get(userId) as any;
+    const selectedModel = configRow?.model || "deepseek";
+    const selectedModelName = configRow?.model_name || undefined;
+
+    let formulaName = "";
+    let materials: any[] = [];
+    let finishedWeight: number | undefined;
+
+    const pageFieldMap = this.getPageFieldMap(pageId);
+    if (context && Array.isArray(context)) {
+      const historyText = context.map((m: any) => m.content).join(" ");
+      const nameMatch = historyText.match(/(?:配方名称?|叫|名为?|名称?)[：:]\s*(\S+)/);
+      if (nameMatch) formulaName = nameMatch[1];
+    }
+
+    if (!formulaName) formulaName = "未命名配方";
+
+    const prompt = `你是一个专业的膏方配方${type === "preparation" ? "制法" : "描述"}生成助手。
+
+配方名称：${formulaName}
+
+请根据配方名称生成专业的配方${type}。要求：
+1. ${type === "preparation" ? "描述制取工艺流程，包括浸泡、提取、浓缩、收膏等关键步骤" : "简述该配方的研发目标和主要功效特点"}
+2. 结合配方名称的含义和原料特性推导
+3. ${type === "preparation" ? "150字以内" : "100字以内"}
+4. 只输出${type === "preparation" ? "制法" : "描述"}文本，不要其他内容`;
+
+    try {
+      const messages: ChatMessage[] = [
+        { role: "system", content: `你是TingStudio的专业配方${type === "preparation" ? "制法" : "描述"}生成助手，只输出纯文本内容。` },
+        { role: "user", content: prompt },
+      ];
+      const result = await llmAgentService.chat({ messages }, selectedModel, selectedModelName);
+      const content = (result.content || "").trim();
+
+      res.setHeader("Content-Type", "text/event-stream");
+      res.setHeader("Cache-Control", "no-cache");
+      res.setHeader("Connection", "keep-alive");
+      res.flushHeaders();
+
+      res.write(`data: ${JSON.stringify({ type: "chunk", content })}\n\n`);
+      res.write(`data: ${JSON.stringify({ type: "done", sessionId: "", model: selectedModel })}\n\n`);
+      res.end();
+    } catch (error) {
+      res.status(500).json({ success: false, error: error instanceof Error ? error.message : "生成失败" });
+    }
+  }
+
+  async generateDescription(req: Request, res: Response): Promise<void> {
+    const userId = (req as any).user?.userId;
+    if (!userId) {
+      res.status(401).json({ success: false, error: "认证信息缺失" });
+      return;
+    }
+    const { formulaName, materials, finishedWeight, revisionReason, existingDescription, type } = req.body;
+    if (!formulaName) {
+      res.status(400).json({ success: false, error: "配方名称不能为空" });
+      return;
+    }
+
+    const db = getDb();
+    const configRow = db.prepare("SELECT * FROM agent_float_config WHERE user_id = ?").get(userId) as any;
+    const selectedModel = configRow?.model || "deepseek";
+    const selectedModelName = configRow?.model_name || undefined;
+
+    const materialList = materials && materials.length > 0
+      ? materials.map((m: any) => `${m.name}${m.quantity ? ' ' + m.quantity + 'g' : ''}`).join("、")
+      : "未指定";
+
+    let prompt = "";
+    if (revisionReason && existingDescription) {
+      prompt = `你是一个专业的膏方配方描述生成助手。
+
+当前配方名称：${formulaName}
+原料：${materialList}
+成品重量：${finishedWeight || '未指定'}g
+现有描述：${existingDescription}
+升版原因：${revisionReason}
+
+请根据升版原因，识别新旧配方的差异，生成更新后的配方描述。要求：
+1. 保留原描述中仍有效的部分
+2. 补充升版原因导致的变化
+3. 描述应专业、简洁，100字以内
+4. 只输出描述文本，不要其他内容`;
+    } else {
+      const targetType = type === "preparation" ? "制法" : "描述";
+      const placeholder = type === "preparation"
+        ? "制取方法、工艺流程或特殊操作要求"
+        : "研发目标和主要特点";
+      prompt = `你是一个专业的膏方配方${targetType}生成助手。
+
+当前配方名称：${formulaName}
+原料：${materialList}
+成品重量：${finishedWeight || '未指定'}g
+
+请根据配方名称和原料信息，生成专业的配方${targetType}。要求：
+1. ${type === "preparation" ? "描述制取工艺流程，包括提取、浓缩、收膏等关键步骤" : "简述研发目标和主要功效特点"}
+2. 结合配方名称的含义和原料特性
+3. ${type === "preparation" ? "200字以内" : "100字以内"}
+4. 只输出${targetType}文本，不要其他内容`;
+    }
+
+    try {
+      const messages: ChatMessage[] = [
+        { role: "system", content: "你是TingStudio的专业配方描述生成助手，只输出纯文本内容。" },
+        { role: "user", content: prompt },
+      ];
+      const result = await llmAgentService.chat({ messages }, selectedModel, selectedModelName);
+      const content = (result.content || "").trim();
+      res.json({ success: true, data: { content, type: type || "description" } });
+    } catch (error) {
+      res.status(500).json({ success: false, error: error instanceof Error ? error.message : "生成失败" });
+    }
+  }
+
+  async getFieldHints(req: Request, res: Response): Promise<void> {
+    const userId = (req as any).user?.userId;
+    if (!userId) {
+      res.status(401).json({ success: false, error: "认证信息缺失" });
+      return;
+    }
+    const { pageId } = req.query;
+    if (!pageId) {
+      res.json({ success: true, data: { missingFields: [], hints: [], count: 0 } });
+      return;
+    }
+
+    const fieldMap = this.getPageFieldMap(pageId as string);
+    const requiredFields: Record<string, string[]> = {
+      "formula-add": ["name", "finished_weight", "salesman_name"],
+      "formula-edit": ["name", "finished_weight", "salesman_name"],
+      "material-add": ["name", "material_type", "unit"],
+      "material-edit": ["name", "material_type", "unit"],
+      "salesman-add": ["name", "phone"],
+      "salesman-edit": ["name", "phone"],
+    };
+
+    const required = requiredFields[pageId as string] || [];
+    const hints = required.map(f => ({
+      field: f,
+      label: fieldMap[f] || f,
+      hint: `请提供${fieldMap[f] || f}`,
+    }));
+
+    res.json({ success: true, data: { missingFields: required, hints, count: required.length } });
+  }
+
+  async getHealth(req: Request, res: Response): Promise<void> {
+    try {
+      const db = getDb();
+      const row = db.prepare("SELECT status FROM ai_health_records ORDER BY checked_at DESC LIMIT 1").get() as any;
+      const status = row?.status || "unknown";
+      const modelStatus = status === "healthy" ? "online" : status === "degraded" ? "loading" : "error";
+      res.json({ success: true, data: { status: modelStatus } });
+    } catch {
+      res.json({ success: true, data: { status: "online" } });
+    }
   }
 }
 

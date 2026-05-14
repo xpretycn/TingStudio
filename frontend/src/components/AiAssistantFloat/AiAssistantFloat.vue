@@ -1,10 +1,11 @@
 <template>
   <Teleport to="body">
-    <FloatBubble v-if="isVisible && !isOpen" :position="config.position" :show-pulse="config.showPulse"
-      tooltip="AI 表单助手" @click="toggleOpen" />
+    <FloatBubble v-show="isVisible && !isOpen" :position="config.position" :show-pulse="config.showPulse"
+      tooltip="AI 表单助手" :badge-count="store.badgeCount" :health-status="store.agentHealthStatus"
+      @click="toggleOpen" @command="handleQuickCommand" />
 
     <FloatDrawer :visible="isOpen" :fullscreen="isFullscreen" :position="config.position"
-      :width="config.drawerWidth" @close="setOpen(false)" @fullscreen="toggleFullscreen">
+      :width="config.drawerWidth" :title="store.dynamicTitle" @close="setOpen(false)" @fullscreen="toggleFullscreen">
 
       <ChatMessages :messages="messages" :loading="loading" :field-label-map="currentFieldLabelMap"
         @fill="handleFill" />
@@ -38,7 +39,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { computed, ref, watch, onMounted, onUnmounted } from "vue";
 import { useRoute } from "vue-router";
 import { useFloatAgentStore } from "@/stores/floatAgent";
 import FloatBubble from "./FloatBubble.vue";
@@ -137,6 +138,25 @@ function handleFill(fields: Record<string, any>) {
     success: r.success,
   }));
 }
+
+function handleQuickCommand(command: string) {
+  store.sendQuickCommand(command);
+}
+
+let fieldHintsTimer: ReturnType<typeof setInterval> | null = null;
+let healthTimer: ReturnType<typeof setInterval> | null = null;
+
+onMounted(() => {
+  store.fetchHealth();
+  store.fetchFieldHints();
+  healthTimer = setInterval(() => store.fetchHealth(), 60000);
+  fieldHintsTimer = setInterval(() => store.fetchFieldHints(), 30000);
+});
+
+onUnmounted(() => {
+  if (healthTimer) clearInterval(healthTimer);
+  if (fieldHintsTimer) clearInterval(fieldHintsTimer);
+});
 </script>
 
 <style scoped lang="scss">
