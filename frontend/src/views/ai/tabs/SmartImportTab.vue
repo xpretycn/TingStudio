@@ -15,8 +15,8 @@
             :class="{ 'aborted-status': aiStore.materialParseAborted }">
             <div v-if="aiStore.materialParseLoading" class="status-indicator status-indicator--loading">
               <span class="status-dot status-dot--pulse"></span>
-              <span class="status-text">正在解析: {{ selectedFile?.name || '文件' }}</span>
-            </div>
+                <span class="status-text">正在解析: {{ selectedFile?.name || '文件' }}</span>
+              </div>
             <div v-else-if="aiStore.materialParseAborted" class="status-indicator status-indicator--aborted">
               <span class="status-dot status-dot--aborted"></span>
               <span class="status-text">已终止: {{ selectedFile?.name || '文件' }}</span>
@@ -45,6 +45,28 @@
               <p class="upload-title">点击或拖拽文件上传</p>
               <p class="upload-hint">支持 .xlsx, .jpg, .png (最大 10MB)</p>
             </div>
+          </div>
+
+          <div v-if="templateList.length > 0 && !aiStore.materialParseLoading && !parsedItems.length" class="template-selector">
+            <div class="template-selector-label">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+                <line x1="16" y1="13" x2="8" y2="13" />
+                <line x1="16" y1="17" x2="8" y2="17" />
+              </svg>
+              解析模板
+            </div>
+            <t-select
+              v-model="selectedTemplateId"
+              :options="templateOptions"
+              placeholder="选择模板快速配置"
+              clearable
+              size="small"
+              style="width: 220px"
+              @change="handleTemplateChange"
+            />
           </div>
 
           <div
@@ -154,6 +176,15 @@
                 <span class="result-count">共 {{ parsedItems.length }} 条</span>
               </h4>
               <div class="result-actions">
+                <button type="button" class="header-action-btn header-action-btn--save-template" @click="showSaveTemplateDialog">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z" />
+                    <polyline points="17 21 17 13 7 13 7 21" />
+                    <polyline points="7 3 7 8 15 8" />
+                  </svg>
+                  保存为模板
+                </button>
                 <button type="button" class="header-action-btn header-action-btn--clear" @click="handleClearResult">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                     stroke-linecap="round" stroke-linejoin="round">
@@ -550,11 +581,64 @@
                 <span class="summary-file-size">{{ formatFileSize(fileUploadStatus.fileSize) }}</span>
                 <span class="summary-file-result">{{ fileUploadStatus.uploaded ? '已上传' : '上传失败' }}</span>
               </div>
+              <div v-if="canUndoImport" class="summary-undo">
+                <button type="button" class="undo-btn" :disabled="undoLoading" @click="handleUndoImport">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="1 4 1 10 7 10" />
+                    <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
+                  </svg>
+                  {{ undoLoading ? '撤销中...' : '撤销上次导入（5分钟内）' }}
+                </button>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </section>
+
+    <t-dialog v-model:visible="saveTemplateDialogVisible" :attach="'body'" width="480px"
+      :confirm-btn="{ content: '保存', theme: 'primary', loading: saveTemplateLoading }"
+      :cancel-btn="{ content: '取消' }" @confirm="handleSaveTemplate">
+      <template #header>
+        <div class="save-template-dialog-header">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z" />
+            <polyline points="17 21 17 13 7 13 7 21" />
+            <polyline points="7 3 7 8 15 8" />
+          </svg>
+          保存为解析模板
+        </div>
+      </template>
+      <div class="save-template-form">
+        <div class="form-field">
+          <label class="form-label">模板名称 <span class="required">*</span></label>
+          <t-input v-model="saveTemplateForm.name" placeholder="如：营养数据模板" :maxlength="30" />
+        </div>
+        <div class="form-field">
+          <label class="form-label">分类</label>
+          <t-select v-model="saveTemplateForm.category"
+            :options="[
+              { label: '营养数据', value: 'nutrition' },
+              { label: '配方文件', value: 'formula' },
+              { label: '通用', value: 'general' },
+            ]" />
+        </div>
+        <div class="form-field">
+          <label class="form-label">默认模型</label>
+          <t-select v-model="saveTemplateForm.defaultProvider"
+            :options="aiStore.models.map((m: any) => ({ label: m.name, value: m.provider }))"
+            clearable placeholder="跟随全局设置" />
+        </div>
+        <div class="form-field">
+          <label class="form-label">自定义提示词</label>
+          <t-textarea v-model="saveTemplateForm.customPrompt"
+            placeholder="如：此文件中文表头，A列为原料名称，B列为类型..."
+            :maxlength="500" :autosize="{ minRows: 2, maxRows: 4 }" />
+        </div>
+      </div>
+    </t-dialog>
 
     <t-dialog v-model:visible="diffDialogVisible" :footer="false" width="760px" :attach="'body'">
       <template #header>
@@ -661,6 +745,7 @@ import { getThemeTokens } from '@/assets/styles/tokens';
 import { materialApi } from '@/api/material';
 import { nutritionApi } from '@/api/nutrition';
 import { fileApi } from '@/api/file';
+import { parseTemplateApi, type ParseTemplate } from '@/api/parseTemplate';
 import { MessagePlugin } from 'tdesign-vue-next';
 import type { MaterialNutritionItem } from '@/api/ai';
 
@@ -696,6 +781,164 @@ const batchProgress = reactive({
   currentItem: '',
 });
 const batchSummary = ref<{ success: number; failed: number; errors: string[]; } | null>(null);
+
+interface ImportRecord {
+  materialId: string;
+  isNewMaterial: boolean;
+  oldNutritionData?: Record<string, number>;
+  oldDataSource?: string;
+  oldConfidence?: string;
+}
+const importSessionRecords = ref<ImportRecord[]>([]);
+const canUndoImport = ref(false);
+const undoLoading = ref(false);
+const IMPORT_UNDO_KEY = 'smart_import_undo_session';
+const IMPORT_UNDO_TTL = 5 * 60 * 1000;
+
+const templateList = ref<ParseTemplate[]>([]);
+const selectedTemplateId = ref<string | undefined>(undefined);
+const saveTemplateDialogVisible = ref(false);
+const saveTemplateLoading = ref(false);
+const saveTemplateForm = reactive({
+  name: '',
+  category: 'nutrition' as 'formula' | 'nutrition' | 'general',
+  defaultProvider: undefined as string | undefined,
+  customPrompt: '',
+});
+
+const templateOptions = computed(() => {
+  return templateList.value.map(t => ({
+    label: t.name + (t.isPreset ? ' (预设)' : ''),
+    value: t.id,
+  }));
+});
+
+const fetchTemplates = async () => {
+  try {
+    const res = await parseTemplateApi.getList({ category: 'nutrition', pageSize: 100 });
+    templateList.value = res.list || [];
+  } catch {}
+};
+
+const handleTemplateChange = (value: string | undefined) => {
+  if (!value) return;
+  const template = templateList.value.find(t => t.id === value);
+  if (!template) return;
+  if (template.defaultProvider) {
+    aiStore.selectedModel = template.defaultProvider;
+    aiStore.loadModelVersions(template.defaultProvider);
+  }
+  selectedTemplateId.value = value;
+};
+
+const showSaveTemplateDialog = () => {
+  saveTemplateForm.name = '';
+  saveTemplateForm.category = 'nutrition';
+  saveTemplateForm.defaultProvider = aiStore.selectedModel || undefined;
+  saveTemplateForm.customPrompt = '';
+  saveTemplateDialogVisible.value = true;
+};
+
+const handleSaveTemplate = async () => {
+  if (!saveTemplateForm.name.trim()) {
+    MessagePlugin.warning('请输入模板名称');
+    return;
+  }
+  saveTemplateLoading.value = true;
+  try {
+    await parseTemplateApi.create({
+      name: saveTemplateForm.name.trim(),
+      category: saveTemplateForm.category,
+      defaultProvider: saveTemplateForm.defaultProvider || null,
+      defaultModel: null,
+      customPrompt: saveTemplateForm.customPrompt || null,
+    });
+    MessagePlugin.success('模板保存成功');
+    saveTemplateDialogVisible.value = false;
+    await fetchTemplates();
+  } catch (err: any) {
+    MessagePlugin.error(err?.message || '保存模板失败');
+  } finally {
+    saveTemplateLoading.value = false;
+  }
+};
+
+const saveUndoSession = () => {
+  if (importSessionRecords.value.length === 0) return;
+  const session = {
+    records: importSessionRecords.value,
+    timestamp: Date.now(),
+  };
+  localStorage.setItem(IMPORT_UNDO_KEY, JSON.stringify(session));
+  canUndoImport.value = true;
+};
+
+const checkUndoSession = () => {
+  try {
+    const raw = localStorage.getItem(IMPORT_UNDO_KEY);
+    if (!raw) { canUndoImport.value = false; return; }
+    const session = JSON.parse(raw);
+    if (Date.now() - session.timestamp > IMPORT_UNDO_TTL) {
+      localStorage.removeItem(IMPORT_UNDO_KEY);
+      canUndoImport.value = false;
+      return;
+    }
+    canUndoImport.value = session.records && session.records.length > 0;
+  } catch {
+    canUndoImport.value = false;
+  }
+};
+
+const handleUndoImport = async () => {
+  let raw: string | null = null;
+  try {
+    raw = localStorage.getItem(IMPORT_UNDO_KEY);
+  } catch { return; }
+  if (!raw) { MessagePlugin.warning('无可撤销的导入记录'); return; }
+  const session = JSON.parse(raw);
+  if (Date.now() - session.timestamp > IMPORT_UNDO_TTL) {
+    localStorage.removeItem(IMPORT_UNDO_KEY);
+    canUndoImport.value = false;
+    MessagePlugin.warning('撤销时限已过（5分钟），无法撤销');
+    return;
+  }
+
+  undoLoading.value = true;
+  let undone = 0;
+  let failed = 0;
+  try {
+    for (const record of [...session.records].reverse()) {
+      try {
+        if (record.isNewMaterial) {
+          await materialApi.delete(record.materialId);
+        } else if (record.oldNutritionData && Object.keys(record.oldNutritionData).length > 0) {
+          await nutritionApi.setMaterialNutrition(record.materialId, {
+            per100g: record.oldNutritionData,
+            dataSource: record.oldDataSource || '手动录入',
+            confidence: record.oldConfidence || 'medium',
+          });
+        }
+        undone++;
+      } catch {
+        failed++;
+      }
+    }
+    localStorage.removeItem(IMPORT_UNDO_KEY);
+    canUndoImport.value = false;
+    importSessionRecords.value = [];
+    await materialStore.fetchMaterials();
+    batchSummary.value = null;
+    if (failed === 0) {
+      MessagePlugin.success(`撤销成功：已回退 ${undone} 条记录`);
+    } else {
+      MessagePlugin.warning(`撤销完成：成功 ${undone} 条，失败 ${failed} 条`);
+    }
+  } catch (err: any) {
+    MessagePlugin.error('撤销失败：' + (err?.message || '未知错误'));
+  } finally {
+    undoLoading.value = false;
+  }
+};
 
 const priceAdjustments = ref<Record<number, { originalPrice: number; isAdjusted: boolean; }>>({});
 
@@ -1175,6 +1418,7 @@ const handleBatchSubmit = async () => {
   } finally {
     batchSubmitting.value = false;
     batchSummary.value = { success, failed, errors };
+    saveUndoSession();
     emit('activity-add', {
       type: success > 0 ? 'success' : 'warning',
       title: '批量导入完成',
@@ -1269,6 +1513,7 @@ const finishSequentialImport = async () => {
     failed: failedCount,
     errors: skipped.map(r => `${r.item.name}: 已跳过`),
   };
+  saveUndoSession();
   emit('activity-add', {
     type: confirmed.length > 0 ? 'success' : 'warning',
     title: '逐条导入完成',
@@ -1281,8 +1526,12 @@ const finishSequentialImport = async () => {
 
 const submitSingleItem = async (item: MaterialNutritionItem) => {
   let materialId = item.materialId;
+  const isNewMaterial = !item.isRecorded || !materialId;
+  let oldNutritionData: Record<string, number> | undefined;
+  let oldDataSource: string | undefined;
+  let oldConfidence: string | undefined;
 
-  if (!item.isRecorded || !materialId) {
+  if (isNewMaterial) {
     const codeRes = await materialApi.getNextCode(item.name);
     const code = codeRes.code;
     const created = await materialApi.create({
@@ -1293,6 +1542,15 @@ const submitSingleItem = async (item: MaterialNutritionItem) => {
       unitPrice: item.unitPrice ?? undefined,
     });
     materialId = created.id;
+  } else if (materialId) {
+    try {
+      const existing = await nutritionApi.getMaterialNutrition(materialId, true);
+      if (existing?.per100g) {
+        oldNutritionData = { ...existing.per100g };
+        oldDataSource = existing.dataSource;
+        oldConfidence = existing.confidence;
+      }
+    } catch {}
   }
 
   const per100g: Record<string, number> = {};
@@ -1302,12 +1560,20 @@ const submitSingleItem = async (item: MaterialNutritionItem) => {
   if (item.sodium != null) per100g.sodium = item.sodium;
 
   if (Object.keys(per100g).length > 0) {
-    await nutritionApi.setMaterialNutrition(materialId, {
+    await nutritionApi.setMaterialNutrition(materialId!, {
       per100g,
       dataSource: item.dataSource || 'AI智能导入',
       confidence: (item.confidence ?? 0) >= 0.8 ? 'high' : (item.confidence ?? 0) >= 0.5 ? 'medium' : 'low',
     });
   }
+
+  importSessionRecords.value.push({
+    materialId: materialId!,
+    isNewMaterial,
+    oldNutritionData,
+    oldDataSource,
+    oldConfidence,
+  });
 };
 
 const openDiff = async (index: number) => {
@@ -1482,6 +1748,8 @@ onMounted(() => {
   fileUploadStatus.value = null;
   diffStatusMap.value = {};
   fieldSourceMap.value = {};
+  checkUndoSession();
+  fetchTemplates();
 });
 
 watch(() => aiStore.materialParseResult, (newVal) => {
@@ -1745,6 +2013,27 @@ watch(() => aiStore.materialParseResult, (newVal) => {
           color: #64748b;
           margin: 4px 0 0;
         }
+      }
+    }
+
+    .template-selector {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 12px;
+      padding: 10px 16px;
+      background: rgba(99, 102, 241, 0.04);
+      border: 1px solid rgba(99, 102, 241, 0.12);
+      border-radius: 12px;
+
+      .template-selector-label {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #6366f1;
+        white-space: nowrap;
       }
     }
 
@@ -2196,6 +2485,31 @@ watch(() => aiStore.materialParseResult, (newVal) => {
 
               &:active {
                 background: #fecaca;
+                transform: scale(0.97);
+              }
+            }
+
+            &--save-template {
+              background: #eef2ff;
+              border: 1px solid #c7d2fe;
+              color: #4f46e5;
+
+              svg {
+                color: #4f46e5;
+              }
+
+              &:hover {
+                background: #e0e7ff;
+                border-color: #a5b4fc;
+                color: #3730a3;
+
+                svg {
+                  color: #3730a3;
+                }
+              }
+
+              &:active {
+                background: #c7d2fe;
                 transform: scale(0.97);
               }
             }
@@ -2897,6 +3211,47 @@ watch(() => aiStore.materialParseResult, (newVal) => {
         font-weight: 700;
       }
     }
+
+    .summary-undo {
+      padding: 12px 20px;
+      border-top: 1px solid #f1f5f9;
+      display: flex;
+      justify-content: flex-end;
+
+      .undo-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 7px 16px;
+        border-radius: 10px;
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        color: #fff;
+        font-size: 12px;
+        font-weight: 700;
+        border: none;
+        cursor: pointer;
+        transition: all 0.25s ease;
+        box-shadow: 0 2px 8px rgba(245, 158, 11, 0.25);
+
+        &:hover:not(:disabled) {
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+        }
+
+        &:active:not(:disabled) {
+          transform: translateY(0) scale(0.98);
+        }
+
+        &:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+
+        svg {
+          flex-shrink: 0;
+        }
+      }
+    }
   }
 }
 
@@ -3333,6 +3688,39 @@ watch(() => aiStore.materialParseResult, (newVal) => {
 
   100% {
     transform: translateX(350%);
+  }
+}
+
+.save-template-dialog-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.save-template-form {
+  padding: 8px 0;
+
+  .form-field {
+    margin-bottom: 16px;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  .form-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #334155;
+    margin-bottom: 6px;
+
+    .required {
+      color: #ef4444;
+    }
   }
 }
 </style>

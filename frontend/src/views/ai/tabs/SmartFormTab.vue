@@ -47,6 +47,28 @@
             </div>
           </div>
 
+          <div v-if="formulaTemplateList.length > 0 && !aiStore.parseLoading && !aiStore.parseResult" class="template-selector">
+            <div class="template-selector-label">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+                <line x1="16" y1="13" x2="8" y2="13" />
+                <line x1="16" y1="17" x2="8" y2="17" />
+              </svg>
+              解析模板
+            </div>
+            <t-select
+              v-model="selectedFormulaTemplateId"
+              :options="formulaTemplateOptions"
+              placeholder="选择模板快速配置"
+              clearable
+              size="small"
+              style="width: 220px"
+              @change="handleFormulaTemplateChange"
+            />
+          </div>
+
           <div v-if="selectedFile && !aiStore.parseLoading && !aiStore.parseResult && !aiStore.parseAborted"
             class="file-selected-row">
             <div class="file-info">
@@ -489,6 +511,15 @@
                       <t-icon name="delete" />
                       清空
                     </button>
+                    <button type="button" class="action-btn action-btn--ghost action-btn--save-template" @click.stop="showSaveFormulaTemplateDialog">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z" />
+                        <polyline points="17 21 17 13 7 13 7 21" />
+                        <polyline points="7 3 7 8 15 8" />
+                      </svg>
+                      保存为模板
+                    </button>
                     <t-dropdown trigger="hover"
                       :popup-props="{ appendToBody: true, placement: 'bottom-right', overlayClassName: 'reparse-dropdown-popup' }">
                       <button type="button" class="action-btn action-btn--ghost action-btn--reparse" @click.stop>
@@ -676,11 +707,54 @@
         <code>AI_DEEPSEEK_API_KEY</code>
       </template>
     </t-alert>
+
+    <t-dialog v-model:visible="saveFormulaTemplateDialogVisible" :attach="'body'" width="480px"
+      :confirm-btn="{ content: '保存', theme: 'primary', loading: saveFormulaTemplateLoading }"
+      :cancel-btn="{ content: '取消' }" @confirm="handleSaveFormulaTemplate">
+      <template #header>
+        <div class="save-template-dialog-header">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z" />
+            <polyline points="17 21 17 13 7 13 7 21" />
+            <polyline points="7 3 7 8 15 8" />
+          </svg>
+          保存为解析模板
+        </div>
+      </template>
+      <div class="save-template-form">
+        <div class="form-field">
+          <label class="form-label">模板名称 <span class="required">*</span></label>
+          <t-input v-model="saveFormulaTemplateForm.name" placeholder="如：配方文件模板" :maxlength="30" />
+        </div>
+        <div class="form-field">
+          <label class="form-label">分类</label>
+          <t-select v-model="saveFormulaTemplateForm.category"
+            :options="[
+              { label: '配方文件', value: 'formula' },
+              { label: '营养数据', value: 'nutrition' },
+              { label: '通用', value: 'general' },
+            ]" />
+        </div>
+        <div class="form-field">
+          <label class="form-label">默认模型</label>
+          <t-select v-model="saveFormulaTemplateForm.defaultProvider"
+            :options="aiStore.models.map((m: any) => ({ label: m.name, value: m.provider }))"
+            clearable placeholder="跟随全局设置" />
+        </div>
+        <div class="form-field">
+          <label class="form-label">自定义提示词</label>
+          <t-textarea v-model="saveFormulaTemplateForm.customPrompt"
+            placeholder="如：此文件为配方表，包含配方名称、原料组成..."
+            :maxlength="500" :autosize="{ minRows: 2, maxRows: 4 }" />
+        </div>
+      </div>
+    </t-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue';
+import { ref, reactive, computed, watch, nextTick, onMounted, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useAiStore } from '@/stores/ai';
 import { useFormulaStore } from '@/stores/formula';
@@ -693,6 +767,7 @@ import type { FormulaForm } from '@/api/formula';
 import type { Salesman } from '@/api/salesman';
 import { salesmanApi } from '@/api/salesman';
 import { fileApi } from '@/api/file';
+import { parseTemplateApi, type ParseTemplate } from '@/api/parseTemplate';
 
 const emit = defineEmits<{
   (e: 'activity-add', item: { type: 'success' | 'info' | 'warning'; title: string; desc: string; time: string; }): void;
@@ -756,7 +831,76 @@ onMounted(() => {
   if (aiStore.selectedModel && aiStore.modelVersions.length === 0) {
     aiStore.loadModelVersions(aiStore.selectedModel);
   }
+  fetchFormulaTemplates();
 });
+
+const formulaTemplateList = ref<ParseTemplate[]>([]);
+const selectedFormulaTemplateId = ref<string | undefined>(undefined);
+const saveFormulaTemplateDialogVisible = ref(false);
+const saveFormulaTemplateLoading = ref(false);
+const saveFormulaTemplateForm = reactive({
+  name: '',
+  category: 'formula' as 'formula' | 'nutrition' | 'general',
+  defaultProvider: undefined as string | undefined,
+  customPrompt: '',
+});
+
+const formulaTemplateOptions = computed(() => {
+  return formulaTemplateList.value.map(t => ({
+    label: t.name + (t.isPreset ? ' (预设)' : ''),
+    value: t.id,
+  }));
+});
+
+const fetchFormulaTemplates = async () => {
+  try {
+    const res = await parseTemplateApi.getList({ category: 'formula', pageSize: 100 });
+    formulaTemplateList.value = res.list || [];
+  } catch {}
+};
+
+const handleFormulaTemplateChange = (value: string | undefined) => {
+  if (!value) return;
+  const template = formulaTemplateList.value.find(t => t.id === value);
+  if (!template) return;
+  if (template.defaultProvider) {
+    aiStore.selectedModel = template.defaultProvider;
+    aiStore.loadModelVersions(template.defaultProvider);
+  }
+  selectedFormulaTemplateId.value = value;
+};
+
+const showSaveFormulaTemplateDialog = () => {
+  saveFormulaTemplateForm.name = '';
+  saveFormulaTemplateForm.category = 'formula';
+  saveFormulaTemplateForm.defaultProvider = aiStore.selectedModel || undefined;
+  saveFormulaTemplateForm.customPrompt = '';
+  saveFormulaTemplateDialogVisible.value = true;
+};
+
+const handleSaveFormulaTemplate = async () => {
+  if (!saveFormulaTemplateForm.name.trim()) {
+    MessagePlugin.warning('请输入模板名称');
+    return;
+  }
+  saveFormulaTemplateLoading.value = true;
+  try {
+    await parseTemplateApi.create({
+      name: saveFormulaTemplateForm.name.trim(),
+      category: saveFormulaTemplateForm.category,
+      defaultProvider: saveFormulaTemplateForm.defaultProvider || null,
+      defaultModel: null,
+      customPrompt: saveFormulaTemplateForm.customPrompt || null,
+    });
+    MessagePlugin.success('模板保存成功');
+    saveFormulaTemplateDialogVisible.value = false;
+    await fetchFormulaTemplates();
+  } catch (err: any) {
+    MessagePlugin.error(err?.message || '保存模板失败');
+  } finally {
+    saveFormulaTemplateLoading.value = false;
+  }
+};
 
 const IMAGE_EXTS = ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp'];
 
@@ -2110,6 +2254,27 @@ const goToFileDetail = () => {
       }
     }
 
+    .template-selector {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 12px;
+      padding: 10px 16px;
+      background: rgba(99, 102, 241, 0.04);
+      border: 1px solid rgba(99, 102, 241, 0.12);
+      border-radius: 12px;
+
+      .template-selector-label {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #6366f1;
+        white-space: nowrap;
+      }
+    }
+
     .file-selected-row {
       display: flex;
       align-items: center;
@@ -3221,6 +3386,27 @@ const goToFileDetail = () => {
         }
       }
     }
+
+    &--save-template {
+      min-width: 0;
+      background: #eef2ff;
+      border: 1px solid #c7d2fe;
+      color: #4f46e5;
+
+      svg {
+        color: #4f46e5;
+      }
+
+      &:hover {
+        background: #e0e7ff;
+        border-color: #a5b4fc;
+        color: #3730a3;
+
+        svg {
+          color: #3730a3;
+        }
+      }
+    }
   }
 }
 
@@ -3972,6 +4158,39 @@ const goToFileDetail = () => {
 
   100% {
     transform: translateX(350%);
+  }
+}
+
+.save-template-dialog-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.save-template-form {
+  padding: 8px 0;
+
+  .form-field {
+    margin-bottom: 16px;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  .form-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #334155;
+    margin-bottom: 6px;
+
+    .required {
+      color: #ef4444;
+    }
   }
 }
 </style>

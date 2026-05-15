@@ -499,6 +499,30 @@ function runAutoMigrations(dbInstance: Database.Database) {
   `,
   );
 
+  ensureTable(
+    dbInstance,
+    "parse_templates",
+    `
+    CREATE TABLE parse_templates (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      category TEXT NOT NULL DEFAULT 'nutrition' CHECK(category IN ('formula', 'nutrition', 'general')),
+      default_provider TEXT DEFAULT NULL,
+      default_model TEXT DEFAULT NULL,
+      custom_prompt TEXT DEFAULT NULL,
+      field_mapping TEXT DEFAULT '{}',
+      validation_rules TEXT DEFAULT '{}',
+      is_preset INTEGER NOT NULL DEFAULT 0,
+      is_active INTEGER NOT NULL DEFAULT 1,
+      created_by TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+    CREATE INDEX IF NOT EXISTS idx_pt_category ON parse_templates(category);
+    CREATE INDEX IF NOT EXISTS idx_pt_created_by ON parse_templates(created_by)
+    `,
+  );
+
   ensureInitialAiModels(dbInstance);
 }
 

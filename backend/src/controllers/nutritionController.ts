@@ -899,8 +899,23 @@ export async function getFormulaNutritionTables(req: any, res: Response) {
       const hasNutrition = !!nutrition && nutrition.per_100g_json;
       const per100g = hasNutrition ? normalizePer100g(safeJsonParse(nutrition.per_100g_json, {})) : {};
 
+      const nutritionFieldLabels: Record<string, string> = {
+        energy: "能量",
+        protein: "蛋白质",
+        fat: "脂肪",
+        carbohydrate: "碳水化合物",
+        sodium: "钠",
+      };
+      const emptyNutritionFields: string[] = [];
       if (!hasNutrition || Object.keys(per100g).length === 0) {
         missingNutritionMaterials.push(mat.materialName || mat.materialId);
+        emptyNutritionFields.push(...Object.values(nutritionFieldLabels));
+      } else {
+        for (const [key, label] of Object.entries(nutritionFieldLabels)) {
+          if (per100g[key] === undefined || per100g[key] === null) {
+            emptyNutritionFields.push(label);
+          }
+        }
       }
 
       const quantity = mat.quantity || 0;
@@ -921,6 +936,7 @@ export async function getFormulaNutritionTables(req: any, res: Response) {
         carbohydrate: per100g.carbohydrate ?? 0,
         sodium: per100g.sodium ?? 0,
         hasEmptyNutrition: !hasNutrition || Object.keys(per100g).length === 0,
+        emptyNutritionFields,
       };
       calcRows.push(row);
 

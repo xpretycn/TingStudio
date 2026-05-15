@@ -1131,3 +1131,146 @@ export async function deleteModelApplication(req: Request, res: Response) {
     return res.status(500).json({ success: false, message: "删除失败", error: error.message });
   }
 }
+
+export async function getRecentActivity(req: Request, res: Response) {
+  try {
+    const db = getDb();
+    const limit = Math.min(parseInt(req.query.limit as string) || 20, 50);
+
+    const logs = db.prepare(
+      `SELECT id, provider, model, call_type, total_tokens, status, error_message, request_summary, created_at
+       FROM ai_usage_logs
+       ORDER BY created_at DESC
+       LIMIT ?`,
+    ).all(limit) as any[];
+
+    const alerts = db.prepare(
+      `SELECT id, provider, alert_type, level, threshold, current_value, created_at
+       FROM ai_alert_records
+       ORDER BY created_at DESC
+       LIMIT ?`,
+    ).all(limit) as any[];
+
+    const modelNameMap: Record<string, string> = {};
+    const models = db.prepare("SELECT provider, name FROM ai_models").all() as any[];
+    for (const m of models) {
+      modelNameMap[m.provider] = m.name;
+    }
+
+    const items: any[] = [];
+
+    for (const log of logs) {
+      const name = modelNameMap[log.provider] || log.provider;
+      if (log.status === "success") {
+        items.push({
+          type: "success",
+          title: `${name} 调用成功`,
+          desc: `${log.call_type} · ${log.total_tokens} tokens${log.request_summary ? ' · ' + log.request_summary : ''}`,
+          time: log.created_at,
+          provider: log.provider,
+        });
+      } else {
+        items.push({
+          type: "error",
+          title: `${name} 调用失败`,
+          desc: log.error_message || `${log.call_type} 请求异常`,
+          time: log.created_at,
+          provider: log.provider,
+        });
+      }
+    }
+
+    for (const alert of alerts) {
+      const name = modelNameMap[alert.provider] || alert.provider;
+      items.push({
+        type: alert.level === "critical" ? "error" : "warning",
+        title: `${name} ${alert.alert_type === "monthly_token" ? "月Token" : "日调用"}预警`,
+        desc: `阈值 ${alert.threshold}${alert.alert_type === "monthly_token" ? " tokens" : " 次"}，当前 ${alert.current_value}${alert.alert_type === "monthly_token" ? " tokens" : " 次"}`,
+        time: alert.created_at,
+        provider: alert.provider,
+      });
+    }
+
+    items.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
+
+    res.json({ success: true, data: { items: items.slice(0, limit) } });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+}
+
+const SMART_TOOL_CALL_TYPES = ["parse_formula", "parse_nutrition", "natural_search"];
+
+const CALL_TYPE_LABELS: Record<string, string> = {
+  parse_formula: "智能填单",
+  parse_nutrition: "智能导入",
+  natural_search: "智能查询",
+};
+
+export async function getSmartToolHistory(req: Request, res: Response) {
+  try {
+    const db = getDb();
+    const page = Math.max(parseInt(req.query.page as string) || 1, 1);
+    const pageSize = Math.min(Math.max(parseInt(req.query.pageSize as string) || 20, 1), 100);
+    const offset = (page - 1) * pageSize;
+    const callType = req.query.callType as string | undefined;
+
+    let whereClause = `WHERE call_type IN (${SMART_TOOL_CALL_TYPES.map(() => "?").join(", ")})`;
+    const params: any[] = [...SMART_TOOL_CALL_TYPES];
+
+    if (callType && SMART_TOOL_CALL_TYPES.includes(callType)) {
+      whereClause += " AND call_type = ?";
+      params.push(callType);
+    }
+
+    const totalResult = db.prepare(
+      `SELECT COUNT(*) as total FROM ai_usage_logs ${whereClause}`,
+    ).get(...params) as any;
+
+    const logs = db.prepare(
+      `SELECT id, provider, model, call_type, total_tokens, latency_ms, status, error_message, request_summary, created_at
+       FROM ai_usage_logs ${whereClause}
+       ORDER BY created_at DESC
+       LIMIT ? OFFSET ?`,
+    ).all(...params, pageSize, offset) as any[];
+
+    const modelNameMap: Record<string, string> = {};
+    const models = db.prepare("SELECT provider, name FROM ai_models").all() as any[];
+    for (const m of models) {
+      modelNameMap[m.provider] = m.name;
+    }
+
+    const items = logs.map((log) => {
+      const modelName = modelNameMap[log.provider] || log.provider;
+      const toolLabel = CALL_TYPE_LABELS[log.call_type] || log.call_type;
+      return {
+        id: log.id,
+        callType: log.call_type,
+        toolLabel,
+        provider: log.provider,
+        modelName,
+        totalTokens: log.total_tokens,
+        latencyMs: log.latency_ms,
+        status: log.status,
+        errorMessage: log.error_message,
+        requestSummary: log.request_summary,
+        createdAt: log.created_at,
+      };
+    });
+
+    res.json({
+      success: true,
+      data: {
+        list: items,
+        pagination: {
+          page,
+          pageSize,
+          total: totalResult.total,
+          totalPages: Math.ceil(totalResult.total / pageSize),
+        },
+      },
+    });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+}

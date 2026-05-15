@@ -103,9 +103,11 @@ export const useModelStore = defineStore("model", () => {
     }
   };
 
-  const updateAlertConfig = async (id: string, data: Parameters<typeof modelApi.updateAlertConfig>[1]) => {
+  const updateAlertConfig = async (id: string, data: Parameters<typeof modelApi.updateAlertConfig>[1], skipRefresh = false) => {
     const res = await modelApi.updateAlertConfig(id, data);
-    await fetchAlertConfigs();
+    if (!skipRefresh) {
+      await fetchAlertConfigs();
+    }
     return res;
   };
 

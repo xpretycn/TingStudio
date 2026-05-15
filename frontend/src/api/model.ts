@@ -118,6 +118,14 @@ export interface HealthHistoryItem {
   avg_latency_ms: number;
 }
 
+export interface ActivityItem {
+  type: "success" | "warning" | "error" | "info";
+  title: string;
+  desc: string;
+  time: string;
+  provider?: string;
+}
+
 export const modelApi = {
   getModels() {
     return http.get<any, ModelListResponse>("/ai/models-manage");
@@ -248,5 +256,13 @@ export const modelApi = {
     return http.get<any, { provider: string; history: HealthHistoryItem[] }>(`/ai/health/${provider}/history`, {
       params: { days },
     });
+  },
+
+  getRecentActivity(limit?: number) {
+    return http.get<any, { items: ActivityItem[] }>("/ai/recent-activity", { params: { limit } });
+  },
+
+  getSmartToolHistory(params?: { page?: number; pageSize?: number; callType?: string }) {
+    return http.get<any, any>("/ai/smart-tool-history", { params });
   },
 };

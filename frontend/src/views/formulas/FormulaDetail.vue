@@ -278,9 +278,14 @@
               </template>
               <template #name="{ row }">
                 <span v-if="row._isEmpty">&nbsp;</span>
-                <span v-else :class="{ 'missing-nutrition': row.hasEmptyNutrition }">
+                <span v-else :class="{ 'missing-nutrition': row.hasEmptyNutrition, 'partial-nutrition': !row.hasEmptyNutrition && row.emptyNutritionFields?.length }">
                   {{ row.name }}
-                  <t-icon v-if="row.hasEmptyNutrition" name="error-circle" class="missing-nutrition-icon" />
+                  <t-tooltip v-if="row.hasEmptyNutrition" :content="'缺失营养数据：' + (row.emptyNutritionFields || []).join('、')">
+                    <t-icon name="error-circle" class="missing-nutrition-icon" />
+                  </t-tooltip>
+                  <t-tooltip v-else-if="row.emptyNutritionFields?.length" :content="'部分营养数据缺失：' + row.emptyNutritionFields.join('、')">
+                    <t-icon name="info-circle" class="partial-nutrition-icon" />
+                  </t-tooltip>
                 </span>
               </template>
             </t-table>
@@ -1777,6 +1782,15 @@ watch(() => route.params.id, (newId) => {
 
     .missing-nutrition-icon {
       color: #f97316;
+      margin-left: 4px;
+    }
+
+    .partial-nutrition {
+      color: #8b8b8b;
+    }
+
+    .partial-nutrition-icon {
+      color: #a78bfa;
       margin-left: 4px;
     }
 

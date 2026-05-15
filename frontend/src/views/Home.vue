@@ -218,19 +218,6 @@
 
       <!-- 系统版本信息（hover整体滑出式） -->
       <div class="version-trigger-wrapper" @mouseenter="showVersionCard = true" @mouseleave="showVersionCard = false">
-        <div class="sidebar-welcome-card">
-          <div class="welcome-card-inner">
-            <div class="welcome-card-left">
-              <p class="version-label">系统版本</p>
-              <p class="version-text">v2.4.5 企业版</p>
-            </div>
-            <svg class="welcome-decor-icon" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-              stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
-              <path
-                d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
-            </svg>
-          </div>
-        </div>
         <button class="version-trigger-btn" :class="{ active: showVersionCard }" title="系统版本">
           <svg class="version-cat-logo" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
             <circle cx="30" cy="32" r="20" fill="#FFE8D6" />
@@ -246,6 +233,19 @@
             <ellipse cx="40" cy="36" rx="4" ry="2.5" fill="#FFB5C2" opacity="0.35" />
           </svg>
         </button>
+        <div class="sidebar-welcome-card">
+          <div class="welcome-card-inner">
+            <div class="welcome-card-left">
+              <p class="version-label">系统版本</p>
+              <p class="version-text">v2.4.5 企业版</p>
+            </div>
+            <svg class="welcome-decor-icon" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
+              <path
+                d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
+            </svg>
+          </div>
+        </div>
       </div>
     </aside>
 
@@ -1023,7 +1023,8 @@ onMounted(() => {
   background: $bg-container;
   border-radius: 0;
   position: relative;
-  overflow: hidden;
+  overflow: visible;
+  z-index: 2;
   border-right: 1px solid #F1F5F9; // slate-100 — 匹配参考设计 aside 右边框
   box-shadow: $shadow-elevation-1;
   transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
@@ -1041,6 +1042,7 @@ onMounted(() => {
 .sidebar-top {
   flex-shrink: 0;
   padding: 16px 14px 12px;
+  overflow: hidden;
 }
 
 // Logo
@@ -1210,12 +1212,12 @@ onMounted(() => {
 
 // ─── 系统版本信息（hover整体滑出式）───
 .version-trigger-wrapper {
-  position: relative;
-  flex-shrink: 0;
-  margin: 0 -14px 16px;
+  position: absolute;
+  bottom: 12px;
+  left: 14px;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: flex-start;
   overflow: hidden;
   width: 36px;
   transition: width 1.2s cubic-bezier(0.22, 1, 0.36, 1);
@@ -1274,7 +1276,7 @@ onMounted(() => {
   position: relative;
   overflow: hidden;
   flex-shrink: 0;
-  margin-right: 8px;
+  margin-left: 8px;
   white-space: nowrap;
 
   &::before {
@@ -1372,7 +1374,7 @@ onMounted(() => {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding: 8px 14px;
+  padding: 8px 14px 48px;
 
   &,
   * {
@@ -2173,7 +2175,7 @@ onMounted(() => {
   }
 
   .sidebar-nav {
-    padding: 8px 10px;
+    padding: 8px 10px 48px;
 
     .nav-content {
       .nav-item {
@@ -2216,6 +2218,11 @@ onMounted(() => {
         }
       }
     }
+  }
+
+  .version-trigger-wrapper {
+    left: 50%;
+    transform: translateX(-50%);
   }
 }
 

@@ -35,13 +35,6 @@
 
       <div class="mm-body">
         <div class="mm-nav" :class="{ 'mm-nav--collapsed': navCollapsed }">
-          <div v-for="tab in tabs" :key="tab.value" class="nav-tab" :class="{ active: activeTab === tab.value }"
-            :title="navCollapsed ? tab.label : ''" role="tab" tabindex="0" @click="activeTab = tab.value"
-            @keydown.enter="activeTab = tab.value">
-            <svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-              stroke-linecap="round" stroke-linejoin="round" v-html="tab.iconPath"></svg>
-            <span class="nav-tab-label">{{ tab.label }}</span>
-          </div>
           <button type="button" class="nav-collapse-btn" @click="navCollapsed = !navCollapsed"
             :title="navCollapsed ? '展开导航' : '折叠导航'" aria-label="切换导航折叠状态">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -50,6 +43,13 @@
               <polyline points="15 18 9 12 15 6" />
             </svg>
           </button>
+          <div v-for="tab in tabs" :key="tab.value" class="nav-tab" :class="{ active: activeTab === tab.value }"
+            :title="navCollapsed ? tab.label : ''" role="tab" tabindex="0" @click="activeTab = tab.value"
+            @keydown.enter="activeTab = tab.value">
+            <svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round" v-html="tab.iconPath"></svg>
+            <span class="nav-tab-label">{{ tab.label }}</span>
+          </div>
         </div>
 
         <div class="mm-content">
@@ -392,7 +392,7 @@
                       <span class="field-label">日调用上限</span>
                       <div class="field-input-with-unit">
                         <t-input-number v-model="config.daily_call_limit" :disabled="!isAdmin" size="small" :min="0"
-                          :step="100" theme="normal" @change="() => handleAlertConfigChange(config)" />
+                          :step="100" theme="normal" @change="() => scheduleAlertConfigSave(config)" />
                         <span class="field-unit">次/日</span>
                       </div>
                     </div>
@@ -400,25 +400,28 @@
                       <span class="field-label">月Token上限</span>
                       <div class="field-input-with-unit">
                         <t-input-number v-model="config.monthly_token_limit" :disabled="!isAdmin" size="small" :min="0"
-                          :step="100000" theme="normal" @change="() => handleAlertConfigChange(config)" />
+                          :step="100000" theme="normal" @change="() => scheduleAlertConfigSave(config)" />
                         <span class="field-unit">Token/月</span>
+                        <span v-if="config.monthly_token_limit >= 10000" class="field-hint">{{ formatTokenInput(config.monthly_token_limit) }}</span>
                       </div>
                     </div>
                     <div class="alert-config-field">
                       <span class="field-label">预警阈值</span>
                       <div class="field-input-with-unit">
                         <t-input-number v-model="config.warning_threshold" :disabled="!isAdmin" size="small" :min="1"
-                          :max="100" theme="normal" @change="() => handleAlertConfigChange(config)" />
+                          :max="100" theme="normal" @change="() => scheduleAlertConfigSave(config)" />
                         <span class="field-unit">%</span>
                       </div>
+                      <div v-if="config.monthly_token_limit > 0 && config.warning_threshold > 0" class="field-computed-hint">≈ {{ formatTokenInput(Math.round(config.monthly_token_limit * config.warning_threshold / 100)) }} Token</div>
                     </div>
                     <div class="alert-config-field">
                       <span class="field-label">严重阈值</span>
                       <div class="field-input-with-unit">
                         <t-input-number v-model="config.critical_threshold" :disabled="!isAdmin" size="small" :min="1"
-                          :max="100" theme="normal" @change="() => handleAlertConfigChange(config)" />
+                          :max="100" theme="normal" @change="() => scheduleAlertConfigSave(config)" />
                         <span class="field-unit">%</span>
                       </div>
+                      <div v-if="config.monthly_token_limit > 0 && config.critical_threshold > 0" class="field-computed-hint">≈ {{ formatTokenInput(Math.round(config.monthly_token_limit * config.critical_threshold / 100)) }} Token</div>
                     </div>
                   </div>
                 </div>
@@ -434,8 +437,24 @@
                   </svg>
                   <h4 class="section-title-text">预警记录</h4>
                 </div>
+                <div v-if="modelStore.alertRecords.length > 0" class="activity-nav">
+                  <button class="activity-nav-btn" :disabled="alertRecordPage <= 1" @click="alertRecordPrev" title="上一页">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                      stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="15 18 9 12 15 6" />
+                    </svg>
+                  </button>
+                  <span class="activity-nav-page">{{ alertRecordPage }} / {{ alertRecordTotalPages }}</span>
+                  <button class="activity-nav-btn" :disabled="alertRecordPage >= alertRecordTotalPages" @click="alertRecordNext"
+                    title="下一页">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                      stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="9 18 15 12 9 6" />
+                    </svg>
+                  </button>
+                </div>
               </div>
-              <t-table v-if="modelStore.alertRecords.length > 0" :data="modelStore.alertRecords"
+              <t-table v-if="modelStore.alertRecords.length > 0" :data="pagedAlertRecords"
                 :columns="alertRecordColumns" size="small" row-key="id" />
               <div v-else class="data-empty">
                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="1.5"
@@ -1109,7 +1128,13 @@
               <span class="timeline-dot-inner"></span>
             </div>
             <div class="timeline-content">
-              <p class="timeline-title">{{ item.title }}</p>
+              <p class="timeline-title">
+                <template v-if="item.provider">
+                  <img :src="getModelLogo(item.provider)" :alt="item.provider" class="timeline-model-logo"
+                    @error="(e: Event) => handleLogoError(e)" />
+                </template>
+                {{ item.title }}
+              </p>
               <p class="timeline-desc">{{ item.desc }}</p>
               <span class="timeline-time">{{ item.time }}</span>
             </div>
@@ -1149,7 +1174,7 @@ import { MessagePlugin } from "tdesign-vue-next";
 import { useModelStore } from "@/stores/model";
 import { useAuthStore } from "@/stores/auth";
 import { useFloatAgentStore } from "@/stores/floatAgent";
-import type { ModelItem, AlertConfigItem } from "@/api/model";
+import type { ModelItem, AlertConfigItem, ActivityItem } from "@/api/model";
 import { modelApi, type ModelVersionOption } from "@/api/model";
 import { agentApi } from "@/api/agent";
 import * as echarts from "echarts";
@@ -1388,26 +1413,39 @@ const fetchUsageWithMinLoading = async (showLoading = true) => {
   }
 };
 
-interface ActivityItem { type: 'success' | 'info' | 'warning'; title: string; desc: string; time: string; }
 const ACTIVITY_PAGE_SIZE = 4;
 const activityPage = ref(1);
+const recentActivityItems = ref<ActivityItem[]>([]);
+
+async function fetchRecentActivity() {
+  try {
+    const res = await modelApi.getRecentActivity(20);
+    recentActivityItems.value = res.items || [];
+  } catch {
+    recentActivityItems.value = [];
+  }
+}
+
+function formatRelativeTime(timeStr: string): string {
+  if (!timeStr) return '';
+  const now = Date.now();
+  const then = new Date(timeStr).getTime();
+  const diff = now - then;
+  if (diff < 60000) return '刚刚';
+  if (diff < 3600000) return `${Math.floor(diff / 60000)} 分钟前`;
+  if (diff < 86400000) return `${Math.floor(diff / 3600000)} 小时前`;
+  if (diff < 604800000) return `${Math.floor(diff / 86400000)} 天前`;
+  return timeStr.slice(0, 16).replace('T', ' ');
+}
 
 const allActivityItems = computed<ActivityItem[]>(() => {
-  const items: ActivityItem[] = [];
-  modelStore.models.forEach(m => {
-    if (m.healthStatus === 'healthy') {
-      items.push({ type: 'success', title: `${m.name} 连通正常`, desc: `模型健康检测通过，服务可用`, time: '刚刚' });
-    } else if (m.healthStatus === 'unhealthy') {
-      items.push({ type: 'warning', title: `${m.name} 连通异常`, desc: `模型健康检测失败，请检查配置`, time: '刚刚' });
-    }
-  });
-  if (modelStore.alertRecords.length > 0) {
-    items.push({ type: 'warning', title: '预警触发', desc: `共 ${modelStore.alertRecords.length} 条预警记录`, time: '1小时前' });
+  if (recentActivityItems.value.length === 0) {
+    return [{ type: 'info' as const, title: '暂无动态', desc: '模型调用和预警记录将在此显示', time: '' }];
   }
-  if (items.length === 0) {
-    items.push({ type: 'info', title: '等待操作', desc: '模型管理操作将在此显示动态记录', time: '' });
-  }
-  return items;
+  return recentActivityItems.value.map(item => ({
+    ...item,
+    time: formatRelativeTime(item.time),
+  }));
 });
 
 const activityTotalPages = computed(() => Math.max(1, Math.ceil(allActivityItems.value.length / ACTIVITY_PAGE_SIZE)));
@@ -1417,6 +1455,16 @@ const pagedActivityItems = computed(() => {
 });
 const activityPrev = () => { if (activityPage.value > 1) activityPage.value--; };
 const activityNext = () => { if (activityPage.value < activityTotalPages.value) activityPage.value++; };
+
+const ALERT_RECORD_PAGE_SIZE = 10;
+const alertRecordPage = ref(1);
+const alertRecordTotalPages = computed(() => Math.max(1, Math.ceil(modelStore.alertRecords.length / ALERT_RECORD_PAGE_SIZE)));
+const pagedAlertRecords = computed(() => {
+  const start = (alertRecordPage.value - 1) * ALERT_RECORD_PAGE_SIZE;
+  return modelStore.alertRecords.slice(start, start + ALERT_RECORD_PAGE_SIZE);
+});
+const alertRecordPrev = () => { if (alertRecordPage.value > 1) alertRecordPage.value--; };
+const alertRecordNext = () => { if (alertRecordPage.value < alertRecordTotalPages.value) alertRecordPage.value++; };
 
 const modelAssistantMessage = computed(() => {
   const models = modelStore.models.length;
@@ -1646,6 +1694,12 @@ function formatTokens(n: number) {
   return String(n);
 }
 
+function formatTokenInput(val: number): string {
+  if (val >= 100000000) return (val / 100000000).toFixed(2) + " 亿";
+  if (val >= 10000) return (val / 10000).toFixed(1) + " 万";
+  return val.toLocaleString();
+}
+
 async function handleVersionChange(model: ModelItem, newVersion: string) {
   try {
     await modelStore.updateModel(model.id, { model: newVersion });
@@ -1732,7 +1786,24 @@ async function handleEditModel() {
   }
 }
 
-async function handleAlertConfigChange(config: AlertConfigItem) {
+let alertConfigSaveTimer: ReturnType<typeof setTimeout> | null = null;
+const pendingAlertConfigIds = new Set<string>();
+
+function scheduleAlertConfigSave(config: AlertConfigItem) {
+  pendingAlertConfigIds.add(config.id);
+  if (alertConfigSaveTimer) clearTimeout(alertConfigSaveTimer);
+  alertConfigSaveTimer = setTimeout(async () => {
+    alertConfigSaveTimer = null;
+    const ids = [...pendingAlertConfigIds];
+    pendingAlertConfigIds.clear();
+    for (const id of ids) {
+      const cfg = modelStore.alertConfigs.find((c: AlertConfigItem) => c.id === id);
+      if (cfg) await handleAlertConfigSave(cfg);
+    }
+  }, 600);
+}
+
+async function handleAlertConfigSave(config: AlertConfigItem, skipRefresh = false) {
   try {
     await modelStore.updateAlertConfig(config.id, {
       dailyCallLimit: config.daily_call_limit,
@@ -1740,10 +1811,14 @@ async function handleAlertConfigChange(config: AlertConfigItem) {
       warningThreshold: config.warning_threshold,
       criticalThreshold: config.critical_threshold,
       enabled: !!config.enabled,
-    });
+    }, skipRefresh);
   } catch (err: any) {
     MessagePlugin.error(err.message || "更新预警配置失败");
   }
+}
+
+async function handleAlertConfigChange(config: AlertConfigItem) {
+  await handleAlertConfigSave(config, false);
 }
 
 async function handleUsageDateChange() {
@@ -1822,9 +1897,45 @@ const usageColumns = [
 ];
 
 const alertRecordColumns = [
-  { colKey: "model_name", title: "模型", width: 100 },
+  {
+    colKey: "model_name", title: "模型", width: 140, cell: (h: any, { row }: any) => {
+      const provider = row.provider || row.model_name || '';
+      const logoUrl = getModelLogo(provider);
+      return h('div', { style: 'display: flex; align-items: center; gap: 8px; flex-wrap: nowrap; white-space: nowrap; overflow: hidden; width: 100%;' }, [
+        h('div', { style: 'position: relative; width: 20px; height: 20px; min-width: 20px; flex-shrink: 0;' }, [
+          h('img', {
+            style: 'width: 100%; height: 100%; border-radius: 6px; object-fit: contain; display: block;',
+            src: logoUrl,
+            alt: provider,
+            onError: (e: Event) => {
+              const img = e.target as HTMLImageElement;
+              if (img) img.style.display = 'none';
+              const fallback = img.parentElement?.querySelector('.model-fallback-icon');
+              if (fallback) (fallback as HTMLElement).style.display = 'flex';
+            }
+          }),
+          h('span', {
+            class: 'model-fallback-icon',
+            style: `position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 10px; font-weight: 700; display: none; color: ${getFallbackColor(provider)};`
+          }, getFallbackLetter(provider))
+        ]),
+        h('span', { style: 'font-size: 13px; font-weight: 500; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 1;' }, row.model_name)
+      ]);
+    }
+  },
   { colKey: "alert_type", title: "类型", width: 100, cell: (_h: any, { row }: any) => row.alert_type === "daily_call" ? "日调用" : "月Token" },
-  { colKey: "level", title: "级别", width: 80, cell: (h: any, { row }: any) => h("t-tag", { props: { theme: row.level === "critical" ? "danger" : "warning", size: "small" } }, row.level === "critical" ? "严重" : "预警") },
+  {
+    colKey: "level", title: "级别", width: 80, cell: (h: any, { row }: any) => {
+      const isCritical = row.level === "critical";
+      const dotColor = isCritical ? '#EF4444' : '#F59E0B';
+      const tagTheme = isCritical ? "danger" : "warning";
+      const label = isCritical ? "严重" : "预警";
+      return h('div', { style: 'display: flex; align-items: center; gap: 6px;' }, [
+        h('span', { style: `width: 8px; height: 8px; border-radius: 50%; background: ${dotColor}; flex-shrink: 0; box-shadow: 0 0 4px ${dotColor}80;` }),
+        h("t-tag", { props: { theme: tagTheme, size: "small" } }, label)
+      ]);
+    }
+  },
   { colKey: "message", title: "消息", ellipsis: true },
   { colKey: "created_at", title: "时间", width: 160, cell: (_h: any, { row }: any) => formatDateTime(row.created_at) },
 ];
@@ -2060,6 +2171,7 @@ const startModelsRefresh = () => {
   modelsRefreshTimer = setInterval(async () => {
     if (activeTab.value === 'models') {
       await modelStore.fetchModels();
+      await fetchRecentActivity();
     }
   }, 60000);
 };
@@ -2289,6 +2401,7 @@ watch(activeTab, async (tab) => {
   } else if (tab === "applications") {
     await fetchModelApplications();
   } else if (tab === "alerts") {
+    alertRecordPage.value = 1;
     await modelStore.fetchAlertConfigs();
     await modelStore.fetchAlertRecords();
   } else if (tab === "logs") {
@@ -2304,6 +2417,12 @@ watch(logFilters, async () => {
   await modelStore.fetchUsageLogs({ page: 1, pageSize: logPageSize.value, ...logFilters.value });
 }, { deep: true });
 
+watch(() => modelStore.alertRecords.length, () => {
+  if (alertRecordPage.value > alertRecordTotalPages.value) {
+    alertRecordPage.value = Math.max(1, alertRecordTotalPages.value);
+  }
+});
+
 onMounted(async () => {
   await modelStore.fetchModels();
   startModelsRefresh();
@@ -2314,6 +2433,7 @@ onMounted(async () => {
   }
 
   await loadFloatConfig();
+  await fetchRecentActivity();
 
   resizeHandler = () => {
     trendChart?.resize();
@@ -2570,7 +2690,7 @@ $transition-normal: 0.25s ease;
     }
 
     .nav-collapse-btn {
-      margin: 0 auto;
+      margin: 0 auto 12px auto;
       width: 36px;
       height: 36px;
     }
@@ -2629,7 +2749,7 @@ $transition-normal: 0.25s ease;
     background: #fff;
     cursor: pointer;
     transition: all 0.2s ease;
-    margin-top: auto;
+    margin-bottom: 12px;
     color: #94a3b8;
 
     &:hover {
@@ -3309,6 +3429,19 @@ $transition-normal: 0.25s ease;
         white-space: nowrap;
         flex-shrink: 0;
       }
+
+      .field-hint {
+        font-size: 11px;
+        color: #94a3b8;
+        white-space: nowrap;
+        flex-shrink: 0;
+      }
+    }
+
+    .field-computed-hint {
+      font-size: 10px;
+      color: #94a3b8;
+      margin-top: 2px;
     }
   }
 }
@@ -3689,6 +3822,17 @@ $transition-normal: 0.25s ease;
       background: #f59e0b;
     }
   }
+
+  &--error {
+    border-color: #ef4444;
+
+    .timeline-dot-inner {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #ef4444;
+    }
+  }
 }
 
 .timeline-content {
@@ -3701,6 +3845,17 @@ $transition-normal: 0.25s ease;
   font-weight: 600;
   color: #1e293b;
   margin: 0 0 4px 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.timeline-model-logo {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  object-fit: contain;
+  flex-shrink: 0;
 }
 
 .timeline-desc {

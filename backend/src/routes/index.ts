@@ -15,6 +15,7 @@ import { reportRoutes } from "./reports.js";
 import { fileRoutes } from "./files.js";
 import { dashboardRoutes } from "./dashboard.js";
 import { agentRouter } from "./agent.js";
+import { parseTemplateRoutes } from "./parseTemplates.js";
 
 export function createAppRouter(): Router {
   const router = Router();
@@ -34,6 +35,7 @@ export function createAppRouter(): Router {
   router.use("/reports", reportRoutes);
   router.use("/files", fileRoutes);
   router.use("/dashboard", dashboardRoutes);
+  router.use("/parse-templates", parseTemplateRoutes);
 
   return router;
 }

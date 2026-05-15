@@ -1,31 +1,21 @@
 <template>
   <div class="smart-tools" :aria-busy="!initialized">
-    <section class="dashboard-grid">
-      <div v-for="(card, idx) in dashboardCards" :key="card.label" class="stat-card"
-        :class="{ 'stat-card--aborted': card.aborted }" :style="{ animationDelay: `${(idx + 1) * 0.1}s` }">
-        <div class="stat-card-top">
-          <div class="stat-icon" :style="{ background: card.iconBg, color: card.iconColor }">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-              stroke-linecap="round" stroke-linejoin="round" v-html="card.iconPath"></svg>
-          </div>
-          <span class="stat-badge" :style="{ color: card.badgeColor, background: card.badgeBg }">{{ card.badge }}</span>
-        </div>
-        <p class="stat-label">{{ card.label }}</p>
-        <p class="stat-value">{{ card.value }} <small class="stat-unit">{{ card.unit }}</small></p>
-      </div>
-    </section>
-
     <Transition name="content-fade" mode="out-in">
       <PageSkeleton v-if="!initialized" type="cards" :rows="3" />
       <t-card v-else class="content-card" bordered>
         <div class="data-center-toolbar">
           <div class="toolbar-left-section">
-            <div class="toolbar-title-section">
-              <h3 class="toolbar-title">
-                <t-icon name="ai-tool" size="22px" class="toolbar-title-icon" />
-                智能工具
-              </h3>
-              <p class="toolbar-subtitle">AI 驱动的配方解析与原料导入</p>
+            <h3 class="toolbar-title">
+              <t-icon name="ai-tool" size="22px" class="toolbar-title-icon" />
+              智能工具
+            </h3>
+            <div class="toolbar-tabs">
+              <button v-for="tab in tabs" :key="tab.value" type="button" class="toolbar-tab"
+                :class="{ active: activeTab === tab.value }" @click="activeTab = tab.value">
+                <svg class="toolbar-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" v-html="tab.iconPath"></svg>
+                <span>{{ tab.label }}</span>
+              </button>
             </div>
           </div>
           <div class="toolbar-right-section">
@@ -73,128 +63,41 @@
           </div>
         </div>
 
-        <div class="ai-body">
-          <div class="ai-nav" :class="{ 'ai-nav--collapsed': navCollapsed }">
-            <div v-for="tab in tabs" :key="tab.value" class="nav-tab" :class="{ active: activeTab === tab.value }"
-              :title="navCollapsed ? tab.label : ''" role="tab" tabindex="0" @click="activeTab = tab.value"
-              @keydown.enter="activeTab = tab.value">
-              <svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round" v-html="tab.iconPath"></svg>
-              <span class="nav-tab-label">{{ tab.label }}</span>
-            </div>
-            <button type="button" class="nav-collapse-btn" @click="toggleNavCollapse"
-              :title="navCollapsed ? '展开导航' : '折叠导航'" aria-label="切换导航折叠状态">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round"
-                :style="{ transform: navCollapsed ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s ease' }">
-                <polyline points="15 18 9 12 15 6" />
-              </svg>
-            </button>
+        <div class="ai-content">
+          <div v-show="activeTab === 'smart-form'" class="tab-panel">
+            <SmartFormTab @activity-add="addActivity" />
           </div>
 
-          <div class="ai-content">
-            <div v-show="activeTab === 'smart-form'" class="tab-panel">
-              <SmartFormTab @activity-add="addActivity" />
-            </div>
+          <div v-show="activeTab === 'smart-import'" class="tab-panel">
+            <SmartImportTab @activity-add="addActivity" />
+          </div>
 
-            <div v-show="activeTab === 'smart-import'" class="tab-panel">
-              <SmartImportTab @activity-add="addActivity" />
-            </div>
+          <div v-show="activeTab === 'smart-search'" class="tab-panel">
+            <SmartSearchTab />
+          </div>
+
+          <div v-show="activeTab === 'smart-history'" class="tab-panel">
+            <SmartHistoryTab />
           </div>
         </div>
       </t-card>
     </Transition>
-
-    <section class="activity-section">
-      <div class="activity-card activity-card--timeline">
-        <div class="activity-header">
-          <h4 class="activity-title">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"
-              stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-            </svg>
-            近期操作动态
-          </h4>
-          <div class="activity-nav">
-            <button class="activity-nav-btn" :disabled="activityPage <= 1" @click="activityPrev" title="上一页">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="15 18 9 12 15 6" />
-              </svg>
-            </button>
-            <span class="activity-nav-page">{{ activityPage }} / {{ activityTotalPages }}</span>
-            <button class="activity-nav-btn" :disabled="activityPage >= activityTotalPages" @click="activityNext"
-              title="下一页">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="9 18 15 12 9 6" />
-              </svg>
-            </button>
-          </div>
-        </div>
-        <div class="timeline-list">
-          <div v-for="(item, index) in pagedActivityItems" :key="index" class="timeline-item"
-            :class="{ 'timeline-item--last': index === pagedActivityItems.length - 1 }">
-            <div class="timeline-dot" :class="'timeline-dot--' + item.type">
-              <span class="timeline-dot-inner"></span>
-            </div>
-            <div class="timeline-content">
-              <p class="timeline-title">{{ item.title }}</p>
-              <p class="timeline-desc" v-html="item.desc"></p>
-              <span class="timeline-time">{{ item.time }}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="activity-card activity-card--assistant">
-        <div class="assistant-content">
-          <h4 class="assistant-title">智能工具中心</h4>
-          <p class="assistant-desc">{{ assistantMessage }}</p>
-          <button class="assistant-btn" @click="handleAssistantAction">
-            {{ assistantButtonText }}
-          </button>
-          <div class="assistant-footer">
-            <div class="assistant-avatar-group">
-              <span class="assistant-avatar">AI</span>
-              <span class="assistant-avatar">智</span>
-              <span class="assistant-avatar">能</span>
-            </div>
-            <span class="assistant-hint">{{ aiStore.models.length }} 个模型可用</span>
-          </div>
-        </div>
-        <svg class="assistant-bg-icon" width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-          stroke-width="1">
-          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
-          <polyline points="17 8 12 3 7 8" />
-          <line x1="12" y1="3" x2="12" y2="15" />
-        </svg>
-      </div>
-    </section>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useAiStore } from '@/stores/ai';
-import { modelApi } from '@/api/model';
 import { MessagePlugin } from 'tdesign-vue-next';
-import { useRouter } from 'vue-router';
 import PageSkeleton from '@/components/Skeleton/PageSkeleton.vue';
 import SmartFormTab from './tabs/SmartFormTab.vue';
 import SmartImportTab from './tabs/SmartImportTab.vue';
-
-const router = useRouter();
+import SmartSearchTab from './tabs/SmartSearchTab.vue';
+import SmartHistoryTab from './tabs/SmartHistoryTab.vue';
 
 const aiStore = useAiStore();
 
 const initialized = ref(false);
-
-const usageStats = ref<{
-  totalCalls: number;
-  todayTokens: number;
-  monthTokens: number;
-  totalTokens: number;
-} | null>(null);
 
 const tabs = [
   {
@@ -207,15 +110,20 @@ const tabs = [
     label: '智能导入',
     iconPath: '<path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>',
   },
+  {
+    value: 'smart-search',
+    label: '智能查询',
+    iconPath: '<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>',
+  },
+  {
+    value: 'smart-history',
+    label: '解析历史',
+    iconPath: '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
+  },
 ];
 const activeTab = ref('smart-form');
 
-const navCollapsed = ref(localStorage.getItem('smart-tools-nav-collapsed') === 'true');
-
-const toggleNavCollapse = () => {
-  navCollapsed.value = !navCollapsed.value;
-  localStorage.setItem('smart-tools-nav-collapsed', String(navCollapsed.value));
-};
+const addActivity = (_item: { type: string; title: string; desc: string; time: string; }) => {};
 
 const selectModel = (model: string) => {
   aiStore.selectedModel = model;
@@ -338,163 +246,11 @@ const handleLogoError = (e: Event) => {
   }
 };
 
-const dashboardCards = computed(() => {
-  const models = aiStore.models.length;
-  const hasResult = !!aiStore.parseResult;
-  const isAborted = aiStore.parseAborted || aiStore.materialParseAborted;
-  const isLoading = aiStore.parseLoading || aiStore.materialParseLoading;
-
-  const displayTokens = usageStats.value
-    ? usageStats.value.monthTokens
-    : (aiStore.parseResult?.usage?.totalTokens || 0) +
-    (aiStore.searchResult?.usage?.totalTokens || 0);
-
-  return [
-    {
-      label: '可用模型',
-      value: models.toString(),
-      unit: '个',
-      badge: models > 0 ? `${models} 个就绪` : '未配置',
-      badgeColor: models > 0 ? '#10B981' : '#EF4444',
-      badgeBg: models > 0 ? '#ECFDF5' : '#FEF2F2',
-      iconBg: '#EFF6FF',
-      iconColor: '#3B82F6',
-      iconPath: '<path d="M12 2L2 7L12 12L22 7L12 2Z"/><path d="M2 17L12 22L22 17" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 12L12 17L22 12" stroke-linecap="round" stroke-linejoin="round"/>',
-    },
-    {
-      label: '填单状态',
-      value: isAborted ? '已终止' : hasResult ? '已完成' : '待解析',
-      unit: '',
-      badge: isAborted ? '已终止' : isLoading ? '解析中...' : hasResult ? '成功' : '等待',
-      badgeColor: isAborted ? '#EF4444' : isLoading ? '#F59E0B' : hasResult ? '#10B981' : '#94A3B8',
-      badgeBg: isAborted ? '#FEF2F2' : isLoading ? '#FFFBEB' : hasResult ? '#ECFDF5' : '#F1F5F9',
-      iconBg: isAborted ? '#FEF2F2' : hasResult ? '#ECFDF5' : '#EFF6FF',
-      iconColor: isAborted ? '#EF4444' : hasResult ? '#10B981' : '#3B82F6',
-      iconPath: '<path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>',
-      aborted: isAborted,
-    },
-    {
-      label: '导入状态',
-      value: aiStore.materialParseResult ? '已完成' : '待导入',
-      unit: '',
-      badge: aiStore.materialParseLoading ? '导入中...' : aiStore.materialParseResult ? '完成' : '空闲',
-      badgeColor: aiStore.materialParseLoading ? '#F59E0B' : aiStore.materialParseResult ? '#10B981' : '#94A3B8',
-      badgeBg: aiStore.materialParseLoading ? '#FFFBEB' : aiStore.materialParseResult ? '#ECFDF5' : '#F1F5F9',
-      iconBg: aiStore.materialParseResult ? '#ECFDF5' : '#FAF5FF',
-      iconColor: aiStore.materialParseResult ? '#10B981' : '#A855F7',
-      iconPath: '<path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>',
-    },
-    {
-      label: 'Token 用量',
-      value: displayTokens > 0 ? displayTokens.toLocaleString() : '—',
-      unit: '',
-      badge: usageStats.value
-        ? `本月 ${displayTokens.toLocaleString()}`
-        : displayTokens > 0
-          ? `已消耗 ${displayTokens}`
-          : '暂无',
-      badgeColor: displayTokens > 0 ? '#F59E0B' : '#94A3B8',
-      badgeBg: displayTokens > 0 ? '#FFFBEB' : '#F1F5F9',
-      iconBg: '#FFFBEB',
-      iconColor: '#F59E0B',
-      iconPath: '<path d="M12 1v22M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>',
-    },
-  ];
-});
-
-interface ActivityItem { type: 'success' | 'info' | 'warning'; title: string; desc: string; time: string; }
-const ACTIVITY_PAGE_SIZE = 4;
-const activityPage = ref(1);
-const activityHistory = ref<ActivityItem[]>([]);
-
-const addActivity = (item: { type: string; title: string; desc: string; time: string; }) => {
-  const typedItem: ActivityItem = { ...item, type: (['success', 'info', 'warning'].includes(item.type) ? item.type : 'info') as ActivityItem['type'] };
-  activityHistory.value.unshift(typedItem);
-  if (activityHistory.value.length > 50) activityHistory.value = activityHistory.value.slice(0, 50);
-  activityPage.value = 1;
-};
-
-const allActivityItems = computed<ActivityItem[]>(() => {
-  if (activityHistory.value.length > 0) return activityHistory.value;
-  return [{
-    type: 'info',
-    title: '等待操作',
-    desc: '选择 AI 模型后，可以开始智能填单或智能导入功能',
-    time: '',
-  }];
-});
-
-const activityTotalPages = computed(() => Math.max(1, Math.ceil(allActivityItems.value.length / ACTIVITY_PAGE_SIZE)));
-const pagedActivityItems = computed(() => {
-  const start = (activityPage.value - 1) * ACTIVITY_PAGE_SIZE;
-  return allActivityItems.value.slice(start, start + ACTIVITY_PAGE_SIZE);
-});
-const activityPrev = () => { if (activityPage.value > 1) activityPage.value--; };
-const activityNext = () => { if (activityPage.value < activityTotalPages.value) activityPage.value++; };
-
-const assistantMessage = computed(() => {
-  const models = aiStore.models.length;
-  if (models === 0) return '尚未配置 AI 模型，请在工具栏选择或联系管理员配置。';
-  if (!aiStore.selectedModel) return `已配置 ${models} 个 AI 模型，请在上方选择一个模型开始使用。`;
-  return '选择左侧功能标签，开始智能填单或智能导入操作。';
-});
-
-const assistantButtonText = computed(() => {
-  return '前往 AI 助手';
-});
-
-const handleAssistantAction = () => {
-  router.push('/ai-assistant');
-};
-
-watch(() => aiStore.parseResult, (newVal, oldVal) => {
-  if (newVal && !oldVal && !aiStore.parseAborted) {
-    addActivity({
-      type: 'success',
-      title: '智能配方解析完成',
-      desc: `消耗 <strong>${newVal.usage?.totalTokens || 0}</strong> Token`,
-      time: new Date().toLocaleString('zh-CN'),
-    });
-  }
-});
-
-watch(() => aiStore.materialParseResult, (newVal, oldVal) => {
-  if (newVal && !oldVal) {
-    addActivity({
-      type: 'success',
-      title: '智能原料导入完成',
-      desc: `成功导入原料数据`,
-      time: new Date().toLocaleString('zh-CN'),
-    });
-  }
-});
-
-watch(() => aiStore.parseError, (newVal, oldVal) => {
-  if (newVal && newVal !== oldVal) {
-    addActivity({
-      type: 'warning',
-      title: '解析异常',
-      desc: `智能解析遇到错误：${newVal}`,
-      time: new Date().toLocaleString('zh-CN'),
-    });
-  }
-});
-
 onMounted(async () => {
   try {
     await aiStore.fetchModels();
     if (aiStore.selectedModel) {
       await loadModelVersionsWithLoading(aiStore.selectedModel);
-    }
-
-    const statsRes = await modelApi.getUsageStats();
-    if (statsRes.summary && statsRes.summary.length > 0) {
-      usageStats.value = {
-        totalCalls: statsRes.summary.reduce((sum, item) => sum + (item.total_calls || 0), 0),
-        todayTokens: statsRes.summary.reduce((sum, item) => sum + (item.today_tokens || 0), 0),
-        monthTokens: statsRes.summary.reduce((sum, item) => sum + (item.month_tokens || 0), 0),
-        totalTokens: statsRes.summary.reduce((sum, item) => sum + (item.total_tokens || 0), 0),
-      };
     }
   } catch (e) {
     console.error('[SmartTools] 初始化失败:', e);
@@ -510,86 +266,6 @@ onMounted(async () => {
 .smart-tools {
   padding-bottom: 24px;
 
-  .dashboard-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 24px;
-    margin-bottom: 30px;
-
-    .stat-card {
-      background: #fff;
-      padding: 24px;
-      border-radius: 24px;
-      border: 1px solid #fff;
-      box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
-      transition: all $transition-slow;
-      animation: dashboard-fade-in 0.5s ease forwards;
-      opacity: 0;
-
-      &:hover {
-        border-color: #DBEAFE;
-        transform: translateY(-2px);
-        box-shadow: 0 14px 36px -6px rgba(0, 0, 0, 0.08);
-      }
-
-      .stat-card-top {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        margin-bottom: 16px;
-      }
-
-      .stat-icon {
-        width: 48px;
-        height: 48px;
-        border-radius: 16px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-      }
-
-      .stat-badge {
-        font-size: 12px;
-        font-weight: 700;
-        padding: 2px 8px;
-        border-radius: 8px;
-        white-space: nowrap;
-      }
-
-      .stat-label {
-        font-size: 14px;
-        color: #94A3B8;
-        margin-bottom: 4px;
-      }
-
-      .stat-value {
-        font-size: 24px;
-        font-weight: 700;
-        color: #0F172A;
-        line-height: 1.2;
-
-        .stat-unit {
-          font-size: 14px;
-          font-weight: 400;
-          color: #94A3B8;
-        }
-      }
-
-      &--aborted {
-        margin-top: 12px;
-        border-color: rgba(239, 68, 68, 0.2);
-        box-shadow: 0 10px 30px -5px rgba(239, 68, 68, 0.1);
-        animation: aborted-pulse 0.5s ease-in-out, dashboard-fade-in 0.5s ease forwards;
-
-        &:hover {
-          border-color: rgba(239, 68, 68, 0.3);
-          box-shadow: 0 14px 36px -6px rgba(239, 68, 68, 0.15);
-        }
-      }
-    }
-  }
-
   .content-card {
     min-height: 500px;
     border-radius: 24px !important;
@@ -603,40 +279,74 @@ onMounted(async () => {
   }
 
   .data-center-toolbar {
-    padding: 28px 32px;
-    border-bottom: 1px solid #f8fafc;
+    padding: 20px 32px;
+    border-bottom: 1px solid #f1f5f9;
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
     align-items: center;
     gap: 16px;
-    position: relative;
-    min-height: 80px;
 
     .toolbar-left-section {
+      display: flex;
+      align-items: center;
+      gap: 24px;
       flex: 1;
-      min-width: 240px;
+      min-width: 0;
 
-      .toolbar-title-section {
-        .toolbar-title {
-          font-size: 20px;
-          font-weight: 700;
-          color: #1e293b;
-          margin: 0 0 4px 0;
-          display: flex;
+      .toolbar-title {
+        font-size: 20px;
+        font-weight: 700;
+        color: #1e293b;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        white-space: nowrap;
+        flex-shrink: 0;
+
+        .toolbar-title-icon {
+          color: #10B981;
+          flex-shrink: 0;
+        }
+      }
+
+      .toolbar-tabs {
+        display: flex;
+        gap: 6px;
+
+        .toolbar-tab {
+          display: inline-flex;
           align-items: center;
-          gap: 8px;
+          gap: 6px;
+          padding: 8px 18px;
+          border-radius: 10px;
+          border: 1px solid transparent;
+          background: transparent;
+          color: #64748b;
+          font-size: 14px;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all $transition-normal;
+          white-space: nowrap;
 
-          .toolbar-title-icon {
-            color: #10B981;
+          .toolbar-tab-icon {
+            width: 16px;
+            height: 16px;
             flex-shrink: 0;
           }
-        }
 
-        .toolbar-subtitle {
-          font-size: 14px;
-          color: #94a3b8;
-          margin: 0;
+          &:hover {
+            background: #f1f5f9;
+            color: #334155;
+          }
+
+          &.active {
+            background: linear-gradient(135deg, #10B981, #059669);
+            color: #fff;
+            box-shadow: 0 4px 12px $overlay-emerald-25;
+            font-weight: 600;
+          }
         }
       }
     }
@@ -645,6 +355,7 @@ onMounted(async () => {
       display: flex;
       align-items: center;
       gap: 12px;
+      flex-shrink: 0;
 
       .model-select-inline {
         .model-grid {
@@ -773,406 +484,13 @@ onMounted(async () => {
     }
   }
 
-  .ai-body {
-    display: flex;
-    gap: 0;
-    min-height: 480px;
-  }
-
-  .ai-nav {
-    width: 170px;
-    flex-shrink: 0;
-    padding: 24px 12px;
-    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), padding 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    display: flex;
-    flex-direction: column;
-    position: relative;
-
-    &--collapsed {
-      width: 56px;
-      padding: 24px 6px;
-
-      .nav-tab {
-        justify-content: center;
-        padding: 12px 0;
-
-        .nav-tab-icon {
-          width: 24px;
-          height: 24px;
-        }
-
-        .nav-tab-label {
-          display: none;
-        }
-      }
-
-      .nav-collapse-btn {
-        margin: 0 auto;
-        width: 36px;
-        height: 36px;
-      }
-    }
-
-    .nav-tab {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 12px 16px;
-      border-radius: 12px;
-      cursor: pointer;
-      transition: all $transition-normal;
-      color: #64748b;
-      font-size: 14px;
-      font-weight: 500;
-      border: 1px solid transparent;
-      margin-bottom: 8px;
-      white-space: nowrap;
-      overflow: hidden;
-
-      .nav-tab-icon {
-        width: 18px;
-        height: 18px;
-        flex-shrink: 0;
-        transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      }
-
-      &:hover {
-        background: #f1f5f9;
-        color: #334155;
-      }
-
-      &.active {
-        background: linear-gradient(135deg, #10B981, #059669);
-        color: white;
-        box-shadow: 0 4px 12px $overlay-emerald-25;
-        border-color: transparent;
-        font-weight: 600;
-      }
-
-      .nav-tab-label {
-        flex: 1;
-        transition: opacity 0.2s ease;
-      }
-    }
-
-    .nav-collapse-btn {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 32px;
-      height: 32px;
-      border-radius: 8px;
-      border: 1px solid #e2e8f0;
-      background: transparent;
-      color: #94a3b8;
-      cursor: pointer;
-      margin-top: 12px;
-      transition: all 0.2s;
-
-      &:hover {
-        background: #f1f5f9;
-        color: #334155;
-        border-color: #cbd5e1;
-      }
-    }
-  }
-
   .ai-content {
-    flex: 1;
-    min-width: 0;
     padding: 24px 28px;
+    min-height: 480px;
   }
 
   .tab-panel {
     animation: fadeInUp 0.35s cubic-bezier(0.4, 0, 0.2, 1) both;
-  }
-
-  .activity-section {
-    margin-top: 30px;
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 32px;
-
-    @media (min-width: 1024px) {
-      grid-template-columns: 2fr 1fr;
-    }
-  }
-
-  .activity-card {
-    background-color: #fff;
-    border-radius: 24px;
-    padding: 32px;
-    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
-    border: 1px solid #f8fafc;
-
-    &--assistant {
-      background: linear-gradient(135deg, #10B981, #059669);
-      border: none;
-      color: #fff;
-      position: relative;
-      overflow: hidden;
-      box-shadow: 0 20px 25px -5px $overlay-emerald-15, 0 10px 10px -5px $overlay-emerald-04;
-    }
-  }
-
-  .activity-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 24px;
-  }
-
-  .activity-title {
-    font-size: 17px;
-    font-weight: 700;
-    color: #1e293b;
-    margin: 0;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .activity-nav {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .activity-nav-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 28px;
-    height: 28px;
-    border-radius: 8px;
-    border: none;
-    background: #f1f5f9;
-    color: #64748b;
-    cursor: pointer;
-    transition: all $transition-fast;
-
-    &:hover:not(:disabled) {
-      background: #e2e8f0;
-      color: #334155;
-    }
-
-    &:disabled {
-      opacity: 0.4;
-      cursor: not-allowed;
-    }
-  }
-
-  .activity-nav-page {
-    font-size: 13px;
-    font-weight: 600;
-    color: #94a3b8;
-    min-width: 40px;
-    text-align: center;
-  }
-
-  .timeline-list {
-    position: relative;
-
-    &::before {
-      content: '';
-      position: absolute;
-      left: 11px;
-      top: 8px;
-      bottom: 8px;
-      width: 2px;
-      background: #e2e8f0;
-      border-radius: 1px;
-    }
-  }
-
-  .timeline-item {
-    display: flex;
-    gap: 16px;
-    position: relative;
-    padding-bottom: 20px;
-
-    &:last-child {
-      padding-bottom: 0;
-    }
-  }
-
-  .timeline-dot {
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    z-index: 1;
-    background: #fff;
-    border: 2px solid #e2e8f0;
-
-    &--success {
-      border-color: #10b981;
-
-      .timeline-dot-inner {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        background: #10b981;
-      }
-    }
-
-    &--info {
-      border-color: #3b82f6;
-
-      .timeline-dot-inner {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        background: #3b82f6;
-      }
-    }
-
-    &--warning {
-      border-color: #f59e0b;
-
-      .timeline-dot-inner {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        background: #f59e0b;
-      }
-    }
-  }
-
-  .timeline-content {
-    flex: 1;
-    min-width: 0;
-  }
-
-  .timeline-title {
-    font-size: 14px;
-    font-weight: 600;
-    color: #1e293b;
-    margin: 0 0 4px 0;
-  }
-
-  .timeline-desc {
-    font-size: 13px;
-    color: #64748b;
-    line-height: 1.5;
-    margin: 0 0 4px 0;
-
-    strong {
-      color: #334155;
-      font-weight: 600;
-    }
-  }
-
-  .timeline-time {
-    font-size: 12px;
-    color: #94a3b8;
-  }
-
-  .assistant-content {
-    position: relative;
-    z-index: 1;
-  }
-
-  .assistant-title {
-    font-size: 18px;
-    font-weight: 700;
-    margin: 0 0 8px 0;
-  }
-
-  .assistant-desc {
-    font-size: 14px;
-    opacity: 0.9;
-    line-height: 1.6;
-    margin: 0 0 20px 0;
-    min-height: 42px;
-  }
-
-  .assistant-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 10px 24px;
-    border-radius: 12px;
-    background: $overlay-white-20;
-    backdrop-filter: blur(10px);
-    border: 1px solid $overlay-white-30;
-    color: #fff;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all $transition-normal;
-
-    &:hover {
-      background: $overlay-white-30;
-      transform: translateY(-2px);
-    }
-  }
-
-  .assistant-footer {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-top: 24px;
-    padding-top: 16px;
-    border-top: 1px solid $overlay-white-15;
-  }
-
-  .assistant-avatar-group {
-    display: flex;
-    gap: 6px;
-  }
-
-  .assistant-avatar {
-    width: 30px;
-    height: 30px;
-    border-radius: 8px;
-    background: $overlay-white-20;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
-    font-weight: 700;
-    backdrop-filter: blur(4px);
-  }
-
-  .assistant-hint {
-    font-size: 12px;
-    opacity: 0.75;
-  }
-
-  .assistant-bg-icon {
-    position: absolute;
-    right: -10px;
-    bottom: -10px;
-    opacity: 0.08;
-    transform: rotate(-15deg);
-  }
-
-  @keyframes aborted-pulse {
-
-    0%,
-    100% {
-      transform: scale(1);
-    }
-
-    50% {
-      transform: scale(1.02);
-    }
-  }
-
-  @keyframes dashboard-fade-in {
-    from {
-      opacity: 0;
-      transform: translateY(12px);
-    }
-
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
   }
 
   @keyframes fadeInUp {

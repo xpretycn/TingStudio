@@ -517,6 +517,7 @@ import AgentFormRenderer from '@/components/AgentFormRenderer.vue';
 import { useAuthStore } from '@/stores/auth';
 import { useAgentStore } from '@/stores/agent';
 import { useModelStore } from '@/stores/model';
+import { useAiStore } from '@/stores/ai';
 import { agentApi } from '@/api/agent';
 
 const router = useRouter();
@@ -524,6 +525,7 @@ const route = useRoute();
 const authStore = useAuthStore();
 const agentStore = useAgentStore();
 const modelStore = useModelStore();
+const aiStore = useAiStore();
 
 const confirmDialogVisible = ref(false);
 const confirmMessage = ref('');
@@ -720,10 +722,16 @@ const streamingContent = ref('');
 const CONVERSATION_ID_KEY = 'tingstudio_agent_conversation_id';
 
 const conversationId = ref<string | null>(null);
-const showHistory = ref(true);
+const showHistory = ref(false);
 const sessions = ref<any[]>([]);
-const currentProvider = ref('deepseek');
-const currentModelVersion = ref('deepseek-v4-flash');
+const currentProvider = computed({
+  get: () => aiStore.selectedModel || 'deepseek',
+  set: (val: string) => { aiStore.selectedModel = val; },
+});
+const currentModelVersion = computed({
+  get: () => aiStore.selectedVersion || 'deepseek-v4-flash',
+  set: (val: string) => { aiStore.selectedVersion = val; },
+});
 const selectedFile = ref<File | null>(null);
 const showModelMenu = ref(false);
 const modelDropdownRef = ref<HTMLElement | null>(null);
@@ -936,7 +944,7 @@ const fetchAllModelVersions = async () => {
 
     const currentExists = allVersions.some(v => v.value === currentModelVersion.value);
     if (!currentExists && allVersions.length > 0) {
-      const defaultItem = allVersions.find(v => v.provider === 'deepseek') || allVersions[0];
+      const defaultItem = allVersions.find(v => v.provider === (aiStore.selectedModel || 'deepseek')) || allVersions[0];
       currentProvider.value = defaultItem.provider;
       currentModelVersion.value = defaultItem.value;
     }
@@ -952,10 +960,13 @@ const toggleModelMenu = () => {
   showModelMenu.value = !showModelMenu.value;
 };
 
-const selectModel = (m: ModelVersionItem) => {
+const selectModel = async (m: ModelVersionItem) => {
   currentProvider.value = m.provider;
   currentModelVersion.value = m.value;
   showModelMenu.value = false;
+  try {
+    await aiStore.loadModelVersions(m.provider);
+  } catch {}
 };
 
 const copyMessageContent = async (content: string) => {

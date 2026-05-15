@@ -2,6 +2,7 @@
 import { Router } from "express";
 import { authMiddleware } from "../middleware/auth.js";
 import multer from "multer";
+import { fixMulterOriginalname } from "../utils/helpers.js";
 import {
   parseFormula,
   parseMaterialNutrition,
@@ -31,6 +32,8 @@ import {
   updateModelApplication,
   patchModelApplication,
   deleteModelApplication,
+  getRecentActivity,
+  getSmartToolHistory,
 } from "../controllers/modelController.js";
 
 const router = Router();
@@ -41,6 +44,7 @@ function getUpload() {
     dest: uploadDir,
     limits: { fileSize: 10 * 1024 * 1024 },
     fileFilter: (_req, file, cb) => {
+      file.originalname = fixMulterOriginalname(file.originalname);
       const allowed = [
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         "application/vnd.ms-excel",
@@ -126,5 +130,8 @@ router.post("/model-applications", createModelApplication);
 router.put("/model-applications/:id", updateModelApplication);
 router.patch("/model-applications/:id", patchModelApplication);
 router.delete("/model-applications/:id", deleteModelApplication);
+
+router.get("/recent-activity", getRecentActivity);
+router.get("/smart-tool-history", getSmartToolHistory);
 
 export const aiRoutes = router;

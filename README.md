@@ -14,17 +14,23 @@ TingStudio 是一个专业的食品配方工作数据管理平台，面向食品
 |------|------|------|
 | **前端框架** | Vue 3 + TypeScript + Vite | Composition API + `<script setup>` |
 | **UI 组件库** | TDesign Vue Next (v1.9) | 企业级组件库 |
-| **状态管理** | Pinia | 模块化 Store |
+| **状态管理** | Pinia (17个 Store) | 模块化 Store |
 | **路由** | Vue Router 4 | 懒加载路由 |
 | **样式方案** | SCSS + Design Tokens | 模块化变量系统 + CSS 变量 |
 | **图表** | ECharts 6 | 数据可视化 |
 | **Markdown** | marked | 富文本渲染 |
+| **表单校验** | vee-validate + Yup | 声明式表单验证 |
+| **构建优化** | vite-plugin-compression | Gzip 压缩 |
 | **后端框架** | Express + TypeScript | ESM 模块 |
-| **数据库** | SQLite (better-sqlite3) | 本地文件数据库 |
+| **数据库** | SQLite (better-sqlite3) | 本地文件数据库，WAL 模式 |
 | **ORM** | 原生 SQL | 手写 + PRAGMA 优化 |
-| **认证** | JWT (jsonwebtoken) | Bearer Token |
+| **认证** | JWT (jsonwebtoken + bcryptjs) | Bearer Token |
 | **AI 对接** | DeepSeek / 通义千问 / 智谱GLM | SSE 流式 + 非流式 |
 | **文件解析** | xlsx + pdfkit + multer | Excel/PDF/图片解析 |
+| **安全** | Helmet + CORS + compression + rate-limit | 安全中间件组合 |
+| **定时任务** | node-cron | 会话清理等定时任务 |
+| **拼音处理** | pinyin-pro | 原料编码自动生成 |
+| **校验** | zod | 后端参数校验 |
 | **测试** | Vitest + Playwright + vue-test-utils | 单元 + E2E 测试 |
 
 ---
@@ -83,41 +89,59 @@ npm run seed               # 填充示例数据（可选）
 TingStudio/
 ├── backend/                          # 后端服务
 │   ├── src/
-│   │   ├── config/                   # 数据库配置、安全配置、限流
+│   │   ├── config/                   # 数据库配置、安全配置、限流、营养常量
 │   │   ├── controllers/              # 控制器层（14个模块）
 │   │   ├── middleware/               # 认证、错误处理、日志、校验
 │   │   ├── routes/                   # 路由定义（15+ Agent端点 + 20+ 其他端点）
 │   │   ├── services/                 # 业务逻辑层
 │   │   │   ├── ai/                   # AI 服务（Agent/LLM/意图引擎）
-│   │   │   │   └── agent/            # Agent 系统（工具注册/ReAct/提示词）
+│   │   │   │   └── agent/            # Agent 系统（12个模块）
+│   │   │   │       ├── agentController.ts      # Agent 主控制器
+│   │   │   │       ├── agentChatController.ts  # Agent 聊天控制器（ReAct 流式）
+│   │   │   │       ├── agentWriteGuard.ts      # 写入权限守卫
+│   │   │   │       ├── sessionCleaner.ts       # 过期会话清理器
+│   │   │   │       ├── promptEngine.ts         # 提示词引擎 v3.0.0
+│   │   │   │       ├── toolRegistration.ts     # 工具注册（查询/创建/修改/删除）
+│   │   │   │       ├── llmService.ts           # LLM 流式调用服务
+│   │   │   │       ├── sessionStore.ts         # 会话持久化（SQLite）
+│   │   │   │       ├── dialogManager.ts        # 对话管理器
+│   │   │   │       ├── intentEngine.ts         # 意图识别引擎
+│   │   │   │       ├── toolRegistry.ts         # 工具注册表
+│   │   │   │       └── index.ts                # 模块入口
 │   │   │   ├── business/             # 业务服务（销售/业务员）
 │   │   │   ├── file/                 # 文件解析服务
 │   │   │   └── formula/              # 配方服务（营养/成本/含量比）
 │   │   ├── scripts/                  # 数据库迁移和工具脚本
 │   │   ├── types/                    # TypeScript 类型定义
 │   │   └── utils/                    # 工具函数（导出/日志/校验）
-│   ├── data/                         # SQLite 数据库文件
+│   ├── data/                         # SQLite 数据库文件 + 备份
 │   └── exports/                      # 导出文件输出目录
 │
 ├── frontend/                         # 前端应用
 │   ├── src/
-│   │   ├── api/                      # API 客户端（axios 封装）
+│   │   ├── api/                      # API 客户端（axios 封装，16个模块）
 │   │   ├── assets/                   # 样式（Design Tokens/变量/主题）
 │   │   ├── components/               # 公共组件
-│   │   │   └── AiAssistantFloat/     # 悬浮助手组件体系（8 Vue + 2 TS）
+│   │   │   ├── AiAssistantFloat/     # 悬浮助手组件体系（8 Vue + 2 TS）
+│   │   │   └── ...                   # 其他公共组件（18个）
 │   │   ├── router/                   # Vue Router 配置
 │   │   ├── stores/                   # Pinia 状态管理（17个 Store）
-│   │   ├── utils/                    # 工具函数
-│   │   ├── views/                    # 页面视图（15+ 功能页面）
-│   │   │   ├── ai/                   # AI 助手工作台
-│   │   │   ├── formulas/             # 配方管理
-│   │   │   ├── materials/            # 原料管理
-│   │   │   ├── salesmen/             # 业务员管理
+│   │   ├── utils/                    # 工具函数（时间格式化/图表/模拟数据）
+│   │   ├── views/                    # 页面视图（36个 .vue 文件）
+│   │   │   ├── ai/                   # AI 助手工作台 + 智能工具
+│   │   │   │   └── tabs/             # 智能填单/导入/检索/历史
+│   │   │   ├── formulas/             # 配方管理（列表/表单/详情/对比）
+│   │   │   ├── materials/            # 原料管理（列表/表单/详情）
+│   │   │   ├── salesmen/             # 业务员管理（列表/表单/详情）
 │   │   │   ├── sales/                # 销量分析
-│   │   │   ├── reports/              # 报告中心
-│   │   │   ├── nutrition/            # 营养分析
+│   │   │   ├── reports/              # 报告中心（周报/月报/生成/对比）
+│   │   │   ├── nutrition/            # 营养分析（分析/标准）
 │   │   │   ├── models/               # 模型管理
-│   │   │   └── exports/              # 导出中心
+│   │   │   ├── files/                # 文件管理（列表/详情）
+│   │   │   ├── exports/              # 导出中心
+│   │   │   ├── versions/             # 版本管理（列表/对比）
+│   │   │   ├── settings/             # 账号设置
+│   │   │   └── errors/               # 错误页面
 │   │   ├── App.vue                   # 根组件
 │   │   └── main.ts                   # 入口文件
 │   └── __tests__/                    # 测试文件
@@ -136,19 +160,21 @@ TingStudio/
 
 | 功能模块 | 说明 |
 |----------|------|
-| **📋 配方管理** | 配方 CRUD、原料配比表、含量比校验、版本控制、升版管理 |
-| **🧪 原料管理** | 原料 CRUD、材质分类（药材/辅料）、营养成分管理 |
+| **📋 配方管理** | 配方 CRUD、原料配比表、含量比校验、版本控制、升版管理、定价系统 |
+| **🧪 原料管理** | 原料 CRUD、材质分类（药材/辅料）、营养成分管理、单价管理 |
 | **👤 业务员管理** | 业务员 CRUD、状态管理、区域/部门分群 |
 | **📊 销量分析** | 多维聚合分析（日月/业务员/区域）、趋势图、TOP 排行 |
-| **📄 报告中心** | 周报/月报 AI 自动分析、Markdown 渲染、报告对比 |
+| **📄 报告中心** | 周报/月报 AI 自动分析、Markdown 渲染、报告对比、指标管理 |
 | **🥗 营养分析** | 7 步法营养成分计算、NRV%、合规校验、营养档案管理 |
-| **📎 文件管理** | 文件上传/预览、Excel/PDF/图片解析、批量导入 |
+| **📎 文件管理** | 文件上传/预览、Excel/PDF/图片解析、批量导入、审计日志 |
 | **📦 导出中心** | Excel/PDF 导出、自定义模板、API 接口管理 |
-| **🤖 AI 助手** | Agent 对话（ReAct 循环）、意图识别、工具调用、写操作守卫 |
+| **🤖 AI 助手** | Agent 对话（ReAct 循环）、意图识别、工具调用、写操作守卫、身份定义 |
 | **🔮 悬浮助手** | 表单字段解析、智能对话、配方对比/成本/替代建议、指令模板、双模路由 |
 | **🔍 智能检索** | NL2SQL 自然语言查询、跨表关联查询、聚合分析 |
 | **🛠️ 模型管理** | AI 模型配置、功能模块分配、用量监控、悬浮助手配置 |
 | **🔐 权限系统** | JWT 认证、角色控制（admin/user）、数据隔离 |
+| **📁 版本管理** | 版本快照、版本对比（含量/报价双模式）、变更追踪 |
+| **⚙️ 账号设置** | 个人资料管理（昵称/头像/简介/邮箱/手机号） |
 
 ---
 
@@ -181,6 +207,34 @@ cd frontend && npm run test:coverage
 | 产品需求文档 | `PRD-TingStudio-v2.0.md` |
 | Agent 系统设计 | `docs/agent-system/` |
 | 组件设计文档 | `docs/ting-studio/` |
+| 生产部署指南 | `PRODUCTION_DEPLOYMENT_GUIDE.md` |
+| EdgeOne 修复指南 | `EDGEONE_DEPLOYMENT_FIX.md` |
+| SCF 部署指南 | `SCF_MANUAL_DEPLOYMENT_GUIDE.md` |
+
+---
+
+## 🗄️ 数据库概览
+
+SQLite (better-sqlite3) + WAL 模式，共 **33 张表**：
+
+| 分类 | 表名 | 说明 |
+|------|------|------|
+| **核心业务** | users, materials, formulas, salesmen, formula_versions | 用户/原料/配方/业务员/版本 |
+| **营养体系** | material_nutrition, formula_nutrition_summaries, nutrition_profiles | 营养数据/汇总/标准 |
+| **销量报告** | formula_sales, reports, report_targets | 销量/报告/指标 |
+| **文件管理** | uploaded_files, file_audit_log, file_relations | 文件/审计/关联 |
+| **导出系统** | export_templates, export_jobs | 模板/任务 |
+| **AI 模型** | ai_models, ai_usage_logs, ai_alert_configs, ai_alert_records, ai_health_records, ai_fallback_configs, model_applications | 模型/用量/告警/健康/降级/应用 |
+| **Agent 系统** | agent_sessions, agent_messages, agent_pending_confirmations, agent_pending_forms, agent_role_config, agent_float_config, agent_provider_health, agent_session_cleanup_log | 会话/消息/确认/表单/身份/浮窗/健康/清理 |
+| **其他** | search_export_cache, parse_templates | 缓存/解析模板 |
+
+备份/恢复工具：
+
+```bash
+cd backend
+npx tsx src/scripts/exportDatabase.ts    # 导出完整备份
+npx tsx src/scripts/restoreDatabase.ts    # 恢复数据库
+```
 
 ---
 
