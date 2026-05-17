@@ -388,7 +388,7 @@
                       @change="(val: any) => { config.enabled = val ? 1 : 0; handleAlertConfigChange(config); }" />
                   </div>
                   <div class="alert-config-body">
-                    <div class="alert-config-field">
+                    <div class="alert-config-field alert-config-field--row">
                       <span class="field-label">日调用上限</span>
                       <div class="field-input-with-unit">
                         <t-input-number v-model="config.daily_call_limit" :disabled="!isAdmin" size="small" :min="0"
@@ -396,7 +396,7 @@
                         <span class="field-unit">次/日</span>
                       </div>
                     </div>
-                    <div class="alert-config-field">
+                    <div class="alert-config-field alert-config-field--row">
                       <span class="field-label">月Token上限</span>
                       <div class="field-input-with-unit">
                         <t-input-number v-model="config.monthly_token_limit" :disabled="!isAdmin" size="small" :min="0"
@@ -405,23 +405,23 @@
                         <span v-if="config.monthly_token_limit >= 10000" class="field-hint">{{ formatTokenInput(config.monthly_token_limit) }}</span>
                       </div>
                     </div>
-                    <div class="alert-config-field">
+                    <div class="alert-config-field alert-config-field--row">
                       <span class="field-label">预警阈值</span>
                       <div class="field-input-with-unit">
                         <t-input-number v-model="config.warning_threshold" :disabled="!isAdmin" size="small" :min="1"
                           :max="100" theme="normal" @change="() => scheduleAlertConfigSave(config)" />
                         <span class="field-unit">%</span>
+                        <span v-if="config.monthly_token_limit > 0 && config.warning_threshold > 0" class="field-hint">≈ {{ formatTokenInput(Math.round(config.monthly_token_limit * config.warning_threshold / 100)) }} Token</span>
                       </div>
-                      <div v-if="config.monthly_token_limit > 0 && config.warning_threshold > 0" class="field-computed-hint">≈ {{ formatTokenInput(Math.round(config.monthly_token_limit * config.warning_threshold / 100)) }} Token</div>
                     </div>
-                    <div class="alert-config-field">
+                    <div class="alert-config-field alert-config-field--row">
                       <span class="field-label">严重阈值</span>
                       <div class="field-input-with-unit">
                         <t-input-number v-model="config.critical_threshold" :disabled="!isAdmin" size="small" :min="1"
                           :max="100" theme="normal" @change="() => scheduleAlertConfigSave(config)" />
                         <span class="field-unit">%</span>
+                        <span v-if="config.monthly_token_limit > 0 && config.critical_threshold > 0" class="field-hint">≈ {{ formatTokenInput(Math.round(config.monthly_token_limit * config.critical_threshold / 100)) }} Token</span>
                       </div>
-                      <div v-if="config.monthly_token_limit > 0 && config.critical_threshold > 0" class="field-computed-hint">≈ {{ formatTokenInput(Math.round(config.monthly_token_limit * config.critical_threshold / 100)) }} Token</div>
                     </div>
                   </div>
                 </div>
@@ -1429,13 +1429,15 @@ async function fetchRecentActivity() {
 function formatRelativeTime(timeStr: string): string {
   if (!timeStr) return '';
   const now = Date.now();
-  const then = new Date(timeStr).getTime();
+  const d = new Date(timeStr);
+  const then = d.getTime();
   const diff = now - then;
   if (diff < 60000) return '刚刚';
   if (diff < 3600000) return `${Math.floor(diff / 60000)} 分钟前`;
   if (diff < 86400000) return `${Math.floor(diff / 3600000)} 小时前`;
   if (diff < 604800000) return `${Math.floor(diff / 86400000)} 天前`;
-  return timeStr.slice(0, 16).replace('T', ' ');
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
 const allActivityItems = computed<ActivityItem[]>(() => {
@@ -3417,11 +3419,6 @@ $transition-normal: 0.25s ease;
       gap: 8px;
       min-width: 0;
 
-      :deep(.t-input-number) {
-        flex: 1;
-        min-width: 0;
-      }
-
       .field-unit {
         font-size: 12px;
         color: #64748b;
@@ -3442,6 +3439,41 @@ $transition-normal: 0.25s ease;
       font-size: 10px;
       color: #94a3b8;
       margin-top: 2px;
+    }
+  }
+}
+
+.alert-config-field--row {
+  grid-column: span 2;
+
+  .field-label {
+    font-size: 12px;
+    color: #94a3b8;
+    margin-bottom: 8px;
+  }
+
+  .field-input-with-unit {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+
+    :deep(.t-input-number) {
+      width: 160px;
+      flex: none;
+    }
+
+    .field-unit {
+      font-size: 12px;
+      color: #64748b;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .field-hint {
+      font-size: 11px;
+      color: #94a3b8;
+      white-space: nowrap;
     }
   }
 }

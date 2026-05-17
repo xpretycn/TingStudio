@@ -758,7 +758,7 @@ $breakpoint-small: 480px;
 
 #### 12.1 实时天气功能
 
-- ✅ `api/weather.ts`：和风天气免费订阅 API 封装（城市搜索、逆地理编码、实时天气），独立 axios 实例
+- ✅ `api/weather.ts`：高德地图 Web 服务 API 封装（城市搜索、逆地理编码、实时天气），通过 Vite 代理 `/amap` 解决 CORS
 - ✅ `stores/weather.ts`：30 分钟内存缓存、Geolocation 自动定位（10s 超时）、城市 localStorage 持久化
 - ✅ Home.vue 侧边栏集成：移除假天气数据，展示真实天气 emoji + 温度 + 城市名
 - ✅ Tools.vue 天气详情卡片：温度/状况/体感温度/湿度/风向风力/风速/更新时间
@@ -779,7 +779,7 @@ $breakpoint-small: 480px;
 
 - ✅ Home.vue 用户菜单改为 hover 触发 + hover 子菜单（外观/品牌色切换）
 - ✅ 导出中心按钮样式从 text 改为 outline，表格添加 table-layout="auto"
-- ✅ 前端 `.env` 新增 `VITE_QWEATHER_KEY` 配置
+- ✅ 前端 `.env` 新增 `VITE_AMAP_KEY` 配置
 
 #### 验收标准
 

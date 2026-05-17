@@ -81,6 +81,58 @@ npm run seed               # 填充示例数据（可选）
 | `npm run init-db` | backend | 初始化数据库 |
 | `npm run seed` | backend | 填充示例数据 |
 
+### 数据库迁移脚本
+
+数据库迁移脚本位于 `backend/src/scripts/migrations/` 目录，用于修复数据问题和数据库 Schema 变更。
+
+```bash
+cd backend
+
+# 修复文件名乱码（智能工具解析历史）
+npx tsx src/scripts/migrations/fixGarbledFilenames.ts
+
+# 修复 request_summary 乱码（旧版本）
+npx tsx src/scripts/migrations/fixGarbledRequestSummary.ts
+```
+
+#### 文件名乱码修复脚本
+
+**使用场景：** 当用户上传包含中文文件名的文件后，解析历史记录中文件名显示为乱码（如 `ÐÐâÂ¼þ.xlsx` 而不是 `测试文件.xlsx`）
+
+**功能说明：**
+
+- 自动扫描 `ai_usage_logs` 表中的乱码记录
+- 智能提取 `request_summary` 中的文件名
+- 尝试多种编码方式修复（latin1、binary、win1252、iso-8859-1、cp1252）
+- 保留原有前缀（如"解析配方文件:"、"解析原料营养文件:"）
+- 提供详细的修复日志输出
+
+**常见乱码原因：**
+
+- 不同浏览器对中文文件名的编码处理不一致
+- multipart/form-data 编码传输问题
+- Multer 接收文件名时的编码转换问题
+
+**运行示例：**
+
+```bash
+cd backend
+npx tsx src/scripts/migrations/fixGarbledFilenames.ts
+
+# 预期输出：
+# 开始迁移：修复 ai_usage_logs 中 request_summary 的中文文件名乱码...
+# 
+# 找到 5 条含 request_summary 的记录
+# 
+# ✅ 修复:
+#    原: "解析配方文件: ÐÐâÂ¼þ.xlsx"
+#    新: "解析配方文件: 测试文件.xlsx"
+# 
+# 成功修复 5 条乱码记录！
+# 
+# 迁移完成！
+```
+
 ---
 
 ## 📁 项目结构
@@ -119,7 +171,7 @@ TingStudio/
 │
 ├── frontend/                         # 前端应用
 │   ├── src/
-│   │   ├── api/                      # API 客户端（axios 封装，16个模块）
+│   │   ├── api/                      # API 客户端（axios 封装，17个模块）
 │   │   ├── assets/                   # 样式（Design Tokens/变量/主题）
 │   │   ├── components/               # 公共组件
 │   │   │   ├── AiAssistantFloat/     # 悬浮助手组件体系（8 Vue + 2 TS）
@@ -127,7 +179,7 @@ TingStudio/
 │   │   ├── router/                   # Vue Router 配置
 │   │   ├── stores/                   # Pinia 状态管理（17个 Store）
 │   │   ├── utils/                    # 工具函数（时间格式化/图表/模拟数据）
-│   │   ├── views/                    # 页面视图（36个 .vue 文件）
+│   │   ├── views/                    # 页面视图（40个 .vue 文件）
 │   │   │   ├── ai/                   # AI 助手工作台 + 智能工具
 │   │   │   │   └── tabs/             # 智能填单/导入/检索/历史
 │   │   │   ├── formulas/             # 配方管理（列表/表单/详情/对比）

@@ -65,8 +65,8 @@
             </template>
             <template #createdAt="{ row }">
               <div class="cell-date">
-                <span class="date-line">{{ formatCreatedAt(row.createdAt).date }}</span>
-                <span class="time-line">{{ formatCreatedAt(row.createdAt).time }}</span>
+                <span class="date-line">{{ splitDateTime(row.createdAt).date }}</span>
+                <span class="time-line">{{ splitDateTime(row.createdAt).time }}</span>
               </div>
             </template>
             <template #changes="{ row }">
@@ -166,6 +166,7 @@ import { useFormulaStore } from '@/stores/formula';
 import { useMaterialStore } from '@/stores/material';
 import { MessagePlugin } from 'tdesign-vue-next';
 import PageSkeleton from '@/components/Skeleton/PageSkeleton.vue';
+import { splitDateTime } from '@/utils/timeFormat';
 
 const router = useRouter();
 const route = useRoute();
@@ -196,19 +197,6 @@ const statusLabel = (s: string) => s === 'published' ? '已发布' : s === 'draf
 const changeTypeTheme = (t: string) => t === 'add' ? 'success' : t === 'delete' ? 'danger' : 'warning';
 const changeTypeLabel = (t: string) => t === 'add' ? '新增' : t === 'delete' ? '删除' : '修改';
 const changeTypeIcon = (t: string) => t === 'add' ? 'add' : t === 'delete' ? 'remove' : 'edit';
-
-const formatCreatedAt = (val: string | undefined) => {
-  if (!val) return { date: '--', time: '' };
-  const d = new Date(val);
-  const pad = (n: number) => String(n).padStart(2, '0');
-  const y = d.getFullYear();
-  const m = pad(d.getMonth() + 1);
-  const day = pad(d.getDate());
-  const h = pad(d.getHours());
-  const min = pad(d.getMinutes());
-  const s = pad(d.getSeconds());
-  return { date: `${y}-${m}-${day}`, time: `${h}:${min}:${s}` };
-};
 
 const toggleSelect = (id: string) => {
   const idx = selectedForCompare.value.indexOf(id);

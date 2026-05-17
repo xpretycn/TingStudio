@@ -1,12 +1,107 @@
 <template>
   <div class="smart-history-tab">
-    <div class="history-toolbar">
-      <div class="history-filters">
-        <button v-for="f in filterOptions" :key="f.value" type="button" class="filter-btn"
-          :class="{ active: activeFilter === f.value }" @click="activeFilter = f.value">
-          {{ f.label }}
-        </button>
+    <DegradationBanner v-model:visible="showDegradationBanner" @config-click="goToConfig" />
+
+    <div class="data-overview-cards">
+      <div class="data-card card-emerald" @click="filterByStatus('all')">
+        <div class="card-header">
+          <t-icon name="chart-bar" size="24px" />
+          <span class="card-title">总数</span>
+        </div>
+        <div class="card-value">
+          <span class="value-number">{{ statistics.totalCount }}</span>
+        </div>
       </div>
+
+      <div class="data-card card-blue" @click="showStorageDetail = true">
+        <div class="card-header">
+          <t-icon name="chart-line" size="24px" />
+          <span class="card-title">存储状态</span>
+        </div>
+        <div class="card-value">
+          <span class="value-number">{{ statistics.usagePercent }}%</span>
+        </div>
+        <div class="card-progress">
+          <div class="progress-bar" :class="getStorageClass()"
+            :style="{ width: `${Math.min(statistics.usagePercent, 100)}%` }"></div>
+        </div>
+      </div>
+
+      <div class="data-card card-amber" @click="filterByStatus('pending')">
+        <div class="card-header">
+          <t-icon name="time" size="24px" />
+          <span class="card-title">待处理</span>
+        </div>
+        <div class="card-value">
+          <span class="value-number">{{ statistics.statsByStatus?.pending || 0 }}</span>
+        </div>
+      </div>
+
+      <div class="data-card card-purple" @click="filterByLinked()">
+        <div class="card-header">
+          <t-icon name="check-circle" size="24px" />
+          <span class="card-title">已关联</span>
+        </div>
+        <div class="card-value">
+          <span class="value-number">{{ linkedCount }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="search-toolbar">
+      <t-input
+        v-model="searchParams.fileName"
+        placeholder="搜索文件名..."
+        clearable
+        @enter="handleSearch"
+      >
+        <template #prefix-icon>
+          <t-icon name="search" />
+        </template>
+      </t-input>
+
+      <t-select
+        v-model="searchParams.status"
+        :options="statusOptions"
+        placeholder="状态"
+        clearable
+        style="width: 100px"
+      />
+
+      <t-input
+        v-model="searchParams.keyword"
+        placeholder="关键词搜索..."
+        clearable
+        @enter="handleSearch"
+        style="width: 160px"
+      />
+
+      <t-date-range-picker
+        v-model="dateRange"
+        placeholder="时间范围"
+        clearable
+        @change="handleDateRangeChange"
+        style="width: 280px"
+        :popup-props="{ appendToBody: true }"
+      />
+
+      <t-button @click="handleSearch">搜索</t-button>
+      <t-button variant="outline" @click="handleReset">重置</t-button>
+    </div>
+
+    <div class="batch-toolbar" v-if="items.length > 0">
+      <t-checkbox v-model="selectAll" :indeterminate="isIndeterminate" @change="handleSelectAll">
+        全选
+      </t-checkbox>
+      <span class="selected-count" v-if="selectedIds.length > 0">
+        已选择 {{ selectedIds.length }} 项
+      </span>
+      <t-popconfirm v-if="selectedIds.length > 0" content="确定删除选中的记录吗？此操作无法撤销。"
+        :confirm-btn="{ content: '确认', theme: 'danger' }" @confirm="handleBatchDelete">
+        <t-button size="small" theme="danger" variant="outline">
+          批量删除
+        </t-button>
+      </t-popconfirm>
     </div>
 
     <div v-if="loading" class="history-loading">
@@ -28,42 +123,37 @@
       <div v-for="item in items" :key="item.id" class="history-card" :class="'history-card--' + item.status">
         <div class="history-card-header">
           <div class="history-card-type">
-            <span class="type-badge" :class="'type-badge--' + item.callType">{{ item.toolLabel }}</span>
+            <t-checkbox :value="item.id" v-model="selectedIds" @click.stop />
+            <span class="type-badge" :class="'type-badge--' + item.callType">{{ item.callTypeLabel }}</span>
             <span class="status-dot" :class="'status-dot--' + item.status"></span>
-            <span class="status-text">{{ item.status === 'success' ? '成功' : '失败' }}</span>
+            <span class="status-text">{{ item.status === 'success' ? '成功' : item.status === 'failed' ? '失败' : '待处理'
+            }}</span>
           </div>
-          <span class="history-card-time">{{ formatTime(item.createdAt) }}</span>
+          <div class="history-card-actions">
+            <span class="history-card-time">{{ formatTime(item.createdAt) }}</span>
+            <t-popconfirm content="确定删除此记录吗？此操作无法撤销。" :confirm-btn="{ content: '确认', theme: 'danger' }"
+              @confirm="handleDelete(item.id)">
+              <button class="delete-btn" type="button" title="删除此记录">
+                <t-icon name="delete" />
+              </button>
+            </t-popconfirm>
+          </div>
         </div>
-        <div class="history-card-body">
+        <div class="history-card-body" @click="showDetail(item)">
           <div class="history-card-meta">
-            <span class="meta-item meta-item--model">
-              <img v-if="getModelLogo(item.provider)" :src="getModelLogo(item.provider)" :alt="item.modelName"
-                class="model-logo-mini" @error="(e: Event) => handleLogoError(e, item.provider)" />
-              <span v-else class="model-letter-mini" :style="{ color: getFallbackColor(item.provider) }">
-                {{ getFallbackLetter(item.provider) }}
-              </span>
-              <span class="model-name-text">{{ item.modelName }}</span>
+            <span class="meta-item meta-item--file">
+              <t-icon name="file" />
+              {{ item.fileName }}
             </span>
-            <span v-if="item.totalTokens" class="meta-item">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 1v22M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
-              </svg>
-              {{ item.totalTokens }} tokens
+            <span v-if="item.modelName" class="meta-item">
+              <t-icon name="chat" />
+              {{ item.modelName }}
             </span>
-            <span v-if="item.latencyMs" class="meta-item">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10" />
-                <polyline points="12 6 12 12 16 14" />
-              </svg>
-              {{ formatLatency(item.latencyMs) }}
+            <span v-if="item.usedCount > 0" class="meta-item">
+              <t-icon name="view" />
+              使用 {{ item.usedCount }} 次
             </span>
           </div>
-          <p v-if="item.requestSummary" class="history-card-summary">{{ item.requestSummary }}</p>
-          <p v-if="item.status !== 'success' && item.errorMessage" class="history-card-error">
-            {{ item.errorMessage }}
-          </p>
         </div>
       </div>
     </div>
@@ -71,184 +161,420 @@
     <div v-if="pagination.total > 0" class="table-pagination">
       <div class="pagination-info">
         显示第 {{ (pagination.page - 1) * pagination.pageSize + 1 }}-{{
-          Math.min(pagination.page * pagination.pageSize, pagination.total) }} 条，
-        共 {{ pagination.total }} 条数据
+          Math.min(pagination.page * pagination.pageSize, pagination.total) }} 条，共 {{ pagination.total }} 条数据
       </div>
       <div class="pagination-controls">
         <button class="pagination-btn" :class="{ 'pagination-btn--disabled': pagination.page === 1 }"
-          :disabled="pagination.page === 1" @click="goPage(pagination.page - 1)">上一页</button>
+          :disabled="pagination.page === 1" @click="handlePageChange({ page: pagination.page - 1 })">上一页</button>
         <template v-for="page in pageNumbers" :key="page">
           <button v-if="page !== '...'" class="pagination-btn"
             :class="{ 'pagination-btn--active': page === pagination.page }"
-            @click="typeof page === 'number' && goPage(page)">{{ page }}</button>
+            @click="typeof page === 'number' && handlePageChange({ page })">{{ page }}</button>
           <span v-else class="pagination-ellipsis">...</span>
         </template>
-        <button class="pagination-btn"
-          :class="{ 'pagination-btn--disabled': pagination.page >= pagination.totalPages }"
-          :disabled="pagination.page >= pagination.totalPages"
-          @click="goPage(pagination.page + 1)">下一页</button>
+        <button class="pagination-btn" :class="{ 'pagination-btn--disabled': pagination.page === totalPages }"
+          :disabled="pagination.page === totalPages"
+          @click="handlePageChange({ page: pagination.page + 1 })">下一页</button>
       </div>
     </div>
+
+    <t-drawer v-model:visible="detailDrawerVisible" header="解析详情" :close-on-overlay-click="true" size="500px">
+      <div v-if="currentDetail" class="detail-content">
+        <t-divider>文件信息</t-divider>
+
+        <div class="detail-section">
+          <div class="detail-row">
+            <span class="detail-label">文件名：</span>
+            <span class="detail-value">{{ currentDetail.fileName }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">哈希值：</span>
+            <span class="detail-value detail-value--mono">{{ currentDetail.fileHash }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">文件大小：</span>
+            <span class="detail-value">{{ formatFileSize(currentDetail.fileSize) }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">解析类型：</span>
+            <span class="detail-value">{{ currentDetail.callTypeLabel }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">状态：</span>
+            <span class="detail-value" :class="'status--' + currentDetail.status">
+              {{ currentDetail.status === 'success' ? '成功' : currentDetail.status === 'failed' ? '失败' : '待处理' }}
+            </span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">模型：</span>
+            <span class="detail-value">{{ currentDetail.modelName || '-' }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">创建时间：</span>
+            <span class="detail-value">{{ formatTimestamp(currentDetail.createdAt) }}</span>
+          </div>
+        </div>
+
+        <t-divider>解析结果</t-divider>
+
+        <div v-if="currentDetail.status === 'success'" class="detail-section">
+          <t-button size="small" @click="copyResult">复制结果</t-button>
+          <pre class="json-viewer">{{ JSON.stringify(currentDetail.parsedResult, null, 2) }}</pre>
+        </div>
+
+        <div v-else-if="currentDetail.status === 'failed'" class="detail-section error-section">
+          <div class="error-message">{{ currentDetail.errorMessage || '解析失败' }}</div>
+        </div>
+
+        <div v-else class="detail-section">
+          <t-loading />
+          <span>正在解析中...</span>
+        </div>
+
+        <t-divider>操作</t-divider>
+
+        <div class="detail-actions">
+          <t-button theme="primary" @click="handleRestore">恢复解析结果</t-button>
+          <t-popconfirm content="确定删除此记录吗？此操作无法撤销。" :confirm-btn="{ content: '确认', theme: 'danger' }"
+            @confirm="handleDeleteFromDetail">
+            <t-button theme="danger">删除记录</t-button>
+          </t-popconfirm>
+        </div>
+      </div>
+    </t-drawer>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
-import { modelApi } from '@/api/model'
+import { ref, computed, onMounted, watch, nextTick } from 'vue';
+import { useRouter } from 'vue-router';
+import { parseResultApi } from '@/api/parseResult';
+import { MessagePlugin } from 'tdesign-vue-next';
+import { formatTimestamp } from '@/utils/timeFormat';
+import DegradationBanner from '@/components/DegradationBanner.vue';
+import { useAiStore } from '@/stores/ai';
 
-const loading = ref(false)
-const items = ref<any[]>([])
-const pageSize = 10
-const activeFilter = ref('all')
+const router = useRouter();
+const aiStore = useAiStore();
+const loading = ref(false);
+const items = ref<any[]>([]);
+const activeFilter = ref('all');
+const searchParams = ref({
+  fileName: '',
+  status: '',
+  keyword: '',
+  startDate: '',
+  endDate: '',
+});
+const dateRange = ref<[string, string] | null>(null);
+
+const handleDateRangeChange = (value: [string, string] | null) => {
+  if (value && value.length === 2) {
+    searchParams.value.startDate = value[0];
+    searchParams.value.endDate = value[1];
+  } else {
+    searchParams.value.startDate = '';
+    searchParams.value.endDate = '';
+  }
+};
+
+const detailDrawerVisible = ref(false);
+const currentDetail = ref<any>(null);
+const showStorageDetail = ref(false);
+const showDegradationBanner = ref(true);
+const selectedIds = ref<string[]>([]);
+const batchDeleteLoading = ref(false);
 
 const pagination = ref({
   page: 1,
   pageSize: 10,
   total: 0,
-  totalPages: 0,
-})
+});
+
+const statistics = ref({
+  totalCount: 0,
+  storageLimit: 5000,
+  usagePercent: 0,
+  cleanupThreshold: 95,
+  cleanupBatchPercent: 5,
+  statsByType: {} as Record<string, number>,
+  statsByStatus: {} as Record<string, number>,
+});
+
+const linkedCount = computed(() => {
+  return items.value.filter(item => item.isLinked).length;
+});
+
+const totalPages = computed(() => {
+  return Math.ceil(pagination.value.total / pagination.value.pageSize) || 1;
+});
+
+const pageNumbers = computed(() => {
+  const total = totalPages.value;
+  const current = pagination.value.page;
+  const pages: (number | string)[] = [];
+
+  if (total <= 7) {
+    for (let i = 1; i <= total; i++) pages.push(i);
+  } else {
+    pages.push(1);
+    if (current > 3) pages.push('...');
+    const start = Math.max(2, current - 1);
+    const end = Math.min(total - 1, current + 1);
+    for (let i = start; i <= end; i++) pages.push(i);
+    if (current < total - 2) pages.push('...');
+    pages.push(total);
+  }
+
+  return pages;
+});
+
+const selectAll = computed({
+  get: () => selectedIds.value.length === items.value.length && items.value.length > 0,
+  set: (val: boolean) => {
+    selectedIds.value = val ? items.value.map(item => item.id) : [];
+  }
+});
+
+const isIndeterminate = computed(() => {
+  return selectedIds.value.length > 0 && selectedIds.value.length < items.value.length;
+});
 
 const filterOptions = [
   { label: '全部', value: 'all' },
   { label: '智能填单', value: 'parse_formula' },
   { label: '智能导入', value: 'parse_nutrition' },
-  { label: '智能查询', value: 'natural_search' },
-]
+];
 
-const pageNumbers = computed<(number | string)[]>(() => {
-  const total = pagination.value.totalPages
-  const current = pagination.value.page
-  if (total <= 5) return Array.from({ length: total }, (_, i) => i + 1)
-  if (current <= 3) return [1, 2, 3, '...', total]
-  if (current >= total - 2) return [1, '...', total - 2, total - 1, total]
-  return [1, '...', current - 1, current, current + 1, '...', total]
-})
-
-const goPage = (page: number) => {
-  if (page < 1 || page > pagination.value.totalPages) return
-  pagination.value.page = page
-  fetchData()
-}
+const statusOptions = [
+  { label: '全部', value: '' },
+  { label: '成功', value: 'success' },
+  { label: '失败', value: 'failed' },
+  { label: '待处理', value: 'pending' },
+];
 
 const fetchData = async () => {
-  loading.value = true
+  loading.value = true;
   try {
     const params: any = {
       page: pagination.value.page,
-      pageSize,
-    }
+      pageSize: pagination.value.pageSize,
+    };
+
     if (activeFilter.value !== 'all') {
-      params.callType = activeFilter.value
+      params.callType = activeFilter.value;
     }
-    const res = await modelApi.getSmartToolHistory(params)
-    const data = res.data || res
-    items.value = data.list || []
-    pagination.value = data.pagination || { page: 1, pageSize: 10, total: 0, totalPages: 0 }
-  } catch {
-    items.value = []
+
+    if (searchParams.value.fileName) {
+      params.fileName = searchParams.value.fileName;
+    }
+
+    if (searchParams.value.status) {
+      params.status = searchParams.value.status;
+    }
+
+    if (searchParams.value.keyword) {
+      params.keyword = searchParams.value.keyword;
+    }
+
+    if (searchParams.value.startDate) {
+      params.startDate = searchParams.value.startDate;
+    }
+
+    if (searchParams.value.endDate) {
+      params.endDate = searchParams.value.endDate;
+    }
+
+    const res = await parseResultApi.list(params);
+    items.value = res.list || [];
+    pagination.value = res.pagination || { page: 1, pageSize: 20, total: 0 };
+  } catch (error) {
+    console.error('Failed to fetch parse results:', error);
+    items.value = [];
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-}
+};
 
-watch(activeFilter, () => {
-  pagination.value.page = 1
-  fetchData()
-})
-
-const MODEL_LOGO_MAP: Record<string, string> = {
-  openai: 'openai',
-  gpt: 'openai',
-  chatgpt: 'openai',
-  anthropic: 'claude',
-  claude: 'claude',
-  google: 'google',
-  gemini: 'google',
-  deepseek: 'deepseek',
-  qwen: 'qwen',
-  tongyi: 'qwen',
-  dashscope: 'qwen',
-  zhipu: 'zhipu',
-  chatglm: 'zhipu',
-  glm: 'zhipu',
-  baidu: 'baidu',
-  wenxin: 'baidu',
-  doubao: 'bytedance',
-  bytedance: 'bytedance',
-  moonshot: 'moonshot',
-  kimi: 'moonshot',
-  minimax: 'minimax',
-  hunyuan: 'tencent',
-  tencent: 'tencent',
-}
-
-const FALLBACK_ICONS: Record<string, { letter: string; color: string }> = {
-  openai: { letter: 'O', color: '#10a37f' },
-  claude: { letter: 'C', color: '#d97757' },
-  google: { letter: 'G', color: '#4285f4' },
-  deepseek: { letter: 'D', color: '#4b6bfb' },
-  qwen: { letter: 'Q', color: '#6366f1' },
-  dashscope: { letter: 'Q', color: '#6366f1' },
-  zhipu: { letter: 'Z', color: '#4268fa' },
-  baidu: { letter: 'B', color: '#2932e1' },
-  bytedance: { letter: 'D', color: '#25f4ee' },
-  moonshot: { letter: 'M', color: '#000' },
-  minimax: { letter: 'M', color: '#615ced' },
-  tencent: { letter: 'T', color: '#0052d9' },
-}
-
-const getModelSlug = (provider: string): string => {
-  const p = (provider || '').toLowerCase()
-  for (const [key, slug] of Object.entries(MODEL_LOGO_MAP)) {
-    if (p.includes(key)) return slug
+const fetchStatistics = async () => {
+  try {
+    const res = await parseResultApi.getStatistics();
+    statistics.value = res;
+  } catch (error) {
+    console.error('Failed to fetch statistics:', error);
   }
-  return ''
-}
+};
 
-const getModelLogo = (provider: string): string => {
-  const slug = getModelSlug(provider)
-  if (!slug) return ''
-  return `https://unpkg.com/@lobehub/icons-static-svg@latest/icons/${slug}.svg`
-}
+const handleSearch = () => {
+  pagination.value.page = 1;
+  fetchData();
+};
 
-const getFallbackLetter = (provider: string): string => {
-  const slug = getModelSlug(provider)
-  return FALLBACK_ICONS[slug]?.letter || (provider || '?')[0].toUpperCase()
-}
+const handleReset = () => {
+  searchParams.value = {
+    fileName: '',
+    status: '',
+    keyword: '',
+    startDate: '',
+    endDate: '',
+  };
+  dateRange.value = null;
+  pagination.value.page = 1;
+  nextTick(() => {
+    fetchData();
+  });
+};
 
-const getFallbackColor = (provider: string): string => {
-  const slug = getModelSlug(provider)
-  return FALLBACK_ICONS[slug]?.color || '#94a3b8'
-}
-
-const handleLogoError = (e: Event, _provider: string) => {
-  const img = e.target as HTMLImageElement
-  img.style.display = 'none'
-  const parent = img.parentElement
-  if (parent) {
-    const fallback = parent.querySelector('.model-letter-mini')
-    if (fallback) (fallback as HTMLElement).style.display = 'flex'
+const filterByStatus = (status: string) => {
+  if (status === 'all') {
+    searchParams.value.status = '';
+  } else {
+    searchParams.value.status = status;
   }
-}
+  handleSearch();
+};
+
+const filterByLinked = () => {
+  MessagePlugin.info('已关联记录的筛选功能开发中');
+};
+
+const handleRefresh = () => {
+  fetchData();
+  fetchStatistics();
+};
+
+const handlePageChange = (pageInfo: any) => {
+  pagination.value.page = pageInfo.page;
+  fetchData();
+};
+
+const handlePageSizeChange = (pageSize: number) => {
+  pagination.value.pageSize = pageSize;
+  pagination.value.page = 1;
+  fetchData();
+};
+
+const showDetail = async (item: any) => {
+  detailDrawerVisible.value = true;
+  try {
+    const res = await parseResultApi.getDetail(item.id);
+    currentDetail.value = res;
+  } catch (error) {
+    console.error('Failed to fetch detail:', error);
+    MessagePlugin.error('获取详情失败');
+  }
+};
+
+const handleRestore = () => {
+  if (!currentDetail.value) return;
+
+  sessionStorage.setItem('restoreParseResult', JSON.stringify({
+    id: currentDetail.value.id,
+    parsedResult: currentDetail.value.parsedResult,
+    fileName: currentDetail.value.fileName,
+    callType: currentDetail.value.callType,
+  }));
+
+  MessagePlugin.success('已保存解析结果，请跳转到对应表单页面恢复');
+  detailDrawerVisible.value = false;
+};
+
+const handleDelete = async (id: string) => {
+  try {
+    await parseResultApi.delete(id);
+    MessagePlugin.success('删除成功');
+    await fetchData();
+    await fetchStatistics();
+  } catch (error: any) {
+    MessagePlugin.error(error.message || '删除失败');
+  }
+};
+
+const handleDeleteFromDetail = async () => {
+  if (!currentDetail.value) return;
+  await handleDelete(currentDetail.value.id);
+  detailDrawerVisible.value = false;
+};
+
+const handleBatchDelete = async () => {
+  if (selectedIds.value.length === 0) {
+    MessagePlugin.warning('请先选择要删除的记录');
+    return;
+  }
+  try {
+    batchDeleteLoading.value = true;
+    for (const id of selectedIds.value) {
+      await parseResultApi.delete(id);
+    }
+    MessagePlugin.success(`成功删除 ${selectedIds.value.length} 条记录`);
+    selectedIds.value = [];
+    await fetchData();
+    await fetchStatistics();
+  } catch (error: any) {
+    MessagePlugin.error(error.message || '批量删除失败');
+  } finally {
+    batchDeleteLoading.value = false;
+  }
+};
+
+const handleSelectAll = (checked: boolean) => {
+  selectedIds.value = checked ? items.value.map(item => item.id) : [];
+};
+
+const goToConfig = () => {
+  router.push('/ai/parse-result-config');
+};
+
+const copyResult = async () => {
+  if (!currentDetail.value?.parsedResult) return;
+  try {
+    await navigator.clipboard.writeText(JSON.stringify(currentDetail.value.parsedResult, null, 2));
+    MessagePlugin.success('已复制到剪贴板');
+  } catch {
+    MessagePlugin.error('复制失败');
+  }
+};
+
+const getStorageClass = () => {
+  const percent = statistics.value.usagePercent;
+  if (percent >= 95) return 'progress--danger';
+  if (percent >= 80) return 'progress--warning';
+  return 'progress--success';
+};
 
 const formatTime = (time: string) => {
-  if (!time) return ''
-  const d = new Date(time)
-  const now = new Date()
-  const diff = now.getTime() - d.getTime()
-  if (diff < 60000) return '刚刚'
-  if (diff < 3600000) return `${Math.floor(diff / 60000)} 分钟前`
-  if (diff < 86400000) return `${Math.floor(diff / 3600000)} 小时前`
-  if (diff < 604800000) return `${Math.floor(diff / 86400000)} 天前`
-  return d.toLocaleString('zh-CN')
-}
+  if (!time) return '';
+  const d = new Date(time);
+  const now = new Date();
+  const diff = now.getTime() - d.getTime();
+  if (diff < 60000) return '刚刚';
+  if (diff < 3600000) return `${Math.floor(diff / 60000)} 分钟前`;
+  if (diff < 86400000) return `${Math.floor(diff / 3600000)} 小时前`;
+  if (diff < 604800000) return `${Math.floor(diff / 86400000)} 天前`;
+  return d.toLocaleString('zh-CN');
+};
 
-const formatLatency = (ms: number) => {
-  if (ms < 1000) return `${ms}ms`
-  return `${(ms / 1000).toFixed(1)}s`
-}
+const formatFileSize = (bytes: number) => {
+  if (!bytes) return '-';
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+};
 
-onMounted(fetchData)
+watch(activeFilter, () => {
+  pagination.value.page = 1;
+  fetchData();
+});
+
+watch(() => aiStore.parseHistoryRefreshKey, () => {
+  fetchData();
+  fetchStatistics();
+});
+
+onMounted(() => {
+  fetchData();
+  fetchStatistics();
+});
 </script>
 
 <style scoped lang="scss">
@@ -256,41 +582,135 @@ onMounted(fetchData)
 
 .smart-history-tab {
   min-height: 400px;
+  padding: 20px;
 }
 
-.history-toolbar {
+.data-overview-cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.search-toolbar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: 20px;
+  gap: 12px;
+  margin-bottom: 16px;
+
+  .t-input {
+    flex: 1;
+    max-width: 300px;
+  }
 }
 
-.history-filters {
+.data-card {
+  background: #f8fafc;
+  border-radius: 10px;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  border: 2px solid transparent;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+
+    &.card-emerald {
+      border-color: #10B981;
+    }
+
+    &.card-blue {
+      border-color: #3B82F6;
+    }
+
+    &.card-purple {
+      border-color: #8B5CF6;
+    }
+
+    &.card-amber {
+      border-color: #F59E0B;
+    }
+  }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 6px;
+
+    .card-title {
+      font-size: 12px;
+      color: #64748b;
+      font-weight: 500;
+    }
+  }
+
+  .card-value {
+    .value-number {
+      font-size: 20px;
+      font-weight: 700;
+      line-height: 1.2;
+      color: #1e293b;
+    }
+  }
+
+  .card-progress {
+    margin-top: 6px;
+    height: 3px;
+    background: #e2e8f0;
+    border-radius: 2px;
+    overflow: hidden;
+
+    .progress-bar {
+      height: 100%;
+      transition: width 0.3s;
+
+      &.progress--success {
+        background: #10b981;
+      }
+
+      &.progress--warning {
+        background: #f59e0b;
+      }
+
+      &.progress--danger {
+        background: #ef4444;
+      }
+    }
+  }
+
+  &.card-emerald .card-header {
+    color: #10B981;
+  }
+
+  &.card-blue .card-header {
+    color: #3B82F6;
+  }
+
+  &.card-purple .card-header {
+    color: #8B5CF6;
+  }
+
+  &.card-amber .card-header {
+    color: #F59E0B;
+  }
+}
+
+.batch-toolbar {
   display: flex;
-  gap: 6px;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  background: #f5f5f5;
+  border-radius: 8px;
+  margin-bottom: 12px;
 
-  .filter-btn {
-    padding: 6px 14px;
-    border-radius: 8px;
-    border: 1px solid #e2e8f0;
-    background: transparent;
-    color: #64748b;
+  .selected-count {
     font-size: 13px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s;
-
-    &:hover {
-      background: #f1f5f9;
-      color: #334155;
-    }
-
-    &.active {
-      background: #f0fdf4;
-      border-color: #86efac;
-      color: #059669;
-      font-weight: 600;
-    }
+    color: #666;
   }
 }
 
@@ -327,13 +747,13 @@ onMounted(fetchData)
 
 .history-card {
   background: #fff;
-  border: 1px solid #f1f5f9;
-  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
   padding: 16px 20px;
   transition: all 0.2s;
 
   &:hover {
-    border-color: #e2e8f0;
+    border-color: #cbd5e1;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   }
 
@@ -343,6 +763,10 @@ onMounted(fetchData)
 
   &--success {
     border-left: 3px solid #10b981;
+  }
+
+  &--pending {
+    border-left: 3px solid #f59e0b;
   }
 }
 
@@ -357,6 +781,30 @@ onMounted(fetchData)
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.history-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.delete-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: #94a3b8;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    color: #ef4444;
+    background: #fef2f2;
+  }
 }
 
 .type-badge {
@@ -376,11 +824,6 @@ onMounted(fetchData)
     background: #faf5ff;
     color: #a855f7;
   }
-
-  &--natural_search {
-    background: #fff7ed;
-    color: #f97316;
-  }
 }
 
 .status-dot {
@@ -394,6 +837,10 @@ onMounted(fetchData)
 
   &--error {
     background: #ef4444;
+  }
+
+  &--pending {
+    background: #f59e0b;
   }
 }
 
@@ -409,124 +856,167 @@ onMounted(fetchData)
 }
 
 .history-card-body {
-  .history-card-meta {
-    display: flex;
+  cursor: pointer;
+}
+
+.history-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+
+  .meta-item {
+    display: inline-flex;
     align-items: center;
-    gap: 16px;
-    flex-wrap: wrap;
-
-    .meta-item {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      font-size: 13px;
-      color: #64748b;
-
-      svg {
-        color: #94a3b8;
-        flex-shrink: 0;
-      }
-    }
-
-    .meta-item--model {
-      gap: 6px;
-
-      .model-logo-mini {
-        width: 18px;
-        height: 18px;
-        object-fit: contain;
-        flex-shrink: 0;
-      }
-
-      .model-letter-mini {
-        display: none;
-        width: 18px;
-        height: 18px;
-        align-items: center;
-        justify-content: center;
-        font-size: 11px;
-        font-weight: 700;
-        background: #f1f5f9;
-        border-radius: 4px;
-        flex-shrink: 0;
-      }
-
-      .model-name-text {
-        font-weight: 500;
-      }
-    }
-  }
-
-  .history-card-summary {
+    gap: 4px;
     font-size: 13px;
-    color: #475569;
-    margin: 8px 0 0 0;
-    line-height: 1.5;
-  }
+    color: #64748b;
 
-  .history-card-error {
-    font-size: 13px;
-    color: #ef4444;
-    margin: 8px 0 0 0;
-    line-height: 1.5;
+    &.meta-item--file {
+      font-weight: 500;
+      color: #1e293b;
+    }
   }
 }
 
 .table-pagination {
+  padding: 24px;
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  padding: 24px 0 0 0;
-  margin-top: 24px;
+  align-items: center;
+  background-color: #fff;
   border-top: 1px solid #f8fafc;
 
   .pagination-info {
-    font-size: 13px;
-    color: #64748B;
+    font-size: 14px;
+    color: #94a3b8;
+    font-weight: 400;
+    white-space: nowrap;
   }
 
   .pagination-controls {
     display: flex;
     align-items: center;
     gap: 4px;
+  }
 
-    .pagination-btn {
-      min-width: 36px;
-      height: 34px;
-      padding: 0 10px;
-      border-radius: 10px;
-      border: 1px solid #E2E8F0;
-      background: #fff;
-      font-size: 13px;
-      font-weight: 500;
-      color: #475569;
-      cursor: pointer;
-      transition: all 0.2s;
+  .pagination-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background-color: transparent;
+    color: #6e6178;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+    user-select: none;
 
-      &:hover:not(.pagination-btn--disabled) {
-        border-color: #6EE7B7;
-        color: #059669;
-        background: #ECFDF5;
+    &:hover:not(.pagination-btn--disabled):not(.pagination-btn--active) {
+      background-color: #ecfdf5;
+      border-color: #a7f3d0;
+      color: #059669;
+    }
+
+    &.pagination-btn--disabled {
+      opacity: 0.5;
+      cursor: not-allowed !important;
+      color: #d4c5d0;
+      background-color: transparent;
+      border-color: #e2e8f0;
+      pointer-events: none;
+    }
+
+    &.pagination-btn--active {
+      background-color: #10b981;
+      color: #fff;
+      border-color: #10b981;
+      font-weight: 600;
+      box-shadow: 0 1px 3px rgba(16, 185, 129, 0.25);
+      pointer-events: none;
+    }
+  }
+
+  .pagination-ellipsis {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 34px;
+    color: #94a3b8;
+    font-size: 14px;
+    user-select: none;
+  }
+}
+
+.detail-content {
+  .detail-section {
+    margin-bottom: 24px;
+
+    .detail-row {
+      display: flex;
+      padding: 8px 0;
+      border-bottom: 1px solid #f1f5f9;
+
+      .detail-label {
+        width: 100px;
+        color: #64748b;
+        font-size: 14px;
       }
 
-      &.pagination-btn--active {
-        background: linear-gradient(135deg, #10B981, #059669);
-        color: #fff;
-        border-color: transparent;
-        box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
-      }
+      .detail-value {
+        flex: 1;
+        color: #1e293b;
+        font-size: 14px;
 
-      &.pagination-btn--disabled {
-        opacity: 0.45;
-        cursor: not-allowed;
+        &.detail-value--mono {
+          font-family: 'Courier New', monospace;
+          font-size: 12px;
+          word-break: break-all;
+        }
+
+        &.status--success {
+          color: #10b981;
+        }
+
+        &.status--error {
+          color: #ef4444;
+        }
+
+        &.status--pending {
+          color: #f59e0b;
+        }
       }
     }
 
-    .pagination-ellipsis {
-      color: #CBD5E1;
-      padding: 0 4px;
-      font-size: 13px;
+    .json-viewer {
+      margin-top: 12px;
+      padding: 12px;
+      background: #f8fafc;
+      border-radius: 8px;
+      font-size: 12px;
+      max-height: 300px;
+      overflow: auto;
     }
+
+    &.error-section {
+      .error-message {
+        padding: 16px;
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        border-radius: 8px;
+        color: #dc2626;
+        font-size: 14px;
+      }
+    }
+  }
+
+  .detail-actions {
+    display: flex;
+    gap: 12px;
   }
 }
 </style>

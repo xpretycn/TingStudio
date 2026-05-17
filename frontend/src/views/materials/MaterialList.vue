@@ -76,6 +76,13 @@
               <t-input id="material-search-input" v-model="searchKeyword" class="search-input"
                 placeholder="搜索原料名称、编码..." clearable aria-label="按原料名称或编码搜索" data-testid="material-search" />
             </div>
+            <button class="add-formula-btn" @click="handleRefreshList" title="刷新列表" aria-label="刷新原料列表">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="23 4 23 10 17 10" />
+                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+              </svg>
+            </button>
             <button class="add-formula-btn" @click="handleCreate" aria-label="录入新原料" data-testid="material-add-btn">
               <t-icon name="add" class="add-icon" />
               录入原料
@@ -197,7 +204,7 @@
                 <t-icon name="edit-1" />
               </button>
               <t-popconfirm theme="danger" :content="`确定要删除原料「${row.name}」吗？`" @confirm="handleDelete(row)">
-                <button class="action-btn delete-btn" title="删除" :aria-label="`删除原料${row.name}`">
+                <button class="action-btn delete-btn" title="删除" :aria-label="`删除原料${row.name}`" @click.stop>
                   <t-icon name="delete" />
                 </button>
               </t-popconfirm>
@@ -879,6 +886,13 @@ const refreshMatPending = () => {
   materialStore.fetchMaterials();
 };
 
+const handleRefreshList = () => {
+  searchKeyword.value = '';
+  materialStore.clearKeyword();
+  router.replace({ query: {} });
+  loadMaterials();
+};
+
 function formatTimeAgo(dateStr: string): string {
   if (!dateStr) return '刚刚';
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -899,14 +913,15 @@ onMounted(async () => {
   // 从路由查询参数恢复搜索关键字（在加载数据之前）
   if (route.query.keyword) {
     const keyword = route.query.keyword as string;
-
     // 设置标志位，防止 watch 触发重复搜索
     isRestoringFromRoute = true;
     searchKeyword.value = keyword;
     materialStore.setKeyword(keyword);
-
     // 等待 DOM 更新，确保输入框显示关键字
     await nextTick();
+  } else if (materialStore.keyword) {
+    // 路由无关键字但 store 有，同步到本地状态
+    searchKeyword.value = materialStore.keyword;
   }
 
   loadMaterials();
@@ -915,16 +930,21 @@ onMounted(async () => {
 
 // 处理 keep-alive 缓存的组件重新激活时恢复搜索状态
 onActivated(async () => {
-  if (route.query.keyword && route.query.keyword !== searchKeyword.value) {
-    const keyword = route.query.keyword as string;
-
-    // 设置标志位，防止 watch 触发重复搜索
-    isRestoringFromRoute = true;
-    searchKeyword.value = keyword;
-    materialStore.setKeyword(keyword);
-
-    await nextTick();
-    materialStore.fetchMaterials();
+  if (route.query.keyword) {
+    if (route.query.keyword !== searchKeyword.value) {
+      const keyword = route.query.keyword as string;
+      isRestoringFromRoute = true;
+      searchKeyword.value = keyword;
+      materialStore.setKeyword(keyword);
+      await nextTick();
+      materialStore.fetchMaterials();
+    }
+  } else {
+    if (searchKeyword.value || materialStore.keyword) {
+      searchKeyword.value = '';
+      materialStore.clearKeyword();
+      materialStore.fetchMaterials();
+    }
   }
 });
 

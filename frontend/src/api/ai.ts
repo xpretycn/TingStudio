@@ -32,6 +32,7 @@ export interface ParsedMaterial {
   confidence?: number;
   fieldConfidence?: { name?: number; quantity?: number; unit?: number };
   missingFields?: string[];
+  materialType?: 'herb' | 'supplement';
 }
 
 export interface ParsedFormula {

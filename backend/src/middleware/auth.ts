@@ -26,6 +26,8 @@ export function generateToken(payload: { userId: string; username: string; role:
   );
 }
 
+export type AuthRequest = AuthenticatedRequest;
+
 export function authMiddleware(req: AuthenticatedRequest, res: Response, next: NextFunction): void {
   const authHeader = req.headers.authorization;
 

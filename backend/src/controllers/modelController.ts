@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { AuthRequest } from "../middleware/auth.js";
 import { getDb } from "../config/database-better-sqlite3.js";
 import { aiService } from "../services/ai/AIService.js";
+import { fixGarbledText, formatFriendlyErrorMessage } from "../utils/helpers.js";
 import crypto from "node:crypto";
 
 function isAdmin(req: Request): boolean {
@@ -1234,26 +1235,33 @@ export async function getSmartToolHistory(req: Request, res: Response) {
        LIMIT ? OFFSET ?`,
     ).all(...params, pageSize, offset) as any[];
 
-    const modelNameMap: Record<string, string> = {};
-    const models = db.prepare("SELECT provider, name FROM ai_models").all() as any[];
+    const modelInfoMap: Record<string, { name: string; model: string }> = {};
+    const models = db.prepare("SELECT provider, name, model FROM ai_models").all() as any[];
     for (const m of models) {
-      modelNameMap[m.provider] = m.name;
+      modelInfoMap[m.provider] = { name: m.name, model: m.model };
     }
 
     const items = logs.map((log) => {
-      const modelName = modelNameMap[log.provider] || log.provider;
+      const modelInfo = modelInfoMap[log.provider] || { name: log.provider, model: log.model || "" };
       const toolLabel = CALL_TYPE_LABELS[log.call_type] || log.call_type;
+      
+      let requestSummary = log.request_summary;
+      if (requestSummary) {
+        requestSummary = fixGarbledText(requestSummary);
+      }
+
       return {
         id: log.id,
         callType: log.call_type,
         toolLabel,
         provider: log.provider,
-        modelName,
+        modelName: modelInfo.name,
+        modelVersion: log.model || modelInfo.model,
         totalTokens: log.total_tokens,
         latencyMs: log.latency_ms,
         status: log.status,
         errorMessage: log.error_message,
-        requestSummary: log.request_summary,
+        requestSummary,
         createdAt: log.created_at,
       };
     });
@@ -1270,6 +1278,36 @@ export async function getSmartToolHistory(req: Request, res: Response) {
         },
       },
     });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+}
+
+export async function deleteSmartToolHistory(req: Request, res: Response) {
+  try {
+    const db = getDb();
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({ success: false, message: "缺少记录 ID" });
+    }
+
+    const userId = (req as AuthRequest).user?.userId;
+    const record = db.prepare("SELECT id, user_id FROM ai_usage_logs WHERE id = ?").get(id) as any;
+    
+    if (!record) {
+      return res.status(404).json({ success: false, message: "记录不存在" });
+    }
+
+    if (record.user_id && record.user_id !== userId && !isAdmin(req)) {
+      return res.status(403).json({ success: false, message: "无权删除该记录" });
+    }
+
+    db.prepare("DELETE FROM ai_usage_logs WHERE id = ?").run(id);
+
+    console.log(`[SmartTools] 已删除历史记录: id=${id}, operator=${userId}`);
+
+    res.json({ success: true, message: "删除成功" });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
   }

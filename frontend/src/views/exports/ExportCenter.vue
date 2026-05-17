@@ -636,7 +636,13 @@ const handleSearch = () => {
   }, 300);
 };
 
-const formatDateTime = (raw: string) => raw ? raw.replace('T', ' ').replace('Z', '').substring(0, 19) : '';
+const formatDateTime = (raw: string) => {
+  if (!raw) return '';
+  const d = new Date(raw);
+  if (isNaN(d.getTime())) return raw.substring(0, 19);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+};
 
 // ─── 动态时间线 ───
 interface ActivityItem { type: 'success' | 'warning' | 'info'; title: string; desc: string; time: string; }

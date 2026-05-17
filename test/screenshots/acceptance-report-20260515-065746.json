@@ -1,0 +1,191 @@
+{
+  "timestamp": "2026-05-15T06:57:46.188079",
+  "total": 20,
+  "passed": 7,
+  "failed": 13,
+  "pass_rate": "35.0%",
+  "modules": {
+    "模块一": {
+      "total": 4,
+      "passed": 2,
+      "failed": 2
+    },
+    "模块二": {
+      "total": 1,
+      "passed": 0,
+      "failed": 1
+    },
+    "模块三": {
+      "total": 1,
+      "passed": 0,
+      "failed": 1
+    },
+    "模块八": {
+      "total": 6,
+      "passed": 2,
+      "failed": 4
+    },
+    "模块九": {
+      "total": 2,
+      "passed": 0,
+      "failed": 2
+    },
+    "模块十一": {
+      "total": 1,
+      "passed": 0,
+      "failed": 1
+    },
+    "模块十二": {
+      "total": 2,
+      "passed": 0,
+      "failed": 2
+    },
+    "模块十三": {
+      "total": 3,
+      "passed": 3,
+      "failed": 0
+    }
+  },
+  "items": [
+    {
+      "module": "模块一",
+      "id": "1.1",
+      "desc": "新增配方页面出现悬浮气泡(56x56)",
+      "passed": false,
+      "detail": "未找到悬浮球元素"
+    },
+    {
+      "module": "模块一",
+      "id": "1.2",
+      "desc": "悬浮球底部有状态指示灯(绿色online)",
+      "passed": true,
+      "detail": "class: status-dot status-dot--online"
+    },
+    {
+      "module": "模块一",
+      "id": "1.3",
+      "desc": "悬浮球右上角有红色角标",
+      "passed": false,
+      "detail": "无角标（可能无漏填字段）"
+    },
+    {
+      "module": "模块一",
+      "id": "1.4",
+      "desc": "悬浮球有呼吸脉冲动画(showPulse)",
+      "passed": true,
+      "detail": "检测到pulse类名"
+    },
+    {
+      "module": "模块二",
+      "id": "2.1",
+      "desc": "抽屉标题显示'新增配方'",
+      "passed": false,
+      "detail": "悬浮球未找到或无法点击"
+    },
+    {
+      "module": "模块三",
+      "id": "3.1",
+      "desc": "fill模式解析字段",
+      "passed": false,
+      "detail": "悬浮球未找到"
+    },
+    {
+      "module": "模块八",
+      "id": "8.1",
+      "desc": "新增配方页面悬浮球可见",
+      "passed": false,
+      "detail": "实际: 不可见, 期望: 可见"
+    },
+    {
+      "module": "模块八",
+      "id": "8.3",
+      "desc": "新增原料页面悬浮球可见",
+      "passed": false,
+      "detail": "实际: 不可见, 期望: 可见"
+    },
+    {
+      "module": "模块八",
+      "id": "8.5",
+      "desc": "新增业务员页面悬浮球可见",
+      "passed": false,
+      "detail": "实际: 不可见, 期望: 可见"
+    },
+    {
+      "module": "模块八",
+      "id": "8.7a",
+      "desc": "配方列表页面悬浮球不可见",
+      "passed": true,
+      "detail": "实际: 不可见, 期望: 不可见"
+    },
+    {
+      "module": "模块八",
+      "id": "8.7b",
+      "desc": "首页页面悬浮球不可见",
+      "passed": true,
+      "detail": "实际: 不可见, 期望: 不可见"
+    },
+    {
+      "module": "模块八",
+      "id": "8.8",
+      "desc": "从列表页导航到新增页悬浮球出现",
+      "passed": false,
+      "detail": ""
+    },
+    {
+      "module": "模块九",
+      "id": "9.1",
+      "desc": "未填写字段时悬浮球有角标(数字>=1)",
+      "passed": false,
+      "detail": "角标文本: '0', 数字: 0"
+    },
+    {
+      "module": "模块九",
+      "id": "9.3",
+      "desc": "填写部分字段后角标数字减少",
+      "passed": false,
+      "detail": "未找到name输入框"
+    },
+    {
+      "module": "模块十一",
+      "id": "11.5",
+      "desc": "输入'创建配方'返回导航指引",
+      "passed": false,
+      "detail": "悬浮球未找到"
+    },
+    {
+      "module": "模块十二",
+      "id": "12.1",
+      "desc": "模型管理页面有悬浮助手Tab",
+      "passed": false,
+      "detail": ""
+    },
+    {
+      "module": "模块十二",
+      "id": "12.1-detail",
+      "desc": "可用Tab列表",
+      "passed": false,
+      "detail": "找到的Tab: []"
+    },
+    {
+      "module": "模块十三",
+      "id": "13.3",
+      "desc": "field-hints 端点",
+      "passed": true,
+      "detail": "HTTP 200, success=True"
+    },
+    {
+      "module": "模块十三",
+      "id": "13.4",
+      "desc": "health 端点",
+      "passed": true,
+      "detail": "HTTP 200, success=True"
+    },
+    {
+      "module": "模块十三",
+      "id": "13.5",
+      "desc": "float-config 端点",
+      "passed": true,
+      "detail": "HTTP 200, success=True"
+    }
+  ]
+}

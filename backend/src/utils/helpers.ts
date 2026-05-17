@@ -503,14 +503,101 @@ export function generateMaterialCode(name: string): string {
 }
 
 export function fixMulterOriginalname(originalname: string): string {
+  if (!originalname) return originalname;
+  
   try {
-    const fixed = Buffer.from(originalname, 'latin1').toString('utf8');
-    if (fixed !== originalname && !/\ufffd/.test(fixed)) {
-      return fixed;
+    // 如果已经是正常的中文文件名，直接返回
+    if (/[\u4e00-\u9fff]/.test(originalname)) {
+      return originalname;
     }
+    
+    // 常见的乱码编码方式列表
+    const encodings = [
+      { from: 'latin1', to: 'utf8', name: 'Latin1→UTF8' },
+      { from: 'binary', to: 'utf8', name: 'Binary→UTF8' },
+      { from: 'win1252', to: 'utf8', name: 'Win1252→UTF8' },
+      { from: 'iso-8859-1', to: 'utf8', name: 'ISO-8859-1→UTF8' },
+      { from: 'cp1252', to: 'utf8', name: 'CP1252→UTF8' },
+    ];
+    
+    let bestResult = originalname;
+    let bestScore = 0;
+    
+    for (const { from, to } of encodings) {
+      try {
+        const fixed = Buffer.from(originalname, from as BufferEncoding).toString(to as BufferEncoding);
+        
+        // 如果转换后包含中文字符，且没有替换字符，认为是成功的转换
+        if (fixed !== originalname && !/\ufffd/.test(fixed)) {
+          const hasChinese = /[\u4e00-\u9fff]/.test(fixed);
+          const chineseCount = (fixed.match(/[\u4e00-\u9fff]/g) || []).length;
+          
+          // 计算得分：中文越多，得分越高
+          const score = chineseCount * 10;
+          
+          if (score > bestScore && hasChinese) {
+            bestResult = fixed;
+            bestScore = score;
+          }
+        }
+      } catch {
+        continue;
+      }
+    }
+    
+    // 如果找到了更好的结果，且结果合理，返回修复后的版本
+    if (bestScore > 0) {
+      return bestResult;
+    }
+    
     return originalname;
   } catch {
     return originalname;
+  }
+}
+
+export function isLikelyGarbled(text: string): boolean {
+  if (!text) return false;
+  
+  // 如果包含替换字符，很可能是乱码
+  if (/\ufffd/.test(text)) {
+    return true;
+  }
+  
+  // 如果同时包含中文和高位的西欧字符，很可能是乱码
+  const hasChinese = /[\u4e00-\u9fff]/.test(text);
+  const hasHighCode = /[\u0080-\u00FF]/.test(text);
+  
+  if (hasChinese && hasHighCode) {
+    return true;
+  }
+  
+  // 如果包含大量西欧字符（超过30%），且没有正常的ASCII扩展字符，可能是乱码
+  const westernChars = (text.match(/[\u00C0-\u00FF]/g) || []).length;
+  if (westernChars > text.length * 0.3 && !hasChinese) {
+    return true;
+  }
+  
+  return false;
+}
+
+export function fixGarbledText(text: string): string {
+  if (!text) return text;
+  try {
+    const encodings = ['latin1', 'binary', 'win1252'];
+    for (const encoding of encodings) {
+      try {
+        const fixed = Buffer.from(text, encoding as any).toString('utf8');
+        if (fixed !== text && !/\ufffd/.test(fixed)) {
+          return fixed;
+        }
+      } catch {
+        continue;
+      }
+    }
+    return text;
+  } catch {
+    return text;
   }
 }
 

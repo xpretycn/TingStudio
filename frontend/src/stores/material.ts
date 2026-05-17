@@ -88,6 +88,11 @@ export const useMaterialStore = defineStore("material", () => {
     currentPage.value = 1;
   };
 
+  const clearKeyword = () => {
+    keyword.value = "";
+    currentPage.value = 1;
+  };
+
   const setPage = (page: number) => {
     currentPage.value = page;
   };
@@ -126,6 +131,7 @@ export const useMaterialStore = defineStore("material", () => {
     updateMaterial,
     deleteMaterial,
     setKeyword,
+    clearKeyword,
     setPage,
   };
 });

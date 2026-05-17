@@ -34,7 +34,29 @@ import {
   deleteModelApplication,
   getRecentActivity,
   getSmartToolHistory,
+  deleteSmartToolHistory,
 } from "../controllers/modelController.js";
+import {
+  getParseResults,
+  getParseResultById,
+  saveParseResult,
+  deleteParseResult,
+  getParseResultStatistics,
+  checkParseResult,
+  markParseResultUsed,
+  getParseResultConfig,
+  updateParseResultConfig,
+  cleanupParseResults,
+  getParseResultDegradation,
+  triggerManualCleanup,
+  getLinkedFormula,
+  getLinkedMaterial,
+  getFormulaParseResults,
+  getMaterialParseResults,
+  getParseResultMetrics,
+  getParseResultAlerts,
+  getParseResultPerformance,
+} from "../controllers/parseResultController.js";
 
 const router = Router();
 
@@ -133,5 +155,27 @@ router.delete("/model-applications/:id", deleteModelApplication);
 
 router.get("/recent-activity", getRecentActivity);
 router.get("/smart-tool-history", getSmartToolHistory);
+router.delete("/smart-tool-history/:id", deleteSmartToolHistory);
+
+// 解析结果管理（注意：静态路由必须放在 :id 动态路由之前）
+router.get("/parse-results", getParseResults);
+router.get("/parse-results/statistics", getParseResultStatistics);
+router.get("/parse-results/config", getParseResultConfig);
+router.get("/parse-results/degradation", getParseResultDegradation);
+router.get("/parse-results/metrics", getParseResultMetrics);
+router.get("/parse-results/alerts", getParseResultAlerts);
+router.get("/parse-results/performance", getParseResultPerformance);
+router.get("/parse-results/:id", getParseResultById);
+router.get("/parse-results/:id/linked-formula", getLinkedFormula);
+router.get("/parse-results/:id/linked-material", getLinkedMaterial);
+router.get("/formulas/:formulaId/parse-results", getFormulaParseResults);
+router.get("/materials/:materialId/parse-results", getMaterialParseResults);
+router.post("/parse-results", saveParseResult);
+router.post("/parse-results/check", checkParseResult);
+router.put("/parse-results/config", updateParseResultConfig);
+router.post("/parse-results/cleanup", cleanupParseResults);
+router.post("/parse-results/manual-cleanup", triggerManualCleanup);
+router.post("/parse-results/:id/mark-used", markParseResultUsed);
+router.delete("/parse-results/:id", deleteParseResult);
 
 export const aiRoutes = router;

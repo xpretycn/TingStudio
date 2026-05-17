@@ -219,6 +219,12 @@ const router = createRouter({
           meta: { title: "智能工具" },
         },
         {
+          path: "ai/parse-result-config",
+          name: "ParseResultConfig",
+          component: () => import("@/views/ai/ParseResultConfig.vue"),
+          meta: { title: "解析结果配置", requiresAdmin: true },
+        },
+        {
           path: "model-management",
           name: "ModelManagement",
           component: () => import("@/views/models/ModelManagement.vue"),

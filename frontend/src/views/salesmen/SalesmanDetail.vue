@@ -274,26 +274,26 @@ const formatDate = (dateStr: string | Date): string => {
 
 const formatDateTime = (raw: string | null | undefined): string => {
   if (!raw) return '--';
-  const s = raw.replace('T', ' ').replace('Z', '');
-  return s.substring(0, 19);
+  const d = new Date(raw);
+  if (isNaN(d.getTime())) return raw.substring(0, 19);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 };
 
 const formatTimeDate = (raw: string | null | undefined): string => {
   if (!raw) return '--';
-  const d = new Date(raw.replace('T', ' ').replace('Z', ''));
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${y}-${m}-${day}`;
+  const d = new Date(raw);
+  if (isNaN(d.getTime())) return raw.substring(0, 10);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 };
 
 const formatTimeClock = (raw: string | null | undefined): string => {
   if (!raw) return '--';
-  const d = new Date(raw.replace('T', ' ').replace('Z', ''));
-  const h = String(d.getHours()).padStart(2, '0');
-  const min = String(d.getMinutes()).padStart(2, '0');
-  const sec = String(d.getSeconds()).padStart(2, '0');
-  return `${h}:${min}:${sec}`;
+  const d = new Date(raw);
+  if (isNaN(d.getTime())) return raw.substring(11, 19);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 };
 
 const formulaTotalPages = computed(() => Math.ceil(formulaTotal.value / FORMULA_PAGE_SIZE) || 1);

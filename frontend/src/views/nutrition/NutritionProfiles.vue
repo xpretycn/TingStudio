@@ -243,7 +243,13 @@ const profileForm = reactive({
   targetValues: {} as Record<string, number>
 });
 
-const formatDateTime = (raw: string) => raw ? raw.replace('T', ' ').replace('Z', '').substring(0, 19) : '';
+const formatDateTime = (raw: string) => {
+  if (!raw) return '';
+  const d = new Date(raw);
+  if (isNaN(d.getTime())) return raw.substring(0, 19);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+};
 
 const categoryMap: Record<string, string> = {
   infant: '婴幼儿', child: '儿童', adult: '成人', elderly: '老年', pregnant: '孕妇', special: '特殊'

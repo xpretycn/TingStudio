@@ -381,10 +381,12 @@
                         <span class="col-name">原料名称</span>
                         <span class="col-qty">用量</span>
                         <span class="col-unit">单位</span>
+                        <span class="col-ratio">含量比</span>
                         <span class="col-price">单价(/kg)</span>
                         <span class="col-adjust">调整</span>
                         <span class="col-subtotal">小计</span>
                         <span class="col-status">状态</span>
+                        <span class="col-action">操作</span>
                       </div>
                       <div v-for="(m, idx) in aiStore.parseResult.materials" :key="idx" class="materials-row"
                         :class="{ 'materials-row--warn': getMaterialPrice(m) == null, 'materials-row--adjusted': quoteItems[idx]?.isAdjusted, 'materials-row--qty-adjusted': quoteItems[idx]?.isQtyAdjusted, 'materials-row--restore-flash': restoreFlashIdx === idx, 'materials-row--new': !m.name && newMaterialSelectIdx === idx }">
@@ -397,7 +399,12 @@
                           </t-select>
                         </template>
                         <template v-else>
-                          <span class="col-name">{{ m.name || '(待选择)' }}</span>
+                          <span class="col-name">
+                            <span class="col-name-text">{{ m.name || '(待选择)' }}</span>
+                            <t-tag :class="isSupplementMaterial(m) ? 'material-type-tag--supplement' : 'material-type-tag--herb'" size="small">
+                              {{ isSupplementMaterial(m) ? '辅料' : '药材' }}
+                            </t-tag>
+                          </span>
                           <div class="col-qty-edit">
                             <t-input-number :model-value="quoteItems[idx]?.quantity ?? m.quantity ?? 0"
                               @change="(val: number) => handleQtyAdjust(idx, val)" :min="0" :decimal-places="2"
@@ -405,6 +412,9 @@
                               :class="{ 'col-qty-input--invalid': (quoteItems[idx]?.quantity ?? m.quantity) <= 0 }" />
                           </div>
                           <span class="col-unit">{{ m.unit || 'g' }}</span>
+                          <span class="col-ratio" :class="{ 'col-ratio--supplement': isSupplementMaterial(m) }">
+                            {{ calculateMaterialRatio(idx) }}
+                          </span>
                           <span class="col-price" v-if="getMaterialPrice(m) == null">
                             <span class="col-price-missing">未录入</span>
                           </span>
@@ -455,9 +465,11 @@
                                 <t-icon name="add" size="12px" />
                               </button>
                             </template>
+                          </span>
+                          <span class="col-action">
                             <button type="button" class="remove-material-btn" @click="removeParsedMaterial(idx)"
                               title="移除此原料">
-                              <t-icon name="close" size="12px" />
+                              <t-icon name="delete" size="12px" />
                             </button>
                           </span>
                         </template>
@@ -473,6 +485,35 @@
                 </div>
 
                 <div class="info-card info-card--actions">
+                  <div v-if="ratioValidationInfo.level !== 'none'" class="ratio-validation-card" :class="'ratio-validation-card--' + ratioValidationInfo.level">
+                    <div class="ratio-validation-header">
+                      <t-icon :name="ratioValidationIcon" size="18px" />
+                      <span class="ratio-validation-title">含量比校验</span>
+                      <span class="ratio-validation-badge" :class="'badge--' + ratioValidationInfo.level">
+                        {{ ratioValidationInfo.badgeText }}
+                      </span>
+                    </div>
+                    <div class="ratio-validation-body">
+                      <div class="ratio-bar-track">
+                        <div class="ratio-bar-fill" :style="{ width: ratioValidationBarWidth }"></div>
+                        <div class="ratio-bar-marker" :style="{ left: ratioValidationMarkerLeft }"></div>
+                      </div>
+                      <div class="ratio-bar-labels">
+                        <span>0.92</span><span>0.98</span><span class="ratio-bar-center">1.00</span><span>1.02</span><span>1.08</span>
+                      </div>
+                      <div class="ratio-validation-detail">
+                        <div class="ratio-detail-row">
+                          <span class="ratio-detail-label">含量比总和：</span>
+                          <span class="ratio-detail-value">{{ ratioValidationInfo.totalRatio.toFixed(5) }}</span>
+                          <span class="ratio-detail-deviation" :class="'deviation--' + ratioValidationInfo.level">
+                            ({{ ratioValidationDeviationText }})
+                          </span>
+                        </div>
+                        <div class="ratio-detail-desc">{{ ratioValidationInfo.description }}</div>
+                      </div>
+                    </div>
+                  </div>
+
                   <div v-if="submitBlockReasons.length" class="submit-block-reasons">
                     <div class="sbr-header">
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"
@@ -501,25 +542,6 @@
                       'error').length} 项错误，无法提交` : '确认生成配方'}}
                   </t-button>
                   <div class="secondary-actions">
-                    <button type="button" class="action-btn action-btn--ghost" @click.stop="resetUpload"
-                      aria-label="重新选择文件">
-                      <t-icon name="refresh" />
-                      重新选择
-                    </button>
-                    <button type="button" class="action-btn action-btn--ghost" @click.stop="clearResult"
-                      aria-label="清空AI解析结果">
-                      <t-icon name="delete" />
-                      清空
-                    </button>
-                    <button type="button" class="action-btn action-btn--ghost action-btn--save-template" @click.stop="showSaveFormulaTemplateDialog">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z" />
-                        <polyline points="17 21 17 13 7 13 7 21" />
-                        <polyline points="7 3 7 8 15 8" />
-                      </svg>
-                      保存为模板
-                    </button>
                     <t-dropdown trigger="hover"
                       :popup-props="{ appendToBody: true, placement: 'bottom-right', overlayClassName: 'reparse-dropdown-popup' }">
                       <button type="button" class="action-btn action-btn--ghost action-btn--reparse" @click.stop>
@@ -548,6 +570,20 @@
                         </t-dropdown-item>
                       </t-dropdown-menu>
                     </t-dropdown>
+                    <button type="button" class="action-btn action-btn--ghost" @click.stop="clearResult"
+                      aria-label="清空AI解析结果">
+                      <t-icon name="delete" />
+                      清空
+                    </button>
+                    <button type="button" class="action-btn action-btn--ghost" @click.stop="showSaveFormulaTemplateDialog">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z" />
+                        <polyline points="17 21 17 13 7 13 7 21" />
+                        <polyline points="7 3 7 8 15 8" />
+                      </svg>
+                      保存为模板
+                    </button>
                   </div>
                 </div>
               </div>
@@ -759,6 +795,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { useAiStore } from '@/stores/ai';
 import { useFormulaStore } from '@/stores/formula';
 import { useMaterialStore } from '@/stores/material';
+import type { Material } from '@/api/material';
 import { MessagePlugin } from 'tdesign-vue-next';
 import QuickCreateSalesmanDrawer from '@/components/QuickCreateSalesmanDrawer.vue';
 import QuickCreateMaterialDrawer from '@/components/QuickCreateMaterialDrawer.vue';
@@ -1031,6 +1068,10 @@ const submitBlockReasons = computed(() => {
     reasons.push({ type: 'warning', message: `${zeroQtyMaterials.length} 种原料用量为0或缺失：${names}` });
   }
 
+  if (ratioValidationInfo.value.level === 'error') {
+    reasons.push({ type: 'error', message: `含量比校验失败：${ratioValidationInfo.value.description}` });
+  }
+
   return reasons;
 });
 
@@ -1181,6 +1222,35 @@ const handleRestoreAllAdjustments = () => {
   if (parts.length > 0) MessagePlugin.success(`已恢复 ${parts.join('、')}为原始值`);
 };
 
+const isSupplementMaterial = (m: ParsedMaterial): boolean => {
+  if (m.materialType) {
+    return m.materialType === 'supplement';
+  }
+  if (m.materialId) {
+    const matched = materialStore.allMaterials.find((mat: Material) => mat.id === m.materialId);
+    if (matched) {
+      return matched.materialType === 'supplement';
+    }
+  }
+  return false;
+};
+
+const calculateMaterialRatio = (idx: number): string => {
+  const data = aiStore.parseResult;
+  if (!data?.materials?.[idx]) return '—';
+  const m = data.materials[idx];
+  if (!editedWeight.value || editedWeight.value <= 0) return '—';
+  const quantity = quoteItems.value[idx]?.quantity ?? m.quantity ?? 0;
+  if (!quantity || quantity <= 0) return '—';
+
+  const ratioFactor = isSupplementMaterial(m)
+    ? (editedSupplementRatioFactor.value ?? 1.0)
+    : (editedRatioFactor.value ?? 0.18);
+
+  const ratio = (quantity / editedWeight.value) * ratioFactor;
+  return ratio.toFixed(5);
+};
+
 const restoreFlashIdx = ref<number | null>(null);
 
 const handleRestoreSinglePrice = (idx: number) => {
@@ -1206,6 +1276,115 @@ const getQuoteItemSubtotal = (idx: number): number | null => {
   if (!item || item.unitPrice == null) return null;
   return item.subtotal;
 };
+
+interface RatioValidationResult {
+  level: 'none' | 'normal' | 'warning' | 'high_warning' | 'error';
+  totalRatio: number;
+  badgeText: string;
+  description: string;
+}
+
+const ratioValidationInfo = computed<RatioValidationResult>(() => {
+  const data = aiStore.parseResult;
+  if (!data || !data.materials?.length || !editedWeight.value || editedWeight.value <= 0) {
+    return { level: 'none', totalRatio: 0, badgeText: '', description: '' };
+  }
+
+  const finishedWeight = editedWeight.value;
+  const ratioFactor = editedRatioFactor.value ?? 0.18;
+  const supplementRatioFactor = editedSupplementRatioFactor.value ?? 1.0;
+
+  const materials = data.materials || [];
+  const validMaterials = materials.filter((m: ParsedMaterial) => m.name?.trim());
+
+  let totalRatio = 0;
+  for (const m of validMaterials) {
+    const effectiveQty = qtyAdjustments.value[materials.indexOf(m)] ?? m.quantity ?? 0;
+    if (!effectiveQty || effectiveQty <= 0) continue;
+    const baseRatio = effectiveQty / finishedWeight;
+    const effectiveRatioFactor = isSupplementMaterial(m) ? supplementRatioFactor : ratioFactor;
+    const ratio = Math.round(baseRatio * effectiveRatioFactor * 100000) / 100000;
+    totalRatio += ratio;
+  }
+  totalRatio = Math.round(totalRatio * 100000) / 100000;
+
+  const thresholds = { normalLow: 0.98, normalHigh: 1.02, warningLow: 0.95, warningHigh: 1.05, highWarningLow: 0.92, highWarningHigh: 1.08 };
+
+  let level: RatioValidationResult['level'];
+  if (totalRatio >= thresholds.normalLow && totalRatio <= thresholds.normalHigh) {
+    level = 'normal';
+  } else if (
+    (totalRatio >= thresholds.warningLow && totalRatio < thresholds.normalLow) ||
+    (totalRatio > thresholds.normalHigh && totalRatio <= thresholds.warningHigh)
+  ) {
+    level = 'warning';
+  } else if (
+    (totalRatio >= thresholds.highWarningLow && totalRatio < thresholds.warningLow) ||
+    (totalRatio > thresholds.warningHigh && totalRatio <= thresholds.highWarningHigh)
+  ) {
+    level = 'high_warning';
+  } else {
+    level = 'error';
+  }
+
+  const deviation = ((totalRatio - 1) * 100).toFixed(2);
+  const messages: Record<string, { badgeText: string; description: string }> = {
+    normal: {
+      badgeText: '通过',
+      description: `含量比总和 ${totalRatio.toFixed(5)}（偏差 ${deviation}%），在正常范围内`,
+    },
+    warning: {
+      badgeText: '预警',
+      description: `含量比总和 ${totalRatio.toFixed(5)}，偏差 ${deviation}%，超出正常范围，建议检查用量`,
+    },
+    high_warning: {
+      badgeText: '警告',
+      description: `含量比总和 ${totalRatio.toFixed(5)}，偏差 ${deviation}%，需人工审核确认`,
+    },
+    error: {
+      badgeText: '失败',
+      description: `含量比总和 ${totalRatio.toFixed(5)}，偏差 ${deviation}%，超出允许范围，请修正用量`,
+    },
+  };
+
+  const msg = messages[level];
+  return { level, totalRatio, ...msg };
+});
+
+const ratioValidationIcon = computed(() => {
+  const icons: Record<string, string> = {
+    none: 'help-circle',
+    normal: 'check-circle-filled',
+    warning: 'error-circle',
+    high_warning: 'error-circle',
+    error: 'close-circle-filled',
+  };
+  return icons[ratioValidationInfo.value.level] || 'info-circle';
+});
+
+const ratioValidationBarWidth = computed(() => {
+  const ratio = ratioValidationInfo.value.totalRatio;
+  const minRatio = 0.92;
+  const maxRatio = 1.08;
+  const clampedRatio = Math.max(minRatio, Math.min(maxRatio, ratio));
+  const percentage = ((clampedRatio - minRatio) / (maxRatio - minRatio)) * 100;
+  return `${percentage}%`;
+});
+
+const ratioValidationMarkerLeft = computed(() => {
+  const ratio = ratioValidationInfo.value.totalRatio;
+  const minRatio = 0.92;
+  const maxRatio = 1.08;
+  const clampedRatio = Math.max(minRatio, Math.min(maxRatio, ratio));
+  const percentage = ((clampedRatio - minRatio) / (maxRatio - minRatio)) * 100;
+  return `${percentage}%`;
+});
+
+const ratioValidationDeviationText = computed(() => {
+  const d = ((ratioValidationInfo.value.totalRatio - 1) * 100).toFixed(2);
+  const prefix = Number(d) >= 0 ? '+' : '';
+  return `${prefix}${d}%`;
+});
 
 const parseElapsedTimeFormatted = computed(() => {
   if (!aiStore.parseLoading) return '0s';
@@ -3252,6 +3431,172 @@ const goToFileDetail = () => {
   }
 }
 
+.ratio-validation-card {
+  margin-bottom: 12px;
+  padding: 14px 16px;
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.15);
+
+  &--normal {
+    background: linear-gradient(135deg, #ecfdf5, #f0fdf4);
+    border-color: #bbf7d0;
+  }
+
+  &--warning {
+    background: linear-gradient(135deg, #fffbeb, #fef3c7);
+    border-color: #fde68a;
+  }
+
+  &--high_warning {
+    background: linear-gradient(135deg, #fef3c7, #fde68a);
+    border-color: #fcd34d;
+  }
+
+  &--error {
+    background: linear-gradient(135deg, #fef2f2, #fee2e2);
+    border-color: #fecaca;
+  }
+
+  .ratio-validation-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+
+    .t-icon {
+      flex-shrink: 0;
+    }
+  }
+
+  .ratio-validation-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #334155;
+  }
+
+  .ratio-validation-badge {
+    margin-left: auto;
+    padding: 2px 10px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 700;
+
+    &.badge--normal {
+      background: rgba(16, 185, 129, 0.12);
+      color: #059669;
+    }
+
+    &.badge--warning {
+      background: rgba(245, 158, 11, 0.12);
+      color: #d97706;
+    }
+
+    &.badge--high_warning {
+      background: rgba(245, 158, 11, 0.2);
+      color: #b45309;
+    }
+
+    &.badge--error {
+      background: rgba(239, 68, 68, 0.12);
+      color: #dc2626;
+    }
+  }
+
+  .ratio-validation-body {
+    .ratio-bar-track {
+      position: relative;
+      width: 100%;
+      height: 8px;
+      background: linear-gradient(90deg, #fecaca 0%, #fde68a 15%, #bbf7d0 35%, #bbf7d0 50%, #bbf7d0 65%, #fde68a 85%, #fecaca 100%);
+      border-radius: 4px;
+      margin-bottom: 4px;
+      box-sizing: border-box;
+
+      .ratio-bar-fill {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 100%;
+        background: rgba(16, 185, 129, 0.3);
+        border-radius: 4px;
+        transition: width 0.3s ease;
+      }
+
+      .ratio-bar-marker {
+        position: absolute;
+        top: -3px;
+        width: 3px;
+        height: 14px;
+        background: #334155;
+        border-radius: 2px;
+        transform: translateX(-50%);
+        transition: left 0.3s ease;
+        z-index: 2;
+      }
+    }
+
+    .ratio-bar-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      color: #94a3b8;
+      margin-bottom: 10px;
+
+      .ratio-bar-center {
+        color: #059669;
+        font-weight: 700;
+      }
+    }
+
+    .ratio-validation-detail {
+      .ratio-detail-row {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        margin-bottom: 4px;
+
+        .ratio-detail-label {
+          color: #64748b;
+        }
+
+        .ratio-detail-value {
+          font-weight: 700;
+          font-family: ui-monospace, monospace;
+          color: #334155;
+        }
+
+        .ratio-detail-deviation {
+          font-weight: 600;
+
+          &.deviation--normal {
+            color: #059669;
+          }
+
+          &.deviation--warning {
+            color: #d97706;
+          }
+
+          &.deviation--high_warning {
+            color: #b45309;
+          }
+
+          &.deviation--error {
+            color: #dc2626;
+          }
+        }
+      }
+
+      .ratio-detail-desc {
+        font-size: 11px;
+        color: #64748b;
+        line-height: 1.5;
+      }
+    }
+  }
+}
+
 .backfill-btn {
   border-radius: 14px;
   font-weight: 700;
@@ -3365,48 +3710,6 @@ const goToFileDetail = () => {
         }
       }
     }
-
-    &--reparse {
-      min-width: 0;
-      background: #f0fdf4;
-      border: 1px solid #bbf7d0;
-      color: #059669;
-
-      .t-icon {
-        color: #059669;
-      }
-
-      &:hover {
-        background: #dcfce7;
-        border-color: #86efac;
-        color: #047857;
-
-        .t-icon {
-          color: #047857;
-        }
-      }
-    }
-
-    &--save-template {
-      min-width: 0;
-      background: #eef2ff;
-      border: 1px solid #c7d2fe;
-      color: #4f46e5;
-
-      svg {
-        color: #4f46e5;
-      }
-
-      &:hover {
-        background: #e0e7ff;
-        border-color: #a5b4fc;
-        color: #3730a3;
-
-        svg {
-          color: #3730a3;
-        }
-      }
-    }
   }
 }
 
@@ -3425,7 +3728,7 @@ const goToFileDetail = () => {
 .materials-table {
   .materials-header {
     display: grid;
-    grid-template-columns: 1fr 80px 40px 130px 90px 72px 90px;
+    grid-template-columns: 1fr 80px 40px 80px 110px 80px 72px 90px 50px;
     gap: 4px;
     padding: 10px 14px;
     font-size: 11px;
@@ -3443,14 +3746,15 @@ const goToFileDetail = () => {
       font-variant-numeric: tabular-nums;
     }
 
+    .col-ratio,
     .col-price,
     .col-subtotal {
-      text-align: right;
+      text-align: center;
     }
 
-    .col-status {
-      text-align: right;
-      padding-left: 4px;
+    .col-status,
+    .col-action {
+      text-align: center;
     }
 
     .col-adjust {
@@ -3460,7 +3764,7 @@ const goToFileDetail = () => {
 
   .materials-row {
     display: grid;
-    grid-template-columns: 1fr 80px 40px 130px 90px 72px 90px;
+    grid-template-columns: 1fr 80px 40px 80px 110px 80px 72px 90px 50px;
     gap: 4px;
     padding: 9px 14px;
     font-size: 12px;
@@ -3518,6 +3822,37 @@ const goToFileDetail = () => {
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+
+      .col-name-text {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .material-type-tag--herb {
+        flex-shrink: 0;
+        background: rgba(16, 185, 129, 0.1);
+        color: #059669;
+        border-color: #a7f3d0;
+        font-size: 10px;
+        padding: 0 4px;
+        height: 18px;
+        line-height: 16px;
+      }
+
+      .material-type-tag--supplement {
+        flex-shrink: 0;
+        background: rgba(99, 102, 241, 0.1);
+        color: #4f46e5;
+        border-color: #c7d2fe;
+        font-size: 10px;
+        padding: 0 4px;
+        height: 18px;
+        line-height: 16px;
+      }
     }
 
     .col-qty {
@@ -3559,6 +3894,19 @@ const goToFileDetail = () => {
       white-space: nowrap;
       overflow: visible;
       text-align: center;
+    }
+
+    .col-ratio {
+      color: #334155;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      text-align: center;
+      font-family: ui-monospace, monospace;
+      font-size: 11px;
+
+      &--supplement {
+        color: #6366f1;
+      }
     }
 
     .col-price {
@@ -3662,7 +4010,7 @@ const goToFileDetail = () => {
     }
 
     .col-subtotal {
-      text-align: right;
+      text-align: center;
       font-weight: 600;
       font-variant-numeric: tabular-nums;
 
@@ -3672,10 +4020,18 @@ const goToFileDetail = () => {
     }
 
     .col-status {
-      text-align: right;
+      text-align: center;
       display: flex;
       align-items: center;
-      justify-content: flex-end;
+      justify-content: center;
+      gap: 4px;
+    }
+
+    .col-action {
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       gap: 4px;
     }
   }
@@ -3738,12 +4094,16 @@ const goToFileDetail = () => {
 .materials-add-row {
   padding: 10px 14px;
   border-top: 1px solid rgba(148, 163, 184, 0.08);
+  width: 100%;
+  box-sizing: border-box;
 
   .add-material-inline-btn {
-    display: inline-flex;
+    display: flex;
     align-items: center;
+    justify-content: center;
     gap: 4px;
-    padding: 6px 14px;
+    width: 100%;
+    padding: 8px 14px;
     border-radius: 8px;
     background: transparent;
     color: #10B981;
@@ -3752,6 +4112,7 @@ const goToFileDetail = () => {
     border: 1px dashed #10B981;
     cursor: pointer;
     transition: all $transition-fast;
+    box-sizing: border-box;
 
     &:hover {
       background: #ecfdf5;

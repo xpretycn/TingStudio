@@ -84,11 +84,11 @@
               <div class="field-grid-2">
                 <div class="field-item">
                   <label><t-icon name="time" size="12px" /> 创建时间</label>
-                  <p>{{ material.createdAt }}</p>
+                  <p>{{ formatTimestamp(material.createdAt) }}</p>
                 </div>
                 <div class="field-item">
                   <label><t-icon name="edit-1" size="12px" /> 更新时间</label>
-                  <p>{{ material.updatedAt }}</p>
+                  <p>{{ formatTimestamp(material.updatedAt) }}</p>
                 </div>
               </div>
             </div>
@@ -262,6 +262,7 @@ import { useRouter, useRoute } from 'vue-router';
 import { useMaterialStore } from '@/stores/material';
 import { useNutritionStore } from '@/stores/nutrition';
 import PageSkeleton from '@/components/Skeleton/PageSkeleton.vue';
+import { formatTimestamp } from '@/utils/timeFormat';
 
 const router = useRouter();
 const route = useRoute();

@@ -15,6 +15,7 @@ import { connectDatabase } from "./config/database-adapter.js";
 import { AIService } from "./services/ai/AIService.js";
 import { initializeLLMAgentService } from "./services/ai/agent/index.js";
 import { registerAllTools } from "./services/ai/agent/toolRegistration.js";
+import { parseResultCleanupService } from "./services/parseResultCleanupService.js";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -34,6 +35,8 @@ function initializeApp(): void {
       initializeLLMAgentService(aiService);
 
       registerAllTools();
+
+      parseResultCleanupService.startScheduledCleanup();
 
       setupApp(app);
 

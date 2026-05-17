@@ -265,4 +265,7 @@ export const modelApi = {
   getSmartToolHistory(params?: { page?: number; pageSize?: number; callType?: string }) {
     return http.get<any, any>("/ai/smart-tool-history", { params });
   },
+  deleteSmartToolHistory(id: string) {
+    return http.delete<any, any>(`/ai/smart-tool-history/${id}`);
+  },
 };

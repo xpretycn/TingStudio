@@ -29,6 +29,9 @@ export const useAiStore = defineStore("ai", () => {
   let materialRequestId: number = 0;
   let materialAbortController: AbortController | null = null;
 
+  // ─── 解析历史刷新触发器 ───
+  const parseHistoryRefreshKey = ref(0);
+
   // ─── 智能检索 ───
   const searchLoading = ref(false);
   const searchResult = ref<SearchResult | null>(null);
@@ -98,6 +101,7 @@ export const useAiStore = defineStore("ai", () => {
 
       if (currentRequestId === parseRequestId && !parseAborted.value) {
         parseResult.value = res;
+        parseHistoryRefreshKey.value++;
       } else {
         console.log("[AI Store] 配方解析结果已丢弃（请求已过期或被终止）");
       }
@@ -188,6 +192,7 @@ export const useAiStore = defineStore("ai", () => {
 
       if (currentRequestId === materialRequestId && !materialParseAborted.value) {
         materialParseResult.value = res;
+        parseHistoryRefreshKey.value++;
       } else {
         console.log("[AI Store] 原料解析结果已丢弃（请求已过期或被终止）");
       }
@@ -255,6 +260,7 @@ export const useAiStore = defineStore("ai", () => {
     parseResult,
     parseError,
     parseAborted,
+    parseHistoryRefreshKey,
     materialParseLoading,
     materialParseResult,
     materialParseError,
