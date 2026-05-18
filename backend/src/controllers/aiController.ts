@@ -1,5 +1,6 @@
 // AI 助手控制器
 import { Request, Response } from "express";
+import crypto from "crypto";
 import { aiService, AIService, type ChatMessage } from "../services/ai/AIService.js";
 import {
   FORMULA_PARSE_SYSTEM_PROMPT,
@@ -13,6 +14,8 @@ import {
 } from "../services/ai/prompts.js";
 import { validateSQL, readFileAsBase64 } from "../utils/sqlValidator.js";
 import { query } from "../config/database-better-sqlite3.js";
+import { getDb } from "../config/database-better-sqlite3.js";
+import { generateId } from "../utils/helpers.js";
 import fs from "node:fs";
 import path from "node:path";
 import XLSX from "xlsx";
@@ -75,6 +78,39 @@ export async function parseFormula(req: any, res: Response) {
     const isExcel = excelExts.includes(ext);
 
     const userId = req.user.userId;
+
+    // 计算文件内容的 MD5 哈希（用于缓存检测）
+    const fileContent = fs.readFileSync(file.path);
+    const fileHash = crypto.createHash("md5").update(fileContent).digest("hex");
+
+    // 检查是否已有相同文件的解析缓存
+    const [cachedRows]: any[][] = await query(
+      `SELECT id, parsed_result, model_name, tokens_used FROM parse_results 
+       WHERE user_id = ? AND file_hash = ? AND status = 'success' AND call_type = 'parse_formula'
+       ORDER BY created_at DESC LIMIT 1`,
+      [userId, fileHash]
+    );
+
+    if (cachedRows && cachedRows.length > 0) {
+      console.log(`[AI] 命中解析缓存: ${file.originalname} (hash: ${fileHash})`);
+      try {
+        const cachedResult = JSON.parse(cachedRows[0].parsed_result);
+        // 清理临时文件
+        try { fs.unlinkSync(file.path); } catch {}
+        res.json({
+          success: true,
+          data: {
+            ...cachedResult,
+            id: cachedRows[0].id,
+            model: cachedRows[0].model_name,
+            usage: cachedRows[0].tokens_used ? { total: cachedRows[0].tokens_used } : undefined,
+            cached: true,
+          },
+        });
+        return;
+      } catch {}
+    }
+
     const [materialRows]: any[][] = await query("SELECT name FROM materials ORDER BY name ASC", []);
     const knownMaterials = materialRows ? materialRows.map((r: any) => r.name) : [];
 
@@ -178,6 +214,30 @@ export async function parseFormula(req: any, res: Response) {
     // 模糊匹配原料 ID
     const materialsWithName = await matchMaterials(parsed.materials, userId);
 
+    // 保存解析结果到 parse_results 表
+    let parseRecordId: string | undefined;
+    try {
+      const fileSize = file.size;
+      const rawResponse = result.content;
+      const modelProvider = provider;
+      const modelName = result.model;
+
+      parseRecordId = await saveParseResultToDb({
+        userId,
+        callType: "parse_formula",
+        fileHash,
+        fileName: file.originalname,
+        fileSize,
+        parsedResult: { ...parsed, materials: materialsWithName },
+        rawResponse,
+        modelProvider,
+        modelName,
+        status: "success",
+      });
+    } catch (saveErr) {
+      console.error("[AI] 保存解析结果失败:", saveErr);
+    }
+
     // 清理临时文件
     try {
       fs.unlinkSync(file.path);
@@ -187,6 +247,7 @@ export async function parseFormula(req: any, res: Response) {
       success: true,
       data: {
         ...parsed,
+        id: parseRecordId,
         materials: materialsWithName,
         model: result.model,
         usage: result.usage,
@@ -196,6 +257,88 @@ export async function parseFormula(req: any, res: Response) {
     console.error("[AI] parseFormula error:", error);
     res.status(500).json({ success: false, message: `AI 解析失败: ${error.message}` });
   }
+}
+
+async function saveParseResultToDb(params: {
+  userId: string;
+  callType: string;
+  fileHash: string;
+  fileName: string;
+  fileSize: number;
+  parsedResult: any;
+  rawResponse: string;
+  modelProvider: string;
+  modelName: string;
+  status: string;
+  errorMessage?: string;
+}): Promise<string> {
+  const db = getDb();
+  const now = new Date().toISOString();
+  const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+
+  // 检查是否已存在相同 (user_id, file_hash, call_type) 的记录
+  const existing = db.prepare(`
+    SELECT id, used_count FROM parse_results
+    WHERE user_id = ? AND file_hash = ? AND call_type = ?
+    ORDER BY created_at DESC LIMIT 1
+  `).get(params.userId, params.fileHash, params.callType);
+
+  if (existing) {
+    // 更新已存在的记录（覆盖结果，增加使用次数）
+    db.prepare(`
+      UPDATE parse_results SET
+        file_name = ?,
+        file_size = ?,
+        parsed_result = ?,
+        raw_response = ?,
+        model_provider = ?,
+        model_name = ?,
+        status = ?,
+        error_message = ?,
+        expires_at = ?,
+        used_count = used_count + 1,
+        updated_at = ?
+      WHERE id = ?
+    `).run(
+      params.fileName,
+      params.fileSize,
+      JSON.stringify(params.parsedResult),
+      params.rawResponse,
+      params.modelProvider || null,
+      params.modelName || null,
+      params.status || "success",
+      params.errorMessage || null,
+      expiresAt,
+      now,
+      (existing as any).id
+    );
+    console.log(`[AI] 更新已有解析记录: ${params.fileName} (id: ${(existing as any).id})`);
+    return (existing as any).id;
+  }
+
+  // 插入新记录
+  const id = generateId();
+  db.prepare(`
+    INSERT INTO parse_results (id, user_id, call_type, file_hash, file_name, file_size, parsed_result, raw_response, model_provider, model_name, status, error_message, expires_at, created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(
+    id,
+    params.userId,
+    params.callType,
+    params.fileHash,
+    params.fileName,
+    params.fileSize,
+    JSON.stringify(params.parsedResult),
+    params.rawResponse,
+    params.modelProvider || null,
+    params.modelName || null,
+    params.status || "success",
+    params.errorMessage || null,
+    expiresAt,
+    now,
+    now
+  );
+  return id;
 }
 
 // ─── AI 解析原料营养 ───
@@ -245,6 +388,37 @@ export async function parseMaterialNutrition(req: any, res: Response) {
         });
         return;
       }
+    }
+
+    // 计算文件内容的 MD5 哈希（用于缓存检测）
+    const fileContent = fs.readFileSync(file.path);
+    const fileHash = crypto.createHash("md5").update(fileContent).digest("hex");
+
+    // 检查是否已有相同文件的解析缓存
+    const [cachedRows]: any[][] = await query(
+      `SELECT id, parsed_result, model_name, tokens_used FROM parse_results
+       WHERE user_id = ? AND file_hash = ? AND status = 'success' AND call_type = 'parse_nutrition'
+       ORDER BY created_at DESC LIMIT 1`,
+      [userId, fileHash]
+    );
+
+    if (cachedRows && cachedRows.length > 0) {
+      console.log(`[AI] 命中营养解析缓存: ${file.originalname} (hash: ${fileHash})`);
+      try {
+        const cachedResult = JSON.parse(cachedRows[0].parsed_result);
+        try { fs.unlinkSync(file.path); } catch {}
+        res.json({
+          success: true,
+          data: {
+            ...cachedResult,
+            id: cachedRows[0].id,
+            model: cachedRows[0].model_name,
+            usage: cachedRows[0].tokens_used ? { total: cachedRows[0].tokens_used } : undefined,
+            cached: true,
+          },
+        });
+        return;
+      } catch {}
     }
 
     let messages: ChatMessage[];
@@ -346,6 +520,31 @@ export async function parseMaterialNutrition(req: any, res: Response) {
       ]);
       mat.isRecorded = !!(matches && matches.length > 0);
       mat.materialId = matches?.[0]?.id || null;
+    }
+
+    // 保存解析结果到 parse_results 表
+    try {
+      const crypto = await import("crypto");
+      const fileHash = crypto.createHash("md5").update(file.originalname + Date.now()).digest("hex");
+      const fileSize = file.size;
+      const rawResponse = result.content;
+      const modelProvider = provider;
+      const modelName = result.model;
+
+      await saveParseResultToDb({
+        userId,
+        callType: "parse_nutrition",
+        fileHash,
+        fileName: file.originalname,
+        fileSize,
+        parsedResult: parsed,
+        rawResponse,
+        modelProvider,
+        modelName,
+        status: "success",
+      });
+    } catch (saveErr) {
+      console.error("[AI] 保存解析结果失败:", saveErr);
     }
 
     try {

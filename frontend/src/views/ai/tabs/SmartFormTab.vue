@@ -1793,6 +1793,7 @@ const backfillData = async () => {
     materialId: m.materialId || '',
     materialName: m.name,
     quantity: quoteItems.value[idx]?.quantity ?? m.quantity ?? 0,
+    materialType: isSupplementMaterial(m) ? 'supplement' : 'herb',
   }));
 
   const payload: FormulaForm = {
@@ -1808,6 +1809,7 @@ const backfillData = async () => {
     profitMargin: profitMargin.value,
     originalName: data?.name || undefined,
     originalWeight: data?.finishedWeight || undefined,
+    parseResultId: aiStore.parseResult?.id || undefined,
   };
 
   const result = await formulaStore.createFormula(payload);
@@ -2129,6 +2131,7 @@ const handleFormSubmit = async () => {
     profitMargin: profitMargin.value,
     originalName: aiStore.parseResult?.name || undefined,
     originalWeight: aiStore.parseResult?.finishedWeight || undefined,
+    parseResultId: aiStore.parseResult?.id || undefined,
   };
 
   const result = await formulaStore.createFormula(payload);
@@ -2198,7 +2201,7 @@ const goToFileDetail = () => {
 
 .ai-panel {
   background: linear-gradient(145deg, #ffffff 0%, #f8fafc 50%, $border-color-light 100%);
-  padding: 32px;
+  padding: 32px 20px;
   border-radius: 2.5rem;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.06), 0 8px 10px -6px $overlay-emerald-06;
   color: #334155;
@@ -2836,7 +2839,7 @@ const goToFileDetail = () => {
       }
 
       .result-left {
-        width: 40%;
+        width: 32%;
         min-width: 0;
         display: flex;
         flex-direction: column;
@@ -2844,7 +2847,7 @@ const goToFileDetail = () => {
       }
 
       .result-right {
-        width: 60%;
+        width: 68%;
         min-width: 0;
       }
     }
@@ -4495,6 +4498,7 @@ const goToFileDetail = () => {
       .result-left,
       .result-right {
         width: 100%;
+        min-width: unset;
       }
     }
   }

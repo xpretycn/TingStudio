@@ -1,4 +1,4 @@
-# TingStudio v2.32
+# TingStudio v2.9.0
 
 食品配方工作数据管理平台 — 前后端分离架构
 
@@ -220,10 +220,13 @@ TingStudio/
 | **🥗 营养分析** | 7 步法营养成分计算、NRV%、合规校验、营养档案管理 |
 | **📎 文件管理** | 文件上传/预览、Excel/PDF/图片解析、批量导入、审计日志 |
 | **📦 导出中心** | Excel/PDF 导出、自定义模板、API 接口管理 |
-| **🤖 AI 助手** | Agent 对话（ReAct 循环）、意图识别、工具调用、写操作守卫、身份定义 |
-| **🔮 悬浮助手** | 表单字段解析、智能对话、配方对比/成本/替代建议、指令模板、双模路由 |
+| **🤖 AI 助手** | Agent 对话（ReAct 循环）、意图识别、工具调用、写操作守卫、身份定义、悬浮助手（双模路由/SSE流式/结果卡片） |
+| **🔮 悬浮助手** | 表单字段解析、智能对话、配方对比/成本/替代建议、指令模板、双模路由（fill/agent）、模型配置（位置/主题色/轮次/策略） |
 | **🔍 智能检索** | NL2SQL 自然语言查询、跨表关联查询、聚合分析 |
-| **🛠️ 模型管理** | AI 模型配置、功能模块分配、用量监控、悬浮助手配置 |
+| **📝 智能填单** | AI 解析配方/原料文件（Excel/PDF/图片），带模型选择器（Logo + 能力标签），含量比自动校验 |
+| **📜 解析历史** | 解析结果管理（统计卡片/搜索/筛选/分页）、缓存命中（文件MD5去重）、关联配方/原料、存储监控（上限/清理阈值/降级熔断） |
+| **📋 解析模板** | AI 解析模板配置（类别/模型/Prompt/字段映射）、预设模板、CRUD 管理 |
+| **🛠️ 模型管理** | AI 模型配置、功能模块分配（模型应用）、用量监控、告警/健康/降级、悬浮助手配置 |
 | **🔐 权限系统** | JWT 认证、角色控制（admin/user）、数据隔离 |
 | **📁 版本管理** | 版本快照、版本对比（含量/报价双模式）、变更追踪 |
 | **⚙️ 账号设置** | 个人资料管理（昵称/头像/简介/邮箱/手机号） |
@@ -258,7 +261,8 @@ cd frontend && npm run test:coverage
 | 开发计划 | `DEVELOPMENT_PLAN.md` |
 | 产品需求文档 | `PRD-TingStudio-v2.0.md` |
 | Agent 系统设计 | `docs/agent-system/` |
-| 组件设计文档 | `docs/ting-studio/` |
+| 功能模块设计文档 | `docs/ting-studio/` |
+| 解析历史验证手册 | `docs/ting-studio/parse-history-verification-manual.md` |
 | 生产部署指南 | `PRODUCTION_DEPLOYMENT_GUIDE.md` |
 | EdgeOne 修复指南 | `EDGEONE_DEPLOYMENT_FIX.md` |
 | SCF 部署指南 | `SCF_MANUAL_DEPLOYMENT_GUIDE.md` |
@@ -267,7 +271,7 @@ cd frontend && npm run test:coverage
 
 ## 🗄️ 数据库概览
 
-SQLite (better-sqlite3) + WAL 模式，共 **33 张表**：
+SQLite (better-sqlite3) + WAL 模式，共 **36 张表**：
 
 | 分类 | 表名 | 说明 |
 |------|------|------|
@@ -276,9 +280,10 @@ SQLite (better-sqlite3) + WAL 模式，共 **33 张表**：
 | **销量报告** | formula_sales, reports, report_targets | 销量/报告/指标 |
 | **文件管理** | uploaded_files, file_audit_log, file_relations | 文件/审计/关联 |
 | **导出系统** | export_templates, export_jobs | 模板/任务 |
+| **解析系统** | parse_results, parse_result_configs, parse_templates | 解析结果/配置/模板 |
 | **AI 模型** | ai_models, ai_usage_logs, ai_alert_configs, ai_alert_records, ai_health_records, ai_fallback_configs, model_applications | 模型/用量/告警/健康/降级/应用 |
 | **Agent 系统** | agent_sessions, agent_messages, agent_pending_confirmations, agent_pending_forms, agent_role_config, agent_float_config, agent_provider_health, agent_session_cleanup_log | 会话/消息/确认/表单/身份/浮窗/健康/清理 |
-| **其他** | search_export_cache, parse_templates | 缓存/解析模板 |
+| **其他** | search_export_cache | 缓存 |
 
 备份/恢复工具：
 
@@ -291,8 +296,137 @@ npx tsx src/scripts/restoreDatabase.ts    # 恢复数据库
 ---
 
 <!-- ====================================================================== -->
-<!-- 以下为历史版本更新日志，保留已有内容，自动补全 2026-05-14 最新更新 -->
+<!-- 以下为历史版本更新日志，保留已有内容，自动补全 2026-07-03 最新更新 -->
 <!-- ====================================================================== -->
+
+## 🚀 最新更新 (2026-07-03)
+
+### ✅ 智能工具重构 + 解析历史管理系统 + 解析模板系统
+
+#### 🎯 SmartTools 页面重构
+
+将智能工具入口页面重构为 **4-Tab 布局**，集成模型选择器与完整的工作流：
+
+| Tab | 图标 | 功能 | 组件 |
+|------|------|------|------|
+| 💬 智能填单 | 📝 | AI 解析配方文件（Excel/PDF/图片） | [SmartFormTab.vue](frontend/src/views/ai/tabs/SmartFormTab.vue) |
+| 📥 智能导入 | 📥 | AI 解析原料营养文件 | [SmartImportTab.vue](frontend/src/views/ai/tabs/SmartImportTab.vue) |
+| 🔍 智能检索 | 🔍 | NL2SQL 自然语言查询 | [SmartSearchTab.vue](frontend/src/views/ai/tabs/SmartSearchTab.vue) |
+| 📜 解析历史 | 📜 | 解析结果管理与追溯 | [SmartHistoryTab.vue](frontend/src/views/ai/tabs/SmartHistoryTab.vue) |
+
+**模型选择器增强**：
+- 支持按 provider 分组的模型下拉框（含 **Logo 图标** + 模型名称 + 数据类型标签）
+- 输入框内显示选中模型 Logo + 名称 + 文本/图片能力标签
+- 选中态 ✓ 指示
+
+#### 📜 解析结果管理系统（全新）
+
+**数据库表**：
+| 表名 | 说明 | 关键字段 |
+|------|------|---------|
+| `parse_results` | 解析结果存储 | id, user_id, call_type, file_hash, file_name, file_size, parsed_result, raw_response, model_provider, model_name, tokens_used, status, used_count, is_linked, linked_formula_id, expires_at |
+| `parse_result_configs` | 存储配置 | id, config_key, config_value, description |
+
+**已有表新增字段**：
+| 表名 | 新增字段 | 说明 |
+|------|---------|------|
+| `formulas` | `parse_result_id` | 关联解析结果 |
+| `materials` | `parse_result_id` | 关联解析结果 |
+
+**核心功能**：
+- **缓存命中**：文件 MD5 去重，相同文件二次上传命中缓存，不调用 AI API
+- **智能填单关联**：解析结果 → 创建配方时自动传递 `parse_result_id`，配方详情页显示解析来源链接
+- **搜索与筛选**：关键字搜索、状态过滤（成功/失败/处理中）、日期范围、模型筛选
+- **统计卡片**：总数/存储状态/待处理/已关联 四个统计卡片
+- **分页器**：仿文件管理列表的圆角分页按钮 + 缩略号 + 总条数显示
+- **详情抽屉**：文件信息、原始 AI 响应、解析结果 JSON 预览
+- **批量操作**：全选/取消全选、批量删除
+- **存储监控**：存储上限配置、存储使用率环形进度条、降级/熔断自动告警
+
+**API 端点**（17 条，挂载在 `/api/ai/parse-results`）：
+- `GET /api/ai/parse-results` — 分页查询（支持 callType/status/keyword/日期/模型/关联状态过滤）
+- `GET /api/ai/parse-results/statistics` — 统计信息
+- `GET /api/ai/parse-results/config` — 获取配置
+- `GET /api/ai/parse-results/degradation` — 降级状态判断
+- `GET /api/ai/parse-results/:id` — 解析详情
+- `POST /api/ai/parse-results` — 保存解析结果
+- `PUT /api/ai/parse-results/config` — 更新配置
+- `POST /api/ai/parse-results/cleanup` — 清理过期数据
+- `DELETE /api/ai/parse-results/:id` — 删除单条记录
+
+**后端服务**：
+| 服务 | 说明 |
+|------|------|
+| [parseResultCleanupService.ts](backend/src/services/parseResultCleanupService.ts) | 定时清理（cron）+ 降级检测 + 熔断保护（存储使用率 > 95% 自动清理最旧 5%） |
+| [parseResultMonitoringService.ts](backend/src/services/parseResultMonitoringService.ts) | 指标采集（请求数/成功率/Token用量/缓存命中率/存储使用率）+ 告警规则引擎 |
+
+**前端页面**：
+| 页面 | 说明 |
+|------|------|
+| [SmartTools.vue](frontend/src/views/ai/SmartTools.vue) | 4-Tab 布局入口，集成模型选择器 |
+| [SmartHistoryTab.vue](frontend/src/views/ai/tabs/SmartHistoryTab.vue) | 解析历史管理页面（卡片列表/搜索/筛选/分页/详情抽屉/批量操作） |
+| [ParseResultConfig.vue](frontend/src/views/ai/ParseResultConfig.vue) | 管理员配置页（存储上限/清理阈值/降级告警） |
+| [DegradationBanner.vue](frontend/src/components/DegradationBanner.vue) | 全局降级状态横幅 |
+
+#### 📋 解析模板系统（全新）
+
+支持 AI 解析模板的 CRUD 管理，预设/自定义模板配置：
+
+**新增数据库表 `parse_templates`**：
+| 字段 | 说明 |
+|------|------|
+| id | 主键 |
+| name | 模板名称 |
+| category | 类别（formula/nutrition/general） |
+| default_provider / default_model | 默认模型 |
+| custom_prompt | 自定义提示词 |
+| field_mapping | 字段映射 JSON |
+| validation_rules | 校验规则 JSON |
+| is_preset | 是否为预设模板 |
+| is_active | 启用状态 |
+
+**API 端点**（5 条，挂载在 `/api/parse-templates`）：
+- `GET /api/parse-templates` — 列表（支持 keyword/category 过滤）
+- `GET /api/parse-templates/:id` — 详情
+- `POST /api/parse-templates` — 创建
+- `PUT /api/parse-templates/:id` — 更新
+- `DELETE /api/parse-templates/:id` — 删除
+
+#### 🧪 含量比校验修复
+
+修复智能填单创建配方时含量比校验失败的问题（偏差 -59.22%）：
+- **根因**：前端未传递 `materialType` 字段，后端 `validateRatioFactor` 把所有原料当作药材（ratioFactor 0.18）计算
+- **修复**：前端传递 `materialType: 'supplement' | 'herb'`，后端在 `materialItems` 构建时复制该字段
+- **效果**：辅料使用 `supplementRatioFactor`（默认 1.0），含量比校验通过
+
+### 影响范围总览
+
+| 文件 | 改动类型 | 说明 |
+|------|----------|------|
+| [SmartTools.vue](frontend/src/views/ai/SmartTools.vue) | 重构 | 4-Tab 布局 + 模型选择器（Logo/能力标签/分组/✓指示） |
+| [SmartHistoryTab.vue](frontend/src/views/ai/tabs/SmartHistoryTab.vue) | 新增 | 解析历史完整管理页面 |
+| [ParseResultConfig.vue](frontend/src/views/ai/ParseResultConfig.vue) | 新增 | 管理员配置页 |
+| [DegradationBanner.vue](frontend/src/components/DegradationBanner.vue) | 新增 | 降级状态横幅组件 |
+| [parseResult.ts](frontend/src/api/parseResult.ts) | 新增 | 19 个 API 方法 |
+| [parseTemplate.ts](frontend/src/api/parseTemplate.ts) | 新增 | 5 个 API 方法 |
+| [parseResultController.ts](backend/src/controllers/parseResultController.ts) | 新增 | ~20 个处理函数 |
+| [parseTemplateController.ts](backend/src/controllers/parseTemplateController.ts) | 新增 | 5 个 CRUD 处理函数 |
+| [parseResultCleanupService.ts](backend/src/services/parseResultCleanupService.ts) | 新增 | 定时清理 + 降级熔断 |
+| [parseResultMonitoringService.ts](backend/src/services/parseResultMonitoringService.ts) | 新增 | 监控指标 + 告警规则引擎 |
+| [aiController.ts](backend/src/controllers/aiController.ts) | 功能增强 | 解析缓存检测（MD5 hash）+ 保存解析结果 + 返回 id 字段 |
+| [formulaController.ts](backend/src/controllers/formulaController.ts) | 功能增强 | 接收 parseResultId + 更新解析关联状态 |
+| [nutritionController.ts](backend/src/controllers/nutritionController.ts) | 功能增强 | 返回 parseResultId 字段 |
+| [database-better-sqlite3.ts](backend/src/config/database-better-sqlite3.ts) | 新增表 | parse_results + parse_result_configs + parse_templates |
+| [routes/ai.ts](backend/src/routes/ai.ts) | 新增路由 | 17 条 parse-results 端点 |
+| [routes/parseTemplates.ts](backend/src/routes/parseTemplates.ts) | 新增 | 5 条 parse-templates CRUD |
+| [routes/index.ts](backend/src/routes/index.ts) | 路由注册 | 挂载 parse-templates |
+| [FormulaForm.vue](frontend/src/views/formulas/FormulaForm.vue) | 功能增强 | AI 预填提示 + 智能生成描述/制法 + 快速创建业务员 |
+| [FormulaDetail.vue](frontend/src/views/formulas/FormulaDetail.vue) | 功能增强 | 显示解析来源 + 跳转链接 |
+| [api/ai.ts](frontend/src/api/ai.ts) | 功能增强 | ParsedFormula 接口新增 id 字段 |
+| [api/formula.ts](frontend/src/api/formula.ts) | 功能增强 | FormulaForm 新增 parseResultId 字段 |
+| 迁移脚本 | 新增 | createParseResultTables + addTokensUsedToParseResults |
+
+---
 
 ## 🚀 最新更新 (2026-05-14)
 

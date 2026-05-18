@@ -111,7 +111,7 @@ export async function getParseResults(req: Request, res: Response) {
       };
     });
 
-    res.json(successWithPagination(items, page, pageSize, totalResult.total));
+    res.json(successWithPagination(items, totalResult.total, page, pageSize));
   } catch (error: any) {
     console.error("[ParseResult] Error in getParseResults:", error);
     res.status(500).json({ 

@@ -1057,6 +1057,7 @@ export async function getFormulaNutritionTables(req: any, res: Response) {
         formulaName: formula.name,
         finishedWeight,
         ratioFactor: formulaRatioFactor,
+        parseResultId: formula.parse_result_id || null,
         // 业务员信息
         salesmanName: salesmanInfo?.name || formula.salesman_name || "",
         salesmanDept: salesmanInfo?.department || "",

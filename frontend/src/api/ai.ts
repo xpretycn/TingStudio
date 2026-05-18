@@ -36,6 +36,7 @@ export interface ParsedMaterial {
 }
 
 export interface ParsedFormula {
+  id?: string;
   name: string;
   salesmanName?: string;
   formulaDate?: string;

@@ -47,61 +47,73 @@
         </div>
       </div>
     </div>
+    <!-- 工具栏 -->
+    <div class="data-center-toolbar">
+      <Transition name="batch-bar-slide">
+        <div v-if="selectedIds.length > 0" class="batch-action-bar">
+          <div class="batch-info">
+            <t-checkbox :checked="selectAll" :indeterminate="isIndeterminate"
+              @change="(checked: boolean) => handleSelectAll(checked)" />
+            <span class="batch-count"><strong>{{ selectedIds.length }}</strong> 项已选择</span>
+            <div class="batch-divider"></div>
+            <div class="batch-buttons">
+              <t-popconfirm theme="danger" content="确定删除选中的记录吗？此操作无法撤销。" @confirm="handleBatchDelete">
+                <button class="batch-action-btn">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3 6 5 6 21 6" />
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2" />
+                  </svg>
+                  批量删除
+                </button>
+              </t-popconfirm>
+            </div>
+          </div>
+          <button class="batch-cancel-btn" @click="clearSelection">取消</button>
+        </div>
+      </Transition>
 
-    <div class="search-toolbar">
-      <t-input
-        v-model="searchParams.fileName"
-        placeholder="搜索文件名..."
-        clearable
-        @enter="handleSearch"
-      >
-        <template #prefix-icon>
-          <t-icon name="search" />
-        </template>
-      </t-input>
+      <div class="toolbar-left-section">
+        <div class="toolbar-title-section">
+          <h3 class="toolbar-title">解析历史</h3>
+          <p class="toolbar-subtitle">智能填单、智能导入、智能查询的操作记录</p>
+        </div>
+      </div>
 
-      <t-select
-        v-model="searchParams.status"
-        :options="statusOptions"
-        placeholder="状态"
-        clearable
-        style="width: 100px"
-      />
+      <div class="toolbar-right-section">
+        <t-select v-model="searchParams.status" :options="statusOptions" placeholder="状态" clearable style="width: 100px"
+          @change="handleSearch" />
 
-      <t-input
-        v-model="searchParams.keyword"
-        placeholder="关键词搜索..."
-        clearable
-        @enter="handleSearch"
-        style="width: 160px"
-      />
+        <t-date-range-picker v-model="dateRange" placeholder="时间范围" clearable @change="handleDateRangeChange"
+          style="width: 260px" :popup-props="{ appendToBody: true }" />
 
-      <t-date-range-picker
-        v-model="dateRange"
-        placeholder="时间范围"
-        clearable
-        @change="handleDateRangeChange"
-        style="width: 280px"
-        :popup-props="{ appendToBody: true }"
-      />
+        <div class="search-container" role="search">
+          <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <t-input v-model="searchParams.searchText" class="search-input" placeholder="搜索文件名或关键词..." clearable
+            @enter="handleSearch" @change="handleSearch" />
+        </div>
 
-      <t-button @click="handleSearch">搜索</t-button>
-      <t-button variant="outline" @click="handleReset">重置</t-button>
-    </div>
-
-    <div class="batch-toolbar" v-if="items.length > 0">
-      <t-checkbox v-model="selectAll" :indeterminate="isIndeterminate" @change="handleSelectAll">
-        全选
-      </t-checkbox>
-      <span class="selected-count" v-if="selectedIds.length > 0">
-        已选择 {{ selectedIds.length }} 项
-      </span>
-      <t-popconfirm v-if="selectedIds.length > 0" content="确定删除选中的记录吗？此操作无法撤销。"
-        :confirm-btn="{ content: '确认', theme: 'danger' }" @confirm="handleBatchDelete">
-        <t-button size="small" theme="danger" variant="outline">
-          批量删除
-        </t-button>
-      </t-popconfirm>
+        <button class="add-formula-btn" @click="handleRefresh" title="刷新列表">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="23 4 23 10 17 10" />
+            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+          </svg>
+          刷新
+        </button>
+        <button class="add-formula-btn" @click="handleReset" title="重置筛选条件">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="1 4 1 10 7 10" />
+            <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
+          </svg>
+          重置
+        </button>
+      </div>
     </div>
 
     <div v-if="loading" class="history-loading">
@@ -120,10 +132,11 @@
     </div>
 
     <div v-else class="history-list">
-      <div v-for="item in items" :key="item.id" class="history-card" :class="'history-card--' + item.status">
+      <div v-for="item in items" :key="item.id" class="history-card" :class="['history-card--' + item.status, { 'history-card--highlight': highlightedId === item.id }]" :ref="(el) => handleCardRef(item.id, el)">
         <div class="history-card-header">
           <div class="history-card-type">
-            <t-checkbox :value="item.id" v-model="selectedIds" @click.stop />
+            <t-checkbox :model-value="selectedIds.includes(item.id)"
+              @change="(checked: boolean) => toggleSelect(item.id, checked)" @click.stop />
             <span class="type-badge" :class="'type-badge--' + item.callType">{{ item.callTypeLabel }}</span>
             <span class="status-dot" :class="'status-dot--' + item.status"></span>
             <span class="status-text">{{ item.status === 'success' ? '成功' : item.status === 'failed' ? '失败' : '待处理'
@@ -161,7 +174,8 @@
     <div v-if="pagination.total > 0" class="table-pagination">
       <div class="pagination-info">
         显示第 {{ (pagination.page - 1) * pagination.pageSize + 1 }}-{{
-          Math.min(pagination.page * pagination.pageSize, pagination.total) }} 条，共 {{ pagination.total }} 条数据
+          Math.min(pagination.page * pagination.pageSize, pagination.total) }} 条，共 {{
+          pagination.total }} 条数据
       </div>
       <div class="pagination-controls">
         <button class="pagination-btn" :class="{ 'pagination-btn--disabled': pagination.page === 1 }"
@@ -260,22 +274,23 @@ const loading = ref(false);
 const items = ref<any[]>([]);
 const activeFilter = ref('all');
 const searchParams = ref({
-  fileName: '',
+  searchText: '',
   status: '',
-  keyword: '',
   startDate: '',
   endDate: '',
 });
-const dateRange = ref<[string, string] | null>(null);
+const dateRange = ref<[string, string] | []>([]);
 
-const handleDateRangeChange = (value: [string, string] | null) => {
-  if (value && value.length === 2) {
+const handleDateRangeChange = (value: [string, string] | null | []) => {
+  if (value && Array.isArray(value) && value.length === 2) {
     searchParams.value.startDate = value[0];
     searchParams.value.endDate = value[1];
   } else {
     searchParams.value.startDate = '';
     searchParams.value.endDate = '';
   }
+  pagination.value.page = 1;
+  fetchData();
 };
 
 const detailDrawerVisible = ref(false);
@@ -284,6 +299,12 @@ const showStorageDetail = ref(false);
 const showDegradationBanner = ref(true);
 const selectedIds = ref<string[]>([]);
 const batchDeleteLoading = ref(false);
+const highlightedId = ref<string | null>(null);
+const cardRefs = new Map<string, HTMLElement>();
+const handleCardRef = (id: string, el: any) => {
+  if (el) cardRefs.set(id, el as HTMLElement);
+  else cardRefs.delete(id);
+};
 
 const pagination = ref({
   page: 1,
@@ -305,28 +326,15 @@ const linkedCount = computed(() => {
   return items.value.filter(item => item.isLinked).length;
 });
 
-const totalPages = computed(() => {
-  return Math.ceil(pagination.value.total / pagination.value.pageSize) || 1;
-});
+const totalPages = computed(() => Math.ceil(pagination.value.total / pagination.value.pageSize) || 1);
 
-const pageNumbers = computed(() => {
+const pageNumbers = computed<(number | string)[]>(() => {
   const total = totalPages.value;
   const current = pagination.value.page;
-  const pages: (number | string)[] = [];
-
-  if (total <= 7) {
-    for (let i = 1; i <= total; i++) pages.push(i);
-  } else {
-    pages.push(1);
-    if (current > 3) pages.push('...');
-    const start = Math.max(2, current - 1);
-    const end = Math.min(total - 1, current + 1);
-    for (let i = start; i <= end; i++) pages.push(i);
-    if (current < total - 2) pages.push('...');
-    pages.push(total);
-  }
-
-  return pages;
+  if (total <= 5) return Array.from({ length: total }, (_, i) => i + 1);
+  if (current <= 3) return [1, 2, 3, '...', total];
+  if (current >= total - 2) return [1, '...', total - 2, total - 1, total];
+  return [1, '...', current - 1, current, current + 1, '...', total];
 });
 
 const selectAll = computed({
@@ -365,16 +373,12 @@ const fetchData = async () => {
       params.callType = activeFilter.value;
     }
 
-    if (searchParams.value.fileName) {
-      params.fileName = searchParams.value.fileName;
+    if (searchParams.value.searchText) {
+      params.keyword = searchParams.value.searchText;
     }
 
     if (searchParams.value.status) {
       params.status = searchParams.value.status;
-    }
-
-    if (searchParams.value.keyword) {
-      params.keyword = searchParams.value.keyword;
     }
 
     if (searchParams.value.startDate) {
@@ -387,7 +391,22 @@ const fetchData = async () => {
 
     const res = await parseResultApi.list(params);
     items.value = res.list || [];
-    pagination.value = res.pagination || { page: 1, pageSize: 20, total: 0 };
+    if (res.pagination) {
+      pagination.value.total = res.pagination.total;
+    }
+
+    // 高亮来自路由的指定记录
+    const highlightId = aiStore.parseHistoryHighlight;
+    if (highlightId && items.value.some((i: any) => i.id === highlightId)) {
+      highlightedId.value = highlightId;
+      aiStore.parseHistoryHighlight = null;
+      await nextTick();
+      const el = cardRefs.get(highlightId);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setTimeout(() => { highlightedId.value = null; }, 3000);
+      }
+    }
   } catch (error) {
     console.error('Failed to fetch parse results:', error);
     items.value = [];
@@ -410,19 +429,29 @@ const handleSearch = () => {
   fetchData();
 };
 
-const handleReset = () => {
+const handleRefresh = () => {
   searchParams.value = {
-    fileName: '',
+    searchText: '',
     status: '',
-    keyword: '',
     startDate: '',
     endDate: '',
   };
-  dateRange.value = null;
+  dateRange.value = [];
   pagination.value.page = 1;
-  nextTick(() => {
-    fetchData();
-  });
+  fetchData();
+  fetchStatistics();
+};
+
+const handleReset = () => {
+  searchParams.value = {
+    searchText: '',
+    status: '',
+    startDate: '',
+    endDate: '',
+  };
+  dateRange.value = [];
+  pagination.value.page = 1;
+  fetchData();
 };
 
 const filterByStatus = (status: string) => {
@@ -438,19 +467,8 @@ const filterByLinked = () => {
   MessagePlugin.info('已关联记录的筛选功能开发中');
 };
 
-const handleRefresh = () => {
-  fetchData();
-  fetchStatistics();
-};
-
 const handlePageChange = (pageInfo: any) => {
   pagination.value.page = pageInfo.page;
-  fetchData();
-};
-
-const handlePageSizeChange = (pageSize: number) => {
-  pagination.value.pageSize = pageSize;
-  pagination.value.page = 1;
   fetchData();
 };
 
@@ -483,6 +501,10 @@ const handleDelete = async (id: string) => {
   try {
     await parseResultApi.delete(id);
     MessagePlugin.success('删除成功');
+    selectedIds.value = selectedIds.value.filter(itemId => itemId !== id);
+    if (items.value.length <= 1 && pagination.value.page > 1) {
+      pagination.value.page -= 1;
+    }
     await fetchData();
     await fetchStatistics();
   } catch (error: any) {
@@ -519,6 +541,20 @@ const handleBatchDelete = async () => {
 
 const handleSelectAll = (checked: boolean) => {
   selectedIds.value = checked ? items.value.map(item => item.id) : [];
+};
+
+const clearSelection = () => {
+  selectedIds.value = [];
+};
+
+const toggleSelect = (id: string, checked: boolean) => {
+  if (checked) {
+    if (!selectedIds.value.includes(id)) {
+      selectedIds.value.push(id);
+    }
+  } else {
+    selectedIds.value = selectedIds.value.filter(itemId => itemId !== id);
+  }
 };
 
 const goToConfig = () => {
@@ -592,16 +628,209 @@ onMounted(() => {
   margin-bottom: 16px;
 }
 
-.search-toolbar {
+.data-center-toolbar {
+  padding: 32px 12px;
+  border-bottom: 1px solid #f8fafc;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  position: relative;
+  min-height: 88px;
+
+  .toolbar-left-section {
+    flex: 1;
+    min-width: 200px;
+
+    .toolbar-title-section {
+      .toolbar-title {
+        font-size: 20px;
+        font-weight: 700;
+        color: #1e293b;
+        margin: 0 0 4px 0;
+      }
+
+      .toolbar-subtitle {
+        font-size: 14px;
+        color: #94a3b8;
+        margin: 0;
+      }
+    }
+  }
+
+  .toolbar-right-section {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-left: auto;
+  }
+
+  .search-container {
+    position: relative;
+
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #94a3b8;
+      font-size: 16px;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .search-input {
+      :deep(.t-input) {
+        padding-left: 40px;
+        padding-right: 16px;
+        padding-top: 8px;
+        padding-bottom: 8px;
+        background-color: #f8fafc;
+        border: none !important;
+        border-radius: 12px;
+        font-size: 14px;
+        transition: all 0.2s;
+        width: 270px;
+
+        &:focus {
+          box-shadow: 0 0 0 2px rgba(167, 243, 208, 0.50);
+          outline: none;
+          background-color: #fff;
+        }
+
+        &::placeholder {
+          color: #94a3b8;
+        }
+      }
+    }
+  }
+
+  .add-formula-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background-color: #1e293b;
+    color: white;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s;
+    box-shadow: 0 4px 6px rgba(15, 23, 42, 0.15);
+    border: none;
+    cursor: pointer;
+
+    &:hover {
+      background-color: #334155;
+    }
+
+    svg {
+      flex-shrink: 0;
+    }
+  }
+}
+
+.batch-action-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  background-color: #059669;
+  color: #fff;
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
+  justify-content: space-between;
+  padding: 20px 32px;
+  border-radius: 32px 32px 0 0;
+  box-shadow: 0 4px 18px rgba(5, 150, 105, 0.25);
 
-  .t-input {
-    flex: 1;
-    max-width: 300px;
+  .batch-info {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+
+    .batch-count {
+      font-weight: 700;
+      font-size: 14px;
+
+      strong {
+        font-weight: 800;
+        margin-right: 4px;
+      }
+    }
+
+    .batch-divider {
+      width: 1px;
+      height: 16px;
+      background: rgba(52, 211, 153, 0.5);
+    }
+
+    .batch-buttons {
+      display: flex;
+      gap: 16px;
+    }
+
+    .batch-action-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 14px;
+      font-weight: 500;
+      background: none;
+      border: none;
+      color: #fff;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 6px;
+      transition: all 0.2s;
+
+      &:hover {
+        color: #d1fae5;
+      }
+
+      svg {
+        width: 14px;
+        height: 14px;
+        stroke-width: 2;
+      }
+    }
   }
+
+  .batch-cancel-btn {
+    font-size: 14px;
+    font-weight: 500;
+    border: 1px solid #34d399;
+    padding: 4px 12px;
+    border-radius: 8px;
+    background: transparent;
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+      background-color: #047857;
+    }
+  }
+}
+
+.batch-bar-slide-enter-active,
+.batch-bar-slide-leave-active {
+  transition: all 0.3s;
+}
+
+.batch-bar-slide-enter-from,
+.batch-bar-slide-leave-to {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+.batch-bar-slide-enter-to,
+.batch-bar-slide-leave-from {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .data-card {
@@ -699,21 +928,6 @@ onMounted(() => {
   }
 }
 
-.batch-toolbar {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 8px 12px;
-  background: #f5f5f5;
-  border-radius: 8px;
-  margin-bottom: 12px;
-
-  .selected-count {
-    font-size: 13px;
-    color: #666;
-  }
-}
-
 .history-loading,
 .history-empty {
   display: flex;
@@ -767,6 +981,14 @@ onMounted(() => {
 
   &--pending {
     border-left: 3px solid #f59e0b;
+  }
+
+  &--highlight {
+    border-color: #3b82f6;
+    border-left: 3px solid #3b82f6;
+    background: #eff6ff;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+    animation: highlightPulse 3s ease;
   }
 }
 
@@ -1018,5 +1240,11 @@ onMounted(() => {
     display: flex;
     gap: 12px;
   }
+}
+
+@keyframes highlightPulse {
+  0% { background: #eff6ff; }
+  50% { background: #dbeafe; }
+  100% { background: #eff6ff; }
 }
 </style>

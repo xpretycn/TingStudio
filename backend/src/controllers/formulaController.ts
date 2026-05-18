@@ -193,6 +193,7 @@ export async function createFormula(req: any, res: Response) {
       profitMargin,
       originalName,
       originalWeight,
+      parseResultId,
     } = req.body;
     const userId = req.user.userId;
     const id = generateId();
@@ -207,7 +208,12 @@ export async function createFormula(req: any, res: Response) {
 
     // 补充原料名称（ratioFactor 从原料表获取，不再从请求中传入）
     const materialItems = materials.map((m: any) => {
-      const item: any = { materialId: m.materialId, materialName: m.materialName || "", quantity: m.quantity };
+      const item: any = {
+        materialId: m.materialId,
+        materialName: m.materialName || "",
+        quantity: m.quantity,
+        materialType: m.materialType || "herb",
+      };
       if (m.adjustedPrice != null) item.adjustedPrice = m.adjustedPrice;
       return item;
     });
@@ -232,8 +238,8 @@ export async function createFormula(req: any, res: Response) {
     }
 
     await query(
-      `INSERT INTO formulas (id, code, name, salesman_id, salesman_name, materials_json, finished_weight, ratio_factor, supplement_ratio_factor, packaging_price, other_price, profit_margin, description, preparation_method, original_name, original_weight, created_by, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO formulas (id, code, name, salesman_id, salesman_name, materials_json, finished_weight, ratio_factor, supplement_ratio_factor, packaging_price, other_price, profit_margin, description, preparation_method, original_name, original_weight, parse_result_id, created_by, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         id,
         code,
@@ -251,10 +257,24 @@ export async function createFormula(req: any, res: Response) {
         preparationMethod || null,
         originalName || null,
         originalWeight != null ? originalWeight : null,
+        parseResultId || null,
         userId,
         now(),
       ],
     );
+
+    // 如果有关联的解析结果，更新解析记录的关联状态
+    if (parseResultId) {
+      try {
+        await query(
+          `UPDATE parse_results SET is_linked = 1, linked_formula_id = ?, updated_at = ? WHERE id = ?`,
+          [id, now(), parseResultId]
+        );
+        console.log(`[Formula] 已关联解析记录: ${parseResultId} -> 配方: ${id}`);
+      } catch (linkErr) {
+        console.warn(`[Formula] 更新解析记录关联失败:`, linkErr);
+      }
+    }
 
     // 自动创建初始版本
     const versionId = generateId();
@@ -373,7 +393,12 @@ export async function updateFormula(req: any, res: Response) {
 
     const materialItems = materials
       ? materials.map((m: any) => {
-          const item: any = { materialId: m.materialId, materialName: m.materialName || "", quantity: m.quantity };
+          const item: any = {
+            materialId: m.materialId,
+            materialName: m.materialName || "",
+            quantity: m.quantity,
+            materialType: m.materialType || "herb",
+          };
           if (m.adjustedPrice != null) item.adjustedPrice = m.adjustedPrice;
           return item;
         })

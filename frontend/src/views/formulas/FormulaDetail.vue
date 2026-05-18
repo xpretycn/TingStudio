@@ -92,6 +92,15 @@
                   </p>
                 </div>
               </div>
+              <div v-if="data.parseResultId" class="field-item parse-source">
+                <label><t-icon name="link" size="12px" /> 解析来源</label>
+                <p>
+                  <a class="parse-source-link" @click="goToParseResult(data.parseResultId)">
+                    查看解析记录
+                    <t-icon name="jump" size="12px" />
+                  </a>
+                </p>
+              </div>
             </div>
           </section>
 
@@ -164,7 +173,7 @@
                       </svg>调
                     </span></span>
                   <span class="qtm-sub"><strong>{{ m.unitPrice != null ? `¥${m.subtotal.toFixed(2)}` : '--'
-                  }}</strong>
+                      }}</strong>
                     <span v-if="m.isAdjusted && m.basePrice != null" class="qtm-base-hint"
                       :title="'原始基价: ¥' + m.basePrice + '/kg · 差额: ¥' + ((m.unitPrice - m.basePrice)).toFixed(2) + '/kg'">({{
                         ((m.unitPrice - m.basePrice) / m.basePrice * 100).toFixed(1) }}%)</span>
@@ -177,39 +186,55 @@
               <!-- 汇总区域 -->
               <div class="qt-summary">
                 <div class="qts-item qts-item--primary">
-                  <t-icon name="outbox" size="14px" class="qts-icon" />
-                  <span>原料成本</span><strong class="green">¥{{ (priceQuote.materialTotal ?? 0).toFixed(2)
+                  <div class="qts-label-group">
+                    <t-icon name="outbox" size="14px" class="qts-icon" />
+                    <span>原料成本</span>
+                  </div><strong class="green">¥{{ (priceQuote.materialTotal ?? 0).toFixed(2)
                   }}</strong>
                 </div>
                 <div class="qts-item">
-                  <t-icon name="shop" size="14px" class="qts-icon" />
-                  <span>包材费用</span><strong>¥{{ (priceQuote.packagingPrice ?? 0).toFixed(2) }}</strong>
+                  <div class="qts-label-group">
+                    <t-icon name="shop" size="14px" class="qts-icon" />
+                    <span>包材费用</span>
+                  </div><strong>¥{{ (priceQuote.packagingPrice ?? 0).toFixed(2) }}</strong>
                 </div>
                 <div class="qts-item">
-                  <t-icon name="edit-1" size="14px" class="qts-icon" />
-                  <span>其他费用</span><strong>¥{{ (priceQuote.otherPrice ?? 0).toFixed(2) }}</strong>
+                  <div class="qts-label-group">
+                    <t-icon name="edit-1" size="14px" class="qts-icon" />
+                    <span>其他费用</span>
+                  </div><strong>¥{{ (priceQuote.otherPrice ?? 0).toFixed(2) }}</strong>
                 </div>
                 <div class="qts-divider"></div>
                 <div class="qts-item qts-item--primary" :class="{ 'qts-item--warn': priceQuote.missingPrices?.length }">
-                  <t-icon name="wallet" size="14px" class="qts-icon" />
-                  <span>成本小计</span>
+                  <div class="qts-label-group">
+                    <t-icon name="wallet" size="14px" class="qts-icon" />
+                    <span>成本小计</span>
+                  </div>
                   <div class="qts-value-group">
-                    <strong :class="priceQuote.missingPrices?.length ? 'warn-text' : 'green'">¥{{ (priceQuote.costSubtotal ?? 0).toFixed(2) }}</strong>
+                    <strong :class="priceQuote.missingPrices?.length ? 'warn-text' : 'green'">¥{{
+                      (priceQuote.costSubtotal ??
+                      0).toFixed(2) }}</strong>
                     <span v-if="priceQuote.missingPrices?.length" class="qts-warn-tag">
                       <t-icon name="error-circle" size="11px" /> 不完整
                     </span>
                   </div>
                 </div>
                 <div class="qts-item">
-                  <t-icon name="chart-pie" size="14px" class="qts-icon" />
-                  <span>利润率</span><strong>{{ priceQuote.profitMargin ?? 20 }}%</strong>
+                  <div class="qts-label-group">
+                    <t-icon name="chart-pie" size="14px" class="qts-icon" />
+                    <span>利润率</span>
+                  </div><strong>{{ priceQuote.profitMargin ?? 20 }}%</strong>
                 </div>
                 <div class="qts-divider qts-divider--bold"></div>
                 <div class="qts-item qts-item--final" :class="{ 'qts-item--warn': priceQuote.missingPrices?.length }">
-                  <t-icon name="money-filled" size="16px" class="qts-icon" />
-                  <span>最终报价</span>
+                  <div class="qts-label-group">
+                    <t-icon name="money-filled" size="16px" class="qts-icon" />
+                    <span>最终报价</span>
+                  </div>
                   <div class="qts-value-group">
-                    <strong :class="priceQuote.missingPrices?.length ? 'warn-text' : 'final-price'">¥{{ (priceQuote.totalPrice ?? 0).toFixed(2) }}</strong>
+                    <strong :class="priceQuote.missingPrices?.length ? 'warn-text' : 'final-price'">¥{{
+                      (priceQuote.totalPrice
+                      ?? 0).toFixed(2) }}</strong>
                     <span v-if="priceQuote.missingPrices?.length" class="qts-warn-tag">
                       <t-icon name="error-circle" size="11px" /> 仅供参考
                     </span>
@@ -278,12 +303,15 @@
               </template>
               <template #name="{ row }">
                 <span v-if="row._isEmpty">&nbsp;</span>
-                <span v-else :class="{ 'missing-nutrition': row.hasEmptyNutrition, 'partial-nutrition': !row.hasEmptyNutrition && row.emptyNutritionFields?.length }">
+                <span v-else
+                  :class="{ 'missing-nutrition': row.hasEmptyNutrition, 'partial-nutrition': !row.hasEmptyNutrition && row.emptyNutritionFields?.length }">
                   {{ row.name }}
-                  <t-tooltip v-if="row.hasEmptyNutrition" :content="'缺失营养数据：' + (row.emptyNutritionFields || []).join('、')">
+                  <t-tooltip v-if="row.hasEmptyNutrition"
+                    :content="'缺失营养数据：' + (row.emptyNutritionFields || []).join('、')">
                     <t-icon name="error-circle" class="missing-nutrition-icon" />
                   </t-tooltip>
-                  <t-tooltip v-else-if="row.emptyNutritionFields?.length" :content="'部分营养数据缺失：' + row.emptyNutritionFields.join('、')">
+                  <t-tooltip v-else-if="row.emptyNutritionFields?.length"
+                    :content="'部分营养数据缺失：' + row.emptyNutritionFields.join('、')">
                     <t-icon name="info-circle" class="partial-nutrition-icon" />
                   </t-tooltip>
                 </span>
@@ -312,7 +340,8 @@
                     <div class="ratio-bar-marker" :style="{ left: ratioMarkerLeft }"></div>
                   </div>
                   <div class="ratio-bar-labels">
-                    <span>0.92</span><span>0.95</span><span>0.98</span><span class="ratio-bar-center">1.00</span><span>1.02</span><span>1.05</span><span>1.08</span>
+                    <span>0.92</span><span>0.95</span><span>0.98</span><span
+                      class="ratio-bar-center">1.00</span><span>1.02</span><span>1.05</span><span>1.08</span>
                   </div>
                 </div>
                 <div class="ratio-summary-value">
@@ -347,7 +376,8 @@
                     <tr v-for="item in ratioValidation.breakdown" :key="item.materialId">
                       <td>{{ item.materialName }}</td>
                       <td>
-                        <t-tag :theme="item.materialType === 'supplement' ? 'primary' : 'success'" variant="light" size="small">
+                        <t-tag :theme="item.materialType === 'supplement' ? 'primary' : 'success'" variant="light"
+                          size="small">
                           {{ item.materialType === 'supplement' ? '辅料' : '药材' }}
                         </t-tag>
                       </td>
@@ -570,6 +600,13 @@ const handleBack = () => {
   router.push({
     path: '/formulas',
     query: route.query
+  });
+};
+
+const goToParseResult = (parseResultId: string) => {
+  router.push({
+    path: '/smart-tools',
+    query: { tab: 'smart-history', highlight: parseResultId }
   });
 };
 
@@ -976,6 +1013,27 @@ watch(() => route.params.id, (newId) => {
         border-radius: 8px;
         font-size: 13px;
 
+        .qts-label-group {
+          display: inline-flex;
+          align-items: center;
+          flex-shrink: 0;
+          gap: 6px;
+          min-width: 96px;
+
+          .qts-icon {
+            width: 16px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+          }
+
+          > span {
+            text-align: left;
+            white-space: nowrap;
+          }
+        }
+
         &:hover {
           background-color: #fff;
         }
@@ -1155,6 +1213,32 @@ watch(() => route.params.id, (newId) => {
         }
 
         // emerald-500
+
+        .parse-source {
+          border-top: 1px dashed #e2e8f0;
+          margin-top: 8px;
+          padding-top: 8px;
+
+          .parse-source-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            color: #3b82f6;
+            font-size: 13px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: color 0.2s;
+
+            &:hover {
+              color: #2563eb;
+              text-decoration: underline;
+            }
+
+            .t-icon {
+              font-size: 12px;
+            }
+          }
+        }
       }
     }
 
@@ -1491,14 +1575,17 @@ watch(() => route.params.id, (newId) => {
             background: #f0fdf4;
             border-color: #bbf7d0;
           }
+
           &--warning {
             background: #fffbeb;
             border-color: #fde68a;
           }
+
           &--high_warning {
             background: #fff7ed;
             border-color: #fed7aa;
           }
+
           &--error {
             background: #fef2f2;
             border-color: #fecaca;
@@ -1514,12 +1601,15 @@ watch(() => route.params.id, (newId) => {
           .ratio-summary--normal & {
             color: #16a34a;
           }
+
           .ratio-summary--warning & {
             color: #d97706;
           }
+
           .ratio-summary--high_warning & {
             color: #ea580c;
           }
+
           .ratio-summary--error & {
             color: #dc2626;
           }
@@ -1537,17 +1627,15 @@ watch(() => route.params.id, (newId) => {
         .ratio-bar-track {
           position: relative;
           height: 8px;
-          background: linear-gradient(
-            to right,
-            #ef4444 0%,
-            #f97316 15%,
-            #eab308 30%,
-            #22c55e 45%,
-            #22c55e 55%,
-            #eab308 70%,
-            #f97316 85%,
-            #ef4444 100%
-          );
+          background: linear-gradient(to right,
+              #ef4444 0%,
+              #f97316 15%,
+              #eab308 30%,
+              #22c55e 45%,
+              #22c55e 55%,
+              #eab308 70%,
+              #f97316 85%,
+              #ef4444 100%);
           border-radius: 4px;
           overflow: visible;
         }
@@ -1606,10 +1694,21 @@ watch(() => route.params.id, (newId) => {
           font-size: 13px;
           font-weight: 600;
 
-          &.deviation--normal { color: #16a34a; }
-          &.deviation--warning { color: #d97706; }
-          &.deviation--high_warning { color: #ea580c; }
-          &.deviation--error { color: #dc2626; }
+          &.deviation--normal {
+            color: #16a34a;
+          }
+
+          &.deviation--warning {
+            color: #d97706;
+          }
+
+          &.deviation--high_warning {
+            color: #ea580c;
+          }
+
+          &.deviation--error {
+            color: #dc2626;
+          }
         }
 
         .ratio-summary-desc {

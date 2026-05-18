@@ -57,6 +57,7 @@ export interface FormulaForm {
   versionReason?: string;
   originalName?: string;
   originalWeight?: number;
+  parseResultId?: string;
 }
 
 export interface RatioFactorValidationResult {

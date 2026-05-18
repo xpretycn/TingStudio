@@ -31,6 +31,7 @@ export const useAiStore = defineStore("ai", () => {
 
   // ─── 解析历史刷新触发器 ───
   const parseHistoryRefreshKey = ref(0);
+  const parseHistoryHighlight = ref<string | null>(null);
 
   // ─── 智能检索 ───
   const searchLoading = ref(false);
@@ -261,6 +262,7 @@ export const useAiStore = defineStore("ai", () => {
     parseError,
     parseAborted,
     parseHistoryRefreshKey,
+    parseHistoryHighlight,
     materialParseLoading,
     materialParseResult,
     materialParseError,

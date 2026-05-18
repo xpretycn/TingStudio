@@ -20,49 +20,73 @@
           </div>
           <div class="toolbar-right-section">
             <div class="model-select-inline">
-              <div class="model-grid">
-                <template v-if="aiStore.models.length > 0">
-                  <button v-for="model in aiStore.models" :key="model.provider" type="button" class="model-btn"
-                    :class="{ active: aiStore.selectedModel === model.provider }" @click="selectModel(model.provider)">
-                    <div class="model-logo-wrap">
-                      <img loading="lazy" :src="getModelLogo(model)" :alt="model.name" class="model-logo"
-                        @error="(e: Event) => handleLogoError(e)" />
-                      <span class="model-fallback" :style="{ color: getFallbackColor(model) }">
-                        {{ getFallbackLetter(model) }}
+              <template v-if="modelGroups.length > 0">
+                <t-select
+                  v-model="selectedModelKey"
+                  placeholder="选择 AI 模型"
+                  size="medium"
+                  style="min-width: 280px;"
+                  @change="handleModelChange"
+                >
+                  <template v-if="currentModelInfo" #prefixIcon>
+                    <img
+                      :src="currentModelInfo.logo"
+                      :alt="currentModelInfo.name"
+                      style="width: 16px; height: 16px; object-fit: contain; margin-right: 6px;"
+                      @error="(e: Event) => { (e.target as HTMLImageElement).style.display = 'none'; }"
+                    />
+                    <span style="font-size: 11px; padding: 1px 6px; background: #f3e8ff; border-radius: 6px; color: #9333ea; line-height: 14px; margin-right: 4px;">文本</span>
+                    <span v-if="currentModelInfo.supportsVision" style="font-size: 11px; padding: 1px 6px; background: #dcfce7; border-radius: 6px; color: #16a34a; line-height: 14px;">图片</span>
+                  </template>
+                  <t-option-group v-for="group in modelGroups" :key="group.provider" :label="group.name">
+                    <t-option
+                      v-for="v in group.versions"
+                      :key="group.provider + '|' + v.value"
+                      :value="group.provider + '|' + v.value"
+                      :label="v.label"
+                    >
+                      <span style="display: inline-flex; align-items: center; gap: 8px; width: 100%;">
+                        <img
+                          :src="getModelLogo(group.provider)"
+                          :alt="group.name"
+                          style="width: 16px; height: 16px; object-fit: contain; flex-shrink: 0;"
+                          @error="(e: Event) => handleLogoError(e)"
+                        />
+                        <span style="font-size: 12px; line-height: 16px; flex-shrink: 0;">{{ v.label }}</span>
+                        <span style="font-size: 11px; padding: 1px 6px; background: #f3e8ff; border-radius: 6px; color: #9333ea; line-height: 14px; flex-shrink: 0;">文本</span>
+                        <span v-if="getModelSupportsVision(group.provider)" style="font-size: 11px; padding: 1px 6px; background: #dcfce7; border-radius: 6px; color: #16a34a; line-height: 14px; flex-shrink: 0;">图片</span>
+                        <svg
+                          v-if="selectedModelKey === group.provider + '|' + v.value"
+                          style="width: 14px; height: 14px; flex-shrink: 0; margin-left: auto;"
+                          width="14"
+                          height="14"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="#10B981"
+                          stroke-width="2.5"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
                       </span>
-                    </div>
-                    <div class="model-info-row">
-                      <span class="model-btn-name">{{ model.name }}</span>
-                      <span class="model-type-badge">文本</span>
-                      <span v-if="model.supportsVision" class="model-type-badge model-type-badge--vision">图片</span>
-                    </div>
-                    <svg v-if="aiStore.selectedModel === model.provider" class="model-check-icon" width="16" height="16"
-                      viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
-                      stroke-linejoin="round">
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
-                  </button>
-                </template>
-                <div v-else class="no-models-inline">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"
-                    stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="10" />
-                    <line x1="12" y1="8" x2="12" y2="12" />
-                    <line x1="12" y1="16" x2="12.01" y2="16" />
-                  </svg>
-                  <span>暂无模型</span>
-                </div>
-              </div>
-              <div v-if="modelVersions.length > 1 && aiStore.selectedModel" class="model-version-select">
-                <t-select v-model="selectedVersion" size="small" :loading="loadingVersions"
-                  style="width: 100%; min-width: 160px;" @change="handleVersionSelect">
-                  <t-option v-for="ver in modelVersions" :key="ver.value" :value="ver.value" :label="ver.label" />
+                    </t-option>
+                  </t-option-group>
                 </t-select>
+              </template>
+              <div v-else class="no-models-inline">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="8" x2="12" y2="12" />
+                  <line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg>
+                <span>暂无模型</span>
               </div>
             </div>
           </div>
         </div>
-
+        <!-- 内容区域 -->
         <div class="ai-content">
           <div v-show="activeTab === 'smart-form'" class="tab-panel">
             <SmartFormTab @activity-add="addActivity" />
@@ -87,15 +111,29 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
+import { useRoute } from 'vue-router';
 import { useAiStore } from '@/stores/ai';
 import { MessagePlugin } from 'tdesign-vue-next';
+import { modelApi } from '@/api/model';
 import PageSkeleton from '@/components/Skeleton/PageSkeleton.vue';
 import SmartFormTab from './tabs/SmartFormTab.vue';
 import SmartImportTab from './tabs/SmartImportTab.vue';
 import SmartSearchTab from './tabs/SmartSearchTab.vue';
 import SmartHistoryTab from './tabs/SmartHistoryTab.vue';
 
+interface ModelVersion {
+  value: string;
+  label: string;
+}
+
+interface ModelGroup {
+  provider: string;
+  name: string;
+  versions: ModelVersion[];
+}
+
 const aiStore = useAiStore();
+const route = useRoute();
 
 const initialized = ref(false);
 
@@ -123,42 +161,57 @@ const tabs = [
 ];
 const activeTab = ref('smart-form');
 
-const addActivity = (_item: { type: string; title: string; desc: string; time: string; }) => {};
+const addActivity = (_item: { type: string; title: string; desc: string; time: string; }) => { };
 
-const selectModel = (model: string) => {
-  aiStore.selectedModel = model;
-  loadModelVersionsWithLoading(model);
-};
+const modelGroups = ref<ModelGroup[]>([]);
+const selectedModelKey = ref('');
 
-const loadingVersions = ref(false);
+async function loadModelGroups() {
+  const groups: ModelGroup[] = [];
+  for (const m of aiStore.models) {
+    try {
+      const res = await modelApi.getVersionsByProvider(m.provider);
+      const versions = res.versions || [];
+      if (versions.length > 0) {
+        groups.push({ provider: m.provider, name: m.name, versions });
+      }
+    } catch {
+      // skip
+    }
+  }
+  modelGroups.value = groups;
+}
 
-const selectedVersion = computed({
-  get: () => aiStore.selectedVersion,
-  set: (val: string) => { aiStore.selectedVersion = val; },
+const currentModelInfo = computed(() => {
+  if (!selectedModelKey.value) return null;
+  const [provider, modelName] = selectedModelKey.value.split('|');
+  const model = aiStore.models.find((m) => m.provider === provider);
+  return {
+    provider,
+    modelName,
+    logo: getModelLogo(provider),
+    name: model?.name || provider,
+    supportsVision: model?.supportsVision || false
+  };
 });
 
-const modelVersions = computed(() => aiStore.modelVersions);
-
-const loadModelVersionsWithLoading = async (provider: string) => {
-  try {
-    loadingVersions.value = true;
-    await aiStore.loadModelVersions(provider);
-  } finally {
-    loadingVersions.value = false;
+async function handleModelChange(val: string) {
+  if (!val) {
+    aiStore.selectedModel = '';
+    aiStore.selectedVersion = '';
+    return;
   }
-};
-
-const handleVersionSelect = async (val: string | number) => {
-  const version = String(val);
-  selectedVersion.value = version;
+  const [provider, modelName] = val.split('|');
+  aiStore.selectedModel = provider;
+  aiStore.selectedVersion = modelName;
   try {
-    await aiStore.switchVersion(version);
-    const currentModel = aiStore.models.find(m => m.provider === aiStore.selectedModel);
-    MessagePlugin.success(`已切换 ${currentModel?.name || aiStore.selectedModel} 版本为 ${version}`);
+    await aiStore.switchVersion(modelName);
+    const currentModel = aiStore.models.find(m => m.provider === provider);
+    MessagePlugin.success(`已切换到 ${currentModel?.name || provider} ${modelName}`);
   } catch {
-    MessagePlugin.error("版本切换失败，请重试");
+    MessagePlugin.error("版本切换失败");
   }
-};
+}
 
 const MODEL_LOGO_MAP: Record<string, string> = {
   openai: 'openai',
@@ -171,86 +224,88 @@ const MODEL_LOGO_MAP: Record<string, string> = {
   deepseek: 'deepseek',
   qwen: 'qwen',
   tongyi: 'qwen',
+  dashscope: 'qwen',
   '通义千问': 'qwen',
+  '通义': 'qwen',
   zhipu: 'zhipu',
   chatglm: 'zhipu',
-  智谱: 'zhipu',
+  '智谱': 'zhipu',
+  '智谱glm': 'zhipu',
+  '智谱GLM': 'zhipu',
   glm: 'zhipu',
   baidu: 'baidu',
   wenxin: 'baidu',
-  文心: 'baidu',
+  '文心': 'baidu',
   doubao: 'bytedance',
-  豆包: 'bytedance',
+  '豆包': 'bytedance',
   bytedance: 'bytedance',
   moonshot: 'moonshot',
   kimi: 'moonshot',
-  月之暗面: 'moonshot',
+  '月之暗面': 'moonshot',
   minimax: 'minimax',
   hunyuan: 'tencent',
-  腾讯: 'tencent',
+  '腾讯': 'tencent',
+  tencent: 'tencent',
 };
 
-const FALLBACK_ICONS: Record<string, { letter: string; color: string; }> = {
-  openai: { letter: 'O', color: '#10a37f' },
-  claude: { letter: 'C', color: '#d97757' },
-  google: { letter: 'G', color: '#4285f4' },
-  deepseek: { letter: 'D', color: '#4b6bfb' },
-  qwen: { letter: 'Q', color: '#6366f1' },
-  alibabacloud: { letter: 'Q', color: '#ff6a00' },
-  zhipu: { letter: 'Z', color: '#4268fa' },
-  baidu: { letter: 'B', color: '#2932e1' },
-  bytedance: { letter: 'D', color: '#25f4ee' },
-  moonshot: { letter: 'M', color: '#000' },
-  minimax: { letter: 'M', color: '#615ced' },
-  tencent: { letter: 'T', color: '#0052d9' },
-};
-
-const getModelSlug = (model: any): string => {
-  const provider = (model.provider || '').toLowerCase();
-  const name = (model.name || '').toLowerCase();
-  for (const [key, slug] of Object.entries(MODEL_LOGO_MAP)) {
-    if (provider.includes(key) || name.includes(key)) {
-      if ((slug as string).startsWith('http')) return key;
-      return slug;
-    }
-  }
-  return 'openai';
-};
-
-const getModelLogo = (model: any): string => {
-  const provider = (model.provider || '').toLowerCase();
-  const name = (model.name || '').toLowerCase();
-  for (const [key, slug] of Object.entries(MODEL_LOGO_MAP)) {
-    if (provider.includes(key) || name.includes(key)) {
-      return (slug as string).startsWith('http') ? slug : `https://unpkg.com/@lobehub/icons-static-svg@latest/icons/${slug}.svg`;
+const getModelLogo = (provider: string): string => {
+  const key = (provider || '').toLowerCase();
+  for (const [k, slug] of Object.entries(MODEL_LOGO_MAP)) {
+    if (key.includes(k)) {
+      return `https://unpkg.com/@lobehub/icons-static-svg@latest/icons/${slug}.svg`;
     }
   }
   return `https://unpkg.com/@lobehub/icons-static-svg@latest/icons/openai.svg`;
 };
 
-const getFallbackLetter = (model: any): string => {
-  return FALLBACK_ICONS[getModelSlug(model)]?.letter || '?';
-};
-
-const getFallbackColor = (model: any): string => {
-  return FALLBACK_ICONS[getModelSlug(model)]?.color || '#94a3b8';
+const getModelSupportsVision = (provider: string): boolean => {
+  const model = aiStore.models.find(m => m.provider === provider);
+  return model?.supportsVision || false;
 };
 
 const handleLogoError = (e: Event) => {
   const img = e.target as HTMLImageElement;
   img.style.display = 'none';
-  const wrap = img.parentElement;
-  if (wrap) {
-    const fallback = wrap.querySelector('.model-fallback');
-    if (fallback) (fallback as HTMLElement).style.display = 'flex';
-  }
 };
 
 onMounted(async () => {
+  // 从路由查询参数恢复 tab 和高亮记录
+  const tabParam = route.query.tab as string | undefined;
+  if (tabParam && tabs.some(t => t.value === tabParam)) {
+    activeTab.value = tabParam;
+  }
+  const highlightParam = route.query.highlight as string | undefined;
+  if (highlightParam) {
+    aiStore.parseHistoryHighlight = highlightParam;
+  }
+
   try {
     await aiStore.fetchModels();
-    if (aiStore.selectedModel) {
-      await loadModelVersionsWithLoading(aiStore.selectedModel);
+    await loadModelGroups();
+    if (aiStore.selectedModel && aiStore.selectedVersion) {
+      selectedModelKey.value = `${aiStore.selectedModel}|${aiStore.selectedVersion}`;
+    } else {
+      const qwenGroup = modelGroups.value.find(g =>
+        g.provider === 'qwen' || g.provider === 'dashscope' || g.provider === 'tongyi'
+      );
+      if (qwenGroup) {
+        const maxVersion = qwenGroup.versions.find(v =>
+          v.value?.toLowerCase().includes('max')
+        );
+        const targetVersion = maxVersion || qwenGroup.versions[0];
+        if (targetVersion) {
+          selectedModelKey.value = `${qwenGroup.provider}|${targetVersion.value}`;
+          aiStore.selectedModel = qwenGroup.provider;
+          aiStore.selectedVersion = targetVersion.value;
+        }
+      } else if (modelGroups.value.length > 0) {
+        const firstVersion = modelGroups.value[0].versions[0];
+        if (firstVersion) {
+          selectedModelKey.value = `${modelGroups.value[0].provider}|${firstVersion.value}`;
+          aiStore.selectedModel = modelGroups.value[0].provider;
+          aiStore.selectedVersion = firstVersion.value;
+        }
+      }
     }
   } catch (e) {
     console.error('[SmartTools] 初始化失败:', e);
@@ -320,7 +375,7 @@ onMounted(async () => {
           align-items: center;
           gap: 6px;
           padding: 8px 18px;
-          border-radius: 10px;
+          border-radius: 14px;
           border: 1px solid transparent;
           background: transparent;
           color: #64748b;
@@ -358,127 +413,70 @@ onMounted(async () => {
       flex-shrink: 0;
 
       .model-select-inline {
-        .model-grid {
-          display: flex;
-          gap: 8px;
-          flex-wrap: wrap;
-
-          .model-btn {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 14px;
-            background: $overlay-emerald-04;
-            border: 1px solid rgba(148, 163, 184, 0.18);
-            border-radius: 14px;
-            color: #64748b;
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all $transition-normal;
-            opacity: 0.8;
-            white-space: nowrap;
-
-            &:hover {
-              opacity: 1;
-              background: $overlay-emerald-08;
-              border-color: $overlay-emerald-25;
-              transform: translateY(-1px);
-            }
-
-            &.active {
-              background: linear-gradient(135deg, $overlay-emerald-12 0%, rgba(45, 212, 191, 0.08) 100%);
-              border-color: $overlay-emerald-35;
-              opacity: 1;
-              color: #059669;
-              box-shadow: 0 4px 12px -2px $overlay-emerald-12;
-            }
-
-            .model-check-icon {
-              width: 16px;
-              height: 16px;
-              flex-shrink: 0;
-              margin-left: 4px;
-            }
-
-            .model-logo-wrap {
-              position: relative;
-              width: 26px;
-              height: 26px;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              flex-shrink: 0;
-            }
-
-            .model-logo {
-              width: 100%;
-              height: 100%;
-              object-fit: contain;
-            }
-
-            .model-fallback {
-              display: none;
-              position: absolute;
-              inset: 0;
-              align-items: center;
-              justify-content: center;
-              font-size: 13px;
-              font-weight: 700;
-              background: $overlay-emerald-08;
-              border-radius: 6px;
-            }
-
-            .model-btn-name {
-              line-height: 1.2;
-            }
-
-            .model-info-row {
-              display: inline-flex;
-              align-items: center;
-              gap: 4px;
-            }
-
-            .model-type-badge {
-              display: inline-flex;
-              align-items: center;
-              justify-content: center;
-              font-size: 9px;
-              padding: 2px 6px;
-              line-height: 1;
-              background: var(--gradient-brand, linear-gradient(135deg, var(--color-primary), var(--color-primary-dark)));
-              color: #fff;
-              border-radius: 8px;
-              font-weight: 700;
-              letter-spacing: 0.3px;
-              opacity: 0.85;
-            }
-
-            .model-type-badge--vision {
-              background: linear-gradient(135deg, #8b5cf6, #6d28d9);
-            }
-          }
-
-          .no-models-inline {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            padding: 8px 14px;
-            font-size: 12px;
-            color: #94a3b8;
+        :deep(.t-select) {
+          .t-input {
+            border-radius: 12px;
           }
         }
 
-        .model-version-select {
-          margin-top: 8px;
+        :deep(.t-select__single) {
+          .t-select__placeholder,
+          .t-select__value {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+          }
+        }
 
-          :deep(.t-select) {
-            .t-input {
-              border-radius: 10px;
-              font-size: 12px;
-              height: 32px;
+        :deep(.t-select__wrapper) {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        :deep(.t-select__selected-single) {
+          display: inline-flex !important;
+          align-items: center;
+          gap: 8px;
+          font-size: 12px !important;
+
+          .t-select__placeholder,
+          .t-select__value-text {
+            display: inline-flex !important;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px !important;
+            color: #333;
+
+            &::after {
+              content: '';
             }
           }
+        }
+
+        :deep(.t-select__wrap) {
+          .t-select__input {
+            display: none !important;
+          }
+        }
+
+        :deep(.t-select__placeholder) {
+          display: none !important;
+        }
+
+        :deep(.t-input--focus) {
+          .t-tag-v2 {
+            display: none;
+          }
+        }
+
+        .no-models-inline {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          padding: 8px 14px;
+          font-size: 12px;
+          color: #94a3b8;
         }
       }
     }

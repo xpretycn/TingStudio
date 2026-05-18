@@ -1450,7 +1450,7 @@ onMounted(() => {
   .nav-content {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 4px;
     max-height: 0;
     overflow: visible;
     transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -1617,7 +1617,7 @@ onMounted(() => {
 
     // 分组容器
     .nav-group {
-      margin-bottom: 6px;
+      margin-bottom: 4px;
 
       &:last-child {
         margin-bottom: 0;
