@@ -16,6 +16,7 @@ import { fileRoutes } from "./files.js";
 import { dashboardRoutes } from "./dashboard.js";
 import { agentRouter } from "./agent.js";
 import { parseTemplateRoutes } from "./parseTemplates.js";
+import { ratioThresholdRoutes } from "./ratioThresholds.js";
 
 export function createAppRouter(): Router {
   const router = Router();
@@ -36,6 +37,7 @@ export function createAppRouter(): Router {
   router.use("/files", fileRoutes);
   router.use("/dashboard", dashboardRoutes);
   router.use("/parse-templates", parseTemplateRoutes);
+  router.use("/ratio-thresholds", ratioThresholdRoutes);
 
   return router;
 }

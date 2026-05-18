@@ -58,15 +58,18 @@
               </svg>
               解析模板
             </div>
-            <t-select
+            <t-radio-group
               v-model="selectedFormulaTemplateId"
-              :options="formulaTemplateOptions"
-              placeholder="选择模板快速配置"
-              clearable
+              variant="default-filled"
               size="small"
-              style="width: 220px"
               @change="handleFormulaTemplateChange"
-            />
+            >
+              <t-radio-button
+                v-for="t in formulaTemplateList"
+                :key="t.id"
+                :value="t.id"
+              >{{ t.name }}{{ t.isPreset ? ' (预设)' : '' }}</t-radio-button>
+            </t-radio-group>
           </div>
 
           <div v-if="selectedFile && !aiStore.parseLoading && !aiStore.parseResult && !aiStore.parseAborted"
@@ -882,13 +885,6 @@ const saveFormulaTemplateForm = reactive({
   customPrompt: '',
 });
 
-const formulaTemplateOptions = computed(() => {
-  return formulaTemplateList.value.map(t => ({
-    label: t.name + (t.isPreset ? ' (预设)' : ''),
-    value: t.id,
-  }));
-});
-
 const fetchFormulaTemplates = async () => {
   try {
     const res = await parseTemplateApi.getList({ category: 'formula', pageSize: 100 });
@@ -1065,7 +1061,7 @@ const submitBlockReasons = computed(() => {
   }, [] as ParsedMaterial[]);
   if (zeroQtyMaterials.length > 0) {
     const names = zeroQtyMaterials.map((m: ParsedMaterial) => m.name).join('、');
-    reasons.push({ type: 'warning', message: `${zeroQtyMaterials.length} 种原料用量为0或缺失：${names}` });
+    reasons.push({ type: 'error', message: `${zeroQtyMaterials.length} 种原料用量为0或缺失：${names}` });
   }
 
   if (ratioValidationInfo.value.level === 'error') {
@@ -1248,7 +1244,7 @@ const calculateMaterialRatio = (idx: number): string => {
     : (editedRatioFactor.value ?? 0.18);
 
   const ratio = (quantity / editedWeight.value) * ratioFactor;
-  return ratio.toFixed(5);
+  return ratio.toFixed(4);
 };
 
 const restoreFlashIdx = ref<number | null>(null);
@@ -2438,7 +2434,7 @@ const goToFileDetail = () => {
 
     .template-selector {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       gap: 10px;
       margin-top: 12px;
       padding: 10px 16px;
@@ -2454,6 +2450,8 @@ const goToFileDetail = () => {
         font-weight: 600;
         color: #6366f1;
         white-space: nowrap;
+        flex-shrink: 0;
+        margin-top: 5px;
       }
     }
 

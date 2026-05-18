@@ -1,7 +1,17 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npx vue-tsc *)"
+      "Bash(npx vue-tsc *)",
+      "Bash(npx tsc *)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000/api/health)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:5173)",
+      "Bash(curl -s -X POST http://localhost:3000/api/auth/login -H \"Content-Type: application/json\" -d '{\"username\":\"admin\",\"password\":\"admin123\"}')",
+      "Bash(python3 -c ' *)",
+      "Bash(curl -s -X POST http://localhost:3000/api/auth/login -H \"Content-Type: application/json\" -d '{\"username\":\"admin\",\"password\":\"admin123\"}' -o /tmp/admin_login.json -w \"%{http_code}\")",
+      "Bash(grep -o '\"token\":\"[^\"]*\"' /tmp/admin_login.json | head -1 | cut -d'\"' -f4)",
+      "Read(//tmp/**)",
+      "Bash(curl -s -X POST http://localhost:3000/api/auth/login -H \"Content-Type: application/json\" -d '{\"username\":\"user01\",\"password\":\"user123\"}' -o /tmp/user01_login.json -w \"%{http_code}\")"
     ]
-  }
+  },
+  "language": "chinese"
 }

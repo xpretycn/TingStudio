@@ -1,4 +1,4 @@
-# TingStudio v2.9.0
+# TingStudio v2.10.0
 
 食品配方工作数据管理平台 — 前后端分离架构
 
@@ -297,7 +297,55 @@ npx tsx src/scripts/restoreDatabase.ts    # 恢复数据库
 
 <!-- ====================================================================== -->
 <!-- 以下为历史版本更新日志，保留已有内容，自动补全 2026-07-03 最新更新 -->
-<!-- ====================================================================== -->
+<!-- ====================================================================== -->---
+
+## 🚀 最新更新 (2026-05-19)
+
+### ✅ 配比阈值配置功能
+
+新增含量比校验阈值配置功能，支持自定义配比范围的预警阈值，用于智能导入和配方管理。
+
+**功能特性**：
+
+- 📊 **三级预警体系**：
+  - 正常范围：[0.98, 1.02]（默认）
+  - 预警范围：[0.95, 1.05]（默认）
+  - 高级预警范围：[0.92, 1.08]（默认）
+- 🛠️ **管理员专属**：仅管理员可修改阈值配置
+- ✅ **实时验证**：配置时自动验证阈值嵌套关系（高级预警范围 ⊃ 预警范围 ⊃ 正常范围）
+- 📅 **变更追踪**：记录最后更新时间和更新人
+- 💾 **缓存机制**：阈值变更后自动刷新服务缓存，实时生效
+
+**新增 API 端点**：
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/ratio-thresholds` | 获取当前阈值配置 |
+| PUT | `/ratio-thresholds` | 更新阈值配置（仅管理员） |
+
+**新增数据库表**：
+
+| 表名 | 说明 |
+|------|------|
+| ratio_threshold_configs | 含量比校验阈值配置表 |
+
+**新增文件**：
+
+| 文件 | 说明 |
+|------|------|
+| [backend/src/controllers/ratioThresholdController.ts](file:///d:/ProgramData/workspace-codeby/ting-studio/backend/src/controllers/ratioThresholdController.ts) | 阈值配置控制器 |
+| [backend/src/routes/ratioThresholds.ts](file:///d:/ProgramData/workspace-codeby/ting-studio/backend/src/routes/ratioThresholds.ts) | 阈值配置路由 |
+| [frontend/src/api/ratioThreshold.ts](file:///d:/ProgramData/workspace-codeby/ting-studio/frontend/src/api/ratioThreshold.ts) | 阈值配置 API 客户端 |
+| [backend/src/scripts/migrations/createRatioThresholdConfigs.ts](file:///d:/ProgramData/workspace-codeby/ting-studio/backend/src/scripts/migrations/createRatioThresholdConfigs.ts) | 阈值配置表迁移脚本 |
+
+**其他更新**：
+
+- 优化了 Home.vue 侧边栏日期天气卡片显示
+- 增强了 SmartFormTab.vue 和 SmartImportTab.vue 的配比校验功能
+- 新增 ParseResultConfig.vue 配置页面
+- 更新了 router/index.ts 路由配置
+
+---
 
 ## 🚀 最新更新 (2026-07-03)
 

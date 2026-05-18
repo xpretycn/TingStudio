@@ -390,6 +390,8 @@ export async function parseMaterialNutrition(req: any, res: Response) {
       }
     }
 
+    const userId = req.user.userId;
+
     // 计算文件内容的 MD5 哈希（用于缓存检测）
     const fileContent = fs.readFileSync(file.path);
     const fileHash = crypto.createHash("md5").update(fileContent).digest("hex");
@@ -511,8 +513,6 @@ export async function parseMaterialNutrition(req: any, res: Response) {
       }
     }
 
-    const userId = req.user.userId;
-
     for (const mat of parsed.materials) {
       const [matches]: any[][] = await query(`SELECT id FROM materials WHERE name LIKE ? AND created_by = ? LIMIT 1`, [
         `%${mat.name}%`,
@@ -524,8 +524,6 @@ export async function parseMaterialNutrition(req: any, res: Response) {
 
     // 保存解析结果到 parse_results 表
     try {
-      const crypto = await import("crypto");
-      const fileHash = crypto.createHash("md5").update(file.originalname + Date.now()).digest("hex");
       const fileSize = file.size;
       const rawResponse = result.content;
       const modelProvider = provider;

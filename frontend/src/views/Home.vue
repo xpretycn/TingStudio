@@ -617,9 +617,13 @@ const toggleGroup = (groupId: GroupKey) => {
 const getGroupItems = (groupId: GroupKey): NavItem[] => {
   const baseItems = navGroups[groupId].items;
 
-  // 如果是系统工具组且用户是管理员，追加模型管理
+  // 如果是系统工具组且用户是管理员，追加管理入口
   if (groupId === 'tools' && authStore.user?.role === 'admin') {
-    return [...baseItems, { path: '/model-management', label: '模型管理', icon: 'control-platform' }];
+    return [
+      ...baseItems,
+      { path: '/model-management', label: '模型管理', icon: 'control-platform' },
+      { path: '/ai/parse-result-config', label: '系统管理', icon: 'file-icon' },
+    ];
   }
 
   return baseItems;
@@ -640,6 +644,7 @@ const navItems = computed(() => {
   }
   if (authStore.user?.role === 'admin') {
     allItems.push({ path: '/model-management', label: '模型管理', icon: 'control-platform' });
+    allItems.push({ path: '/ai/parse-result-config', label: '解析结果配置', icon: 'file-icon' });
   }
   return allItems;
 });

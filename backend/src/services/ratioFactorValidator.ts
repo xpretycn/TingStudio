@@ -59,6 +59,47 @@ export const DEFAULT_THRESHOLDS: RatioFactorThresholds = {
   highWarningHigh: 1.08,
 };
 
+let cachedThresholds: RatioFactorThresholds | null = null;
+
+export function setCachedThresholds(thresholds: RatioFactorThresholds): void {
+  cachedThresholds = { ...thresholds };
+}
+
+export function clearCachedThresholds(): void {
+  cachedThresholds = null;
+}
+
+export function getCachedThresholds(): RatioFactorThresholds | null {
+  return cachedThresholds;
+}
+
+export async function loadThresholdsFromConfig(): Promise<RatioFactorThresholds> {
+  try {
+    const { getDb } = await import("../config/database-better-sqlite3.js");
+    const db = getDb();
+    const row = db.prepare(`
+      SELECT normal_low, normal_high, warning_low, warning_high,
+             high_warning_low, high_warning_high
+      FROM ratio_threshold_configs LIMIT 1
+    `).get() as any;
+
+    if (row) {
+      cachedThresholds = {
+        normalLow: row.normal_low,
+        normalHigh: row.normal_high,
+        warningLow: row.warning_low,
+        warningHigh: row.warning_high,
+        highWarningLow: row.high_warning_low,
+        highWarningHigh: row.high_warning_high,
+      };
+      return cachedThresholds;
+    }
+  } catch {
+    cachedThresholds = null;
+  }
+  return DEFAULT_THRESHOLDS;
+}
+
 function calcMaterialRatio(
   material: MaterialInput,
   finishedWeight: number,
@@ -133,7 +174,7 @@ export function validateRatioFactor(
   finishedWeight: number,
   ratioFactor: number,
   supplementRatioFactor: number,
-  thresholds: RatioFactorThresholds = DEFAULT_THRESHOLDS,
+  thresholds: RatioFactorThresholds = cachedThresholds ?? DEFAULT_THRESHOLDS,
 ): RatioFactorValidationResult {
   if (!materials || materials.length === 0) {
     return {

@@ -222,7 +222,7 @@ const router = createRouter({
           path: "ai/parse-result-config",
           name: "ParseResultConfig",
           component: () => import("@/views/ai/ParseResultConfig.vue"),
-          meta: { title: "解析结果配置", requiresAdmin: true },
+          meta: { title: "系统管理", requiresAdmin: true },
         },
         {
           path: "model-management",

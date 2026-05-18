@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -c ' *)",
+      "Read(//c/Users/Administrator/**)",
+      "Bash(tasklist /FI \"IMAGENAME eq node.exe\")",
+      "Bash(wmic process *)"
+    ]
+  }
+}

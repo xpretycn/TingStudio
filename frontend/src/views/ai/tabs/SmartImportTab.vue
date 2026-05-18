@@ -58,15 +58,18 @@
               </svg>
               解析模板
             </div>
-            <t-select
+            <t-radio-group
               v-model="selectedTemplateId"
-              :options="templateOptions"
-              placeholder="选择模板快速配置"
-              clearable
+              variant="default-filled"
               size="small"
-              style="width: 220px"
               @change="handleTemplateChange"
-            />
+            >
+              <t-radio-button
+                v-for="t in templateList"
+                :key="t.id"
+                :value="t.id"
+              >{{ t.name }}{{ t.isPreset ? ' (预设)' : '' }}</t-radio-button>
+            </t-radio-group>
           </div>
 
           <div
@@ -804,13 +807,6 @@ const saveTemplateForm = reactive({
   category: 'nutrition' as 'formula' | 'nutrition' | 'general',
   defaultProvider: undefined as string | undefined,
   customPrompt: '',
-});
-
-const templateOptions = computed(() => {
-  return templateList.value.map(t => ({
-    label: t.name + (t.isPreset ? ' (预设)' : ''),
-    value: t.id,
-  }));
 });
 
 const fetchTemplates = async () => {
@@ -2018,7 +2014,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
 
     .template-selector {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       gap: 10px;
       margin-top: 12px;
       padding: 10px 16px;
@@ -2034,6 +2030,8 @@ watch(() => aiStore.materialParseResult, (newVal) => {
         font-weight: 600;
         color: #6366f1;
         white-space: nowrap;
+        flex-shrink: 0;
+        margin-top: 5px;
       }
     }
 
