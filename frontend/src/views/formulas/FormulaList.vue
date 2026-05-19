@@ -278,6 +278,12 @@
                 <t-icon name="more" />
               </button>
             </t-dropdown>
+            <t-popconfirm theme="danger" :content="`确定要删除配方「${row.name}」吗？删除后无法恢复。`"
+              @confirm="handleDelete(row)">
+              <button class="action-dropdown-btn action-delete-btn" title="删除" :aria-label="`删除配方${row.name}`" @click.stop>
+                <t-icon name="delete" />
+              </button>
+            </t-popconfirm>
           </template>
         </t-table>
 
@@ -1360,7 +1366,6 @@ const handleOperationClick = (item: any, row: Formula) => {
   if (item.value === 'version') handleVersion(row);
   else if (item.value === 'edit') handleEdit(row);
   else if (item.value === 'sales') openSalesDialog(row);
-  else if (item.value === 'delete') handleDelete(row);
 };
 
 // ─── 销量录入弹窗 ───
@@ -2935,24 +2940,24 @@ const getSalesQuantity = (row: any): number => {
     overflow: visible !important;
 
     th {
-      background: #f8fafc !important;
-      color: #94a3b8 !important;
-      font-size: 12px !important;
-      text-transform: uppercase !important;
-      letter-spacing: 0.05em !important;
-      font-weight: 600 !important;
-      padding: 14px 20px !important;
-      border-bottom: 1px solid #e2e8f0 !important;
-      overflow: visible !important;
+        background: #f8fafc !important;
+        color: #94a3b8 !important;
+        font-size: 11px !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.05em !important;
+        font-weight: 600 !important;
+        padding: 10px 16px !important;
+        border-bottom: 1px solid #e2e8f0 !important;
+        overflow: visible !important;
 
       &:first-child {
-        padding-left: 24px !important;
-        padding-right: 24px !important;
+        padding-left: 16px !important;
+        padding-right: 16px !important;
       }
 
       &:last-child {
-        padding-left: 24px !important;
-        padding-right: 24px !important;
+        padding-left: 16px !important;
+        padding-right: 16px !important;
         text-align: right !important;
       }
 
@@ -2988,18 +2993,19 @@ const getSalesQuantity = (row: any): number => {
     }
 
     td {
-      padding: 18px 20px !important;
+      padding: 7px 16px !important;
       border-bottom: 1px solid #f1f5f9 !important;
       vertical-align: middle;
+      font-size: 13px !important;
 
       &:first-child {
-        padding-left: 24px !important;
-        padding-right: 24px !important;
+        padding-left: 16px !important;
+        padding-right: 16px !important;
       }
 
       &:last-child {
-        padding-left: 24px !important;
-        padding-right: 24px !important;
+        padding-left: 16px !important;
+        padding-right: 16px !important;
         text-align: right;
       }
     }
@@ -3021,14 +3027,14 @@ const getSalesQuantity = (row: any): number => {
   gap: 16px;
 
   .formula-avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 8px;
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 700;
-    font-size: 12px;
+    font-size: 13px;
     text-transform: uppercase;
     box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
     flex-shrink: 0;
@@ -3036,11 +3042,11 @@ const getSalesQuantity = (row: any): number => {
 
   .formula-details {
     .formula-name {
-      font-weight: 700;
+      font-weight: 600;
       color: #334155;
       transition: color 0.2s;
-      font-size: 14px;
-      margin: 0 0 4px 0;
+      font-size: 13px;
+      margin: 0 0 2px 0;
     }
 
     .formula-code {
@@ -3084,11 +3090,11 @@ const getSalesQuantity = (row: any): number => {
 
 // 原料数量列
 .material-count {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   color: #475569;
   background-color: #f8fafc;
-  padding: 4px 8px;
+  padding: 2px 6px;
   border-radius: 6px;
 
   .material-unit {
@@ -3105,21 +3111,21 @@ const getSalesQuantity = (row: any): number => {
   gap: 8px;
 
   .salesman-avatar {
-    width: 28px;
-    height: 28px;
+    width: 24px;
+    height: 24px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     color: #fff;
-    font-size: 11px;
+    font-size: 13px;
     font-weight: 600;
     flex-shrink: 0;
     user-select: none;
   }
 
   .salesman-name {
-    font-size: 14px;
+    font-size: 13px;
     color: #475569;
   }
 }
@@ -3261,9 +3267,9 @@ const getSalesQuantity = (row: any): number => {
 
 // 操作下拉按钮
 .action-dropdown-btn {
-  width: 32px;
-  height: 32px;
-  border-radius: 10px;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
   color: #64748b;
   transition: all 0.2s ease;
   background: transparent;
@@ -3280,7 +3286,7 @@ const getSalesQuantity = (row: any): number => {
   }
 
   .t-icon {
-    font-size: 18px;
+    font-size: 16px;
   }
 }
 

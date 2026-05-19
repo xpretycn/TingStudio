@@ -431,7 +431,7 @@ onMounted(async () => {
                   <rect x="14" y="14" width="7" height="7" />
                   <rect x="3" y="14" width="7" height="7" />
                 </svg>
-                <h4 class="section-title-text">存储参数配置</h4>
+                <h4 class="section-title-text">解析缓存配置</h4>
               </div>
               <div class="section-actions">
                 <span v-if="isEditing" class="edit-hint">参数已修改，点击保存生效</span>
@@ -583,7 +583,7 @@ onMounted(async () => {
                   <line x1="12" y1="20" x2="12" y2="4" />
                   <line x1="6" y1="20" x2="6" y2="14" />
                 </svg>
-                <h4 class="section-title-text">解析统计概览</h4>
+                <h4 class="section-title-text">配置概览</h4>
               </div>
             </div>
 
@@ -653,85 +653,80 @@ onMounted(async () => {
 
             <t-divider />
 
-            <!-- 系统状态（合并自原系统状态 tab） -->
-            <div class="section-header-enhanced" style="margin-top: 8px;">
-              <div class="section-title-group">
-                <svg class="section-title-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F59E0B"
-                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-                  <line x1="12" y1="9" x2="12" y2="13" />
-                  <line x1="12" y1="17" x2="12.01" y2="17" />
-                </svg>
-                <h4 class="section-title-text">系统运行状态</h4>
-              </div>
-            </div>
-
-            <div v-if="degradationInfo" class="degradation-content">
-              <div class="status-banner" :class="'status-banner--' + degradationInfo.level">
-                <div class="status-banner-icon">
-                  <svg v-if="degradationInfo.level === 'normal'" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                    <polyline points="22 4 12 14.01 9 11.01" />
-                  </svg>
-                  <svg v-else width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path
-                      d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-                    <line x1="12" y1="9" x2="12" y2="13" />
-                    <line x1="12" y1="17" x2="12.01" y2="17" />
-                  </svg>
-                </div>
-                <div class="status-banner-text">
-                  <strong>{{ degradationInfo.level === 'normal' ? '系统运行正常' : degradationInfo.level === 'degraded' ?
-                    '性能降级' : '熔断保护中'
-                  }}</strong>
-                  <p>{{ degradationInfo.reason }}</p>
-                </div>
-              </div>
-
-              <div class="status-metrics">
-                <div class="status-metric">
-                  <div class="status-metric-value">{{ degradationInfo.systemStatus.totalCount }}</div>
-                  <div class="status-metric-label">当前记录数</div>
-                </div>
-                <div class="status-metric">
-                  <div class="status-metric-value">{{ degradationInfo.systemStatus.storageLimit }}</div>
-                  <div class="status-metric-label">存储上限</div>
-                </div>
-                <div class="status-metric">
-                  <div class="status-metric-value"
-                    :class="{ 'text-danger': degradationInfo.systemStatus.usagePercent >= 95 }">
-                    {{ degradationInfo.systemStatus.usagePercent }}%
+            <!-- 系统运行状态 -->
+            <div class="degradation-content">
+              <!-- 解析缓存状态 -->
+              <div class="status-section" style="margin-bottom: 16px;">
+                <h5 class="status-section-title">解析缓存状态</h5>
+                <div class="status-metrics">
+                  <div class="status-metric">
+                    <div class="status-metric-value">{{ degradationInfo?.systemStatus?.totalCount ?? 0 }}</div>
+                    <div class="status-metric-label">当前记录数</div>
                   </div>
-                  <div class="status-metric-label">存储使用率</div>
-                </div>
-                <div class="status-metric">
-                  <div class="status-metric-value">{{ degradationInfo.systemStatus.cleanupThreshold }}%</div>
-                  <div class="status-metric-label">清理阈值</div>
-                </div>
-              </div>
-
-              <div class="status-progress-bar">
-                <div class="progress-track">
-                  <div class="progress-fill"
-                    :style="{ width: Math.min(degradationInfo.systemStatus.usagePercent, 100) + '%' }" :class="{
-                      'progress-fill--danger': degradationInfo.systemStatus.usagePercent >= 95,
-                      'progress-fill--warning': degradationInfo.systemStatus.usagePercent >= 80 && degradationInfo.systemStatus.usagePercent < 95
-                    }"></div>
-                  <div class="progress-threshold"
-                    :style="{ left: degradationInfo.systemStatus.cleanupThreshold + '%' }">
-                    <span class="progress-threshold-label">{{ degradationInfo.systemStatus.cleanupThreshold }}%</span>
+                  <div class="status-metric">
+                    <div class="status-metric-value">{{ degradationInfo?.systemStatus?.storageLimit ??
+                      configData.storageLimit }}
+                    </div>
+                    <div class="status-metric-label">存储上限</div>
+                  </div>
+                  <div class="status-metric">
+                    <div class="status-metric-value"
+                      :class="{ 'text-danger': (degradationInfo?.systemStatus?.usagePercent ?? 0) >= 95 }">
+                      {{ degradationInfo?.systemStatus?.usagePercent ?? 0 }}%
+                    </div>
+                    <div class="status-metric-label">存储使用率</div>
+                  </div>
+                  <div class="status-metric">
+                    <div class="status-metric-value">{{ degradationInfo?.systemStatus?.cleanupThreshold ??
+                      configData.cleanupThresholdPercent }}%</div>
+                    <div class="status-metric-label">清理阈值</div>
                   </div>
                 </div>
-                <div class="progress-labels">
-                  <span>0%</span>
-                  <span>{{ degradationInfo.systemStatus.usagePercent }}% 当前</span>
-                  <span>100%</span>
+
+                <div class="status-progress-bar">
+                  <div class="progress-track">
+                    <div class="progress-fill"
+                      :style="{ width: Math.min(degradationInfo?.systemStatus?.usagePercent ?? 0, 100) + '%' }" :class="{
+                        'progress-fill--danger': (degradationInfo?.systemStatus?.usagePercent ?? 0) >= 95,
+                        'progress-fill--warning': (degradationInfo?.systemStatus?.usagePercent ?? 0) >= 80 && (degradationInfo?.systemStatus?.usagePercent ?? 0) < 95
+                      }"></div>
+                    <div class="progress-threshold"
+                      :style="{ left: (degradationInfo?.systemStatus?.cleanupThreshold ?? configData.cleanupThresholdPercent) + '%' }">
+                      <span class="progress-threshold-label">{{ degradationInfo?.systemStatus?.cleanupThreshold ??
+                        configData.cleanupThresholdPercent }}%</span>
+                    </div>
+                  </div>
+                  <div class="progress-labels">
+                    <span>0%</span>
+                    <span>{{ degradationInfo?.systemStatus?.usagePercent ?? 0 }}% 当前</span>
+                    <span>100%</span>
+                  </div>
                 </div>
               </div>
 
-              <div v-if="degradationInfo.recommendations?.length" class="recommendations-section">
+              <!-- 文件保留策略状态 -->
+              <div class="status-section" style="margin-bottom: 16px;">
+                <h5 class="status-section-title">文件保留策略状态</h5>
+                <div class="status-metrics">
+                  <div class="status-metric">
+                    <div class="status-metric-value">{{ configData.fileRetentionDays }}</div>
+                    <div class="status-metric-label">原文件保留天数</div>
+                  </div>
+                  <div class="status-metric">
+                    <div class="status-metric-value">{{ (configData.fileStorageLimitBytes / 1024 / 1024 /
+                      1024).toFixed(0) }} GB
+                    </div>
+                    <div class="status-metric-label">存储空间上限</div>
+                  </div>
+                  <div class="status-metric">
+                    <div class="status-metric-value">{{ configData.fileStorageAlertPercent }}%</div>
+                    <div class="status-metric-label">告警阈值</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 建议措施 -->
+              <div v-if="degradationInfo?.recommendations?.length" class="recommendations-section">
                 <div class="recommendations-title">建议措施</div>
                 <div v-for="(rec, idx) in degradationInfo.recommendations" :key="idx" class="recommendation-item">
                   <span class="recommendation-dot"></span>
@@ -739,7 +734,7 @@ onMounted(async () => {
                 </div>
               </div>
 
-              <div v-if="degradationInfo.lastCleanup" class="last-cleanup-card">
+              <div v-if="degradationInfo?.lastCleanup" class="last-cleanup-card">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2"
                   stroke-linecap="round" stroke-linejoin="round">
                   <circle cx="12" cy="12" r="10" />
@@ -749,16 +744,6 @@ onMounted(async () => {
                   degradationInfo.lastCleanup.triggerReason
                 }}</span>
               </div>
-            </div>
-            <div v-else class="data-empty">
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="1.5"
-                stroke-linecap="round" stroke-linejoin="round">
-                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-                <line x1="12" y1="9" x2="12" y2="13" />
-                <line x1="12" y1="17" x2="12.01" y2="17" />
-              </svg>
-              <p class="data-empty-text">暂无系统状态数据</p>
-              <p class="data-empty-hint">系统运行后，状态信息将在此展示</p>
             </div>
 
             <t-divider />
@@ -1230,7 +1215,9 @@ $transition-normal: 0.25s ease;
 
   .section-actions {
     display: flex;
+    align-items: center;
     gap: 8px;
+    flex-wrap: wrap;
   }
 }
 
@@ -1482,6 +1469,17 @@ $transition-normal: 0.25s ease;
         margin: 0;
         color: #64748B;
       }
+    }
+  }
+
+  .status-section {
+    .status-section-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #e5e7eb;
     }
   }
 

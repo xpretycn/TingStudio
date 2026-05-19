@@ -102,6 +102,7 @@
                     <t-input-number v-model="formData.ratioFactor" :min="0.15" :max="0.25" :decimal-places="2"
                       placeholder="0.18" class="field-input" aria-required="true" aria-labelledby="lbl-ratio-factor"
                       data-field="ratio_factor" />
+                    <p class="field-help">用于营养成分含量比计算，主料系数范围0.15-0.25</p>
                   </div>
 
                   <div class="form-field">
@@ -111,23 +112,29 @@
                     <t-input-number v-model="formData.supplementRatioFactor" :min="0.5" :max="1.5" :decimal-places="2"
                       placeholder="1.0" class="field-input" aria-required="true" aria-labelledby="lbl-supplement-factor"
                       data-field="supplement_ratio_factor" />
-                    <p class="field-help">用于营养成分含量比计算，主料系数范围0.15-0.25，辅料系数范围0.5-1.5</p>
+                    <p class="field-help">用于营养成分含量比计算，辅料系数范围0.5-1.5</p>
                   </div>
-                  <div v-if="isEdit" class="form-field" :class="{ 'field-error': versionReasonError }">
-                    <label class="field-label" id="lbl-version-reason"><t-icon name="history" size="12px"
-                        class="label-icon" /> 升版原因
-                      <span class="required">*</span></label>
-                    <t-textarea ref="versionReasonRef" v-model="formData.versionReason" placeholder="请输入升版原因（必填）"
-                      :autosize="{ minRows: 2, maxRows: 4 }" class="field-input"
-                      :class="{ 'input-error': versionReasonError }" aria-required="true"
-                      aria-labelledby="lbl-version-reason" data-field="version_reason"
-                      @input="clearVersionReasonError" />
-                    <transition name="error-fade">
-                      <p v-if="versionReasonError" class="field-error-msg">
-                        <t-icon name="error-circle" size="14px" /> 请填写升版原因
-                      </p>
-                    </transition>
-                  </div>
+                </div>
+                <div v-if="isEdit" class="form-field" :class="{ 'field-error': versionReasonError }">
+                  <label class="field-label" id="lbl-version-reason"><t-icon name="history" size="12px"
+                      class="label-icon" /> 升版原因
+                    <span class="required">*</span>
+                    <button type="button" class="btn-ai-generate" :disabled="aiGenerating || !formData.name"
+                      @click="handleGenerateVersionReason">
+                      <t-icon name="logo-github" size="12px" />
+                      {{ aiGenerating ? '生成中...' : '智能生成' }}
+                    </button>
+                  </label>
+                  <t-textarea ref="versionReasonRef" v-model="formData.versionReason" placeholder="请输入升版原因（必填）"
+                    :autosize="{ minRows: 3, maxRows: 6 }" class="field-input"
+                    :class="{ 'input-error': versionReasonError }" aria-required="true"
+                    aria-labelledby="lbl-version-reason" data-field="version_reason"
+                    @input="clearVersionReasonError" />
+                  <transition name="error-fade">
+                    <p v-if="versionReasonError" class="field-error-msg">
+                      <t-icon name="error-circle" size="14px" /> 请填写升版原因
+                    </p>
+                  </transition>
                 </div>
                 <div class="form-field">
                   <label class="field-label" id="lbl-description"><t-icon name="chat-bubble" size="12px"
@@ -160,51 +167,60 @@
               </div>
             </section>
 
-            <!-- 第二个section：原料配比表 -->
-            <section class="form-section">
+            <!-- 第二个section：原料配比表 - 使用统一表格组件 -->
+            <section class="form-section unified-materials-section">
               <div class="section-header">
                 <h3 class="section-title">
                   <t-icon name="view-list" class="section-icon" />
                   原料配比表
                 </h3>
                 <div class="row-actions">
-                  <button type="button" class="clear-btn" @click="clearMaterials"
-                    :disabled="formData.materials.length === 0" aria-label="清空所有原料">
-                    <t-icon name="delete" />
-                    清空
-                  </button>
-                  <button type="button" class="add-row-btn" @click="addMaterial" aria-label="添加原料行">
-                    <t-icon name="add" />
-                    添加行
-                  </button>
+                  <t-switch v-model="useUnifiedTable" size="small" />
+                  <span class="switch-label">使用新表格</span>
                 </div>
               </div>
               <div class="section-content">
-                <!-- Excel导入面板 -->
-                <div class="excel-panel-wrapper">
-                  <div v-if="!excelPanelExpanded" class="excel-collapsed-bar" @click="excelPanelExpanded = true">
-                    <div class="excel-collapsed-left">
-                      <div class="excel-collapsed-icon">
-                        <t-icon name="upload" size="18px" />
-                      </div>
-                      <span class="excel-collapsed-text">上传 Excel 文件批量导入原料</span>
-                      <span class="excel-collapsed-hint">点击展开</span>
-                    </div>
-                    <t-icon name="chevron-down" size="16px" class="excel-collapsed-arrow" />
-                  </div>
-                  <div v-else class="excel-expanded-area">
-                    <div class="excel-expanded-header" @click="excelPanelExpanded = false">
-                      <span class="excel-expanded-title">
-                        <t-icon name="file-excel" size="14px" />
-                        Excel 导入
-                      </span>
-                      <t-icon name="chevron-up" size="16px" class="excel-expanded-arrow" />
-                    </div>
-                    <ExcelImportPanel @import="handleExcelImport" class="excel-panel" />
-                  </div>
-                </div>
+                <!-- 使用统一原料管理表格 -->
+                <UnifiedMaterialTable
+                  v-if="useUnifiedTable"
+                  v-model:materials="formData.materials"
+                  :mode="aiStore.parseResult ? 'ai_preview' : 'edit'"
+                  :show-cost="true"
+                  :selectable="true"
+                  @add="handleUnifiedMaterialAdd"
+                  @remove="handleUnifiedMaterialRemove"
+                  @reorder="handleUnifiedMaterialReorder"
+                  @match="handleUnifiedMaterialMatch"
+                  @batch-action="handleUnifiedMaterialBatchAction"
+                />
 
-                <div class="materials-table-wrapper">
+                <!-- 原有的原料配比表（当不使用新表格时显示） -->
+                <template v-else>
+                  <!-- Excel导入面板 -->
+                  <div class="excel-panel-wrapper">
+                    <div v-if="!excelPanelExpanded" class="excel-collapsed-bar" @click="excelPanelExpanded = true">
+                      <div class="excel-collapsed-left">
+                        <div class="excel-collapsed-icon">
+                          <t-icon name="upload" size="18px" />
+                        </div>
+                        <span class="excel-collapsed-text">上传 Excel 文件批量导入原料</span>
+                        <span class="excel-collapsed-hint">点击展开</span>
+                      </div>
+                      <t-icon name="chevron-down" size="16px" class="excel-collapsed-arrow" />
+                    </div>
+                    <div v-else class="excel-expanded-area">
+                      <div class="excel-expanded-header" @click="excelPanelExpanded = false">
+                        <span class="excel-expanded-title">
+                          <t-icon name="file-excel" size="14px" />
+                          Excel 导入
+                        </span>
+                        <t-icon name="chevron-up" size="16px" class="excel-expanded-arrow" />
+                      </div>
+                      <ExcelImportPanel @import="handleExcelImport" class="excel-panel" />
+                    </div>
+                  </div>
+
+                  <div class="materials-table-wrapper">
                   <table class="materials-table">
                     <thead>
                       <tr>
@@ -280,6 +296,7 @@
                     </button>
                   </div>
                 </div>
+                </template>
               </div>
             </section>
 
@@ -405,6 +422,32 @@
                     </div>
                   </div>
 
+                  <!-- 解析模板选择 -->
+                  <div v-if="formulaTemplateList.length > 0 && !aiStore.parseLoading && !aiStore.parseResult" class="template-selector">
+                    <div class="template-selector-label">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                        <polyline points="14 2 14 8 20 8" />
+                        <line x1="16" y1="13" x2="8" y2="13" />
+                        <line x1="16" y1="17" x2="8" y2="17" />
+                      </svg>
+                      解析模板
+                    </div>
+                    <t-radio-group
+                      v-model="selectedFormulaTemplateId"
+                      variant="default-filled"
+                      size="small"
+                      @change="handleFormulaTemplateChange"
+                    >
+                      <t-radio-button
+                        v-for="t in formulaTemplateList"
+                        :key="t.id"
+                        :value="t.id"
+                      >{{ t.name }}{{ t.isPreset ? ' (预设)' : '' }}</t-radio-button>
+                    </t-radio-group>
+                  </div>
+
                   <!-- 上传 + 文件信息区域 -->
                   <div v-if="!aiStore.parseLoading && !aiStore.parseResult && !aiStore.parseError" class="upload-area">
                     <div class="upload-zone" :class="{ 'drag-over': isDragOver }" @click="triggerFileInput"
@@ -444,11 +487,26 @@
                   <div v-if="aiStore.parseLoading" class="parsing-progress">
                     <div class="progress-header">
                       <div class="progress-file-info">
-                        <t-icon name="attach" size="16px" />
-                        <span class="progress-filename">{{ selectedFile?.name }}</span>
-                        <span class="progress-model">{{ selectedModelName }}</span>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"
+                          stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+                          <polyline points="14 2 14 8 20 8" />
+                        </svg>
+                        <span class="progress-file-name">{{ selectedFile?.name }}</span>
+                        <span class="progress-file-size">{{ formatFileSize(selectedFile?.size ?? 0) }}</span>
                       </div>
-                      <span class="progress-percent">{{ parseProgressText }}</span>
+                      <div class="progress-right">
+                        <span class="progress-percent">{{ parseProgressText }}</span>
+                        <span class="progress-timer">{{ parseElapsedTimeFormatted }}</span>
+                        <button v-if="!aiStore.parseAborted" class="abort-btn" @click="handleAbortParse" title="终止解析"
+                          aria-label="终止当前解析任务">
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="6" y="6" width="12" height="12" rx="2" />
+                          </svg>
+                          终止
+                        </button>
+                      </div>
                     </div>
                     <div class="progress-bar-wrapper">
                       <div class="progress-bar">
@@ -457,7 +515,12 @@
                     </div>
                     <p class="progress-hint">{{ parseProgressHint }}</p>
                     <div v-if="currentModelInfo" class="progress-model-info">
-                      <t-icon name="laptop" size="12px" />
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+                        <line x1="8" y1="21" x2="16" y2="21" />
+                        <line x1="12" y1="17" x2="12" y2="21" />
+                      </svg>
                       <span class="model-name">{{ currentModelInfo.name }}</span>
                       <span class="model-version">{{ currentModelInfo.model }}</span>
                       <span v-if="currentModelInfo.supportsVision" class="model-feature">支持图片识别</span>
@@ -585,6 +648,18 @@
                             <span class="unmatched-qty">{{ m.quantity }}{{ m.unit || 'g' }}</span>
                           </li>
                         </ul>
+                      </div>
+
+                      <!-- 提交阻止原因列表 -->
+                      <div v-if="submitBlockReasons.length > 0" class="submit-block-reasons">
+                        <div v-for="(reason, idx) in submitBlockReasons" :key="idx" class="block-reason-item"
+                          :class="'block-reason-item--' + reason.type">
+                          <div class="block-reason-header">
+                            <span class="block-reason-dot"></span>
+                            <span class="block-reason-text">{{ reason.text }}</span>
+                          </div>
+                          <p v-if="reason.hint" class="block-reason-hint">{{ reason.hint }}</p>
+                        </div>
                       </div>
 
                       <div class="result-actions">
@@ -786,8 +861,12 @@ import type { RatioFactorValidationResult } from '@/api/formula';
 import { formulaApi } from '@/api/formula';
 import { excelImportApi } from '@/api/excelImport';
 import { agentApi } from '@/api/agent';
+import { parseTemplateApi } from '@/api/parseTemplate';
+import type { ParseTemplate } from '@/api/parseTemplate';
 import ExcelImportPanel from '@/components/ExcelImportPanel.vue';
 import QuickCreateSalesmanDialog from '@/components/QuickCreateSalesmanDialog.vue';
+import UnifiedMaterialTable from '@/components/formula/UnifiedMaterialTable.vue';
+import type { UnifiedMaterialItem } from '@/components/formula/UnifiedMaterialTable.vue';
 
 const router = useRouter();
 const route = useRoute();
@@ -808,10 +887,50 @@ const materialSelectLoading = ref(false);
 const materialSearchKeyword = ref('');
 const versionReasonError = ref(false);
 
+// 统一表格开关
+const useUnifiedTable = ref(false);
+
+const handleUnifiedMaterialAdd = (_row: UnifiedMaterialItem) => {
+};
+
+const handleUnifiedMaterialRemove = (_index: number) => {
+};
+
+const handleUnifiedMaterialReorder = (_fromIndex: number, _toIndex: number) => {
+};
+
+const handleUnifiedMaterialMatch = (_index: number, _materialId: string) => {
+};
+
+const handleUnifiedMaterialBatchAction = (_action: string, _indices: number[]) => {
+};
+
 // AI 相关状态
 const selectedFile = ref<File | null>(null);
 const isDragOver = ref(false);
 const parseStartTime = ref<number>(0);
+
+// 解析模板
+const formulaTemplateList = ref<ParseTemplate[]>([]);
+const selectedFormulaTemplateId = ref<string | undefined>(undefined);
+
+const fetchFormulaTemplates = async () => {
+  try {
+    const res = await parseTemplateApi.getList({ category: 'formula', pageSize: 100 });
+    formulaTemplateList.value = res.list || [];
+  } catch {}
+};
+
+const handleFormulaTemplateChange = (value: string | undefined) => {
+  if (!value) return;
+  const template = formulaTemplateList.value.find(t => t.id === value);
+  if (!template) return;
+  if (template.defaultProvider) {
+    aiStore.selectedModel = template.defaultProvider;
+    aiStore.loadModelVersions(template.defaultProvider);
+  }
+  selectedFormulaTemplateId.value = value;
+};
 
 const IMAGE_EXTS = ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp'];
 
@@ -1016,12 +1135,21 @@ const handleRestoreSinglePrice = (idx: number) => {
 // 解析进度反馈
 const parseProgressText = computed(() => {
   if (!aiStore.parseLoading) return '';
+  if (aiStore.parseAborted) return 'AI 解析已终止';
   const elapsed = Date.now() - parseStartTime.value;
   if (elapsed < 2000) return '连接 AI 服务...';
   if (elapsed < 5000) return '上传文件中...';
   if (elapsed < 10000) return 'AI 分析中...';
   if (elapsed < 20000) return '提取配方数据...';
   return '即将完成...';
+});
+
+const parseElapsedTimeFormatted = computed(() => {
+  const elapsed = Date.now() - parseStartTime.value;
+  const seconds = Math.floor(elapsed / 1000);
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
 });
 
 const parseProgressHint = computed(() => {
@@ -1033,6 +1161,7 @@ const parseProgressHint = computed(() => {
     '生成结构化数据'
   ];
   if (!aiStore.parseLoading) return '';
+  if (aiStore.parseAborted) return '解析任务已终止';
   const stage = Math.floor((Date.now() - parseStartTime.value) / 4000) % hints.length;
   return hints[stage] + '...';
 });
@@ -1221,6 +1350,36 @@ async function handleGeneratePreparation() {
   }
 }
 
+async function handleGenerateVersionReason() {
+  if (aiGenerating.value) return;
+  if (!formData.name) {
+    MessagePlugin.warning('请先填写配方名称');
+    return;
+  }
+  const materials = formData.materials.map((m: any) => ({
+    name: m.materialName || m.name,
+    quantity: m.quantity,
+    type: m.supplement ? 'supplement' : 'herb',
+  }));
+  aiGenerating.value = true;
+  try {
+    const res = await agentApi.generateDescription({
+      formulaName: formData.name,
+      materials,
+      finishedWeight: formData.finishedWeight || undefined,
+      type: 'version_reason',
+    });
+    if (res.success && res.data) {
+      formData.versionReason = res.data.content;
+      MessagePlugin.success('升版原因已智能生成');
+    }
+  } catch {
+    MessagePlugin.error('生成失败');
+  } finally {
+    aiGenerating.value = false;
+  }
+}
+
 // AI 预填标志
 const isAiPrefill = ref(false);
 const showQuickCreateSalesman = ref(false);
@@ -1261,6 +1420,25 @@ const unmatchedMaterials = computed(() => {
   const data = aiStore.parseResult;
   if (!data?.materials?.length) return [];
   return data.materials.filter((m: any) => !m.matched);
+});
+
+const submitBlockReasons = computed(() => {
+  const reasons: { type: 'error' | 'warning'; text: string; hint: string }[] = [];
+  if (hasUnmatchedMaterials.value) {
+    reasons.push({
+      type: 'error',
+      text: `存在 ${unmatchedMaterials.value.length} 个未匹配的原料`,
+      hint: '请先为这些原料匹配系统数据库中的原料',
+    });
+  }
+  if ((aiStore.parseResult?.confidence ?? 1) < 0.6) {
+    reasons.push({
+      type: 'warning',
+      text: 'AI 解析可信度较低',
+      hint: '建议人工核对解析结果的准确性',
+    });
+  }
+  return reasons;
 });
 
 const formData = reactive<any>({
@@ -1322,11 +1500,6 @@ const addMaterial = () => {
 
 const removeMaterial = (index: number) => {
   formData.materials.splice(index, 1);
-};
-
-const clearMaterials = () => {
-  if (formData.materials.length === 0) return;
-  formData.materials.splice(0);
 };
 
 const handleMaterialChange = (index: number) => {
@@ -1617,6 +1790,10 @@ const handleParse = async () => {
   await aiStore.parseFormula(selectedFile.value);
 };
 
+const handleAbortParse = () => {
+  aiStore.abortParseFormula();
+};
+
 // 下载Excel模板
 const downloadingTemplate = ref(false);
 const downloadTemplate = async () => {
@@ -1797,7 +1974,8 @@ onMounted(async () => {
   await Promise.all([
     salesmanStore.fetchAllForSelect(),
     materialStore.fetchAllForSelect(),
-    aiStore.fetchModels()
+    aiStore.fetchModels(),
+    fetchFormulaTemplates(),
   ]);
 
   if (!aiStore.selectedModel && aiStore.models.length > 0) {
@@ -3020,6 +3198,29 @@ onMounted(async () => {
         }
       }
 
+      .template-selector {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        margin-bottom: 16px;
+        padding: 10px 14px;
+        background: rgba(99, 102, 241, 0.04);
+        border: 1px solid rgba(99, 102, 241, 0.12);
+        border-radius: 12px;
+
+        .template-selector-label {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 13px;
+          font-weight: 600;
+          color: #6366f1;
+          white-space: nowrap;
+          flex-shrink: 0;
+          margin-top: 5px;
+        }
+      }
+
       // 上传区域
       .upload-area {
         .upload-zone {
@@ -3202,6 +3403,8 @@ onMounted(async () => {
           justify-content: space-between;
           align-items: center;
           margin-bottom: 12px;
+          flex-wrap: wrap;
+          gap: 8px;
 
           .progress-file-info {
             display: flex;
@@ -3209,37 +3412,66 @@ onMounted(async () => {
             gap: 8px;
             min-width: 0;
 
-            .t-icon {
-              color: #64748b;
-              flex-shrink: 0;
-            }
-
-            .progress-filename {
+            .progress-file-name {
               font-size: 12px;
               font-weight: 600;
               color: #334155;
               overflow: hidden;
               text-overflow: ellipsis;
               white-space: nowrap;
+              max-width: 200px;
             }
 
-            .progress-model {
-              font-size: 10px;
-              padding: 2px 6px;
-              background: rgba(16, 185, 129, 0.1);
-              color: $emerald-600;
-              border-radius: 6px;
+            .progress-file-size {
+              font-size: 11px;
+              color: #94a3b8;
               flex-shrink: 0;
             }
           }
 
+          .progress-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+          }
+
           .progress-percent {
+            font-size: 12px;
+            font-weight: 600;
+            color: $emerald-600;
+            flex-shrink: 0;
+          }
+
+          .progress-timer {
             font-size: 12px;
             font-family: monospace;
             font-weight: 700;
-            color: $emerald-500;
-            flex-shrink: 0;
-            margin-left: 12px;
+            color: #64748b;
+            background: #f1f5f9;
+            padding: 2px 6px;
+            border-radius: 6px;
+            letter-spacing: 0.5px;
+          }
+
+          .abort-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            border: 1px solid #fca5a5;
+            border-radius: 8px;
+            background: #fff;
+            color: #ef4444;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+
+            &:hover {
+              background: #fef2f2;
+              border-color: #ef4444;
+            }
           }
         }
 
@@ -3284,11 +3516,6 @@ onMounted(async () => {
           border-radius: 8px;
           color: #6366f1;
           font-size: 11px;
-
-          .t-icon {
-            flex-shrink: 0;
-            opacity: 0.7;
-          }
 
           .model-name {
             font-weight: 700;
@@ -3803,6 +4030,81 @@ onMounted(async () => {
             }
           }
 
+      .submit-block-reasons {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 12px;
+
+        .block-reason-item {
+          padding: 10px 14px;
+          border-radius: 10px;
+          font-size: 13px;
+
+          &--error {
+            background: #FEF2F2;
+            border: 1px solid #FECACA;
+
+            .block-reason-header {
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              margin-bottom: 4px;
+            }
+
+            .block-reason-dot {
+              width: 8px;
+              height: 8px;
+              border-radius: 50%;
+              background: #EF4444;
+              flex-shrink: 0;
+            }
+
+            .block-reason-text {
+              font-weight: 600;
+              color: #DC2626;
+            }
+
+            .block-reason-hint {
+              font-size: 12px;
+              color: #F87171;
+              margin: 0 0 0 16px;
+            }
+          }
+
+          &--warning {
+            background: #FFFBEB;
+            border: 1px solid #FDE68A;
+
+            .block-reason-header {
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              margin-bottom: 4px;
+            }
+
+            .block-reason-dot {
+              width: 8px;
+              height: 8px;
+              border-radius: 50%;
+              background: #F59E0B;
+              flex-shrink: 0;
+            }
+
+            .block-reason-text {
+              font-weight: 600;
+              color: #D97706;
+            }
+
+            .block-reason-hint {
+              font-size: 12px;
+              color: #FBBF24;
+              margin: 0 0 0 16px;
+            }
+          }
+        }
+      }
+
           .result-actions {
             .backfill-btn {
               margin-bottom: 12px;
@@ -3881,7 +4183,7 @@ onMounted(async () => {
 
     .quote-mat-header {
       display: grid;
-      grid-template-columns: 1fr 70px 145px 85px;
+      grid-template-columns: 1fr 70px 165px 85px;
       gap: 8px;
       font-size: 11px;
       font-weight: 700;
@@ -3891,11 +4193,15 @@ onMounted(async () => {
       padding-bottom: 6px;
       border-bottom: 1px solid #e2e8f0;
       margin-bottom: 4px;
+
+      .qm-price {
+        text-align: center;
+      }
     }
 
     .quote-mat-row {
       display: grid;
-      grid-template-columns: 1fr 70px 145px 85px;
+      grid-template-columns: 1fr 70px 165px 85px;
       gap: 8px;
       align-items: center;
       padding: 5px 0;
@@ -4664,6 +4970,16 @@ onMounted(async () => {
 
 <style lang="scss">
 @use '@/assets/styles/variables.scss' as *;
+
+.unified-materials-section {
+  .section-header {
+    .switch-label {
+      margin-left: 8px;
+      font-size: 13px;
+      color: #666;
+    }
+  }
+}
 
 .reparse-dropdown-popup {
   min-width: 160px !important;
