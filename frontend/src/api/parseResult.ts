@@ -67,6 +67,9 @@ export const parseResultApi = {
     cleanupThresholdPercent?: number;
     cleanupBatchPercent?: number;
     maxFileSizeBytes?: number;
+    fileRetentionDays?: number;
+    fileStorageLimitBytes?: number;
+    fileStorageAlertPercent?: number;
   }) {
     return http.put<any, any>('/ai/parse-results/config', config);
   },

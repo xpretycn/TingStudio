@@ -528,7 +528,15 @@ export async function updateParseResultConfig(req: Request, res: Response) {
       });
     }
 
-    const { storageLimit, cleanupThresholdPercent, cleanupBatchPercent, maxFileSizeBytes } = req.body;
+    const {
+      storageLimit,
+      cleanupThresholdPercent,
+      cleanupBatchPercent,
+      maxFileSizeBytes,
+      fileRetentionDays,
+      fileStorageLimitBytes,
+      fileStorageAlertPercent,
+    } = req.body;
     const now = new Date().toISOString();
 
     const updates: Array<{ key: string; value: any }> = [];
@@ -588,6 +596,48 @@ export async function updateParseResultConfig(req: Request, res: Response) {
         });
       }
       updates.push({ key: 'max_file_size_bytes', value: maxFileSizeBytes });
+    }
+
+    if (fileRetentionDays !== undefined) {
+      if (typeof fileRetentionDays !== 'number' || fileRetentionDays < 7 || fileRetentionDays > 365) {
+        return res.status(400).json({
+          success: false,
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: '原文件保留天数应在 7-365 之间',
+            timestamp: now
+          }
+        });
+      }
+      updates.push({ key: 'file_retention_days', value: fileRetentionDays });
+    }
+
+    if (fileStorageLimitBytes !== undefined) {
+      if (typeof fileStorageLimitBytes !== 'number' || fileStorageLimitBytes < 1073741824 || fileStorageLimitBytes > 107374182400) {
+        return res.status(400).json({
+          success: false,
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: '文件存储空间上限应在 1GB-100GB 之间',
+            timestamp: now
+          }
+        });
+      }
+      updates.push({ key: 'file_storage_limit_bytes', value: fileStorageLimitBytes });
+    }
+
+    if (fileStorageAlertPercent !== undefined) {
+      if (typeof fileStorageAlertPercent !== 'number' || fileStorageAlertPercent < 50 || fileStorageAlertPercent > 99) {
+        return res.status(400).json({
+          success: false,
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: '磁盘使用率告警阈值应在 50%-99% 之间',
+            timestamp: now
+          }
+        });
+      }
+      updates.push({ key: 'file_storage_alert_percent', value: fileStorageAlertPercent });
     }
 
     if (updates.length === 0) {

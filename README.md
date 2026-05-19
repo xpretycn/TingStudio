@@ -1,10 +1,10 @@
-# TingStudio v2.10.0
+# TingStudio v2.32.0
 
 食品配方工作数据管理平台 — 前后端分离架构
 
 ## 项目简介
 
-TingStudio 是一个专业的食品配方工作数据管理平台，面向食品配方行业（中草药功效配方），提供配方管理、原料管理、业务员管理、销量分析、报告中心、文件管理、营养成分分析、导出分享等完整功能链路。采用 **Vue 3 + Express + SQLite** 前后端分离架构，支持 JWT 认证、RESTful API、配方版本控制、营养合规检查、AI 智能解析、AI Agent 对话助手、悬浮助手等企业级特性。
+TingStudio 是一个专业的食品配方工作数据管理平台，面向食品配方行业（中草药功效配方），提供配方管理、原料管理、业务员管理、销量分析、报告中心、文件管理、营养成分分析、导出分享、配比阈值配置等完整功能链路。采用 **Vue 3 + Express + SQLite** 前后端分离架构，支持 JWT 认证、RESTful API、配方版本控制、营养合规检查、AI 智能解析、AI Agent 对话助手、悬浮助手等企业级特性。
 
 ---
 
@@ -212,7 +212,7 @@ TingStudio/
 
 | 功能模块 | 说明 |
 |----------|------|
-| **📋 配方管理** | 配方 CRUD、原料配比表、含量比校验、版本控制、升版管理、定价系统 |
+| **📋 配方管理** | 配方 CRUD、原料配比表、含量比校验（三级预警阈值配置）、版本控制、升版管理、定价系统 |
 | **🧪 原料管理** | 原料 CRUD、材质分类（药材/辅料）、营养成分管理、单价管理 |
 | **👤 业务员管理** | 业务员 CRUD、状态管理、区域/部门分群 |
 | **📊 销量分析** | 多维聚合分析（日月/业务员/区域）、趋势图、TOP 排行 |
@@ -226,6 +226,7 @@ TingStudio/
 | **📝 智能填单** | AI 解析配方/原料文件（Excel/PDF/图片），带模型选择器（Logo + 能力标签），含量比自动校验 |
 | **📜 解析历史** | 解析结果管理（统计卡片/搜索/筛选/分页）、缓存命中（文件MD5去重）、关联配方/原料、存储监控（上限/清理阈值/降级熔断） |
 | **📋 解析模板** | AI 解析模板配置（类别/模型/Prompt/字段映射）、预设模板、CRUD 管理 |
+| **⚖️ 配比阈值** | 含量比校验三级预警阈值配置（正常/预警/高级预警）、实时验证、变更追踪 |
 | **🛠️ 模型管理** | AI 模型配置、功能模块分配（模型应用）、用量监控、告警/健康/降级、悬浮助手配置 |
 | **🔐 权限系统** | JWT 认证、角色控制（admin/user）、数据隔离 |
 | **📁 版本管理** | 版本快照、版本对比（含量/报价双模式）、变更追踪 |
@@ -271,7 +272,7 @@ cd frontend && npm run test:coverage
 
 ## 🗄️ 数据库概览
 
-SQLite (better-sqlite3) + WAL 模式，共 **36 张表**：
+SQLite (better-sqlite3) + WAL 模式，共 **37 张表**：
 
 | 分类 | 表名 | 说明 |
 |------|------|------|
@@ -281,6 +282,7 @@ SQLite (better-sqlite3) + WAL 模式，共 **36 张表**：
 | **文件管理** | uploaded_files, file_audit_log, file_relations | 文件/审计/关联 |
 | **导出系统** | export_templates, export_jobs | 模板/任务 |
 | **解析系统** | parse_results, parse_result_configs, parse_templates | 解析结果/配置/模板 |
+| **阈值配置** | ratio_threshold_configs | 含量比校验阈值配置 |
 | **AI 模型** | ai_models, ai_usage_logs, ai_alert_configs, ai_alert_records, ai_health_records, ai_fallback_configs, model_applications | 模型/用量/告警/健康/降级/应用 |
 | **Agent 系统** | agent_sessions, agent_messages, agent_pending_confirmations, agent_pending_forms, agent_role_config, agent_float_config, agent_provider_health, agent_session_cleanup_log | 会话/消息/确认/表单/身份/浮窗/健康/清理 |
 | **其他** | search_export_cache | 缓存 |
@@ -333,10 +335,10 @@ npx tsx src/scripts/restoreDatabase.ts    # 恢复数据库
 
 | 文件 | 说明 |
 |------|------|
-| [backend/src/controllers/ratioThresholdController.ts](file:///d:/ProgramData/workspace-codeby/ting-studio/backend/src/controllers/ratioThresholdController.ts) | 阈值配置控制器 |
-| [backend/src/routes/ratioThresholds.ts](file:///d:/ProgramData/workspace-codeby/ting-studio/backend/src/routes/ratioThresholds.ts) | 阈值配置路由 |
-| [frontend/src/api/ratioThreshold.ts](file:///d:/ProgramData/workspace-codeby/ting-studio/frontend/src/api/ratioThreshold.ts) | 阈值配置 API 客户端 |
-| [backend/src/scripts/migrations/createRatioThresholdConfigs.ts](file:///d:/ProgramData/workspace-codeby/ting-studio/backend/src/scripts/migrations/createRatioThresholdConfigs.ts) | 阈值配置表迁移脚本 |
+| backend/src/controllers/ratioThresholdController.ts | 阈值配置控制器 |
+| backend/src/routes/ratioThresholds.ts | 阈值配置路由 |
+| frontend/src/api/ratioThreshold.ts | 阈值配置 API 客户端 |
+| backend/src/scripts/migrations/createRatioThresholdConfigs.ts | 阈值配置表迁移脚本 |
 
 **其他更新**：
 

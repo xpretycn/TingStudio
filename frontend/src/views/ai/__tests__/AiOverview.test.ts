@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { mount } from "@vue/test-utils";
 import { createPinia, setActivePinia } from "pinia";
-import AiAssistant from "@/views/ai/AiAssistant.vue";
+import AiOverview from "@/views/ai/AiOverview.vue";
 
 const push = vi.fn();
 
@@ -51,11 +51,11 @@ vi.mock("@/components/Skeleton/PageSkeleton.vue", () => ({
   default: { template: '<div class="page-skeleton">Loading...</div>' },
 }));
 
-describe("AiAssistant 组件", () => {
+describe("AiOverview 组件", () => {
   let wrapper: ReturnType<typeof mount>;
 
   function createWrapper() {
-    return mount(AiAssistant, {
+    return mount(AiOverview, {
       global: {
         stubs: {
           "t-card": { template: "<div><slot /></div>" },

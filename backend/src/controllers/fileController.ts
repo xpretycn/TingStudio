@@ -554,7 +554,8 @@ export async function getStats(req: AuthRequest, res: Response) {
         COUNT(*) as total,
         COALESCE(SUM(CASE WHEN status = 'parsed' THEN 1 ELSE 0 END), 0) as parsed,
         COALESCE(SUM(CASE WHEN status = 'linked' THEN 1 ELSE 0 END), 0) as linked,
-        COALESCE(SUM(CASE WHEN status IN ('uploaded', 'orphaned') THEN 1 ELSE 0 END), 0) as pending
+        COALESCE(SUM(CASE WHEN status IN ('uploaded', 'orphaned') THEN 1 ELSE 0 END), 0) as pending,
+        COALESCE(SUM(file_size), 0) as totalSize
        FROM uploaded_files`,
     );
 
@@ -564,6 +565,7 @@ export async function getStats(req: AuthRequest, res: Response) {
         parsed: statsResult.parsed,
         linked: statsResult.linked,
         pending: statsResult.pending,
+        totalSize: statsResult.totalSize,
       }),
     );
   } catch (error: any) {

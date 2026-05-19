@@ -89,19 +89,19 @@
         <!-- 内容区域 -->
         <div class="ai-content">
           <div v-show="activeTab === 'smart-form'" class="tab-panel">
-            <SmartFormTab @activity-add="addActivity" />
+            <FormulaParseTab @activity-add="addActivity" />
           </div>
 
           <div v-show="activeTab === 'smart-import'" class="tab-panel">
-            <SmartImportTab @activity-add="addActivity" />
+            <MaterialImportTab @activity-add="addActivity" />
           </div>
 
           <div v-show="activeTab === 'smart-search'" class="tab-panel">
-            <SmartSearchTab />
+            <DataSearchTab />
           </div>
 
           <div v-show="activeTab === 'smart-history'" class="tab-panel">
-            <SmartHistoryTab />
+            <ParseHistoryTab />
           </div>
         </div>
       </t-card>
@@ -116,10 +116,10 @@ import { useAiStore } from '@/stores/ai';
 import { MessagePlugin } from 'tdesign-vue-next';
 import { modelApi } from '@/api/model';
 import PageSkeleton from '@/components/Skeleton/PageSkeleton.vue';
-import SmartFormTab from './tabs/SmartFormTab.vue';
-import SmartImportTab from './tabs/SmartImportTab.vue';
-import SmartSearchTab from './tabs/SmartSearchTab.vue';
-import SmartHistoryTab from './tabs/SmartHistoryTab.vue';
+import FormulaParseTab from './tabs/FormulaParseTab.vue';
+import MaterialImportTab from './tabs/MaterialImportTab.vue';
+import DataSearchTab from './tabs/DataSearchTab.vue';
+import ParseHistoryTab from './tabs/ParseHistoryTab.vue';
 
 interface ModelVersion {
   value: string;

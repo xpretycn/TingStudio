@@ -558,7 +558,7 @@ const toggleSelect = (id: string, checked: boolean) => {
 };
 
 const goToConfig = () => {
-  router.push('/ai/parse-result-config');
+  router.push('/system/config');
 };
 
 const copyResult = async () => {

@@ -74,6 +74,7 @@ export interface FileStats {
   parsed: number
   linked: number
   pending: number
+  totalSize: number
 }
 
 export const fileApi = {

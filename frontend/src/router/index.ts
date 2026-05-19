@@ -161,13 +161,13 @@ const router = createRouter({
         {
           path: "versions/formula/:formulaId",
           name: "VersionList",
-          component: () => import(/* webpackPrefetch: true */ "@/views/versions/VersionList.vue"),
+          component: () => import(/* webpackPrefetch: true */ "@/views/formulas/versions/VersionList.vue"),
           meta: { title: "版本管理", hideHeader: true },
         },
         {
           path: "versions/compare/:formulaId",
           name: "VersionCompare",
-          component: () => import(/* webpackPrefetch: true */ "@/views/versions/VersionCompare.vue"),
+          component: () => import(/* webpackPrefetch: true */ "@/views/formulas/versions/VersionCompare.vue"),
           meta: { title: "版本对比", hideHeader: true },
         },
         {
@@ -203,13 +203,13 @@ const router = createRouter({
         {
           path: "tools",
           name: "Tools",
-          component: () => import("@/views/Tools.vue"),
+          component: () => import("@/views/system/Toolbox.vue"),
           meta: { title: "工具箱" },
         },
         {
           path: "ai-assistant",
           name: "AiAssistant",
-          component: () => import("@/views/ai/AIDashboard.vue"),
+          component: () => import("@/views/ai/AiWorkspace.vue"),
           meta: { title: "AI 助手工作台", hideHeader: true, fullBleed: true },
         },
         {
@@ -219,15 +219,15 @@ const router = createRouter({
           meta: { title: "智能工具" },
         },
         {
-          path: "ai/parse-result-config",
-          name: "ParseResultConfig",
-          component: () => import("@/views/ai/ParseResultConfig.vue"),
+          path: "system/config",
+          name: "SystemConfig",
+          component: () => import("@/views/system/SystemConfig.vue"),
           meta: { title: "系统管理", requiresAdmin: true },
         },
         {
           path: "model-management",
           name: "ModelManagement",
-          component: () => import("@/views/models/ModelManagement.vue"),
+          component: () => import("@/views/system/ModelManagement.vue"),
           meta: { title: "模型管理", requiresAdmin: true },
         },
         {

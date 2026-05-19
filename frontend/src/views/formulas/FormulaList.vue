@@ -1,6 +1,6 @@
 <template>
   <div class="formula-list" :aria-busy="!initialized" data-testid="formula-list">
-    <!-- 数据看板 -->
+    <!-- 顶部：数据看板 -->
     <section class="dashboard-grid" data-testid="formula-dashboard">
       <div class="stat-card" v-for="(card, idx) in dashboardCards" :key="card.label"
         :style="{ animationDelay: `${(idx + 1) * 0.1}s` }">
@@ -18,7 +18,9 @@
       </div>
     </section>
 
-    <Transition name="content-fade" mode="out-in">
+    <!-- 主区域：配方列表 -->
+    <main class="main-area">
+      <Transition name="content-fade" mode="out-in">
       <PageSkeleton v-if="!initialized" type="table" :rows="5" :columns="8" />
       <t-card v-else class="content-card" bordered>
         <!-- 工具栏：参照数据中心列表样式 -->
@@ -181,12 +183,12 @@
             </div>
           </template>
 
+          <template #versionNumber="{ row }">
+            <span class="version-number-cell">{{ getFormulaStatus(row).version }}</span>
+          </template>
+
           <template #formulaStatus="{ row }">
             <div class="version-status">
-              <t-tag :theme="getFormulaStatus(row).theme" :variant="getFormulaStatus(row).variant" size="small"
-                class="version-tag">
-                {{ getFormulaStatus(row).version }}
-              </t-tag>
               <span class="status-text" :style="{ color: getFormulaStatus(row).color }">
                 <t-icon :name="getFormulaStatus(row).icon" />
                 {{ getFormulaStatus(row).label }}
@@ -212,9 +214,9 @@
 
           <template #salesQuantity="{ row }">
             <div class="sales-quantity-cell" @click.stop="openSalesDialog(row)">
-              <span v-if="getSalesQuantity(row) > 0" class="sales-qty-value">{{ getSalesQuantity(row).toLocaleString()
+              <span v-if="getSalesQuantity(row) > 0" class="sales-qty-value sales-qty-value--clickable">{{ getSalesQuantity(row).toLocaleString()
                 }}</span>
-              <span v-else class="sales-qty-empty">--</span>
+              <span v-else class="sales-qty-empty sales-qty-empty--clickable">--</span>
             </div>
           </template>
 
@@ -228,6 +230,13 @@
                 <span class="price-warn-badge" @click.stop>
                   <t-icon name="error-circle" size="12px" />
                   价格缺失
+                </span>
+              </t-tooltip>
+              <t-tooltip v-else-if="getRowCostSubtotal(row) === 0"
+                content="原料单价未录入，点击配方进入详情页补充价格" theme="primary">
+                <span class="price-hint-badge" @click.stop="handleRowClick({ row })">
+                  <t-icon name="edit-1" size="12px" />
+                  去补录
                 </span>
               </t-tooltip>
             </div>
@@ -264,25 +273,11 @@
           </template>
 
           <template #operation="{ row }">
-            <div class="action-buttons" role="group" aria-label="配方操作">
-              <button class="action-btn version-btn" @click.stop="handleVersion(row)" title="版本管理"
-                :aria-label="`查看配方${row.name}的版本记录`">
-                <t-icon name="history" />
+            <t-dropdown :options="operationOptions" @click="(item: any) => handleOperationClick(item, row)">
+              <button class="action-dropdown-btn" @click.stop title="操作" :aria-label="`操作配方${row.name}`">
+                <t-icon name="more" />
               </button>
-              <button class="action-btn edit-btn" @click.stop="handleEdit(row)" title="编辑"
-                :aria-label="`编辑配方${row.name}`">
-                <t-icon name="edit-1" />
-              </button>
-              <button class="action-btn sales-btn" @click.stop="openSalesDialog(row)" title="录入销量"
-                :aria-label="`录入配方${row.name}的销量`">
-                <t-icon name="chart-bar" />
-              </button>
-              <t-popconfirm content="确定要删除该配方吗？" @confirm="handleDelete(row)">
-                <button class="action-btn delete-btn" @click.stop title="删除" :aria-label="`删除配方${row.name}`">
-                  <t-icon name="delete" />
-                </button>
-              </t-popconfirm>
-            </div>
+            </t-dropdown>
           </template>
         </t-table>
 
@@ -313,8 +308,9 @@
         </div>
       </t-card>
     </Transition>
+    </main>
 
-    <!-- 底部快捷动态 - 参照 index.html 第945行 -->
+    <!-- 底部：近期动态 + 配方师小助手 -->
     <section class="activity-section">
       <!-- 左：近期系统动态 -->
       <div class="activity-card activity-card--timeline">
@@ -389,7 +385,7 @@
 
         <div class="todo-list" v-if="paginatedTodoItems.length > 0">
           <TransitionGroup name="todo-list" tag="div" class="todo-list__inner">
-            <div v-for="(item, idx) in paginatedTodoItems" :key="item.id" class="todo-item"
+            <div v-for="item in paginatedTodoItems" :key="item.id" class="todo-item"
               :class="'todo-item--' + item.priority">
               <div class="todo-item__icon" :class="'todo-item__icon--' + item.type">
                 <svg v-if="item.type === 'warning'" width="16" height="16" viewBox="0 0 24 24" fill="none"
@@ -587,6 +583,10 @@ const sortKey = ref<string>('');
 const sortOrder = ref<'asc' | 'desc' | ''>('');
 const sortedFormulas = ref<Formula[]>([]);
 
+// 响应式窗口宽度
+const windowWidth = ref(typeof window !== 'undefined' ? window.innerWidth : 1920);
+let resizeHandler: (() => void) | null = null;
+
 const onExpandChange = (keys: Array<string | number>) => {
   expandedRowKeys.value = keys;
 };
@@ -697,7 +697,7 @@ const handleBatchDelete = async () => {
     MessagePlugin.error('删除失败');
   }
   clearSelection();
-  await Promise.all([formulaStore.fetchFormulas(), formulaStore.fetchAllForSelect()]);
+  await formulaStore.fetchFormulas();
 };
 
 // 批量归档
@@ -810,18 +810,41 @@ const getFormulaStatus = (row: any) => {
   };
 };
 
-const columns = computed(() => [
-  { colKey: 'row-select', type: 'multiple', width: 50, resizable: false },
-  { colKey: 'name', title: sortTitle('配方信息', 'name'), width: 200 },
-  { colKey: 'formulaStatus', title: sortTitle('版本状态', 'formulaStatus'), width: 170, align: 'center' },
-  { colKey: 'materialCount', title: sortTitle('原料数量', 'materialCount'), width: 120, align: 'center' },
-  { colKey: 'salesmanName', title: '负责人', width: 150, align: 'left' },
-  { colKey: 'salesQuantity', title: '本月销量(件)', width: 120, align: 'center' },
-  { colKey: 'costSubtotal', title: sortTitle('成本小计(元)', 'costSubtotal'), width: 140, align: 'center' },
-  { colKey: 'totalPrice', title: sortTitle('报价(元)', 'totalPrice'), width: 135, align: 'center' },
-  { colKey: 'createdAt', title: sortTitle('更新时间', 'createdAt'), width: 165 },
-  { colKey: 'operation', title: '操作', width: 135, align: 'center' }
-]);
+const columns = computed(() => {
+  const screenWidth = windowWidth.value;
+
+  const baseColumns = [
+    { colKey: 'row-select', type: 'multiple', width: 48, resizable: false },
+    { colKey: 'name', title: sortTitle('配方信息', 'name'), width: 200 },
+    { colKey: 'versionNumber', title: '版本号', width: 90, align: 'center' },
+    { colKey: 'formulaStatus', title: '版本状态', width: 100, align: 'center' },
+    { colKey: 'materialCount', title: '原料数量', width: 100, align: 'center' },
+    { colKey: 'costSubtotal', title: sortTitle('成本小计(元)', 'costSubtotal'), width: 130, align: 'center' },
+    { colKey: 'totalPrice', title: sortTitle('报价(元)', 'totalPrice'), width: 120, align: 'center' },
+  ];
+
+  if (screenWidth >= 1440) {
+    return [
+      ...baseColumns,
+      { colKey: 'salesmanName', title: '负责人', width: 120, align: 'center' },
+      { colKey: 'salesQuantity', title: '本月销量', width: 100, align: 'center' },
+      { colKey: 'createdAt', title: sortTitle('更新时间', 'createdAt'), width: 150 },
+      { colKey: 'operation', title: '操作', width: 100, align: 'center' },
+    ];
+  } else if (screenWidth >= 1280) {
+    return [
+      ...baseColumns,
+      { colKey: 'salesmanName', title: '负责人', width: 110, align: 'center' },
+      { colKey: 'createdAt', title: sortTitle('更新时间', 'createdAt'), width: 140 },
+      { colKey: 'operation', title: '操作', width: 90, align: 'center' },
+    ];
+  } else {
+    return [
+      ...baseColumns,
+      { colKey: 'operation', title: '操作', width: 80, align: 'center' },
+    ];
+  }
+});
 
 const pagination = computed(() => ({
   current: formulaStore.currentPage,
@@ -948,11 +971,11 @@ const allActivityItems = computed<ActivityItem[]>(() => {
   const salesList = salesStore.sales || [];
   if (salesList.length > 0) {
     const sortedSales = [...salesList].sort((a, b) =>
-      new Date(b.createdAt || b.saleDate).getTime() - new Date(a.createdAt || a.saleDate).getTime()
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );
     const recentSales = sortedSales.slice(0, 8);
     for (const s of recentSales) {
-      const saleTime = s.createdAt || s.saleDate;
+      const saleTime = s.createdAt;
       if (!saleTime) continue;
       const timeAgo = formatTimeAgo(saleTime);
       const formulaName = s.formulaName || '未知配方';
@@ -991,13 +1014,6 @@ const activityList = computed<ActivityItem[]>(() => {
 
 const activityPrev = () => { if (activityPage.value > 1) activityPage.value--; };
 const activityNext = () => { if (activityPage.value < activityTotalPages.value) activityPage.value++; };
-
-const assistantMessage = computed(() => {
-  const total = formulaStore.total;
-  if (total === 0) return '您还没有创建任何配方，点击下方按钮开始您的第一个配方吧！';
-  if (total < 5) return `当前共有 ${total} 个配方在库，建议继续丰富配方库内容。`;
-  return `当前共有 ${total} 个配方在库，建议优先处理近期更新的配方。`;
-});
 
 interface PendingItem {
   id: string;
@@ -1195,9 +1211,18 @@ onMounted(async () => {
     formulaStore.fetchFormulas();
     materialStore.fetchMaterials();
   }, 5 * 60 * 1000);
+
+  // 窗口 resize 监听
+  resizeHandler = () => {
+    windowWidth.value = window.innerWidth;
+  };
+  window.addEventListener('resize', resizeHandler);
 });
 
 onUnmounted(() => {
+  if (resizeHandler) {
+    window.removeEventListener('resize', resizeHandler);
+  }
   if (pendingRefreshTimer) {
     clearInterval(pendingRefreshTimer);
     pendingRefreshTimer = null;
@@ -1244,7 +1269,7 @@ const handleRealTimeSearch = () => {
 };
 
 // 监听 searchKeyword 变化后触发搜索（仅在用户主动输入时触发）
-watch(searchKeyword, (newVal) => {
+watch(searchKeyword, () => {
   if (isRestoringFromRoute) {
     isRestoringFromRoute = false;
     return;
@@ -1292,6 +1317,50 @@ const handleDelete = async (row: Formula) => {
   } catch {
     MessagePlugin.error('删除失败');
   }
+};
+
+const operationOptions = [
+  {
+    content: '版本管理',
+    value: 'version',
+    prefixIcon: () => h('svg', { width: 14, height: 14, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': 2, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, [
+      h('polyline', { points: '1 4 1 10 7 10' }),
+      h('path', { d: 'M3.51 15a9 9 0 1 0 2.13-9.36L1 10' }),
+    ]),
+  },
+  {
+    content: '编辑',
+    value: 'edit',
+    prefixIcon: () => h('svg', { width: 14, height: 14, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': 2, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, [
+      h('path', { d: 'M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7' }),
+      h('path', { d: 'M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z' }),
+    ]),
+  },
+  {
+    content: '录入销量',
+    value: 'sales',
+    prefixIcon: () => h('svg', { width: 14, height: 14, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': 2, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, [
+      h('line', { x1: '12', y1: '20', x2: '12', y2: '10' }),
+      h('line', { x1: '18', y1: '20', x2: '18', y2: '4' }),
+      h('line', { x1: '6', y1: '20', x2: '6', y2: '16' }),
+    ]),
+  },
+  {
+    content: '删除',
+    value: 'delete',
+    theme: 'error',
+    prefixIcon: () => h('svg', { width: 14, height: 14, viewBox: '0 0 24 24', fill: 'none', stroke: '#ef4444', 'stroke-width': 2, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, [
+      h('polyline', { points: '3 6 5 6 21 6' }),
+      h('path', { d: 'M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2' }),
+    ]),
+  },
+];
+
+const handleOperationClick = (item: any, row: Formula) => {
+  if (item.value === 'version') handleVersion(row);
+  else if (item.value === 'edit') handleEdit(row);
+  else if (item.value === 'sales') openSalesDialog(row);
+  else if (item.value === 'delete') handleDelete(row);
 };
 
 // ─── 销量录入弹窗 ───
@@ -1351,69 +1420,90 @@ const getSalesQuantity = (row: any): number => {
 @use '@/assets/styles/variables.scss' as *;
 
 .formula-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  .main-area {
+    min-width: 0;
+    overflow: hidden;
+    margin-bottom: 0;
+  }
 
   // ─── 数据看板 ───
   .dashboard-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 24px;
-    margin-bottom: 30px;
+    gap: 16px;
+    margin-bottom: 0;
 
     .stat-card {
       background: #fff;
-      padding: 24px;
-      border-radius: 24px;
+      padding: 10px 16px;
+      border-radius: 12px;
       border: 1px solid #fff;
-      box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
       transition: all $transition-slow;
       animation: dashboard-fade-in 0.5s ease forwards;
       opacity: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0;
 
       &:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
         border-color: transparent;
       }
 
       .stat-card-top {
         display: flex;
+        align-items: center;
         justify-content: space-between;
-        align-items: flex-start;
-        margin-bottom: 16px;
+        width: 100%;
+        margin-bottom: 4px;
       }
 
       .stat-icon {
-        width: 48px;
-        height: 48px;
-        border-radius: 16px;
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
         display: flex;
         align-items: center;
         justify-content: center;
         flex-shrink: 0;
+
+        svg {
+          width: 16px;
+          height: 16px;
+        }
       }
 
       .stat-badge {
-        font-size: 12px;
+        font-size: 10px;
         font-weight: 700;
-        padding: 2px 8px;
-        border-radius: 8px;
+        padding: 1px 6px;
+        border-radius: 4px;
         white-space: nowrap;
       }
 
       .stat-label {
-        font-size: 14px;
+        font-size: 11px;
         color: #94A3B8;
-        margin-bottom: 4px;
+        margin-bottom: 1px;
+        width: 100%;
       }
 
       .stat-value {
-        font-size: 24px;
+        font-size: 18px;
         font-weight: 700;
         color: #0F172A;
         line-height: 1.2;
+        width: 100%;
 
         .stat-unit {
-          font-size: 14px;
+          font-size: 11px;
           font-weight: 400;
           color: #94A3B8;
         }
@@ -1906,7 +1996,7 @@ const getSalesQuantity = (row: any): number => {
 
 // 分页样式 - 完全参照 index.html 第928行分页区域
 .table-pagination {
-  padding: 24px;
+  padding: 16px 24px 8px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -1983,24 +2073,52 @@ const getSalesQuantity = (row: any): number => {
 
 // 底部快捷动态区域 - 参照 index.html 第945行
 .activity-section {
-  margin-top: 30px;
-  padding-bottom: 32px; // pb-8 - 对应 index.html main 容器的 p-8 底部间距
+  margin-top: 16px;
+  padding-bottom: 24px;
   display: grid;
   grid-template-columns: 1fr;
-  gap: 32px; // gap-8(32px)
+  gap: 16px;
 
   @media (min-width: 1024px) {
-    grid-template-columns: 2fr 1fr; // lg:grid-cols-3 → 左2右1
+    grid-template-columns: 2fr 1fr;
+  }
+}
+
+// 可折叠活动区域
+.activity-collapse {
+  border-radius: 24px;
+  overflow: hidden;
+  border: 1px solid #f8fafc;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
+
+  :deep(.t-collapse-panel) {
+    border-bottom: none;
+  }
+
+  :deep(.t-collapse-panel__header) {
+    background: #fff;
+    padding: 20px 24px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #1e293b;
+
+    &:hover {
+      background: #fafafa;
+    }
+  }
+
+  :deep(.t-collapse-panel__body) {
+    padding: 0;
   }
 }
 
 // 动态卡片基础样式
 .activity-card {
   background-color: #fff;
-  border-radius: 24px; // rounded-3xl
-  padding: 32px; // p-8
-  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04); // custom-shadow
-  border: 1px solid #f8fafc; // border-slate-50
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
+  border: 1px solid #f8fafc;
 
   // 右侧小助手卡片 - 白色背景
   &--assistant {
@@ -2018,7 +2136,7 @@ const getSalesQuantity = (row: any): number => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px; // mb-6(24px)
+  margin-bottom: 16px;
 }
 
 .activity-title {
@@ -2205,10 +2323,10 @@ const getSalesQuantity = (row: any): number => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin: -32px -32px 16px -32px;
-  padding: 20px 24px;
+  margin: -24px -24px 16px -24px;
+  padding: 16px 20px;
   background: linear-gradient(135deg, #10B981, #059669);
-  border-radius: 24px 24px 0 0;
+  border-radius: 20px 20px 0 0;
 
   .assistant-title {
     display: flex;
@@ -2936,19 +3054,24 @@ const getSalesQuantity = (row: any): number => {
   }
 }
 
+// 版本号列
+.version-number-cell {
+  font-size: 13px;
+  font-weight: 600;
+  color: #475569;
+  font-family: ui-monospace, SFMono-Regular, 'Cascadia Code', monospace;
+  background: #f8fafc;
+  padding: 4px 10px;
+  border-radius: 8px;
+  display: inline-block;
+}
+
 // 版本状态列
 .version-status {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-
-  .version-tag {
-    padding: 4px 10px;
-    font-size: 12px;
-    font-weight: 700;
-    border-radius: 9999px;
-  }
+  gap: 4px;
 
   .status-text {
     display: flex;
@@ -2978,7 +3101,7 @@ const getSalesQuantity = (row: any): number => {
 .salesman-info {
   display: flex;
   align-items: center;
-  justify-content: left;
+  justify-content: center;
   gap: 8px;
 
   .salesman-avatar {
@@ -3018,6 +3141,17 @@ const getSalesQuantity = (row: any): number => {
     font-weight: 700;
     color: #059669;
 
+    &--clickable {
+      text-decoration: underline;
+      text-decoration-color: rgba(5, 150, 105, 0.3);
+      text-underline-offset: 3px;
+      cursor: pointer;
+
+      &:hover {
+        text-decoration-color: #059669;
+      }
+    }
+
     .sales-qty-unit {
       font-size: 12px;
       font-weight: 400;
@@ -3033,6 +3167,20 @@ const getSalesQuantity = (row: any): number => {
     border: 1px dashed #cbd5e1;
     border-radius: 6px;
     transition: all 0.2s;
+
+    &--clickable {
+      text-decoration: underline;
+      text-decoration-color: rgba(148, 163, 184, 0.3);
+      text-underline-offset: 3px;
+      cursor: pointer;
+
+      &:hover {
+        color: #059669;
+        border-color: #059669;
+        background: #ecfdf5;
+        text-decoration-color: #059669;
+      }
+    }
 
     &:hover {
       color: #059669;
@@ -3111,58 +3259,51 @@ const getSalesQuantity = (row: any): number => {
   line-height: 1.5;
 }
 
-// 操作按钮列
-.action-buttons {
-  display: flex;
+// 操作下拉按钮
+.action-dropdown-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  color: #64748b;
+  transition: all 0.2s ease;
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
   justify-content: center;
-  gap: 8px;
 
-  .action-btn {
-    width: 32px;
-    height: 32px;
-    border-radius: 10px;
-    color: #64748b;
-    transition: all 0.2s ease;
-    background: transparent;
-    border: 1px solid transparent;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+  &:hover {
+    background: #f8fafc;
+    border-color: #e2e8f0;
+    color: #334155;
+  }
 
-    &:hover {
-      transform: translateY(-1px);
-      background: #f8fafc;
-      border-color: #e2e8f0;
-    }
+  .t-icon {
+    font-size: 18px;
+  }
+}
 
-    &.version-btn:hover {
-      color: #8b5cf6;
-      background: #f5f3ff;
-      border-color: #ddd6fe;
-    }
+// 价格引导提示
+.price-hint-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #2563eb;
+  background: #eff6ff;
+  padding: 2px 8px;
+  border-radius: 10px;
+  border: 1px solid #bfdbfe;
+  cursor: pointer;
+  white-space: nowrap;
+  line-height: 1.5;
+  transition: all 0.2s;
 
-    &.edit-btn:hover {
-      color: #10b981;
-      background: #ecfdf5;
-      border-color: #a7f3d0;
-    }
-
-    &.sales-btn:hover {
-      color: #f59e0b;
-      background: #fffbeb;
-      border-color: #fde68a;
-    }
-
-    &.delete-btn:hover {
-      color: #ef4444;
-      background: #fef2f2;
-      border-color: #fecaca;
-    }
-
-    .t-icon {
-      font-size: 18px;
-    }
+  &:hover {
+    background: #dbeafe;
+    border-color: #93c5fd;
   }
 }
 

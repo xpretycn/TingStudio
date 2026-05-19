@@ -14,6 +14,9 @@ interface ConfigData {
   cleanupThresholdPercent: number;
   cleanupBatchPercent: number;
   maxFileSizeBytes: number;
+  fileRetentionDays: number;
+  fileStorageLimitBytes: number;
+  fileStorageAlertPercent: number;
 }
 
 interface DegradationInfo {
@@ -60,6 +63,9 @@ const configData = ref<ConfigData>({
   cleanupThresholdPercent: 95,
   cleanupBatchPercent: 5,
   maxFileSizeBytes: 5242880,
+  fileRetentionDays: 90,
+  fileStorageLimitBytes: 10737418240,
+  fileStorageAlertPercent: 80,
 });
 const configForm = ref<ConfigData>({ ...configData.value });
 const isEditing = ref(false);
@@ -178,10 +184,13 @@ async function fetchConfig() {
       cleanupThresholdPercent: Number(res.cleanup_threshold_percent?.value) || 95,
       cleanupBatchPercent: Number(res.cleanup_batch_percent?.value) || 5,
       maxFileSizeBytes: Number(res.max_file_size_bytes?.value) || 5242880,
+      fileRetentionDays: Number(res.file_retention_days?.value) || 90,
+      fileStorageLimitBytes: Number(res.file_storage_limit_bytes?.value) || 10737418240,
+      fileStorageAlertPercent: Number(res.file_storage_alert_percent?.value) || 80,
     };
     configForm.value = { ...configData.value };
   } catch (error: any) {
-    console.error('[ParseResultConfig] 获取配置失败:', error);
+    console.error('[SystemConfig] 获取配置失败:', error);
   }
 }
 
@@ -191,7 +200,7 @@ async function fetchDegradation() {
     degradationInfo.value = res;
     activities.value.push(...generateActivitiesFromDegradation(res));
   } catch (error: any) {
-    console.error('[ParseResultConfig] 获取降级信息失败:', error);
+    console.error('[SystemConfig] 获取降级信息失败:', error);
   }
 }
 
@@ -200,7 +209,7 @@ async function fetchStatistics() {
     const res = await parseResultApi.getStatistics();
     statistics.value = res;
   } catch (error: any) {
-    console.error('[ParseResultConfig] 获取统计失败:', error);
+    console.error('[SystemConfig] 获取统计失败:', error);
   }
 }
 
@@ -210,7 +219,7 @@ async function fetchRatioThresholds() {
     ratioThresholds.value = res;
     ratioForm.value = { ...res };
   } catch (error: any) {
-    console.error('[ParseResultConfig] 获取含量比阈值失败:', error);
+    console.error('[SystemConfig] 获取含量比阈值失败:', error);
   }
 }
 
@@ -315,7 +324,10 @@ const hasConfigChanged = computed(() =>
   configForm.value.storageLimit !== configData.value.storageLimit ||
   configForm.value.cleanupThresholdPercent !== configData.value.cleanupThresholdPercent ||
   configForm.value.cleanupBatchPercent !== configData.value.cleanupBatchPercent ||
-  configForm.value.maxFileSizeBytes !== configData.value.maxFileSizeBytes
+  configForm.value.maxFileSizeBytes !== configData.value.maxFileSizeBytes ||
+  configForm.value.fileRetentionDays !== configData.value.fileRetentionDays ||
+  configForm.value.fileStorageLimitBytes !== configData.value.fileStorageLimitBytes ||
+  configForm.value.fileStorageAlertPercent !== configData.value.fileStorageAlertPercent
 );
 
 function startEdit() {
@@ -337,7 +349,7 @@ async function saveConfig() {
     activities.value.unshift({
       id: 'config-' + Date.now(),
       type: 'config_change',
-      message: `更新存储配置：上限 ${configForm.value.storageLimit} 条，清理阈值 ${configForm.value.cleanupThresholdPercent}%`,
+      message: `更新存储配置：上限 ${configForm.value.storageLimit} 条，清理阈值 ${configForm.value.cleanupThresholdPercent}%，文件保留 ${configForm.value.fileRetentionDays} 天`,
       time: '刚刚',
     });
   } catch (error: any) {
@@ -388,7 +400,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="parse-result-config">
+  <div class="system-config">
     <t-card class="content-card" bordered>
       <div class="data-center-toolbar">
         <div class="toolbar-left-section">
@@ -398,16 +410,8 @@ onMounted(async () => {
           </div>
         </div>
         <div class="toolbar-tabs">
-          <div
-            v-for="tab in tabs"
-            :key="tab.value"
-            class="toolbar-tab"
-            :class="{ active: activeTab === tab.value }"
-            role="tab"
-            tabindex="0"
-            @click="activeTab = tab.value"
-            @keydown.enter="activeTab = tab.value"
-          >
+          <div v-for="tab in tabs" :key="tab.value" class="toolbar-tab" :class="{ active: activeTab === tab.value }"
+            role="tab" tabindex="0" @click="activeTab = tab.value" @keydown.enter="activeTab = tab.value">
             {{ tab.label }}
           </div>
         </div>
@@ -420,8 +424,8 @@ onMounted(async () => {
             <!-- 存储参数配置 -->
             <div class="section-header-enhanced">
               <div class="section-title-group">
-                <svg class="section-title-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                  stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg class="section-title-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10B981"
+                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <rect x="3" y="3" width="7" height="7" />
                   <rect x="14" y="3" width="7" height="7" />
                   <rect x="14" y="14" width="7" height="7" />
@@ -475,11 +479,71 @@ onMounted(async () => {
                 <div class="config-info-label">单文件大小上限</div>
                 <div class="config-info-value">
                   <template v-if="isEditing">
-                    <t-input-number v-model="configForm.maxFileSizeBytes" :min="1048576" :max="104857600" :step="1048576"
+                    <t-input-number v-model="configForm.maxFileSizeBytes" :min="1048576" :max="104857600"
+                      :step="1048576" placeholder="请输入" theme="column" />
+                  </template>
+                  <template v-else>
+                    {{ (configData.maxFileSizeBytes / 1024 / 1024).toFixed(1) }} <span
+                      class="config-info-unit">MB</span>
+                  </template>
+                </div>
+              </div>
+            </div>
+
+            <t-divider />
+
+            <!-- 文件保留策略配置 -->
+            <div class="section-header-enhanced" style="margin-top: 8px;">
+              <div class="section-title-group">
+                <svg class="section-title-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F59E0B"
+                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <polyline points="14 2 14 8 20 8" />
+                  <line x1="16" y1="13" x2="8" y2="13" />
+                  <line x1="16" y1="17" x2="8" y2="17" />
+                </svg>
+                <h4 class="section-title-text">文件保留策略</h4>
+              </div>
+              <div class="section-actions">
+                <span v-if="isEditing" class="edit-hint">参数已修改，点击保存生效</span>
+              </div>
+            </div>
+
+            <div class="config-display-grid">
+              <div class="config-info-card" :class="{ 'is-editing': isEditing }">
+                <div class="config-info-label">原文件保留天数</div>
+                <div class="config-info-value">
+                  <template v-if="isEditing">
+                    <t-input-number v-model="configForm.fileRetentionDays" :min="7" :max="365" :step="1"
                       placeholder="请输入" theme="column" />
                   </template>
                   <template v-else>
-                    {{ (configData.maxFileSizeBytes / 1024 / 1024).toFixed(1) }} <span class="config-info-unit">MB</span>
+                    {{ configData.fileRetentionDays }} <span class="config-info-unit">天</span>
+                  </template>
+                </div>
+              </div>
+              <div class="config-info-card" :class="{ 'is-editing': isEditing }">
+                <div class="config-info-label">存储空间上限</div>
+                <div class="config-info-value">
+                  <template v-if="isEditing">
+                    <t-input-number v-model="configForm.fileStorageLimitBytes" :min="1073741824" :max="107374182400"
+                      :step="1073741824" placeholder="请输入" theme="column" />
+                  </template>
+                  <template v-else>
+                    {{ (configData.fileStorageLimitBytes / 1024 / 1024 / 1024).toFixed(0) }} <span
+                      class="config-info-unit">GB</span>
+                  </template>
+                </div>
+              </div>
+              <div class="config-info-card" :class="{ 'is-editing': isEditing }">
+                <div class="config-info-label">磁盘使用率告警</div>
+                <div class="config-info-value">
+                  <template v-if="isEditing">
+                    <t-input-number v-model="configForm.fileStorageAlertPercent" :min="50" :max="99" :step="5"
+                      placeholder="请输入" theme="column" />
+                  </template>
+                  <template v-else>
+                    {{ configData.fileStorageAlertPercent }}<span class="config-info-unit">%</span>
                   </template>
                 </div>
               </div>
@@ -496,7 +560,8 @@ onMounted(async () => {
               </button>
               <template v-if="isEditing">
                 <button class="cancel-btn" @click="cancelEdit">取消</button>
-                <button class="save-btn" :class="{ loading: loading }" :disabled="loading || !hasConfigChanged" @click="saveConfig">
+                <button class="save-btn" :class="{ loading: loading }" :disabled="loading || !hasConfigChanged"
+                  @click="saveConfig">
                   <t-loading v-if="loading" size="14px" />
                   <svg v-else width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                     stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -512,8 +577,8 @@ onMounted(async () => {
             <!-- 统计数据（合并自原统计数据 tab） -->
             <div class="section-header-enhanced" style="margin-top: 8px;">
               <div class="section-title-group">
-                <svg class="section-title-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                  stroke="#3B82F6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg class="section-title-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3B82F6"
+                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <line x1="18" y1="20" x2="18" y2="10" />
                   <line x1="12" y1="20" x2="12" y2="4" />
                   <line x1="6" y1="20" x2="6" y2="14" />
@@ -591,8 +656,8 @@ onMounted(async () => {
             <!-- 系统状态（合并自原系统状态 tab） -->
             <div class="section-header-enhanced" style="margin-top: 8px;">
               <div class="section-title-group">
-                <svg class="section-title-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                  stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg class="section-title-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F59E0B"
+                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
                   <line x1="12" y1="9" x2="12" y2="13" />
                   <line x1="12" y1="17" x2="12.01" y2="17" />
@@ -611,13 +676,16 @@ onMounted(async () => {
                   </svg>
                   <svg v-else width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                    <path
+                      d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
                     <line x1="12" y1="9" x2="12" y2="13" />
                     <line x1="12" y1="17" x2="12.01" y2="17" />
                   </svg>
                 </div>
                 <div class="status-banner-text">
-                  <strong>{{ degradationInfo.level === 'normal' ? '系统运行正常' : degradationInfo.level === 'degraded' ? '性能降级' : '熔断保护中' }}</strong>
+                  <strong>{{ degradationInfo.level === 'normal' ? '系统运行正常' : degradationInfo.level === 'degraded' ?
+                    '性能降级' : '熔断保护中'
+                  }}</strong>
                   <p>{{ degradationInfo.reason }}</p>
                 </div>
               </div>
@@ -632,7 +700,8 @@ onMounted(async () => {
                   <div class="status-metric-label">存储上限</div>
                 </div>
                 <div class="status-metric">
-                  <div class="status-metric-value" :class="{ 'text-danger': degradationInfo.systemStatus.usagePercent >= 95 }">
+                  <div class="status-metric-value"
+                    :class="{ 'text-danger': degradationInfo.systemStatus.usagePercent >= 95 }">
                     {{ degradationInfo.systemStatus.usagePercent }}%
                   </div>
                   <div class="status-metric-label">存储使用率</div>
@@ -645,12 +714,13 @@ onMounted(async () => {
 
               <div class="status-progress-bar">
                 <div class="progress-track">
-                  <div class="progress-fill" :style="{ width: Math.min(degradationInfo.systemStatus.usagePercent, 100) + '%' }"
-                    :class="{
+                  <div class="progress-fill"
+                    :style="{ width: Math.min(degradationInfo.systemStatus.usagePercent, 100) + '%' }" :class="{
                       'progress-fill--danger': degradationInfo.systemStatus.usagePercent >= 95,
                       'progress-fill--warning': degradationInfo.systemStatus.usagePercent >= 80 && degradationInfo.systemStatus.usagePercent < 95
                     }"></div>
-                  <div class="progress-threshold" :style="{ left: degradationInfo.systemStatus.cleanupThreshold + '%' }">
+                  <div class="progress-threshold"
+                    :style="{ left: degradationInfo.systemStatus.cleanupThreshold + '%' }">
                     <span class="progress-threshold-label">{{ degradationInfo.systemStatus.cleanupThreshold }}%</span>
                   </div>
                 </div>
@@ -675,7 +745,9 @@ onMounted(async () => {
                   <circle cx="12" cy="12" r="10" />
                   <polyline points="12 6 12 12 16 14" />
                 </svg>
-                <span>上次清理：删除 {{ degradationInfo.lastCleanup.deletedCount }} 条记录 — {{ degradationInfo.lastCleanup.triggerReason }}</span>
+                <span>上次清理：删除 {{ degradationInfo.lastCleanup.deletedCount }} 条记录 — {{
+                  degradationInfo.lastCleanup.triggerReason
+                }}</span>
               </div>
             </div>
             <div v-else class="data-empty">
@@ -694,8 +766,8 @@ onMounted(async () => {
             <!-- 手动清理 -->
             <div class="section-header-enhanced" style="margin-top: 8px;">
               <div class="section-title-group">
-                <svg class="section-title-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                  stroke="#EF4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg class="section-title-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#EF4444"
+                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <polyline points="3 6 5 6 21 6" />
                   <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
                 </svg>
@@ -709,13 +781,13 @@ onMounted(async () => {
                 <button class="dry-run-btn" :disabled="cleanupLoading" @click="triggerCleanup(true)">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
                     stroke-linecap="round" stroke-linejoin="round">
-                    <eye class="feather feather-eye" x="1" y="9" width="22" height="14" rx="2" />
-                    <circle cx="12" cy="16" r="2.5" />
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                    <circle cx="12" cy="12" r="3" />
                   </svg>
                   模拟清理
                 </button>
-                <t-popconfirm content="确定执行清理吗？此操作不可撤销"
-                  :confirm-btn="{ content: '确认清理', theme: 'danger' }" @confirm="triggerCleanup(false)">
+                <t-popconfirm content="确定执行清理吗？此操作不可撤销" :confirm-btn="{ content: '确认清理', theme: 'danger' }"
+                  @confirm="triggerCleanup(false)">
                   <button class="cleanup-btn" :disabled="cleanupLoading">
                     <t-loading v-if="cleanupLoading" size="14px" />
                     <svg v-else width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -735,9 +807,11 @@ onMounted(async () => {
           <div v-else-if="activeTab === 'ratio'" key="ratio" class="tab-panel">
             <div class="section-header-enhanced">
               <div class="section-title-group">
-                <svg class="section-title-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                  stroke="#8B5CF6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M12 20V10" /><path d="M18 20V4" /><path d="M6 20v-4" />
+                <svg class="section-title-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6"
+                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 20V10" />
+                  <path d="M18 20V4" />
+                  <path d="M6 20v-4" />
                 </svg>
                 <h4 class="section-title-text">含量比校验级别配置</h4>
               </div>
@@ -759,8 +833,8 @@ onMounted(async () => {
                 <p class="ratio-level-desc">含量比在此范围内，配方数据正常，无需审核</p>
                 <div class="ratio-level-range">
                   <template v-if="ratioEditing">
-                    <t-input-number v-model="ratioForm.normalLow" :min="0.5" :max="1.0" :step="0.01"
-                      :decimal-places="2" theme="column" size="small" />
+                    <t-input-number v-model="ratioForm.normalLow" :min="0.5" :max="1.0" :step="0.01" :decimal-places="2"
+                      theme="column" size="small" />
                     <span class="ratio-range-sep">~</span>
                     <t-input-number v-model="ratioForm.normalHigh" :min="1.0" :max="1.5" :step="0.01"
                       :decimal-places="2" theme="column" size="small" />
@@ -824,22 +898,37 @@ onMounted(async () => {
                 </div>
                 <p class="ratio-level-desc">含量比超出高级预警范围，配方将被拒绝创建</p>
                 <div class="ratio-level-range">
-                  <span class="ratio-range-label">&lt; {{ ratioEditing ? ratioForm.highWarningLow : ratioThresholds.highWarningLow }}</span>
+                  <span class="ratio-range-label">&lt; {{ ratioEditing ? ratioForm.highWarningLow :
+                    ratioThresholds.highWarningLow
+                  }}</span>
                   <span class="ratio-range-sep">或</span>
-                  <span class="ratio-range-label">&gt; {{ ratioEditing ? ratioForm.highWarningHigh : ratioThresholds.highWarningHigh }}</span>
+                  <span class="ratio-range-label">&gt; {{ ratioEditing ? ratioForm.highWarningHigh :
+                    ratioThresholds.highWarningHigh }}</span>
                 </div>
               </div>
             </div>
 
             <div class="ratio-visual-bar">
               <div class="ratio-bar-track">
-                <div class="ratio-bar-segment ratio-bar-segment--error-l" :style="{ width: ((ratioThresholds.highWarningLow - 0.5) / 1.0 * 100) + '%' }"></div>
-                <div class="ratio-bar-segment ratio-bar-segment--high-warning" :style="{ width: ((ratioThresholds.warningLow - ratioThresholds.highWarningLow) / 1.0 * 100) + '%' }"></div>
-                <div class="ratio-bar-segment ratio-bar-segment--warning" :style="{ width: ((ratioThresholds.normalLow - ratioThresholds.warningLow) / 1.0 * 100) + '%' }"></div>
-                <div class="ratio-bar-segment ratio-bar-segment--normal" :style="{ width: ((ratioThresholds.normalHigh - ratioThresholds.normalLow) / 1.0 * 100) + '%' }"></div>
-                <div class="ratio-bar-segment ratio-bar-segment--warning" :style="{ width: ((ratioThresholds.warningHigh - ratioThresholds.normalHigh) / 1.0 * 100) + '%' }"></div>
-                <div class="ratio-bar-segment ratio-bar-segment--high-warning" :style="{ width: ((ratioThresholds.highWarningHigh - ratioThresholds.warningHigh) / 1.0 * 100) + '%' }"></div>
-                <div class="ratio-bar-segment ratio-bar-segment--error-r" :style="{ width: ((1.5 - ratioThresholds.highWarningHigh) / 1.0 * 100) + '%' }"></div>
+                <div class="ratio-bar-segment ratio-bar-segment--error-l"
+                  :style="{ width: ((ratioThresholds.highWarningLow - 0.5) / 1.0 * 100) + '%' }"></div>
+                <div class="ratio-bar-segment ratio-bar-segment--high-warning"
+                  :style="{ width: ((ratioThresholds.warningLow - ratioThresholds.highWarningLow) / 1.0 * 100) + '%' }">
+                </div>
+                <div class="ratio-bar-segment ratio-bar-segment--warning"
+                  :style="{ width: ((ratioThresholds.normalLow - ratioThresholds.warningLow) / 1.0 * 100) + '%' }">
+                </div>
+                <div class="ratio-bar-segment ratio-bar-segment--normal"
+                  :style="{ width: ((ratioThresholds.normalHigh - ratioThresholds.normalLow) / 1.0 * 100) + '%' }">
+                </div>
+                <div class="ratio-bar-segment ratio-bar-segment--warning"
+                  :style="{ width: ((ratioThresholds.warningHigh - ratioThresholds.normalHigh) / 1.0 * 100) + '%' }">
+                </div>
+                <div class="ratio-bar-segment ratio-bar-segment--high-warning"
+                  :style="{ width: ((ratioThresholds.highWarningHigh - ratioThresholds.warningHigh) / 1.0 * 100) + '%' }">
+                </div>
+                <div class="ratio-bar-segment ratio-bar-segment--error-r"
+                  :style="{ width: ((1.5 - ratioThresholds.highWarningHigh) / 1.0 * 100) + '%' }"></div>
               </div>
               <div class="ratio-bar-labels">
                 <span>0.5</span>
@@ -865,7 +954,8 @@ onMounted(async () => {
               </button>
               <template v-if="ratioEditing">
                 <button class="cancel-btn" @click="cancelRatioEdit">取消</button>
-                <button class="save-btn" :class="{ loading: ratioSaving }" :disabled="ratioSaving || !ratioHasChanged" @click="saveRatioThresholds">
+                <button class="save-btn" :class="{ loading: ratioSaving }" :disabled="ratioSaving || !ratioHasChanged"
+                  @click="saveRatioThresholds">
                   <t-loading v-if="ratioSaving" size="14px" />
                   <svg v-else width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                     stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -881,8 +971,8 @@ onMounted(async () => {
           <div v-else-if="activeTab === 'overview'" key="overview" class="tab-panel">
             <div class="section-header-enhanced">
               <div class="section-title-group">
-                <svg class="section-title-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                  stroke="#6366F1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg class="section-title-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6366F1"
+                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <rect x="3" y="3" width="7" height="7" />
                   <rect x="14" y="3" width="7" height="7" />
                   <rect x="14" y="14" width="7" height="7" />
@@ -900,7 +990,8 @@ onMounted(async () => {
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                       stroke-linecap="round" stroke-linejoin="round" v-html="card.iconPath"></svg>
                   </div>
-                  <span class="stat-badge" :style="{ color: card.badgeColor, background: card.badgeBg }">{{ card.badge }}</span>
+                  <span class="stat-badge" :style="{ color: card.badgeColor, background: card.badgeBg }">{{ card.badge
+                  }}</span>
                 </div>
                 <p class="stat-label">{{ card.label }}</p>
                 <p class="stat-value">{{ card.value }} <small class="stat-unit">{{ card.unit }}</small></p>
@@ -910,11 +1001,12 @@ onMounted(async () => {
             <!-- 操作建议 -->
             <div class="section-header-enhanced" style="margin-top: 24px;">
               <div class="section-title-group">
-                <svg class="section-title-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                  stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg class="section-title-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F59E0B"
+                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M9 18h6" />
                   <path d="M10 22h4" />
-                  <path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14" />
+                  <path
+                    d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14" />
                 </svg>
                 <h4 class="section-title-text">操作建议</h4>
               </div>
@@ -927,7 +1019,8 @@ onMounted(async () => {
                     stroke-linecap="round" stroke-linejoin="round">
                     <path d="M9 18h6" />
                     <path d="M10 22h4" />
-                    <path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14" />
+                    <path
+                      d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14" />
                   </svg>
                 </div>
                 <span class="suggestion-text">{{ suggestion }}</span>
@@ -961,7 +1054,8 @@ onMounted(async () => {
               </svg>
             </button>
             <span class="activity-nav-page">{{ activityPage }} / {{ activityTotalPages }}</span>
-            <button class="activity-nav-btn" :disabled="activityPage >= activityTotalPages" @click="activityNext" title="下一页">
+            <button class="activity-nav-btn" :disabled="activityPage >= activityTotalPages" @click="activityNext"
+              title="下一页">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
                 stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="9 18 15 12 9 6" />
@@ -1030,8 +1124,8 @@ $overlay-white-30: rgba(255, 255, 255, 0.3);
 $transition-fast: 0.15s ease;
 $transition-normal: 0.25s ease;
 
-.parse-result-config {
-  padding: 16px;
+.system-config {
+  padding: 0;
 }
 
 .content-card {
@@ -1046,7 +1140,7 @@ $transition-normal: 0.25s ease;
 }
 
 .data-center-toolbar {
-  padding: 28px 32px;
+  padding: 24px;
   border-bottom: 1px solid #f8fafc;
   display: flex;
   flex-wrap: wrap;
@@ -1104,7 +1198,7 @@ $transition-normal: 0.25s ease;
 }
 
 .tab-content {
-  padding: 24px 32px;
+  padding: 24px 24px;
 }
 
 .tab-panel {
@@ -1347,21 +1441,27 @@ $transition-normal: 0.25s ease;
       background: #F0FDF4;
       border: 1px solid #BBF7D0;
 
-      .status-banner-icon { color: #22C55E; }
+      .status-banner-icon {
+        color: #22C55E;
+      }
     }
 
     &--degraded {
       background: #FFFBEB;
       border: 1px solid #FDE68A;
 
-      .status-banner-icon { color: #F59E0B; }
+      .status-banner-icon {
+        color: #F59E0B;
+      }
     }
 
     &--熔断 {
       background: #FEF2F2;
       border: 1px solid #FECACA;
 
-      .status-banner-icon { color: #EF4444; }
+      .status-banner-icon {
+        color: #EF4444;
+      }
     }
 
     .status-banner-icon {
@@ -1403,7 +1503,9 @@ $transition-normal: 0.25s ease;
     font-weight: 700;
     color: #0F172A;
 
-    &.text-danger { color: #EF4444; }
+    &.text-danger {
+      color: #EF4444;
+    }
   }
 
   .status-metric-label {
@@ -1429,8 +1531,13 @@ $transition-normal: 0.25s ease;
       background: #3B82F6;
       transition: width 0.6s ease;
 
-      &--warning { background: #F59E0B; }
-      &--danger { background: #EF4444; }
+      &--warning {
+        background: #F59E0B;
+      }
+
+      &--danger {
+        background: #EF4444;
+      }
     }
 
     .progress-threshold {
@@ -1634,10 +1741,21 @@ $transition-normal: 0.25s ease;
   height: 10px;
   border-radius: 50%;
 
-  &--normal { background: #10B981; }
-  &--warning { background: #F59E0B; }
-  &--high-warning { background: #8B5CF6; }
-  &--error { background: #EF4444; }
+  &--normal {
+    background: #10B981;
+  }
+
+  &--warning {
+    background: #F59E0B;
+  }
+
+  &--high-warning {
+    background: #8B5CF6;
+  }
+
+  &--error {
+    background: #EF4444;
+  }
 }
 
 .ratio-level-name {
@@ -1709,11 +1827,25 @@ $transition-normal: 0.25s ease;
   height: 100%;
   transition: width 0.3s ease;
 
-  &--error-l { background: #FEE2E2; }
-  &--high-warning { background: #E9D5FF; }
-  &--warning { background: #FEF3C7; }
-  &--normal { background: #10B981; }
-  &--error-r { background: #FEE2E2; }
+  &--error-l {
+    background: #FEE2E2;
+  }
+
+  &--high-warning {
+    background: #E9D5FF;
+  }
+
+  &--warning {
+    background: #FEF3C7;
+  }
+
+  &--normal {
+    background: #10B981;
+  }
+
+  &--error-r {
+    background: #FEE2E2;
+  }
 }
 
 .ratio-bar-labels {
@@ -1794,8 +1926,15 @@ $transition-normal: 0.25s ease;
 }
 
 @keyframes dashboard-fade-in {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 // ═══ 操作建议（数据概览 Tab 内） ═══
@@ -1834,11 +1973,11 @@ $transition-normal: 0.25s ease;
 
 // ═══ 底部：近期动态 + 系统助手（还原模型管理样式） ═══
 .activity-section {
-  margin-top: 30px;
-  padding-bottom: 32px;
+  margin-top: 24px;
+  padding-bottom: 24px;
   display: grid;
   grid-template-columns: 1fr;
-  gap: 32px;
+  gap: 24px;
 
   @media (min-width: 1024px) {
     grid-template-columns: 2fr 1fr;

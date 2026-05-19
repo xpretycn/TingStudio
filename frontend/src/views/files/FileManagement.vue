@@ -38,14 +38,6 @@
                       批量删除
                     </button>
                   </t-popconfirm>
-                  <button class="batch-action-btn" @click="handleBatchArchive">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                      stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M21 8v13H3V8" />
-                      <rect x="1" y="3" width="22" height="5" rx="2" />
-                    </svg>
-                    批量归档
-                  </button>
                 </div>
               </div>
               <button class="batch-cancel-btn" @click="clearSelection">取消</button>
@@ -70,16 +62,6 @@
               <t-input id="file-search-input" v-model="searchKeyword" class="search-input" placeholder="搜索文件名..."
                 clearable aria-label="按文件名搜索" data-testid="file-search" />
             </div>
-            <button class="add-formula-btn upload-btn" @click="uploadDialogVisible = true" aria-label="上传文件"
-              data-testid="file-upload-btn">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                <polyline points="17 8 12 3 7 8" />
-                <line x1="12" y1="3" x2="12" y2="15" />
-              </svg>
-              上传文件
-            </button>
             <button class="filter-btn" aria-label="筛选文件类型" aria-haspopup="true" @click="filterVisible = !filterVisible">
               <t-icon name="filter" class="filter-icon" />
               <span class="filter-dot"></span>
@@ -133,34 +115,18 @@
           </template>
 
           <template #empty>
-            <t-empty description="暂无文件数据" role="status">
-              <template #action>
-                <button class="add-formula-btn upload-btn" @click="uploadDialogVisible = true">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                    stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                    <polyline points="17 8 12 3 7 8" />
-                    <line x1="12" y1="3" x2="12" y2="15" />
-                  </svg>
-                  上传第一个文件
-                </button>
-              </template>
-            </t-empty>
+            <t-empty description="暂无文件数据" role="status" />
           </template>
 
           <template #operation="{ row }">
             <div class="action-buttons" role="group" aria-label="文件操作">
-              <button class="action-btn edit-btn" @click.stop="handleEditLink(row)" title="编辑关联"
-                :aria-label="`编辑文件${row.originalName}关联`">
-                <t-icon name="edit-1" />
-              </button>
               <button class="action-btn preview-btn" @click.stop="handlePreview(row)" title="预览"
                 :aria-label="`预览文件${row.originalName}`">
                 <t-icon name="browse" />
               </button>
-              <button class="action-btn reparse-btn" @click.stop="handleReparse(row)" title="重新解析"
-                :aria-label="`重新解析文件${row.originalName}`">
-                <t-icon name="refresh" />
+              <button class="action-btn download-btn" @click.stop="handleDownload(row)" title="下载"
+                :aria-label="`下载文件${row.originalName}`">
+                <t-icon name="download" />
               </button>
               <t-popconfirm v-if="isAdmin" content="确定要删除该文件吗？" @confirm="handleDelete(row)">
                 <button class="action-btn delete-btn" @click.stop title="删除" :aria-label="`删除文件${row.originalName}`">
@@ -339,31 +305,6 @@
       </div>
     </section>
 
-    <t-dialog v-model:visible="uploadDialogVisible" header="上传文件" :footer="false" width="520px" placement="center"
-      :close-on-overlay-click="!uploading" class="upload-dialog">
-      <div class="upload-form">
-        <div class="upload-field">
-          <label class="upload-label">文件类型</label>
-          <t-select v-model="uploadFileType" :options="fileTypeOptions" placeholder="选择文件类型" />
-        </div>
-        <div class="upload-field">
-          <label class="upload-label">选择文件</label>
-          <t-upload v-model="uploadFiles" :auto-upload="false" :max="1" :size-limit="{ size: 50, unit: 'MB' }"
-            accept=".xlsx,.xls,.csv,.jpg,.jpeg,.png" theme="file" :tips="'支持的文件格式: xlsx, xls, csv, jpg, png'" />
-        </div>
-        <div v-if="uploading" class="upload-progress">
-          <t-loading size="small" text="上传中..." />
-        </div>
-        <div class="upload-actions">
-          <t-button theme="default" @click="uploadDialogVisible = false" :disabled="uploading">取消</t-button>
-          <t-button theme="primary" @click="handleUpload" :loading="uploading"
-            :disabled="!uploadFiles.length || !uploadFileType">
-            确认上传
-          </t-button>
-        </div>
-      </div>
-    </t-dialog>
-
     <FilePreviewDialog v-model:visible="previewDialogVisible" :file-id="previewFileId" />
   </div>
 </template>
@@ -375,6 +316,7 @@ import { useFileStore } from '@/stores/file';
 import { useAuthStore } from '@/stores/auth';
 import { usePaginationStore } from '@/stores/pagination';
 import { MessagePlugin } from 'tdesign-vue-next';
+import { fileApi } from '@/api/file';
 import type { UploadedFile } from '@/api/file';
 import FilePreviewDialog from '@/components/FilePreviewDialog.vue';
 import PageSkeleton from '@/components/Skeleton/PageSkeleton.vue';
@@ -387,6 +329,14 @@ const paginationStore = usePaginationStore();
 
 const initialized = ref(false);
 const isAdmin = computed(() => authStore.user?.role === 'admin');
+
+const formatStorageSize = (bytes: number): string => {
+  if (!bytes || bytes === 0) return '0 B';
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1048576) return `${(bytes / 1024).toFixed(1)} KB`;
+  if (bytes < 1073741824) return `${(bytes / 1048576).toFixed(1)} MB`;
+  return `${(bytes / 1073741824).toFixed(2)} GB`;
+};
 
 const dashboardCards = computed(() => {
   const s = fileStore.stats;
@@ -425,15 +375,15 @@ const dashboardCards = computed(() => {
       iconPath: '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
     },
     {
-      label: '待处理',
-      value: s.pending.toString(),
-      unit: '项',
-      badge: s.pending > 0 ? `${s.pending}` : '0',
-      badgeColor: s.pending > 0 ? '#F59E0B' : '#94A3B8',
-      badgeBg: s.pending > 0 ? '#FFFBEB' : '#F1F5F9',
+      label: '存储占用',
+      value: formatStorageSize(s.totalSize || 0),
+      unit: '',
+      badge: s.totalSize > 1073741824 ? '超限' : '正常',
+      badgeColor: s.totalSize > 1073741824 ? '#EF4444' : '#10B981',
+      badgeBg: s.totalSize > 1073741824 ? '#FEE2E2' : '#ECFDF5',
       iconBg: '#FFFBEB',
       iconColor: '#F59E0B',
-      iconPath: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/>',
+      iconPath: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>',
     },
   ];
 });
@@ -500,17 +450,8 @@ watch(() => fileStore.files, (val) => {
   }
 }, { immediate: true });
 
-const uploadDialogVisible = ref(false);
-const uploadFileType = ref<'formula' | 'material' | undefined>(undefined);
-const uploadFiles = ref<any[]>([]);
-const uploading = ref(false);
 const previewDialogVisible = ref(false);
 const previewFileId = ref('');
-
-const fileTypeOptions = [
-  { label: '配方文件', value: 'formula' },
-  { label: '原料文件', value: 'material' },
-];
 
 const columns = computed(() => [
   { colKey: 'row-select', type: 'multiple', width: 50, resizable: false },
@@ -569,12 +510,7 @@ const handleBatchDelete = async () => {
   clearSelection();
 };
 
-const handleBatchArchive = async () => {
-  if (selectedRows.value.length === 0) return;
-  const ids = selectedRows.value.map(f => f.fileId);
-  await fileStore.batchArchive(ids);
-  clearSelection();
-};
+
 
 const handleRowClick = ({ row }: { row: UploadedFile; }) => {
   router.push({ path: `/files/${row.fileId}`, query: route.query });
@@ -590,13 +526,26 @@ const handlePreview = (row: UploadedFile) => {
   previewDialogVisible.value = true;
 };
 
-const handleReparse = async (row: UploadedFile) => {
-  const model = row.parseModel || 'gpt-4o';
-  await fileStore.reparseFile(row.fileId, model);
-};
-
 const handleDelete = async (row: UploadedFile) => {
   await fileStore.deleteFile(row.fileId);
+};
+
+const handleDownload = async (row: UploadedFile) => {
+  try {
+    const response = await fileApi.download(row.fileId);
+    const blob = new Blob([response.data]);
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = row.originalName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+    MessagePlugin.success('下载成功');
+  } catch (error) {
+    MessagePlugin.error('下载失败');
+  }
 };
 
 const handleRelatedClick = (row: UploadedFile) => {
@@ -611,25 +560,7 @@ const handleEditLink = (row: UploadedFile) => {
   router.push({ path: `/files/${row.fileId}`, query: { action: 'editLink' } });
 };
 
-const handleUpload = async () => {
-  if (!uploadFiles.value.length || !uploadFileType.value) return;
-  uploading.value = true;
-  try {
-    const file = uploadFiles.value[0]?.raw || uploadFiles.value[0];
-    if (!file) {
-      MessagePlugin.error('请选择文件');
-      return;
-    }
-    const result = await fileStore.uploadFile(file, uploadFileType.value);
-    if (result.success) {
-      uploadDialogVisible.value = false;
-      uploadFiles.value = [];
-      uploadFileType.value = undefined;
-    }
-  } finally {
-    uploading.value = false;
-  }
-};
+
 
 interface ActivityItem { type: 'success' | 'warning' | 'info'; title: string; desc: string; time: string; }
 
@@ -800,7 +731,6 @@ const handleTodoAction = (item: PendingItem) => {
       }
       break;
     case 'upload':
-      uploadDialogVisible.value = true;
       break;
   }
 };

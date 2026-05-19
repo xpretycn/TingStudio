@@ -8,7 +8,7 @@ export const useFileStore = defineStore('file', () => {
   const files = ref<UploadedFile[]>([])
   const total = ref(0)
   const loading = ref(false)
-  const stats = ref<FileStats>({ total: 0, parsed: 0, linked: 0, pending: 0 })
+  const stats = ref<FileStats>({ total: 0, parsed: 0, linked: 0, pending: 0, totalSize: 0 })
   const currentFile = ref<UploadedFile | null>(null)
   const auditLogs = ref<AuditLog[]>([])
   const previewData = ref<FilePreviewData | null>(null)

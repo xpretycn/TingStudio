@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { mount } from "@vue/test-utils";
 import { createPinia, setActivePinia } from "pinia";
-import VersionCompare from "@/views/versions/VersionCompare.vue";
+import VersionCompare from "@/views/formulas/versions/VersionCompare.vue";
 
 const push = vi.fn();
 const mockRoute = vi.hoisted(() => ({

@@ -177,8 +177,8 @@
             <Transition name="group-expand">
               <div v-show="isGroupExpanded('tools')" class="nav-group-content">
                 <div v-for="item in getGroupItems('tools')" :key="item.path" class="nav-item nav-item--grouped"
-                  :class="{ active: activePath === item.path }" role="menuitem" tabindex="0"
-                  :aria-current="activePath === item.path ? 'page' : undefined"
+                  :class="{ active: route.path === item.path || route.path.startsWith(item.path + '/') }" role="menuitem" tabindex="0"
+                  :aria-current="route.path === item.path || route.path.startsWith(item.path + '/') ? 'page' : undefined"
                   :title="sidebarCollapsed ? item.label : undefined" @click="navigateTo(item.path)"
                   @keydown="handleNavKeydown($event, item.path)">
                   <div class="nav-item-icon" aria-hidden="true"><t-icon :name="item.icon" size="18px" /></div>
@@ -466,7 +466,8 @@ const activePath = computed(() => {
   // 按最长前缀匹配，优先精确匹配，再按路径段前缀匹配
   const pathMap = [
     '/formulas', '/materials', '/files', '/salesmen', '/sales',
-    '/reports', '/exports', '/nutrition', '/tools', '/ai-assistant', '/smart-tools'
+    '/reports', '/exports', '/nutrition', '/tools', '/ai-assistant', '/smart-tools',
+    '/model-management', '/system'
   ];
   for (const key of pathMap) {
     if (path === key || path.startsWith(key + '/')) return key;
@@ -531,6 +532,7 @@ const pageIcon = computed(() => {
     '/ai-assistant': 'precise-monitor',
     '/smart-tools': 'ai-tool',
     '/model-management': 'control-platform',
+    '/system': 'setting-1',
     '/settings': 'user-circle'
   };
   if (iconMap[route.path]) return iconMap[route.path];
@@ -556,8 +558,7 @@ const navGroups = {
     items: [
       { path: '/formulas', label: '配方管理', icon: 'edit' },
       { path: '/materials', label: '原料管理', icon: 'chart-bar' },
-      { path: '/salesmen', label: '业务员管理', icon: 'usergroup' },
-      { path: '/files', label: '文件管理', icon: 'folder' }
+      { path: '/salesmen', label: '业务员管理', icon: 'usergroup' }
     ] as NavItem[]
   },
   analytics: {
@@ -588,6 +589,9 @@ const currentGroup = computed((): GroupKey | null => {
 
   // AI助手不属于任何分组
   if (path === '/ai-assistant' || path === '/smart-tools') return null;
+
+  // 系统管理页面归属系统工具分组
+  if (path === '/model-management' || path === '/system') return 'tools';
 
   for (const [key, group] of Object.entries(navGroups)) {
     if (group.items.some(item => item.path === path || path.startsWith(item.path + '/'))) {
@@ -620,9 +624,10 @@ const getGroupItems = (groupId: GroupKey): NavItem[] => {
   // 如果是系统工具组且用户是管理员，追加管理入口
   if (groupId === 'tools' && authStore.user?.role === 'admin') {
     return [
-      ...baseItems,
       { path: '/model-management', label: '模型管理', icon: 'control-platform' },
-      { path: '/ai/parse-result-config', label: '系统管理', icon: 'file-icon' },
+      { path: '/system/config', label: '系统管理', icon: 'file-icon' },
+      { path: '/files', label: '文件管理', icon: 'folder' },
+      ...baseItems,
     ];
   }
 
@@ -644,7 +649,7 @@ const navItems = computed(() => {
   }
   if (authStore.user?.role === 'admin') {
     allItems.push({ path: '/model-management', label: '模型管理', icon: 'control-platform' });
-    allItems.push({ path: '/ai/parse-result-config', label: '解析结果配置', icon: 'file-icon' });
+    allItems.push({ path: '/system/config', label: '系统管理', icon: 'file-icon' });
   }
   return allItems;
 });
@@ -718,6 +723,7 @@ const pageTitle = computed(() => {
     '/ai-assistant': 'AI 助手',
     '/smart-tools': '智能工具',
     '/model-management': '模型管理',
+    '/system': '系统管理',
     '/settings': '账号设置'
   };
   for (const [key, value] of Object.entries(titleMap)) {
@@ -750,7 +756,8 @@ const breadcrumbs = computed(() => {
   // 列表页无父级，不需要面包屑
   const listPaths = [
     '/formulas', '/materials', '/salesmen', '/sales',
-    '/reports', '/exports', '/nutrition', '/tools', '/ai-assistant', '/smart-tools', '/settings'
+    '/reports', '/exports', '/nutrition', '/tools', '/ai-assistant', '/smart-tools', '/settings',
+    '/model-management', '/system/config'
   ];
   if (listPaths.includes(path)) return [];
 

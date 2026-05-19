@@ -523,6 +523,24 @@ function runAutoMigrations(dbInstance: Database.Database) {
     `,
   );
 
+  ensureTable(
+    dbInstance,
+    "ratio_threshold_configs",
+    `
+    CREATE TABLE ratio_threshold_configs (
+      id TEXT PRIMARY KEY,
+      normal_low REAL NOT NULL DEFAULT 0.98,
+      normal_high REAL NOT NULL DEFAULT 1.02,
+      warning_low REAL NOT NULL DEFAULT 0.95,
+      warning_high REAL NOT NULL DEFAULT 1.05,
+      high_warning_low REAL NOT NULL DEFAULT 0.92,
+      high_warning_high REAL NOT NULL DEFAULT 1.08,
+      updated_at TEXT NOT NULL,
+      updated_by TEXT
+    )
+    `,
+  );
+
   ensureInitialAiModels(dbInstance);
 }
 

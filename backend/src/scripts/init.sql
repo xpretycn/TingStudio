@@ -240,3 +240,16 @@ CREATE TABLE IF NOT EXISTS `nutrition_analysis_reports` (
   FOREIGN KEY (`summary_id`) REFERENCES `formula_nutrition_summaries`(`summary_id`) ON DELETE CASCADE
 );
 CREATE INDEX IF NOT EXISTS `idx_nar_formula` ON `nutrition_analysis_reports`(`formula_id`);
+
+-- 含量比校验阈值配置表
+CREATE TABLE IF NOT EXISTS `ratio_threshold_configs` (
+  `id` TEXT PRIMARY KEY,
+  `normal_low` REAL NOT NULL DEFAULT 0.98,
+  `normal_high` REAL NOT NULL DEFAULT 1.02,
+  `warning_low` REAL NOT NULL DEFAULT 0.95,
+  `warning_high` REAL NOT NULL DEFAULT 1.05,
+  `high_warning_low` REAL NOT NULL DEFAULT 0.92,
+  `high_warning_high` REAL NOT NULL DEFAULT 1.08,
+  `updated_at` TEXT NOT NULL,
+  `updated_by` TEXT
+);

@@ -477,7 +477,7 @@
                 <button @click="showSmartFormModal = false" class="modal-close-btn">×</button>
               </div>
               <div class="modal-body">
-                <SmartFormTab @activity-add="addActivity" />
+                <FormulaParseTab @activity-add="addActivity" />
               </div>
             </div>
           </div>
@@ -494,7 +494,7 @@
                 <button @click="showSmartImportModal = false" class="modal-close-btn">×</button>
               </div>
               <div class="modal-body">
-                <SmartImportTab @activity-add="addActivity" />
+                <MaterialImportTab @activity-add="addActivity" />
               </div>
             </div>
           </div>
@@ -509,8 +509,8 @@ import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { marked } from 'marked';
 import http from '@/api/http';
-import SmartFormTab from './tabs/SmartFormTab.vue';
-import SmartImportTab from './tabs/SmartImportTab.vue';
+import FormulaParseTab from './tabs/FormulaParseTab.vue';
+import MaterialImportTab from './tabs/MaterialImportTab.vue';
 import ToolConfirmDialog from '@/components/ToolConfirmDialog.vue';
 import AgentResultRenderer from '@/components/AgentResultRenderer.vue';
 import AgentFormRenderer from '@/components/AgentFormRenderer.vue';
@@ -950,7 +950,7 @@ const fetchAllModelVersions = async () => {
     }
   } catch (e: any) {
     modelsLoadError.value = '加载模型列表失败';
-    console.error('[AIDashboard] fetchAllModelVersions failed:', e);
+    console.error('[AiWorkspace] fetchAllModelVersions failed:', e);
   } finally {
     modelsLoading.value = false;
   }
@@ -1594,7 +1594,7 @@ const handleSend = async (confirmed = false) => {
 
     const heartbeatCheck = setInterval(() => {
       if (Date.now() - lastDataTime > SSE_TIMEOUT_MS && isLoading.value) {
-        console.warn('[AIDashboard] SSE心跳超时，尝试重连...');
+        console.warn('[AiWorkspace] SSE心跳超时，尝试重连...');
         clearInterval(heartbeatCheck);
       }
     }, 5000);
@@ -4348,13 +4348,13 @@ onUnmounted(() => {
 
             .model-item-logo-wrap {
               position: relative;
-              width: 24px;
-              height: 24px;
+              width: 20px;
+              height: 20px;
               display: flex;
               align-items: center;
               justify-content: center;
               flex-shrink: 0;
-              border-radius: 6px;
+              border-radius: 4px;
               background: #f8fafc;
               overflow: hidden;
 
@@ -4370,16 +4370,16 @@ onUnmounted(() => {
                 inset: 0;
                 align-items: center;
                 justify-content: center;
-                font-size: 11px;
+                font-size: 10px;
                 font-weight: 700;
                 background: #f1f5f9;
-                border-radius: 6px;
+                border-radius: 4px;
               }
             }
 
             .model-item-name {
               flex: 1;
-              font-size: 13px;
+              font-size: 12px;
               color: #334155;
               font-weight: 500;
             }
