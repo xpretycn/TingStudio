@@ -177,7 +177,7 @@ export const agentApi = {
     finishedWeight?: number;
     revisionReason?: string;
     existingDescription?: string;
-    type?: "description" | "preparation";
+    type?: "description" | "preparation" | "version_reason";
   }) {
     return http.post<any, { success: boolean; data?: { content: string; type: string }; error?: string }>(
       "/agent/generate-description", data,

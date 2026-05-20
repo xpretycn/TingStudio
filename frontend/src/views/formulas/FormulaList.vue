@@ -273,17 +273,33 @@
           </template>
 
           <template #operation="{ row }">
-            <t-dropdown :options="operationOptions" @click="(item: any) => handleOperationClick(item, row)">
+            <t-popup trigger="click" placement="bottom-right" :popup-props="{ appendToBody: true }">
               <button class="action-dropdown-btn" @click.stop title="操作" :aria-label="`操作配方${row.name}`">
                 <t-icon name="more" />
               </button>
-            </t-dropdown>
-            <t-popconfirm theme="danger" :content="`确定要删除配方「${row.name}」吗？删除后无法恢复。`"
-              @confirm="handleDelete(row)">
-              <button class="action-dropdown-btn action-delete-btn" title="删除" :aria-label="`删除配方${row.name}`" @click.stop>
-                <t-icon name="delete" />
-              </button>
-            </t-popconfirm>
+              <template #content>
+                <div class="action-menu">
+                  <div class="action-menu-item" @click="handleVersion(row)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+                    <span>版本管理</span>
+                  </div>
+                  <div class="action-menu-item" @click="handleEdit(row)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                    <span>编辑</span>
+                  </div>
+                  <div class="action-menu-item" @click="openSalesDialog(row)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>
+                    <span>录入销量</span>
+                  </div>
+                  <t-popconfirm theme="danger" :content="`确定要删除配方「${row.name}」吗？删除后无法恢复。`" @confirm="handleDelete(row)">
+                    <div class="action-menu-item action-menu-item--danger">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2"/></svg>
+                      <span>删除</span>
+                    </div>
+                  </t-popconfirm>
+                </div>
+              </template>
+            </t-popup>
           </template>
         </t-table>
 
@@ -1323,49 +1339,6 @@ const handleDelete = async (row: Formula) => {
   } catch {
     MessagePlugin.error('删除失败');
   }
-};
-
-const operationOptions = [
-  {
-    content: '版本管理',
-    value: 'version',
-    prefixIcon: () => h('svg', { width: 14, height: 14, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': 2, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, [
-      h('polyline', { points: '1 4 1 10 7 10' }),
-      h('path', { d: 'M3.51 15a9 9 0 1 0 2.13-9.36L1 10' }),
-    ]),
-  },
-  {
-    content: '编辑',
-    value: 'edit',
-    prefixIcon: () => h('svg', { width: 14, height: 14, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': 2, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, [
-      h('path', { d: 'M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7' }),
-      h('path', { d: 'M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z' }),
-    ]),
-  },
-  {
-    content: '录入销量',
-    value: 'sales',
-    prefixIcon: () => h('svg', { width: 14, height: 14, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': 2, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, [
-      h('line', { x1: '12', y1: '20', x2: '12', y2: '10' }),
-      h('line', { x1: '18', y1: '20', x2: '18', y2: '4' }),
-      h('line', { x1: '6', y1: '20', x2: '6', y2: '16' }),
-    ]),
-  },
-  {
-    content: '删除',
-    value: 'delete',
-    theme: 'error',
-    prefixIcon: () => h('svg', { width: 14, height: 14, viewBox: '0 0 24 24', fill: 'none', stroke: '#ef4444', 'stroke-width': 2, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, [
-      h('polyline', { points: '3 6 5 6 21 6' }),
-      h('path', { d: 'M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2' }),
-    ]),
-  },
-];
-
-const handleOperationClick = (item: any, row: Formula) => {
-  if (item.value === 'version') handleVersion(row);
-  else if (item.value === 'edit') handleEdit(row);
-  else if (item.value === 'sales') openSalesDialog(row);
 };
 
 // ─── 销量录入弹窗 ───
@@ -3287,6 +3260,39 @@ const getSalesQuantity = (row: any): number => {
 
   .t-icon {
     font-size: 16px;
+  }
+}
+
+.action-menu {
+  min-width: 130px;
+  padding: 4px 0;
+
+  .action-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    font-size: 13px;
+    color: #334155;
+    cursor: pointer;
+    transition: background 0.15s;
+    white-space: nowrap;
+
+    &:hover {
+      background: #f1f5f9;
+    }
+
+    svg {
+      flex-shrink: 0;
+    }
+  }
+
+  .action-menu-item--danger {
+    color: #e34d59;
+
+    &:hover {
+      background: #fff1f0;
+    }
   }
 }
 

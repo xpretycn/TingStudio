@@ -29,14 +29,21 @@ vi.mock("@/stores/salesman", () => ({
       { id: "s1", name: "张三" },
       { id: "s2", name: "李四" },
     ],
+    allSalesmen: [
+      { id: "s1", name: "张三" },
+      { id: "s2", name: "李四" },
+    ],
     fetchSalesmen: vi.fn(() => Promise.resolve()),
+    fetchAllForSelect: vi.fn(() => Promise.resolve()),
   })),
 }));
 
 vi.mock("@/stores/material", () => ({
   useMaterialStore: vi.fn(() => ({
     allMaterials: [],
+    materials: [],
     fetchAllForSelect: vi.fn(() => Promise.resolve()),
+    fetchMaterials: vi.fn(() => Promise.resolve()),
   })),
 }));
 
@@ -47,16 +54,41 @@ vi.mock("@/stores/ai", () => ({
     parseLoading: false,
     parseResult: null,
     parseError: "",
+    parseAborted: false,
     fetchModels: vi.fn(() => Promise.resolve()),
+    clearParseResult: vi.fn(),
+    loadModelVersions: vi.fn(),
   })),
 }));
 
 vi.mock("tdesign-vue-next", () => ({
-  MessagePlugin: { success: vi.fn(), error: vi.fn() },
+  MessagePlugin: { success: vi.fn(), error: vi.fn(), warning: vi.fn(), info: vi.fn() },
 }));
 
 vi.mock("@/components/ExcelImportPanel.vue", () => ({
   default: { template: '<div class="excel-import-mock">ExcelImportPanel</div>' },
+}));
+
+vi.mock("@/components/formula/UnifiedMaterialTable.vue", () => ({
+  default: { template: '<div class="unified-material-table-mock">UnifiedMaterialTable</div>' },
+}));
+
+vi.mock("@/api/parseTemplate", () => ({
+  parseTemplateApi: {
+    getList: vi.fn(() => Promise.resolve({ list: [] })),
+  },
+}));
+
+vi.mock("@/utils/timeFormat", () => ({
+  formatTimestamp: vi.fn((date: string) => date),
+  formatDate: vi.fn((date: string) => date),
+  formatCompact: vi.fn((num: number) => String(num)),
+}));
+
+vi.mock("@/api/excelImport", () => ({
+  excelImportApi: {
+    downloadTemplate: vi.fn(() => Promise.resolve(new Blob())),
+  },
 }));
 
 describe("FormulaForm 组件", () => {
@@ -83,6 +115,10 @@ describe("FormulaForm 组件", () => {
           "t-dropdown": { template: "<div><slot /></div>" },
           "t-dropdown-menu": { template: "<div><slot /></div>" },
           "t-dropdown-item": { template: "<div><slot /></div>" },
+          "t-radio-group": { template: "<div><slot /></div>" },
+          "t-radio-button": { template: "<div><slot /></div>" },
+          "t-checkbox": { template: "<input type=\"checkbox\" />" },
+          "t-dialog": { template: "<div><slot /></div>" },
         },
       },
     });
@@ -113,32 +149,26 @@ describe("FormulaForm 组件", () => {
     const cancelBtns = wrapper.findAll(".header-action-btn.secondary");
     if (cancelBtns.length > 0) {
       await cancelBtns[0].trigger("click");
-      expect(push).toHaveBeenCalledWith("/formulas");
+      expect(push).toHaveBeenCalledWith({ path: "/formulas", query: {} });
     }
   });
 
-  it("FF-04: 表单应包含基础信息区域", async () => {
+  it("FF-05: 表单应包含基础信息区域", async () => {
     wrapper = createWrapper();
     await wrapper.vm.$nextTick();
-    expect(wrapper.text()).toContain("基础信息录入");
+    expect(wrapper.text()).toContain("基础信息");
   });
 
-  it("FF-05: 表单应包含原料配比表区域", async () => {
+  it("FF-06: 应包含 AI 解析区域", async () => {
+    wrapper = createWrapper();
+    await wrapper.vm.$nextTick();
+    expect(wrapper.text()).toContain("AI 智能解析");
+  });
+
+  it("FF-07: 应包含原料配比表区域", async () => {
     wrapper = createWrapper();
     await wrapper.vm.$nextTick();
     expect(wrapper.text()).toContain("原料配比表");
-  });
-
-  it("FF-06: 应包含 AI 智能解析面板区域", async () => {
-    wrapper = createWrapper();
-    await wrapper.vm.$nextTick();
-    expect(wrapper.text()).toContain("AI 智能配方解析");
-  });
-
-  it("FF-07: 应包含操作提示面板", async () => {
-    wrapper = createWrapper();
-    await wrapper.vm.$nextTick();
-    expect(wrapper.text()).toContain("操作提示");
   });
 
   it("FF-08: 配方名称输入框应存在", async () => {

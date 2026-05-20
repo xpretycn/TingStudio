@@ -29,7 +29,13 @@ const router = createRouter({
       children: [
         {
           path: "",
-          redirect: "/ai-assistant",
+          redirect: "/dashboard",
+        },
+        {
+          path: "dashboard",
+          name: "Dashboard",
+          component: () => import("@/views/dashboard/Dashboard.vue"),
+          meta: { title: "工作台" },
         },
 
         {

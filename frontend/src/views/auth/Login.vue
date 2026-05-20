@@ -1,99 +1,35 @@
 <template>
   <div class="login-page">
-    <!-- ─── Left Panel: Branding & Illustration ─── -->
+    <!-- ─── Left Panel: Animated Characters ─── -->
     <div class="left-panel">
       <div class="left-panel__decor">
-        <div class="left-panel__blob left-panel__blob--1"></div>
-        <div class="left-panel__blob left-panel__blob--2"></div>
-        <div class="left-panel__blob left-panel__blob--3"></div>
-        <span v-for="i in 8" :key="'h' + i" class="float-heart" :style="heartStyle(i)">♥</span>
-        <span v-for="i in 10" :key="'s' + i" class="twinkle-star" :style="starStyle(i)">✦</span>
+        <div class="deco-grid" />
+        <div class="deco-circle deco-circle-1" />
+        <div class="deco-circle deco-circle-2" />
       </div>
 
       <div class="left-panel__content">
-        <!-- Cute illustration -->
-        <div class="illustration">
-          <div class="illustration__cat">
-            <svg viewBox="0 0 320 260" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <!-- Cloud / cushion -->
-              <ellipse cx="160" cy="220" rx="120" ry="30" fill="rgba(255,255,255,0.15)" />
-              <!-- Main body -->
-              <ellipse cx="160" cy="180" rx="70" ry="60" fill="#FFE8D6" />
-              <!-- Head -->
-              <circle cx="160" cy="120" r="55" fill="#FFE8D6" />
-              <!-- Left ear -->
-              <path d="M115 90L105 45L140 80Z" fill="#FFB5C8" />
-              <path d="M120 85L112 55L137 78Z" fill="#FFD1DC" />
-              <!-- Right ear -->
-              <path d="M205 90L215 45L180 80Z" fill="#FFB5C8" />
-              <path d="M200 85L208 55L183 78Z" fill="#FFD1DC" />
-              <!-- Eyes -->
-              <ellipse cx="142" cy="118" rx="7" ry="8" fill="#5D4E60" />
-              <ellipse cx="178" cy="118" rx="7" ry="8" fill="#5D4E60" />
-              <ellipse cx="144" cy="115" rx="2.5" ry="3" fill="#fff" />
-              <ellipse cx="180" cy="115" rx="2.5" ry="3" fill="#fff" />
-              <!-- Nose -->
-              <ellipse cx="160" cy="132" rx="4" ry="3" fill="#FFB5C2" />
-              <!-- Mouth -->
-              <path d="M152 138Q160 145 168 138" stroke="#E8A0B0" stroke-width="1.5" fill="none"
-                stroke-linecap="round" />
-              <!-- Blush -->
-              <ellipse cx="130" cy="130" rx="10" ry="6" fill="#FFB5C2" opacity="0.35" />
-              <ellipse cx="190" cy="130" rx="10" ry="6" fill="#FFB5C2" opacity="0.35" />
-              <!-- Whiskers -->
-              <line x1="118" y1="125" x2="138" y2="128" stroke="#E8A0B0" stroke-width="1" opacity="0.4" />
-              <line x1="118" y1="133" x2="138" y2="132" stroke="#E8A0B0" stroke-width="1" opacity="0.4" />
-              <line x1="182" y1="128" x2="202" y2="125" stroke="#E8A0B0" stroke-width="1" opacity="0.4" />
-              <line x1="182" y1="132" x2="202" y2="133" stroke="#E8A0B0" stroke-width="1" opacity="0.4" />
-              <!-- Front paws -->
-              <ellipse cx="135" cy="225" rx="18" ry="12" fill="#FFE8D6" />
-              <ellipse cx="185" cy="225" rx="18" ry="12" fill="#FFE8D6" />
-              <!-- Paw pads -->
-              <circle cx="130" cy="228" r="3" fill="#FFB5C2" opacity="0.4" />
-              <circle cx="139" cy="226" r="3" fill="#FFB5C2" opacity="0.4" />
-              <circle cx="181" cy="226" r="3" fill="#FFB5C2" opacity="0.4" />
-              <circle cx="190" cy="228" r="3" fill="#FFB5C2" opacity="0.4" />
-              <!-- Tail -->
-              <path d="M230 190Q260 160 250 130Q245 115 255 105" stroke="#FFE8D6" stroke-width="10" fill="none"
-                stroke-linecap="round" />
-              <!-- Holding a small heart -->
-              <g transform="translate(95, 200) scale(0.6)">
-                <path d="M10 6C10 2 6 0 3 0S0 2 0 4C0 8 10 16 10 16S20 8 20 4C20 2 17 0 14 0S10 2 10 6Z"
-                  fill="#FF8FAB" />
-              </g>
+        <div class="brand">
+          <div class="brand-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
             </svg>
           </div>
-          <!-- Sparkles around cat -->
-          <div class="illustration__sparkle illustration__sparkle--1">✨</div>
-          <div class="illustration__sparkle illustration__sparkle--2">💖</div>
-          <div class="illustration__sparkle illustration__sparkle--3">🌸</div>
-          <div class="illustration__sparkle illustration__sparkle--4">💫</div>
+          <span>TingStudio</span>
         </div>
 
-        <!-- Branding text -->
-        <div class="brand-text">
-          <h1 class="brand-text__title">
-            <span class="brand-text__icon">♡</span>
-            TingStudio
-          </h1>
-          <p class="brand-text__subtitle">你的专属工作数据小管家</p>
-          <p class="brand-text__desc">在这里记录每一个灵感，管理每一份配方，<br />让工作变得轻松又可爱~</p>
+        <div class="characters-area">
+          <AnimatedCharacters
+            :is-typing="isTyping"
+            :has-secret="!!formData.password"
+            :secret-visible="showPassword"
+          />
         </div>
 
-        <!-- Feature tags -->
-        <div class="feature-tags">
-          <div class="feature-tag">
-            <span class="feature-tag__dot"></span>
-            智能配方管理
-          </div>
-          <div class="feature-tag">
-            <span class="feature-tag__dot"></span>
-            客户资料维护
-          </div>
-          <div class="feature-tag">
-            <span class="feature-tag__dot"></span>
-            数据安全可靠
-          </div>
+        <div class="footer-links">
+          <span>智能配方管理</span>
+          <span>客户资料维护</span>
+          <span>数据安全可靠</span>
         </div>
       </div>
     </div>
@@ -175,8 +111,16 @@
                 <span class="label-dot"></span>
                 用户名
               </label>
-              <t-input v-model="formData.username" placeholder="请输入用户名" size="large" clearable class="cute-input"
-                data-testid="login-username">
+              <t-input
+                v-model="formData.username"
+                placeholder="请输入用户名"
+                size="large"
+                clearable
+                class="cute-input"
+                data-testid="login-username"
+                @focus="isTyping = true"
+                @blur="isTyping = false"
+              >
                 <template #prefix-icon>
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
                     stroke-linecap="round" stroke-linejoin="round">
@@ -194,14 +138,41 @@
                 <span class="label-dot"></span>
                 密码
               </label>
-              <t-input v-model="formData.password" type="password" placeholder="请输入密码" size="large" clearable
-                class="cute-input" data-testid="login-password">
+              <t-input
+                v-model="formData.password"
+                :type="showPassword ? 'text' : 'password'"
+                placeholder="请输入密码"
+                size="large"
+                clearable
+                class="cute-input"
+                data-testid="login-password"
+                @focus="isTyping = true"
+                @blur="isTyping = false"
+              >
                 <template #prefix-icon>
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
                     stroke-linecap="round" stroke-linejoin="round">
                     <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
                     <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                   </svg>
+                </template>
+                <template #suffix-icon>
+                  <button
+                    type="button"
+                    class="eye-btn"
+                    @click="showPassword = !showPassword"
+                  >
+                    <svg v-if="showPassword" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" />
+                      <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68" />
+                      <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61" />
+                      <line x1="2" x2="22" y1="2" y2="22" />
+                    </svg>
+                    <svg v-else width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
+                  </button>
                 </template>
               </t-input>
             </div>
@@ -210,7 +181,6 @@
           <t-form-item>
             <t-button type="submit" theme="primary" size="large" block :loading="loading" class="cute-btn"
               data-testid="login-btn">
-
               <span class="btn-text">♥ 登 录</span>
             </t-button>
           </t-form-item>
@@ -230,48 +200,36 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue';
-import { useRouter } from 'vue-router';
-import { useAuthStore } from '@/stores/auth';
-import { MessagePlugin } from 'tdesign-vue-next';
-import type { FormInstanceFunctions, FormRule } from 'tdesign-vue-next';
+import { ref, reactive } from "vue";
+import { useRouter } from "vue-router";
+import { useAuthStore } from "@/stores/auth";
+import { MessagePlugin } from "tdesign-vue-next";
+import type { FormInstanceFunctions, FormRule } from "tdesign-vue-next";
+import AnimatedCharacters from "./AnimatedCharacters.vue";
 
 const router = useRouter();
 const authStore = useAuthStore();
 
 const formRef = ref<FormInstanceFunctions>();
 const loading = ref(false);
+const isTyping = ref(false);
+const showPassword = ref(false);
 
 const formData = reactive({
-  username: 'admin',
-  password: 'admin123'
+  username: "",
+  password: "",
 });
 
 const rules: Record<string, FormRule[]> = {
   username: [
-    { required: true, message: '请输入用户名哦~', trigger: 'blur' },
-    { min: 3, message: '用户名至少3个字符呢', trigger: 'blur' }
+    { required: true, message: "请输入用户名哦~", trigger: "blur" },
+    { min: 3, message: "用户名至少3个字符呢", trigger: "blur" },
   ],
   password: [
-    { required: true, message: '请输入密码哦~', trigger: 'blur' },
-    { min: 6, message: '密码至少6个字符呢', trigger: 'blur' }
-  ]
+    { required: true, message: "请输入密码哦~", trigger: "blur" },
+    { min: 6, message: "密码至少6个字符呢", trigger: "blur" },
+  ],
 };
-
-const heartStyle = (i: number) => ({
-  left: `${5 + i * 12}%`,
-  animationDelay: `${i * 1.5}s`,
-  fontSize: `${14 + (i % 3) * 8}px`,
-  color: `hsl(${340 + i * 6}, 80%, ${72 + i * 2}%)`
-});
-
-const starStyle = (i: number) => ({
-  left: `${3 + i * 10}%`,
-  top: `${8 + (i % 5) * 18}%`,
-  animationDelay: `${i * 0.7}s`,
-  fontSize: `${10 + (i % 3) * 5}px`,
-  color: `hsl(${280 + i * 12}, 70%, ${75 + i * 2}%)`
-});
 
 const handleSubmit = async ({ validateResult }: any) => {
   if (validateResult === true) {
@@ -279,13 +237,13 @@ const handleSubmit = async ({ validateResult }: any) => {
     try {
       const result = await authStore.login({
         username: formData.username,
-        password: formData.password
+        password: formData.password,
       });
       if (result.success) {
-        MessagePlugin.success('登录成功啦~ 欢迎回来！');
-        router.push('/');
+        MessagePlugin.success("登录成功啦~ 欢迎回来！");
+        router.push("/");
       } else {
-        MessagePlugin.error(result.message || '登录失败了，再试试吧~');
+        MessagePlugin.error(result.message || "登录失败了，再试试吧~");
       }
     } finally {
       loading.value = false;
@@ -301,7 +259,7 @@ const handleSubmit = async ({ validateResult }: any) => {
   display: flex;
   min-height: 100vh;
   width: 100%;
-  font-family: 'PingFang SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: "PingFang SC", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   overflow: hidden;
 }
 
@@ -310,13 +268,13 @@ const handleSubmit = async ({ validateResult }: any) => {
 // ═══════════════════════════════════════
 .left-panel {
   position: relative;
-  flex: 0 0 30%;
+  flex: 0 0 45%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 48px;
-  background: linear-gradient(155deg, #FFF0F5 0%, #FFE4EC 25%, #E8D5F5 55%, #FFF0F5 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 50%, var(--color-lavender) 100%);
   overflow: hidden;
 
   &__decor {
@@ -326,270 +284,95 @@ const handleSubmit = async ({ validateResult }: any) => {
     overflow: hidden;
   }
 
-  &__blob {
-    position: absolute;
-    border-radius: 50%;
-    filter: blur(50px);
-    opacity: 0.45;
-
-    &--1 {
-      width: 350px;
-      height: 350px;
-      top: -80px;
-      right: -60px;
-      background: radial-gradient(circle, #FFE4EC, transparent 70%);
-    }
-
-    &--2 {
-      width: 280px;
-      height: 280px;
-      bottom: -60px;
-      left: -40px;
-      background: radial-gradient(circle, #E8D5F5, transparent 70%);
-    }
-
-    &--3 {
-      width: 180px;
-      height: 180px;
-      top: 50%;
-      left: 20%;
-      background: radial-gradient(circle, #FFB5C8, transparent 70%);
-      opacity: 0.3;
-    }
-  }
-
   &__content {
     position: relative;
     z-index: 1;
-    text-align: center;
-    animation: fadeSlideRight 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
-  }
-}
-
-.float-heart {
-  position: absolute;
-  bottom: -20px;
-  animation: floatUp 10s ease-in-out infinite;
-  opacity: 0;
-  user-select: none;
-}
-
-.twinkle-star {
-  position: absolute;
-  animation: twinkle 3.5s ease-in-out infinite;
-  user-select: none;
-  opacity: 0.4;
-}
-
-@keyframes floatUp {
-  0% {
-    transform: translateY(0) rotate(0deg) scale(0.5);
-    opacity: 0;
-  }
-
-  12% {
-    opacity: 0.55;
-  }
-
-  80% {
-    opacity: 0.2;
-  }
-
-  100% {
-    transform: translateY(-100vh) rotate(20deg) scale(1);
-    opacity: 0;
-  }
-}
-
-@keyframes twinkle {
-
-  0%,
-  100% {
-    opacity: 0.15;
-    transform: scale(0.7);
-  }
-
-  50% {
-    opacity: 0.6;
-    transform: scale(1.15);
-  }
-}
-
-@keyframes fadeSlideRight {
-  from {
-    opacity: 0;
-    transform: translateX(-30px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-// ───── Illustration ─────
-.illustration {
-  position: relative;
-  width: 280px;
-  height: 240px;
-  margin: 0 auto 32px;
-
-  &__cat {
-    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
     height: 100%;
-    animation: catBounce 4s ease-in-out infinite;
-
-    svg {
-      width: 100%;
-      height: 100%;
-      filter: drop-shadow(0 8px 20px var(--overlay-brand-20));
-    }
-  }
-
-  &__sparkle {
-    position: absolute;
-    font-size: 20px;
-    animation: sparkleFloat 3s ease-in-out infinite;
-
-    &--1 {
-      top: 10px;
-      right: 10px;
-      animation-delay: 0s;
-      font-size: 22px;
-    }
-
-    &--2 {
-      top: 50%;
-      left: -10px;
-      animation-delay: 0.8s;
-      font-size: 18px;
-    }
-
-    &--3 {
-      bottom: 30px;
-      right: 0;
-      animation-delay: 1.6s;
-      font-size: 20px;
-    }
-
-    &--4 {
-      top: 20px;
-      left: 20px;
-      animation-delay: 2.2s;
-      font-size: 16px;
-    }
+    width: 100%;
+    max-width: 550px;
   }
 }
 
-@keyframes catBounce {
+.deco-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
 
-  0%,
-  100% {
-    transform: translateY(0);
+.deco-circle {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(48px);
+
+  &-1 {
+    top: 25%;
+    right: 25%;
+    width: 256px;
+    height: 256px;
+    background: rgba(255, 255, 255, 0.1);
   }
 
-  50% {
-    transform: translateY(-8px);
+  &-2 {
+    bottom: 25%;
+    left: 25%;
+    width: 384px;
+    height: 384px;
+    background: rgba(255, 255, 255, 0.05);
   }
 }
 
-@keyframes sparkleFloat {
+.brand {
+  position: relative;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 18px;
+  font-weight: 600;
+  color: white;
 
-  0%,
-  100% {
-    opacity: 0.3;
-    transform: translateY(0) scale(0.8);
-  }
-
-  50% {
-    opacity: 1;
-    transform: translateY(-6px) scale(1.1);
-  }
-}
-
-// ───── Brand Text ─────
-.brand-text {
-  margin-bottom: 28px;
-
-  &__title {
-    font-size: 30px;
-    font-weight: 700;
-    color: $text-primary;
-    margin: 0 0 8px 0;
+  &-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(8px);
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-  }
-
-  &__icon {
-    color: var(--color-primary-light);
-    font-size: 26px;
-    animation: heartBeat 1.5s ease-in-out infinite;
-  }
-
-  &__subtitle {
-    font-size: 16px;
-    font-weight: 600;
-    color: var(--color-primary-light);
-    margin: 0 0 10px 0;
-  }
-
-  &__desc {
-    font-size: 14px;
-    color: $text-secondary;
-    line-height: 1.7;
-    margin: 0;
   }
 }
 
-@keyframes heartBeat {
-
-  0%,
-  100% {
-    transform: scale(1);
-  }
-
-  15% {
-    transform: scale(1.2);
-  }
-
-  30% {
-    transform: scale(1);
-  }
-
-  45% {
-    transform: scale(1.15);
-  }
-}
-
-// ───── Feature Tags ─────
-.feature-tags {
+.characters-area {
+  position: relative;
+  z-index: 20;
   display: flex;
-  gap: 12px;
+  align-items: flex-end;
   justify-content: center;
-  flex-wrap: wrap;
+  flex: 1;
+  min-height: 400px;
 }
 
-.feature-tag {
+.footer-links {
+  position: relative;
+  z-index: 20;
   display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
-  background: $overlay-white-65;
-  backdrop-filter: blur(8px);
-  border-radius: 20px;
-  font-size: 13px;
-  color: $text-primary;
-  font-weight: 500;
-  border: 1px solid var(--overlay-brand-lighter-20);
+  gap: 32px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.6);
 
-  &__dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--color-primary-light);
-    flex-shrink: 0;
+  span {
+    transition: color 0.2s;
+
+    &:hover {
+      color: white;
+    }
   }
 }
 
@@ -597,7 +380,7 @@ const handleSubmit = async ({ validateResult }: any) => {
 //  RIGHT PANEL
 // ═══════════════════════════════════════
 .right-panel {
-  flex: 0 0 70%;
+  flex: 0 0 55%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -792,6 +575,22 @@ const handleSubmit = async ({ validateResult }: any) => {
   }
 }
 
+.eye-btn {
+  background: none;
+  border: none;
+  color: #a1a1aa;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  transition: color 0.2s;
+
+  &:hover {
+    color: #3f3f46;
+  }
+}
+
 // ───── Button ─────
 .cute-btn {
   position: relative;
@@ -807,7 +606,7 @@ const handleSubmit = async ({ validateResult }: any) => {
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 
   &::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 50%;
     left: 50%;
@@ -849,7 +648,7 @@ const handleSubmit = async ({ validateResult }: any) => {
       0 0 0 4px var(--overlay-brand-25);
   }
 
-  &[class*='loading'] {
+  &[class*="loading"] {
     opacity: 0.85;
     cursor: not-allowed;
     transform: none !important;
@@ -899,22 +698,8 @@ const handleSubmit = async ({ validateResult }: any) => {
     padding: 36px 32px;
   }
 
-  .illustration {
-    width: 220px;
-    height: 190px;
-  }
-
-  .brand-text__title {
-    font-size: 24px;
-  }
-
-  .feature-tags {
-    gap: 8px;
-  }
-
-  .feature-tag {
-    font-size: 12px;
-    padding: 6px 12px;
+  .characters-area {
+    transform: scale(0.8);
   }
 }
 

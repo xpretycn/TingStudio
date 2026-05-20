@@ -1,0 +1,1246 @@
+<template>
+  <div class="dashboard-page">
+    <div class="bento-grid">
+      <section class="bento-card bento-welcome">
+        <div class="welcome-inner">
+          <div class="welcome-text">
+            <h2 class="welcome-greeting">{{ greeting }}，{{ username }}</h2>
+            <p class="welcome-sub">{{ greetingSub }}</p>
+          </div>
+          <div class="welcome-meta">
+            <div class="meta-date">
+              <span class="meta-day">{{ todayDay }}</span>
+              <span class="meta-weekday">{{ todayWeekday }}</span>
+            </div>
+            <div class="meta-weather" v-if="weatherStore.hasWeather">
+              <span class="weather-emoji">{{ weatherStore.weatherEmoji }}</span>
+              <span class="weather-temp">{{ weatherStore.temperature }}°</span>
+              <span class="weather-city">{{ weatherStore.cityName }}</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section
+        v-for="item in statCards"
+        :key="item.key"
+        class="bento-card bento-stat"
+        :class="[`bento-stat--${item.key}`]"
+        @click="item.route && router.push(item.route)"
+      >
+        <div class="stat-icon-wrap" :style="{ background: item.iconBg }">
+          <t-icon :name="item.icon" size="22px" :style="{ color: item.iconColor }" />
+        </div>
+        <div class="stat-body">
+          <span class="stat-value">
+            <template v-if="dashboardStore.statsLoading">
+              <t-loading size="small" />
+            </template>
+            <template v-else>{{ item.display }}</template>
+          </span>
+          <span class="stat-label">{{ item.label }}</span>
+        </div>
+        <div v-if="item.route" class="stat-arrow">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
+        </div>
+      </section>
+
+      <section class="bento-card bento-chart">
+        <div class="card-header">
+          <h3 class="card-title">销量趋势</h3>
+          <div class="chart-tabs">
+            <button
+              v-for="tab in chartTabs"
+              :key="tab.value"
+              class="chart-tab"
+              :class="{ active: activeChartTab === tab.value }"
+              @click="handleChartTab(tab.value)"
+            >{{ tab.label }}</button>
+          </div>
+        </div>
+        <div class="chart-body" ref="chartRef">
+          <template v-if="dashboardStore.trendLoading">
+            <div class="chart-skeleton">
+              <div class="skeleton-bar" v-for="i in 6" :key="i" :style="{ height: `${20 + Math.random() * 60}%` }" />
+            </div>
+          </template>
+          <template v-else-if="dashboardStore.salesTrend.length === 0">
+            <div class="chart-empty">
+              <t-icon name="chart-line" size="32px" />
+              <p>暂无销量数据</p>
+            </div>
+          </template>
+        </div>
+      </section>
+
+      <section class="bento-card bento-formulas">
+        <div class="card-header">
+          <h3 class="card-title">精选配方</h3>
+          <button class="card-link" @click="router.push('/formulas')">
+            查看全部
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          </button>
+        </div>
+        <div class="formulas-body">
+          <template v-if="formulaStore.loading">
+            <div class="formula-skeleton" v-for="i in 3" :key="i">
+              <div class="skeleton-line skeleton-line--title" />
+              <div class="skeleton-line skeleton-line--sub" />
+            </div>
+          </template>
+          <template v-else-if="featuredFormulas.length === 0">
+            <div class="formulas-empty">
+              <t-icon name="edit" size="28px" />
+              <p>还没有配方</p>
+              <t-button theme="primary" size="small" @click="router.push('/formulas/new')">创建配方</t-button>
+            </div>
+          </template>
+          <template v-else>
+            <div
+              v-for="formula in featuredFormulas"
+              :key="formula.id"
+              class="formula-card"
+              @click="router.push(`/formulas/${formula.id}`)"
+            >
+              <div class="formula-color-bar" :style="{ background: getFormulaGradient(formula) }" />
+              <div class="formula-info">
+                <span class="formula-name">{{ formula.name }}</span>
+                <span class="formula-meta">{{ formula.salesmanName || '--' }} · {{ formula.materials?.length || 0 }} 种原料</span>
+              </div>
+              <svg class="formula-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            </div>
+          </template>
+        </div>
+      </section>
+
+      <section class="bento-card bento-activity">
+        <div class="card-header">
+          <h3 class="card-title">近期动态</h3>
+        </div>
+        <div class="activity-body">
+          <template v-if="dashboardStore.activityLoading">
+            <div class="activity-skeleton" v-for="i in 5" :key="i">
+              <div class="skeleton-circle" />
+              <div class="skeleton-lines">
+                <div class="skeleton-line skeleton-line--title" />
+                <div class="skeleton-line skeleton-line--sub" />
+              </div>
+            </div>
+          </template>
+          <template v-else-if="dashboardStore.activities.length === 0">
+            <div class="activity-empty">
+              <t-icon name="time" size="28px" />
+              <p>暂无动态</p>
+            </div>
+          </template>
+          <template v-else>
+            <div
+              v-for="activity in dashboardStore.activities"
+              :key="activity.id"
+              class="activity-item"
+              @click="handleActivityClick(activity)"
+            >
+              <div class="activity-dot" :class="`activity-dot--${activity.type}`" />
+              <div class="activity-content">
+                <span class="activity-name">{{ activity.name }}</span>
+                <span class="activity-time">{{ formatRelativeTime(activity.updatedAt) }}</span>
+              </div>
+              <span class="activity-type-badge" :class="`activity-type-badge--${activity.type}`">
+                {{ activity.type === 'formula' ? '配方' : '原料' }}
+              </span>
+            </div>
+          </template>
+        </div>
+      </section>
+
+      <section class="bento-card bento-quick">
+        <div class="card-header">
+          <h3 class="card-title">快捷操作</h3>
+        </div>
+        <div class="quick-body">
+          <button class="quick-btn" @click="router.push('/formulas/new')">
+            <div class="quick-icon" style="background: rgba(16, 185, 129, 0.1);">
+              <t-icon name="add" size="20px" style="color: #10b981;" />
+            </div>
+            <span>新建配方</span>
+          </button>
+          <button class="quick-btn" @click="router.push('/materials/new')">
+            <div class="quick-icon" style="background: rgba(59, 130, 246, 0.1);">
+              <t-icon name="chart-bar" size="20px" style="color: #3b82f6;" />
+            </div>
+            <span>新增原料</span>
+          </button>
+          <button class="quick-btn" @click="router.push('/ai-assistant')">
+            <div class="quick-icon" style="background: rgba(168, 85, 247, 0.1);">
+              <t-icon name="precise-monitor" size="20px" style="color: #a855f7;" />
+            </div>
+            <span>AI 助手</span>
+          </button>
+          <button class="quick-btn" @click="router.push('/sales')">
+            <div class="quick-icon" style="background: rgba(245, 158, 11, 0.1);">
+              <t-icon name="chart" size="20px" style="color: #f59e0b;" />
+            </div>
+            <span>销量分析</span>
+          </button>
+        </div>
+      </section>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, computed, onMounted, onUnmounted, nextTick, watch } from "vue";
+import { useRouter } from "vue-router";
+import { useAuthStore } from "@/stores/auth";
+import { useDashboardStore } from "@/stores/dashboard";
+import { useFormulaStore } from "@/stores/formula";
+import { useWeatherStore } from "@/stores/weather";
+import { formatCompact } from "@/utils/timeFormat";
+import * as echarts from "echarts";
+
+const router = useRouter();
+const authStore = useAuthStore();
+const dashboardStore = useDashboardStore();
+const formulaStore = useFormulaStore();
+const weatherStore = useWeatherStore();
+
+const chartRef = ref<HTMLElement | null>(null);
+let chartInstance: echarts.ECharts | null = null;
+const activeChartTab = ref<"week" | "month" | "year">("month");
+
+const chartTabs = [
+  { label: "周", value: "week" as const },
+  { label: "月", value: "month" as const },
+  { label: "年", value: "year" as const },
+];
+
+const username = computed(() => authStore.user?.username || "用户");
+
+const greeting = computed(() => {
+  const hour = new Date().getHours();
+  if (hour < 6) return "夜深了";
+  if (hour < 12) return "早上好";
+  if (hour < 14) return "中午好";
+  if (hour < 18) return "下午好";
+  return "晚上好";
+});
+
+const greetingSub = computed(() => {
+  const subs = [
+    "今天准备创造点什么？",
+    "让灵感驱动每一份配方",
+    "数据在手，配方无忧",
+    "高效工作，从容创作",
+  ];
+  return subs[new Date().getDate() % subs.length];
+});
+
+const todayDay = computed(() => String(new Date().getDate()).padStart(2, "0"));
+const todayWeekday = computed(() => {
+  const weekdays = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
+  return weekdays[new Date().getDay()];
+});
+
+const statCards = computed(() => {
+  const s = dashboardStore.stats;
+  return [
+    {
+      key: "formulas",
+      label: "配方总数",
+      display: s ? formatCompact(s.formulas) : "--",
+      icon: "edit",
+      iconBg: "rgba(16, 185, 129, 0.1)",
+      iconColor: "#10b981",
+      route: "/formulas",
+    },
+    {
+      key: "materials",
+      label: "原料总数",
+      display: s ? formatCompact(s.materials) : "--",
+      icon: "chart-bar",
+      iconBg: "rgba(59, 130, 246, 0.1)",
+      iconColor: "#3b82f6",
+      route: "/materials",
+    },
+    {
+      key: "revenue",
+      label: "本月营收",
+      display: s ? `¥${formatCompact(s.sales.revenue)}` : "--",
+      icon: "chart",
+      iconBg: "rgba(245, 158, 11, 0.1)",
+      iconColor: "#f59e0b",
+      route: "/sales",
+    },
+    {
+      key: "sales",
+      label: "销量配方",
+      display: s ? `${s.sales.formulaCount} 款` : "--",
+      icon: "shop",
+      iconBg: "rgba(168, 85, 247, 0.1)",
+      iconColor: "#a855f7",
+      route: "/sales",
+    },
+  ];
+});
+
+const featuredFormulas = computed(() => formulaStore.formulas.slice(0, 3));
+
+const FORMULA_GRADIENTS = [
+  "linear-gradient(135deg, #10b981, #34d399)",
+  "linear-gradient(135deg, #3b82f6, #60a5fa)",
+  "linear-gradient(135deg, #a855f7, #c084fc)",
+  "linear-gradient(135deg, #f59e0b, #fbbf24)",
+  "linear-gradient(135deg, #ef4444, #f87171)",
+];
+
+const getFormulaGradient = (formula: { id: string }) => {
+  const index = formula.id.charCodeAt(0) % FORMULA_GRADIENTS.length;
+  return FORMULA_GRADIENTS[index];
+};
+
+const formatRelativeTime = (dateStr: string): string => {
+  if (!dateStr || dateStr === "-") return "--";
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return dateStr;
+  const now = new Date();
+  const diff = now.getTime() - d.getTime();
+  const minutes = Math.floor(diff / 60000);
+  if (minutes < 1) return "刚刚";
+  if (minutes < 60) return `${minutes} 分钟前`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours} 小时前`;
+  const days = Math.floor(hours / 24);
+  if (days < 30) return `${days} 天前`;
+  const months = Math.floor(days / 30);
+  if (months < 12) return `${months} 个月前`;
+  return `${Math.floor(months / 12)} 年前`;
+};
+
+const handleActivityClick = (activity: { type: string; id: string }) => {
+  if (activity.type === "formula") {
+    router.push(`/formulas/${activity.id}`);
+  } else {
+    router.push(`/materials/${activity.id}`);
+  }
+};
+
+const handleChartTab = (period: "week" | "month" | "year") => {
+  activeChartTab.value = period;
+  dashboardStore.fetchSalesTrend(period);
+};
+
+const initChart = () => {
+  if (!chartRef.value) return;
+  if (chartInstance) {
+    chartInstance.dispose();
+  }
+  chartInstance = echarts.init(chartRef.value);
+  updateChart();
+};
+
+const updateChart = () => {
+  if (!chartInstance) return;
+  const data = dashboardStore.salesTrend;
+  if (!data || data.length === 0) return;
+
+  const isDark = document.documentElement.getAttribute("theme-mode") === "dark";
+  const textColor = isDark ? "#94a3b8" : "#64748b";
+  const gridColor = isDark ? "rgba(148, 163, 184, 0.08)" : "rgba(0, 0, 0, 0.04)";
+
+  const option: echarts.EChartsOption = {
+    grid: {
+      top: 16,
+      right: 16,
+      bottom: 28,
+      left: 48,
+    },
+    tooltip: {
+      trigger: "axis",
+      backgroundColor: isDark ? "#1e293b" : "#fff",
+      borderColor: isDark ? "#334155" : "#e2e8f0",
+      borderWidth: 1,
+      textStyle: {
+        color: isDark ? "#e2e8f0" : "#334155",
+        fontSize: 12,
+      },
+      formatter: (params: any) => {
+        const p = Array.isArray(params) ? params[0] : params;
+        return `<div style="font-weight:600;margin-bottom:4px">${p.axisValue}</div>
+                <div>销量: ${p.value}</div>`;
+      },
+    },
+    xAxis: {
+      type: "category",
+      data: data.map((d) => d.period),
+      axisLine: { show: false },
+      axisTick: { show: false },
+      axisLabel: {
+        color: textColor,
+        fontSize: 11,
+        margin: 8,
+      },
+    },
+    yAxis: {
+      type: "value",
+      splitLine: {
+        lineStyle: { color: gridColor, type: "dashed" },
+      },
+      axisLine: { show: false },
+      axisTick: { show: false },
+      axisLabel: {
+        color: textColor,
+        fontSize: 11,
+      },
+    },
+    series: [
+      {
+        type: "line",
+        data: data.map((d) => d.quantity),
+        smooth: true,
+        symbol: "circle",
+        symbolSize: 6,
+        lineStyle: {
+          width: 2.5,
+          color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
+            { offset: 0, color: "#10b981" },
+            { offset: 1, color: "#34d399" },
+          ]),
+        },
+        itemStyle: {
+          color: "#10b981",
+          borderWidth: 2,
+          borderColor: "#fff",
+        },
+        areaStyle: {
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            { offset: 0, color: "rgba(16, 185, 129, 0.2)" },
+            { offset: 1, color: "rgba(16, 185, 129, 0.01)" },
+          ]),
+        },
+      },
+    ],
+  };
+
+  chartInstance.setOption(option, true);
+};
+
+watch(
+  () => dashboardStore.salesTrend,
+  () => {
+    nextTick(() => {
+      if (dashboardStore.salesTrend.length > 0) {
+        if (!chartInstance) {
+          initChart();
+        } else {
+          updateChart();
+        }
+      }
+    });
+  },
+  { deep: true }
+);
+
+const handleResize = () => {
+  chartInstance?.resize();
+};
+
+onMounted(async () => {
+  dashboardStore.fetchAll();
+  if (formulaStore.formulas.length === 0) {
+    formulaStore.fetchFormulas();
+  }
+  await nextTick();
+  if (dashboardStore.salesTrend.length > 0) {
+    initChart();
+  } else {
+    setTimeout(() => {
+      if (dashboardStore.salesTrend.length > 0) {
+        initChart();
+      }
+    }, 1500);
+  }
+  window.addEventListener("resize", handleResize);
+});
+
+onUnmounted(() => {
+  window.removeEventListener("resize", handleResize);
+  if (chartInstance) {
+    chartInstance.dispose();
+    chartInstance = null;
+  }
+});
+</script>
+
+<style scoped lang="scss">
+.dashboard-page {
+  min-height: 100%;
+  padding: 4px 4px 24px;
+}
+
+.bento-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: auto;
+  gap: 16px;
+}
+
+.bento-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06), 0 2px 8px rgba(0, 0, 0, 0.04);
+  }
+}
+
+.bento-welcome {
+  grid-column: 1 / -1;
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  color: #fff;
+  border: none;
+  padding: 28px 32px;
+
+  &:hover {
+    transform: none;
+    box-shadow: 0 8px 32px rgba(15, 23, 42, 0.2);
+  }
+
+  .welcome-inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 24px;
+  }
+
+  .welcome-greeting {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0 0 6px;
+    letter-spacing: -0.3px;
+  }
+
+  .welcome-sub {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.6);
+    margin: 0;
+  }
+
+  .welcome-meta {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-shrink: 0;
+  }
+
+  .meta-date {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+
+    .meta-day {
+      font-size: 32px;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .meta-weekday {
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.5);
+    }
+  }
+
+  .meta-weather {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    backdrop-filter: blur(8px);
+
+    .weather-emoji {
+      font-size: 18px;
+    }
+
+    .weather-temp {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .weather-city {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.5);
+    }
+  }
+}
+
+.bento-stat {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 20px;
+
+  .stat-icon-wrap {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .stat-body {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .stat-value {
+    display: block;
+    font-size: 22px;
+    font-weight: 700;
+    color: #0f172a;
+    line-height: 1.2;
+  }
+
+  .stat-label {
+    display: block;
+    font-size: 12px;
+    color: #94a3b8;
+    margin-top: 2px;
+  }
+
+  .stat-arrow {
+    color: #cbd5e1;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+  }
+
+  &:hover .stat-arrow {
+    color: #10b981;
+    transform: translateX(3px);
+  }
+}
+
+.bento-chart {
+  grid-column: 1 / 3;
+
+  .chart-body {
+    height: 220px;
+    margin-top: 12px;
+  }
+
+  .chart-skeleton {
+    height: 100%;
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+    padding: 0 8px;
+
+    .skeleton-bar {
+      flex: 1;
+      background: linear-gradient(180deg, #f1f5f9 0%, #e2e8f0 100%);
+      border-radius: 6px 6px 0 0;
+      animation: shimmer 1.5s ease-in-out infinite;
+    }
+  }
+
+  .chart-empty {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #cbd5e1;
+    gap: 8px;
+
+    p {
+      margin: 0;
+      font-size: 13px;
+    }
+  }
+}
+
+.bento-formulas {
+  grid-column: 3 / 5;
+
+  .formulas-body {
+    margin-top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .formula-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+
+    &:hover {
+      background: #f8fafc;
+      border-color: #e2e8f0;
+
+      .formula-arrow {
+        color: #10b981;
+        transform: translateX(3px);
+      }
+    }
+
+    .formula-color-bar {
+      width: 4px;
+      height: 36px;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    .formula-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .formula-name {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      color: #0f172a;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .formula-meta {
+      display: block;
+      font-size: 12px;
+      color: #94a3b8;
+      margin-top: 2px;
+    }
+
+    .formula-arrow {
+      color: #cbd5e1;
+      flex-shrink: 0;
+      transition: all 0.2s ease;
+    }
+  }
+
+  .formulas-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 0;
+    color: #cbd5e1;
+    gap: 8px;
+
+    p {
+      margin: 0;
+      font-size: 13px;
+      color: #94a3b8;
+    }
+  }
+}
+
+.bento-activity {
+  grid-column: 1 / 3;
+
+  .activity-body {
+    margin-top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .activity-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: #f8fafc;
+    }
+  }
+
+  .activity-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+
+    &--formula {
+      background: #10b981;
+    }
+
+    &--material {
+      background: #3b82f6;
+    }
+  }
+
+  .activity-content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .activity-name {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: #0f172a;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .activity-time {
+    display: block;
+    font-size: 11px;
+    color: #94a3b8;
+    margin-top: 1px;
+  }
+
+  .activity-type-badge {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-weight: 500;
+    flex-shrink: 0;
+
+    &--formula {
+      background: rgba(16, 185, 129, 0.08);
+      color: #10b981;
+    }
+
+    &--material {
+      background: rgba(59, 130, 246, 0.08);
+      color: #3b82f6;
+    }
+  }
+
+  .activity-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 0;
+    color: #cbd5e1;
+    gap: 8px;
+
+    p {
+      margin: 0;
+      font-size: 13px;
+      color: #94a3b8;
+    }
+  }
+}
+
+.bento-quick {
+  grid-column: 3 / 5;
+
+  .quick-body {
+    margin-top: 12px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .quick-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 13px;
+    font-weight: 500;
+    color: #334155;
+
+    &:hover {
+      border-color: #10b981;
+      background: #f8fafc;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.08);
+    }
+
+    &:active {
+      transform: scale(0.98);
+    }
+
+    .quick-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+  }
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+
+  .card-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #0f172a;
+    margin: 0;
+  }
+
+  .card-link {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    color: #94a3b8;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+
+    &:hover {
+      color: #10b981;
+      background: rgba(16, 185, 129, 0.06);
+    }
+  }
+}
+
+.chart-tabs {
+  display: flex;
+  gap: 2px;
+  background: #f1f5f9;
+  border-radius: 8px;
+  padding: 2px;
+
+  .chart-tab {
+    padding: 4px 12px;
+    font-size: 12px;
+    font-weight: 500;
+    border: none;
+    background: transparent;
+    color: #94a3b8;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &.active {
+      background: #fff;
+      color: #0f172a;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    }
+
+    &:hover:not(.active) {
+      color: #64748b;
+    }
+  }
+}
+
+@keyframes shimmer {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.skeleton-line {
+  height: 10px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background-size: 200% 100%;
+  animation: skeletonSlide 1.5s ease-in-out infinite;
+
+  &--title {
+    width: 60%;
+    margin-bottom: 6px;
+  }
+
+  &--sub {
+    width: 40%;
+  }
+}
+
+.skeleton-circle {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #e2e8f0;
+  flex-shrink: 0;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+.formula-skeleton,
+.activity-skeleton {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+
+  .skeleton-lines {
+    flex: 1;
+  }
+}
+
+@keyframes skeletonSlide {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@media screen and (max-width: 1200px) {
+  .bento-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .bento-welcome {
+    grid-column: 1 / -1;
+  }
+
+  .bento-chart {
+    grid-column: 1 / -1;
+  }
+
+  .bento-formulas {
+    grid-column: 1 / -1;
+  }
+
+  .bento-activity {
+    grid-column: 1 / 2;
+  }
+
+  .bento-quick {
+    grid-column: 2 / 3;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .bento-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .bento-welcome {
+    grid-column: 1;
+    padding: 20px;
+
+    .welcome-inner {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 16px;
+    }
+
+    .welcome-greeting {
+      font-size: 20px;
+    }
+
+    .welcome-meta {
+      width: 100%;
+      justify-content: space-between;
+    }
+  }
+
+  .bento-stat {
+    grid-column: 1 !important;
+  }
+
+  .bento-chart,
+  .bento-formulas,
+  .bento-activity,
+  .bento-quick {
+    grid-column: 1;
+  }
+
+  .bento-quick .quick-body {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .bento-grid {
+    gap: 10px;
+  }
+
+  .bento-card {
+    padding: 16px;
+    border-radius: 12px;
+  }
+
+  .bento-welcome {
+    .meta-day {
+      font-size: 24px;
+    }
+  }
+
+  .bento-quick .quick-body {
+    grid-template-columns: 1fr;
+  }
+}
+
+:root[theme-mode="dark"] {
+  .bento-card {
+    background: #1e293b;
+    border-color: rgba(255, 255, 255, 0.06);
+
+    &:hover {
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3), 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+  }
+
+  .bento-welcome {
+    background: linear-gradient(135deg, #0c1222 0%, #162033 100%);
+  }
+
+  .bento-stat {
+    .stat-value {
+      color: #e2e8f0;
+    }
+
+    .stat-label {
+      color: #64748b;
+    }
+  }
+
+  .card-header {
+    .card-title {
+      color: #e2e8f0;
+    }
+  }
+
+  .bento-chart {
+    .chart-skeleton .skeleton-bar {
+      background: linear-gradient(180deg, #334155 0%, #1e293b 100%);
+    }
+
+    .chart-empty {
+      color: #475569;
+    }
+  }
+
+  .bento-formulas {
+    .formula-card {
+      &:hover {
+        background: #0f172a;
+        border-color: rgba(255, 255, 255, 0.08);
+      }
+    }
+
+    .formula-name {
+      color: #e2e8f0;
+    }
+
+    .formula-meta {
+      color: #64748b;
+    }
+
+    .formula-arrow {
+      color: #475569;
+    }
+
+    .formulas-empty {
+      color: #475569;
+
+      p {
+        color: #64748b;
+      }
+    }
+  }
+
+  .bento-activity {
+    .activity-item:hover {
+      background: #0f172a;
+    }
+
+    .activity-name {
+      color: #e2e8f0;
+    }
+
+    .activity-time {
+      color: #64748b;
+    }
+
+    .activity-empty {
+      color: #475569;
+
+      p {
+        color: #64748b;
+      }
+    }
+  }
+
+  .bento-quick {
+    .quick-btn {
+      border-color: rgba(255, 255, 255, 0.08);
+      background: #0f172a;
+      color: #cbd5e1;
+
+      &:hover {
+        border-color: #10b981;
+        background: #162033;
+      }
+    }
+  }
+
+  .chart-tabs {
+    background: #0f172a;
+
+    .chart-tab {
+      color: #64748b;
+
+      &.active {
+        background: #1e293b;
+        color: #e2e8f0;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+      }
+
+      &:hover:not(.active) {
+        color: #94a3b8;
+      }
+    }
+  }
+
+  .skeleton-line {
+    background: linear-gradient(90deg, #1e293b 25%, #334155 50%, #1e293b 75%);
+  }
+
+  .skeleton-circle {
+    background: #334155;
+  }
+}
+</style>

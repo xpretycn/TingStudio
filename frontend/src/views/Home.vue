@@ -29,6 +29,7 @@
           <h1 v-show="!sidebarCollapsed" class="logo-text">TingStudio</h1>
           <t-icon v-show="sidebarCollapsed" name="menu-unfold" size="18px" class="collapse-expand-icon"
             @click.stop="toggleSidebarCollapse" />
+          <t-icon v-show="!sidebarCollapsed" name="chevron-left" size="16px" class="collapse-indicator" />
         </div>
 
         <!-- 日期和天气信息卡片（参照 index.html 设计） -->
@@ -77,6 +78,22 @@
       <!-- 可滚动导航区域 -->
       <nav class="sidebar-nav" :class="{ collapsed: sidebarCollapsed }" aria-label="侧边栏导航">
         <div class="nav-content expanded" role="menubar">
+          <!-- 工作台 - 独立顶级入口 -->
+          <div class="nav-item nav-item--top-level" :class="{ active: activePath === '/dashboard' }" role="menuitem"
+            tabindex="0" :aria-current="activePath === '/dashboard' ? 'page' : undefined" title="工作台"
+            @click="navigateTo('/dashboard')" @keydown="handleNavKeydown($event, '/dashboard')">
+            <div class="nav-item-icon nav-item-icon--highlight" aria-hidden="true">
+              <t-icon name="dashboard" size="18px" />
+            </div>
+            <span v-show="!sidebarCollapsed" class="nav-item-text nav-item-text--highlight">工作台</span>
+            <div v-show="!sidebarCollapsed" class="nav-item-arrow">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            </div>
+          </div>
+
           <!-- AI助手 - 独立顶级入口 -->
           <div class="nav-item nav-item--top-level" :class="{ active: activePath === '/ai-assistant' }" role="menuitem"
             tabindex="0" :aria-current="activePath === '/ai-assistant' ? 'page' : undefined" title="AI助手工作台"
@@ -465,7 +482,7 @@ const activePath = computed(() => {
   const path = route.path;
   // 按最长前缀匹配，优先精确匹配，再按路径段前缀匹配
   const pathMap = [
-    '/formulas', '/materials', '/files', '/salesmen', '/sales',
+    '/dashboard', '/formulas', '/materials', '/files', '/salesmen', '/sales',
     '/reports', '/exports', '/nutrition', '/tools', '/ai-assistant', '/smart-tools',
     '/model-management', '/system'
   ];
@@ -520,6 +537,7 @@ const handleUserMenuClick = (value: string) => {
 // 页面图标映射
 const pageIcon = computed(() => {
   const iconMap: Record<string, string> = {
+    '/dashboard': 'dashboard',
     '/formulas': 'edit',
     '/materials': 'chart-bar',
     '/files': 'folder',
@@ -588,7 +606,7 @@ const currentGroup = computed((): GroupKey | null => {
   const path = activePath.value;
 
   // AI助手不属于任何分组
-  if (path === '/ai-assistant' || path === '/smart-tools') return null;
+  if (path === '/dashboard' || path === '/ai-assistant' || path === '/smart-tools') return null;
 
   // 系统管理页面归属系统工具分组
   if (path === '/model-management' || path === '/system') return 'tools';
@@ -711,6 +729,7 @@ const pageTitle = computed(() => {
   const meta = route.meta?.title as string | undefined;
   if (meta) return meta;
   const titleMap: Record<string, string> = {
+    '/dashboard': '工作台',
     '/formulas': '配方管理',
     '/materials': '原料管理',
     '/files': '文件管理',
@@ -755,7 +774,7 @@ const breadcrumbs = computed(() => {
 
   // 列表页无父级，不需要面包屑
   const listPaths = [
-    '/formulas', '/materials', '/salesmen', '/sales',
+    '/dashboard', '/formulas', '/materials', '/salesmen', '/sales',
     '/reports', '/exports', '/nutrition', '/tools', '/ai-assistant', '/smart-tools', '/settings',
     '/model-management', '/system/config'
   ];
@@ -2255,6 +2274,17 @@ onMounted(() => {
   &:hover {
     color: var(--color-primary);
   }
+}
+
+.collapse-indicator {
+  color: var(--color-primary);
+  margin-left: auto;
+  transition: all $transition-normal;
+  flex-shrink: 0;
+}
+
+.sidebar-logo:hover .collapse-indicator {
+  transform: translateX(-2px);
 }
 
 // ─── 面包屑（参考设计 text-sm text-slate-500 + 当前页品牌色）───

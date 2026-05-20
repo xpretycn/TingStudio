@@ -100,6 +100,7 @@
             <th class="col-ratio">含量比(%)</th>
             <th class="col-price">单价(元/kg)</th>
             <th class="col-amount">金额(元)</th>
+            <th class="col-cost-ratio">成本占比(%)</th>
             <th v-if="currentMode === 'ai_preview'" class="col-original">原始名称</th>
             <th v-if="currentMode === 'ai_preview'" class="col-match">匹配状态</th>
             <th class="col-action">操作</th>
@@ -207,6 +208,9 @@
             <td class="col-amount">
               <span class="amount-value">{{ calculateAmount(row) }}</span>
             </td>
+            <td class="col-cost-ratio">
+              <span class="cost-ratio-value">{{ calculateCostRatio(row) }}</span>
+            </td>
             <td v-if="currentMode === 'ai_preview'" class="col-original">
               <span class="original-name">{{ row.originalName || '--' }}</span>
             </td>
@@ -228,7 +232,7 @@
           </tr>
           <!-- 添加新行按钮 -->
           <tr v-if="displayMaterials.length === 0" class="empty-row">
-            <td :colspan="currentMode === 'ai_preview' ? 10 : 8" class="empty-cell">
+            <td :colspan="currentMode === 'ai_preview' ? 11 : 9" class="empty-cell">
               <button type="button" class="add-first-btn" @click="handleAddRow">
                 <t-icon name="add-rectangle" />
                 添加第一条原料
@@ -243,8 +247,9 @@
             <td class="total-ratio">100%</td>
             <td class="total-price">--</td>
             <td class="total-amount">{{ totalAmount }} 元</td>
+            <td class="total-cost-ratio">100%</td>
             <td v-if="currentMode === 'ai_preview'" colspan="2"></td>
-            <td v-if="currentMode === 'edit'" class="total-action"></td>
+            <td class="total-action"></td>
           </tr>
         </tfoot>
       </table>
@@ -339,6 +344,7 @@ export interface UnifiedMaterialItem {
   originalUnitPrice?: number;
   amount?: number;
   isPriceAdjusted?: boolean;
+  adjustedPrice?: number;
   originalName?: string;
   matched?: boolean;
   confidence?: number;
@@ -440,6 +446,14 @@ const calculateAmount = (row: UnifiedMaterialItem): string => {
   return amount > 0 ? `¥${amount.toFixed(2)}` : '--';
 };
 
+const calculateCostRatio = (row: UnifiedMaterialItem): string => {
+  const amount = calculateAmountValue(row);
+  if (amount <= 0) return '--';
+  const total = displayMaterials.value.reduce((sum, r) => sum + calculateAmountValue(r), 0);
+  if (total <= 0) return '--';
+  return ((amount / total) * 100).toFixed(2) + '%';
+};
+
 const isAllChecked = computed(() => {
   return displayMaterials.value.length > 0 && selectedRows.value.length === displayMaterials.value.length;
 });
@@ -510,13 +524,14 @@ const handleMaterialChange = (materialId: string, index: number) => {
   const material = materialStore.allMaterials.find(m => m.id === materialId);
   if (material) {
     const newList = [...displayMaterials.value];
+    const existingAdjustedPrice = newList[index].adjustedPrice;
     newList[index] = {
       ...newList[index],
       materialId,
       materialName: material.name,
-      unitPrice: material.unitPrice ?? undefined,
+      unitPrice: existingAdjustedPrice ?? material.unitPrice ?? undefined,
       originalUnitPrice: material.unitPrice ?? undefined,
-      isPriceAdjusted: false,
+      isPriceAdjusted: existingAdjustedPrice != null && existingAdjustedPrice !== material.unitPrice,
     };
     displayMaterials.value = newList;
     emit('match', index, materialId);
@@ -528,23 +543,15 @@ const handleQuantityChange = (_index: number) => {
 
 const handlePriceChange = (price: number, index: number) => {
   const row = displayMaterials.value[index];
-  if (row.originalUnitPrice != null && price === row.originalUnitPrice) {
-    const newList = [...displayMaterials.value];
-    newList[index] = {
-      ...newList[index],
-      unitPrice: price,
-      isPriceAdjusted: false,
-    };
-    displayMaterials.value = newList;
-  } else {
-    const newList = [...displayMaterials.value];
-    newList[index] = {
-      ...newList[index],
-      unitPrice: price,
-      isPriceAdjusted: row.originalUnitPrice != null && price !== row.originalUnitPrice,
-    };
-    displayMaterials.value = newList;
-  }
+  const newList = [...displayMaterials.value];
+  const isAdjusted = row.originalUnitPrice != null && price !== row.originalUnitPrice;
+  newList[index] = {
+    ...newList[index],
+    unitPrice: price,
+    isPriceAdjusted: isAdjusted,
+    adjustedPrice: isAdjusted ? price : undefined,
+  };
+  displayMaterials.value = newList;
 };
 
 const handleRestorePrice = (index: number) => {
@@ -555,6 +562,7 @@ const handleRestorePrice = (index: number) => {
       ...newList[index],
       unitPrice: row.originalUnitPrice,
       isPriceAdjusted: false,
+      adjustedPrice: undefined,
     };
     displayMaterials.value = newList;
     MessagePlugin.success('已恢复为原价');
@@ -932,6 +940,16 @@ const getFilteredMaterials = (currentIndex: number) => {
   .col-amount {
     width: 100px;
     text-align: right;
+  }
+
+  .col-cost-ratio {
+    width: 100px;
+    text-align: right;
+  }
+
+  .cost-ratio-value {
+    color: #666;
+    font-family: 'Monaco', 'Menlo', monospace;
   }
 
   .col-original {

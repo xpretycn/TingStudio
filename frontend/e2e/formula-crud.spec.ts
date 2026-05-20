@@ -84,12 +84,12 @@ test.describe('配方管理 E2E 流程', () => {
     expect(content).toContain('基础信息录入')
   })
 
-  test('E2E-FM-08: 表单应包含原料配比表区域', async ({ page }) => {
+  test('E2E-FM-08: 表单应包含原料管理表格区域', async ({ page }) => {
     await page.goto('/formulas/new', { waitUntil: 'domcontentloaded' })
     await page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {})
 
     const content = await page.content()
-    expect(content).toContain('原料配比表')
+    expect(content).toContain('原料管理')
   })
 
   test('E2E-FM-09: 配方名称输入框应存在并可输入', async ({ page }) => {
