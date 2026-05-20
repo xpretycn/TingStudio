@@ -1,4 +1,4 @@
-# TingStudio v2.32.0
+# TingStudio v2.9.0
 
 食品配方工作数据管理平台 — 前后端分离架构
 
@@ -14,7 +14,7 @@ TingStudio 是一个专业的食品配方工作数据管理平台，面向食品
 |------|------|------|
 | **前端框架** | Vue 3 + TypeScript + Vite | Composition API + `<script setup>` |
 | **UI 组件库** | TDesign Vue Next (v1.9) | 企业级组件库 |
-| **状态管理** | Pinia (17个 Store) | 模块化 Store |
+| **状态管理** | Pinia (20个 Store) | 模块化 Store |
 | **路由** | Vue Router 4 | 懒加载路由 |
 | **样式方案** | SCSS + Design Tokens | 模块化变量系统 + CSS 变量 |
 | **图表** | ECharts 6 | 数据可视化 |
@@ -142,9 +142,9 @@ TingStudio/
 ├── backend/                          # 后端服务
 │   ├── src/
 │   │   ├── config/                   # 数据库配置、安全配置、限流、营养常量
-│   │   ├── controllers/              # 控制器层（14个模块）
+│   │   ├── controllers/              # 控制器层（17个模块）
 │   │   ├── middleware/               # 认证、错误处理、日志、校验
-│   │   ├── routes/                   # 路由定义（15+ Agent端点 + 20+ 其他端点）
+│   │   ├── routes/                   # 路由定义（20个路由文件 + Agent端点）
 │   │   ├── services/                 # 业务逻辑层
 │   │   │   ├── ai/                   # AI 服务（Agent/LLM/意图引擎）
 │   │   │   │   └── agent/            # Agent 系统（12个模块）
@@ -171,27 +171,31 @@ TingStudio/
 │
 ├── frontend/                         # 前端应用
 │   ├── src/
-│   │   ├── api/                      # API 客户端（axios 封装，17个模块）
+│   │   ├── api/                      # API 客户端（axios 封装，20个模块）
 │   │   ├── assets/                   # 样式（Design Tokens/变量/主题）
-│   │   ├── components/               # 公共组件
-│   │   │   ├── AiAssistantFloat/     # 悬浮助手组件体系（8 Vue + 2 TS）
-│   │   │   └── ...                   # 其他公共组件（18个）
+│   │   ├── components/               # 公共组件（32个 Vue 组件）
+│   │   │   ├── AiAssistantFloat/     # 悬浮助手组件体系（7 Vue + 2 TS）
+│   │   │   ├── formula/              # 配方专用组件（原料表格等）
+│   │   │   ├── Skeleton/             # 骨架屏组件
+│   │   │   └── ...                   # 其他公共组件
 │   │   ├── router/                   # Vue Router 配置
-│   │   ├── stores/                   # Pinia 状态管理（17个 Store）
+│   │   ├── stores/                   # Pinia 状态管理（20个 Store）
 │   │   ├── utils/                    # 工具函数（时间格式化/图表/模拟数据）
-│   │   ├── views/                    # 页面视图（40个 .vue 文件）
+│   │   ├── views/                    # 页面视图（43个 .vue 文件）
 │   │   │   ├── ai/                   # AI 助手工作台 + 智能工具
 │   │   │   │   └── tabs/             # 智能填单/导入/检索/历史
+│   │   │   ├── auth/                 # 登录/注册（含动画角色组件）
+│   │   │   ├── dashboard/            # 工作台仪表盘
 │   │   │   ├── formulas/             # 配方管理（列表/表单/详情/对比）
+│   │   │   │   └── versions/         # 版本管理（列表/对比）
 │   │   │   ├── materials/            # 原料管理（列表/表单/详情）
 │   │   │   ├── salesmen/             # 业务员管理（列表/表单/详情）
 │   │   │   ├── sales/                # 销量分析
 │   │   │   ├── reports/              # 报告中心（周报/月报/生成/对比）
 │   │   │   ├── nutrition/            # 营养分析（分析/标准）
-│   │   │   ├── models/               # 模型管理
+│   │   │   ├── system/               # 系统管理（模型管理/系统配置/工具箱）
 │   │   │   ├── files/                # 文件管理（列表/详情）
 │   │   │   ├── exports/              # 导出中心
-│   │   │   ├── versions/             # 版本管理（列表/对比）
 │   │   │   ├── settings/             # 账号设置
 │   │   │   └── errors/               # 错误页面
 │   │   ├── App.vue                   # 根组件
@@ -212,7 +216,7 @@ TingStudio/
 
 | 功能模块 | 说明 |
 |----------|------|
-| **📋 配方管理** | 配方 CRUD、原料配比表、含量比校验（三级预警阈值配置）、版本控制、升版管理、定价系统 |
+| **📋 配方管理** | 配方 CRUD、原料配比表、含量比校验（三级预警阈值配置）、版本控制、升版管理、定价系统、基础信息可折叠（状态记忆） |
 | **🧪 原料管理** | 原料 CRUD、材质分类（药材/辅料）、营养成分管理、单价管理 |
 | **👤 业务员管理** | 业务员 CRUD、状态管理、区域/部门分群 |
 | **📊 销量分析** | 多维聚合分析（日月/业务员/区域）、趋势图、TOP 排行 |
@@ -228,7 +232,9 @@ TingStudio/
 | **📋 解析模板** | AI 解析模板配置（类别/模型/Prompt/字段映射）、预设模板、CRUD 管理 |
 | **⚖️ 配比阈值** | 含量比校验三级预警阈值配置（正常/预警/高级预警）、实时验证、变更追踪 |
 | **🛠️ 模型管理** | AI 模型配置、功能模块分配（模型应用）、用量监控、告警/健康/降级、悬浮助手配置 |
-| **🔐 权限系统** | JWT 认证、角色控制（admin/user）、数据隔离 |
+| **🏠 工作台** | 仪表盘概览、快捷导航、天气信息、数据统计卡片 |
+| **🔧 工具箱** | 系统工具集（数据库备份/恢复、批量操作等） |
+| **🔐 权限系统** | JWT 认证、角色控制（admin/formulist）、数据隔离 |
 | **📁 版本管理** | 版本快照、版本对比（含量/报价双模式）、变更追踪 |
 | **⚙️ 账号设置** | 个人资料管理（昵称/头像/简介/邮箱/手机号） |
 
@@ -298,10 +304,96 @@ npx tsx src/scripts/restoreDatabase.ts    # 恢复数据库
 ---
 
 <!-- ====================================================================== -->
-<!-- 以下为历史版本更新日志，保留已有内容，自动补全 2026-07-03 最新更新 -->
+<!-- 以下为历史版本更新日志，保留已有内容，自动补全 2026-05-21 最新更新 -->
 <!-- ====================================================================== -->---
 
-## 🚀 最新更新 (2026-05-19)
+## 🚀 最新更新 (2026-05-21)
+
+### ✅ 配方编辑页面布局优化 + 智能工具页面重构
+
+#### 📐 配方编辑页面（FormulaForm.vue）布局重构
+
+对配方编辑页面的基础信息区域进行全面的布局和交互优化：
+
+**可折叠基础信息区域**：
+- 基础信息区域支持折叠/展开，整个头部区域可点击切换
+- 折叠后显示"点击展开"提示，展开后显示"基础信息"标题 + 上箭头
+- 折叠状态通过 `localStorage` 记忆，刷新页面后保持上次状态
+
+**左栏表单布局重构**：
+- 标签与输入框同行显示（`field-inline`），所有输入框统一宽度
+- 标签右对齐，输入框 `max-width: calc(100% - 100px)`
+- 移除字段前图标，解释性文本移至输入框下方左对齐（`field-help-below`）
+- 成品重量"规格"文本移至输入框下方
+- 数字输入框（成品重量/主料系数/辅料系数）使用 `theme="normal"` 移除加减按钮
+
+**右栏与间距优化**：
+- 右栏增加 `padding-right`（16-24px）
+- 左右栏使用 `info-card` 包裹（无背景色，仅边框 + 圆角）
+- Excel 导入原料区域增加与上方头部的间距（`margin-top: 20px`）
+- 制法输入框高度与配方描述一致（`autosize: { minRows: 3, maxRows: 6 }`）
+
+**修改文件**：
+
+| 文件 | 改动类型 | 说明 |
+|------|----------|------|
+| [FormulaForm.vue](frontend/src/views/formulas/FormulaForm.vue) | 布局重构 | 可折叠基础信息 + 左栏表单重构 + 间距优化 + 数字输入框样式 |
+
+***
+
+#### 🔄 智能工具页面 Tab 重命名
+
+将智能工具页面的 Tab 组件重命名，使命名更贴合业务语义：
+
+| 旧名称 | 新名称 | 说明 |
+|--------|--------|------|
+| SmartFormTab.vue | FormulaParseTab.vue | 配方解析 |
+| SmartImportTab.vue | MaterialImportTab.vue | 原料导入 |
+| SmartSearchTab.vue | DataSearchTab.vue | 数据检索 |
+| SmartHistoryTab.vue | ParseHistoryTab.vue | 解析历史 |
+
+***
+
+#### 📊 工作台仪表盘
+
+新增 Dashboard 页面作为系统首页，提供数据概览和快捷导航：
+
+- 数据统计卡片（配方/原料/业务员/销量）
+- 快捷操作入口
+- 天气信息展示（高德地图 API）
+- 俏皮话提示
+
+**新增文件**：
+
+| 文件 | 说明 |
+|------|------|
+| [Dashboard.vue](frontend/src/views/dashboard/Dashboard.vue) | 工作台仪表盘页面 |
+| [dashboard.ts](frontend/src/stores/dashboard.ts) | 仪表盘状态管理 |
+| [dashboard.ts](frontend/src/api/dashboard.ts) | 仪表盘 API 客户端 |
+| [dashboardController.ts](backend/src/controllers/dashboardController.ts) | 仪表盘控制器 |
+
+***
+
+#### 🌤️ 天气功能模块
+
+新增天气信息查询功能，集成高德地图 Web 服务 API：
+
+- 支持 IP 定位自动获取城市
+- 城市关键词搜索
+- 实时天气展示
+- 后端代理解决 CORS 问题
+
+**新增文件**：
+
+| 文件 | 说明 |
+|------|------|
+| [weather.ts](frontend/src/stores/weather.ts) | 天气状态管理 |
+| [weather.ts](frontend/src/api/weather.ts) | 天气 API 客户端 |
+| [weather.ts](backend/src/routes/weather.ts) | 天气路由（代理高德 API） |
+
+---
+
+## 🚀 历史更新 (2026-05-19)
 
 ### ✅ 配比阈值配置功能
 
@@ -343,13 +435,13 @@ npx tsx src/scripts/restoreDatabase.ts    # 恢复数据库
 **其他更新**：
 
 - 优化了 Home.vue 侧边栏日期天气卡片显示
-- 增强了 SmartFormTab.vue 和 SmartImportTab.vue 的配比校验功能
-- 新增 ParseResultConfig.vue 配置页面
+- 增强了 FormulaParseTab.vue 和 MaterialImportTab.vue 的配比校验功能
+- 新增 SystemConfig.vue 管理员配置页面（含解析结果存储配置）
 - 更新了 router/index.ts 路由配置
 
 ---
 
-## 🚀 最新更新 (2026-07-03)
+## 🚀 历史更新 (2026-05-20)
 
 ### ✅ 智能工具重构 + 解析历史管理系统 + 解析模板系统
 
@@ -359,10 +451,10 @@ npx tsx src/scripts/restoreDatabase.ts    # 恢复数据库
 
 | Tab | 图标 | 功能 | 组件 |
 |------|------|------|------|
-| 💬 智能填单 | 📝 | AI 解析配方文件（Excel/PDF/图片） | [SmartFormTab.vue](frontend/src/views/ai/tabs/SmartFormTab.vue) |
-| 📥 智能导入 | 📥 | AI 解析原料营养文件 | [SmartImportTab.vue](frontend/src/views/ai/tabs/SmartImportTab.vue) |
-| 🔍 智能检索 | 🔍 | NL2SQL 自然语言查询 | [SmartSearchTab.vue](frontend/src/views/ai/tabs/SmartSearchTab.vue) |
-| 📜 解析历史 | 📜 | 解析结果管理与追溯 | [SmartHistoryTab.vue](frontend/src/views/ai/tabs/SmartHistoryTab.vue) |
+| 💬 智能填单 | 📝 | AI 解析配方文件（Excel/PDF/图片） | [FormulaParseTab.vue](frontend/src/views/ai/tabs/FormulaParseTab.vue) |
+| 📥 智能导入 | 📥 | AI 解析原料营养文件 | [MaterialImportTab.vue](frontend/src/views/ai/tabs/MaterialImportTab.vue) |
+| 🔍 智能检索 | 🔍 | NL2SQL 自然语言查询 | [DataSearchTab.vue](frontend/src/views/ai/tabs/DataSearchTab.vue) |
+| 📜 解析历史 | 📜 | 解析结果管理与追溯 | [ParseHistoryTab.vue](frontend/src/views/ai/tabs/ParseHistoryTab.vue) |
 
 **模型选择器增强**：
 - 支持按 provider 分组的模型下拉框（含 **Logo 图标** + 模型名称 + 数据类型标签）
@@ -414,8 +506,8 @@ npx tsx src/scripts/restoreDatabase.ts    # 恢复数据库
 | 页面 | 说明 |
 |------|------|
 | [SmartTools.vue](frontend/src/views/ai/SmartTools.vue) | 4-Tab 布局入口，集成模型选择器 |
-| [SmartHistoryTab.vue](frontend/src/views/ai/tabs/SmartHistoryTab.vue) | 解析历史管理页面（卡片列表/搜索/筛选/分页/详情抽屉/批量操作） |
-| [ParseResultConfig.vue](frontend/src/views/ai/ParseResultConfig.vue) | 管理员配置页（存储上限/清理阈值/降级告警） |
+| [ParseHistoryTab.vue](frontend/src/views/ai/tabs/ParseHistoryTab.vue) | 解析历史管理页面（卡片列表/搜索/筛选/分页/详情抽屉/批量操作） |
+| [SystemConfig.vue](frontend/src/views/system/SystemConfig.vue) | 管理员配置页（存储上限/清理阈值/降级告警） |
 | [DegradationBanner.vue](frontend/src/components/DegradationBanner.vue) | 全局降级状态横幅 |
 
 #### 📋 解析模板系统（全新）
@@ -454,8 +546,8 @@ npx tsx src/scripts/restoreDatabase.ts    # 恢复数据库
 | 文件 | 改动类型 | 说明 |
 |------|----------|------|
 | [SmartTools.vue](frontend/src/views/ai/SmartTools.vue) | 重构 | 4-Tab 布局 + 模型选择器（Logo/能力标签/分组/✓指示） |
-| [SmartHistoryTab.vue](frontend/src/views/ai/tabs/SmartHistoryTab.vue) | 新增 | 解析历史完整管理页面 |
-| [ParseResultConfig.vue](frontend/src/views/ai/ParseResultConfig.vue) | 新增 | 管理员配置页 |
+| [ParseHistoryTab.vue](frontend/src/views/ai/tabs/ParseHistoryTab.vue) | 新增 | 解析历史完整管理页面 |
+| [SystemConfig.vue](frontend/src/views/system/SystemConfig.vue) | 新增 | 管理员配置页 |
 | [DegradationBanner.vue](frontend/src/components/DegradationBanner.vue) | 新增 | 降级状态横幅组件 |
 | [parseResult.ts](frontend/src/api/parseResult.ts) | 新增 | 19 个 API 方法 |
 | [parseTemplate.ts](frontend/src/api/parseTemplate.ts) | 新增 | 5 个 API 方法 |
@@ -490,7 +582,7 @@ npx tsx src/scripts/restoreDatabase.ts    # 恢复数据库
 |------|------|
 | **双模路由** | 输入文本自动分类：`fill`（表单填字段）或 `agent`（工具调用对话） |
 | **7类意图识别** | compare/substitute/quotation/generate/calculate/consult/fill 关键词匹配 |
-| **SSE 流式对话** | 悬浮球中的 Agent 对话复用 AIDashboard 的 SSE 协议 |
+| **SSE 流式对话** | 悬浮球中的 Agent 对话复用 AiWorkspace 的 SSE 协议 |
 | **3个新工具** | `compare_formulas` / `suggest_material_substitute` / `generate_quotation` |
 | **3个结果卡片** | CompareCard / QuotationCard / SubstituteCard 可视化渲染 |
 | **F2 智能生成** | 表单描述/制法区增加"✨智能生成"按钮，调用独立接口 |
@@ -611,7 +703,7 @@ npx tsx src/scripts/restoreDatabase.ts    # 恢复数据库
 
 | 文件 | 改动类型 | 说明 |
 |------|----------|------|
-| [ModelManagement.vue](frontend/src/views/models/ModelManagement.vue) | 新增 Tab | 悬浮助手配置面板（基本配置/外观设置/行为策略） |
+| [ModelManagement.vue](frontend/src/views/system/ModelManagement.vue) | 新增 Tab | 悬浮助手配置面板（基本配置/外观设置/行为策略） |
 | [AiAssistantFloat/](frontend/src/components/AiAssistantFloat/) | 新增组件体系 | FloatBubble / FloatDrawer / ChatInput / ChatMessages / CompareCard / QuotationCard / SubstituteCard + formFillAdapter |
 | [floatAgent.ts](frontend/src/stores/floatAgent.ts) | 新增 Store | 悬浮助手状态管理 |
 | [agent.ts (api)](frontend/src/api/agent.ts) | 新增方法 | `getFloatConfig()` / `updateFloatConfig()` / `parseForm()` / `floatChat()` / `generateDescription()` / `getFieldHints()` / `getHealth()` |
@@ -734,7 +826,7 @@ npx tsx src/scripts/restoreDatabase.ts    # 恢复数据库
 | [salesAnalysisService.ts](backend/src/services/business/salesAnalysisService.ts) | 重写 | 内存 Map → SQLite 查询 |
 | [agent.ts (routes)](backend/src/routes/agent.ts) | 新增路由 | GET/PUT `/role-config` |
 | [agent.ts (api)](frontend/src/api/agent.ts) | 新增方法 | `getRoleConfig()` / `updateRoleConfig()` |
-| [AIDashboard.vue](frontend/src/views/ai/AIDashboard.vue) | 多项增强 | 身份设置弹窗 + 回到底部按钮 + 自动滚动修复 + 默认模型 + padding |
+| [AiWorkspace.vue](frontend/src/views/ai/AiWorkspace.vue) | 多项增强 | 身份设置弹窗 + 回到底部按钮 + 自动滚动修复 + 默认模型 + padding |
 
 ***
 
@@ -764,7 +856,7 @@ npx tsx src/scripts/restoreDatabase.ts    # 恢复数据库
 | 恢复会话缺少工具结果 | `switchToSession` 未解析 `tool_results`、`display_type` 字段 | 增加 `toolResultData` 映射，正确恢复工具执行结果 |
 
 **修改文件**：
-- [AIDashboard.vue](frontend/src/views/ai/AIDashboard.vue) — `switchToSession` 增加扩展字段解析
+- [AiWorkspace.vue](frontend/src/views/ai/AiWorkspace.vue) — `switchToSession` 增加扩展字段解析
 
 ***
 
@@ -777,7 +869,7 @@ npx tsx src/scripts/restoreDatabase.ts    # 恢复数据库
 | 摘要重复前缀 | 优化显示逻辑，去除 `[Agent对话] Agent对话: xxx` 重复 |
 
 **修改文件**：
-- [ModelManagement.vue](frontend/src/views/models/ModelManagement.vue) — 类型映射 + 摘要显示优化
+- [ModelManagement.vue](frontend/src/views/system/ModelManagement.vue) — 类型映射 + 摘要显示优化
 - [llmService.ts](backend/src/services/ai/agent/llmService.ts) — 流式调用日志记录
 - [AIService.ts](backend/src/services/ai/AIService.ts) — `recordUsage` 改为 `public`
 
@@ -807,7 +899,7 @@ npx tsx src/scripts/restoreDatabase.ts    # 恢复数据库
 | 导出功能 | 不受影响，仍使用原始 `rows` 数据 |
 
 **修改文件**：
-- [SmartSearchTab.vue](frontend/src/views/ai/tabs/SmartSearchTab.vue) — Markdown 渲染 + 样式优化
+- [DataSearchTab.vue](frontend/src/views/ai/tabs/DataSearchTab.vue) — Markdown 渲染 + 样式优化
 
 ***
 
@@ -816,12 +908,12 @@ npx tsx src/scripts/restoreDatabase.ts    # 恢复数据库
 | 文件 | 改动类型 | 说明 |
 |------|----------|------|
 | [toolRegistration.ts](backend/src/services/ai/agent/toolRegistration.ts) | 功能增强 | 配方创建校验 + 原料匹配 |
-| [AIDashboard.vue](frontend/src/views/ai/AIDashboard.vue) | Bug修复 | 会话恢复扩展字段解析 |
-| [ModelManagement.vue](frontend/src/views/models/ModelManagement.vue) | UI优化 | 类型中文映射 + 摘要显示优化 |
+| [AiWorkspace.vue](frontend/src/views/ai/AiWorkspace.vue) | Bug修复 | 会话恢复扩展字段解析 |
+| [ModelManagement.vue](frontend/src/views/system/ModelManagement.vue) | UI优化 | 类型中文映射 + 摘要显示优化 |
 | [llmService.ts](backend/src/services/ai/agent/llmService.ts) | 功能增强 | 流式调用日志记录 |
 | [AIService.ts](backend/src/services/ai/AIService.ts) | 权限调整 | `recordUsage` 改为 public |
 | [ai.ts](frontend/src/stores/ai.ts) | Bug修复 | `naturalSearch` 返回结果 |
-| [SmartSearchTab.vue](frontend/src/views/ai/tabs/SmartSearchTab.vue) | UI重构 | Markdown 表格渲染 + 样式优化 |
+| [DataSearchTab.vue](frontend/src/views/ai/tabs/DataSearchTab.vue) | UI重构 | Markdown 表格渲染 + 样式优化 |
 
 ***
 
@@ -1034,7 +1126,7 @@ const modelOptions = computed(() =>
 
 | 文件 | 改动类型 | 说明 |
 | -------------------------------------------------------- | ---- | -------------------------------------------------- |
-| [AIDashboard.vue](frontend/src/views/ai/AIDashboard.vue) | 布局重构 | 左右栏互换 + 移除顶栏 + 历史触发器 + 新对话按钮迁移 + 模型下拉选择器 + CSS全面调整 |
+| [AiWorkspace.vue](frontend/src/views/ai/AiWorkspace.vue) | 布局重构 | 左右栏互换 + 移除顶栏 + 历史触发器 + 新对话按钮迁移 + 模型下拉选择器 + CSS全面调整 |
 
 ### 验证结果（Playwright 自动化测试）
 
@@ -1057,15 +1149,15 @@ const modelOptions = computed(() =>
 
 #### 🎯 智能填单/智能导入功能整合到AI助手工作台
 
-将原来独立的 `AiAssistant.vue` 页面的**智能填单**和**智能导入**功能整合到 **AIDashboard.vue** 中，实现统一入口：
+将原来独立的 `AiAssistant.vue` 页面的**智能填单**和**智能导入**功能整合到 **AiWorkspace.vue** 中，实现统一入口：
 
 **新增Tab导航系统：**
 
 | Tab | 图标 | 功能 | 组件 |
 | -------- | -- | ------------------ | ------------------------------------------------------------------- |
 | 💬 AI 对话 | 💬 | 与AI助手自由对话（SSE流式响应） | 内置聊天界面 |
-| 📝 智能填单 | 📝 | AI辅助填写表单（配方、原料） | [SmartFormTab.vue](frontend/src/views/ai/tabs/SmartFormTab.vue) |
-| 📥 智能导入 | 📥 | AI解析Excel/文件导入数据 | [SmartImportTab.vue](frontend/src/views/ai/tabs/SmartImportTab.vue) |
+| 📝 智能填单 | 📝 | AI辅助填写表单（配方、原料） | [FormulaParseTab.vue](frontend/src/views/ai/tabs/FormulaParseTab.vue) |
+| 📥 智能导入 | 📥 | AI解析Excel/文件导入数据 | [MaterialImportTab.vue](frontend/src/views/ai/tabs/MaterialImportTab.vue) |
 
 **快捷方式入口调整：**
 
@@ -1106,7 +1198,7 @@ const modelOptions = computed(() =>
 1. **模型名称映射系统**
 
 ```typescript
-// AIDashboard.vue - 新增映射表
+// AiWorkspace.vue - 新增映射表
 const modelDisplayNames = {
   'deepseek': 'DeepSeek V3',    // 实际发送 deepseek，显示 DeepSeek V3
   'dashscope': '通义千问',
@@ -1227,7 +1319,7 @@ const formatNumber = (num) => {
 
 | 文件 | 改动类型 | 说明 |
 | ---------------------------------------------------------- | ----- | ----------------------------------------------------------- |
-| [AIDashboard.vue](frontend/src/views/ai/AIDashboard.vue) | 重构+优化 | Tab导航 + 智能填单/导入整合 + Logo位置 + 可点击功能列表 + 背景色统一 + 数字格式化 + 模板修复 |
+| [AiWorkspace.vue](frontend/src/views/ai/AiWorkspace.vue) | 重构+优化 | Tab导航 + 智能填单/导入整合 + Logo位置 + 可点击功能列表 + 背景色统一 + 数字格式化 + 模板修复 |
 | [AIService.ts](backend/src/services/ai/AIService.ts) | 功能增强 | SSE流式响应 `_handleStreamResponse()` 方法 |
 | [index.ts](backend/src/index.ts) | 配置修复 | 添加 `import "dotenv/config"` 加载环境变量 |
 | [aiController.ts](backend/src/controllers/aiController.ts) | 优化 | SSE响应头设置 + 流式数据转发 |
@@ -1273,7 +1365,7 @@ const formatNumber = (num) => {
 | 配方管理 | stat-card | [FormulaList.vue](frontend/src/views/formulas/FormulaList.vue) |
 | 原料管理 | stat-card | [MaterialList.vue](frontend/src/views/materials/MaterialList.vue) |
 | 业务员管理 | stat-card | [SalesmanList.vue](frontend/src/views/salesmen/SalesmanList.vue) |
-| AI助手工作台 | data-card | [AIDashboard.vue](frontend/src/views/ai/AIDashboard.vue) ✅ 参考标准 |
+| AI助手工作台 | data-card | [AiWorkspace.vue](frontend/src/views/ai/AiWorkspace.vue) ✅ 参考标准 |
 
 **设计理念：**
 
@@ -1312,9 +1404,9 @@ const formatNumber = (num) => {
 | 文件 | 改动类型 | 说明 |
 | ----------------------------------------------------------------- | ---- | -------------------------------- |
 | [Home.vue](frontend/src/views/Home.vue) | UI优化 | 俏皮话文本处理 + 首行缩进 + SCSS修复 |
-| [FormulaList.vue](frontend/src/views/formulas/FormulaList.vue) | 样式统一 | stat-card hover 效果对齐 AIDashboard |
-| [MaterialList.vue](frontend/src/views/materials/MaterialList.vue) | 样式统一 | stat-card hover 效果对齐 AIDashboard |
-| [SalesmanList.vue](frontend/src/views/salesmen/SalesmanList.vue) | 样式统一 | stat-card hover 效果对齐 AIDashboard |
+| [FormulaList.vue](frontend/src/views/formulas/FormulaList.vue) | 样式统一 | stat-card hover 效果对齐 AiWorkspace |
+| [MaterialList.vue](frontend/src/views/materials/MaterialList.vue) | 样式统一 | stat-card hover 效果对齐 AiWorkspace |
+| [SalesmanList.vue](frontend/src/views/salesmen/SalesmanList.vue) | 样式统一 | stat-card hover 效果对齐 AiWorkspace |
 
 ***
 
@@ -1528,4 +1620,7 @@ const formatNumber = (num) => {
 ✅ **悬浮助手 Agent 双模路由**：fill/agent 自动分类 + SSE流式ReAct + 3个新工具\
 ✅ **智能生成配方描述/制法**：新建模式 + 升版模式，表单内按钮一键生成\
 ✅ **悬浮球 UI 增强**：角标/状态指示灯/快捷命令/动态标题/指令模板栏\
-✅ **结果卡片组件体系**：CompareCard / QuotationCard / SubstituteCard
+✅ **结果卡片组件体系**：CompareCard / QuotationCard / SubstituteCard\
+✅ **配方编辑页面布局优化**：可折叠基础信息（状态记忆）+ 左栏表单重构 + 间距优化\
+✅ **工作台仪表盘**：数据概览 + 快捷导航 + 天气信息\
+✅ **天气功能模块**：高德地图 API 集成 + IP 定位 + 城市搜索

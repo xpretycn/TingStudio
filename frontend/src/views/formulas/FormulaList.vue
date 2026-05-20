@@ -273,7 +273,7 @@
           </template>
 
           <template #operation="{ row }">
-            <t-popup trigger="click" placement="bottom-right" :popup-props="{ appendToBody: true }">
+            <t-popup trigger="hover" placement="bottom-right" :popup-props="{ appendToBody: true }">
               <button class="action-dropdown-btn" @click.stop title="操作" :aria-label="`操作配方${row.name}`">
                 <t-icon name="more" />
               </button>

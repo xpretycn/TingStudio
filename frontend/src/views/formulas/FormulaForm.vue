@@ -44,168 +44,122 @@
 
           <!-- ═══ 区域一：配方基本信息区 ═══ -->
           <section class="form-section zone-basic-info">
-            <div class="zone-header">
-              <h3 class="zone-title">
-                <t-icon name="edit-1" />
-                基础信息
-              </h3>
-            </div>
-            <div class="zone-content">
-              <div class="basic-info-two-col">
-                <!-- 左栏：输入型字段 (40%) -->
-                <div class="info-col-left">
-                  <div class="form-field field-compact">
-                    <label class="field-label" id="lbl-formula-name"><t-icon name="edit-1" size="12px" class="label-icon" /> 配方名称<span class="required">*</span></label>
-                    <t-input v-model="formData.name" placeholder="例如：佛手玫苓膏" clearable
-                      data-testid="formula-name-input" data-field="name" />
-                  </div>
-                  <div class="form-field field-compact">
-                    <label class="field-label" id="lbl-salesman"><t-icon name="user-circle" size="12px" class="label-icon" /> 所属业务员<span class="required">*</span></label>
-                    <t-select v-model="formData.salesmanId" placeholder="请选择业务员" clearable filterable
-                      data-field="salesman_name" :popup-props="{ appendToBody: true }">
-                      <t-option v-for="salesman in salesmanStore.allSalesmen" :key="salesman.id" :value="salesman.id"
-                        :label="salesman.name" />
-                    </t-select>
-                    <t-alert v-if="salesmanNotMatched && !formData.salesmanId" theme="warning" class="mt-2">
-                      业务员「{{ parsedSalesmanName }}」不在系统中
-                    </t-alert>
-                  </div>
-                  <div class="form-field field-compact">
-                    <label class="field-label" id="lbl-weight"><t-icon name="measurement" size="12px" class="label-icon" /> 成品重量(g)<span class="required">*</span><span class="field-help-inline">规格</span></label>
-                    <t-input-number v-model="formData.finishedWeight" :min="0" :decimal-places="2" placeholder="1000"
-                      data-field="finished_weight" />
-                  </div>
-                  <div class="form-field field-compact">
-                    <label class="field-label" id="lbl-ratio-factor"><t-icon name="control-platform" size="12px" class="label-icon" /> 主料系数<span class="required">*</span></label>
-                    <t-input-number v-model="formData.ratioFactor" :min="0.15" :max="0.25" :decimal-places="2"
-                      placeholder="0.18" data-field="ratio_factor" />
-                    <p class="field-help">用于营养成分含量比计算，主料系数范围0.15-0.25</p>
-                  </div>
-                  <div class="form-field field-compact">
-                    <label class="field-label" id="lbl-supplement-factor"><t-icon name="chart-bar" size="12px" class="label-icon" /> 辅料系数<span class="required">*</span></label>
-                    <t-input-number v-model="formData.supplementRatioFactor" :min="0.5" :max="1.5" :decimal-places="2"
-                      placeholder="1.0" data-field="supplement_ratio_factor" />
-                    <p class="field-help">用于营养成分含量比计算，辅料系数范围0.5-1.5</p>
-                  </div>
+            <div v-if="basicInfoCollapsed" class="info-collapsed-bar" @click="toggleBasicInfoCollapsed">
+              <div class="info-collapsed-left">
+                <div class="info-collapsed-icon">
+                  <t-icon name="edit-1" />
                 </div>
-                <!-- 右栏：文本型字段 (60%) -->
-                <div class="info-col-right">
-                  <div class="form-field field-compact">
-                    <label class="field-label" id="lbl-description"><t-icon name="chat-bubble" size="12px" class="label-icon" />
-                      配方描述
-                      <button type="button" class="btn-ai-generate" :disabled="aiGenerating || !formData.name"
-                        @click="handleGenerateDescription">
-                        <t-icon name="logo-github" size="12px" />
-                        {{ aiGenerating ? '生成中...' : '智能生成' }}
-                      </button>
-                    </label>
-                    <t-textarea v-model="formData.description" placeholder="简述该配方的研发目标和主要特点..."
-                      :autosize="{ minRows: 3, maxRows: 6 }" data-field="description" />
-                  </div>
-                  <div class="form-field field-compact">
-                    <label class="field-label" id="lbl-preparation"><t-icon name="setting" size="12px" class="label-icon" />
-                      制法
-                      <button type="button" class="btn-ai-generate" :disabled="aiGenerating || !formData.name"
-                        @click="handleGeneratePreparation">
-                        <t-icon name="logo-github" size="12px" />
-                        {{ aiGenerating ? '生成中...' : '智能生成' }}
-                      </button>
-                    </label>
-                    <t-textarea v-model="formData.preparationMethod" placeholder="记录配方的制取方法、工艺流程或特殊操作要求（可选）"
-                      :autosize="{ minRows: 2, maxRows: 5 }" data-field="preparation_method" />
-                  </div>
-                  <div v-if="isEdit" class="form-field field-compact" :class="{ 'field-error': versionReasonError }">
-                    <label class="field-label" id="lbl-version-reason"><t-icon name="history" size="12px" class="label-icon" /> 升版原因<span class="required">*</span>
-                      <button type="button" class="btn-ai-generate" :disabled="aiGenerating || !formData.name"
-                        @click="handleGenerateVersionReason">
-                        <t-icon name="logo-github" size="12px" />
-                        {{ aiGenerating ? '生成中...' : '智能生成' }}
-                      </button>
-                    </label>
-                    <t-textarea ref="versionReasonRef" v-model="formData.versionReason" placeholder="请输入升版原因（必填）"
-                      :autosize="{ minRows: 3, maxRows: 6 }"
-                      :class="{ 'input-error': versionReasonError }" data-field="version_reason"
-                      @input="clearVersionReasonError" />
-                    <transition name="error-fade">
-                      <p v-if="versionReasonError" class="field-error-msg">
-                        <t-icon name="error-circle" size="14px" /> 请填写升版原因
-                      </p>
-                    </transition>
-                  </div>
-                </div>
+                <span class="info-collapsed-text">基础信息</span>
+                <span class="info-collapsed-hint">点击展开</span>
               </div>
+              <t-icon name="chevron-down" class="info-collapsed-arrow" />
             </div>
-          </section>
-
-          <!-- ═══ 区域二：AI 操作区 ═══ -->
-          <section class="form-section zone-ai-operation">
-            <div class="zone-header">
-              <h3 class="zone-title">
-                <t-icon name="cloud" />
-                AI 智能解析
-              </h3>
-            </div>
-            <div class="zone-content">
-              <div class="ai-toolbar">
-                <div class="ai-model-select">
-                  <label class="ai-toolbar-label">选择模型</label>
-                  <t-radio-group v-model="aiStore.selectedModel" variant="default-filled" size="small">
-                    <t-radio-button v-for="model in aiStore.models" :key="model.provider" :value="model.provider">
-                      {{ model.name }}
-                    </t-radio-button>
-                  </t-radio-group>
+            <template v-else>
+              <div class="info-expanded-header" @click="toggleBasicInfoCollapsed">
+                <div class="info-expanded-title">
+                  <t-icon name="edit-1" />
+                  <span>基础信息</span>
                 </div>
-                <div class="ai-upload-area">
-                  <template v-if="!aiStore.parseLoading && !aiStore.parseResult">
-                    <div class="upload-zone" :class="{ 'drag-over': isDragOver }" @click="triggerFileInput"
-                      @dragover.prevent="handleDragOver" @dragleave="handleDragLeave" @drop.prevent="handleDrop">
-                      <input ref="fileInputRef" type="file" accept=".xlsx,.xls,.png,.jpg,.jpeg" style="display: none;"
-                        @change="handleFileChange" />
-                      <t-icon name="upload" size="20px" />
-                      <span>{{ selectedFile ? selectedFile.name : '点击或拖拽上传文件' }}</span>
-                    </div>
-                  </template>
-                  <div v-if="selectedFile && !aiStore.parseLoading" class="file-info-bar">
-                    <span class="file-name">{{ selectedFile.name }}</span>
-                    <span class="file-size">{{ formatFileSize(selectedFile.size) }}</span>
-                    <t-button size="small" variant="outline" @click="handleParse">
-                      <t-icon name="play-circle" />开始解析
-                    </t-button>
-                    <t-button size="small" variant="text" @click="cancelFileSelection">取消</t-button>
-                  </div>
-                  <div v-if="aiStore.parseLoading" class="parsing-status">
-                    <t-icon name="loading" class="t-icon-loading" />
-                    <span>{{ parseProgressHint }}</span>
-                    <t-button size="small" variant="text" @click="handleAbortParse">终止</t-button>
-                  </div>
-                  <div v-if="aiStore.parseResult" class="ai-result-preview">
-                    <div class="result-header">
-                      <span class="result-title">解析结果预览</span>
-                      <div class="result-actions">
-                        <t-button size="small" theme="success" :disabled="hasUnmatchedMaterials" @click="backfillData">
-                          确认并回填数据
-                        </t-button>
-                        <t-button size="small" variant="outline" @click="resetUpload">重新上传</t-button>
-                        <t-button size="small" variant="text" @click="clearResult">清空</t-button>
+                <t-icon name="chevron-up" class="info-expanded-arrow" />
+              </div>
+              <div class="zone-content">
+                <div class="basic-info-two-col">
+                  <div class="info-col-left info-card">
+                    <div class="form-field field-compact field-inline">
+                      <label class="field-label" id="lbl-formula-name">配方名称<span class="required">*</span></label>
+                      <div class="field-input">
+                        <t-input v-model="formData.name" placeholder="例如：佛手玫苓膏" clearable
+                          data-testid="formula-name-input" data-field="name" />
                       </div>
                     </div>
-                    <div class="result-summary">
-                      <span>配方名称：{{ aiStore.parseResult.name || '未识别' }}</span>
-                      <span>成品重量：{{ aiStore.parseResult.finishedWeight ? aiStore.parseResult.finishedWeight + 'g' : '未识别' }}</span>
-                      <span>业务员：{{ aiStore.parseResult.salesmanName || '未识别' }}</span>
-                      <span>原料数：{{ aiStore.parseResult.materials?.length || 0 }}</span>
+                    <div class="form-field field-compact field-inline">
+                      <label class="field-label" id="lbl-salesman">所属业务员<span class="required">*</span></label>
+                      <div class="field-input">
+                        <t-select v-model="formData.salesmanId" placeholder="请选择业务员" clearable filterable
+                          data-field="salesman_name" :popup-props="{ appendToBody: true }">
+                          <t-option v-for="salesman in salesmanStore.allSalesmen" :key="salesman.id" :value="salesman.id"
+                            :label="salesman.name" />
+                        </t-select>
+                        <t-alert v-if="salesmanNotMatched && !formData.salesmanId" theme="warning" class="mt-2">
+                          业务员「{{ parsedSalesmanName }}」不在系统中
+                        </t-alert>
+                      </div>
                     </div>
-                    <div v-if="hasUnmatchedMaterials" class="unmatched-warn">
-                      <t-icon name="error-circle" />
-                      {{ unmatchedMaterials.length }} 个原料未匹配
+                    <div class="form-field field-compact field-inline">
+                      <label class="field-label" id="lbl-weight">成品重量(g)<span class="required">*</span></label>
+                      <div class="field-input">
+                        <t-input-number v-model="formData.finishedWeight" :min="0" :decimal-places="2" placeholder="1000"
+                          theme="normal" data-field="finished_weight" />
+                      </div>
+                      <p class="field-help-below">规格</p>
+                    </div>
+                    <div class="form-field field-compact field-inline">
+                      <label class="field-label" id="lbl-ratio-factor">主料系数<span class="required">*</span></label>
+                      <div class="field-input">
+                        <t-input-number v-model="formData.ratioFactor" :min="0.15" :max="0.25" :decimal-places="2"
+                          placeholder="0.18" theme="normal" data-field="ratio_factor" />
+                      </div>
+                      <p class="field-help-below">用于营养成分含量比计算，主料系数范围0.15-0.25</p>
+                    </div>
+                    <div class="form-field field-compact field-inline">
+                      <label class="field-label" id="lbl-supplement-factor">辅料系数<span class="required">*</span></label>
+                      <div class="field-input">
+                        <t-input-number v-model="formData.supplementRatioFactor" :min="0.5" :max="1.5" :decimal-places="2"
+                          placeholder="1.0" theme="normal" data-field="supplement_ratio_factor" />
+                      </div>
+                      <p class="field-help-below">用于营养成分含量比计算，辅料系数范围0.5-1.5</p>
+                    </div>
+                  </div>
+                  <div class="info-col-right info-card">
+                    <div class="form-field field-compact">
+                      <label class="field-label" id="lbl-description">
+                        配方描述
+                        <button type="button" class="btn-ai-generate" :disabled="aiGenerating || !formData.name"
+                          @click="handleGenerateDescription">
+                          <t-icon name="logo-github" size="12px" />
+                          {{ aiGenerating ? '生成中...' : '智能生成' }}
+                        </button>
+                      </label>
+                      <t-textarea v-model="formData.description" placeholder="简述该配方的研发目标和主要特点..."
+                        :autosize="{ minRows: 3, maxRows: 6 }" data-field="description" />
+                    </div>
+                    <div class="form-field field-compact">
+                      <label class="field-label" id="lbl-preparation">
+                        制法
+                        <button type="button" class="btn-ai-generate" :disabled="aiGenerating || !formData.name"
+                          @click="handleGeneratePreparation">
+                          <t-icon name="logo-github" size="12px" />
+                          {{ aiGenerating ? '生成中...' : '智能生成' }}
+                        </button>
+                      </label>
+                      <t-textarea v-model="formData.preparationMethod" placeholder="记录配方的制取方法、工艺流程或特殊操作要求（可选）"
+                        :autosize="{ minRows: 3, maxRows: 6 }" data-field="preparation_method" />
+                    </div>
+                    <div v-if="isEdit" class="form-field field-compact" :class="{ 'field-error': versionReasonError }">
+                      <label class="field-label" id="lbl-version-reason">升版原因<span class="required">*</span>
+                        <button type="button" class="btn-ai-generate" :disabled="aiGenerating || !formData.name"
+                          @click="handleGenerateVersionReason">
+                          <t-icon name="logo-github" size="12px" />
+                          {{ aiGenerating ? '生成中...' : '智能生成' }}
+                        </button>
+                      </label>
+                      <t-textarea ref="versionReasonRef" v-model="formData.versionReason" placeholder="请输入升版原因（必填）"
+                        :autosize="{ minRows: 3, maxRows: 6 }"
+                        :class="{ 'input-error': versionReasonError }" data-field="version_reason"
+                        @input="clearVersionReasonError" />
+                      <transition name="error-fade">
+                        <p v-if="versionReasonError" class="field-error-msg">
+                          <t-icon name="error-circle" size="14px" /> 请填写升版原因
+                        </p>
+                      </transition>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
+            </template>
           </section>
 
-          <!-- ═══ 区域三：原料配比表 ═══ -->
+          <!-- ═══ 区域二：原料配比表 ═══ -->
           <section class="form-section zone-materials-table">
             <div class="zone-header">
               <h3 class="zone-title">
@@ -214,104 +168,42 @@
               </h3>
             </div>
             <div class="zone-content">
+              <div class="excel-panel-wrapper">
+                <div v-if="!excelExpanded" class="excel-collapsed-bar" @click="excelExpanded = true">
+                  <div class="excel-collapsed-left">
+                    <div class="excel-collapsed-icon">
+                      <t-icon name="file-excel" />
+                    </div>
+                    <span class="excel-collapsed-text">Excel导入原料</span>
+                    <span class="excel-collapsed-hint">点击展开</span>
+                  </div>
+                  <t-icon name="chevron-down" class="excel-collapsed-arrow" />
+                </div>
+                <div v-else class="excel-expanded-area">
+                  <div class="excel-expanded-header" @click="excelExpanded = false">
+                    <div class="excel-expanded-title">
+                      <t-icon name="file-excel" />
+                      <span>Excel导入原料</span>
+                    </div>
+                    <t-icon name="chevron-up" class="excel-expanded-arrow" />
+                  </div>
+                  <ExcelImportPanel @import="handleExcelImport" class="excel-panel" />
+                </div>
+              </div>
               <div class="materials-table-wrapper">
-                <table class="materials-table">
-                  <thead>
-                    <tr>
-                      <th>原料名称</th>
-                      <th class="qty-header">用量（g）</th>
-                      <th class="ratio-header">含量比</th>
-                      <th class="price-header">单价(/kg)</th>
-                      <th class="subtotal-header">小计</th>
-                      <th class="adjust-header">调整</th>
-                      <th class="w-16">操作</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr v-for="(item, index) in formData.materials" :key="index" class="material-row"
-                      :id="'mat-row-' + index" :class="{ 'material-row--highlight': highlightRowIdx === index, 'material-row--adjusted': item.adjustedPrice != null && item.adjustedPrice !== getMaterialBasePrice(index) }">
-                      <td>
-                        <t-select v-model="item.materialId" placeholder="搜索或选择原料" clearable filterable
-                          :loading="materialSelectLoading" class="material-select" :filter-icon="() => null"
-                          aria-label="选择原料" @search="handleMaterialSearch" @change="handleMaterialChange(index)"
-                          @focus="handleMaterialFocus">
-                          <t-option v-for="material in getFilteredMaterials(index)" :key="material.id"
-                            :value="material.id" :label="`${material.name} (${material.unit})`">
-                            <div class="material-option">
-                              <span>{{ material.name }} ({{ material.unit }})</span>
-                              <t-tag v-if="material.materialType === 'supplement'" theme="primary"
-                                variant="light-outline" size="small">辅料</t-tag>
-                              <t-tag v-else theme="success" variant="light-outline" size="small">药材</t-tag>
-                            </div>
-                          </t-option>
-                          <template #empty>
-                            <div class="select-empty-tip">
-                              {{ materialSearchKeyword ? '未找到匹配原料' : '暂无原料数据' }}
-                            </div>
-                          </template>
-                        </t-select>
-                      </td>
-                      <td>
-                        <t-input-number v-model="item.quantity" :min="0" placeholder="用量" class="quantity-input"
-                          :aria-label="`原料用量第${index + 1}行`" />
-                      </td>
-                      <td class="text-center font-mono ratio-cell" :class="{ 'ratio-cell--supplement': isSupplementMaterial(index) }">
-                        {{ calculateMaterialRatio(index) }}
-                      </td>
-                      <td>
-                        <div v-if="getMaterialBasePrice(index) != null" class="price-edit-cell">
-                          <t-input-number :model-value="getEffectivePrice(index)"
-                            @change="(val: number) => handlePriceAdjust(index, val)" :min="0" :precision="2"
-                            size="small" theme="normal" style="width: 80px" />
-                          <span class="price-unit">/kg</span>
-                        </div>
-                        <span v-else class="price-missing">未录入</span>
-                      </td>
-                      <td class="text-right font-mono subtotal-cell" :class="{ 'subtotal-cell--missing': getEffectivePrice(index) == null }">
-                        {{ getMaterialSubtotal(index) != null ? '¥' + getMaterialSubtotal(index)!.toFixed(2) : '—' }}
-                      </td>
-                      <td class="text-center adjust-cell">
-                        <span v-if="item.adjustedPrice != null && item.adjustedPrice !== getMaterialBasePrice(index)" class="col-adjust-badge"
-                          :title="'基价: ¥' + (getMaterialBasePrice(index) ?? '--') + '/kg'">
-                          <svg viewBox="0 0 12 12" width="10" height="10">
-                            <path d="M6 1L7.5 4.5L11 5L8.5 7.5L9 11L6 9L3 11L3.5 7.5L1 5L4.5 4.5Z" fill="#d97706" />
-                          </svg>
-                          价
-                        </span>
-                        <button v-if="item.adjustedPrice != null && item.adjustedPrice !== getMaterialBasePrice(index)" type="button" class="col-restore-btn"
-                          @click="handleRestorePrice(index)"
-                          :title="'恢复基价: ¥' + (getMaterialBasePrice(index) ?? '--') + '/kg'">
-                          <t-icon name="rollback" size="12px" />
-                        </button>
-                      </td>
-                      <td class="text-center">
-                        <t-button variant="text" size="small" @click="removeMaterial(index)" class="delete-btn"
-                          :aria-label="`删除第${index + 1}行原料`">
-                          <template #icon>
-                            <t-icon name="delete" />
-                          </template>
-                        </t-button>
-                      </td>
-                    </tr>
-                  </tbody>
-                  <tfoot v-if="formData.materials.length > 0">
-                    <tr class="total-row">
-                      <td class="font-bold">合计</td>
-                      <td class="font-mono font-bold">{{ totalQuantity }} g</td>
-                      <td></td>
-                      <td></td>
-                      <td class="font-mono font-bold">
-                        <span :class="{ 'cost-incomplete': priceQuote.missingPrices.length > 0 }">¥{{ priceQuote.materialTotal.toFixed(2) }}</span>
-                      </td>
-                      <td></td>
-                      <td></td>
-                    </tr>
-                  </tfoot>
-                </table>
-                <button type="button" class="add-first-btn" @click="addMaterial">
-                  <t-icon name="add" />
-                  添加原料
-                </button>
+                <MaterialTableCore
+                  :materials="materialTableRows"
+                  mode="edit"
+                  :finished-weight="formData.finishedWeight || 0"
+                  :ratio-factor="formData.ratioFactor ?? 0.18"
+                  :supplement-ratio-factor="formData.supplementRatioFactor ?? 1.0"
+                  :supplement-price-map="supplementPriceMap"
+                  @update:materials="handleMaterialsUpdate"
+                  @update:ratio-factor="(val: number) => formData.ratioFactor = val"
+                  @update:supplement-ratio-factor="(val: number) => formData.supplementRatioFactor = val"
+                  @update:finished-weight="(val: number) => formData.finishedWeight = val"
+                  @material-change="handleMaterialChangeFromTable"
+                />
               </div>
             </div>
           </section>
@@ -411,30 +303,29 @@ import { useRouter, useRoute } from 'vue-router';
 import { useFormulaStore } from '@/stores/formula';
 import { useSalesmanStore } from '@/stores/salesman';
 import { useMaterialStore } from '@/stores/material';
-import { useAiStore } from '@/stores/ai';
 import { MessagePlugin } from 'tdesign-vue-next';
 import type { FormRule } from 'tdesign-vue-next';
 import type { MaterialItem, RatioFactorValidationResult } from '@/api/formula';
 import { formulaApi } from '@/api/formula';
 import { agentApi } from '@/api/agent';
+import ExcelImportPanel from '@/components/ExcelImportPanel.vue';
+import type { ParsedMaterial } from '@/api/excelImport';
 import QuickCreateSalesmanDialog from '@/components/QuickCreateSalesmanDialog.vue';
+import MaterialTableCore from '@/components/formula/MaterialTableCore.vue';
+import type { MaterialTableRow } from '@/components/formula/MaterialTableCore.vue';
 
 const router = useRouter();
 const route = useRoute();
 const formulaStore = useFormulaStore();
 const salesmanStore = useSalesmanStore();
 const materialStore = useMaterialStore();
-const aiStore = useAiStore();
 
 const formRef = ref<any>(null);
 const versionReasonRef = ref<any>(null);
-const fileInputRef = ref<HTMLInputElement | null>(null);
 const loading = ref(false);
 const supplementPriceMap = ref<Record<string, number>>({});
 const versionReasonError = ref(false);
 const aiGenerating = ref(false);
-const selectedFile = ref<File | null>(null);
-const isDragOver = ref(false);
 
 
 // ratioFactor 含量比实时校验（前端本地计算，无需请求后端）
@@ -495,28 +386,29 @@ const ratioValidation = computed<RatioFactorValidationResult>(() => {
   }
 
   const deviation = ((totalRatio - 1) * 100).toFixed(2);
+  const totalRatioPercent = (totalRatio * 100).toFixed(2);
   const messages: Record<string, { message: string; description: string; allowed: boolean; requiresManualReview: boolean; }> = {
     normal: {
       message: '含量比校验通过',
-      description: `原料含量比总和为 ${totalRatio.toFixed(5)}（偏差 ${deviation}%），在正常范围内 [${thresholds.normalLow}, ${thresholds.normalHigh}]`,
+      description: `原料含量比总和为 ${totalRatioPercent}%（偏差 ${deviation}%），在正常范围内 [98%, 102%]`,
       allowed: true,
       requiresManualReview: false,
     },
     warning: {
       message: `含量比偏差预警（偏差 ${deviation}%）`,
-      description: `原料含量比总和为 ${totalRatio.toFixed(5)}，超出正常范围 [${thresholds.normalLow}, ${thresholds.normalHigh}]，偏差 ${deviation}%。建议检查原料用量是否合理，仍可继续创建。`,
+      description: `原料含量比总和为 ${totalRatioPercent}%，超出正常范围 [98%, 102%]，偏差 ${deviation}%。建议检查原料用量是否合理，仍可继续创建。`,
       allowed: true,
       requiresManualReview: false,
     },
     high_warning: {
       message: `含量比严重偏差（偏差 ${deviation}%）`,
-      description: `原料含量比总和为 ${totalRatio.toFixed(5)}，严重偏离标准值 1.0，偏差 ${deviation}%。需要人工审核确认后方可创建，请仔细核对原料用量数据。`,
+      description: `原料含量比总和为 ${totalRatioPercent}%，严重偏离标准值 100%，偏差 ${deviation}%。需要人工审核确认后方可创建，请仔细核对原料用量数据。`,
       allowed: true,
       requiresManualReview: true,
     },
     error: {
       message: `含量比校验失败（偏差 ${deviation}%）`,
-      description: `原料含量比总和为 ${totalRatio.toFixed(5)}，偏差 ${deviation}% 超出允许范围 [${thresholds.highWarningLow}, ${thresholds.highWarningHigh}]。配方数据存在错误，无法创建，请修正原料用量后重试。`,
+      description: `原料含量比总和为 ${totalRatioPercent}%，偏差 ${deviation}% 超出允许范围 [92%, 108%]。配方数据存在错误，无法创建，请修正原料用量后重试。`,
       allowed: false,
       requiresManualReview: false,
     },
@@ -570,12 +462,16 @@ const priceQuote = computed(() => {
 
 const isEdit = computed(() => !!route.params.id);
 
-const isAiPrefill = ref(false);
 const showQuickCreateSalesman = ref(false);
 const parsedSalesmanName = ref('');
-const materialSelectLoading = ref(false);
-const materialSearchKeyword = ref('');
 const highlightRowIdx = ref(-1);
+const excelExpanded = ref(false);
+
+const basicInfoCollapsed = ref(localStorage.getItem('formula-basic-info-collapsed') === 'true');
+function toggleBasicInfoCollapsed() {
+  basicInfoCollapsed.value = !basicInfoCollapsed.value;
+  localStorage.setItem('formula-basic-info-collapsed', String(basicInfoCollapsed.value));
+}
 
 const salesmanNotMatched = computed(() => {
   const name = parsedSalesmanName.value;
@@ -585,230 +481,61 @@ const salesmanNotMatched = computed(() => {
   );
 });
 
-const totalQuantity = computed(() => {
-  return formData.materials.reduce((sum: number, item: any) => sum + (item.quantity || 0), 0);
-});
-
-const addMaterial = () => {
-  formData.materials.push({
-    materialId: '',
-    materialName: '',
-    quantity: 0,
-  });
-};
-
-const removeMaterial = (index: number) => {
-  formData.materials.splice(index, 1);
-};
-
-const getFilteredMaterials = (_index: number) => {
-  const keyword = materialSearchKeyword.value?.trim().toLowerCase();
+const materialTableRows = computed<MaterialTableRow[]>(() => {
   const allMats = materialStore.allMaterials ?? [];
-  if (!keyword) return allMats;
-  return allMats.filter((m: any) =>
-    m.name?.toLowerCase().includes(keyword) ||
-    m.code?.toLowerCase().includes(keyword)
-  );
-};
-
-const handleMaterialSearch = (val: string) => {
-  materialSearchKeyword.value = val;
-};
-
-const handleMaterialChange = (index: number) => {
-  const item = formData.materials[index];
-  if (item.materialId) {
-    const mat = (materialStore.allMaterials ?? []).find((m: any) => m.id === item.materialId);
-    if (mat) {
-      item.materialName = mat.name;
-      highlightRowIdx.value = index;
-      setTimeout(() => { highlightRowIdx.value = -1; }, 1500);
-    }
-  }
-};
-
-const handleMaterialFocus = () => {
-  if (materialStore.allMaterials.length === 0) {
-    materialSelectLoading.value = true;
-    materialStore.fetchMaterials().finally(() => { materialSelectLoading.value = false; });
-  }
-};
-
-const isSupplementMaterial = (index: number) => {
-  const item = formData.materials[index];
-  if (!item?.materialId) return false;
-  const mat = (materialStore.allMaterials ?? []).find((m: any) => m.id === item.materialId);
-  return mat?.materialType === 'supplement';
-};
-
-const calculateMaterialRatio = (index: number) => {
-  const item = formData.materials[index];
-  if (!item || !formData.finishedWeight || !item.quantity) return '—';
-  const isSupp = isSupplementMaterial(index);
-  const factor = isSupp ? (formData.supplementRatioFactor || 1.0) : (formData.ratioFactor || 0.18);
-  const ratio = Math.round((item.quantity / formData.finishedWeight) * factor * 100000) / 100000;
-  return ratio.toFixed(5);
-};
-
-const getMaterialBasePrice = (index: number) => {
-  const item = formData.materials[index];
-  if (!item?.materialId) return null;
-  return supplementPriceMap.value[item.materialId] ?? null;
-};
-
-const getEffectivePrice = (index: number) => {
-  const item = formData.materials[index];
-  if (!item) return undefined;
-  if (item.adjustedPrice != null) return item.adjustedPrice;
-  return getMaterialBasePrice(index);
-};
-
-const getMaterialSubtotal = (index: number) => {
-  const item = formData.materials[index];
-  if (!item || !item.quantity) return null;
-  const price = getEffectivePrice(index);
-  if (price == null) return null;
-  return Number((item.quantity / 1000 * price).toFixed(4));
-};
-
-const handlePriceAdjust = (index: number, val: number | undefined) => {
-  const item = formData.materials[index];
-  if (!item) return;
-  if (val === undefined || val === null || val === getMaterialBasePrice(index)) {
-    delete item.adjustedPrice;
-  } else {
-    item.adjustedPrice = val;
-  }
-};
-
-const handleRestorePrice = (index: number) => {
-  const item = formData.materials[index];
-  if (!item) return;
-  delete item.adjustedPrice;
-};
-
-const triggerFileInput = () => {
-  fileInputRef.value?.click();
-};
-
-const handleDragOver = (e: DragEvent) => {
-  e.preventDefault();
-  isDragOver.value = true;
-};
-
-const handleDragLeave = () => {
-  isDragOver.value = false;
-};
-
-const handleDrop = (e: DragEvent) => {
-  isDragOver.value = false;
-  const files = e.dataTransfer?.files;
-  if (files && files.length > 0) {
-    const file = files[0];
-    const validTypes = [
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      'application/vnd.ms-excel',
-      'image/png',
-      'image/jpeg',
-    ];
-    if (validTypes.includes(file.type) || /\.(xlsx|xls|png|jpg|jpeg)$/i.test(file.name)) {
-      selectedFile.value = file;
-    } else {
-      MessagePlugin.warning('请上传 Excel 或图片文件（.xlsx/.xls/.png/.jpg）');
-    }
-  }
-};
-
-const handleFileChange = (e: Event) => {
-  const input = e.target as HTMLInputElement;
-  if (input.files && input.files.length > 0) {
-    selectedFile.value = input.files[0];
-  }
-};
-
-const formatFileSize = (bytes: number) => {
-  if (bytes < 1024) return bytes + ' B';
-  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-  return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
-};
-
-const handleParse = async () => {
-  if (!selectedFile.value) return;
-  try {
-    await aiStore.parseFormula(selectedFile.value);
-  } catch {
-    MessagePlugin.error('解析失败');
-  }
-};
-
-const cancelFileSelection = () => {
-  selectedFile.value = null;
-  if (fileInputRef.value) {
-    fileInputRef.value.value = '';
-  }
-};
-
-const parseProgressHint = computed(() => {
-  if (aiStore.parseAborted) return '解析已终止';
-  return '正在解析配方文件，请稍候...';
-});
-
-const handleAbortParse = () => {
-  aiStore.abortParseFormula();
-};
-
-const unmatchedMaterials = computed(() => {
-  if (!aiStore.parseResult?.materials) return [];
-  const allMats = materialStore.allMaterials ?? [];
-  return aiStore.parseResult.materials.filter((m: any) => {
-    const name = (m.name || m.materialName || '').trim();
-    return !allMats.find((mat: any) => mat.name === name || mat.name.includes(name) || name.includes(mat.name));
+  return formData.materials.map((item: any) => {
+    const mat = allMats.find((m: any) => m.id === item.materialId);
+    const basePrice = mat?.unitPrice ?? supplementPriceMap.value[item.materialId] ?? null;
+    const isPriceAdj = item.adjustedPrice != null && item.adjustedPrice !== basePrice;
+    const isQtyAdj = item.isQtyAdjusted === true && item.originalQuantity != null;
+    return {
+      materialId: item.materialId || undefined,
+      materialName: item.materialName || mat?.name || '',
+      quantity: item.quantity || 0,
+      originalQuantity: isQtyAdj ? item.originalQuantity : undefined,
+      unit: mat?.unit || 'g',
+      basePrice,
+      adjustedPrice: isPriceAdj ? item.adjustedPrice : undefined,
+      isPriceAdjusted: isPriceAdj,
+      isQtyAdjusted: isQtyAdj,
+      materialType: mat?.materialType === 'supplement' ? 'supplement' as const : 'herb' as const,
+    };
   });
 });
 
-const hasUnmatchedMaterials = computed(() => unmatchedMaterials.value.length > 0);
-
-const backfillData = () => {
-  if (!aiStore.parseResult) return;
-  const result = aiStore.parseResult;
-  if (result.name) formData.name = result.name;
-  if (result.finishedWeight) formData.finishedWeight = result.finishedWeight;
-  if (result.salesmanName) {
-    parsedSalesmanName.value = result.salesmanName;
-    const matched = salesmanStore.allSalesmen.find(
-      (s: any) => s.name === result.salesmanName || s.name.includes(result.salesmanName)
-    );
-    if (matched) formData.salesmanId = matched.id;
-  }
-  if (result.materials && result.materials.length > 0) {
-    const allMats = materialStore.allMaterials ?? [];
-    formData.materials = result.materials.map((m: any) => {
-      const name = (m.name || m.materialName || '').trim();
-      const matched = allMats.find((mat: any) => mat.name === name || mat.name.includes(name) || name.includes(mat.name));
-      return {
-        materialId: matched?.id || '',
-        materialName: name,
-        quantity: m.quantity || 0,
-      };
-    });
-  }
-  if (result.description) formData.description = result.description;
-  isAiPrefill.value = true;
-  aiStore.clearParseResult();
-  selectedFile.value = null;
-  MessagePlugin.success('数据已回填');
+const handleMaterialsUpdate = (rows: MaterialTableRow[]) => {
+  formData.materials = rows.map((row: MaterialTableRow) => {
+    const item: any = {
+      materialId: row.materialId || '',
+      materialName: row.materialName,
+      quantity: row.quantity,
+    };
+    if (row.adjustedPrice != null) item.adjustedPrice = row.adjustedPrice;
+    if (row.isPriceAdjusted) item.isPriceAdjusted = row.isPriceAdjusted;
+    if (row.originalQuantity != null) item.originalQuantity = row.originalQuantity;
+    if (row.isQtyAdjusted) item.isQtyAdjusted = row.isQtyAdjusted;
+    return item;
+  });
 };
 
-const resetUpload = () => {
-  selectedFile.value = null;
-  aiStore.clearParseResult();
-  if (fileInputRef.value) {
-    fileInputRef.value.value = '';
+const handleMaterialChangeFromTable = (idx: number, _materialId: string) => {
+  const item = formData.materials[idx];
+  if (item?.materialId) {
+    highlightRowIdx.value = idx;
+    setTimeout(() => { highlightRowIdx.value = -1; }, 1500);
   }
 };
 
-const clearResult = () => {
-  aiStore.clearParseResult();
+const handleExcelImport = (materials: ParsedMaterial[]) => {
+  const rows: MaterialTableRow[] = materials.map(m => ({
+    materialId: m.materialId || '',
+    materialName: m.materialName,
+    quantity: m.quantity,
+    unit: 'g',
+  }));
+  handleMaterialsUpdate(rows);
+  MessagePlugin.success(`已导入 ${materials.length} 条原料`);
+  excelExpanded.value = false;
 };
 
 const onQuickSalesmanCreated = async (salesman: any) => {
@@ -1140,43 +867,6 @@ onMounted(async () => {
       }
     }
   }
-
-  // AI 预填数据（从 route.query 读取）
-  if (route.query.ai === 'true') {
-    try {
-      const materials = JSON.parse(route.query.materials as string);
-      formData.name = (route.query.name as string) || '';
-      formData.materials = materials.map((m: any) => ({
-        materialId: m.materialId || '',
-        materialName: (m.name || '').replace(/[\uFEFF\u200B\u200C\u200D\u00A0\u3000]/g, '').trim(),
-        quantity: m.quantity || 0,
-      }));
-      if (route.query.finishedWeight) {
-        formData.finishedWeight = Number(route.query.finishedWeight) || 0;
-      }
-      // AI 解析的业务员姓名 → 匹配 salesmanId
-      if (route.query.salesmanName) {
-        const salesmanName = route.query.salesmanName as string;
-        const matched = salesmanStore.allSalesmen.find(
-          (s: any) => s.name === salesmanName || s.name.includes(salesmanName)
-        );
-        if (matched) {
-          formData.salesmanId = matched.id;
-        }
-      }
-      // AI 解析的配方日期（暂存备注，表单无日期字段）
-      if (route.query.formulaDate && route.query.description) {
-        formData.description = `${route.query.description}（配方时间：${route.query.formulaDate}）`;
-      } else if (route.query.formulaDate) {
-        formData.description = `配方时间：${route.query.formulaDate}`;
-      } else if (route.query.description) {
-        formData.description = route.query.description as string;
-      }
-      isAiPrefill.value = true;
-    } catch {
-      console.error('[FormulaForm] AI 预填数据解析失败');
-    }
-  }
 });
 </script>
 
@@ -1363,34 +1053,107 @@ onMounted(async () => {
       overflow: hidden;
     }
 
-    .zone-header {
+    .info-collapsed-bar {
       display: flex;
       align-items: center;
       justify-content: space-between;
+      padding: 12px 16px;
+      background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 50%, #f0f9ff 100%);
+      border: 1.5px dashed #86efac;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      user-select: none;
+
+      &:hover {
+        background: linear-gradient(135deg, #dcfce7 0%, #d1fae5 50%, #e0f2fe 100%);
+        border-color: #4ade80;
+        box-shadow: 0 2px 8px rgba(34, 197, 94, 0.12);
+        transform: translateY(-1px);
+      }
+
+      &:active {
+        transform: translateY(0);
+      }
+    }
+
+    .info-collapsed-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .info-collapsed-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+      color: #fff;
+      flex-shrink: 0;
+      box-shadow: 0 2px 6px rgba(34, 197, 94, 0.3);
+    }
+
+    .info-collapsed-text {
+      font-size: 14px;
+      font-weight: 600;
+      color: #15803d;
+    }
+
+    .info-collapsed-hint {
+      font-size: 11px;
+      color: #86efac;
+      background: rgba(34, 197, 94, 0.1);
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-weight: 500;
+    }
+
+    .info-collapsed-arrow {
+      color: #86efac;
+      transition: transform 0.2s;
+    }
+
+    .info-expanded-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0;
+      cursor: pointer;
+      transition: opacity 0.2s;
       margin-bottom: 24px;
 
-      .zone-title {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        margin: 0;
-        font-size: 14px;
-        font-weight: 700;
-        color: $text-placeholder;
-        text-transform: uppercase;
-        letter-spacing: 0.12em;
-
-        .t-icon {
-          color: $emerald-500;
-          font-size: 16px;
-        }
+      &:hover {
+        opacity: 0.7;
       }
+    }
+
+    .info-expanded-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 700;
+      color: $text-placeholder;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+
+      .t-icon {
+        color: $emerald-500;
+        font-size: 16px;
+      }
+    }
+
+    .info-expanded-arrow {
+      color: #94a3b8;
+      transition: transform 0.2s;
     }
 
     .zone-content {
     }
 
-    // 区域一：基础信息 - 紧凑网格布局
     .zone-basic-info {
       .basic-info-two-col {
         display: grid;
@@ -1408,6 +1171,66 @@ onMounted(async () => {
           gap: 16px;
         }
 
+        .info-col-left {
+          .field-inline .field-input {
+            max-width: calc(100% - 100px);
+          }
+        }
+
+        .info-col-right {
+          padding-right: 20px;
+        }
+
+        .info-card {
+          border: 1px solid #e2e8f0;
+          border-radius: 16px;
+          padding: 20px;
+        }
+
+        .field-inline {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+
+          .field-label {
+            margin-bottom: 0;
+            white-space: nowrap;
+            flex-shrink: 0;
+            min-width: 100px;
+            justify-content: flex-end;
+          }
+
+          .field-input {
+            flex: 1;
+            min-width: 0;
+
+            :deep(.t-input),
+            :deep(.t-input-number),
+            :deep(.t-select) {
+              width: 100%;
+            }
+          }
+
+          .field-help-below {
+            margin-top: 4px;
+            margin-left: calc(100px + 12px);
+            font-size: 11px;
+            color: #94a3b8;
+            line-height: 1.4;
+          }
+        }
+
+        .field-inline {
+          position: relative;
+          flex-wrap: wrap;
+
+          .field-help-below {
+            width: 100%;
+            order: 3;
+            margin-left: calc(100px + 12px);
+          }
+        }
+
         .field-compact {
           .field-label {
             display: flex;
@@ -1417,10 +1240,6 @@ onMounted(async () => {
             font-weight: 700;
             color: #334155;
             margin-bottom: 8px;
-
-            .label-icon {
-              color: $emerald-500;
-            }
 
             .required {
               color: #f43f5e;
@@ -1636,569 +1455,32 @@ onMounted(async () => {
             }
           }
         }
-      }
-    }
-
-    // 区域二：AI 操作区
-    .zone-ai-operation {
-      background: linear-gradient(145deg, #ffffff 0%, #f8fafc 50%, $border-color-light 100%);
-      padding: 32px;
-      border-radius: 2.5rem;
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.06), 0 8px 10px -6px $overlay-emerald-06;
-      border: 1px solid rgba(148, 163, 184, 0.15);
-      color: #334155;
-      position: relative;
-      overflow: hidden;
-      animation: fadeInUp 0.5s ease both;
-      animation-delay: 0.1s;
-
-      &::before {
-        content: '';
-        position: absolute;
-        top: -40px;
-        right: -40px;
-        width: 180px;
-        height: 180px;
-        background: radial-gradient(circle, $overlay-emerald-12 0%, transparent 70%);
-        filter: blur(60px);
-        border-radius: 50%;
-        pointer-events: none;
-      }
-
-      .zone-header {
-        position: relative;
-        z-index: 1;
-      }
-
-      .zone-content {
-        position: relative;
-        z-index: 1;
-      }
-
-      .ai-two-col {
-        display: grid;
-        grid-template-columns: 280px 1fr;
-        gap: 24px;
 
         @media (max-width: 900px) {
-          grid-template-columns: 1fr;
-        }
-      }
-
-      .ai-col-left {
-        .ai-section-label {
-          display: block;
-          font-size: 12px;
-          font-weight: 700;
-          color: #64748b;
-          text-transform: uppercase;
-          letter-spacing: 0.05em;
-          margin-bottom: 10px;
-        }
-
-        .model-grid {
-          display: flex;
-          flex-direction: column;
-          gap: 8px;
-        }
-
-        .model-btn {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          padding: 10px 14px;
-          border: 1px solid #e2e8f0;
-          border-radius: 12px;
-          background: #fff;
-          cursor: pointer;
-          transition: all 0.15s ease;
-          text-align: left;
-
-          &:hover {
-            border-color: #cbd5e1;
-            background: #f8fafc;
+          .info-col-right {
+            padding-right: 0;
           }
 
-          &.active {
-            border-color: $emerald-500;
-            background: rgba(16, 185, 129, 0.04);
-            box-shadow: 0 0 0 1px $emerald-500;
-          }
-
-          .model-logo-wrap {
-            width: 28px;
-            height: 28px;
-            border-radius: 8px;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            position: relative;
-
-            .model-logo {
-              width: 100%;
-              height: 100%;
-              object-fit: contain;
-            }
-
-            .model-fallback {
-              display: none;
-              width: 100%;
-              height: 100%;
-              align-items: center;
-              justify-content: center;
-              font-size: 14px;
-              font-weight: 700;
-              background: #f1f5f9;
-              border-radius: 8px;
-            }
-          }
-
-          .model-info-row {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            flex: 1;
-            min-width: 0;
-          }
-
-          .model-btn-name {
-            font-size: 13px;
-            font-weight: 600;
-            color: #334155;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-          }
-
-          .model-vision-badge {
-            font-size: 10px;
-            padding: 1px 6px;
-            border-radius: 6px;
-            background: rgba(16, 185, 129, 0.08);
-            color: $emerald-500;
-            font-weight: 600;
-            white-space: nowrap;
-          }
-        }
-
-        .no-models {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          padding: 12px;
-          color: #94a3b8;
-          font-size: 13px;
-        }
-
-        .template-selector {
-          margin-top: 16px;
-
-          .template-selector-label {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 12px;
-            font-weight: 700;
-            color: #64748b;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 8px;
-          }
-        }
-      }
-
-      .ai-col-right {
-        .upload-area {
-          .upload-zone {
-            display: flex;
+          .field-inline {
             flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 16px;
-            padding: 32px;
-            border: 2px dashed rgba(148, 163, 184, 0.25);
-            border-radius: 24px;
-            cursor: pointer;
-            transition: all $transition-fast;
-            color: #64748b;
+            align-items: stretch;
 
-            &:hover, &.drag-over {
-              border-color: $overlay-emerald-50;
-              background: $overlay-emerald-04;
-            }
-
-            .upload-icon {
-              width: 48px;
-              height: 48px;
-              border-radius: 50%;
-              background: $overlay-emerald-08;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              color: $emerald-500;
-              font-size: 20px;
-            }
-
-            .upload-text {
-              text-align: center;
-
-              .upload-title {
-                font-size: 14px;
-                font-weight: 600;
-                color: #334155;
-                margin: 0 0 4px;
-              }
-
-              .upload-hint {
-                font-size: 12px;
-                color: #94a3b8;
-                margin: 0;
-              }
-            }
-          }
-
-          .file-selected-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            padding: 14px 18px;
-            background: #f8fafc;
-            border: 1px solid $border-color-light;
-            border-radius: 16px;
-            margin-top: 12px;
-
-            .file-info {
-              display: flex;
-              align-items: center;
-              gap: 8px;
+            .field-label {
+              justify-content: flex-start;
               min-width: 0;
-
-              .file-name {
-                font-size: 13px;
-                font-weight: 600;
-                color: #334155;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-              }
-
-              .file-size {
-                font-size: 11px;
-                color: #94a3b8;
-                flex-shrink: 0;
-              }
-
-              .file-model-badge {
-                font-size: 10px;
-                padding: 1px 6px;
-                border-radius: 6px;
-                background: rgba(16, 185, 129, 0.08);
-                color: $emerald-500;
-                font-weight: 600;
-                flex-shrink: 0;
-              }
+              margin-bottom: 8px;
             }
 
-            .file-actions {
-              display: flex;
-              gap: 8px;
-              flex-shrink: 0;
-
-              .parse-btn {
-                display: inline-flex;
-                align-items: center;
-                gap: 4px;
-                padding: 6px 14px;
-                border: none;
-                border-radius: 10px;
-                background: linear-gradient(135deg, #10b981, #059669);
-                color: #fff;
-                font-size: 12px;
-                font-weight: 600;
-                cursor: pointer;
-                transition: all 0.15s ease;
-
-                &:hover:not(:disabled) {
-                  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
-                }
-
-                &:disabled {
-                  opacity: 0.5;
-                  cursor: not-allowed;
-                }
-              }
-
-              .clear-btn {
-                display: inline-flex;
-                align-items: center;
-                gap: 4px;
-                padding: 6px 14px;
-                border: 1px solid #e2e8f0;
-                border-radius: 10px;
-                background: #fff;
-                color: #64748b;
-                font-size: 12px;
-                font-weight: 500;
-                cursor: pointer;
-                transition: all 0.15s ease;
-
-                &:hover {
-                  border-color: #cbd5e1;
-                  color: #334155;
-                }
-              }
+            .field-help-below {
+              position: static;
+              left: auto;
+              margin-left: 0;
+              width: auto;
             }
           }
-        }
-
-        .parsing-progress {
-          padding: 20px;
-          background: $overlay-emerald-04;
-          border-radius: 24px;
-          border: 1px solid rgba(148, 163, 184, 0.18);
-
-          .progress-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-
-            .progress-file-info {
-              display: flex;
-              align-items: center;
-              gap: 8px;
-              font-size: 13px;
-              color: #334155;
-
-              .progress-file-name {
-                font-weight: 600;
-                max-width: 200px;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-              }
-
-              .progress-file-size {
-                color: #94a3b8;
-                font-size: 11px;
-              }
-            }
-
-            .progress-right {
-              display: flex;
-              align-items: center;
-              gap: 10px;
-
-              .progress-timer {
-                font-size: 12px;
-                color: #64748b;
-                font-variant-numeric: tabular-nums;
-              }
-
-              .abort-btn {
-                display: inline-flex;
-                align-items: center;
-                gap: 4px;
-                padding: 4px 10px;
-                border: 1px solid #fca5a5;
-                border-radius: 8px;
-                background: #fff;
-                color: #dc2626;
-                font-size: 11px;
-                font-weight: 600;
-                cursor: pointer;
-                transition: all 0.15s ease;
-
-                &:hover {
-                  background: #fef2f2;
-                }
-              }
-            }
-          }
-
-          .progress-bar-wrapper {
-            margin-bottom: 8px;
-
-            .progress-bar {
-              height: 6px;
-              background: #e2e8f0;
-              border-radius: 3px;
-              overflow: hidden;
-
-              .progress-fill--indeterminate {
-                height: 100%;
-                width: 40%;
-                background: linear-gradient(90deg, #10b981, #34d399);
-                border-radius: 3px;
-                animation: progressIndeterminate 1.5s ease-in-out infinite;
-              }
-            }
-          }
-
-          .progress-hint {
-            font-size: 12px;
-            color: #64748b;
-            margin: 0;
-          }
-        }
-
-        .parse-error {
-          padding: 16px;
-          background: #fef2f2;
-          border: 1px solid #fecaca;
-          border-radius: 16px;
-
-          .parse-error-content {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: #dc2626;
-            font-size: 13px;
-            font-weight: 500;
-          }
-
-          .parse-error-actions {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 10px;
-
-            .error-dismiss {
-              border: none;
-              background: none;
-              color: #94a3b8;
-              cursor: pointer;
-              font-size: 14px;
-              padding: 2px 6px;
-
-              &:hover {
-                color: #64748b;
-              }
-            }
-
-            .error-recovery-btn {
-              display: inline-flex;
-              align-items: center;
-              gap: 4px;
-              padding: 6px 12px;
-              border: 1px solid #fbbf24;
-              border-radius: 10px;
-              background: #fffbeb;
-              color: #92400e;
-              font-size: 12px;
-              font-weight: 600;
-              cursor: pointer;
-              transition: all 0.15s ease;
-
-              &:hover {
-                background: #fef3c7;
-              }
-            }
-          }
-        }
-
-        .ai-result-preview {
-          padding: 20px;
-          background: $overlay-emerald-04;
-          border-radius: 24px;
-          border: 1px solid rgba(148, 163, 184, 0.18);
-
-          .result-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-
-            .result-title {
-              font-size: 12px;
-              font-weight: 900;
-              color: $emerald-500;
-              text-transform: uppercase;
-              letter-spacing: 0.1em;
-            }
-          }
-
-          .result-summary {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 16px;
-            font-size: 13px;
-            color: #64748b;
-          }
-
-          .unmatched-warn {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            margin-top: 12px;
-            padding: 12px 16px;
-            background: #fffbeb;
-            border: 1px solid #fcd34d;
-            border-radius: 12px;
-            font-size: 13px;
-            color: #dc2626;
-          }
-        }
-      }
-
-      .ai-status-badge {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 6px 14px;
-        border-radius: 20px;
-        font-size: 13px;
-        font-weight: 600;
-        transition: all 0.3s ease;
-
-        .status-dot {
-          width: 6px;
-          height: 6px;
-          border-radius: 50%;
-          flex-shrink: 0;
-
-          &.status-dot--pulse {
-            background: #3b82f6;
-            animation: statusPulse 1.5s ease-in-out infinite;
-          }
-
-          &.status-dot--done {
-            background: #10b981;
-          }
-
-          &.status-dot--ready {
-            background: #f59e0b;
-          }
-        }
-
-        .status-text {
-          white-space: nowrap;
-        }
-
-        &.status--done {
-          background: rgba(16, 185, 129, 0.08);
-          color: #059669;
-          border: 1px solid rgba(16, 185, 129, 0.15);
-        }
-
-        &.status--pulse {
-          background: rgba(59, 130, 246, 0.08);
-          color: #2563eb;
-          border: 1px solid rgba(59, 130, 246, 0.15);
-        }
-
-        &.status--ready {
-          background: rgba(245, 158, 11, 0.08);
-          color: #d97706;
-          border: 1px solid rgba(245, 158, 11, 0.15);
         }
       }
     }
-
-    // 区域三：原料管理表格
     .zone-materials-table {
       .mode-switcher {
         display: flex;
@@ -2477,17 +1759,6 @@ onMounted(async () => {
           color: #fff !important;
           font-weight: 600;
         }
-      }
-    }
-
-    // AI 预填提示
-    .ai-prefill-alert {
-      margin-bottom: 16px;
-      animation: fadeInDown 0.3s ease;
-
-      &.alert-flash {
-        will-change: transform, opacity, box-shadow, border-color;
-        animation: alertFlash 2.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) 2;
       }
     }
 
@@ -2981,8 +2252,20 @@ onMounted(async () => {
                 align-items: center;
                 gap: 2px;
                 font-size: 10px;
-                color: #d97706;
-                font-weight: 600;
+                line-height: 1.4;
+                padding: 2px 6px;
+                border-radius: 6px;
+                background: linear-gradient(135deg, #fef3c7, #fde68a);
+                color: #b45309;
+                font-weight: 700;
+                cursor: help;
+                transition: all 0.2s;
+                white-space: nowrap;
+
+                &:hover {
+                  background: linear-gradient(135deg, #fde68a, #fcd34d);
+                  transform: scale(1.05);
+                }
               }
 
               .col-restore-btn {
@@ -3064,22 +2347,28 @@ onMounted(async () => {
       }
     }
 
+    .add-row {
+      td {
+        padding: 4px 0;
+        border: none;
+      }
+    }
+
     .add-first-btn {
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 8px;
       width: 100%;
-      padding: 16px 0;
-      margin-top: 8px;
-      font-size: 14px;
+      padding: 10px 0;
+      font-size: 13px;
       font-weight: 700;
       color: $text-placeholder;
       text-transform: uppercase;
       letter-spacing: 0.1em;
       background-color: transparent;
       border: 2px dashed #e2e8f0;
-      border-radius: 24px;
+      border-radius: 12px;
       cursor: pointer;
       transition: all $transition-fast;
 
@@ -3107,6 +2396,7 @@ onMounted(async () => {
   }
 
   .excel-panel-wrapper {
+    margin-top: 20px;
     margin-bottom: 16px;
   }
 
@@ -3223,1211 +2513,6 @@ onMounted(async () => {
 
   .excel-panel {
     margin-bottom: 0;
-  }
-
-  // AI 面板样式
-  .ai-panel {
-    background: linear-gradient(145deg, #ffffff 0%, #f8fafc 50%, $border-color-light 100%);
-    padding: 32px;
-    border-radius: 2.5rem;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.06), 0 8px 10px -6px $overlay-emerald-06;
-    color: #334155;
-    position: relative;
-    overflow: hidden;
-    animation: fadeInUp 0.5s ease both;
-    animation-delay: 0.1s;
-    border: 1px solid rgba(148, 163, 184, 0.15);
-
-    .ai-panel-bg {
-      position: absolute;
-      top: -40px;
-      right: -40px;
-      width: 180px;
-      height: 180px;
-      background: radial-gradient(circle, $overlay-emerald-12 0%, transparent 70%);
-      filter: blur(60px);
-      border-radius: 50%;
-    }
-
-    .ai-panel-content {
-      position: relative;
-      z-index: 1;
-    }
-
-    .ai-header {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 24px;
-
-      .ai-icon {
-        width: 40px;
-        height: 40px;
-        background: linear-gradient(135deg, $emerald-500, $emerald-teal);
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-
-        .t-icon {
-          font-size: 24px;
-          color: #fff;
-        }
-      }
-
-      .ai-title-group {
-        .ai-title {
-          font-size: 18px;
-          font-weight: 700;
-          margin: 0;
-        }
-
-        .ai-subtitle {
-          font-size: 12px;
-          color: $text-placeholder;
-          margin: 4px 0 0;
-        }
-      }
-    }
-
-    .ai-header-status {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 6px 14px;
-      border-radius: 20px;
-      font-size: 13px;
-      font-weight: 600;
-      transition: all 0.3s ease;
-      margin-left: auto;
-
-      &.status-indicator--done {
-        background: rgba(16, 185, 129, 0.08);
-        color: #059669;
-        border: 1px solid rgba(16, 185, 129, 0.15);
-      }
-
-      &.status-indicator--ready {
-        background: rgba(245, 158, 11, 0.08);
-        color: #d97706;
-        border: 1px solid rgba(245, 158, 11, 0.15);
-      }
-
-      &.status-indicator--pulse {
-        background: rgba(59, 130, 246, 0.08);
-        color: #2563eb;
-        border: 1px solid rgba(59, 130, 246, 0.15);
-      }
-
-      .status-dot {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        flex-shrink: 0;
-      }
-
-      .status-dot--pulse {
-        background: #3b82f6;
-        animation: dot-pulse 1.4s ease-in-out infinite;
-      }
-
-      .status-dot--done {
-        background: #10b981;
-      }
-
-      .status-dot--ready {
-        background: #f59e0b;
-        animation: dot-blink 2s ease-in-out infinite;
-      }
-
-      .status-text {
-        max-width: 200px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-    }
-
-    .ai-body {
-      .model-select {
-        margin-bottom: 24px;
-
-        .model-label {
-          display: block;
-          font-size: 12px;
-          font-weight: 700;
-          color: #64748b;
-          text-transform: uppercase;
-          margin-bottom: 8px;
-        }
-
-        .model-grid {
-          display: grid;
-          grid-template-columns: repeat(2, 1fr);
-          gap: 8px;
-
-          .model-btn {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 6px;
-            padding: 14px 10px;
-            background: $overlay-emerald-04;
-            border: 1px solid rgba(148, 163, 184, 0.18);
-            border-radius: 16px;
-            color: #64748b;
-            font-size: 11px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all $transition-normal;
-            opacity: 0.75;
-
-            &:hover {
-              opacity: 1;
-              background: $overlay-emerald-08;
-              border-color: $overlay-emerald-25;
-              transform: translateY(-1px);
-            }
-
-            &.active {
-              background: linear-gradient(135deg, $overlay-emerald-12 0%, rgba(45, 212, 191, 0.08) 100%);
-              border-color: $overlay-emerald-35;
-              opacity: 1;
-              color: $emerald-600;
-              box-shadow: 0 4px 12px -2px $overlay-emerald-12;
-            }
-
-            .model-logo-wrap {
-              position: relative;
-              width: 36px;
-              height: 36px;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-            }
-
-            .model-logo {
-              width: 100%;
-              height: 100%;
-              object-fit: contain;
-            }
-
-            .model-fallback {
-              display: none;
-              position: absolute;
-              inset: 0;
-              align-items: center;
-              justify-content: center;
-              font-size: 16px;
-              font-weight: 700;
-              background: $overlay-emerald-08;
-              border-radius: 8px;
-            }
-
-            .model-btn-name {
-              line-height: 1.2;
-            }
-
-            .model-info-row {
-              display: inline-flex;
-              align-items: center;
-              gap: 4px;
-            }
-
-            .model-vision-badge {
-              display: inline-flex;
-              align-items: center;
-              justify-content: center;
-              font-size: 9px;
-              padding: 2px 6px;
-              line-height: 1;
-              background: $gradient-emerald-strong;
-              color: #fff;
-              border-radius: 8px;
-              font-weight: 700;
-              letter-spacing: 0.3px;
-              opacity: 0.85;
-            }
-          }
-
-          .no-models {
-            grid-column: span 2;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            padding: 16px;
-            color: $text-placeholder;
-            font-size: 13px;
-
-            .t-icon {
-              font-size: 18px;
-            }
-          }
-        }
-      }
-
-      .template-selector {
-        display: flex;
-        align-items: flex-start;
-        gap: 10px;
-        margin-bottom: 16px;
-        padding: 10px 14px;
-        background: rgba(99, 102, 241, 0.04);
-        border: 1px solid rgba(99, 102, 241, 0.12);
-        border-radius: 12px;
-
-        .template-selector-label {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          font-size: 13px;
-          font-weight: 600;
-          color: #6366f1;
-          white-space: nowrap;
-          flex-shrink: 0;
-          margin-top: 5px;
-        }
-      }
-
-      // 上传区域
-      .upload-area {
-        .upload-zone {
-          border: 2px dashed rgba(148, 163, 184, 0.25);
-          border-radius: 24px;
-          padding: 32px;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          gap: 16px;
-          cursor: pointer;
-          transition: all $transition-fast;
-
-          &:hover,
-          &.drag-over {
-            border-color: $overlay-emerald-50;
-            background: $overlay-emerald-04;
-          }
-
-          .upload-icon {
-            width: 64px;
-            height: 64px;
-            background: $overlay-emerald-08;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 32px;
-            color: $emerald-500;
-            transition: transform 0.2s ease;
-          }
-
-          &:hover .upload-icon {
-            transform: scale(1.1);
-          }
-
-          .upload-text {
-            text-align: center;
-
-            .upload-title {
-              font-size: 14px;
-              font-weight: 700;
-              margin: 0;
-            }
-
-            .upload-hint {
-              font-size: 10px;
-              color: #64748b;
-              margin: 4px 0 0;
-            }
-          }
-        }
-
-        .file-selected-row {
-          margin-top: 16px;
-          padding: 14px 18px;
-          background: #f8fafc;
-          border: 1px solid $border-color-light;
-          border-radius: 16px;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 12px;
-
-          .file-info {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            min-width: 0;
-            flex: 1;
-
-            .t-icon {
-              color: #64748b;
-              flex-shrink: 0;
-            }
-
-            .file-name {
-              font-size: 13px;
-              font-weight: 600;
-              color: #334155;
-              overflow: hidden;
-              text-overflow: ellipsis;
-              white-space: nowrap;
-            }
-
-            .file-size {
-              font-size: 11px;
-              color: $text-placeholder;
-              flex-shrink: 0;
-            }
-
-            .file-model-badge {
-              font-size: 10px;
-              padding: 2px 8px;
-              background: $overlay-emerald-08;
-              color: $emerald-600;
-              border-radius: 10px;
-              font-weight: 600;
-              flex-shrink: 0;
-              margin-left: auto;
-            }
-          }
-
-          .file-actions {
-            display: flex;
-            gap: 8px;
-            flex-shrink: 0;
-
-            .parse-btn {
-              display: flex;
-              align-items: center;
-              gap: 6px;
-              padding: 8px 20px;
-              background: linear-gradient(135deg, $emerald-500, $emerald-teal);
-              color: #fff;
-              border: none;
-              border-radius: 12px;
-              font-size: 13px;
-              font-weight: 700;
-              cursor: pointer;
-              transition: all $transition-fast;
-              box-shadow: 0 4px 12px -2px $overlay-emerald-25;
-
-              &:hover {
-                transform: translateY(-1px);
-                box-shadow: 0 6px 16px -2px $overlay-emerald-35;
-              }
-
-              &:active {
-                transform: translateY(0);
-              }
-
-              &:disabled {
-                opacity: 0.5;
-                cursor: not-allowed;
-                transform: none;
-              }
-            }
-
-            .clear-btn {
-              display: flex;
-              align-items: center;
-              gap: 6px;
-              padding: 8px 16px;
-              background: #fff;
-              color: #64748b;
-              border: 1px solid rgba(148, 163, 184, 0.25);
-              border-radius: 12px;
-              font-size: 13px;
-              font-weight: 600;
-              cursor: pointer;
-              transition: all $transition-fast;
-              white-space: nowrap;
-
-              &:hover {
-                background: #fef2f2;
-                color: #dc2626;
-                border-color: rgba(220, 38, 38, 0.18);
-                transform: translateY(-1px);
-              }
-
-              &:active {
-                transform: translateY(0);
-              }
-            }
-          }
-        }
-      }
-
-      // 解析进度
-      .parsing-progress {
-        padding: 24px;
-        background: $overlay-emerald-04;
-        border-radius: 24px;
-        border: 1px solid rgba(148, 163, 184, 0.18);
-
-        .progress-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 12px;
-          flex-wrap: wrap;
-          gap: 8px;
-
-          .progress-file-info {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            min-width: 0;
-
-            .progress-file-name {
-              font-size: 12px;
-              font-weight: 600;
-              color: #334155;
-              overflow: hidden;
-              text-overflow: ellipsis;
-              white-space: nowrap;
-              max-width: 200px;
-            }
-
-            .progress-file-size {
-              font-size: 11px;
-              color: #94a3b8;
-              flex-shrink: 0;
-            }
-          }
-
-          .progress-right {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex-shrink: 0;
-          }
-
-          .progress-percent {
-            font-size: 12px;
-            font-weight: 600;
-            color: $emerald-600;
-            flex-shrink: 0;
-          }
-
-          .progress-timer {
-            font-size: 12px;
-            font-family: monospace;
-            font-weight: 700;
-            color: #64748b;
-            background: #f1f5f9;
-            padding: 2px 6px;
-            border-radius: 6px;
-            letter-spacing: 0.5px;
-          }
-
-          .abort-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            padding: 4px 10px;
-            border: 1px solid #fca5a5;
-            border-radius: 8px;
-            background: #fff;
-            color: #ef4444;
-            font-size: 12px;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-weight: 500;
-
-            &:hover {
-              background: #fef2f2;
-              border-color: #ef4444;
-            }
-          }
-        }
-
-        .progress-bar-wrapper {
-          margin-bottom: 12px;
-
-          .progress-bar {
-            height: 6px;
-            background: rgba(148, 163, 184, 0.20);
-            border-radius: 3px;
-            overflow: hidden;
-
-            .progress-fill {
-              height: 100%;
-              background: $gradient-emerald-light;
-              background-size: 200% 100%;
-              border-radius: 3px;
-
-              &--indeterminate {
-                width: 40% !important;
-                animation: progressSlide 1.5s ease-in-out infinite;
-              }
-            }
-          }
-        }
-
-        .progress-hint {
-          font-size: 10px;
-          color: #64748b;
-          font-style: italic;
-          margin: 0;
-        }
-
-        .progress-model-info {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          margin-top: 10px;
-          padding: 6px 10px;
-          background: rgba(99, 102, 241, 0.06);
-          border: 1px solid rgba(99, 102, 241, 0.12);
-          border-radius: 8px;
-          color: #6366f1;
-          font-size: 11px;
-
-          .model-name {
-            font-weight: 700;
-          }
-
-          .model-version {
-            color: #94a3b8;
-            font-family: monospace;
-            font-size: 10px;
-          }
-
-          .model-feature {
-            padding: 1px 6px;
-            background: rgba(99, 102, 241, 0.1);
-            border-radius: 4px;
-            font-size: 10px;
-            font-weight: 600;
-          }
-        }
-      }
-
-      // 解析错误
-      .parse-error {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 8px;
-        padding: 14px 18px;
-        background: $color-danger-bg;
-        border: 1px solid $color-danger-medium;
-        border-radius: 16px;
-        color: #dc2626;
-        font-size: 12px;
-        font-weight: 600;
-
-        .parse-error-content {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          flex: 1;
-          min-width: 0;
-
-          .t-icon {
-            font-size: 18px;
-            flex-shrink: 0;
-          }
-
-          span {
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-          }
-        }
-
-        .parse-error-actions {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          flex-shrink: 0;
-        }
-
-        .error-dismiss {
-          background: none;
-          border: none;
-          color: #dc2626;
-          cursor: pointer;
-          font-size: 14px;
-          opacity: 0.5;
-          padding: 2px 4px;
-          transition: opacity 0.2s;
-
-          &:hover {
-            opacity: 1;
-          }
-        }
-
-        .error-recovery-btn {
-          display: flex;
-          align-items: center;
-          gap: 4px;
-          padding: 5px 12px;
-          background: linear-gradient(135deg, #f59e0b, #d97706);
-          color: #fff;
-          border: none;
-          border-radius: 8px;
-          font-size: 11px;
-          font-weight: 700;
-          cursor: pointer;
-          transition: all $transition-fast;
-          white-space: nowrap;
-
-          &:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px -2px rgba(245, 158, 11, 0.35);
-          }
-
-          &:active {
-            transform: translateY(0);
-          }
-        }
-      }
-
-      // 解析结果
-      .analysis-result {
-        .result-card {
-          padding: 24px;
-          background: $overlay-emerald-04;
-          border-radius: 24px;
-          border: 1px solid rgba(148, 163, 184, 0.18);
-
-          .result-title {
-            font-size: 12px;
-            font-weight: 900;
-            color: $emerald-500;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            margin: 0 0 16px;
-          }
-
-          .result-items {
-            margin-bottom: 24px;
-
-            .result-item {
-              display: flex;
-              justify-content: space-between;
-              align-items: center;
-              padding: 8px 0;
-              font-size: 12px;
-
-              .result-label {
-                color: #64748b;
-                flex-shrink: 0;
-              }
-
-              .result-value {
-                font-weight: 700;
-                color: #334155;
-
-                &--empty {
-                  color: $text-placeholder;
-                  font-weight: 500;
-                }
-              }
-
-              .result-badge {
-                padding: 2px 8px;
-                background: $overlay-emerald-12;
-                color: $emerald-600;
-                border-radius: 4px;
-                font-size: 11px;
-              }
-
-              &--desc {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 6px;
-                padding: 12px 0;
-
-                .result-desc-wrap {
-                  font-size: 13px;
-                  line-height: 1.7;
-                  color: #334155;
-                  text-align: justify;
-                  word-break: break-word;
-                  white-space: pre-wrap;
-                  background: rgba(16, 185, 129, 0.04);
-                  border: 1px solid rgba(16, 185, 129, 0.12);
-                  border-radius: 8px;
-                  padding: 12px 14px;
-                  width: 100%;
-                  max-height: 180px;
-                  overflow-y: auto;
-
-                  &--empty {
-                    color: $text-placeholder;
-                    font-weight: 500;
-                  }
-                }
-
-                .result-label {
-                  font-weight: 600;
-                  color: #475569;
-                }
-              }
-            }
-
-            // 可信度
-            .confidence-wrap {
-              display: flex;
-              align-items: center;
-              gap: 8px;
-
-              .confidence-bar {
-                width: 80px;
-                height: 6px;
-                background: #e2e8f0;
-                border-radius: 3px;
-                overflow: hidden;
-
-                .confidence-fill {
-                  height: 100%;
-                  background: linear-gradient(90deg, $emerald-500, $emerald-400);
-                  border-radius: 3px;
-                  transition: width 0.5s ease;
-                }
-              }
-
-              .confidence-text {
-                font-size: 12px;
-                font-weight: 800;
-
-                &.high {
-                  color: $emerald-600;
-                }
-
-                &.medium {
-                  color: #d97706;
-                }
-
-                &.low {
-                  color: #dc2626;
-                }
-              }
-            }
-
-            // 重新解析下拉选项
-            .reparse-model-option {
-              display: flex;
-              align-items: center;
-              gap: 10px;
-              width: 100%;
-              min-height: 36px;
-              padding: 2px 0;
-
-              .reparse-model-logo {
-                width: 24px;
-                height: 24px;
-                min-width: 24px;
-                border-radius: 6px;
-                overflow: hidden;
-                position: relative;
-                flex-shrink: 0;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                background: $border-color-light;
-
-                img {
-                  width: 16px;
-                  height: 16px;
-                  object-fit: contain;
-                  display: block;
-                }
-
-                .reparse-model-fallback {
-                  font-size: 12px;
-                  font-weight: 800;
-                  line-height: 1;
-                }
-
-                img+.reparse-model-fallback {
-                  display: none;
-                }
-
-                img:error+.reparse-model-fallback {
-                  display: block;
-                }
-              }
-
-              .reparse-model-name {
-                flex: 1;
-                font-size: 13px;
-                color: #334155;
-                font-weight: 500;
-                line-height: 1.4;
-                white-space: nowrap;
-              }
-
-              .reparse-model-check {
-                font-size: 16px;
-                flex-shrink: 0;
-                color: $emerald-500;
-
-                &--active {
-                  background: linear-gradient(135deg, $overlay-emerald-12, rgba(5, 150, 105, 0.08));
-                  padding: 3px 7px;
-                  border-radius: 6px;
-                }
-              }
-            }
-          }
-
-          // 原料表格
-          .materials-table {
-            margin-bottom: 20px;
-            border-radius: 14px;
-            overflow: hidden;
-            border: 1px solid rgba(148, 163, 184, 0.12);
-
-            .materials-header {
-              display: grid;
-              grid-template-columns: 1fr 70px 50px 80px;
-              background: $overlay-emerald-08;
-              padding: 10px 14px;
-              font-size: 11px;
-              font-weight: 800;
-              color: $emerald-600;
-              text-transform: uppercase;
-              letter-spacing: 0.05em;
-
-              .col-status {
-                text-align: right;
-              }
-            }
-
-            .materials-row {
-              display: grid;
-              grid-template-columns: 1fr 70px 50px 80px;
-              padding: 10px 14px;
-              font-size: 12px;
-              color: #334155;
-              border-top: 1px solid rgba(148, 163, 184, 0.08);
-
-              &:nth-child(even) {
-                background: rgba(248, 250, 252, 0.5);
-              }
-
-              .col-name {
-                font-weight: 600;
-              }
-
-              .col-qty {
-                font-weight: 700;
-              }
-
-              .col-unit {
-                color: #64748b;
-              }
-
-              .col-status {
-                text-align: right;
-              }
-            }
-          }
-
-          // 可信度分条概述
-          .confidence-summary {
-            margin-bottom: 20px;
-            border-radius: 16px;
-            overflow: hidden;
-            background: linear-gradient(135deg, $overlay-emerald-04 0%, rgba(59, 130, 246, 0.03) 100%);
-            border: 1px solid rgba(148, 163, 184, 0.12);
-
-            .summary-header {
-              display: flex;
-              align-items: center;
-              gap: 6px;
-              padding: 10px 14px;
-              font-size: 11px;
-              font-weight: 800;
-              color: $emerald-600;
-              text-transform: uppercase;
-              letter-spacing: 0.05em;
-
-              .t-icon {
-                font-size: 14px;
-              }
-            }
-
-            }
-
-            .summary-items {
-              padding: 0 14px 12px;
-              display: flex;
-              flex-direction: column;
-              gap: 8px;
-            }
-
-            .summary-item {
-              display: flex;
-              align-items: center;
-              gap: 10px;
-              padding: 6px 10px;
-              border-radius: 10px;
-              transition: background 0.2s;
-
-              &--high {
-                background: $overlay-emerald-06;
-              }
-
-              &--medium {
-                background: $color-warning-bg;
-              }
-
-              &--low {
-                background: $color-danger-bg;
-              }
-
-              .item-label {
-                width: 56px;
-                flex-shrink: 0;
-                font-size: 11px;
-                font-weight: 700;
-                color: #475569;
-              }
-
-              .item-bar-wrap {
-                flex: 1;
-                display: flex;
-                align-items: center;
-                gap: 8px;
-
-                .item-bar {
-                  flex: 1;
-                  height: 5px;
-                  background: #e2e8f0;
-                  border-radius: 3px;
-                  overflow: hidden;
-
-                  .item-fill {
-                    height: 100%;
-                    border-radius: 3px;
-                    transition: width 0.5s ease;
-                  }
-                }
-
-                .item-value {
-                  font-size: 11px;
-                  font-weight: 800;
-                  min-width: 32px;
-                  text-align: right;
-                }
-              }
-
-              &--high .item-fill {
-                background: linear-gradient(90deg, $emerald-500, $emerald-400);
-              }
-
-              &--high .item-value {
-                color: $emerald-600;
-              }
-
-              &--medium .item-fill {
-                background: linear-gradient(90deg, #d97706, #f59e0b);
-              }
-
-              &--medium .item-value {
-                color: #d97706;
-              }
-
-              &--low .item-fill {
-                background: linear-gradient(90deg, #dc2626, #ef4444);
-              }
-
-              &--low .item-value {
-                color: #dc2626;
-              }
-            }
-          }
-
-          .unmatched-warning {
-            margin: 12px 0;
-            padding: 12px 16px;
-            background: #fffbeb;
-            border: 1px solid #fcd34d;
-            border-radius: 12px;
-            animation: fadeInUp 0.3s ease both;
-
-            .unmatched-warning-header {
-              display: flex;
-              align-items: center;
-              gap: 6px;
-              font-size: 12px;
-              font-weight: 700;
-              color: #b45309;
-              margin-bottom: 8px;
-
-              .t-icon {
-                font-size: 14px;
-                color: #f59e0b;
-              }
-            }
-
-            .unmatched-list {
-              list-style: none;
-              padding: 0;
-              margin: 0;
-
-              .unmatched-item {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                padding: 4px 0;
-                font-size: 12px;
-                color: #92400e;
-                border-bottom: 1px dashed #fde68a;
-
-                &:last-child {
-                  border-bottom: none;
-                }
-
-                .unmatched-name {
-                  font-weight: 600;
-                }
-
-                .unmatched-qty {
-                  font-size: 11px;
-                  color: #a16207;
-                  background: #fef3c7;
-                  padding: 1px 8px;
-                  border-radius: 6px;
-                }
-              }
-            }
-          }
-
-      .submit-block-reasons {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        margin-bottom: 12px;
-
-        .block-reason-item {
-          padding: 10px 14px;
-          border-radius: 10px;
-          font-size: 13px;
-
-          &--error {
-            background: #FEF2F2;
-            border: 1px solid #FECACA;
-
-            .block-reason-header {
-              display: flex;
-              align-items: center;
-              gap: 8px;
-              margin-bottom: 4px;
-            }
-
-            .block-reason-dot {
-              width: 8px;
-              height: 8px;
-              border-radius: 50%;
-              background: #EF4444;
-              flex-shrink: 0;
-            }
-
-            .block-reason-text {
-              font-weight: 600;
-              color: #DC2626;
-            }
-
-            .block-reason-hint {
-              font-size: 12px;
-              color: #F87171;
-              margin: 0 0 0 16px;
-            }
-          }
-
-          &--warning {
-            background: #FFFBEB;
-            border: 1px solid #FDE68A;
-
-            .block-reason-header {
-              display: flex;
-              align-items: center;
-              gap: 8px;
-              margin-bottom: 4px;
-            }
-
-            .block-reason-dot {
-              width: 8px;
-              height: 8px;
-              border-radius: 50%;
-              background: #F59E0B;
-              flex-shrink: 0;
-            }
-
-            .block-reason-text {
-              font-weight: 600;
-              color: #D97706;
-            }
-
-            .block-reason-hint {
-              font-size: 12px;
-              color: #FBBF24;
-              margin: 0 0 0 16px;
-            }
-          }
-        }
-      }
-
-          .result-actions {
-            .backfill-btn {
-              margin-bottom: 12px;
-              border-radius: 14px;
-              font-weight: 700;
-              font-size: 13px;
-              padding: 10px 20px;
-              height: auto;
-              box-shadow: 0 4px 12px -2px $overlay-emerald-20;
-            }
-
-            .secondary-actions {
-              display: grid;
-              grid-template-columns: repeat(3, 1fr);
-              gap: 10px;
-
-              .action-btn {
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
-                gap: 6px;
-                padding: 9px 12px;
-                border-radius: 14px;
-                font-size: 12px;
-                font-weight: 600;
-                border: 1px solid transparent;
-                cursor: pointer;
-                transition: all $transition-fast;
-                white-space: nowrap;
-
-                .t-icon {
-                  font-size: 15px;
-                }
-
-                &--default,
-                &--danger,
-                &--primary {
-                  background: $border-color-light;
-                  color: #475569;
-                  border-color: #e2e8f0;
-
-                  &:hover {
-                    background: #e2e8f0;
-                    color: #334155;
-                    border-color: #cbd5e1;
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
   }
 
   // 报价预览
@@ -4962,57 +3047,6 @@ onMounted(async () => {
       opacity: 0.3;
     }
   }
-
-  @keyframes alertFlash {
-    0% {
-      transform: scale(1);
-      opacity: 1;
-      box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
-      border-color: transparent;
-    }
-
-    15% {
-      transform: scale(1.008);
-      opacity: 1;
-      box-shadow: 0 0 0 4px $overlay-emerald-18, 0 2px 14px $overlay-emerald-12;
-      border-color: $emerald-500;
-    }
-
-    35% {
-      transform: scale(1.013);
-      opacity: 1;
-      box-shadow: 0 0 0 10px $overlay-emerald-12, 0 0 0 22px $overlay-emerald-06, 0 4px 24px $overlay-emerald-18;
-      border-color: $emerald-500;
-    }
-
-    55% {
-      transform: scale(1.01);
-      opacity: 0.92;
-      box-shadow: 0 0 0 20px $overlay-emerald-06, 0 0 0 34px rgba(16, 185, 129, 0.03), 0 3px 16px $overlay-emerald-10;
-      border-color: $overlay-emerald-55;
-    }
-
-    75% {
-      transform: scale(1.005);
-      opacity: 0.96;
-      box-shadow: 0 0 0 28px rgba(16, 185, 129, 0.02), 0 2px 10px rgba(16, 185, 129, 0.07);
-      border-color: $overlay-emerald-25;
-    }
-
-    90% {
-      transform: scale(1.002);
-      opacity: 0.98;
-      box-shadow: 0 0 0 36px transparent, 0 1px 6px $overlay-emerald-05;
-      border-color: $overlay-emerald-08;
-    }
-
-    100% {
-      transform: scale(1);
-      opacity: 1;
-      box-shadow: 0 0 0 0 transparent;
-      border-color: transparent;
-    }
-  }
 }
 
 .quick-create-salesman-option {
@@ -5258,120 +3292,6 @@ onMounted(async () => {
     }
   }
 }
-</style>
-
-<style lang="scss">
-@use '@/assets/styles/variables.scss' as *;
-
-.unified-materials-section {
-  .section-header {
-    .switch-label {
-      margin-left: 8px;
-      font-size: 13px;
-      color: #666;
-    }
-  }
-}
-
-.reparse-dropdown-popup {
-  min-width: 160px !important;
-  width: auto !important;
-  border: none !important;
-  outline: none !important;
-  box-shadow: 0 6px 24px $overlay-emerald-28, 0 2px 8px $overlay-emerald-12 !important;
-
-  .t-dropdown__menu {
-    min-width: 140px !important;
-    width: auto !important;
-    padding: 4px !important;
-    border: none !important;
-    outline: none !important;
-  }
-
-  .t-dropdown__item {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: flex-start !important;
-    padding: 7px 12px !important;
-    min-height: 38px;
-    width: 100% !important;
-    max-width: none !important;
-    box-sizing: border-box !important;
-    overflow: visible !important;
-    text-overflow: clip !important;
-    white-space: nowrap !important;
-
-    &:hover {
-      background-color: $border-color-light !important;
-    }
-
-    &.t-dropdown__item--active {
-      color: $emerald-600 !important;
-      background-color: transparent !important;
-    }
-  }
-
-  .reparse-model-option {
-    display: inline-flex !important;
-    align-items: center !important;
-    gap: 16px !important;
-    width: auto !important;
-    min-width: 120px !important;
-    max-width: none !important;
-    overflow: visible !important;
-    text-overflow: clip !important;
-
-    .reparse-model-logo {
-      width: 22px !important;
-      height: 22px !important;
-      min-width: 22px !important;
-      border-radius: 5px !important;
-      overflow: hidden !important;
-      flex-shrink: 0 !important;
-      display: flex !important;
-      align-items: center !important;
-      justify-content: center !important;
-      background: $border-color-light !important;
-
-      img {
-        width: 15px !important;
-        height: 15px !important;
-        object-fit: contain !important;
-        display: block !important;
-      }
-
-      .reparse-model-fallback {
-        font-size: 11px !important;
-        font-weight: 800 !important;
-        line-height: 1 !important;
-      }
-
-      img+.reparse-model-fallback {
-        display: none !important;
-      }
-
-      img:error+.reparse-model-fallback {
-        display: block !important;
-      }
-    }
-
-    .reparse-model-name {
-      flex: 0 0 auto !important;
-      font-size: 13px !important;
-      color: #334155 !important;
-      font-weight: 500 !important;
-      line-height: 1.3 !important;
-      white-space: nowrap !important;
-      text-overflow: clip !important;
-      overflow: visible !important;
-    }
-
-    .reparse-model-check {
-      font-size: 20px !important;
-      flex-shrink: 0 !important;
-      color: $emerald-500 !important;
-    }
-  }
 }
 </style>
 

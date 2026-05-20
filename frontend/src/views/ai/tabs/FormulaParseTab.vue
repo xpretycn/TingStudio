@@ -373,118 +373,15 @@
 
               <div class="result-right">
                 <div class="info-card materials-card">
-                  <div class="card-header">
-                    <t-icon name="precise-monitor" size="14px" />
-                    <span>原料信息</span>
-                    <span class="card-header-badge">{{ aiStore.parseResult.materials?.length || 0 }} 种</span>
-                  </div>
-                  <div class="card-body card-body--materials">
-                    <div class="materials-table">
-                      <div class="materials-header">
-                        <span class="col-name">原料名称</span>
-                        <span class="col-qty">用量</span>
-                        <span class="col-unit">单位</span>
-                        <span class="col-ratio">含量比</span>
-                        <span class="col-price">单价(/kg)</span>
-                        <span class="col-adjust">调整</span>
-                        <span class="col-subtotal">小计</span>
-                        <span class="col-status">状态</span>
-                        <span class="col-action">操作</span>
-                      </div>
-                      <div v-for="(m, idx) in aiStore.parseResult.materials" :key="idx" class="materials-row"
-                        :class="{ 'materials-row--warn': getMaterialPrice(m) == null, 'materials-row--adjusted': quoteItems[idx]?.isAdjusted, 'materials-row--qty-adjusted': quoteItems[idx]?.isQtyAdjusted, 'materials-row--restore-flash': restoreFlashIdx === idx, 'materials-row--new': !m.name && newMaterialSelectIdx === idx }">
-                        <template v-if="!m.name && newMaterialSelectIdx === idx">
-                          <t-select :value="m.materialId || undefined" placeholder="选择原料..." filterable
-                            style="grid-column: 1 / -1; width: 100%;"
-                            @change="(val: string) => onNewMaterialSelected(idx, val)">
-                            <t-option v-for="mat in availableMaterialsForSelect" :key="mat.id" :value="mat.id"
-                              :label="mat.name" />
-                          </t-select>
-                        </template>
-                        <template v-else>
-                          <span class="col-name">
-                            <span class="col-name-text">{{ m.name || '(待选择)' }}</span>
-                            <t-tag :class="isSupplementMaterial(m) ? 'material-type-tag--supplement' : 'material-type-tag--herb'" size="small">
-                              {{ isSupplementMaterial(m) ? '辅料' : '药材' }}
-                            </t-tag>
-                          </span>
-                          <div class="col-qty-edit">
-                            <t-input-number :model-value="quoteItems[idx]?.quantity ?? m.quantity ?? 0"
-                              @change="(val: number) => handleQtyAdjust(idx, val)" :min="0" :decimal-places="2"
-                              size="small" theme="normal" style="width: 72px"
-                              :class="{ 'col-qty-input--invalid': (quoteItems[idx]?.quantity ?? m.quantity) <= 0 }" />
-                          </div>
-                          <span class="col-unit">{{ m.unit || 'g' }}</span>
-                          <span class="col-ratio" :class="{ 'col-ratio--supplement': isSupplementMaterial(m) }">
-                            {{ calculateMaterialRatio(idx) }}
-                          </span>
-                          <span class="col-price" v-if="getMaterialPrice(m) == null">
-                            <span class="col-price-missing">未录入</span>
-                          </span>
-                          <div class="col-price-edit" v-else>
-                            <t-input-number :model-value="quoteItems[idx]?.unitPrice ?? getMaterialPrice(m)"
-                              @change="(val: number) => handlePriceAdjust(idx, val)" :min="0" :precision="2"
-                              size="small" theme="normal" style="width: 80px" />
-                            <span class="col-price-unit">/kg</span>
-                          </div>
-                          <span class="col-adjust">
-                            <span v-if="quoteItems[idx]?.isQtyAdjusted" class="col-adjust-badge col-adjust-badge--qty"
-                              :title="'原始用量: ' + (quoteItems[idx]?.originalQuantity ?? '--')">
-                              <svg viewBox="0 0 12 12" width="10" height="10">
-                                <path d="M6 1L7.5 4.5L11 5L8.5 7.5L9 11L6 9L3 11L3.5 7.5L1 5L4.5 4.5Z" fill="#3b82f6" />
-                              </svg>
-                              量
-                            </span>
-                            <button v-if="quoteItems[idx]?.isQtyAdjusted" type="button" class="col-restore-btn"
-                              :class="{ 'col-restore-btn--flash': restoreFlashIdx === idx }"
-                              @click="handleRestoreSingleQty(idx)"
-                              :title="'恢复原始用量: ' + (quoteItems[idx]?.originalQuantity ?? '--')">
-                              <t-icon name="rollback" size="12px" />
-                            </button>
-                            <span v-if="quoteItems[idx]?.isAdjusted" class="col-adjust-badge"
-                              :title="'基价: ¥' + (quoteItems[idx]?.basePrice ?? '--') + '/kg'">
-                              <svg viewBox="0 0 12 12" width="10" height="10">
-                                <path d="M6 1L7.5 4.5L11 5L8.5 7.5L9 11L6 9L3 11L3.5 7.5L1 5L4.5 4.5Z" fill="#d97706" />
-                              </svg>
-                              价
-                            </span>
-                            <button v-if="quoteItems[idx]?.isAdjusted" type="button" class="col-restore-btn"
-                              :class="{ 'col-restore-btn--flash': restoreFlashIdx === idx }"
-                              @click="handleRestoreSinglePrice(idx)"
-                              :title="'恢复基价: ¥' + (quoteItems[idx]?.basePrice ?? '--') + '/kg'">
-                              <t-icon name="rollback" size="12px" />
-                            </button>
-                          </span>
-                          <span class="col-subtotal"
-                            :class="{ 'col-price--missing': getQuoteItemSubtotal(idx) == null }">
-                            {{ getQuoteItemSubtotal(idx) != null ? '¥' + getQuoteItemSubtotal(idx)!.toFixed(2) : '—' }}
-                          </span>
-                          <span class="col-status">
-                            <t-tag v-if="m.matched" theme="success" variant="light" size="small">已匹配</t-tag>
-                            <template v-else>
-                              <t-tag theme="warning" variant="light" size="small">未匹配</t-tag>
-                              <button type="button" class="quick-add-material-btn" @click="openQuickCreateMaterial(m)"
-                                title="快速录入此原料">
-                                <t-icon name="add" size="12px" />
-                              </button>
-                            </template>
-                          </span>
-                          <span class="col-action">
-                            <button type="button" class="remove-material-btn" @click="removeParsedMaterial(idx)"
-                              title="移除此原料">
-                              <t-icon name="delete" size="12px" />
-                            </button>
-                          </span>
-                        </template>
-                      </div>
-                      <div class="materials-add-row">
-                        <button class="add-material-inline-btn" @click="addParsedMaterial">
-                          <t-icon name="add" size="14px" style="color: #10b981" />
-                          添加原料
-                        </button>
-                      </div>
-                    </div>
-                  </div>
+                  <MaterialTableCore
+                    :materials="materialTableRows"
+                    mode="parse"
+                    :finished-weight="editedWeight || 0"
+                    :ratio-factor="editedRatioFactor ?? 0.18"
+                    :supplement-ratio-factor="editedSupplementRatioFactor ?? 1.0"
+                    @update:materials="handleMaterialsUpdate"
+                    @quick-add-material="openQuickCreateMaterial"
+                  />
                 </div>
 
                 <div class="info-card info-card--actions">
@@ -808,6 +705,8 @@ import type { Salesman } from '@/api/salesman';
 import { salesmanApi } from '@/api/salesman';
 import { fileApi } from '@/api/file';
 import { parseTemplateApi, type ParseTemplate } from '@/api/parseTemplate';
+import MaterialTableCore from '@/components/formula/MaterialTableCore.vue';
+import type { MaterialTableRow } from '@/components/formula/MaterialTableCore.vue';
 
 const emit = defineEmits<{
   (e: 'activity-add', item: { type: 'success' | 'info' | 'warning'; title: string; desc: string; time: string; }): void;
@@ -816,10 +715,6 @@ const emit = defineEmits<{
 const aiStore = useAiStore();
 const formulaStore = useFormulaStore();
 const materialStore = useMaterialStore();
-
-const safeParseResult = computed(() => {
-  return aiStore.parseAborted ? null : aiStore.parseResult;
-});
 
 const route = useRoute();
 const router = useRouter();
@@ -1111,6 +1006,63 @@ const editedWeight = ref(0);
 const editedRatioFactor = ref(0.18);
 const editedSupplementRatioFactor = ref(1.0);
 
+const materialTableRows = computed<MaterialTableRow[]>(() => {
+  const data = aiStore.parseResult;
+  const allMats = materialStore.allMaterials;
+  if (!data?.materials?.length) return [];
+  return data.materials.map((m: ParsedMaterial, idx: number) => {
+    const basePrice = getMaterialPrice(m, allMats);
+    const adjustedPrice = quoteAdjustments.value[idx];
+    const isPriceAdj = adjustedPrice != null && adjustedPrice !== basePrice;
+    const adjustedQty = qtyAdjustments.value[idx];
+    const originalQty = m.quantity || 0;
+    const effectiveQty = (adjustedQty != null && adjustedQty !== originalQty) ? adjustedQty : originalQty;
+    const isQtyAdj = adjustedQty != null && adjustedQty !== originalQty;
+    return {
+      materialId: m.materialId || undefined,
+      materialName: m.name || '',
+      quantity: effectiveQty,
+      originalQuantity: isQtyAdj ? originalQty : undefined,
+      unit: m.unit || 'g',
+      basePrice,
+      adjustedPrice: isPriceAdj ? adjustedPrice : undefined,
+      isPriceAdjusted: isPriceAdj,
+      isQtyAdjusted: isQtyAdj,
+      matched: m.matched,
+      materialType: isSupplementMaterial(m) ? 'supplement' as const : 'herb' as const,
+    };
+  });
+});
+
+const handleMaterialsUpdate = (rows: MaterialTableRow[]) => {
+  const data = aiStore.parseResult;
+  if (!data) return;
+  const newQuoteAdj: Record<number, number> = {};
+  const newQtyAdj: Record<number, number> = {};
+  const newMaterials: ParsedMaterial[] = rows.map((row: MaterialTableRow, idx: number) => {
+    const original = data.materials?.find((m: ParsedMaterial) => m.materialId === row.materialId || m.name === row.materialName);
+    const basePrice = row.basePrice ?? null;
+    if (row.isPriceAdjusted && row.adjustedPrice != null && basePrice != null && row.adjustedPrice !== basePrice) {
+      newQuoteAdj[idx] = row.adjustedPrice;
+    }
+    if (row.isQtyAdjusted && row.originalQuantity != null && row.quantity !== row.originalQuantity) {
+      newQtyAdj[idx] = row.quantity;
+    }
+    return {
+      ...(original || {}),
+      materialId: row.materialId || '',
+      name: row.materialName,
+      quantity: row.isQtyAdjusted && row.originalQuantity != null ? row.originalQuantity : row.quantity,
+      unit: row.unit || 'g',
+      matched: row.matched ?? !!row.materialId,
+      materialType: row.materialType,
+    } as ParsedMaterial;
+  });
+  data.materials = newMaterials;
+  quoteAdjustments.value = newQuoteAdj;
+  qtyAdjustments.value = newQtyAdj;
+};
+
 const quoteItems = computed<QuoteItem[]>(() => {
   const data = aiStore.parseResult;
   const allMats = materialStore.allMaterials;
@@ -1164,49 +1116,6 @@ const qtyAdjustedCount = computed(() => {
   return quoteItems.value.filter(m => m.isQtyAdjusted).length;
 });
 
-const handlePriceAdjust = (idx: number, val: number | undefined) => {
-  const data = aiStore.parseResult;
-  if (!data?.materials?.[idx]) return;
-  const basePrice = getMaterialPrice(data.materials[idx]);
-  if (val === undefined || val === null || val === basePrice) {
-    const newAdj = { ...quoteAdjustments.value };
-    delete newAdj[idx];
-    quoteAdjustments.value = newAdj;
-  } else {
-    quoteAdjustments.value = { ...quoteAdjustments.value, [idx]: val };
-  }
-};
-
-const handleQtyAdjust = (idx: number, val: number | undefined) => {
-  const data = aiStore.parseResult;
-  if (!data?.materials?.[idx]) return;
-  const originalQty = data.materials[idx].quantity || 0;
-  if (val === undefined || val === null || val === originalQty) {
-    const newAdj = { ...qtyAdjustments.value };
-    delete newAdj[idx];
-    qtyAdjustments.value = newAdj;
-  } else {
-    qtyAdjustments.value = { ...qtyAdjustments.value, [idx]: val };
-  }
-};
-
-const handleRestoreSingleQty = (idx: number) => {
-  const data = aiStore.parseResult;
-  if (!data?.materials?.[idx]) return;
-  const originalQty = data.materials[idx].quantity || 0;
-
-  const newAdj = { ...qtyAdjustments.value };
-  delete newAdj[idx];
-  qtyAdjustments.value = newAdj;
-
-  restoreFlashIdx.value = idx;
-  setTimeout(() => {
-    restoreFlashIdx.value = null;
-  }, 600);
-
-  MessagePlugin.success(`已恢复「${data.materials[idx].name}」用量为原始值 ${originalQty}`);
-};
-
 const handleRestoreAllAdjustments = () => {
   const priceCount = Object.keys(quoteAdjustments.value).length;
   const qtyCount = Object.keys(qtyAdjustments.value).length;
@@ -1229,48 +1138,6 @@ const isSupplementMaterial = (m: ParsedMaterial): boolean => {
     }
   }
   return false;
-};
-
-const calculateMaterialRatio = (idx: number): string => {
-  const data = aiStore.parseResult;
-  if (!data?.materials?.[idx]) return '—';
-  const m = data.materials[idx];
-  if (!editedWeight.value || editedWeight.value <= 0) return '—';
-  const quantity = quoteItems.value[idx]?.quantity ?? m.quantity ?? 0;
-  if (!quantity || quantity <= 0) return '—';
-
-  const ratioFactor = isSupplementMaterial(m)
-    ? (editedSupplementRatioFactor.value ?? 1.0)
-    : (editedRatioFactor.value ?? 0.18);
-
-  const ratio = (quantity / editedWeight.value) * ratioFactor;
-  return ratio.toFixed(4);
-};
-
-const restoreFlashIdx = ref<number | null>(null);
-
-const handleRestoreSinglePrice = (idx: number) => {
-  const data = aiStore.parseResult;
-  if (!data?.materials?.[idx]) return;
-  const basePrice = getMaterialPrice(data.materials[idx]);
-  if (!quoteAdjustments.value[idx]) return;
-
-  const newAdj = { ...quoteAdjustments.value };
-  delete newAdj[idx];
-  quoteAdjustments.value = newAdj;
-
-  restoreFlashIdx.value = idx;
-  setTimeout(() => {
-    restoreFlashIdx.value = null;
-  }, 600);
-
-  MessagePlugin.success(`已恢复「${data.materials[idx].name}」单价为基价 ¥${basePrice?.toFixed(2) ?? '--'}`);
-};
-
-const getQuoteItemSubtotal = (idx: number): number | null => {
-  const item = quoteItems.value[idx];
-  if (!item || item.unitPrice == null) return null;
-  return item.subtotal;
 };
 
 interface RatioValidationResult {
@@ -1693,15 +1560,6 @@ const handleRecoveryParse = async () => {
   }
 };
 
-const resetUpload = () => {
-  selectedFile.value = null;
-  aiStore.clearParseResult();
-  if (fileInputRef.value) fileInputRef.value.value = '';
-  nextTick(() => {
-    fileInputRef.value?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  });
-};
-
 const clearResult = () => {
   selectedFile.value = null;
   aiStore.clearParseResult();
@@ -1916,8 +1774,9 @@ const onSelectSalesman = (salesmanId: string) => {
   MessagePlugin.success(`已选择业务员「${salesman.name}」，匹配完成`);
 };
 
-const openQuickCreateMaterial = (material: ParsedMaterial) => {
-  quickCreateMaterialData.value = { ...material };
+const openQuickCreateMaterial = (material: MaterialTableRow | ParsedMaterial) => {
+  const name = 'name' in material ? (material as ParsedMaterial).name : material.materialName;
+  quickCreateMaterialData.value = { ...material, name } as ParsedMaterial;
   showQuickCreateMaterial.value = true;
 };
 
@@ -1985,71 +1844,6 @@ const addMaterial = () => {
     quantity: 0,
     unit: 'g',
   });
-};
-
-const addParsedMaterial = () => {
-  if (!aiStore.parseResult) return;
-  if (!aiStore.parseResult.materials) {
-    aiStore.parseResult.materials = [];
-  }
-  const newIdx = aiStore.parseResult.materials.length;
-  aiStore.parseResult.materials.push({
-    name: '',
-    quantity: 0,
-    unit: 'g',
-    matched: false,
-    materialId: '',
-  });
-  nextTick(() => {
-    newMaterialSelectIdx.value = newIdx;
-  });
-};
-
-const newMaterialSelectIdx = ref<number | null>(null);
-
-const availableMaterialsForSelect = computed(() => {
-  if (!aiStore.parseResult?.materials?.length) return materialStore.allMaterials;
-  const existingIds = new Set(
-    aiStore.parseResult.materials
-      .filter((m: any) => m.materialId)
-      .map((m: any) => m.materialId)
-  );
-  const existingNames = new Set(
-    aiStore.parseResult.materials
-      .filter((m: any) => m.name?.trim())
-      .map((m: any) => m.name.trim())
-  );
-  return materialStore.allMaterials.filter((m: any) => {
-    if (existingIds.has(m.id)) return false;
-    if (existingNames.has(m.name.trim())) return false;
-    return true;
-  });
-});
-
-const onNewMaterialSelected = (idx: number, materialId: string) => {
-  if (!aiStore.parseResult?.materials?.[idx] || !materialId) return;
-  const material = materialStore.allMaterials.find((m: any) => m.id === materialId);
-  if (!material) return;
-
-  const mat = aiStore.parseResult.materials[idx];
-  mat.name = material.name;
-  mat.materialId = material.id;
-  mat.unit = material.unit || 'g';
-  mat.matched = true;
-  mat.quantity = mat.quantity || 0;
-
-  newMaterialSelectIdx.value = null;
-  MessagePlugin.success(`已选择原料「${material.name}」`);
-};
-
-const removeParsedMaterial = (idx: number) => {
-  if (!aiStore.parseResult?.materials) return;
-  aiStore.parseResult.materials.splice(idx, 1);
-  if (newMaterialSelectIdx.value === idx) {
-    newMaterialSelectIdx.value = null;
-  } else if (newMaterialSelectIdx.value != null && newMaterialSelectIdx.value > idx) {
-    newMaterialSelectIdx.value--;
-  }
 };
 
 const removeMaterial = (idx: number) => {
@@ -2875,9 +2669,20 @@ const goToFileDetail = () => {
     letter-spacing: 0.05em;
     background: $overlay-emerald-04;
     border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+    position: relative;
 
     .t-icon {
       color: $emerald-500;
+    }
+
+    &--materials {
+      justify-content: space-between;
+    }
+
+    .card-header-left {
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
 
     &--warning {
@@ -2891,7 +2696,6 @@ const goToFileDetail = () => {
     }
 
     .card-header-badge {
-      margin-left: auto;
       padding: 1px 8px;
       background: $overlay-emerald-12;
       color: $emerald-600;
@@ -2899,6 +2703,123 @@ const goToFileDetail = () => {
       font-size: 11px;
       font-weight: 700;
     }
+
+    .batch-mode-enter-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      color: $emerald-600;
+      background: $overlay-emerald-08;
+      border: 1px solid rgba(16, 185, 129, 0.2);
+      cursor: pointer;
+      transition: all $transition-fast;
+
+      &:hover {
+        background: $overlay-emerald-12;
+        border-color: rgba(16, 185, 129, 0.4);
+      }
+    }
+  }
+
+  .batch-action-bar {
+    position: relative;
+    z-index: 20;
+    background-color: #059669;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    border-radius: 0;
+    box-shadow: 0 4px 18px rgba(5, 150, 105, 0.25);
+
+    .batch-info {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+
+      .batch-count {
+        font-weight: 700;
+        font-size: 13px;
+
+        strong {
+          font-weight: 800;
+          margin-right: 4px;
+        }
+      }
+
+      .batch-divider {
+        width: 1px;
+        height: 16px;
+        background: rgba(52, 211, 153, 0.5);
+      }
+
+      .batch-buttons {
+        display: flex;
+        gap: 12px;
+      }
+
+      .batch-action-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 13px;
+        font-weight: 500;
+        background: none;
+        border: none;
+        color: #fff;
+        cursor: pointer;
+        padding: 4px 8px;
+        border-radius: 6px;
+        transition: all $transition-fast;
+
+        &:hover:not(:disabled) {
+          color: #d1fae5;
+        }
+
+        &:disabled {
+          opacity: 0.4;
+          cursor: not-allowed;
+        }
+      }
+    }
+
+    .batch-cancel-btn {
+      font-size: 13px;
+      font-weight: 500;
+      border: 1px solid #34d399;
+      padding: 4px 12px;
+      border-radius: 8px;
+      background: transparent;
+      color: #fff;
+      cursor: pointer;
+      transition: all $transition-fast;
+
+      &:hover {
+        background-color: #047857;
+      }
+    }
+  }
+
+  .batch-bar-slide-enter-active,
+  .batch-bar-slide-leave-active {
+    transition: all 0.3s ease;
+  }
+
+  .batch-bar-slide-enter-from,
+  .batch-bar-slide-leave-to {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+
+  .batch-bar-slide-enter-to,
+  .batch-bar-slide-leave-from {
+    opacity: 1;
+    transform: translateY(0);
   }
 
   .card-body {
@@ -3729,7 +3650,6 @@ const goToFileDetail = () => {
 .materials-table {
   .materials-header {
     display: grid;
-    grid-template-columns: 1fr 80px 40px 80px 110px 80px 72px 90px 50px;
     gap: 4px;
     padding: 10px 14px;
     font-size: 11px;
@@ -3741,6 +3661,12 @@ const goToFileDetail = () => {
     position: sticky;
     top: 0;
     z-index: 1;
+
+    .col-check {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
 
     .col-qty {
       text-align: right;
@@ -3765,7 +3691,6 @@ const goToFileDetail = () => {
 
   .materials-row {
     display: grid;
-    grid-template-columns: 1fr 80px 40px 80px 110px 80px 72px 90px 50px;
     gap: 4px;
     padding: 9px 14px;
     font-size: 12px;
@@ -3816,6 +3741,17 @@ const goToFileDetail = () => {
     &--new {
       background: rgba(16, 185, 129, 0.06);
       border-left: 3px solid #10b981;
+    }
+
+    &--selected {
+      background: rgba(16, 185, 129, 0.08);
+    }
+
+    .col-check {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
     }
 
     .col-name {

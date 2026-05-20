@@ -36,6 +36,12 @@
 
     <!-- ─── Right Panel: Login Form ─── -->
     <div class="right-panel">
+      <div class="right-panel__decor">
+        <div class="deco-grid-light" />
+        <div class="deco-glow deco-glow-1" />
+        <div class="deco-glow deco-glow-2" />
+      </div>
+
       <div class="form-card">
         <!-- Mobile-only avatar (hidden on desktop) -->
         <div class="mobile-avatar">
@@ -61,38 +67,27 @@
 
         <!-- Form header -->
         <div class="form-header">
-          <!-- Cat logo -->
           <div class="form-header__logo">
             <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <!-- Head -->
               <ellipse cx="50" cy="55" rx="38" ry="35" fill="#FFE8D6" />
-              <!-- Left ear -->
               <path d="M22 35L12 8L35 30Z" fill="#FFB5C8" />
               <path d="M25 32L18 12L36 28Z" fill="#FFD1DC" />
-              <!-- Right ear -->
               <path d="M78 35L88 8L65 30Z" fill="#FFB5C8" />
               <path d="M75 32L82 12L64 28Z" fill="#FFD1DC" />
-              <!-- Eyes -->
               <ellipse cx="38" cy="52" rx="6" ry="7" fill="#5D4E60" />
               <ellipse cx="62" cy="52" rx="6" ry="7" fill="#5D4E60" />
               <ellipse cx="40" cy="49" rx="2" ry="2.5" fill="#fff" />
               <ellipse cx="64" cy="49" rx="2" ry="2.5" fill="#fff" />
-              <!-- Nose -->
               <ellipse cx="50" cy="62" rx="3.5" ry="2.5" fill="#FFB5C2" />
-              <!-- Mouth -->
               <path d="M44 68Q50 73 56 68" stroke="#E8A0B0" stroke-width="1.2" fill="none" stroke-linecap="round" />
-              <!-- Blush -->
               <ellipse cx="32" cy="62" rx="6" ry="3.5" fill="#FFB5C2" opacity="0.35" />
               <ellipse cx="68" cy="62" rx="6" ry="3.5" fill="#FFB5C2" opacity="0.35" />
-              <!-- Whiskers -->
               <line x1="20" y1="60" x2="35" y2="62" stroke="#E8A0B0" stroke-width="1" opacity="0.4" />
               <line x1="20" y1="66" x2="35" y2="65" stroke="#E8A0B0" stroke-width="1" opacity="0.4" />
               <line x1="65" y1="62" x2="80" y2="60" stroke="#E8A0B0" stroke-width="1" opacity="0.4" />
               <line x1="65" y1="65" x2="80" y2="66" stroke="#E8A0B0" stroke-width="1" opacity="0.4" />
-              <!-- Paws -->
               <ellipse cx="35" cy="88" rx="10" ry="6" fill="#FFE8D6" />
               <ellipse cx="65" cy="88" rx="10" ry="6" fill="#FFE8D6" />
-              <!-- Heart in paw -->
               <path
                 d="M35 88C35 85 33 84 31 84C29 84 27 85 27 86C27 88 35 92 35 92C35 92 43 88 43 86C43 85 41 84 39 84C37 84 35 85 35 88Z"
                 fill="#FF8FAB" />
@@ -253,8 +248,6 @@ const handleSubmit = async ({ validateResult }: any) => {
 </script>
 
 <style scoped lang="scss">
-// ───── 使用全局 design-tokens（通过 Vite additionalData 自动注入）─────
-
 .login-page {
   display: flex;
   min-height: 100vh;
@@ -386,20 +379,70 @@ const handleSubmit = async ({ validateResult }: any) => {
   align-items: center;
   justify-content: center;
   padding: 48px 40px;
-  background: $text-white;
+  background: linear-gradient(180deg, var(--color-primary-bg) 0%, var(--color-bg-container) 40%);
   position: relative;
+  overflow: hidden;
+
+  &__decor {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+  }
 
   &__copyright {
     position: absolute;
     bottom: 20px;
     font-size: 11px;
-    color: $text-dim;
+    color: var(--color-text-secondary);
+    z-index: 1;
+  }
+}
+
+.deco-grid-light {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(to right, var(--overlay-brand-05) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--overlay-brand-05) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.deco-glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(64px);
+  opacity: 0.5;
+
+  &-1 {
+    bottom: -80px;
+    right: -40px;
+    width: 300px;
+    height: 300px;
+    background: var(--color-primary-lightest);
+  }
+
+  &-2 {
+    top: -60px;
+    left: -30px;
+    width: 200px;
+    height: 200px;
+    background: var(--color-lavender);
   }
 }
 
 .form-card {
+  position: relative;
+  z-index: 1;
   width: 100%;
   max-width: 400px;
+  padding: 40px 36px 28px;
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius: 24px;
+  border: 1px solid var(--overlay-brand-lighter-25);
+  box-shadow: 0 4px 24px var(--overlay-brand-08), 0 1px 3px rgba(0, 0, 0, 0.04);
   animation: fadeSlideUp 0.7s 0.15s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
@@ -434,7 +477,7 @@ const handleSubmit = async ({ validateResult }: any) => {
   width: 60px;
   height: 60px;
   border-radius: 50%;
-  background: $text-white;
+  background: var(--color-bg-container);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -448,7 +491,7 @@ const handleSubmit = async ({ validateResult }: any) => {
 .mobile-title {
   font-size: 22px;
   font-weight: 700;
-  color: $text-primary;
+  color: var(--color-text-primary);
   margin: 0;
 }
 
@@ -476,13 +519,13 @@ const handleSubmit = async ({ validateResult }: any) => {
   &__title {
     font-size: 24px;
     font-weight: 700;
-    color: $text-primary;
+    color: var(--color-text-primary);
     margin: 0 0 8px 0;
   }
 
   &__desc {
     font-size: 14px;
-    color: $text-secondary;
+    color: var(--color-text-secondary);
     margin: 0;
     line-height: 1.5;
   }
@@ -515,7 +558,7 @@ const handleSubmit = async ({ validateResult }: any) => {
   gap: 6px;
   font-size: 13px;
   font-weight: 600;
-  color: $text-primary;
+  color: var(--color-text-primary);
   margin-bottom: 8px;
 }
 
@@ -531,20 +574,20 @@ const handleSubmit = async ({ validateResult }: any) => {
   :deep(.t-input) {
     border-radius: 14px;
     border: 1.5px solid var(--color-primary-lightest);
-    background: transparent;
+    background: var(--overlay-brand-05) !important;
     height: 48px;
     padding-left: 42px;
-    transition: all $transition-slow;
+    transition: all var(--transition-slow);
 
     &:hover {
       border-color: var(--color-primary-lighter);
-      background: transparent;
+      background: var(--overlay-brand-08) !important;
     }
 
     &:focus-within,
     &.t-is-focused {
       border-color: var(--color-primary-light);
-      background: transparent;
+      background: #ffffff !important;
       box-shadow: 0 0 0 4px var(--overlay-brand-12);
     }
 
@@ -554,12 +597,34 @@ const handleSubmit = async ({ validateResult }: any) => {
     }
 
     .t-input__wrap {
-      color: $text-primary;
+      color: var(--color-text-primary);
       font-size: 14px;
+      caret-color: var(--color-primary);
+      background: transparent !important;
+    }
+
+    .t-input__inner {
+      color: var(--color-text-primary);
+      background: transparent !important;
+
+      &::selection {
+        background: var(--overlay-brand-20);
+        color: var(--color-text-primary);
+      }
+
+      &:-webkit-autofill,
+      &:-webkit-autofill:hover,
+      &:-webkit-autofill:focus,
+      &:-webkit-autofill:active {
+        -webkit-text-fill-color: var(--color-text-primary);
+        -webkit-box-shadow: 0 0 0 48px #ffffff inset !important;
+        caret-color: var(--color-primary);
+        transition: background-color 5000s ease-in-out 0s;
+      }
     }
 
     &::placeholder {
-      color: $text-caption-muted !important;
+      color: var(--color-text-placeholder) !important;
     }
   }
 
@@ -613,7 +678,7 @@ const handleSubmit = async ({ validateResult }: any) => {
     width: 0;
     height: 0;
     border-radius: 50%;
-    background: $overlay-white-35;
+    background: rgba(255, 255, 255, 0.35);
     transform: translate(-50%, -50%);
     transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1),
       height 0.6s cubic-bezier(0.4, 0, 0.2, 1);
@@ -656,7 +721,7 @@ const handleSubmit = async ({ validateResult }: any) => {
   }
 
   .btn-text {
-    color: $text-white;
+    color: var(--color-text-white);
     position: relative;
     z-index: 2;
   }
@@ -672,13 +737,13 @@ const handleSubmit = async ({ validateResult }: any) => {
   margin-top: 8px;
   border-top: 1px dashed var(--color-primary-lightest);
   font-size: 13px;
-  color: $text-secondary;
+  color: var(--color-text-secondary);
 
   .go-register {
     color: var(--color-primary);
     text-decoration: none;
     font-weight: 600;
-    transition: all $transition-fast;
+    transition: all var(--transition-fast);
 
     &:hover {
       color: var(--color-primary-light);
@@ -691,7 +756,6 @@ const handleSubmit = async ({ validateResult }: any) => {
 //  RESPONSIVE
 // ═══════════════════════════════════════
 
-// Tablet: narrow left panel
 @media screen and (max-width: 1024px) {
   .left-panel {
     flex: 0 0 45%;
@@ -703,7 +767,6 @@ const handleSubmit = async ({ validateResult }: any) => {
   }
 }
 
-// Mobile: single column
 @media screen and (max-width: 768px) {
   .login-page {
     flex-direction: column;
@@ -714,18 +777,23 @@ const handleSubmit = async ({ validateResult }: any) => {
   }
 
   .right-panel {
-    background: linear-gradient(180deg, var(--color-primary-bg) 0%, var(--color-primary-lightest) 50%, $text-white 100%);
+    background: linear-gradient(180deg, var(--color-primary-bg) 0%, var(--color-primary-lightest) 50%, var(--color-bg-container) 100%);
     padding: 32px 24px;
     min-height: 100vh;
   }
 
-  // Show mobile avatar
   .mobile-avatar {
     display: block;
   }
 
   .form-card {
     max-width: 100%;
+    background: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border: none;
+    box-shadow: none;
+    padding: 0;
   }
 }
 
