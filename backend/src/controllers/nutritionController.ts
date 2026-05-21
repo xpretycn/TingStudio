@@ -936,8 +936,10 @@ export async function getFormulaNutritionTables(req: any, res: Response) {
 
       const row: any = {
         name: mat.materialName,
+        materialId: mat.materialId,
         quantity,
         ratio,
+        materialType: materialTypes[mat.materialId] || 'herb',
         energy: "", // 能量由DB不直接提供，单独计算
         protein: per100g.protein ?? 0,
         fat: per100g.fat ?? 0,
@@ -1065,6 +1067,7 @@ export async function getFormulaNutritionTables(req: any, res: Response) {
         formulaName: formula.name,
         finishedWeight,
         ratioFactor: formulaRatioFactor,
+        supplementRatioFactor,
         parseResultId: formula.parse_result_id || null,
         // 业务员信息
         salesmanName: salesmanInfo?.name || formula.salesman_name || "",

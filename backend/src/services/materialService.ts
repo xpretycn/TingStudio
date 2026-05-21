@@ -67,10 +67,31 @@ export async function updateMaterial(
     return await createNewVersion(current, data);
   }
 
-  const fields = Object.keys(data)
+  const fieldMap: Record<string, string> = {
+    name: "name",
+    code: "code",
+    unit: "unit",
+    stock: "stock",
+    materialType: "material_type",
+    unitPrice: "unit_price",
+    dataSource: "data_source",
+  };
+
+  const updates: Record<string, any> = {};
+  for (const [camelKey, snakeKey] of Object.entries(fieldMap)) {
+    if (camelKey in data) {
+      updates[snakeKey] = data[camelKey];
+    }
+  }
+
+  if (Object.keys(updates).length === 0) {
+    return current;
+  }
+
+  const fields = Object.keys(updates)
     .map((k) => `${k} = ?`)
     .join(", ");
-  const values = Object.values(data);
+  const values = Object.values(updates);
   values.push(now(), id);
 
   await query(`UPDATE materials SET ${fields}, updated_at = ? WHERE id = ?`, values);

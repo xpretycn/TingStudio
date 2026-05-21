@@ -618,6 +618,7 @@ const handleMaterialsUpdate = (rows: MaterialTableRow[]) => {
       materialId: row.materialId || '',
       materialName: row.materialName,
       quantity: row.quantity,
+      materialType: row.materialType || 'herb',
     };
     if (row.adjustedPrice != null) item.adjustedPrice = row.adjustedPrice;
     if (row.isPriceAdjusted) item.isPriceAdjusted = row.isPriceAdjusted;
@@ -641,6 +642,7 @@ const handleExcelImport = (materials: ParsedMaterial[]) => {
     materialName: m.materialName,
     quantity: m.quantity,
     unit: 'g',
+    materialType: (m.materialType as MaterialTableRow['materialType']) || 'herb',
   }));
   handleMaterialsUpdate(rows);
   MessagePlugin.success(`已导入 ${materials.length} 条原料`);
@@ -942,7 +944,10 @@ onMounted(async () => {
           const matched = allMats.find(mat => mat.name === m.materialName);
           if (matched) materialId = matched.id;
         }
-        const item: any = { materialId, materialName: m.materialName, quantity: m.quantity };
+        // 从原料表获取 materialType，fallback 到 DB 存储值再到默认值
+        const matFromStore = allMats.find((x: any) => x.id === materialId);
+        const materialType = matFromStore?.materialType || m.materialType || 'herb';
+        const item: any = { materialId, materialName: m.materialName, quantity: m.quantity, materialType };
         if (m.adjustedPrice != null) item.adjustedPrice = m.adjustedPrice;
         return item;
       });

@@ -99,6 +99,35 @@ function runAutoMigrations(dbInstance: Database.Database) {
   ensureColumn(dbInstance, "materials", "material_type", "TEXT", "'herb'");
   ensureColumn(dbInstance, "materials", "unit_price", "REAL", "NULL");
   ensureColumn(dbInstance, "materials", "data_source", "TEXT", "'manual'");
+
+  // 原料版本化字段
+  ensureColumn(dbInstance, "materials", "version", "INTEGER", "1");
+  ensureColumn(dbInstance, "materials", "previous_version_id", "TEXT", "NULL");
+  ensureColumn(dbInstance, "materials", "is_latest", "INTEGER", "1");
+  ensureColumn(dbInstance, "materials", "is_deleted", "INTEGER", "0");
+
+  // 营养表版本化字段
+  ensureColumn(dbInstance, "material_nutrition", "material_version", "INTEGER", "1");
+  ensureColumn(dbInstance, "material_nutrition", "is_latest", "INTEGER", "1");
+
+  // 版本化索引
+  try {
+    dbInstance.exec("CREATE INDEX IF NOT EXISTS idx_material_version ON materials(version)");
+    dbInstance.exec("CREATE INDEX IF NOT EXISTS idx_material_previous_version ON materials(previous_version_id)");
+    dbInstance.exec("CREATE INDEX IF NOT EXISTS idx_material_is_latest ON materials(is_latest)");
+    dbInstance.exec("CREATE INDEX IF NOT EXISTS idx_material_is_deleted ON materials(is_deleted)");
+    dbInstance.exec("CREATE INDEX IF NOT EXISTS idx_mn_material_version ON material_nutrition(material_id, material_version)");
+    dbInstance.exec("CREATE INDEX IF NOT EXISTS idx_mn_is_latest ON material_nutrition(is_latest)");
+  } catch (_err) {}
+
+  // 更新现有新数据库的 is_latest/is_deleted 默认值
+  try {
+    dbInstance.exec("UPDATE materials SET version = 1 WHERE version IS NULL");
+    dbInstance.exec("UPDATE materials SET is_latest = 1 WHERE is_latest IS NULL");
+    dbInstance.exec("UPDATE materials SET is_deleted = 0 WHERE is_deleted IS NULL");
+    dbInstance.exec("UPDATE material_nutrition SET material_version = 1 WHERE material_version IS NULL");
+    dbInstance.exec("UPDATE material_nutrition SET is_latest = 1 WHERE is_latest IS NULL");
+  } catch (_err) {}
   ensureColumn(dbInstance, "formulas", "finished_weight", "REAL", "0");
   ensureColumn(dbInstance, "formulas", "ratio_factor", "REAL", "0.18");
   ensureColumn(dbInstance, "formulas", "supplement_ratio_factor", "REAL", "1.0");
@@ -824,7 +853,7 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS materials (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
-  code TEXT NOT NULL UNIQUE,
+  code TEXT NOT NULL,
   unit TEXT NOT NULL DEFAULT 'g',
   stock REAL NOT NULL DEFAULT 0,
   material_type TEXT NOT NULL DEFAULT 'herb' CHECK(material_type IN ('herb', 'supplement')),
@@ -832,10 +861,18 @@ CREATE TABLE IF NOT EXISTS materials (
   data_source TEXT DEFAULT 'manual',
   created_by TEXT NOT NULL,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
-  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+  version INTEGER NOT NULL DEFAULT 1,
+  previous_version_id TEXT DEFAULT NULL,
+  is_latest INTEGER NOT NULL DEFAULT 1,
+  is_deleted INTEGER NOT NULL DEFAULT 0
 );
 CREATE INDEX IF NOT EXISTS idx_material_name ON materials(name);
 CREATE INDEX IF NOT EXISTS idx_material_code ON materials(code);
+CREATE INDEX IF NOT EXISTS idx_material_version ON materials(version);
+CREATE INDEX IF NOT EXISTS idx_material_previous_version ON materials(previous_version_id);
+CREATE INDEX IF NOT EXISTS idx_material_is_latest ON materials(is_latest);
+CREATE INDEX IF NOT EXISTS idx_material_is_deleted ON materials(is_deleted);
 CREATE TABLE IF NOT EXISTS formulas (
   id TEXT PRIMARY KEY,
   code TEXT NOT NULL UNIQUE,
@@ -920,13 +957,15 @@ CREATE TABLE IF NOT EXISTS export_jobs (
 );
 CREATE TABLE IF NOT EXISTS material_nutrition (
   nutrition_id TEXT PRIMARY KEY,
-  material_id TEXT NOT NULL UNIQUE,
+  material_id TEXT NOT NULL,
   per_100g_json TEXT NOT NULL,
   data_version TEXT NOT NULL DEFAULT '1.0',
   data_source TEXT DEFAULT NULL,
   notes TEXT DEFAULT NULL,
   confidence TEXT DEFAULT 'medium' CHECK(confidence IN ('high', 'medium', 'low')),
   last_updated TEXT NOT NULL DEFAULT (datetime('now')),
+  material_version INTEGER NOT NULL DEFAULT 1,
+  is_latest INTEGER NOT NULL DEFAULT 1,
   FOREIGN KEY (material_id) REFERENCES materials(id) ON DELETE CASCADE
 );
 CREATE TABLE IF NOT EXISTS formula_nutrition_summaries (
