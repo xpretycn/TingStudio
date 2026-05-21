@@ -28,6 +28,73 @@ function ensureTable(dbInstance: Database.Database, tableName: string, createSql
   } catch (_err) {}
 }
 
+function seedDefaultPromptTemplates(dbInstance: Database.Database) {
+  try {
+    const count = (dbInstance.prepare("SELECT COUNT(*) as cnt FROM ai_prompt_templates WHERE module = ?").get("smart-generate") as any).cnt;
+    if (count > 0) return;
+    const now = new Date().toISOString();
+    const templates = [
+      {
+        id: "pt_desc_default",
+        module: "smart-generate",
+        name: "标准配方描述模板",
+        type: "description",
+        system_prompt: "你是TingStudio的专业配方描述生成助手，只输出纯文本内容。",
+        user_prompt_template: "配方名称：{{formulaName}}\n原料：{{materials}}\n成品重量：{{finishedWeight}}g\n\n请根据配方名称和原料信息，生成专业的配方描述。要求：\n1. 简述研发目标和主要功效特点\n2. 结合配方名称的含义和原料特性\n3. 100字以内\n4. 只输出描述文本，不要其他内容",
+        variables: JSON.stringify(["formulaName", "materials", "finishedWeight"]),
+        is_default: 1,
+        enabled: 1,
+        sort_order: 0,
+      },
+      {
+        id: "pt_prep_default",
+        module: "smart-generate",
+        name: "标准制法模板",
+        type: "preparation",
+        system_prompt: "你是TingStudio的专业配方制法生成助手，只输出纯文本内容。",
+        user_prompt_template: "配方名称：{{formulaName}}\n原料：{{materials}}\n成品重量：{{finishedWeight}}g\n\n请根据配方名称和原料信息，生成专业的配方制法。要求：\n1. 描述制取工艺流程，包括提取、浓缩、收膏等关键步骤\n2. 结合配方名称的含义和原料特性\n3. 200字以内\n4. 只输出制法文本，不要其他内容",
+        variables: JSON.stringify(["formulaName", "materials", "finishedWeight"]),
+        is_default: 1,
+        enabled: 1,
+        sort_order: 0,
+      },
+      {
+        id: "pt_vr_default",
+        module: "smart-generate",
+        name: "标准升版原因模板",
+        type: "version_reason",
+        system_prompt: "你是TingStudio的专业配方升版原因生成助手，只输出纯文本内容。",
+        user_prompt_template: "配方名称：{{formulaName}}\n原料：{{materials}}\n成品重量：{{finishedWeight}}g\n\n请根据配方名称和原料信息，分析可能的调整原因，生成升版原因说明。要求：\n1. 分析原料组成，推测可能的调整原因\n2. 结合配方名称的含义和原料特性\n3. 100字以内\n4. 只输出升版原因文本，不要其他内容",
+        variables: JSON.stringify(["formulaName", "materials", "finishedWeight"]),
+        is_default: 1,
+        enabled: 1,
+        sort_order: 0,
+      },
+      {
+        id: "pt_rev_default",
+        module: "smart-generate",
+        name: "升版描述修订模板",
+        type: "revision",
+        system_prompt: "你是TingStudio的专业配方描述修订助手，只输出纯文本内容。",
+        user_prompt_template: "配方名称：{{formulaName}}\n原料：{{materials}}\n成品重量：{{finishedWeight}}g\n现有描述：{{existingDescription}}\n升版原因：{{revisionReason}}\n\n请根据升版原因，识别新旧配方的差异，生成更新后的配方描述。要求：\n1. 保留原描述中仍有效的部分\n2. 补充升版原因导致的变化\n3. 描述应专业、简洁，100字以内\n4. 只输出描述文本，不要其他内容",
+        variables: JSON.stringify(["formulaName", "materials", "finishedWeight", "existingDescription", "revisionReason"]),
+        is_default: 1,
+        enabled: 1,
+        sort_order: 0,
+      },
+    ];
+    const stmt = dbInstance.prepare(
+      "INSERT OR IGNORE INTO ai_prompt_templates (id, module, name, type, system_prompt, user_prompt_template, variables, is_default, enabled, sort_order, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+    );
+    for (const t of templates) {
+      stmt.run(t.id, t.module, t.name, t.type, t.system_prompt, t.user_prompt_template, t.variables, t.is_default, t.enabled, t.sort_order, now, now);
+    }
+    logger.info("数据库初始化: 已插入默认提示词模板");
+  } catch (err: any) {
+    logger.error("插入默认提示词模板失败: " + err.message);
+  }
+}
+
 function runAutoMigrations(dbInstance: Database.Database) {
   ensureColumn(dbInstance, "materials", "material_type", "TEXT", "'herb'");
   ensureColumn(dbInstance, "materials", "unit_price", "REAL", "NULL");
@@ -330,6 +397,30 @@ function runAutoMigrations(dbInstance: Database.Database) {
   );
   ensureTable(
     dbInstance,
+    "ai_prompt_templates",
+    `
+    CREATE TABLE ai_prompt_templates (
+      id TEXT PRIMARY KEY,
+      module TEXT NOT NULL,
+      name TEXT NOT NULL,
+      type TEXT NOT NULL DEFAULT 'description',
+      system_prompt TEXT NOT NULL DEFAULT '',
+      user_prompt_template TEXT NOT NULL DEFAULT '',
+      variables TEXT DEFAULT '[]',
+      is_default INTEGER NOT NULL DEFAULT 0,
+      enabled INTEGER NOT NULL DEFAULT 1,
+      sort_order INTEGER NOT NULL DEFAULT 0,
+      created_by TEXT DEFAULT NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+    CREATE INDEX IF NOT EXISTS idx_ai_prompt_module ON ai_prompt_templates(module);
+    CREATE INDEX IF NOT EXISTS idx_ai_prompt_type ON ai_prompt_templates(module, type)
+  `,
+  );
+  seedDefaultPromptTemplates(dbInstance);
+  ensureTable(
+    dbInstance,
     "agent_sessions",
     `
     CREATE TABLE agent_sessions (
@@ -464,6 +555,9 @@ function runAutoMigrations(dbInstance: Database.Database) {
 
   ensureColumn(dbInstance, "agent_float_config", "model_name", "TEXT", "''");
   ensureColumn(dbInstance, "agent_float_config", "fallback_model_name", "TEXT", "''");
+
+  ensureColumn(dbInstance, "ai_usage_logs", "application_name", "TEXT", "NULL");
+  ensureColumn(dbInstance, "ai_usage_logs", "application_location", "TEXT", "NULL");
 
   ensureTable(
     dbInstance,

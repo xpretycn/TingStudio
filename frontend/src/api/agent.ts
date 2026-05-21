@@ -179,7 +179,7 @@ export const agentApi = {
     existingDescription?: string;
     type?: "description" | "preparation" | "version_reason";
   }) {
-    return http.post<any, { success: boolean; data?: { content: string; type: string }; error?: string }>(
+    return http.post<any, { content: string; type: string }>(
       "/agent/generate-description", data,
     );
   },

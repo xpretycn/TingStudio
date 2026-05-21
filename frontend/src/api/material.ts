@@ -11,6 +11,15 @@ export interface Material {
   createdBy: string;
   createdAt: string;
   updatedAt: string;
+  version: number;
+  isLatest: number;
+  isDeleted: number;
+  isOwner: boolean;
+  referenceCount: number;
+  totalVersions: number;
+  hasNewerVersion: boolean;
+  nutrition?: Record<string, number>;
+  referencedFormulas?: { id: string; name: string }[];
 }
 
 export interface MaterialForm {
@@ -22,9 +31,34 @@ export interface MaterialForm {
   unitPrice?: number;
 }
 
+export interface MaterialVersion {
+  id: string;
+  version: number;
+  isLatest: number;
+  changesSummary: string;
+  createdBy: string;
+  createdByName: string;
+  createdByRole: string;
+  createdAt: string;
+}
+
+export interface MaterialReference {
+  materialId: string;
+  currentVersion: number;
+  referenceCount: number;
+  referencedFormulas: { formulaId: string; formulaName: string }[];
+}
+
+export interface UpdateResult {
+  id: string;
+  version: number;
+  isLatest: number;
+  versionAction: "updated" | "created";
+  previousVersionId?: string;
+}
+
 export const materialApi = {
   getList(params?: { keyword?: string; page?: number; pageSize?: number; scope?: string }) {
-    // axios 拦截器会提取 res.data，所以这里直接返回内部的数据结构
     return http.get<any, { list: Material[]; pagination: any }>("/materials", { params });
   },
   getById(id: string) {
@@ -34,7 +68,7 @@ export const materialApi = {
     return http.post<any, Material>("/materials", data);
   },
   update(id: string, data: Partial<MaterialForm>) {
-    return http.put<any, Material>(`/materials/${id}`, data);
+    return http.put<any, UpdateResult>(`/materials/${id}`, data);
   },
   delete(id: string) {
     return http.delete<any, { success: boolean; message: string }>(`/materials/${id}`);
@@ -49,5 +83,16 @@ export const materialApi = {
     return http.get<any, { total: number; herbCount: number; supplementCount: number; nutritionCount: number }>(
       "/materials/stats",
     );
+  },
+  getVersions(id: string) {
+    return http.get<any, { materialName: string; materialCode: string; currentVersion: number; versions: MaterialVersion[] }>(
+      `/materials/${id}/versions`,
+    );
+  },
+  getVersionDetail(id: string, versionId: string) {
+    return http.get<any, Material>(`/materials/${id}/versions/${versionId}`);
+  },
+  getReferences(id: string) {
+    return http.get<any, MaterialReference>(`/materials/${id}/references`);
   },
 };

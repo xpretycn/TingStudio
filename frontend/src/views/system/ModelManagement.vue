@@ -251,8 +251,114 @@
                   </div>
                 </div>
               </div>
+
+              <!-- 提示词模板管理 -->
+              <div class="section-header-enhanced" style="margin-top: 32px;">
+                <div class="section-title-group">
+                  <svg class="section-title-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                    stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                  </svg>
+                  <h4 class="section-title-text">提示词模板</h4>
+                </div>
+                <span class="section-title-count">共 {{ promptTemplates.length }} 个模板</span>
+              </div>
+
+              <div v-if="isAdmin" class="app-actions-bar">
+                <button class="add-app-btn" @click="openCreatePromptDialog">
+                  <t-icon name="add" />
+                  新建模板
+                </button>
+              </div>
+
+              <div v-if="promptTemplates.length === 0 && !promptLoading" class="empty-state">
+                <p class="empty-text">暂无提示词模板</p>
+                <p class="empty-hint">为智能生成功能创建提示词模板，自定义生成内容风格</p>
+                <button v-if="isAdmin" class="empty-action-btn" @click="openCreatePromptDialog">
+                  <t-icon name="add" />
+                  创建第一个模板
+                </button>
+              </div>
+
+              <div v-else class="prompt-templates-grid">
+                <div v-for="tpl in promptTemplates" :key="tpl.id" class="prompt-template-card">
+                  <div class="ptc-header">
+                    <div class="ptc-title-row">
+                      <span class="ptc-name">{{ tpl.name }}</span>
+                      <t-tag v-if="tpl.isDefault || tpl.is_default" size="small" theme="primary" variant="light">默认</t-tag>
+                      <t-tag v-if="!tpl.enabled" size="small" theme="default" variant="light">已禁用</t-tag>
+                    </div>
+                    <span class="ptc-type">{{ promptTypeOptions.find(o => o.value === tpl.type)?.label || tpl.type }}</span>
+                  </div>
+                  <div class="ptc-body">
+                    <div class="ptc-field">
+                      <span class="ptc-field-label">System Prompt</span>
+                      <span class="ptc-field-value ptc-field-value--truncate">{{ (tpl.systemPrompt || tpl.system_prompt || '').slice(0, 80) }}{{ (tpl.systemPrompt || tpl.system_prompt || '').length > 80 ? '...' : '' }}</span>
+                    </div>
+                    <div class="ptc-field">
+                      <span class="ptc-field-label">User Prompt</span>
+                      <span class="ptc-field-value ptc-field-value--truncate">{{ (tpl.userPromptTemplate || tpl.user_prompt_template || '').slice(0, 100) }}{{ (tpl.userPromptTemplate || tpl.user_prompt_template || '').length > 100 ? '...' : '' }}</span>
+                    </div>
+                    <div v-if="(tpl.variables || []).length" class="ptc-variables">
+                      <t-tag v-for="v in tpl.variables" :key="v" size="small" variant="outline" style="margin: 2px;">{{ formatVarTag(v) }}</t-tag>
+                    </div>
+                  </div>
+                  <div class="ptc-footer">
+                    <t-button size="small" variant="text" @click="openEditPromptDialog(tpl)">编辑</t-button>
+                    <t-popconfirm content="确认删除此模板？" @confirm="deletePromptTemplate(tpl.id)">
+                      <t-button size="small" variant="text" theme="danger">删除</t-button>
+                    </t-popconfirm>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 提示词模板编辑对话框 -->
+              <t-dialog v-model:visible="showPromptDialog"
+                :header="promptFormMode === 'create' ? '新建提示词模板' : '编辑提示词模板'"
+                :confirm-btn="{ content: '保存', theme: 'primary' }"
+                @confirm="savePromptTemplate" width="680px" :attach="'body'">
+                <div class="prompt-form">
+                  <div class="prompt-form-row">
+                    <div class="prompt-form-field">
+                      <label class="prompt-form-label">模板名称 <span style="color:#f43f5e">*</span></label>
+                      <t-input v-model="promptForm.name" placeholder="例如：标准配方描述模板" />
+                    </div>
+                    <div class="prompt-form-field">
+                      <label class="prompt-form-label">生成类型</label>
+                      <t-select v-model="promptForm.type" :options="promptTypeOptions" :popup-props="{ appendToBody: true }" />
+                    </div>
+                  </div>
+                  <div class="prompt-form-field">
+                    <label class="prompt-form-label">可用变量（点击插入到 User Prompt）</label>
+                    <div class="prompt-var-chips">
+                      <t-tag v-for="v in promptVariableOptions" :key="v.value" size="small" variant="outline"
+                        style="cursor:pointer; margin: 2px;"
+                        @click="insertVariable(v.value)">
+                        {{ v.label }}
+                      </t-tag>
+                    </div>
+                  </div>
+                  <div class="prompt-form-field">
+                    <label class="prompt-form-label">System Prompt</label>
+                    <t-textarea v-model="promptForm.systemPrompt" :autosize="{ minRows: 2, maxRows: 5 }"
+                      placeholder="设定AI助手的角色和行为规则" />
+                  </div>
+                  <div class="prompt-form-field">
+                    <label class="prompt-form-label">User Prompt 模板</label>
+                    <t-textarea v-model="promptForm.userPromptTemplate" :autosize="{ minRows: 4, maxRows: 10 }"
+                      placeholder="使用 {{变量名}} 插入动态内容，如 {{formulaName}}、{{materials}}" />
+                  </div>
+                  <div class="prompt-form-row">
+                    <div class="prompt-form-field">
+                      <t-checkbox v-model="promptForm.isDefault">设为默认模板</t-checkbox>
+                    </div>
+                    <div class="prompt-form-field">
+                      <t-checkbox v-model="promptForm.enabled">启用</t-checkbox>
+                    </div>
+                  </div>
+                </div>
+              </t-dialog>
             </div>
-            <!-- 用量统计 -->
             <div v-else-if="activeTab === 'usage'" key="usage" class="tab-panel">
               <!-- 用量统计标题 -->
               <div class="section-header-enhanced">
@@ -484,7 +590,7 @@
                   <t-select v-model="logFilters.provider" placeholder="模型" clearable size="small" style="width: 120px">
                     <t-option v-for="m in modelStore.models" :key="m.provider" :value="m.provider" :label="m.name" />
                   </t-select>
-                  <t-select v-model="logFilters.callType" placeholder="类型" clearable size="small" style="width: 120px">
+                  <t-select v-model="logFilters.callType" placeholder="类型" clearable size="small" style="width: 130px">
                     <t-option value="parse_formula" label="解析配方" />
                     <t-option value="parse_nutrition" label="解析营养" />
                     <t-option value="natural_search" label="自然检索" />
@@ -492,6 +598,10 @@
                     <t-option value="dashboard_chat" label="AI对话" />
                     <t-option value="agent_chat" label="Agent对话" />
                     <t-option value="parse_file_image" label="图片内容提取" />
+                    <t-option value="nl2sql" label="NL2SQL查询" />
+                    <t-option value="intent_recognition" label="意图识别" />
+                    <t-option value="weekly-report" label="周报AI分析" />
+                    <t-option value="monthly-report" label="月报AI分析" />
                   </t-select>
                   <t-select v-model="logFilters.status" placeholder="状态" clearable size="small" style="width: 100px">
                     <t-option value="success" label="成功" />
@@ -1365,6 +1475,7 @@ const allModules = [
   { value: "smart-form", label: "智能配方解析", icon: "form" },
   { value: "smart-import", label: "智能原料导入", icon: "upload" },
   { value: "smart-search", label: "智能数据检索", icon: "search" },
+  { value: "smart-generate", label: "智能生成", icon: "edit-1" },
 ];
 
 const excludeModules = ['smart-form', 'smart-import'];
@@ -1944,7 +2055,7 @@ const alertRecordColumns = [
 
 const logColumns = [
   {
-    colKey: "modelName", title: "模型", width: 160, cell: (h: any, { row }: any) => {
+    colKey: "modelName", title: "模型", width: 140, cell: (h: any, { row }: any) => {
       const provider = row.modelName || row.provider || '';
       const logoUrl = getModelLogo(provider);
       return h('div', { style: 'display: flex; align-items: center; gap: 8px; flex-wrap: nowrap; white-space: nowrap; overflow: hidden; width: 100%;' }, [
@@ -1969,7 +2080,18 @@ const logColumns = [
     }
   },
   {
-    colKey: "callType", title: "类型", width: 110, cell: (_h: any, { row }: any) => {
+    colKey: "applicationName", title: "应用", width: 170, cell: (h: any, { row }: any) => {
+      const appName = row.applicationName || '';
+      const appLocation = row.applicationLocation || '';
+      if (!appName && !appLocation) return '--';
+      return h('div', { style: 'display: flex; flex-direction: column; gap: 2px; line-height: 1.4;' }, [
+        h('span', { style: 'font-size: 13px; font-weight: 600; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;' }, appName || '--'),
+        appLocation ? h('span', { style: 'font-size: 11px; color: #94a3b8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;' }, appLocation) : null,
+      ].filter(Boolean));
+    }
+  },
+  {
+    colKey: "callType", title: "类型", width: 100, cell: (_h: any, { row }: any) => {
       const map: Record<string, string> = {
         parse_formula: "解析配方",
         parse_nutrition: "解析营养",
@@ -1988,10 +2110,10 @@ const logColumns = [
       return map[row.callType] || row.callType;
     }
   },
-  { colKey: "totalTokens", title: "Token", width: 100, cell: (_h: any, { row }: any) => formatTokens(row.totalTokens) },
-  { colKey: "latencyMs", title: "耗时", width: 100, cell: (_h: any, { row }: any) => row.latencyMs ? `${row.latencyMs}ms` : "-" },
+  { colKey: "totalTokens", title: "Token", width: 90, cell: (_h: any, { row }: any) => formatTokens(row.totalTokens) },
+  { colKey: "latencyMs", title: "耗时", width: 80, cell: (_h: any, { row }: any) => row.latencyMs ? `${row.latencyMs}ms` : "-" },
   {
-    colKey: "status", title: "状态", width: 100, cell: (h: any, { row }: any) => {
+    colKey: "status", title: "状态", width: 80, cell: (h: any, { row }: any) => {
       const statusConfig: Record<string, { color: string; label: string; }> = {
         success: { color: '#10b981', label: '成功' },
         error: { color: '#ef4444', label: '失败' },
@@ -2007,38 +2129,21 @@ const logColumns = [
     }
   },
   {
-    colKey: "requestSummary", title: "摘要", ellipsis: true, cell: (h: any, { row }: any) => {
-      const appInfoMap: Record<string, string> = {
-        parse_formula: "智能配方解析",
-        parse_nutrition: "智能原料导入",
-        natural_search: "智能数据检索",
-        health_check: "健康检测",
-        "weekly-report": "周报AI分析",
-        "monthly-report": "月报AI分析",
-        "smart-search": "智能数据检索",
-        dashboard_chat: "AI对话",
-        agent_chat: "Agent对话",
-        intent_recognition: "意图识别",
-        parse_file_image: "图片内容提取",
-        nl2sql: "NL2SQL查询",
-        unknown: "其他",
-      };
-
-      const appName = appInfoMap[row.callType] || '';
+    colKey: "requestSummary", title: "摘要", width: 200,
+    ellipsis: (_h: any, { row }: any) => {
+      return row.requestSummary || '--';
+    },
+    cell: (_h: any, { row }: any) => {
       const summaryText = row.requestSummary || '';
-
-      if (!summaryText && !appName) return '';
+      if (!summaryText) return '--';
 
       let displayText = summaryText;
+      const appName = row.applicationName || '';
       if (appName && displayText.startsWith(appName)) {
         displayText = displayText.slice(appName.length).replace(/^[:：\s]+/, '');
       }
 
-      if (!displayText && appName) {
-        return h('div', { style: 'display: flex; flex-direction: column; gap: 2px;' }, [
-          h('span', { style: 'font-size: 12px; color: #8B5CF6; font-weight: 600;' }, `[${appName}]`),
-        ]);
-      }
+      if (!displayText) return '--';
 
       try {
         const text = summaryText;
@@ -2076,17 +2181,10 @@ const logColumns = [
         console.warn('Failed to decode requestSummary:', e);
       }
 
-      if (appName) {
-        return h('div', { style: 'display: flex; flex-direction: column; gap: 2px;' }, [
-          h('span', { style: 'font-size: 12px; color: #8B5CF6; font-weight: 600;' }, `[${appName}]`),
-          h('span', { style: 'font-size: 13px; color: #475569;' }, displayText)
-        ]);
-      }
-
       return displayText;
     }
   },
-  { colKey: "createdAt", title: "时间", width: 160, cell: (_h: any, { row }: any) => formatDateTime(row.createdAt) },
+  { colKey: "createdAt", title: "时间", width: 150, cell: (_h: any, { row }: any) => formatDateTime(row.createdAt) },
 ];
 
 function renderCharts() {
@@ -2200,6 +2298,146 @@ const fetchModelApplications = async () => {
   }
 };
 
+const promptTemplates = ref<any[]>([]);
+const promptLoading = ref(false);
+const showPromptDialog = ref(false);
+const promptFormMode = ref<"create" | "edit">("create");
+const promptForm = ref({
+  id: "",
+  module: "smart-generate",
+  name: "",
+  type: "description",
+  systemPrompt: "",
+  userPromptTemplate: "",
+  variables: [] as string[],
+  isDefault: false,
+  enabled: true,
+  sortOrder: 0,
+});
+
+const promptTypeOptions = [
+  { label: "配方描述", value: "description" },
+  { label: "制法", value: "preparation" },
+  { label: "升版原因", value: "version_reason" },
+  { label: "升版描述", value: "revision" },
+];
+
+const promptVariableOptions = [
+  { label: "{{formulaName}} - 配方名称", value: "formulaName" },
+  { label: "{{materials}} - 原料列表", value: "materials" },
+  { label: "{{finishedWeight}} - 成品重量", value: "finishedWeight" },
+  { label: "{{revisionReason}} - 升版原因", value: "revisionReason" },
+  { label: "{{existingDescription}} - 现有描述", value: "existingDescription" },
+];
+
+const fetchPromptTemplates = async () => {
+  promptLoading.value = true;
+  try {
+    const token = localStorage.getItem('tingstudio_token') || '';
+    const res = await fetch("/api/ai/prompt-templates?module=smart-generate", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = await res.json();
+    if (data.success) {
+      promptTemplates.value = data.data || [];
+    }
+  } catch (error) {
+    console.error("获取提示词模板失败:", error);
+  } finally {
+    promptLoading.value = false;
+  }
+};
+
+const openCreatePromptDialog = () => {
+  promptFormMode.value = "create";
+  promptForm.value = {
+    id: "", module: "smart-generate", name: "", type: "description",
+    systemPrompt: "你是TingStudio的专业配方描述生成助手，只输出纯文本内容。",
+    userPromptTemplate: "配方名称：{{formulaName}}\n原料：{{materials}}\n成品重量：{{finishedWeight}}g\n\n请生成专业的配方描述。",
+    variables: ["formulaName", "materials", "finishedWeight"],
+    isDefault: false, enabled: true, sortOrder: 0,
+  };
+  showPromptDialog.value = true;
+};
+
+const openEditPromptDialog = (row: any) => {
+  promptFormMode.value = "edit";
+  promptForm.value = {
+    id: row.id, module: row.module || "smart-generate", name: row.name,
+    type: row.type || "description",
+    systemPrompt: row.systemPrompt || row.system_prompt || "",
+    userPromptTemplate: row.userPromptTemplate || row.user_prompt_template || "",
+    variables: row.variables || [],
+    isDefault: row.isDefault ?? row.is_default ?? false,
+    enabled: row.enabled ?? true, sortOrder: row.sortOrder ?? row.sort_order ?? 0,
+  };
+  showPromptDialog.value = true;
+};
+
+const savePromptTemplate = async () => {
+  if (!promptForm.value.name) {
+    MessagePlugin.warning("请填写模板名称");
+    return;
+  }
+  const token = localStorage.getItem('tingstudio_token') || '';
+  const url = promptFormMode.value === "create"
+    ? "/api/ai/prompt-templates"
+    : `/api/ai/prompt-templates/${promptForm.value.id}`;
+  const method = promptFormMode.value === "create" ? "POST" : "PUT";
+  try {
+    const res = await fetch(url, {
+      method,
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({
+        module: promptForm.value.module,
+        name: promptForm.value.name,
+        type: promptForm.value.type,
+        systemPrompt: promptForm.value.systemPrompt,
+        userPromptTemplate: promptForm.value.userPromptTemplate,
+        variables: promptForm.value.variables,
+        isDefault: promptForm.value.isDefault,
+        enabled: promptForm.value.enabled,
+        sortOrder: promptForm.value.sortOrder,
+      }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      MessagePlugin.success(promptFormMode.value === "create" ? "模板创建成功" : "模板更新成功");
+      showPromptDialog.value = false;
+      fetchPromptTemplates();
+    } else {
+      MessagePlugin.error(data.message || "操作失败");
+    }
+  } catch (error) {
+    MessagePlugin.error("操作失败");
+  }
+};
+
+const deletePromptTemplate = async (id: string) => {
+  const token = localStorage.getItem('tingstudio_token') || '';
+  try {
+    const res = await fetch(`/api/ai/prompt-templates/${id}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = await res.json();
+    if (data.success) {
+      MessagePlugin.success("模板已删除");
+      fetchPromptTemplates();
+    }
+  } catch (error) {
+    MessagePlugin.error("删除失败");
+  }
+};
+
+const formatVarTag = (v: string): string => {
+  return "\u007B\u007B" + v + "\u007D\u007D";
+};
+
+const insertVariable = (varName: string) => {
+  promptForm.value.userPromptTemplate += "\u007B\u007B" + varName + "\u007D\u007D";
+};
+
 const getModuleDisplayName = (module: string): string => {
   const nameMap: Record<string, string> = {
     "weekly-report": "周报AI分析",
@@ -2207,6 +2445,7 @@ const getModuleDisplayName = (module: string): string => {
     "smart-form": "智能配方解析",
     "smart-import": "智能原料导入",
     "smart-search": "智能数据检索",
+    "smart-generate": "智能生成",
   };
   return nameMap[module] || module;
 };
@@ -2218,6 +2457,7 @@ const getModuleIcon = (module: string): string => {
     "smart-form": '<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>',
     "smart-import": '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>',
     "smart-search": '<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>',
+    "smart-generate": '<path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>',
   };
   return iconMap[module] || '<circle cx="12" cy="12" r="10"/>';
 };
@@ -2229,6 +2469,7 @@ const getModuleIconBg = (module: string): string => {
     "smart-form": "linear-gradient(135deg, #D1FAE5, #A7F3D0)",
     "smart-import": "linear-gradient(135deg, #FEF3C7, #FDE68A)",
     "smart-search": "linear-gradient(135deg, #EDE9FE, #DDD6FE)",
+    "smart-generate": "linear-gradient(135deg, #D1FAE5, #6EE7B7)",
   };
   return bgMap[module] || "#F1F5F9";
 };
@@ -2285,7 +2526,7 @@ const openEditAppDialog = (app: any) => {
   editAppFormData.provider = app.provider;
   editAppFormData.model = app.model;
   editAppFormData.description = app.description || "";
-  editAppFormData.enabled = app.enabled;
+  editAppFormData.enabled = !!app.enabled;
   showEditAppDialog.value = true;
 };
 
@@ -2402,6 +2643,7 @@ watch(activeTab, async (tab) => {
     startModelsRefresh();
   } else if (tab === "applications") {
     await fetchModelApplications();
+    await fetchPromptTemplates();
   } else if (tab === "alerts") {
     alertRecordPage.value = 1;
     await modelStore.fetchAlertConfigs();
@@ -4200,6 +4442,112 @@ $transition-normal: 0.25s ease;
       justify-content: flex-end;
       gap: 8px;
     }
+  }
+}
+
+.prompt-templates-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.prompt-template-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px;
+  transition: box-shadow 0.2s;
+
+  &:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  }
+
+  .ptc-header {
+    margin-bottom: 12px;
+
+    .ptc-title-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+
+    .ptc-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: #1e293b;
+    }
+
+    .ptc-type {
+      font-size: 12px;
+      color: #64748b;
+    }
+  }
+
+  .ptc-body {
+    .ptc-field {
+      margin-bottom: 8px;
+    }
+
+    .ptc-field-label {
+      display: block;
+      font-size: 11px;
+      color: #94a3b8;
+      margin-bottom: 2px;
+    }
+
+    .ptc-field-value {
+      font-size: 12px;
+      color: #475569;
+      line-height: 1.5;
+
+      &--truncate {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+    }
+
+    .ptc-variables {
+      margin-top: 8px;
+    }
+  }
+
+  .ptc-footer {
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid #f1f5f9;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+}
+
+.prompt-form {
+  .prompt-form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .prompt-form-field {
+    margin-bottom: 16px;
+  }
+
+  .prompt-form-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #334155;
+    margin-bottom: 6px;
+  }
+
+  .prompt-var-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
   }
 }
 

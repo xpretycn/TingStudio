@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS `users` (
 CREATE TABLE IF NOT EXISTS `materials` (
   `id` TEXT PRIMARY KEY,
   `name` TEXT NOT NULL,
-  `code` TEXT NOT NULL UNIQUE,
+  `code` TEXT NOT NULL,
   `unit` TEXT NOT NULL DEFAULT 'g',
   `stock` REAL NOT NULL DEFAULT 0,
   `material_type` TEXT NOT NULL DEFAULT 'herb' CHECK(material_type IN ('herb', 'supplement')),
@@ -32,10 +32,18 @@ CREATE TABLE IF NOT EXISTS `materials` (
   `data_source` TEXT NOT NULL DEFAULT 'manual',
   `created_by` TEXT NOT NULL,
   `created_at` TEXT NOT NULL DEFAULT (datetime('now')),
-  `updated_at` TEXT NOT NULL DEFAULT (datetime('now'))
+  `updated_at` TEXT NOT NULL DEFAULT (datetime('now')),
+  `version` INTEGER NOT NULL DEFAULT 1,
+  `previous_version_id` TEXT DEFAULT NULL,
+  `is_latest` INTEGER NOT NULL DEFAULT 1,
+  `is_deleted` INTEGER NOT NULL DEFAULT 0
 );
 CREATE INDEX IF NOT EXISTS `idx_material_name` ON `materials`(`name`);
 CREATE INDEX IF NOT EXISTS `idx_material_code` ON `materials`(`code`);
+CREATE INDEX IF NOT EXISTS `idx_material_version` ON `materials`(`version`);
+CREATE INDEX IF NOT EXISTS `idx_material_previous_version` ON `materials`(`previous_version_id`);
+CREATE INDEX IF NOT EXISTS `idx_material_is_latest` ON `materials`(`is_latest`);
+CREATE INDEX IF NOT EXISTS `idx_material_is_deleted` ON `materials`(`is_deleted`);
 
 -- 配方表（关联业务员）
 CREATE TABLE IF NOT EXISTS `formulas` (
@@ -185,15 +193,19 @@ CREATE INDEX IF NOT EXISTS `idx_sc_formula` ON `share_configs`(`formula_id`);
 -- 原料营养成分表
 CREATE TABLE IF NOT EXISTS `material_nutrition` (
   `nutrition_id` TEXT PRIMARY KEY,
-  `material_id` TEXT NOT NULL UNIQUE,
+  `material_id` TEXT NOT NULL,
   `per_100g_json` TEXT NOT NULL,
   `data_version` TEXT NOT NULL DEFAULT '1.0',
   `data_source` TEXT DEFAULT NULL,
   `notes` TEXT DEFAULT NULL,
   `confidence` TEXT DEFAULT 'medium' CHECK(confidence IN ('high', 'medium', 'low')),
   `last_updated` TEXT NOT NULL DEFAULT (datetime('now')),
+  `material_version` INTEGER NOT NULL DEFAULT 1,
+  `is_latest` INTEGER NOT NULL DEFAULT 1,
   FOREIGN KEY (`material_id`) REFERENCES `materials`(`id`) ON DELETE CASCADE
 );
+CREATE INDEX IF NOT EXISTS `idx_mn_material_version` ON `material_nutrition`(`material_id`, `material_version`);
+CREATE INDEX IF NOT EXISTS `idx_mn_is_latest` ON `material_nutrition`(`is_latest`);
 
 -- 配方营养汇总表
 CREATE TABLE IF NOT EXISTS `formula_nutrition_summaries` (

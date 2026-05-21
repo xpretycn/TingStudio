@@ -30,6 +30,25 @@
       </div>
     </header>
 
+    <div v-if="versionMode.versioning" class="version-banner">
+      <div class="version-banner-content">
+        <div class="version-banner-icon">
+          <t-icon name="layers" />
+        </div>
+        <div class="version-banner-text">
+          <span class="version-banner-title">版本化编辑模式</span>
+          <span class="version-banner-desc">
+            当前版本 v{{ versionMode.currentVersion }} · 修改后将创建 v{{ versionMode.currentVersion + 1 }}，
+            旧版本数据完整保留
+          </span>
+          <span class="version-banner-refs" v-if="versionMode.referenceCount > 0">
+            被 {{ versionMode.referenceCount }} 个配方引用
+          </span>
+        </div>
+        <t-tag theme="warning" variant="light">修改后将创建新版本</t-tag>
+      </div>
+    </div>
+
     <main class="form-main">
       <t-form ref="formRef" :data="formData" :rules="rules" scroll-to-first-error @submit="handleSubmit">
         <div class="form-grid">
@@ -587,6 +606,14 @@ const hasNutrition = ref(false);
 const nutritionExcelExpanded = ref(false);
 
 const isEdit = computed(() => !!route.params.id);
+
+const versionMode = reactive({
+  versioning: false,
+  currentVersion: 1,
+  nextVersion: 2,
+  referenceCount: 0,
+  referencedFormulas: [] as { id: string; name: string }[],
+});
 
 const formData = reactive<any>({
   name: '',
@@ -1328,7 +1355,11 @@ const handleSubmit = async ({ validateResult }: any) => {
           const materialId = isEdit.value ? id : (result as any).data?.id;
           if (materialId) await saveNutrition(materialId);
         }
-        MessagePlugin.success(isEdit.value ? '保存成功' : '创建成功');
+        const isVersioned = versionMode.versioning && (result as any).result?.versionAction === "created";
+        const successMsg = isVersioned
+          ? `原料版本已升级至 v${(result as any).result?.version}，旧版本已存档`
+          : (isEdit.value ? '保存成功' : '创建成功');
+        MessagePlugin.success(successMsg);
         router.push({
           path: '/materials',
           query: route.query
@@ -1384,6 +1415,13 @@ onMounted(async () => {
         unitPrice: material.unitPrice != null ? material.unitPrice : undefined,
       });
       await loadNutrition(id);
+
+      if (material.referenceCount > 0) {
+        versionMode.versioning = true;
+        versionMode.currentVersion = material.version;
+        versionMode.referenceCount = material.referenceCount;
+        versionMode.referencedFormulas = material.referencedFormulas || [];
+      }
     }
   } else {
     showNutrition.value = true;
@@ -1395,6 +1433,61 @@ onMounted(async () => {
 @use '@/assets/styles/variables.scss' as *;
 
 .material-form {
+
+  .version-banner {
+    margin: 16px 0 0;
+    padding: 12px 20px;
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    border-radius: 12px;
+
+    .version-banner-content {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .version-banner-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: #fef3c7;
+      color: #d97706;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .version-banner-text {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .version-banner-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #92400e;
+    }
+
+    .version-banner-desc {
+      font-size: 12px;
+      color: #a16207;
+    }
+
+    .version-banner-refs {
+      font-size: 11px;
+      color: #ca8a04;
+      background: #fef9c3;
+      padding: 1px 8px;
+      border-radius: 4px;
+      display: inline-block;
+      margin-top: 2px;
+    }
+  }
 
   .detail-header {
     position: sticky;

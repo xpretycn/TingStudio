@@ -79,6 +79,14 @@ function normalizePer100g(raw: Record<string, any>): Record<string, number> {
       result[normalizeNutrientKey(k)] = v;
     }
   }
+  if (result.energy == null || isNaN(result.energy)) {
+    const protein = result.protein ?? 0;
+    const fat = result.fat ?? 0;
+    const carbohydrate = result.carbohydrate ?? 0;
+    if (protein > 0 || fat > 0 || carbohydrate > 0) {
+      result.energy = Math.round((protein * 17 + fat * 37 + carbohydrate * 17) * 100) / 100;
+    }
+  }
   return result;
 }
 

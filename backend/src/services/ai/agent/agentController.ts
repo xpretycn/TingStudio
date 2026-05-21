@@ -834,17 +834,38 @@ ${fieldDesc}
     }
 
     const db = getDb();
-    const configRow = db.prepare("SELECT * FROM agent_float_config WHERE user_id = ?").get(userId) as any;
-    const selectedModel = configRow?.model || "deepseek";
-    const selectedModelName = configRow?.model_name || undefined;
+    const appRow = db.prepare("SELECT * FROM model_applications WHERE module = ? AND enabled = 1").get("smart-generate") as any;
+    let selectedModel = "deepseek";
+    let selectedModelName: string | undefined = undefined;
+    if (appRow) {
+      selectedModel = appRow.provider;
+      selectedModelName = appRow.model;
+    } else {
+      const configRow = db.prepare("SELECT * FROM agent_float_config WHERE user_id = ?").get(userId) as any;
+      selectedModel = configRow?.model || "deepseek";
+      selectedModelName = configRow?.model_name || undefined;
+    }
+
+    const templateType = type === "version_reason" ? "version_reason" : (revisionReason && existingDescription ? "revision" : (type || "description"));
+    const templateRow = db.prepare("SELECT * FROM ai_prompt_templates WHERE module = ? AND type = ? AND enabled = 1 ORDER BY is_default DESC, sort_order ASC LIMIT 1").get("smart-generate", templateType) as any;
 
     const materialList = materials && materials.length > 0
       ? materials.map((m: any) => `${m.name}${m.quantity ? ' ' + m.quantity + 'g' : ''}`).join("、")
       : "未指定";
 
-    let prompt = "";
-    if (revisionReason && existingDescription) {
-      prompt = `你是一个专业的膏方配方描述生成助手。
+    let systemPrompt = "你是TingStudio的专业配方描述生成助手，只输出纯文本内容。";
+    let userPrompt = "";
+
+    if (templateRow) {
+      systemPrompt = templateRow.system_prompt || systemPrompt;
+      userPrompt = templateRow.user_prompt_template
+        .replace(/\{\{formulaName\}\}/g, formulaName)
+        .replace(/\{\{materials\}\}/g, materialList)
+        .replace(/\{\{finishedWeight\}\}/g, String(finishedWeight || "未指定"))
+        .replace(/\{\{revisionReason\}\}/g, revisionReason || "")
+        .replace(/\{\{existingDescription\}\}/g, existingDescription || "");
+    } else if (revisionReason && existingDescription) {
+      userPrompt = `你是一个专业的膏方配方描述生成助手。
 
 当前配方名称：${formulaName}
 原料：${materialList}
@@ -858,18 +879,18 @@ ${fieldDesc}
 3. 描述应专业、简洁，100字以内
 4. 只输出描述文本，不要其他内容`;
     } else {
-      const targetType = type === "preparation" ? "制法" : "描述";
+      const targetType = type === "preparation" ? "制法" : (type === "version_reason" ? "升版原因" : "描述");
       const placeholder = type === "preparation"
         ? "制取方法、工艺流程或特殊操作要求"
-        : "研发目标和主要特点";
-      prompt = `你是一个专业的膏方配方${targetType}生成助手。
+        : (type === "version_reason" ? "本次配方调整的原因和变更内容" : "研发目标和主要特点");
+      userPrompt = `你是一个专业的膏方配方${targetType}生成助手。
 
 当前配方名称：${formulaName}
 原料：${materialList}
 成品重量：${finishedWeight || '未指定'}g
 
 请根据配方名称和原料信息，生成专业的配方${targetType}。要求：
-1. ${type === "preparation" ? "描述制取工艺流程，包括提取、浓缩、收膏等关键步骤" : "简述研发目标和主要功效特点"}
+1. ${type === "preparation" ? "描述制取工艺流程，包括提取、浓缩、收膏等关键步骤" : (type === "version_reason" ? "分析原料组成，推测可能的调整原因" : "简述研发目标和主要功效特点")}
 2. 结合配方名称的含义和原料特性
 3. ${type === "preparation" ? "200字以内" : "100字以内"}
 4. 只输出${targetType}文本，不要其他内容`;
@@ -877,8 +898,8 @@ ${fieldDesc}
 
     try {
       const messages: ChatMessage[] = [
-        { role: "system", content: "你是TingStudio的专业配方描述生成助手，只输出纯文本内容。" },
-        { role: "user", content: prompt },
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
       ];
       const result = await llmAgentService.chat({ messages }, selectedModel, selectedModelName);
       const content = (result.content || "").trim();

@@ -213,7 +213,7 @@
                   <div class="qts-value-group">
                     <strong :class="priceQuote.missingPrices?.length ? 'warn-text' : 'green'">¥{{
                       (priceQuote.costSubtotal ??
-                      0).toFixed(2) }}</strong>
+                        0).toFixed(2) }}</strong>
                     <span v-if="priceQuote.missingPrices?.length" class="qts-warn-tag">
                       <t-icon name="error-circle" size="11px" /> 不完整
                     </span>
@@ -234,7 +234,7 @@
                   <div class="qts-value-group">
                     <strong :class="priceQuote.missingPrices?.length ? 'warn-text' : 'final-price'">¥{{
                       (priceQuote.totalPrice
-                      ?? 0).toFixed(2) }}</strong>
+                        ?? 0).toFixed(2) }}</strong>
                     <span v-if="priceQuote.missingPrices?.length" class="qts-warn-tag">
                       <t-icon name="error-circle" size="11px" /> 仅供参考
                     </span>
@@ -390,9 +390,9 @@
             </div>
           </section>
 
-          <!-- 营养成分表 + 技术处理依据（双栏卡片） -->
+          <!-- 营养成分表 + 技术处理依据（双栏卡片）+ 使用说明 -->
           <div v-if="missingMaterials.length < data.calcRows?.length" class="dual-cards-row">
-            <!-- 营养成分表 -->
+            <!-- 营养成分表/技术处理依据 -->
             <section class="nutrition-section">
               <h3 class="section-title info-color">营养成分表</h3>
               <t-table :data="data.labelRows" :columns="labelColumns" row-key="item" size="small" bordered
@@ -402,7 +402,7 @@
                 </template>
               </t-table>
             </section>
-            <!-- 技术处理依据 / 使用说明 -->
+            <!-- 使用说明 -->
             <section class="notes-section">
               <h3 class="section-title warn-color">使用说明</h3>
               <div class="notes-body">
@@ -1028,7 +1028,7 @@ watch(() => route.params.id, (newId) => {
             flex-shrink: 0;
           }
 
-          > span {
+          >span {
             text-align: left;
             white-space: nowrap;
           }

@@ -161,8 +161,9 @@ async function main() {
 
       if (result.changes > 0) {
         insertedCount++;
+        const energy = Math.round((mat.protein * 17 + mat.fat * 37 + mat.carbohydrate * 17) * 100) / 100;
         const nutJson = JSON.stringify({
-          energy: null,
+          energy,
           protein: mat.protein,
           fat: mat.fat,
           carbohydrate: mat.carbohydrate,
@@ -180,8 +181,9 @@ async function main() {
         if (existing) {
           const hasNut = db.prepare("SELECT 1 FROM material_nutrition WHERE material_id = ?").get(existing.id);
           if (!hasNut) {
+            const energy = Math.round((mat.protein * 17 + mat.fat * 37 + mat.carbohydrate * 17) * 100) / 100;
             const nutJson = JSON.stringify({
-              energy: null,
+              energy,
               protein: mat.protein,
               fat: mat.fat,
               carbohydrate: mat.carbohydrate,
@@ -197,7 +199,7 @@ async function main() {
               generateId(),
               existing.id,
               JSON.stringify({
-                energy: null,
+                energy: Math.round((mat.protein * 17 + mat.fat * 37 + mat.carbohydrate * 17) * 100) / 100,
                 protein: mat.protein,
                 fat: mat.fat,
                 carbohydrate: mat.carbohydrate,

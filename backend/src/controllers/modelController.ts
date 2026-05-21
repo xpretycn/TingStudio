@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { AuthRequest } from "../middleware/auth.js";
 import { getDb } from "../config/database-better-sqlite3.js";
 import { aiService } from "../services/ai/AIService.js";
-import { fixGarbledText, formatFriendlyErrorMessage } from "../utils/helpers.js";
+import { fixGarbledText, formatFriendlyErrorMessage, generateId, success } from "../utils/helpers.js";
 import crypto from "node:crypto";
 
 function isAdmin(req: Request): boolean {
@@ -619,6 +619,8 @@ export async function getUsageLogs(req: Request, res: Response) {
           requestSummary: l.request_summary,
           userId: l.user_id,
           fallbackFrom: l.fallback_from,
+          applicationName: l.application_name,
+          applicationLocation: l.application_location,
           createdAt: l.created_at ? (l.created_at.includes('T') ? l.created_at : l.created_at.replace(' ', 'T') + 'Z') : l.created_at,
         })),
         total,
@@ -1013,6 +1015,7 @@ export async function createModelApplication(req: Request, res: Response) {
       "smart-form": "智能配方解析",
       "smart-import": "智能原料导入",
       "smart-search": "智能数据检索",
+      "smart-generate": "智能生成",
     };
 
     db.prepare(
@@ -1308,6 +1311,92 @@ export async function deleteSmartToolHistory(req: Request, res: Response) {
     console.log(`[SmartTools] 已删除历史记录: id=${id}, operator=${userId}`);
 
     res.json({ success: true, message: "删除成功" });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+}
+
+export async function getPromptTemplates(req: Request, res: Response) {
+  try {
+    const db = getDb();
+    const { module, type } = req.query;
+    let sql = "SELECT * FROM ai_prompt_templates WHERE 1=1";
+    const params: any[] = [];
+    if (module) { sql += " AND module = ?"; params.push(module); }
+    if (type) { sql += " AND type = ?"; params.push(type); }
+    sql += " ORDER BY sort_order ASC, created_at DESC";
+    const rows = db.prepare(sql).all(...params) as any[];
+    const result = rows.map(row => ({
+      ...row,
+      variables: JSON.parse(row.variables || "[]"),
+      isDefault: !!row.is_default,
+      enabled: !!row.enabled,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+      createdBy: row.created_by,
+    }));
+    res.json(success(result));
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+}
+
+export async function createPromptTemplate(req: Request, res: Response) {
+  try {
+    const db = getDb();
+    const userId = (req as AuthRequest).user?.userId;
+    const { module, name, type, systemPrompt, userPromptTemplate, variables, isDefault, enabled, sortOrder } = req.body;
+    if (!module || !name) {
+      return res.status(400).json({ success: false, message: "模块和名称不能为空" });
+    }
+    const id = generateId();
+    const now = new Date().toISOString();
+    db.prepare(`INSERT INTO ai_prompt_templates (id, module, name, type, system_prompt, user_prompt_template, variables, is_default, enabled, sort_order, created_by, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(
+        id, module, name, type || "description", systemPrompt || "", userPromptTemplate || "",
+        JSON.stringify(variables || []), isDefault ? 1 : 0, enabled !== false ? 1 : 0,
+        sortOrder || 0, userId || null, now, now
+    );
+    res.json(success({ id, module, name }));
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+}
+
+export async function updatePromptTemplate(req: Request, res: Response) {
+  try {
+    const db = getDb();
+    const { id } = req.params;
+    const { module, name, type, systemPrompt, userPromptTemplate, variables, isDefault, enabled, sortOrder } = req.body;
+    const existing = db.prepare("SELECT id FROM ai_prompt_templates WHERE id = ?").get(id) as any;
+    if (!existing) {
+      return res.status(404).json({ success: false, message: "模板不存在" });
+    }
+    const now = new Date().toISOString();
+    db.prepare(`UPDATE ai_prompt_templates SET module = COALESCE(?, module), name = COALESCE(?, name), type = COALESCE(?, type),
+      system_prompt = COALESCE(?, system_prompt), user_prompt_template = COALESCE(?, user_prompt_template),
+      variables = COALESCE(?, variables), is_default = COALESCE(?, is_default), enabled = COALESCE(?, enabled),
+      sort_order = COALESCE(?, sort_order), updated_at = ? WHERE id = ?`).run(
+        module || null, name || null, type || null, systemPrompt ?? null, userPromptTemplate ?? null,
+        variables != null ? JSON.stringify(variables) : null, isDefault != null ? (isDefault ? 1 : 0) : null,
+        enabled != null ? (enabled ? 1 : 0) : null, sortOrder ?? null, now, id
+    );
+    res.json(success({ id }));
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+}
+
+export async function deletePromptTemplate(req: Request, res: Response) {
+  try {
+    const db = getDb();
+    const { id } = req.params;
+    const existing = db.prepare("SELECT id FROM ai_prompt_templates WHERE id = ?").get(id) as any;
+    if (!existing) {
+      return res.status(404).json({ success: false, message: "模板不存在" });
+    }
+    db.prepare("DELETE FROM ai_prompt_templates WHERE id = ?").run(id);
+    res.json(success({ id }));
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
   }

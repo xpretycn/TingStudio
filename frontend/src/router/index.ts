@@ -63,6 +63,12 @@ const router = createRouter({
           meta: { title: "编辑原料", hideHeader: true },
         },
         {
+          path: "materials/:id/versions",
+          name: "MaterialVersions",
+          component: () => import(/* webpackPrefetch: true */ "@/views/materials/MaterialVersions.vue"),
+          meta: { title: "版本历史", hideHeader: true },
+        },
+        {
           path: "formulas/compare",
           name: "FormulaCompare",
           component: () => import(/* webpackPrefetch: true */ "@/views/formulas/FormulaCompare.vue"),
@@ -84,13 +90,13 @@ const router = createRouter({
           path: "formulas/new",
           name: "FormulaNew",
           component: () => import(/* webpackPrefetch: true */ "@/views/formulas/FormulaForm.vue"),
-          meta: { title: "新增配方", hideHeader: true },
+          meta: { title: "新增配方", hideHeader: true, extraBottom: true },
         },
         {
           path: "formulas/:id/edit",
           name: "FormulaEdit",
           component: () => import("@/views/formulas/FormulaForm.vue"),
-          meta: { title: "编辑配方", hideHeader: true },
+          meta: { title: "编辑配方", hideHeader: true, extraBottom: true },
         },
         {
           path: "salesmen",

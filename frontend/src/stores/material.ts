@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
 import { materialApi } from "@/api/material";
-import type { Material, MaterialForm } from "@/api/material";
+import type { Material, MaterialForm, UpdateResult, MaterialVersion } from "@/api/material";
 import { formatTimestamp } from "@/utils/timeFormat";
 
 export const useMaterialStore = defineStore("material", () => {
@@ -12,10 +12,15 @@ export const useMaterialStore = defineStore("material", () => {
   const pageSize = ref(8);
   const keyword = ref("");
 
+  const versions = ref<MaterialVersion[]>([]);
+  const versionsLoading = ref(false);
+  const versionMaterialName = ref("");
+  const versionMaterialCode = ref("");
+  const versionCurrentVersion = ref(0);
+
   const fetchMaterials = async () => {
     loading.value = true;
     try {
-      console.log("[MaterialStore] fetchMaterials START, keyword=", JSON.stringify(keyword.value));
       const res = await materialApi.getList({
         keyword: keyword.value || undefined,
         page: currentPage.value,
@@ -37,7 +42,6 @@ export const useMaterialStore = defineStore("material", () => {
   const getMaterial = async (id: string): Promise<Material | null> => {
     try {
       const res = await materialApi.getById(id);
-      // axios 拦截器已经提取了 res.data，所以这里直接使用 res
       return res;
     } catch {
       return null;
@@ -57,12 +61,12 @@ export const useMaterialStore = defineStore("material", () => {
     }
   };
 
-  const updateMaterial = async (id: string, form: Partial<MaterialForm>) => {
+  const updateMaterial = async (id: string, form: Partial<MaterialForm>): Promise<{ success: boolean; message?: string; result?: UpdateResult }> => {
     loading.value = true;
     try {
-      await materialApi.update(id, form);
+      const result = await materialApi.update(id, form);
       await fetchMaterials();
-      return { success: true };
+      return { success: true, message: undefined, result };
     } catch (error: any) {
       return { success: false, message: error.message || "更新失败" };
     } finally {
@@ -83,6 +87,21 @@ export const useMaterialStore = defineStore("material", () => {
     }
   };
 
+  const fetchVersions = async (materialId: string) => {
+    versionsLoading.value = true;
+    try {
+      const res = await materialApi.getVersions(materialId);
+      versionMaterialName.value = res.materialName;
+      versionMaterialCode.value = res.materialCode;
+      versionCurrentVersion.value = res.currentVersion;
+      versions.value = res.versions;
+    } catch (error) {
+      console.error("获取版本历史失败:", error);
+    } finally {
+      versionsLoading.value = false;
+    }
+  };
+
   const setKeyword = (val: string) => {
     keyword.value = val;
     currentPage.value = 1;
@@ -97,7 +116,6 @@ export const useMaterialStore = defineStore("material", () => {
     currentPage.value = page;
   };
 
-  /** 获取全部原料（用于下拉选择，不分页） */
   const allMaterials = ref<Material[]>([]);
 
   const fetchAllForSelect = async () => {
@@ -133,5 +151,11 @@ export const useMaterialStore = defineStore("material", () => {
     setKeyword,
     clearKeyword,
     setPage,
+    versions,
+    versionsLoading,
+    versionMaterialName,
+    versionMaterialCode,
+    versionCurrentVersion,
+    fetchVersions,
   };
 });

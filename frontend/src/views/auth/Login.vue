@@ -378,7 +378,7 @@ const handleSubmit = async ({ validateResult }: any) => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 48px 40px;
+  padding: 28px 36px;
   background: linear-gradient(180deg, var(--color-primary-bg) 0%, var(--color-bg-container) 40%);
   position: relative;
   overflow: hidden;
@@ -436,7 +436,7 @@ const handleSubmit = async ({ validateResult }: any) => {
   z-index: 1;
   width: 100%;
   max-width: 400px;
-  padding: 40px 36px 28px;
+  padding: 28px 32px 20px;
   background: rgba(255, 255, 255, 0.72);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
@@ -497,16 +497,16 @@ const handleSubmit = async ({ validateResult }: any) => {
 
 // ───── Form Header ─────
 .form-header {
-  margin-bottom: 32px;
+  margin-bottom: 20px;
   text-align: center;
 
   &__logo {
     display: inline-flex;
     justify-content: center;
     align-items: center;
-    margin: 0 auto 20px;
-    width: 100px;
-    height: 100px;
+    margin: 0 auto 10px;
+    width: 72px;
+    height: 72px;
 
     svg {
       width: 100%;
@@ -517,10 +517,10 @@ const handleSubmit = async ({ validateResult }: any) => {
   }
 
   &__title {
-    font-size: 24px;
+    font-size: 20px;
     font-weight: 700;
     color: var(--color-text-primary);
-    margin: 0 0 8px 0;
+    margin: 0 0 4px 0;
   }
 
   &__desc {
@@ -552,6 +552,10 @@ const handleSubmit = async ({ validateResult }: any) => {
   }
 }
 
+:deep(.t-form__item) {
+  margin-bottom: 16px;
+}
+
 .field-label {
   display: flex;
   align-items: center;
@@ -559,7 +563,7 @@ const handleSubmit = async ({ validateResult }: any) => {
   font-size: 13px;
   font-weight: 600;
   color: var(--color-text-primary);
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .label-dot {
@@ -575,7 +579,7 @@ const handleSubmit = async ({ validateResult }: any) => {
     border-radius: 14px;
     border: 1.5px solid var(--color-primary-lightest);
     background: var(--overlay-brand-05) !important;
-    height: 48px;
+    height: 42px;
     padding-left: 42px;
     transition: all var(--transition-slow);
 
@@ -597,26 +601,26 @@ const handleSubmit = async ({ validateResult }: any) => {
     }
 
     .t-input__wrap {
-      color: var(--color-text-primary);
+      color: #3a2d3d;
       font-size: 14px;
       caret-color: var(--color-primary);
       background: transparent !important;
     }
 
     .t-input__inner {
-      color: var(--color-text-primary);
+      color: #3a2d3d !important;
       background: transparent !important;
 
       &::selection {
         background: var(--overlay-brand-20);
-        color: var(--color-text-primary);
+        color: #3a2d3d;
       }
 
       &:-webkit-autofill,
       &:-webkit-autofill:hover,
       &:-webkit-autofill:focus,
       &:-webkit-autofill:active {
-        -webkit-text-fill-color: var(--color-text-primary);
+        -webkit-text-fill-color: #3a2d3d !important;
         -webkit-box-shadow: 0 0 0 48px #ffffff inset !important;
         caret-color: var(--color-primary);
         transition: background-color 5000s ease-in-out 0s;
@@ -659,7 +663,7 @@ const handleSubmit = async ({ validateResult }: any) => {
 // ───── Button ─────
 .cute-btn {
   position: relative;
-  height: 48px !important;
+  height: 42px !important;
   border-radius: 14px !important;
   font-size: 15px !important;
   font-weight: 600 !important;
@@ -733,8 +737,8 @@ const handleSubmit = async ({ validateResult }: any) => {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding-top: 20px;
-  margin-top: 8px;
+  padding-top: 14px;
+  margin-top: 4px;
   border-top: 1px dashed var(--color-primary-lightest);
   font-size: 13px;
   color: var(--color-text-secondary);
@@ -803,16 +807,16 @@ const handleSubmit = async ({ validateResult }: any) => {
   }
 
   .form-header {
-    margin-bottom: 24px;
+    margin-bottom: 16px;
 
     &__logo {
-      width: 80px;
-      height: 80px;
-      margin-bottom: 16px;
+      width: 64px;
+      height: 64px;
+      margin-bottom: 10px;
     }
 
     &__title {
-      font-size: 22px;
+      font-size: 18px;
     }
 
     &__desc {
@@ -822,13 +826,13 @@ const handleSubmit = async ({ validateResult }: any) => {
 
   .cute-input {
     :deep(.t-input) {
-      height: 44px;
+      height: 40px;
       border-radius: 12px;
     }
   }
 
   .cute-btn {
-    height: 44px !important;
+    height: 40px !important;
     border-radius: 12px !important;
   }
 }

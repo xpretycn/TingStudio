@@ -39,6 +39,8 @@ export interface ChatCompletionOptions {
   stream?: boolean;
   onToken?: (token: string) => void;
   tools?: unknown[];
+  applicationName?: string;
+  applicationLocation?: string;
 }
 
 export interface ChatCompletionResult {
@@ -106,6 +108,22 @@ const DEFAULT_MODELS: AIModelConfig[] = [
     supportsVision: false,
   },
 ];
+
+const CALL_TYPE_APP_MAP: Record<string, { name: string; location: string }> = {
+  parse_formula: { name: "智能配方解析", location: "配方管理 > 新增配方" },
+  parse_nutrition: { name: "智能原料导入", location: "原料管理 > 新增原料" },
+  natural_search: { name: "智能数据检索", location: "首页 > 智能检索" },
+  health_check: { name: "健康检测", location: "系统管理 > 模型管理" },
+  dashboard_chat: { name: "AI对话", location: "首页 > AI助手" },
+  agent_chat: { name: "Agent对话", location: "悬浮AI助手" },
+  parse_file_image: { name: "图片内容提取", location: "配方/原料管理 > 图片上传" },
+  nl2sql: { name: "NL2SQL查询", location: "智能检索 > 数据查询" },
+  intent_recognition: { name: "意图识别", location: "悬浮AI助手 > 意图识别" },
+  "weekly-report": { name: "周报AI分析", location: "业务分析 > 周报" },
+  "monthly-report": { name: "月报AI分析", location: "业务分析 > 月报" },
+  "smart-search": { name: "智能数据检索", location: "首页 > 智能检索" },
+  unknown: { name: "其他", location: "未知" },
+};
 
 export class AIService {
   private models: AIModelConfig[];
@@ -208,6 +226,8 @@ export class AIService {
     requestSummary?: string;
     fallbackFrom?: string;
     userId?: string;
+    applicationName?: string;
+    applicationLocation?: string;
   }): void {
     try {
       const db = getDb();
@@ -219,12 +239,16 @@ export class AIService {
 
       const id = `ul_${crypto.randomUUID().slice(0, 8)}`;
 
+      const appMapping = CALL_TYPE_APP_MAP[params.callType] || CALL_TYPE_APP_MAP.unknown;
+      const applicationName = params.applicationName || appMapping.name;
+      const applicationLocation = params.applicationLocation || appMapping.location;
+
       console.log(`[AI-Usage] 准备记录用量: provider=${params.provider}, model=${params.model}, callType=${params.callType}, totalTokens=${params.totalTokens}`);
 
       db.prepare(
         `
-        INSERT INTO ai_usage_logs (id, provider, model, call_type, prompt_tokens, completion_tokens, total_tokens, latency_ms, status, error_message, request_summary, fallback_from, user_id, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+        INSERT INTO ai_usage_logs (id, provider, model, call_type, prompt_tokens, completion_tokens, total_tokens, latency_ms, status, error_message, request_summary, fallback_from, user_id, application_name, application_location, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
       `,
       ).run(
         id,
@@ -240,6 +264,8 @@ export class AIService {
         params.requestSummary || null,
         params.fallbackFrom || null,
         params.userId || null,
+        applicationName,
+        applicationLocation,
       );
 
       console.log(`[AI-Usage] ✅ 用量记录成功: id=${id}, tokens=${params.totalTokens}`);
@@ -304,6 +330,8 @@ export class AIService {
               errorMessage: (primaryError as Error).message,
               requestSummary: options?.requestSummary,
               userId: options?.userId,
+              applicationName: options?.applicationName,
+              applicationLocation: options?.applicationLocation,
             });
             throw primaryError;
           }
@@ -323,6 +351,8 @@ export class AIService {
           errorMessage: (primaryError as Error).message,
           requestSummary: options?.requestSummary,
           userId: options?.userId,
+          applicationName: options?.applicationName,
+          applicationLocation: options?.applicationLocation,
         });
         throw primaryError;
       }
@@ -345,6 +375,8 @@ export class AIService {
       requestSummary: options?.requestSummary,
       fallbackFrom: fallbackFrom || undefined,
       userId: options?.userId,
+      applicationName: options?.applicationName,
+      applicationLocation: options?.applicationLocation,
     });
 
     if (fallbackFrom) {

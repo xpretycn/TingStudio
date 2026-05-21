@@ -283,8 +283,9 @@ async function main() {
       stmtInsertMat.run(id, mat.name, code, mat.unit, mat.stock, mat.type, unitPrice, adminId, now(), now());
       insertedM++;
 
+      const energy = Math.round((mat.protein * 17 + mat.fat * 37 + mat.carbohydrate * 17) * 100) / 100;
       const nutJson = JSON.stringify({
-        energy: null,
+        energy,
         protein: mat.protein,
         fat: mat.fat,
         carbohydrate: mat.carbohydrate,

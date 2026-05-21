@@ -1,4 +1,3 @@
-// 原料路由
 import { Router } from "express";
 import { authMiddleware } from "../middleware/auth.js";
 import {
@@ -9,6 +8,9 @@ import {
   deleteMaterial,
   getNextCode,
   getMaterialStats,
+  getMaterialVersions,
+  getMaterialVersion,
+  getMaterialReferences,
 } from "../controllers/materialController.js";
 import { validateBody } from "../middleware/validate.js";
 
@@ -20,6 +22,9 @@ materialRoutes.get("/", getMaterials);
 materialRoutes.get("/stats", getMaterialStats);
 materialRoutes.get("/next-code", getNextCode);
 materialRoutes.get("/:id", getMaterial);
+materialRoutes.get("/:id/versions", getMaterialVersions);
+materialRoutes.get("/:id/versions/:versionId", getMaterialVersion);
+materialRoutes.get("/:id/references", getMaterialReferences);
 materialRoutes.post(
   "/",
   validateBody({

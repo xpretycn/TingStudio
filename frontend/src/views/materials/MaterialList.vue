@@ -120,6 +120,23 @@
             </span>
           </template>
 
+          <template #version="{ row }">
+            <div class="version-cell">
+              <t-tag
+                :theme="row.isLatest ? 'success' : 'default'"
+                variant="light"
+                size="small"
+                style="cursor: pointer;"
+                @click.stop="handleViewVersions(row)"
+              >
+                v{{ row.version }}
+              </t-tag>
+              <t-tooltip :content="`共 ${row.totalVersions} 个版本`" v-if="row.totalVersions > 1">
+                <span class="version-count" @click.stop="handleViewVersions(row)">· {{ row.totalVersions }}版</span>
+              </t-tooltip>
+            </div>
+          </template>
+
           <template #materialType="{ row }">
             <t-tag :theme="row.materialType === 'supplement' ? 'primary' : 'success'" variant="light" size="small"
               shape="round">
@@ -199,11 +216,15 @@
 
           <template #operation="{ row }">
             <div class="action-buttons" role="group" aria-label="原料操作">
-              <button class="action-btn edit-btn" @click.stop="handleEdit(row)" title="编辑"
+              <button class="action-btn view-btn" @click.stop="handleViewVersions(row)" title="版本历史"
+                :aria-label="`查看${row.name}的版本历史`">
+                <t-icon name="layers" />
+              </button>
+              <button v-if="row.isOwner || isAdmin" class="action-btn edit-btn" @click.stop="handleEdit(row)" title="编辑"
                 :aria-label="`编辑原料${row.name}`">
                 <t-icon name="edit-1" />
               </button>
-              <t-popconfirm theme="danger" :content="`确定要删除原料「${row.name}」吗？`" @confirm="handleDelete(row)">
+              <t-popconfirm v-if="isAdmin" theme="danger" :content="`确定要删除原料「${row.name}」吗？`" @confirm="handleDelete(row)">
                 <button class="action-btn delete-btn" title="删除" :aria-label="`删除原料${row.name}`" @click.stop>
                   <t-icon name="delete" />
                 </button>
@@ -314,7 +335,7 @@
 
         <div class="todo-list" v-if="paginatedMatTodoItems.length > 0">
           <TransitionGroup name="todo-list" tag="div" class="todo-list__inner">
-            <div v-for="(item, idx) in paginatedMatTodoItems" :key="item.id" class="todo-item"
+            <div v-for="item in paginatedMatTodoItems" :key="item.id" class="todo-item"
               :class="'todo-item--' + item.priority">
               <div class="todo-item__icon" :class="'todo-item__icon--' + item.type">
                 <svg v-if="item.type === 'warning'" width="16" height="16" viewBox="0 0 24 24" fill="none"
@@ -393,8 +414,7 @@ import { ref, computed, onMounted, onUnmounted, onActivated, watch, nextTick, h 
 import { useRouter, useRoute } from 'vue-router';
 import { useMaterialStore } from '@/stores/material';
 import { usePaginationStore } from '@/stores/pagination';
-import { useThemeStore } from '@/stores/theme';
-import { getThemeTokens } from '@/assets/styles/tokens';
+import { useAuthStore } from '@/stores/auth';
 import { nutritionApi } from '@/api/nutrition';
 import { MessagePlugin } from 'tdesign-vue-next';
 import type { Material } from '@/api/material';
@@ -405,11 +425,9 @@ const router = useRouter();
 const route = useRoute();
 const materialStore = useMaterialStore();
 const paginationStore = usePaginationStore();
-const themeStore = useThemeStore();
+const authStore = useAuthStore();
 
-const themeTokens = computed(() => getThemeTokens(themeStore.isDark, themeStore.brandColor));
-const primaryColor = computed(() => themeTokens.value.primary);
-const primaryDark = computed(() => themeTokens.value.primaryDark);
+const isAdmin = computed(() => authStore.user?.role === "admin");
 
 const initialized = ref(false);
 
@@ -418,7 +436,6 @@ const nutritionMap = ref<Record<string, string>>({});
 const expandedNutrition = ref<Record<string, Record<string, number>>>({});
 const selectedRowKeys = ref<(string | number)[]>([]);
 const selectedRows = ref<Material[]>([]);
-const tableSort = ref<any>(undefined);
 const sortKey = ref<string>('');
 const sortOrder = ref<'asc' | 'desc' | ''>('');
 const sortedMaterials = ref<Material[]>([]);
@@ -690,13 +707,14 @@ const handleBatchExport = () => {
 const columns = computed(() => [
   { colKey: 'row-select', type: 'multiple', width: 50, resizable: false },
   { colKey: 'name', title: sortTitle('原料信息', 'name'), width: 180 },
+  { colKey: 'version', title: '版本', width: 100, align: 'center' },
   { colKey: 'dataSource', title: sortTitle('数据源', 'dataSource'), width: 120, align: 'center' },
   { colKey: 'materialType', title: sortTitle('类型', 'materialType'), width: 100, align: 'center' },
   { colKey: 'unitPrice', title: sortTitle('单价(元/kg)', 'unitPrice'), width: 120, align: 'center' },
   { colKey: 'nutrition', title: '营养', width: 110, align: 'center' },
   { colKey: 'stock', title: sortTitle('库存', 'stock'), width: 100, align: 'center' },
   { colKey: 'createdAt', title: sortTitle('创建时间', 'createdAt'), width: 160 },
-  { colKey: 'operation', title: '操作', width: 120, align: 'center', className: 'operation-col-center' }
+  { colKey: 'operation', title: '操作', width: 150, align: 'center', className: 'operation-col-center' }
 ]);
 
 const pagination = computed(() => ({
@@ -781,13 +799,6 @@ const activityList = computed<ActivityItem[]>(() => {
 });
 const activityPrev = () => { if (activityPage.value > 1) activityPage.value--; };
 const activityNext = () => { if (activityPage.value < activityTotalPages.value) activityPage.value++; };
-
-const assistantMessage = computed(() => {
-  const total = materialStore.total;
-  if (total === 0) return '您还没有录入任何原料，点击下方按钮开始建立您的原料库吧！';
-  if (total < 10) return `当前共有 ${total} 种原料在库，建议继续丰富原料种类。`;
-  return `当前共有 ${total} 种原料在库，建议定期检查营养数据和库存状态。`;
-});
 
 interface MatTodoItem {
   id: string;
@@ -1016,7 +1027,7 @@ const handleRealTimeSearch = () => {
 
 // 监听 searchKeyword 变化后触发搜索（仅在用户主动输入时触发）
 let isRestoringFromRoute = false;
-watch(searchKeyword, (newVal) => {
+watch(searchKeyword, () => {
   // 如果正在从路由参数恢复，不触发搜索（避免重复请求）
   if (isRestoringFromRoute) {
     isRestoringFromRoute = false;
@@ -1054,6 +1065,13 @@ const handleRowClick = (ctx: { row: Material; col?: { colKey: string; }; }) => {
 const handleEdit = (row: Material) => {
   router.push({
     path: `/materials/${row.id}/edit`,
+    query: route.query
+  });
+};
+
+const handleViewVersions = (row: Material) => {
+  router.push({
+    path: `/materials/${row.id}/versions`,
     query: route.query
   });
 };
@@ -1713,6 +1731,24 @@ const handleDelete = async (row: Material) => {
   font-size: 12px;
   color: #475569;
   white-space: pre-line;
+}
+
+// 类型
+.version-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: center;
+
+  .version-count {
+    font-size: 11px;
+    color: #94a3b8;
+    cursor: pointer;
+
+    &:hover {
+      color: #10b981;
+    }
+  }
 }
 
 // 营养空标签

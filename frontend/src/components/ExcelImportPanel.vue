@@ -6,102 +6,141 @@
         <span class="guide-title">Excel导入说明</span>
       </template>
       <div class="guide-content">
-        <p>1. 点击「下载模板」获取Excel模板文件</p>
+        <p>1. <a class="guide-link" @click="downloadTemplate">下载模板</a> 获取Excel模板文件</p>
         <p>2. 在模板中填写原料信息（带*为必填项）</p>
-        <p>3. 点击「上传文件」导入已填写的Excel文件</p>
+        <p>3. <a class="guide-link" @click="triggerUpload">上传文件</a> 导入已填写的Excel</p>
         <p>4. 系统将自动填充配方原料清单</p>
       </div>
     </t-alert>
 
     <!-- 操作按钮 -->
     <div class="import-actions">
-      <t-button theme="primary" @click="downloadTemplate" :loading="downloading">
-        <template #icon><t-icon name="download" /></template>
-        下载模板
-      </t-button>
+      <button type="button" class="import-btn import-btn--download" @click="downloadTemplate"
+        :disabled="downloading">
+        <t-icon name="download" size="12px" />
+        {{ downloading ? '下载中...' : '下载模板' }}
+      </button>
 
       <t-upload ref="uploadRef" :show-upload-file="false" :before-upload="beforeUpload" :request-method="handleUpload"
         accept=".xlsx,.xls">
-        <t-button theme="success" :loading="uploading">
-          <template #icon><t-icon name="upload" /></template>
-          上传文件
-        </t-button>
+        <button type="button" class="import-btn import-btn--upload" :disabled="uploading">
+          <t-icon name="upload" size="12px" />
+          {{ uploading ? '上传中...' : '上传文件' }}
+        </button>
       </t-upload>
     </div>
 
     <!-- 解析结果 -->
     <div v-if="parseResult" class="parse-result">
       <!-- 摘要信息 -->
-      <t-card class="result-summary" :bordered="false">
-        <div class="summary-content">
-          <span class="summary-item">
-            <t-icon name="file-excel" />
-            共解析 <strong>{{ parseResult.summary.total }}</strong> 条原料
+      <div class="parse-summary-bar">
+        <div class="parse-summary-left">
+          <h4 class="parse-summary-title">解析结果</h4>
+          <span class="parse-summary-badge parse-summary-badge--total">
+            <t-icon name="file-excel" size="12px" />
+            {{ parseResult.summary.total }} 条
           </span>
-          <span class="summary-item success">
-            <t-icon name="check-circle" />
-            已匹配 <strong>{{ parseResult.summary.existing }}</strong> 条
+          <span class="parse-summary-badge parse-summary-badge--success">
+            <t-icon name="check-circle" size="12px" />
+            {{ parseResult.summary.existing }} 条已匹配
           </span>
-          <span v-if="parseResult.summary.new > 0" class="summary-item warning">
-            <t-icon name="error-circle" />
-            新原料 <strong>{{ parseResult.summary.new }}</strong> 条
+          <span v-if="parseResult.summary.new > 0"
+            class="parse-summary-badge parse-summary-badge--warning">
+            <t-icon name="error-circle" size="12px" />
+            {{ parseResult.summary.new }} 条新原料
           </span>
         </div>
-      </t-card>
+      </div>
 
       <!-- 错误信息 -->
-      <t-alert v-if="parseResult.errors.length > 0" theme="error" title="解析错误" :close-btn="null" class="result-alert">
-        <ul class="error-list">
+      <div v-if="parseResult.errors.length > 0" class="parse-alert-bar parse-alert-bar--error">
+        <div class="parse-alert-left">
+          <t-icon name="close-circle-filled" size="14px" />
+          <span class="parse-alert-badge parse-alert-badge--error">错误</span>
+          <span class="parse-alert-desc">{{ parseResult.errors.length }} 个解析错误</span>
+        </div>
+        <ul class="parse-alert-list">
           <li v-for="(err, idx) in parseResult.errors" :key="idx">{{ err }}</li>
         </ul>
-      </t-alert>
+      </div>
 
       <!-- 缺失原料提示 -->
-      <t-alert v-if="parseResult.missingMaterials.length > 0" theme="warning" title="以下原料在系统中不存在，请先录入原料信息"
-        :close-btn="null" class="result-alert">
-        <div class="missing-materials">
-          <t-tag v-for="name in parseResult.missingMaterials" :key="name" theme="warning" variant="light"
-            class="missing-tag">
+      <div v-if="parseResult.missingMaterials.length > 0"
+        class="parse-alert-bar parse-alert-bar--warning">
+        <div class="parse-alert-left">
+          <t-icon name="error-circle" size="14px" />
+          <span class="parse-alert-badge parse-alert-badge--warning">缺失</span>
+          <span class="parse-alert-desc">{{ parseResult.missingMaterials.length }} 个原料未录入</span>
+        </div>
+        <div class="parse-missing-tags">
+          <t-tag v-for="name in parseResult.missingMaterials" :key="name" theme="warning"
+            variant="light" size="small" class="missing-tag">
             {{ name }}
           </t-tag>
         </div>
-        <t-button theme="primary" size="small" class="go-materials-btn" @click="goToMaterials">
-          前往原料管理
-        </t-button>
-      </t-alert>
+        <button type="button" class="go-materials-btn" @click="goToMaterials">
+          <t-icon name="arrow-right" size="12px" />
+          前往录入
+        </button>
+      </div>
 
       <!-- 警告信息 -->
-      <t-alert v-if="parseResult.warnings.length > 0" theme="warning" title="提示信息" :close-btn="null"
-        class="result-alert">
-        <ul class="warning-list">
+      <div v-if="parseResult.warnings.length > 0" class="parse-alert-bar parse-alert-bar--info">
+        <div class="parse-alert-left">
+          <t-icon name="info-circle" size="14px" />
+          <span class="parse-alert-badge parse-alert-badge--info">提示</span>
+          <span class="parse-alert-desc">{{ parseResult.warnings.length }} 条提示信息</span>
+        </div>
+        <ul class="parse-alert-list">
           <li v-for="(warn, idx) in parseResult.warnings" :key="idx">{{ warn }}</li>
         </ul>
-      </t-alert>
+      </div>
 
       <!-- 解析数据预览 -->
-      <t-card v-if="validMaterials.length > 0" class="preview-card" :bordered="false">
-        <template #header>
-          <div class="preview-header">
-            <span>原料预览</span>
-            <t-space>
-              <t-button theme="default" size="small" @click="cancelImport">取消导入</t-button>
-              <t-button theme="primary" size="small" @click="confirmImport">确认导入</t-button>
-            </t-space>
+      <div v-if="validMaterials.length > 0" class="parse-preview">
+        <div class="parse-preview-header">
+          <div class="parse-preview-header-left">
+            <h4 class="parse-preview-title">原料预览</h4>
+            <span class="parse-preview-badge">{{ validMaterials.length }} 种</span>
           </div>
-        </template>
-        <t-table :data="validMaterials" :columns="previewColumns" size="small" :max-height="300">
-          <template #materialType="{ row }">
-            <t-tag :theme="row.materialType === 'supplement' ? 'primary' : 'success'" variant="light" size="small">
-              {{ row.materialType === 'supplement' ? '辅料' : '药材' }}
-            </t-tag>
-          </template>
-          <template #status="{ row }">
-            <t-tag :theme="row.isNew ? 'danger' : 'success'" variant="light" size="small">
-              {{ row.isNew ? '未录入' : '已匹配' }}
-            </t-tag>
-          </template>
-        </t-table>
-      </t-card>
+          <div class="parse-preview-actions">
+            <button type="button" class="parse-action-btn parse-action-btn--cancel"
+              @click="cancelImport">
+              取消导入
+            </button>
+            <button type="button" class="parse-action-btn parse-action-btn--confirm"
+              @click="confirmImport">
+              确认导入
+            </button>
+          </div>
+        </div>
+        <div class="parse-table">
+          <div class="parse-table-header">
+            <span class="pt-col pt-col-name">原料名称</span>
+            <span class="pt-col pt-col-type">类型</span>
+            <span class="pt-col pt-col-qty">用量(g)</span>
+            <span class="pt-col pt-col-status">状态</span>
+          </div>
+          <div v-for="(row, idx) in validMaterials" :key="idx" class="parse-table-row">
+            <span class="pt-col pt-col-name">
+              <span class="pt-name-text">{{ row.materialName }}</span>
+            </span>
+            <span class="pt-col pt-col-type">
+              <t-tag
+                :class="row.materialType === 'supplement' ? 'material-type-tag--supplement' : 'material-type-tag--herb'"
+                size="small">
+                {{ row.materialType === 'supplement' ? '辅料' : '药材' }}
+              </t-tag>
+            </span>
+            <span class="pt-col pt-col-qty">{{ row.quantity }}</span>
+            <span class="pt-col pt-col-status">
+              <t-tag :theme="row.isNew ? 'danger' : 'success'" variant="light" size="small">
+                {{ row.isNew ? '未录入' : '已匹配' }}
+              </t-tag>
+            </span>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -122,14 +161,6 @@ const uploading = ref(false)
 const parseResult = ref<ParseResult | null>(null)
 const uploadRef = ref()
 
-const previewColumns = [
-  { colKey: 'materialName', title: '原料名称', width: 120 },
-  { colKey: 'materialType', title: '类型', width: 80 },
-  { colKey: 'quantity', title: '数量(g)', width: 80 },
-  { colKey: 'status', title: '状态', width: 80 },
-]
-
-// 有效的原料（已匹配的）
 const validMaterials = computed(() => {
   if (!parseResult.value) return []
   return parseResult.value.materials.filter(m => !m.isNew)
@@ -222,9 +253,17 @@ function cancelImport() {
 function goToMaterials() {
   router.push('/materials')
 }
+
+function triggerUpload() {
+  uploadRef.value?.click?.()
+  const input = uploadRef.value?.$el?.querySelector?.('input[type="file"]')
+  if (input) input.click()
+}
 </script>
 
 <style scoped lang="scss">
+@import "@/assets/styles/variables.scss";
+
 .excel-import-panel {
   padding: $space-4;
   background: $bg-container-alt;
@@ -244,69 +283,371 @@ function goToMaterials() {
   p {
     margin: $space-1 0;
   }
+
+  .guide-link {
+    color: #7c3aed;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+
+    &:hover {
+      color: #6d28d9;
+    }
+  }
 }
 
 .import-actions {
   display: flex;
   gap: $space-3;
   margin-top: $space-4;
+  justify-content: flex-end;
+}
+
+.import-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  &--download {
+    border-color: #e2e8f0;
+    background: transparent;
+    color: #64748b;
+
+    &:hover:not(:disabled) {
+      background: #f1f5f9;
+      border-color: #cbd5e1;
+      color: #334155;
+    }
+  }
+
+  &--upload {
+    border-color: #7c3aed;
+    background: #7c3aed;
+    color: #fff;
+
+    &:hover:not(:disabled) {
+      background: #6d28d9;
+      border-color: #6d28d9;
+    }
+  }
 }
 
 .parse-result {
   margin-top: $space-4;
+}
 
-  .result-summary {
-    margin-bottom: $space-3;
-    background: $bg-container;
+.parse-summary-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px 8px;
 
-    .summary-content {
+  .parse-summary-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .parse-summary-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+  }
+
+  .parse-summary-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 1px 8px;
+    border-radius: 10px;
+
+    &--total {
+      color: #10b981;
+      background: rgba(16, 185, 129, 0.1);
+    }
+
+    &--success {
+      color: #059669;
+      background: rgba(16, 185, 129, 0.1);
+    }
+
+    &--warning {
+      color: #d97706;
+      background: rgba(245, 158, 11, 0.1);
+    }
+  }
+}
+
+.parse-alert-bar {
+  padding: 8px 14px;
+  font-size: 12px;
+  border-top: 1px solid transparent;
+
+  &--error {
+    background: rgba(220, 38, 38, 0.06);
+    border-color: rgba(220, 38, 38, 0.15);
+    color: #b91c1c;
+  }
+
+  &--warning {
+    background: rgba(245, 158, 11, 0.06);
+    border-color: rgba(245, 158, 11, 0.15);
+    color: #b45309;
+  }
+
+  &--info {
+    background: rgba(99, 102, 241, 0.06);
+    border-color: rgba(99, 102, 241, 0.15);
+    color: #4338ca;
+  }
+
+  .parse-alert-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .parse-alert-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 1px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+
+    &--error {
+      background: rgba(220, 38, 38, 0.15);
+      color: #b91c1c;
+    }
+
+    &--warning {
+      background: rgba(245, 158, 11, 0.15);
+      color: #b45309;
+    }
+
+    &--info {
+      background: rgba(99, 102, 241, 0.15);
+      color: #4338ca;
+    }
+  }
+
+  .parse-alert-desc {
+    font-size: 11px;
+    font-weight: 500;
+  }
+
+  .parse-alert-list {
+    margin: 6px 0 0 22px;
+    padding-left: 16px;
+    font-size: 11px;
+    line-height: 1.6;
+  }
+
+  .parse-missing-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 6px 0 0 22px;
+
+    .missing-tag {
+      font-size: 11px;
+    }
+  }
+
+  .go-materials-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 8px;
+    margin-left: 22px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    background: rgba(245, 158, 11, 0.08);
+    color: #b45309;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+      background: rgba(245, 158, 11, 0.15);
+      border-color: rgba(245, 158, 11, 0.5);
+    }
+  }
+}
+
+.parse-preview {
+  margin-top: 8px;
+
+  .parse-preview-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px 8px;
+
+    .parse-preview-header-left {
       display: flex;
-      gap: $space-6;
-      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+    }
 
-      .summary-item {
-        display: flex;
-        align-items: center;
-        gap: $space-1_5;
-        font-size: $font-size-body;
+    .parse-preview-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #1e293b;
+      margin: 0;
+    }
 
-        &.success {
-          color: $color-success;
+    .parse-preview-badge {
+      font-size: 11px;
+      font-weight: 600;
+      color: #10b981;
+      background: rgba(16, 185, 129, 0.1);
+      padding: 1px 8px;
+      border-radius: 10px;
+    }
+
+    .parse-preview-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .parse-action-btn {
+      padding: 4px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: 1px solid;
+
+      &--cancel {
+        border-color: #e2e8f0;
+        background: #fff;
+        color: #64748b;
+
+        &:hover {
+          background: #f1f5f9;
+          border-color: #cbd5e1;
+          color: #334155;
         }
+      }
 
-        &.warning {
-          color: $color-warning;
+      &--confirm {
+        border-color: #10b981;
+        background: #10b981;
+        color: #fff;
+
+        &:hover {
+          background: #059669;
+          border-color: #059669;
         }
       }
     }
   }
+}
 
-  .result-alert {
-    margin-bottom: $space-3;
+.parse-table {
+  .parse-table-header {
+    display: grid;
+    grid-template-columns: 1fr 80px 80px 80px;
+    gap: 4px;
+    padding: 10px 14px;
+    font-size: 11px;
+    font-weight: 800;
+    color: $emerald-600;
+    letter-spacing: 0.05em;
+    background: $overlay-emerald-08;
+  }
 
-    ul {
-      margin: $space-2 0 0;
-      padding-left: 20px;
+  .parse-table-row {
+    display: grid;
+    grid-template-columns: 1fr 80px 80px 80px;
+    gap: 4px;
+    padding: 9px 14px;
+    font-size: 12px;
+    color: #334155;
+    border-top: 1px solid rgba(148, 163, 184, 0.08);
+    align-items: center;
+
+    &:nth-child(even) {
+      background: rgba(248, 250, 252, 0.5);
     }
 
-    .missing-materials {
-      display: flex;
-      flex-wrap: wrap;
-      gap: $space-2;
-      margin: $space-2 0;
-    }
-
-    .go-materials-btn {
-      margin-top: $space-2;
+    &:hover {
+      background: $overlay-emerald-04;
     }
   }
 
-  .preview-card {
-    .preview-header {
+  .pt-col {
+    &-name {
+      font-weight: 600;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
       display: flex;
-      justify-content: space-between;
       align-items: center;
+      gap: 6px;
+
+      .pt-name-text {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
     }
+
+    &-type,
+    &-qty,
+    &-status {
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    &-qty {
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+  }
+
+  .material-type-tag--herb {
+    background: rgba(16, 185, 129, 0.1);
+    color: #059669;
+    border-color: #a7f3d0;
+    font-size: 10px;
+    padding: 0 4px;
+    height: 18px;
+    line-height: 16px;
+  }
+
+  .material-type-tag--supplement {
+    background: rgba(99, 102, 241, 0.1);
+    color: #4f46e5;
+    border-color: #c7d2fe;
+    font-size: 10px;
+    padding: 0 4px;
+    height: 18px;
+    line-height: 16px;
   }
 }
 </style>

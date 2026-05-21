@@ -80,6 +80,8 @@ export interface UsageLogItem {
   requestSummary: string | null;
   userId: string | null;
   fallbackFrom: string | null;
+  applicationName: string | null;
+  applicationLocation: string | null;
   createdAt: string;
 }
 

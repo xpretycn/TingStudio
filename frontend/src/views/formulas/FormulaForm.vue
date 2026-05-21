@@ -30,14 +30,14 @@
           取消
         </button>
         <button class="header-action-btn" @click="handleSubmit({ validateResult: true })" aria-label="保存配方"
-          data-testid="formula-save-btn">
+          data-testid="formula-save-btn" :disabled="submitBlockReasons.some(r => r.type === 'error')">
           <t-icon name="save" class="btn-icon" />
-          {{ isEdit ? '保存' : '创建' }}
+          {{submitBlockReasons.some(r => r.type === 'error') ? '校验未通过' : (isEdit ? '保存' : '创建')}}
         </button>
       </div>
     </header>
 
-    <!-- 主内容区域：垂直四区域布局 -->
+    <!-- 主内容区域 垂直二区域布置-->
     <main class="form-main">
       <t-form ref="formRef" :data="formData" :rules="rules" scroll-to-first-error @submit="handleSubmit">
         <div class="form-vertical-layout">
@@ -57,6 +57,7 @@
             <template v-else>
               <div class="info-expanded-header" @click="toggleBasicInfoCollapsed">
                 <div class="info-expanded-title">
+                  <!-- <t-icon name="InfoCircleFilledIcon-1" /> -->
                   <t-icon name="edit-1" />
                   <span>基础信息</span>
                 </div>
@@ -76,9 +77,9 @@
                       <label class="field-label" id="lbl-salesman">所属业务员<span class="required">*</span></label>
                       <div class="field-input">
                         <t-select v-model="formData.salesmanId" placeholder="请选择业务员" clearable filterable
-                          data-field="salesman_name" :popup-props="{ appendToBody: true }">
-                          <t-option v-for="salesman in salesmanStore.allSalesmen" :key="salesman.id" :value="salesman.id"
-                            :label="salesman.name" />
+                          data-field="salesman_name" :popup-props="{ appendToBody: true }" class="salesman-select">
+                          <t-option v-for="salesman in salesmanStore.allSalesmen" :key="salesman.id"
+                            :value="salesman.id" :label="salesman.name" />
                         </t-select>
                         <t-alert v-if="salesmanNotMatched && !formData.salesmanId" theme="warning" class="mt-2">
                           业务员「{{ parsedSalesmanName }}」不在系统中
@@ -88,8 +89,8 @@
                     <div class="form-field field-compact field-inline">
                       <label class="field-label" id="lbl-weight">成品重量(g)<span class="required">*</span></label>
                       <div class="field-input">
-                        <t-input-number v-model="formData.finishedWeight" :min="0" :decimal-places="2" placeholder="1000"
-                          theme="normal" data-field="finished_weight" />
+                        <t-input-number v-model="formData.finishedWeight" :min="0" :decimal-places="2"
+                          placeholder="1000" theme="normal" data-field="finished_weight" />
                       </div>
                       <p class="field-help-below">规格</p>
                     </div>
@@ -104,49 +105,49 @@
                     <div class="form-field field-compact field-inline">
                       <label class="field-label" id="lbl-supplement-factor">辅料系数<span class="required">*</span></label>
                       <div class="field-input">
-                        <t-input-number v-model="formData.supplementRatioFactor" :min="0.5" :max="1.5" :decimal-places="2"
-                          placeholder="1.0" theme="normal" data-field="supplement_ratio_factor" />
+                        <t-input-number v-model="formData.supplementRatioFactor" :min="0.5" :max="1.5"
+                          :decimal-places="2" placeholder="1.0" theme="normal" data-field="supplement_ratio_factor" />
                       </div>
                       <p class="field-help-below">用于营养成分含量比计算，辅料系数范围0.5-1.5</p>
                     </div>
                   </div>
                   <div class="info-col-right info-card">
                     <div class="form-field field-compact">
-                      <label class="field-label" id="lbl-description">
-                        配方描述
-                        <button type="button" class="btn-ai-generate" :disabled="aiGenerating || !formData.name"
+                      <div class="field-label-row">
+                        <label class="field-label" id="lbl-description">配方描述</label>
+                        <button type="button" class="btn-ai-generate" :disabled="aiLoadingDescription"
                           @click="handleGenerateDescription">
-                          <t-icon name="logo-github" size="12px" />
-                          {{ aiGenerating ? '生成中...' : '智能生成' }}
+                          <t-icon :name="aiLoadingDescription ? 'loading' : 'logo-github'" size="12px" />
+                          {{ aiLoadingDescription ? '生成中...' : '智能生成' }}
                         </button>
-                      </label>
+                      </div>
                       <t-textarea v-model="formData.description" placeholder="简述该配方的研发目标和主要特点..."
                         :autosize="{ minRows: 3, maxRows: 6 }" data-field="description" />
                     </div>
                     <div class="form-field field-compact">
-                      <label class="field-label" id="lbl-preparation">
-                        制法
-                        <button type="button" class="btn-ai-generate" :disabled="aiGenerating || !formData.name"
+                      <div class="field-label-row">
+                        <label class="field-label" id="lbl-preparation">制法</label>
+                        <button type="button" class="btn-ai-generate" :disabled="aiLoadingPreparation"
                           @click="handleGeneratePreparation">
-                          <t-icon name="logo-github" size="12px" />
-                          {{ aiGenerating ? '生成中...' : '智能生成' }}
+                          <t-icon :name="aiLoadingPreparation ? 'loading' : 'logo-github'" size="12px" />
+                          {{ aiLoadingPreparation ? '生成中...' : '智能生成' }}
                         </button>
-                      </label>
+                      </div>
                       <t-textarea v-model="formData.preparationMethod" placeholder="记录配方的制取方法、工艺流程或特殊操作要求（可选）"
                         :autosize="{ minRows: 3, maxRows: 6 }" data-field="preparation_method" />
                     </div>
                     <div v-if="isEdit" class="form-field field-compact" :class="{ 'field-error': versionReasonError }">
-                      <label class="field-label" id="lbl-version-reason">升版原因<span class="required">*</span>
-                        <button type="button" class="btn-ai-generate" :disabled="aiGenerating || !formData.name"
+                      <div class="field-label-row">
+                        <label class="field-label" id="lbl-version-reason">升版原因<span class="required">*</span></label>
+                        <button type="button" class="btn-ai-generate" :disabled="aiLoadingVersionReason"
                           @click="handleGenerateVersionReason">
-                          <t-icon name="logo-github" size="12px" />
-                          {{ aiGenerating ? '生成中...' : '智能生成' }}
+                          <t-icon :name="aiLoadingVersionReason ? 'loading' : 'logo-github'" size="12px" />
+                          {{ aiLoadingVersionReason ? '生成中...' : '智能生成' }}
                         </button>
-                      </label>
+                      </div>
                       <t-textarea ref="versionReasonRef" v-model="formData.versionReason" placeholder="请输入升版原因（必填）"
-                        :autosize="{ minRows: 3, maxRows: 6 }"
-                        :class="{ 'input-error': versionReasonError }" data-field="version_reason"
-                        @input="clearVersionReasonError" />
+                        :autosize="{ minRows: 3, maxRows: 6 }" :class="{ 'input-error': versionReasonError }"
+                        data-field="version_reason" @input="clearVersionReasonError" />
                       <transition name="error-fade">
                         <p v-if="versionReasonError" class="field-error-msg">
                           <t-icon name="error-circle" size="14px" /> 请填写升版原因
@@ -161,13 +162,16 @@
 
           <!-- ═══ 区域二：原料配比表 ═══ -->
           <section class="form-section zone-materials-table">
+            <!-- 原料配比表表头 -->
             <div class="zone-header">
               <h3 class="zone-title">
                 <t-icon name="view-list" />
                 原料配比表
               </h3>
             </div>
+            <!-- 原料配比表内容 -->
             <div class="zone-content">
+              <!-- 原料配比表导入按钮 -->
               <div class="excel-panel-wrapper">
                 <div v-if="!excelExpanded" class="excel-collapsed-bar" @click="excelExpanded = true">
                   <div class="excel-collapsed-left">
@@ -190,39 +194,91 @@
                   <ExcelImportPanel @import="handleExcelImport" class="excel-panel" />
                 </div>
               </div>
+              <!-- 原料配比表表格 -->
               <div class="materials-table-wrapper">
-                <MaterialTableCore
-                  :materials="materialTableRows"
-                  mode="edit"
-                  :finished-weight="formData.finishedWeight || 0"
-                  :ratio-factor="formData.ratioFactor ?? 0.18"
+                <MaterialTableCore :materials="materialTableRows" mode="edit"
+                  :finished-weight="formData.finishedWeight || 0" :ratio-factor="formData.ratioFactor ?? 0.18"
                   :supplement-ratio-factor="formData.supplementRatioFactor ?? 1.0"
-                  :supplement-price-map="supplementPriceMap"
-                  @update:materials="handleMaterialsUpdate"
+                  :supplement-price-map="supplementPriceMap" @update:materials="handleMaterialsUpdate"
                   @update:ratio-factor="(val: number) => formData.ratioFactor = val"
                   @update:supplement-ratio-factor="(val: number) => formData.supplementRatioFactor = val"
                   @update:finished-weight="(val: number) => formData.finishedWeight = val"
-                  @material-change="handleMaterialChangeFromTable"
-                />
+                  @material-change="handleMaterialChangeFromTable" />
               </div>
-            </div>
-          </section>
+              <!-- 配方摘要栏 -->
+              <div class="formula-summary-bar" v-if="formData.materials.length > 0">
+                <div class="summary-card summary-card--ratio">
+                  <div class="summary-card-header">
+                    <t-icon name="check-circle" size="14px" />
+                    <span>含量比校验</span>
+                    <span class="ratio-status-badge" :class="'badge--' + ratioValidation.level">
+                      {{ ratioValidation.level === 'normal' ? '通过' : ratioValidation.level === 'warning' ? '预警' :
+                        ratioValidation.level === 'high_warning' ? '严重' : '异常' }}
+                    </span>
+                  </div>
+                  <div class="summary-card-body">
+                    <div class="ratio-bar-track">
+                      <div class="ratio-bar-fill" :style="{ width: ratioBarWidth }"></div>
+                      <div class="ratio-bar-marker" :style="{ left: ratioMarkerLeft }"></div>
+                    </div>
+                    <div class="ratio-labels">
+                      <span>{{ ratioValidation.thresholds.highWarningLow }}</span><span>{{
+                        ratioValidation.thresholds.warningLow
+                      }}</span><span class="center">1.00</span><span>{{ ratioValidation.thresholds.warningHigh
+                        }}</span><span>{{
+                          ratioValidation.thresholds.highWarningHigh }}</span>
+                    </div>
+                    <div class="ratio-value">
+                      总和：<strong>{{ ratioValidation.totalRatio.toFixed(5) }}</strong>
+                      <span class="deviation" :class="'deviation--' + ratioValidation.level">{{ ratioDeviationText
+                      }}</span>
+                    </div>
+                    <div class="ratio-threshold-config">
+                      <div class="rtc-item rtc-item--normal">
+                        <span class="rtc-dot"></span>
+                        <span class="rtc-label">正常</span>
+                        <span class="rtc-range">[{{ ratioValidation.thresholds.normalLow }}, {{
+                          ratioValidation.thresholds.normalHigh }}]</span>
+                        <span class="rtc-submit-tag rtc-submit-tag--allow">可提交</span>
+                      </div>
+                      <div class="rtc-item rtc-item--warning">
+                        <span class="rtc-dot"></span>
+                        <span class="rtc-label">预警</span>
+                        <span class="rtc-range">[{{ ratioValidation.thresholds.warningLow }}, {{
+                          ratioValidation.thresholds.normalLow }}) / ({{ ratioValidation.thresholds.normalHigh }}, {{
+                            ratioValidation.thresholds.warningHigh }}]</span>
+                        <span class="rtc-submit-tag rtc-submit-tag--allow">可提交</span>
+                      </div>
+                      <div class="rtc-item rtc-item--high_warning">
+                        <span class="rtc-dot"></span>
+                        <span class="rtc-label">严重</span>
+                        <span class="rtc-range">[{{ ratioValidation.thresholds.highWarningLow }}, {{
+                          ratioValidation.thresholds.warningLow }}) / ({{ ratioValidation.thresholds.warningHigh }}, {{
+                            ratioValidation.thresholds.highWarningHigh }}]</span>
+                        <span class="rtc-submit-tag rtc-submit-tag--review">需审核</span>
+                      </div>
+                      <div class="rtc-item rtc-item--error">
+                        <span class="rtc-dot"></span>
+                        <span class="rtc-label">异常</span>
+                        <span class="rtc-range">&lt; {{ ratioValidation.thresholds.highWarningLow }} 或 &gt; {{
+                          ratioValidation.thresholds.highWarningHigh }}</span>
+                        <span class="rtc-submit-tag rtc-submit-tag--block">不可提交</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
-          <!-- ═══ 区域四：底部信息区 ═══ -->
-          <section class="form-section zone-bottom-info">
-            <div class="zone-content">
-              <div class="bottom-grid">
-                <!-- 配方报价 -->
-                <div class="quote-card">
-                  <div class="card-header">
+                <div class="summary-card summary-card--quote">
+                  <div class="summary-card-header">
                     <t-icon name="currency-exchange" size="14px" />
                     <span>配方报价</span>
                   </div>
-                  <div class="card-body">
+                  <div class="summary-card-body">
                     <div v-if="priceQuote.adjustedCount > 0" class="quote-toolbar">
                       <span class="qt-badge-info">
                         <svg viewBox="0 0 14 14" width="13" height="13">
-                          <path d="M7 1L8.75 5.25L13 6L9.75 9L10.5 13.25L7 11L3.5 13.25L4.25 9L1 6L5.25 5.25Z" fill="#f59e0b" />
+                          <path d="M7 1L8.75 5.25L13 6L9.75 9L10.5 13.25L7 11L3.5 13.25L4.25 9L1 6L5.25 5.25Z"
+                            fill="#f59e0b" />
                         </svg>
                         {{ priceQuote.adjustedCount }} 项单价已调整
                       </span>
@@ -237,11 +293,14 @@
                       </div>
                       <div class="qs-row">
                         <label><t-icon name="shop" size="14px" class="qs-label-icon" /> 包材费用</label>
-                        <div class="qs-input-wrap"><t-input-number v-model="formData.packagingPrice" :min="0" :precision="2" size="small" theme="normal" style="width:200px" /><span class="qs-unit">元</span></div>
+                        <div class="qs-input-wrap"><t-input-number v-model="formData.packagingPrice" :min="0"
+                            :precision="2" size="small" theme="normal" style="width:90px" /><span
+                            class="qs-unit">元</span></div>
                       </div>
                       <div class="qs-row">
                         <label><t-icon name="edit-1" size="14px" class="qs-label-icon" /> 其他费用</label>
-                        <div class="qs-input-wrap"><t-input-number v-model="formData.otherPrice" :min="0" :precision="2" size="small" theme="normal" style="width:200px" /><span class="qs-unit">元</span></div>
+                        <div class="qs-input-wrap"><t-input-number v-model="formData.otherPrice" :min="0" :precision="2"
+                            size="small" theme="normal" style="width:90px" /><span class="qs-unit">元</span></div>
                       </div>
                       <div class="qs-divider"></div>
                       <div class="qs-row qs-subtotal">
@@ -250,38 +309,45 @@
                       </div>
                       <div class="qs-row">
                         <label><t-icon name="chart-pie" size="14px" class="qs-label-icon" /> 利润率</label>
-                        <div class="qs-input-wrap"><t-input-number v-model="formData.profitMargin" :min="0" :max="999" :precision="1" size="small" theme="normal" style="width:200px" /><span class="qs-unit">%</span></div>
+                        <div class="qs-input-wrap"><t-input-number v-model="formData.profitMargin" :min="0" :max="999"
+                            :precision="1" size="small" theme="normal" style="width:90px" /><span
+                            class="qs-unit">%</span></div>
                       </div>
                       <div class="qs-divider qs-divider--bold"></div>
                       <div class="qs-row qs-final">
-                        <label><t-icon name="money-filled" size="16px" class="qs-label-icon qs-label-icon--final" /> 最终报价</label>
+                        <label><t-icon name="money-filled" size="16px" class="qs-label-icon qs-label-icon--final" />
+                          最终报价</label>
                         <span>¥{{ priceQuote.totalPrice.toFixed(2) }}</span>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <!-- 含量比校验 -->
-                <div class="ratio-card" v-if="formData.materials.length > 0 && formData.finishedWeight > 0">
-                  <div class="card-header">
+                <div class="summary-card summary-card--submit">
+                  <div class="summary-card-header">
                     <t-icon name="check-circle" size="14px" />
-                    <span>含量比校验</span>
-                    <span class="ratio-status" :class="'status--' + ratioValidation.level">
-                      {{ ratioValidation.level === 'normal' ? '通过' : ratioValidation.level === 'warning' ? '预警' : '异常' }}
-                    </span>
+                    <span>提交校验</span>
                   </div>
-                  <div class="card-body">
-                    <div class="ratio-bar-track">
-                      <div class="ratio-bar-fill" :style="{ width: ratioBarWidth }"></div>
-                      <div class="ratio-bar-marker" :style="{ left: ratioMarkerLeft }"></div>
+                  <div class="summary-card-body">
+                    <div v-if="submitBlockReasons.length" class="submit-block-reasons">
+                      <div v-for="(reason, idx) in submitBlockReasons" :key="idx" class="sbr-item"
+                        :class="'sbr-item--' + reason.type">
+                        <span class="sbr-dot"></span>
+                        <span class="sbr-text">{{ reason.message }}</span>
+                      </div>
                     </div>
-                    <div class="ratio-labels">
-                      <span>0.92</span><span>0.98</span><span class="center">1.00</span><span>1.02</span><span>1.08</span>
+                    <div v-else class="submit-all-clear">
+                      <t-icon name="check-circle" size="16px" />
+                      <span>所有校验项通过</span>
                     </div>
-                    <div class="ratio-value">
-                      总和：<strong>{{ ratioValidation.totalRatio.toFixed(5) }}</strong>
-                      <span class="deviation" :class="'deviation--' + ratioValidation.level">{{ ratioDeviationText }}</span>
-                    </div>
+                    <t-button theme="success" block @click="handleSubmit({ validateResult: true })" :loading="loading"
+                      :disabled="loading || submitBlockReasons.some(r => r.type === 'error')">
+                      <template #icon>
+                        <t-icon name="check-circle" />
+                      </template>
+                      {{submitBlockReasons.some(r => r.type === 'error') ? `存在 ${submitBlockReasons.filter(r =>
+                        r.type === 'error').length} 项错误，无法提交` : (isEdit ? '保存配方' : '创建配方')}}
+                    </t-button>
                   </div>
                 </div>
               </div>
@@ -325,7 +391,9 @@ const versionReasonRef = ref<any>(null);
 const loading = ref(false);
 const supplementPriceMap = ref<Record<string, number>>({});
 const versionReasonError = ref(false);
-const aiGenerating = ref(false);
+const aiLoadingDescription = ref(false);
+const aiLoadingPreparation = ref(false);
+const aiLoadingVersionReason = ref(false);
 
 
 // ratioFactor 含量比实时校验（前端本地计算，无需请求后端）
@@ -462,6 +530,47 @@ const priceQuote = computed(() => {
 
 const isEdit = computed(() => !!route.params.id);
 
+const submitBlockReasons = computed(() => {
+  const reasons: { type: 'error' | 'warning'; message: string }[] = [];
+
+  if (!formData.name?.trim()) {
+    reasons.push({ type: 'error', message: '配方名称不能为空' });
+  }
+  if (!formData.salesmanId) {
+    reasons.push({ type: 'error', message: '请选择所属业务员' });
+  }
+  if (!formData.finishedWeight || formData.finishedWeight <= 0) {
+    reasons.push({ type: 'error', message: '成品重量必须大于 0' });
+  }
+  if (formData.materials.length === 0) {
+    reasons.push({ type: 'error', message: '请至少添加一种原料' });
+  } else {
+    const incomplete = formData.materials.filter(
+      (m: any) => !m.materialId || !m.quantity || m.quantity <= 0
+    );
+    if (incomplete.length > 0) {
+      reasons.push({ type: 'error', message: `${incomplete.length} 种原料信息不完整（缺少名称或用量）` });
+    }
+  }
+  if (priceQuote.value.missingPrices.length > 0) {
+    reasons.push({ type: 'warning', message: `${priceQuote.value.missingPrices.length} 种原料未录入单价：${priceQuote.value.missingPrices.join('、')}` });
+  }
+  if (ratioValidation.value.level === 'error') {
+    reasons.push({ type: 'error', message: `含量比校验失败：${ratioValidation.value.message}` });
+  }
+  if (ratioValidation.value.level === 'high_warning') {
+    reasons.push({ type: 'warning', message: `含量比严重偏差：${ratioValidation.value.message}` });
+  }
+  if (ratioValidation.value.level === 'warning') {
+    reasons.push({ type: 'warning', message: `含量比偏差预警：${ratioValidation.value.message}` });
+  }
+  if (isEdit.value && !formData.versionReason?.trim()) {
+    reasons.push({ type: 'error', message: '编辑模式下请填写升版原因' });
+  }
+
+  return reasons;
+});
+
 const showQuickCreateSalesman = ref(false);
 const parsedSalesmanName = ref('');
 const highlightRowIdx = ref(-1);
@@ -597,7 +706,7 @@ const rules: Record<string, FormRule[]> = {
 };
 
 async function handleGenerateDescription() {
-  if (aiGenerating.value) return;
+  if (aiLoadingDescription.value) return;
   if (!formData.name) {
     MessagePlugin.warning('请先填写配方名称');
     return;
@@ -613,7 +722,7 @@ async function handleGenerateDescription() {
       MessagePlugin.warning('编辑模式下请先填写升版原因');
       return;
     }
-    aiGenerating.value = true;
+    aiLoadingDescription.value = true;
     try {
       const res = await agentApi.generateDescription({
         formulaName: formData.name,
@@ -623,18 +732,18 @@ async function handleGenerateDescription() {
         existingDescription: formData.description,
         type: 'description',
       });
-      if (res.success && res.data) {
-        formData.description = res.data.content;
+      if (res?.content) {
+        formData.description = res.content;
         MessagePlugin.success('配方描述已智能生成');
       }
     } catch {
       MessagePlugin.error('生成失败');
     } finally {
-      aiGenerating.value = false;
+      aiLoadingDescription.value = false;
     }
     return;
   }
-  aiGenerating.value = true;
+  aiLoadingDescription.value = true;
   try {
     const res = await agentApi.generateDescription({
       formulaName: formData.name,
@@ -642,19 +751,19 @@ async function handleGenerateDescription() {
       finishedWeight: formData.finishedWeight || undefined,
       type: 'description',
     });
-    if (res.success && res.data) {
-      formData.description = res.data.content;
+    if (res?.content) {
+      formData.description = res.content;
       MessagePlugin.success('配方描述已智能生成');
     }
   } catch {
     MessagePlugin.error('生成失败');
   } finally {
-    aiGenerating.value = false;
+    aiLoadingDescription.value = false;
   }
 }
 
 async function handleGeneratePreparation() {
-  if (aiGenerating.value) return;
+  if (aiLoadingPreparation.value) return;
   if (!formData.name) {
     MessagePlugin.warning('请先填写配方名称');
     return;
@@ -664,7 +773,7 @@ async function handleGeneratePreparation() {
     quantity: m.quantity,
     type: m.supplement ? 'supplement' : 'herb',
   }));
-  aiGenerating.value = true;
+  aiLoadingPreparation.value = true;
   try {
     const res = await agentApi.generateDescription({
       formulaName: formData.name,
@@ -672,19 +781,19 @@ async function handleGeneratePreparation() {
       finishedWeight: formData.finishedWeight || undefined,
       type: 'preparation',
     });
-    if (res.success && res.data) {
-      formData.preparationMethod = res.data.content;
+    if (res?.content) {
+      formData.preparationMethod = res.content;
       MessagePlugin.success('制法已智能生成');
     }
   } catch {
     MessagePlugin.error('生成失败');
   } finally {
-    aiGenerating.value = false;
+    aiLoadingPreparation.value = false;
   }
 }
 
 async function handleGenerateVersionReason() {
-  if (aiGenerating.value) return;
+  if (aiLoadingVersionReason.value) return;
   if (!formData.name) {
     MessagePlugin.warning('请先填写配方名称');
     return;
@@ -694,7 +803,7 @@ async function handleGenerateVersionReason() {
     quantity: m.quantity,
     type: m.supplement ? 'supplement' : 'herb',
   }));
-  aiGenerating.value = true;
+  aiLoadingVersionReason.value = true;
   try {
     const res = await agentApi.generateDescription({
       formulaName: formData.name,
@@ -702,14 +811,14 @@ async function handleGenerateVersionReason() {
       finishedWeight: formData.finishedWeight || undefined,
       type: 'version_reason',
     });
-    if (res.success && res.data) {
-      formData.versionReason = res.data.content;
+    if (res?.content) {
+      formData.versionReason = res.content;
       MessagePlugin.success('升版原因已智能生成');
     }
   } catch {
     MessagePlugin.error('生成失败');
   } finally {
-    aiGenerating.value = false;
+    aiLoadingVersionReason.value = false;
   }
 }
 
@@ -874,6 +983,7 @@ onMounted(async () => {
 @use '@/assets/styles/variables.scss' as *;
 
 .formula-form {
+  padding-bottom: 24px;
 
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   // Header 区域 — 精确复刻 FormulaDetail.vue
@@ -1005,7 +1115,14 @@ onMounted(async () => {
 
         &:active {
           transform: translateY(0);
-          background-color: #047857; // emerald-700
+          background-color: #047857;
+        }
+
+        &:disabled {
+          background-color: #94a3b8;
+          cursor: not-allowed;
+          box-shadow: none;
+          transform: none;
         }
 
         // 次要按钮样式
@@ -1031,7 +1148,6 @@ onMounted(async () => {
   // 主内容区域
   .form-main {
     margin-top: 24px;
-    padding-bottom: 32px;
     animation: fadeInUp 0.5s ease-out forwards;
 
     // ═══ 垂直四区域布局 ═══
@@ -1043,8 +1159,7 @@ onMounted(async () => {
 
     // 区域样式
     .zone-basic-info,
-    .zone-materials-table,
-    .zone-bottom-info {
+    .zone-materials-table {
       background: #fff;
       padding: 32px;
       border-radius: 2.5rem;
@@ -1098,7 +1213,7 @@ onMounted(async () => {
 
     .info-collapsed-text {
       font-size: 14px;
-      font-weight: 600;
+      font-weight: 700;
       color: #15803d;
     }
 
@@ -1136,7 +1251,7 @@ onMounted(async () => {
       gap: 8px;
       font-size: 14px;
       font-weight: 700;
-      color: $text-placeholder;
+      // color: $text-placeholder;
       text-transform: uppercase;
       letter-spacing: 0.12em;
 
@@ -1151,8 +1266,7 @@ onMounted(async () => {
       transition: transform 0.2s;
     }
 
-    .zone-content {
-    }
+    .zone-content {}
 
     .zone-basic-info {
       .basic-info-two-col {
@@ -1209,6 +1323,14 @@ onMounted(async () => {
             :deep(.t-select) {
               width: 100%;
             }
+
+            .salesman-select {
+              :deep(.t-input__inner) {
+                font-size: 12px;
+                font-weight: 400;
+                color: #334155;
+              }
+            }
           }
 
           .field-help-below {
@@ -1232,24 +1354,27 @@ onMounted(async () => {
         }
 
         .field-compact {
-          .field-label {
+          .field-label-row {
             display: flex;
             align-items: center;
             gap: 6px;
-            font-size: 14px;
-            font-weight: 700;
-            color: #334155;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
 
-            .required {
-              color: #f43f5e;
-            }
+            .field-label {
+              font-size: 12px;
+              font-weight: 700;
+              color: #64748b;
 
-            .field-help-inline {
-              margin-left: 4px;
-              font-size: 11px;
-              font-weight: 400;
-              color: #94a3b8;
+              .required {
+                color: #f43f5e;
+              }
+
+              .field-help-inline {
+                margin-left: 4px;
+                font-size: 11px;
+                font-weight: 400;
+                color: #94a3b8;
+              }
             }
 
             .btn-ai-generate {
@@ -1277,6 +1402,12 @@ onMounted(async () => {
                 opacity: 0.4;
                 cursor: not-allowed;
               }
+
+              .t-icon {
+                &.t-icon-loading {
+                  animation: ai-spin 1s linear infinite;
+                }
+              }
             }
           }
 
@@ -1300,14 +1431,851 @@ onMounted(async () => {
           :deep(.t-input-number),
           :deep(.t-textarea),
           :deep(.t-select) {
-            border-radius: 16px !important;
-            min-height: 48px !important;
+            border-radius: 12px !important;
+            min-height: 36px !important;
           }
 
           :deep(.t-input) {
             background-color: #f8fafc !important;
             border: 1px solid $border-color-light !important;
+            padding: 8px 14px !important;
+            font-size: 13px !important;
+            color: #334155 !important;
+            transition: all $transition-fast;
+
+            &:hover:not(.t-is-disabled) {
+              border-color: #e2e8f0 !important;
+            }
+
+            &.t-is-focused {
+              background-color: #fff !important;
+              border-color: transparent !important;
+              box-shadow: 0 0 0 2px $emerald-500 !important;
+              outline: none !important;
+            }
+
+            &::placeholder {
+              color: $text-placeholder !important;
+            }
+          }
+
+          :deep(.t-input__wrap) {
+            border: none !important;
+            box-shadow: none !important;
+            background: transparent !important;
+          }
+
+          :deep(.t-select) {
+            width: 100%;
+
+            .t-select__wrap {
+              background-color: #f8fafc !important;
+              border: 1px solid $border-color-light !important;
+              border-radius: 12px !important;
+              padding: 6px 10px !important;
+              min-height: 36px;
+              transition: all $transition-fast;
+
+              &:hover:not(.t-is-disabled) {
+                border-color: #e2e8f0 !important;
+              }
+            }
+
+            &.t-is-focused .t-select__wrap {
+              background-color: #fff !important;
+              border-color: transparent !important;
+              box-shadow: 0 0 0 2px $emerald-500 !important;
+              outline: none !important;
+            }
+
+            .t-select__placeholder,
+            .t-select__single-value {
+              font-size: 13px !important;
+              color: #334155 !important;
+            }
+
+            .t-select__placeholder {
+              color: $text-placeholder !important;
+            }
+
+            .t-icon {
+              color: $text-placeholder !important;
+            }
+          }
+
+          :deep(.t-input-number) {
+            width: 100%;
+            background-color: #f8fafc !important;
+            border: 1px solid $border-color-light !important;
+            border-radius: 12px !important;
+            min-height: 36px;
+            transition: all $transition-fast;
+
+            &:hover:not(.t-is-disabled) {
+              border-color: #e2e8f0 !important;
+            }
+
+            &.t-is-focused {
+              background-color: #fff !important;
+              border-color: transparent !important;
+              box-shadow: 0 0 0 2px $emerald-500 !important;
+              outline: none !important;
+            }
+
+            .t-input__wrap {
+              border: none !important;
+              box-shadow: none !important;
+              background: transparent !important;
+            }
+
+            .t-input-number__decrease,
+            .t-input-number__increase {
+              border: none !important;
+              background: transparent !important;
+              color: $emerald-500 !important;
+              border-radius: 50% !important;
+              width: 24px !important;
+              height: 24px !important;
+              top: 50% !important;
+              transform: translateY(-50%) !important;
+              transition: all 0.15s ease;
+
+              &:hover {
+                background-color: $overlay-emerald-08 !important;
+                color: $emerald-600 !important;
+              }
+            }
+
+            .t-input__inner {
+              background: transparent !important;
+              font-size: 13px !important;
+              color: #334155 !important;
+              padding: 8px 12px !important;
+              min-height: 34px;
+
+              &::placeholder {
+                color: $text-placeholder !important;
+              }
+            }
+          }
+
+          :deep(.t-textarea) {
+            .t-textarea__inner {
+              background-color: #f8fafc !important;
+              border: 1px solid $border-color-light !important;
+              border-radius: 12px !important;
+              padding: 10px 14px !important;
+              font-size: 13px !important;
+              color: #334155 !important;
+              transition: all $transition-fast;
+
+              &:hover:not(:focus) {
+                border-color: #e2e8f0 !important;
+              }
+
+              &:focus {
+                background-color: #fff !important;
+                border-color: transparent !important;
+                box-shadow: 0 0 0 2px $emerald-500 !important;
+                outline: none !important;
+              }
+
+              &::placeholder {
+                color: $text-placeholder !important;
+              }
+            }
+          }
+        }
+
+        @media (max-width: 900px) {
+          .info-col-right {
+            padding-right: 0;
+          }
+
+          .field-inline {
+            flex-direction: column;
+            align-items: stretch;
+
+            .field-label {
+              justify-content: flex-start;
+              min-width: 0;
+              margin-bottom: 8px;
+            }
+
+            .field-help-below {
+              position: static;
+              left: auto;
+              margin-left: 0;
+              width: auto;
+            }
+          }
+        }
+      }
+    }
+
+    .zone-materials-table {
+      .mode-switcher {
+        display: flex;
+        gap: 8px;
+      }
+
+      .zone-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+      }
+
+      .zone-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        font-weight: 700;
+        color: #334155;
+        margin: 0;
+
+        .t-icon {
+          color: $emerald-500;
+          font-size: 16px;
+        }
+      }
+    }
+
+    .formula-summary-bar {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 16px;
+      margin-top: 20px;
+
+      @media (max-width: 900px) {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .summary-card {
+      background: #f8fafc;
+      border-radius: 16px;
+      border: 1px solid #e2e8f0;
+      padding: 20px 24px;
+    }
+
+    .summary-card-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 16px;
+
+      .t-icon {
+        color: $emerald-500;
+        font-size: 14px;
+      }
+    }
+
+    .ratio-status-badge {
+      margin-left: auto;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 500;
+
+      &.badge--normal {
+        background: #dcfce7;
+        color: #166534;
+      }
+
+      &.badge--warning {
+        background: #fef3c7;
+        color: #92400e;
+      }
+
+      &.badge--high_warning {
+        background: #fff7ed;
+        color: #9a3412;
+      }
+
+      &.badge--error {
+        background: #fee2e2;
+        color: #991b1b;
+      }
+    }
+
+    .summary-card--ratio {
+      .ratio-bar-track {
+        height: 8px;
+        background: #e2e8f0;
+        border-radius: 4px;
+        position: relative;
+        overflow: hidden;
+
+        .ratio-bar-fill {
+          height: 100%;
+          background: linear-gradient(90deg, #10b981, #34d399);
+          border-radius: 4px;
+          transition: width 0.3s;
+        }
+
+        .ratio-bar-marker {
+          position: absolute;
+          top: -4px;
+          width: 2px;
+          height: 16px;
+          background: #1e293b;
+          transform: translateX(-50%);
+        }
+      }
+
+      .ratio-labels {
+        display: flex;
+        justify-content: space-between;
+        font-size: 10px;
+        color: #94a3b8;
+        margin-top: 4px;
+
+        .center {
+          color: #10b981;
+          font-weight: 500;
+        }
+      }
+
+      .ratio-value {
+        margin-top: 10px;
+        font-size: 13px;
+        color: #475569;
+
+        strong {
+          color: #1e293b;
+          font-size: 15px;
+        }
+
+        .deviation {
+          margin-left: 8px;
+
+          &.deviation--normal {
+            color: #10b981;
+          }
+
+          &.deviation--warning {
+            color: #d97706;
+          }
+
+          &.deviation--high_warning {
+            color: #ea580c;
+          }
+
+          &.deviation--error {
+            color: #dc2626;
+          }
+        }
+      }
+
+      .ratio-threshold-config {
+        margin-top: 14px;
+        padding-top: 12px;
+        border-top: 1px dashed #e2e8f0;
+
+        .rtc-item {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          padding: 4px 0;
+          font-size: 11px;
+
+          .rtc-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            flex-shrink: 0;
+          }
+
+          .rtc-label {
+            font-weight: 600;
+            min-width: 28px;
+          }
+
+          .rtc-range {
+            color: #64748b;
+            font-variant-numeric: tabular-nums;
+          }
+
+          &.rtc-item--normal {
+            .rtc-dot {
+              background: #10b981;
+            }
+
+            .rtc-label {
+              color: #166534;
+            }
+          }
+
+          &.rtc-item--warning {
+            .rtc-dot {
+              background: #f59e0b;
+            }
+
+            .rtc-label {
+              color: #92400e;
+            }
+          }
+
+          &.rtc-item--high_warning {
+            .rtc-dot {
+              background: #ea580c;
+            }
+
+            .rtc-label {
+              color: #9a3412;
+            }
+          }
+
+          &.rtc-item--error {
+            .rtc-dot {
+              background: #ef4444;
+            }
+
+            .rtc-label {
+              color: #991b1b;
+            }
+          }
+        }
+      }
+
+      .rtc-submit-tag {
+        margin-left: auto;
+        font-size: 10px;
+        font-weight: 700;
+        padding: 1px 6px;
+        border-radius: 4px;
+        white-space: nowrap;
+        flex-shrink: 0;
+
+        &.rtc-submit-tag--allow {
+          background: #dcfce7;
+          color: #166534;
+        }
+
+        &.rtc-submit-tag--review {
+          background: #fff7ed;
+          color: #9a3412;
+        }
+
+        &.rtc-submit-tag--block {
+          background: #fee2e2;
+          color: #991b1b;
+        }
+      }
+    }
+
+    .summary-card--quote {
+      .quote-toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+
+        .qt-badge-info {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          font-size: 12px;
+          color: #92400e;
+        }
+      }
+
+      .quote-warn-text {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 12px;
+        color: #dc2626;
+        margin-bottom: 10px;
+      }
+
+      .quote-summary {
+        .qs-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 8px 0;
+          font-size: 13px;
+
+          label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #64748b;
+            font-weight: 500;
+          }
+
+          >span {
+            font-weight: 600;
+            color: #1e293b;
+          }
+
+          .qs-label-icon {
+            color: #94a3b8;
+          }
+
+          .qs-input-wrap {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+
+            :deep(.t-input-number .t-input__inner) {
+              text-align: right;
+            }
+
+            .qs-unit {
+              font-size: 12px;
+              color: #94a3b8;
+            }
+          }
+
+          &.qs-total {
+            label {
+              color: #334155;
+              font-weight: 600;
+            }
+
+            >span {
+              color: #1e293b;
+              font-size: 14px;
+            }
+          }
+
+          &.qs-subtotal {
+            label {
+              color: #334155;
+              font-weight: 600;
+            }
+
+            >span {
+              color: #1e293b;
+              font-size: 15px;
+              font-weight: 700;
+            }
+          }
+
+          &.qs-final {
+            padding: 12px 0 4px;
+
+            label {
+              color: #1e293b;
+              font-weight: 700;
+              font-size: 14px;
+            }
+
+            >span {
+              color: $emerald-500;
+              font-size: 20px;
+              font-weight: 700;
+            }
+
+            .qs-label-icon--final {
+              color: $emerald-500;
+            }
+          }
+        }
+
+        .qs-divider {
+          height: 1px;
+          background: #e2e8f0;
+          margin: 6px 0;
+
+          &.qs-divider--bold {
+            height: 2px;
+            background: $emerald-500;
+            margin: 8px 0;
+          }
+        }
+      }
+    }
+
+    .summary-card--submit {
+      .submit-block-reasons {
+        margin-bottom: 16px;
+      }
+
+      .sbr-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        padding: 6px 0;
+        font-size: 12px;
+
+        .sbr-dot {
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          margin-top: 5px;
+          flex-shrink: 0;
+        }
+
+        &.sbr-item--error {
+          .sbr-dot {
+            background: #ef4444;
+          }
+
+          .sbr-text {
+            color: #dc2626;
+          }
+        }
+
+        &.sbr-item--warning {
+          .sbr-dot {
+            background: #f59e0b;
+          }
+
+          .sbr-text {
+            color: #d97706;
+          }
+        }
+      }
+
+      .submit-all-clear {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 0;
+        font-size: 13px;
+        color: #16a34a;
+        font-weight: 500;
+        margin-bottom: 16px;
+      }
+    }
+
+    // 表单 Section 样式
+    .form-section {
+      background: #fff;
+      padding: 32px;
+      border-radius: 2.5rem;
+      box-shadow: 0 1px 3px $overlay-black-05;
+      border: 1px solid #f8fafc;
+      animation: fadeInUp 0.35s ease both;
+
+      .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+      }
+
+      .section-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        font-weight: 700;
+        color: $text-placeholder;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        margin: 0 0 24px;
+
+        .section-icon {
+          color: $emerald-500;
+          font-size: 16px;
+        }
+      }
+
+      .row-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .add-row-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 12px;
+        font-weight: 700;
+        color: $emerald-600;
+        padding: 6px 12px;
+        background-color: $overlay-emerald-08;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all $transition-fast;
+
+        .t-icon {
+          font-size: 14px;
+        }
+
+        &:hover {
+          color: #047857;
+          background-color: $overlay-emerald-15;
+        }
+      }
+
+      .clear-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 12px;
+        font-weight: 700;
+        color: $emerald-600;
+        padding: 6px 12px;
+        background-color: $overlay-emerald-08;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all $transition-fast;
+
+        .t-icon {
+          font-size: 14px;
+        }
+
+        &:hover:not(:disabled) {
+          color: #047857;
+          background-color: $overlay-emerald-15;
+        }
+
+        &:disabled {
+          opacity: 0.35;
+          cursor: not-allowed;
+        }
+      }
+
+      .section-content {
+        .form-field {
+          .field-label-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 8px;
+
+            .field-label {
+              font-size: 14px;
+              font-weight: 700;
+              color: #334155;
+
+              .label-icon {
+                color: #10b981;
+                flex-shrink: 0;
+              }
+
+              .required {
+                color: #f43f5e;
+              }
+
+              .field-help-inline {
+                font-size: 12px;
+                font-weight: 400;
+                color: #94a3b8;
+                margin-left: 4px;
+              }
+            }
+
+            .btn-ai-generate {
+              margin-left: auto;
+              display: inline-flex;
+              align-items: center;
+              gap: 4px;
+              padding: 2px 10px;
+              border: 1px solid #10b981;
+              border-radius: 6px;
+              background: rgba(16, 185, 129, 0.08);
+              color: #10b981;
+              font-size: 12px;
+              font-weight: 500;
+              cursor: pointer;
+              transition: all 0.2s;
+              line-height: 22px;
+
+              &:hover:not(:disabled) {
+                background: rgba(16, 185, 129, 0.16);
+                box-shadow: 0 1px 4px rgba(16, 185, 129, 0.2);
+              }
+
+              &:disabled {
+                opacity: 0.45;
+                cursor: not-allowed;
+                border-color: #cbd5e1;
+                color: #94a3b8;
+                background: transparent;
+              }
+
+              .t-icon {
+                &.t-icon-loading {
+                  animation: ai-spin 1s linear infinite;
+                }
+              }
+            }
+          }
+
+          .field-input {
+            width: 100%;
+          }
+
+          .field-help {
+            margin-top: 4px;
+            font-size: 12px;
+            color: #64748b;
+            text-align: left;
+          }
+
+          &.field-error {
+            .field-label {
+              color: #dc2626;
+            }
+
+            :deep(.t-textarea .t-textarea__inner) {
+              border-color: #fca5a5 !important;
+              background-color: #fef2f2 !important;
+              box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1) !important;
+
+              &:focus {
+                border-color: #ef4444 !important;
+                box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15) !important;
+              }
+            }
+          }
+
+          .field-error-msg {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin: 6px 0 0;
+            font-size: 12px;
+            font-weight: 600;
+            color: #dc2626;
+          }
+
+          .error-fade-enter-active {
+            animation: errorFadeIn 0.3s ease;
+          }
+
+          .error-fade-leave-active {
+            animation: errorFadeIn 0.2s ease reverse;
+          }
+
+          @keyframes errorFadeIn {
+            from {
+              opacity: 0;
+              transform: translateY(-4px);
+            }
+
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
+
+          // ═══ 输入框 — 参照 new-recipe.html 样式 ═══
+          // w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-slate-700
+          // focus:ring-2 focus:ring-emerald-500 focus:bg-white
+
+          :deep(.t-input) {
+            background-color: #f8fafc !important;
+            border: 1px solid $border-color-light !important;
+            border-radius: 16px !important;
             padding: 14px 20px !important;
+            min-height: 48px;
             font-size: 14px !important;
             color: #334155 !important;
             transition: all $transition-fast;
@@ -1361,6 +2329,7 @@ onMounted(async () => {
             .t-select__single-value {
               font-size: 14px !important;
               color: #334155 !important;
+              line-height: 22px;
             }
 
             .t-select__placeholder {
@@ -1455,1843 +2424,1177 @@ onMounted(async () => {
             }
           }
         }
-
-        @media (max-width: 900px) {
-          .info-col-right {
-            padding-right: 0;
-          }
-
-          .field-inline {
-            flex-direction: column;
-            align-items: stretch;
-
-            .field-label {
-              justify-content: flex-start;
-              min-width: 0;
-              margin-bottom: 8px;
-            }
-
-            .field-help-below {
-              position: static;
-              left: auto;
-              margin-left: 0;
-              width: auto;
-            }
-          }
-        }
-      }
-    }
-    .zone-materials-table {
-      .mode-switcher {
-        display: flex;
-        gap: 8px;
       }
     }
 
-    .zone-bottom-info {
-      .bottom-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 20px;
-        align-items: start;
+    // 原料表格样式
+    .materials-table-wrapper {
+      margin-top: 16px;
 
-        @media (max-width: 900px) {
-          grid-template-columns: 1fr;
-        }
-      }
+      .materials-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0 8px;
 
-      .ratio-card, .quote-card {
-        background: #f8fafc;
-        border-radius: $radius-lg;
-        padding: 12px 16px;
-        border: 1px solid #e2e8f0;
+        thead {
+          tr {
+            th {
+              padding: 8px 12px;
+              font-size: 10px;
+              font-weight: 900;
+              color: $text-placeholder;
+              text-transform: uppercase;
+              letter-spacing: 0.05em;
+              text-align: left;
 
-        .card-header {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          font-size: 11px;
-          font-weight: 700;
-          color: #94a3b8;
-          text-transform: uppercase;
-          letter-spacing: 0.05em;
-          margin-bottom: 12px;
+              &.w-16 {
+                width: 64px;
+                text-align: center;
+              }
 
-          .t-icon {
-            color: $emerald-500;
-            font-size: 14px;
-          }
+              &.qty-header {
+                width: 130px;
+                text-align: center;
+              }
 
-          .ratio-status {
-            margin-left: auto;
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-size: 11px;
-            font-weight: 500;
+              &.ratio-header {
+                width: 100px;
+                text-align: center;
+              }
 
-            &.status--normal {
-              background: #dcfce7;
-              color: #166534;
-            }
+              &.price-header {
+                width: 140px;
+                text-align: center;
+              }
 
-            &.status--warning {
-              background: #fef3c7;
-              color: #92400e;
-            }
+              &.subtotal-header {
+                width: 100px;
+                text-align: right;
+              }
 
-            &.status--high_warning {
-              background: #fee2e2;
-              color: #991b1b;
-            }
-          }
-        }
-
-        .card-body {
-          .ratio-bar-track {
-            height: 8px;
-            background: #e2e8f0;
-            border-radius: 4px;
-            position: relative;
-            overflow: hidden;
-
-            .ratio-bar-fill {
-              height: 100%;
-              background: linear-gradient(90deg, #10b981, #34d399);
-              border-radius: 4px;
-              transition: width 0.3s;
-            }
-
-            .ratio-bar-marker {
-              position: absolute;
-              top: -4px;
-              width: 2px;
-              height: 16px;
-              background: #1e293b;
-              transform: translateX(-50%);
-            }
-          }
-
-          .ratio-labels {
-            display: flex;
-            justify-content: space-between;
-            font-size: 10px;
-            color: #94a3b8;
-            margin-top: 4px;
-
-            .center {
-              color: #10b981;
-              font-weight: 500;
-            }
-          }
-
-          .ratio-value {
-            margin-top: 10px;
-            font-size: 13px;
-            color: #475569;
-
-            strong {
-              color: #1e293b;
-              font-size: 15px;
-            }
-
-            .deviation {
-              margin-left: 8px;
-              color: #10b981;
-            }
-          }
-        }
-      }
-
-      .quote-card {
-        .card-body {
-          .quote-toolbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-
-            .qt-badge-info {
-              display: flex;
-              align-items: center;
-              gap: 4px;
-              font-size: 12px;
-              color: #92400e;
-            }
-
-            .qt-reset-btn {
-              display: inline-flex;
-              align-items: center;
-              gap: 4px;
-              padding: 4px 10px;
-              border: 1px solid #e2e8f0;
-              border-radius: 8px;
-              background: #fff;
-              color: #64748b;
-              font-size: 11px;
-              cursor: pointer;
-
-              &:hover {
-                border-color: #cbd5e1;
-                color: #334155;
+              &.adjust-header {
+                width: 80px;
+                text-align: center;
               }
             }
           }
+        }
 
-          .quote-warn-text {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            font-size: 12px;
-            color: #dc2626;
-            margin-bottom: 10px;
-          }
+        tbody {
+          .material-row {
+            background: #f8fafc;
+            border-radius: 12px;
 
-          .quote-summary {
-            .qs-row {
-              display: flex;
-              justify-content: space-between;
-              align-items: center;
-              padding: 8px 0;
-              font-size: 13px;
+            td {
+              padding: 12px;
+              vertical-align: middle;
 
-              label {
+              &:first-child {
+                border-radius: 12px 0 0 12px;
+              }
+
+              &:last-child {
+                border-radius: 0 12px 12px 0;
+              }
+
+              .material-select {
+                width: 100%;
+              }
+
+              .quantity-input {
+                width: 120px;
+              }
+
+              .ratio-cell {
+                font-size: 12px;
+                color: #475569;
+
+                &--supplement {
+                  color: #6366f1;
+                }
+              }
+
+              .price-edit-cell {
                 display: flex;
                 align-items: center;
-                gap: 6px;
-                color: #64748b;
+                gap: 4px;
+
+                .price-unit {
+                  font-size: 11px;
+                  color: #94a3b8;
+                  white-space: nowrap;
+                }
+              }
+
+              .price-missing {
+                font-size: 11px;
+                color: #f59e0b;
                 font-weight: 500;
               }
 
-              > span {
+              .subtotal-cell {
+                font-size: 13px;
                 font-weight: 600;
                 color: #1e293b;
-              }
 
-              .qs-label-icon {
-                color: #94a3b8;
-              }
-
-              .qs-input-wrap {
-                display: flex;
-                align-items: center;
-                gap: 6px;
-
-                .qs-unit {
-                  font-size: 12px;
+                &--missing {
                   color: #94a3b8;
                 }
               }
 
-              &.qs-total {
-                label {
-                  color: #334155;
-                  font-weight: 600;
-                }
-
-                > span {
-                  color: #1e293b;
-                  font-size: 14px;
-                }
-              }
-
-              &.qs-subtotal {
-                label {
-                  color: #334155;
-                  font-weight: 600;
-                }
-
-                > span {
-                  color: #1e293b;
-                  font-size: 15px;
+              .adjust-cell {
+                .col-adjust-badge {
+                  display: inline-flex;
+                  align-items: center;
+                  gap: 2px;
+                  font-size: 10px;
+                  line-height: 1.4;
+                  padding: 2px 6px;
+                  border-radius: 6px;
+                  background: linear-gradient(135deg, #fef3c7, #fde68a);
+                  color: #b45309;
                   font-weight: 700;
-                }
-              }
+                  cursor: help;
+                  transition: all 0.2s;
+                  white-space: nowrap;
 
-              &.qs-final {
-                padding: 12px 0 4px;
-
-                label {
-                  color: #1e293b;
-                  font-weight: 700;
-                  font-size: 14px;
+                  &:hover {
+                    background: linear-gradient(135deg, #fde68a, #fcd34d);
+                    transform: scale(1.05);
+                  }
                 }
 
-                > span {
-                  color: $emerald-500;
-                  font-size: 20px;
-                  font-weight: 700;
-                }
+                .col-restore-btn {
+                  display: inline-flex;
+                  align-items: center;
+                  justify-content: center;
+                  width: 22px;
+                  height: 22px;
+                  border: 1px solid #e2e8f0;
+                  border-radius: 6px;
+                  background: #fff;
+                  color: #64748b;
+                  cursor: pointer;
+                  margin-left: 4px;
+                  transition: all 0.15s ease;
 
-                .qs-label-icon--final {
-                  color: $emerald-500;
+                  &:hover {
+                    border-color: #10b981;
+                    color: #10b981;
+                    background: rgba(16, 185, 129, 0.06);
+                  }
                 }
               }
             }
 
-            .qs-divider {
-              height: 1px;
-              background: #e2e8f0;
-              margin: 6px 0;
+            &--highlight {
+              background: linear-gradient(90deg, rgba(16, 185, 129, 0.12) 0%, rgba(16, 185, 129, 0.04) 100%);
+              border-left: 3px solid #10b981;
+              transition: background 0.3s ease, border-color 0.3s ease;
+            }
 
-              &.qs-divider--bold {
-                height: 2px;
-                background: $emerald-500;
-                margin: 8px 0;
+            &--adjusted {
+              background: rgba(217, 119, 6, 0.04);
+            }
+          }
+        }
+
+        tfoot {
+          .total-row {
+            background: $overlay-emerald-05;
+            border-radius: 12px;
+
+            td {
+              padding: 16px 12px;
+              color: $emerald-600;
+
+              &:first-child {
+                border-radius: 12px 0 0 12px;
               }
+
+              &:last-child {
+                border-radius: 0 12px 12px 0;
+              }
+            }
+          }
+
+          .cost-row {
+            background: rgba(248, 250, 252, 0.6);
+            margin-top: 4px;
+
+            td {
+              padding: 12px 12px;
+              color: #64748b;
+              font-size: 13px;
+
+              &:first-child {
+                border-radius: 12px 0 0 12px;
+              }
+
+              &:last-child {
+                border-radius: 0 12px 12px 0;
+              }
+            }
+
+            .cost-incomplete {
+              color: #f59e0b;
             }
           }
         }
       }
 
-      .submit-area {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
+      .add-row {
+        td {
+          padding: 4px 0;
+          border: none;
+        }
+      }
 
-        .btn-cancel {
-          width: 120px;
+      .add-first-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        width: 100%;
+        padding: 10px 0;
+        font-size: 13px;
+        font-weight: 700;
+        color: $text-placeholder;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        background-color: transparent;
+        border: 2px dashed #e2e8f0;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all $transition-fast;
+
+        .t-icon {
+          font-size: 20px;
+          color: $text-placeholder;
         }
 
-        .btn-submit {
-          width: 120px;
-          background: linear-gradient(135deg, #10b981, #059669) !important;
-          border: none !important;
-          color: #fff !important;
-          font-weight: 600;
+        &:hover {
+          color: $emerald-500;
+          border-color: $overlay-emerald-40;
+          background-color: #fff;
+
+          .t-icon {
+            color: $emerald-500;
+          }
         }
       }
     }
 
-    // 表单 Section 样式
-    .form-section {
+    .material-option {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .excel-panel-wrapper {
+      margin-top: 20px;
+      margin-bottom: 16px;
+    }
+
+    .excel-collapsed-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 50%, #f0f9ff 100%);
+      border: 1.5px dashed #86efac;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      user-select: none;
+
+      &:hover {
+        background: linear-gradient(135deg, #dcfce7 0%, #d1fae5 50%, #e0f2fe 100%);
+        border-color: #4ade80;
+        box-shadow: 0 2px 8px rgba(34, 197, 94, 0.12);
+        transform: translateY(-1px);
+      }
+
+      &:active {
+        transform: translateY(0);
+      }
+    }
+
+    .excel-collapsed-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .excel-collapsed-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+      color: #fff;
+      flex-shrink: 0;
+      box-shadow: 0 2px 6px rgba(34, 197, 94, 0.3);
+    }
+
+    .excel-collapsed-text {
+      font-size: 14px;
+      font-weight: 600;
+      color: #15803d;
+    }
+
+    .excel-collapsed-hint {
+      font-size: 11px;
+      color: #86efac;
+      background: rgba(34, 197, 94, 0.1);
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-weight: 500;
+    }
+
+    .excel-collapsed-arrow {
+      color: #86efac;
+      transition: transform 0.2s;
+    }
+
+    .excel-expanded-area {
+      border: 1.5px solid #e2e8f0;
+      border-radius: 12px;
+      overflow: hidden;
+      animation: excel-expand 0.25s ease;
+    }
+
+    @keyframes excel-expand {
+      from {
+        opacity: 0;
+        max-height: 0;
+      }
+
+      to {
+        opacity: 1;
+        max-height: 800px;
+      }
+    }
+
+    .excel-expanded-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 16px;
+      background: #f8fafc;
+      border-bottom: 1px solid #e2e8f0;
+      cursor: pointer;
+      transition: background 0.2s;
+
+      &:hover {
+        background: #f1f5f9;
+      }
+    }
+
+    .excel-expanded-title {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #64748b;
+    }
+
+    .excel-expanded-arrow {
+      color: #94a3b8;
+      transition: transform 0.2s;
+    }
+
+    .excel-panel {
+      margin-bottom: 0;
+    }
+
+    // 报价预览
+    .quote-sec {
+      margin-top: -12px;
+
+      .section-header {
+        margin-bottom: 0px;
+      }
+
+      .quote-body {
+        display: flex;
+        flex-direction: column;
+        gap: $space-4;
+      }
+
+      .quote-mat-list {
+        background: #f8fafc;
+        border-radius: $radius-lg;
+        padding: 12px 16px;
+        border: 1px solid #e2e8f0;
+      }
+
+      .quote-mat-header {
+        display: grid;
+        grid-template-columns: 1fr 70px 165px 85px;
+        gap: 8px;
+        font-size: 11px;
+        font-weight: 700;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        padding-bottom: 6px;
+        border-bottom: 1px solid #e2e8f0;
+        margin-bottom: 4px;
+
+        .qm-price {
+          text-align: center;
+        }
+      }
+
+      .quote-mat-row {
+        display: grid;
+        grid-template-columns: 1fr 70px 165px 85px;
+        gap: 8px;
+        align-items: center;
+        padding: 5px 0;
+        font-size: 13px;
+        color: #334155;
+
+        &--warn {
+          color: #94a3b8;
+
+          .qm-price {
+            color: #f59e0b;
+          }
+
+          .qm-sub {
+            color: #94a3b8;
+
+            .qm-base-hint {
+              margin-left: 4px;
+              font-size: 11px;
+              color: #f59e0b;
+              font-weight: 600;
+              cursor: help;
+
+              &:hover {
+                text-decoration: underline;
+              }
+            }
+          }
+        }
+
+        &--adjusted {
+          border-left: 3px solid #f59e0b;
+          background: linear-gradient(90deg, rgba(254, 243, 199, 0.5) 0%, transparent 100%);
+
+          .qm-name {
+            color: #92400e;
+            font-weight: 600;
+          }
+
+          .qm-sub {
+            color: #78716c;
+
+            .qm-base-hint {
+              color: #d97706;
+            }
+          }
+        }
+      }
+
+      .qm-name--link {
+        cursor: pointer;
+        transition: color 0.2s;
+
+        &:hover {
+          color: #10b981;
+          text-decoration: underline;
+        }
+      }
+
+      .qm-price-edit {
+        display: flex;
+        align-items: center;
+        gap: 2px;
+
+        .t-input-number {
+          width: 80px;
+        }
+
+        :deep(.t-input-number .t-input__inner) {
+          text-align: right;
+          font-size: 13px;
+        }
+      }
+
+      .qm-price-unit {
+        font-size: 12px;
+        color: #94a3b8;
+        flex-shrink: 0;
+      }
+
+      .qm-adjust-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 2px;
+        font-size: 10px;
+        line-height: 1.4;
+        padding: 2px 6px;
+        border-radius: 6px;
+        background: linear-gradient(135deg, #fef3c7, #fde68a);
+        color: #b45309;
+        font-weight: 700;
+        flex-shrink: 0;
+        cursor: help;
+        transition: all 0.2s;
+
+        &:hover {
+          background: linear-gradient(135deg, #fde68a, #fcd34d);
+          transform: scale(1.05);
+        }
+      }
+
+      .qm-restore-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 20px;
+        height: 20px;
+        border-radius: 5px;
+        border: 1px solid #e2e8f0;
+        background: #fff;
+        color: #64748b;
+        cursor: pointer;
+        transition: all 0.2s;
+        flex-shrink: 0;
+        padding: 0;
+
+        &:hover {
+          background: #f1f5f9;
+          border-color: #cbd5e1;
+          color: #059669;
+          transform: scale(1.1);
+        }
+
+        &:active {
+          transform: scale(0.95);
+        }
+
+        &--flash {
+          animation: qm-restore-flash 0.5s ease;
+        }
+      }
+
+      @keyframes qm-restore-flash {
+        0% {
+          background: #d1fae5;
+          border-color: #6ee7b7;
+          color: #059669;
+        }
+
+        100% {
+          background: #fff;
+          border-color: #e2e8f0;
+          color: #64748b;
+        }
+      }
+
+      .quote-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 12px;
+        padding: 10px 14px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #fffbeb, #fef3c7);
+        border: 1px solid #fcd34d;
+
+        .qt-badge-info {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 12px;
+          color: #92400e;
+          font-weight: 600;
+        }
+
+        .qt-reset-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          padding: 5px 14px;
+          border: 1px solid rgba(217, 119, 6, 0.25);
+          border-radius: 8px;
+          background: rgba(255, 255, 255, 0.8);
+          color: #d97706;
+          font-size: 12px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s;
+
+          &:hover {
+            background: #fff7ed;
+            border-color: rgba(217, 119, 6, 0.45);
+            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.15);
+          }
+
+          &:active {
+            transform: scale(0.97);
+          }
+        }
+      }
+
+      .quote-warn-text {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        color: #f59e0b;
+        background: #fffbeb;
+        padding: 8px 14px;
+        border-radius: $radius-lg;
+        border: 1px solid #fde68a;
+      }
+
+      .quote-summary {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .qs-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 14px;
+
+        label {
+          color: #64748b;
+          font-weight: 500;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
+
+        span {
+          font-family: ui-monospace, SFMono-Regular, 'Cascadia Code', monospace;
+          font-weight: 600;
+          color: #334155;
+        }
+      }
+
+      .qs-label-icon {
+        color: #94a3b8;
+        flex-shrink: 0;
+      }
+
+      .qs-label-icon--final {
+        color: #059669;
+      }
+
+      .qs-total span,
+      .qs-subtotal span {
+        color: #059669;
+      }
+
+      .qs-final {
+        label {
+          color: #059669;
+          font-weight: 700;
+          font-size: 15px;
+        }
+
+        span {
+          font-size: 18px;
+          color: #059669;
+          font-weight: 800;
+        }
+      }
+
+      .qs-input-wrap {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+
+        :deep(.t-input-number),
+        :deep(.t-input-number .t-input__inner) {
+          text-align: right;
+        }
+      }
+
+      .qs-unit {
+        font-size: 12px;
+        color: #94a3b8;
+      }
+
+      .qs-divider {
+        height: 1px;
+        background: #e2e8f0;
+
+        &--bold {
+          background: #cbd5e1;
+        }
+      }
+    }
+
+    // 提示面板
+    .tips-panel {
       background: #fff;
       padding: 32px;
       border-radius: 2.5rem;
       box-shadow: 0 1px 3px $overlay-black-05;
       border: 1px solid #f8fafc;
-      animation: fadeInUp 0.35s ease both;
+      animation: fadeInUp 0.5s ease both;
+      animation-delay: 0.2s;
 
-      .section-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 24px;
-      }
-
-    .section-title {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 14px;
-      font-weight: 700;
-      color: $text-placeholder;
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      margin: 0 0 24px;
-
-      .section-icon {
-        color: $emerald-500;
-        font-size: 16px;
-      }
-    }
-
-    .row-actions {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .add-row-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      font-size: 12px;
-      font-weight: 700;
-      color: $emerald-600;
-      padding: 6px 12px;
-      background-color: $overlay-emerald-08;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all $transition-fast;
-
-      .t-icon {
+      .tips-title {
         font-size: 14px;
+        font-weight: 700;
+        color: $text-placeholder;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin: 0 0 16px;
       }
 
-      &:hover {
-        color: #047857;
-        background-color: $overlay-emerald-15;
-      }
-    }
+      .tips-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
 
-    .clear-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      font-size: 12px;
-      font-weight: 700;
-      color: $emerald-600;
-      padding: 6px 12px;
-      background-color: $overlay-emerald-08;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all $transition-fast;
-
-      .t-icon {
-        font-size: 14px;
-      }
-
-      &:hover:not(:disabled) {
-        color: #047857;
-        background-color: $overlay-emerald-15;
-      }
-
-      &:disabled {
-        opacity: 0.35;
-        cursor: not-allowed;
-      }
-    }
-
-    .section-content {
-      .form-field {
-        .field-label {
+        .tip-item {
           display: flex;
-          align-items: center;
-          gap: 6px;
-          font-size: 14px;
-          font-weight: 700;
-          color: #334155;
-          margin-bottom: 8px;
+          align-items: flex-start;
+          gap: 8px;
+          padding: 8px 0;
+          font-size: 12px;
+          color: #64748b;
 
-          .label-icon {
-            color: #10b981;
+          .tip-icon {
+            color: #fbbf24;
+            font-size: 14px;
+            margin-top: 2px;
             flex-shrink: 0;
           }
 
-          .required {
-            color: #f43f5e;
-          }
-
-          .btn-ai-generate {
-            margin-left: auto;
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            padding: 2px 10px;
-            border: 1px solid #10b981;
-            border-radius: 6px;
-            background: rgba(16, 185, 129, 0.08);
-            color: #10b981;
-            font-size: 12px;
-            font-weight: 500;
+          .tip-link {
+            color: $emerald-500;
+            font-weight: 700;
             cursor: pointer;
-            transition: all 0.2s;
-            line-height: 22px;
-
-            &:hover:not(:disabled) {
-              background: rgba(16, 185, 129, 0.16);
-              box-shadow: 0 1px 4px rgba(16, 185, 129, 0.2);
-            }
-
-            &:disabled {
-              opacity: 0.45;
-              cursor: not-allowed;
-              border-color: #cbd5e1;
-              color: #94a3b8;
-              background: transparent;
-            }
-          }
-
-          .field-help-inline {
-            font-size: 12px;
-            font-weight: 400;
-            color: #94a3b8;
-            margin-left: 4px;
-          }
-        }
-
-        .field-input {
-          width: 100%;
-        }
-
-        .field-help {
-          margin-top: 4px;
-          font-size: 12px;
-          color: #64748b;
-          text-align: left;
-        }
-
-        &.field-error {
-          .field-label {
-            color: #dc2626;
-          }
-
-          :deep(.t-textarea .t-textarea__inner) {
-            border-color: #fca5a5 !important;
-            background-color: #fef2f2 !important;
-            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1) !important;
-
-            &:focus {
-              border-color: #ef4444 !important;
-              box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15) !important;
-            }
-          }
-        }
-
-        .field-error-msg {
-          display: flex;
-          align-items: center;
-          gap: 4px;
-          margin: 6px 0 0;
-          font-size: 12px;
-          font-weight: 600;
-          color: #dc2626;
-        }
-
-        .error-fade-enter-active {
-          animation: errorFadeIn 0.3s ease;
-        }
-
-        .error-fade-leave-active {
-          animation: errorFadeIn 0.2s ease reverse;
-        }
-
-        @keyframes errorFadeIn {
-          from {
-            opacity: 0;
-            transform: translateY(-4px);
-          }
-
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        // ═══ 输入框 — 参照 new-recipe.html 样式 ═══
-        // w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-slate-700
-        // focus:ring-2 focus:ring-emerald-500 focus:bg-white
-
-        :deep(.t-input) {
-          background-color: #f8fafc !important;
-          border: 1px solid $border-color-light !important;
-          border-radius: 16px !important;
-          padding: 14px 20px !important;
-          min-height: 48px;
-          font-size: 14px !important;
-          color: #334155 !important;
-          transition: all $transition-fast;
-
-          &:hover:not(.t-is-disabled) {
-            border-color: #e2e8f0 !important;
-          }
-
-          &.t-is-focused {
-            background-color: #fff !important;
-            border-color: transparent !important;
-            box-shadow: 0 0 0 2px $emerald-500 !important;
-            outline: none !important;
-          }
-
-          &::placeholder {
-            color: $text-placeholder !important;
-          }
-        }
-
-        :deep(.t-input__wrap) {
-          border: none !important;
-          box-shadow: none !important;
-          background: transparent !important;
-        }
-
-        :deep(.t-select) {
-          width: 100%;
-
-          .t-select__wrap {
-            background-color: #f8fafc !important;
-            border: 1px solid $border-color-light !important;
-            border-radius: 16px !important;
-            padding: 10px 12px !important;
-            min-height: 48px;
+            text-decoration: none;
+            border-bottom: 1px dashed $emerald-100;
             transition: all $transition-fast;
-
-            &:hover:not(.t-is-disabled) {
-              border-color: #e2e8f0 !important;
-            }
-          }
-
-          &.t-is-focused .t-select__wrap {
-            background-color: #fff !important;
-            border-color: transparent !important;
-            box-shadow: 0 0 0 2px $emerald-500 !important;
-            outline: none !important;
-          }
-
-          .t-select__placeholder,
-          .t-select__single-value {
-            font-size: 14px !important;
-            color: #334155 !important;
-            line-height: 22px;
-          }
-
-          .t-select__placeholder {
-            color: $text-placeholder !important;
-          }
-
-          .t-icon {
-            color: $text-placeholder !important;
-          }
-        }
-
-        :deep(.t-input-number) {
-          width: 100%;
-          background-color: #f8fafc !important;
-          border: 1px solid $border-color-light !important;
-          border-radius: 16px !important;
-          min-height: 48px;
-          transition: all $transition-fast;
-
-          &:hover:not(.t-is-disabled) {
-            border-color: #e2e8f0 !important;
-          }
-
-          &.t-is-focused {
-            background-color: #fff !important;
-            border-color: transparent !important;
-            box-shadow: 0 0 0 2px $emerald-500 !important;
-            outline: none !important;
-          }
-
-          .t-input__wrap {
-            border: none !important;
-            box-shadow: none !important;
-            background: transparent !important;
-          }
-
-          .t-input-number__decrease,
-          .t-input-number__increase {
-            border: none !important;
-            background: transparent !important;
-            color: $emerald-500 !important;
-            border-radius: 50% !important;
-            width: 28px !important;
-            height: 28px !important;
-            top: 50% !important;
-            transform: translateY(-50%) !important;
-            transition: all 0.15s ease;
 
             &:hover {
-              background-color: $overlay-emerald-08 !important;
-              color: $emerald-600 !important;
-            }
-          }
-
-          .t-input__inner {
-            background: transparent !important;
-            font-size: 14px !important;
-            color: #334155 !important;
-            padding: 14px 12px !important;
-            min-height: 46px;
-
-            &::placeholder {
-              color: $text-placeholder !important;
-            }
-          }
-        }
-
-        :deep(.t-textarea) {
-          .t-textarea__inner {
-            background-color: #f8fafc !important;
-            border: 1px solid $border-color-light !important;
-            border-radius: 16px !important;
-            padding: 14px 20px !important;
-            font-size: 14px !important;
-            color: #334155 !important;
-            transition: all $transition-fast;
-
-            &:hover:not(:focus) {
-              border-color: #e2e8f0 !important;
-            }
-
-            &:focus {
-              background-color: #fff !important;
-              border-color: transparent !important;
-              box-shadow: 0 0 0 2px $emerald-500 !important;
-              outline: none !important;
-            }
-
-            &::placeholder {
-              color: $text-placeholder !important;
+              color: $emerald-600;
+              border-bottom-color: $emerald-500;
             }
           }
         }
       }
     }
-  }
 
-  // 原料表格样式
-  .materials-table-wrapper {
-    margin-top: 16px;
-
-    .materials-table {
-      width: 100%;
-      border-collapse: separate;
-      border-spacing: 0 8px;
-
-      thead {
-        tr {
-          th {
-            padding: 8px 12px;
-            font-size: 10px;
-            font-weight: 900;
-            color: $text-placeholder;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            text-align: left;
-
-            &.w-16 {
-              width: 64px;
-              text-align: center;
-            }
-
-            &.qty-header {
-              width: 130px;
-              text-align: center;
-            }
-
-            &.ratio-header {
-              width: 100px;
-              text-align: center;
-            }
-
-            &.price-header {
-              width: 140px;
-              text-align: center;
-            }
-
-            &.subtotal-header {
-              width: 100px;
-              text-align: right;
-            }
-
-            &.adjust-header {
-              width: 80px;
-              text-align: center;
-            }
-          }
-        }
-      }
-
-      tbody {
-        .material-row {
-          background: #f8fafc;
-          border-radius: 12px;
-
-          td {
-            padding: 12px;
-            vertical-align: middle;
-
-            &:first-child {
-              border-radius: 12px 0 0 12px;
-            }
-
-            &:last-child {
-              border-radius: 0 12px 12px 0;
-            }
-
-            .material-select {
-              width: 100%;
-            }
-
-            .quantity-input {
-              width: 120px;
-            }
-
-            .ratio-cell {
-              font-size: 12px;
-              color: #475569;
-
-              &--supplement {
-                color: #6366f1;
-              }
-            }
-
-            .price-edit-cell {
-              display: flex;
-              align-items: center;
-              gap: 4px;
-
-              .price-unit {
-                font-size: 11px;
-                color: #94a3b8;
-                white-space: nowrap;
-              }
-            }
-
-            .price-missing {
-              font-size: 11px;
-              color: #f59e0b;
-              font-weight: 500;
-            }
-
-            .subtotal-cell {
-              font-size: 13px;
-              font-weight: 600;
-              color: #1e293b;
-
-              &--missing {
-                color: #94a3b8;
-              }
-            }
-
-            .adjust-cell {
-              .col-adjust-badge {
-                display: inline-flex;
-                align-items: center;
-                gap: 2px;
-                font-size: 10px;
-                line-height: 1.4;
-                padding: 2px 6px;
-                border-radius: 6px;
-                background: linear-gradient(135deg, #fef3c7, #fde68a);
-                color: #b45309;
-                font-weight: 700;
-                cursor: help;
-                transition: all 0.2s;
-                white-space: nowrap;
-
-                &:hover {
-                  background: linear-gradient(135deg, #fde68a, #fcd34d);
-                  transform: scale(1.05);
-                }
-              }
-
-              .col-restore-btn {
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
-                width: 22px;
-                height: 22px;
-                border: 1px solid #e2e8f0;
-                border-radius: 6px;
-                background: #fff;
-                color: #64748b;
-                cursor: pointer;
-                margin-left: 4px;
-                transition: all 0.15s ease;
-
-                &:hover {
-                  border-color: #10b981;
-                  color: #10b981;
-                  background: rgba(16, 185, 129, 0.06);
-                }
-              }
-            }
-          }
-
-          &--highlight {
-            background: linear-gradient(90deg, rgba(16, 185, 129, 0.12) 0%, rgba(16, 185, 129, 0.04) 100%);
-            border-left: 3px solid #10b981;
-            transition: background 0.3s ease, border-color 0.3s ease;
-          }
-
-          &--adjusted {
-            background: rgba(217, 119, 6, 0.04);
-          }
-        }
-      }
-
-      tfoot {
-        .total-row {
-          background: $overlay-emerald-05;
-          border-radius: 12px;
-
-          td {
-            padding: 16px 12px;
-            color: $emerald-600;
-
-            &:first-child {
-              border-radius: 12px 0 0 12px;
-            }
-
-            &:last-child {
-              border-radius: 0 12px 12px 0;
-            }
-          }
-        }
-
-        .cost-row {
-          background: rgba(248, 250, 252, 0.6);
-          margin-top: 4px;
-
-          td {
-            padding: 12px 12px;
-            color: #64748b;
-            font-size: 13px;
-
-            &:first-child {
-              border-radius: 12px 0 0 12px;
-            }
-
-            &:last-child {
-              border-radius: 0 12px 12px 0;
-            }
-          }
-
-          .cost-incomplete {
-            color: #f59e0b;
-          }
-        }
-      }
+    // 表单卡片入场动画
+    :deep(.t-card) {
+      animation: fadeInUp 0.35s cubic-bezier(0.4, 0, 0.2, 1) both;
     }
 
-    .add-row {
-      td {
-        padding: 4px 0;
-        border: none;
-      }
-    }
-
-    .add-first-btn {
+    .form-header-legacy {
       display: flex;
       align-items: center;
-      justify-content: center;
-      gap: 8px;
-      width: 100%;
-      padding: 10px 0;
-      font-size: 13px;
-      font-weight: 700;
-      color: $text-placeholder;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      background-color: transparent;
-      border: 2px dashed #e2e8f0;
-      border-radius: 12px;
-      cursor: pointer;
-      transition: all $transition-fast;
+      gap: $space-3;
 
-      .t-icon {
-        font-size: 20px;
-        color: $text-placeholder;
+      .form-title {
+        font-size: $font-size-h3;
+        font-weight: $font-weight-semibold;
+        color: $text-primary;
+      }
+    }
+
+    .materials-section {
+      width: 100%;
+
+      .manual-add {
+        margin-bottom: $space-3;
       }
 
-      &:hover {
-        color: $emerald-500;
-        border-color: $overlay-emerald-40;
-        background-color: #fff;
+      .materials-list {
+        margin-top: $space-3;
 
-        .t-icon {
-          color: $emerald-500;
+        .material-item {
+          display: flex;
+          align-items: center;
+          padding: $space-3 $space-3;
+          margin-bottom: $space-2;
+          background-color: $bg-page;
+          border-radius: $radius-lg;
+          border: 1px solid $border-color-light;
         }
       }
     }
-  }
 
-  .material-option {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-
-  .excel-panel-wrapper {
-    margin-top: 20px;
-    margin-bottom: 16px;
-  }
-
-  .excel-collapsed-bar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 12px 16px;
-    background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 50%, #f0f9ff 100%);
-    border: 1.5px dashed #86efac;
-    border-radius: 12px;
-    cursor: pointer;
-    transition: all 0.25s ease;
-    user-select: none;
-
-    &:hover {
-      background: linear-gradient(135deg, #dcfce7 0%, #d1fae5 50%, #e0f2fe 100%);
-      border-color: #4ade80;
-      box-shadow: 0 2px 8px rgba(34, 197, 94, 0.12);
-      transform: translateY(-1px);
+    .help-text {
+      margin-left: $space-3;
+      font-size: $font-size-caption;
+      color: $text-secondary;
+      line-height: 32px;
     }
 
-    &:active {
-      transform: translateY(0);
+    .select-empty-tip {
+      padding: $space-2 0;
+      text-align: center;
+      color: $text-placeholder;
+    }
+
+    // ═══ 动画关键帧 ═══
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .animate-fade-in {
+      animation: fadeIn 0.5s ease-out forwards;
+    }
+
+    @keyframes fadeInDown {
+      from {
+        opacity: 0;
+        transform: translateY(-12px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(16px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes progressSlide {
+      0% {
+        transform: translateX(-100%);
+      }
+
+      100% {
+        transform: translateX(350%);
+      }
+    }
+
+    @keyframes progressIndeterminate {
+      0% {
+        transform: translateX(-100%);
+      }
+
+      100% {
+        transform: translateX(350%);
+      }
+    }
+
+    @keyframes statusPulse {
+
+      0%,
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      50% {
+        opacity: 0.5;
+        transform: scale(0.8);
+      }
+    }
+
+    @keyframes dot-pulse {
+
+      0%,
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      50% {
+        opacity: 0.4;
+        transform: scale(0.7);
+      }
+    }
+
+    @keyframes dot-blink {
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.3;
+      }
     }
   }
 
-  .excel-collapsed-left {
+  .quick-create-salesman-option {
     display: flex;
     align-items: center;
-    gap: 10px;
-  }
-
-  .excel-collapsed-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 36px;
-    height: 36px;
-    border-radius: 10px;
-    background: linear-gradient(135deg, #22c55e, #16a34a);
-    color: #fff;
-    flex-shrink: 0;
-    box-shadow: 0 2px 6px rgba(34, 197, 94, 0.3);
-  }
-
-  .excel-collapsed-text {
-    font-size: 14px;
-    font-weight: 600;
-    color: #15803d;
-  }
-
-  .excel-collapsed-hint {
-    font-size: 11px;
-    color: #86efac;
-    background: rgba(34, 197, 94, 0.1);
-    padding: 2px 8px;
-    border-radius: 6px;
-    font-weight: 500;
-  }
-
-  .excel-collapsed-arrow {
-    color: #86efac;
-    transition: transform 0.2s;
-  }
-
-  .excel-expanded-area {
-    border: 1.5px solid #e2e8f0;
-    border-radius: 12px;
-    overflow: hidden;
-    animation: excel-expand 0.25s ease;
-  }
-
-  @keyframes excel-expand {
-    from {
-      opacity: 0;
-      max-height: 0;
-    }
-
-    to {
-      opacity: 1;
-      max-height: 800px;
-    }
-  }
-
-  .excel-expanded-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 8px 16px;
-    background: #f8fafc;
-    border-bottom: 1px solid #e2e8f0;
+    gap: 6px;
+    padding: 8px 12px;
+    font-size: 13px;
+    color: #10B981;
     cursor: pointer;
     transition: background 0.2s;
 
     &:hover {
-      background: #f1f5f9;
+      background: #ecfdf5;
     }
   }
 
-  .excel-expanded-title {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 13px;
-    font-weight: 600;
-    color: #64748b;
-  }
+  // ratioFactor 含量比校验区域
+  .ratio-validation-section {
+    animation: fadeInUp 0.4s ease-out;
 
-  .excel-expanded-arrow {
-    color: #94a3b8;
-    transition: transform 0.2s;
-  }
-
-  .excel-panel {
-    margin-bottom: 0;
-  }
-
-  // 报价预览
-  .quote-sec {
-    margin-top: -12px;
-
-    .section-header {
-      margin-bottom: 0px;
-    }
-
-    .quote-body {
-      display: flex;
-      flex-direction: column;
-      gap: $space-4;
-    }
-
-    .quote-mat-list {
-      background: #f8fafc;
-      border-radius: $radius-lg;
-      padding: 12px 16px;
-      border: 1px solid #e2e8f0;
-    }
-
-    .quote-mat-header {
-      display: grid;
-      grid-template-columns: 1fr 70px 165px 85px;
-      gap: 8px;
-      font-size: 11px;
-      font-weight: 700;
-      color: #94a3b8;
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
-      padding-bottom: 6px;
-      border-bottom: 1px solid #e2e8f0;
-      margin-bottom: 4px;
-
-      .qm-price {
-        text-align: center;
-      }
-    }
-
-    .quote-mat-row {
-      display: grid;
-      grid-template-columns: 1fr 70px 165px 85px;
-      gap: 8px;
-      align-items: center;
-      padding: 5px 0;
-      font-size: 13px;
-      color: #334155;
-
-      &--warn {
-        color: #94a3b8;
-
-        .qm-price {
-          color: #f59e0b;
-        }
-
-        .qm-sub {
-          color: #94a3b8;
-
-          .qm-base-hint {
-            margin-left: 4px;
-            font-size: 11px;
-            color: #f59e0b;
-            font-weight: 600;
-            cursor: help;
-
-            &:hover {
-              text-decoration: underline;
-            }
-          }
-        }
-      }
-
-      &--adjusted {
-        border-left: 3px solid #f59e0b;
-        background: linear-gradient(90deg, rgba(254, 243, 199, 0.5) 0%, transparent 100%);
-
-        .qm-name {
-          color: #92400e;
-          font-weight: 600;
-        }
-
-        .qm-sub {
-          color: #78716c;
-
-          .qm-base-hint {
-            color: #d97706;
-          }
-        }
-      }
-    }
-
-    .qm-name--link {
-      cursor: pointer;
-      transition: color 0.2s;
-
-      &:hover {
-        color: #10b981;
-        text-decoration: underline;
-      }
-    }
-
-    .qm-price-edit {
-      display: flex;
-      align-items: center;
-      gap: 2px;
-
-      .t-input-number {
-        width: 80px;
-      }
-
-      :deep(.t-input-number .t-input__inner) {
-        text-align: right;
-        font-size: 13px;
-      }
-    }
-
-    .qm-price-unit {
-      font-size: 12px;
-      color: #94a3b8;
-      flex-shrink: 0;
-    }
-
-    .qm-adjust-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 2px;
-      font-size: 10px;
-      line-height: 1.4;
-      padding: 2px 6px;
-      border-radius: 6px;
-      background: linear-gradient(135deg, #fef3c7, #fde68a);
-      color: #b45309;
-      font-weight: 700;
-      flex-shrink: 0;
-      cursor: help;
-      transition: all 0.2s;
-
-      &:hover {
-        background: linear-gradient(135deg, #fde68a, #fcd34d);
-        transform: scale(1.05);
-      }
-    }
-
-    .qm-restore-btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 20px;
-      height: 20px;
-      border-radius: 5px;
-      border: 1px solid #e2e8f0;
-      background: #fff;
-      color: #64748b;
-      cursor: pointer;
-      transition: all 0.2s;
-      flex-shrink: 0;
-      padding: 0;
-
-      &:hover {
-        background: #f1f5f9;
-        border-color: #cbd5e1;
-        color: #059669;
-        transform: scale(1.1);
-      }
-
-      &:active {
-        transform: scale(0.95);
-      }
-
-      &--flash {
-        animation: qm-restore-flash 0.5s ease;
-      }
-    }
-
-    @keyframes qm-restore-flash {
-      0% {
-        background: #d1fae5;
-        border-color: #6ee7b7;
-        color: #059669;
-      }
-
-      100% {
-        background: #fff;
-        border-color: #e2e8f0;
-        color: #64748b;
-      }
-    }
-
-    .quote-toolbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-top: 12px;
-      padding: 10px 14px;
+    .ratio-summary {
+      padding: 16px;
       border-radius: 12px;
-      background: linear-gradient(135deg, #fffbeb, #fef3c7);
-      border: 1px solid #fcd34d;
+      border: 1px solid;
+      transition: all 0.3s ease;
 
-      .qt-badge-info {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        font-size: 12px;
-        color: #92400e;
-        font-weight: 600;
+      &--normal {
+        background: #f0fdf4;
+        border-color: #bbf7d0;
       }
 
-      .qt-reset-btn {
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        padding: 5px 14px;
-        border: 1px solid rgba(217, 119, 6, 0.25);
-        border-radius: 8px;
-        background: rgba(255, 255, 255, 0.8);
+      &--warning {
+        background: #fffbeb;
+        border-color: #fde68a;
+      }
+
+      &--high_warning {
+        background: #fff7ed;
+        border-color: #fed7aa;
+      }
+
+      &--error {
+        background: #fef2f2;
+        border-color: #fecaca;
+      }
+    }
+
+    .ratio-summary-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+
+      .ratio-summary--normal & {
+        color: #16a34a;
+      }
+
+      .ratio-summary--warning & {
         color: #d97706;
-        font-size: 12px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.2s;
+      }
 
-        &:hover {
-          background: #fff7ed;
-          border-color: rgba(217, 119, 6, 0.45);
-          box-shadow: 0 2px 8px rgba(245, 158, 11, 0.15);
-        }
+      .ratio-summary--high_warning & {
+        color: #ea580c;
+      }
 
-        &:active {
-          transform: scale(0.97);
-        }
+      .ratio-summary--error & {
+        color: #dc2626;
       }
     }
 
-    .quote-warn-text {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 12px;
-      color: #f59e0b;
-      background: #fffbeb;
-      padding: 8px 14px;
-      border-radius: $radius-lg;
-      border: 1px solid #fde68a;
-    }
-
-    .quote-summary {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .qs-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 14px;
-
-      label {
-        color: #64748b;
-        font-weight: 500;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-      }
-
-      span {
-        font-family: ui-monospace, SFMono-Regular, 'Cascadia Code', monospace;
-        font-weight: 600;
-        color: #334155;
-      }
-    }
-
-    .qs-label-icon {
-      color: #94a3b8;
-      flex-shrink: 0;
-    }
-
-    .qs-label-icon--final {
-      color: #059669;
-    }
-
-    .qs-total span,
-    .qs-subtotal span {
-      color: #059669;
-    }
-
-    .qs-final {
-      label {
-        color: #059669;
-        font-weight: 700;
-        font-size: 15px;
-      }
-
-      span {
-        font-size: 18px;
-        color: #059669;
-        font-weight: 800;
-      }
-    }
-
-    .qs-input-wrap {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-
-      :deep(.t-input-number),
-      :deep(.t-input-number .t-input__inner) {
-        text-align: right;
-      }
-    }
-
-    .qs-unit {
-      font-size: 12px;
-      color: #94a3b8;
-    }
-
-    .qs-divider {
-      height: 1px;
-      background: #e2e8f0;
-
-      &--bold {
-        background: #cbd5e1;
-      }
-    }
-  }
-
-  // 提示面板
-  .tips-panel {
-    background: #fff;
-    padding: 32px;
-    border-radius: 2.5rem;
-    box-shadow: 0 1px 3px $overlay-black-05;
-    border: 1px solid #f8fafc;
-    animation: fadeInUp 0.5s ease both;
-    animation-delay: 0.2s;
-
-    .tips-title {
-      font-size: 14px;
+    .ratio-summary-title {
+      font-size: 15px;
       font-weight: 700;
-      color: $text-placeholder;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      margin: 0 0 16px;
     }
 
-    .tips-list {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-
-      .tip-item {
-        display: flex;
-        align-items: flex-start;
-        gap: 8px;
-        padding: 8px 0;
-        font-size: 12px;
-        color: #64748b;
-
-        .tip-icon {
-          color: #fbbf24;
-          font-size: 14px;
-          margin-top: 2px;
-          flex-shrink: 0;
-        }
-
-        .tip-link {
-          color: $emerald-500;
-          font-weight: 700;
-          cursor: pointer;
-          text-decoration: none;
-          border-bottom: 1px dashed $emerald-100;
-          transition: all $transition-fast;
-
-          &:hover {
-            color: $emerald-600;
-            border-bottom-color: $emerald-500;
-          }
-        }
-      }
-    }
-  }
-
-  // 表单卡片入场动画
-  :deep(.t-card) {
-    animation: fadeInUp 0.35s cubic-bezier(0.4, 0, 0.2, 1) both;
-  }
-
-  .form-header-legacy {
-    display: flex;
-    align-items: center;
-    gap: $space-3;
-
-    .form-title {
-      font-size: $font-size-h3;
-      font-weight: $font-weight-semibold;
-      color: $text-primary;
-    }
-  }
-
-  .materials-section {
-    width: 100%;
-
-    .manual-add {
-      margin-bottom: $space-3;
+    .ratio-summary-bar {
+      margin-bottom: 12px;
     }
 
-    .materials-list {
-      margin-top: $space-3;
-
-      .material-item {
-        display: flex;
-        align-items: center;
-        padding: $space-3 $space-3;
-        margin-bottom: $space-2;
-        background-color: $bg-page;
-        border-radius: $radius-lg;
-        border: 1px solid $border-color-light;
-      }
-    }
-  }
-
-  .help-text {
-    margin-left: $space-3;
-    font-size: $font-size-caption;
-    color: $text-secondary;
-    line-height: 32px;
-  }
-
-  .select-empty-tip {
-    padding: $space-2 0;
-    text-align: center;
-    color: $text-placeholder;
-  }
-
-  // ═══ 动画关键帧 ═══
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-      transform: translateY(10px);
+    .ratio-bar-track {
+      position: relative;
+      height: 8px;
+      background: linear-gradient(to right,
+          #ef4444 0%,
+          #f97316 15%,
+          #eab308 30%,
+          #22c55e 45%,
+          #22c55e 55%,
+          #eab308 70%,
+          #f97316 85%,
+          #ef4444 100%);
+      border-radius: 4px;
+      overflow: visible;
     }
 
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  .animate-fade-in {
-    animation: fadeIn 0.5s ease-out forwards;
-  }
-
-  @keyframes fadeInDown {
-    from {
-      opacity: 0;
-      transform: translateY(-12px);
-    }
-
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  @keyframes fadeInUp {
-    from {
-      opacity: 0;
-      transform: translateY(16px);
-    }
-
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  @keyframes progressSlide {
-    0% {
-      transform: translateX(-100%);
-    }
-
-    100% {
-      transform: translateX(350%);
-    }
-  }
-
-  @keyframes progressIndeterminate {
-    0% {
-      transform: translateX(-100%);
-    }
-
-    100% {
-      transform: translateX(350%);
-    }
-  }
-
-  @keyframes statusPulse {
-    0%, 100% {
-      opacity: 1;
-      transform: scale(1);
-    }
-
-    50% {
-      opacity: 0.5;
-      transform: scale(0.8);
-    }
-  }
-
-  @keyframes dot-pulse {
-
-    0%,
-    100% {
-      opacity: 1;
-      transform: scale(1);
-    }
-
-    50% {
-      opacity: 0.4;
-      transform: scale(0.7);
-    }
-  }
-
-  @keyframes dot-blink {
-
-    0%,
-    100% {
-      opacity: 1;
-    }
-
-    50% {
-      opacity: 0.3;
-    }
-  }
-}
-
-.quick-create-salesman-option {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 12px;
-  font-size: 13px;
-  color: #10B981;
-  cursor: pointer;
-  transition: background 0.2s;
-
-  &:hover {
-    background: #ecfdf5;
-  }
-}
-
-// ratioFactor 含量比校验区域
-.ratio-validation-section {
-  animation: fadeInUp 0.4s ease-out;
-
-  .ratio-summary {
-    padding: 16px;
-    border-radius: 12px;
-    border: 1px solid;
-    transition: all 0.3s ease;
-
-    &--normal {
-      background: #f0fdf4;
-      border-color: #bbf7d0;
-    }
-
-    &--warning {
-      background: #fffbeb;
-      border-color: #fde68a;
-    }
-
-    &--high_warning {
-      background: #fff7ed;
-      border-color: #fed7aa;
-    }
-
-    &--error {
-      background: #fef2f2;
-      border-color: #fecaca;
-    }
-  }
-
-  .ratio-summary-header {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 12px;
-
-    .ratio-summary--normal & {
-      color: #16a34a;
-    }
-
-    .ratio-summary--warning & {
-      color: #d97706;
-    }
-
-    .ratio-summary--high_warning & {
-      color: #ea580c;
-    }
-
-    .ratio-summary--error & {
-      color: #dc2626;
-    }
-  }
-
-  .ratio-summary-title {
-    font-size: 15px;
-    font-weight: 700;
-  }
-
-  .ratio-summary-bar {
-    margin-bottom: 12px;
-  }
-
-  .ratio-bar-track {
-    position: relative;
-    height: 8px;
-    background: linear-gradient(to right,
-        #ef4444 0%,
-        #f97316 15%,
-        #eab308 30%,
-        #22c55e 45%,
-        #22c55e 55%,
-        #eab308 70%,
-        #f97316 85%,
-        #ef4444 100%);
-    border-radius: 4px;
-    overflow: visible;
-  }
-
-  .ratio-bar-fill {
-    display: none;
-  }
-
-  .ratio-bar-marker {
-    position: absolute;
-    top: -4px;
-    width: 16px;
-    height: 16px;
-    background: #fff;
-    border: 3px solid #1e293b;
-    border-radius: 50%;
-    transform: translateX(-50%);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-    transition: left 0.3s ease;
-    z-index: 2;
-  }
-
-  .ratio-bar-labels {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 6px;
-    font-size: 10px;
-    color: #94a3b8;
-
-    .ratio-bar-center {
-      font-weight: 700;
-      color: #64748b;
-    }
-  }
-
-  .ratio-summary-value {
-    display: flex;
-    align-items: baseline;
-    gap: 6px;
-    margin-bottom: 8px;
-  }
-
-  .ratio-value-label {
-    font-size: 13px;
-    color: #64748b;
-  }
-
-  .ratio-value-num {
-    font-size: 20px;
-    font-weight: 800;
-    font-family: 'SF Mono', 'Fira Code', monospace;
-    color: #1e293b;
-  }
-
-  .ratio-value-deviation {
-    font-size: 13px;
-    font-weight: 600;
-
-    &.deviation--normal {
-      color: #16a34a;
-    }
-
-    &.deviation--warning {
-      color: #d97706;
-    }
-
-    &.deviation--high_warning {
-      color: #ea580c;
-    }
-
-    &.deviation--error {
-      color: #dc2626;
-    }
-  }
-
-  .ratio-summary-desc {
-    font-size: 12px;
-    color: #64748b;
-    line-height: 1.5;
-    margin: 0;
-  }
-
-  .ratio-review-notice {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    margin-top: 10px;
-    padding: 8px 12px;
-    background: rgba(234, 88, 12, 0.08);
-    border-radius: 8px;
-    font-size: 13px;
-    font-weight: 600;
-    color: #ea580c;
-  }
-
-  .ratio-breakdown {
-    margin-top: 12px;
-
-    &[open] .toggle-arrow {
-      transform: rotate(180deg);
-    }
-  }
-
-  .ratio-breakdown-toggle {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 8px 0;
-    font-size: 13px;
-    color: #64748b;
-    cursor: pointer;
-    list-style: none;
-    user-select: none;
-
-    &::-webkit-details-marker {
+    .ratio-bar-fill {
       display: none;
     }
 
-    &:hover {
-      color: #10b981;
+    .ratio-bar-marker {
+      position: absolute;
+      top: -4px;
+      width: 16px;
+      height: 16px;
+      background: #fff;
+      border: 3px solid #1e293b;
+      border-radius: 50%;
+      transform: translateX(-50%);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+      transition: left 0.3s ease;
+      z-index: 2;
     }
 
-    .toggle-arrow {
-      transition: transform 0.2s ease;
+    .ratio-bar-labels {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 6px;
+      font-size: 10px;
+      color: #94a3b8;
+
+      .ratio-bar-center {
+        font-weight: 700;
+        color: #64748b;
+      }
     }
-  }
 
-  .ratio-detail-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 13px;
+    .ratio-summary-value {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
 
-    th {
-      padding: 8px 12px;
-      text-align: left;
-      font-weight: 600;
+    .ratio-value-label {
+      font-size: 13px;
       color: #64748b;
-      background: #f8fafc;
-      border-bottom: 1px solid #e2e8f0;
     }
 
-    td {
-      padding: 8px 12px;
-      border-bottom: 1px solid #f1f5f9;
-      color: #334155;
-    }
-
-    .font-mono {
+    .ratio-value-num {
+      font-size: 20px;
+      font-weight: 800;
       font-family: 'SF Mono', 'Fira Code', monospace;
+      color: #1e293b;
+    }
+
+    .ratio-value-deviation {
+      font-size: 13px;
       font-weight: 600;
+
+      &.deviation--normal {
+        color: #16a34a;
+      }
+
+      &.deviation--warning {
+        color: #d97706;
+      }
+
+      &.deviation--high_warning {
+        color: #ea580c;
+      }
+
+      &.deviation--error {
+        color: #dc2626;
+      }
+    }
+
+    .ratio-summary-desc {
+      font-size: 12px;
+      color: #64748b;
+      line-height: 1.5;
+      margin: 0;
+    }
+
+    .ratio-review-notice {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 10px;
+      padding: 8px 12px;
+      background: rgba(234, 88, 12, 0.08);
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #ea580c;
+    }
+
+    .ratio-breakdown {
+      margin-top: 12px;
+
+      &[open] .toggle-arrow {
+        transform: rotate(180deg);
+      }
+    }
+
+    .ratio-breakdown-toggle {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 0;
+      font-size: 13px;
+      color: #64748b;
+      cursor: pointer;
+      list-style: none;
+      user-select: none;
+
+      &::-webkit-details-marker {
+        display: none;
+      }
+
+      &:hover {
+        color: #10b981;
+      }
+
+      .toggle-arrow {
+        transition: transform 0.2s ease;
+      }
+    }
+
+    .ratio-detail-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+
+      th {
+        padding: 8px 12px;
+        text-align: left;
+        font-weight: 600;
+        color: #64748b;
+        background: #f8fafc;
+        border-bottom: 1px solid #e2e8f0;
+      }
+
+      td {
+        padding: 8px 12px;
+        border-bottom: 1px solid #f1f5f9;
+        color: #334155;
+      }
+
+      .font-mono {
+        font-family: 'SF Mono', 'Fira Code', monospace;
+        font-weight: 600;
+      }
     }
   }
 }
+
+@keyframes ai-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 </style>
 

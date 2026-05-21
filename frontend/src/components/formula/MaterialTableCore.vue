@@ -1,36 +1,5 @@
 <template>
   <div class="material-table-core" :class="{ 'material-table-core--edit': mode === 'edit' }">
-    <div v-if="mode === 'edit'" class="coefficient-bar">
-      <div class="coeff-item">
-        <label class="coeff-label">主料系数</label>
-        <t-input-number
-          :model-value="ratioFactor"
-          @update:model-value="$emit('update:ratioFactor', $event)"
-          :min="0.15" :max="0.25" :decimal-places="2" size="small"
-          theme="normal" style="width: 100px"
-        />
-      </div>
-      <div class="coeff-item">
-        <label class="coeff-label">辅料系数</label>
-        <t-input-number
-          :model-value="supplementRatioFactor"
-          @update:model-value="$emit('update:supplementRatioFactor', $event)"
-          :min="0.5" :max="1.5" :decimal-places="2" size="small"
-          theme="normal" style="width: 100px"
-        />
-      </div>
-      <div class="coeff-divider"></div>
-      <div class="coeff-item">
-        <label class="coeff-label">成品重量(g)</label>
-        <t-input-number
-          :model-value="finishedWeight"
-          @update:model-value="$emit('update:finishedWeight', $event)"
-          :min="0" :decimal-places="1" size="small"
-          theme="normal" style="width: 120px"
-          placeholder="输入成品重量"
-        />
-      </div>
-    </div>
 
     <div class="card-header--materials">
       <div class="card-header-left">
@@ -57,9 +26,7 @@
               <t-icon name="move-down" size="14px" />
               下移
             </button>
-            <t-popconfirm theme="danger"
-              :content="`确定要删除所选的 ${selectedIndices.size} 种原料吗？`"
-              @confirm="batchDelete">
+            <t-popconfirm theme="danger" :content="`确定要删除所选的 ${selectedIndices.size} 种原料吗？`" @confirm="batchDelete">
               <button class="batch-action-btn">
                 <t-icon name="delete" size="14px" />
                 批量删除
@@ -73,31 +40,29 @@
 
     <div class="table-scroll-wrapper">
       <div class="materials-table">
+        <!-- 表头 -->
         <div class="materials-header" :style="{ gridTemplateColumns: gridColumns }">
           <span v-if="batchMode" class="col-check">
             <t-checkbox :checked="isAllSelected" :indeterminate="isIndeterminate" @change="toggleSelectAll" />
           </span>
           <span class="col-name">原料名称</span>
-          <span class="col-qty">用量</span>
-          <span class="col-unit">单位</span>
-          <span class="col-ratio">含量比</span>
+          <span class="col-qty col-header-unit">用量(g)</span>
+          <span class="col-price">单价(元/kg)</span>
+          <span class="col-ratio col-header-unit">含量比</span>
           <template v-if="mode === 'edit'">
-            <span class="col-nutrition">能量(kJ)</span>
-            <span class="col-nutrition">蛋白质(g)</span>
-            <span class="col-nutrition">脂肪(g)</span>
-            <span class="col-nutrition">碳水(g)</span>
-            <span class="col-nutrition">钠(mg)</span>
+            <span class="col-nutrition col-header-unit">能量</span>
+            <span class="col-nutrition col-header-unit">蛋白质</span>
+            <span class="col-nutrition col-header-unit">脂肪</span>
+            <span class="col-nutrition col-header-unit">碳水</span>
+            <span class="col-nutrition col-header-unit">钠</span>
           </template>
-          <span class="col-price">单价(/kg)</span>
-          <span class="col-adjust">调整</span>
           <span class="col-subtotal">小计</span>
           <span v-if="mode === 'parse'" class="col-status">状态</span>
           <span class="col-action">操作</span>
         </div>
-
+        <!-- 表体 -->
         <div v-for="(row, idx) in materials" :key="idx" class="materials-row"
-          :style="{ gridTemplateColumns: gridColumns }"
-          :class="{
+          :style="{ gridTemplateColumns: gridColumns }" :class="{
             'materials-row--warn': getBasePrice(idx) == null,
             'materials-row--adjusted': isPriceAdjusted(idx),
             'materials-row--qty-adjusted': isQtyAdjusted(idx),
@@ -106,16 +71,11 @@
             'materials-row--selected': batchMode && selectedIndices.has(idx),
           }">
           <template v-if="isNewRow(idx)">
-            <t-select
-              :value="row.materialId || undefined"
-              placeholder="搜索原料名称..."
-              filterable
+            <t-select :value="row.materialId || undefined" placeholder="搜索原料名称..." filterable
               :filter="filterMaterialsByName"
               :style="batchMode ? 'grid-column: 2 / -1; width: 100%;' : 'grid-column: 1 / -1; width: 100%;'"
-              :popup-props="{ appendToBody: true }"
-              @change="(val: string) => onNewMaterialSelected(idx, val)">
-              <t-option v-for="mat in availableMaterialsForSelect" :key="mat.id" :value="mat.id"
-                :label="mat.name" />
+              :popup-props="{ appendToBody: true }" @change="(val: string) => onNewMaterialSelected(idx, val)">
+              <t-option v-for="mat in availableMaterialsForSelect" :key="mat.id" :value="mat.id" :label="mat.name" />
             </t-select>
           </template>
           <template v-else>
@@ -124,27 +84,24 @@
             </span>
             <span class="col-name">
               <template v-if="mode === 'edit'">
-                <t-select
-                  :value="row.materialId || undefined"
-                  placeholder="搜索原料"
-                  filterable
-                  :filter="filterMaterialsByName"
-                  class="material-name-select"
-                  :popup-props="{ appendToBody: true }"
+                <t-select :value="row.materialId || undefined" placeholder="搜索原料" filterable
+                  :filter="filterMaterialsByName" class="material-name-select" :popup-props="{ appendToBody: true }"
                   @change="(val: string) => onMaterialChange(idx, val)">
                   <template #valueDisplay>
                     <div v-if="row.materialId" class="material-name-with-tag">
                       <span class="material-name-text">{{ row.materialName }}</span>
-                      <t-tag :class="isSupplement(idx) ? 'material-type-tag--supplement' : 'material-type-tag--herb'" size="small">
+                      <t-tag :class="isSupplement(idx) ? 'material-type-tag--supplement' : 'material-type-tag--herb'"
+                        size="small">
                         {{ isSupplement(idx) ? '辅料' : '药材' }}
                       </t-tag>
                     </div>
                   </template>
-                  <t-option v-for="mat in availableMaterialsForSelect" :key="mat.id" :value="mat.id"
-                    :label="mat.name">
+                  <t-option v-for="mat in availableMaterialsForSelect" :key="mat.id" :value="mat.id" :label="mat.name">
                     <div class="material-option">
                       <span>{{ mat.name }}</span>
-                      <t-tag :class="mat.materialType === 'supplement' ? 'material-type-tag--supplement' : 'material-type-tag--herb'" size="small">
+                      <t-tag
+                        :class="mat.materialType === 'supplement' ? 'material-type-tag--supplement' : 'material-type-tag--herb'"
+                        size="small">
                         {{ mat.materialType === 'supplement' ? '辅料' : '药材' }}
                       </t-tag>
                     </div>
@@ -153,21 +110,25 @@
               </template>
               <template v-else>
                 <span class="col-name-text">{{ row.materialName || '(待选择)' }}</span>
-                <t-tag :class="isSupplement(idx) ? 'material-type-tag--supplement' : 'material-type-tag--herb'" size="small">
+                <t-tag :class="isSupplement(idx) ? 'material-type-tag--supplement' : 'material-type-tag--herb'"
+                  size="small">
                   {{ isSupplement(idx) ? '辅料' : '药材' }}
                 </t-tag>
               </template>
             </span>
             <div class="col-qty-edit">
-              <t-input-number
-                :model-value="row.quantity"
-                @change="(val: number) => handleQtyChange(idx, val)"
-                :min="0" :decimal-places="2" size="small" theme="normal"
-                style="width: 72px"
-                :class="{ 'col-qty-input--invalid': !row.quantity || row.quantity <= 0 }"
-              />
+              <t-input-number :model-value="row.quantity" @change="(val: number) => handleQtyChange(idx, val)" :min="0"
+                :decimal-places="2" size="small" theme="normal" style="width: 72px"
+                :class="{ 'col-qty-input--invalid': !row.quantity || row.quantity <= 0 }" />
             </div>
-            <span class="col-unit">{{ row.unit || 'g' }}</span>
+            <span class="col-price" v-if="getBasePrice(idx) == null">
+              <span class="col-price-missing">未录入</span>
+            </span>
+            <div class="col-price-edit" v-else>
+              <t-input-number :model-value="getEffectivePrice(idx)"
+                @change="(val: number) => handlePriceAdjust(idx, val)" :min="0" :precision="2" size="small"
+                theme="normal" style="width: 80px" />
+            </div>
             <span class="col-ratio" :class="{ 'col-ratio--supplement': isSupplement(idx) }">
               {{ calculateRatio(idx) }}
             </span>
@@ -178,19 +139,20 @@
               <span class="col-nutrition">{{ getNutritionValue(idx, 'carbohydrate') }}</span>
               <span class="col-nutrition">{{ getNutritionValue(idx, 'sodium') }}</span>
             </template>
-            <span class="col-price" v-if="getBasePrice(idx) == null">
-              <span class="col-price-missing">未录入</span>
+            <span class="col-subtotal" :class="{ 'col-subtotal--missing': getSubtotal(idx) == null }">
+              {{ getSubtotal(idx) != null ? '¥' + getSubtotal(idx)!.toFixed(2) : '—' }}
             </span>
-            <div class="col-price-edit" v-else>
-              <t-input-number
-                :model-value="getEffectivePrice(idx)"
-                @change="(val: number) => handlePriceAdjust(idx, val)"
-                :min="0" :precision="2" size="small" theme="normal"
-                style="width: 80px"
-              />
-              <span class="col-price-unit">/kg</span>
-            </div>
-            <span class="col-adjust">
+            <span v-if="mode === 'parse'" class="col-status">
+              <t-tag v-if="row.matched" theme="success" variant="light" size="small">已匹配</t-tag>
+              <template v-else>
+                <t-tag theme="warning" variant="light" size="small">未匹配</t-tag>
+                <button type="button" class="quick-add-material-btn" @click="$emit('quickAddMaterial', row)"
+                  title="快速录入此原料">
+                  <t-icon name="add" size="12px" />
+                </button>
+              </template>
+            </span>
+            <span class="col-action">
               <span v-if="isQtyAdjusted(idx)" class="col-adjust-badge col-adjust-badge--qty"
                 :title="'原始用量: ' + (materials[idx]?.originalQuantity ?? '--')">
                 <svg viewBox="0 0 12 12" width="10" height="10">
@@ -199,8 +161,7 @@
                 量
               </span>
               <button v-if="isQtyAdjusted(idx)" type="button" class="col-restore-btn"
-                :class="{ 'col-restore-btn--flash': restoreFlashIdx === idx }"
-                @click="handleRestoreQty(idx)"
+                :class="{ 'col-restore-btn--flash': restoreFlashIdx === idx }" @click="handleRestoreQty(idx)"
                 :title="'恢复原始用量: ' + (materials[idx]?.originalQuantity ?? '--')">
                 <t-icon name="rollback" size="12px" />
               </button>
@@ -212,27 +173,10 @@
                 价
               </span>
               <button v-if="isPriceAdjusted(idx)" type="button" class="col-restore-btn"
-                :class="{ 'col-restore-btn--flash': restoreFlashIdx === idx }"
-                @click="handleRestorePrice(idx)"
+                :class="{ 'col-restore-btn--flash': restoreFlashIdx === idx }" @click="handleRestorePrice(idx)"
                 :title="'恢复基价: ¥' + (getBasePrice(idx) ?? '--') + '/kg'">
                 <t-icon name="rollback" size="12px" />
               </button>
-            </span>
-            <span class="col-subtotal" :class="{ 'col-subtotal--missing': getSubtotal(idx) == null }">
-              {{ getSubtotal(idx) != null ? '¥' + getSubtotal(idx)!.toFixed(2) : '—' }}
-            </span>
-            <span v-if="mode === 'parse'" class="col-status">
-              <t-tag v-if="row.matched" theme="success" variant="light" size="small">已匹配</t-tag>
-              <template v-else>
-                <t-tag theme="warning" variant="light" size="small">未匹配</t-tag>
-                <button type="button" class="quick-add-material-btn"
-                  @click="$emit('quickAddMaterial', row)"
-                  title="快速录入此原料">
-                  <t-icon name="add" size="12px" />
-                </button>
-              </template>
-            </span>
-            <span class="col-action">
               <t-popconfirm content="确认移除此原料？" @confirm="removeMaterial(idx)">
                 <button type="button" class="remove-material-btn" title="移除此原料">
                   <t-icon name="delete" size="12px" />
@@ -241,59 +185,107 @@
             </span>
           </template>
         </div>
-
+        <!-- 添加原料按钮 -->
         <div class="materials-add-row">
           <button class="add-material-inline-btn" @click="addMaterial">
             <t-icon name="add" size="14px" style="color: #10b981" />
             添加原料
           </button>
         </div>
-
-        <div v-if="materials.length > 0" class="materials-unit-row" :style="{ gridTemplateColumns: gridColumns }">
-          <span v-if="batchMode" class="col-check"></span>
-          <span class="col-unit-header"></span>
-          <span class="col-unit-header">g</span>
-          <span class="col-unit-header"></span>
-          <span class="col-unit-header">%</span>
-          <template v-if="mode === 'edit'">
-            <span class="col-unit-header">kJ</span>
-            <span class="col-unit-header">g</span>
-            <span class="col-unit-header">g</span>
-            <span class="col-unit-header">g</span>
-            <span class="col-unit-header">mg</span>
-          </template>
-          <span class="col-unit-header">¥/kg</span>
-          <span class="col-unit-header"></span>
-          <span class="col-unit-header">¥</span>
-          <span v-if="mode === 'parse'" class="col-unit-header"></span>
-          <span class="col-unit-header"></span>
+        <!-- 系数栏 -->
+        <div v-if="mode === 'edit'" class="coefficient-bar">
+          <div class="coeff-item">
+            <label class="coeff-label">主料系数</label>
+            <t-input-number :model-value="ratioFactor" @update:model-value="$emit('update:ratioFactor', $event)"
+              :min="0.15" :max="0.25" :decimal-places="2" size="small" theme="normal" style="width: 100px" />
+          </div>
+          <div class="coeff-item">
+            <label class="coeff-label">辅料系数</label>
+            <t-input-number :model-value="supplementRatioFactor"
+              @update:model-value="$emit('update:supplementRatioFactor', $event)" :min="0.5" :max="1.5"
+              :decimal-places="2" size="small" theme="normal" style="width: 100px" />
+          </div>
+          <div class="coeff-divider"></div>
+          <div class="coeff-item">
+            <label class="coeff-label">成品重量(g)</label>
+            <t-input-number :model-value="finishedWeight" @update:model-value="$emit('update:finishedWeight', $event)"
+              :min="0" :decimal-places="1" size="small" theme="normal" style="width: 120px" placeholder="输入成品重量" />
+          </div>
         </div>
-
-        <div v-if="materials.length > 0" class="materials-total-row" :style="{ gridTemplateColumns: gridColumns }">
-          <span v-if="batchMode" class="col-check"></span>
-          <span class="col-total-label">合计</span>
-          <span class="col-total-qty">{{ totalQuantity }} g</span>
-          <span class="col-unit"></span>
-          <span class="col-ratio col-ratio--total" :class="'ratio-level--' + ratioValidation.level">
-            {{ totalRatioDisplay }}
-          </span>
+        <!-- 营养数据汇总区 -->
+        <div v-if="materials.length > 0" class="nutrition-summary-zone">
+          <div class="nsz-row nsz-row--header" :style="{ gridTemplateColumns: gridColumns }">
+            <span v-if="batchMode" class="col-check"></span>
+            <span class="col-unit-header">营养成分</span>
+            <span class="col-unit-header">总重(g)</span>
+            <span class="col-unit-header">¥/kg</span>
+            <span class="col-unit-header">含量比(%)</span>
+            <template v-if="mode === 'edit'">
+              <span class="col-unit-header">能量(kJ)</span>
+              <span class="col-unit-header">蛋白质(g)</span>
+              <span class="col-unit-header">脂肪(g)</span>
+              <span class="col-unit-header">碳水(g)</span>
+              <span class="col-unit-header">钠(mg)</span>
+            </template>
+            <span class="col-unit-header">¥</span>
+            <span v-if="mode === 'parse'" class="col-unit-header"></span>
+            <span class="col-unit-header"></span>
+          </div>
+          <div class="nsz-row nsz-row--total" :style="{ gridTemplateColumns: gridColumns }">
+            <span v-if="batchMode" class="col-check"></span>
+            <span class="col-total-label">合计</span>
+            <span class="col-total-qty">{{ totalQuantity }} g</span>
+            <span class="col-price"></span>
+            <span class="col-ratio col-ratio--total" :class="'ratio-level--' + ratioValidation.level">
+              {{ totalRatioDisplay }}
+            </span>
+            <template v-if="mode === 'edit'">
+              <span class="col-nutrition col-nutrition--total">{{ nutritionSummary.energy }}</span>
+              <span class="col-nutrition col-nutrition--total">{{ nutritionSummary.protein }}</span>
+              <span class="col-nutrition col-nutrition--total">{{ nutritionSummary.fat }}</span>
+              <span class="col-nutrition col-nutrition--total">{{ nutritionSummary.carbohydrate }}</span>
+              <span class="col-nutrition col-nutrition--total">{{ nutritionSummary.sodium }}</span>
+            </template>
+            <span class="col-subtotal col-subtotal--total" :class="{ 'cost-incomplete': hasMissingPrices }">
+              ¥{{ totalAmount.toFixed(2) }}
+            </span>
+            <span v-if="mode === 'parse'" class="col-status"></span>
+            <span class="col-action"></span>
+          </div>
           <template v-if="mode === 'edit'">
-            <span class="col-nutrition col-nutrition--total">{{ nutritionSummary.energy }}</span>
-            <span class="col-nutrition col-nutrition--total">{{ nutritionSummary.protein }}</span>
-            <span class="col-nutrition col-nutrition--total">{{ nutritionSummary.fat }}</span>
-            <span class="col-nutrition col-nutrition--total">{{ nutritionSummary.carbohydrate }}</span>
-            <span class="col-nutrition col-nutrition--total">{{ nutritionSummary.sodium }}</span>
+            <div class="nsz-row nsz-row--nrv" :style="{ gridTemplateColumns: gridColumns }">
+              <span v-if="batchMode" class="col-check"></span>
+              <span class="col-total-label col-total-label--nrv">NRV</span>
+              <span class="col-total-qty"></span>
+              <span class="col-price"></span>
+              <span class="col-ratio"></span>
+              <span class="col-nutrition col-nutrition--nrv">{{ NRV_REFERENCE.energy }}</span>
+              <span class="col-nutrition col-nutrition--nrv">{{ NRV_REFERENCE.protein }}</span>
+              <span class="col-nutrition col-nutrition--nrv">{{ NRV_REFERENCE.fat }}</span>
+              <span class="col-nutrition col-nutrition--nrv">{{ NRV_REFERENCE.carbohydrate }}</span>
+              <span class="col-nutrition col-nutrition--nrv">{{ NRV_REFERENCE.sodium }}</span>
+              <span class="col-subtotal"></span>
+              <span class="col-action"></span>
+            </div>
+            <div class="nsz-row nsz-row--nrv-pct" :style="{ gridTemplateColumns: gridColumns }">
+              <span v-if="batchMode" class="col-check"></span>
+              <span class="col-total-label col-total-label--nrv-pct">NRV%</span>
+              <span class="col-total-qty"></span>
+              <span class="col-price"></span>
+              <span class="col-ratio"></span>
+              <span class="col-nutrition col-nutrition--nrv-pct">{{ nutritionNrvPercent.energy }}</span>
+              <span class="col-nutrition col-nutrition--nrv-pct">{{ nutritionNrvPercent.protein }}</span>
+              <span class="col-nutrition col-nutrition--nrv-pct">{{ nutritionNrvPercent.fat }}</span>
+              <span class="col-nutrition col-nutrition--nrv-pct">{{ nutritionNrvPercent.carbohydrate }}</span>
+              <span class="col-nutrition col-nutrition--nrv-pct">{{ nutritionNrvPercent.sodium }}</span>
+              <span class="col-subtotal"></span>
+              <span class="col-action"></span>
+            </div>
           </template>
-          <span class="col-price"></span>
-          <span class="col-adjust"></span>
-          <span class="col-subtotal col-subtotal--total" :class="{ 'cost-incomplete': hasMissingPrices }">
-            ¥{{ totalAmount.toFixed(2) }}
-          </span>
-          <span v-if="mode === 'parse'" class="col-status"></span>
-          <span class="col-action"></span>
         </div>
-
-        <div v-if="materials.length > 0 && ratioValidation.level !== 'none'" class="ratio-validation-bar" :class="'ratio-validation-bar--' + ratioValidation.level">
+        <!-- 提交校验 -->
+        <div v-if="materials.length > 0 && ratioValidation.level !== 'none'" class="ratio-validation-bar"
+          :class="'ratio-validation-bar--' + ratioValidation.level">
           <div class="rv-left">
             <t-icon :name="ratioValidationIcon" size="14px" />
             <span class="rv-badge" :class="'rv-badge--' + ratioValidation.level">{{ ratioValidation.badgeText }}</span>
@@ -366,10 +358,10 @@ const restoreFlashIdx = ref<number | null>(null);
 const nutritionCache = ref<Record<string, NutritionPer100g>>({});
 const nutritionLoading = ref<Set<string>>(new Set());
 
-const parseGridBase = "1fr 80px 40px 80px 110px 80px 72px 90px 50px";
-const parseGridBatch = "36px 1fr 80px 40px 80px 110px 80px 72px 90px 50px";
-const editGridBase = "1fr 80px 40px 80px 90px 90px 80px 90px 80px 110px 72px 90px 50px";
-const editGridBatch = "36px 1fr 80px 40px 80px 90px 90px 80px 90px 80px 110px 72px 90px 50px";
+const parseGridBase = "1fr 85px 85px 80px 70px 70px 110px";
+const parseGridBatch = "36px 1fr 80px 110px 80px 72px 90px 50px";
+const editGridBase = "1fr 80px 110px 80px 90px 90px 80px 90px 80px 90px 110px";
+const editGridBatch = "36px 1fr 80px 110px 80px 90px 90px 80px 90px 80px 90px 100px";
 
 const gridColumns = computed(() => {
   if (props.mode === "edit") {
@@ -428,30 +420,88 @@ const hasMissingPrices = computed(() => {
   return props.materials.some((_: MaterialTableRow, idx: number) => getBasePrice(idx) == null);
 });
 
+const ZERO_THRESHOLDS: Record<string, number> = {
+  energy: 17,
+  protein: 0.5,
+  fat: 0.5,
+  carbohydrate: 0.5,
+  sodium: 5,
+};
+
 const nutritionSummary = computed(() => {
   if (props.mode !== "edit") {
     return { energy: "--", protein: "--", fat: "--", carbohydrate: "--", sodium: "--" };
   }
-  let energy = 0, protein = 0, fat = 0, carbohydrate = 0, sodium = 0;
+  if (!props.finishedWeight || props.finishedWeight <= 0) {
+    return { energy: "--", protein: "--", fat: "--", carbohydrate: "--", sodium: "--" };
+  }
+
+  let protein = 0, fat = 0, carbohydrate = 0, sodium = 0;
   let hasAny = false;
-  for (const row of props.materials) {
-    if (!row.materialId) continue;
+
+  for (let i = 0; i < props.materials.length; i++) {
+    const row = props.materials[i];
+    if (!row.materialId || !row.quantity || row.quantity <= 0) continue;
     const n = nutritionCache.value[row.materialId];
     if (!n) continue;
-    const factor = (row.quantity || 0) / 100;
-    if (n.energy != null) { energy += n.energy * factor; hasAny = true; }
-    if (n.protein != null) { protein += n.protein * factor; hasAny = true; }
-    if (n.fat != null) { fat += n.fat * factor; hasAny = true; }
-    if (n.carbohydrate != null) { carbohydrate += n.carbohydrate * factor; hasAny = true; }
-    if (n.sodium != null) { sodium += n.sodium * factor; hasAny = true; }
+    hasAny = true;
+    const factor = isSupplement(i) ? (props.supplementRatioFactor || 1.0) : (props.ratioFactor || 0.18);
+    const ratio = (row.quantity / props.finishedWeight) * factor;
+    if (n.protein != null) protein += n.protein * ratio;
+    if (n.fat != null) fat += n.fat * ratio;
+    if (n.carbohydrate != null) carbohydrate += n.carbohydrate * ratio;
+    if (n.sodium != null) sodium += n.sodium * ratio;
   }
+
   if (!hasAny) return { energy: "--", protein: "--", fat: "--", carbohydrate: "--", sodium: "--" };
+
+  let energy = Math.round((protein * 17 + fat * 37 + carbohydrate * 17) * 100) / 100;
+
+  if (energy <= ZERO_THRESHOLDS.energy) energy = 0;
+  if (protein <= ZERO_THRESHOLDS.protein) protein = 0;
+  if (fat <= ZERO_THRESHOLDS.fat) fat = 0;
+  if (carbohydrate <= ZERO_THRESHOLDS.carbohydrate) carbohydrate = 0;
+  if (sodium <= ZERO_THRESHOLDS.sodium) sodium = 0;
+
+  if (protein === 0 || fat === 0 || carbohydrate === 0) {
+    energy = Math.round((protein * 17 + fat * 37 + carbohydrate * 17) * 100) / 100;
+  }
+
   return {
     energy: energy.toFixed(1),
     protein: protein.toFixed(1),
     fat: fat.toFixed(1),
     carbohydrate: carbohydrate.toFixed(1),
     sodium: sodium.toFixed(1),
+  };
+});
+
+const NRV_REFERENCE: Record<string, number> = {
+  energy: 8400,
+  protein: 60,
+  fat: 60,
+  carbohydrate: 300,
+  sodium: 2000,
+};
+
+const nutritionNrvPercent = computed(() => {
+  if (props.mode !== "edit") {
+    return { energy: "--", protein: "--", fat: "--", carbohydrate: "--", sodium: "--" };
+  }
+  const summary = nutritionSummary.value;
+  const calc = (val: string, key: string) => {
+    if (val === "--") return "--";
+    const num = parseFloat(val);
+    const ref = NRV_REFERENCE[key];
+    if (!ref || !num) return "--";
+    return (num / ref * 100).toFixed(1) + "%";
+  };
+  return {
+    energy: calc(summary.energy, "energy"),
+    protein: calc(summary.protein, "protein"),
+    fat: calc(summary.fat, "fat"),
+    carbohydrate: calc(summary.carbohydrate, "carbohydrate"),
+    sodium: calc(summary.sodium, "sodium"),
   };
 });
 
@@ -597,7 +647,16 @@ function getNutritionValue(idx: number, field: keyof NutritionPer100g): string {
   const row = props.materials[idx];
   if (!row?.materialId) return "--";
   const n = nutritionCache.value[row.materialId];
-  if (!n || n[field] == null) return "--";
+  if (!n) return "--";
+  if (field === "energy") {
+    if (n.energy != null) return n.energy.toFixed(1);
+    if (n.protein != null && n.fat != null && n.carbohydrate != null) {
+      const calculated = n.protein * 17 + n.fat * 37 + n.carbohydrate * 17;
+      return calculated.toFixed(1);
+    }
+    return "--";
+  }
+  if (n[field] == null) return "--";
   return n[field]!.toFixed(1);
 }
 
@@ -898,8 +957,9 @@ watch(
   padding: 10px 14px;
   background: rgba(16, 185, 129, 0.04);
   border-bottom: 1px solid rgba(148, 163, 184, 0.1);
-  border-radius: 8px 8px 0 0;
-  margin-bottom: 0;
+  border-radius: 8px;
+  margin-top: 8px;
+  margin-bottom: 8px;
 
   .coeff-item {
     display: flex;
@@ -1066,7 +1126,7 @@ watch(
     font-size: 11px;
     font-weight: 800;
     color: $emerald-600;
-    text-transform: uppercase;
+    text-transform: none;
     letter-spacing: 0.05em;
     background: $overlay-emerald-08;
     position: sticky;
@@ -1080,7 +1140,7 @@ watch(
     }
 
     .col-qty {
-      text-align: right;
+      text-align: center;
       font-variant-numeric: tabular-nums;
     }
 
@@ -1102,6 +1162,10 @@ watch(
     .col-nutrition {
       text-align: center;
       font-size: 10px;
+    }
+
+    .col-header-unit {
+      text-transform: none;
     }
   }
 
@@ -1265,13 +1329,6 @@ watch(
       }
     }
 
-    .col-unit {
-      color: #64748b;
-      white-space: nowrap;
-      overflow: visible;
-      text-align: center;
-    }
-
     .col-ratio {
       color: #334155;
       font-weight: 600;
@@ -1327,12 +1384,6 @@ watch(
       :deep(.t-input-number__decrease),
       :deep(.t-input-number__increase) {
         display: none;
-      }
-
-      .col-price-unit {
-        font-size: 11px;
-        color: #94a3b8;
-        flex-shrink: 0;
       }
     }
 
@@ -1433,7 +1484,8 @@ watch(
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 4px;
+      gap: 2px;
+      flex-wrap: wrap;
     }
   }
 }
@@ -1521,59 +1573,116 @@ watch(
   }
 }
 
-.materials-unit-row {
-  display: grid;
-  gap: 4px;
-  padding: 4px 14px 6px;
-  font-size: 10px;
-  font-weight: 600;
-  color: #94a3b8;
+.nutrition-summary-zone {
   border-top: 1px solid rgba(148, 163, 184, 0.12);
-  align-items: center;
 
-  .col-unit-header {
+  .nsz-row {
+    display: grid;
+    gap: 4px;
+    padding: 6px 14px;
+    align-items: center;
     text-align: center;
-    font-variant-numeric: tabular-nums;
-  }
-}
-
-.materials-total-row {
-  display: grid;
-  gap: 4px;
-  padding: 10px 14px;
-  font-size: 12px;
-  font-weight: 700;
-  color: #1e293b;
-  border-top: 2px solid rgba(16, 185, 129, 0.2);
-  background: rgba(16, 185, 129, 0.03);
-  align-items: center;
-  text-align: center;
-
-  .col-total-label {
-    font-weight: 800;
-    text-align: left;
   }
 
-  .col-total-qty {
-    font-variant-numeric: tabular-nums;
-    text-align: center;
+  .nsz-row--header {
+    font-size: 10px;
+    font-weight: 600;
+    color: #94a3b8;
+    padding: 4px 14px 6px;
+
+    .col-unit-header {
+      text-align: center;
+      font-variant-numeric: tabular-nums;
+      text-transform: none;
+    }
+  }
+
+  .nsz-row--total {
+    font-size: 12px;
     font-weight: 700;
+    color: #1e293b;
+    border-top: 2px solid rgba(16, 185, 129, 0.2);
+    background: rgba(16, 185, 129, 0.03);
+    padding: 10px 14px;
+
+    .col-total-label {
+      font-weight: 800;
+      text-align: left;
+    }
+
+    .col-total-qty {
+      font-variant-numeric: tabular-nums;
+      text-align: center;
+      font-weight: 700;
+    }
+
+    .col-ratio--total {
+      font-family: ui-monospace, monospace;
+      font-size: 11px;
+      font-weight: 800;
+      text-align: center;
+    }
+
+    .ratio-level--normal {
+      color: #059669;
+    }
+
+    .ratio-level--warning {
+      color: #d97706;
+    }
+
+    .ratio-level--high_warning {
+      color: #ea580c;
+    }
+
+    .ratio-level--error {
+      color: #dc2626;
+    }
+
+    .cost-incomplete {
+      color: #f59e0b;
+    }
   }
 
-  .col-ratio--total {
-    font-family: ui-monospace, monospace;
+  .nsz-row--nrv {
     font-size: 11px;
-    font-weight: 800;
-    text-align: center;
+    font-weight: 500;
+    color: #64748b;
+    border-top: 1px dashed rgba(148, 163, 184, 0.2);
+    background: rgba(248, 250, 252, 0.5);
+    padding: 6px 14px;
+
+    .col-total-label--nrv {
+      font-weight: 600;
+      color: #64748b;
+      text-align: left;
+    }
+
+    .col-nutrition--nrv {
+      font-variant-numeric: tabular-nums;
+      color: #94a3b8;
+    }
   }
 
-  .ratio-level--normal { color: #059669; }
-  .ratio-level--warning { color: #d97706; }
-  .ratio-level--high_warning { color: #ea580c; }
-  .ratio-level--error { color: #dc2626; }
+  .nsz-row--nrv-pct {
+    font-size: 11px;
+    font-weight: 600;
+    color: #334155;
+    border-top: 1px dashed rgba(148, 163, 184, 0.2);
+    background: rgba(248, 250, 252, 0.5);
+    padding: 6px 14px;
 
-  .cost-incomplete {
-    color: #f59e0b;
+    .col-total-label--nrv-pct {
+      font-weight: 700;
+      color: #334155;
+      text-align: left;
+    }
+
+    .col-nutrition--nrv-pct {
+      font-variant-numeric: tabular-nums;
+      color: #10b981;
+      font-weight: 700;
+    }
   }
 }
 
@@ -1624,10 +1733,25 @@ watch(
     font-weight: 700;
     white-space: nowrap;
 
-    &--normal { background: rgba(16, 185, 129, 0.15); color: #059669; }
-    &--warning { background: rgba(245, 158, 11, 0.15); color: #b45309; }
-    &--high_warning { background: rgba(234, 88, 12, 0.15); color: #c2410c; }
-    &--error { background: rgba(220, 38, 38, 0.15); color: #b91c1c; }
+    &--normal {
+      background: rgba(16, 185, 129, 0.15);
+      color: #059669;
+    }
+
+    &--warning {
+      background: rgba(245, 158, 11, 0.15);
+      color: #b45309;
+    }
+
+    &--high_warning {
+      background: rgba(234, 88, 12, 0.15);
+      color: #c2410c;
+    }
+
+    &--error {
+      background: rgba(220, 38, 38, 0.15);
+      color: #b91c1c;
+    }
   }
 
   .rv-desc {
@@ -1641,6 +1765,38 @@ watch(
   align-items: center;
   gap: 6px;
   width: 100%;
+
+  >span:first-child {
+    font-size: 12px;
+    font-weight: 400;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .material-type-tag--herb {
+    flex-shrink: 0;
+    background: rgba(16, 185, 129, 0.1);
+    color: #059669;
+    border-color: #a7f3d0;
+    font-size: 10px;
+    padding: 0 4px;
+    height: 18px;
+    line-height: 16px;
+  }
+
+  .material-type-tag--supplement {
+    flex-shrink: 0;
+    background: rgba(99, 102, 241, 0.1);
+    color: #4f46e5;
+    border-color: #c7d2fe;
+    font-size: 10px;
+    padding: 0 4px;
+    height: 18px;
+    line-height: 16px;
+  }
 }
 
 @keyframes restore-flash {

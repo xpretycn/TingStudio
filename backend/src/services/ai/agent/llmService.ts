@@ -225,6 +225,8 @@ export class LLMAgentService {
             latencyMs,
             status: "success",
             requestSummary,
+            applicationName: "Agent对话",
+            applicationLocation: "悬浮AI助手",
           });
 
           return {
@@ -248,6 +250,8 @@ export class LLMAgentService {
             status: "error",
             errorMessage: (error as Error).message,
             requestSummary,
+            applicationName: "Agent对话",
+            applicationLocation: "悬浮AI助手",
           });
 
           if (attempt < this.MAX_RETRIES && error instanceof TimeoutError) {

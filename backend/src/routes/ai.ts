@@ -35,6 +35,10 @@ import {
   getRecentActivity,
   getSmartToolHistory,
   deleteSmartToolHistory,
+  getPromptTemplates,
+  createPromptTemplate,
+  updatePromptTemplate,
+  deletePromptTemplate,
 } from "../controllers/modelController.js";
 import {
   getParseResults,
@@ -156,6 +160,11 @@ router.delete("/model-applications/:id", deleteModelApplication);
 router.get("/recent-activity", getRecentActivity);
 router.get("/smart-tool-history", getSmartToolHistory);
 router.delete("/smart-tool-history/:id", deleteSmartToolHistory);
+
+router.get("/prompt-templates", getPromptTemplates);
+router.post("/prompt-templates", createPromptTemplate);
+router.put("/prompt-templates/:id", updatePromptTemplate);
+router.delete("/prompt-templates/:id", deletePromptTemplate);
 
 // 解析结果管理（注意：静态路由必须放在 :id 动态路由之前）
 router.get("/parse-results", getParseResults);
