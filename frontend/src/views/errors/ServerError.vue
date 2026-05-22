@@ -17,23 +17,23 @@
               <ellipse cx="160" cy="220" rx="120" ry="30" fill="rgba(255,255,255,0.15)" />
               <ellipse cx="160" cy="180" rx="70" ry="60" fill="#FFE8D6" />
               <circle cx="160" cy="120" r="55" fill="#FFE8D6" />
-              <path d="M115 90L105 45L140 80Z" fill="#FFB5C8" />
+              <path d="M115 90L105 45L140 80Z" fill="var(--color-primary-lighter)" />
               <path d="M120 85L112 55L137 78Z" fill="#FFD1DC" />
-              <path d="M205 90L215 45L180 80Z" fill="#FFB5C8" />
+              <path d="M205 90L215 45L180 80Z" fill="var(--color-primary-lighter)" />
               <path d="M200 85L208 55L183 78Z" fill="#FFD1DC" />
               <ellipse cx="142" cy="118" rx="7" ry="8" fill="#5D4E60" />
               <ellipse cx="178" cy="118" rx="7" ry="8" fill="#5D4E60" />
               <ellipse cx="144" cy="115" rx="2.5" ry="3" fill="#fff" />
               <ellipse cx="180" cy="115" rx="2.5" ry="3" fill="#fff" />
               <ellipse cx="160" cy="132" rx="4" ry="3" fill="#FFB5C2" />
-              <path d="M152 138Q160 145 168 138" stroke="#E8A0B0" stroke-width="1.5" fill="none"
+              <path d="M152 138Q160 145 168 138" stroke="var(--color-primary-dark)" stroke-width="1.5" fill="none"
                 stroke-linecap="round" />
               <ellipse cx="130" cy="130" rx="10" ry="6" fill="#FFB5C2" opacity="0.35" />
               <ellipse cx="190" cy="130" rx="10" ry="6" fill="#FFB5C2" opacity="0.35" />
-              <line x1="118" y1="125" x2="138" y2="128" stroke="#E8A0B0" stroke-width="1" opacity="0.4" />
-              <line x1="118" y1="133" x2="138" y2="132" stroke="#E8A0B0" stroke-width="1" opacity="0.4" />
-              <line x1="182" y1="128" x2="202" y2="125" stroke="#E8A0B0" stroke-width="1" opacity="0.4" />
-              <line x1="182" y1="132" x2="202" y2="133" stroke="#E8A0B0" stroke-width="1" opacity="0.4" />
+              <line x1="118" y1="125" x2="138" y2="128" stroke="var(--color-primary-dark)" stroke-width="1" opacity="0.4" />
+              <line x1="118" y1="133" x2="138" y2="132" stroke="var(--color-primary-dark)" stroke-width="1" opacity="0.4" />
+              <line x1="182" y1="128" x2="202" y2="125" stroke="var(--color-primary-dark)" stroke-width="1" opacity="0.4" />
+              <line x1="182" y1="132" x2="202" y2="133" stroke="var(--color-primary-dark)" stroke-width="1" opacity="0.4" />
               <ellipse cx="135" cy="225" rx="18" ry="12" fill="#FFE8D6" />
               <ellipse cx="185" cy="225" rx="18" ry="12" fill="#FFE8D6" />
               <circle cx="130" cy="228" r="3" fill="#FFB5C2" opacity="0.4" />
@@ -44,7 +44,7 @@
                 stroke-linecap="round" />
               <g transform="translate(95, 200) scale(0.6)">
                 <path d="M10 6C10 2 6 0 3 0S0 2 0 4C0 8 10 16 10 16S20 8 20 4C20 2 17 0 14 0S10 2 10 6Z"
-                  fill="#FF8FAB" />
+                  fill="var(--color-primary-light)" />
               </g>
             </svg>
           </div>
@@ -87,27 +87,27 @@
           <div class="error-header__logo">
             <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
               <ellipse cx="50" cy="55" rx="38" ry="35" fill="#FFE8D6" />
-              <path d="M22 35L12 8L35 30Z" fill="#FFB5C8" />
+              <path d="M22 35L12 8L35 30Z" fill="var(--color-primary-lighter)" />
               <path d="M25 32L18 12L36 28Z" fill="#FFD1DC" />
-              <path d="M78 35L88 8L65 30Z" fill="#FFB5C8" />
+              <path d="M78 35L88 8L65 30Z" fill="var(--color-primary-lighter)" />
               <path d="M75 32L82 12L64 28Z" fill="#FFD1DC" />
               <ellipse cx="38" cy="52" rx="6" ry="7" fill="#5D4E60" />
               <ellipse cx="62" cy="52" rx="6" ry="7" fill="#5D4E60" />
               <ellipse cx="40" cy="49" rx="2" ry="2.5" fill="#fff" />
               <ellipse cx="64" cy="49" rx="2" ry="2.5" fill="#fff" />
               <ellipse cx="50" cy="62" rx="3.5" ry="2.5" fill="#FFB5C2" />
-              <path d="M44 68Q50 73 56 68" stroke="#E8A0B0" stroke-width="1.2" fill="none" stroke-linecap="round" />
+              <path d="M44 68Q50 73 56 68" stroke="var(--color-primary-dark)" stroke-width="1.2" fill="none" stroke-linecap="round" />
               <ellipse cx="32" cy="62" rx="6" ry="3.5" fill="#FFB5C2" opacity="0.35" />
               <ellipse cx="68" cy="62" rx="6" ry="3.5" fill="#FFB5C2" opacity="0.35" />
-              <line x1="20" y1="60" x2="35" y2="62" stroke="#E8A0B0" stroke-width="1" opacity="0.4" />
-              <line x1="20" y1="66" x2="35" y2="65" stroke="#E8A0B0" stroke-width="1" opacity="0.4" />
-              <line x1="65" y1="62" x2="80" y2="60" stroke="#E8A0B0" stroke-width="1" opacity="0.4" />
-              <line x1="65" y1="65" x2="80" y2="66" stroke="#E8A0B0" stroke-width="1" opacity="0.4" />
+              <line x1="20" y1="60" x2="35" y2="62" stroke="var(--color-primary-dark)" stroke-width="1" opacity="0.4" />
+              <line x1="20" y1="66" x2="35" y2="65" stroke="var(--color-primary-dark)" stroke-width="1" opacity="0.4" />
+              <line x1="65" y1="62" x2="80" y2="60" stroke="var(--color-primary-dark)" stroke-width="1" opacity="0.4" />
+              <line x1="65" y1="65" x2="80" y2="66" stroke="var(--color-primary-dark)" stroke-width="1" opacity="0.4" />
               <ellipse cx="35" cy="88" rx="10" ry="6" fill="#FFE8D6" />
               <ellipse cx="65" cy="88" rx="10" ry="6" fill="#FFE8D6" />
               <path
                 d="M35 88C35 85 33 84 31 84C29 84 27 85 27 86C27 88 35 92 35 92C35 92 43 88 43 86C43 85 41 84 39 84C37 84 35 85 35 88Z"
-                fill="#FF8FAB" />
+                fill="var(--color-primary-light)" />
             </svg>
           </div>
           <h2 class="error-header__title">哎呀 ~ 出错了</h2>
@@ -197,13 +197,13 @@ const starStyle = (i: number) => ({
 </script>
 
 <style scoped lang="scss">
-$brand-primary: #ff6b8a;
-$brand-primary-light: #ff8fab;
+$brand-primary: var(--color-primary);
+$brand-primary-light: var(--color-primary-light);
 $brand-primary-lighter: #ffc2d1;
-$brand-primary-lightest: #fff0f3;
-$text-primary: #1e293b;
-$text-secondary: #64748b;
-$text-dim: #94a3b8;
+$brand-primary-lightest: var(--color-primary-bg);
+$text-primary: var(--color-text-primary);
+$text-secondary: var(--color-text-secondary);
+$text-dim: var(--color-text-placeholder);
 $text-white: #ffffff;
 $color-lavender: #e8d5f5;
 $decor-mauve: #ffd1dc;
@@ -238,7 +238,7 @@ $shadow-brand-lg: 0 10px 30px rgba(255, 107, 138, 0.3);
   align-items: center;
   justify-content: center;
   padding: 48px;
-  background: linear-gradient(155deg, #FFF0F3 0%, #FFE4EE 25%, #F0E6FF 55%, #FFF0F3 100%);
+  background: linear-gradient(155deg, var(--color-primary-bg) 0%, #FFE4EE 25%, #F0E6FF 55%, var(--color-primary-bg) 100%);
   overflow: hidden;
 
   &__decor {
@@ -324,7 +324,7 @@ $shadow-brand-lg: 0 10px 30px rgba(255, 107, 138, 0.3);
   position: relative;
   width: 260px;
   height: 220px;
-  margin: 0 auto 28px;
+  margin: 0 auto var(--space-7);
 
   &__cat {
     width: 100%;
@@ -384,7 +384,7 @@ $shadow-brand-lg: 0 10px 30px rgba(255, 107, 138, 0.3);
     font-size: 15px;
     font-weight: 600;
     color: $brand-primary-light;
-    margin: 0 0 10px 0;
+    margin: 0 0 var(--space-2-5) 0;
   }
 
   &__desc {
@@ -404,7 +404,7 @@ $shadow-brand-lg: 0 10px 30px rgba(255, 107, 138, 0.3);
 
 .feature-tags {
   display: flex;
-  gap: 10px;
+  gap: var(--space-2-5);
   justify-content: center;
   flex-wrap: wrap;
 }
@@ -412,8 +412,8 @@ $shadow-brand-lg: 0 10px 30px rgba(255, 107, 138, 0.3);
 .feature-tag {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 7px 14px;
+  gap: var(--space-1-5);
+  padding: var(--space-2) var(--space-3-5);
   background: $overlay-white-65;
   backdrop-filter: blur(8px);
   border-radius: 20px;
@@ -461,14 +461,14 @@ $shadow-brand-lg: 0 10px 30px rgba(255, 107, 138, 0.3);
 }
 
 .error-header {
-  margin-bottom: 28px;
+  margin-bottom: var(--space-7);
   text-align: center;
 
   &__logo {
     display: inline-flex;
     justify-content: center;
     align-items: center;
-    margin: 0 auto 18px;
+    margin: 0 auto var(--space-4-5);
     width: 90px;
     height: 90px;
 
@@ -511,7 +511,7 @@ $shadow-brand-lg: 0 10px 30px rgba(255, 107, 138, 0.3);
   .error-code {
     font-size: 56px;
     font-weight: 900;
-    color: #EF4444;
+    color: var(--color-danger);
     line-height: 1;
     letter-spacing: -3px;
     animation: codePulse 2s ease-in-out infinite;
@@ -520,8 +520,8 @@ $shadow-brand-lg: 0 10px 30px rgba(255, 107, 138, 0.3);
   .error-code-label {
     font-size: 13px;
     font-weight: 600;
-    color: #DC2626;
-    margin-top: 6px;
+    color: var(--color-danger);
+    margin-top: var(--space-1-5);
   }
 }
 
@@ -534,7 +534,7 @@ $shadow-brand-lg: 0 10px 30px rgba(255, 107, 138, 0.3);
   display: flex;
   align-items: flex-start;
   gap: 8px;
-  padding: 14px 16px;
+  padding: var(--space-3-5) 16px;
   background: #FFFBEB;
   border-radius: 12px;
   border: 1px solid #FEF08A;
@@ -546,7 +546,7 @@ $shadow-brand-lg: 0 10px 30px rgba(255, 107, 138, 0.3);
 
   svg {
     flex-shrink: 0;
-    margin-top: 2px;
+    margin-top: var(--space-0-5);
     color: #ca8a04;
   }
 }
@@ -562,7 +562,7 @@ $shadow-brand-lg: 0 10px 30px rgba(255, 107, 138, 0.3);
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 12px 28px;
+  padding: 12px var(--space-7);
   border: none;
   border-radius: 14px;
   background: linear-gradient(135deg, $brand-primary-light, $brand-primary);
@@ -597,12 +597,12 @@ $shadow-brand-lg: 0 10px 30px rgba(255, 107, 138, 0.3);
 .btn-secondary {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--space-1-5);
   padding: 12px 24px;
-  border: 1.5px solid #e2e8f0;
+  border: 1.5px solid var(--color-border);
   border-radius: 14px;
   background: #fff;
-  color: #64748b;
+  color: var(--color-text-secondary);
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
@@ -610,8 +610,8 @@ $shadow-brand-lg: 0 10px 30px rgba(255, 107, 138, 0.3);
 
   &:hover {
     border-color: #cbd5e1;
-    background: #f8fafc;
-    color: #475569;
+    background: var(--color-bg-page);
+    color: var(--color-text-secondary);
   }
 }
 
@@ -641,7 +641,7 @@ $shadow-brand-lg: 0 10px 30px rgba(255, 107, 138, 0.3);
 @media screen and (max-width: 1024px) {
   .left-panel {
     flex: 0 0 45%;
-    padding: 36px 32px;
+    padding: var(--space-8) 32px;
   }
 
   .illustration {
@@ -659,7 +659,7 @@ $shadow-brand-lg: 0 10px 30px rgba(255, 107, 138, 0.3);
 
   .feature-tag {
     font-size: 12px;
-    padding: 6px 12px;
+    padding: var(--space-1-5) 12px;
   }
 }
 

@@ -56,7 +56,7 @@
         </div>
 
         <div v-else class="nl2sql-empty">
-          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="1.5"
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-placeholder)" stroke-width="1.5"
             stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="10" />
             <line x1="12" y1="8" x2="12" y2="12" />
@@ -232,7 +232,7 @@ const cardItems = computed(() => {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 10px 14px;
+        padding: var(--space-2-5) var(--space-3-5);
         background: #eff6ff;
 
         .sql-header-left {
@@ -275,11 +275,11 @@ const cardItems = computed(() => {
 
       .sql-code {
         margin: 0;
-        padding: 12px 14px;
+        padding: 12px var(--space-3-5);
         font-size: 12px;
         font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
-        color: #334155;
-        background: #f8fafc;
+        color: var(--color-text-primary);
+        background: var(--color-bg-page);
         white-space: pre-wrap;
         word-break: break-all;
         line-height: 1.6;
@@ -287,7 +287,7 @@ const cardItems = computed(() => {
     }
 
     .nl2sql-table-wrapper {
-      border: 1px solid #e2e8f0;
+      border: 1px solid var(--color-border);
       border-radius: 10px;
       overflow: hidden;
 
@@ -295,20 +295,20 @@ const cardItems = computed(() => {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 8px 14px;
-        background: #f8fafc;
-        border-top: 1px solid #e2e8f0;
+        padding: 8px var(--space-3-5);
+        background: var(--color-bg-page);
+        border-top: 1px solid var(--color-border);
 
         .result-count {
           font-size: 12px;
-          color: #64748b;
+          color: var(--color-text-secondary);
         }
 
         .export-btn {
           display: inline-flex;
           align-items: center;
-          gap: 5px;
-          padding: 5px 12px;
+          gap: var(--space-1-25);
+          padding: var(--space-1-25) 12px;
           border: 1px solid #d1d5db;
           border-radius: 6px;
           background: #fff;
@@ -331,22 +331,22 @@ const cardItems = computed(() => {
       align-items: center;
       gap: 8px;
       padding: 24px;
-      color: #94a3b8;
+      color: var(--color-text-placeholder);
       font-size: 14px;
     }
   }
 
   .result-table-wrapper {
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--color-border);
     border-radius: 8px;
     overflow: hidden;
 
     .result-meta {
-      padding: 6px 12px;
-      background: #f8fafc;
+      padding: var(--space-1-5) 12px;
+      background: var(--color-bg-page);
       font-size: 12px;
-      color: #64748b;
-      border-top: 1px solid #e2e8f0;
+      color: var(--color-text-secondary);
+      border-top: 1px solid var(--color-border);
     }
   }
 
@@ -356,22 +356,22 @@ const cardItems = computed(() => {
     gap: 8px;
 
     .result-card {
-      padding: 10px 16px;
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
+      padding: var(--space-2-5) 16px;
+      background: var(--color-bg-page);
+      border: 1px solid var(--color-border);
       border-radius: 8px;
       min-width: 120px;
 
       .card-label {
         font-size: 12px;
-        color: #64748b;
+        color: var(--color-text-secondary);
         margin-bottom: 4px;
       }
 
       .card-value {
         font-size: 16px;
         font-weight: 600;
-        color: #1e293b;
+        color: var(--color-text-primary);
       }
     }
   }
@@ -379,7 +379,7 @@ const cardItems = computed(() => {
   .result-toast {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--space-1-5);
     padding: 8px 16px;
     border-radius: 8px;
     font-size: 14px;
@@ -387,21 +387,21 @@ const cardItems = computed(() => {
 
     &.success {
       background: #ecfdf5;
-      color: #059669;
+      color: var(--color-primary-dark);
     }
 
     &.error {
       background: #fef2f2;
-      color: #dc2626;
+      color: var(--color-danger);
     }
   }
 
   .result-default {
     padding: 8px 12px;
-    background: #f8fafc;
+    background: var(--color-bg-page);
     border-radius: 8px;
     font-size: 13px;
-    color: #475569;
+    color: var(--color-text-secondary);
 
     pre {
       margin: 0;

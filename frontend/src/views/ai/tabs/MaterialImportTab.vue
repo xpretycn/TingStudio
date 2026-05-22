@@ -76,7 +76,7 @@
             v-if="selectedFile && !aiStore.materialParseLoading && !parsedItems.length && !aiStore.materialParseAborted"
             class="file-selected-row">
             <div class="file-info">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2"
                 stroke-linecap="round" stroke-linejoin="round">
                 <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
                 <polyline points="14 2 14 8 20 8" />
@@ -124,7 +124,7 @@
               </div>
             </div>
             <div v-if="selectedFile" class="progress-file-info">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2"
                 stroke-linecap="round" stroke-linejoin="round">
                 <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
                 <polyline points="14 2 14 8 20 8" />
@@ -170,7 +170,7 @@
           <div v-if="parsedItems.length && !aiStore.materialParseAborted" class="parse-result">
             <div class="result-header">
               <h4 class="result-title">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2"
                   stroke-linecap="round" stroke-linejoin="round">
                   <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
                   <polyline points="22 4 12 14.01 9 11.01" />
@@ -236,7 +236,7 @@
 
             <div class="validation-summary" v-if="validationIssues.length">
               <div class="validation-title">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2"
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-warning)" stroke-width="2"
                   stroke-linecap="round" stroke-linejoin="round">
                   <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
                   <line x1="12" y1="9" x2="12" y2="13" />
@@ -424,7 +424,7 @@
 
             <div class="batch-actions">
               <div v-if="pendingItems.length > 0" class="batch-pending-hint">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2"
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-warning)" stroke-width="2"
                   stroke-linecap="round" stroke-linejoin="round">
                   <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
                   <line x1="12" y1="9" x2="12" y2="13" />
@@ -531,7 +531,7 @@
 
             <div v-if="batchSummary" class="summary-card">
               <div class="summary-header">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2"
                   stroke-linecap="round" stroke-linejoin="round">
                   <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
                   <polyline points="22 4 12 14.01 9 11.01" />
@@ -541,7 +541,7 @@
               <div class="summary-body">
                 <div class="summary-item summary-item--success">
                   <span class="summary-icon">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2"
                       stroke-linecap="round" stroke-linejoin="round">
                       <polyline points="20 6 9 17 4 12" />
                     </svg>
@@ -551,7 +551,7 @@
                 </div>
                 <div class="summary-item summary-item--fail">
                   <span class="summary-icon">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2"
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-danger)" stroke-width="2"
                       stroke-linecap="round" stroke-linejoin="round">
                       <circle cx="12" cy="12" r="10" />
                       <line x1="15" y1="9" x2="9" y2="15" />
@@ -570,11 +570,11 @@
               <div v-if="fileUploadStatus" class="summary-file-status"
                 :class="{ 'summary-file-status--success': fileUploadStatus.uploaded, 'summary-file-status--fail': !fileUploadStatus.uploaded }">
                 <svg v-if="fileUploadStatus.uploaded" width="14" height="14" viewBox="0 0 24 24" fill="none"
-                  stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
                   <polyline points="14 2 14 8 20 8" />
                 </svg>
-                <svg v-else width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2"
+                <svg v-else width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-danger)" stroke-width="2"
                   stroke-linecap="round" stroke-linejoin="round">
                   <circle cx="12" cy="12" r="10" />
                   <line x1="15" y1="9" x2="9" y2="15" />
@@ -605,7 +605,7 @@
       :cancel-btn="{ content: '取消' }" @confirm="handleSaveTemplate">
       <template #header>
         <div class="save-template-dialog-header">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2"
             stroke-linecap="round" stroke-linejoin="round">
             <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z" />
             <polyline points="17 21 17 13 7 13 7 21" />
@@ -1122,7 +1122,7 @@ const getFallbackLetter = (model: any): string => {
 
 const getFallbackColor = (model: any): string => {
   const slug = getModelSlug(model);
-  return FALLBACK_ICONS[slug]?.color || '#94a3b8';
+  return FALLBACK_ICONS[slug]?.color || 'var(--color-text-placeholder)';
 };
 
 const handleLogoError = (e: Event) => {
@@ -1189,9 +1189,9 @@ const matchExistingMaterials = async () => {
 };
 
 const getConfidenceColor = (confidence: number): string => {
-  if (confidence >= 0.8) return '#10B981';
-  if (confidence >= 0.5) return '#F59E0B';
-  return '#EF4444';
+  if (confidence >= 0.8) return 'var(--color-primary)';
+  if (confidence >= 0.5) return 'var(--color-warning)';
+  return 'var(--color-danger)';
 };
 
 const isDuplicateName = (name: string, currentIndex: number): boolean => {
@@ -1776,11 +1776,11 @@ watch(() => aiStore.materialParseResult, (newVal) => {
 }
 
 .ai-panel {
-  background: linear-gradient(145deg, #ffffff 0%, #f8fafc 50%, $border-color-light 100%);
+  background: linear-gradient(145deg, #ffffff 0%, var(--color-bg-page) 50%, $border-color-light 100%);
   padding: 32px;
   border-radius: 2.5rem;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.06), 0 8px 10px -6px $overlay-emerald-06;
-  color: #334155;
+  color: var(--color-text-primary);
   position: relative;
   overflow: hidden;
   animation: fadeInUp 0.5s ease both;
@@ -1851,8 +1851,8 @@ watch(() => aiStore.materialParseResult, (newVal) => {
       .status-indicator {
         display: inline-flex;
         align-items: center;
-        gap: 6px;
-        padding: 5px 12px;
+        gap: var(--space-1-5);
+        padding: var(--space-1-25) 12px;
         border-radius: 20px;
         font-size: 12px;
         font-weight: 600;
@@ -1867,7 +1867,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
 
       .status-indicator--done {
         background: rgba(16, 185, 129, 0.08);
-        color: #059669;
+        color: var(--color-primary-dark);
         border: 1px solid rgba(16, 185, 129, 0.15);
       }
 
@@ -1879,10 +1879,10 @@ watch(() => aiStore.materialParseResult, (newVal) => {
 
       .status-indicator--aborted {
         background: rgba(239, 68, 68, 0.08);
-        color: #dc2626;
+        color: var(--color-danger);
         border: 1px solid rgba(239, 68, 68, 0.15);
         margin-top: 24px;
-        padding: 10px 14px;
+        padding: var(--space-2-5) var(--space-3-5);
         transition: all 0.3s ease;
         animation: aborted-fade-in 0.3s ease-out;
       }
@@ -1901,16 +1901,16 @@ watch(() => aiStore.materialParseResult, (newVal) => {
       }
 
       .status-dot--done {
-        background: #10b981;
+        background: var(--color-primary);
       }
 
       .status-dot--ready {
-        background: #f59e0b;
+        background: var(--color-warning);
         animation: dot-blink 2s ease-in-out infinite;
       }
 
       .status-dot--aborted {
-        background: #ef4444;
+        background: var(--color-danger);
       }
 
       .status-text {
@@ -1962,7 +1962,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
   .ai-body {
     .upload-zone {
       border: 2px dashed rgba(148, 163, 184, 0.25);
-      border-radius: 24px;
+      border-radius: var(--radius-4xl);
       padding: 32px;
       display: flex;
       flex-direction: column;
@@ -2006,7 +2006,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
 
         .upload-hint {
           font-size: 10px;
-          color: #64748b;
+          color: var(--color-text-secondary);
           margin: 4px 0 0;
         }
       }
@@ -2015,9 +2015,9 @@ watch(() => aiStore.materialParseResult, (newVal) => {
     .template-selector {
       display: flex;
       align-items: flex-start;
-      gap: 10px;
+      gap: var(--space-2-5);
       margin-top: 12px;
-      padding: 10px 16px;
+      padding: var(--space-2-5) 16px;
       background: rgba(99, 102, 241, 0.04);
       border: 1px solid rgba(99, 102, 241, 0.12);
       border-radius: 12px;
@@ -2025,13 +2025,13 @@ watch(() => aiStore.materialParseResult, (newVal) => {
       .template-selector-label {
         display: flex;
         align-items: center;
-        gap: 6px;
+        gap: var(--space-1-5);
         font-size: 13px;
         font-weight: 600;
         color: #6366f1;
         white-space: nowrap;
         flex-shrink: 0;
-        margin-top: 5px;
+        margin-top: var(--space-1-25);
       }
     }
 
@@ -2040,7 +2040,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
       align-items: center;
       justify-content: space-between;
       margin-top: 16px;
-      padding: 14px 18px;
+      padding: var(--space-3-5) var(--space-4-5);
       background: linear-gradient(135deg, #ecfdf5, #f0fdf4);
       border: 1px solid #bbf7d0;
       border-radius: 12px;
@@ -2050,7 +2050,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
         align-items: center;
         gap: 8px;
         font-size: 14px;
-        color: #334155;
+        color: var(--color-text-primary);
         font-weight: 500;
 
         .file-name {
@@ -2061,15 +2061,15 @@ watch(() => aiStore.materialParseResult, (newVal) => {
         }
 
         .file-size {
-          color: #94a3b8;
+          color: var(--color-text-placeholder);
           font-size: 12px;
           font-weight: 400;
         }
 
         .file-format {
-          padding: 1px 6px;
+          padding: 1px var(--space-1-5);
           background: rgba(16, 185, 129, 0.1);
-          color: #059669;
+          color: var(--color-primary-dark);
           border-radius: 4px;
           font-size: 11px;
           font-weight: 700;
@@ -2086,10 +2086,10 @@ watch(() => aiStore.materialParseResult, (newVal) => {
     .parse-btn {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      padding: 8px 18px;
+      gap: var(--space-1-5);
+      padding: 8px var(--space-4-5);
       border-radius: 10px;
-      background: linear-gradient(135deg, #10b981, #059669);
+      background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
       color: #fff;
       font-size: 13px;
       font-weight: 700;
@@ -2117,30 +2117,30 @@ watch(() => aiStore.materialParseResult, (newVal) => {
       border-radius: 8px;
       border: none;
       background: #fff;
-      color: #94a3b8;
+      color: var(--color-text-placeholder);
       cursor: pointer;
       transition: all $transition-fast;
 
       &:hover {
         background: #fef2f2;
-        color: #ef4444;
+        color: var(--color-danger);
       }
 
       &--with-text {
         width: auto;
         height: auto;
-        padding: 8px 18px;
-        gap: 6px;
+        padding: 8px var(--space-4-5);
+        gap: var(--space-1-5);
         font-size: 13px;
         font-weight: 700;
         border-radius: 10px;
-        border: 1px solid #e2e8f0;
+        border: 1px solid var(--color-border);
         background: #fff;
-        color: #94a3b8;
+        color: var(--color-text-placeholder);
 
         &:hover {
           background: #fef2f2;
-          color: #ef4444;
+          color: var(--color-danger);
           border-color: #fecaca;
         }
       }
@@ -2149,7 +2149,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
     .parsing-progress {
       padding: 24px;
       background: $overlay-emerald-04;
-      border-radius: 24px;
+      border-radius: var(--radius-4xl);
       border: 1px solid rgba(148, 163, 184, 0.18);
 
       .progress-header {
@@ -2161,7 +2161,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
         .progress-status {
           font-size: 12px;
           font-weight: 700;
-          color: #64748b;
+          color: var(--color-text-secondary);
         }
 
         .progress-right {
@@ -2179,7 +2179,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
         .progress-timer {
           display: inline-flex;
           align-items: center;
-          padding: 2px 10px;
+          padding: var(--space-0-5) var(--space-2-5);
           background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
           color: #fff;
           font-size: 11px;
@@ -2205,9 +2205,9 @@ watch(() => aiStore.materialParseResult, (newVal) => {
         .abort-btn {
           display: inline-flex;
           align-items: center;
-          gap: 5px;
-          padding: 5px 14px;
-          background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+          gap: var(--space-1-25);
+          padding: var(--space-1-25) var(--space-3-5);
+          background: linear-gradient(135deg, var(--color-danger) 0%, var(--color-danger) 100%);
           color: #fff;
           font-size: 12px;
           font-weight: 600;
@@ -2216,12 +2216,12 @@ watch(() => aiStore.materialParseResult, (newVal) => {
           cursor: pointer;
           transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
           box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
-          margin-left: 10px;
+          margin-left: var(--space-2-5);
 
           &:hover {
             transform: translateY(-1px);
             box-shadow: 0 4px 12px rgba(239, 68, 68, 0.45);
-            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+            background: linear-gradient(135deg, var(--color-danger) 0%, #b91c1c 100%);
           }
 
           &:active {
@@ -2241,7 +2241,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
       .progress-file-info {
         display: flex;
         align-items: center;
-        gap: 6px;
+        gap: var(--space-1-5);
         padding: 8px 12px;
         background: rgba(16, 185, 129, 0.06);
         border-radius: 8px;
@@ -2250,7 +2250,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
         .progress-file-name {
           font-size: 13px;
           font-weight: 600;
-          color: #334155;
+          color: var(--color-text-primary);
           max-width: 260px;
           overflow: hidden;
           text-overflow: ellipsis;
@@ -2259,7 +2259,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
 
         .progress-file-size {
           font-size: 11px;
-          color: #94a3b8;
+          color: var(--color-text-placeholder);
           flex-shrink: 0;
         }
       }
@@ -2267,7 +2267,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
       .progress-bar {
         height: 6px;
         background: rgba(148, 163, 184, 0.20);
-        border-radius: 3px;
+        border-radius: var(--radius-xs);
         overflow: hidden;
         margin-bottom: 12px;
 
@@ -2275,7 +2275,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
           height: 100%;
           background: $gradient-emerald-light;
           background-size: 200% 100%;
-          border-radius: 3px;
+          border-radius: var(--radius-xs);
 
           &--indeterminate {
             width: 40% !important;
@@ -2286,7 +2286,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
 
       .progress-hint {
         font-size: 10px;
-        color: #64748b;
+        color: var(--color-text-secondary);
         font-style: italic;
         margin: 0;
       }
@@ -2294,9 +2294,9 @@ watch(() => aiStore.materialParseResult, (newVal) => {
       .progress-model-info {
         display: flex;
         align-items: center;
-        gap: 6px;
-        margin-top: 10px;
-        padding: 6px 10px;
+        gap: var(--space-1-5);
+        margin-top: var(--space-2-5);
+        padding: var(--space-1-5) var(--space-2-5);
         background: rgba(99, 102, 241, 0.06);
         border: 1px solid rgba(99, 102, 241, 0.12);
         border-radius: 8px;
@@ -2313,13 +2313,13 @@ watch(() => aiStore.materialParseResult, (newVal) => {
         }
 
         .model-version {
-          color: #94a3b8;
+          color: var(--color-text-placeholder);
           font-family: monospace;
           font-size: 10px;
         }
 
         .model-feature {
-          padding: 1px 6px;
+          padding: 1px var(--space-1-5);
           background: rgba(99, 102, 241, 0.1);
           border-radius: 4px;
           font-size: 10px;
@@ -2334,11 +2334,11 @@ watch(() => aiStore.materialParseResult, (newVal) => {
       justify-content: space-between;
       gap: 8px;
       margin-top: 16px;
-      padding: 14px 18px;
+      padding: var(--space-3-5) var(--space-4-5);
       background: $color-danger-bg;
       border: 1px solid $color-danger-medium;
       border-radius: 16px;
-      color: #dc2626;
+      color: var(--color-danger);
       font-size: 12px;
       font-weight: 600;
 
@@ -2371,11 +2371,11 @@ watch(() => aiStore.materialParseResult, (newVal) => {
       .error-dismiss {
         background: none;
         border: none;
-        color: #dc2626;
+        color: var(--color-danger);
         cursor: pointer;
         font-size: 14px;
         opacity: 0.5;
-        padding: 2px 4px;
+        padding: var(--space-0-5) 4px;
         transition: opacity 0.2s;
 
         &:hover {
@@ -2387,8 +2387,8 @@ watch(() => aiStore.materialParseResult, (newVal) => {
         display: flex;
         align-items: center;
         gap: 4px;
-        padding: 5px 12px;
-        background: linear-gradient(135deg, #f59e0b, #d97706);
+        padding: var(--space-1-25) 12px;
+        background: linear-gradient(135deg, var(--color-warning), #d97706);
         color: #fff;
         border: none;
         border-radius: 8px;
@@ -2423,7 +2423,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
         .result-title {
           font-size: 16px;
           font-weight: 700;
-          color: #1e293b;
+          color: var(--color-text-primary);
           margin: 0;
           display: flex;
           align-items: center;
@@ -2432,9 +2432,9 @@ watch(() => aiStore.materialParseResult, (newVal) => {
           .result-count {
             font-size: 12px;
             font-weight: 500;
-            color: #94a3b8;
+            color: var(--color-text-placeholder);
             background: #f1f5f9;
-            padding: 2px 8px;
+            padding: var(--space-0-5) 8px;
             border-radius: 6px;
           }
         }
@@ -2442,14 +2442,14 @@ watch(() => aiStore.materialParseResult, (newVal) => {
         .result-actions {
           display: flex;
           align-items: center;
-          gap: 10px;
+          gap: var(--space-2-5);
 
           .header-action-btn {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 5px;
-            padding: 7px 14px;
+            gap: var(--space-1-25);
+            padding: var(--space-2) var(--space-3-5);
             border-radius: 10px;
             font-size: 12px;
             font-weight: 600;
@@ -2465,10 +2465,10 @@ watch(() => aiStore.materialParseResult, (newVal) => {
             &--clear {
               background: #fef2f2;
               border: 1px solid #fecaca;
-              color: #dc2626;
+              color: var(--color-danger);
 
               svg {
-                color: #dc2626;
+                color: var(--color-danger);
               }
 
               &:hover {
@@ -2515,19 +2515,19 @@ watch(() => aiStore.materialParseResult, (newVal) => {
             &--reparse {
               background: #f0fdf4;
               border: 1px solid #bbf7d0;
-              color: #059669;
+              color: var(--color-primary-dark);
 
               svg {
-                color: #059669;
+                color: var(--color-primary-dark);
               }
 
               &:hover {
                 background: #dcfce7;
                 border-color: #86efac;
-                color: #047857;
+                color: var(--color-primary-deep);
 
                 svg {
-                  color: #047857;
+                  color: var(--color-primary-deep);
                 }
               }
 
@@ -2551,11 +2551,11 @@ watch(() => aiStore.materialParseResult, (newVal) => {
       .validation-title {
         display: flex;
         align-items: center;
-        gap: 6px;
+        gap: var(--space-1-5);
         font-size: 14px;
         font-weight: 600;
         color: #92400e;
-        margin-bottom: 10px;
+        margin-bottom: var(--space-2-5);
       }
 
       .validation-item {
@@ -2564,7 +2564,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
         line-height: 1.5;
 
         &--error {
-          color: #dc2626;
+          color: var(--color-danger);
         }
 
         &--warning {
@@ -2585,22 +2585,22 @@ watch(() => aiStore.materialParseResult, (newVal) => {
       font-size: 13px;
 
       th {
-        background: #f8fafc;
-        padding: 12px 14px;
+        background: var(--color-bg-page);
+        padding: 12px var(--space-3-5);
         text-align: left;
         font-weight: 600;
-        color: #64748b;
+        color: var(--color-text-secondary);
         font-size: 12px;
         text-transform: uppercase;
         letter-spacing: 0.05em;
-        border-bottom: 1px solid #e2e8f0;
+        border-bottom: 1px solid var(--color-border);
         white-space: nowrap;
       }
 
       td {
-        padding: 10px 14px;
+        padding: var(--space-2-5) var(--space-3-5);
         border-bottom: 1px solid #f1f5f9;
-        color: #334155;
+        color: var(--color-text-primary);
         vertical-align: middle;
       }
 
@@ -2608,7 +2608,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
         transition: background $transition-fast;
 
         &:hover {
-          background: #f8fafc;
+          background: var(--color-bg-page);
         }
 
         &.row-recorded {
@@ -2621,7 +2621,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
 
         &.row-pending {
           background: rgba(245, 158, 11, 0.05);
-          border-left: 3px solid #F59E0B;
+          border-left: 3px solid var(--color-warning);
         }
       }
 
@@ -2659,9 +2659,9 @@ watch(() => aiStore.materialParseResult, (newVal) => {
     .cell-content {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: var(--space-1-5);
       cursor: pointer;
-      padding: 2px 4px;
+      padding: var(--space-0-5) 4px;
       border-radius: 4px;
       transition: background $transition-fast;
 
@@ -2713,10 +2713,10 @@ watch(() => aiStore.materialParseResult, (newVal) => {
       .col-adjust-badge {
         display: inline-flex;
         align-items: center;
-        gap: 2px;
+        gap: var(--space-0-5);
         font-size: 10px;
         line-height: 1.4;
-        padding: 2px 6px;
+        padding: var(--space-0-5) var(--space-1-5);
         border-radius: 6px;
         background: linear-gradient(135deg, #fef3c7, #fde68a);
         color: #b45309;
@@ -2738,10 +2738,10 @@ watch(() => aiStore.materialParseResult, (newVal) => {
         justify-content: center;
         width: 20px;
         height: 20px;
-        border-radius: 5px;
-        border: 1px solid #e2e8f0;
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--color-border);
         background: #fff;
-        color: #64748b;
+        color: var(--color-text-secondary);
         cursor: pointer;
         transition: all 0.2s;
         flex-shrink: 0;
@@ -2751,7 +2751,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
         &:hover {
           background: #f1f5f9;
           border-color: #cbd5e1;
-          color: #059669;
+          color: var(--color-primary-dark);
           transform: scale(1.1);
         }
 
@@ -2768,14 +2768,14 @@ watch(() => aiStore.materialParseResult, (newVal) => {
     }
 
     .cell-missing-input {
-      border-color: #ef4444 !important;
+      border-color: var(--color-danger) !important;
       box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.1);
     }
 
     .cell-edit-input {
       width: 100%;
       padding: 4px 8px;
-      border: 1px solid #10B981;
+      border: 1px solid var(--color-primary);
       border-radius: 4px;
       font-size: 13px;
       outline: none;
@@ -2833,11 +2833,11 @@ watch(() => aiStore.materialParseResult, (newVal) => {
       }
 
       &--remove {
-        color: #94a3b8;
+        color: var(--color-text-placeholder);
 
         &:hover {
           background: #fef2f2;
-          color: #ef4444;
+          color: var(--color-danger);
         }
       }
     }
@@ -2845,7 +2845,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
     .batch-actions {
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: var(--space-2-5);
       margin-top: 24px;
     }
 
@@ -2853,7 +2853,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
       display: flex;
       align-items: center;
       gap: 8px;
-      padding: 10px 14px;
+      padding: var(--space-2-5) var(--space-3-5);
       border-radius: 8px;
       background: rgba(245, 158, 11, 0.06);
       border: 1px solid rgba(245, 158, 11, 0.2);
@@ -2873,8 +2873,8 @@ watch(() => aiStore.materialParseResult, (newVal) => {
     .batch-btn {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      padding: 10px 22px;
+      gap: var(--space-1-5);
+      padding: var(--space-2-5) var(--space-6);
       border-radius: 12px;
       font-size: 13px;
       font-weight: 700;
@@ -2883,7 +2883,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
       transition: all $transition-normal;
 
       &--all {
-        background: linear-gradient(135deg, #10b981, #059669);
+        background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
         color: #fff;
 
         &:hover:not(:disabled) {
@@ -2912,7 +2912,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
     .progress-section {
       margin-top: 24px;
       padding: 20px;
-      background: #f8fafc;
+      background: var(--color-bg-page);
       border-radius: 12px;
       border: 1px solid #f1f5f9;
 
@@ -2920,31 +2920,31 @@ watch(() => aiStore.materialParseResult, (newVal) => {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 10px;
+        margin-bottom: var(--space-2-5);
 
         .progress-label {
           font-size: 14px;
           font-weight: 600;
-          color: #334155;
+          color: var(--color-text-primary);
         }
 
         .progress-count {
           font-size: 13px;
           font-weight: 600;
-          color: #10B981;
+          color: var(--color-primary);
         }
       }
 
       .progress-bar {
         width: 100%;
         height: 8px;
-        background: #e2e8f0;
+        background: var(--color-border);
         border-radius: 4px;
         overflow: hidden;
 
         .progress-fill {
           height: 100%;
-          background: linear-gradient(90deg, #10B981, #059669);
+          background: linear-gradient(90deg, var(--color-primary), var(--color-primary-dark));
           border-radius: 4px;
           transition: width 0.3s ease;
         }
@@ -2953,7 +2953,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
       .progress-current {
         margin-top: 8px;
         font-size: 12px;
-        color: #64748b;
+        color: var(--color-text-secondary);
       }
     }
 
@@ -2981,7 +2981,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
         }
 
         .sequential-progress-badge {
-          padding: 3px 10px;
+          padding: var(--space-1) var(--space-2-5);
           background: rgba(99, 102, 241, 0.15);
           border-radius: 8px;
           font-size: 12px;
@@ -2995,29 +2995,29 @@ watch(() => aiStore.materialParseResult, (newVal) => {
         width: 100%;
         height: 6px;
         background: rgba(99, 102, 241, 0.15);
-        border-radius: 3px;
+        border-radius: var(--radius-xs);
         overflow: hidden;
         margin-bottom: 16px;
 
         .sequential-progress-fill {
           height: 100%;
           background: linear-gradient(90deg, #6366f1, #4f46e5);
-          border-radius: 3px;
+          border-radius: var(--radius-xs);
           transition: width 0.3s ease;
         }
       }
 
       .sequential-item-detail {
-        padding: 14px 16px;
+        padding: var(--space-3-5) 16px;
         background: #fff;
         border-radius: 12px;
-        border: 1px solid #e2e8f0;
+        border: 1px solid var(--color-border);
         margin-bottom: 16px;
 
         .sequential-item-name {
           font-size: 16px;
           font-weight: 700;
-          color: #1e293b;
+          color: var(--color-text-primary);
           margin-bottom: 8px;
         }
 
@@ -3030,7 +3030,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
           .sequential-item-price {
             font-size: 13px;
             font-weight: 600;
-            color: #059669;
+            color: var(--color-primary-dark);
           }
         }
 
@@ -3040,12 +3040,12 @@ watch(() => aiStore.materialParseResult, (newVal) => {
           gap: 8px;
 
           span {
-            padding: 2px 8px;
+            padding: var(--space-0-5) 8px;
             background: #f1f5f9;
             border-radius: 6px;
             font-size: 11px;
             font-weight: 600;
-            color: #475569;
+            color: var(--color-text-secondary);
           }
         }
       }
@@ -3070,7 +3070,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
         transition: all $transition-fast;
 
         &--confirm {
-          background: linear-gradient(135deg, #10b981, #059669);
+          background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
           color: #fff;
 
           &:hover {
@@ -3081,18 +3081,18 @@ watch(() => aiStore.materialParseResult, (newVal) => {
 
         &--skip {
           background: #fff;
-          color: #64748b;
-          border: 1px solid #e2e8f0;
+          color: var(--color-text-secondary);
+          border: 1px solid var(--color-border);
 
           &:hover {
-            background: #f8fafc;
+            background: var(--color-bg-page);
             border-color: #cbd5e1;
           }
         }
 
         &--stop {
           background: transparent;
-          color: #ef4444;
+          color: var(--color-danger);
           border: 1px solid rgba(239, 68, 68, 0.2);
 
           &:hover {
@@ -3119,7 +3119,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
         background: linear-gradient(135deg, #ecfdf5, #f0fdf4);
         font-size: 15px;
         font-weight: 700;
-        color: #059669;
+        color: var(--color-primary-dark);
       }
 
       .summary-body {
@@ -3141,7 +3141,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
 
         .summary-label {
           font-size: 14px;
-          color: #64748b;
+          color: var(--color-text-secondary);
           font-weight: 500;
         }
 
@@ -3151,11 +3151,11 @@ watch(() => aiStore.materialParseResult, (newVal) => {
         }
 
         &--success .summary-value {
-          color: #10B981;
+          color: var(--color-primary);
         }
 
         &--fail .summary-value {
-          color: #EF4444;
+          color: var(--color-danger);
         }
       }
 
@@ -3167,7 +3167,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
 
         .summary-error-item {
           font-size: 12px;
-          color: #ef4444;
+          color: var(--color-danger);
           padding: 4px 0;
           line-height: 1.5;
         }
@@ -3183,12 +3183,12 @@ watch(() => aiStore.materialParseResult, (newVal) => {
       font-size: 12px;
 
       &--success {
-        color: #059669;
+        color: var(--color-primary-dark);
         background: #f0fdf4;
       }
 
       &--fail {
-        color: #dc2626;
+        color: var(--color-danger);
         background: #fef2f2;
       }
 
@@ -3201,7 +3201,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
       }
 
       .summary-file-size {
-        color: #94a3b8;
+        color: var(--color-text-placeholder);
       }
 
       .summary-file-result {
@@ -3219,10 +3219,10 @@ watch(() => aiStore.materialParseResult, (newVal) => {
       .undo-btn {
         display: inline-flex;
         align-items: center;
-        gap: 6px;
-        padding: 7px 16px;
+        gap: var(--space-1-5);
+        padding: var(--space-2) 16px;
         border-radius: 10px;
-        background: linear-gradient(135deg, #f59e0b, #d97706);
+        background: linear-gradient(135deg, var(--color-warning), #d97706);
         color: #fff;
         font-size: 12px;
         font-weight: 700;
@@ -3257,7 +3257,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
   .diff-material-name {
     font-size: 16px;
     font-weight: 700;
-    color: #1e293b;
+    color: var(--color-text-primary);
     margin-bottom: 16px;
     padding-bottom: 12px;
     border-bottom: 1px solid #f1f5f9;
@@ -3290,19 +3290,19 @@ watch(() => aiStore.materialParseResult, (newVal) => {
   }
 
   th {
-    background: #f8fafc;
-    padding: 10px 14px;
+    background: var(--color-bg-page);
+    padding: var(--space-2-5) var(--space-3-5);
     text-align: left;
     font-weight: 600;
-    color: #64748b;
+    color: var(--color-text-secondary);
     font-size: 12px;
-    border-bottom: 1px solid #e2e8f0;
+    border-bottom: 1px solid var(--color-border);
   }
 
   td {
-    padding: 10px 14px;
+    padding: var(--space-2-5) var(--space-3-5);
     border-bottom: 1px solid #f1f5f9;
-    color: #334155;
+    color: var(--color-text-primary);
   }
 
   .diff-row-changed {
@@ -3315,20 +3315,20 @@ watch(() => aiStore.materialParseResult, (newVal) => {
 
   .diff-field-label {
     font-weight: 500;
-    color: #64748b;
+    color: var(--color-text-secondary);
   }
 
   .diff-highlight {
     background: rgba(245, 158, 11, 0.12);
     border-radius: 4px;
-    padding: 2px 6px;
+    padding: var(--space-0-5) var(--space-1-5);
     font-weight: 600;
     color: #d97706;
   }
 
   .diff-same {
     font-size: 12px;
-    color: #94a3b8;
+    color: var(--color-text-placeholder);
   }
 
   .diff-preview-value {
@@ -3341,7 +3341,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
       color: #2563eb;
       background: rgba(59, 130, 246, 0.08);
       border-radius: 4px;
-      padding: 2px 8px;
+      padding: var(--space-0-5) 8px;
     }
   }
 }
@@ -3376,12 +3376,12 @@ watch(() => aiStore.materialParseResult, (newVal) => {
   }
 
   :deep(.t-radio-button) {
-    padding: 4px 14px;
+    padding: 4px var(--space-3-5);
     font-size: 12px;
     font-weight: 600;
     border: none !important;
-    background: #f8fafc;
-    color: #64748b;
+    background: var(--color-bg-page);
+    color: var(--color-text-secondary);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     min-width: 40px;
     text-align: center;
@@ -3432,28 +3432,28 @@ watch(() => aiStore.materialParseResult, (newVal) => {
 .diff-dialog-header {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--space-2-5);
   font-size: 16px;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--color-text-primary);
 }
 
 .diff-footer {
   margin-top: 20px;
   display: flex;
   justify-content: flex-end;
-  gap: 10px;
+  gap: var(--space-2-5);
 }
 
 .diff-summary {
   margin-top: 16px;
-  padding: 12px 14px;
+  padding: 12px var(--space-3-5);
   border-radius: 10px;
   background: linear-gradient(135deg, rgba(99, 102, 241, 0.05), rgba(139, 92, 246, 0.04));
   border: 1px solid rgba(99, 102, 241, 0.15);
   display: flex;
   align-items: flex-start;
-  gap: 10px;
+  gap: var(--space-2-5);
 
   .diff-summary-icon {
     color: #6366f1;
@@ -3468,25 +3468,25 @@ watch(() => aiStore.materialParseResult, (newVal) => {
     .summary-label {
       font-weight: 600;
       color: #4338ca;
-      margin-right: 6px;
+      margin-right: var(--space-1-5);
     }
 
     .summary-item {
       display: inline-flex;
       align-items: center;
-      gap: 2px;
+      gap: var(--space-0-5);
       margin-right: 8px;
-      padding: 1px 6px;
+      padding: 1px var(--space-1-5);
       border-radius: 4px;
       background: rgba(16, 185, 129, 0.08);
-      color: #059669;
+      color: var(--color-primary-dark);
       font-weight: 500;
 
       small {
         font-size: 11px;
-        color: #94a3b8;
+        color: var(--color-text-placeholder);
         font-weight: 400;
-        margin-left: 3px;
+        margin-left: var(--space-1);
       }
 
       &.item-keep {
@@ -3504,10 +3504,10 @@ watch(() => aiStore.materialParseResult, (newVal) => {
   padding: 8px 16px;
   border-radius: 10px;
   background: #fff;
-  color: #64748b;
+  color: var(--color-text-secondary);
   font-size: 13px;
   font-weight: 600;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--color-border);
   cursor: pointer;
   transition: all $transition-fast;
 
@@ -3523,7 +3523,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
   gap: 4px;
   padding: 8px 16px;
   border-radius: 10px;
-  background: linear-gradient(135deg, #f59e0b, #d97706);
+  background: linear-gradient(135deg, var(--color-warning), #d97706);
   color: #fff;
   font-size: 13px;
   font-weight: 600;
@@ -3591,7 +3591,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
   align-items: center;
   padding: 8px 20px;
   border-radius: 10px;
-  background: linear-gradient(135deg, #10b981, #059669);
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
   color: #fff;
   font-size: 13px;
   font-weight: 700;
@@ -3608,10 +3608,10 @@ watch(() => aiStore.materialParseResult, (newVal) => {
 .reparse-model-option {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--space-2-5);
   width: 100%;
   min-height: 36px;
-  padding: 2px 0;
+  padding: var(--space-0-5) 0;
 
   .reparse-model-logo {
     width: 24px;
@@ -3647,7 +3647,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
   .reparse-model-name {
     flex: 1;
     font-size: 13px;
-    color: #334155;
+    color: var(--color-text-primary);
     font-weight: 500;
     line-height: 1.4;
     white-space: nowrap;
@@ -3692,10 +3692,10 @@ watch(() => aiStore.materialParseResult, (newVal) => {
 .save-template-dialog-header {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--space-2-5);
   font-size: 16px;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--color-text-primary);
 }
 
 .save-template-form {
@@ -3713,11 +3713,11 @@ watch(() => aiStore.materialParseResult, (newVal) => {
     display: block;
     font-size: 13px;
     font-weight: 600;
-    color: #334155;
-    margin-bottom: 6px;
+    color: var(--color-text-primary);
+    margin-bottom: var(--space-1-5);
 
     .required {
-      color: #ef4444;
+      color: var(--color-danger);
     }
   }
 }
@@ -3743,7 +3743,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
     display: flex !important;
     align-items: center !important;
     justify-content: flex-start !important;
-    padding: 7px 12px !important;
+    padding: var(--space-2) 12px !important;
     min-height: 38px;
     width: 100% !important;
     max-width: none !important;
@@ -3757,7 +3757,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
     }
 
     &.t-dropdown__item--active {
-      color: #059669 !important;
+      color: var(--color-primary-dark) !important;
       background-color: transparent !important;
     }
   }
@@ -3776,7 +3776,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
       width: 22px !important;
       height: 22px !important;
       min-width: 22px !important;
-      border-radius: 5px !important;
+      border-radius: var(--radius-sm) !important;
       overflow: hidden !important;
       flex-shrink: 0 !important;
       display: flex !important;
@@ -3805,7 +3805,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
     .reparse-model-name {
       flex: 0 0 auto !important;
       font-size: 13px !important;
-      color: #334155 !important;
+      color: var(--color-text-primary) !important;
       font-weight: 500 !important;
       line-height: 1.3 !important;
       white-space: nowrap !important;
@@ -3818,7 +3818,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
       height: 16px !important;
       flex-shrink: 0 !important;
       margin-left: 4px !important;
-      color: #10b981 !important;
+      color: var(--color-primary) !important;
     }
   }
 }

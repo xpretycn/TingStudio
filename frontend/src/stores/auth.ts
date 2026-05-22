@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { authApi, saveAuthData, clearAuthData, getCachedUser } from '@/api/auth'
+import { authApi, saveAuthData, saveUserOnly, clearAuthData, getCachedUser } from '@/api/auth'
 import type { UserInfo, LoginParams, RegisterParams, UpdateProfileParams, ChangePasswordParams } from '@/api/auth'
 
 export const useAuthStore = defineStore('auth', () => {
@@ -54,9 +54,12 @@ export const useAuthStore = defineStore('auth', () => {
   const updateProfile = async (params: UpdateProfileParams) => {
     loading.value = true
     try {
+      const currentUserId = user.value?.id
       const updatedUser = await authApi.updateProfile(params)
-      user.value = updatedUser
-      saveAuthData(updatedUser, localStorage.getItem('tingstudio_token') || '')
+      if (updatedUser.id === currentUserId) {
+        user.value = updatedUser
+        saveUserOnly(updatedUser)
+      }
       return { success: true }
     } catch (error: any) {
       return { success: false, message: error.message || '更新失败' }
@@ -79,11 +82,13 @@ export const useAuthStore = defineStore('auth', () => {
 
   const fetchCurrentUser = async () => {
     try {
+      const currentUserId = user.value?.id
       const currentUser = await authApi.getMe()
-      user.value = currentUser
-      saveAuthData(currentUser, localStorage.getItem('tingstudio_token') || '')
+      if (currentUser.id === currentUserId) {
+        user.value = currentUser
+        saveUserOnly(currentUser)
+      }
     } catch {
-      // 静默失败，不影响用户体验
     }
   }
 

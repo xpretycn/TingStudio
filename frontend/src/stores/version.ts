@@ -1,19 +1,20 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { versionApi } from '@/api/version'
-import type { FormulaVersion } from '@/api/version'
+import type { FormulaVersion, MaterialUpdatesResult, ReviewLog } from '@/api/version'
 
 export const useVersionStore = defineStore('version', () => {
   const versions = ref<FormulaVersion[]>([])
   const loading = ref(false)
   const currentVersion = ref<FormulaVersion | null>(null)
   const compareResult = ref<any>(null)
+  const materialUpdates = ref<MaterialUpdatesResult | null>(null)
+  const reviewLogs = ref<ReviewLog[]>([])
 
   const fetchVersions = async (formulaId: string, params?: { status?: string }) => {
     loading.value = true
     try {
       const res = await versionApi.getList(formulaId, params)
-      // axios 拦截器已经提取了 res.data，所以这里直接使用 res
       versions.value = res || []
     } catch (error) {
       console.error('获取版本列表失败:', error)
@@ -26,7 +27,6 @@ export const useVersionStore = defineStore('version', () => {
   const getVersion = async (versionId: string): Promise<FormulaVersion | null> => {
     try {
       const res = await versionApi.getById(versionId)
-      // axios 拦截器已经提取了 res.data，所以这里直接使用 res
       return res
     } catch {
       return null
@@ -72,15 +72,117 @@ export const useVersionStore = defineStore('version', () => {
     }
   }
 
+  const submitVersion = async (versionId: string, data?: { comment?: string }) => {
+    loading.value = true
+    try {
+      await versionApi.submit(versionId, data)
+      return { success: true }
+    } catch (error: any) {
+      return { success: false, message: error.message || '提交审批失败' }
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const approveVersion = async (versionId: string, data?: { comment?: string }) => {
+    loading.value = true
+    try {
+      await versionApi.approve(versionId, data)
+      return { success: true }
+    } catch (error: any) {
+      return { success: false, message: error.message || '批准失败' }
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const rejectVersion = async (versionId: string, comment: string) => {
+    loading.value = true
+    try {
+      await versionApi.reject(versionId, { comment })
+      return { success: true }
+    } catch (error: any) {
+      return { success: false, message: error.message || '驳回失败' }
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const fetchPendingReviews = async (params?: { page?: number; pageSize?: number; keyword?: string }) => {
+    loading.value = true
+    try {
+      const res = await versionApi.getPendingReview(params)
+      return { success: true, data: res }
+    } catch (error: any) {
+      return { success: false, message: error.message || '获取待审核列表失败' }
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const fetchReviewLogs = async (versionId: string) => {
+    try {
+      const res = await versionApi.getReviewLogs(versionId)
+      reviewLogs.value = res?.logs || []
+      return { success: true, data: res }
+    } catch (error: any) {
+      return { success: false, message: error.message || '获取审核日志失败' }
+    }
+  }
+
+  const fetchMaterialUpdates = async (formulaId: string) => {
+    try {
+      const res = await versionApi.getMaterialUpdates(formulaId)
+      materialUpdates.value = res || null
+      return { success: true, data: res }
+    } catch (error: any) {
+      return { success: false, message: error.message || '检查原料更新失败' }
+    }
+  }
+
+  const refreshSnapshot = async (formulaId: string, data?: { materialIds?: string[] }) => {
+    loading.value = true
+    try {
+      const res = await versionApi.refreshSnapshot(formulaId, data)
+      return { success: true, data: res }
+    } catch (error: any) {
+      return { success: false, message: error.message || '刷新原料数据失败' }
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const setCurrentVersion = async (versionId: string) => {
+    loading.value = true
+    try {
+      await versionApi.setCurrentVersion(versionId)
+      return { success: true }
+    } catch (error: any) {
+      return { success: false, message: error.message || '切换当前版本失败' }
+    } finally {
+      loading.value = false
+    }
+  }
+
   return {
     versions,
     loading,
     currentVersion,
     compareResult,
+    materialUpdates,
+    reviewLogs,
     fetchVersions,
     getVersion,
     createVersion,
     publishVersion,
     compareVersions,
+    submitVersion,
+    approveVersion,
+    rejectVersion,
+    fetchPendingReviews,
+    fetchReviewLogs,
+    fetchMaterialUpdates,
+    refreshSnapshot,
+    setCurrentVersion,
   }
 })

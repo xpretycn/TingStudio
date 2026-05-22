@@ -7,7 +7,7 @@
         <template v-else>
           <div v-if="loadError" class="error-state">
             <div class="error-icon">
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2"
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--color-danger)" stroke-width="2"
                 stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="10" />
                 <line x1="15" y1="9" x2="9" y2="15" />
@@ -83,10 +83,10 @@
                 </div>
               </div>
 
-              <div class="report-section-card" :style="{ borderLeftColor: '#10B981' }">
+              <div class="report-section-card" :style="{ borderLeftColor: 'var(--color-primary)' }">
                 <div class="section-header">
                   <div class="section-title-group">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2"
                       stroke-linecap="round" stroke-linejoin="round">
                       <line x1="12" y1="1" x2="12" y2="23" />
                       <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
@@ -193,26 +193,26 @@ const initCharts = () => {
     if (formulaChartInstance) formulaChartInstance.dispose()
     formulaChartInstance = echarts.init(formulaCompareChartRef.value)
     formulaChartInstance.setOption({
-      tooltip: { trigger: 'axis', backgroundColor: 'rgba(255,255,255,0.96)', borderColor: '#E2E8F0', borderWidth: 1, textStyle: { color: '#334155', fontSize: 13 } },
-      legend: { bottom: 0, textStyle: { color: '#64748B', fontSize: 12 } },
+      tooltip: { trigger: 'axis', backgroundColor: 'rgba(255,255,255,0.96)', borderColor: 'var(--color-border)', borderWidth: 1, textStyle: { color: 'var(--color-text-primary)', fontSize: 13 } },
+      legend: { bottom: 0, textStyle: { color: 'var(--color-text-secondary)', fontSize: 12 } },
       grid: { left: '3%', right: '4%', bottom: '14%', top: '10%', containLabel: true },
-      title: { text: '配方数据对比', left: 'center', textStyle: { fontSize: 14, fontWeight: 600, color: '#334155' } },
+      title: { text: '配方数据对比', left: 'center', textStyle: { fontSize: 14, fontWeight: 600, color: 'var(--color-text-primary)' } },
       xAxis: {
         type: 'category',
         data: ['新增配方', '完成配方', '配方总数'],
-        axisLine: { lineStyle: { color: '#E2E8F0' } },
-        axisLabel: { color: '#94A3B8', fontSize: 11 },
+        axisLine: { lineStyle: { color: 'var(--color-border)' } },
+        axisLabel: { color: 'var(--color-text-placeholder)', fontSize: 11 },
       },
       yAxis: {
         type: 'value',
         axisLine: { show: false },
         axisTick: { show: false },
         splitLine: { lineStyle: { color: '#F1F5F9', type: 'dashed' } },
-        axisLabel: { color: '#94A3B8', fontSize: 11 },
+        axisLabel: { color: 'var(--color-text-placeholder)', fontSize: 11 },
       },
       series: [
         { name: report1.value?.title || '报告1', type: 'bar', data: [d1.newFormulas ?? 0, d1.completedFormulas ?? 0, d1.totalFormulaCount ?? 0], barWidth: '30%', itemStyle: { borderRadius: [4, 4, 0, 0], color: '#3B82F6' } },
-        { name: report2.value?.title || '报告2', type: 'bar', data: [d2.newFormulas ?? 0, d2.completedFormulas ?? 0, d2.totalFormulaCount ?? 0], barWidth: '30%', itemStyle: { borderRadius: [4, 4, 0, 0], color: '#10B981' } },
+        { name: report2.value?.title || '报告2', type: 'bar', data: [d2.newFormulas ?? 0, d2.completedFormulas ?? 0, d2.totalFormulaCount ?? 0], barWidth: '30%', itemStyle: { borderRadius: [4, 4, 0, 0], color: 'var(--color-primary)' } },
       ],
     })
   }
@@ -221,15 +221,15 @@ const initCharts = () => {
     if (salesChartInstance) salesChartInstance.dispose()
     salesChartInstance = echarts.init(salesCompareChartRef.value)
     salesChartInstance.setOption({
-      tooltip: { trigger: 'axis', backgroundColor: 'rgba(255,255,255,0.96)', borderColor: '#E2E8F0', borderWidth: 1, textStyle: { color: '#334155', fontSize: 13 } },
-      legend: { bottom: 0, textStyle: { color: '#64748B', fontSize: 12 } },
+      tooltip: { trigger: 'axis', backgroundColor: 'rgba(255,255,255,0.96)', borderColor: 'var(--color-border)', borderWidth: 1, textStyle: { color: 'var(--color-text-primary)', fontSize: 13 } },
+      legend: { bottom: 0, textStyle: { color: 'var(--color-text-secondary)', fontSize: 12 } },
       grid: { left: '3%', right: '4%', bottom: '14%', top: '10%', containLabel: true },
-      title: { text: '销售数据对比', left: 'center', textStyle: { fontSize: 14, fontWeight: 600, color: '#334155' } },
+      title: { text: '销售数据对比', left: 'center', textStyle: { fontSize: 14, fontWeight: 600, color: 'var(--color-text-primary)' } },
       xAxis: {
         type: 'category',
         data: ['销售总量', '销售额(万)'],
-        axisLine: { lineStyle: { color: '#E2E8F0' } },
-        axisLabel: { color: '#94A3B8', fontSize: 11 },
+        axisLine: { lineStyle: { color: 'var(--color-border)' } },
+        axisLabel: { color: 'var(--color-text-placeholder)', fontSize: 11 },
       },
       yAxis: [
         {
@@ -238,7 +238,7 @@ const initCharts = () => {
           axisLine: { show: false },
           axisTick: { show: false },
           splitLine: { lineStyle: { color: '#F1F5F9', type: 'dashed' } },
-          axisLabel: { color: '#94A3B8', fontSize: 11 },
+          axisLabel: { color: 'var(--color-text-placeholder)', fontSize: 11 },
         },
         {
           type: 'value',
@@ -246,12 +246,12 @@ const initCharts = () => {
           axisLine: { show: false },
           axisTick: { show: false },
           splitLine: { show: false },
-          axisLabel: { color: '#94A3B8', fontSize: 11 },
+          axisLabel: { color: 'var(--color-text-placeholder)', fontSize: 11 },
         },
       ],
       series: [
         { name: report1.value?.title || '报告1', type: 'bar', data: [d1.totalQuantity ?? 0, ((d1.totalRevenue ?? 0) / 10000).toFixed(1)], barWidth: '30%', itemStyle: { borderRadius: [4, 4, 0, 0], color: '#3B82F6' } },
-        { name: report2.value?.title || '报告2', type: 'bar', data: [d2.totalQuantity ?? 0, ((d2.totalRevenue ?? 0) / 10000).toFixed(1)], barWidth: '30%', itemStyle: { borderRadius: [4, 4, 0, 0], color: '#10B981' } },
+        { name: report2.value?.title || '报告2', type: 'bar', data: [d2.totalQuantity ?? 0, ((d2.totalRevenue ?? 0) / 10000).toFixed(1)], barWidth: '30%', itemStyle: { borderRadius: [4, 4, 0, 0], color: 'var(--color-primary)' } },
       ],
     })
   }
@@ -363,13 +363,13 @@ onUnmounted(() => {
       border: none;
       border-radius: 12px;
       background: transparent;
-      color: #94a3b8;
+      color: var(--color-text-placeholder);
       cursor: pointer;
       transition: all 0.2s;
       font-size: 20px;
 
       &:hover {
-        color: #10b981;
+        color: var(--color-primary);
         background-color: #ecfdf5;
       }
     }
@@ -377,33 +377,33 @@ onUnmounted(() => {
     .header-title-group {
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: var(--space-1-5);
 
       .header-breadcrumb {
         display: flex;
         align-items: center;
-        gap: 6px;
+        gap: var(--space-1-5);
         font-size: 12px;
         line-height: 1;
 
         .breadcrumb-link {
-          color: #94a3b8;
+          color: var(--color-text-placeholder);
           cursor: pointer;
           transition: color 0.15s;
           text-decoration: none;
 
           &:hover {
-            color: #10b981;
+            color: var(--color-primary);
           }
         }
 
         .breadcrumb-sep {
           font-size: 12px;
-          color: #94a3b8;
+          color: var(--color-text-placeholder);
         }
 
         .breadcrumb-current {
-          color: #475569;
+          color: var(--color-text-secondary);
         }
       }
 
@@ -414,7 +414,7 @@ onUnmounted(() => {
         gap: 12px;
         font-size: 18px;
         font-weight: 700;
-        color: #1e293b;
+        color: var(--color-text-primary);
         line-height: 1.35;
       }
     }
@@ -450,7 +450,7 @@ onUnmounted(() => {
 .compare-metric-card {
   background: #fff;
   padding: 24px;
-  border-radius: 24px;
+  border-radius: var(--radius-4xl);
   border: 1px solid #fff;
   box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
   transition: all $transition-slow;
@@ -463,7 +463,7 @@ onUnmounted(() => {
 
   .metric-label {
     font-size: 14px;
-    color: #94A3B8;
+    color: var(--color-text-placeholder);
     margin-bottom: 12px;
     text-align: center;
   }
@@ -489,13 +489,13 @@ onUnmounted(() => {
 
   .metric-unit {
     font-size: 12px;
-    color: #94A3B8;
+    color: var(--color-text-placeholder);
   }
 
   .metric-diff {
     display: flex;
     align-items: center;
-    gap: 2px;
+    gap: var(--space-0-5);
     font-size: 12px;
     font-weight: 700;
     padding: 4px 8px;
@@ -504,18 +504,18 @@ onUnmounted(() => {
     flex-shrink: 0;
 
     &.diff-up {
-      color: #10B981;
+      color: var(--color-primary);
       background: #ECFDF5;
     }
 
     &.diff-down {
-      color: #EF4444;
+      color: var(--color-danger);
       background: #FEF2F2;
     }
 
     &.diff-same {
-      color: #94A3B8;
-      background: #F8FAFC;
+      color: var(--color-text-placeholder);
+      background: var(--color-bg-page);
     }
   }
 }
@@ -541,8 +541,8 @@ onUnmounted(() => {
   }
 
   .section-header {
-    padding: 14px 20px;
-    background: #F8FAFC;
+    padding: var(--space-3-5) 20px;
+    background: var(--color-bg-page);
     border-bottom: 1px solid #f1f5f9;
     display: flex;
     align-items: center;
@@ -583,7 +583,7 @@ onUnmounted(() => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 80px 20px;
+  padding: var(--space-16) 20px;
   text-align: center;
 
   .error-icon {
@@ -600,7 +600,7 @@ onUnmounted(() => {
 
   .error-desc {
     font-size: 14px;
-    color: #64748B;
+    color: var(--color-text-secondary);
     margin: 0 0 24px;
     max-width: 400px;
   }
@@ -608,8 +608,8 @@ onUnmounted(() => {
   .retry-btn {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 10px 24px;
+    gap: var(--space-1-5);
+    padding: var(--space-2-5) 24px;
     border-radius: 12px;
     border: none;
     background: #3B82F6;

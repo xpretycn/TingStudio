@@ -63,7 +63,7 @@
 
       <div class="result-summary">
         <div class="summary-left">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
           </svg>
           <span>查询结果：<strong>{{ searchResult.rowCount }}</strong> 条记录</span>
@@ -225,20 +225,20 @@ const handleExport = async () => {
     .search-actions {
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: var(--space-1-5);
 
       .search-btn,
       .export-btn {
         display: flex;
         align-items: center;
         gap: 4px;
-        padding: 6px 14px;
-        border: 1px solid #e2e8f0;
+        padding: var(--space-1-5) var(--space-3-5);
+        border: 1px solid var(--color-border);
         border-radius: 6px;
         background: white;
         cursor: pointer;
         font-size: 13px;
-        color: #475569;
+        color: var(--color-text-secondary);
         white-space: nowrap;
         transition: all 0.2s;
 
@@ -254,13 +254,13 @@ const handleExport = async () => {
       }
 
       .search-btn {
-        background: #10b981;
+        background: var(--color-primary);
         color: white;
-        border-color: #10b981;
+        border-color: var(--color-primary);
 
         &:hover:not(:disabled) {
-          background: #059669;
-          border-color: #059669;
+          background: var(--color-primary-dark);
+          border-color: var(--color-primary-dark);
         }
       }
     }
@@ -269,13 +269,13 @@ const handleExport = async () => {
   .quick-tags {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--space-1-5);
     margin-bottom: 16px;
     flex-wrap: wrap;
 
     .quick-tags-label {
       font-size: 12px;
-      color: #94a3b8;
+      color: var(--color-text-placeholder);
     }
   }
 
@@ -286,16 +286,16 @@ const handleExport = async () => {
     gap: 8px;
     padding: 16px;
     font-size: 14px;
-    color: #64748b;
+    color: var(--color-text-secondary);
   }
 
   .search-error {
-    color: #dc2626;
+    color: var(--color-danger);
   }
 
   .search-result {
     .sql-card {
-      border: 1px solid #e2e8f0;
+      border: 1px solid var(--color-border);
       border-radius: 10px;
       overflow: hidden;
       margin-bottom: 16px;
@@ -305,9 +305,9 @@ const handleExport = async () => {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 10px 14px;
-        background: #f8fafc;
-        border-bottom: 1px solid #e2e8f0;
+        padding: var(--space-2-5) var(--space-3-5);
+        background: var(--color-bg-page);
+        border-bottom: 1px solid var(--color-border);
         cursor: pointer;
         transition: background 0.15s;
 
@@ -318,12 +318,12 @@ const handleExport = async () => {
         .sql-header-left {
           display: flex;
           align-items: center;
-          gap: 6px;
+          gap: var(--space-1-5);
         }
 
         .sql-toggle-icon {
           transition: transform 0.2s ease;
-          color: #94a3b8;
+          color: var(--color-text-placeholder);
 
           &.expanded {
             transform: rotate(90deg);
@@ -333,18 +333,18 @@ const handleExport = async () => {
         .sql-label {
           font-size: 12px;
           font-weight: 600;
-          color: #475569;
+          color: var(--color-text-secondary);
         }
 
         .query-type-badge {
           font-size: 11px;
-          padding: 2px 8px;
+          padding: var(--space-0-5) 8px;
           border-radius: 10px;
           font-weight: 500;
 
           &.simple {
             background: #ecfdf5;
-            color: #059669;
+            color: var(--color-primary-dark);
           }
 
           &.join {
@@ -364,11 +364,11 @@ const handleExport = async () => {
       }
 
       .sql-code {
-        padding: 12px 14px;
+        padding: 12px var(--space-3-5);
         margin: 0;
         font-size: 12px;
         font-family: "Fira Code", "Monaco", "Consolas", monospace;
-        color: #1e293b;
+        color: var(--color-text-primary);
         background: #fafbfc;
         white-space: pre-wrap;
         word-break: break-all;
@@ -381,17 +381,17 @@ const handleExport = async () => {
       justify-content: space-between;
       align-items: center;
       font-size: 13px;
-      color: #64748b;
+      color: var(--color-text-secondary);
       margin-bottom: 12px;
-      padding: 0 2px;
+      padding: 0 var(--space-0-5);
 
       .summary-left {
         display: flex;
         align-items: center;
-        gap: 6px;
+        gap: var(--space-1-5);
 
         strong {
-          color: #1e293b;
+          color: var(--color-text-primary);
           font-weight: 700;
         }
       }
@@ -399,17 +399,17 @@ const handleExport = async () => {
       .summary-right {
         .model-tag {
           font-size: 11px;
-          padding: 2px 8px;
+          padding: var(--space-0-5) 8px;
           border-radius: 6px;
           background: #f1f5f9;
-          color: #64748b;
+          color: var(--color-text-secondary);
           font-weight: 500;
         }
       }
     }
 
     .markdown-content {
-      border: 1px solid #e2e8f0;
+      border: 1px solid var(--color-border);
       border-radius: 10px;
       overflow: hidden;
       background: #fff;
@@ -423,14 +423,14 @@ const handleExport = async () => {
           background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
 
           th {
-            padding: 10px 14px;
+            padding: var(--space-2-5) var(--space-3-5);
             text-align: left;
             font-weight: 600;
             color: #065f46;
             font-size: 12px;
             text-transform: uppercase;
             letter-spacing: 0.3px;
-            border-bottom: 2px solid #a7f3d0;
+            border-bottom: 2px solid var(--color-primary-lightest);
             white-space: nowrap;
           }
         }
@@ -440,7 +440,7 @@ const handleExport = async () => {
             transition: background 0.15s;
 
             &:nth-child(even) {
-              background: #f8fafc;
+              background: var(--color-bg-page);
             }
 
             &:hover {
@@ -448,9 +448,9 @@ const handleExport = async () => {
             }
 
             td {
-              padding: 9px 14px;
+              padding: var(--space-2) var(--space-3-5);
               border-bottom: 1px solid #f1f5f9;
-              color: #334155;
+              color: var(--color-text-primary);
               line-height: 1.5;
               max-width: 300px;
               overflow: hidden;
@@ -468,11 +468,11 @@ const handleExport = async () => {
       align-items: center;
       gap: 12px;
       padding: 48px 24px;
-      color: #94a3b8;
+      color: var(--color-text-placeholder);
       font-size: 14px;
-      background: #f8fafc;
+      background: var(--color-bg-page);
       border-radius: 10px;
-      border: 1px dashed #e2e8f0;
+      border: 1px dashed var(--color-border);
     }
   }
 
@@ -483,17 +483,17 @@ const handleExport = async () => {
       align-items: center;
       margin-bottom: 8px;
       font-size: 13px;
-      color: #64748b;
+      color: var(--color-text-secondary);
 
       .clear-history-btn {
         border: none;
         background: none;
-        color: #94a3b8;
+        color: var(--color-text-placeholder);
         cursor: pointer;
         font-size: 12px;
 
         &:hover {
-          color: #64748b;
+          color: var(--color-text-secondary);
         }
       }
     }
@@ -501,7 +501,7 @@ const handleExport = async () => {
     .history-tags {
       display: flex;
       flex-wrap: wrap;
-      gap: 6px;
+      gap: var(--space-1-5);
     }
   }
 }

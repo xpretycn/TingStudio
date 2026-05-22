@@ -383,7 +383,7 @@ const dashboardCards = computed(() => {
       value: total.toString(),
       unit: '人',
       badge: activeCount > 0 ? `活跃 ${activeCount}` : '—',
-      badgeColor: '#10B981',
+      badgeColor: 'var(--color-primary)',
       badgeBg: '#ECFDF5',
       iconBg: '#EFF6FF',
       iconColor: '#3B82F6',
@@ -407,10 +407,10 @@ const dashboardCards = computed(() => {
       unit: '',
       topName: topQuantitySalesman ? topQuantitySalesman.name : '',
       badge: topQuantitySalesman ? 'TOP1' : '—',
-      badgeColor: '#F59E0B',
+      badgeColor: 'var(--color-warning)',
       badgeBg: '#FFFBEB',
       iconBg: '#FFFBEB',
-      iconColor: '#F59E0B',
+      iconColor: 'var(--color-warning)',
       iconPath: '<path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/>',
     },
     {
@@ -606,9 +606,9 @@ function getAvatarInitial(name: string): string {
 const getAvatarColor = (text: string) => {
   const colors = [
     { bg: '#DBEAFE', text: '#3B82F6' },
-    { bg: '#FEE2E2', text: '#EF4444' },
-    { bg: '#FEF3C7', text: '#F59E0B' },
-    { bg: '#D1FAE5', text: '#10B981' },
+    { bg: '#FEE2E2', text: 'var(--color-danger)' },
+    { bg: '#FEF3C7', text: 'var(--color-warning)' },
+    { bg: 'var(--color-primary-bg)', text: 'var(--color-primary)' },
     { bg: '#E0E7FF', text: '#6366F1' },
     { bg: '#F3E8FF', text: '#A855F7' },
     { bg: '#E0F2FE', text: '#0EA5E9' },
@@ -904,7 +904,7 @@ const handleDelete = async (row: Salesman) => {
     .stat-card {
       background: #fff;
       padding: 24px;
-      border-radius: 24px;
+      border-radius: var(--radius-4xl);
       border: 1px solid #fff;
       box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
       transition: all $transition-slow;
@@ -937,14 +937,14 @@ const handleDelete = async (row: Salesman) => {
       .stat-badge {
         font-size: 12px;
         font-weight: 700;
-        padding: 2px 8px;
+        padding: var(--space-0-5) 8px;
         border-radius: 8px;
         white-space: nowrap;
       }
 
       .stat-label {
         font-size: 14px;
-        color: #94A3B8;
+        color: var(--color-text-placeholder);
         margin-bottom: 4px;
       }
 
@@ -963,7 +963,7 @@ const handleDelete = async (row: Salesman) => {
         .stat-value-left {
           display: inline-flex;
           align-items: baseline;
-          gap: 2px;
+          gap: var(--space-0-5);
         }
 
         .stat-top-name {
@@ -986,7 +986,7 @@ const handleDelete = async (row: Salesman) => {
         .stat-unit {
           font-size: 14px;
           font-weight: 400;
-          color: #94A3B8;
+          color: var(--color-text-placeholder);
         }
       }
     }
@@ -995,7 +995,7 @@ const handleDelete = async (row: Salesman) => {
   // ─── 工具栏 ───
   .data-center-toolbar {
     padding: 32px;
-    border-bottom: 1px solid #f8fafc;
+    border-bottom: 1px solid var(--color-bg-page);
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
@@ -1012,13 +1012,13 @@ const handleDelete = async (row: Salesman) => {
         .toolbar-title {
           font-size: 20px;
           font-weight: 700;
-          color: #1e293b;
+          color: var(--color-text-primary);
           margin: 0 0 4px 0;
         }
 
         .toolbar-subtitle {
           font-size: 14px;
-          color: #94a3b8;
+          color: var(--color-text-placeholder);
           margin: 0;
         }
       }
@@ -1039,14 +1039,14 @@ const handleDelete = async (row: Salesman) => {
         left: 12px;
         top: 50%;
         transform: translateY(-50%);
-        color: #94a3b8;
+        color: var(--color-text-placeholder);
         pointer-events: none;
       }
 
       .search-input {
-        padding-left: 36px !important;
+        padding-left: var(--space-8) !important;
         width: 256px;
-        background-color: #f8fafc !important;
+        background-color: var(--color-bg-page) !important;
         border: none !important;
         border-radius: 12px !important;
 
@@ -1061,7 +1061,7 @@ const handleDelete = async (row: Salesman) => {
       align-items: center;
       gap: 8px;
       padding: 8px 16px;
-      background-color: #1e293b;
+      background-color: var(--color-text-primary);
       color: white;
       border-radius: 12px;
       font-size: 14px;
@@ -1072,7 +1072,7 @@ const handleDelete = async (row: Salesman) => {
       cursor: pointer;
 
       &:hover {
-        background-color: #334155;
+        background-color: var(--color-text-primary);
       }
 
       .add-icon {
@@ -1095,8 +1095,8 @@ const handleDelete = async (row: Salesman) => {
       justify-content: center;
       width: 40px;
       height: 40px;
-      background-color: #f8fafc;
-      border: 1px solid #e2e8f0;
+      background-color: var(--color-bg-page);
+      border: 1px solid var(--color-border);
       border-radius: 12px;
       cursor: pointer;
       transition: all $transition-fast;
@@ -1110,7 +1110,7 @@ const handleDelete = async (row: Salesman) => {
 
       .filter-icon {
         font-size: 18px;
-        color: #64748b;
+        color: var(--color-text-secondary);
       }
 
       .filter-dot {
@@ -1119,7 +1119,7 @@ const handleDelete = async (row: Salesman) => {
         right: 8px;
         width: 6px;
         height: 6px;
-        background-color: #ef4444;
+        background-color: var(--color-danger);
         border-radius: 50%;
       }
     }
@@ -1132,14 +1132,14 @@ const handleDelete = async (row: Salesman) => {
       right: 0;
       bottom: 0;
       z-index: 20;
-      background-color: #059669;
+      background-color: var(--color-primary-dark);
       color: #fff;
       display: flex;
       align-items: center;
       justify-content: space-between;
       padding: 20px 32px;
       // 上方圆角匹配 content-card 的 32px 圆角
-      border-radius: 32px 32px 0 0;
+      border-radius: var(--radius-5xl) var(--radius-5xl) 0 0;
       box-shadow: 0 4px 18px rgba(5, 150, 105, 0.25);
 
       .batch-info {
@@ -1183,7 +1183,7 @@ const handleDelete = async (row: Salesman) => {
           transition: all $transition-fast;
 
           &:hover {
-            color: #d1fae5;
+            color: var(--color-primary-bg);
           }
 
           svg {
@@ -1197,7 +1197,7 @@ const handleDelete = async (row: Salesman) => {
       .batch-cancel-btn {
         font-size: 14px;
         font-weight: 500;
-        border: 1px solid #34d399;
+        border: 1px solid var(--color-primary-light);
         padding: 4px 12px;
         border-radius: 8px;
         background: transparent;
@@ -1206,7 +1206,7 @@ const handleDelete = async (row: Salesman) => {
         transition: all $transition-fast;
 
         &:hover {
-          background-color: #047857;
+          background-color: var(--color-primary-deep);
         }
       }
     }
@@ -1228,8 +1228,8 @@ const handleDelete = async (row: Salesman) => {
   .content-card {
     min-height: 400px;
     background-color: #fff;
-    border-radius: 32px !important;
-    border: 1px solid #f8fafc !important;
+    border-radius: var(--radius-5xl) !important;
+    border: 1px solid var(--color-bg-page) !important;
     overflow: hidden;
     box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
     transition: all $transition-slow;
@@ -1242,7 +1242,7 @@ const handleDelete = async (row: Salesman) => {
     :deep(.t-card__body) {
       padding: 0 !important;
       overflow: hidden;
-      border-radius: 0 0 32px 32px;
+      border-radius: 0 0 var(--radius-5xl) var(--radius-5xl);
     }
 
     :deep(.t-table__body .t-table__row) {
@@ -1274,7 +1274,7 @@ const handleDelete = async (row: Salesman) => {
   .salesman-details {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: var(--space-0-5);
   }
 
   .salesman-name {
@@ -1287,7 +1287,7 @@ const handleDelete = async (row: Salesman) => {
   .salesman-code {
     margin: 0;
     font-size: 12px;
-    color: #94A3B8;
+    color: var(--color-text-placeholder);
   }
 
   .text-muted {
@@ -1300,7 +1300,7 @@ const handleDelete = async (row: Salesman) => {
     flex-direction: column;
     line-height: 1.4;
     font-size: 13px;
-    color: #475569;
+    color: var(--color-text-secondary);
     white-space: pre-line;
     word-break: break-all;
   }
@@ -1309,18 +1309,18 @@ const handleDelete = async (row: Salesman) => {
   .status-wrapper {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--space-1-5);
   }
 
   .status-tag--active {
     background: $overlay-emerald-08;
-    color: #059669;
+    color: var(--color-primary-dark);
     border: none;
   }
 
   .status-tag--inactive {
     background: #f1f5f9;
-    color: #64748b;
+    color: var(--color-text-secondary);
     border: none;
   }
 
@@ -1330,12 +1330,12 @@ const handleDelete = async (row: Salesman) => {
     border-radius: 50%;
 
     &--active {
-      background: #10B981;
+      background: var(--color-primary);
       box-shadow: 0 0 6px $overlay-emerald-40;
     }
 
     &--inactive {
-      background: #94A3B8;
+      background: var(--color-text-placeholder);
     }
   }
 
@@ -1358,11 +1358,11 @@ const handleDelete = async (row: Salesman) => {
     background: transparent;
     cursor: pointer;
     transition: all $transition-fast;
-    color: #64748B;
+    color: var(--color-text-secondary);
 
     &:hover {
-      background: #f8fafc;
-      border-color: #e2e8f0;
+      background: var(--color-bg-page);
+      border-color: var(--color-border);
     }
 
     &.view-btn:hover {
@@ -1372,19 +1372,19 @@ const handleDelete = async (row: Salesman) => {
     }
 
     &.edit-btn:hover {
-      color: #10B981;
-      border-color: #a7f3d0;
+      color: var(--color-primary);
+      border-color: var(--color-primary-lightest);
       background: #ecfdf5;
     }
 
     &.status-btn:hover {
-      color: #F59E0B;
+      color: var(--color-warning);
       border-color: #fde68a;
       background: #fffbeb;
     }
 
     &.delete-btn:hover {
-      color: #EF4444;
+      color: var(--color-danger);
       border-color: #fecaca;
       background: #fef2f2;
     }
@@ -1397,12 +1397,12 @@ const handleDelete = async (row: Salesman) => {
     justify-content: space-between;
     align-items: center;
     background-color: #fff;
-    border-top: 1px solid #f8fafc;
-    border-radius: 0 0 32px 32px;
+    border-top: 1px solid var(--color-bg-page);
+    border-radius: 0 0 var(--radius-5xl) var(--radius-5xl);
 
     .pagination-info {
       font-size: 14px;
-      color: #94a3b8;
+      color: var(--color-text-placeholder);
       white-space: nowrap;
     }
 
@@ -1416,8 +1416,8 @@ const handleDelete = async (row: Salesman) => {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      padding: 6px 12px;
-      border: 1px solid #e2e8f0;
+      padding: var(--space-1-5) 12px;
+      border: 1px solid var(--color-border);
       border-radius: var(--radius-md, 8px);
       background-color: transparent;
       color: var(--color-text-regular, #6e6178);
@@ -1428,9 +1428,9 @@ const handleDelete = async (row: Salesman) => {
       user-select: none;
 
       &:hover:not(.pagination-btn--disabled):not(.pagination-btn--active) {
-        background-color: var(--color-primary-bg, #fff0f3);
-        border-color: var(--color-primary-lighter, #ffb5c8);
-        color: var(--color-primary-dark, #e8a0b0);
+        background-color: var(--color-primary-bg, var(--color-primary-bg));
+        border-color: var(--color-primary-lighter, var(--color-primary-lighter));
+        color: var(--color-primary-dark, var(--color-primary-dark));
       }
 
       &.pagination-btn--disabled {
@@ -1438,14 +1438,14 @@ const handleDelete = async (row: Salesman) => {
         cursor: not-allowed !important;
         color: var(--color-text-placeholder, #d4c5d0);
         background-color: transparent;
-        border-color: #e2e8f0;
+        border-color: var(--color-border);
         pointer-events: none;
       }
 
       &.pagination-btn--active {
-        background-color: var(--color-primary, #ff6b8a);
+        background-color: var(--color-primary, var(--color-primary));
         color: #fff;
-        border-color: var(--color-primary, #ff6b8a);
+        border-color: var(--color-primary, var(--color-primary));
         font-weight: 600;
         box-shadow: 0 1px 3px var(--overlay-brand-25, rgba(255, 107, 138, 0.25));
         pointer-events: none;
@@ -1458,7 +1458,7 @@ const handleDelete = async (row: Salesman) => {
       justify-content: center;
       width: 36px;
       height: 34px;
-      color: #94a3b8;
+      color: var(--color-text-placeholder);
       font-size: 14px;
       user-select: none;
     }
@@ -1473,18 +1473,18 @@ const handleDelete = async (row: Salesman) => {
       position: sticky !important;
       top: 0 !important;
       z-index: 5 !important;
-      background: #f8fafc !important;
+      background: var(--color-bg-page) !important;
       backdrop-filter: none !important;
 
       th {
-        background: #f8fafc !important;
-        color: #94a3b8 !important;
+        background: var(--color-bg-page) !important;
+        color: var(--color-text-placeholder) !important;
         font-size: 12px !important;
         text-transform: uppercase !important;
         letter-spacing: 0.05em !important;
         font-weight: 600 !important;
-        padding: 14px 20px !important;
-        border-bottom: 1px solid #e2e8f0 !important;
+        padding: var(--space-3-5) 20px !important;
+        border-bottom: 1px solid var(--color-border) !important;
 
         &:first-child {
           padding-left: 24px !important;
@@ -1502,7 +1502,7 @@ const handleDelete = async (row: Salesman) => {
           transition: color 0.2s;
 
           &:hover {
-            color: #10b981 !important;
+            color: var(--color-primary) !important;
           }
 
           .t-table__cell--title {
@@ -1523,7 +1523,7 @@ const handleDelete = async (row: Salesman) => {
             }
 
             .t-table__sort-icon--active {
-              color: #10b981 !important;
+              color: var(--color-primary) !important;
             }
           }
         }
@@ -1535,7 +1535,7 @@ const handleDelete = async (row: Salesman) => {
 
       .t-table__row {
         td {
-          padding: 18px 20px !important;
+          padding: var(--space-4-5) 20px !important;
           border-bottom: 1px solid #f1f5f9 !important;
           vertical-align: middle;
           background-color: #fff !important;
@@ -1565,13 +1565,13 @@ const handleDelete = async (row: Salesman) => {
     .t-checkbox {
       .t-checkbox__input {
         &:hover .t-checkbox__input__inner {
-          border-color: #10b981;
+          border-color: var(--color-primary);
         }
 
         &.is-checked .t-checkbox__input__inner,
         &.is-indeterminate .t-checkbox__input__inner {
-          background-color: #10b981;
-          border-color: #10b981;
+          background-color: var(--color-primary);
+          border-color: var(--color-primary);
         }
 
         &.is-checked .t-checkbox__input__inner::after,
@@ -1585,7 +1585,7 @@ const handleDelete = async (row: Salesman) => {
       }
 
       .t-icon {
-        color: #10b981;
+        color: var(--color-primary);
       }
     }
 
@@ -1594,8 +1594,8 @@ const handleDelete = async (row: Salesman) => {
 
       .t-checkbox__input.is-checked .t-checkbox__input__inner,
       .t-checkbox__input.is-indeterminate .t-checkbox__input__inner {
-        background-color: #10b981;
-        border-color: #10b981;
+        background-color: var(--color-primary);
+        border-color: var(--color-primary);
       }
     }
 
@@ -1619,14 +1619,14 @@ const handleDelete = async (row: Salesman) => {
 
   .activity-card {
     background-color: #fff;
-    border-radius: 24px;
+    border-radius: var(--radius-4xl);
     padding: 32px;
     box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
-    border: 1px solid #f8fafc;
+    border: 1px solid var(--color-bg-page);
 
     &--assistant {
       background: #fff;
-      border: 1px solid #f8fafc;
+      border: 1px solid var(--color-bg-page);
       color: #0F172A;
       position: relative;
       overflow: hidden;
@@ -1644,7 +1644,7 @@ const handleDelete = async (row: Salesman) => {
   .activity-title {
     font-size: 18px;
     font-weight: 700;
-    color: #1e293b;
+    color: var(--color-text-primary);
     display: flex;
     align-items: center;
     gap: 8px;
@@ -1654,7 +1654,7 @@ const handleDelete = async (row: Salesman) => {
   .activity-nav {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--space-1-5);
 
     .activity-nav-btn {
       display: inline-flex;
@@ -1687,7 +1687,7 @@ const handleDelete = async (row: Salesman) => {
     .activity-nav-page {
       font-size: 12px;
       font-weight: 600;
-      color: #94a3b8;
+      color: var(--color-text-placeholder);
       min-width: 36px;
       text-align: center;
       user-select: none;
@@ -1728,7 +1728,7 @@ const handleDelete = async (row: Salesman) => {
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    margin-top: 2px;
+    margin-top: var(--space-0-5);
 
     &--success {
       background: #ecfdf5;
@@ -1746,11 +1746,11 @@ const handleDelete = async (row: Salesman) => {
       width: 8px;
       height: 8px;
       border-radius: 50%;
-      background: #10B981;
+      background: var(--color-primary);
     }
 
     &--warning .timeline-dot-inner {
-      background: #F59E0B;
+      background: var(--color-warning);
     }
 
     &--info .timeline-dot-inner {
@@ -1773,13 +1773,13 @@ const handleDelete = async (row: Salesman) => {
   .timeline-desc {
     margin: 0 0 4px;
     font-size: 13px;
-    color: #64748b;
+    color: var(--color-text-secondary);
     line-height: 1.5;
   }
 
   .timeline-time {
     font-size: 12px;
-    color: #94A3B8;
+    color: var(--color-text-placeholder);
   }
 
   // ─── 小助手卡片 ───
@@ -1805,7 +1805,7 @@ const handleDelete = async (row: Salesman) => {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    padding: 10px 24px;
+    padding: var(--space-2-5) 24px;
     background: $overlay-white-20;
     border: 1px solid $overlay-white-30;
     border-radius: 12px;
@@ -1911,13 +1911,13 @@ const handleDelete = async (row: Salesman) => {
     border: none;
     border-radius: 8px;
     background: transparent;
-    color: #94a3b8;
+    color: var(--color-text-placeholder);
     cursor: pointer;
     transition: all $transition-fast;
 
     &:hover {
       background: #f1f5f9;
-      color: #475569;
+      color: var(--color-text-secondary);
     }
   }
 }
@@ -1985,14 +1985,14 @@ const handleDelete = async (row: Salesman) => {
 // ─── 业务员小助手卡片 ───
 .activity-card {
   background-color: #fff;
-  border-radius: 24px;
+  border-radius: var(--radius-4xl);
   padding: 32px;
   box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
-  border: 1px solid #f8fafc;
+  border: 1px solid var(--color-bg-page);
 
   &--assistant {
     background: #fff;
-    border: 1px solid #f8fafc;
+    border: 1px solid var(--color-bg-page);
     color: #0F172A;
     position: relative;
     overflow: hidden;
@@ -2019,8 +2019,8 @@ const handleDelete = async (row: Salesman) => {
     justify-content: space-between;
     margin: -32px -32px 16px -32px;
     padding: 20px 24px;
-    background: linear-gradient(135deg, #10B981, #059669);
-    border-radius: 24px 24px 0 0;
+    background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+    border-radius: var(--radius-4xl) var(--radius-4xl) 0 0;
 
     .assistant-title {
       display: flex;
@@ -2036,7 +2036,7 @@ const handleDelete = async (row: Salesman) => {
   .sm-nav {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--space-1-5);
 
     .activity-nav-btn {
       display: inline-flex;
@@ -2079,7 +2079,7 @@ const handleDelete = async (row: Salesman) => {
     &__inner {
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: var(--space-2-5);
     }
   }
 
@@ -2087,8 +2087,8 @@ const handleDelete = async (row: Salesman) => {
     display: flex;
     align-items: flex-start;
     gap: 12px;
-    padding: 14px;
-    background: #f8fafc;
+    padding: var(--space-3-5);
+    background: var(--color-bg-page);
     border-radius: 14px;
     border: 1px solid #f1f5f9;
     transition: all 0.25s ease;
@@ -2097,7 +2097,7 @@ const handleDelete = async (row: Salesman) => {
 
     &:hover {
       background: #f1f5f9;
-      border-color: #e2e8f0;
+      border-color: var(--color-border);
       transform: translateX(4px);
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     }
@@ -2134,7 +2134,7 @@ const handleDelete = async (row: Salesman) => {
       }
 
       .todo-item__desc {
-        color: #475569;
+        color: var(--color-text-secondary);
       }
     }
 
@@ -2190,14 +2190,14 @@ const handleDelete = async (row: Salesman) => {
     &__title {
       font-size: 13px;
       font-weight: 600;
-      color: #1e293b;
-      margin: 0 0 3px 0;
+      color: var(--color-text-primary);
+      margin: 0 0 var(--space-1) 0;
       line-height: 1.3;
     }
 
     &__desc {
       font-size: 12px;
-      color: #64748b;
+      color: var(--color-text-secondary);
       margin: 0;
       line-height: 1.4;
     }
@@ -2207,9 +2207,9 @@ const handleDelete = async (row: Salesman) => {
       width: 28px;
       height: 28px;
       border-radius: 8px;
-      border: 1.5px solid #E2E8F0;
+      border: 1.5px solid var(--color-border);
       background: #fff;
-      color: #64748b;
+      color: var(--color-text-secondary);
       cursor: pointer;
       display: inline-flex;
       align-items: center;
@@ -2217,7 +2217,7 @@ const handleDelete = async (row: Salesman) => {
       transition: all 0.2s ease;
 
       &:hover {
-        background: linear-gradient(135deg, #10B981, #059669);
+        background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
         border-color: transparent;
         color: #fff;
         transform: scale(1.05);
@@ -2258,23 +2258,23 @@ const handleDelete = async (row: Salesman) => {
   flex-direction: column;
   align-items: center;
   text-align: center;
-  padding: 36px 20px 24px;
+  padding: var(--space-8) 20px 24px;
 
   svg {
     margin-bottom: 12px;
-    stroke: #10b981;
+    stroke: var(--color-primary);
   }
 
   p {
     font-size: 15px;
     font-weight: 600;
     color: #0F172A;
-    margin: 0 0 6px 0;
+    margin: 0 0 var(--space-1-5) 0;
   }
 
   span {
     font-size: 13px;
-    color: #94a3b8;
+    color: var(--color-text-placeholder);
   }
 }
 
@@ -2289,16 +2289,16 @@ const handleDelete = async (row: Salesman) => {
 
 .assistant-hint {
   font-size: 12px;
-  color: #94a3b8;
+  color: var(--color-text-placeholder);
 }
 
 .assistant-refresh-btn {
   width: 28px;
   height: 28px;
   border-radius: 8px;
-  border: 1.5px solid #E2E8F0;
+  border: 1.5px solid var(--color-border);
   background: #fff;
-  color: #64748b;
+  color: var(--color-text-secondary);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -2308,7 +2308,7 @@ const handleDelete = async (row: Salesman) => {
   &:hover {
     background: #f1f5f9;
     border-color: #cbd5e1;
-    color: #475569;
+    color: var(--color-text-secondary);
     transform: rotate(180deg);
   }
 }
@@ -2321,7 +2321,7 @@ const handleDelete = async (row: Salesman) => {
   height: 140px;
   opacity: 0.08;
   transform: rotate(-12deg);
-  color: #10b981;
+  color: var(--color-primary);
   pointer-events: none;
   z-index: 0;
 }
@@ -2354,7 +2354,7 @@ const handleDelete = async (row: Salesman) => {
   gap: 8px !important;
   padding: 8px 16px !important;
   border-radius: 12px !important;
-  background-color: #1e293b !important;
+  background-color: var(--color-text-primary) !important;
   color: white !important;
   font-size: 14px !important;
   font-weight: 500 !important;
@@ -2364,7 +2364,7 @@ const handleDelete = async (row: Salesman) => {
   box-shadow: 0 4px 6px rgba(15, 23, 42, 0.15) !important;
 
   &:hover {
-    background-color: #334155 !important;
+    background-color: var(--color-text-primary) !important;
   }
 
   .add-icon {
@@ -2413,14 +2413,14 @@ const handleDelete = async (row: Salesman) => {
 }
 
 .salesman-list .custom-sort-header:hover {
-  color: #10b981;
+  color: var(--color-primary);
 }
 
 .salesman-list .custom-sort {
   display: inline-block;
   width: 0;
   height: 0;
-  margin-left: 2px;
+  margin-left: var(--space-0-5);
   border-left: 4px solid transparent;
   border-right: 4px solid transparent;
   opacity: 0.25;
@@ -2428,18 +2428,18 @@ const handleDelete = async (row: Salesman) => {
 }
 
 .salesman-list .custom-sort--none {
-  border-top: 5px solid #94a3b8;
+  border-top: 5px solid var(--color-text-placeholder);
   border-bottom: none;
 }
 
 .salesman-list .custom-sort--asc {
-  border-bottom: 5px solid #10b981;
+  border-bottom: 5px solid var(--color-primary);
   border-top: none;
   opacity: 1;
 }
 
 .salesman-list .custom-sort--desc {
-  border-top: 5px solid #10b981;
+  border-top: 5px solid var(--color-primary);
   border-bottom: none;
   opacity: 1;
 }

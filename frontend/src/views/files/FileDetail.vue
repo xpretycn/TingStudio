@@ -343,7 +343,7 @@
           </t-radio-group>
         </div>
         <div v-else-if="linkSearchFetched && linkSearchResults.length === 0" class="link-results-empty">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5"
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-placeholder)" stroke-width="1.5"
             stroke-linecap="round" stroke-linejoin="round">
             <circle cx="11" cy="11" r="8" />
             <line x1="21" y1="21" x2="16.65" y2="16.65" />
@@ -618,7 +618,7 @@ const getRelationDropdownOptions = (_rel: any) => {
       content: '解除关联',
       value: 'unlink',
       prefixIcon: () =>
-        h('svg', { width: 14, height: 14, viewBox: '0 0 24 24', fill: 'none', stroke: '#ef4444', 'stroke-width': 2, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, [
+        h('svg', { width: 14, height: 14, viewBox: '0 0 24 24', fill: 'none', stroke: 'var(--color-danger)', 'stroke-width': 2, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, [
           h('path', { d: 'M18 6L6 18' }),
           h('path', { d: 'M6 6l12 12' }),
         ]),
@@ -752,13 +752,13 @@ watch(() => route.query.action, (action) => {
         border: none;
         border-radius: 12px;
         background: transparent;
-        color: #94a3b8;
+        color: var(--color-text-placeholder);
         cursor: pointer;
         transition: all $transition-fast;
         font-size: 20px;
 
         &:hover {
-          color: #10b981;
+          color: var(--color-primary);
           background-color: #ecfdf5;
         }
       }
@@ -766,33 +766,33 @@ watch(() => route.query.action, (action) => {
       .header-title-group {
         display: flex;
         flex-direction: column;
-        gap: 6px;
+        gap: var(--space-1-5);
 
         .header-breadcrumb {
           display: flex;
           align-items: center;
-          gap: 6px;
+          gap: var(--space-1-5);
           font-size: 12px;
           line-height: 1;
 
           .breadcrumb-link {
-            color: #94a3b8;
+            color: var(--color-text-placeholder);
             cursor: pointer;
             transition: color 0.15s;
             text-decoration: none;
 
             &:hover {
-              color: #10b981;
+              color: var(--color-primary);
             }
           }
 
           .breadcrumb-sep {
             font-size: 12px;
-            color: #94a3b8;
+            color: var(--color-text-placeholder);
           }
 
           .breadcrumb-current {
-            color: #475569;
+            color: var(--color-text-secondary);
           }
         }
 
@@ -803,12 +803,12 @@ watch(() => route.query.action, (action) => {
           gap: 12px;
           font-size: 18px;
           font-weight: 700;
-          color: #1e293b;
+          color: var(--color-text-primary);
           line-height: 1.35;
 
           .status-tag {
             display: inline-block;
-            padding: 2px 8px;
+            padding: var(--space-0-5) 8px;
             font-size: 10px;
             font-weight: 900;
             border-radius: 6px;
@@ -828,8 +828,8 @@ watch(() => route.query.action, (action) => {
             }
 
             &--linked {
-              background-color: #d1fae5;
-              color: #059669;
+              background-color: var(--color-primary-bg);
+              color: var(--color-primary-dark);
             }
 
             &--orphaned {
@@ -839,7 +839,7 @@ watch(() => route.query.action, (action) => {
 
             &--archived {
               background-color: #f1f5f9;
-              color: #64748b;
+              color: var(--color-text-secondary);
             }
           }
         }
@@ -856,7 +856,7 @@ watch(() => route.query.action, (action) => {
         align-items: center;
         gap: 8px;
         padding: 8px 16px;
-        background-color: #10b981;
+        background-color: var(--color-primary);
         color: #ffffff;
         border: none;
         border-radius: 12px;
@@ -871,22 +871,22 @@ watch(() => route.query.action, (action) => {
         }
 
         &:hover {
-          background-color: #059669;
+          background-color: var(--color-primary-dark);
           transform: translateY(-1px);
           box-shadow: 0 14px 20px -3px rgba(16, 185, 129, 0.35);
         }
 
         &:active {
           transform: translateY(0);
-          background-color: #047857;
+          background-color: var(--color-primary-deep);
         }
 
         &--danger {
-          background-color: #ef4444;
+          background-color: var(--color-danger);
           box-shadow: 0 10px 15px -3px rgba(239, 68, 68, 0.25);
 
           &:hover {
-            background-color: #dc2626;
+            background-color: var(--color-danger);
             box-shadow: 0 14px 20px -3px rgba(239, 68, 68, 0.35);
           }
 
@@ -935,13 +935,13 @@ watch(() => route.query.action, (action) => {
       padding: $space-6;
       border-radius: $radius-2xl;
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-      border: 1px solid #f8fafc;
+      border: 1px solid var(--color-bg-page);
       animation: fadeInUp 0.35s ease both;
 
       .card-label {
         font-size: 14px;
         font-weight: 700;
-        color: #94a3b8;
+        color: var(--color-text-placeholder);
         text-transform: uppercase;
         letter-spacing: 0.1em;
         margin-bottom: $space-5;
@@ -951,7 +951,7 @@ watch(() => route.query.action, (action) => {
 
         .label-icon {
           font-size: 16px;
-          color: #10b981;
+          color: var(--color-primary);
           opacity: 0.7;
         }
       }
@@ -964,22 +964,22 @@ watch(() => route.query.action, (action) => {
 
       .field-item {
         padding: $space-3;
-        background: #f8fafc;
+        background: var(--color-bg-page);
         border-radius: $radius-xl;
         border: 1px solid #f1f5f9;
 
         label {
           display: flex;
           align-items: center;
-          gap: 6px;
+          gap: var(--space-1-5);
           font-size: 10px;
           font-weight: 700;
-          color: #94a3b8;
+          color: var(--color-text-placeholder);
           text-transform: uppercase;
           margin-bottom: 4px;
 
           .t-icon {
-            color: #10b981;
+            color: var(--color-primary);
             opacity: 0.55;
             flex-shrink: 0;
           }
@@ -988,7 +988,7 @@ watch(() => route.query.action, (action) => {
         p {
           font-size: 14px;
           font-weight: 700;
-          color: #334155;
+          color: var(--color-text-primary);
           margin: 0;
         }
 
@@ -1053,7 +1053,7 @@ watch(() => route.query.action, (action) => {
         .related-name-link {
           font-size: 13px;
           font-weight: 600;
-          color: #059669;
+          color: var(--color-primary-dark);
           cursor: pointer;
           text-decoration: none;
           transition: color 0.15s;
@@ -1062,7 +1062,7 @@ watch(() => route.query.action, (action) => {
           white-space: nowrap;
 
           &:hover {
-            color: #047857;
+            color: var(--color-primary-deep);
             text-decoration: underline;
           }
         }
@@ -1078,15 +1078,15 @@ watch(() => route.query.action, (action) => {
           width: 28px;
           height: 28px;
           background: transparent;
-          color: #64748b;
-          border: 1px solid #e2e8f0;
+          color: var(--color-text-secondary);
+          border: 1px solid var(--color-border);
           border-radius: 6px;
           cursor: pointer;
           transition: all 0.15s ease;
 
           &:hover {
             background: #f1f5f9;
-            color: #334155;
+            color: var(--color-text-primary);
             border-color: #cbd5e1;
           }
         }
@@ -1096,11 +1096,11 @@ watch(() => route.query.action, (action) => {
         display: inline-flex;
         align-items: center;
         gap: 4px;
-        padding: 4px 10px;
+        padding: 4px var(--space-2-5);
         margin-top: 8px;
         background: transparent;
-        color: var(--color-primary, #10b981);
-        border: 1px dashed #a7f3d0;
+        color: var(--color-primary, var(--color-primary));
+        border: 1px dashed var(--color-primary-lightest);
         border-radius: 8px;
         font-size: 12px;
         font-weight: 600;
@@ -1109,7 +1109,7 @@ watch(() => route.query.action, (action) => {
 
         &:hover {
           background: #ecfdf5;
-          border-color: var(--color-primary, #10b981);
+          border-color: var(--color-primary, var(--color-primary));
         }
       }
 
@@ -1119,22 +1119,22 @@ watch(() => route.query.action, (action) => {
         align-items: center;
         gap: 12px;
         padding: $space-5 $space-3;
-        background: #f8fafc;
+        background: var(--color-bg-page);
         border-radius: $radius-xl;
-        border: 1px dashed #e2e8f0;
+        border: 1px dashed var(--color-border);
 
         .related-empty-text {
           font-size: 13px;
-          color: #94a3b8;
+          color: var(--color-text-placeholder);
           margin: 0;
         }
 
         .related-link-btn {
           display: inline-flex;
           align-items: center;
-          gap: 6px;
-          padding: 6px 14px;
-          background: #10b981;
+          gap: var(--space-1-5);
+          padding: var(--space-1-5) var(--space-3-5);
+          background: var(--color-primary);
           color: #fff;
           border: none;
           border-radius: 10px;
@@ -1144,7 +1144,7 @@ watch(() => route.query.action, (action) => {
           transition: all $transition-fast;
 
           &:hover {
-            background: #059669;
+            background: var(--color-primary-dark);
             transform: translateY(-1px);
           }
         }
@@ -1169,7 +1169,7 @@ watch(() => route.query.action, (action) => {
           display: flex;
           align-items: center;
           justify-content: center;
-          color: #10b981;
+          color: var(--color-primary);
           font-size: 18px;
           font-weight: 700;
           flex-shrink: 0;
@@ -1177,16 +1177,16 @@ watch(() => route.query.action, (action) => {
 
         .uploader-name {
           font-weight: 700;
-          color: #1e293b;
+          color: var(--color-text-primary);
           font-size: 14px;
           margin: 0;
         }
 
         .uploader-id {
           font-size: 11px;
-          color: #94a3b8;
+          color: var(--color-text-placeholder);
           font-family: ui-monospace, SFMono-Regular, 'Cascadia Code', monospace;
-          margin: 2px 0 0;
+          margin: var(--space-0-5) 0 0;
         }
       }
 
@@ -1197,22 +1197,22 @@ watch(() => route.query.action, (action) => {
 
         .time-item {
           padding: $space-3;
-          background: #f8fafc;
+          background: var(--color-bg-page);
           border-radius: $radius-xl;
           border: 1px solid #f1f5f9;
 
           label {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: var(--space-1-5);
             font-size: 10px;
             font-weight: 700;
-            color: #94a3b8;
+            color: var(--color-text-placeholder);
             text-transform: uppercase;
             margin-bottom: 4px;
 
             .t-icon {
-              color: #10b981;
+              color: var(--color-primary);
               opacity: 0.55;
               flex-shrink: 0;
             }
@@ -1221,7 +1221,7 @@ watch(() => route.query.action, (action) => {
           p {
             font-size: 13px;
             font-weight: 600;
-            color: #334155;
+            color: var(--color-text-primary);
             margin: 0;
           }
         }
@@ -1234,24 +1234,24 @@ watch(() => route.query.action, (action) => {
       gap: $space-3;
 
       .confidence-high {
-        color: #10b981;
+        color: var(--color-primary);
         font-weight: 700;
       }
 
       .confidence-medium {
-        color: #f59e0b;
+        color: var(--color-warning);
         font-weight: 700;
       }
 
       .confidence-low {
-        color: #ef4444;
+        color: var(--color-danger);
         font-weight: 700;
       }
 
       .parse-json-block {
         max-height: 300px;
         overflow: auto;
-        background: #f8fafc;
+        background: var(--color-bg-page);
         border-radius: $radius-xl;
         border: 1px solid #f1f5f9;
         padding: $space-3;
@@ -1260,7 +1260,7 @@ watch(() => route.query.action, (action) => {
           margin: 0;
           font-size: 12px;
           line-height: 1.6;
-          color: #334155;
+          color: var(--color-text-primary);
           font-family: ui-monospace, SFMono-Regular, 'Cascadia Code', monospace;
           white-space: pre-wrap;
           word-break: break-all;
@@ -1272,13 +1272,13 @@ watch(() => route.query.action, (action) => {
       background: #fff;
       border-radius: $radius-2xl;
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-      border: 1px solid #f8fafc;
+      border: 1px solid var(--color-bg-page);
       overflow: hidden;
       animation: fadeInUp 0.4s ease both;
 
       .preview-header {
         padding: $space-5 $space-6;
-        border-bottom: 1px solid #f8fafc;
+        border-bottom: 1px solid var(--color-bg-page);
         background: rgba(248, 250, 252, 0.5);
         display: flex;
         justify-content: space-between;
@@ -1287,7 +1287,7 @@ watch(() => route.query.action, (action) => {
         .preview-title {
           font-size: 16px;
           font-weight: 700;
-          color: #1e293b;
+          color: var(--color-text-primary);
           margin: 0;
         }
       }
@@ -1343,8 +1343,8 @@ watch(() => route.query.action, (action) => {
             margin-top: 4px;
 
             &--green {
-              background: #10b981;
-              border: 3px solid #d1fae5;
+              background: var(--color-primary);
+              border: 3px solid var(--color-primary-bg);
             }
 
             &--blue {
@@ -1353,12 +1353,12 @@ watch(() => route.query.action, (action) => {
             }
 
             &--grey {
-              background: #94a3b8;
+              background: var(--color-text-placeholder);
               border: 3px solid #f1f5f9;
             }
 
             &--red {
-              background: #ef4444;
+              background: var(--color-danger);
               border: 3px solid #fee2e2;
             }
           }
@@ -1370,14 +1370,14 @@ watch(() => route.query.action, (action) => {
             .audit-top {
               display: flex;
               align-items: center;
-              gap: 6px;
-              margin-bottom: 2px;
+              gap: var(--space-1-5);
+              margin-bottom: var(--space-0-5);
 
               .audit-action-icon {
                 font-size: 14px;
 
                 &.audit-icon--green {
-                  color: #10b981;
+                  color: var(--color-primary);
                 }
 
                 &.audit-icon--blue {
@@ -1385,30 +1385,30 @@ watch(() => route.query.action, (action) => {
                 }
 
                 &.audit-icon--grey {
-                  color: #94a3b8;
+                  color: var(--color-text-placeholder);
                 }
 
                 &.audit-icon--red {
-                  color: #ef4444;
+                  color: var(--color-danger);
                 }
               }
 
               .audit-action-label {
                 font-size: 13px;
                 font-weight: 600;
-                color: #334155;
+                color: var(--color-text-primary);
               }
 
               .audit-operator {
                 font-size: 12px;
-                color: #94a3b8;
+                color: var(--color-text-placeholder);
                 margin-left: auto;
               }
             }
 
             .audit-time {
               font-size: 12px;
-              color: #94a3b8;
+              color: var(--color-text-placeholder);
               margin: 0;
             }
           }
@@ -1427,17 +1427,17 @@ watch(() => route.query.action, (action) => {
           justify-content: center;
           width: 36px;
           height: 36px;
-          border: 1px solid #e2e8f0;
+          border: 1px solid var(--color-border);
           border-radius: 10px;
           background: transparent;
-          color: #64748b;
+          color: var(--color-text-secondary);
           cursor: pointer;
           transition: all 0.15s;
 
           &:hover:not(:disabled) {
             background: #ecfdf5;
-            border-color: #a7f3d0;
-            color: #059669;
+            border-color: var(--color-primary-lightest);
+            color: var(--color-primary-dark);
           }
 
           &:disabled {
@@ -1449,7 +1449,7 @@ watch(() => route.query.action, (action) => {
         .audit-nav-page {
           font-size: 14px;
           font-weight: 600;
-          color: #94a3b8;
+          color: var(--color-text-placeholder);
           user-select: none;
         }
       }
@@ -1461,20 +1461,20 @@ watch(() => route.query.action, (action) => {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 80px 0;
+    padding: var(--space-16) 0;
   }
 
   .link-dialog-header {
     .link-dialog-title {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: var(--space-2-5);
       font-size: 16px;
       font-weight: 700;
-      color: #1e293b;
+      color: var(--color-text-primary);
 
       .link-dialog-icon {
-        color: var(--color-primary, #10b981);
+        color: var(--color-primary, var(--color-primary));
         flex-shrink: 0;
       }
     }
@@ -1488,18 +1488,18 @@ watch(() => route.query.action, (action) => {
     .link-form-item {
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: var(--space-1-5);
 
       label {
         display: flex;
         align-items: center;
-        gap: 6px;
+        gap: var(--space-1-5);
         font-size: 13px;
         font-weight: 600;
-        color: #475569;
+        color: var(--color-text-secondary);
 
         svg {
-          color: var(--color-primary, #10b981);
+          color: var(--color-primary, var(--color-primary));
           opacity: 0.7;
           flex-shrink: 0;
         }
@@ -1519,8 +1519,8 @@ watch(() => route.query.action, (action) => {
         display: inline-flex;
         align-items: center;
         gap: 4px;
-        padding: 7px 14px;
-        background: var(--color-primary, #10b981);
+        padding: var(--space-2) var(--space-3-5);
+        background: var(--color-primary, var(--color-primary));
         color: #fff;
         border: none;
         border-radius: 8px;
@@ -1559,19 +1559,19 @@ watch(() => route.query.action, (action) => {
     }
 
     .link-results {
-      border: 1px solid #e2e8f0;
+      border: 1px solid var(--color-border);
       border-radius: 12px;
       overflow: hidden;
 
       .link-results-header {
-        padding: 8px 14px;
-        background: #f8fafc;
+        padding: 8px var(--space-3-5);
+        background: var(--color-bg-page);
         border-bottom: 1px solid #f1f5f9;
 
         .link-results-count {
           font-size: 12px;
           font-weight: 600;
-          color: #64748b;
+          color: var(--color-text-secondary);
         }
       }
 
@@ -1579,10 +1579,10 @@ watch(() => route.query.action, (action) => {
       overflow-y: auto;
 
       .link-result-item {
-        padding: 10px 14px;
+        padding: var(--space-2-5) var(--space-3-5);
         border-radius: 0;
         transition: all 0.15s ease;
-        border-bottom: 1px solid #f8fafc;
+        border-bottom: 1px solid var(--color-bg-page);
         border-left: 3px solid transparent;
 
         &:last-child {
@@ -1590,37 +1590,37 @@ watch(() => route.query.action, (action) => {
         }
 
         &:hover {
-          background: #f8fafc;
+          background: var(--color-bg-page);
         }
 
         &--selected {
-          border-left-color: var(--color-primary, #10b981);
+          border-left-color: var(--color-primary, var(--color-primary));
 
           .link-result-name {
-            color: var(--color-primary-dark, #059669);
+            color: var(--color-primary-dark, var(--color-primary-dark));
             font-weight: 600;
           }
 
           .link-result-id {
-            color: var(--color-primary, #10b981);
+            color: var(--color-primary, var(--color-primary));
           }
         }
 
         .link-result-content {
           display: flex;
           flex-direction: column;
-          gap: 2px;
+          gap: var(--space-0-5);
         }
 
         .link-result-name {
           font-size: 14px;
-          color: #334155;
+          color: var(--color-text-primary);
           font-weight: 500;
         }
 
         .link-result-id {
           font-size: 11px;
-          color: #94a3b8;
+          color: var(--color-text-placeholder);
           font-family: ui-monospace, SFMono-Regular, 'Cascadia Code', monospace;
         }
       }
@@ -1630,7 +1630,7 @@ watch(() => route.query.action, (action) => {
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 28px 16px;
+      padding: var(--space-7) 16px;
       gap: 8px;
 
       svg {
@@ -1640,20 +1640,20 @@ watch(() => route.query.action, (action) => {
       p {
         font-size: 14px;
         font-weight: 600;
-        color: #475569;
+        color: var(--color-text-secondary);
         margin: 0;
       }
 
       span {
         font-size: 12px;
-        color: #94a3b8;
+        color: var(--color-text-placeholder);
       }
     }
 
     .link-dialog-footer {
       display: flex;
       justify-content: flex-end;
-      gap: 10px;
+      gap: var(--space-2-5);
       padding-top: 8px;
       border-top: 1px solid #f1f5f9;
       margin-top: 4px;
@@ -1661,11 +1661,11 @@ watch(() => route.query.action, (action) => {
       .link-close-btn {
         display: inline-flex;
         align-items: center;
-        gap: 6px;
-        padding: 8px 18px;
+        gap: var(--space-1-5);
+        padding: 8px var(--space-4-5);
         background: #fff;
-        color: #475569;
-        border: 1px solid #e2e8f0;
+        color: var(--color-text-secondary);
+        border: 1px solid var(--color-border);
         border-radius: 10px;
         font-size: 13px;
         font-weight: 600;
@@ -1673,9 +1673,9 @@ watch(() => route.query.action, (action) => {
         transition: all 0.2s ease;
 
         &:hover {
-          background: #f8fafc;
+          background: var(--color-bg-page);
           border-color: #cbd5e1;
-          color: #334155;
+          color: var(--color-text-primary);
         }
 
         &:active {
@@ -1686,9 +1686,9 @@ watch(() => route.query.action, (action) => {
       .link-confirm-btn {
         display: inline-flex;
         align-items: center;
-        gap: 6px;
-        padding: 8px 18px;
-        background: var(--color-primary, #10b981);
+        gap: var(--space-1-5);
+        padding: 8px var(--space-4-5);
+        background: var(--color-primary, var(--color-primary));
         color: #fff;
         border: none;
         border-radius: 10px;
@@ -1778,7 +1778,7 @@ watch(() => route.query.action, (action) => {
         justify-content: flex-end;
 
         .header-action-btn {
-          padding: 6px 14px;
+          padding: var(--space-1-5) var(--space-3-5);
           font-size: 13px;
 
           .btn-icon {

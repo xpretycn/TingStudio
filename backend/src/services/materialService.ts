@@ -246,11 +246,6 @@ export async function getMaterialList(params: {
   const conditions: string[] = ["m.is_deleted = 0", "m.is_latest = 1"];
   const queryParams: any[] = [];
 
-  if (scope !== "all" && userRole !== "admin") {
-    conditions.push("m.created_by = ?");
-    queryParams.push(userId);
-  }
-
   if (keyword) {
     conditions.push("(m.name LIKE ? OR m.code LIKE ?)");
     const like = buildLike(keyword);

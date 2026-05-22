@@ -22,37 +22,28 @@ export async function getFormulas(req: any, res: Response) {
     const { page: p, pageSize: size, offset } = buildPagination(Number(page), Number(pageSize));
     const userId = req.user.userId;
 
-    // 查询当前用户角色，admin 可查看所有配方
-    const [[userRow]]: any[][] = await query("SELECT role FROM users WHERE id = ?", [userId]);
-    const isAdmin = userRow?.role === "admin";
-
     let whereParts: string[] = [];
     const params: any[] = [];
 
-    if (!isAdmin) {
-      whereParts.push("created_by = ?");
-      params.push(userId);
-    }
-
     if (keyword) {
-      whereParts.push("(name LIKE ? OR salesman_name LIKE ?)");
+      whereParts.push("(f.name LIKE ? OR f.salesman_name LIKE ?)");
       const like = buildLike(keyword as string);
       params.push(like, like);
     }
     if (salesmanId) {
-      whereParts.push("salesman_id = ?");
+      whereParts.push("f.salesman_id = ?");
       params.push(salesmanId);
     }
 
     const whereSql = whereParts.length > 0 ? `WHERE ${whereParts.join(" AND ")}` : "";
 
-    const [list]: any[] = await query(`SELECT * FROM formulas ${whereSql} ORDER BY created_at DESC LIMIT ? OFFSET ?`, [
+    const [list]: any[] = await query(`SELECT f.*, COALESCE(u.display_name, u.username) as created_by_name, u.avatar as created_by_avatar FROM formulas f LEFT JOIN users u ON f.created_by = u.id ${whereSql} ORDER BY f.created_at DESC LIMIT ? OFFSET ?`, [
       ...params,
       size,
       offset,
     ]);
 
-    const [countResult]: any[] = await query(`SELECT COUNT(*) as total FROM formulas ${whereSql}`, params);
+    const [countResult]: any[] = await query(`SELECT COUNT(*) as total FROM formulas f ${whereSql}`, params);
 
     // 批量查询所有配方中原料的单价
     const allMaterialIds: string[] = [];
@@ -297,9 +288,11 @@ export async function createFormula(req: any, res: Response) {
       basePriceAtSave: basePriceMap[m.materialId] ?? null,
     }));
 
+    const initialStatus = req.user.role === "admin" ? "published" : "draft";
+
     await query(
       `INSERT INTO formula_versions (version_id, formula_id, version_number, version_name, snapshot_json, status, is_current, ratio_factor, supplement_ratio_factor, created_by, created_at)
-       VALUES (?, ?, ?, ?, ?, 'published', 1, ?, ?, ?, ?)`,
+       VALUES (?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?)`,
       [
         versionId,
         id,
@@ -334,6 +327,7 @@ export async function createFormula(req: any, res: Response) {
             preparationMethod: preparationMethod || null,
           },
         }),
+        initialStatus,
         ratioFactor ?? 0.18,
         supRatio,
         userId,
@@ -727,26 +721,28 @@ function buildChanges(oldMaterials: any[], newMaterials: any[], oldFormula: any,
         newValue: null,
         changeType: "delete",
       });
-    } else if (old.quantity !== newMat.quantity) {
-      changes.push({
-        field: "materials",
-        fieldLabel: `原料数量: ${old.materialName}`,
-        oldValue: old.quantity,
-        newValue: newMat.quantity,
-        changeType: "modify",
-      });
-    }
+    } else {
+      if (old.quantity !== newMat.quantity) {
+        changes.push({
+          field: "materials",
+          fieldLabel: `原料数量: ${old.materialName}`,
+          oldValue: old.quantity,
+          newValue: newMat.quantity,
+          changeType: "modify",
+        });
+      }
 
-    if (old.adjustedPrice !== newMat.adjustedPrice) {
-      const oldPrice = old.adjustedPrice ?? "基价";
-      const newPrice = newMat.adjustedPrice ?? "基价";
-      changes.push({
-        field: "adjustedPrice",
-        fieldLabel: `原料单价: ${old.materialName}`,
-        oldValue: typeof oldPrice === "number" ? `¥${oldPrice}/kg` : oldPrice,
-        newValue: typeof newPrice === "number" ? `¥${newPrice}/kg` : newPrice,
-        changeType: "modify",
-      });
+      if (old.adjustedPrice !== newMat.adjustedPrice) {
+        const oldPrice = old.adjustedPrice ?? "基价";
+        const newPrice = newMat.adjustedPrice ?? "基价";
+        changes.push({
+          field: "adjustedPrice",
+          fieldLabel: `原料单价: ${old.materialName}`,
+          oldValue: typeof oldPrice === "number" ? `¥${oldPrice}/kg` : oldPrice,
+          newValue: typeof newPrice === "number" ? `¥${newPrice}/kg` : newPrice,
+          changeType: "modify",
+        });
+      }
     }
   }
 

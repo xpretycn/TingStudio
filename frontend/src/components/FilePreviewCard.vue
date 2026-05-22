@@ -40,7 +40,7 @@
       </div>
 
       <div v-else-if="previewError" class="preview-error">
-        <t-icon name="close-circle" size="32px" style="color: #ef4444" />
+        <t-icon name="close-circle" size="32px" style="color: var(--color-danger)" />
         <p>预览加载失败</p>
         <t-button size="small" @click="loadPreview">重试</t-button>
       </div>
@@ -83,7 +83,7 @@
       </div>
 
       <div v-else class="preview-empty">
-        <t-icon name="file-unknown" size="40px" style="color: #94a3b8" />
+        <t-icon name="file-unknown" size="40px" style="color: var(--color-text-placeholder)" />
         <p>该文件格式暂不支持预览</p>
         <t-button size="small" theme="primary" @click="handleDownload">下载文件</t-button>
       </div>
@@ -247,21 +247,21 @@ onMounted(() => {
     gap: 8px;
 
     .toolbar-icon {
-      color: #10b981;
+      color: var(--color-primary);
       font-size: 18px;
     }
 
     .toolbar-title {
       font-size: 15px;
       font-weight: 600;
-      color: #1e293b;
+      color: var(--color-text-primary);
     }
   }
 
   .toolbar-right {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--space-1-5);
   }
 
   .sheet-tabs-inline {
@@ -272,22 +272,22 @@ onMounted(() => {
 
   .sheet-tab-sm {
     padding: 4px 12px;
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--color-border);
     border-radius: 6px;
     background: #fff;
-    color: #64748b;
+    color: var(--color-text-secondary);
     font-size: 12px;
     cursor: pointer;
     transition: all 0.2s;
 
     &:hover {
-      background: #f8fafc;
+      background: var(--color-bg-page);
     }
 
     &--active {
       background: #ecfdf5;
-      border-color: #10b981;
-      color: #059669;
+      border-color: var(--color-primary);
+      color: var(--color-primary-dark);
       font-weight: 600;
     }
   }
@@ -298,17 +298,17 @@ onMounted(() => {
     justify-content: center;
     width: 32px;
     height: 32px;
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--color-border);
     border-radius: 8px;
     background: #fff;
-    color: #64748b;
+    color: var(--color-text-secondary);
     cursor: pointer;
     transition: all 0.2s;
 
     &:hover {
-      background: #f8fafc;
-      border-color: #10b981;
-      color: #10b981;
+      background: var(--color-bg-page);
+      border-color: var(--color-primary);
+      color: var(--color-primary);
     }
   }
 }
@@ -328,7 +328,7 @@ onMounted(() => {
   justify-content: center;
   height: 100%;
   gap: 12px;
-  color: #94a3b8;
+  color: var(--color-text-placeholder);
   font-size: 14px;
 }
 
@@ -345,7 +345,7 @@ onMounted(() => {
   .truncate-notice {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--space-1-5);
     padding: 8px 16px;
     background: #fffbeb;
     color: #b45309;
@@ -364,12 +364,12 @@ onMounted(() => {
     font-size: 13px;
 
     th {
-      background: #f8fafc;
-      color: #64748b;
+      background: var(--color-bg-page);
+      color: var(--color-text-secondary);
       font-weight: 600;
       text-align: left;
-      padding: 10px 14px;
-      border-bottom: 1px solid #e2e8f0;
+      padding: var(--space-2-5) var(--space-3-5);
+      border-bottom: 1px solid var(--color-border);
       position: sticky;
       top: 0;
       z-index: 2;
@@ -378,8 +378,8 @@ onMounted(() => {
     .row-num-col {
       position: sticky;
       left: 0;
-      background: #f8fafc;
-      color: #94a3b8;
+      background: var(--color-bg-page);
+      color: var(--color-text-placeholder);
       font-size: 12px;
       text-align: center;
       width: 50px;
@@ -392,9 +392,9 @@ onMounted(() => {
     }
 
     td {
-      padding: 8px 14px;
-      border-bottom: 1px solid #f8fafc;
-      color: #334155;
+      padding: 8px var(--space-3-5);
+      border-bottom: 1px solid var(--color-bg-page);
+      color: var(--color-text-primary);
       white-space: nowrap;
     }
 
@@ -421,7 +421,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f8fafc;
+  background: var(--color-bg-page);
   user-select: none;
 
   &:active {
@@ -451,13 +451,13 @@ onMounted(() => {
     transform: translate(-50%, -50%);
     width: 40px;
     height: 3px;
-    border-radius: 2px;
-    background: #e2e8f0;
+    border-radius: var(--radius-2xs);
+    background: var(--color-border);
     transition: background 0.2s;
   }
 
   &:hover::after {
-    background: #10b981;
+    background: var(--color-primary);
   }
 }
 

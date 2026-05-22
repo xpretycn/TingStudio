@@ -630,7 +630,7 @@ onMounted(() => {
 
 .data-center-toolbar {
   padding: 32px 12px;
-  border-bottom: 1px solid #f8fafc;
+  border-bottom: 1px solid var(--color-bg-page);
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
@@ -647,13 +647,13 @@ onMounted(() => {
       .toolbar-title {
         font-size: 20px;
         font-weight: 700;
-        color: #1e293b;
+        color: var(--color-text-primary);
         margin: 0 0 4px 0;
       }
 
       .toolbar-subtitle {
         font-size: 14px;
-        color: #94a3b8;
+        color: var(--color-text-placeholder);
         margin: 0;
       }
     }
@@ -674,7 +674,7 @@ onMounted(() => {
       left: 12px;
       top: 50%;
       transform: translateY(-50%);
-      color: #94a3b8;
+      color: var(--color-text-placeholder);
       font-size: 16px;
       z-index: 1;
       pointer-events: none;
@@ -686,7 +686,7 @@ onMounted(() => {
         padding-right: 16px;
         padding-top: 8px;
         padding-bottom: 8px;
-        background-color: #f8fafc;
+        background-color: var(--color-bg-page);
         border: none !important;
         border-radius: 12px;
         font-size: 14px;
@@ -700,7 +700,7 @@ onMounted(() => {
         }
 
         &::placeholder {
-          color: #94a3b8;
+          color: var(--color-text-placeholder);
         }
       }
     }
@@ -711,7 +711,7 @@ onMounted(() => {
     align-items: center;
     gap: 8px;
     padding: 8px 16px;
-    background-color: #1e293b;
+    background-color: var(--color-text-primary);
     color: white;
     border-radius: 12px;
     font-size: 14px;
@@ -722,7 +722,7 @@ onMounted(() => {
     cursor: pointer;
 
     &:hover {
-      background-color: #334155;
+      background-color: var(--color-text-primary);
     }
 
     svg {
@@ -738,13 +738,13 @@ onMounted(() => {
   right: 0;
   bottom: 0;
   z-index: 20;
-  background-color: #059669;
+  background-color: var(--color-primary-dark);
   color: #fff;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 20px 32px;
-  border-radius: 32px 32px 0 0;
+  border-radius: var(--radius-5xl) var(--radius-5xl) 0 0;
   box-shadow: 0 4px 18px rgba(5, 150, 105, 0.25);
 
   .batch-info {
@@ -788,7 +788,7 @@ onMounted(() => {
       transition: all 0.2s;
 
       &:hover {
-        color: #d1fae5;
+        color: var(--color-primary-bg);
       }
 
       svg {
@@ -802,7 +802,7 @@ onMounted(() => {
   .batch-cancel-btn {
     font-size: 14px;
     font-weight: 500;
-    border: 1px solid #34d399;
+    border: 1px solid var(--color-primary-light);
     padding: 4px 12px;
     border-radius: 8px;
     background: transparent;
@@ -811,7 +811,7 @@ onMounted(() => {
     transition: all 0.2s;
 
     &:hover {
-      background-color: #047857;
+      background-color: var(--color-primary-deep);
     }
   }
 }
@@ -834,7 +834,7 @@ onMounted(() => {
 }
 
 .data-card {
-  background: #f8fafc;
+  background: var(--color-bg-page);
   border-radius: 10px;
   padding: 12px 16px;
   cursor: pointer;
@@ -848,7 +848,7 @@ onMounted(() => {
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
 
     &.card-emerald {
-      border-color: #10B981;
+      border-color: var(--color-primary);
     }
 
     &.card-blue {
@@ -860,19 +860,19 @@ onMounted(() => {
     }
 
     &.card-amber {
-      border-color: #F59E0B;
+      border-color: var(--color-warning);
     }
   }
 
   .card-header {
     display: flex;
     align-items: center;
-    gap: 6px;
-    margin-bottom: 6px;
+    gap: var(--space-1-5);
+    margin-bottom: var(--space-1-5);
 
     .card-title {
       font-size: 12px;
-      color: #64748b;
+      color: var(--color-text-secondary);
       font-weight: 500;
     }
   }
@@ -882,15 +882,15 @@ onMounted(() => {
       font-size: 20px;
       font-weight: 700;
       line-height: 1.2;
-      color: #1e293b;
+      color: var(--color-text-primary);
     }
   }
 
   .card-progress {
-    margin-top: 6px;
+    margin-top: var(--space-1-5);
     height: 3px;
-    background: #e2e8f0;
-    border-radius: 2px;
+    background: var(--color-border);
+    border-radius: var(--radius-2xs);
     overflow: hidden;
 
     .progress-bar {
@@ -898,21 +898,21 @@ onMounted(() => {
       transition: width 0.3s;
 
       &.progress--success {
-        background: #10b981;
+        background: var(--color-primary);
       }
 
       &.progress--warning {
-        background: #f59e0b;
+        background: var(--color-warning);
       }
 
       &.progress--danger {
-        background: #ef4444;
+        background: var(--color-danger);
       }
     }
   }
 
   &.card-emerald .card-header {
-    color: #10B981;
+    color: var(--color-primary);
   }
 
   &.card-blue .card-header {
@@ -924,7 +924,7 @@ onMounted(() => {
   }
 
   &.card-amber .card-header {
-    color: #F59E0B;
+    color: var(--color-warning);
   }
 }
 
@@ -935,20 +935,20 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   gap: 12px;
-  padding: 64px 24px;
-  color: #94a3b8;
+  padding: var(--space-16) 24px;
+  color: var(--color-text-placeholder);
   font-size: 14px;
 
   .empty-title {
     font-size: 16px;
     font-weight: 600;
-    color: #64748b;
+    color: var(--color-text-secondary);
     margin: 0;
   }
 
   .empty-desc {
     font-size: 13px;
-    color: #94a3b8;
+    color: var(--color-text-placeholder);
     margin: 0;
   }
 }
@@ -961,7 +961,7 @@ onMounted(() => {
 
 .history-card {
   background: #fff;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--color-border);
   border-radius: 12px;
   padding: 16px 20px;
   transition: all 0.2s;
@@ -972,15 +972,15 @@ onMounted(() => {
   }
 
   &--error {
-    border-left: 3px solid #ef4444;
+    border-left: 3px solid var(--color-danger);
   }
 
   &--success {
-    border-left: 3px solid #10b981;
+    border-left: 3px solid var(--color-primary);
   }
 
   &--pending {
-    border-left: 3px solid #f59e0b;
+    border-left: 3px solid var(--color-warning);
   }
 
   &--highlight {
@@ -996,7 +996,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 10px;
+  margin-bottom: var(--space-2-5);
 }
 
 .history-card-type {
@@ -1019,12 +1019,12 @@ onMounted(() => {
   border-radius: 6px;
   border: none;
   background: transparent;
-  color: #94a3b8;
+  color: var(--color-text-placeholder);
   cursor: pointer;
   transition: all 0.2s;
 
   &:hover {
-    color: #ef4444;
+    color: var(--color-danger);
     background: #fef2f2;
   }
 }
@@ -1032,7 +1032,7 @@ onMounted(() => {
 .type-badge {
   display: inline-flex;
   align-items: center;
-  padding: 2px 10px;
+  padding: var(--space-0-5) var(--space-2-5);
   border-radius: 6px;
   font-size: 12px;
   font-weight: 600;
@@ -1054,27 +1054,27 @@ onMounted(() => {
   border-radius: 50%;
 
   &--success {
-    background: #10b981;
+    background: var(--color-primary);
   }
 
   &--error {
-    background: #ef4444;
+    background: var(--color-danger);
   }
 
   &--pending {
-    background: #f59e0b;
+    background: var(--color-warning);
   }
 }
 
 .status-text {
   font-size: 12px;
   font-weight: 500;
-  color: #64748b;
+  color: var(--color-text-secondary);
 }
 
 .history-card-time {
   font-size: 12px;
-  color: #94a3b8;
+  color: var(--color-text-placeholder);
 }
 
 .history-card-body {
@@ -1092,11 +1092,11 @@ onMounted(() => {
     align-items: center;
     gap: 4px;
     font-size: 13px;
-    color: #64748b;
+    color: var(--color-text-secondary);
 
     &.meta-item--file {
       font-weight: 500;
-      color: #1e293b;
+      color: var(--color-text-primary);
     }
   }
 }
@@ -1107,11 +1107,11 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   background-color: #fff;
-  border-top: 1px solid #f8fafc;
+  border-top: 1px solid var(--color-bg-page);
 
   .pagination-info {
     font-size: 14px;
-    color: #94a3b8;
+    color: var(--color-text-placeholder);
     font-weight: 400;
     white-space: nowrap;
   }
@@ -1126,8 +1126,8 @@ onMounted(() => {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 6px 12px;
-    border: 1px solid #e2e8f0;
+    padding: var(--space-1-5) 12px;
+    border: 1px solid var(--color-border);
     border-radius: 8px;
     background-color: transparent;
     color: #6e6178;
@@ -1139,8 +1139,8 @@ onMounted(() => {
 
     &:hover:not(.pagination-btn--disabled):not(.pagination-btn--active) {
       background-color: #ecfdf5;
-      border-color: #a7f3d0;
-      color: #059669;
+      border-color: var(--color-primary-lightest);
+      color: var(--color-primary-dark);
     }
 
     &.pagination-btn--disabled {
@@ -1148,14 +1148,14 @@ onMounted(() => {
       cursor: not-allowed !important;
       color: #d4c5d0;
       background-color: transparent;
-      border-color: #e2e8f0;
+      border-color: var(--color-border);
       pointer-events: none;
     }
 
     &.pagination-btn--active {
-      background-color: #10b981;
+      background-color: var(--color-primary);
       color: #fff;
-      border-color: #10b981;
+      border-color: var(--color-primary);
       font-weight: 600;
       box-shadow: 0 1px 3px rgba(16, 185, 129, 0.25);
       pointer-events: none;
@@ -1168,7 +1168,7 @@ onMounted(() => {
     justify-content: center;
     width: 36px;
     height: 34px;
-    color: #94a3b8;
+    color: var(--color-text-placeholder);
     font-size: 14px;
     user-select: none;
   }
@@ -1185,13 +1185,13 @@ onMounted(() => {
 
       .detail-label {
         width: 100px;
-        color: #64748b;
+        color: var(--color-text-secondary);
         font-size: 14px;
       }
 
       .detail-value {
         flex: 1;
-        color: #1e293b;
+        color: var(--color-text-primary);
         font-size: 14px;
 
         &.detail-value--mono {
@@ -1201,15 +1201,15 @@ onMounted(() => {
         }
 
         &.status--success {
-          color: #10b981;
+          color: var(--color-primary);
         }
 
         &.status--error {
-          color: #ef4444;
+          color: var(--color-danger);
         }
 
         &.status--pending {
-          color: #f59e0b;
+          color: var(--color-warning);
         }
       }
     }
@@ -1217,7 +1217,7 @@ onMounted(() => {
     .json-viewer {
       margin-top: 12px;
       padding: 12px;
-      background: #f8fafc;
+      background: var(--color-bg-page);
       border-radius: 8px;
       font-size: 12px;
       max-height: 300px;
@@ -1230,7 +1230,7 @@ onMounted(() => {
         background: #fef2f2;
         border: 1px solid #fecaca;
         border-radius: 8px;
-        color: #dc2626;
+        color: var(--color-danger);
         font-size: 14px;
       }
     }

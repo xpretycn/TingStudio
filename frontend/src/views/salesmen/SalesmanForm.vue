@@ -314,13 +314,13 @@ onMounted(async () => {
         border: none;
         border-radius: 12px;
         background: transparent;
-        color: #94a3b8;
+        color: var(--color-text-placeholder);
         cursor: pointer;
         transition: all $transition-fast;
         font-size: 20px;
 
         &:hover {
-          color: #10b981;
+          color: var(--color-primary);
           background-color: #ecfdf5;
         }
       }
@@ -328,33 +328,33 @@ onMounted(async () => {
       .header-title-group {
         display: flex;
         flex-direction: column;
-        gap: 6px;
+        gap: var(--space-1-5);
 
         .header-breadcrumb {
           display: flex;
           align-items: center;
-          gap: 6px;
+          gap: var(--space-1-5);
           font-size: 12px;
           line-height: 1;
 
           .breadcrumb-link {
-            color: #94a3b8;
+            color: var(--color-text-placeholder);
             cursor: pointer;
             transition: color 0.15s;
             text-decoration: none;
 
             &:hover {
-              color: #10b981;
+              color: var(--color-primary);
             }
           }
 
           .breadcrumb-sep {
             font-size: 12px;
-            color: #94a3b8;
+            color: var(--color-text-placeholder);
           }
 
           .breadcrumb-current {
-            color: #475569;
+            color: var(--color-text-secondary);
           }
         }
 
@@ -365,7 +365,7 @@ onMounted(async () => {
           gap: 12px;
           font-size: 18px;
           font-weight: 700;
-          color: #1e293b;
+          color: var(--color-text-primary);
           line-height: 1.35;
         }
       }
@@ -381,7 +381,7 @@ onMounted(async () => {
         align-items: center;
         gap: 8px;
         padding: 8px 16px;
-        background-color: #10b981;
+        background-color: var(--color-primary);
         color: #ffffff;
         border: none;
         border-radius: 12px;
@@ -396,24 +396,24 @@ onMounted(async () => {
         }
 
         &:hover {
-          background-color: #059669;
+          background-color: var(--color-primary-dark);
           transform: translateY(-1px);
           box-shadow: 0 14px 20px -3px rgba(16, 185, 129, 0.35);
         }
 
         &:active {
           transform: translateY(0);
-          background-color: #047857;
+          background-color: var(--color-primary-deep);
         }
 
         &.secondary {
           background-color: #f1f5f9;
-          color: #64748b;
+          color: var(--color-text-secondary);
           box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 
           &:hover {
-            background-color: #e2e8f0;
-            color: #475569;
+            background-color: var(--color-border);
+            color: var(--color-text-secondary);
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
           }
 
@@ -426,11 +426,11 @@ onMounted(async () => {
   }
 
   .upload-panel {
-    background: linear-gradient(145deg, #ffffff 0%, #f8fafc 50%, #f1f5f9 100%);
+    background: linear-gradient(145deg, #ffffff 0%, var(--color-bg-page) 50%, #f1f5f9 100%);
     padding: 32px;
     border-radius: 2.5rem;
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.06), 0 8px 10px -6px rgba(16, 185, 129, 0.06);
-    color: #334155;
+    color: var(--color-text-primary);
     position: relative;
     overflow: hidden;
     animation: fadeInUp 0.5s ease both;
@@ -462,7 +462,7 @@ onMounted(async () => {
       .upload-icon-wrap {
         width: 40px;
         height: 40px;
-        background: linear-gradient(135deg, #10b981, #2dd4bf);
+        background: linear-gradient(135deg, var(--color-primary), #2dd4bf);
         border-radius: 12px;
         display: flex;
         align-items: center;
@@ -476,13 +476,13 @@ onMounted(async () => {
           margin: 0;
           font-size: 16px;
           font-weight: 700;
-          color: #1e293b;
+          color: var(--color-text-primary);
         }
 
         .upload-subtitle {
-          margin: 2px 0 0;
+          margin: var(--space-0-5) 0 0;
           font-size: 12px;
-          color: #94a3b8;
+          color: var(--color-text-placeholder);
         }
       }
     }
@@ -494,24 +494,24 @@ onMounted(async () => {
         align-items: center;
         justify-content: center;
         padding: 48px 24px;
-        border: 2px dashed #e2e8f0;
+        border: 2px dashed var(--color-border);
         border-radius: 20px;
-        background-color: #f8fafc;
+        background-color: var(--color-bg-page);
         cursor: pointer;
         transition: all $transition-slow;
 
         &:hover,
         &.drag-over {
-          border-color: #10b981;
+          border-color: var(--color-primary);
           background-color: #ecfdf5;
 
           .upload-zone-icon {
-            color: #10b981;
+            color: var(--color-primary);
             transform: scale(1.08);
           }
 
           .upload-zone-title {
-            color: #059669;
+            color: var(--color-primary-dark);
           }
         }
 
@@ -526,7 +526,7 @@ onMounted(async () => {
           align-items: center;
           justify-content: center;
           font-size: 32px;
-          color: #94a3b8;
+          color: var(--color-text-placeholder);
           transition: all $transition-slow;
           margin-bottom: 16px;
         }
@@ -537,14 +537,14 @@ onMounted(async () => {
           .upload-zone-title {
             font-size: 14px;
             font-weight: 600;
-            color: #475569;
-            margin: 0 0 6px;
+            color: var(--color-text-secondary);
+            margin: 0 0 var(--space-1-5);
             transition: color 0.2s;
           }
 
           .upload-zone-hint {
             font-size: 12px;
-            color: #94a3b8;
+            color: var(--color-text-placeholder);
             margin: 0;
           }
         }
@@ -563,7 +563,7 @@ onMounted(async () => {
           overflow: hidden;
           border: 3px solid #f1f5f9;
           box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
-          background-color: #f8fafc;
+          background-color: var(--color-bg-page);
 
           .preview-image {
             width: 100%;
@@ -579,8 +579,8 @@ onMounted(async () => {
           .preview-btn {
             display: inline-flex;
             align-items: center;
-            gap: 6px;
-            padding: 8px 18px;
+            gap: var(--space-1-5);
+            padding: 8px var(--space-4-5);
             border: none;
             border-radius: 12px;
             font-size: 13px;
@@ -593,18 +593,18 @@ onMounted(async () => {
             }
 
             &--primary {
-              background-color: #10b981;
+              background-color: var(--color-primary);
               color: #fff;
 
               &:hover {
-                background-color: #059669;
+                background-color: var(--color-primary-dark);
                 transform: translateY(-1px);
               }
             }
 
             &--danger {
               background-color: #fef2f2;
-              color: #ef4444;
+              color: var(--color-danger);
 
               &:hover {
                 background-color: #fee2e2;
@@ -674,7 +674,7 @@ onMounted(async () => {
     padding: 32px;
     border-radius: 2.5rem;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-    border: 1px solid #f8fafc;
+    border: 1px solid var(--color-bg-page);
     animation: fadeInUp 0.35s ease both;
 
     .section-title {
@@ -683,13 +683,13 @@ onMounted(async () => {
       gap: 8px;
       font-size: 14px;
       font-weight: 700;
-      color: #94a3b8;
+      color: var(--color-text-placeholder);
       text-transform: uppercase;
       letter-spacing: 0.12em;
       margin: 0 0 24px;
 
       .section-icon {
-        color: #10b981;
+        color: var(--color-primary);
         font-size: 16px;
       }
     }
@@ -700,7 +700,7 @@ onMounted(async () => {
           display: block;
           font-size: 14px;
           font-weight: 700;
-          color: #334155;
+          color: var(--color-text-primary);
           margin-bottom: 8px;
 
           .required {
@@ -715,32 +715,32 @@ onMounted(async () => {
         .field-help {
           margin-top: 4px;
           font-size: 12px;
-          color: #64748b;
+          color: var(--color-text-secondary);
         }
 
         :deep(.t-input) {
-          background-color: #f8fafc !important;
+          background-color: var(--color-bg-page) !important;
           border: 1px solid #f1f5f9 !important;
           border-radius: 16px !important;
-          padding: 14px 20px !important;
+          padding: var(--space-3-5) 20px !important;
           min-height: 48px;
           font-size: 14px !important;
-          color: #334155 !important;
+          color: var(--color-text-primary) !important;
           transition: all $transition-fast;
 
           &:hover:not(.t-is-disabled) {
-            border-color: #e2e8f0 !important;
+            border-color: var(--color-border) !important;
           }
 
           &.t-is-focused {
             background-color: #fff !important;
             border-color: transparent !important;
-            box-shadow: 0 0 0 2px #10b981 !important;
+            box-shadow: 0 0 0 2px var(--color-primary) !important;
             outline: none !important;
           }
 
           &::placeholder {
-            color: #94a3b8 !important;
+            color: var(--color-text-placeholder) !important;
           }
         }
 

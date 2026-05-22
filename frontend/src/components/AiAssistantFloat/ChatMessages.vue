@@ -3,14 +3,14 @@
     <div v-if="messages.length === 0" class="empty-hint">
       <svg width="48" height="48" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="30" cy="32" r="20" fill="#FFE8D6" />
-        <path d="M14 22L10 4L26 16Z" fill="#FFB5C8" />
-        <path d="M46 22L50 4L34 16Z" fill="#FFB5C8" />
+        <path d="M14 22L10 4L26 16Z" fill="var(--color-primary-lighter)" />
+        <path d="M46 22L50 4L34 16Z" fill="var(--color-primary-lighter)" />
         <ellipse cx="24" cy="30" rx="3.5" ry="4" fill="#5D4E60" />
         <ellipse cx="36" cy="30" rx="3.5" ry="4" fill="#5D4E60" />
         <ellipse cx="25" cy="28.5" rx="1.2" ry="1.5" fill="#fff" />
         <ellipse cx="37" cy="28.5" rx="1.2" ry="1.5" fill="#fff" />
         <ellipse cx="30" cy="35.5" rx="2.5" ry="1.8" fill="#FFB5C2" />
-        <path d="M27 38Q30 42 33 38" stroke="#E8A0B0" stroke-width="1" fill="none" stroke-linecap="round" />
+        <path d="M27 38Q30 42 33 38" stroke="var(--color-primary-dark)" stroke-width="1" fill="none" stroke-linecap="round" />
         <ellipse cx="20" cy="36" rx="4" ry="2.5" fill="#FFB5C2" opacity="0.35" />
         <ellipse cx="40" cy="36" rx="4" ry="2.5" fill="#FFB5C2" opacity="0.35" />
       </svg>
@@ -21,14 +21,14 @@
       <div v-if="msg.role === 'assistant'" class="avatar-mini">
         <svg viewBox="0 0 60 60" fill="none">
           <circle cx="30" cy="32" r="20" fill="#FFE8D6" />
-          <path d="M14 22L10 4L26 16Z" fill="#FFB5C8" />
-          <path d="M46 22L50 4L34 16Z" fill="#FFB5C8" />
+          <path d="M14 22L10 4L26 16Z" fill="var(--color-primary-lighter)" />
+          <path d="M46 22L50 4L34 16Z" fill="var(--color-primary-lighter)" />
           <ellipse cx="24" cy="30" rx="3.5" ry="4" fill="#5D4E60" />
           <ellipse cx="36" cy="30" rx="3.5" ry="4" fill="#5D4E60" />
           <ellipse cx="25" cy="28.5" rx="1.2" ry="1.5" fill="#fff" />
           <ellipse cx="37" cy="28.5" rx="1.2" ry="1.5" fill="#fff" />
           <ellipse cx="30" cy="35.5" rx="2.5" ry="1.8" fill="#FFB5C2" />
-          <path d="M27 38Q30 42 33 38" stroke="#E8A0B0" stroke-width="1" fill="none" stroke-linecap="round" />
+          <path d="M27 38Q30 42 33 38" stroke="var(--color-primary-dark)" stroke-width="1" fill="none" stroke-linecap="round" />
           <ellipse cx="20" cy="36" rx="4" ry="2.5" fill="#FFB5C2" opacity="0.35" />
           <ellipse cx="40" cy="36" rx="4" ry="2.5" fill="#FFB5C2" opacity="0.35" />
         </svg>
@@ -133,14 +133,14 @@
       <div class="avatar-mini">
         <svg viewBox="0 0 60 60" fill="none">
           <circle cx="30" cy="32" r="20" fill="#FFE8D6" />
-          <path d="M14 22L10 4L26 16Z" fill="#FFB5C8" />
-          <path d="M46 22L50 4L34 16Z" fill="#FFB5C8" />
+          <path d="M14 22L10 4L26 16Z" fill="var(--color-primary-lighter)" />
+          <path d="M46 22L50 4L34 16Z" fill="var(--color-primary-lighter)" />
           <ellipse cx="24" cy="30" rx="3.5" ry="4" fill="#5D4E60" />
           <ellipse cx="36" cy="30" rx="3.5" ry="4" fill="#5D4E60" />
           <ellipse cx="25" cy="28.5" rx="1.2" ry="1.5" fill="#fff" />
           <ellipse cx="37" cy="28.5" rx="1.2" ry="1.5" fill="#fff" />
           <ellipse cx="30" cy="35.5" rx="2.5" ry="1.8" fill="#FFB5C2" />
-          <path d="M27 38Q30 42 33 38" stroke="#E8A0B0" stroke-width="1" fill="none" stroke-linecap="round" />
+          <path d="M27 38Q30 42 33 38" stroke="var(--color-primary-dark)" stroke-width="1" fill="none" stroke-linecap="round" />
           <ellipse cx="20" cy="36" rx="4" ry="2.5" fill="#FFB5C2" opacity="0.35" />
           <ellipse cx="40" cy="36" rx="4" ry="2.5" fill="#FFB5C2" opacity="0.35" />
         </svg>
@@ -286,7 +286,7 @@ watch(() => props.loading, autoScrollToBottom);
 
   &::-webkit-scrollbar-thumb {
     background: $border-color;
-    border-radius: 2px;
+    border-radius: var(--radius-2xs);
   }
 }
 
@@ -368,7 +368,7 @@ watch(() => props.loading, autoScrollToBottom);
 }
 
 .message-bubble {
-  padding: 10px 14px;
+  padding: var(--space-2-5) var(--space-3-5);
   border-radius: 12px;
   font-size: $font-size-body-sm;
   line-height: $line-height-normal;
@@ -395,27 +395,27 @@ watch(() => props.loading, autoScrollToBottom);
   :deep(h2),
   :deep(h3) {
     color: $text-primary;
-    margin-top: 10px;
-    margin-bottom: 6px;
+    margin-top: var(--space-2-5);
+    margin-bottom: var(--space-1-5);
     font-size: 14px;
   }
 
   :deep(p) {
-    margin-bottom: 6px;
+    margin-bottom: var(--space-1-5);
   }
 
   :deep(code) {
-    background: #e2e8f0;
-    padding: 1px 5px;
+    background: var(--color-border);
+    padding: 1px var(--space-1-25);
     border-radius: 4px;
     font-family: "Monaco", monospace;
     font-size: 12px;
   }
 
   :deep(pre) {
-    background: #1e293b;
-    color: #e2e8f0;
-    padding: 10px;
+    background: var(--color-text-primary);
+    color: var(--color-border);
+    padding: var(--space-2-5);
     border-radius: 6px;
     overflow-x: auto;
     margin: 8px 0;
@@ -428,12 +428,12 @@ watch(() => props.loading, autoScrollToBottom);
 
   :deep(ul),
   :deep(ol) {
-    padding-left: 18px;
-    margin-bottom: 6px;
+    padding-left: var(--space-4-5);
+    margin-bottom: var(--space-1-5);
   }
 
   :deep(li) {
-    margin-bottom: 3px;
+    margin-bottom: var(--space-1);
   }
 
   :deep(strong) {
@@ -449,7 +449,7 @@ watch(() => props.loading, autoScrollToBottom);
 
     th,
     td {
-      padding: 5px 8px;
+      padding: var(--space-1-25) 8px;
       border: 1px solid $border-color-light;
       text-align: left;
     }
@@ -471,8 +471,8 @@ watch(() => props.loading, autoScrollToBottom);
 
   :deep(blockquote) {
     border-left: 3px solid $brand-primary;
-    padding-left: 10px;
-    margin: 6px 0;
+    padding-left: var(--space-2-5);
+    margin: var(--space-1-5) 0;
     color: $text-secondary;
   }
 }
@@ -517,10 +517,10 @@ watch(() => props.loading, autoScrollToBottom);
 
 .message-meta {
   margin-top: 8px;
-  padding-top: 6px;
+  padding-top: var(--space-1-5);
   border-top: 1px solid rgba(0, 0, 0, 0.04);
   font-size: 11px;
-  color: #94a3b8;
+  color: var(--color-text-placeholder);
   display: flex;
   gap: 4px;
   align-items: center;
@@ -528,8 +528,8 @@ watch(() => props.loading, autoScrollToBottom);
 
   .meta-model {
     background: #f1f5f9;
-    color: #475569;
-    padding: 1px 6px;
+    color: var(--color-text-secondary);
+    padding: 1px var(--space-1-5);
     border-radius: 4px;
     font-weight: 500;
   }
@@ -539,7 +539,7 @@ watch(() => props.loading, autoScrollToBottom);
   }
 
   .meta-latency {
-    color: #64748b;
+    color: var(--color-text-secondary);
   }
 
   .token-usage {
@@ -561,20 +561,20 @@ watch(() => props.loading, autoScrollToBottom);
   font-size: $font-size-caption;
   color: $brand-primary;
   font-weight: $font-weight-medium;
-  margin-bottom: 6px;
+  margin-bottom: var(--space-1-5);
 }
 
 .fields-grid {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: var(--space-1-5);
 }
 
 .field-chip {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 3px 8px;
+  padding: var(--space-1) 8px;
   border-radius: 6px;
   background: $brand-primary-bg;
   font-size: $font-size-micro;
@@ -594,7 +594,7 @@ watch(() => props.loading, autoScrollToBottom);
   align-items: center;
   gap: 4px;
   margin-top: 8px;
-  padding: 5px 12px;
+  padding: var(--space-1-25) 12px;
   border-radius: 8px;
   border: 1px solid $brand-primary;
   background: transparent;
@@ -610,7 +610,7 @@ watch(() => props.loading, autoScrollToBottom);
 }
 
 .missing-fields {
-  margin-top: 6px;
+  margin-top: var(--space-1-5);
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -623,7 +623,7 @@ watch(() => props.loading, autoScrollToBottom);
 
   .missing-tag {
     font-size: $font-size-micro;
-    padding: 2px 6px;
+    padding: var(--space-0-5) var(--space-1-5);
     border-radius: 4px;
     background: rgba(240, 160, 64, 0.1);
     color: $color-warning;
@@ -674,9 +674,9 @@ watch(() => props.loading, autoScrollToBottom);
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--color-border);
   background: white;
-  color: #475569;
+  color: var(--color-text-secondary);
   cursor: pointer;
   display: flex;
   align-items: center;

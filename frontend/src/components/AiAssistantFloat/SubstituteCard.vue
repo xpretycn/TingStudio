@@ -2,8 +2,8 @@
   <div class="substitute-card">
     <div class="card-header">
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-        <path d="M4 12L8 4l4 8" stroke="#10b981" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
-        <circle cx="8" cy="9" r="1" fill="#10b981"/>
+        <path d="M4 12L8 4l4 8" stroke="var(--color-primary)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="8" cy="9" r="1" fill="var(--color-primary)"/>
       </svg>
       <span>原料替代建议</span>
     </div>
@@ -53,7 +53,7 @@ function typeLabel(t: string): string {
   background: $bg-container;
   border: 1px solid $border-color-light;
   border-radius: 12px;
-  padding: 14px;
+  padding: var(--space-3-5);
   margin: 8px 0;
   font-size: 13px;
 }
@@ -61,40 +61,40 @@ function typeLabel(t: string): string {
 .card-header {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--space-1-5);
   font-weight: 600;
   color: $text-primary;
-  margin-bottom: 10px;
+  margin-bottom: var(--space-2-5);
 }
 
 .original-info {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 10px;
+  gap: var(--space-1-5);
+  padding: 8px var(--space-2-5);
   background: $bg-page;
   border-radius: 8px;
-  margin-bottom: 10px;
+  margin-bottom: var(--space-2-5);
   font-size: 12px;
   flex-wrap: wrap;
 
   .ori-label { color: $text-tertiary; }
   .ori-name { font-weight: 600; color: $text-primary; }
   .ori-type { color: $text-tertiary; background: $border-color-light; padding: 1px 6px; border-radius: 4px; font-size: 11px; }
-  .ori-price { color: #10b981; font-weight: 500; margin-left: auto; }
+  .ori-price { color: var(--color-primary); font-weight: 500; margin-left: auto; }
 }
 
 .sub-list {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--space-1-5);
 }
 
 .sub-item {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 10px;
+  padding: 8px var(--space-2-5);
   background: $bg-page;
   border-radius: 8px;
   font-size: 12px;
@@ -123,7 +123,7 @@ function typeLabel(t: string): string {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--space-0-5);
 
   .sub-name {
     font-weight: 500;
@@ -140,10 +140,10 @@ function typeLabel(t: string): string {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 2px;
+  gap: var(--space-0-5);
 
   .sub-price {
-    color: #10b981;
+    color: var(--color-primary);
     font-weight: 500;
   }
 
@@ -156,10 +156,10 @@ function typeLabel(t: string): string {
 .sub-similarity {
   .sim-badge {
     display: inline-block;
-    padding: 2px 8px;
+    padding: var(--space-0-5) 8px;
     border-radius: 10px;
     background: rgba(16, 185, 129, 0.1);
-    color: #10b981;
+    color: var(--color-primary);
     font-size: 11px;
     font-weight: 500;
   }

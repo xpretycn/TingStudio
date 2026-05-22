@@ -93,7 +93,7 @@
         <template v-else-if="hasError">
           <div class="ai-error">
             <div class="ai-error-icon">
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="1.5"
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--color-danger)" stroke-width="1.5"
                 stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="10" />
                 <line x1="15" y1="9" x2="9" y2="15" />
@@ -144,7 +144,7 @@
 
             <div class="analysis-section" v-if="displayContent.suggestions?.length">
               <div class="analysis-section-header">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2"
                   stroke-linecap="round" stroke-linejoin="round">
                   <polyline points="9 11 12 14 22 4" />
                   <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
@@ -161,7 +161,7 @@
 
             <div class="analysis-section" v-if="displayContent.risks?.length">
               <div class="analysis-section-header">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2"
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-warning)" stroke-width="2"
                   stroke-linecap="round" stroke-linejoin="round">
                   <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
                   <line x1="12" y1="9" x2="12" y2="13" />
@@ -669,8 +669,8 @@ onUnmounted(() => {
   }
 
   .section-header {
-    padding: 14px 20px;
-    background: #F8FAFC;
+    padding: var(--space-3-5) 20px;
+    background: var(--color-bg-page);
     border-bottom: 1px solid #f1f5f9;
     display: flex;
     align-items: center;
@@ -706,7 +706,7 @@ onUnmounted(() => {
 .analysis-status {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--space-1-5);
   font-size: 13px;
   padding: 4px 12px;
   border-radius: 20px;
@@ -723,17 +723,17 @@ onUnmounted(() => {
 
   &--pending {
     background: #F1F5F9;
-    color: #64748B;
+    color: var(--color-text-secondary);
   }
 
   &--success {
-    background: linear-gradient(135deg, #ECFDF5, #D1FAE5);
-    color: #059669;
+    background: linear-gradient(135deg, #ECFDF5, var(--color-primary-bg));
+    color: var(--color-primary-dark);
   }
 
   &--error {
     background: linear-gradient(135deg, #FEF2F2, #FEE2E2);
-    color: #DC2626;
+    color: var(--color-danger);
   }
 }
 
@@ -756,18 +756,18 @@ onUnmounted(() => {
 .action-btn-group {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--space-1-5);
 }
 
 .action-btn {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 4px 10px;
-  border: 1px solid #E2E8F0;
+  padding: 4px var(--space-2-5);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
   background: #fff;
-  color: #64748B;
+  color: var(--color-text-secondary);
   font-size: 12px;
   cursor: pointer;
   transition: all 0.2s;
@@ -790,23 +790,23 @@ onUnmounted(() => {
   }
 
   &--download:hover {
-    border-color: #10B981;
-    color: #10B981;
+    border-color: var(--color-primary);
+    color: var(--color-primary);
     background: #ECFDF5;
   }
 
   &--regenerate {
     &:hover:not(:disabled) {
-      border-color: #F59E0B;
-      color: #F59E0B;
+      border-color: var(--color-warning);
+      color: var(--color-warning);
       background: #FFFBEB;
     }
 
     &:disabled {
       opacity: 0.5;
       cursor: not-allowed;
-      background: #F8FAFC;
-      border-color: #E2E8F0;
+      background: var(--color-bg-page);
+      border-color: var(--color-border);
       color: #CBD5E1;
     }
   }
@@ -898,13 +898,13 @@ onUnmounted(() => {
   max-width: 480px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--space-2-5);
 }
 
 .skeleton-line {
   height: 13px;
   border-radius: 6px;
-  background: linear-gradient(90deg, #f1f5f9 0%, #e2e8f0 40%, #f1f5f9 60%, #e2e8f0 100%);
+  background: linear-gradient(90deg, #f1f5f9 0%, var(--color-border) 40%, #f1f5f9 60%, var(--color-border) 100%);
   background-size: 400% 100%;
   animation: shimmer 2s ease-in-out infinite;
 
@@ -927,7 +927,7 @@ onUnmounted(() => {
 
 .ai-loading-hint {
   font-size: 12px;
-  color: #94A3B8;
+  color: var(--color-text-placeholder);
   margin: 0;
 }
 
@@ -936,14 +936,14 @@ onUnmounted(() => {
   max-width: 320px;
   height: 4px;
   background: #EDE9FE;
-  border-radius: 2px;
+  border-radius: var(--radius-2xs);
   overflow: hidden;
 }
 
 .ai-progress-fill {
   height: 100%;
   background: linear-gradient(90deg, #8B5CF6, #A78BFA, #C4B5FD);
-  border-radius: 2px;
+  border-radius: var(--radius-2xs);
   transition: width 0.5s ease;
   animation: progress-shimmer 2s ease-in-out infinite;
 }
@@ -957,20 +957,20 @@ onUnmounted(() => {
 .ai-cancel-btn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--space-1-5);
   padding: 8px 20px;
-  border: 1px solid #E2E8F0;
+  border: 1px solid var(--color-border);
   border-radius: 10px;
   background: #fff;
-  color: #64748B;
+  color: var(--color-text-secondary);
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
 
   &:hover:not(:disabled) {
-    border-color: #EF4444;
-    color: #EF4444;
+    border-color: var(--color-danger);
+    color: var(--color-danger);
     background: #FEF2F2;
   }
 
@@ -1002,7 +1002,7 @@ onUnmounted(() => {
 
 .ai-error-message {
   font-size: 13px;
-  color: #64748B;
+  color: var(--color-text-secondary);
   margin: 0;
   max-width: 340px;
   line-height: 1.5;
@@ -1017,8 +1017,8 @@ onUnmounted(() => {
 .ai-retry-btn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 10px 22px;
+  gap: var(--space-1-5);
+  padding: var(--space-2-5) var(--space-6);
   border: none;
   border-radius: 10px;
   font-size: 13px;
@@ -1039,10 +1039,10 @@ onUnmounted(() => {
 
   &--secondary {
     background: #F1F5F9;
-    color: #64748B;
+    color: var(--color-text-secondary);
 
     &:hover {
-      background: #E2E8F0;
+      background: var(--color-border);
     }
   }
 }
@@ -1073,7 +1073,7 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 16px;
-  padding: 10px 14px;
+  padding: var(--space-2-5) var(--space-3-5);
   background: #FAFAFE;
   border: 1px solid #f1f5f9;
   border-radius: 10px;
@@ -1083,9 +1083,9 @@ onUnmounted(() => {
 .meta-item {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: var(--space-1-25);
   font-size: 12px;
-  color: #94A3B8;
+  color: var(--color-text-placeholder);
 
   :deep(.t-icon) {
     font-size: 14px;
@@ -1093,7 +1093,7 @@ onUnmounted(() => {
 }
 
 .analysis-section {
-  padding: 18px;
+  padding: var(--space-4-5);
   border-radius: 14px;
   background: #FAFAFE;
   border: 1px solid #f1f5f9;
@@ -1105,7 +1105,7 @@ onUnmounted(() => {
   }
 
   &--raw {
-    background: #F8FAFC;
+    background: var(--color-bg-page);
   }
 }
 
@@ -1124,7 +1124,7 @@ onUnmounted(() => {
 
 .analysis-section-text {
   font-size: 14px;
-  color: #475569;
+  color: var(--color-text-secondary);
   line-height: 1.75;
   margin: 0;
 
@@ -1142,7 +1142,7 @@ onUnmounted(() => {
 .summary-truncate-hint {
   font-size: 11px;
   font-weight: 500;
-  padding: 2px 8px;
+  padding: var(--space-0-5) 8px;
   border-radius: 6px;
   background: #EDE9FE;
   color: #7C3AED;
@@ -1167,7 +1167,7 @@ onUnmounted(() => {
 
   :deep(h2) {
     font-size: 16px;
-    padding-bottom: 6px;
+    padding-bottom: var(--space-1-5);
     border-bottom: 2px solid #EDE9FE;
   }
 
@@ -1187,7 +1187,7 @@ onUnmounted(() => {
     font-weight: 700;
     background: linear-gradient(120deg, rgba(139, 92, 246, 0.08) 0%, rgba(124, 58, 237, 0.12) 100%);
     padding: 1px 4px;
-    border-radius: 3px;
+    border-radius: var(--radius-xs);
   }
 
   :deep(em) {
@@ -1200,7 +1200,7 @@ onUnmounted(() => {
     font-size: 13px;
     background: #F3F0FF;
     color: #7C3AED;
-    padding: 2px 6px;
+    padding: var(--space-0-5) var(--space-1-5);
     border-radius: 4px;
     border: 1px solid #EDE9FE;
   }
@@ -1209,7 +1209,7 @@ onUnmounted(() => {
     background: #FAFAFE;
     border: 1px solid #EDE9FE;
     border-radius: 10px;
-    padding: 14px 18px;
+    padding: var(--space-3-5) var(--space-4-5);
     overflow-x: auto;
     margin: 12px 0;
 
@@ -1223,11 +1223,11 @@ onUnmounted(() => {
 
   :deep(ul), :deep(ol) {
     padding-left: 20px;
-    margin: 10px 0;
+    margin: var(--space-2-5) 0;
 
     li {
-      margin-bottom: 6px;
-      padding: 6px 10px;
+      margin-bottom: var(--space-1-5);
+      padding: var(--space-1-5) var(--space-2-5);
       border-radius: 8px;
       background: linear-gradient(135deg, #FAFAFE, #F5F3FF);
       border: 1px solid #F3F0FF;
@@ -1248,7 +1248,7 @@ onUnmounted(() => {
 
     li {
       position: relative;
-      padding-left: 28px;
+      padding-left: var(--space-7);
 
       &::before {
         content: '';
@@ -1267,7 +1267,7 @@ onUnmounted(() => {
   :deep(ol) {
     li {
       counter-increment: md-ol;
-      padding-left: 28px;
+      padding-left: var(--space-7);
 
       &::before {
         content: counter(md-ol);
@@ -1294,7 +1294,7 @@ onUnmounted(() => {
 
   :deep(blockquote) {
     margin: 12px 0;
-    padding: 10px 16px;
+    padding: var(--space-2-5) 16px;
     border-left: 4px solid #8B5CF6;
     background: linear-gradient(90deg, rgba(139, 92, 246, 0.04), transparent);
     border-radius: 0 10px 10px 0;
@@ -1341,24 +1341,24 @@ onUnmounted(() => {
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--space-2-5);
 }
 
 .analysis-list-item {
   display: flex;
   align-items: flex-start;
-  gap: 10px;
+  gap: var(--space-2-5);
   font-size: 14px;
-  color: #475569;
+  color: var(--color-text-secondary);
   line-height: 1.65;
 }
 
 .list-index {
   width: 24px;
   height: 24px;
-  border-radius: 7px;
+  border-radius: var(--radius-md);
   background: #ECFDF5;
-  color: #10B981;
+  color: var(--color-primary);
   font-size: 12px;
   font-weight: 700;
   display: flex;
@@ -1369,7 +1369,7 @@ onUnmounted(() => {
 
   &.risk {
     background: #FEF3C7;
-    color: #F59E0B;
+    color: var(--color-warning);
   }
 
   &.improve {
@@ -1396,7 +1396,7 @@ onUnmounted(() => {
 
 .ai-empty-text {
   font-size: 14px;
-  color: #94A3B8;
+  color: var(--color-text-placeholder);
   margin: 0;
 }
 
@@ -1405,8 +1405,8 @@ onUnmounted(() => {
   display: inline-flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
-  padding: 16px 36px;
+  gap: var(--space-1-5);
+  padding: 16px var(--space-8);
   border: none;
   border-radius: 16px;
   background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 50%, #6D28D9 100%);
@@ -1478,17 +1478,17 @@ onUnmounted(() => {
 .ai-empty-hint {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: var(--space-1-25);
   font-size: 12px;
-  color: #94A3B8;
+  color: var(--color-text-placeholder);
   margin: 0;
   padding: 8px 16px;
-  background: #F8FAFC;
+  background: var(--color-bg-page);
   border-radius: 8px;
 
   :deep(.t-icon) {
     font-size: 14px;
-    color: #F59E0B;
+    color: var(--color-warning);
   }
 }
 
@@ -1508,7 +1508,7 @@ onUnmounted(() => {
   }
 
   .ai-generate-btn {
-    padding: 14px 28px;
+    padding: var(--space-3-5) var(--space-7);
     font-size: 14px;
   }
 

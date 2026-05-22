@@ -1,4 +1,4 @@
-import http, { setToken, removeToken } from './http'
+import http, { setToken, removeToken, USER_KEY } from './http'
 
 export interface LoginParams { username: string; password: string }
 export interface RegisterParams { username: string; password: string }
@@ -43,20 +43,36 @@ export const authApi = {
   },
 }
 
-/** 登录后保存 token 和用户信息 */
+function saveUser(user: UserInfo) {
+  const json = JSON.stringify(user)
+  sessionStorage.setItem(USER_KEY, json)
+  localStorage.setItem(USER_KEY, json)
+}
+
+function clearUser() {
+  sessionStorage.removeItem(USER_KEY)
+  localStorage.removeItem(USER_KEY)
+}
+
+/** 登录后保存 token 和用户信息（双写 sessionStorage + localStorage） */
 export function saveAuthData(user: UserInfo, token: string) {
   setToken(token)
-  localStorage.setItem('tingstudio_user', JSON.stringify(user))
+  saveUser(user)
 }
 
-/** 清除认证信息 */
+/** 仅更新用户信息缓存，不动 token */
+export function saveUserOnly(user: UserInfo) {
+  saveUser(user)
+}
+
+/** 清除认证信息（清除 sessionStorage + localStorage） */
 export function clearAuthData() {
   removeToken()
-  localStorage.removeItem('tingstudio_user')
+  clearUser()
 }
 
-/** 从 localStorage 获取缓存的用户信息 */
+/** 获取缓存的用户信息（优先 sessionStorage，fallback localStorage） */
 export function getCachedUser(): UserInfo | null {
-  const data = localStorage.getItem('tingstudio_user')
+  const data = sessionStorage.getItem(USER_KEY) || localStorage.getItem(USER_KEY)
   return data ? JSON.parse(data) : null
 }

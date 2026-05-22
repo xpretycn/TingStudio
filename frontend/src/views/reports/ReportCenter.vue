@@ -7,7 +7,7 @@
         <template v-else>
           <div v-if="loadError" class="error-state">
             <div class="error-icon">
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2"
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--color-danger)" stroke-width="2"
                 stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="10" />
                 <line x1="15" y1="9" x2="9" y2="15" />
@@ -216,7 +216,7 @@
                         </div>
                         <div class="card-checkbox" @click.stop="toggleSelect(report)">
                           <svg v-if="selectedReportIds.includes(report.id)" width="18" height="18" viewBox="0 0 24 24"
-                            fill="#059669" stroke="#059669" stroke-width="2">
+                            fill="var(--color-primary-dark)" stroke="var(--color-primary-dark)" stroke-width="2">
                             <rect x="3" y="3" width="18" height="18" rx="4" />
                             <polyline points="20 6 9 17 4 12" stroke="#fff" stroke-width="2.5" fill="none" />
                           </svg>
@@ -235,7 +235,7 @@
                         </div>
                         <h3 class="card-title">{{ report.title }}</h3>
                         <p class="card-period">
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2"
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-placeholder)" stroke-width="2"
                             stroke-linecap="round" stroke-linejoin="round">
                             <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
                             <line x1="16" y1="2" x2="16" y2="6" />
@@ -246,7 +246,7 @@
                         </p>
                         <div class="card-footer">
                           <span class="card-creator">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94A3B8"
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-placeholder)"
                               stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                               <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                               <circle cx="12" cy="7" r="4" />
@@ -274,7 +274,7 @@
                           <span>正在生成月报...</span>
                         </template>
                         <template v-else-if="generateError && generateErrorKey === `monthly-${group.monthKey}`">
-                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2"
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-danger)" stroke-width="2"
                             stroke-linecap="round" stroke-linejoin="round">
                             <circle cx="12" cy="12" r="10" />
                             <line x1="15" y1="9" x2="9" y2="15" />
@@ -283,7 +283,7 @@
                           <span>生成失败，点击重试</span>
                         </template>
                         <template v-else>
-                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2"
                             stroke-linecap="round" stroke-linejoin="round">
                             <line x1="12" y1="5" x2="12" y2="19" />
                             <line x1="5" y1="12" x2="19" y2="12" />
@@ -331,7 +331,7 @@
                         </div>
                         <div class="card-checkbox" @click.stop="toggleSelect(report)">
                           <svg v-if="selectedReportIds.includes(report.id)" width="18" height="18" viewBox="0 0 24 24"
-                            fill="#059669" stroke="#059669" stroke-width="2">
+                            fill="var(--color-primary-dark)" stroke="var(--color-primary-dark)" stroke-width="2">
                             <rect x="3" y="3" width="18" height="18" rx="4" />
                             <polyline points="20 6 9 17 4 12" stroke="#fff" stroke-width="2.5" fill="none" />
                           </svg>
@@ -350,7 +350,7 @@
                         </div>
                         <h3 class="card-title">{{ report.title }}</h3>
                         <p class="card-period">
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2"
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-placeholder)" stroke-width="2"
                             stroke-linecap="round" stroke-linejoin="round">
                             <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
                             <line x1="16" y1="2" x2="16" y2="6" />
@@ -361,7 +361,7 @@
                         </p>
                         <div class="card-footer">
                           <span class="card-creator">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94A3B8"
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-placeholder)"
                               stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                               <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                               <circle cx="12" cy="7" r="4" />
@@ -389,7 +389,7 @@
                           <span>正在生成周报...</span>
                         </template>
                         <template v-else-if="generateError && generateErrorKey === `weekly-${group.monthKey}`">
-                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2"
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-danger)" stroke-width="2"
                             stroke-linecap="round" stroke-linejoin="round">
                             <circle cx="12" cy="12" r="10" />
                             <line x1="15" y1="9" x2="9" y2="15" />
@@ -398,7 +398,7 @@
                           <span>生成失败，点击重试</span>
                         </template>
                         <template v-else>
-                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2"
                             stroke-linecap="round" stroke-linejoin="round">
                             <line x1="12" y1="5" x2="12" y2="19" />
                             <line x1="5" y1="12" x2="19" y2="12" />
@@ -544,7 +544,7 @@
                   </div>
                 </div>
                 <div class="assistant-empty" v-else>
-                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="1.5"
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="1.5"
                     stroke-linecap="round" stroke-linejoin="round">
                     <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
                     <polyline points="22 4 12 14.01 9 11.01" />
@@ -875,7 +875,7 @@ const dashboardCards = computed(() => {
       value: total.toString(),
       unit: '份',
       badge: total > 0 ? `${total} 份` : '--',
-      badgeColor: '#10B981',
+      badgeColor: 'var(--color-primary)',
       badgeBg: '#ECFDF5',
       iconBg: '#EFF6FF',
       iconColor: '#3B82F6',
@@ -886,10 +886,10 @@ const dashboardCards = computed(() => {
       value: weeklyCount.toString(),
       unit: '份',
       badge: weeklyCount > 0 ? `本周${weeklyCount}` : '持平',
-      badgeColor: weeklyCount > 0 ? '#10B981' : '#94A3B8',
+      badgeColor: weeklyCount > 0 ? 'var(--color-primary)' : 'var(--color-text-placeholder)',
       badgeBg: weeklyCount > 0 ? '#ECFDF5' : '#F1F5F9',
       iconBg: '#FFFBEB',
-      iconColor: '#F59E0B',
+      iconColor: 'var(--color-warning)',
       iconPath: '<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
     },
     {
@@ -897,10 +897,10 @@ const dashboardCards = computed(() => {
       value: monthlyCount.toString(),
       unit: '份',
       badge: monthlyCount > 0 ? `本月${monthlyCount}` : '持平',
-      badgeColor: monthlyCount > 0 ? '#10B981' : '#94A3B8',
+      badgeColor: monthlyCount > 0 ? 'var(--color-primary)' : 'var(--color-text-placeholder)',
       badgeBg: monthlyCount > 0 ? '#ECFDF5' : '#F1F5F9',
       iconBg: '#ECFDF5',
-      iconColor: '#10B981',
+      iconColor: 'var(--color-primary)',
       iconPath: '<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>',
     },
     {
@@ -908,7 +908,7 @@ const dashboardCards = computed(() => {
       value: thisMonthCount.toString(),
       unit: '份',
       badge: thisMonthCount > 0 ? `+${thisMonthCount}` : '--',
-      badgeColor: thisMonthCount > 0 ? '#10B981' : '#94A3B8',
+      badgeColor: thisMonthCount > 0 ? 'var(--color-primary)' : 'var(--color-text-placeholder)',
       badgeBg: thisMonthCount > 0 ? '#ECFDF5' : '#F1F5F9',
       iconBg: '#FAF5FF',
       iconColor: '#A855F7',
@@ -1070,22 +1070,22 @@ onMounted(async () => {
 .report-content-area {
   position: relative;
   background: #fff;
-  border-radius: 24px;
-  border: 1px solid #F8FAFC;
+  border-radius: var(--radius-4xl);
+  border: 1px solid var(--color-bg-page);
   box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
   overflow: hidden;
 }
 
 .data-center-toolbar {
   padding: 24px 32px;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid var(--color-border);
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
   gap: 16px;
   position: relative;
-  background: linear-gradient(180deg, #f8fafc 0%, #fff 100%);
+  background: linear-gradient(180deg, var(--color-bg-page) 0%, #fff 100%);
   box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
 
   .toolbar-left-section {
@@ -1096,13 +1096,13 @@ onMounted(async () => {
       .toolbar-title {
         font-size: 20px;
         font-weight: 700;
-        color: #1e293b;
+        color: var(--color-text-primary);
         margin: 0 0 4px 0;
       }
 
       .toolbar-subtitle {
         font-size: 14px;
-        color: #94a3b8;
+        color: var(--color-text-placeholder);
         margin: 0;
       }
     }
@@ -1126,7 +1126,7 @@ onMounted(async () => {
 
       .t-range-input {
         width: 100%;
-        background-color: #f8fafc;
+        background-color: var(--color-bg-page);
         border: 1px solid transparent !important;
         border-radius: 12px;
         font-size: 14px;
@@ -1138,7 +1138,7 @@ onMounted(async () => {
         &:focus-within {
           box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);
           background-color: #fff;
-          border-color: #10b981 !important;
+          border-color: var(--color-primary) !important;
         }
       }
 
@@ -1164,7 +1164,7 @@ onMounted(async () => {
 
     :deep(.t-select) {
       .t-input {
-        background-color: #f8fafc;
+        background-color: var(--color-bg-page);
         border: 1px solid transparent !important;
         border-radius: 12px;
         font-size: 14px;
@@ -1176,7 +1176,7 @@ onMounted(async () => {
         &:focus-within {
           box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);
           background-color: #fff;
-          border-color: #10b981 !important;
+          border-color: var(--color-primary) !important;
         }
       }
     }
@@ -1190,7 +1190,7 @@ onMounted(async () => {
       left: 12px;
       top: 50%;
       transform: translateY(-50%);
-      color: #94a3b8;
+      color: var(--color-text-placeholder);
       font-size: 16px;
       z-index: 1;
       pointer-events: none;
@@ -1202,7 +1202,7 @@ onMounted(async () => {
         padding-right: 16px;
         padding-top: 8px;
         padding-bottom: 8px;
-        background-color: #f8fafc;
+        background-color: var(--color-bg-page);
         border: none !important;
         border-radius: 12px;
         font-size: 14px;
@@ -1216,7 +1216,7 @@ onMounted(async () => {
         }
 
         &::placeholder {
-          color: #94a3b8;
+          color: var(--color-text-placeholder);
         }
       }
     }
@@ -1227,7 +1227,7 @@ onMounted(async () => {
     align-items: center;
     gap: 8px;
     padding: 8px 16px;
-    background-color: #1e293b;
+    background-color: var(--color-text-primary);
     color: white;
     border-radius: 12px;
     font-size: 14px;
@@ -1238,7 +1238,7 @@ onMounted(async () => {
     cursor: pointer;
 
     &:hover {
-      background-color: #334155;
+      background-color: var(--color-text-primary);
     }
 
     &:active {
@@ -1247,7 +1247,7 @@ onMounted(async () => {
     }
 
     &:focus-visible {
-      outline: 2px solid #475569;
+      outline: 2px solid var(--color-text-secondary);
       outline-offset: 2px;
     }
 
@@ -1275,7 +1275,7 @@ onMounted(async () => {
   .filter-btn {
     position: relative;
     padding: 8px;
-    color: #94a3b8;
+    color: var(--color-text-placeholder);
     background-color: transparent;
     border: 1px solid #f1f5f9;
     border-radius: 8px;
@@ -1283,7 +1283,7 @@ onMounted(async () => {
     cursor: pointer;
 
     &:hover {
-      background-color: #f8fafc;
+      background-color: var(--color-bg-page);
     }
 
     .filter-icon {
@@ -1296,7 +1296,7 @@ onMounted(async () => {
       right: -2px;
       width: 8px;
       height: 8px;
-      background-color: #10b981;
+      background-color: var(--color-primary);
       border-radius: 50%;
       border: 2px solid white;
       transition: opacity 0.2s;
@@ -1315,7 +1315,7 @@ onMounted(async () => {
 }
 
 .report-month-group {
-  margin-bottom: 36px;
+  margin-bottom: var(--space-8);
 
   &:last-child {
     margin-bottom: 0;
@@ -1333,27 +1333,27 @@ onMounted(async () => {
 .month-label-wrap {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--space-2-5);
 }
 
 .month-dot {
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #10B981, #059669);
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
   box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3);
 }
 
 .month-label {
   font-size: 17px;
   font-weight: 700;
-  color: #1E293B;
+  color: var(--color-text-primary);
   letter-spacing: 0.02em;
 }
 
 .month-count {
   font-size: 13px;
-  color: #94A3B8;
+  color: var(--color-text-placeholder);
   font-weight: 500;
 }
 
@@ -1400,20 +1400,20 @@ onMounted(async () => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: var(--space-2-5);
   min-height: 180px;
-  border: 2px dashed #E2E8F0;
-  border-radius: 24px;
-  color: #94A3B8;
+  border: 2px dashed var(--color-border);
+  border-radius: var(--radius-4xl);
+  color: var(--color-text-placeholder);
   font-size: 14px;
   background: #FAFBFC;
   cursor: pointer;
   transition: all $transition-normal;
 
   &:hover {
-    border-color: #10B981;
+    border-color: var(--color-primary);
     background: rgba(16, 185, 129, 0.04);
-    color: #059669;
+    color: var(--color-primary-dark);
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(16, 185, 129, 0.1);
   }
@@ -1424,9 +1424,9 @@ onMounted(async () => {
 
   &--loading {
     pointer-events: none;
-    border-color: #10B981;
+    border-color: var(--color-primary);
     background: rgba(16, 185, 129, 0.04);
-    color: #059669;
+    color: var(--color-primary-dark);
 
     .column-empty-spinner {
       animation: spin 1s linear infinite;
@@ -1436,12 +1436,12 @@ onMounted(async () => {
   &--error {
     border-color: #FCA5A5;
     background: #FEF2F2;
-    color: #EF4444;
+    color: var(--color-danger);
 
     &:hover {
-      border-color: #EF4444;
+      border-color: var(--color-danger);
       background: #FEE2E2;
-      color: #DC2626;
+      color: var(--color-danger);
       box-shadow: 0 4px 12px rgba(239, 68, 68, 0.1);
     }
   }
@@ -1461,7 +1461,7 @@ onMounted(async () => {
   position: relative;
   background: #fff;
   border: 1px solid #F1F5F9;
-  border-radius: 24px;
+  border-radius: var(--radius-4xl);
   padding: 24px;
   cursor: pointer;
   transition: all $transition-normal;
@@ -1469,12 +1469,12 @@ onMounted(async () => {
 
   &:hover {
     box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
-    border-color: #E2E8F0;
+    border-color: var(--color-border);
     transform: translateY(-2px);
   }
 
   &--selected {
-    border-color: #10B981;
+    border-color: var(--color-primary);
     background: rgba(209, 250, 229, 0.15);
     box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.15);
   }
@@ -1485,7 +1485,7 @@ onMounted(async () => {
     right: 48px;
     display: flex;
     align-items: center;
-    gap: 2px;
+    gap: var(--space-0-5);
     z-index: 3;
     opacity: 0;
     transition: opacity $transition-fast;
@@ -1509,13 +1509,13 @@ onMounted(async () => {
     border: none;
     border-radius: 8px;
     background: transparent;
-    color: #94A3B8;
+    color: var(--color-text-placeholder);
     cursor: pointer;
     transition: all $transition-fast;
 
     &:hover {
       background: #F1F5F9;
-      color: #475569;
+      color: var(--color-text-secondary);
     }
 
     &--export:hover {
@@ -1525,17 +1525,17 @@ onMounted(async () => {
 
     &--publish:hover {
       background: #ECFDF5;
-      color: #10B981;
+      color: var(--color-primary);
     }
 
     &--archive:hover {
       background: #FFFBEB;
-      color: #F59E0B;
+      color: var(--color-warning);
     }
 
     &--delete:hover {
       background: #FEF2F2;
-      color: #EF4444;
+      color: var(--color-danger);
     }
   }
 
@@ -1562,13 +1562,13 @@ onMounted(async () => {
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-bottom: 14px;
+    margin-bottom: var(--space-3-5);
   }
 
   .type-badge {
     display: inline-flex;
     align-items: center;
-    padding: 2px 10px;
+    padding: var(--space-0-5) var(--space-2-5);
     border-radius: 6px;
     font-size: $font-size-caption;
     font-weight: $font-weight-bold;
@@ -1588,7 +1588,7 @@ onMounted(async () => {
   .status-badge {
     display: inline-flex;
     align-items: center;
-    padding: 2px 10px;
+    padding: var(--space-0-5) var(--space-2-5);
     border-radius: 6px;
     font-size: $font-size-caption;
     font-weight: $font-weight-semibold;
@@ -1596,25 +1596,25 @@ onMounted(async () => {
 
     &--draft {
       background: #F1F5F9;
-      color: #64748B;
+      color: var(--color-text-secondary);
     }
 
     &--published {
-      background: #D1FAE5;
-      color: #059669;
+      background: var(--color-primary-bg);
+      color: var(--color-primary-dark);
     }
 
     &--archived {
       background: #FEE2E2;
-      color: #DC2626;
+      color: var(--color-danger);
     }
   }
 
   .card-title {
     font-size: $font-size-h3;
     font-weight: $font-weight-bold;
-    color: #1E293B;
-    margin: 0 0 10px;
+    color: var(--color-text-primary);
+    margin: 0 0 var(--space-2-5);
     letter-spacing: $ls-heading;
     line-height: $line-height-tight;
     overflow: hidden;
@@ -1625,9 +1625,9 @@ onMounted(async () => {
   .card-period {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--space-1-5);
     font-size: $font-size-body-sm;
-    color: #94A3B8;
+    color: var(--color-text-placeholder);
     margin: 0 0 16px;
     letter-spacing: $ls-caption;
 
@@ -1640,8 +1640,8 @@ onMounted(async () => {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding-top: 14px;
-    border-top: 1px solid #F8FAFC;
+    padding-top: var(--space-3-5);
+    border-top: 1px solid var(--color-bg-page);
 
     .card-creator,
     .card-time {
@@ -1649,7 +1649,7 @@ onMounted(async () => {
       align-items: center;
       gap: 4px;
       font-size: $font-size-caption;
-      color: #94A3B8;
+      color: var(--color-text-placeholder);
       letter-spacing: $ls-caption;
 
       svg {
@@ -1677,11 +1677,11 @@ onMounted(async () => {
   justify-content: space-between;
   align-items: center;
   background-color: #fff;
-  border-top: 1px solid #f8fafc;
+  border-top: 1px solid var(--color-bg-page);
 
   .pagination-info {
     font-size: $font-size-body;
-    color: #94a3b8;
+    color: var(--color-text-placeholder);
     font-weight: $font-weight-regular;
     white-space: nowrap;
   }
@@ -1696,8 +1696,8 @@ onMounted(async () => {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 6px 12px;
-    border: 1px solid #e2e8f0;
+    padding: var(--space-1-5) 12px;
+    border: 1px solid var(--color-border);
     border-radius: $radius-md;
     background-color: transparent;
     color: $text-regular;
@@ -1724,7 +1724,7 @@ onMounted(async () => {
       cursor: not-allowed !important;
       color: $text-placeholder;
       background-color: transparent;
-      border-color: #e2e8f0;
+      border-color: var(--color-border);
       pointer-events: none;
     }
 
@@ -1744,7 +1744,7 @@ onMounted(async () => {
     justify-content: center;
     width: 36px;
     height: 34px;
-    color: #94a3b8;
+    color: var(--color-text-placeholder);
     font-size: $font-size-body;
     user-select: none;
   }
@@ -1757,7 +1757,7 @@ onMounted(async () => {
   right: 0;
   bottom: 0;
   z-index: 20;
-  background-color: #059669;
+  background-color: var(--color-primary-dark);
   color: #fff;
   display: flex;
   align-items: center;
@@ -1806,7 +1806,7 @@ onMounted(async () => {
       transition: all $transition-fast;
 
       &:hover {
-        color: #d1fae5;
+        color: var(--color-primary-bg);
       }
 
       svg {
@@ -1829,7 +1829,7 @@ onMounted(async () => {
   .batch-cancel-btn {
     font-size: $font-size-body;
     font-weight: $font-weight-medium;
-    border: 1px solid #34d399;
+    border: 1px solid var(--color-primary-light);
     padding: 4px 12px;
     border-radius: $radius-md;
     background: transparent;
@@ -1838,7 +1838,7 @@ onMounted(async () => {
     transition: all $transition-fast;
 
     &:hover {
-      background-color: #047857;
+      background-color: var(--color-primary-deep);
     }
   }
 }
@@ -1865,7 +1865,7 @@ onMounted(async () => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 64px 24px;
+  padding: var(--space-16) 24px;
   text-align: center;
 
   .error-icon {
@@ -1875,22 +1875,22 @@ onMounted(async () => {
   .error-title {
     font-size: $font-size-h2;
     font-weight: $font-weight-bold;
-    color: #1E293B;
+    color: var(--color-text-primary);
     margin: 0 0 8px;
   }
 
   .error-desc {
     font-size: $font-size-body;
-    color: #94A3B8;
+    color: var(--color-text-placeholder);
     margin: 0 0 24px;
   }
 
   .retry-btn {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--space-1-5);
     padding: 8px 20px;
-    background-color: #1E293B;
+    background-color: var(--color-text-primary);
     color: #fff;
     border: none;
     border-radius: 10px;
@@ -1900,7 +1900,7 @@ onMounted(async () => {
     transition: all $transition-normal;
 
     &:hover {
-      background-color: #334155;
+      background-color: var(--color-text-primary);
     }
   }
 }
@@ -1932,7 +1932,7 @@ onMounted(async () => {
   .stat-card {
     background: #fff;
     padding: 24px;
-    border-radius: 24px;
+    border-radius: var(--radius-4xl);
     border: 1px solid #fff;
     box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
     transition: all $transition-slow;
@@ -1940,7 +1940,7 @@ onMounted(async () => {
     opacity: 0;
 
     &:hover {
-      border-color: #D1FAE5;
+      border-color: var(--color-primary-bg);
       transform: translateY(-2px);
       box-shadow: 0 14px 36px -6px rgba(0, 0, 0, 0.08);
     }
@@ -1965,14 +1965,14 @@ onMounted(async () => {
     .stat-badge {
       font-size: 12px;
       font-weight: 700;
-      padding: 2px 8px;
+      padding: var(--space-0-5) 8px;
       border-radius: 8px;
       white-space: nowrap;
     }
 
     .stat-label {
       font-size: 14px;
-      color: #94A3B8;
+      color: var(--color-text-placeholder);
       margin-bottom: 4px;
     }
 
@@ -1985,7 +1985,7 @@ onMounted(async () => {
       .stat-unit {
         font-size: 14px;
         font-weight: 400;
-        color: #94A3B8;
+        color: var(--color-text-placeholder);
       }
     }
   }
@@ -2005,14 +2005,14 @@ onMounted(async () => {
 
 .activity-card {
   background-color: #fff;
-  border-radius: 24px;
+  border-radius: var(--radius-4xl);
   padding: 32px;
   box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
-  border: 1px solid #f8fafc;
+  border: 1px solid var(--color-bg-page);
 
   &--assistant {
     background: #fff;
-    border: 1px solid #f8fafc;
+    border: 1px solid var(--color-bg-page);
     color: #0F172A;
     position: relative;
     overflow: hidden;
@@ -2030,7 +2030,7 @@ onMounted(async () => {
 .activity-title {
   font-size: 18px;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--color-text-primary);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -2040,7 +2040,7 @@ onMounted(async () => {
 .activity-nav {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--space-1-5);
 
   .activity-nav-btn {
     display: inline-flex;
@@ -2051,14 +2051,14 @@ onMounted(async () => {
     border-radius: 8px;
     border: 1.5px solid rgba(16, 185, 129, 0.2);
     background: rgba(16, 185, 129, 0.04);
-    color: #10b981;
+    color: var(--color-primary);
     cursor: pointer;
     transition: all $transition-fast;
 
     &:hover:not(:disabled) {
       background: rgba(16, 185, 129, 0.12);
-      border-color: #10b981;
-      color: #059669;
+      border-color: var(--color-primary);
+      color: var(--color-primary-dark);
     }
 
     &:active:not(:disabled) {
@@ -2077,7 +2077,7 @@ onMounted(async () => {
   .activity-nav-page {
     font-size: 12px;
     font-weight: 600;
-    color: #94a3b8;
+    color: var(--color-text-placeholder);
     min-width: 36px;
     text-align: center;
     user-select: none;
@@ -2120,7 +2120,7 @@ onMounted(async () => {
   position: relative;
 
   &--success {
-    background-color: #d1fae5;
+    background-color: var(--color-primary-bg);
   }
 
   &--warning {
@@ -2138,11 +2138,11 @@ onMounted(async () => {
   border-radius: 50%;
 
   .timeline-dot--success & {
-    background-color: #10b981;
+    background-color: var(--color-primary);
   }
 
   .timeline-dot--warning & {
-    background-color: #f59e0b;
+    background-color: var(--color-warning);
   }
 
   .timeline-dot--info & {
@@ -2157,17 +2157,17 @@ onMounted(async () => {
 .timeline-title {
   font-size: 14px;
   font-weight: 500;
-  color: #334155;
+  color: var(--color-text-primary);
   margin: 0 0 4px 0;
 }
 
 .timeline-desc {
   font-size: 12px;
-  color: #94a3b8;
+  color: var(--color-text-placeholder);
   margin: 0 0 4px 0;
 
   :deep(.text-emerald-600) {
-    color: #059669 !important;
+    color: var(--color-primary-dark) !important;
     font-weight: 700 !important;
   }
 
@@ -2200,8 +2200,8 @@ onMounted(async () => {
   justify-content: space-between;
   margin: -32px -32px 16px -32px;
   padding: 20px 24px;
-  background: linear-gradient(135deg, #10B981, #059669);
-  border-radius: 24px 24px 0 0;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+  border-radius: var(--radius-4xl) var(--radius-4xl) 0 0;
 
   .assistant-title {
     display: flex;
@@ -2217,7 +2217,7 @@ onMounted(async () => {
 .assistant-nav {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--space-1-5);
 
   .activity-nav-btn {
     display: inline-flex;
@@ -2260,7 +2260,7 @@ onMounted(async () => {
   &__inner {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: var(--space-2-5);
   }
 }
 
@@ -2268,8 +2268,8 @@ onMounted(async () => {
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  padding: 14px;
-  background: #f8fafc;
+  padding: var(--space-3-5);
+  background: var(--color-bg-page);
   border-radius: 14px;
   border: 1px solid #f1f5f9;
   transition: all 0.25s ease;
@@ -2278,7 +2278,7 @@ onMounted(async () => {
 
   &:hover {
     background: #f1f5f9;
-    border-color: #e2e8f0;
+    border-color: var(--color-border);
     transform: translateX(4px);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   }
@@ -2315,7 +2315,7 @@ onMounted(async () => {
     }
 
     .todo-item__desc {
-      color: #475569;
+      color: var(--color-text-secondary);
     }
   }
 
@@ -2371,14 +2371,14 @@ onMounted(async () => {
   &__title {
     font-size: 13px;
     font-weight: 600;
-    color: #1e293b;
-    margin: 0 0 3px 0;
+    color: var(--color-text-primary);
+    margin: 0 0 var(--space-1) 0;
     line-height: 1.3;
   }
 
   &__desc {
     font-size: 12px;
-    color: #64748b;
+    color: var(--color-text-secondary);
     margin: 0;
     line-height: 1.4;
   }
@@ -2388,9 +2388,9 @@ onMounted(async () => {
     width: 28px;
     height: 28px;
     border-radius: 8px;
-    border: 1.5px solid #E2E8F0;
+    border: 1.5px solid var(--color-border);
     background: #fff;
-    color: #64748b;
+    color: var(--color-text-secondary);
     cursor: pointer;
     display: inline-flex;
     align-items: center;
@@ -2398,7 +2398,7 @@ onMounted(async () => {
     transition: all 0.2s ease;
 
     &:hover {
-      background: linear-gradient(135deg, #10B981, #059669);
+      background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
       border-color: transparent;
       color: #fff;
       transform: scale(1.05);
@@ -2423,24 +2423,24 @@ onMounted(async () => {
   flex-direction: column;
   align-items: center;
   text-align: center;
-  padding: 36px 20px 24px;
+  padding: var(--space-8) 20px 24px;
 
   svg {
     margin-bottom: 12px;
-    color: #10b981;
-    stroke: #10b981;
+    color: var(--color-primary);
+    stroke: var(--color-primary);
   }
 
   p {
     font-size: 15px;
     font-weight: 600;
     color: #0F172A;
-    margin: 0 0 6px 0;
+    margin: 0 0 var(--space-1-5) 0;
   }
 
   span {
     font-size: 13px;
-    color: #94a3b8;
+    color: var(--color-text-placeholder);
   }
 }
 
@@ -2455,16 +2455,16 @@ onMounted(async () => {
 
 .assistant-hint {
   font-size: 12px;
-  color: #94a3b8;
+  color: var(--color-text-placeholder);
 }
 
 .assistant-refresh-btn {
   width: 28px;
   height: 28px;
   border-radius: 8px;
-  border: 1.5px solid #E2E8F0;
+  border: 1.5px solid var(--color-border);
   background: #fff;
-  color: #64748b;
+  color: var(--color-text-secondary);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -2474,7 +2474,7 @@ onMounted(async () => {
   &:hover {
     background: #f1f5f9;
     border-color: #cbd5e1;
-    color: #475569;
+    color: var(--color-text-secondary);
     transform: rotate(180deg);
   }
 }
@@ -2487,7 +2487,7 @@ onMounted(async () => {
   height: 140px;
   opacity: 0.08;
   transform: rotate(-12deg);
-  color: #10b981;
+  color: var(--color-primary);
   pointer-events: none;
   z-index: 0;
 }

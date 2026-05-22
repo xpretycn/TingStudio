@@ -89,7 +89,7 @@ onUnmounted(() => {
 
 .chart-container {
   background: #fff;
-  border-radius: 24px;
+  border-radius: var(--radius-4xl);
   border: 1px solid #f1f5f9;
   box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
   overflow: hidden;
@@ -98,7 +98,7 @@ onUnmounted(() => {
   .chart-title {
     font-size: 14px;
     font-weight: 600;
-    color: #334155;
+    color: var(--color-text-primary);
     margin-bottom: 16px;
   }
 }
@@ -124,7 +124,7 @@ onUnmounted(() => {
 
   .chart-empty-text {
     font-size: 13px;
-    color: #94A3B8;
+    color: var(--color-text-placeholder);
   }
 }
 

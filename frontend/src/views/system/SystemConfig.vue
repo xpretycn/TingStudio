@@ -84,8 +84,8 @@ const dashboardCards = computed(() => [
     iconBg: 'linear-gradient(135deg, #DBEAFE, #BFDBFE)',
     iconColor: '#3B82F6',
     badge: statistics.value?.storageUsagePercent ? `${statistics.value.storageUsagePercent}%` : '-',
-    badgeColor: (statistics.value?.storageUsagePercent ?? 0) >= 95 ? '#EF4444' : '#10B981',
-    badgeBg: (statistics.value?.storageUsagePercent ?? 0) >= 95 ? '#FEE2E2' : '#D1FAE5',
+    badgeColor: (statistics.value?.storageUsagePercent ?? 0) >= 95 ? 'var(--color-danger)' : 'var(--color-primary)',
+    badgeBg: (statistics.value?.storageUsagePercent ?? 0) >= 95 ? '#FEE2E2' : 'var(--color-primary-bg)',
   },
   {
     label: '今日解析次数',
@@ -103,11 +103,11 @@ const dashboardCards = computed(() => [
     value: statistics.value?.cacheHitRate != null ? `${(statistics.value.cacheHitRate * 100).toFixed(1)}%` : '-',
     unit: '',
     iconPath: '<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>',
-    iconBg: 'linear-gradient(135deg, #D1FAE5, #A7F3D0)',
-    iconColor: '#10B981',
+    iconBg: 'linear-gradient(135deg, var(--color-primary-bg), var(--color-primary-lightest))',
+    iconColor: 'var(--color-primary)',
     badge: 'AI 节省',
-    badgeColor: '#059669',
-    badgeBg: '#D1FAE5',
+    badgeColor: 'var(--color-primary-dark)',
+    badgeBg: 'var(--color-primary-bg)',
   },
   {
     label: '存储使用率',
@@ -115,10 +115,10 @@ const dashboardCards = computed(() => [
     unit: '%',
     iconPath: '<line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>',
     iconBg: 'linear-gradient(135deg, #FEF3C7, #FDE68A)',
-    iconColor: '#F59E0B',
+    iconColor: 'var(--color-warning)',
     badge: degradationInfo.value?.level === '熔断' ? '熔断' : degradationInfo.value?.level === 'degraded' ? '降级' : '正常',
-    badgeColor: degradationInfo.value?.level === '熔断' ? '#EF4444' : degradationInfo.value?.level === 'degraded' ? '#F59E0B' : '#10B981',
-    badgeBg: degradationInfo.value?.level === '熔断' ? '#FEE2E2' : degradationInfo.value?.level === 'degraded' ? '#FEF3C7' : '#D1FAE5',
+    badgeColor: degradationInfo.value?.level === '熔断' ? 'var(--color-danger)' : degradationInfo.value?.level === 'degraded' ? 'var(--color-warning)' : 'var(--color-primary)',
+    badgeBg: degradationInfo.value?.level === '熔断' ? '#FEE2E2' : degradationInfo.value?.level === 'degraded' ? '#FEF3C7' : 'var(--color-primary-bg)',
   },
 ]);
 
@@ -424,7 +424,7 @@ onMounted(async () => {
             <!-- 存储参数配置 -->
             <div class="section-header-enhanced">
               <div class="section-title-group">
-                <svg class="section-title-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10B981"
+                <svg class="section-title-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)"
                   stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <rect x="3" y="3" width="7" height="7" />
                   <rect x="14" y="3" width="7" height="7" />
@@ -495,7 +495,7 @@ onMounted(async () => {
             <!-- 文件保留策略配置 -->
             <div class="section-header-enhanced" style="margin-top: 8px;">
               <div class="section-title-group">
-                <svg class="section-title-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F59E0B"
+                <svg class="section-title-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-warning)"
                   stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                   <polyline points="14 2 14 8 20 8" />
@@ -602,7 +602,7 @@ onMounted(async () => {
                 </div>
               </div>
               <div class="statistics-item">
-                <div class="statistics-item-icon" style="background: #D1FAE5; color: #10B981;">
+                <div class="statistics-item-icon" style="background: var(--color-primary-bg); color: var(--color-primary);">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                     stroke-linecap="round" stroke-linejoin="round">
                     <polyline points="20 6 9 17 4 12" />
@@ -614,7 +614,7 @@ onMounted(async () => {
                 </div>
               </div>
               <div class="statistics-item">
-                <div class="statistics-item-icon" style="background: #FEE2E2; color: #EF4444;">
+                <div class="statistics-item-icon" style="background: #FEE2E2; color: var(--color-danger);">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                     stroke-linecap="round" stroke-linejoin="round">
                     <line x1="18" y1="6" x2="6" y2="18" />
@@ -735,7 +735,7 @@ onMounted(async () => {
               </div>
 
               <div v-if="degradationInfo?.lastCleanup" class="last-cleanup-card">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2"
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-secondary)" stroke-width="2"
                   stroke-linecap="round" stroke-linejoin="round">
                   <circle cx="12" cy="12" r="10" />
                   <polyline points="12 6 12 12 16 14" />
@@ -751,7 +751,7 @@ onMounted(async () => {
             <!-- 手动清理 -->
             <div class="section-header-enhanced" style="margin-top: 8px;">
               <div class="section-title-group">
-                <svg class="section-title-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#EF4444"
+                <svg class="section-title-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-danger)"
                   stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <polyline points="3 6 5 6 21 6" />
                   <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
@@ -986,7 +986,7 @@ onMounted(async () => {
             <!-- 操作建议 -->
             <div class="section-header-enhanced" style="margin-top: 24px;">
               <div class="section-title-group">
-                <svg class="section-title-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F59E0B"
+                <svg class="section-title-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-warning)"
                   stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M9 18h6" />
                   <path d="M10 22h4" />
@@ -1114,7 +1114,7 @@ $transition-normal: 0.25s ease;
 }
 
 .content-card {
-  border-radius: 24px !important;
+  border-radius: var(--radius-4xl) !important;
   overflow: hidden;
   border: none;
   box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
@@ -1126,7 +1126,7 @@ $transition-normal: 0.25s ease;
 
 .data-center-toolbar {
   padding: 24px;
-  border-bottom: 1px solid #f8fafc;
+  border-bottom: 1px solid var(--color-bg-page);
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
@@ -1149,7 +1149,7 @@ $transition-normal: 0.25s ease;
   .toolbar-subtitle {
     margin: 0;
     font-size: 14px;
-    color: #94A3B8;
+    color: var(--color-text-placeholder);
   }
 }
 
@@ -1166,7 +1166,7 @@ $transition-normal: 0.25s ease;
   border-radius: 10px;
   font-size: 14px;
   font-weight: 500;
-  color: #64748B;
+  color: var(--color-text-secondary);
   cursor: pointer;
   transition: all 0.2s ease;
   white-space: nowrap;
@@ -1199,7 +1199,7 @@ $transition-normal: 0.25s ease;
   .section-title-group {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: var(--space-2-5);
   }
 
   .section-title-icon {
@@ -1223,9 +1223,9 @@ $transition-normal: 0.25s ease;
 
 .edit-hint {
   font-size: 12px;
-  color: #F59E0B;
+  color: var(--color-warning);
   background: #FFFBEB;
-  padding: 4px 10px;
+  padding: 4px var(--space-2-5);
   border-radius: 6px;
   border: 1px solid #FDE68A;
 }
@@ -1233,12 +1233,12 @@ $transition-normal: 0.25s ease;
 .edit-config-btn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 14px;
-  border: 1px solid #e2e8f0;
+  gap: var(--space-1-5);
+  padding: var(--space-1-5) var(--space-3-5);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
   background: #fff;
-  color: #64748B;
+  color: var(--color-text-secondary);
   font-size: 13px;
   cursor: pointer;
   transition: all 0.2s;
@@ -1257,14 +1257,14 @@ $transition-normal: 0.25s ease;
   margin-bottom: 12px;
 
   .config-info-card {
-    background: #f8fafc;
+    background: var(--color-bg-page);
     border: 1px solid #f1f5f9;
     border-radius: 12px;
     padding: 20px;
     transition: all 0.2s;
 
     &:hover {
-      border-color: #e2e8f0;
+      border-color: var(--color-border);
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
     }
 
@@ -1280,7 +1280,7 @@ $transition-normal: 0.25s ease;
 
   .config-info-label {
     font-size: 13px;
-    color: #94A3B8;
+    color: var(--color-text-placeholder);
     margin-bottom: 8px;
   }
 
@@ -1292,7 +1292,7 @@ $transition-normal: 0.25s ease;
     .config-info-unit {
       font-size: 14px;
       font-weight: 400;
-      color: #94A3B8;
+      color: var(--color-text-placeholder);
     }
 
     :deep(.t-input-number) {
@@ -1319,24 +1319,24 @@ $transition-normal: 0.25s ease;
 
   .cancel-btn {
     padding: 8px 20px;
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--color-border);
     border-radius: 8px;
     background: #fff;
-    color: #64748B;
+    color: var(--color-text-secondary);
     font-size: 14px;
     cursor: pointer;
     transition: all 0.2s;
 
     &:hover {
-      border-color: #94A3B8;
-      color: #334155;
+      border-color: var(--color-text-placeholder);
+      color: var(--color-text-primary);
     }
   }
 
   .save-btn {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--space-1-5);
     padding: 8px 20px;
     border: none;
     border-radius: 8px;
@@ -1372,13 +1372,13 @@ $transition-normal: 0.25s ease;
     align-items: center;
     gap: 16px;
     padding: 20px;
-    background: #f8fafc;
+    background: var(--color-bg-page);
     border: 1px solid #f1f5f9;
     border-radius: 14px;
     transition: all 0.2s;
 
     &:hover {
-      border-color: #e2e8f0;
+      border-color: var(--color-border);
       transform: translateY(-1px);
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
     }
@@ -1397,7 +1397,7 @@ $transition-normal: 0.25s ease;
   .statistics-item-body {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: var(--space-0-5);
   }
 
   .statistics-item-value {
@@ -1408,7 +1408,7 @@ $transition-normal: 0.25s ease;
 
   .statistics-item-label {
     font-size: 13px;
-    color: #94A3B8;
+    color: var(--color-text-placeholder);
   }
 }
 
@@ -1420,7 +1420,7 @@ $transition-normal: 0.25s ease;
   .status-banner {
     display: flex;
     align-items: flex-start;
-    gap: 14px;
+    gap: var(--space-3-5);
     padding: 16px 20px;
     border-radius: 12px;
 
@@ -1438,7 +1438,7 @@ $transition-normal: 0.25s ease;
       border: 1px solid #FDE68A;
 
       .status-banner-icon {
-        color: #F59E0B;
+        color: var(--color-warning);
       }
     }
 
@@ -1447,18 +1447,18 @@ $transition-normal: 0.25s ease;
       border: 1px solid #FECACA;
 
       .status-banner-icon {
-        color: #EF4444;
+        color: var(--color-danger);
       }
     }
 
     .status-banner-icon {
       flex-shrink: 0;
-      margin-top: 2px;
+      margin-top: var(--space-0-5);
     }
 
     .status-banner-text {
       font-size: 14px;
-      color: #334155;
+      color: var(--color-text-primary);
 
       strong {
         display: block;
@@ -1467,7 +1467,7 @@ $transition-normal: 0.25s ease;
 
       p {
         margin: 0;
-        color: #64748B;
+        color: var(--color-text-secondary);
       }
     }
   }
@@ -1492,7 +1492,7 @@ $transition-normal: 0.25s ease;
   .status-metric {
     text-align: center;
     padding: 16px;
-    background: #f8fafc;
+    background: var(--color-bg-page);
     border-radius: 12px;
   }
 
@@ -1502,13 +1502,13 @@ $transition-normal: 0.25s ease;
     color: #0F172A;
 
     &.text-danger {
-      color: #EF4444;
+      color: var(--color-danger);
     }
   }
 
   .status-metric-label {
     font-size: 12px;
-    color: #94A3B8;
+    color: var(--color-text-placeholder);
     margin-top: 4px;
   }
 
@@ -1530,11 +1530,11 @@ $transition-normal: 0.25s ease;
       transition: width 0.6s ease;
 
       &--warning {
-        background: #F59E0B;
+        background: var(--color-warning);
       }
 
       &--danger {
-        background: #EF4444;
+        background: var(--color-danger);
       }
     }
 
@@ -1543,7 +1543,7 @@ $transition-normal: 0.25s ease;
       top: -4px;
       width: 2px;
       height: 16px;
-      background: #64748B;
+      background: var(--color-text-secondary);
     }
 
     .progress-threshold-label {
@@ -1552,7 +1552,7 @@ $transition-normal: 0.25s ease;
       left: 50%;
       transform: translateX(-50%);
       font-size: 10px;
-      color: #64748B;
+      color: var(--color-text-secondary);
       white-space: nowrap;
     }
 
@@ -1560,8 +1560,8 @@ $transition-normal: 0.25s ease;
       display: flex;
       justify-content: space-between;
       font-size: 11px;
-      color: #94A3B8;
-      margin-top: 6px;
+      color: var(--color-text-placeholder);
+      margin-top: var(--space-1-5);
     }
   }
 
@@ -1570,7 +1570,7 @@ $transition-normal: 0.25s ease;
       font-size: 14px;
       font-weight: 600;
       color: #0F172A;
-      margin-bottom: 10px;
+      margin-bottom: var(--space-2-5);
     }
 
     .recommendation-item {
@@ -1578,8 +1578,8 @@ $transition-normal: 0.25s ease;
       align-items: flex-start;
       gap: 8px;
       font-size: 13px;
-      color: #64748B;
-      padding: 6px 0;
+      color: var(--color-text-secondary);
+      padding: var(--space-1-5) 0;
     }
 
     .recommendation-dot {
@@ -1588,7 +1588,7 @@ $transition-normal: 0.25s ease;
       border-radius: 50%;
       background: #3B82F6;
       flex-shrink: 0;
-      margin-top: 6px;
+      margin-top: var(--space-1-5);
     }
   }
 
@@ -1597,17 +1597,17 @@ $transition-normal: 0.25s ease;
     align-items: center;
     gap: 8px;
     padding: 12px 16px;
-    background: #f8fafc;
+    background: var(--color-bg-page);
     border-radius: 10px;
     font-size: 13px;
-    color: #64748B;
+    color: var(--color-text-secondary);
   }
 }
 
 .cleanup-area {
   .cleanup-desc {
     font-size: 14px;
-    color: #64748B;
+    color: var(--color-text-secondary);
     margin-bottom: 16px;
   }
 
@@ -1621,8 +1621,8 @@ $transition-normal: 0.25s ease;
   .cleanup-btn {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 8px 18px;
+    gap: var(--space-1-5);
+    padding: 8px var(--space-4-5);
     border: none;
     border-radius: 8px;
     font-size: 14px;
@@ -1637,20 +1637,20 @@ $transition-normal: 0.25s ease;
 
   .dry-run-btn {
     background: #f1f5f9;
-    color: #475569;
-    border: 1px solid #e2e8f0;
+    color: var(--color-text-secondary);
+    border: 1px solid var(--color-border);
 
     &:hover:not(:disabled) {
-      background: #e2e8f0;
+      background: var(--color-border);
     }
   }
 
   .cleanup-btn {
-    background: #EF4444;
+    background: var(--color-danger);
     color: #fff;
 
     &:hover:not(:disabled) {
-      background: #DC2626;
+      background: var(--color-danger);
     }
   }
 }
@@ -1660,12 +1660,12 @@ $transition-normal: 0.25s ease;
   flex-direction: column;
   align-items: center;
   gap: 8px;
-  padding: 60px 0;
+  padding: var(--space-16) 0;
 
   .data-empty-text {
     font-size: 15px;
     font-weight: 600;
-    color: #94A3B8;
+    color: var(--color-text-placeholder);
     margin: 0;
   }
 
@@ -1679,7 +1679,7 @@ $transition-normal: 0.25s ease;
 // ═══ 含量比配置 Tab ═══
 .ratio-intro {
   font-size: 14px;
-  color: #64748B;
+  color: var(--color-text-secondary);
   line-height: 1.6;
   margin: 0 0 24px 0;
   padding: 12px 16px;
@@ -1707,12 +1707,12 @@ $transition-normal: 0.25s ease;
   }
 
   &--normal {
-    border-left: 4px solid #10B981;
+    border-left: 4px solid var(--color-primary);
     background: #F0FDF4;
   }
 
   &--warning {
-    border-left: 4px solid #F59E0B;
+    border-left: 4px solid var(--color-warning);
     background: #FFFBEB;
   }
 
@@ -1722,7 +1722,7 @@ $transition-normal: 0.25s ease;
   }
 
   &--error {
-    border-left: 4px solid #EF4444;
+    border-left: 4px solid var(--color-danger);
     background: #FEF2F2;
   }
 }
@@ -1740,11 +1740,11 @@ $transition-normal: 0.25s ease;
   border-radius: 50%;
 
   &--normal {
-    background: #10B981;
+    background: var(--color-primary);
   }
 
   &--warning {
-    background: #F59E0B;
+    background: var(--color-warning);
   }
 
   &--high-warning {
@@ -1752,19 +1752,19 @@ $transition-normal: 0.25s ease;
   }
 
   &--error {
-    background: #EF4444;
+    background: var(--color-danger);
   }
 }
 
 .ratio-level-name {
   font-size: 15px;
   font-weight: 600;
-  color: #1e293b;
+  color: var(--color-text-primary);
 }
 
 .ratio-level-desc {
   font-size: 13px;
-  color: #64748B;
+  color: var(--color-text-secondary);
   margin: 0 0 12px 0;
   line-height: 1.4;
 }
@@ -1789,7 +1789,7 @@ $transition-normal: 0.25s ease;
 }
 
 .ratio-range-sep {
-  color: #94A3B8;
+  color: var(--color-text-placeholder);
   font-weight: 400;
 }
 
@@ -1804,13 +1804,13 @@ $transition-normal: 0.25s ease;
 .ratio-range-label {
   font-size: 14px;
   font-weight: 600;
-  color: #64748B;
+  color: var(--color-text-secondary);
 }
 
 .ratio-visual-bar {
   margin-bottom: 20px;
   padding: 16px;
-  background: #f8fafc;
+  background: var(--color-bg-page);
   border-radius: 12px;
 }
 
@@ -1838,7 +1838,7 @@ $transition-normal: 0.25s ease;
   }
 
   &--normal {
-    background: #10B981;
+    background: var(--color-primary);
   }
 
   &--error-r {
@@ -1850,9 +1850,9 @@ $transition-normal: 0.25s ease;
   display: flex;
   justify-content: space-between;
   font-size: 11px;
-  color: #94A3B8;
-  margin-top: 6px;
-  padding: 0 2px;
+  color: var(--color-text-placeholder);
+  margin-top: var(--space-1-5);
+  padding: 0 var(--space-0-5);
 }
 
 // ═══ 仪表盘（数据概览 Tab 内） ═══
@@ -1864,7 +1864,7 @@ $transition-normal: 0.25s ease;
   .stat-card {
     background: #fff;
     padding: 24px;
-    border-radius: 24px;
+    border-radius: var(--radius-4xl);
     border: 1px solid #fff;
     box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
     transition: all 0.3s ease;
@@ -1897,14 +1897,14 @@ $transition-normal: 0.25s ease;
     .stat-badge {
       font-size: 12px;
       font-weight: 700;
-      padding: 2px 8px;
+      padding: var(--space-0-5) 8px;
       border-radius: 8px;
       white-space: nowrap;
     }
 
     .stat-label {
       font-size: 14px;
-      color: #94A3B8;
+      color: var(--color-text-placeholder);
       margin-bottom: 4px;
     }
 
@@ -1917,7 +1917,7 @@ $transition-normal: 0.25s ease;
       .stat-unit {
         font-size: 14px;
         font-weight: 400;
-        color: #94A3B8;
+        color: var(--color-text-placeholder);
       }
     }
   }
@@ -1944,8 +1944,8 @@ $transition-normal: 0.25s ease;
   .suggestion-item {
     display: flex;
     align-items: flex-start;
-    gap: 10px;
-    padding: 12px 14px;
+    gap: var(--space-2-5);
+    padding: 12px var(--space-3-5);
     background: #FFFBEB;
     border: 1px solid #FEF3C7;
     border-radius: 10px;
@@ -1957,14 +1957,14 @@ $transition-normal: 0.25s ease;
   }
 
   .suggestion-bulb {
-    color: #F59E0B;
+    color: var(--color-warning);
     flex-shrink: 0;
     margin-top: 1px;
   }
 
   .suggestion-text {
     font-size: 13px;
-    color: #334155;
+    color: var(--color-text-primary);
     line-height: 1.5;
   }
 }
@@ -1984,13 +1984,13 @@ $transition-normal: 0.25s ease;
 
 .activity-card {
   background-color: #fff;
-  border-radius: 24px;
+  border-radius: var(--radius-4xl);
   padding: 32px;
   box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
-  border: 1px solid #f8fafc;
+  border: 1px solid var(--color-bg-page);
 
   &--assistant {
-    background: linear-gradient(135deg, #10B981, #059669);
+    background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
     border: none;
     color: #fff;
     position: relative;
@@ -2009,7 +2009,7 @@ $transition-normal: 0.25s ease;
 .activity-title {
   font-size: 17px;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--color-text-primary);
   margin: 0;
   display: flex;
   align-items: center;
@@ -2031,13 +2031,13 @@ $transition-normal: 0.25s ease;
   border-radius: 8px;
   border: none;
   background: #f1f5f9;
-  color: #64748b;
+  color: var(--color-text-secondary);
   cursor: pointer;
   transition: all $transition-fast;
 
   &:hover:not(:disabled) {
-    background: #e2e8f0;
-    color: #334155;
+    background: var(--color-border);
+    color: var(--color-text-primary);
   }
 
   &:disabled {
@@ -2049,7 +2049,7 @@ $transition-normal: 0.25s ease;
 .activity-nav-page {
   font-size: 13px;
   font-weight: 600;
-  color: #94a3b8;
+  color: var(--color-text-placeholder);
   min-width: 40px;
   text-align: center;
 }
@@ -2064,7 +2064,7 @@ $transition-normal: 0.25s ease;
     top: 8px;
     bottom: 8px;
     width: 2px;
-    background: #e2e8f0;
+    background: var(--color-border);
     border-radius: 1px;
   }
 }
@@ -2090,27 +2090,27 @@ $transition-normal: 0.25s ease;
   flex-shrink: 0;
   z-index: 1;
   background: #fff;
-  border: 2px solid #e2e8f0;
+  border: 2px solid var(--color-border);
 
   &--cleanup {
-    border-color: #ef4444;
+    border-color: var(--color-danger);
 
     .timeline-dot-inner {
       width: 8px;
       height: 8px;
       border-radius: 50%;
-      background: #ef4444;
+      background: var(--color-danger);
     }
   }
 
   &--alert {
-    border-color: #f59e0b;
+    border-color: var(--color-warning);
 
     .timeline-dot-inner {
       width: 8px;
       height: 8px;
       border-radius: 50%;
-      background: #f59e0b;
+      background: var(--color-warning);
     }
   }
 
@@ -2156,16 +2156,16 @@ $transition-normal: 0.25s ease;
 .timeline-title {
   font-size: 14px;
   font-weight: 600;
-  color: #1e293b;
+  color: var(--color-text-primary);
   margin: 0 0 4px 0;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--space-1-5);
 }
 
 .timeline-time {
   font-size: 12px;
-  color: #94a3b8;
+  color: var(--color-text-placeholder);
 }
 
 .assistant-content {
@@ -2191,7 +2191,7 @@ $transition-normal: 0.25s ease;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 10px 24px;
+  padding: var(--space-2-5) 24px;
   border-radius: 12px;
   background: $overlay-white-20;
   backdrop-filter: blur(10px);
@@ -2219,7 +2219,7 @@ $transition-normal: 0.25s ease;
 
 .assistant-avatar-group {
   display: flex;
-  gap: 6px;
+  gap: var(--space-1-5);
 }
 
 .assistant-avatar {

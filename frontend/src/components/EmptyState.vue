@@ -7,15 +7,15 @@
         <!-- 猫咪头 -->
         <circle cx="60" cy="52" r="22" fill="#FFE8D6" />
         <!-- 耳朵 -->
-        <path d="M42 38L36 18L52 32Z" fill="#FFB5C8" />
-        <path d="M78 38L84 18L68 32Z" fill="#FFB5C8" />
-        <path d="M44 36L39 22L52 32Z" fill="#FFD6E0" />
-        <path d="M76 36L81 22L68 32Z" fill="#FFD6E0" />
+        <path d="M42 38L36 18L52 32Z" fill="var(--color-primary-lighter)" />
+        <path d="M78 38L84 18L68 32Z" fill="var(--color-primary-lighter)" />
+        <path d="M44 36L39 22L52 32Z" fill="var(--color-primary-lightest)" />
+        <path d="M76 36L81 22L68 32Z" fill="var(--color-primary-lightest)" />
         <!-- 眼睛（闭着睡觉） -->
         <path d="M50 50Q53 53 56 50" stroke="#5D4E60" stroke-width="1.5" fill="none" stroke-linecap="round" />
         <path d="M64 50Q67 53 70 50" stroke="#5D4E60" stroke-width="1.5" fill="none" stroke-linecap="round" />
         <!-- 嘴巴 -->
-        <path d="M56 60Q60 63 64 60" stroke="#E8A0B0" stroke-width="1" fill="none" stroke-linecap="round" />
+        <path d="M56 60Q60 63 64 60" stroke="var(--color-primary-dark)" stroke-width="1" fill="none" stroke-linecap="round" />
         <!-- 腮红 -->
         <ellipse cx="46" cy="57" rx="5" ry="3" fill="#FFB5C2" opacity="0.35" />
         <ellipse cx="74" cy="57" rx="5" ry="3" fill="#FFB5C2" opacity="0.35" />
@@ -79,7 +79,7 @@ withDefaults(defineProps<{
     font-size: 16px;
     font-weight: 600;
     color: $text-primary;
-    margin: 0 0 6px;
+    margin: 0 0 var(--space-1-5);
     letter-spacing: $ls-heading;
   }
 

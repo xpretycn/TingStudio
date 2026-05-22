@@ -14,30 +14,20 @@
               <span class="breadcrumb-sep">/</span>
               <span class="breadcrumb-current">版本控制中心</span>
             </nav>
-            <h2 class="page-title">版本控制中心</h2>
+            <h3 class="page-title">
+              {{ formulaName || '配方' }}
+              <span v-if="currentVersionNumber" class="version-tag">{{ currentVersionNumber }}</span>
+            </h3>
           </div>
         </div>
         <div class="header-actions">
           <div class="status-filter-group">
-            <button
-              v-for="opt in statusOptions"
-              :key="opt.value"
-              class="status-filter-btn"
-              :class="{ active: statusFilter === opt.value }"
-              @click="statusFilter = opt.value; fetchVersions()"
-            >{{ opt.label }}</button>
+            <button v-for="opt in statusOptions" :key="opt.value" class="status-filter-btn"
+              :class="{ active: statusFilter === opt.value }" @click="statusFilter = opt.value; fetchVersions()">{{
+                opt.label }}</button>
           </div>
-          <div class="header-action-divider"></div>
-          <button class="action-btn action-primary" @click="handleCreateVersion">
-            <t-icon name="add" />
-            <span>创建版本</span>
-          </button>
-          <button
-            class="action-btn action-compare"
-            :class="{ 'has-selection': selectedForCompare.length >= 2 }"
-            :disabled="selectedForCompare.length < 2"
-            @click="handleCompare"
-          >
+          <button class="action-btn action-compare" :class="{ 'has-selection': selectedForCompare.length >= 2 }"
+            :disabled="selectedForCompare.length < 2" @click="handleCompare">
             <t-icon name="book" />
             <span>版本对比</span>
             <span v-if="selectedForCompare.length" class="compare-badge">{{ selectedForCompare.length }}</span>
@@ -54,31 +44,24 @@
               <h3 class="section-title">版本时间线</h3>
               <span class="section-count">{{ versionStore.versions.length }}</span>
             </div>
-            <button
-              v-if="selectedForCompare.length"
-              class="clear-compare-btn"
-              @click="clearCompareSelection"
-            >清除选择</button>
+            <button v-if="selectedForCompare.length" class="clear-compare-btn"
+              @click="clearCompareSelection">清除选择</button>
           </div>
 
           <div v-if="versionStore.versions.length === 0" class="empty-state">
             <div class="empty-icon"><t-icon name="bulletpoint" size="40px" /></div>
             <p class="empty-text">暂无版本数据</p>
-            <t-button theme="primary" @click="handleCreateVersion">
-              <template #icon><t-icon name="add" /></template>创建第一个版本
+            <p class="empty-hint">编辑配方后系统会自动创建新版本</p>
+            <t-button theme="primary" @click="router.push(`/formulas/${formulaId}/edit`)">
+              <template #icon><t-icon name="edit" /></template>编辑配方
             </t-button>
           </div>
 
           <div v-else class="timeline">
-            <div
-              v-for="(ver, index) in versionStore.versions"
-              :key="ver.versionId"
-              class="timeline-item"
-              :class="{
-                active: selectedVersionId === ver.versionId,
-                'item-current': ver.isCurrent,
-              }"
-            >
+            <div v-for="(ver, index) in versionStore.versions" :key="ver.versionId" class="timeline-item" :class="{
+              active: selectedVersionId === ver.versionId,
+              'item-current': ver.isCurrent,
+            }">
               <!-- Timeline visual connector -->
               <div class="timeline-connector">
                 <div class="tl-dot" :class="{ 'dot-current': ver.isCurrent }">
@@ -102,29 +85,41 @@
 
                 <!-- Changes chips -->
                 <div v-if="ver.changes?.length" class="tl-changes">
-                  <span
-                    v-for="(c, ci) in ver.changes.slice(0, 4)"
-                    :key="ci"
-                    class="tl-change-chip"
-                    :class="'chip-' + c.changeType"
-                  >
+                  <span v-for="(c, ci) in ver.changes.slice(0, 4)" :key="ci" class="tl-change-chip"
+                    :class="'chip-' + c.changeType">
                     <t-icon :name="changeTypeIcon(c.changeType)" size="12px" />
                     {{ changeTypeLabel(c.changeType) }}
                   </span>
                   <span v-if="ver.changes.length > 4" class="tl-change-more">+{{ ver.changes.length - 4 }}</span>
                 </div>
 
-                <!-- Bottom row: compare checkbox -->
+                <!-- Bottom row: compare checkbox + compare button -->
                 <div class="tl-card-footer">
                   <label class="tl-compare-label" @click.stop>
-                    <input
-                      type="checkbox"
-                      class="tl-checkbox"
-                      :checked="selectedForCompare.includes(ver.versionId)"
-                      @change="toggleSelect(ver.versionId)"
-                    />
+                    <input type="checkbox" class="tl-checkbox" :checked="selectedForCompare.includes(ver.versionId)"
+                      @change="toggleSelect(ver.versionId)" />
                     <span class="tl-checkbox-text">加入对比</span>
                   </label>
+                  <t-popconfirm v-if="ver.status === 'draft'" :content="isAdmin ? '确定要直接发布该版本吗？发布后将替换当前配方。' : '确定要提交审批吗？提交后需等待管理员审核。'" @confirm="handlePublish(ver)">
+                    <button class="tl-publish-btn" @click.stop>
+                      <t-icon name="send" size="12px" />
+                      {{ isAdmin ? '发布' : '提交审批' }}
+                    </button>
+                  </t-popconfirm>
+                  <t-popconfirm v-else-if="ver.status === 'pending_review' && isAdmin" content="确定要批准该版本吗？批准后将替换当前配方。" @confirm="handlePublish(ver)">
+                    <button class="tl-publish-btn" @click.stop>
+                      <t-icon name="check" size="12px" />
+                      批准
+                    </button>
+                  </t-popconfirm>
+                  <span v-else-if="ver.status === 'pending_review' && !isAdmin" class="tl-status-hint">
+                    <t-icon name="time" size="12px" />
+                    审批中
+                  </span>
+                  <span v-else-if="ver.status === 'published'" class="tl-status-hint tl-status-published">
+                    <t-icon name="check-circle" size="12px" />
+                    已发布
+                  </span>
                 </div>
               </div>
             </div>
@@ -135,12 +130,7 @@
         <div class="detail-section">
           <div class="section-head">
             <h3 class="section-title">版本快照</h3>
-            <button
-              v-if="selectedVersion"
-              class="section-close-btn"
-              @click="selectedVersionId = null"
-              title="关闭详情"
-            >
+            <button v-if="selectedVersion" class="section-close-btn" @click="selectedVersionId = null" title="关闭详情">
               <t-icon name="close" />
             </button>
           </div>
@@ -149,11 +139,13 @@
           <div v-if="!selectedVersion" class="detail-empty">
             <div class="detail-empty-visual">
               <svg width="72" height="72" viewBox="0 0 72 72" fill="none">
-                <rect x="8" y="12" width="56" height="48" rx="6" stroke="currentColor" stroke-width="2" fill="none" opacity="0.2"/>
-                <rect x="16" y="40" width="40" height="2" rx="1" fill="currentColor" opacity="0.12"/>
-                <rect x="16" y="46" width="28" height="2" rx="1" fill="currentColor" opacity="0.08"/>
-                <circle cx="36" cy="28" r="8" stroke="currentColor" stroke-width="2" fill="none" opacity="0.2" stroke-dasharray="2 2"/>
-                <line x1="42" y1="34" x2="48" y2="40" stroke="currentColor" stroke-width="2" opacity="0.2"/>
+                <rect x="8" y="12" width="56" height="48" rx="6" stroke="currentColor" stroke-width="2" fill="none"
+                  opacity="0.2" />
+                <rect x="16" y="40" width="40" height="2" rx="1" fill="currentColor" opacity="0.12" />
+                <rect x="16" y="46" width="28" height="2" rx="1" fill="currentColor" opacity="0.08" />
+                <circle cx="36" cy="28" r="8" stroke="currentColor" stroke-width="2" fill="none" opacity="0.2"
+                  stroke-dasharray="2 2" />
+                <line x1="42" y1="34" x2="48" y2="40" stroke="currentColor" stroke-width="2" opacity="0.2" />
               </svg>
             </div>
             <p class="detail-empty-text">选择左侧版本查看<br />配方快照与变更详情</p>
@@ -168,9 +160,12 @@
                 <span v-if="selectedVersion.versionName" class="identity-name">{{ selectedVersion.versionName }}</span>
               </div>
               <div class="identity-meta">
-                <span class="identity-status" :class="'st-' + selectedVersion.status">{{ statusLabel(selectedVersion.status) }}</span>
+                <span class="identity-status" :class="'st-' + selectedVersion.status">{{
+                  statusLabel(selectedVersion.status)
+                }}</span>
                 <span v-if="selectedVersion.isCurrent" class="identity-current">当前版本</span>
-                <span class="identity-time">{{ splitDateTime(selectedVersion.createdAt).date }} {{ splitDateTime(selectedVersion.createdAt).time }}</span>
+                <span class="identity-time">{{ splitDateTime(selectedVersion.createdAt).date }} {{
+                  splitDateTime(selectedVersion.createdAt).time }}</span>
               </div>
             </div>
 
@@ -178,7 +173,8 @@
             <div v-if="selectedVersion.changes?.length" class="detail-card detail-changes">
               <h4 class="detail-card-title">变更摘要</h4>
               <div class="changes-list">
-                <div v-for="(c, ci) in selectedVersion.changes" :key="ci" class="change-row" :class="'cr-' + c.changeType">
+                <div v-for="(c, ci) in selectedVersion.changes" :key="ci" class="change-row"
+                  :class="'cr-' + c.changeType">
                   <span class="change-type-icon">
                     <t-icon :name="changeTypeIcon(c.changeType)" />
                   </span>
@@ -203,18 +199,23 @@
               <h4 class="detail-card-title">配方快照</h4>
               <div class="snapshot-grid">
                 <div class="snapshot-field">
-                  <span class="sn-field-label">配方编码</span>
-                  <span class="sn-field-value">{{ snapshot?.formulaCode || '--' }}</span>
+                  <t-icon name="user" class="sn-field-icon" />
+                  <span class="sn-field-label">业务员</span>
+                  <span class="sn-field-value">{{ snapshot?.salesmanName || formulaSalesmanName || '--' }}</span>
                 </div>
                 <div class="snapshot-field">
+                  <t-icon name="measurement" class="sn-field-icon" />
                   <span class="sn-field-label">成品重量</span>
-                  <span class="sn-field-value">{{ snapshot?.finishedWeight || snapshot?.finished_weight || '--' }}g</span>
+                  <span class="sn-field-value">{{ snapshot?.finishedWeight || snapshot?.finished_weight || '--'
+                  }}g</span>
                 </div>
                 <div class="snapshot-field">
+                  <t-icon name="file" class="sn-field-icon" />
                   <span class="sn-field-label">配方名称</span>
                   <span class="sn-field-value">{{ formulaName || '--' }}</span>
                 </div>
                 <div class="snapshot-field">
+                  <t-icon name="layers" class="sn-field-icon" />
                   <span class="sn-field-label">原料数量</span>
                   <span class="sn-field-value">{{ snapshot?.materials?.length || 0 }} 种</span>
                 </div>
@@ -228,17 +229,33 @@
                 <span v-if="snapshot?.materials?.length" class="material-total">{{ snapshot.materials.length }} 项</span>
               </div>
               <div v-if="snapshot?.materials?.length" class="material-list">
+                <div class="material-header-row">
+                  <span class="mh-index">#</span>
+                  <span class="mh-name">原料</span>
+                  <span class="mh-weight">用量(g)</span>
+                  <span class="mh-pct">含量比(%)</span>
+                  <span class="mh-nutrient">能量</span>
+                  <span class="mh-nutrient">蛋白质</span>
+                  <span class="mh-nutrient">脂肪</span>
+                  <span class="mh-nutrient">碳水</span>
+                  <span class="mh-nutrient">钠</span>
+                  <span class="mh-version">版本</span>
+                </div>
                 <div v-for="(m, i) in snapshot.materials" :key="i" class="material-row">
-                  <div class="material-left">
-                    <span class="material-index">{{ i + 1 }}</span>
-                    <span class="material-name">{{ m.materialName || m.name || '--' }}</span>
+                  <span class="material-index">{{ i + 1 }}</span>
+                  <span class="material-name-cell">
+                    <span class="material-name-text">{{ m.materialName || m.name || '--' }}</span>
                     <span v-if="getMaterialType(m) === 'supplement'" class="material-tag tag-supplement">辅料</span>
                     <span v-else-if="getMaterialType(m) === 'herb'" class="material-tag tag-herb">主料</span>
-                  </div>
-                  <div class="material-right">
-                    <span class="material-weight">{{ calcActualWeight(m).toFixed(1) }}g</span>
-                    <span class="material-pct">{{ (m.quantity || 0).toFixed(2) }}%</span>
-                  </div>
+                  </span>
+                  <span class="material-weight">{{ calcActualWeight(m).toFixed(1) }}</span>
+                  <span class="material-pct">{{ (calcRatio(m) * 100).toFixed(2) }}</span>
+                  <span class="material-nutrient">{{ calcNutrientValue(m, 'energy').toFixed(1) || '--' }}</span>
+                  <span class="material-nutrient">{{ calcNutrientValue(m, 'protein').toFixed(2) || '--' }}</span>
+                  <span class="material-nutrient">{{ calcNutrientValue(m, 'fat').toFixed(2) || '--' }}</span>
+                  <span class="material-nutrient">{{ calcNutrientValue(m, 'carbohydrate').toFixed(2) || '--' }}</span>
+                  <span class="material-nutrient">{{ calcNutrientValue(m, 'sodium').toFixed(2) || '--' }}</span>
+                  <span class="material-version">{{ getMaterialVersion(m) }}</span>
                 </div>
               </div>
               <p v-else class="material-empty">暂无原料数据</p>
@@ -246,15 +263,31 @@
 
             <!-- Actions -->
             <div class="detail-actions">
-              <t-popconfirm
-                v-if="selectedVersion.status === 'draft'"
-                content="确定要发布该版本吗？发布后将替换当前配方。"
-                @confirm="handlePublish(selectedVersion)"
-              >
+              <t-popconfirm v-if="selectedVersion.status === 'draft' && isAdmin" content="确定要直接发布该版本吗？发布后将替换当前配方。"
+                @confirm="handlePublish(selectedVersion)">
                 <button class="action-btn action-publish">
-                  <t-icon name="send" /> 发布此版本
+                  <t-icon name="send" /> 直接发布
                 </button>
               </t-popconfirm>
+              <t-popconfirm v-if="selectedVersion.status === 'draft' && !isAdmin" content="确定要提交审批吗？提交后需等待管理员审核。"
+                @confirm="handlePublish(selectedVersion)">
+                <button class="action-btn action-submit">
+                  <t-icon name="send" /> 提交审批
+                </button>
+              </t-popconfirm>
+              <t-popconfirm v-if="selectedVersion.status === 'pending_review' && isAdmin"
+                content="确定要批准该版本吗？批准后将替换当前配方。" @confirm="handleApprove(selectedVersion)">
+                <button class="action-btn action-publish">
+                  <t-icon name="check" /> 批准发布
+                </button>
+              </t-popconfirm>
+              <button v-if="selectedVersion.status === 'pending_review' && isAdmin" class="action-btn action-reject"
+                @click="handleReject(selectedVersion)">
+                <t-icon name="close" /> 驳回
+              </button>
+              <span v-if="selectedVersion.status === 'pending_review' && !isAdmin" class="pending-hint">
+                <t-icon name="time" /> 等待管理员审核中…
+              </span>
               <button class="action-btn action-secondary" @click="handleCompare">
                 <t-icon name="book" /> 对比版本
               </button>
@@ -263,21 +296,12 @@
         </div>
       </div>
 
-      <!-- ─── Create Version Dialog ─── -->
-      <t-dialog
-        v-model:visible="createVersionVisible"
-        header="创建新版本"
-        :confirm-btn="{ content: '创建', theme: 'primary' }"
-        @confirm="confirmCreateVersion"
-      >
+      <!-- ─── Reject Version Dialog ─── -->
+      <t-dialog v-model:visible="rejectDialogVisible" header="驳回版本" :confirm-btn="{ content: '确认驳回', theme: 'danger' }"
+        @confirm="confirmReject" :class="'version-create-dialog'">
         <div class="create-form">
-          <label class="create-label">升版原因 <span class="required">*</span></label>
-          <textarea
-            v-model="createVersionReason"
-            class="create-textarea"
-            placeholder="请描述本次版本变更的原因或内容摘要"
-            rows="3"
-          ></textarea>
+          <label class="create-label">驳回意见 <span class="required">*</span></label>
+          <textarea v-model="rejectComment" class="create-textarea" placeholder="请说明驳回原因，便于修改者了解问题" rows="3"></textarea>
         </div>
       </t-dialog>
     </template>
@@ -290,6 +314,7 @@ import { useRouter, useRoute } from 'vue-router';
 import { useVersionStore } from '@/stores/version';
 import { useFormulaStore } from '@/stores/formula';
 import { useMaterialStore } from '@/stores/material';
+import { useAuthStore } from '@/stores/auth';
 import { MessagePlugin } from 'tdesign-vue-next';
 import PageSkeleton from '@/components/Skeleton/PageSkeleton.vue';
 import { splitDateTime } from '@/utils/timeFormat';
@@ -299,11 +324,15 @@ const route = useRoute();
 const versionStore = useVersionStore();
 const formulaStore = useFormulaStore();
 const materialStore = useMaterialStore();
+const authStore = useAuthStore();
+
+const isAdmin = computed(() => authStore.user?.role === 'admin');
 
 const initialized = ref(false);
 
 const formulaId = route.params.formulaId as string;
 const formulaName = ref('');
+const formulaSalesmanName = ref('');
 const statusFilter = ref('');
 const selectedForCompare = ref<string[]>([]);
 const selectedVersionId = ref<string | null>(null);
@@ -311,11 +340,16 @@ const selectedVersionId = ref<string | null>(null);
 const statusOptions = [
   { value: '', label: '全部' },
   { value: 'draft', label: '草稿' },
+  { value: 'pending_review', label: '待审批' },
   { value: 'published', label: '已发布' },
   { value: 'archived', label: '已归档' },
 ];
 
 const snapshot = computed(() => selectedVersion.value?.snapshot || null);
+const currentVersionNumber = computed(() => {
+  const current = versionStore.versions.find((v: any) => v.isCurrent);
+  return current?.versionNumber || '';
+});
 const selectedVersion = computed(() => {
   if (!selectedVersionId.value) return null;
   return versionStore.versions.find((v: any) => v.versionId === selectedVersionId.value) || null;
@@ -326,7 +360,7 @@ const selectVersion = (ver: any) => {
 };
 
 const statusLabel = (s: string) =>
-  s === 'published' ? '已发布' : s === 'draft' ? '草稿' : '已归档';
+  s === 'published' ? '已发布' : s === 'pending_review' ? '待审批' : s === 'draft' ? '草稿' : '已归档';
 
 const changeTypeLabel = (t: string) =>
   t === 'add' ? '新增' : t === 'delete' ? '删除' : '修改';
@@ -354,41 +388,69 @@ const fetchVersions = () => {
 
 const handleBack = () => router.push('/formulas');
 
-const createVersionVisible = ref(false);
-const createVersionReason = ref('');
-
-const handleCreateVersion = () => {
-  createVersionReason.value = '';
-  createVersionVisible.value = true;
-};
-
-const confirmCreateVersion = async () => {
-  if (!createVersionReason.value?.trim()) {
-    MessagePlugin.warning('请填写升版原因');
-    return;
-  }
-  const result = await versionStore.createVersion(formulaId, {
-    versionReason: createVersionReason.value.trim(),
-    status: 'draft',
-  });
-  if (result.success) {
-    MessagePlugin.success(`版本 ${result.data?.versionNumber} 创建成功`);
-    createVersionVisible.value = false;
-    fetchVersions();
-  } else {
-    MessagePlugin.error(result.message || '创建失败');
-  }
-};
-
 const handlePublish = async (row: any) => {
-  const result = await versionStore.publishVersion(row.versionId);
+  if (isAdmin.value) {
+    const result = await versionStore.publishVersion(row.versionId);
+    if (result.success) {
+      MessagePlugin.success('发布成功，配方数据已同步');
+      fetchVersions();
+      const formula = await formulaStore.getFormula(formulaId);
+      if (formula) {
+        formulaName.value = formula.name;
+        formulaSalesmanName.value = formula.salesmanName || '';
+      }
+    } else {
+      MessagePlugin.error(result.message || '发布失败');
+    }
+  } else {
+    const result = await versionStore.submitVersion(row.versionId);
+    if (result.success) {
+      MessagePlugin.success('已提交审批，请等待管理员审核');
+      fetchVersions();
+    } else {
+      MessagePlugin.error(result.message || '提交审批失败');
+    }
+  }
+};
+
+const handleApprove = async (row: any) => {
+  const result = await versionStore.approveVersion(row.versionId);
   if (result.success) {
-    MessagePlugin.success('发布成功，配方数据已同步');
+    MessagePlugin.success('已批准发布，配方数据已同步');
     fetchVersions();
     const formula = await formulaStore.getFormula(formulaId);
-    if (formula) formulaName.value = formula.name;
+    if (formula) {
+      formulaName.value = formula.name;
+      formulaSalesmanName.value = formula.salesmanName || '';
+    }
   } else {
-    MessagePlugin.error(result.message || '发布失败');
+    MessagePlugin.error(result.message || '批准失败');
+  }
+};
+
+const rejectComment = ref('');
+const rejectVersionId = ref<string | null>(null);
+const rejectDialogVisible = ref(false);
+
+const handleReject = (row: any) => {
+  rejectVersionId.value = row.versionId;
+  rejectComment.value = '';
+  rejectDialogVisible.value = true;
+};
+
+const confirmReject = async () => {
+  if (!rejectComment.value?.trim()) {
+    MessagePlugin.warning('请填写驳回意见');
+    return;
+  }
+  if (!rejectVersionId.value) return;
+  const result = await versionStore.rejectVersion(rejectVersionId.value, rejectComment.value.trim());
+  if (result.success) {
+    MessagePlugin.success('已驳回，版本已回退为草稿');
+    rejectDialogVisible.value = false;
+    fetchVersions();
+  } else {
+    MessagePlugin.error(result.message || '驳回失败');
   }
 };
 
@@ -398,6 +460,13 @@ const clearCompareSelection = () => {
 };
 
 const handleCompare = () => router.push(`/versions/compare/${formulaId}`);
+
+const getMaterialVersion = (material: any): string => {
+  if (!material || (!material.materialId && !material.id)) return '--';
+  const mat = materialStore.allMaterials?.find((m: any) => m.id === (material.materialId || material.id));
+  if (mat?.version != null) return `v${mat.version}`;
+  return '--';
+};
 
 const getMaterialType = (material: any): string => {
   if (!material || (!material.materialId && !material.id)) return '';
@@ -409,6 +478,30 @@ const calcActualWeight = (material: any): number => {
   const finishedWeight = snapshot.value?.finishedWeight || snapshot.value?.finished_weight || 0;
   const quantity = material.quantity || 0;
   return (quantity / 100) * finishedWeight;
+};
+
+const calcRatio = (material: any): number => {
+  const finishedWeight = snapshot.value?.finishedWeight || snapshot.value?.finished_weight || 0;
+  const quantity = material.quantity || 0;
+  if (!finishedWeight) return 0;
+  const ratioFactor = material.materialType === 'supplement'
+    ? (snapshot.value?.supplementRatioFactor || 1.0)
+    : (snapshot.value?.ratioFactor || 0.18);
+  return (quantity / finishedWeight) * ratioFactor;
+};
+
+const getMaterialNutrition = (material: any): Record<string, number> => {
+  if (!material || (!material.materialId && !material.id)) return {};
+  const mat = materialStore.allMaterials?.find((m: any) => m.id === (material.materialId || material.id));
+  return mat?.nutrition || {};
+};
+
+const calcNutrientValue = (material: any, nutrientKey: string): number => {
+  const per100g = getMaterialNutrition(material);
+  const value = per100g[nutrientKey];
+  if (value == null) return 0;
+  const ratio = calcRatio(material);
+  return value * ratio;
 };
 
 // Restore compare selection from localStorage
@@ -425,7 +518,10 @@ onMounted(async () => {
     versionStore.fetchVersions(formulaId, statusFilter.value ? { status: statusFilter.value } : undefined),
     (async () => {
       const formula = await formulaStore.getFormula(formulaId);
-      if (formula) formulaName.value = formula.name;
+      if (formula) {
+        formulaName.value = formula.name;
+        formulaSalesmanName.value = formula.salesmanName || '';
+      }
     })(),
     materialStore.fetchMaterials(),
   ]);
@@ -437,10 +533,11 @@ onMounted(async () => {
 @use '@/assets/styles/variables' as *;
 
 .version-list {
+
   // ─── Layout ────────────────────────────────────────────────
   .content-layout {
     display: flex;
-    gap: 28px;
+    gap: var(--space-4);
     align-items: flex-start;
     margin-top: 24px;
     animation: fadeIn 0.4s ease both;
@@ -455,8 +552,8 @@ onMounted(async () => {
   }
 
   .timeline-section {
-    flex: 0 0 460px;
-    max-width: 460px;
+    flex: 0 0 485px;
+    max-width: 485px;
     align-self: flex-start;
     position: sticky;
     top: calc(88px + 24px);
@@ -466,6 +563,7 @@ onMounted(async () => {
     &::-webkit-scrollbar {
       width: 4px;
     }
+
     &::-webkit-scrollbar-thumb {
       background: $border-color;
       border-radius: 4px;
@@ -488,7 +586,7 @@ onMounted(async () => {
     .section-head-left {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: var(--space-2-5);
     }
 
     .section-title {
@@ -505,7 +603,7 @@ onMounted(async () => {
       justify-content: center;
       min-width: 22px;
       height: 22px;
-      padding: 0 7px;
+      padding: 0 var(--space-2);
       background: var(--color-primary-bg);
       color: var(--color-primary);
       font-size: $font-size-micro;
@@ -603,7 +701,7 @@ onMounted(async () => {
         .header-breadcrumb {
           display: flex;
           align-items: center;
-          gap: 6px;
+          gap: var(--space-1-5);
           font-size: 12px;
           line-height: 1;
           color: $text-tertiary;
@@ -630,10 +728,26 @@ onMounted(async () => {
 
         .page-title {
           margin: 0;
-          font-size: $font-size-h1;
+          font-size: $font-size-h2;
           font-weight: $font-weight-bold;
           color: $text-primary;
           line-height: 1.35;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+
+          .version-tag {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 10px;
+            background: var(--color-primary-bg);
+            color: var(--color-primary);
+            font-size: 12px;
+            font-weight: $font-weight-bold;
+            border-radius: $radius-pill;
+            font-family: ui-monospace, SFMono-Regular, 'Cascadia Code', monospace;
+            letter-spacing: 0.02em;
+          }
         }
       }
     }
@@ -645,8 +759,8 @@ onMounted(async () => {
 
       .status-filter-group {
         display: flex;
-        gap: 2px;
-        padding: 3px;
+        gap: var(--space-0-5);
+        padding: var(--space-1);
         background: var(--color-primary-bg);
         border-radius: $radius-lg;
       }
@@ -655,7 +769,7 @@ onMounted(async () => {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        padding: 6px 14px;
+        padding: var(--space-1-5) var(--space-3-5);
         border: none;
         border-radius: 8px;
         background: transparent;
@@ -677,12 +791,6 @@ onMounted(async () => {
           color: $text-regular;
         }
       }
-
-      .header-action-divider {
-        width: 1px;
-        height: 28px;
-        background: $border-color;
-      }
     }
   }
 
@@ -690,8 +798,8 @@ onMounted(async () => {
   .action-btn {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 8px 18px;
+    gap: var(--space-1-5);
+    padding: 8px var(--space-4-5);
     border: none;
     border-radius: $radius-lg;
     font-size: $font-size-body-sm;
@@ -749,7 +857,7 @@ onMounted(async () => {
         justify-content: center;
         min-width: 18px;
         height: 18px;
-        padding: 0 5px;
+        padding: 0 var(--space-1-25);
         background: var(--color-primary);
         color: $text-white;
         font-size: 10px;
@@ -766,6 +874,27 @@ onMounted(async () => {
       &:hover {
         box-shadow: var(--shadow-brand-md);
         transform: translateY(-1px);
+      }
+    }
+
+    &.action-submit {
+      background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+      color: $text-white;
+      box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);
+
+      &:hover {
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);
+        transform: translateY(-1px);
+      }
+    }
+
+    &.action-reject {
+      background: transparent;
+      color: $color-danger;
+      border: 1px solid $color-danger;
+
+      &:hover {
+        background: $color-danger-bg;
       }
     }
 
@@ -788,7 +917,7 @@ onMounted(async () => {
     flex-direction: column;
     align-items: center;
     text-align: center;
-    padding: 64px 24px;
+    padding: var(--space-16) 24px;
 
     .empty-icon {
       color: $text-placeholder;
@@ -800,6 +929,12 @@ onMounted(async () => {
       font-size: $font-size-body;
       color: $text-tertiary;
     }
+
+    .empty-hint {
+      margin: -8px 0 16px;
+      font-size: $font-size-caption;
+      color: $text-placeholder;
+    }
   }
 
   // ─── Timeline ──────────────────────────────────────────────
@@ -809,7 +944,7 @@ onMounted(async () => {
 
   .timeline-item {
     display: flex;
-    gap: 14px;
+    gap: var(--space-3-5);
     cursor: pointer;
     transition: opacity $transition-fast;
 
@@ -838,7 +973,7 @@ onMounted(async () => {
       height: 12px;
       border-radius: $radius-circle;
       background: $border-color;
-      margin-top: 14px;
+      margin-top: var(--space-3-5);
       flex-shrink: 0;
       z-index: 1;
       position: relative;
@@ -871,8 +1006,8 @@ onMounted(async () => {
     background: $bg-container;
     border: 1px solid $border-color-light;
     border-radius: $radius-xl;
-    padding: 14px 16px;
-    margin-bottom: 14px;
+    padding: var(--space-3-5) 16px;
+    margin-bottom: var(--space-3-5);
     transition: all $transition-smooth;
 
     &:hover {
@@ -929,6 +1064,11 @@ onMounted(async () => {
       color: $color-warning;
     }
 
+    &.chip-pending_review {
+      background: $color-info-bg;
+      color: $color-info;
+    }
+
     &.chip-published {
       background: $color-success-bg;
       color: $color-success;
@@ -945,11 +1085,11 @@ onMounted(async () => {
     color: $text-tertiary;
     white-space: nowrap;
     flex-shrink: 0;
-    margin-top: 3px;
+    margin-top: var(--space-1);
   }
 
   .tl-reason {
-    margin: 6px 0 0;
+    margin: var(--space-1-5) 0 0;
     font-size: $font-size-body-sm;
     color: $text-regular;
     line-height: 1.5;
@@ -970,8 +1110,8 @@ onMounted(async () => {
   .tl-change-chip {
     display: inline-flex;
     align-items: center;
-    gap: 3px;
-    padding: 2px 8px;
+    gap: var(--space-1);
+    padding: var(--space-0-5) 8px;
     font-size: 10px;
     font-weight: $font-weight-medium;
     border-radius: $radius-pill;
@@ -996,7 +1136,7 @@ onMounted(async () => {
   .tl-change-more {
     display: inline-flex;
     align-items: center;
-    padding: 2px 8px;
+    padding: var(--space-0-5) 8px;
     font-size: 10px;
     font-weight: $font-weight-medium;
     color: $text-tertiary;
@@ -1005,15 +1145,18 @@ onMounted(async () => {
   }
 
   .tl-card-footer {
-    margin-top: 10px;
+    margin-top: var(--space-2-5);
     padding-top: 8px;
     border-top: 1px solid $border-color-light;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
   }
 
   .tl-compare-label {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--space-1-5);
     cursor: pointer;
     user-select: none;
 
@@ -1061,13 +1204,51 @@ onMounted(async () => {
     }
   }
 
+  .tl-publish-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border: 1px solid var(--color-primary-lighter);
+    border-radius: $radius-pill;
+    background: var(--color-primary-bg);
+    color: var(--color-primary);
+    font-size: 11px;
+    font-weight: $font-weight-medium;
+    cursor: pointer;
+    transition: all $transition-fast;
+
+    &:hover {
+      background: var(--color-primary);
+      color: $text-white;
+      border-color: var(--color-primary);
+    }
+  }
+
+  .tl-status-hint {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: $radius-pill;
+    font-size: 11px;
+    font-weight: $font-weight-medium;
+    color: $text-tertiary;
+    background: $bg-cool-gray;
+  }
+
+  .tl-status-published {
+    color: $color-success;
+    background: $color-success-bg;
+  }
+
   // ─── Detail Panel ───────────────────────────────────────────
   .detail-empty {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 80px 24px;
+    padding: var(--space-16) 24px;
     text-align: center;
 
     .detail-empty-visual {
@@ -1117,14 +1298,14 @@ onMounted(async () => {
     .identity-meta {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: var(--space-2-5);
       flex-wrap: wrap;
     }
 
     .identity-status {
       display: inline-flex;
       align-items: center;
-      padding: 3px 10px;
+      padding: var(--space-1) var(--space-2-5);
       font-size: $font-size-caption;
       font-weight: $font-weight-semibold;
       border-radius: $radius-pill;
@@ -1132,6 +1313,11 @@ onMounted(async () => {
       &.st-draft {
         background: $color-warning-bg;
         color: $color-warning;
+      }
+
+      &.st-pending_review {
+        background: $color-info-bg;
+        color: $color-info;
       }
 
       &.st-published {
@@ -1148,7 +1334,7 @@ onMounted(async () => {
     .identity-current {
       display: inline-flex;
       align-items: center;
-      padding: 3px 10px;
+      padding: var(--space-1) var(--space-2-5);
       background: var(--overlay-brand-08);
       color: var(--color-primary);
       font-size: $font-size-caption;
@@ -1199,7 +1385,7 @@ onMounted(async () => {
     .changes-list {
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: var(--space-1-5);
     }
 
     .change-row {
@@ -1214,19 +1400,25 @@ onMounted(async () => {
       &.cr-add {
         background: $color-success-light;
 
-        .change-type-icon { color: $color-success; }
+        .change-type-icon {
+          color: $color-success;
+        }
       }
 
       &.cr-delete {
         background: $color-danger-light;
 
-        .change-type-icon { color: $color-danger; }
+        .change-type-icon {
+          color: $color-danger;
+        }
       }
 
       &.cr-modify {
         background: $color-info-light;
 
-        .change-type-icon { color: $color-info; }
+        .change-type-icon {
+          color: $color-info;
+        }
       }
     }
 
@@ -1277,10 +1469,20 @@ onMounted(async () => {
     .snapshot-field {
       display: flex;
       flex-direction: column;
-      gap: 2px;
-      padding: 12px 14px;
+      gap: var(--space-0-5);
+      padding: 12px var(--space-3-5);
       background: var(--overlay-brand-05);
       border-radius: $radius-md;
+      position: relative;
+
+      .sn-field-icon {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        font-size: 14px;
+        color: var(--color-primary-light);
+        opacity: 0.5;
+      }
 
       .sn-field-label {
         font-size: $font-size-micro;
@@ -1303,28 +1505,53 @@ onMounted(async () => {
     .material-list {
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 0;
+    }
+
+    .material-header-row {
+      display: grid;
+      grid-template-columns: 28px 2fr 60px 64px repeat(5, 52px) 52px;
+      gap: 4px;
+      padding: 8px 12px;
+      font-size: 10px;
+      font-weight: $font-weight-semibold;
+      color: $text-tertiary;
+      text-transform: none;
+      letter-spacing: 0.03em;
+      border-bottom: 1px solid $border-color-light;
+      text-align: center;
+      align-items: center;
+
+      .mh-index,
+      .mh-weight,
+      .mh-pct,
+      .mh-nutrient,
+      .mh-version {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .mh-name {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+      }
     }
 
     .material-row {
-      display: flex;
-      justify-content: space-between;
+      display: grid;
+      grid-template-columns: 28px 2fr 60px 64px repeat(5, 52px) 52px;
+      gap: 4px;
       align-items: center;
-      padding: 10px 14px;
+      padding: 8px 12px;
       border-radius: $radius-md;
-      background: var(--overlay-brand-05);
       transition: background $transition-fast;
+      text-align: center;
 
       &:hover {
         background: var(--color-primary-bg);
       }
-    }
-
-    .material-left {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      min-width: 0;
     }
 
     .material-index {
@@ -1342,7 +1569,15 @@ onMounted(async () => {
       flex-shrink: 0;
     }
 
-    .material-name {
+    .material-name-cell {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    .material-name-text {
       font-size: $font-size-body-sm;
       font-weight: $font-weight-medium;
       color: $text-primary;
@@ -1354,7 +1589,8 @@ onMounted(async () => {
     .material-tag {
       display: inline-flex;
       align-items: center;
-      padding: 0 6px;
+      justify-content: center;
+      padding: 0 var(--space-1);
       height: 18px;
       font-size: 9px;
       font-weight: $font-weight-bold;
@@ -1373,24 +1609,33 @@ onMounted(async () => {
       }
     }
 
-    .material-right {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      flex-shrink: 0;
-    }
-
     .material-weight {
-      font-size: $font-size-body-sm;
+      font-size: $font-size-caption;
       font-weight: $font-weight-semibold;
       color: var(--color-primary);
       font-family: ui-monospace, SFMono-Regular, 'Cascadia Code', monospace;
+      text-align: center;
     }
 
     .material-pct {
       font-size: $font-size-caption;
+      color: $text-secondary;
+      font-family: ui-monospace, SFMono-Regular, 'Cascadia Code', monospace;
+      text-align: center;
+    }
+
+    .material-nutrient {
+      font-size: $font-size-caption;
+      color: $text-regular;
+      font-family: ui-monospace, SFMono-Regular, 'Cascadia Code', monospace;
+      text-align: center;
+    }
+
+    .material-version {
+      font-size: $font-size-caption;
       color: $text-tertiary;
       font-family: ui-monospace, SFMono-Regular, 'Cascadia Code', monospace;
+      text-align: center;
     }
 
     .material-empty {
@@ -1405,10 +1650,27 @@ onMounted(async () => {
   // ── Detail Actions ──
   .detail-actions {
     display: flex;
-    gap: 10px;
+    align-items: center;
+    gap: var(--space-2-5);
     margin-top: 24px;
     padding-top: 20px;
     border-top: 1px solid $border-color-light;
+
+    .pending-hint {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-1-5);
+      padding: 8px var(--space-4);
+      background: $color-info-bg;
+      color: $color-info;
+      font-size: $font-size-body-sm;
+      font-weight: $font-weight-medium;
+      border-radius: $radius-lg;
+
+      .t-icon {
+        animation: spin 2s linear infinite;
+      }
+    }
   }
 
   // ─── Create Dialog ─────────────────────────────────────────
@@ -1431,16 +1693,6 @@ onMounted(async () => {
     padding-top: 8px;
   }
 
-  :deep(.t-btn--theme-primary) {
-    background: var(--gradient-btn);
-    border: none;
-    box-shadow: var(--shadow-brand-xs);
-
-    &:hover {
-      box-shadow: var(--shadow-brand-sm);
-    }
-  }
-
   .create-form {
     .create-label {
       display: block;
@@ -1457,7 +1709,7 @@ onMounted(async () => {
     .create-textarea {
       display: block;
       width: 100%;
-      padding: 10px 12px;
+      padding: var(--space-2-5) 12px;
       border: 1px solid $border-color;
       border-radius: $radius-md;
       font-size: $font-size-body-sm;
@@ -1483,8 +1735,13 @@ onMounted(async () => {
 
 // ─── Animations ──────────────────────────────────────
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes fadeInDown {
@@ -1492,6 +1749,7 @@ onMounted(async () => {
     opacity: 0;
     transform: translateY(-10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -1503,13 +1761,40 @@ onMounted(async () => {
     transform: scale(1);
     opacity: 0.6;
   }
+
   50% {
     transform: scale(1.6);
     opacity: 0;
   }
+
   100% {
     transform: scale(1.6);
     opacity: 0;
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+</style>
+
+<style lang="scss">
+.t-dialog.version-create-dialog {
+  .t-dialog__footer .t-btn--theme-primary {
+    background: linear-gradient(135deg, #34d399 0%, #10b981 100%) !important;
+    border: none;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
+
+    &:hover {
+      background: linear-gradient(135deg, #6ee7b7 0%, #34d399 100%) !important;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
+    }
   }
 }
 </style>

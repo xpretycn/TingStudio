@@ -143,7 +143,7 @@
             <div class="formula-header">
               <div>
                 <h3 class="formula-title">
-                  <t-icon name="file-paste" size="20px" style="color: #10b981; margin-right: 6px;" />
+                  <t-icon name="file-paste" size="20px" style="color: var(--color-primary); margin-right: 6px;" />
                   关联配方列表
                 </h3>
                 <p class="formula-subtitle">该业务员名下共 <t-tag variant="light" theme="success" size="small" shape="round">{{
@@ -192,7 +192,7 @@
                     <div style="text-align: center;">
                       <div
                         style="width: 80px; height: 80px; border-radius: 24px; background: linear-gradient(135deg, rgba(16,185,129,0.08), rgba(45,212,191,0.12)); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 16px;">
-                        <t-icon name="file-paste" size="36px" color="#94a3b8" />
+                        <t-icon name="file-paste" size="36px" color="var(--color-text-placeholder)" />
                       </div>
                     </div>
                   </template>
@@ -378,13 +378,13 @@ onMounted(() => { loadData(); });
         border: none;
         border-radius: 12px;
         background: transparent;
-        color: #94a3b8;
+        color: var(--color-text-placeholder);
         cursor: pointer;
         transition: all $transition-fast;
         font-size: 20px;
 
         &:hover {
-          color: #10b981;
+          color: var(--color-primary);
           background-color: #ecfdf5;
         }
       }
@@ -392,33 +392,33 @@ onMounted(() => { loadData(); });
       .header-title-group {
         display: flex;
         flex-direction: column;
-        gap: 6px;
+        gap: var(--space-1-5);
 
         .header-breadcrumb {
           display: flex;
           align-items: center;
-          gap: 6px;
+          gap: var(--space-1-5);
           font-size: 12px;
           line-height: 1;
 
           .breadcrumb-link {
-            color: #94a3b8;
+            color: var(--color-text-placeholder);
             cursor: pointer;
             transition: color 0.15s;
             text-decoration: none;
 
             &:hover {
-              color: #10b981;
+              color: var(--color-primary);
             }
           }
 
           .breadcrumb-sep {
             font-size: 12px;
-            color: #94a3b8;
+            color: var(--color-text-placeholder);
           }
 
           .breadcrumb-current {
-            color: #475569;
+            color: var(--color-text-secondary);
           }
         }
 
@@ -429,14 +429,14 @@ onMounted(() => { loadData(); });
           gap: 12px;
           font-size: 18px;
           font-weight: 700;
-          color: #1e293b;
+          color: var(--color-text-primary);
           line-height: 1.35;
 
           .title-avatar {
             width: 36px;
             height: 36px;
             border-radius: 12px;
-            background: linear-gradient(135deg, #10b981, #2dd4bf);
+            background: linear-gradient(135deg, var(--color-primary), #2dd4bf);
             color: #fff;
             font-size: 16px;
             font-weight: 800;
@@ -466,7 +466,7 @@ onMounted(() => { loadData(); });
         align-items: center;
         gap: 8px;
         padding: 8px 16px;
-        background-color: #10b981;
+        background-color: var(--color-primary);
         color: #ffffff;
         border: none;
         border-radius: 12px;
@@ -481,24 +481,24 @@ onMounted(() => { loadData(); });
         }
 
         &:hover {
-          background-color: #059669;
+          background-color: var(--color-primary-dark);
           transform: translateY(-1px);
           box-shadow: 0 14px 20px -3px rgba(16, 185, 129, 0.35);
         }
 
         &:active {
           transform: translateY(0);
-          background-color: #047857;
+          background-color: var(--color-primary-deep);
         }
 
         &.secondary {
           background-color: #f1f5f9;
-          color: #64748b;
+          color: var(--color-text-secondary);
           box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 
           &:hover {
-            background-color: #e2e8f0;
-            color: #475569;
+            background-color: var(--color-border);
+            color: var(--color-text-secondary);
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
           }
 
@@ -545,15 +545,15 @@ onMounted(() => { loadData(); });
     .info-card {
       background: #fff;
       padding: 24px;
-      border-radius: 24px;
+      border-radius: var(--radius-4xl);
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-      border: 1px solid #f8fafc;
+      border: 1px solid var(--color-bg-page);
       animation: fadeInUp 0.35s ease both;
 
       .card-label {
         font-size: 14px;
         font-weight: 700;
-        color: #94a3b8;
+        color: var(--color-text-placeholder);
         text-transform: uppercase;
         letter-spacing: 0.1em;
         margin-bottom: 24px;
@@ -563,7 +563,7 @@ onMounted(() => { loadData(); });
 
         .label-icon {
           font-size: 16px;
-          color: #10b981;
+          color: var(--color-primary);
           opacity: 0.7;
         }
       }
@@ -576,22 +576,22 @@ onMounted(() => { loadData(); });
 
       .field-item {
         padding: 12px;
-        background: #f8fafc;
+        background: var(--color-bg-page);
         border-radius: 16px;
         border: 1px solid #f1f5f9;
 
         label {
           display: flex;
           align-items: center;
-          gap: 6px;
+          gap: var(--space-1-5);
           font-size: 10px;
           font-weight: 700;
-          color: #94a3b8;
+          color: var(--color-text-placeholder);
           text-transform: uppercase;
           margin-bottom: 4px;
 
           .t-icon {
-            color: #10b981;
+            color: var(--color-primary);
             opacity: 0.55;
             flex-shrink: 0;
           }
@@ -600,7 +600,7 @@ onMounted(() => { loadData(); });
         p {
           font-size: 12px;
           font-weight: 600;
-          color: #334155;
+          color: var(--color-text-primary);
           margin: 0;
           line-height: 1.5;
         }
@@ -615,19 +615,19 @@ onMounted(() => { loadData(); });
         .time-split {
           display: flex;
           flex-direction: column;
-          gap: 2px;
+          gap: var(--space-0-5);
 
           .time-date {
             font-size: 12px;
             font-weight: 600;
-            color: #334155;
+            color: var(--color-text-primary);
             letter-spacing: 0.02em;
           }
 
           .time-clock {
             font-size: 12px;
             font-weight: 600;
-            color: #94a3b8;
+            color: var(--color-text-placeholder);
             font-family: ui-monospace, SFMono-Regular, 'Cascadia Code', monospace;
           }
         }
@@ -643,11 +643,11 @@ onMounted(() => { loadData(); });
         }
 
         .status-warn {
-          color: #f59e0b;
+          color: var(--color-warning);
         }
 
         .status-ok {
-          color: #10b981;
+          color: var(--color-primary);
         }
       }
     }
@@ -684,8 +684,8 @@ onMounted(() => { loadData(); });
         width: 24px;
         height: 24px;
         border-radius: 50%;
-        background: #10b981;
-        border: 4px solid #d1fae5;
+        background: var(--color-primary);
+        border: 4px solid var(--color-primary-bg);
         z-index: 1;
         flex-shrink: 0;
 
@@ -699,31 +699,31 @@ onMounted(() => { loadData(); });
         .timeline-ver {
           font-size: 14px;
           font-weight: 700;
-          color: #1e293b;
-          margin: 0 0 2px;
+          color: var(--color-text-primary);
+          margin: 0 0 var(--space-0-5);
 
           &.past {
-            color: #475569;
+            color: var(--color-text-secondary);
           }
         }
 
         .timeline-time {
           font-size: 12px;
-          color: #94a3b8;
-          margin: 0 0 6px;
+          color: var(--color-text-placeholder);
+          margin: 0 0 var(--space-1-5);
 
           &.past {
-            color: #94a3b8;
+            color: var(--color-text-placeholder);
           }
         }
 
         .timeline-note {
           margin-top: 8px;
           padding: 8px 12px;
-          background: #f8fafc;
+          background: var(--color-bg-page);
           border-radius: 8px;
           font-size: 12px;
-          color: #94a3b8;
+          color: var(--color-text-placeholder);
           line-height: 1.5;
         }
       }
@@ -731,33 +731,33 @@ onMounted(() => { loadData(); });
 
     .formula-section {
       background: #fff;
-      border-radius: 24px;
+      border-radius: var(--radius-4xl);
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-      border: 1px solid #f8fafc;
+      border: 1px solid var(--color-bg-page);
       overflow: hidden;
       animation: fadeInUp 0.4s ease both;
 
       .formula-header {
         padding: 20px 24px;
-        border-bottom: 1px solid #f8fafc;
+        border-bottom: 1px solid var(--color-bg-page);
         background: rgba(248, 250, 252, 0.5);
 
         .formula-title {
           font-size: 18px;
           font-weight: 700;
-          color: #1e293b;
+          color: var(--color-text-primary);
           margin: 0;
         }
 
         .formula-subtitle {
           font-size: 13px;
-          color: #94a3b8;
+          color: var(--color-text-placeholder);
           margin: 4px 0 0;
         }
       }
 
       .formula-loading {
-        padding: 60px 24px;
+        padding: var(--space-16) 24px;
         display: flex;
         justify-content: center;
       }
@@ -771,7 +771,7 @@ onMounted(() => { loadData(); });
 
       .formula-item {
         padding: 20px;
-        background: #f8fafc;
+        background: var(--color-bg-page);
         border-radius: 16px;
         border: 1px solid #f1f5f9;
         cursor: pointer;
@@ -779,7 +779,7 @@ onMounted(() => { loadData(); });
 
         &:hover {
           background: #fff;
-          border-color: #10b981;
+          border-color: var(--color-primary);
           box-shadow: 0 4px 12px rgba(16, 185, 129, 0.08);
           transform: translateY(-1px);
         }
@@ -788,19 +788,19 @@ onMounted(() => { loadData(); });
           display: flex;
           justify-content: space-between;
           align-items: center;
-          margin-bottom: 10px;
+          margin-bottom: var(--space-2-5);
 
           .formula-item-name-row {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: var(--space-2-5);
           }
 
           .formula-item-index {
             width: 26px;
             height: 26px;
             border-radius: 8px;
-            background: linear-gradient(135deg, #10b981, #2dd4bf);
+            background: linear-gradient(135deg, var(--color-primary), #2dd4bf);
             color: #fff;
             font-size: 12px;
             font-weight: 800;
@@ -813,7 +813,7 @@ onMounted(() => { loadData(); });
           .formula-item-name {
             font-size: 15px;
             font-weight: 700;
-            color: #1e293b;
+            color: var(--color-text-primary);
           }
         }
 
@@ -827,13 +827,13 @@ onMounted(() => { loadData(); });
             align-items: center;
             gap: 4px;
             font-size: 12px;
-            color: #64748b;
+            color: var(--color-text-secondary);
           }
         }
 
         .formula-item-desc {
           font-size: 12px;
-          color: #94a3b8;
+          color: var(--color-text-placeholder);
           line-height: 1.5;
           margin: 4px 0 0;
           overflow: hidden;
@@ -841,7 +841,7 @@ onMounted(() => { loadData(); });
           white-space: nowrap;
           display: flex;
           align-items: center;
-          gap: 6px;
+          gap: var(--space-1-5);
 
           .t-icon {
             color: #cbd5e1;
@@ -851,7 +851,7 @@ onMounted(() => { loadData(); });
       }
 
       .formula-empty {
-        padding: 60px 24px;
+        padding: var(--space-16) 24px;
       }
 
       .table-pagination {
@@ -859,11 +859,11 @@ onMounted(() => { loadData(); });
         display: flex;
         justify-content: space-between;
         align-items: center;
-        border-top: 1px solid #f8fafc;
+        border-top: 1px solid var(--color-bg-page);
 
         .pagination-info {
           font-size: 14px;
-          color: #94a3b8;
+          color: var(--color-text-placeholder);
           font-weight: 400;
           white-space: nowrap;
         }
@@ -878,11 +878,11 @@ onMounted(() => { loadData(); });
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          padding: 6px 12px;
-          border: 1px solid #e2e8f0;
+          padding: var(--space-1-5) 12px;
+          border: 1px solid var(--color-border);
           border-radius: 8px;
           background-color: transparent;
-          color: #64748b;
+          color: var(--color-text-secondary);
           font-size: 14px;
           cursor: pointer;
           transition: all $transition-fast;
@@ -890,22 +890,22 @@ onMounted(() => { loadData(); });
           user-select: none;
 
           &:hover:not(.pagination-btn--disabled):not(.pagination-btn--active) {
-            background-color: #f8fafc;
+            background-color: var(--color-bg-page);
             border-color: #cbd5e1;
-            color: #334155;
+            color: var(--color-text-primary);
           }
 
           &.pagination-btn--disabled {
             opacity: 0.5;
             cursor: not-allowed !important;
-            color: #94a3b8;
+            color: var(--color-text-placeholder);
             pointer-events: none;
           }
 
           &.pagination-btn--active {
-            background-color: #10b981;
+            background-color: var(--color-primary);
             color: #fff;
-            border-color: #10b981;
+            border-color: var(--color-primary);
             font-weight: 600;
             box-shadow: 0 1px 3px rgba(16, 185, 129, 0.25);
             pointer-events: none;
@@ -918,7 +918,7 @@ onMounted(() => { loadData(); });
           justify-content: center;
           width: 36px;
           height: 34px;
-          color: #94a3b8;
+          color: var(--color-text-placeholder);
           font-size: 14px;
           user-select: none;
         }

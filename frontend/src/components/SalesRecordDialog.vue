@@ -254,13 +254,13 @@ const handleConfirm = async () => {
 .existing-records {
   margin-top: 12px;
   padding: 12px;
-  background: #f8fafc;
+  background: var(--color-bg-page);
   border-radius: 12px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--color-border);
 
   .existing-title {
     font-size: 12px;
-    color: #64748b;
+    color: var(--color-text-secondary);
     margin-bottom: 8px;
     font-weight: 600;
   }
@@ -279,7 +279,7 @@ const handleConfirm = async () => {
     padding: 4px 0;
 
     .existing-period {
-      color: #475569;
+      color: var(--color-text-secondary);
       min-width: 80px;
     }
 
@@ -289,14 +289,14 @@ const handleConfirm = async () => {
     }
 
     .existing-rev {
-      color: #10b981;
+      color: var(--color-primary);
       font-weight: 600;
     }
   }
 
   .existing-more {
     font-size: 12px;
-    color: #94a3b8;
+    color: var(--color-text-placeholder);
     margin-top: 4px;
   }
 }

@@ -337,8 +337,8 @@ const energyCalcData = computed(() => {
   const total = proteinCal + fatCal + carbCal;
   const breakdown = [
     { name: '蛋白质', cal: proteinCal, percent: total > 0 ? Math.round((proteinCal / total) * 100) : 0, color: '#3b82f6' },
-    { name: '脂肪', cal: fatCal, percent: total > 0 ? Math.round((fatCal / total) * 100) : 0, color: '#f59e0b' },
-    { name: '碳水', cal: carbCal, percent: total > 0 ? Math.round((carbCal / total) * 100) : 0, color: '#10b981' },
+    { name: '脂肪', cal: fatCal, percent: total > 0 ? Math.round((fatCal / total) * 100) : 0, color: 'var(--color-warning)' },
+    { name: '碳水', cal: carbCal, percent: total > 0 ? Math.round((carbCal / total) * 100) : 0, color: 'var(--color-primary)' },
   ];
   return { protein, fat, carb, proteinCal, fatCal, carbCal, total, breakdown };
 });
@@ -346,10 +346,10 @@ const energyCalcData = computed(() => {
 const nrvData = computed(() => {
   const nrvBase: Record<string, { nrv: number; nrvUnit: string; color: string; }> = {
     '蛋白质': { nrv: 60, nrvUnit: 'g', color: '#3b82f6' },
-    '脂肪': { nrv: 60, nrvUnit: 'g', color: '#f59e0b' },
-    '碳水化合物': { nrv: 300, nrvUnit: 'g', color: '#10b981' },
+    '脂肪': { nrv: 60, nrvUnit: 'g', color: 'var(--color-warning)' },
+    '碳水化合物': { nrv: 300, nrvUnit: 'g', color: 'var(--color-primary)' },
     '膳食纤维': { nrv: 25, nrvUnit: 'g', color: '#8b5cf6' },
-    '钠': { nrv: 2000, nrvUnit: 'mg', color: '#ef4444' },
+    '钠': { nrv: 2000, nrvUnit: 'mg', color: 'var(--color-danger)' },
     '钙': { nrv: 800, nrvUnit: 'mg', color: '#06b6d4' },
     '铁': { nrv: 15, nrvUnit: 'mg', color: '#ec4899' },
     '锌': { nrv: 15, nrvUnit: 'mg', color: '#84cc16' },
@@ -435,13 +435,13 @@ onMounted(() => { loadData(); });
         border: none;
         border-radius: 12px;
         background: transparent;
-        color: #94a3b8;
+        color: var(--color-text-placeholder);
         cursor: pointer;
         transition: all $transition-fast;
         font-size: 20px;
 
         &:hover {
-          color: #10b981;
+          color: var(--color-primary);
           background-color: #ecfdf5;
         }
       }
@@ -449,33 +449,33 @@ onMounted(() => { loadData(); });
       .header-title-group {
         display: flex;
         flex-direction: column;
-        gap: 6px;
+        gap: var(--space-1-5);
 
         .header-breadcrumb {
           display: flex;
           align-items: center;
-          gap: 6px;
+          gap: var(--space-1-5);
           font-size: 12px;
           line-height: 1;
 
           .breadcrumb-link {
-            color: #94a3b8;
+            color: var(--color-text-placeholder);
             cursor: pointer;
             transition: color 0.15s;
             text-decoration: none;
 
             &:hover {
-              color: #10b981;
+              color: var(--color-primary);
             }
           }
 
           .breadcrumb-sep {
             font-size: 12px;
-            color: #94a3b8;
+            color: var(--color-text-placeholder);
           }
 
           .breadcrumb-current {
-            color: #475569;
+            color: var(--color-text-secondary);
           }
         }
 
@@ -486,12 +486,12 @@ onMounted(() => { loadData(); });
           gap: 12px;
           font-size: 18px;
           font-weight: 700;
-          color: #1e293b;
+          color: var(--color-text-primary);
           line-height: 1.35;
 
           .type-tag {
             display: inline-block !important;
-            padding: 2px 8px;
+            padding: var(--space-0-5) 8px;
             font-size: 10px;
             font-weight: 900;
             border-radius: 6px;
@@ -506,8 +506,8 @@ onMounted(() => { loadData(); });
             }
 
             &--herb {
-              background-color: #d1fae5;
-              color: #059669;
+              background-color: var(--color-primary-bg);
+              color: var(--color-primary-dark);
             }
           }
         }
@@ -524,7 +524,7 @@ onMounted(() => { loadData(); });
         align-items: center;
         gap: 8px;
         padding: 8px 16px;
-        background-color: #10b981;
+        background-color: var(--color-primary);
         color: #ffffff;
         border: none;
         border-radius: 12px;
@@ -539,14 +539,14 @@ onMounted(() => { loadData(); });
         }
 
         &:hover {
-          background-color: #059669;
+          background-color: var(--color-primary-dark);
           transform: translateY(-1px);
           box-shadow: 0 14px 20px -3px rgba(16, 185, 129, 0.35);
         }
 
         &:active {
           transform: translateY(0);
-          background-color: #047857;
+          background-color: var(--color-primary-deep);
         }
       }
     }
@@ -587,15 +587,15 @@ onMounted(() => { loadData(); });
     .info-card {
       background: #fff;
       padding: 24px;
-      border-radius: 24px;
+      border-radius: var(--radius-4xl);
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-      border: 1px solid #f8fafc;
+      border: 1px solid var(--color-bg-page);
       animation: fadeInUp 0.35s ease both;
 
       .card-label {
         font-size: 14px;
         font-weight: 700;
-        color: #94a3b8;
+        color: var(--color-text-placeholder);
         text-transform: uppercase;
         letter-spacing: 0.1em;
         margin-bottom: 24px;
@@ -605,7 +605,7 @@ onMounted(() => { loadData(); });
 
         .label-icon {
           font-size: 16px;
-          color: #10b981;
+          color: var(--color-primary);
           opacity: 0.7;
         }
       }
@@ -618,22 +618,22 @@ onMounted(() => { loadData(); });
 
       .field-item {
         padding: 12px;
-        background: #f8fafc;
+        background: var(--color-bg-page);
         border-radius: 16px;
         border: 1px solid #f1f5f9;
 
         label {
           display: flex;
           align-items: center;
-          gap: 6px;
+          gap: var(--space-1-5);
           font-size: 10px;
           font-weight: 700;
-          color: #94a3b8;
+          color: var(--color-text-placeholder);
           text-transform: uppercase;
           margin-bottom: 4px;
 
           .t-icon {
-            color: #10b981;
+            color: var(--color-primary);
             opacity: 0.55;
             flex-shrink: 0;
           }
@@ -642,7 +642,7 @@ onMounted(() => { loadData(); });
         p {
           font-size: 14px;
           font-weight: 700;
-          color: #334155;
+          color: var(--color-text-primary);
           margin: 0;
           font-family: ui-monospace, SFMono-Regular, 'Cascadia Code', monospace;
         }
@@ -658,11 +658,11 @@ onMounted(() => { loadData(); });
         }
 
         .status-warn {
-          color: #f59e0b;
+          color: var(--color-warning);
         }
 
         .status-ok {
-          color: #10b981;
+          color: var(--color-primary);
         }
       }
     }
@@ -699,8 +699,8 @@ onMounted(() => { loadData(); });
         width: 24px;
         height: 24px;
         border-radius: 50%;
-        background: #10b981;
-        border: 4px solid #d1fae5;
+        background: var(--color-primary);
+        border: 4px solid var(--color-primary-bg);
         z-index: 1;
         flex-shrink: 0;
 
@@ -714,35 +714,35 @@ onMounted(() => { loadData(); });
         .timeline-ver {
           font-size: 14px;
           font-weight: 700;
-          color: #1e293b;
-          margin: 0 0 2px;
+          color: var(--color-text-primary);
+          margin: 0 0 var(--space-0-5);
 
           &.past {
-            color: #475569;
+            color: var(--color-text-secondary);
           }
         }
 
         .timeline-time {
           font-size: 12px;
-          color: #94a3b8;
-          margin: 0 0 6px;
+          color: var(--color-text-placeholder);
+          margin: 0 0 var(--space-1-5);
 
           &.past {
-            color: #94a3b8;
+            color: var(--color-text-placeholder);
           }
         }
 
         .timeline-note {
           margin-top: 8px;
           padding: 8px 12px;
-          background: #f8fafc;
+          background: var(--color-bg-page);
           border-radius: 8px;
           font-size: 12px;
-          color: #94a3b8;
+          color: var(--color-text-placeholder);
           line-height: 1.5;
 
           &.past {
-            color: #94a3b8;
+            color: var(--color-text-placeholder);
           }
         }
       }
@@ -750,15 +750,15 @@ onMounted(() => { loadData(); });
 
     .nutrition-section {
       background: #fff;
-      border-radius: 24px;
+      border-radius: var(--radius-4xl);
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-      border: 1px solid #f8fafc;
+      border: 1px solid var(--color-bg-page);
       overflow: hidden;
       animation: fadeInUp 0.4s ease both;
 
       .nutrition-header {
         padding: 20px 24px;
-        border-bottom: 1px solid #f8fafc;
+        border-bottom: 1px solid var(--color-bg-page);
         background: rgba(248, 250, 252, 0.5);
         display: flex;
         justify-content: space-between;
@@ -767,7 +767,7 @@ onMounted(() => { loadData(); });
         .nutrition-title {
           font-size: 18px;
           font-weight: 700;
-          color: #1e293b;
+          color: var(--color-text-primary);
           margin: 0;
         }
 
@@ -779,7 +779,7 @@ onMounted(() => { loadData(); });
 
         .nutrition-subtitle {
           font-size: 13px;
-          color: #94a3b8;
+          color: var(--color-text-placeholder);
           margin: 4px 0 0;
         }
       }
@@ -798,7 +798,7 @@ onMounted(() => { loadData(); });
 
       .nutrition-item {
         padding: 16px;
-        background: #f8fafc;
+        background: var(--color-bg-page);
         border-radius: 16px;
         border: 1px solid #f1f5f9;
         transition: all $transition-fast;
@@ -810,18 +810,18 @@ onMounted(() => { loadData(); });
 
         &--highlight {
           background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 100%);
-          border-color: #d1fae5;
+          border-color: var(--color-primary-bg);
 
           .nutri-label {
-            color: #059669;
+            color: var(--color-primary-dark);
           }
 
           .nutri-value {
-            color: #047857;
+            color: var(--color-primary-deep);
           }
 
           .nutri-bar-fill {
-            background: linear-gradient(90deg, #10b981, #34d399);
+            background: linear-gradient(90deg, var(--color-primary), var(--color-primary-light));
           }
         }
 
@@ -829,37 +829,37 @@ onMounted(() => { loadData(); });
           display: block;
           font-size: 11px;
           font-weight: 600;
-          color: #64748b;
+          color: var(--color-text-secondary);
           text-transform: uppercase;
           letter-spacing: 0.03em;
-          margin-bottom: 6px;
+          margin-bottom: var(--space-1-5);
         }
 
         .nutri-value {
           font-size: 22px;
           font-weight: 800;
-          color: #1e293b;
+          color: var(--color-text-primary);
           line-height: 1.2;
 
           .nutri-unit {
             font-size: 13px;
             font-weight: 500;
-            color: #94a3b8;
-            margin-left: 2px;
+            color: var(--color-text-placeholder);
+            margin-left: var(--space-0-5);
           }
         }
 
         .nutri-bar-track {
           height: 6px;
-          background: #e2e8f0;
-          border-radius: 3px;
-          margin-top: 10px;
+          background: var(--color-border);
+          border-radius: var(--radius-xs);
+          margin-top: var(--space-2-5);
           overflow: hidden;
 
           .nutri-bar-fill {
             height: 100%;
-            background: linear-gradient(90deg, #10b981, #34d399);
-            border-radius: 3px;
+            background: linear-gradient(90deg, var(--color-primary), var(--color-primary-light));
+            border-radius: var(--radius-xs);
             transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
           }
         }
@@ -868,29 +868,29 @@ onMounted(() => { loadData(); });
           display: block;
           font-size: 12px;
           font-weight: 600;
-          color: #94a3b8;
-          margin-top: 6px;
+          color: var(--color-text-placeholder);
+          margin-top: var(--space-1-5);
           text-align: right;
         }
       }
 
       .nutrition-empty {
-        padding: 64px 24px;
+        padding: var(--space-16) 24px;
         text-align: center;
       }
     }
 
     .energy-calc-section {
       background: #fff;
-      border-radius: 24px;
+      border-radius: var(--radius-4xl);
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-      border: 1px solid #f8fafc;
+      border: 1px solid var(--color-bg-page);
       overflow: hidden;
       animation: fadeInUp 0.45s ease both;
 
       .energy-header {
         padding: 20px 24px;
-        border-bottom: 1px solid #f8fafc;
+        border-bottom: 1px solid var(--color-bg-page);
         background: rgba(16, 185, 129, 0.08);
         display: flex;
         justify-content: space-between;
@@ -899,13 +899,13 @@ onMounted(() => { loadData(); });
         .energy-title {
           font-size: 18px;
           font-weight: 700;
-          color: #1e293b;
+          color: var(--color-text-primary);
           margin: 0 0 4px;
         }
 
         .energy-subtitle {
           font-size: 13px;
-          color: #94a3b8;
+          color: var(--color-text-placeholder);
           margin: 0;
         }
       }
@@ -918,9 +918,9 @@ onMounted(() => { loadData(); });
       }
 
       .calc-formula-card {
-        background: #f8fafc;
+        background: var(--color-bg-page);
         border-radius: 16px;
-        border: 1px solid #e2e8f0;
+        border: 1px solid var(--color-border);
         padding: 20px;
 
         .formula-title-row {
@@ -929,7 +929,7 @@ onMounted(() => { loadData(); });
           gap: 8px;
           font-size: 13px;
           font-weight: 700;
-          color: #64748b;
+          color: var(--color-text-secondary);
           text-transform: uppercase;
           letter-spacing: 0.05em;
           margin-bottom: 16px;
@@ -946,7 +946,7 @@ onMounted(() => { loadData(); });
           grid-template-columns: 80px 1fr 120px;
           align-items: center;
           gap: 12px;
-          padding: 10px 14px;
+          padding: var(--space-2-5) var(--space-3-5);
           background: #fff;
           border-radius: 10px;
           border: 1px solid #f1f5f9;
@@ -954,19 +954,19 @@ onMounted(() => { loadData(); });
           .formula-label {
             font-size: 13px;
             font-weight: 600;
-            color: #475569;
+            color: var(--color-text-secondary);
           }
 
           .formula-coeff {
             font-size: 13px;
-            color: #64748b;
+            color: var(--color-text-secondary);
             font-family: ui-monospace, SFMono-Regular, monospace;
           }
 
           .formula-result {
             font-size: 13px;
             font-weight: 700;
-            color: #10b981;
+            color: var(--color-primary);
             text-align: right;
             font-family: ui-monospace, SFMono-Regular, monospace;
           }
@@ -976,7 +976,7 @@ onMounted(() => { loadData(); });
       .total-energy-card {
         background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 100%);
         border-radius: 16px;
-        border: 1px solid #d1fae5;
+        border: 1px solid var(--color-primary-bg);
         padding: 20px 24px;
         display: flex;
         justify-content: space-between;
@@ -985,12 +985,12 @@ onMounted(() => { loadData(); });
         .total-left {
           display: flex;
           flex-direction: column;
-          gap: 6px;
+          gap: var(--space-1-5);
 
           .total-label {
             font-size: 12px;
             font-weight: 600;
-            color: #059669;
+            color: var(--color-primary-dark);
             text-transform: uppercase;
             letter-spacing: 0.05em;
           }
@@ -998,13 +998,13 @@ onMounted(() => { loadData(); });
           .total-value {
             font-size: 36px;
             font-weight: 800;
-            color: #047857;
+            color: var(--color-primary-deep);
             line-height: 1;
 
             .total-unit {
               font-size: 16px;
               font-weight: 500;
-              color: #10b981;
+              color: var(--color-primary);
               margin-left: 4px;
             }
           }
@@ -1042,7 +1042,7 @@ onMounted(() => { loadData(); });
               opacity: 0;
               transition: opacity 0.2s;
               pointer-events: none;
-              background: #1e293b;
+              background: var(--color-text-primary);
               color: #fff;
               padding: 4px 8px;
               border-radius: 6px;
@@ -1067,19 +1067,19 @@ onMounted(() => { loadData(); });
           gap: 8px;
           font-size: 13px;
           font-weight: 700;
-          color: #64748b;
+          color: var(--color-text-secondary);
           text-transform: uppercase;
           letter-spacing: 0.05em;
           padding: 16px 20px;
-          border-bottom: 1px solid #f8fafc;
-          background: #f8fafc;
+          border-bottom: 1px solid var(--color-bg-page);
+          background: var(--color-bg-page);
         }
 
         .nrv-list {
           padding: 12px 16px;
           display: flex;
           flex-direction: column;
-          gap: 10px;
+          gap: var(--space-2-5);
         }
 
         .nrv-item {
@@ -1091,7 +1091,7 @@ onMounted(() => { loadData(); });
           .nrv-name {
             font-size: 12px;
             font-weight: 600;
-            color: #475569;
+            color: var(--color-text-secondary);
           }
 
           .nrv-bar-track {
@@ -1110,18 +1110,18 @@ onMounted(() => { loadData(); });
           .nrv-percent {
             font-size: 11px;
             font-weight: 600;
-            color: #94a3b8;
+            color: var(--color-text-placeholder);
             white-space: nowrap;
 
             &.nrv-exceed {
-              color: #ef4444;
+              color: var(--color-danger);
             }
           }
         }
       }
 
       .energy-empty {
-        padding: 64px 24px;
+        padding: var(--space-16) 24px;
         text-align: center;
       }
     }

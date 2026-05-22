@@ -322,14 +322,14 @@ function triggerUpload() {
   }
 
   &--download {
-    border-color: #e2e8f0;
+    border-color: var(--color-border);
     background: transparent;
-    color: #64748b;
+    color: var(--color-text-secondary);
 
     &:hover:not(:disabled) {
       background: #f1f5f9;
       border-color: #cbd5e1;
-      color: #334155;
+      color: var(--color-text-primary);
     }
   }
 
@@ -353,7 +353,7 @@ function triggerUpload() {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 14px 8px;
+  padding: 12px var(--space-3-5) 8px;
 
   .parse-summary-left {
     display: flex;
@@ -364,7 +364,7 @@ function triggerUpload() {
   .parse-summary-title {
     font-size: 13px;
     font-weight: 700;
-    color: #1e293b;
+    color: var(--color-text-primary);
     margin: 0;
   }
 
@@ -378,12 +378,12 @@ function triggerUpload() {
     border-radius: 10px;
 
     &--total {
-      color: #10b981;
+      color: var(--color-primary);
       background: rgba(16, 185, 129, 0.1);
     }
 
     &--success {
-      color: #059669;
+      color: var(--color-primary-dark);
       background: rgba(16, 185, 129, 0.1);
     }
 
@@ -395,7 +395,7 @@ function triggerUpload() {
 }
 
 .parse-alert-bar {
-  padding: 8px 14px;
+  padding: 8px var(--space-3-5);
   font-size: 12px;
   border-top: 1px solid transparent;
 
@@ -454,7 +454,7 @@ function triggerUpload() {
   }
 
   .parse-alert-list {
-    margin: 6px 0 0 22px;
+    margin: var(--space-1-5) 0 0 var(--space-6);
     padding-left: 16px;
     font-size: 11px;
     line-height: 1.6;
@@ -463,8 +463,8 @@ function triggerUpload() {
   .parse-missing-tags {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
-    margin: 6px 0 0 22px;
+    gap: var(--space-1-5);
+    margin: var(--space-1-5) 0 0 var(--space-6);
 
     .missing-tag {
       font-size: 11px;
@@ -476,8 +476,8 @@ function triggerUpload() {
     align-items: center;
     gap: 4px;
     margin-top: 8px;
-    margin-left: 22px;
-    padding: 4px 10px;
+    margin-left: var(--space-6);
+    padding: 4px var(--space-2-5);
     border-radius: 6px;
     border: 1px solid rgba(245, 158, 11, 0.3);
     background: rgba(245, 158, 11, 0.08);
@@ -501,7 +501,7 @@ function triggerUpload() {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 12px 14px 8px;
+    padding: 12px var(--space-3-5) 8px;
 
     .parse-preview-header-left {
       display: flex;
@@ -512,14 +512,14 @@ function triggerUpload() {
     .parse-preview-title {
       font-size: 13px;
       font-weight: 700;
-      color: #1e293b;
+      color: var(--color-text-primary);
       margin: 0;
     }
 
     .parse-preview-badge {
       font-size: 11px;
       font-weight: 600;
-      color: #10b981;
+      color: var(--color-primary);
       background: rgba(16, 185, 129, 0.1);
       padding: 1px 8px;
       border-radius: 10px;
@@ -528,7 +528,7 @@ function triggerUpload() {
     .parse-preview-actions {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: var(--space-1-5);
     }
 
     .parse-action-btn {
@@ -541,25 +541,25 @@ function triggerUpload() {
       border: 1px solid;
 
       &--cancel {
-        border-color: #e2e8f0;
+        border-color: var(--color-border);
         background: #fff;
-        color: #64748b;
+        color: var(--color-text-secondary);
 
         &:hover {
           background: #f1f5f9;
           border-color: #cbd5e1;
-          color: #334155;
+          color: var(--color-text-primary);
         }
       }
 
       &--confirm {
-        border-color: #10b981;
-        background: #10b981;
+        border-color: var(--color-primary);
+        background: var(--color-primary);
         color: #fff;
 
         &:hover {
-          background: #059669;
-          border-color: #059669;
+          background: var(--color-primary-dark);
+          border-color: var(--color-primary-dark);
         }
       }
     }
@@ -571,7 +571,7 @@ function triggerUpload() {
     display: grid;
     grid-template-columns: 1fr 80px 80px 80px;
     gap: 4px;
-    padding: 10px 14px;
+    padding: var(--space-2-5) var(--space-3-5);
     font-size: 11px;
     font-weight: 800;
     color: $emerald-600;
@@ -583,9 +583,9 @@ function triggerUpload() {
     display: grid;
     grid-template-columns: 1fr 80px 80px 80px;
     gap: 4px;
-    padding: 9px 14px;
+    padding: var(--space-2) var(--space-3-5);
     font-size: 12px;
-    color: #334155;
+    color: var(--color-text-primary);
     border-top: 1px solid rgba(148, 163, 184, 0.08);
     align-items: center;
 
@@ -606,7 +606,7 @@ function triggerUpload() {
       white-space: nowrap;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: var(--space-1-5);
 
       .pt-name-text {
         overflow: hidden;
@@ -632,8 +632,8 @@ function triggerUpload() {
 
   .material-type-tag--herb {
     background: rgba(16, 185, 129, 0.1);
-    color: #059669;
-    border-color: #a7f3d0;
+    color: var(--color-primary-dark);
+    border-color: var(--color-primary-lightest);
     font-size: 10px;
     padding: 0 4px;
     height: 18px;

@@ -19,7 +19,7 @@
         <div class="fill-feedback-card" @click.stop>
           <div class="feedback-header">
             <svg width="20" height="20" viewBox="0 0 16 16" fill="none">
-              <path d="M2 4l4 4-4 4M8 12h6" stroke="#7bc67e" stroke-width="1.5" stroke-linecap="round"
+              <path d="M2 4l4 4-4 4M8 12h6" stroke="var(--color-success)" stroke-width="1.5" stroke-linecap="round"
                 stroke-linejoin="round" />
             </svg>
             <span>表单回填结果</span>
@@ -280,14 +280,14 @@ onUnmounted(() => {
 .feedback-body {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--space-1-5);
 }
 
 .feedback-row {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 10px;
+  padding: var(--space-1-5) var(--space-2-5);
   border-radius: 8px;
   background: $bg-page;
   font-size: $font-size-body-sm;

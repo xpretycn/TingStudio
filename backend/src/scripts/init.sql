@@ -100,7 +100,7 @@ CREATE TABLE IF NOT EXISTS `formula_versions` (
   `version_reason` TEXT DEFAULT NULL,
   `changes_json` TEXT DEFAULT NULL,
   `snapshot_json` TEXT NOT NULL,
-  `status` TEXT NOT NULL DEFAULT 'draft' CHECK(status IN ('draft', 'published', 'archived')),
+  `status` TEXT NOT NULL DEFAULT 'draft' CHECK(status IN ('draft', 'pending_review', 'published', 'archived')),
   `is_current` INTEGER NOT NULL DEFAULT 0,
   `ratio_factor` REAL NOT NULL DEFAULT 0.18 CHECK(ratio_factor >= 0.15 AND ratio_factor <= 0.25),
   `supplement_ratio_factor` REAL NOT NULL DEFAULT 1.0 CHECK(supplement_ratio_factor >= 0.5 AND supplement_ratio_factor <= 1.5),
@@ -110,6 +110,24 @@ CREATE TABLE IF NOT EXISTS `formula_versions` (
 );
 CREATE INDEX IF NOT EXISTS `idx_fv_formula` ON `formula_versions`(`formula_id`);
 CREATE INDEX IF NOT EXISTS `idx_fv_version_number` ON `formula_versions`(`formula_id`, `version_number`);
+CREATE INDEX IF NOT EXISTS `idx_fv_status` ON `formula_versions`(`status`);
+CREATE INDEX IF NOT EXISTS `idx_fv_formula_status` ON `formula_versions`(`formula_id`, `status`);
+
+-- 配方版本审批日志表
+CREATE TABLE IF NOT EXISTS `formula_review_logs` (
+  `review_log_id` TEXT PRIMARY KEY,
+  `version_id` TEXT NOT NULL,
+  `reviewer_id` TEXT NOT NULL,
+  `reviewer_name` TEXT DEFAULT NULL,
+  `action` TEXT NOT NULL CHECK(action IN ('submit', 'approve', 'reject')),
+  `comment` TEXT DEFAULT NULL,
+  `created_at` TEXT NOT NULL DEFAULT (datetime('now')),
+  FOREIGN KEY (`version_id`) REFERENCES `formula_versions`(`version_id`) ON DELETE CASCADE,
+  FOREIGN KEY (`reviewer_id`) REFERENCES `users`(`id`) ON DELETE SET NULL
+);
+CREATE INDEX IF NOT EXISTS `idx_frl_version` ON `formula_review_logs`(`version_id`);
+CREATE INDEX IF NOT EXISTS `idx_frl_reviewer` ON `formula_review_logs`(`reviewer_id`);
+CREATE INDEX IF NOT EXISTS `idx_frl_action` ON `formula_review_logs`(`action`);
 
 -- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 -- 多元化配方输出方案

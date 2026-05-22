@@ -325,7 +325,7 @@ function formatChanges(version: MaterialVersion): string {
   height: 12px;
   border-radius: 50%;
   background: #d9d9d9;
-  margin-top: 6px;
+  margin-top: var(--space-1-5);
   flex-shrink: 0;
   z-index: 1;
 
@@ -379,7 +379,7 @@ function formatChanges(version: MaterialVersion): string {
 .timeline-meta {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--space-1-5);
   margin-bottom: 8px;
 }
 
@@ -390,8 +390,8 @@ function formatChanges(version: MaterialVersion): string {
 
 .role-tag {
   font-size: 11px;
-  padding: 1px 6px;
-  border-radius: 3px;
+  padding: 1px var(--space-1-5);
+  border-radius: var(--radius-xs);
 
   &.role-admin {
     background: #fff1f0;
@@ -420,7 +420,7 @@ function formatChanges(version: MaterialVersion): string {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 80px 0;
+  padding: var(--space-16) 0;
   color: #bbb;
   gap: 12px;
 

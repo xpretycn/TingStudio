@@ -75,14 +75,14 @@
                         <div class="welcome-logo">
                           <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <circle cx="30" cy="32" r="20" fill="#FFE8D6" />
-                            <path d="M14 22L10 4L26 16Z" fill="#FFB5C8" />
-                            <path d="M46 22L50 4L34 16Z" fill="#FFB5C8" />
+                            <path d="M14 22L10 4L26 16Z" fill="var(--color-primary-lighter)" />
+                            <path d="M46 22L50 4L34 16Z" fill="var(--color-primary-lighter)" />
                             <ellipse cx="24" cy="30" rx="3.5" ry="4" fill="#5D4E60" />
                             <ellipse cx="36" cy="30" rx="3.5" ry="4" fill="#5D4E60" />
                             <ellipse cx="25" cy="28.5" rx="1.2" ry="1.5" fill="#fff" />
                             <ellipse cx="37" cy="28.5" rx="1.2" ry="1.5" fill="#fff" />
                             <ellipse cx="30" cy="35.5" rx="2.5" ry="1.8" fill="#FFB5C2" />
-                            <path d="M27 38Q30 42 33 38" stroke="#E8A0B0" stroke-width="1" fill="none"
+                            <path d="M27 38Q30 42 33 38" stroke="var(--color-primary-dark)" stroke-width="1" fill="none"
                               stroke-linecap="round" />
                             <ellipse cx="20" cy="36" rx="4" ry="2.5" fill="#FFB5C2" opacity="0.35" />
                             <ellipse cx="40" cy="36" rx="4" ry="2.5" fill="#FFB5C2" opacity="0.35" />
@@ -130,14 +130,14 @@
                         <div class="avatar-logo">
                           <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <circle cx="30" cy="32" r="20" fill="#FFE8D6" />
-                            <path d="M14 22L10 4L26 16Z" fill="#FFB5C8" />
-                            <path d="M46 22L50 4L34 16Z" fill="#FFB5C8" />
+                            <path d="M14 22L10 4L26 16Z" fill="var(--color-primary-lighter)" />
+                            <path d="M46 22L50 4L34 16Z" fill="var(--color-primary-lighter)" />
                             <ellipse cx="24" cy="30" rx="3.5" ry="4" fill="#5D4E60" />
                             <ellipse cx="36" cy="30" rx="3.5" ry="4" fill="#5D4E60" />
                             <ellipse cx="25" cy="28.5" rx="1.2" ry="1.5" fill="#fff" />
                             <ellipse cx="37" cy="28.5" rx="1.2" ry="1.5" fill="#fff" />
                             <ellipse cx="30" cy="35.5" rx="2.5" ry="1.8" fill="#FFB5C2" />
-                            <path d="M27 38Q30 42 33 38" stroke="#E8A0B0" stroke-width="1" fill="none"
+                            <path d="M27 38Q30 42 33 38" stroke="var(--color-primary-dark)" stroke-width="1" fill="none"
                               stroke-linecap="round" />
                             <ellipse cx="20" cy="36" rx="4" ry="2.5" fill="#FFB5C2" opacity="0.35" />
                             <ellipse cx="40" cy="36" rx="4" ry="2.5" fill="#FFB5C2" opacity="0.35" />
@@ -223,14 +223,14 @@
                       <div class="avatar-logo">
                         <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
                           <circle cx="30" cy="32" r="20" fill="#FFE8D6" />
-                          <path d="M14 22L10 4L26 16Z" fill="#FFB5C8" />
-                          <path d="M46 22L50 4L34 16Z" fill="#FFB5C8" />
+                          <path d="M14 22L10 4L26 16Z" fill="var(--color-primary-lighter)" />
+                          <path d="M46 22L50 4L34 16Z" fill="var(--color-primary-lighter)" />
                           <ellipse cx="24" cy="30" rx="3.5" ry="4" fill="#5D4E60" />
                           <ellipse cx="36" cy="30" rx="3.5" ry="4" fill="#5D4E60" />
                           <ellipse cx="25" cy="28.5" rx="1.2" ry="1.5" fill="#fff" />
                           <ellipse cx="37" cy="28.5" rx="1.2" ry="1.5" fill="#fff" />
                           <ellipse cx="30" cy="35.5" rx="2.5" ry="1.8" fill="#FFB5C2" />
-                          <path d="M27 38Q30 42 33 38" stroke="#E8A0B0" stroke-width="1" fill="none"
+                          <path d="M27 38Q30 42 33 38" stroke="var(--color-primary-dark)" stroke-width="1" fill="none"
                             stroke-linecap="round" />
                           <ellipse cx="20" cy="36" rx="4" ry="2.5" fill="#FFB5C2" opacity="0.35" />
                           <ellipse cx="40" cy="36" rx="4" ry="2.5" fill="#FFB5C2" opacity="0.35" />
@@ -831,7 +831,7 @@ const getFallbackColor = (provider: string): string => {
   for (const [key, val] of Object.entries(FALLBACK_ICONS)) {
     if (p.includes(key)) return val.color;
   }
-  return '#64748b';
+  return 'var(--color-text-secondary)';
 };
 
 const handleLogoError = (e: Event) => {
@@ -1030,11 +1030,11 @@ interface SlashCommand {
 }
 
 const COMMAND_CATEGORIES: Record<string, { label: string; icon: string; color: string }> = {
-  formula: { label: '配方查询', icon: 'edit', color: '#10B981' },
+  formula: { label: '配方查询', icon: 'edit', color: 'var(--color-primary)' },
   material: { label: '原料查询', icon: 'chart-bar', color: '#3B82F6' },
   salesperson: { label: '业务员查询', icon: 'user', color: '#8B5CF6' },
   analytics: { label: '数据分析', icon: 'chart', color: '#EC4899' },
-  report: { label: '报表报告', icon: 'file-icon', color: '#F59E0B' },
+  report: { label: '报表报告', icon: 'file-icon', color: 'var(--color-warning)' },
 };
 
 const activeCommandCategory = ref<string | null>(null);
@@ -1046,7 +1046,7 @@ const commandRegistry = ref<SlashCommand[]>([
     description: '按名称、编号或条件搜索配方',
     icon: 'search',
     iconBg: '#ecfdf5',
-    iconColor: '#10B981',
+    iconColor: 'var(--color-primary)',
     prefix: '请帮我查询配方，',
     keywords: ['配方', '查询', '搜索', '查找', 'formula', 'query', 'search'],
     category: 'formula',
@@ -1056,8 +1056,8 @@ const commandRegistry = ref<SlashCommand[]>([
     label: '配方详情',
     description: '查看指定配方的详细信息、原料组成和用量',
     icon: 'file-icon',
-    iconBg: '#d1fae5',
-    iconColor: '#059669',
+    iconBg: 'var(--color-primary-bg)',
+    iconColor: 'var(--color-primary-dark)',
     prefix: '请帮我查看配方详情，',
     keywords: ['配方', '详情', '信息', '组成', '用量', 'formula', 'detail'],
     category: 'formula',
@@ -1067,8 +1067,8 @@ const commandRegistry = ref<SlashCommand[]>([
     label: '配方对比',
     description: '对比多个配方的原料、成本和营养成分差异',
     icon: 'swap',
-    iconBg: '#a7f3d0',
-    iconColor: '#047857',
+    iconBg: 'var(--color-primary-lightest)',
+    iconColor: 'var(--color-primary-deep)',
     prefix: '请帮我对比配方，',
     keywords: ['配方', '对比', '比较', '差异', 'formula', 'compare', 'diff'],
     category: 'formula',
@@ -1078,7 +1078,7 @@ const commandRegistry = ref<SlashCommand[]>([
     label: '配方成本分析',
     description: '分析配方的原料成本构成和占比',
     icon: 'chart-bar',
-    iconBg: '#6ee7b7',
+    iconBg: 'var(--color-primary-lighter)',
     iconColor: '#065f46',
     prefix: '请帮我分析配方成本，',
     keywords: ['配方', '成本', '分析', '费用', 'formula', 'cost', 'analysis'],
@@ -1211,7 +1211,7 @@ const commandRegistry = ref<SlashCommand[]>([
     description: '获取月度统计报告和关键指标汇总',
     icon: 'file-icon',
     iconBg: '#fef3c7',
-    iconColor: '#F59E0B',
+    iconColor: 'var(--color-warning)',
     prefix: '请帮我查看本月月报，',
     keywords: ['月报', '报告', '统计', '月度', 'report', 'monthly'],
     category: 'report',
@@ -2547,7 +2547,7 @@ onUnmounted(() => {
   align-items: center;
   gap: 12px;
   max-width: 480px;
-  border-left: 4px solid #ef4444;
+  border-left: 4px solid var(--color-danger);
   animation: slideInRight 0.3s ease-out;
 
   .error-close-btn {
@@ -2596,9 +2596,9 @@ onUnmounted(() => {
   left: 50%;
   transform: translateX(-50%);
   z-index: 10000;
-  background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+  background: linear-gradient(135deg, #ecfdf5, var(--color-primary-bg));
   color: #065f46;
-  padding: 10px 20px;
+  padding: var(--space-2-5) 20px;
   border-radius: 10px;
   box-shadow: 0 4px 16px rgba(16, 185, 129, 0.2);
   display: flex;
@@ -2606,7 +2606,7 @@ onUnmounted(() => {
   gap: 8px;
   font-size: 14px;
   font-weight: 500;
-  border: 1px solid #a7f3d0;
+  border: 1px solid var(--color-primary-lightest);
   animation: toastIn 0.3s ease-out;
 }
 
@@ -2625,8 +2625,8 @@ onUnmounted(() => {
 .form-submitted-notice {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 14px;
+  gap: var(--space-1-5);
+  padding: var(--space-1-5) var(--space-3-5);
   border-radius: 8px;
   font-size: 13px;
   font-weight: 500;
@@ -2638,7 +2638,7 @@ onUnmounted(() => {
 .write-guidance-links {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--space-1-5);
   margin-top: 8px;
   padding: 8px 12px;
   background: linear-gradient(135deg, #f0fdf4, #ecfdf5);
@@ -2649,7 +2649,7 @@ onUnmounted(() => {
 .guidance-link-item {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--space-1-5);
   font-size: 13px;
 }
 
@@ -2702,7 +2702,7 @@ onUnmounted(() => {
 
   &::-webkit-scrollbar-thumb {
     background: #cbd5e1;
-    border-radius: 2px;
+    border-radius: var(--radius-2xs);
   }
 }
 
@@ -2743,7 +2743,7 @@ onUnmounted(() => {
     box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
 
     &.card-emerald {
-      border-color: #10B981;
+      border-color: var(--color-primary);
     }
 
     &.card-blue {
@@ -2755,7 +2755,7 @@ onUnmounted(() => {
     }
 
     &.card-amber {
-      border-color: #F59E0B;
+      border-color: var(--color-warning);
     }
   }
 
@@ -2767,7 +2767,7 @@ onUnmounted(() => {
 
     .card-title {
       font-size: 12px;
-      color: #64748b;
+      color: var(--color-text-secondary);
       font-weight: 500;
     }
   }
@@ -2799,15 +2799,15 @@ onUnmounted(() => {
     font-weight: 500;
 
     .trend-up {
-      color: #10B981;
+      color: var(--color-primary);
     }
 
     .trend-down {
-      color: #EF4444;
+      color: var(--color-danger);
     }
 
     .trend-neutral {
-      color: #64748b;
+      color: var(--color-text-secondary);
     }
   }
 
@@ -2815,17 +2815,17 @@ onUnmounted(() => {
     position: absolute;
     top: 16px;
     right: 16px;
-    background: #EF4444;
+    background: var(--color-danger);
     color: white;
     font-size: 12px;
     font-weight: 600;
-    padding: 4px 10px;
+    padding: 4px var(--space-2-5);
     border-radius: 12px;
   }
 
   // 卡片主题色
   &.card-emerald .card-header {
-    color: #10B981;
+    color: var(--color-primary);
   }
 
   &.card-blue .card-header {
@@ -2837,7 +2837,7 @@ onUnmounted(() => {
   }
 
   &.card-amber .card-header {
-    color: #F59E0B;
+    color: var(--color-warning);
   }
 
   &.loading {
@@ -2908,20 +2908,20 @@ onUnmounted(() => {
   padding-bottom: 4px;
 
   .action-item {
-    padding: 14px 12px;
+    padding: var(--space-3-5) 12px;
     border-radius: 10px;
-    border: 2px solid #e2e8f0;
+    border: 2px solid var(--color-border);
     cursor: pointer;
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 6px;
+    gap: var(--space-1-5);
     background: white;
     position: relative;
 
     &:hover {
-      border-color: #10B981;
+      border-color: var(--color-primary);
       transform: translateY(-3px);
       box-shadow: 0 6px 20px rgba(16, 185, 129, 0.15);
     }
@@ -2931,7 +2931,7 @@ onUnmounted(() => {
     }
 
     &.primary {
-      background: linear-gradient(135deg, #10B981, #059669);
+      background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
       color: white;
       border-color: transparent;
 
@@ -2958,10 +2958,10 @@ onUnmounted(() => {
       position: absolute;
       top: -4px;
       right: -4px;
-      background: #ef4444;
+      background: var(--color-danger);
       color: white;
       font-size: 10px;
-      padding: 2px 6px;
+      padding: var(--space-0-5) var(--space-1-5);
       border-radius: 10px;
       font-weight: 600;
     }
@@ -3051,24 +3051,24 @@ onUnmounted(() => {
 
       &:hover {
         background: #f0fdf4;
-        border-left-color: #10B981;
+        border-left-color: var(--color-primary);
         transform: translateX(4px);
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
       }
 
       .suggestion-text {
         font-size: 14px;
-        color: #334155;
+        color: var(--color-text-primary);
       }
 
       .arrow-icon {
-        color: #94a3b8;
+        color: var(--color-text-placeholder);
         transition: transform 0.2s;
       }
 
       &:hover .arrow-icon {
         transform: translateX(4px);
-        color: #10B981;
+        color: var(--color-primary);
       }
     }
   }
@@ -3079,7 +3079,7 @@ onUnmounted(() => {
 
     .footer-hint {
       font-size: 11px;
-      color: #64748b;
+      color: var(--color-text-secondary);
     }
   }
 
@@ -3108,7 +3108,7 @@ onUnmounted(() => {
   flex-direction: column;
   background: white;
   border-radius: 16px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--color-border);
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   overflow: hidden;
 
@@ -3129,15 +3129,15 @@ onUnmounted(() => {
       display: flex;
       align-items: center;
       gap: 8px;
-      padding: 10px 18px;
-      border: 1px solid #e2e8f0;
+      padding: var(--space-2-5) var(--space-4-5);
+      border: 1px solid var(--color-border);
       border-radius: 10px;
       background: white;
       cursor: pointer;
       transition: all 0.25s ease;
       white-space: nowrap;
       font-size: 14px;
-      color: #64748b;
+      color: var(--color-text-secondary);
 
       &:hover {
         border-color: #0052D9;
@@ -3169,7 +3169,7 @@ onUnmounted(() => {
 
       .tab-desc {
         font-size: 11px;
-        color: #94a3b8;
+        color: var(--color-text-placeholder);
         margin-left: 4px;
       }
     }
@@ -3209,14 +3209,14 @@ onUnmounted(() => {
   .history-sidebar {
     width: 260px;
     flex-shrink: 0;
-    border-right: 1px solid #e2e8f0;
+    border-right: 1px solid var(--color-border);
     background: #fafbfc;
     overflow: hidden;
     transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
     &.collapsed {
       width: 52px;
-      border-right: 1px solid #e2e8f0;
+      border-right: 1px solid var(--color-border);
     }
 
     .history-sidebar-inner {
@@ -3228,7 +3228,7 @@ onUnmounted(() => {
 
     .history-header {
       padding: 12px;
-      border-bottom: 1px solid #e2e8f0;
+      border-bottom: 1px solid var(--color-border);
       display: flex;
       align-items: center;
       gap: 8px;
@@ -3237,7 +3237,7 @@ onUnmounted(() => {
       h4 {
         flex: 1;
         font-size: 14px;
-        color: #334155;
+        color: var(--color-text-primary);
         white-space: nowrap;
       }
 
@@ -3247,7 +3247,7 @@ onUnmounted(() => {
         cursor: pointer;
         padding: 4px;
         border-radius: 6px;
-        color: #94a3b8;
+        color: var(--color-text-placeholder);
         transition: all 0.2s;
 
         &:hover {
@@ -3263,7 +3263,7 @@ onUnmounted(() => {
         border: none;
         background: transparent;
         cursor: pointer;
-        color: #64748b;
+        color: var(--color-text-secondary);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -3272,11 +3272,11 @@ onUnmounted(() => {
 
         &:hover {
           background: #f1f5f9;
-          color: #10B981;
+          color: var(--color-primary);
         }
 
         &.active {
-          color: #10B981;
+          color: var(--color-primary);
           background: #ecfdf5;
         }
       }
@@ -3286,7 +3286,7 @@ onUnmounted(() => {
         border: none;
         font-size: 18px;
         cursor: pointer;
-        color: #64748b;
+        color: var(--color-text-secondary);
         width: 28px;
         height: 28px;
         display: flex;
@@ -3298,7 +3298,7 @@ onUnmounted(() => {
 
         &:hover {
           background: #f1f5f9;
-          color: #334155;
+          color: var(--color-text-primary);
         }
       }
     }
@@ -3313,14 +3313,14 @@ onUnmounted(() => {
       border-radius: 8px;
       background: white;
       cursor: pointer;
-      color: #475569;
+      color: var(--color-text-secondary);
       font-size: 13px;
       transition: all 0.2s;
       white-space: nowrap;
 
       &:hover {
-        border-color: #10B981;
-        color: #10B981;
+        border-color: var(--color-primary);
+        color: var(--color-primary);
         background: #f0fdf4;
       }
     }
@@ -3368,7 +3368,7 @@ onUnmounted(() => {
       .session-title {
         font-size: 14px;
         font-weight: 500;
-        color: #334155;
+        color: var(--color-text-primary);
         margin-bottom: 4px;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -3378,7 +3378,7 @@ onUnmounted(() => {
 
       .session-time {
         font-size: 12px;
-        color: #94a3b8;
+        color: var(--color-text-placeholder);
         display: block;
       }
 
@@ -3389,7 +3389,7 @@ onUnmounted(() => {
         border: none;
         background: transparent;
         cursor: pointer;
-        color: #94a3b8;
+        color: var(--color-text-placeholder);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -3399,7 +3399,7 @@ onUnmounted(() => {
 
         &:hover {
           background: #fee2e2;
-          color: #ef4444;
+          color: var(--color-danger);
         }
       }
     }
@@ -3407,7 +3407,7 @@ onUnmounted(() => {
     .empty-sessions {
       padding: 40px 16px;
       text-align: center;
-      color: #94a3b8;
+      color: var(--color-text-placeholder);
       font-size: 14px;
     }
   }
@@ -3429,10 +3429,10 @@ onUnmounted(() => {
 
     &::-webkit-scrollbar-thumb {
       background: #cbd5e1;
-      border-radius: 3px;
+      border-radius: var(--radius-xs);
 
       &:hover {
-        background: #94a3b8;
+        background: var(--color-text-placeholder);
       }
     }
   }
@@ -3444,9 +3444,9 @@ onUnmounted(() => {
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--color-border);
     background: white;
-    color: #475569;
+    color: var(--color-text-secondary);
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -3456,9 +3456,9 @@ onUnmounted(() => {
     z-index: 10;
 
     &:hover {
-      background: #10B981;
+      background: var(--color-primary);
       color: white;
-      border-color: #10B981;
+      border-color: var(--color-primary);
       transform: translateY(-2px);
       box-shadow: 0 6px 18px rgba(16, 185, 129, 0.3);
     }
@@ -3474,7 +3474,7 @@ onUnmounted(() => {
       width: 10px;
       height: 10px;
       border-radius: 50%;
-      background: #10B981;
+      background: var(--color-primary);
       animation: pulse 1.5s ease-in-out infinite;
     }
   }
@@ -3520,7 +3520,7 @@ onUnmounted(() => {
         border-radius: 50%;
         flex-shrink: 0;
         background: white;
-        padding: 2px;
+        padding: var(--space-0-5);
         overflow: hidden;
         box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15);
 
@@ -3541,10 +3541,10 @@ onUnmounted(() => {
       }
 
       .user-bubble {
-        background: linear-gradient(135deg, #10B981, #059669);
+        background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
         color: white;
         max-width: 100%;
-        padding: 12px 18px;
+        padding: 12px var(--space-4-5);
         border-radius: 18px 18px 4px 18px;
         word-wrap: break-word;
         line-height: 1.5;
@@ -3556,7 +3556,7 @@ onUnmounted(() => {
 
       .message-time {
         font-size: 11px;
-        color: #94a3b8;
+        color: var(--color-text-placeholder);
       }
     }
 
@@ -3567,7 +3567,7 @@ onUnmounted(() => {
         border-radius: 50%;
         flex-shrink: 0;
         background: white;
-        padding: 3px;
+        padding: var(--space-1);
         overflow: hidden;
 
         svg {
@@ -3583,8 +3583,8 @@ onUnmounted(() => {
       }
 
       .assistant-bubble {
-        background: #f8fafc;
-        border: 1px solid #e2e8f0;
+        background: var(--color-bg-page);
+        border: 1px solid var(--color-border);
         padding: 26px 30px;
         border-radius: 18px 18px 18px 4px;
 
@@ -3594,7 +3594,7 @@ onUnmounted(() => {
           h1,
           h2,
           h3 {
-            color: #1e293b;
+            color: var(--color-text-primary);
             margin-top: 12px;
             margin-bottom: 8px;
           }
@@ -3604,16 +3604,16 @@ onUnmounted(() => {
           }
 
           code {
-            background: #e2e8f0;
-            padding: 2px 6px;
+            background: var(--color-border);
+            padding: var(--space-0-5) var(--space-1-5);
             border-radius: 4px;
             font-family: 'Monaco', monospace;
             font-size: 13px;
           }
 
           pre {
-            background: #1e293b;
-            color: #e2e8f0;
+            background: var(--color-text-primary);
+            color: var(--color-border);
             padding: 12px;
             border-radius: 8px;
             overflow-x: auto;
@@ -3637,17 +3637,17 @@ onUnmounted(() => {
 
           strong {
             font-weight: 600;
-            color: #1e293b;
+            color: var(--color-text-primary);
           }
 
           .clickable-prompt {
-            color: #10B981;
+            color: var(--color-primary);
             cursor: pointer;
             font-weight: 500;
-            border-bottom: 1px dashed #10B981;
+            border-bottom: 1px dashed var(--color-primary);
             transition: all 0.2s;
-            padding: 0 2px;
-            border-radius: 2px;
+            padding: 0 var(--space-0-5);
+            border-radius: var(--radius-2xs);
 
             &:hover {
               background: #ecfdf5;
@@ -3655,7 +3655,7 @@ onUnmounted(() => {
             }
 
             &:active {
-              background: #d1fae5;
+              background: var(--color-primary-bg);
               transform: scale(0.98);
             }
           }
@@ -3663,7 +3663,7 @@ onUnmounted(() => {
           .md-table-wrapper {
             position: relative;
             margin: 12px 0;
-            border: 1px solid #e2e8f0;
+            border: 1px solid var(--color-border);
             border-radius: 8px;
             overflow: hidden;
 
@@ -3675,20 +3675,20 @@ onUnmounted(() => {
               display: flex;
               align-items: center;
               gap: 4px;
-              padding: 4px 10px;
+              padding: 4px var(--space-2-5);
               background: white;
-              border: 1px solid #e2e8f0;
+              border: 1px solid var(--color-border);
               border-radius: 6px;
               font-size: 12px;
-              color: #64748b;
+              color: var(--color-text-secondary);
               cursor: pointer;
               transition: all 0.2s;
               box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 
               &:hover {
                 background: #f0fdf4;
-                border-color: #10B981;
-                color: #10B981;
+                border-color: var(--color-primary);
+                color: var(--color-primary);
               }
 
               &:active {
@@ -3709,22 +3709,22 @@ onUnmounted(() => {
               th,
               td {
                 padding: 8px 12px;
-                border: 1px solid #e2e8f0;
+                border: 1px solid var(--color-border);
                 text-align: left;
               }
 
               th {
                 background: #f1f5f9;
                 font-weight: 600;
-                color: #334155;
+                color: var(--color-text-primary);
               }
 
               td {
-                color: #475569;
+                color: var(--color-text-secondary);
               }
 
               tr:nth-child(even) td {
-                background: #f8fafc;
+                background: var(--color-bg-page);
               }
             }
           }
@@ -3738,7 +3738,7 @@ onUnmounted(() => {
 
           .action-btn {
             padding: 8px 16px;
-            background: linear-gradient(135deg, #10B981, #059669);
+            background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
             color: white;
             border: none;
             border-radius: 20px;
@@ -3747,7 +3747,7 @@ onUnmounted(() => {
             font-weight: 500;
             display: inline-flex;
             align-items: center;
-            gap: 6px;
+            gap: var(--space-1-5);
             transition: all 0.2s;
 
             &:hover {
@@ -3760,22 +3760,22 @@ onUnmounted(() => {
         .message-meta {
           margin-top: 12px;
           font-size: 11px;
-          color: #94a3b8;
+          color: var(--color-text-placeholder);
           display: flex;
-          gap: 6px;
+          gap: var(--space-1-5);
           align-items: center;
 
           .meta-model-logo {
             width: 14px;
             height: 14px;
-            border-radius: 2px;
+            border-radius: var(--radius-2xs);
             vertical-align: middle;
           }
 
           .meta-model-logo-fallback {
             width: 14px;
             height: 14px;
-            border-radius: 2px;
+            border-radius: var(--radius-2xs);
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -3787,14 +3787,14 @@ onUnmounted(() => {
 
           .meta-model {
             background: #f1f5f9;
-            color: #475569;
-            padding: 1px 6px;
+            color: var(--color-text-secondary);
+            padding: 1px var(--space-1-5);
             border-radius: 4px;
             font-weight: 500;
           }
 
           .meta-latency {
-            color: #64748b;
+            color: var(--color-text-secondary);
           }
 
           .token-usage {
@@ -3808,7 +3808,7 @@ onUnmounted(() => {
     .message-action-icons {
       display: flex;
       gap: 4px;
-      margin-top: 6px;
+      margin-top: var(--space-1-5);
       padding-left: 4px;
       opacity: 0;
       transition: opacity 0.2s;
@@ -3820,7 +3820,7 @@ onUnmounted(() => {
         border: none;
         background: transparent;
         cursor: pointer;
-        color: #94a3b8;
+        color: var(--color-text-placeholder);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -3828,7 +3828,7 @@ onUnmounted(() => {
 
         &:hover {
           background: #f1f5f9;
-          color: #10B981;
+          color: var(--color-primary);
         }
 
         &:active {
@@ -3843,9 +3843,9 @@ onUnmounted(() => {
 
     &.typing .cursor-blink {
       animation: blink 1s step-end infinite;
-      color: #10B981;
+      color: var(--color-primary);
       font-weight: bold;
-      margin-left: 2px;
+      margin-left: var(--space-0-5);
     }
   }
 
@@ -3853,14 +3853,14 @@ onUnmounted(() => {
     display: flex;
     gap: 4px;
     padding: 16px 20px;
-    background: #f8fafc;
+    background: var(--color-bg-page);
     border-radius: 18px;
     width: fit-content;
 
     span {
       width: 8px;
       height: 8px;
-      background: #94a3b8;
+      background: var(--color-text-placeholder);
       border-radius: 50%;
       animation: bounce 1.4s infinite ease-in-out both;
 
@@ -3898,12 +3898,12 @@ onUnmounted(() => {
 
     h3 {
       font-size: 22px;
-      color: #1e293b;
+      color: var(--color-text-primary);
       margin-bottom: 0;
     }
 
     p {
-      color: #64748b;
+      color: var(--color-text-secondary);
       margin-bottom: 8px;
     }
 
@@ -3916,7 +3916,7 @@ onUnmounted(() => {
 
       li {
         padding: 8px 0;
-        color: #475569;
+        color: var(--color-text-secondary);
 
         &::before {
           content: '✨ ';
@@ -3926,7 +3926,7 @@ onUnmounted(() => {
     }
 
     .welcome-hint {
-      color: #10B981;
+      color: var(--color-primary);
       font-weight: 500;
       margin-top: 16px;
     }
@@ -3937,9 +3937,9 @@ onUnmounted(() => {
       margin: 16px 0;
 
       li {
-        padding: 10px 16px;
-        margin: 6px 0;
-        background: #f8fafc;
+        padding: var(--space-2-5) 16px;
+        margin: var(--space-1-5) 0;
+        background: var(--color-bg-page);
         border-radius: 10px;
         cursor: pointer;
         transition: all 0.2s ease;
@@ -3972,15 +3972,15 @@ onUnmounted(() => {
     }
 
     .quick-tag {
-      padding: 6px 16px;
+      padding: var(--space-1-5) 16px;
       background: white;
-      border: 1px solid #e2e8f0;
+      border: 1px solid var(--color-border);
       border-radius: 20px;
       font-size: 13px;
       white-space: nowrap;
       cursor: pointer;
       transition: all 0.2s;
-      color: #475569;
+      color: var(--color-text-secondary);
 
       &:hover {
         background: #dbeafe;
@@ -3992,22 +3992,22 @@ onUnmounted(() => {
   }
 
   .chat-input-bar {
-    padding: 10px 24px;
+    padding: var(--space-2-5) 24px;
     background: white;
 
     .input-wrapper {
       display: flex;
       align-items: flex-end;
       gap: 12px;
-      background: #f8fafc;
-      border: 2px solid #e2e8f0;
-      border-radius: 24px;
+      background: var(--color-bg-page);
+      border: 2px solid var(--color-border);
+      border-radius: var(--radius-4xl);
       padding: 8px 16px;
       transition: all 0.25s ease;
       position: relative;
 
       &:focus-within {
-        border-color: #10B981;
+        border-color: var(--color-primary);
         box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
         background: white;
       }
@@ -4018,7 +4018,7 @@ onUnmounted(() => {
         left: 0;
         right: 0;
         background: white;
-        border: 1px solid #e2e8f0;
+        border: 1px solid var(--color-border);
         border-radius: 14px;
         box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.04);
         z-index: 200;
@@ -4030,11 +4030,11 @@ onUnmounted(() => {
         .command-palette-header {
           display: flex;
           align-items: center;
-          gap: 6px;
-          padding: 10px 14px;
+          gap: var(--space-1-5);
+          padding: var(--space-2-5) var(--space-3-5);
           font-size: 12px;
           font-weight: 600;
-          color: #64748b;
+          color: var(--color-text-secondary);
           border-bottom: 1px solid #f1f5f9;
           background: #fafbfc;
           flex-shrink: 0;
@@ -4043,7 +4043,7 @@ onUnmounted(() => {
         .command-category-tabs {
           display: flex;
           gap: 4px;
-          padding: 8px 10px;
+          padding: 8px var(--space-2-5);
           border-bottom: 1px solid #f1f5f9;
           overflow-x: auto;
           flex-shrink: 0;
@@ -4056,25 +4056,25 @@ onUnmounted(() => {
             display: inline-flex;
             align-items: center;
             gap: 4px;
-            padding: 4px 10px;
+            padding: 4px var(--space-2-5);
             border-radius: 12px;
-            border: 1px solid #e2e8f0;
+            border: 1px solid var(--color-border);
             background: white;
             font-size: 11px;
             font-weight: 500;
-            color: #64748b;
+            color: var(--color-text-secondary);
             cursor: pointer;
             white-space: nowrap;
             transition: all 0.15s ease;
 
             &:hover {
               border-color: #cbd5e1;
-              background: #f8fafc;
+              background: var(--color-bg-page);
             }
 
             &.active {
-              border-color: #10B981;
-              color: #10B981;
+              border-color: var(--color-primary);
+              color: var(--color-primary);
               background: #f0fdf4;
             }
           }
@@ -4082,7 +4082,7 @@ onUnmounted(() => {
 
         .command-palette-list {
           overflow-y: auto;
-          padding: 6px;
+          padding: var(--space-1-5);
 
           &::-webkit-scrollbar {
             width: 4px;
@@ -4090,15 +4090,15 @@ onUnmounted(() => {
 
           &::-webkit-scrollbar-thumb {
             background: #cbd5e1;
-            border-radius: 2px;
+            border-radius: var(--radius-2xs);
           }
         }
 
         .command-item {
           display: flex;
           align-items: center;
-          gap: 10px;
-          padding: 10px 12px;
+          gap: var(--space-2-5);
+          padding: var(--space-2-5) 12px;
           border-radius: 10px;
           cursor: pointer;
           transition: all 0.15s ease;
@@ -4109,7 +4109,7 @@ onUnmounted(() => {
           }
 
           &.active {
-            box-shadow: inset 3px 0 0 #10B981;
+            box-shadow: inset 3px 0 0 var(--color-primary);
           }
 
           .command-item-icon {
@@ -4127,17 +4127,17 @@ onUnmounted(() => {
             min-width: 0;
             display: flex;
             flex-direction: column;
-            gap: 2px;
+            gap: var(--space-0-5);
 
             .command-item-name {
               font-size: 13px;
               font-weight: 600;
-              color: #1e293b;
+              color: var(--color-text-primary);
             }
 
             .command-item-desc {
               font-size: 11px;
-              color: #94a3b8;
+              color: var(--color-text-placeholder);
               overflow: hidden;
               text-overflow: ellipsis;
               white-space: nowrap;
@@ -4146,9 +4146,9 @@ onUnmounted(() => {
 
           .command-item-shortcut {
             font-size: 11px;
-            color: #94a3b8;
+            color: var(--color-text-placeholder);
             background: #f1f5f9;
-            padding: 2px 8px;
+            padding: var(--space-0-5) 8px;
             border-radius: 4px;
             font-weight: 500;
             flex-shrink: 0;
@@ -4157,7 +4157,7 @@ onUnmounted(() => {
           .command-item-category {
             font-size: 10px;
             font-weight: 500;
-            padding: 2px 7px;
+            padding: var(--space-0-5) var(--space-2);
             border-radius: 8px;
             flex-shrink: 0;
             white-space: nowrap;
@@ -4170,7 +4170,7 @@ onUnmounted(() => {
           justify-content: center;
           gap: 8px;
           padding: 24px;
-          color: #94a3b8;
+          color: var(--color-text-placeholder);
           font-size: 13px;
         }
       }
@@ -4186,10 +4186,10 @@ onUnmounted(() => {
         min-height: 24px;
         background: transparent;
         font-family: inherit;
-        color: #334155;
+        color: var(--color-text-primary);
 
         &::placeholder {
-          color: #94a3b8;
+          color: var(--color-text-placeholder);
         }
       }
 
@@ -4211,9 +4211,9 @@ onUnmounted(() => {
           .model-dropdown-trigger {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: var(--space-1-5);
             padding: 4px 8px;
-            border: 1px solid #e2e8f0;
+            border: 1px solid var(--color-border);
             border-radius: 8px;
             background: white;
             cursor: pointer;
@@ -4221,7 +4221,7 @@ onUnmounted(() => {
             white-space: nowrap;
 
             &:hover {
-              border-color: #10B981;
+              border-color: var(--color-primary);
               background: #f0fdf4;
             }
 
@@ -4229,7 +4229,7 @@ onUnmounted(() => {
               width: 18px;
               height: 18px;
               object-fit: contain;
-              border-radius: 3px;
+              border-radius: var(--radius-xs);
             }
 
             .model-trigger-fallback {
@@ -4241,13 +4241,13 @@ onUnmounted(() => {
               font-size: 10px;
               font-weight: 700;
               background: #f1f5f9;
-              border-radius: 3px;
+              border-radius: var(--radius-xs);
               flex-shrink: 0;
             }
 
             .model-trigger-name {
               font-size: 12px;
-              color: #334155;
+              color: var(--color-text-primary);
               font-weight: 500;
             }
           }
@@ -4260,11 +4260,11 @@ onUnmounted(() => {
             max-height: 320px;
             overflow-y: auto;
             background: white;
-            border: 1px solid #e2e8f0;
+            border: 1px solid var(--color-border);
             border-radius: 12px;
             box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
             z-index: 100;
-            padding: 6px;
+            padding: var(--space-1-5);
 
             &::-webkit-scrollbar {
               width: 4px;
@@ -4272,7 +4272,7 @@ onUnmounted(() => {
 
             &::-webkit-scrollbar-thumb {
               background: #cbd5e1;
-              border-radius: 2px;
+              border-radius: var(--radius-2xs);
             }
           }
 
@@ -4281,7 +4281,7 @@ onUnmounted(() => {
             align-items: center;
             gap: 8px;
             padding: 16px 12px;
-            color: #94a3b8;
+            color: var(--color-text-placeholder);
             font-size: 13px;
             justify-content: center;
 
@@ -4304,27 +4304,27 @@ onUnmounted(() => {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 6px;
+            gap: var(--space-1-5);
             padding: 12px;
-            color: #94a3b8;
+            color: var(--color-text-placeholder);
             font-size: 12px;
             text-align: center;
 
             .model-retry-btn {
               margin-top: 4px;
               padding: 4px 12px;
-              border: 1px solid #e2e8f0;
+              border: 1px solid var(--color-border);
               border-radius: 6px;
               background: white;
-              color: #64748b;
+              color: var(--color-text-secondary);
               font-size: 12px;
               cursor: pointer;
               transition: all 0.2s;
 
               &:hover {
                 background: #f1f5f9;
-                color: #10B981;
-                border-color: #10B981;
+                color: var(--color-primary);
+                border-color: var(--color-primary);
               }
             }
           }
@@ -4332,8 +4332,8 @@ onUnmounted(() => {
           .model-dropdown-item {
             display: flex;
             align-items: center;
-            gap: 10px;
-            padding: 10px 12px;
+            gap: var(--space-2-5);
+            padding: var(--space-2-5) 12px;
             border-radius: 8px;
             cursor: pointer;
             transition: all 0.15s;
@@ -4355,7 +4355,7 @@ onUnmounted(() => {
               justify-content: center;
               flex-shrink: 0;
               border-radius: 4px;
-              background: #f8fafc;
+              background: var(--color-bg-page);
               overflow: hidden;
 
               .model-item-logo {
@@ -4380,12 +4380,12 @@ onUnmounted(() => {
             .model-item-name {
               flex: 1;
               font-size: 12px;
-              color: #334155;
+              color: var(--color-text-primary);
               font-weight: 500;
             }
 
             .model-item-check {
-              color: #10B981;
+              color: var(--color-primary);
               display: flex;
               align-items: center;
             }
@@ -4399,7 +4399,7 @@ onUnmounted(() => {
           border: none;
           background: transparent;
           cursor: pointer;
-          color: #64748b;
+          color: var(--color-text-secondary);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -4408,7 +4408,7 @@ onUnmounted(() => {
 
           &:hover {
             background: #f1f5f9;
-            color: #10B981;
+            color: var(--color-primary);
           }
         }
 
@@ -4425,7 +4425,7 @@ onUnmounted(() => {
           width: 40px;
           height: 40px;
           border-radius: 50%;
-          background: linear-gradient(135deg, #10B981, #059669);
+          background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
           color: white;
           border: none;
           cursor: pointer;
@@ -4456,7 +4456,7 @@ onUnmounted(() => {
       margin-top: 8px;
       text-align: center;
       font-size: 11px;
-      color: #94a3b8;
+      color: var(--color-text-placeholder);
     }
   }
 }
@@ -4692,7 +4692,7 @@ onUnmounted(() => {
 
     &-thumb {
       background: rgba(148, 163, 184, 0.5);
-      border-radius: 3px;
+      border-radius: var(--radius-xs);
 
       &:hover {
         background: rgba(148, 163, 184, 0.8);
@@ -4719,20 +4719,20 @@ onUnmounted(() => {
     h4 {
       font-size: 16px;
       font-weight: 600;
-      color: #1e293b;
+      color: var(--color-text-primary);
     }
 
     .clear-btn,
     .view-all {
       font-size: 12px;
-      color: #64748b;
+      color: var(--color-text-secondary);
       background: none;
       border: none;
       cursor: pointer;
       text-decoration: none;
 
       &:hover {
-        color: #10B981;
+        color: var(--color-primary);
       }
     }
   }
@@ -4741,42 +4741,42 @@ onUnmounted(() => {
 .visit-item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
+  gap: var(--space-2-5);
+  padding: var(--space-2-5) 12px;
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s;
   margin-bottom: 4px;
 
   &:hover {
-    background: #f8fafc;
+    background: var(--color-bg-page);
     transform: translateX(4px);
   }
 
   .visit-title {
     flex: 1;
     font-size: 14px;
-    color: #334155;
+    color: var(--color-text-primary);
   }
 
   .visit-time {
     font-size: 12px;
-    color: #94a3b8;
+    color: var(--color-text-placeholder);
   }
 }
 
 .task-item {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--space-2-5);
   padding: 12px;
   border-radius: 10px;
-  margin-bottom: 6px;
-  border-left: 3px solid #e2e8f0;
+  margin-bottom: var(--space-1-5);
+  border-left: 3px solid var(--color-border);
   transition: all 0.2s;
 
   &.type-approval {
-    border-left-color: #f59e0b;
+    border-left-color: var(--color-warning);
   }
 
   &.type-action {
@@ -4788,7 +4788,7 @@ onUnmounted(() => {
   }
 
   &:hover {
-    background: #f8fafc;
+    background: var(--color-bg-page);
   }
 
   .check-btn {
@@ -4806,8 +4806,8 @@ onUnmounted(() => {
     color: white;
 
     &:hover {
-      border-color: #10B981;
-      background: #10B981;
+      border-color: var(--color-primary);
+      background: var(--color-primary);
     }
 
     .check-circle {
@@ -4823,15 +4823,15 @@ onUnmounted(() => {
 
     .task-title {
       font-size: 14px;
-      color: #334155;
+      color: var(--color-text-primary);
       font-weight: 500;
       display: block;
-      margin-bottom: 2px;
+      margin-bottom: var(--space-0-5);
     }
 
     .task-meta {
       font-size: 12px;
-      color: #94a3b8;
+      color: var(--color-text-placeholder);
     }
   }
 
@@ -4842,14 +4842,14 @@ onUnmounted(() => {
     border: none;
     background: #f1f5f9;
     cursor: pointer;
-    color: #64748b;
+    color: var(--color-text-secondary);
     display: flex;
     align-items: center;
     justify-content: center;
     transition: all 0.2s;
 
     &:hover {
-      background: #10B981;
+      background: var(--color-primary);
       color: white;
     }
   }
@@ -4859,7 +4859,7 @@ onUnmounted(() => {
 .loading-state {
   padding: 24px;
   text-align: center;
-  color: #94a3b8;
+  color: var(--color-text-placeholder);
   font-size: 14px;
 }
 
@@ -4906,7 +4906,7 @@ onUnmounted(() => {
 
 .modal-header {
   padding: 20px 24px;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid var(--color-border);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -4916,7 +4916,7 @@ onUnmounted(() => {
   h3 {
     font-size: 18px;
     font-weight: 600;
-    color: #1e293b;
+    color: var(--color-text-primary);
     margin: 0;
   }
 }
@@ -4929,12 +4929,12 @@ onUnmounted(() => {
   background: #f1f5f9;
   font-size: 20px;
   cursor: pointer;
-  color: #64748b;
+  color: var(--color-text-secondary);
   transition: all 0.2s;
 
   &:hover {
-    background: #e2e8f0;
-    color: #334155;
+    background: var(--color-border);
+    color: var(--color-text-primary);
   }
 }
 
@@ -4961,7 +4961,7 @@ onUnmounted(() => {
 body:has(.ai-dashboard) {
 
   .right-content.no-padding {
-    padding: 14px 20px !important;
+    padding: var(--space-3-5) 20px !important;
     margin: 0 !important;
     overflow: hidden !important;
     box-sizing: border-box !important;
@@ -4997,14 +4997,14 @@ body:has(.ai-dashboard) {
   }
 
   .form-group {
-    margin-bottom: 18px;
+    margin-bottom: var(--space-4-5);
 
     label {
       display: block;
       font-size: 13px;
       font-weight: 600;
-      color: #334155;
-      margin-bottom: 6px;
+      color: var(--color-text-primary);
+      margin-bottom: var(--space-1-5);
     }
 
     input[type="text"],
@@ -5015,7 +5015,7 @@ body:has(.ai-dashboard) {
       border: 1px solid #d1d5db;
       border-radius: 8px;
       font-size: 14px;
-      color: #1e293b;
+      color: var(--color-text-primary);
       background: #fff;
       transition: border-color 0.2s;
       box-sizing: border-box;
@@ -5027,7 +5027,7 @@ body:has(.ai-dashboard) {
       }
 
       &::placeholder {
-        color: #94a3b8;
+        color: var(--color-text-placeholder);
       }
     }
 
@@ -5043,13 +5043,13 @@ body:has(.ai-dashboard) {
     .form-hint {
       display: block;
       font-size: 12px;
-      color: #94a3b8;
+      color: var(--color-text-placeholder);
       margin-top: 4px;
     }
 
     .optional-tag {
       font-size: 11px;
-      color: #94a3b8;
+      color: var(--color-text-placeholder);
       font-weight: 400;
     }
   }
@@ -5057,22 +5057,22 @@ body:has(.ai-dashboard) {
   .modal-footer {
     display: flex;
     justify-content: flex-end;
-    gap: 10px;
+    gap: var(--space-2-5);
     padding: 16px 24px;
-    border-top: 1px solid #e2e8f0;
+    border-top: 1px solid var(--color-border);
 
     .btn-cancel {
       padding: 8px 20px;
       border: 1px solid #d1d5db;
       border-radius: 8px;
       background: #fff;
-      color: #64748b;
+      color: var(--color-text-secondary);
       cursor: pointer;
       font-size: 14px;
       transition: all 0.2s;
 
       &:hover {
-        background: #f8fafc;
+        background: var(--color-bg-page);
       }
     }
 

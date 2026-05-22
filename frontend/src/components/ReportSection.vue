@@ -73,7 +73,7 @@ const cancelEdit = () => {
 
 .report-section-card {
   background: #fff;
-  border: 1px solid #E2E8F0;
+  border: 1px solid var(--color-border);
   border-radius: 12px;
   margin-bottom: 20px;
   overflow: hidden;
@@ -89,28 +89,28 @@ const cancelEdit = () => {
   }
 
   &.section-formula { border-left: 3px solid #3B82F6; }
-  &.section-sales { border-left: 3px solid #10B981; }
+  &.section-sales { border-left: 3px solid var(--color-primary); }
   &.section-plans { border-left: 3px solid #8B5CF6; }
-  &.section-summary { border-left: 3px solid #F59E0B; }
+  &.section-summary { border-left: 3px solid var(--color-warning); }
   &.section-trend { border-left: 3px solid #06B6D4; }
-  &.section-target { border-left: 3px solid #10B981; }
+  &.section-target { border-left: 3px solid var(--color-primary); }
   &.section-team { border-left: 3px solid #6366F1; }
-  &.section-issues { border-left: 3px solid #EF4444; }
+  &.section-issues { border-left: 3px solid var(--color-danger); }
 }
 
 .section-header {
-  padding: 14px 20px;
-  background: #F8FAFC;
-  border-bottom: 1px solid #E2E8F0;
+  padding: var(--space-3-5) 20px;
+  background: var(--color-bg-page);
+  border-bottom: 1px solid var(--color-border);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: var(--space-2-5);
 
   .section-header-left {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: var(--space-2-5);
   }
 
   .section-icon {
@@ -121,14 +121,14 @@ const cancelEdit = () => {
   .section-title {
     font-size: 15px;
     font-weight: 700;
-    color: #1E293B;
+    color: var(--color-text-primary);
     letter-spacing: 0.3px;
   }
 
   .section-header-right {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--space-1-5);
   }
 }
 
@@ -142,9 +142,9 @@ const cancelEdit = () => {
   width: 28px;
   height: 28px;
   border-radius: 6px;
-  border: 1px solid #E2E8F0;
+  border: 1px solid var(--color-border);
   background: #fff;
-  color: #64748B;
+  color: var(--color-text-secondary);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -152,27 +152,27 @@ const cancelEdit = () => {
   transition: all 0.15s ease;
 
   &:hover {
-    background: #F8FAFC;
+    background: var(--color-bg-page);
     color: var(--color-primary);
     border-color: var(--color-primary-light);
   }
 }
 
 .section-save-btn {
-  background: #10B981;
-  border-color: #10B981;
+  background: var(--color-primary);
+  border-color: var(--color-primary);
   color: #fff;
 
   &:hover {
-    background: #059669;
-    border-color: #059669;
+    background: var(--color-primary-dark);
+    border-color: var(--color-primary-dark);
     color: #fff;
   }
 }
 
 .section-cancel-btn:hover {
   background: #FEF2F2;
-  color: #EF4444;
+  color: var(--color-danger);
   border-color: #FCA5A5;
 }
 </style>

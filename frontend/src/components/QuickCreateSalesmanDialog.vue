@@ -78,7 +78,7 @@
             </template>
             <template #suffixIcon>
               <t-tooltip content="工号由系统自动生成，格式：YW+5位数字" placement="top">
-                <t-icon name="lock-on" style="color: #94a3b8; cursor: help;" />
+                <t-icon name="lock-on" style="color: var(--color-text-placeholder); cursor: help;" />
               </t-tooltip>
             </template>
           </t-input>
@@ -292,24 +292,24 @@ const handleSubmit = async () => {
   }
 
   :deep(.t-dialog__header) {
-    padding: 24px 28px 0;
+    padding: 24px var(--space-7) 0;
     border-bottom: none;
   }
 
   :deep(.t-dialog__body) {
-    padding: 20px 28px 8px;
+    padding: 20px var(--space-7) 8px;
   }
 }
 
 .dialog-header {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--space-2-5);
 
   .dialog-header-icon {
     width: 36px;
     height: 36px;
-    background: linear-gradient(135deg, #10b981, #059669);
+    background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
     border-radius: 10px;
     display: flex;
     align-items: center;
@@ -327,19 +327,19 @@ const handleSubmit = async () => {
 
 .dialog-form {
   :deep(.t-form__item) {
-    margin-bottom: 18px;
+    margin-bottom: var(--space-4-5);
   }
 
   :deep(.t-form__label) {
     font-size: 13px;
     font-weight: 600;
-    color: #334155;
+    color: var(--color-text-primary);
   }
 
   :deep(.t-input) {
     border-radius: 12px;
     min-height: 44px;
-    background: #f8fafc;
+    background: var(--color-bg-page);
 
     .t-input__wrap {
       border-radius: 12px;
@@ -353,7 +353,7 @@ const handleSubmit = async () => {
 
   :deep(.t-textarea) {
     border-radius: 12px;
-    background: #f8fafc;
+    background: var(--color-bg-page);
 
     .t-textarea__wrap {
       border-radius: 12px;
@@ -385,9 +385,9 @@ const handleSubmit = async () => {
     }
 
     .t-input__inner {
-      color: #64748b;
+      color: var(--color-text-secondary);
       cursor: not-allowed;
-      -webkit-text-fill-color: #64748b;
+      -webkit-text-fill-color: var(--color-text-secondary);
     }
   }
 }
@@ -405,15 +405,15 @@ const handleSubmit = async () => {
     border-radius: 12px;
     font-size: 14px;
     font-weight: 600;
-    gap: 6px;
+    gap: var(--space-1-5);
 
     &--primary {
-      background: linear-gradient(135deg, var(--td-brand-color, #10b981), var(--td-brand-color-hover, #059669));
+      background: linear-gradient(135deg, var(--td-brand-color, var(--color-primary)), var(--td-brand-color-hover, var(--color-primary-dark)));
       border: none;
       color: #fff;
 
       &:hover {
-        background: linear-gradient(135deg, var(--td-brand-color-hover, #059669), var(--td-brand-color-active, #047857));
+        background: linear-gradient(135deg, var(--td-brand-color-hover, var(--color-primary-dark)), var(--td-brand-color-active, var(--color-primary-deep)));
       }
     }
   }

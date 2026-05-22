@@ -332,7 +332,7 @@ function cancelImport() {
       .summary-item {
         display: flex;
         align-items: center;
-        gap: $space-1_5;
+        gap: $space-1-5;
         font-size: $font-size-body;
 
         &.success {

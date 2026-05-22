@@ -125,7 +125,7 @@ withDefaults(defineProps<{
 
 .skeleton-table-row {
   display: flex;
-  padding: 14px $space-4;
+  padding: var(--space-3-5) $space-4;
   gap: $space-2;
   border-bottom: 1px solid $skeleton-border;
 
@@ -189,7 +189,7 @@ withDefaults(defineProps<{
   .skeleton-card-body {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: var(--space-2-5);
   }
 
   .skeleton-progress {

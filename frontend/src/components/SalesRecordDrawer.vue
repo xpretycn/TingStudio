@@ -4,7 +4,7 @@
     <template #header>
       <div class="drawer-header">
         <div class="header-left">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2"
             stroke-linecap="round" stroke-linejoin="round">
             <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
             <polyline points="17 6 23 6 23 12" />
@@ -51,7 +51,7 @@
           </t-form-item>
           <t-form-item label="关联业务员">
             <div class="readonly-field">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2"
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-placeholder)" stroke-width="2"
                 stroke-linecap="round" stroke-linejoin="round">
                 <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
                 <circle cx="9" cy="7" r="4" />
@@ -66,7 +66,7 @@
 
       <div class="drawer-card period-card">
         <div class="card-header">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2"
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--color-warning)" stroke-width="2"
             stroke-linecap="round" stroke-linejoin="round">
             <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
             <line x1="16" y1="2" x2="16" y2="6" />
@@ -94,7 +94,7 @@
 
       <div class="drawer-card data-card">
         <div class="card-header">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2"
             stroke-linecap="round" stroke-linejoin="round">
             <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
             <polyline points="17 6 23 6 23 12" />
@@ -117,7 +117,7 @@
 
       <div class="drawer-card note-card">
         <div class="card-header">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2"
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-placeholder)" stroke-width="2"
             stroke-linecap="round" stroke-linejoin="round">
             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
             <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
@@ -338,7 +338,7 @@ const handleConfirm = async () => {
 
   :deep(.t-drawer__header) {
     padding: 16px 20px;
-    border-bottom: 1px solid #E2E8F0;
+    border-bottom: 1px solid var(--color-border);
   }
 }
 
@@ -367,8 +367,8 @@ const handleConfirm = async () => {
     .confirm-btn {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      padding: 8px 18px;
+      gap: var(--space-1-5);
+      padding: 8px var(--space-4-5);
       border-radius: 8px;
       font-size: 13px;
       font-weight: 600;
@@ -412,7 +412,7 @@ const handleConfirm = async () => {
 
 .drawer-card {
   background: #fff;
-  border: 1px solid #E2E8F0;
+  border: 1px solid var(--color-border);
   border-radius: 12px;
   margin-bottom: 16px;
   overflow: hidden;
@@ -420,13 +420,13 @@ const handleConfirm = async () => {
   .card-header {
     display: flex;
     align-items: center;
-    gap: 7px;
-    padding: 11px 16px;
-    background: #F8FAFC;
-    border-bottom: 1px solid #E2E8F0;
+    gap: var(--space-2);
+    padding: var(--space-3) 16px;
+    background: var(--color-bg-page);
+    border-bottom: 1px solid var(--color-border);
     font-size: 13px;
     font-weight: 700;
-    color: #334155;
+    color: var(--color-text-primary);
 
     &.warn {
       background: #FFFBEB;
@@ -436,7 +436,7 @@ const handleConfirm = async () => {
   }
 
   .card-body {
-    padding: 14px 16px;
+    padding: var(--space-3-5) 16px;
   }
 }
 
@@ -445,15 +445,15 @@ const handleConfirm = async () => {
 }
 
 .period-card {
-  border-left: 3px solid #F59E0B;
+  border-left: 3px solid var(--color-warning);
 }
 
 .data-card {
-  border-left: 3px solid #10B981;
+  border-left: 3px solid var(--color-primary);
 }
 
 .note-card {
-  border-left: 3px solid #94A3B8;
+  border-left: 3px solid var(--color-text-placeholder);
 }
 
 .history-card {
@@ -486,32 +486,32 @@ const handleConfirm = async () => {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 9px 12px;
-  background: #F8FAFC;
+  padding: var(--space-2) 12px;
+  background: var(--color-bg-page);
   border-radius: 8px;
   border: 1px dashed #CBD5E1;
   min-height: 36px;
-  color: #94A3B8;
+  color: var(--color-text-placeholder);
   font-size: 13px;
 }
 
 .history-list {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--space-1-5);
 }
 
 .history-item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 7px 10px;
+  gap: var(--space-2-5);
+  padding: var(--space-2) var(--space-2-5);
   background: rgba(255, 255, 255, 0.8);
   border-radius: 8px;
   font-size: 12.5px;
 
   .history-period {
-    color: #475569;
+    color: var(--color-text-secondary);
     font-weight: 500;
     min-width: 72px;
   }
@@ -526,7 +526,7 @@ const handleConfirm = async () => {
   }
 
   .history-rev {
-    color: #059669;
+    color: var(--color-primary-dark);
     font-weight: 600;
     margin-left: auto;
   }

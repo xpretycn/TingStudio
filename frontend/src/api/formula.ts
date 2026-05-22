@@ -17,6 +17,8 @@ export interface FormulaVersion {
   status: string;
   isCurrent: number;
   createdBy: string;
+  createdByName?: string;
+  createdByAvatar?: string | null;
   createdAt: string;
 }
 
@@ -36,6 +38,8 @@ export interface Formula {
   totalPrice?: number;
   description: string | null;
   createdBy: string;
+  createdByName?: string;
+  createdByAvatar?: string | null;
   createdAt: string;
   updatedAt: string;
   materials?: MaterialItem[];

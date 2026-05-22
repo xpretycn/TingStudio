@@ -291,7 +291,7 @@ onMounted(() => {
 
 .target-empty-text {
   font-size: 14px;
-  color: #94A3B8;
+  color: var(--color-text-placeholder);
   margin: 0;
 }
 
@@ -304,12 +304,12 @@ onMounted(() => {
 .target-card {
   padding: 16px;
   border-radius: 12px;
-  background: #F8FAFC;
+  background: var(--color-bg-page);
   border: 1px solid #f1f5f9;
   transition: all $transition-fast;
 
   &:hover {
-    border-color: #D1FAE5;
+    border-color: var(--color-primary-bg);
     box-shadow: 0 2px 8px rgba(16, 185, 129, 0.06);
   }
 }
@@ -329,7 +329,7 @@ onMounted(() => {
 
 .target-period {
   font-size: 13px;
-  color: #64748B;
+  color: var(--color-text-secondary);
   font-weight: 500;
 }
 
@@ -345,7 +345,7 @@ onMounted(() => {
 }
 
 .target-metric-item {
-  padding: 10px 12px;
+  padding: var(--space-2-5) 12px;
   border-radius: 8px;
   background: #fff;
   border: 1px solid #f1f5f9;
@@ -354,7 +354,7 @@ onMounted(() => {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 6px;
+    margin-bottom: var(--space-1-5);
   }
 
   .metric-name {
@@ -366,42 +366,42 @@ onMounted(() => {
   .metric-rate {
     font-size: 14px;
     font-weight: 700;
-    color: #10B981;
+    color: var(--color-primary);
 
     &.warning {
-      color: #F59E0B;
+      color: var(--color-warning);
     }
 
     &.danger {
-      color: #EF4444;
+      color: var(--color-danger);
     }
   }
 
   .metric-progress-bar {
     height: 6px;
-    border-radius: 3px;
-    background: #E2E8F0;
+    border-radius: var(--radius-xs);
+    background: var(--color-border);
     overflow: hidden;
   }
 
   .progress-fill {
     height: 100%;
-    border-radius: 3px;
-    background: linear-gradient(90deg, #10B981, #34D399);
+    border-radius: var(--radius-xs);
+    background: linear-gradient(90deg, var(--color-primary), var(--color-primary-light));
     transition: width 0.6s ease;
 
     &.warning {
-      background: linear-gradient(90deg, #F59E0B, #FBBF24);
+      background: linear-gradient(90deg, var(--color-warning), #FBBF24);
     }
 
     &.danger {
-      background: linear-gradient(90deg, #EF4444, #F87171);
+      background: linear-gradient(90deg, var(--color-danger), #F87171);
     }
   }
 
   .metric-detail {
     font-size: 12px;
-    color: #94A3B8;
+    color: var(--color-text-placeholder);
     margin-top: 4px;
   }
 }

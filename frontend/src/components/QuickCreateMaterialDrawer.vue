@@ -16,7 +16,7 @@
     <template #header>
       <div class="drawer-header">
         <div class="header-left">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2"
             stroke-linecap="round" stroke-linejoin="round">
             <path d="M12 2L2 7L12 12L22 7L12 2Z" />
             <path d="M2 17L12 22L22 17" />
@@ -116,7 +116,7 @@
 
       <div class="drawer-card nutrition-card">
         <div class="card-header">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2"
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--color-warning)" stroke-width="2"
             stroke-linecap="round" stroke-linejoin="round">
             <path d="M18 8h1a4 4 0 0 1 0 8h-1" />
             <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z" />
@@ -195,7 +195,7 @@
 
       <div v-if="missingFieldHints.length > 0" class="drawer-card hint-card">
         <div class="card-header">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2"
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--color-warning)" stroke-width="2"
             stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="10" />
             <line x1="12" y1="8" x2="12" y2="12" />
@@ -442,7 +442,7 @@ const handleSubmit = async () => {
 
   :deep(.t-input.t-is-focused),
   :deep(.t-input-number.t-is-focused) {
-    border-color: #10b981 !important;
+    border-color: var(--color-primary) !important;
   }
 
   :deep(.t-input.t-is-focused .t-input__inner),
@@ -459,12 +459,12 @@ const handleSubmit = async () => {
     .header-left {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: var(--space-2-5);
 
       .header-title {
         font-size: 17px;
         font-weight: 600;
-        color: #1e293b;
+        color: var(--color-text-primary);
       }
     }
 
@@ -472,8 +472,8 @@ const handleSubmit = async () => {
       .confirm-btn {
         display: inline-flex;
         align-items: center;
-        gap: 6px;
-        padding: 7px 18px;
+        gap: var(--space-1-5);
+        padding: var(--space-2) var(--space-4-5);
         border-radius: 8px;
         font-size: 13px;
         font-weight: 600;
@@ -482,11 +482,11 @@ const handleSubmit = async () => {
         transition: all 0.2s ease;
 
         &.create-btn {
-          background: #10b981;
+          background: var(--color-primary);
           color: #fff;
 
           &:hover {
-            background: #059669;
+            background: var(--color-primary-dark);
           }
         }
 
@@ -503,7 +503,7 @@ const handleSubmit = async () => {
   }
 
   .drawer-card {
-    margin: 0 28px 16px;
+    margin: 0 var(--space-7) 16px;
 
     &:first-of-type {
       margin-top: 16px;
@@ -522,11 +522,11 @@ const handleSubmit = async () => {
     }
 
     &.nutrition-card {
-      border-left: 3px solid #10b981;
+      border-left: 3px solid var(--color-primary);
     }
 
     &.hint-card {
-      border-left: 3px solid #f59e0b;
+      border-left: 3px solid var(--color-warning);
     }
 
     .card-header {
@@ -534,13 +534,13 @@ const handleSubmit = async () => {
       align-items: center;
       gap: 8px;
       padding: 12px 16px;
-      background: #f8fafc;
+      background: var(--color-bg-page);
       border-bottom: 1px solid #f1f5f9;
 
       span {
         font-size: 14px;
         font-weight: 600;
-        color: #334155;
+        color: var(--color-text-primary);
       }
     }
 
@@ -570,8 +570,8 @@ const handleSubmit = async () => {
   :deep(.t-form__label) {
     font-size: 13px;
     font-weight: 600;
-    color: #334155;
-    margin-bottom: 6px;
+    color: var(--color-text-primary);
+    margin-bottom: var(--space-1-5);
   }
 
   :deep(.t-input),
@@ -586,8 +586,8 @@ const handleSubmit = async () => {
     cursor: not-allowed;
 
     .t-input__inner {
-      color: #64748b;
-      -webkit-text-fill-color: #64748b;
+      color: var(--color-text-secondary);
+      -webkit-text-fill-color: var(--color-text-secondary);
     }
   }
 
@@ -599,11 +599,11 @@ const handleSubmit = async () => {
     font-size: 11px;
 
     &--info {
-      color: #10b981;
+      color: var(--color-primary);
     }
 
     &--warn {
-      color: #f59e0b;
+      color: var(--color-warning);
     }
   }
 
@@ -617,9 +617,9 @@ const handleSubmit = async () => {
     margin-left: auto;
     font-size: 11px;
     font-weight: 500;
-    color: #059669;
-    background: #d1fae5;
-    padding: 2px 8px;
+    color: var(--color-primary-dark);
+    background: var(--color-primary-bg);
+    padding: var(--space-0-5) 8px;
     border-radius: 6px;
   }
 
@@ -649,9 +649,9 @@ const handleSubmit = async () => {
     top: 0;
     right: 0;
     font-size: 10px;
-    color: #059669;
-    background: #d1fae5;
-    padding: 1px 6px;
+    color: var(--color-primary-dark);
+    background: var(--color-primary-bg);
+    padding: 1px var(--space-1-5);
     border-radius: 4px;
     font-weight: 600;
   }
@@ -659,13 +659,13 @@ const handleSubmit = async () => {
   .missing-fields-list {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
+    gap: var(--space-1-5);
 
     .missing-field-tag {
       font-size: 11px;
       color: #b45309;
       background: #fef3c7;
-      padding: 3px 10px;
+      padding: var(--space-1) var(--space-2-5);
       border-radius: 6px;
       font-weight: 600;
       cursor: default;

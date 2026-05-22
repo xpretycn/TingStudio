@@ -90,7 +90,7 @@ function autoResize() {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 3px 10px;
+  padding: var(--space-1) var(--space-2-5);
   margin-bottom: 8px;
   border: 1px dashed $border-color;
   border-radius: 6px;
@@ -110,7 +110,7 @@ function autoResize() {
 .cmd-bar {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: var(--space-1-5);
   margin-bottom: 8px;
 }
 
@@ -118,7 +118,7 @@ function autoResize() {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 4px 10px;
+  padding: 4px var(--space-2-5);
   border: 1px solid $border-color;
   border-radius: 6px;
   background: $bg-page;
@@ -156,7 +156,7 @@ function autoResize() {
   background: $bg-page;
   border: 1px solid $border-color;
   border-radius: 12px;
-  padding: 8px 8px 8px 14px;
+  padding: 8px 8px 8px var(--space-3-5);
   transition: border-color 0.2s;
 
   &:focus-within {

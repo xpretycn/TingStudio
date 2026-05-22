@@ -304,7 +304,7 @@ function formatNumber(num: number): string {
 
         .alert-title {
           font-weight: 500;
-          margin-bottom: 2px;
+          margin-bottom: var(--space-0-5);
         }
 
         .alert-message {
@@ -356,7 +356,7 @@ function formatNumber(num: number): string {
 
       &--cache {
         background: rgba(16, 185, 129, 0.1);
-        color: #10b981;
+        color: var(--color-primary);
       }
 
       &--tokens {
@@ -424,7 +424,7 @@ function formatNumber(num: number): string {
           font-size: 12px;
           color: #666;
           background: #e8e8e8;
-          padding: 2px 6px;
+          padding: var(--space-0-5) var(--space-1-5);
           border-radius: 4px;
         }
 
@@ -473,7 +473,7 @@ function formatNumber(num: number): string {
         font-weight: 500;
 
         &--success {
-          color: #10b981;
+          color: var(--color-primary);
         }
 
         &--error {
@@ -481,7 +481,7 @@ function formatNumber(num: number): string {
         }
 
         &--pending {
-          color: #f59e0b;
+          color: var(--color-warning);
         }
       }
     }

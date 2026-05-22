@@ -75,7 +75,7 @@
           <div v-if="selectedFile && !aiStore.parseLoading && !aiStore.parseResult && !aiStore.parseAborted"
             class="file-selected-row">
             <div class="file-info">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2"
                 stroke-linecap="round" stroke-linejoin="round">
                 <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
                 <polyline points="14 2 14 8 20 8" />
@@ -122,7 +122,7 @@
               </div>
             </div>
             <div v-if="selectedFile" class="progress-file-info">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2"
                 stroke-linecap="round" stroke-linejoin="round">
                 <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
                 <polyline points="14 2 14 8 20 8" />
@@ -295,7 +295,7 @@
                       <span class="qt-badge-info">
                         <svg v-if="quoteAdjustedCount > 0" viewBox="0 0 14 14" width="13" height="13">
                           <path d="M7 1L8.75 5.25L13 6L9.75 9L10.5 13.25L7 11L3.5 13.25L4.25 9L1 6L5.25 5.25Z"
-                            fill="#f59e0b" />
+                            fill="var(--color-warning)" />
                         </svg>
                         <template v-if="quoteAdjustedCount > 0">{{ quoteAdjustedCount }} 项单价已调整</template>
                         <template v-if="quoteAdjustedCount > 0 && qtyAdjustedCount > 0">，</template>
@@ -416,7 +416,7 @@
 
                   <div v-if="submitBlockReasons.length" class="submit-block-reasons">
                     <div class="sbr-header">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-warning)" stroke-width="2"
                         stroke-linecap="round" stroke-linejoin="round">
                         <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
                         <line x1="12" y1="9" x2="12" y2="13" />
@@ -497,7 +497,7 @@
       <div class="form-card">
         <div class="form-card-header">
           <h4 class="form-card-title">
-            <t-icon name="edit-1" style="color: #10b981" />
+            <t-icon name="edit-1" style="color: var(--color-primary)" />
             创建配方
           </h4>
           <button class="form-close-btn" @click="showFormSection = false">
@@ -517,7 +517,7 @@
               <t-option v-for="s in salesmenList" :key="s.id" :value="s.id" :label="s.name" />
               <template #panelTopContent>
                 <div class="quick-create-salesman" @click="openQuickCreateSalesman">
-                  <t-icon name="add" size="14px" style="color: #10b981" />
+                  <t-icon name="add" size="14px" style="color: var(--color-primary)" />
                   快速创建业务员
                 </div>
               </template>
@@ -526,7 +526,7 @@
               style="margin-top: 8px; border-radius: 10px; font-size: 12px;">
               <template v-if="parsedSalesmanName">业务员「{{ parsedSalesmanName }}」不在系统中，请选择已有业务员或</template>
               <template v-else>AI 未能识别业务员信息，请选择已有业务员或</template>
-              <a style="color: #10b981; cursor: pointer; font-weight: 600;" @click="openQuickCreateSalesman">快速创建</a>
+              <a style="color: var(--color-primary); cursor: pointer; font-weight: 600;" @click="openQuickCreateSalesman">快速创建</a>
             </t-alert>
           </t-form-item>
 
@@ -567,7 +567,7 @@
                 </button>
               </div>
               <button class="add-material-btn" @click="addMaterial">
-                <t-icon name="add" size="14px" style="color: #10b981" />
+                <t-icon name="add" size="14px" style="color: var(--color-primary)" />
                 添加原料
               </button>
             </div>
@@ -595,14 +595,14 @@
     <div v-if="submitSuccess" class="submit-success-section">
       <div class="success-card">
         <div class="success-icon">
-          <t-icon name="check-circle" size="48px" style="color: #10b981" />
+          <t-icon name="check-circle" size="48px" style="color: var(--color-primary)" />
         </div>
         <h4 class="success-title">配方创建成功</h4>
         <p class="success-desc">配方「{{ submittedName }}」已成功创建并保存。</p>
 
         <div v-if="uploadedFileInfo" class="success-file-info">
           <div class="sfi-header">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2"
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2"
               stroke-linecap="round" stroke-linejoin="round">
               <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
               <polyline points="14 2 14 8 20 8" />
@@ -649,7 +649,7 @@
       :cancel-btn="{ content: '取消' }" @confirm="handleSaveFormulaTemplate">
       <template #header>
         <div class="save-template-dialog-header">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2"
             stroke-linecap="round" stroke-linejoin="round">
             <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z" />
             <polyline points="17 21 17 13 7 13 7 21" />
@@ -1428,7 +1428,7 @@ const getFallbackLetter = (model: any): string => {
 
 const getFallbackColor = (model: any): string => {
   const slug = getModelSlug(model);
-  return FALLBACK_ICONS[slug]?.color || '#94a3b8';
+  return FALLBACK_ICONS[slug]?.color || 'var(--color-text-placeholder)';
 };
 
 const handleLogoError = (e: Event, _model: any) => {
@@ -1990,11 +1990,11 @@ const goToFileDetail = () => {
 }
 
 .ai-panel {
-  background: linear-gradient(145deg, #ffffff 0%, #f8fafc 50%, $border-color-light 100%);
+  background: linear-gradient(145deg, #ffffff 0%, var(--color-bg-page) 50%, $border-color-light 100%);
   padding: 32px 20px;
   border-radius: 2.5rem;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.06), 0 8px 10px -6px $overlay-emerald-06;
-  color: #334155;
+  color: var(--color-text-primary);
   position: relative;
   overflow: hidden;
   animation: fadeInUp 0.5s ease both;
@@ -2065,8 +2065,8 @@ const goToFileDetail = () => {
       .status-indicator {
         display: inline-flex;
         align-items: center;
-        gap: 6px;
-        padding: 5px 12px;
+        gap: var(--space-1-5);
+        padding: var(--space-1-25) 12px;
         border-radius: 20px;
         font-size: 12px;
         font-weight: 600;
@@ -2081,7 +2081,7 @@ const goToFileDetail = () => {
 
       .status-indicator--done {
         background: rgba(16, 185, 129, 0.08);
-        color: #059669;
+        color: var(--color-primary-dark);
         border: 1px solid rgba(16, 185, 129, 0.15);
       }
 
@@ -2093,10 +2093,10 @@ const goToFileDetail = () => {
 
       .status-indicator--aborted {
         background: rgba(239, 68, 68, 0.08);
-        color: #dc2626;
+        color: var(--color-danger);
         border: 1px solid rgba(239, 68, 68, 0.15);
         margin-top: 24px;
-        padding: 10px 14px;
+        padding: var(--space-2-5) var(--space-3-5);
         transition: all 0.3s ease;
         animation: aborted-fade-in 0.3s ease-out;
       }
@@ -2115,16 +2115,16 @@ const goToFileDetail = () => {
       }
 
       .status-dot--done {
-        background: #10b981;
+        background: var(--color-primary);
       }
 
       .status-dot--ready {
-        background: #f59e0b;
+        background: var(--color-warning);
         animation: dot-blink 2s ease-in-out infinite;
       }
 
       .status-dot--aborted {
-        background: #ef4444;
+        background: var(--color-danger);
       }
 
       .status-text {
@@ -2176,7 +2176,7 @@ const goToFileDetail = () => {
   .ai-body {
     .upload-zone {
       border: 2px dashed rgba(148, 163, 184, 0.25);
-      border-radius: 24px;
+      border-radius: var(--radius-4xl);
       padding: 32px;
       display: flex;
       flex-direction: column;
@@ -2220,7 +2220,7 @@ const goToFileDetail = () => {
 
         .upload-hint {
           font-size: 10px;
-          color: #64748b;
+          color: var(--color-text-secondary);
           margin: 4px 0 0;
         }
       }
@@ -2229,9 +2229,9 @@ const goToFileDetail = () => {
     .template-selector {
       display: flex;
       align-items: flex-start;
-      gap: 10px;
+      gap: var(--space-2-5);
       margin-top: 12px;
-      padding: 10px 16px;
+      padding: var(--space-2-5) 16px;
       background: rgba(99, 102, 241, 0.04);
       border: 1px solid rgba(99, 102, 241, 0.12);
       border-radius: 12px;
@@ -2239,13 +2239,13 @@ const goToFileDetail = () => {
       .template-selector-label {
         display: flex;
         align-items: center;
-        gap: 6px;
+        gap: var(--space-1-5);
         font-size: 13px;
         font-weight: 600;
         color: #6366f1;
         white-space: nowrap;
         flex-shrink: 0;
-        margin-top: 5px;
+        margin-top: var(--space-1-25);
       }
     }
 
@@ -2254,7 +2254,7 @@ const goToFileDetail = () => {
       align-items: center;
       justify-content: space-between;
       margin-top: 16px;
-      padding: 14px 18px;
+      padding: var(--space-3-5) var(--space-4-5);
       background: linear-gradient(135deg, #ecfdf5, #f0fdf4);
       border: 1px solid #bbf7d0;
       border-radius: 12px;
@@ -2264,7 +2264,7 @@ const goToFileDetail = () => {
         align-items: center;
         gap: 8px;
         font-size: 14px;
-        color: #334155;
+        color: var(--color-text-primary);
         font-weight: 500;
 
         .file-name {
@@ -2275,15 +2275,15 @@ const goToFileDetail = () => {
         }
 
         .file-size {
-          color: #94a3b8;
+          color: var(--color-text-placeholder);
           font-size: 12px;
           font-weight: 400;
         }
 
         .file-format {
-          padding: 1px 6px;
+          padding: 1px var(--space-1-5);
           background: rgba(16, 185, 129, 0.1);
-          color: #059669;
+          color: var(--color-primary-dark);
           border-radius: 4px;
           font-size: 11px;
           font-weight: 700;
@@ -2300,10 +2300,10 @@ const goToFileDetail = () => {
     .parse-btn {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      padding: 8px 18px;
+      gap: var(--space-1-5);
+      padding: 8px var(--space-4-5);
       border-radius: 10px;
-      background: linear-gradient(135deg, #10b981, #059669);
+      background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
       color: #fff;
       font-size: 13px;
       font-weight: 700;
@@ -2331,30 +2331,30 @@ const goToFileDetail = () => {
       border-radius: 8px;
       border: none;
       background: #fff;
-      color: #94a3b8;
+      color: var(--color-text-placeholder);
       cursor: pointer;
       transition: all $transition-fast;
 
       &:hover {
         background: #fef2f2;
-        color: #ef4444;
+        color: var(--color-danger);
       }
 
       &--with-text {
         width: auto;
         height: auto;
-        padding: 8px 18px;
-        gap: 6px;
+        padding: 8px var(--space-4-5);
+        gap: var(--space-1-5);
         font-size: 13px;
         font-weight: 700;
         border-radius: 10px;
-        border: 1px solid #e2e8f0;
+        border: 1px solid var(--color-border);
         background: #fff;
-        color: #94a3b8;
+        color: var(--color-text-placeholder);
 
         &:hover {
           background: #fef2f2;
-          color: #ef4444;
+          color: var(--color-danger);
           border-color: #fecaca;
         }
       }
@@ -2363,7 +2363,7 @@ const goToFileDetail = () => {
     .parsing-progress {
       padding: 24px;
       background: $overlay-emerald-04;
-      border-radius: 24px;
+      border-radius: var(--radius-4xl);
       border: 1px solid rgba(148, 163, 184, 0.18);
 
       .progress-header {
@@ -2375,7 +2375,7 @@ const goToFileDetail = () => {
         .progress-status {
           font-size: 12px;
           font-weight: 700;
-          color: #64748b;
+          color: var(--color-text-secondary);
         }
 
         .progress-right {
@@ -2393,7 +2393,7 @@ const goToFileDetail = () => {
         .progress-timer {
           display: inline-flex;
           align-items: center;
-          padding: 2px 10px;
+          padding: var(--space-0-5) var(--space-2-5);
           background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
           color: #fff;
           font-size: 11px;
@@ -2419,9 +2419,9 @@ const goToFileDetail = () => {
         .abort-btn {
           display: inline-flex;
           align-items: center;
-          gap: 5px;
-          padding: 5px 14px;
-          background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+          gap: var(--space-1-25);
+          padding: var(--space-1-25) var(--space-3-5);
+          background: linear-gradient(135deg, var(--color-danger) 0%, var(--color-danger) 100%);
           color: #fff;
           font-size: 12px;
           font-weight: 600;
@@ -2430,12 +2430,12 @@ const goToFileDetail = () => {
           cursor: pointer;
           transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
           box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
-          margin-left: 10px;
+          margin-left: var(--space-2-5);
 
           &:hover {
             transform: translateY(-1px);
             box-shadow: 0 4px 12px rgba(239, 68, 68, 0.45);
-            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+            background: linear-gradient(135deg, var(--color-danger) 0%, #b91c1c 100%);
           }
 
           &:active {
@@ -2455,7 +2455,7 @@ const goToFileDetail = () => {
       .progress-file-info {
         display: flex;
         align-items: center;
-        gap: 6px;
+        gap: var(--space-1-5);
         padding: 8px 12px;
         background: rgba(16, 185, 129, 0.06);
         border-radius: 8px;
@@ -2464,7 +2464,7 @@ const goToFileDetail = () => {
         .progress-file-name {
           font-size: 13px;
           font-weight: 600;
-          color: #334155;
+          color: var(--color-text-primary);
           max-width: 260px;
           overflow: hidden;
           text-overflow: ellipsis;
@@ -2473,7 +2473,7 @@ const goToFileDetail = () => {
 
         .progress-file-size {
           font-size: 11px;
-          color: #94a3b8;
+          color: var(--color-text-placeholder);
           flex-shrink: 0;
         }
       }
@@ -2481,7 +2481,7 @@ const goToFileDetail = () => {
       .progress-bar {
         height: 6px;
         background: rgba(148, 163, 184, 0.20);
-        border-radius: 3px;
+        border-radius: var(--radius-xs);
         overflow: hidden;
         margin-bottom: 12px;
 
@@ -2489,7 +2489,7 @@ const goToFileDetail = () => {
           height: 100%;
           background: $gradient-emerald-light;
           background-size: 200% 100%;
-          border-radius: 3px;
+          border-radius: var(--radius-xs);
 
           &--indeterminate {
             width: 40% !important;
@@ -2500,7 +2500,7 @@ const goToFileDetail = () => {
 
       .progress-hint {
         font-size: 10px;
-        color: #64748b;
+        color: var(--color-text-secondary);
         font-style: italic;
         margin: 0;
       }
@@ -2508,9 +2508,9 @@ const goToFileDetail = () => {
       .progress-model-info {
         display: flex;
         align-items: center;
-        gap: 6px;
-        margin-top: 10px;
-        padding: 6px 10px;
+        gap: var(--space-1-5);
+        margin-top: var(--space-2-5);
+        padding: var(--space-1-5) var(--space-2-5);
         background: rgba(99, 102, 241, 0.06);
         border: 1px solid rgba(99, 102, 241, 0.12);
         border-radius: 8px;
@@ -2527,13 +2527,13 @@ const goToFileDetail = () => {
         }
 
         .model-version {
-          color: #94a3b8;
+          color: var(--color-text-placeholder);
           font-family: monospace;
           font-size: 10px;
         }
 
         .model-feature {
-          padding: 1px 6px;
+          padding: 1px var(--space-1-5);
           background: rgba(99, 102, 241, 0.1);
           border-radius: 4px;
           font-size: 10px;
@@ -2548,11 +2548,11 @@ const goToFileDetail = () => {
       justify-content: space-between;
       gap: 8px;
       margin-top: 16px;
-      padding: 14px 18px;
+      padding: var(--space-3-5) var(--space-4-5);
       background: $color-danger-bg;
       border: 1px solid $color-danger-medium;
       border-radius: 16px;
-      color: #dc2626;
+      color: var(--color-danger);
       font-size: 12px;
       font-weight: 600;
 
@@ -2585,11 +2585,11 @@ const goToFileDetail = () => {
       .error-dismiss {
         background: none;
         border: none;
-        color: #dc2626;
+        color: var(--color-danger);
         cursor: pointer;
         font-size: 14px;
         opacity: 0.5;
-        padding: 2px 4px;
+        padding: var(--space-0-5) 4px;
         transition: opacity 0.2s;
 
         &:hover {
@@ -2601,8 +2601,8 @@ const goToFileDetail = () => {
         display: flex;
         align-items: center;
         gap: 4px;
-        padding: 5px 12px;
-        background: linear-gradient(135deg, #f59e0b, #d97706);
+        padding: var(--space-1-25) 12px;
+        background: linear-gradient(135deg, var(--color-warning), #d97706);
         color: #fff;
         border: none;
         border-radius: 8px;
@@ -2635,7 +2635,7 @@ const goToFileDetail = () => {
         min-width: 0;
         display: flex;
         flex-direction: column;
-        gap: 14px;
+        gap: var(--space-3-5);
       }
 
       .result-right {
@@ -2660,7 +2660,7 @@ const goToFileDetail = () => {
   .card-header {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--space-1-5);
     padding: 12px 16px;
     font-size: 12px;
     font-weight: 800;
@@ -2682,7 +2682,7 @@ const goToFileDetail = () => {
     .card-header-left {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: var(--space-1-5);
     }
 
     &--warning {
@@ -2691,7 +2691,7 @@ const goToFileDetail = () => {
       border-bottom-color: #fde68a;
 
       .t-icon {
-        color: #f59e0b;
+        color: var(--color-warning);
       }
     }
 
@@ -2708,7 +2708,7 @@ const goToFileDetail = () => {
       display: inline-flex;
       align-items: center;
       gap: 4px;
-      padding: 4px 10px;
+      padding: 4px var(--space-2-5);
       border-radius: 6px;
       font-size: 11px;
       font-weight: 600;
@@ -2728,12 +2728,12 @@ const goToFileDetail = () => {
   .batch-action-bar {
     position: relative;
     z-index: 20;
-    background-color: #059669;
+    background-color: var(--color-primary-dark);
     color: #fff;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 10px 16px;
+    padding: var(--space-2-5) 16px;
     border-radius: 0;
     box-shadow: 0 4px 18px rgba(5, 150, 105, 0.25);
 
@@ -2778,7 +2778,7 @@ const goToFileDetail = () => {
         transition: all $transition-fast;
 
         &:hover:not(:disabled) {
-          color: #d1fae5;
+          color: var(--color-primary-bg);
         }
 
         &:disabled {
@@ -2791,7 +2791,7 @@ const goToFileDetail = () => {
     .batch-cancel-btn {
       font-size: 13px;
       font-weight: 500;
-      border: 1px solid #34d399;
+      border: 1px solid var(--color-primary-light);
       padding: 4px 12px;
       border-radius: 8px;
       background: transparent;
@@ -2800,7 +2800,7 @@ const goToFileDetail = () => {
       transition: all $transition-fast;
 
       &:hover {
-        background-color: #047857;
+        background-color: var(--color-primary-deep);
       }
     }
   }
@@ -2823,7 +2823,7 @@ const goToFileDetail = () => {
   }
 
   .card-body {
-    padding: 14px 16px;
+    padding: var(--space-3-5) 16px;
 
     &--materials {
       padding: 0;
@@ -2858,18 +2858,18 @@ const goToFileDetail = () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 6px 0;
+  padding: var(--space-1-5) 0;
   font-size: 12px;
 
   .info-label {
-    color: #64748b;
+    color: var(--color-text-secondary);
     flex-shrink: 0;
     font-weight: 500;
   }
 
   .info-value {
     font-weight: 700;
-    color: #334155;
+    color: var(--color-text-primary);
     text-align: right;
 
     &--primary {
@@ -2894,7 +2894,7 @@ const goToFileDetail = () => {
   }
 
   .info-badge {
-    padding: 2px 8px;
+    padding: var(--space-0-5) 8px;
     background: $overlay-emerald-12;
     color: $emerald-600;
     border-radius: 4px;
@@ -2905,23 +2905,23 @@ const goToFileDetail = () => {
   &--desc {
     flex-direction: column;
     align-items: flex-start;
-    gap: 6px;
+    gap: var(--space-1-5);
     padding: 8px 0;
 
     .info-label {
       font-weight: 600;
-      color: #475569;
+      color: var(--color-text-secondary);
     }
   }
 
   &--editable {
     align-items: center;
     gap: 8px;
-    padding: 6px 0;
+    padding: var(--space-1-5) 0;
 
     .info-label {
       font-weight: 600;
-      color: #475569;
+      color: var(--color-text-secondary);
       flex-shrink: 0;
       white-space: nowrap;
     }
@@ -2956,7 +2956,7 @@ const goToFileDetail = () => {
 .info-input-wrap {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--space-1-5);
   width: 200px;
   flex-shrink: 0;
   justify-content: flex-end;
@@ -2968,10 +2968,10 @@ const goToFileDetail = () => {
   justify-content: center;
   width: 26px;
   height: 26px;
-  border-radius: 7px;
-  border: 1px solid #e2e8f0;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
   background: #fff;
-  color: #64748b;
+  color: var(--color-text-secondary);
   cursor: pointer;
   transition: all 0.2s;
   flex-shrink: 0;
@@ -2980,7 +2980,7 @@ const goToFileDetail = () => {
 
   &:hover {
     background: #fef3c7;
-    border-color: #f59e0b;
+    border-color: var(--color-warning);
     color: #d97706;
     transform: scale(1.1);
   }
@@ -3036,7 +3036,7 @@ const goToFileDetail = () => {
 
 .info-input-unit {
   font-size: 12px;
-  color: #64748b;
+  color: var(--color-text-secondary);
   font-weight: 500;
   flex-shrink: 0;
 }
@@ -3044,14 +3044,14 @@ const goToFileDetail = () => {
 .info-desc {
   font-size: 12px;
   line-height: 1.7;
-  color: #334155;
+  color: var(--color-text-primary);
   text-align: justify;
   word-break: break-word;
   white-space: pre-wrap;
   background: rgba(16, 185, 129, 0.04);
   border: 1px solid rgba(16, 185, 129, 0.12);
   border-radius: 8px;
-  padding: 10px 12px;
+  padding: var(--space-2-5) 12px;
   width: 100%;
   max-height: 260px;
   overflow-y: auto;
@@ -3067,7 +3067,7 @@ const goToFileDetail = () => {
   align-items: center;
   justify-content: space-between;
   margin-top: 12px;
-  padding: 10px 14px;
+  padding: var(--space-2-5) var(--space-3-5);
   border-radius: 12px;
   background: linear-gradient(135deg, #fffbeb, #fef3c7);
   border: 1px solid #fcd34d;
@@ -3075,7 +3075,7 @@ const goToFileDetail = () => {
   .qt-badge-info {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--space-1-5);
     font-size: 12px;
     color: #92400e;
     font-weight: 600;
@@ -3085,7 +3085,7 @@ const goToFileDetail = () => {
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    padding: 5px 14px;
+    padding: var(--space-1-25) var(--space-3-5);
     border: 1px solid rgba(217, 119, 6, 0.25);
     border-radius: 8px;
     background: rgba(255, 255, 255, 0.8);
@@ -3110,11 +3110,11 @@ const goToFileDetail = () => {
 .quote-warn-text {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--space-1-5);
   font-size: 12px;
-  color: #f59e0b;
+  color: var(--color-warning);
   background: #fffbeb;
-  padding: 8px 14px;
+  padding: 8px var(--space-3-5);
   border-radius: 12px;
   border: 1px solid #fde68a;
   margin-top: 8px;
@@ -3123,7 +3123,7 @@ const goToFileDetail = () => {
 .quote-summary {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--space-2-5);
   margin-top: 12px;
 
   .qs-row {
@@ -3133,44 +3133,44 @@ const goToFileDetail = () => {
     font-size: 14px;
 
     label {
-      color: #64748b;
+      color: var(--color-text-secondary);
       font-weight: 500;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: var(--space-1-5);
     }
 
     span {
       font-family: ui-monospace, SFMono-Regular, 'Cascadia Code', monospace;
       font-weight: 600;
-      color: #334155;
+      color: var(--color-text-primary);
     }
   }
 
   .qs-label-icon {
-    color: #94a3b8;
+    color: var(--color-text-placeholder);
     flex-shrink: 0;
   }
 
   .qs-label-icon--final {
-    color: #059669;
+    color: var(--color-primary-dark);
   }
 
   .qs-total span,
   .qs-subtotal span {
-    color: #059669;
+    color: var(--color-primary-dark);
   }
 
   .qs-final {
     label {
-      color: #059669;
+      color: var(--color-primary-dark);
       font-weight: 700;
       font-size: 15px;
     }
 
     span {
       font-size: 18px;
-      color: #059669;
+      color: var(--color-primary-dark);
       font-weight: 800;
     }
   }
@@ -3178,7 +3178,7 @@ const goToFileDetail = () => {
   .qs-input-wrap {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--space-1-5);
 
     :deep(.t-input-number),
     :deep(.t-input-number .t-input__inner) {
@@ -3188,12 +3188,12 @@ const goToFileDetail = () => {
 
   .qs-unit {
     font-size: 12px;
-    color: #94a3b8;
+    color: var(--color-text-placeholder);
   }
 
   .qs-divider {
     height: 1px;
-    background: #e2e8f0;
+    background: var(--color-border);
 
     &--bold {
       background: #cbd5e1;
@@ -3204,13 +3204,13 @@ const goToFileDetail = () => {
 .confidence-items {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--space-1-5);
 
   .confidence-item {
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 5px 8px;
+    padding: var(--space-1-25) 8px;
     border-radius: 8px;
 
     &--high {
@@ -3230,25 +3230,25 @@ const goToFileDetail = () => {
       flex-shrink: 0;
       font-size: 11px;
       font-weight: 700;
-      color: #475569;
+      color: var(--color-text-secondary);
     }
 
     .ci-bar-wrap {
       flex: 1;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: var(--space-1-5);
 
       .ci-bar {
         flex: 1;
         height: 4px;
-        background: #e2e8f0;
-        border-radius: 2px;
+        background: var(--color-border);
+        border-radius: var(--radius-2xs);
         overflow: hidden;
 
         .ci-fill {
           height: 100%;
-          border-radius: 2px;
+          border-radius: var(--radius-2xs);
           transition: width 0.5s ease;
         }
       }
@@ -3270,7 +3270,7 @@ const goToFileDetail = () => {
     }
 
     &--medium .ci-fill {
-      background: linear-gradient(90deg, #d97706, #f59e0b);
+      background: linear-gradient(90deg, #d97706, var(--color-warning));
     }
 
     &--medium .ci-value {
@@ -3278,11 +3278,11 @@ const goToFileDetail = () => {
     }
 
     &--low .ci-fill {
-      background: linear-gradient(90deg, #dc2626, #ef4444);
+      background: linear-gradient(90deg, var(--color-danger), var(--color-danger));
     }
 
     &--low .ci-value {
-      color: #dc2626;
+      color: var(--color-danger);
     }
   }
 }
@@ -3291,14 +3291,14 @@ const goToFileDetail = () => {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 6px 14px;
+  padding: var(--space-1-5) var(--space-3-5);
   border-radius: 10px;
   font-size: 12px;
   font-weight: 600;
   border: none;
   cursor: pointer;
   transition: all $transition-fast;
-  background: linear-gradient(135deg, #10b981, #059669);
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
   color: #fff;
   flex-shrink: 0;
 
@@ -3311,7 +3311,7 @@ const goToFileDetail = () => {
 .salesman-match-actions {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--space-2-5);
   flex-wrap: wrap;
 
   .salesman-select {
@@ -3355,7 +3355,7 @@ const goToFileDetail = () => {
 
 .ratio-validation-card {
   margin-bottom: 12px;
-  padding: 14px 16px;
+  padding: var(--space-3-5) 16px;
   background: #fff;
   border-radius: 12px;
   border: 1px solid rgba(148, 163, 184, 0.15);
@@ -3384,7 +3384,7 @@ const goToFileDetail = () => {
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-bottom: 10px;
+    margin-bottom: var(--space-2-5);
 
     .t-icon {
       flex-shrink: 0;
@@ -3394,19 +3394,19 @@ const goToFileDetail = () => {
   .ratio-validation-title {
     font-size: 13px;
     font-weight: 700;
-    color: #334155;
+    color: var(--color-text-primary);
   }
 
   .ratio-validation-badge {
     margin-left: auto;
-    padding: 2px 10px;
+    padding: var(--space-0-5) var(--space-2-5);
     border-radius: 10px;
     font-size: 11px;
     font-weight: 700;
 
     &.badge--normal {
       background: rgba(16, 185, 129, 0.12);
-      color: #059669;
+      color: var(--color-primary-dark);
     }
 
     &.badge--warning {
@@ -3421,7 +3421,7 @@ const goToFileDetail = () => {
 
     &.badge--error {
       background: rgba(239, 68, 68, 0.12);
-      color: #dc2626;
+      color: var(--color-danger);
     }
   }
 
@@ -3450,8 +3450,8 @@ const goToFileDetail = () => {
         top: -3px;
         width: 3px;
         height: 14px;
-        background: #334155;
-        border-radius: 2px;
+        background: var(--color-text-primary);
+        border-radius: var(--radius-2xs);
         transform: translateX(-50%);
         transition: left 0.3s ease;
         z-index: 2;
@@ -3462,11 +3462,11 @@ const goToFileDetail = () => {
       display: flex;
       justify-content: space-between;
       font-size: 10px;
-      color: #94a3b8;
-      margin-bottom: 10px;
+      color: var(--color-text-placeholder);
+      margin-bottom: var(--space-2-5);
 
       .ratio-bar-center {
-        color: #059669;
+        color: var(--color-primary-dark);
         font-weight: 700;
       }
     }
@@ -3475,25 +3475,25 @@ const goToFileDetail = () => {
       .ratio-detail-row {
         display: flex;
         align-items: center;
-        gap: 6px;
+        gap: var(--space-1-5);
         font-size: 12px;
         margin-bottom: 4px;
 
         .ratio-detail-label {
-          color: #64748b;
+          color: var(--color-text-secondary);
         }
 
         .ratio-detail-value {
           font-weight: 700;
           font-family: ui-monospace, monospace;
-          color: #334155;
+          color: var(--color-text-primary);
         }
 
         .ratio-detail-deviation {
           font-weight: 600;
 
           &.deviation--normal {
-            color: #059669;
+            color: var(--color-primary-dark);
           }
 
           &.deviation--warning {
@@ -3505,14 +3505,14 @@ const goToFileDetail = () => {
           }
 
           &.deviation--error {
-            color: #dc2626;
+            color: var(--color-danger);
           }
         }
       }
 
       .ratio-detail-desc {
         font-size: 11px;
-        color: #64748b;
+        color: var(--color-text-secondary);
         line-height: 1.5;
       }
     }
@@ -3523,7 +3523,7 @@ const goToFileDetail = () => {
   border-radius: 14px;
   font-weight: 700;
   font-size: 13px;
-  padding: 10px 20px;
+  padding: var(--space-2-5) 20px;
   height: auto;
   box-shadow: 0 4px 12px -2px $overlay-emerald-20;
   margin-bottom: 8px;
@@ -3531,7 +3531,7 @@ const goToFileDetail = () => {
 
 .submit-block-reasons {
   margin-bottom: 12px;
-  padding: 14px 16px;
+  padding: var(--space-3-5) 16px;
   background: linear-gradient(135deg, #fffbeb, #fef3c7);
   border: 1px solid #fde68a;
   border-radius: 12px;
@@ -3539,18 +3539,18 @@ const goToFileDetail = () => {
   .sbr-header {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--space-1-5);
     font-size: 13px;
     font-weight: 700;
     color: #92400e;
-    margin-bottom: 10px;
+    margin-bottom: var(--space-2-5);
   }
 
   .sbr-item {
     display: flex;
     align-items: flex-start;
     gap: 8px;
-    padding: 5px 0 5px 20px;
+    padding: var(--space-1-25) 0 var(--space-1-25) 20px;
     font-size: 12px;
     line-height: 1.5;
 
@@ -3559,7 +3559,7 @@ const goToFileDetail = () => {
       height: 6px;
       border-radius: 50%;
       flex-shrink: 0;
-      margin-top: 6px;
+      margin-top: var(--space-1-5);
     }
 
     .sbr-text {
@@ -3567,10 +3567,10 @@ const goToFileDetail = () => {
     }
 
     &--error {
-      color: #dc2626;
+      color: var(--color-danger);
 
       .sbr-dot {
-        background: #ef4444;
+        background: var(--color-danger);
       }
     }
 
@@ -3578,7 +3578,7 @@ const goToFileDetail = () => {
       color: #d97706;
 
       .sbr-dot {
-        background: #f59e0b;
+        background: var(--color-warning);
       }
     }
   }
@@ -3594,16 +3594,16 @@ const goToFileDetail = () => {
     align-items: center;
     justify-content: center;
     gap: 4px;
-    padding: 8px 14px;
+    padding: 8px var(--space-3-5);
     border-radius: 12px;
     font-size: 12px;
     font-weight: 600;
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--color-border);
     cursor: pointer;
     transition: all $transition-fast;
     white-space: nowrap;
     background: #fff;
-    color: #475569;
+    color: var(--color-text-secondary);
 
     .t-icon {
       font-size: 14px;
@@ -3611,16 +3611,16 @@ const goToFileDetail = () => {
 
     &:hover {
       background: #f1f5f9;
-      color: #334155;
+      color: var(--color-text-primary);
       border-color: #cbd5e1;
     }
 
     &--ghost {
       background: #fff;
-      border: 1px solid #e2e8f0;
+      border: 1px solid var(--color-border);
 
       .t-icon {
-        color: #94a3b8;
+        color: var(--color-text-placeholder);
       }
 
       &:hover {
@@ -3628,7 +3628,7 @@ const goToFileDetail = () => {
         border-color: #cbd5e1;
 
         .t-icon {
-          color: #64748b;
+          color: var(--color-text-secondary);
         }
       }
     }
@@ -3651,7 +3651,7 @@ const goToFileDetail = () => {
   .materials-header {
     display: grid;
     gap: 4px;
-    padding: 10px 14px;
+    padding: var(--space-2-5) var(--space-3-5);
     font-size: 11px;
     font-weight: 800;
     color: $emerald-600;
@@ -3692,9 +3692,9 @@ const goToFileDetail = () => {
   .materials-row {
     display: grid;
     gap: 4px;
-    padding: 9px 14px;
+    padding: var(--space-2) var(--space-3-5);
     font-size: 12px;
-    color: #334155;
+    color: var(--color-text-primary);
     border-top: 1px solid rgba(148, 163, 184, 0.08);
     align-items: center;
 
@@ -3708,14 +3708,14 @@ const goToFileDetail = () => {
 
     &--warn {
       .col-price-missing {
-        color: #f59e0b;
+        color: var(--color-warning);
         font-size: 11px;
         font-weight: 600;
       }
     }
 
     &--adjusted {
-      border-left: 3px solid #f59e0b;
+      border-left: 3px solid var(--color-warning);
       background: linear-gradient(90deg, rgba(254, 243, 199, 0.5) 0%, transparent 100%);
 
       .col-name {
@@ -3740,7 +3740,7 @@ const goToFileDetail = () => {
 
     &--new {
       background: rgba(16, 185, 129, 0.06);
-      border-left: 3px solid #10b981;
+      border-left: 3px solid var(--color-primary);
     }
 
     &--selected {
@@ -3761,7 +3761,7 @@ const goToFileDetail = () => {
       white-space: nowrap;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: var(--space-1-5);
 
       .col-name-text {
         overflow: hidden;
@@ -3772,8 +3772,8 @@ const goToFileDetail = () => {
       .material-type-tag--herb {
         flex-shrink: 0;
         background: rgba(16, 185, 129, 0.1);
-        color: #059669;
-        border-color: #a7f3d0;
+        color: var(--color-primary-dark);
+        border-color: var(--color-primary-lightest);
         font-size: 10px;
         padding: 0 4px;
         height: 18px;
@@ -3809,7 +3809,7 @@ const goToFileDetail = () => {
           text-align: right;
           font-size: 12px;
           font-weight: 700;
-          padding: 2px 6px;
+          padding: var(--space-0-5) var(--space-1-5);
         }
 
         .t-input-number__decrease,
@@ -3821,20 +3821,20 @@ const goToFileDetail = () => {
 
     .col-qty-input--invalid {
       :deep(.t-input-number .t-input__inner) {
-        border-color: #f59e0b;
+        border-color: var(--color-warning);
         background: #fffbeb;
       }
     }
 
     .col-unit {
-      color: #64748b;
+      color: var(--color-text-secondary);
       white-space: nowrap;
       overflow: visible;
       text-align: center;
     }
 
     .col-ratio {
-      color: #334155;
+      color: var(--color-text-primary);
       font-weight: 600;
       font-variant-numeric: tabular-nums;
       text-align: center;
@@ -3850,7 +3850,7 @@ const goToFileDetail = () => {
       text-align: right;
 
       .col-price-missing {
-        color: #94a3b8;
+        color: var(--color-text-placeholder);
         font-size: 11px;
       }
     }
@@ -3858,7 +3858,7 @@ const goToFileDetail = () => {
     .col-price-edit {
       display: flex;
       align-items: center;
-      gap: 2px;
+      gap: var(--space-0-5);
       justify-content: flex-end;
 
       .t-input-number {
@@ -3872,7 +3872,7 @@ const goToFileDetail = () => {
 
       .col-price-unit {
         font-size: 11px;
-        color: #94a3b8;
+        color: var(--color-text-placeholder);
         flex-shrink: 0;
       }
     }
@@ -3881,15 +3881,15 @@ const goToFileDetail = () => {
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 2px;
+      gap: var(--space-0-5);
 
       .col-adjust-badge {
         display: inline-flex;
         align-items: center;
-        gap: 2px;
+        gap: var(--space-0-5);
         font-size: 10px;
         line-height: 1.4;
-        padding: 2px 6px;
+        padding: var(--space-0-5) var(--space-1-5);
         border-radius: 6px;
         background: linear-gradient(135deg, #fef3c7, #fde68a);
         color: #b45309;
@@ -3920,10 +3920,10 @@ const goToFileDetail = () => {
         justify-content: center;
         width: 20px;
         height: 20px;
-        border-radius: 5px;
-        border: 1px solid #e2e8f0;
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--color-border);
         background: #fff;
-        color: #64748b;
+        color: var(--color-text-secondary);
         cursor: pointer;
         transition: all 0.2s;
         flex-shrink: 0;
@@ -3932,7 +3932,7 @@ const goToFileDetail = () => {
         &:hover {
           background: #f1f5f9;
           border-color: #cbd5e1;
-          color: #059669;
+          color: var(--color-primary-dark);
           transform: scale(1.1);
         }
 
@@ -3952,7 +3952,7 @@ const goToFileDetail = () => {
       font-variant-numeric: tabular-nums;
 
       &--missing {
-        color: #94a3b8;
+        color: var(--color-text-placeholder);
       }
     }
 
@@ -3980,8 +3980,8 @@ const goToFileDetail = () => {
   justify-content: center;
   width: 20px;
   height: 20px;
-  border-radius: 5px;
-  border: 1px solid #f59e0b;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-warning);
   background: #fffbeb;
   color: #d97706;
   cursor: pointer;
@@ -4007,10 +4007,10 @@ const goToFileDetail = () => {
   justify-content: center;
   width: 20px;
   height: 20px;
-  border-radius: 5px;
-  border: 1px solid #e2e8f0;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
   background: transparent;
-  color: #94a3b8;
+  color: var(--color-text-placeholder);
   cursor: pointer;
   transition: all 0.2s;
   flex-shrink: 0;
@@ -4019,7 +4019,7 @@ const goToFileDetail = () => {
   &:hover {
     background: #fef2f2;
     border-color: #fca5a5;
-    color: #ef4444;
+    color: var(--color-danger);
     transform: scale(1.1);
   }
 
@@ -4029,7 +4029,7 @@ const goToFileDetail = () => {
 }
 
 .materials-add-row {
-  padding: 10px 14px;
+  padding: var(--space-2-5) var(--space-3-5);
   border-top: 1px solid rgba(148, 163, 184, 0.08);
   width: 100%;
   box-sizing: border-box;
@@ -4040,13 +4040,13 @@ const goToFileDetail = () => {
     justify-content: center;
     gap: 4px;
     width: 100%;
-    padding: 8px 14px;
+    padding: 8px var(--space-3-5);
     border-radius: 8px;
     background: transparent;
-    color: #10B981;
+    color: var(--color-primary);
     font-size: 12px;
     font-weight: 500;
-    border: 1px dashed #10B981;
+    border: 1px dashed var(--color-primary);
     cursor: pointer;
     transition: all $transition-fast;
     box-sizing: border-box;
@@ -4060,17 +4060,17 @@ const goToFileDetail = () => {
 .field-help {
   margin-top: 4px;
   font-size: 12px;
-  color: #64748b;
+  color: var(--color-text-secondary);
 }
 
 @keyframes restore-flash {
   0% {
-    background: #d1fae5;
+    background: var(--color-primary-bg);
     box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
   }
 
   50% {
-    background: #a7f3d0;
+    background: var(--color-primary-lightest);
     box-shadow: 0 0 8px 2px rgba(16, 185, 129, 0.3);
   }
 
@@ -4082,11 +4082,11 @@ const goToFileDetail = () => {
 
 @keyframes row-restore-flash {
   0% {
-    background: #d1fae5;
+    background: var(--color-primary-bg);
   }
 
   30% {
-    background: #a7f3d0;
+    background: var(--color-primary-lightest);
   }
 
   100% {
@@ -4097,10 +4097,10 @@ const goToFileDetail = () => {
 .reparse-model-option {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--space-2-5);
   width: 100%;
   min-height: 36px;
-  padding: 2px 0;
+  padding: var(--space-0-5) 0;
 
   .reparse-model-logo {
     width: 24px;
@@ -4136,7 +4136,7 @@ const goToFileDetail = () => {
   .reparse-model-name {
     flex: 1;
     font-size: 13px;
-    color: #334155;
+    color: var(--color-text-primary);
     font-weight: 500;
     line-height: 1.4;
     white-space: nowrap;
@@ -4156,9 +4156,9 @@ const goToFileDetail = () => {
 
   .form-card {
     border-radius: 16px;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    padding: 28px;
+    background: var(--color-bg-page);
+    border: 1px solid var(--color-border);
+    padding: var(--space-7);
     box-shadow: $shadow-elevation-1;
 
     .form-card-header {
@@ -4170,7 +4170,7 @@ const goToFileDetail = () => {
       .form-card-title {
         font-size: 18px;
         font-weight: 700;
-        color: #1e293b;
+        color: var(--color-text-primary);
         margin: 0;
         display: flex;
         align-items: center;
@@ -4183,7 +4183,7 @@ const goToFileDetail = () => {
         border-radius: 8px;
         border: none;
         background: transparent;
-        color: #94a3b8;
+        color: var(--color-text-placeholder);
         cursor: pointer;
         transition: all $transition-fast;
         display: flex;
@@ -4192,7 +4192,7 @@ const goToFileDetail = () => {
 
         &:hover {
           background: #fef2f2;
-          color: #ef4444;
+          color: var(--color-danger);
         }
       }
     }
@@ -4202,17 +4202,17 @@ const goToFileDetail = () => {
 .inline-error {
   display: block;
   font-size: 12px;
-  color: #ef4444;
+  color: var(--color-danger);
   margin-top: 4px;
 }
 
 .input-error {
   :deep(.t-input) {
-    border-color: #ef4444 !important;
+    border-color: var(--color-danger) !important;
   }
 
   :deep(.t-input-number) {
-    border-color: #ef4444 !important;
+    border-color: var(--color-danger) !important;
   }
 }
 
@@ -4224,10 +4224,10 @@ const goToFileDetail = () => {
     align-items: center;
     gap: 8px;
     margin-bottom: 8px;
-    padding: 8px 10px;
+    padding: 8px var(--space-2-5);
     background: #fff;
     border-radius: 10px;
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--color-border);
     transition: border-color $transition-fast;
 
     &--error {
@@ -4242,7 +4242,7 @@ const goToFileDetail = () => {
     border-radius: 6px;
     border: none;
     background: transparent;
-    color: #94a3b8;
+    color: var(--color-text-placeholder);
     cursor: pointer;
     transition: all $transition-fast;
     flex-shrink: 0;
@@ -4252,7 +4252,7 @@ const goToFileDetail = () => {
 
     &:hover {
       background: #fef2f2;
-      color: #ef4444;
+      color: var(--color-danger);
     }
   }
 
@@ -4260,13 +4260,13 @@ const goToFileDetail = () => {
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    padding: 6px 14px;
+    padding: var(--space-1-5) var(--space-3-5);
     border-radius: 8px;
     background: transparent;
-    color: #10B981;
+    color: var(--color-primary);
     font-size: 13px;
     font-weight: 500;
-    border: 1px dashed #10B981;
+    border: 1px dashed var(--color-primary);
     cursor: pointer;
     transition: all $transition-fast;
     margin-top: 4px;
@@ -4280,10 +4280,10 @@ const goToFileDetail = () => {
 .quick-create-salesman {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--space-1-5);
   padding: 8px 12px;
   font-size: 13px;
-  color: #10B981;
+  color: var(--color-primary);
   cursor: pointer;
   transition: background $transition-fast;
 
@@ -4303,8 +4303,8 @@ const goToFileDetail = () => {
 
   .success-card {
     border-radius: 16px;
-    background: linear-gradient(135deg, #ecfdf5, #d1fae5);
-    border: 1px solid #a7f3d0;
+    background: linear-gradient(135deg, #ecfdf5, var(--color-primary-bg));
+    border: 1px solid var(--color-primary-lightest);
     padding: 40px 32px;
     text-align: center;
 
@@ -4321,7 +4321,7 @@ const goToFileDetail = () => {
 
     .success-desc {
       font-size: 14px;
-      color: #047857;
+      color: var(--color-primary-deep);
       margin: 0 0 24px;
     }
   }
@@ -4330,10 +4330,10 @@ const goToFileDetail = () => {
 .add-formula-btn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 10px 20px;
+  gap: var(--space-1-5);
+  padding: var(--space-2-5) 20px;
   border-radius: 12px;
-  background: linear-gradient(135deg, #10b981, #059669);
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
   color: #fff;
   font-size: 13px;
   font-weight: 700;
@@ -4358,13 +4358,13 @@ const goToFileDetail = () => {
   .sfi-header {
     display: flex;
     align-items: center;
-    gap: 6px;
-    margin-bottom: 6px;
+    gap: var(--space-1-5);
+    margin-bottom: var(--space-1-5);
 
     .sfi-title {
       font-size: 12px;
       font-weight: 700;
-      color: #059669;
+      color: var(--color-primary-dark);
     }
   }
 
@@ -4376,7 +4376,7 @@ const goToFileDetail = () => {
     .sfi-name {
       font-size: 13px;
       font-weight: 600;
-      color: #334155;
+      color: var(--color-text-primary);
       max-width: 280px;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -4385,7 +4385,7 @@ const goToFileDetail = () => {
 
     .sfi-size {
       font-size: 11px;
-      color: #94a3b8;
+      color: var(--color-text-placeholder);
     }
   }
 }
@@ -4401,21 +4401,21 @@ const goToFileDetail = () => {
 .view-file-btn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 10px 20px;
+  gap: var(--space-1-5);
+  padding: var(--space-2-5) 20px;
   border-radius: 12px;
   background: #fff;
-  color: #334155;
+  color: var(--color-text-primary);
   font-size: 13px;
   font-weight: 600;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--color-border);
   cursor: pointer;
   transition: all $transition-normal;
   white-space: nowrap;
 
   &:hover {
-    border-color: #10b981;
-    color: #059669;
+    border-color: var(--color-primary);
+    color: var(--color-primary-dark);
     background: #ecfdf5;
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
@@ -4463,10 +4463,10 @@ const goToFileDetail = () => {
 .save-template-dialog-header {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--space-2-5);
   font-size: 16px;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--color-text-primary);
 }
 
 .save-template-form {
@@ -4484,11 +4484,11 @@ const goToFileDetail = () => {
     display: block;
     font-size: 13px;
     font-weight: 600;
-    color: #334155;
-    margin-bottom: 6px;
+    color: var(--color-text-primary);
+    margin-bottom: var(--space-1-5);
 
     .required {
-      color: #ef4444;
+      color: var(--color-danger);
     }
   }
 }
@@ -4514,7 +4514,7 @@ const goToFileDetail = () => {
     display: flex !important;
     align-items: center !important;
     justify-content: flex-start !important;
-    padding: 7px 12px !important;
+    padding: var(--space-2) 12px !important;
     min-height: 38px;
     width: 100% !important;
     max-width: none !important;
@@ -4528,7 +4528,7 @@ const goToFileDetail = () => {
     }
 
     &.t-dropdown__item--active {
-      color: #059669 !important;
+      color: var(--color-primary-dark) !important;
       background-color: transparent !important;
     }
   }
@@ -4547,7 +4547,7 @@ const goToFileDetail = () => {
       width: 22px !important;
       height: 22px !important;
       min-width: 22px !important;
-      border-radius: 5px !important;
+      border-radius: var(--radius-sm) !important;
       overflow: hidden !important;
       flex-shrink: 0 !important;
       display: flex !important;
@@ -4576,7 +4576,7 @@ const goToFileDetail = () => {
     .reparse-model-name {
       flex: 0 0 auto !important;
       font-size: 13px !important;
-      color: #334155 !important;
+      color: var(--color-text-primary) !important;
       font-weight: 500 !important;
       line-height: 1.3 !important;
       white-space: nowrap !important;
@@ -4589,7 +4589,7 @@ const goToFileDetail = () => {
       height: 16px !important;
       flex-shrink: 0 !important;
       margin-left: 4px !important;
-      color: #10b981 !important;
+      color: var(--color-primary) !important;
     }
   }
 }

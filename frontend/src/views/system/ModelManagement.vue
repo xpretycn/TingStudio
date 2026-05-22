@@ -60,7 +60,7 @@
               <div class="section-header-enhanced">
                 <div class="section-title-group">
                   <svg class="section-title-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                    stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <rect x="3" y="3" width="7" height="7" />
                     <rect x="14" y="3" width="7" height="7" />
                     <rect x="14" y="14" width="7" height="7" />
@@ -99,7 +99,7 @@
                           <span style="display:inline-flex;align-items:center;gap:4px;">
                             {{ v.label }}
                             <svg v-if="v.value === model.model" width="14" height="14" viewBox="0 0 24 24" fill="none"
-                              stroke="#10B981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                              stroke="var(--color-primary)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                               <polyline points="20 6 9 17 4 12" />
                             </svg>
                           </span>
@@ -170,7 +170,7 @@
 
               <div v-if="modelApplications.length === 0" class="empty-state">
                 <div class="empty-icon-wrap">
-                  <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.2"
+                  <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-placeholder)" stroke-width="1.2"
                     stroke-linecap="round" stroke-linejoin="round">
                     <path
                       d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
@@ -256,7 +256,7 @@
               <div class="section-header-enhanced" style="margin-top: 32px;">
                 <div class="section-title-group">
                   <svg class="section-title-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                    stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
                   </svg>
                   <h4 class="section-title-text">提示词模板</h4>
@@ -405,7 +405,7 @@
                   <div v-else-if="modelStore.usageTrend.length > 0" ref="trendChartRef" class="chart-container"></div>
                   <div v-else class="chart-empty">
                     <div class="chart-empty-icon-wrap">
-                      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.2"
+                      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-placeholder)" stroke-width="1.2"
                         stroke-linecap="round" stroke-linejoin="round">
                         <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
                         <polyline points="17 6 23 6 23 12" />
@@ -434,7 +434,7 @@
                     class="chart-container"></div>
                   <div v-else class="chart-empty">
                     <div class="chart-empty-icon-wrap">
-                      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.2"
+                      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-placeholder)" stroke-width="1.2"
                         stroke-linecap="round" stroke-linejoin="round">
                         <path d="M21.21 15.89A10 10 0 1 1 8 2.83" />
                         <path d="M22 12A10 10 0 0 0 12 2v10z" />
@@ -459,7 +459,7 @@
                 <div class="section-header-enhanced section-header-inline">
                   <div class="section-title-group">
                     <svg class="section-title-icon" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                      stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      stroke="var(--color-warning)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                       <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                       <polyline points="14 2 14 8 20 8" />
                     </svg>
@@ -475,7 +475,7 @@
               <div class="section-header-enhanced">
                 <div class="section-title-group">
                   <svg class="section-title-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                    stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    stroke="var(--color-warning)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
                     <path d="M13.73 21a2 2 0 0 1-3.46 0" />
                   </svg>
@@ -535,7 +535,7 @@
               <div class="section-header-enhanced" style="margin-top: 24px">
                 <div class="section-title-group">
                   <svg class="section-title-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                    stroke="#EF4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    stroke="var(--color-danger)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path
                       d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
                     <line x1="12" y1="9" x2="12" y2="13" />
@@ -648,7 +648,7 @@
               <div class="section-header-enhanced">
                 <div class="section-title-group">
                   <svg class="section-title-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                    stroke="#ff6b8a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="12" cy="12" r="10" />
                     <path d="M8 14s1.5 2 4 2 4-2 4-2" />
                     <line x1="9" y1="9" x2="9.01" y2="9" />
@@ -663,7 +663,7 @@
                   <div class="fa-card-header">
                     <div class="fa-card-header-left">
                       <svg class="fa-card-icon" width="18" height="18" viewBox="0 0 24 24" fill="none"
-                        stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                       </svg>
                       <span class="fa-card-title">基本配置</span>
@@ -747,7 +747,7 @@
                   <div class="fa-card-header">
                     <div class="fa-card-header-left">
                       <svg class="fa-card-icon" width="18" height="18" viewBox="0 0 24 24" fill="none"
-                        stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        stroke="var(--color-warning)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
                       </svg>
                       <span class="fa-card-title">行为策略</span>
@@ -833,7 +833,7 @@
               <t-option v-for="mod in availableModules" :key="mod.value" :value="mod.value" :label="mod.label">
                 <span style="display: flex; align-items: center; gap: 8px;">
                   {{ mod.label }}
-                  <small style="color: #94a3b8;">({{ mod.value }})</small>
+                  <small style="color: var(--color-text-placeholder);">({{ mod.value }})</small>
                 </span>
               </t-option>
             </t-select>
@@ -859,7 +859,7 @@
                         style="width: 100%; height: 100%; object-fit: contain; display: block;"
                         @error="(e: Event) => { (e.target as HTMLElement).style.display = 'none'; }" />
                     </div>
-                    <span style="font-size: 14px; color: #1e293b;">{{ model.name }}</span>
+                    <span style="font-size: 14px; color: var(--color-text-primary);">{{ model.name }}</span>
                   </div>
                 </template>
               </t-option>
@@ -940,7 +940,7 @@
                         style="width: 100%; height: 100%; object-fit: contain; display: block;"
                         @error="(e: Event) => { (e.target as HTMLElement).style.display = 'none'; }" />
                     </div>
-                    <span style="font-size: 14px; color: #1e293b;">{{ model.name }}</span>
+                    <span style="font-size: 14px; color: var(--color-text-primary);">{{ model.name }}</span>
                   </div>
                 </template>
               </t-option>
@@ -988,7 +988,7 @@
       <template #header>
         <div class="drawer-header">
           <div class="header-left">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2"
               stroke-linecap="round" stroke-linejoin="round">
               <polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5" />
               <line x1="12" y1="22" x2="12" y2="15.5" />
@@ -1012,7 +1012,7 @@
       <t-form ref="addFormRef" :data="addForm" label-align="top">
         <div class="drawer-card info-card">
           <div class="card-header">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2"
               stroke-linecap="round" stroke-linejoin="round">
               <path d="M9 3h6v8l-3 4-3-4V3z" />
               <line x1="12" y1="7" x2="12" y2="3" />
@@ -1055,7 +1055,7 @@
         </div>
         <div class="drawer-card param-card">
           <div class="card-header">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2"
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--color-warning)" stroke-width="2"
               stroke-linecap="round" stroke-linejoin="round">
               <circle cx="12" cy="12" r="3" />
               <path
@@ -1109,7 +1109,7 @@
       <t-form ref="editFormRef" :data="editForm" label-align="top">
         <div class="drawer-card info-card">
           <div class="card-header">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2"
               stroke-linecap="round" stroke-linejoin="round">
               <path d="M9 3h6v8l-3 4-3-4V3z" />
               <line x1="12" y1="7" x2="12" y2="3" />
@@ -1151,7 +1151,7 @@
         </div>
         <div class="drawer-card param-card">
           <div class="card-header">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2"
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--color-warning)" stroke-width="2"
               stroke-linecap="round" stroke-linejoin="round">
               <circle cx="12" cy="12" r="3" />
               <path
@@ -1620,8 +1620,8 @@ const dashboardCards = computed(() => [
     iconBg: "linear-gradient(135deg, #DBEAFE, #BFDBFE)",
     iconColor: "#3B82F6",
     badge: modelStore.stats.activeAlerts > 0 ? `${modelStore.stats.activeAlerts}预警` : "正常",
-    badgeColor: modelStore.stats.activeAlerts > 0 ? "#F59E0B" : "#10B981",
-    badgeBg: modelStore.stats.activeAlerts > 0 ? "#FEF3C7" : "#D1FAE5",
+    badgeColor: modelStore.stats.activeAlerts > 0 ? "var(--color-warning)" : "var(--color-primary)",
+    badgeBg: modelStore.stats.activeAlerts > 0 ? "#FEF3C7" : "var(--color-primary-bg)",
   },
   {
     label: "今日调用",
@@ -1639,8 +1639,8 @@ const dashboardCards = computed(() => [
     value: formatTokens(modelStore.stats.todayTokens),
     unit: "",
     iconPath: '<line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>',
-    iconBg: "linear-gradient(135deg, #D1FAE5, #A7F3D0)",
-    iconColor: "#10B981",
+    iconBg: "linear-gradient(135deg, var(--color-primary-bg), var(--color-primary-lightest))",
+    iconColor: "var(--color-primary)",
     badge: "统计",
     badgeColor: "#6366F1",
     badgeBg: "#E0E7FF",
@@ -1651,7 +1651,7 @@ const dashboardCards = computed(() => [
     unit: "",
     iconPath: '<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>',
     iconBg: "linear-gradient(135deg, #FEF3C7, #FDE68A)",
-    iconColor: "#F59E0B",
+    iconColor: "var(--color-warning)",
     badge: "月度",
     badgeColor: "#EC4899",
     badgeBg: "#FCE7F3",
@@ -1773,7 +1773,7 @@ function getFallbackLetter(provider: string): string {
 
 function getFallbackColor(provider: string): string {
   const slug = getModelSlug(provider);
-  return FALLBACK_ICONS[slug]?.color || "#94a3b8";
+  return FALLBACK_ICONS[slug]?.color || "var(--color-text-placeholder)";
 }
 
 function handleLogoError(e: Event) {
@@ -1997,7 +1997,7 @@ const usageColumns = [
             onError: (e: Event) => handleLogoError(e)
           }),
         ]),
-        h('span', { style: 'font-weight:500;color:#1e293b;' }, row.name)
+        h('span', { style: 'font-weight:500;color:var(--color-text-primary);' }, row.name)
       ]);
     }
   },
@@ -2032,7 +2032,7 @@ const alertRecordColumns = [
             style: `position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 10px; font-weight: 700; display: none; color: ${getFallbackColor(provider)};`
           }, getFallbackLetter(provider))
         ]),
-        h('span', { style: 'font-size: 13px; font-weight: 500; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 1;' }, row.model_name)
+        h('span', { style: 'font-size: 13px; font-weight: 500; color: var(--color-text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 1;' }, row.model_name)
       ]);
     }
   },
@@ -2040,7 +2040,7 @@ const alertRecordColumns = [
   {
     colKey: "level", title: "级别", width: 80, cell: (h: any, { row }: any) => {
       const isCritical = row.level === "critical";
-      const dotColor = isCritical ? '#EF4444' : '#F59E0B';
+      const dotColor = isCritical ? 'var(--color-danger)' : 'var(--color-warning)';
       const tagTheme = isCritical ? "danger" : "warning";
       const label = isCritical ? "严重" : "预警";
       return h('div', { style: 'display: flex; align-items: center; gap: 6px;' }, [
@@ -2075,7 +2075,7 @@ const logColumns = [
             style: `position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 10px; font-weight: 700; display: none; color: ${getFallbackColor(provider)};`
           }, getFallbackLetter(provider))
         ]),
-        h('span', { style: 'font-size: 13px; font-weight: 500; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 1;' }, row.modelName)
+        h('span', { style: 'font-size: 13px; font-weight: 500; color: var(--color-text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 1;' }, row.modelName)
       ]);
     }
   },
@@ -2085,8 +2085,8 @@ const logColumns = [
       const appLocation = row.applicationLocation || '';
       if (!appName && !appLocation) return '--';
       return h('div', { style: 'display: flex; flex-direction: column; gap: 2px; line-height: 1.4;' }, [
-        h('span', { style: 'font-size: 13px; font-weight: 600; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;' }, appName || '--'),
-        appLocation ? h('span', { style: 'font-size: 11px; color: #94a3b8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;' }, appLocation) : null,
+        h('span', { style: 'font-size: 13px; font-weight: 600; color: var(--color-text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;' }, appName || '--'),
+        appLocation ? h('span', { style: 'font-size: 11px; color: var(--color-text-placeholder); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;' }, appLocation) : null,
       ].filter(Boolean));
     }
   },
@@ -2115,16 +2115,16 @@ const logColumns = [
   {
     colKey: "status", title: "状态", width: 80, cell: (h: any, { row }: any) => {
       const statusConfig: Record<string, { color: string; label: string; }> = {
-        success: { color: '#10b981', label: '成功' },
-        error: { color: '#ef4444', label: '失败' },
-        fallback: { color: '#f59e0b', label: '切换' }
+        success: { color: 'var(--color-primary)', label: '成功' },
+        error: { color: 'var(--color-danger)', label: '失败' },
+        fallback: { color: 'var(--color-warning)', label: '切换' }
       };
-      const config = statusConfig[row.status] || { color: '#94a3b8', label: row.status || '-' };
+      const config = statusConfig[row.status] || { color: 'var(--color-text-placeholder)', label: row.status || '-' };
       return h('div', { style: 'display: flex; align-items: center; gap: 6px;' }, [
         h('span', {
           style: `width: 8px; height: 8px; border-radius: 50%; background-color: ${config.color}; flex-shrink: 0;`
         }),
-        h('span', { style: 'font-size: 13px; font-weight: 500; color: #475569;' }, config.label)
+        h('span', { style: 'font-size: 13px; font-weight: 500; color: var(--color-text-secondary);' }, config.label)
       ]);
     }
   },
@@ -2193,7 +2193,7 @@ function renderCharts() {
   modelStore.models.forEach(m => { providerNames[m.provider] = m.name; });
 
   const providerColors: Record<string, string> = {
-    dashscope: "#FF6B8A",
+    dashscope: "var(--color-primary)",
     zhipu: "#5B8FF9",
     deepseek: "#5AD8A6",
   };
@@ -2466,10 +2466,10 @@ const getModuleIconBg = (module: string): string => {
   const bgMap: Record<string, string> = {
     "weekly-report": "linear-gradient(135deg, #DBEAFE, #BFDBFE)",
     "monthly-report": "linear-gradient(135deg, #FCE7F3, #FBCFE8)",
-    "smart-form": "linear-gradient(135deg, #D1FAE5, #A7F3D0)",
+    "smart-form": "linear-gradient(135deg, var(--color-primary-bg), var(--color-primary-lightest))",
     "smart-import": "linear-gradient(135deg, #FEF3C7, #FDE68A)",
     "smart-search": "linear-gradient(135deg, #EDE9FE, #DDD6FE)",
-    "smart-generate": "linear-gradient(135deg, #D1FAE5, #6EE7B7)",
+    "smart-generate": "linear-gradient(135deg, var(--color-primary-bg), var(--color-primary-lighter))",
   };
   return bgMap[module] || "#F1F5F9";
 };
@@ -2749,7 +2749,7 @@ $transition-normal: 0.25s ease;
   .stat-card {
     background: #fff;
     padding: 24px;
-    border-radius: 24px;
+    border-radius: var(--radius-4xl);
     border: 1px solid #fff;
     box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
     transition: all 0.3s ease;
@@ -2782,14 +2782,14 @@ $transition-normal: 0.25s ease;
     .stat-badge {
       font-size: 12px;
       font-weight: 700;
-      padding: 2px 8px;
+      padding: var(--space-0-5) 8px;
       border-radius: 8px;
       white-space: nowrap;
     }
 
     .stat-label {
       font-size: 14px;
-      color: #94A3B8;
+      color: var(--color-text-placeholder);
       margin-bottom: 4px;
     }
 
@@ -2802,7 +2802,7 @@ $transition-normal: 0.25s ease;
       .stat-unit {
         font-size: 14px;
         font-weight: 400;
-        color: #94A3B8;
+        color: var(--color-text-placeholder);
       }
     }
   }
@@ -2810,7 +2810,7 @@ $transition-normal: 0.25s ease;
 
 .content-card {
   min-height: 500px;
-  border-radius: 24px !important;
+  border-radius: var(--radius-4xl) !important;
   overflow: hidden;
   border: none;
   box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
@@ -2821,8 +2821,8 @@ $transition-normal: 0.25s ease;
 }
 
 .data-center-toolbar {
-  padding: 28px 32px;
-  border-bottom: 1px solid #f8fafc;
+  padding: var(--space-7) 32px;
+  border-bottom: 1px solid var(--color-bg-page);
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
@@ -2839,7 +2839,7 @@ $transition-normal: 0.25s ease;
       .toolbar-title {
         font-size: 20px;
         font-weight: 700;
-        color: #1e293b;
+        color: var(--color-text-primary);
         margin: 0 0 4px 0;
         display: flex;
         align-items: center;
@@ -2847,7 +2847,7 @@ $transition-normal: 0.25s ease;
 
       .toolbar-subtitle {
         font-size: 14px;
-        color: #94a3b8;
+        color: var(--color-text-placeholder);
         margin: 0;
       }
     }
@@ -2865,7 +2865,7 @@ $transition-normal: 0.25s ease;
   align-items: center;
   gap: 8px;
   padding: 8px 16px;
-  background-color: #1e293b;
+  background-color: var(--color-text-primary);
   color: white;
   border-radius: 12px;
   font-size: 14px;
@@ -2876,7 +2876,7 @@ $transition-normal: 0.25s ease;
   cursor: pointer;
 
   &:hover {
-    background-color: #334155;
+    background-color: var(--color-text-primary);
   }
 
   &:active {
@@ -2885,7 +2885,7 @@ $transition-normal: 0.25s ease;
   }
 
   &:disabled {
-    background-color: #94a3b8;
+    background-color: var(--color-text-placeholder);
     cursor: not-allowed;
     box-shadow: none;
   }
@@ -2917,7 +2917,7 @@ $transition-normal: 0.25s ease;
 
   &--collapsed {
     width: 56px;
-    padding: 24px 6px;
+    padding: 24px var(--space-1-5);
 
     .nav-tab {
       justify-content: center;
@@ -2943,12 +2943,12 @@ $transition-normal: 0.25s ease;
   .nav-tab {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: var(--space-2-5);
     padding: 12px 16px;
     border-radius: 12px;
     cursor: pointer;
     transition: all 0.2s ease;
-    color: #64748b;
+    color: var(--color-text-secondary);
     font-size: 14px;
     font-weight: 500;
     border: 1px solid transparent;
@@ -2965,11 +2965,11 @@ $transition-normal: 0.25s ease;
 
     &:hover {
       background: #f1f5f9;
-      color: #334155;
+      color: var(--color-text-primary);
     }
 
     &.active {
-      background: linear-gradient(135deg, #10B981, #059669);
+      background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
       color: white;
       box-shadow: 0 4px 12px $overlay-emerald-25;
       border-color: transparent;
@@ -2989,16 +2989,16 @@ $transition-normal: 0.25s ease;
     width: 32px;
     height: 32px;
     border-radius: 8px;
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--color-border);
     background: #fff;
     cursor: pointer;
     transition: all 0.2s ease;
     margin-bottom: 12px;
-    color: #94a3b8;
+    color: var(--color-text-placeholder);
 
     &:hover {
       background: #f1f5f9;
-      color: #475569;
+      color: var(--color-text-secondary);
       border-color: #cbd5e1;
     }
   }
@@ -3007,7 +3007,7 @@ $transition-normal: 0.25s ease;
 .mm-content {
   flex: 1;
   min-width: 0;
-  padding: 24px 28px;
+  padding: 24px var(--space-7);
   border-left: 1px solid #f1f5f9;
 }
 
@@ -3032,12 +3032,12 @@ $transition-normal: 0.25s ease;
   justify-content: space-between;
   padding: 24px;
   background-color: #fff;
-  border-top: 1px solid #f8fafc;
-  border-radius: 0 0 32px 32px;
+  border-top: 1px solid var(--color-bg-page);
+  border-radius: 0 0 var(--radius-5xl) var(--radius-5xl);
 
   .pagination-info {
     font-size: 13px;
-    color: #64748B;
+    color: var(--color-text-secondary);
   }
 
   .pagination-controls {
@@ -3048,24 +3048,24 @@ $transition-normal: 0.25s ease;
     .pagination-btn {
       min-width: 36px;
       height: 34px;
-      padding: 0 10px;
+      padding: 0 var(--space-2-5);
       border-radius: 10px;
-      border: 1px solid #E2E8F0;
+      border: 1px solid var(--color-border);
       background: #fff;
       font-size: 13px;
       font-weight: 500;
-      color: #475569;
+      color: var(--color-text-secondary);
       cursor: pointer;
       transition: all 0.2s;
 
       &:hover:not(.pagination-btn--disabled) {
-        border-color: #6EE7B7;
-        color: #059669;
+        border-color: var(--color-primary-lighter);
+        color: var(--color-primary-dark);
         background: #ECFDF5;
       }
 
       &.pagination-btn--active {
-        background: linear-gradient(135deg, #10B981, #059669);
+        background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
         color: #fff;
         border-color: transparent;
         box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
@@ -3078,8 +3078,8 @@ $transition-normal: 0.25s ease;
     }
 
     .pagination-ellipsis {
-      padding: 0 6px;
-      color: #94A3B8;
+      padding: 0 var(--space-1-5);
+      color: var(--color-text-placeholder);
       font-size: 14px;
     }
   }
@@ -3090,12 +3090,12 @@ $transition-normal: 0.25s ease;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 60px 20px;
+  padding: var(--space-16) 20px;
   gap: 8px;
 
   .data-empty-text {
     font-size: 14px;
-    color: #94a3b8;
+    color: var(--color-text-placeholder);
     font-weight: 500;
     margin: 0;
   }
@@ -3116,7 +3116,7 @@ $transition-normal: 0.25s ease;
   h4 {
     font-size: 16px;
     font-weight: 600;
-    color: #1e293b;
+    color: var(--color-text-primary);
     margin: 0;
   }
 }
@@ -3144,7 +3144,7 @@ $transition-normal: 0.25s ease;
   .section-title-text {
     font-size: 16px;
     font-weight: 700;
-    color: #1e293b;
+    color: var(--color-text-primary);
     margin: 0;
 
     &--sm {
@@ -3154,7 +3154,7 @@ $transition-normal: 0.25s ease;
 
   .section-title-count {
     font-size: 13px;
-    color: #94a3b8;
+    color: var(--color-text-placeholder);
     font-weight: 500;
   }
 
@@ -3168,12 +3168,12 @@ $transition-normal: 0.25s ease;
 .refresh-usage-btn {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 6px 14px;
+  gap: var(--space-1-25);
+  padding: var(--space-1-5) var(--space-3-5);
   border-radius: 10px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--color-border);
   background: #fff;
-  color: #475569;
+  color: var(--color-text-secondary);
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
@@ -3186,9 +3186,9 @@ $transition-normal: 0.25s ease;
   }
 
   &:hover {
-    background: #f8fafc;
+    background: var(--color-bg-page);
     border-color: #cbd5e1;
-    color: #1e293b;
+    color: var(--color-text-primary);
     box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
     transform: translateY(-1px);
   }
@@ -3273,7 +3273,7 @@ $transition-normal: 0.25s ease;
   .model-name-text {
     font-size: 13px;
     font-weight: 500;
-    color: #1e293b;
+    color: var(--color-text-primary);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -3298,18 +3298,18 @@ $transition-normal: 0.25s ease;
 
   &:hover {
     box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
-    border-color: #e2e8f0;
+    border-color: var(--color-border);
     transform: translateY(-1px);
   }
 
   .model-card-header {
     padding: 16px 20px 12px;
-    border-bottom: 1px solid #f8fafc;
+    border-bottom: 1px solid var(--color-bg-page);
 
     .model-name-row {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: var(--space-2-5);
       margin-bottom: 4px;
     }
 
@@ -3322,7 +3322,7 @@ $transition-normal: 0.25s ease;
       justify-content: center;
       flex-shrink: 0;
       border-radius: 8px;
-      background: #f8fafc;
+      background: var(--color-bg-page);
       overflow: hidden;
 
       .model-logo {
@@ -3347,12 +3347,12 @@ $transition-normal: 0.25s ease;
     .model-name {
       font-size: 16px;
       font-weight: 600;
-      color: #1e293b;
+      color: var(--color-text-primary);
     }
 
     .health-dot {
       font-size: 11px;
-      padding: 3px 10px;
+      padding: var(--space-1) var(--space-2-5);
       border-radius: 12px;
       font-weight: 600;
       margin-left: auto;
@@ -3363,15 +3363,15 @@ $transition-normal: 0.25s ease;
       white-space: nowrap;
 
       &.healthy {
-        background: #D1FAE5;
-        color: #059669;
+        background: var(--color-primary-bg);
+        color: var(--color-primary-dark);
 
         &::before {
           content: '';
           width: 6px;
           height: 6px;
           border-radius: 50%;
-          background: #10B981;
+          background: var(--color-primary);
         }
       }
 
@@ -3384,40 +3384,40 @@ $transition-normal: 0.25s ease;
           width: 6px;
           height: 6px;
           border-radius: 50%;
-          background: #F59E0B;
+          background: var(--color-warning);
         }
       }
 
       &.unhealthy {
         background: #FEE2E2;
-        color: #DC2626;
+        color: var(--color-danger);
 
         &::before {
           content: '';
           width: 6px;
           height: 6px;
           border-radius: 50%;
-          background: #EF4444;
+          background: var(--color-danger);
         }
       }
 
       &.unknown {
         background: #F1F5F9;
-        color: #64748B;
+        color: var(--color-text-secondary);
 
         &::before {
           content: '';
           width: 6px;
           height: 6px;
           border-radius: 50%;
-          background: #94A3B8;
+          background: var(--color-text-placeholder);
         }
       }
     }
 
     .model-provider {
       font-size: 12px;
-      color: #94a3b8;
+      color: var(--color-text-placeholder);
       padding-left: 38px;
     }
   }
@@ -3430,26 +3430,26 @@ $transition-normal: 0.25s ease;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 6px 0;
+    padding: var(--space-1-5) 0;
     gap: 8px;
 
     .field-label {
       font-size: 13px;
-      color: #94a3b8;
+      color: var(--color-text-placeholder);
       white-space: nowrap;
     }
 
     .field-value {
       font-size: 13px;
-      color: #1e293b;
+      color: var(--color-text-primary);
       font-weight: 500;
 
       &.configured {
-        color: #059669;
+        color: var(--color-primary-dark);
       }
 
       &.not-configured {
-        color: #DC2626;
+        color: var(--color-danger);
       }
     }
   }
@@ -3458,15 +3458,15 @@ $transition-normal: 0.25s ease;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 10px 20px;
-    border-top: 1px solid #f8fafc;
+    padding: var(--space-2-5) 20px;
+    border-top: 1px solid var(--color-bg-page);
     background: #fafbfc;
 
     .model-usage-mini {
       display: flex;
       gap: 12px;
       font-size: 12px;
-      color: #94a3b8;
+      color: var(--color-text-placeholder);
     }
 
     .model-actions {
@@ -3493,7 +3493,7 @@ $transition-normal: 0.25s ease;
   h4 {
     font-size: 14px;
     font-weight: 600;
-    color: #1e293b;
+    color: var(--color-text-primary);
     margin: 0 0 12px 0;
   }
 
@@ -3508,13 +3508,13 @@ $transition-normal: 0.25s ease;
     align-items: center;
     justify-content: center;
     gap: 16px;
-    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    background: linear-gradient(135deg, var(--color-bg-page) 0%, #f1f5f9 100%);
     border-radius: 16px;
     margin-top: 8px;
 
     .chart-loading-text {
       font-size: 13px;
-      color: #64748b;
+      color: var(--color-text-secondary);
       margin: 0;
       font-weight: 500;
     }
@@ -3522,7 +3522,7 @@ $transition-normal: 0.25s ease;
     .chart-loading-spinner {
       width: 36px;
       height: 36px;
-      border: 3px solid #e2e8f0;
+      border: 3px solid var(--color-border);
       border-top: 3px solid #8B5CF6;
       border-radius: 50%;
       animation: chart-spin 0.8s linear infinite;
@@ -3536,7 +3536,7 @@ $transition-normal: 0.25s ease;
     align-items: center;
     justify-content: center;
     gap: 12px;
-    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    background: linear-gradient(135deg, var(--color-bg-page) 0%, #f1f5f9 100%);
     border-radius: 16px;
     margin-top: 8px;
 
@@ -3554,26 +3554,26 @@ $transition-normal: 0.25s ease;
 
     .chart-empty-text {
       font-size: 14px;
-      color: #64748b;
+      color: var(--color-text-secondary);
       font-weight: 500;
       margin: 0;
     }
 
     .chart-empty-hint {
       font-size: 12px;
-      color: #94a3b8;
+      color: var(--color-text-placeholder);
       margin: 0;
     }
 
     .chart-empty-action {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      padding: 6px 16px;
+      gap: var(--space-1-5);
+      padding: var(--space-1-5) 16px;
       border-radius: 8px;
-      border: 1px solid #e2e8f0;
+      border: 1px solid var(--color-border);
       background: #fff;
-      color: #64748b;
+      color: var(--color-text-secondary);
       font-size: 12px;
       font-weight: 500;
       cursor: pointer;
@@ -3581,8 +3581,8 @@ $transition-normal: 0.25s ease;
       transition: all 0.2s;
 
       &:hover {
-        background: #f8fafc;
-        color: #334155;
+        background: var(--color-bg-page);
+        color: var(--color-text-primary);
         border-color: #cbd5e1;
       }
     }
@@ -3599,7 +3599,7 @@ $transition-normal: 0.25s ease;
   h4 {
     font-size: 14px;
     font-weight: 600;
-    color: #1e293b;
+    color: var(--color-text-primary);
     margin: 0 0 12px 0;
   }
 }
@@ -3627,13 +3627,13 @@ $transition-normal: 0.25s ease;
     .alert-config-name-row {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: var(--space-2-5);
     }
 
     .alert-config-model-name {
       font-size: 15px;
       font-weight: 600;
-      color: #1e293b;
+      color: var(--color-text-primary);
     }
   }
 
@@ -3652,7 +3652,7 @@ $transition-normal: 0.25s ease;
 
     .field-label {
       font-size: 12px;
-      color: #94a3b8;
+      color: var(--color-text-placeholder);
     }
 
     .field-input-with-unit {
@@ -3663,7 +3663,7 @@ $transition-normal: 0.25s ease;
 
       .field-unit {
         font-size: 12px;
-        color: #64748b;
+        color: var(--color-text-secondary);
         font-weight: 500;
         white-space: nowrap;
         flex-shrink: 0;
@@ -3671,7 +3671,7 @@ $transition-normal: 0.25s ease;
 
       .field-hint {
         font-size: 11px;
-        color: #94a3b8;
+        color: var(--color-text-placeholder);
         white-space: nowrap;
         flex-shrink: 0;
       }
@@ -3679,8 +3679,8 @@ $transition-normal: 0.25s ease;
 
     .field-computed-hint {
       font-size: 10px;
-      color: #94a3b8;
-      margin-top: 2px;
+      color: var(--color-text-placeholder);
+      margin-top: var(--space-0-5);
     }
   }
 }
@@ -3690,7 +3690,7 @@ $transition-normal: 0.25s ease;
 
   .field-label {
     font-size: 12px;
-    color: #94a3b8;
+    color: var(--color-text-placeholder);
     margin-bottom: 8px;
   }
 
@@ -3707,14 +3707,14 @@ $transition-normal: 0.25s ease;
 
     .field-unit {
       font-size: 12px;
-      color: #64748b;
+      color: var(--color-text-secondary);
       font-weight: 500;
       white-space: nowrap;
     }
 
     .field-hint {
       font-size: 11px;
-      color: #94a3b8;
+      color: var(--color-text-placeholder);
       white-space: nowrap;
     }
   }
@@ -3755,8 +3755,8 @@ $transition-normal: 0.25s ease;
     .confirm-btn {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      padding: 8px 18px;
+      gap: var(--space-1-5);
+      padding: 8px var(--space-4-5);
       border-radius: 8px;
       font-size: 13px;
       font-weight: 600;
@@ -3805,7 +3805,7 @@ $transition-normal: 0.25s ease;
 .model-drawer {
   :deep(.t-drawer__header) {
     padding: 16px 20px;
-    border-bottom: 1px solid #E2E8F0;
+    border-bottom: 1px solid var(--color-border);
   }
 
   .drawer-card {
@@ -3819,7 +3819,7 @@ $transition-normal: 0.25s ease;
     }
 
     &.info-card {
-      border-left: 3px solid #10b981;
+      border-left: 3px solid var(--color-primary);
     }
 
     &.api-card {
@@ -3827,7 +3827,7 @@ $transition-normal: 0.25s ease;
     }
 
     &.param-card {
-      border-left: 3px solid #f59e0b;
+      border-left: 3px solid var(--color-warning);
     }
 
     .card-header {
@@ -3835,13 +3835,13 @@ $transition-normal: 0.25s ease;
       align-items: center;
       gap: 8px;
       padding: 12px 16px;
-      background: #f8fafc;
+      background: var(--color-bg-page);
       border-bottom: 1px solid #f1f5f9;
 
       span {
         font-size: 14px;
         font-weight: 600;
-        color: #334155;
+        color: var(--color-text-primary);
       }
     }
 
@@ -3856,8 +3856,8 @@ $transition-normal: 0.25s ease;
         }
 
         .required-mark {
-          color: #ef4444;
-          margin-left: 2px;
+          color: var(--color-danger);
+          margin-left: var(--space-0-5);
           font-weight: 700;
         }
       }
@@ -3876,7 +3876,7 @@ $transition-normal: 0.25s ease;
       .option-with-logo {
         display: flex;
         align-items: flex-end;
-        gap: 14px;
+        gap: var(--space-3-5);
 
         .fallback-logo-sm {
           width: 16px;
@@ -3884,7 +3884,7 @@ $transition-normal: 0.25s ease;
           border-radius: 4px;
           object-fit: contain;
           flex-shrink: 0;
-          padding-bottom: 2px;
+          padding-bottom: var(--space-0-5);
         }
 
         span {
@@ -3920,7 +3920,7 @@ $transition-normal: 0.25s ease;
 
   .mm-nav {
     width: 56px;
-    padding: 24px 6px;
+    padding: 24px var(--space-1-5);
 
     .nav-tab {
       justify-content: center;
@@ -3956,13 +3956,13 @@ $transition-normal: 0.25s ease;
 
 .activity-card {
   background-color: #fff;
-  border-radius: 24px;
+  border-radius: var(--radius-4xl);
   padding: 32px;
   box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
-  border: 1px solid #f8fafc;
+  border: 1px solid var(--color-bg-page);
 
   &--assistant {
-    background: linear-gradient(135deg, #10B981, #059669);
+    background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
     border: none;
     color: #fff;
     position: relative;
@@ -3981,7 +3981,7 @@ $transition-normal: 0.25s ease;
 .activity-title {
   font-size: 17px;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--color-text-primary);
   margin: 0;
   display: flex;
   align-items: center;
@@ -4003,13 +4003,13 @@ $transition-normal: 0.25s ease;
   border-radius: 8px;
   border: none;
   background: #f1f5f9;
-  color: #64748b;
+  color: var(--color-text-secondary);
   cursor: pointer;
   transition: all $transition-fast;
 
   &:hover:not(:disabled) {
-    background: #e2e8f0;
-    color: #334155;
+    background: var(--color-border);
+    color: var(--color-text-primary);
   }
 
   &:disabled {
@@ -4021,7 +4021,7 @@ $transition-normal: 0.25s ease;
 .activity-nav-page {
   font-size: 13px;
   font-weight: 600;
-  color: #94a3b8;
+  color: var(--color-text-placeholder);
   min-width: 40px;
   text-align: center;
 }
@@ -4036,7 +4036,7 @@ $transition-normal: 0.25s ease;
     top: 8px;
     bottom: 8px;
     width: 2px;
-    background: #e2e8f0;
+    background: var(--color-border);
     border-radius: 1px;
   }
 }
@@ -4062,16 +4062,16 @@ $transition-normal: 0.25s ease;
   flex-shrink: 0;
   z-index: 1;
   background: #fff;
-  border: 2px solid #e2e8f0;
+  border: 2px solid var(--color-border);
 
   &--success {
-    border-color: #10b981;
+    border-color: var(--color-primary);
 
     .timeline-dot-inner {
       width: 8px;
       height: 8px;
       border-radius: 50%;
-      background: #10b981;
+      background: var(--color-primary);
     }
   }
 
@@ -4087,24 +4087,24 @@ $transition-normal: 0.25s ease;
   }
 
   &--warning {
-    border-color: #f59e0b;
+    border-color: var(--color-warning);
 
     .timeline-dot-inner {
       width: 8px;
       height: 8px;
       border-radius: 50%;
-      background: #f59e0b;
+      background: var(--color-warning);
     }
   }
 
   &--error {
-    border-color: #ef4444;
+    border-color: var(--color-danger);
 
     .timeline-dot-inner {
       width: 8px;
       height: 8px;
       border-radius: 50%;
-      background: #ef4444;
+      background: var(--color-danger);
     }
   }
 }
@@ -4117,11 +4117,11 @@ $transition-normal: 0.25s ease;
 .timeline-title {
   font-size: 14px;
   font-weight: 600;
-  color: #1e293b;
+  color: var(--color-text-primary);
   margin: 0 0 4px 0;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--space-1-5);
 }
 
 .timeline-model-logo {
@@ -4134,14 +4134,14 @@ $transition-normal: 0.25s ease;
 
 .timeline-desc {
   font-size: 13px;
-  color: #64748b;
+  color: var(--color-text-secondary);
   line-height: 1.5;
   margin: 0 0 4px 0;
 }
 
 .timeline-time {
   font-size: 12px;
-  color: #94a3b8;
+  color: var(--color-text-placeholder);
 }
 
 .assistant-content {
@@ -4167,7 +4167,7 @@ $transition-normal: 0.25s ease;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 10px 24px;
+  padding: var(--space-2-5) 24px;
   border-radius: 12px;
   background: $overlay-white-20;
   backdrop-filter: blur(10px);
@@ -4195,7 +4195,7 @@ $transition-normal: 0.25s ease;
 
 .assistant-avatar-group {
   display: flex;
-  gap: 6px;
+  gap: var(--space-1-5);
 }
 
 .assistant-avatar {
@@ -4252,7 +4252,7 @@ $transition-normal: 0.25s ease;
     .nav-tab {
       margin-bottom: 0;
       margin-right: 8px;
-      padding: 8px 14px;
+      padding: 8px var(--space-3-5);
       white-space: nowrap;
 
       .nav-tab-label {
@@ -4286,7 +4286,7 @@ $transition-normal: 0.25s ease;
 .application-card {
   background: #fff;
   border-radius: 16px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--color-border);
   padding: 20px;
   transition: all $transition-normal;
 
@@ -4324,13 +4324,13 @@ $transition-normal: 0.25s ease;
         .app-module-name {
           font-size: 15px;
           font-weight: 600;
-          color: #1e293b;
+          color: var(--color-text-primary);
           margin: 0 0 4px 0;
         }
 
         .app-module-id {
           font-size: 12px;
-          color: #94a3b8;
+          color: var(--color-text-placeholder);
           font-family: "Courier New", monospace;
         }
       }
@@ -4343,13 +4343,13 @@ $transition-normal: 0.25s ease;
       font-weight: 600;
 
       &.enabled {
-        background: #d1fae5;
-        color: #059669;
+        background: var(--color-primary-bg);
+        color: var(--color-primary-dark);
       }
 
       &.disabled {
         background: #fee2e2;
-        color: #dc2626;
+        color: var(--color-danger);
       }
     }
   }
@@ -4368,7 +4368,7 @@ $transition-normal: 0.25s ease;
 
       .field-label {
         font-size: 12px;
-        color: #64748b;
+        color: var(--color-text-secondary);
         font-weight: 500;
         white-space: nowrap;
         min-width: 70px;
@@ -4376,11 +4376,11 @@ $transition-normal: 0.25s ease;
 
       .field-value {
         font-size: 14px;
-        color: #334155;
+        color: var(--color-text-primary);
         font-weight: 500;
 
         &--desc {
-          color: #475569;
+          color: var(--color-text-secondary);
           line-height: 1.5;
         }
       }
@@ -4388,7 +4388,7 @@ $transition-normal: 0.25s ease;
       .model-provider-display {
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: var(--space-2-5);
 
         .model-logo-wrap-sm {
           position: relative;
@@ -4426,7 +4426,7 @@ $transition-normal: 0.25s ease;
         .provider-name {
           font-size: 14px;
           font-weight: 600;
-          color: #1e293b;
+          color: var(--color-text-primary);
         }
       }
     }
@@ -4454,7 +4454,7 @@ $transition-normal: 0.25s ease;
 
 .prompt-template-card {
   background: #fff;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--color-border);
   border-radius: 12px;
   padding: 16px;
   transition: box-shadow 0.2s;
@@ -4476,12 +4476,12 @@ $transition-normal: 0.25s ease;
     .ptc-name {
       font-size: 14px;
       font-weight: 600;
-      color: #1e293b;
+      color: var(--color-text-primary);
     }
 
     .ptc-type {
       font-size: 12px;
-      color: #64748b;
+      color: var(--color-text-secondary);
     }
   }
 
@@ -4493,13 +4493,13 @@ $transition-normal: 0.25s ease;
     .ptc-field-label {
       display: block;
       font-size: 11px;
-      color: #94a3b8;
-      margin-bottom: 2px;
+      color: var(--color-text-placeholder);
+      margin-bottom: var(--space-0-5);
     }
 
     .ptc-field-value {
       font-size: 12px;
-      color: #475569;
+      color: var(--color-text-secondary);
       line-height: 1.5;
 
       &--truncate {
@@ -4517,7 +4517,7 @@ $transition-normal: 0.25s ease;
 
   .ptc-footer {
     margin-top: 12px;
-    padding-top: 10px;
+    padding-top: var(--space-2-5);
     border-top: 1px solid #f1f5f9;
     display: flex;
     justify-content: flex-end;
@@ -4540,8 +4540,8 @@ $transition-normal: 0.25s ease;
     display: block;
     font-size: 13px;
     font-weight: 600;
-    color: #334155;
-    margin-bottom: 6px;
+    color: var(--color-text-primary);
+    margin-bottom: var(--space-1-5);
   }
 
   .prompt-var-chips {
@@ -4559,8 +4559,8 @@ $transition-normal: 0.25s ease;
   .add-app-btn {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 8px 18px;
+    gap: var(--space-1-5);
+    padding: 8px var(--space-4-5);
     background: linear-gradient(135deg, #8B5CF6, #7C3AED);
     color: #fff;
     border: none;
@@ -4579,7 +4579,7 @@ $transition-normal: 0.25s ease;
 
 .empty-state {
   text-align: center;
-  padding: 60px 20px;
+  padding: var(--space-16) 20px;
 
   .empty-icon-wrap {
     margin-bottom: 20px;
@@ -4589,21 +4589,21 @@ $transition-normal: 0.25s ease;
   .empty-text {
     font-size: 16px;
     font-weight: 600;
-    color: #334155;
+    color: var(--color-text-primary);
     margin: 0 0 8px 0;
   }
 
   .empty-hint {
     font-size: 14px;
-    color: #94a3b8;
+    color: var(--color-text-placeholder);
     margin: 0 0 24px 0;
   }
 
   .empty-action-btn {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 10px 22px;
+    gap: var(--space-1-5);
+    padding: var(--space-2-5) var(--space-6);
     background: linear-gradient(135deg, #8B5CF6, #7C3AED);
     color: #fff;
     border: none;
@@ -4628,17 +4628,17 @@ $transition-normal: 0.25s ease;
   .app-dialog-header {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: var(--space-2-5);
     font-size: 16px;
     font-weight: 600;
-    color: #1e293b;
+    color: var(--color-text-primary);
   }
 
   .app-confirm-btn {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 8px 18px;
+    gap: var(--space-1-5);
+    padding: 8px var(--space-4-5);
     border-radius: 8px;
     font-size: 14px;
     font-weight: 600;
@@ -4646,17 +4646,17 @@ $transition-normal: 0.25s ease;
     transition: all 0.2s ease;
     border: none;
     color: #fff;
-    background-color: var(--color-primary, #10B981);
+    background-color: var(--color-primary, var(--color-primary));
     box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);
 
     &:hover:not(:disabled) {
-      background-color: var(--color-primary-dark, #059669);
+      background-color: var(--color-primary-dark, var(--color-primary-dark));
       box-shadow: 0 4px 8px rgba(16, 185, 129, 0.4);
       transform: translateY(-1px);
     }
 
     &:active:not(:disabled) {
-      background-color: var(--color-primary-deep, #047857);
+      background-color: var(--color-primary-deep, var(--color-primary-deep));
       transform: translateY(0);
     }
 
@@ -4673,21 +4673,21 @@ $transition-normal: 0.25s ease;
   .dialog-cancel-btn {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 8px 18px;
+    gap: var(--space-1-5);
+    padding: 8px var(--space-4-5);
     border-radius: 8px;
     font-size: 14px;
     font-weight: 500;
     cursor: pointer;
     transition: all 0.2s ease;
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--color-border);
     background: #fff;
-    color: #64748b;
+    color: var(--color-text-secondary);
 
     &:hover {
-      background: #f8fafc;
+      background: var(--color-bg-page);
       border-color: #cbd5e1;
-      color: #334155;
+      color: var(--color-text-primary);
     }
   }
 
@@ -4716,7 +4716,7 @@ $transition-normal: 0.25s ease;
 
     &:hover {
       box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
-      border-color: #e2e8f0;
+      border-color: var(--color-border);
       transform: translateY(-1px);
     }
 
@@ -4725,12 +4725,12 @@ $transition-normal: 0.25s ease;
       align-items: center;
       justify-content: space-between;
       padding: 16px 20px 12px;
-      border-bottom: 1px solid #f8fafc;
+      border-bottom: 1px solid var(--color-bg-page);
 
       .fa-card-header-left {
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: var(--space-2-5);
       }
 
       .fa-card-icon {
@@ -4740,7 +4740,7 @@ $transition-normal: 0.25s ease;
       .fa-card-title {
         font-size: 15px;
         font-weight: 600;
-        color: #1e293b;
+        color: var(--color-text-primary);
       }
     }
 
@@ -4756,7 +4756,7 @@ $transition-normal: 0.25s ease;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 7px 0;
+    padding: var(--space-2) 0;
     gap: 12px;
 
     &--block {
@@ -4773,7 +4773,7 @@ $transition-normal: 0.25s ease;
 
     .fa-field-label {
       font-size: 13px;
-      color: #94a3b8;
+      color: var(--color-text-placeholder);
       white-space: nowrap;
       flex-shrink: 0;
     }
@@ -4789,33 +4789,33 @@ $transition-normal: 0.25s ease;
   .fa-toggle-group {
     display: inline-flex;
     align-items: center;
-    gap: 2px;
+    gap: var(--space-0-5);
     background: #f1f5f9;
     border-radius: 10px;
-    padding: 3px;
+    padding: var(--space-1);
     flex-shrink: 0;
 
     .fa-toggle-btn {
       font-size: 13px;
       font-weight: 500;
-      color: #64748b;
+      color: var(--color-text-secondary);
       background: transparent;
       border: none;
       border-radius: 8px;
-      padding: 5px 16px;
+      padding: var(--space-1-25) 16px;
       cursor: pointer;
       transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
       white-space: nowrap;
       line-height: 1.4;
 
       &:hover:not(.active) {
-        color: #334155;
+        color: var(--color-text-primary);
         background: rgba(255, 255, 255, 0.7);
       }
 
       &.active {
         background: #fff;
-        color: #10B981;
+        color: var(--color-primary);
         box-shadow: 0 1px 4px rgba(16, 185, 129, 0.18);
         font-weight: 600;
       }

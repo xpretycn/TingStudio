@@ -995,7 +995,7 @@ const FALLBACK_ICONS: Record<string, { letter: string; color: string; }> = {
   claude: { letter: 'C', color: '#cc8b19' },
   google: { letter: 'G', color: '#4285f4' },
   deepseek: { letter: 'D', color: '#4f46e5' },
-  qwen: { letter: 'Q', color: '#059669' },
+  qwen: { letter: 'Q', color: 'var(--color-primary-dark)' },
   zhipu: { letter: 'Z', color: '#615ced' },
   moonshot: { letter: 'M', color: '#000' },
   minimax: { letter: 'M', color: '#615ced' },
@@ -1035,7 +1035,7 @@ const getFallbackLetter = (model: any): string => {
 
 const getFallbackColor = (model: any): string => {
   const slug = getModelSlug(model);
-  return FALLBACK_ICONS[slug]?.color || '#94a3b8';
+  return FALLBACK_ICONS[slug]?.color || 'var(--color-text-placeholder)';
 };
 
 const handleLogoError = (e: Event, _model: any) => {
@@ -1464,7 +1464,7 @@ onMounted(async () => {
       flex: 1;
       display: flex;
       flex-direction: column;
-      gap: 2px;
+      gap: var(--space-0-5);
     }
 
     .version-banner-title {
@@ -1485,7 +1485,7 @@ onMounted(async () => {
       padding: 1px 8px;
       border-radius: 4px;
       display: inline-block;
-      margin-top: 2px;
+      margin-top: var(--space-0-5);
     }
   }
 
@@ -1518,13 +1518,13 @@ onMounted(async () => {
         border: none;
         border-radius: 12px;
         background: transparent;
-        color: #94a3b8;
+        color: var(--color-text-placeholder);
         cursor: pointer;
         transition: all $transition-fast;
         font-size: 20px;
 
         &:hover {
-          color: #10b981;
+          color: var(--color-primary);
           background-color: #ecfdf5;
         }
       }
@@ -1532,33 +1532,33 @@ onMounted(async () => {
       .header-title-group {
         display: flex;
         flex-direction: column;
-        gap: 6px;
+        gap: var(--space-1-5);
 
         .header-breadcrumb {
           display: flex;
           align-items: center;
-          gap: 6px;
+          gap: var(--space-1-5);
           font-size: 12px;
           line-height: 1;
 
           .breadcrumb-link {
-            color: #94a3b8;
+            color: var(--color-text-placeholder);
             cursor: pointer;
             transition: color 0.15s;
             text-decoration: none;
 
             &:hover {
-              color: #10b981;
+              color: var(--color-primary);
             }
           }
 
           .breadcrumb-sep {
             font-size: 12px;
-            color: #94a3b8;
+            color: var(--color-text-placeholder);
           }
 
           .breadcrumb-current {
-            color: #475569;
+            color: var(--color-text-secondary);
           }
         }
 
@@ -1569,7 +1569,7 @@ onMounted(async () => {
           gap: 12px;
           font-size: 18px;
           font-weight: 700;
-          color: #1e293b;
+          color: var(--color-text-primary);
           line-height: 1.35;
         }
       }
@@ -1585,7 +1585,7 @@ onMounted(async () => {
         align-items: center;
         gap: 8px;
         padding: 8px 16px;
-        background-color: #10b981;
+        background-color: var(--color-primary);
         color: #ffffff;
         border: none;
         border-radius: 12px;
@@ -1600,24 +1600,24 @@ onMounted(async () => {
         }
 
         &:hover {
-          background-color: #059669;
+          background-color: var(--color-primary-dark);
           transform: translateY(-1px);
           box-shadow: 0 14px 20px -3px $overlay-emerald-35;
         }
 
         &:active {
           transform: translateY(0);
-          background-color: #047857;
+          background-color: var(--color-primary-deep);
         }
 
         &.secondary {
           background-color: #f1f5f9;
-          color: #64748b;
+          color: var(--color-text-secondary);
           box-shadow: 0 1px 3px $shadow-float;
 
           &:hover {
-            background-color: #e2e8f0;
-            color: #475569;
+            background-color: var(--color-border);
+            color: var(--color-text-secondary);
             box-shadow: 0 4px 6px $shadow-float;
           }
 
@@ -1684,10 +1684,10 @@ onMounted(async () => {
         .ai-disabled-text {
           font-size: 13px;
           font-weight: 600;
-          color: #94a3b8;
+          color: var(--color-text-placeholder);
           letter-spacing: 0.5px;
           background: $overlay-white-90;
-          padding: 10px 24px;
+          padding: var(--space-2-5) 24px;
           border-radius: 20px;
           box-shadow: 0 2px 12px rgba(148, 163, 184, 0.15);
         }
@@ -1738,7 +1738,7 @@ onMounted(async () => {
     padding: 32px;
     border-radius: 2.5rem;
     box-shadow: 0 1px 3px $overlay-black-05;
-    border: 1px solid #f8fafc;
+    border: 1px solid var(--color-bg-page);
     animation: fadeInUp 0.35s ease both;
 
     .section-header {
@@ -1754,13 +1754,13 @@ onMounted(async () => {
       gap: 8px;
       font-size: 14px;
       font-weight: 700;
-      color: #94a3b8;
+      color: var(--color-text-placeholder);
       text-transform: uppercase;
       letter-spacing: 0.12em;
       margin: 0 0 24px;
 
       .section-icon {
-        color: #10b981;
+        color: var(--color-primary);
         font-size: 16px;
       }
     }
@@ -1772,7 +1772,7 @@ onMounted(async () => {
 
       &.collapse-toolbar {
         justify-content: flex-end;
-        margin-bottom: 10px;
+        margin-bottom: var(--space-2-5);
         padding: 0 4px;
       }
     }
@@ -1783,8 +1783,8 @@ onMounted(async () => {
       gap: 4px;
       font-size: 12px;
       font-weight: 700;
-      color: #059669;
-      padding: 6px 12px;
+      color: var(--color-primary-dark);
+      padding: var(--space-1-5) 12px;
       background-color: $overlay-emerald-08;
       border: none;
       border-radius: 8px;
@@ -1792,7 +1792,7 @@ onMounted(async () => {
       transition: all $transition-fast;
 
       &:hover {
-        color: #047857;
+        color: var(--color-primary-deep);
         background-color: $overlay-emerald-15;
       }
     }
@@ -1803,8 +1803,8 @@ onMounted(async () => {
       gap: 4px;
       font-size: 12px;
       font-weight: 700;
-      color: #ef4444;
-      padding: 6px 12px;
+      color: var(--color-danger);
+      padding: var(--space-1-5) 12px;
       background-color: $color-danger-bg;
       border: none;
       border-radius: 8px;
@@ -1812,7 +1812,7 @@ onMounted(async () => {
       transition: all $transition-fast;
 
       &:hover:not(:disabled) {
-        color: #dc2626;
+        color: var(--color-danger);
         background-color: $color-danger-medium;
       }
 
@@ -1827,14 +1827,14 @@ onMounted(async () => {
         .field-label {
           display: flex;
           align-items: center;
-          gap: 6px;
+          gap: var(--space-1-5);
           font-size: 14px;
           font-weight: 700;
-          color: #334155;
+          color: var(--color-text-primary);
           margin-bottom: 8px;
 
           .label-icon {
-            color: #10b981;
+            color: var(--color-primary);
             flex-shrink: 0;
           }
 
@@ -1855,8 +1855,8 @@ onMounted(async () => {
           &.field-input--disabled {
             :deep(.t-input) {
               background-color: #f1f5f9 !important;
-              border-color: #e2e8f0 !important;
-              color: #94a3b8 !important;
+              border-color: var(--color-border) !important;
+              color: var(--color-text-placeholder) !important;
               cursor: not-allowed;
               opacity: 0.7;
             }
@@ -1867,33 +1867,33 @@ onMounted(async () => {
           display: block;
           margin-top: 4px;
           font-size: 12px;
-          color: #94a3b8;
+          color: var(--color-text-placeholder);
           line-height: 1.4;
         }
 
         :deep(.t-input) {
-          background-color: #f8fafc !important;
+          background-color: var(--color-bg-page) !important;
           border: 1px solid #f1f5f9 !important;
           border-radius: 16px !important;
-          padding: 14px 20px !important;
+          padding: var(--space-3-5) 20px !important;
           min-height: 48px;
           font-size: 14px !important;
-          color: #334155 !important;
+          color: var(--color-text-primary) !important;
           transition: all $transition-fast;
 
           &:hover:not(.t-is-disabled) {
-            border-color: #e2e8f0 !important;
+            border-color: var(--color-border) !important;
           }
 
           &.t-is-focused {
             background-color: #fff !important;
             border-color: transparent !important;
-            box-shadow: 0 0 0 2px #10b981 !important;
+            box-shadow: 0 0 0 2px var(--color-primary) !important;
             outline: none !important;
           }
 
           &::placeholder {
-            color: #94a3b8 !important;
+            color: var(--color-text-placeholder) !important;
           }
         }
 
@@ -1907,57 +1907,57 @@ onMounted(async () => {
           width: 100%;
 
           .t-select__wrap {
-            background-color: #f8fafc !important;
+            background-color: var(--color-bg-page) !important;
             border: 1px solid #f1f5f9 !important;
             border-radius: 16px !important;
-            padding: 10px 12px !important;
+            padding: var(--space-2-5) 12px !important;
             min-height: 48px;
             transition: all $transition-fast;
 
             &:hover:not(.t-is-disabled) {
-              border-color: #e2e8f0 !important;
+              border-color: var(--color-border) !important;
             }
           }
 
           &.t-is-focused .t-select__wrap {
             background-color: #fff !important;
             border-color: transparent !important;
-            box-shadow: 0 0 0 2px #10b981 !important;
+            box-shadow: 0 0 0 2px var(--color-primary) !important;
             outline: none !important;
           }
 
           .t-select__placeholder,
           .t-select__single-value {
             font-size: 14px !important;
-            color: #334155 !important;
+            color: var(--color-text-primary) !important;
             line-height: 22px;
           }
 
           .t-select__placeholder {
-            color: #94a3b8 !important;
+            color: var(--color-text-placeholder) !important;
           }
 
           .t-icon {
-            color: #94a3b8 !important;
+            color: var(--color-text-placeholder) !important;
           }
         }
 
         :deep(.t-input-number) {
           width: 100%;
-          background-color: #f8fafc !important;
+          background-color: var(--color-bg-page) !important;
           border: 1px solid #f1f5f9 !important;
           border-radius: 16px !important;
           min-height: 48px;
           transition: all $transition-fast;
 
           &:hover:not(.t-is-disabled) {
-            border-color: #e2e8f0 !important;
+            border-color: var(--color-border) !important;
           }
 
           &.t-is-focused {
             background-color: #fff !important;
             border-color: transparent !important;
-            box-shadow: 0 0 0 2px #10b981 !important;
+            box-shadow: 0 0 0 2px var(--color-primary) !important;
             outline: none !important;
           }
 
@@ -1971,7 +1971,7 @@ onMounted(async () => {
           .t-input-number__increase {
             border: none !important;
             background: transparent !important;
-            color: #10b981 !important;
+            color: var(--color-primary) !important;
             border-radius: 50% !important;
             width: 28px !important;
             height: 28px !important;
@@ -1981,19 +1981,19 @@ onMounted(async () => {
 
             &:hover {
               background-color: $overlay-emerald-08 !important;
-              color: #059669 !important;
+              color: var(--color-primary-dark) !important;
             }
           }
 
           .t-input__inner {
             background: transparent !important;
             font-size: 14px !important;
-            color: #334155 !important;
-            padding: 14px 12px !important;
+            color: var(--color-text-primary) !important;
+            padding: var(--space-3-5) 12px !important;
             min-height: 46px;
 
             &::placeholder {
-              color: #94a3b8 !important;
+              color: var(--color-text-placeholder) !important;
             }
           }
         }
@@ -2017,13 +2017,13 @@ onMounted(async () => {
     }
 
     :deep(.t-collapse) {
-      background-color: #f8fafc;
+      background-color: var(--color-bg-page);
       border-radius: 16px;
       padding: 4px;
     }
 
     :deep(.t-collapse-panel) {
-      background-color: #f8fafc;
+      background-color: var(--color-bg-page);
       border-radius: 12px;
       margin-bottom: 4px;
 
@@ -2032,7 +2032,7 @@ onMounted(async () => {
       }
 
       .t-collapse-panel__header {
-        background-color: #f8fafc;
+        background-color: var(--color-bg-page);
         border-radius: 12px;
         padding: 12px 16px;
 
@@ -2042,7 +2042,7 @@ onMounted(async () => {
       }
 
       .t-collapse-panel__body {
-        background-color: #f8fafc;
+        background-color: var(--color-bg-page);
         padding: 16px;
         border-radius: 0 0 12px 12px;
       }
@@ -2053,20 +2053,20 @@ onMounted(async () => {
       gap: 8px;
 
       .t-radio-button {
-        background-color: #f8fafc !important;
+        background-color: var(--color-bg-page) !important;
         border: 1px solid #f1f5f9 !important;
         border-radius: 10px !important;
         transition: all $transition-fast;
 
         &:hover:not(.t-is-checked) {
           background-color: #f1f5f9 !important;
-          border-color: #e2e8f0 !important;
+          border-color: var(--color-border) !important;
         }
 
         &.t-is-checked {
           background-color: $overlay-emerald-08 !important;
-          border-color: #10b981 !important;
-          color: #059669 !important;
+          border-color: var(--color-primary) !important;
+          color: var(--color-primary-dark) !important;
         }
       }
     }
@@ -2104,15 +2104,15 @@ onMounted(async () => {
         background: linear-gradient(135deg, $overlay-emerald-04, rgba(45, 212, 191, 0.03));
         border: 1px solid $overlay-emerald-12;
         border-radius: 12px;
-        padding: 12px 14px;
+        padding: 12px var(--space-3-5);
       }
 
       .nf-label {
         display: block;
         font-size: 13px;
         font-weight: 600;
-        color: #475569;
-        margin-bottom: 6px;
+        color: var(--color-text-secondary);
+        margin-bottom: var(--space-1-5);
       }
 
       .nf-calc-wrap {
@@ -2123,15 +2123,15 @@ onMounted(async () => {
         .nf-calc-value {
           font-size: 20px;
           font-weight: 800;
-          color: #10b981;
+          color: var(--color-primary);
           font-family: 'SF Mono', 'Consolas', monospace;
         }
 
         .nf-calc-formula {
           font-size: 10px;
-          color: #94a3b8;
+          color: var(--color-text-placeholder);
           background: #f1f5f9;
-          padding: 3px 8px;
+          padding: var(--space-1) 8px;
           border-radius: 6px;
           white-space: nowrap;
           overflow: hidden;
@@ -2149,9 +2149,9 @@ onMounted(async () => {
         .nf-unit {
           flex-shrink: 0;
           font-size: 11px;
-          color: #94a3b8;
+          color: var(--color-text-placeholder);
           background: #f1f5f9;
-          padding: 4px 10px;
+          padding: 4px var(--space-2-5);
           border-radius: 8px;
           white-space: nowrap;
           min-width: 52px;
@@ -2179,7 +2179,7 @@ onMounted(async () => {
         .nm-label {
           font-size: 13px;
           font-weight: 600;
-          color: #475569;
+          color: var(--color-text-secondary);
           white-space: nowrap;
           min-width: 80px;
           flex-shrink: 0;
@@ -2194,7 +2194,7 @@ onMounted(async () => {
 
         :deep(.t-radio-button) {
           font-size: 11px !important;
-          padding: 2px 8px !important;
+          padding: var(--space-0-5) 8px !important;
           height: auto !important;
           line-height: 1.6 !important;
         }
@@ -2211,7 +2211,7 @@ onMounted(async () => {
     .action-btn {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
+      gap: var(--space-1-5);
       padding: 8px 16px;
       border: none;
       border-radius: 12px;
@@ -2222,7 +2222,7 @@ onMounted(async () => {
 
       &--outline {
         background: $overlay-emerald-08;
-        color: #059669;
+        color: var(--color-primary-dark);
 
         &:hover {
           background: $overlay-emerald-15;
@@ -2231,7 +2231,7 @@ onMounted(async () => {
 
       &--danger {
         background: $color-danger-bg;
-        color: #ef4444;
+        color: var(--color-danger);
 
         &:hover {
           background: $color-danger-medium;
@@ -2257,7 +2257,7 @@ onMounted(async () => {
     user-select: none;
 
     &:hover {
-      background: linear-gradient(135deg, #dcfce7 0%, #d1fae5 50%, #e0f2fe 100%);
+      background: linear-gradient(135deg, #dcfce7 0%, var(--color-primary-bg) 50%, #e0f2fe 100%);
       border-color: #4ade80;
       box-shadow: 0 2px 8px rgba(34, 197, 94, 0.12);
       transform: translateY(-1px);
@@ -2271,7 +2271,7 @@ onMounted(async () => {
   .excel-collapsed-left {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: var(--space-2-5);
   }
 
   .excel-collapsed-icon {
@@ -2297,7 +2297,7 @@ onMounted(async () => {
     font-size: 11px;
     color: #86efac;
     background: rgba(34, 197, 94, 0.1);
-    padding: 2px 8px;
+    padding: var(--space-0-5) 8px;
     border-radius: 6px;
     font-weight: 500;
   }
@@ -2308,7 +2308,7 @@ onMounted(async () => {
   }
 
   .excel-expanded-area {
-    border: 1.5px solid #e2e8f0;
+    border: 1.5px solid var(--color-border);
     border-radius: 12px;
     overflow: hidden;
     animation: excel-expand 0.25s ease;
@@ -2331,8 +2331,8 @@ onMounted(async () => {
     align-items: center;
     justify-content: space-between;
     padding: 8px 16px;
-    background: #f8fafc;
-    border-bottom: 1px solid #e2e8f0;
+    background: var(--color-bg-page);
+    border-bottom: 1px solid var(--color-border);
     cursor: pointer;
     transition: background 0.2s;
 
@@ -2344,14 +2344,14 @@ onMounted(async () => {
   .excel-expanded-title {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--space-1-5);
     font-size: 13px;
     font-weight: 600;
-    color: #64748b;
+    color: var(--color-text-secondary);
   }
 
   .excel-expanded-arrow {
-    color: #94a3b8;
+    color: var(--color-text-placeholder);
     transition: transform 0.2s;
   }
 
@@ -2361,11 +2361,11 @@ onMounted(async () => {
 
   // ━━ AI 面板样式 ━━
   .ai-panel {
-    background: linear-gradient(145deg, #ffffff 0%, #f8fafc 50%, #f1f5f9 100%);
+    background: linear-gradient(145deg, #ffffff 0%, var(--color-bg-page) 50%, #f1f5f9 100%);
     padding: 32px;
     border-radius: 2.5rem;
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.06), 0 8px 10px -6px $overlay-emerald-06;
-    color: #334155;
+    color: var(--color-text-primary);
     position: relative;
     overflow: hidden;
     animation: fadeInUp 0.5s ease both;
@@ -2397,7 +2397,7 @@ onMounted(async () => {
       .ai-icon {
         width: 40px;
         height: 40px;
-        background: linear-gradient(135deg, #10b981, #2dd4bf);
+        background: linear-gradient(135deg, var(--color-primary), #2dd4bf);
         border-radius: 12px;
         display: flex;
         align-items: center;
@@ -2418,7 +2418,7 @@ onMounted(async () => {
 
         .ai-subtitle {
           font-size: 12px;
-          color: #94a3b8;
+          color: var(--color-text-placeholder);
           margin: 4px 0 0;
         }
       }
@@ -2428,7 +2428,7 @@ onMounted(async () => {
       display: flex;
       align-items: center;
       gap: 8px;
-      padding: 6px 14px;
+      padding: var(--space-1-5) var(--space-3-5);
       border-radius: 20px;
       font-size: 13px;
       font-weight: 600;
@@ -2437,7 +2437,7 @@ onMounted(async () => {
 
       &.status-indicator--done {
         background: rgba(16, 185, 129, 0.08);
-        color: #059669;
+        color: var(--color-primary-dark);
         border: 1px solid rgba(16, 185, 129, 0.15);
       }
 
@@ -2466,11 +2466,11 @@ onMounted(async () => {
       }
 
       .status-dot--done {
-        background: #10b981;
+        background: var(--color-primary);
       }
 
       .status-dot--ready {
-        background: #f59e0b;
+        background: var(--color-warning);
         animation: dot-blink 2s ease-in-out infinite;
       }
 
@@ -2489,7 +2489,7 @@ onMounted(async () => {
           display: block;
           font-size: 12px;
           font-weight: 700;
-          color: #64748b;
+          color: var(--color-text-secondary);
           text-transform: uppercase;
           margin-bottom: 8px;
         }
@@ -2503,12 +2503,12 @@ onMounted(async () => {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 6px;
-            padding: 14px 10px;
+            gap: var(--space-1-5);
+            padding: var(--space-3-5) var(--space-2-5);
             background: $overlay-emerald-04;
             border: 1px solid rgba(148, 163, 184, 0.18);
             border-radius: 16px;
-            color: #64748b;
+            color: var(--color-text-secondary);
             font-size: 11px;
             font-weight: 600;
             cursor: pointer;
@@ -2526,7 +2526,7 @@ onMounted(async () => {
               background: linear-gradient(135deg, $overlay-emerald-12 0%, rgba(45, 212, 191, 0.08) 100%);
               border-color: $overlay-emerald-35;
               opacity: 1;
-              color: #059669;
+              color: var(--color-primary-dark);
               box-shadow: 0 4px 12px -2px $overlay-emerald-12;
             }
 
@@ -2576,9 +2576,9 @@ onMounted(async () => {
               align-items: center;
               justify-content: center;
               font-size: 9px;
-              padding: 2px 6px;
+              padding: var(--space-0-5) var(--space-1-5);
               line-height: 1;
-              background: linear-gradient(135deg, #10b981, #059669);
+              background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
               color: #fff;
               border-radius: 8px;
               font-weight: 700;
@@ -2593,7 +2593,7 @@ onMounted(async () => {
             justify-content: center;
             gap: 8px;
             padding: 16px;
-            color: #94a3b8;
+            color: var(--color-text-placeholder);
             font-size: 13px;
 
             .t-icon {
@@ -2606,7 +2606,7 @@ onMounted(async () => {
       .upload-area {
         .upload-zone {
           border: 2px dashed rgba(148, 163, 184, 0.25);
-          border-radius: 24px;
+          border-radius: var(--radius-4xl);
           padding: 32px;
           display: flex;
           flex-direction: column;
@@ -2631,7 +2631,7 @@ onMounted(async () => {
             align-items: center;
             justify-content: center;
             font-size: 32px;
-            color: #10b981;
+            color: var(--color-primary);
             transition: transform 0.2s ease;
           }
 
@@ -2650,7 +2650,7 @@ onMounted(async () => {
 
             .upload-hint {
               font-size: 10px;
-              color: #64748b;
+              color: var(--color-text-secondary);
               margin: 4px 0 0;
             }
           }
@@ -2658,8 +2658,8 @@ onMounted(async () => {
 
         .file-selected-row {
           margin-top: 16px;
-          padding: 14px 18px;
-          background: #f8fafc;
+          padding: var(--space-3-5) var(--space-4-5);
+          background: var(--color-bg-page);
           border: 1px solid $border-color-light;
           border-radius: 16px;
           display: flex;
@@ -2675,14 +2675,14 @@ onMounted(async () => {
             flex: 1;
 
             .t-icon {
-              color: #64748b;
+              color: var(--color-text-secondary);
               flex-shrink: 0;
             }
 
             .file-name {
               font-size: 13px;
               font-weight: 600;
-              color: #334155;
+              color: var(--color-text-primary);
               overflow: hidden;
               text-overflow: ellipsis;
               white-space: nowrap;
@@ -2696,9 +2696,9 @@ onMounted(async () => {
 
             .file-model-badge {
               font-size: 10px;
-              padding: 2px 8px;
+              padding: var(--space-0-5) 8px;
               background: $overlay-emerald-08;
-              color: #059669;
+              color: var(--color-primary-dark);
               border-radius: 10px;
               font-weight: 600;
               flex-shrink: 0;
@@ -2714,9 +2714,9 @@ onMounted(async () => {
             .parse-btn {
               display: flex;
               align-items: center;
-              gap: 6px;
+              gap: var(--space-1-5);
               padding: 8px 20px;
-              background: linear-gradient(135deg, #10b981, #2dd4bf);
+              background: linear-gradient(135deg, var(--color-primary), #2dd4bf);
               color: #fff;
               border: none;
               border-radius: 12px;
@@ -2745,10 +2745,10 @@ onMounted(async () => {
             .clear-btn {
               display: flex;
               align-items: center;
-              gap: 6px;
+              gap: var(--space-1-5);
               padding: 8px 16px;
               background: #fff;
-              color: #64748b;
+              color: var(--color-text-secondary);
               border: 1px solid rgba(148, 163, 184, 0.25);
               border-radius: 12px;
               font-size: 13px;
@@ -2759,7 +2759,7 @@ onMounted(async () => {
 
               &:hover {
                 background: #fef2f2;
-                color: #dc2626;
+                color: var(--color-danger);
                 border-color: rgba(220, 38, 38, 0.18);
                 transform: translateY(-1px);
               }
@@ -2775,7 +2775,7 @@ onMounted(async () => {
       .parsing-progress {
         padding: 24px;
         background: $overlay-emerald-04;
-        border-radius: 24px;
+        border-radius: var(--radius-4xl);
         border: 1px solid rgba(148, 163, 184, 0.18);
 
         .progress-header {
@@ -2791,14 +2791,14 @@ onMounted(async () => {
             min-width: 0;
 
             .t-icon {
-              color: #64748b;
+              color: var(--color-text-secondary);
               flex-shrink: 0;
             }
 
             .progress-filename {
               font-size: 12px;
               font-weight: 600;
-              color: #334155;
+              color: var(--color-text-primary);
               overflow: hidden;
               text-overflow: ellipsis;
               white-space: nowrap;
@@ -2806,9 +2806,9 @@ onMounted(async () => {
 
             .progress-model {
               font-size: 10px;
-              padding: 2px 6px;
+              padding: var(--space-0-5) var(--space-1-5);
               background: rgba(16, 185, 129, 0.1);
-              color: #059669;
+              color: var(--color-primary-dark);
               border-radius: 6px;
               flex-shrink: 0;
             }
@@ -2818,7 +2818,7 @@ onMounted(async () => {
             font-size: 12px;
             font-family: monospace;
             font-weight: 700;
-            color: #10b981;
+            color: var(--color-primary);
             flex-shrink: 0;
             margin-left: 12px;
           }
@@ -2830,14 +2830,14 @@ onMounted(async () => {
           .progress-bar {
             height: 6px;
             background: rgba(148, 163, 184, 0.2);
-            border-radius: 3px;
+            border-radius: var(--radius-xs);
             overflow: hidden;
 
             .progress-fill {
               height: 100%;
-              background: linear-gradient(90deg, #10b981, #34d399, #10b981);
+              background: linear-gradient(90deg, var(--color-primary), var(--color-primary-light), var(--color-primary));
               background-size: 200% 100%;
-              border-radius: 3px;
+              border-radius: var(--radius-xs);
 
               &--indeterminate {
                 width: 40% !important;
@@ -2849,7 +2849,7 @@ onMounted(async () => {
 
         .progress-hint {
           font-size: 10px;
-          color: #64748b;
+          color: var(--color-text-secondary);
           font-style: italic;
           margin: 0;
         }
@@ -2857,9 +2857,9 @@ onMounted(async () => {
         .progress-model-info {
           display: flex;
           align-items: center;
-          gap: 6px;
-          margin-top: 10px;
-          padding: 6px 10px;
+          gap: var(--space-1-5);
+          margin-top: var(--space-2-5);
+          padding: var(--space-1-5) var(--space-2-5);
           background: rgba(99, 102, 241, 0.06);
           border: 1px solid rgba(99, 102, 241, 0.12);
           border-radius: 8px;
@@ -2876,13 +2876,13 @@ onMounted(async () => {
           }
 
           .model-version {
-            color: #94a3b8;
+            color: var(--color-text-placeholder);
             font-family: monospace;
             font-size: 10px;
           }
 
           .model-feature {
-            padding: 1px 6px;
+            padding: 1px var(--space-1-5);
             background: rgba(99, 102, 241, 0.1);
             border-radius: 4px;
             font-size: 10px;
@@ -2896,11 +2896,11 @@ onMounted(async () => {
         align-items: center;
         justify-content: space-between;
         gap: 8px;
-        padding: 14px 18px;
+        padding: var(--space-3-5) var(--space-4-5);
         background: $color-danger-bg;
         border: 1px solid rgba(239, 68, 68, 0.15);
         border-radius: 16px;
-        color: #dc2626;
+        color: var(--color-danger);
         font-size: 12px;
         font-weight: 600;
 
@@ -2933,11 +2933,11 @@ onMounted(async () => {
         .error-dismiss {
           background: none;
           border: none;
-          color: #dc2626;
+          color: var(--color-danger);
           cursor: pointer;
           font-size: 14px;
           opacity: 0.5;
-          padding: 2px 4px;
+          padding: var(--space-0-5) 4px;
           transition: opacity 0.2s;
 
           &:hover {
@@ -2949,8 +2949,8 @@ onMounted(async () => {
           display: flex;
           align-items: center;
           gap: 4px;
-          padding: 5px 12px;
-          background: linear-gradient(135deg, #f59e0b, #d97706);
+          padding: var(--space-1-25) 12px;
+          background: linear-gradient(135deg, var(--color-warning), #d97706);
           color: #fff;
           border: none;
           border-radius: 8px;
@@ -2975,13 +2975,13 @@ onMounted(async () => {
         .result-card {
           padding: 24px;
           background: $overlay-emerald-04;
-          border-radius: 24px;
+          border-radius: var(--radius-4xl);
           border: 1px solid rgba(148, 163, 184, 0.18);
 
           .result-title {
             font-size: 12px;
             font-weight: 900;
-            color: #10b981;
+            color: var(--color-primary);
             text-transform: uppercase;
             letter-spacing: 0.1em;
             margin: 0 0 16px;
@@ -2998,24 +2998,24 @@ onMounted(async () => {
               font-size: 12px;
 
               .result-label {
-                color: #64748b;
+                color: var(--color-text-secondary);
                 flex-shrink: 0;
               }
 
               .result-value {
                 font-weight: 700;
-                color: #334155;
+                color: var(--color-text-primary);
               }
 
               .result-value--empty {
-                color: #94a3b8;
+                color: var(--color-text-placeholder);
                 font-weight: 500;
               }
 
               .result-badge {
-                padding: 2px 8px;
+                padding: var(--space-0-5) 8px;
                 background: $overlay-emerald-12;
-                color: #059669;
+                color: var(--color-primary-dark);
                 border-radius: 4px;
                 font-size: 11px;
                 font-weight: 600;
@@ -3029,14 +3029,14 @@ onMounted(async () => {
                 .confidence-bar {
                   width: 80px;
                   height: 6px;
-                  background: #e2e8f0;
-                  border-radius: 3px;
+                  background: var(--color-border);
+                  border-radius: var(--radius-xs);
                   overflow: hidden;
 
                   .confidence-fill {
                     height: 100%;
-                    background: linear-gradient(90deg, #10b981, #34d399);
-                    border-radius: 3px;
+                    background: linear-gradient(90deg, var(--color-primary), var(--color-primary-light));
+                    border-radius: var(--radius-xs);
                     transition: width 0.6s ease;
                   }
                 }
@@ -3046,15 +3046,15 @@ onMounted(async () => {
                   font-weight: 700;
 
                   &.conf-high {
-                    color: #059669;
+                    color: var(--color-primary-dark);
                   }
 
                   &.conf-mid {
-                    color: #f59e0b;
+                    color: var(--color-warning);
                   }
 
                   &.conf-low {
-                    color: #ef4444;
+                    color: var(--color-danger);
                   }
                 }
               }
@@ -3068,17 +3068,17 @@ onMounted(async () => {
             border-spacing: 0;
             border-radius: 12px;
             overflow: hidden;
-            background: #f8fafc;
+            background: var(--color-bg-page);
 
             thead {
               th {
-                padding: 12px 14px;
+                padding: 12px var(--space-3-5);
                 font-size: 11px;
                 font-weight: 700;
-                color: #94a3b8;
+                color: var(--color-text-placeholder);
                 letter-spacing: 0.04em;
                 text-transform: uppercase;
-                background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+                background: linear-gradient(180deg, var(--color-bg-page) 0%, #f1f5f9 100%);
                 white-space: nowrap;
 
                 &.col-name {
@@ -3118,9 +3118,9 @@ onMounted(async () => {
               }
 
               td {
-                padding: 11px 14px;
+                padding: var(--space-3) var(--space-3-5);
                 font-size: 13px;
-                color: #334155;
+                color: var(--color-text-primary);
               }
 
               .col-name {
@@ -3152,7 +3152,7 @@ onMounted(async () => {
 
                   :deep(.t-button) {
                     height: 26px;
-                    padding: 0 10px;
+                    padding: 0 var(--space-2-5);
                     font-size: 11px;
                   }
                 }
@@ -3160,10 +3160,10 @@ onMounted(async () => {
                 .reg-success {
                   display: inline-flex;
                   align-items: center;
-                  gap: 5px;
+                  gap: var(--space-1-25);
                   font-size: 12px;
                   font-weight: 600;
-                  color: #059669;
+                  color: var(--color-primary-dark);
 
                   .t-icon {
                     font-size: 16px;
@@ -3193,11 +3193,11 @@ onMounted(async () => {
               margin-left: 4px;
 
               &.up {
-                color: #059669;
+                color: var(--color-primary-dark);
               }
 
               &.down {
-                color: #f59e0b;
+                color: var(--color-warning);
               }
             }
 
@@ -3207,7 +3207,7 @@ onMounted(async () => {
               gap: 4px;
               font-size: 11px;
               font-weight: 600;
-              padding: 4px 10px;
+              padding: 4px var(--space-2-5);
               background: #fff7ed;
               color: #d97706;
               border: 1px solid #fcd34d;
@@ -3253,14 +3253,14 @@ onMounted(async () => {
 
               th,
               td {
-                padding: 8px 14px;
+                padding: 8px var(--space-3-5);
                 text-align: center;
                 font-size: 12px;
                 border-bottom: 1px solid rgba(253, 230, 138, 0.5);
               }
 
               th {
-                color: #94a3b8;
+                color: var(--color-text-placeholder);
                 font-weight: 700;
                 letter-spacing: 0.04em;
                 text-transform: uppercase;
@@ -3273,17 +3273,17 @@ onMounted(async () => {
               }
 
               .diff-row--up .diff-val {
-                color: #059669;
+                color: var(--color-primary-dark);
                 font-weight: 700;
               }
 
               .diff-row--down .diff-val {
-                color: #f59e0b;
+                color: var(--color-warning);
                 font-weight: 700;
               }
 
               .diff-row--same .diff-val {
-                color: #94a3b8;
+                color: var(--color-text-placeholder);
               }
             }
 
@@ -3291,11 +3291,11 @@ onMounted(async () => {
               display: flex;
               gap: 12px;
               justify-content: center;
-              margin-top: 14px;
+              margin-top: var(--space-3-5);
             }
 
             .diff-btn {
-              padding: 8px 28px;
+              padding: 8px var(--space-7);
               border-radius: 10px;
               font-weight: 700;
               font-size: 13px;
@@ -3304,7 +3304,7 @@ onMounted(async () => {
               border: none;
 
               &--apply {
-                background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
                 color: white;
 
                 &:hover {
@@ -3314,8 +3314,8 @@ onMounted(async () => {
               }
 
               &--keep {
-                background: #e2e8f0;
-                color: #64748b;
+                background: var(--color-border);
+                color: var(--color-text-secondary);
 
                 &:hover {
                   background: #cbd5e1;
@@ -3336,11 +3336,11 @@ onMounted(async () => {
             .summary-header {
               display: flex;
               align-items: center;
-              gap: 6px;
-              padding: 10px 14px;
+              gap: var(--space-1-5);
+              padding: var(--space-2-5) var(--space-3-5);
               font-size: 11px;
               font-weight: 800;
-              color: #059669;
+              color: var(--color-primary-dark);
               text-transform: uppercase;
               letter-spacing: 0.05em;
 
@@ -3350,7 +3350,7 @@ onMounted(async () => {
             }
 
             .summary-items {
-              padding: 0 14px 12px;
+              padding: 0 var(--space-3-5) 12px;
               display: flex;
               flex-direction: column;
               gap: 8px;
@@ -3359,8 +3359,8 @@ onMounted(async () => {
             .summary-item {
               display: flex;
               align-items: center;
-              gap: 10px;
-              padding: 6px 10px;
+              gap: var(--space-2-5);
+              padding: var(--space-1-5) var(--space-2-5);
               border-radius: 10px;
               transition: background 0.2s;
 
@@ -3381,7 +3381,7 @@ onMounted(async () => {
                 flex-shrink: 0;
                 font-size: 11px;
                 font-weight: 700;
-                color: #475569;
+                color: var(--color-text-secondary);
               }
 
               .item-bar-wrap {
@@ -3393,13 +3393,13 @@ onMounted(async () => {
                 .item-bar {
                   flex: 1;
                   height: 6px;
-                  border-radius: 3px;
-                  background: #e2e8f0;
+                  border-radius: var(--radius-xs);
+                  background: var(--color-border);
                   overflow: hidden;
 
                   .item-fill {
                     height: 100%;
-                    border-radius: 3px;
+                    border-radius: var(--radius-xs);
                     transition: width 0.5s ease-out;
                   }
                 }
@@ -3414,11 +3414,11 @@ onMounted(async () => {
               }
 
               &--high .item-fill {
-                background: linear-gradient(90deg, #10b981, #34d399);
+                background: linear-gradient(90deg, var(--color-primary), var(--color-primary-light));
               }
 
               &--high .item-value {
-                color: #059669;
+                color: var(--color-primary-dark);
               }
 
               &--medium .item-fill {
@@ -3430,11 +3430,11 @@ onMounted(async () => {
               }
 
               &--low .item-fill {
-                background: linear-gradient(90deg, #ef4444, #f87171);
+                background: linear-gradient(90deg, var(--color-danger), #f87171);
               }
 
               &--low .item-value {
-                color: #dc2626;
+                color: var(--color-danger);
               }
             }
           }
@@ -3442,7 +3442,7 @@ onMounted(async () => {
           .result-actions {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
+            gap: var(--space-2-5);
 
             .backfill-btn {
               border-radius: 12px;
@@ -3456,8 +3456,8 @@ onMounted(async () => {
                 display: inline-flex;
                 align-items: center;
                 justify-content: center;
-                gap: 6px;
-                padding: 9px 12px;
+                gap: var(--space-1-5);
+                padding: var(--space-2) 12px;
                 border-radius: 14px;
                 font-size: 12px;
                 font-weight: 600;
@@ -3474,12 +3474,12 @@ onMounted(async () => {
                 &--danger,
                 &--primary {
                   background: #f1f5f9;
-                  color: #475569;
-                  border-color: #e2e8f0;
+                  color: var(--color-text-secondary);
+                  border-color: var(--color-border);
 
                   &:hover {
-                    background: #e2e8f0;
-                    color: #334155;
+                    background: var(--color-border);
+                    color: var(--color-text-primary);
                     border-color: #cbd5e1;
                   }
                 }
@@ -3563,7 +3563,7 @@ onMounted(async () => {
     display: flex !important;
     align-items: center !important;
     justify-content: flex-start !important;
-    padding: 7px 12px !important;
+    padding: var(--space-2) 12px !important;
     min-height: 38px;
     width: 100% !important;
     max-width: none !important;
@@ -3577,7 +3577,7 @@ onMounted(async () => {
     }
 
     &.t-dropdown__item--active {
-      color: #059669 !important;
+      color: var(--color-primary-dark) !important;
       background-color: transparent !important;
     }
   }
@@ -3596,7 +3596,7 @@ onMounted(async () => {
       width: 22px !important;
       height: 22px !important;
       min-width: 22px !important;
-      border-radius: 5px !important;
+      border-radius: var(--radius-sm) !important;
       overflow: hidden !important;
       flex-shrink: 0 !important;
       display: flex !important;
@@ -3629,7 +3629,7 @@ onMounted(async () => {
     .reparse-model-name {
       font-size: 13px !important;
       font-weight: 600 !important;
-      color: #334155 !important;
+      color: var(--color-text-primary) !important;
       flex: 1 !important;
     }
 
@@ -3639,7 +3639,7 @@ onMounted(async () => {
       transition: all $transition-fast;
 
       &--active {
-        color: #10b981 !important;
+        color: var(--color-primary) !important;
         transform: scale(1.15);
       }
     }

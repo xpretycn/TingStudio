@@ -62,7 +62,7 @@
                           height="14"
                           viewBox="0 0 24 24"
                           fill="none"
-                          stroke="#10B981"
+                          stroke="var(--color-primary)"
                           stroke-width="2.5"
                           stroke-linecap="round"
                           stroke-linejoin="round"
@@ -75,7 +75,7 @@
                 </t-select>
               </template>
               <div v-else class="no-models-inline">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-placeholder)" stroke-width="2"
                   stroke-linecap="round" stroke-linejoin="round">
                   <circle cx="12" cy="12" r="10" />
                   <line x1="12" y1="8" x2="12" y2="12" />
@@ -323,7 +323,7 @@ onMounted(async () => {
 
   .content-card {
     min-height: 500px;
-    border-radius: 24px !important;
+    border-radius: var(--radius-4xl) !important;
     overflow: hidden;
     border: none;
     box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
@@ -352,7 +352,7 @@ onMounted(async () => {
       .toolbar-title {
         font-size: 20px;
         font-weight: 700;
-        color: #1e293b;
+        color: var(--color-text-primary);
         margin: 0;
         display: flex;
         align-items: center;
@@ -361,24 +361,24 @@ onMounted(async () => {
         flex-shrink: 0;
 
         .toolbar-title-icon {
-          color: #10B981;
+          color: var(--color-primary);
           flex-shrink: 0;
         }
       }
 
       .toolbar-tabs {
         display: flex;
-        gap: 6px;
+        gap: var(--space-1-5);
 
         .toolbar-tab {
           display: inline-flex;
           align-items: center;
-          gap: 6px;
-          padding: 8px 18px;
+          gap: var(--space-1-5);
+          padding: 8px var(--space-4-5);
           border-radius: 14px;
           border: 1px solid transparent;
           background: transparent;
-          color: #64748b;
+          color: var(--color-text-secondary);
           font-size: 14px;
           font-weight: 500;
           cursor: pointer;
@@ -393,11 +393,11 @@ onMounted(async () => {
 
           &:hover {
             background: #f1f5f9;
-            color: #334155;
+            color: var(--color-text-primary);
           }
 
           &.active {
-            background: linear-gradient(135deg, #10B981, #059669);
+            background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
             color: #fff;
             box-shadow: 0 4px 12px $overlay-emerald-25;
             font-weight: 600;
@@ -444,7 +444,7 @@ onMounted(async () => {
           .t-select__value-text {
             display: inline-flex !important;
             align-items: center;
-            gap: 6px;
+            gap: var(--space-1-5);
             font-size: 12px !important;
             color: #333;
 
@@ -473,17 +473,17 @@ onMounted(async () => {
         .no-models-inline {
           display: flex;
           align-items: center;
-          gap: 6px;
-          padding: 8px 14px;
+          gap: var(--space-1-5);
+          padding: 8px var(--space-3-5);
           font-size: 12px;
-          color: #94a3b8;
+          color: var(--color-text-placeholder);
         }
       }
     }
   }
 
   .ai-content {
-    padding: 24px 28px;
+    padding: 24px var(--space-7);
     min-height: 480px;
   }
 

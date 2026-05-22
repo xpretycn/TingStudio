@@ -374,7 +374,7 @@
         </div>
 
         <div class="assistant-empty" v-else>
-          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#34D399" stroke-width="1.5"
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary-light)" stroke-width="1.5"
             stroke-linecap="round" stroke-linejoin="round">
             <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
             <polyline points="22 4 12 14.01 9 11.01" />
@@ -463,7 +463,7 @@ const dashboardCards = computed(() => {
       value: total.toLocaleString(),
       unit: '种',
       badge: `${total > 0 ? '+' + Math.min(total, 99) : 0}`,
-      badgeColor: '#10B981',
+      badgeColor: 'var(--color-primary)',
       badgeBg: '#ECFDF5',
       iconBg: '#EFF6FF',
       iconColor: '#3B82F6',
@@ -474,10 +474,10 @@ const dashboardCards = computed(() => {
       value: herbCount.toString(),
       unit: '种',
       badge: '主料',
-      badgeColor: '#059669',
-      badgeBg: '#D1FAE5',
+      badgeColor: 'var(--color-primary-dark)',
+      badgeBg: 'var(--color-primary-bg)',
       iconBg: '#FFFBEB',
-      iconColor: '#F59E0B',
+      iconColor: 'var(--color-warning)',
       iconPath: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
     },
     {
@@ -496,10 +496,10 @@ const dashboardCards = computed(() => {
       value: nutritionCount.toString(),
       unit: '项',
       badge: nutritionCount >= total && total > 0 ? '完整' : '待补全',
-      badgeColor: nutritionCount >= total ? '#10B981' : '#EF4444',
+      badgeColor: nutritionCount >= total ? 'var(--color-primary)' : 'var(--color-danger)',
       badgeBg: nutritionCount >= total ? '#ECFDF5' : '#FEF2F2',
       iconBg: '#ECFDF5',
-      iconColor: '#10B981',
+      iconColor: 'var(--color-primary)',
       iconPath: '<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>',
     },
   ];
@@ -630,9 +630,9 @@ const getMaterialAvatar = (row: any) => {
 const getAvatarColor = (text: string) => {
   const colors = [
     { bg: '#DBEAFE', text: '#3B82F6' },
-    { bg: '#FEE2E2', text: '#EF4444' },
-    { bg: '#FEF3C7', text: '#F59E0B' },
-    { bg: '#D1FAE5', text: '#10B981' },
+    { bg: '#FEE2E2', text: 'var(--color-danger)' },
+    { bg: '#FEF3C7', text: 'var(--color-warning)' },
+    { bg: 'var(--color-primary-bg)', text: 'var(--color-primary)' },
     { bg: '#E0E7FF', text: '#6366F1' },
     { bg: '#F3E8FF', text: '#A855F7' },
     { bg: '#E0F2FE', text: '#0EA5E9' },
@@ -1106,7 +1106,7 @@ const handleDelete = async (row: Material) => {
     .stat-card {
       background: #fff;
       padding: 24px;
-      border-radius: 24px;
+      border-radius: var(--radius-4xl);
       border: 1px solid #fff;
       box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
       transition: all $transition-slow;
@@ -1139,14 +1139,14 @@ const handleDelete = async (row: Material) => {
       .stat-badge {
         font-size: 12px;
         font-weight: 700;
-        padding: 2px 8px;
+        padding: var(--space-0-5) 8px;
         border-radius: 8px;
         white-space: nowrap;
       }
 
       .stat-label {
         font-size: 14px;
-        color: #94A3B8;
+        color: var(--color-text-placeholder);
         margin-bottom: 4px;
       }
 
@@ -1159,7 +1159,7 @@ const handleDelete = async (row: Material) => {
         .stat-unit {
           font-size: 14px;
           font-weight: 400;
-          color: #94A3B8;
+          color: var(--color-text-placeholder);
         }
       }
     }
@@ -1169,8 +1169,8 @@ const handleDelete = async (row: Material) => {
   .content-card {
     min-height: 400px;
     background-color: #fff;
-    border-radius: 32px !important;
-    border: 1px solid #f8fafc !important;
+    border-radius: var(--radius-5xl) !important;
+    border: 1px solid var(--color-bg-page) !important;
     overflow: hidden;
     box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
     transition: all $transition-slow;
@@ -1191,10 +1191,10 @@ const handleDelete = async (row: Material) => {
 
   // 展开行样式
   .expanded-content {
-    padding: 24px 28px;
-    background-color: #f8fafc;
+    padding: 24px var(--space-7);
+    background-color: var(--color-bg-page);
     border-radius: 16px;
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--color-border);
     animation: expandRowFadeIn 0.3s ease both;
 
     .nutrition-section {
@@ -1208,7 +1208,7 @@ const handleDelete = async (row: Material) => {
           margin: 0;
           font-size: 16px;
           font-weight: 700;
-          color: #1e293b;
+          color: var(--color-text-primary);
           display: flex;
           align-items: center;
           gap: 8px;
@@ -1218,8 +1218,8 @@ const handleDelete = async (row: Material) => {
             display: inline-block;
             width: 4px;
             height: 20px;
-            background: linear-gradient(180deg, #34d399, #10b981);
-            border-radius: 2px;
+            background: linear-gradient(180deg, var(--color-primary-light), var(--color-primary));
+            border-radius: var(--radius-2xs);
           }
         }
       }
@@ -1232,7 +1232,7 @@ const handleDelete = async (row: Material) => {
     }
 
     .nutrition-item {
-      padding: 16px 18px;
+      padding: 16px var(--space-4-5);
       background: #fff;
       border-radius: 12px;
       border: 1px solid #f1f5f9;
@@ -1240,21 +1240,21 @@ const handleDelete = async (row: Material) => {
       position: relative;
 
       &:hover {
-        border-color: #d1fae5;
+        border-color: var(--color-primary-bg);
         box-shadow: 0 2px 8px $overlay-emerald-08;
         transform: translateY(-2px);
       }
 
       &--highlight {
-        border-color: #d1fae5;
+        border-color: var(--color-primary-bg);
         background: linear-gradient(135deg, #ffffff, #f0fdf4);
 
         .nutri-label {
-          color: #059669;
+          color: var(--color-primary-dark);
         }
 
         .nutri-value {
-          color: #047857;
+          color: var(--color-primary-deep);
         }
       }
 
@@ -1262,10 +1262,10 @@ const handleDelete = async (row: Material) => {
         display: block;
         font-size: 11px;
         font-weight: 600;
-        color: #94a3b8;
+        color: var(--color-text-placeholder);
         text-transform: uppercase;
         letter-spacing: 0.05em;
-        margin-bottom: 6px;
+        margin-bottom: var(--space-1-5);
       }
 
       .nutri-value {
@@ -1273,14 +1273,14 @@ const handleDelete = async (row: Material) => {
         font-family: ui-monospace, SFMono-Regular, 'Cascadia Code', monospace;
         font-size: 22px;
         font-weight: 800;
-        color: #334155;
-        margin-bottom: 10px;
+        color: var(--color-text-primary);
+        margin-bottom: var(--space-2-5);
 
         .nutri-unit {
           font-size: 14px;
           font-weight: 500;
-          color: #94a3b8;
-          margin-left: 2px;
+          color: var(--color-text-placeholder);
+          margin-left: var(--space-0-5);
         }
       }
 
@@ -1290,13 +1290,13 @@ const handleDelete = async (row: Material) => {
         background: #f1f5f9;
         border-radius: 999px;
         overflow: hidden;
-        margin-bottom: 6px;
+        margin-bottom: var(--space-1-5);
 
         .nutri-bar-fill {
           height: 100%;
           border-radius: 999px;
           transition: width 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-          background: linear-gradient(90deg, #34d399, #10b981);
+          background: linear-gradient(90deg, var(--color-primary-light), var(--color-primary));
         }
       }
 
@@ -1306,14 +1306,14 @@ const handleDelete = async (row: Material) => {
         font-family: ui-monospace, SFMono-Regular, 'Cascadia Code', monospace;
         font-size: 12px;
         font-weight: 600;
-        color: #10b981;
+        color: var(--color-primary);
       }
     }
 
     .empty-nutrition {
       text-align: center;
       padding: 48px 32px;
-      color: #94a3b8;
+      color: var(--color-text-placeholder);
 
       .t-icon {
         font-size: 40px;
@@ -1338,7 +1338,7 @@ const handleDelete = async (row: Material) => {
   // 工具栏
   .data-center-toolbar {
     padding: 32px;
-    border-bottom: 1px solid #f8fafc;
+    border-bottom: 1px solid var(--color-bg-page);
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
@@ -1354,13 +1354,13 @@ const handleDelete = async (row: Material) => {
         .toolbar-title {
           font-size: 20px;
           font-weight: 700;
-          color: #1e293b;
+          color: var(--color-text-primary);
           margin: 0 0 4px 0;
         }
 
         .toolbar-subtitle {
           font-size: 14px;
-          color: #94a3b8;
+          color: var(--color-text-placeholder);
           margin: 0;
         }
       }
@@ -1381,7 +1381,7 @@ const handleDelete = async (row: Material) => {
         left: 12px;
         top: 50%;
         transform: translateY(-50%);
-        color: #94a3b8;
+        color: var(--color-text-placeholder);
         font-size: 16px;
         z-index: 1;
         pointer-events: none;
@@ -1393,7 +1393,7 @@ const handleDelete = async (row: Material) => {
           padding-right: 16px;
           padding-top: 8px;
           padding-bottom: 8px;
-          background-color: #f8fafc;
+          background-color: var(--color-bg-page);
           border: none !important;
           border-radius: 12px;
           font-size: 14px;
@@ -1407,7 +1407,7 @@ const handleDelete = async (row: Material) => {
           }
 
           &::placeholder {
-            color: #94a3b8;
+            color: var(--color-text-placeholder);
           }
         }
       }
@@ -1418,7 +1418,7 @@ const handleDelete = async (row: Material) => {
       align-items: center;
       gap: 8px;
       padding: 8px 16px;
-      background-color: #1e293b;
+      background-color: var(--color-text-primary);
       color: white;
       border-radius: 12px;
       font-size: 14px;
@@ -1429,7 +1429,7 @@ const handleDelete = async (row: Material) => {
       cursor: pointer;
 
       &:hover {
-        background-color: #334155;
+        background-color: var(--color-text-primary);
       }
 
       .add-icon {
@@ -1445,7 +1445,7 @@ const handleDelete = async (row: Material) => {
     .filter-btn {
       position: relative;
       padding: 8px;
-      color: #94a3b8;
+      color: var(--color-text-placeholder);
       background-color: transparent;
       border: 1px solid #f1f5f9;
       border-radius: 8px;
@@ -1453,7 +1453,7 @@ const handleDelete = async (row: Material) => {
       cursor: pointer;
 
       &:hover {
-        background-color: #f8fafc;
+        background-color: var(--color-bg-page);
       }
 
       .filter-icon {
@@ -1466,7 +1466,7 @@ const handleDelete = async (row: Material) => {
         right: -2px;
         width: 8px;
         height: 8px;
-        background-color: #10b981;
+        background-color: var(--color-primary);
         border-radius: 50%;
         border: 2px solid white;
         opacity: 0;
@@ -1487,7 +1487,7 @@ const handleDelete = async (row: Material) => {
     right: 0;
     bottom: 0;
     z-index: 20;
-    background-color: #059669;
+    background-color: var(--color-primary-dark);
     color: #fff;
     display: flex;
     align-items: center;
@@ -1537,7 +1537,7 @@ const handleDelete = async (row: Material) => {
         transition: all $transition-fast;
 
         &:hover {
-          color: #d1fae5;
+          color: var(--color-primary-bg);
         }
 
         svg {
@@ -1551,7 +1551,7 @@ const handleDelete = async (row: Material) => {
     .batch-cancel-btn {
       font-size: 14px;
       font-weight: 500;
-      border: 1px solid #34d399;
+      border: 1px solid var(--color-primary-light);
       padding: 4px 12px;
       border-radius: 8px;
       background: transparent;
@@ -1560,17 +1560,17 @@ const handleDelete = async (row: Material) => {
       transition: all $transition-fast;
 
       &:hover {
-        background-color: #047857;
+        background-color: var(--color-primary-deep);
       }
     }
   }
 
   .delete-info {
-    color: #334155;
+    color: var(--color-text-primary);
     font-size: 14px;
     margin-top: 8px;
-    padding: 10px 12px;
-    background: #f8fafc;
+    padding: var(--space-2-5) 12px;
+    background: var(--color-bg-page);
     border-radius: 8px;
     border-left: 3px solid #fecdd3;
   }
@@ -1584,17 +1584,17 @@ const handleDelete = async (row: Material) => {
       position: sticky !important;
       top: 0 !important;
       z-index: 5 !important;
-      background: #f8fafc !important;
+      background: var(--color-bg-page) !important;
 
       th {
-        background: #f8fafc !important;
-        color: #94a3b8 !important;
+        background: var(--color-bg-page) !important;
+        color: var(--color-text-placeholder) !important;
         font-size: 12px !important;
         text-transform: uppercase !important;
         letter-spacing: 0.05em !important;
         font-weight: 600 !important;
-        padding: 14px 20px !important;
-        border-bottom: 1px solid #e2e8f0 !important;
+        padding: var(--space-3-5) 20px !important;
+        border-bottom: 1px solid var(--color-border) !important;
 
         &:first-child {
           padding-left: 24px !important;
@@ -1616,16 +1616,16 @@ const handleDelete = async (row: Material) => {
         &:hover td,
         &.t-table__row--hover td {
           background-color: rgba(209, 250, 229, 0.35) !important;
-          box-shadow: inset 3px 0 0 #34d399 !important;
+          box-shadow: inset 3px 0 0 var(--color-primary-light) !important;
         }
 
         &.t-table__row--selected td {
           background-color: rgba(209, 250, 229, 0.55) !important;
-          box-shadow: inset 3px 0 0 #10b981 !important;
+          box-shadow: inset 3px 0 0 var(--color-primary) !important;
         }
 
         td {
-          padding: 18px 20px !important;
+          padding: var(--space-4-5) 20px !important;
           border-bottom: 1px solid #f1f5f9 !important;
           vertical-align: middle;
 
@@ -1681,14 +1681,14 @@ const handleDelete = async (row: Material) => {
   .material-details {
     .material-name {
       font-weight: 700;
-      color: #334155;
+      color: var(--color-text-primary);
       font-size: 14px;
       margin: 0 0 4px 0;
     }
 
     .material-code {
       font-size: 12px;
-      color: #94a3b8;
+      color: var(--color-text-placeholder);
       text-transform: uppercase;
       letter-spacing: -0.05em;
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
@@ -1702,10 +1702,10 @@ const handleDelete = async (row: Material) => {
   font-family: ui-monospace, SFMono-Regular, 'Cascadia Code', monospace;
   font-size: 13px;
   font-weight: 600;
-  color: #334155;
+  color: var(--color-text-primary);
 
   &.stock-low {
-    color: #ef4444;
+    color: var(--color-danger);
   }
 }
 
@@ -1715,11 +1715,11 @@ const handleDelete = async (row: Material) => {
   font-family: ui-monospace, SFMono-Regular, 'Cascadia Code', monospace;
   font-size: 13px;
   font-weight: 600;
-  color: #334155;
+  color: var(--color-text-primary);
 
   &.mat-price-empty {
     font-weight: 400;
-    color: #94a3b8;
+    color: var(--color-text-placeholder);
     font-family: inherit;
   }
 }
@@ -1729,7 +1729,7 @@ const handleDelete = async (row: Material) => {
   flex-direction: column;
   line-height: 1.4;
   font-size: 12px;
-  color: #475569;
+  color: var(--color-text-secondary);
   white-space: pre-line;
 }
 
@@ -1737,16 +1737,16 @@ const handleDelete = async (row: Material) => {
 .version-cell {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--space-1-5);
   justify-content: center;
 
   .version-count {
     font-size: 11px;
-    color: #94a3b8;
+    color: var(--color-text-placeholder);
     cursor: pointer;
 
     &:hover {
-      color: #10b981;
+      color: var(--color-primary);
     }
   }
 }
@@ -1764,10 +1764,10 @@ const handleDelete = async (row: Material) => {
 .data-source-tag {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--space-1-5);
   font-size: 12px;
   font-weight: 500;
-  padding: 4px 10px;
+  padding: 4px var(--space-2-5);
   border-radius: 999px;
   transition: all $transition-fast;
 
@@ -1782,12 +1782,12 @@ const handleDelete = async (row: Material) => {
 
   &--batch_import {
     background-color: #F0FDF4;
-    color: #10B981;
+    color: var(--color-primary);
   }
 
   &--api_sync {
     background-color: #FFFBEB;
-    color: #F59E0B;
+    color: var(--color-warning);
   }
 }
 
@@ -1802,7 +1802,7 @@ const handleDelete = async (row: Material) => {
     width: 32px;
     height: 32px;
     border-radius: 10px;
-    color: #64748b;
+    color: var(--color-text-secondary);
     transition: all 0.2s ease;
     background: transparent;
     border: 1px solid transparent;
@@ -1813,8 +1813,8 @@ const handleDelete = async (row: Material) => {
 
     &:hover {
       transform: translateY(-1px);
-      background: #f8fafc;
-      border-color: #e2e8f0;
+      background: var(--color-bg-page);
+      border-color: var(--color-border);
     }
 
     &.view-btn:hover {
@@ -1824,13 +1824,13 @@ const handleDelete = async (row: Material) => {
     }
 
     &.edit-btn:hover {
-      color: #10b981;
+      color: var(--color-primary);
       background: #ecfdf5;
-      border-color: #a7f3d0;
+      border-color: var(--color-primary-lightest);
     }
 
     &.delete-btn:hover {
-      color: #ef4444;
+      color: var(--color-danger);
       background: #fef2f2;
       border-color: #fecaca;
     }
@@ -1848,11 +1848,11 @@ const handleDelete = async (row: Material) => {
   justify-content: space-between;
   align-items: center;
   background-color: #fff;
-  border-top: 1px solid #f8fafc;
+  border-top: 1px solid var(--color-bg-page);
 
   .pagination-info {
     font-size: 14px;
-    color: #94a3b8;
+    color: var(--color-text-placeholder);
     font-weight: 400;
     white-space: nowrap;
   }
@@ -1867,8 +1867,8 @@ const handleDelete = async (row: Material) => {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 6px 12px;
-    border: 1px solid #e2e8f0;
+    padding: var(--space-1-5) 12px;
+    border: 1px solid var(--color-border);
     border-radius: var(--radius-md, 8px);
     background-color: transparent;
     color: var(--color-text-regular, #6e6178);
@@ -1879,9 +1879,9 @@ const handleDelete = async (row: Material) => {
     user-select: none;
 
     &:hover:not(.pagination-btn--disabled):not(.pagination-btn--active) {
-      background-color: var(--color-primary-bg, #fff0f3);
-      border-color: var(--color-primary-lighter, #ffb5c8);
-      color: var(--color-primary-dark, #e8a0b0);
+      background-color: var(--color-primary-bg, var(--color-primary-bg));
+      border-color: var(--color-primary-lighter, var(--color-primary-lighter));
+      color: var(--color-primary-dark, var(--color-primary-dark));
     }
 
     &.pagination-btn--disabled {
@@ -1889,14 +1889,14 @@ const handleDelete = async (row: Material) => {
       cursor: not-allowed !important;
       color: var(--color-text-placeholder, #d4c5d0);
       background-color: transparent;
-      border-color: #e2e8f0;
+      border-color: var(--color-border);
       pointer-events: none;
     }
 
     &.pagination-btn--active {
-      background-color: var(--color-primary, #ff6b8a);
+      background-color: var(--color-primary, var(--color-primary));
       color: #fff;
-      border-color: var(--color-primary, #ff6b8a);
+      border-color: var(--color-primary, var(--color-primary));
       font-weight: 600;
       box-shadow: 0 1px 3px var(--overlay-brand-25, rgba(255, 107, 138, 0.25));
       pointer-events: none;
@@ -1909,7 +1909,7 @@ const handleDelete = async (row: Material) => {
     justify-content: center;
     width: 36px;
     height: 34px;
-    color: #94a3b8;
+    color: var(--color-text-placeholder);
     font-size: 14px;
     user-select: none;
   }
@@ -1930,14 +1930,14 @@ const handleDelete = async (row: Material) => {
 
 .activity-card {
   background-color: #fff;
-  border-radius: 24px;
+  border-radius: var(--radius-4xl);
   padding: 32px;
   box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
-  border: 1px solid #f8fafc;
+  border: 1px solid var(--color-bg-page);
 
   &--assistant {
     background: #fff;
-    border: 1px solid #f8fafc;
+    border: 1px solid var(--color-bg-page);
     color: #0F172A;
     position: relative;
     overflow: hidden;
@@ -1955,7 +1955,7 @@ const handleDelete = async (row: Material) => {
 .activity-title {
   font-size: 18px;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--color-text-primary);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -1965,7 +1965,7 @@ const handleDelete = async (row: Material) => {
 .activity-nav {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--space-1-5);
 
   .activity-nav-btn {
     display: inline-flex;
@@ -1976,14 +1976,14 @@ const handleDelete = async (row: Material) => {
     border-radius: 8px;
     border: 1.5px solid $overlay-emerald-20;
     background: $overlay-emerald-04;
-    color: #10b981;
+    color: var(--color-primary);
     cursor: pointer;
     transition: all $transition-fast;
 
     &:hover:not(:disabled) {
       background: $overlay-emerald-12;
-      border-color: #10b981;
-      color: #059669;
+      border-color: var(--color-primary);
+      color: var(--color-primary-dark);
     }
 
     &:disabled {
@@ -1998,7 +1998,7 @@ const handleDelete = async (row: Material) => {
   .activity-nav-page {
     font-size: 12px;
     font-weight: 600;
-    color: #94a3b8;
+    color: var(--color-text-placeholder);
     min-width: 36px;
     text-align: center;
     user-select: none;
@@ -2041,7 +2041,7 @@ const handleDelete = async (row: Material) => {
   position: relative;
 
   &--success {
-    background-color: #d1fae5;
+    background-color: var(--color-primary-bg);
   }
 
   &--warning {
@@ -2059,11 +2059,11 @@ const handleDelete = async (row: Material) => {
   border-radius: 50%;
 
   .timeline-dot--success & {
-    background-color: #10b981;
+    background-color: var(--color-primary);
   }
 
   .timeline-dot--warning & {
-    background-color: #f59e0b;
+    background-color: var(--color-warning);
   }
 
   .timeline-dot--info & {
@@ -2078,17 +2078,17 @@ const handleDelete = async (row: Material) => {
 .timeline-title {
   font-size: 14px;
   font-weight: 500;
-  color: #334155;
+  color: var(--color-text-primary);
   margin: 0 0 4px 0;
 }
 
 .timeline-desc {
   font-size: 12px;
-  color: #94a3b8;
+  color: var(--color-text-placeholder);
   margin: 0 0 4px 0;
 
   :deep(.text-emerald-600) {
-    color: #059669 !important;
+    color: var(--color-primary-dark) !important;
     font-weight: 700 !important;
   }
 
@@ -2117,8 +2117,8 @@ const handleDelete = async (row: Material) => {
   justify-content: space-between;
   margin: -32px -32px 16px -32px;
   padding: 20px 24px;
-  background: linear-gradient(135deg, #10B981, #059669);
-  border-radius: 24px 24px 0 0;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+  border-radius: var(--radius-4xl) var(--radius-4xl) 0 0;
 
   .assistant-title {
     display: flex;
@@ -2134,7 +2134,7 @@ const handleDelete = async (row: Material) => {
 .assistant-nav {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--space-1-5);
 
   .activity-nav-btn {
     display: inline-flex;
@@ -2177,7 +2177,7 @@ const handleDelete = async (row: Material) => {
   &__inner {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: var(--space-2-5);
   }
 }
 
@@ -2185,8 +2185,8 @@ const handleDelete = async (row: Material) => {
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  padding: 14px;
-  background: #f8fafc;
+  padding: var(--space-3-5);
+  background: var(--color-bg-page);
   border-radius: 14px;
   border: 1px solid #f1f5f9;
   transition: all 0.25s ease;
@@ -2195,7 +2195,7 @@ const handleDelete = async (row: Material) => {
 
   &:hover {
     background: #f1f5f9;
-    border-color: #e2e8f0;
+    border-color: var(--color-border);
     transform: translateX(4px);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   }
@@ -2232,7 +2232,7 @@ const handleDelete = async (row: Material) => {
     }
 
     .todo-item__desc {
-      color: #475569;
+      color: var(--color-text-secondary);
     }
   }
 
@@ -2288,14 +2288,14 @@ const handleDelete = async (row: Material) => {
   &__title {
     font-size: 13px;
     font-weight: 600;
-    color: #1e293b;
-    margin: 0 0 3px 0;
+    color: var(--color-text-primary);
+    margin: 0 0 var(--space-1) 0;
     line-height: 1.3;
   }
 
   &__desc {
     font-size: 12px;
-    color: #64748b;
+    color: var(--color-text-secondary);
     margin: 0;
     line-height: 1.4;
   }
@@ -2305,9 +2305,9 @@ const handleDelete = async (row: Material) => {
     width: 28px;
     height: 28px;
     border-radius: 8px;
-    border: 1.5px solid #E2E8F0;
+    border: 1.5px solid var(--color-border);
     background: #fff;
-    color: #64748b;
+    color: var(--color-text-secondary);
     cursor: pointer;
     display: inline-flex;
     align-items: center;
@@ -2315,7 +2315,7 @@ const handleDelete = async (row: Material) => {
     transition: all 0.2s ease;
 
     &:hover {
-      background: linear-gradient(135deg, #10B981, #059669);
+      background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
       border-color: transparent;
       color: #fff;
       transform: scale(1.05);
@@ -2355,23 +2355,23 @@ const handleDelete = async (row: Material) => {
   flex-direction: column;
   align-items: center;
   text-align: center;
-  padding: 36px 20px 24px;
+  padding: var(--space-8) 20px 24px;
 
   svg {
     margin-bottom: 12px;
-    stroke: #10b981;
+    stroke: var(--color-primary);
   }
 
   p {
     font-size: 15px;
     font-weight: 600;
     color: #0F172A;
-    margin: 0 0 6px 0;
+    margin: 0 0 var(--space-1-5) 0;
   }
 
   span {
     font-size: 13px;
-    color: #94a3b8;
+    color: var(--color-text-placeholder);
   }
 }
 
@@ -2386,16 +2386,16 @@ const handleDelete = async (row: Material) => {
 
 .assistant-hint {
   font-size: 12px;
-  color: #94a3b8;
+  color: var(--color-text-placeholder);
 }
 
 .assistant-refresh-btn {
   width: 28px;
   height: 28px;
   border-radius: 8px;
-  border: 1.5px solid #E2E8F0;
+  border: 1.5px solid var(--color-border);
   background: #fff;
-  color: #64748b;
+  color: var(--color-text-secondary);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -2405,7 +2405,7 @@ const handleDelete = async (row: Material) => {
   &:hover {
     background: #f1f5f9;
     border-color: #cbd5e1;
-    color: #475569;
+    color: var(--color-text-secondary);
     transform: rotate(180deg);
   }
 }
@@ -2418,7 +2418,7 @@ const handleDelete = async (row: Material) => {
   height: 140px;
   opacity: 0.08;
   transform: rotate(-12deg);
-  color: #10b981;
+  color: var(--color-primary);
   pointer-events: none;
   z-index: 0;
 }
@@ -2513,7 +2513,7 @@ const handleDelete = async (row: Material) => {
 .material-list .content-card .t-table .t-table__body .t-table__row.t-table__row--hover td {
   background-color: transparent !important;
   border-bottom-color: #f1f5f9 !important;
-  color: #334155 !important;
+  color: var(--color-text-primary) !important;
   box-shadow: none !important;
 }
 
@@ -2525,10 +2525,10 @@ const handleDelete = async (row: Material) => {
 .material-list .empty-add-btn {
   display: inline-flex !important;
   align-items: center !important;
-  gap: 6px !important;
-  padding: 10px 20px !important;
+  gap: var(--space-1-5) !important;
+  padding: var(--space-2-5) 20px !important;
   border-radius: 12px !important;
-  background: linear-gradient(135deg, #10b981, #059669) !important;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark)) !important;
   color: #fff !important;
   font-size: 13px !important;
   font-weight: 700 !important;
@@ -2559,17 +2559,17 @@ const handleDelete = async (row: Material) => {
 
 .material-list .content-card .t-table .t-table__body tr:hover>td:first-child,
 .material-list .content-card .t-table .t-table__body .t-table__row:hover>td:first-child {
-  box-shadow: inset 3px 0 0 #34d399 !important;
+  box-shadow: inset 3px 0 0 var(--color-primary-light) !important;
 }
 
 .material-list .content-card .t-table .t-table__body .t-table__row.t-table__row--selected>td {
   background-color: rgba(209, 250, 229, 0.6) !important;
-  box-shadow: inset 3px 0 0 #10b981 !important;
+  box-shadow: inset 3px 0 0 var(--color-primary) !important;
 }
 
 .material-list .content-card .t-table .t-table__header th {
-  background: #f8fafc !important;
-  color: #64748b !important;
+  background: var(--color-bg-page) !important;
+  color: var(--color-text-secondary) !important;
 }
 
 /* 操作列和数据列居中对齐 */
@@ -2612,14 +2612,14 @@ const handleDelete = async (row: Material) => {
 }
 
 .material-list .custom-sort-header:hover {
-  color: #10b981;
+  color: var(--color-primary);
 }
 
 .material-list .custom-sort {
   display: inline-block;
   width: 0;
   height: 0;
-  margin-left: 2px;
+  margin-left: var(--space-0-5);
   border-left: 4px solid transparent;
   border-right: 4px solid transparent;
   opacity: 0.25;
@@ -2627,18 +2627,18 @@ const handleDelete = async (row: Material) => {
 }
 
 .material-list .custom-sort--none {
-  border-top: 5px solid #94a3b8;
+  border-top: 5px solid var(--color-text-placeholder);
   border-bottom: none;
 }
 
 .material-list .custom-sort--asc {
-  border-bottom: 5px solid #10b981;
+  border-bottom: 5px solid var(--color-primary);
   border-top: none;
   opacity: 1;
 }
 
 .material-list .custom-sort--desc {
-  border-top: 5px solid #10b981;
+  border-top: 5px solid var(--color-primary);
   border-bottom: none;
   opacity: 1;
 }

@@ -193,7 +193,7 @@ onMounted(() => {
       color: #555;
 
       li {
-        margin-bottom: 2px;
+        margin-bottom: var(--space-0-5);
 
         &:last-child {
           margin-bottom: 0;

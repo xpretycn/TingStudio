@@ -107,7 +107,7 @@ export async function createMaterial(req: any, res: Response) {
     res.status(201).json(success(rowToCamelCase(material), "原料创建成功"));
   } catch (error: any) {
     if (error.message?.includes("UNIQUE constraint failed")) {
-      res.status(409).json({ success: false, message: "原料编码已存在" });
+      res.status(409).json({ success: false, message: "原料编码已存在，请使用其他编码" });
       return;
     }
     console.error("[MaterialController] createMaterial Error:", error);
@@ -116,8 +116,8 @@ export async function createMaterial(req: any, res: Response) {
 }
 
 export async function updateMaterial(req: Request, res: Response) {
+  const { id } = req.params;
   try {
-    const { id } = req.params;
     const user = (req as any).user;
     const body = req.body;
 
@@ -161,9 +161,12 @@ export async function updateMaterial(req: Request, res: Response) {
       }, "原料更新成功"));
     }
   } catch (error: any) {
-    if (error.message?.includes("UNIQUE constraint failed")) {
-      res.status(409).json({ success: false, message: "原料编码已存在" });
-      return;
+    if (error.message?.includes("UNIQUE constraint failed") && error.message?.includes("materials.code")) {
+      const refInfo = await materialService.checkReference(id);
+      if (!refInfo.referenced) {
+        res.status(409).json({ success: false, message: "原料编码已存在" });
+        return;
+      }
     }
     console.error("[MaterialController] updateMaterial Error:", error);
     res.status(500).json({ success: false, message: "更新原料失败", error: error.message });

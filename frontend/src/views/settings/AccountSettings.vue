@@ -191,7 +191,7 @@
                 </div>
                 <div class="field-item">
                   <label><t-icon name="check-circle" size="12px" /> 账号状态</label>
-                  <p style="color: #10b981;">正常</p>
+                  <p style="color: var(--color-primary);">正常</p>
                 </div>
               </div>
             </div>
@@ -423,13 +423,13 @@ onMounted(async () => {
         border: none;
         border-radius: 12px;
         background: transparent;
-        color: #94a3b8;
+        color: var(--color-text-placeholder);
         cursor: pointer;
         transition: all $transition-fast;
         font-size: 20px;
 
         &:hover {
-          color: #10b981;
+          color: var(--color-primary);
           background-color: #ecfdf5;
         }
       }
@@ -437,33 +437,33 @@ onMounted(async () => {
       .header-title-group {
         display: flex;
         flex-direction: column;
-        gap: 6px;
+        gap: var(--space-1-5);
 
         .header-breadcrumb {
           display: flex;
           align-items: center;
-          gap: 6px;
+          gap: var(--space-1-5);
           font-size: 12px;
           line-height: 1;
 
           .breadcrumb-link {
-            color: #94a3b8;
+            color: var(--color-text-placeholder);
             cursor: pointer;
             transition: color 0.15s;
             text-decoration: none;
 
             &:hover {
-              color: #10b981;
+              color: var(--color-primary);
             }
           }
 
           .breadcrumb-sep {
             font-size: 12px;
-            color: #94a3b8;
+            color: var(--color-text-placeholder);
           }
 
           .breadcrumb-current {
-            color: #475569;
+            color: var(--color-text-secondary);
           }
         }
 
@@ -471,7 +471,7 @@ onMounted(async () => {
           margin: 0;
           font-size: 18px;
           font-weight: 700;
-          color: #1e293b;
+          color: var(--color-text-primary);
           line-height: 1.35;
         }
       }
@@ -520,13 +520,13 @@ onMounted(async () => {
       padding: $space-6;
       border-radius: $radius-2xl;
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-      border: 1px solid #f8fafc;
+      border: 1px solid var(--color-bg-page);
       animation: fadeInUp 0.35s ease both;
 
       .card-label {
         font-size: 14px;
         font-weight: 700;
-        color: #94a3b8;
+        color: var(--color-text-placeholder);
         text-transform: uppercase;
         letter-spacing: 0.1em;
         margin-bottom: $space-5;
@@ -536,7 +536,7 @@ onMounted(async () => {
 
         .label-icon {
           font-size: 16px;
-          color: #10b981;
+          color: var(--color-primary);
           opacity: 0.7;
         }
       }
@@ -550,22 +550,22 @@ onMounted(async () => {
 
       .field-item {
         padding: $space-3;
-        background: #f8fafc;
+        background: var(--color-bg-page);
         border-radius: $radius-xl;
         border: 1px solid #f1f5f9;
 
         label {
           display: flex;
           align-items: center;
-          gap: 6px;
+          gap: var(--space-1-5);
           font-size: 10px;
           font-weight: 700;
-          color: #94a3b8;
+          color: var(--color-text-placeholder);
           text-transform: uppercase;
           margin-bottom: 4px;
 
           .t-icon {
-            color: #10b981;
+            color: var(--color-primary);
             opacity: 0.55;
             flex-shrink: 0;
           }
@@ -574,7 +574,7 @@ onMounted(async () => {
         p {
           font-size: 14px;
           font-weight: 700;
-          color: #334155;
+          color: var(--color-text-primary);
           margin: 0;
 
           &.text-muted {
@@ -606,14 +606,14 @@ onMounted(async () => {
         border-radius: $radius-lg;
         cursor: pointer;
         transition: all $transition-fast;
-        color: #64748b;
+        color: var(--color-text-secondary);
         font-size: 14px;
         font-weight: 500;
         border: 1px solid transparent;
         position: relative;
 
         .nav-icon {
-          color: #94a3b8;
+          color: var(--color-text-placeholder);
           transition: color $transition-fast;
         }
 
@@ -624,28 +624,28 @@ onMounted(async () => {
         }
 
         &:hover {
-          background: #f8fafc;
-          color: #334155;
+          background: var(--color-bg-page);
+          color: var(--color-text-primary);
           border-color: #f1f5f9;
 
           .nav-icon {
-            color: #10b981;
+            color: var(--color-primary);
           }
         }
 
         &.active {
-          background: linear-gradient(135deg, #ecfdf5, #d1fae5);
-          color: #059669;
-          border-color: #a7f3d0;
+          background: linear-gradient(135deg, #ecfdf5, var(--color-primary-bg));
+          color: var(--color-primary-dark);
+          border-color: var(--color-primary-lightest);
           font-weight: 600;
           box-shadow: 0 2px 8px rgba(16, 185, 129, 0.08);
 
           .nav-icon {
-            color: #059669;
+            color: var(--color-primary-dark);
           }
 
           .nav-arrow {
-            color: #059669;
+            color: var(--color-primary-dark);
             opacity: 0.7;
           }
         }
@@ -672,13 +672,13 @@ onMounted(async () => {
       :deep(.t-form__label) {
         font-size: 13px;
         font-weight: 600;
-        color: #475569;
+        color: var(--color-text-secondary);
       }
 
       :deep(.t-input),
       :deep(.t-textarea) {
         border-radius: $radius-lg;
-        border-color: #e2e8f0;
+        border-color: var(--color-border);
         transition: all 0.2s;
 
         &:hover {
@@ -687,21 +687,21 @@ onMounted(async () => {
 
         &.t-is-focused,
         &.t-is-focus-within {
-          border-color: #a7f3d0;
+          border-color: var(--color-primary-lightest);
           box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
         }
       }
 
       :deep(.t-button--variant-base-theme-primary) {
-        background-color: #10b981;
-        border-color: #10b981;
+        background-color: var(--color-primary);
+        border-color: var(--color-primary);
         border-radius: $radius-lg;
         font-weight: 600;
         padding: 8px 24px;
         box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
 
         &:hover {
-          background-color: #059669;
+          background-color: var(--color-primary-dark);
           transform: translateY(-1px);
           box-shadow: 0 6px 16px rgba(16, 185, 129, 0.3);
         }
@@ -711,8 +711,8 @@ onMounted(async () => {
     // 表单提示文字
     .form-tips {
       font-size: 12px;
-      color: #94a3b8;
-      margin-top: 6px;
+      color: var(--color-text-placeholder);
+      margin-top: var(--space-1-5);
       line-height: 1.4;
     }
 
@@ -729,12 +729,12 @@ onMounted(async () => {
         border-radius: 50%;
         overflow: hidden;
         cursor: pointer;
-        border: 2px solid #e2e8f0;
+        border: 2px solid var(--color-border);
         flex-shrink: 0;
         transition: all 0.25s;
 
         &:hover {
-          border-color: #a7f3d0;
+          border-color: var(--color-primary-lightest);
           box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
 
           .avatar-overlay {
@@ -754,8 +754,8 @@ onMounted(async () => {
           display: flex;
           align-items: center;
           justify-content: center;
-          background: linear-gradient(135deg, #f8fafc, #ecfdf5);
-          color: #94a3b8;
+          background: linear-gradient(135deg, var(--color-bg-page), #ecfdf5);
+          color: var(--color-text-placeholder);
         }
 
         .avatar-overlay {
@@ -767,7 +767,7 @@ onMounted(async () => {
           flex-direction: column;
           align-items: center;
           justify-content: center;
-          gap: 2px;
+          gap: var(--space-0-5);
           opacity: 0;
           transition: opacity 0.25s;
           color: white;

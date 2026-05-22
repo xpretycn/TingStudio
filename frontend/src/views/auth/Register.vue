@@ -49,14 +49,14 @@
             <div class="avatar-inner">
               <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="30" cy="32" r="20" fill="#FFE8D6" />
-                <path d="M14 22L10 4L26 16Z" fill="#FFB5C8" />
-                <path d="M46 22L50 4L34 16Z" fill="#FFB5C8" />
+                <path d="M14 22L10 4L26 16Z" fill="var(--color-primary-lighter)" />
+                <path d="M46 22L50 4L34 16Z" fill="var(--color-primary-lighter)" />
                 <ellipse cx="24" cy="30" rx="3.5" ry="4" fill="#5D4E60" />
                 <ellipse cx="36" cy="30" rx="3.5" ry="4" fill="#5D4E60" />
                 <ellipse cx="25" cy="28.5" rx="1.2" ry="1.5" fill="#fff" />
                 <ellipse cx="37" cy="28.5" rx="1.2" ry="1.5" fill="#fff" />
                 <ellipse cx="30" cy="35.5" rx="2.5" ry="1.8" fill="#FFB5C2" />
-                <path d="M27 38Q30 42 33 38" stroke="#E8A0B0" stroke-width="1" fill="none" stroke-linecap="round" />
+                <path d="M27 38Q30 42 33 38" stroke="var(--color-primary-dark)" stroke-width="1" fill="none" stroke-linecap="round" />
                 <ellipse cx="20" cy="36" rx="4" ry="2.5" fill="#FFB5C2" opacity="0.35" />
                 <ellipse cx="40" cy="36" rx="4" ry="2.5" fill="#FFB5C2" opacity="0.35" />
               </svg>
@@ -70,27 +70,27 @@
           <div class="form-header__logo">
             <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
               <ellipse cx="50" cy="55" rx="38" ry="35" fill="#FFE8D6" />
-              <path d="M22 35L12 8L35 30Z" fill="#FFB5C8" />
+              <path d="M22 35L12 8L35 30Z" fill="var(--color-primary-lighter)" />
               <path d="M25 32L18 12L36 28Z" fill="#FFD1DC" />
-              <path d="M78 35L88 8L65 30Z" fill="#FFB5C8" />
+              <path d="M78 35L88 8L65 30Z" fill="var(--color-primary-lighter)" />
               <path d="M75 32L82 12L64 28Z" fill="#FFD1DC" />
               <ellipse cx="38" cy="52" rx="6" ry="7" fill="#5D4E60" />
               <ellipse cx="62" cy="52" rx="6" ry="7" fill="#5D4E60" />
               <ellipse cx="40" cy="49" rx="2" ry="2.5" fill="#fff" />
               <ellipse cx="64" cy="49" rx="2" ry="2.5" fill="#fff" />
               <ellipse cx="50" cy="62" rx="3.5" ry="2.5" fill="#FFB5C2" />
-              <path d="M44 68Q50 73 56 68" stroke="#E8A0B0" stroke-width="1.2" fill="none" stroke-linecap="round" />
+              <path d="M44 68Q50 73 56 68" stroke="var(--color-primary-dark)" stroke-width="1.2" fill="none" stroke-linecap="round" />
               <ellipse cx="32" cy="62" rx="6" ry="3.5" fill="#FFB5C2" opacity="0.35" />
               <ellipse cx="68" cy="62" rx="6" ry="3.5" fill="#FFB5C2" opacity="0.35" />
-              <line x1="20" y1="60" x2="35" y2="62" stroke="#E8A0B0" stroke-width="1" opacity="0.4" />
-              <line x1="20" y1="66" x2="35" y2="65" stroke="#E8A0B0" stroke-width="1" opacity="0.4" />
-              <line x1="65" y1="62" x2="80" y2="60" stroke="#E8A0B0" stroke-width="1" opacity="0.4" />
-              <line x1="65" y1="65" x2="80" y2="66" stroke="#E8A0B0" stroke-width="1" opacity="0.4" />
+              <line x1="20" y1="60" x2="35" y2="62" stroke="var(--color-primary-dark)" stroke-width="1" opacity="0.4" />
+              <line x1="20" y1="66" x2="35" y2="65" stroke="var(--color-primary-dark)" stroke-width="1" opacity="0.4" />
+              <line x1="65" y1="62" x2="80" y2="60" stroke="var(--color-primary-dark)" stroke-width="1" opacity="0.4" />
+              <line x1="65" y1="65" x2="80" y2="66" stroke="var(--color-primary-dark)" stroke-width="1" opacity="0.4" />
               <ellipse cx="35" cy="88" rx="10" ry="6" fill="#FFE8D6" />
               <ellipse cx="65" cy="88" rx="10" ry="6" fill="#FFE8D6" />
               <path
                 d="M35 88C35 85 33 84 31 84C29 84 27 85 27 86C27 88 35 92 35 92C35 92 43 88 43 86C43 85 41 84 39 84C37 84 35 85 35 88Z"
-                fill="#FF8FAB" />
+                fill="var(--color-primary-light)" />
             </svg>
           </div>
           <h2 class="form-header__title">加入我们 ~</h2>
@@ -439,7 +439,7 @@ const handleSubmit = async ({ validateResult }: any) => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 28px 36px;
+  padding: var(--space-7) var(--space-8);
   background: linear-gradient(180deg, var(--color-primary-bg) 0%, var(--color-bg-container) 40%);
   position: relative;
   overflow: hidden;
@@ -497,11 +497,11 @@ const handleSubmit = async ({ validateResult }: any) => {
   z-index: 1;
   width: 100%;
   max-width: 400px;
-  padding: 28px 32px 20px;
+  padding: var(--space-7) 32px 20px;
   background: rgba(255, 255, 255, 0.72);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border-radius: 24px;
+  border-radius: var(--radius-4xl);
   border: 1px solid var(--overlay-brand-lighter-25);
   box-shadow: 0 4px 24px var(--overlay-brand-08), 0 1px 3px rgba(0, 0, 0, 0.04);
   animation: fadeSlideUp 0.7s 0.15s cubic-bezier(0.16, 1, 0.3, 1) both;
@@ -528,10 +528,10 @@ const handleSubmit = async ({ validateResult }: any) => {
 
 .avatar-ring {
   display: inline-block;
-  padding: 3px;
+  padding: var(--space-1);
   border-radius: 50%;
   background: linear-gradient(135deg, var(--color-primary-lighter), var(--color-lavender));
-  margin-bottom: 10px;
+  margin-bottom: var(--space-2-5);
 }
 
 .avatar-inner {
@@ -565,7 +565,7 @@ const handleSubmit = async ({ validateResult }: any) => {
     display: inline-flex;
     justify-content: center;
     align-items: center;
-    margin: 0 auto 10px;
+    margin: 0 auto var(--space-2-5);
     width: 72px;
     height: 72px;
 
@@ -620,11 +620,11 @@ const handleSubmit = async ({ validateResult }: any) => {
 .field-label {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--space-1-5);
   font-size: 13px;
   font-weight: 600;
   color: var(--color-text-primary);
-  margin-bottom: 6px;
+  margin-bottom: var(--space-1-5);
 }
 
 .label-dot {
@@ -694,7 +694,7 @@ const handleSubmit = async ({ validateResult }: any) => {
   }
 
   :deep(.t-input__prefix) {
-    margin-right: 10px;
+    margin-right: var(--space-2-5);
     color: var(--color-primary-light);
     display: flex;
     align-items: center;
@@ -797,8 +797,8 @@ const handleSubmit = async ({ validateResult }: any) => {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding-top: 14px;
+  gap: var(--space-1-5);
+  padding-top: var(--space-3-5);
   margin-top: 4px;
   border-top: 1px dashed var(--color-primary-lightest);
   font-size: 13px;
@@ -824,7 +824,7 @@ const handleSubmit = async ({ validateResult }: any) => {
 @media screen and (max-width: 1024px) {
   .left-panel {
     flex: 0 0 45%;
-    padding: 36px 32px;
+    padding: var(--space-8) 32px;
   }
 
   .characters-area {
@@ -873,7 +873,7 @@ const handleSubmit = async ({ validateResult }: any) => {
     &__logo {
       width: 64px;
       height: 64px;
-      margin-bottom: 10px;
+      margin-bottom: var(--space-2-5);
     }
 
     &__title {

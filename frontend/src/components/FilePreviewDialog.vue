@@ -69,7 +69,7 @@
       </div>
 
       <div v-else class="preview-empty">
-        <t-icon name="file-unknown" size="48px" style="color: #94a3b8" />
+        <t-icon name="file-unknown" size="48px" style="color: var(--color-text-placeholder)" />
         <p>该文件格式暂不支持预览</p>
         <t-button theme="primary" size="small" @click="handleDownload">下载文件</t-button>
       </div>
@@ -195,17 +195,17 @@ function onWheel(e: WheelEvent) {
   .dialog-header-left {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: var(--space-2-5);
 
     .dialog-file-icon {
-      color: #10b981;
+      color: var(--color-primary);
       font-size: 18px;
     }
 
     .dialog-filename {
       font-size: 16px;
       font-weight: 600;
-      color: #1e293b;
+      color: var(--color-text-primary);
     }
   }
 
@@ -218,13 +218,13 @@ function onWheel(e: WheelEvent) {
     border: none;
     border-radius: 8px;
     background: transparent;
-    color: #94a3b8;
+    color: var(--color-text-placeholder);
     cursor: pointer;
     transition: all 0.2s;
 
     &:hover {
       background: #f1f5f9;
-      color: #475569;
+      color: var(--color-text-secondary);
     }
   }
 }
@@ -245,7 +245,7 @@ function onWheel(e: WheelEvent) {
   justify-content: center;
   flex: 1;
   gap: 12px;
-  color: #94a3b8;
+  color: var(--color-text-placeholder);
   font-size: 14px;
 }
 
@@ -271,24 +271,24 @@ function onWheel(e: WheelEvent) {
   }
 
   .sheet-tab {
-    padding: 6px 16px;
-    border: 1px solid #e2e8f0;
+    padding: var(--space-1-5) 16px;
+    border: 1px solid var(--color-border);
     border-radius: 8px;
     background: #fff;
-    color: #64748b;
+    color: var(--color-text-secondary);
     font-size: 13px;
     cursor: pointer;
     transition: all 0.2s;
 
     &:hover {
-      background: #f8fafc;
+      background: var(--color-bg-page);
       border-color: #cbd5e1;
     }
 
     &--active {
       background: #ecfdf5;
-      border-color: #10b981;
-      color: #059669;
+      border-color: var(--color-primary);
+      color: var(--color-primary-dark);
       font-weight: 600;
     }
   }
@@ -311,12 +311,12 @@ function onWheel(e: WheelEvent) {
     font-size: 13px;
 
     th {
-      background: #f8fafc;
-      color: #64748b;
+      background: var(--color-bg-page);
+      color: var(--color-text-secondary);
       font-weight: 600;
       text-align: left;
-      padding: 10px 14px;
-      border-bottom: 1px solid #e2e8f0;
+      padding: var(--space-2-5) var(--space-3-5);
+      border-bottom: 1px solid var(--color-border);
       position: sticky;
       top: 0;
       z-index: 2;
@@ -325,8 +325,8 @@ function onWheel(e: WheelEvent) {
     .row-num-col {
       position: sticky;
       left: 0;
-      background: #f8fafc;
-      color: #94a3b8;
+      background: var(--color-bg-page);
+      color: var(--color-text-placeholder);
       font-size: 12px;
       text-align: center;
       width: 50px;
@@ -339,9 +339,9 @@ function onWheel(e: WheelEvent) {
     }
 
     td {
-      padding: 8px 14px;
-      border-bottom: 1px solid #f8fafc;
-      color: #334155;
+      padding: 8px var(--space-3-5);
+      border-bottom: 1px solid var(--color-bg-page);
+      color: var(--color-text-primary);
       white-space: nowrap;
     }
 
@@ -399,22 +399,22 @@ function onWheel(e: WheelEvent) {
     justify-content: center;
     width: 28px;
     height: 28px;
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--color-border);
     border-radius: 6px;
     background: #fff;
-    color: #64748b;
+    color: var(--color-text-secondary);
     cursor: pointer;
     transition: all 0.2s;
 
     &:hover {
-      border-color: #10b981;
-      color: #10b981;
+      border-color: var(--color-primary);
+      color: var(--color-primary);
     }
   }
 
   .img-scale-label {
     font-size: 12px;
-    color: #94a3b8;
+    color: var(--color-text-placeholder);
     min-width: 40px;
     text-align: center;
   }
@@ -443,14 +443,14 @@ function onWheel(e: WheelEvent) {
   .footer-link {
     background: none;
     border: none;
-    color: #10b981;
+    color: var(--color-primary);
     font-size: 13px;
     cursor: pointer;
     text-decoration: underline;
     transition: color 0.2s;
 
     &:hover {
-      color: #059669;
+      color: var(--color-primary-dark);
     }
   }
 }
@@ -458,7 +458,7 @@ function onWheel(e: WheelEvent) {
 
 <style>
 .file-preview-dialog .t-dialog {
-  border-radius: 24px !important;
+  border-radius: var(--radius-4xl) !important;
   max-height: 85vh !important;
   display: flex !important;
   flex-direction: column !important;

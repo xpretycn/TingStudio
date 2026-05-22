@@ -275,7 +275,7 @@
         </div>
 
         <div class="assistant-empty" v-else>
-          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="1.5"
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="1.5"
             stroke-linecap="round" stroke-linejoin="round">
             <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
             <polyline points="22 4 12 14.01 9 11.01" />
@@ -357,10 +357,10 @@ const dashboardCards = computed(() => {
       value: s.parsed.toString(),
       unit: '个文件',
       badge: s.total > 0 ? `${Math.round((s.parsed / s.total) * 100)}%` : '--',
-      badgeColor: '#10B981',
+      badgeColor: 'var(--color-primary)',
       badgeBg: '#ECFDF5',
       iconBg: '#ECFDF5',
-      iconColor: '#10B981',
+      iconColor: 'var(--color-primary)',
       iconPath: '<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>',
     },
     {
@@ -379,10 +379,10 @@ const dashboardCards = computed(() => {
       value: formatStorageSize(s.totalSize || 0),
       unit: '',
       badge: s.totalSize > 1073741824 ? '超限' : '正常',
-      badgeColor: s.totalSize > 1073741824 ? '#EF4444' : '#10B981',
+      badgeColor: s.totalSize > 1073741824 ? 'var(--color-danger)' : 'var(--color-primary)',
       badgeBg: s.totalSize > 1073741824 ? '#FEE2E2' : '#ECFDF5',
       iconBg: '#FFFBEB',
-      iconColor: '#F59E0B',
+      iconColor: 'var(--color-warning)',
       iconPath: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>',
     },
   ];
@@ -846,7 +846,7 @@ watch(() => router.currentRoute.value.path, (path) => {
     .stat-card {
       background: #fff;
       padding: 24px;
-      border-radius: 24px;
+      border-radius: var(--radius-4xl);
       border: 1px solid #fff;
       box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
       transition: all $transition-slow;
@@ -854,7 +854,7 @@ watch(() => router.currentRoute.value.path, (path) => {
       opacity: 0;
 
       &:hover {
-        border-color: #D1FAE5;
+        border-color: var(--color-primary-bg);
         transform: translateY(-2px);
         box-shadow: 0 14px 36px -6px rgba(0, 0, 0, 0.08);
       }
@@ -879,14 +879,14 @@ watch(() => router.currentRoute.value.path, (path) => {
       .stat-badge {
         font-size: 12px;
         font-weight: 700;
-        padding: 2px 8px;
+        padding: var(--space-0-5) 8px;
         border-radius: 8px;
         white-space: nowrap;
       }
 
       .stat-label {
         font-size: 14px;
-        color: #94A3B8;
+        color: var(--color-text-placeholder);
         margin-bottom: 4px;
       }
 
@@ -899,7 +899,7 @@ watch(() => router.currentRoute.value.path, (path) => {
         .stat-unit {
           font-size: 14px;
           font-weight: 400;
-          color: #94A3B8;
+          color: var(--color-text-placeholder);
         }
       }
     }
@@ -908,8 +908,8 @@ watch(() => router.currentRoute.value.path, (path) => {
   .content-card {
     min-height: 400px;
     background-color: #fff;
-    border-radius: 32px !important;
-    border: 1px solid #f8fafc !important;
+    border-radius: var(--radius-5xl) !important;
+    border: 1px solid var(--color-bg-page) !important;
     overflow: hidden;
     box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
     transition: all $transition-slow;
@@ -931,7 +931,7 @@ watch(() => router.currentRoute.value.path, (path) => {
 
   .data-center-toolbar {
     padding: 32px;
-    border-bottom: 1px solid #f8fafc;
+    border-bottom: 1px solid var(--color-bg-page);
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
@@ -948,13 +948,13 @@ watch(() => router.currentRoute.value.path, (path) => {
         .toolbar-title {
           font-size: 20px;
           font-weight: 700;
-          color: #1e293b;
+          color: var(--color-text-primary);
           margin: 0 0 4px 0;
         }
 
         .toolbar-subtitle {
           font-size: 14px;
-          color: #94a3b8;
+          color: var(--color-text-placeholder);
           margin: 0;
         }
       }
@@ -975,7 +975,7 @@ watch(() => router.currentRoute.value.path, (path) => {
         left: 12px;
         top: 50%;
         transform: translateY(-50%);
-        color: #94a3b8;
+        color: var(--color-text-placeholder);
         font-size: 16px;
         z-index: 1;
         pointer-events: none;
@@ -987,7 +987,7 @@ watch(() => router.currentRoute.value.path, (path) => {
           padding-right: 16px;
           padding-top: 8px;
           padding-bottom: 8px;
-          background-color: #f8fafc;
+          background-color: var(--color-bg-page);
           border: none !important;
           border-radius: 12px;
           font-size: 14px;
@@ -1001,7 +1001,7 @@ watch(() => router.currentRoute.value.path, (path) => {
           }
 
           &::placeholder {
-            color: #94a3b8;
+            color: var(--color-text-placeholder);
           }
         }
       }
@@ -1012,7 +1012,7 @@ watch(() => router.currentRoute.value.path, (path) => {
       align-items: center;
       gap: 8px;
       padding: 8px 16px;
-      background-color: #1e293b;
+      background-color: var(--color-text-primary);
       color: white;
       border-radius: 12px;
       font-size: 14px;
@@ -1023,7 +1023,7 @@ watch(() => router.currentRoute.value.path, (path) => {
       cursor: pointer;
 
       &:hover {
-        background-color: #334155;
+        background-color: var(--color-text-primary);
       }
 
       .add-icon {
@@ -1039,7 +1039,7 @@ watch(() => router.currentRoute.value.path, (path) => {
     .filter-btn {
       position: relative;
       padding: 8px;
-      color: #94a3b8;
+      color: var(--color-text-placeholder);
       background-color: transparent;
       border: 1px solid #f1f5f9;
       border-radius: 8px;
@@ -1047,7 +1047,7 @@ watch(() => router.currentRoute.value.path, (path) => {
       cursor: pointer;
 
       &:hover {
-        background-color: #f8fafc;
+        background-color: var(--color-bg-page);
       }
 
       .filter-icon {
@@ -1060,7 +1060,7 @@ watch(() => router.currentRoute.value.path, (path) => {
         right: -2px;
         width: 8px;
         height: 8px;
-        background-color: #10b981;
+        background-color: var(--color-primary);
         border-radius: 50%;
         border: 2px solid white;
         opacity: 0;
@@ -1080,13 +1080,13 @@ watch(() => router.currentRoute.value.path, (path) => {
     right: 0;
     bottom: 0;
     z-index: 20;
-    background-color: #059669;
+    background-color: var(--color-primary-dark);
     color: #fff;
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 20px 32px;
-    border-radius: 32px 32px 0 0;
+    border-radius: var(--radius-5xl) var(--radius-5xl) 0 0;
     box-shadow: 0 4px 18px rgba(5, 150, 105, 0.25);
 
     .batch-info {
@@ -1130,7 +1130,7 @@ watch(() => router.currentRoute.value.path, (path) => {
         transition: all $transition-fast;
 
         &:hover {
-          color: #d1fae5;
+          color: var(--color-primary-bg);
         }
 
         svg {
@@ -1144,7 +1144,7 @@ watch(() => router.currentRoute.value.path, (path) => {
     .batch-cancel-btn {
       font-size: 14px;
       font-weight: 500;
-      border: 1px solid #34d399;
+      border: 1px solid var(--color-primary-light);
       padding: 4px 12px;
       border-radius: 8px;
       background: transparent;
@@ -1153,7 +1153,7 @@ watch(() => router.currentRoute.value.path, (path) => {
       transition: all $transition-fast;
 
       &:hover {
-        background-color: #047857;
+        background-color: var(--color-primary-deep);
       }
     }
   }
@@ -1200,19 +1200,19 @@ watch(() => router.currentRoute.value.path, (path) => {
     position: sticky !important;
     top: 0 !important;
     z-index: 5 !important;
-    background: #f8fafc !important;
+    background: var(--color-bg-page) !important;
     backdrop-filter: none !important;
     overflow: visible !important;
 
     th {
-      background: #f8fafc !important;
-      color: #94a3b8 !important;
+      background: var(--color-bg-page) !important;
+      color: var(--color-text-placeholder) !important;
       font-size: 12px !important;
       text-transform: uppercase !important;
       letter-spacing: 0.05em !important;
       font-weight: 600 !important;
-      padding: 14px 20px !important;
-      border-bottom: 1px solid #e2e8f0 !important;
+      padding: var(--space-3-5) 20px !important;
+      border-bottom: 1px solid var(--color-border) !important;
       overflow: visible !important;
 
       &:first-child {
@@ -1238,17 +1238,17 @@ watch(() => router.currentRoute.value.path, (path) => {
     &:hover td,
     &.t-table__row--hover td {
       background-color: rgba(209, 250, 229, 0.35) !important;
-      box-shadow: inset 3px 0 0 #34d399 !important;
+      box-shadow: inset 3px 0 0 var(--color-primary-light) !important;
     }
 
     &.t-table__row--selected td,
     &.t-table__row--selected.t-table__row--hover td {
       background-color: rgba(209, 250, 229, 0.55) !important;
-      box-shadow: inset 3px 0 0 #10b981 !important;
+      box-shadow: inset 3px 0 0 var(--color-primary) !important;
     }
 
     td {
-      padding: 18px 20px !important;
+      padding: var(--space-4-5) 20px !important;
       border-bottom: 1px solid #f1f5f9 !important;
       vertical-align: middle;
 
@@ -1291,18 +1291,18 @@ watch(() => router.currentRoute.value.path, (path) => {
 
     &.file-icon--material {
       background: #ECFDF5;
-      color: #10B981;
+      color: var(--color-primary);
     }
   }
 
   .file-details {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: var(--space-0-5);
 
     .file-name {
       font-weight: 600;
-      color: #334155;
+      color: var(--color-text-primary);
       font-size: 14px;
       margin: 0;
       white-space: nowrap;
@@ -1319,7 +1319,7 @@ watch(() => router.currentRoute.value.path, (path) => {
 
 .file-size-text {
   font-size: 13px;
-  color: #64748b;
+  color: var(--color-text-secondary);
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
@@ -1338,7 +1338,7 @@ watch(() => router.currentRoute.value.path, (path) => {
 
 .time-text {
   font-size: 13px;
-  color: #64748b;
+  color: var(--color-text-secondary);
 }
 
 .action-buttons {
@@ -1350,7 +1350,7 @@ watch(() => router.currentRoute.value.path, (path) => {
     width: 32px;
     height: 32px;
     border-radius: 10px;
-    color: #64748b;
+    color: var(--color-text-secondary);
     transition: all 0.2s ease;
     background: transparent;
     border: 1px solid transparent;
@@ -1361,14 +1361,14 @@ watch(() => router.currentRoute.value.path, (path) => {
 
     &:hover {
       transform: translateY(-1px);
-      background: #f8fafc;
-      border-color: #e2e8f0;
+      background: var(--color-bg-page);
+      border-color: var(--color-border);
     }
 
     &.edit-btn:hover {
-      color: #10b981;
+      color: var(--color-primary);
       background: #ecfdf5;
-      border-color: #a7f3d0;
+      border-color: var(--color-primary-lightest);
     }
 
     &.preview-btn:hover {
@@ -1378,13 +1378,13 @@ watch(() => router.currentRoute.value.path, (path) => {
     }
 
     &.reparse-btn:hover {
-      color: #f59e0b;
+      color: var(--color-warning);
       background: #fffbeb;
       border-color: #fde68a;
     }
 
     &.delete-btn:hover {
-      color: #ef4444;
+      color: var(--color-danger);
       background: #fef2f2;
       border-color: #fecaca;
     }
@@ -1401,11 +1401,11 @@ watch(() => router.currentRoute.value.path, (path) => {
   justify-content: space-between;
   align-items: center;
   background-color: #fff;
-  border-top: 1px solid #f8fafc;
+  border-top: 1px solid var(--color-bg-page);
 
   .pagination-info {
     font-size: 14px;
-    color: #94a3b8;
+    color: var(--color-text-placeholder);
     font-weight: 400;
     white-space: nowrap;
   }
@@ -1420,8 +1420,8 @@ watch(() => router.currentRoute.value.path, (path) => {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 6px 12px;
-    border: 1px solid #e2e8f0;
+    padding: var(--space-1-5) 12px;
+    border: 1px solid var(--color-border);
     border-radius: 8px;
     background-color: transparent;
     color: #6e6178;
@@ -1433,8 +1433,8 @@ watch(() => router.currentRoute.value.path, (path) => {
 
     &:hover:not(.pagination-btn--disabled):not(.pagination-btn--active) {
       background-color: #ecfdf5;
-      border-color: #a7f3d0;
-      color: #059669;
+      border-color: var(--color-primary-lightest);
+      color: var(--color-primary-dark);
     }
 
     &.pagination-btn--disabled {
@@ -1442,14 +1442,14 @@ watch(() => router.currentRoute.value.path, (path) => {
       cursor: not-allowed !important;
       color: #d4c5d0;
       background-color: transparent;
-      border-color: #e2e8f0;
+      border-color: var(--color-border);
       pointer-events: none;
     }
 
     &.pagination-btn--active {
-      background-color: #10b981;
+      background-color: var(--color-primary);
       color: #fff;
-      border-color: #10b981;
+      border-color: var(--color-primary);
       font-weight: 600;
       box-shadow: 0 1px 3px rgba(16, 185, 129, 0.25);
       pointer-events: none;
@@ -1462,7 +1462,7 @@ watch(() => router.currentRoute.value.path, (path) => {
     justify-content: center;
     width: 36px;
     height: 34px;
-    color: #94a3b8;
+    color: var(--color-text-placeholder);
     font-size: 14px;
     user-select: none;
   }
@@ -1482,14 +1482,14 @@ watch(() => router.currentRoute.value.path, (path) => {
 
 .activity-card {
   background-color: #fff;
-  border-radius: 24px;
+  border-radius: var(--radius-4xl);
   padding: 32px;
   box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
-  border: 1px solid #f8fafc;
+  border: 1px solid var(--color-bg-page);
 
   &--assistant {
     background: #fff;
-    border: 1px solid #f8fafc;
+    border: 1px solid var(--color-bg-page);
     color: #0F172A;
     position: relative;
     overflow: hidden;
@@ -1507,7 +1507,7 @@ watch(() => router.currentRoute.value.path, (path) => {
 .activity-title {
   font-size: 18px;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--color-text-primary);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -1517,7 +1517,7 @@ watch(() => router.currentRoute.value.path, (path) => {
 .activity-nav {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--space-1-5);
 
   .activity-nav-btn {
     display: inline-flex;
@@ -1528,14 +1528,14 @@ watch(() => router.currentRoute.value.path, (path) => {
     border-radius: 8px;
     border: 1.5px solid $overlay-emerald-20;
     background: $overlay-emerald-04;
-    color: #10b981;
+    color: var(--color-primary);
     cursor: pointer;
     transition: all $transition-fast;
 
     &:hover:not(:disabled) {
       background: $overlay-emerald-12;
-      border-color: #10b981;
-      color: #059669;
+      border-color: var(--color-primary);
+      color: var(--color-primary-dark);
     }
 
     &:active:not(:disabled) {
@@ -1554,7 +1554,7 @@ watch(() => router.currentRoute.value.path, (path) => {
   .activity-nav-page {
     font-size: 12px;
     font-weight: 600;
-    color: #94a3b8;
+    color: var(--color-text-placeholder);
     min-width: 36px;
     text-align: center;
     user-select: none;
@@ -1597,7 +1597,7 @@ watch(() => router.currentRoute.value.path, (path) => {
   position: relative;
 
   &--success {
-    background-color: #d1fae5;
+    background-color: var(--color-primary-bg);
   }
 
   &--warning {
@@ -1615,11 +1615,11 @@ watch(() => router.currentRoute.value.path, (path) => {
   border-radius: 50%;
 
   .timeline-dot--success & {
-    background-color: #10b981;
+    background-color: var(--color-primary);
   }
 
   .timeline-dot--warning & {
-    background-color: #f59e0b;
+    background-color: var(--color-warning);
   }
 
   .timeline-dot--info & {
@@ -1634,17 +1634,17 @@ watch(() => router.currentRoute.value.path, (path) => {
 .timeline-title {
   font-size: 14px;
   font-weight: 500;
-  color: #334155;
+  color: var(--color-text-primary);
   margin: 0 0 4px 0;
 }
 
 .timeline-desc {
   font-size: 12px;
-  color: #94a3b8;
+  color: var(--color-text-placeholder);
   margin: 0 0 4px 0;
 
   :deep(.text-emerald-600) {
-    color: #059669 !important;
+    color: var(--color-primary-dark) !important;
     font-weight: 700 !important;
   }
 
@@ -1672,8 +1672,8 @@ watch(() => router.currentRoute.value.path, (path) => {
   justify-content: space-between;
   margin: -32px -32px 16px -32px;
   padding: 20px 24px;
-  background: linear-gradient(135deg, #10B981, #059669);
-  border-radius: 24px 24px 0 0;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+  border-radius: var(--radius-4xl) var(--radius-4xl) 0 0;
 
   .assistant-title {
     display: flex;
@@ -1689,7 +1689,7 @@ watch(() => router.currentRoute.value.path, (path) => {
 .assistant-nav {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--space-1-5);
 
   .activity-nav-btn {
     display: inline-flex;
@@ -1732,7 +1732,7 @@ watch(() => router.currentRoute.value.path, (path) => {
   &__inner {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: var(--space-2-5);
   }
 }
 
@@ -1740,8 +1740,8 @@ watch(() => router.currentRoute.value.path, (path) => {
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  padding: 14px;
-  background: #f8fafc;
+  padding: var(--space-3-5);
+  background: var(--color-bg-page);
   border-radius: 14px;
   border: 1px solid #f1f5f9;
   transition: all 0.25s ease;
@@ -1750,7 +1750,7 @@ watch(() => router.currentRoute.value.path, (path) => {
 
   &:hover {
     background: #f1f5f9;
-    border-color: #e2e8f0;
+    border-color: var(--color-border);
     transform: translateX(4px);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   }
@@ -1787,7 +1787,7 @@ watch(() => router.currentRoute.value.path, (path) => {
     }
 
     .todo-item__desc {
-      color: #475569;
+      color: var(--color-text-secondary);
     }
   }
 
@@ -1843,14 +1843,14 @@ watch(() => router.currentRoute.value.path, (path) => {
   &__title {
     font-size: 13px;
     font-weight: 600;
-    color: #1e293b;
-    margin: 0 0 3px 0;
+    color: var(--color-text-primary);
+    margin: 0 0 var(--space-1) 0;
     line-height: 1.3;
   }
 
   &__desc {
     font-size: 12px;
-    color: #64748b;
+    color: var(--color-text-secondary);
     margin: 0;
     line-height: 1.4;
   }
@@ -1860,9 +1860,9 @@ watch(() => router.currentRoute.value.path, (path) => {
     width: 28px;
     height: 28px;
     border-radius: 8px;
-    border: 1.5px solid #E2E8F0;
+    border: 1.5px solid var(--color-border);
     background: #fff;
-    color: #64748b;
+    color: var(--color-text-secondary);
     cursor: pointer;
     display: inline-flex;
     align-items: center;
@@ -1870,7 +1870,7 @@ watch(() => router.currentRoute.value.path, (path) => {
     transition: all 0.2s ease;
 
     &:hover {
-      background: linear-gradient(135deg, #10B981, #059669);
+      background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
       border-color: transparent;
       color: #fff;
       transform: scale(1.05);
@@ -1910,24 +1910,24 @@ watch(() => router.currentRoute.value.path, (path) => {
   flex-direction: column;
   align-items: center;
   text-align: center;
-  padding: 36px 20px 24px;
+  padding: var(--space-8) 20px 24px;
 
   svg {
     margin-bottom: 12px;
-    color: #10b981;
-    stroke: #10b981;
+    color: var(--color-primary);
+    stroke: var(--color-primary);
   }
 
   p {
     font-size: 15px;
     font-weight: 600;
     color: #0F172A;
-    margin: 0 0 6px 0;
+    margin: 0 0 var(--space-1-5) 0;
   }
 
   span {
     font-size: 13px;
-    color: #94a3b8;
+    color: var(--color-text-placeholder);
   }
 }
 
@@ -1942,16 +1942,16 @@ watch(() => router.currentRoute.value.path, (path) => {
 
 .assistant-hint {
   font-size: 12px;
-  color: #94a3b8;
+  color: var(--color-text-placeholder);
 }
 
 .assistant-refresh-btn {
   width: 28px;
   height: 28px;
   border-radius: 8px;
-  border: 1.5px solid #E2E8F0;
+  border: 1.5px solid var(--color-border);
   background: #fff;
-  color: #64748b;
+  color: var(--color-text-secondary);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -1961,7 +1961,7 @@ watch(() => router.currentRoute.value.path, (path) => {
   &:hover {
     background: #f1f5f9;
     border-color: #cbd5e1;
-    color: #475569;
+    color: var(--color-text-secondary);
     transform: rotate(180deg);
   }
 }
@@ -1974,7 +1974,7 @@ watch(() => router.currentRoute.value.path, (path) => {
   height: 140px;
   opacity: 0.08;
   transform: rotate(-12deg);
-  color: #10b981;
+  color: var(--color-primary);
   pointer-events: none;
   z-index: 0;
 }
@@ -1993,7 +1993,7 @@ watch(() => router.currentRoute.value.path, (path) => {
   .upload-label {
     font-size: 14px;
     font-weight: 600;
-    color: #334155;
+    color: var(--color-text-primary);
   }
 
   .upload-progress {
@@ -2070,7 +2070,7 @@ watch(() => router.currentRoute.value.path, (path) => {
 .file-management .content-card .t-table .t-table__body .t-table__row.t-table__row--hover td {
   background-color: transparent !important;
   border-bottom-color: #f1f5f9 !important;
-  color: #334155 !important;
+  color: var(--color-text-primary) !important;
   box-shadow: none !important;
 }
 
@@ -2081,29 +2081,29 @@ watch(() => router.currentRoute.value.path, (path) => {
 
 .file-management .content-card .t-table .t-table__body tr:hover>td:first-child,
 .file-management .content-card .t-table .t-table__body .t-table__row:hover>td:first-child {
-  box-shadow: inset 3px 0 0 #34d399 !important;
+  box-shadow: inset 3px 0 0 var(--color-primary-light) !important;
 }
 
 .file-management .content-card .t-table .t-table__body .t-table__row.t-table__row--selected>td {
   background-color: rgba(209, 250, 229, 0.6) !important;
-  box-shadow: inset 3px 0 0 #10b981 !important;
+  box-shadow: inset 3px 0 0 var(--color-primary) !important;
 }
 
 .file-management .content-card .t-table .t-table__header th {
-  background: #f8fafc !important;
-  color: #64748b !important;
+  background: var(--color-bg-page) !important;
+  color: var(--color-text-secondary) !important;
 }
 
 .file-management .content-card .t-table {
-  --td-brand-color: #10b981;
-  --td-brand-color-hover: #059669;
-  --td-brand-color-active: #047857;
-  --td-brand-color-disabled: #a7f3d0;
+  --td-brand-color: var(--color-primary);
+  --td-brand-color-hover: var(--color-primary-dark);
+  --td-brand-color-active: var(--color-primary-deep);
+  --td-brand-color-disabled: var(--color-primary-lightest);
   --td-brand-color-light: rgba(16, 185, 129, 0.1);
   --td-brand-color-focus: rgba(16, 185, 129, 0.4);
-  --td-brand-color-border-active: #10b981;
-  --td-brand-color-border-hover: #10b981;
-  --td-brand-color-border-focus: #10b981;
+  --td-brand-color-border-active: var(--color-primary);
+  --td-brand-color-border-hover: var(--color-primary);
+  --td-brand-color-border-focus: var(--color-primary);
 
   .t-checkbox .t-checkbox__input.is-checked .t-checkbox__input__inner,
   .t-checkbox .t-checkbox__input.is-indeterminate .t-checkbox__input__inner {
@@ -2131,7 +2131,7 @@ watch(() => router.currentRoute.value.path, (path) => {
   gap: 8px !important;
   padding: 8px 16px !important;
   border-radius: 12px !important;
-  background-color: #1e293b !important;
+  background-color: var(--color-text-primary) !important;
   color: white !important;
   font-size: 14px !important;
   font-weight: 500 !important;
@@ -2141,7 +2141,7 @@ watch(() => router.currentRoute.value.path, (path) => {
   box-shadow: 0 4px 6px rgba(15, 23, 42, 0.15) !important;
 
   &:hover {
-    background-color: #334155 !important;
+    background-color: var(--color-text-primary) !important;
   }
 
   svg {
@@ -2165,14 +2165,14 @@ watch(() => router.currentRoute.value.path, (path) => {
 }
 
 .file-management .custom-sort-header:hover {
-  color: #10b981;
+  color: var(--color-primary);
 }
 
 .file-management .custom-sort {
   display: inline-block;
   width: 0;
   height: 0;
-  margin-left: 2px;
+  margin-left: var(--space-0-5);
   border-left: 4px solid transparent;
   border-right: 4px solid transparent;
   opacity: 0.25;
@@ -2180,18 +2180,18 @@ watch(() => router.currentRoute.value.path, (path) => {
 }
 
 .file-management .custom-sort--none {
-  border-top: 5px solid #94a3b8;
+  border-top: 5px solid var(--color-text-placeholder);
   border-bottom: none;
 }
 
 .file-management .custom-sort--asc {
-  border-bottom: 5px solid #10b981;
+  border-bottom: 5px solid var(--color-primary);
   border-top: none;
   opacity: 1;
 }
 
 .file-management .custom-sort--desc {
-  border-top: 5px solid #10b981;
+  border-top: 5px solid var(--color-primary);
   border-bottom: none;
   opacity: 1;
 }

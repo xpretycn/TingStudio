@@ -2,8 +2,8 @@
   <div class="quotation-card">
     <div class="card-header">
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-        <rect x="2" y="2" width="12" height="12" rx="2" stroke="#10b981" stroke-width="1.2" fill="none" />
-        <path d="M4 6h8M4 9h5" stroke="#10b981" stroke-width="1.2" stroke-linecap="round" />
+        <rect x="2" y="2" width="12" height="12" rx="2" stroke="var(--color-primary)" stroke-width="1.2" fill="none" />
+        <path d="M4 6h8M4 9h5" stroke="var(--color-primary)" stroke-width="1.2" stroke-linecap="round" />
       </svg>
       <span>智能报价单</span>
       <span class="formula-name">{{ data.formula?.name }}</span>
@@ -77,7 +77,7 @@ defineProps<{
   background: $bg-container;
   border: 1px solid $border-color-light;
   border-radius: 12px;
-  padding: 14px;
+  padding: var(--space-3-5);
   margin: 8px 0;
   font-size: 13px;
 }
@@ -85,7 +85,7 @@ defineProps<{
 .card-header {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--space-1-5);
   font-weight: 600;
   color: $text-primary;
   margin-bottom: 12px;
@@ -100,14 +100,14 @@ defineProps<{
 
 .cost-grid {
   display: grid;
-  gap: 6px;
-  margin-bottom: 10px;
+  gap: var(--space-1-5);
+  margin-bottom: var(--space-2-5);
 }
 
 .cost-item {
   display: flex;
   justify-content: space-between;
-  padding: 5px 10px;
+  padding: var(--space-1-25) var(--space-2-5);
   background: $bg-page;
   border-radius: 6px;
   font-size: 12px;
@@ -121,11 +121,11 @@ defineProps<{
     color: $text-primary;
 
     &--sub {
-      color: #f59e0b;
+      color: var(--color-warning);
     }
 
     &--profit {
-      color: #10b981;
+      color: var(--color-primary);
     }
   }
 }
@@ -134,7 +134,7 @@ defineProps<{
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px;
+  padding: var(--space-2-5);
   background: linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(16, 185, 129, 0.02));
   border: 1px solid rgba(16, 185, 129, 0.15);
   border-radius: 8px;
@@ -148,25 +148,25 @@ defineProps<{
   .total-val {
     font-size: 18px;
     font-weight: 700;
-    color: #10b981;
+    color: var(--color-primary);
   }
 }
 
 .unit-cost-row {
   display: flex;
   gap: 16px;
-  padding: 6px 10px;
+  padding: var(--space-1-5) var(--space-2-5);
   font-size: 11px;
   color: $text-tertiary;
 }
 
 .section {
-  margin-top: 10px;
+  margin-top: var(--space-2-5);
 
   .section-title {
     font-weight: 600;
     color: $text-secondary;
-    margin-bottom: 6px;
+    margin-bottom: var(--space-1-5);
     font-size: 12px;
   }
 }
@@ -180,7 +180,7 @@ defineProps<{
 .mat-row {
   display: grid;
   grid-template-columns: 1fr 60px 70px 60px;
-  padding: 6px 10px;
+  padding: var(--space-1-5) var(--space-2-5);
   font-size: 12px;
   gap: 4px;
 

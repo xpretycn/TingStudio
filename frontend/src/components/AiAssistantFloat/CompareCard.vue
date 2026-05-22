@@ -2,8 +2,8 @@
   <div class="compare-card">
     <div class="card-header">
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-        <rect x="2" y="3" width="5" height="10" rx="1" stroke="#10b981" stroke-width="1.2" fill="none"/>
-        <rect x="9" y="3" width="5" height="10" rx="1" stroke="#ff6b8a" stroke-width="1.2" fill="none"/>
+        <rect x="2" y="3" width="5" height="10" rx="1" stroke="var(--color-primary)" stroke-width="1.2" fill="none"/>
+        <rect x="9" y="3" width="5" height="10" rx="1" stroke="var(--color-primary)" stroke-width="1.2" fill="none"/>
       </svg>
       <span>配方对比分析</span>
     </div>
@@ -93,7 +93,7 @@ function diffClass(v: number): string {
   background: $bg-container;
   border: 1px solid $border-color-light;
   border-radius: 12px;
-  padding: 14px;
+  padding: var(--space-3-5);
   margin: 8px 0;
   font-size: 13px;
 }
@@ -101,7 +101,7 @@ function diffClass(v: number): string {
 .card-header {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--space-1-5);
   font-weight: 600;
   color: $text-primary;
   margin-bottom: 12px;
@@ -111,13 +111,13 @@ function diffClass(v: number): string {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 14px;
+  margin-bottom: var(--space-3-5);
 
   .info-item {
     flex: 1;
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--space-1-5);
   }
 
   .info-tag {
@@ -131,8 +131,8 @@ function diffClass(v: number): string {
     font-weight: 700;
     color: #fff;
 
-    &.tag-a { background: #10b981; }
-    &.tag-b { background: #ff6b8a; }
+    &.tag-a { background: var(--color-primary); }
+    &.tag-b { background: var(--color-primary); }
   }
 
   .info-name {
@@ -175,7 +175,7 @@ function diffClass(v: number): string {
 
 .diff-row {
   display: flex;
-  padding: 6px 10px;
+  padding: var(--space-1-5) var(--space-2-5);
   font-size: 12px;
 
   &--header {
@@ -199,25 +199,25 @@ function diffClass(v: number): string {
   &--diff { width: 50px; text-align: right; font-weight: 600; }
 }
 
-.diff-up { color: #10b981; }
-.diff-down { color: #ef4444; }
+.diff-up { color: var(--color-primary); }
+.diff-down { color: var(--color-danger); }
 .diff-zero { color: $text-tertiary; }
 
 .nutrition-grid {
   display: grid;
-  gap: 6px;
+  gap: var(--space-1-5);
 }
 
 .nutri-item {
   display: grid;
   grid-template-columns: 1fr 60px 60px;
-  padding: 5px 10px;
+  padding: var(--space-1-25) var(--space-2-5);
   background: $bg-page;
   border-radius: 6px;
   font-size: 12px;
 
   .nutri-label { color: $text-secondary; }
-  .nutri-val-a { text-align: right; color: #10b981; font-weight: 500; }
-  .nutri-val-b { text-align: right; color: #ff6b8a; font-weight: 500; }
+  .nutri-val-a { text-align: right; color: var(--color-primary); font-weight: 500; }
+  .nutri-val-b { text-align: right; color: var(--color-primary); font-weight: 500; }
 }
 </style>

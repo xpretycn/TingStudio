@@ -14,14 +14,14 @@
     <div class="bubble-inner">
       <svg class="bubble-logo" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="30" cy="32" r="20" fill="#FFE8D6" />
-        <path d="M14 22L10 4L26 16Z" fill="#FFB5C8" />
-        <path d="M46 22L50 4L34 16Z" fill="#FFB5C8" />
+        <path d="M14 22L10 4L26 16Z" fill="var(--color-primary-lighter)" />
+        <path d="M46 22L50 4L34 16Z" fill="var(--color-primary-lighter)" />
         <ellipse cx="24" cy="30" rx="3.5" ry="4" fill="#5D4E60" />
         <ellipse cx="36" cy="30" rx="3.5" ry="4" fill="#5D4E60" />
         <ellipse cx="25" cy="28.5" rx="1.2" ry="1.5" fill="#fff" />
         <ellipse cx="37" cy="28.5" rx="1.2" ry="1.5" fill="#fff" />
         <ellipse cx="30" cy="35.5" rx="2.5" ry="1.8" fill="#FFB5C2" />
-        <path d="M27 38Q30 42 33 38" stroke="#E8A0B0" stroke-width="1" fill="none" stroke-linecap="round" />
+        <path d="M27 38Q30 42 33 38" stroke="var(--color-primary-dark)" stroke-width="1" fill="none" stroke-linecap="round" />
         <ellipse cx="20" cy="36" rx="4" ry="2.5" fill="#FFB5C2" opacity="0.35" />
         <ellipse cx="40" cy="36" rx="4" ry="2.5" fill="#FFB5C2" opacity="0.35" />
       </svg>
@@ -262,9 +262,9 @@ onUnmounted(() => {
     border: 2px solid #fff;
     z-index: 2;
 
-    &--online { background: #10b981; }
-    &--loading { background: #f59e0b; }
-    &--error { background: #ef4444; }
+    &--online { background: var(--color-primary); }
+    &--loading { background: var(--color-warning); }
+    &--error { background: var(--color-danger); }
   }
 
   /* 角标 */
@@ -274,9 +274,9 @@ onUnmounted(() => {
     right: -4px;
     min-width: 18px;
     height: 18px;
-    padding: 0 5px;
-    border-radius: 9px;
-    background: #ef4444;
+    padding: 0 var(--space-1-25);
+    border-radius: var(--radius-md);
+    background: var(--color-danger);
     color: #fff;
     font-size: 11px;
     font-weight: 700;
@@ -293,7 +293,7 @@ onUnmounted(() => {
     display: flex;
     flex-direction: column;
     gap: 4px;
-    padding: 6px;
+    padding: var(--space-1-5);
     background: $bg-container;
     border-radius: 12px;
     box-shadow: 0 8px 24px rgba(93, 78, 96, 0.18);
@@ -318,7 +318,7 @@ onUnmounted(() => {
       display: flex;
       align-items: center;
       gap: 8px;
-      padding: 7px 12px;
+      padding: var(--space-2) 12px;
       border: none;
       border-radius: 8px;
       background: transparent;

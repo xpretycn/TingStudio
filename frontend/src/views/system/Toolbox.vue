@@ -295,7 +295,7 @@ function formatTime(updateTime: string): string {
       font-size: 16px;
       font-weight: 600;
       color: $text-primary;
-      margin: 0 0 6px 0;
+      margin: 0 0 var(--space-1-5) 0;
     }
 
     .tool-desc {
@@ -384,7 +384,7 @@ function formatTime(updateTime: string): string {
 // 搜索结果下拉
 .search-dropdown {
   margin: -12px 0 16px;
-  padding: 6px;
+  padding: var(--space-1-5);
   background: $bg-container;
   border-radius: 12px;
   border: 1.5px solid var(--color-primary-lightest);
@@ -394,7 +394,7 @@ function formatTime(updateTime: string): string {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 10px 12px;
+    padding: var(--space-2-5) 12px;
     border-radius: 8px;
     cursor: pointer;
     transition: all $transition-fast;
@@ -496,7 +496,7 @@ function formatTime(updateTime: string): string {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 14px 16px;
+    padding: var(--space-3-5) 16px;
     background: $bg-page;
     border-radius: 12px;
     border: 1px solid $border-color-light;

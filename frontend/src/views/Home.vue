@@ -14,14 +14,14 @@
           <div class="logo-cat" aria-hidden="true">
             <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
               <circle cx="30" cy="32" r="20" fill="#FFE8D6" />
-              <path d="M14 22L10 4L26 16Z" fill="#FFB5C8" />
-              <path d="M46 22L50 4L34 16Z" fill="#FFB5C8" />
+              <path d="M14 22L10 4L26 16Z" fill="var(--color-primary-lighter)" />
+              <path d="M46 22L50 4L34 16Z" fill="var(--color-primary-lighter)" />
               <ellipse cx="24" cy="30" rx="3.5" ry="4" fill="#5D4E60" />
               <ellipse cx="36" cy="30" rx="3.5" ry="4" fill="#5D4E60" />
               <ellipse cx="25" cy="28.5" rx="1.2" ry="1.5" fill="#fff" />
               <ellipse cx="37" cy="28.5" rx="1.2" ry="1.5" fill="#fff" />
               <ellipse cx="30" cy="35.5" rx="2.5" ry="1.8" fill="#FFB5C2" />
-              <path d="M27 38Q30 42 33 38" stroke="#E8A0B0" stroke-width="1" fill="none" stroke-linecap="round" />
+              <path d="M27 38Q30 42 33 38" stroke="var(--color-primary-dark)" stroke-width="1" fill="none" stroke-linecap="round" />
               <ellipse cx="20" cy="36" rx="4" ry="2.5" fill="#FFB5C2" opacity="0.35" />
               <ellipse cx="40" cy="36" rx="4" ry="2.5" fill="#FFB5C2" opacity="0.35" />
             </svg>
@@ -238,14 +238,14 @@
         <button class="version-trigger-btn" :class="{ active: showVersionCard }" title="系统版本">
           <svg class="version-cat-logo" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
             <circle cx="30" cy="32" r="20" fill="#FFE8D6" />
-            <path d="M14 22L10 4L26 16Z" fill="#FFB5C8" />
-            <path d="M46 22L50 4L34 16Z" fill="#FFB5C8" />
+            <path d="M14 22L10 4L26 16Z" fill="var(--color-primary-lighter)" />
+            <path d="M46 22L50 4L34 16Z" fill="var(--color-primary-lighter)" />
             <ellipse cx="24" cy="30" rx="3.5" ry="4" fill="#5D4E60" />
             <ellipse cx="36" cy="30" rx="3.5" ry="4" fill="#5D4E60" />
             <ellipse cx="25" cy="28.5" rx="1.2" ry="1.5" fill="#fff" />
             <ellipse cx="37" cy="28.5" rx="1.2" ry="1.5" fill="#fff" />
             <ellipse cx="30" cy="35.5" rx="2.5" ry="1.8" fill="#FFB5C2" />
-            <path d="M27 38Q30 42 33 38" stroke="#E8A0B0" stroke-width="1" fill="none" stroke-linecap="round" />
+            <path d="M27 38Q30 42 33 38" stroke="var(--color-primary-dark)" stroke-width="1" fill="none" stroke-linecap="round" />
             <ellipse cx="20" cy="36" rx="4" ry="2.5" fill="#FFB5C2" opacity="0.35" />
             <ellipse cx="40" cy="36" rx="4" ry="2.5" fill="#FFB5C2" opacity="0.35" />
           </svg>
@@ -283,7 +283,7 @@
                 {{ crumb.title }}
               </t-breadcrumb-item>
               <t-breadcrumb-item class="breadcrumb-current"
-                :style="breadcrumbs.length > 0 ? { color: '#10B981' } : {}">{{
+                :style="breadcrumbs.length > 0 ? { color: 'var(--color-primary)' } : {}">{{
                   pageTitle }}</t-breadcrumb-item>
             </t-breadcrumb>
           </div>
@@ -332,7 +332,7 @@
                   <img loading="lazy" class="user-avatar-img" :src="authStore.user?.avatar || '/avatar-default.jpg'"
                     :alt="authStore.user?.username || '用户'" />
                 </div>
-                <span class="user-display-name">{{ authStore.user?.username || '用户' }}</span>
+                <span class="user-display-name">{{ authStore.user?.displayName || authStore.user?.username || '用户' }}</span>
                 <svg class="user-avatar-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none"
                   stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <polyline points="6 9 12 15 18 9" />
@@ -1036,7 +1036,7 @@ onMounted(() => {
   height: 100vh;
   height: 100dvh;
   overflow: hidden;
-  background: #F8FAFC; // slate-50 — 匹配参考设计整体背景色
+  background: var(--color-bg-page); // slate-50 — 匹配参考设计整体背景色
   font-family: 'PingFang SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
@@ -1072,7 +1072,7 @@ onMounted(() => {
 // ─── sidebar-top：Logo + 用户 + 日期天气（固定顶部）───
 .sidebar-top {
   flex-shrink: 0;
-  padding: 16px 14px 12px;
+  padding: 16px var(--space-3-5) 12px;
   overflow: hidden;
 }
 
@@ -1164,7 +1164,7 @@ onMounted(() => {
       align-items: center;
       justify-content: flex-end;
       gap: 4px;
-      margin-bottom: 2px;
+      margin-bottom: var(--space-0-5);
 
       .weather-icon-text {
         font-size: 16px;
@@ -1302,7 +1302,7 @@ onMounted(() => {
 .sidebar-welcome-card {
   background: linear-gradient(135deg, #1a5c3a 0%, #0d4a2f 100%);
   border-radius: 14px;
-  padding: 14px 18px;
+  padding: var(--space-3-5) var(--space-4-5);
   color: #fff;
   position: relative;
   overflow: hidden;
@@ -1336,7 +1336,7 @@ onMounted(() => {
     .version-label {
       font-size: 11px;
       opacity: 0.75;
-      margin: 0 0 3px 0;
+      margin: 0 0 var(--space-1) 0;
       font-weight: 400;
       letter-spacing: 0.5px;
     }
@@ -1374,7 +1374,7 @@ onMounted(() => {
   border-top: 1px solid rgba(255, 255, 255, 0.15);
   display: flex;
   align-items: flex-start;
-  gap: 6px;
+  gap: var(--space-1-5);
   cursor: pointer;
   transition: opacity $transition-normal;
 
@@ -1405,7 +1405,7 @@ onMounted(() => {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding: 8px 14px 48px;
+  padding: 8px var(--space-3-5) 48px;
 
   &,
   * {
@@ -1427,7 +1427,7 @@ onMounted(() => {
   &::-webkit-scrollbar-thumb,
   *::-webkit-scrollbar-thumb {
     background: var(--color-primary) !important;
-    border-radius: 3px !important;
+    border-radius: var(--radius-xs) !important;
 
     &:hover {
       background: var(--color-primary-dark) !important;
@@ -1438,10 +1438,10 @@ onMounted(() => {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 8px 10px;
+    padding: 8px var(--space-2-5);
     background: $bg-page;
     border-radius: 8px;
-    margin-bottom: 6px;
+    margin-bottom: var(--space-1-5);
     cursor: pointer;
     transition: all $transition-slow;
     border: 1px solid $border-color-light;
@@ -1460,7 +1460,7 @@ onMounted(() => {
       font-weight: 600;
       color: $text-primary;
       flex: 1;
-      margin-left: 6px;
+      margin-left: var(--space-1-5);
     }
 
     .nav-toggle {
@@ -1494,7 +1494,7 @@ onMounted(() => {
       display: flex;
       align-items: center;
       gap: 8px;
-      padding: 9px 10px;
+      padding: var(--space-2) var(--space-2-5);
       background: transparent;
       border-radius: 8px;
       cursor: pointer;
@@ -1572,13 +1572,13 @@ onMounted(() => {
 
         &:hover {
           background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(5, 150, 105, 0.18));
-          border-color: #10B981;
+          border-color: var(--color-primary);
           box-shadow: 0 4px 20px rgba(16, 185, 129, 0.25);
           transform: translateY(-2px);
         }
 
         &.active {
-          background: linear-gradient(135deg, #10B981, #059669);
+          background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
           border-color: transparent;
 
           .nav-item-icon--highlight {
@@ -1597,12 +1597,12 @@ onMounted(() => {
       // 高亮图标和文字
       &-icon--highlight {
         position: relative;
-        color: #10B981 !important;
+        color: var(--color-primary) !important;
       }
 
       &-text--highlight {
         font-weight: 600;
-        color: #059669;
+        color: var(--color-primary-dark);
       }
 
       // NEW徽章
@@ -1610,10 +1610,10 @@ onMounted(() => {
         position: absolute;
         top: -4px;
         right: -6px;
-        background: #EF4444;
+        background: var(--color-danger);
         color: white;
         font-size: 9px;
-        padding: 1px 5px;
+        padding: 1px var(--space-1-25);
         border-radius: 8px;
         font-weight: 700;
         letter-spacing: 0.3px;
@@ -1631,7 +1631,7 @@ onMounted(() => {
 
         &.active {
           margin-left: -8px;
-          padding-left: 28px;
+          padding-left: var(--space-7);
           border-left: 3px solid white;
           border-radius: 0 8px 8px 0;
         }
@@ -1642,7 +1642,7 @@ onMounted(() => {
     .nav-divider {
       height: 1px;
       background: $border-color-light;
-      margin: 8px 14px;
+      margin: 8px var(--space-3-5);
       opacity: 0.6;
     }
 
@@ -1660,7 +1660,7 @@ onMounted(() => {
       display: flex;
       align-items: center;
       gap: 8px;
-      padding: 10px 14px;
+      padding: var(--space-2-5) var(--space-3-5);
       margin: 4px 8px;
       border-radius: 8px;
       cursor: pointer;
@@ -1710,8 +1710,8 @@ onMounted(() => {
 // ─── 新用户引导卡片（Level 2 玻璃态） ───
 .sidebar-guide {
   flex-shrink: 0;
-  margin: 0 18px 16px;
-  padding: 14px;
+  margin: 0 var(--space-4-5) 16px;
+  padding: var(--space-3-5);
   background: $overlay-white-60;
   backdrop-filter: blur(10px);
   border-radius: 14px;
@@ -1757,14 +1757,14 @@ onMounted(() => {
   .guide-steps {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: var(--space-1-5);
     margin-bottom: 12px;
 
     .guide-step {
       display: flex;
       align-items: center;
       gap: 8px;
-      padding: 6px 10px;
+      padding: var(--space-1-5) var(--space-2-5);
       border-radius: 8px;
       cursor: pointer;
       transition: all $transition-fast;
@@ -1843,7 +1843,7 @@ onMounted(() => {
   min-width: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 20px 20px 10px;
+  padding: 20px 20px var(--space-2-5);
 
   &.no-top-padding {
     padding-top: 0; // hideHeader 页面消除顶部间距（子组件自带 detail-header）
@@ -1917,7 +1917,7 @@ onMounted(() => {
       justify-content: center;
       background: #fff;
       border: 1px solid $border-color-light;
-      color: $text-secondary; // slate-600 ≈ #475569
+      color: $text-secondary; // slate-600 ≈ var(--color-text-secondary)
       cursor: pointer;
       transition: all $transition-fast;
       flex-shrink: 0;
@@ -1927,8 +1927,8 @@ onMounted(() => {
       }
 
       &:hover {
-        background: #F8FAFC; // slate-50
-        border-color: #E2E8F0; // slate-200
+        background: var(--color-bg-page); // slate-50
+        border-color: var(--color-border); // slate-200
         color: var(--color-primary);
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06); // shadow-sm
       }
@@ -1962,9 +1962,9 @@ onMounted(() => {
     .user-avatar-wrapper {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: var(--space-1-5);
       cursor: pointer;
-      padding: 6px 16px 6px 6px; // p-1.5 pr-4 → 6px 16px
+      padding: var(--space-1-5) 16px var(--space-1-5) var(--space-1-5); // p-1.5 pr-4 → var(--space-1-5) 16px
       border-radius: 9999px; // rounded-full / pill shape
       background: #fff;
       border: 1px solid $border-color-light;
@@ -2002,8 +2002,8 @@ onMounted(() => {
       }
 
       &:hover {
-        background: #F8FAFC; // slate-50
-        border-color: #E2E8F0; // slate-200
+        background: var(--color-bg-page); // slate-50
+        border-color: var(--color-border); // slate-200
         box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
 
         .user-avatar-arrow {
@@ -2180,7 +2180,7 @@ onMounted(() => {
   }
 
   .sidebar-top {
-    padding: 16px 10px 12px;
+    padding: 16px var(--space-2-5) 12px;
     align-items: center;
 
     .sidebar-logo {
@@ -2225,12 +2225,12 @@ onMounted(() => {
   }
 
   .sidebar-nav {
-    padding: 8px 10px 48px;
+    padding: 8px var(--space-2-5) 48px;
 
     .nav-content {
       .nav-item {
         justify-content: center;
-        padding: 10px;
+        padding: var(--space-2-5);
 
         .nav-item-text,
         .nav-item-arrow,
@@ -2246,7 +2246,7 @@ onMounted(() => {
       .nav-group {
         .nav-group-header {
           justify-content: center;
-          padding: 10px;
+          padding: var(--space-2-5);
 
           span,
           .group-arrow {
@@ -2259,7 +2259,7 @@ onMounted(() => {
 
           .nav-subitem {
             justify-content: center;
-            padding: 10px;
+            padding: var(--space-2-5);
 
             .subitem-text {
               display: none;
@@ -2323,16 +2323,16 @@ onMounted(() => {
         }
       }
 
-      // 当前页：固定绿色 #10B981 (rgb(16, 185, 129)) + medium
+      // 当前页：固定绿色 var(--color-primary) (rgb(16, 185, 129)) + medium
       .t-breadcrumb-item.breadcrumb-current {
         .t-breadcrumb__inner {
-          color: #10B981 !important;
+          color: var(--color-primary) !important;
           font-weight: 500 !important;
         }
       }
 
       .t-breadcrumb__separator {
-        color: #94A3B8; // slate-400
+        color: var(--color-text-placeholder); // slate-400
       }
     }
   }
@@ -2360,11 +2360,11 @@ onMounted(() => {
     flex: 0 0 260px;
 
     .sidebar-top {
-      padding: 16px 14px 10px;
+      padding: 16px var(--space-3-5) var(--space-2-5);
     }
 
     .sidebar-nav {
-      padding: 10px 14px;
+      padding: var(--space-2-5) var(--space-3-5);
     }
   }
 

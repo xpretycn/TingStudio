@@ -21,7 +21,7 @@
         <t-form ref="formRef" :data="formData" :rules="formRules" label-align="top" @submit="handleGenerate">
           <div class="form-section">
             <h3 class="section-title">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2"
                 stroke-linecap="round" stroke-linejoin="round">
                 <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
                 <line x1="16" y1="2" x2="16" y2="6" />
@@ -40,7 +40,7 @@
 
           <div class="form-section">
             <h3 class="section-title">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2"
                 stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="10" />
                 <polyline points="12 6 12 12 16 14" />
@@ -75,7 +75,7 @@
 
           <div class="form-section">
             <h3 class="section-title">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2"
                 stroke-linecap="round" stroke-linejoin="round">
                 <path d="M12 20h9" />
                 <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
@@ -274,13 +274,13 @@ onMounted(() => {
       border: none;
       border-radius: 12px;
       background: transparent;
-      color: #94a3b8;
+      color: var(--color-text-placeholder);
       cursor: pointer;
       transition: all 0.2s;
       font-size: 20px;
 
       &:hover {
-        color: #10b981;
+        color: var(--color-primary);
         background-color: #ecfdf5;
       }
     }
@@ -288,33 +288,33 @@ onMounted(() => {
     .header-title-group {
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: var(--space-1-5);
 
       .header-breadcrumb {
         display: flex;
         align-items: center;
-        gap: 6px;
+        gap: var(--space-1-5);
         font-size: 12px;
         line-height: 1;
 
         .breadcrumb-link {
-          color: #94a3b8;
+          color: var(--color-text-placeholder);
           cursor: pointer;
           transition: color 0.15s;
           text-decoration: none;
 
           &:hover {
-            color: #10b981;
+            color: var(--color-primary);
           }
         }
 
         .breadcrumb-sep {
           font-size: 12px;
-          color: #94a3b8;
+          color: var(--color-text-placeholder);
         }
 
         .breadcrumb-current {
-          color: #475569;
+          color: var(--color-text-secondary);
         }
       }
 
@@ -325,7 +325,7 @@ onMounted(() => {
         gap: 12px;
         font-size: 18px;
         font-weight: 700;
-        color: #1e293b;
+        color: var(--color-text-primary);
         line-height: 1.35;
       }
     }
@@ -361,16 +361,16 @@ onMounted(() => {
 
 .form-card {
   background: #fff;
-  border-radius: 24px;
+  border-radius: var(--radius-4xl);
   padding: 32px;
   box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
-  border: 1px solid #F8FAFC;
+  border: 1px solid var(--color-bg-page);
 }
 
 .form-section {
   margin-bottom: 32px;
   padding-bottom: 32px;
-  border-bottom: 1px solid #F8FAFC;
+  border-bottom: 1px solid var(--color-bg-page);
 
   &:last-of-type {
     border-bottom: none;
@@ -384,7 +384,7 @@ onMounted(() => {
     gap: 8px;
     font-size: $font-size-body;
     font-weight: $font-weight-bold;
-    color: #94A3B8;
+    color: var(--color-text-placeholder);
     text-transform: uppercase;
     letter-spacing: 0.12em;
     margin: 0 0 20px;
@@ -408,7 +408,7 @@ onMounted(() => {
     }
 
     :deep(.t-form__label) {
-      margin-bottom: 6px;
+      margin-bottom: var(--space-1-5);
       min-height: 22px;
       display: flex;
       align-items: center;
@@ -417,7 +417,7 @@ onMounted(() => {
 
   .date-separator {
     font-size: $font-size-body;
-    color: #94A3B8;
+    color: var(--color-text-placeholder);
     font-weight: $font-weight-medium;
     flex-shrink: 0;
     display: flex;
@@ -429,7 +429,7 @@ onMounted(() => {
 
 .date-hint {
   font-size: $font-size-caption;
-  color: #94A3B8;
+  color: var(--color-text-placeholder);
   margin: 8px 0 0;
   letter-spacing: $ls-caption;
 }
@@ -441,7 +441,7 @@ onMounted(() => {
 
   :deep(.t-checkbox) {
     font-size: $font-size-body;
-    color: #334155;
+    color: var(--color-text-primary);
 
     .t-checkbox__label {
       font-size: $font-size-body;
@@ -456,15 +456,15 @@ onMounted(() => {
   gap: 12px;
   margin-top: 32px;
   padding-top: 32px;
-  border-top: 1px solid #F8FAFC;
+  border-top: 1px solid var(--color-bg-page);
 }
 
 .action-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 10px 24px;
+  gap: var(--space-1-5);
+  padding: var(--space-2-5) 24px;
   border-radius: 12px;
   font-size: $font-size-body;
   font-weight: $font-weight-semibold;
@@ -475,21 +475,21 @@ onMounted(() => {
 
   &--cancel {
     background-color: #F1F5F9;
-    color: #64748B;
+    color: var(--color-text-secondary);
 
     &:hover {
-      background-color: #E2E8F0;
-      color: #475569;
+      background-color: var(--color-border);
+      color: var(--color-text-secondary);
     }
   }
 
   &--submit {
-    background-color: #1E293B;
+    background-color: var(--color-text-primary);
     color: #fff;
     box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
 
     &:hover:not(:disabled) {
-      background-color: #334155;
+      background-color: var(--color-text-primary);
       transform: translateY(-1px);
       box-shadow: 0 6px 16px rgba(15, 23, 42, 0.2);
     }
@@ -523,8 +523,8 @@ onMounted(() => {
     border-radius: 10px !important;
 
     &.t-is-checked {
-      background-color: #1E293B !important;
-      border-color: #1E293B !important;
+      background-color: var(--color-text-primary) !important;
+      border-color: var(--color-text-primary) !important;
       color: #fff !important;
     }
   }
@@ -532,28 +532,28 @@ onMounted(() => {
 
 :deep(.t-date-picker) {
   .t-input {
-    background-color: #F8FAFC !important;
+    background-color: var(--color-bg-page) !important;
     border: 1px solid #F1F5F9 !important;
     border-radius: 12px !important;
-    padding: 10px 16px !important;
+    padding: var(--space-2-5) 16px !important;
     min-height: 44px;
     font-size: $font-size-body !important;
-    color: #334155 !important;
+    color: var(--color-text-primary) !important;
     transition: all $transition-fast;
 
     &:hover:not(.t-is-disabled) {
-      border-color: #E2E8F0 !important;
+      border-color: var(--color-border) !important;
     }
 
     &.t-is-focused {
       background-color: #fff !important;
       border-color: transparent !important;
-      box-shadow: 0 0 0 2px #10B981 !important;
+      box-shadow: 0 0 0 2px var(--color-primary) !important;
       outline: none !important;
     }
 
     &::placeholder {
-      color: #94A3B8 !important;
+      color: var(--color-text-placeholder) !important;
     }
   }
 
@@ -567,6 +567,6 @@ onMounted(() => {
 :deep(.t-form__label) {
   font-size: $font-size-body;
   font-weight: $font-weight-bold;
-  color: #334155;
+  color: var(--color-text-primary);
 }
 </style>

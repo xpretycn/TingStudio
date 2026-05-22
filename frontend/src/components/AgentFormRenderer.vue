@@ -232,7 +232,7 @@ function handleCancel() {
 <style scoped lang="scss">
 .agent-form-renderer {
   margin: 8px 0;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--color-border);
   border-radius: 12px;
   overflow: hidden;
   background: #fff;
@@ -240,19 +240,19 @@ function handleCancel() {
   .form-header {
     padding: 12px 16px;
     background: linear-gradient(135deg, #f0f7ff 0%, #f5f0ff 100%);
-    border-bottom: 1px solid #e2e8f0;
+    border-bottom: 1px solid var(--color-border);
 
     .form-title {
       margin: 0;
       font-size: 15px;
       font-weight: 600;
-      color: #1e293b;
+      color: var(--color-text-primary);
     }
 
     .form-desc {
       margin: 4px 0 0;
       font-size: 12px;
-      color: #64748b;
+      color: var(--color-text-secondary);
     }
   }
 
@@ -260,7 +260,7 @@ function handleCancel() {
     padding: 16px;
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: var(--space-3-5);
 
     .form-field {
       display: flex;
@@ -278,18 +278,18 @@ function handleCancel() {
       .field-label {
         font-size: 13px;
         font-weight: 500;
-        color: #334155;
+        color: var(--color-text-primary);
 
         .required-mark {
           color: #e34d59;
-          margin-left: 2px;
+          margin-left: var(--space-0-5);
         }
       }
 
       .field-error {
         font-size: 12px;
         color: #e34d59;
-        margin-top: 2px;
+        margin-top: var(--space-0-5);
       }
     }
   }
@@ -317,7 +317,7 @@ function handleCancel() {
         height: 28px;
         border: none;
         background: #fef2f2;
-        color: #dc2626;
+        color: var(--color-danger);
         border-radius: 6px;
         cursor: pointer;
         font-size: 16px;
@@ -335,8 +335,8 @@ function handleCancel() {
     .material-add-btn {
       border: 1px dashed #cbd5e1;
       background: transparent;
-      color: #64748b;
-      padding: 6px 12px;
+      color: var(--color-text-secondary);
+      padding: var(--space-1-5) 12px;
       border-radius: 6px;
       cursor: pointer;
       font-size: 13px;
@@ -352,11 +352,11 @@ function handleCancel() {
 
   .form-footer {
     padding: 12px 16px;
-    border-top: 1px solid #e2e8f0;
+    border-top: 1px solid var(--color-border);
     display: flex;
     justify-content: flex-end;
     gap: 8px;
-    background: #f8fafc;
+    background: var(--color-bg-page);
   }
 }
 </style>

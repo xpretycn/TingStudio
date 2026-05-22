@@ -2,15 +2,36 @@
 import { Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import { query, adaptSQL } from "../config/database-adapter.js";
-import { generateId, now, success } from "../utils/helpers.js";
+import { generateId, now, success, rowToCamelCase } from "../utils/helpers.js";
 import { generateToken } from "../middleware/auth.js";
+
+const NICKNAME_PREFIXES = ["小", "阿", "大", "老"];
+const NICKNAME_SUFFIXES = ["明", "华", "强", "伟", "芳", "娜", "敏", "静", "磊", "洋", "勇", "军", "杰", "涛", "超", "丽", "艳", "燕", "玲", "莉", "鑫", "宇", "浩", "晨", "瑶", "琳", "萱", "涵", "博", "翔"];
+
+function generateRandomNickname(): string {
+  const prefix = NICKNAME_PREFIXES[Math.floor(Math.random() * NICKNAME_PREFIXES.length)];
+  const suffix = NICKNAME_SUFFIXES[Math.floor(Math.random() * NICKNAME_SUFFIXES.length)];
+  return `${prefix}${suffix}${Math.floor(Math.random() * 900 + 100)}`;
+}
+
+function generateRandomEmail(username: string): string {
+  const domains = ["tingstudio.com", "example.com", "mail.com"];
+  const domain = domains[Math.floor(Math.random() * domains.length)];
+  return `${username}@${domain}`;
+}
+
+function generateRandomPhone(): string {
+  const prefixes = ["130", "131", "132", "133", "135", "136", "137", "138", "139", "150", "151", "152", "153", "155", "156", "157", "158", "159", "170", "176", "177", "178", "180", "181", "182", "183", "184", "185", "186", "187", "188", "189"];
+  const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+  const suffix = String(Math.floor(Math.random() * 100000000)).padStart(8, "0");
+  return `${prefix}${suffix}`;
+}
 
 /** 用户注册 */
 export async function register(req: Request, res: Response) {
   try {
     const { username, password } = req.body;
 
-    // 检查用户名是否已存在
     const existingResult = await query(adaptSQL("SELECT id FROM users WHERE username = ?"), [username]);
     if (existingResult.rows.length > 0) {
       res.status(409).json({ success: false, message: "用户名已存在" });
@@ -19,27 +40,32 @@ export async function register(req: Request, res: Response) {
 
     const userId = generateId();
     const hashedPassword = await bcrypt.hash(password, 10);
+    const displayName = generateRandomNickname();
+    const email = generateRandomEmail(username);
+    const phone = generateRandomPhone();
+    const currentTime = now();
 
     await query(
-      adaptSQL('INSERT INTO users (id, username, password, role, created_at) VALUES (?, ?, ?, "formulist", ?)'),
-      [userId, username, hashedPassword, now()],
+      adaptSQL("INSERT INTO users (id, username, password, role, display_name, email, phone, created_at, updated_at) VALUES (?, ?, ?, \"formulist\", ?, ?, ?, ?, ?)"),
+      [userId, username, hashedPassword, displayName, email, phone, currentTime, currentTime],
     );
 
     const token = generateToken({ userId, username, role: "formulist" });
+    const userRow = {
+      id: userId,
+      username,
+      role: "formulist",
+      display_name: displayName,
+      avatar: null,
+      bio: null,
+      email,
+      phone,
+      created_at: currentTime,
+    };
     res.status(201).json(
       success(
         {
-          user: {
-            id: userId,
-            username,
-            role: "formulist",
-            display_name: null,
-            avatar: null,
-            bio: null,
-            email: null,
-            phone: null,
-            created_at: now(),
-          },
+          user: rowToCamelCase(userRow),
           token,
         },
         "注册成功",
@@ -74,7 +100,7 @@ export async function login(req: Request, res: Response) {
     }
 
     const token = generateToken({ userId: user.id, username: user.username, role: user.role });
-    const { password: _, ...userWithoutPassword } = user;
+    const { password: _, ...userWithoutPassword } = rowToCamelCase(user);
 
     res.json(
       success(
@@ -104,7 +130,7 @@ export async function getCurrentUser(req: any, res: Response) {
       res.status(404).json({ success: false, message: "用户不存在" });
       return;
     }
-    res.json(success(user));
+    res.json(success(rowToCamelCase(user)));
   } catch (error: any) {
     res.status(500).json({ success: false, message: "获取用户信息失败", error: error.message });
   }
@@ -167,7 +193,7 @@ export async function updateProfile(req: any, res: Response) {
       [userId],
     );
     const updatedUser = updatedUserResult.rows[0];
-    res.json(success(updatedUser, "资料更新成功"));
+    res.json(success(rowToCamelCase(updatedUser), "资料更新成功"));
   } catch (error: any) {
     res.status(500).json({ success: false, message: "更新资料失败", error: error.message });
   }

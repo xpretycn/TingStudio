@@ -7,7 +7,7 @@
         <template v-else>
           <div v-if="loadError" class="error-state">
             <div class="error-icon">
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2"
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--color-danger)" stroke-width="2"
                 stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="10" />
                 <line x1="15" y1="9" x2="9" y2="15" />
@@ -155,10 +155,10 @@
                 </div>
               </div>
 
-              <div class="report-section-card" :style="{ borderLeftColor: '#10B981' }">
+              <div class="report-section-card" :style="{ borderLeftColor: 'var(--color-primary)' }">
                 <div class="section-header">
                   <div class="section-title-group">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2"
                       stroke-linecap="round" stroke-linejoin="round">
                       <line x1="12" y1="1" x2="12" y2="23" />
                       <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
@@ -271,7 +271,7 @@
                     </t-button>
                     </div>
                     <svg :class="{ 'collapse-icon': true, 'collapsed': !plansExpanded }" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                      stroke="#94A3B8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" @click.stop="plansExpanded = !plansExpanded">
+                      stroke="var(--color-text-placeholder)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" @click.stop="plansExpanded = !plansExpanded">
                       <polyline points="6 9 12 15 18 9" />
                     </svg>
                   </div>
@@ -561,7 +561,7 @@ const dashboardCards = computed(() => {
       value: formula.newFormulaCount ?? 0,
       unit: '个',
       badge: formula.newFormulaCountGrowth != null ? `${formula.newFormulaCountGrowth > 0 ? '+' : ''}${formula.newFormulaCountGrowth}%` : '--',
-      badgeColor: (formula.newFormulaCountGrowth || 0) >= 0 ? '#10B981' : '#EF4444',
+      badgeColor: (formula.newFormulaCountGrowth || 0) >= 0 ? 'var(--color-primary)' : 'var(--color-danger)',
       badgeBg: (formula.newFormulaCountGrowth || 0) >= 0 ? '#ECFDF5' : '#FEF2F2',
       iconBg: '#EFF6FF',
       iconColor: '#3B82F6',
@@ -572,10 +572,10 @@ const dashboardCards = computed(() => {
       value: formula.completedFormulaCount ?? 0,
       unit: '个',
       badge: formula.completedFormulaCountGrowth != null ? `${formula.completedFormulaCountGrowth > 0 ? '+' : ''}${formula.completedFormulaCountGrowth}%` : '--',
-      badgeColor: (formula.completedFormulaCountGrowth || 0) >= 0 ? '#10B981' : '#EF4444',
+      badgeColor: (formula.completedFormulaCountGrowth || 0) >= 0 ? 'var(--color-primary)' : 'var(--color-danger)',
       badgeBg: (formula.completedFormulaCountGrowth || 0) >= 0 ? '#ECFDF5' : '#FEF2F2',
       iconBg: '#ECFDF5',
-      iconColor: '#10B981',
+      iconColor: 'var(--color-primary)',
       iconPath: '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>',
     },
     {
@@ -583,10 +583,10 @@ const dashboardCards = computed(() => {
       value: (sales.weeklyQuantity ?? 0).toLocaleString(),
       unit: '件',
       badge: sales.quantityGrowthRate != null ? `${sales.quantityGrowthRate > 0 ? '+' : ''}${sales.quantityGrowthRate}%` : '--',
-      badgeColor: (sales.quantityGrowthRate || 0) >= 0 ? '#10B981' : '#EF4444',
+      badgeColor: (sales.quantityGrowthRate || 0) >= 0 ? 'var(--color-primary)' : 'var(--color-danger)',
       badgeBg: (sales.quantityGrowthRate || 0) >= 0 ? '#ECFDF5' : '#FEF2F2',
       iconBg: '#FFFBEB',
-      iconColor: '#F59E0B',
+      iconColor: 'var(--color-warning)',
       iconPath: '<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>',
     },
     {
@@ -594,7 +594,7 @@ const dashboardCards = computed(() => {
       value: sales.weeklyRevenue ? (sales.weeklyRevenue / 10000).toFixed(1) : '0',
       unit: '万元',
       badge: sales.revenueGrowthRate != null ? `${sales.revenueGrowthRate > 0 ? '+' : ''}${sales.revenueGrowthRate}%` : '--',
-      badgeColor: (sales.revenueGrowthRate || 0) >= 0 ? '#10B981' : '#EF4444',
+      badgeColor: (sales.revenueGrowthRate || 0) >= 0 ? 'var(--color-primary)' : 'var(--color-danger)',
       badgeBg: (sales.revenueGrowthRate || 0) >= 0 ? '#ECFDF5' : '#FEF2F2',
       iconBg: '#FAF5FF',
       iconColor: '#A855F7',
@@ -819,13 +819,13 @@ onUnmounted(() => {
       border: none;
       border-radius: 12px;
       background: transparent;
-      color: #94a3b8;
+      color: var(--color-text-placeholder);
       cursor: pointer;
       transition: all 0.2s;
       font-size: 20px;
 
       &:hover {
-        color: #10b981;
+        color: var(--color-primary);
         background-color: #ecfdf5;
       }
     }
@@ -833,33 +833,33 @@ onUnmounted(() => {
     .header-title-group {
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: var(--space-1-5);
 
       .header-breadcrumb {
         display: flex;
         align-items: center;
-        gap: 6px;
+        gap: var(--space-1-5);
         font-size: 12px;
         line-height: 1;
 
         .breadcrumb-link {
-          color: #94a3b8;
+          color: var(--color-text-placeholder);
           cursor: pointer;
           transition: color 0.15s;
           text-decoration: none;
 
           &:hover {
-            color: #10b981;
+            color: var(--color-primary);
           }
         }
 
         .breadcrumb-sep {
           font-size: 12px;
-          color: #94a3b8;
+          color: var(--color-text-placeholder);
         }
 
         .breadcrumb-current {
-          color: #475569;
+          color: var(--color-text-secondary);
         }
       }
 
@@ -870,14 +870,14 @@ onUnmounted(() => {
         gap: 12px;
         font-size: 18px;
         font-weight: 700;
-        color: #1e293b;
+        color: var(--color-text-primary);
         line-height: 1.35;
 
         .version-tag {
           display: inline-block !important;
-          padding: 2px 8px;
-          background-color: #d1fae5;
-          color: #059669;
+          padding: var(--space-0-5) 8px;
+          background-color: var(--color-primary-bg);
+          color: var(--color-primary-dark);
           font-size: 10px;
           font-weight: 900;
           border-radius: 6px;
@@ -927,10 +927,10 @@ onUnmounted(() => {
     }
 
     .header-action-btn--publish {
-      background-color: #059669;
+      background-color: var(--color-primary-dark);
 
       &:hover {
-        background-color: #047857;
+        background-color: var(--color-primary-deep);
       }
 
       &:active {
@@ -970,7 +970,7 @@ onUnmounted(() => {
 .stat-card {
   background: #fff;
   padding: 24px;
-  border-radius: 24px;
+  border-radius: var(--radius-4xl);
   border: 1px solid #fff;
   box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
   transition: all $transition-slow;
@@ -978,7 +978,7 @@ onUnmounted(() => {
   opacity: 0;
 
   &:hover {
-    border-color: #D1FAE5;
+    border-color: var(--color-primary-bg);
     transform: translateY(-2px);
     box-shadow: 0 14px 36px -6px rgba(0, 0, 0, 0.08);
   }
@@ -1003,14 +1003,14 @@ onUnmounted(() => {
   .stat-badge {
     font-size: 12px;
     font-weight: 700;
-    padding: 2px 8px;
+    padding: var(--space-0-5) 8px;
     border-radius: 8px;
     white-space: nowrap;
   }
 
   .stat-label {
     font-size: 14px;
-    color: #94A3B8;
+    color: var(--color-text-placeholder);
     margin-bottom: 4px;
   }
 
@@ -1023,7 +1023,7 @@ onUnmounted(() => {
     .stat-unit {
       font-size: 14px;
       font-weight: 400;
-      color: #94A3B8;
+      color: var(--color-text-placeholder);
     }
   }
 }
@@ -1061,8 +1061,8 @@ onUnmounted(() => {
   }
 
   .section-header {
-    padding: 14px 20px;
-    background: #F8FAFC;
+    padding: var(--space-3-5) 20px;
+    background: var(--color-bg-page);
     border-bottom: 1px solid #f1f5f9;
     display: flex;
     align-items: center;
@@ -1088,7 +1088,7 @@ onUnmounted(() => {
     cursor: pointer;
 
     &:hover {
-      stroke: #64748B;
+      stroke: var(--color-text-secondary);
     }
 
     &.collapsed {
@@ -1126,7 +1126,7 @@ onUnmounted(() => {
 
   .section-text {
     font-size: 14px;
-    color: #475569;
+    color: var(--color-text-secondary);
     line-height: 1.7;
     margin-top: 16px;
     padding-top: 16px;
@@ -1151,15 +1151,15 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   min-height: 200px;
-  background: #F8FAFC;
-  border: 1px dashed #E2E8F0;
+  background: var(--color-bg-page);
+  border: 1px dashed var(--color-border);
   border-radius: 12px;
   padding: 32px 16px;
 
   .empty-title {
     font-size: 14px;
     font-weight: 600;
-    color: #94A3B8;
+    color: var(--color-text-placeholder);
     margin: 12px 0 4px;
   }
 
@@ -1176,15 +1176,15 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   min-height: 280px;
-  background: #F8FAFC;
-  border: 1px dashed #E2E8F0;
+  background: var(--color-bg-page);
+  border: 1px dashed var(--color-border);
   border-radius: 12px;
   padding: 40px 20px;
 
   .section-empty-title {
     font-size: 16px;
     font-weight: 600;
-    color: #94A3B8;
+    color: var(--color-text-placeholder);
     margin: 16px 0 4px;
   }
 
@@ -1197,12 +1197,12 @@ onUnmounted(() => {
   .section-empty-action {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--space-1-5);
     padding: 8px 20px;
     border-radius: 10px;
-    border: 1px solid #E2E8F0;
+    border: 1px solid var(--color-border);
     background: #fff;
-    color: #64748B;
+    color: var(--color-text-secondary);
     font-size: 13px;
     font-weight: 500;
     cursor: pointer;
@@ -1232,12 +1232,12 @@ onUnmounted(() => {
   gap: 4px;
   padding: 12px 8px;
   border-radius: 12px;
-  background: #F8FAFC;
+  background: var(--color-bg-page);
   border: 1px solid #f1f5f9;
 
   .indicator-label {
     font-size: 12px;
-    color: #94A3B8;
+    color: var(--color-text-placeholder);
     font-weight: 500;
   }
 
@@ -1250,7 +1250,7 @@ onUnmounted(() => {
     .indicator-unit {
       font-size: 12px;
       font-weight: 400;
-      color: #94A3B8;
+      color: var(--color-text-placeholder);
     }
   }
 }
@@ -1272,8 +1272,8 @@ onUnmounted(() => {
   display: block;
   font-size: 13px;
   font-weight: 600;
-  color: #475569;
-  margin-bottom: 6px;
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-1-5);
 }
 
 .plans-grid {
@@ -1289,19 +1289,19 @@ onUnmounted(() => {
 .plan-item {
   padding: 12px 16px;
   border-radius: 12px;
-  background: #F8FAFC;
+  background: var(--color-bg-page);
   border: 1px solid #f1f5f9;
 
   .plan-label {
     font-size: 12px;
     font-weight: 600;
     color: #8B5CF6;
-    margin-bottom: 6px;
+    margin-bottom: var(--space-1-5);
   }
 
   .plan-content {
     font-size: 14px;
-    color: #475569;
+    color: var(--color-text-secondary);
     line-height: 1.6;
   }
 }
@@ -1311,7 +1311,7 @@ onUnmounted(() => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 80px 20px;
+  padding: var(--space-16) 20px;
   text-align: center;
 
   .error-icon {
@@ -1328,7 +1328,7 @@ onUnmounted(() => {
 
   .error-desc {
     font-size: 14px;
-    color: #64748B;
+    color: var(--color-text-secondary);
     margin: 0 0 24px;
     max-width: 400px;
   }
@@ -1336,8 +1336,8 @@ onUnmounted(() => {
   .retry-btn {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 10px 24px;
+    gap: var(--space-1-5);
+    padding: var(--space-2-5) 24px;
     border-radius: 12px;
     border: none;
     background: $emerald-500;

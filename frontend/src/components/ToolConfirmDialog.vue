@@ -75,7 +75,7 @@ const fieldLabels: Record<string, string> = {
     gap: 8px;
     margin-bottom: 12px;
     font-weight: 600;
-    color: #1e293b;
+    color: var(--color-text-primary);
   }
 
   .confirm-message {
@@ -92,23 +92,23 @@ const fieldLabels: Record<string, string> = {
   .confirm-params {
     .params-title {
       font-size: 13px;
-      color: #64748b;
+      color: var(--color-text-secondary);
       margin-bottom: 8px;
     }
 
     .param-item {
       display: flex;
       justify-content: space-between;
-      padding: 6px 0;
+      padding: var(--space-1-5) 0;
       border-bottom: 1px solid #f1f5f9;
       font-size: 13px;
 
       .param-key {
-        color: #64748b;
+        color: var(--color-text-secondary);
       }
 
       .param-value {
-        color: #1e293b;
+        color: var(--color-text-primary);
         font-weight: 500;
       }
     }

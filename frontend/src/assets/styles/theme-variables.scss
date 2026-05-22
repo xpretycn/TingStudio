@@ -16,7 +16,7 @@
   --color-primary-lightest: #{$brand-primary-lightest};
   --color-primary-bg: #{$brand-primary-bg};
   --color-primary-dark: #{$brand-primary-dark};
-  --color-primary-deep: #c94d6a;
+  --color-primary-deep: #{$brand-primary-deep};
 
   // ─── 品牌色 alpha 系列 ───
   --overlay-brand-05: rgba(255, 143, 171, 0.05);
@@ -80,6 +80,8 @@
   --color-warning: #{$color-warning};
   --color-danger: #{$color-danger};
   --color-info: #{$color-info};
+  --color-info-dark: #{$color-info-dark};
+  --color-emerald: #{$brand-emerald};
 
   // ─── 装饰色 ───
   --color-blush: #{$color-blush};
@@ -104,6 +106,7 @@
   --shadow-elevation-4: #{$shadow-elevation-4};
 
   // ─── 圆角 ───
+  --radius-2xs: #{$radius-2xs};
   --radius-xs: #{$radius-xs};
   --radius-sm: #{$radius-sm};
   --radius-md: #{$radius-md};
@@ -112,6 +115,9 @@
   --radius-2xl: #{$radius-2xl};
   --radius-3xl: #{$radius-3xl};
   --radius-pill: #{$radius-pill};
+  --radius-4xl: #{$radius-4xl};
+  --radius-5xl: #{$radius-5xl};
+  --radius-circle: #{$radius-circle};
 
   // ─── 过渡 ───
   --transition-fast: #{$transition-fast};
@@ -126,21 +132,39 @@
   --sidebar-width: #{$sidebar-width};
 
   // ─── 字体 ───
+  --font-family: #{$font-family};
   --font-size-display: #{$font-size-display};
   --font-size-h1: #{$font-size-h1};
   --font-size-h2: #{$font-size-h2};
   --font-size-h3: #{$font-size-h3};
+  --font-size-h4: #{$font-size-h4};
   --font-size-body: #{$font-size-body};
   --font-size-body-sm: #{$font-size-body-sm};
   --font-size-caption: #{$font-size-caption};
 
+  --font-weight-regular: #{$font-weight-regular};
+  --font-weight-medium: #{$font-weight-medium};
+  --font-weight-semibold: #{$font-weight-semibold};
+  --font-weight-bold: #{$font-weight-bold};
+
   // ─── 间距 ───
+  --space-0-5: #{$space-0-5};
   --space-1: #{$space-1};
+  --space-1-25: #{$space-1-25};
+  --space-1-5: #{$space-1-5};
   --space-2: #{$space-2};
+  --space-2-5: #{$space-2-5};
   --space-3: #{$space-3};
+  --space-3-5: #{$space-3-5};
   --space-4: #{$space-4};
+  --space-4-5: #{$space-4-5};
+  --space-5: #{$space-5};
   --space-6: #{$space-6};
+  --space-7: #{$space-7};
   --space-8: #{$space-8};
+  --space-10: #{$space-10};
+  --space-12: #{$space-12};
+  --space-16: #{$space-16};
 
   // ─── Z-index ───
   --z-sidebar: #{$z-sidebar};

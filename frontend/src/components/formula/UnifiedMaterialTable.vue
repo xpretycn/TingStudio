@@ -993,7 +993,7 @@ const getFilteredMaterials = (currentIndex: number) => {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      padding: 2px 6px;
+      padding: var(--space-0-5) var(--space-1-5);
       background: #d97706;
       color: #fff;
       font-size: 10px;
@@ -1050,8 +1050,8 @@ const getFilteredMaterials = (currentIndex: number) => {
     transition: all 0.2s;
 
     &:hover {
-      border-color: #10b981;
-      color: #10b981;
+      border-color: var(--color-primary);
+      color: var(--color-primary);
     }
   }
 
@@ -1134,7 +1134,7 @@ const getFilteredMaterials = (currentIndex: number) => {
 
     &:hover,
     &.drag-over {
-      border-color: #10b981;
+      border-color: var(--color-primary);
       background: #f6ffed;
     }
 
@@ -1167,7 +1167,7 @@ const getFilteredMaterials = (currentIndex: number) => {
     color: #666;
 
     .download-template-link {
-      color: #10b981;
+      color: var(--color-primary);
       cursor: pointer;
       text-decoration: underline;
 

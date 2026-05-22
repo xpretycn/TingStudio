@@ -17,7 +17,7 @@
     <template #header>
       <div class="drawer-header">
         <div class="header-left">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2"
             stroke-linecap="round" stroke-linejoin="round">
             <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
             <circle cx="9" cy="7" r="4" />
@@ -88,7 +88,7 @@
               >
                 <template #suffixIcon>
                   <t-tooltip content="工号由系统自动生成，格式：YW+5位数字" placement="top">
-                    <t-icon name="lock-on" style="color: #94a3b8; cursor: help;" />
+                    <t-icon name="lock-on" style="color: var(--color-text-placeholder); cursor: help;" />
                   </t-tooltip>
                 </template>
               </t-input>
@@ -119,7 +119,7 @@
 
       <div class="drawer-card note-card">
         <div class="card-header">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2"
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--color-warning)" stroke-width="2"
             stroke-linecap="round" stroke-linejoin="round">
             <line x1="12" y1="1" x2="12" y2="23" />
             <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
@@ -314,12 +314,12 @@ const handleSubmit = async () => {
     .header-left {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: var(--space-2-5);
 
       .header-title {
         font-size: 17px;
         font-weight: 600;
-        color: #1e293b;
+        color: var(--color-text-primary);
       }
     }
 
@@ -327,8 +327,8 @@ const handleSubmit = async () => {
       .confirm-btn {
         display: inline-flex;
         align-items: center;
-        gap: 6px;
-        padding: 7px 18px;
+        gap: var(--space-1-5);
+        padding: var(--space-2) var(--space-4-5);
         border-radius: 8px;
         font-size: 13px;
         font-weight: 600;
@@ -337,11 +337,11 @@ const handleSubmit = async () => {
         transition: all 0.2s ease;
 
         &.create-btn {
-          background: #10b981;
+          background: var(--color-primary);
           color: #fff;
 
           &:hover {
-            background: #059669;
+            background: var(--color-primary-dark);
           }
         }
 
@@ -358,7 +358,7 @@ const handleSubmit = async () => {
   }
 
   .drawer-card {
-    margin: 0 28px 16px;
+    margin: 0 var(--space-7) 16px;
 
     &:first-of-type {
       margin-top: 16px;
@@ -377,7 +377,7 @@ const handleSubmit = async () => {
     }
 
     &.note-card {
-      border-left: 3px solid #f59e0b;
+      border-left: 3px solid var(--color-warning);
     }
 
     .card-header {
@@ -385,13 +385,13 @@ const handleSubmit = async () => {
       align-items: center;
       gap: 8px;
       padding: 12px 16px;
-      background: #f8fafc;
+      background: var(--color-bg-page);
       border-bottom: 1px solid #f1f5f9;
 
       span {
         font-size: 14px;
         font-weight: 600;
-        color: #334155;
+        color: var(--color-text-primary);
       }
     }
 
@@ -421,8 +421,8 @@ const handleSubmit = async () => {
   :deep(.t-form__label) {
     font-size: 13px;
     font-weight: 600;
-    color: #334155;
-    margin-bottom: 6px;
+    color: var(--color-text-primary);
+    margin-bottom: var(--space-1-5);
   }
 
   :deep(.t-input) {
@@ -443,8 +443,8 @@ const handleSubmit = async () => {
     cursor: not-allowed;
 
     .t-input__inner {
-      color: #64748b;
-      -webkit-text-fill-color: #64748b;
+      color: var(--color-text-secondary);
+      -webkit-text-fill-color: var(--color-text-secondary);
     }
   }
 }

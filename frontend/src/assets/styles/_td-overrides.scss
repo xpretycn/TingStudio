@@ -108,7 +108,7 @@
 
   &--size-small {
     height: 30px !important;
-    padding: 0 10px !important;
+    padding: 0 var(--space-2-5) !important;
     font-size: $font-size-body-sm !important;
   }
 }
@@ -201,7 +201,7 @@
       font-size: $font-size-body-sm !important;
       letter-spacing: 0.3px;
       border-bottom: 1.5px solid rgba(255, 181, 200, 0.2) !important;
-      padding: 10px 12px !important;
+      padding: var(--space-2-5) 12px !important;
 
       .t-table__cell-text {
         color: $text-primary !important;

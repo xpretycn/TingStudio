@@ -169,7 +169,7 @@
         <div class="quick-body">
           <button class="quick-btn" @click="router.push('/formulas/new')">
             <div class="quick-icon" style="background: rgba(16, 185, 129, 0.1);">
-              <t-icon name="add" size="20px" style="color: #10b981;" />
+              <t-icon name="add" size="20px" style="color: var(--color-primary);" />
             </div>
             <span>新建配方</span>
           </button>
@@ -187,7 +187,7 @@
           </button>
           <button class="quick-btn" @click="router.push('/sales')">
             <div class="quick-icon" style="background: rgba(245, 158, 11, 0.1);">
-              <t-icon name="chart" size="20px" style="color: #f59e0b;" />
+              <t-icon name="chart" size="20px" style="color: var(--color-warning);" />
             </div>
             <span>销量分析</span>
           </button>
@@ -259,7 +259,7 @@ const statCards = computed(() => {
       display: s ? formatCompact(s.formulas) : "--",
       icon: "edit",
       iconBg: "rgba(16, 185, 129, 0.1)",
-      iconColor: "#10b981",
+      iconColor: "var(--color-primary)",
       route: "/formulas",
     },
     {
@@ -277,7 +277,7 @@ const statCards = computed(() => {
       display: s ? `¥${formatCompact(s.sales.revenue)}` : "--",
       icon: "chart",
       iconBg: "rgba(245, 158, 11, 0.1)",
-      iconColor: "#f59e0b",
+      iconColor: "var(--color-warning)",
       route: "/sales",
     },
     {
@@ -295,11 +295,11 @@ const statCards = computed(() => {
 const featuredFormulas = computed(() => formulaStore.formulas.slice(0, 3));
 
 const FORMULA_GRADIENTS = [
-  "linear-gradient(135deg, #10b981, #34d399)",
+  "linear-gradient(135deg, var(--color-primary), var(--color-primary-light))",
   "linear-gradient(135deg, #3b82f6, #60a5fa)",
   "linear-gradient(135deg, #a855f7, #c084fc)",
-  "linear-gradient(135deg, #f59e0b, #fbbf24)",
-  "linear-gradient(135deg, #ef4444, #f87171)",
+  "linear-gradient(135deg, var(--color-warning), #fbbf24)",
+  "linear-gradient(135deg, var(--color-danger), #f87171)",
 ];
 
 const getFormulaGradient = (formula: { id: string }) => {
@@ -353,7 +353,7 @@ const updateChart = () => {
   if (!data || data.length === 0) return;
 
   const isDark = document.documentElement.getAttribute("theme-mode") === "dark";
-  const textColor = isDark ? "#94a3b8" : "#64748b";
+  const textColor = isDark ? "var(--color-text-placeholder)" : "var(--color-text-secondary)";
   const gridColor = isDark ? "rgba(148, 163, 184, 0.08)" : "rgba(0, 0, 0, 0.04)";
 
   const option: echarts.EChartsOption = {
@@ -365,11 +365,11 @@ const updateChart = () => {
     },
     tooltip: {
       trigger: "axis",
-      backgroundColor: isDark ? "#1e293b" : "#fff",
-      borderColor: isDark ? "#334155" : "#e2e8f0",
+      backgroundColor: isDark ? "var(--color-text-primary)" : "#fff",
+      borderColor: isDark ? "var(--color-text-primary)" : "var(--color-border)",
       borderWidth: 1,
       textStyle: {
-        color: isDark ? "#e2e8f0" : "#334155",
+        color: isDark ? "var(--color-border)" : "var(--color-text-primary)",
         fontSize: 12,
       },
       formatter: (params: any) => {
@@ -411,12 +411,12 @@ const updateChart = () => {
         lineStyle: {
           width: 2.5,
           color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
-            { offset: 0, color: "#10b981" },
-            { offset: 1, color: "#34d399" },
+            { offset: 0, color: "var(--color-primary)" },
+            { offset: 1, color: "var(--color-primary-light)" },
           ]),
         },
         itemStyle: {
-          color: "#10b981",
+          color: "var(--color-primary)",
           borderWidth: 2,
           borderColor: "#fff",
         },
@@ -512,10 +512,10 @@ onUnmounted(() => {
 
 .bento-welcome {
   grid-column: 1 / -1;
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  background: linear-gradient(135deg, #0f172a 0%, var(--color-text-primary) 100%);
   color: #fff;
   border: none;
-  padding: 28px 32px;
+  padding: var(--space-7) 32px;
 
   &:hover {
     transform: none;
@@ -532,7 +532,7 @@ onUnmounted(() => {
   .welcome-greeting {
     font-size: 24px;
     font-weight: 700;
-    margin: 0 0 6px;
+    margin: 0 0 var(--space-1-5);
     letter-spacing: -0.3px;
   }
 
@@ -552,7 +552,7 @@ onUnmounted(() => {
   .meta-date {
     display: flex;
     align-items: baseline;
-    gap: 6px;
+    gap: var(--space-1-5);
 
     .meta-day {
       font-size: 32px;
@@ -569,8 +569,8 @@ onUnmounted(() => {
   .meta-weather {
     display: flex;
     align-items: center;
-    gap: 6px;
-    padding: 8px 14px;
+    gap: var(--space-1-5);
+    padding: 8px var(--space-3-5);
     background: rgba(255, 255, 255, 0.08);
     border-radius: 12px;
     backdrop-filter: blur(8px);
@@ -595,7 +595,7 @@ onUnmounted(() => {
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: var(--space-3-5);
   padding: 20px;
 
   .stat-icon-wrap {
@@ -624,8 +624,8 @@ onUnmounted(() => {
   .stat-label {
     display: block;
     font-size: 12px;
-    color: #94a3b8;
-    margin-top: 2px;
+    color: var(--color-text-placeholder);
+    margin-top: var(--space-0-5);
   }
 
   .stat-arrow {
@@ -635,7 +635,7 @@ onUnmounted(() => {
   }
 
   &:hover .stat-arrow {
-    color: #10b981;
+    color: var(--color-primary);
     transform: translateX(3px);
   }
 }
@@ -657,7 +657,7 @@ onUnmounted(() => {
 
     .skeleton-bar {
       flex: 1;
-      background: linear-gradient(180deg, #f1f5f9 0%, #e2e8f0 100%);
+      background: linear-gradient(180deg, #f1f5f9 0%, var(--color-border) 100%);
       border-radius: 6px 6px 0 0;
       animation: shimmer 1.5s ease-in-out infinite;
     }
@@ -686,7 +686,7 @@ onUnmounted(() => {
     margin-top: 12px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: var(--space-2-5);
   }
 
   .formula-card {
@@ -700,11 +700,11 @@ onUnmounted(() => {
     border: 1px solid transparent;
 
     &:hover {
-      background: #f8fafc;
-      border-color: #e2e8f0;
+      background: var(--color-bg-page);
+      border-color: var(--color-border);
 
       .formula-arrow {
-        color: #10b981;
+        color: var(--color-primary);
         transform: translateX(3px);
       }
     }
@@ -712,7 +712,7 @@ onUnmounted(() => {
     .formula-color-bar {
       width: 4px;
       height: 36px;
-      border-radius: 2px;
+      border-radius: var(--radius-2xs);
       flex-shrink: 0;
     }
 
@@ -734,8 +734,8 @@ onUnmounted(() => {
     .formula-meta {
       display: block;
       font-size: 12px;
-      color: #94a3b8;
-      margin-top: 2px;
+      color: var(--color-text-placeholder);
+      margin-top: var(--space-0-5);
     }
 
     .formula-arrow {
@@ -757,7 +757,7 @@ onUnmounted(() => {
     p {
       margin: 0;
       font-size: 13px;
-      color: #94a3b8;
+      color: var(--color-text-placeholder);
     }
   }
 }
@@ -769,20 +769,20 @@ onUnmounted(() => {
     margin-top: 12px;
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: var(--space-0-5);
   }
 
   .activity-item {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 10px 12px;
+    padding: var(--space-2-5) 12px;
     border-radius: 10px;
     cursor: pointer;
     transition: all 0.2s ease;
 
     &:hover {
-      background: #f8fafc;
+      background: var(--color-bg-page);
     }
   }
 
@@ -793,7 +793,7 @@ onUnmounted(() => {
     flex-shrink: 0;
 
     &--formula {
-      background: #10b981;
+      background: var(--color-primary);
     }
 
     &--material {
@@ -819,20 +819,20 @@ onUnmounted(() => {
   .activity-time {
     display: block;
     font-size: 11px;
-    color: #94a3b8;
+    color: var(--color-text-placeholder);
     margin-top: 1px;
   }
 
   .activity-type-badge {
     font-size: 11px;
-    padding: 2px 8px;
+    padding: var(--space-0-5) 8px;
     border-radius: 6px;
     font-weight: 500;
     flex-shrink: 0;
 
     &--formula {
       background: rgba(16, 185, 129, 0.08);
-      color: #10b981;
+      color: var(--color-primary);
     }
 
     &--material {
@@ -853,7 +853,7 @@ onUnmounted(() => {
     p {
       margin: 0;
       font-size: 13px;
-      color: #94a3b8;
+      color: var(--color-text-placeholder);
     }
   }
 }
@@ -865,26 +865,26 @@ onUnmounted(() => {
     margin-top: 12px;
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
+    gap: var(--space-2-5);
   }
 
   .quick-btn {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 14px;
+    gap: var(--space-2-5);
+    padding: var(--space-3-5);
     border-radius: 12px;
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--color-border);
     background: #fff;
     cursor: pointer;
     transition: all 0.2s ease;
     font-size: 13px;
     font-weight: 500;
-    color: #334155;
+    color: var(--color-text-primary);
 
     &:hover {
-      border-color: #10b981;
-      background: #f8fafc;
+      border-color: var(--color-primary);
+      background: var(--color-bg-page);
       transform: translateY(-1px);
       box-shadow: 0 4px 12px rgba(16, 185, 129, 0.08);
     }
@@ -923,7 +923,7 @@ onUnmounted(() => {
     align-items: center;
     gap: 4px;
     font-size: 12px;
-    color: #94a3b8;
+    color: var(--color-text-placeholder);
     background: none;
     border: none;
     cursor: pointer;
@@ -932,7 +932,7 @@ onUnmounted(() => {
     transition: all 0.2s ease;
 
     &:hover {
-      color: #10b981;
+      color: var(--color-primary);
       background: rgba(16, 185, 129, 0.06);
     }
   }
@@ -940,10 +940,10 @@ onUnmounted(() => {
 
 .chart-tabs {
   display: flex;
-  gap: 2px;
+  gap: var(--space-0-5);
   background: #f1f5f9;
   border-radius: 8px;
-  padding: 2px;
+  padding: var(--space-0-5);
 
   .chart-tab {
     padding: 4px 12px;
@@ -951,7 +951,7 @@ onUnmounted(() => {
     font-weight: 500;
     border: none;
     background: transparent;
-    color: #94a3b8;
+    color: var(--color-text-placeholder);
     border-radius: 6px;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -963,7 +963,7 @@ onUnmounted(() => {
     }
 
     &:hover:not(.active) {
-      color: #64748b;
+      color: var(--color-text-secondary);
     }
   }
 }
@@ -980,13 +980,13 @@ onUnmounted(() => {
 .skeleton-line {
   height: 10px;
   border-radius: 4px;
-  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background: linear-gradient(90deg, #f1f5f9 25%, var(--color-border) 50%, #f1f5f9 75%);
   background-size: 200% 100%;
   animation: skeletonSlide 1.5s ease-in-out infinite;
 
   &--title {
     width: 60%;
-    margin-bottom: 6px;
+    margin-bottom: var(--space-1-5);
   }
 
   &--sub {
@@ -998,7 +998,7 @@ onUnmounted(() => {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #e2e8f0;
+  background: var(--color-border);
   flex-shrink: 0;
   animation: shimmer 1.5s ease-in-out infinite;
 }
@@ -1094,7 +1094,7 @@ onUnmounted(() => {
 
 @media screen and (max-width: 480px) {
   .bento-grid {
-    gap: 10px;
+    gap: var(--space-2-5);
   }
 
   .bento-card {
@@ -1115,7 +1115,7 @@ onUnmounted(() => {
 
 :root[theme-mode="dark"] {
   .bento-card {
-    background: #1e293b;
+    background: var(--color-text-primary);
     border-color: rgba(255, 255, 255, 0.06);
 
     &:hover {
@@ -1129,27 +1129,27 @@ onUnmounted(() => {
 
   .bento-stat {
     .stat-value {
-      color: #e2e8f0;
+      color: var(--color-border);
     }
 
     .stat-label {
-      color: #64748b;
+      color: var(--color-text-secondary);
     }
   }
 
   .card-header {
     .card-title {
-      color: #e2e8f0;
+      color: var(--color-border);
     }
   }
 
   .bento-chart {
     .chart-skeleton .skeleton-bar {
-      background: linear-gradient(180deg, #334155 0%, #1e293b 100%);
+      background: linear-gradient(180deg, var(--color-text-primary) 0%, var(--color-text-primary) 100%);
     }
 
     .chart-empty {
-      color: #475569;
+      color: var(--color-text-secondary);
     }
   }
 
@@ -1162,22 +1162,22 @@ onUnmounted(() => {
     }
 
     .formula-name {
-      color: #e2e8f0;
+      color: var(--color-border);
     }
 
     .formula-meta {
-      color: #64748b;
+      color: var(--color-text-secondary);
     }
 
     .formula-arrow {
-      color: #475569;
+      color: var(--color-text-secondary);
     }
 
     .formulas-empty {
-      color: #475569;
+      color: var(--color-text-secondary);
 
       p {
-        color: #64748b;
+        color: var(--color-text-secondary);
       }
     }
   }
@@ -1188,18 +1188,18 @@ onUnmounted(() => {
     }
 
     .activity-name {
-      color: #e2e8f0;
+      color: var(--color-border);
     }
 
     .activity-time {
-      color: #64748b;
+      color: var(--color-text-secondary);
     }
 
     .activity-empty {
-      color: #475569;
+      color: var(--color-text-secondary);
 
       p {
-        color: #64748b;
+        color: var(--color-text-secondary);
       }
     }
   }
@@ -1211,7 +1211,7 @@ onUnmounted(() => {
       color: #cbd5e1;
 
       &:hover {
-        border-color: #10b981;
+        border-color: var(--color-primary);
         background: #162033;
       }
     }
@@ -1221,26 +1221,26 @@ onUnmounted(() => {
     background: #0f172a;
 
     .chart-tab {
-      color: #64748b;
+      color: var(--color-text-secondary);
 
       &.active {
-        background: #1e293b;
-        color: #e2e8f0;
+        background: var(--color-text-primary);
+        color: var(--color-border);
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
       }
 
       &:hover:not(.active) {
-        color: #94a3b8;
+        color: var(--color-text-placeholder);
       }
     }
   }
 
   .skeleton-line {
-    background: linear-gradient(90deg, #1e293b 25%, #334155 50%, #1e293b 75%);
+    background: linear-gradient(90deg, var(--color-text-primary) 25%, var(--color-text-primary) 50%, var(--color-text-primary) 75%);
   }
 
   .skeleton-circle {
-    background: #334155;
+    background: var(--color-text-primary);
   }
 }
 </style>

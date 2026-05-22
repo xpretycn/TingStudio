@@ -96,6 +96,88 @@ function seedDefaultPromptTemplates(dbInstance: Database.Database) {
 }
 
 function runAutoMigrations(dbInstance: Database.Database) {
+  // 0. 检测并移除 materials.code UNIQUE 约束（版本化需要同 code 多版本）
+  try {
+    const indexes = dbInstance.pragma("index_list(materials)") as any[];
+    const hasUniqueCode = indexes.some(
+      (idx: any) => idx.origin === "c" && idx.unique === 1 && idx.name !== "sqlite_autoindex_materials_1",
+    );
+    if (hasUniqueCode) {
+      logger.info("数据库迁移: 检测到 materials.code UNIQUE 约束，重建表...");
+      dbInstance.exec(`
+        CREATE TABLE IF NOT EXISTS materials_new (
+          id TEXT PRIMARY KEY,
+          name TEXT NOT NULL,
+          code TEXT NOT NULL,
+          unit TEXT NOT NULL DEFAULT 'g',
+          stock REAL NOT NULL DEFAULT 0,
+          material_type TEXT NOT NULL DEFAULT 'herb' CHECK(material_type IN ('herb', 'supplement')),
+          unit_price REAL DEFAULT NULL,
+          data_source TEXT DEFAULT 'manual',
+          created_by TEXT NOT NULL,
+          created_at TEXT NOT NULL DEFAULT (datetime('now')),
+          updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+          version INTEGER NOT NULL DEFAULT 1,
+          previous_version_id TEXT DEFAULT NULL,
+          is_latest INTEGER NOT NULL DEFAULT 1,
+          is_deleted INTEGER NOT NULL DEFAULT 0
+        )
+      `);
+      const oldCols = (dbInstance.pragma("table_info(materials)") as any[]).map((c: any) => c.name);
+      const newCols = (dbInstance.pragma("table_info(materials_new)") as any[]).map((c: any) => c.name);
+      const commonCols = oldCols.filter((c: string) => newCols.includes(c));
+      dbInstance.prepare(`INSERT INTO materials_new (${commonCols.join(", ")}) SELECT ${commonCols.join(", ")} FROM materials`).run();
+      dbInstance.exec("DROP TABLE materials");
+      dbInstance.exec("ALTER TABLE materials_new RENAME TO materials");
+      dbInstance.exec("CREATE INDEX IF NOT EXISTS idx_material_name ON materials(name)");
+      dbInstance.exec("CREATE INDEX IF NOT EXISTS idx_material_code ON materials(code)");
+      dbInstance.exec("CREATE INDEX IF NOT EXISTS idx_material_version ON materials(version)");
+      dbInstance.exec("CREATE INDEX IF NOT EXISTS idx_material_previous_version ON materials(previous_version_id)");
+      dbInstance.exec("CREATE INDEX IF NOT EXISTS idx_material_is_latest ON materials(is_latest)");
+      dbInstance.exec("CREATE INDEX IF NOT EXISTS idx_material_is_deleted ON materials(is_deleted)");
+      logger.info("数据库迁移: materials 表重建完成（code UNIQUE 已移除）");
+    }
+  } catch (err: any) {
+    logger.error("数据库迁移: materials 表重建失败 - " + err.message);
+  }
+
+  // 0.1 检测并移除 material_nutrition.material_id UNIQUE 约束
+  try {
+    const nutIndexes = dbInstance.pragma("index_list(material_nutrition)") as any[];
+    const hasNutUnique = nutIndexes.some(
+      (idx: any) => idx.origin === "c" && idx.unique === 1 && idx.name !== "sqlite_autoindex_material_nutrition_1",
+    );
+    if (hasNutUnique) {
+      logger.info("数据库迁移: 检测到 material_nutrition.material_id UNIQUE 约束，重建表...");
+      dbInstance.exec(`
+        CREATE TABLE IF NOT EXISTS material_nutrition_new (
+          nutrition_id TEXT PRIMARY KEY,
+          material_id TEXT NOT NULL,
+          per_100g_json TEXT NOT NULL,
+          data_version TEXT NOT NULL DEFAULT '1.0',
+          data_source TEXT DEFAULT NULL,
+          notes TEXT DEFAULT NULL,
+          confidence TEXT DEFAULT 'medium' CHECK(confidence IN ('high', 'medium', 'low')),
+          last_updated TEXT NOT NULL DEFAULT (datetime('now')),
+          material_version INTEGER NOT NULL DEFAULT 1,
+          is_latest INTEGER NOT NULL DEFAULT 1,
+          FOREIGN KEY (material_id) REFERENCES materials(id) ON DELETE CASCADE
+        )
+      `);
+      const oldCols = (dbInstance.pragma("table_info(material_nutrition)") as any[]).map((c: any) => c.name);
+      const newCols = (dbInstance.pragma("table_info(material_nutrition_new)") as any[]).map((c: any) => c.name);
+      const commonCols = oldCols.filter((c: string) => newCols.includes(c));
+      dbInstance.prepare(`INSERT INTO material_nutrition_new (${commonCols.join(", ")}) SELECT ${commonCols.join(", ")} FROM material_nutrition`).run();
+      dbInstance.exec("DROP TABLE material_nutrition");
+      dbInstance.exec("ALTER TABLE material_nutrition_new RENAME TO material_nutrition");
+      dbInstance.exec("CREATE INDEX IF NOT EXISTS idx_mn_material_version ON material_nutrition(material_id, material_version)");
+      dbInstance.exec("CREATE INDEX IF NOT EXISTS idx_mn_is_latest ON material_nutrition(is_latest)");
+      logger.info("数据库迁移: material_nutrition 表重建完成（material_id UNIQUE 已移除）");
+    }
+  } catch (err: any) {
+    logger.error("数据库迁移: material_nutrition 表重建失败 - " + err.message);
+  }
+
   ensureColumn(dbInstance, "materials", "material_type", "TEXT", "'herb'");
   ensureColumn(dbInstance, "materials", "unit_price", "REAL", "NULL");
   ensureColumn(dbInstance, "materials", "data_source", "TEXT", "'manual'");

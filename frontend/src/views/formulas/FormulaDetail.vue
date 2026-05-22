@@ -696,13 +696,13 @@ watch(() => route.params.id, (newId) => {
         border: none;
         border-radius: 12px; // rounded-xl
         background: transparent;
-        color: #94a3b8; // text-slate-400
+        color: var(--color-text-placeholder); // text-slate-400
         cursor: pointer;
         transition: all $transition-fast; // transition-all
         font-size: 20px; // text-2xl
 
         &:hover {
-          color: #10b981; // hover:text-emerald-500
+          color: var(--color-primary); // hover:text-emerald-500
           background-color: #ecfdf5; // hover:bg-emerald-50
         }
       }
@@ -711,34 +711,34 @@ watch(() => route.params.id, (newId) => {
       .header-title-group {
         display: flex;
         flex-direction: column;
-        gap: 6px; // 增加面包屑与标题间距（原2px → 6px）
+        gap: var(--space-1-5); // 增加面包屑与标题间距（原var(--space-0-5) → var(--space-1-5)）
 
         // 面包屑导航：flex items-center gap-2 text-xs text-slate-400
         .header-breadcrumb {
           display: flex;
           align-items: center;
-          gap: 6px; // gap-2
+          gap: var(--space-1-5); // gap-2
           font-size: 12px; // text-xs
           line-height: 1;
 
           .breadcrumb-link {
-            color: #94a3b8; // text-slate-400
+            color: var(--color-text-placeholder); // text-slate-400
             cursor: pointer;
             transition: color 0.15s;
             text-decoration: none;
 
             &:hover {
-              color: #10b981; // hover:text-emerald-500
+              color: var(--color-primary); // hover:text-emerald-500
             }
           }
 
           .breadcrumb-sep {
             font-size: 12px;
-            color: #94a3b8;
+            color: var(--color-text-placeholder);
           }
 
           .breadcrumb-current {
-            color: #475569; // text-slate-600
+            color: var(--color-text-secondary); // text-slate-600
           }
         }
 
@@ -750,15 +750,15 @@ watch(() => route.params.id, (newId) => {
           gap: 12px; // gap-3
           font-size: 18px; // text-lg
           font-weight: 700; // font-bold
-          color: #1e293b; // slate-800
+          color: var(--color-text-primary); // slate-800
           line-height: 1.35;
 
           // 版本标签：在标题内部同行显示
           .version-tag {
             display: inline-block !important; // 确保版本标签始终显示
-            padding: 2px 8px; // px-2 py-0.5
-            background-color: #d1fae5; // emerald-100
-            color: #059669; // emerald-600
+            padding: var(--space-0-5) 8px; // px-2 py-0.5
+            background-color: var(--color-primary-bg); // emerald-100
+            color: var(--color-primary-dark); // emerald-600
             font-size: 10px; // text-[10px]
             font-weight: 900; // font-black
             border-radius: 6px; // rounded-md
@@ -782,7 +782,7 @@ watch(() => route.params.id, (newId) => {
         align-items: center;
         gap: 8px; // gap-2
         padding: 8px 16px; // px-4 py-2
-        background-color: #10b981; // bg-emerald-500
+        background-color: var(--color-primary); // bg-emerald-500
         color: #ffffff;
         border: none;
         border-radius: 12px; // rounded-xl
@@ -797,14 +797,14 @@ watch(() => route.params.id, (newId) => {
         }
 
         &:hover {
-          background-color: #059669; // hover:bg-emerald-600
+          background-color: var(--color-primary-dark); // hover:bg-emerald-600
           transform: translateY(-1px);
           box-shadow: 0 14px 20px -3px rgba(16, 185, 129, 0.35);
         }
 
         &:active {
           transform: translateY(0);
-          background-color: #047857; // emerald-700
+          background-color: var(--color-primary-deep); // emerald-700
         }
       }
     }
@@ -855,13 +855,13 @@ watch(() => route.params.id, (newId) => {
       padding: $space-6; // p-8 = 32px
       border-radius: $radius-2xl; // rounded-[2rem]
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04); // shadow-sm
-      border: 1px solid #f8fafc; // border-slate-50
+      border: 1px solid var(--color-bg-page); // border-slate-50
       animation: fadeInUp 0.35s ease both;
 
       .card-label {
         font-size: 14px; // text-sm
         font-weight: 700; // font-bold
-        color: #94a3b8; // text-slate-400
+        color: var(--color-text-placeholder); // text-slate-400
         text-transform: uppercase;
         letter-spacing: 0.1em; // tracking-widest
         margin-bottom: $space-5; // mb-6 = 24px
@@ -871,7 +871,7 @@ watch(() => route.params.id, (newId) => {
 
         .label-icon {
           font-size: 16px;
-          color: #10b981;
+          color: var(--color-primary);
           opacity: 0.7;
         }
       }
@@ -882,26 +882,26 @@ watch(() => route.params.id, (newId) => {
       .quote-card-body {
         display: flex;
         flex-direction: column;
-        gap: 14px;
+        gap: var(--space-3-5);
       }
 
       .qt-mat-list {
-        background: #f8fafc;
+        background: var(--color-bg-page);
         border-radius: 10px;
         padding: 12px 16px;
-        border: 1px solid #e2e8f0;
+        border: 1px solid var(--color-border);
         display: flex;
         flex-direction: column;
-        gap: 2px;
+        gap: var(--space-0-5);
       }
 
       .qt-mat-item {
         display: flex !important;
         align-items: center;
         gap: 8px;
-        padding: 6px 8px;
+        padding: var(--space-1-5) 8px;
         font-size: 13px;
-        color: #334155;
+        color: var(--color-text-primary);
         border-radius: 6px;
 
         &:hover {
@@ -912,12 +912,12 @@ watch(() => route.params.id, (newId) => {
           opacity: 0.55;
 
           .qtm-sub strong {
-            color: #94a3b8 !important;
+            color: var(--color-text-placeholder) !important;
           }
         }
 
         &--adjusted {
-          border-left: 3px solid #f59e0b;
+          border-left: 3px solid var(--color-warning);
           background: linear-gradient(90deg, rgba(254, 243, 199, 0.4) 0%, transparent 100%);
 
           .qtm-name {
@@ -943,17 +943,17 @@ watch(() => route.params.id, (newId) => {
 
         .qtm-detail {
           flex: 1;
-          color: #64748b;
+          color: var(--color-text-secondary);
           font-size: 12px;
         }
 
         .qtm-adjust-badge {
           display: inline-flex;
           align-items: center;
-          gap: 2px;
+          gap: var(--space-0-5);
           font-size: 10px;
           line-height: 1.4;
-          padding: 2px 6px;
+          padding: var(--space-0-5) var(--space-1-5);
           border-radius: 6px;
           background: linear-gradient(135deg, #fef3c7, #fde68a);
           color: #b45309;
@@ -966,13 +966,13 @@ watch(() => route.params.id, (newId) => {
         .qtm-sub {
           text-align: right;
           font-weight: 700;
-          color: #059669;
+          color: var(--color-primary-dark);
           min-width: 60px;
 
           .qtm-base-hint {
             margin-left: 4px;
             font-size: 11px;
-            color: #f59e0b;
+            color: var(--color-warning);
             font-weight: 600;
             cursor: help;
 
@@ -986,11 +986,11 @@ watch(() => route.params.id, (newId) => {
       .qt-warn {
         display: flex;
         align-items: center;
-        gap: 6px;
+        gap: var(--space-1-5);
         font-size: 12px;
-        color: #f59e0b;
+        color: var(--color-warning);
         background: #fffbeb;
-        padding: 10px 14px;
+        padding: var(--space-2-5) var(--space-3-5);
         border-radius: 10px;
         border: 1px solid #fde68a;
       }
@@ -998,18 +998,18 @@ watch(() => route.params.id, (newId) => {
       .qt-summary {
         display: flex;
         flex-direction: column;
-        gap: 2px;
-        background: #f8fafc;
+        gap: var(--space-0-5);
+        background: var(--color-bg-page);
         border-radius: 16px;
         border: 1px solid #f1f5f9;
-        padding: 10px 16px;
+        padding: var(--space-2-5) 16px;
       }
 
       .qts-item {
         display: flex !important;
         align-items: center;
         justify-content: space-between;
-        padding: 7px 8px;
+        padding: var(--space-2) 8px;
         border-radius: 8px;
         font-size: 13px;
 
@@ -1017,7 +1017,7 @@ watch(() => route.params.id, (newId) => {
           display: inline-flex;
           align-items: center;
           flex-shrink: 0;
-          gap: 6px;
+          gap: var(--space-1-5);
           min-width: 96px;
 
           .qts-icon {
@@ -1043,7 +1043,7 @@ watch(() => route.params.id, (newId) => {
 
           span,
           .qts-icon {
-            color: #047857;
+            color: var(--color-primary-deep);
           }
         }
 
@@ -1058,22 +1058,22 @@ watch(() => route.params.id, (newId) => {
 
         &--final {
           margin-top: 4px;
-          padding-top: 10px;
-          padding-bottom: 10px;
+          padding-top: var(--space-2-5);
+          padding-bottom: var(--space-2-5);
 
           span {
-            color: #059669;
+            color: var(--color-primary-dark);
             font-weight: 700;
             font-size: 15px;
           }
 
           .qts-icon {
-            color: #059669;
+            color: var(--color-primary-dark);
           }
 
           strong.final-price {
             font-size: 20px;
-            color: #059669;
+            color: var(--color-primary-dark);
             font-weight: 800;
           }
 
@@ -1096,23 +1096,23 @@ watch(() => route.params.id, (newId) => {
           display: inline-flex;
           align-items: center;
           gap: 8px;
-          color: #64748b;
+          color: var(--color-text-secondary);
           font-weight: 500;
         }
 
         .qts-icon {
-          color: #94a3b8;
+          color: var(--color-text-placeholder);
           flex-shrink: 0;
         }
 
         strong {
           font-family: ui-monospace, SFMono-Regular, 'Cascadia Code', monospace;
-          color: #334155;
+          color: var(--color-text-primary);
           font-weight: 600;
         }
 
         strong.green {
-          color: #059669;
+          color: var(--color-primary-dark);
           font-weight: 700;
         }
 
@@ -1124,18 +1124,18 @@ watch(() => route.params.id, (newId) => {
         .qts-value-group {
           display: flex;
           align-items: center;
-          gap: 6px;
+          gap: var(--space-1-5);
         }
 
         .qts-warn-tag {
           display: inline-flex;
           align-items: center;
-          gap: 2px;
+          gap: var(--space-0-5);
           font-size: 10px;
           font-weight: 500;
           color: #b45309;
           background: #fef3c7;
-          padding: 1px 6px;
+          padding: 1px var(--space-1-5);
           border-radius: 8px;
           border: 1px solid #fde68a;
           white-space: nowrap;
@@ -1144,12 +1144,12 @@ watch(() => route.params.id, (newId) => {
 
       .qts-divider {
         height: 1px;
-        background: #e2e8f0;
+        background: var(--color-border);
         margin: 4px 0;
 
         &--bold {
           background: #cbd5e1;
-          margin: 6px 0;
+          margin: var(--space-1-5) 0;
         }
       }
     }
@@ -1162,22 +1162,22 @@ watch(() => route.params.id, (newId) => {
 
       .field-item {
         padding: $space-3; // p-4 = 16px
-        background: #f8fafc; // bg-slate-50
+        background: var(--color-bg-page); // bg-slate-50
         border-radius: $radius-xl; // rounded-2xl
         border: 1px solid #f1f5f9; // border-slate-100
 
         label {
           display: flex;
           align-items: center;
-          gap: 6px;
+          gap: var(--space-1-5);
           font-size: 10px; // text-[10px]
           font-weight: 700; // font-bold
-          color: #94a3b8; // text-slate-400
+          color: var(--color-text-placeholder); // text-slate-400
           text-transform: uppercase;
           margin-bottom: 4px;
 
           .t-icon {
-            color: #10b981;
+            color: var(--color-primary);
             opacity: 0.55;
             flex-shrink: 0;
           }
@@ -1186,7 +1186,7 @@ watch(() => route.params.id, (newId) => {
         p {
           font-size: 14px; // text-sm
           font-weight: 700; // font-bold
-          color: #334155; // text-slate-700
+          color: var(--color-text-primary); // text-slate-700
           margin: 0;
           font-family: ui-monospace, SFMono-Regular, 'Cascadia Code', monospace; // font-mono
         }
@@ -1204,18 +1204,18 @@ watch(() => route.params.id, (newId) => {
         }
 
         .status-warn {
-          color: #f59e0b;
+          color: var(--color-warning);
         }
 
         // amber-500
         .status-ok {
-          color: #10b981;
+          color: var(--color-primary);
         }
 
         // emerald-500
 
         .parse-source {
-          border-top: 1px dashed #e2e8f0;
+          border-top: 1px dashed var(--color-border);
           margin-top: 8px;
           padding-top: 8px;
 
@@ -1280,21 +1280,21 @@ watch(() => route.params.id, (newId) => {
           display: flex;
           align-items: center;
           justify-content: center;
-          color: #10b981;
+          color: var(--color-primary);
           font-size: 22px;
         }
 
         .salesman-name {
           font-weight: 700;
-          color: #1e293b; // slate-800
+          color: var(--color-text-primary); // slate-800
           font-size: 14px;
           margin: 0;
         }
 
         .salesman-dept {
           font-size: 12px; // text-xs
-          color: #94a3b8; // slate-400
-          margin: 2px 0 0;
+          color: var(--color-text-placeholder); // slate-400
+          margin: var(--space-0-5) 0 0;
         }
       }
 
@@ -1319,7 +1319,7 @@ watch(() => route.params.id, (newId) => {
           }
 
           .priority-badge {
-            padding: 2px 8px;
+            padding: var(--space-0-5) 8px;
             background: #dbeafe; // blue-100
             color: #1d4ed8; // blue-700
             font-size: 10px;
@@ -1330,14 +1330,14 @@ watch(() => route.params.id, (newId) => {
 
         .demand-title {
           font-weight: 700;
-          color: #334155;
+          color: var(--color-text-primary);
           font-size: 14px;
           margin: 0 0 4px;
         }
 
         .demand-desc {
           font-size: 12px; // text-xs
-          color: #64748b; // slate-500
+          color: var(--color-text-secondary); // slate-500
           line-height: 1.6;
           margin: 0;
         }
@@ -1347,10 +1347,10 @@ watch(() => route.params.id, (newId) => {
     // ══ 备注信息 ══
     .remark-content {
       font-size: 14px;
-      color: #475569; // slate-600
+      color: var(--color-text-secondary); // slate-600
       line-height: 1.7;
       padding: $space-3;
-      background: #f8fafc; // slate-50
+      background: var(--color-bg-page); // slate-50
       border-radius: $radius-xl;
       border: 1px solid #f1f5f9; // slate-100
     }
@@ -1364,7 +1364,7 @@ watch(() => route.params.id, (newId) => {
 
       .timeline-link {
         font-size: 13px;
-        color: #94a3b8;
+        color: var(--color-text-placeholder);
         text-decoration: none;
         display: flex;
         align-items: center;
@@ -1372,7 +1372,7 @@ watch(() => route.params.id, (newId) => {
         transition: color 0.15s;
 
         &:hover {
-          color: #10b981;
+          color: var(--color-primary);
         }
 
         // emerald-500
@@ -1405,8 +1405,8 @@ watch(() => route.params.id, (newId) => {
         width: 24px;
         height: 24px;
         border-radius: 50%;
-        background: #10b981; // emerald-500
-        border: 4px solid #d1fae5; // emerald-100
+        background: var(--color-primary); // emerald-500
+        border: 4px solid var(--color-primary-bg); // emerald-100
         z-index: 1;
         flex-shrink: 0;
 
@@ -1420,11 +1420,11 @@ watch(() => route.params.id, (newId) => {
         .timeline-ver {
           font-size: 14px; // text-sm
           font-weight: 700; // font-bold
-          color: #1e293b; // slate-800
-          margin: 0 0 2px;
+          color: var(--color-text-primary); // slate-800
+          margin: 0 0 var(--space-0-5);
 
           &.past {
-            color: #475569;
+            color: var(--color-text-secondary);
           }
 
           // slate-600
@@ -1432,25 +1432,25 @@ watch(() => route.params.id, (newId) => {
 
         .timeline-time {
           font-size: 12px; // text-xs
-          color: #94a3b8; // slate-400
-          margin: 0 0 6px;
+          color: var(--color-text-placeholder); // slate-400
+          margin: 0 0 var(--space-1-5);
 
           &.past {
-            color: #94a3b8;
+            color: var(--color-text-placeholder);
           }
         }
 
         .timeline-note {
           margin-top: 8px;
           padding: 8px 12px;
-          background: #f8fafc; // slate-50
+          background: var(--color-bg-page); // slate-50
           border-radius: 8px;
           font-size: 12px; // text-xs
-          color: #94a3b8; // slate-400
+          color: var(--color-text-placeholder); // slate-400
           line-height: 1.5;
 
           &.past {
-            color: #94a3b8;
+            color: var(--color-text-placeholder);
           }
         }
       }
@@ -1461,14 +1461,14 @@ watch(() => route.params.id, (newId) => {
       background: #fff;
       border-radius: $radius-2xl;
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-      border: 1px solid #f8fafc;
+      border: 1px solid var(--color-bg-page);
       overflow: hidden;
       animation: fadeInUp 0.4s ease both;
 
       .calc-header {
         padding: $space-5 $space-6;
         padding-bottom: $space-6;
-        border-bottom: 1px solid #f8fafc;
+        border-bottom: 1px solid var(--color-bg-page);
         background: rgba(248, 250, 252, 0.5);
         display: flex;
         justify-content: space-between;
@@ -1477,17 +1477,17 @@ watch(() => route.params.id, (newId) => {
         .calc-title {
           font-size: 20px; // text-xl
           font-weight: 700; // font-bold
-          color: #1e293b; // slate-800
+          color: var(--color-text-primary); // slate-800
           margin: 0 0 4px;
         }
 
         .calc-subtitle {
           font-size: 12px; // text-xs
-          color: #94a3b8; // slate-400
+          color: var(--color-text-placeholder); // slate-400
           margin: 0;
 
           b.weight-val {
-            color: #059669; // emerald-600
+            color: var(--color-primary-dark); // emerald-600
             font-weight: 700;
           }
         }
@@ -1506,7 +1506,7 @@ watch(() => route.params.id, (newId) => {
           .weight-badge-label {
             font-size: 10px; // text-[10px]
             font-weight: 900; // font-black
-            color: #94a3b8; // text-slate-400
+            color: var(--color-text-placeholder); // text-slate-400
             text-transform: uppercase;
             letter-spacing: 0.04em;
             white-space: nowrap;
@@ -1517,7 +1517,7 @@ watch(() => route.params.id, (newId) => {
             text-align: center;
             font-weight: 700; // font-bold
             font-size: 15px;
-            color: #059669; // emerald-600
+            color: var(--color-primary-dark); // emerald-600
             outline: none;
             line-height: 1;
           }
@@ -1542,14 +1542,14 @@ watch(() => route.params.id, (newId) => {
       background: #fff;
       border-radius: $radius-2xl;
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-      border: 1px solid #f8fafc;
+      border: 1px solid var(--color-bg-page);
       padding: $space-6;
       animation: fadeInUp 0.4s ease both;
 
       .section-title {
         font-size: 14px;
         font-weight: 700;
-        color: #94a3b8;
+        color: var(--color-text-placeholder);
         text-transform: uppercase;
         letter-spacing: 0.1em;
         margin-bottom: $space-5;
@@ -1559,7 +1559,7 @@ watch(() => route.params.id, (newId) => {
 
         .section-icon {
           font-size: 16px;
-          color: #10b981;
+          color: var(--color-primary);
           opacity: 0.7;
         }
       }
@@ -1611,7 +1611,7 @@ watch(() => route.params.id, (newId) => {
           }
 
           .ratio-summary--error & {
-            color: #dc2626;
+            color: var(--color-danger);
           }
         }
 
@@ -1628,14 +1628,14 @@ watch(() => route.params.id, (newId) => {
           position: relative;
           height: 8px;
           background: linear-gradient(to right,
-              #ef4444 0%,
+              var(--color-danger) 0%,
               #f97316 15%,
               #eab308 30%,
               #22c55e 45%,
               #22c55e 55%,
               #eab308 70%,
               #f97316 85%,
-              #ef4444 100%);
+              var(--color-danger) 100%);
           border-radius: 4px;
           overflow: visible;
         }
@@ -1650,7 +1650,7 @@ watch(() => route.params.id, (newId) => {
           width: 16px;
           height: 16px;
           background: #fff;
-          border: 3px solid #1e293b;
+          border: 3px solid var(--color-text-primary);
           border-radius: 50%;
           transform: translateX(-50%);
           box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
@@ -1661,33 +1661,33 @@ watch(() => route.params.id, (newId) => {
         .ratio-bar-labels {
           display: flex;
           justify-content: space-between;
-          margin-top: 6px;
+          margin-top: var(--space-1-5);
           font-size: 10px;
-          color: #94a3b8;
+          color: var(--color-text-placeholder);
 
           .ratio-bar-center {
             font-weight: 700;
-            color: #64748b;
+            color: var(--color-text-secondary);
           }
         }
 
         .ratio-summary-value {
           display: flex;
           align-items: baseline;
-          gap: 6px;
+          gap: var(--space-1-5);
           margin-bottom: 8px;
         }
 
         .ratio-value-label {
           font-size: 13px;
-          color: #64748b;
+          color: var(--color-text-secondary);
         }
 
         .ratio-value-num {
           font-size: 20px;
           font-weight: 800;
           font-family: 'SF Mono', 'Fira Code', monospace;
-          color: #1e293b;
+          color: var(--color-text-primary);
         }
 
         .ratio-value-deviation {
@@ -1707,13 +1707,13 @@ watch(() => route.params.id, (newId) => {
           }
 
           &.deviation--error {
-            color: #dc2626;
+            color: var(--color-danger);
           }
         }
 
         .ratio-summary-desc {
           font-size: 12px;
-          color: #64748b;
+          color: var(--color-text-secondary);
           line-height: 1.5;
           margin: 0;
         }
@@ -1721,8 +1721,8 @@ watch(() => route.params.id, (newId) => {
         .ratio-review-notice {
           display: flex;
           align-items: center;
-          gap: 6px;
-          margin-top: 10px;
+          gap: var(--space-1-5);
+          margin-top: var(--space-2-5);
           padding: 8px 12px;
           background: rgba(234, 88, 12, 0.08);
           border-radius: 8px;
@@ -1742,10 +1742,10 @@ watch(() => route.params.id, (newId) => {
         .ratio-breakdown-toggle {
           display: flex;
           align-items: center;
-          gap: 6px;
+          gap: var(--space-1-5);
           padding: 8px 0;
           font-size: 13px;
-          color: #64748b;
+          color: var(--color-text-secondary);
           cursor: pointer;
           list-style: none;
           user-select: none;
@@ -1755,7 +1755,7 @@ watch(() => route.params.id, (newId) => {
           }
 
           &:hover {
-            color: #10b981;
+            color: var(--color-primary);
           }
 
           .toggle-arrow {
@@ -1772,15 +1772,15 @@ watch(() => route.params.id, (newId) => {
             padding: 8px 12px;
             text-align: left;
             font-weight: 600;
-            color: #64748b;
-            background: #f8fafc;
-            border-bottom: 1px solid #e2e8f0;
+            color: var(--color-text-secondary);
+            background: var(--color-bg-page);
+            border-bottom: 1px solid var(--color-border);
           }
 
           td {
             padding: 8px 12px;
             border-bottom: 1px solid #f1f5f9;
-            color: #334155;
+            color: var(--color-text-primary);
           }
 
           .font-mono {
@@ -1808,13 +1808,13 @@ watch(() => route.params.id, (newId) => {
         padding: $space-6;
         border-radius: $radius-2xl;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-        border: 1px solid #f8fafc;
+        border: 1px solid var(--color-bg-page);
       }
 
       .section-title {
         font-size: 14px;
         font-weight: 700;
-        color: #94a3b8; // text-slate-400
+        color: var(--color-text-placeholder); // text-slate-400
         text-transform: uppercase;
         letter-spacing: 0.1em;
         margin: 0 0 $space-5;
@@ -1825,7 +1825,7 @@ watch(() => route.params.id, (newId) => {
 
         // info 蓝
         &.warn-color {
-          color: #f59e0b;
+          color: var(--color-warning);
         }
 
         // warning 琥珀
@@ -1854,10 +1854,10 @@ watch(() => route.params.id, (newId) => {
       .notes-body {
         .notes-item {
           font-size: 13px;
-          color: #64748b;
+          color: var(--color-text-secondary);
           line-height: 1.9;
-          padding: 6px 0;
-          border-bottom: 1px solid #f8fafc;
+          padding: var(--space-1-5) 0;
+          border-bottom: 1px solid var(--color-bg-page);
 
           &:last-child {
             border-bottom: none;
@@ -1876,7 +1876,7 @@ watch(() => route.params.id, (newId) => {
 
     // ═══ 通用样式（保留） ═══
     .missing-nutrition {
-      color: #f59e0b;
+      color: var(--color-warning);
     }
 
     .missing-nutrition-icon {
@@ -1961,7 +1961,7 @@ watch(() => route.params.id, (newId) => {
           justify-content: flex-end;
 
           .header-action-btn {
-            padding: 6px 14px;
+            padding: var(--space-1-5) var(--space-3-5);
             font-size: 13px;
 
             .btn-icon {

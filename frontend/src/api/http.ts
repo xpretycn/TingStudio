@@ -2,12 +2,25 @@ import axios from "axios";
 import { MessagePlugin } from "tdesign-vue-next";
 
 const TOKEN_KEY = "tingstudio_token";
+const USER_KEY = "tingstudio_user";
 
 declare module "axios" {
   interface AxiosRequestConfig {
     _logLabel?: string;
     _silent?: boolean;
   }
+}
+
+function getTokenFromStorage(): string | null {
+  const sessionToken = sessionStorage.getItem(TOKEN_KEY)
+  if (sessionToken) return sessionToken
+  const localToken = localStorage.getItem(TOKEN_KEY)
+  if (localToken) {
+    sessionStorage.setItem(TOKEN_KEY, localToken)
+    const user = localStorage.getItem(USER_KEY)
+    if (user) sessionStorage.setItem(USER_KEY, user)
+  }
+  return localToken
 }
 
 const http = axios.create({
@@ -17,7 +30,7 @@ const http = axios.create({
 });
 
 http.interceptors.request.use(config => {
-  const token = localStorage.getItem(TOKEN_KEY);
+  const token = getTokenFromStorage();
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -54,8 +67,8 @@ http.interceptors.response.use(
 
     if (isNetworkError) {
       console.warn("[HTTP] 后端服务不可用，即将跳转服务器故障页");
-      localStorage.removeItem(TOKEN_KEY);
-      localStorage.removeItem("tingstudio_user");
+      clearToken();
+      clearUser();
       MessagePlugin.error("后端服务未启动或网络连接失败，请检查后端服务状态");
       setTimeout(() => {
         window.location.href = "/server-error";
@@ -71,8 +84,8 @@ http.interceptors.response.use(
       error.response?.data,
     );
     if (error.response?.status === 401) {
-      localStorage.removeItem(TOKEN_KEY);
-      localStorage.removeItem("tingstudio_user");
+      clearToken();
+      clearUser();
       if (!window.location.pathname.startsWith("/login")) {
         window.location.href = "/login";
       }
@@ -85,15 +98,28 @@ http.interceptors.response.use(
 );
 
 export function getToken(): string | null {
-  return localStorage.getItem(TOKEN_KEY);
+  return sessionStorage.getItem(TOKEN_KEY) || localStorage.getItem(TOKEN_KEY);
 }
 
 export function setToken(token: string) {
+  sessionStorage.setItem(TOKEN_KEY, token);
   localStorage.setItem(TOKEN_KEY, token);
 }
 
 export function removeToken() {
+  sessionStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(TOKEN_KEY);
 }
 
+export function clearToken() {
+  sessionStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(TOKEN_KEY);
+}
+
+export function clearUser() {
+  sessionStorage.removeItem(USER_KEY);
+  localStorage.removeItem(USER_KEY);
+}
+
+export { TOKEN_KEY, USER_KEY };
 export default http;

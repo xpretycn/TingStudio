@@ -542,7 +542,7 @@ const dashboardCards = computed(() => {
       value: totalJobs.toString(),
       unit: '个',
       badge: completedJobs > 0 ? `已完成 ${completedJobs}` : '—',
-      badgeColor: '#10B981',
+      badgeColor: 'var(--color-primary)',
       badgeBg: '#ECFDF5',
       iconBg: '#EFF6FF',
       iconColor: '#3B82F6',
@@ -553,10 +553,10 @@ const dashboardCards = computed(() => {
       value: shares.length.toString(),
       unit: '条',
       badge: shares.length > 0 ? '活跃' : '无',
-      badgeColor: '#10B981',
+      badgeColor: 'var(--color-primary)',
       badgeBg: '#ECFDF5',
       iconBg: '#ECFDF5',
-      iconColor: '#10B981',
+      iconColor: 'var(--color-primary)',
       iconPath: '<path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/>',
     },
     {
@@ -564,10 +564,10 @@ const dashboardCards = computed(() => {
       value: templates.length.toString(),
       unit: '套',
       badge: '可用',
-      badgeColor: '#94A3B8',
+      badgeColor: 'var(--color-text-placeholder)',
       badgeBg: '#F1F5F9',
       iconBg: '#FFFBEB',
-      iconColor: '#F59E0B',
+      iconColor: 'var(--color-warning)',
       iconPath: '<rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/>',
     },
     {
@@ -925,7 +925,7 @@ onMounted(async () => {
     .stat-card {
       background: #fff;
       padding: 24px;
-      border-radius: 24px;
+      border-radius: var(--radius-4xl);
       border: 1px solid #fff;
       box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
       transition: all $transition-slow;
@@ -958,14 +958,14 @@ onMounted(async () => {
       .stat-badge {
         font-size: 12px;
         font-weight: 700;
-        padding: 2px 8px;
+        padding: var(--space-0-5) 8px;
         border-radius: 8px;
         white-space: nowrap;
       }
 
       .stat-label {
         font-size: 14px;
-        color: #94A3B8;
+        color: var(--color-text-placeholder);
         margin-bottom: 4px;
       }
 
@@ -978,7 +978,7 @@ onMounted(async () => {
         .stat-unit {
           font-size: 14px;
           font-weight: 400;
-          color: #94A3B8;
+          color: var(--color-text-placeholder);
         }
       }
     }
@@ -987,7 +987,7 @@ onMounted(async () => {
   // ─── 工具栏 ───
   .data-center-toolbar {
     padding: 32px;
-    border-bottom: 1px solid #f8fafc;
+    border-bottom: 1px solid var(--color-bg-page);
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
@@ -1004,13 +1004,13 @@ onMounted(async () => {
         .toolbar-title {
           font-size: 20px;
           font-weight: 700;
-          color: #1e293b;
+          color: var(--color-text-primary);
           margin: 0 0 4px 0;
         }
 
         .toolbar-subtitle {
           font-size: 14px;
-          color: #94a3b8;
+          color: var(--color-text-placeholder);
           margin: 0;
         }
       }
@@ -1030,7 +1030,7 @@ onMounted(async () => {
       .search-icon {
         position: absolute;
         left: 14px;
-        color: #94a3b8;
+        color: var(--color-text-placeholder);
         pointer-events: none;
         z-index: 1;
       }
@@ -1054,10 +1054,10 @@ onMounted(async () => {
 
   // ─── 内容卡片 ───
   .content-card {
-    border-radius: 32px !important;
+    border-radius: var(--radius-5xl) !important;
     overflow: hidden;
     box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
-    border: 1px solid #f8fafc !important;
+    border: 1px solid var(--color-bg-page) !important;
     transition: all $transition-slow;
 
     &:hover {
@@ -1081,18 +1081,18 @@ onMounted(async () => {
       font-size: 14px;
       font-weight: 500;
       padding: 12px 16px;
-      color: #64748b;
+      color: var(--color-text-secondary);
       transition: all $transition-normal;
       border-radius: 12px;
       margin-right: 4px;
 
       &:hover {
-        color: #334155;
+        color: var(--color-text-primary);
         background: #f1f5f9;
       }
 
       &.t-tabs__nav-item--active {
-        background: linear-gradient(135deg, #10B981, #059669);
+        background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
         color: white;
         font-weight: 600;
         box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
@@ -1120,7 +1120,7 @@ onMounted(async () => {
 
       &--collapsed {
         width: 56px;
-        padding: 24px 6px;
+        padding: 24px var(--space-1-5);
 
         .nav-tab {
           justify-content: center;
@@ -1146,12 +1146,12 @@ onMounted(async () => {
       .nav-tab {
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: var(--space-2-5);
         padding: 12px 16px;
         border-radius: 12px;
         cursor: pointer;
         transition: all $transition-normal;
-        color: #64748b;
+        color: var(--color-text-secondary);
         font-size: 14px;
         font-weight: 500;
         border: 1px solid transparent;
@@ -1168,11 +1168,11 @@ onMounted(async () => {
 
         &:hover {
           background: #f1f5f9;
-          color: #334155;
+          color: var(--color-text-primary);
         }
 
         &.active {
-          background: linear-gradient(135deg, #10B981, #059669);
+          background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
           color: white;
           box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
           border-color: transparent;
@@ -1192,16 +1192,16 @@ onMounted(async () => {
         width: 32px;
         height: 32px;
         border-radius: 8px;
-        border: 1px solid #e2e8f0;
+        border: 1px solid var(--color-border);
         background: transparent;
-        color: #94a3b8;
+        color: var(--color-text-placeholder);
         cursor: pointer;
         margin-top: 12px;
         transition: all 0.2s;
 
         &:hover {
           background: #f1f5f9;
-          color: #334155;
+          color: var(--color-text-primary);
           border-color: #cbd5e1;
         }
       }
@@ -1228,10 +1228,10 @@ onMounted(async () => {
   .create-job-btn {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 10px 20px;
+    gap: var(--space-1-5);
+    padding: var(--space-2-5) 20px;
     border-radius: 12px;
-    background: linear-gradient(135deg, #10b981, #059669);
+    background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
     color: #fff;
     font-size: 13px;
     font-weight: 700;
@@ -1265,10 +1265,10 @@ onMounted(async () => {
     align-items: center;
     gap: 16px;
     padding: 20px 24px;
-    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    background: linear-gradient(135deg, var(--color-bg-page) 0%, #f1f5f9 100%);
     border-radius: 16px;
     margin-bottom: 20px;
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--color-border);
 
     :deep(.t-form) {
       width: 100%;
@@ -1294,18 +1294,18 @@ onMounted(async () => {
     .form-bar-title {
       font-size: 16px;
       font-weight: 600;
-      color: #1e293b;
+      color: var(--color-text-primary);
     }
   }
 
   .create-action-btn {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 8px 18px;
+    gap: var(--space-1-5);
+    padding: 8px var(--space-4-5);
     border-radius: 10px;
     border: none;
-    background: linear-gradient(135deg, #10b981, #059669);
+    background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
     color: #fff;
     font-size: 14px;
     font-weight: 600;
@@ -1340,16 +1340,16 @@ onMounted(async () => {
     }
 
     :deep(.t-table__header th) {
-      background: #f8fafc;
+      background: var(--color-bg-page);
       font-weight: 600;
-      color: #475569;
+      color: var(--color-text-secondary);
       font-size: 13px;
       letter-spacing: 0.02em;
     }
 
     :deep(.t-table__body td) {
       font-size: 14px;
-      color: #334155;
+      color: var(--color-text-primary);
     }
 
     :deep(.t-table__body tr:hover td) {
@@ -1372,7 +1372,7 @@ onMounted(async () => {
     line-height: 1.5;
 
     &--download {
-      background: linear-gradient(135deg, #10b981, #059669);
+      background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
       color: #fff;
       border-color: transparent;
       box-shadow: 0 1px 4px rgba(16, 185, 129, 0.2);
@@ -1390,18 +1390,18 @@ onMounted(async () => {
 
     &--reexport {
       background: transparent;
-      color: #059669;
-      border-color: #6ee7b7;
+      color: var(--color-primary-dark);
+      border-color: var(--color-primary-lighter);
       background-color: #ecfdf5;
 
       &:hover:not(:disabled) {
-        background: #d1fae5;
-        border-color: #10b981;
-        color: #047857;
+        background: var(--color-primary-bg);
+        border-color: var(--color-primary);
+        color: var(--color-primary-deep);
       }
 
       &:active:not(:disabled) {
-        background: #a7f3d0;
+        background: var(--color-primary-lightest);
       }
 
       &:disabled {
@@ -1412,13 +1412,13 @@ onMounted(async () => {
 
     &--retry {
       background: transparent;
-      color: #f59e0b;
+      color: var(--color-warning);
       border-color: #fcd34d;
       background-color: #fffbeb;
 
       &:hover:not(:disabled) {
         background: #fef3c7;
-        border-color: #f59e0b;
+        border-color: var(--color-warning);
         color: #d97706;
       }
 
@@ -1443,11 +1443,11 @@ onMounted(async () => {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-top: 1px solid #f8fafc;
+    border-top: 1px solid var(--color-bg-page);
 
     .pagination-info {
       font-size: 14px;
-      color: #94a3b8;
+      color: var(--color-text-placeholder);
       font-weight: 400;
       white-space: nowrap;
     }
@@ -1462,11 +1462,11 @@ onMounted(async () => {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      padding: 6px 12px;
-      border: 1px solid #e2e8f0;
+      padding: var(--space-1-5) 12px;
+      border: 1px solid var(--color-border);
       border-radius: 8px;
       background-color: transparent;
-      color: #64748b;
+      color: var(--color-text-secondary);
       font-size: 14px;
       cursor: pointer;
       transition: all $transition-fast;
@@ -1474,22 +1474,22 @@ onMounted(async () => {
       user-select: none;
 
       &:hover:not(.pagination-btn--disabled):not(.pagination-btn--active) {
-        background-color: #f8fafc;
+        background-color: var(--color-bg-page);
         border-color: #cbd5e1;
-        color: #334155;
+        color: var(--color-text-primary);
       }
 
       &.pagination-btn--disabled {
         opacity: 0.5;
         cursor: not-allowed !important;
-        color: #94a3b8;
+        color: var(--color-text-placeholder);
         pointer-events: none;
       }
 
       &.pagination-btn--active {
-        background-color: #10b981;
+        background-color: var(--color-primary);
         color: #fff;
-        border-color: #10b981;
+        border-color: var(--color-primary);
         font-weight: 600;
         box-shadow: 0 1px 3px rgba(16, 185, 129, 0.25);
         pointer-events: none;
@@ -1502,7 +1502,7 @@ onMounted(async () => {
       justify-content: center;
       width: 36px;
       height: 34px;
-      color: #94a3b8;
+      color: var(--color-text-placeholder);
       font-size: 14px;
       user-select: none;
     }
@@ -1523,13 +1523,13 @@ onMounted(async () => {
 
   .activity-card {
     background-color: #fff;
-    border-radius: 24px;
+    border-radius: var(--radius-4xl);
     padding: 32px;
     box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
-    border: 1px solid #f8fafc;
+    border: 1px solid var(--color-bg-page);
 
     &--assistant {
-      background: linear-gradient(135deg, #10B981, #059669);
+      background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
       border: none;
       color: #fff;
       position: relative;
@@ -1548,7 +1548,7 @@ onMounted(async () => {
   .activity-title {
     font-size: 18px;
     font-weight: 700;
-    color: #1e293b;
+    color: var(--color-text-primary);
     display: flex;
     align-items: center;
     gap: 8px;
@@ -1558,7 +1558,7 @@ onMounted(async () => {
   .activity-nav {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--space-1-5);
 
     .activity-nav-btn {
       display: inline-flex;
@@ -1591,7 +1591,7 @@ onMounted(async () => {
     .activity-nav-page {
       font-size: 12px;
       font-weight: 600;
-      color: #94a3b8;
+      color: var(--color-text-placeholder);
       min-width: 36px;
       text-align: center;
       user-select: none;
@@ -1632,16 +1632,16 @@ onMounted(async () => {
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    margin-top: 2px;
+    margin-top: var(--space-0-5);
 
     &--success {
       background: #ecfdf5;
-      color: #10b981;
+      color: var(--color-primary);
     }
 
     &--warning {
       background: #fffbeb;
-      color: #f59e0b;
+      color: var(--color-warning);
     }
 
     &--info {
@@ -1665,20 +1665,20 @@ onMounted(async () => {
   .timeline-title {
     font-size: 14px;
     font-weight: 600;
-    color: #1e293b;
+    color: var(--color-text-primary);
     margin: 0 0 4px 0;
   }
 
   .timeline-desc {
     font-size: 13px;
-    color: #64748b;
+    color: var(--color-text-secondary);
     line-height: 1.6;
     margin: 0 0 4px 0;
   }
 
   .timeline-time {
     font-size: 12px;
-    color: #94a3b8;
+    color: var(--color-text-placeholder);
   }
 
   // ─── 助手卡片 ───
@@ -1703,8 +1703,8 @@ onMounted(async () => {
   .assistant-btn {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 10px 22px;
+    gap: var(--space-1-5);
+    padding: var(--space-2-5) var(--space-6);
     border-radius: 12px;
     border: 2px solid rgba(255, 255, 255, 0.35);
     background: rgba(255, 255, 255, 0.15);
@@ -1733,7 +1733,7 @@ onMounted(async () => {
 
   .assistant-avatar-group {
     display: flex;
-    gap: 6px;
+    gap: var(--space-1-5);
   }
 
   .assistant-avatar {

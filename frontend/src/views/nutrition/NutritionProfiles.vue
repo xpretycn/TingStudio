@@ -298,7 +298,7 @@ const dashboardCards = computed(() => {
       value: total.toString(),
       unit: '个',
       badge: customCount > 0 ? `自定义 ${customCount}` : '—',
-      badgeColor: '#10B981',
+      badgeColor: 'var(--color-primary)',
       badgeBg: '#ECFDF5',
       iconBg: '#EFF6FF',
       iconColor: '#3B82F6',
@@ -309,10 +309,10 @@ const dashboardCards = computed(() => {
       value: presetCount.toString(),
       unit: '个',
       badge: presetCount > 0 ? '系统内置' : '无',
-      badgeColor: '#F59E0B',
+      badgeColor: 'var(--color-warning)',
       badgeBg: '#FFFBEB',
       iconBg: '#FFFBEB',
-      iconColor: '#F59E0B',
+      iconColor: 'var(--color-warning)',
       iconPath: '<path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>',
     },
     {
@@ -320,10 +320,10 @@ const dashboardCards = computed(() => {
       value: categories.toString(),
       unit: '类',
       badge: `${categories} 类人群`,
-      badgeColor: '#94A3B8',
+      badgeColor: 'var(--color-text-placeholder)',
       badgeBg: '#F1F5F9',
       iconBg: '#ECFDF5',
-      iconColor: '#10B981',
+      iconColor: 'var(--color-primary)',
       iconPath: '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
     },
     {
@@ -498,7 +498,7 @@ onMounted(async () => {
     .stat-card {
       background: #fff;
       padding: 24px;
-      border-radius: 24px;
+      border-radius: var(--radius-4xl);
       border: 1px solid #fff;
       box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
       transition: all $transition-slow;
@@ -531,14 +531,14 @@ onMounted(async () => {
       .stat-badge {
         font-size: 12px;
         font-weight: 700;
-        padding: 2px 8px;
+        padding: var(--space-0-5) 8px;
         border-radius: 8px;
         white-space: nowrap;
       }
 
       .stat-label {
         font-size: 14px;
-        color: #94A3B8;
+        color: var(--color-text-placeholder);
         margin-bottom: 4px;
       }
 
@@ -551,7 +551,7 @@ onMounted(async () => {
         .stat-unit {
           font-size: 14px;
           font-weight: 400;
-          color: #94A3B8;
+          color: var(--color-text-placeholder);
         }
       }
     }
@@ -559,7 +559,7 @@ onMounted(async () => {
 
   .content-card {
     min-height: 400px;
-    border-radius: 24px !important;
+    border-radius: var(--radius-4xl) !important;
     overflow: hidden;
     border: none;
     box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
@@ -575,7 +575,7 @@ onMounted(async () => {
 
   .data-center-toolbar {
     padding: 32px;
-    border-bottom: 1px solid #f8fafc;
+    border-bottom: 1px solid var(--color-bg-page);
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
@@ -592,13 +592,13 @@ onMounted(async () => {
         .toolbar-title {
           font-size: 20px;
           font-weight: 700;
-          color: #1e293b;
+          color: var(--color-text-primary);
           margin: 0 0 4px 0;
         }
 
         .toolbar-subtitle {
           font-size: 14px;
-          color: #94a3b8;
+          color: var(--color-text-placeholder);
           margin: 0;
         }
       }
@@ -618,7 +618,7 @@ onMounted(async () => {
       .search-icon {
         position: absolute;
         left: 14px;
-        color: #94a3b8;
+        color: var(--color-text-placeholder);
         pointer-events: none;
         z-index: 1;
       }
@@ -642,8 +642,8 @@ onMounted(async () => {
     .add-formula-btn {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      padding: 10px 20px;
+      gap: var(--space-1-5);
+      padding: var(--space-2-5) 20px;
       border-radius: 12px;
       background: linear-gradient(135deg, #374151, #1f2937);
       color: #fff;
@@ -666,14 +666,14 @@ onMounted(async () => {
   }
 
   .text-muted {
-    color: #94a3b8;
+    color: var(--color-text-placeholder);
   }
 
   .table-action-btn {
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    padding: 5px 10px;
+    padding: var(--space-1-25) var(--space-2-5);
     border-radius: 8px;
     font-size: 12px;
     font-weight: 500;
@@ -691,7 +691,7 @@ onMounted(async () => {
     }
 
     &--success {
-      color: #10b981;
+      color: var(--color-primary);
 
       &:hover {
         background: #ecfdf5;
@@ -699,7 +699,7 @@ onMounted(async () => {
     }
 
     &--danger {
-      color: #ef4444;
+      color: var(--color-danger);
 
       &:hover {
         background: #fef2f2;
@@ -725,18 +725,18 @@ onMounted(async () => {
       margin: 0 0 12px 0;
       font-size: 15px;
       font-weight: 600;
-      color: #1e293b;
+      color: var(--color-text-primary);
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: var(--space-1-5);
 
       &::before {
         content: '';
         display: inline-block;
         width: 4px;
         height: 18px;
-        background: linear-gradient(135deg, #10b981, #34d399);
-        border-radius: 2px;
+        background: linear-gradient(135deg, var(--color-primary), var(--color-primary-light));
+        border-radius: var(--radius-2xs);
       }
     }
   }
@@ -755,13 +755,13 @@ onMounted(async () => {
 
   .activity-card {
     background-color: #fff;
-    border-radius: 24px;
+    border-radius: var(--radius-4xl);
     padding: 32px;
     box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
-    border: 1px solid #f8fafc;
+    border: 1px solid var(--color-bg-page);
 
     &--assistant {
-      background: linear-gradient(135deg, #10B981, #059669);
+      background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
       border: none;
       color: #fff;
       position: relative;
@@ -780,7 +780,7 @@ onMounted(async () => {
   .activity-title {
     font-size: 17px;
     font-weight: 700;
-    color: #1e293b;
+    color: var(--color-text-primary);
     margin: 0;
     display: flex;
     align-items: center;
@@ -802,13 +802,13 @@ onMounted(async () => {
     border-radius: 8px;
     border: none;
     background: #f1f5f9;
-    color: #64748b;
+    color: var(--color-text-secondary);
     cursor: pointer;
     transition: all $transition-fast;
 
     &:hover:not(:disabled) {
-      background: #e2e8f0;
-      color: #334155;
+      background: var(--color-border);
+      color: var(--color-text-primary);
     }
 
     &:disabled {
@@ -820,7 +820,7 @@ onMounted(async () => {
   .activity-nav-page {
     font-size: 13px;
     font-weight: 600;
-    color: #94a3b8;
+    color: var(--color-text-placeholder);
     min-width: 40px;
     text-align: center;
   }
@@ -835,7 +835,7 @@ onMounted(async () => {
       top: 8px;
       bottom: 8px;
       width: 2px;
-      background: #e2e8f0;
+      background: var(--color-border);
       border-radius: 1px;
     }
   }
@@ -861,16 +861,16 @@ onMounted(async () => {
     flex-shrink: 0;
     z-index: 1;
     background: #fff;
-    border: 2px solid #e2e8f0;
+    border: 2px solid var(--color-border);
 
     &--success {
-      border-color: #10b981;
+      border-color: var(--color-primary);
 
       .timeline-dot-inner {
         width: 8px;
         height: 8px;
         border-radius: 50%;
-        background: #10b981;
+        background: var(--color-primary);
       }
     }
 
@@ -886,13 +886,13 @@ onMounted(async () => {
     }
 
     &--warning {
-      border-color: #f59e0b;
+      border-color: var(--color-warning);
 
       .timeline-dot-inner {
         width: 8px;
         height: 8px;
         border-radius: 50%;
-        background: #f59e0b;
+        background: var(--color-warning);
       }
     }
   }
@@ -905,25 +905,25 @@ onMounted(async () => {
   .timeline-title {
     font-size: 14px;
     font-weight: 600;
-    color: #1e293b;
+    color: var(--color-text-primary);
     margin: 0 0 4px 0;
   }
 
   .timeline-desc {
     font-size: 13px;
-    color: #64748b;
+    color: var(--color-text-secondary);
     line-height: 1.5;
     margin: 0 0 4px 0;
 
     strong {
-      color: #334155;
+      color: var(--color-text-primary);
       font-weight: 600;
     }
   }
 
   .timeline-time {
     font-size: 12px;
-    color: #94a3b8;
+    color: var(--color-text-placeholder);
   }
 
   .assistant-content {
@@ -949,7 +949,7 @@ onMounted(async () => {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 10px 24px;
+    padding: var(--space-2-5) 24px;
     border-radius: 12px;
     background: rgba(255, 255, 255, 0.2);
     backdrop-filter: blur(10px);
@@ -978,7 +978,7 @@ onMounted(async () => {
 
   .assistant-avatar-group {
     display: flex;
-    gap: 6px;
+    gap: var(--space-1-5);
   }
 
   .assistant-avatar {

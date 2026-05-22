@@ -1,4 +1,4 @@
-# TingStudio v2.9.0
+# TingStudio v2.32.0
 
 食品配方工作数据管理平台 — 前后端分离架构
 
@@ -144,7 +144,7 @@ TingStudio/
 │   │   ├── config/                   # 数据库配置、安全配置、限流、营养常量
 │   │   ├── controllers/              # 控制器层（17个模块）
 │   │   ├── middleware/               # 认证、错误处理、日志、校验
-│   │   ├── routes/                   # 路由定义（20个路由文件 + Agent端点）
+│   │   ├── routes/                   # 路由定义（19个路由文件 + Agent端点）
 │   │   ├── services/                 # 业务逻辑层
 │   │   │   ├── ai/                   # AI 服务（Agent/LLM/意图引擎）
 │   │   │   │   └── agent/            # Agent 系统（12个模块）
@@ -163,8 +163,13 @@ TingStudio/
 │   │   │   ├── business/             # 业务服务（销售/业务员）
 │   │   │   ├── file/                 # 文件解析服务
 │   │   │   ├── formula/              # 配方服务（营养/成本/含量比）
-│   │   │   └── materialService.ts    # 原料版本管理服务
-│   │   ├── scripts/                  # 数据库迁移和工具脚本
+│   │   │   ├── materialService.ts    # 原料版本管理服务
+│   │   │   ├── parseResultCleanupService.ts  # 解析结果定时清理+降级熔断
+│   │   │   ├── parseResultMonitoringService.ts # 解析结果监控+告警
+│   │   │   ├── ratioFactorValidator.ts # 含量比校验服务
+│   │   │   ├── reportGenerator.ts    # 报告生成器
+│   │   │   └── reviewService.ts      # 审核服务
+│   │   ├── scripts/                  # 数据库迁移和工具脚本（59个）
 │   │   ├── types/                    # TypeScript 类型定义
 │   │   └── utils/                    # 工具函数（导出/日志/校验）
 │   ├── data/                         # SQLite 数据库文件 + 备份
@@ -175,8 +180,8 @@ TingStudio/
 │   │   ├── api/                      # API 客户端（axios 封装，20个模块）
 │   │   ├── assets/                   # 样式（Design Tokens/变量/主题）
 │   │   ├── components/               # 公共组件（32个 Vue 组件）
-│   │   │   ├── AiAssistantFloat/     # 悬浮助手组件体系（7 Vue + 2 TS）
-│   │   │   ├── formula/              # 配方专用组件（原料表格等）
+│   │   │   ├── AiAssistantFloat/     # 悬浮助手组件体系（8 Vue + 2 TS）
+│   │   │   ├── formula/              # 配方专用组件（MaterialTableCore/UnifiedMaterialTable）
 │   │   │   ├── Skeleton/             # 骨架屏组件
 │   │   │   └── ...                   # 其他公共组件
 │   │   ├── router/                   # Vue Router 配置
@@ -185,7 +190,7 @@ TingStudio/
 │   │   ├── views/                    # 页面视图（43个 .vue 文件）
 │   │   │   ├── ai/                   # AI 助手工作台 + 智能工具 + 总览
 │   │   │   │   └── tabs/             # 配方解析/原料导入/数据检索/解析历史
-│   │   │   ├── auth/                 # 登录/注册（含动画角色组件 AnimatedCharacters/EyeBall/Pupil）
+│   │   │   ├── auth/                 # 登录/注册（含动画角色 AnimatedCharacters/EyeBall/Pupil）
 │   │   │   ├── dashboard/            # 工作台仪表盘
 │   │   │   ├── formulas/             # 配方管理（列表/表单/详情/对比）
 │   │   │   │   └── versions/         # 版本管理（列表/对比）
@@ -206,8 +211,8 @@ TingStudio/
 ├── AGENTS.md                         # AI Agent 工具与对话协议
 
 ├── docs/                             # 项目文档
-│   ├── agent-system/                 # AI Agent 系统设计文档（含原料版本管理 API/数据库/技术方案）
-│   ├── ting-studio/                  # 功能模块设计文档（配方编辑布局/PRD/技术设计）
+│   ├── agent-system/                 # AI Agent 系统设计文档（23个文件，含原料版本管理 API/数据库/技术方案）
+│   ├── ting-studio/                  # 功能模块设计文档（17个文件，含配方编辑布局/PRD/技术设计/模型管理/审批）
 │   └── *.md                          # 历史 PRD/验收报告
 │
 └── .github/workflows/                # CI/CD 流水线
@@ -281,7 +286,7 @@ cd frontend && npm run test:coverage
 
 ## 🗄️ 数据库概览
 
-SQLite (better-sqlite3) + WAL 模式，共 **37 张表**：
+SQLite (better-sqlite3) + WAL 模式，共 **38 张表**：
 
 | 分类 | 表名 | 说明 |
 |------|------|------|
@@ -292,7 +297,7 @@ SQLite (better-sqlite3) + WAL 模式，共 **37 张表**：
 | **导出系统** | export_templates, export_jobs | 模板/任务 |
 | **解析系统** | parse_results, parse_result_configs, parse_templates | 解析结果/配置/模板 |
 | **阈值配置** | ratio_threshold_configs | 含量比校验阈值配置 |
-| **AI 模型** | ai_models, ai_usage_logs, ai_alert_configs, ai_alert_records, ai_health_records, ai_fallback_configs, model_applications | 模型/用量/告警/健康/降级/应用 |
+| **AI 模型** | ai_models, ai_usage_logs, ai_alert_configs, ai_alert_records, ai_health_records, ai_fallback_configs, ai_prompt_templates, model_applications | 模型/用量/告警/健康/降级/提示词模板/应用 |
 | **Agent 系统** | agent_sessions, agent_messages, agent_pending_confirmations, agent_pending_forms, agent_role_config, agent_float_config, agent_provider_health, agent_session_cleanup_log | 会话/消息/确认/表单/身份/浮窗/健康/清理 |
 | **其他** | search_export_cache | 缓存 |
 
@@ -307,7 +312,7 @@ npx tsx src/scripts/restoreDatabase.ts    # 恢复数据库
 ---
 
 <!-- ====================================================================== -->
-<!-- 以下为历史版本更新日志，保留已有内容，自动补全 2026-05-21 最新更新 -->
+<!-- 以下为历史版本更新日志，保留已有内容，自动补全 2026-05-15 最新更新 -->
 <!-- ====================================================================== -->---
 
 ## 🚀 最新更新 (2026-05-21)
