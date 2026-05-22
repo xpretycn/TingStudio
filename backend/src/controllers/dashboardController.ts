@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { query } from "../config/database-better-sqlite3.js";
-import { success, rowToCamelCase } from "../utils/helpers.js";
+import { success, rowsToCamelCase } from "../utils/helpers.js";
 
 export async function getDashboardStats(req: any, res: Response) {
   try {
@@ -70,7 +70,7 @@ export async function getRecentActivity(req: any, res: Response) {
     );
 
     // 合并并按时间排序
-    const allActivities = [...rowToCamelCase(recentFormulas), ...rowToCamelCase(recentMaterials)]
+    const allActivities = [...rowsToCamelCase(recentFormulas), ...rowsToCamelCase(recentMaterials)]
       .sort((a: any, b: any) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
       .slice(0, limitNum);
 
@@ -114,7 +114,7 @@ export async function getSalesTrend(req: any, res: Response) {
       ORDER BY period ASC
     `);
 
-    res.json(success(rowToCamelCase(trendData)));
+    res.json(success(rowsToCamelCase(trendData)));
   } catch (error: any) {
     console.error("Sales trend error:", error);
     res.status(500).json({ success: false, message: "获取销量趋势失败", error: error.message });

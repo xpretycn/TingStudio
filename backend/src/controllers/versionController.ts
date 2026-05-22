@@ -1,7 +1,7 @@
 import { Request, Response } from 'express'
 import { query } from '../config/database-better-sqlite3.js'
 import { generateId, now, success, rowToCamelCase, rowsToCamelCase, safeJsonParse } from '../utils/helpers.js'
-import { createReviewLog, getReviewLogs, getPendingReviewList, isFormulaOwner } from '../services/reviewService.js'
+import { createReviewLog, getReviewLogs, getPendingReviewList, isFormulaOwner, getMySubmissions, getReviewedByMe } from '../services/reviewService.js'
 
 async function syncSnapshotToFormula(version: any, formulaId: string): Promise<void> {
   const snapshot = safeJsonParse(version.snapshot_json, {})
@@ -426,6 +426,30 @@ export async function getPendingReviews(req: any, res: Response) {
   } catch (error: any) {
     console.error('[Version] getPendingReviews Error:', error)
     res.status(500).json({ success: false, error: { message: '获取待审核列表失败', code: 'INTERNAL_ERROR' } })
+  }
+}
+
+export async function getMySubmissionList(req: any, res: Response) {
+  try {
+    const userId = req.user?.userId || req.user?.id
+    const { page = 1, pageSize = 20 } = req.query
+    const result = await getMySubmissions({ userId, page: Number(page), pageSize: Number(pageSize) })
+    res.json(success(result))
+  } catch (error: any) {
+    console.error("[VersionController] getMySubmissionList Error:", error)
+    res.status(500).json({ success: false, error: { message: error.message || "获取我的提交列表失败", code: "INTERNAL_ERROR" } })
+  }
+}
+
+export async function getReviewedHistory(req: any, res: Response) {
+  try {
+    const reviewerId = req.user?.userId || req.user?.id
+    const { page = 1, pageSize = 20 } = req.query
+    const result = await getReviewedByMe({ reviewerId, page: Number(page), pageSize: Number(pageSize) })
+    res.json(success(result))
+  } catch (error: any) {
+    console.error("[VersionController] getReviewedHistory Error:", error)
+    res.status(500).json({ success: false, error: { message: error.message || "获取审核历史失败", code: "INTERNAL_ERROR" } })
   }
 }
 

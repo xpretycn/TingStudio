@@ -554,6 +554,42 @@ export async function deleteFormula(req: Request, res: Response) {
   }
 }
 
+/** 发布配方（将当前草稿版本状态改为已发布） */
+export async function publishFormula(req: any, res: Response) {
+  try {
+    const { id } = req.params;
+    const [formulas]: any[] = await query("SELECT id FROM formulas WHERE id = ?", [id]);
+    if (!formulas || formulas.length === 0) {
+      res.status(404).json({ success: false, message: "配方不存在" });
+      return;
+    }
+    const [versions]: any[] = await query(
+      "SELECT version_id, status FROM formula_versions WHERE formula_id = ? AND is_current = 1",
+      [id],
+    );
+    if (!versions || versions.length === 0) {
+      res.status(400).json({ success: false, message: "配方没有当前版本" });
+      return;
+    }
+    const currentVersion = versions[0];
+    if (currentVersion.status === "published") {
+      res.status(400).json({ success: false, message: "当前版本已发布，无需重复发布" });
+      return;
+    }
+    await query(
+      "UPDATE formula_versions SET status = 'published', updated_at = ? WHERE version_id = ?",
+      [now(), currentVersion.version_id],
+    );
+    const [updated]: any[] = await query(
+      "SELECT * FROM formula_versions WHERE version_id = ?",
+      [currentVersion.version_id],
+    );
+    res.json(success(rowToCamelCase(updated[0]), "配方发布成功"));
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: "发布配方失败", error: error.message });
+  }
+}
+
 /** 根据原料查找配方 */
 export async function getFormulasByMaterial(req: Request, res: Response) {
   try {

@@ -620,6 +620,10 @@
             <t-icon name="add" size="14px" />
             继续创建
           </button>
+          <button class="go-dashboard-btn" @click="goToDashboard">
+            <t-icon name="send" size="14px" />
+            去发布
+          </button>
           <button v-if="uploadedFileInfo" class="view-file-btn" @click="goToFileDetail">
             <t-icon name="browse" size="14px" />
             查看文件详情
@@ -1979,6 +1983,10 @@ const goToFileDetail = () => {
   if (uploadedFileInfo.value?.fileId) {
     router.push({ name: 'FileDetail', params: { id: uploadedFileInfo.value.fileId } });
   }
+};
+
+const goToDashboard = () => {
+  router.push({ name: 'Dashboard' });
 };
 </script>
 
@@ -4396,6 +4404,27 @@ const goToFileDetail = () => {
   gap: 12px;
   margin-top: 20px;
   justify-content: center;
+}
+
+.go-dashboard-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1-5);
+  padding: var(--space-2-5) 20px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  transition: all $transition-normal;
+  white-space: nowrap;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(245, 158, 11, 0.35);
+  }
 }
 
 .view-file-btn {

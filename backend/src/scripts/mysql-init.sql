@@ -92,7 +92,24 @@ CREATE TABLE IF NOT EXISTS `formula_versions` (
   INDEX `idx_formula_id` (`formula_id`),
   INDEX `idx_status` (`status`),
   INDEX `idx_is_current` (`is_current`),
+  INDEX `idx_formula_status` (`formula_id`, `status`),
   FOREIGN KEY (`formula_id`) REFERENCES `formulas`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 配方版本审批日志表
+CREATE TABLE IF NOT EXISTS `formula_review_logs` (
+  `review_log_id`  VARCHAR(36) PRIMARY KEY,
+  `version_id`     VARCHAR(36) NOT NULL,
+  `reviewer_id`    VARCHAR(36) NOT NULL,
+  `reviewer_name`  VARCHAR(255) DEFAULT NULL,
+  `action`         VARCHAR(20) NOT NULL,
+  `comment`        TEXT DEFAULT NULL,
+  `created_at`     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX `idx_frl_version`  (`version_id`),
+  INDEX `idx_frl_reviewer` (`reviewer_id`),
+  INDEX `idx_frl_action`   (`action`),
+  FOREIGN KEY (`version_id`)  REFERENCES `formula_versions`(`version_id`) ON DELETE CASCADE,
+  FOREIGN KEY (`reviewer_id`) REFERENCES `users`(`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 导出模板表

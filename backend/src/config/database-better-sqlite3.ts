@@ -221,6 +221,78 @@ function runAutoMigrations(dbInstance: Database.Database) {
   ensureColumn(dbInstance, "formulas", "original_weight", "REAL", "NULL");
   ensureColumn(dbInstance, "formula_versions", "ratio_factor", "REAL", "0.18");
   ensureColumn(dbInstance, "formula_versions", "supplement_ratio_factor", "REAL", "1.0");
+
+  // 0.2 检测 formula_versions.status CHECK 约束是否包含 pending_review
+  try {
+    const fvCreateSql = dbInstance.prepare("SELECT sql FROM sqlite_master WHERE type='table' AND name='formula_versions'").get() as any;
+    if (fvCreateSql && fvCreateSql.sql && !fvCreateSql.sql.includes("pending_review")) {
+      logger.info("数据库迁移: formula_versions.status 约束缺少 pending_review，重建表...");
+      const oldCols = (dbInstance.pragma("table_info(formula_versions)") as any[]).map((c: any) => c.name);
+
+      dbInstance.exec(`
+        CREATE TABLE IF NOT EXISTS formula_versions_new (
+          version_id              TEXT PRIMARY KEY,
+          formula_id              TEXT NOT NULL,
+          version_number          TEXT NOT NULL,
+          version_name            TEXT DEFAULT NULL,
+          version_reason          TEXT DEFAULT NULL,
+          changes_json            TEXT DEFAULT NULL,
+          snapshot_json           TEXT NOT NULL,
+          status                  TEXT NOT NULL DEFAULT 'draft'
+                                  CHECK(status IN ('draft', 'pending_review', 'published', 'archived')),
+          is_current              INTEGER NOT NULL DEFAULT 0,
+          ratio_factor            REAL NOT NULL DEFAULT 0.18
+                                  CHECK(ratio_factor >= 0.15 AND ratio_factor <= 0.25),
+          supplement_ratio_factor REAL NOT NULL DEFAULT 1.0
+                                  CHECK(supplement_ratio_factor >= 0.5 AND supplement_ratio_factor <= 1.5),
+          created_by              TEXT NOT NULL,
+          created_at              TEXT NOT NULL DEFAULT (datetime('now')),
+          FOREIGN KEY (formula_id) REFERENCES formulas(id) ON DELETE CASCADE
+        )
+      `);
+
+      const newCols = (dbInstance.pragma("table_info(formula_versions_new)") as any[]).map((c: any) => c.name);
+      const commonCols = oldCols.filter((c: string) => newCols.includes(c));
+      dbInstance.prepare(`INSERT INTO formula_versions_new (${commonCols.join(", ")}) SELECT ${commonCols.join(", ")} FROM formula_versions`).run();
+      dbInstance.exec("DROP TABLE formula_versions");
+      dbInstance.exec("ALTER TABLE formula_versions_new RENAME TO formula_versions");
+      dbInstance.exec("CREATE INDEX IF NOT EXISTS idx_fv_formula ON formula_versions(formula_id)");
+      dbInstance.exec("CREATE INDEX IF NOT EXISTS idx_fv_version_number ON formula_versions(formula_id, version_number)");
+      logger.info("数据库迁移: formula_versions 表重建完成（status 约束已含 pending_review）");
+    }
+  } catch (err: any) {
+    logger.error("数据库迁移: formula_versions 表重建失败 - " + err.message);
+  }
+
+  // 0.3 创建 formula_review_logs 表和相关索引
+  ensureTable(
+    dbInstance,
+    "formula_review_logs",
+    `
+    CREATE TABLE formula_review_logs (
+      review_log_id  TEXT PRIMARY KEY,
+      version_id     TEXT NOT NULL,
+      reviewer_id    TEXT NOT NULL,
+      reviewer_name  TEXT DEFAULT NULL,
+      action         TEXT NOT NULL CHECK(action IN ('submit', 'approve', 'reject')),
+      comment        TEXT DEFAULT NULL,
+      created_at     TEXT NOT NULL DEFAULT (datetime('now')),
+      FOREIGN KEY (version_id)  REFERENCES formula_versions(version_id) ON DELETE CASCADE,
+      FOREIGN KEY (reviewer_id) REFERENCES users(id) ON DELETE SET NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_frl_version ON formula_review_logs(version_id);
+    CREATE INDEX IF NOT EXISTS idx_frl_reviewer ON formula_review_logs(reviewer_id);
+    CREATE INDEX IF NOT EXISTS idx_frl_action ON formula_review_logs(action)
+  `,
+  );
+
+  try {
+    dbInstance.exec("CREATE INDEX IF NOT EXISTS idx_fv_status ON formula_versions(status)");
+    dbInstance.exec("CREATE INDEX IF NOT EXISTS idx_fv_formula_status ON formula_versions(formula_id, status)");
+  } catch (err: any) {
+    logger.error("数据库迁移: formula_versions 索引创建失败 - " + err.message);
+  }
+
   ensureMaterialPrices(dbInstance);
   ensureTable(
     dbInstance,
@@ -1001,7 +1073,7 @@ CREATE TABLE IF NOT EXISTS formula_versions (
   version_reason TEXT DEFAULT NULL,
   changes_json TEXT DEFAULT NULL,
   snapshot_json TEXT NOT NULL,
-  status TEXT NOT NULL DEFAULT 'draft' CHECK(status IN ('draft', 'published', 'archived')),
+  status TEXT NOT NULL DEFAULT 'draft' CHECK(status IN ('draft', 'pending_review', 'published', 'archived')),
   is_current INTEGER NOT NULL DEFAULT 0,
   ratio_factor REAL NOT NULL DEFAULT 0.18 CHECK(ratio_factor >= 0.15 AND ratio_factor <= 0.25),
   supplement_ratio_factor REAL NOT NULL DEFAULT 1.0 CHECK(supplement_ratio_factor >= 0.5 AND supplement_ratio_factor <= 1.5),
@@ -1010,6 +1082,23 @@ CREATE TABLE IF NOT EXISTS formula_versions (
   FOREIGN KEY (formula_id) REFERENCES formulas(id) ON DELETE CASCADE
 );
 CREATE INDEX IF NOT EXISTS idx_fv_formula ON formula_versions(formula_id);
+CREATE INDEX IF NOT EXISTS idx_fv_version_number ON formula_versions(formula_id, version_number);
+CREATE INDEX IF NOT EXISTS idx_fv_status ON formula_versions(status);
+CREATE INDEX IF NOT EXISTS idx_fv_formula_status ON formula_versions(formula_id, status);
+CREATE TABLE IF NOT EXISTS formula_review_logs (
+  review_log_id  TEXT PRIMARY KEY,
+  version_id     TEXT NOT NULL,
+  reviewer_id    TEXT NOT NULL,
+  reviewer_name  TEXT DEFAULT NULL,
+  action         TEXT NOT NULL CHECK(action IN ('submit', 'approve', 'reject')),
+  comment        TEXT DEFAULT NULL,
+  created_at     TEXT NOT NULL DEFAULT (datetime('now')),
+  FOREIGN KEY (version_id)  REFERENCES formula_versions(version_id) ON DELETE CASCADE,
+  FOREIGN KEY (reviewer_id) REFERENCES users(id) ON DELETE SET NULL
+);
+CREATE INDEX IF NOT EXISTS idx_frl_version ON formula_review_logs(version_id);
+CREATE INDEX IF NOT EXISTS idx_frl_reviewer ON formula_review_logs(reviewer_id);
+CREATE INDEX IF NOT EXISTS idx_frl_action ON formula_review_logs(action);
 CREATE TABLE IF NOT EXISTS export_templates (
   template_id TEXT PRIMARY KEY,
   name TEXT NOT NULL,

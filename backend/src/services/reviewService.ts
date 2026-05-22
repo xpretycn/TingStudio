@@ -47,7 +47,7 @@ export async function getPendingReviewList(params: {
   const offset = (page - 1) * pageSize;
 
   const [dataResult]: any[] = await query(
-    `SELECT fv.*, f.name AS formula_name, u.display_name AS submitter_name
+    `SELECT fv.*, f.name AS formula_name, f.code AS formula_code, u.display_name AS submitter_name
      FROM formula_versions fv
      LEFT JOIN formulas f ON fv.formula_id = f.id
      LEFT JOIN users u ON fv.created_by = u.id
@@ -71,6 +71,7 @@ export async function getPendingReviewList(params: {
       versionId: logRow.version_id,
       formulaId: logRow.formula_id,
       formulaName: logRow.formula_name,
+      formulaCode: logRow.formula_code,
       versionNumber: logRow.version_number,
       versionName: logRow.version_name,
       status: logRow.status,
@@ -99,6 +100,121 @@ async function getLatestSubmitLog(versionId: string): Promise<any> {
     [versionId]
   );
   return logs?.[0] || null;
+}
+
+export async function getMySubmissions(params: {
+  userId: string;
+  page: number;
+  pageSize: number;
+}): Promise<{ list: any[]; pagination: any }> {
+  const { userId, page, pageSize } = params;
+  const offset = (page - 1) * pageSize;
+
+  const [dataResult]: any[] = await query(
+    `SELECT
+       fv.version_id, fv.formula_id, f.name AS formula_name, f.code AS formula_code,
+       fv.version_number, fv.version_name, fv.status, fv.created_at,
+       rl.action AS latest_action, rl.reviewer_name AS latest_reviewer_name,
+       rl.comment AS latest_comment, rl.created_at AS latest_review_at
+     FROM formula_versions fv
+     JOIN formulas f ON f.id = fv.formula_id
+     LEFT JOIN (
+       SELECT rl1.* FROM formula_review_logs rl1
+       INNER JOIN (
+         SELECT version_id, MAX(created_at) AS max_created
+         FROM formula_review_logs GROUP BY version_id
+       ) rl2 ON rl1.version_id = rl2.version_id AND rl1.created_at = rl2.max_created
+     ) rl ON rl.version_id = fv.version_id
+     WHERE fv.created_by = ?
+     ORDER BY fv.created_at DESC
+     LIMIT ? OFFSET ?`,
+    [userId, pageSize, offset]
+  );
+
+  const [countResult]: any[] = await query(
+    "SELECT COUNT(*) as total FROM formula_versions WHERE created_by = ?",
+    [userId]
+  );
+
+  const list = (dataResult || []).map((row: any) => ({
+    versionId: row.version_id,
+    formulaId: row.formula_id,
+    formulaName: row.formula_name,
+    formulaCode: row.formula_code,
+    versionNumber: row.version_number,
+    versionName: row.version_name,
+    status: row.status,
+    createdAt: row.created_at,
+    latestReview: row.latest_action
+      ? {
+          action: row.latest_action,
+          reviewerName: row.latest_reviewer_name,
+          comment: row.latest_comment,
+          createdAt: row.latest_review_at,
+        }
+      : null,
+  }));
+
+  const total = countResult?.[0]?.total || 0;
+
+  return {
+    list,
+    pagination: { page, pageSize, total, totalPages: Math.ceil(total / pageSize) },
+  };
+}
+
+export async function getReviewedByMe(params: {
+  reviewerId: string;
+  page: number;
+  pageSize: number;
+}): Promise<{ list: any[]; pagination: any }> {
+  const { reviewerId, page, pageSize } = params;
+  const offset = (page - 1) * pageSize;
+
+  const [dataResult]: any[] = await query(
+    `SELECT
+       rl.action, rl.comment, rl.created_at AS review_at,
+       rl.reviewer_name,
+       fv.version_id, fv.formula_id, fv.version_number, fv.version_name, fv.status, fv.created_at,
+       f.name AS formula_name, f.code AS formula_code,
+       u.display_name AS submitted_by_name
+     FROM formula_review_logs rl
+     JOIN formula_versions fv ON rl.version_id = fv.version_id
+     JOIN formulas f ON fv.formula_id = f.id
+     LEFT JOIN users u ON fv.created_by = u.id
+     WHERE rl.reviewer_id = ? AND rl.action IN ('approve', 'reject')
+     ORDER BY rl.created_at DESC
+     LIMIT ? OFFSET ?`,
+    [reviewerId, pageSize, offset]
+  );
+
+  const [countResult]: any[] = await query(
+    `SELECT COUNT(*) as total FROM formula_review_logs
+     WHERE reviewer_id = ? AND action IN ('approve', 'reject')`,
+    [reviewerId]
+  );
+
+  const list = (dataResult || []).map((row: any) => ({
+    versionId: row.version_id,
+    formulaId: row.formula_id,
+    formulaName: row.formula_name,
+    formulaCode: row.formula_code,
+    versionNumber: row.version_number,
+    versionName: row.version_name,
+    status: row.status,
+    createdAt: row.created_at,
+    submittedByName: row.submitted_by_name,
+    action: row.action,
+    comment: row.comment,
+    reviewedAt: row.review_at,
+  }));
+
+  const total = countResult?.[0]?.total || 0;
+
+  return {
+    list,
+    pagination: { page, pageSize, total, totalPages: Math.ceil(total / pageSize) },
+  };
 }
 
 export async function isFormulaOwner(formulaId: string, userId: string): Promise<boolean> {

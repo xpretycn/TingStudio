@@ -1,6 +1,7 @@
 <template>
   <div class="dashboard-page">
     <div class="bento-grid">
+      <!-- 欢迎卡片 -->
       <section class="bento-card bento-welcome">
         <div class="welcome-inner">
           <div class="welcome-text">
@@ -20,16 +21,12 @@
           </div>
         </div>
       </section>
-
-      <section
-        v-for="item in statCards"
-        :key="item.key"
-        class="bento-card bento-stat"
-        :class="[`bento-stat--${item.key}`]"
-        @click="item.route && router.push(item.route)"
-      >
+      <!-- 统计卡片 -->
+      <section v-for="item in statCards" :key="item.key" class="bento-card bento-stat"
+        :class="[`bento-stat--${item.key}`]" @click="item.route && router.push(item.route)">
         <div class="stat-icon-wrap" :style="{ background: item.iconBg }">
           <t-icon :name="item.icon" size="22px" :style="{ color: item.iconColor }" />
+          <t-badge v-if="item.badge" :count="item.badge" size="small" class="stat-badge" />
         </div>
         <div class="stat-body">
           <span class="stat-value">
@@ -47,84 +44,108 @@
           </svg>
         </div>
       </section>
-
-      <section class="bento-card bento-chart">
-        <div class="card-header">
-          <h3 class="card-title">销量趋势</h3>
-          <div class="chart-tabs">
-            <button
-              v-for="tab in chartTabs"
-              :key="tab.value"
-              class="chart-tab"
-              :class="{ active: activeChartTab === tab.value }"
-              @click="handleChartTab(tab.value)"
-            >{{ tab.label }}</button>
+      <!-- 第二行：两栏布局 — 左栏：审批卡片 / 右栏：快捷操作 + 配方卡片 -->
+      <div class="bento-grid__col bento-grid__col--left">
+        <ApprovalCard />
+      </div>
+      <div class="bento-grid__col bento-grid__col--right">
+        <!-- 快捷操作卡片 -->
+        <section class="bento-card bento-quick">
+          <div class="card-header">
+            <h3 class="card-title">快捷操作</h3>
           </div>
-        </div>
-        <div class="chart-body" ref="chartRef">
-          <template v-if="dashboardStore.trendLoading">
-            <div class="chart-skeleton">
-              <div class="skeleton-bar" v-for="i in 6" :key="i" :style="{ height: `${20 + Math.random() * 60}%` }" />
-            </div>
-          </template>
-          <template v-else-if="dashboardStore.salesTrend.length === 0">
-            <div class="chart-empty">
-              <t-icon name="chart-line" size="32px" />
-              <p>暂无销量数据</p>
-            </div>
-          </template>
-        </div>
-      </section>
-
-      <section class="bento-card bento-formulas">
-        <div class="card-header">
-          <h3 class="card-title">精选配方</h3>
-          <button class="card-link" @click="router.push('/formulas')">
-            查看全部
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-              stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="9 18 15 12 9 6" />
-            </svg>
-          </button>
-        </div>
-        <div class="formulas-body">
-          <template v-if="formulaStore.loading">
-            <div class="formula-skeleton" v-for="i in 3" :key="i">
-              <div class="skeleton-line skeleton-line--title" />
-              <div class="skeleton-line skeleton-line--sub" />
-            </div>
-          </template>
-          <template v-else-if="featuredFormulas.length === 0">
-            <div class="formulas-empty">
-              <t-icon name="edit" size="28px" />
-              <p>还没有配方</p>
-              <t-button theme="primary" size="small" @click="router.push('/formulas/new')">创建配方</t-button>
-            </div>
-          </template>
-          <template v-else>
-            <div
-              v-for="formula in featuredFormulas"
-              :key="formula.id"
-              class="formula-card"
-              @click="router.push(`/formulas/${formula.id}`)"
-            >
-              <div class="formula-color-bar" :style="{ background: getFormulaGradient(formula) }" />
-              <div class="formula-info">
-                <span class="formula-name">{{ formula.name }}</span>
-                <span class="formula-meta">{{ formula.salesmanName || '--' }} · {{ formula.materials?.length || 0 }} 种原料</span>
+          <div class="quick-body">
+            <button class="quick-btn" @click="router.push('/formulas/new')">
+              <div class="quick-icon" style="background: rgba(16, 185, 129, 0.1);">
+                <t-icon name="add" size="20px" style="color: var(--color-primary);" />
               </div>
-              <svg class="formula-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <span>新建配方</span>
+            </button>
+            <button class="quick-btn" @click="router.push('/materials/new')">
+              <div class="quick-icon" style="background: rgba(59, 130, 246, 0.1);">
+                <t-icon name="chart-bar" size="20px" style="color: #3b82f6;" />
+              </div>
+              <span>新增原料</span>
+            </button>
+            <button class="quick-btn" @click="router.push('/ai-assistant')">
+              <div class="quick-icon" style="background: rgba(168, 85, 247, 0.1);">
+                <t-icon name="precise-monitor" size="20px" style="color: #a855f7;" />
+              </div>
+              <span>AI 助手</span>
+            </button>
+            <button class="quick-btn" @click="router.push('/sales')">
+              <div class="quick-icon" style="background: rgba(245, 158, 11, 0.1);">
+                <t-icon name="chart" size="20px" style="color: var(--color-warning);" />
+              </div>
+              <span>销量分析</span>
+            </button>
+          </div>
+        </section>
+        <!-- 配方卡片 -->
+        <section class="bento-card bento-formulas">
+          <div class="card-header">
+            <h3 class="card-title">精选配方</h3>
+            <button class="card-link" @click="router.push('/formulas')">
+              查看全部
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="9 18 15 12 9 6" />
               </svg>
-            </div>
-          </template>
-        </div>
-      </section>
-
+            </button>
+          </div>
+          <div class="formulas-body">
+            <template v-if="formulaStore.loading">
+              <div class="formula-skeleton" v-for="i in 3" :key="i">
+                <div class="skeleton-line skeleton-line--title" />
+                <div class="skeleton-line skeleton-line--sub" />
+              </div>
+            </template>
+            <template v-else-if="featuredFormulas.length === 0">
+              <div class="formulas-empty">
+                <t-icon name="edit" size="28px" />
+                <p>还没有配方</p>
+                <t-button theme="primary" size="small" @click="router.push('/formulas/new')">创建配方</t-button>
+              </div>
+            </template>
+            <template v-else>
+              <div v-for="formula in featuredFormulas" :key="formula.id" class="formula-card"
+                @click="router.push(`/formulas/${formula.id}`)">
+                <div class="formula-color-bar" :style="{ background: getFormulaGradient(formula) }" />
+                <div class="formula-info">
+                  <span class="formula-name">{{ formula.name }}</span>
+                  <span class="formula-meta">{{ formula.salesmanName || '--' }} · {{ formula.materials?.length || 0 }}
+                    种原料</span>
+                </div>
+                <svg class="formula-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
+              </div>
+            </template>
+          </div>
+        </section>
+      </div>
+      <!-- 第三行：动态卡片 + 图表卡片 -->
+      <!-- 动态卡片 -->
       <section class="bento-card bento-activity">
         <div class="card-header">
           <h3 class="card-title">近期动态</h3>
+          <div class="activity-nav" v-if="dashboardStore.activities.length > 0 && !dashboardStore.activityLoading">
+            <button class="activity-nav-btn" :disabled="activityPage <= 1" @click="activityPrev" title="上一页">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
+            </button>
+            <span class="activity-nav-page">{{ activityPage }} / {{ activityTotalPages }}</span>
+            <button class="activity-nav-btn" :disabled="activityPage >= activityTotalPages" @click="activityNext"
+              title="下一页">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            </button>
+          </div>
         </div>
         <div class="activity-body">
           <template v-if="dashboardStore.activityLoading">
@@ -143,12 +164,8 @@
             </div>
           </template>
           <template v-else>
-            <div
-              v-for="activity in dashboardStore.activities"
-              :key="activity.id"
-              class="activity-item"
-              @click="handleActivityClick(activity)"
-            >
+            <div v-for="activity in paginatedActivities" :key="activity.id" class="activity-item"
+              @click="handleActivityClick(activity)">
               <div class="activity-dot" :class="`activity-dot--${activity.type}`" />
               <div class="activity-content">
                 <span class="activity-name">{{ activity.name }}</span>
@@ -161,36 +178,28 @@
           </template>
         </div>
       </section>
-
-      <section class="bento-card bento-quick">
+      <!-- 图表卡片 -->
+      <section class="bento-card bento-chart">
         <div class="card-header">
-          <h3 class="card-title">快捷操作</h3>
+          <h3 class="card-title">销量趋势</h3>
+          <div class="chart-tabs">
+            <button v-for="tab in chartTabs" :key="tab.value" class="chart-tab"
+              :class="{ active: activeChartTab === tab.value }" @click="handleChartTab(tab.value)">{{ tab.label
+              }}</button>
+          </div>
         </div>
-        <div class="quick-body">
-          <button class="quick-btn" @click="router.push('/formulas/new')">
-            <div class="quick-icon" style="background: rgba(16, 185, 129, 0.1);">
-              <t-icon name="add" size="20px" style="color: var(--color-primary);" />
+        <div class="chart-body" ref="chartRef">
+          <template v-if="dashboardStore.trendLoading">
+            <div class="chart-skeleton">
+              <div class="skeleton-bar" v-for="i in 6" :key="i" :style="{ height: `${20 + Math.random() * 60}%` }" />
             </div>
-            <span>新建配方</span>
-          </button>
-          <button class="quick-btn" @click="router.push('/materials/new')">
-            <div class="quick-icon" style="background: rgba(59, 130, 246, 0.1);">
-              <t-icon name="chart-bar" size="20px" style="color: #3b82f6;" />
+          </template>
+          <template v-else-if="dashboardStore.salesTrend.length === 0">
+            <div class="chart-empty">
+              <t-icon name="chart-line" size="32px" />
+              <p>暂无销量数据</p>
             </div>
-            <span>新增原料</span>
-          </button>
-          <button class="quick-btn" @click="router.push('/ai-assistant')">
-            <div class="quick-icon" style="background: rgba(168, 85, 247, 0.1);">
-              <t-icon name="precise-monitor" size="20px" style="color: #a855f7;" />
-            </div>
-            <span>AI 助手</span>
-          </button>
-          <button class="quick-btn" @click="router.push('/sales')">
-            <div class="quick-icon" style="background: rgba(245, 158, 11, 0.1);">
-              <t-icon name="chart" size="20px" style="color: var(--color-warning);" />
-            </div>
-            <span>销量分析</span>
-          </button>
+          </template>
         </div>
       </section>
     </div>
@@ -206,12 +215,17 @@ import { useFormulaStore } from "@/stores/formula";
 import { useWeatherStore } from "@/stores/weather";
 import { formatCompact } from "@/utils/timeFormat";
 import * as echarts from "echarts";
+import ApprovalCard from "@/components/dashboard/ApprovalCard.vue";
+import { useApprovalStore } from "@/stores/approval";
 
 const router = useRouter();
 const authStore = useAuthStore();
 const dashboardStore = useDashboardStore();
 const formulaStore = useFormulaStore();
 const weatherStore = useWeatherStore();
+const approvalStore = useApprovalStore();
+
+const isAdmin = computed(() => authStore.user?.role === "admin");
 
 const chartRef = ref<HTMLElement | null>(null);
 let chartInstance: echarts.ECharts | null = null;
@@ -252,7 +266,7 @@ const todayWeekday = computed(() => {
 
 const statCards = computed(() => {
   const s = dashboardStore.stats;
-  return [
+  const cards = [
     {
       key: "formulas",
       label: "配方总数",
@@ -289,7 +303,18 @@ const statCards = computed(() => {
       iconColor: "#a855f7",
       route: "/sales",
     },
-  ];
+  ] as Array<{
+    key: string;
+    label: string;
+    display: string;
+    icon: string;
+    iconBg: string;
+    iconColor: string;
+    route: string;
+    badge?: number;
+  }>;
+
+  return cards;
 });
 
 const featuredFormulas = computed(() => formulaStore.formulas.slice(0, 3));
@@ -302,7 +327,7 @@ const FORMULA_GRADIENTS = [
   "linear-gradient(135deg, var(--color-danger), #f87171)",
 ];
 
-const getFormulaGradient = (formula: { id: string }) => {
+const getFormulaGradient = (formula: { id: string; }) => {
   const index = formula.id.charCodeAt(0) % FORMULA_GRADIENTS.length;
   return FORMULA_GRADIENTS[index];
 };
@@ -325,7 +350,27 @@ const formatRelativeTime = (dateStr: string): string => {
   return `${Math.floor(months / 12)} 年前`;
 };
 
-const handleActivityClick = (activity: { type: string; id: string }) => {
+const ACTIVITY_PAGE_SIZE = 4;
+const activityPage = ref(1);
+
+const activityTotalPages = computed(() =>
+  Math.max(1, Math.ceil(dashboardStore.activities.length / ACTIVITY_PAGE_SIZE))
+);
+
+const paginatedActivities = computed(() => {
+  const start = (activityPage.value - 1) * ACTIVITY_PAGE_SIZE;
+  return dashboardStore.activities.slice(start, start + ACTIVITY_PAGE_SIZE);
+});
+
+const activityPrev = () => {
+  if (activityPage.value > 1) activityPage.value--;
+};
+
+const activityNext = () => {
+  if (activityPage.value < activityTotalPages.value) activityPage.value++;
+};
+
+const handleActivityClick = (activity: { type: string; id: string; }) => {
   if (activity.type === "formula") {
     router.push(`/formulas/${activity.id}`);
   } else {
@@ -458,6 +503,11 @@ onMounted(async () => {
   if (formulaStore.formulas.length === 0) {
     formulaStore.fetchFormulas();
   }
+  if (isAdmin.value) {
+    approvalStore.fetchPendingReviews();
+  } else {
+    approvalStore.fetchMySubmissions();
+  }
   await nextTick();
   if (dashboardStore.salesTrend.length > 0) {
     initChart();
@@ -507,6 +557,29 @@ onUnmounted(() => {
   &:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06), 0 2px 8px rgba(0, 0, 0, 0.04);
+  }
+}
+
+.bento-grid__col {
+  display: flex;
+
+  &--left {
+    grid-column: span 2;
+    min-height: 560px;
+
+    .bento-card {
+      width: 100%;
+    }
+  }
+
+  &--right {
+    grid-column: span 2;
+    flex-direction: column;
+    gap: 16px;
+
+    .bento-card {
+      flex: 1;
+    }
   }
 }
 
@@ -641,7 +714,7 @@ onUnmounted(() => {
 }
 
 .bento-chart {
-  grid-column: 1 / 3;
+  grid-column: 3 / 5;
 
   .chart-body {
     height: 220px;
@@ -680,8 +753,6 @@ onUnmounted(() => {
 }
 
 .bento-formulas {
-  grid-column: 3 / 5;
-
   .formulas-body {
     margin-top: 12px;
     display: flex;
@@ -856,11 +927,52 @@ onUnmounted(() => {
       color: var(--color-text-placeholder);
     }
   }
+
+  .activity-nav {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1-5);
+
+    .activity-nav-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      border: 1.5px solid rgba(16, 185, 129, 0.2);
+      background: rgba(16, 185, 129, 0.04);
+      color: var(--color-primary);
+      cursor: pointer;
+      transition: all 0.15s ease;
+
+      &:hover:not(:disabled) {
+        background: rgba(16, 185, 129, 0.12);
+        border-color: var(--color-primary);
+        color: var(--color-primary-dark);
+      }
+
+      &:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+        border-color: rgba(148, 163, 184, 0.15);
+        color: #cbd5e1;
+        background: transparent;
+      }
+    }
+
+    .activity-nav-page {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--color-text-placeholder);
+      min-width: 36px;
+      text-align: center;
+      user-select: none;
+    }
+  }
 }
 
 .bento-quick {
-  grid-column: 3 / 5;
-
   .quick-body {
     margin-top: 12px;
     display: grid;
@@ -969,9 +1081,12 @@ onUnmounted(() => {
 }
 
 @keyframes shimmer {
-  0%, 100% {
+
+  0%,
+  100% {
     opacity: 1;
   }
+
   50% {
     opacity: 0.5;
   }
@@ -1019,6 +1134,7 @@ onUnmounted(() => {
   0% {
     background-position: 200% 0;
   }
+
   100% {
     background-position: -200% 0;
   }
@@ -1033,20 +1149,21 @@ onUnmounted(() => {
     grid-column: 1 / -1;
   }
 
-  .bento-chart {
+  .bento-grid__col--left,
+  .bento-grid__col--right {
     grid-column: 1 / -1;
   }
 
-  .bento-formulas {
-    grid-column: 1 / -1;
+  .bento-grid__col--left {
+    min-height: 440px;
+  }
+
+  .bento-chart {
+    grid-column: 2 / 3;
   }
 
   .bento-activity {
     grid-column: 1 / 2;
-  }
-
-  .bento-quick {
-    grid-column: 2 / 3;
   }
 }
 
@@ -1081,10 +1198,18 @@ onUnmounted(() => {
   }
 
   .bento-chart,
-  .bento-formulas,
-  .bento-activity,
-  .bento-quick {
+  .bento-activity {
     grid-column: 1;
+  }
+
+  .bento-grid__col--left,
+  .bento-grid__col--right {
+    grid-column: 1;
+    min-height: auto;
+  }
+
+  .bento-grid__col--left {
+    min-height: 400px;
   }
 
   .bento-quick .quick-body {
@@ -1199,6 +1324,29 @@ onUnmounted(() => {
       color: var(--color-text-secondary);
 
       p {
+        color: var(--color-text-secondary);
+      }
+    }
+
+    .activity-nav {
+      .activity-nav-btn {
+        border-color: rgba(16, 185, 129, 0.15);
+        background: rgba(16, 185, 129, 0.06);
+
+        &:hover:not(:disabled) {
+          background: rgba(16, 185, 129, 0.18);
+          border-color: var(--color-primary-light);
+        }
+
+        &:disabled {
+          opacity: 0.25;
+          border-color: rgba(148, 163, 184, 0.1);
+          color: var(--color-text-secondary);
+          background: transparent;
+        }
+      }
+
+      .activity-nav-page {
         color: var(--color-text-secondary);
       }
     }

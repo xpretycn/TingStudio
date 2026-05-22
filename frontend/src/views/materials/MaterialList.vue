@@ -1095,69 +1095,84 @@ const handleDelete = async (row: Material) => {
 @use '@/assets/styles/variables.scss' as *;
 
 .material-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 
   // ─── 数据看板 ───
   .dashboard-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 24px;
-    margin-bottom: 30px;
+    gap: 16px;
+    margin-bottom: 0;
 
     .stat-card {
       background: #fff;
-      padding: 24px;
-      border-radius: var(--radius-4xl);
+      padding: var(--space-2-5) 16px;
+      border-radius: 12px;
       border: 1px solid #fff;
-      box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
       transition: all $transition-slow;
       animation: dashboard-fade-in 0.5s ease forwards;
       opacity: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0;
 
       &:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
         border-color: transparent;
       }
 
       .stat-card-top {
         display: flex;
+        align-items: center;
         justify-content: space-between;
-        align-items: flex-start;
-        margin-bottom: 16px;
+        width: 100%;
+        margin-bottom: 4px;
       }
 
       .stat-icon {
-        width: 48px;
-        height: 48px;
-        border-radius: 16px;
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
         display: flex;
         align-items: center;
         justify-content: center;
         flex-shrink: 0;
+
+        svg {
+          width: 16px;
+          height: 16px;
+        }
       }
 
       .stat-badge {
-        font-size: 12px;
+        font-size: 10px;
         font-weight: 700;
-        padding: var(--space-0-5) 8px;
-        border-radius: 8px;
+        padding: 1px var(--space-1-5);
+        border-radius: 4px;
         white-space: nowrap;
       }
 
       .stat-label {
-        font-size: 14px;
+        font-size: 9px;
         color: var(--color-text-placeholder);
-        margin-bottom: 4px;
+        margin-bottom: 1px;
+        width: 100%;
       }
 
       .stat-value {
-        font-size: 24px;
+        font-size: 18px;
         font-weight: 700;
         color: #0F172A;
         line-height: 1.2;
+        width: 100%;
 
         .stat-unit {
-          font-size: 14px;
+          font-size: 11px;
           font-weight: 400;
           color: var(--color-text-placeholder);
         }
@@ -1186,6 +1201,7 @@ const handleDelete = async (row: Material) => {
 
     :deep(.t-table__body .t-table__row) {
       animation: rowFadeIn 0.3s ease both;
+      @include stagger-rows(20, 0.03s);
     }
   }
 
@@ -1337,7 +1353,7 @@ const handleDelete = async (row: Material) => {
 
   // 工具栏
   .data-center-toolbar {
-    padding: 32px;
+    padding: 16px 32px;
     border-bottom: 1px solid var(--color-bg-page);
     display: flex;
     flex-wrap: wrap;
@@ -1345,6 +1361,7 @@ const handleDelete = async (row: Material) => {
     align-items: center;
     gap: 16px;
     position: relative;
+    min-height: 88px;
 
     .toolbar-left-section {
       flex: 1;
@@ -1493,7 +1510,7 @@ const handleDelete = async (row: Material) => {
     align-items: center;
     justify-content: space-between;
     padding: 20px 32px;
-    border-radius: 0;
+    border-radius: var(--radius-5xl) var(--radius-5xl) 0 0;
     box-shadow: 0 4px 18px rgba(5, 150, 105, 0.25);
 
     .batch-info {
@@ -1662,17 +1679,17 @@ const handleDelete = async (row: Material) => {
 .material-info {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 8px;
 
   .material-avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 8px;
+    width: 24px;
+    height: 24px;
+    border-radius: 5px;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 700;
-    font-size: 12px;
+    font-size: 9px;
     text-transform: uppercase;
     box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
     flex-shrink: 0;
@@ -1680,19 +1697,20 @@ const handleDelete = async (row: Material) => {
 
   .material-details {
     .material-name {
-      font-weight: 700;
+      font-weight: 600;
       color: var(--color-text-primary);
-      font-size: 14px;
-      margin: 0 0 4px 0;
+      font-size: 13px;
+      margin: 0 0 1px 0;
     }
 
     .material-code {
-      font-size: 12px;
+      font-size: 11px;
       color: var(--color-text-placeholder);
       text-transform: uppercase;
       letter-spacing: -0.05em;
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
       margin: 0;
+      line-height: 1;
     }
   }
 }
@@ -1917,7 +1935,7 @@ const handleDelete = async (row: Material) => {
 
 // 活动区域
 .activity-section {
-  margin-top: 30px;
+  margin-top: 8px;
   padding-bottom: 32px;
   display: grid;
   grid-template-columns: 1fr;

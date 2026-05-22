@@ -287,6 +287,10 @@
               </button>
               <template #content>
                 <div class="action-menu">
+                  <div v-if="isDraft(row)" class="action-menu-item action-menu-item--publish" @click="handlePublish(row)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    <span>发布</span>
+                  </div>
                   <div class="action-menu-item" @click="handleVersion(row)">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
                     <span>版本管理</span>
@@ -499,6 +503,7 @@ import { useSalesStore } from '@/stores/sales';
 import { usePaginationStore } from '@/stores/pagination';
 import { MessagePlugin } from 'tdesign-vue-next';
 import type { Formula } from '@/api/formula';
+import { formulaApi } from '@/api/formula';
 import type { SaleRecord } from '@/api/sales';
 import SalesRecordDrawer from '@/components/SalesRecordDrawer.vue';
 import PageSkeleton from '@/components/Skeleton/PageSkeleton.vue';
@@ -1350,6 +1355,21 @@ const handleDelete = async (row: Formula) => {
   }
 };
 
+const isDraft = (row: Formula) => {
+  const currentVersion = (row.versions || []).find((v: any) => v.isCurrent);
+  return currentVersion?.status === 'draft';
+};
+
+const handlePublish = async (row: Formula) => {
+  try {
+    await formulaApi.publish(row.id);
+    MessagePlugin.success('发布成功');
+    formulaStore.fetchFormulas();
+  } catch {
+    MessagePlugin.error('发布失败');
+  }
+};
+
 // ─── 销量录入弹窗 ───
 const salesDialogVisible = ref(false);
 const salesDialogFormulaId = ref('');
@@ -2060,7 +2080,7 @@ const getSalesQuantity = (row: any): number => {
 
 // 底部快捷动态区域 - 参照 index.html 第945行
 .activity-section {
-  margin-top: 16px;
+  margin-top: 8px;
   padding-bottom: 24px;
   display: grid;
   grid-template-columns: 1fr;
@@ -3325,6 +3345,14 @@ const getSalesQuantity = (row: any): number => {
 
     &:hover {
       background: #fff1f0;
+    }
+  }
+
+  .action-menu-item--publish {
+    color: #2ba471;
+
+    &:hover {
+      background: #e8f8f2;
     }
   }
 }

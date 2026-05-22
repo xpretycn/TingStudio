@@ -7,6 +7,7 @@ import {
   createFormula,
   updateFormula,
   deleteFormula,
+  publishFormula,
   getFormulasByMaterial,
   getPriceQuote,
   validateFormulaRatio,
@@ -54,6 +55,7 @@ formulaRoutes.put(
   updateFormula,
 );
 formulaRoutes.delete("/:id", deleteFormula);
+formulaRoutes.put("/:id/publish", publishFormula);
 formulaRoutes.get("/:id/price-quote", getPriceQuote);
 formulaRoutes.get("/by-material/:materialId", getFormulasByMaterial);
 

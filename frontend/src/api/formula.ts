@@ -126,6 +126,9 @@ export const formulaApi = {
   delete(id: string) {
     return http.delete<any, { message: string }>(`/formulas/${id}`);
   },
+  publish(id: string) {
+    return http.put<any, FormulaVersion>(`/formulas/${id}/publish`);
+  },
   getByMaterial(materialId: string) {
     return http.get<any, Formula[]>(`/formulas/by-material/${materialId}`);
   },

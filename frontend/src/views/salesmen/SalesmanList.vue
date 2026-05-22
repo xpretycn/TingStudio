@@ -885,17 +885,20 @@ const handleDelete = async (row: Salesman) => {
 @use '@/assets/styles/variables.scss' as *;
 
 .salesman-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 
   // ─── 数据看板布局 ───
   .dashboard-section {
-    margin-bottom: 30px;
+    margin-bottom: 0;
   }
 
   // ─── 数据看板 ───
   .dashboard-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 24px;
+    gap: 16px;
 
     @media (max-width: 1200px) {
       grid-template-columns: repeat(2, 1fr);
@@ -903,62 +906,74 @@ const handleDelete = async (row: Salesman) => {
 
     .stat-card {
       background: #fff;
-      padding: 24px;
-      border-radius: var(--radius-4xl);
+      padding: var(--space-2-5) 16px;
+      border-radius: 12px;
       border: 1px solid #fff;
-      box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
       transition: all $transition-slow;
       animation: dashboard-fade-in 0.5s ease forwards;
       opacity: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0;
 
       &:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
         border-color: transparent;
       }
 
       .stat-card-top {
         display: flex;
+        align-items: center;
         justify-content: space-between;
-        align-items: flex-start;
-        margin-bottom: 16px;
+        width: 100%;
+        margin-bottom: 4px;
       }
 
       .stat-icon {
-        width: 48px;
-        height: 48px;
-        border-radius: 16px;
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
         display: flex;
         align-items: center;
         justify-content: center;
         flex-shrink: 0;
+
+        svg {
+          width: 16px;
+          height: 16px;
+        }
       }
 
       .stat-badge {
-        font-size: 12px;
+        font-size: 10px;
         font-weight: 700;
-        padding: var(--space-0-5) 8px;
-        border-radius: 8px;
+        padding: 1px var(--space-1-5);
+        border-radius: 4px;
         white-space: nowrap;
       }
 
       .stat-label {
-        font-size: 14px;
+        font-size: 9px;
         color: var(--color-text-placeholder);
-        margin-bottom: 4px;
+        margin-bottom: 1px;
+        width: 100%;
       }
 
       .stat-value {
-        font-size: 20px;
+        font-size: 18px;
         font-weight: 700;
         color: #0F172A;
-        line-height: 1.35;
+        line-height: 1.2;
         white-space: pre-line;
         word-break: break-word;
         display: flex;
         align-items: center;
         justify-content: space-between;
         gap: 8px;
+        width: 100%;
 
         .stat-value-left {
           display: inline-flex;
@@ -967,7 +982,7 @@ const handleDelete = async (row: Salesman) => {
         }
 
         .stat-top-name {
-          font-size: 14px;
+          font-size: 11px;
           font-weight: 600;
           margin-left: auto;
           display: inline-flex;
@@ -978,13 +993,13 @@ const handleDelete = async (row: Salesman) => {
 
           .champion-icon {
             display: inline-block;
-            font-size: 16px;
+            font-size: 14px;
             animation: championFloat 2s ease-in-out infinite;
           }
         }
 
         .stat-unit {
-          font-size: 14px;
+          font-size: 11px;
           font-weight: 400;
           color: var(--color-text-placeholder);
         }
@@ -994,7 +1009,7 @@ const handleDelete = async (row: Salesman) => {
 
   // ─── 工具栏 ───
   .data-center-toolbar {
-    padding: 32px;
+    padding: 16px 32px;
     border-bottom: 1px solid var(--color-bg-page);
     display: flex;
     flex-wrap: wrap;
@@ -1040,18 +1055,33 @@ const handleDelete = async (row: Salesman) => {
         top: 50%;
         transform: translateY(-50%);
         color: var(--color-text-placeholder);
+        font-size: 16px;
+        z-index: 1;
         pointer-events: none;
       }
 
       .search-input {
-        padding-left: var(--space-8) !important;
-        width: 256px;
-        background-color: var(--color-bg-page) !important;
-        border: none !important;
-        border-radius: 12px !important;
+        :deep(.t-input) {
+          padding-left: 40px;
+          padding-right: 16px;
+          padding-top: 8px;
+          padding-bottom: 8px;
+          background-color: var(--color-bg-page);
+          border: none !important;
+          border-radius: 12px;
+          font-size: 14px;
+          transition: all $transition-fast;
+          width: 256px;
 
-        &:focus {
-          box-shadow: 0 0 0 2px $overlay-emerald-20 !important;
+          &:focus {
+            box-shadow: 0 0 0 2px rgba(167, 243, 208, 0.50);
+            outline: none;
+            background-color: #fff;
+          }
+
+          &::placeholder {
+            color: var(--color-text-placeholder);
+          }
         }
       }
     }
@@ -1083,44 +1113,41 @@ const handleDelete = async (row: Salesman) => {
       &:hover .add-icon {
         transform: rotate(90deg);
       }
-
-      &:hover .add-icon {
-        transform: rotate(90deg);
-      }
     }
 
     .filter-btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 40px;
-      height: 40px;
-      background-color: var(--color-bg-page);
-      border: 1px solid var(--color-border);
-      border-radius: 12px;
-      cursor: pointer;
-      transition: all $transition-fast;
       position: relative;
+      padding: 8px;
+      color: var(--color-text-placeholder);
+      background-color: transparent;
+      border: 1px solid #f1f5f9;
+      border-radius: 8px;
+      transition: all $transition-fast;
+      cursor: pointer;
 
       &:hover {
-        background-color: #eff6ff;
-        border-color: #3b82f6;
-        color: #3b82f6;
+        background-color: var(--color-bg-page);
       }
 
       .filter-icon {
-        font-size: 18px;
-        color: var(--color-text-secondary);
+        font-size: 20px;
       }
 
       .filter-dot {
         position: absolute;
-        top: 8px;
-        right: 8px;
-        width: 6px;
-        height: 6px;
-        background-color: var(--color-danger);
+        top: -2px;
+        right: -2px;
+        width: 8px;
+        height: 8px;
+        background-color: var(--color-primary);
         border-radius: 50%;
+        border: 2px solid white;
+        opacity: 0;
+        transition: opacity 0.2s;
+      }
+
+      &:hover .filter-dot {
+        opacity: 1;
       }
     }
 
@@ -1236,7 +1263,7 @@ const handleDelete = async (row: Salesman) => {
 
     &:hover {
       box-shadow: 0 8px 30px rgba(15, 23, 42, 0.10), 0 2px 6px rgba(15, 23, 42, 0.05);
-      border-color: #eff6ff !important;
+      border-color: #ecfdf5 !important;
     }
 
     :deep(.t-card__body) {
@@ -1255,39 +1282,36 @@ const handleDelete = async (row: Salesman) => {
   .salesman-info {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 8px;
   }
 
   .salesman-avatar {
-    width: 38px;
-    height: 38px;
-    border-radius: 12px;
+    width: 24px;
+    height: 24px;
+    border-radius: 5px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 15px;
+    font-size: 9px;
     font-weight: 700;
     color: #fff;
     flex-shrink: 0;
   }
 
   .salesman-details {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-0-5);
-  }
+    .salesman-name {
+      margin: 0 0 1px 0;
+      font-size: 13px;
+      font-weight: 600;
+      color: #0F172A;
+    }
 
-  .salesman-name {
-    margin: 0;
-    font-size: 14px;
-    font-weight: 600;
-    color: #0F172A;
-  }
-
-  .salesman-code {
-    margin: 0;
-    font-size: 12px;
-    color: var(--color-text-placeholder);
+    .salesman-code {
+      margin: 0;
+      font-size: 11px;
+      color: var(--color-text-placeholder);
+      line-height: 1;
+    }
   }
 
   .text-muted {
@@ -1606,7 +1630,7 @@ const handleDelete = async (row: Salesman) => {
 
   // ─── 动态区域 ───
   .activity-section {
-    margin-top: 30px;
+    margin-top: 8px;
     padding-bottom: 32px;
     display: grid;
     grid-template-columns: 1fr;
