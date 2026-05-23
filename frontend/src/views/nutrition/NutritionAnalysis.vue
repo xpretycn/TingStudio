@@ -596,8 +596,8 @@ const handleAnalyze = async () => {
 };
 
 // handleCheckCompliance is used programmatically
-// @ts-ignore
-async function handleCheckCompliance() {
+// @ts-expect-error function called programmatically
+async function _handleCheckCompliance() {
   if (!analysisForm.formulaId) return;
   checking.value = true;
   nutritionStore.complianceResult = null;

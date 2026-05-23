@@ -69,6 +69,12 @@ const router = createRouter({
           meta: { title: "版本历史", hideHeader: true },
         },
         {
+          path: "materials/:id/versions/compare",
+          name: "MaterialVersionCompare",
+          component: () => import("@/views/materials/MaterialVersionCompare.vue"),
+          meta: { title: "版本对比", hideHeader: true },
+        },
+        {
           path: "formulas/compare",
           name: "FormulaCompare",
           component: () => import(/* webpackPrefetch: true */ "@/views/formulas/FormulaCompare.vue"),

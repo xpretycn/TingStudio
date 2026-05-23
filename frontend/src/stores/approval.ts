@@ -1,6 +1,7 @@
 import { ref } from "vue"
 import { defineStore } from "pinia"
 import { approvalApi, type ApprovalItem, type PendingReviewItem, type ReviewedItem } from "@/api/approval"
+import { materialApi } from "@/api/material"
 
 export const useApprovalStore = defineStore("approval", () => {
   const mySubmissions = ref<ApprovalItem[]>([])
@@ -11,6 +12,8 @@ export const useApprovalStore = defineStore("approval", () => {
   const myTotal = ref(0)
   const pendingTotal = ref(0)
   const reviewedTotal = ref(0)
+  const materialPendingReviews = ref<any[]>([])
+  const materialPendingCount = ref(0)
 
   async function fetchMySubmissions(page = 1, pageSize = 50) {
     loading.value = true
@@ -64,6 +67,29 @@ export const useApprovalStore = defineStore("approval", () => {
     await fetchPendingReviews()
   }
 
+  async function fetchMaterialPendingReviews(page = 1, pageSize = 50) {
+    try {
+      const data = await materialApi.getPendingReviews({ page, pageSize })
+      materialPendingReviews.value = data.list || []
+      materialPendingCount.value = data.pagination?.total || 0
+    } catch {
+      materialPendingReviews.value = []
+      materialPendingCount.value = 0
+    }
+  }
+
+  async function approveMaterial(id: string, comment?: string) {
+    await materialApi.approve(id, comment)
+    await fetchMaterialPendingReviews()
+    await fetchPendingReviews()
+  }
+
+  async function rejectMaterial(id: string, comment: string) {
+    await materialApi.reject(id, comment)
+    await fetchMaterialPendingReviews()
+    await fetchPendingReviews()
+  }
+
   return {
     mySubmissions,
     pendingReviews,
@@ -73,10 +99,15 @@ export const useApprovalStore = defineStore("approval", () => {
     myTotal,
     pendingTotal,
     reviewedTotal,
+    materialPendingReviews,
+    materialPendingCount,
     fetchMySubmissions,
     fetchPendingReviews,
     fetchReviewedHistory,
     approveVersion,
     rejectVersion,
+    fetchMaterialPendingReviews,
+    approveMaterial,
+    rejectMaterial,
   }
 })

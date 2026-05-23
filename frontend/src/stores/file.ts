@@ -64,7 +64,7 @@ export const useFileStore = defineStore('file', () => {
       const res = await fileApi.get(fileId)
       currentFile.value = res
       return res
-    } catch (error: any) {
+    } catch {
       MessagePlugin.error('获取文件详情失败')
       return null
     } finally {

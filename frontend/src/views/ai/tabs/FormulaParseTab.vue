@@ -437,9 +437,9 @@
                     <template #icon>
                       <t-icon name="check-circle" />
                     </template>
-                    {{submitBlockReasons.some(r => r.type === 'error') ? `存在 ${submitBlockReasons.filter(r => r.type
+                    {{ submitBlockReasons.some(r => r.type === 'error') ? `存在 ${submitBlockReasons.filter(r => r.type
                       ===
-                      'error').length} 项错误，无法提交` : '确认生成配方'}}
+                      'error').length} 项错误，无法提交` : '确认生成配方' }}
                   </t-button>
                   <div class="secondary-actions">
                     <t-dropdown trigger="hover"
@@ -788,7 +788,9 @@ const fetchFormulaTemplates = async () => {
   try {
     const res = await parseTemplateApi.getList({ category: 'formula', pageSize: 100 });
     formulaTemplateList.value = res.list || [];
-  } catch {}
+  } catch {
+    // ignore template fetch failure
+  }
 };
 
 const handleFormulaTemplateChange = (value: string | undefined) => {
@@ -860,7 +862,7 @@ const parsedSalesmanName = ref('');
 
 const normalizeName = (name: string): string => {
   if (!name) return '';
-  return name.replace(/[\uFEFF\u200B\u200C\u200D\u00A0\u3000]/g, '').trim();
+  return name.replace(/(?:\uFEFF|\u200B|\u200C|\u200D|\u00A0|\u3000)/gu, '').trim();
 };
 
 const salesmanNotMatched = computed(() => {

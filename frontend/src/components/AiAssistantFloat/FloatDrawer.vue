@@ -13,15 +13,15 @@
         <div class="header-actions">
           <button class="action-btn" @mousedown.stop @click="$emit('fullscreen')" :title="fullscreen ? '退出全屏' : '全屏'">
             <svg v-if="!fullscreen" width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
             </svg>
             <svg v-else width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path d="M2 10v4h4M6 2H2v4M10 2h4v4M14 10v4h-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M2 10v4h4M6 2H2v4M10 2h4v4M14 10v4h-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
             </svg>
           </button>
           <button class="action-btn action-btn--close" @mousedown.stop @click="$emit('close')" title="关闭">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
             </svg>
           </button>
         </div>

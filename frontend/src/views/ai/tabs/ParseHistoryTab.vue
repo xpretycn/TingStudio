@@ -348,7 +348,7 @@ const isIndeterminate = computed(() => {
   return selectedIds.value.length > 0 && selectedIds.value.length < items.value.length;
 });
 
-const filterOptions = [
+const _filterOptions = [
   { label: '全部', value: 'all' },
   { label: '智能填单', value: 'parse_formula' },
   { label: '智能导入', value: 'parse_nutrition' },
@@ -739,7 +739,7 @@ onMounted(() => {
   bottom: 0;
   z-index: 20;
   background-color: var(--color-primary-dark);
-  color: #fff;
+  color: #{$text-white};
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -781,7 +781,7 @@ onMounted(() => {
       font-weight: 500;
       background: none;
       border: none;
-      color: #fff;
+      color: #{$text-white};
       cursor: pointer;
       padding: 4px 8px;
       border-radius: 6px;
@@ -806,7 +806,7 @@ onMounted(() => {
     padding: 4px 12px;
     border-radius: 8px;
     background: transparent;
-    color: #fff;
+    color: #{$text-white};
     cursor: pointer;
     transition: all 0.2s;
 
@@ -1025,7 +1025,7 @@ onMounted(() => {
 
   &:hover {
     color: var(--color-danger);
-    background: #fef2f2;
+    background: #{$color-danger-light};
   }
 }
 

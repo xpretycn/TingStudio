@@ -272,7 +272,7 @@ const formatDate = (dateStr: string | Date): string => {
   });
 };
 
-const formatDateTime = (raw: string | null | undefined): string => {
+const _formatDateTime = (raw: string | null | undefined): string => {
   if (!raw) return '--';
   const d = new Date(raw);
   if (isNaN(d.getTime())) return raw.substring(0, 19);
@@ -358,7 +358,7 @@ onMounted(() => { loadData(); });
     align-items: center;
     margin-left: -32px;
     margin-right: -32px;
-    padding: 16px 32px;
+    padding: 8px 32px;
     background-color: rgba(255, 255, 255, 0.80);
     backdrop-filter: blur(12px);
     border-bottom: 1px solid #f1f5f9;

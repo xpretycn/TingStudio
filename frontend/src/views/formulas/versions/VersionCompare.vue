@@ -448,7 +448,7 @@ $radius-2xl: 2rem;
     align-items: center;
     margin-left: -32px;
     margin-right: -32px;
-    padding: 16px 32px;
+    padding: 8px 32px;
     background-color: rgba(255, 255, 255, 0.80);
     backdrop-filter: blur(10px);
     border-bottom: 1px solid #f1f5f9;

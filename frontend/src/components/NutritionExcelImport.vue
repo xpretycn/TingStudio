@@ -84,7 +84,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { MessagePlugin } from 'tdesign-vue-next';
-// @ts-ignore
+// @ts-expect-error xlsx types not available
 import * as XLSX from 'xlsx';
 
 interface NutritionParseResult {
@@ -287,6 +287,31 @@ function cancelImport() {
 }
 </script>
 
+<script lang="ts">
+// 营养素标签映射（中文 → 显示名，用于预览）
+export const NUTRIENT_LABELS: Record<string, string> = {
+  energy: '能量', protein: '蛋白质', fat: '脂肪',
+  carbohydrate: '碳水化合物', fiber: '膳食纤维', sugars: '糖',
+  sodium: '钠', potassium: '钾', calcium: '钙',
+  iron: '铁', zinc: '锌', magnesium: '镁', phosphorus: '磷',
+  vitaminA: '维生素A', vitaminC: '维生素C', vitaminD: '维生素D',
+  vitaminE: '维生素E', vitaminB1: '维生素B1', vitaminB2: '维生素B2',
+  vitaminB3: '烟酸(B3)', vitaminB6: '维生素B6', vitaminB12: '维生素B12',
+  folate: '叶酸', cholesterol: '胆固醇', saturatedFat: '饱和脂肪', transFat: '反式脂肪',
+};
+
+// 营养素单位映射
+export const NUTRIENT_UNITS: Record<string, string> = {
+  energy: 'kJ', protein: 'g', fat: 'g', carbohydrate: 'g',
+  fiber: 'g', sugars: 'g', sodium: 'mg', potassium: 'mg',
+  calcium: 'mg', iron: 'mg', zinc: 'mg', magnesium: 'mg', phosphorus: 'mg',
+  vitaminA: 'μg RE', vitaminC: 'mg', vitaminD: 'μg', vitaminE: 'mg α-TE',
+  vitaminB1: 'mg', vitaminB2: 'mg', vitaminB3: 'mg', vitaminB6: 'mg',
+  vitaminB12: 'μg', folate: 'μg DFE', cholesterol: 'mg',
+  saturatedFat: 'g', transFat: 'g',
+};
+</script>
+
 <style scoped lang="scss">
 @use '@/assets/styles/variables.scss' as *;
 
@@ -366,28 +391,3 @@ function cancelImport() {
   }
 }
 </style>
-
-<script lang="ts">
-// 营养素标签映射（中文 → 显示名，用于预览）
-export const NUTRIENT_LABELS: Record<string, string> = {
-  energy: '能量', protein: '蛋白质', fat: '脂肪',
-  carbohydrate: '碳水化合物', fiber: '膳食纤维', sugars: '糖',
-  sodium: '钠', potassium: '钾', calcium: '钙',
-  iron: '铁', zinc: '锌', magnesium: '镁', phosphorus: '磷',
-  vitaminA: '维生素A', vitaminC: '维生素C', vitaminD: '维生素D',
-  vitaminE: '维生素E', vitaminB1: '维生素B1', vitaminB2: '维生素B2',
-  vitaminB3: '烟酸(B3)', vitaminB6: '维生素B6', vitaminB12: '维生素B12',
-  folate: '叶酸', cholesterol: '胆固醇', saturatedFat: '饱和脂肪', transFat: '反式脂肪',
-};
-
-// 营养素单位映射
-export const NUTRIENT_UNITS: Record<string, string> = {
-  energy: 'kJ', protein: 'g', fat: 'g', carbohydrate: 'g',
-  fiber: 'g', sugars: 'g', sodium: 'mg', potassium: 'mg',
-  calcium: 'mg', iron: 'mg', zinc: 'mg', magnesium: 'mg', phosphorus: 'mg',
-  vitaminA: 'μg RE', vitaminC: 'mg', vitaminD: 'μg', vitaminE: 'mg α-TE',
-  vitaminB1: 'mg', vitaminB2: 'mg', vitaminB3: 'mg', vitaminB6: 'mg',
-  vitaminB12: 'μg', folate: 'μg DFE', cholesterol: 'mg',
-  saturatedFat: 'g', transFat: 'g',
-};
-</script>

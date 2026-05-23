@@ -173,7 +173,7 @@
                       </svg>调
                     </span></span>
                   <span class="qtm-sub"><strong>{{ m.unitPrice != null ? `¥${m.subtotal.toFixed(2)}` : '--'
-                      }}</strong>
+                  }}</strong>
                     <span v-if="m.isAdjusted && m.basePrice != null" class="qtm-base-hint"
                       :title="'原始基价: ¥' + m.basePrice + '/kg · 差额: ¥' + ((m.unitPrice - m.basePrice)).toFixed(2) + '/kg'">({{
                         ((m.unitPrice - m.basePrice) / m.basePrice * 100).toFixed(1) }}%)</span>
@@ -307,11 +307,12 @@
                   :class="{ 'missing-nutrition': row.hasEmptyNutrition, 'partial-nutrition': !row.hasEmptyNutrition && row.emptyNutritionFields?.length }">
                   {{ row.name }}
                   <t-tooltip v-if="row.hasEmptyNutrition"
-                    :content="'缺失营养数据：' + (row.emptyNutritionFields || []).join('、')">
+                    :content="'缺失营养数据：' + (row.emptyNutritionFields || []).join('、')"
+                    :popup-props="{ appendToBody: true }">
                     <t-icon name="error-circle" class="missing-nutrition-icon" />
                   </t-tooltip>
                   <t-tooltip v-else-if="row.emptyNutritionFields?.length"
-                    :content="'部分营养数据缺失：' + row.emptyNutritionFields.join('、')">
+                    :content="'部分营养数据缺失：' + row.emptyNutritionFields.join('、')" :popup-props="{ appendToBody: true }">
                     <t-icon name="info-circle" class="partial-nutrition-icon" />
                   </t-tooltip>
                 </span>
@@ -624,7 +625,6 @@ const handleExport = () => {
 
 const loadData = async () => {
   const formulaId = (route.params.id || '') as string;
-  console.log('[FormulaDetail] loadData called, route.params.id:', JSON.stringify(route.params.id), 'formulaId:', JSON.stringify(formulaId));
   if (!formulaId || formulaId === 'undefined') {
     console.warn('[FormulaDetail] 无效的 formulaId，跳过加载');
     return;
@@ -647,7 +647,6 @@ const loadData = async () => {
 onMounted(() => { loadData(); });
 
 watch(() => route.params.id, (newId) => {
-  console.log('[FormulaDetail] route.params.id changed:', JSON.stringify(newId));
   if (newId && newId !== 'undefined') {
     loadData();
   }
@@ -674,7 +673,7 @@ watch(() => route.params.id, (newId) => {
     // 突破父容器 .right-content 的左右 padding，实现全宽
     margin-left: -32px;
     margin-right: -32px;
-    padding: 16px 32px; // px-8 py-4（内部内容仍保持间距）
+    padding: 8px 32px; // px-8 py-4（内部内容仍保持间距）
     background-color: rgba(255, 255, 255, 0.80); // bg-white/80
     backdrop-filter: blur(12px); // backdrop-blur-md
     border-bottom: 1px solid #f1f5f9; // border-slate-100

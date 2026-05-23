@@ -25,8 +25,8 @@
           <template v-else>
             <section class="dashboard-section">
               <div class="dashboard-grid">
-                <div class="stat-card" v-for="(card, idx) in dashboardCards" :key="card.label"
-                  :style="{ animationDelay: `${(idx + 1) * 0.1}s` }">
+                <div class="stat-card" v-for="(card, _idx) in dashboardCards" :key="card.label"
+                  :style="{ animationDelay: `${(_idx + 1) * 0.1}s` }">
                   <div class="stat-card-top">
                     <div class="stat-icon" :style="{ background: card.iconBg, color: card.iconColor }">
                       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -542,7 +542,7 @@
 
         <div class="todo-list" v-if="paginatedSalesTodoItems.length > 0">
           <TransitionGroup name="todo-list" tag="div" class="todo-list__inner">
-            <div v-for="(item, idx) in paginatedSalesTodoItems" :key="item.id" class="todo-item"
+            <div v-for="(item, _idx) in paginatedSalesTodoItems" :key="item.id" class="todo-item"
               :class="'todo-item--' + item.priority">
               <div class="todo-item__icon" :class="'todo-item__icon--' + item.type">
                 <svg v-if="item.type === 'warning'" width="16" height="16" viewBox="0 0 24 24" fill="none"
@@ -1096,7 +1096,7 @@ const activityList = computed<ActivityItem[]>(() => {
 const activityPrev = () => { if (activityPage.value > 1) activityPage.value--; };
 const activityNext = () => { if (activityPage.value < activityTotalPages.value) activityPage.value++; };
 
-const assistantMessage = computed(() => {
+const _assistantMessage = computed(() => {
   const total = salesStore.total;
   const stats = salesStore.stats;
   const activeFormulas = stats?.topFormulas?.length || 0;
@@ -2412,8 +2412,8 @@ onMounted(async () => {
   --td-brand-color-hover: var(--color-primary-dark);
   --td-brand-color-active: var(--color-primary-deep);
   --td-brand-color-disabled: var(--color-primary-lightest);
-  --td-brand-color-light: rgba(16, 185, 129, 0.1);
-  --td-brand-color-focus: rgba(16, 185, 129, 0.4);
+  --td-brand-color-light: #{$overlay-emerald-10};
+  --td-brand-color-focus: #{$overlay-emerald-40};
   --td-brand-color-border-active: var(--color-primary);
   --td-brand-color-border-hover: var(--color-primary);
   --td-brand-color-border-focus: var(--color-primary);
@@ -2426,7 +2426,7 @@ onMounted(async () => {
 
   .t-checkbox .t-checkbox__input.is-checked .t-checkbox__input__inner::after,
   .t-checkbox .t-checkbox__input.is-indeterminate .t-checkbox__input__inner::after {
-    border-color: #fff !important;
+    border-color: #{$text-white} !important;
   }
 
   .t-checkbox .t-checkbox__input:hover .t-checkbox__input__inner {

@@ -21,327 +21,360 @@
     <!-- 主区域：配方列表 -->
     <main class="main-area">
       <Transition name="content-fade" mode="out-in">
-      <PageSkeleton v-if="!initialized" type="table" :rows="5" :columns="8" />
-      <t-card v-else class="content-card" bordered>
-        <!-- 工具栏：参照数据中心列表样式 -->
-        <div class="data-center-toolbar">
-          <!-- 批量操作栏 (默认隐藏) - 与 index.html 完全一致 -->
-          <Transition name="batch-bar-slide">
-            <div v-if="selectedRows.length > 0" class="batch-action-bar">
-              <div class="batch-info">
-                <span class="batch-count"><strong>{{ selectedRows.length }}</strong> 项已选择</span>
-                <div class="batch-divider"></div>
-                <div class="batch-buttons">
-                  <t-popconfirm theme="danger" :content="`确定要删除所选的 ${selectedRows.length} 个配方吗？删除后无法恢复。`"
-                    @confirm="handleBatchDelete">
-                    <button class="batch-action-btn">
+        <PageSkeleton v-if="!initialized" type="table" :rows="5" :columns="8" />
+        <t-card v-else class="content-card" bordered>
+          <!-- 工具栏：参照数据中心列表样式 -->
+          <div class="data-center-toolbar">
+            <!-- 批量操作栏 (默认隐藏) - 与 index.html 完全一致 -->
+            <Transition name="batch-bar-slide">
+              <div v-if="selectedRows.length > 0" class="batch-action-bar">
+                <div class="batch-info">
+                  <span class="batch-count"><strong>{{ selectedRows.length }}</strong> 项已选择</span>
+                  <div class="batch-divider"></div>
+                  <div class="batch-buttons">
+                    <t-popconfirm theme="danger" :content="`确定要删除所选的 ${selectedRows.length} 个配方吗？删除后无法恢复。`"
+                      @confirm="handleBatchDelete">
+                      <button class="batch-action-btn">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                          stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <polyline points="3 6 5 6 21 6" />
+                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2" />
+                        </svg>
+                        批量删除
+                      </button>
+                    </t-popconfirm>
+                    <button class="batch-action-btn" @click="handleBatchArchive">
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                         stroke-linecap="round" stroke-linejoin="round">
-                        <polyline points="3 6 5 6 21 6" />
-                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2" />
+                        <path d="M21 8v13H3V8" />
+                        <rect x="1" y="3" width="22" height="5" rx="2" />
                       </svg>
-                      批量删除
+                      批量归档
                     </button>
-                  </t-popconfirm>
-                  <button class="batch-action-btn" @click="handleBatchArchive">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                      stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M21 8v13H3V8" />
-                      <rect x="1" y="3" width="22" height="5" rx="2" />
-                    </svg>
-                    批量归档
-                  </button>
-                  <button class="batch-action-btn" @click="handleBatchExport">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                      stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                      <polyline points="7 10 12 15 17 10" />
-                      <line x1="12" y1="15" x2="12" y2="3" />
-                    </svg>
-                    批量导出
-                  </button>
-                  <button class="batch-action-btn batch-action-btn--compare" @click="handleCompare"
-                    :disabled="selectedRows.length > 3" :title="selectedRows.length > 3 ? '最多选择3个配方进行对比' : '对比所选配方'">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                      stroke-linecap="round" stroke-linejoin="round">
-                      <rect x="3" y="3" width="7" height="18" rx="1" />
-                      <rect x="14" y="3" width="7" height="18" rx="1" />
-                    </svg>
-                    配方对比 ({{ selectedRows.length }})
-                  </button>
+                    <button class="batch-action-btn" @click="handleBatchExport">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                        <polyline points="7 10 12 15 17 10" />
+                        <line x1="12" y1="15" x2="12" y2="3" />
+                      </svg>
+                      批量导出
+                    </button>
+                    <button class="batch-action-btn batch-action-btn--compare" @click="handleCompare"
+                      :disabled="selectedRows.length > 3" :title="selectedRows.length > 3 ? '最多选择3个配方进行对比' : '对比所选配方'">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="7" height="18" rx="1" />
+                        <rect x="14" y="3" width="7" height="18" rx="1" />
+                      </svg>
+                      配方对比 ({{ selectedRows.length }})
+                    </button>
+                  </div>
                 </div>
+                <button class="batch-cancel-btn" @click="clearSelection">取消</button>
               </div>
-              <button class="batch-cancel-btn" @click="clearSelection">取消</button>
-            </div>
-          </Transition>
+            </Transition>
 
-          <!-- 左侧：标题和描述 -->
-          <div class="toolbar-left-section">
-            <div class="toolbar-title-section">
-              <h3 class="toolbar-title">配方管理中心</h3>
-              <p class="toolbar-subtitle">点击列表查看详细配比、变更记录与关联业务需求</p>
+            <!-- 左侧：标题和描述 -->
+            <div class="toolbar-left-section">
+              <div class="toolbar-title-section">
+                <h3 class="toolbar-title">配方管理中心</h3>
+                <p class="toolbar-subtitle">点击列表查看详细配比、变更记录与关联业务需求</p>
+              </div>
+            </div>
+
+            <!-- 右侧：搜索和新增按钮 -->
+            <div class="toolbar-right-section">
+              <div class="search-container" role="search">
+                <label for="formula-search-input" class="sr-only">搜索配方</label>
+                <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <t-input id="formula-search-input" v-model="searchKeyword" class="search-input"
+                  placeholder="搜索配方名称、编号..." clearable aria-label="按配方名称或编号搜索" data-testid="formula-search" />
+              </div>
+              <button class="add-formula-btn" @click="handleCreate" aria-label="创建新配方" data-testid="formula-add-btn">
+                <t-icon name="add" class="add-icon" />
+                创建新配方
+              </button>
+              <button class="filter-btn" aria-label="筛选配方类型" aria-haspopup="true">
+                <t-icon name="filter" class="filter-icon" />
+                <span class="filter-dot"></span>
+              </button>
             </div>
           </div>
-
-          <!-- 右侧：搜索和新增按钮 -->
-          <div class="toolbar-right-section">
-            <div class="search-container" role="search">
-              <label for="formula-search-input" class="sr-only">搜索配方</label>
-              <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <circle cx="11" cy="11" r="8"></circle>
-                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-              </svg>
-              <t-input id="formula-search-input" v-model="searchKeyword" class="search-input" placeholder="搜索配方名称、编号..."
-                clearable aria-label="按配方名称或编号搜索" data-testid="formula-search" />
-            </div>
-            <button class="add-formula-btn" @click="handleCreate" aria-label="创建新配方" data-testid="formula-add-btn">
-              <t-icon name="add" class="add-icon" />
-              创建新配方
-            </button>
-            <button class="filter-btn" aria-label="筛选配方类型" aria-haspopup="true">
-              <t-icon name="filter" class="filter-icon" />
-              <span class="filter-dot"></span>
-            </button>
-          </div>
-        </div>
-        <t-table :data="sortedFormulas" :columns="columns" :loading="formulaStore.loading" :pagination="undefined"
-          row-key="id" hover table-layout="auto" :expanded-row-keys="expandedRowKeys" @expand-change="onExpandChange"
-          @select-change="handleSelectChange" :selected-row-keys="selectedRowKeys" @row-click="handleRowClick">
-          <template #name="{ row }">
-            <div class="formula-info">
-              <div class="formula-avatar" :style="{
-                backgroundColor: getFormulaAvatar(row).bgColor,
-                color: getFormulaAvatar(row).textColor
-              }">
-                {{ getFormulaAvatar(row).text }}
-              </div>
-              <div class="formula-details">
-                <p class="formula-name">{{ row.name }}</p>
-                <t-tag size="small" variant="light" theme="primary" class="formula-version-tag">{{ getFormulaStatus(row).version }}</t-tag>
-              </div>
-            </div>
-          </template>
-
-          <template #expandedRow="{ row }">
-            <div class="expanded-content">
-              <div class="description-section" v-if="getFormulaDesc(row.description)">
-                <h4>配方信息</h4>
-                <div class="desc-tags">
-                  <t-tag v-if="getFormulaDesc(row.description).productType" theme="primary" variant="light"
-                    size="medium">
-                    {{ getFormulaDesc(row.description).productType }}
-                  </t-tag>
-                  <t-tag v-if="getFormulaDesc(row.description).dosage" theme="warning" variant="light" size="medium">
-                    {{ getFormulaDesc(row.description).dosage }}
-                  </t-tag>
-                  <t-tag v-if="getFormulaDesc(row.description).efficacy" theme="success" variant="light" size="medium">
-                    {{ getFormulaDesc(row.description).efficacy }}
-                  </t-tag>
-                  <t-tag v-if="getFormulaDesc(row.description).totalQuote != null" theme="danger" variant="light"
-                    size="medium">
-                    报价: ¥{{ getFormulaDesc(row.description).totalQuote.toFixed(4) }}
-                  </t-tag>
+          <t-table :data="sortedFormulas" :columns="columns" :loading="formulaStore.loading" :pagination="undefined"
+            row-key="id" hover table-layout="auto" :expanded-row-keys="expandedRowKeys" @expand-change="onExpandChange"
+            @select-change="handleSelectChange" :selected-row-keys="selectedRowKeys" @row-click="handleRowClick">
+            <template #name="{ row }">
+              <div class="formula-info">
+                <div class="formula-avatar" :style="{
+                  backgroundColor: getFormulaAvatar(row).bgColor,
+                  color: getFormulaAvatar(row).textColor
+                }">
+                  {{ getFormulaAvatar(row).text }}
+                </div>
+                <div class="formula-details">
+                  <p class="formula-name">{{ row.name }}</p>
+                  <t-tag size="small" variant="light" theme="primary" class="formula-version-tag">{{
+                    getFormulaStatus(row).version }}</t-tag>
                 </div>
               </div>
-              <div class="version-section">
-                <h4>版本记录 <t-tag size="small" variant="light" theme="primary">{{ row.versions?.length || 0 }} 个版本</t-tag>
-                </h4>
-                <div v-if="row.versions && row.versions.length" class="version-list">
-                  <div v-for="ver in row.versions" :key="ver.versionId" class="version-item"
-                    :class="{ 'is-current': ver.isCurrent }">
-                    <div class="version-left">
-                      <span class="version-number">{{ ver.versionNumber }}</span>
-                      <t-tag v-if="ver.isCurrent" size="small" variant="light" class="current-tag">当前</t-tag>
-                      <t-tag v-else size="small" variant="light" class="status-tag"
-                        :class="'status-tag--' + ver.status">{{ ver.status === 'published' ? '已发布' : ver.status ===
-                          'draft' ? '草稿' : '已归档' }}</t-tag>
-                    </div>
-                    <div class="version-center">
-                      <span class="version-name">{{ ver.versionName }}</span>
-                      <span v-if="ver.versionReason" class="version-reason">原因: {{ ver.versionReason }}</span>
-                      <span class="version-time">{{ formatVersionTime(ver.createdAt) }}</span>
-                    </div>
-                    <div v-if="ver.changesJson && parseChanges(ver.changesJson).length" class="version-changes">
-                      <div class="changes-detail">
-                        <div class="changes-list">
-                          <div v-for="(change, ci) in parseChanges(ver.changesJson)" :key="ci" class="change-row">
-                            <t-tag size="small"
-                              :theme="change.changeType === 'add' ? 'success' : change.changeType === 'delete' ? 'danger' : 'warning'"
-                              variant="light" class="change-type-tag">{{ change.changeType === 'add' ? '新增' :
-                                change.changeType === 'delete' ? '删除' : '修改' }}</t-tag>
-                            <span class="change-label">{{ change.fieldLabel }}由{{ change.oldValue ?? '-' }}→{{
-                              change.newValue ?? '-' }}</span>
+            </template>
+
+            <template #expandedRow="{ row }">
+              <div class="expanded-content">
+                <div class="description-section" v-if="getFormulaDesc(row.description)">
+                  <h4>配方信息</h4>
+                  <div class="desc-tags">
+                    <t-tag v-if="getFormulaDesc(row.description).productType" theme="primary" variant="light"
+                      size="medium">
+                      {{ getFormulaDesc(row.description).productType }}
+                    </t-tag>
+                    <t-tag v-if="getFormulaDesc(row.description).dosage" theme="warning" variant="light" size="medium">
+                      {{ getFormulaDesc(row.description).dosage }}
+                    </t-tag>
+                    <t-tag v-if="getFormulaDesc(row.description).efficacy" theme="success" variant="light"
+                      size="medium">
+                      {{ getFormulaDesc(row.description).efficacy }}
+                    </t-tag>
+                    <t-tag v-if="getFormulaDesc(row.description).totalQuote != null" theme="danger" variant="light"
+                      size="medium">
+                      报价: ¥{{ getFormulaDesc(row.description).totalQuote.toFixed(4) }}
+                    </t-tag>
+                  </div>
+                </div>
+                <div class="version-section">
+                  <h4>版本记录 <t-tag size="small" variant="light" theme="primary">{{ row.versions?.length || 0 }}
+                      个版本</t-tag>
+                  </h4>
+                  <div v-if="row.versions && row.versions.length" class="version-list">
+                    <div v-for="ver in row.versions" :key="ver.versionId" class="version-item"
+                      :class="{ 'is-current': ver.isCurrent }">
+                      <div class="version-left">
+                        <span class="version-number">{{ ver.versionNumber }}</span>
+                        <t-tag v-if="ver.isCurrent" size="small" variant="light" class="current-tag">当前</t-tag>
+                        <t-tag v-else size="small" variant="light" class="status-tag"
+                          :class="'status-tag--' + ver.status">{{ ver.status === 'published' ? '已发布' : ver.status ===
+                            'draft' ? '草稿' : '已归档' }}</t-tag>
+                      </div>
+                      <div class="version-center">
+                        <span class="version-name">{{ ver.versionName }}</span>
+                        <span v-if="ver.versionReason" class="version-reason">原因: {{ ver.versionReason }}</span>
+                        <span class="version-time">{{ formatVersionTime(ver.createdAt) }}</span>
+                      </div>
+                      <div v-if="ver.changesJson && parseChanges(ver.changesJson).length" class="version-changes">
+                        <div class="changes-detail">
+                          <div class="changes-list">
+                            <div v-for="(change, ci) in parseChanges(ver.changesJson)" :key="ci" class="change-row">
+                              <t-tag size="small"
+                                :theme="change.changeType === 'add' ? 'success' : change.changeType === 'delete' ? 'danger' : 'warning'"
+                                variant="light" class="change-type-tag">{{ change.changeType === 'add' ? '新增' :
+                                  change.changeType === 'delete' ? '删除' : '修改' }}</t-tag>
+                              <span class="change-label">{{ change.fieldLabel }}由{{ change.oldValue ?? '-' }}→{{
+                                change.newValue ?? '-' }}</span>
+                            </div>
                           </div>
                         </div>
                       </div>
                     </div>
                   </div>
+                  <div v-else class="empty-versions">暂无版本记录</div>
                 </div>
-                <div v-else class="empty-versions">暂无版本记录</div>
               </div>
-            </div>
-          </template>
-
-          <template #createdByName="{ row }">
-            <div class="creator-info">
-              <div v-if="row.createdByAvatar" class="creator-avatar creator-avatar--img">
-                <img :src="row.createdByAvatar" :alt="row.createdByName || row.createdBy" />
-              </div>
-              <div v-else class="creator-avatar" :style="{ backgroundColor: getAvatarColor(row.createdByName || row.createdBy).bg }">
-                {{ getAvatarInitial(row.createdByName || row.createdBy) }}
-              </div>
-              <span class="creator-name">{{ row.createdByName || row.createdBy }}</span>
-            </div>
-          </template>
-
-          <template #formulaStatus="{ row }">
-            <div class="version-status">
-              <span class="status-text" :style="{ color: getFormulaStatus(row).color }">
-                <t-icon :name="getFormulaStatus(row).icon" />
-                {{ getFormulaStatus(row).label }}
-              </span>
-            </div>
-          </template>
-
-          <template #materialCount="{ row }">
-            <span class="material-count">
-              {{ (row.materials || []).length }}
-              <span class="material-unit">项</span>
-            </span>
-          </template>
-
-          <template #salesmanName="{ row }">
-            <div class="salesman-info">
-              <div class="salesman-avatar" :style="{ backgroundColor: getAvatarColor(row.salesmanName).bg }">
-                {{ getAvatarInitial(row.salesmanName) }}
-              </div>
-              <span class="salesman-name">{{ row.salesmanName }}</span>
-            </div>
-          </template>
-
-          <template #salesQuantity="{ row }">
-            <div class="sales-quantity-cell" @click.stop="openSalesDialog(row)">
-              <span v-if="getSalesQuantity(row) > 0" class="sales-qty-value sales-qty-value--clickable">{{ getSalesQuantity(row).toLocaleString()
-                }}</span>
-              <span v-else class="sales-qty-empty sales-qty-empty--clickable">--</span>
-            </div>
-          </template>
-
-          <template #costSubtotal="{ row }">
-            <div class="price-cell-wrapper">
-              <span class="price-cell" :class="{ 'price-cell--empty': getRowCostSubtotal(row) === 0 }">
-                {{ getRowCostSubtotal(row) > 0 ? `¥${getRowCostSubtotal(row).toFixed(2)}` : '--' }}
-              </span>
-              <t-tooltip v-if="row.missingPrices?.length"
-                :content="`成本不完整：缺少 ${row.missingPrices.join('、')} 的单价，请补充原料价格`" theme="warning">
-                <span class="price-warn-badge" @click.stop>
-                  <t-icon name="error-circle" size="12px" />
-                  价格缺失
-                </span>
-              </t-tooltip>
-              <t-tooltip v-else-if="getRowCostSubtotal(row) === 0"
-                content="原料单价未录入，点击配方进入详情页补充价格" theme="primary">
-                <span class="price-hint-badge" @click.stop="handleRowClick({ row })">
-                  <t-icon name="edit-1" size="12px" />
-                  去补录
-                </span>
-              </t-tooltip>
-            </div>
-          </template>
-
-          <template #totalPrice="{ row }">
-            <div class="price-cell-wrapper">
-              <span class="price-cell price-cell--quote" :class="{ 'price-cell--empty': getRowTotalPrice(row) === 0 }">
-                {{ getRowTotalPrice(row) > 0 ? `¥${getRowTotalPrice(row).toFixed(2)}` : '--' }}
-              </span>
-              <t-tooltip v-if="row.missingPrices?.length"
-                :content="`报价不准确：缺少 ${row.missingPrices.join('、')} 的单价，请补充原料价格`" theme="warning">
-                <span class="price-warn-badge" @click.stop>
-                  <t-icon name="error-circle" size="12px" />
-                  报价不准
-                </span>
-              </t-tooltip>
-            </div>
-          </template>
-
-          <template #empty>
-            <t-empty description="暂无配方数据" role="status">
-              <template #action>
-                <button class="add-formula-btn" @click="handleCreate">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                    stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="12" y1="5" x2="12" y2="19"></line>
-                    <line x1="5" y1="12" x2="19" y2="12"></line>
-                  </svg>
-                  创建第一个配方
-                </button>
-              </template>
-            </t-empty>
-          </template>
-
-          <template #operation="{ row }">
-            <t-popup trigger="hover" placement="bottom-right" :popup-props="{ appendToBody: true }">
-              <button class="action-dropdown-btn" @click.stop title="操作" :aria-label="`操作配方${row.name}`">
-                <t-icon name="more" />
-              </button>
-              <template #content>
-                <div class="action-menu">
-                  <div v-if="isDraft(row)" class="action-menu-item action-menu-item--publish" @click="handlePublish(row)">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                    <span>发布</span>
-                  </div>
-                  <div class="action-menu-item" @click="handleVersion(row)">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
-                    <span>版本管理</span>
-                  </div>
-                  <div class="action-menu-item" @click="handleEdit(row)">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                    <span>编辑</span>
-                  </div>
-                  <div class="action-menu-item" @click="openSalesDialog(row)">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>
-                    <span>录入销量</span>
-                  </div>
-                  <t-popconfirm theme="danger" :content="`确定要删除配方「${row.name}」吗？删除后无法恢复。`" @confirm="handleDelete(row)">
-                    <div class="action-menu-item action-menu-item--danger">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-danger)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2"/></svg>
-                      <span>删除</span>
-                    </div>
-                  </t-popconfirm>
-                </div>
-              </template>
-            </t-popup>
-          </template>
-        </t-table>
-
-        <!-- 分页 -->
-        <div v-if="paginationStore.visible && formulaStore.total > 0" class="table-pagination">
-          <!-- 左侧：数据量信息 - 参照 index.html 第930行 -->
-          <div class="pagination-info">
-            显示第 {{ (formulaStore.currentPage - 1) * formulaStore.pageSize + 1 }}-{{ Math.min(formulaStore.currentPage *
-              formulaStore.pageSize, formulaStore.total) }} 条，共 {{ formulaStore.total }} 条数据
-          </div>
-          <!-- 右侧：分页控件 -->
-          <div class="pagination-controls">
-            <button class="pagination-btn" :class="{ 'pagination-btn--disabled': formulaStore.currentPage === 1 }"
-              :disabled="formulaStore.currentPage === 1"
-              @click="formulaStore.setPage(formulaStore.currentPage - 1); formulaStore.fetchFormulas()">上一页</button>
-            <template v-for="page in pageNumbers" :key="page">
-              <button v-if="page !== '...'" class="pagination-btn"
-                :class="{ 'pagination-btn--active': page === formulaStore.currentPage }"
-                @click="typeof page === 'number' && (formulaStore.setPage(page), formulaStore.fetchFormulas())">{{ page
-                }}</button>
-              <span v-else class="pagination-ellipsis">...</span>
             </template>
-            <button class="pagination-btn"
-              :class="{ 'pagination-btn--disabled': formulaStore.currentPage === totalPages }"
-              :disabled="formulaStore.currentPage === totalPages"
-              @click="formulaStore.setPage(formulaStore.currentPage + 1); formulaStore.fetchFormulas()">下一页</button>
+
+            <template #createdByName="{ row }">
+              <div class="creator-info">
+                <div v-if="row.createdByAvatar" class="creator-avatar creator-avatar--img">
+                  <img :src="row.createdByAvatar" :alt="row.createdByName || row.createdBy" />
+                </div>
+                <div v-else class="creator-avatar"
+                  :style="{ backgroundColor: getAvatarColor(row.createdByName || row.createdBy).bg }">
+                  {{ getAvatarInitial(row.createdByName || row.createdBy) }}
+                </div>
+                <span class="creator-name">{{ row.createdByName || row.createdBy }}</span>
+              </div>
+            </template>
+
+            <template #formulaStatus="{ row }">
+              <div class="version-status">
+                <span class="status-text" :style="{ color: getFormulaStatus(row).color }">
+                  <t-icon :name="getFormulaStatus(row).icon" />
+                  {{ getFormulaStatus(row).label }}
+                </span>
+              </div>
+            </template>
+
+            <template #materialCount="{ row }">
+              <span class="material-count">
+                {{ (row.materials || []).length }}
+                <span class="material-unit">项</span>
+              </span>
+            </template>
+
+            <template #salesmanName="{ row }">
+              <div class="salesman-info">
+                <div class="salesman-avatar" :style="{ backgroundColor: getAvatarColor(row.salesmanName).bg }">
+                  {{ getAvatarInitial(row.salesmanName) }}
+                </div>
+                <span class="salesman-name">{{ row.salesmanName }}</span>
+              </div>
+            </template>
+
+            <template #salesQuantity="{ row }">
+              <div class="sales-quantity-cell" @click.stop="openSalesDialog(row)">
+                <span v-if="getSalesQuantity(row) > 0" class="sales-qty-value sales-qty-value--clickable">{{
+                  getSalesQuantity(row).toLocaleString()
+                }}</span>
+                <span v-else class="sales-qty-empty sales-qty-empty--clickable">--</span>
+              </div>
+            </template>
+
+            <template #costSubtotal="{ row }">
+              <div class="price-cell-wrapper">
+                <span class="price-cell" :class="{ 'price-cell--empty': getRowCostSubtotal(row) === 0 }">
+                  {{ getRowCostSubtotal(row) > 0 ? `¥${getRowCostSubtotal(row).toFixed(2)}` : '--' }}
+                </span>
+                <t-tooltip v-if="row.missingPrices?.length"
+                  :content="`成本不完整：缺少 ${row.missingPrices.join('、')} 的单价，请补充原料价格`" theme="warning"
+                  :popup-props="{ appendToBody: true }">
+                  <span class="price-warn-badge" @click.stop>
+                    <t-icon name="error-circle" size="12px" />
+                    价格缺失
+                  </span>
+                </t-tooltip>
+                <t-tooltip v-else-if="getRowCostSubtotal(row) === 0" content="原料单价未录入，点击配方进入详情页补充价格" theme="primary"
+                  :popup-props="{ appendToBody: true }">
+                  <span class="price-hint-badge" @click.stop="handleRowClick({ row })">
+                    <t-icon name="edit-1" size="12px" />
+                    去补录
+                  </span>
+                </t-tooltip>
+              </div>
+            </template>
+
+            <template #totalPrice="{ row }">
+              <div class="price-cell-wrapper">
+                <span class="price-cell price-cell--quote"
+                  :class="{ 'price-cell--empty': getRowTotalPrice(row) === 0 }">
+                  {{ getRowTotalPrice(row) > 0 ? `¥${getRowTotalPrice(row).toFixed(2)}` : '--' }}
+                </span>
+                <t-tooltip v-if="row.missingPrices?.length"
+                  :content="`报价不准确：缺少 ${row.missingPrices.join('、')} 的单价，请补充原料价格`" theme="warning"
+                  :popup-props="{ appendToBody: true }">
+                  <span class="price-warn-badge" @click.stop>
+                    <t-icon name="error-circle" size="12px" />
+                    报价不准
+                  </span>
+                </t-tooltip>
+              </div>
+            </template>
+
+            <template #empty>
+              <t-empty description="暂无配方数据" role="status">
+                <template #action>
+                  <button class="add-formula-btn" @click="handleCreate">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                      stroke-linecap="round" stroke-linejoin="round">
+                      <line x1="12" y1="5" x2="12" y2="19"></line>
+                      <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    创建第一个配方
+                  </button>
+                </template>
+              </t-empty>
+            </template>
+
+            <template #operation="{ row }">
+              <t-popup trigger="hover" placement="bottom-right" :popup-props="{ appendToBody: true }">
+                <button class="action-dropdown-btn" @click.stop title="操作" :aria-label="`操作配方${row.name}`">
+                  <t-icon name="more" />
+                </button>
+                <template #content>
+                  <div class="action-menu">
+                    <div v-if="isDraft(row)" class="action-menu-item action-menu-item--publish"
+                      @click="handlePublish(row)">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                        <polyline points="22 4 12 14.01 9 11.01" />
+                      </svg>
+                      <span>发布</span>
+                    </div>
+                    <div class="action-menu-item" @click="handleVersion(row)">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="1 4 1 10 7 10" />
+                        <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
+                      </svg>
+                      <span>版本管理</span>
+                    </div>
+                    <div class="action-menu-item" @click="handleEdit(row)">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                      </svg>
+                      <span>编辑</span>
+                    </div>
+                    <div class="action-menu-item" @click="openSalesDialog(row)">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="12" y1="20" x2="12" y2="10" />
+                        <line x1="18" y1="20" x2="18" y2="4" />
+                        <line x1="6" y1="20" x2="6" y2="16" />
+                      </svg>
+                      <span>录入销量</span>
+                    </div>
+                    <t-popconfirm theme="danger" :content="`确定要删除配方「${row.name}」吗？删除后无法恢复。`"
+                      @confirm="handleDelete(row)">
+                      <div class="action-menu-item action-menu-item--danger">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-danger)"
+                          stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <polyline points="3 6 5 6 21 6" />
+                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2" />
+                        </svg>
+                        <span>删除</span>
+                      </div>
+                    </t-popconfirm>
+                  </div>
+                </template>
+              </t-popup>
+            </template>
+          </t-table>
+
+          <!-- 分页 -->
+          <div v-if="paginationStore.visible && formulaStore.total > 0" class="table-pagination">
+            <!-- 左侧：数据量信息 - 参照 index.html 第930行 -->
+            <div class="pagination-info">
+              显示第 {{ (formulaStore.currentPage - 1) * formulaStore.pageSize + 1 }}-{{ Math.min(formulaStore.currentPage
+                *
+                formulaStore.pageSize, formulaStore.total) }} 条，共 {{ formulaStore.total }} 条数据
+            </div>
+            <!-- 右侧：分页控件 -->
+            <div class="pagination-controls">
+              <button class="pagination-btn" :class="{ 'pagination-btn--disabled': formulaStore.currentPage === 1 }"
+                :disabled="formulaStore.currentPage === 1"
+                @click="formulaStore.setPage(formulaStore.currentPage - 1); formulaStore.fetchFormulas()">上一页</button>
+              <template v-for="page in pageNumbers" :key="page">
+                <button v-if="page !== '...'" class="pagination-btn"
+                  :class="{ 'pagination-btn--active': page === formulaStore.currentPage }"
+                  @click="typeof page === 'number' && (formulaStore.setPage(page), formulaStore.fetchFormulas())">{{
+                    page
+                  }}</button>
+                <span v-else class="pagination-ellipsis">...</span>
+              </template>
+              <button class="pagination-btn"
+                :class="{ 'pagination-btn--disabled': formulaStore.currentPage === totalPages }"
+                :disabled="formulaStore.currentPage === totalPages"
+                @click="formulaStore.setPage(formulaStore.currentPage + 1); formulaStore.fetchFormulas()">下一页</button>
+            </div>
           </div>
-        </div>
-      </t-card>
-    </Transition>
+        </t-card>
+      </Transition>
     </main>
 
     <!-- 底部：近期动态 + 配方师小助手 -->
@@ -488,8 +521,8 @@
       </div>
     </section>
 
-    <SalesRecordDrawer v-model:visible="salesDialogVisible" :formula-id="salesDialogFormulaId"
-      :edit-record="salesEditRecord" @success="onSalesDialogSuccess" />
+    <SalesRecordDrawer :visible="salesDialogVisible" @update:visible="salesDialogVisible = $event"
+      :formula-id="salesDialogFormulaId" :edit-record="salesEditRecord" @success="onSalesDialogSuccess" />
   </div>
 </template>
 
@@ -500,6 +533,7 @@ import { useFormulaStore } from '@/stores/formula';
 import { useMaterialStore } from '@/stores/material';
 import { useSalesmanStore } from '@/stores/salesman';
 import { useSalesStore } from '@/stores/sales';
+import { useAuthStore } from '@/stores/auth';
 import { usePaginationStore } from '@/stores/pagination';
 import { MessagePlugin } from 'tdesign-vue-next';
 import type { Formula } from '@/api/formula';
@@ -515,6 +549,10 @@ const materialStore = useMaterialStore();
 const salesmanStore = useSalesmanStore();
 const salesStore = useSalesStore();
 const paginationStore = usePaginationStore();
+const authStore = useAuthStore();
+
+const isAdmin = computed(() => authStore.user?.role === 'admin');
+const currentUserId = computed(() => authStore.user?.id);
 
 const initialized = ref(false);
 
@@ -649,9 +687,17 @@ const sortTitle = (label: string, key: string) => {
   }, [label, h('span', { class: sortIconClass(key) })]);
 };
 
+const getFilteredFormulas = (source: Formula[]) => {
+  const list = source.filter(f => f !== undefined && f !== null);
+  if (!isAdmin.value && currentUserId.value) {
+    return list.filter(f => f.createdBy === currentUserId.value);
+  }
+  return list;
+};
+
 const applySort = () => {
   if (!sortKey.value || !sortOrder.value) {
-    sortedFormulas.value = [...formulaStore.formulas];
+    sortedFormulas.value = getFilteredFormulas([...formulaStore.formulas]);
     return;
   }
   const dir = sortOrder.value === 'desc' ? -1 : 1;
@@ -668,8 +714,8 @@ const applySort = () => {
 
   const fn = sortFns[sortKey.value];
   sortedFormulas.value = fn
-    ? [...formulaStore.formulas].sort((a, b) => fn(a, b) * dir)
-    : [...formulaStore.formulas];
+    ? getFilteredFormulas([...formulaStore.formulas].sort((a, b) => fn(a, b) * dir))
+    : getFilteredFormulas([...formulaStore.formulas]);
 };
 
 // Watch store data to sync sorted list
@@ -677,7 +723,7 @@ watch(() => formulaStore.formulas, (val) => {
   if (sortKey.value && sortOrder.value) {
     applySort();
   } else {
-    sortedFormulas.value = [...val];
+    sortedFormulas.value = getFilteredFormulas([...val]);
   }
 }, { immediate: true });
 
@@ -720,7 +766,7 @@ const handleBatchDelete = async () => {
     try {
       await formulaStore.deleteFormula(f.id);
       successCount++;
-    } catch (err: any) {
+    } catch {
       failedNames.push(f.name || f.id);
     }
   }
@@ -1321,7 +1367,6 @@ const handleCreate = () => {
 };
 
 const handleRowClick = ({ row }: { row: Formula; }) => {
-  console.log('[FormulaList] row clicked, row:', JSON.stringify({ id: row.id, name: row.name }));
   router.push({
     path: `/formulas/${row.id}`,
     query: route.query
@@ -2942,15 +2987,15 @@ const getSalesQuantity = (row: any): number => {
     overflow: visible !important;
 
     th {
-        background: var(--color-bg-page) !important;
-        color: var(--color-text-placeholder) !important;
-        font-size: 11px !important;
-        text-transform: uppercase !important;
-        letter-spacing: 0.05em !important;
-        font-weight: 600 !important;
-        padding: var(--space-2-5) 16px !important;
-        border-bottom: 1px solid var(--color-border) !important;
-        overflow: visible !important;
+      background: var(--color-bg-page) !important;
+      color: var(--color-text-placeholder) !important;
+      font-size: 11px !important;
+      text-transform: uppercase !important;
+      letter-spacing: 0.05em !important;
+      font-weight: 600 !important;
+      padding: var(--space-2-5) 16px !important;
+      border-bottom: 1px solid var(--color-border) !important;
+      overflow: visible !important;
 
       &:first-child {
         padding-left: 16px !important;
@@ -3401,7 +3446,7 @@ const getSalesQuantity = (row: any): number => {
 </style>
 
 <!-- ═══════════ 非 scoped 覆盖块：彻底消除全局 _td-overrides.scss 粉色残留 ═══════════ -->
-<style>
+<style lang="scss">
 @use '@/assets/styles/variables.scss' as *;
 /* 全局粉色变量值: $bg-page=#FFF9F7, $bg-table-row-hover=#FFF5F8, $bg-table-row-selected=var(--color-primary-bg)
    策略: 默认全部清除(box-shadow:none), 仅在 :hover 伪类和 .selected 时添加 */
@@ -3459,8 +3504,8 @@ const getSalesQuantity = (row: any): number => {
   --td-brand-color-hover: var(--color-primary-dark);
   --td-brand-color-active: var(--color-primary-deep);
   --td-brand-color-disabled: var(--color-primary-lightest);
-  --td-brand-color-light: rgba(16, 185, 129, 0.1);
-  --td-brand-color-focus: rgba(16, 185, 129, 0.4);
+  --td-brand-color-light: #{$overlay-emerald-10};
+  --td-brand-color-focus: #{$overlay-emerald-40};
   --td-brand-color-border-active: var(--color-primary);
   --td-brand-color-border-hover: var(--color-primary);
   --td-brand-color-border-focus: var(--color-primary);

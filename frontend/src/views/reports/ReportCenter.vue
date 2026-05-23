@@ -506,7 +506,7 @@
                 </div>
                 <div class="todo-list" v-if="paginatedTodoItems.length > 0">
                   <div class="todo-list__inner">
-                    <div v-for="(item, idx) in paginatedTodoItems" :key="item.id" class="todo-item"
+                    <div v-for="(item, _idx) in paginatedTodoItems" :key="item.id" class="todo-item"
                       :class="'todo-item--' + item.priority">
                       <div class="todo-item__icon" :class="'todo-item__icon--' + item.type">
                         <svg v-if="item.type === 'warning'" width="16" height="16" viewBox="0 0 24 24" fill="none"
@@ -812,20 +812,15 @@ const handleSingleDelete = async (report: Report) => {
 const handleBatchDelete = async () => {
   if (selectedReports.value.length === 0) return;
   const count = selectedReports.value.length;
-  console.log(`[ReportCenter] 🗑️ 批量删除开始: 共 ${count} 个报告`)
-  console.log(`[ReportCenter] 待删除报告列表:`, selectedReports.value.map(r => ({ id: r.id, title: r.title, status: r.status, createdBy: r.createdBy })))
   let successCount = 0;
   for (const report of selectedReports.value) {
-    console.log(`[ReportCenter] → 正在删除报告: id=${report.id}, title="${report.title}"`)
     const ok = await reportStore.deleteReport(report.id);
     if (ok) {
       successCount++;
-      console.log(`[ReportCenter]   ✅ 删除成功: ${report.id}`)
     } else {
       console.warn(`[ReportCenter]   ❌ 删除失败: ${report.id}`)
     }
   }
-  console.log(`[ReportCenter] 📊 批量删除结果: ${successCount}/${count} 成功`)
   MessagePlugin.success(`成功删除 ${successCount}/${count} 个报告`);
   clearSelection();
   await loadData();

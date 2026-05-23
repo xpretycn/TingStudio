@@ -23,7 +23,7 @@
           </div>
         </div>
         <div class="header-actions">
-          <button class="header-action-btn" @click="router.push(`/materials/${route.params.id}/edit`)">
+          <button v-if="canEdit" class="header-action-btn" @click="router.push(`/materials/${route.params.id}/edit`)">
             <t-icon name="edit" class="btn-icon" />
             编辑原料
           </button>
@@ -261,6 +261,7 @@ import { ref, reactive, computed, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useMaterialStore } from '@/stores/material';
 import { useNutritionStore } from '@/stores/nutrition';
+import { useAuthStore } from '@/stores/auth';
 import PageSkeleton from '@/components/Skeleton/PageSkeleton.vue';
 import { formatTimestamp } from '@/utils/timeFormat';
 
@@ -268,8 +269,17 @@ const router = useRouter();
 const route = useRoute();
 const materialStore = useMaterialStore();
 const nutritionStore = useNutritionStore();
+const authStore = useAuthStore();
 
 const material = ref<any>(null);
+
+const canEdit = computed(() => {
+  if (!material.value) return false;
+  const user = authStore.user;
+  if (!user) return false;
+  if (user.role === 'admin') return true;
+  return material.value.createdBy === user.id;
+});
 const nutritionLoading = ref(false);
 const nutritionData = ref<any[]>([]);
 const nutritionMeta = reactive({
@@ -395,6 +405,7 @@ const loadData = async () => {
       if (res.data.confidence) nutritionMeta.confidence = res.data.confidence;
     }
   } catch {
+    // ignore nutrition fetch failure
   } finally {
     nutritionLoading.value = false;
   }
@@ -415,7 +426,7 @@ onMounted(() => { loadData(); });
     align-items: center;
     margin-left: -32px;
     margin-right: -32px;
-    padding: 16px 32px;
+    padding: 8px 32px;
     background-color: rgba(255, 255, 255, 0.80);
     backdrop-filter: blur(12px);
     border-bottom: 1px solid #f1f5f9;

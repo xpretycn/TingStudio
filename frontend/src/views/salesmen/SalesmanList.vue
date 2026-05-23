@@ -3,8 +3,8 @@
     <!-- 数据看板 -->
     <section class="dashboard-section">
       <div class="dashboard-grid">
-        <div class="stat-card" v-for="(card, idx) in dashboardCards" :key="card.label"
-          :style="{ animationDelay: `${(idx + 1) * 0.1}s` }">
+        <div class="stat-card" v-for="(card, _idx) in dashboardCards" :key="card.label"
+          :style="{ animationDelay: `${(_idx + 1) * 0.1}s` }">
           <div class="stat-card-top">
             <div class="stat-icon" :style="{ background: card.iconBg, color: card.iconColor }">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -258,7 +258,7 @@
 
         <div class="todo-list" v-if="paginatedSmTodoItems.length > 0">
           <TransitionGroup name="todo-list" tag="div" class="todo-list__inner">
-            <div v-for="(item, idx) in paginatedSmTodoItems" :key="item.id" class="todo-item"
+            <div v-for="(item, _idx) in paginatedSmTodoItems" :key="item.id" class="todo-item"
               :class="'todo-item--' + item.priority">
               <div class="todo-item__icon" :class="'todo-item__icon--' + item.type">
                 <svg v-if="item.type === 'warning'" width="16" height="16" viewBox="0 0 24 24" fill="none"
@@ -500,7 +500,7 @@ const handleBatchDelete = async () => {
     try {
       await salesmanStore.deleteSalesman(s.id);
       successCount++;
-    } catch (err: any) {
+    } catch {
       failedNames.push(s.name || s.id);
     }
   }
@@ -579,7 +579,7 @@ const activityList = computed<ActivityItem[]>(() => {
 const activityPrev = () => { if (activityPage.value > 1) activityPage.value--; };
 const activityNext = () => { if (activityPage.value < activityTotalPages.value) activityPage.value++; };
 
-const assistantMessage = computed(() => {
+const _assistantMessage = computed(() => {
   const total = salesmanStore.total;
   if (total === 0) return '您还没有添加任何业务员，点击下方按钮开始吧！';
   if (total < 5) return `当前共有 ${total} 个业务员在库，建议继续丰富团队。`;
@@ -636,17 +636,16 @@ const handleGlobalSearch = (e: Event) => {
   salesmanStore.fetchSalesmen();
 };
 
-let isRestoringFromRoute = false;
+let _isRestoringFromRoute = false;
 
 onMounted(async () => {
   window.addEventListener('global-search', handleGlobalSearch);
   paginationStore.register(pagination.value);
   watch(pagination, (val) => paginationStore.update(val), { deep: true });
 
-  // 从路由查询参数恢复搜索关键字
   if (route.query.keyword) {
     const keyword = route.query.keyword as string;
-    isRestoringFromRoute = true;
+    _isRestoringFromRoute = true;
     searchKeyword.value = keyword;
     salesmanStore.setKeyword(keyword);
     await nextTick();
@@ -660,7 +659,7 @@ onMounted(async () => {
 onActivated(async () => {
   if (route.query.keyword && route.query.keyword !== searchKeyword.value) {
     const keyword = route.query.keyword as string;
-    isRestoringFromRoute = true;
+    _isRestoringFromRoute = true;
     searchKeyword.value = keyword;
     salesmanStore.setKeyword(keyword);
     await nextTick();
@@ -1600,7 +1599,7 @@ const handleDelete = async (row: Salesman) => {
 
         &.is-checked .t-checkbox__input__inner::after,
         &.is-indeterminate .t-checkbox__input__inner::after {
-          border-color: #fff;
+          border-color: #{$text-white};
         }
 
         &.is-focus .t-checkbox__input__inner {

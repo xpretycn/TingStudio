@@ -310,10 +310,12 @@ export const useFloatAgentStore = defineStore("floatAgent", () => {
           try {
             const evt = JSON.parse(jsonStr);
             handleSSEEvent(evt, aiMsgId);
-          } catch {}
+          } catch {
+            // ignore parse error for SSE chunk
+          }
         }
       }
-    } catch (error) {
+    } catch {
       updateMessage(aiMsgId, { content: "网络异常，请稍后重试" });
     } finally {
       loading.value = false;

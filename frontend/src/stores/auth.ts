@@ -89,6 +89,7 @@ export const useAuthStore = defineStore('auth', () => {
         saveUserOnly(currentUser)
       }
     } catch {
+      // ignore refresh failure
     }
   }
 

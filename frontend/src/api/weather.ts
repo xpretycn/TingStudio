@@ -257,7 +257,7 @@ export async function fetchWeather(locationId: string): Promise<WeatherData | nu
     }
 
     // 解析位置信息
-    let locName = live.city || live.province || ''
+    const locName = live.city || live.province || ''
     let lat = 0, lon = 0
 
     // 如果是经纬度 ID，尝试保留坐标
@@ -318,7 +318,6 @@ export async function reverseGeocode(lat: number, lon: number): Promise<{ adcode
     const name = rawCity || rawDistrict || comp.province || '未知'
     const adcode = comp.adcode
 
-    console.log('[WeatherAPI] 逆地理编码:', lon, lat, '→', name, '(' + adcode + ')')
     return { adcode, name }
   } catch (err: any) {
     console.warn('[WeatherAPI] reverseGeocode 失败:', err.message)

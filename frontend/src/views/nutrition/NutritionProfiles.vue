@@ -404,8 +404,8 @@ const handleSearch = () => { };
 const handleFilter = () => { };
 
 // handleCreate is called from template
-// @ts-ignore
-async function handleCreate() {
+// @ts-expect-error function called programmatically
+async function _handleCreate() {
   if (!profileForm.name) { MessagePlugin.warning('请输入标准名称'); return; }
   if (!Object.keys(profileForm.targetValues).length) { MessagePlugin.warning('请至少添加一项营养指标'); return; }
   const result = await nutritionStore.createProfile({

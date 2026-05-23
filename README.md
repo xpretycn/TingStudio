@@ -14,7 +14,7 @@ TingStudio 是一个专业的食品配方工作数据管理平台，面向食品
 |------|------|------|
 | **前端框架** | Vue 3 + TypeScript + Vite | Composition API + `<script setup>` |
 | **UI 组件库** | TDesign Vue Next (v1.9) | 企业级组件库 |
-| **状态管理** | Pinia (18个 Store) | 模块化 Store |
+| **状态管理** | Pinia (19个 Store) | 模块化 Store |
 | **路由** | Vue Router 4 | 懒加载路由 |
 | **样式方案** | SCSS + Design Tokens | 模块化变量系统 + CSS 变量 |
 | **图表** | ECharts 6 | 数据可视化 |
@@ -179,22 +179,22 @@ TingStudio/
 │   ├── src/
 │   │   ├── api/                      # API 客户端（axios 封装，20个模块）
 │   │   ├── assets/                   # 样式（Design Tokens/变量/主题）
-│   │   ├── components/               # 公共组件（32个 Vue 组件）
+│   │   ├── components/               # 公共组件（35个 Vue 组件，含3个子目录）
 │   │   │   ├── AiAssistantFloat/     # 悬浮助手组件体系（8 Vue + 2 TS）
+│   │   │   ├── dashboard/            # 仪表盘专用组件（MyApprovalPanel/AdminReviewPanel/ApprovalCard）
 │   │   │   ├── formula/              # 配方专用组件（MaterialTableCore/UnifiedMaterialTable）
-│   │   │   ├── Skeleton/             # 骨架屏组件
-│   │   │   └── ...                   # 其他公共组件
+│   │   │   └── Skeleton/             # 骨架屏组件
 │   │   ├── router/                   # Vue Router 配置
-│   │   ├── stores/                   # Pinia 状态管理（18个 Store）
+│   │   ├── stores/                   # Pinia 状态管理（19个 Store）
 │   │   ├── utils/                    # 工具函数（时间格式化/图表/模拟数据）
-│   │   ├── views/                    # 页面视图（43个 .vue 文件）
+│   │   ├── views/                    # 页面视图（44个 .vue 文件）
 │   │   │   ├── ai/                   # AI 助手工作台 + 智能工具 + 总览
 │   │   │   │   └── tabs/             # 配方解析/原料导入/数据检索/解析历史
 │   │   │   ├── auth/                 # 登录/注册（含动画角色 AnimatedCharacters/EyeBall/Pupil）
 │   │   │   ├── dashboard/            # 工作台仪表盘
 │   │   │   ├── formulas/             # 配方管理（列表/表单/详情/对比）
-│   │   │   │   └── versions/         # 版本管理（列表/对比）
-│   │   │   ├── materials/            # 原料管理（列表/表单/详情/版本）
+│   │   │   │   └── versions/         # 配方版本管理（列表/对比）
+│   │   │   ├── materials/            # 原料管理（列表/表单/详情/版本/版本对比）
 │   │   │   ├── salesmen/             # 业务员管理（列表/表单/详情）
 │   │   │   ├── sales/                # 销量分析
 │   │   │   ├── reports/              # 报告中心（周报/月报/生成/对比）
@@ -212,7 +212,7 @@ TingStudio/
 
 ├── docs/                             # 项目文档
 │   ├── agent-system/                 # AI Agent 系统设计文档（23个文件，含原料版本管理 API/数据库/技术方案）
-│   ├── ting-studio/                  # 功能模块设计文档（17个文件，含配方编辑布局/PRD/技术设计/模型管理/审批）
+│   ├── ting-studio/                  # 功能模块设计文档（配方编辑布局/审批流程/PRD/技术设计/API/数据库/验收）
 │   └── *.md                          # 历史 PRD/验收报告
 │
 └── .github/workflows/                # CI/CD 流水线
@@ -224,9 +224,10 @@ TingStudio/
 
 | 功能模块 | 说明 |
 |----------|------|
-| **📋 配方管理** | 配方 CRUD、原料配比表、含量比校验（三级预警阈值配置）、版本控制、升版管理、定价系统、基础信息可折叠（状态记忆） |
-| **🧪 原料管理** | 原料 CRUD、材质分类（药材/辅料）、营养成分管理、单价管理、版本管理 |
+| **📋 配方管理** | 配方 CRUD、原料配比表、含量比校验（三级预警阈值配置）、版本控制、版本审批流程、升版管理、定价系统、基础信息可折叠（状态记忆） |
+| **🧪 原料管理** | 原料 CRUD、材质分类（药材/辅料）、营养成分管理、单价管理、版本管理、版本对比 |
 | **👤 业务员管理** | 业务员 CRUD、状态管理、区域/部门分群 |
+| **✅ 版本审批** | 配方版本审批流程（提交→管理员审核→通过/驳回）、审批面板（待审/已办）、通知提醒 |
 | **📊 销量分析** | 多维聚合分析（日月/业务员/区域）、趋势图、TOP 排行 |
 | **📄 报告中心** | 周报/月报 AI 自动分析、Markdown 渲染、报告对比、指标管理 |
 | **🥗 营养分析** | 7 步法营养成分计算、NRV%、合规校验、营养档案管理 |

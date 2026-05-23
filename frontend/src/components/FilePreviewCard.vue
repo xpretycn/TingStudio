@@ -148,7 +148,7 @@ function toggleCollapse() {
   collapsed.value = !collapsed.value;
 }
 
-function openFullscreen() {
+function _openFullscreen() {
   dialogVisible.value = true;
 }
 

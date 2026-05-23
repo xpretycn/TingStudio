@@ -100,18 +100,28 @@
                       @change="toggleSelect(ver.versionId)" />
                     <span class="tl-checkbox-text">加入对比</span>
                   </label>
-                  <t-popconfirm v-if="ver.status === 'draft'" :content="isAdmin ? '确定要直接发布该版本吗？发布后将替换当前配方。' : '确定要提交审批吗？提交后需等待管理员审核。'" @confirm="handlePublish(ver)">
+                  <t-popconfirm v-if="ver.status === 'draft'"
+                    :content="isAdmin ? '确定要直接发布该版本吗？发布后将替换当前配方。' : '确定要提交审批吗？提交后需等待管理员审核。'"
+                    @confirm="handlePublish(ver)">
                     <button class="tl-publish-btn" @click.stop>
                       <t-icon name="send" size="12px" />
                       {{ isAdmin ? '发布' : '提交审批' }}
                     </button>
                   </t-popconfirm>
-                  <t-popconfirm v-else-if="ver.status === 'pending_review' && isAdmin" content="确定要批准该版本吗？批准后将替换当前配方。" @confirm="handlePublish(ver)">
-                    <button class="tl-publish-btn" @click.stop>
-                      <t-icon name="check" size="12px" />
-                      批准
-                    </button>
-                  </t-popconfirm>
+                  <template v-else-if="ver.status === 'pending_review' && isAdmin">
+                    <div class="tl-card-actions">
+                      <t-popconfirm content="确定要批准该版本吗？批准后将替换当前配方。" @confirm="handlePublish(ver)">
+                        <button class="tl-publish-btn" @click.stop>
+                          <t-icon name="check" size="12px" />
+                          批准
+                        </button>
+                      </t-popconfirm>
+                      <button class="tl-reject-btn" @click.stop="handleReject(ver)">
+                        <t-icon name="close" size="12px" />
+                        驳回
+                      </button>
+                    </div>
+                  </template>
                   <span v-else-if="ver.status === 'pending_review' && !isAdmin" class="tl-status-hint">
                     <t-icon name="time" size="12px" />
                     审批中
@@ -242,7 +252,7 @@
                   <span class="mh-version">版本</span>
                 </div>
                 <div v-for="(m, i) in snapshot.materials" :key="i" class="material-row">
-                  <span class="material-index">{{ i + 1 }}</span>
+                  <span class="material-index">{{ Number(i) + 1 }}</span>
                   <span class="material-name-cell">
                     <span class="material-name-text">{{ m.materialName || m.name || '--' }}</span>
                     <span v-if="getMaterialType(m) === 'supplement'" class="material-tag tag-supplement">辅料</span>
@@ -474,19 +484,32 @@ const getMaterialType = (material: any): string => {
   return mat?.materialType || '';
 };
 
+const _resolveSnapshotValue = <T>(key: string, fallback: T): T => {
+  const s: any = snapshot.value || {};
+  if (s[key] != null && s[key] !== '') return s[key];
+  const fd = s.formulaData || {};
+  const camelKey = key.replace(/_./g, (x) => x[1].toUpperCase());
+  if (fd[key] != null && fd[key] !== '') return fd[key];
+  if (fd[camelKey] != null && fd[camelKey] !== '') return fd[camelKey];
+  return fallback;
+};
+
 const calcActualWeight = (material: any): number => {
-  const finishedWeight = snapshot.value?.finishedWeight || snapshot.value?.finished_weight || 0;
+  const finishedWeight = _resolveSnapshotValue<number>('finishedWeight', 0)
+    || _resolveSnapshotValue<number>('finished_weight', 0);
   const quantity = material.quantity || 0;
-  return (quantity / 100) * finishedWeight;
+  return (quantity / 100) * Number(finishedWeight);
 };
 
 const calcRatio = (material: any): number => {
-  const finishedWeight = snapshot.value?.finishedWeight || snapshot.value?.finished_weight || 0;
+  const finishedWeight = _resolveSnapshotValue<number>('finishedWeight', 0)
+    || _resolveSnapshotValue<number>('finished_weight', 0);
   const quantity = material.quantity || 0;
   if (!finishedWeight) return 0;
-  const ratioFactor = material.materialType === 'supplement'
-    ? (snapshot.value?.supplementRatioFactor || 1.0)
-    : (snapshot.value?.ratioFactor || 0.18);
+  const materialType = getMaterialType(material);
+  const ratioFactor = materialType === 'supplement'
+    ? (_resolveSnapshotValue<number>('supplementRatioFactor', 1.0) || 1.0)
+    : (_resolveSnapshotValue<number>('ratioFactor', 0.18) || 0.18);
   return (quantity / finishedWeight) * ratioFactor;
 };
 
@@ -523,7 +546,7 @@ onMounted(async () => {
         formulaSalesmanName.value = formula.salesmanName || '';
       }
     })(),
-    materialStore.fetchMaterials(),
+    materialStore.fetchAllForSelect(),
   ]);
   initialized.value = true;
 });
@@ -661,7 +684,7 @@ onMounted(async () => {
     align-items: center;
     margin-left: -32px;
     margin-right: -32px;
-    padding: 16px 32px;
+    padding: 8px 32px;
     background: $overlay-white-80;
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
@@ -1153,6 +1176,12 @@ onMounted(async () => {
     justify-content: space-between;
   }
 
+  .tl-card-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
   .tl-compare-label {
     display: inline-flex;
     align-items: center;
@@ -1222,6 +1251,25 @@ onMounted(async () => {
       background: var(--color-primary);
       color: $text-white;
       border-color: var(--color-primary);
+    }
+  }
+
+  .tl-reject-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border: 1px solid $color-danger;
+    border-radius: $radius-pill;
+    background: transparent;
+    color: $color-danger;
+    font-size: 11px;
+    font-weight: $font-weight-medium;
+    cursor: pointer;
+    transition: all $transition-fast;
+
+    &:hover {
+      background: $color-danger-bg;
     }
   }
 

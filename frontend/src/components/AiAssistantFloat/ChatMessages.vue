@@ -198,7 +198,7 @@ const props = defineProps<{
   fieldLabelMap: Record<string, string>;
 }>();
 
-const emit = defineEmits<{
+const _emit = defineEmits<{
   fill: [fields: Record<string, any>];
 }>();
 

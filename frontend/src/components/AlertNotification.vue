@@ -111,7 +111,7 @@ function getSeverityTheme(severity: string) {
   }
 }
 
-function formatTime(time: string) {
+function _formatTime(time: string) {
   const date = new Date(time);
   return date.toLocaleString();
 }

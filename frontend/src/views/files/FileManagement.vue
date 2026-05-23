@@ -543,7 +543,7 @@ const handleDownload = async (row: UploadedFile) => {
     document.body.removeChild(link);
     window.URL.revokeObjectURL(url);
     MessagePlugin.success('下载成功');
-  } catch (error) {
+  } catch {
     MessagePlugin.error('下载失败');
   }
 };
@@ -556,7 +556,7 @@ const handleRelatedClick = (row: UploadedFile) => {
   }
 };
 
-const handleEditLink = (row: UploadedFile) => {
+const _handleEditLink = (row: UploadedFile) => {
   router.push({ path: `/files/${row.fileId}`, query: { action: 'editLink' } });
 };
 
@@ -2050,7 +2050,7 @@ watch(() => router.currentRoute.value.path, (path) => {
 }
 </style>
 
-<style>
+<style lang="scss">
 @use '@/assets/styles/variables.scss' as *;
 
 .file-management .content-card .t-table,
@@ -2099,8 +2099,8 @@ watch(() => router.currentRoute.value.path, (path) => {
   --td-brand-color-hover: var(--color-primary-dark);
   --td-brand-color-active: var(--color-primary-deep);
   --td-brand-color-disabled: var(--color-primary-lightest);
-  --td-brand-color-light: rgba(16, 185, 129, 0.1);
-  --td-brand-color-focus: rgba(16, 185, 129, 0.4);
+  --td-brand-color-light: #{$overlay-emerald-10};
+  --td-brand-color-focus: #{$overlay-emerald-40};
   --td-brand-color-border-active: var(--color-primary);
   --td-brand-color-border-hover: var(--color-primary);
   --td-brand-color-border-focus: var(--color-primary);
@@ -2113,7 +2113,7 @@ watch(() => router.currentRoute.value.path, (path) => {
 
   .t-checkbox .t-checkbox__input.is-checked .t-checkbox__input__inner::after,
   .t-checkbox .t-checkbox__input.is-indeterminate .t-checkbox__input__inner::after {
-    border-color: #fff !important;
+    border-color: #{$text-white} !important;
   }
 
   .t-checkbox .t-checkbox__input:hover .t-checkbox__input__inner {

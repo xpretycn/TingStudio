@@ -105,7 +105,6 @@ export const useWeatherStore = defineStore("weather", () => {
   /** 强制刷新当前城市天气（忽略缓存） */
   async function refresh() {
     if (!weather.value?.location?.id) return;
-    console.log("[Weather] 强制刷新天气...");
     forceRefresh.value = true;
     await getWeather(weather.value.location.id);
   }
@@ -154,7 +153,6 @@ export const useWeatherStore = defineStore("weather", () => {
         }
       }
 
-      console.log("[Weather] 尝试 ip-api.com 备用定位...");
       const result = await locateByIpApi();
       if (result) return;
 
@@ -256,7 +254,7 @@ export const useWeatherStore = defineStore("weather", () => {
         await getWeather(locationId, `${lat.toFixed(2)},${lon.toFixed(2)}`);
         persistCity(`${lat.toFixed(2)},${lon.toFixed(2)}`);
         return true;
-      } catch (err: any) {
+      } catch {
         if (attempt < MAX_RETRIES) continue;
         return false;
       }

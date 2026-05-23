@@ -52,12 +52,9 @@ export const useReportStore = defineStore('report', () => {
 
       // 自动加载已保存的AI分析数据
       if (res?.dataJson?.aiAnalysis) {
-        console.log('[ReportStore] 📂 发现已保存的AI分析数据')
         aiAnalysis.value = res.dataJson.aiAnalysis
-        console.log('[ReportStore] ✅ 已加载AI分析数据:', aiAnalysis.value)
       } else {
         aiAnalysis.value = null
-        console.log('[ReportStore] ℹ️ 该报告暂无AI分析数据')
       }
 
       return res
@@ -98,14 +95,9 @@ export const useReportStore = defineStore('report', () => {
   }
 
   const deleteReport = async (id: string) => {
-    console.log('\n[ReportStore] ========== 前端删除报告请求开始 ==========')
-    console.log(`[ReportStore] 📥 报告ID: ${id}`)
     try {
-      console.log(`[ReportStore] 🌐 调用后端 DELETE /api/reports/${id} ...`)
-      const res = await reportApi.delete(id)
-      console.log(`[ReportStore] ✅ 后端响应成功:`, JSON.stringify(res))
+      const _res = await reportApi.delete(id)
       MessagePlugin.success('报告删除成功')
-      console.log(`[ReportStore] ✅ ========== 删除完成 ==========\n`)
       return true
     } catch (error: any) {
       console.error(`[ReportStore] ❌ ========== 删除失败 ==========`)
@@ -131,10 +123,7 @@ export const useReportStore = defineStore('report', () => {
 
   const publishReport = async (id: string, reportData?: any, type?: string) => {
     try {
-      console.log('[ReportStore] 🚀 开始发布报告，ID:', id)
-
       const res = await reportApi.publish(id)
-      console.log('[ReportStore] ✅ 报告发布成功')
 
       if (currentReport.value?.id === id) {
         currentReport.value = res
@@ -142,7 +131,6 @@ export const useReportStore = defineStore('report', () => {
 
       // 发布成功后自动生成AI分析（异步执行，不阻塞用户）
       if (reportData && type) {
-        console.log('[ReportStore] 🤖 开始自动生成AI分析...')
         generateAndSaveAIAnalysis(id, reportData, type).catch(error => {
           console.error('[ReportStore] ⚠️ 自动生成AI分析失败（不影响发布）:', error)
         })
@@ -160,14 +148,10 @@ export const useReportStore = defineStore('report', () => {
   const generateAndSaveAIAnalysis = async (reportId: string, reportData: any, type: string) => {
     try {
       aiAnalysisLoading.value = true
-      console.log('[ReportStore] 🤖 调用AI分析API...')
 
       const analysisResult = await reportApi.getAIAnalysis(reportData, type)
-      console.log('[ReportStore] ✅ AI分析完成:', analysisResult)
 
-      // 保存AI分析结果到报告
       await reportApi.saveAIAnalysis(reportId, analysisResult)
-      console.log('[ReportStore] 💾 AI分析结果已保存到报告')
 
       // 更新本地状态
       aiAnalysis.value = analysisResult
@@ -258,14 +242,9 @@ export const useReportStore = defineStore('report', () => {
   const getAIAnalysis = async (reportData: any, type: string) => {
     aiAnalysisLoading.value = true
     try {
-      console.log('[ReportStore] 开始调用AI分析API...')
       const res = await reportApi.getAIAnalysis(reportData, type)
-      console.log('[ReportStore] ✅ AI分析API响应:', res)
-      console.log('[ReportStore] 响应类型:', typeof res)
-      console.log('[ReportStore] 响应字段:', res ? Object.keys(res) : 'null/undefined')
-      
+
       aiAnalysis.value = res
-      console.log('[ReportStore] aiAnalysis.value 已更新:', aiAnalysis.value)
       return res
     } catch (error: any) {
       console.error('AI 分析失败:', error)

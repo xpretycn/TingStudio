@@ -512,10 +512,6 @@ const reportData = computed(() => {
   if (typeof report.value.dataJson === 'string') {
     try {
       const parsed = JSON.parse(report.value.dataJson);
-      console.log('[MonthlyReport] 解析报告数据:', parsed);
-      console.log('[MonthlyReport] formula数据:', parsed?.formula);
-      console.log('[MonthlyReport] sales数据:', parsed?.sales);
-      console.log('[MonthlyReport] monthlySummary数据:', parsed?.monthlySummary);
       return parsed;
     } catch (e) {
       console.error('[MonthlyReport] JSON解析失败:', e);
@@ -534,28 +530,24 @@ const setChartRef = (key: string) => (el: any) => {
 
 const dailyFormulaTrendOption = computed(() => {
   const data = reportData.value?.formula?.dailyFormulaTrend;
-  console.log('[MonthlyReport] dailyFormulaTrendOption - 数据:', data, '长度:', data?.length);
   if (!data || data.length === 0) return null;
   return buildDailyFormulaTrendChart(data);
 });
 
 const statusDistributionOption = computed(() => {
   const data = reportData.value?.formula?.statusDistribution;
-  console.log('[MonthlyReport] statusDistributionOption - 数据:', data, '长度:', data?.length);
   if (!data || data.length === 0) return null;
   return buildStatusDistributionChart(data);
 });
 
 const dailySalesTrendOption = computed(() => {
   const data = reportData.value?.sales?.dailySalesTrend;
-  console.log('[MonthlyReport] dailySalesTrendOption - 数据:', data, '长度:', data?.length);
   if (!data || data.length === 0) return null;
   return buildDailySalesTrendChart(data);
 });
 
 const topFormulasOption = computed(() => {
   const data = reportData.value?.sales?.topFormulas;
-  console.log('[MonthlyReport] topFormulasOption - 数据:', data, '长度:', data?.length);
   if (!data || data.length === 0) return null;
   return buildTopFormulasChart(data);
 });
@@ -642,13 +634,12 @@ const hasTrendData = computed(() => !!monthlyTrendOption.value);
 
 const initChart = (key: string, option: EChartsOption) => {
   const el = chartRefs.value[key];
-  console.log(`[MonthlyReport] 🎨 initChart('${key}') - DOM元素:`, el, 'option存在:', !!option);
-  
+
   if (!el) {
     console.warn(`[MonthlyReport] ⚠️ 图表'${key}'的DOM元素未找到，跳过渲染`);
     return;
   }
-  
+
   try {
     if (chartInstances.value[key]) {
       chartInstances.value[key]!.dispose();
@@ -656,14 +647,12 @@ const initChart = (key: string, option: EChartsOption) => {
     const instance = echarts.init(el);
     instance.setOption(option);
     chartInstances.value[key] = instance;
-    console.log(`[MonthlyReport] ✅ 图表'${key}'渲染成功`);
   } catch (error) {
     console.error(`[MonthlyReport] ❌ 图表'${key}'渲染失败:`, error);
   }
 };
 
 const initAllCharts = () => {
-  console.log('[MonthlyReport] 📊 initAllCharts() 开始执行...');
   const options = {
     dailyFormulaTrend: dailyFormulaTrendOption.value,
     statusDistribution: statusDistributionOption.value,
@@ -679,11 +668,10 @@ const initAllCharts = () => {
     if (option) {
       initChart(key, option);
     } else {
-      console.log(`[MonthlyReport] ⏭️ 跳过图表'${key}': 无数据或配置无效`);
+      // chart already initialized
     }
   });
-  
-  console.log('[MonthlyReport] ✅ initAllCharts() 执行完成');
+
 };
 
 const handleResize = () => {
@@ -699,7 +687,7 @@ const statusLabel = computed(() => {
   return map[report.value?.status || ''] || '未知';
 });
 
-const statusTheme = computed(() => {
+const _statusTheme = computed(() => {
   const map: Record<string, string> = {
     draft: 'default',
     published: 'success',
@@ -805,13 +793,13 @@ const dashboardCards = computed(() => {
   ];
 });
 
-const formatDate = (dateStr?: string) => {
+const _formatDate = (dateStr?: string) => {
   if (!dateStr) return '--';
   const d = new Date(dateStr);
   return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
 };
 
-const formatDateTime = (dateStr: string) => {
+const _formatDateTime = (dateStr: string) => {
   if (!dateStr) return '';
   const d = new Date(dateStr);
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
@@ -944,12 +932,8 @@ const retryLoad = async () => {
 
 watch(() => reportStore.currentReport, (report) => {
   if (report?.dataJson) {
-    console.log('[MonthlyReport] 📊 检测到报告数据变化，准备初始化图表...');
     nextTick(() => {
-      // 延迟执行，确保DOM元素已渲染
       setTimeout(() => {
-        console.log('[MonthlyReport] 🎨 开始调用initAllCharts()');
-        console.log('[MonthlyReport] chartRefs:', chartRefs.value);
         initAllCharts();
       }, 300);
     });

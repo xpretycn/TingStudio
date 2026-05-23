@@ -34,9 +34,6 @@ http.interceptors.request.use(config => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
-  if (config._logLabel) {
-    console.log(`[HTTP] ${config.method?.toUpperCase()} ${config.baseURL}${config.url} (${config._logLabel})`);
-  }
   return config;
 });
 

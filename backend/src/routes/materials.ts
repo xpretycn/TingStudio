@@ -11,6 +11,13 @@ import {
   getMaterialVersions,
   getMaterialVersion,
   getMaterialReferences,
+  compareMaterialVersions,
+  submitMaterialReview,
+  approveMaterial,
+  rejectMaterial,
+  publishMaterial,
+  getMaterialPendingReviews,
+  getMaterialReviewLogs,
 } from "../controllers/materialController.js";
 import { validateBody } from "../middleware/validate.js";
 
@@ -21,8 +28,10 @@ materialRoutes.use(authMiddleware);
 materialRoutes.get("/", getMaterials);
 materialRoutes.get("/stats", getMaterialStats);
 materialRoutes.get("/next-code", getNextCode);
+materialRoutes.get("/pending-review", getMaterialPendingReviews);
 materialRoutes.get("/:id", getMaterial);
 materialRoutes.get("/:id/versions", getMaterialVersions);
+materialRoutes.get("/:id/versions/compare", compareMaterialVersions);
 materialRoutes.get("/:id/versions/:versionId", getMaterialVersion);
 materialRoutes.get("/:id/references", getMaterialReferences);
 materialRoutes.post(
@@ -35,3 +44,8 @@ materialRoutes.post(
 );
 materialRoutes.put("/:id", updateMaterial);
 materialRoutes.delete("/:id", deleteMaterial);
+materialRoutes.post("/:id/submit-review", submitMaterialReview);
+materialRoutes.put("/:id/approve", approveMaterial);
+materialRoutes.put("/:id/reject", rejectMaterial);
+materialRoutes.put("/:id/publish", publishMaterial);
+materialRoutes.get("/:id/review-logs", getMaterialReviewLogs);

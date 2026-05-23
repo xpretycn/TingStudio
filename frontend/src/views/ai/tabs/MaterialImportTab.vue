@@ -760,7 +760,7 @@ const aiStore = useAiStore();
 const materialStore = useMaterialStore();
 const themeStore = useThemeStore();
 
-const safeMaterialParseResult = computed(() => {
+const _safeMaterialParseResult = computed(() => {
   return aiStore.materialParseAborted ? null : aiStore.materialParseResult;
 });
 const route = useRoute();
@@ -813,7 +813,9 @@ const fetchTemplates = async () => {
   try {
     const res = await parseTemplateApi.getList({ category: 'nutrition', pageSize: 100 });
     templateList.value = res.list || [];
-  } catch {}
+  } catch {
+    // ignore template fetch failure
+  }
 };
 
 const handleTemplateChange = (value: string | undefined) => {
@@ -1546,7 +1548,9 @@ const submitSingleItem = async (item: MaterialNutritionItem) => {
         oldDataSource = existing.dataSource;
         oldConfidence = existing.confidence;
       }
-    } catch {}
+    } catch {
+      // ignore existing nutrition parse failure
+    }
   }
 
   const per100g: Record<string, number> = {};

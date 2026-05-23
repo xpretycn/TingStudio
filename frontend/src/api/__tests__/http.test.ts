@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, _vi, beforeEach } from "vitest";
 
 describe("HTTP 客户端工具函数", () => {
   beforeEach(() => {

@@ -272,7 +272,7 @@ const loadExistingRecords = async (fid: string) => {
   try {
     const records = await salesStore.getSalesByFormula(fid)
     existingRecords.value = records || []
-  } catch (_e) {
+  } catch {
     existingRecords.value = []
   }
 }
@@ -292,7 +292,7 @@ const handleConfirm = async () => {
   let valid = false
   try {
     valid = await formRef.value?.validate()
-  } catch (_e) {
+  } catch {
     valid = false
   }
 

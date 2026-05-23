@@ -10,10 +10,11 @@ import {
   rowsToCamelCase,
 } from "../utils/helpers.js";
 import * as materialService from "../services/materialService.js";
+import * as materialReviewService from "../services/materialReviewService.js";
 
 export async function getMaterials(req: any, res: Response) {
   try {
-    const { keyword, page, pageSize, scope } = req.query;
+    const { keyword, page, pageSize, scope, status } = req.query;
     const kw = Array.isArray(keyword) ? keyword[0] : keyword || "";
     const userId = req.user.userId;
     const userRole = req.user.role;
@@ -25,6 +26,7 @@ export async function getMaterials(req: any, res: Response) {
       scope,
       userId,
       userRole,
+      status: status ? String(status) : undefined,
     });
 
     res.json({
@@ -87,8 +89,8 @@ export async function createMaterial(req: any, res: Response) {
     const id = generateId();
 
     await query(
-      `INSERT INTO materials (id, name, code, unit, stock, material_type, unit_price, data_source, created_by, version, is_latest, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 1, ?)`,
+      `INSERT INTO materials (id, name, code, unit, stock, material_type, unit_price, data_source, created_by, version, is_latest, status, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 1, 'draft', ?)`,
       [
         id,
         name,
@@ -104,7 +106,7 @@ export async function createMaterial(req: any, res: Response) {
     );
 
     const [[material]]: any[][] = await query("SELECT * FROM materials WHERE id = ?", [id]);
-    res.status(201).json(success(rowToCamelCase(material), "原料创建成功"));
+    res.status(201).json(success(rowToCamelCase(material), "原料创建成功，当前为草稿状态"));
   } catch (error: any) {
     if (error.message?.includes("UNIQUE constraint failed")) {
       res.status(409).json({ success: false, message: "原料编码已存在，请使用其他编码" });
@@ -131,6 +133,14 @@ export async function updateMaterial(req: Request, res: Response) {
       res.status(403).json({
         success: false,
         error: { message: "您没有权限编辑此原料", code: "FORBIDDEN" },
+      });
+      return;
+    }
+
+    if (current.status === "pending_review") {
+      res.status(400).json({
+        success: false,
+        error: { message: "待审批状态的原料不可编辑，请等待审批结果", code: "VALIDATION_ERROR" },
       });
       return;
     }
@@ -167,6 +177,8 @@ export async function updateMaterial(req: Request, res: Response) {
         res.status(409).json({ success: false, message: "原料编码已存在" });
         return;
       }
+      res.status(409).json({ success: false, message: "原料编码冲突，请重启服务器以完成数据库升级" });
+      return;
     }
     console.error("[MaterialController] updateMaterial Error:", error);
     res.status(500).json({ success: false, message: "更新原料失败", error: error.message });
@@ -271,6 +283,33 @@ export async function getMaterialReferences(req: Request, res: Response) {
   }
 }
 
+export async function compareMaterialVersions(req: Request, res: Response) {
+  try {
+    const { id } = req.params;
+    const v1 = req.query.v1 as string;
+    const v2 = req.query.v2 as string;
+
+    if (!v1 || !v2) {
+      res.status(400).json({
+        success: false,
+        error: { message: "请提供对比版本 ID（v1, v2）", code: "VALIDATION_ERROR" },
+      });
+      return;
+    }
+
+    const result = await materialService.compareVersions(id, v1, v2);
+    if (!result) {
+      res.status(404).json({ success: false, message: "版本不存在" });
+      return;
+    }
+
+    res.json(success(result));
+  } catch (error: any) {
+    console.error("[MaterialController] compareMaterialVersions Error:", error);
+    res.status(500).json({ success: false, message: "版本对比失败", error: error.message });
+  }
+}
+
 export async function getMaterialStats(req: any, res: Response) {
   try {
     const [[total]]: any[] = await query("SELECT COUNT(*) as count FROM materials WHERE is_deleted = 0 AND is_latest = 1");
@@ -292,5 +331,219 @@ export async function getMaterialStats(req: any, res: Response) {
   } catch (error: any) {
     console.error("[MaterialController] getMaterialStats Error:", error);
     res.status(500).json({ success: false, message: "获取统计数据失败", error: error.message });
+  }
+}
+
+export async function submitMaterialReview(req: any, res: Response) {
+  try {
+    const { id } = req.params;
+    const user = req.user;
+
+    const current = await materialService.getLatestVersion(id);
+    if (!current) {
+      res.status(404).json({ success: false, error: { message: "原料不存在", code: "NOT_FOUND" } });
+      return;
+    }
+
+    if (current.status !== "draft") {
+      res.status(400).json({
+        success: false,
+        error: { message: "仅草稿状态的原料可提交审批", code: "VALIDATION_ERROR" },
+      });
+      return;
+    }
+
+    if (user.role !== "admin" && current.created_by !== user.userId) {
+      res.status(403).json({
+        success: false,
+        error: { message: "仅创建者或管理员可提交审批", code: "FORBIDDEN" },
+      });
+      return;
+    }
+
+    await query("UPDATE materials SET status = 'pending_review', updated_at = ? WHERE id = ?", [now(), id]);
+    await materialReviewService.createReviewLog({
+      materialId: id,
+      reviewerId: user.userId,
+      action: "submit",
+    });
+
+    res.json(success(null, "原料已提交审批"));
+  } catch (error: any) {
+    console.error("[MaterialController] submitMaterialReview Error:", error);
+    res.status(500).json({ success: false, error: { message: "提交审批失败", code: "INTERNAL_ERROR" } });
+  }
+}
+
+export async function approveMaterial(req: any, res: Response) {
+  try {
+    const { id } = req.params;
+    const user = req.user;
+
+    if (user.role !== "admin") {
+      res.status(403).json({
+        success: false,
+        error: { message: "仅管理员可审批原料", code: "FORBIDDEN" },
+      });
+      return;
+    }
+
+    const current = await materialService.getLatestVersion(id);
+    if (!current) {
+      res.status(404).json({ success: false, error: { message: "原料不存在", code: "NOT_FOUND" } });
+      return;
+    }
+
+    if (current.status !== "pending_review") {
+      res.status(400).json({
+        success: false,
+        error: { message: "仅待审批状态的原料可审批", code: "VALIDATION_ERROR" },
+      });
+      return;
+    }
+
+    await query("UPDATE materials SET status = 'published', updated_at = ? WHERE id = ?", [now(), id]);
+    await materialReviewService.createReviewLog({
+      materialId: id,
+      reviewerId: user.userId,
+      action: "approve",
+    });
+
+    res.json(success(null, "原料已审批通过并发布"));
+  } catch (error: any) {
+    console.error("[MaterialController] approveMaterial Error:", error);
+    res.status(500).json({ success: false, error: { message: "审批操作失败", code: "INTERNAL_ERROR" } });
+  }
+}
+
+export async function rejectMaterial(req: any, res: Response) {
+  try {
+    const { id } = req.params;
+    const user = req.user;
+    const { comment } = req.body || {};
+
+    if (user.role !== "admin") {
+      res.status(403).json({
+        success: false,
+        error: { message: "仅管理员可驳回原料", code: "FORBIDDEN" },
+      });
+      return;
+    }
+
+    if (!comment || comment.trim().length < 5) {
+      res.status(400).json({
+        success: false,
+        error: { message: "驳回原因至少5个字符", code: "VALIDATION_ERROR" },
+      });
+      return;
+    }
+
+    const current = await materialService.getLatestVersion(id);
+    if (!current) {
+      res.status(404).json({ success: false, error: { message: "原料不存在", code: "NOT_FOUND" } });
+      return;
+    }
+
+    if (current.status !== "pending_review") {
+      res.status(400).json({
+        success: false,
+        error: { message: "仅待审批状态的原料可驳回", code: "VALIDATION_ERROR" },
+      });
+      return;
+    }
+
+    await query("UPDATE materials SET status = 'draft', updated_at = ? WHERE id = ?", [now(), id]);
+    await materialReviewService.createReviewLog({
+      materialId: id,
+      reviewerId: user.userId,
+      action: "reject",
+      comment,
+    });
+
+    res.json(success(null, "原料已驳回"));
+  } catch (error: any) {
+    console.error("[MaterialController] rejectMaterial Error:", error);
+    res.status(500).json({ success: false, error: { message: "驳回操作失败", code: "INTERNAL_ERROR" } });
+  }
+}
+
+export async function publishMaterial(req: any, res: Response) {
+  try {
+    const { id } = req.params;
+    const user = req.user;
+
+    if (user.role !== "admin") {
+      res.status(403).json({
+        success: false,
+        error: { message: "仅管理员可直接发布原料", code: "FORBIDDEN" },
+      });
+      return;
+    }
+
+    const current = await materialService.getLatestVersion(id);
+    if (!current) {
+      res.status(404).json({ success: false, error: { message: "原料不存在", code: "NOT_FOUND" } });
+      return;
+    }
+
+    if (current.status !== "draft" && current.status !== "pending_review") {
+      res.status(400).json({
+        success: false,
+        error: { message: "仅草稿或待审批状态的原料可发布", code: "VALIDATION_ERROR" },
+      });
+      return;
+    }
+
+    await query("UPDATE materials SET status = 'published', updated_at = ? WHERE id = ?", [now(), id]);
+    await materialReviewService.createReviewLog({
+      materialId: id,
+      reviewerId: user.userId,
+      action: "publish",
+    });
+
+    res.json(success(null, "原料已发布"));
+  } catch (error: any) {
+    console.error("[MaterialController] publishMaterial Error:", error);
+    res.status(500).json({ success: false, error: { message: "发布操作失败", code: "INTERNAL_ERROR" } });
+  }
+}
+
+export async function getMaterialPendingReviews(req: any, res: Response) {
+  try {
+    const user = req.user;
+
+    if (user.role !== "admin") {
+      res.status(403).json({
+        success: false,
+        error: { message: "仅管理员可查看待审批列表", code: "FORBIDDEN" },
+      });
+      return;
+    }
+
+    const { keyword, page, pageSize } = req.query;
+    const kw = Array.isArray(keyword) ? keyword[0] : keyword || "";
+
+    const result = await materialReviewService.getPendingReviewList({
+      keyword: kw,
+      page: Number(page),
+      pageSize: Number(pageSize),
+    });
+
+    res.json(successWithPagination(result.list, result.pagination.total, result.pagination.page, result.pagination.pageSize));
+  } catch (error: any) {
+    console.error("[MaterialController] getMaterialPendingReviews Error:", error);
+    res.status(500).json({ success: false, error: { message: "获取待审批列表失败", code: "INTERNAL_ERROR" } });
+  }
+}
+
+export async function getMaterialReviewLogs(req: any, res: Response) {
+  try {
+    const { id } = req.params;
+
+    const logs = await materialReviewService.getReviewLogs(id);
+    res.json(success(logs));
+  } catch (error: any) {
+    console.error("[MaterialController] getMaterialReviewLogs Error:", error);
+    res.status(500).json({ success: false, error: { message: "获取审批日志失败", code: "INTERNAL_ERROR" } });
   }
 }

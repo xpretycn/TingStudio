@@ -66,6 +66,12 @@
 
           <!-- 右侧：搜索和新增按钮 -->
           <div class="toolbar-right-section">
+            <t-radio-group v-model="materialStore.statusFilter" variant="default-filled" size="medium" @change="handleStatusFilterChange">
+              <t-radio-button value="all">全部</t-radio-button>
+              <t-radio-button value="draft">草稿</t-radio-button>
+              <t-radio-button value="pending_review">待审批</t-radio-button>
+              <t-radio-button value="published">已发布</t-radio-button>
+            </t-radio-group>
             <div class="search-container" role="search">
               <label for="material-search-input" class="sr-only">搜索原料</label>
               <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -122,13 +128,8 @@
 
           <template #version="{ row }">
             <div class="version-cell">
-              <t-tag
-                :theme="row.isLatest ? 'success' : 'default'"
-                variant="light"
-                size="small"
-                style="cursor: pointer;"
-                @click.stop="handleViewVersions(row)"
-              >
+              <t-tag :theme="row.isLatest ? 'success' : 'default'" variant="light" size="small" style="cursor: pointer;"
+                @click.stop="handleViewVersions(row)">
                 v{{ row.version }}
               </t-tag>
               <t-tooltip :content="`共 ${row.totalVersions} 个版本`" v-if="row.totalVersions > 1">
@@ -142,6 +143,13 @@
               shape="round">
               {{ row.materialType === 'supplement' ? '辅料' : '药材' }}
             </t-tag>
+          </template>
+
+          <template #status="{ row }">
+            <t-tag v-if="row.status === 'draft'" theme="default" variant="light" size="small">草稿</t-tag>
+            <t-tag v-else-if="row.status === 'pending_review'" theme="warning" variant="light" size="small">待审批</t-tag>
+            <t-tag v-else-if="row.status === 'published'" theme="success" variant="light" size="small">已发布</t-tag>
+            <t-tag v-else theme="default" variant="light" size="small">{{ row.status || '草稿' }}</t-tag>
           </template>
 
           <template #stock="{ row }">
@@ -183,7 +191,8 @@
                   <div v-for="(val, key) in getExpandedNutrition(row)" :key="key" class="nutrition-item"
                     :class="{ 'nutrition-item--highlight': isHighlightNutrient(key) }">
                     <label class="nutri-label">{{ getNutrientLabel(key) }}</label>
-                    <span class="nutri-value">{{ val }}<small class="nutri-unit">g</small></span>
+                    <span class="nutri-value">{{ val }}<small class="nutri-unit">{{ getNutrientUnit(key)
+                    }}</small></span>
                     <div class="nutri-bar-track">
                       <div class="nutri-bar-fill" :style="{ width: getNutrientPercent(val, key) + '%' }"></div>
                     </div>
@@ -220,11 +229,28 @@
                 :aria-label="`查看${row.name}的版本历史`">
                 <t-icon name="layers" />
               </button>
-              <button v-if="row.isOwner || isAdmin" class="action-btn edit-btn" @click.stop="handleEdit(row)" title="编辑"
+              <button v-if="row.status === 'draft' && (row.isOwner || isAdmin)" class="action-btn submit-btn" @click.stop="handleSubmitReview(row)" title="提交审批"
+                :aria-label="`提交${row.name}审批`">
+                <t-icon name="upload" />
+              </button>
+              <button v-if="row.status === 'pending_review' && isAdmin" class="action-btn approve-btn" @click.stop="handleApprove(row)" title="通过"
+                :aria-label="`通过${row.name}`">
+                <t-icon name="check" />
+              </button>
+              <button v-if="row.status === 'pending_review' && isAdmin" class="action-btn reject-btn" @click.stop="handleOpenReject(row)" title="驳回"
+                :aria-label="`驳回${row.name}`">
+                <t-icon name="close" />
+              </button>
+              <button v-if="row.status === 'published' && (row.isOwner || isAdmin)" class="action-btn edit-btn" @click.stop="handleEdit(row)" title="编辑"
                 :aria-label="`编辑原料${row.name}`">
                 <t-icon name="edit-1" />
               </button>
-              <t-popconfirm v-if="isAdmin" theme="danger" :content="`确定要删除原料「${row.name}」吗？`" @confirm="handleDelete(row)">
+              <button v-if="row.status === 'draft' && (row.isOwner || isAdmin)" class="action-btn edit-btn" @click.stop="handleEdit(row)" title="编辑"
+                :aria-label="`编辑原料${row.name}`">
+                <t-icon name="edit-1" />
+              </button>
+              <t-popconfirm v-if="isAdmin" theme="danger" :content="`确定要删除原料「${row.name}」吗？`"
+                @confirm="handleDelete(row)">
                 <button class="action-btn delete-btn" title="删除" :aria-label="`删除原料${row.name}`" @click.stop>
                   <t-icon name="delete" />
                 </button>
@@ -244,7 +270,7 @@
             <button class="pagination-btn" :class="{ 'pagination-btn--disabled': materialStore.currentPage === 1 }"
               :disabled="materialStore.currentPage === 1"
               @click="materialStore.setPage(materialStore.currentPage - 1); loadMaterials()">上一页</button>
-            <template v-for="page in pageNumbers" :key="page">
+            <template v-for="(page, idx) in pageNumbers" :key="idx">
               <button v-if="page !== '...'" class="pagination-btn"
                 :class="{ 'pagination-btn--active': page === materialStore.currentPage }"
                 @click="typeof page === 'number' && (materialStore.setPage(page), loadMaterials())">{{ page }}
@@ -262,6 +288,13 @@
 
     <!-- 底部快捷动态 -->
     <section class="activity-section">
+
+    <t-dialog v-model:visible="rejectDialogVisible" header="驳回原料" :confirm-btn="{ content: '确认驳回', theme: 'danger' }" :on-confirm="handleConfirmReject" :on-close="() => rejectDialogVisible = false">
+      <div style="padding: 8px 0;">
+        <p style="margin-bottom: 12px; font-size: 14px; color: var(--color-text-secondary);">驳回原料「{{ rejectTarget?.name }}」，请填写驳回原因：</p>
+        <t-input v-model="rejectComment" placeholder="请输入驳回原因" :maxlength="200" />
+      </div>
+    </t-dialog>
       <!-- 左：近期原料变更 -->
       <div class="activity-card activity-card--timeline">
         <div class="activity-header">
@@ -374,8 +407,8 @@
         </div>
 
         <div class="assistant-empty" v-else>
-          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary-light)" stroke-width="1.5"
-            stroke-linecap="round" stroke-linejoin="round">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary-light)"
+            stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
             <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
             <polyline points="22 4 12 14.01 9 11.01" />
           </svg>
@@ -448,8 +481,8 @@ const fetchStats = async () => {
   try {
     const res = await materialApi.getStats();
     stats.value = res;
-  } catch (e) {
-    console.error('获取原料统计数据失败', e);
+  } catch (_e: unknown) {
+      console.error('获取原料统计数据失败', _e);
   }
 };
 
@@ -526,6 +559,18 @@ const nutrientMax: Record<string, number> = {
 };
 
 const getNutrientLabel = (key: string): string => nutrientLabels[key] || key;
+
+const nutrientUnits: Record<string, string> = {
+  protein: "g",
+  fat: "g",
+  carbohydrate: "g",
+  sodium: "mg",
+  calories: "kJ",
+  dietaryFiber: "g"
+};
+
+const getNutrientUnit = (key: string): string => nutrientUnits[key] || "g";
+
 const getNutrientPercent = (value: number, key: string): number => {
   const max = nutrientMax[key] || 100;
   return Math.min(100, Math.round((value / max) * 100));
@@ -562,7 +607,7 @@ const applySort = () => {
   }
   const dir = sortOrder.value === 'desc' ? -1 : 1;
 
-  const sortFns: Record<string, (a: any, b: any) => number> = {
+  const sortFns: Record<string, (a: Material, b: Material) => number> = {
     name: (a, b) => a.name.localeCompare(b.name, 'zh'),
     materialType: (a, b) => (a.materialType || '').localeCompare(b.materialType || ''),
     unitPrice: (a, b) => (a.unitPrice ?? 0) - (b.unitPrice ?? 0),
@@ -578,7 +623,6 @@ const applySort = () => {
 };
 
 watch(() => materialStore.materials, (val) => {
-  console.log('[MaterialList] materials watcher, count=', val.length);
   if (sortKey.value && sortOrder.value) {
     applySort();
   } else {
@@ -591,21 +635,21 @@ const onExpandChange = (keys: Array<string | number>) => {
   expandedRowKeys.value = keys;
   const newKeys = keys.filter(k => !expandedNutrition.value[String(k)]);
   newKeys.forEach(key => {
-    const row = materialStore.materials.find((m: any) => String(m.id) === String(key));
+    const row = materialStore.materials.find((m: Material) => String(m.id) === String(key));
     if (row) loadExpandedNutrition(row);
   });
 };
 
-const getExpandedNutrition = (row: any): Record<string, number> => {
+const getExpandedNutrition = (row: Material): Record<string, number> => {
   if (!row?.id) return {};
   return expandedNutrition.value[row.id] || {};
 };
 
-const loadExpandedNutrition = async (row: any) => {
+const loadExpandedNutrition = async (row: Material) => {
   if (!row?.id) return;
   if (expandedNutrition.value[row.id]) return;
   try {
-    const res = await nutritionApi.getMaterialNutrition(row.id, true) as any;
+    const res = await nutritionApi.getMaterialNutrition(row.id, true);
     const per100g = res?.per100g || res?.data?.per100g || {};
     if (Object.keys(per100g).length > 0) {
       expandedNutrition.value[row.id] = per100g;
@@ -616,7 +660,7 @@ const loadExpandedNutrition = async (row: any) => {
 };
 
 // 原料头像
-const getMaterialAvatar = (row: any) => {
+const getMaterialAvatar = (row: Material) => {
   const code = row.code || '';
   const name = row.name || '';
   const codeMatch = code.match(/^([A-Z]+)/);
@@ -649,10 +693,10 @@ const dataSourceMap: Record<string, string> = {
   'api_sync': 'API同步',
 };
 
-const getDataSource = (row: any): string => row.dataSource || 'manual';
+const getDataSource = (row: Material): string => row.dataSource || 'manual';
 
-const getDataSourceLabel = (row: any): string => dataSourceMap[getDataSource(row)] || '手动录入';
-const getDataSourceIcon = (row: any): string => {
+const getDataSourceLabel = (row: Material): string => dataSourceMap[getDataSource(row)] || '手动录入';
+const getDataSourceIcon = (row: Material): string => {
   const source = getDataSource(row);
   const icons: Record<string, string> = {
     manual: 'edit',
@@ -682,7 +726,7 @@ const handleBatchDelete = async () => {
     try {
       await materialStore.deleteMaterial(m.id);
       successCount++;
-    } catch (err: any) {
+    } catch {
       failedNames.push(m.name || m.id);
     }
   }
@@ -708,20 +752,21 @@ const columns = computed(() => [
   { colKey: 'row-select', type: 'multiple', width: 50, resizable: false },
   { colKey: 'name', title: sortTitle('原料信息', 'name'), width: 180 },
   { colKey: 'version', title: '版本', width: 100, align: 'center' },
+  { colKey: 'status', title: '状态', width: 100, align: 'center' },
   { colKey: 'dataSource', title: sortTitle('数据源', 'dataSource'), width: 120, align: 'center' },
   { colKey: 'materialType', title: sortTitle('类型', 'materialType'), width: 100, align: 'center' },
   { colKey: 'unitPrice', title: sortTitle('单价(元/kg)', 'unitPrice'), width: 120, align: 'center' },
   { colKey: 'nutrition', title: '营养', width: 110, align: 'center' },
   { colKey: 'stock', title: sortTitle('库存', 'stock'), width: 100, align: 'center' },
   { colKey: 'createdAt', title: sortTitle('创建时间', 'createdAt'), width: 160 },
-  { colKey: 'operation', title: '操作', width: 150, align: 'center', className: 'operation-col-center' }
+  { colKey: 'operation', title: '操作', width: 180, align: 'center', className: 'operation-col-center' }
 ]);
 
 const pagination = computed(() => ({
   current: materialStore.currentPage,
   pageSize: materialStore.pageSize,
   total: materialStore.total,
-  onChange: (pageInfo: any) => {
+  onChange: (pageInfo: { current: number }) => {
     materialStore.setPage(pageInfo.current);
     loadMaterials();
   }
@@ -979,7 +1024,7 @@ const loadNutritionStatus = async () => {
   const map: Record<string, string> = {};
   const promises = materials.map(async (m: Material) => {
     try {
-      const res = await nutritionApi.getMaterialNutrition(m.id) as any;
+      const res = await nutritionApi.getMaterialNutrition(m.id);
       if (res?.per100g) {
         const count = Object.keys(res.per100g).filter(k => res.per100g[k] > 0).length;
         if (count > 0) map[m.id] = `${count}`;
@@ -1085,9 +1130,58 @@ const handleDelete = async (row: Material) => {
     } else {
       MessagePlugin.error(result.message || '删除失败');
     }
-  } catch (e) {
+  } catch {
     MessagePlugin.error('删除失败');
   }
+};
+
+const rejectDialogVisible = ref(false);
+const rejectTarget = ref<Material | null>(null);
+const rejectComment = ref("");
+
+const handleSubmitReview = async (row: Material) => {
+  const result = await materialStore.submitReview(row.id);
+  if (result.success) {
+    MessagePlugin.success("已提交审批");
+  } else {
+    MessagePlugin.error(result.message || "提交审批失败");
+  }
+};
+
+const handleApprove = async (row: Material) => {
+  const result = await materialStore.approveMaterial(row.id);
+  if (result.success) {
+    MessagePlugin.success("审批通过");
+  } else {
+    MessagePlugin.error(result.message || "审批失败");
+  }
+};
+
+const handleOpenReject = (row: Material) => {
+  rejectTarget.value = row;
+  rejectComment.value = "";
+  rejectDialogVisible.value = true;
+};
+
+const handleConfirmReject = async () => {
+  if (!rejectTarget.value) return false;
+  if (!rejectComment.value.trim()) {
+    MessagePlugin.warning("请填写驳回原因");
+    return false;
+  }
+  const result = await materialStore.rejectMaterial(rejectTarget.value.id, rejectComment.value.trim());
+  rejectDialogVisible.value = false;
+  if (result.success) {
+    MessagePlugin.success("已驳回");
+  } else {
+    MessagePlugin.error(result.message || "驳回失败");
+  }
+  return true;
+};
+
+const handleStatusFilterChange = () => {
+  materialStore.setStatusFilter(materialStore.statusFilter);
+  loadMaterials();
 };
 </script>
 
@@ -1853,6 +1947,24 @@ const handleDelete = async (row: Material) => {
       border-color: #fecaca;
     }
 
+    &.submit-btn:hover {
+      color: #3b82f6;
+      background: #eff6ff;
+      border-color: #bfdbfe;
+    }
+
+    &.approve-btn:hover {
+      color: var(--color-primary);
+      background: #ecfdf5;
+      border-color: var(--color-primary-lightest);
+    }
+
+    &.reject-btn:hover {
+      color: var(--color-danger);
+      background: #fef2f2;
+      border-color: #fecaca;
+    }
+
     .t-icon {
       font-size: 18px;
     }
@@ -2511,7 +2623,7 @@ const handleDelete = async (row: Material) => {
 }
 </style>
 
-<style>
+<style lang="scss">
 @use '@/assets/styles/variables.scss' as *;
 
 .material-list .content-card .t-table,

@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
 import { materialApi } from "@/api/material";
-import type { Material, MaterialForm, UpdateResult, MaterialVersion } from "@/api/material";
+import type { Material, MaterialForm, UpdateResult, MaterialVersion, MaterialReviewLog } from "@/api/material";
 import { formatTimestamp } from "@/utils/timeFormat";
 
 export const useMaterialStore = defineStore("material", () => {
@@ -11,6 +11,8 @@ export const useMaterialStore = defineStore("material", () => {
   const currentPage = ref(1);
   const pageSize = ref(8);
   const keyword = ref("");
+  const statusFilter = ref<string>("all");
+  const reviewLogs = ref<MaterialReviewLog[]>([]);
 
   const versions = ref<MaterialVersion[]>([]);
   const versionsLoading = ref(false);
@@ -25,6 +27,7 @@ export const useMaterialStore = defineStore("material", () => {
         keyword: keyword.value || undefined,
         page: currentPage.value,
         pageSize: pageSize.value,
+        status: statusFilter.value !== "all" ? statusFilter.value : undefined,
       });
       materials.value = res.list.map((m: Material) => ({
         ...m,
@@ -116,6 +119,61 @@ export const useMaterialStore = defineStore("material", () => {
     currentPage.value = page;
   };
 
+  const submitReview = async (id: string, comment?: string) => {
+    try {
+      await materialApi.submitReview(id, comment);
+      await fetchMaterials();
+      return { success: true };
+    } catch (error: any) {
+      return { success: false, message: error.message || "提交审批失败" };
+    }
+  };
+
+  const approveMaterial = async (id: string, comment?: string) => {
+    try {
+      await materialApi.approve(id, comment);
+      await fetchMaterials();
+      return { success: true };
+    } catch (error: any) {
+      return { success: false, message: error.message || "审批失败" };
+    }
+  };
+
+  const rejectMaterial = async (id: string, comment: string) => {
+    try {
+      await materialApi.reject(id, comment);
+      await fetchMaterials();
+      return { success: true };
+    } catch (error: any) {
+      return { success: false, message: error.message || "驳回失败" };
+    }
+  };
+
+  const publishMaterial = async (id: string, comment?: string) => {
+    try {
+      await materialApi.publish(id, comment);
+      await fetchMaterials();
+      return { success: true };
+    } catch (error: any) {
+      return { success: false, message: error.message || "发布失败" };
+    }
+  };
+
+  const fetchReviewLogs = async (id: string) => {
+    try {
+      const logs = await materialApi.getReviewLogs(id);
+      reviewLogs.value = logs;
+    } catch (error) {
+      console.error("获取审批日志失败:", error);
+      reviewLogs.value = [];
+    }
+  };
+
+  const setStatusFilter = (val: string) => {
+    statusFilter.value = val;
+    currentPage.value = 1;
+  };
+
   const allMaterials = ref<Material[]>([]);
 
   const fetchAllForSelect = async () => {
@@ -142,6 +200,8 @@ export const useMaterialStore = defineStore("material", () => {
     currentPage,
     pageSize,
     keyword,
+    statusFilter,
+    reviewLogs,
     fetchMaterials,
     fetchAllForSelect,
     getMaterial,
@@ -151,6 +211,12 @@ export const useMaterialStore = defineStore("material", () => {
     setKeyword,
     clearKeyword,
     setPage,
+    submitReview,
+    approveMaterial,
+    rejectMaterial,
+    publishMaterial,
+    fetchReviewLogs,
+    setStatusFilter,
     versions,
     versionsLoading,
     versionMaterialName,

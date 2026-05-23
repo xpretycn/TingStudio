@@ -2,29 +2,57 @@ import { Request, Response } from "express";
 import { query } from "../config/database-better-sqlite3.js";
 import { success, rowsToCamelCase } from "../utils/helpers.js";
 
+function isFormulist(req: any): boolean {
+  return req.user?.role === "formulist";
+}
+
+function getUserFilter(req: any): { clause: string; params: any[] } {
+  if (!isFormulist(req)) {
+    return { clause: "", params: [] };
+  }
+  return { clause: "WHERE created_by = ?", params: [req.user.userId] };
+}
+
 export async function getDashboardStats(req: any, res: Response) {
   try {
-    const token = req.headers.authorization?.replace("Bearer ", "");
-    if (!token) {
-      return res.status(401).json({ success: false, message: "未提供认证令牌" });
+    const userFilter = getUserFilter(req);
+
+    const [formulasResult]: any[] = await query(
+      `SELECT COUNT(*) as total FROM formulas ${userFilter.clause}`,
+      userFilter.params
+    );
+
+    const [materialsResult]: any[] = await query(
+      `SELECT COUNT(*) as total FROM materials ${userFilter.clause}`,
+      userFilter.params
+    );
+
+    let salesSQL: string;
+    let salesParams: any[];
+    if (isFormulist(req)) {
+      salesSQL = `
+        SELECT 
+          COALESCE(SUM(fs.quantity), 0) as totalQuantity,
+          COALESCE(SUM(fs.revenue), 0) as totalRevenue,
+          COUNT(DISTINCT fs.formula_id) as formulaCount
+        FROM formula_sales fs
+        JOIN formulas f ON f.id = fs.formula_id
+        WHERE f.created_by = ? AND fs.period_start >= date('now', 'start of month')
+      `;
+      salesParams = [req.user.userId];
+    } else {
+      salesSQL = `
+        SELECT 
+          COALESCE(SUM(fs.quantity), 0) as totalQuantity,
+          COALESCE(SUM(fs.revenue), 0) as totalRevenue,
+          COUNT(DISTINCT fs.formula_id) as formulaCount
+        FROM formula_sales fs
+        WHERE fs.period_start >= date('now', 'start of month')
+      `;
+      salesParams = [];
     }
 
-    // 并行查询4个核心指标
-    const [formulasResult]: any[] = await query("SELECT COUNT(*) as total FROM formulas");
-
-    const [materialsResult]: any[] = await query("SELECT COUNT(*) as total FROM materials");
-
-    const [salesResult]: any[] = await query(`
-      SELECT 
-        COALESCE(SUM(fs.quantity), 0) as totalQuantity,
-        COALESCE(SUM(fs.revenue), 0) as totalRevenue,
-        COUNT(DISTINCT fs.formula_id) as formulaCount
-      FROM formula_sales fs
-      WHERE fs.period_start >= date('now', 'start of month')
-    `);
-
-    // 待处理任务（这里先返回0，Phase 2完善后对接真实任务系统）
-    const pendingTasksCount = 0;
+    const [salesResult]: any[] = await query(salesSQL, salesParams);
 
     const stats = {
       formulas: formulasResult[0]?.total || 0,
@@ -34,7 +62,7 @@ export async function getDashboardStats(req: any, res: Response) {
         revenue: Number(salesResult[0]?.totalRevenue || 0),
         formulaCount: salesResult[0]?.formulaCount || 0,
       },
-      pendingTasks: pendingTasksCount,
+      pendingTasks: 0,
     };
 
     res.json(success(stats));
@@ -48,28 +76,27 @@ export async function getRecentActivity(req: any, res: Response) {
   try {
     const { limit = 10 } = req.query;
     const limitNum = Math.min(Number(limit), 20);
+    const halfLimit = Math.floor(limitNum / 2);
+    const userFilter = getUserFilter(req);
 
-    // 获取最近更新的配方（最近5条）
     const [recentFormulas]: any[] = await query(
       `
       SELECT id, name, code, updated_at as updatedAt, 'formula' as type
-      FROM formulas
+      FROM formulas ${userFilter.clause}
       ORDER BY updated_at DESC LIMIT ?
     `,
-      [Math.floor(limitNum / 2)],
+      [...userFilter.params, halfLimit],
     );
 
-    // 获取最近更新的原料（最近5条）
     const [recentMaterials]: any[] = await query(
       `
       SELECT id, name, code, updated_at as updatedAt, 'material' as type
-      FROM materials
+      FROM materials ${userFilter.clause}
       ORDER BY updated_at DESC LIMIT ?
     `,
-      [Math.floor(limitNum / 2)],
+      [...userFilter.params, halfLimit],
     );
 
-    // 合并并按时间排序
     const allActivities = [...rowsToCamelCase(recentFormulas), ...rowsToCamelCase(recentMaterials)]
       .sort((a: any, b: any) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
       .slice(0, limitNum);
@@ -97,22 +124,43 @@ export async function getSalesTrend(req: any, res: Response) {
         dateFormat = "%Y";
         groupBy = "strftime('%Y', fs.period_start)";
         break;
-      default: // month
+      default:
         dateFormat = "%Y-%m";
         groupBy = "strftime('%Y-%m', fs.period_start)";
     }
 
-    const [trendData]: any[] = await query(`
-      SELECT 
-        ${groupBy} as period,
-        SUM(fs.quantity) as quantity,
-        SUM(fs.revenue) as revenue,
-        COUNT(*) as orderCount
-      FROM formula_sales fs
-      WHERE fs.period_start >= date('now', '-12 months')
-      GROUP BY period
-      ORDER BY period ASC
-    `);
+    let sql: string;
+    let params: any[];
+    if (isFormulist(req)) {
+      sql = `
+        SELECT 
+          ${groupBy} as period,
+          SUM(fs.quantity) as quantity,
+          SUM(fs.revenue) as revenue,
+          COUNT(*) as orderCount
+        FROM formula_sales fs
+        JOIN formulas f ON f.id = fs.formula_id
+        WHERE f.created_by = ? AND fs.period_start >= date('now', '-12 months')
+        GROUP BY period
+        ORDER BY period ASC
+      `;
+      params = [req.user.userId];
+    } else {
+      sql = `
+        SELECT 
+          ${groupBy} as period,
+          SUM(fs.quantity) as quantity,
+          SUM(fs.revenue) as revenue,
+          COUNT(*) as orderCount
+        FROM formula_sales fs
+        WHERE fs.period_start >= date('now', '-12 months')
+        GROUP BY period
+        ORDER BY period ASC
+      `;
+      params = [];
+    }
+
+    const [trendData]: any[] = await query(sql, params);
 
     res.json(success(rowsToCamelCase(trendData)));
   } catch (error: any) {

@@ -97,10 +97,11 @@ function seedDefaultPromptTemplates(dbInstance: Database.Database) {
 
 function runAutoMigrations(dbInstance: Database.Database) {
   // 0. 检测并移除 materials.code UNIQUE 约束（版本化需要同 code 多版本）
+  // 注意: SQLite 中 CREATE TABLE 声明的 UNIQUE 约束 origin 为 'u'，CREATE INDEX 的为 'c'
   try {
     const indexes = dbInstance.pragma("index_list(materials)") as any[];
     const hasUniqueCode = indexes.some(
-      (idx: any) => idx.origin === "c" && idx.unique === 1 && idx.name !== "sqlite_autoindex_materials_1",
+      (idx: any) => (idx.origin === "c" || idx.origin === "u") && idx.unique === 1 && idx.name !== "sqlite_autoindex_materials_1",
     );
     if (hasUniqueCode) {
       logger.info("数据库迁移: 检测到 materials.code UNIQUE 约束，重建表...");
@@ -120,7 +121,9 @@ function runAutoMigrations(dbInstance: Database.Database) {
           version INTEGER NOT NULL DEFAULT 1,
           previous_version_id TEXT DEFAULT NULL,
           is_latest INTEGER NOT NULL DEFAULT 1,
-          is_deleted INTEGER NOT NULL DEFAULT 0
+          is_deleted INTEGER NOT NULL DEFAULT 0,
+          changes_json TEXT DEFAULT NULL,
+          status TEXT NOT NULL DEFAULT 'draft' CHECK(status IN ('draft', 'pending_review', 'published'))
         )
       `);
       const oldCols = (dbInstance.pragma("table_info(materials)") as any[]).map((c: any) => c.name);
@@ -145,7 +148,7 @@ function runAutoMigrations(dbInstance: Database.Database) {
   try {
     const nutIndexes = dbInstance.pragma("index_list(material_nutrition)") as any[];
     const hasNutUnique = nutIndexes.some(
-      (idx: any) => idx.origin === "c" && idx.unique === 1 && idx.name !== "sqlite_autoindex_material_nutrition_1",
+      (idx: any) => (idx.origin === "c" || idx.origin === "u") && idx.unique === 1 && idx.name !== "sqlite_autoindex_material_nutrition_1",
     );
     if (hasNutUnique) {
       logger.info("数据库迁移: 检测到 material_nutrition.material_id UNIQUE 约束，重建表...");
@@ -187,6 +190,8 @@ function runAutoMigrations(dbInstance: Database.Database) {
   ensureColumn(dbInstance, "materials", "previous_version_id", "TEXT", "NULL");
   ensureColumn(dbInstance, "materials", "is_latest", "INTEGER", "1");
   ensureColumn(dbInstance, "materials", "is_deleted", "INTEGER", "0");
+  ensureColumn(dbInstance, "materials", "changes_json", "TEXT", "NULL");
+  ensureColumn(dbInstance, "materials", "status", "TEXT", "'draft'");
 
   // 营养表版本化字段
   ensureColumn(dbInstance, "material_nutrition", "material_version", "INTEGER", "1");
@@ -818,6 +823,32 @@ function runAutoMigrations(dbInstance: Database.Database) {
     `,
   );
 
+  ensureTable(
+    dbInstance,
+    "material_review_logs",
+    `
+    CREATE TABLE material_review_logs (
+      review_log_id TEXT PRIMARY KEY,
+      material_id TEXT NOT NULL,
+      reviewer_id TEXT NOT NULL,
+      reviewer_name TEXT DEFAULT NULL,
+      action TEXT NOT NULL CHECK(action IN ('submit', 'approve', 'reject', 'publish')),
+      comment TEXT DEFAULT NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      FOREIGN KEY (material_id) REFERENCES materials(id) ON DELETE CASCADE,
+      FOREIGN KEY (reviewer_id) REFERENCES users(id) ON DELETE SET NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_mrl_material ON material_review_logs(material_id);
+    CREATE INDEX IF NOT EXISTS idx_mrl_reviewer ON material_review_logs(reviewer_id);
+    CREATE INDEX IF NOT EXISTS idx_mrl_action ON material_review_logs(action);
+    CREATE INDEX IF NOT EXISTS idx_mrl_created_at ON material_review_logs(created_at)
+    `,
+  );
+
+  try {
+    dbInstance.exec("CREATE INDEX IF NOT EXISTS idx_material_status ON materials(status)");
+  } catch (_err) {}
+
   ensureInitialAiModels(dbInstance);
 }
 
@@ -1019,7 +1050,9 @@ CREATE TABLE IF NOT EXISTS materials (
   version INTEGER NOT NULL DEFAULT 1,
   previous_version_id TEXT DEFAULT NULL,
   is_latest INTEGER NOT NULL DEFAULT 1,
-  is_deleted INTEGER NOT NULL DEFAULT 0
+  is_deleted INTEGER NOT NULL DEFAULT 0,
+  changes_json TEXT DEFAULT NULL,
+  status TEXT NOT NULL DEFAULT 'draft' CHECK(status IN ('draft', 'pending_review', 'published'))
 );
 CREATE INDEX IF NOT EXISTS idx_material_name ON materials(name);
 CREATE INDEX IF NOT EXISTS idx_material_code ON materials(code);
@@ -1027,6 +1060,22 @@ CREATE INDEX IF NOT EXISTS idx_material_version ON materials(version);
 CREATE INDEX IF NOT EXISTS idx_material_previous_version ON materials(previous_version_id);
 CREATE INDEX IF NOT EXISTS idx_material_is_latest ON materials(is_latest);
 CREATE INDEX IF NOT EXISTS idx_material_is_deleted ON materials(is_deleted);
+CREATE INDEX IF NOT EXISTS idx_material_status ON materials(status);
+CREATE TABLE IF NOT EXISTS material_review_logs (
+  review_log_id TEXT PRIMARY KEY,
+  material_id TEXT NOT NULL,
+  reviewer_id TEXT NOT NULL,
+  reviewer_name TEXT DEFAULT NULL,
+  action TEXT NOT NULL CHECK(action IN ('submit', 'approve', 'reject', 'publish')),
+  comment TEXT DEFAULT NULL,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  FOREIGN KEY (material_id) REFERENCES materials(id) ON DELETE CASCADE,
+  FOREIGN KEY (reviewer_id) REFERENCES users(id) ON DELETE SET NULL
+);
+CREATE INDEX IF NOT EXISTS idx_mrl_material ON material_review_logs(material_id);
+CREATE INDEX IF NOT EXISTS idx_mrl_reviewer ON material_review_logs(reviewer_id);
+CREATE INDEX IF NOT EXISTS idx_mrl_action ON material_review_logs(action);
+CREATE INDEX IF NOT EXISTS idx_mrl_created_at ON material_review_logs(created_at);
 CREATE TABLE IF NOT EXISTS formulas (
   id TEXT PRIMARY KEY,
   code TEXT NOT NULL UNIQUE,

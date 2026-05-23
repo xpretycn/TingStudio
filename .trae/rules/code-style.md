@@ -3,7 +3,9 @@
 ## 1. TypeScript 配置
 
 - 后端 `tsconfig.json` 已启用 `strict: true`，所有新增代码**必须**通过严格类型检查
-- 前端 `vue-tsc --noEmit` 为构建前置检查，禁止使用 `any` 除非有明确注释说明原因
+- 前端 `vue-tsc --noEmit` 为构建前置检查
+- **禁止使用 `any` 类型**：新增代码中不允许出现 `any`，必须使用具体类型（如 `Record<string, unknown>`、`unknown`、具体接口等）
+- 存量代码中的 `any` 在修改相关文件时应一并替换为具体类型
 - 目标编译版本：ES2022
 
 ## 2. 命名约定
@@ -59,7 +61,8 @@ import { generateId, success } from "../utils/helpers.js";
 
 ## 6. 禁止行为
 
-- 禁止使用 `// @ts-ignore`，应通过正确类型定义解决问题
+- 禁止使用 `// @ts-ignore`，应通过正确类型定义解决问题（可用 `@ts-expect-error` 并注释原因）
 - 禁止在业务逻辑中使用 `console.log`，使用项目已有的 `logger` 工具
 - 禁止提交未使用的变量和 import
 - 禁止硬编码魔法数字，应提取为命名常量
+- 禁止新增代码使用 `any` 类型，必须定义具体类型

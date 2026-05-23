@@ -420,13 +420,7 @@ const handleGenerate = async () => {
       dataJson: props.reportData.dataJson,
     }
 
-    console.log('[AIAnalysisPanel] 🚀 开始生成 AI 分析报告...')
-    console.log('[AIAnalysisPanel] 报告ID:', reportId)
-    console.log('[AIAnalysisPanel] 报告类型:', props.reportType)
-
     await reportStore.generateAndSaveAIAnalysis(reportId, reportDataForAI, props.reportType)
-
-    console.log('[AIAnalysisPanel] ✅ AI 分析报告生成成功')
 
     MessagePlugin.success({
       content: 'AI 智能分析报告生成完成',
@@ -599,7 +593,7 @@ const handleDownload = () => {
   MessagePlugin.success('报告下载成功')
 }
 
-const statusText = computed(() => {
+const _statusText = computed(() => {
   if (!props.reportData?.id) {
     return '报告数据无效'
   }

@@ -161,7 +161,15 @@ export async function getFormula(req: Request, res: Response) {
       return;
     }
 
-    res.json(success(rowToCamelCase(formula)));
+    const [[currentVer]]: any[][] = await query(
+      "SELECT version_number FROM formula_versions WHERE formula_id = ? AND is_current = 1 LIMIT 1",
+      [id]
+    );
+
+    res.json(success({
+      ...rowToCamelCase(formula),
+      currentVersionNumber: currentVer?.version_number || null,
+    }));
   } catch (error: any) {
     res.status(500).json({ success: false, message: "获取配方失败", error: error.message });
   }
@@ -544,9 +552,23 @@ export async function updateFormula(req: any, res: Response) {
 }
 
 /** 删除配方 */
-export async function deleteFormula(req: Request, res: Response) {
+export async function deleteFormula(req: any, res: Response) {
   try {
     const { id } = req.params;
+    const userId = req.user?.userId;
+    const userRole = req.user?.role;
+
+    const [[formula]]: any[][] = await query("SELECT id, created_by FROM formulas WHERE id = ?", [id]);
+    if (!formula) {
+      res.status(404).json({ success: false, message: "配方不存在" });
+      return;
+    }
+
+    if (userRole !== "admin" && formula.created_by !== userId) {
+      res.status(403).json({ success: false, message: "无权删除他人配方" });
+      return;
+    }
+
     await query("DELETE FROM formulas WHERE id = ?", [id]);
     res.json(success(null, "配方删除成功"));
   } catch (error: any) {

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import { useNutritionStore } from "@/stores/nutrition";
-import { nutritionApi } from "@/api/nutrition";
+import { _nutritionApi } from "@/api/nutrition";
 
 const mockGetMaterialNutrition = vi.hoisted(() => vi.fn(() => Promise.resolve({ protein: 20, carbs: 50 })));
 

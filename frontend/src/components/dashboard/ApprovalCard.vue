@@ -1,11 +1,15 @@
 <script setup lang="ts">
 import { computed } from "vue"
 import { useAuthStore } from "@/stores/auth"
+import { useApprovalStore } from "@/stores/approval"
 import MyApprovalPanel from "./MyApprovalPanel.vue"
 import AdminReviewPanel from "./AdminReviewPanel.vue"
 
 const authStore = useAuthStore()
+const approvalStore = useApprovalStore()
 const isAdmin = computed(() => authStore.user?.role === "admin")
+
+const materialPendingCount = computed(() => approvalStore.materialPendingCount)
 </script>
 
 <template>
@@ -13,10 +17,10 @@ const isAdmin = computed(() => authStore.user?.role === "admin")
     <header class="bento-approval__header">
       <h3 class="bento-approval__title">
         <t-icon name="file-paste" />
-        {{ isAdmin ? "配方审批" : "我的审批" }}
+        {{ isAdmin ? "审批中心" : "我的审批" }}
       </h3>
       <t-tag v-if="isAdmin" theme="warning" variant="light" size="small">
-        审核中心
+        审核 · {{ approvalStore.pendingCount + materialPendingCount }} 项
       </t-tag>
       <t-tag v-else theme="primary" variant="light" size="small">
         提交追踪

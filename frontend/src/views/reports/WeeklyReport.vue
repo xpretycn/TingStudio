@@ -394,14 +394,9 @@ const setChartRef = (key: string) => (el: any) => {
 
 const dailyFormulaTrendOption = computed(() => {
   const data = reportData.value?.formula?.dailyFormulaTrend;
-  console.log(`[WeeklyReport] 🔍 dailyFormulaTrendOption 计算:`);
-  console.log(`   reportData 存在: ${!!reportData.value}`);
-  console.log(`   formula 存在: ${!!reportData.value?.formula}`);
-  console.log(`   dailyFormulaTrend:`, data ? `${data.length} 条` : 'null/undefined');
   if (!data || data.length === 0) return null;
   try {
     const opt = buildDailyFormulaTrendChart(data);
-    console.log(`   ✅ buildDailyFormulaTrendChart 返回有效 option`);
     return opt;
   } catch (e) {
     console.error(`   ❌ buildDailyFormulaTrendChart 异常:`, e);
@@ -411,11 +406,9 @@ const dailyFormulaTrendOption = computed(() => {
 
 const statusDistributionOption = computed(() => {
   const data = reportData.value?.formula?.statusDistribution;
-  console.log(`[WeeklyReport] 🔍 statusDistributionOption 计算:`, data ? `${data.length} 条` : 'null');
   if (!data || data.length === 0) return null;
   try {
     const opt = buildStatusDistributionChart(data);
-    console.log(`   ✅ buildStatusDistributionChart 返回有效 option`);
     return opt;
   } catch (e) {
     console.error(`   ❌ buildStatusDistributionChart 异常:`, e);
@@ -542,7 +535,7 @@ const statusLabel = computed(() => {
   return map[report.value?.status || ''] || '未知';
 });
 
-const statusTheme = computed(() => {
+const _statusTheme = computed(() => {
   const map: Record<string, string> = {
     draft: 'default',
     published: 'success',
@@ -603,13 +596,13 @@ const dashboardCards = computed(() => {
   ];
 });
 
-const formatDate = (dateStr?: string) => {
+const _formatDate = (dateStr?: string) => {
   if (!dateStr) return '--';
   const d = new Date(dateStr);
   return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
 };
 
-const formatDateTime = (dateStr: string) => {
+const _formatDateTime = (dateStr: string) => {
   if (!dateStr) return '';
   const d = new Date(dateStr);
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;

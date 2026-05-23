@@ -46,6 +46,7 @@
             <t-checkbox :checked="isAllSelected" :indeterminate="isIndeterminate" @change="toggleSelectAll" />
           </span>
           <span class="col-name">原料名称</span>
+          <span class="col-version">版本</span>
           <span class="col-qty col-header-unit">用量(g)</span>
           <span class="col-price">单价(元/kg)</span>
           <span class="col-ratio col-header-unit">含量比</span>
@@ -115,6 +116,19 @@
                   {{ isSupplement(idx) ? '辅料' : '药材' }}
                 </t-tag>
               </template>
+            </span>
+            <span class="col-version">
+              <template v-if="row.materialId && props.materialVersions[row.materialId]">
+                <span v-if="props.materialVersions[row.materialId].isLatest" class="version-tag version-tag--latest">
+                  v{{ props.materialVersions[row.materialId].currentVersion }}
+                </span>
+                <t-tooltip v-else :content="`此原料已更新至 v${props.materialVersions[row.materialId].latestVersion}`">
+                  <span class="version-tag version-tag--outdated">
+                    v{{ props.materialVersions[row.materialId].currentVersion }}
+                  </span>
+                </t-tooltip>
+              </template>
+              <span v-else class="version-tag version-tag--none">—</span>
             </span>
             <div class="col-qty-edit">
               <t-input-number :model-value="row.quantity" @change="(val: number) => handleQtyChange(idx, val)" :min="0"
@@ -217,6 +231,7 @@
           <div class="nsz-row nsz-row--header" :style="{ gridTemplateColumns: gridColumns }">
             <span v-if="batchMode" class="col-check"></span>
             <span class="col-unit-header">营养成分</span>
+            <span class="col-unit-header"></span>
             <span class="col-unit-header">总重(g)</span>
             <span class="col-unit-header">¥/kg</span>
             <span class="col-unit-header">含量比(%)</span>
@@ -234,6 +249,7 @@
           <div class="nsz-row nsz-row--total" :style="{ gridTemplateColumns: gridColumns }">
             <span v-if="batchMode" class="col-check"></span>
             <span class="col-total-label">合计</span>
+            <span class="col-version"></span>
             <span class="col-total-qty">{{ totalQuantity }} g</span>
             <span class="col-price"></span>
             <span class="col-ratio col-ratio--total" :class="'ratio-level--' + ratioValidation.level">
@@ -256,6 +272,7 @@
             <div class="nsz-row nsz-row--nrv" :style="{ gridTemplateColumns: gridColumns }">
               <span v-if="batchMode" class="col-check"></span>
               <span class="col-total-label col-total-label--nrv">NRV</span>
+              <span class="col-version"></span>
               <span class="col-total-qty"></span>
               <span class="col-price"></span>
               <span class="col-ratio"></span>
@@ -270,6 +287,7 @@
             <div class="nsz-row nsz-row--nrv-pct" :style="{ gridTemplateColumns: gridColumns }">
               <span v-if="batchMode" class="col-check"></span>
               <span class="col-total-label col-total-label--nrv-pct">NRV%</span>
+              <span class="col-version"></span>
               <span class="col-total-qty"></span>
               <span class="col-price"></span>
               <span class="col-ratio"></span>
@@ -334,9 +352,11 @@ const props = withDefaults(
     ratioFactor: number;
     supplementRatioFactor: number;
     supplementPriceMap?: Record<string, number>;
+    materialVersions?: Record<string, { currentVersion: number; latestVersion: number; isLatest: boolean }>;
   }>(),
   {
     supplementPriceMap: () => ({}),
+    materialVersions: () => ({}),
   }
 );
 
@@ -358,10 +378,10 @@ const restoreFlashIdx = ref<number | null>(null);
 const nutritionCache = ref<Record<string, NutritionPer100g>>({});
 const nutritionLoading = ref<Set<string>>(new Set());
 
-const parseGridBase = "1fr 85px 85px 80px 70px 70px 110px";
-const parseGridBatch = "36px 1fr 80px 110px 80px 72px 90px 50px";
-const editGridBase = "1fr 80px 110px 80px 90px 90px 80px 90px 80px 90px 110px";
-const editGridBatch = "36px 1fr 80px 110px 80px 90px 90px 80px 90px 80px 90px 100px";
+const parseGridBase = "1fr 60px 85px 85px 80px 70px 70px 110px";
+const parseGridBatch = "36px 1fr 60px 80px 110px 80px 72px 90px 50px";
+const editGridBase = "1fr 60px 80px 110px 80px 90px 90px 80px 90px 80px 90px 110px";
+const editGridBatch = "36px 1fr 60px 80px 110px 80px 90px 90px 80px 90px 80px 90px 100px";
 
 const gridColumns = computed(() => {
   if (props.mode === "edit") {
@@ -1292,6 +1312,39 @@ watch(
         padding: 0 4px;
         height: 18px;
         line-height: 16px;
+      }
+    }
+
+    .col-version {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      .version-tag {
+        display: inline-flex;
+        align-items: center;
+        padding: 1px 6px;
+        border-radius: 10px;
+        font-size: 10px;
+        font-weight: 600;
+        font-family: ui-monospace, SFMono-Regular, "Cascadia Code", monospace;
+        line-height: 16px;
+        white-space: nowrap;
+      }
+
+      .version-tag--latest {
+        background: rgba(16, 185, 129, 0.1);
+        color: #059669;
+      }
+
+      .version-tag--outdated {
+        background: rgba(245, 158, 11, 0.1);
+        color: #d97706;
+        cursor: help;
+      }
+
+      .version-tag--none {
+        color: var(--td-text-color-disabled);
       }
     }
 

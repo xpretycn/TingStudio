@@ -2,8 +2,8 @@
   <div class="substitute-card">
     <div class="card-header">
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-        <path d="M4 12L8 4l4 8" stroke="var(--color-primary)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
-        <circle cx="8" cy="9" r="1" fill="var(--color-primary)"/>
+        <path d="M4 12L8 4l4 8" stroke="var(--color-primary)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" />
+        <circle cx="8" cy="9" r="1" fill="var(--color-primary)" />
       </svg>
       <span>原料替代建议</span>
     </div>

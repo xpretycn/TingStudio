@@ -382,7 +382,7 @@ async function triggerCleanup(dryRun: boolean = false) {
     });
     await fetchDegradation();
     await fetchStatistics();
-  } catch (error: any) {
+  } catch {
     MessagePlugin.error('清理操作失败');
   } finally {
     cleanupLoading.value = false;

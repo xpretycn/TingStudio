@@ -2,8 +2,8 @@
   <div class="compare-card">
     <div class="card-header">
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-        <rect x="2" y="3" width="5" height="10" rx="1" stroke="var(--color-primary)" stroke-width="1.2" fill="none"/>
-        <rect x="9" y="3" width="5" height="10" rx="1" stroke="var(--color-primary)" stroke-width="1.2" fill="none"/>
+        <rect x="2" y="3" width="5" height="10" rx="1" stroke="var(--color-primary)" stroke-width="1.2" fill="none" />
+        <rect x="9" y="3" width="5" height="10" rx="1" stroke="var(--color-primary)" stroke-width="1.2" fill="none" />
       </svg>
       <span>配方对比分析</span>
     </div>

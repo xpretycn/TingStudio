@@ -468,6 +468,7 @@ watch(() => props.mode, (newMode) => {
 
 watch(currentMode, (newMode) => {
   if (newMode !== props.mode) {
+    // ignore mode drift
   }
 });
 
@@ -657,6 +658,7 @@ const handleDragStart = (event: DragEvent, index: number) => {
 
 const handleDragOver = (_event: DragEvent, index: number) => {
   if (draggedIndex !== null && draggedIndex !== index) {
+    // drag over different position
   }
 };
 

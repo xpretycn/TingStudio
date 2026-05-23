@@ -1,32 +1,11 @@
 <template>
   <div class="dashboard-page">
     <div class="bento-grid">
-      <!-- 欢迎卡片 -->
-      <section class="bento-card bento-welcome">
-        <div class="welcome-inner">
-          <div class="welcome-text">
-            <h2 class="welcome-greeting">{{ greeting }}，{{ username }}</h2>
-            <p class="welcome-sub">{{ greetingSub }}</p>
-          </div>
-          <div class="welcome-meta">
-            <div class="meta-date">
-              <span class="meta-day">{{ todayDay }}</span>
-              <span class="meta-weekday">{{ todayWeekday }}</span>
-            </div>
-            <div class="meta-weather" v-if="weatherStore.hasWeather">
-              <span class="weather-emoji">{{ weatherStore.weatherEmoji }}</span>
-              <span class="weather-temp">{{ weatherStore.temperature }}°</span>
-              <span class="weather-city">{{ weatherStore.cityName }}</span>
-            </div>
-          </div>
-        </div>
-      </section>
       <!-- 统计卡片 -->
       <section v-for="item in statCards" :key="item.key" class="bento-card bento-stat"
         :class="[`bento-stat--${item.key}`]" @click="item.route && router.push(item.route)">
         <div class="stat-icon-wrap" :style="{ background: item.iconBg }">
           <t-icon :name="item.icon" size="22px" :style="{ color: item.iconColor }" />
-          <t-badge v-if="item.badge" :count="item.badge" size="small" class="stat-badge" />
         </div>
         <div class="stat-body">
           <span class="stat-value">
@@ -54,31 +33,65 @@
           <div class="card-header">
             <h3 class="card-title">快捷操作</h3>
           </div>
-          <div class="quick-body">
-            <button class="quick-btn" @click="router.push('/formulas/new')">
-              <div class="quick-icon" style="background: rgba(16, 185, 129, 0.1);">
-                <t-icon name="add" size="20px" style="color: var(--color-primary);" />
-              </div>
-              <span>新建配方</span>
-            </button>
-            <button class="quick-btn" @click="router.push('/materials/new')">
-              <div class="quick-icon" style="background: rgba(59, 130, 246, 0.1);">
-                <t-icon name="chart-bar" size="20px" style="color: #3b82f6;" />
-              </div>
-              <span>新增原料</span>
-            </button>
-            <button class="quick-btn" @click="router.push('/ai-assistant')">
-              <div class="quick-icon" style="background: rgba(168, 85, 247, 0.1);">
-                <t-icon name="precise-monitor" size="20px" style="color: #a855f7;" />
-              </div>
-              <span>AI 助手</span>
-            </button>
-            <button class="quick-btn" @click="router.push('/sales')">
-              <div class="quick-icon" style="background: rgba(245, 158, 11, 0.1);">
-                <t-icon name="chart" size="20px" style="color: var(--color-warning);" />
-              </div>
-              <span>销量分析</span>
-            </button>
+          <div class="quick-body" :class="{ 'quick-body--formulist': !isAdmin }">
+            <template v-if="!isAdmin">
+              <button class="quick-btn" @click="router.push('/ai-assistant')">
+                <div class="quick-icon" style="background: rgba(168, 85, 247, 0.1);">
+                  <t-icon name="precise-monitor" size="20px" style="color: #a855f7;" />
+                </div>
+                <span>AI 助手</span>
+              </button>
+              <button class="quick-btn" @click="router.push('/smart-tools')">
+                <div class="quick-icon" style="background: rgba(16, 185, 129, 0.1);">
+                  <t-icon name="tools" size="20px" style="color: var(--color-primary);" />
+                </div>
+                <span>智能工具</span>
+              </button>
+              <button class="quick-btn" @click="router.push('/formulas')">
+                <div class="quick-icon" style="background: rgba(59, 130, 246, 0.1);">
+                  <t-icon name="edit" size="20px" style="color: #3b82f6;" />
+                </div>
+                <span>配方管理</span>
+              </button>
+              <button class="quick-btn" @click="router.push('/materials')">
+                <div class="quick-icon" style="background: rgba(245, 158, 11, 0.1);">
+                  <t-icon name="chart-bar" size="20px" style="color: var(--color-warning);" />
+                </div>
+                <span>原料管理</span>
+              </button>
+              <button class="quick-btn" @click="router.push('/reports')">
+                <div class="quick-icon" style="background: rgba(239, 68, 68, 0.1);">
+                  <t-icon name="file-icon" size="20px" style="color: var(--color-danger);" />
+                </div>
+                <span>报告中心</span>
+              </button>
+            </template>
+            <template v-else>
+              <button class="quick-btn" @click="router.push('/formulas/new')">
+                <div class="quick-icon" style="background: rgba(16, 185, 129, 0.1);">
+                  <t-icon name="add" size="20px" style="color: var(--color-primary);" />
+                </div>
+                <span>新建配方</span>
+              </button>
+              <button class="quick-btn" @click="router.push('/system')">
+                <div class="quick-icon" style="background: rgba(59, 130, 246, 0.1);">
+                  <t-icon name="setting" size="20px" style="color: #3b82f6;" />
+                </div>
+                <span>系统管理</span>
+              </button>
+              <button class="quick-btn" @click="router.push('/model-management')">
+                <div class="quick-icon" style="background: rgba(168, 85, 247, 0.1);">
+                  <t-icon name="control-platform" size="20px" style="color: #a855f7;" />
+                </div>
+                <span>模型管理</span>
+              </button>
+              <button class="quick-btn" @click="router.push('/users')">
+                <div class="quick-icon" style="background: rgba(245, 158, 11, 0.1);">
+                  <t-icon name="user" size="20px" style="color: var(--color-warning);" />
+                </div>
+                <span>用户管理</span>
+              </button>
+            </template>
           </div>
         </section>
         <!-- 配方卡片 -->
@@ -212,7 +225,6 @@ import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
 import { useDashboardStore } from "@/stores/dashboard";
 import { useFormulaStore } from "@/stores/formula";
-import { useWeatherStore } from "@/stores/weather";
 import { formatCompact } from "@/utils/timeFormat";
 import * as echarts from "echarts";
 import ApprovalCard from "@/components/dashboard/ApprovalCard.vue";
@@ -222,7 +234,6 @@ const router = useRouter();
 const authStore = useAuthStore();
 const dashboardStore = useDashboardStore();
 const formulaStore = useFormulaStore();
-const weatherStore = useWeatherStore();
 const approvalStore = useApprovalStore();
 
 const isAdmin = computed(() => authStore.user?.role === "admin");
@@ -237,36 +248,49 @@ const chartTabs = [
   { label: "年", value: "year" as const },
 ];
 
-const username = computed(() => authStore.user?.username || "用户");
-
-const greeting = computed(() => {
-  const hour = new Date().getHours();
-  if (hour < 6) return "夜深了";
-  if (hour < 12) return "早上好";
-  if (hour < 14) return "中午好";
-  if (hour < 18) return "下午好";
-  return "晚上好";
-});
-
-const greetingSub = computed(() => {
-  const subs = [
-    "今天准备创造点什么？",
-    "让灵感驱动每一份配方",
-    "数据在手，配方无忧",
-    "高效工作，从容创作",
-  ];
-  return subs[new Date().getDate() % subs.length];
-});
-
-const todayDay = computed(() => String(new Date().getDate()).padStart(2, "0"));
-const todayWeekday = computed(() => {
-  const weekdays = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
-  return weekdays[new Date().getDay()];
-});
-
 const statCards = computed(() => {
   const s = dashboardStore.stats;
-  const cards = [
+  if (!isAdmin.value) {
+    return [
+      {
+        key: "myFormulas",
+        label: "我的配方",
+        display: s ? formatCompact(s.formulas) : "--",
+        icon: "edit",
+        iconBg: "rgba(16, 185, 129, 0.1)",
+        iconColor: "var(--color-primary)",
+        route: "/formulas",
+      },
+      {
+        key: "myMaterials",
+        label: "我的原料",
+        display: s ? formatCompact(s.materials) : "--",
+        icon: "chart-bar",
+        iconBg: "rgba(59, 130, 246, 0.1)",
+        iconColor: "#3b82f6",
+        route: "/materials",
+      },
+      {
+        key: "myRevenue",
+        label: "本月营收",
+        display: s ? `¥${formatCompact(s.sales.revenue)}` : "--",
+        icon: "chart",
+        iconBg: "rgba(245, 158, 11, 0.1)",
+        iconColor: "var(--color-warning)",
+        route: "/sales",
+      },
+      {
+        key: "myReport",
+        label: "本月报告",
+        display: s ? `${s.sales.formulaCount} 款` : "--",
+        icon: "file-icon",
+        iconBg: "rgba(168, 85, 247, 0.1)",
+        iconColor: "#a855f7",
+        route: "/reports",
+      },
+    ] as const;
+  }
+  return [
     {
       key: "formulas",
       label: "配方总数",
@@ -303,21 +327,17 @@ const statCards = computed(() => {
       iconColor: "#a855f7",
       route: "/sales",
     },
-  ] as Array<{
-    key: string;
-    label: string;
-    display: string;
-    icon: string;
-    iconBg: string;
-    iconColor: string;
-    route: string;
-    badge?: number;
-  }>;
-
-  return cards;
+  ] as const;
 });
 
-const featuredFormulas = computed(() => formulaStore.formulas.slice(0, 3));
+const featuredFormulas = computed(() => {
+  const all = formulaStore.formulas;
+  if (!isAdmin.value) {
+    const userId = authStore.user?.id;
+    return all.filter((f) => f.createdBy === userId).slice(0, 3);
+  }
+  return all.slice(0, 3);
+});
 
 const FORMULA_GRADIENTS = [
   "linear-gradient(135deg, var(--color-primary), var(--color-primary-light))",
@@ -579,87 +599,6 @@ onUnmounted(() => {
 
     .bento-card {
       flex: 1;
-    }
-  }
-}
-
-.bento-welcome {
-  grid-column: 1 / -1;
-  background: linear-gradient(135deg, #0f172a 0%, var(--color-text-primary) 100%);
-  color: #fff;
-  border: none;
-  padding: var(--space-7) 32px;
-
-  &:hover {
-    transform: none;
-    box-shadow: 0 8px 32px rgba(15, 23, 42, 0.2);
-  }
-
-  .welcome-inner {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 24px;
-  }
-
-  .welcome-greeting {
-    font-size: 24px;
-    font-weight: 700;
-    margin: 0 0 var(--space-1-5);
-    letter-spacing: -0.3px;
-  }
-
-  .welcome-sub {
-    font-size: 14px;
-    color: rgba(255, 255, 255, 0.6);
-    margin: 0;
-  }
-
-  .welcome-meta {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    flex-shrink: 0;
-  }
-
-  .meta-date {
-    display: flex;
-    align-items: baseline;
-    gap: var(--space-1-5);
-
-    .meta-day {
-      font-size: 32px;
-      font-weight: 700;
-      line-height: 1;
-    }
-
-    .meta-weekday {
-      font-size: 14px;
-      color: rgba(255, 255, 255, 0.5);
-    }
-  }
-
-  .meta-weather {
-    display: flex;
-    align-items: center;
-    gap: var(--space-1-5);
-    padding: 8px var(--space-3-5);
-    background: rgba(255, 255, 255, 0.08);
-    border-radius: 12px;
-    backdrop-filter: blur(8px);
-
-    .weather-emoji {
-      font-size: 18px;
-    }
-
-    .weather-temp {
-      font-size: 16px;
-      font-weight: 600;
-    }
-
-    .weather-city {
-      font-size: 12px;
-      color: rgba(255, 255, 255, 0.5);
     }
   }
 }
@@ -978,6 +917,14 @@ onUnmounted(() => {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: var(--space-2-5);
+
+    &--formulist {
+      grid-template-columns: repeat(3, 1fr);
+
+      .quick-btn:last-child:nth-child(5) {
+        grid-column: 2;
+      }
+    }
   }
 
   .quick-btn {
@@ -1145,10 +1092,6 @@ onUnmounted(() => {
     grid-template-columns: repeat(2, 1fr);
   }
 
-  .bento-welcome {
-    grid-column: 1 / -1;
-  }
-
   .bento-grid__col--left,
   .bento-grid__col--right {
     grid-column: 1 / -1;
@@ -1171,26 +1114,6 @@ onUnmounted(() => {
   .bento-grid {
     grid-template-columns: 1fr;
     gap: 12px;
-  }
-
-  .bento-welcome {
-    grid-column: 1;
-    padding: 20px;
-
-    .welcome-inner {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 16px;
-    }
-
-    .welcome-greeting {
-      font-size: 20px;
-    }
-
-    .welcome-meta {
-      width: 100%;
-      justify-content: space-between;
-    }
   }
 
   .bento-stat {
@@ -1227,12 +1150,6 @@ onUnmounted(() => {
     border-radius: 12px;
   }
 
-  .bento-welcome {
-    .meta-day {
-      font-size: 24px;
-    }
-  }
-
   .bento-quick .quick-body {
     grid-template-columns: 1fr;
   }
@@ -1246,10 +1163,6 @@ onUnmounted(() => {
     &:hover {
       box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3), 0 2px 8px rgba(0, 0, 0, 0.2);
     }
-  }
-
-  .bento-welcome {
-    background: linear-gradient(135deg, #0c1222 0%, #162033 100%);
   }
 
   .bento-stat {

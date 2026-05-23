@@ -12,7 +12,7 @@
     </Transition>
     <button v-if="!showCommands" class="cmd-toggle" @click="showCommands = true">
       <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
-        <path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        <path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
       </svg>
       指令模板
     </button>
@@ -21,7 +21,7 @@
         rows="1" @keydown.enter.exact.prevent="handleSend" @input="autoResize" />
       <button class="send-btn" :disabled="disabled || !text.trim()" @click="handleSend">
         <svg width="18" height="18" viewBox="0 0 16 16" fill="none">
-          <path d="M2 8l12-6-5 12-2-5-5-2z" fill="currentColor"/>
+          <path d="M2 8l12-6-5 12-2-5-5-2z" fill="currentColor" />
         </svg>
       </button>
     </div>

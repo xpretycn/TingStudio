@@ -257,7 +257,7 @@
                 <div class="section-title-group">
                   <svg class="section-title-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
                     stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                    <path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
                   </svg>
                   <h4 class="section-title-text">提示词模板</h4>
                 </div>
@@ -664,7 +664,7 @@
                     <div class="fa-card-header-left">
                       <svg class="fa-card-icon" width="18" height="18" viewBox="0 0 24 24" fill="none"
                         stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                       </svg>
                       <span class="fa-card-title">基本配置</span>
                     </div>
@@ -707,7 +707,7 @@
                     <div class="fa-card-header-left">
                       <svg class="fa-card-icon" width="18" height="18" viewBox="0 0 24 24" fill="none"
                         stroke="#8B5CF6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                        <circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
                       </svg>
                       <span class="fa-card-title">外观设置</span>
                     </div>
@@ -748,7 +748,7 @@
                     <div class="fa-card-header-left">
                       <svg class="fa-card-icon" width="18" height="18" viewBox="0 0 24 24" fill="none"
                         stroke="var(--color-warning)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
                       </svg>
                       <span class="fa-card-title">行为策略</span>
                     </div>
@@ -1489,32 +1489,23 @@ const availableModules = computed(() => {
 
 const fetchUsageWithMinLoading = async (showLoading = true) => {
   if (showLoading) {
-    console.log('[Loading] === 开始显示loading状态 ===');
     usageLoading.value = true;
     await nextTick();
     await new Promise(resolve => setTimeout(resolve, 100));
-    console.log('[Loading] Loading动画已显示');
   }
 
   try {
-    console.log('[Loading] 开始加载API数据...');
     await modelStore.fetchUsageStats();
-    console.log('[Loading] ✅ API数据加载完成');
 
-    // 关键：先关闭loading，让图表容器的DOM元素出现
     if (showLoading) {
-      console.log('[Loading] 关闭loading以显示图表容器...');
       usageLoading.value = false;
-      await nextTick(); // 等待Vue创建chart-container的DOM
-      await new Promise(resolve => setTimeout(resolve, 300)); // 等待浏览器完成DOM渲染
-      console.log('[Loading] ✅ 图表容器DOM已准备就绪');
+      await nextTick();
+      await new Promise(resolve => setTimeout(resolve, 300));
     }
 
-    console.log('[Loading] 开始渲染ECharts图表...');
     renderCharts();
     await nextTick();
     await new Promise(resolve => setTimeout(resolve, 200));
-    console.log('[Loading] ✅ ECharts图表渲染完成');
 
   } catch (error) {
     console.error('[Loading] ❌ 加载过程出错:', error);
@@ -1960,7 +1951,7 @@ async function refreshUsageStats() {
   }
 }
 
-async function handleLogPageChange({ current }: { current: number; }) {
+async function _handleLogPageChange({ current }: { current: number; }) {
   logPage.value = current;
   await modelStore.fetchUsageLogs({ page: current, pageSize: logPageSize.value, ...logFilters.value });
 }
@@ -2151,7 +2142,7 @@ const logColumns = [
           const filePatterns = [
             /(['"])([^'"]+\.(?:xlsx?|csv|txt))\1/i,
             /[:：]\s*([^\s:]+\.(?:xlsx?|csv|txt))/i,
-            /(.*[\\\/])?([^\s:]+\.(?:xlsx?|csv|txt))/i
+            /(.*[\\/])?([^\s:]+\.(?:xlsx?|csv|txt))/i
           ];
 
           for (const pattern of filePatterns) {
@@ -2163,7 +2154,7 @@ const logColumns = [
                 const bytes = new Uint8Array([...filenamePart].map(char => char.charCodeAt(0)));
                 const decoder = new TextDecoder('utf-8', { fatal: false });
                 const decodedFilename = decoder.decode(bytes);
-                if (/[\u4e00-\u9fa5a-zA-Z0-9._\-]/.test(decodedFilename) && !/[\x80-\xFF]/.test(decodedFilename)) {
+                if (/[\u4e00-\u9fa5a-zA-Z0-9._-]/.test(decodedFilename) && !/[\x80-\xFF]/.test(decodedFilename)) {
                   return prefix + decodedFilename;
                 }
               }
@@ -2408,7 +2399,7 @@ const savePromptTemplate = async () => {
     } else {
       MessagePlugin.error(data.message || "操作失败");
     }
-  } catch (error) {
+  } catch {
     MessagePlugin.error("操作失败");
   }
 };
@@ -2425,7 +2416,7 @@ const deletePromptTemplate = async (id: string) => {
       MessagePlugin.success("模板已删除");
       fetchPromptTemplates();
     }
-  } catch (error) {
+  } catch {
     MessagePlugin.error("删除失败");
   }
 };

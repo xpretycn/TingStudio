@@ -18,7 +18,8 @@
           </nav>
           <!-- 标题行（名称 + 版本标签同行） -->
           <h2 class="formula-title">
-            {{ isEdit ? '编辑配方' : '新增配方' }}
+            {{ isEdit ? (formData.name || '编辑配方') : '新增配方' }}
+            <span v-if="isEdit && currentVersionNumber" class="title-version-tag">{{ currentVersionNumber }}</span>
           </h2>
         </div>
       </div>
@@ -32,13 +33,35 @@
         <button class="header-action-btn" @click="handleSubmit({ validateResult: true })" aria-label="保存配方"
           data-testid="formula-save-btn" :disabled="submitBlockReasons.some(r => r.type === 'error')">
           <t-icon name="save" class="btn-icon" />
-          {{submitBlockReasons.some(r => r.type === 'error') ? '校验未通过' : (isEdit ? '保存' : '创建')}}
+          {{ submitBlockReasons.some(r => r.type === 'error') ? '校验未通过' : (isEdit ? '保存' : '创建') }}
         </button>
       </div>
     </header>
 
     <!-- 主内容区域 垂直二区域布置-->
     <main class="form-main">
+      <t-alert v-if="isEdit && hasMaterialUpdates" theme="warning" class="snapshot-refresh-alert">
+        <template #message>
+          <div class="alert-content">
+            <div class="alert-title">部分原料已有新版本</div>
+            <div class="alert-details">
+              <span v-for="mu in materialUpdatesInfo.filter(m => !m.isLatest)" :key="mu.materialId"
+                class="alert-detail-item">
+                {{ mu.materialName }}: v{{ mu.currentVersion }} → v{{ mu.latestVersion }}
+                <span v-if="mu.priceChanged" class="alert-price-change">(单价已变更)</span>
+              </span>
+            </div>
+            <div class="alert-warning">刷新快照将更新配方中的营养数据，可能影响营养分析结果</div>
+            <div class="alert-actions">
+              <button class="alert-btn alert-btn--dismiss" @click="hasMaterialUpdates = false">暂不刷新</button>
+              <button class="alert-btn alert-btn--refresh" :disabled="refreshingSnapshot"
+                @click="handleRefreshSnapshot">
+                {{ refreshingSnapshot ? '刷新中...' : '立即刷新快照' }}
+              </button>
+            </div>
+          </div>
+        </template>
+      </t-alert>
       <t-form ref="formRef" :data="formData" :rules="rules" scroll-to-first-error @submit="handleSubmit">
         <div class="form-vertical-layout">
 
@@ -199,7 +222,8 @@
                 <MaterialTableCore :materials="materialTableRows" mode="edit"
                   :finished-weight="formData.finishedWeight || 0" :ratio-factor="formData.ratioFactor ?? 0.18"
                   :supplement-ratio-factor="formData.supplementRatioFactor ?? 1.0"
-                  :supplement-price-map="supplementPriceMap" @update:materials="handleMaterialsUpdate"
+                  :supplement-price-map="supplementPriceMap" :material-versions="materialVersionsMap"
+                  @update:materials="handleMaterialsUpdate"
                   @update:ratio-factor="(val: number) => formData.ratioFactor = val"
                   @update:supplement-ratio-factor="(val: number) => formData.supplementRatioFactor = val"
                   @update:finished-weight="(val: number) => formData.finishedWeight = val"
@@ -311,7 +335,8 @@
                         <label><t-icon name="chart-pie" size="14px" class="qs-label-icon" /> 利润率</label>
                         <div class="qs-input-wrap"><t-input-number v-model="formData.profitMargin" :min="0" :max="999"
                             :precision="1" size="small" theme="normal" style="width:90px" /><span
-                            class="qs-unit">%</span></div>
+                            class="qs-unit">%</span>
+                        </div>
                       </div>
                       <div class="qs-divider qs-divider--bold"></div>
                       <div class="qs-row qs-final">
@@ -345,8 +370,8 @@
                       <template #icon>
                         <t-icon name="check-circle" />
                       </template>
-                      {{submitBlockReasons.some(r => r.type === 'error') ? `存在 ${submitBlockReasons.filter(r =>
-                        r.type === 'error').length} 项错误，无法提交` : (isEdit ? '保存配方' : '创建配方')}}
+                      {{ submitBlockReasons.some(r => r.type === 'error') ? `存在 ${submitBlockReasons.filter(r =>
+                        r.type === 'error').length} 项错误，无法提交` : (isEdit ? '保存配方' : '创建配方') }}
                     </t-button>
                   </div>
                 </div>
@@ -358,8 +383,8 @@
       </t-form>
     </main>
 
-    <QuickCreateSalesmanDialog v-model:visible="showQuickCreateSalesman" :default-name="parsedSalesmanName"
-      @created="onQuickSalesmanCreated" />
+    <QuickCreateSalesmanDialog :visible="showQuickCreateSalesman" @update:visible="showQuickCreateSalesman = $event"
+      :default-name="parsedSalesmanName" @created="onQuickSalesmanCreated" />
   </div>
 </template>
 
@@ -379,6 +404,8 @@ import type { ParsedMaterial } from '@/api/excelImport';
 import QuickCreateSalesmanDialog from '@/components/QuickCreateSalesmanDialog.vue';
 import MaterialTableCore from '@/components/formula/MaterialTableCore.vue';
 import type { MaterialTableRow } from '@/components/formula/MaterialTableCore.vue';
+import { versionApi } from '@/api/version';
+import type { MaterialUpdateInfo } from '@/api/version';
 
 const router = useRouter();
 const route = useRoute();
@@ -394,6 +421,10 @@ const versionReasonError = ref(false);
 const aiLoadingDescription = ref(false);
 const aiLoadingPreparation = ref(false);
 const aiLoadingVersionReason = ref(false);
+const materialVersionsMap = ref<Record<string, { currentVersion: number; latestVersion: number; isLatest: boolean }>>({});
+const materialUpdatesInfo = ref<MaterialUpdateInfo[]>([]);
+const hasMaterialUpdates = ref(false);
+const refreshingSnapshot = ref(false);
 
 
 // ratioFactor 含量比实时校验（前端本地计算，无需请求后端）
@@ -529,6 +560,7 @@ const priceQuote = computed(() => {
 });
 
 const isEdit = computed(() => !!route.params.id);
+const currentVersionNumber = ref('');
 
 const submitBlockReasons = computed(() => {
   const reasons: { type: 'error' | 'warning'; message: string }[] = [];
@@ -927,6 +959,63 @@ const handleBack = () => {
   });
 };
 
+async function handleRefreshSnapshot() {
+  const id = route.params.id as string;
+  if (!id) return;
+
+  refreshingSnapshot.value = true;
+  try {
+    const outdatedIds = materialUpdatesInfo.value
+      .filter((m) => !m.isLatest)
+      .map((m) => m.materialId);
+
+    await versionApi.refreshSnapshot(id, { materialIds: outdatedIds });
+    MessagePlugin.success("原料快照已刷新至最新版本");
+    hasMaterialUpdates.value = false;
+
+    const formula = await formulaStore.getFormula(id);
+    if (formula) {
+      const allMats = materialStore.allMaterials ?? [];
+      const materials = (formula.materials || []).map((m: any) => {
+        let materialId = m.materialId;
+        if (!allMats.find(mat => mat.id === materialId) && m.materialName) {
+          const matched = allMats.find(mat => mat.name === m.materialName);
+          if (matched) materialId = matched.id;
+        }
+        const matFromStore = allMats.find((x: any) => x.id === materialId);
+        const materialType = matFromStore?.materialType || m.materialType || 'herb';
+        const item: any = { materialId, materialName: m.materialName, quantity: m.quantity, materialType };
+        if (m.adjustedPrice != null) item.adjustedPrice = m.adjustedPrice;
+        return item;
+      });
+      formData.materials = materials;
+    }
+
+    try {
+      const updatesResult = await versionApi.getMaterialUpdates(id);
+      if (updatesResult) {
+        materialUpdatesInfo.value = updatesResult.materials || [];
+        hasMaterialUpdates.value = updatesResult.hasUpdates || false;
+        const map: Record<string, { currentVersion: number; latestVersion: number; isLatest: boolean }> = {};
+        for (const mu of updatesResult.materials || []) {
+          map[mu.materialId] = {
+            currentVersion: mu.currentVersion || 1,
+            latestVersion: mu.latestVersion || mu.currentVersion || 1,
+            isLatest: mu.isLatest,
+          };
+        }
+        materialVersionsMap.value = map;
+      }
+    } catch {
+      // ignore
+    }
+  } catch (error: any) {
+    MessagePlugin.error(error.message || "刷新快照失败");
+  } finally {
+    refreshingSnapshot.value = false;
+  }
+}
+
 onMounted(async () => {
   await Promise.all([
     salesmanStore.fetchAllForSelect(),
@@ -937,6 +1026,9 @@ onMounted(async () => {
   if (isEdit.value && id) {
     const formula = await formulaStore.getFormula(id);
     if (formula) {
+      if (formula.currentVersionNumber) {
+        currentVersionNumber.value = formula.currentVersionNumber;
+      }
       const allMats = materialStore.allMaterials ?? [];
       const materials = (formula.materials || []).map((m: any) => {
         let materialId = m.materialId;
@@ -979,6 +1071,25 @@ onMounted(async () => {
       } catch (e) {
         console.warn('获取报价补充数据失败:', e);
       }
+
+      try {
+        const updatesResult = await versionApi.getMaterialUpdates(id);
+        if (updatesResult) {
+          materialUpdatesInfo.value = updatesResult.materials || [];
+          hasMaterialUpdates.value = updatesResult.hasUpdates || false;
+          const map: Record<string, { currentVersion: number; latestVersion: number; isLatest: boolean }> = {};
+          for (const mu of updatesResult.materials || []) {
+            map[mu.materialId] = {
+              currentVersion: mu.currentVersion || 1,
+              latestVersion: mu.latestVersion || mu.currentVersion || 1,
+              isLatest: mu.isLatest,
+            };
+          }
+          materialVersionsMap.value = map;
+        }
+      } catch (e) {
+        console.warn('获取原料版本更新信息失败:', e);
+      }
     }
   }
 });
@@ -989,6 +1100,86 @@ onMounted(async () => {
 
 .formula-form {
   padding-bottom: 24px;
+
+  .snapshot-refresh-alert {
+    margin-bottom: 16px;
+    border-radius: $radius-xl;
+
+    .alert-content {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .alert-title {
+      font-weight: $font-weight-bold;
+      font-size: $font-size-body;
+    }
+
+    .alert-details {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .alert-detail-item {
+      font-size: $font-size-body-sm;
+      color: $color-warning;
+      background: $color-warning-bg;
+      padding: 2px 8px;
+      border-radius: $radius-md;
+    }
+
+    .alert-price-change {
+      font-size: $font-size-caption;
+      opacity: 0.8;
+    }
+
+    .alert-warning {
+      font-size: $font-size-caption;
+      color: $text-tertiary;
+    }
+
+    .alert-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .alert-btn {
+      padding: 4px 12px;
+      border-radius: $radius-md;
+      font-size: $font-size-body-sm;
+      font-weight: $font-weight-semibold;
+      cursor: pointer;
+      border: none;
+      transition: all $transition-fast;
+
+      &--dismiss {
+        background: transparent;
+        color: $text-secondary;
+        border: 1px solid $border-color;
+
+        &:hover {
+          border-color: $border-color-light;
+        }
+      }
+
+      &--refresh {
+        background: var(--color-primary);
+        color: #fff;
+
+        &:hover {
+          opacity: 0.9;
+        }
+
+        &:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+      }
+    }
+  }
 
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   // Header 区域 — 精确复刻 FormulaDetail.vue
@@ -1005,7 +1196,7 @@ onMounted(async () => {
     // 突破父容器 .right-content 的左右 padding，实现全宽
     margin-left: -32px;
     margin-right: -32px;
-    padding: 16px 32px; // px-8 py-4（内部内容仍保持间距）
+    padding: 8px 32px; // px-8 py-4（内部内容仍保持间距）
     background-color: $overlay-white-80; // bg-white/80
     backdrop-filter: blur(12px); // backdrop-blur-md
     border-bottom: 1px solid $border-color-light; // border-slate-100
@@ -1078,11 +1269,23 @@ onMounted(async () => {
           margin: 0;
           display: flex;
           align-items: center;
-          gap: 12px; // gap-3
-          font-size: 18px; // text-lg
-          font-weight: 700; // font-bold
-          color: var(--color-text-primary); // slate-800
+          gap: 8px;
+          font-size: 18px;
+          font-weight: 700;
+          color: var(--color-text-primary);
           line-height: 1.35;
+
+          .title-version-tag {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 10px;
+            background: var(--color-primary-bg);
+            color: var(--color-primary);
+            font-size: 12px;
+            font-weight: 700;
+            border-radius: 999px;
+            font-family: ui-monospace, SFMono-Regular, 'Cascadia Code', monospace;
+          }
         }
       }
     }
@@ -3598,8 +3801,13 @@ onMounted(async () => {
 }
 
 @keyframes ai-spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 </style>
 

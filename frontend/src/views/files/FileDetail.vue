@@ -343,8 +343,8 @@
           </t-radio-group>
         </div>
         <div v-else-if="linkSearchFetched && linkSearchResults.length === 0" class="link-results-empty">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-placeholder)" stroke-width="1.5"
-            stroke-linecap="round" stroke-linejoin="round">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-placeholder)"
+            stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="11" cy="11" r="8" />
             <line x1="21" y1="21" x2="16.65" y2="16.65" />
             <line x1="8" y1="11" x2="14" y2="11" />
@@ -732,7 +732,7 @@ watch(() => route.query.action, (action) => {
     align-items: center;
     margin-left: -32px;
     margin-right: -32px;
-    padding: 16px 32px;
+    padding: 8px 32px;
     background-color: rgba(255, 255, 255, 0.80);
     backdrop-filter: blur(12px);
     border-bottom: 1px solid #f1f5f9;
@@ -1309,6 +1309,7 @@ watch(() => route.query.action, (action) => {
           margin-bottom: 0;
         }
       }
+
       .audit-timeline {
         display: flex;
         flex-direction: column;

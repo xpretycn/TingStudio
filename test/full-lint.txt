@@ -1,0 +1,1150 @@
+﻿
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\__tests__\mocks\handlers.ts
+  3:7  warning  'TOKEN_KEY' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\api\__tests__\http.test.ts
+  1:32  warning  'vi' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\api\agent.ts
+   19:15  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   20:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   22:13  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   39:11  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   41:15  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   42:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   87:26  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   95:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   99:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  105:24  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  109:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  118:82  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  120:7   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  123:16  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  133:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  133:52  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  137:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  141:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  145:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  149:35  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  163:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  167:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  171:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  171:27  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  176:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  182:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  188:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  188:60  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  194:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\api\ai.ts
+   80:24  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   91:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  100:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  113:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  122:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\api\approval.ts
+  54:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  54:62  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  58:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  58:67  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  62:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  62:62  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  74:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\api\auth.ts
+  30:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  33:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  36:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  39:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  42:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\api\dashboard.ts
+  31:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  34:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  39:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\api\excelImport.ts
+  48:24  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  72:11  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\api\export.ts
+   11:17   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   56:15   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   58:17   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   59:14   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   60:16   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   68:21   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   68:64   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   70:90   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   71:22   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   73:110  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   74:21   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   77:24   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   80:22   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   84:21   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   84:59   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   87:21   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   90:22   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   93:22   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  103:22   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  107:21   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  110:24   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  113:21   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  113:62   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  115:28   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  116:22   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\api\file.ts
+   62:53  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   62:76  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   82:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   86:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   92:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   96:24  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  100:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  100:27  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  104:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  108:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  112:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  123:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  131:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  135:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  139:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\api\formula.ts
+  116:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  116:57  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  119:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  122:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  125:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  128:24  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  131:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  134:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  137:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  145:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\api\material.ts
+   39:62  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   39:72  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   49:9   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   50:10  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   83:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   83:58  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   86:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   89:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   92:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   95:24  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   98:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  101:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  104:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  109:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  114:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  117:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  120:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\api\model.ts
+  133:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  148:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  148:27  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  166:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  166:26  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  170:24  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  170:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  174:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  174:27  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  178:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  184:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  190:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  190:26  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  194:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  194:26  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  199:7   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  213:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  219:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  232:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  232:26  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  237:7   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  244:7   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  258:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  264:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  268:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  268:26  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  271:24  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  271:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\api\nutrition.ts
+   9:20   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  18:21   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  18:26   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  21:21   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  24:22   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  24:53   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  27:21   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  29:135  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  30:22   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  32:154  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  33:21   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  36:24   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  45:22   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  45:53   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  49:21   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  49:26   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\api\parseResult.ts
+   19:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   19:26  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   23:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   23:26  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   31:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   38:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   38:27  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   42:24  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   42:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   46:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   46:26  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   50:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   50:27  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   58:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   58:27  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   62:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   62:26  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   74:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   74:26  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   82:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   82:27  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   86:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   86:26  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   90:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   90:27  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   94:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   94:26  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   98:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   98:26  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  102:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  102:27  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  106:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  106:26  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  112:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  112:26  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  116:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  116:26  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\api\parseTemplate.ts
+  11:35  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  26:36  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  31:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  31:63  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  34:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  37:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  40:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  43:24  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\api\ratioThreshold.ts
+  16:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  27:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\api\report.ts
+  10:13  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  40:16  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  49:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  49:56  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  52:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  55:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  57:63  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  58:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  61:24  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  64:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  67:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  67:26  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  70:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  70:26  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  73:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  75:98  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  76:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  79:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  82:24  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  85:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  88:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  91:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  91:27  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  93:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  94:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  94:27  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  98:52  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  99:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  99:26  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\api\sales.ts
+  71:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  71:60  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  74:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  77:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  80:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  83:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  86:24  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\api\salesman.ts
+  27:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  27:58  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  30:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  33:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  36:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  39:24  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  42:23  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\api\version.ts
+  16:13  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  17:14  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  58:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  61:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  64:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  67:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  70:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  70:26  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  74:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  74:27  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  77:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  77:26  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  80:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  80:26  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  83:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  83:26  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  86:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  86:26  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  89:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  92:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  92:27  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  95:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  95:26  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\api\weather.ts
+  178:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  284:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  322:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\components\AIAnalysisPanel.vue
+  142:42  warning  'v-html' directive can lead to XSS attack                                              vue/no-v-html
+  240:15  warning  Unexpected any. Specify a different type                                               @typescript-eslint/no-explicit-any
+  283:33  warning  Unexpected any. Specify a different type                                               @typescript-eslint/no-explicit-any
+  429:19  warning  Unexpected any. Specify a different type                                               @typescript-eslint/no-explicit-any
+  596:7   warning  'statusText' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\components\AgentFormRenderer.vue
+   87:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  107:37  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  111:42  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  199:44  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  200:32  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\components\AgentResultRenderer.vue
+  117:9   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  168:31  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  208:34  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\components\AiAssistantFloat\AiAssistantFloat.vue
+   64:69  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  195:44  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\components\AiAssistantFloat\ChatInput.vue
+  8:39  warning  'v-html' directive can lead to XSS attack  vue/no-v-html
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\components\AiAssistantFloat\ChatMessages.vue
+   40:13  warning  'v-html' directive can lead to XSS attack                                        vue/no-v-html
+  201:7   warning  'emit' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  202:33  warning  Unexpected any. Specify a different type                                         @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\components\AiAssistantFloat\CompareCard.vue
+  81:9  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\components\AiAssistantFloat\FloatBubble.vue
+  39:34  warning  'v-html' directive can lead to XSS attack  vue/no-v-html
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\components\AiAssistantFloat\QuotationCard.vue
+  71:9  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\components\AiAssistantFloat\SubstituteCard.vue
+  43:9  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\components\AiAssistantFloat\formFillAdapter.ts
+    3:10  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   36:58  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   45:61  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   54:64  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   69:10  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   74:59  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   95:63  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  138:46  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  241:55  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\components\AlertNotification.vue
+  114:10  warning  'formatTime' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\components\ExcelImportPanel.vue
+  174:40  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  186:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  216:35  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  217:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  225:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\components\FilePreviewCard.vue
+  151:10  warning  'openFullscreen' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\components\NutritionExcelImport.vue
+  215:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  269:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\components\QuickCreateMaterialDrawer.vue
+  401:36  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  401:60  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  424:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\components\QuickCreateSalesmanDialog.vue
+  261:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\components\QuickCreateSalesmanDrawer.vue
+  252:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\components\ReportChart.vue
+  23:27  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  33:20  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\components\ReportSection.vue
+  34:7  warning  'props' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\components\SalesRecordDialog.vue
+  196:38  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\components\SalesRecordDrawer.vue
+  275:12  warning  '_e' is defined but never used  @typescript-eslint/no-unused-vars
+  295:12  warning  '_e' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\components\TargetManagement.vue
+  144:40   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  183:51   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  236:19   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  243:121  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  254:19   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\components\ToolConfirmDialog.vue
+  36:27  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\components\__tests__\NutritionExcelImport.test.ts
+   94:37  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  103:37  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  114:37  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  134:37  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  156:37  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  175:37  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  198:37  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  214:37  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  233:37  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\components\formula\MaterialTableCore.vue
+  683:57  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\components\formula\UnifiedMaterialTable.vue
+  739:60  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  739:72  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  775:12  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  783:12  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  795:10  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  803:10  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\stores\__tests__\ai.test.ts
+  105:15  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  106:15  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  113:15  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  114:15  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  121:15  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  122:15  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\stores\__tests__\auth.test.ts
+  70:15  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\stores\__tests__\formula.test.ts
+  99:65  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\stores\__tests__\nutrition.test.ts
+  4:10  warning  'nutritionApi' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\stores\__tests__\salesman.test.ts
+  79:101  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\stores\__tests__\theme.test.ts
+  1:32  warning  'vi' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\stores\__tests__\weather.test.ts
+  122:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  125:70  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  128:70  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  131:70  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  134:69  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\stores\ai.ts
+   51:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   79:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  107:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  157:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  192:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\stores\auth.ts
+  27:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  42:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  64:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  76:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\stores\export.ts
+   38:105  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   43:21   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   48:125  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   53:21   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   63:21   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   74:21   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  110:21   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  120:21   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  141:21   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  151:21   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  171:21   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  189:43   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  194:21   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\stores\file.ts
+   53:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   67:14  warning  'error' is defined but never used         @typescript-eslint/no-unused-vars
+   67:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   81:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   93:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  105:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  119:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  133:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  147:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  170:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  192:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\stores\floatAgent.ts
+    9:27  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   13:14  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   14:63  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  172:50  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  231:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  236:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  318:14  warning  'error' is defined but never used         @typescript-eslint/no-unused-vars
+  325:32  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\stores\formula.ts
+  36:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  56:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  69:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  82:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  95:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\stores\material.ts
+  57:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  70:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  83:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\stores\nutrition.ts
+    9:33   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   10:32   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   11:32   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   20:21   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   32:21   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   45:21   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   56:59   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   64:150  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   69:21   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   74:169  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   79:21   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   89:21   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  100:21   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\stores\report.ts
+   11:30  warning  Unexpected any. Specify a different type                                        @typescript-eslint/no-explicit-any
+   12:26  warning  Unexpected any. Specify a different type                                        @typescript-eslint/no-explicit-any
+   30:41  warning  Unexpected any. Specify a different type                                        @typescript-eslint/no-explicit-any
+   36:58  warning  Unexpected any. Specify a different type                                        @typescript-eslint/no-explicit-any
+   39:21  warning  Unexpected any. Specify a different type                                        @typescript-eslint/no-explicit-any
+   61:21  warning  Unexpected any. Specify a different type                                        @typescript-eslint/no-explicit-any
+   75:21  warning  Unexpected any. Specify a different type                                        @typescript-eslint/no-explicit-any
+   82:84  warning  Unexpected any. Specify a different type                                        @typescript-eslint/no-explicit-any
+   90:21  warning  Unexpected any. Specify a different type                                        @typescript-eslint/no-explicit-any
+   99:13  warning  'res' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  102:21  warning  Unexpected any. Specify a different type                                        @typescript-eslint/no-explicit-any
+  124:57  warning  Unexpected any. Specify a different type                                        @typescript-eslint/no-explicit-any
+  141:21  warning  Unexpected any. Specify a different type                                        @typescript-eslint/no-explicit-any
+  148:74  warning  Unexpected any. Specify a different type                                        @typescript-eslint/no-explicit-any
+  171:21  warning  Unexpected any. Specify a different type                                        @typescript-eslint/no-explicit-any
+  184:21  warning  Unexpected any. Specify a different type                                        @typescript-eslint/no-explicit-any
+  194:54  warning  Unexpected any. Specify a different type                                        @typescript-eslint/no-explicit-any
+  203:21  warning  Unexpected any. Specify a different type                                        @typescript-eslint/no-explicit-any
+  212:54  warning  Unexpected any. Specify a different type                                        @typescript-eslint/no-explicit-any
+  221:21  warning  Unexpected any. Specify a different type                                        @typescript-eslint/no-explicit-any
+  233:21  warning  Unexpected any. Specify a different type                                        @typescript-eslint/no-explicit-any
+  242:44  warning  Unexpected any. Specify a different type                                        @typescript-eslint/no-explicit-any
+  249:21  warning  Unexpected any. Specify a different type                                        @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\stores\sales.ts
+   35:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   47:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   66:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   78:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   90:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  101:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\stores\salesman.ts
+   70:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   83:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   96:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  109:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\stores\version.ts
+   10:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   42:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   54:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   67:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   80:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   92:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  104:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  116:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  128:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  138:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  148:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  160:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\stores\weather.ts
+  151:23  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  160:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  178:32  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  257:16  warning  'err' is defined but never used           @typescript-eslint/no-unused-vars
+  257:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\types\extensions.ts
+   78:13  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   79:13  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   94:16  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   95:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  117:15  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  118:15  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  160:20  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  226:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\utils\reportCharts.ts
+  265:194  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  266:94   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  306:53   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\views\Home.vue
+  824:34  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\views\ai\AiOverview.vue
+    9:62  warning  'v-html' directive can lead to XSS attack  vue/no-v-html
+   81:64  warning  'v-html' directive can lead to XSS attack  vue/no-v-html
+  139:40  warning  'v-html' directive can lead to XSS attack  vue/no-v-html
+  296:30  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  308:30  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  319:35  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  323:34  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\views\ai\AiWorkspace.vue
+   148:59  warning  'v-html' directive can lead to XSS attack                                                         vue/no-v-html
+   240:55  warning  'v-html' directive can lead to XSS attack                                                         vue/no-v-html
+   533:42  warning  Unexpected any. Specify a different type                                                          @typescript-eslint/no-explicit-any
+   535:31  warning  Unexpected any. Specify a different type                                                          @typescript-eslint/no-explicit-any
+   629:83  warning  Unexpected any. Specify a different type                                                          @typescript-eslint/no-explicit-any
+   686:23  warning  Unexpected any. Specify a different type                                                          @typescript-eslint/no-explicit-any
+   718:22  warning  Unexpected any. Specify a different type                                                          @typescript-eslint/no-explicit-any
+   726:22  warning  Unexpected any. Specify a different type                                                          @typescript-eslint/no-explicit-any
+   850:49  warning  Unexpected any. Specify a different type                                                          @typescript-eslint/no-explicit-any
+   867:19  warning  Unexpected any. Specify a different type                                                          @typescript-eslint/no-explicit-any
+   868:16  warning  Unexpected any. Specify a different type                                                          @typescript-eslint/no-explicit-any
+   893:19  warning  Unexpected any. Specify a different type                                                          @typescript-eslint/no-explicit-any
+   894:16  warning  Unexpected any. Specify a different type                                                          @typescript-eslint/no-explicit-any
+   902:55  warning  Unexpected any. Specify a different type                                                          @typescript-eslint/no-explicit-any
+   929:55  warning  Unexpected any. Specify a different type                                                          @typescript-eslint/no-explicit-any
+   951:15  warning  Unexpected any. Specify a different type                                                          @typescript-eslint/no-explicit-any
+   991:28  warning  Unexpected any. Specify a different type                                                          @typescript-eslint/no-explicit-any
+  1009:46  warning  Unexpected any. Specify a different type                                                          @typescript-eslint/no-explicit-any
+  1016:7   warning  'quickTags' is assigned a value but never used. Allowed unused vars must match /^_/u              @typescript-eslint/no-unused-vars
+  1404:26  warning  Unexpected any. Specify a different type                                                          @typescript-eslint/no-explicit-any
+  1407:26  warning  Unexpected any. Specify a different type                                                          @typescript-eslint/no-explicit-any
+  1425:36  warning  Unexpected any. Specify a different type                                                          @typescript-eslint/no-explicit-any
+  1502:7   warning  'handleSuggestionClick' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  1514:33  warning  Unexpected any. Specify a different type                                                          @typescript-eslint/no-explicit-any
+  1588:27  warning  Unexpected any. Specify a different type                                                          @typescript-eslint/no-explicit-any
+  1589:24  warning  Unexpected any. Specify a different type                                                          @typescript-eslint/no-explicit-any
+  1590:25  warning  Unexpected any. Specify a different type                                                          @typescript-eslint/no-explicit-any
+  1591:25  warning  Unexpected any. Specify a different type                                                          @typescript-eslint/no-explicit-any
+  1669:26  warning  Unexpected any. Specify a different type                                                          @typescript-eslint/no-explicit-any
+  1738:34  warning  Unexpected any. Specify a different type                                                          @typescript-eslint/no-explicit-any
+  1778:19  warning  Unexpected any. Specify a different type                                                          @typescript-eslint/no-explicit-any
+  1884:12  warning  'e' is defined but never used                                                                     @typescript-eslint/no-unused-vars
+  1937:13  warning  Unexpected any. Specify a different type                                                          @typescript-eslint/no-explicit-any
+  2122:12  warning  'e' is defined but never used                                                                     @typescript-eslint/no-unused-vars
+  2222:38  warning  Unexpected any. Specify a different type                                                          @typescript-eslint/no-explicit-any
+  2222:68  warning  Unexpected any. Specify a different type                                                          @typescript-eslint/no-explicit-any
+  2245:61  warning  Unexpected any. Specify a different type                                                          @typescript-eslint/no-explicit-any
+  2252:19  warning  Unexpected any. Specify a different type                                                          @typescript-eslint/no-explicit-any
+  2259:32  warning  Unexpected any. Specify a different type                                                          @typescript-eslint/no-explicit-any
+  2328:7   warning  'clearVisits' is assigned a value but never used. Allowed unused vars must match /^_/u            @typescript-eslint/no-unused-vars
+  2340:7   warning  'getTypeLabel' is assigned a value but never used. Allowed unused vars must match /^_/u           @typescript-eslint/no-unused-vars
+  2357:7   warning  'toggleTaskComplete' is assigned a value but never used. Allowed unused vars must match /^_/u     @typescript-eslint/no-unused-vars
+  2514:18  warning  Unexpected any. Specify a different type                                                          @typescript-eslint/no-explicit-any
+  2521:18  warning  Unexpected any. Specify a different type                                                          @typescript-eslint/no-explicit-any
+  2522:18  warning  Unexpected any. Specify a different type                                                          @typescript-eslint/no-explicit-any
+  2523:23  warning  Unexpected any. Specify a different type                                                          @typescript-eslint/no-explicit-any
+  2525:18  warning  Unexpected any. Specify a different type                                                          @typescript-eslint/no-explicit-any
+  2526:30  warning  Unexpected any. Specify a different type                                                          @typescript-eslint/no-explicit-any
+  2527:23  warning  Unexpected any. Specify a different type                                                          @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\views\ai\SmartTools.vue
+  16:66  warning  'v-html' directive can lead to XSS attack  vue/no-v-html
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\views\ai\tabs\DataSearchTab.vue
+   76:73  warning  'v-html' directive can lead to XSS attack  vue/no-v-html
+  119:26  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  148:31  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  186:19  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\views\ai\tabs\FormulaParseTab.vue
+   749:33  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   759:33  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   832:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   875:9   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   975:56  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   979:31  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   984:32  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   987:34  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  1374:52  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  1414:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  1425:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  1430:35  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  1435:34  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  1440:44  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  1637:11  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  1688:38  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  1698:25  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  1735:11  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  1775:48  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  1795:44  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\views\ai\tabs\MaterialImportTab.vue
+   763:7   warning  'safeMaterialParseResult' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+   857:17  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+   934:17  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+   952:61  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+   953:47  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+  1104:30  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+  1115:30  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+  1120:35  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+  1125:34  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+  1173:37  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+  1410:21  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+  1442:25  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+  1474:19  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+  1597:38  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+  1599:32  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+  1631:56  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+  1631:69  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+  1659:52  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+  1660:49  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+  1676:16  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+  1676:58  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+  1760:49  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+  1762:38  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+  1764:29  warning  Unexpected any. Specify a different type                                                            @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\views\ai\tabs\ParseHistoryTab.vue
+  274:19  warning  Unexpected any. Specify a different type                                                  @typescript-eslint/no-explicit-any
+  297:27  warning  Unexpected any. Specify a different type                                                  @typescript-eslint/no-explicit-any
+  304:40  warning  Unexpected any. Specify a different type                                                  @typescript-eslint/no-explicit-any
+  351:7   warning  'filterOptions' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  367:19  warning  Unexpected any. Specify a different type                                                  @typescript-eslint/no-explicit-any
+  400:45  warning  Unexpected any. Specify a different type                                                  @typescript-eslint/no-explicit-any
+  470:37  warning  Unexpected any. Specify a different type                                                  @typescript-eslint/no-explicit-any
+  475:33  warning  Unexpected any. Specify a different type                                                  @typescript-eslint/no-explicit-any
+  510:19  warning  Unexpected any. Specify a different type                                                  @typescript-eslint/no-explicit-any
+  535:19  warning  Unexpected any. Specify a different type                                                  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\views\auth\Login.vue
+  229:49  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\views\auth\Register.vue
+  290:49  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\views\auth\__tests__\Login.test.ts
+  103:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  109:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  116:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\views\dashboard\Dashboard.vue
+  440:27  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\views\exports\ExportCenter.vue
+   10:62  warning  'v-html' directive can lead to XSS attack  vue/no-v-html
+   49:64  warning  'v-html' directive can lead to XSS attack  vue/no-v-html
+  399:38  warning  'v-html' directive can lead to XSS attack  vue/no-v-html
+  519:29  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  524:25  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  536:41  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  656:22  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  741:36  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  746:33  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  757:36  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  799:40  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  825:45  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\views\files\FileDetail.vue
+  391:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  565:58  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  568:58  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  607:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  615:43  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  638:58  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  697:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\views\files\FileManagement.vue
+    9:62  warning  'v-html' directive can lead to XSS attack                                                  vue/no-v-html
+  202:40  warning  'v-html' directive can lead to XSS attack                                                  vue/no-v-html
+  546:12  warning  'error' is defined but never used                                                          @typescript-eslint/no-unused-vars
+  559:7   warning  'handleEditLink' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\views\formulas\FormulaCompare.vue
+  267:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  289:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  308:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  326:31  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  342:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  346:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  359:26  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  373:34  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  380:63  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\views\formulas\FormulaDetail.vue
+  437:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  438:24  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  445:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  502:42  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  640:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\views\formulas\FormulaForm.vue
+   416:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   417:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   451:39  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   452:34  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   543:52  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   544:34  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   553:58  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   557:47  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   557:85  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   558:47  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   581:11  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   621:9   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   627:40  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   628:34  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   649:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   684:49  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   686:54  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   693:27  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   748:48  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   805:48  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   835:48  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   865:49  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   892:45  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   910:45  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   979:59  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   985:47  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   987:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  1012:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  1033:59  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  1040:47  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  1042:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  1057:40  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  1064:43  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\views\formulas\FormulaList.vue
+    10:62   warning  'v-html' directive can lead to XSS attack  vue/no-v-html
+   417:40   warning  'v-html' directive can lead to XSS attack  vue/no-v-html
+   621:34   warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+   633:32   warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+   692:37   warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+   692:45   warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+   756:14   warning  'err' is defined but never used            @typescript-eslint/no-unused-vars
+   756:19   warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+   777:100  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+   794:45   warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+   803:32   warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+   837:32   warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+   838:56   warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+   922:24   warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+   949:27   warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+   949:35   warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+   967:45   warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+   977:50   warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+   989:49   warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  1105:56   warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  1106:58   warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  1120:45   warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  1151:54   warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  1208:69   warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  1391:56   warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  1450:32   warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\views\formulas\versions\VersionCompare.vue
+  200:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  228:51  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  232:46  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  251:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  255:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  263:94  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  264:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  265:24  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  281:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  281:39  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  286:36  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  292:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  295:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  310:48  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  315:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  316:25  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  332:34  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  332:45  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  337:37  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  349:35  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  409:62  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\views\formulas\versions\VersionList.vue
+  360:50  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  365:41  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  368:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  401:35  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  426:35  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  445:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  474:39  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  476:52  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  481:36  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  483:52  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  488:12  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  497:37  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  504:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  516:41  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  518:52  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  522:38  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\views\materials\MaterialDetail.vue
+  274:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  284:27  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\views\materials\MaterialForm.vue
+  263:27  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  417:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  426:49  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  438:26  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  453:61  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  456:66  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  458:37  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  479:72  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\views\materials\MaterialList.vue
+   10:62  warning  'v-html' directive can lead to XSS attack  vue/no-v-html
+  297:40  warning  'v-html' directive can lead to XSS attack  vue/no-v-html
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\views\materials\MaterialVersionCompare.vue
+  54:12  warning  '_error' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\views\materials\MaterialVersions.vue
+   14:27  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   54:12  warning  '_error' is defined but never used        @typescript-eslint/no-unused-vars
+  130:33  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\views\materials\__tests__\MaterialForm.test.ts
+  166:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\views\nutrition\NutritionAnalysis.vue
+   11:62   warning  'v-html' directive can lead to XSS attack                                                vue/no-v-html
+  309:40   warning  'v-html' directive can lead to XSS attack                                                vue/no-v-html
+  443:31   warning  Unexpected any. Specify a different type                                                 @typescript-eslint/no-explicit-any
+  445:133  warning  Unexpected any. Specify a different type                                                 @typescript-eslint/no-explicit-any
+  485:69   warning  Unexpected any. Specify a different type                                                 @typescript-eslint/no-explicit-any
+  600:16   warning  'handleCheckCompliance' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\views\nutrition\NutritionProfiles.vue
+    9:62  warning  'v-html' directive can lead to XSS attack                                       vue/no-v-html
+  138:40  warning  'v-html' directive can lead to XSS attack                                       vue/no-v-html
+  276:51  warning  Unexpected any. Specify a different type                                        @typescript-eslint/no-explicit-any
+  279:28  warning  Unexpected any. Specify a different type                                        @typescript-eslint/no-explicit-any
+  292:43  warning  Unexpected any. Specify a different type                                        @typescript-eslint/no-explicit-any
+  294:47  warning  Unexpected any. Specify a different type                                        @typescript-eslint/no-explicit-any
+  331:47  warning  Unexpected any. Specify a different type                                        @typescript-eslint/no-explicit-any
+  408:16  warning  'handleCreate' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\views\reports\MonthlyReport.vue
+   71:72  warning  'v-html' directive can lead to XSS attack                                                  vue/no-v-html
+  527:43  warning  Unexpected any. Specify a different type                                                   @typescript-eslint/no-explicit-any
+  618:30  warning  Unexpected any. Specify a different type                                                   @typescript-eslint/no-explicit-any
+  670:12  error    Empty block statement                                                                      no-empty
+  689:7   warning  'statusTheme' is assigned a value but never used. Allowed unused vars must match /^_/u     @typescript-eslint/no-unused-vars
+  695:60  warning  Unexpected any. Specify a different type                                                   @typescript-eslint/no-explicit-any
+  795:7   warning  'formatDate' is assigned a value but never used. Allowed unused vars must match /^_/u      @typescript-eslint/no-unused-vars
+  801:7   warning  'formatDateTime' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  813:32  warning  Unexpected any. Specify a different type                                                   @typescript-eslint/no-explicit-any
+  865:21  warning  Unexpected any. Specify a different type                                                   @typescript-eslint/no-explicit-any
+  922:15  warning  Unexpected any. Specify a different type                                                   @typescript-eslint/no-explicit-any
+  946:15  warning  Unexpected any. Specify a different type                                                   @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\views\reports\ReportCenter.vue
+    36:70  warning  'v-html' directive can lead to XSS attack  vue/no-v-html
+   472:48  warning  'v-html' directive can lead to XSS attack  vue/no-v-html
+   509:40  warning  'idx' is defined but never used            vue/no-unused-vars
+   675:34  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+   686:15  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+   756:15  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+   791:17  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+   799:17  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  1023:33  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  1037:15  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\views\reports\ReportCompare.vue
+  165:25  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  166:25  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  287:15  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  309:15  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\views\reports\ReportGenerate.vue
+  185:51  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  204:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\views\reports\WeeklyReport.vue
+   71:72  warning  'v-html' directive can lead to XSS attack  vue/no-v-html
+  391:43  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  544:60  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  617:32  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  669:21  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  726:15  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  748:15  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\views\sales\SalesAnalysis.vue
+    33:72   warning  'v-html' directive can lead to XSS attack  vue/no-v-html
+   506:40   warning  'v-html' directive can lead to XSS attack  vue/no-v-html
+   545:32   warning  'idx' is defined but never used            vue/no-unused-vars
+   800:116  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+   833:34   warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+   849:15   warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+   965:45   warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  1128:15   warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\views\salesmen\SalesmanDetail.vue
+  250:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  251:25  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  315:44  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\views\salesmen\SalesmanForm.vue
+  234:49  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\views\salesmen\SalesmanList.vue
+   11:64  warning  'v-html' directive can lead to XSS attack  vue/no-v-html
+  223:40  warning  'v-html' directive can lead to XSS attack  vue/no-v-html
+  261:32  warning  'idx' is defined but never used            vue/no-unused-vars
+  461:37  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  461:45  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  503:14  warning  '_err' is defined but never used           @typescript-eslint/no-unused-vars
+  503:20  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  536:24  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  714:64  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  718:60  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  733:61  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  734:48  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  751:52  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\views\settings\AccountSettings.vue
+  257:56  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  336:57  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\views\system\ModelManagement.vue
+     9:62  warning  'v-html' directive can lead to XSS attack  vue/no-v-html
+    50:62  warning  'v-html' directive can lead to XSS attack  vue/no-v-html
+   196:27  warning  'v-html' directive can lead to XSS attack  vue/no-v-html
+  1399:60  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  1401:32  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  1402:75  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  1403:46  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  1406:15  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  1413:60  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  1415:48  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  1418:15  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  1436:31  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  1484:68  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  1811:17  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  1828:17  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  1837:17  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  1871:17  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  1881:17  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  1886:17  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  1919:17  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  1979:15  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  1979:29  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  1995:65  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  1995:79  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  1996:69  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  1996:83  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  1997:66  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  1997:80  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  1998:70  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  1998:84  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  1999:70  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  1999:84  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  2000:69  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  2000:83  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  2005:62  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  2005:76  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  2030:63  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  2030:77  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  2032:56  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  2032:70  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  2044:63  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  2044:77  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  2049:61  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  2049:75  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  2074:67  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  2074:81  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  2085:61  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  2085:75  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  2104:66  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  2104:80  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  2105:61  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  2105:75  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  2107:57  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  2107:71  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  2124:20  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  2124:34  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  2127:16  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  2127:30  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  2178:62  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  2178:76  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  2207:54  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  2292:29  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  2354:36  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  2402:12  warning  '_error' is defined but never used         @typescript-eslint/no-unused-vars
+  2419:12  warning  '_error' is defined but never used         @typescript-eslint/no-unused-vars
+  2469:44  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  2487:44  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  2514:33  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  2581:37  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\views\system\SystemConfig.vue
+  192:19  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  202:19  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  211:19  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  221:19  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  269:19  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  355:19  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  385:12  warning  '_error' is defined but never used         @typescript-eslint/no-unused-vars
+  385:20  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  976:70  warning  'v-html' directive can lead to XSS attack  vue/no-v-html
+
+D:\Program Data\workspace-codebd\TingStudio\frontend\src\views\system\Toolbox.vue
+  204:32  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+✖ 920 problems (1 error, 919 warnings)
+
+

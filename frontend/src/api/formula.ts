@@ -44,6 +44,7 @@ export interface Formula {
   updatedAt: string;
   materials?: MaterialItem[];
   versions?: FormulaVersion[];
+  currentVersionNumber?: string | null;
   salesQuantity?: number;
 }
 

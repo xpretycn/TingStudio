@@ -966,7 +966,9 @@ const selectModel = async (m: ModelVersionItem) => {
   showModelMenu.value = false;
   try {
     await aiStore.loadModelVersions(m.provider);
-  } catch {}
+  } catch {
+    // ignore model version load failure
+  }
 };
 
 const copyMessageContent = async (content: string) => {
@@ -1011,7 +1013,7 @@ const deleteMessage = (msgId: string) => {
   }
 };
 
-const quickTags = ['📊 本月销量概况', '📝 创建新配方', '🧪 库存不足预警'];
+const _quickTags = ['📊 本月销量概况', '📝 创建新配方', '🧪 库存不足预警'];
 
 // ════════════════════════════════════════
 // 斜杠指令系统
@@ -1497,7 +1499,7 @@ const shuffleSuggestions = () => {
 };
 
 // 推荐点击
-const handleSuggestionClick = (text: string) => {
+const _handleSuggestionClick = (text: string) => {
   inputText.value = text.replace(/[\u{1F300}-\u{1F9FF}]/gu, '').trim();
   handleSend();
 };
@@ -1509,8 +1511,7 @@ const handleQuickQuestion = (question: string) => {
 };
 
 // 添加活动记录（来自智能填单/导入组件）
-const addActivity = (activity: any) => {
-  console.log('[Activity] 新活动:', activity);
+const addActivity = (_activity: any) => {
 };
 
 // 发送消息
@@ -1751,7 +1752,9 @@ const handleSend = async (confirmed = false) => {
         if (formRes.success && formRes.data) {
           recoveredFormSchema = formRes.data;
         }
-      } catch {}
+      } catch {
+        // ignore pending form recovery failure
+      }
 
       messages.value.push({
         id: (Date.now() + 1).toString(),
@@ -1878,7 +1881,7 @@ const renderMarkdown = (content: string): string => {
   try {
     const html = marked(content) as string;
     return enhanceMarkdownHtml(html);
-  } catch (e) {
+  } catch {
     return content;
   }
 };
@@ -1936,16 +1939,14 @@ interface ActionItem {
 
 // 操作类型定义
 const ACTION_PATTERNS = {
-  navigate: /(?:跳转|前往|打开|查看|进入)\s*(?:页面|)?【?([^\】]+)】?/g,
-  create: /(?:创建|新建|添加|生成)\s*(?:新的|)?【?([^\】]+)】?/g,
-  export: /(?:导出|下载|保存|输出)\s*(?:为|成|到)?【?([^\】]+)】?/g,
-  copy: /(?:复制|拷贝)\s*(?:文本|内容|数据)?【?([^\】]+)】?/g,
-  search: /(?:搜索|查找|查询)\s*(?:关于|)?【?([^\】]+)】?/g
+  navigate: /(?:跳转|前往|打开|查看|进入)\s*(?:页面|)?【?([^】]+)】?/g,
+  create: /(?:创建|新建|添加|生成)\s*(?:新的|)?【?([^】]+)】?/g,
+  export: /(?:导出|下载|保存|输出)\s*(?:为|成|到)?【?([^】]+)】?/g,
+  copy: /(?:复制|拷贝)\s*(?:文本|内容|数据)?【?([^】]+)】?/g,
+  search: /(?:搜索|查找|查询)\s*(?:关于|)?【?([^】]+)】?/g
 };
 
 const executeAction = (action: ActionItem) => {
-  console.log('Execute action:', action);
-
   switch (action.type) {
     case 'navigate':
       if (action.payload?.path) {
@@ -1966,8 +1967,6 @@ const executeAction = (action: ActionItem) => {
     case 'copy':
       if (action.payload?.text) {
         navigator.clipboard.writeText(action.payload.text).then(() => {
-          // 显示复制成功提示（使用简单的console，后续可接入Toast）
-          console.log('✅ 已复制到剪贴板');
         });
       }
       break;
@@ -2120,7 +2119,7 @@ const saveRoleConfig = async () => {
     await agentApi.updateRoleConfig(roleConfig.value);
     showRoleConfigDialog.value = false;
     showActionToast('身份设置已保存');
-  } catch (e) {
+  } catch {
     showErrorToast('保存身份设置失败');
   } finally {
     roleConfigSaving.value = false;
@@ -2198,7 +2197,9 @@ const switchToSession = async (sessionId: string) => {
         lastAssistantMsg.formSubmitted = false;
       }
     }
-  } catch {}
+  } catch {
+    // ignore form schema fetch failure
+  }
 
   scrollToBottom();
 };
@@ -2324,7 +2325,7 @@ const loadRecentVisits = () => {
   }
 };
 
-const clearVisits = () => {
+const _clearVisits = () => {
   recentVisits.value = [];
   localStorage.removeItem(VISITS_STORAGE_KEY);
 };
@@ -2336,7 +2337,7 @@ const TYPE_LABELS: Record<string, string> = {
   reminder: '提醒'
 };
 
-const getTypeLabel = (type: string): string => {
+const _getTypeLabel = (type: string): string => {
   return TYPE_LABELS[type] || type;
 };
 
@@ -2353,7 +2354,7 @@ const fetchPendingTasks = async () => {
   }
 };
 
-const toggleTaskComplete = async (taskId: string) => {
+const _toggleTaskComplete = async (taskId: string) => {
   // Phase 2对接API
   pendingTasks.value = pendingTasks.value.filter(t => t.id !== taskId);
 
@@ -2509,7 +2510,6 @@ onMounted(async () => {
   document.addEventListener('click', handleClickOutside);
 
   recordPerformance('loadTime', Date.now() - loadStartTime);
-  console.log(`[Dashboard] 加载完成, 耗时=${Date.now() - loadStartTime}ms`)
 
     ; (window as any).__dashboardCleanup = () => {
       window.removeEventListener('keydown', handleKeyboardShortcuts);

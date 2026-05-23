@@ -1,6 +1,6 @@
 import { http, HttpResponse, delay } from 'msw'
 
-const TOKEN_KEY = 'tingstudio_token'
+const _TOKEN_KEY = 'tingstudio_token'
 
 export const handlers = [
   http.post('/api/auth/login', async ({ request }) => {

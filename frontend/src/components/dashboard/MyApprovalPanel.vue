@@ -79,29 +79,18 @@ watch(activeTab, () => {
       </div>
 
       <div v-else class="my-approval__list">
-        <div
-          v-for="item in filteredList"
-          :key="item.versionId"
-          class="my-approval__item"
-        >
+        <div v-for="item in filteredList" :key="item.versionId" class="my-approval__item">
           <div class="my-approval__item-header">
             <div class="my-approval__item-info">
-              <router-link
-                :to="`/formulas/${item.formulaId}`"
-                class="my-approval__item-name"
-              >
+              <router-link :to="`/versions/formula/${item.formulaId}`" class="my-approval__item-name">
                 {{ item.formulaName }}
               </router-link>
               <span class="my-approval__item-meta">
-                {{ item.formulaCode }} · {{ item.versionNumber }}
+                {{ item.formulaCode }} · {{ item.versionNumber }} · #{{ item.versionId.slice(0, 8) }}
               </span>
             </div>
             <div class="my-approval__item-right">
-              <t-tag
-                :theme="statusTheme(item.status, item)"
-                variant="light"
-                size="small"
-              >
+              <t-tag :theme="statusTheme(item.status, item)" variant="light" size="small">
                 {{ statusLabel(item.status, item) }}
               </t-tag>
               <span class="my-approval__item-time">{{
@@ -115,28 +104,16 @@ watch(activeTab, () => {
               <span class="my-approval__progress-dot"></span>
               <span class="my-approval__progress-label">已提交</span>
             </div>
-            <div
-              class="my-approval__progress-line"
-              :class="{ active: progressStep(item.status) >= 1 }"
-            ></div>
-            <div
-              class="my-approval__progress-step"
-              :class="{ active: progressStep(item.status) >= 1 }"
-            >
+            <div class="my-approval__progress-line" :class="{ active: progressStep(item.status) >= 1 }"></div>
+            <div class="my-approval__progress-step" :class="{ active: progressStep(item.status) >= 1 }">
               <span class="my-approval__progress-dot"></span>
               <span class="my-approval__progress-label">审核中</span>
             </div>
-            <div
-              class="my-approval__progress-line"
-              :class="{ active: progressStep(item.status) >= 2 }"
-            ></div>
-            <div
-              class="my-approval__progress-step"
-              :class="{
-                active: progressStep(item.status) >= 2,
-                rejected: item.latestReview?.action === 'reject',
-              }"
-            >
+            <div class="my-approval__progress-line" :class="{ active: progressStep(item.status) >= 2 }"></div>
+            <div class="my-approval__progress-step" :class="{
+              active: progressStep(item.status) >= 2,
+              rejected: item.latestReview?.action === 'reject',
+            }">
               <span class="my-approval__progress-dot"></span>
               <span class="my-approval__progress-label">
                 {{ item.latestReview?.action === "reject" ? "已驳回" : "已完成" }}
@@ -144,27 +121,15 @@ watch(activeTab, () => {
             </div>
           </div>
 
-          <div
-            v-if="item.latestReview?.action === 'reject'"
-            class="my-approval__reject-reason"
-          >
-            <div
-              class="my-approval__reject-toggle"
-              @click="toggleExpand(item.versionId)"
-            >
-              <t-icon
-                :name="
-                  expandedItems.has(item.versionId)
-                    ? 'chevron-up'
-                    : 'chevron-down'
-                "
-              />
+          <div v-if="item.latestReview?.action === 'reject'" class="my-approval__reject-reason">
+            <div class="my-approval__reject-toggle" @click="toggleExpand(item.versionId)">
+              <t-icon :name="expandedItems.has(item.versionId)
+                  ? 'chevron-up'
+                  : 'chevron-down'
+                " />
               <span>驳回意见</span>
             </div>
-            <div
-              v-if="expandedItems.has(item.versionId)"
-              class="my-approval__reject-content"
-            >
+            <div v-if="expandedItems.has(item.versionId)" class="my-approval__reject-content">
               <p class="my-approval__reject-comment">
                 {{ item.latestReview.comment || "未提供具体原因" }}
               </p>
@@ -361,6 +326,25 @@ watch(activeTab, () => {
     font-size: 11px;
     color: var(--td-text-color-placeholder);
     margin: 0;
+  }
+
+  &__section {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px dashed var(--td-component-border);
+  }
+
+  &__section-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  &__section-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--td-text-color-secondary);
   }
 }
 </style>

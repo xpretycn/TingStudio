@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, _vi, beforeEach } from "vitest";
 import { setActivePinia, createPinia } from "pinia";
 import { useThemeStore } from "@/stores/theme";
 

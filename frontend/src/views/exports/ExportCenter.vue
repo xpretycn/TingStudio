@@ -785,7 +785,7 @@ async function handleCreateShare() {
     expireDate: shareForm.expireDate || undefined,
   });
   if (result.success && result.data) {
-    // @ts-ignore
+    // @ts-expect-error shareUrl type mismatch
     MessagePlugin.success(`分享链接已创建: ${result.data.shareUrl}`);
     shareForm.formulaId = '';
     shareForm.password = '';
@@ -1088,7 +1088,7 @@ onMounted(async () => {
 
       &:hover {
         color: var(--color-text-primary);
-        background: #f1f5f9;
+        background: var(--color-bg-page);
       }
 
       &.t-tabs__nav-item--active {

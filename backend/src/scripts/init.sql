@@ -36,7 +36,9 @@ CREATE TABLE IF NOT EXISTS `materials` (
   `version` INTEGER NOT NULL DEFAULT 1,
   `previous_version_id` TEXT DEFAULT NULL,
   `is_latest` INTEGER NOT NULL DEFAULT 1,
-  `is_deleted` INTEGER NOT NULL DEFAULT 0
+  `is_deleted` INTEGER NOT NULL DEFAULT 0,
+  `changes_json` TEXT DEFAULT NULL,
+  `status` TEXT NOT NULL DEFAULT 'draft' CHECK(status IN ('draft', 'pending_review', 'published'))
 );
 CREATE INDEX IF NOT EXISTS `idx_material_name` ON `materials`(`name`);
 CREATE INDEX IF NOT EXISTS `idx_material_code` ON `materials`(`code`);
@@ -44,6 +46,23 @@ CREATE INDEX IF NOT EXISTS `idx_material_version` ON `materials`(`version`);
 CREATE INDEX IF NOT EXISTS `idx_material_previous_version` ON `materials`(`previous_version_id`);
 CREATE INDEX IF NOT EXISTS `idx_material_is_latest` ON `materials`(`is_latest`);
 CREATE INDEX IF NOT EXISTS `idx_material_is_deleted` ON `materials`(`is_deleted`);
+CREATE INDEX IF NOT EXISTS `idx_material_status` ON `materials`(`status`);
+
+CREATE TABLE IF NOT EXISTS `material_review_logs` (
+  `review_log_id` TEXT PRIMARY KEY,
+  `material_id` TEXT NOT NULL,
+  `reviewer_id` TEXT NOT NULL,
+  `reviewer_name` TEXT DEFAULT NULL,
+  `action` TEXT NOT NULL CHECK(action IN ('submit', 'approve', 'reject', 'publish')),
+  `comment` TEXT DEFAULT NULL,
+  `created_at` TEXT NOT NULL DEFAULT (datetime('now')),
+  FOREIGN KEY (`material_id`) REFERENCES `materials`(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`reviewer_id`) REFERENCES `users`(`id`) ON DELETE SET NULL
+);
+CREATE INDEX IF NOT EXISTS `idx_mrl_material` ON `material_review_logs`(`material_id`);
+CREATE INDEX IF NOT EXISTS `idx_mrl_reviewer` ON `material_review_logs`(`reviewer_id`);
+CREATE INDEX IF NOT EXISTS `idx_mrl_action` ON `material_review_logs`(`action`);
+CREATE INDEX IF NOT EXISTS `idx_mrl_created_at` ON `material_review_logs`(`created_at`);
 
 -- 配方表（关联业务员）
 CREATE TABLE IF NOT EXISTS `formulas` (

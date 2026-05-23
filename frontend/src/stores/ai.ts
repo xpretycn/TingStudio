@@ -103,12 +103,9 @@ export const useAiStore = defineStore("ai", () => {
       if (currentRequestId === parseRequestId && !parseAborted.value) {
         parseResult.value = res;
         parseHistoryRefreshKey.value++;
-      } else {
-        console.log("[AI Store] 配方解析结果已丢弃（请求已过期或被终止）");
       }
     } catch (error: any) {
       if (error.name === "AbortError") {
-        console.log("[AI Store] 配方解析请求已被取消");
         return;
       }
 
@@ -138,13 +135,10 @@ export const useAiStore = defineStore("ai", () => {
     parseResult.value = null;
     parseLoading.value = false;
 
-    console.log("[AI Store] 配方解析已终止，后续结果将被丢弃");
-
     parseAbortTimer = setTimeout(() => {
       parseAborted.value = false;
       parseError.value = "";
       parseAbortTimer = null;
-      console.log("[AI Store] 终止状态已重置");
     }, 2000);
   };
 
@@ -194,12 +188,9 @@ export const useAiStore = defineStore("ai", () => {
       if (currentRequestId === materialRequestId && !materialParseAborted.value) {
         materialParseResult.value = res;
         parseHistoryRefreshKey.value++;
-      } else {
-        console.log("[AI Store] 原料解析结果已丢弃（请求已过期或被终止）");
       }
     } catch (error: any) {
       if (error.name === "AbortError") {
-        console.log("[AI Store] 原料解析请求已被取消");
         return;
       }
 
@@ -229,13 +220,10 @@ export const useAiStore = defineStore("ai", () => {
     materialParseResult.value = null;
     materialParseLoading.value = false;
 
-    console.log("[AI Store] 原料解析已终止，后续结果将被丢弃");
-
     materialAbortTimer = setTimeout(() => {
       materialParseAborted.value = false;
       materialParseError.value = "";
       materialAbortTimer = null;
-      console.log("[AI Store] 终止状态已重置");
     }, 2000);
   };
 

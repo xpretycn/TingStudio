@@ -20,6 +20,8 @@ export interface Material {
   hasNewerVersion: boolean;
   nutrition?: Record<string, number>;
   referencedFormulas?: { id: string; name: string }[];
+  status: "draft" | "pending_review" | "published";
+  reviewLogs?: MaterialReviewLog[];
 }
 
 export interface MaterialForm {
@@ -36,10 +38,31 @@ export interface MaterialVersion {
   version: number;
   isLatest: number;
   changesSummary: string;
+  changesDetail?: Array<{ field: string; label: string; old: any; new: any }>;
   createdBy: string;
   createdByName: string;
   createdByRole: string;
   createdAt: string;
+}
+
+export interface CompareDiffItem {
+  field: string;
+  label: string;
+  left: any;
+  right: any;
+  leftDisplay: string;
+  rightDisplay: string;
+  change: string;
+  type: "increase" | "decrease" | "unchanged" | "new" | "deleted";
+}
+
+export interface CompareResult {
+  left: { versionId: string; version: number; name: string };
+  right: { versionId: string; version: number; name: string };
+  diff: {
+    basic: CompareDiffItem[];
+    nutrition: CompareDiffItem[];
+  };
 }
 
 export interface MaterialReference {
@@ -57,8 +80,19 @@ export interface UpdateResult {
   previousVersionId?: string;
 }
 
+export interface MaterialReviewLog {
+  reviewLogId: string;
+  materialId: string;
+  reviewerId: string;
+  reviewerName: string | null;
+  reviewerDisplayName?: string;
+  action: "submit" | "approve" | "reject" | "publish";
+  comment: string | null;
+  createdAt: string;
+}
+
 export const materialApi = {
-  getList(params?: { keyword?: string; page?: number; pageSize?: number; scope?: string }) {
+  getList(params?: { keyword?: string; page?: number; pageSize?: number; scope?: string; status?: string }) {
     return http.get<any, { list: Material[]; pagination: any }>("/materials", { params });
   },
   getById(id: string) {
@@ -94,5 +128,26 @@ export const materialApi = {
   },
   getReferences(id: string) {
     return http.get<any, MaterialReference>(`/materials/${id}/references`);
+  },
+  compareVersions(id: string, v1: string, v2: string) {
+    return http.get<any, CompareResult>(`/materials/${id}/versions/compare`, { params: { v1, v2 } });
+  },
+  submitReview(id: string, comment?: string) {
+    return http.post(`/materials/${id}/submit-review`, { comment });
+  },
+  approve(id: string, comment?: string) {
+    return http.put(`/materials/${id}/approve`, { comment });
+  },
+  reject(id: string, comment: string) {
+    return http.put(`/materials/${id}/reject`, { comment });
+  },
+  publish(id: string, comment?: string) {
+    return http.put(`/materials/${id}/publish`, { comment });
+  },
+  getPendingReviews(params?: { keyword?: string; page?: number; pageSize?: number }) {
+    return http.get<any, { list: Material[]; pagination: any }>("/materials/pending-review", { params });
+  },
+  getReviewLogs(id: string) {
+    return http.get<any, MaterialReviewLog[]>(`/materials/${id}/review-logs`);
   },
 };
