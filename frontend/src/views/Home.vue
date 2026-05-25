@@ -480,7 +480,6 @@ const contentRefreshKey = ref(0);
 const showVersionCard = ref(false);
 const activePath = computed(() => {
   const path = route.path;
-  if (path === '/formulas/quick') return '/dashboard';
   // 按最长前缀匹配，优先精确匹配，再按路径段前缀匹配
   const pathMap = [
     '/dashboard', '/formulas', '/materials', '/files', '/salesmen', '/sales',
@@ -539,7 +538,6 @@ const handleUserMenuClick = (value: string) => {
 const pageIcon = computed(() => {
   const iconMap: Record<string, string> = {
     '/dashboard': 'dashboard',
-    '/formulas/quick': 'edit-1',
     '/formulas': 'edit',
     '/materials': 'chart-bar',
     '/files': 'folder',

@@ -2,7 +2,7 @@ import http from './http'
 
 const TOKEN_KEY = 'tingstudio_token'
 
-export interface FileRelation {
+interface FileRelation {
   relationId: string
   fileId: string
   relatedId: string
@@ -76,7 +76,7 @@ export interface FileStats {
   totalSize: number
 }
 
-interface ReparseResult {
+export interface ReparseResult {
   fileId: string
   status: string
   parseResultJson: string | null

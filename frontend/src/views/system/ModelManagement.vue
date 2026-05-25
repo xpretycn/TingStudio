@@ -2015,7 +2015,7 @@ async function goLogPage(page: number) {
 const usageColumns = [
   {
     colKey: "name", title: "模型", width: 160,
-    cell: (h: HFunction, { row }: CellRendererParam<UsageSummaryItem>) => {
+    cell: (h: ReturnType<typeof import("vue").h>, { row }: CellRendererParam<UsageSummaryItem>) => {
       const logoUrl = getModelLogo(row.provider);
       return h('div', { style: 'display:flex;align-items:center;gap:8px;' }, [
         h('div', {
@@ -2031,17 +2031,17 @@ const usageColumns = [
       ]);
     }
   },
-  { colKey: "total_calls", title: "总调用", width: 100, cell: (_h: HFunction, { row }: CellRendererParam<UsageSummaryItem>) => formatNumber(row.total_calls) },
-  { colKey: "total_tokens", title: "总Token", width: 120, cell: (_h: HFunction, { row }: CellRendererParam<UsageSummaryItem>) => formatTokens(row.total_tokens) },
-  { colKey: "today_calls", title: "今日调用", width: 100, cell: (_h: HFunction, { row }: CellRendererParam<UsageSummaryItem>) => formatNumber(row.today_calls) },
-  { colKey: "today_tokens", title: "今日Token", width: 120, cell: (_h: HFunction, { row }: CellRendererParam<UsageSummaryItem>) => formatTokens(row.today_tokens) },
-  { colKey: "month_tokens", title: "本月Token", width: 120, cell: (_h: HFunction, { row }: CellRendererParam<UsageSummaryItem>) => formatTokens(row.month_tokens) },
-  { colKey: "avg_latency_ms", title: "平均延迟", width: 100, cell: (_h: HFunction, { row }: CellRendererParam<UsageSummaryItem>) => `${Math.round(row.avg_latency_ms)}ms` },
+  { colKey: "total_calls", title: "总调用", width: 100, cell: (_h: ReturnType<typeof import("vue").h>, { row }: CellRendererParam<UsageSummaryItem>) => formatNumber(row.total_calls) },
+  { colKey: "total_tokens", title: "总Token", width: 120, cell: (_h: ReturnType<typeof import("vue").h>, { row }: CellRendererParam<UsageSummaryItem>) => formatTokens(row.total_tokens) },
+  { colKey: "today_calls", title: "今日调用", width: 100, cell: (_h: ReturnType<typeof import("vue").h>, { row }: CellRendererParam<UsageSummaryItem>) => formatNumber(row.today_calls) },
+  { colKey: "today_tokens", title: "今日Token", width: 120, cell: (_h: ReturnType<typeof import("vue").h>, { row }: CellRendererParam<UsageSummaryItem>) => formatTokens(row.today_tokens) },
+  { colKey: "month_tokens", title: "本月Token", width: 120, cell: (_h: ReturnType<typeof import("vue").h>, { row }: CellRendererParam<UsageSummaryItem>) => formatTokens(row.month_tokens) },
+  { colKey: "avg_latency_ms", title: "平均延迟", width: 100, cell: (_h: ReturnType<typeof import("vue").h>, { row }: CellRendererParam<UsageSummaryItem>) => `${Math.round(row.avg_latency_ms)}ms` },
 ];
 
 const alertRecordColumns = [
   {
-    colKey: "model_name", title: "模型", width: 140, cell: (h: HFunction, { row }: CellRendererParam<AlertRecordItem>) => {
+    colKey: "model_name", title: "模型", width: 140, cell: (h: ReturnType<typeof import("vue").h>, { row }: CellRendererParam<AlertRecordItem>) => {
       const provider = row.provider || row.model_name || '';
       const logoUrl = getModelLogo(provider);
       return h('div', { style: 'display: flex; align-items: center; gap: 8px; flex-wrap: nowrap; white-space: nowrap; overflow: hidden; width: 100%;' }, [
@@ -2066,9 +2066,9 @@ const alertRecordColumns = [
       ]);
     }
   },
-  { colKey: "alert_type", title: "类型", width: 100, cell: (_h: HFunction, { row }: CellRendererParam<AlertRecordItem>) => row.alert_type === "daily_call" ? "日调用" : "月Token" },
+  { colKey: "alert_type", title: "类型", width: 100, cell: (_h: ReturnType<typeof import("vue").h>, { row }: CellRendererParam<AlertRecordItem>) => row.alert_type === "daily_call" ? "日调用" : "月Token" },
   {
-    colKey: "level", title: "级别", width: 80, cell: (h: HFunction, { row }: CellRendererParam<AlertRecordItem>) => {
+    colKey: "level", title: "级别", width: 80, cell: (h: ReturnType<typeof import("vue").h>, { row }: CellRendererParam<AlertRecordItem>) => {
       const isCritical = row.level === "critical";
       const dotColor = isCritical ? 'var(--color-danger)' : 'var(--color-warning)';
       const tagTheme = isCritical ? "danger" : "warning";
@@ -2080,12 +2080,12 @@ const alertRecordColumns = [
     }
   },
   { colKey: "message", title: "消息", ellipsis: true },
-  { colKey: "created_at", title: "时间", width: 160, cell: (_h: HFunction, { row }: CellRendererParam<AlertRecordItem>) => formatDateTime(row.created_at) },
+  { colKey: "created_at", title: "时间", width: 160, cell: (_h: ReturnType<typeof import("vue").h>, { row }: CellRendererParam<AlertRecordItem>) => formatDateTime(row.created_at) },
 ];
 
 const logColumns = [
   {
-    colKey: "modelName", title: "模型", width: 140, cell: (h: HFunction, { row }: CellRendererParam<UsageLogItem>) => {
+    colKey: "modelName", title: "模型", width: 140, cell: (h: ReturnType<typeof import("vue").h>, { row }: CellRendererParam<UsageLogItem>) => {
       const provider = row.modelName || row.provider || '';
       const logoUrl = getModelLogo(provider);
       return h('div', { style: 'display: flex; align-items: center; gap: 8px; flex-wrap: nowrap; white-space: nowrap; overflow: hidden; width: 100%;' }, [
@@ -2110,7 +2110,7 @@ const logColumns = [
     }
   },
   {
-    colKey: "applicationName", title: "应用", width: 170, cell: (h: HFunction, { row }: CellRendererParam<UsageLogItem>) => {
+    colKey: "applicationName", title: "应用", width: 170, cell: (h: ReturnType<typeof import("vue").h>, { row }: CellRendererParam<UsageLogItem>) => {
       const appName = row.applicationName || '';
       const appLocation = row.applicationLocation || '';
       if (!appName && !appLocation) return '--';
@@ -2121,7 +2121,7 @@ const logColumns = [
     }
   },
   {
-    colKey: "callType", title: "类型", width: 100, cell: (_h: HFunction, { row }: CellRendererParam<UsageLogItem>) => {
+    colKey: "callType", title: "类型", width: 100, cell: (_h: ReturnType<typeof import("vue").h>, { row }: CellRendererParam<UsageLogItem>) => {
       const map: Record<string, string> = {
         parse_formula: "解析配方",
         parse_nutrition: "解析营养",
@@ -2140,10 +2140,10 @@ const logColumns = [
       return map[row.callType] || row.callType;
     }
   },
-  { colKey: "totalTokens", title: "Token", width: 90, cell: (_h: HFunction, { row }: CellRendererParam<UsageLogItem>) => formatTokens(row.totalTokens) },
-  { colKey: "latencyMs", title: "耗时", width: 80, cell: (_h: HFunction, { row }: CellRendererParam<UsageLogItem>) => row.latencyMs ? `${row.latencyMs}ms` : "-" },
+  { colKey: "totalTokens", title: "Token", width: 90, cell: (_h: ReturnType<typeof import("vue").h>, { row }: CellRendererParam<UsageLogItem>) => formatTokens(row.totalTokens) },
+  { colKey: "latencyMs", title: "耗时", width: 80, cell: (_h: ReturnType<typeof import("vue").h>, { row }: CellRendererParam<UsageLogItem>) => row.latencyMs ? `${row.latencyMs}ms` : "-" },
   {
-    colKey: "status", title: "状态", width: 80, cell: (h: HFunction, { row }: CellRendererParam<UsageLogItem>) => {
+    colKey: "status", title: "状态", width: 80, cell: (h: ReturnType<typeof import("vue").h>, { row }: CellRendererParam<UsageLogItem>) => {
       const statusConfig: Record<string, { color: string; label: string; }> = {
         success: { color: 'var(--color-primary)', label: '成功' },
         error: { color: 'var(--color-danger)', label: '失败' },
@@ -2160,10 +2160,10 @@ const logColumns = [
   },
   {
     colKey: "requestSummary", title: "摘要", width: 200,
-    ellipsis: (_h: HFunction, { row }: CellRendererParam<UsageLogItem>) => {
+    ellipsis: (_h: ReturnType<typeof import("vue").h>, { row }: CellRendererParam<UsageLogItem>) => {
       return row.requestSummary || '--';
     },
-    cell: (_h: HFunction, { row }: CellRendererParam<UsageLogItem>) => {
+    cell: (_h: ReturnType<typeof import("vue").h>, { row }: CellRendererParam<UsageLogItem>) => {
       const summaryText = row.requestSummary || '';
       if (!summaryText) return '--';
 
@@ -2214,7 +2214,7 @@ const logColumns = [
       return displayText;
     }
   },
-  { colKey: "createdAt", title: "时间", width: 150, cell: (_h: HFunction, { row }: CellRendererParam<UsageLogItem>) => formatDateTime(row.createdAt) },
+  { colKey: "createdAt", title: "时间", width: 150, cell: (_h: ReturnType<typeof import("vue").h>, { row }: CellRendererParam<UsageLogItem>) => formatDateTime(row.createdAt) },
 ];
 
 function renderCharts() {

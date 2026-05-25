@@ -61,14 +61,14 @@ export interface VersionCompareResult {
   diff: Record<string, unknown>
 }
 
-interface VersionActionResult {
+export interface VersionActionResult {
   success: boolean
   message?: string
   versionId?: string
   status?: string
 }
 
-export interface PendingReviewResult {
+interface PendingReviewResult {
   list: Record<string, unknown>[]
   pagination: Pagination
 }

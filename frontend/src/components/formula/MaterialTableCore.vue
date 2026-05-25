@@ -352,7 +352,7 @@ const props = withDefaults(
     ratioFactor: number;
     supplementRatioFactor: number;
     supplementPriceMap?: Record<string, number>;
-    materialVersions?: Record<string, { currentVersion: number; latestVersion: number; isLatest: boolean; }>;
+    materialVersions?: Record<string, { currentVersion: number; latestVersion: number; isLatest: boolean }>;
   }>(),
   {
     supplementPriceMap: () => ({}),
@@ -568,7 +568,7 @@ const ratioValidation = computed<RatioValidationResult>(() => {
   }
 
   const deviation = ((totalRatio - 1) * 100).toFixed(2);
-  const messages: Record<string, { badgeText: string; description: string; }> = {
+  const messages: Record<string, { badgeText: string; description: string }> = {
     normal: { badgeText: "通过", description: `含量比总和 ${totalRatio.toFixed(5)}（偏差 ${deviation}%），在正常范围内` },
     warning: { badgeText: "预警", description: `含量比总和 ${totalRatio.toFixed(5)}，偏差 ${deviation}%，建议检查用量` },
     high_warning: { badgeText: "警告", description: `含量比总和 ${totalRatio.toFixed(5)}，偏差 ${deviation}%，需人工审核确认` },
