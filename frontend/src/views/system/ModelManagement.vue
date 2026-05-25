@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="model-management">
     <section class="dashboard-grid">
       <div v-for="(card, idx) in dashboardCards" :key="card.label" class="stat-card"
@@ -93,7 +93,7 @@
                     <div class="model-field">
                       <span class="field-label">可用版本</span>
                       <t-select v-model="model.model" :disabled="!isAdmin" size="small" style="flex: 1"
-                        @change="(val: any) => handleVersionChange(model, String(val))">
+                        @change="(val: string | number | boolean) => handleVersionChange(model, String(val))">
                         <t-option v-for="v in getAvailableVersionsForProvider(model)" :key="v.value" :value="v.value"
                           :label="v.label" :disabled="v.value === model.model">
                           <span style="display:inline-flex;align-items:center;gap:4px;">
@@ -491,7 +491,7 @@
                       <span class="alert-config-model-name">{{ config.model_name }}</span>
                     </div>
                     <t-switch :value="!!config.enabled" :disabled="!isAdmin"
-                      @change="(val: any) => { config.enabled = val ? 1 : 0; handleAlertConfigChange(config); }" />
+                      @change="(val: string | number | boolean) => { config.enabled = val ? 1 : 0; handleAlertConfigChange(config); }" />
                   </div>
                   <div class="alert-config-body">
                     <div class="alert-config-field alert-config-field--row">
@@ -715,7 +715,7 @@
                   <div class="fa-card-body">
                     <div class="fa-field">
                       <span class="fa-field-label">悬浮球位置</span>
-                      <div class="fa-toggle-group" @change="(e: any) => { if (e?.target?.value) floatConfig.position = e.target.value; saveFloatConfig('position'); }">
+                      <div class="fa-toggle-group" @change="(e: Event) => { const target = e.target as HTMLInputElement | null; if (target?.value) floatConfig.position = target.value as 'right' | 'left'; saveFloatConfig('position'); }">
                         <button type="button" class="fa-toggle-btn" :class="{ active: floatConfig.position === 'right' }"
                           @click="floatConfig.position = 'right'; saveFloatConfig('position')">
                           右侧
@@ -729,7 +729,7 @@
                     <div class="fa-field">
                       <span class="fa-field-label">抽屉宽度</span>
                       <t-input-number v-model="floatConfig.drawerWidth" :min="320" :max="600" :step="10" size="small"
-                        theme="normal" style="width: 180px" @change="(val: any) => { const v = Math.min(600, Math.max(320, Number(val) || 320)); floatConfig.drawerWidth = v; saveFloatConfig('drawerWidth', v); }" />
+                        theme="normal" style="width: 180px" @change="(val: number) => { const v = Math.min(600, Math.max(320, Number(val) || 320)); floatConfig.drawerWidth = v; saveFloatConfig('drawerWidth', v); }" />
                     </div>
                     <div class="fa-field">
                       <span class="fa-field-label">主题色</span>
@@ -756,7 +756,7 @@
                   <div class="fa-card-body">
                     <div class="fa-field fa-field--block">
                       <span class="fa-field-label">启用页面</span>
-                      <t-checkbox-group v-model="floatConfig.enabledPages" @change="(val: any) => saveFloatConfig('enabledPages', val)">
+                      <t-checkbox-group v-model="floatConfig.enabledPages" @change="(val: string[]) => saveFloatConfig('enabledPages', val)">
                         <t-checkbox value="formula-add">新增配方</t-checkbox>
                         <t-checkbox value="formula-edit">编辑配方</t-checkbox>
                         <t-checkbox value="material-add">新增原料</t-checkbox>
@@ -768,7 +768,7 @@
                     <div class="fa-field">
                       <span class="fa-field-label">最大对话轮次</span>
                       <t-input-number v-model="floatConfig.maxRounds" :min="3" :max="30" :step="1" size="small"
-                        theme="normal" style="width: 180px" @change="(val: any) => { const v = Math.min(30, Math.max(3, Number(val) || 10)); floatConfig.maxRounds = v; saveFloatConfig('maxRounds', v); }" />
+                        theme="normal" style="width: 180px" @change="(val: number) => { const v = Math.min(30, Math.max(3, Number(val) || 10)); floatConfig.maxRounds = v; saveFloatConfig('maxRounds', v); }" />
                     </div>
                     <div class="fa-field">
                       <span class="fa-field-label">回填策略</span>
@@ -1284,10 +1284,43 @@ import { MessagePlugin } from "tdesign-vue-next";
 import { useModelStore } from "@/stores/model";
 import { useAuthStore } from "@/stores/auth";
 import { useFloatAgentStore } from "@/stores/floatAgent";
-import type { ModelItem, AlertConfigItem, ActivityItem } from "@/api/model";
+import type { ModelItem, AlertConfigItem, ActivityItem, UsageSummaryItem, AlertRecordItem, UsageLogItem } from "@/api/model";
 import { modelApi, type ModelVersionOption } from "@/api/model";
+import type { AgentFloatConfig } from "@/api/agent";
 import { agentApi } from "@/api/agent";
 import * as echarts from "echarts";
+
+interface ModelApplication {
+  id: string;
+  module: string;
+  moduleName?: string;
+  provider: string;
+  model: string;
+  description: string;
+  enabled: boolean;
+  updatedAt: string;
+  createdAt: string;
+}
+
+interface PromptTemplate {
+  id: string;
+  module: string;
+  name: string;
+  type: string;
+  systemPrompt?: string;
+  system_prompt?: string;
+  userPromptTemplate?: string;
+  user_prompt_template?: string;
+  variables: string[];
+  isDefault?: boolean;
+  is_default?: boolean;
+  enabled: boolean;
+  sortOrder?: number;
+  sort_order?: number;
+}
+
+type CellRendererParam<T> = { row: T };
+type HFunction = typeof import("vue").h;
 
 const modelStore = useModelStore();
 const authStore = useAuthStore();
@@ -1396,27 +1429,32 @@ async function loadFloatConfig() {
   }
 }
 
-async function saveFloatConfig(field: string, eventValue?: any) {
+async function saveFloatConfig(field: string, eventValue?: unknown) {
   try {
-    const data: Record<string, any> = {};
-    data[field] = eventValue !== undefined ? eventValue : (floatConfig as any)[field];
-    await agentApi.updateFloatConfig(data as any);
+    const data: Partial<AgentFloatConfig> = {};
+    const fieldValue = eventValue !== undefined ? eventValue : (floatConfig as Record<string, unknown>)[field];
+    (data as Record<string, unknown>)[field] = fieldValue;
+    await agentApi.updateFloatConfig(data);
     floatAgentStore.loadConfig();
     MessagePlugin.success("配置已保存");
-  } catch (e: any) {
-    const msg = e?.response?.data?.error || e?.message || "保存失败";
+  } catch (e: unknown) {
+    const err = e instanceof Error ? e : null;
+    const axiosErr = e as { response?: { data?: { error?: string } }; message?: string };
+    const msg = axiosErr?.response?.data?.error || err?.message || "保存失败";
     console.error(`[FloatAgentConfig] 保存 ${field} 失败:`, msg, e);
     MessagePlugin.error(msg);
   }
 }
 
-async function saveFloatConfigMulti(fields: Record<string, any>) {
+async function saveFloatConfigMulti(fields: Partial<AgentFloatConfig>) {
   try {
-    await agentApi.updateFloatConfig(fields as any);
+    await agentApi.updateFloatConfig(fields);
     floatAgentStore.loadConfig();
     MessagePlugin.success("配置已保存");
-  } catch (e: any) {
-    const msg = e?.response?.data?.error || e?.message || "保存失败";
+  } catch (e: unknown) {
+    const err = e instanceof Error ? e : null;
+    const axiosErr = e as { response?: { data?: { error?: string } }; message?: string };
+    const msg = axiosErr?.response?.data?.error || err?.message || "保存失败";
     console.error("[FloatAgentConfig] 批量保存失败:", msg, e);
     MessagePlugin.error(msg);
   }
@@ -1433,7 +1471,7 @@ const logPageSize = ref(10); // 每页显示10条
 const logFilters = ref({ provider: "", callType: "", status: "" });
 const usageLoading = ref(false);
 
-const modelApplications = ref<any[]>([]);
+const modelApplications = ref<ModelApplication[]>([]);
 const showAddAppDialog = ref(false);
 const showEditAppDialog = ref(false);
 const appSubmitting = ref(false);
@@ -1481,7 +1519,7 @@ const allModules = [
 const excludeModules = ['smart-form', 'smart-import'];
 
 const availableModules = computed(() => {
-  const configuredModuleValues = modelApplications.value.map((app: any) => app.module);
+  const configuredModuleValues = modelApplications.value.map((app: ModelApplication) => app.module);
   return allModules.filter(
     (mod) => !configuredModuleValues.includes(mod.value) && !excludeModules.includes(mod.value)
   );
@@ -1808,8 +1846,9 @@ async function handleVersionChange(model: ModelItem, newVersion: string) {
   try {
     await modelStore.updateModel(model.id, { model: newVersion });
     MessagePlugin.success(`已切换 ${model.name} 版本为 ${newVersion}`);
-  } catch (err: any) {
-    MessagePlugin.error(err.message || "切换版本失败");
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "切换版本失败";
+    MessagePlugin.error(msg);
   }
 }
 
@@ -1817,16 +1856,17 @@ async function handleTestConnection(model: ModelItem) {
   try {
     MessagePlugin.info(`正在测试 ${model.name} 连通性...`);
     const res = await modelStore.testConnection(model.id);
-    if (res && res.status === "healthy") {
-      MessagePlugin.success(`${model.name} 连通正常，延迟 ${res.latencyMs}ms`);
-    } else if (res && res.error) {
-      MessagePlugin.warning(`${model.name} 连通异常: ${res.error}`);
+    if (res && res.success) {
+      MessagePlugin.success(`${model.name} 连通正常`);
+    } else if (res && res.message) {
+      MessagePlugin.warning(`${model.name} 连通异常: ${res.message}`);
     } else {
       MessagePlugin.warning(`${model.name} 连通异常`);
     }
     await modelStore.fetchModels();
-  } catch (err: any) {
-    MessagePlugin.error(err.message || "测试失败");
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "测试失败";
+    MessagePlugin.error(msg);
   }
 }
 
@@ -1834,8 +1874,9 @@ async function handleDeleteModel(model: ModelItem) {
   try {
     await modelStore.deleteModel(model.id);
     MessagePlugin.success(`已移除 ${model.name}`);
-  } catch (err: any) {
-    MessagePlugin.error(err.message || "移除失败");
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "移除失败";
+    MessagePlugin.error(msg);
   }
 }
 
@@ -1868,8 +1909,9 @@ async function handleAddModel() {
     MessagePlugin.success("模型添加成功");
     showAddDrawer.value = false;
     addForm.value = { provider: "", name: "", baseUrl: "", apiKey: "", model: "", visionModel: "", description: "", supportsVision: false };
-  } catch (err: any) {
-    MessagePlugin.error(err.message || "添加失败");
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "添加失败";
+    MessagePlugin.error(msg);
   } finally {
     addSubmitting.value = false;
   }
@@ -1878,13 +1920,14 @@ async function handleAddModel() {
 async function handleEditModel() {
   editSubmitting.value = true;
   try {
-    const data: any = { ...editForm.value };
+    const data: Record<string, unknown> = { ...editForm.value };
     if (!data.apiKey) delete data.apiKey;
-    await modelStore.updateModel(editingModelId.value, data);
+    await modelStore.updateModel(editingModelId.value, data as Parameters<typeof modelStore.updateModel>[1]);
     MessagePlugin.success("模型更新成功");
     showEditDrawer.value = false;
-  } catch (err: any) {
-    MessagePlugin.error(err.message || "更新失败");
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "更新失败";
+    MessagePlugin.error(msg);
   } finally {
     editSubmitting.value = false;
   }
@@ -1916,8 +1959,9 @@ async function handleAlertConfigSave(config: AlertConfigItem, skipRefresh = fals
       criticalThreshold: config.critical_threshold,
       enabled: !!config.enabled,
     }, skipRefresh);
-  } catch (err: any) {
-    MessagePlugin.error(err.message || "更新预警配置失败");
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "更新预警配置失败";
+    MessagePlugin.error(msg);
   }
 }
 
@@ -1951,11 +1995,6 @@ async function refreshUsageStats() {
   }
 }
 
-async function _handleLogPageChange({ current }: { current: number; }) {
-  logPage.value = current;
-  await modelStore.fetchUsageLogs({ page: current, pageSize: logPageSize.value, ...logFilters.value });
-}
-
 // 分页计算
 const logTotalPages = computed(() => Math.ceil(modelStore.usageLogsTotal / logPageSize.value) || 1);
 const logPageNumbers = computed<(number | string)[]>(() => {
@@ -1976,7 +2015,7 @@ async function goLogPage(page: number) {
 const usageColumns = [
   {
     colKey: "name", title: "模型", width: 160,
-    cell: (h: any, { row }: any) => {
+    cell: (h: HFunction, { row }: CellRendererParam<UsageSummaryItem>) => {
       const logoUrl = getModelLogo(row.provider);
       return h('div', { style: 'display:flex;align-items:center;gap:8px;' }, [
         h('div', {
@@ -1992,17 +2031,17 @@ const usageColumns = [
       ]);
     }
   },
-  { colKey: "total_calls", title: "总调用", width: 100, cell: (_h: any, { row }: any) => formatNumber(row.total_calls) },
-  { colKey: "total_tokens", title: "总Token", width: 120, cell: (_h: any, { row }: any) => formatTokens(row.total_tokens) },
-  { colKey: "today_calls", title: "今日调用", width: 100, cell: (_h: any, { row }: any) => formatNumber(row.today_calls) },
-  { colKey: "today_tokens", title: "今日Token", width: 120, cell: (_h: any, { row }: any) => formatTokens(row.today_tokens) },
-  { colKey: "month_tokens", title: "本月Token", width: 120, cell: (_h: any, { row }: any) => formatTokens(row.month_tokens) },
-  { colKey: "avg_latency_ms", title: "平均延迟", width: 100, cell: (_h: any, { row }: any) => `${Math.round(row.avg_latency_ms)}ms` },
+  { colKey: "total_calls", title: "总调用", width: 100, cell: (_h: HFunction, { row }: CellRendererParam<UsageSummaryItem>) => formatNumber(row.total_calls) },
+  { colKey: "total_tokens", title: "总Token", width: 120, cell: (_h: HFunction, { row }: CellRendererParam<UsageSummaryItem>) => formatTokens(row.total_tokens) },
+  { colKey: "today_calls", title: "今日调用", width: 100, cell: (_h: HFunction, { row }: CellRendererParam<UsageSummaryItem>) => formatNumber(row.today_calls) },
+  { colKey: "today_tokens", title: "今日Token", width: 120, cell: (_h: HFunction, { row }: CellRendererParam<UsageSummaryItem>) => formatTokens(row.today_tokens) },
+  { colKey: "month_tokens", title: "本月Token", width: 120, cell: (_h: HFunction, { row }: CellRendererParam<UsageSummaryItem>) => formatTokens(row.month_tokens) },
+  { colKey: "avg_latency_ms", title: "平均延迟", width: 100, cell: (_h: HFunction, { row }: CellRendererParam<UsageSummaryItem>) => `${Math.round(row.avg_latency_ms)}ms` },
 ];
 
 const alertRecordColumns = [
   {
-    colKey: "model_name", title: "模型", width: 140, cell: (h: any, { row }: any) => {
+    colKey: "model_name", title: "模型", width: 140, cell: (h: HFunction, { row }: CellRendererParam<AlertRecordItem>) => {
       const provider = row.provider || row.model_name || '';
       const logoUrl = getModelLogo(provider);
       return h('div', { style: 'display: flex; align-items: center; gap: 8px; flex-wrap: nowrap; white-space: nowrap; overflow: hidden; width: 100%;' }, [
@@ -2027,9 +2066,9 @@ const alertRecordColumns = [
       ]);
     }
   },
-  { colKey: "alert_type", title: "类型", width: 100, cell: (_h: any, { row }: any) => row.alert_type === "daily_call" ? "日调用" : "月Token" },
+  { colKey: "alert_type", title: "类型", width: 100, cell: (_h: HFunction, { row }: CellRendererParam<AlertRecordItem>) => row.alert_type === "daily_call" ? "日调用" : "月Token" },
   {
-    colKey: "level", title: "级别", width: 80, cell: (h: any, { row }: any) => {
+    colKey: "level", title: "级别", width: 80, cell: (h: HFunction, { row }: CellRendererParam<AlertRecordItem>) => {
       const isCritical = row.level === "critical";
       const dotColor = isCritical ? 'var(--color-danger)' : 'var(--color-warning)';
       const tagTheme = isCritical ? "danger" : "warning";
@@ -2041,12 +2080,12 @@ const alertRecordColumns = [
     }
   },
   { colKey: "message", title: "消息", ellipsis: true },
-  { colKey: "created_at", title: "时间", width: 160, cell: (_h: any, { row }: any) => formatDateTime(row.created_at) },
+  { colKey: "created_at", title: "时间", width: 160, cell: (_h: HFunction, { row }: CellRendererParam<AlertRecordItem>) => formatDateTime(row.created_at) },
 ];
 
 const logColumns = [
   {
-    colKey: "modelName", title: "模型", width: 140, cell: (h: any, { row }: any) => {
+    colKey: "modelName", title: "模型", width: 140, cell: (h: HFunction, { row }: CellRendererParam<UsageLogItem>) => {
       const provider = row.modelName || row.provider || '';
       const logoUrl = getModelLogo(provider);
       return h('div', { style: 'display: flex; align-items: center; gap: 8px; flex-wrap: nowrap; white-space: nowrap; overflow: hidden; width: 100%;' }, [
@@ -2071,7 +2110,7 @@ const logColumns = [
     }
   },
   {
-    colKey: "applicationName", title: "应用", width: 170, cell: (h: any, { row }: any) => {
+    colKey: "applicationName", title: "应用", width: 170, cell: (h: HFunction, { row }: CellRendererParam<UsageLogItem>) => {
       const appName = row.applicationName || '';
       const appLocation = row.applicationLocation || '';
       if (!appName && !appLocation) return '--';
@@ -2082,7 +2121,7 @@ const logColumns = [
     }
   },
   {
-    colKey: "callType", title: "类型", width: 100, cell: (_h: any, { row }: any) => {
+    colKey: "callType", title: "类型", width: 100, cell: (_h: HFunction, { row }: CellRendererParam<UsageLogItem>) => {
       const map: Record<string, string> = {
         parse_formula: "解析配方",
         parse_nutrition: "解析营养",
@@ -2101,10 +2140,10 @@ const logColumns = [
       return map[row.callType] || row.callType;
     }
   },
-  { colKey: "totalTokens", title: "Token", width: 90, cell: (_h: any, { row }: any) => formatTokens(row.totalTokens) },
-  { colKey: "latencyMs", title: "耗时", width: 80, cell: (_h: any, { row }: any) => row.latencyMs ? `${row.latencyMs}ms` : "-" },
+  { colKey: "totalTokens", title: "Token", width: 90, cell: (_h: HFunction, { row }: CellRendererParam<UsageLogItem>) => formatTokens(row.totalTokens) },
+  { colKey: "latencyMs", title: "耗时", width: 80, cell: (_h: HFunction, { row }: CellRendererParam<UsageLogItem>) => row.latencyMs ? `${row.latencyMs}ms` : "-" },
   {
-    colKey: "status", title: "状态", width: 80, cell: (h: any, { row }: any) => {
+    colKey: "status", title: "状态", width: 80, cell: (h: HFunction, { row }: CellRendererParam<UsageLogItem>) => {
       const statusConfig: Record<string, { color: string; label: string; }> = {
         success: { color: 'var(--color-primary)', label: '成功' },
         error: { color: 'var(--color-danger)', label: '失败' },
@@ -2121,10 +2160,10 @@ const logColumns = [
   },
   {
     colKey: "requestSummary", title: "摘要", width: 200,
-    ellipsis: (_h: any, { row }: any) => {
+    ellipsis: (_h: HFunction, { row }: CellRendererParam<UsageLogItem>) => {
       return row.requestSummary || '--';
     },
-    cell: (_h: any, { row }: any) => {
+    cell: (_h: HFunction, { row }: CellRendererParam<UsageLogItem>) => {
       const summaryText = row.requestSummary || '';
       if (!summaryText) return '--';
 
@@ -2175,7 +2214,7 @@ const logColumns = [
       return displayText;
     }
   },
-  { colKey: "createdAt", title: "时间", width: 150, cell: (_h: any, { row }: any) => formatDateTime(row.createdAt) },
+  { colKey: "createdAt", title: "时间", width: 150, cell: (_h: HFunction, { row }: CellRendererParam<UsageLogItem>) => formatDateTime(row.createdAt) },
 ];
 
 function renderCharts() {
@@ -2204,7 +2243,7 @@ function renderCharts() {
           name: providerNames[p] || p,
           type: "line",
           smooth: true,
-          data: modelStore.usageTrend.map(t => (t as any)[p] || 0),
+          data: modelStore.usageTrend.map(t => (t as Record<string, string | number>)[p] || 0),
           lineStyle: { width: 2 },
           itemStyle: { color: providerColors[p] || "#999" },
           areaStyle: { opacity: 0.1 },
@@ -2289,7 +2328,7 @@ const fetchModelApplications = async () => {
   }
 };
 
-const promptTemplates = ref<any[]>([]);
+const promptTemplates = ref<PromptTemplate[]>([]);
 const promptLoading = ref(false);
 const showPromptDialog = ref(false);
 const promptFormMode = ref<"create" | "edit">("create");
@@ -2351,7 +2390,7 @@ const openCreatePromptDialog = () => {
   showPromptDialog.value = true;
 };
 
-const openEditPromptDialog = (row: any) => {
+const openEditPromptDialog = (row: PromptTemplate) => {
   promptFormMode.value = "edit";
   promptForm.value = {
     id: row.id, module: row.module || "smart-generate", name: row.name,
@@ -2466,7 +2505,7 @@ const getModuleIconBg = (module: string): string => {
 };
 
 const getModelNameByProvider = (provider: string): string => {
-  const model = modelStore.models.find((m: any) => m.provider === provider);
+  const model = modelStore.models.find((m: ModelItem) => m.provider === provider);
   return model?.name || provider;
 };
 
@@ -2484,7 +2523,7 @@ const formatDateTime = (dateStr: string): string => {
 
 const getAvailableVersionsForProviderByString = (provider: string) => {
   if (!provider) return [];
-  const model = modelStore.models.find((m: any) => m.provider === provider);
+  const model = modelStore.models.find((m: ModelItem) => m.provider === provider);
   if (!model) return [];
 
   const providerKey = provider.toLowerCase().trim();
@@ -2511,7 +2550,7 @@ const handleEditAppProviderChange = () => {
   editAppFormData.model = "";
 };
 
-const openEditAppDialog = (app: any) => {
+const openEditAppDialog = (app: ModelApplication) => {
   editingAppId.value = app.id;
   editAppFormData.module = app.module;
   editAppFormData.provider = app.provider;
@@ -2578,7 +2617,7 @@ const submitEditApp = async () => {
   }
 };
 
-const toggleAppStatus = async (app: any) => {
+const toggleAppStatus = async (app: ModelApplication) => {
   try {
     const newStatus = !app.enabled;
     const token = localStorage.getItem('tingstudio_token') || '';

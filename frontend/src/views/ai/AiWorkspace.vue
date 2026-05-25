@@ -169,7 +169,7 @@
                               </div>
                             </div>
 
-                            <div v-if="msg.actions?.length > 0" class="message-actions">
+                            <div v-if="(msg.actions?.length ?? 0) > 0" class="message-actions">
                               <button v-for="action in msg.actions" :key="action.id" class="action-btn"
                                 @click="executeAction(action)">
                                 <t-icon v-if="action.icon" :name="action.icon" size="14px" />
@@ -194,11 +194,11 @@
                                 <span class="meta-latency">{{ msg.metadata.latency < 1000 ? msg.metadata.latency + 'ms'
                                   : (msg.metadata.latency / 1000).toFixed(1) + 's' }}</span>
                               </template>
-                              <template v-if="msg.metadata.tokenUsage && msg.metadata.tokenUsage.total_tokens > 0">
+                              <template v-if="msg.metadata.tokenUsage && (msg.metadata.tokenUsage as Record<string, unknown>).total_tokens as number > 0">
                                 <span class="meta-sep">·</span>
                                 <span class="token-usage"
-                                  :title="`输入: ${msg.metadata.tokenUsage.prompt_tokens || 0} / 输出: ${msg.metadata.tokenUsage.completion_tokens || 0}`">Token：{{
-                                    msg.metadata.tokenUsage.total_tokens }}</span>
+                                  :title="`输入: ${((msg.metadata.tokenUsage as Record<string, unknown>).prompt_tokens as number) || 0} / 输出: ${((msg.metadata.tokenUsage as Record<string, unknown>).completion_tokens as number) || 0}`">Token：{{
+                                    (msg.metadata.tokenUsage as Record<string, unknown>).total_tokens }}</span>
                               </template>
                               <template v-else-if="msg.metadata.tokens && msg.metadata.tokens > 0">
                                 <span class="meta-sep">·</span>
@@ -381,7 +381,7 @@
                   <div class="skeleton-value"></div>
                 </template>
                 <template v-else>
-                  <span class="value-number" :ref="el => { if (el) valueRefs[index] = el; }">
+                  <span class="value-number" :ref="(el: unknown) => { if (el) valueRefs[index] = el as HTMLElement; }">
                     {{ formatNumber(card.value) }}
                   </span>
                 </template>
@@ -513,12 +513,13 @@ import FormulaParseTab from './tabs/FormulaParseTab.vue';
 import MaterialImportTab from './tabs/MaterialImportTab.vue';
 import ToolConfirmDialog from '@/components/ToolConfirmDialog.vue';
 import AgentResultRenderer from '@/components/AgentResultRenderer.vue';
-import AgentFormRenderer from '@/components/AgentFormRenderer.vue';
+import AgentFormRenderer, { type FormSchema } from '@/components/AgentFormRenderer.vue';
 import { useAuthStore } from '@/stores/auth';
 import { useAgentStore } from '@/stores/agent';
 import { useModelStore } from '@/stores/model';
 import { useAiStore } from '@/stores/ai';
 import { agentApi } from '@/api/agent';
+import type { ModelItem } from '@/api/model';
 
 const router = useRouter();
 const route = useRoute();
@@ -527,12 +528,94 @@ const agentStore = useAgentStore();
 const modelStore = useModelStore();
 const aiStore = useAiStore();
 
+interface ToolCallItem {
+  name: string;
+  [key: string]: unknown;
+}
+
+interface IntentData {
+  intent?: string;
+  [key: string]: unknown;
+}
+
+interface PendingConfirmData {
+  toolName: string;
+  params: Record<string, unknown>;
+  message: string;
+}
+
+interface ToolResultData {
+  displayType: string;
+  toolName: string;
+  data: unknown;
+  success: boolean;
+}
+
+interface ChatMessage {
+  id: string;
+  role: "user" | "assistant" | "system" | "tool";
+  content: string;
+  timestamp: Date;
+  metadata?: {
+    model: string;
+    tokens: number;
+    latency: number;
+    intent?: string;
+    tokenUsage?: Record<string, unknown> | null;
+  };
+  actions?: ActionItem[];
+  toolResult?: ToolCallItem[];
+  toolResultData?: ToolResultData | null;
+  pendingConfirm?: PendingConfirmData | null;
+  formSchema?: FormSchema | null;
+  formSubmitted?: boolean;
+  formSubmitSuccess?: boolean;
+  writeGuidanceLinks?: Array<{ message: string; navigationLink: string }>;
+}
+
+interface RecentVisitItem {
+  path: string;
+  label: string;
+  icon?: string;
+  timestamp?: string;
+}
+
+interface PendingTaskItem {
+  id: string;
+  title: string;
+  type: string;
+  priority?: string;
+  createdAt?: string;
+}
+
+interface QuickActionItem {
+  label: string;
+  icon: string;
+  path: string;
+  primary?: boolean;
+  isAIFeature?: boolean;
+  badge?: string;
+  action?: string;
+}
+
+interface ValidationError {
+  field: string;
+  message: string;
+}
+
+interface DashboardStatsResponse {
+  formulas?: number;
+  materials?: number;
+  sales?: { revenue: number };
+  pendingTasks?: number;
+}
+
 const confirmDialogVisible = ref(false);
 const confirmMessage = ref('');
 const confirmToolName = ref('');
-const confirmParams = ref<Record<string, any>>({});
+const confirmParams = ref<Record<string, unknown>>({});
 
-const pendingFormSchema = ref<any>(null);
+const pendingFormSchema = ref<FormSchema | null>(null);
 const pendingFormSessionId = ref<string>('');
 
 const toastMessage = ref('');
@@ -607,7 +690,7 @@ const showErrorToast = (message: string) => {
 };
 
 // 防抖函数（Phase 5 预留，按需启用）
-// const debounce = <T extends (...args: any[]) => any>(
+// const debounce = <T extends (...args: unknown[]) => unknown>(
 //   fn: T,
 //   delay: number = 300
 // ): ((...args: Parameters<T>) => void) => {
@@ -626,7 +709,7 @@ const performanceMetrics = ref({
   lastUpdated: null as Date | null
 });
 
-const recordPerformance = (metric: keyof typeof performanceMetrics.value, value?: any) => {
+const recordPerformance = (metric: keyof typeof performanceMetrics.value, value?: number | Date) => {
   if (metric === 'apiCalls' || metric === 'errors') {
     performanceMetrics.value[metric]++;
   } else if (metric === 'lastUpdated') {
@@ -637,7 +720,7 @@ const recordPerformance = (metric: keyof typeof performanceMetrics.value, value?
 };
 
 // 使用防抖优化的搜索/输入处理（Phase 5 预留，按需启用）
-// const debouncedHandleSend: ((...args: any[]) => void) | null = null
+// const debouncedHandleSend: ((...args: unknown[]) => void) | null = null
 
 const dataCards = ref<DataCard[]>([
   {
@@ -683,7 +766,7 @@ const dataCards = ref<DataCard[]>([
   }
 ]);
 
-const valueRefs = ref<any[]>([]);
+const valueRefs = ref<HTMLElement[]>([]);
 
 // 快捷操作
 const quickActions = [
@@ -715,15 +798,21 @@ const STATIC_SUGGESTIONS: Suggestion[] = [
 const displayedSuggestions = ref<Suggestion[]>([]);
 
 // AI对话状态
-const messages = ref<any[]>([]);
+const messages = ref<ChatMessage[]>([]);
 const inputText = ref('');
 const isLoading = ref(false);
 const streamingContent = ref('');
 const CONVERSATION_ID_KEY = 'tingstudio_agent_conversation_id';
 
+interface SessionDisplay {
+  id: string;
+  title: string;
+  updatedAt: string;
+}
+
 const conversationId = ref<string | null>(null);
 const showHistory = ref(false);
-const sessions = ref<any[]>([]);
+const sessions = ref<SessionDisplay[]>([]);
 const currentProvider = computed({
   get: () => aiStore.selectedModel || 'deepseek',
   set: (val: string) => { aiStore.selectedModel = val; },
@@ -847,7 +936,7 @@ const currentModelValue = computed(() => currentModelVersion.value);
 const displayModelName = computed(() => {
   const item = allModelVersions.value.find(m => m.value === currentModelVersion.value);
   if (item) return item.label;
-  const storeModel = modelStore.models.find((m: any) => m.provider === currentProvider.value);
+  const storeModel = modelStore.models.find((m: ModelItem) => m.provider === currentProvider.value);
   return storeModel?.name || currentProvider.value;
 });
 
@@ -864,8 +953,8 @@ const availableModels = computed(() => {
   const storeModels = modelStore.models;
   if (storeModels && storeModels.length > 0) {
     return storeModels
-      .filter((m: any) => m.apiKeyConfigured)
-      .map((m: any) => {
+      .filter((m: ModelItem) => m.apiKeyConfigured)
+      .map((m: ModelItem) => {
         const provider = m.provider || '';
         return {
           value: m.model || provider,
@@ -890,8 +979,8 @@ const fetchAllModelVersions = async () => {
   modelsLoadError.value = null;
   try {
     const configuredProviders = modelStore.models
-      .filter((m: any) => m.apiKeyConfigured)
-      .map((m: any) => m.provider);
+      .filter((m: ModelItem) => m.apiKeyConfigured)
+      .map((m: ModelItem) => m.provider);
 
     const allVersions: ModelVersionItem[] = [];
     const { modelApi } = await import('@/api/model');
@@ -899,7 +988,7 @@ const fetchAllModelVersions = async () => {
     for (const provider of configuredProviders) {
       try {
         const res = await modelApi.getVersionsByProvider(provider);
-        const storeModel = modelStore.models.find((m: any) => m.provider === provider);
+        const storeModel = modelStore.models.find((m: ModelItem) => m.provider === provider);
         const providerName = storeModel?.name || provider;
 
         if (res.versions && res.versions.length > 0) {
@@ -926,7 +1015,7 @@ const fetchAllModelVersions = async () => {
           });
         }
       } catch {
-        const storeModel = modelStore.models.find((m: any) => m.provider === provider);
+        const storeModel = modelStore.models.find((m: ModelItem) => m.provider === provider);
         const providerName = storeModel?.name || provider;
         allVersions.push({
           value: storeModel?.model || provider,
@@ -948,7 +1037,7 @@ const fetchAllModelVersions = async () => {
       currentProvider.value = defaultItem.provider;
       currentModelVersion.value = defaultItem.value;
     }
-  } catch (e: any) {
+  } catch (e: unknown) {
     modelsLoadError.value = '加载模型列表失败';
     console.error('[AiWorkspace] fetchAllModelVersions failed:', e);
   } finally {
@@ -988,7 +1077,7 @@ const copyMessageContent = async (content: string) => {
   }
 };
 
-const retryMessage = (msg: any) => {
+const retryMessage = (msg: ChatMessage) => {
   const msgIndex = messages.value.indexOf(msg);
   let retryContent = '';
   for (let i = msgIndex - 1; i >= 0; i--) {
@@ -1006,14 +1095,12 @@ const retryMessage = (msg: any) => {
 };
 
 const deleteMessage = (msgId: string) => {
-  const index = messages.value.findIndex((m: any) => m.id === msgId);
+  const index = messages.value.findIndex((m: ChatMessage) => m.id === msgId);
   if (index !== -1) {
     messages.value.splice(index, 1);
     showActionToast('消息已删除');
   }
 };
-
-const _quickTags = ['📊 本月销量概况', '📝 创建新配方', '🧪 库存不足预警'];
 
 // ════════════════════════════════════════
 // 斜杠指令系统
@@ -1302,15 +1389,15 @@ const isWriteIntentPrefix = (text: string): boolean => {
   return false;
 };
 
-const WRITE_NAV_MAP: Record<string, { route: string; label: string }> = {
-  '配方': { route: '/formula', label: '配方管理' },
-  '原料': { route: '/material', label: '原料管理' },
-  '业务员': { route: '/salesman', label: '业务员管理' },
-  '销售': { route: '/salesman', label: '销售管理' },
+const WRITE_NAV_MAP: Record<string, { navigationLink: string; message: string }> = {
+  '配方': { navigationLink: '/formula', message: '配方管理' },
+  '原料': { navigationLink: '/material', message: '原料管理' },
+  '业务员': { navigationLink: '/salesman', message: '业务员管理' },
+  '销售': { navigationLink: '/salesman', message: '销售管理' },
 };
 
-const extractWriteNavigationLinks = (text: string): Array<{ route: string; label: string }> => {
-  const links: Array<{ route: string; label: string }> = [];
+const extractWriteNavigationLinks = (text: string): Array<{ message: string; navigationLink: string }> => {
+  const links: Array<{ message: string; navigationLink: string }> = [];
   for (const [keyword, nav] of Object.entries(WRITE_NAV_MAP)) {
     if (text.includes(keyword)) {
       links.push(nav);
@@ -1401,10 +1488,10 @@ const handleInputKeydown = (e: KeyboardEvent) => {
 };
 
 // 最近访问
-const recentVisits = ref<any[]>([]);
+const recentVisits = ref<RecentVisitItem[]>([]);
 
 // 待办事项
-const pendingTasks = ref<any[]>([]);
+const pendingTasks = ref<PendingTaskItem[]>([]);
 const tasksLoading = ref(false);
 
 // DOM引用
@@ -1422,7 +1509,7 @@ const navigateTo = (path: string) => {
 };
 
 // 处理快捷操作点击（支持模态框和页面导航）
-const handleQuickAction = (action: any) => {
+const handleQuickAction = (action: QuickActionItem) => {
   if (action.action === 'tab') {
     if (action.path === 'smart-form') {
       showSmartFormModal.value = true;
@@ -1498,12 +1585,6 @@ const shuffleSuggestions = () => {
   displayedSuggestions.value = shuffled.slice(0, 3);
 };
 
-// 推荐点击
-const _handleSuggestionClick = (text: string) => {
-  inputText.value = text.replace(/[\u{1F300}-\u{1F9FF}]/gu, '').trim();
-  handleSend();
-};
-
 // 快速提问（从欢迎消息功能列表）
 const handleQuickQuestion = (question: string) => {
   inputText.value = question;
@@ -1511,7 +1592,7 @@ const handleQuickQuestion = (question: string) => {
 };
 
 // 添加活动记录（来自智能填单/导入组件）
-const addActivity = (_activity: any) => {
+const addActivity = (_activity: Record<string, unknown>) => {
 };
 
 // 发送消息
@@ -1585,10 +1666,10 @@ const handleSend = async (confirmed = false) => {
     const reader = response.body?.getReader();
     const decoder = new TextDecoder();
     let fullContent = '';
-    let currentToolCalls: any[] = [];
-    let currentIntent: any = null;
-    let pendingConfirm: any = null;
-    let lastToolResult: any = null;
+    let currentToolCalls: ToolCallItem[] = [];
+    let currentIntent: IntentData | null = null;
+    let pendingConfirm: PendingConfirmData | null = null;
+    let lastToolResult: ToolResultData | null = null;
     let writeGuidanceLinks: Array<{ message: string; navigationLink: string }> = [];
     let lastDataTime = Date.now();
     const SSE_TIMEOUT_MS = 20000;
@@ -1647,7 +1728,7 @@ const handleSend = async (confirmed = false) => {
                   break;
 
                 case 'form':
-                  pendingFormSchema.value = parsed.formSchema;
+                  pendingFormSchema.value = parsed.formSchema as FormSchema;
                   pendingFormSessionId.value = parsed.sessionId || conversationId.value || '';
                   if (parsed.message) {
                     fullContent += parsed.message;
@@ -1666,7 +1747,7 @@ const handleSend = async (confirmed = false) => {
 
                 case 'tool_result':
                   currentToolCalls = currentToolCalls.filter(
-                    (tc: any) => tc.name !== parsed.name
+                    (tc: ToolCallItem) => tc.name !== parsed.name
                   );
                   lastToolResult = {
                     displayType: parsed.displayType || 'card',
@@ -1735,8 +1816,8 @@ const handleSend = async (confirmed = false) => {
                   clearInterval(heartbeatCheck);
                   throw new Error(parsed.message || 'AI 服务错误');
               }
-            } catch (parseError: any) {
-              if (parseError.message && !parseError.message.includes('JSON')) {
+            } catch (parseError: unknown) {
+              if (parseError instanceof Error && parseError.message && !parseError.message.includes('JSON')) {
                 throw parseError;
               }
             }
@@ -1746,11 +1827,11 @@ const handleSend = async (confirmed = false) => {
     }
 
     if (fullContent) {
-      let recoveredFormSchema = null;
+      let recoveredFormSchema: FormSchema | null = null;
       try {
         const formRes = await agentApi.getPendingForm(conversationId.value || '');
         if (formRes.success && formRes.data) {
-          recoveredFormSchema = formRes.data;
+          recoveredFormSchema = formRes.data as FormSchema;
         }
       } catch {
         // ignore pending form recovery failure
@@ -1768,19 +1849,20 @@ const handleSend = async (confirmed = false) => {
           tokenUsage: null,
         },
         actions: parseActionsFromResponse(fullContent),
-        formSchema: recoveredFormSchema || undefined,
+        formSchema: recoveredFormSchema ?? undefined,
       });
       streamingContent.value = '';
     }
 
     isLoading.value = false;
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Chat error:', error);
     recordPerformance('errors');
-    showErrorToast(`AI 对话失败: ${error.message || '网络连接异常'}`);
+    const errorMessage = error instanceof Error ? error.message : '网络连接异常';
+    showErrorToast(`AI 对话失败: ${errorMessage}`);
 
-    console.warn('Falling back to mock response due to:', error.message);
+    console.warn('Falling back to mock response due to:', errorMessage);
 
     await new Promise(resolve => setTimeout(resolve, 800));
     const mockResponse = getMockResponse(content);
@@ -1934,7 +2016,7 @@ interface ActionItem {
   label: string;
   icon?: string;
   type: 'navigate' | 'api' | 'copy' | 'download' | 'create';
-  payload?: any;
+  payload?: Record<string, unknown>;
 }
 
 // 操作类型定义
@@ -1949,7 +2031,7 @@ const ACTION_PATTERNS = {
 const executeAction = (action: ActionItem) => {
   switch (action.type) {
     case 'navigate':
-      if (action.payload?.path) {
+      if (action.payload?.path && typeof action.payload.path === 'string') {
         router.push(action.payload.path);
       }
       break;
@@ -1965,7 +2047,7 @@ const executeAction = (action: ActionItem) => {
       break;
 
     case 'copy':
-      if (action.payload?.text) {
+      if (action.payload?.text && typeof action.payload.text === 'string') {
         navigator.clipboard.writeText(action.payload.text).then(() => {
         });
       }
@@ -1973,7 +2055,7 @@ const executeAction = (action: ActionItem) => {
 
     case 'download':
       if (action.payload?.url || action.payload?.path) {
-        const url = action.payload.url || action.payload.path;
+        const url = String(action.payload.url || action.payload.path);
         window.open(url.startsWith('http') ? url : `${window.location.origin}${url}`, '_blank');
       }
       break;
@@ -2089,7 +2171,7 @@ const createNewSession = () => {
 
 const loadSessions = async () => {
   await agentStore.loadSessions();
-  sessions.value = agentStore.sessions.map((s) => ({
+  sessions.value = agentStore.sessions.map((s): SessionDisplay => ({
     id: s.id,
     title: s.title,
     updatedAt: s.last_active_at,
@@ -2161,19 +2243,23 @@ const switchToSession = async (sessionId: string) => {
   await agentStore.loadSessionMessages(sessionId);
   conversationId.value = sessionId;
   sessionStorage.setItem(CONVERSATION_ID_KEY, sessionId);
-  messages.value = agentStore.messages.map((m) => {
-    const metadata = m.metadata ? (typeof m.metadata === 'string' ? JSON.parse(m.metadata) : m.metadata) : {};
-    const toolResults = m.tool_results ? (typeof m.tool_results === 'string' ? JSON.parse(m.tool_results) : m.tool_results) : null;
+  messages.value = agentStore.messages.map((m): ChatMessage => {
+    const metadata = m.metadata ? (typeof m.metadata === 'string' ? JSON.parse(m.metadata as string) : m.metadata) : {};
+    const toolResults = m.tool_results ? (typeof m.tool_results === 'string' ? JSON.parse(m.tool_results as string) : m.tool_results) : null;
     const displayType = m.display_type || null;
 
-    let toolResultData = null;
+    let toolResultData: ToolResultData | null = null;
     if (toolResults && toolResults.length > 0) {
-      const firstResult = toolResults[0];
+      const firstResult = toolResults[0] as Record<string, unknown>;
       toolResultData = {
         displayType: displayType || 'card',
-        toolName: firstResult.toolName || firstResult.name || null,
-        data: firstResult.result?.data || firstResult.data,
-        success: firstResult.result?.success ?? firstResult.success ?? true,
+        toolName: (firstResult.toolName || firstResult.name || null) as string,
+        data: (firstResult as Record<string, unknown>).result && typeof (firstResult as Record<string, unknown>).result === 'object'
+          ? ((firstResult as Record<string, unknown>).result as Record<string, unknown>).data || firstResult
+          : firstResult,
+        success: ((firstResult as Record<string, unknown>).result ? (firstResult as Record<string, unknown>).result as Record<string, unknown> : firstResult).success !== undefined
+          ? Boolean(((firstResult as Record<string, unknown>).result ? (firstResult as Record<string, unknown>).result as Record<string, unknown> : firstResult).success)
+          : true,
       };
     }
 
@@ -2182,7 +2268,7 @@ const switchToSession = async (sessionId: string) => {
       role: m.role,
       content: m.content,
       timestamp: new Date(m.created_at),
-      metadata,
+      metadata: metadata as ChatMessage["metadata"],
       toolResultData,
       actions: [],
     };
@@ -2193,7 +2279,7 @@ const switchToSession = async (sessionId: string) => {
     if (res.success && res.data) {
       const lastAssistantMsg = messages.value.filter(m => m.role === 'assistant').pop();
       if (lastAssistantMsg && !lastAssistantMsg.formSchema) {
-        lastAssistantMsg.formSchema = res.data;
+        lastAssistantMsg.formSchema = res.data as FormSchema;
         lastAssistantMsg.formSubmitted = false;
       }
     }
@@ -2219,7 +2305,7 @@ const handleCancelAction = () => {
   });
 };
 
-const handleFormSubmit = async (msg: any, formData: Record<string, any>) => {
+const handleFormSubmit = async (msg: ChatMessage, formData: Record<string, unknown>) => {
   try {
     const token = localStorage.getItem('tingstudio_token');
     const response = await fetch('/api/agent/submit-form', {
@@ -2230,7 +2316,7 @@ const handleFormSubmit = async (msg: any, formData: Record<string, any>) => {
       },
       body: JSON.stringify({
         sessionId: conversationId.value,
-        formId: msg.formSchema.formId,
+        formId: msg.formSchema?.formId ?? "",
         formData,
       }),
     });
@@ -2242,21 +2328,22 @@ const handleFormSubmit = async (msg: any, formData: Record<string, any>) => {
       msg.formSubmitSuccess = true;
       showActionToast('操作成功');
     } else if (result.validationErrors && result.validationErrors.length > 0) {
-      const errorMessages = result.validationErrors.map((e: any) => e.message).join('；');
+      const errorMessages = result.validationErrors.map((e: ValidationError) => e.message).join('；');
       showActionToast(errorMessages);
     } else {
       msg.formSubmitted = true;
       msg.formSubmitSuccess = false;
       showActionToast(result.error || '操作失败');
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     msg.formSubmitted = true;
     msg.formSubmitSuccess = false;
-    showActionToast(`提交失败：${error.message}`);
+    const errorMsg = error instanceof Error ? error.message : '未知错误';
+    showActionToast(`提交失败：${errorMsg}`);
   }
 };
 
-const handleFormCancel = (msg: any) => {
+const handleFormCancel = (msg: ChatMessage) => {
   msg.formSubmitted = true;
   msg.formSubmitSuccess = false;
   messages.value.push({
@@ -2325,22 +2412,6 @@ const loadRecentVisits = () => {
   }
 };
 
-const _clearVisits = () => {
-  recentVisits.value = [];
-  localStorage.removeItem(VISITS_STORAGE_KEY);
-};
-
-// 待办事项管理
-const TYPE_LABELS: Record<string, string> = {
-  approval: '待审批',
-  action: '待处理',
-  reminder: '提醒'
-};
-
-const _getTypeLabel = (type: string): string => {
-  return TYPE_LABELS[type] || type;
-};
-
 const fetchPendingTasks = async () => {
   tasksLoading.value = true;
   try {
@@ -2351,17 +2422,6 @@ const fetchPendingTasks = async () => {
     console.error('Failed to fetch tasks:', error);
   } finally {
     tasksLoading.value = false;
-  }
-};
-
-const _toggleTaskComplete = async (taskId: string) => {
-  // Phase 2对接API
-  pendingTasks.value = pendingTasks.value.filter(t => t.id !== taskId);
-
-  // 更新数据卡片中的待办计数
-  const pendingCard = dataCards.value.find(c => c.id === 'pending');
-  if (pendingCard && pendingCard.value !== null) {
-    pendingCard.value = Math.max(0, (pendingCard.value as number) - 1);
   }
 };
 
@@ -2389,7 +2449,7 @@ const formatRelativeTime = (date: Date | string): string => {
 // 数据加载（Phase 2: 对接真实API）
 const fetchDashboardData = async () => {
   try {
-    const response = await http.get('/dashboard/stats', { _logLabel: 'Dashboard Stats' });
+    const response = await http.get<unknown, DashboardStatsResponse>('/dashboard/stats', { _logLabel: 'Dashboard Stats' });
 
     dataCards.value = dataCards.value.map((card) => {
       let value: number | null = null;
@@ -2511,20 +2571,21 @@ onMounted(async () => {
 
   recordPerformance('loadTime', Date.now() - loadStartTime);
 
-    ; (window as any).__dashboardCleanup = () => {
+    ; (window as unknown as Record<string, unknown>).__dashboardCleanup = () => {
       window.removeEventListener('keydown', handleKeyboardShortcuts);
       document.removeEventListener('click', handleClickOutside);
     };
 });
 
 onUnmounted(() => {
-  if ((window as any).__dashboardCleanup) {
-    ; (window as any).__dashboardCleanup();
-    delete (window as any).__dashboardCleanup;
+  const win = window as unknown as Record<string, unknown>;
+  if (win.__dashboardCleanup) {
+    ; (win.__dashboardCleanup as () => void)();
+    delete win.__dashboardCleanup;
   }
-  if ((window as any).__sseHeartbeatCheck) {
-    clearInterval((window as any).__sseHeartbeatCheck);
-    delete (window as any).__sseHeartbeatCheck;
+  if (win.__sseHeartbeatCheck) {
+    clearInterval(win.__sseHeartbeatCheck as ReturnType<typeof setInterval>);
+    delete win.__sseHeartbeatCheck;
   }
 });
 </script>

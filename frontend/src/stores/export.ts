@@ -35,23 +35,23 @@ export const useExportStore = defineStore('export', () => {
     }
   }
 
-  const createTemplate = async (data: { name: string; description?: string; type: string; formatConfig: any; isDefault?: boolean }) => {
+  const createTemplate = async (data: { name: string; description?: string; type: string; formatConfig: Record<string, unknown>; isDefault?: boolean }) => {
     try {
       await exportApi.createTemplate(data)
       await fetchTemplates({ page: templateCurrentPage.value, pageSize: templatePageSize.value })
       return { success: true }
-    } catch (error: any) {
-      return { success: false, message: error.message || '创建模板失败' }
+    } catch (error: unknown) {
+      return { success: false, message: error instanceof Error ? error.message : '创建模板失败' }
     }
   }
 
-  const updateTemplate = async (templateId: string, data: { name: string; description?: string; type: string; formatConfig: any; isDefault?: boolean }) => {
+  const updateTemplate = async (templateId: string, data: { name: string; description?: string; type: string; formatConfig: Record<string, unknown>; isDefault?: boolean }) => {
     try {
       await exportApi.updateTemplate(templateId, data)
       await fetchTemplates({ page: templateCurrentPage.value, pageSize: templatePageSize.value })
       return { success: true }
-    } catch (error: any) {
-      return { success: false, message: error.message || '更新模板失败' }
+    } catch (error: unknown) {
+      return { success: false, message: error instanceof Error ? error.message : '更新模板失败' }
     }
   }
 
@@ -60,8 +60,8 @@ export const useExportStore = defineStore('export', () => {
       await exportApi.deleteTemplate(templateId)
       await fetchTemplates({ page: templateCurrentPage.value, pageSize: templatePageSize.value })
       return { success: true }
-    } catch (error: any) {
-      return { success: false, message: error.message || '删除模板失败' }
+    } catch (error: unknown) {
+      return { success: false, message: error instanceof Error ? error.message : '删除模板失败' }
     }
   }
 
@@ -71,8 +71,8 @@ export const useExportStore = defineStore('export', () => {
     try {
       const res = await exportApi.createJob(data)
       return { success: true, data: res }
-    } catch (error: any) {
-      return { success: false, message: error.message || '创建导出任务失败' }
+    } catch (error: unknown) {
+      return { success: false, message: error instanceof Error ? error.message : '创建导出任务失败' }
     } finally {
       loading.value = false
     }
@@ -107,8 +107,8 @@ export const useExportStore = defineStore('export', () => {
       await exportApi.retryJob(jobId)
       await fetchJobs({ page: currentPage.value, pageSize: pageSize.value })
       return { success: true }
-    } catch (error: any) {
-      return { success: false, message: error.message || '重试失败' }
+    } catch (error: unknown) {
+      return { success: false, message: error instanceof Error ? error.message : '重试失败' }
     }
   }
 
@@ -117,8 +117,8 @@ export const useExportStore = defineStore('export', () => {
       await exportApi.reExportJob(jobId)
       await fetchJobs({ page: currentPage.value, pageSize: pageSize.value })
       return { success: true }
-    } catch (error: any) {
-      return { success: false, message: error.message || '重新导出失败' }
+    } catch (error: unknown) {
+      return { success: false, message: error instanceof Error ? error.message : '重新导出失败' }
     }
   }
 
@@ -138,8 +138,8 @@ export const useExportStore = defineStore('export', () => {
       document.body.removeChild(link)
       window.URL.revokeObjectURL(url)
       return { success: true }
-    } catch (error: any) {
-      return { success: false, message: error.message || '下载失败' }
+    } catch (error: unknown) {
+      return { success: false, message: error instanceof Error ? error.message : '下载失败' }
     }
   }
 
@@ -148,8 +148,8 @@ export const useExportStore = defineStore('export', () => {
     try {
       const res = await exportApi.createShare(data)
       return { success: true, data: res }
-    } catch (error: any) {
-      return { success: false, message: error.message || '创建分享失败' }
+    } catch (error: unknown) {
+      return { success: false, message: error instanceof Error ? error.message : '创建分享失败' }
     }
   }
   
@@ -168,8 +168,8 @@ export const useExportStore = defineStore('export', () => {
       await exportApi.deleteShare(shareId)
       await fetchShares()
       return { success: true }
-    } catch (error: any) {
-      return { success: false, message: error.message || '删除分享失败' }
+    } catch (error: unknown) {
+      return { success: false, message: error instanceof Error ? error.message : '删除分享失败' }
     }
   }
   
@@ -186,13 +186,13 @@ export const useExportStore = defineStore('export', () => {
     }
   }
   
-  const createApiInterface = async (data: any) => {
+  const createApiInterface = async (data: Record<string, unknown>) => {
     try {
       await exportApi.createApiInterface(data)
       await fetchApiInterfaces({ page: apiCurrentPage.value, pageSize: apiPageSize.value })
       return { success: true }
-    } catch (error: any) {
-      return { success: false, message: error.message || '创建 API 接口失败' }
+    } catch (error: unknown) {
+      return { success: false, message: error instanceof Error ? error.message : '创建 API 接口失败' }
     }
   }
 

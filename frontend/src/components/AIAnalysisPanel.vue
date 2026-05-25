@@ -235,9 +235,10 @@ import { computed, ref, watch, onUnmounted } from 'vue'
 import { useReportStore } from '@/stores/report'
 import { MessagePlugin } from 'tdesign-vue-next'
 import { marked } from 'marked'
+import type { Report, AIAnalysisData } from '@/api/report'
 
 const props = defineProps<{
-  reportData: any
+  reportData: Report | null
   reportType: string
 }>()
 
@@ -280,7 +281,7 @@ const progressWidth = computed(() => {
 
 const MAX_SUMMARY_LENGTH = 800
 
-const getRawSummaryText = (raw: any): string => {
+const getRawSummaryText = (raw: AIAnalysisData | null): string => {
   if (!raw) return ''
   if (raw.analysis && typeof raw.analysis === 'string') return raw.analysis
   if (raw.summary && typeof raw.summary === 'string') return raw.summary
@@ -309,13 +310,13 @@ const displayContent = computed(() => {
   let risks: string[] = []
 
   if (raw.suggestions?.length) {
-    suggestions = raw.suggestions.map((s: string) => typeof s === 'string' ? s : String(s))
+    suggestions = raw.suggestions.map((s) => typeof s === 'string' ? s : String(s))
   }
   if (raw.risks?.length) {
-    risks = raw.risks.map((r: string) => typeof r === 'string' ? r : String(r))
+    risks = raw.risks.map((r) => typeof r === 'string' ? r : String(r))
   }
   if (raw.improvements?.length) {
-    improvements = raw.improvements.map((i: string) => typeof i === 'string' ? i : String(i))
+    improvements = raw.improvements.map((i) => typeof i === 'string' ? i : String(i))
   }
 
   return {
@@ -412,6 +413,8 @@ const handleGenerate = async () => {
   startTimer()
 
   try {
+    if (!props.reportData) return
+
     const reportId = props.reportData.id
     const reportDataForAI = {
       type: props.reportType,
@@ -426,11 +429,11 @@ const handleGenerate = async () => {
       content: 'AI 智能分析报告生成完成',
       duration: 3000,
     })
-  } catch (error: any) {
-    console.error('[AIAnalysisPanel] ❌ AI 分析失败:', error)
+  } catch (error: unknown) {
+    console.error('[AIAnalysisPanel] AI 分析失败:', error)
 
     hasError.value = true
-    errorMessage.value = error.message || '网络异常，请检查连接后重试'
+    errorMessage.value = error instanceof Error ? error.message : '网络异常，请检查连接后重试'
 
     MessagePlugin.error({
       content: errorMessage.value,
@@ -592,13 +595,6 @@ const handleDownload = () => {
 
   MessagePlugin.success('报告下载成功')
 }
-
-const _statusText = computed(() => {
-  if (!props.reportData?.id) {
-    return '报告数据无效'
-  }
-  return '暂无AI分析数据'
-})
 
 const emptyText = computed(() => {
   if (!props.reportData?.id) {

@@ -388,8 +388,8 @@ const reportData = computed(() => {
 const chartRefs = ref<Record<string, HTMLElement | null>>({});
 const chartInstances = ref<Record<string, echarts.ECharts | null>>({});
 
-const setChartRef = (key: string) => (el: any) => {
-  chartRefs.value[key] = el;
+const setChartRef = (key: string) => (el: unknown) => {
+  chartRefs.value[key] = el as HTMLElement | null;
 };
 
 const dailyFormulaTrendOption = computed(() => {
@@ -535,15 +535,6 @@ const statusLabel = computed(() => {
   return map[report.value?.status || ''] || '未知';
 });
 
-const _statusTheme = computed(() => {
-  const map: Record<string, string> = {
-    draft: 'default',
-    published: 'success',
-    archived: 'warning',
-  };
-  return (map[report.value?.status || ''] || 'default') as any;
-});
-
 const dashboardCards = computed(() => {
   const data = reportData.value;
   const formula = data?.formula || {};
@@ -596,25 +587,13 @@ const dashboardCards = computed(() => {
   ];
 });
 
-const _formatDate = (dateStr?: string) => {
-  if (!dateStr) return '--';
-  const d = new Date(dateStr);
-  return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
-};
-
-const _formatDateTime = (dateStr: string) => {
-  if (!dateStr) return '';
-  const d = new Date(dateStr);
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
-};
-
 const goBack = () => {
   router.push('/reports');
 };
 
 const futurePlansRef = ref<HTMLElement | null>(null);
 
-const hasPlanContent = (value: any): boolean => {
+const hasPlanContent = (value: unknown): boolean => {
   if (!value) return false;
   if (Array.isArray(value)) return value.length > 0;
   if (typeof value === 'string') return value.trim() !== '' && value !== '[]';
@@ -666,7 +645,7 @@ const editForm = ref({
 
 const startEditPlans = () => {
   const plans = reportData.value?.plans || {};
-  const toStr = (v: any): string => {
+  const toStr = (v: unknown): string => {
     if (typeof v === 'string') return v;
     if (Array.isArray(v)) return '';
     return v ? String(v) : '';
@@ -723,8 +702,9 @@ const loadData = async () => {
     } else {
       loadError.value = '缺少报告 ID';
     }
-  } catch (e: any) {
-    loadError.value = e.message || '加载失败，请稍后重试';
+  } catch (e: unknown) {
+    const err = e as { message?: string };
+    loadError.value = err.message || '加载失败，请稍后重试';
   }
 };
 
@@ -745,8 +725,9 @@ onMounted(async () => {
   window.addEventListener('resize', handleResize);
   try {
     await loadData();
-  } catch (e: any) {
-    loadError.value = e.message || '初始化失败';
+  } catch (e: unknown) {
+    const err = e as { message?: string };
+    loadError.value = err.message || '初始化失败';
   } finally {
     initialized.value = true;
   }

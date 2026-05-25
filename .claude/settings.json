@@ -6,7 +6,13 @@
       "Bash(tasklist /FI \"IMAGENAME eq node.exe\")",
       "Bash(wmic process *)",
       "Bash(npx vitest *)",
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "Bash(grep -n \"^{$\" \"d:\\\\ProgramData\\\\workspace-codeby\\\\ting-studio\\\\frontend\\\\src\\\\views\\\\materials\\\\MaterialVersions.vue\")",
+      "Bash(sed -n '63,68p' \"d:\\\\ProgramData\\\\workspace-codeby\\\\ting-studio\\\\frontend\\\\src\\\\views\\\\materials\\\\MaterialVersions.vue\")",
+      "Bash(sed -n '88,100p' \"d:\\\\ProgramData\\\\workspace-codeby\\\\ting-studio\\\\frontend\\\\src\\\\views\\\\materials\\\\MaterialVersions.vue\")",
+      "Bash(sed -n '133,149p' \"d:\\\\ProgramData\\\\workspace-codeby\\\\ting-studio\\\\frontend\\\\src\\\\views\\\\materials\\\\MaterialVersions.vue\")",
+      "Bash(sed -n '278,310p' \"d:\\\\ProgramData\\\\workspace-codeby\\\\ting-studio\\\\frontend\\\\src\\\\views\\\\materials\\\\MaterialVersions.vue\")",
+      "Bash(sed -n '465,485p' \"d:\\\\ProgramData\\\\workspace-codeby\\\\ting-studio\\\\frontend\\\\src\\\\views\\\\materials\\\\MaterialVersions.vue\")"
     ]
   }
 }

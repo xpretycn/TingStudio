@@ -175,8 +175,8 @@
                   <span class="qtm-sub"><strong>{{ m.unitPrice != null ? `¥${m.subtotal.toFixed(2)}` : '--'
                   }}</strong>
                     <span v-if="m.isAdjusted && m.basePrice != null" class="qtm-base-hint"
-                      :title="'原始基价: ¥' + m.basePrice + '/kg · 差额: ¥' + ((m.unitPrice - m.basePrice)).toFixed(2) + '/kg'">({{
-                        ((m.unitPrice - m.basePrice) / m.basePrice * 100).toFixed(1) }}%)</span>
+                      :title="'原始基价: ¥' + m.basePrice + '/kg · 差额: ¥' + ((m.unitPrice ?? 0) - (m.basePrice ?? 0)).toFixed(2) + '/kg'">({{
+                        ((m.unitPrice ?? 0) - (m.basePrice ?? 0)) / (m.basePrice ?? 1) * 100).toFixed(1) }}%)</span>
                   </span>
                 </div>
               </div>
@@ -268,7 +268,7 @@
                 <div class="timeline-dot past"></div>
                 <div class="timeline-content">
                   <p class="timeline-ver past">{{ ver.version }}</p>
-                  <p class="timeline-time past">{{ formatDate(ver.createdAt) }}</p>
+                  <p class="timeline-time past">{{ formatDate(String(ver.createdAt ?? '')) }}</p>
                   <p v-if="ver.note" class="timeline-note past">{{ ver.note }}</p>
                 </div>
               </div>
@@ -428,21 +428,52 @@ import { ref, computed, onMounted, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { nutritionApi } from '@/api/nutrition';
 import { formulaApi } from '@/api/formula';
-import type { RatioFactorValidationResult } from '@/api/formula';
+import type { RatioFactorValidationResult, PriceQuote } from '@/api/formula';
 
 const router = useRouter();
 const route = useRoute();
 
+interface FormulaNutritionData {
+  version?: string | number;
+  formulaId: string;
+  formulaName: string;
+  finishedWeight: number;
+  ratioFactor?: number;
+  supplementRatioFactor?: number;
+  per100g: Record<string, number>;
+  nrv: Record<string, number>;
+  energy: number;
+  ingredients: Record<string, unknown>[];
+  calcRows: Record<string, unknown>[];
+  summaryRow: Record<string, unknown>;
+  nrvRow: Record<string, unknown>;
+  nrvPercentRow: Record<string, unknown>;
+  labelRows: Record<string, unknown>[];
+  missingNutritionMaterials?: string[];
+  parseResultId?: string;
+  salesmanName?: string;
+  salesmanDept?: string;
+  demandTitle?: string;
+  demandCode?: string;
+  demandPriority?: string;
+  demandDesc?: string;
+  remark?: string;
+  note?: string;
+  preparationMethod?: string;
+  updatedAt?: string;
+  versionHistory?: Record<string, unknown>[];
+}
+
 const loading = ref(false);
-const data = ref<any>(null);
-const priceQuote = ref<any>(null);
+const data = ref<FormulaNutritionData | null>(null);
+const priceQuote = ref<PriceQuote | null>(null);
 const missingMaterials = computed<string[]>(() => {
   return data.value?.missingNutritionMaterials || [];
 });
 
 // 当前版本号：优先取 URL query，其次取 API 数据的 version 字段
 const currentVersion = computed(() => {
-  const v = (route.query as any).v;
+  const v = (route.query as Record<string, unknown>).v;
   if (v) return String(v);
   // 从 API 数据中获取版本信息
   if (data.value?.version) return String(data.value.version);
@@ -499,15 +530,15 @@ const ratioValidation = computed<RatioFactorValidationResult>(() => {
   const ratioFactor = d.ratioFactor ?? 0.18;
   const supplementRatioFactor = d.supplementRatioFactor ?? 1.0;
 
-  const breakdown = d.calcRows.map((row: any) => {
-    const materialType = row.materialType || 'herb';
+  const breakdown = d.calcRows.map((row: Record<string, unknown>) => {
+    const materialType = (row.materialType as string) || 'herb';
     const isSupplement = materialType === 'supplement';
-    const quantity = row.quantity || 0;
+    const quantity = (row.quantity as number) || 0;
     const baseRatio = quantity / finishedWeight;
     const ratio = Math.round(baseRatio * (isSupplement ? supplementRatioFactor : ratioFactor) * 100000) / 100000;
     return {
-      materialId: row.materialId || row.name || '',
-      materialName: row.name || '',
+      materialId: (row.materialId as string) || (row.name as string) || '',
+      materialName: (row.name as string) || '',
       quantity,
       materialType,
       ratioFactor: ratio,
@@ -633,11 +664,11 @@ const loadData = async () => {
   loading.value = true;
   try {
     const res = await nutritionApi.getFormulaNutritionTables(formulaId);
-    data.value = res;
+    data.value = res as unknown as FormulaNutritionData;
     try {
       priceQuote.value = await formulaApi.getPriceQuote(formulaId);
     } catch { /* 报价数据可选 */ }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('获取营养计算表格失败:', error);
   } finally {
     loading.value = false;

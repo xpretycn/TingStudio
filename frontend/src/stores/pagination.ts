@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 
-export interface PaginationState {
+interface PaginationState {
   current: number
   pageSize: number
   total: number

@@ -556,9 +556,6 @@ const handleRelatedClick = (row: UploadedFile) => {
   }
 };
 
-const _handleEditLink = (row: UploadedFile) => {
-  router.push({ path: `/files/${row.fileId}`, query: { action: 'editLink' } });
-};
 
 
 

@@ -35,6 +35,13 @@
           </div>
           <div class="quick-body" :class="{ 'quick-body--formulist': !isAdmin }">
             <template v-if="!isAdmin">
+              <button class="quick-btn quick-btn--highlight" @click="router.push('/formulas/quick')">
+                <div class="quick-icon"
+                  style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(45, 212, 191, 0.15));">
+                  <t-icon name="edit-1" size="20px" style="color: #10b981;" />
+                </div>
+                <span>快速录入</span>
+              </button>
               <button class="quick-btn" @click="router.push('/ai-assistant')">
                 <div class="quick-icon" style="background: rgba(168, 85, 247, 0.1);">
                   <t-icon name="precise-monitor" size="20px" style="color: #a855f7;" />
@@ -67,6 +74,13 @@
               </button>
             </template>
             <template v-else>
+              <button class="quick-btn quick-btn--highlight" @click="router.push('/formulas/quick')">
+                <div class="quick-icon"
+                  style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(45, 212, 191, 0.15));">
+                  <t-icon name="edit-1" size="20px" style="color: #10b981;" />
+                </div>
+                <span>快速录入</span>
+              </button>
               <button class="quick-btn" @click="router.push('/formulas/new')">
                 <div class="quick-icon" style="background: rgba(16, 185, 129, 0.1);">
                   <t-icon name="add" size="20px" style="color: var(--color-primary);" />
@@ -220,7 +234,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, nextTick, watch } from "vue";
+import { ref, computed, onMounted, onBeforeUnmount, onUnmounted, nextTick, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
 import { useDashboardStore } from "@/stores/dashboard";
@@ -241,6 +255,8 @@ const isAdmin = computed(() => authStore.user?.role === "admin");
 const chartRef = ref<HTMLElement | null>(null);
 let chartInstance: echarts.ECharts | null = null;
 const activeChartTab = ref<"week" | "month" | "year">("month");
+let isUnmounted = false;
+let chartInitTimer: ReturnType<typeof setTimeout> | null = null;
 
 const chartTabs = [
   { label: "周", value: "week" as const },
@@ -399,20 +415,30 @@ const handleActivityClick = (activity: { type: string; id: string; }) => {
 };
 
 const handleChartTab = (period: "week" | "month" | "year") => {
+  if (isUnmounted) return;
   activeChartTab.value = period;
   dashboardStore.fetchSalesTrend(period);
 };
 
+const isDomReady = (): boolean => {
+  if (isUnmounted) return false;
+  if (!chartRef.value) return false;
+  if (!chartRef.value.isConnected) return false;
+  return true;
+};
+
 const initChart = () => {
-  if (!chartRef.value) return;
+  if (!isDomReady()) return;
   if (chartInstance) {
     chartInstance.dispose();
+    chartInstance = null;
   }
   chartInstance = echarts.init(chartRef.value);
   updateChart();
 };
 
 const updateChart = () => {
+  if (!isDomReady()) return;
   if (!chartInstance) return;
   const data = dashboardStore.salesTrend;
   if (!data || data.length === 0) return;
@@ -437,8 +463,8 @@ const updateChart = () => {
         color: isDark ? "var(--color-border)" : "var(--color-text-primary)",
         fontSize: 12,
       },
-      formatter: (params: any) => {
-        const p = Array.isArray(params) ? params[0] : params;
+      formatter: (params: Record<string, unknown>) => {
+        const p = (Array.isArray(params) ? params[0] : params) as Record<string, unknown>;
         return `<div style="font-weight:600;margin-bottom:4px">${p.axisValue}</div>
                 <div>销量: ${p.value}</div>`;
       },
@@ -501,7 +527,9 @@ const updateChart = () => {
 watch(
   () => dashboardStore.salesTrend,
   () => {
+    if (!isDomReady()) return;
     nextTick(() => {
+      if (!isDomReady()) return;
       if (dashboardStore.salesTrend.length > 0) {
         if (!chartInstance) {
           initChart();
@@ -515,10 +543,24 @@ watch(
 );
 
 const handleResize = () => {
+  if (!isDomReady()) return;
   chartInstance?.resize();
 };
 
+onBeforeUnmount(() => {
+  isUnmounted = true;
+  if (chartInitTimer) {
+    clearTimeout(chartInitTimer);
+    chartInitTimer = null;
+  }
+  if (chartInstance) {
+    chartInstance.dispose();
+    chartInstance = null;
+  }
+});
+
 onMounted(async () => {
+  isUnmounted = false;
   dashboardStore.fetchAll();
   if (formulaStore.formulas.length === 0) {
     formulaStore.fetchFormulas();
@@ -529,10 +571,12 @@ onMounted(async () => {
     approvalStore.fetchMySubmissions();
   }
   await nextTick();
+  if (!isDomReady()) return;
   if (dashboardStore.salesTrend.length > 0) {
     initChart();
   } else {
-    setTimeout(() => {
+    chartInitTimer = setTimeout(() => {
+      if (!isDomReady()) return;
       if (dashboardStore.salesTrend.length > 0) {
         initChart();
       }
@@ -543,10 +587,6 @@ onMounted(async () => {
 
 onUnmounted(() => {
   window.removeEventListener("resize", handleResize);
-  if (chartInstance) {
-    chartInstance.dispose();
-    chartInstance = null;
-  }
 });
 </script>
 
@@ -920,10 +960,6 @@ onUnmounted(() => {
 
     &--formulist {
       grid-template-columns: repeat(3, 1fr);
-
-      .quick-btn:last-child:nth-child(5) {
-        grid-column: 2;
-      }
     }
   }
 
@@ -940,6 +976,17 @@ onUnmounted(() => {
     font-size: 13px;
     font-weight: 500;
     color: var(--color-text-primary);
+
+    &--highlight {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.06), rgba(45, 212, 191, 0.06));
+      border-color: rgba(16, 185, 129, 0.25);
+
+      &:hover {
+        border-color: var(--color-primary);
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(45, 212, 191, 0.12));
+        box-shadow: 0 4px 16px rgba(16, 185, 129, 0.15);
+      }
+    }
 
     &:hover {
       border-color: var(--color-primary);

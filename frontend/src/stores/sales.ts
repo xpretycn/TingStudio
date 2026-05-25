@@ -32,9 +32,9 @@ export const useSalesStore = defineStore('sales', () => {
       })
       sales.value = res.list
       total.value = res.pagination.total
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('获取销量列表失败:', error)
-      MessagePlugin.error(error.message || '获取销量数据失败')
+      MessagePlugin.error(error instanceof Error ? error.message : '获取销量数据失败')
     } finally {
       loading.value = false
     }
@@ -44,9 +44,9 @@ export const useSalesStore = defineStore('sales', () => {
     try {
       const res = await salesApi.getStats(params)
       stats.value = res
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('获取销量统计失败:', error)
-      MessagePlugin.error(error.message || '获取销量统计失败')
+      MessagePlugin.error(error instanceof Error ? error.message : '获取销量统计失败')
     }
   }
 
@@ -63,9 +63,9 @@ export const useSalesStore = defineStore('sales', () => {
       const res = await salesApi.create(data)
       MessagePlugin.success('销量记录创建成功')
       return res
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('创建销量记录失败:', error)
-      MessagePlugin.error(error.message || '创建销量记录失败')
+      MessagePlugin.error(error instanceof Error ? error.message : '创建销量记录失败')
       return null
     }
   }
@@ -75,9 +75,9 @@ export const useSalesStore = defineStore('sales', () => {
       const res = await salesApi.update(id, data)
       MessagePlugin.success('销量记录更新成功')
       return res
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('更新销量记录失败:', error)
-      MessagePlugin.error(error.message || '更新销量记录失败')
+      MessagePlugin.error(error instanceof Error ? error.message : '更新销量记录失败')
       return null
     }
   }
@@ -87,9 +87,9 @@ export const useSalesStore = defineStore('sales', () => {
       await salesApi.delete(id)
       MessagePlugin.success('销量记录删除成功')
       return true
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('删除销量记录失败:', error)
-      MessagePlugin.error(error.message || '删除销量记录失败')
+      MessagePlugin.error(error instanceof Error ? error.message : '删除销量记录失败')
       return false
     }
   }
@@ -98,7 +98,7 @@ export const useSalesStore = defineStore('sales', () => {
     try {
       const res = await salesApi.getByFormula(formulaId)
       return res
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('获取配方销量历史失败:', error)
       return []
     }

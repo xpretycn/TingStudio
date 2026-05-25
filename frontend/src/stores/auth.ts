@@ -24,8 +24,8 @@ export const useAuthStore = defineStore('auth', () => {
       user.value = userInfo
       saveAuthData(userInfo, token)
       return { success: true }
-    } catch (error: any) {
-      return { success: false, message: error.message || '登录失败' }
+    } catch (error: unknown) {
+      return { success: false, message: error instanceof Error ? error.message : '登录失败' }
     } finally {
       loading.value = false
     }
@@ -39,8 +39,8 @@ export const useAuthStore = defineStore('auth', () => {
       user.value = userInfo
       saveAuthData(userInfo, token)
       return { success: true }
-    } catch (error: any) {
-      return { success: false, message: error.message || '注册失败' }
+    } catch (error: unknown) {
+      return { success: false, message: error instanceof Error ? error.message : '注册失败' }
     } finally {
       loading.value = false
     }
@@ -61,8 +61,8 @@ export const useAuthStore = defineStore('auth', () => {
         saveUserOnly(updatedUser)
       }
       return { success: true }
-    } catch (error: any) {
-      return { success: false, message: error.message || '更新失败' }
+    } catch (error: unknown) {
+      return { success: false, message: error instanceof Error ? error.message : '更新失败' }
     } finally {
       loading.value = false
     }
@@ -73,8 +73,8 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       await authApi.changePassword(params)
       return { success: true }
-    } catch (error: any) {
-      return { success: false, message: error.message || '修改密码失败' }
+    } catch (error: unknown) {
+      return { success: false, message: error instanceof Error ? error.message : '修改密码失败' }
     } finally {
       loading.value = false
     }

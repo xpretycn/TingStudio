@@ -84,13 +84,13 @@ export async function getNextCode(req: any, res: Response) {
 
 export async function createMaterial(req: any, res: Response) {
   try {
-    const { name, code, unit, stock, materialType, unitPrice, dataSource } = req.body;
+    const { name, code, unit, stock, materialType, unitPrice, dataSource, appearance, taste, efficacy } = req.body;
     const userId = req.user.userId;
     const id = generateId();
 
     await query(
-      `INSERT INTO materials (id, name, code, unit, stock, material_type, unit_price, data_source, created_by, version, is_latest, status, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 1, 'draft', ?)`,
+      `INSERT INTO materials (id, name, code, unit, stock, material_type, unit_price, data_source, created_by, version, is_latest, status, created_at, appearance_json, taste_json, efficacy_json)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 1, 'draft', ?, ?, ?, ?)`,
       [
         id,
         name,
@@ -102,6 +102,9 @@ export async function createMaterial(req: any, res: Response) {
         dataSource || "manual",
         userId,
         now(),
+        Array.isArray(appearance) ? JSON.stringify(appearance) : null,
+        Array.isArray(taste) ? JSON.stringify(taste) : null,
+        Array.isArray(efficacy) ? JSON.stringify(efficacy) : null,
       ],
     );
 

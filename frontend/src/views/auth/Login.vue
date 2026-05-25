@@ -226,7 +226,7 @@ const rules: Record<string, FormRule[]> = {
   ],
 };
 
-const handleSubmit = async ({ validateResult }: any) => {
+const handleSubmit = async ({ validateResult }: { validateResult: boolean | Record<string, unknown>[] }) => {
   if (validateResult === true) {
     loading.value = true;
     try {

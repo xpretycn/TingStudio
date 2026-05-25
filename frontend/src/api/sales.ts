@@ -1,4 +1,5 @@
 import http from "./http";
+import type { Pagination } from "./http";
 
 export interface SaleRecord {
   id: string;
@@ -18,7 +19,7 @@ export interface SaleRecord {
   updatedAt: string;
 }
 
-export interface SaleForm {
+interface SaleForm {
   formulaId: string;
   salesmanId?: string;
   periodType?: 'monthly' | 'quarterly' | 'yearly';
@@ -68,21 +69,21 @@ export const salesApi = {
     page?: number;
     pageSize?: number;
   }) {
-    return http.get<any, { list: SaleRecord[]; pagination: any }>("/sales", { params });
+    return http.get<unknown, { list: SaleRecord[]; pagination: Pagination }>("/sales", { params });
   },
   getByFormula(formulaId: string) {
-    return http.get<any, SaleRecord[]>(`/sales/formula/${formulaId}`);
+    return http.get<unknown, SaleRecord[]>(`/sales/formula/${formulaId}`);
   },
   getStats(params?: { periodStart?: string; periodEnd?: string }) {
-    return http.get<any, SaleStats>("/sales/stats", { params });
+    return http.get<unknown, SaleStats>("/sales/stats", { params });
   },
   create(data: SaleForm) {
-    return http.post<any, SaleRecord>("/sales", data);
+    return http.post<unknown, SaleRecord>("/sales", data);
   },
   update(id: string, data: Partial<SaleForm>) {
-    return http.put<any, SaleRecord>(`/sales/${id}`, data);
+    return http.put<unknown, SaleRecord>(`/sales/${id}`, data);
   },
   delete(id: string) {
-    return http.delete<any, { message: string }>(`/sales/${id}`);
+    return http.delete<unknown, { message: string }>(`/sales/${id}`);
   },
 };

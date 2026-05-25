@@ -84,7 +84,7 @@ export interface FormField {
   required?: boolean;
   placeholder?: string;
   options?: Array<{ label: string; value: string; type?: string }>;
-  defaultValue?: any;
+  defaultValue?: unknown;
   validation?: { min?: number; max?: number; pattern?: string; message?: string };
   errorMessage?: string;
 }
@@ -104,11 +104,11 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  submit: [formData: Record<string, any>];
+  submit: [formData: Record<string, unknown>];
   cancel: [];
 }>();
 
-const formData = reactive<Record<string, any>>({});
+const formData = reactive<Record<string, unknown>>({});
 const errors = reactive<Record<string, string>>({});
 const submitting = ref(false);
 const materialItems = ref<Array<{ name: string; quantity: number }>>([]);
@@ -196,8 +196,8 @@ function onMaterialChange(_idx: number) {
   }
 }
 
-function buildSubmitData(): Record<string, any> {
-  const result: Record<string, any> = { ...formData };
+function buildSubmitData(): Record<string, unknown> {
+  const result: Record<string, unknown> = { ...formData };
 
   const materialField = props.formSchema.fields.find(f => f.type === "material-list");
   if (materialField) {

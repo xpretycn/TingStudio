@@ -100,20 +100,20 @@ describe("Login 组件", () => {
 
   it("LG08: 组件应包含表单引用（formRef）", async () => {
     wrapper = await createWrapper();
-    const vm = wrapper.vm as any;
+    const vm = wrapper.vm as unknown as { formRef: unknown; formData: { username: string; password: string }; handleSubmit: () => void };
     expect(vm.formRef).toBeDefined();
   });
 
   it("LG09: formData 应包含 username 和 password 字段", async () => {
     wrapper = await createWrapper();
-    const vm = wrapper.vm as any;
+    const vm = wrapper.vm as unknown as { formRef: unknown; formData: { username: string; password: string }; handleSubmit: () => void };
     expect(vm.formData).toHaveProperty("username");
     expect(vm.formData).toHaveProperty("password");
   });
 
   it("LG10: handleSubmit 方法应存在", async () => {
     wrapper = await createWrapper();
-    const vm = wrapper.vm as any;
+    const vm = wrapper.vm as unknown as { formRef: unknown; formData: { username: string; password: string }; handleSubmit: () => void };
     expect(typeof vm.handleSubmit).toBe("function");
   });
 });

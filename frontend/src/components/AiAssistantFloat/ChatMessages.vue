@@ -198,8 +198,8 @@ const props = defineProps<{
   fieldLabelMap: Record<string, string>;
 }>();
 
-const _emit = defineEmits<{
-  fill: [fields: Record<string, any>];
+defineEmits<{
+  fill: [fields: Record<string, unknown>];
 }>();
 
 const userAvatar = computed(() => authStore.user?.avatar || "");

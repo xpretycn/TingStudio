@@ -50,9 +50,9 @@ export const useFileStore = defineStore('file', () => {
       MessagePlugin.success('文件上传成功')
       await fetchFiles()
       return { success: true, data: res }
-    } catch (error: any) {
-      MessagePlugin.error(error.message || '文件上传失败')
-      return { success: false, message: error.message }
+    } catch (error: unknown) {
+      MessagePlugin.error(error instanceof Error ? error.message : '文件上传失败')
+      return { success: false, message: error instanceof Error ? error.message : '文件上传失败' }
     } finally {
       loading.value = false
     }
@@ -78,9 +78,9 @@ export const useFileStore = defineStore('file', () => {
       MessagePlugin.success('文件已删除')
       await fetchFiles()
       return { success: true }
-    } catch (error: any) {
-      MessagePlugin.error(error.message || '删除失败')
-      return { success: false, message: error.message }
+    } catch (error: unknown) {
+      MessagePlugin.error(error instanceof Error ? error.message : '删除失败')
+      return { success: false, message: error instanceof Error ? error.message : '删除失败' }
     }
   }
 
@@ -90,9 +90,9 @@ export const useFileStore = defineStore('file', () => {
       MessagePlugin.success(`已删除 ${res.deleted} 个文件`)
       await fetchFiles()
       return { success: true, data: res }
-    } catch (error: any) {
-      MessagePlugin.error(error.message || '批量删除失败')
-      return { success: false, message: error.message }
+    } catch (error: unknown) {
+      MessagePlugin.error(error instanceof Error ? error.message : '批量删除失败')
+      return { success: false, message: error instanceof Error ? error.message : '批量删除失败' }
     }
   }
 
@@ -102,9 +102,9 @@ export const useFileStore = defineStore('file', () => {
       MessagePlugin.success(`已归档 ${res.archived} 个文件`)
       await fetchFiles()
       return { success: true, data: res }
-    } catch (error: any) {
-      MessagePlugin.error(error.message || '批量归档失败')
-      return { success: false, message: error.message }
+    } catch (error: unknown) {
+      MessagePlugin.error(error instanceof Error ? error.message : '批量归档失败')
+      return { success: false, message: error instanceof Error ? error.message : '批量归档失败' }
     }
   }
 
@@ -116,9 +116,9 @@ export const useFileStore = defineStore('file', () => {
         await getFile(fileId)
       }
       return { success: true }
-    } catch (error: any) {
-      MessagePlugin.error(error.message || '关联失败')
-      return { success: false, message: error.message }
+    } catch (error: unknown) {
+      MessagePlugin.error(error instanceof Error ? error.message : '关联失败')
+      return { success: false, message: error instanceof Error ? error.message : '关联失败' }
     }
   }
 
@@ -130,9 +130,9 @@ export const useFileStore = defineStore('file', () => {
         await getFile(fileId)
       }
       return { success: true }
-    } catch (error: any) {
-      MessagePlugin.error(error.message || '解除关联失败')
-      return { success: false, message: error.message }
+    } catch (error: unknown) {
+      MessagePlugin.error(error instanceof Error ? error.message : '解除关联失败')
+      return { success: false, message: error instanceof Error ? error.message : '解除关联失败' }
     }
   }
 
@@ -144,9 +144,9 @@ export const useFileStore = defineStore('file', () => {
         await getFile(fileId)
       }
       return { success: true }
-    } catch (error: any) {
-      MessagePlugin.error(error.message || '重新解析失败')
-      return { success: false, message: error.message }
+    } catch (error: unknown) {
+      MessagePlugin.error(error instanceof Error ? error.message : '重新解析失败')
+      return { success: false, message: error instanceof Error ? error.message : '重新解析失败' }
     }
   }
 
@@ -167,7 +167,7 @@ export const useFileStore = defineStore('file', () => {
       const res = await fileApi.preview(fileId, params)
       previewData.value = res
       return res
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('获取预览数据失败:', error)
       previewData.value = null
       return null
@@ -189,9 +189,9 @@ export const useFileStore = defineStore('file', () => {
       document.body.removeChild(link)
       window.URL.revokeObjectURL(url)
       return { success: true }
-    } catch (error: any) {
-      MessagePlugin.error(error.message || '下载失败')
-      return { success: false, message: error.message }
+    } catch (error: unknown) {
+      MessagePlugin.error(error instanceof Error ? error.message : '下载失败')
+      return { success: false, message: error instanceof Error ? error.message : '下载失败' }
     }
   }
 

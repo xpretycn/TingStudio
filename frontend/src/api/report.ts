@@ -1,4 +1,5 @@
 import http from "./http";
+import type { Pagination } from "./http";
 
 export interface Report {
   id: string;
@@ -7,7 +8,7 @@ export interface Report {
   periodStart: string;
   periodEnd: string;
   status: 'draft' | 'published' | 'archived';
-  dataJson: any;
+  dataJson: Record<string, unknown>;
   generatedBy: 'auto' | 'manual';
   createdBy: string;
   creatorName?: string;
@@ -37,65 +38,104 @@ export interface ReportTarget {
   periodType: 'quarterly' | 'yearly';
   periodStart: string;
   periodEnd: string;
-  targetsJson: any;
+  targetsJson: Record<string, unknown>;
   createdBy: string;
   creatorName?: string;
   createdAt: string;
   updatedAt: string;
 }
 
+interface WeeklyReportData {
+  periodStart: string;
+  periodEnd: string;
+  formulaCount: number;
+  materialCount: number;
+  salesSummary: Record<string, unknown>;
+  topFormulas: Record<string, unknown>[];
+  trends: Record<string, unknown>;
+}
+
+export interface MonthlyReportData {
+  periodStart: string;
+  periodEnd: string;
+  formulaCount: number;
+  materialCount: number;
+  salesSummary: Record<string, unknown>;
+  topFormulas: Record<string, unknown>[];
+  topSalesmen: Record<string, unknown>[];
+  trends: Record<string, unknown>;
+  comparison: Record<string, unknown>;
+}
+
+export interface CompareResult {
+  report1: Record<string, unknown>;
+  report2: Record<string, unknown>;
+  diff: Record<string, unknown>;
+}
+
+export interface AIAnalysisData {
+  analysis?: string;
+  summary?: string;
+  suggestions?: string[];
+  risks?: string[];
+  improvements?: string[];
+  createdAt?: string;
+  model?: string;
+  provider?: string;
+}
+
 export const reportApi = {
   getList(params?: ReportFilters & { page?: number; pageSize?: number }) {
-    return http.get<any, { list: Report[]; pagination: any }>("/reports", { params });
+    return http.get<unknown, { list: Report[]; pagination: Pagination }>("/reports", { params });
   },
   getById(id: string) {
-    return http.get<any, Report>(`/reports/${id}`);
+    return http.get<unknown, Report>(`/reports/${id}`);
   },
   generate(data: ReportGenerateForm) {
-    return http.post<any, Report>("/reports/generate", data);
+    return http.post<unknown, Report>("/reports/generate", data);
   },
-  update(id: string, data: Partial<{ title: string; dataJson: any; status: string }>) {
-    return http.put<any, Report>(`/reports/${id}`, data);
+  update(id: string, data: Partial<{ title: string; dataJson: Record<string, unknown>; status: string }>) {
+    return http.put<unknown, Report>(`/reports/${id}`, data);
   },
   delete(id: string) {
-    return http.delete<any, { message: string }>(`/reports/${id}`);
+    return http.delete<unknown, { message: string }>(`/reports/${id}`);
   },
   publish(id: string) {
-    return http.post<any, Report>(`/reports/${id}/publish`);
+    return http.post<unknown, Report>(`/reports/${id}/publish`);
   },
   getWeeklyData(params: { periodStart: string; periodEnd: string }) {
-    return http.get<any, any>("/reports/data/weekly", { params });
+    return http.get<unknown, WeeklyReportData>("/reports/data/weekly", { params });
   },
   getMonthlyData(params: { periodStart: string; periodEnd: string }) {
-    return http.get<any, any>("/reports/data/monthly", { params });
+    return http.get<unknown, MonthlyReportData>("/reports/data/monthly", { params });
   },
   getTargetList(params?: { periodType?: string }) {
-    return http.get<any, ReportTarget[]>("/reports/targets", { params });
+    return http.get<unknown, ReportTarget[]>("/reports/targets", { params });
   },
-  createTarget(data: { periodType: string; periodStart: string; periodEnd: string; targetsJson?: any }) {
-    return http.post<any, ReportTarget>("/reports/targets", data);
+  createTarget(data: { periodType: string; periodStart: string; periodEnd: string; targetsJson?: Record<string, unknown> }) {
+    return http.post<unknown, ReportTarget>("/reports/targets", data);
   },
   updateTarget(id: string, data: Partial<ReportTarget>) {
-    return http.put<any, ReportTarget>(`/reports/targets/${id}`, data);
+    return http.put<unknown, ReportTarget>(`/reports/targets/${id}`, data);
   },
   deleteTarget(id: string) {
-    return http.delete<any, { message: string }>(`/reports/targets/${id}`);
+    return http.delete<unknown, { message: string }>(`/reports/targets/${id}`);
   },
   exportPdf(id: string) {
-    return http.get<any, Blob>(`/reports/${id}/export/pdf`, { responseType: 'blob' });
+    return http.get<unknown, Blob>(`/reports/${id}/export/pdf`, { responseType: 'blob' });
   },
   exportExcel(id: string) {
-    return http.get<any, Blob>(`/reports/${id}/export/excel`, { responseType: 'blob' });
+    return http.get<unknown, Blob>(`/reports/${id}/export/excel`, { responseType: 'blob' });
   },
   compareReports(reportId1: string, reportId2: string) {
-    return http.post<any, any>('/reports/compare', { reportId1, reportId2 });
+    return http.post<unknown, CompareResult>('/reports/compare', { reportId1, reportId2 });
   },
-  getAIAnalysis(reportData: any, type: string) {
-    return http.post<any, any>('/reports/ai-analysis', { reportData, type }, {
-      timeout: 120000 // AI分析可能需要较长时间，设置2分钟超时
+  getAIAnalysis(reportData: Record<string, unknown>, type: string) {
+    return http.post<unknown, AIAnalysisData>('/reports/ai-analysis', { reportData, type }, {
+      timeout: 120000
     });
   },
-  saveAIAnalysis(reportId: string, aiAnalysisData: any) {
-    return http.put<any, any>(`/reports/${reportId}/ai-analysis`, { aiAnalysis: aiAnalysisData });
+  saveAIAnalysis(reportId: string, aiAnalysisData: Record<string, unknown>) {
+    return http.put<unknown, Report>(`/reports/${reportId}/ai-analysis`, { aiAnalysis: aiAnalysisData });
   },
 };

@@ -67,7 +67,7 @@ describe("useAuthStore", () => {
   });
 
   it("A04: 登出后应清除所有认证信息", () => {
-    (store as any)._user = { id: "u1", username: "admin" };
+    (store as unknown as { _user: { id: string; username: string } | null })._user = { id: "u1", username: "admin" };
 
     store.logout();
 

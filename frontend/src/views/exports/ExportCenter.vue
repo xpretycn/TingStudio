@@ -476,6 +476,7 @@ import { ref, reactive, computed, onMounted } from 'vue';
 import { useExportStore } from '@/stores/export';
 import { MessagePlugin } from 'tdesign-vue-next';
 import { formulaApi } from '@/api/formula';
+import type { ExportJob, ShareItem, ExportTemplate } from '@/api/export';
 import PageSkeleton from '@/components/Skeleton/PageSkeleton.vue';
 
 const exportStore = useExportStore();
@@ -516,12 +517,12 @@ function switchTab(tab: string) {
 }
 const showTemplateDialog = ref(false);
 const showApiDialog = ref(false);
-const editingTemplate = ref<any>(null);
+const editingTemplate = ref<ExportTemplate | null>(null);
 const creating = ref(false);
 const retryingId = ref('');
 const reExportingId = ref('');
 const formulaLoading = ref(false);
-const formulaList = ref<any[]>([]);
+const formulaList = ref<{ id: string; name: string }[]>([]);
 const searchKeyword = ref('');
 
 const exportForm = reactive({ formulaId: '', exportType: 'pdf' });
@@ -533,7 +534,7 @@ const apiForm = reactive({ name: '', endpoint: '', method: 'POST', authenticatio
 const dashboardCards = computed(() => {
   const jobs = exportStore.jobs || [];
   const totalJobs = jobs.length;
-  const completedJobs = jobs.filter((j: any) => j.status === 'completed').length;
+  const completedJobs = jobs.filter((j) => j.status === 'completed').length;
   const shares = exportStore.shares || [];
   const templates = exportStore.templates || [];
   return [
@@ -652,8 +653,7 @@ const activityPage = ref(1);
 const allActivityItems = computed<ActivityItem[]>(() => {
   const items: ActivityItem[] = [];
   const jobs = exportStore.jobs || [];
-  for (const j of jobs.slice(0, 20)) {
-    const job = j as any;
+  for (const job of jobs.slice(0, 20)) {
     if (job.status === 'completed') items.push({
       type: 'success', title: '导出完成', desc: `配方 <strong>${job.formulaName || '未知'}</strong> 已成功导出`, time: formatDateTime(job.createdAt)
     });
@@ -738,12 +738,12 @@ async function handleCreateJob() {
   }
 }
 
-async function handleDownload(row: any) {
+async function handleDownload(row: ExportJob) {
   const ext = row.exportType === 'pdf' ? 'pdf' : 'xlsx';
   await exportStore.downloadFile(row.jobId, row.fileName || `配方导出.${ext}`, row.exportType);
 }
 
-async function handleRetry(row: any) {
+async function handleRetry(row: ExportJob) {
   retryingId.value = row.jobId;
   const result = await exportStore.retryJob(row.jobId);
   retryingId.value = '';
@@ -754,7 +754,7 @@ async function handleRetry(row: any) {
   }
 }
 
-async function handleReExport(row: any) {
+async function handleReExport(row: ExportJob) {
   reExportingId.value = row.jobId;
   const result = await exportStore.reExportJob(row.jobId);
   reExportingId.value = '';
@@ -785,7 +785,6 @@ async function handleCreateShare() {
     expireDate: shareForm.expireDate || undefined,
   });
   if (result.success && result.data) {
-    // @ts-expect-error shareUrl type mismatch
     MessagePlugin.success(`分享链接已创建: ${result.data.shareUrl}`);
     shareForm.formulaId = '';
     shareForm.password = '';
@@ -796,7 +795,7 @@ async function handleCreateShare() {
   }
 }
 
-async function handleCopyShareUrl(row: any) {
+async function handleCopyShareUrl(row: ShareItem) {
   try {
     const baseUrl = window.location.origin;
     const fullUrl = `${baseUrl}${row.shareUrl}`;
@@ -822,7 +821,7 @@ const templateColumns = [
   { colKey: 'operation', title: '操作', width: 130, cell: 'operation' },
 ];
 
-function handleOpenTemplateDialog(template: any) {
+function handleOpenTemplateDialog(template: ExportTemplate | null) {
   if (template) {
     editingTemplate.value = template;
     templateForm.name = template.name;

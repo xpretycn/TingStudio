@@ -6,46 +6,88 @@ export interface NutritionProfile {
   description: string | null
   category: 'infant' | 'child' | 'adult' | 'elderly' | 'pregnant' | 'special'
   targetValues: Record<string, number>
-  toleranceRanges: any[]
+  toleranceRanges: Record<string, unknown>[]
   mandatoryFields: string[]
   isPreset?: boolean
   createdAt: string
   updatedAt: string
 }
 
+export interface MaterialNutrition {
+  materialId: string
+  per100g: Record<string, number>
+  dataSource: string | null
+  notes: string | null
+  confidence: 'high' | 'medium' | 'low' | null
+  updatedAt: string
+}
+
+interface FormulaNutritionResult {
+  formulaId: string
+  per100g: Record<string, number>
+  nrv: Record<string, number>
+  energy: number
+  ingredients: Array<{
+    materialId: string
+    materialName: string
+    ratio: number
+    per100g: Record<string, number>
+  }>
+}
+
+interface ComplianceResult {
+  formulaId: string
+  profileId: string
+  profileName: string
+  compliant: boolean
+  violations: Array<{
+    nutrient: string
+    value: number
+    min: number | null
+    max: number | null
+    severity: 'warning' | 'error'
+  }>
+}
+
+export interface NutritionTableData {
+  formulaId: string
+  formulaName: string
+  per100g: Record<string, number>
+  nrv: Record<string, number>
+  energy: number
+  ingredients: Record<string, unknown>[]
+}
+
 export const nutritionApi = {
   getMaterialNutrition(materialId: string, silent = false) {
-    return http.get<any, any>(`/nutrition/material/${materialId}`, { _silent: silent })
+    return http.get<unknown, MaterialNutrition>(`/nutrition/material/${materialId}`, { _silent: silent })
   },
   setMaterialNutrition(materialId: string, data: { per100g: Record<string, number>; dataSource?: string; notes?: string; confidence?: 'high' | 'medium' | 'low' }) {
-    return http.put<any, { success: boolean; message: string }>(`/nutrition/material/${materialId}`, data)
+    return http.put<unknown, { success: boolean; message: string }>(`/nutrition/material/${materialId}`, data)
   },
   calculateFormulaNutrition(formulaId: string) {
-    return http.post<any, { success: boolean; data: any }>(`/nutrition/calculate/${formulaId}`)
+    return http.post<unknown, FormulaNutritionResult>(`/nutrition/calculate/${formulaId}`)
   },
   getProfiles(params?: { category?: string }) {
-    return http.get<any, { success: boolean; data: NutritionProfile[] }>('/nutrition/profiles', { params })
+    return http.get<unknown, NutritionProfile[]>('/nutrition/profiles', { params })
   },
-  createProfile(data: { name: string; description?: string; category: string; targetValues: Record<string, number>; toleranceRanges?: any[]; mandatoryFields?: string[] }) {
-    return http.post<any, { success: boolean; message: string; data: { profileId: string } }>('/nutrition/profiles', data)
+  createProfile(data: { name: string; description?: string; category: string; targetValues: Record<string, number>; toleranceRanges?: Record<string, unknown>[]; mandatoryFields?: string[] }) {
+    return http.post<unknown, { profileId: string }>('/nutrition/profiles', data)
   },
-  updateProfile(profileId: string, data: { name: string; description?: string; category: string; targetValues: Record<string, number>; toleranceRanges?: any[]; mandatoryFields?: string[] }) {
-    return http.put<any, { success: boolean; message: string }>(`/nutrition/profiles/${profileId}`, data)
+  updateProfile(profileId: string, data: { name: string; description?: string; category: string; targetValues: Record<string, number>; toleranceRanges?: Record<string, unknown>[]; mandatoryFields?: string[] }) {
+    return http.put<unknown, { success: boolean; message: string }>(`/nutrition/profiles/${profileId}`, data)
   },
   deleteProfile(profileId: string) {
-    return http.delete<any, { success: boolean; message: string }>(`/nutrition/profiles/${profileId}`)
+    return http.delete<unknown, { success: boolean; message: string }>(`/nutrition/profiles/${profileId}`)
   },
   checkCompliance(formulaId: string, profileId?: string) {
-    // 构建完整的 URL，包含 query 参数
-    const url = profileId 
+    const url = profileId
       ? `/nutrition/compliance/${formulaId}?profileId=${profileId}`
       : `/nutrition/compliance/${formulaId}`
-    
-    // 使用空对象作为请求体，避免传递 null 被序列化为字符串 "null"
-    return http.post<any, { success: boolean; data: any }>(url, {})
+
+    return http.post<unknown, ComplianceResult>(url, {})
   },
   getFormulaNutritionTables(formulaId: string) {
-    // axios 拦截器会提取 res.data，所以这里直接返回内部的数据结构
-    return http.get<any, any>(`/nutrition/tables/${formulaId}`)
+    return http.get<unknown, NutritionTableData>(`/nutrition/tables/${formulaId}`)
   },
 }

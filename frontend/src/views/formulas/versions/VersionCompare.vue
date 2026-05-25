@@ -119,7 +119,7 @@
                   </div>
                   <div class="pi-bottom">
                     <span class="pi-sub">{{ item.quantity }}g</span>
-                    <span class="pi-cost">小计: ¥{{ (item.quantity / 1000 * item.unitPrice).toFixed(2) }}
+                    <span class="pi-cost">小计: ¥{{ (item.quantity / 1000 * (item.unitPrice ?? 0)).toFixed(2) }}
                       <span v-if="item.isAdjusted && item.basePrice != null" class="pi-base-hint"
                         :title="'原始基价: ¥' + item.basePrice + '/kg'">[基价¥{{ item.basePrice }}]</span>
                     </span>
@@ -189,6 +189,54 @@ import { ref, onMounted, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useVersionStore } from '@/stores/version';
 import { useFormulaStore } from '@/stores/formula';
+import type { FormulaVersion } from '@/api/version';
+
+interface SnapshotMaterial {
+  materialId?: string;
+  materialName?: string;
+  name?: string;
+  quantity?: number;
+  basePriceAtSave?: number | null;
+  adjustedPrice?: number | null;
+  [key: string]: unknown;
+}
+
+interface VersionSnapshot {
+  materials?: SnapshotMaterial[];
+  finishedWeight?: number;
+  finished_weight?: number;
+  formulaData?: Record<string, unknown>;
+  packagingPrice?: number | null;
+  otherPrice?: number | null;
+  profitMargin?: number | null;
+  [key: string]: unknown;
+}
+
+interface CompareVersion {
+  versionId: string;
+  versionNumber: string;
+  versionName: string | null;
+  createdAt: string;
+  createdByName: string | null;
+  status: string;
+  snapshot: VersionSnapshot;
+}
+
+interface IngredientRow {
+  name: string;
+  value: number;
+  weight: number;
+  missing?: boolean;
+}
+
+interface PriceRow {
+  name: string;
+  quantity: number;
+  unitPrice: number | null;
+  basePrice: number | null;
+  isAdjusted: boolean;
+  missing?: boolean;
+}
 
 const router = useRouter();
 const route = useRoute();
@@ -197,7 +245,7 @@ const formulaStore = useFormulaStore();
 
 const formulaId = route.params.formulaId as string;
 const formulaName = ref('');
-const compareVersions = ref<any[]>([]);
+const compareVersions = ref<CompareVersion[]>([]);
 const compareMode = ref<'content' | 'price'>('content');
 
 const toggleMode = () => {
@@ -225,13 +273,13 @@ const onConfirmReset = () => {
 
 const availableList = computed(() => {
   const currentIds = new Set(compareVersions.value.map(v => v.versionId));
-  return (versionStore.versions || []).filter((v: any) => !currentIds.has(v.versionId));
+  return (versionStore.versions || []).filter((v: FormulaVersion) => !currentIds.has(v.versionId));
 });
 
 const handleAddVersion = (versionId: string) => {
-  const ver = versionStore.versions.find((v: any) => v.versionId === versionId);
+  const ver = versionStore.versions.find((v: FormulaVersion) => v.versionId === versionId);
   if (ver && !compareVersions.value.find(v => v.versionId === versionId)) {
-    compareVersions.value.push(ver);
+    compareVersions.value.push(ver as unknown as CompareVersion);
     syncLocalStorage();
   }
 };
@@ -248,11 +296,11 @@ const formatDate = (val: string | undefined) => {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 };
 
-const getIngredients = (ver: any, idx: number) => {
+const getIngredients = (ver: CompareVersion, idx: number): IngredientRow[] => {
   const materials = ver.snapshot?.materials || [];
   const finishedWeight = ver.snapshot?.finishedWeight || ver.snapshot?.finished_weight || 0;
   if (idx === 0) {
-    return materials.map((m: any) => ({
+    return materials.map((m: SnapshotMaterial) => ({
       name: m.materialName || '--',
       value: m.quantity || 0,
       weight: finishedWeight ? (m.quantity || 0) / 100 * finishedWeight : (m.quantity || 0),
@@ -260,9 +308,9 @@ const getIngredients = (ver: any, idx: number) => {
   }
   const baseVer = compareVersions.value[0];
   const baseIngs = baseVer?.snapshot?.materials || [];
-  const currentMap = new Map<string, { quantity: number; weight: number }>(materials.map((m: any) => [m.materialName, { quantity: m.quantity || 0, weight: finishedWeight ? (m.quantity || 0) / 100 * finishedWeight : (m.quantity || 0) }]));
-  const aligned: any[] = [];
-  baseIngs.forEach((b: any) => {
+  const currentMap = new Map<string, { quantity: number; weight: number }>(materials.map((m: SnapshotMaterial) => [m.materialName || '--', { quantity: m.quantity || 0, weight: finishedWeight ? (m.quantity || 0) / 100 * finishedWeight : (m.quantity || 0) }]));
+  const aligned: IngredientRow[] = [];
+  baseIngs.forEach((b: SnapshotMaterial) => {
     const name = b.materialName || '--';
     if (currentMap.has(name)) {
       const cur = currentMap.get(name)!;
@@ -278,21 +326,21 @@ const getIngredients = (ver: any, idx: number) => {
   return aligned;
 };
 
-const getDiffClass = (ing: any, _ver: any, idx: number) => {
+const getDiffClass = (ing: IngredientRow, _ver: CompareVersion, idx: number) => {
   if (idx === 0) return '';
   const baseVer = compareVersions.value[0];
   if (!baseVer) return '';
   const baseIngs = baseVer.snapshot?.materials || [];
-  const match = baseIngs.find((oi: any) => oi.materialName === ing.name);
+  const match = baseIngs.find((oi: SnapshotMaterial) => oi.materialName === ing.name);
   if (!match) return 'diff-added';
   if ((match.quantity || 0) !== ing.value) return 'diff-changed';
   return '';
 };
 
-const getPriceItems = (ver: any, idx: number) => {
+const getPriceItems = (ver: CompareVersion, idx: number): PriceRow[] => {
   const materials = ver.snapshot?.materials || [];
   if (idx === 0) {
-    return materials.map((m: any) => {
+    return materials.map((m: SnapshotMaterial) => {
       const basePrice = m.basePriceAtSave ?? null;
       const adjPrice = m.adjustedPrice ?? null;
       const effectivePrice = adjPrice != null ? adjPrice : basePrice;
@@ -307,34 +355,34 @@ const getPriceItems = (ver: any, idx: number) => {
   }
   const baseVer = compareVersions.value[0];
   const baseItems = baseVer?.snapshot?.materials || [];
-  const currentMap = new Map(materials.map((m: any) => {
+  const currentMap = new Map(materials.map((m: SnapshotMaterial) => {
     const bp = m.basePriceAtSave ?? null;
     const ap = m.adjustedPrice ?? null;
-    return [m.materialName, { quantity: m.quantity || 0, unitPrice: ap != null ? ap : bp, basePrice: bp, isAdjusted: ap != null && ap !== bp }];
+    return [m.materialName || '--', { quantity: m.quantity || 0, unitPrice: ap != null ? ap : bp, basePrice: bp, isAdjusted: ap != null && ap !== bp }];
   }));
-  const aligned: any[] = [];
-  baseItems.forEach((b: any) => {
+  const aligned: PriceRow[] = [];
+  baseItems.forEach((b: SnapshotMaterial) => {
     const name = b.materialName || '--';
     if (currentMap.has(name)) {
       const cur = currentMap.get(name)!;
-      aligned.push({ name, ...cur, missing: false });
+      aligned.push({ name, quantity: cur.quantity, unitPrice: cur.unitPrice, basePrice: cur.basePrice, isAdjusted: cur.isAdjusted, missing: false });
       currentMap.delete(name);
     } else {
       aligned.push({ name, quantity: b.quantity || 0, unitPrice: null, basePrice: b.basePriceAtSave ?? null, isAdjusted: false, missing: true });
     }
   });
   currentMap.forEach((val, name) => {
-    aligned.push({ name, ...val as object, missing: false });
+    aligned.push({ name, quantity: val.quantity, unitPrice: val.unitPrice, basePrice: val.basePrice, isAdjusted: val.isAdjusted, missing: false });
   });
   return aligned;
 };
 
-const getPriceDiffClass = (item: any, _ver: any, idx: number) => {
+const getPriceDiffClass = (item: PriceRow, _ver: CompareVersion, idx: number) => {
   if (idx === 0) return '';
   const baseVer = compareVersions.value[0];
   if (!baseVer) return '';
   const baseItems = baseVer.snapshot?.materials || [];
-  const match = baseItems.find((oi: any) => oi.materialName === item.name);
+  const match = baseItems.find((oi: SnapshotMaterial) => oi.materialName === item.name);
   if (!match) return 'diff-added';
   const baseEffectivePrice = match.adjustedPrice ?? match.basePriceAtSave ?? null;
   if ((baseEffectivePrice ?? 'null') !== (item.unitPrice ?? 'null')) return 'diff-changed';
@@ -346,19 +394,19 @@ const formatPrice = (val: number | null) => {
   return `¥${val.toFixed(2)}/kg`;
 };
 
-const getCostSummaryItems = (ver: any, idx: number) => {
+const getCostSummaryItems = (ver: CompareVersion, idx: number) => {
   const snapshot = ver.snapshot || {};
   const formulaData = snapshot.formulaData || {};
-  const packagingPrice = snapshot.packagingPrice ?? formulaData.packaging_price ?? formulaData.packagingPrice ?? null;
-  const otherPrice = snapshot.otherPrice ?? formulaData.other_price ?? formulaData.otherPrice ?? null;
-  const profitMargin = snapshot.profitMargin ?? formulaData.profit_margin ?? formulaData.profitMargin ?? null;
+  const packagingPrice = snapshot.packagingPrice ?? (formulaData as Record<string, unknown>).packaging_price as number | null ?? (formulaData as Record<string, unknown>).packagingPrice as number | null ?? null;
+  const otherPrice = snapshot.otherPrice ?? (formulaData as Record<string, unknown>).other_price as number | null ?? (formulaData as Record<string, unknown>).otherPrice as number | null ?? null;
+  const profitMargin = snapshot.profitMargin ?? (formulaData as Record<string, unknown>).profit_margin as number | null ?? (formulaData as Record<string, unknown>).profitMargin as number | null ?? null;
 
   const baseVer = idx === 0 ? null : compareVersions.value[0];
   const baseSnapshot = baseVer?.snapshot || {};
   const baseFormulaData = baseSnapshot.formulaData || {};
-  const basePackaging = baseSnapshot.packagingPrice ?? baseFormulaData.packaging_price ?? baseFormulaData.packagingPrice ?? null;
-  const baseOther = baseSnapshot.otherPrice ?? baseFormulaData.other_price ?? baseFormulaData.otherPrice ?? null;
-  const baseMargin = baseSnapshot.profitMargin ?? baseFormulaData.profit_margin ?? baseFormulaData.profitMargin ?? null;
+  const basePackaging = baseSnapshot.packagingPrice ?? (baseFormulaData as Record<string, unknown>).packaging_price as number | null ?? (baseFormulaData as Record<string, unknown>).packagingPrice as number | null ?? null;
+  const baseOther = baseSnapshot.otherPrice ?? (baseFormulaData as Record<string, unknown>).other_price as number | null ?? (baseFormulaData as Record<string, unknown>).otherPrice as number | null ?? null;
+  const baseMargin = baseSnapshot.profitMargin ?? (baseFormulaData as Record<string, unknown>).profit_margin as number | null ?? (baseFormulaData as Record<string, unknown>).profitMargin as number | null ?? null;
 
   const getDiffInfo = (current: number | null, base: number | null) => {
     if (idx === 0) return { diffClass: '', valueClass: '' };
@@ -405,8 +453,8 @@ onMounted(async () => {
   }
   const ids = localStorage.getItem('compare_versions');
   if (ids) {
-    const parsed = JSON.parse(ids);
-    compareVersions.value = versionStore.versions.filter((v: any) => parsed.includes(v.versionId)).slice(0, 3);
+    const parsed: string[] = JSON.parse(ids);
+    compareVersions.value = versionStore.versions.filter((v: FormulaVersion) => parsed.includes(v.versionId)).slice(0, 3) as unknown as CompareVersion[];
   }
 });
 </script>

@@ -1,15 +1,15 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { reportApi } from '@/api/report'
-import type { Report, ReportFilters, ReportTarget } from '@/api/report'
+import type { Report, ReportFilters, ReportTarget, AIAnalysisData } from '@/api/report'
 import { MessagePlugin } from 'tdesign-vue-next'
 
 export const useReportStore = defineStore('report', () => {
   const reports = ref<Report[]>([])
   const currentReport = ref<Report | null>(null)
   const targets = ref<ReportTarget[]>([])
-  const comparisonData = ref<any>(null)
-  const aiAnalysis = ref<any>(null)
+  const comparisonData = ref<Record<string, unknown> | null>(null)
+  const aiAnalysis = ref<AIAnalysisData | null>(null)
   const aiAnalysisLoading = ref(false)
   const loading = ref(false)
   const total = ref(0)
@@ -27,18 +27,18 @@ export const useReportStore = defineStore('report', () => {
     loading.value = true
     try {
       const merged = { ...filters.value, ...params, page: params?.page ?? currentPage.value, pageSize: params?.pageSize ?? pageSize.value }
-      const cleanParams: Record<string, any> = {}
+      const cleanParams: Record<string, string | number> = {}
       Object.entries(merged).forEach(([key, value]) => {
         if (value !== 'all' && value !== '' && value != null) {
-          cleanParams[key] = value
+          cleanParams[key] = value as string | number
         }
       })
-      const res = await reportApi.getList(cleanParams as any)
+      const res = await reportApi.getList(cleanParams)
       reports.value = res.list
       total.value = res.pagination.total
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('获取报告列表失败:', error)
-      MessagePlugin.error(error.message || '获取报告列表失败')
+      MessagePlugin.error(error instanceof Error ? error.message : '获取报告列表失败')
     } finally {
       loading.value = false
     }
@@ -58,9 +58,9 @@ export const useReportStore = defineStore('report', () => {
       }
 
       return res
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('获取报告详情失败:', error)
-      MessagePlugin.error(error.message || '获取报告详情失败')
+      MessagePlugin.error(error instanceof Error ? error.message : '获取报告详情失败')
       return null
     } finally {
       loading.value = false
@@ -72,14 +72,14 @@ export const useReportStore = defineStore('report', () => {
       const res = await reportApi.generate(data)
       MessagePlugin.success('报告生成成功')
       return res
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('生成报告失败:', error)
-      MessagePlugin.error(error.message || '生成报告失败')
+      MessagePlugin.error(error instanceof Error ? error.message : '生成报告失败')
       return null
     }
   }
 
-  const updateReport = async (id: string, data: Partial<{ title: string; dataJson: any; status: string }>) => {
+  const updateReport = async (id: string, data: Partial<{ title: string; dataJson: Record<string, unknown>; status: string }>) => {
     try {
       const res = await reportApi.update(id, data)
       MessagePlugin.success('报告更新成功')
@@ -87,33 +87,34 @@ export const useReportStore = defineStore('report', () => {
         currentReport.value = res
       }
       return res
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('更新报告失败:', error)
-      MessagePlugin.error(error.message || '更新报告失败')
+      MessagePlugin.error(error instanceof Error ? error.message : '更新报告失败')
       return null
     }
   }
 
   const deleteReport = async (id: string) => {
     try {
-      const _res = await reportApi.delete(id)
+      await reportApi.delete(id)
       MessagePlugin.success('报告删除成功')
       return true
-    } catch (error: any) {
-      console.error(`[ReportStore] ❌ ========== 删除失败 ==========`)
-      console.error(`[ReportStore] 错误消息:`, error.message || '未知错误')
+    } catch (error: unknown) {
+      console.error(`[ReportStore] 删除失败:`)
+      const err = error instanceof Error ? error : new Error(String(error))
+      console.error(`[ReportStore] 错误消息:`, err.message || '未知错误')
       console.error(`[ReportStore] 错误详情:`, error)
-      console.error(`[ReportStore] HTTP状态:`, error.response?.status, error.response?.statusText)
 
-      let errorMsg = error.message || '删除报告失败'
-      if (error.response?.status === 403) {
-        errorMsg = error.response?.data?.message || '无权限删除此报告（仅管理员或创建者可操作）'
-        console.warn(`[ReportStore] ⚠️ 权限不足! 可能原因:`)
+      let errorMsg = err.message || '删除报告失败'
+      const axiosError = error as { response?: { status?: number; statusText?: string; data?: { message?: string } } }
+      if (axiosError.response?.status === 403) {
+        errorMsg = axiosError.response?.data?.message || '无权限删除此报告（仅管理员或创建者可操作）'
+        console.warn(`[ReportStore] 权限不足! 可能原因:`)
         console.warn(`[ReportStore]   - 当前用户非管理员且非报告创建者`)
         console.warn(`[ReportStore]   - 报告状态可能不允许删除`)
-      } else if (error.response?.status === 404) {
+      } else if (axiosError.response?.status === 404) {
         errorMsg = '报告不存在或已被删除'
-        console.warn(`[ReportStore] ⚠️ 报告不存在! id=${id}`)
+        console.warn(`[ReportStore] 报告不存在! id=${id}`)
       }
 
       MessagePlugin.error(errorMsg)
@@ -121,7 +122,7 @@ export const useReportStore = defineStore('report', () => {
     }
   }
 
-  const publishReport = async (id: string, reportData?: any, type?: string) => {
+  const publishReport = async (id: string, reportData?: Record<string, unknown>, type?: string) => {
     try {
       const res = await reportApi.publish(id)
 
@@ -138,14 +139,14 @@ export const useReportStore = defineStore('report', () => {
 
       MessagePlugin.success('报告已发布，正在生成智能分析...')
       return res
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('发布报告失败:', error)
-      MessagePlugin.error(error.message || '发布报告失败')
+      MessagePlugin.error(error instanceof Error ? error.message : '发布报告失败')
       return null
     }
   }
 
-  const generateAndSaveAIAnalysis = async (reportId: string, reportData: any, type: string) => {
+  const generateAndSaveAIAnalysis = async (reportId: string, reportData: Record<string, unknown>, type: string) => {
     try {
       aiAnalysisLoading.value = true
 
@@ -168,8 +169,8 @@ export const useReportStore = defineStore('report', () => {
       }
 
       return analysisResult
-    } catch (error: any) {
-      console.error('[ReportStore] ❌ 生成或保存AI分析失败:', error)
+    } catch (error: unknown) {
+      console.error('[ReportStore] 生成或保存AI分析失败:', error)
       throw error
     } finally {
       aiAnalysisLoading.value = false
@@ -181,9 +182,9 @@ export const useReportStore = defineStore('report', () => {
       const res = await reportApi.getTargetList(params)
       targets.value = res
       return res
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('获取目标列表失败:', error)
-      MessagePlugin.error(error.message || '获取目标列表失败')
+      MessagePlugin.error(error instanceof Error ? error.message : '获取目标列表失败')
       return []
     }
   }
@@ -191,7 +192,7 @@ export const useReportStore = defineStore('report', () => {
   const exportPdf = async (id: string) => {
     try {
       const blob = await reportApi.exportPdf(id)
-      const url = window.URL.createObjectURL(blob as any)
+      const url = window.URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
       link.download = `report-${id}.pdf`
@@ -200,16 +201,16 @@ export const useReportStore = defineStore('report', () => {
       document.body.removeChild(link)
       window.URL.revokeObjectURL(url)
       MessagePlugin.success('PDF 导出成功')
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('PDF 导出失败:', error)
-      MessagePlugin.error(error.message || 'PDF 导出失败')
+      MessagePlugin.error(error instanceof Error ? error.message : 'PDF 导出失败')
     }
   }
 
   const exportExcel = async (id: string) => {
     try {
       const blob = await reportApi.exportExcel(id)
-      const url = window.URL.createObjectURL(blob as any)
+      const url = window.URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
       link.download = `report-${id}.xlsx`
@@ -218,9 +219,9 @@ export const useReportStore = defineStore('report', () => {
       document.body.removeChild(link)
       window.URL.revokeObjectURL(url)
       MessagePlugin.success('Excel 导出成功')
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Excel 导出失败:', error)
-      MessagePlugin.error(error.message || 'Excel 导出失败')
+      MessagePlugin.error(error instanceof Error ? error.message : 'Excel 导出失败')
     }
   }
 
@@ -230,25 +231,25 @@ export const useReportStore = defineStore('report', () => {
       const res = await reportApi.compareReports(reportId1, reportId2)
       comparisonData.value = res
       return res
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('报告对比失败:', error)
-      MessagePlugin.error(error.message || '报告对比失败')
+      MessagePlugin.error(error instanceof Error ? error.message : '报告对比失败')
       return null
     } finally {
       loading.value = false
     }
   }
 
-  const getAIAnalysis = async (reportData: any, type: string) => {
+  const getAIAnalysis = async (reportData: Record<string, unknown>, type: string) => {
     aiAnalysisLoading.value = true
     try {
       const res = await reportApi.getAIAnalysis(reportData, type)
 
       aiAnalysis.value = res
       return res
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('AI 分析失败:', error)
-      MessagePlugin.error(error.message || 'AI 分析失败')
+      MessagePlugin.error(error instanceof Error ? error.message : 'AI 分析失败')
       return null
     } finally {
       aiAnalysisLoading.value = false

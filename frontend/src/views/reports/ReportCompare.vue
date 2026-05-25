@@ -162,8 +162,8 @@ const comparisonMetrics = computed(() => {
   ]
 
   return metrics.map(m => {
-    const raw1 = (d1 as any)[m.key1] ?? 0
-    const raw2 = (d2 as any)[m.key2] ?? 0
+    const raw1 = (d1 as Record<string, unknown>)[m.key1] ?? 0
+    const raw2 = (d2 as Record<string, unknown>)[m.key2] ?? 0
     const v1 = m.transform ? m.transform(raw1) : raw1
     const v2 = m.transform ? m.transform(raw2) : raw2
     const diff = calcDiff(Number(raw1), Number(raw2))
@@ -284,8 +284,9 @@ const loadData = async () => {
     if (r1 && r2) {
       await reportStore.compareReports(id1, id2)
     }
-  } catch (e: any) {
-    loadError.value = e.message || '加载失败，请稍后重试'
+  } catch (e: unknown) {
+    const err = e as { message?: string }
+    loadError.value = err.message || '加载失败，请稍后重试'
   }
 }
 
@@ -306,8 +307,9 @@ onMounted(async () => {
   window.addEventListener('resize', handleResize)
   try {
     await loadData()
-  } catch (e: any) {
-    loadError.value = e.message || '初始化失败'
+  } catch (e: unknown) {
+    const err = e as { message?: string }
+    loadError.value = err.message || '初始化失败'
   } finally {
     initialized.value = true
   }

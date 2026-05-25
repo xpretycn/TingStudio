@@ -16,10 +16,10 @@ export interface AgentMessage {
   role: "user" | "assistant" | "system" | "tool";
   content: string;
   intent: string | null;
-  tool_calls: any[] | null;
-  tool_results: any[] | null;
+  tool_calls: Record<string, unknown>[] | null;
+  tool_results: Record<string, unknown>[] | null;
   display_type: string | null;
-  metadata: any;
+  metadata: Record<string, unknown>;
   created_at: string;
 }
 
@@ -36,10 +36,10 @@ export interface ChatResponse {
   type?: string;
   content?: string;
   sessionId?: string;
-  usage?: any;
+  usage?: Record<string, unknown>;
   model?: string;
-  toolCalls?: any[];
-  toolResults?: any[];
+  toolCalls?: Record<string, unknown>[];
+  toolResults?: Record<string, unknown>[];
   assistantMessage?: string;
   error?: string;
 }
@@ -84,29 +84,44 @@ export interface ParseFormRequest {
 }
 
 export interface ParseFormResponse {
-  fields: Record<string, any>;
+  fields: Record<string, unknown>;
   missingFields: string[];
   message: string;
   sessionId: string;
 }
 
+interface SubmitFormResult {
+  success: boolean;
+  data?: Record<string, unknown>;
+  error?: string;
+  displayType?: string;
+  toolName?: string;
+  validationErrors?: Array<{ field: string; message: string }>;
+}
+
+interface FieldHintsResult {
+  missingFields: string[];
+  hints: Record<string, unknown>[];
+  count: number;
+}
+
 export const agentApi = {
   getSessions() {
-    return http.get<any, { success: boolean; data: AgentSession[] }>("/agent/sessions");
+    return http.get<unknown, AgentSession[]>("/agent/sessions");
   },
 
   getSessionMessages(sessionId: string) {
-    return http.get<any, { success: boolean; data: { id: string; messages: AgentMessage[] } }>(
+    return http.get<unknown, { id: string; messages: AgentMessage[] }>(
       `/agent/sessions/${sessionId}`,
     );
   },
 
   deleteSession(sessionId: string) {
-    return http.delete<any, { success: boolean }>(`/agent/sessions/${sessionId}`);
+    return http.delete<unknown, { success: boolean }>(`/agent/sessions/${sessionId}`);
   },
 
   chat(params: ChatRequest) {
-    return http.post<any, ChatResponse>("/agent/chat", {
+    return http.post<unknown, ChatResponse>("/agent/chat", {
       message: params.message,
       sessionId: params.sessionId,
       stream: params.stream ?? false,
@@ -115,38 +130,28 @@ export const agentApi = {
     });
   },
 
-  submitForm(data: { sessionId: string; formId: string; formData: Record<string, any> }) {
-    return http.post<
-      any,
-      {
-        success: boolean;
-        data?: any;
-        error?: string;
-        displayType?: string;
-        toolName?: string;
-        validationErrors?: Array<{ field: string; message: string }>;
-      }
-    >("/agent/submit-form", data);
+  submitForm(data: { sessionId: string; formId: string; formData: Record<string, unknown> }) {
+    return http.post<unknown, SubmitFormResult>("/agent/submit-form", data);
   },
 
   getPendingForm(sessionId: string) {
-    return http.get<any, { success: boolean; data: any }>(`/agent/pending-form/${sessionId}`);
+    return http.get<unknown, Record<string, unknown>>(`/agent/pending-form/${sessionId}`);
   },
 
   getRoleConfig() {
-    return http.get<any, { success: boolean; data: AgentRoleConfig }>("/agent/role-config");
+    return http.get<unknown, AgentRoleConfig>("/agent/role-config");
   },
 
   updateRoleConfig(data: Partial<AgentRoleConfig>) {
-    return http.put<any, { success: boolean; data: AgentRoleConfig }>("/agent/role-config", data);
+    return http.put<unknown, AgentRoleConfig>("/agent/role-config", data);
   },
 
   getFloatConfig() {
-    return http.get<any, AgentFloatConfig>("/agent/float-config");
+    return http.get<unknown, AgentFloatConfig>("/agent/float-config");
   },
 
   updateFloatConfig(data: Partial<AgentFloatConfig>) {
-    const payload: Record<string, any> = {};
+    const payload: Record<string, unknown> = {};
     if (data.enabled !== undefined) payload.enabled = data.enabled;
     if (data.model !== undefined) payload.model = data.model;
     if (data.modelName !== undefined) payload.model_name = data.modelName;
@@ -160,37 +165,36 @@ export const agentApi = {
     if (data.maxRounds !== undefined) payload.max_rounds = data.maxRounds;
     if (data.fillStrategy !== undefined) payload.fill_strategy = data.fillStrategy;
     if (data.contextMode !== undefined) payload.context_mode = data.contextMode;
-    return http.put<any, AgentFloatConfig>("/agent/float-config", payload);
+    return http.put<unknown, AgentFloatConfig>("/agent/float-config", payload);
   },
-  // 解析表单
   parseForm(params: ParseFormRequest) {
-    return http.post<any, ParseFormResponse>("/agent/parse-form", params);
+    return http.post<unknown, ParseFormResponse>("/agent/parse-form", params);
   },
 
   floatChat(params: ParseFormRequest) {
-    return http.post<any, any>("/agent/float-chat", params);
+    return http.post<unknown, Record<string, unknown>>("/agent/float-chat", params);
   },
 
   generateDescription(data: {
     formulaName: string;
-    materials?: any[];
+    materials?: Record<string, unknown>[];
     finishedWeight?: number;
     revisionReason?: string;
     existingDescription?: string;
     type?: "description" | "preparation" | "version_reason";
   }) {
-    return http.post<any, { content: string; type: string }>(
+    return http.post<unknown, { content: string; type: string }>(
       "/agent/generate-description", data,
     );
   },
 
   getFieldHints(pageId: string) {
-    return http.get<any, { missingFields: string[]; hints: any[]; count: number }>(
+    return http.get<unknown, FieldHintsResult>(
       "/agent/field-hints", { params: { pageId } },
     );
   },
 
   getHealth() {
-    return http.get<any, { status: string }>("/agent/health");
+    return http.get<unknown, { status: string }>("/agent/health");
   },
 };

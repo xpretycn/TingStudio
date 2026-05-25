@@ -99,6 +99,12 @@ const router = createRouter({
           meta: { title: "新增配方", hideHeader: true, extraBottom: true },
         },
         {
+          path: "formulas/quick",
+          name: "QuickFormula",
+          component: () => import("@/views/dashboard/quick-formula/QuickFormulaPanel.vue"),
+          meta: { title: "快速录入", hideHeader: true },
+        },
+        {
           path: "formulas/:id/edit",
           name: "FormulaEdit",
           component: () => import("@/views/formulas/FormulaForm.vue"),
@@ -178,8 +184,8 @@ const router = createRouter({
         },
         {
           path: "versions/formula/:formulaId",
-          name: "VersionList",
-          component: () => import(/* webpackPrefetch: true */ "@/views/formulas/versions/VersionList.vue"),
+          name: "FormulaVersions",
+          component: () => import(/* webpackPrefetch: true */ "@/views/formulas/versions/FormulaVersions.vue"),
           meta: { title: "版本管理", hideHeader: true },
         },
         {
@@ -253,6 +259,12 @@ const router = createRouter({
           name: "AccountSettings",
           component: () => import("@/views/settings/AccountSettings.vue"),
           meta: { title: "账号设置", hideHeader: true },
+        },
+        {
+          path: "enum-manage",
+          name: "EnumManage",
+          component: () => import("@/views/settings/EnumManage.vue"),
+          meta: { title: "枚举值管理", requiresAdmin: true },
         },
       ],
     },

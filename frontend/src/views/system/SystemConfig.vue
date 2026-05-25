@@ -180,16 +180,16 @@ async function fetchConfig() {
   try {
     const res = await parseResultApi.getConfig();
     configData.value = {
-      storageLimit: Number(res.storage_limit?.value) || 5000,
-      cleanupThresholdPercent: Number(res.cleanup_threshold_percent?.value) || 95,
-      cleanupBatchPercent: Number(res.cleanup_batch_percent?.value) || 5,
-      maxFileSizeBytes: Number(res.max_file_size_bytes?.value) || 5242880,
-      fileRetentionDays: Number(res.file_retention_days?.value) || 90,
-      fileStorageLimitBytes: Number(res.file_storage_limit_bytes?.value) || 10737418240,
-      fileStorageAlertPercent: Number(res.file_storage_alert_percent?.value) || 80,
+      storageLimit: res.storageLimit ?? 5000,
+      cleanupThresholdPercent: res.cleanupThresholdPercent ?? 95,
+      cleanupBatchPercent: res.cleanupBatchPercent ?? 5,
+      maxFileSizeBytes: res.maxFileSizeBytes ?? 5242880,
+      fileRetentionDays: res.fileRetentionDays ?? 90,
+      fileStorageLimitBytes: res.fileStorageLimitBytes ?? 10737418240,
+      fileStorageAlertPercent: res.fileStorageAlertPercent ?? 80,
     };
     configForm.value = { ...configData.value };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[SystemConfig] 获取配置失败:', error);
   }
 }
@@ -197,9 +197,15 @@ async function fetchConfig() {
 async function fetchDegradation() {
   try {
     const res = await parseResultApi.getDegradation();
-    degradationInfo.value = res;
-    activities.value.push(...generateActivitiesFromDegradation(res));
-  } catch (error: any) {
+    degradationInfo.value = {
+      level: res.level,
+      reason: res.reason,
+      recommendations: res.recommendations,
+      systemStatus: res.systemStatus,
+      lastCleanup: null,
+    };
+    activities.value.push(...generateActivitiesFromDegradation(degradationInfo.value));
+  } catch (error: unknown) {
     console.error('[SystemConfig] 获取降级信息失败:', error);
   }
 }
@@ -207,8 +213,17 @@ async function fetchDegradation() {
 async function fetchStatistics() {
   try {
     const res = await parseResultApi.getStatistics();
-    statistics.value = res;
-  } catch (error: any) {
+    statistics.value = {
+      totalCount: res.total,
+      successCount: res.total - res.unlinked,
+      failedCount: res.unlinked,
+      linkedCount: res.linked,
+      cacheHitRate: res.total > 0 ? res.linked / res.total : 0,
+      todayParses: 0,
+      storageUsagePercent: res.totalSize > 0 ? Math.round((res.total / 5000) * 100) : 0,
+      storageLimit: 5000,
+    };
+  } catch (error: unknown) {
     console.error('[SystemConfig] 获取统计失败:', error);
   }
 }
@@ -218,7 +233,7 @@ async function fetchRatioThresholds() {
     const res = await ratioThresholdApi.get();
     ratioThresholds.value = res;
     ratioForm.value = { ...res };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[SystemConfig] 获取含量比阈值失败:', error);
   }
 }
@@ -266,8 +281,9 @@ async function saveRatioThresholds() {
       message: `更新含量比校验阈值：正常 [${res.normalLow}, ${res.normalHigh}]，预警 [${res.warningLow}, ${res.warningHigh}]，高级预警 [${res.highWarningLow}, ${res.highWarningHigh}]`,
       time: '刚刚',
     });
-  } catch (error: any) {
-    MessagePlugin.error('含量比阈值配置更新失败: ' + (error?.message || '未知错误'));
+  } catch (error: unknown) {
+    const err = error as { message?: string };
+    MessagePlugin.error('含量比阈值配置更新失败: ' + (err.message || '未知错误'));
   } finally {
     ratioSaving.value = false;
   }
@@ -352,8 +368,9 @@ async function saveConfig() {
       message: `更新存储配置：上限 ${configForm.value.storageLimit} 条，清理阈值 ${configForm.value.cleanupThresholdPercent}%，文件保留 ${configForm.value.fileRetentionDays} 天`,
       time: '刚刚',
     });
-  } catch (error: any) {
-    MessagePlugin.error('配置更新失败: ' + (error?.message || '未知错误'));
+  } catch (error: unknown) {
+    const err = error as { message?: string };
+    MessagePlugin.error('配置更新失败: ' + (err.message || '未知错误'));
   } finally {
     loading.value = false;
   }
@@ -372,7 +389,7 @@ async function triggerCleanup(dryRun: boolean = false) {
   try {
     cleanupLoading.value = true;
     const res = await parseResultApi.manualCleanup({ dryRun });
-    const msg = dryRun ? `模拟清理：将删除 ${res.deletedCount} 条记录` : `成功清理 ${res.deletedCount} 条记录`;
+    const msg = dryRun ? `模拟清理：将删除 ${res.deleted} 条记录` : `成功清理 ${res.deleted} 条记录`;
     MessagePlugin.success(msg);
     activities.value.unshift({
       id: 'cleanup-' + Date.now(),

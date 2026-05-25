@@ -33,7 +33,7 @@ const props = defineProps<{
   show: boolean;
   message: string;
   toolName?: string;
-  params?: Record<string, any>;
+  params?: Record<string, unknown>;
 }>();
 
 const emit = defineEmits<{

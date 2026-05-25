@@ -173,6 +173,7 @@
 import { ref, computed, onMounted, watch } from 'vue';
 import { useAiStore } from '@/stores/ai';
 import { modelApi } from '@/api/model';
+import type { ModelItem } from '@/api/model';
 import { MessagePlugin } from 'tdesign-vue-next';
 import { useRouter } from 'vue-router';
 import PageSkeleton from '@/components/Skeleton/PageSkeleton.vue';
@@ -293,7 +294,7 @@ const FALLBACK_ICONS: Record<string, { letter: string; color: string; }> = {
   tencent: { letter: 'T', color: '#0052d9' },
 };
 
-const getModelSlug = (model: any): string => {
+const getModelSlug = (model: ModelItem): string => {
   const provider = (model.provider || '').toLowerCase();
   const name = (model.name || '').toLowerCase();
   for (const [key, slug] of Object.entries(MODEL_LOGO_MAP)) {
@@ -305,7 +306,7 @@ const getModelSlug = (model: any): string => {
   return 'openai';
 };
 
-const getModelLogo = (model: any): string => {
+const getModelLogo = (model: ModelItem): string => {
   const provider = (model.provider || '').toLowerCase();
   const name = (model.name || '').toLowerCase();
   for (const [key, slug] of Object.entries(MODEL_LOGO_MAP)) {
@@ -316,11 +317,11 @@ const getModelLogo = (model: any): string => {
   return `https://unpkg.com/@lobehub/icons-static-svg@latest/icons/openai.svg`;
 };
 
-const getFallbackLetter = (model: any): string => {
+const getFallbackLetter = (model: ModelItem): string => {
   return FALLBACK_ICONS[getModelSlug(model)]?.letter || '?';
 };
 
-const getFallbackColor = (model: any): string => {
+const getFallbackColor = (model: ModelItem): string => {
   return FALLBACK_ICONS[getModelSlug(model)]?.color || 'var(--color-text-placeholder)';
 };
 
@@ -435,7 +436,7 @@ watch(() => aiStore.parseResult, (newVal, oldVal) => {
     addActivity({
       type: 'success',
       title: '智能配方解析完成',
-      desc: `消耗 <strong>${newVal.usage?.totalTokens || 0}</strong> Token${newVal.usage?.model ? `（模型: ${newVal.usage.model}）` : ''}`,
+      desc: `消耗 <strong>${newVal.usage?.totalTokens || 0}</strong> Token${newVal.model ? `（模型: ${newVal.model}）` : ''}`,
       time: new Date().toLocaleString('zh-CN'),
     });
   }

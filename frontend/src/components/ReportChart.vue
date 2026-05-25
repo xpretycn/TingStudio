@@ -15,12 +15,13 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import type { EChartsType, EChartsOption } from 'echarts'
 
 const props = withDefaults(defineProps<{
   title?: string
   height?: number
   loading?: boolean
-  option?: Record<string, any>
+  option?: EChartsOption
   emptyText?: string
 }>(), {
   title: '',
@@ -30,7 +31,7 @@ const props = withDefaults(defineProps<{
 })
 
 const chartRef = ref<HTMLElement | null>(null)
-let chartInstance: any = null
+let chartInstance: EChartsType | null = null
 
 const hasData = computed(() => {
   return props.option && Object.keys(props.option).length > 0
@@ -43,8 +44,10 @@ const initChart = async () => {
     if (chartInstance) {
       chartInstance.dispose()
     }
-    chartInstance = echarts.init(chartRef.value)
-    chartInstance.setOption(props.option)
+    chartInstance = echarts.init(chartRef.value) as EChartsType
+    if (props.option) {
+      chartInstance.setOption(props.option)
+    }
   } catch {
     // ECharts not available in Phase 1
   }
@@ -55,8 +58,8 @@ const handleResize = () => {
 }
 
 watch(() => props.option, () => {
-  if (chartInstance) {
-    chartInstance.setOption(props.option || {})
+  if (chartInstance && props.option) {
+    chartInstance.setOption(props.option)
   } else {
     initChart()
   }

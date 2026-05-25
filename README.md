@@ -1,4 +1,4 @@
-# TingStudio v2.32.0
+﻿# TingStudio v2.32.0
 
 食品配方工作数据管理平台 — 前后端分离架构
 
@@ -287,7 +287,7 @@ cd frontend && npm run test:coverage
 
 ## 🗄️ 数据库概览
 
-SQLite (better-sqlite3) + WAL 模式，共 **38 张表**：
+SQLite (better-sqlite3) + WAL 模式，共 **42 张表**：
 
 | 分类 | 表名 | 说明 |
 |------|------|------|
@@ -300,7 +300,7 @@ SQLite (better-sqlite3) + WAL 模式，共 **38 张表**：
 | **阈值配置** | ratio_threshold_configs | 含量比校验阈值配置 |
 | **AI 模型** | ai_models, ai_usage_logs, ai_alert_configs, ai_alert_records, ai_health_records, ai_fallback_configs, ai_prompt_templates, model_applications | 模型/用量/告警/健康/降级/提示词模板/应用 |
 | **Agent 系统** | agent_sessions, agent_messages, agent_pending_confirmations, agent_pending_forms, agent_role_config, agent_float_config, agent_provider_health, agent_session_cleanup_log | 会话/消息/确认/表单/身份/浮窗/健康/清理 |
-| **其他** | search_export_cache | 缓存 |
+| **审核系统** | formula_review_logs, material_review_logs | 配方审核/原料审核 |`n| **其他** | search_export_cache | 缓存 |
 
 备份/恢复工具：
 

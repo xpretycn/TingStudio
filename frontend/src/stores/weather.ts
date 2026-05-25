@@ -148,8 +148,8 @@ export const useWeatherStore = defineStore("weather", () => {
         try {
           const result = await locateByAmap();
           if (result) return;
-        } catch (err: any) {
-          console.warn("[Weather] 高德定位失败:", err.message);
+        } catch (err: unknown) {
+          console.warn("[Weather] 高德定位失败:", err instanceof Error ? err.message : String(err));
         }
       }
 
@@ -157,9 +157,10 @@ export const useWeatherStore = defineStore("weather", () => {
       if (result) return;
 
       throw new Error("所有IP定位服务均无法获取位置信息");
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : String(err);
       const reason =
-        err.name === "AbortError" || err.message?.includes("timeout") ? "定位请求超时" : `定位失败(${err.message})`;
+        (err instanceof Error && err.name === "AbortError") || errMsg.includes("timeout") ? "定位请求超时" : `定位失败(${errMsg})`;
       await fallbackToDefaultCity(reason + `，已切换至${FALLBACK_CITY}`);
     } finally {
       geoLoading.value = false;
@@ -175,7 +176,7 @@ export const useWeatherStore = defineStore("weather", () => {
     if (!res.ok) throw new Error(`高德HTTP ${res.status}`);
 
     const json = await res.json();
-    const data: Record<string, any> = isDev ? json : json?.data;
+    const data: Record<string, unknown> = isDev ? json : json?.data;
 
     if (!isDev && !json?.success) throw new Error(json?.message || "后端代理失败");
     if (!data || data.status !== "1") throw new Error(data?.info || "高德失败");

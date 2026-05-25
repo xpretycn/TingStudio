@@ -1,6 +1,6 @@
 export interface FillResult {
   key: string;
-  value: any;
+  value: unknown;
   success: boolean;
   error?: string;
 }
@@ -33,7 +33,7 @@ function setNativeValue(el: HTMLInputElement | HTMLTextAreaElement, value: strin
   el.dispatchEvent(new Event("change", { bubbles: true }));
 }
 
-function fillTDesignInput(container: HTMLElement, value: any): FillResult | null {
+function fillTDesignInput(container: HTMLElement, value: unknown): FillResult | null {
   const innerInput = container.querySelector<HTMLInputElement>("input.t-input__inner");
   if (innerInput) {
     setNativeValue(innerInput, String(value));
@@ -42,7 +42,7 @@ function fillTDesignInput(container: HTMLElement, value: any): FillResult | null
   return null;
 }
 
-function fillTDesignTextarea(container: HTMLElement, value: any): FillResult | null {
+function fillTDesignTextarea(container: HTMLElement, value: unknown): FillResult | null {
   const innerTextarea = container.querySelector<HTMLTextAreaElement>("textarea.t-textarea__inner");
   if (innerTextarea) {
     setNativeValue(innerTextarea, String(value));
@@ -51,7 +51,7 @@ function fillTDesignTextarea(container: HTMLElement, value: any): FillResult | n
   return null;
 }
 
-function fillTDesignInputNumber(container: HTMLElement, value: any): FillResult | null {
+function fillTDesignInputNumber(container: HTMLElement, value: unknown): FillResult | null {
   const innerInput = container.querySelector<HTMLInputElement>("input.t-input-number__input");
   if (!innerInput) {
     const fallbackInput = container.querySelector<HTMLInputElement>("input.t-input__inner");
@@ -66,12 +66,12 @@ function fillTDesignInputNumber(container: HTMLElement, value: any): FillResult 
 }
 
 interface PartialFillResult {
-  value: any;
+  value: unknown;
   success: boolean;
   error?: string;
 }
 
-function fillTDesignSelect(container: HTMLElement, value: any): PartialFillResult {
+function fillTDesignSelect(container: HTMLElement, value: unknown): PartialFillResult {
   const options = container.querySelectorAll<HTMLElement>(".t-select-option, .t-select__option");
   for (const opt of options) {
     const optText = opt.textContent?.trim();
@@ -92,7 +92,7 @@ function fillTDesignSelect(container: HTMLElement, value: any): PartialFillResul
   return { value, success: false, error: "下拉选项未匹配" };
 }
 
-function fillTDesignRadioGroup(container: HTMLElement, value: any): PartialFillResult {
+function fillTDesignRadioGroup(container: HTMLElement, value: unknown): PartialFillResult {
   const radios = container.querySelectorAll<HTMLInputElement>("input[type=\"radio\"]");
   for (const radio of radios) {
     if (radio.value === String(value)) {
@@ -135,7 +135,7 @@ function fillTDesignRadioGroup(container: HTMLElement, value: any): PartialFillR
   return { value, success: false, error: "单选值未匹配" };
 }
 
-function fillSingleField(key: string, value: any): FillResult {
+function fillSingleField(key: string, value: unknown): FillResult {
   const el = findInput(key);
   if (!el) {
     return { key, value, success: false, error: "未找到对应输入框" };
@@ -238,7 +238,7 @@ function fillSingleField(key: string, value: any): FillResult {
   return { key, value, success: false, error: "不支持的元素类型" };
 }
 
-export function fillFormFields(fields: Record<string, any>): FillResult[] {
+export function fillFormFields(fields: Record<string, unknown>): FillResult[] {
   const results: FillResult[] = [];
 
   for (const [key, value] of Object.entries(fields)) {

@@ -163,7 +163,7 @@ describe("MaterialForm 组件", () => {
 
   it('MF10: handleBack 应调用 router.push("/materials")', async () => {
     wrapper = createWrapper({});
-    const vm = wrapper.vm as any;
+    const vm = wrapper.vm as unknown as { handleBack: () => void };
     vm.handleBack();
 
     expect(push).toHaveBeenCalledWith("/materials");

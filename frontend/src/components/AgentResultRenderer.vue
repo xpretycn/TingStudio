@@ -112,25 +112,34 @@
 import { computed } from "vue";
 import { MessagePlugin } from "tdesign-vue-next";
 
+interface Nl2sqlResultData {
+  sql: string;
+  rows: Record<string, unknown>[];
+  rowCount: number;
+  queryType: string;
+  query: string;
+}
+
 const props = defineProps<{
   displayType: string;
-  data: any;
+  data: unknown;
   isSuccess?: boolean;
 }>();
 
-const nl2sqlData = computed(() => {
-  if (props.displayType !== "nl2sql") return { sql: "", rows: [], rowCount: 0, queryType: "" };
-  const d = props.data || {};
+const nl2sqlData = computed<Nl2sqlResultData>(() => {
+  if (props.displayType !== "nl2sql") return { sql: "", rows: [], rowCount: 0, queryType: "", query: "" };
+  const d = (props.data as Record<string, unknown>) || {};
+  const rows = Array.isArray(d.rows) ? (d.rows as Record<string, unknown>[]) : [];
   return {
-    sql: d.sql || "",
-    rows: d.rows || [],
-    rowCount: d.rowCount ?? (d.rows?.length ?? 0),
-    queryType: d.queryType || "simple",
-    query: d.query || "",
+    sql: typeof d.sql === "string" ? d.sql : "",
+    rows,
+    rowCount: typeof d.rowCount === "number" ? d.rowCount : rows.length,
+    queryType: typeof d.queryType === "string" ? d.queryType : "simple",
+    query: typeof d.query === "string" ? d.query : "",
   };
 });
 
-const nl2sqlTableData = computed(() => nl2sqlData.value.rows);
+const nl2sqlTableData = computed<Record<string, unknown>[]>(() => nl2sqlData.value.rows);
 
 const nl2sqlColumns = computed(() => {
   const first = nl2sqlTableData.value[0];
@@ -165,7 +174,7 @@ const exportCSV = () => {
   if (!rows.length) return;
   const keys = Object.keys(rows[0]);
   const header = keys.join(",");
-  const body = rows.map((row: any) =>
+  const body = rows.map((row) =>
     keys.map((k) => {
       const val = row[k] ?? "";
       const str = String(val);
@@ -184,10 +193,13 @@ const exportCSV = () => {
   URL.revokeObjectURL(url);
 };
 
-const tableData = computed(() => {
-  if (Array.isArray(props.data)) return props.data;
-  if (props.data?.rows && Array.isArray(props.data.rows)) return props.data.rows;
-  if (props.data?.data && Array.isArray(props.data.data)) return props.data.data;
+const tableData = computed<Record<string, unknown>[]>(() => {
+  if (Array.isArray(props.data)) return props.data as Record<string, unknown>[];
+  if (props.data && typeof props.data === "object" && !Array.isArray(props.data)) {
+    const obj = props.data as Record<string, unknown>;
+    if (obj.rows && Array.isArray(obj.rows)) return obj.rows as Record<string, unknown>[];
+    if (obj.data && Array.isArray(obj.data)) return obj.data as Record<string, unknown>[];
+  }
   return [];
 });
 
@@ -205,12 +217,12 @@ const tableColumns = computed(() => {
 const cardItems = computed(() => {
   if (!props.data || typeof props.data !== "object") return [];
   if (Array.isArray(props.data)) {
-    return props.data.map((item: any, i: number) => ({
-      label: item.label || item.name || `项目 ${i + 1}`,
+    return (props.data as Record<string, unknown>[]).map((item, i) => ({
+      label: (item.label as string) || (item.name as string) || `项目 ${i + 1}`,
       value: item.value ?? item.amount ?? JSON.stringify(item),
     }));
   }
-  return Object.entries(props.data).map(([key, value]) => ({
+  return Object.entries(props.data as Record<string, unknown>).map(([key, value]) => ({
     label: key,
     value: typeof value === "object" ? JSON.stringify(value) : String(value),
   }));

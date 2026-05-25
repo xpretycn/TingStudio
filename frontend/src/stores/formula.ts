@@ -33,9 +33,9 @@ export const useFormulaStore = defineStore('formula', () => {
         updatedAt: formatTimestamp(f.updatedAt),
       }))
       total.value = res.pagination.total
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('获取配方列表失败:', error)
-      MessagePlugin.error(error.message || '获取配方数据失败，请检查网络连接')
+      MessagePlugin.error(error instanceof Error ? error.message : '获取配方数据失败，请检查网络连接')
     } finally {
       loading.value = false
     }
@@ -44,7 +44,6 @@ export const useFormulaStore = defineStore('formula', () => {
   const getFormula = async (id: string): Promise<Formula | null> => {
     try {
       const res = await formulaApi.getById(id)
-      // axios 拦截器已经提取了 res.data，所以这里直接使用 res
       const formula = res
       return {
         ...formula,
@@ -53,9 +52,9 @@ export const useFormulaStore = defineStore('formula', () => {
         createdAt: formatTimestamp(formula.createdAt),
         updatedAt: formatTimestamp(formula.updatedAt),
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('获取配方详情失败:', error)
-      MessagePlugin.error(error.message || '获取配方详情失败')
+      MessagePlugin.error(error instanceof Error ? error.message : '获取配方详情失败')
       return null
     }
   }
@@ -66,8 +65,8 @@ export const useFormulaStore = defineStore('formula', () => {
       const data = await formulaApi.create(form)
       await fetchFormulas()
       return { success: true, data }
-    } catch (error: any) {
-      return { success: false, message: error.message || '创建失败' }
+    } catch (error: unknown) {
+      return { success: false, message: error instanceof Error ? error.message : '创建失败' }
     } finally {
       loading.value = false
     }
@@ -79,8 +78,8 @@ export const useFormulaStore = defineStore('formula', () => {
       await formulaApi.update(id, form)
       await fetchFormulas()
       return { success: true }
-    } catch (error: any) {
-      return { success: false, message: error.message || '更新失败' }
+    } catch (error: unknown) {
+      return { success: false, message: error instanceof Error ? error.message : '更新失败' }
     } finally {
       loading.value = false
     }
@@ -92,8 +91,8 @@ export const useFormulaStore = defineStore('formula', () => {
       await formulaApi.delete(id)
       await fetchFormulas()
       return { success: true }
-    } catch (error: any) {
-      return { success: false, message: error.message || '删除失败' }
+    } catch (error: unknown) {
+      return { success: false, message: error instanceof Error ? error.message : '删除失败' }
     } finally {
       loading.value = false
     }

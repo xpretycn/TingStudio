@@ -66,12 +66,13 @@
 
           <!-- 右侧：搜索和新增按钮 -->
           <div class="toolbar-right-section">
-            <t-radio-group v-model="materialStore.statusFilter" variant="default-filled" size="medium" @change="handleStatusFilterChange">
-              <t-radio-button value="all">全部</t-radio-button>
-              <t-radio-button value="draft">草稿</t-radio-button>
-              <t-radio-button value="pending_review">待审批</t-radio-button>
-              <t-radio-button value="published">已发布</t-radio-button>
-            </t-radio-group>
+            <div class="status-filter-group">
+              <button v-for="opt in statusFilterOptions" :key="opt.value" class="status-filter-btn"
+                :class="{ active: materialStore.statusFilter === opt.value }"
+                @click="materialStore.statusFilter = opt.value; handleStatusFilterChange()">
+                {{ opt.label }}
+              </button>
+            </div>
             <div class="search-container" role="search">
               <label for="material-search-input" class="sr-only">搜索原料</label>
               <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -103,6 +104,7 @@
         <t-table :data="sortedMaterials" :columns="columns" :loading="materialStore.loading" :pagination="undefined"
           row-key="id" hover table-layout="auto" :expanded-row-keys="expandedRowKeys" @expand-change="onExpandChange"
           @row-click="handleRowClick" @select-change="handleSelectChange" :selected-row-keys="selectedRowKeys">
+          <!-- 原料名称 -->
           <template #name="{ row }">
             <div class="material-info">
               <div class="material-avatar" :style="{
@@ -113,54 +115,84 @@
               </div>
               <div class="material-details">
                 <p class="material-name">{{ row.name }}</p>
-                <p class="material-code">CODE: {{ row.code }}</p>
               </div>
             </div>
           </template>
-
-
-          <template #dataSource="{ row }">
-            <span class="data-source-tag" :class="'data-source--' + (getDataSource(row) || 'manual')">
-              <t-icon :name="getDataSourceIcon(row)" size="14px" />
-              {{ getDataSourceLabel(row) }}
-            </span>
-          </template>
-
+          <!-- 版本 -->
           <template #version="{ row }">
             <div class="version-cell">
-              <t-tag :theme="row.isLatest ? 'success' : 'default'" variant="light" size="small" style="cursor: pointer;"
-                @click.stop="handleViewVersions(row)">
+              <t-tag :theme="row.isLatest ? 'success' : 'default'" variant="light" size="small"
+                class="version-tag-inline" @click.stop="handleViewVersions(row)">
                 v{{ row.version }}
               </t-tag>
               <t-tooltip :content="`共 ${row.totalVersions} 个版本`" v-if="row.totalVersions > 1">
-                <span class="version-count" @click.stop="handleViewVersions(row)">· {{ row.totalVersions }}版</span>
+                <span class="version-count-inline" @click.stop="handleViewVersions(row)">{{ row.totalVersions
+                }}个版本</span>
               </t-tooltip>
             </div>
           </template>
 
+          <!-- 创建人 -->
+          <template #createdByName="{ row }">
+            <div class="creator-info">
+              <div v-if="row.createdByAvatar" class="creator-avatar creator-avatar--img">
+                <img :src="row.createdByAvatar" :alt="row.createdByName || row.createdBy" />
+              </div>
+              <div v-else class="creator-avatar"
+                :style="{ backgroundColor: getAvatarColor(row.createdByName || row.createdBy).bg }">
+                {{ getAvatarInitial(row.createdByName || row.createdBy) }}
+              </div>
+              <span class="creator-name">{{ row.createdByName || row.createdBy || '--' }}</span>
+            </div>
+          </template>
+          <!-- 原料类型 -->
           <template #materialType="{ row }">
             <t-tag :theme="row.materialType === 'supplement' ? 'primary' : 'success'" variant="light" size="small"
               shape="round">
               {{ row.materialType === 'supplement' ? '辅料' : '药材' }}
             </t-tag>
           </template>
-
+          <!-- 性状 -->
+          <template #appearance="{ row }">
+            <div v-if="row.appearance?.length" class="tag-cell">
+              <t-tag v-for="(item, idx) in row.appearance.slice(0, 3)" :key="idx" size="small" theme="primary" variant="light">{{ item }}</t-tag>
+              <t-tag v-if="row.appearance.length > 3" size="small" theme="default">+{{ row.appearance.length - 3 }}</t-tag>
+            </div>
+            <span v-else class="text-muted">--</span>
+          </template>
+          <!-- 口感 -->
+          <template #taste="{ row }">
+            <div v-if="row.taste?.length" class="tag-cell">
+              <t-tag v-for="(item, idx) in row.taste.slice(0, 3)" :key="idx" size="small" theme="success" variant="light">{{ item }}</t-tag>
+              <t-tag v-if="row.taste.length > 3" size="small" theme="default">+{{ row.taste.length - 3 }}</t-tag>
+            </div>
+            <span v-else class="text-muted">--</span>
+          </template>
+          <!-- 功效 -->
+          <template #efficacy="{ row }">
+            <div v-if="row.efficacy?.length" class="tag-cell">
+              <t-tag v-for="(item, idx) in row.efficacy.slice(0, 3)" :key="idx" size="small" theme="warning" variant="light">{{ item }}</t-tag>
+              <t-tag v-if="row.efficacy.length > 3" size="small" theme="default">+{{ row.efficacy.length - 3 }}</t-tag>
+            </div>
+            <span v-else class="text-muted">--</span>
+          </template>
+          <!-- 状态 -->
           <template #status="{ row }">
             <t-tag v-if="row.status === 'draft'" theme="default" variant="light" size="small">草稿</t-tag>
             <t-tag v-else-if="row.status === 'pending_review'" theme="warning" variant="light" size="small">待审批</t-tag>
             <t-tag v-else-if="row.status === 'published'" theme="success" variant="light" size="small">已发布</t-tag>
             <t-tag v-else theme="default" variant="light" size="small">{{ row.status || '草稿' }}</t-tag>
           </template>
-
+          <!-- 库存 -->
           <template #stock="{ row }">
             <span class="stock-value" :class="{ 'stock-low': row.stock < 50 }">{{ row.stock }} {{ row.unit }}</span>
           </template>
-
+          <!-- 创建时间 -->
           <template #createdAt="{ row }">
             <span v-if="row.createdAt" class="date-cell">{{ formatDateCell(row.createdAt) }}</span>
             <span v-else class="text-muted">—</span>
           </template>
-
+          <!-- 单价 -->
           <template #unitPrice="{ row }">
             <span v-if="row.unitPrice != null" class="mat-price-cell">¥{{ Number(row.unitPrice).toFixed(2) }}</span>
             <span v-else class="mat-price-cell mat-price-empty">--</span>
@@ -229,24 +261,24 @@
                 :aria-label="`查看${row.name}的版本历史`">
                 <t-icon name="layers" />
               </button>
-              <button v-if="row.status === 'draft' && (row.isOwner || isAdmin)" class="action-btn submit-btn" @click.stop="handleSubmitReview(row)" title="提交审批"
-                :aria-label="`提交${row.name}审批`">
+              <button v-if="row.status === 'draft' && (row.isOwner || isAdmin)" class="action-btn submit-btn"
+                @click.stop="handleSubmitReview(row)" title="提交审批" :aria-label="`提交${row.name}审批`">
                 <t-icon name="upload" />
               </button>
-              <button v-if="row.status === 'pending_review' && isAdmin" class="action-btn approve-btn" @click.stop="handleApprove(row)" title="通过"
-                :aria-label="`通过${row.name}`">
+              <button v-if="row.status === 'pending_review' && isAdmin" class="action-btn approve-btn"
+                @click.stop="handleApprove(row)" title="通过" :aria-label="`通过${row.name}`">
                 <t-icon name="check" />
               </button>
-              <button v-if="row.status === 'pending_review' && isAdmin" class="action-btn reject-btn" @click.stop="handleOpenReject(row)" title="驳回"
-                :aria-label="`驳回${row.name}`">
+              <button v-if="row.status === 'pending_review' && isAdmin" class="action-btn reject-btn"
+                @click.stop="handleOpenReject(row)" title="驳回" :aria-label="`驳回${row.name}`">
                 <t-icon name="close" />
               </button>
-              <button v-if="row.status === 'published' && (row.isOwner || isAdmin)" class="action-btn edit-btn" @click.stop="handleEdit(row)" title="编辑"
-                :aria-label="`编辑原料${row.name}`">
+              <button v-if="row.status === 'published' && (row.isOwner || isAdmin)" class="action-btn edit-btn"
+                @click.stop="handleEdit(row)" title="编辑" :aria-label="`编辑原料${row.name}`">
                 <t-icon name="edit-1" />
               </button>
-              <button v-if="row.status === 'draft' && (row.isOwner || isAdmin)" class="action-btn edit-btn" @click.stop="handleEdit(row)" title="编辑"
-                :aria-label="`编辑原料${row.name}`">
+              <button v-if="row.status === 'draft' && (row.isOwner || isAdmin)" class="action-btn edit-btn"
+                @click.stop="handleEdit(row)" title="编辑" :aria-label="`编辑原料${row.name}`">
                 <t-icon name="edit-1" />
               </button>
               <t-popconfirm v-if="isAdmin" theme="danger" :content="`确定要删除原料「${row.name}」吗？`"
@@ -289,12 +321,15 @@
     <!-- 底部快捷动态 -->
     <section class="activity-section">
 
-    <t-dialog v-model:visible="rejectDialogVisible" header="驳回原料" :confirm-btn="{ content: '确认驳回', theme: 'danger' }" :on-confirm="handleConfirmReject" :on-close="() => rejectDialogVisible = false">
-      <div style="padding: 8px 0;">
-        <p style="margin-bottom: 12px; font-size: 14px; color: var(--color-text-secondary);">驳回原料「{{ rejectTarget?.name }}」，请填写驳回原因：</p>
-        <t-input v-model="rejectComment" placeholder="请输入驳回原因" :maxlength="200" />
-      </div>
-    </t-dialog>
+      <t-dialog v-model:visible="rejectDialogVisible" header="驳回原料" :confirm-btn="{ content: '确认驳回', theme: 'danger' }"
+        :on-confirm="handleConfirmReject" :on-close="() => rejectDialogVisible = false">
+        <div style="padding: 8px 0;">
+          <p style="margin-bottom: 12px; font-size: 14px; color: var(--color-text-secondary);">驳回原料「{{
+            rejectTarget?.name
+          }}」，请填写驳回原因：</p>
+          <t-input v-model="rejectComment" placeholder="请输入驳回原因" :maxlength="200" />
+        </div>
+      </t-dialog>
       <!-- 左：近期原料变更 -->
       <div class="activity-card activity-card--timeline">
         <div class="activity-header">
@@ -482,7 +517,7 @@ const fetchStats = async () => {
     const res = await materialApi.getStats();
     stats.value = res;
   } catch (_e: unknown) {
-      console.error('获取原料统计数据失败', _e);
+    console.error('获取原料统计数据失败', _e);
   }
 };
 
@@ -612,7 +647,6 @@ const applySort = () => {
     materialType: (a, b) => (a.materialType || '').localeCompare(b.materialType || ''),
     unitPrice: (a, b) => (a.unitPrice ?? 0) - (b.unitPrice ?? 0),
     stock: (a, b) => (a.stock || 0) - (b.stock || 0),
-    dataSource: (a, b) => (a.dataSource || 'manual').localeCompare(b.dataSource || 'manual'),
     createdAt: (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
   };
 
@@ -686,24 +720,9 @@ const getAvatarColor = (text: string) => {
   return colors[index];
 };
 
-// 数据源相关（真实数据）
-const dataSourceMap: Record<string, string> = {
-  'manual': '手动录入',
-  'batch_import': '批量导入',
-  'api_sync': 'API同步',
-};
-
-const getDataSource = (row: Material): string => row.dataSource || 'manual';
-
-const getDataSourceLabel = (row: Material): string => dataSourceMap[getDataSource(row)] || '手动录入';
-const getDataSourceIcon = (row: Material): string => {
-  const source = getDataSource(row);
-  const icons: Record<string, string> = {
-    manual: 'edit',
-    batch_import: 'upload',
-    api_sync: 'cloud',
-  };
-  return icons[source] || 'edit';
+const getAvatarInitial = (name: string): string => {
+  if (!name) return '?';
+  return name.charAt(0).toUpperCase();
 };
 
 // 批量操作
@@ -748,13 +767,23 @@ const handleBatchExport = () => {
   clearSelection();
 };
 
+const statusFilterOptions = [
+  { value: 'all', label: '全部' },
+  { value: 'draft', label: '草稿' },
+  { value: 'pending_review', label: '待审批' },
+  { value: 'published', label: '已发布' },
+];
+
 const columns = computed(() => [
   { colKey: 'row-select', type: 'multiple', width: 50, resizable: false },
-  { colKey: 'name', title: sortTitle('原料信息', 'name'), width: 180 },
-  { colKey: 'version', title: '版本', width: 100, align: 'center' },
+  { colKey: 'name', title: sortTitle('原料信息', 'name'), width: 200 },
+  { colKey: 'version', title: '版本', width: 110, align: 'center' },
   { colKey: 'status', title: '状态', width: 100, align: 'center' },
-  { colKey: 'dataSource', title: sortTitle('数据源', 'dataSource'), width: 120, align: 'center' },
+  { colKey: 'createdByName', title: '创建人', width: 130, align: 'center' },
   { colKey: 'materialType', title: sortTitle('类型', 'materialType'), width: 100, align: 'center' },
+  { colKey: 'appearance', title: '性状', width: 160, align: 'center' },
+  { colKey: 'taste', title: '口感', width: 160, align: 'center' },
+  { colKey: 'efficacy', title: '功效', width: 180, align: 'center' },
   { colKey: 'unitPrice', title: sortTitle('单价(元/kg)', 'unitPrice'), width: 120, align: 'center' },
   { colKey: 'nutrition', title: '营养', width: 110, align: 'center' },
   { colKey: 'stock', title: sortTitle('库存', 'stock'), width: 100, align: 'center' },
@@ -766,7 +795,7 @@ const pagination = computed(() => ({
   current: materialStore.currentPage,
   pageSize: materialStore.pageSize,
   total: materialStore.total,
-  onChange: (pageInfo: { current: number }) => {
+  onChange: (pageInfo: { current: number; }) => {
     materialStore.setPage(pageInfo.current);
     loadMaterials();
   }
@@ -1482,6 +1511,41 @@ const handleStatusFilterChange = () => {
       align-items: center;
       gap: 12px;
       margin-left: auto;
+
+      .status-filter-group {
+        display: flex;
+        gap: var(--space-0-5);
+        padding: var(--space-1);
+        background: var(--color-primary-bg);
+        border-radius: 12px;
+      }
+
+      .status-filter-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: var(--space-1-5) var(--space-3-5);
+        border: none;
+        border-radius: 8px;
+        background: transparent;
+        color: var(--color-text-placeholder);
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all $transition-fast;
+        white-space: nowrap;
+
+        &.active {
+          background: #fff;
+          color: var(--color-primary);
+          font-weight: 600;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+        }
+
+        &:hover:not(.active) {
+          color: var(--color-text-secondary);
+        }
+      }
     }
 
     .search-container {
@@ -1796,16 +1860,76 @@ const handleStatusFilterChange = () => {
       font-size: 13px;
       margin: 0 0 1px 0;
     }
+  }
 
-    .material-code {
-      font-size: 11px;
-      color: var(--color-text-placeholder);
-      text-transform: uppercase;
-      letter-spacing: -0.05em;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      margin: 0;
-      line-height: 1;
+  .material-code {
+    font-size: 11px;
+    color: var(--color-text-placeholder);
+    text-transform: uppercase;
+    letter-spacing: -0.05em;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    margin: 0;
+    line-height: 1;
+  }
+}
+
+.version-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+
+  .version-tag-inline {
+    cursor: pointer;
+  }
+
+  .version-count-inline {
+    font-size: 11px;
+    color: var(--color-text-placeholder);
+    cursor: pointer;
+
+    &:hover {
+      color: var(--color-primary);
     }
+  }
+}
+
+// 创建人列
+.creator-info {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+
+  .creator-avatar {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    flex-shrink: 0;
+    user-select: none;
+    overflow: hidden;
+
+    &.creator-avatar--img {
+      background: var(--color-bg-page);
+
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 50%;
+      }
+    }
+  }
+
+  .creator-name {
+    font-size: 13px;
+    color: var(--color-text-secondary);
   }
 }
 
@@ -1845,24 +1969,6 @@ const handleStatusFilterChange = () => {
   white-space: pre-line;
 }
 
-// 类型
-.version-cell {
-  display: flex;
-  align-items: center;
-  gap: var(--space-1-5);
-  justify-content: center;
-
-  .version-count {
-    font-size: 11px;
-    color: var(--color-text-placeholder);
-    cursor: pointer;
-
-    &:hover {
-      color: var(--color-primary);
-    }
-  }
-}
-
 // 营养空标签
 .nutrition-empty {
   color: #cbd5e1;
@@ -1872,35 +1978,12 @@ const handleStatusFilterChange = () => {
   gap: 4px;
 }
 
-// 数据源tag
-.data-source-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1-5);
-  font-size: 12px;
-  font-weight: 500;
-  padding: 4px var(--space-2-5);
-  border-radius: 999px;
-  transition: all $transition-fast;
-
-  .t-icon {
-    font-size: 14px;
-  }
-
-  &--manual {
-    background-color: #EFF6FF;
-    color: #3B82F6;
-  }
-
-  &--batch_import {
-    background-color: #F0FDF4;
-    color: var(--color-primary);
-  }
-
-  &--api_sync {
-    background-color: #FFFBEB;
-    color: var(--color-warning);
-  }
+// 标签单元格（性状/口感/功效）
+.tag-cell {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  justify-content: center;
 }
 
 // 操作按钮
@@ -2707,7 +2790,7 @@ const handleStatusFilterChange = () => {
 .material-list .content-card .t-table .t-table__header th[col-data-index="materialType"],
 .material-list .content-card .t-table .t-table__header th[col-data-index="unit"],
 .material-list .content-card .t-table .t-table__header th[col-data-index="nutrition"],
-.material-list .content-card .t-table .t-table__header th[col-data-index="dataSource"] {
+.material-list .content-card .t-table .t-table__header th[col-data-index="createdByName"] {
   text-align: center !important;
 }
 
@@ -2715,7 +2798,7 @@ const handleStatusFilterChange = () => {
 .material-list .content-card .t-table .t-table__body td[data-colkey="materialType"],
 .material-list .content-card .t-table .t-table__body td[data-colkey="unit"],
 .material-list .content-card .t-table .t-table__body td[data-colkey="nutrition"],
-.material-list .content-card .t-table .t-table__body td[data-colkey="dataSource"] {
+.material-list .content-card .t-table .t-table__body td[data-colkey="createdByName"] {
   text-align: center !important;
   vertical-align: middle !important;
 }

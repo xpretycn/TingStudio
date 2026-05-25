@@ -31,7 +31,7 @@ export interface ModelStats {
   activeAlerts: number;
 }
 
-export interface ModelListResponse {
+interface ModelListResponse {
   models: ModelItem[];
   stats: ModelStats;
 }
@@ -128,9 +128,18 @@ export interface ActivityItem {
   provider?: string;
 }
 
+export interface SmartToolHistoryItem {
+  id: string;
+  provider: string;
+  callType: string;
+  status: string;
+  createdAt: string;
+  [key: string]: unknown;
+}
+
 export const modelApi = {
   getModels() {
-    return http.get<any, ModelListResponse>("/ai/models-manage");
+    return http.get<unknown, ModelListResponse>("/ai/models-manage");
   },
 
   createModel(data: {
@@ -145,7 +154,7 @@ export const modelApi = {
     supportsVision?: boolean;
     fallbackProvider?: string;
   }) {
-    return http.post<any, any>("/ai/models-manage", data);
+    return http.post<unknown, ModelItem>("/ai/models-manage", data);
   },
 
   updateModel(
@@ -163,40 +172,40 @@ export const modelApi = {
       healthCheckIntervalDays?: number;
     },
   ) {
-    return http.put<any, any>(`/ai/models-manage/${id}`, data);
+    return http.put<unknown, ModelItem>(`/ai/models-manage/${id}`, data);
   },
 
   deleteModel(id: string) {
-    return http.delete<any, any>(`/ai/models-manage/${id}`);
+    return http.delete<unknown, { success: boolean }>(`/ai/models-manage/${id}`);
   },
 
   testConnection(id: string) {
-    return http.post<any, any>(`/ai/models-manage/${id}/test`);
+    return http.post<unknown, { success: boolean; message?: string }>(`/ai/models-manage/${id}/test`);
   },
 
   getVersions(id: string) {
-    return http.get<any, { provider: string; currentModel: string; versions: ModelVersionOption[] }>(
+    return http.get<unknown, { provider: string; currentModel: string; versions: ModelVersionOption[] }>(
       `/ai/models-manage/${id}/versions`,
     );
   },
 
   getVersionsByProvider(provider: string) {
-    return http.get<any, { provider: string; currentModel: string; versions: ModelVersionOption[] }>(
+    return http.get<unknown, { provider: string; currentModel: string; versions: ModelVersionOption[] }>(
       `/ai/models/${provider}/versions`,
     );
   },
 
   switchVersion(provider: string, model: string) {
-    return http.put<any, any>(`/ai/models/${provider}/version`, { model });
+    return http.put<unknown, { success: boolean }>(`/ai/models/${provider}/version`, { model });
   },
 
   setFallback(id: string, fallbackProvider: string) {
-    return http.put<any, any>(`/ai/models-manage/${id}/fallback`, { fallbackProvider });
+    return http.put<unknown, { success: boolean }>(`/ai/models-manage/${id}/fallback`, { fallbackProvider });
   },
 
   getUsageStats(params?: { startDate?: string; endDate?: string; provider?: string }) {
     return http.get<
-      any,
+      unknown,
       { summary: UsageSummaryItem[]; trend: UsageTrendItem[]; distribution: UsageDistributionItem[] }
     >("/ai/usage", { params });
   },
@@ -210,13 +219,13 @@ export const modelApi = {
     startDate?: string;
     endDate?: string;
   }) {
-    return http.get<any, { logs: UsageLogItem[]; total: number; page: number; pageSize: number }>("/ai/usage/logs", {
+    return http.get<unknown, { logs: UsageLogItem[]; total: number; page: number; pageSize: number }>("/ai/usage/logs", {
       params,
     });
   },
 
   getAlertConfigs() {
-    return http.get<any, { configs: AlertConfigItem[] }>("/ai/alerts/configs");
+    return http.get<unknown, { configs: AlertConfigItem[] }>("/ai/alerts/configs");
   },
 
   updateAlertConfig(
@@ -229,19 +238,19 @@ export const modelApi = {
       enabled?: boolean;
     },
   ) {
-    return http.put<any, any>(`/ai/alerts/configs/${id}`, data);
+    return http.put<unknown, { success: boolean }>(`/ai/alerts/configs/${id}`, data);
   },
 
   getAlertRecords(params?: { page?: number; pageSize?: number; level?: string }) {
     return http.get<
-      any,
+      unknown,
       { records: AlertRecordItem[]; total: number; activeAlerts: number; page: number; pageSize: number }
     >("/ai/alerts/records", { params });
   },
 
   getHealthStatus() {
     return http.get<
-      any,
+      unknown,
       {
         models: Array<{
           provider: string;
@@ -255,19 +264,19 @@ export const modelApi = {
   },
 
   getHealthHistory(provider: string, days?: number) {
-    return http.get<any, { provider: string; history: HealthHistoryItem[] }>(`/ai/health/${provider}/history`, {
+    return http.get<unknown, { provider: string; history: HealthHistoryItem[] }>(`/ai/health/${provider}/history`, {
       params: { days },
     });
   },
 
   getRecentActivity(limit?: number) {
-    return http.get<any, { items: ActivityItem[] }>("/ai/recent-activity", { params: { limit } });
+    return http.get<unknown, { items: ActivityItem[] }>("/ai/recent-activity", { params: { limit } });
   },
 
   getSmartToolHistory(params?: { page?: number; pageSize?: number; callType?: string }) {
-    return http.get<any, any>("/ai/smart-tool-history", { params });
+    return http.get<unknown, SmartToolHistoryItem>("/ai/smart-tool-history", { params });
   },
   deleteSmartToolHistory(id: string) {
-    return http.delete<any, any>(`/ai/smart-tool-history/${id}`);
+    return http.delete<unknown, { success: boolean }>(`/ai/smart-tool-history/${id}`);
   },
 };

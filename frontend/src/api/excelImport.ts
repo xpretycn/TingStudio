@@ -1,6 +1,3 @@
-/**
- * Excel导入API
- */
 import http from './http'
 
 export interface ParsedMaterial {
@@ -33,23 +30,27 @@ export interface ParseResult {
   }
 }
 
+interface ParseFormulaResponse {
+  success: boolean
+  data: ParseResult
+  message?: string
+}
+
 export const excelImportApi = {
   downloadTemplate() {
     return http.get('/import/formula/template', { responseType: 'blob' })
   },
 
-  async parseFormulaExcel(file: File): Promise<{ success: boolean; data: ParseResult; message?: string }> {
+  async parseFormulaExcel(file: File): Promise<ParseFormulaResponse> {
     const formData = new FormData()
     formData.append('file', file)
 
-    const response = await http.post('/import/formula/parse', formData, {
+    const response = await http.post<unknown, ParseResult>('/import/formula/parse', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     })
-    return response as any
+    return { success: true, data: response }
   },
 }
-
-// ─── 营养素 Excel 导入（专用） ──────────────────────
 
 export interface NutritionParseResult {
   nutritionData: Record<string, number>
@@ -67,8 +68,8 @@ export const nutritionExcelApi = {
     const formData = new FormData()
     formData.append('file', file)
 
-    return await http.post('/import/nutrition/parse', formData, {
+    return await http.post<unknown, NutritionParseResult>('/import/nutrition/parse', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
-    }) as any
+    })
   },
 }

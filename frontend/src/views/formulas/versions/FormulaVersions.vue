@@ -21,17 +21,12 @@
           </div>
         </div>
         <div class="header-actions">
+          <!-- 状态筛选 -->
           <div class="status-filter-group">
             <button v-for="opt in statusOptions" :key="opt.value" class="status-filter-btn"
               :class="{ active: statusFilter === opt.value }" @click="statusFilter = opt.value; fetchVersions()">{{
                 opt.label }}</button>
           </div>
-          <button class="action-btn action-compare" :class="{ 'has-selection': selectedForCompare.length >= 2 }"
-            :disabled="selectedForCompare.length < 2" @click="handleCompare">
-            <t-icon name="book" />
-            <span>版本对比</span>
-            <span v-if="selectedForCompare.length" class="compare-badge">{{ selectedForCompare.length }}</span>
-          </button>
         </div>
       </header>
 
@@ -42,10 +37,33 @@
           <div class="section-head">
             <div class="section-head-left">
               <h3 class="section-title">版本时间线</h3>
-              <span class="section-count">{{ versionStore.versions.length }}</span>
+              <span class="section-count">{{ filteredVersions.length }}</span>
             </div>
-            <button v-if="selectedForCompare.length" class="clear-compare-btn"
-              @click="clearCompareSelection">清除选择</button>
+            <div class="section-head-right">
+              <button class="section-compare-btn" :class="{ 'has-selection': selectedForCompare.length >= 2 }"
+                :disabled="selectedForCompare.length < 2" @click="handleCompare">
+                <t-icon name="swap" size="14px" />
+                <span>版本对比</span>
+                <span v-if="selectedForCompare.length" class="compare-badge">{{ selectedForCompare.length }}</span>
+              </button>
+              <button v-if="selectedForCompare.length" class="clear-compare-btn"
+                @click="clearCompareSelection">清除选择</button>
+            </div>
+          </div>
+          <div class="section-toolbar">
+            <t-input v-model="searchKeyword" placeholder="搜索版本号/操作人" size="small" clearable class="version-search">
+              <template #prefix-icon>
+                <t-icon name="search" />
+              </template>
+            </t-input>
+            <div class="filter-tabs">
+              <button class="filter-tab" :class="{ active: filterType === 'all' }"
+                @click="filterType = 'all'">全部</button>
+              <button class="filter-tab" :class="{ active: filterType === 'latest' }"
+                @click="filterType = 'latest'">最新</button>
+              <button class="filter-tab" :class="{ active: filterType === 'history' }"
+                @click="filterType = 'history'">历史</button>
+            </div>
           </div>
 
           <div v-if="versionStore.versions.length === 0" class="empty-state">
@@ -57,8 +75,14 @@
             </t-button>
           </div>
 
+          <div v-else-if="filteredVersions.length === 0" class="empty-state">
+            <div class="empty-icon"><t-icon name="search" size="40px" /></div>
+            <p class="empty-text">未找到匹配的版本</p>
+            <p class="empty-hint">尝试调整搜索关键词或筛选条件</p>
+          </div>
+
           <div v-else class="timeline">
-            <div v-for="(ver, index) in versionStore.versions" :key="ver.versionId" class="timeline-item" :class="{
+            <div v-for="(ver, index) in filteredVersions" :key="ver.versionId" class="timeline-item" :class="{
               active: selectedVersionId === ver.versionId,
               'item-current': ver.isCurrent,
             }">
@@ -67,7 +91,7 @@
                 <div class="tl-dot" :class="{ 'dot-current': ver.isCurrent }">
                   <div v-if="ver.isCurrent" class="dot-pulse"></div>
                 </div>
-                <div v-if="index < versionStore.versions.length - 1" class="tl-line"></div>
+                <div v-if="index < filteredVersions.length - 1" class="tl-line"></div>
               </div>
 
               <!-- Timeline card -->
@@ -87,8 +111,8 @@
                 <div v-if="ver.changes?.length" class="tl-changes">
                   <span v-for="(c, ci) in ver.changes.slice(0, 4)" :key="ci" class="tl-change-chip"
                     :class="'chip-' + c.changeType">
-                    <t-icon :name="changeTypeIcon(c.changeType)" size="12px" />
-                    {{ changeTypeLabel(c.changeType) }}
+                    <t-icon :name="changeTypeIcon(String(c.changeType))" size="12px" />
+                    {{ changeTypeLabel(String(c.changeType)) }}
                   </span>
                   <span v-if="ver.changes.length > 4" class="tl-change-more">+{{ ver.changes.length - 4 }}</span>
                 </div>
@@ -138,13 +162,13 @@
 
         <!-- ── Right: Detail Panel ── -->
         <div class="detail-section">
+          <!-- 版本快照 -->
           <div class="section-head">
             <h3 class="section-title">版本快照</h3>
             <button v-if="selectedVersion" class="section-close-btn" @click="selectedVersionId = null" title="关闭详情">
               <t-icon name="close" />
             </button>
           </div>
-
           <!-- Empty state -->
           <div v-if="!selectedVersion" class="detail-empty">
             <div class="detail-empty-visual">
@@ -160,7 +184,6 @@
             </div>
             <p class="detail-empty-text">选择左侧版本查看<br />配方快照与变更详情</p>
           </div>
-
           <!-- Detail panel -->
           <div v-else class="detail-panel">
             <!-- Version identity -->
@@ -184,9 +207,9 @@
               <h4 class="detail-card-title">变更摘要</h4>
               <div class="changes-list">
                 <div v-for="(c, ci) in selectedVersion.changes" :key="ci" class="change-row"
-                  :class="'cr-' + c.changeType">
+                  :class="'cr-' + String(c.changeType)">
                   <span class="change-type-icon">
-                    <t-icon :name="changeTypeIcon(c.changeType)" />
+                    <t-icon :name="changeTypeIcon(String(c.changeType))" />
                   </span>
                   <span class="change-field">{{ c.fieldLabel || c.fieldName }}</span>
                   <span v-if="c.oldValue !== null && c.newValue !== null" class="change-values">
@@ -220,14 +243,17 @@
                   }}g</span>
                 </div>
                 <div class="snapshot-field">
-                  <t-icon name="file" class="sn-field-icon" />
-                  <span class="sn-field-label">配方名称</span>
-                  <span class="sn-field-value">{{ formulaName || '--' }}</span>
+                  <t-icon name="chart" class="sn-field-icon" />
+                  <span class="sn-field-label">主料系数</span>
+                  <span class="sn-field-value">{{ formatRatioFactor(_resolveSnapshotValue('ratioFactor', null))
+                  }}</span>
                 </div>
                 <div class="snapshot-field">
-                  <t-icon name="layers" class="sn-field-icon" />
-                  <span class="sn-field-label">原料数量</span>
-                  <span class="sn-field-value">{{ snapshot?.materials?.length || 0 }} 种</span>
+                  <t-icon name="chart-bar" class="sn-field-icon" />
+                  <span class="sn-field-label">辅料系数</span>
+                  <span class="sn-field-value">{{ formatRatioFactor(_resolveSnapshotValue('supplementRatioFactor',
+                    null))
+                  }}</span>
                 </div>
               </div>
             </div>
@@ -236,7 +262,9 @@
             <div class="detail-card detail-materials">
               <div class="detail-card-title-row">
                 <h4 class="detail-card-title">原料组成</h4>
-                <span v-if="snapshot?.materials?.length" class="material-total">{{ snapshot.materials.length }} 项</span>
+                <span v-if="snapshot?.materials?.length" class="material-total">
+                  <t-tag size="small" variant="light" theme="primary">{{ snapshot.materials.length }} 项</t-tag>
+                </span>
               </div>
               <div v-if="snapshot?.materials?.length" class="material-list">
                 <div class="material-header-row">
@@ -269,6 +297,56 @@
                 </div>
               </div>
               <p v-else class="material-empty">暂无原料数据</p>
+            </div>
+
+            <!-- Nutrition summary -->
+            <div v-if="snapshot?.materials?.length" class="detail-card detail-nutrition">
+              <div class="detail-card-title-row">
+                <h4 class="detail-card-title">营养数据汇总</h4>
+              </div>
+              <div class="nutrition-summary-zone">
+                <div class="nsz-row nsz-row--header">
+                  <span class="nsz-col nsz-col--label">营养成分</span>
+                  <span class="nsz-col nsz-col--qty">总重(g)</span>
+                  <span class="nsz-col nsz-col--pct">含量比(%)</span>
+                  <span class="nsz-col nsz-col--nutrient">能量(kJ)</span>
+                  <span class="nsz-col nsz-col--nutrient">蛋白质(g)</span>
+                  <span class="nsz-col nsz-col--nutrient">脂肪(g)</span>
+                  <span class="nsz-col nsz-col--nutrient">碳水(g)</span>
+                  <span class="nsz-col nsz-col--nutrient">钠(mg)</span>
+                </div>
+                <div class="nsz-row nsz-row--total">
+                  <span class="nsz-col nsz-col--label nsz-total-label">合计</span>
+                  <span class="nsz-col nsz-col--qty">{{ totalQuantity }} g</span>
+                  <span class="nsz-col nsz-col--pct">{{ ratioValidation.totalRatioDisplay }}</span>
+                  <span class="nsz-col nsz-col--nutrient nsz-nutrient--total">{{ nutritionSummary.energy }}</span>
+                  <span class="nsz-col nsz-col--nutrient nsz-nutrient--total">{{ nutritionSummary.protein }}</span>
+                  <span class="nsz-col nsz-col--nutrient nsz-nutrient--total">{{ nutritionSummary.fat }}</span>
+                  <span class="nsz-col nsz-col--nutrient nsz-nutrient--total">{{ nutritionSummary.carbohydrate }}</span>
+                  <span class="nsz-col nsz-col--nutrient nsz-nutrient--total">{{ nutritionSummary.sodium }}</span>
+                </div>
+                <div class="nsz-row nsz-row--nrv">
+                  <span class="nsz-col nsz-col--label nsz-nrv-label">NRV</span>
+                  <span class="nsz-col nsz-col--qty"></span>
+                  <span class="nsz-col nsz-col--pct"></span>
+                  <span class="nsz-col nsz-col--nutrient nsz-nutrient--nrv">{{ NRV_REFERENCE.energy }}</span>
+                  <span class="nsz-col nsz-col--nutrient nsz-nutrient--nrv">{{ NRV_REFERENCE.protein }}</span>
+                  <span class="nsz-col nsz-col--nutrient nsz-nutrient--nrv">{{ NRV_REFERENCE.fat }}</span>
+                  <span class="nsz-col nsz-col--nutrient nsz-nutrient--nrv">{{ NRV_REFERENCE.carbohydrate }}</span>
+                  <span class="nsz-col nsz-col--nutrient nsz-nutrient--nrv">{{ NRV_REFERENCE.sodium }}</span>
+                </div>
+                <div class="nsz-row nsz-row--nrv-pct">
+                  <span class="nsz-col nsz-col--label nsz-nrv-pct-label">NRV%</span>
+                  <span class="nsz-col nsz-col--qty"></span>
+                  <span class="nsz-col nsz-col--pct"></span>
+                  <span class="nsz-col nsz-col--nutrient nsz-nutrient--nrv-pct">{{ nutritionNrvPercent.energy }}</span>
+                  <span class="nsz-col nsz-col--nutrient nsz-nutrient--nrv-pct">{{ nutritionNrvPercent.protein }}</span>
+                  <span class="nsz-col nsz-col--nutrient nsz-nutrient--nrv-pct">{{ nutritionNrvPercent.fat }}</span>
+                  <span class="nsz-col nsz-col--nutrient nsz-nutrient--nrv-pct">{{ nutritionNrvPercent.carbohydrate
+                  }}</span>
+                  <span class="nsz-col nsz-col--nutrient nsz-nutrient--nrv-pct">{{ nutritionNrvPercent.sodium }}</span>
+                </div>
+              </div>
             </div>
 
             <!-- Actions -->
@@ -325,9 +403,20 @@ import { useVersionStore } from '@/stores/version';
 import { useFormulaStore } from '@/stores/formula';
 import { useMaterialStore } from '@/stores/material';
 import { useAuthStore } from '@/stores/auth';
+import type { FormulaVersion } from '@/api/version';
+import type { Material } from '@/api/material';
 import { MessagePlugin } from 'tdesign-vue-next';
 import PageSkeleton from '@/components/Skeleton/PageSkeleton.vue';
 import { splitDateTime } from '@/utils/timeFormat';
+
+interface SnapshotMaterial {
+  materialId?: string;
+  id?: string;
+  quantity?: number;
+  materialName?: string;
+  name?: string;
+  [key: string]: unknown;
+}
 
 const router = useRouter();
 const route = useRoute();
@@ -344,6 +433,8 @@ const formulaId = route.params.formulaId as string;
 const formulaName = ref('');
 const formulaSalesmanName = ref('');
 const statusFilter = ref('');
+const searchKeyword = ref('');
+const filterType = ref<"all" | "latest" | "history">("all");
 const selectedForCompare = ref<string[]>([]);
 const selectedVersionId = ref<string | null>(null);
 
@@ -355,17 +446,45 @@ const statusOptions = [
   { value: 'archived', label: '已归档' },
 ];
 
-const snapshot = computed(() => selectedVersion.value?.snapshot || null);
+interface VersionSnapshot {
+  materials?: SnapshotMaterial[];
+  finishedWeight?: number;
+  finished_weight?: number;
+  formulaData?: Record<string, unknown>;
+  ratioFactor?: number;
+  supplementRatioFactor?: number;
+  salesmanName?: string;
+  [key: string]: unknown;
+}
+
+const snapshot = computed(() => (selectedVersion.value?.snapshot || null) as VersionSnapshot | null);
 const currentVersionNumber = computed(() => {
-  const current = versionStore.versions.find((v: any) => v.isCurrent);
+  const current = versionStore.versions.find((v: FormulaVersion) => v.isCurrent);
   return current?.versionNumber || '';
 });
 const selectedVersion = computed(() => {
   if (!selectedVersionId.value) return null;
-  return versionStore.versions.find((v: any) => v.versionId === selectedVersionId.value) || null;
+  return versionStore.versions.find((v: FormulaVersion) => v.versionId === selectedVersionId.value) || null;
 });
 
-const selectVersion = (ver: any) => {
+const filteredVersions = computed(() => {
+  let result = versionStore.versions;
+  if (filterType.value === "latest") {
+    result = result.filter((v: FormulaVersion) => v.isCurrent);
+  } else if (filterType.value === "history") {
+    result = result.filter((v: FormulaVersion) => !v.isCurrent);
+  }
+  if (searchKeyword.value.trim()) {
+    const kw = searchKeyword.value.trim().toLowerCase();
+    result = result.filter((v: FormulaVersion) =>
+      String(v.versionNumber).toLowerCase().includes(kw) ||
+      (v.createdByName || '').toLowerCase().includes(kw)
+    );
+  }
+  return result;
+});
+
+const selectVersion = (ver: FormulaVersion) => {
   selectedVersionId.value = ver.versionId;
 };
 
@@ -398,7 +517,7 @@ const fetchVersions = () => {
 
 const handleBack = () => router.push('/formulas');
 
-const handlePublish = async (row: any) => {
+const handlePublish = async (row: FormulaVersion) => {
   if (isAdmin.value) {
     const result = await versionStore.publishVersion(row.versionId);
     if (result.success) {
@@ -423,7 +542,7 @@ const handlePublish = async (row: any) => {
   }
 };
 
-const handleApprove = async (row: any) => {
+const handleApprove = async (row: FormulaVersion) => {
   const result = await versionStore.approveVersion(row.versionId);
   if (result.success) {
     MessagePlugin.success('已批准发布，配方数据已同步');
@@ -442,7 +561,7 @@ const rejectComment = ref('');
 const rejectVersionId = ref<string | null>(null);
 const rejectDialogVisible = ref(false);
 
-const handleReject = (row: any) => {
+const handleReject = (row: FormulaVersion) => {
   rejectVersionId.value = row.versionId;
   rejectComment.value = '';
   rejectDialogVisible.value = true;
@@ -471,37 +590,44 @@ const clearCompareSelection = () => {
 
 const handleCompare = () => router.push(`/versions/compare/${formulaId}`);
 
-const getMaterialVersion = (material: any): string => {
+const getMaterialVersion = (material: SnapshotMaterial): string => {
   if (!material || (!material.materialId && !material.id)) return '--';
-  const mat = materialStore.allMaterials?.find((m: any) => m.id === (material.materialId || material.id));
+  const mat = materialStore.allMaterials?.find((m: Material) => m.id === (material.materialId || material.id));
   if (mat?.version != null) return `v${mat.version}`;
   return '--';
 };
 
-const getMaterialType = (material: any): string => {
+const getMaterialType = (material: SnapshotMaterial): string => {
   if (!material || (!material.materialId && !material.id)) return '';
-  const mat = materialStore.allMaterials?.find((m: any) => m.id === (material.materialId || material.id));
+  const mat = materialStore.allMaterials?.find((m: Material) => m.id === (material.materialId || material.id));
   return mat?.materialType || '';
 };
 
 const _resolveSnapshotValue = <T>(key: string, fallback: T): T => {
-  const s: any = snapshot.value || {};
-  if (s[key] != null && s[key] !== '') return s[key];
-  const fd = s.formulaData || {};
+  const s: Record<string, unknown> = snapshot.value || {};
+  if (s[key] != null && s[key] !== '') return s[key] as T;
+  const fd = (s as Record<string, unknown>).formulaData || {};
   const camelKey = key.replace(/_./g, (x) => x[1].toUpperCase());
-  if (fd[key] != null && fd[key] !== '') return fd[key];
-  if (fd[camelKey] != null && fd[camelKey] !== '') return fd[camelKey];
+  if ((fd as Record<string, unknown>)[key] != null && (fd as Record<string, unknown>)[key] !== '') return (fd as Record<string, unknown>)[key] as T;
+  if ((fd as Record<string, unknown>)[camelKey] != null && (fd as Record<string, unknown>)[camelKey] !== '') return (fd as Record<string, unknown>)[camelKey] as T;
   return fallback;
 };
 
-const calcActualWeight = (material: any): number => {
+const formatRatioFactor = (val: unknown): string => {
+  if (val == null || val === '') return '--';
+  const num = Number(val);
+  if (isNaN(num)) return '--';
+  return num.toFixed(2);
+};
+
+const calcActualWeight = (material: SnapshotMaterial): number => {
   const finishedWeight = _resolveSnapshotValue<number>('finishedWeight', 0)
     || _resolveSnapshotValue<number>('finished_weight', 0);
   const quantity = material.quantity || 0;
   return (quantity / 100) * Number(finishedWeight);
 };
 
-const calcRatio = (material: any): number => {
+const calcRatio = (material: SnapshotMaterial): number => {
   const finishedWeight = _resolveSnapshotValue<number>('finishedWeight', 0)
     || _resolveSnapshotValue<number>('finished_weight', 0);
   const quantity = material.quantity || 0;
@@ -513,19 +639,131 @@ const calcRatio = (material: any): number => {
   return (quantity / finishedWeight) * ratioFactor;
 };
 
-const getMaterialNutrition = (material: any): Record<string, number> => {
+const getMaterialNutrition = (material: SnapshotMaterial): Record<string, number> => {
   if (!material || (!material.materialId && !material.id)) return {};
-  const mat = materialStore.allMaterials?.find((m: any) => m.id === (material.materialId || material.id));
+  const mat = materialStore.allMaterials?.find((m: Material) => m.id === (material.materialId || material.id));
   return mat?.nutrition || {};
 };
 
-const calcNutrientValue = (material: any, nutrientKey: string): number => {
+const calcNutrientValue = (material: SnapshotMaterial, nutrientKey: string): number => {
   const per100g = getMaterialNutrition(material);
   const value = per100g[nutrientKey];
   if (value == null) return 0;
   const ratio = calcRatio(material);
   return value * ratio;
 };
+
+const ZERO_THRESHOLDS: Record<string, number> = {
+  energy: 17,
+  protein: 0.5,
+  fat: 0.5,
+  carbohydrate: 0.5,
+  sodium: 5,
+};
+
+const NRV_REFERENCE: Record<string, number> = {
+  energy: 8400,
+  protein: 60,
+  fat: 60,
+  carbohydrate: 300,
+  sodium: 2000,
+};
+
+const nutritionSummary = computed(() => {
+  const materials = snapshot.value?.materials;
+  if (!materials || !materials.length) {
+    return { energy: "--", protein: "--", fat: "--", carbohydrate: "--", sodium: "--" };
+  }
+  const finishedWeight = _resolveSnapshotValue<number>("finishedWeight", 0)
+    || _resolveSnapshotValue<number>("finished_weight", 0);
+  if (!finishedWeight || finishedWeight <= 0) {
+    return { energy: "--", protein: "--", fat: "--", carbohydrate: "--", sodium: "--" };
+  }
+
+  let protein = 0, fat = 0, carbohydrate = 0, sodium = 0;
+  let hasAny = false;
+
+  for (let i = 0; i < materials.length; i++) {
+    const m = materials[i];
+    const materialId = m.materialId || m.id;
+    const quantity = Number(m.quantity || 0);
+    if (!materialId || quantity <= 0) continue;
+    const per100g = getMaterialNutrition(m);
+    if (!per100g || !Object.keys(per100g).length) continue;
+    hasAny = true;
+    const ratio = calcRatio(m);
+    if (per100g.protein != null) protein += per100g.protein * ratio;
+    if (per100g.fat != null) fat += per100g.fat * ratio;
+    if (per100g.carbohydrate != null) carbohydrate += per100g.carbohydrate * ratio;
+    if (per100g.sodium != null) sodium += per100g.sodium * ratio;
+  }
+
+  if (!hasAny) return { energy: "--", protein: "--", fat: "--", carbohydrate: "--", sodium: "--" };
+
+  let energy = Math.round((protein * 17 + fat * 37 + carbohydrate * 17) * 100) / 100;
+  if (energy <= ZERO_THRESHOLDS.energy) energy = 0;
+  if (protein <= ZERO_THRESHOLDS.protein) protein = 0;
+  if (fat <= ZERO_THRESHOLDS.fat) fat = 0;
+  if (carbohydrate <= ZERO_THRESHOLDS.carbohydrate) carbohydrate = 0;
+  if (sodium <= ZERO_THRESHOLDS.sodium) sodium = 0;
+  if (protein === 0 || fat === 0 || carbohydrate === 0) {
+    energy = Math.round((protein * 17 + fat * 37 + carbohydrate * 17) * 100) / 100;
+  }
+
+  return {
+    energy: energy.toFixed(1),
+    protein: protein.toFixed(1),
+    fat: fat.toFixed(1),
+    carbohydrate: carbohydrate.toFixed(1),
+    sodium: sodium.toFixed(1),
+  };
+});
+
+const nutritionNrvPercent = computed(() => {
+  const summary = nutritionSummary.value;
+  const calc = (val: string, key: string) => {
+    if (val === "--") return "--";
+    const num = parseFloat(val);
+    const ref = NRV_REFERENCE[key];
+    if (!ref || !num) return "--";
+    return (num / ref * 100).toFixed(1) + "%";
+  };
+  return {
+    energy: calc(summary.energy, "energy"),
+    protein: calc(summary.protein, "protein"),
+    fat: calc(summary.fat, "fat"),
+    carbohydrate: calc(summary.carbohydrate, "carbohydrate"),
+    sodium: calc(summary.sodium, "sodium"),
+  };
+});
+
+const totalQuantity = computed(() => {
+  const materials = snapshot.value?.materials;
+  if (!materials) return 0;
+  return materials.reduce((sum: number, m: SnapshotMaterial) => sum + Number(m.quantity || 0), 0);
+});
+
+const ratioValidation = computed(() => {
+  const materials = snapshot.value?.materials;
+  const finishedWeight = _resolveSnapshotValue<number>("finishedWeight", 0)
+    || _resolveSnapshotValue<number>("finished_weight", 0);
+  if (!materials || !materials.length || !finishedWeight || finishedWeight <= 0) {
+    return { totalRatioDisplay: "—" };
+  }
+
+  let totalRatio = 0;
+  for (let i = 0; i < materials.length; i++) {
+    const m = materials[i];
+    const quantity = Number(m.quantity || 0);
+    if (quantity <= 0) continue;
+    totalRatio += calcRatio(m);
+  }
+  totalRatio = Math.round(totalRatio * 100000) / 100000;
+
+  return {
+    totalRatioDisplay: (totalRatio * 100).toFixed(3) + "%",
+  };
+});
 
 // Restore compare selection from localStorage
 const stored = localStorage.getItem('compare_versions');
@@ -577,19 +815,32 @@ onMounted(async () => {
   .timeline-section {
     flex: 0 0 485px;
     max-width: 485px;
-    align-self: flex-start;
+    display: flex;
+    flex-direction: column;
     position: sticky;
-    top: calc(88px + 24px);
-    max-height: calc(100vh - 88px - 48px);
-    overflow-y: auto;
+    top: 84px;
+    height: calc(100vh - 84px - 16px);
+    overflow: hidden;
 
-    &::-webkit-scrollbar {
-      width: 4px;
+    .section-head,
+    .section-toolbar {
+      flex-shrink: 0;
     }
 
-    &::-webkit-scrollbar-thumb {
-      background: $border-color;
-      border-radius: 4px;
+    .timeline,
+    .empty-state {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+
+      &::-webkit-scrollbar {
+        width: 4px;
+      }
+
+      &::-webkit-scrollbar-thumb {
+        background: $border-color;
+        border-radius: 4px;
+      }
     }
   }
 
@@ -614,7 +865,7 @@ onMounted(async () => {
 
     .section-title {
       margin: 0;
-      font-size: $font-size-h3;
+      font-size: $font-size-h4;
       font-weight: $font-weight-semibold;
       color: $text-primary;
       line-height: 1.3;
@@ -654,6 +905,59 @@ onMounted(async () => {
       }
     }
 
+    .section-head-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section-compare-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 12px;
+      border: 1px solid $border-color;
+      border-radius: $radius-pill;
+      background: transparent;
+      color: $text-tertiary;
+      font-size: $font-size-caption;
+      font-weight: $font-weight-medium;
+      cursor: pointer;
+      transition: all $transition-fast;
+
+      &:hover:not(:disabled) {
+        border-color: var(--color-primary-light);
+        color: var(--color-primary);
+        background: var(--color-primary-bg);
+      }
+
+      &.has-selection {
+        border-color: var(--color-primary);
+        color: var(--color-primary);
+        background: var(--color-primary-bg);
+      }
+
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      .compare-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 16px;
+        height: 16px;
+        padding: 0 4px;
+        background: var(--color-primary);
+        color: #fff;
+        font-size: 10px;
+        font-weight: $font-weight-bold;
+        border-radius: $radius-pill;
+        line-height: 1;
+      }
+    }
+
     .clear-compare-btn {
       display: inline-flex;
       align-items: center;
@@ -670,6 +974,48 @@ onMounted(async () => {
 
       &:hover {
         background: $color-danger-medium;
+      }
+    }
+  }
+
+  .section-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 24px 12px;
+
+    .version-search {
+      width: 180px;
+    }
+
+    .filter-tabs {
+      display: flex;
+      gap: 2px;
+      background: $bg-container;
+      border-radius: $radius-md;
+      padding: 2px;
+    }
+
+    .filter-tab {
+      padding: 3px 10px;
+      border: none;
+      border-radius: $radius-md;
+      background: transparent;
+      color: $text-tertiary;
+      font-size: $font-size-caption;
+      font-weight: $font-weight-semibold;
+      cursor: pointer;
+      transition: all $transition-fast;
+      white-space: nowrap;
+
+      &:hover {
+        color: $text-secondary;
+      }
+
+      &.active {
+        background: #fff;
+        color: var(--color-primary);
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
       }
     }
   }
@@ -848,44 +1194,6 @@ onMounted(async () => {
 
       &:active {
         transform: translateY(0);
-      }
-    }
-
-    &.action-compare {
-      background: transparent;
-      color: $text-tertiary;
-      border: 1px solid $border-color;
-      position: relative;
-
-      &:hover:not(:disabled) {
-        border-color: var(--color-primary-light);
-        color: var(--color-primary);
-        background: var(--color-primary-bg);
-      }
-
-      &.has-selection {
-        border-color: var(--color-primary);
-        color: var(--color-primary);
-        background: var(--color-primary-bg);
-      }
-
-      &:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-      }
-
-      .compare-badge {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        min-width: 18px;
-        height: 18px;
-        padding: 0 var(--space-1-25);
-        background: var(--color-primary);
-        color: $text-white;
-        font-size: 10px;
-        font-weight: $font-weight-bold;
-        border-radius: $radius-pill;
       }
     }
 
@@ -1692,6 +2000,95 @@ onMounted(async () => {
       font-size: $font-size-body-sm;
       padding: 24px 0;
       margin: 0;
+    }
+  }
+
+  .detail-nutrition {
+    .nutrition-summary-zone {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      border: 1px solid $border-color-light;
+      border-radius: $radius-md;
+      overflow: hidden;
+    }
+
+    .nsz-row {
+      display: grid;
+      grid-template-columns: 80px 70px 72px repeat(5, 1fr);
+      gap: 0;
+      align-items: center;
+      font-size: $font-size-caption;
+    }
+
+    .nsz-col {
+      padding: 8px 10px;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .nsz-col--label {
+      text-align: left;
+      font-weight: $font-weight-semibold;
+    }
+
+    .nsz-row--header {
+      background: $bg-cool-gray;
+
+      .nsz-col {
+        font-weight: $font-weight-semibold;
+        color: $text-tertiary;
+        font-size: 10px;
+        letter-spacing: 0.03em;
+        padding: 6px 10px;
+      }
+    }
+
+    .nsz-row--total {
+      background: $bg-container;
+      border-top: 1px solid $border-color-light;
+
+      .nsz-total-label {
+        color: $text-primary;
+        font-weight: $font-weight-bold;
+      }
+
+      .nsz-nutrient--total {
+        color: var(--color-primary);
+        font-weight: $font-weight-semibold;
+      }
+    }
+
+    .nsz-row--nrv {
+      background: rgba(var(--color-primary-rgb, 0, 112, 240), 0.03);
+      border-top: 1px solid $border-color-light;
+
+      .nsz-nrv-label {
+        color: $text-secondary;
+        font-weight: $font-weight-medium;
+      }
+
+      .nsz-nutrient--nrv {
+        color: $text-secondary;
+        font-size: 10px;
+      }
+    }
+
+    .nsz-row--nrv-pct {
+      background: rgba(var(--color-primary-rgb, 0, 112, 240), 0.06);
+      border-top: 1px solid $border-color-light;
+
+      .nsz-nrv-pct-label {
+        color: var(--color-primary);
+        font-weight: $font-weight-bold;
+      }
+
+      .nsz-nutrient--nrv-pct {
+        color: var(--color-primary);
+        font-weight: $font-weight-semibold;
+      }
     }
   }
 

@@ -53,7 +53,7 @@
           </div>
         </t-card>
 
-        <t-card v-if="nutritionStore.formulaNutrition && analysisForm.formulaId"
+        <t-card v-if="formulaNutrition && analysisForm.formulaId"
           class="content-card content-card--result" bordered>
           <template #header>
             <div class="result-header">
@@ -69,8 +69,8 @@
           </template>
 
           <t-descriptions :column="2" bordered size="medium" title="配方信息">
-            <t-descriptions-item label="配方名称">{{ nutritionStore.formulaNutrition.formulaName }}</t-descriptions-item>
-            <t-descriptions-item label="总重量">{{ nutritionStore.formulaNutrition.totalWeight ?? '-' }}
+            <t-descriptions-item label="配方名称">{{ formulaNutrition?.formulaName }}</t-descriptions-item>
+            <t-descriptions-item label="总重量">{{ formulaNutrition?.totalWeight ?? '-' }}
               g</t-descriptions-item>
           </t-descriptions>
 
@@ -181,19 +181,19 @@
           </div>
         </t-card>
 
-        <t-card v-if="nutritionStore.complianceResult" class="content-card content-card--compliance" bordered>
+        <t-card v-if="complianceResult" class="content-card content-card--compliance" bordered>
           <template #header>
             <div class="result-header">
               <h4 class="result-title">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-                  :stroke="nutritionStore.complianceResult.summary?.failed === 0 ? 'var(--color-primary)' : 'var(--color-warning)'"
+                  :stroke="complianceResult?.summary?.failed === 0 ? 'var(--color-primary)' : 'var(--color-warning)'"
                   stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
                   <polyline points="22 4 12 14.01 9 11.01" />
                 </svg>
                 合规检查结果
               </h4>
-              <t-tag :theme="nutritionStore.complianceResult.summary?.failed === 0 ? 'success' : 'warning'"
+              <t-tag :theme="complianceResult?.summary?.failed === 0 ? 'success' : 'warning'"
                 variant="light" size="medium">检查完成</t-tag>
             </div>
           </template>
@@ -207,7 +207,7 @@
                 </svg>
               </div>
               <div class="summary-content">
-                <span class="summary-count">{{ nutritionStore.complianceResult.summary?.passed || 0 }}</span>
+                <span class="summary-count">{{ complianceResult?.summary?.passed || 0 }}</span>
                 <span class="summary-label">达标</span>
               </div>
             </div>
@@ -221,7 +221,7 @@
                 </svg>
               </div>
               <div class="summary-content">
-                <span class="summary-count">{{ nutritionStore.complianceResult.summary?.warnings || 0 }}</span>
+                <span class="summary-count">{{ complianceResult?.summary?.warnings || 0 }}</span>
                 <span class="summary-label">警告</span>
               </div>
             </div>
@@ -235,15 +235,15 @@
                 </svg>
               </div>
               <div class="summary-content">
-                <span class="summary-count">{{ nutritionStore.complianceResult.summary?.failed || 0 }}</span>
+                <span class="summary-count">{{ complianceResult?.summary?.failed || 0 }}</span>
                 <span class="summary-label">超标</span>
               </div>
             </div>
           </div>
-          <t-alert :theme="nutritionStore.complianceResult.summary?.failed === 0 ? 'success' : 'warning'"
-            :message="nutritionStore.complianceResult.summary?.failed === 0 ? '配方符合所选营养标准要求' : `配方有 ${nutritionStore.complianceResult.summary?.failed} 项指标不达标`"
+          <t-alert :theme="complianceResult?.summary?.failed === 0 ? 'success' : 'warning'"
+            :message="complianceResult?.summary?.failed === 0 ? '配方符合所选营养标准要求' : `配方有 ${complianceResult?.summary?.failed} 项指标不达标`"
             style="margin-bottom: 12px;" />
-          <t-table v-if="nutritionStore.complianceResult?.complianceCheck?.length" :data="complianceDataList"
+          <t-table v-if="complianceResult?.complianceCheck?.length" :data="complianceDataList"
             :columns="complianceColumns" row-key="field" size="small" bordered>
             <template #status="{ row }">
               <t-tag :theme="row.status === 'pass' ? 'success' : row.status === 'warning' ? 'warning' : 'danger'"
@@ -254,7 +254,7 @@
           </t-table>
         </t-card>
 
-        <t-card v-else-if="!nutritionStore.formulaNutrition && !analysisForm.formulaId && initialized"
+        <t-card v-else-if="!formulaNutrition && !analysisForm.formulaId && initialized"
           class="content-card content-card--empty" bordered>
           <t-empty description="请选择一个配方进行营养分析" role="status">
             <template #action>
@@ -317,7 +317,7 @@
           <h4 class="assistant-title">营养分析助手</h4>
           <p class="assistant-desc">{{ assistantMessage }}</p>
           <button class="assistant-btn" @click="scrollToTop" :disabled="!analysisForm.formulaId">
-            {{ nutritionStore.formulaNutrition ? '查看分析结果' : '选择配方开始' }}
+            {{ formulaNutrition ? '查看分析结果' : '选择配方开始' }}
           </button>
           <div class="assistant-footer">
             <div class="assistant-avatar-group">
@@ -365,6 +365,43 @@ const analysisForm = reactive({ formulaId: '', profileId: '' });
 const analyzing = ref(false);
 const checking = ref(false);
 
+interface ComplianceSummary {
+  passed: number;
+  failed: number;
+  warnings: number;
+}
+
+interface ComplianceCheckItem {
+  field: string;
+  label: string;
+  actualValue: number | string;
+  status: string;
+  message: string;
+}
+
+interface ComplianceResultData {
+  summary: ComplianceSummary;
+  complianceCheck: ComplianceCheckItem[];
+}
+
+interface MaterialBreakdownItem {
+  materialId?: string;
+  materialName: string;
+  quantity: number;
+  percentage: number;
+  nutritionContribution: Record<string, number>;
+}
+
+interface FormulaNutritionData {
+  formulaName: string;
+  totalWeight: number;
+  per100gNutrition: Record<string, number>;
+  materialBreakdown: MaterialBreakdownItem[];
+}
+
+const complianceResult = computed<ComplianceResultData | null>(() => nutritionStore.complianceResult as ComplianceResultData | null);
+const formulaNutrition = computed<FormulaNutritionData | null>(() => nutritionStore.formulaNutrition as FormulaNutritionData | null);
+
 const categoryMap: Record<string, string> = {
   infant: '婴幼儿', child: '儿童', adult: '成人', elderly: '老年', pregnant: '孕妇', special: '特殊'
 };
@@ -399,7 +436,7 @@ interface NutritionCard {
 }
 
 const coreNutritionCards = computed<NutritionCard[]>(() => {
-  const per100g = nutritionStore.formulaNutrition?.per100gNutrition;
+  const per100g = formulaNutrition.value?.per100gNutrition;
   if (!per100g) return [];
   return CORE_NUTRIENTS.map(nutrient => {
     const rawValue = per100g[nutrient.key] || 0;
@@ -438,11 +475,11 @@ interface MaterialBreakdownRow {
 }
 
 const materialBreakdown = computed<MaterialBreakdownRow[]>(() => {
-  const breakdown = nutritionStore.formulaNutrition?.materialBreakdown;
+  const breakdown = formulaNutrition.value?.materialBreakdown;
   if (!breakdown || !Array.isArray(breakdown)) return [];
-  return breakdown.map((item: any) => {
+  return breakdown.map((item) => {
     const hasNutritionData = item.nutritionContribution && Object.keys(item.nutritionContribution).length > 0;
-    const noNutritionData = !hasNutritionData || (item.nutritionContribution && Object.values(item.nutritionContribution).every((v: any) => v === 0));
+    const noNutritionData = !hasNutritionData || (item.nutritionContribution && Object.values(item.nutritionContribution).every((v) => v === 0));
     const nutritionDetails: Array<{ key: string; label: string; value: string; unit: string; }> = [];
     if (item.nutritionContribution) {
       for (const [key, val] of Object.entries(item.nutritionContribution)) {
@@ -459,8 +496,8 @@ const materialBreakdown = computed<MaterialBreakdownRow[]>(() => {
 });
 
 const nutritionDataList = computed(() => {
-  if (!nutritionStore.formulaNutrition?.per100gNutrition) return [];
-  return Object.entries(nutritionStore.formulaNutrition.per100gNutrition)
+  if (!formulaNutrition.value?.per100gNutrition) return [];
+  return Object.entries(formulaNutrition.value.per100gNutrition)
     .map(([key, value]) => {
       const [name, unit] = nutrientInfoMap[key] || [key, ''];
       return { nutrient: name, value: typeof value === 'number' ? value.toFixed(2) : String(value), unit, overLimit: false };
@@ -481,16 +518,16 @@ const complianceColumns = [
 ];
 
 const complianceDataList = computed(() => {
-  if (!nutritionStore.complianceResult?.complianceCheck) return [];
-  return nutritionStore.complianceResult.complianceCheck.map((item: any) => ({
+  if (!complianceResult.value?.complianceCheck) return [];
+  return complianceResult.value.complianceCheck.map((item) => ({
     ...item,
     actualValue: typeof item.actualValue === 'number' ? item.actualValue.toFixed(2) : String(item.actualValue),
   }));
 });
 
 const dashboardCards = computed(() => {
-  const hasResult = !!nutritionStore.formulaNutrition;
-  const compliance = nutritionStore.complianceResult;
+  const hasResult = !!formulaNutrition.value;
+  const compliance = complianceResult.value;
   return [
     {
       label: '分析状态',
@@ -545,21 +582,21 @@ const activityPage = ref(1);
 
 const allActivityItems = computed<ActivityItem[]>(() => {
   const items: ActivityItem[] = [];
-  if (nutritionStore.formulaNutrition && analysisForm.formulaId) {
+  if (formulaNutrition.value && analysisForm.formulaId) {
     items.push({
       type: 'success',
       title: '营养分析完成',
-      desc: `配方 <strong>${nutritionStore.formulaNutrition.formulaName || '未知'}</strong> 的营养成分已计算完成`,
+      desc: `配方 <strong>${formulaNutrition.value.formulaName || '未知'}</strong> 的营养成分已计算完成`,
       time: new Date().toLocaleString('zh-CN'),
     });
   }
-  if (nutritionStore.complianceResult) {
+  if (complianceResult.value) {
     items.push({
-      type: nutritionStore.complianceResult.summary?.failed === 0 ? 'success' : 'warning',
+      type: complianceResult.value.summary?.failed === 0 ? 'success' : 'warning',
       title: '合规检查完成',
-      desc: nutritionStore.complianceResult.summary?.failed === 0
+      desc: complianceResult.value.summary?.failed === 0
         ? '所有指标均符合所选营养标准要求'
-        : `存在 <strong>${nutritionStore.complianceResult.summary?.failed}</strong> 项指标不达标，需要关注`,
+        : `存在 <strong>${complianceResult.value.summary?.failed}</strong> 项指标不达标，需要关注`,
       time: new Date().toLocaleString('zh-CN'),
     });
   }
@@ -577,9 +614,9 @@ const activityNext = () => { if (activityPage.value < activityTotalPages.value) 
 
 const assistantMessage = computed(() => {
   if (!analysisForm.formulaId) return '在上方选择一个配方，系统将自动计算其营养成分含量和NRV占比。';
-  if (!nutritionStore.formulaNutrition) return '已选择配方，点击"开始分析"按钮即可查看详细的营养数据。';
-  if (nutritionStore.complianceResult?.summary?.failed === 0) return '分析完成！该配方的各项营养指标均符合所选标准，表现优秀。';
-  if (nutritionStore.complianceResult) return `分析完成！发现 ${nutritionStore.complianceResult.summary?.failed} 项超标指标，建议调整配方比例。`;
+  if (!formulaNutrition.value) return '已选择配方，点击"开始分析"按钮即可查看详细的营养数据。';
+  if (complianceResult.value?.summary?.failed === 0) return '分析完成！该配方的各项营养指标均符合所选标准，表现优秀。';
+  if (complianceResult.value) return `分析完成！发现 ${complianceResult.value.summary?.failed} 项超标指标，建议调整配方比例。`;
   return '营养分析已完成，您可以查看详细数据和合规性报告。';
 });
 

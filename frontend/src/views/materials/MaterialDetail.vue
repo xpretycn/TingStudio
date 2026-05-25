@@ -81,6 +81,24 @@
                   {{ material.unitPrice != null ? `¥${Number(material.unitPrice).toFixed(2)}/kg` : '暂未录入' }}
                 </p>
               </div>
+              <div v-if="material.appearance?.length" class="field-item">
+                <label><t-icon name="image" size="12px" /> 性状</label>
+                <div class="field-tags">
+                  <t-tag v-for="item in material.appearance" :key="item" size="small" theme="primary" variant="light">{{ item }}</t-tag>
+                </div>
+              </div>
+              <div v-if="material.taste?.length" class="field-item">
+                <label><t-icon name="star" size="12px" /> 口感</label>
+                <div class="field-tags">
+                  <t-tag v-for="item in material.taste" :key="item" size="small" theme="success" variant="light">{{ item }}</t-tag>
+                </div>
+              </div>
+              <div v-if="material.efficacy?.length" class="field-item">
+                <label><t-icon name="shield" size="12px" /> 功效</label>
+                <div class="field-tags">
+                  <t-tag v-for="item in material.efficacy" :key="item" size="small" theme="warning" variant="light">{{ item }}</t-tag>
+                </div>
+              </div>
               <div class="field-grid-2">
                 <div class="field-item">
                   <label><t-icon name="time" size="12px" /> 创建时间</label>
@@ -264,6 +282,7 @@ import { useNutritionStore } from '@/stores/nutrition';
 import { useAuthStore } from '@/stores/auth';
 import PageSkeleton from '@/components/Skeleton/PageSkeleton.vue';
 import { formatTimestamp } from '@/utils/timeFormat';
+import type { Material } from '@/api/material';
 
 const router = useRouter();
 const route = useRoute();
@@ -271,7 +290,7 @@ const materialStore = useMaterialStore();
 const nutritionStore = useNutritionStore();
 const authStore = useAuthStore();
 
-const material = ref<any>(null);
+const material = ref<Material | null>(null);
 
 const canEdit = computed(() => {
   if (!material.value) return false;
@@ -280,8 +299,14 @@ const canEdit = computed(() => {
   if (user.role === 'admin') return true;
   return material.value.createdBy === user.id;
 });
+interface NutritionItem {
+  nutrient: string;
+  value: string;
+  unit: string;
+}
+
 const nutritionLoading = ref(false);
-const nutritionData = ref<any[]>([]);
+const nutritionData = ref<NutritionItem[]>([]);
 const nutritionMeta = reactive({
   dataSource: '',
   confidence: 'medium' as 'high' | 'medium' | 'low',
@@ -656,6 +681,13 @@ onMounted(() => { loadData(); });
           color: var(--color-text-primary);
           margin: 0;
           font-family: ui-monospace, SFMono-Regular, 'Cascadia Code', monospace;
+        }
+
+        .field-tags {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 4px;
+          margin-top: 2px;
         }
       }
 

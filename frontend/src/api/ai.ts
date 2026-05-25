@@ -11,7 +11,7 @@ export interface AIModel {
   configured?: boolean;
 }
 
-export interface AIModelList {
+interface AIModelList {
   available: AIModel[];
   all: AIModel[];
 }
@@ -77,9 +77,11 @@ export interface ParsedMaterialNutrition {
 export interface SearchResult {
   sql: string;
   originalSQL: string;
-  rows: Record<string, any>[];
+  rows: Record<string, unknown>[];
   rowCount: number;
   model: string;
+  queryType?: string;
+  exportUrl?: string;
   usage?: { promptTokens: number; completionTokens: number; totalTokens: number };
 }
 
@@ -88,7 +90,7 @@ export interface SearchResult {
 export const aiApi = {
   /** 获取可用模型列表 */
   getModels() {
-    return http.get<any, AIModelList>("/ai/models");
+    return http.get<unknown, AIModelList>("/ai/models");
   },
 
   /** AI 解析配方文件 */
@@ -97,7 +99,7 @@ export const aiApi = {
     formData.append("file", file);
     formData.append("model", provider);
     if (version) formData.append("version", version);
-    return http.post<any, ParsedFormula>("/ai/parse-formula", formData, {
+    return http.post<unknown, ParsedFormula>("/ai/parse-formula", formData, {
       headers: { "Content-Type": "multipart/form-data" },
       timeout: 120_000,
       signal: options?.signal,
@@ -110,7 +112,7 @@ export const aiApi = {
     formData.append("file", file);
     formData.append("model", provider);
     if (version) formData.append("version", version);
-    return http.post<any, ParsedMaterialNutrition>("/ai/parse-material-nutrition", formData, {
+    return http.post<unknown, ParsedMaterialNutrition>("/ai/parse-material-nutrition", formData, {
       headers: { "Content-Type": "multipart/form-data" },
       timeout: 120_000,
       signal: options?.signal,
@@ -119,7 +121,7 @@ export const aiApi = {
 
   /** 自然语言检索 */
   naturalSearch(queryText: string, provider: string, version?: string) {
-    return http.post<any, SearchResult>(
+    return http.post<unknown, SearchResult>(
       "/ai/natural-search",
       {
         query: queryText,

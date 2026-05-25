@@ -193,7 +193,7 @@ const handleFormulaChange = (val: string) => {
 
 const loadExistingRecords = async (formulaId: string) => {
   const records = await salesStore.getSalesByFormula(formulaId)
-  existingRecords.value = records as any || []
+  existingRecords.value = records as SaleRecord[] || []
 }
 
 const formatPeriod = (periodStart: string) => {

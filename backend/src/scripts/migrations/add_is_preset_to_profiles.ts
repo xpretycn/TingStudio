@@ -2,7 +2,7 @@
  * 数据库迁移脚本：为 nutrition_profiles 表添加 is_preset 字段
  */
 
-import { query, connectDatabase } from '../config/database.js'
+import { query, connectDatabase } from '../../config/database.js'
 
 // 初始化数据库
 connectDatabase()

@@ -1,5 +1,5 @@
 import { query } from "../config/database-adapter.js";
-import { generateId, now, rowToCamelCase } from "../utils/helpers.js";
+import { generateId, now, rowToCamelCase, safeJsonParse } from "../utils/helpers.js";
 import * as materialReviewService from "./materialReviewService.js";
 
 const NUTRIENT_KEY_MAP: Record<string, string> = {
@@ -78,6 +78,9 @@ export interface MaterialRow {
   is_latest: number;
   is_deleted: number;
   status: string;
+  appearance_json: string | null;
+  taste_json: string | null;
+  efficacy_json: string | null;
 }
 
 const BASIC_FIELD_LABELS: Record<string, string> = {
@@ -219,12 +222,22 @@ export async function updateMaterial(
     materialType: "material_type",
     unitPrice: "unit_price",
     dataSource: "data_source",
+    appearance: "appearance_json",
+    taste: "taste_json",
+    efficacy: "efficacy_json",
   };
+
+  const jsonFields = new Set(["appearance_json", "taste_json", "efficacy_json"]);
 
   const updates: Record<string, any> = {};
   for (const [camelKey, snakeKey] of Object.entries(fieldMap)) {
     if (camelKey in data) {
-      updates[snakeKey] = data[camelKey];
+      if (jsonFields.has(snakeKey)) {
+        const arr = data[camelKey];
+        updates[snakeKey] = Array.isArray(arr) ? JSON.stringify(arr) : null;
+      } else {
+        updates[snakeKey] = data[camelKey];
+      }
     }
   }
 
@@ -269,7 +282,7 @@ export async function createNewVersion(current: MaterialRow, newData: Record<str
     "id", "name", "code", "unit", "stock", "material_type",
     "unit_price", "data_source", "created_by", "version",
     "previous_version_id", "is_latest", "is_deleted", "created_at", "updated_at",
-    "changes_json", "status",
+    "changes_json", "status", "appearance_json", "taste_json", "efficacy_json",
   ];
 
   const newRow: Record<string, any> = {
@@ -290,6 +303,15 @@ export async function createNewVersion(current: MaterialRow, newData: Record<str
     updated_at: now(),
     changes_json: changesJson,
     status: "draft",
+    appearance_json: newData.appearance !== undefined
+      ? (Array.isArray(newData.appearance) ? JSON.stringify(newData.appearance) : null)
+      : current.appearance_json,
+    taste_json: newData.taste !== undefined
+      ? (Array.isArray(newData.taste) ? JSON.stringify(newData.taste) : null)
+      : current.taste_json,
+    efficacy_json: newData.efficacy !== undefined
+      ? (Array.isArray(newData.efficacy) ? JSON.stringify(newData.efficacy) : null)
+      : current.efficacy_json,
   };
 
   const placeholders = fields.map(() => "?").join(", ");
@@ -543,10 +565,13 @@ export async function getMaterialList(params: {
 
   const dataResult = await query<any>(
     `SELECT m.*,
+            COALESCE(u.display_name, u.username) AS created_by_name,
+            u.avatar AS created_by_avatar,
             (SELECT COUNT(*) FROM formulas WHERE materials_json LIKE '%"materialId":"' || m.id || '"%') AS reference_count,
             (SELECT COUNT(*) FROM materials WHERE code = m.code AND is_deleted = 0) AS total_versions,
             mn.per_100g_json AS per_100g_json
      FROM materials m
+     LEFT JOIN users u ON m.created_by = u.id
      LEFT JOIN material_nutrition mn ON mn.material_id = m.id AND mn.is_latest = 1
      ${whereClause}
      ORDER BY m.created_at DESC
@@ -575,6 +600,12 @@ export async function getMaterialList(params: {
       }
     }
     delete item.per100gJson;
+    item.appearance = row.appearance_json ? safeJsonParse<string[]>(row.appearance_json, []) : null;
+    item.taste = row.taste_json ? safeJsonParse<string[]>(row.taste_json, []) : null;
+    item.efficacy = row.efficacy_json ? safeJsonParse<string[]>(row.efficacy_json, []) : null;
+    delete item.appearanceJson;
+    delete item.tasteJson;
+    delete item.efficacyJson;
     return item;
   });
 
@@ -592,9 +623,12 @@ export async function getMaterialList(params: {
 export async function getMaterialDetail(materialId: string, userId: string): Promise<any> {
   const result = await query<any>(
     `SELECT m.*,
+            COALESCE(u.display_name, u.username) AS created_by_name,
+            u.avatar AS created_by_avatar,
             (SELECT COUNT(*) FROM formulas WHERE materials_json LIKE '%"materialId":"' || m.id || '"%') AS reference_count,
             (SELECT COUNT(*) FROM materials WHERE code = m.code AND is_deleted = 0) AS total_versions
      FROM materials m
+     LEFT JOIN users u ON m.created_by = u.id
      WHERE m.id = ?`,
     [materialId],
   );
@@ -622,6 +656,13 @@ export async function getMaterialDetail(materialId: string, userId: string): Pro
   if (nutRow) {
     res.nutrition = JSON.parse(nutRow.per_100g_json);
   }
+
+  res.appearance = row.appearance_json ? safeJsonParse<string[]>(row.appearance_json, []) : null;
+  res.taste = row.taste_json ? safeJsonParse<string[]>(row.taste_json, []) : null;
+  res.efficacy = row.efficacy_json ? safeJsonParse<string[]>(row.efficacy_json, []) : null;
+  delete res.appearanceJson;
+  delete res.tasteJson;
+  delete res.efficacyJson;
 
   res.reviewLogs = await materialReviewService.getReviewLogs(materialId);
 

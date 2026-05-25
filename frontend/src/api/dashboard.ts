@@ -28,15 +28,15 @@ export interface SalesTrendItem {
 
 export const dashboardApi = {
   getStats() {
-    return http.get<any, DashboardStats>("/dashboard/stats");
+    return http.get<unknown, DashboardStats>("/dashboard/stats");
   },
   getRecentActivity(limit: number = 10) {
-    return http.get<any, ActivityItem[]>("/dashboard/activity", {
+    return http.get<unknown, ActivityItem[]>("/dashboard/activity", {
       params: { limit },
     });
   },
   getSalesTrend(period: "week" | "month" | "year" = "month") {
-    return http.get<any, SalesTrendItem[]>("/dashboard/sales-trend", {
+    return http.get<unknown, SalesTrendItem[]>("/dashboard/sales-trend", {
       params: { period },
     });
   },

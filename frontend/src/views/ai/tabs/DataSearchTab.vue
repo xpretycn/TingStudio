@@ -111,12 +111,13 @@ import { ref, computed } from "vue";
 import { useAiStore } from "@/stores/ai";
 import { MessagePlugin } from "tdesign-vue-next";
 import { marked } from "marked";
+import type { SearchResult } from "@/api/ai";
 
 const aiStore = useAiStore();
 
 const searchQuery = ref("");
 const searchLoading = ref(false);
-const searchResult = ref<any>(null);
+const searchResult = ref<SearchResult | null>(null);
 const searchError = ref("");
 const searchHistory = ref<string[]>([]);
 const sqlExpanded = ref(false);
@@ -130,13 +131,14 @@ const quickTags = [
 ];
 
 const queryTypeLabel = computed(() => {
-  if (!searchResult.value?.queryType) return "";
+  const queryType = searchResult.value?.queryType;
+  if (!queryType) return "";
   const labels: Record<string, string> = {
     simple: "简单查询",
     join: "跨表查询",
     aggregate: "聚合分析",
   };
-  return labels[searchResult.value.queryType] || searchResult.value.queryType;
+  return labels[queryType] || queryType;
 });
 
 const renderedMarkdown = computed(() => {
@@ -145,7 +147,7 @@ const renderedMarkdown = computed(() => {
   const keys = Object.keys(rows[0]);
   const header = `| ${keys.join(" | ")} |`;
   const separator = `| ${keys.map(() => "---").join(" | ")} |`;
-  const body = rows.map((row: any) => {
+  const body = rows.map((row: Record<string, unknown>) => {
     const cells = keys.map((key) => {
       const val = row[key];
       if (val === null || val === undefined) return "—";
@@ -179,12 +181,13 @@ const handleSearch = async () => {
 
   try {
     const res = await aiStore.naturalSearch(searchQuery.value.trim());
-    searchResult.value = res;
+    searchResult.value = res ?? null;
 
     const history = [searchQuery.value.trim(), ...searchHistory.value.filter((h) => h !== searchQuery.value.trim())];
     searchHistory.value = history.slice(0, 10);
-  } catch (error: any) {
-    searchError.value = error?.response?.data?.message || error.message || "AI 检索失败";
+  } catch (error: unknown) {
+    const err = error as { response?: { data?: { message?: string } }; message?: string };
+    searchError.value = err?.response?.data?.message || err.message || "AI 检索失败";
   } finally {
     searchLoading.value = false;
   }

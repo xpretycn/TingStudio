@@ -67,8 +67,8 @@ export const useSalesmanStore = defineStore("salesman", () => {
       await salesmanApi.create(form);
       await fetchSalesmen();
       return { success: true };
-    } catch (error: any) {
-      return { success: false, message: error.message || "创建失败" };
+    } catch (error: unknown) {
+      return { success: false, message: error instanceof Error ? error.message : "创建失败" };
     } finally {
       loading.value = false;
     }
@@ -80,8 +80,8 @@ export const useSalesmanStore = defineStore("salesman", () => {
       await salesmanApi.update(id, form);
       await fetchSalesmen();
       return { success: true };
-    } catch (error: any) {
-      return { success: false, message: error.message || "更新失败" };
+    } catch (error: unknown) {
+      return { success: false, message: error instanceof Error ? error.message : "更新失败" };
     } finally {
       loading.value = false;
     }
@@ -93,8 +93,8 @@ export const useSalesmanStore = defineStore("salesman", () => {
       await salesmanApi.delete(id);
       await fetchSalesmen();
       return { success: true };
-    } catch (error: any) {
-      return { success: false, message: error.message || "删除失败" };
+    } catch (error: unknown) {
+      return { success: false, message: error instanceof Error ? error.message : "删除失败" };
     } finally {
       loading.value = false;
     }
@@ -106,8 +106,8 @@ export const useSalesmanStore = defineStore("salesman", () => {
       const result = await salesmanApi.toggleStatus(id, status);
       await fetchSalesmen();
       return { success: true, message: result.message };
-    } catch (error: any) {
-      return { success: false, message: error.message || "更新状态失败" };
+    } catch (error: unknown) {
+      return { success: false, message: error instanceof Error ? error.message : "更新状态失败" };
     } finally {
       loading.value = false;
     }

@@ -1,88 +1,51 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted } from "vue"
-import { useRouter } from "vue-router"
-import { useApprovalStore } from "@/stores/approval"
-import { formatTimestamp } from "@/utils/timeFormat"
-import { MessagePlugin } from "tdesign-vue-next"
+import { ref, watch, onMounted, onUnmounted } from "vue";
+import { useRouter } from "vue-router";
+import { useApprovalStore } from "@/stores/approval";
+import { formatTimestamp } from "@/utils/timeFormat";
 
-const router = useRouter()
-const store = useApprovalStore()
-const currentView = ref<"pending" | "history" | "material">("pending")
-
-const rejectDialogVisible = ref(false)
-const rejectTargetId = ref("")
-const rejectTargetName = ref("")
-const rejectComment = ref("")
+const router = useRouter();
+const store = useApprovalStore();
+const currentView = ref<"pending" | "history" | "material">("pending");
 
 function goReview(formulaId: string) {
-  router.push(`/versions/formula/${formulaId}`)
+  router.push(`/versions/formula/${formulaId}`);
 }
 
 function goMaterial(materialId: string) {
-  router.push(`/materials/${materialId}`)
-}
-
-async function handleApproveMaterial(id: string) {
-  try {
-    await store.approveMaterial(id)
-    MessagePlugin.success("原料审批通过")
-  } catch {
-    MessagePlugin.error("审批失败")
-  }
-}
-
-function handleOpenRejectMaterial(id: string, name: string) {
-  rejectTargetId.value = id
-  rejectTargetName.value = name
-  rejectComment.value = ""
-  rejectDialogVisible.value = true
-}
-
-async function handleConfirmReject() {
-  if (!rejectComment.value.trim()) {
-    MessagePlugin.warning("请填写驳回原因")
-    return false
-  }
-  try {
-    await store.rejectMaterial(rejectTargetId.value, rejectComment.value.trim())
-    rejectDialogVisible.value = false
-    MessagePlugin.success("已驳回")
-  } catch {
-    MessagePlugin.error("驳回失败")
-  }
-  return true
+  router.push(`/materials/${materialId}/versions`);
 }
 
 watch(currentView, (val) => {
   if (val === "history") {
-    store.fetchReviewedHistory()
+    store.fetchReviewedHistory();
   } else if (val === "material") {
-    store.fetchMaterialPendingReviews()
+    store.fetchMaterialPendingReviews();
   } else {
-    store.fetchPendingReviews()
+    store.fetchPendingReviews();
   }
-})
+});
 
-let pollTimer: ReturnType<typeof setInterval> | null = null
+let pollTimer: ReturnType<typeof setInterval> | null = null;
 
 onMounted(() => {
-  store.fetchPendingReviews()
-  store.fetchReviewedHistory()
-  store.fetchMaterialPendingReviews()
+  store.fetchPendingReviews();
+  store.fetchReviewedHistory();
+  store.fetchMaterialPendingReviews();
   pollTimer = setInterval(() => {
     if (currentView.value === "pending") {
-      store.fetchPendingReviews()
+      store.fetchPendingReviews();
     } else if (currentView.value === "material") {
-      store.fetchMaterialPendingReviews()
+      store.fetchMaterialPendingReviews();
     } else {
-      store.fetchReviewedHistory()
+      store.fetchReviewedHistory();
     }
-  }, 30000)
-})
+  }, 30000);
+});
 
 onUnmounted(() => {
-  if (pollTimer) clearInterval(pollTimer)
-})
+  if (pollTimer) clearInterval(pollTimer);
+});
 </script>
 
 <template>
@@ -126,7 +89,8 @@ onUnmounted(() => {
         </div>
       </div>
 
-      <div v-else-if="currentView === 'material' && store.materialPendingReviews.length === 0" class="admin-review__empty">
+      <div v-else-if="currentView === 'material' && store.materialPendingReviews.length === 0"
+        class="admin-review__empty">
         <t-icon name="check-circle" size="48px" color="var(--td-success-color)" />
         <p>暂无待审核原料</p>
         <span>所有原料均已审核完毕</span>
@@ -147,11 +111,8 @@ onUnmounted(() => {
               formatTimestamp(item.createdAt)
             }}</span>
             <div class="admin-review__item-actions">
-              <t-button size="small" theme="primary" @click="handleApproveMaterial(item.id)">
-                通过
-              </t-button>
-              <t-button size="small" theme="danger" variant="outline" @click="handleOpenRejectMaterial(item.id, item.name)">
-                驳回
+              <t-button size="small" theme="primary" @click="goMaterial(item.id)">
+                审核
               </t-button>
             </div>
           </div>
@@ -189,13 +150,6 @@ onUnmounted(() => {
         </div>
       </div>
     </t-loading>
-
-    <t-dialog v-model:visible="rejectDialogVisible" header="驳回原料" :confirm-btn="{ content: '确认驳回', theme: 'danger' }" :on-confirm="handleConfirmReject" :on-close="() => rejectDialogVisible = false">
-      <div style="padding: 8px 0;">
-        <p style="margin-bottom: 12px; font-size: 14px; color: var(--color-text-secondary);">驳回原料「{{ rejectTargetName }}」，请填写驳回原因：</p>
-        <t-input v-model="rejectComment" placeholder="请输入驳回原因" :maxlength="200" />
-      </div>
-    </t-dialog>
   </div>
 </template>
 

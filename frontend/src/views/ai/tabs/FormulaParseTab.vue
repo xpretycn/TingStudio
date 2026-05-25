@@ -451,7 +451,7 @@
                       </button>
                       <t-dropdown-menu>
                         <t-dropdown-item v-for="model in aiStore.models" :key="model.provider" :value="model.provider"
-                          @click="(ctx: any) => handleReparseWithModel({ value: ctx.value })">
+                          @click="(ctx: Record<string, unknown>) => handleReparseWithModel({ value: ctx.value })">
                           <div class="reparse-model-option">
                             <div class="reparse-model-logo">
                               <img loading="lazy" :src="getModelLogo(model)" :alt="model.name"
@@ -679,7 +679,7 @@
         <div class="form-field">
           <label class="form-label">默认模型</label>
           <t-select v-model="saveFormulaTemplateForm.defaultProvider"
-            :options="aiStore.models.map((m: any) => ({ label: m.name, value: m.provider }))"
+            :options="aiStore.models.map((m: ModelItem) => ({ label: m.name, value: m.provider }))"
             clearable placeholder="跟随全局设置" />
         </div>
         <div class="form-field">
@@ -703,7 +703,7 @@ import type { Material } from '@/api/material';
 import { MessagePlugin } from 'tdesign-vue-next';
 import QuickCreateSalesmanDrawer from '@/components/QuickCreateSalesmanDrawer.vue';
 import QuickCreateMaterialDrawer from '@/components/QuickCreateMaterialDrawer.vue';
-import type { ParsedFormula, ParsedMaterial } from '@/api/ai';
+import type { ParsedFormula, ParsedMaterial, AIModel } from '@/api/ai';
 import type { FormulaForm } from '@/api/formula';
 import type { Salesman } from '@/api/salesman';
 import { salesmanApi } from '@/api/salesman';
@@ -711,6 +711,7 @@ import { fileApi } from '@/api/file';
 import { parseTemplateApi, type ParseTemplate } from '@/api/parseTemplate';
 import MaterialTableCore from '@/components/formula/MaterialTableCore.vue';
 import type { MaterialTableRow } from '@/components/formula/MaterialTableCore.vue';
+import type { ModelItem } from '@/api/model';
 
 const emit = defineEmits<{
   (e: 'activity-add', item: { type: 'success' | 'info' | 'warning'; title: string; desc: string; time: string; }): void;
@@ -728,6 +729,7 @@ const resetAllData = () => {
   showFormSection.value = false;
   submitSuccess.value = false;
   submittedName.value = '';
+  submittedFormulaId.value = null;
   editedName.value = '';
   editedWeight.value = 0;
   editedRatioFactor.value = 0.18;
@@ -746,7 +748,7 @@ const resetAllData = () => {
     materials: [],
     description: '',
   };
-  aiStore.parseResult = null as any;
+  aiStore.parseResult = null as unknown as ParsedFormula;
 };
 
 watch(() => route.path, (newPath, oldPath) => {
@@ -756,7 +758,7 @@ watch(() => route.path, (newPath, oldPath) => {
 });
 
 onMounted(() => {
-  aiStore.parseResult = null as any;
+  aiStore.parseResult = null as unknown as ParsedFormula;
   selectedFile.value = null;
   submitSuccess.value = false;
   showFormSection.value = false;
@@ -829,8 +831,8 @@ const handleSaveFormulaTemplate = async () => {
     MessagePlugin.success('模板保存成功');
     saveFormulaTemplateDialogVisible.value = false;
     await fetchFormulaTemplates();
-  } catch (err: any) {
-    MessagePlugin.error(err?.message || '保存模板失败');
+  } catch (err: unknown) {
+    MessagePlugin.error(err instanceof Error ? err.message : '保存模板失败');
   } finally {
     saveFormulaTemplateLoading.value = false;
   }
@@ -845,6 +847,7 @@ const selectedFile = ref<File | null>(null);
 const showFormSection = ref(false);
 const submitSuccess = ref(false);
 const submittedName = ref('');
+const submittedFormulaId = ref<string | null>(null);
 const uploadedFileInfo = ref<{ fileId: string; fileName: string; fileSize: number; } | null>(null);
 const formRef = ref();
 const parseStartTime = ref(Date.now());
@@ -872,7 +875,7 @@ const salesmanNotMatched = computed(() => {
   const name = normalizeName(result.salesmanName);
   if (!name) return true;
   return !salesmenList.value.find(
-    (s: any) => {
+    (s: Salesman) => {
       const sName = normalizeName(s.name);
       return sName === name || sName.includes(name) || name.includes(sName);
     }
@@ -972,19 +975,19 @@ const submitBlockReasons = computed(() => {
   return reasons;
 });
 
-const getMaterialPrice = (m: ParsedMaterial, allMats?: any[]): number | null => {
+const getMaterialPrice = (m: ParsedMaterial, allMats?: Material[]): number | null => {
   if (m.unitPrice != null) return m.unitPrice;
   const mats = allMats || materialStore.allMaterials;
   if (!mats?.length) return null;
-  const found = mats.find((x: any) =>
+  const found = mats.find((x: Material) =>
     x.name === m.name || x.id === m.materialId
   );
   if (found?.unitPrice != null) return found.unitPrice;
   if (m.materialId) {
-    const byId = mats.find((x: any) => x.id === m.materialId);
+    const byId = mats.find((x: Material) => x.id === m.materialId);
     if (byId?.unitPrice != null) return byId.unitPrice;
   }
-  const nameLike = mats.find((x: any) =>
+  const nameLike = mats.find((x: Material) =>
     x.name.includes(m.name) || m.name.includes(x.name)
   );
   return nameLike?.unitPrice ?? null;
@@ -1371,7 +1374,7 @@ const getConfidenceItems = () => {
     items.push({ label: '成品重量', value: 0, level: 'low' });
   }
   if (data.materials?.length) {
-    const matchedCount = data.materials.filter((m: any) => m.matched).length;
+    const matchedCount = data.materials.filter((m: ParsedMaterial) => m.matched).length;
     const v = matchedCount > 0 ? Math.round((matchedCount / data.materials.length) * 100) : 0;
     items.push({ label: '原料清单', value: v, level: getConfidenceLevel(v / 100) });
   }
@@ -1411,7 +1414,7 @@ const FALLBACK_ICONS: Record<string, { letter: string; color: string; }> = {
   tencent: { letter: 'T', color: '#0052d9' },
 };
 
-const getModelSlug = (model: any): string => {
+const getModelSlug = (model: AIModel): string => {
   const provider = (model.provider || '').toLowerCase();
   const name = (model.name || '').toLowerCase();
   for (const [key, slug] of Object.entries(MODEL_LOGO_MAP)) {
@@ -1422,22 +1425,22 @@ const getModelSlug = (model: any): string => {
   return 'openai';
 };
 
-const getModelLogo = (model: any): string => {
+const getModelLogo = (model: AIModel): string => {
   const slug = getModelSlug(model);
   return `https://unpkg.com/@lobehub/icons-static-svg@latest/icons/${slug}.svg`;
 };
 
-const getFallbackLetter = (model: any): string => {
+const getFallbackLetter = (model: AIModel): string => {
   const slug = getModelSlug(model);
   return FALLBACK_ICONS[slug]?.letter || '?';
 };
 
-const getFallbackColor = (model: any): string => {
+const getFallbackColor = (model: AIModel): string => {
   const slug = getModelSlug(model);
   return FALLBACK_ICONS[slug]?.color || 'var(--color-text-placeholder)';
 };
 
-const handleLogoError = (e: Event, _model: any) => {
+const handleLogoError = (e: Event, _model: AIModel) => {
   const img = e.target as HTMLImageElement;
   img.style.display = 'none';
   const wrap = img.parentElement;
@@ -1634,7 +1637,7 @@ const backfillData = async () => {
     const salesmanName = normalizeName(data.salesmanName);
     parsedSalesmanName.value = salesmanName;
     const matched = salesmenList.value.find(
-      (s: any) => {
+      (s: Salesman) => {
         const sName = normalizeName(s.name);
         return sName === salesmanName || sName.includes(salesmanName) || salesmanName.includes(sName);
       }
@@ -1677,6 +1680,7 @@ const backfillData = async () => {
   if (result.success) {
     submitSuccess.value = true;
     submittedName.value = payload.name;
+    submittedFormulaId.value = result.success && "data" in result ? result.data?.id || null : null;
     MessagePlugin.success(`配方「${payload.name}」创建成功`);
 
     if (selectedFile.value) {
@@ -1685,7 +1689,7 @@ const backfillData = async () => {
         fd.append('file', selectedFile.value);
         fd.append('fileType', 'formula');
         const uploaded = await fileApi.upload(fd);
-        const formulaId = (result as any).data?.id;
+        const formulaId = result.success && "data" in result ? result.data?.id : undefined;
         if (formulaId && uploaded?.fileId) {
           await fileApi.link(uploaded.fileId, { relatedId: formulaId, relatedType: 'formula' });
           uploadedFileInfo.value = {
@@ -1695,7 +1699,7 @@ const backfillData = async () => {
           };
           MessagePlugin.success('原文件已上传并关联至配方');
         }
-      } catch (fileErr: any) {
+      } catch (fileErr: unknown) {
         console.warn('文件上传或关联失败:', fileErr);
         MessagePlugin.warning('配方已创建，但原文件上传失败');
       }
@@ -1732,7 +1736,7 @@ const populateFormFromResult = (result: ParsedFormula) => {
     const salesmanName = normalizeName(result.salesmanName);
     parsedSalesmanName.value = salesmanName;
     const matched = salesmenList.value.find(
-      (s: any) => {
+      (s: Salesman) => {
         const sName = normalizeName(s.name);
         return sName === salesmanName || sName.includes(salesmanName) || salesmanName.includes(sName);
       }
@@ -1772,7 +1776,7 @@ const openQuickCreateSalesman = () => {
 
 const onSelectSalesman = (salesmanId: string) => {
   if (!salesmanId || !aiStore.parseResult) return;
-  const salesman = salesmenList.value.find((s: any) => s.id === salesmanId);
+  const salesman = salesmenList.value.find((s: Salesman) => s.id === salesmanId);
   if (!salesman) return;
   aiStore.parseResult.salesmanName = salesman.name;
   parsedSalesmanName.value = salesman.name;
@@ -1792,7 +1796,7 @@ const openQuickCreateMaterial = (material: MaterialTableRow | ParsedMaterial) =>
  * 2. 更新 parseResult 中对应原料的 matched 状态为 true
  *    （因为新创建的原料已存在于数据库中，AI 解析结果中的该原料应标记为已匹配）
  */
-const onMaterialCreated = async (material: any) => {
+const onMaterialCreated = async (material: Material) => {
   await materialStore.fetchAllForSelect();
 
   if (aiStore.parseResult?.materials?.length && material?.name) {
@@ -1935,6 +1939,7 @@ const handleFormSubmit = async () => {
   if (result.success) {
     submitSuccess.value = true;
     submittedName.value = formData.value.name.trim();
+    submittedFormulaId.value = result.success && "data" in result ? result.data?.id || null : null;
     MessagePlugin.success(`配方「${submittedName.value}」创建成功`);
     emit('activity-add', {
       type: 'success',
@@ -1988,7 +1993,11 @@ const goToFileDetail = () => {
 };
 
 const goToDashboard = () => {
-  router.push({ name: 'Dashboard' });
+  if (submittedFormulaId.value) {
+    router.push({ name: 'FormulaVersions', params: { formulaId: submittedFormulaId.value } });
+  } else {
+    router.push({ name: 'Dashboard' });
+  }
 };
 </script>
 

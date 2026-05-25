@@ -1,6 +1,6 @@
 import type { EChartsOption } from 'echarts'
 
-export const reportChartPalette = [
+const reportChartPalette = [
   '#10B981',
   '#3B82F6',
   '#F59E0B',
@@ -239,35 +239,6 @@ export function buildFormulaTypeDistributionChart(data: Array<{ type: string; qu
   }
 }
 
-export function buildSalesmanPerformanceChart(data: Array<{ salesmanName: string; totalQuantity: number; totalRevenue: number }>): EChartsOption {
-  const sorted = [...data].sort((a, b) => a.totalRevenue - b.totalRevenue)
-  return {
-    ...baseChartConfig,
-    title: { text: '业务员业绩排行', left: 'center', textStyle: { fontSize: 14, fontWeight: 600, color: '#334155' } },
-    grid: { left: '3%', right: '10%', bottom: '5%', top: '15%', containLabel: true },
-    xAxis: {
-      type: 'value',
-      axisLine: { show: false },
-      axisTick: { show: false },
-      splitLine: { lineStyle: { color: '#F1F5F9', type: 'dashed' } },
-      axisLabel: { color: '#94A3B8', fontSize: 11 },
-    },
-    yAxis: {
-      type: 'category',
-      data: sorted.map(d => d.salesmanName || ''),
-      axisLine: { lineStyle: { color: '#E2E8F0' } },
-      axisLabel: { color: '#334155', fontSize: 12 },
-    },
-    series: [{
-      type: 'bar',
-      data: sorted.map(d => d.totalRevenue),
-      barWidth: '50%',
-      itemStyle: { borderRadius: [0, 4, 4, 0], color: new Function('return new echarts.graphic.LinearGradient(0, 0, 1, 0, [{offset: 0, color: "#6366F1"}, {offset: 1, color: "#818CF8"}])')() as any },
-      label: { show: true, position: 'right', fontSize: 11, color: '#64748B', formatter: (p: any) => `¥${(p.value / 10000).toFixed(1)}万` },
-    }],
-  }
-}
-
 export function buildWeeklyBreakdownChart(data: Array<{ week: string; quantity: number; revenue: number }>): EChartsOption {
   return {
     ...baseChartConfig,
@@ -303,13 +274,3 @@ export function buildWeeklyBreakdownChart(data: Array<{ week: string; quantity: 
   }
 }
 
-export function getDarkChartTheme(): Record<string, any> {
-  return {
-    backgroundColor: 'transparent',
-    textStyle: { color: '#e8dfe8' },
-    legend: { textStyle: { color: '#8b7f94' } },
-    title: { textStyle: { color: '#e8dfe8' } },
-    xAxis: { axisLine: { lineStyle: { color: '#3d3445' } }, axisLabel: { color: '#8b7f94' } },
-    yAxis: { axisLine: { lineStyle: { color: '#3d3445' } }, axisLabel: { color: '#8b7f94' }, splitLine: { lineStyle: { color: '#3d3445' } } },
-  }
-}

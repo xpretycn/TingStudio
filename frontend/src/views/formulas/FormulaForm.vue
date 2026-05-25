@@ -70,7 +70,7 @@
             <div v-if="basicInfoCollapsed" class="info-collapsed-bar" @click="toggleBasicInfoCollapsed">
               <div class="info-collapsed-left">
                 <div class="info-collapsed-icon">
-                  <t-icon name="edit-1" />
+                  <t-icon name="info-circle" />
                 </div>
                 <span class="info-collapsed-text">基础信息</span>
                 <span class="info-collapsed-hint">点击展开</span>
@@ -80,8 +80,7 @@
             <template v-else>
               <div class="info-expanded-header" @click="toggleBasicInfoCollapsed">
                 <div class="info-expanded-title">
-                  <!-- <t-icon name="InfoCircleFilledIcon-1" /> -->
-                  <t-icon name="edit-1" />
+                  <t-icon name="info-circle" />
                   <span>基础信息</span>
                 </div>
                 <t-icon name="chevron-up" class="info-expanded-arrow" />
@@ -396,8 +395,10 @@ import { useSalesmanStore } from '@/stores/salesman';
 import { useMaterialStore } from '@/stores/material';
 import { MessagePlugin } from 'tdesign-vue-next';
 import type { FormRule } from 'tdesign-vue-next';
-import type { MaterialItem, RatioFactorValidationResult } from '@/api/formula';
+import type { MaterialItem, RatioFactorValidationResult, FormulaForm as FormulaFormType, PriceQuoteMaterial } from '@/api/formula';
 import { formulaApi } from '@/api/formula';
+import type { Material } from '@/api/material';
+import type { Salesman } from '@/api/salesman';
 import { agentApi } from '@/api/agent';
 import ExcelImportPanel from '@/components/ExcelImportPanel.vue';
 import type { ParsedMaterial } from '@/api/excelImport';
@@ -413,8 +414,8 @@ const formulaStore = useFormulaStore();
 const salesmanStore = useSalesmanStore();
 const materialStore = useMaterialStore();
 
-const formRef = ref<any>(null);
-const versionReasonRef = ref<any>(null);
+const formRef = ref<Record<string, unknown> | null>(null);
+const versionReasonRef = ref<Record<string, unknown> | null>(null);
 const loading = ref(false);
 const supplementPriceMap = ref<Record<string, number>>({});
 const versionReasonError = ref(false);
@@ -448,8 +449,8 @@ const ratioValidation = computed<RatioFactorValidationResult>(() => {
   }
 
   const allMats = materialStore.allMaterials || [];
-  const breakdown = materials.map((m: any) => {
-    const mat = allMats.find((x: any) => x.id === m.materialId);
+  const breakdown = materials.map((m: FormMaterialItem) => {
+    const mat = allMats.find((x: Material) => x.id === m.materialId);
     const materialType = mat?.materialType || 'herb';
     const isSupplement = materialType === 'supplement';
     const baseRatio = (m.quantity || 0) / finishedWeight;
@@ -540,22 +541,21 @@ const ratioMarkerLeft = computed(() => {
 const priceQuote = computed(() => {
   const allMats = materialStore.allMaterials ?? [];
   const priceMap = supplementPriceMap.value;
-  const matDetails = formData.materials.map((item: any) => {
-    const mat = allMats.find((m: any) => m.id === item.materialId);
+  const matDetails = formData.materials.map((item: FormMaterialItem) => {
+    const mat = allMats.find((m: Material) => m.id === item.materialId);
     const basePrice = mat?.unitPrice ?? priceMap[item.materialId] ?? null;
-    // 优先使用 adjustedPrice，其次使用 unitPrice，最后使用 basePrice
     const adjustedPrice = item.adjustedPrice;
     const effectivePrice = adjustedPrice != null ? adjustedPrice : (item.unitPrice ?? basePrice);
     const isAdjusted = adjustedPrice != null && adjustedPrice !== basePrice;
     const subtotal = effectivePrice != null ? Number((item.quantity / 1000 * effectivePrice).toFixed(4)) : 0;
     return { ...item, unitPrice: effectivePrice, basePrice, isAdjusted, subtotal, name: item.materialName || '' };
   });
-  const materialTotal = matDetails.reduce((s: number, m: any) => s + (m.subtotal || 0), 0);
+  const materialTotal = matDetails.reduce((s: number, m: FormMaterialItem & Record<string, unknown>) => s + (m.subtotal as number || 0), 0);
   const costSubtotal = Number((materialTotal + (formData.packagingPrice || 0) + (formData.otherPrice || 0)).toFixed(4));
   const margin = formData.profitMargin ?? 20;
   const totalPrice = Number((costSubtotal * (1 + margin / 100)).toFixed(4));
-  const missingPrices = matDetails.filter((m: any) => m.unitPrice === null).map((m: any) => m.name);
-  const adjustedCount = matDetails.filter((m: any) => m.isAdjusted).length;
+  const missingPrices = matDetails.filter((m: FormMaterialItem & Record<string, unknown>) => m.unitPrice === null).map((m: FormMaterialItem & Record<string, unknown>) => m.name);
+  const adjustedCount = matDetails.filter((m: FormMaterialItem & Record<string, unknown>) => m.isAdjusted).length;
   return { materials: matDetails, materialTotal, packagingPrice: formData.packagingPrice || 0, otherPrice: formData.otherPrice || 0, costSubtotal, profitMargin: margin, totalPrice, missingPrices, adjustedCount };
 });
 
@@ -578,7 +578,7 @@ const submitBlockReasons = computed(() => {
     reasons.push({ type: 'error', message: '请至少添加一种原料' });
   } else {
     const incomplete = formData.materials.filter(
-      (m: any) => !m.materialId || !m.quantity || m.quantity <= 0
+      (m: FormMaterialItem) => !m.materialId || !m.quantity || m.quantity <= 0
     );
     if (incomplete.length > 0) {
       reasons.push({ type: 'error', message: `${incomplete.length} 种原料信息不完整（缺少名称或用量）` });
@@ -618,14 +618,14 @@ const salesmanNotMatched = computed(() => {
   const name = parsedSalesmanName.value;
   if (!name) return false;
   return !salesmanStore.allSalesmen.find(
-    (s: any) => s.name === name || s.name.includes(name) || name.includes(s.name)
+    (s: Salesman) => s.name === name || s.name.includes(name) || name.includes(s.name)
   );
 });
 
 const materialTableRows = computed<MaterialTableRow[]>(() => {
   const allMats = materialStore.allMaterials ?? [];
-  return formData.materials.map((item: any) => {
-    const mat = allMats.find((m: any) => m.id === item.materialId);
+  return formData.materials.map((item: FormMaterialItem) => {
+    const mat = allMats.find((m: Material) => m.id === item.materialId);
     const basePrice = mat?.unitPrice ?? supplementPriceMap.value[item.materialId] ?? null;
     const isPriceAdj = item.adjustedPrice != null && item.adjustedPrice !== basePrice;
     const isQtyAdj = item.isQtyAdjusted === true && item.originalQuantity != null;
@@ -646,7 +646,7 @@ const materialTableRows = computed<MaterialTableRow[]>(() => {
 
 const handleMaterialsUpdate = (rows: MaterialTableRow[]) => {
   formData.materials = rows.map((row: MaterialTableRow) => {
-    const item: any = {
+    const item: FormMaterialItem = {
       materialId: row.materialId || '',
       materialName: row.materialName,
       quantity: row.quantity,
@@ -681,16 +681,36 @@ const handleExcelImport = (materials: ParsedMaterial[]) => {
   excelExpanded.value = false;
 };
 
-const onQuickSalesmanCreated = async (salesman: any) => {
+const onQuickSalesmanCreated = async (salesman: Salesman) => {
   await salesmanStore.fetchAllForSelect();
-  const matched = salesmanStore.allSalesmen.find((s: any) => s.id === salesman.id || s.name === salesman.name);
+  const matched = salesmanStore.allSalesmen.find((s: Salesman) => s.id === salesman.id || s.name === salesman.name);
   if (matched) {
     formData.salesmanId = matched.id;
     MessagePlugin.success(`业务员「${matched.name}」已创建并自动选中`);
   }
 };
 
-const formData = reactive<any>({
+interface FormMaterialItem {
+  materialId: string;
+  materialName?: string;
+  quantity: number;
+  adjustedPrice?: number | null;
+  basePrice?: number | null;
+  isPriceAdjusted?: boolean;
+  isQtyAdjusted?: boolean;
+  originalQuantity?: number;
+  materialType?: string;
+  unitPrice?: number | null;
+  supplement?: boolean;
+  name?: string;
+}
+
+interface FormData extends Omit<FormulaFormType, 'materials'> {
+  materials: FormMaterialItem[];
+  preparationMethod: string;
+}
+
+const formData = reactive<FormData>({
   name: '',
   salesmanId: '',
   materials: [],
@@ -745,7 +765,7 @@ async function handleGenerateDescription() {
     MessagePlugin.warning('请先填写配方名称');
     return;
   }
-  const materials = formData.materials.map((m: any) => ({
+  const materials = formData.materials.map((m: FormMaterialItem) => ({
     name: m.materialName || m.name,
     quantity: m.quantity,
     type: m.supplement ? 'supplement' : 'herb',
@@ -802,7 +822,7 @@ async function handleGeneratePreparation() {
     MessagePlugin.warning('请先填写配方名称');
     return;
   }
-  const materials = formData.materials.map((m: any) => ({
+  const materials = formData.materials.map((m: FormMaterialItem) => ({
     name: m.materialName || m.name,
     quantity: m.quantity,
     type: m.supplement ? 'supplement' : 'herb',
@@ -832,7 +852,7 @@ async function handleGenerateVersionReason() {
     MessagePlugin.warning('请先填写配方名称');
     return;
   }
-  const materials = formData.materials.map((m: any) => ({
+  const materials = formData.materials.map((m: FormMaterialItem) => ({
     name: m.materialName || m.name,
     quantity: m.quantity,
     type: m.supplement ? 'supplement' : 'herb',
@@ -862,13 +882,13 @@ const clearVersionReasonError = () => {
   }
 };
 
-const handleSubmit = async ({ validateResult }: any) => {
+const handleSubmit = async ({ validateResult }: Record<string, unknown>) => {
   if (validateResult === true) {
     if (isEdit.value && !formData.versionReason?.trim()) {
       versionReasonError.value = true;
       await nextTick();
-      const textareaEl = versionReasonRef.value?.$el?.querySelector('textarea')
-        || versionReasonRef.value?.$el;
+      const el = versionReasonRef.value?.$el as HTMLElement | undefined;
+      const textareaEl = el?.querySelector('textarea') || el;
       if (textareaEl) {
         textareaEl.focus?.();
         textareaEl.scrollIntoView?.({ behavior: 'smooth', block: 'center' });
@@ -889,7 +909,7 @@ const handleSubmit = async ({ validateResult }: any) => {
       }
       if (validation.level === 'high_warning') {
         const confirmed = await new Promise<boolean>((resolve) => {
-          const dialogInstance = (window as any).$tdesign?.DialogPlugin?.confirm?.({
+          const dialogInstance = (window as unknown as Record<string, Record<string, Record<string, (...args: unknown[]) => unknown>>>).$tdesign?.DialogPlugin?.confirm?.({
             header: '含量比严重偏差',
             body: validation.description,
             confirmBtn: '确认提交（需人工审核）',
@@ -907,7 +927,7 @@ const handleSubmit = async ({ validateResult }: any) => {
       }
       if (validation.level === 'warning') {
         const confirmed = await new Promise<boolean>((resolve) => {
-          const dialogInstance = (window as any).$tdesign?.DialogPlugin?.confirm?.({
+          const dialogInstance = (window as unknown as Record<string, Record<string, Record<string, (...args: unknown[]) => unknown>>>).$tdesign?.DialogPlugin?.confirm?.({
             header: '含量比偏差提醒',
             body: validation.description,
             confirmBtn: '继续创建',
@@ -976,16 +996,15 @@ async function handleRefreshSnapshot() {
     const formula = await formulaStore.getFormula(id);
     if (formula) {
       const allMats = materialStore.allMaterials ?? [];
-      const materials = (formula.materials || []).map((m: any) => {
+      const materials = (formula.materials || []).map((m: MaterialItem) => {
         let materialId = m.materialId;
         if (!allMats.find(mat => mat.id === materialId) && m.materialName) {
           const matched = allMats.find(mat => mat.name === m.materialName);
           if (matched) materialId = matched.id;
         }
-        const matFromStore = allMats.find((x: any) => x.id === materialId);
-        const materialType = matFromStore?.materialType || m.materialType || 'herb';
-        const item: any = { materialId, materialName: m.materialName, quantity: m.quantity, materialType };
-        if (m.adjustedPrice != null) item.adjustedPrice = m.adjustedPrice;
+        const matFromStore = allMats.find((x: Material) => x.id === materialId);
+        const materialType = matFromStore?.materialType || 'herb';
+        const item: FormMaterialItem = { materialId, materialName: m.materialName, quantity: m.quantity, materialType };
         return item;
       });
       formData.materials = materials;
@@ -1009,8 +1028,9 @@ async function handleRefreshSnapshot() {
     } catch {
       // ignore
     }
-  } catch (error: any) {
-    MessagePlugin.error(error.message || "刷新快照失败");
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "刷新快照失败";
+    MessagePlugin.error(message);
   } finally {
     refreshingSnapshot.value = false;
   }
@@ -1030,17 +1050,15 @@ onMounted(async () => {
         currentVersionNumber.value = formula.currentVersionNumber;
       }
       const allMats = materialStore.allMaterials ?? [];
-      const materials = (formula.materials || []).map((m: any) => {
+      const materials = (formula.materials || []).map((m: MaterialItem) => {
         let materialId = m.materialId;
         if (!allMats.find(mat => mat.id === materialId) && m.materialName) {
           const matched = allMats.find(mat => mat.name === m.materialName);
           if (matched) materialId = matched.id;
         }
-        // 从原料表获取 materialType，fallback 到 DB 存储值再到默认值
-        const matFromStore = allMats.find((x: any) => x.id === materialId);
-        const materialType = matFromStore?.materialType || m.materialType || 'herb';
-        const item: any = { materialId, materialName: m.materialName, quantity: m.quantity, materialType };
-        if (m.adjustedPrice != null) item.adjustedPrice = m.adjustedPrice;
+        const matFromStore = allMats.find((x: Material) => x.id === materialId);
+        const materialType = matFromStore?.materialType || 'herb';
+        const item: FormMaterialItem = { materialId, materialName: m.materialName, quantity: m.quantity, materialType };
         return item;
       });
       Object.assign(formData, {
@@ -1054,14 +1072,14 @@ onMounted(async () => {
         otherPrice: formula.otherPrice ?? 0,
         profitMargin: formula.profitMargin ?? 20,
         description: formula.description || '',
-        preparationMethod: (formula as any).preparationMethod || ''
+        preparationMethod: (formula as unknown as Record<string, unknown>).preparationMethod || ''
       });
 
       try {
         const quoteData = await formulaApi.getPriceQuote(id);
         if (quoteData?.materials) {
           const map: Record<string, number> = {};
-          quoteData.materials.forEach((m: any) => {
+          quoteData.materials.forEach((m: PriceQuoteMaterial) => {
             if (m.unitPrice != null && m.materialId) {
               map[m.materialId] = m.unitPrice;
             }
@@ -1562,6 +1580,12 @@ onMounted(async () => {
         }
 
         .field-compact {
+          .field-label {
+            .required {
+              color: #f43f5e;
+            }
+          }
+
           .field-label-row {
             display: flex;
             align-items: center;
@@ -2351,6 +2375,12 @@ onMounted(async () => {
 
       .section-content {
         .form-field {
+          .field-label {
+            .required {
+              color: #f43f5e;
+            }
+          }
+
           .field-label-row {
             display: flex;
             align-items: center;

@@ -1,19 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
-import { parseResultApi } from '@/api/parseResult';
-
-interface DegradationInfo {
-  level: 'normal' | 'degraded' | '熔断';
-  reason: string;
-  recommendations: string[];
-  systemStatus: {
-    totalCount: number;
-    storageLimit: number;
-    usagePercent: number;
-    cleanupThreshold: number;
-    isOverThreshold: boolean;
-  };
-}
+import { parseResultApi, type DegradationInfo } from '@/api/parseResult';
 
 const props = defineProps<{
   visible?: boolean;

@@ -1,4 +1,5 @@
 import http from './http'
+import type { Pagination } from './http'
 
 export interface Salesman {
   id: string
@@ -23,22 +24,21 @@ export interface SalesmanForm {
 
 export const salesmanApi = {
   getList(params?: { keyword?: string; status?: string; department?: string; page?: number; pageSize?: number }) {
-    // axios 拦截器会提取 res.data，所以这里直接返回内部的数据结构
-    return http.get<any, { list: Salesman[]; pagination: any }>('/salesmen', { params })
+    return http.get<unknown, { list: Salesman[]; pagination: Pagination }>('/salesmen', { params })
   },
   getById(id: string) {
-    return http.get<any, Salesman>(`/salesmen/${id}`)
+    return http.get<unknown, Salesman>(`/salesmen/${id}`)
   },
   create(data: SalesmanForm) {
-    return http.post<any, Salesman>('/salesmen', data)
+    return http.post<unknown, Salesman>('/salesmen', data)
   },
   update(id: string, data: Partial<SalesmanForm & { status?: string }>) {
-    return http.put<any, Salesman>(`/salesmen/${id}`, data)
+    return http.put<unknown, Salesman>(`/salesmen/${id}`, data)
   },
   delete(id: string) {
-    return http.delete<any, { success: boolean; message: string }>(`/salesmen/${id}`)
+    return http.delete<unknown, { success: boolean; message: string }>(`/salesmen/${id}`)
   },
   toggleStatus(id: string, status: 'active' | 'inactive') {
-    return http.patch<any, { success: boolean; message: string }>(`/salesmen/${id}/status`, { status })
+    return http.patch<unknown, { success: boolean; message: string }>(`/salesmen/${id}/status`, { status })
   },
 }

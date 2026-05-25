@@ -171,7 +171,7 @@ async function downloadTemplate() {
   downloading.value = true
   try {
     const response = await excelImportApi.downloadTemplate()
-    const blob = new Blob([response as any], {
+    const blob = new Blob([response as unknown as BlobPart], {
       type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     })
     const url = window.URL.createObjectURL(blob)
@@ -183,8 +183,9 @@ async function downloadTemplate() {
     document.body.removeChild(link)
     window.URL.revokeObjectURL(url)
     MessagePlugin.success('模板下载成功')
-  } catch (error: any) {
-    MessagePlugin.error(error.message || '下载模板失败')
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : '下载模板失败';
+    MessagePlugin.error(msg)
   } finally {
     downloading.value = false
   }
@@ -213,8 +214,8 @@ async function handleUpload(options: { raw: File }) {
 
   try {
     const result = await excelImportApi.parseFormulaExcel(options.raw)
-    parseResult.value = result as any
-    const data = (result as any).data ?? result
+    parseResult.value = result.data
+    const data = result.data
     if (data.errors?.length > 0) {
       MessagePlugin.warning(`解析完成，但有 ${data.errors.length} 个错误`)
     } else if (data.missingMaterials?.length > 0) {
@@ -222,8 +223,9 @@ async function handleUpload(options: { raw: File }) {
     } else {
       MessagePlugin.success(`解析成功，共 ${data.summary?.total ?? 0} 条原料`)
     }
-  } catch (error: any) {
-    MessagePlugin.error(error.message || '解析文件失败')
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : '解析文件失败';
+    MessagePlugin.error(msg)
   } finally {
     uploading.value = false
   }

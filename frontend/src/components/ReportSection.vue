@@ -31,7 +31,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 
-const _props = withDefaults(defineProps<{
+withDefaults(defineProps<{
   title: string
   icon?: string
   theme?: string

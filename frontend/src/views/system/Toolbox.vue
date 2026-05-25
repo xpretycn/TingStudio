@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="tools-page">
     <!-- 工具卡片网格 -->
     <div class="tools-grid">
@@ -201,7 +201,7 @@ const tools = ref([
   }
 ])
 
-const handleToolClick = (tool: any) => {
+const handleToolClick = (tool: { id: number; icon: string; title: string; description: string; bgColor: string }) => {
   MessagePlugin.info(`${tool.title} 功能开发中，敬请期待~`)
 }
 

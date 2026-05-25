@@ -672,7 +672,7 @@ const goPage = (page: number) => {
 const loadData = async () => {
   loadError.value = '';
   try {
-    const params: Record<string, any> = {
+    const params: Record<string, unknown> = {
       page: reportStore.currentPage,
       pageSize: reportStore.pageSize,
     };
@@ -683,8 +683,9 @@ const loadData = async () => {
       params.endDate = filterDateRange.value[1];
     }
     await reportStore.fetchReports(params);
-  } catch (e: any) {
-    loadError.value = e.message || '加载失败，请稍后重试';
+  } catch (e: unknown) {
+    const err = e as { message?: string };
+    loadError.value = err.message || '加载失败，请稍后重试';
   }
 };
 
@@ -753,8 +754,9 @@ const handleGenerateForMonth = async (type: 'weekly' | 'monthly', monthKey: stri
       MessagePlugin.success(`${type === 'weekly' ? '周报' : '月报'}生成成功`);
       await loadData();
     }
-  } catch (e: any) {
-    generateError.value = e.message || '生成失败';
+  } catch (e: unknown) {
+    const err = e as { message?: string };
+    generateError.value = err.message || '生成失败';
     generateErrorKey.value = key;
     MessagePlugin.error(generateError.value);
   } finally {
@@ -788,16 +790,18 @@ const handleSinglePublish = async (report: Report) => {
       await reportStore.publishReport(report.id);
       MessagePlugin.success(`「${report.title}」已发布`);
       await loadData();
-    } catch (e: any) {
-      MessagePlugin.error(e.message || '发布失败');
+    } catch (e: unknown) {
+      const err = e as { message?: string };
+      MessagePlugin.error(err.message || '发布失败');
     }
   } else {
     try {
       await reportStore.updateReport(report.id, { status: 'archived' });
       MessagePlugin.success(`「${report.title}」已归档`);
       await loadData();
-    } catch (e: any) {
-      MessagePlugin.error(e.message || '归档失败');
+    } catch (e: unknown) {
+      const err = e as { message?: string };
+      MessagePlugin.error(err.message || '归档失败');
     }
   }
 };
@@ -1020,7 +1024,7 @@ const todoPrev = () => { if (todoPage.value > 1) todoPage.value--; };
 const todoNext = () => { if (todoPage.value < todoTotalPages.value) todoPage.value++; };
 const refreshTodo = () => { todoPage.value = 1; };
 
-const handleTodoAction = (item: any) => {
+const handleTodoAction = (item: Record<string, unknown>) => {
   if (item.action === 'generate' || item.action === 'generate-weekly') {
     handleGenerateWeekly();
   } else if (item.action === 'publish') {
@@ -1034,8 +1038,9 @@ const handleTodoAction = (item: any) => {
 onMounted(async () => {
   try {
     await loadData();
-  } catch (e: any) {
-    loadError.value = e.message || '初始化失败';
+  } catch (e: unknown) {
+    const err = e as { message?: string };
+    loadError.value = err.message || '初始化失败';
   } finally {
     initialized.value = true;
   }

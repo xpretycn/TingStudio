@@ -1,15 +1,15 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { versionApi } from '@/api/version'
-import type { FormulaVersion, MaterialUpdatesResult, ReviewLog } from '@/api/version'
+import type { FormulaVersion, MaterialUpdatesResult, VersionReviewLog, VersionCompareResult } from '@/api/version'
 
 export const useVersionStore = defineStore('version', () => {
   const versions = ref<FormulaVersion[]>([])
   const loading = ref(false)
   const currentVersion = ref<FormulaVersion | null>(null)
-  const compareResult = ref<any>(null)
+  const compareResult = ref<VersionCompareResult | null>(null)
   const materialUpdates = ref<MaterialUpdatesResult | null>(null)
-  const reviewLogs = ref<ReviewLog[]>([])
+  const reviewLogs = ref<VersionReviewLog[]>([])
 
   const fetchVersions = async (formulaId: string, params?: { status?: string }) => {
     loading.value = true
@@ -39,8 +39,8 @@ export const useVersionStore = defineStore('version', () => {
       const res = await versionApi.create(formulaId, data)
       await fetchVersions(formulaId)
       return { success: true, data: res || null }
-    } catch (error: any) {
-      return { success: false, message: error.message || '创建版本失败', data: null }
+    } catch (error: unknown) {
+      return { success: false, message: error instanceof Error ? error.message : '创建版本失败', data: null }
     } finally {
       loading.value = false
     }
@@ -51,8 +51,8 @@ export const useVersionStore = defineStore('version', () => {
     try {
       await versionApi.publish(versionId)
       return { success: true }
-    } catch (error: any) {
-      return { success: false, message: error.message || '发布失败' }
+    } catch (error: unknown) {
+      return { success: false, message: error instanceof Error ? error.message : '发布失败' }
     } finally {
       loading.value = false
     }
@@ -64,9 +64,9 @@ export const useVersionStore = defineStore('version', () => {
       const res = await versionApi.compare(formulaId, versionA, versionB)
       compareResult.value = res || null
       return { success: true, data: res || null }
-    } catch (error: any) {
+    } catch (error: unknown) {
       compareResult.value = null
-      return { success: false, message: error.message || '版本对比失败' }
+      return { success: false, message: error instanceof Error ? error.message : '版本对比失败' }
     } finally {
       loading.value = false
     }
@@ -77,8 +77,8 @@ export const useVersionStore = defineStore('version', () => {
     try {
       await versionApi.submit(versionId, data)
       return { success: true }
-    } catch (error: any) {
-      return { success: false, message: error.message || '提交审批失败' }
+    } catch (error: unknown) {
+      return { success: false, message: error instanceof Error ? error.message : '提交审批失败' }
     } finally {
       loading.value = false
     }
@@ -89,8 +89,8 @@ export const useVersionStore = defineStore('version', () => {
     try {
       await versionApi.approve(versionId, data)
       return { success: true }
-    } catch (error: any) {
-      return { success: false, message: error.message || '批准失败' }
+    } catch (error: unknown) {
+      return { success: false, message: error instanceof Error ? error.message : '批准失败' }
     } finally {
       loading.value = false
     }
@@ -101,8 +101,8 @@ export const useVersionStore = defineStore('version', () => {
     try {
       await versionApi.reject(versionId, { comment })
       return { success: true }
-    } catch (error: any) {
-      return { success: false, message: error.message || '驳回失败' }
+    } catch (error: unknown) {
+      return { success: false, message: error instanceof Error ? error.message : '驳回失败' }
     } finally {
       loading.value = false
     }
@@ -113,8 +113,8 @@ export const useVersionStore = defineStore('version', () => {
     try {
       const res = await versionApi.getPendingReview(params)
       return { success: true, data: res }
-    } catch (error: any) {
-      return { success: false, message: error.message || '获取待审核列表失败' }
+    } catch (error: unknown) {
+      return { success: false, message: error instanceof Error ? error.message : '获取待审核列表失败' }
     } finally {
       loading.value = false
     }
@@ -123,10 +123,10 @@ export const useVersionStore = defineStore('version', () => {
   const fetchReviewLogs = async (versionId: string) => {
     try {
       const res = await versionApi.getReviewLogs(versionId)
-      reviewLogs.value = res?.logs || []
+      reviewLogs.value = Array.isArray(res) ? res : []
       return { success: true, data: res }
-    } catch (error: any) {
-      return { success: false, message: error.message || '获取审核日志失败' }
+    } catch (error: unknown) {
+      return { success: false, message: error instanceof Error ? error.message : '获取审核日志失败' }
     }
   }
 
@@ -135,8 +135,8 @@ export const useVersionStore = defineStore('version', () => {
       const res = await versionApi.getMaterialUpdates(formulaId)
       materialUpdates.value = res || null
       return { success: true, data: res }
-    } catch (error: any) {
-      return { success: false, message: error.message || '检查原料更新失败' }
+    } catch (error: unknown) {
+      return { success: false, message: error instanceof Error ? error.message : '检查原料更新失败' }
     }
   }
 
@@ -145,8 +145,8 @@ export const useVersionStore = defineStore('version', () => {
     try {
       const res = await versionApi.refreshSnapshot(formulaId, data)
       return { success: true, data: res }
-    } catch (error: any) {
-      return { success: false, message: error.message || '刷新原料数据失败' }
+    } catch (error: unknown) {
+      return { success: false, message: error instanceof Error ? error.message : '刷新原料数据失败' }
     } finally {
       loading.value = false
     }
@@ -157,8 +157,8 @@ export const useVersionStore = defineStore('version', () => {
     try {
       await versionApi.setCurrentVersion(versionId)
       return { success: true }
-    } catch (error: any) {
-      return { success: false, message: error.message || '切换当前版本失败' }
+    } catch (error: unknown) {
+      return { success: false, message: error instanceof Error ? error.message : '切换当前版本失败' }
     } finally {
       loading.value = false
     }

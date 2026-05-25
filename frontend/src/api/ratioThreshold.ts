@@ -13,7 +13,7 @@ export interface RatioThresholdConfig {
 
 export const ratioThresholdApi = {
   get() {
-    return http.get<any, RatioThresholdConfig>('/ratio-thresholds');
+    return http.get<unknown, RatioThresholdConfig>('/ratio-thresholds');
   },
 
   update(data: {
@@ -24,6 +24,6 @@ export const ratioThresholdApi = {
     highWarningLow: number;
     highWarningHigh: number;
   }) {
-    return http.put<any, RatioThresholdConfig>('/ratio-thresholds', data);
+    return http.put<unknown, RatioThresholdConfig>('/ratio-thresholds', data);
   },
 };

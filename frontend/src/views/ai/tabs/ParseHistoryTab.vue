@@ -137,7 +137,7 @@
           <div class="history-card-type">
             <t-checkbox :model-value="selectedIds.includes(item.id)"
               @change="(checked: boolean) => toggleSelect(item.id, checked)" @click.stop />
-            <span class="type-badge" :class="'type-badge--' + item.callType">{{ item.callTypeLabel }}</span>
+            <span class="type-badge" :class="'type-badge--' + item.callType">{{ getCallTypeLabel(item.callType) }}</span>
             <span class="status-dot" :class="'status-dot--' + item.status"></span>
             <span class="status-text">{{ item.status === 'success' ? '成功' : item.status === 'failed' ? '失败' : '待处理'
             }}</span>
@@ -162,9 +162,9 @@
               <t-icon name="chat" />
               {{ item.modelName }}
             </span>
-            <span v-if="item.usedCount > 0" class="meta-item">
+            <span v-if="item.useCount > 0" class="meta-item">
               <t-icon name="view" />
-              使用 {{ item.usedCount }} 次
+              使用 {{ item.useCount }} 次
             </span>
           </div>
         </div>
@@ -211,7 +211,7 @@
           </div>
           <div class="detail-row">
             <span class="detail-label">解析类型：</span>
-            <span class="detail-value">{{ currentDetail.callTypeLabel }}</span>
+            <span class="detail-value">{{ getCallTypeLabel(currentDetail.callType) }}</span>
           </div>
           <div class="detail-row">
             <span class="detail-label">状态：</span>
@@ -267,11 +267,12 @@ import { MessagePlugin } from 'tdesign-vue-next';
 import { formatTimestamp } from '@/utils/timeFormat';
 import DegradationBanner from '@/components/DegradationBanner.vue';
 import { useAiStore } from '@/stores/ai';
+import type { ParseResultItem } from '@/api/parseResult';
 
 const router = useRouter();
 const aiStore = useAiStore();
 const loading = ref(false);
-const items = ref<any[]>([]);
+const items = ref<ParseResultItem[]>([]);
 const activeFilter = ref('all');
 const searchParams = ref({
   searchText: '',
@@ -294,14 +295,14 @@ const handleDateRangeChange = (value: [string, string] | null | []) => {
 };
 
 const detailDrawerVisible = ref(false);
-const currentDetail = ref<any>(null);
+const currentDetail = ref<ParseResultItem | null>(null);
 const showStorageDetail = ref(false);
 const showDegradationBanner = ref(true);
 const selectedIds = ref<string[]>([]);
 const batchDeleteLoading = ref(false);
 const highlightedId = ref<string | null>(null);
 const cardRefs = new Map<string, HTMLElement>();
-const handleCardRef = (id: string, el: any) => {
+const handleCardRef = (id: string, el: unknown) => {
   if (el) cardRefs.set(id, el as HTMLElement);
   else cardRefs.delete(id);
 };
@@ -348,12 +349,6 @@ const isIndeterminate = computed(() => {
   return selectedIds.value.length > 0 && selectedIds.value.length < items.value.length;
 });
 
-const _filterOptions = [
-  { label: '全部', value: 'all' },
-  { label: '智能填单', value: 'parse_formula' },
-  { label: '智能导入', value: 'parse_nutrition' },
-];
-
 const statusOptions = [
   { label: '全部', value: '' },
   { label: '成功', value: 'success' },
@@ -364,7 +359,7 @@ const statusOptions = [
 const fetchData = async () => {
   loading.value = true;
   try {
-    const params: any = {
+    const params: Record<string, unknown> = {
       page: pagination.value.page,
       pageSize: pagination.value.pageSize,
     };
@@ -397,7 +392,7 @@ const fetchData = async () => {
 
     // 高亮来自路由的指定记录
     const highlightId = aiStore.parseHistoryHighlight;
-    if (highlightId && items.value.some((i: any) => i.id === highlightId)) {
+    if (highlightId && items.value.some((i: ParseResultItem) => i.id === highlightId)) {
       highlightedId.value = highlightId;
       aiStore.parseHistoryHighlight = null;
       await nextTick();
@@ -418,7 +413,15 @@ const fetchData = async () => {
 const fetchStatistics = async () => {
   try {
     const res = await parseResultApi.getStatistics();
-    statistics.value = res;
+    statistics.value = {
+      totalCount: res.total,
+      storageLimit: 5000,
+      usagePercent: res.total > 0 ? Math.round((res.total / 5000) * 100) : 0,
+      cleanupThreshold: 95,
+      cleanupBatchPercent: 5,
+      statsByType: {},
+      statsByStatus: {},
+    };
   } catch (error) {
     console.error('Failed to fetch statistics:', error);
   }
@@ -467,12 +470,12 @@ const filterByLinked = () => {
   MessagePlugin.info('已关联记录的筛选功能开发中');
 };
 
-const handlePageChange = (pageInfo: any) => {
-  pagination.value.page = pageInfo.page;
+const handlePageChange = (pageInfo: Record<string, unknown>) => {
+  pagination.value.page = Number(pageInfo.page) || 1;
   fetchData();
 };
 
-const showDetail = async (item: any) => {
+const showDetail = async (item: ParseResultItem) => {
   detailDrawerVisible.value = true;
   try {
     const res = await parseResultApi.getDetail(item.id);
@@ -507,8 +510,9 @@ const handleDelete = async (id: string) => {
     }
     await fetchData();
     await fetchStatistics();
-  } catch (error: any) {
-    MessagePlugin.error(error.message || '删除失败');
+  } catch (error: unknown) {
+    const err = error as { message?: string };
+    MessagePlugin.error(err.message || '删除失败');
   }
 };
 
@@ -532,8 +536,9 @@ const handleBatchDelete = async () => {
     selectedIds.value = [];
     await fetchData();
     await fetchStatistics();
-  } catch (error: any) {
-    MessagePlugin.error(error.message || '批量删除失败');
+  } catch (error: unknown) {
+    const err = error as { message?: string };
+    MessagePlugin.error(err.message || '批量删除失败');
   } finally {
     batchDeleteLoading.value = false;
   }
@@ -569,6 +574,19 @@ const copyResult = async () => {
   } catch {
     MessagePlugin.error('复制失败');
   }
+};
+
+const getCallTypeLabel = (callType: string): string => {
+  const labels: Record<string, string> = {
+    parse_formula: "解析配方",
+    parse_material: "解析原料",
+    parse_nutrition: "解析营养",
+    natural_search: "自然检索",
+    smart_search: "智能检索",
+    parse_file_image: "图片提取",
+    unknown: "其他",
+  };
+  return labels[callType] || callType;
 };
 
 const getStorageClass = () => {

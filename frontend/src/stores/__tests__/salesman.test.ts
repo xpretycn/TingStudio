@@ -76,7 +76,7 @@ describe("useSalesmanStore", () => {
     create.mockResolvedValue({});
     getList.mockResolvedValue({ list: [MOCK_SALESMEN[0]], pagination: { total: 1, page: 1, pageSize: 10 } });
 
-    const result = await store.createSalesman({ name: "王五", phone: "13900139001", region: "华北" } as any);
+    const result = await store.createSalesman({ name: "王五", phone: "13900139001" } as Partial<import("@/api/salesman").SalesmanForm> as unknown as import("@/api/salesman").SalesmanForm);
 
     expect(result.success).toBe(true);
   });

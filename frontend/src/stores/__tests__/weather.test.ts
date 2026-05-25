@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import { useWeatherStore } from "@/stores/weather";
+import type { WeatherData } from "@/api/weather";
 
 const mockFetchWeather = vi.hoisted(() =>
   vi.fn(() =>
@@ -119,19 +120,19 @@ describe("Weather Store", () => {
       updateTime: "2026-04-19T10:00+08:00",
     };
 
-    store.weather = base as any;
+    store.weather = base as unknown as WeatherData;
     expect(store.weatherIcon).toBe("sunny");
 
-    store.weather = { ...base, now: { ...base.now, text: "多云" } } as any;
+    store.weather = { ...base, now: { ...base.now, text: "多云" } } as unknown as WeatherData;
     expect(store.weatherIcon).toBe("cloudy");
 
-    store.weather = { ...base, now: { ...base.now, text: "小雨" } } as any;
+    store.weather = { ...base, now: { ...base.now, text: "小雨" } } as unknown as WeatherData;
     expect(store.weatherIcon).toBe("rainy");
 
-    store.weather = { ...base, now: { ...base.now, text: "小雪" } } as any;
+    store.weather = { ...base, now: { ...base.now, text: "小雪" } } as unknown as WeatherData;
     expect(store.weatherIcon).toBe("snowy");
 
-    store.weather = { ...base, now: { ...base.now, text: "雾" } } as any;
+    store.weather = { ...base, now: { ...base.now, text: "雾" } } as unknown as WeatherData;
     expect(store.weatherIcon).toBe("hazy");
   });
 

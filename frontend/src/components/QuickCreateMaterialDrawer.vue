@@ -398,7 +398,7 @@ const handleSubmit = async () => {
       unitPrice: formData.value.unitPrice || undefined,
     })
 
-    const materialId = (created as any)?.id || (created as any)?.data?.id
+    const materialId = created?.id || String(((created as unknown as Record<string, unknown>)?.data as Record<string, unknown> | undefined)?.id ?? '')
     if (materialId && hasNutritionData.value) {
       const per100g: Record<string, number> = {}
       if (formData.value.protein != null && formData.value.protein > 0) per100g.protein_g = formData.value.protein
@@ -421,8 +421,9 @@ const handleSubmit = async () => {
     MessagePlugin.success(`原料「${formData.value.name}」创建成功`)
     emit('created', created)
     emit('update:visible', false)
-  } catch (error: any) {
-    MessagePlugin.error(error?.message || '创建原料失败')
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : '创建原料失败';
+    MessagePlugin.error(msg)
   } finally {
     submitting.value = false
   }

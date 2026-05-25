@@ -4,13 +4,13 @@
 > SQLite 文件路径：`./data/tingstudio.db`
 > 运行时初始化：`backend/src/config/database-better-sqlite3.ts`
 > 参考脚本：`backend/src/scripts/init.sql`
-> 最后更新：2026-05-13
+> 最后更新：2026-05-25
 
 ---
 
 ## 一、数据库概览
 
-系统共包含 **32 张表**，分为 11 个功能模块：
+系统共包含 **42 张表**，分为 14 个功能模块：
 
 | 模块           | 表数量 | 表名                                                                                                   |
 | -------------- | ------ | ------------------------------------------------------------------------------------------------------ |
@@ -24,7 +24,11 @@
 | 文件管理       | 3      | uploaded_files, file_audit_log, file_relations                                                         |
 | AI 模型管理    | 7      | ai_models, ai_usage_logs, ai_alert_configs, ai_alert_records, ai_health_records, ai_fallback_configs, model_applications |
 | AI 助手        | 5      | agent_sessions, agent_messages, agent_pending_confirmations, agent_pending_forms, agent_role_config    |
+| AI 助手扩展    | 3      | agent_float_config, agent_provider_health, agent_session_cleanup_log                                   |
 | 搜索导出       | 1      | search_export_cache                                                                                    |
+| 审核管理       | 2      | formula_review_logs, material_review_logs                                                              |
+| 解析与模板     | 4      | parse_results, parse_result_configs, parse_templates, ai_prompt_templates                             |
+| 含量比配置     | 1      | ratio_threshold_configs                                                                                |
 
 ---
 
@@ -60,31 +64,68 @@
 
 ### 2.2 原料表 `materials`
 
-存储配方所需的原料信息。
+存储配方所需的原料信息，支持版本化管理。
 
-| 字段            | 类型 | 约束                       | 说明                                                   |
-| --------------- | ---- | -------------------------- | ------------------------------------------------------ |
-| `id`            | TEXT | PRIMARY KEY                | 原料唯一标识                                           |
-| `name`          | TEXT | NOT NULL                   | 原料名称                                               |
-| `code`          | TEXT | NOT NULL, UNIQUE           | 原料编码（如 MAT001）                                  |
-| `unit`          | TEXT | NOT NULL, DEFAULT 'g'      | 计量单位                                               |
-| `stock`         | REAL | NOT NULL, DEFAULT 0        | 库存数量                                               |
-| `material_type` | TEXT | NOT NULL, DEFAULT 'herb'   | 原料类型：`herb`（中药材）/ `supplement`（营养补充剂） |
-| `unit_price`    | REAL | DEFAULT NULL               | 单价（元/kg），可为空                                  |
-| `data_source`   | TEXT | NOT NULL, DEFAULT 'manual' | 数据来源：`manual` / `batch_import` / `api_sync`       |
-| `created_by`    | TEXT | NOT NULL                   | 创建人（用户 ID）                                      |
-| `created_at`    | TEXT | NOT NULL                   | 创建时间                                               |
-| `updated_at`    | TEXT | NOT NULL                   | 更新时间                                               |
+| 字段                  | 类型    | 约束                                                    | 说明                                                   |
+| --------------------- | ------- | ------------------------------------------------------- | ------------------------------------------------------ |
+| `id`                  | TEXT    | PRIMARY KEY                                              | 原料唯一标识                                           |
+| `name`                | TEXT    | NOT NULL                                                 | 原料名称                                               |
+| `code`                | TEXT    | NOT NULL                                                 | 原料编码（如 MAT001）                                  |
+| `unit`                | TEXT    | NOT NULL, DEFAULT 'g'                                    | 计量单位                                               |
+| `stock`               | REAL    | NOT NULL, DEFAULT 0                                      | 库存数量                                               |
+| `material_type`       | TEXT    | NOT NULL, DEFAULT 'herb'                                 | 原料类型：`herb`（中药材）/ `supplement`（营养补充剂） |
+| `unit_price`          | REAL    | DEFAULT NULL                                             | 单价（元/kg），可为空                                  |
+| `data_source`         | TEXT    | NOT NULL, DEFAULT 'manual'                               | 数据来源：`manual` / `batch_import` / `api_sync`       |
+| `version`             | INTEGER | NOT NULL, DEFAULT 1                                      | **新增** 版本号                                        |
+| `previous_version_id` | TEXT    | DEFAULT NULL                                             | **新增** 上一版本原料 ID                               |
+| `is_latest`           | INTEGER | NOT NULL, DEFAULT 1                                      | **新增** 是否为最新版本（1/0）                         |
+| `is_deleted`          | INTEGER | NOT NULL, DEFAULT 0                                      | **新增** 是否已删除（1/0）                             |
+| `changes_json`        | TEXT    | DEFAULT NULL                                             | **新增** 版本变更记录 JSON                             |
+| `status`              | TEXT    | NOT NULL, DEFAULT 'draft'                                | **新增** 状态：`draft` / `pending_review` / `published` |
+| `parse_result_id`     | TEXT    | DEFAULT NULL                                             | **新增** 关联解析结果 ID                               |
+| `created_by`          | TEXT    | NOT NULL                                                 | 创建人（用户 ID）                                      |
+| `created_at`          | TEXT    | NOT NULL                                                 | 创建时间                                               |
+| `updated_at`          | TEXT    | NOT NULL                                                 | 更新时间                                               |
 
 **索引**：
 
 - `idx_material_name`：按原料名称
 - `idx_material_code`：按原料编码
+- `idx_material_version`：按版本号
+- `idx_material_previous_version`：按上一版本 ID
+- `idx_material_is_latest`：按是否最新版本
+- `idx_material_is_deleted`：按是否删除
+- `idx_material_status`：按状态
+- `idx_materials_parse_result_id`：按解析结果 ID
+
+**新增字段说明**：
+
+- `version`：原料版本号，每次升版自增。同一 `code` 可存在多个版本记录（`code` 的 UNIQUE 约束已移除）
+- `previous_version_id`：指向上一版本原料的 `id`，形成版本链
+- `is_latest`：标记当前 `code` 下最新版本，查询时用于快速定位
+- `is_deleted`：软删除标记，删除时置 1 而非物理删除
+- `changes_json`：记录本次版本变更的具体字段差异
+- `status`：审核流程状态，`draft` → `pending_review` → `published`
+- `parse_result_id`：关联 `parse_results.id`，标识该原料由哪次解析结果创建
+
+**`changes_json` 结构**：
+
+```json
+[
+  {
+    "field": "unit_price",
+    "oldValue": 55,
+    "newValue": 60,
+    "changeType": "modify"
+  }
+]
+```
 
 **业务含义**：
 
 - `unit_price`：原料库基价，用于配方成本计算；配方中可通过 `adjustedPrice` 覆盖
 - `data_source`：标识数据录入方式，`batch_import` 表示 Excel 批量导入，`api_sync` 表示 API 同步
+- 版本化后，同一原料编码可存在多条记录，通过 `is_latest` 筛选当前有效版本
 
 ---
 
@@ -110,6 +151,7 @@
 | `preparation_method`      | TEXT | DEFAULT NULL               | 制作方法                    |
 | `original_name`           | TEXT | DEFAULT NULL               | 原始配方名称（文件导入时）  |
 | `original_weight`         | REAL | DEFAULT NULL               | 原始配方重量（文件导入时）  |
+| `parse_result_id`         | TEXT | DEFAULT NULL               | **新增** 关联解析结果 ID    |
 | `created_by`              | TEXT | NOT NULL                   | 创建人（用户 ID）           |
 | `created_at`              | TEXT | NOT NULL                   | 创建时间                    |
 | `updated_at`              | TEXT | NOT NULL                   | 更新时间                    |
@@ -122,6 +164,12 @@
 - `idx_formula_code`：按配方编码
 - `idx_formula_salesman_id`：按业务员 ID
 - `idx_formula_created_by`：按创建人
+- `idx_formulas_parse_result_id`：按解析结果 ID
+
+**新增字段说明**：
+
+- `original_name` / `original_weight`：文件导入配方时保留的原始信息，便于溯源
+- `parse_result_id`：关联 `parse_results.id`，标识该配方由哪次解析结果创建
 
 **`materials_json` 结构**：
 
@@ -150,6 +198,7 @@
 - `ratio_factor`：主料（中药材）含量比系数，用于营养计算中原料有效成分占比
 - `supplement_ratio_factor`：辅料（营养补充剂）含量比系数
 - `original_name` / `original_weight`：文件导入配方时保留的原始信息
+- `parse_result_id`：关联解析结果，用于追踪配方的 AI 解析来源
 
 ---
 
@@ -223,21 +272,21 @@
 
 存储配方的版本快照和变更记录。
 
-| 字段                      | 类型    | 约束                       | 说明                                     |
-| ------------------------- | ------- | -------------------------- | ---------------------------------------- |
-| `version_id`              | TEXT    | PRIMARY KEY                | 版本 ID                                  |
-| `formula_id`              | TEXT    | NOT NULL, FK → formulas.id | 配方 ID                                  |
-| `version_number`          | TEXT    | NOT NULL                   | 版本号（如 v1.0）                        |
-| `version_name`            | TEXT    | DEFAULT NULL               | 版本名称                                 |
-| `version_reason`          | TEXT    | DEFAULT NULL               | 升版原因                                 |
-| `changes_json`            | TEXT    | DEFAULT NULL               | 变更记录 JSON                            |
-| `snapshot_json`           | TEXT    | NOT NULL                   | 完整配方快照 JSON                        |
-| `status`                  | TEXT    | NOT NULL, DEFAULT 'draft'  | 状态：`draft` / `published` / `archived` |
-| `is_current`              | INTEGER | NOT NULL, DEFAULT 0        | 是否为当前版本（1/0）                    |
-| `ratio_factor`            | REAL    | NOT NULL, DEFAULT 0.18     | 主料含量比系数（0.15-0.25）              |
-| `supplement_ratio_factor` | REAL    | NOT NULL, DEFAULT 1.0      | 辅料含量比系数（0.5-1.5）                |
-| `created_by`              | TEXT    | NOT NULL                   | 创建人                                   |
-| `created_at`              | TEXT    | NOT NULL                   | 创建时间                                 |
+| 字段                      | 类型    | 约束                       | 说明                                              |
+| ------------------------- | ------- | -------------------------- | ------------------------------------------------- |
+| `version_id`              | TEXT    | PRIMARY KEY                | 版本 ID                                           |
+| `formula_id`              | TEXT    | NOT NULL, FK → formulas.id | 配方 ID                                           |
+| `version_number`          | TEXT    | NOT NULL                   | 版本号（如 v1.0）                                 |
+| `version_name`            | TEXT    | DEFAULT NULL               | 版本名称                                          |
+| `version_reason`          | TEXT    | DEFAULT NULL               | 升版原因                                          |
+| `changes_json`            | TEXT    | DEFAULT NULL               | 变更记录 JSON                                     |
+| `snapshot_json`           | TEXT    | NOT NULL                   | 完整配方快照 JSON                                 |
+| `status`                  | TEXT    | NOT NULL, DEFAULT 'draft'  | 状态：`draft` / `pending_review` / `published` / `archived` |
+| `is_current`              | INTEGER | NOT NULL, DEFAULT 0        | 是否为当前版本（1/0）                             |
+| `ratio_factor`            | REAL    | NOT NULL, DEFAULT 0.18     | 主料含量比系数（0.15-0.25）                       |
+| `supplement_ratio_factor` | REAL    | NOT NULL, DEFAULT 1.0      | 辅料含量比系数（0.5-1.5）                         |
+| `created_by`              | TEXT    | NOT NULL                   | 创建人                                            |
+| `created_at`              | TEXT    | NOT NULL                   | 创建时间                                          |
 
 **外键**：`formula_id` → `formulas(id)` ON DELETE CASCADE
 
@@ -245,6 +294,12 @@
 
 - `idx_fv_formula`：按配方
 - `idx_fv_version_number`：按配方+版本号（复合）
+- `idx_fv_status`：按状态
+- `idx_fv_formula_status`：按配方+状态（复合）
+
+**新增字段说明**：
+
+- `status` CHECK 约束新增 `pending_review` 值：版本提交审核后状态变为 `pending_review`，审核通过后变为 `published`
 
 **`snapshot_json` 结构**：
 
@@ -385,20 +440,33 @@
 
 ### 2.11 原料营养成分表 `material_nutrition`
 
-存储每种原料的营养成分数据（每100g含量）。
+存储每种原料的营养成分数据（每100g含量），支持版本化。
 
-| 字段            | 类型 | 约束                                | 说明                                  |
-| --------------- | ---- | ----------------------------------- | ------------------------------------- |
-| `nutrition_id`  | TEXT | PRIMARY KEY                         | 营养记录 ID                           |
-| `material_id`   | TEXT | NOT NULL, UNIQUE, FK → materials.id | 原料 ID（一对一）                     |
-| `per_100g_json` | TEXT | NOT NULL                            | 每100g营养成分 JSON                   |
-| `data_version`  | TEXT | NOT NULL, DEFAULT '1.0'             | 数据版本号                            |
-| `data_source`   | TEXT | DEFAULT NULL                        | 数据来源                              |
-| `notes`         | TEXT | DEFAULT NULL                        | 备注                                  |
-| `confidence`    | TEXT | DEFAULT 'medium'                    | 数据可信度：`high` / `medium` / `low` |
-| `last_updated`  | TEXT | NOT NULL                            | 最后更新时间                          |
+| 字段               | 类型    | 约束                                | 说明                                  |
+| ------------------ | ------- | ----------------------------------- | ------------------------------------- |
+| `nutrition_id`     | TEXT    | PRIMARY KEY                         | 营养记录 ID                           |
+| `material_id`      | TEXT    | NOT NULL, FK → materials.id         | 原料 ID                               |
+| `per_100g_json`    | TEXT    | NOT NULL                            | 每100g营养成分 JSON                   |
+| `data_version`     | TEXT    | NOT NULL, DEFAULT '1.0'             | 数据版本号                            |
+| `data_source`      | TEXT    | DEFAULT NULL                        | 数据来源                              |
+| `notes`            | TEXT    | DEFAULT NULL                        | 备注                                  |
+| `confidence`       | TEXT    | DEFAULT 'medium'                    | 数据可信度：`high` / `medium` / `low` |
+| `last_updated`     | TEXT    | NOT NULL                            | 最后更新时间                          |
+| `material_version` | INTEGER | NOT NULL, DEFAULT 1                 | **新增** 对应原料版本号               |
+| `is_latest`        | INTEGER | NOT NULL, DEFAULT 1                 | **新增** 是否为最新版本（1/0）        |
 
 **外键**：`material_id` → `materials(id)` ON DELETE CASCADE
+
+**索引**：
+
+- `idx_mn_material_version`：按原料+版本（复合：material_id, material_version）
+- `idx_mn_is_latest`：按是否最新版本
+
+**新增字段说明**：
+
+- `material_version`：对应 `materials.version`，标识该营养数据属于哪个原料版本
+- `is_latest`：标记当前原料版本下最新营养数据，查询时用于快速定位
+- `material_id` 的 UNIQUE 约束已移除，同一原料可存在多条营养记录（对应不同版本）
 
 **`per_100g_json` 示例**：
 
@@ -681,22 +749,24 @@
 
 存储 AI 模型调用的详细日志。
 
-| 字段              | 类型    | 约束                | 说明                     |
-| ----------------- | ------- | ------------------- | ------------------------ |
-| `id`              | TEXT    | PRIMARY KEY         | 日志 ID                  |
-| `provider`        | TEXT    | NOT NULL            | 供应商标识               |
-| `model`           | TEXT    | NOT NULL            | 模型名称                 |
-| `call_type`       | TEXT    | NOT NULL            | 调用类型                 |
-| `prompt_tokens`   | INTEGER | NOT NULL, DEFAULT 0 | Prompt token 数          |
-| `completion_tokens` | INTEGER | NOT NULL, DEFAULT 0 | Completion token 数    |
-| `total_tokens`    | INTEGER | NOT NULL, DEFAULT 0 | 总 token 数              |
-| `latency_ms`      | INTEGER | DEFAULT NULL        | 响应延迟（ms）           |
-| `status`          | TEXT    | NOT NULL, DEFAULT 'success' | 调用状态          |
-| `error_message`   | TEXT    | DEFAULT NULL        | 错误信息                 |
-| `request_summary` | TEXT    | DEFAULT NULL        | 请求摘要                 |
-| `fallback_from`   | TEXT    | DEFAULT NULL        | 降级来源供应商           |
-| `user_id`         | TEXT    | DEFAULT NULL        | 调用用户 ID              |
-| `created_at`      | TEXT    | NOT NULL            | 调用时间                 |
+| 字段                 | 类型    | 约束                | 说明                     |
+| -------------------- | ------- | ------------------- | ------------------------ |
+| `id`                 | TEXT    | PRIMARY KEY         | 日志 ID                  |
+| `provider`           | TEXT    | NOT NULL            | 供应商标识               |
+| `model`              | TEXT    | NOT NULL            | 模型名称                 |
+| `call_type`          | TEXT    | NOT NULL            | 调用类型                 |
+| `prompt_tokens`      | INTEGER | NOT NULL, DEFAULT 0 | Prompt token 数          |
+| `completion_tokens`  | INTEGER | NOT NULL, DEFAULT 0 | Completion token 数      |
+| `total_tokens`       | INTEGER | NOT NULL, DEFAULT 0 | 总 token 数              |
+| `latency_ms`         | INTEGER | DEFAULT NULL        | 响应延迟（ms）           |
+| `status`             | TEXT    | NOT NULL, DEFAULT 'success' | 调用状态          |
+| `error_message`      | TEXT    | DEFAULT NULL        | 错误信息                 |
+| `request_summary`    | TEXT    | DEFAULT NULL        | 请求摘要                 |
+| `fallback_from`      | TEXT    | DEFAULT NULL        | 降级来源供应商           |
+| `user_id`            | TEXT    | DEFAULT NULL        | 调用用户 ID              |
+| `application_name`   | TEXT    | DEFAULT NULL        | **新增** 应用名称        |
+| `application_location` | TEXT  | DEFAULT NULL        | **新增** 应用位置        |
+| `created_at`         | TEXT    | NOT NULL            | 调用时间                 |
 
 **索引**：
 
@@ -704,6 +774,11 @@
 - `idx_ai_usage_call_type`：按调用类型
 - `idx_ai_usage_user`：按用户+日期（复合：user_id, created_at）
 - `idx_ai_usage_status`：按状态
+
+**新增字段说明**：
+
+- `application_name`：标识 AI 调用的应用来源（如 `smart-generate`、`nl2sql`、`parse` 等）
+- `application_location`：标识 AI 调用的页面或功能位置（如 `formula-detail`、`material-list` 等）
 
 ---
 
@@ -944,6 +1019,379 @@
 
 ---
 
+### 2.33 AI 助手浮动窗配置表 `agent_float_config`
+
+存储用户对 AI 助手浮动窗的个性化配置。
+
+| 字段                 | 类型    | 约束                       | 说明                                      |
+| -------------------- | ------- | -------------------------- | ----------------------------------------- |
+| `id`                 | TEXT    | PRIMARY KEY                | 配置 ID                                   |
+| `user_id`            | TEXT    | NOT NULL, UNIQUE, FK → users.id | 用户 ID                             |
+| `enabled`            | INTEGER | DEFAULT 1                  | 是否启用浮动窗（1/0）                     |
+| `model`              | TEXT    | DEFAULT 'deepseek'         | 使用的 AI 模型供应商标识                  |
+| `model_name`         | TEXT    | DEFAULT ''                 | 模型显示名称                              |
+| `fallback_model`     | TEXT    | DEFAULT ''                 | 降级模型供应商标识                        |
+| `fallback_model_name` | TEXT   | DEFAULT ''                 | 降级模型显示名称                          |
+| `position`           | TEXT    | DEFAULT 'right'            | 浮动窗位置：`left` / `right`              |
+| `drawer_width`       | INTEGER | DEFAULT 400                | 抽屉宽度（px）                            |
+| `theme_color`        | TEXT    | DEFAULT ''                 | 主题色（空则跟随系统）                    |
+| `show_pulse`         | INTEGER | DEFAULT 1                  | 是否显示脉冲动画（1/0）                   |
+| `enabled_pages`      | TEXT    | DEFAULT '[]'               | 启用浮动窗的页面列表 JSON                 |
+| `max_rounds`         | INTEGER | DEFAULT 10                 | 最大对话轮次                              |
+| `fill_strategy`      | TEXT    | DEFAULT 'overwrite'        | 填充策略：`overwrite` / `append`          |
+| `context_mode`       | TEXT    | DEFAULT 'page'             | 上下文模式：`page` / `global`             |
+| `updated_at`         | TEXT    | NOT NULL                   | 更新时间                                  |
+| `created_at`         | TEXT    | NOT NULL                   | 创建时间                                  |
+
+**外键**：`user_id` → `users(id)` ON DELETE CASCADE
+
+**`enabled_pages` 结构**：
+
+```json
+["/formulas", "/materials", "/ai"]
+```
+
+**业务含义**：
+
+- `enabled`：控制浮动窗是否在页面上显示
+- `model` / `fallback_model`：指定 AI 助手使用的模型，支持降级
+- `position` / `drawer_width`：控制浮动窗的布局位置和宽度
+- `enabled_pages`：限定浮动窗仅在指定路由页面显示，空数组表示全部页面
+- `fill_strategy`：AI 助手填充表单时的策略，`overwrite` 覆盖已有值，`append` 追加
+- `context_mode`：`page` 仅携带当前页面上下文，`global` 携带全局业务上下文
+
+---
+
+### 2.34 AI 供应商熔断状态表 `agent_provider_health`
+
+存储 AI 供应商的熔断器状态，用于实现服务降级和自动恢复。
+
+| 字段                  | 类型    | 约束   | 说明                               |
+| --------------------- | ------- | ------ | ---------------------------------- |
+| `provider`            | TEXT    | PRIMARY KEY | 供应商标识                   |
+| `consecutive_failures` | INTEGER | DEFAULT 0 | 连续失败次数                    |
+| `circuit_open`        | INTEGER | DEFAULT 0 | 熔断器是否开启（1/0）             |
+| `circuit_open_until`  | TEXT    | DEFAULT NULL | 熔断恢复时间                  |
+| `last_error`          | TEXT    | DEFAULT NULL | 最近一次错误信息              |
+| `last_failure_at`     | TEXT    | DEFAULT NULL | 最近一次失败时间              |
+| `last_success_at`     | TEXT    | DEFAULT NULL | 最近一次成功时间              |
+| `updated_at`          | TEXT    | NOT NULL | 更新时间                         |
+
+**索引**：`idx_agent_provider_health_circuit`：按熔断状态+恢复时间（复合：circuit_open, circuit_open_until）
+
+**业务含义**：
+
+- `consecutive_failures`：连续调用失败计数，达到阈值触发熔断
+- `circuit_open`：熔断器开启后，该供应商的请求将被自动跳过
+- `circuit_open_until`：熔断恢复时间，到达后自动尝试半开状态
+- `last_success_at` / `last_failure_at`：用于监控面板展示供应商健康趋势
+
+---
+
+### 2.35 会话清理日志表 `agent_session_cleanup_log`
+
+存储 AI 助手会话定期清理的执行记录。
+
+| 字段                  | 类型    | 约束   | 说明                   |
+| --------------------- | ------- | ------ | ---------------------- |
+| `id`                  | INTEGER | PRIMARY KEY AUTOINCREMENT | 自增主键      |
+| `cleaned_sessions`    | INTEGER | DEFAULT 0 | 清理的会话数量       |
+| `cleaned_messages`    | INTEGER | DEFAULT 0 | 清理的消息数量       |
+| `cleaned_confirmations` | INTEGER | DEFAULT 0 | 清理的待确认数量   |
+| `cleaned_forms`       | INTEGER | DEFAULT 0 | 清理的待填报数量     |
+| `created_at`          | TEXT    | NOT NULL | 清理执行时间          |
+
+**索引**：`idx_agent_cleanup_log_created`：按执行时间降序（created_at DESC）
+
+**业务含义**：
+
+- 使用 `AUTOINCREMENT` 自增主键（非 UUID），因为该表为系统自动写入的日志
+- 每次清理任务执行后插入一条记录，记录本次清理的各类型数据量
+- 用于监控清理任务的执行频率和效果
+
+---
+
+### 2.36 AI 提示词模板表 `ai_prompt_templates`
+
+存储 AI 功能的提示词模板，支持按模块和类型管理。
+
+| 字段                   | 类型    | 约束                         | 说明                                      |
+| ---------------------- | ------- | ---------------------------- | ----------------------------------------- |
+| `id`                   | TEXT    | PRIMARY KEY                  | 模板 ID                                   |
+| `module`               | TEXT    | NOT NULL                     | 所属模块（如 `smart-generate`）           |
+| `name`                 | TEXT    | NOT NULL                     | 模板名称                                  |
+| `type`                 | TEXT    | NOT NULL, DEFAULT 'description' | 模板类型：`description` / `preparation` / `version_reason` / `revision` |
+| `system_prompt`        | TEXT    | NOT NULL, DEFAULT ''         | 系统提示词                                |
+| `user_prompt_template` | TEXT    | NOT NULL, DEFAULT ''         | 用户提示词模板（支持变量插值）            |
+| `variables`            | TEXT    | DEFAULT '[]'                 | 模板变量列表 JSON                         |
+| `is_default`           | INTEGER | NOT NULL, DEFAULT 0          | 是否为默认模板（1/0）                     |
+| `enabled`              | INTEGER | NOT NULL, DEFAULT 1          | 是否启用（1/0）                           |
+| `sort_order`           | INTEGER | NOT NULL, DEFAULT 0          | 排序序号                                  |
+| `created_by`           | TEXT    | DEFAULT NULL                 | 创建人                                    |
+| `created_at`           | TEXT    | NOT NULL                     | 创建时间                                  |
+| `updated_at`           | TEXT    | NOT NULL                     | 更新时间                                  |
+
+**索引**：
+
+- `idx_ai_prompt_module`：按模块
+- `idx_ai_prompt_type`：按模块+类型（复合：module, type）
+
+**`variables` 结构**：
+
+```json
+["formulaName", "materials", "finishedWeight"]
+```
+
+**`user_prompt_template` 变量插值示例**：
+
+```
+配方名称：{{formulaName}}
+原料：{{materials}}
+成品重量：{{finishedWeight}}g
+
+请根据配方名称和原料信息，生成专业的配方描述。
+```
+
+**业务含义**：
+
+- `module`：标识模板所属功能模块，如 `smart-generate`（智能生成）
+- `type`：同一模块下按类型细分，如 `description`（描述）、`preparation`（制法）、`version_reason`（升版原因）、`revision`（修订）
+- `is_default`：每个模块+类型组合下只能有一个默认模板
+- `variables`：声明模板中使用的变量名，前端据此渲染表单
+- 系统预置 4 个默认模板（描述、制法、升版原因、修订），通过 `seedDefaultPromptTemplates` 初始化
+
+---
+
+### 2.37 配方版本审核日志表 `formula_review_logs`
+
+存储配方版本的审核流程记录。
+
+| 字段              | 类型 | 约束                                                     | 说明                                      |
+| ----------------- | ---- | -------------------------------------------------------- | ----------------------------------------- |
+| `review_log_id`   | TEXT | PRIMARY KEY                                              | 审核日志 ID                               |
+| `version_id`      | TEXT | NOT NULL, FK → formula_versions.version_id ON DELETE CASCADE | 配方版本 ID                        |
+| `reviewer_id`     | TEXT | NOT NULL, FK → users.id ON DELETE SET NULL               | 审核人 ID                                 |
+| `reviewer_name`   | TEXT | DEFAULT NULL                                             | 审核人名称（冗余）                        |
+| `action`          | TEXT | NOT NULL                                                 | 操作：`submit` / `approve` / `reject`     |
+| `comment`         | TEXT | DEFAULT NULL                                             | 审核意见                                  |
+| `created_at`      | TEXT | NOT NULL                                                 | 操作时间                                  |
+
+**外键**：
+
+- `version_id` → `formula_versions(version_id)` ON DELETE CASCADE
+- `reviewer_id` → `users(id)` ON DELETE SET NULL
+
+**索引**：
+
+- `idx_frl_version`：按版本 ID
+- `idx_frl_reviewer`：按审核人 ID
+- `idx_frl_action`：按操作类型
+
+**业务含义**：
+
+- `submit`：配方师提交版本审核，版本状态变为 `pending_review`
+- `approve`：管理员审核通过，版本状态变为 `published`
+- `reject`：管理员审核驳回，版本状态回退为 `draft`
+- `reviewer_name`：冗余存储审核人名称，避免用户删除后无法查看历史审核记录
+
+---
+
+### 2.38 原料审核日志表 `material_review_logs`
+
+存储原料的审核流程记录。
+
+| 字段              | 类型 | 约束                                                     | 说明                                            |
+| ----------------- | ---- | -------------------------------------------------------- | ----------------------------------------------- |
+| `review_log_id`   | TEXT | PRIMARY KEY                                              | 审核日志 ID                                     |
+| `material_id`     | TEXT | NOT NULL, FK → materials.id ON DELETE CASCADE            | 原料 ID                                         |
+| `reviewer_id`     | TEXT | NOT NULL, FK → users.id ON DELETE SET NULL               | 审核人 ID                                       |
+| `reviewer_name`   | TEXT | DEFAULT NULL                                             | 审核人名称（冗余）                              |
+| `action`          | TEXT | NOT NULL                                                 | 操作：`submit` / `approve` / `reject` / `publish` |
+| `comment`         | TEXT | DEFAULT NULL                                             | 审核意见                                        |
+| `created_at`      | TEXT | NOT NULL                                                 | 操作时间                                        |
+
+**外键**：
+
+- `material_id` → `materials(id)` ON DELETE CASCADE
+- `reviewer_id` → `users(id)` ON DELETE SET NULL
+
+**索引**：
+
+- `idx_mrl_material`：按原料 ID
+- `idx_mrl_reviewer`：按审核人 ID
+- `idx_mrl_action`：按操作类型
+- `idx_mrl_created_at`：按操作时间
+
+**业务含义**：
+
+- `submit`：配方师提交原料审核，原料状态变为 `pending_review`
+- `approve`：管理员审核通过
+- `reject`：管理员审核驳回，原料状态回退为 `draft`
+- `publish`：直接发布（管理员操作），原料状态变为 `published`
+- 与 `formula_review_logs` 结构类似，但 `action` 多一个 `publish` 选项
+
+---
+
+### 2.39 解析结果缓存表 `parse_results`
+
+存储 AI 文件解析的结果缓存，支持去重和关联追踪。
+
+| 字段                | 类型    | 约束   | 说明                                      |
+| ------------------- | ------- | ------ | ----------------------------------------- |
+| `id`                | TEXT    | PRIMARY KEY | 解析结果 ID                         |
+| `user_id`           | TEXT    | NOT NULL | 用户 ID                                  |
+| `call_type`         | TEXT    | NOT NULL | 调用类型（如 `formula` / `nutrition`）    |
+| `file_hash`         | TEXT    | NOT NULL | 文件哈希值（用于去重缓存）               |
+| `file_name`         | TEXT    | NOT NULL | 原始文件名                               |
+| `file_size`         | INTEGER | NOT NULL | 文件大小（字节）                         |
+| `parsed_result`     | TEXT    | NOT NULL | 解析结果 JSON                            |
+| `raw_response`      | TEXT    | NOT NULL | AI 原始响应                              |
+| `model_provider`    | TEXT    | DEFAULT NULL | 使用的 AI 供应商标识                |
+| `model_name`        | TEXT    | DEFAULT NULL | 使用的 AI 模型名称                  |
+| `tokens_used`       | INTEGER | NOT NULL, DEFAULT 0 | 消耗的 token 总数               |
+| `prompt_tokens`     | INTEGER | NOT NULL, DEFAULT 0 | Prompt token 数                 |
+| `completion_tokens` | INTEGER | NOT NULL, DEFAULT 0 | Completion token 数             |
+| `status`            | TEXT    | NOT NULL, DEFAULT 'pending' | 状态：`pending` / `success` / `failed` |
+| `error_message`     | TEXT    | DEFAULT NULL | 错误信息                             |
+| `used_count`        | INTEGER | NOT NULL, DEFAULT 0 | 被引用次数                        |
+| `is_linked`         | INTEGER | NOT NULL, DEFAULT 0 | 是否已关联业务对象（1/0）        |
+| `linked_formula_id` | TEXT    | DEFAULT NULL | 关联的配方 ID                        |
+| `linked_material_id` | TEXT   | DEFAULT NULL | 关联的原料 ID                       |
+| `expires_at`        | TEXT    | NOT NULL | 过期时间                                |
+| `created_at`        | TEXT    | NOT NULL | 创建时间                                |
+| `updated_at`        | TEXT    | NOT NULL | 更新时间                                |
+
+**索引**：
+
+- `idx_parse_results_user_id`：按用户 ID
+- `idx_parse_results_file_hash`：按文件哈希
+- `idx_parse_results_call_type`：按调用类型
+- `idx_parse_results_status`：按状态
+- `idx_parse_results_created_at`：按创建时间
+- `idx_parse_results_expires_at`：按过期时间
+
+**业务含义**：
+
+- `file_hash`：相同文件重复上传时命中缓存，避免重复调用 AI 解析
+- `used_count`：记录该解析结果被引用的次数，用于热度排序
+- `is_linked` / `linked_formula_id` / `linked_material_id`：追踪解析结果是否已转化为业务数据
+- `expires_at`：过期时间，由 `parse_result_configs.storage_limit` 控制自动清理
+- 配方创建时，`formulas.parse_result_id` 指向该表 `id`，原料同理
+
+---
+
+### 2.40 解析结果配置表 `parse_result_configs`
+
+存储解析结果缓存的全局配置参数。
+
+| 字段           | 类型 | 约束                | 说明               |
+| -------------- | ---- | ------------------- | ------------------ |
+| `id`           | TEXT | PRIMARY KEY         | 配置 ID            |
+| `config_key`   | TEXT | NOT NULL, UNIQUE    | 配置键名           |
+| `config_value` | TEXT | NOT NULL            | 配置值（JSON 序列化） |
+| `description`  | TEXT | DEFAULT NULL        | 配置说明           |
+| `updated_at`   | TEXT | NOT NULL            | 更新时间           |
+
+**默认配置**：
+
+| config_key                | 默认值    | 说明                        |
+| ------------------------- | --------- | --------------------------- |
+| `storage_limit`           | 5000      | 最大解析结果数量            |
+| `cleanup_threshold_percent` | 95      | 触发自动清理的阈值（百分比） |
+| `cleanup_batch_percent`   | 5         | 每次清理的比例（百分比）    |
+| `retention_days`          | 30        | 保留天数（预留字段）        |
+| `max_file_size_bytes`     | 5242880   | 可缓存文件大小上限（5MB）   |
+| `file_retention_days`     | 90        | 原文件保留天数              |
+| `file_storage_limit_bytes` | 10737418240 | 文件存储空间上限（10GB） |
+| `file_storage_alert_percent` | 80     | 磁盘使用率告警阈值（百分比） |
+
+**业务含义**：
+
+- `config_value` 以 JSON 序列化存储（如 `5000` 存为 `"5000"`）
+- 管理员可通过 API 修改配置值，无需重启服务
+- 清理服务定期检查 `storage_limit` 和 `cleanup_threshold_percent`，超限后按 `cleanup_batch_percent` 清理最旧记录
+
+---
+
+### 2.41 解析模板表 `parse_templates`
+
+存储文件解析的模板配置，支持自定义解析策略。
+
+| 字段               | 类型    | 约束                                                    | 说明                                            |
+| ------------------ | ------- | ------------------------------------------------------- | ----------------------------------------------- |
+| `id`               | TEXT    | PRIMARY KEY                                              | 模板 ID                                         |
+| `name`             | TEXT    | NOT NULL                                                 | 模板名称                                        |
+| `category`         | TEXT    | NOT NULL, DEFAULT 'nutrition'                            | 分类：`formula` / `nutrition` / `general`        |
+| `default_provider` | TEXT    | DEFAULT NULL                                             | 默认 AI 供应商标识                              |
+| `default_model`    | TEXT    | DEFAULT NULL                                             | 默认 AI 模型名称                                |
+| `custom_prompt`    | TEXT    | DEFAULT NULL                                             | 自定义提示词                                    |
+| `field_mapping`    | TEXT    | DEFAULT '{}'                                             | 字段映射 JSON                                   |
+| `validation_rules` | TEXT    | DEFAULT '{}'                                             | 校验规则 JSON                                   |
+| `is_preset`        | INTEGER | NOT NULL, DEFAULT 0                                      | 是否为系统预置（1/0）                           |
+| `is_active`        | INTEGER | NOT NULL, DEFAULT 1                                      | 是否启用（1/0）                                 |
+| `created_by`       | TEXT    | NOT NULL                                                 | 创建人                                          |
+| `created_at`       | TEXT    | NOT NULL                                                 | 创建时间                                        |
+| `updated_at`       | TEXT    | NOT NULL                                                 | 更新时间                                        |
+
+**索引**：
+
+- `idx_pt_category`：按分类
+- `idx_pt_created_by`：按创建人
+
+**`field_mapping` 结构**：
+
+```json
+{
+  "原料名称": "name",
+  "单价(元/kg)": "unitPrice",
+  "类型": "materialType"
+}
+```
+
+**`validation_rules` 结构**：
+
+```json
+{
+  "name": { "required": true },
+  "unitPrice": { "type": "number", "min": 0 }
+}
+```
+
+**业务含义**：
+
+- `category`：按业务场景分类，不同分类使用不同的解析策略
+- `is_preset`：系统预置模板不可删除，用户可基于预置模板创建自定义模板
+- `field_mapping`：将 AI 解析出的字段映射到系统内部字段名
+- `validation_rules`：解析结果的校验规则，不满足规则的字段将被标记为低置信度
+
+---
+
+### 2.42 含量比阈值配置表 `ratio_threshold_configs`
+
+存储含量比（ratio_factor）的偏差阈值配置，用于营养分析预警。
+
+| 字段                 | 类型 | 约束       | 说明                     |
+| -------------------- | ---- | ---------- | ------------------------ |
+| `id`                 | TEXT | PRIMARY KEY | 配置 ID                 |
+| `normal_low`         | REAL | NOT NULL, DEFAULT 0.98 | 正常范围下限（0.98） |
+| `normal_high`        | REAL | NOT NULL, DEFAULT 1.02 | 正常范围上限（1.02） |
+| `warning_low`        | REAL | NOT NULL, DEFAULT 0.95 | 预警范围下限（0.95） |
+| `warning_high`       | REAL | NOT NULL, DEFAULT 1.05 | 预警范围上限（1.05） |
+| `high_warning_low`   | REAL | NOT NULL, DEFAULT 0.92 | 高预警下限（0.92）   |
+| `high_warning_high`  | REAL | NOT NULL, DEFAULT 1.08 | 高预警上限（1.08）   |
+| `updated_at`         | TEXT | NOT NULL   | 更新时间                 |
+| `updated_by`         | TEXT | DEFAULT NULL | 更新人               |
+
+**业务含义**：
+
+- 含量比 = 实际含量比 / 设定含量比系数（ratio_factor）
+- 含量比在 `normal_low` ~ `normal_high` 之间：正常（绿色）
+- 含量比在 `warning_low` ~ `warning_high` 之间但超出正常范围：预警（黄色）
+- 含量比超出 `high_warning_low` ~ `high_warning_high`：高预警（红色）
+- 通常全局仅一条配置记录，管理员可调整阈值
+
+---
+
 ## 三、ER 关系图（文字描述）
 
 ```
@@ -963,10 +1411,16 @@ users
   ├── 1:N → uploaded_files (uploaded_by)
   ├── 1:N → agent_sessions (user_id)
   ├── 1:1 → agent_role_config (user_id)
-  └── 1:N → search_export_cache (user_id)
+  ├── 1:1 → agent_float_config (user_id)
+  ├── 1:N → search_export_cache (user_id)
+  ├── 1:N → formula_review_logs (reviewer_id) ON DELETE SET NULL
+  └── 1:N → material_review_logs (reviewer_id) ON DELETE SET NULL
 
 materials
-  ├── 1:1 → material_nutrition (material_id)
+  ├── 1:N → material_nutrition (material_id) ON DELETE CASCADE
+  ├── 1:N → material_review_logs (material_id) ON DELETE CASCADE
+  ├── 自引用 → materials (previous_version_id) 版本链
+  ├── N:1 → parse_results (parse_result_id) 关联解析来源
   └── 被引用 → formulas.materials_json (JSON 内 materialId)
 
 formulas
@@ -976,14 +1430,17 @@ formulas
   ├── 1:N → export_jobs (formula_id)
   ├── 1:N → formula_nutrition_summaries (formula_id)
   ├── 1:N → share_configs (formula_id)
-  └── 1:N → nutrition_analysis_reports (formula_id)
+  ├── 1:N → nutrition_analysis_reports (formula_id)
+  ├── N:1 → parse_results (parse_result_id) 关联解析来源
+  └── 被引用 → parse_results.linked_formula_id
+
+formula_versions
+  ├── 1:1 → formula_nutrition_summaries (version_id, UNIQUE)
+  └── 1:N → formula_review_logs (version_id) ON DELETE CASCADE
 
 formula_sales
   ├── N:1 → formulas (formula_id) ON DELETE CASCADE
   └── N:1 → salesmen (salesman_id) ON DELETE RESTRICT
-
-formula_versions
-  └── 1:1 → formula_nutrition_summaries (version_id, UNIQUE)
 
 formula_nutrition_summaries
   └── 1:N → nutrition_analysis_reports (summary_id)
@@ -1005,6 +1462,27 @@ agent_sessions
   ├── 1:N → agent_messages (session_id) ON DELETE CASCADE
   ├── 1:1 → agent_pending_confirmations (session_id) ON DELETE CASCADE
   └── 1:1 → agent_pending_forms (session_id) ON DELETE CASCADE
+
+parse_results
+  ├── N:1 → users (user_id)
+  ├── 被引用 → formulas (parse_result_id)
+  ├── 被引用 → materials (parse_result_id)
+  └── 被引用 → parse_results.linked_formula_id / linked_material_id
+
+parse_result_configs
+  └── (独立配置表，被清理服务和监控服务引用)
+
+parse_templates
+  └── N:1 → users (created_by)
+
+agent_provider_health
+  └── (独立表，被 AI 助手熔断器引用)
+
+agent_session_cleanup_log
+  └── (独立日志表，无外键关联)
+
+ratio_threshold_configs
+  └── (独立配置表，被营养分析引擎引用)
 ```
 
 ---
@@ -1019,6 +1497,8 @@ agent_sessions
 | formulas                   | 30         | 覆盖婴幼儿到特殊医学配方         |
 | formula_sales              | 0          | 销量数据（运行时录入）           |
 | formula_versions           | 30         | 每个配方 1 个版本                |
+| formula_review_logs        | 0          | 审核日志（运行时生成）           |
+| material_review_logs       | 0          | 审核日志（运行时生成）           |
 | export_templates           | 30         | pdf/excel/api/print 各类型       |
 | export_jobs                | 30         | 多种状态的任务记录               |
 | nutrition_profiles         | 30         | 6 个分类的营养标准               |
@@ -1035,12 +1515,20 @@ agent_sessions
 | ai_health_records          | 0          | 健康检查记录（运行时生成）       |
 | ai_fallback_configs        | 0          | 降级配置（运行时配置）           |
 | model_applications         | 0          | 模型应用配置（运行时配置）       |
+| ai_prompt_templates        | 4          | 智能生成默认模板（描述/制法/升版原因/修订） |
 | agent_sessions             | 0          | 会话数据（运行时生成）           |
 | agent_messages             | 0          | 消息数据（运行时生成）           |
 | agent_pending_confirmations | 0         | 待确认数据（运行时生成）         |
 | agent_pending_forms        | 0          | 待填报表单（运行时生成）         |
 | agent_role_config          | 0          | 角色配置（运行时配置）           |
+| agent_float_config         | 0          | 浮动窗配置（运行时配置）         |
+| agent_provider_health      | 0          | 熔断状态（运行时生成）           |
+| agent_session_cleanup_log  | 0          | 清理日志（运行时生成）           |
 | search_export_cache        | 0          | 导出缓存（运行时生成）           |
+| parse_results              | 0          | 解析结果（运行时生成）           |
+| parse_result_configs       | 8          | 默认配置项                       |
+| parse_templates            | 0          | 解析模板（运行时配置）           |
+| ratio_threshold_configs    | 0          | 含量比阈值（运行时配置）         |
 
 ---
 
@@ -1071,13 +1559,16 @@ agent_sessions
 | users                    | role                    | IN ('admin', 'formulist')                                         |
 | users                    | data_source             | IN ('manual', 'batch_import', 'api_sync')                         |
 | materials                | material_type           | IN ('herb', 'supplement')                                         |
+| materials                | status                  | IN ('draft', 'pending_review', 'published')                       |
 | formulas                 | ratio_factor            | >= 0.15 AND <= 0.25                                               |
 | formulas                 | supplement_ratio_factor | >= 0.5 AND <= 1.5                                                 |
 | salesmen                 | status                  | IN ('active', 'inactive')                                         |
 | formula_sales            | period_type             | IN ('monthly', 'quarterly', 'yearly')                             |
-| formula_versions         | status                  | IN ('draft', 'published', 'archived')                             |
+| formula_versions         | status                  | IN ('draft', 'pending_review', 'published', 'archived')           |
 | formula_versions         | ratio_factor            | >= 0.15 AND <= 0.25                                               |
 | formula_versions         | supplement_ratio_factor | >= 0.5 AND <= 1.5                                                 |
+| formula_review_logs      | action                  | IN ('submit', 'approve', 'reject')                                |
+| material_review_logs     | action                  | IN ('submit', 'approve', 'reject', 'publish')                     |
 | export_templates         | type                    | IN ('pdf', 'excel', 'api', 'print')                               |
 | export_jobs              | export_type             | IN ('pdf', 'excel', 'api')                                        |
 | export_jobs              | status                  | IN ('pending', 'processing', 'completed', 'failed')               |
@@ -1097,3 +1588,4 @@ agent_sessions
 | file_audit_log           | action                  | IN ('upload', 'parse', 'link', 'unlink', 'reparse', 'download', 'delete', 'archive') |
 | file_relations           | related_type            | IN ('formula', 'material')                                        |
 | agent_messages           | role                    | IN ('user', 'assistant', 'system', 'tool')                        |
+| parse_templates          | category                | IN ('formula', 'nutrition', 'general')                            |

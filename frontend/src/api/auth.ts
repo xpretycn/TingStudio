@@ -27,19 +27,19 @@ export interface ChangePasswordParams {
 
 export const authApi = {
   login(params: LoginParams) {
-    return http.post<any, { user: UserInfo; token: string }>('/auth/login', params)
+    return http.post<unknown, { user: UserInfo; token: string }>('/auth/login', params)
   },
   register(params: RegisterParams) {
-    return http.post<any, { user: UserInfo; token: string }>('/auth/register', params)
+    return http.post<unknown, { user: UserInfo; token: string }>('/auth/register', params)
   },
   getMe() {
-    return http.get<any, UserInfo>('/auth/me')
+    return http.get<unknown, UserInfo>('/auth/me')
   },
   updateProfile(params: UpdateProfileParams) {
-    return http.put<any, UserInfo>('/auth/profile', params)
+    return http.put<unknown, UserInfo>('/auth/profile', params)
   },
   changePassword(params: ChangePasswordParams) {
-    return http.put<any, null>('/auth/password', params)
+    return http.put<unknown, null>('/auth/password', params)
   },
 }
 

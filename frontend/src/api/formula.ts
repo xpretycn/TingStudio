@@ -1,4 +1,5 @@
 import http from "./http";
+import type { Pagination } from "./http";
 
 export interface MaterialItem {
   materialId: string;
@@ -25,6 +26,7 @@ export interface FormulaVersion {
 export interface Formula {
   id: string;
   name: string;
+  code?: string;
   salesmanId: string;
   salesmanName: string;
   materialsJson: string;
@@ -37,6 +39,7 @@ export interface Formula {
   costSubtotal?: number;
   totalPrice?: number;
   description: string | null;
+  status?: string;
   createdBy: string;
   createdByName?: string;
   createdByAvatar?: string | null;
@@ -112,29 +115,28 @@ export interface PriceQuote {
 
 export const formulaApi = {
   getList(params?: { keyword?: string; salesmanId?: string; page?: number; pageSize?: number }) {
-    // axios 拦截器会提取 res.data，所以这里直接返回内部的数据结构
-    return http.get<any, { list: Formula[]; pagination: any }>("/formulas", { params });
+    return http.get<unknown, { list: Formula[]; pagination: Pagination }>("/formulas", { params });
   },
   getById(id: string) {
-    return http.get<any, Formula>(`/formulas/${id}`);
+    return http.get<unknown, Formula>(`/formulas/${id}`);
   },
   create(data: FormulaForm) {
-    return http.post<any, Formula>("/formulas", data);
+    return http.post<unknown, Formula>("/formulas", data);
   },
   update(id: string, data: Partial<FormulaForm>) {
-    return http.put<any, Formula>(`/formulas/${id}`, data);
+    return http.put<unknown, Formula>(`/formulas/${id}`, data);
   },
   delete(id: string) {
-    return http.delete<any, { message: string }>(`/formulas/${id}`);
+    return http.delete<unknown, { message: string }>(`/formulas/${id}`);
   },
   publish(id: string) {
-    return http.put<any, FormulaVersion>(`/formulas/${id}/publish`);
+    return http.put<unknown, FormulaVersion>(`/formulas/${id}/publish`);
   },
   getByMaterial(materialId: string) {
-    return http.get<any, Formula[]>(`/formulas/by-material/${materialId}`);
+    return http.get<unknown, Formula[]>(`/formulas/by-material/${materialId}`);
   },
   getPriceQuote(id: string) {
-    return http.get<any, PriceQuote>(`/formulas/${id}/price-quote`);
+    return http.get<unknown, PriceQuote>(`/formulas/${id}/price-quote`);
   },
   validateRatio(data: {
     materials: { materialId: string; materialName?: string; quantity: number }[];
@@ -142,6 +144,6 @@ export const formulaApi = {
     ratioFactor: number;
     supplementRatioFactor: number;
   }) {
-    return http.post<any, RatioFactorValidationResult>('/formulas/validate-ratio', data);
+    return http.post<unknown, RatioFactorValidationResult>('/formulas/validate-ratio', data);
   },
 };

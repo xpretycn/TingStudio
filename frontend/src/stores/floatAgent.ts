@@ -2,16 +2,22 @@ import { defineStore } from "pinia";
 import { ref, computed } from "vue";
 import { agentApi, type AgentFloatConfig, type ParseFormRequest } from "@/api/agent";
 
+export interface TokenUsage {
+  total_tokens: number;
+  prompt_tokens?: number;
+  completion_tokens?: number;
+}
+
 export interface FloatMessage {
   id: string;
   role: "user" | "assistant";
   content: string;
-  fields?: Record<string, any>;
+  fields?: Record<string, unknown>;
   missingFields?: string[];
   toolName?: string;
   displayType?: string;
-  toolData?: any;
-  metadata?: { model?: string; latency?: number; tokenUsage?: any };
+  toolData?: Record<string, unknown>;
+  metadata?: { model?: string; latency?: number; tokenUsage?: TokenUsage };
   timestamp: number;
 }
 
@@ -169,7 +175,7 @@ export const useFloatAgentStore = defineStore("floatAgent", () => {
     try {
       const data = await agentApi.getHealth();
       if (data && data.status) {
-        agentHealthStatus.value = data.status as any;
+        agentHealthStatus.value = data.status as "online" | "loading" | "error";
       }
     } catch {
       agentHealthStatus.value = "error";
@@ -228,16 +234,16 @@ export const useFloatAgentStore = defineStore("floatAgent", () => {
         const aiMsg: FloatMessage = {
           id: `msg_${Date.now()}_ai`,
           role: "assistant",
-          content: (data as any)?.message || "解析失败，请重新描述",
+          content: (data as Record<string, unknown>)?.message as string || "解析失败，请重新描述",
           timestamp: Date.now(),
         };
         messages.value.push(aiMsg);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       const aiMsg: FloatMessage = {
         id: `msg_${Date.now()}_ai`,
         role: "assistant",
-        content: error?.message || "网络异常，请稍后重试",
+        content: error instanceof Error ? error.message : "网络异常，请稍后重试",
         timestamp: Date.now(),
       };
       messages.value.push(aiMsg);
@@ -322,10 +328,11 @@ export const useFloatAgentStore = defineStore("floatAgent", () => {
     }
   }
 
-  function handleSSEEvent(evt: any, aiMsgId: string) {
-    switch (evt.type) {
+  function handleSSEEvent(evt: Record<string, unknown>, aiMsgId: string) {
+    const type = evt.type as string;
+    switch (type) {
       case "chunk":
-        appendMessageContent(aiMsgId, evt.content || "");
+        appendMessageContent(aiMsgId, (evt.content as string) || "");
         break;
       case "content_clear":
         updateMessage(aiMsgId, { content: "" });
@@ -334,30 +341,30 @@ export const useFloatAgentStore = defineStore("floatAgent", () => {
         break;
       case "tool_result":
         updateMessage(aiMsgId, {
-          toolName: evt.toolName,
-          displayType: evt.displayType,
-          toolData: evt.data,
+          toolName: evt.toolName as string | undefined,
+          displayType: evt.displayType as string | undefined,
+          toolData: evt.data as Record<string, unknown> | undefined,
         });
         break;
       case "write_guidance":
         updateMessage(aiMsgId, {
-          content: evt.message || "此操作需要前往对应页面完成",
-          toolName: evt.toolName,
+          content: (evt.message as string) || "此操作需要前往对应页面完成",
+          toolName: evt.toolName as string | undefined,
         });
         break;
       case "done":
-        if (evt.sessionId) sessionId.value = evt.sessionId;
+        if (evt.sessionId) sessionId.value = evt.sessionId as string;
         updateMessage(aiMsgId, {
-          displayType: evt.displayType || undefined,
+          displayType: (evt.displayType as string) || undefined,
           metadata: {
-            model: evt.model,
-            latency: evt.latency,
-            tokenUsage: evt.usage,
+            model: evt.model as string | undefined,
+            latency: evt.latency as number | undefined,
+            tokenUsage: evt.usage as TokenUsage | undefined,
           },
         });
         break;
       case "error":
-        updateMessage(aiMsgId, { content: evt.message || "发生错误" });
+        updateMessage(aiMsgId, { content: (evt.message as string) || "发生错误" });
         break;
     }
   }

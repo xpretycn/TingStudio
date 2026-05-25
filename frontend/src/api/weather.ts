@@ -1,38 +1,26 @@
-/**
- * 高德地图天气 & 地理编码 API 封装
- * 通过 Vite 代理（开发）或后端代理（生产）访问，解决 CORS
- *
- * 文档：
- *   - 天气：https://lbs.amap.com/api/webservice/guide/api/weatherinfo
- *   - 地理编码：https://lbs.amap.com/api/webservice/guide/geocode-geo
- *   - 关键词搜索：https://lbs.amap.com/api/webservice/guide/assistant
- */
-
-// ─── 类型定义 ───
-
 export interface CityLocation {
   name: string
-  id: string          // 高德 adcode（城市行政代码）
+  id: string
   lat: number
   lon: number
   country: string
-  admin1?: string     // 一级行政区（省/州）
-  adm1?: string       // alias for admin1
-  adm2?: string       // 二级行政区（市）
+  admin1?: string
+  adm1?: string
+  adm2?: string
 }
 
 export interface WeatherNow {
-  temp: string        // 温度 °C
-  feelsLike: string   // 体感温度 °C
-  icon: string        // 天气图标标识（高德天气现象代码）
-  text: string        // 中文天况描述（"晴"/"多云"/"小雨" 等）
-  windDir: string     // 风向（"东北风"）
-  windScale: string   // 风力等级（"3级"）
-  windSpeed: string   // 风速 km/h
-  humidity: string    // 相对湿度 %
-  precip: string      // 降水量 mm
-  pressure: string    // 气压 hPa
-  vis: string         // 能见度 km
+  temp: string
+  feelsLike: string
+  icon: string
+  text: string
+  windDir: string
+  windScale: string
+  windSpeed: string
+  humidity: string
+  precip: string
+  pressure: string
+  vis: string
 }
 
 export interface WeatherData {
@@ -41,20 +29,15 @@ export interface WeatherData {
   updateTime: string
 }
 
-// ─── 天气现象代码映射（高德天气 code → emoji + 描述）───
 interface AmapWeatherInfo {
   emoji: string
   text: string
 }
 
-/**
- * 高德天气现象代码对照表
- * 文档：https://lbs.amap.com/api/webservice/guide/api/weatherinfo#description
- */
 const amapWeatherMap: Record<string, AmapWeatherInfo> = {
   '00': { emoji: '☀️', text: '晴' },
   '01': { emoji: '🌤️', text: '多云' },
-  '02': { emoji: '⛅', text: '少云' },     // 少云（部分有云）
+  '02': { emoji: '⛅', text: '少云' },
   '03': { emoji: '☁️', text: '晴间多云' },
   '04': { emoji: '☁️', text: '阴' },
   '05': { emoji: '🌧️', text: '阵雨' },
@@ -93,19 +76,10 @@ const amapWeatherMap: Record<string, AmapWeatherInfo> = {
   '99': { emoji: '❓', text: '未知' },
 }
 
-/** 高德天气现象 code → emoji */
 export function getWeatherEmoji(code: number | string): string {
   const strCode = String(code).padStart(2, '0')
   return amapWeatherMap[strCode]?.emoji || '🌤️'
 }
-
-/** 高德天气现象 code → 中文描述 */
-export function getWeatherText(code: number | string): string {
-  const strCode = String(code).padStart(2, '0')
-  return amapWeatherMap[strCode]?.text || '未知'
-}
-
-// ─── 简单 fetch 封装 ───
 
 async function fetchJSON<T>(url: string): Promise<T> {
   const res = await fetch(url, {
@@ -115,41 +89,32 @@ async function fetchJSON<T>(url: string): Promise<T> {
   return res.json()
 }
 
-/** 获取环境变量中的高德 Key */
 function getAmapKey(): string {
   return import.meta.env.VITE_AMAP_KEY || ''
 }
 
-/** 构建代理 URL（开发环境用 Vite 代理，生产环境用后端） */
 function proxyUrl(path: string): string {
   const isDev = import.meta.env.DEV
   if (isDev) return `/amap${path}`
   return `/api/weather/amap${path}`
 }
 
-// ─── API 方法 ───
-
-/**
- * 城市名搜索 — 高德关键词搜索 / POI 搜索
- * 返回匹配的城市列表
- */
 export async function searchCity(keyword: string): Promise<CityLocation[]> {
   try {
     const key = getAmapKey()
     if (!key) return []
 
-    // 使用高德输入提示接口（更精确的中文城市匹配）
     const data = await fetchJSON<{
       status: string
       info: string
       tips?: Array<{
-        id: string           // POI ID 或 adcode
-        name: string         // 名称
-        district: string     // 所属区域
-        adcode: string       // 行政区划代码
-        location: string     // 经纬度 "lng,lat"
-        address: string       // 详细地址
-        city: string[]        // 所属城市数组
+        id: string
+        name: string
+        district: string
+        adcode: string
+        location: string
+        address: string
+        city: string[]
       }>
     }>(proxyUrl(`/v3/place/text?keywords=${encodeURIComponent(keyword)}&output=json&key=${key}&citylimit=8&extensions=base`))
 
@@ -162,8 +127,6 @@ export async function searchCity(keyword: string): Promise<CityLocation[]> {
         const lat = parseFloat(latStr)
         const lon = parseFloat(lonStr)
         const district = tip.district || ''
-        // 从 district 解析省份和城市名
-        // district 格式如 "广东省广州市天河区"
         const parts = district.replace(/(省|市|特别行政区|自治区|壮族|回族|维吾尔|藏族)/g, '$1|').split('|').filter(Boolean)
 
         return {
@@ -175,31 +138,24 @@ export async function searchCity(keyword: string): Promise<CityLocation[]> {
           admin1: parts[0] || '',
         }
       })
-  } catch (err: any) {
-    console.warn('[WeatherAPI] searchCity 失败:', err.message)
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err)
+    console.warn('[WeatherAPI] searchCity 失败:', message)
     return []
   }
 }
 
-/**
- * 获取实时天气 — 高德天气查询 API
- * city 参数支持：城市名称、adcode、经纬度
- */
 export async function fetchWeather(locationId: string): Promise<WeatherData | null> {
   try {
     const key = getAmapKey()
     if (!key) throw new Error('未配置高德 Key')
 
-    // 判断 locationId 类型来选择参数格式
-    // 如果是经纬度格式（包含逗号和小数点），使用 city 参数传坐标
     let url: string
     const isCoord = /^[+-]?\d+\.?\d*,[+-]?\d+\.?\d*$/.test(locationId)
 
     if (isCoord) {
-      // 经纬度模式
       url = proxyUrl(`/v3/weather/weatherInfo?city=${encodeURIComponent(locationId)}&key=${key}&extensions=base`)
     } else {
-      // 城市名/adcode 模式
       url = proxyUrl(`/v3/weather/weatherInfo?city=${encodeURIComponent(locationId)}&key=${key}&extensions=base`)
     }
 
@@ -211,12 +167,12 @@ export async function fetchWeather(locationId: string): Promise<WeatherData | nu
         province: string
         city: string
         adcode: string
-        weather: string      // 天气现象文字（如"晴"、"多云"）
-        temperature: string   // 温度字符串（如"25"）
-        winddirection: string // 风向
-        windpower: string     // 风力等级
-        humidity: string      // 湿度
-        reporttime: string    // 报告时间
+        weather: string
+        temperature: string
+        winddirection: string
+        windpower: string
+        humidity: string
+        reporttime: string
       }>
       forecasts?: Array<{
         province: string
@@ -239,7 +195,6 @@ export async function fetchWeather(locationId: string): Promise<WeatherData | nu
 
     const live = data.lives[0]
 
-    // 根据天气文字反查天气代码（用于图标显示）
     const weatherCode = reverseLookupWeatherCode(live.weather)
 
     const now: WeatherNow = {
@@ -256,11 +211,9 @@ export async function fetchWeather(locationId: string): Promise<WeatherData | nu
       vis: '--',
     }
 
-    // 解析位置信息
     const locName = live.city || live.province || ''
     let lat = 0, lon = 0
 
-    // 如果是经纬度 ID，尝试保留坐标
     if (isCoord) {
       const [lonStr, latStr] = locationId.split(',')
       lat = parseFloat(latStr)
@@ -281,16 +234,13 @@ export async function fetchWeather(locationId: string): Promise<WeatherData | nu
       now,
       updateTime: live.reporttime || new Date().toISOString(),
     }
-  } catch (err: any) {
-    console.warn('[WeatherAPI] fetchWeather 失败:', err.message)
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err)
+    console.warn('[WeatherAPI] fetchWeather 失败:', message)
     return null
   }
 }
 
-/**
- * 逆地理编码 — 经纬度 → 城市信息（高德 /v3/geocode/regeo）
- * 返回城市的 adcode 和名称
- */
 export async function reverseGeocode(lat: number, lon: number): Promise<{ adcode: string; name: string } | null> {
   try {
     const key = getAmapKey()
@@ -312,22 +262,19 @@ export async function reverseGeocode(lat: number, lon: number): Promise<{ adcode
     if (data.status !== '1' || !data.regeocode?.addressComponent) return null
 
     const comp = data.regeocode.addressComponent
-    // 高德返回的 city 可能是空数组（直辖市），用 province 或 district 兜底
     const rawCity = Array.isArray(comp.city) ? comp.city[0] : ''
     const rawDistrict = Array.isArray(comp.district) ? comp.district[0] : ''
     const name = rawCity || rawDistrict || comp.province || '未知'
     const adcode = comp.adcode
 
     return { adcode, name }
-  } catch (err: any) {
-    console.warn('[WeatherAPI] reverseGeocode 失败:', err.message)
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err)
+    console.warn('[WeatherAPI] reverseGeocode 失败:', message)
     return null
   }
 }
 
-/**
- * 通过天气文字反查高德天气现象代码
- */
 function reverseLookupWeatherCode(weatherText: string): number {
   const map: Record<string, number> = {
     '晴': 0,
@@ -356,16 +303,11 @@ function reverseLookupWeatherCode(weatherText: string): number {
   return map[weatherText] ?? 1
 }
 
-/**
- * 风力等级（如"≤3"或"4-5"）→ 近似风速 km/h
- */
 function windPowerToSpeed(power: string | undefined): string {
   if (!power) return '--'
-  // 提取数字（处理 "≤3", "4-5", "3" 等格式）
   const match = power.match(/\d+/)
   if (!match) return '--'
   const level = parseInt(match[0], 10)
-  // 蒲福风级近似换算（km/h）
   const speeds: Record<number, number> = {
     0: 1, 1: 5, 2: 11, 3: 19, 4: 28,
     5: 38, 6: 50, 7: 62, 8: 74, 9: 88,

@@ -1,4 +1,5 @@
 import http from "./http"
+import type { Pagination } from "./http"
 
 export interface ReviewLog {
   action: string
@@ -51,15 +52,15 @@ export interface ReviewedItem {
 
 export const approvalApi = {
   getMySubmissions(params?: { page?: number; pageSize?: number }) {
-    return http.get<any, { list: ApprovalItem[]; pagination: any }>("/versions/my-submissions", { params })
+    return http.get<unknown, { list: ApprovalItem[]; pagination: Pagination }>("/versions/my-submissions", { params })
   },
 
   getPendingReviews(params?: { page?: number; pageSize?: number; keyword?: string }) {
-    return http.get<any, { list: PendingReviewItem[]; pagination: any }>("/versions/pending-review", { params })
+    return http.get<unknown, { list: PendingReviewItem[]; pagination: Pagination }>("/versions/pending-review", { params })
   },
 
   getReviewedHistory(params?: { page?: number; pageSize?: number }) {
-    return http.get<any, { list: ReviewedItem[]; pagination: any }>("/versions/reviewed-by-me", { params })
+    return http.get<unknown, { list: ReviewedItem[]; pagination: Pagination }>("/versions/reviewed-by-me", { params })
   },
 
   approveVersion(versionId: string, comment?: string) {
@@ -71,7 +72,7 @@ export const approvalApi = {
   },
 
   getReviewLogs(versionId: string) {
-    return http.get<any, { versionId: string; logs: ReviewLog[] }>(`/versions/review-logs/${versionId}`)
+    return http.get<unknown, { versionId: string; logs: ReviewLog[] }>(`/versions/review-logs/${versionId}`)
   },
 
   submitVersion(versionId: string) {

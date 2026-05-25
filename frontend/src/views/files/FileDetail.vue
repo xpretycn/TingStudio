@@ -97,7 +97,7 @@
                     </div>
                     <div class="related-item-actions">
                       <t-dropdown :options="getRelationDropdownOptions(rel)"
-                        @click="(data: any) => handleRelationAction(data.value, rel)" trigger="click">
+                        @click="(data: Record<string, unknown>) => handleRelationAction(data.value as string, rel)" trigger="click">
                         <button class="related-edit-btn">
                           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -379,7 +379,7 @@ import { materialApi } from '@/api/material';
 import { MessagePlugin, DialogPlugin } from 'tdesign-vue-next';
 import FilePreviewCard from '@/components/FilePreviewCard.vue';
 import FilePreviewDialog from '@/components/FilePreviewDialog.vue';
-import type { AuditLog } from '@/api/file';
+import type { AuditLog, UploadedFile, FileRelation } from '@/api/file';
 
 const router = useRouter();
 const route = useRoute();
@@ -388,7 +388,7 @@ const authStore = useAuthStore();
 
 const loading = ref(false);
 const previewDialogVisible = ref(false);
-const data = ref<any>(null);
+const data = ref<UploadedFile | null>(null);
 const auditLogs = ref<AuditLog[]>([]);
 const AUDIT_PAGE_SIZE = 8;
 const auditPage = ref(1);
@@ -423,7 +423,7 @@ const statusLabel = computed(() => {
     orphaned: '未关联',
     archived: '已归档',
   };
-  return map[data.value?.status] || data.value?.status || '--';
+  return map[data.value?.status ?? ''] || data.value?.status || '--';
 });
 
 const statusTheme = computed(() => {
@@ -434,7 +434,7 @@ const statusTheme = computed(() => {
     orphaned: 'warning',
     archived: 'default',
   };
-  return map[data.value?.status] || 'default';
+  return map[data.value?.status ?? ''] || 'default';
 });
 
 const fileTypeLabel = computed(() => {
@@ -442,7 +442,7 @@ const fileTypeLabel = computed(() => {
     formula: '配方文件',
     material: '原料文件',
   };
-  return map[data.value?.fileType] || data.value?.fileType || '--';
+  return map[data.value?.fileType ?? ''] || data.value?.fileType || '--';
 });
 
 const confidencePercent = computed(() => {
@@ -562,10 +562,10 @@ const handleLinkSearch = async () => {
   try {
     if (relatedType === 'formula') {
       const res = await formulaApi.getList({ keyword, page: 1, pageSize: 20 });
-      linkSearchResults.value = (res.list || []).map((f: any) => ({ id: f.id, name: f.name }));
+      linkSearchResults.value = (res.list || []).map((f: { id: string; name: string }) => ({ id: f.id, name: f.name }));
     } else {
       const res = await materialApi.getList({ keyword, page: 1, pageSize: 20 });
-      linkSearchResults.value = (res.list || []).map((m: any) => ({ id: m.id, name: m.name }));
+      linkSearchResults.value = (res.list || []).map((m: { id: string; name: string }) => ({ id: m.id, name: m.name }));
     }
     linkSearchFetched.value = true;
   } catch {
@@ -604,7 +604,7 @@ const openNewLink = () => {
   showLinkDialog.value = true;
 };
 
-const goToRelation = (rel: any) => {
+const goToRelation = (rel: FileRelation) => {
   if (rel.relatedType === 'formula') {
     router.push(`/formulas/${rel.relatedId}`);
   } else if (rel.relatedType === 'material') {
@@ -612,7 +612,7 @@ const goToRelation = (rel: any) => {
   }
 };
 
-const getRelationDropdownOptions = (_rel: any) => {
+const getRelationDropdownOptions = (_rel: FileRelation) => {
   return [
     {
       content: '解除关联',
@@ -635,7 +635,8 @@ const getRelationDropdownOptions = (_rel: any) => {
   ];
 };
 
-const handleRelationAction = async (action: string, rel: any) => {
+const handleRelationAction = async (action: string, rel: FileRelation) => {
+  if (!data.value) return;
   if (action === 'unlink') {
     DialogPlugin.confirm({
       header: '确认解除关联',
@@ -643,6 +644,7 @@ const handleRelationAction = async (action: string, rel: any) => {
       confirmBtn: { content: '解除', theme: 'danger' },
       cancelBtn: { content: '取消' },
       onConfirm: async () => {
+        if (!data.value) return;
         const result = await fileStore.unlinkFile(data.value.fileId, rel.relatedId, rel.relatedType);
         if (result.success) {
           await loadData();
@@ -694,7 +696,7 @@ const loadData = async () => {
       const logs = await fileStore.fetchAuditLog(fileId);
       auditLogs.value = logs || [];
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('获取文件详情失败:', error);
   } finally {
     loading.value = false;

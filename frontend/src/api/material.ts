@@ -1,4 +1,5 @@
 import http from "./http";
+import type { Pagination } from "./http";
 
 export interface Material {
   id: string;
@@ -9,6 +10,8 @@ export interface Material {
   materialType: string;
   unitPrice?: number | null;
   createdBy: string;
+  createdByName?: string;
+  createdByAvatar?: string;
   createdAt: string;
   updatedAt: string;
   version: number;
@@ -19,9 +22,13 @@ export interface Material {
   totalVersions: number;
   hasNewerVersion: boolean;
   nutrition?: Record<string, number>;
+  remark?: string;
   referencedFormulas?: { id: string; name: string }[];
   status: "draft" | "pending_review" | "published";
   reviewLogs?: MaterialReviewLog[];
+  appearance: string[] | null;
+  taste: string[] | null;
+  efficacy: string[] | null;
 }
 
 export interface MaterialForm {
@@ -31,14 +38,18 @@ export interface MaterialForm {
   stock?: number;
   materialType?: string;
   unitPrice?: number;
+  appearance?: string[];
+  taste?: string[];
+  efficacy?: string[];
 }
 
 export interface MaterialVersion {
   id: string;
   version: number;
   isLatest: number;
+  name?: string;
   changesSummary: string;
-  changesDetail?: Array<{ field: string; label: string; old: any; new: any }>;
+  changesDetail?: Array<{ field: string; label: string; old: unknown; new: unknown }>;
   createdBy: string;
   createdByName: string;
   createdByRole: string;
@@ -48,8 +59,8 @@ export interface MaterialVersion {
 export interface CompareDiffItem {
   field: string;
   label: string;
-  left: any;
-  right: any;
+  left: unknown;
+  right: unknown;
   leftDisplay: string;
   rightDisplay: string;
   change: string;
@@ -65,7 +76,7 @@ export interface CompareResult {
   };
 }
 
-export interface MaterialReference {
+interface MaterialReference {
   materialId: string;
   currentVersion: number;
   referenceCount: number;
@@ -93,44 +104,44 @@ export interface MaterialReviewLog {
 
 export const materialApi = {
   getList(params?: { keyword?: string; page?: number; pageSize?: number; scope?: string; status?: string }) {
-    return http.get<any, { list: Material[]; pagination: any }>("/materials", { params });
+    return http.get<unknown, { list: Material[]; pagination: Pagination }>("/materials", { params });
   },
   getById(id: string) {
-    return http.get<any, Material>(`/materials/${id}`);
+    return http.get<unknown, Material>(`/materials/${id}`);
   },
   create(data: MaterialForm) {
-    return http.post<any, Material>("/materials", data);
+    return http.post<unknown, Material>("/materials", data);
   },
   update(id: string, data: Partial<MaterialForm>) {
-    return http.put<any, UpdateResult>(`/materials/${id}`, data);
+    return http.put<unknown, UpdateResult>(`/materials/${id}`, data);
   },
   delete(id: string) {
-    return http.delete<any, { success: boolean; message: string }>(`/materials/${id}`);
+    return http.delete<unknown, { success: boolean; message: string }>(`/materials/${id}`);
   },
   getNextCode(name: string) {
-    return http.get<any, { code: string }>("/materials/next-code", { params: { name } });
+    return http.get<unknown, { code: string }>("/materials/next-code", { params: { name } });
   },
   getByFormula(formulaId: string) {
-    return http.get<any, { success: boolean; data: Material[] }>(`/materials/by-formula/${formulaId}`);
+    return http.get<unknown, Material[]>(`/materials/by-formula/${formulaId}`);
   },
   getStats() {
-    return http.get<any, { total: number; herbCount: number; supplementCount: number; nutritionCount: number }>(
+    return http.get<unknown, { total: number; herbCount: number; supplementCount: number; nutritionCount: number }>(
       "/materials/stats",
     );
   },
   getVersions(id: string) {
-    return http.get<any, { materialName: string; materialCode: string; currentVersion: number; versions: MaterialVersion[] }>(
+    return http.get<unknown, { materialName: string; materialCode: string; currentVersion: number; versions: MaterialVersion[] }>(
       `/materials/${id}/versions`,
     );
   },
   getVersionDetail(id: string, versionId: string) {
-    return http.get<any, Material>(`/materials/${id}/versions/${versionId}`);
+    return http.get<unknown, Material>(`/materials/${id}/versions/${versionId}`);
   },
   getReferences(id: string) {
-    return http.get<any, MaterialReference>(`/materials/${id}/references`);
+    return http.get<unknown, MaterialReference>(`/materials/${id}/references`);
   },
   compareVersions(id: string, v1: string, v2: string) {
-    return http.get<any, CompareResult>(`/materials/${id}/versions/compare`, { params: { v1, v2 } });
+    return http.get<unknown, CompareResult>(`/materials/${id}/versions/compare`, { params: { v1, v2 } });
   },
   submitReview(id: string, comment?: string) {
     return http.post(`/materials/${id}/submit-review`, { comment });
@@ -145,9 +156,9 @@ export const materialApi = {
     return http.put(`/materials/${id}/publish`, { comment });
   },
   getPendingReviews(params?: { keyword?: string; page?: number; pageSize?: number }) {
-    return http.get<any, { list: Material[]; pagination: any }>("/materials/pending-review", { params });
+    return http.get<unknown, { list: Material[]; pagination: Pagination }>("/materials/pending-review", { params });
   },
   getReviewLogs(id: string) {
-    return http.get<any, MaterialReviewLog[]>(`/materials/${id}/review-logs`);
+    return http.get<unknown, MaterialReviewLog[]>(`/materials/${id}/review-logs`);
   },
 };

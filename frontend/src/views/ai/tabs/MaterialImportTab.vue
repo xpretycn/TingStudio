@@ -212,7 +212,7 @@
                   </button>
                   <t-dropdown-menu>
                     <t-dropdown-item v-for="model in aiStore.models" :key="model.provider" :value="model.provider"
-                      @click="(ctx: any) => handleReparseWithModel({ value: ctx.value })">
+                      @click="(ctx: Record<string, unknown>) => handleReparseWithModel({ value: String(ctx.value ?? '') })">
                       <div class="reparse-model-option">
                         <div class="reparse-model-logo">
                           <img loading="lazy" :src="getModelLogo(model)" :alt="model.name"
@@ -631,7 +631,7 @@
         <div class="form-field">
           <label class="form-label">默认模型</label>
           <t-select v-model="saveTemplateForm.defaultProvider"
-            :options="aiStore.models.map((m: any) => ({ label: m.name, value: m.provider }))"
+            :options="aiStore.models.map((m: AIModel) => ({ label: m.name, value: m.provider }))"
             clearable placeholder="跟随全局设置" />
         </div>
         <div class="form-field">
@@ -751,6 +751,12 @@ import { fileApi } from '@/api/file';
 import { parseTemplateApi, type ParseTemplate } from '@/api/parseTemplate';
 import { MessagePlugin } from 'tdesign-vue-next';
 import type { MaterialNutritionItem } from '@/api/ai';
+import type { AIModel } from '@/api/ai';
+
+interface ModelLike {
+  provider: string;
+  name: string;
+}
 
 const emit = defineEmits<{
   (e: 'activity-add', item: { type: string; title: string; desc: string; time: string; }): void;
@@ -759,10 +765,6 @@ const emit = defineEmits<{
 const aiStore = useAiStore();
 const materialStore = useMaterialStore();
 const themeStore = useThemeStore();
-
-const _safeMaterialParseResult = computed(() => {
-  return aiStore.materialParseAborted ? null : aiStore.materialParseResult;
-});
 const route = useRoute();
 
 const themeTokens = computed(() => getThemeTokens(themeStore.isDark, themeStore.brandColor));
@@ -854,8 +856,9 @@ const handleSaveTemplate = async () => {
     MessagePlugin.success('模板保存成功');
     saveTemplateDialogVisible.value = false;
     await fetchTemplates();
-  } catch (err: any) {
-    MessagePlugin.error(err?.message || '保存模板失败');
+  } catch (err: unknown) {
+    const e = err as { message?: string };
+    MessagePlugin.error(e?.message || '保存模板失败');
   } finally {
     saveTemplateLoading.value = false;
   }
@@ -931,8 +934,9 @@ const handleUndoImport = async () => {
     } else {
       MessagePlugin.warning(`撤销完成：成功 ${undone} 条，失败 ${failed} 条`);
     }
-  } catch (err: any) {
-    MessagePlugin.error('撤销失败：' + (err?.message || '未知错误'));
+  } catch (err: unknown) {
+    const e = err as { message?: string };
+    MessagePlugin.error('撤销失败：' + (e?.message || '未知错误'));
   } finally {
     undoLoading.value = false;
   }
@@ -949,8 +953,8 @@ const diffDialogVisible = ref(false);
 const diffData = ref<MaterialNutritionItem | null>(null);
 const diffIndex = ref(-1);
 const diffExistingNutrition = ref<Record<string, number>>({});
-const originalAiDataMap = ref<Record<number, Record<string, any>>>({});
-const currentDisplayData = ref<Record<string, any> | null>(null);
+const originalAiDataMap = ref<Record<number, Record<string, unknown>>>({});
+const currentDisplayData = ref<Record<string, unknown> | null>(null);
 const diffChoices = reactive<Record<number, Record<string, 'new' | 'old'>>>({});
 const resetVersion = ref(0);
 
@@ -1101,7 +1105,7 @@ const FALLBACK_ICONS: Record<string, { letter: string; color: string; }> = {
   tencent: { letter: 'T', color: '#0052d9' },
 };
 
-const getModelSlug = (model: any): string => {
+const getModelSlug = (model: ModelLike): string => {
   const provider = (model.provider || '').toLowerCase();
   const name = (model.name || '').toLowerCase();
   for (const [key, slug] of Object.entries(MODEL_LOGO_MAP)) {
@@ -1112,17 +1116,17 @@ const getModelSlug = (model: any): string => {
   return 'openai';
 };
 
-const getModelLogo = (model: any): string => {
+const getModelLogo = (model: ModelLike): string => {
   const slug = getModelSlug(model);
   return `https://unpkg.com/@lobehub/icons-static-svg@latest/icons/${slug}.svg`;
 };
 
-const getFallbackLetter = (model: any): string => {
+const getFallbackLetter = (model: ModelLike): string => {
   const slug = getModelSlug(model);
   return FALLBACK_ICONS[slug]?.letter || '?';
 };
 
-const getFallbackColor = (model: any): string => {
+const getFallbackColor = (model: ModelLike): string => {
   const slug = getModelSlug(model);
   return FALLBACK_ICONS[slug]?.color || 'var(--color-text-placeholder)';
 };
@@ -1170,7 +1174,7 @@ const matchExistingMaterials = async () => {
           let hasAnyDiff = false;
           for (const f of fields) {
             const oldVal = existingNutrition.per100g[f];
-            const newVal = (item as any)[f];
+            const newVal = (item as Record<string, unknown>)[f];
             fieldDiffs[f] = oldVal !== newVal && !(oldVal == null && newVal == null);
             if (fieldDiffs[f]) hasAnyDiff = true;
           }
@@ -1336,7 +1340,7 @@ const handleAbortParse = () => {
 
   parsedItems.value = [];
   originalAiDataMap.value = {};
-  diffChoices.value = {};
+  Object.keys(diffChoices).forEach(k => delete diffChoices[Number(k)]);
   diffStatusMap.value = {};
   fieldSourceMap.value = {};
   priceAdjustments.value = {};
@@ -1407,9 +1411,9 @@ const handleBatchSubmit = async () => {
       try {
         await submitSingleItem(item);
         success++;
-      } catch (err: any) {
+      } catch (err: unknown) {
         failed++;
-        errors.push(`${item.name}: ${err?.message || '录入失败'}`);
+        errors.push(`${item.name}: ${err instanceof Error ? err.message : '录入失败'}`);
       }
       batchProgress.current++;
     }
@@ -1439,12 +1443,13 @@ const handleBatchSubmit = async () => {
           fileId: uploaded.fileId,
         };
         MessagePlugin.success(`源文件「${selectedFile.value.name}」已上传`);
-      } catch (fileErr: any) {
+      } catch (fileErr: unknown) {
+        const e = fileErr as { message?: string };
         fileUploadStatus.value = {
           uploaded: false,
           fileName: selectedFile.value.name,
           fileSize: selectedFile.value.size,
-          error: fileErr?.message || '上传失败',
+          error: e?.message || '上传失败',
         };
         MessagePlugin.warning('原料数据已录入，但源文件上传失败');
       }
@@ -1471,8 +1476,9 @@ const confirmSequentialItem = async () => {
     try {
       await submitSingleItem(result.item);
       MessagePlugin.success(`${result.item.name} 录入成功`);
-    } catch (err: any) {
-      MessagePlugin.error(`${result.item.name} 录入失败: ${err?.message || '未知错误'}`);
+    } catch (err: unknown) {
+      const e = err as { message?: string };
+      MessagePlugin.error(`${result.item.name} 录入失败: ${e?.message || '未知错误'}`);
     }
   }
   advanceSequential();
@@ -1526,8 +1532,8 @@ const submitSingleItem = async (item: MaterialNutritionItem) => {
   let materialId = item.materialId;
   const isNewMaterial = !item.isRecorded || !materialId;
   let oldNutritionData: Record<string, number> | undefined;
-  let oldDataSource: string | undefined;
-  let oldConfidence: string | undefined;
+  let oldDataSource: string | null | undefined;
+  let oldConfidence: string | null | undefined;
 
   if (isNewMaterial) {
     const codeRes = await materialApi.getNextCode(item.name);
@@ -1571,8 +1577,8 @@ const submitSingleItem = async (item: MaterialNutritionItem) => {
     materialId: materialId!,
     isNewMaterial,
     oldNutritionData,
-    oldDataSource,
-    oldConfidence,
+    oldDataSource: oldDataSource ?? undefined,
+    oldConfidence: oldConfidence ?? undefined,
   });
 };
 
@@ -1594,9 +1600,9 @@ const openDiff = async (index: number) => {
     currentDisplayData.value = { ...originalAiDataMap.value[index] };
   } else {
     const fields = ['protein', 'fat', 'carbohydrate', 'sodium'] as const;
-    const aiDataCopy: Record<string, any> = {};
+    const aiDataCopy: Record<string, unknown> = {};
     for (const f of fields) {
-      aiDataCopy[f] = (item as any)[f];
+      aiDataCopy[f] = (item as Record<string, unknown>)[f];
     }
     currentDisplayData.value = aiDataCopy;
   }
@@ -1628,7 +1634,7 @@ const handleDiffChoice = (fieldKey: string, choice: 'new' | 'old') => {
   }
 };
 
-const getPreviewValue = (field: { key: string; oldVal: any; newVal: any; changed: boolean }): string => {
+const getPreviewValue = (field: { key: string; oldVal: unknown; newVal: unknown; changed: boolean }): string => {
   if (!field.changed) return field.newVal != null ? String(field.newVal) : '—';
   const currentChoices = diffChoices[diffIndex.value];
   if (!currentChoices) return field.newVal != null ? String(field.newVal) : '—';
@@ -1656,8 +1662,8 @@ const diffFields = computed(() => {
     { key: 'sodium', label: '钠' },
   ];
   return fields.map(f => {
-    const oldVal = (diffExistingNutrition.value as any)[f.key] ?? null;
-    const newVal = (currentDisplayData.value as any)[f.key] ?? null;
+    const oldVal = (diffExistingNutrition.value as Record<string, unknown>)[f.key] ?? null;
+    const newVal = (currentDisplayData.value as Record<string, unknown>)[f.key] ?? null;
     const changed = oldVal !== newVal && !(oldVal == null && newVal == null);
     return { ...f, oldVal, newVal, changed };
   });
@@ -1673,7 +1679,7 @@ const applyDiff = () => {
   const currentChoices = diffChoices[diffIndex.value];
   for (const f of fields) {
     if (currentChoices?.[f] === 'old') {
-      (item as any)[f] = (diffExistingNutrition.value as any)[f] ?? null;
+      (item as Record<string, unknown>)[f] = (diffExistingNutrition.value as Record<string, unknown>)[f] ?? null;
       fieldSourceMap.value[diffIndex.value][f] = 'old';
     } else {
       fieldSourceMap.value[diffIndex.value][f] = 'new';
@@ -1757,11 +1763,11 @@ watch(() => aiStore.materialParseResult, (newVal) => {
     parsedItems.value = newVal.materials.map(m => ({ ...m }));
 
     const fields = ['protein', 'fat', 'carbohydrate', 'sodium'] as const;
-    const newMap: Record<number, Record<string, any>> = {};
+    const newMap: Record<number, Record<string, unknown>> = {};
     newVal.materials.forEach((m, idx) => {
-      const itemData: Record<string, any> = {};
+      const itemData: Record<string, unknown> = {};
       for (const f of fields) {
-        itemData[f] = (m as any)[f];
+        itemData[f] = (m as Record<string, unknown>)[f];
       }
       newMap[idx] = itemData;
     });

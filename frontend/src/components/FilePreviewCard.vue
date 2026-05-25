@@ -148,10 +148,6 @@ function toggleCollapse() {
   collapsed.value = !collapsed.value;
 }
 
-function _openFullscreen() {
-  dialogVisible.value = true;
-}
-
 function zoomIn() {
   imgScale.value = Math.min(5, imgScale.value + 0.25);
 }

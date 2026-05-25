@@ -144,7 +144,7 @@ class NutritionEngine {
     };
   }
 
-  private calculateNRV(nutrition: typeof NRV_REFERENCE, energy: { energy_kJ_raw: number }) {
+  private calculateNRV(nutrition: { total_protein: number; total_fat: number; total_carbohydrate: number; total_sodium: number }, energy: { energy_kJ_raw: number }) {
     return {
       energy_percent: Math.round((energy.energy_kJ_raw / NRV_REFERENCE.energy) * 1000) / 10,
       protein_percent: Math.round((nutrition.total_protein / NRV_REFERENCE.protein) * 1000) / 10,

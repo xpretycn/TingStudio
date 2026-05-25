@@ -111,7 +111,7 @@
                   </div>
                   <div class="pi-bottom">
                     <span class="pi-sub">{{ item.quantity }}g</span>
-                    <span class="pi-cost">小计: ¥{{ (item.quantity / 1000 * item.unitPrice).toFixed(2) }}
+                    <span class="pi-cost">小计: ¥{{ (item.quantity / 1000 * (item.unitPrice ?? 0)).toFixed(2) }}
                       <span v-if="item.isAdjusted && item.basePrice != null" class="pi-base-hint"
                         :title="'原始基价: ¥' + item.basePrice + '/kg'">[基价¥{{ item.basePrice }}]</span>
                     </span>
@@ -181,6 +181,21 @@ import { useRouter } from 'vue-router';
 import { useFormulaStore } from '@/stores/formula';
 import type { Formula, MaterialItem } from '@/api/formula';
 import { formulaApi } from '@/api/formula';
+
+interface IngredientItem {
+  name: string;
+  value: number;
+  missing?: boolean;
+}
+
+interface PriceItem {
+  name: string;
+  quantity: number;
+  unitPrice: number | null;
+  basePrice: number | null;
+  isAdjusted: boolean;
+  missing?: boolean;
+}
 
 const router = useRouter();
 const formulaStore = useFormulaStore();
@@ -264,7 +279,7 @@ function parseMaterials(formula: Formula): MaterialItem[] {
 }
 
 function getMaterials(formula: Formula): MaterialItem[] {
-  return (formula as any).materials || parseMaterials(formula);
+  return formula.materials || parseMaterials(formula);
 }
 
 function getTotalWeight(formula: Formula): number {
@@ -272,7 +287,7 @@ function getTotalWeight(formula: Formula): number {
   return materials.reduce((sum, m) => sum + (m.quantity || 0), 0);
 }
 
-const getIngredients = (formula: Formula, idx: number) => {
+const getIngredients = (formula: Formula, idx: number): IngredientItem[] => {
   const materials = getMaterials(formula);
   const totalWeight = getTotalWeight(formula) || 1;
 
@@ -286,7 +301,7 @@ const getIngredients = (formula: Formula, idx: number) => {
   const baseFormula = compareFormulas.value[0];
   const baseMaterials = getMaterials(baseFormula);
   const currentMap = new Map(materials.map(m => [m.materialName, m.quantity || 0]));
-  const aligned: any[] = [];
+  const aligned: IngredientItem[] = [];
 
   baseMaterials.forEach(b => {
     const name = b.materialName || '--';
@@ -305,7 +320,7 @@ const getIngredients = (formula: Formula, idx: number) => {
   return aligned;
 };
 
-const getDiffClass = (ing: any, _formula: Formula, idx: number) => {
+const getDiffClass = (ing: IngredientItem, _formula: Formula, idx: number) => {
   if (idx === 0) return '';
   const baseFormula = compareFormulas.value[0];
   if (!baseFormula) return '';
@@ -318,12 +333,12 @@ const getDiffClass = (ing: any, _formula: Formula, idx: number) => {
   return '';
 };
 
-const getPriceItems = (formula: Formula, idx: number) => {
+const getPriceItems = (formula: Formula, idx: number): PriceItem[] => {
   const materials = getMaterials(formula);
 
   if (idx === 0) {
     return materials.map(m => {
-      const basePrice = (m as any).basePriceAtSave ?? null;
+      const basePrice = (m as unknown as Record<string, unknown>).basePriceAtSave as number | null ?? null;
       const adjPrice = m.adjustedPrice ?? null;
       const effectivePrice = adjPrice != null ? adjPrice : basePrice;
       return {
@@ -339,11 +354,11 @@ const getPriceItems = (formula: Formula, idx: number) => {
   const baseFormula = compareFormulas.value[0];
   const baseMaterials = getMaterials(baseFormula);
   const currentMap = new Map(materials.map(m => {
-    const bp = (m as any).basePriceAtSave ?? null;
+    const bp = (m as unknown as Record<string, unknown>).basePriceAtSave as number | null ?? null;
     const ap = m.adjustedPrice ?? null;
     return [m.materialName, { quantity: m.quantity || 0, unitPrice: ap != null ? ap : bp, basePrice: bp, isAdjusted: ap != null && ap !== bp }];
   }));
-  const aligned: any[] = [];
+  const aligned: PriceItem[] = [];
 
   baseMaterials.forEach(b => {
     const name = b.materialName || '--';
@@ -356,7 +371,7 @@ const getPriceItems = (formula: Formula, idx: number) => {
         name,
         quantity: b.quantity || 0,
         unitPrice: null,
-        basePrice: (b as any).basePriceAtSave ?? null,
+        basePrice: (b as unknown as Record<string, unknown>).basePriceAtSave as number | null ?? null,
         isAdjusted: false,
         missing: true,
       });
@@ -364,20 +379,20 @@ const getPriceItems = (formula: Formula, idx: number) => {
   });
 
   currentMap.forEach((val, name) => {
-    aligned.push({ name, ...val as object, missing: false });
+    aligned.push({ name, quantity: val.quantity, unitPrice: val.unitPrice, basePrice: val.basePrice, isAdjusted: val.isAdjusted, missing: false });
   });
 
   return aligned;
 };
 
-const getPriceDiffClass = (item: any, _formula: Formula, idx: number) => {
+const getPriceDiffClass = (item: PriceItem, _formula: Formula, idx: number) => {
   if (idx === 0) return '';
   const baseFormula = compareFormulas.value[0];
   if (!baseFormula) return '';
   const baseMaterials = getMaterials(baseFormula);
   const match = baseMaterials.find((oi: MaterialItem) => oi.materialName === item.name);
   if (!match) return 'diff-added';
-  const baseEffectivePrice = match.adjustedPrice ?? (match as any).basePriceAtSave ?? null;
+  const baseEffectivePrice = match.adjustedPrice ?? (match as unknown as Record<string, unknown>).basePriceAtSave as number | null ?? null;
   if ((baseEffectivePrice ?? 'null') !== (item.unitPrice ?? 'null')) return 'diff-changed';
   return '';
 };

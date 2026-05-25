@@ -61,7 +61,7 @@ const messages = computed(() => store.messages);
 const config = computed(() => store.config);
 const isVisible = computed(() => store.isVisible);
 
-const fillFeedback = ref<Array<{ key: string; label: string; value: any; success: boolean; }> | null>(null);
+const fillFeedback = ref<Array<{ key: string; label: string; value: unknown; success: boolean; }> | null>(null);
 
 const ROUTE_PAGE_MAP: Record<string, string> = {
   "FormulaNew": "formula-add",
@@ -192,7 +192,7 @@ function sendMessage(text: string) {
   store.sendMessage(text);
 }
 
-function handleFill(fields: Record<string, any>) {
+function handleFill(fields: Record<string, unknown>) {
   const labelMap = currentFieldLabelMap.value;
   const results = fillFormFields(fields);
   fillFeedback.value = results.map((r: FillResult) => ({

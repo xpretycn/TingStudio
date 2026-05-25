@@ -1,4 +1,5 @@
-import { query, connectDatabase, getDatabaseType } from "../../config/database.js";
+import { query, connectDatabase } from "../../config/database.js";
+import { getDatabaseType } from "../../config/database-adapter.js";
 
 connectDatabase();
 

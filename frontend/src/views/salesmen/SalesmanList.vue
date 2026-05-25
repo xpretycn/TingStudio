@@ -458,7 +458,7 @@ const applySort = () => {
   }
   const dir = sortOrder.value === 'desc' ? -1 : 1;
 
-  const sortFns: Record<string, (a: any, b: any) => number> = {
+  const sortFns: Record<string, (a: Salesman, b: Salesman) => number> = {
     name: (a, b) => a.name.localeCompare(b.name, 'zh'),
     code: (a, b) => a.code.localeCompare(b.code),
     department: (a, b) => (a.department || '').localeCompare(b.department || '', 'zh'),
@@ -533,7 +533,7 @@ const pagination = computed(() => ({
   current: salesmanStore.currentPage,
   pageSize: salesmanStore.pageSize,
   total: salesmanStore.total,
-  onChange: (pageInfo: any) => {
+  onChange: (pageInfo: Record<string, unknown>) => {
     salesmanStore.setPage(pageInfo.current);
     salesmanStore.fetchSalesmen();
   }
@@ -578,13 +578,6 @@ const activityList = computed<ActivityItem[]>(() => {
 });
 const activityPrev = () => { if (activityPage.value > 1) activityPage.value--; };
 const activityNext = () => { if (activityPage.value < activityTotalPages.value) activityPage.value++; };
-
-const _assistantMessage = computed(() => {
-  const total = salesmanStore.total;
-  if (total === 0) return '您还没有添加任何业务员，点击下方按钮开始吧！';
-  if (total < 5) return `当前共有 ${total} 个业务员在库，建议继续丰富团队。`;
-  return `当前共有 ${total} 个业务员在库。`;
-});
 
 function formatTimeAgo(dateStr: string): string {
   if (!dateStr) return '刚刚';
@@ -636,8 +629,6 @@ const handleGlobalSearch = (e: Event) => {
   salesmanStore.fetchSalesmen();
 };
 
-let _isRestoringFromRoute = false;
-
 onMounted(async () => {
   window.addEventListener('global-search', handleGlobalSearch);
   paginationStore.register(pagination.value);
@@ -645,7 +636,6 @@ onMounted(async () => {
 
   if (route.query.keyword) {
     const keyword = route.query.keyword as string;
-    _isRestoringFromRoute = true;
     searchKeyword.value = keyword;
     salesmanStore.setKeyword(keyword);
     await nextTick();
@@ -659,7 +649,6 @@ onMounted(async () => {
 onActivated(async () => {
   if (route.query.keyword && route.query.keyword !== searchKeyword.value) {
     const keyword = route.query.keyword as string;
-    _isRestoringFromRoute = true;
     searchKeyword.value = keyword;
     salesmanStore.setKeyword(keyword);
     await nextTick();
@@ -711,11 +700,11 @@ const displaySmPendingItems = computed<SmTodoItem[]>(() => {
   const salesList = salesStore.sales || [];
 
   for (const s of salesmen) {
-    const salesmanFormulas = formulaStore.formulas?.filter((f: any) => f.salesmanId === s.id) || [];
+    const salesmanFormulas = formulaStore.formulas?.filter((f: Record<string, unknown>) => f.salesmanId === s.id) || [];
 
     if (salesmanFormulas.length > 0) {
       for (const f of salesmanFormulas) {
-        const currentVersion = (f.versions || []).find((v: any) => v.isCurrent);
+        const currentVersion = (f.versions || []).find((v: Record<string, unknown>) => v.isCurrent);
         if (!currentVersion && f.versions && f.versions.length > 0) {
           items.push({
             id: `draft-${s.id}-${f.id}`,
@@ -730,8 +719,8 @@ const displaySmPendingItems = computed<SmTodoItem[]>(() => {
         }
       }
 
-      const hasPublishedFormula = salesmanFormulas.some((f: any) => {
-        const cv = (f.versions || []).find((v: any) => v.isCurrent);
+      const hasPublishedFormula = salesmanFormulas.some((f: Record<string, unknown>) => {
+        const cv = (f.versions || []).find((v: Record<string, unknown>) => v.isCurrent);
         return cv?.status === 'published';
       });
 
@@ -748,7 +737,7 @@ const displaySmPendingItems = computed<SmTodoItem[]>(() => {
         });
       }
     } else {
-      const hasSalesRecord = salesList.some((sale: any) => sale.salesmanId === s.id);
+      const hasSalesRecord = salesList.some((sale: Record<string, unknown>) => sale.salesmanId === s.id);
       if (!hasSalesRecord && s.status === 'active') {
         items.push({
           id: `nosales-${s.id}`,

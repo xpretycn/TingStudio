@@ -1,5 +1,5 @@
-import type { ZodType } from "zod";
-import type { ToolContext, ToolResult } from "../../types/ai.js";
+import { z, ZodType } from "zod";
+import type { ToolContext, ToolResult } from "../../../types/ai.js";
 
 interface ToolDefinition<TParams extends ZodType = ZodType> {
   name: string;

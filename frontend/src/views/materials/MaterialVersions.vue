@@ -3,24 +3,40 @@ import { ref, computed, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { MessagePlugin } from "tdesign-vue-next";
 import { materialApi } from "@/api/material";
-import type { MaterialVersion } from "@/api/material";
+import type { Material, MaterialVersion } from "@/api/material";
+import { useAuthStore } from "@/stores/auth";
 import { formatTimestamp, splitDateTime } from "@/utils/timeFormat";
+import PageSkeleton from "@/components/Skeleton/PageSkeleton.vue";
 
 const route = useRoute();
 const router = useRouter();
+const authStore = useAuthStore();
 const materialId = route.params.id as string;
 
+const isAdmin = computed(() => authStore.user?.role === "admin");
+
 const loading = ref(true);
-const versionDetail = ref<any>(null);
+const initialized = ref(false);
+const versionDetail = ref<Material | null>(null);
 const detailLoading = ref(false);
 const versions = ref<MaterialVersion[]>([]);
 const materialName = ref("");
 const materialCode = ref("");
 const currentVersion = ref(0);
 const selectedVersionId = ref<string | null>(null);
-const compareTargetId = ref<string | null>(null);
+const selectedForCompare = ref<string[]>([]);
 const searchKeyword = ref("");
 const filterType = ref<"all" | "latest" | "history">("all");
+const statusFilter = ref<string>("");
+const materialStatus = ref<string>("draft");
+const submitLoading = ref(false);
+
+const statusOptions = [
+  { value: "", label: "全部" },
+  { value: "draft", label: "草稿" },
+  { value: "pending_review", label: "待审批" },
+  { value: "published", label: "已发布" },
+];
 
 const selectedVersion = computed(() =>
   versions.value.find((v) => v.id === selectedVersionId.value) ?? null
@@ -33,6 +49,9 @@ const filteredVersions = computed(() => {
   } else if (filterType.value === "history") {
     result = result.filter((v) => !v.isLatest);
   }
+  if (statusFilter.value) {
+    result = result.filter((v) => getVersionStatus(v) === statusFilter.value);
+  }
   if (searchKeyword.value.trim()) {
     const kw = searchKeyword.value.trim().toLowerCase();
     result = result.filter((v) =>
@@ -43,19 +62,40 @@ const filteredVersions = computed(() => {
   return result;
 });
 
+const statusLabel = (s: string) =>
+  s === 'published' ? '已发布' : s === 'pending_review' ? '待审批' : s === 'draft' ? '草稿' : '已归档';
+
+function getVersionStatus(ver: MaterialVersion | null): string {
+  if (!ver || ver.isLatest) return materialStatus.value;
+  return "published";
+}
+
+const stored = localStorage.getItem('compare_versions');
+if (stored) {
+  try {
+    const parsed = JSON.parse(stored);
+    if (Array.isArray(parsed)) selectedForCompare.value = parsed;
+  } catch { /* ignore */ }
+}
+
 onMounted(async () => {
   loading.value = true;
   try {
-    const res = await materialApi.getVersions(materialId);
+    const [res, detail] = await Promise.all([
+      materialApi.getVersions(materialId),
+      materialApi.getById(materialId).catch(() => null),
+    ]);
     materialName.value = res.materialName;
     materialCode.value = res.materialCode;
     currentVersion.value = res.currentVersion;
     versions.value = res.versions;
+    if (detail) materialStatus.value = detail.status;
   } catch {
     MessagePlugin.error("获取版本历史失败");
     router.back();
   } finally {
     loading.value = false;
+    initialized.value = true;
   }
 });
 
@@ -83,16 +123,21 @@ function handleBack() {
   router.push({ name: "MaterialList" });
 }
 
-function goToDetail() {
-  router.push({ name: "MaterialDetail", params: { id: materialId } });
-}
+
 
 function goToCompare() {
-  if (compareTargetId.value && selectedVersionId.value && compareTargetId.value !== selectedVersionId.value) {
+  if (selectedForCompare.value.length >= 2) {
+    const query: Record<string, string> = {
+      v1: selectedForCompare.value[0],
+      v2: selectedForCompare.value[1],
+    };
+    if (selectedForCompare.value[2]) {
+      query.v3 = selectedForCompare.value[2];
+    }
     router.push({
       name: "MaterialVersionCompare",
       params: { id: materialId },
-      query: { v1: compareTargetId.value, v2: selectedVersionId.value },
+      query,
     });
   } else if (versions.value.length >= 2) {
     router.push({ name: "MaterialVersionCompare", params: { id: materialId } });
@@ -101,20 +146,23 @@ function goToCompare() {
   }
 }
 
-function startCompare(ver: MaterialVersion) {
-  if (!compareTargetId.value) {
-    compareTargetId.value = ver.id;
-    MessagePlugin.info(`已选择 v${ver.version} 作为对比基准，请选择另一个版本`);
-  } else if (compareTargetId.value === ver.id) {
-    compareTargetId.value = null;
-    MessagePlugin.info("已取消选择");
+function toggleSelect(id: string) {
+  const idx = selectedForCompare.value.indexOf(id);
+  if (idx >= 0) {
+    selectedForCompare.value.splice(idx, 1);
   } else {
-    router.push({
-      name: "MaterialVersionCompare",
-      params: { id: materialId },
-      query: { v1: compareTargetId.value, v2: ver.id },
-    });
+    if (selectedForCompare.value.length >= 3) {
+      MessagePlugin.warning("最多选择 3 个版本进行对比");
+      return;
+    }
+    selectedForCompare.value.push(id);
   }
+  localStorage.setItem('compare_versions', JSON.stringify(selectedForCompare.value));
+}
+
+function clearCompareSelection() {
+  selectedForCompare.value = [];
+  localStorage.removeItem('compare_versions');
 }
 
 function formatChanges(version: MaterialVersion): string {
@@ -127,19 +175,69 @@ function formatChanges(version: MaterialVersion): string {
   return version.version === 1 ? "初始创建" : `版本 v${version.version} 更新`;
 }
 
-function formatChangeValue(val: any): string {
+function formatChangeValue(val: unknown): string {
   if (val == null) return "--";
   if (typeof val === "number") {
     return Number.isInteger(val) ? String(val) : val.toFixed(2);
   }
   return String(val);
 }
+
+async function handleSubmitReview() {
+  submitLoading.value = true;
+  try {
+    await materialApi.submitReview(materialId);
+    MessagePlugin.success("原料已提交审批");
+    materialStatus.value = "pending_review";
+  } catch {
+    MessagePlugin.error("提交审批失败");
+  } finally {
+    submitLoading.value = false;
+  }
+}
+
+async function handleApprove() {
+  try {
+    await materialApi.approve(materialId);
+    MessagePlugin.success("原料审批通过，已发布");
+    materialStatus.value = "published";
+    const detail = await materialApi.getById(materialId).catch(() => null);
+    if (detail) materialStatus.value = detail.status;
+  } catch {
+    MessagePlugin.error("审批失败");
+  }
+}
+
+const rejectDialogVisible = ref(false);
+const rejectComment = ref("");
+
+function handleReject() {
+  rejectComment.value = "";
+  rejectDialogVisible.value = true;
+}
+
+async function confirmReject() {
+  if (!rejectComment.value.trim()) {
+    MessagePlugin.warning("请填写驳回原因");
+    return;
+  }
+  try {
+    await materialApi.reject(materialId, rejectComment.value.trim());
+    rejectDialogVisible.value = false;
+    MessagePlugin.success("已驳回，原料已退回草稿状态");
+    materialStatus.value = "draft";
+    const detail = await materialApi.getById(materialId).catch(() => null);
+    if (detail) materialStatus.value = detail.status;
+  } catch {
+    MessagePlugin.error("驳回失败");
+  }
+}
 </script>
 
 <template>
-  <div class="version-list" :aria-busy="loading">
-    <template v-if="!loading">
-      <!-- 页面标题 -->
+  <div class="version-list" :aria-busy="!initialized">
+    <PageSkeleton v-if="!initialized" type="table" :rows="5" :columns="7" />
+    <template v-else>
       <header class="page-header">
         <div class="header-left">
           <button class="back-btn" @click="handleBack" title="返回列表">
@@ -158,21 +256,13 @@ function formatChangeValue(val: any): string {
           </div>
         </div>
         <div class="header-actions">
-          <button v-if="compareTargetId" class="action-btn action-primary" @click="goToCompare">
-            <t-icon name="swap" />
-            <span>对比 (v{{ versions.find(v => v.id === compareTargetId)?.version }})</span>
-          </button>
-          <button class="action-btn action-secondary" @click="goToCompare">
-            <t-icon name="swap" />
-            <span>版本对比</span>
-          </button>
-          <button class="action-btn action-secondary" @click="goToDetail">
-            <t-icon name="browse" />
-            <span>查看详情</span>
-          </button>
+          <div class="status-filter-group">
+            <button v-for="opt in statusOptions" :key="opt.value" class="status-filter-btn"
+              :class="{ active: statusFilter === opt.value }" @click="statusFilter = opt.value">{{
+                opt.label }}</button>
+          </div>
         </div>
       </header>
-      <!-- 内容区域 -->
       <div class="content-layout">
         <!-- 版本时间线 -->
         <div class="timeline-section">
@@ -182,19 +272,29 @@ function formatChangeValue(val: any): string {
               <span class="section-count">{{ filteredVersions.length }}</span>
             </div>
             <div class="section-head-right">
-              <t-input v-model="searchKeyword" placeholder="搜索版本号/操作人" size="small" clearable class="version-search">
-                <template #prefix-icon>
-                  <t-icon name="search" />
-                </template>
-              </t-input>
-              <div class="filter-tabs">
-                <button class="filter-tab" :class="{ active: filterType === 'all' }"
-                  @click="filterType = 'all'">全部</button>
-                <button class="filter-tab" :class="{ active: filterType === 'latest' }"
-                  @click="filterType = 'latest'">最新</button>
-                <button class="filter-tab" :class="{ active: filterType === 'history' }"
-                  @click="filterType = 'history'">历史</button>
-              </div>
+              <button class="section-compare-btn" :class="{ 'has-selection': selectedForCompare.length >= 2 }"
+                :disabled="selectedForCompare.length < 2" @click="goToCompare">
+                <t-icon name="swap" size="14px" />
+                <span>版本对比</span>
+                <span v-if="selectedForCompare.length" class="compare-badge">{{ selectedForCompare.length }}</span>
+              </button>
+              <button v-if="selectedForCompare.length" class="clear-compare-btn"
+                @click="clearCompareSelection">清除选择</button>
+            </div>
+          </div>
+          <div class="section-toolbar">
+            <t-input v-model="searchKeyword" placeholder="搜索版本号/操作人" size="small" clearable class="version-search">
+              <template #prefix-icon>
+                <t-icon name="search" />
+              </template>
+            </t-input>
+            <div class="filter-tabs">
+              <button class="filter-tab" :class="{ active: filterType === 'all' }"
+                @click="filterType = 'all'">全部</button>
+              <button class="filter-tab" :class="{ active: filterType === 'latest' }"
+                @click="filterType = 'latest'">最新</button>
+              <button class="filter-tab" :class="{ active: filterType === 'history' }"
+                @click="filterType = 'history'">历史</button>
             </div>
           </div>
 
@@ -231,41 +331,67 @@ function formatChangeValue(val: any): string {
                   <div class="tl-card-header">
                     <span class="tl-version-badge">v{{ ver.version }}</span>
                     <span v-if="ver.isLatest" class="tl-current-tag">最新</span>
-                    <span v-if="compareTargetId === ver.id" class="tl-compare-tag">基准</span>
+                    <span class="tl-status-chip" :class="'chip-' + getVersionStatus(ver)">{{
+                      statusLabel(getVersionStatus(ver))
+                    }}</span>
                   </div>
                   <span class="tl-date">{{
                     splitDateTime(ver.createdAt).date
-                    }}</span>
+                  }}</span>
                 </div>
 
-                <div class="tl-meta">
-                  <span class="tl-operator">{{ ver.createdByName }}</span>
-                  <span class="tl-role-tag" :class="ver.createdByRole === 'admin'
-                    ? 'role-admin'
-                    : 'role-formulist'
-                    ">
-                    {{
-                      ver.createdByRole === "admin" ? "管理员" : "配方师"
-                    }}
+                <div v-if="ver.changesDetail && ver.changesDetail.length > 0" class="tl-changes">
+                  <span v-for="(change, ci) in ver.changesDetail.slice(0, 4)" :key="ci" class="tl-change-chip"
+                    :class="'chip-modify'">
+                    <t-icon name="edit" size="12px" />
+                    {{ change.label }}
                   </span>
-                </div>
-
-                <div v-if="ver.changesDetail && ver.changesDetail.length > 0" class="tl-changes-list">
-                  <div v-for="(change, ci) in ver.changesDetail.slice(0, 3)" :key="ci" class="tl-change-item">
-                    <span class="change-label">{{ change.label }}</span>
-                    <span class="change-values">{{ formatChangeValue(change.old) }} → {{ formatChangeValue(change.new)
-                      }}</span>
-                  </div>
-                  <span v-if="ver.changesDetail.length > 3" class="change-more">+{{ ver.changesDetail.length - 3 }}
-                    项变更</span>
+                  <span v-if="ver.changesDetail.length > 4" class="tl-change-more">+{{ ver.changesDetail.length - 4
+                  }}</span>
                 </div>
                 <p v-else class="tl-reason">{{ formatChanges(ver) }}</p>
 
-                <div class="tl-card-actions">
-                  <button v-if="versions.length >= 2" class="tl-action-btn" @click.stop="startCompare(ver)"
-                    title="对比此版本">
-                    <t-icon name="swap" />
-                  </button>
+                <div class="tl-card-footer">
+                  <label class="tl-compare-label" @click.stop>
+                    <input type="checkbox" class="tl-checkbox" :checked="selectedForCompare.includes(ver.id)"
+                      @change="toggleSelect(ver.id)" />
+                    <span class="tl-checkbox-text">加入对比</span>
+                  </label>
+                  <template v-if="ver.isLatest">
+                    <t-popconfirm v-if="materialStatus === 'draft'" content="确定要提交审批吗？提交后需等待管理员审核。"
+                      @confirm="handleSubmitReview">
+                      <button class="tl-publish-btn" @click.stop :disabled="submitLoading">
+                        <t-icon name="send" size="12px" />
+                        提交审批
+                      </button>
+                    </t-popconfirm>
+                    <template v-else-if="materialStatus === 'pending_review' && isAdmin">
+                      <div class="tl-card-actions">
+                        <t-popconfirm content="确定要批准该原料吗？批准后将发布该原料。" @confirm="handleApprove">
+                          <button class="tl-publish-btn" @click.stop>
+                            <t-icon name="check" size="12px" />
+                            批准
+                          </button>
+                        </t-popconfirm>
+                        <button class="tl-reject-btn" @click.stop="handleReject">
+                          <t-icon name="close" size="12px" />
+                          驳回
+                        </button>
+                      </div>
+                    </template>
+                    <span v-else-if="materialStatus === 'pending_review' && !isAdmin" class="tl-status-hint">
+                      <t-icon name="time" size="12px" />
+                      审批中
+                    </span>
+                    <span v-else-if="materialStatus === 'published'" class="tl-status-hint tl-status-published">
+                      <t-icon name="check-circle" size="12px" />
+                      已发布
+                    </span>
+                  </template>
+                  <span v-else class="tl-status-hint tl-status-published">
+                    <t-icon name="check-circle" size="12px" />
+                    已发布
+                  </span>
                 </div>
               </div>
             </div>
@@ -273,6 +399,7 @@ function formatChangeValue(val: any): string {
         </div>
         <!-- 版本详情 -->
         <div class="detail-section">
+          <!-- 版本快照 -->
           <div class="section-head">
             <h3 class="section-title">版本快照</h3>
             <button v-if="selectedVersion" class="section-close-btn" @click="closeDetail" title="关闭详情">
@@ -296,20 +423,21 @@ function formatChangeValue(val: any): string {
               选择左侧版本查看<br />原料快照与变更详情
             </p>
           </div>
-          <!-- 版本详情内容 -->
           <div v-else class="detail-panel">
-            <!-- 版本身份信息 -->
+            <!-- 版本身份 -->
             <div class="detail-identity">
               <div class="identity-main">
                 <span class="identity-version">v{{ selectedVersion.version }}</span>
               </div>
               <div class="identity-meta">
+                <span class="identity-status" :class="'st-' + getVersionStatus(selectedVersion)">{{
+                  statusLabel(getVersionStatus(selectedVersion)) }}</span>
                 <span v-if="selectedVersion.isLatest" class="identity-current">当前版本</span>
                 <span class="identity-time">{{ splitDateTime(selectedVersion.createdAt).date }}
                   {{ splitDateTime(selectedVersion.createdAt).time }}</span>
               </div>
             </div>
-            <!-- 版本基本信息 -->
+            <!-- 基本信息 -->
             <div class="detail-card detail-snapshot">
               <h4 class="detail-card-title">基本信息</h4>
               <div class="snapshot-grid">
@@ -359,7 +487,7 @@ function formatChangeValue(val: any): string {
                 </div>
               </div>
             </div>
-            <!-- 版本营养成分 -->
+            <!-- 营养成分 -->
             <div v-if="versionDetail?.nutrition" class="detail-card detail-nutrition">
               <h4 class="detail-card-title">营养成分（每100g）</h4>
               <div class="nutrition-grid">
@@ -430,9 +558,49 @@ function formatChangeValue(val: any): string {
                 </div>
               </div>
             </div>
+            <!-- 操作按钮 -->
+            <div class="detail-actions">
+              <t-popconfirm v-if="materialStatus === 'draft' && isAdmin && selectedVersion?.isLatest"
+                content="确定要直接发布该原料吗？批准后将发布该原料。" @confirm="handleApprove">
+                <button class="action-btn action-publish">
+                  <t-icon name="send" /> 直接发布
+                </button>
+              </t-popconfirm>
+              <t-popconfirm v-if="materialStatus === 'draft' && !isAdmin && selectedVersion?.isLatest"
+                content="确定要提交审批吗？提交后需等待管理员审核。" @confirm="handleSubmitReview">
+                <button class="action-btn action-submit" :disabled="submitLoading">
+                  <t-icon name="send" /> 提交审批
+                </button>
+              </t-popconfirm>
+              <template v-if="materialStatus === 'pending_review' && selectedVersion?.isLatest && isAdmin">
+                <t-popconfirm content="确定要批准该原料吗？批准后将发布该原料。" @confirm="handleApprove">
+                  <button class="action-btn action-publish">
+                    <t-icon name="check" /> 批准发布
+                  </button>
+                </t-popconfirm>
+                <button class="action-btn action-reject" @click="handleReject">
+                  <t-icon name="close" /> 驳回
+                </button>
+              </template>
+              <span v-if="materialStatus === 'pending_review' && selectedVersion?.isLatest && !isAdmin"
+                class="pending-hint">
+                <t-icon name="time" /> 等待管理员审核中…
+              </span>
+              <button class="action-btn action-secondary" @click="goToCompare">
+                <t-icon name="swap" /> 对比版本
+              </button>
+            </div>
           </div>
         </div>
       </div>
+
+      <t-dialog v-model:visible="rejectDialogVisible" header="驳回版本" :confirm-btn="{ content: '确认驳回', theme: 'danger' }"
+        @confirm="confirmReject" :class="'version-create-dialog'">
+        <div class="create-form">
+          <label class="create-label">驳回原因 <span class="required">*</span></label>
+          <textarea v-model="rejectComment" class="create-textarea" placeholder="请说明驳回原因，便于修改者了解问题" rows="3"></textarea>
+        </div>
+      </t-dialog>
     </template>
   </div>
 </template>
@@ -441,9 +609,6 @@ function formatChangeValue(val: any): string {
 @use "@/assets/styles/variables.scss" as *;
 
 .version-list {
-  padding: 0 0 20px;
-  max-width: 1400px;
-  margin: 0 auto;
   min-height: 100vh;
 }
 
@@ -466,19 +631,32 @@ function formatChangeValue(val: any): string {
 .timeline-section {
   flex: 0 0 485px;
   max-width: 485px;
-  align-self: flex-start;
+  display: flex;
+  flex-direction: column;
   position: sticky;
-  top: calc(88px + 24px);
-  max-height: calc(100vh - 88px - 48px);
-  overflow-y: auto;
+  top: 84px;
+  height: calc(100vh - 84px - 16px);
+  overflow: hidden;
 
-  &::-webkit-scrollbar {
-    width: 4px;
+  .section-head,
+  .section-toolbar {
+    flex-shrink: 0;
   }
 
-  &::-webkit-scrollbar-thumb {
-    background: $border-color;
-    border-radius: 4px;
+  .timeline,
+  .empty-state {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+
+    &::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: $border-color;
+      border-radius: 4px;
+    }
   }
 }
 
@@ -491,12 +669,13 @@ function formatChangeValue(val: any): string {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 20px 20px 0;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid $border-color-light;
 
   .section-head-left {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--space-2-5);
   }
 
   .section-title {
@@ -547,6 +726,79 @@ function formatChangeValue(val: any): string {
     gap: 8px;
   }
 
+  .section-compare-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 12px;
+    border: 1px solid $border-color;
+    border-radius: $radius-pill;
+    background: transparent;
+    color: $text-tertiary;
+    font-size: $font-size-caption;
+    font-weight: $font-weight-medium;
+    cursor: pointer;
+    transition: all $transition-fast;
+
+    &:hover:not(:disabled) {
+      border-color: var(--color-primary-light);
+      color: var(--color-primary);
+      background: var(--color-primary-bg);
+    }
+
+    &.has-selection {
+      border-color: var(--color-primary);
+      color: var(--color-primary);
+      background: var(--color-primary-bg);
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .compare-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 16px;
+      height: 16px;
+      padding: 0 4px;
+      background: var(--color-primary);
+      color: #fff;
+      font-size: 10px;
+      font-weight: $font-weight-bold;
+      border-radius: $radius-pill;
+      line-height: 1;
+    }
+  }
+
+  .clear-compare-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 12px;
+    border: none;
+    border-radius: $radius-pill;
+    background: $color-danger-light;
+    color: $color-danger;
+    font-size: $font-size-caption;
+    font-weight: $font-weight-medium;
+    cursor: pointer;
+    transition: all $transition-fast;
+
+    &:hover {
+      background: $color-danger-medium;
+    }
+  }
+}
+
+.section-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 24px 12px;
+
   .version-search {
     width: 180px;
   }
@@ -590,9 +842,9 @@ function formatChangeValue(val: any): string {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-left: -20px;
-  margin-right: -20px;
-  padding: 8px 20px;
+  margin-left: -32px;
+  margin-right: -32px;
+  padding: 8px 32px;
   background: $overlay-white-80;
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
@@ -688,6 +940,41 @@ function formatChangeValue(val: any): string {
     display: flex;
     align-items: center;
     gap: 12px;
+
+    .status-filter-group {
+      display: flex;
+      gap: var(--space-0-5);
+      padding: var(--space-1);
+      background: var(--color-primary-bg);
+      border-radius: $radius-lg;
+    }
+
+    .status-filter-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: var(--space-1-5) var(--space-3-5);
+      border: none;
+      border-radius: 8px;
+      background: transparent;
+      color: $text-tertiary;
+      font-size: $font-size-caption;
+      font-weight: $font-weight-medium;
+      cursor: pointer;
+      transition: all $transition-fast;
+      white-space: nowrap;
+
+      &.active {
+        background: $bg-container;
+        color: var(--color-primary);
+        font-weight: $font-weight-semibold;
+        box-shadow: $shadow-xs;
+      }
+
+      &:hover:not(.active) {
+        color: $text-regular;
+      }
+    }
   }
 }
 
@@ -721,91 +1008,195 @@ function formatChangeValue(val: any): string {
     }
   }
 
-  &.action-primary {
-    background: var(--color-primary);
-    color: #fff;
+  &.action-publish {
+    background: var(--gradient-btn);
+    color: $text-white;
+    box-shadow: var(--shadow-brand-sm);
 
     &:hover {
-      opacity: 0.9;
+      box-shadow: var(--shadow-brand-md);
+      transform: translateY(-1px);
+    }
+  }
+
+  &.action-submit {
+    background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+    color: $text-white;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);
+
+    &:hover:not(:disabled) {
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);
+      transform: translateY(-1px);
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+
+  &.action-reject {
+    background: transparent;
+    color: $color-danger;
+    border: 1px solid $color-danger;
+
+    &:hover {
+      background: $color-danger-bg;
     }
   }
 }
 
-.tl-compare-tag {
+.tl-compare-label {
   display: inline-flex;
   align-items: center;
-  padding: 1px 8px;
-  background: $color-info-bg;
-  color: $color-info;
-  font-size: 10px;
-  font-weight: $font-weight-bold;
-  border-radius: $radius-pill;
-  letter-spacing: 0.03em;
+  gap: var(--space-1-5);
+  cursor: pointer;
+  user-select: none;
+
+  .tl-checkbox {
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    border: 1.5px solid $border-color;
+    border-radius: 4px;
+    cursor: pointer;
+    position: relative;
+    transition: all $transition-fast;
+    flex-shrink: 0;
+
+    &:checked {
+      background: var(--color-primary);
+      border-color: var(--color-primary);
+
+      &::after {
+        content: "";
+        position: absolute;
+        top: 1px;
+        left: 4px;
+        width: 4px;
+        height: 8px;
+        border: solid $text-white;
+        border-width: 0 2px 2px 0;
+        transform: rotate(45deg);
+      }
+    }
+
+    &:hover:not(:checked) {
+      border-color: var(--color-primary-lighter);
+    }
+  }
+
+  .tl-checkbox-text {
+    font-size: $font-size-caption;
+    color: $text-tertiary;
+    transition: color $transition-fast;
+  }
+
+  &:hover .tl-checkbox-text {
+    color: $text-secondary;
+  }
 }
 
-.tl-changes-list {
-  margin-top: var(--space-1-5);
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.tl-change-item {
+.tl-card-footer {
+  margin-top: var(--space-2-5);
+  padding-top: 8px;
+  border-top: 1px solid $border-color-light;
   display: flex;
   align-items: center;
-  gap: var(--space-1-5);
-  font-size: $font-size-caption;
-  line-height: 1.5;
-
-  .change-label {
-    color: $text-tertiary;
-    flex-shrink: 0;
-  }
-
-  .change-values {
-    color: var(--color-primary);
-    font-family: ui-monospace, SFMono-Regular, "Cascadia Code", monospace;
-    font-size: 11px;
-  }
-}
-
-.change-more {
-  font-size: 10px;
-  color: $text-placeholder;
-  margin-top: 2px;
+  justify-content: space-between;
 }
 
 .tl-card-actions {
   display: flex;
-  gap: var(--space-1);
-  margin-top: var(--space-1-5);
-  opacity: 0;
-  transition: opacity $transition-fast;
+  align-items: center;
+  gap: 8px;
+}
 
-  .tl-action-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 24px;
-    height: 24px;
-    border: 1px solid $border-color-light;
-    border-radius: $radius-md;
-    background: transparent;
-    color: $text-tertiary;
-    cursor: pointer;
-    transition: all $transition-fast;
-    font-size: 14px;
+.tl-publish-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border: 1px solid var(--color-primary-lighter);
+  border-radius: $radius-pill;
+  background: var(--color-primary-bg);
+  color: var(--color-primary);
+  font-size: 11px;
+  font-weight: $font-weight-medium;
+  cursor: pointer;
+  transition: all $transition-fast;
 
-    &:hover {
-      color: var(--color-primary);
-      border-color: var(--color-primary-light);
-      background: var(--color-primary-bg);
-    }
+  &:hover:not(:disabled) {
+    background: var(--color-primary);
+    color: $text-white;
+    border-color: var(--color-primary);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 }
 
-.timeline-item:hover .tl-card-actions {
-  opacity: 1;
+.tl-reject-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border: 1px solid $color-danger;
+  border-radius: $radius-pill;
+  background: transparent;
+  color: $color-danger;
+  font-size: 11px;
+  font-weight: $font-weight-medium;
+  cursor: pointer;
+  transition: all $transition-fast;
+
+  &:hover {
+    background: $color-danger-bg;
+  }
+}
+
+.tl-status-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: $radius-pill;
+  font-size: 11px;
+  font-weight: $font-weight-medium;
+  color: $text-tertiary;
+  background: $bg-cool-gray;
+
+  &.tl-status-published {
+    color: $color-success;
+    background: $color-success-bg;
+  }
+}
+
+.detail-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2-5);
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid $border-color-light;
+
+  .pending-hint {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1-5);
+    padding: 8px var(--space-4);
+    background: $color-info-bg;
+    color: $color-info;
+    font-size: $font-size-body-sm;
+    font-weight: $font-weight-medium;
+    border-radius: $radius-lg;
+
+    .t-icon {
+      animation: spin 2s linear infinite;
+    }
+  }
 }
 
 .sn-changes-detail {
@@ -957,6 +1348,36 @@ function formatChangeValue(val: any): string {
   letter-spacing: 0.03em;
 }
 
+.tl-status-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 8px;
+  font-size: 10px;
+  font-weight: $font-weight-semibold;
+  border-radius: $radius-pill;
+  letter-spacing: 0.03em;
+
+  &.chip-draft {
+    background: $color-warning-bg;
+    color: $color-warning;
+  }
+
+  &.chip-pending_review {
+    background: $color-info-bg;
+    color: $color-info;
+  }
+
+  &.chip-published {
+    background: $color-success-bg;
+    color: $color-success;
+  }
+
+  &.chip-archived {
+    background: $bg-cool-gray;
+    color: $text-tertiary;
+  }
+}
+
 .tl-date {
   font-size: $font-size-caption;
   color: $text-tertiary;
@@ -965,33 +1386,48 @@ function formatChangeValue(val: any): string {
   margin-top: var(--space-1);
 }
 
-.tl-meta {
+.tl-changes {
   display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.tl-change-chip {
+  display: inline-flex;
   align-items: center;
-  gap: var(--space-1-5);
-  margin-top: 6px;
-}
-
-.tl-operator {
-  font-size: $font-size-caption;
-  color: $text-secondary;
-}
-
-.tl-role-tag {
+  gap: var(--space-1);
+  padding: var(--space-0-5) 8px;
   font-size: 10px;
-  padding: 1px 6px;
-  border-radius: $radius-xs;
-  font-weight: $font-weight-semibold;
+  font-weight: $font-weight-medium;
+  border-radius: $radius-pill;
+  line-height: 1.4;
 
-  &.role-admin {
-    background: $color-warning-bg;
-    color: $color-warning;
+  &.chip-add {
+    background: $color-success-bg;
+    color: $color-success;
   }
 
-  &.role-formulist {
+  &.chip-delete {
+    background: $color-danger-bg;
+    color: $color-danger;
+  }
+
+  &.chip-modify {
     background: $color-info-bg;
     color: $color-info;
   }
+}
+
+.tl-change-more {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-0-5) 8px;
+  font-size: 10px;
+  font-weight: $font-weight-medium;
+  color: $text-tertiary;
+  background: $bg-cool-gray;
+  border-radius: $radius-pill;
 }
 
 .tl-reason {
@@ -1056,6 +1492,35 @@ function formatChangeValue(val: any): string {
     align-items: center;
     gap: var(--space-2-5);
     flex-wrap: wrap;
+  }
+
+  .identity-status {
+    display: inline-flex;
+    align-items: center;
+    padding: var(--space-1) var(--space-2-5);
+    font-size: $font-size-caption;
+    font-weight: $font-weight-semibold;
+    border-radius: $radius-pill;
+
+    &.st-draft {
+      background: $color-warning-bg;
+      color: $color-warning;
+    }
+
+    &.st-pending_review {
+      background: $color-info-bg;
+      color: $color-info;
+    }
+
+    &.st-published {
+      background: $color-success-bg;
+      color: $color-success;
+    }
+
+    &.st-archived {
+      background: $bg-cool-gray;
+      color: $text-tertiary;
+    }
   }
 
   .identity-current {
@@ -1158,6 +1623,45 @@ function formatChangeValue(val: any): string {
   }
 }
 
+.create-form {
+  .create-label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: $font-size-body-sm;
+    font-weight: $font-weight-medium;
+    color: $text-primary;
+
+    .required {
+      color: $color-danger;
+    }
+  }
+
+  .create-textarea {
+    display: block;
+    width: 100%;
+    padding: var(--space-2-5) 12px;
+    border: 1px solid $border-color;
+    border-radius: $radius-md;
+    font-size: $font-size-body-sm;
+    font-family: inherit;
+    color: $text-primary;
+    background: $bg-container;
+    resize: vertical;
+    transition: border-color $transition-fast;
+    outline: none;
+    box-sizing: border-box;
+
+    &::placeholder {
+      color: $text-placeholder;
+    }
+
+    &:focus {
+      border-color: var(--color-primary-light);
+      box-shadow: 0 0 0 2px var(--overlay-brand-10);
+    }
+  }
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -1194,6 +1698,31 @@ function formatChangeValue(val: any): string {
   100% {
     transform: scale(1.6);
     opacity: 0;
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+</style>
+
+<style lang="scss">
+.t-dialog.version-create-dialog {
+  .t-dialog__footer .t-btn--theme-primary {
+    background: linear-gradient(135deg, #34d399 0%, #10b981 100%) !important;
+    border: none;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
+
+    &:hover {
+      background: linear-gradient(135deg, #6ee7b7 0%, #34d399 100%) !important;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
+    }
   }
 }
 </style>

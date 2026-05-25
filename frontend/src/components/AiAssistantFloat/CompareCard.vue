@@ -77,8 +77,37 @@
 </template>
 
 <script setup lang="ts">
+interface FormulaInfo {
+  name: string;
+  finishedWeight: number;
+}
+
+interface MaterialDiffItem {
+  name: string;
+  quantityA: number;
+  quantityB: number;
+  diff: number;
+  onlyIn: string;
+}
+
+interface NutritionInfo {
+  energy: number;
+  protein: number;
+  fat: number;
+  carbohydrate: number;
+  sodium: number;
+}
+
+interface CompareData {
+  formulaA?: FormulaInfo;
+  formulaB?: FormulaInfo;
+  materialDiff?: MaterialDiffItem[];
+  nutritionA?: NutritionInfo;
+  nutritionB?: NutritionInfo;
+}
+
 defineProps<{
-  data: any;
+  data: CompareData;
 }>();
 
 function diffClass(v: number): string {

@@ -94,10 +94,6 @@ http.interceptors.response.use(
   },
 );
 
-export function getToken(): string | null {
-  return sessionStorage.getItem(TOKEN_KEY) || localStorage.getItem(TOKEN_KEY);
-}
-
 export function setToken(token: string) {
   sessionStorage.setItem(TOKEN_KEY, token);
   localStorage.setItem(TOKEN_KEY, token);
@@ -108,15 +104,22 @@ export function removeToken() {
   localStorage.removeItem(TOKEN_KEY);
 }
 
-export function clearToken() {
+function clearToken() {
   sessionStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(TOKEN_KEY);
 }
 
-export function clearUser() {
+function clearUser() {
   sessionStorage.removeItem(USER_KEY);
   localStorage.removeItem(USER_KEY);
 }
 
-export { TOKEN_KEY, USER_KEY };
+export interface Pagination {
+  page: number;
+  pageSize: number;
+  total: number;
+  totalPages: number;
+}
+
+export { USER_KEY };
 export default http;

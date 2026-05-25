@@ -102,24 +102,24 @@ describe("useAiStore", () => {
   });
 
   it("AI08: clearParseResult 清除解析结果", () => {
-    (store as any)._parseResult = { name: "test" };
-    (store as any)._parseError = "some error";
+    (store as unknown as { _parseResult: { name: string } | null })._parseResult = { name: "test" };
+    (store as unknown as { _parseError: string })._parseError = "some error";
     store.clearParseResult();
     expect(store.parseResult).toBeNull();
     expect(store.parseError).toBe("");
   });
 
   it("AI09: clearMaterialParseResult 清除原料解析结果", () => {
-    (store as any)._materialParseResult = { nutritionData: {} };
-    (store as any)._materialParseError = "err";
+    (store as unknown as { _materialParseResult: { nutritionData: Record<string, unknown> } | null })._materialParseResult = { nutritionData: {} };
+    (store as unknown as { _materialParseError: string })._materialParseError = "err";
     store.clearMaterialParseResult();
     expect(store.materialParseResult).toBeNull();
     expect(store.materialParseError).toBe("");
   });
 
   it("AI10: clearSearchResult 清除检索结果", () => {
-    (store as any)._searchResult = { items: [] };
-    (store as any)._searchError = "err";
+    (store as unknown as { _searchResult: { items: unknown[] } | null })._searchResult = { items: [] };
+    (store as unknown as { _searchError: string })._searchError = "err";
     store.clearSearchResult();
     expect(store.searchResult).toBeNull();
     expect(store.searchError).toBe("");

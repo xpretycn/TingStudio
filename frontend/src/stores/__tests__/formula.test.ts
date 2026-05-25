@@ -96,7 +96,7 @@ describe("useFormulaStore", () => {
     create.mockResolvedValue({});
     getList.mockResolvedValue({ list: [MOCK_FORMULAS[0]], pagination: { total: 1, page: 1, pageSize: 10 } });
 
-    const result = await store.createFormula({ name: "新配方" } as any);
+    const result = await store.createFormula({ name: "新配方" } as Partial<import("@/api/formula").FormulaForm> as unknown as import("@/api/formula").FormulaForm);
 
     expect(result.success).toBe(true);
   });

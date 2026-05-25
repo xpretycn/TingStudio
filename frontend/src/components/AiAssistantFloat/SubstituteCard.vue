@@ -39,8 +39,29 @@
 </template>
 
 <script setup lang="ts">
+interface MaterialRef {
+  name: string;
+  type: string;
+  unitPrice?: number;
+}
+
+interface SubstituteItem {
+  id: string;
+  name: string;
+  type: string;
+  unitPrice?: number;
+  stock?: number;
+  similarity: string;
+}
+
+interface SubstituteData {
+  original?: MaterialRef;
+  substitutes?: SubstituteItem[];
+  message?: string;
+}
+
 defineProps<{
-  data: any;
+  data: SubstituteData;
 }>();
 
 function typeLabel(t: string): string {

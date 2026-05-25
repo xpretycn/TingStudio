@@ -48,7 +48,7 @@ export const useAiStore = defineStore("ai", () => {
       if (!selectedModel.value && res.available.length > 0) {
         selectedModel.value = res.available[0].provider;
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("[AI Store] 获取模型列表失败:", error);
     }
   };
@@ -76,7 +76,7 @@ export const useAiStore = defineStore("ai", () => {
     try {
       await modelApi.switchVersion(selectedModel.value, version);
       selectedVersion.value = version;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("[AI Store] 切换模型版本失败:", error);
       throw error;
     }
@@ -104,13 +104,14 @@ export const useAiStore = defineStore("ai", () => {
         parseResult.value = res;
         parseHistoryRefreshKey.value++;
       }
-    } catch (error: any) {
-      if (error.name === "AbortError") {
+    } catch (error: unknown) {
+      if (error instanceof Error && error.name === "AbortError") {
         return;
       }
 
       if (currentRequestId === parseRequestId && !parseAborted.value) {
-        parseError.value = error?.response?.data?.message || error.message || "AI 解析失败";
+        const axiosError = error as { response?: { data?: { message?: string } } }
+        parseError.value = axiosError.response?.data?.message || (error instanceof Error ? error.message : "AI 解析失败");
       }
     } finally {
       if (currentRequestId === parseRequestId) {
@@ -154,8 +155,9 @@ export const useAiStore = defineStore("ai", () => {
       const history = [queryText, ...searchHistory.value.filter(h => h !== queryText)];
       searchHistory.value = history.slice(0, 10);
       return res;
-    } catch (error: any) {
-      searchError.value = error?.response?.data?.message || error.message || "AI 检索失败";
+    } catch (error: unknown) {
+      const axiosError = error as { response?: { data?: { message?: string } } }
+      searchError.value = axiosError.response?.data?.message || (error instanceof Error ? error.message : "AI 检索失败");
     } finally {
       searchLoading.value = false;
     }
@@ -189,13 +191,14 @@ export const useAiStore = defineStore("ai", () => {
         materialParseResult.value = res;
         parseHistoryRefreshKey.value++;
       }
-    } catch (error: any) {
-      if (error.name === "AbortError") {
+    } catch (error: unknown) {
+      if (error instanceof Error && error.name === "AbortError") {
         return;
       }
 
       if (currentRequestId === materialRequestId && !materialParseAborted.value) {
-        materialParseError.value = error?.response?.data?.message || error.message || "AI 解析失败";
+        const axiosError = error as { response?: { data?: { message?: string } } }
+        materialParseError.value = axiosError.response?.data?.message || (error instanceof Error ? error.message : "AI 解析失败");
       }
     } finally {
       if (currentRequestId === materialRequestId) {

@@ -38,7 +38,10 @@ CREATE TABLE IF NOT EXISTS `materials` (
   `is_latest` INTEGER NOT NULL DEFAULT 1,
   `is_deleted` INTEGER NOT NULL DEFAULT 0,
   `changes_json` TEXT DEFAULT NULL,
-  `status` TEXT NOT NULL DEFAULT 'draft' CHECK(status IN ('draft', 'pending_review', 'published'))
+  `status` TEXT NOT NULL DEFAULT 'draft' CHECK(status IN ('draft', 'pending_review', 'published')),
+  `appearance_json` TEXT DEFAULT NULL,
+  `taste_json` TEXT DEFAULT NULL,
+  `efficacy_json` TEXT DEFAULT NULL
 );
 CREATE INDEX IF NOT EXISTS `idx_material_name` ON `materials`(`name`);
 CREATE INDEX IF NOT EXISTS `idx_material_code` ON `materials`(`code`);
@@ -302,3 +305,22 @@ CREATE TABLE IF NOT EXISTS `ratio_threshold_configs` (
   `updated_at` TEXT NOT NULL,
   `updated_by` TEXT
 );
+
+-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+-- 原料枚举字段管理
+-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+-- 枚举选项表
+CREATE TABLE IF NOT EXISTS `enum_options` (
+  `id` TEXT PRIMARY KEY,
+  `category` TEXT NOT NULL CHECK(category IN ('appearance', 'taste', 'efficacy')),
+  `label` TEXT NOT NULL,
+  `value` TEXT NOT NULL,
+  `sort_order` INTEGER NOT NULL DEFAULT 0,
+  `is_active` INTEGER NOT NULL DEFAULT 1,
+  `created_at` TEXT NOT NULL DEFAULT (datetime('now')),
+  `updated_at` TEXT NOT NULL DEFAULT (datetime('now')),
+  UNIQUE(`category`, `value`)
+);
+CREATE INDEX IF NOT EXISTS `idx_enum_category` ON `enum_options`(`category`);
+CREATE INDEX IF NOT EXISTS `idx_enum_category_active` ON `enum_options`(`category`, `is_active`);

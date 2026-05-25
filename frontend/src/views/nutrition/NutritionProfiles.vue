@@ -273,10 +273,10 @@ const targetDetailColumns = [
 
 const filteredProfiles = computed(() => {
   let list = nutritionStore.profiles || [];
-  if (filterForm.category) list = list.filter((p: any) => p.category === filterForm.category);
+  if (filterForm.category) list = list.filter((p: NutritionProfile) => p.category === filterForm.category);
   if (searchKeyword.value.trim()) {
     const kw = searchKeyword.value.toLowerCase().trim();
-    list = list.filter((p: any) => p.name?.toLowerCase().includes(kw));
+    list = list.filter((p: NutritionProfile) => p.name?.toLowerCase().includes(kw));
   }
   return list;
 });
@@ -289,9 +289,9 @@ const profileTargetList = computed(() => {
 const dashboardCards = computed(() => {
   const profiles = nutritionStore.profiles || [];
   const total = profiles.length;
-  const presetCount = profiles.filter((p: any) => p.isPreset).length;
+  const presetCount = profiles.filter((p: NutritionProfile) => p.isPreset).length;
   const customCount = total - presetCount;
-  const categories = new Set(profiles.map((p: any) => p.category)).size;
+  const categories = new Set(profiles.map((p: NutritionProfile) => p.category)).size;
   return [
     {
       label: '营养标准',
@@ -328,7 +328,7 @@ const dashboardCards = computed(() => {
     },
     {
       label: '总指标数',
-      value: profiles.reduce((sum: number, p: any) => sum + Object.keys(p.targetValues || {}).length, 0).toString(),
+      value: profiles.reduce((sum: number, p: NutritionProfile) => sum + Object.keys(p.targetValues || {}).length, 0).toString(),
       unit: '项',
       badge: '活跃',
       badgeColor: '#A855F7',

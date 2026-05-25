@@ -111,11 +111,6 @@ function getSeverityTheme(severity: string) {
   }
 }
 
-function _formatTime(time: string) {
-  const date = new Date(time);
-  return date.toLocaleString();
-}
-
 function startAutoRefresh() {
   if (refreshTimer) {
     clearInterval(refreshTimer);
@@ -173,7 +168,7 @@ onMounted(() => {
       <t-alert
         v-for="alert in criticalAlerts"
         :key="alert.id"
-        :theme="getSeverityTheme(alert.severity) as any"
+        :theme="getSeverityTheme(alert.severity) as 'danger' | 'warning' | 'info'"
         :title="alert.ruleName"
         :content="alert.message"
         class="alert-item"
@@ -191,7 +186,7 @@ onMounted(() => {
       <t-alert
         v-for="alert in errorAlerts"
         :key="alert.id"
-        :theme="getSeverityTheme(alert.severity) as any"
+        :theme="getSeverityTheme(alert.severity) as 'danger' | 'warning' | 'info'"
         :title="alert.ruleName"
         :content="alert.message"
         class="alert-item"
@@ -209,7 +204,7 @@ onMounted(() => {
       <t-alert
         v-for="alert in warningAlerts"
         :key="alert.id"
-        :theme="getSeverityTheme(alert.severity) as any"
+        :theme="getSeverityTheme(alert.severity) as 'danger' | 'warning' | 'info'"
         :title="alert.ruleName"
         :content="alert.message"
         class="alert-item"

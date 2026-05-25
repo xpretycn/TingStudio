@@ -67,8 +67,41 @@
 </template>
 
 <script setup lang="ts">
+interface FormulaRef {
+  name: string;
+}
+
+interface BreakdownItem {
+  name: string;
+  quantity: number;
+  unit_price: number;
+  subtotal: number;
+}
+
+interface CostBreakdown {
+  material_subtotal: number;
+  packaging_cost: number;
+  other_costs: number;
+  cost_subtotal: number;
+  profit_amount: number;
+  total_price: number;
+  breakdown?: BreakdownItem[];
+}
+
+interface UnitCost {
+  per_kg_cost: number;
+  per_100g_cost: number;
+}
+
+interface QuotationData {
+  formula?: FormulaRef;
+  costBreakdown?: CostBreakdown;
+  profitMargin: number;
+  unitCost?: UnitCost;
+}
+
 defineProps<{
-  data: any;
+  data: QuotationData;
 }>();
 </script>
 

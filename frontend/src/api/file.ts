@@ -1,5 +1,4 @@
 import http from './http'
-import axios from 'axios'
 
 const TOKEN_KEY = 'tingstudio_token'
 
@@ -59,7 +58,7 @@ export interface AuditLog {
 
 export interface FilePreviewData {
   type: 'excel' | 'image'
-  sheets?: { name: string; headers: string[]; rows: any[][]; mergedCells?: any[] }[]
+  sheets?: { name: string; headers: string[]; rows: unknown[][]; mergedCells?: Record<string, unknown>[] }[]
   activeSheet?: number
   totalRows?: number
   truncated?: boolean
@@ -77,50 +76,58 @@ export interface FileStats {
   totalSize: number
 }
 
+interface ReparseResult {
+  fileId: string
+  status: string
+  parseResultJson: string | null
+  parseModel: string | null
+  parseConfidence: number | null
+}
+
 export const fileApi = {
   list(params?: FileQueryParams) {
-    return http.get<any, { list: UploadedFile[]; total: number; stats: FileStats }>('/files', { params })
+    return http.get<unknown, { list: UploadedFile[]; total: number; stats: FileStats }>('/files', { params })
   },
 
   upload(formData: FormData) {
-    return http.post<any, UploadedFile>('/files/upload', formData, {
+    return http.post<unknown, UploadedFile>('/files/upload', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     })
   },
 
   get(fileId: string) {
-    return http.get<any, UploadedFile>(`/files/${fileId}`)
+    return http.get<unknown, UploadedFile>(`/files/${fileId}`)
   },
 
   delete(fileId: string) {
-    return http.delete<any, void>(`/files/${fileId}`)
+    return http.delete<unknown, void>(`/files/${fileId}`)
   },
 
   reparse(fileId: string, model: string) {
-    return http.post<any, any>(`/files/${fileId}/reparse`, { model })
+    return http.post<unknown, ReparseResult>(`/files/${fileId}/reparse`, { model })
   },
 
   link(fileId: string, data: { relatedId: string; relatedType: string }) {
-    return http.post<any, void>(`/files/${fileId}/link`, data)
+    return http.post<unknown, void>(`/files/${fileId}/link`, data)
   },
 
   unlink(fileId: string, data?: { relatedId: string; relatedType: string }) {
-    return http.post<any, void>(`/files/${fileId}/unlink`, data || {})
+    return http.post<unknown, void>(`/files/${fileId}/unlink`, data || {})
   },
 
   getAuditLog(fileId: string) {
-    return http.get<any, AuditLog[]>(`/files/${fileId}/audit`)
+    return http.get<unknown, AuditLog[]>(`/files/${fileId}/audit`)
   },
 
   download(fileId: string) {
-    return axios.get(`/api/files/${fileId}/download`, {
+    return http.get(`/api/files/${fileId}/download`, {
       responseType: 'blob',
       headers: { Authorization: `Bearer ${localStorage.getItem(TOKEN_KEY) || ''}` },
     })
   },
 
   preview(fileId: string, params?: { sheet?: number; maxRows?: number; maxCols?: number }) {
-    return http.get<any, FilePreviewData>(`/files/${fileId}/preview`, { params })
+    return http.get<unknown, FilePreviewData>(`/files/${fileId}/preview`, { params })
   },
 
   thumbnail(fileId: string) {
@@ -128,14 +135,14 @@ export const fileApi = {
   },
 
   getStats() {
-    return http.get<any, FileStats>('/files/stats')
+    return http.get<unknown, FileStats>('/files/stats')
   },
 
   batchDelete(fileIds: string[]) {
-    return http.post<any, { deleted: number; failed: number }>('/files/batch-delete', { fileIds })
+    return http.post<unknown, { deleted: number; failed: number }>('/files/batch-delete', { fileIds })
   },
 
   batchArchive(fileIds: string[]) {
-    return http.post<any, { archived: number; failed: number }>('/files/batch-archive', { fileIds })
+    return http.post<unknown, { archived: number; failed: number }>('/files/batch-archive', { fileIds })
   },
 }

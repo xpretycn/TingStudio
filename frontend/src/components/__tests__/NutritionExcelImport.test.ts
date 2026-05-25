@@ -34,6 +34,17 @@ vi.mock("tdesign-vue-next", () => ({
   },
 }));
 
+type NutritionComponentVM = {
+  beforeUpload: (file: { raw: File }) => boolean;
+  handleUpload: (file: { raw: File }) => Promise<void>;
+  parseResult: { nutritionData: Record<string, number>; dataSource?: string; [key: string]: unknown } | null;
+  validNutrients: unknown[];
+  validNutrientCount: number;
+  unknownFields: unknown[];
+  confirmImport: () => void;
+  cancelImport: () => void;
+};
+
 describe("NutritionExcelImport 组件", () => {
   let wrapper: ReturnType<typeof mount>;
 
@@ -91,7 +102,7 @@ describe("NutritionExcelImport 组件", () => {
   });
 
   it("N04: 上传非 Excel 文件应返回 false 阻止上传", () => {
-    const component = wrapper.vm as any;
+    const component = wrapper.vm as unknown as NutritionComponentVM;
 
     const txtFile = new File(["test"], "data.txt", { type: "text/plain" });
     const result = component.beforeUpload({ raw: txtFile });
@@ -100,7 +111,7 @@ describe("NutritionExcelImport 组件", () => {
   });
 
   it("N05: 上传超过 5MB 的文件应返回 false 阻止上传", () => {
-    const component = wrapper.vm as any;
+    const component = wrapper.vm as unknown as NutritionComponentVM;
 
     const bigFile = new File(["x".repeat(6 * 1024 * 1024)], "big.xlsx", {
       type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -111,7 +122,7 @@ describe("NutritionExcelImport 组件", () => {
   });
 
   it("N06: 解析有效 Excel 应设置 parseResult 并填充 nutritionData", async () => {
-    const component = wrapper.vm as any;
+    const component = wrapper.vm as unknown as NutritionComponentVM;
 
     sheet_to_json.mockReturnValue([
       ["能量", "1600", "kJ"],
@@ -126,12 +137,12 @@ describe("NutritionExcelImport 组件", () => {
     await component.handleUpload({ raw: excelFile });
 
     expect(component.parseResult).not.toBeNull();
-    expect(component.parseResult.nutritionData.energy).toBe(1600);
-    expect(component.parseResult.nutritionData.protein).toBe(20.5);
+    expect(component.parseResult!.nutritionData.energy).toBe(1600);
+    expect(component.parseResult!.nutritionData.protein).toBe(20.5);
   });
 
   it("N07: 解析后有效营养素数应排除空值和未知字段", async () => {
-    const component = wrapper.vm as any;
+    const component = wrapper.vm as unknown as NutritionComponentVM;
 
     sheet_to_json.mockReturnValue([
       ["能量", "1600", "kJ"],
@@ -153,7 +164,7 @@ describe("NutritionExcelImport 组件", () => {
   });
 
   it("N08: 未识别字段被静默忽略，不进入 nutritionData", async () => {
-    const component = wrapper.vm as any;
+    const component = wrapper.vm as unknown as NutritionComponentVM;
 
     sheet_to_json.mockReturnValue([
       ["蛋白质", "20.5", "g"],
@@ -166,13 +177,13 @@ describe("NutritionExcelImport 组件", () => {
     });
     await component.handleUpload({ raw: excelFile });
 
-    expect(component.parseResult.nutritionData.protein).toBe(20.5);
-    expect(component.parseResult.nutritionData["自定义指标A"]).toBeUndefined();
+    expect(component.parseResult!.nutritionData.protein).toBe(20.5);
+    expect(component.parseResult!.nutritionData["自定义指标A"]).toBeUndefined();
     expect(component.unknownFields.length).toBe(0);
   });
 
   it("N09: 确认导入应 emit import 事件并携带正确数据结构", async () => {
-    const component = wrapper.vm as any;
+    const component = wrapper.vm as unknown as NutritionComponentVM;
 
     sheet_to_json.mockReturnValue([["蛋白质", "20.5", "g"]]);
 
@@ -186,16 +197,16 @@ describe("NutritionExcelImport 组件", () => {
 
     const emitted = wrapper.emitted("import");
     expect(emitted).toBeTruthy();
-    const data = emitted![0][0];
+    const data = emitted![0][0] as Record<string, unknown>;
     expect(data).toHaveProperty("nutritionData");
     expect(data).toHaveProperty("dataSource");
     expect(data).toHaveProperty("confidence");
     expect(data).toHaveProperty("notes");
-    expect(data.nutritionData.protein).toBe(20.5);
+    expect((data.nutritionData as Record<string, number>).protein).toBe(20.5);
   });
 
   it("N10: 取消导入应重置 parseResult 为 null", async () => {
-    const component = wrapper.vm as any;
+    const component = wrapper.vm as unknown as NutritionComponentVM;
 
     sheet_to_json.mockReturnValue([["蛋白质", "20.5", "g"]]);
 
@@ -211,7 +222,7 @@ describe("NutritionExcelImport 组件", () => {
   });
 
   it("N11: 中文标签映射 — 「蛋白质」应映射为 protein key", async () => {
-    const component = wrapper.vm as any;
+    const component = wrapper.vm as unknown as NutritionComponentVM;
 
     sheet_to_json.mockReturnValue([
       ["蛋白质", "25.0", "g"],
@@ -224,13 +235,13 @@ describe("NutritionExcelImport 组件", () => {
     });
     await component.handleUpload({ raw: excelFile });
 
-    expect(component.parseResult.nutritionData.protein).toBe(25.0);
-    expect(component.parseResult.nutritionData.fat).toBe(10.0);
-    expect(component.parseResult.nutritionData.vitaminC).toBe(5.0);
+    expect(component.parseResult!.nutritionData.protein).toBe(25.0);
+    expect(component.parseResult!.nutritionData.fat).toBe(10.0);
+    expect(component.parseResult!.nutritionData.vitaminC).toBe(5.0);
   });
 
   it("N12: dataSource 提取 — 含「数据来源」列应正确提取到 dataSource 字段", async () => {
-    const component = wrapper.vm as any;
+    const component = wrapper.vm as unknown as NutritionComponentVM;
 
     sheet_to_json.mockReturnValue([
       ["蛋白质", "20.5", "g"],
@@ -242,6 +253,6 @@ describe("NutritionExcelImport 组件", () => {
     });
     await component.handleUpload({ raw: excelFile });
 
-    expect(component.parseResult.dataSource).toBe("中国食物成分表 2024");
+    expect(component.parseResult!.dataSource).toBe("中国食物成分表 2024");
   });
 });

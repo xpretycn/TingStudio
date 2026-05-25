@@ -249,8 +249,9 @@ const handleSubmit = async () => {
     MessagePlugin.success('业务员创建成功')
     emit('created', created)
     emit('update:visible', false)
-  } catch (error: any) {
-    MessagePlugin.error(error?.message || '创建业务员失败')
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : '创建业务员失败';
+    MessagePlugin.error(msg)
   } finally {
     submitting.value = false
   }

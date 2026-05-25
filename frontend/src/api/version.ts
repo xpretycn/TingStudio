@@ -1,4 +1,5 @@
 import http from './http'
+import type { Pagination } from './http'
 
 export interface FormulaVersion {
   versionId: string
@@ -13,8 +14,8 @@ export interface FormulaVersion {
   createdBy: string
   createdByName: string | null
   createdAt: string
-  changes?: any[]
-  snapshot?: any
+  changes?: Record<string, unknown>[]
+  snapshot?: Record<string, unknown>
 }
 
 export interface MaterialUpdateInfo {
@@ -43,7 +44,7 @@ export interface MaterialUpdatesResult {
   priceChangedCount: number
 }
 
-export interface ReviewLog {
+export interface VersionReviewLog {
   reviewLogId: string
   versionId: string
   reviewerId: string
@@ -53,45 +54,64 @@ export interface ReviewLog {
   createdAt: string
 }
 
+export interface VersionCompareResult {
+  formulaId: string
+  versionA: string
+  versionB: string
+  diff: Record<string, unknown>
+}
+
+interface VersionActionResult {
+  success: boolean
+  message?: string
+  versionId?: string
+  status?: string
+}
+
+export interface PendingReviewResult {
+  list: Record<string, unknown>[]
+  pagination: Pagination
+}
+
 export const versionApi = {
   getList(formulaId: string, params?: { status?: string }) {
-    return http.get<any, FormulaVersion[]>(`/versions/formula/${formulaId}`, { params })
+    return http.get<unknown, FormulaVersion[]>(`/versions/formula/${formulaId}`, { params })
   },
   getById(versionId: string) {
-    return http.get<any, FormulaVersion>(`/versions/detail/${versionId}`)
+    return http.get<unknown, FormulaVersion>(`/versions/detail/${versionId}`)
   },
   create(formulaId: string, data?: { versionName?: string; versionReason?: string; status?: string }) {
-    return http.post<any, { versionId: string; versionNumber: string }>(`/versions/formula/${formulaId}`, data)
+    return http.post<unknown, { versionId: string; versionNumber: string }>(`/versions/formula/${formulaId}`, data)
   },
   publish(versionId: string) {
-    return http.put<any, { message: string }>(`/versions/publish/${versionId}`)
+    return http.put<unknown, { message: string }>(`/versions/publish/${versionId}`)
   },
   compare(formulaId: string, versionA: string, versionB: string) {
-    return http.get<any, any>(`/versions/compare/${formulaId}`, { params: { versionA, versionB } })
+    return http.get<unknown, VersionCompareResult>(`/versions/compare/${formulaId}`, { params: { versionA, versionB } })
   },
 
   submit(versionId: string, data?: { comment?: string }) {
-    return http.post<any, any>(`/versions/submit/${versionId}`, data)
+    return http.post<unknown, VersionActionResult>(`/versions/submit/${versionId}`, data)
   },
   approve(versionId: string, data?: { comment?: string }) {
-    return http.put<any, any>(`/versions/approve/${versionId}`, data)
+    return http.put<unknown, VersionActionResult>(`/versions/approve/${versionId}`, data)
   },
   reject(versionId: string, data: { comment: string }) {
-    return http.put<any, any>(`/versions/reject/${versionId}`, data)
+    return http.put<unknown, VersionActionResult>(`/versions/reject/${versionId}`, data)
   },
   getPendingReview(params?: { page?: number; pageSize?: number; keyword?: string }) {
-    return http.get<any, any>('/versions/pending-review', { params })
+    return http.get<unknown, PendingReviewResult>('/versions/pending-review', { params })
   },
   getReviewLogs(versionId: string) {
-    return http.get<any, any>(`/versions/review-logs/${versionId}`)
+    return http.get<unknown, VersionReviewLog[]>(`/versions/review-logs/${versionId}`)
   },
   getMaterialUpdates(formulaId: string) {
-    return http.get<any, MaterialUpdatesResult>(`/versions/material-updates/${formulaId}`)
+    return http.get<unknown, MaterialUpdatesResult>(`/versions/material-updates/${formulaId}`)
   },
   refreshSnapshot(formulaId: string, data?: { materialIds?: string[] }) {
-    return http.post<any, any>(`/versions/refresh-snapshot/${formulaId}`, data)
+    return http.post<unknown, VersionActionResult>(`/versions/refresh-snapshot/${formulaId}`, data)
   },
   setCurrentVersion(versionId: string) {
-    return http.put<any, any>(`/versions/set-current/${versionId}`)
+    return http.put<unknown, VersionActionResult>(`/versions/set-current/${versionId}`)
   },
 }

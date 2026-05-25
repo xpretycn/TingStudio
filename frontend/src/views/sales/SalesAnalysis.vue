@@ -797,7 +797,7 @@ const formatPeriod = (periodStart: string) => {
 };
 
 const getPeriodLabel = (type: string) => ({ monthly: '月度', quarterly: '季度', yearly: '年度' }[type] || type);
-const getPeriodTheme = (type: string) => ({ monthly: 'primary', quarterly: 'warning', yearly: 'default' }[type] as any || 'default');
+const getPeriodTheme = (type: string) => ({ monthly: 'primary', quarterly: 'warning', yearly: 'default' }[type] as string || 'default');
 
 const getAvatarColor = (text: string) => {
   const colors = [
@@ -830,7 +830,7 @@ const goPage = (page: number) => {
 const loadData = async () => {
   loadError.value = '';
   try {
-    const params: Record<string, any> = {
+    const params: Record<string, unknown> = {
       page: salesStore.currentPage,
       pageSize: salesStore.pageSize,
     };
@@ -846,8 +846,9 @@ const loadData = async () => {
         periodEnd: params.periodEnd,
       }),
     ]);
-  } catch (e: any) {
-    loadError.value = e.message || '加载失败，请稍后重试';
+  } catch (e: unknown) {
+    const err = e as { message?: string };
+    loadError.value = err.message || '加载失败，请稍后重试';
   }
 };
 
@@ -962,7 +963,7 @@ const displaySalesPendingItems = computed<SalesTodoItem[]>(() => {
   const salesList = salesStore.sales || [];
 
   for (const f of formulas) {
-    const hasSalesData = salesList.some((s: any) => s.formulaId === f.id);
+    const hasSalesData = salesList.some((s: Record<string, unknown>) => s.formulaId === f.id);
     if (!hasSalesData && f.status === 'published') {
       items.push({
         id: `nosales-${f.id}`,
@@ -1096,15 +1097,6 @@ const activityList = computed<ActivityItem[]>(() => {
 const activityPrev = () => { if (activityPage.value > 1) activityPage.value--; };
 const activityNext = () => { if (activityPage.value < activityTotalPages.value) activityPage.value++; };
 
-const _assistantMessage = computed(() => {
-  const total = salesStore.total;
-  const stats = salesStore.stats;
-  const activeFormulas = stats?.topFormulas?.length || 0;
-  if (total === 0) return '您还没有录入任何销量数据，点击下方按钮开始第一条销量记录吧！';
-  if (total < 10) return `当前共有 ${total} 条销量记录，建议继续补充各配方的销售数据。`;
-  return `当前共有 ${total} 条销量记录，覆盖 ${activeFormulas} 个配方，数据表现良好！`;
-});
-
 function formatTimeAgo(dateStr: string): string {
   if (!dateStr) return '刚刚';
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -1125,8 +1117,9 @@ onMounted(async () => {
       formulaStore.fetchFormulas(),
       loadData()
     ]);
-  } catch (e: any) {
-    loadError.value = e.message || '初始化失败';
+  } catch (e: unknown) {
+    const err = e as { message?: string };
+    loadError.value = err.message || '初始化失败';
   } finally {
     initialized.value = true;
   }

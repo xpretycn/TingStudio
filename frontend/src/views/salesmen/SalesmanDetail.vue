@@ -241,14 +241,16 @@ import { ref, computed, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useSalesmanStore } from '@/stores/salesman';
 import { formulaApi } from '@/api/formula';
+import type { Salesman } from '@/api/salesman';
+import type { Formula } from '@/api/formula';
 import PageSkeleton from '@/components/Skeleton/PageSkeleton.vue';
 
 const router = useRouter();
 const route = useRoute();
 const salesmanStore = useSalesmanStore();
 
-const salesman = ref<any>(null);
-const formulaList = ref<any[]>([]);
+const salesman = ref<Salesman | null>(null);
+const formulaList = ref<Formula[]>([]);
 const formulasLoading = ref(false);
 const formulaTotal = ref(0);
 const formulaPage = ref(1);
@@ -270,14 +272,6 @@ const formatDate = (dateStr: string | Date): string => {
     hour: '2-digit',
     minute: '2-digit'
   });
-};
-
-const _formatDateTime = (raw: string | null | undefined): string => {
-  if (!raw) return '--';
-  const d = new Date(raw);
-  if (isNaN(d.getTime())) return raw.substring(0, 19);
-  const pad = (n: number) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 };
 
 const formatTimeDate = (raw: string | null | undefined): string => {
@@ -312,7 +306,7 @@ const loadFormulas = async () => {
   try {
     const res = await formulaApi.getList({ salesmanId: id, page: formulaPage.value, pageSize: FORMULA_PAGE_SIZE });
     if (res?.list) {
-      formulaList.value = res.list.map((f: any) => ({
+      formulaList.value = res.list.map((f: Formula) => ({
         ...f,
         materials: f.materialsJson ? (() => {
           try { const p = JSON.parse(f.materialsJson); return typeof p === 'string' ? JSON.parse(p) : Array.isArray(p) ? p : []; } catch { return []; }

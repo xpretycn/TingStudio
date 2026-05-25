@@ -6,9 +6,9 @@ import type { NutritionProfile } from '@/api/nutrition'
 export const useNutritionStore = defineStore('nutrition', () => {
   const loading = ref(false)
   const profiles = ref<NutritionProfile[]>([])
-  const materialNutrition = ref<any>(null)
-  const formulaNutrition = ref<any>(null)
-  const complianceResult = ref<any>(null)
+  const materialNutrition = ref<Record<string, unknown> | null>(null)
+  const formulaNutrition = ref<Record<string, unknown> | null>(null)
+  const complianceResult = ref<Record<string, unknown> | null>(null)
 
   const getMaterialNutrition = async (materialId: string) => {
     loading.value = true
@@ -17,8 +17,8 @@ export const useNutritionStore = defineStore('nutrition', () => {
       // axios 拦截器已经提取了 res.data，所以这里直接使用 res
       materialNutrition.value = res
       return { success: true, data: res }
-    } catch (error: any) {
-      return { success: false, message: error.message || '获取营养成分失败' }
+    } catch (error: unknown) {
+      return { success: false, message: error instanceof Error ? error.message : '获取营养成分失败' }
     } finally {
       loading.value = false
     }
@@ -29,8 +29,8 @@ export const useNutritionStore = defineStore('nutrition', () => {
     try {
       await nutritionApi.setMaterialNutrition(materialId, data)
       return { success: true }
-    } catch (error: any) {
-      return { success: false, message: error.message || '设置营养成分失败' }
+    } catch (error: unknown) {
+      return { success: false, message: error instanceof Error ? error.message : '设置营养成分失败' }
     } finally {
       loading.value = false
     }
@@ -42,8 +42,8 @@ export const useNutritionStore = defineStore('nutrition', () => {
       const res = await nutritionApi.calculateFormulaNutrition(formulaId)
       formulaNutrition.value = res
       return { success: true, data: res }
-    } catch (error: any) {
-      return { success: false, message: error.message || '计算营养成分失败' }
+    } catch (error: unknown) {
+      return { success: false, message: error instanceof Error ? error.message : '计算营养成分失败' }
     } finally {
       loading.value = false
     }
@@ -53,7 +53,7 @@ export const useNutritionStore = defineStore('nutrition', () => {
     loading.value = true
     try {
       const res = await nutritionApi.getProfiles(params)
-      profiles.value = Array.isArray(res) ? res : (res as any)?.data ?? []
+      profiles.value = Array.isArray(res) ? res : (res as Record<string, unknown>)?.data as NutritionProfile[] ?? []
     } catch (error) {
       console.error('获取营养标准失败:', error)
     } finally {
@@ -61,23 +61,23 @@ export const useNutritionStore = defineStore('nutrition', () => {
     }
   }
 
-  const createProfile = async (data: { name: string; description?: string; category: string; targetValues: Record<string, number>; toleranceRanges?: any[]; mandatoryFields?: string[] }) => {
+  const createProfile = async (data: { name: string; description?: string; category: string; targetValues: Record<string, number>; toleranceRanges?: Record<string, unknown>[]; mandatoryFields?: string[] }) => {
     try {
       await nutritionApi.createProfile(data)
       await fetchProfiles()
       return { success: true }
-    } catch (error: any) {
-      return { success: false, message: error.message || '创建营养标准失败' }
+    } catch (error: unknown) {
+      return { success: false, message: error instanceof Error ? error.message : '创建营养标准失败' }
     }
   }
 
-  const updateProfile = async (profileId: string, data: { name: string; description?: string; category: string; targetValues: Record<string, number>; toleranceRanges?: any[]; mandatoryFields?: string[] }) => {
+  const updateProfile = async (profileId: string, data: { name: string; description?: string; category: string; targetValues: Record<string, number>; toleranceRanges?: Record<string, unknown>[]; mandatoryFields?: string[] }) => {
     try {
       await nutritionApi.updateProfile(profileId, data)
       await fetchProfiles()
       return { success: true }
-    } catch (error: any) {
-      return { success: false, message: error.message || '更新营养标准失败' }
+    } catch (error: unknown) {
+      return { success: false, message: error instanceof Error ? error.message : '更新营养标准失败' }
     }
   }
 
@@ -86,8 +86,8 @@ export const useNutritionStore = defineStore('nutrition', () => {
       await nutritionApi.deleteProfile(profileId)
       await fetchProfiles()
       return { success: true }
-    } catch (error: any) {
-      return { success: false, message: error.message || '删除营养标准失败' }
+    } catch (error: unknown) {
+      return { success: false, message: error instanceof Error ? error.message : '删除营养标准失败' }
     }
   }
 
@@ -97,9 +97,9 @@ export const useNutritionStore = defineStore('nutrition', () => {
       const res = await nutritionApi.checkCompliance(formulaId, profileId)
       complianceResult.value = res
       return { success: true, data: res }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('[Store] complianceCheck 失败:', error)
-      return { success: false, message: error.message || '合规检查失败' }
+      return { success: false, message: error instanceof Error ? error.message : '合规检查失败' }
     } finally {
       loading.value = false
     }

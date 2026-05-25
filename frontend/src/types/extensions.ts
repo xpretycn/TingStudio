@@ -75,8 +75,8 @@ export interface VersionChange {
   changeId: string;
   field: string;        // 变更字段
   fieldLabel: string;   // 字段显示名称
-  oldValue: any;       // 旧值
-  newValue: any;       // 新值
+  oldValue: unknown;
+  newValue: unknown;
   changeType: 'add' | 'modify' | 'delete';
   timestamp: string;
   changedBy: string;    // 变更人
@@ -91,8 +91,8 @@ export interface FormulaSnapshot {
   salesmanName: string;
   materials: MaterialItem[];
   description: string;
-  formulaData: any;  // 完整的配方数据
-  calculatedFields?: any;  // 计算字段（如营养成分）
+  formulaData: Record<string, unknown>;
+  calculatedFields?: Record<string, unknown>;
 }
 
 /**
@@ -114,8 +114,8 @@ export interface DiffItem {
   fieldLabel: string;
   fieldType: 'salesman' | 'material' | 'materialQuantity' | 'description' | 'nutrition';
   changes: {
-    oldValue: any;
-    newValue: any;
+    oldValue: unknown;
+    newValue: unknown;
     changeType: 'add' | 'modify' | 'delete';
     highlighted?: boolean;  // 是否需要高亮显示
   };
@@ -157,7 +157,7 @@ export interface ExportTemplate {
     };
     includeColumns?: string[];  // 导出包含的字段
     excludeColumns?: string[];  // 排除的字段
-    customStyles?: any;  // 自定义样式配置
+    customStyles?: Record<string, unknown>;
     headerTemplate?: string;  // 页眉模板
     footerTemplate?: string;  // 页脚模板
   };
@@ -223,7 +223,7 @@ export interface FieldMapping {
   sourceField: string;    // 配方数据字段
   targetField: string;    // 目标系统字段
   transformFunction?: string;  // 转换函数（如：uppercase, formatDate）
-  defaultValue?: any;      // 默认值
+  defaultValue?: unknown;
   required: boolean;       // 是否必填
 }
 

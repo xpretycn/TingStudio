@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { mount } from "@vue/test-utils";
 import { createPinia, setActivePinia } from "pinia";
-import VersionList from "@/views/formulas/versions/VersionList.vue";
+import FormulaVersions from "@/views/formulas/versions/FormulaVersions.vue";
 
 const push = vi.fn();
 const mockRoute = vi.hoisted(() => ({
@@ -68,11 +68,11 @@ vi.mock("@/components/Skeleton/PageSkeleton.vue", () => ({
   default: { template: '<div class="page-skeleton">Loading...</div>' },
 }));
 
-describe("VersionList 组件", () => {
+describe("FormulaVersions 组件", () => {
   let wrapper: ReturnType<typeof mount>;
 
   function createWrapper() {
-    return mount(VersionList, {
+    return mount(FormulaVersions, {
       global: {
         stubs: {
           "t-card": { template: "<div><slot /></div>" },
@@ -98,20 +98,20 @@ describe("VersionList 组件", () => {
     mockFetchVersions.mockClear();
   });
 
-  it("VL-01: 版本列表容器应正确渲染", async () => {
+  it("FV-01: 版本列表容器应正确渲染", async () => {
     wrapper = createWrapper();
     await wrapper.vm.$nextTick();
     await new Promise((resolve) => setTimeout(resolve, 100));
     expect(wrapper.find(".version-list").exists()).toBe(true);
   });
 
-  it("VL-02: 标题应显示'版本控制中心'", async () => {
+  it("FV-02: 标题应显示'版本控制中心'", async () => {
     wrapper = createWrapper();
     await new Promise((resolve) => setTimeout(resolve, 100));
     expect(wrapper.text()).toContain("版本控制中心");
   });
 
-  it("VL-03: 应包含状态筛选按钮组（全部/草稿/已发布/已归档）", async () => {
+  it("FV-03: 应包含状态筛选按钮组（全部/草稿/已发布/已归档）", async () => {
     wrapper = createWrapper();
     await new Promise((resolve) => setTimeout(resolve, 100));
     const content = wrapper.text();
@@ -123,19 +123,19 @@ describe("VersionList 组件", () => {
     ).toBeTruthy();
   });
 
-  it("VL-04: 应包含创建版本按钮", async () => {
+  it("FV-04: 应包含创建版本按钮", async () => {
     wrapper = createWrapper();
     await new Promise((resolve) => setTimeout(resolve, 100));
     expect(wrapper.text()).toContain("创建版本");
   });
 
-  it("VL-05: 应包含进入对比按钮", async () => {
+  it("FV-05: 应包含进入对比按钮", async () => {
     wrapper = createWrapper();
     await new Promise((resolve) => setTimeout(resolve, 100));
     expect(wrapper.text()).toContain("进入对比");
   });
 
-  it("VL-06: 返回按钮应导航到配方列表", async () => {
+  it("FV-06: 返回按钮应导航到配方列表", async () => {
     wrapper = createWrapper();
     await new Promise((resolve) => setTimeout(resolve, 100));
     const backBtn = wrapper.find(".header-back-btn");
@@ -145,7 +145,7 @@ describe("VersionList 组件", () => {
     }
   });
 
-  it("VL-07: 初始化时应调用 fetchVersions 获取数据", async () => {
+  it("FV-07: 初始化时应调用 fetchVersions 获取数据", async () => {
     wrapper = createWrapper();
     await new Promise((resolve) => setTimeout(resolve, 100));
     expect(mockFetchVersions).toHaveBeenCalled();

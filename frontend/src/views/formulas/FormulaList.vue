@@ -533,12 +533,12 @@ import { useFormulaStore } from '@/stores/formula';
 import { useMaterialStore } from '@/stores/material';
 import { useSalesmanStore } from '@/stores/salesman';
 import { useSalesStore } from '@/stores/sales';
-import { useAuthStore } from '@/stores/auth';
 import { usePaginationStore } from '@/stores/pagination';
 import { MessagePlugin } from 'tdesign-vue-next';
-import type { Formula } from '@/api/formula';
+import type { Formula, FormulaVersion, FormulaForm } from '@/api/formula';
 import { formulaApi } from '@/api/formula';
 import type { SaleRecord } from '@/api/sales';
+import type { Material } from '@/api/material';
 import SalesRecordDrawer from '@/components/SalesRecordDrawer.vue';
 import PageSkeleton from '@/components/Skeleton/PageSkeleton.vue';
 
@@ -549,10 +549,6 @@ const materialStore = useMaterialStore();
 const salesmanStore = useSalesmanStore();
 const salesStore = useSalesStore();
 const paginationStore = usePaginationStore();
-const authStore = useAuthStore();
-
-const isAdmin = computed(() => authStore.user?.role === 'admin');
-const currentUserId = computed(() => authStore.user?.id);
 
 const initialized = ref(false);
 
@@ -623,7 +619,7 @@ const getFormulaDesc = (description: string | null | undefined) => {
   }
 };
 
-const getRowCostSubtotal = (row: any): number => {
+const getRowCostSubtotal = (row: Formula): number => {
   if (row.costSubtotal != null && !isNaN(Number(row.costSubtotal))) return Number(row.costSubtotal);
   const desc = getFormulaDesc(row.description);
   if (desc?.costSubtotal != null) return Number(desc.costSubtotal);
@@ -635,7 +631,7 @@ const getRowCostSubtotal = (row: any): number => {
   return 0;
 };
 
-const getRowTotalPrice = (row: any): number => {
+const getRowTotalPrice = (row: Formula): number => {
   if (row.totalPrice != null && !isNaN(Number(row.totalPrice))) return Number(row.totalPrice);
   const desc = getFormulaDesc(row.description);
   if (desc?.totalQuote != null) return Number(desc.totalQuote);
@@ -688,11 +684,7 @@ const sortTitle = (label: string, key: string) => {
 };
 
 const getFilteredFormulas = (source: Formula[]) => {
-  const list = source.filter(f => f !== undefined && f !== null);
-  if (!isAdmin.value && currentUserId.value) {
-    return list.filter(f => f.createdBy === currentUserId.value);
-  }
-  return list;
+  return source.filter(f => f !== undefined && f !== null);
 };
 
 const applySort = () => {
@@ -702,7 +694,7 @@ const applySort = () => {
   }
   const dir = sortOrder.value === 'desc' ? -1 : 1;
 
-  const sortFns: Record<string, (a: any, b: any) => number> = {
+  const sortFns: Record<string, (a: Formula, b: Formula) => number> = {
     name: (a, b) => a.name.localeCompare(b.name, 'zh'),
     formulaStatus: (a, b) => getFormulaStatus(a).label.localeCompare(getFormulaStatus(b).label, 'zh'),
     materialCount: (a, b) => (a.materials?.length || 0) - (b.materials?.length || 0),
@@ -787,7 +779,7 @@ const handleBatchArchive = async () => {
   try {
     for (const f of selectedRows.value) {
       // 使用 API 直接更新状态字段（status 不在 FormulaForm 表单类型中）
-      await formulaStore.updateFormula(f.id, { name: f.name, description: f.description || '' } as any);
+      await formulaStore.updateFormula(f.id, { name: f.name, description: f.description || '' } as unknown as Partial<FormulaForm>);
     }
     MessagePlugin.success(`已归档 ${count} 个配方`);
     clearSelection();
@@ -804,7 +796,7 @@ const formatVersionTime = (timeStr: string): string => {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
 };
 
-const parseChanges = (changesJson: string): any[] => {
+const parseChanges = (changesJson: string): Array<{ field: string; fieldLabel?: string; [key: string]: unknown }> => {
   try {
     const arr = JSON.parse(changesJson);
     return Array.isArray(arr) ? arr : [];
@@ -813,7 +805,7 @@ const parseChanges = (changesJson: string): any[] => {
   }
 };
 
-const getFormulaAvatar = (row: any) => {
+const getFormulaAvatar = (row: Formula) => {
   const code = row.code || '';
   const name = row.name || '';
   const codeMatch = code.match(/^([A-Z]+)/);
@@ -847,8 +839,9 @@ const getAvatarColor = (text: string) => {
   return colors[index];
 };
 
-const getFormulaStatus = (row: any) => {
-  const currentVersion = (row.versions || []).find((v: any) => v.isCurrent);
+const getFormulaStatus = (row: Formula | Record<string, unknown>) => {
+  const versions = (row as Record<string, unknown>).versions as FormulaVersion[] || [];
+  const currentVersion = versions.find((v: FormulaVersion) => v.isCurrent);
   const versionNumber = currentVersion?.versionNumber || 'v1.0.0';
 
   if (currentVersion && currentVersion.status === 'published') {
@@ -871,7 +864,7 @@ const getFormulaStatus = (row: any) => {
       color: 'var(--color-warning)'
     };
   }
-  if (!row.versions || row.versions.length === 0) {
+  if (!versions || versions.length === 0) {
     return {
       label: '未发布',
       theme: 'default',
@@ -932,7 +925,7 @@ const pagination = computed(() => ({
   current: formulaStore.currentPage,
   pageSize: formulaStore.pageSize,
   total: formulaStore.total,
-  onChange: (pageInfo: any) => {
+  onChange: (pageInfo: { current: number }) => {
     formulaStore.setPage(pageInfo.current);
     formulaStore.fetchFormulas();
   }
@@ -959,7 +952,7 @@ const allActivityItems = computed<ActivityItem[]>(() => {
   const list = formulaStore.formulas;
   if (!list || list.length === 0) return [];
 
-  const allVersions: { f: any; v: any; }[] = [];
+  const allVersions: { f: Formula; v: FormulaVersion; }[] = [];
   for (const f of list) {
     for (const v of (f.versions || [])) {
       allVersions.push({ f, v });
@@ -975,9 +968,9 @@ const allActivityItems = computed<ActivityItem[]>(() => {
     const verNum = v.versionNumber || 'v1.0';
     const verName = v.versionName || '';
     const matCount = f.materials?.length ?? 0;
-    const timeAgo = formatTimeAgo(v.createdAt);
-    const changes = parseChanges(v.changesJson);
-    const priceChanges = changes.filter((c: any) => c.field === 'adjustedPrice');
+    const timeAgo = formatTimeAgo(v.createdAt || '');
+    const changes = parseChanges(v.changesJson || '');
+    const priceChanges = changes.filter((c) => c.field === 'adjustedPrice');
 
     if (v.status === 'published') {
       items.push({
@@ -987,7 +980,7 @@ const allActivityItems = computed<ActivityItem[]>(() => {
         time: timeAgo
       });
     } else if (v.isCurrent) {
-      const nonPriceChanges = changes.filter((c: any) => c.field !== 'adjustedPrice');
+      const nonPriceChanges = changes.filter((c) => c.field !== 'adjustedPrice');
       const reason = nonPriceChanges.length > 0
         ? `：${nonPriceChanges[0].field}`
         : '';
@@ -999,7 +992,7 @@ const allActivityItems = computed<ActivityItem[]>(() => {
       });
 
       if (priceChanges.length > 0) {
-        const priceNames = priceChanges.map((c: any) => c.fieldLabel.replace('原料单价: ', '')).join('、');
+        const priceNames = priceChanges.map((c) => (c.fieldLabel || '').replace('原料单价: ', '')).join('、');
         items.push({
           type: 'warning',
           title: '原料单价调整',
@@ -1115,8 +1108,8 @@ const pendingItems = computed<PendingItem[]>(() => {
   const materials = materialStore.materials || [];
 
   for (const f of formulas) {
-    const currentVersion = (f.versions || []).find((v: any) => v.isCurrent);
-    const publishedVersion = (f.versions || []).find((v: any) => v.status === 'published');
+    const currentVersion = (f.versions || []).find((v: FormulaVersion) => v.isCurrent);
+    const publishedVersion = (f.versions || []).find((v: FormulaVersion) => v.status === 'published');
     if (currentVersion?.status === 'draft' && publishedVersion) {
       items.push({
         id: `draft-${f.id}`,
@@ -1130,7 +1123,7 @@ const pendingItems = computed<PendingItem[]>(() => {
       });
     }
 
-    const hasSalesData = salesList.some((s: any) => s.formulaId === f.id);
+    const hasSalesData = salesList.some((s: SaleRecord) => s.formulaId === f.id);
     if (!hasSalesData && currentVersion?.status === 'published') {
       items.push({
         id: `nosales-${f.id}`,
@@ -1161,7 +1154,7 @@ const pendingItems = computed<PendingItem[]>(() => {
     }
   }
 
-  const missingPriceMaterials = materials.filter((m: any) => !m.unitPrice || m.unitPrice === 0);
+  const missingPriceMaterials = materials.filter((m: Material) => !m.unitPrice || m.unitPrice === 0);
   if (missingPriceMaterials.length > 0) {
     items.push({
       id: 'missing-prices',
@@ -1218,7 +1211,7 @@ const todoNext = () => {
 const handleTodoAction = (item: PendingItem) => {
   switch (item.actionType) {
     case 'sales':
-      if (item.formulaId) openSalesDialog({ id: item.formulaId } as any);
+      if (item.formulaId) openSalesDialog({ id: item.formulaId } as Formula);
       break;
     case 'publish':
       if (item.formulaId) router.push(`/formulas/${item.formulaId}`);
@@ -1401,7 +1394,7 @@ const handleDelete = async (row: Formula) => {
 };
 
 const isDraft = (row: Formula) => {
-  const currentVersion = (row.versions || []).find((v: any) => v.isCurrent);
+  const currentVersion = (row.versions || []).find((v: FormulaVersion) => v.isCurrent);
   return currentVersion?.status === 'draft';
 };
 
@@ -1460,7 +1453,7 @@ const loadSalesData = async () => {
   }
 };
 
-const getSalesQuantity = (row: any): number => {
+const getSalesQuantity = (row: Formula): number => {
   if (row.salesQuantity != null && row.salesQuantity > 0) return row.salesQuantity;
   const fromMap = salesDataMap.value[row.id];
   if (fromMap != null && fromMap > 0) return fromMap;

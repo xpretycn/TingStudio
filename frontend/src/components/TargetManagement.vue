@@ -141,7 +141,7 @@ const dialogForm = ref({
   metrics: [{ name: '', target: '' }],
 })
 
-const parseTargetsJson = (targetsJson: any) => {
+const parseTargetsJson = (targetsJson: unknown) => {
   if (!targetsJson) return []
   if (typeof targetsJson === 'string') {
     try { return JSON.parse(targetsJson) } catch { return [] }
@@ -180,7 +180,7 @@ const openEditDialog = (target: ReportTarget) => {
     periodType: target.periodType as 'quarterly' | 'yearly',
     periodStart: target.periodStart,
     periodEnd: target.periodEnd,
-    metrics: metrics.length > 0 ? metrics.map((m: any) => ({ name: m.name || '', target: String(m.target ?? '') })) : [{ name: '', target: '' }],
+    metrics: metrics.length > 0 ? metrics.map((m: Record<string, unknown>) => ({ name: String(m.name || ''), target: String(m.target ?? '') })) : [{ name: '', target: '' }],
   }
   dialogVisible.value = true
 }
@@ -233,14 +233,14 @@ const handleDialogConfirm = async () => {
     }
     dialogVisible.value = false
     await loadTargets()
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('保存目标失败:', error)
   } finally {
     dialogLoading.value = false
   }
 }
 
-const reportApi_createTarget = async (data: { periodType: string; periodStart: string; periodEnd: string; targetsJson?: any }) => {
+const reportApi_createTarget = async (data: { periodType: string; periodStart: string; periodEnd: string; targetsJson?: unknown }) => {
   const { reportApi } = await import('@/api/report')
   return reportApi.createTarget(data)
 }
@@ -251,7 +251,7 @@ const handleDeleteTarget = async (id: string) => {
     await reportApi.deleteTarget(id)
     MessagePlugin.success('目标已删除')
     await loadTargets()
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('删除目标失败:', error)
   }
 }

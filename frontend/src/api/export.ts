@@ -1,5 +1,5 @@
 import http from './http'
-import axios from 'axios'
+import type { Pagination } from './http'
 
 const TOKEN_KEY = 'tingstudio_token'
 
@@ -8,7 +8,7 @@ export interface ExportTemplate {
   name: string
   description: string | null
   type: 'pdf' | 'excel' | 'api' | 'print'
-  formatConfig: any
+  formatConfig: Record<string, unknown>
   isDefault: number
   createdBy: string
   createdAt: string
@@ -17,6 +17,7 @@ export interface ExportTemplate {
 export interface ExportJob {
   jobId: string
   formulaId: string
+  formulaName?: string
   versionId: string | null
   templateId: string | null
   exportType: 'pdf' | 'excel' | 'api'
@@ -53,66 +54,76 @@ export interface ApiInterface {
   endpoint: string
   method: string
   authentication: string
-  authConfig: any
+  authConfig: Record<string, unknown>
   dataFormat: string
-  fieldMapping: any[]
-  rateLimit: any
-  retryConfig: any
+  fieldMapping: Record<string, unknown>[]
+  rateLimit: Record<string, unknown>
+  retryConfig: Record<string, unknown>
   createdBy: string
   createdAt: string
   updatedAt: string
 }
 
+interface CreateApiInterfaceData {
+  name: string
+  description?: string
+  endpoint: string
+  method: string
+  authentication: string
+  authConfig?: Record<string, unknown>
+  dataFormat?: string
+  fieldMapping?: Record<string, unknown>[]
+  rateLimit?: Record<string, unknown>
+  retryConfig?: Record<string, unknown>
+}
+
 export const exportApi = {
   getTemplates(params?: { type?: string; page?: number; pageSize?: number }) {
-    return http.get<any, { list: ExportTemplate[]; pagination: any }>('/exports/templates', { params })
+    return http.get<unknown, { list: ExportTemplate[]; pagination: Pagination }>('/exports/templates', { params })
   },
-  createTemplate(data: { name: string; description?: string; type: string; formatConfig: any; isDefault?: boolean }) {
-    return http.post<any, { success: boolean; message: string; data: { templateId: string } }>('/exports/templates', data)
+  createTemplate(data: { name: string; description?: string; type: string; formatConfig: Record<string, unknown>; isDefault?: boolean }) {
+    return http.post<unknown, { templateId: string }>('/exports/templates', data)
   },
-  updateTemplate(templateId: string, data: { name: string; description?: string; type: string; formatConfig: any; isDefault?: boolean }) {
-    return http.put<any, { success: boolean; message: string }>(`/exports/templates/${templateId}`, data)
+  updateTemplate(templateId: string, data: { name: string; description?: string; type: string; formatConfig: Record<string, unknown>; isDefault?: boolean }) {
+    return http.put<unknown, { success: boolean; message: string }>(`/exports/templates/${templateId}`, data)
   },
   deleteTemplate(templateId: string) {
-    return http.delete<any, { success: boolean; message: string }>(`/exports/templates/${templateId}`)
+    return http.delete<unknown, { success: boolean; message: string }>(`/exports/templates/${templateId}`)
   },
   createJob(data: { formulaId: string; versionId?: string; templateId?: string; exportType: string }) {
-    return http.post<any, { success: boolean; message: string; data: { jobId: string; status: string; fileName?: string; errorMessage?: string } }>('/exports/jobs', data)
+    return http.post<unknown, { jobId: string; status: string; fileName?: string; errorMessage?: string }>('/exports/jobs', data)
   },
   getJobs(params?: { status?: string; page?: number; pageSize?: number }) {
-    // axios 拦截器会提取 res.data，所以这里直接返回内部的数据结构
-    return http.get<any, { list: ExportJob[]; pagination: any }>('/exports/jobs', { params })
+    return http.get<unknown, { list: ExportJob[]; pagination: Pagination }>('/exports/jobs', { params })
   },
   getJob(jobId: string) {
-    return http.get<any, ExportJob>(`/exports/jobs/${jobId}`)
+    return http.get<unknown, ExportJob>(`/exports/jobs/${jobId}`)
   },
   retryJob(jobId: string) {
-    return http.post<any, { success: boolean; message: string; data: { jobId: string; status: string } }>(`/exports/jobs/${jobId}/retry`)
+    return http.post<unknown, { jobId: string; status: string }>(`/exports/jobs/${jobId}/retry`)
   },
   reExportJob(jobId: string) {
-    return http.post<any, { success: boolean; message: string; data: { jobId: string; status: string; fileName?: string } }>(`/exports/jobs/${jobId}/re-export`)
+    return http.post<unknown, { jobId: string; status: string; fileName?: string }>(`/exports/jobs/${jobId}/re-export`)
   },
   downloadFile(jobId: string) {
-    // 文件下载单独处理，不走 http 拦截器（blob 响应没有 success 字段）
-    return axios.get(`/api/exports/jobs/${jobId}/download`, {
+    return http.get(`/api/exports/jobs/${jobId}/download`, {
       responseType: 'blob',
       headers: { Authorization: `Bearer ${localStorage.getItem(TOKEN_KEY) || ''}` },
     })
   },
   createShare(data: { formulaId: string; versionId?: string; shareType?: string; password?: string; expireDate?: string; downloadLimit?: number }) {
-    return http.post<any, { success: boolean; message: string; data: { shareId: string; shareUrl: string } }>('/exports/share', data)
+    return http.post<unknown, { shareId: string; shareUrl: string }>('/exports/share', data)
   },
   getShares() {
-    // axios 拦截器会提取 res.data，所以这里直接返回内部的数据结构
-    return http.get<any, ShareItem[]>('/exports/shares')
+    return http.get<unknown, ShareItem[]>('/exports/shares')
   },
   deleteShare(shareId: string) {
-    return http.delete<any, { message: string }>(`/exports/share/${shareId}`)
+    return http.delete<unknown, { message: string }>(`/exports/share/${shareId}`)
   },
   getApiInterfaces(params?: { page?: number; pageSize?: number }) {
-    return http.get<any, { list: ApiInterface[]; pagination: any }>('/exports/api-interfaces', { params })
+    return http.get<unknown, { list: ApiInterface[]; pagination: Pagination }>('/exports/api-interfaces', { params })
   },
-  createApiInterface(data: any) {
-    return http.post<any, { success: boolean; message: string; data: { interfaceId: string } }>('/exports/api-interfaces', data)
+  createApiInterface(data: CreateApiInterfaceData) {
+    return http.post<unknown, { interfaceId: string }>('/exports/api-interfaces', data)
   },
 }

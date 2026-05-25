@@ -182,7 +182,7 @@ const handleTypeChange = (value: 'weekly' | 'monthly') => {
   autoFillDates(value)
 }
 
-const handleGenerate = async ({ validateResult }: any) => {
+const handleGenerate = async ({ validateResult }: { validateResult: boolean | Record<string, unknown>[] }) => {
   if (validateResult !== true) return
   if (generating.value) return
 
@@ -201,8 +201,9 @@ const handleGenerate = async ({ validateResult }: any) => {
         : `/reports/monthly/${result.id}`
       router.push(path)
     }
-  } catch (error: any) {
-    MessagePlugin.error(error.message || '生成报告失败，请重试')
+  } catch (error: unknown) {
+    const err = error as { message?: string }
+    MessagePlugin.error(err.message || '生成报告失败，请重试')
   } finally {
     generating.value = false
   }

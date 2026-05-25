@@ -335,6 +335,16 @@ import { ref, computed, watch } from 'vue';
 import { useMaterialStore } from '@/stores/material';
 import { MessagePlugin } from 'tdesign-vue-next';
 
+interface SelectOption {
+  id: string;
+  name: string;
+  code: string;
+  unit: string;
+  materialType: string;
+  unitPrice?: number | null;
+  raw?: boolean;
+}
+
 export interface UnifiedMaterialItem {
   _id?: string;
   materialId?: string;
@@ -736,7 +746,7 @@ const previewColumns = [
   { colKey: 'index', title: '#', width: 50 },
   { colKey: 'materialName', title: '原料名称', width: 150 },
   { colKey: 'quantity', title: '用量(g)', width: 100 },
-  { colKey: 'matched', title: '状态', width: 100, cell: (_h: any, props: any) => {
+  { colKey: 'matched', title: '状态', width: 100, cell: (_h: unknown, props: Record<string, unknown>) => {
     const row = props.row as UnifiedMaterialItem;
     return row.matched ? '✅ 匹配' : '⚠️ 未匹配';
   }},
@@ -754,12 +764,19 @@ const handleDownloadTemplate = () => {
   MessagePlugin.info('正在下载模板...');
 };
 
-const getFilteredMaterials = (currentIndex: number) => {
-  const list = materialStore.allMaterials ?? [];
+const getFilteredMaterials = (currentIndex: number): SelectOption[] => {
+  const list: SelectOption[] = (materialStore.allMaterials ?? []).map(m => ({
+    id: m.id,
+    name: m.name,
+    code: m.code,
+    unit: m.unit,
+    materialType: m.materialType,
+    unitPrice: m.unitPrice,
+  }));
   const selectedIds = displayMaterials.value
     .map((m, i) => i !== currentIndex && m.materialId ? m.materialId : null)
-    .filter(Boolean);
-  let result = list;
+    .filter(Boolean) as string[];
+  let result: SelectOption[] = list;
   if (selectedIds.length > 0) {
     const idSet = new Set(selectedIds);
     result = list.filter(m => !idSet.has(m.id));
@@ -770,17 +787,21 @@ const getFilteredMaterials = (currentIndex: number) => {
       result = [{
         id: currentItem.materialId,
         name: currentItem.materialName,
+        code: '',
         unit: 'g',
+        materialType: '',
         raw: true,
-      } as any, ...result];
+      }, ...result];
     }
     if (!currentItem?.materialId && currentItem?.materialName) {
       result = [{
         id: `__pending_${currentIndex}`,
         name: currentItem.materialName + '（未匹配）',
+        code: '',
         unit: 'g',
+        materialType: '',
         raw: true,
-      } as any, ...result];
+      }, ...result];
     }
     return result;
   }
@@ -790,17 +811,21 @@ const getFilteredMaterials = (currentIndex: number) => {
     filtered.unshift({
       id: currentItem.materialId,
       name: currentItem.materialName,
+      code: '',
       unit: 'g',
+      materialType: '',
       raw: true,
-    } as any);
+    });
   }
   if (!currentItem?.materialId && currentItem?.materialName) {
     filtered.unshift({
       id: `__pending_${currentIndex}`,
       name: currentItem.materialName + '（未匹配）',
+      code: '',
       unit: 'g',
+      materialType: '',
       raw: true,
-    } as any);
+    });
   }
   return filtered;
 };

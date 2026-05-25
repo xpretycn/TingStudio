@@ -57,8 +57,8 @@ export const useMaterialStore = defineStore("material", () => {
       const created = await materialApi.create(form);
       await fetchMaterials();
       return { success: true, data: created };
-    } catch (error: any) {
-      return { success: false, message: error.message || "创建失败" };
+    } catch (error: unknown) {
+      return { success: false, message: error instanceof Error ? error.message : "创建失败" };
     } finally {
       loading.value = false;
     }
@@ -70,8 +70,8 @@ export const useMaterialStore = defineStore("material", () => {
       const result = await materialApi.update(id, form);
       await fetchMaterials();
       return { success: true, message: undefined, result };
-    } catch (error: any) {
-      return { success: false, message: error.message || "更新失败" };
+    } catch (error: unknown) {
+      return { success: false, message: error instanceof Error ? error.message : "更新失败" };
     } finally {
       loading.value = false;
     }
@@ -83,8 +83,8 @@ export const useMaterialStore = defineStore("material", () => {
       await materialApi.delete(id);
       await fetchMaterials();
       return { success: true };
-    } catch (error: any) {
-      return { success: false, message: error.message || "删除失败" };
+    } catch (error: unknown) {
+      return { success: false, message: error instanceof Error ? error.message : "删除失败" };
     } finally {
       loading.value = false;
     }
@@ -124,8 +124,8 @@ export const useMaterialStore = defineStore("material", () => {
       await materialApi.submitReview(id, comment);
       await fetchMaterials();
       return { success: true };
-    } catch (error: any) {
-      return { success: false, message: error.message || "提交审批失败" };
+    } catch (error: unknown) {
+      return { success: false, message: error instanceof Error ? error.message : "提交审批失败" };
     }
   };
 
@@ -134,8 +134,8 @@ export const useMaterialStore = defineStore("material", () => {
       await materialApi.approve(id, comment);
       await fetchMaterials();
       return { success: true };
-    } catch (error: any) {
-      return { success: false, message: error.message || "审批失败" };
+    } catch (error: unknown) {
+      return { success: false, message: error instanceof Error ? error.message : "审批失败" };
     }
   };
 
@@ -144,8 +144,8 @@ export const useMaterialStore = defineStore("material", () => {
       await materialApi.reject(id, comment);
       await fetchMaterials();
       return { success: true };
-    } catch (error: any) {
-      return { success: false, message: error.message || "驳回失败" };
+    } catch (error: unknown) {
+      return { success: false, message: error instanceof Error ? error.message : "驳回失败" };
     }
   };
 
@@ -154,8 +154,8 @@ export const useMaterialStore = defineStore("material", () => {
       await materialApi.publish(id, comment);
       await fetchMaterials();
       return { success: true };
-    } catch (error: any) {
-      return { success: false, message: error.message || "发布失败" };
+    } catch (error: unknown) {
+      return { success: false, message: error instanceof Error ? error.message : "发布失败" };
     }
   };
 

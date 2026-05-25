@@ -1,4 +1,5 @@
 import http from "./http";
+import type { Pagination } from "./http";
 
 export interface ParseTemplate {
   id: string;
@@ -8,7 +9,7 @@ export interface ParseTemplate {
   defaultModel: string | null;
   customPrompt: string | null;
   fieldMapping: Record<string, string>;
-  validationRules: Record<string, any>;
+  validationRules: Record<string, unknown>;
   isPreset: boolean;
   isActive: boolean;
   createdBy: string;
@@ -16,30 +17,30 @@ export interface ParseTemplate {
   updatedAt: string;
 }
 
-export interface ParseTemplateForm {
+interface ParseTemplateForm {
   name: string;
   category?: "formula" | "nutrition" | "general";
   defaultProvider?: string | null;
   defaultModel?: string | null;
   customPrompt?: string | null;
   fieldMapping?: Record<string, string>;
-  validationRules?: Record<string, any>;
+  validationRules?: Record<string, unknown>;
 }
 
 export const parseTemplateApi = {
   getList(params?: { keyword?: string; category?: string; page?: number; pageSize?: number }) {
-    return http.get<any, { list: ParseTemplate[]; pagination: any }>("/parse-templates", { params });
+    return http.get<unknown, { list: ParseTemplate[]; pagination: Pagination }>("/parse-templates", { params });
   },
   getById(id: string) {
-    return http.get<any, ParseTemplate>(`/parse-templates/${id}`);
+    return http.get<unknown, ParseTemplate>(`/parse-templates/${id}`);
   },
   create(data: ParseTemplateForm) {
-    return http.post<any, ParseTemplate>("/parse-templates", data);
+    return http.post<unknown, ParseTemplate>("/parse-templates", data);
   },
   update(id: string, data: Partial<ParseTemplateForm> & { isActive?: boolean }) {
-    return http.put<any, ParseTemplate>(`/parse-templates/${id}`, data);
+    return http.put<unknown, ParseTemplate>(`/parse-templates/${id}`, data);
   },
   delete(id: string) {
-    return http.delete<any, { success: boolean; message: string }>(`/parse-templates/${id}`);
+    return http.delete<unknown, { success: boolean; message: string }>(`/parse-templates/${id}`);
   },
 };

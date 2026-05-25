@@ -138,6 +138,29 @@
                     </div>
                   </div>
                 </div>
+                <div class="enum-fields-row">
+                  <div class="form-field field-compact field-inline">
+                    <label class="field-label">性状</label>
+                    <div class="field-input">
+                      <t-select v-model="formData.appearance" multiple :options="appearanceOptions" placeholder="选择性状（可多选）" clearable
+                        :popup-props="{ appendToBody: true }" />
+                    </div>
+                  </div>
+                  <div class="form-field field-compact field-inline">
+                    <label class="field-label">口感</label>
+                    <div class="field-input">
+                      <t-select v-model="formData.taste" multiple :options="tasteOptions" placeholder="选择口感（可多选）" clearable
+                        :popup-props="{ appendToBody: true }" />
+                    </div>
+                  </div>
+                  <div class="form-field field-compact field-inline">
+                    <label class="field-label">功效</label>
+                    <div class="field-input">
+                      <t-select v-model="formData.efficacy" multiple :options="efficacyOptions" placeholder="选择功效（可多选）" clearable
+                        :popup-props="{ appendToBody: true }" />
+                    </div>
+                  </div>
+                </div>
               </div>
             </template>
           </section>
@@ -257,15 +280,18 @@
 import { ref, reactive, computed, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useMaterialStore } from '@/stores/material';
+import { useEnumStore } from '@/stores/enum';
 import { nutritionApi } from '@/api/nutrition';
 import { materialApi } from '@/api/material';
 import { MessagePlugin } from 'tdesign-vue-next';
 import type { FormInstanceFunctions, FormRule } from 'tdesign-vue-next';
+import type { Material, UpdateResult } from '@/api/material';
 import NutritionExcelImport from '@/components/NutritionExcelImport.vue';
 
 const router = useRouter();
 const route = useRoute();
 const materialStore = useMaterialStore();
+const enumStore = useEnumStore();
 
 const formRef = ref<FormInstanceFunctions>();
 const loading = ref(false);
@@ -290,13 +316,29 @@ const versionMode = reactive({
   referencedFormulas: [] as { id: string; name: string }[],
 });
 
-const formData = reactive<any>({
+interface MaterialFormData {
+  name: string;
+  unit: string;
+  stock: number;
+  materialType: string;
+  unitPrice: number | undefined;
+  dataSource: string;
+  code?: string;
+  appearance: string[];
+  taste: string[];
+  efficacy: string[];
+}
+
+const formData = reactive<MaterialFormData>({
   name: '',
   unit: '',
   stock: 0,
   materialType: 'herb',
   unitPrice: undefined as number | undefined,
   dataSource: 'manual',
+  appearance: [],
+  taste: [],
+  efficacy: [],
 });
 
 const unitOptions = [
@@ -309,6 +351,16 @@ const unitOptions = [
   { label: '包', value: '包' },
   { label: '箱', value: '箱' }
 ];
+
+const appearanceOptions = computed(() =>
+  enumStore.getActiveOptionsByCategory("appearance").map((o) => ({ label: o.label, value: o.value }))
+);
+const tasteOptions = computed(() =>
+  enumStore.getActiveOptionsByCategory("taste").map((o) => ({ label: o.label, value: o.value }))
+);
+const efficacyOptions = computed(() =>
+  enumStore.getActiveOptionsByCategory("efficacy").map((o) => ({ label: o.label, value: o.value }))
+);
 
 const rules: Record<string, FormRule[]> = {
   name: [
@@ -444,7 +496,7 @@ const saveNutrition = async (materialId: string) => {
       notes: nutritionMeta.notes || undefined,
       confidence: nutritionMeta.confidence,
     });
-  } catch (error: any) { console.error('保存营养成分失败:', error); }
+  } catch (error: unknown) { console.error('保存营养成分失败:', error); }
 };
 
 const handleUnitPriceChange = (val: number | undefined) => {
@@ -453,19 +505,19 @@ const handleUnitPriceChange = (val: number | undefined) => {
   }
 };
 
-const handleSubmit = async ({ validateResult }: any) => {
+const handleSubmit = async ({ validateResult }: { validateResult: boolean | Record<string, unknown> }) => {
   if (validateResult === true) {
     if (loading.value) return;
     loading.value = true;
     try {
       const id = route.params.id as string;
-      let result;
+      let result: { success: boolean; message?: string; data?: Material; result?: UpdateResult };
       if (isEdit.value && id) {
         result = await materialStore.updateMaterial(id, formData);
       } else {
         let code = '';
         try {
-          const codeRes: any = await materialApi.getNextCode(formData.name);
+          const codeRes = await materialApi.getNextCode(formData.name);
           code = codeRes?.code || '';
         } catch (err) {
           console.error('[MaterialForm] 获取原料编码失败:', err);
@@ -480,12 +532,12 @@ const handleSubmit = async ({ validateResult }: any) => {
 
       if (result.success) {
         if (showNutrition.value) {
-          const materialId = isEdit.value ? id : (result as any).data?.id;
+          const materialId = isEdit.value ? id : result.data?.id;
           if (materialId) await saveNutrition(materialId);
         }
-        const isVersioned = versionMode.versioning && (result as any).result?.versionAction === "created";
+        const isVersioned = versionMode.versioning && result.result?.versionAction === "created";
         const successMsg = isVersioned
-          ? `原料版本已升级至 v${(result as any).result?.version}，旧版本已存档`
+          ? `原料版本已升级至 v${result.result?.version}，旧版本已存档`
           : (isEdit.value ? '保存成功' : '创建成功');
         MessagePlugin.success(successMsg);
         router.push({
@@ -516,10 +568,17 @@ const handleBack = () => {
   });
 };
 
+interface NutritionDataResponse {
+  per100g?: Record<string, number>;
+  dataSource?: string;
+  notes?: string;
+  confidence?: 'high' | 'medium' | 'low';
+}
+
 const loadNutrition = async (materialId: string) => {
   showNutrition.value = true;
   try {
-    const res = await nutritionApi.getMaterialNutrition(materialId) as any;
+    const res = await nutritionApi.getMaterialNutrition(materialId) as NutritionDataResponse;
     if (res?.per100g) {
       hasNutrition.value = true;
       const per100g = res.per100g || {};
@@ -535,6 +594,7 @@ const loadNutrition = async (materialId: string) => {
 };
 
 onMounted(async () => {
+  await enumStore.fetchEnums();
   const id = route.params.id as string;
   if (isEdit.value && id) {
     const material = await materialStore.getMaterial(id);
@@ -543,6 +603,9 @@ onMounted(async () => {
         code: material.code, name: material.name, unit: material.unit,
         stock: material.stock, materialType: material.materialType || 'herb',
         unitPrice: material.unitPrice != null ? material.unitPrice : undefined,
+        appearance: material.appearance || [],
+        taste: material.taste || [],
+        efficacy: material.efficacy || [],
       });
       materialStatus.value = material.status || "draft";
       await loadNutrition(id);
@@ -912,6 +975,60 @@ onMounted(async () => {
     }
 
     .zone-content {}
+
+    .enum-fields-row {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px dashed $border-color-light;
+
+      .field-inline .field-input {
+        max-width: calc(100% - 100px);
+      }
+
+      :deep(.t-select) {
+        width: 100%;
+
+        .t-select__wrap {
+          background-color: var(--color-bg-page) !important;
+          border: 1px solid $border-color-light !important;
+          border-radius: 12px !important;
+          padding: var(--space-1-5) var(--space-2-5) !important;
+          min-height: 36px;
+          transition: all $transition-fast;
+
+          &:hover:not(.t-is-disabled) {
+            border-color: var(--color-border) !important;
+          }
+        }
+
+        &.t-is-focused .t-select__wrap {
+          background-color: #fff !important;
+          border-color: transparent !important;
+          box-shadow: 0 0 0 2px $emerald-500 !important;
+          outline: none !important;
+        }
+      }
+
+      @media (max-width: 900px) {
+        .field-inline {
+          flex-direction: column;
+          align-items: stretch;
+
+          .field-label {
+            justify-content: flex-start;
+            min-width: 0;
+            margin-bottom: 8px;
+          }
+
+          .field-input {
+            max-width: 100%;
+          }
+        }
+      }
+    }
 
     .zone-basic-info {
       .basic-info-two-col {

@@ -254,7 +254,7 @@ const profileRules: Record<string, FormRule[]> = {
   ],
 };
 
-const handleProfileSubmit = async ({ validateResult }: any) => {
+const handleProfileSubmit = async ({ validateResult }: { validateResult: boolean | Record<string, unknown>[] }) => {
   if (validateResult !== true) return;
   profileLoading.value = true;
   try {
@@ -333,7 +333,7 @@ const passwordRules: Record<string, FormRule[]> = {
   ],
 };
 
-const handlePasswordSubmit = async ({ validateResult }: any) => {
+const handlePasswordSubmit = async ({ validateResult }: { validateResult: boolean | Record<string, unknown>[] }) => {
   if (validateResult !== true) return;
   if (passwordForm.newPassword !== passwordForm.confirmPassword) {
     MessagePlugin.error('两次输入的密码不一致');

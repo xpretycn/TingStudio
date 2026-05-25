@@ -84,7 +84,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { MessagePlugin } from 'tdesign-vue-next';
-// @ts-expect-error xlsx types not available
 import * as XLSX from 'xlsx';
 
 interface NutritionParseResult {
@@ -212,7 +211,7 @@ function downloadTemplate() {
     XLSX.utils.book_append_sheet(wb, ws, '营养素模板');
     XLSX.writeFile(wb, '营养素导入模板.xlsx');
     MessagePlugin.success('模板下载成功');
-  } catch (error: any) {
+  } catch (_error: unknown) {
     MessagePlugin.error('生成模板失败');
   } finally {
     downloading.value = false;
@@ -266,8 +265,9 @@ async function handleUpload(options: { raw: File; }) {
     } else {
       MessagePlugin.success(`解析成功，共 ${validNutrientCount.value} 项有效营养素`);
     }
-  } catch (error: any) {
-    MessagePlugin.error(error.message || '解析文件失败');
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : '解析文件失败';
+    MessagePlugin.error(msg);
   } finally {
     uploading.value = false;
   }
