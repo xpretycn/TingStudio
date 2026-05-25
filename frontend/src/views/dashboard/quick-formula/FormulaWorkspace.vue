@@ -1,26 +1,26 @@
 <script setup lang="ts">
-import { useQuickFormulaStore } from "@/stores/quickFormula"
-import FormulaEditor from "./FormulaEditor.vue"
-import MaterialPool from "./MaterialPool.vue"
-import type { QuickFormulaMaterial } from "@/types/quickFormula"
+import { useQuickFormulaStore } from "@/stores/quickFormula";
+import FormulaEditor from "./FormulaEditor.vue";
+import MaterialPool from "./MaterialPool.vue";
+import type { QuickFormulaMaterial } from "@/types/quickFormula";
 
 const emit = defineEmits<{
-  "save-template": []
-  "submitted": []
-}>()
+  "save-template": [];
+  "submitted": [];
+}>();
 
-const quickFormulaStore = useQuickFormulaStore()
+const quickFormulaStore = useQuickFormulaStore();
 
 function handleAddMaterial(material: QuickFormulaMaterial) {
-  quickFormulaStore.addMaterial(material)
+  quickFormulaStore.addMaterial(material);
 }
 
 function handleSaveTemplate() {
-  emit("save-template")
+  emit("save-template");
 }
 
 function handleSubmitSuccess() {
-  emit("submitted")
+  emit("submitted");
 }
 </script>
 
@@ -41,7 +41,9 @@ function handleSubmitSuccess() {
 .formula-workspace {
   display: flex;
   gap: $space-6;
-  min-height: 500px;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .workspace-panel {
@@ -52,15 +54,15 @@ function handleSubmitSuccess() {
   overflow: hidden;
 
   &--editor {
-    flex: 0 0 55%;
-    max-width: 55%;
+    flex: 0 0 45%;
+    max-width: 45%;
     padding: $space-5;
     overflow-y: auto;
   }
 
   &--pool {
-    flex: 0 0 calc(45% - #{$space-6});
-    max-width: calc(45% - #{$space-6});
+    flex: 0 0 calc(55% - #{$space-6});
+    max-width: calc(55% - #{$space-6});
     display: flex;
     flex-direction: column;
   }
@@ -72,6 +74,7 @@ function handleSubmitSuccess() {
   }
 
   .workspace-panel {
+
     &--editor,
     &--pool {
       flex: none;

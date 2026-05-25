@@ -21,7 +21,8 @@
               <ellipse cx="25" cy="28.5" rx="1.2" ry="1.5" fill="#fff" />
               <ellipse cx="37" cy="28.5" rx="1.2" ry="1.5" fill="#fff" />
               <ellipse cx="30" cy="35.5" rx="2.5" ry="1.8" fill="#FFB5C2" />
-              <path d="M27 38Q30 42 33 38" stroke="var(--color-primary-dark)" stroke-width="1" fill="none" stroke-linecap="round" />
+              <path d="M27 38Q30 42 33 38" stroke="var(--color-primary-dark)" stroke-width="1" fill="none"
+                stroke-linecap="round" />
               <ellipse cx="20" cy="36" rx="4" ry="2.5" fill="#FFB5C2" opacity="0.35" />
               <ellipse cx="40" cy="36" rx="4" ry="2.5" fill="#FFB5C2" opacity="0.35" />
             </svg>
@@ -194,7 +195,8 @@
             <Transition name="group-expand">
               <div v-show="isGroupExpanded('tools')" class="nav-group-content">
                 <div v-for="item in getGroupItems('tools')" :key="item.path" class="nav-item nav-item--grouped"
-                  :class="{ active: route.path === item.path || route.path.startsWith(item.path + '/') }" role="menuitem" tabindex="0"
+                  :class="{ active: route.path === item.path || route.path.startsWith(item.path + '/') }"
+                  role="menuitem" tabindex="0"
                   :aria-current="route.path === item.path || route.path.startsWith(item.path + '/') ? 'page' : undefined"
                   :title="sidebarCollapsed ? item.label : undefined" @click="navigateTo(item.path)"
                   @keydown="handleNavKeydown($event, item.path)">
@@ -245,7 +247,8 @@
             <ellipse cx="25" cy="28.5" rx="1.2" ry="1.5" fill="#fff" />
             <ellipse cx="37" cy="28.5" rx="1.2" ry="1.5" fill="#fff" />
             <ellipse cx="30" cy="35.5" rx="2.5" ry="1.8" fill="#FFB5C2" />
-            <path d="M27 38Q30 42 33 38" stroke="var(--color-primary-dark)" stroke-width="1" fill="none" stroke-linecap="round" />
+            <path d="M27 38Q30 42 33 38" stroke="var(--color-primary-dark)" stroke-width="1" fill="none"
+              stroke-linecap="round" />
             <ellipse cx="20" cy="36" rx="4" ry="2.5" fill="#FFB5C2" opacity="0.35" />
             <ellipse cx="40" cy="36" rx="4" ry="2.5" fill="#FFB5C2" opacity="0.35" />
           </svg>
@@ -267,7 +270,8 @@
     </aside>
 
     <!-- 右侧内容展示区（hideHeader 页面移除顶部间距） -->
-    <div class="right-content" :class="{ 'no-top-padding': route.meta.hideHeader, 'no-padding': route.meta.fullBleed, 'extra-bottom': route.meta.extraBottom }">
+    <div class="right-content"
+      :class="{ 'no-top-padding': route.meta.hideHeader, 'no-padding': route.meta.fullBleed, 'extra-bottom': route.meta.extraBottom }">
       <header v-if="!route.meta.hideHeader" class="content-header" role="banner">
         <!-- 左侧导航功能区 -->
         <div class="header-left">
@@ -332,7 +336,8 @@
                   <img loading="lazy" class="user-avatar-img" :src="authStore.user?.avatar || '/avatar-default.jpg'"
                     :alt="authStore.user?.username || '用户'" />
                 </div>
-                <span class="user-display-name">{{ authStore.user?.displayName || authStore.user?.username || '用户' }}</span>
+                <span class="user-display-name">{{ authStore.user?.displayName || authStore.user?.username || '用户'
+                }}</span>
                 <svg class="user-avatar-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none"
                   stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <polyline points="6 9 12 15 18 9" />
@@ -1855,7 +1860,7 @@ onMounted(() => {
   }
 
   &.extra-bottom {
-    padding-bottom: 0; // 子组件自行控制底部间距
+    padding-bottom: 0;
 
     .content-body {
       display: flex;
@@ -1866,7 +1871,8 @@ onMounted(() => {
         display: flex;
         flex-direction: column;
 
-        .formula-form {
+        .formula-form,
+        .quick-formula-panel {
           flex: 1;
         }
       }

@@ -20,6 +20,7 @@ import { loadThresholdsFromConfig } from "./services/ratioFactorValidator.js";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+let isReady = false;
 
 async function ensureReviewLogsTable(): Promise<void> {
   try {
@@ -80,6 +81,9 @@ function setupApp(app: express.Application): void {
 function initializeApp(): void {
   console.log("[Startup] Initializing TingStudio AI Agent Backend...");
 
+  setupApp(app);
+  startServer(app, PORT);
+
   connectDatabase()
     .then(async () => {
       await ensureReviewLogsTable();
@@ -97,9 +101,7 @@ function initializeApp(): void {
         console.log(`[Startup] ℹ Ratio validation thresholds: using defaults`);
       });
 
-      setupApp(app);
-
-      startServer(app, PORT);
+      isReady = true;
 
       console.log(`[Startup] ✓ Application initialized successfully`);
     })
@@ -137,6 +139,19 @@ function configureMiddleware(app: express.Application): void {
 
   app.use(requestLogger);
   app.use(optionalAuth);
+
+  app.use((req, _res, next) => {
+    if (req.path.startsWith("/api/") && !isReady) {
+      return _res.status(503).json({
+        success: false,
+        error: {
+          message: "服务正在启动中，请稍后重试",
+          code: "SERVICE_UNAVAILABLE",
+        },
+      });
+    }
+    next();
+  });
 }
 
 function configureRoutes(app: express.Application): void {
@@ -208,6 +223,7 @@ function startServer(app: express.Application, port: number): void {
 if (process.env.NODE_ENV !== "test") {
   initializeApp();
 } else {
+  isReady = true;
   registerAllTools();
   setupApp(app);
 }

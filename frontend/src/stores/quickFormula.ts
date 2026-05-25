@@ -32,7 +32,13 @@ export const useQuickFormulaStore = defineStore("quickFormula", () => {
   const isEditMode = ref(false)
   const hasUnsavedChanges = ref(false)
   const formulaData = reactive<QuickFormulaData>(createDefaultFormulaData())
-  const poolFilter = reactive({ keyword: "", type: "all" as "all" | "herb" | "supplement" })
+  const poolFilter = reactive({
+    keyword: "",
+    type: "all" as "all" | "herb" | "supplement",
+    appearance: [] as string[],
+    taste: [] as string[],
+    efficacy: [] as string[],
+  })
   const validationErrors = ref<string[]>([])
 
   // --- Computed ---
@@ -135,6 +141,9 @@ export const useQuickFormulaStore = defineStore("quickFormula", () => {
     Object.assign(formulaData, createDefaultFormulaData())
     poolFilter.keyword = ""
     poolFilter.type = "all"
+    poolFilter.appearance = []
+    poolFilter.taste = []
+    poolFilter.efficacy = []
   }
 
   function enterEditing(name: string) {

@@ -1,152 +1,136 @@
 <template>
-  <div class="enum-manage">
-    <!-- 顶部 Header -->
-    <header class="detail-header">
-      <div class="header-left">
-        <button class="header-back-btn" @click="$router.back()" title="返回">
-          <t-icon name="arrow-left" />
-        </button>
-        <div class="header-title-group">
-          <nav class="header-breadcrumb">
-            <a class="breadcrumb-link" @click="$router.push('/')">首页</a>
-            <t-icon name="chevron-right" class="breadcrumb-sep" />
-            <span class="breadcrumb-current">枚举值管理</span>
-          </nav>
-          <h2 class="page-title">枚举值管理</h2>
-        </div>
+  <div class="mm-body">
+    <div class="mm-nav" :class="{ 'mm-nav--collapsed': navCollapsed }">
+      <button type="button" class="nav-collapse-btn" @click="navCollapsed = !navCollapsed"
+        :title="navCollapsed ? '展开导航' : '折叠导航'" aria-label="切换导航折叠状态">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round"
+          :style="{ transform: navCollapsed ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s ease' }">
+          <polyline points="15 18 9 12 15 6" />
+        </svg>
+      </button>
+      <div v-for="cat in categories" :key="cat.value" class="nav-tab"
+        :class="{ active: activeCategory === cat.value }"
+        :title="navCollapsed ? cat.label : ''" role="tab" tabindex="0"
+        @click="activeCategory = cat.value; keyword = ''"
+        @keydown.enter="activeCategory = cat.value; keyword = ''">
+        <svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round" v-html="cat.iconPath"></svg>
+        <span class="nav-tab-label">{{ cat.label }}</span>
       </div>
-    </header>
+    </div>
 
-    <!-- 主内容区域 -->
-    <main class="enum-main">
-      <section class="enum-card">
-        <!-- 说明文字 -->
-        <p class="enum-desc">
-          管理原料属性中的枚举选项，包括性状、口感、功效三类。停用的选项不会出现在新建/编辑原料的选项列表中。
-        </p>
-
-        <!-- Tabs -->
-        <t-tabs v-model="activeTab" class="enum-tabs">
-          <t-tab-panel
-            v-for="cat in categories"
-            :key="cat.value"
-            :value="cat.value"
-            :label="cat.label"
-          >
-            <div class="tab-toolbar">
-              <t-input
-                v-model="keyword"
-                placeholder="搜索枚举值..."
-                clearable
-                class="search-input"
-              >
-                <template #prefix-icon><t-icon name="search" /></template>
-              </t-input>
-              <t-button theme="primary" @click="openCreateDialog">
-                <template #icon><t-icon name="add" /></template>
-                添加枚举值
-              </t-button>
+    <div class="mm-content">
+      <Transition name="content-fade" mode="out-in">
+        <div :key="activeCategory" class="tab-panel">
+          <div class="section-header-enhanced">
+            <div class="section-title-group">
+              <svg class="section-title-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                :stroke="currentCategoryColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                v-html="currentCategory.iconPath"></svg>
+              <h4 class="section-title-text">{{ currentCategory.label }}管理</h4>
             </div>
+            <span class="section-title-count">共 {{ currentList.length }} 项</span>
+            <div v-if="currentList.length > PAGE_SIZE" class="activity-nav">
+              <button class="activity-nav-btn" :disabled="currentPage <= 1" @click="pagePrev" title="上一页">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="15 18 9 12 15 6" />
+                </svg>
+              </button>
+              <span class="activity-nav-page">{{ currentPage }} / {{ totalPages }}</span>
+              <button class="activity-nav-btn" :disabled="currentPage >= totalPages" @click="pageNext" title="下一页">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
+              </button>
+            </div>
+          </div>
 
-            <!-- 列表 -->
-            <div v-if="currentList.length > 0" class="enum-list">
-              <div
-                v-for="(item, index) in currentList"
-                :key="item.id"
-                class="enum-item"
-                :class="{ 'is-inactive': !item.isActive }"
-              >
-                <span class="enum-index">{{ index + 1 }}</span>
-                <span class="enum-label">{{ item.label }}</span>
-                <t-tag
-                  v-if="!item.isActive"
-                  theme="default"
-                  variant="light"
-                  size="small"
-                  class="inactive-tag"
-                >
-                  已停用
-                </t-tag>
+          <div class="enum-toolbar">
+            <t-input v-model="keyword" placeholder="搜索枚举值..." clearable class="enum-search-input">
+              <template #prefix-icon><t-icon name="search" /></template>
+            </t-input>
+            <t-button theme="primary" @click="openCreateDialog">
+              <template #icon><t-icon name="add" /></template>
+              添加枚举值
+            </t-button>
+          </div>
+
+          <div v-if="currentList.length > 0" class="enum-list">
+            <div v-for="(item, index) in pagedList" :key="item.id" class="enum-card"
+              :class="{ 'is-inactive': !item.isActive }">
+              <div class="enum-card-header">
+                <div class="enum-name-row">
+                  <div class="enum-index-wrap">
+                    <span class="enum-index">{{ (currentPage - 1) * PAGE_SIZE + index + 1 }}</span>
+                  </div>
+                  <span class="enum-label">{{ item.label }}</span>
+                  <t-tag v-if="!item.isActive" theme="default" variant="light" size="small">已停用</t-tag>
+                </div>
+              </div>
+              <div class="enum-card-footer">
+                <div class="enum-usage-mini">
+                  <span>{{ item.isActive ? '启用中' : '已停用' }}</span>
+                  <span>排序 #{{ item.sortOrder }}</span>
+                </div>
                 <div class="enum-actions">
-                  <t-switch
-                    :value="item.isActive"
-                    size="small"
-                    @change="handleToggleActive(item)"
-                  />
-                  <t-button
-                    variant="text"
-                    theme="default"
-                    size="small"
-                    @click="openEditDialog(item)"
-                  >
-                    <template #icon><t-icon name="edit" /></template>
+                  <t-switch :value="item.isActive" size="small" @change="(val: boolean) => handleToggleActive(item, val)" />
+                  <t-button variant="text" theme="default" size="small" @click="openEditDialog(item)">
+                    编辑
                   </t-button>
-                  <t-popconfirm
-                    content="确定删除该枚举值吗？删除后不可恢复。"
-                    @confirm="handleDelete(item)"
-                  >
-                    <t-button
-                      variant="text"
-                      theme="danger"
-                      size="small"
-                    >
-                      <template #icon><t-icon name="delete" /></template>
-                    </t-button>
+                  <t-popconfirm content="确定删除该枚举值吗？删除后不可恢复。" @confirm="handleDelete(item)">
+                    <t-button variant="text" theme="danger" size="small">删除</t-button>
                   </t-popconfirm>
                 </div>
               </div>
             </div>
+          </div>
 
-            <!-- 空状态 -->
-            <div v-else class="enum-empty">
-              <t-icon name="folder-open" size="48px" class="empty-icon" />
-              <p class="empty-text">
-                {{ keyword ? "未找到匹配的枚举值" : "暂无枚举值，点击上方按钮添加" }}
-              </p>
+          <div v-else class="empty-state">
+            <div class="empty-icon-wrap">
+              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-placeholder)"
+                stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" />
+                <polyline points="13 2 13 9 20 9" />
+              </svg>
             </div>
-          </t-tab-panel>
-        </t-tabs>
-      </section>
-    </main>
-
-    <!-- 新增/编辑弹窗 -->
-    <t-dialog
-      v-model:visible="dialogVisible"
-      :header="dialogMode === 'create' ? '添加枚举值' : '编辑枚举值'"
-      :confirm-btn="{ loading: dialogLoading }"
-      :on-confirm="handleDialogConfirm"
-      @close="handleDialogClose"
-    >
-      <t-form label-width="80px">
-        <t-form-item label="所属分类">
-          <t-tag theme="primary" variant="light">
-            {{ CATEGORY_LABELS[activeTab] }}
-          </t-tag>
-        </t-form-item>
-        <t-form-item label="枚举值名称">
-          <t-input
-            v-model="formLabel"
-            placeholder="请输入枚举值名称"
-            clearable
-            maxlength="50"
-            show-limit-number
-            @enter="handleDialogConfirm"
-          />
-        </t-form-item>
-      </t-form>
-    </t-dialog>
+            <p class="empty-text">{{ keyword ? '未找到匹配的枚举值' : '暂无枚举值' }}</p>
+            <p class="empty-hint">{{ keyword ? '尝试其他关键词' : '点击上方按钮添加第一个枚举值' }}</p>
+          </div>
+        </div>
+      </Transition>
+    </div>
   </div>
+
+  <t-dialog v-model:visible="dialogVisible"
+    :header="dialogMode === 'create' ? '添加枚举值' : '编辑枚举值'"
+    :confirm-btn="{ loading: dialogLoading }"
+    :on-confirm="handleDialogConfirm"
+    @close="handleDialogClose">
+    <t-form label-width="80px">
+      <t-form-item label="所属分类">
+        <t-tag theme="primary" variant="light">{{ CATEGORY_LABELS[activeCategory] }}</t-tag>
+      </t-form-item>
+      <t-form-item label="枚举值名称">
+        <t-input v-model="formLabel" placeholder="请输入枚举值名称" clearable maxlength="50" show-limit-number
+          @enter="handleDialogConfirm" />
+      </t-form-item>
+    </t-form>
+  </t-dialog>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, watch, onMounted } from "vue";
 import { MessagePlugin } from "tdesign-vue-next";
 import { useEnumStore } from "@/stores/enum";
 import type { EnumOption } from "@/api/enum";
 
 const enumStore = useEnumStore();
 
-const activeTab = ref("appearance");
+const navCollapsed = ref(false);
+const activeCategory = ref("appearance");
 const keyword = ref("");
 const dialogVisible = ref(false);
 const dialogLoading = ref(false);
@@ -160,15 +144,44 @@ const CATEGORY_LABELS: Record<string, string> = {
   efficacy: "功效",
 };
 
+const CATEGORY_COLORS: Record<string, string> = {
+  appearance: "#3B82F6",
+  taste: "#10B981",
+  efficacy: "#F59E0B",
+};
+
 const categories = [
-  { value: "appearance", label: "性状" },
-  { value: "taste", label: "口感" },
-  { value: "efficacy", label: "功效" },
+  {
+    value: "appearance",
+    label: "性状",
+    iconPath:
+      '<circle cx="12" cy="12" r="3"/><path d="M12 2v4m0 12v4m10-10h-4M6 12H2m15.07-5.07l-2.83 2.83M9.76 14.24l-2.83 2.83m11.14 0l-2.83-2.83M9.76 9.76L6.93 6.93"/>',
+  },
+  {
+    value: "taste",
+    label: "口感",
+    iconPath:
+      '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/>',
+  },
+  {
+    value: "efficacy",
+    label: "功效",
+    iconPath:
+      '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
+  },
 ];
+
+const currentCategory = computed(() =>
+  categories.find((c) => c.value === activeCategory.value) || categories[0]
+);
+
+const currentCategoryColor = computed(
+  () => CATEGORY_COLORS[activeCategory.value] || "#3B82F6"
+);
 
 const currentList = computed(() => {
   const list = enumStore.getOptionsByCategory(
-    activeTab.value as "appearance" | "taste" | "efficacy"
+    activeCategory.value as "appearance" | "taste" | "efficacy"
   );
   if (!keyword.value) return list;
   const kw = keyword.value.toLowerCase();
@@ -177,6 +190,24 @@ const currentList = computed(() => {
       item.label.toLowerCase().includes(kw) ||
       item.value.toLowerCase().includes(kw)
   );
+});
+
+const PAGE_SIZE = 10;
+const currentPage = ref(1);
+const totalPages = computed(() => Math.max(1, Math.ceil(currentList.value.length / PAGE_SIZE)));
+const pagedList = computed(() => {
+  const start = (currentPage.value - 1) * PAGE_SIZE;
+  return currentList.value.slice(start, start + PAGE_SIZE);
+});
+const pagePrev = () => { if (currentPage.value > 1) currentPage.value--; };
+const pageNext = () => { if (currentPage.value < totalPages.value) currentPage.value++; };
+
+watch(activeCategory, () => { currentPage.value = 1; });
+watch(keyword, () => { currentPage.value = 1; });
+watch(() => currentList.value.length, () => {
+  if (currentPage.value > totalPages.value) {
+    currentPage.value = Math.max(1, totalPages.value);
+  }
 });
 
 onMounted(() => {
@@ -211,7 +242,7 @@ const handleDialogConfirm = async () => {
   try {
     if (dialogMode.value === "create") {
       await enumStore.createOption({
-        category: activeTab.value,
+        category: activeCategory.value,
         label: formLabel.value.trim(),
         value: formLabel.value.trim(),
       });
@@ -250,10 +281,10 @@ const handleDelete = async (item: EnumOption) => {
   }
 };
 
-const handleToggleActive = async (item: EnumOption) => {
+const handleToggleActive = async (item: EnumOption, newActive: boolean) => {
   try {
-    await enumStore.updateOption(item.id, { isActive: !item.isActive });
-    MessagePlugin.success(item.isActive ? "已停用" : "已启用");
+    await enumStore.updateOption(item.id, { isActive: newActive });
+    MessagePlugin.success(newActive ? "已启用" : "已停用");
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : "操作失败";
     MessagePlugin.error(msg);
@@ -264,277 +295,361 @@ const handleToggleActive = async (item: EnumOption) => {
 <style scoped lang="scss">
 @use "@/assets/styles/variables.scss" as *;
 
-.enum-manage {
-  // ─── Header ───
-  .detail-header {
-    position: sticky;
-    top: 0;
-    z-index: 40;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-left: -32px;
-    margin-right: -32px;
-    padding: 16px 32px;
-    background-color: $overlay-white-80;
-    backdrop-filter: blur(12px);
-    border-bottom: 1px solid $border-color-light;
-    animation: fadeInDown 0.3s cubic-bezier(0.4, 0, 0.2, 1) both;
+.mm-body {
+  display: flex;
+  gap: 0;
+  min-height: 480px;
+}
 
-    .header-left {
+.mm-nav {
+  width: 170px;
+  flex-shrink: 0;
+  padding: 24px 12px;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    padding 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+
+  &--collapsed {
+    width: 56px;
+    padding: 24px var(--space-1-5);
+
+    .nav-tab {
+      justify-content: center;
+      padding: 12px 0;
+
+      .nav-tab-icon {
+        width: 24px;
+        height: 24px;
+      }
+
+      .nav-tab-label {
+        display: none;
+      }
+    }
+
+    .nav-collapse-btn {
+      margin: 0 auto 12px auto;
+      width: 36px;
+      height: 36px;
+    }
+  }
+
+  .nav-tab {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2-5);
+    padding: 12px 16px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: var(--color-text-secondary);
+    font-size: 14px;
+    font-weight: 500;
+    border: 1px solid transparent;
+    margin-bottom: 8px;
+    white-space: nowrap;
+    overflow: hidden;
+
+    .nav-tab-icon {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+      transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+        height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    &:hover {
+      background: #f1f5f9;
+      color: var(--color-text-primary);
+    }
+
+    &.active {
+      background: linear-gradient(
+        135deg,
+        var(--color-primary),
+        var(--color-primary-dark)
+      );
+      color: white;
+      box-shadow: 0 4px 12px $overlay-emerald-25;
+      border-color: transparent;
+      font-weight: 600;
+    }
+
+    .nav-tab-label {
+      flex: 1;
+      transition: opacity 0.2s ease;
+    }
+  }
+
+  .nav-collapse-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: 1px solid var(--color-border);
+    background: #fff;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-bottom: 12px;
+    color: var(--color-text-placeholder);
+
+    &:hover {
+      background: #f1f5f9;
+      color: var(--color-text-secondary);
+      border-color: #cbd5e1;
+    }
+  }
+}
+
+.mm-content {
+  flex: 1;
+  min-width: 0;
+  padding: 24px var(--space-7);
+  border-left: 1px solid #f1f5f9;
+}
+
+.content-fade-enter-active,
+.content-fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.content-fade-enter-from,
+.content-fade-leave-to {
+  opacity: 0;
+}
+
+.section-header-enhanced {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+
+  .section-title-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    .section-title-icon {
+      flex-shrink: 0;
+    }
+
+    .section-title-text {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--color-text-primary);
+    }
+  }
+
+  .section-title-count {
+    font-size: 13px;
+    color: var(--color-text-placeholder);
+  }
+}
+
+.activity-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.activity-nav-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  border: none;
+  background: #f1f5f9;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all $transition-fast;
+
+  &:hover:not(:disabled) {
+    background: var(--color-border);
+    color: var(--color-text-primary);
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+}
+
+.activity-nav-page {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-placeholder);
+  min-width: 40px;
+  text-align: center;
+}
+
+.enum-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+
+  .enum-search-input {
+    max-width: 280px;
+  }
+}
+
+.enum-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.enum-card {
+  border-radius: 12px;
+  border: 1px solid var(--color-border-light, #e5e7eb);
+  background: var(--color-bg-container, #fff);
+  transition: all 0.2s ease;
+  overflow: hidden;
+
+  &:hover {
+    border-color: var(--color-border, #d1d5db);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  }
+
+  &.is-inactive {
+    opacity: 0.6;
+
+    .enum-label {
+      color: var(--color-text-disabled, #9ca3af);
+      text-decoration: line-through;
+    }
+  }
+
+  .enum-card-header {
+    padding: 14px 16px 0;
+
+    .enum-name-row {
       display: flex;
       align-items: center;
-      gap: $space-4;
+      gap: 10px;
 
-      .header-back-btn {
+      .enum-index-wrap {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        width: 36px;
-        height: 36px;
-        border: none;
-        border-radius: $radius-xl;
-        background: transparent;
-        color: $text-placeholder;
-        cursor: pointer;
-        transition: all $transition-fast;
-        font-size: 20px;
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+        background: var(--color-bg-page, #f3f4f6);
+        flex-shrink: 0;
 
-        &:hover {
-          color: $brand-primary;
-          background-color: $brand-primary-bg;
+        .enum-index {
+          font-size: 12px;
+          font-weight: 600;
+          color: var(--color-text-placeholder, #9ca3af);
         }
       }
-
-      .header-title-group {
-        display: flex;
-        flex-direction: column;
-        gap: $space-1-5;
-
-        .header-breadcrumb {
-          display: flex;
-          align-items: center;
-          gap: $space-1-5;
-          font-size: $font-size-caption;
-          line-height: 1;
-
-          .breadcrumb-link {
-            color: $text-placeholder;
-            cursor: pointer;
-            transition: color 0.15s;
-            text-decoration: none;
-
-            &:hover {
-              color: $brand-primary;
-            }
-          }
-
-          .breadcrumb-sep {
-            font-size: $font-size-caption;
-            color: $text-placeholder;
-          }
-
-          .breadcrumb-current {
-            color: $text-secondary;
-          }
-        }
-
-        .page-title {
-          margin: 0;
-          font-size: $font-size-h2;
-          font-weight: $font-weight-bold;
-          color: $text-primary;
-          line-height: $line-height-tight;
-        }
-      }
-    }
-  }
-
-  // ─── Main ───
-  .enum-main {
-    margin-top: $space-6;
-
-    .enum-card {
-      background: $bg-container;
-      padding: $space-6;
-      border-radius: $radius-2xl;
-      box-shadow: $shadow-elevation-1;
-      border: 1px solid $border-color-light;
-      animation: fadeInUp 0.35s ease both;
-    }
-
-    .enum-desc {
-      margin: 0 0 $space-5;
-      font-size: $font-size-body-sm;
-      color: $text-tertiary;
-      line-height: $line-height-normal;
-    }
-  }
-
-  // ─── Tabs ───
-  .enum-tabs {
-    :deep(.t-tabs__nav-item.t-is-active) {
-      color: $brand-primary;
-    }
-
-    :deep(.t-tabs__active-bar) {
-      background-color: $brand-primary;
-    }
-
-    :deep(.t-tabs__content) {
-      padding-top: $space-5;
-    }
-  }
-
-  // ─── Toolbar ───
-  .tab-toolbar {
-    display: flex;
-    align-items: center;
-    gap: $space-3;
-    margin-bottom: $space-5;
-
-    .search-input {
-      max-width: 280px;
-    }
-  }
-
-  // ─── List ───
-  .enum-list {
-    display: flex;
-    flex-direction: column;
-    gap: $space-2;
-  }
-
-  .enum-item {
-    display: flex;
-    align-items: center;
-    gap: $space-3;
-    padding: $space-3 $space-4;
-    border-radius: $radius-xl;
-    border: 1px solid $border-color-light;
-    background: $bg-container;
-    transition: all $transition-fast;
-
-    &:hover {
-      background: $bg-hover;
-      border-color: $border-color;
-    }
-
-    &.is-inactive {
-      opacity: 0.6;
 
       .enum-label {
-        color: $text-tertiary;
-        text-decoration: line-through;
+        flex: 1;
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--color-text-primary, #1f2937);
       }
     }
+  }
 
-    .enum-index {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 28px;
-      height: 28px;
-      border-radius: $radius-md;
-      background: $bg-page;
-      font-size: $font-size-caption;
-      font-weight: $font-weight-semibold;
-      color: $text-tertiary;
-      flex-shrink: 0;
-    }
+  .enum-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px 14px;
 
-    .enum-label {
-      flex: 1;
-      font-size: $font-size-body;
-      font-weight: $font-weight-medium;
-      color: $text-primary;
-    }
-
-    .inactive-tag {
-      flex-shrink: 0;
+    .enum-usage-mini {
+      display: flex;
+      gap: 12px;
+      font-size: 12px;
+      color: var(--color-text-placeholder, #9ca3af);
     }
 
     .enum-actions {
       display: flex;
       align-items: center;
-      gap: $space-2;
-      flex-shrink: 0;
+      gap: 8px;
     }
   }
+}
 
-  // ─── Empty ───
-  .enum-empty {
-    display: flex;
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 0;
+
+  .empty-icon-wrap {
+    margin-bottom: 16px;
+  }
+
+  .empty-text {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    margin: 0 0 4px;
+  }
+
+  .empty-hint {
+    font-size: 13px;
+    color: var(--color-text-placeholder);
+    margin: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .mm-body {
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: $space-10 0;
+  }
 
-    .empty-icon {
-      color: $text-placeholder;
-      margin-bottom: $space-3;
+  .mm-nav {
+    width: 100% !important;
+    flex-direction: row;
+    padding: 8px;
+    overflow-x: auto;
+    border-bottom: 1px solid #f1f5f9;
+
+    .nav-collapse-btn {
+      display: none;
     }
 
-    .empty-text {
-      font-size: $font-size-body-sm;
-      color: $text-tertiary;
-      margin: 0;
+    .nav-tab {
+      padding: 8px 12px;
+      margin-bottom: 0;
+      margin-right: 4px;
+
+      .nav-tab-icon {
+        width: 16px;
+        height: 16px;
+      }
+
+      .nav-tab-label {
+        font-size: 13px;
+      }
     }
   }
 
-  // ─── Animations ───
-  @keyframes fadeInDown {
-    from {
-      opacity: 0;
-      transform: translateY(-12px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
+  .mm-content {
+    padding: 16px;
+    border-left: none;
   }
 
-  @keyframes fadeInUp {
-    from {
-      opacity: 0;
-      transform: translateY(16px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
+  .enum-toolbar {
+    flex-direction: column;
+    align-items: stretch;
 
-  // ─── Responsive ───
-  @media (max-width: 768px) {
-    .detail-header {
-      padding: $space-3 $space-4;
-
-      .header-left .header-title-group .page-title {
-        font-size: $font-size-h3;
-      }
-    }
-
-    .tab-toolbar {
-      flex-direction: column;
-      align-items: stretch;
-
-      .search-input {
-        max-width: none;
-      }
-    }
-
-    .enum-item {
-      flex-wrap: wrap;
-      gap: $space-2;
-
-      .enum-label {
-        flex-basis: calc(100% - 44px);
-      }
-
-      .enum-actions {
-        margin-left: 36px;
-      }
+    .enum-search-input {
+      max-width: none;
     }
   }
 }

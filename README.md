@@ -1,4 +1,4 @@
-﻿# TingStudio v2.32.0
+# TingStudio v2.33.0
 
 食品配方工作数据管理平台 — 前后端分离架构
 
@@ -14,7 +14,7 @@ TingStudio 是一个专业的食品配方工作数据管理平台，面向食品
 |------|------|------|
 | **前端框架** | Vue 3 + TypeScript + Vite | Composition API + `<script setup>` |
 | **UI 组件库** | TDesign Vue Next (v1.9) | 企业级组件库 |
-| **状态管理** | Pinia (19个 Store) | 模块化 Store |
+| **状态管理** | Pinia (21个 Store) | 模块化 Store |
 | **路由** | Vue Router 4 | 懒加载路由 |
 | **样式方案** | SCSS + Design Tokens | 模块化变量系统 + CSS 变量 |
 | **图表** | ECharts 6 | 数据可视化 |
@@ -142,9 +142,9 @@ TingStudio/
 ├── backend/                          # 后端服务
 │   ├── src/
 │   │   ├── config/                   # 数据库配置、安全配置、限流、营养常量
-│   │   ├── controllers/              # 控制器层（17个模块）
+│   │   ├── controllers/              # 控制器层（19个模块）
 │   │   ├── middleware/               # 认证、错误处理、日志、校验
-│   │   ├── routes/                   # 路由定义（19个路由文件 + Agent端点）
+│   │   ├── routes/                   # 路由定义（20个路由文件 + Agent端点）
 │   │   ├── services/                 # 业务逻辑层
 │   │   │   ├── ai/                   # AI 服务（Agent/LLM/意图引擎）
 │   │   │   │   └── agent/            # Agent 系统（12个模块）
@@ -177,7 +177,7 @@ TingStudio/
 │
 ├── frontend/                         # 前端应用
 │   ├── src/
-│   │   ├── api/                      # API 客户端（axios 封装，20个模块）
+│   │   ├── api/                      # API 客户端（axios 封装，22个模块）
 │   │   ├── assets/                   # 样式（Design Tokens/变量/主题）
 │   │   ├── components/               # 公共组件（35个 Vue 组件，含3个子目录）
 │   │   │   ├── AiAssistantFloat/     # 悬浮助手组件体系（8 Vue + 2 TS）
@@ -185,13 +185,14 @@ TingStudio/
 │   │   │   ├── formula/              # 配方专用组件（MaterialTableCore/UnifiedMaterialTable）
 │   │   │   └── Skeleton/             # 骨架屏组件
 │   │   ├── router/                   # Vue Router 配置
-│   │   ├── stores/                   # Pinia 状态管理（19个 Store）
+│   │   ├── stores/                   # Pinia 状态管理（21个 Store）
 │   │   ├── utils/                    # 工具函数（时间格式化/图表/模拟数据）
 │   │   ├── views/                    # 页面视图（44个 .vue 文件）
 │   │   │   ├── ai/                   # AI 助手工作台 + 智能工具 + 总览
 │   │   │   │   └── tabs/             # 配方解析/原料导入/数据检索/解析历史
 │   │   │   ├── auth/                 # 登录/注册（含动画角色 AnimatedCharacters/EyeBall/Pupil）
-│   │   │   ├── dashboard/            # 工作台仪表盘
+│   │   │   ├── dashboard/            # 工作台仪表盘 + 快速配方录入
+│   │   │   │   └── quick-formula/    # 快速配方（8个组件）
 │   │   │   ├── formulas/             # 配方管理（列表/表单/详情/对比）
 │   │   │   │   └── versions/         # 配方版本管理（列表/对比）
 │   │   │   ├── materials/            # 原料管理（列表/表单/详情/版本/版本对比）
@@ -213,6 +214,7 @@ TingStudio/
 ├── docs/                             # 项目文档
 │   ├── agent-system/                 # AI Agent 系统设计文档（23个文件，含原料版本管理 API/数据库/技术方案）
 │   ├── ting-studio/                  # 功能模块设计文档（配方编辑布局/审批流程/PRD/技术设计/API/数据库/验收）
+│   ├── quick-formula/                # 快速配方录入设计文档（PRD/技术设计/数据库/API规范）
 │   └── *.md                          # 历史 PRD/验收报告
 │
 └── .github/workflows/                # CI/CD 流水线
@@ -246,6 +248,9 @@ TingStudio/
 | **🔐 权限系统** | JWT 认证、角色控制（admin/formulist）、数据隔离 |
 | **📁 版本管理** | 版本快照、版本对比（含量/报价双模式）、变更追踪 |
 | **⚙️ 账号设置** | 个人资料管理（昵称/头像/简介/邮箱/手机号） |
+| **⚡ 快速配方** | 快速配方录入面板、原料池多维度筛选（类型/性状/口感/功效）、配方仪表盘、实时营养计算、草稿保存、模板管理 |
+| **🏷️ 枚举管理** | 原料枚举字段管理（性状/口感/功效）、选项增删改、排序、启用/禁用 |
+| **📐 配方模板** | 配方模板 CRUD、快速创建配方、模板复用 |
 
 ---
 
@@ -287,7 +292,7 @@ cd frontend && npm run test:coverage
 
 ## 🗄️ 数据库概览
 
-SQLite (better-sqlite3) + WAL 模式，共 **42 张表**：
+SQLite (better-sqlite3) + WAL 模式，共 **44 张表**：
 
 | 分类 | 表名 | 说明 |
 |------|------|------|
@@ -301,6 +306,8 @@ SQLite (better-sqlite3) + WAL 模式，共 **42 张表**：
 | **AI 模型** | ai_models, ai_usage_logs, ai_alert_configs, ai_alert_records, ai_health_records, ai_fallback_configs, ai_prompt_templates, model_applications | 模型/用量/告警/健康/降级/提示词模板/应用 |
 | **Agent 系统** | agent_sessions, agent_messages, agent_pending_confirmations, agent_pending_forms, agent_role_config, agent_float_config, agent_provider_health, agent_session_cleanup_log | 会话/消息/确认/表单/身份/浮窗/健康/清理 |
 | **审核系统** | formula_review_logs, material_review_logs | 配方审核/原料审核 |`n| **其他** | search_export_cache | 缓存 |
+| **枚举管理** | enum_options | 枚举选项（性状/口感/功效） |
+| **配方模板** | formula_templates | 配方模板 |
 
 备份/恢复工具：
 
@@ -315,6 +322,162 @@ npx tsx src/scripts/restoreDatabase.ts    # 恢复数据库
 <!-- ====================================================================== -->
 <!-- 以下为历史版本更新日志，保留已有内容，自动补全 2026-05-15 最新更新 -->
 <!-- ====================================================================== -->---
+
+## 🚀 最新更新 (2026-05-26)
+
+### ✅ 快速配方录入 + 枚举管理 + 配方模板
+
+#### ⚡ 快速配方录入（全新功能模块）
+
+新增快速配方录入功能，提供高效的配方创建工作流：
+
+**前端组件（8个）**：
+
+| 文件 | 说明 |
+|------|------|
+| QuickFormulaEntry.vue | 快速配方入口页 |
+| QuickFormulaPanel.vue | 快速配方面板（全屏布局，隐藏顶栏） |
+| FormulaDashboard.vue | 配方仪表盘（营养成分卡片 + 成本核算卡片） |
+| FormulaWorkspace.vue | 配方工作区（原料列表 + 操作按钮） |
+| FormulaEditor.vue | 配方编辑器 |
+| MaterialPool.vue | 原料池（多维度筛选：类型/性状/口感/功效） |
+| MaterialFish.vue | 原料项组件 |
+| TemplateManager.vue | 模板管理器 |
+
+**核心特性**：
+- 🎯 **全屏面板**：独立路由 `/formulas/quick`，隐藏系统顶栏，最大化工作区域
+- 🔍 **多维度筛选**：原料池支持 4 组筛选条件协同工作（类型单选 + 性状/口感/功效多选）
+- 📊 **实时计算**：配方仪表盘实时显示营养成分和成本核算
+- 💾 **草稿保存**：自动保存配方草稿到 localStorage
+- 📐 **灵活布局**：仪表盘与工作区 4.5:5.5 比例分配
+- 🎨 **毛玻璃头部**：磨砂玻璃效果面板头部
+
+**新增文件**：
+
+| 文件 | 说明 |
+|------|------|
+| [quickFormula.ts (store)](frontend/src/stores/quickFormula.ts) | 快速配方 Pinia Store |
+| [quickFormula.ts (types)](frontend/src/types/quickFormula.ts) | 类型定义 |
+| [formulaTemplate.ts (api)](frontend/src/api/formulaTemplate.ts) | 配方模板 API 客户端 |
+
+***
+
+#### 🏷️ 枚举管理（全新功能模块）
+
+新增原料枚举字段管理系统，支持性状/口感/功效三类枚举的 CRUD 操作：
+
+**功能特性**：
+- 📋 三类枚举分类：性状（appearance）、口感（taste）、功效（efficacy）
+- ➕ 新增枚举选项（仅管理员）
+- ✏️ 编辑枚举选项（仅管理员）
+- 🗑️ 删除枚举选项（仅管理员）
+- 🔄 启用/禁用选项
+- 📊 排序管理
+
+**新增文件**：
+
+| 文件 | 说明 |
+|------|------|
+| [enum.ts (store)](frontend/src/stores/enum.ts) | 枚举状态管理 |
+| [enum.ts (api)](frontend/src/api/enum.ts) | 枚举 API 客户端 |
+| [EnumManage.vue](frontend/src/views/settings/EnumManage.vue) | 枚举管理页面 |
+| [enumController.ts](backend/src/controllers/enumController.ts) | 枚举控制器 |
+| [enumService.ts](backend/src/services/enumService.ts) | 枚举服务 |
+| [enums.ts (route)](backend/src/routes/enums.ts) | 枚举路由 |
+
+**新增数据库表**：
+
+| 表名 | 说明 |
+|------|------|
+| enum_options | 枚举选项表（category/label/value/sort_order/is_active） |
+
+**新增 API 端点**：
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/api/enums` | 获取全部枚举 |
+| GET | `/api/enums/:category` | 获取指定分类枚举 |
+| POST | `/api/enums` | 创建枚举选项（仅管理员） |
+| PUT | `/api/enums/:id` | 更新枚举选项（仅管理员） |
+| DELETE | `/api/enums/:id` | 删除枚举选项（仅管理员） |
+
+***
+
+#### 📐 配方模板（全新功能模块）
+
+新增配方模板管理，支持从模板快速创建配方：
+
+**新增文件**：
+
+| 文件 | 说明 |
+|------|------|
+| [formulaTemplateController.ts](backend/src/controllers/formulaTemplateController.ts) | 配方模板控制器 |
+| [formulaTemplates.ts (route)](backend/src/routes/formulaTemplates.ts) | 配方模板路由 |
+
+**新增数据库表**：
+
+| 表名 | 说明 |
+|------|------|
+| formula_templates | 配方模板表（name/ratio_factor/materials_json等） |
+
+**新增 API 端点**：
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/api/formula-templates` | 获取模板列表 |
+| GET | `/api/formula-templates/:id` | 获取模板详情 |
+| POST | `/api/formula-templates` | 创建模板 |
+| PUT | `/api/formula-templates/:id` | 更新模板 |
+| DELETE | `/api/formula-templates/:id` | 删除模板 |
+
+***
+
+#### 📝 原料表新增枚举字段
+
+materials 表新增 3 个枚举 JSON 字段：
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| appearance_json | TEXT | 外观/性状枚举值 JSON |
+| taste_json | TEXT | 性味/口感枚举值 JSON |
+| efficacy_json | TEXT | 功效枚举值 JSON |
+
+***
+
+#### 🆕 其他新增组件
+
+| 文件 | 说明 |
+|------|------|
+| AgentFormRenderer.vue | Agent 表单渲染器 |
+| AgentResultRenderer.vue | Agent 结果渲染器 |
+| AlertNotification.vue | 告警通知组件 |
+| PerformanceIndicator.vue | 性能指标组件 |
+| QuickCreateMaterialDrawer.vue | 快速创建原料抽屉 |
+| QuickCreateSalesmanDrawer.vue | 快速创建业务员抽屉 |
+| SalesRecordDrawer.vue | 销量记录抽屉 |
+
+### 影响范围总览
+
+| 文件 | 改动类型 | 说明 |
+|------|----------|------|
+| [quickFormula.ts (store)](frontend/src/stores/quickFormula.ts) | 新增 | 快速配方状态管理 |
+| [quickFormula.ts (types)](frontend/src/types/quickFormula.ts) | 新增 | 类型定义 |
+| [formulaTemplate.ts (api)](frontend/src/api/formulaTemplate.ts) | 新增 | 配方模板 API |
+| [enum.ts (store)](frontend/src/stores/enum.ts) | 新增 | 枚举状态管理 |
+| [enum.ts (api)](frontend/src/api/enum.ts) | 新增 | 枚举 API |
+| [enumController.ts](backend/src/controllers/enumController.ts) | 新增 | 枚举控制器 |
+| [enumService.ts](backend/src/services/enumService.ts) | 新增 | 枚举服务 |
+| [enums.ts (route)](backend/src/routes/enums.ts) | 新增 | 枚举路由 |
+| [formulaTemplateController.ts](backend/src/controllers/formulaTemplateController.ts) | 新增 | 配方模板控制器 |
+| [formulaTemplates.ts (route)](backend/src/routes/formulaTemplates.ts) | 新增 | 配方模板路由 |
+| [QuickFormulaPanel.vue](frontend/src/views/dashboard/quick-formula/QuickFormulaPanel.vue) | 新增 | 快速配方面板 |
+| [FormulaDashboard.vue](frontend/src/views/dashboard/quick-formula/FormulaDashboard.vue) | 新增 | 配方仪表盘 |
+| [MaterialPool.vue](frontend/src/views/dashboard/quick-formula/MaterialPool.vue) | 新增 | 原料池（多维度筛选） |
+| [router/index.ts](frontend/src/router/index.ts) | 功能增强 | 新增快速配方路由 |
+| [Home.vue](frontend/src/views/Home.vue) | 功能增强 | 快速配方全屏布局支持 |
+| [database-better-sqlite3.ts](backend/src/config/database-better-sqlite3.ts) | 新增表 | enum_options + formula_templates |
+
+---
 
 ## 🚀 最新更新 (2026-05-21)
 

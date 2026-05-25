@@ -5,6 +5,7 @@ import { parseResultApi } from '@/api/parseResult';
 import { ratioThresholdApi } from '@/api/ratioThreshold';
 import type { RatioThresholdConfig } from '@/api/ratioThreshold';
 import { useAuthStore } from '@/stores/auth';
+import EnumManage from '@/views/settings/EnumManage.vue';
 
 const authStore = useAuthStore();
 const isAdmin = computed(() => authStore.user?.role === 'admin');
@@ -126,6 +127,7 @@ const tabs = [
   { value: 'cache', label: '缓存配置' },
   { value: 'ratio', label: '含量比配置' },
   { value: 'overview', label: '数据概览' },
+  { value: 'enum-manage', label: '原料值管理' },
 ];
 
 const ratioThresholds = ref<RatioThresholdConfig>({
@@ -282,7 +284,7 @@ async function saveRatioThresholds() {
       time: '刚刚',
     });
   } catch (error: unknown) {
-    const err = error as { message?: string };
+    const err = error as { message?: string; };
     MessagePlugin.error('含量比阈值配置更新失败: ' + (err.message || '未知错误'));
   } finally {
     ratioSaving.value = false;
@@ -369,7 +371,7 @@ async function saveConfig() {
       time: '刚刚',
     });
   } catch (error: unknown) {
-    const err = error as { message?: string };
+    const err = error as { message?: string; };
     MessagePlugin.error('配置更新失败: ' + (err.message || '未知错误'));
   } finally {
     loading.value = false;
@@ -414,16 +416,20 @@ onMounted(async () => {
     fetchRatioThresholds(),
   ]);
 });
+
+
 </script>
 
 <template>
   <div class="system-config">
+
     <t-card class="content-card" bordered>
+
       <div class="data-center-toolbar">
         <div class="toolbar-left-section">
           <div class="toolbar-title-section">
             <h3 class="toolbar-title">系统管理</h3>
-            <p class="toolbar-subtitle">缓存配置、含量比校验与系统状态管理</p>
+            <p class="toolbar-subtitle">缓存配置、含量比校验、原料值管理与系统状态</p>
           </div>
         </div>
         <div class="toolbar-tabs">
@@ -441,8 +447,8 @@ onMounted(async () => {
             <!-- 存储参数配置 -->
             <div class="section-header-enhanced">
               <div class="section-title-group">
-                <svg class="section-title-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)"
-                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg class="section-title-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                  stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <rect x="3" y="3" width="7" height="7" />
                   <rect x="14" y="3" width="7" height="7" />
                   <rect x="14" y="14" width="7" height="7" />
@@ -512,8 +518,8 @@ onMounted(async () => {
             <!-- 文件保留策略配置 -->
             <div class="section-header-enhanced" style="margin-top: 8px;">
               <div class="section-title-group">
-                <svg class="section-title-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-warning)"
-                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg class="section-title-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                  stroke="var(--color-warning)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                   <polyline points="14 2 14 8 20 8" />
                   <line x1="16" y1="13" x2="8" y2="13" />
@@ -619,7 +625,8 @@ onMounted(async () => {
                 </div>
               </div>
               <div class="statistics-item">
-                <div class="statistics-item-icon" style="background: var(--color-primary-bg); color: var(--color-primary);">
+                <div class="statistics-item-icon"
+                  style="background: var(--color-primary-bg); color: var(--color-primary);">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                     stroke-linecap="round" stroke-linejoin="round">
                     <polyline points="20 6 9 17 4 12" />
@@ -752,8 +759,8 @@ onMounted(async () => {
               </div>
 
               <div v-if="degradationInfo?.lastCleanup" class="last-cleanup-card">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-secondary)" stroke-width="2"
-                  stroke-linecap="round" stroke-linejoin="round">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-secondary)"
+                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <circle cx="12" cy="12" r="10" />
                   <polyline points="12 6 12 12 16 14" />
                 </svg>
@@ -768,8 +775,8 @@ onMounted(async () => {
             <!-- 手动清理 -->
             <div class="section-header-enhanced" style="margin-top: 8px;">
               <div class="section-title-group">
-                <svg class="section-title-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-danger)"
-                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg class="section-title-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                  stroke="var(--color-danger)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <polyline points="3 6 5 6 21 6" />
                   <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
                 </svg>
@@ -1003,8 +1010,8 @@ onMounted(async () => {
             <!-- 操作建议 -->
             <div class="section-header-enhanced" style="margin-top: 24px;">
               <div class="section-title-group">
-                <svg class="section-title-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-warning)"
-                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg class="section-title-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                  stroke="var(--color-warning)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M9 18h6" />
                   <path d="M10 22h4" />
                   <path
@@ -1032,6 +1039,11 @@ onMounted(async () => {
               <p class="data-empty-text">暂无建议</p>
               <p class="data-empty-hint">系统运行后将根据状态生成操作建议</p>
             </div>
+          </div>
+
+          <!-- 原料值管理 Tab -->
+          <div v-else-if="activeTab === 'enum-manage'" key="enum-manage" class="tab-panel">
+            <EnumManage />
           </div>
         </Transition>
       </div>
@@ -1114,6 +1126,7 @@ onMounted(async () => {
         </svg>
       </div>
     </section>
+
   </div>
 </template>
 

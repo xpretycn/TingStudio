@@ -102,7 +102,7 @@ const router = createRouter({
           path: "formulas/quick",
           name: "QuickFormula",
           component: () => import("@/views/dashboard/quick-formula/QuickFormulaPanel.vue"),
-          meta: { title: "快速录入", hideHeader: true },
+          meta: { title: "快速录入", hideHeader: true, fullBleed: true, extraBottom: true },
         },
         {
           path: "formulas/:id/edit",
@@ -259,12 +259,6 @@ const router = createRouter({
           name: "AccountSettings",
           component: () => import("@/views/settings/AccountSettings.vue"),
           meta: { title: "账号设置", hideHeader: true },
-        },
-        {
-          path: "enum-manage",
-          name: "EnumManage",
-          component: () => import("@/views/settings/EnumManage.vue"),
-          meta: { title: "枚举值管理", requiresAdmin: true },
         },
       ],
     },

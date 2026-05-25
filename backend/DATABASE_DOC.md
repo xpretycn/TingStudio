@@ -4,13 +4,13 @@
 > SQLite 文件路径：`./data/tingstudio.db`
 > 运行时初始化：`backend/src/config/database-better-sqlite3.ts`
 > 参考脚本：`backend/src/scripts/init.sql`
-> 最后更新：2026-05-25
+> 最后更新：2026-05-26
 
 ---
 
 ## 一、数据库概览
 
-系统共包含 **42 张表**，分为 14 个功能模块：
+系统共包含 **44 张表**，分为 16 个功能模块：
 
 | 模块           | 表数量 | 表名                                                                                                   |
 | -------------- | ------ | ------------------------------------------------------------------------------------------------------ |
@@ -29,6 +29,8 @@
 | 审核管理       | 2      | formula_review_logs, material_review_logs                                                              |
 | 解析与模板     | 4      | parse_results, parse_result_configs, parse_templates, ai_prompt_templates                             |
 | 含量比配置     | 1      | ratio_threshold_configs                                                                                |
+| 枚举管理       | 1      | enum_options                                                                 |
+| 配方模板       | 1      | formula_templates                                                            |
 
 ---
 
@@ -83,6 +85,9 @@
 | `changes_json`        | TEXT    | DEFAULT NULL                                             | **新增** 版本变更记录 JSON                             |
 | `status`              | TEXT    | NOT NULL, DEFAULT 'draft'                                | **新增** 状态：`draft` / `pending_review` / `published` |
 | `parse_result_id`     | TEXT    | DEFAULT NULL                                             | **新增** 关联解析结果 ID                               |
+| `appearance_json` | TEXT    | DEFAULT NULL                                             | **新增** 外观/性状枚举值 JSON         |
+| `taste_json`      | TEXT    | DEFAULT NULL                                             | **新增** 性味/口感枚举值 JSON         |
+| `efficacy_json`   | TEXT    | DEFAULT NULL                                             | **新增** 功效枚举值 JSON              |
 | `created_by`          | TEXT    | NOT NULL                                                 | 创建人（用户 ID）                                      |
 | `created_at`          | TEXT    | NOT NULL                                                 | 创建时间                                               |
 | `updated_at`          | TEXT    | NOT NULL                                                 | 更新时间                                               |
@@ -97,6 +102,9 @@
 - `idx_material_is_deleted`：按是否删除
 - `idx_material_status`：按状态
 - `idx_materials_parse_result_id`：按解析结果 ID
+- `idx_materials_appearance_json`：按外观枚举
+- `idx_materials_taste_json`：按口感枚举
+- `idx_materials_efficacy_json`：按功效枚举
 
 **新增字段说明**：
 
@@ -107,6 +115,9 @@
 - `changes_json`：记录本次版本变更的具体字段差异
 - `status`：审核流程状态，`draft` → `pending_review` → `published`
 - `parse_result_id`：关联 `parse_results.id`，标识该原料由哪次解析结果创建
+- `appearance_json`：原料外观/性状枚举值，JSON 数组格式，如 `["粉末","颗粒"]`
+- `taste_json`：原料性味/口感枚举值，JSON 数组格式，如 `["甘","平"]`
+- `efficacy_json`：原料功效枚举值，JSON 数组格式，如 `["清热","解毒"]`
 
 **`changes_json` 结构**：
 
@@ -1392,6 +1403,76 @@
 
 ---
 
+### 2.43 枚举选项表 `enum_options`
+
+存储原料枚举字段的可选值，支持性状/口感/功效三类分类。
+
+| 字段         | 类型    | 约束                                          | 说明                                         |
+| ------------ | ------- | --------------------------------------------- | -------------------------------------------- |
+| `id`         | TEXT    | PRIMARY KEY                                   | 选项 ID                                      |
+| `category`   | TEXT    | NOT NULL, CHECK IN ('appearance','taste','efficacy') | 分类：`appearance`（性状）/ `taste`（口感）/ `efficacy`（功效） |
+| `label`      | TEXT    | NOT NULL                                      | 显示标签                                     |
+| `value`      | TEXT    | NOT NULL                                      | 存储值                                       |
+| `sort_order` | INTEGER | NOT NULL, DEFAULT 0                           | 排序序号                                     |
+| `is_active`  | INTEGER | NOT NULL, DEFAULT 1                           | 是否启用（1/0）                              |
+| `created_at` | TEXT    | NOT NULL                                      | 创建时间                                     |
+| `updated_at` | TEXT    | NOT NULL                                      | 更新时间                                     |
+
+**唯一约束**：`UNIQUE(category, value)` — 同一分类下存储值不可重复
+
+**索引**：
+
+- `idx_enum_category`：按分类
+- `idx_enum_category_active`：按分类+启用状态（复合：category, is_active）
+
+**业务含义**：
+
+- `category`：三类枚举分类，`appearance` 对应原料外观/性状，`taste` 对应性味/口感，`efficacy` 对应功效
+- `label`：前端展示的中文标签，如"粉末"、"甘"、"清热"
+- `value`：存储在 `materials` 表 `appearance_json`/`taste_json`/`efficacy_json` 中的值
+- `is_active`：禁用后该选项不再出现在前端筛选器中，但已使用该值的原料不受影响
+- 增删改操作仅管理员可执行（`requirePermission("admin")`）
+
+---
+
+### 2.44 配方模板表 `formula_templates`
+
+存储配方模板，用于快速创建配方。
+
+| 字段                      | 类型    | 约束                       | 说明                        |
+| ------------------------- | ------- | -------------------------- | --------------------------- |
+| `id`                      | TEXT    | PRIMARY KEY                | 模板 ID                     |
+| `name`                    | TEXT    | NOT NULL                   | 模板名称                    |
+| `description`             | TEXT    | DEFAULT NULL               | 描述                        |
+| `ratio_factor`            | REAL    | NOT NULL, DEFAULT 0.18     | 主料含量比系数（0.15-0.25） |
+| `supplement_ratio_factor` | REAL    | NOT NULL, DEFAULT 1.0      | 辅料含量比系数（0.5-1.5）   |
+| `finished_weight`         | REAL    | NOT NULL, DEFAULT 0        | 成品重量                    |
+| `materials_json`          | TEXT    | NOT NULL                   | 原料列表 JSON               |
+| `packaging_price`         | REAL    | NOT NULL, DEFAULT 0        | 包装价格（元）              |
+| `other_price`             | REAL    | NOT NULL, DEFAULT 0        | 其他价格（元）              |
+| `profit_margin`           | REAL    | NOT NULL, DEFAULT 20       | 利润率（%）                 |
+| `created_by`              | TEXT    | NOT NULL                   | 创建人                      |
+| `created_at`              | TEXT    | NOT NULL                   | 创建时间                    |
+| `updated_at`              | TEXT    | NOT NULL                   | 更新时间                    |
+
+**索引**：
+
+- `idx_template_name`：按模板名称
+- `idx_template_created_by`：按创建人
+
+**`materials_json` 结构**：
+
+同 `formulas.materials_json`，格式为 `[{ materialId, materialName, quantity, adjustedPrice? }]`
+
+**业务含义**：
+
+- `name`：模板名称，同一用户下不可重复
+- `materials_json`：预设的原料列表，创建配方时可直接复用
+- admin 可见全部模板，formulist 仅可见自己创建的模板
+- 系统预设模板不可删除
+
+---
+
 ## 三、ER 关系图（文字描述）
 
 ```
@@ -1421,7 +1502,8 @@ materials
   ├── 1:N → material_review_logs (material_id) ON DELETE CASCADE
   ├── 自引用 → materials (previous_version_id) 版本链
   ├── N:1 → parse_results (parse_result_id) 关联解析来源
-  └── 被引用 → formulas.materials_json (JSON 内 materialId)
+  ├── 被引用 → formulas.materials_json (JSON 内 materialId)
+  └── 被引用 → enum_options (appearance_json/taste_json/efficacy_json 中的 value)
 
 formulas
   ├── N:1 → salesmen (salesman_id)
@@ -1483,6 +1565,12 @@ agent_session_cleanup_log
 
 ratio_threshold_configs
   └── (独立配置表，被营养分析引擎引用)
+
+enum_options
+  └── (独立配置表，被 materials 的 appearance_json/taste_json/efficacy_json 引用)
+
+formula_templates
+  └── N:1 → users (created_by)
 ```
 
 ---
@@ -1529,6 +1617,8 @@ ratio_threshold_configs
 | parse_result_configs       | 8          | 默认配置项                       |
 | parse_templates            | 0          | 解析模板（运行时配置）           |
 | ratio_threshold_configs    | 0          | 含量比阈值（运行时配置）         |
+| enum_options              | 0          | 枚举选项（运行时配置）           |
+| formula_templates         | 0          | 配方模板（运行时配置）           |
 
 ---
 
@@ -1589,3 +1679,4 @@ ratio_threshold_configs
 | file_relations           | related_type            | IN ('formula', 'material')                                        |
 | agent_messages           | role                    | IN ('user', 'assistant', 'system', 'tool')                        |
 | parse_templates          | category                | IN ('formula', 'nutrition', 'general')                            |
+| enum_options              | category              | IN ('appearance', 'taste', 'efficacy') |

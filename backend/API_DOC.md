@@ -3,7 +3,7 @@
 > 基础地址：`http://localhost:3000/api`
 > 认证方式：Bearer Token（JWT）
 > Content-Type：`application/json`
-> 最后更新：2026-05-25
+> 最后更新：2026-05-26
 
 ---
 
@@ -429,6 +429,38 @@
 | `totalPrice`     | number | 最终报价       |
 | `details`        | array  | 各原料成本明细 |
 
+### 3.8 发布配方
+
+**PUT** `/api/formulas/:id/publish`
+
+需认证。将配方状态设为已发布。
+
+> 仅管理员或配方创建者可操作。
+
+### 3.9 校验含量比
+
+**POST** `/api/formulas/validate-ratio`
+
+需认证。实时校验配方的含量比系数是否在合理范围内。
+
+#### 请求参数
+
+| 字段                    | 类型   | 必填 | 说明                        |
+| ----------------------- | ------ | ---- | --------------------------- |
+| `materials`             | array  | 是   | 原料列表                    |
+| `finishedWeight`        | number | 是   | 成品重量                    |
+| `ratioFactor`           | number | 是   | 主料含量比系数（0.15-0.25） |
+| `supplementRatioFactor` | number | 是   | 辅料含量比系数（0.5-1.5）   |
+
+#### 响应字段
+
+| 字段       | 类型    | 说明                       |
+| ---------- | ------- | -------------------------- |
+| `valid`    | boolean | 是否通过校验               |
+| `ratio`    | number  | 实际含量比                 |
+| `level`    | string  | 预警级别：`normal` / `warning` / `high_warning` |
+| `message`  | string  | 校验结果描述               |
+
 ---
 
 ## 四、业务员管理 `/api/salesmen`
@@ -601,6 +633,72 @@
 }
 ```
 
+### 5.6 获取待审核版本列表
+
+**GET** `/api/versions/pending-review`
+
+需认证。**仅管理员**可查看。返回待审核的配方版本列表。
+
+### 5.7 获取我的提交列表
+
+**GET** `/api/versions/my-submissions`
+
+需认证。返回当前用户提交的版本审核列表。
+
+### 5.8 获取我审核过的历史
+
+**GET** `/api/versions/reviewed-by-me`
+
+需认证。**仅管理员**可查看。返回当前用户审核过的版本历史。
+
+### 5.9 获取版本审核日志
+
+**GET** `/api/versions/review-logs/:versionId`
+
+需认证。返回指定版本的审核操作日志。
+
+### 5.10 获取原料更新信息
+
+**GET** `/api/versions/material-updates/:formulaId`
+
+需认证。返回指定配方的原料版本更新信息。
+
+### 5.11 提交版本审核
+
+**POST** `/api/versions/submit/:versionId`
+
+需认证。将版本状态从 `draft` 提交审核，变为 `pending_review`。
+
+### 5.12 刷新配方快照
+
+**POST** `/api/versions/refresh-snapshot/:formulaId`
+
+需认证。刷新指定配方的版本快照数据。
+
+### 5.13 审批通过版本
+
+**PUT** `/api/versions/approve/:versionId`
+
+需认证。**仅管理员**可操作。将版本状态设为 `published`。
+
+### 5.14 驳回版本
+
+**PUT** `/api/versions/reject/:versionId`
+
+需认证。**仅管理员**可操作。将版本状态回退为 `draft`。
+
+#### 请求参数
+
+| 字段      | 类型   | 必填 | 说明     |
+| --------- | ------ | ---- | -------- |
+| `comment` | string | 否   | 驳回原因 |
+
+### 5.15 设为当前版本
+
+**PUT** `/api/versions/set-current/:versionId`
+
+需认证。将指定版本设为当前版本，其他版本设为非当前。
+
 ---
 
 ## 六、导出管理 `/api/exports`
@@ -674,7 +772,15 @@
 
 需认证。重新执行失败的导出任务。
 
-### 6.10 创建分享链接
+### 6.10 重新导出任务
+
+**POST** `/api/exports/jobs/:jobId/re-export`
+
+需认证。基于原任务参数重新执行导出。
+
+> 与 `retry` 不同，`re-export` 会创建新的导出任务而非重试失败任务。
+
+### 6.11 创建分享链接
 
 **POST** `/api/exports/share`
 
@@ -688,29 +794,29 @@
 | `allowedEmails` | array  | 否   | 允许的邮箱列表                        |
 | `downloadLimit` | number | 否   | 下载次数限制                          |
 
-### 6.11 获取分享列表
+### 6.12 获取分享列表
 
 **GET** `/api/exports/shares`
 
 需认证。返回当前用户创建的所有分享链接。
 
-### 6.12 获取分享内容（公开）
+### 6.13 获取分享内容（公开）
 
 **GET** `/api/exports/share/:shareId`
 
 > 无需认证。会检查过期和下载次数限制。
 
-### 6.13 删除分享
+### 6.14 删除分享
 
 **DELETE** `/api/exports/share/:shareId`
 
 需认证。删除指定的分享链接。
 
-### 6.14 获取 API 接口列表
+### 6.15 获取 API 接口列表
 
 **GET** `/api/exports/api-interfaces`
 
-### 6.15 创建 API 接口
+### 6.16 创建 API 接口
 
 **POST** `/api/exports/api-interfaces`
 
@@ -1091,6 +1197,281 @@
   ]
 }
 ```
+
+### 9.5 AI 对话
+
+**POST** `/api/ai/chat`
+
+需认证。与 AI 模型进行对话，支持 SSE 流式响应。
+
+#### 请求参数
+
+| 字段      | 类型    | 必填 | 说明                          |
+| --------- | ------- | ---- | ----------------------------- |
+| `message` | string  | 是   | 用户消息                      |
+| `model`   | string  | 否   | AI 模型标识                   |
+| `stream`  | boolean | 否   | 是否流式响应，默认 `true`     |
+
+### 9.6 下载检索导出文件
+
+**GET** `/api/ai/export/:filename`
+
+需认证。下载自然语言检索导出的 CSV 文件。
+
+### 9.7 模型管理 — 列表
+
+**GET** `/api/ai/models-manage`
+
+需认证。返回所有 AI 模型配置列表（含 API Key 等敏感信息，仅管理员可查看完整信息）。
+
+### 9.8 模型管理 — 创建
+
+**POST** `/api/ai/models-manage`
+
+需认证。**仅管理员**可创建模型配置。
+
+#### 请求参数
+
+| 字段               | 类型    | 必填 | 说明                     |
+| ------------------ | ------- | ---- | ------------------------ |
+| `provider`         | string  | 是   | 供应商标识（唯一）       |
+| `name`             | string  | 是   | 显示名称                 |
+| `baseUrl`          | string  | 是   | API 基础 URL             |
+| `apiKey`           | string  | 否   | API 密钥                 |
+| `model`            | string  | 是   | 文本模型名称             |
+| `visionModel`      | string  | 否   | 视觉模型名称             |
+| `supportsVision`   | boolean | 否   | 是否支持视觉             |
+| `description`      | string  | 否   | 描述                     |
+| `sortOrder`        | number  | 否   | 排序序号                 |
+
+### 9.9 模型管理 — 更新
+
+**PUT** `/api/ai/models-manage/:id`
+
+需认证。**仅管理员**可更新。参数同创建。
+
+### 9.10 模型管理 — 删除
+
+**DELETE** `/api/ai/models-manage/:id`
+
+需认证。**仅管理员**可删除模型配置。
+
+### 9.11 模型管理 — 测试连接
+
+**POST** `/api/ai/models-manage/:id/test`
+
+需认证。测试指定模型配置的连接是否正常。
+
+#### 响应字段
+
+| 字段       | 类型    | 说明               |
+| ---------- | ------- | ------------------ |
+| `success`  | boolean | 是否连接成功       |
+| `latency`  | number  | 响应延迟（ms）     |
+| `model`    | string  | 测试的模型名称     |
+
+### 9.12 模型管理 — 版本列表
+
+**GET** `/api/ai/models-manage/:id/versions`
+
+需认证。获取指定模型配置的可用版本列表。
+
+### 9.13 按提供者获取模型版本
+
+**GET** `/api/ai/models/:provider/versions`
+
+需认证。获取指定提供者的可用模型版本列表。
+
+### 9.14 切换模型版本
+
+**PUT** `/api/ai/models/:provider/version`
+
+需认证。**仅管理员**可切换模型版本。
+
+#### 请求参数
+
+| 字段     | 类型   | 必填 | 说明         |
+| -------- | ------ | ---- | ------------ |
+| `model`  | string | 是   | 新模型版本名 |
+
+### 9.15 设置备用模型
+
+**PUT** `/api/ai/models-manage/:id/fallback`
+
+需认证。**仅管理员**可设置备用降级模型。
+
+#### 请求参数
+
+| 字段              | 类型   | 必填 | 说明             |
+| ----------------- | ------ | ---- | ---------------- |
+| `fallbackProvider` | string | 是  | 降级供应商标识   |
+| `fallbackPriority` | number | 否  | 降级优先级       |
+
+### 9.16 AI 用量统计
+
+**GET** `/api/ai/usage`
+
+需认证。返回 AI 模型用量汇总统计。
+
+#### 请求参数
+
+| 参数       | 类型   | 说明         |
+| ---------- | ------ | ------------ |
+| `period`   | string | 统计周期     |
+| `provider` | string | 按供应商标识 |
+
+### 9.17 AI 用量日志
+
+**GET** `/api/ai/usage/logs`
+
+需认证。分页查询 AI 调用日志。
+
+#### 请求参数
+
+| 参数           | 类型   | 说明                     |
+| -------------- | ------ | ------------------------ |
+| `provider`     | string | 按供应商标识             |
+| `callType`     | string | 按调用类型               |
+| `startDate`    | string | 起始日期                 |
+| `endDate`      | string | 结束日期                 |
+| `page`         | number | 页码                     |
+| `pageSize`     | number | 每页数量                 |
+
+### 9.18 告警配置列表
+
+**GET** `/api/ai/alerts/configs`
+
+需认证。返回所有模型的告警配置列表。
+
+### 9.19 更新告警配置
+
+**PUT** `/api/ai/alerts/configs/:id`
+
+需认证。**仅管理员**可更新告警配置。
+
+### 9.20 告警记录列表
+
+**GET** `/api/ai/alerts/records`
+
+需认证。分页查询告警记录。
+
+#### 请求参数
+
+| 参数       | 类型   | 说明             |
+| ---------- | ------ | ---------------- |
+| `level`    | string | 按告警级别筛选   |
+| `isRead`   | string | 按已读状态筛选   |
+| `page`     | number | 页码             |
+| `pageSize` | number | 每页数量         |
+
+### 9.21 AI 服务健康状态
+
+**GET** `/api/ai/health`
+
+需认证。返回所有 AI 服务的健康状态概览。
+
+### 9.22 按提供者获取健康历史
+
+**GET** `/api/ai/health/:provider/history`
+
+需认证。返回指定提供者的健康检查历史记录。
+
+### 9.23 模型应用列表
+
+**GET** `/api/ai/model-applications`
+
+需认证。返回所有功能模块的模型分配配置。
+
+### 9.24 创建模型应用
+
+**POST** `/api/ai/model-applications`
+
+需认证。**仅管理员**可创建。
+
+#### 请求参数
+
+| 字段          | 类型    | 必填 | 说明             |
+| ------------- | ------- | ---- | ---------------- |
+| `module`      | string  | 是   | 功能模块标识     |
+| `moduleName`  | string  | 是   | 模块显示名称     |
+| `provider`    | string  | 是   | 供应商标识       |
+| `model`       | string  | 是   | 模型名称         |
+| `description` | string  | 否   | 描述             |
+| `enabled`     | boolean | 否   | 是否启用         |
+
+### 9.25 更新模型应用
+
+**PUT** `/api/ai/model-applications/:id`
+
+需认证。**仅管理员**可更新。参数同创建。
+
+### 9.26 部分更新模型应用
+
+**PATCH** `/api/ai/model-applications/:id`
+
+需认证。**仅管理员**可部分更新（如切换启用状态）。
+
+### 9.27 删除模型应用
+
+**DELETE** `/api/ai/model-applications/:id`
+
+需认证。**仅管理员**可删除。
+
+### 9.28 最近活动
+
+**GET** `/api/ai/recent-activity`
+
+需认证。返回最近的 AI 调用活动记录。
+
+### 9.29 智能工具历史
+
+**GET** `/api/ai/smart-tool-history`
+
+需认证。返回智能工具的使用历史记录。
+
+### 9.30 删除智能工具历史
+
+**DELETE** `/api/ai/smart-tool-history/:id`
+
+需认证。删除指定的智能工具历史记录。
+
+### 9.31 提示词模板列表
+
+**GET** `/api/ai/prompt-templates`
+
+需认证。返回所有 AI 提示词模板。
+
+### 9.32 创建提示词模板
+
+**POST** `/api/ai/prompt-templates`
+
+需认证。**仅管理员**可创建。
+
+#### 请求参数
+
+| 字段                 | 类型    | 必填 | 说明                                                |
+| -------------------- | ------- | ---- | --------------------------------------------------- |
+| `module`             | string  | 是   | 所属模块                                            |
+| `name`               | string  | 是   | 模板名称                                            |
+| `type`               | string  | 否   | 模板类型：`description` / `preparation` / `version_reason` / `revision` |
+| `systemPrompt`       | string  | 否   | 系统提示词                                          |
+| `userPromptTemplate` | string  | 否   | 用户提示词模板                                      |
+| `variables`          | array   | 否   | 模板变量列表                                        |
+| `isDefault`          | boolean | 否   | 是否为默认模板                                      |
+| `enabled`            | boolean | 否   | 是否启用                                            |
+| `sortOrder`          | number  | 否   | 排序序号                                            |
+
+### 9.33 更新提示词模板
+
+**PUT** `/api/ai/prompt-templates/:id`
+
+需认证。**仅管理员**可更新。参数同创建。
+
+### 9.34 删除提示词模板
+
+**DELETE** `/api/ai/prompt-templates/:id`
+
+需认证。**仅管理员**可删除。
 
 ---
 

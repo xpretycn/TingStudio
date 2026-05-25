@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import { computed } from "vue"
-import { useQuickFormulaStore } from "@/stores/quickFormula"
+import { computed } from "vue";
+import { useQuickFormulaStore } from "@/stores/quickFormula";
 
-const quickFormulaStore = useQuickFormulaStore()
+const quickFormulaStore = useQuickFormulaStore();
 
-const ratioPercent = computed(() => (quickFormulaStore.totalRatio * 100).toFixed(1))
+const ratioPercent = computed(() => (quickFormulaStore.totalRatio * 100).toFixed(1));
 
-const isRatioOver = computed(() => quickFormulaStore.totalRatio > 1)
+const isRatioOver = computed(() => quickFormulaStore.totalRatio > 1);
 
-const nutrition = computed(() => quickFormulaStore.nutritionSummary)
+const nutrition = computed(() => quickFormulaStore.nutritionSummary);
 
 const nutritionMetrics = computed(() => [
   {
@@ -56,7 +56,7 @@ const nutritionMetrics = computed(() => [
     color: "#ba55d3",
     bg: "rgba(186, 85, 211, 0.08)",
   },
-])
+]);
 
 const costMetrics = computed(() => [
   {
@@ -86,18 +86,16 @@ const costMetrics = computed(() => [
     color: "#10b981",
     bg: "rgba(16, 185, 129, 0.08)",
   },
-])
+]);
 </script>
 
 <template>
   <div class="formula-dashboard">
+    <!-- 营养成分 -->
     <div class="dashboard-section">
       <h3 class="section-title">营养成分</h3>
       <div class="metrics-grid">
-        <div
-          class="metric-card"
-          :class="{ 'metric-card--warning': isRatioOver }"
-        >
+        <div class="metric-card" :class="{ 'metric-card--warning': isRatioOver }">
           <div class="metric-icon" :class="{ 'metric-icon--warning': isRatioOver }">
             <t-icon name="chart" size="14px" />
           </div>
@@ -108,11 +106,7 @@ const costMetrics = computed(() => [
             </span>
           </div>
         </div>
-        <div
-          v-for="item in nutritionMetrics"
-          :key="item.key"
-          class="metric-card"
-        >
+        <div v-for="item in nutritionMetrics" :key="item.key" class="metric-card">
           <div class="metric-icon" :style="{ background: item.bg, color: item.color }">
             <t-icon :name="item.icon" size="14px" />
           </div>
@@ -125,14 +119,11 @@ const costMetrics = computed(() => [
         </div>
       </div>
     </div>
+    <!-- 成本核算 -->
     <div class="dashboard-section">
       <h3 class="section-title">成本核算</h3>
       <div class="metrics-grid metrics-grid--cost">
-        <div
-          v-for="item in costMetrics"
-          :key="item.key"
-          class="metric-card"
-        >
+        <div v-for="item in costMetrics" :key="item.key" class="metric-card">
           <div class="metric-icon" :style="{ background: item.bg, color: item.color }">
             <t-icon :name="item.icon" size="14px" />
           </div>
@@ -153,13 +144,25 @@ const costMetrics = computed(() => [
 
 .formula-dashboard {
   display: flex;
-  gap: $space-6;
-  margin-bottom: $space-4;
+  gap: $space-4;
+  margin-bottom: 0;
 }
 
 .dashboard-section {
-  flex: 1;
   min-width: 0;
+  background: $bg-container;
+  border-radius: $radius-3xl;
+  border: 1px solid $border-color-light;
+  box-shadow: $shadow-elevation-1;
+  padding: $space-4;
+
+  &:first-child {
+    flex: 2;
+  }
+
+  &:last-child {
+    flex: 1;
+  }
 }
 
 .section-title {
@@ -171,24 +174,24 @@ const costMetrics = computed(() => [
 }
 
 .metrics-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: $space-3;
-
-  &--cost {
-    grid-template-columns: repeat(3, 1fr);
-  }
+  display: flex;
+  gap: $space-2;
+  flex-wrap: nowrap;
+  overflow: hidden;
 }
 
 .metric-card {
   display: flex;
   align-items: center;
-  gap: $space-2;
-  padding: $space-2-5 $space-3;
+  gap: $space-1-5;
+  padding: $space-2 $space-2-5;
   background: $bg-container;
   border-radius: $radius-xl;
   border: 1px solid $border-color-light;
   transition: all $transition-fast;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
 
   &:hover {
     box-shadow: $shadow-elevation-1;
@@ -202,8 +205,8 @@ const costMetrics = computed(() => [
 }
 
 .metric-icon {
-  width: 30px;
-  height: 30px;
+  width: 26px;
+  height: 26px;
   border-radius: $radius-lg;
   display: flex;
   align-items: center;
@@ -227,16 +230,17 @@ const costMetrics = computed(() => [
   display: block;
   font-size: $font-size-caption;
   color: $text-tertiary;
-  margin-bottom: $space-0-5;
   letter-spacing: $ls-caption;
+  white-space: nowrap;
 }
 
 .metric-value {
   display: block;
-  font-size: $font-size-h4;
+  font-size: $font-size-body-sm;
   font-weight: $font-weight-bold;
   color: $text-primary;
   line-height: $line-height-tight;
+  white-space: nowrap;
 
   &--danger {
     color: $color-danger;
@@ -250,31 +254,9 @@ const costMetrics = computed(() => [
   margin-left: $space-0-5;
 }
 
-@media screen and (max-width: 900px) {
-  .metrics-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
 @media screen and (max-width: 1200px) {
   .formula-dashboard {
     flex-direction: column;
-  }
-
-  .metrics-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-@media screen and (max-width: 768px) {
-  .metrics-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media screen and (max-width: 480px) {
-  .metrics-grid {
-    grid-template-columns: 1fr;
   }
 }
 </style>
