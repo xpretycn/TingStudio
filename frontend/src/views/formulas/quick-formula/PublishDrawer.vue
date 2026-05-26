@@ -151,7 +151,8 @@ onMounted(() => {
       <div class="drawer-footer">
         <t-button theme="default" variant="outline" @click="handleClose">取消</t-button>
         <t-button
-          theme="primary"
+          theme="default"
+          class="btn-emerald-fill"
           :loading="publishing"
           :disabled="!isFormValid"
           @click="handlePublish"
@@ -195,5 +196,27 @@ onMounted(() => {
   display: flex;
   justify-content: flex-end;
   gap: $space-3;
+}
+
+.btn-emerald-fill {
+  background-color: $emerald-500 !important;
+  color: $text-white !important;
+  border-color: $emerald-500 !important;
+
+  &:hover {
+    background-color: $emerald-600 !important;
+    border-color: $emerald-600 !important;
+  }
+
+  &:active {
+    background-color: $emerald-600 !important;
+    border-color: $emerald-600 !important;
+  }
+
+  &:disabled {
+    background-color: $text-placeholder !important;
+    border-color: $text-placeholder !important;
+    cursor: not-allowed;
+  }
 }
 </style>

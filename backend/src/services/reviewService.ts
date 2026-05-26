@@ -268,6 +268,39 @@ export async function getReviewedByMe(params: {
   };
 }
 
+export async function getMySubmissionStatusCounts(userId: string): Promise<Record<string, number>> {
+  const [rows]: any[] = await query(
+    `SELECT fv.status, COUNT(*) as count
+     FROM formula_versions fv
+     WHERE fv.created_by = ?
+     GROUP BY fv.status`,
+    [userId]
+  );
+
+  const counts: Record<string, number> = { draft: 0, pending_review: 0, published: 0, rejected: 0 };
+  for (const row of rows || []) {
+    counts[row.status] = row.count;
+  }
+
+  const [rejectedRows]: any[] = await query(
+    `SELECT COUNT(*) as count
+     FROM formula_versions fv
+     JOIN (
+       SELECT rl1.version_id, rl1.action
+       FROM formula_review_logs rl1
+       INNER JOIN (
+         SELECT version_id, MAX(created_at) AS max_created
+         FROM formula_review_logs GROUP BY version_id
+       ) rl2 ON rl1.version_id = rl2.version_id AND rl1.created_at = rl2.max_created
+     ) latest_rl ON latest_rl.version_id = fv.version_id
+     WHERE fv.created_by = ? AND latest_rl.action = 'reject'`,
+    [userId]
+  );
+  counts.rejected = rejectedRows?.[0]?.count || 0;
+
+  return counts;
+}
+
 export async function isFormulaOwner(formulaId: string, userId: string): Promise<boolean> {
   const [[formula]]: any[][] = await query(
     "SELECT created_by FROM formulas WHERE id = ?",

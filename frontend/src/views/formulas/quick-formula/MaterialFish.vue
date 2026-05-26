@@ -1,13 +1,17 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue"
+import { ref, computed, onMounted, watch } from "vue"
 import type { Material } from "@/api/material"
 import type { QuickFormulaMaterial } from "@/types/quickFormula"
 
 interface FishProps {
   material: Material
+  freeMove?: boolean
+  freePos?: { x: number; y: number }
 }
 
-const props = defineProps<FishProps>()
+const props = withDefaults(defineProps<FishProps>(), {
+  freeMove: false,
+})
 const emit = defineEmits<{
   add: [material: QuickFormulaMaterial]
 }>()
@@ -17,6 +21,8 @@ const animDuration = ref("10s")
 const animDelay = ref("0s")
 const cardDirection = ref<"top" | "bottom">("top")
 const cardAlign = ref<"left" | "right">("left")
+const freePos = ref({ x: 0, y: 0 })
+let hideTimer: ReturnType<typeof setTimeout> | null = null
 
 const isHerb = computed(() => props.material.materialType === "herb")
 
@@ -67,6 +73,10 @@ function handleAdd() {
 }
 
 function handleMouseEnter(event: MouseEvent) {
+  if (hideTimer) {
+    clearTimeout(hideTimer)
+    hideTimer = null
+  }
   isHovered.value = true
 
   const fishEl = event.currentTarget as HTMLElement
@@ -86,24 +96,58 @@ function handleMouseEnter(event: MouseEvent) {
   cardAlign.value = isNearRight ? "right" : "left"
 }
 
+function handleMouseLeave() {
+  hideTimer = setTimeout(() => {
+    isHovered.value = false
+  }, 300)
+}
+
+function handleCardEnter() {
+  if (hideTimer) {
+    clearTimeout(hideTimer)
+    hideTimer = null
+  }
+}
+
+function handleCardLeave() {
+  isHovered.value = false
+}
+
 onMounted(() => {
   const duration = 8 + Math.random() * 7
   const delay = Math.random() * 5
   animDuration.value = `${duration}s`
   animDelay.value = `${delay}s`
+
+  if (props.freeMove && props.freePos) {
+    freePos.value = { ...props.freePos }
+  }
 })
+
+watch(
+  () => props.freePos,
+  (pos) => {
+    if (props.freeMove && pos) {
+      freePos.value = { ...pos }
+    }
+  },
+)
 </script>
 
 <template>
   <div
     class="material-fish"
-    :class="{ 'material-fish--hovered': isHovered }"
+    :class="{
+      'material-fish--hovered': isHovered,
+      'material-fish--free': freeMove,
+    }"
     :style="{
       animationDuration: animDuration,
       animationDelay: animDelay,
+      ...(freeMove ? { left: freePos.x + '%', top: freePos.y + '%' } : {}),
     }"
     @mouseenter="handleMouseEnter"
-    @mouseleave="isHovered = false"
+    @mouseleave="handleMouseLeave"
   >
     <div class="fish-body" :class="{ 'fish-body--herb': isHerb, 'fish-body--supplement': !isHerb }">
       <span class="fish-name">{{ material.name }}</span>
@@ -113,7 +157,8 @@ onMounted(() => {
     </div>
 
     <transition name="card-fade">
-      <div v-if="isHovered" class="fish-info-card" :style="cardStyle">
+      <div v-if="isHovered" class="fish-info-card" :style="cardStyle"
+        @mouseenter="handleCardEnter" @mouseleave="handleCardLeave">
         <div class="info-header">
           <span class="info-name">{{ material.name }}</span>
           <t-tag
@@ -156,7 +201,7 @@ onMounted(() => {
           单价: {{ material.unitPrice != null ? `¥${material.unitPrice.toFixed(2)}/kg` : "暂未录入" }}
         </div>
 
-        <t-button size="small" theme="primary" block @click.stop="handleAdd">
+        <t-button size="small" theme="default" block class="btn-emerald-fill" @click.stop="handleAdd">
           <template #icon><t-icon name="add" /></template>
           添加
         </t-button>
@@ -191,6 +236,11 @@ onMounted(() => {
     animation-play-state: paused;
     z-index: 10;
   }
+
+  &--free {
+    position: absolute;
+    transition: left 20s linear, top 20s linear;
+  }
 }
 
 .fish-body {
@@ -203,12 +253,12 @@ onMounted(() => {
 
   &--herb {
     background: $color-success-bg;
-    border: 1px solid rgba(123, 198, 126, 0.25);
+    border: 1px solid $color-success-strong;
   }
 
   &--supplement {
     background: $color-warning-bg;
-    border: 1px solid rgba(240, 160, 64, 0.25);
+    border: 1px solid $color-warning-alpha-light;
   }
 
   .material-fish--hovered & {
@@ -235,13 +285,13 @@ onMounted(() => {
   flex-shrink: 0;
 
   &--herb {
-    background: rgba(123, 198, 126, 0.2);
+    background: $color-success-medium;
     color: $emerald-600;
   }
 
   &--supplement {
-    background: rgba(240, 160, 64, 0.2);
-    color: #92400e;
+    background: $color-warning-medium;
+    color: $color-warning-orange;
   }
 }
 
@@ -329,5 +379,21 @@ onMounted(() => {
 .card-fade-leave-to {
   opacity: 0;
   transform: translateY(4px);
+}
+
+.btn-emerald-fill {
+  background-color: $emerald-500 !important;
+  color: $text-white !important;
+  border-color: $emerald-500 !important;
+
+  &:hover {
+    background-color: $emerald-600 !important;
+    border-color: $emerald-600 !important;
+  }
+
+  &:active {
+    background-color: $emerald-600 !important;
+    border-color: $emerald-600 !important;
+  }
 }
 </style>

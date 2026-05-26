@@ -620,6 +620,39 @@ export async function getMaterialList(params: {
   };
 }
 
+export async function getMyMaterialStatusCounts(userId: string): Promise<Record<string, number>> {
+  const result = await query<any>(
+    `SELECT m.status, COUNT(*) as count
+     FROM materials m
+     WHERE m.created_by = ? AND m.is_deleted = 0 AND m.is_latest = 1
+     GROUP BY m.status`,
+    [userId]
+  );
+
+  const counts: Record<string, number> = { draft: 0, pending_review: 0, published: 0, rejected: 0 };
+  for (const row of result.rows || []) {
+    counts[row.status] = row.count;
+  }
+
+  const rejectedResult = await query<any>(
+    `SELECT COUNT(*) as count
+     FROM materials m
+     JOIN (
+       SELECT rl1.material_id, rl1.action
+       FROM material_review_logs rl1
+       INNER JOIN (
+         SELECT material_id, MAX(created_at) AS max_created
+         FROM material_review_logs GROUP BY material_id
+       ) rl2 ON rl1.material_id = rl2.material_id AND rl1.created_at = rl2.max_created
+     ) latest_rl ON latest_rl.material_id = m.id
+     WHERE m.created_by = ? AND m.is_deleted = 0 AND m.is_latest = 1 AND latest_rl.action = 'reject'`,
+    [userId]
+  );
+  counts.rejected = rejectedResult.rows?.[0]?.count || 0;
+
+  return counts;
+}
+
 export async function getMaterialDetail(materialId: string, userId: string): Promise<any> {
   const result = await query<any>(
     `SELECT m.*,

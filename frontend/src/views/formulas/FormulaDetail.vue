@@ -176,7 +176,7 @@
                   }}</strong>
                     <span v-if="m.isAdjusted && m.basePrice != null" class="qtm-base-hint"
                       :title="'原始基价: ¥' + m.basePrice + '/kg · 差额: ¥' + ((m.unitPrice ?? 0) - (m.basePrice ?? 0)).toFixed(2) + '/kg'">({{
-                        ((m.unitPrice ?? 0) - (m.basePrice ?? 0)) / (m.basePrice ?? 1) * 100).toFixed(1) }}%)</span>
+                        (((m.unitPrice ?? 0) - (m.basePrice ?? 0)) / (m.basePrice ?? 1) * 100).toFixed(1) }}%)</span>
                   </span>
                 </div>
               </div>

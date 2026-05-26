@@ -170,7 +170,7 @@
               <span v-if="isQtyAdjusted(idx)" class="col-adjust-badge col-adjust-badge--qty"
                 :title="'原始用量: ' + (materials[idx]?.originalQuantity ?? '--')">
                 <svg viewBox="0 0 12 12" width="10" height="10">
-                  <path d="M6 1L7.5 4.5L11 5L8.5 7.5L9 11L6 9L3 11L3.5 7.5L1 5L4.5 4.5Z" fill="#3b82f6" />
+                  <path d="M6 1L7.5 4.5L11 5L8.5 7.5L9 11L6 9L3 11L3.5 7.5L1 5L4.5 4.5Z" fill="var(--color-info)" />
                 </svg>
                 量
               </span>
@@ -182,7 +182,7 @@
               <span v-if="isPriceAdjusted(idx)" class="col-adjust-badge"
                 :title="'基价: ¥' + (getBasePrice(idx) ?? '--') + '/kg'">
                 <svg viewBox="0 0 12 12" width="10" height="10">
-                  <path d="M6 1L7.5 4.5L11 5L8.5 7.5L9 11L6 9L3 11L3.5 7.5L1 5L4.5 4.5Z" fill="#d97706" />
+                  <path d="M6 1L7.5 4.5L11 5L8.5 7.5L9 11L6 9L3 11L3.5 7.5L1 5L4.5 4.5Z" fill="var(--color-warning)" />
                 </svg>
                 价
               </span>
@@ -946,8 +946,6 @@ watch(
 </script>
 
 <style lang="scss" scoped>
-@import "@/assets/styles/variables.scss";
-
 .material-table-core {
   width: 100%;
 
@@ -975,8 +973,8 @@ watch(
   align-items: center;
   gap: 20px;
   padding: var(--space-2-5) var(--space-3-5);
-  background: rgba(16, 185, 129, 0.04);
-  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+  background: var(--overlay-emerald-04);
+  border-bottom: 1px solid var(--color-border-light);
   border-radius: 8px;
   margin-top: 8px;
   margin-bottom: 8px;
@@ -997,7 +995,7 @@ watch(
   .coeff-divider {
     width: 1px;
     height: 20px;
-    background: rgba(148, 163, 184, 0.25);
+    background: var(--color-border);
   }
 }
 
@@ -1024,7 +1022,7 @@ watch(
     font-size: 11px;
     font-weight: 600;
     color: var(--color-primary);
-    background: rgba(16, 185, 129, 0.1);
+    background: var(--overlay-emerald-10);
     padding: 1px 8px;
     border-radius: 10px;
   }
@@ -1036,15 +1034,15 @@ watch(
     padding: 4px var(--space-2-5);
     border-radius: 6px;
     border: 1px solid var(--color-border);
-    background: #fff;
+    background: var(--color-bg-container);
     color: var(--color-text-secondary);
     font-size: 12px;
     cursor: pointer;
     transition: all 0.2s;
 
     &:hover {
-      background: #f1f5f9;
-      border-color: #cbd5e1;
+      background: var(--color-bg-hover);
+      border-color: var(--color-border);
       color: var(--color-text-primary);
     }
   }
@@ -1056,7 +1054,7 @@ watch(
   justify-content: space-between;
   padding: 8px var(--space-3-5);
   background: linear-gradient(135deg, var(--color-primary-dark), var(--color-primary));
-  color: #fff;
+  color: var(--color-text-white);
   border-radius: 0;
   position: relative;
   z-index: 2;
@@ -1075,7 +1073,7 @@ watch(
   .batch-divider {
     width: 1px;
     height: 16px;
-    background: rgba(255, 255, 255, 0.3);
+    background: var(--overlay-white-30);
   }
 
   .batch-buttons {
@@ -1090,15 +1088,15 @@ watch(
     gap: 4px;
     padding: 4px var(--space-2-5);
     border-radius: 6px;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    background: rgba(255, 255, 255, 0.15);
-    color: #fff;
+    border: 1px solid var(--overlay-white-30);
+    background: var(--overlay-white-15);
+    color: var(--color-text-white);
     font-size: 12px;
     cursor: pointer;
     transition: all 0.2s;
 
     &:hover:not(:disabled) {
-      background: rgba(255, 255, 255, 0.25);
+      background: var(--overlay-white-25);
     }
 
     &:disabled {
@@ -1110,15 +1108,15 @@ watch(
   .batch-cancel-btn {
     padding: 4px var(--space-2-5);
     border-radius: 6px;
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    border: 1px solid var(--overlay-white-30);
     background: transparent;
-    color: #fff;
+    color: var(--color-text-white);
     font-size: 12px;
     cursor: pointer;
     transition: all 0.2s;
 
     &:hover {
-      background: rgba(255, 255, 255, 0.15);
+      background: var(--overlay-white-15);
     }
   }
 }
@@ -1195,11 +1193,11 @@ watch(
     padding: var(--space-2) var(--space-3-5);
     font-size: 12px;
     color: var(--color-text-primary);
-    border-top: 1px solid rgba(148, 163, 184, 0.08);
+    border-top: 1px solid var(--color-border-light);
     align-items: center;
 
     &:nth-child(even) {
-      background: rgba(248, 250, 252, 0.5);
+      background: var(--color-bg-container);
     }
 
     &:hover {
@@ -1216,20 +1214,20 @@ watch(
 
     &--adjusted {
       border-left: 3px solid var(--color-warning);
-      background: linear-gradient(90deg, rgba(254, 243, 199, 0.5) 0%, transparent 100%);
+      background: linear-gradient(90deg, var(--color-warning-bg) 0%, transparent 100%);
 
       .col-name {
-        color: #92400e;
+        color: var(--color-warning-dark);
         font-weight: 600;
       }
     }
 
     &--qty-adjusted {
-      border-left: 3px solid #3b82f6;
-      background: linear-gradient(90deg, rgba(219, 234, 254, 0.5) 0%, transparent 100%);
+      border-left: 3px solid var(--color-info);
+      background: linear-gradient(90deg, var(--color-info-bg) 0%, transparent 100%);
 
       .col-name {
-        color: #1e40af;
+        color: var(--color-info-dark);
         font-weight: 600;
       }
     }
@@ -1239,12 +1237,12 @@ watch(
     }
 
     &--new {
-      background: rgba(16, 185, 129, 0.06);
+      background: var(--overlay-emerald-06);
       border-left: 3px solid var(--color-primary);
     }
 
     &--selected {
-      background: rgba(16, 185, 129, 0.08);
+      background: var(--overlay-emerald-08);
     }
 
     .col-check {
@@ -1294,7 +1292,7 @@ watch(
 
       .material-type-tag--herb {
         flex-shrink: 0;
-        background: rgba(16, 185, 129, 0.1);
+        background: var(--overlay-emerald-10);
         color: var(--color-primary-dark);
         border-color: var(--color-primary-lightest);
         font-size: 10px;
@@ -1305,9 +1303,9 @@ watch(
 
       .material-type-tag--supplement {
         flex-shrink: 0;
-        background: rgba(99, 102, 241, 0.1);
-        color: #4f46e5;
-        border-color: #c7d2fe;
+        background: var(--color-info-medium);
+        color: var(--color-info);
+        border-color: var(--color-info-border);
         font-size: 10px;
         padding: 0 4px;
         height: 18px;
@@ -1333,13 +1331,13 @@ watch(
       }
 
       .version-tag--latest {
-        background: rgba(16, 185, 129, 0.1);
-        color: #059669;
+        background: var(--overlay-emerald-10);
+        color: var(--color-emerald-600);
       }
 
       .version-tag--outdated {
-        background: rgba(245, 158, 11, 0.1);
-        color: #d97706;
+        background: var(--color-warning-medium);
+        color: var(--color-warning);
         cursor: help;
       }
 
@@ -1378,7 +1376,7 @@ watch(
     .col-qty-input--invalid {
       :deep(.t-input-number .t-input__inner) {
         border-color: var(--color-warning);
-        background: #fffbeb;
+        background: var(--color-warning-bg);
       }
     }
 
@@ -1391,7 +1389,7 @@ watch(
       font-size: 11px;
 
       &--supplement {
-        color: #6366f1;
+        color: var(--color-info);
       }
     }
 
@@ -1454,8 +1452,8 @@ watch(
         line-height: 1.4;
         padding: var(--space-0-5) var(--space-1-5);
         border-radius: 6px;
-        background: linear-gradient(135deg, #fef3c7, #fde68a);
-        color: #b45309;
+        background: linear-gradient(135deg, var(--color-warning-bg), var(--color-warning-border));
+        color: var(--color-warning-dark);
         font-weight: 700;
         flex-shrink: 0;
         cursor: help;
@@ -1463,17 +1461,17 @@ watch(
         white-space: nowrap;
 
         &:hover {
-          background: linear-gradient(135deg, #fde68a, #fcd34d);
+          background: linear-gradient(135deg, var(--color-warning-border), var(--color-warning-border));
           transform: scale(1.05);
         }
       }
 
       .col-adjust-badge--qty {
-        background: linear-gradient(135deg, #dbeafe, #bfdbfe);
-        color: #1d4ed8;
+        background: linear-gradient(135deg, var(--color-info-bg), var(--color-info-border));
+        color: var(--color-info-dark);
 
         &:hover {
-          background: linear-gradient(135deg, #bfdbfe, #93c5fd);
+          background: linear-gradient(135deg, var(--color-info-border), var(--color-info-border));
         }
       }
 
@@ -1485,7 +1483,7 @@ watch(
         height: 20px;
         border-radius: var(--radius-sm);
         border: 1px solid var(--color-border);
-        background: #fff;
+        background: var(--color-bg-container);
         color: var(--color-text-secondary);
         cursor: pointer;
         transition: all 0.2s;
@@ -1493,8 +1491,8 @@ watch(
         padding: 0;
 
         &:hover {
-          background: #f1f5f9;
-          border-color: #cbd5e1;
+          background: var(--color-bg-hover);
+          border-color: var(--color-border);
           color: var(--color-primary-dark);
           transform: scale(1.1);
         }
@@ -1551,18 +1549,18 @@ watch(
   height: 20px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--color-warning);
-  background: #fffbeb;
-  color: #d97706;
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
   cursor: pointer;
   transition: all 0.2s;
   flex-shrink: 0;
   padding: 0;
 
   &:hover {
-    background: #fef3c7;
-    border-color: #d97706;
+    background: var(--color-warning-bg);
+    border-color: var(--color-warning);
     transform: scale(1.15);
-    box-shadow: 0 2px 6px rgba(245, 158, 11, 0.25);
+    box-shadow: 0 2px 6px var(--color-warning-border);
   }
 
   &:active {
@@ -1586,8 +1584,8 @@ watch(
   padding: 0;
 
   &:hover {
-    background: #fef2f2;
-    border-color: #fca5a5;
+    background: var(--color-danger-bg);
+    border-color: var(--color-danger-border);
     color: var(--color-danger);
     transform: scale(1.1);
   }
@@ -1599,7 +1597,7 @@ watch(
 
 .materials-add-row {
   padding: var(--space-2-5) var(--space-3-5);
-  border-top: 1px solid rgba(148, 163, 184, 0.08);
+  border-top: 1px solid var(--color-border-light);
   width: 100%;
   box-sizing: border-box;
 
@@ -1621,13 +1619,13 @@ watch(
     box-sizing: border-box;
 
     &:hover {
-      background: #ecfdf5;
+      background: var(--color-emerald-50);
     }
   }
 }
 
 .nutrition-summary-zone {
-  border-top: 1px solid rgba(148, 163, 184, 0.12);
+  border-top: 1px solid var(--color-border-light);
 
   .nsz-row {
     display: grid;
@@ -1654,8 +1652,8 @@ watch(
     font-size: 12px;
     font-weight: 700;
     color: var(--color-text-primary);
-    border-top: 2px solid rgba(16, 185, 129, 0.2);
-    background: rgba(16, 185, 129, 0.03);
+    border-top: 2px solid var(--overlay-emerald-20);
+    background: var(--overlay-emerald-04);
     padding: var(--space-2-5) var(--space-3-5);
 
     .col-total-label {
@@ -1681,11 +1679,11 @@ watch(
     }
 
     .ratio-level--warning {
-      color: #d97706;
+      color: var(--color-warning);
     }
 
     .ratio-level--high_warning {
-      color: #ea580c;
+      color: var(--color-warning-orange);
     }
 
     .ratio-level--error {
@@ -1701,8 +1699,8 @@ watch(
     font-size: 11px;
     font-weight: 500;
     color: var(--color-text-secondary);
-    border-top: 1px dashed rgba(148, 163, 184, 0.2);
-    background: rgba(248, 250, 252, 0.5);
+    border-top: 1px dashed var(--color-border);
+    background: var(--color-bg-container);
     padding: var(--space-1-5) var(--space-3-5);
 
     .col-total-label--nrv {
@@ -1721,8 +1719,8 @@ watch(
     font-size: 11px;
     font-weight: 600;
     color: var(--color-text-primary);
-    border-top: 1px dashed rgba(148, 163, 184, 0.2);
-    background: rgba(248, 250, 252, 0.5);
+    border-top: 1px dashed var(--color-border);
+    background: var(--color-bg-container);
     padding: var(--space-1-5) var(--space-3-5);
 
     .col-total-label--nrv-pct {
@@ -1748,27 +1746,27 @@ watch(
   border-top: 1px solid transparent;
 
   &--normal {
-    background: rgba(16, 185, 129, 0.06);
-    border-color: rgba(16, 185, 129, 0.15);
+    background: var(--overlay-emerald-06);
+    border-color: var(--overlay-emerald-15);
     color: var(--color-primary-dark);
   }
 
   &--warning {
-    background: rgba(245, 158, 11, 0.06);
-    border-color: rgba(245, 158, 11, 0.15);
-    color: #b45309;
+    background: var(--color-warning-light);
+    border-color: var(--color-warning-bg);
+    color: var(--color-warning-dark);
   }
 
   &--high_warning {
-    background: rgba(234, 88, 12, 0.06);
-    border-color: rgba(234, 88, 12, 0.15);
-    color: #c2410c;
+    background: var(--color-warning-light);
+    border-color: var(--color-warning-bg);
+    color: var(--color-warning-orange);
   }
 
   &--error {
-    background: rgba(220, 38, 38, 0.06);
-    border-color: rgba(220, 38, 38, 0.15);
-    color: #b91c1c;
+    background: var(--color-danger-light);
+    border-color: var(--color-danger-bg);
+    color: var(--color-danger);
   }
 
   .rv-left {
@@ -1787,23 +1785,23 @@ watch(
     white-space: nowrap;
 
     &--normal {
-      background: rgba(16, 185, 129, 0.15);
+      background: var(--overlay-emerald-15);
       color: var(--color-primary-dark);
     }
 
     &--warning {
-      background: rgba(245, 158, 11, 0.15);
-      color: #b45309;
+      background: var(--color-warning-bg);
+      color: var(--color-warning-dark);
     }
 
     &--high_warning {
-      background: rgba(234, 88, 12, 0.15);
-      color: #c2410c;
+      background: var(--color-warning-bg);
+      color: var(--color-warning-orange);
     }
 
     &--error {
-      background: rgba(220, 38, 38, 0.15);
-      color: #b91c1c;
+      background: var(--color-danger-bg);
+      color: var(--color-danger);
     }
   }
 
@@ -1831,7 +1829,7 @@ watch(
 
   .material-type-tag--herb {
     flex-shrink: 0;
-    background: rgba(16, 185, 129, 0.1);
+    background: var(--overlay-emerald-10);
     color: var(--color-primary-dark);
     border-color: var(--color-primary-lightest);
     font-size: 10px;
@@ -1842,9 +1840,9 @@ watch(
 
   .material-type-tag--supplement {
     flex-shrink: 0;
-    background: rgba(99, 102, 241, 0.1);
-    color: #4f46e5;
-    border-color: #c7d2fe;
+    background: var(--color-info-medium);
+    color: var(--color-info);
+    border-color: var(--color-info-border);
     font-size: 10px;
     padding: 0 4px;
     height: 18px;
@@ -1855,16 +1853,16 @@ watch(
 @keyframes restore-flash {
   0% {
     background: var(--color-primary-bg);
-    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
+    box-shadow: 0 0 0 0 var(--overlay-emerald-40);
   }
 
   50% {
     background: var(--color-primary-lightest);
-    box-shadow: 0 0 8px 2px rgba(16, 185, 129, 0.3);
+    box-shadow: 0 0 8px 2px var(--overlay-emerald-30);
   }
 
   100% {
-    background: #fff;
+    background: var(--color-bg-container);
     box-shadow: none;
   }
 }

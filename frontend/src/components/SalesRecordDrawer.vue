@@ -159,6 +159,29 @@
       </div>
     </t-form>
   </t-drawer>
+
+  <t-dialog v-model:visible="mergeDialogVisible" header="检测到已有销量记录" :footer="false" width="440px" placement="center">
+    <div class="merge-dialog-body" v-if="duplicateRecord">
+      <div class="merge-info">
+        <div class="merge-info-row"><span class="merge-label">已有销量</span><span class="merge-value">{{ duplicateRecord.quantity }} 件</span></div>
+        <div class="merge-info-row"><span class="merge-label">已有金额</span><span class="merge-value">¥{{ ((duplicateRecord.revenue || 0) / 10000).toFixed(2) }}万</span></div>
+        <div class="merge-info-row"><span class="merge-label">本次录入</span><span class="merge-value">{{ formData.quantity || 0 }} 件</span></div>
+        <div class="merge-info-row"><span class="merge-label">本次金额</span><span class="merge-value">¥{{ (formData.revenue || 0).toFixed(2) }}万</span></div>
+      </div>
+      <div class="merge-actions">
+        <button class="merge-btn merge-btn--accumulate" @click="handleMerge('accumulate')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          累加合并
+          <small>{{ (duplicateRecord.quantity || 0) + (formData.quantity || 0) }} 件 / ¥{{ (((duplicateRecord.revenue || 0) / 10000 + (formData.revenue || 0))).toFixed(2) }}万</small>
+        </button>
+        <button class="merge-btn merge-btn--replace" @click="handleMerge('replace')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          覆盖更新
+          <small>{{ formData.quantity || 0 }} 件 / ¥{{ (formData.revenue || 0).toFixed(2) }}万</small>
+        </button>
+      </div>
+    </div>
+  </t-dialog>
 </template>
 
 <script setup lang="ts">
@@ -167,11 +190,12 @@ import { MessagePlugin } from 'tdesign-vue-next'
 import { useFormulaStore } from '@/stores/formula'
 import { useSalesmanStore } from '@/stores/salesman'
 import { useSalesStore } from '@/stores/sales'
-import type { SaleRecord } from '@/api/sales'
+import type { SaleRecord, DuplicateEntryData } from '@/api/sales'
 
 const props = defineProps<{
   visible: boolean
   formulaId?: string
+  salesmanId?: string
   editRecord?: SaleRecord | null
 }>()
 
@@ -187,10 +211,18 @@ const salesStore = useSalesStore()
 const formRef = ref()
 const submitting = ref(false)
 const existingRecords = ref<SaleRecord[]>([])
+const mergeDialogVisible = ref(false)
+const duplicateRecord = ref<DuplicateEntryData | null>(null)
 
 const isEdit = computed(() => !!props.editRecord)
 
-const formulaOptions = computed(() => formulaStore.formulas || [])
+const formulaOptions = computed(() => {
+  const all = formulaStore.formulas || []
+  if (props.salesmanId) {
+    return all.filter(f => f.salesmanId === props.salesmanId)
+  }
+  return all
+})
 
 const currentSalesmanName = computed(() => {
   if (!formData.value.salesmanId) return ''
@@ -232,7 +264,7 @@ watch(() => props.visible, async (val) => {
       const curMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
       formData.value = {
         formulaId: props.formulaId || '',
-        salesmanId: '',
+        salesmanId: props.salesmanId || '',
         periodType: 'monthly',
         periodStart: curMonth,
         quantity: undefined,
@@ -256,7 +288,7 @@ watch(() => formData.value.formulaId, async (val) => {
     }
     await loadExistingRecords(val)
   } else {
-    formData.value.salesmanId = ''
+    formData.value.salesmanId = props.salesmanId || ''
     existingRecords.value = []
   }
 })
@@ -307,8 +339,10 @@ const handleConfirm = async () => {
     if (isEdit.value && props.editRecord) {
       await salesStore.updateSale(props.editRecord.id, { quantity: qty, revenue: rev, notes: formData.value.notes })
       MessagePlugin.success('销量记录更新成功')
+      emit('success')
+      handleClose()
     } else {
-      await salesStore.createSale({
+      const result = await salesStore.createSale({
         formulaId: formData.value.formulaId,
         salesmanId: formData.value.salesmanId,
         periodType: formData.value.periodType,
@@ -317,10 +351,40 @@ const handleConfirm = async () => {
         revenue: rev,
         notes: formData.value.notes,
       })
-      MessagePlugin.success('销量数据录入成功')
+      if (result.success) {
+        emit('success')
+        handleClose()
+      } else if (result.code === 'DUPLICATE_ENTRY' && result.data) {
+        duplicateRecord.value = result.data
+        mergeDialogVisible.value = true
+      }
     }
-    emit('success')
-    handleClose()
+  } finally {
+    submitting.value = false
+  }
+}
+
+const handleMerge = async (mode: 'accumulate' | 'replace') => {
+  submitting.value = true
+  try {
+    const qty = Number(formData.value.quantity) || 0
+    const rev = Math.round((Number(formData.value.revenue) || 0) * 10000 * 100) / 100
+    const result = await salesStore.createSale({
+      formulaId: formData.value.formulaId,
+      salesmanId: formData.value.salesmanId,
+      periodType: formData.value.periodType,
+      periodStart: formData.value.periodStart + '-01',
+      quantity: qty,
+      revenue: rev,
+      notes: formData.value.notes,
+      mergeMode: mode,
+    })
+    if (result.success) {
+      mergeDialogVisible.value = false
+      MessagePlugin.success(mode === 'accumulate' ? '销量数据已累加合并' : '销量数据已覆盖更新')
+      emit('success')
+      handleClose()
+    }
   } finally {
     submitting.value = false
   }
@@ -539,5 +603,66 @@ const handleConfirm = async () => {
   margin-top: 4px;
   padding-top: 8px;
   border-top: 1px dashed #FCD34D;
+}
+
+.merge-dialog-body {
+  .merge-info {
+    margin-bottom: 20px;
+    padding: 16px;
+    background: var(--color-bg-page);
+    border-radius: 12px;
+  }
+  .merge-info-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    font-size: 14px;
+  }
+  .merge-label {
+    color: var(--color-text-secondary);
+  }
+  .merge-value {
+    font-weight: 600;
+    color: var(--color-text-primary);
+  }
+  .merge-actions {
+    display: flex;
+    gap: 12px;
+  }
+  .merge-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 16px 12px;
+    border-radius: 12px;
+    border: 2px solid var(--color-border);
+    background: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--color-text-primary);
+    small {
+      font-size: 12px;
+      font-weight: 400;
+      color: var(--color-text-placeholder);
+    }
+    &--accumulate {
+      &:hover {
+        border-color: var(--color-primary);
+        background: #ECFDF5;
+        color: var(--color-primary-dark);
+      }
+    }
+    &--replace {
+      &:hover {
+        border-color: #3B82F6;
+        background: #EFF6FF;
+        color: #2563EB;
+      }
+    }
+  }
 }
 </style>

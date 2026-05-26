@@ -82,6 +82,56 @@
   --color-info: #{$color-info};
   --color-info-dark: #{$color-info-dark};
   --color-emerald: #{$brand-emerald};
+  --color-warning-dark: #92400e;
+  --color-warning-orange: #{$color-warning-orange};
+
+  // ─── 状态色背景 ───
+  --color-success-bg: #{$color-success-bg};
+  --color-warning-bg: #{$color-warning-bg};
+  --color-danger-bg: #{$color-danger-bg};
+  --color-info-bg: #{$color-info-bg};
+
+  // ─── 状态色浅色变体 ───
+  --color-warning-light: #{$color-warning-light};
+  --color-warning-medium: #{$color-warning-medium};
+  --color-danger-light: #{$color-danger-light};
+  --color-danger-medium: #{$color-danger-medium};
+  --color-info-medium: #{$color-info-medium};
+
+  // ─── 状态色边框 ───
+  --color-success-border: rgba(123, 198, 126, 0.3);
+  --color-warning-border: rgba(240, 160, 64, 0.3);
+  --color-danger-border: rgba(227, 77, 89, 0.3);
+  --color-info-border: rgba(24, 144, 255, 0.3);
+
+  // ─── Emerald 语义色 ───
+  --color-emerald-50: #{$emerald-50};
+  --color-emerald-100: #{$emerald-100};
+  --color-emerald-400: #{$emerald-400};
+  --color-emerald-500: #{$emerald-500};
+  --color-emerald-600: #{$emerald-600};
+  --color-emerald-teal: #{$emerald-teal};
+
+  --overlay-emerald-04: #{$overlay-emerald-04};
+  --overlay-emerald-05: #{$overlay-emerald-05};
+  --overlay-emerald-06: #{$overlay-emerald-06};
+  --overlay-emerald-08: #{$overlay-emerald-08};
+  --overlay-emerald-10: #{$overlay-emerald-10};
+  --overlay-emerald-12: #{$overlay-emerald-12};
+  --overlay-emerald-15: #{$overlay-emerald-15};
+  --overlay-emerald-18: #{$overlay-emerald-18};
+  --overlay-emerald-20: #{$overlay-emerald-20};
+  --overlay-emerald-25: #{$overlay-emerald-25};
+  --overlay-emerald-30: #{$overlay-emerald-30};
+  --overlay-emerald-35: #{$overlay-emerald-35};
+  --overlay-emerald-40: #{$overlay-emerald-40};
+  --overlay-emerald-50: #{$overlay-emerald-50};
+  --overlay-emerald-55: #{$overlay-emerald-55};
+
+  // ─── 白色覆盖层 ───
+  --overlay-white-15: #{$overlay-white-15};
+  --overlay-white-25: #{$overlay-white-25};
+  --overlay-white-30: #{$overlay-white-30};
 
   // ─── 装饰色 ───
   --color-blush: #{$color-blush};

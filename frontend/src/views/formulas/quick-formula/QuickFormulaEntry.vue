@@ -1,40 +1,41 @@
 <script setup lang="ts">
-import { ref, onMounted } from "vue"
-import { useQuickFormulaStore } from "@/stores/quickFormula"
-import type { QuickFormulaDraft } from "@/types/quickFormula"
+import { ref, onMounted } from "vue";
+import { useQuickFormulaStore } from "@/stores/quickFormula";
+import type { QuickFormulaDraft } from "@/types/quickFormula";
 
-const quickFormulaStore = useQuickFormulaStore()
+const quickFormulaStore = useQuickFormulaStore();
 
 const emit = defineEmits<{
-  start: [name: string]
-}>()
+  start: [name: string];
+}>();
 
-const formulaName = ref("")
-const draft = ref<QuickFormulaDraft | null>(null)
+const formulaName = ref("");
+const draft = ref<QuickFormulaDraft | null>(null);
 
 function handleStart() {
-  const name = formulaName.value.trim()
-  if (!name) return
-  emit("start", name)
+  const name = formulaName.value.trim();
+  if (!name) return;
+  emit("start", name);
 }
 
 function handleRestoreDraft() {
   if (draft.value) {
-    quickFormulaStore.restoreDraft(draft.value)
+    quickFormulaStore.restoreDraft(draft.value);
+    emit("start", draft.value.formulaName);
   }
 }
 
 function handleDiscardDraft() {
-  quickFormulaStore.clearDraft()
-  draft.value = null
+  quickFormulaStore.clearDraft();
+  draft.value = null;
 }
 
 onMounted(() => {
-  const loaded = quickFormulaStore.loadDraft()
+  const loaded = quickFormulaStore.loadDraft();
   if (loaded) {
-    draft.value = loaded
+    draft.value = loaded;
   }
-})
+});
 </script>
 
 <template>
@@ -49,7 +50,8 @@ onMounted(() => {
       <div class="entry-form">
         <t-input v-model="formulaName" placeholder="请输入本次配方名称" size="large" clearable :maxlength="50"
           @keydown.enter="handleStart" />
-        <t-button theme="primary" size="large" block :disabled="!formulaName.trim()" @click="handleStart">
+        <t-button theme="default" size="large" block class="btn-emerald-fill" :disabled="!formulaName.trim()"
+          @click="handleStart">
           <template #icon><t-icon name="play-circle" /></template>
           开始编辑
         </t-button>
@@ -61,11 +63,11 @@ onMounted(() => {
           <span>发现未完成的配方草稿：{{ draft.formulaName }}</span>
         </div>
         <div class="draft-actions">
-          <t-button theme="primary" @click="handleRestoreDraft">
+          <t-button theme="default" class="btn-emerald-fill" @click="handleRestoreDraft">
             <template #icon><t-icon name="rollback" /></template>
             从草稿恢复
           </t-button>
-          <t-button theme="default" variant="outline" @click="handleDiscardDraft">
+          <t-button theme="default" variant="outline" class="btn-emerald-outline" @click="handleDiscardDraft">
             重新开始
           </t-button>
         </div>
@@ -148,5 +150,43 @@ onMounted(() => {
   display: flex;
   gap: $space-3;
   justify-content: center;
+}
+
+.btn-emerald-fill {
+  background-color: $emerald-500 !important;
+  color: $text-white !important;
+  border-color: $emerald-500 !important;
+
+  &:hover {
+    background-color: $emerald-600 !important;
+    border-color: $emerald-600 !important;
+  }
+
+  &:active {
+    background-color: $emerald-600 !important;
+    border-color: $emerald-600 !important;
+  }
+
+  &:disabled {
+    background-color: $text-placeholder !important;
+    border-color: $text-placeholder !important;
+    cursor: not-allowed;
+  }
+}
+
+.btn-emerald-outline {
+  color: $emerald-500 !important;
+  border-color: $emerald-500 !important;
+
+  &:hover {
+    color: $emerald-600 !important;
+    border-color: $emerald-600 !important;
+    background-color: $overlay-emerald-04 !important;
+  }
+
+  &:active {
+    color: $emerald-600 !important;
+    border-color: $emerald-600 !important;
+  }
 }
 </style>

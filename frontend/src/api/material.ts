@@ -161,4 +161,8 @@ export const materialApi = {
   getReviewLogs(id: string) {
     return http.get<unknown, MaterialReviewLog[]>(`/materials/${id}/review-logs`);
   },
+
+  getMyMaterialCounts() {
+    return http.get<unknown, Record<string, number>>("/materials/my-counts");
+  },
 };

@@ -132,8 +132,9 @@ onMounted(() => {
             :autosize="{ minRows: 2, maxRows: 4 }"
           />
           <t-button
-            theme="primary"
+            theme="default"
             size="small"
+            class="btn-emerald-fill"
             :loading="saving"
             :disabled="!templateName.trim()"
             @click="handleSave"
@@ -331,6 +332,28 @@ onMounted(() => {
   span {
     font-size: $font-size-body-sm;
     color: $text-tertiary;
+  }
+}
+
+.btn-emerald-fill {
+  background-color: $emerald-500 !important;
+  color: $text-white !important;
+  border-color: $emerald-500 !important;
+
+  &:hover {
+    background-color: $emerald-600 !important;
+    border-color: $emerald-600 !important;
+  }
+
+  &:active {
+    background-color: $emerald-600 !important;
+    border-color: $emerald-600 !important;
+  }
+
+  &:disabled {
+    background-color: $text-placeholder !important;
+    border-color: $text-placeholder !important;
+    cursor: not-allowed;
   }
 }
 </style>

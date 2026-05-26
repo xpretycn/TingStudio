@@ -27,6 +27,18 @@ interface SaleForm {
   quantity: number;
   revenue: number;
   notes?: string;
+  mergeMode?: 'accumulate' | 'replace';
+}
+
+export interface DuplicateEntryData {
+  id: string;
+  formulaId: string;
+  salesmanId: string;
+  periodType: string;
+  periodStart: string;
+  quantity: number;
+  revenue: number;
+  notes: string | null;
 }
 
 export interface SaleStats {
@@ -77,8 +89,8 @@ export const salesApi = {
   getStats(params?: { periodStart?: string; periodEnd?: string }) {
     return http.get<unknown, SaleStats>("/sales/stats", { params });
   },
-  create(data: SaleForm) {
-    return http.post<unknown, SaleRecord>("/sales", data);
+  create(data: SaleForm, options?: { _silent?: boolean }) {
+    return http.post<unknown, SaleRecord>("/sales", data, options);
   },
   update(id: string, data: Partial<SaleForm>) {
     return http.put<unknown, SaleRecord>(`/sales/${id}`, data);

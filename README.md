@@ -14,7 +14,7 @@ TingStudio 是一个专业的食品配方工作数据管理平台，面向食品
 |------|------|------|
 | **前端框架** | Vue 3 + TypeScript + Vite | Composition API + `<script setup>` |
 | **UI 组件库** | TDesign Vue Next (v1.9) | 企业级组件库 |
-| **状态管理** | Pinia (21个 Store) | 模块化 Store |
+| **状态管理** | Pinia (23个 Store) | 模块化 Store |
 | **路由** | Vue Router 4 | 懒加载路由 |
 | **样式方案** | SCSS + Design Tokens | 模块化变量系统 + CSS 变量 |
 | **图表** | ECharts 6 | 数据可视化 |
@@ -177,7 +177,7 @@ TingStudio/
 │
 ├── frontend/                         # 前端应用
 │   ├── src/
-│   │   ├── api/                      # API 客户端（axios 封装，22个模块）
+│   │   ├── api/                      # API 客户端（axios 封装，23个模块）
 │   │   ├── assets/                   # 样式（Design Tokens/变量/主题）
 │   │   ├── components/               # 公共组件（35个 Vue 组件，含3个子目录）
 │   │   │   ├── AiAssistantFloat/     # 悬浮助手组件体系（8 Vue + 2 TS）
@@ -185,7 +185,7 @@ TingStudio/
 │   │   │   ├── formula/              # 配方专用组件（MaterialTableCore/UnifiedMaterialTable）
 │   │   │   └── Skeleton/             # 骨架屏组件
 │   │   ├── router/                   # Vue Router 配置
-│   │   ├── stores/                   # Pinia 状态管理（21个 Store）
+│   │   ├── stores/                   # Pinia 状态管理（23个 Store）
 │   │   ├── utils/                    # 工具函数（时间格式化/图表/模拟数据）
 │   │   ├── views/                    # 页面视图（44个 .vue 文件）
 │   │   │   ├── ai/                   # AI 助手工作台 + 智能工具 + 总览
@@ -193,7 +193,7 @@ TingStudio/
 │   │   │   ├── auth/                 # 登录/注册（含动画角色 AnimatedCharacters/EyeBall/Pupil）
 │   │   │   ├── dashboard/            # 工作台仪表盘
 │   │   │   ├── formulas/             # 配方管理（列表/表单/详情/对比/快速录入）
-│   │   │   │   ├── quick-formula/    # 快速配方（9个组件）
+│   │   │   │   ├── quick-formula/    # 快速配方（10个组件）
 │   │   │   │   └── versions/         # 配方版本管理（列表/对比）
 │   │   │   ├── materials/            # 原料管理（列表/表单/详情/版本/版本对比）
 │   │   │   ├── salesmen/             # 业务员管理（列表/表单/详情）
@@ -292,22 +292,24 @@ cd frontend && npm run test:coverage
 
 ## 🗄️ 数据库概览
 
-SQLite (better-sqlite3) + WAL 模式，共 **44 张表**：
+SQLite (better-sqlite3) + WAL 模式，共 **45 张表**：
 
 | 分类 | 表名 | 说明 |
 |------|------|------|
 | **核心业务** | users, materials, formulas, salesmen, formula_versions | 用户/原料/配方/业务员/版本 |
-| **营养体系** | material_nutrition, formula_nutrition_summaries, nutrition_profiles | 营养数据/汇总/标准 |
+| **营养体系** | material_nutrition, formula_nutrition_summaries, nutrition_profiles, nutrition_analysis_reports | 营养数据/汇总/标准/分析报告 |
 | **销量报告** | formula_sales, reports, report_targets | 销量/报告/指标 |
 | **文件管理** | uploaded_files, file_audit_log, file_relations | 文件/审计/关联 |
-| **导出系统** | export_templates, export_jobs | 模板/任务 |
+| **导出系统** | export_templates, export_jobs, api_data_interfaces, share_configs | 模板/任务/API接口/分享 |
 | **解析系统** | parse_results, parse_result_configs, parse_templates | 解析结果/配置/模板 |
 | **阈值配置** | ratio_threshold_configs | 含量比校验阈值配置 |
 | **AI 模型** | ai_models, ai_usage_logs, ai_alert_configs, ai_alert_records, ai_health_records, ai_fallback_configs, ai_prompt_templates, model_applications | 模型/用量/告警/健康/降级/提示词模板/应用 |
 | **Agent 系统** | agent_sessions, agent_messages, agent_pending_confirmations, agent_pending_forms, agent_role_config, agent_float_config, agent_provider_health, agent_session_cleanup_log | 会话/消息/确认/表单/身份/浮窗/健康/清理 |
-| **审核系统** | formula_review_logs, material_review_logs | 配方审核/原料审核 |`n| **其他** | search_export_cache | 缓存 |
+| **审核系统** | formula_review_logs, material_review_logs | 配方审核/原料审核 |
+| **其他** | search_export_cache | 缓存 |
 | **枚举管理** | enum_options | 枚举选项（性状/口感/功效） |
 | **配方模板** | formula_templates | 配方模板 |
+| **快速配方** | quick_formulas | 快速配方草稿/发布 |
 
 备份/恢复工具：
 
@@ -320,10 +322,30 @@ npx tsx src/scripts/restoreDatabase.ts    # 恢复数据库
 ---
 
 <!-- ====================================================================== -->
-<!-- 以下为历史版本更新日志，保留已有内容，自动补全 2026-05-15 最新更新 -->
-<!-- ====================================================================== -->---
+<!-- 以下为历史版本更新日志，保留已有内容，自动补全 2026-05-27 最新更新 -->
+<!-- ====================================================================== -->---
 
-## 🚀 最新更新 (2026-05-26)
+## 🚀 最新更新 (2026-05-27)
+
+### ✅ 文档同步更新 + Bug 修复
+
+#### 📝 文档同步
+
+同步更新项目文档，修正与代码实际状态的差异：
+
+- Pinia Store 数量：21 → 23（新增 quickFormula、quickFormulaList、enum、model 等 Store）
+- API 模块数量：22 → 23（新增 quickFormula、enum、formulaTemplate、ratioThreshold 等 API）
+- 数据库表数量：44 → 45（补全 nutrition_analysis_reports、api_data_interfaces、share_configs、quick_formulas）
+- 快速配方组件数量：9 → 10（补全 TemplateManager.vue）
+
+#### 🐛 Bug 修复
+
+- 修复 QuickFormulaPanel.vue 中 `handleSelectPublished` 函数未定义导致的 Vue 运行时警告
+- 修复 QuickFormulaSidebar.vue 中点击已发布配方时的 `select-published` 事件无处理函数问题
+
+---
+
+## 🚀 历史更新 (2026-05-26)
 
 ### ✅ 快速配方录入 + 枚举管理 + 配方模板
 
@@ -331,7 +353,7 @@ npx tsx src/scripts/restoreDatabase.ts    # 恢复数据库
 
 新增快速配方录入功能，提供高效的配方创建工作流：
 
-**前端组件（9个）**：
+**前端组件（10个）**：
 
 | 文件 | 说明 |
 |------|------|

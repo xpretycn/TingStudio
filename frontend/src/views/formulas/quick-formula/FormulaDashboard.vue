@@ -2,6 +2,14 @@
 import { computed } from "vue";
 import { useQuickFormulaStore } from "@/stores/quickFormula";
 
+const props = defineProps<{
+  sidebarCollapsed: boolean;
+}>();
+
+const emit = defineEmits<{
+  "toggle-sidebar": [];
+}>();
+
 const quickFormulaStore = useQuickFormulaStore();
 
 const ratioPercent = computed(() => (quickFormulaStore.totalRatio * 100).toFixed(1));
@@ -16,9 +24,8 @@ const nutritionMetrics = computed(() => [
     label: "能量",
     value: nutrition.value.energy.toFixed(1),
     unit: "kJ",
-    icon: "lightning",
-    color: "#ffd700",
-    bg: "rgba(255, 215, 0, 0.08)",
+    icon: "flashlight",
+    colorClass: "metric-icon--energy",
   },
   {
     key: "protein",
@@ -26,17 +33,15 @@ const nutritionMetrics = computed(() => [
     value: nutrition.value.protein.toFixed(1),
     unit: "g",
     icon: "flag",
-    color: "#ff8fab",
-    bg: "rgba(255, 143, 171, 0.08)",
+    colorClass: "metric-icon--protein",
   },
   {
     key: "fat",
     label: "脂肪",
     value: nutrition.value.fat.toFixed(1),
     unit: "g",
-    icon: "drop",
-    color: "#7bc96f",
-    bg: "rgba(123, 201, 111, 0.08)",
+    icon: "rain-light",
+    colorClass: "metric-icon--fat",
   },
   {
     key: "carbohydrate",
@@ -44,8 +49,7 @@ const nutritionMetrics = computed(() => [
     value: nutrition.value.carbohydrate.toFixed(1),
     unit: "g",
     icon: "chart-pie",
-    color: "#7eb6d9",
-    bg: "rgba(126, 182, 217, 0.08)",
+    colorClass: "metric-icon--carb",
   },
   {
     key: "sodium",
@@ -53,8 +57,7 @@ const nutritionMetrics = computed(() => [
     value: nutrition.value.sodium.toFixed(1),
     unit: "mg",
     icon: "precise-monitor",
-    color: "#ba55d3",
-    bg: "rgba(186, 85, 211, 0.08)",
+    colorClass: "metric-icon--sodium",
   },
 ]);
 
@@ -65,8 +68,7 @@ const costMetrics = computed(() => [
     value: quickFormulaStore.materialCost.toFixed(2),
     unit: "¥",
     icon: "shop",
-    color: "#ff8fab",
-    bg: "rgba(255, 143, 171, 0.08)",
+    colorClass: "metric-icon--cost-material",
   },
   {
     key: "costSubtotal",
@@ -74,30 +76,37 @@ const costMetrics = computed(() => [
     value: quickFormulaStore.costSubtotal.toFixed(2),
     unit: "¥",
     icon: "calculator",
-    color: "#f0a040",
-    bg: "rgba(240, 160, 64, 0.08)",
+    colorClass: "metric-icon--cost-subtotal",
   },
   {
     key: "totalPrice",
     label: "最终报价",
     value: quickFormulaStore.totalPrice.toFixed(2),
     unit: "¥",
-    icon: "money-circle",
-    color: "#10b981",
-    bg: "rgba(16, 185, 129, 0.08)",
+    icon: "money",
+    colorClass: "metric-icon--cost-total",
   },
 ]);
 </script>
 
 <template>
   <div class="formula-dashboard">
-    <!-- 营养成分 -->
+    <div class="sidebar-trigger-card" @click="emit('toggle-sidebar')"
+      :title="props.sidebarCollapsed ? '展开配方列表' : '折叠配方列表'">
+      <t-icon :name="props.sidebarCollapsed ? 'chevron-right' : 'chevron-left'" size="14px"
+        class="sidebar-trigger-icon" />
+      <span class="sidebar-trigger-label">{{ props.sidebarCollapsed ? '配方' : '收起' }}</span>
+    </div>
+
     <div class="dashboard-section">
-      <h3 class="section-title">营养成分</h3>
-      <div class="metrics-grid">
+      <h3 class="section-title">
+        <t-icon name="chart-pie" size="12px" class="section-title-icon" />
+        营养成分
+      </h3>
+      <div class="metrics-list">
         <div class="metric-card" :class="{ 'metric-card--warning': isRatioOver }">
           <div class="metric-icon" :class="{ 'metric-icon--warning': isRatioOver }">
-            <t-icon name="chart" size="14px" />
+            <t-icon name="chart" size="12px" />
           </div>
           <div class="metric-body">
             <span class="metric-label">含量比</span>
@@ -107,8 +116,8 @@ const costMetrics = computed(() => [
           </div>
         </div>
         <div v-for="item in nutritionMetrics" :key="item.key" class="metric-card">
-          <div class="metric-icon" :style="{ background: item.bg, color: item.color }">
-            <t-icon :name="item.icon" size="14px" />
+          <div class="metric-icon" :class="item.colorClass">
+            <t-icon :name="item.icon" size="12px" />
           </div>
           <div class="metric-body">
             <span class="metric-label">{{ item.label }}</span>
@@ -119,13 +128,16 @@ const costMetrics = computed(() => [
         </div>
       </div>
     </div>
-    <!-- 成本核算 -->
+
     <div class="dashboard-section">
-      <h3 class="section-title">成本核算</h3>
-      <div class="metrics-grid metrics-grid--cost">
+      <h3 class="section-title">
+        <t-icon name="money" size="12px" class="section-title-icon" />
+        成本核算
+      </h3>
+      <div class="metrics-list">
         <div v-for="item in costMetrics" :key="item.key" class="metric-card">
-          <div class="metric-icon" :style="{ background: item.bg, color: item.color }">
-            <t-icon :name="item.icon" size="14px" />
+          <div class="metric-icon" :class="item.colorClass">
+            <t-icon :name="item.icon" size="12px" />
           </div>
           <div class="metric-body">
             <span class="metric-label">{{ item.label }}</span>
@@ -144,70 +156,73 @@ const costMetrics = computed(() => [
 
 .formula-dashboard {
   display: flex;
-  gap: $space-4;
-  margin-bottom: 0;
+  flex-direction: column;
+  gap: $space-2;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: $space-2;
+
+  &::-webkit-scrollbar {
+    width: 3px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: $border-color;
+    border-radius: 2px;
+  }
 }
 
 .dashboard-section {
-  min-width: 0;
   background: $bg-container;
-  border-radius: $radius-3xl;
+  border-radius: $radius-xl;
   border: 1px solid $border-color-light;
   box-shadow: $shadow-elevation-1;
-  padding: $space-4;
+  padding: $space-2-5 $space-2;
+}
 
-  &:first-child {
-    flex: 2;
-  }
-
-  &:last-child {
-    flex: 1;
-  }
+.metrics-list {
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
 }
 
 .section-title {
-  font-size: $font-size-h4;
-  font-weight: $font-weight-semibold;
-  color: $text-primary;
-  margin: 0 0 $space-2;
-  letter-spacing: $ls-heading;
+  display: flex;
+  align-items: center;
+  gap: $space-1;
+  font-size: $font-size-caption;
+  font-weight: $font-weight-bold;
+  color: $text-secondary;
+  margin: 0 0 $space-1-5;
+  letter-spacing: $ls-caption;
 }
 
-.metrics-grid {
-  display: flex;
-  gap: $space-2;
-  flex-wrap: nowrap;
-  overflow: hidden;
+.section-title-icon {
+  color: $emerald-500;
 }
 
 .metric-card {
   display: flex;
   align-items: center;
-  gap: $space-1-5;
-  padding: $space-2 $space-2-5;
-  background: $bg-container;
-  border-radius: $radius-xl;
-  border: 1px solid $border-color-light;
-  transition: all $transition-fast;
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
+  gap: $space-1;
+  padding: $space-1 $space-1-5;
+  border-radius: $radius-md;
+  transition: background $transition-fast;
 
   &:hover {
-    box-shadow: $shadow-elevation-1;
-    border-color: $border-color;
+    background: $bg-hover;
   }
 
   &--warning {
-    border-color: $color-danger;
     background: $color-danger-light;
   }
 }
 
 .metric-icon {
-  width: 26px;
-  height: 26px;
-  border-radius: $radius-lg;
+  width: 20px;
+  height: 20px;
+  border-radius: $radius-sm;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -219,27 +234,69 @@ const costMetrics = computed(() => [
     background: $color-danger-medium;
     color: $color-danger;
   }
+
+  &--energy {
+    background: rgba($chart-energy-deep, 0.08);
+    color: $chart-energy-deep;
+  }
+
+  &--protein {
+    background: rgba($chart-protein-deep, 0.08);
+    color: $chart-protein-deep;
+  }
+
+  &--fat {
+    background: rgba($chart-fat-deep, 0.08);
+    color: $chart-fat-deep;
+  }
+
+  &--carb {
+    background: rgba($chart-carb-deep, 0.08);
+    color: $chart-carb-deep;
+  }
+
+  &--sodium {
+    background: rgba($chart-sodium-deep, 0.08);
+    color: $chart-sodium-deep;
+  }
+
+  &--cost-material {
+    background: rgba($chart-protein-deep, 0.08);
+    color: $chart-protein-deep;
+  }
+
+  &--cost-subtotal {
+    background: $color-warning-bg;
+    color: $color-warning;
+  }
+
+  &--cost-total {
+    background: $overlay-emerald-08;
+    color: $emerald-500;
+  }
 }
 
 .metric-body {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
 }
 
 .metric-label {
-  display: block;
   font-size: $font-size-caption;
   color: $text-tertiary;
   letter-spacing: $ls-caption;
   white-space: nowrap;
+  line-height: 1.2;
 }
 
 .metric-value {
-  display: block;
   font-size: $font-size-body-sm;
   font-weight: $font-weight-bold;
   color: $text-primary;
-  line-height: $line-height-tight;
+  line-height: 1.3;
   white-space: nowrap;
 
   &--danger {
@@ -251,12 +308,41 @@ const costMetrics = computed(() => [
   font-size: $font-size-caption;
   font-weight: $font-weight-regular;
   color: $text-tertiary;
-  margin-left: $space-0-5;
+  margin-left: 1px;
 }
 
-@media screen and (max-width: 1200px) {
-  .formula-dashboard {
-    flex-direction: column;
+.sidebar-trigger-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $space-1;
+  padding: $space-1-5 $space-2;
+  background: var(--color-primary-bg);
+  border: 1px solid var(--color-primary-lighter);
+  border-radius: $radius-xl;
+  cursor: pointer;
+  transition: all $transition-fast;
+
+  &:hover {
+    background: var(--color-primary-lighter);
+    box-shadow: $shadow-elevation-1;
   }
+
+  &:active {
+    transform: scale(0.97);
+  }
+}
+
+.sidebar-trigger-icon {
+  color: var(--color-primary-deep);
+  flex-shrink: 0;
+}
+
+.sidebar-trigger-label {
+  font-size: $font-size-caption;
+  font-weight: $font-weight-semibold;
+  color: var(--color-primary-deep);
+  letter-spacing: $ls-caption;
+  white-space: nowrap;
 }
 </style>

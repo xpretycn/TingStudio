@@ -9,8 +9,8 @@ export function getQuickFormulaById(id: string) {
   return http.get(`/quick-formulas/${id}`, { _logLabel: '获取快速配方详情' })
 }
 
-export function createQuickFormula(data: { name: string }) {
-  return http.post('/quick-formulas', data, { _logLabel: '创建快速配方' })
+export function createQuickFormula(data: { name: string }, config?: Record<string, unknown>) {
+  return http.post('/quick-formulas', data, { _logLabel: '创建快速配方', ...config })
 }
 
 export function updateQuickFormula(id: string, data: Record<string, unknown>) {

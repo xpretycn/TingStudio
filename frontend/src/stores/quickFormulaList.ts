@@ -4,6 +4,8 @@ import { MessagePlugin } from 'tdesign-vue-next'
 import * as quickFormulaApi from '@/api/quickFormula'
 import type { QuickFormulaItem, PublishData } from '@/types/quickFormula'
 
+const MAX_RETRY = 10
+
 export const useQuickFormulaListStore = defineStore('quickFormulaList', () => {
   const list = ref<QuickFormulaItem[]>([])
   const loading = ref(false)
@@ -23,11 +25,29 @@ export const useQuickFormulaListStore = defineStore('quickFormulaList', () => {
 
   async function createQuickFormula(name: string): Promise<QuickFormulaItem | null> {
     try {
-      const res = await quickFormulaApi.createQuickFormula({ name }) as unknown as QuickFormulaItem
+      const res = await quickFormulaApi.createQuickFormula({ name }, { _silent: true }) as unknown as QuickFormulaItem
       MessagePlugin.success('快速配方创建成功')
       await fetchList()
       return res
-    } catch {
+    } catch (error: unknown) {
+      const axiosErr = error as { response?: { status?: number; data?: { error?: { message?: string } } } }
+      if (axiosErr.response?.status === 409) {
+        for (let i = 2; i <= MAX_RETRY; i++) {
+          try {
+            const newName = `${name}(${i})`
+            const res = await quickFormulaApi.createQuickFormula({ name: newName }, { _silent: true }) as unknown as QuickFormulaItem
+            MessagePlugin.success(`快速配方创建成功：${newName}`)
+            await fetchList()
+            return res
+          } catch (retryErr: unknown) {
+            const retryAxiosErr = retryErr as { response?: { status?: number } }
+            if (retryAxiosErr.response?.status !== 409) break
+          }
+        }
+        MessagePlugin.error('名称冲突次数过多，请更换配方名称')
+      } else {
+        MessagePlugin.error('创建快速配方失败')
+      }
       return null
     }
   }

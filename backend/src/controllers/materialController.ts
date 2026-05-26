@@ -550,3 +550,14 @@ export async function getMaterialReviewLogs(req: any, res: Response) {
     res.status(500).json({ success: false, error: { message: "获取审批日志失败", code: "INTERNAL_ERROR" } });
   }
 }
+
+export async function getMyMaterialCounts(req: any, res: Response) {
+  try {
+    const userId = req.user?.userId || req.user?.id;
+    const counts = await materialService.getMyMaterialStatusCounts(userId);
+    res.json(success(counts));
+  } catch (error: any) {
+    console.error("[MaterialController] getMyMaterialCounts Error:", error);
+    res.status(500).json({ success: false, error: { message: error.message || "获取原料状态计数失败", code: "INTERNAL_ERROR" } });
+  }
+}

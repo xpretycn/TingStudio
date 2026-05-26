@@ -46,6 +46,8 @@ export const useApprovalStore = defineStore("approval", () => {
   const myMaterialTotal = ref(0)
   const myMaterialPage = ref(1)
   const myMaterialPageSize = ref(10)
+  const myStatusCounts = ref<Record<string, number>>({ draft: 0, pending_review: 0, published: 0, rejected: 0 })
+  const myMaterialStatusCounts = ref<Record<string, number>>({ draft: 0, pending_review: 0, published: 0, rejected: 0 })
 
   async function fetchMySubmissions(params?: { page?: number; pageSize?: number; keyword?: string; status?: string }) {
     loading.value = true
@@ -61,6 +63,15 @@ export const useApprovalStore = defineStore("approval", () => {
       mySubmissions.value = []
     } finally {
       loading.value = false
+    }
+  }
+
+  async function fetchMyStatusCounts() {
+    try {
+      const data = await approvalApi.getMySubmissionCounts()
+      myStatusCounts.value = data
+    } catch {
+      // ignore
     }
   }
 
@@ -182,7 +193,7 @@ export const useApprovalStore = defineStore("approval", () => {
       )
 
       myMaterialSubmissions.value = items
-      myMaterialTotal.value = data.pagination?.total ?? items.length
+      myMaterialTotal.value = items.length
       myMaterialPage.value = data.pagination?.page ?? page
       myMaterialPageSize.value = data.pagination?.pageSize ?? pageSize
     } catch {
@@ -198,6 +209,15 @@ export const useApprovalStore = defineStore("approval", () => {
     await fetchMyMaterialSubmissions()
   }
 
+  async function fetchMyMaterialStatusCounts() {
+    try {
+      const data = await materialApi.getMyMaterialCounts()
+      myMaterialStatusCounts.value = data
+    } catch {
+      // ignore
+    }
+  }
+
   return {
     mySubmissions,
     pendingReviews,
@@ -207,6 +227,8 @@ export const useApprovalStore = defineStore("approval", () => {
     myTotal,
     myPage,
     myPageSize,
+    myStatusCounts,
+    myMaterialStatusCounts,
     pendingTotal,
     pendingPage,
     pendingPageSize,
@@ -223,6 +245,7 @@ export const useApprovalStore = defineStore("approval", () => {
     myMaterialPage,
     myMaterialPageSize,
     fetchMySubmissions,
+    fetchMyStatusCounts,
     fetchPendingReviews,
     fetchReviewedHistory,
     approveVersion,
@@ -232,5 +255,6 @@ export const useApprovalStore = defineStore("approval", () => {
     rejectMaterial,
     fetchMyMaterialSubmissions,
     submitMaterialForReview,
+    fetchMyMaterialStatusCounts,
   }
 })

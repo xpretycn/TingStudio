@@ -106,7 +106,8 @@ function handleSaveTemplate() {
           </div>
           <div class="param-row">
             <label class="param-label">成品重量(g)</label>
-            <t-input-number v-model="store.formulaData.finishedWeight" :min="1" :step="100" theme="normal" size="small" />
+            <t-input-number v-model="store.formulaData.finishedWeight" :min="1" :step="100" theme="normal"
+              size="small" />
           </div>
         </div>
       </div>
@@ -189,7 +190,7 @@ function handleSaveTemplate() {
             <template #icon><t-icon name="folder" /></template>
             保存为模板
           </t-button>
-          <t-button theme="primary" block :loading="submitting" @click="handleSubmit">
+          <t-button theme="default" block class="btn-emerald-fill" :loading="submitting" @click="handleSubmit">
             <template #icon><t-icon name="check-circle" /></template>
             提交配方
           </t-button>
@@ -213,6 +214,19 @@ function handleSaveTemplate() {
   display: flex;
   flex-direction: column;
   gap: $space-4;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: $space-4;
+
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: $border-color;
+    border-radius: 2px;
+  }
 }
 
 .editor-section {
@@ -282,7 +296,7 @@ function handleSaveTemplate() {
   gap: $space-3;
 
   .param-label {
-    min-width: 90px;
+    min-width: 80px;
     font-size: $font-size-body-sm;
     font-weight: $font-weight-medium;
     color: $text-secondary;
@@ -416,5 +430,27 @@ function handleSaveTemplate() {
   font-size: $font-size-body-sm;
   color: $color-danger;
   font-weight: $font-weight-medium;
+}
+
+.btn-emerald-fill {
+  background-color: $emerald-500 !important;
+  color: $text-white !important;
+  border-color: $emerald-500 !important;
+
+  &:hover {
+    background-color: $emerald-600 !important;
+    border-color: $emerald-600 !important;
+  }
+
+  &:active {
+    background-color: $emerald-600 !important;
+    border-color: $emerald-600 !important;
+  }
+
+  &:disabled {
+    background-color: $text-placeholder !important;
+    border-color: $text-placeholder !important;
+    cursor: not-allowed;
+  }
 }
 </style>

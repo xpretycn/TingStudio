@@ -3,7 +3,7 @@ import { authMiddleware } from '../middleware/auth.js'
 import {
   getVersions, getVersion, createVersion, publishVersion, compareVersions,
   submitVersion, approveVersion, rejectVersion,
-  getPendingReviews, getMySubmissionList, getReviewedHistory, getVersionReviewLogs,
+  getPendingReviews, getMySubmissionList, getMySubmissionCounts, getReviewedHistory, getVersionReviewLogs,
   getMaterialUpdates, refreshSnapshot,
   setCurrentVersion,
 } from '../controllers/versionController.js'
@@ -14,6 +14,7 @@ versionRoutes.use(authMiddleware)
 
 versionRoutes.get('/pending-review', getPendingReviews)
 versionRoutes.get('/my-submissions', getMySubmissionList)
+versionRoutes.get('/my-submissions/counts', getMySubmissionCounts)
 versionRoutes.get('/reviewed-by-me', getReviewedHistory)
 versionRoutes.get('/formula/:formulaId', getVersions)
 versionRoutes.get('/detail/:versionId', getVersion)

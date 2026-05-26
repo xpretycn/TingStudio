@@ -1,7 +1,7 @@
 import { Request, Response } from 'express'
 import { query } from '../config/database-better-sqlite3.js'
 import { generateId, now, success, rowToCamelCase, rowsToCamelCase, safeJsonParse } from '../utils/helpers.js'
-import { createReviewLog, getReviewLogs, getPendingReviewList, isFormulaOwner, getMySubmissions, getReviewedByMe } from '../services/reviewService.js'
+import { createReviewLog, getReviewLogs, getPendingReviewList, isFormulaOwner, getMySubmissions, getReviewedByMe, getMySubmissionStatusCounts } from '../services/reviewService.js'
 
 async function syncSnapshotToFormula(version: any, formulaId: string): Promise<void> {
   const snapshot = safeJsonParse(version.snapshot_json, {})
@@ -448,6 +448,17 @@ export async function getMySubmissionList(req: any, res: Response) {
   } catch (error: any) {
     console.error("[VersionController] getMySubmissionList Error:", error)
     res.status(500).json({ success: false, error: { message: error.message || "获取我的提交列表失败", code: "INTERNAL_ERROR" } })
+  }
+}
+
+export async function getMySubmissionCounts(req: any, res: Response) {
+  try {
+    const userId = req.user?.userId || req.user?.id
+    const counts = await getMySubmissionStatusCounts(userId)
+    res.json(success(counts))
+  } catch (error: any) {
+    console.error("[VersionController] getMySubmissionCounts Error:", error)
+    res.status(500).json({ success: false, error: { message: error.message || "获取提交状态计数失败", code: "INTERNAL_ERROR" } })
   }
 }
 

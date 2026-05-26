@@ -3,7 +3,7 @@
 > 基础地址：`http://localhost:3000/api`
 > 认证方式：Bearer Token（JWT）
 > Content-Type：`application/json`
-> 最后更新：2026-05-26
+> 最后更新：2026-05-27
 
 ---
 
@@ -299,6 +299,20 @@
 | `materialType` | string | 否   | 原料类型，默认 `herb`   |
 | `unitPrice`    | number | 否   | 单价（元/kg）           |
 | `dataSource`   | string | 否   | 数据来源，默认 `manual` |
+
+### 2.5.1 获取当前用户原料状态计数
+
+**GET** `/api/materials/my-counts`
+
+需认证。返回当前用户各状态的原料数量统计。
+
+#### 响应字段
+
+| 字段              | 类型   | 说明                       |
+| ----------------- | ------ | -------------------------- |
+| `draft`           | number | 草稿状态数量               |
+| `pendingReview`   | number | 待审核状态数量             |
+| `published`       | number | 已发布状态数量             |
 
 ### 2.6 更新原料
 
@@ -645,6 +659,21 @@
 
 需认证。返回当前用户提交的版本审核列表。
 
+### 5.7.1 获取我的提交状态计数
+
+**GET** `/api/versions/my-submissions/counts`
+
+需认证。返回当前用户提交的版本审核状态计数。
+
+#### 响应字段
+
+| 字段              | 类型   | 说明                       |
+| ----------------- | ------ | -------------------------- |
+| `draft`           | number | 草稿状态数量               |
+| `pendingReview`   | number | 待审核状态数量             |
+| `published`       | number | 已发布状态数量             |
+| `archived`        | number | 已归档状态数量             |
+
 ### 5.8 获取我审核过的历史
 
 **GET** `/api/versions/reviewed-by-me`
@@ -804,7 +833,7 @@
 
 **GET** `/api/exports/share/:shareId`
 
-> 无需认证。会检查过期和下载次数限制。
+> ⚠️ **注意**：该端点控制器已实现但路由暂未注册，当前不可访问。无需认证。会检查过期和下载次数限制。
 
 ### 6.14 删除分享
 
@@ -1525,6 +1554,21 @@
 ```json
 { "status": "ok", "timestamp": "2026-01-01T00:00:00.000Z" }
 ```
+
+### 11.2 服务器运行状态
+
+**GET** `/api/status`
+
+无需认证。返回服务器运行状态信息。
+
+#### 响应字段
+
+| 字段            | 类型   | 说明                |
+| --------------- | ------ | ------------------- |
+| `uptime`        | number | 运行时长（秒）      |
+| `memory`        | object | 内存使用信息        |
+| `nodeVersion`   | string | Node.js 版本        |
+| `environment`   | string | 运行环境            |
 
 ---
 

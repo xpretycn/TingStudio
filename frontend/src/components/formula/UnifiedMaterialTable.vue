@@ -34,7 +34,7 @@
           </t-button>
           <t-dropdown-menu>
             <t-dropdown-item value="delete" @click="handleBatchDelete" :prefix-icon="() => null">
-              <t-icon name="delete" style="color: #e34d59" />
+              <t-icon name="delete" style="color: var(--color-danger)" />
               批量删除
             </t-dropdown-item>
             <t-dropdown-item value="move-up" @click="handleBatchMoveUp" :prefix-icon="() => null">
@@ -841,8 +841,8 @@ const getFilteredMaterials = (currentIndex: number): SelectOption[] => {
   justify-content: space-between;
   align-items: center;
   padding: 12px 16px;
-  background: #fafbfc;
-  border: 1px solid #e7e7e7;
+  background: var(--color-bg-container);
+  border: 1px solid var(--color-border);
   border-radius: 8px 8px 0 0;
 
   .toolbar-left {
@@ -866,14 +866,14 @@ const getFilteredMaterials = (currentIndex: number): SelectOption[] => {
   display: flex;
   justify-content: flex-end;
   padding: 12px 16px;
-  background: #fff;
-  border-left: 1px solid #e7e7e7;
-  border-right: 1px solid #e7e7e7;
+  background: var(--color-bg-container);
+  border-left: 1px solid var(--color-border);
+  border-right: 1px solid var(--color-border);
 }
 
 .table-container {
   overflow-x: auto;
-  border: 1px solid #e7e7e7;
+  border: 1px solid var(--color-border);
 }
 
 .materials-table {
@@ -882,33 +882,33 @@ const getFilteredMaterials = (currentIndex: number): SelectOption[] => {
   font-size: 14px;
 
   thead {
-    background: #f5f7fa;
+    background: var(--color-bg-page);
 
     th {
       padding: 12px 16px;
       text-align: left;
       font-weight: 600;
-      color: #333;
-      border-bottom: 1px solid #e7e7e7;
+      color: var(--color-text-primary);
+      border-bottom: 1px solid var(--color-border);
       white-space: nowrap;
     }
   }
 
   tbody {
     tr {
-      border-bottom: 1px solid #f0f0f0;
+      border-bottom: 1px solid var(--color-bg-hover);
       transition: background-color 0.2s;
 
       &:hover {
-        background: #fafbfc;
+        background: var(--color-bg-container);
       }
 
       &.row-selected {
-        background: #e6f7ff;
+        background: var(--color-info-bg);
       }
 
       &.row-highlight {
-        background: #fffbe6;
+        background: var(--color-warning-bg);
       }
 
       &.empty-row {
@@ -926,12 +926,12 @@ const getFilteredMaterials = (currentIndex: number): SelectOption[] => {
 
   tfoot {
     tr.total-row {
-      background: #f5f7fa;
+      background: var(--color-bg-page);
       font-weight: 600;
 
       td {
         padding: 12px 16px;
-        border-top: 2px solid #e7e7e7;
+        border-top: 2px solid var(--color-border);
       }
     }
   }
@@ -944,7 +944,7 @@ const getFilteredMaterials = (currentIndex: number): SelectOption[] => {
   .col-index {
     width: 50px;
     text-align: center;
-    color: #999;
+    color: var(--color-text-placeholder);
   }
 
   .col-name {
@@ -975,7 +975,7 @@ const getFilteredMaterials = (currentIndex: number): SelectOption[] => {
   }
 
   .cost-ratio-value {
-    color: #666;
+    color: var(--color-text-secondary);
     font-family: 'Monaco', 'Menlo', monospace;
   }
 
@@ -1001,7 +1001,7 @@ const getFilteredMaterials = (currentIndex: number): SelectOption[] => {
   }
 
   .ratio-value {
-    color: #666;
+    color: var(--color-text-secondary);
     font-family: 'Monaco', 'Menlo', monospace;
   }
 
@@ -1012,7 +1012,7 @@ const getFilteredMaterials = (currentIndex: number): SelectOption[] => {
 
     &.price-adjusted {
       .t-input {
-        background: #fff7e6;
+        background: var(--color-warning-bg);
       }
     }
 
@@ -1021,8 +1021,8 @@ const getFilteredMaterials = (currentIndex: number): SelectOption[] => {
       align-items: center;
       justify-content: center;
       padding: var(--space-0-5) var(--space-1-5);
-      background: #d97706;
-      color: #fff;
+      background: var(--color-warning);
+      color: var(--color-bg-container);
       font-size: 10px;
       font-weight: 600;
       border-radius: 4px;
@@ -1036,25 +1036,25 @@ const getFilteredMaterials = (currentIndex: number): SelectOption[] => {
       height: 24px;
       border: none;
       background: transparent;
-      color: #999;
+      color: var(--color-text-placeholder);
       cursor: pointer;
       border-radius: 4px;
       transition: all 0.2s;
 
       &:hover {
-        background: #f0f0f0;
-        color: #333;
+        background: var(--color-bg-hover);
+        color: var(--color-text-primary);
       }
     }
   }
 
   .amount-value {
     font-family: 'Monaco', 'Menlo', monospace;
-    color: #333;
+    color: var(--color-text-primary);
   }
 
   .original-name {
-    color: #999;
+    color: var(--color-text-placeholder);
     font-style: italic;
   }
 
@@ -1068,9 +1068,9 @@ const getFilteredMaterials = (currentIndex: number): SelectOption[] => {
     align-items: center;
     gap: 8px;
     padding: 12px 24px;
-    border: 2px dashed #d9d9d9;
+    border: 2px dashed var(--color-border);
     background: transparent;
-    color: #666;
+    color: var(--color-text-secondary);
     font-size: 14px;
     cursor: pointer;
     border-radius: 8px;
@@ -1094,7 +1094,7 @@ const getFilteredMaterials = (currentIndex: number): SelectOption[] => {
   }
 
   .total-amount {
-    color: #333;
+    color: var(--color-text-primary);
     font-weight: 600;
   }
 }
@@ -1102,8 +1102,8 @@ const getFilteredMaterials = (currentIndex: number): SelectOption[] => {
 .operation-tips-card {
   margin-top: 16px;
   padding: 16px;
-  background: #f0f5ff;
-  border: 1px solid #adc6ff;
+  background: var(--color-info-bg);
+  border: 1px solid var(--color-info-border);
   border-radius: 8px;
 
   .tips-header {
@@ -1113,12 +1113,12 @@ const getFilteredMaterials = (currentIndex: number): SelectOption[] => {
     margin-bottom: 12px;
 
     .tips-icon {
-      color: #2462d8;
+      color: var(--color-info-dark);
     }
 
     .tips-title {
       font-weight: 600;
-      color: #333;
+      color: var(--color-text-primary);
     }
   }
 
@@ -1135,12 +1135,12 @@ const getFilteredMaterials = (currentIndex: number): SelectOption[] => {
 
       &::before {
         content: '•';
-        color: #2462d8;
+        color: var(--color-info-dark);
         font-weight: bold;
       }
 
       .tip-text {
-        color: #666;
+        color: var(--color-text-secondary);
         line-height: 1.5;
       }
     }
@@ -1154,7 +1154,7 @@ const getFilteredMaterials = (currentIndex: number): SelectOption[] => {
     align-items: center;
     justify-content: center;
     padding: 32px;
-    border: 2px dashed #d9d9d9;
+    border: 2px dashed var(--color-border);
     border-radius: 8px;
     cursor: pointer;
     transition: all 0.2s;
@@ -1162,22 +1162,22 @@ const getFilteredMaterials = (currentIndex: number): SelectOption[] => {
     &:hover,
     &.drag-over {
       border-color: var(--color-primary);
-      background: #f6ffed;
+      background: var(--color-emerald-50);
     }
 
     .upload-icon {
-      color: #999;
+      color: var(--color-text-placeholder);
       margin-bottom: 16px;
     }
 
     .upload-text {
-      color: #333;
+      color: var(--color-text-primary);
       font-size: 14px;
       margin-bottom: 8px;
     }
 
     .upload-hint {
-      color: #999;
+      color: var(--color-text-placeholder);
       font-size: 12px;
     }
   }
@@ -1188,10 +1188,10 @@ const getFilteredMaterials = (currentIndex: number): SelectOption[] => {
     gap: 8px;
     margin-top: 16px;
     padding: 12px;
-    background: #fafbfc;
+    background: var(--color-bg-container);
     border-radius: 8px;
     font-size: 13px;
-    color: #666;
+    color: var(--color-text-secondary);
 
     .download-template-link {
       color: var(--color-primary);
@@ -1199,7 +1199,7 @@ const getFilteredMaterials = (currentIndex: number): SelectOption[] => {
       text-decoration: underline;
 
       &:hover {
-        color: #0d9a6d;
+        color: var(--color-primary-dark);
       }
     }
   }
@@ -1211,13 +1211,13 @@ const getFilteredMaterials = (currentIndex: number): SelectOption[] => {
       margin-bottom: 12px;
       font-size: 14px;
       font-weight: 600;
-      color: #333;
+      color: var(--color-text-primary);
     }
 
     .preview-summary {
       margin-top: 12px;
       font-size: 13px;
-      color: #666;
+      color: var(--color-text-secondary);
     }
   }
 }
@@ -1238,7 +1238,7 @@ const getFilteredMaterials = (currentIndex: number): SelectOption[] => {
 .select-empty-tip {
   padding: 8px 0;
   text-align: center;
-  color: #999;
+  color: var(--color-text-placeholder);
   font-size: 12px;
 }
 </style>

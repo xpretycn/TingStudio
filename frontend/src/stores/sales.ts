@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { salesApi } from '@/api/sales'
-import type { SaleRecord, SaleStats } from '@/api/sales'
+import type { SaleRecord, SaleStats, DuplicateEntryData } from '@/api/sales'
 import { MessagePlugin } from 'tdesign-vue-next'
 
 export const useSalesStore = defineStore('sales', () => {
@@ -58,15 +58,20 @@ export const useSalesStore = defineStore('sales', () => {
     quantity: number;
     revenue: number;
     notes?: string;
+    mergeMode?: 'accumulate' | 'replace';
   }) => {
     try {
-      const res = await salesApi.create(data)
+      const res = await salesApi.create(data, { _silent: true })
       MessagePlugin.success('销量记录创建成功')
-      return res
+      return { success: true as const, data: res }
     } catch (error: unknown) {
+      const err = error as { response?: { status?: number; data?: { code?: string; data?: unknown } } }
+      if (err.response?.status === 409 && err.response?.data?.code === 'DUPLICATE_ENTRY') {
+        return { success: false as const, code: 'DUPLICATE_ENTRY' as const, data: err.response.data.data as DuplicateEntryData }
+      }
       console.error('创建销量记录失败:', error)
       MessagePlugin.error(error instanceof Error ? error.message : '创建销量记录失败')
-      return null
+      return { success: false as const, code: 'UNKNOWN' as const, data: null }
     }
   }
 

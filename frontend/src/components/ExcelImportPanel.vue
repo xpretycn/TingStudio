@@ -264,8 +264,6 @@ function triggerUpload() {
 </script>
 
 <style scoped lang="scss">
-@import "@/assets/styles/variables.scss";
-
 .excel-import-panel {
   padding: $space-4;
   background: $bg-container-alt;
@@ -287,14 +285,14 @@ function triggerUpload() {
   }
 
   .guide-link {
-    color: #7c3aed;
+    color: var(--color-primary-dark);
     font-weight: 600;
     cursor: pointer;
     text-decoration: underline;
     text-underline-offset: 2px;
 
     &:hover {
-      color: #6d28d9;
+      color: var(--color-primary-deep);
     }
   }
 }
@@ -329,20 +327,20 @@ function triggerUpload() {
     color: var(--color-text-secondary);
 
     &:hover:not(:disabled) {
-      background: #f1f5f9;
-      border-color: #cbd5e1;
+      background: var(--color-bg-hover);
+      border-color: var(--color-border);
       color: var(--color-text-primary);
     }
   }
 
   &--upload {
-    border-color: #7c3aed;
-    background: #7c3aed;
-    color: #fff;
+    border-color: var(--color-primary-dark);
+    background: var(--color-primary-dark);
+    color: var(--color-text-white);
 
     &:hover:not(:disabled) {
-      background: #6d28d9;
-      border-color: #6d28d9;
+      background: var(--color-primary-deep);
+      border-color: var(--color-primary-deep);
     }
   }
 }
@@ -381,17 +379,17 @@ function triggerUpload() {
 
     &--total {
       color: var(--color-primary);
-      background: rgba(16, 185, 129, 0.1);
+      background: var(--overlay-emerald-10);
     }
 
     &--success {
       color: var(--color-primary-dark);
-      background: rgba(16, 185, 129, 0.1);
+      background: var(--overlay-emerald-10);
     }
 
     &--warning {
-      color: #d97706;
-      background: rgba(245, 158, 11, 0.1);
+      color: var(--color-warning);
+      background: var(--color-warning-medium);
     }
   }
 }
@@ -402,21 +400,21 @@ function triggerUpload() {
   border-top: 1px solid transparent;
 
   &--error {
-    background: rgba(220, 38, 38, 0.06);
-    border-color: rgba(220, 38, 38, 0.15);
-    color: #b91c1c;
+    background: var(--color-danger-light);
+    border-color: var(--color-danger-bg);
+    color: var(--color-danger);
   }
 
   &--warning {
-    background: rgba(245, 158, 11, 0.06);
-    border-color: rgba(245, 158, 11, 0.15);
-    color: #b45309;
+    background: var(--color-warning-light);
+    border-color: var(--color-warning-bg);
+    color: var(--color-warning-dark);
   }
 
   &--info {
-    background: rgba(99, 102, 241, 0.06);
-    border-color: rgba(99, 102, 241, 0.15);
-    color: #4338ca;
+    background: var(--color-info-light);
+    border-color: var(--color-info-bg);
+    color: var(--color-info);
   }
 
   .parse-alert-left {
@@ -435,18 +433,18 @@ function triggerUpload() {
     white-space: nowrap;
 
     &--error {
-      background: rgba(220, 38, 38, 0.15);
-      color: #b91c1c;
+      background: var(--color-danger-bg);
+      color: var(--color-danger);
     }
 
     &--warning {
-      background: rgba(245, 158, 11, 0.15);
-      color: #b45309;
+      background: var(--color-warning-bg);
+      color: var(--color-warning-dark);
     }
 
     &--info {
-      background: rgba(99, 102, 241, 0.15);
-      color: #4338ca;
+      background: var(--color-info-bg);
+      color: var(--color-info);
     }
   }
 
@@ -481,17 +479,17 @@ function triggerUpload() {
     margin-left: var(--space-6);
     padding: 4px var(--space-2-5);
     border-radius: 6px;
-    border: 1px solid rgba(245, 158, 11, 0.3);
-    background: rgba(245, 158, 11, 0.08);
-    color: #b45309;
+    border: 1px solid var(--color-warning-border);
+    background: var(--color-warning-light);
+    color: var(--color-warning-dark);
     font-size: 11px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s;
 
     &:hover {
-      background: rgba(245, 158, 11, 0.15);
-      border-color: rgba(245, 158, 11, 0.5);
+      background: var(--color-warning-bg);
+      border-color: var(--color-warning-border);
     }
   }
 }
@@ -522,7 +520,7 @@ function triggerUpload() {
       font-size: 11px;
       font-weight: 600;
       color: var(--color-primary);
-      background: rgba(16, 185, 129, 0.1);
+      background: var(--overlay-emerald-10);
       padding: 1px 8px;
       border-radius: 10px;
     }
@@ -544,12 +542,12 @@ function triggerUpload() {
 
       &--cancel {
         border-color: var(--color-border);
-        background: #fff;
+        background: var(--color-bg-container);
         color: var(--color-text-secondary);
 
         &:hover {
-          background: #f1f5f9;
-          border-color: #cbd5e1;
+          background: var(--color-bg-hover);
+          border-color: var(--color-border);
           color: var(--color-text-primary);
         }
       }
@@ -557,7 +555,7 @@ function triggerUpload() {
       &--confirm {
         border-color: var(--color-primary);
         background: var(--color-primary);
-        color: #fff;
+        color: var(--color-text-white);
 
         &:hover {
           background: var(--color-primary-dark);
@@ -588,11 +586,11 @@ function triggerUpload() {
     padding: var(--space-2) var(--space-3-5);
     font-size: 12px;
     color: var(--color-text-primary);
-    border-top: 1px solid rgba(148, 163, 184, 0.08);
+    border-top: 1px solid var(--color-border-light);
     align-items: center;
 
     &:nth-child(even) {
-      background: rgba(248, 250, 252, 0.5);
+      background: var(--color-bg-container);
     }
 
     &:hover {
@@ -633,7 +631,7 @@ function triggerUpload() {
   }
 
   .material-type-tag--herb {
-    background: rgba(16, 185, 129, 0.1);
+    background: var(--overlay-emerald-10);
     color: var(--color-primary-dark);
     border-color: var(--color-primary-lightest);
     font-size: 10px;
@@ -643,9 +641,9 @@ function triggerUpload() {
   }
 
   .material-type-tag--supplement {
-    background: rgba(99, 102, 241, 0.1);
-    color: #4f46e5;
-    border-color: #c7d2fe;
+    background: var(--color-info-medium);
+    color: var(--color-info);
+    border-color: var(--color-info-border);
     font-size: 10px;
     padding: 0 4px;
     height: 18px;

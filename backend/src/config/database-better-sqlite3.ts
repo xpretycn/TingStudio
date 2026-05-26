@@ -318,11 +318,12 @@ function runAutoMigrations(dbInstance: Database.Database) {
       updated_at TEXT NOT NULL DEFAULT (datetime('now')),
       FOREIGN KEY (formula_id) REFERENCES formulas(id) ON DELETE CASCADE,
       FOREIGN KEY (salesman_id) REFERENCES salesmen(id) ON DELETE RESTRICT,
-      UNIQUE(formula_id, period_type, period_start)
+      UNIQUE(formula_id, salesman_id, period_type, period_start)
     );
     CREATE INDEX IF NOT EXISTS idx_fs_formula ON formula_sales(formula_id);
     CREATE INDEX IF NOT EXISTS idx_fs_salesman ON formula_sales(salesman_id);
-    CREATE INDEX IF NOT EXISTS idx_fs_period ON formula_sales(period_start)
+    CREATE INDEX IF NOT EXISTS idx_fs_period ON formula_sales(period_start);
+    CREATE INDEX IF NOT EXISTS idx_fs_unique ON formula_sales(formula_id, salesman_id, period_type, period_start)
   `,
   );
   ensureTable(

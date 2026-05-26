@@ -18,6 +18,7 @@ import {
   publishMaterial,
   getMaterialPendingReviews,
   getMaterialReviewLogs,
+  getMyMaterialCounts,
 } from "../controllers/materialController.js";
 import { validateBody } from "../middleware/validate.js";
 
@@ -28,6 +29,7 @@ materialRoutes.use(authMiddleware);
 materialRoutes.get("/", getMaterials);
 materialRoutes.get("/stats", getMaterialStats);
 materialRoutes.get("/next-code", getNextCode);
+materialRoutes.get("/my-counts", getMyMaterialCounts);
 materialRoutes.get("/pending-review", getMaterialPendingReviews);
 materialRoutes.get("/:id", getMaterial);
 materialRoutes.get("/:id/versions", getMaterialVersions);

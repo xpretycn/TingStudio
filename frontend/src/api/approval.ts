@@ -55,6 +55,10 @@ export const approvalApi = {
     return http.get<unknown, { list: ApprovalItem[]; pagination: Pagination }>("/versions/my-submissions", { params })
   },
 
+  getMySubmissionCounts() {
+    return http.get<unknown, Record<string, number>>("/versions/my-submissions/counts")
+  },
+
   getPendingReviews(params?: { page?: number; pageSize?: number; keyword?: string }) {
     return http.get<unknown, { list: PendingReviewItem[]; pagination: Pagination }>("/versions/pending-review", { params })
   },
