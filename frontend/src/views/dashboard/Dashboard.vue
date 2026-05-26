@@ -1,160 +1,9 @@
 <template>
   <div class="dashboard-page">
-    <QuickFormulaPanel v-if="showQuickFormula" @close="showQuickFormula = false" />
-    <template v-else>
-      <div class="bento-grid">
-        <!-- 统计卡片 -->
-        <section v-for="item in statCards" :key="item.key" class="bento-card bento-stat"
-          :class="[`bento-stat--${item.key}`]" @click="item.route && router.push(item.route)">
-          <div class="stat-icon-wrap" :style="{ background: item.iconBg }">
-            <t-icon :name="item.icon" size="22px" :style="{ color: item.iconColor }" />
-          </div>
-          <div class="stat-body">
-            <span class="stat-value">
-              <template v-if="dashboardStore.statsLoading">
-                <t-loading size="small" />
-              </template>
-              <template v-else>{{ item.display }}</template>
-            </span>
-            <span class="stat-label">{{ item.label }}</span>
-          </div>
-          <div v-if="item.route" class="stat-arrow">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-              stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="9 18 15 12 9 6" />
-            </svg>
-          </div>
-        </section>
-        <!-- 第二行：两栏布局 — 左栏：审批卡片 / 右栏：快捷操作 + 配方卡片 -->
-        <div class="bento-grid__col bento-grid__col--left">
-          <ApprovalCard />
-        </div>
-        <div class="bento-grid__col bento-grid__col--right">
-          <!-- 快捷操作卡片 -->
-          <section class="bento-card bento-quick">
-            <div class="card-header">
-              <h3 class="card-title">快捷操作</h3>
-            </div>
-            <div class="quick-body" :class="{ 'quick-body--formulist': !isAdmin }">
-              <template v-if="!isAdmin">
-                <button class="quick-btn quick-btn--highlight" @click="showQuickFormula = true">
-                  <div class="quick-icon"
-                    style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(45, 212, 191, 0.15));">
-                    <t-icon name="edit-1" size="20px" style="color: #10b981;" />
-                  </div>
-                  <span>快速录入</span>
-                </button>
-                <button class="quick-btn" @click="router.push('/ai-assistant')">
-                  <div class="quick-icon" style="background: rgba(168, 85, 247, 0.1);">
-                    <t-icon name="precise-monitor" size="20px" style="color: #a855f7;" />
-                  </div>
-                  <span>AI 助手</span>
-                </button>
-                <button class="quick-btn" @click="router.push('/smart-tools')">
-                  <div class="quick-icon" style="background: rgba(16, 185, 129, 0.1);">
-                    <t-icon name="tools" size="20px" style="color: var(--color-primary);" />
-                  </div>
-                  <span>智能工具</span>
-                </button>
-                <button class="quick-btn" @click="router.push('/formulas')">
-                  <div class="quick-icon" style="background: rgba(59, 130, 246, 0.1);">
-                    <t-icon name="edit" size="20px" style="color: #3b82f6;" />
-                  </div>
-                  <span>配方管理</span>
-                </button>
-                <button class="quick-btn" @click="router.push('/materials')">
-                  <div class="quick-icon" style="background: rgba(245, 158, 11, 0.1);">
-                    <t-icon name="chart-bar" size="20px" style="color: var(--color-warning);" />
-                  </div>
-                  <span>原料管理</span>
-                </button>
-                <button class="quick-btn" @click="router.push('/reports')">
-                  <div class="quick-icon" style="background: rgba(239, 68, 68, 0.1);">
-                    <t-icon name="file-icon" size="20px" style="color: var(--color-danger);" />
-                  </div>
-                  <span>报告中心</span>
-                </button>
-              </template>
-              <template v-else>
-                <button class="quick-btn quick-btn--highlight" @click="showQuickFormula = true">
-                  <div class="quick-icon"
-                    style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(45, 212, 191, 0.15));">
-                    <t-icon name="edit-1" size="20px" style="color: #10b981;" />
-                  </div>
-                  <span>快速录入</span>
-                </button>
-                <button class="quick-btn" @click="router.push('/formulas/new')">
-                  <div class="quick-icon" style="background: rgba(16, 185, 129, 0.1);">
-                    <t-icon name="add" size="20px" style="color: var(--color-primary);" />
-                  </div>
-                  <span>新建配方</span>
-                </button>
-                <button class="quick-btn" @click="router.push('/system')">
-                  <div class="quick-icon" style="background: rgba(59, 130, 246, 0.1);">
-                    <t-icon name="setting" size="20px" style="color: #3b82f6;" />
-                  </div>
-                  <span>系统管理</span>
-                </button>
-                <button class="quick-btn" @click="router.push('/model-management')">
-                  <div class="quick-icon" style="background: rgba(168, 85, 247, 0.1);">
-                    <t-icon name="control-platform" size="20px" style="color: #a855f7;" />
-                  </div>
-                  <span>模型管理</span>
-                </button>
-                <button class="quick-btn" @click="router.push('/users')">
-                  <div class="quick-icon" style="background: rgba(245, 158, 11, 0.1);">
-                    <t-icon name="user" size="20px" style="color: var(--color-warning);" />
-                  </div>
-                  <span>用户管理</span>
-                </button>
-              </template>
-            </div>
-          </section>
-          <!-- 配方卡片 -->
-          <section class="bento-card bento-formulas">
-            <div class="card-header">
-              <h3 class="card-title">精选配方</h3>
-              <button class="card-link" @click="router.push('/formulas')">
-                查看全部
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                  stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="9 18 15 12 9 6" />
-                </svg>
-              </button>
-            </div>
-            <div class="formulas-body">
-              <template v-if="formulaStore.loading">
-                <div class="formula-skeleton" v-for="i in 3" :key="i">
-                  <div class="skeleton-line skeleton-line--title" />
-                  <div class="skeleton-line skeleton-line--sub" />
-                </div>
-              </template>
-              <template v-else-if="featuredFormulas.length === 0">
-                <div class="formulas-empty">
-                  <t-icon name="edit" size="28px" />
-                  <p>还没有配方</p>
-                  <t-button theme="primary" size="small" @click="router.push('/formulas/new')">创建配方</t-button>
-                </div>
-              </template>
-              <template v-else>
-                <div v-for="formula in featuredFormulas" :key="formula.id" class="formula-card"
-                  @click="router.push(`/formulas/${formula.id}`)">
-                  <div class="formula-color-bar" :style="{ background: getFormulaGradient(formula) }" />
-                  <div class="formula-info">
-                    <span class="formula-name">{{ formula.name }}</span>
-                    <span class="formula-meta">{{ formula.salesmanName || '--' }} · {{ formula.materials?.length || 0 }}
-                      种原料</span>
-                  </div>
-                  <svg class="formula-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="9 18 15 12 9 6" />
-                  </svg>
-                </div>
-              </template>
-            </div>
-          </section>
-        </div>
-        <!-- 第三行：动态卡片 + 图表卡片 -->
+    <div class="bento-grid">
+      <!-- 左栏：审批 + 动态 -->
+      <div class="bento-grid__col bento-grid__col--left">
+        <ApprovalCard />
         <!-- 动态卡片 -->
         <section class="bento-card bento-activity">
           <div class="card-header">
@@ -207,6 +56,156 @@
             </template>
           </div>
         </section>
+      </div>
+      <!-- 右栏：统计 + 快捷操作 + 配方 + 图表 -->
+      <div class="bento-grid__col bento-grid__col--right">
+        <!-- 统计卡片 -->
+        <div class="stat-grid">
+          <section v-for="item in statCards" :key="item.key" class="bento-card bento-stat"
+            :class="[`bento-stat--${item.key}`]" @click="item.route && router.push(item.route)">
+            <div class="stat-icon-wrap" :style="{ background: item.iconBg }">
+              <t-icon :name="item.icon" size="22px" :style="{ color: item.iconColor }" />
+            </div>
+            <div class="stat-body">
+              <span class="stat-value">
+                <template v-if="dashboardStore.statsLoading">
+                  <t-loading size="small" />
+                </template>
+                <template v-else>{{ item.display }}</template>
+              </span>
+              <span class="stat-label">{{ item.label }}</span>
+            </div>
+            <div v-if="item.route" class="stat-arrow">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            </div>
+          </section>
+        </div>
+        <!-- 快捷操作卡片 -->
+        <section class="bento-card bento-quick">
+          <div class="card-header">
+            <h3 class="card-title">快捷操作</h3>
+          </div>
+          <div class="quick-body" :class="{ 'quick-body--formulist': !isAdmin }">
+            <template v-if="!isAdmin">
+              <button class="quick-btn quick-btn--highlight" @click="router.push('/formulas/quick')">
+                <div class="quick-icon"
+                  style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(45, 212, 191, 0.15));">
+                  <t-icon name="edit-1" size="20px" style="color: #10b981;" />
+                </div>
+                <span>快速录入</span>
+              </button>
+              <button class="quick-btn" @click="router.push('/ai-assistant')">
+                <div class="quick-icon" style="background: rgba(168, 85, 247, 0.1);">
+                  <t-icon name="precise-monitor" size="20px" style="color: #a855f7;" />
+                </div>
+                <span>AI 助手</span>
+              </button>
+              <button class="quick-btn" @click="router.push('/smart-tools')">
+                <div class="quick-icon" style="background: rgba(16, 185, 129, 0.1);">
+                  <t-icon name="tools" size="20px" style="color: var(--color-primary);" />
+                </div>
+                <span>智能工具</span>
+              </button>
+              <button class="quick-btn" @click="router.push('/formulas')">
+                <div class="quick-icon" style="background: rgba(59, 130, 246, 0.1);">
+                  <t-icon name="edit" size="20px" style="color: #3b82f6;" />
+                </div>
+                <span>配方管理</span>
+              </button>
+              <button class="quick-btn" @click="router.push('/materials')">
+                <div class="quick-icon" style="background: rgba(245, 158, 11, 0.1);">
+                  <t-icon name="chart-bar" size="20px" style="color: var(--color-warning);" />
+                </div>
+                <span>原料管理</span>
+              </button>
+              <button class="quick-btn" @click="router.push('/reports')">
+                <div class="quick-icon" style="background: rgba(239, 68, 68, 0.1);">
+                  <t-icon name="file-icon" size="20px" style="color: var(--color-danger);" />
+                </div>
+                <span>报告中心</span>
+              </button>
+            </template>
+            <template v-else>
+              <button class="quick-btn quick-btn--highlight" @click="router.push('/formulas/quick')">
+                <div class="quick-icon"
+                  style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(45, 212, 191, 0.15));">
+                  <t-icon name="edit-1" size="20px" style="color: #10b981;" />
+                </div>
+                <span>快速录入</span>
+              </button>
+              <button class="quick-btn" @click="router.push('/formulas/new')">
+                <div class="quick-icon" style="background: rgba(16, 185, 129, 0.1);">
+                  <t-icon name="add" size="20px" style="color: var(--color-primary);" />
+                </div>
+                <span>新建配方</span>
+              </button>
+              <button class="quick-btn" @click="router.push('/system')">
+                <div class="quick-icon" style="background: rgba(59, 130, 246, 0.1);">
+                  <t-icon name="setting" size="20px" style="color: #3b82f6;" />
+                </div>
+                <span>系统管理</span>
+              </button>
+              <button class="quick-btn" @click="router.push('/model-management')">
+                <div class="quick-icon" style="background: rgba(168, 85, 247, 0.1);">
+                  <t-icon name="control-platform" size="20px" style="color: #a855f7;" />
+                </div>
+                <span>模型管理</span>
+              </button>
+              <button class="quick-btn" @click="router.push('/users')">
+                <div class="quick-icon" style="background: rgba(245, 158, 11, 0.1);">
+                  <t-icon name="user" size="20px" style="color: var(--color-warning);" />
+                </div>
+                <span>用户管理</span>
+              </button>
+            </template>
+          </div>
+        </section>
+        <!-- 配方卡片 -->
+        <section class="bento-card bento-formulas">
+          <div class="card-header">
+            <h3 class="card-title">精选配方</h3>
+            <button class="card-link" @click="router.push('/formulas')">
+              查看全部
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            </button>
+          </div>
+          <div class="formulas-body">
+            <template v-if="formulaStore.loading">
+              <div class="formula-skeleton" v-for="i in 3" :key="i">
+                <div class="skeleton-line skeleton-line--title" />
+                <div class="skeleton-line skeleton-line--sub" />
+              </div>
+            </template>
+            <template v-else-if="featuredFormulas.length === 0">
+              <div class="formulas-empty">
+                <t-icon name="edit" size="28px" />
+                <p>还没有配方</p>
+                <t-button theme="primary" size="small" @click="router.push('/formulas/new')">创建配方</t-button>
+              </div>
+            </template>
+            <template v-else>
+              <div v-for="formula in featuredFormulas" :key="formula.id" class="formula-card"
+                @click="router.push(`/formulas/${formula.id}`)">
+                <div class="formula-color-bar" :style="{ background: getFormulaGradient(formula) }" />
+                <div class="formula-info">
+                  <span class="formula-name">{{ formula.name }}</span>
+                  <span class="formula-meta">{{ formula.salesmanName || '--' }} · {{ formula.materials?.length || 0 }}
+                    种原料</span>
+                </div>
+                <svg class="formula-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
+              </div>
+            </template>
+          </div>
+        </section>
         <!-- 图表卡片 -->
         <section class="bento-card bento-chart">
           <div class="card-header">
@@ -232,7 +231,7 @@
           </div>
         </section>
       </div>
-    </template>
+    </div>
   </div>
 </template>
 
@@ -246,7 +245,6 @@ import { formatCompact } from "@/utils/timeFormat";
 import * as echarts from "echarts";
 import ApprovalCard from "@/components/dashboard/ApprovalCard.vue";
 import { useApprovalStore } from "@/stores/approval";
-import QuickFormulaPanel from "./quick-formula/QuickFormulaPanel.vue";
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -254,7 +252,6 @@ const dashboardStore = useDashboardStore();
 const formulaStore = useFormulaStore();
 const approvalStore = useApprovalStore();
 
-const showQuickFormula = ref(false);
 
 const isAdmin = computed(() => authStore.user?.role === "admin");
 
@@ -572,9 +569,9 @@ onMounted(async () => {
     formulaStore.fetchFormulas();
   }
   if (isAdmin.value) {
-    approvalStore.fetchPendingReviews();
+    approvalStore.fetchPendingReviews({ page: 1 });
   } else {
-    approvalStore.fetchMySubmissions();
+    approvalStore.fetchMySubmissions({ page: 1 });
   }
   await nextTick();
   if (!isDomReady()) return;
@@ -604,8 +601,7 @@ onUnmounted(() => {
 
 .bento-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  grid-template-rows: auto;
+  grid-template-columns: 6fr 4fr;
   gap: 16px;
 }
 
@@ -628,9 +624,10 @@ onUnmounted(() => {
 
 .bento-grid__col {
   display: flex;
+  flex-direction: column;
+  gap: 16px;
 
   &--left {
-    grid-column: span 2;
     min-height: 560px;
 
     .bento-card {
@@ -639,14 +636,16 @@ onUnmounted(() => {
   }
 
   &--right {
-    grid-column: span 2;
-    flex-direction: column;
-    gap: 16px;
-
     .bento-card {
-      flex: 1;
+      width: 100%;
     }
   }
+}
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
 }
 
 .bento-stat {
@@ -699,8 +698,6 @@ onUnmounted(() => {
 }
 
 .bento-chart {
-  grid-column: 3 / 5;
-
   .chart-body {
     height: 220px;
     margin-top: 12px;
@@ -819,8 +816,6 @@ onUnmounted(() => {
 }
 
 .bento-activity {
-  grid-column: 1 / 3;
-
   .activity-body {
     margin-top: 12px;
     display: flex;
@@ -965,7 +960,7 @@ onUnmounted(() => {
     gap: var(--space-2-5);
 
     &--formulist {
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(2, 1fr);
     }
   }
 
@@ -1142,24 +1137,20 @@ onUnmounted(() => {
 
 @media screen and (max-width: 1200px) {
   .bento-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: 1fr;
   }
 
   .bento-grid__col--left,
   .bento-grid__col--right {
-    grid-column: 1 / -1;
+    min-height: auto;
   }
 
   .bento-grid__col--left {
     min-height: 440px;
   }
 
-  .bento-chart {
-    grid-column: 2 / 3;
-  }
-
-  .bento-activity {
-    grid-column: 1 / 2;
+  .stat-grid {
+    grid-template-columns: repeat(4, 1fr);
   }
 }
 
@@ -1169,18 +1160,16 @@ onUnmounted(() => {
     gap: 12px;
   }
 
+  .stat-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
   .bento-stat {
     grid-column: 1 !important;
   }
 
-  .bento-chart,
-  .bento-activity {
-    grid-column: 1;
-  }
-
   .bento-grid__col--left,
   .bento-grid__col--right {
-    grid-column: 1;
     min-height: auto;
   }
 

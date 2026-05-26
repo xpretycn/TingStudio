@@ -749,6 +749,36 @@ function runAutoMigrations(dbInstance: Database.Database) {
 
   ensureTable(
     dbInstance,
+    "quick_formulas",
+    `
+    CREATE TABLE quick_formulas (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'draft' CHECK(status IN ('draft', 'published')),
+      ratio_factor REAL NOT NULL DEFAULT 0.18,
+      supplement_ratio_factor REAL NOT NULL DEFAULT 1.0,
+      finished_weight REAL NOT NULL DEFAULT 0,
+      materials_json TEXT NOT NULL DEFAULT '[]',
+      packaging_price REAL NOT NULL DEFAULT 0,
+      other_price REAL NOT NULL DEFAULT 0,
+      profit_margin REAL NOT NULL DEFAULT 20,
+      description TEXT DEFAULT NULL,
+      preparation_method TEXT DEFAULT NULL,
+      salesman_id TEXT DEFAULT NULL,
+      salesman_name TEXT DEFAULT NULL,
+      created_by TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+    CREATE INDEX IF NOT EXISTS idx_qf_name ON quick_formulas(name);
+    CREATE INDEX IF NOT EXISTS idx_qf_status ON quick_formulas(status);
+    CREATE INDEX IF NOT EXISTS idx_qf_created_by ON quick_formulas(created_by);
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_qf_name_user ON quick_formulas(name, created_by)
+    `,
+  );
+
+  ensureTable(
+    dbInstance,
     "agent_provider_health",
     `
     CREATE TABLE agent_provider_health (

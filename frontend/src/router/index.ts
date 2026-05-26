@@ -101,7 +101,7 @@ const router = createRouter({
         {
           path: "formulas/quick",
           name: "QuickFormula",
-          component: () => import("@/views/dashboard/quick-formula/QuickFormulaPanel.vue"),
+          component: () => import("@/views/formulas/quick-formula/QuickFormulaPanel.vue"),
           meta: { title: "快速录入", hideHeader: true, fullBleed: true, extraBottom: true },
         },
         {

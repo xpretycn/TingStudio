@@ -51,7 +51,7 @@ export interface ReviewedItem {
 }
 
 export const approvalApi = {
-  getMySubmissions(params?: { page?: number; pageSize?: number }) {
+  getMySubmissions(params?: { page?: number; pageSize?: number; keyword?: string; status?: string }) {
     return http.get<unknown, { list: ApprovalItem[]; pagination: Pagination }>("/versions/my-submissions", { params })
   },
 
@@ -59,7 +59,7 @@ export const approvalApi = {
     return http.get<unknown, { list: PendingReviewItem[]; pagination: Pagination }>("/versions/pending-review", { params })
   },
 
-  getReviewedHistory(params?: { page?: number; pageSize?: number }) {
+  getReviewedHistory(params?: { page?: number; pageSize?: number; keyword?: string; action?: string }) {
     return http.get<unknown, { list: ReviewedItem[]; pagination: Pagination }>("/versions/reviewed-by-me", { params })
   },
 

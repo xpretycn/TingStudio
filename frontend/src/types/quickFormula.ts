@@ -53,3 +53,30 @@ export interface TemplateListParams {
   page?: number
   pageSize?: number
 }
+
+export interface QuickFormulaItem {
+  id: string
+  name: string
+  status: 'draft' | 'published'
+  ratioFactor: number
+  supplementRatioFactor: number
+  finishedWeight: number
+  materials: QuickFormulaMaterial[]
+  packagingPrice: number
+  otherPrice: number
+  profitMargin: number
+  description: string | null
+  preparationMethod: string | null
+  salesmanId: string | null
+  salesmanName: string | null
+  createdBy: string
+  createdByName: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface PublishData {
+  salesmanId: string
+  description: string
+  preparationMethod?: string
+}

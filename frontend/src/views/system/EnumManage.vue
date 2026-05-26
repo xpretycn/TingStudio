@@ -30,21 +30,23 @@
                 v-html="currentCategory.iconPath"></svg>
               <h4 class="section-title-text">{{ currentCategory.label }}管理</h4>
             </div>
-            <span class="section-title-count">共 {{ currentList.length }} 项</span>
-            <div v-if="currentList.length > PAGE_SIZE" class="activity-nav">
-              <button class="activity-nav-btn" :disabled="currentPage <= 1" @click="pagePrev" title="上一页">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                  stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="15 18 9 12 15 6" />
-                </svg>
-              </button>
-              <span class="activity-nav-page">{{ currentPage }} / {{ totalPages }}</span>
-              <button class="activity-nav-btn" :disabled="currentPage >= totalPages" @click="pageNext" title="下一页">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                  stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="9 18 15 12 9 6" />
-                </svg>
-              </button>
+            <div class="section-header-right">
+              <span class="section-title-count">共 {{ currentList.length }} 项</span>
+              <div v-if="currentList.length > 0" class="activity-nav">
+                <button class="activity-nav-btn" :disabled="currentPage <= 1" @click="pagePrev" title="上一页">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="15 18 9 12 15 6" />
+                  </svg>
+                </button>
+                <span class="activity-nav-page">{{ currentPage }} / {{ totalPages }}</span>
+                <button class="activity-nav-btn" :disabled="currentPage >= totalPages" @click="pageNext" title="下一页">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="9 18 15 12 9 6" />
+                  </svg>
+                </button>
+              </div>
             </div>
           </div>
 
@@ -443,6 +445,13 @@ const handleToggleActive = async (item: EnumOption, newActive: boolean) => {
       font-weight: 600;
       color: var(--color-text-primary);
     }
+  }
+
+  .section-header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-left: auto;
   }
 
   .section-title-count {

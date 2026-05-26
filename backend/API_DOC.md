@@ -3218,3 +3218,196 @@
 | `action`    | string | 操作：`submit` / `approve` / `reject` / `publish`       |
 | `comment`   | string | 审批意见                                                |
 | `createdAt` | string | 操作时间                                                |
+
+---
+
+## 二十三、快速配方 `/api/quick-formulas`
+
+所有接口需认证。admin 可见全部数据，formulist 仅见自己创建的数据。
+
+### 23.1 获取快速配方列表
+
+**GET** `/api/quick-formulas`
+
+需认证。返回分页列表，admin 可见全部，formulist 仅见自己创建的。
+
+#### 请求参数（Query）
+
+| 参数       | 类型   | 必填 | 说明         |
+| ---------- | ------ | ---- | ------------ |
+| `keyword`  | string | 否   | 搜索配方名称 |
+| `page`     | number | 否   | 页码（默认 1）|
+| `pageSize` | number | 否   | 每页数量（默认 20）|
+
+#### 响应字段
+
+| 字段                       | 类型   | 说明                        |
+| -------------------------- | ------ | --------------------------- |
+| `id`                       | string | 快速配方 ID                 |
+| `name`                     | string | 配方名称                    |
+| `status`                   | string | 状态：`draft` / `published` |
+| `ratioFactor`              | number | 主料含量比系数（0.15-0.25） |
+| `supplementRatioFactor`    | number | 辅料含量比系数（0.5-1.5）   |
+| `finishedWeight`           | number | 成品重量                    |
+| `materials`                | array  | 原料列表（JSON 解析后）     |
+| `packagingPrice`           | number | 包装价格（元）              |
+| `otherPrice`               | number | 其他价格（元）              |
+| `profitMargin`             | number | 利润率（%）                 |
+| `description`              | string | 描述                        |
+| `preparationMethod`        | string | 制法                        |
+| `salesmanId`               | string | 业务员 ID                   |
+| `salesmanName`             | string | 业务员名称                  |
+| `createdBy`                | string | 创建人 ID                   |
+| `createdAt`                | string | 创建时间                    |
+| `updatedAt`                | string | 更新时间                    |
+
+### 23.2 获取快速配方详情
+
+**GET** `/api/quick-formulas/:id`
+
+需认证。formulist 只能查看自己创建的快速配方。
+
+#### 路径参数
+
+| 参数 | 类型   | 说明         |
+| ---- | ------ | ------------ |
+| `id` | string | 快速配方 ID  |
+
+#### 错误码
+
+| HTTP 状态码 | 错误码         | 说明             |
+| ----------- | -------------- | ---------------- |
+| 404         | `NOT_FOUND`    | 快速配方不存在   |
+| 403         | `FORBIDDEN`    | 无权查看该配方   |
+
+### 23.3 创建快速配方
+
+**POST** `/api/quick-formulas`
+
+需认证。创建草稿状态的快速配方，默认值：ratioFactor=0.18, supplementRatioFactor=1.0, profitMargin=20。
+
+#### 请求体
+
+| 字段   | 类型   | 必填 | 约束               | 说明         |
+| ------ | ------ | ---- | ------------------ | ------------ |
+| `name` | string | 是   | 1-100 字符         | 配方名称     |
+
+#### 响应
+
+返回创建的快速配方对象（含默认值），HTTP 状态码 201。
+
+#### 错误码
+
+| HTTP 状态码 | 错误码            | 说明                 |
+| ----------- | ----------------- | -------------------- |
+| 409         | `DUPLICATE_ENTRY` | 配方名称已存在        |
+
+### 23.4 更新快速配方
+
+**PUT** `/api/quick-formulas/:id`
+
+需认证。仅 `draft` 状态可更新。formulist 只能修改自己创建的快速配方。
+
+#### 路径参数
+
+| 参数 | 类型   | 说明         |
+| ---- | ------ | ------------ |
+| `id` | string | 快速配方 ID  |
+
+#### 请求体
+
+| 字段                    | 类型   | 必填 | 约束               | 说明                    |
+| ----------------------- | ------ | ---- | ------------------ | ----------------------- |
+| `name`                  | string | 否   | 1-100 字符         | 配方名称                |
+| `ratioFactor`           | number | 否   | 0.15-0.25          | 主料含量比系数          |
+| `supplementRatioFactor` | number | 否   | 0.5-1.5            | 辅料含量比系数          |
+| `finishedWeight`        | number | 否   | —                  | 成品重量                |
+| `materials`             | array  | 否   | 至少 1 种原料       | 原料列表                |
+| `packagingPrice`        | number | 否   | —                  | 包装价格（元）          |
+| `otherPrice`            | number | 否   | —                  | 其他价格（元）          |
+| `profitMargin`          | number | 否   | —                  | 利润率（%）             |
+| `description`           | string | 否   | —                  | 描述                    |
+| `preparationMethod`     | string | 否   | —                  | 制法                    |
+| `salesmanId`            | string | 否   | —                  | 业务员 ID               |
+| `salesmanName`          | string | 否   | —                  | 业务员名称              |
+
+#### 错误码
+
+| HTTP 状态码 | 错误码            | 说明                     |
+| ----------- | ----------------- | ------------------------ |
+| 404         | `NOT_FOUND`       | 快速配方不存在            |
+| 403         | `FORBIDDEN`       | 无权修改该配方            |
+| 400         | `VALIDATION_ERROR`| 非草稿状态不可修改        |
+| 409         | `DUPLICATE_ENTRY` | 修改后名称重复            |
+
+### 23.5 删除快速配方
+
+**DELETE** `/api/quick-formulas/:id`
+
+需认证。formulist 只能删除自己创建的快速配方。
+
+#### 路径参数
+
+| 参数 | 类型   | 说明         |
+| ---- | ------ | ------------ |
+| `id` | string | 快速配方 ID  |
+
+#### 错误码
+
+| HTTP 状态码 | 错误码      | 说明             |
+| ----------- | ----------- | ---------------- |
+| 404         | `NOT_FOUND` | 快速配方不存在   |
+| 403         | `FORBIDDEN` | 无权删除该配方   |
+
+### 23.6 发布快速配方为正式配方
+
+**POST** `/api/quick-formulas/:id/publish`
+
+需认证。将草稿快速配方发布为正式配方，自动生成配方编码和版本记录。formulist 只能发布自己创建的快速配方。
+
+#### 路径参数
+
+| 参数 | 类型   | 说明         |
+| ---- | ------ | ------------ |
+| `id` | string | 快速配方 ID  |
+
+#### 请求体
+
+| 字段               | 类型   | 必填 | 说明     |
+| ------------------ | ------ | ---- | -------- |
+| `salesmanId`       | string | 是   | 业务员 ID|
+| `description`      | string | 是   | 配方描述 |
+| `preparationMethod`| string | 否   | 制法     |
+
+#### 响应
+
+```json
+{
+  "success": true,
+  "message": "快速配方发布成功",
+  "data": {
+    "formulaId": "uuid",
+    "versionId": "uuid",
+    "quickFormulaStatus": "published"
+  }
+}
+```
+
+#### 发布流程
+
+1. 校验快速配方存在且为 `draft` 状态
+2. 校验 salesmanId 在 salesmen 表中存在
+3. 合并快速配方数据与发布参数
+4. 生成配方编码（`generateFormulaCode`）
+5. INSERT INTO `formulas` — 创建正式配方
+6. INSERT INTO `formula_versions` — 创建初始版本（admin 直接 published，formulist 为 draft）
+7. UPDATE `quick_formulas` SET status = 'published'
+8. 返回 formulaId、versionId、quickFormulaStatus
+
+#### 错误码
+
+| HTTP 状态码 | 错误码            | 说明                     |
+| ----------- | ----------------- | ------------------------ |
+| 404         | `NOT_FOUND`       | 快速配方不存在            |
+| 403         | `FORBIDDEN`       | 无权发布该配方            |
+| 400         | `VALIDATION_ERROR`| 非草稿状态不可发布        |

@@ -104,10 +104,31 @@ async function getLatestSubmitLog(versionId: string): Promise<any> {
 
 export async function getMySubmissions(params: {
   userId: string;
+  keyword?: string;
+  status?: string;
   page: number;
   pageSize: number;
 }): Promise<{ list: any[]; pagination: any }> {
-  const { userId, page, pageSize } = params;
+  const { userId, keyword, status, page, pageSize } = params;
+  const conditions: string[] = ["fv.created_by = ?"];
+  const queryParams: any[] = [userId];
+
+  if (keyword) {
+    conditions.push("(f.name LIKE ? OR fv.version_name LIKE ?)");
+    const like = `%${keyword}%`;
+    queryParams.push(like, like);
+  }
+
+  if (status) {
+    if (status === "rejected") {
+      conditions.push("rl.action = 'reject'");
+    } else {
+      conditions.push("fv.status = ?");
+      queryParams.push(status);
+    }
+  }
+
+  const whereClause = "WHERE " + conditions.join(" AND ");
   const offset = (page - 1) * pageSize;
 
   const [dataResult]: any[] = await query(
@@ -125,15 +146,24 @@ export async function getMySubmissions(params: {
          FROM formula_review_logs GROUP BY version_id
        ) rl2 ON rl1.version_id = rl2.version_id AND rl1.created_at = rl2.max_created
      ) rl ON rl.version_id = fv.version_id
-     WHERE fv.created_by = ?
+     ${whereClause}
      ORDER BY fv.created_at DESC
      LIMIT ? OFFSET ?`,
-    [userId, pageSize, offset]
+    [...queryParams, pageSize, offset]
   );
 
   const [countResult]: any[] = await query(
-    "SELECT COUNT(*) as total FROM formula_versions WHERE created_by = ?",
-    [userId]
+    `SELECT COUNT(*) as total FROM formula_versions fv
+     JOIN formulas f ON f.id = fv.formula_id
+     LEFT JOIN (
+       SELECT rl1.* FROM formula_review_logs rl1
+       INNER JOIN (
+         SELECT version_id, MAX(created_at) AS max_created
+         FROM formula_review_logs GROUP BY version_id
+       ) rl2 ON rl1.version_id = rl2.version_id AND rl1.created_at = rl2.max_created
+     ) rl ON rl.version_id = fv.version_id
+     ${whereClause}`,
+    queryParams
   );
 
   const list = (dataResult || []).map((row: any) => ({
@@ -165,10 +195,29 @@ export async function getMySubmissions(params: {
 
 export async function getReviewedByMe(params: {
   reviewerId: string;
+  keyword?: string;
+  action?: string;
   page: number;
   pageSize: number;
 }): Promise<{ list: any[]; pagination: any }> {
-  const { reviewerId, page, pageSize } = params;
+  const { reviewerId, keyword, action, page, pageSize } = params;
+  const conditions: string[] = ["rl.reviewer_id = ?"];
+  const queryParams: any[] = [reviewerId];
+
+  if (action) {
+    conditions.push("rl.action = ?");
+    queryParams.push(action);
+  } else {
+    conditions.push("rl.action IN ('approve', 'reject')");
+  }
+
+  if (keyword) {
+    conditions.push("f.name LIKE ?");
+    const like = `%${keyword}%`;
+    queryParams.push(like);
+  }
+
+  const whereClause = "WHERE " + conditions.join(" AND ");
   const offset = (page - 1) * pageSize;
 
   const [dataResult]: any[] = await query(
@@ -182,16 +231,18 @@ export async function getReviewedByMe(params: {
      JOIN formula_versions fv ON rl.version_id = fv.version_id
      JOIN formulas f ON fv.formula_id = f.id
      LEFT JOIN users u ON fv.created_by = u.id
-     WHERE rl.reviewer_id = ? AND rl.action IN ('approve', 'reject')
+     ${whereClause}
      ORDER BY rl.created_at DESC
      LIMIT ? OFFSET ?`,
-    [reviewerId, pageSize, offset]
+    [...queryParams, pageSize, offset]
   );
 
   const [countResult]: any[] = await query(
-    `SELECT COUNT(*) as total FROM formula_review_logs
-     WHERE reviewer_id = ? AND action IN ('approve', 'reject')`,
-    [reviewerId]
+    `SELECT COUNT(*) as total FROM formula_review_logs rl
+     JOIN formula_versions fv ON rl.version_id = fv.version_id
+     JOIN formulas f ON fv.formula_id = f.id
+     ${whereClause}`,
+    queryParams
   );
 
   const list = (dataResult || []).map((row: any) => ({

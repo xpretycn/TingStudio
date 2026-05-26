@@ -5,7 +5,7 @@ import { parseResultApi } from '@/api/parseResult';
 import { ratioThresholdApi } from '@/api/ratioThreshold';
 import type { RatioThresholdConfig } from '@/api/ratioThreshold';
 import { useAuthStore } from '@/stores/auth';
-import EnumManage from '@/views/settings/EnumManage.vue';
+import EnumManage from '@/views/system/EnumManage.vue';
 
 const authStore = useAuthStore();
 const isAdmin = computed(() => authStore.user?.role === 'admin');

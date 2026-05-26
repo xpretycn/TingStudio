@@ -10,7 +10,7 @@
 
 ## 一、数据库概览
 
-系统共包含 **44 张表**，分为 16 个功能模块：
+系统共包含 **45 张表**，分为 17 个功能模块：
 
 | 模块           | 表数量 | 表名                                                                                                   |
 | -------------- | ------ | ------------------------------------------------------------------------------------------------------ |
@@ -31,6 +31,7 @@
 | 含量比配置     | 1      | ratio_threshold_configs                                                                                |
 | 枚举管理       | 1      | enum_options                                                                 |
 | 配方模板       | 1      | formula_templates                                                            |
+| 快速配方       | 1      | quick_formulas                                                               |
 
 ---
 
@@ -1473,6 +1474,51 @@
 
 ---
 
+### 2.45 快速配方表 `quick_formulas`
+
+存储快速配方草稿，用于高效创建配方。发布后状态变更为 `published`，同时生成正式配方记录。
+
+| 字段                      | 类型    | 约束                                   | 说明                        |
+| ------------------------- | ------- | -------------------------------------- | --------------------------- |
+| `id`                      | TEXT    | PRIMARY KEY                            | 快速配方 ID                 |
+| `name`                    | TEXT    | NOT NULL                               | 配方名称                    |
+| `status`                  | TEXT    | NOT NULL, DEFAULT 'draft'              | 状态：`draft` / `published` |
+| `ratio_factor`            | REAL    | NOT NULL, DEFAULT 0.18                 | 主料含量比系数（0.15-0.25） |
+| `supplement_ratio_factor` | REAL    | NOT NULL, DEFAULT 1.0                  | 辅料含量比系数（0.5-1.5）   |
+| `finished_weight`         | REAL    | NOT NULL, DEFAULT 0                    | 成品重量                    |
+| `materials_json`          | TEXT    | NOT NULL, DEFAULT '[]'                 | 原料列表 JSON               |
+| `packaging_price`         | REAL    | NOT NULL, DEFAULT 0                    | 包装价格（元）              |
+| `other_price`             | REAL    | NOT NULL, DEFAULT 0                    | 其他价格（元）              |
+| `profit_margin`           | REAL    | NOT NULL, DEFAULT 20                   | 利润率（%）                 |
+| `description`             | TEXT    | DEFAULT NULL                           | 描述                        |
+| `preparation_method`      | TEXT    | DEFAULT NULL                           | 制法                        |
+| `salesman_id`             | TEXT    | DEFAULT NULL                           | 业务员 ID                   |
+| `salesman_name`           | TEXT    | DEFAULT NULL                           | 业务员名称                  |
+| `created_by`              | TEXT    | NOT NULL                               | 创建人                      |
+| `created_at`              | TEXT    | NOT NULL                               | 创建时间                    |
+| `updated_at`              | TEXT    | NOT NULL                               | 更新时间                    |
+
+**索引**：
+
+- `idx_qf_name`：按配方名称
+- `idx_qf_status`：按状态
+- `idx_qf_created_by`：按创建人
+- `idx_qf_name_user`：按名称+创建人（UNIQUE）
+
+**`materials_json` 结构**：
+
+同 `formulas.materials_json`，格式为 `[{ materialId, materialName, quantity, adjustedPrice? }]`
+
+**业务含义**：
+
+- `name`：配方名称，同一用户下不可重复（UNIQUE INDEX `idx_qf_name_user`）
+- `status`：`draft` 可编辑/删除/发布，`published` 不可再修改
+- `materials_json`：原料列表，发布时原样写入 `formulas.materials_json`
+- 发布流程：快速配方 → 生成配方编码 → INSERT `formulas` + `formula_versions` → UPDATE `quick_formulas` SET status = 'published'
+- admin 可见全部快速配方，formulist 仅可见自己创建的
+
+---
+
 ## 三、ER 关系图（文字描述）
 
 ```
@@ -1571,6 +1617,11 @@ enum_options
 
 formula_templates
   └── N:1 → users (created_by)
+
+quick_formulas
+  ├── N:1 → users (created_by)
+  ├── N:1 → salesmen (salesman_id)
+  └── 发布时生成 → formulas + formula_versions
 ```
 
 ---
@@ -1619,6 +1670,7 @@ formula_templates
 | ratio_threshold_configs    | 0          | 含量比阈值（运行时配置）         |
 | enum_options              | 0          | 枚举选项（运行时配置）           |
 | formula_templates         | 0          | 配方模板（运行时配置）           |
+| quick_formulas            | 0          | 快速配方（运行时创建）           |
 
 ---
 
@@ -1680,3 +1732,4 @@ formula_templates
 | agent_messages           | role                    | IN ('user', 'assistant', 'system', 'tool')                        |
 | parse_templates          | category                | IN ('formula', 'nutrition', 'general')                            |
 | enum_options              | category              | IN ('appearance', 'taste', 'efficacy') |
+| quick_formulas            | status                | IN ('draft', 'published')              |

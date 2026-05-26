@@ -419,8 +419,10 @@ export async function getPendingReviews(req: any, res: Response) {
       return
     }
 
-    const page = parseInt(req.query.page as string) || 1
-    const pageSize = Math.min(parseInt(req.query.pageSize as string) || 20, 100)
+    const rawPage = Number(req.query.page) || 1
+    const rawPageSize = Number(req.query.pageSize) || 20
+    const page = rawPage > 0 ? rawPage : 1
+    const pageSize = Math.min(rawPageSize > 0 ? rawPageSize : 20, 100)
     const keyword = req.query.keyword as string | undefined
 
     const result = await getPendingReviewList({ keyword, page, pageSize })
@@ -435,8 +437,13 @@ export async function getPendingReviews(req: any, res: Response) {
 export async function getMySubmissionList(req: any, res: Response) {
   try {
     const userId = req.user?.userId || req.user?.id
-    const { page = 1, pageSize = 20 } = req.query
-    const result = await getMySubmissions({ userId, page: Number(page), pageSize: Number(pageSize) })
+    const rawPage = Number(req.query.page) || 1
+    const rawPageSize = Number(req.query.pageSize) || 20
+    const safePage = rawPage > 0 ? rawPage : 1
+    const safePageSize = Math.min(rawPageSize > 0 ? rawPageSize : 20, 100)
+    const keyword = req.query.keyword as string | undefined
+    const status = req.query.status as string | undefined
+    const result = await getMySubmissions({ userId, keyword, status, page: safePage, pageSize: safePageSize })
     res.json(success(result))
   } catch (error: any) {
     console.error("[VersionController] getMySubmissionList Error:", error)
@@ -447,8 +454,13 @@ export async function getMySubmissionList(req: any, res: Response) {
 export async function getReviewedHistory(req: any, res: Response) {
   try {
     const reviewerId = req.user?.userId || req.user?.id
-    const { page = 1, pageSize = 20 } = req.query
-    const result = await getReviewedByMe({ reviewerId, page: Number(page), pageSize: Number(pageSize) })
+    const rawPage = Number(req.query.page) || 1
+    const rawPageSize = Number(req.query.pageSize) || 20
+    const safePage = rawPage > 0 ? rawPage : 1
+    const safePageSize = Math.min(rawPageSize > 0 ? rawPageSize : 20, 100)
+    const keyword = req.query.keyword as string | undefined
+    const action = req.query.action as string | undefined
+    const result = await getReviewedByMe({ reviewerId, keyword, action, page: safePage, pageSize: safePageSize })
     res.json(success(result))
   } catch (error: any) {
     console.error("[VersionController] getReviewedHistory Error:", error)

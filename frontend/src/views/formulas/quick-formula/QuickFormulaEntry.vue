@@ -5,13 +5,17 @@ import type { QuickFormulaDraft } from "@/types/quickFormula"
 
 const quickFormulaStore = useQuickFormulaStore()
 
+const emit = defineEmits<{
+  start: [name: string]
+}>()
+
 const formulaName = ref("")
 const draft = ref<QuickFormulaDraft | null>(null)
 
 function handleStart() {
   const name = formulaName.value.trim()
   if (!name) return
-  quickFormulaStore.enterEditing(name)
+  emit("start", name)
 }
 
 function handleRestoreDraft() {
@@ -43,21 +47,9 @@ onMounted(() => {
       <p class="entry-desc">输入配方名称，开始快速录入原料和营养数据</p>
 
       <div class="entry-form">
-        <t-input
-          v-model="formulaName"
-          placeholder="请输入本次配方名称"
-          size="large"
-          clearable
-          :maxlength="50"
-          @keydown.enter="handleStart"
-        />
-        <t-button
-          theme="primary"
-          size="large"
-          block
-          :disabled="!formulaName.trim()"
-          @click="handleStart"
-        >
+        <t-input v-model="formulaName" placeholder="请输入本次配方名称" size="large" clearable :maxlength="50"
+          @keydown.enter="handleStart" />
+        <t-button theme="primary" size="large" block :disabled="!formulaName.trim()" @click="handleStart">
           <template #icon><t-icon name="play-circle" /></template>
           开始编辑
         </t-button>

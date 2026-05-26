@@ -9,6 +9,8 @@ const router = useRouter()
 const store = useApprovalStore()
 const activeTab = ref("all")
 const moduleTab = ref("formula")
+const searchKeyword = ref("")
+const searchTimer = ref<ReturnType<typeof setTimeout> | null>(null)
 
 const statusMap: Record<string, { label: string; theme: string }> = {
   pending_review: { label: "待审核", theme: "warning" },
@@ -43,19 +45,6 @@ function progressStep(status: string): number {
   return 0
 }
 
-const formulaFilteredList = computed(() => {
-  const list = store.mySubmissions
-  if (activeTab.value === "all") return list
-  if (activeTab.value === "rejected") return list.filter((i) => i.latestReview?.action === "reject")
-  if (activeTab.value === "draft") return list.filter((i) => i.status === "draft" && i.latestReview?.action !== "reject")
-  return list.filter((i) => i.status === activeTab.value)
-})
-
-const pendingCount = computed(() => store.mySubmissions.filter((i) => i.status === "pending_review").length)
-const approvedCount = computed(() => store.mySubmissions.filter((i) => i.status === "published").length)
-const rejectedCount = computed(() => store.mySubmissions.filter((i) => i.latestReview?.action === "reject").length)
-const formulaDraftCount = computed(() => store.mySubmissions.filter((i) => i.status === "draft" && i.latestReview?.action !== "reject").length)
-
 const expandedItems = ref<Set<string>>(new Set())
 
 function toggleExpand(versionId: string) {
@@ -76,23 +65,6 @@ function toggleMaterialExpand(materialId: string) {
   }
 }
 
-const materialFilteredList = computed(() => {
-  const list = store.myMaterialSubmissions
-  if (activeTab.value === "all") return list
-  if (activeTab.value === "rejected") {
-    return list.filter((i) => i.latestReview?.action === "reject")
-  }
-  if (activeTab.value === "draft") {
-    return list.filter((i) => i.status === "draft" && i.latestReview?.action !== "reject")
-  }
-  return list.filter((i) => i.status === activeTab.value)
-})
-
-const materialDraftCount = computed(() => store.myMaterialSubmissions.filter((i) => i.status === "draft" && i.latestReview?.action !== "reject").length)
-const materialPendingCount = computed(() => store.myMaterialSubmissions.filter((i) => i.status === "pending_review").length)
-const materialApprovedCount = computed(() => store.myMaterialSubmissions.filter((i) => i.status === "published").length)
-const materialRejectedCount = computed(() => store.myMaterialSubmissions.filter((i) => i.latestReview?.action === "reject").length)
-
 function goMaterial(materialId: string) {
   router.push(`/materials/${materialId}/versions`)
 }
@@ -105,20 +77,66 @@ function getMaterialTypeLabel(type: string): string {
   return type === "supplement" ? "辅料" : "药材"
 }
 
+function getFilterStatus(): string | undefined {
+  if (activeTab.value === "all") return undefined
+  if (activeTab.value === "rejected") return "rejected"
+  return activeTab.value
+}
+
+function fetchCurrentData() {
+  const keyword = searchKeyword.value.trim() || undefined
+  const status = getFilterStatus()
+  if (moduleTab.value === "formula") {
+    store.fetchMySubmissions({ keyword, status, page: 1 })
+  } else {
+    store.fetchMyMaterialSubmissions({ keyword, status, page: 1 })
+  }
+}
+
+function onSearchInput() {
+  if (searchTimer.value) clearTimeout(searchTimer.value)
+  searchTimer.value = setTimeout(() => {
+    fetchCurrentData()
+  }, 300)
+}
+
+function toPage(val: unknown): number {
+  if (typeof val === "number") return val
+  if (val && typeof val === "object" && "current" in val) return (val as { current: number }).current
+  return 1
+}
+
+function onFormulaPageChange(val: unknown) {
+  const page = toPage(val)
+  const keyword = searchKeyword.value.trim() || undefined
+  const status = getFilterStatus()
+  store.fetchMySubmissions({ keyword, status, page })
+}
+
+function onMaterialPageChange(val: unknown) {
+  const page = toPage(val)
+  const keyword = searchKeyword.value.trim() || undefined
+  const status = getFilterStatus()
+  store.fetchMyMaterialSubmissions({ keyword, status, page })
+}
+
+const formulaTotalPages = computed(() => Math.ceil(store.myTotal / store.myPageSize))
+const materialTotalPages = computed(() => Math.ceil(store.myMaterialTotal / store.myMaterialPageSize))
+
 onMounted(() => {
-  store.fetchMySubmissions()
-  store.fetchMyMaterialSubmissions()
+  store.fetchMySubmissions({ page: 1 })
+  store.fetchMyMaterialSubmissions({ page: 1 })
 })
 
 watch(moduleTab, () => {
   activeTab.value = "all"
-  store.fetchMySubmissions()
-  store.fetchMyMaterialSubmissions()
+  searchKeyword.value = ""
+  store.fetchMySubmissions({ page: 1 })
+  store.fetchMyMaterialSubmissions({ page: 1 })
 })
 
 watch(activeTab, () => {
-  store.fetchMySubmissions()
-  store.fetchMyMaterialSubmissions()
+  fetchCurrentData()
 })
 </script>
 
@@ -127,30 +145,39 @@ watch(activeTab, () => {
     <div class="my-approval__module-tabs">
       <t-tabs v-model="moduleTab" size="medium">
         <t-tab-panel value="formula" label="配方审批" />
-        <t-tab-panel value="material" :label="`原料审批 (${store.myMaterialSubmissions.length})`" />
+        <t-tab-panel value="material" :label="`原料审批 (${store.myMaterialTotal})`" />
       </t-tabs>
+    </div>
+
+    <div class="my-approval__search">
+      <t-input v-model="searchKeyword" placeholder="搜索名称..." clearable size="small" @input="onSearchInput"
+        @clear="fetchCurrentData">
+        <template #prefix-icon>
+          <t-icon name="search" />
+        </template>
+      </t-input>
     </div>
 
     <template v-if="moduleTab === 'formula'">
       <div class="my-approval__tabs">
         <t-tabs v-model="activeTab" size="medium">
-          <t-tab-panel value="all" :label="`全部 (${store.mySubmissions.length})`" />
-          <t-tab-panel value="draft" :label="`草稿 (${formulaDraftCount})`" />
-          <t-tab-panel value="pending_review" :label="`待审核 (${pendingCount})`" />
-          <t-tab-panel value="published" :label="`已通过 (${approvedCount})`" />
-          <t-tab-panel value="rejected" :label="`已驳回 (${rejectedCount})`" />
+          <t-tab-panel value="all" :label="`全部 (${store.myTotal})`" />
+          <t-tab-panel value="draft" label="草稿" />
+          <t-tab-panel value="pending_review" label="待审核" />
+          <t-tab-panel value="published" label="已通过" />
+          <t-tab-panel value="rejected" label="已驳回" />
         </t-tabs>
       </div>
 
       <t-loading :loading="store.loading" size="small">
-        <div v-if="formulaFilteredList.length === 0" class="my-approval__empty">
+        <div v-if="store.mySubmissions.length === 0" class="my-approval__empty">
           <t-icon name="inbox" size="48px" />
           <p>暂无审批记录</p>
           <span>提交配方后，审批状态将在此显示</span>
         </div>
 
         <div v-else class="my-approval__list">
-          <div v-for="item in formulaFilteredList" :key="item.versionId" class="my-approval__item">
+          <div v-for="item in store.mySubmissions" :key="item.versionId" class="my-approval__item">
             <div class="my-approval__item-header">
               <div class="my-approval__item-info">
                 <router-link :to="`/versions/formula/${item.formulaId}`" class="my-approval__item-name">
@@ -218,29 +245,34 @@ watch(activeTab, () => {
             </div>
           </div>
         </div>
+
+        <div v-if="store.myTotal > store.myPageSize" class="my-approval__pagination">
+          <t-pagination :current="store.myPage" :page-size="store.myPageSize" :total="store.myTotal" size="small"
+            :total-content="false" @current-change="onFormulaPageChange" />
+        </div>
       </t-loading>
     </template>
 
     <template v-if="moduleTab === 'material'">
       <div class="my-approval__tabs">
         <t-tabs v-model="activeTab" size="medium">
-          <t-tab-panel value="all" :label="`全部 (${store.myMaterialSubmissions.length})`" />
-          <t-tab-panel value="draft" :label="`草稿 (${materialDraftCount})`" />
-          <t-tab-panel value="pending_review" :label="`待审核 (${materialPendingCount})`" />
-          <t-tab-panel value="published" :label="`已通过 (${materialApprovedCount})`" />
-          <t-tab-panel value="rejected" :label="`已驳回 (${materialRejectedCount})`" />
+          <t-tab-panel value="all" :label="`全部 (${store.myMaterialTotal})`" />
+          <t-tab-panel value="draft" label="草稿" />
+          <t-tab-panel value="pending_review" label="待审核" />
+          <t-tab-panel value="published" label="已通过" />
+          <t-tab-panel value="rejected" label="已驳回" />
         </t-tabs>
       </div>
 
       <t-loading :loading="store.myMaterialLoading" size="small">
-        <div v-if="materialFilteredList.length === 0" class="my-approval__empty">
+        <div v-if="store.myMaterialSubmissions.length === 0" class="my-approval__empty">
           <t-icon name="inbox" size="48px" />
           <p>暂无原料审批记录</p>
           <span>创建原料后，可在此提交审批</span>
         </div>
 
         <div v-else class="my-approval__list">
-          <div v-for="item in materialFilteredList" :key="item.id" class="my-approval__item">
+          <div v-for="item in store.myMaterialSubmissions" :key="item.id" class="my-approval__item">
             <div class="my-approval__item-header">
               <div class="my-approval__item-info">
                 <a class="my-approval__item-name" @click="goMaterial(item.id)">
@@ -308,6 +340,12 @@ watch(activeTab, () => {
             </div>
           </div>
         </div>
+
+        <div v-if="store.myMaterialTotal > store.myMaterialPageSize" class="my-approval__pagination">
+          <t-pagination :current="store.myMaterialPage" :page-size="store.myMaterialPageSize"
+            :total="store.myMaterialTotal" size="small" :total-content="false"
+            @current-change="onMaterialPageChange" />
+        </div>
       </t-loading>
     </template>
   </div>
@@ -318,6 +356,10 @@ watch(activeTab, () => {
   &__module-tabs {
     margin-bottom: 4px;
     --td-brand-color: var(--color-primary);
+  }
+
+  &__search {
+    margin-bottom: 12px;
   }
 
   &__tabs {
@@ -510,23 +552,11 @@ watch(activeTab, () => {
     margin: 0;
   }
 
-  &__section {
-    margin-top: 16px;
-    padding-top: 16px;
-    border-top: 1px dashed var(--td-component-border);
-  }
-
-  &__section-header {
+  &__pagination {
     display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 12px;
-  }
-
-  &__section-title {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--td-text-color-secondary);
+    justify-content: center;
+    margin-top: 12px;
+    padding-top: 8px;
   }
 }
 </style>

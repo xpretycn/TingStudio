@@ -29,20 +29,34 @@ export const useApprovalStore = defineStore("approval", () => {
   const loading = ref(false)
   const pendingCount = ref(0)
   const myTotal = ref(0)
+  const myPage = ref(1)
+  const myPageSize = ref(10)
   const pendingTotal = ref(0)
+  const pendingPage = ref(1)
+  const pendingPageSize = ref(10)
   const reviewedTotal = ref(0)
+  const reviewedPage = ref(1)
+  const reviewedPageSize = ref(10)
   const materialPendingReviews = ref<Material[]>([])
   const materialPendingCount = ref(0)
+  const materialPendingPage = ref(1)
+  const materialPendingPageSize = ref(10)
   const myMaterialSubmissions = ref<MyMaterialItem[]>([])
   const myMaterialLoading = ref(false)
   const myMaterialTotal = ref(0)
+  const myMaterialPage = ref(1)
+  const myMaterialPageSize = ref(10)
 
-  async function fetchMySubmissions(page = 1, pageSize = 50) {
+  async function fetchMySubmissions(params?: { page?: number; pageSize?: number; keyword?: string; status?: string }) {
     loading.value = true
     try {
-      const data = await approvalApi.getMySubmissions({ page, pageSize })
+      const page = params?.page ?? myPage.value
+      const pageSize = params?.pageSize ?? myPageSize.value
+      const data = await approvalApi.getMySubmissions({ page, pageSize, keyword: params?.keyword, status: params?.status })
       mySubmissions.value = data.list
       myTotal.value = data.pagination.total
+      myPage.value = data.pagination.page
+      myPageSize.value = data.pagination.pageSize
     } catch {
       mySubmissions.value = []
     } finally {
@@ -50,13 +64,17 @@ export const useApprovalStore = defineStore("approval", () => {
     }
   }
 
-  async function fetchPendingReviews(page = 1, pageSize = 50) {
+  async function fetchPendingReviews(params?: { page?: number; pageSize?: number; keyword?: string }) {
     loading.value = true
     try {
-      const data = await approvalApi.getPendingReviews({ page, pageSize })
+      const page = params?.page ?? pendingPage.value
+      const pageSize = params?.pageSize ?? pendingPageSize.value
+      const data = await approvalApi.getPendingReviews({ page, pageSize, keyword: params?.keyword })
       pendingReviews.value = data.list
       pendingCount.value = data.pagination.total
       pendingTotal.value = data.pagination.total
+      pendingPage.value = data.pagination.page
+      pendingPageSize.value = data.pagination.pageSize
     } catch {
       pendingReviews.value = []
       pendingCount.value = 0
@@ -65,12 +83,16 @@ export const useApprovalStore = defineStore("approval", () => {
     }
   }
 
-  async function fetchReviewedHistory(page = 1, pageSize = 50) {
+  async function fetchReviewedHistory(params?: { page?: number; pageSize?: number; keyword?: string; action?: string }) {
     loading.value = true
     try {
-      const data = await approvalApi.getReviewedHistory({ page, pageSize })
+      const page = params?.page ?? reviewedPage.value
+      const pageSize = params?.pageSize ?? reviewedPageSize.value
+      const data = await approvalApi.getReviewedHistory({ page, pageSize, keyword: params?.keyword, action: params?.action })
       reviewedHistory.value = data.list
       reviewedTotal.value = data.pagination.total
+      reviewedPage.value = data.pagination.page
+      reviewedPageSize.value = data.pagination.pageSize
     } catch {
       reviewedHistory.value = []
       reviewedTotal.value = 0
@@ -89,11 +111,15 @@ export const useApprovalStore = defineStore("approval", () => {
     await fetchPendingReviews()
   }
 
-  async function fetchMaterialPendingReviews(page = 1, pageSize = 50) {
+  async function fetchMaterialPendingReviews(params?: { page?: number; pageSize?: number; keyword?: string }) {
     try {
-      const data = await materialApi.getPendingReviews({ page, pageSize })
+      const page = params?.page ?? materialPendingPage.value
+      const pageSize = params?.pageSize ?? materialPendingPageSize.value
+      const data = await materialApi.getPendingReviews({ page, pageSize, keyword: params?.keyword })
       materialPendingReviews.value = data.list || []
       materialPendingCount.value = data.pagination?.total || 0
+      materialPendingPage.value = data.pagination?.page ?? page
+      materialPendingPageSize.value = data.pagination?.pageSize ?? pageSize
     } catch {
       materialPendingReviews.value = []
       materialPendingCount.value = 0
@@ -112,10 +138,12 @@ export const useApprovalStore = defineStore("approval", () => {
     await fetchPendingReviews()
   }
 
-  async function fetchMyMaterialSubmissions(page = 1, pageSize = 100) {
+  async function fetchMyMaterialSubmissions(params?: { page?: number; pageSize?: number; keyword?: string; status?: string }) {
     myMaterialLoading.value = true
     try {
-      const data = await materialApi.getList({ page, pageSize })
+      const page = params?.page ?? myMaterialPage.value
+      const pageSize = params?.pageSize ?? myMaterialPageSize.value
+      const data = await materialApi.getList({ page, pageSize, keyword: params?.keyword, status: params?.status, scope: "mine" })
       const ownedMaterials = (data.list || []).filter((m: Material) => m.isOwner)
 
       const items: MyMaterialItem[] = await Promise.all(
@@ -154,7 +182,9 @@ export const useApprovalStore = defineStore("approval", () => {
       )
 
       myMaterialSubmissions.value = items
-      myMaterialTotal.value = items.length
+      myMaterialTotal.value = data.pagination?.total ?? items.length
+      myMaterialPage.value = data.pagination?.page ?? page
+      myMaterialPageSize.value = data.pagination?.pageSize ?? pageSize
     } catch {
       myMaterialSubmissions.value = []
       myMaterialTotal.value = 0
@@ -175,13 +205,23 @@ export const useApprovalStore = defineStore("approval", () => {
     loading,
     pendingCount,
     myTotal,
+    myPage,
+    myPageSize,
     pendingTotal,
+    pendingPage,
+    pendingPageSize,
     reviewedTotal,
+    reviewedPage,
+    reviewedPageSize,
     materialPendingReviews,
     materialPendingCount,
+    materialPendingPage,
+    materialPendingPageSize,
     myMaterialSubmissions,
     myMaterialLoading,
     myMaterialTotal,
+    myMaterialPage,
+    myMaterialPageSize,
     fetchMySubmissions,
     fetchPendingReviews,
     fetchReviewedHistory,

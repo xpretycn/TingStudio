@@ -95,6 +95,11 @@
                 <t-input id="formula-search-input" v-model="searchKeyword" class="search-input"
                   placeholder="搜索配方名称、编号..." clearable aria-label="按配方名称或编号搜索" data-testid="formula-search" />
               </div>
+              <button class="quick-formula-btn" @click="router.push('/formulas/quick')" aria-label="快速录入配方"
+                data-testid="quick-formula-btn">
+                <t-icon name="edit-1" class="quick-icon" />
+                快速录入
+              </button>
               <button class="add-formula-btn" @click="handleCreate" aria-label="创建新配方" data-testid="formula-add-btn">
                 <t-icon name="add" class="add-icon" />
                 创建新配方
@@ -796,7 +801,7 @@ const formatVersionTime = (timeStr: string): string => {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
 };
 
-const parseChanges = (changesJson: string): Array<{ field: string; fieldLabel?: string; [key: string]: unknown }> => {
+const parseChanges = (changesJson: string): Array<{ field: string; fieldLabel?: string;[key: string]: unknown }> => {
   try {
     const arr = JSON.parse(changesJson);
     return Array.isArray(arr) ? arr : [];
@@ -2758,6 +2763,42 @@ const getSalesQuantity = (row: Formula): number => {
           color: var(--color-text-placeholder);
         }
       }
+    }
+  }
+
+  // 快速录入按钮 - 与创建新配方按钮视觉一致，使用品牌色区分
+  .quick-formula-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background-color: var(--color-primary);
+    color: white;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all $transition-fast;
+    box-shadow: 0 4px 6px rgba(16, 185, 129, 0.25);
+    border: none;
+    cursor: pointer;
+
+    &:hover {
+      filter: brightness(1.05);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 10px rgba(16, 185, 129, 0.3);
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+
+    .quick-icon {
+      font-size: 18px;
+      transition: transform 0.2s;
+    }
+
+    &:hover .quick-icon {
+      transform: scale(1.1);
     }
   }
 

@@ -115,6 +115,10 @@
               </div>
               <div class="material-details">
                 <p class="material-name">{{ row.name }}</p>
+                <t-tag :theme="row.materialType === 'supplement' ? 'primary' : 'success'" variant="light" size="small"
+                  shape="round" class="material-type-tag">
+                  {{ row.materialType === 'supplement' ? '辅料' : '药材' }}
+                </t-tag>
               </div>
             </div>
           </template>
@@ -145,25 +149,21 @@
               <span class="creator-name">{{ row.createdByName || row.createdBy || '--' }}</span>
             </div>
           </template>
-          <!-- 原料类型 -->
-          <template #materialType="{ row }">
-            <t-tag :theme="row.materialType === 'supplement' ? 'primary' : 'success'" variant="light" size="small"
-              shape="round">
-              {{ row.materialType === 'supplement' ? '辅料' : '药材' }}
-            </t-tag>
-          </template>
           <!-- 性状 -->
           <template #appearance="{ row }">
             <div v-if="row.appearance?.length" class="tag-cell">
-              <t-tag v-for="(item, idx) in row.appearance.slice(0, 3)" :key="idx" size="small" theme="primary" variant="light">{{ item }}</t-tag>
-              <t-tag v-if="row.appearance.length > 3" size="small" theme="default">+{{ row.appearance.length - 3 }}</t-tag>
+              <t-tag v-for="(item, idx) in row.appearance.slice(0, 3)" :key="idx" size="small" theme="primary"
+                variant="light">{{ item }}</t-tag>
+              <t-tag v-if="row.appearance.length > 3" size="small" theme="default">+{{ row.appearance.length - 3
+              }}</t-tag>
             </div>
             <span v-else class="text-muted">--</span>
           </template>
           <!-- 口感 -->
           <template #taste="{ row }">
             <div v-if="row.taste?.length" class="tag-cell">
-              <t-tag v-for="(item, idx) in row.taste.slice(0, 3)" :key="idx" size="small" theme="success" variant="light">{{ item }}</t-tag>
+              <t-tag v-for="(item, idx) in row.taste.slice(0, 3)" :key="idx" size="small" theme="success"
+                variant="light">{{ item }}</t-tag>
               <t-tag v-if="row.taste.length > 3" size="small" theme="default">+{{ row.taste.length - 3 }}</t-tag>
             </div>
             <span v-else class="text-muted">--</span>
@@ -171,7 +171,8 @@
           <!-- 功效 -->
           <template #efficacy="{ row }">
             <div v-if="row.efficacy?.length" class="tag-cell">
-              <t-tag v-for="(item, idx) in row.efficacy.slice(0, 3)" :key="idx" size="small" theme="warning" variant="light">{{ item }}</t-tag>
+              <t-tag v-for="(item, idx) in row.efficacy.slice(0, 3)" :key="idx" size="small" theme="warning"
+                variant="light">{{ item }}</t-tag>
               <t-tag v-if="row.efficacy.length > 3" size="small" theme="default">+{{ row.efficacy.length - 3 }}</t-tag>
             </div>
             <span v-else class="text-muted">--</span>
@@ -182,10 +183,6 @@
             <t-tag v-else-if="row.status === 'pending_review'" theme="warning" variant="light" size="small">待审批</t-tag>
             <t-tag v-else-if="row.status === 'published'" theme="success" variant="light" size="small">已发布</t-tag>
             <t-tag v-else theme="default" variant="light" size="small">{{ row.status || '草稿' }}</t-tag>
-          </template>
-          <!-- 库存 -->
-          <template #stock="{ row }">
-            <span class="stock-value" :class="{ 'stock-low': row.stock < 50 }">{{ row.stock }} {{ row.unit }}</span>
           </template>
           <!-- 创建时间 -->
           <template #createdAt="{ row }">
@@ -224,7 +221,7 @@
                     :class="{ 'nutrition-item--highlight': isHighlightNutrient(key) }">
                     <label class="nutri-label">{{ getNutrientLabel(key) }}</label>
                     <span class="nutri-value">{{ val }}<small class="nutri-unit">{{ getNutrientUnit(key)
-                    }}</small></span>
+                        }}</small></span>
                     <div class="nutri-bar-track">
                       <div class="nutri-bar-fill" :style="{ width: getNutrientPercent(val, key) + '%' }"></div>
                     </div>
@@ -256,37 +253,57 @@
           </template>
 
           <template #operation="{ row }">
-            <div class="action-buttons" role="group" aria-label="原料操作">
-              <button class="action-btn view-btn" @click.stop="handleViewVersions(row)" title="版本历史"
-                :aria-label="`查看${row.name}的版本历史`">
-                <t-icon name="layers" />
-              </button>
-              <button v-if="row.status === 'draft' && (row.isOwner || isAdmin)" class="action-btn submit-btn"
-                @click.stop="handleSubmitReview(row)" title="提交审批" :aria-label="`提交${row.name}审批`">
-                <t-icon name="upload" />
-              </button>
-              <button v-if="row.status === 'pending_review' && isAdmin" class="action-btn approve-btn"
-                @click.stop="handleApprove(row)" title="通过" :aria-label="`通过${row.name}`">
-                <t-icon name="check" />
-              </button>
-              <button v-if="row.status === 'pending_review' && isAdmin" class="action-btn reject-btn"
-                @click.stop="handleOpenReject(row)" title="驳回" :aria-label="`驳回${row.name}`">
-                <t-icon name="close" />
-              </button>
-              <button v-if="row.status === 'published' && (row.isOwner || isAdmin)" class="action-btn edit-btn"
-                @click.stop="handleEdit(row)" title="编辑" :aria-label="`编辑原料${row.name}`">
-                <t-icon name="edit-1" />
-              </button>
-              <button v-if="row.status === 'draft' && (row.isOwner || isAdmin)" class="action-btn edit-btn"
-                @click.stop="handleEdit(row)" title="编辑" :aria-label="`编辑原料${row.name}`">
-                <t-icon name="edit-1" />
-              </button>
-              <t-popconfirm v-if="isAdmin" theme="danger" :content="`确定要删除原料「${row.name}」吗？`"
-                @confirm="handleDelete(row)">
-                <button class="action-btn delete-btn" title="删除" :aria-label="`删除原料${row.name}`" @click.stop>
-                  <t-icon name="delete" />
+            <div class="action-cell" role="group" aria-label="原料操作">
+              <template v-if="getRowActions(row).length === 1">
+                <button class="action-btn" :class="getRowActions(row)[0].btnClass"
+                  @click.stop="getRowActions(row)[0].handler(row)" :title="getRowActions(row)[0].label"
+                  :aria-label="getRowActions(row)[0].label">
+                  <t-icon :name="getRowActions(row)[0].icon" />
                 </button>
-              </t-popconfirm>
+              </template>
+              <t-popup v-else trigger="hover" placement="bottom-right" :popup-props="{ appendToBody: true }">
+                <button class="action-dropdown-btn" @click.stop title="操作" :aria-label="`操作原料${row.name}`">
+                  <t-icon name="more" />
+                </button>
+                <template #content>
+                  <div class="action-menu">
+                    <div v-for="action in getRowActions(row)" :key="action.key"
+                      :class="['action-menu-item', action.menuClass]" @click="action.handler(row)">
+                      <svg v-if="action.key === 'viewVersions'" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="1 4 1 10 7 10" />
+                        <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
+                      </svg>
+                      <svg v-else-if="action.key === 'submitReview'" width="14" height="14" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                        <polyline points="22 4 12 14.01 9 11.01" />
+                      </svg>
+                      <svg v-else-if="action.key === 'approve'" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                        stroke="#2ba471" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                      <svg v-else-if="action.key === 'reject'" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                        stroke="var(--color-danger)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                      </svg>
+                      <svg v-else-if="action.key === 'edit'" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                      </svg>
+                      <svg v-else-if="action.key === 'delete'" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                        stroke="var(--color-danger)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="3 6 5 6 21 6" />
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2" />
+                      </svg>
+                      <span>{{ action.label }}</span>
+                    </div>
+                  </div>
+                </template>
+              </t-popup>
             </div>
           </template>
         </t-table>
@@ -646,7 +663,6 @@ const applySort = () => {
     name: (a, b) => a.name.localeCompare(b.name, 'zh'),
     materialType: (a, b) => (a.materialType || '').localeCompare(b.materialType || ''),
     unitPrice: (a, b) => (a.unitPrice ?? 0) - (b.unitPrice ?? 0),
-    stock: (a, b) => (a.stock || 0) - (b.stock || 0),
     createdAt: (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
   };
 
@@ -780,15 +796,13 @@ const columns = computed(() => [
   { colKey: 'version', title: '版本', width: 110, align: 'center' },
   { colKey: 'status', title: '状态', width: 100, align: 'center' },
   { colKey: 'createdByName', title: '创建人', width: 130, align: 'center' },
-  { colKey: 'materialType', title: sortTitle('类型', 'materialType'), width: 100, align: 'center' },
   { colKey: 'appearance', title: '性状', width: 160, align: 'center' },
   { colKey: 'taste', title: '口感', width: 160, align: 'center' },
   { colKey: 'efficacy', title: '功效', width: 180, align: 'center' },
   { colKey: 'unitPrice', title: sortTitle('单价(元/kg)', 'unitPrice'), width: 120, align: 'center' },
   { colKey: 'nutrition', title: '营养', width: 110, align: 'center' },
-  { colKey: 'stock', title: sortTitle('库存', 'stock'), width: 100, align: 'center' },
   { colKey: 'createdAt', title: sortTitle('创建时间', 'createdAt'), width: 160 },
-  { colKey: 'operation', title: '操作', width: 180, align: 'center', className: 'operation-col-center' }
+  { colKey: 'operation', title: '操作', width: 80, align: 'center', className: 'operation-col-center' }
 ]);
 
 const pagination = computed(() => ({
@@ -1147,6 +1161,91 @@ const handleViewVersions = (row: Material) => {
   router.push({
     path: `/materials/${row.id}/versions`,
     query: route.query
+  });
+};
+
+interface RowAction {
+  key: string;
+  label: string;
+  icon: string;
+  btnClass: string;
+  menuClass: string;
+  handler: (row: Material) => void;
+}
+
+const getRowActions = (row: Material): RowAction[] => {
+  const actions: RowAction[] = [];
+
+  actions.push({
+    key: 'viewVersions',
+    label: '版本历史',
+    icon: 'layers',
+    btnClass: 'view-btn',
+    menuClass: '',
+    handler: handleViewVersions,
+  });
+
+  if (row.status === 'draft' && (row.isOwner || isAdmin.value)) {
+    actions.push({
+      key: 'submitReview',
+      label: '提交审批',
+      icon: 'upload',
+      btnClass: 'submit-btn',
+      menuClass: 'action-menu-item--publish',
+      handler: handleSubmitReview,
+    });
+  }
+
+  if (row.status === 'pending_review' && isAdmin.value) {
+    actions.push({
+      key: 'approve',
+      label: '通过',
+      icon: 'check',
+      btnClass: 'approve-btn',
+      menuClass: 'action-menu-item--publish',
+      handler: handleApprove,
+    });
+    actions.push({
+      key: 'reject',
+      label: '驳回',
+      icon: 'close',
+      btnClass: 'reject-btn',
+      menuClass: 'action-menu-item--danger',
+      handler: handleOpenReject,
+    });
+  }
+
+  if ((row.status === 'published' || row.status === 'draft') && (row.isOwner || isAdmin.value)) {
+    actions.push({
+      key: 'edit',
+      label: '编辑',
+      icon: 'edit-1',
+      btnClass: 'edit-btn',
+      menuClass: '',
+      handler: handleEdit,
+    });
+  }
+
+  if (isAdmin.value) {
+    actions.push({
+      key: 'delete',
+      label: '删除',
+      icon: 'delete',
+      btnClass: 'delete-btn',
+      menuClass: 'action-menu-item--danger',
+      handler: (r: Material) => { handleDeleteWithConfirm(r); },
+    });
+  }
+
+  return actions;
+};
+
+const handleDeleteWithConfirm = (row: Material) => {
+  MessagePlugin.confirm({
+    header: '确认删除',
+    body: `确定要删除原料「${row.name}」吗？`,
+    confirmBtn: { content: '确认删除', theme: 'danger' },
+    onConfirm: () => handleDelete(row),
   });
 };
 
@@ -1854,11 +1953,20 @@ const handleStatusFilterChange = () => {
   }
 
   .material-details {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+
     .material-name {
       font-weight: 600;
       color: var(--color-text-primary);
       font-size: 13px;
-      margin: 0 0 1px 0;
+      margin: 0;
+      line-height: 1.3;
+    }
+
+    .material-type-tag {
+      width: fit-content;
     }
   }
 
@@ -1934,17 +2042,6 @@ const handleStatusFilterChange = () => {
 }
 
 // 库存值
-.stock-value {
-  font-family: ui-monospace, SFMono-Regular, 'Cascadia Code', monospace;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--color-text-primary);
-
-  &.stock-low {
-    color: var(--color-danger);
-  }
-}
-
 .mat-price-cell {
   display: inline-block;
   text-align: center;
@@ -1986,12 +2083,11 @@ const handleStatusFilterChange = () => {
   justify-content: center;
 }
 
-// 操作按钮
-.action-buttons {
+// 操作列
+.action-cell {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 8px;
 
   .action-btn {
     width: 32px;
@@ -2050,6 +2146,71 @@ const handleStatusFilterChange = () => {
 
     .t-icon {
       font-size: 18px;
+    }
+  }
+}
+
+.action-dropdown-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  color: var(--color-text-secondary);
+  transition: all 0.2s ease;
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    background: var(--color-bg-page);
+    border-color: var(--color-border);
+    color: var(--color-text-primary);
+  }
+
+  .t-icon {
+    font-size: 16px;
+  }
+}
+
+.action-menu {
+  min-width: 130px;
+  padding: 4px 0;
+
+  .action-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    font-size: 13px;
+    color: var(--color-text-primary);
+    cursor: pointer;
+    transition: background 0.15s;
+    white-space: nowrap;
+
+    &:hover {
+      background: #f1f5f9;
+    }
+
+    svg {
+      flex-shrink: 0;
+    }
+  }
+
+  .action-menu-item--danger {
+    color: #e34d59;
+
+    &:hover {
+      background: #fff1f0;
+    }
+  }
+
+  .action-menu-item--publish {
+    color: #2ba471;
+
+    &:hover {
+      background: #e8f8f2;
     }
   }
 }
@@ -2809,7 +2970,7 @@ const handleStatusFilterChange = () => {
 }
 
 .material-list .operation-col-center>div,
-.material-list .action-buttons {
+.material-list .action-cell {
   display: flex !important;
   justify-content: center !important;
   align-items: center !important;

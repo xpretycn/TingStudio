@@ -1,4 +1,4 @@
-# TingStudio v2.33.0
+# TingStudio v2.34.0
 
 食品配方工作数据管理平台 — 前后端分离架构
 
@@ -191,9 +191,9 @@ TingStudio/
 │   │   │   ├── ai/                   # AI 助手工作台 + 智能工具 + 总览
 │   │   │   │   └── tabs/             # 配方解析/原料导入/数据检索/解析历史
 │   │   │   ├── auth/                 # 登录/注册（含动画角色 AnimatedCharacters/EyeBall/Pupil）
-│   │   │   ├── dashboard/            # 工作台仪表盘 + 快速配方录入
-│   │   │   │   └── quick-formula/    # 快速配方（8个组件）
-│   │   │   ├── formulas/             # 配方管理（列表/表单/详情/对比）
+│   │   │   ├── dashboard/            # 工作台仪表盘
+│   │   │   ├── formulas/             # 配方管理（列表/表单/详情/对比/快速录入）
+│   │   │   │   ├── quick-formula/    # 快速配方（9个组件）
 │   │   │   │   └── versions/         # 配方版本管理（列表/对比）
 │   │   │   ├── materials/            # 原料管理（列表/表单/详情/版本/版本对比）
 │   │   │   ├── salesmen/             # 业务员管理（列表/表单/详情）
@@ -248,7 +248,7 @@ TingStudio/
 | **🔐 权限系统** | JWT 认证、角色控制（admin/formulist）、数据隔离 |
 | **📁 版本管理** | 版本快照、版本对比（含量/报价双模式）、变更追踪 |
 | **⚙️ 账号设置** | 个人资料管理（昵称/头像/简介/邮箱/手机号） |
-| **⚡ 快速配方** | 快速配方录入面板、原料池多维度筛选（类型/性状/口感/功效）、配方仪表盘、实时营养计算、草稿保存、模板管理 |
+| **⚡ 快速配方** | 快速配方录入面板、可折叠侧边栏（自动收起）、原料池多维度筛选（类型/性状/口感/功效）、配方仪表盘、实时营养计算、草稿保存、发布为正式配方、模板管理 |
 | **🏷️ 枚举管理** | 原料枚举字段管理（性状/口感/功效）、选项增删改、排序、启用/禁用 |
 | **📐 配方模板** | 配方模板 CRUD、快速创建配方、模板复用 |
 
@@ -331,25 +331,29 @@ npx tsx src/scripts/restoreDatabase.ts    # 恢复数据库
 
 新增快速配方录入功能，提供高效的配方创建工作流：
 
-**前端组件（8个）**：
+**前端组件（9个）**：
 
 | 文件 | 说明 |
 |------|------|
 | QuickFormulaEntry.vue | 快速配方入口页 |
 | QuickFormulaPanel.vue | 快速配方面板（全屏布局，隐藏顶栏） |
+| QuickFormulaSidebar.vue | 可折叠侧边栏（草稿列表/已发布列表/新建） |
 | FormulaDashboard.vue | 配方仪表盘（营养成分卡片 + 成本核算卡片） |
 | FormulaWorkspace.vue | 配方工作区（原料列表 + 操作按钮） |
 | FormulaEditor.vue | 配方编辑器 |
 | MaterialPool.vue | 原料池（多维度筛选：类型/性状/口感/功效） |
 | MaterialFish.vue | 原料项组件 |
+| PublishDrawer.vue | 发布抽屉（选择业务员/填写描述/发布为正式配方） |
 | TemplateManager.vue | 模板管理器 |
 
 **核心特性**：
 - 🎯 **全屏面板**：独立路由 `/formulas/quick`，隐藏系统顶栏，最大化工作区域
+- 📂 **可折叠侧边栏**：草稿/已发布列表切换，失焦自动收起，折叠后显示右箭头展开按钮
 - 🔍 **多维度筛选**：原料池支持 4 组筛选条件协同工作（类型单选 + 性状/口感/功效多选）
 - 📊 **实时计算**：配方仪表盘实时显示营养成分和成本核算
-- 💾 **草稿保存**：自动保存配方草稿到 localStorage
-- 📐 **灵活布局**：仪表盘与工作区 4.5:5.5 比例分配
+- 💾 **草稿保存**：自动保存配方草稿到数据库
+- 🚀 **发布为正式配方**：草稿配方可一键发布为正式配方，自动生成配方编码和版本记录
+- 📐 **灵活布局**：仪表盘内容自适应高度 + 工作区填充剩余空间
 - 🎨 **毛玻璃头部**：磨砂玻璃效果面板头部
 
 **新增文件**：
@@ -357,8 +361,29 @@ npx tsx src/scripts/restoreDatabase.ts    # 恢复数据库
 | 文件 | 说明 |
 |------|------|
 | [quickFormula.ts (store)](frontend/src/stores/quickFormula.ts) | 快速配方 Pinia Store |
+| [quickFormulaList.ts (store)](frontend/src/stores/quickFormulaList.ts) | 快速配方列表 Pinia Store |
 | [quickFormula.ts (types)](frontend/src/types/quickFormula.ts) | 类型定义 |
-| [formulaTemplate.ts (api)](frontend/src/api/formulaTemplate.ts) | 配方模板 API 客户端 |
+| [quickFormula.ts (api)](frontend/src/api/quickFormula.ts) | 快速配方 API 客户端 |
+| [quickFormulaService.ts](backend/src/services/quickFormulaService.ts) | 快速配方 Service 层 |
+| [quickFormulaController.ts](backend/src/controllers/quickFormulaController.ts) | 快速配方控制器 |
+| [quickFormulas.ts (route)](backend/src/routes/quickFormulas.ts) | 快速配方路由 |
+
+**新增数据库表**：
+
+| 表名 | 说明 |
+|------|------|
+| quick_formulas | 快速配方草稿表（draft/published 双状态） |
+
+**新增 API 端点**：
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/api/quick-formulas` | 获取快速配方列表 |
+| GET | `/api/quick-formulas/:id` | 获取快速配方详情 |
+| POST | `/api/quick-formulas` | 创建快速配方 |
+| PUT | `/api/quick-formulas/:id` | 更新快速配方 |
+| DELETE | `/api/quick-formulas/:id` | 删除快速配方 |
+| POST | `/api/quick-formulas/:id/publish` | 发布为正式配方 |
 
 ***
 
@@ -461,8 +486,12 @@ materials 表新增 3 个枚举 JSON 字段：
 | 文件 | 改动类型 | 说明 |
 |------|----------|------|
 | [quickFormula.ts (store)](frontend/src/stores/quickFormula.ts) | 新增 | 快速配方状态管理 |
+| [quickFormulaList.ts (store)](frontend/src/stores/quickFormulaList.ts) | 新增 | 快速配方列表状态管理 |
 | [quickFormula.ts (types)](frontend/src/types/quickFormula.ts) | 新增 | 类型定义 |
-| [formulaTemplate.ts (api)](frontend/src/api/formulaTemplate.ts) | 新增 | 配方模板 API |
+| [quickFormula.ts (api)](frontend/src/api/quickFormula.ts) | 新增 | 快速配方 API 客户端 |
+| [quickFormulaService.ts](backend/src/services/quickFormulaService.ts) | 新增 | 快速配方 Service 层 |
+| [quickFormulaController.ts](backend/src/controllers/quickFormulaController.ts) | 新增 | 快速配方控制器 |
+| [quickFormulas.ts (route)](backend/src/routes/quickFormulas.ts) | 新增 | 快速配方路由 |
 | [enum.ts (store)](frontend/src/stores/enum.ts) | 新增 | 枚举状态管理 |
 | [enum.ts (api)](frontend/src/api/enum.ts) | 新增 | 枚举 API |
 | [enumController.ts](backend/src/controllers/enumController.ts) | 新增 | 枚举控制器 |
@@ -470,12 +499,13 @@ materials 表新增 3 个枚举 JSON 字段：
 | [enums.ts (route)](backend/src/routes/enums.ts) | 新增 | 枚举路由 |
 | [formulaTemplateController.ts](backend/src/controllers/formulaTemplateController.ts) | 新增 | 配方模板控制器 |
 | [formulaTemplates.ts (route)](backend/src/routes/formulaTemplates.ts) | 新增 | 配方模板路由 |
-| [QuickFormulaPanel.vue](frontend/src/views/dashboard/quick-formula/QuickFormulaPanel.vue) | 新增 | 快速配方面板 |
-| [FormulaDashboard.vue](frontend/src/views/dashboard/quick-formula/FormulaDashboard.vue) | 新增 | 配方仪表盘 |
-| [MaterialPool.vue](frontend/src/views/dashboard/quick-formula/MaterialPool.vue) | 新增 | 原料池（多维度筛选） |
+| [QuickFormulaPanel.vue](frontend/src/views/formulas/quick-formula/QuickFormulaPanel.vue) | 新增 | 快速配方面板 |
+| [QuickFormulaSidebar.vue](frontend/src/views/formulas/quick-formula/QuickFormulaSidebar.vue) | 新增 | 可折叠侧边栏 |
+| [FormulaDashboard.vue](frontend/src/views/formulas/quick-formula/FormulaDashboard.vue) | 新增 | 配方仪表盘 |
+| [MaterialPool.vue](frontend/src/views/formulas/quick-formula/MaterialPool.vue) | 新增 | 原料池（多维度筛选） |
 | [router/index.ts](frontend/src/router/index.ts) | 功能增强 | 新增快速配方路由 |
 | [Home.vue](frontend/src/views/Home.vue) | 功能增强 | 快速配方全屏布局支持 |
-| [database-better-sqlite3.ts](backend/src/config/database-better-sqlite3.ts) | 新增表 | enum_options + formula_templates |
+| [database-better-sqlite3.ts](backend/src/config/database-better-sqlite3.ts) | 新增表 | enum_options + formula_templates + quick_formulas |
 
 ---
 
