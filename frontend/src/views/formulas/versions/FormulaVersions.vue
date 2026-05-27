@@ -124,16 +124,21 @@
                       @change="toggleSelect(ver.versionId)" />
                     <span class="tl-checkbox-text">加入对比</span>
                   </label>
-                  <t-popconfirm v-if="ver.status === 'draft'"
-                    :content="isAdmin ? '确定要直接发布该版本吗？发布后将替换当前配方。' : '确定要提交审批吗？提交后需等待管理员审核。'"
-                    @confirm="handlePublish(ver)">
-                    <button class="tl-publish-btn" @click.stop>
-                      <t-icon name="send" size="12px" />
-                      {{ isAdmin ? '发布' : '提交审批' }}
+                  <div class="tl-card-actions">
+                    <button v-if="ver.status === 'draft'" class="tl-edit-btn"
+                      @click.stop="router.push(`/formulas/${formulaId}/edit`)">
+                      <t-icon name="edit" size="12px" />
+                      编辑
                     </button>
-                  </t-popconfirm>
-                  <template v-else-if="ver.status === 'pending_review' && isAdmin">
-                    <div class="tl-card-actions">
+                    <t-popconfirm v-if="ver.status === 'draft'"
+                      :content="isAdmin ? '确定要直接发布该版本吗？发布后将替换当前配方。' : '确定要提交审批吗？提交后需等待管理员审核。'"
+                      @confirm="handlePublish(ver)">
+                      <button class="tl-publish-btn" @click.stop>
+                        <t-icon name="send" size="12px" />
+                        {{ isAdmin ? '发布' : '提交审批' }}
+                      </button>
+                    </t-popconfirm>
+                    <template v-if="ver.status === 'pending_review' && isAdmin">
                       <t-popconfirm content="确定要批准该版本吗？批准后将替换当前配方。" @confirm="handlePublish(ver)">
                         <button class="tl-publish-btn" @click.stop>
                           <t-icon name="check" size="12px" />
@@ -144,16 +149,16 @@
                         <t-icon name="close" size="12px" />
                         驳回
                       </button>
-                    </div>
-                  </template>
-                  <span v-else-if="ver.status === 'pending_review' && !isAdmin" class="tl-status-hint">
-                    <t-icon name="time" size="12px" />
-                    审批中
-                  </span>
-                  <span v-else-if="ver.status === 'published'" class="tl-status-hint tl-status-published">
-                    <t-icon name="check-circle" size="12px" />
-                    已发布
-                  </span>
+                    </template>
+                    <span v-if="ver.status === 'pending_review' && !isAdmin" class="tl-status-hint">
+                      <t-icon name="time" size="12px" />
+                      审批中
+                    </span>
+                    <span v-if="ver.status === 'published'" class="tl-status-hint tl-status-published">
+                      <t-icon name="check-circle" size="12px" />
+                      已发布
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1538,6 +1543,27 @@ onMounted(async () => {
 
     &:hover .tl-checkbox-text {
       color: $text-secondary;
+    }
+  }
+
+  .tl-edit-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border: 1px solid $border-color;
+    border-radius: $radius-pill;
+    background: transparent;
+    color: $text-secondary;
+    font-size: 11px;
+    font-weight: $font-weight-medium;
+    cursor: pointer;
+    transition: all $transition-fast;
+
+    &:hover {
+      border-color: var(--color-primary-lighter);
+      color: var(--color-primary);
+      background: var(--color-primary-bg);
     }
   }
 

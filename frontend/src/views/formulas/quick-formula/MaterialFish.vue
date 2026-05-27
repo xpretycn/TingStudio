@@ -246,8 +246,8 @@ watch(
 .fish-body {
   display: inline-flex;
   align-items: center;
-  gap: $space-1-5;
-  padding: $space-1 $space-3;
+  gap: $space-1;
+  padding: $space-0-5 $space-2;
   border-radius: $radius-pill;
   transition: all $transition-fast;
 
@@ -268,21 +268,22 @@ watch(
 }
 
 .fish-name {
-  font-size: $font-size-body-sm;
+  font-size: $font-size-caption;
   font-weight: $font-weight-medium;
   color: $text-primary;
-  max-width: 80px;
+  max-width: 60px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .fish-type {
-  font-size: $font-size-micro;
+  font-size: 9px;
   font-weight: $font-weight-semibold;
-  padding: 1px $space-1;
+  padding: 0 $space-0-5;
   border-radius: $radius-xs;
   flex-shrink: 0;
+  line-height: 1.4;
 
   &--herb {
     background: $color-success-medium;

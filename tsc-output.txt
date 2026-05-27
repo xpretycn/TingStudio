@@ -1,1 +1,0 @@
-﻿src/views/system/SystemConfig.vue(377,75): error TS2339: Property 'deletedCount' does not exist on type '{ deleted: number; freedBytes: number; }'.

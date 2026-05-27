@@ -7,6 +7,8 @@ import type { QuickFormulaItem, QuickFormulaDraft } from "@/types/quickFormula";
 const props = defineProps<{
   isEditing: boolean;
   collapsed: boolean;
+  currentQuickFormulaId: string | null;
+  triggerCreate: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -15,6 +17,8 @@ const emit = defineEmits<{
   create: [item: QuickFormulaItem];
   "update:collapsed": [value: boolean];
   "restore-draft": [draft: QuickFormulaDraft];
+  "save-template": [];
+  "update:triggerCreate": [value: boolean];
 }>();
 
 const store = useQuickFormulaListStore();
@@ -35,6 +39,19 @@ watch(
     }
   },
   { immediate: true },
+);
+
+watch(
+  () => props.triggerCreate,
+  (val) => {
+    if (val) {
+      emit("update:collapsed", false);
+      nextTick(() => {
+        startCreateInline();
+      });
+      emit("update:triggerCreate", false);
+    }
+  },
 );
 
 const isOverlayMode = computed(() => props.isEditing && !props.collapsed);
@@ -149,6 +166,8 @@ function handleDocumentClick(e: MouseEvent) {
   if (!sidebarRef.value) return;
   if (sidebarRef.value.contains(e.target as Node)) return;
   if (isCreatingInline.value) return;
+  const target = e.target as HTMLElement;
+  if (target.closest(".t-popup, .t-popconfirm, .t-select-dropdown, .t-dialog, .t-drawer")) return;
   emit("update:collapsed", true);
 }
 
@@ -164,6 +183,12 @@ onMounted(() => {
 onBeforeUnmount(() => {
   document.removeEventListener("mousedown", handleDocumentClick);
 });
+
+function clearDraftBanner() {
+  draft.value = null;
+}
+
+defineExpose({ clearDraftBanner });
 </script>
 
 <template>
@@ -227,6 +252,10 @@ onBeforeUnmount(() => {
                 </template>
               </div>
               <div class="item-actions">
+                <button v-if="editingId !== item.id && item.id === currentQuickFormulaId && item.status === 'draft'"
+                  class="item-save-btn" @click.stop="emit('save-template')" title="保存为模板">
+                  <t-icon name="folder" size="12px" />
+                </button>
                 <button v-if="editingId !== item.id" class="item-rename-btn" @click.stop="startRename(item)"
                   title="重命名">
                   <t-icon name="edit-1" size="12px" />
@@ -461,7 +490,8 @@ onBeforeUnmount(() => {
     background: $bg-hover;
 
     .item-delete-btn,
-    .item-rename-btn {
+    .item-rename-btn,
+    .item-save-btn {
       opacity: 1;
     }
   }
@@ -530,6 +560,27 @@ onBeforeUnmount(() => {
   &:hover {
     background: $overlay-emerald-08;
     color: $emerald-500;
+  }
+}
+
+.item-save-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: none;
+  border-radius: $radius-sm;
+  background: transparent;
+  color: $emerald-500;
+  cursor: pointer;
+  opacity: 0;
+  transition: all $transition-fast;
+  flex-shrink: 0;
+
+  &:hover {
+    background: $overlay-emerald-08;
+    color: $emerald-600;
   }
 }
 

@@ -356,6 +356,16 @@
                       <t-icon name="add" class="add-icon" />
                       录入销量
                     </button>
+                    <button class="add-formula-btn add-formula-btn--outline" @click="batchDrawerVisible = true" aria-label="批量录入销量数据">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="7" height="7" />
+                        <rect x="14" y="3" width="7" height="7" />
+                        <rect x="3" y="14" width="7" height="7" />
+                        <rect x="14" y="14" width="7" height="7" />
+                      </svg>
+                      批量录入
+                    </button>
                   </div>
                 </div>
               </div>
@@ -465,6 +475,8 @@
 
     <SalesRecordDrawer v-model:visible="drawerVisible" :formula-id="drawerFormulaId" :edit-record="drawerEditRecord"
       @success="onDrawerSuccess" />
+
+    <SalesBatchDrawer v-model:visible="batchDrawerVisible" @success="onBatchDrawerSuccess" />
 
     <!-- 底部快捷动态 -->
     <section v-if="initialized && !loadError" class="activity-section">
@@ -614,6 +626,7 @@ import { useFormulaStore } from '@/stores/formula';
 import { MessagePlugin } from 'tdesign-vue-next';
 import type { SaleRecord } from '@/api/sales';
 import SalesRecordDrawer from '@/components/SalesRecordDrawer.vue';
+import SalesBatchDrawer from '@/components/SalesBatchDrawer.vue';
 import PageSkeleton from '@/components/Skeleton/PageSkeleton.vue';
 
 const salesStore = useSalesStore();
@@ -631,6 +644,7 @@ const filterKeyword = ref('');
 const drawerVisible = ref(false);
 const drawerFormulaId = ref('');
 const drawerEditRecord = ref<SaleRecord | null>(null);
+const batchDrawerVisible = ref(false);
 
 const tableColumns = [
   { colKey: 'row-select', type: 'multiple', width: 50, resizable: false },
@@ -881,6 +895,10 @@ const handleRowClick = (ctx: { row: SaleRecord; col?: { colKey: string; }; }) =>
 };
 
 const onDrawerSuccess = () => {
+  loadData();
+};
+
+const onBatchDrawerSuccess = () => {
   loadData();
 };
 
@@ -2244,6 +2262,19 @@ onMounted(async () => {
 
   .add-icon {
     font-size: 16px;
+  }
+
+  &--outline {
+    background-color: transparent;
+    color: var(--color-text-primary);
+    border: 1px solid var(--color-border);
+    box-shadow: none;
+
+    &:hover {
+      background-color: var(--color-bg-page);
+      border-color: var(--color-primary);
+      color: var(--color-primary);
+    }
   }
 }
 

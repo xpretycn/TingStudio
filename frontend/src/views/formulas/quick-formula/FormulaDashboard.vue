@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref, onMounted } from "vue";
 import { useQuickFormulaStore } from "@/stores/quickFormula";
+import { ratioThresholdApi, type RatioThresholdConfig } from "@/api/ratioThreshold";
 
 const props = defineProps<{
   sidebarCollapsed: boolean;
@@ -14,7 +15,44 @@ const quickFormulaStore = useQuickFormulaStore();
 
 const ratioPercent = computed(() => (quickFormulaStore.totalRatio * 100).toFixed(1));
 
-const isRatioOver = computed(() => quickFormulaStore.totalRatio > 1);
+const thresholds = ref<RatioThresholdConfig>({
+  normalLow: 0.98,
+  normalHigh: 1.02,
+  warningLow: 0.95,
+  warningHigh: 1.05,
+  highWarningLow: 0.92,
+  highWarningHigh: 1.08,
+  updatedAt: null,
+  updatedBy: null,
+});
+
+onMounted(async () => {
+  try {
+    const res = await ratioThresholdApi.get();
+    if (res) thresholds.value = res;
+  } catch { /* 使用默认值 */ }
+});
+
+type RatioLevel = "normal" | "warning" | "high-warning" | "danger";
+
+const ratioLevel = computed<RatioLevel>(() => {
+  const r = quickFormulaStore.totalRatio;
+  const t = thresholds.value;
+  if (r >= t.normalLow && r <= t.normalHigh) return "normal";
+  if (r >= t.warningLow && r <= t.warningHigh) return "warning";
+  if (r >= t.highWarningLow && r <= t.highWarningHigh) return "high-warning";
+  return "danger";
+});
+
+const ratioLevelLabel = computed(() => {
+  const map: Record<RatioLevel, string> = {
+    normal: "正常",
+    warning: "轻微偏差",
+    "high-warning": "偏差较大",
+    danger: "超出范围",
+  };
+  return map[ratioLevel.value];
+});
 
 const nutrition = computed(() => quickFormulaStore.nutritionSummary);
 
@@ -104,15 +142,17 @@ const costMetrics = computed(() => [
         营养成分
       </h3>
       <div class="metrics-list">
-        <div class="metric-card" :class="{ 'metric-card--warning': isRatioOver }">
-          <div class="metric-icon" :class="{ 'metric-icon--warning': isRatioOver }">
+        <div class="metric-card" :class="`metric-card--ratio-${ratioLevel}`">
+          <div class="metric-icon" :class="`metric-icon--ratio-${ratioLevel}`">
             <t-icon name="chart" size="12px" />
           </div>
           <div class="metric-body">
             <span class="metric-label">含量比</span>
-            <span class="metric-value" :class="{ 'metric-value--danger': isRatioOver }">
+            <span class="metric-value" :class="`metric-value--ratio-${ratioLevel}`">
               {{ ratioPercent }}<span class="metric-unit">%</span>
             </span>
+            <span v-if="ratioLevel !== 'normal'" class="ratio-warning-text"
+              :class="`ratio-warning-text--${ratioLevel}`">{{ ratioLevelLabel }}</span>
           </div>
         </div>
         <div v-for="item in nutritionMetrics" :key="item.key" class="metric-card">
@@ -214,7 +254,19 @@ const costMetrics = computed(() => [
     background: $bg-hover;
   }
 
-  &--warning {
+  &--ratio-normal {
+    background: $overlay-emerald-08;
+  }
+
+  &--ratio-warning {
+    background: $color-warning-bg;
+  }
+
+  &--ratio-high-warning {
+    background: rgba($color-warning-orange, 0.08);
+  }
+
+  &--ratio-danger {
     background: $color-danger-light;
   }
 }
@@ -230,7 +282,22 @@ const costMetrics = computed(() => [
   background: $overlay-emerald-08;
   color: $brand-emerald;
 
-  &--warning {
+  &--ratio-normal {
+    background: $overlay-emerald-08;
+    color: $brand-emerald;
+  }
+
+  &--ratio-warning {
+    background: $color-warning-bg;
+    color: $color-warning;
+  }
+
+  &--ratio-high-warning {
+    background: rgba($color-warning-orange, 0.12);
+    color: $color-warning-orange;
+  }
+
+  &--ratio-danger {
     background: $color-danger-medium;
     color: $color-danger;
   }
@@ -298,6 +365,37 @@ const costMetrics = computed(() => [
   color: $text-primary;
   line-height: 1.3;
   white-space: nowrap;
+
+  &--ratio-normal {
+    color: $emerald-600;
+  }
+
+  &--ratio-warning {
+    color: $color-warning;
+  }
+
+  &--ratio-high-warning {
+    color: $color-warning-orange;
+  }
+
+  &--ratio-danger {
+    color: $color-danger;
+  }
+}
+
+.ratio-warning-text {
+  font-size: 10px;
+  font-weight: $font-weight-semibold;
+  line-height: 1.3;
+  white-space: nowrap;
+
+  &--warning {
+    color: $color-warning;
+  }
+
+  &--high-warning {
+    color: $color-warning-orange;
+  }
 
   &--danger {
     color: $color-danger;

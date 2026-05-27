@@ -351,6 +351,10 @@ function runAutoMigrations(dbInstance: Database.Database) {
     CREATE INDEX IF NOT EXISTS idx_reports_created_by ON reports(created_by)
     `,
   );
+  ensureColumn(dbInstance, "reports", "period_key", "TEXT", "NULL");
+  try {
+    dbInstance.exec("CREATE INDEX IF NOT EXISTS idx_reports_period_key ON reports(type, created_by, period_key)");
+  } catch (_err) {}
   ensureTable(
     dbInstance,
     "report_targets",

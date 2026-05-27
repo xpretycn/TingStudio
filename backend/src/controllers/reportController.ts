@@ -12,8 +12,9 @@ import {
   buildContentDisposition,
 } from "../utils/helpers.js";
 import { exportReportToPdf } from "../utils/reportPdfExporter.js";
-import { exportReportToExcel } from "../utils/reportExcelExporter.js";
+import { exportReportToExcel, exportMultipleReportsToExcel } from "../utils/reportExcelExporter.js";
 import { aiService } from "../services/ai/AIService.js";
+import { getISOWeekKey, getMonthKey } from "../utils/isoWeekUtils.js";
 
 async function getUserRole(userId: string): Promise<string> {
   try {
@@ -21,6 +22,79 @@ async function getUserRole(userId: string): Promise<string> {
     return user?.role || "formulist";
   } catch {
     return "formulist";
+  }
+}
+
+function getPeriodKey(type: string, periodStart: string): string {
+  if (type === "weekly") {
+    return getISOWeekKey(periodStart);
+  }
+  return getMonthKey(periodStart);
+}
+
+interface PeriodCheckResult {
+  exists: boolean;
+  existingReport: {
+    id: string;
+    title: string;
+    status: string;
+    createdAt: string;
+  } | null;
+}
+
+async function checkPeriodUniqueness(
+  type: string,
+  periodStart: string,
+  userId: string
+): Promise<PeriodCheckResult> {
+  const periodKey = getPeriodKey(type, periodStart);
+
+  const [[existing]]: any[][] = await query(
+    `SELECT id, title, status, created_at FROM reports WHERE type = ? AND created_by = ? AND period_key = ? LIMIT 1`,
+    [type, userId, periodKey]
+  );
+
+  if (existing) {
+    return {
+      exists: true,
+      existingReport: {
+        id: existing.id,
+        title: existing.title,
+        status: existing.status,
+        createdAt: existing.created_at,
+      },
+    };
+  }
+
+  return { exists: false, existingReport: null };
+}
+
+export async function checkPeriodExists(req: any, res: Response) {
+  try {
+    const { type, periodStart } = req.body;
+
+    if (!type || !periodStart) {
+      return res.status(400).json({
+        success: false,
+        code: "INVALID_PARAMS",
+        message: "缺少必要参数: type, periodStart"
+      });
+    }
+
+    if (type !== "weekly" && type !== "monthly") {
+      return res.status(400).json({
+        success: false,
+        code: "INVALID_PARAMS",
+        message: "type 必须是 weekly 或 monthly"
+      });
+    }
+
+    const userId = req.user.userId;
+    const result = await checkPeriodUniqueness(type, periodStart, userId);
+
+    return res.json(success(result, result.exists ? "该周期报告已存在" : "该周期报告不存在，可以生成"));
+  } catch (error: any) {
+    return res.status(500).json({ success: false, message: "检查周期失败", error: error.message });
   }
 }
 
@@ -105,6 +179,20 @@ export async function generateReport(req: any, res: Response) {
       return res.status(400).json({ success: false, message: "缺少必要参数: type, periodStart, periodEnd" });
     }
 
+    if (type !== "weekly" && type !== "monthly") {
+      return res.status(400).json({ success: false, message: "type 必须是 weekly 或 monthly" });
+    }
+
+    const periodCheck = await checkPeriodUniqueness(type, periodStart, userId);
+    if (periodCheck.exists) {
+      return res.status(409).json({
+        success: false,
+        code: "PERIOD_EXISTS",
+        message: type === "weekly" ? "该周期的周报已存在，请勿重复生成" : "该月份的月报已存在，请勿重复生成",
+      });
+    }
+
+    const periodKey = getPeriodKey(type, periodStart);
     const dataJson = await aggregateReportData(type, periodStart, periodEnd, includePlans, includeAIAnalysis);
 
     const title = type === "weekly"
@@ -113,9 +201,9 @@ export async function generateReport(req: any, res: Response) {
 
     const id = generateId();
     await query(
-      `INSERT INTO reports (id, type, title, period_start, period_end, status, data_json, generated_by, created_by, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, 'draft', ?, 'manual', ?, ?, ?)`,
-      [id, type, title, periodStart, periodEnd, JSON.stringify(dataJson), userId, now(), now()]
+      `INSERT INTO reports (id, type, title, period_start, period_end, period_key, status, data_json, generated_by, created_by, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, 'draft', ?, 'manual', ?, ?, ?)`,
+      [id, type, title, periodStart, periodEnd, periodKey, JSON.stringify(dataJson), userId, now(), now()]
     );
 
     const [[created]]: any[][] = await query("SELECT * FROM reports WHERE id = ?", [id]);
@@ -443,6 +531,61 @@ export async function exportReportExcel(req: any, res: Response) {
     res.send(buffer);
   } catch (error: any) {
     res.status(500).json({ success: false, message: "导出Excel失败", error: error.message });
+  }
+}
+
+export async function batchExportExcel(req: any, res: Response) {
+  try {
+    const { reportIds } = req.body;
+
+    if (!reportIds || !Array.isArray(reportIds) || reportIds.length === 0) {
+      return res.status(400).json({
+        success: false,
+        code: "INVALID_PARAMS",
+        message: "reportIds 参数不能为空"
+      });
+    }
+
+    if (reportIds.length > 20) {
+      return res.status(400).json({
+        success: false,
+        code: "INVALID_PARAMS",
+        message: "最多支持20个报告批量导出"
+      });
+    }
+
+    const userId = req.user.userId;
+    const userRole = await getUserRole(userId);
+
+    const placeholders = reportIds.map(() => "?").join(",");
+    const reportQuery = userRole === "admin"
+      ? `SELECT * FROM reports WHERE id IN (${placeholders})`
+      : `SELECT * FROM reports WHERE id IN (${placeholders}) AND (created_by = ? OR status = 'published')`;
+
+    const params = userRole === "admin" ? reportIds : [...reportIds, userId];
+    const [reports]: any[][] = await query(reportQuery, params);
+
+    if (reports.length === 0) {
+      return res.status(404).json({ success: false, message: "没有找到可导出的报告" });
+    }
+
+    const reportData = reports.map((r: any) => ({
+      id: r.id,
+      type: r.type,
+      title: r.title,
+      periodStart: r.period_start,
+      periodEnd: r.period_end,
+      dataJson: safeJsonParse(r.data_json, {}),
+    }));
+
+    const { buffer, fileName } = await exportMultipleReportsToExcel(reportData);
+
+    res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+    res.setHeader("Content-Disposition", buildContentDisposition(fileName));
+    res.setHeader("Content-Length", buffer.length);
+    res.send(buffer);
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: "批量导出Excel失败", error: error.message });
   }
 }
 

@@ -245,3 +245,50 @@ export async function exportReportToExcel(
   const fileName = `${title}_${periodStart}_${periodEnd}.xlsx`.replace(/[/\\?%*:|"<>]/g, "_");
   return { buffer, fileName };
 }
+
+export async function exportMultipleReportsToExcel(
+  reports: Array<{ id: string; type: string; title: string; periodStart: string; periodEnd: string; dataJson: any }>
+): Promise<{ buffer: Buffer; fileName: string }> {
+  const workbook = XLSX.utils.book_new();
+
+  for (let i = 0; i < reports.length; i++) {
+    const report = reports[i];
+    const { type, title, periodStart, periodEnd, dataJson } = report;
+
+    const overviewData: any[][] = [
+      ["报告概览"],
+      [""],
+      ["报告标题", title],
+      ["报告类型", type === "weekly" ? "周报" : "月报"],
+      ["统计周期", `${periodStart} ~ ${periodEnd}`],
+      [""],
+      ["关键指标"],
+    ];
+
+    if (dataJson.formula) {
+      overviewData.push(["新增配方数", dataJson.formula.newFormulaCount ?? 0]);
+      overviewData.push(["完成配方数", dataJson.formula.completedFormulaCount ?? 0]);
+      overviewData.push(["完成率", (dataJson.formula.completionRate ?? 0) + "%"]);
+    }
+    if (dataJson.sales) {
+      overviewData.push(["销售量", dataJson.sales.weeklyQuantity ?? 0]);
+      overviewData.push(["销售额", dataJson.sales.weeklyRevenue ?? 0]);
+      overviewData.push(["销量增长率", (dataJson.sales.quantityGrowthRate ?? 0) + "%"]);
+      overviewData.push(["销售额增长率", (dataJson.sales.revenueGrowthRate ?? 0) + "%"]);
+    }
+    if (type === "monthly" && dataJson.monthlySummary) {
+      overviewData.push(["月销售量", dataJson.monthlySummary.monthlyQuantity ?? 0]);
+      overviewData.push(["月销售额", dataJson.monthlySummary.monthlyRevenue ?? 0]);
+    }
+
+    const sheetName = `${title.substring(0, 20)}${i + 1}`.replace(/[/\\?%*:|"<>]/g, "_");
+    const overviewSheet = XLSX.utils.aoa_to_sheet(overviewData);
+    overviewSheet["!cols"] = [{ wch: 16 }, { wch: 50 }];
+    XLSX.utils.book_append_sheet(workbook, overviewSheet, sheetName);
+  }
+
+  const buffer = XLSX.write(workbook, { type: "buffer", bookType: "xlsx" });
+  const dateStr = new Date().toISOString().split("T")[0];
+  const fileName = `批量报告_${dateStr}.xlsx`;
+  return { buffer, fileName };
+}

@@ -16,10 +16,10 @@ function createDefaultFormulaData(): QuickFormulaData {
   return {
     ratioFactor: 0.18,
     supplementRatioFactor: 1.0,
-    finishedWeight: 3000,
-    packagingPrice: 0,
-    otherPrice: 0,
-    profitMargin: 20,
+    finishedWeight: 900,
+    packagingPrice: 2,
+    otherPrice: 3,
+    profitMargin: 30,
     materials: [],
   }
 }
@@ -150,9 +150,12 @@ export const useQuickFormulaStore = defineStore("quickFormula", () => {
     formulaName.value = name
     phase.value = "editing"
     formulaStatus.value = "new"
+    Object.assign(formulaData, createDefaultFormulaData())
   }
 
   function addMaterial(material: QuickFormulaMaterial) {
+    material.baseUnitPrice = material.unitPrice ?? null
+    material.isPriceAdjusted = false
     formulaData.materials.push(material)
     hasUnsavedChanges.value = true
   }
@@ -171,6 +174,38 @@ export const useQuickFormulaStore = defineStore("quickFormula", () => {
       m.quantity = quantity
       hasUnsavedChanges.value = true
     }
+  }
+
+  function updateMaterialUnitPrice(materialId: string, unitPrice: number) {
+    const m = formulaData.materials.find((item) => item.materialId === materialId)
+    if (m) {
+      m.unitPrice = unitPrice
+      m.isPriceAdjusted = m.baseUnitPrice != null && unitPrice !== m.baseUnitPrice
+      hasUnsavedChanges.value = true
+    }
+  }
+
+  function restoreMaterialUnitPrice(materialId: string) {
+    const m = formulaData.materials.find((item) => item.materialId === materialId)
+    if (m && m.baseUnitPrice != null) {
+      m.unitPrice = m.baseUnitPrice
+      m.isPriceAdjusted = false
+      hasUnsavedChanges.value = true
+    }
+  }
+
+  function calculateMaterialRatio(material: QuickFormulaMaterial): string {
+    const { finishedWeight, ratioFactor, supplementRatioFactor } = formulaData
+    if (finishedWeight <= 0 || material.quantity <= 0) return "0.00%"
+    const factor = material.materialType === "herb" ? ratioFactor : supplementRatioFactor
+    const ratio = (material.quantity / finishedWeight) * factor
+    return (ratio * 100).toFixed(2) + "%"
+  }
+
+  function calculateMaterialSubtotal(material: QuickFormulaMaterial): number | null {
+    const price = material.unitPrice ?? 0
+    if (price <= 0 || material.quantity <= 0) return null
+    return (material.quantity / 1000) * price
   }
 
   function saveDraft() {
@@ -250,6 +285,10 @@ export const useQuickFormulaStore = defineStore("quickFormula", () => {
     addMaterial,
     removeMaterial,
     updateMaterialQuantity,
+    updateMaterialUnitPrice,
+    restoreMaterialUnitPrice,
+    calculateMaterialRatio,
+    calculateMaterialSubtotal,
     saveDraft,
     loadDraft,
     clearDraft,

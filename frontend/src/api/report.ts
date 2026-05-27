@@ -17,6 +17,16 @@ export interface Report {
   publishedAt?: string | null;
 }
 
+export interface PeriodCheckResult {
+  exists: boolean;
+  existingReport: {
+    id: string;
+    title: string;
+    status: string;
+    createdAt: string;
+  } | null;
+}
+
 export interface ReportGenerateForm {
   type: 'weekly' | 'monthly';
   periodStart: string;
@@ -126,6 +136,12 @@ export const reportApi = {
   },
   exportExcel(id: string) {
     return http.get<unknown, Blob>(`/reports/${id}/export/excel`, { responseType: 'blob' });
+  },
+  checkPeriodExists(type: 'weekly' | 'monthly', periodStart: string) {
+    return http.post<unknown, PeriodCheckResult>("/reports/check-period", { type, periodStart });
+  },
+  batchExportExcel(reportIds: string[]) {
+    return http.post<unknown, Blob>("/reports/batch-export/excel", { reportIds }, { responseType: 'blob' });
   },
   compareReports(reportId1: string, reportId2: string) {
     return http.post<unknown, CompareResult>('/reports/compare', { reportId1, reportId2 });

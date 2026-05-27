@@ -576,6 +576,17 @@
         </template>
       </div>
     </Transition>
+
+    <WeekSelectDrawer
+      v-model:visible="weekSelectDrawerVisible"
+      @confirm="handleWeekSelectConfirm"
+    />
+
+    <ExportFormatDialog
+      v-model:visible="exportFormatDialogVisible"
+      :report-title="exportReportTitle"
+      @confirm="handleExportFormatConfirm"
+    />
   </div>
 </template>
 
@@ -585,14 +596,22 @@ import { useRouter } from 'vue-router';
 import { useReportStore } from '@/stores/report';
 import { MessagePlugin } from 'tdesign-vue-next';
 import type { Report } from '@/api/report';
+import { reportApi } from '@/api/report';
 import PageSkeleton from '@/components/Skeleton/PageSkeleton.vue';
 import EmptyState from '@/components/EmptyState.vue';
+import WeekSelectDrawer from '@/components/WeekSelectDrawer.vue';
+import ExportFormatDialog from '@/components/ExportFormatDialog.vue';
 
 const router = useRouter();
 const reportStore = useReportStore();
 
 const initialized = ref(false);
 const loadError = ref('');
+
+const weekSelectDrawerVisible = ref(false);
+const exportFormatDialogVisible = ref(false);
+const selectedExportReport = ref<Report | null>(null);
+const exportReportTitle = ref('');
 
 const filterType = ref<string>('all');
 const filterStatus = ref<string>('all');
@@ -707,11 +726,36 @@ const handleCardClick = (report: Report) => {
 };
 
 const handleGenerateWeekly = () => {
-  router.push({ path: '/reports/generate', query: { type: 'weekly' } });
+  weekSelectDrawerVisible.value = true;
 };
 
 const handleGenerateMonthly = () => {
-  router.push({ path: '/reports/generate', query: { type: 'monthly' } });
+  weekSelectDrawerVisible.value = true;
+};
+
+const handleWeekSelectConfirm = async (data: { periodStart: string; periodEnd: string; type: string }) => {
+  try {
+    const result = await reportApi.checkPeriodExists(
+      data.type as 'weekly' | 'monthly',
+      data.periodStart
+    );
+    if (result.data.exists) {
+      await MessagePlugin.warning(result.data.existingReport
+        ? `该周期的报告已存在（${result.data.existingReport.title}）`
+        : '该周期的报告已存在，请勿重复生成');
+      return;
+    }
+    router.push({
+      path: '/reports/generate',
+      query: {
+        type: data.type,
+        periodStart: data.periodStart,
+        periodEnd: data.periodEnd,
+      },
+    });
+  } catch (error: any) {
+    await MessagePlugin.error(error.message || '检查周期失败');
+  }
 };
 
 const generatingType = ref('');
@@ -781,7 +825,32 @@ const clearSelection = () => {
 };
 
 const handleSingleExport = (report: Report) => {
-  router.push({ path: `/reports/${report.type}/${report.id}` });
+  selectedExportReport.value = report;
+  exportReportTitle.value = report.title;
+  exportFormatDialogVisible.value = true;
+};
+
+const handleExportFormatConfirm = async (format: 'pdf' | 'excel') => {
+  if (!selectedExportReport.value) return;
+  const report = selectedExportReport.value;
+  try {
+    const blob = format === 'pdf'
+      ? await reportApi.exportPdf(report.id)
+      : await reportApi.exportExcel(report.id);
+    const url = window.URL.createObjectURL(new Blob([blob.data as BlobPart]));
+    const link = document.createElement('a');
+    const ext = format === 'pdf' ? '.pdf' : '.xlsx';
+    const filename = `${report.title}_${report.periodStart}_${report.periodEnd}${ext}`.replace(/[/\\?%*:|"<>]/g, '_');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+    MessagePlugin.success('导出成功');
+  } catch (error: any) {
+    MessagePlugin.error(error.message || '导出失败');
+  }
 };
 
 const handleSinglePublish = async (report: Report) => {

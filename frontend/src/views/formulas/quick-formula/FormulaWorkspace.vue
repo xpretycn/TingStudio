@@ -10,9 +10,11 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  "save-template": [];
-  "submitted": [];
+  submitted: [];
   "toggle-sidebar": [];
+  publish: [];
+  save: [];
+  "request-create": [];
 }>();
 
 const quickFormulaStore = useQuickFormulaStore();
@@ -21,12 +23,20 @@ function handleAddMaterial(material: QuickFormulaMaterial) {
   quickFormulaStore.addMaterial(material);
 }
 
-function handleSaveTemplate() {
-  emit("save-template");
-}
-
 function handleSubmitSuccess() {
   emit("submitted");
+}
+
+function handlePublish() {
+  emit("publish");
+}
+
+function handleSave() {
+  emit("save");
+}
+
+function handleRequestCreate() {
+  emit("request-create");
 }
 </script>
 
@@ -36,7 +46,8 @@ function handleSubmitSuccess() {
       <FormulaDashboard :sidebar-collapsed="props.sidebarCollapsed" @toggle-sidebar="emit('toggle-sidebar')" />
     </div>
     <div class="workspace-panel workspace-panel--editor">
-      <FormulaEditor @save-template="handleSaveTemplate" @submitted="handleSubmitSuccess" />
+      <FormulaEditor @submitted="handleSubmitSuccess" @publish="handlePublish" @save="handleSave"
+        @request-create="handleRequestCreate" />
     </div>
     <div class="workspace-panel workspace-panel--pool">
       <MaterialPool @add="handleAddMaterial" />
@@ -72,8 +83,8 @@ function handleSubmitSuccess() {
   }
 
   &--editor {
-    flex: 0 0 52%;
-    max-width: 52%;
+    flex: 0 0 45%;
+    max-width: 45%;
     overflow: hidden;
   }
 

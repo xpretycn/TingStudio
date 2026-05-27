@@ -7,7 +7,8 @@ import { useQuickFormulaListStore } from "@/stores/quickFormulaList";
 import QuickFormulaSidebar from "./QuickFormulaSidebar.vue";
 import PublishDrawer from "./PublishDrawer.vue";
 import FormulaWorkspace from "./FormulaWorkspace.vue";
-import type { QuickFormulaItem, QuickFormulaDraft } from "@/types/quickFormula";
+import TemplateManager from "./TemplateManager.vue";
+import type { QuickFormulaItem, QuickFormulaDraft, FormulaTemplate } from "@/types/quickFormula";
 
 const router = useRouter();
 const quickFormulaStore = useQuickFormulaStore();
@@ -15,13 +16,18 @@ const quickFormulaListStore = useQuickFormulaListStore();
 
 const isFullscreen = ref(false);
 const showPublishDrawer = ref(false);
+const showTemplateManager = ref(false);
 const currentQuickFormulaId = ref<string | null>(null);
 const saving = ref(false);
 const sidebarCollapsed = ref(false);
+const triggerCreate = ref(false);
+const sidebarRef = ref<InstanceType<typeof QuickFormulaSidebar> | null>(null);
 
 const ratioPercent = computed(() => (quickFormulaStore.totalRatio * 100).toFixed(1));
 const isRatioOver = computed(() => quickFormulaStore.totalRatio > 1);
 const nutrition = computed(() => quickFormulaStore.nutritionSummary);
+
+const nrvPercent = computed(() => quickFormulaStore.nrvPercent);
 
 const headerTitle = computed(() => {
   if (currentQuickFormulaId.value) {
@@ -32,16 +38,25 @@ const headerTitle = computed(() => {
 });
 
 const statusLabel = computed(() => {
+  if (isCurrentPublished.value) return "已发布";
   if (quickFormulaStore.formulaStatus === "draft") return "草稿";
   if (currentQuickFormulaId.value) return "编辑中";
   return "新建";
 });
 
 const statusTagClass = computed(() => {
+  if (isCurrentPublished.value) return "status-tag--published";
   if (quickFormulaStore.formulaStatus === "draft") return "status-tag--draft";
   if (currentQuickFormulaId.value) return "status-tag--editing";
   return "status-tag--new";
 });
+
+const currentFormulaItem = computed(() => {
+  if (!currentQuickFormulaId.value) return null;
+  return quickFormulaListStore.list.find((i) => i.id === currentQuickFormulaId.value) || null;
+});
+
+const isCurrentPublished = computed(() => currentFormulaItem.value?.status === "published");
 
 function toggleFullscreen() {
   if (!isFullscreen.value) {
@@ -105,7 +120,7 @@ async function handleSelectQuickFormula(item: QuickFormulaItem) {
       nutrition: m.nutrition,
       version: m.version,
     }));
-    quickFormulaStore.formulaStatus = "draft";
+    quickFormulaStore.formulaStatus = detail.status === "published" ? "published" : "draft";
   }
 }
 
@@ -123,8 +138,9 @@ async function handleRestoreDraft(draft: QuickFormulaDraft) {
   }
 }
 
-async function handleSave() {
-  if (!currentQuickFormulaId.value) return;
+async function handleSave(id?: string) {
+  const targetId = id || currentQuickFormulaId.value;
+  if (!targetId) return;
   saving.value = true;
   try {
     const data: Record<string, unknown> = {
@@ -137,7 +153,10 @@ async function handleSave() {
       profitMargin: quickFormulaStore.formulaData.profitMargin,
       materials: quickFormulaStore.formulaData.materials,
     };
-    await quickFormulaListStore.saveQuickFormula(currentQuickFormulaId.value, data);
+    await quickFormulaListStore.saveQuickFormula(targetId, data);
+    quickFormulaStore.clearDraft();
+    quickFormulaStore.hasUnsavedChanges = false;
+    sidebarRef.value?.clearDraftBanner();
   } finally {
     saving.value = false;
   }
@@ -145,10 +164,33 @@ async function handleSave() {
 
 function handlePublished(_data: { formulaId: string; versionId: string; }) {
   MessagePlugin.success("配方已成功发布为正式配方");
+  quickFormulaStore.clearDraft();
   currentQuickFormulaId.value = null;
   quickFormulaListStore.selectedId = null;
   quickFormulaStore.exitEditMode();
   router.push("/formulas");
+}
+
+function handleLoadTemplate(template: FormulaTemplate) {
+  quickFormulaStore.formulaData.ratioFactor = template.ratioFactor;
+  quickFormulaStore.formulaData.supplementRatioFactor = template.supplementRatioFactor;
+  quickFormulaStore.formulaData.finishedWeight = template.finishedWeight;
+  quickFormulaStore.formulaData.packagingPrice = template.packagingPrice;
+  quickFormulaStore.formulaData.otherPrice = template.otherPrice;
+  quickFormulaStore.formulaData.profitMargin = template.profitMargin;
+  quickFormulaStore.formulaData.materials = template.materials.map((m) => ({
+    materialId: m.materialId,
+    materialName: m.materialName,
+    quantity: m.quantity,
+    materialType: m.materialType as "herb" | "supplement",
+    unitPrice: null,
+    nutrition: undefined,
+  }));
+  MessagePlugin.success("模板已加载");
+}
+
+function handleRequestCreate() {
+  triggerCreate.value = true;
 }
 
 function scheduleAutoSave() {
@@ -202,123 +244,170 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="quick-formula-panel" :class="{ 'quick-formula-panel--fullscreen': isFullscreen }">
-    <header class="detail-header">
-      <div class="header-left">
-        <button class="header-back-btn" @click="handleBack" title="返回列表" aria-label="返回配方列表">
-          <t-icon name="arrow-left" />
-        </button>
-        <div class="header-title-group">
-          <nav class="header-breadcrumb">
-            <a class="breadcrumb-link" @click="handleBack">配方管理</a>
-            <t-icon name="chevron-right" class="breadcrumb-sep" />
-            <span class="breadcrumb-current">快速录入</span>
-          </nav>
-          <h2 class="formula-title">
-            {{ headerTitle }}
-            <span v-if="quickFormulaStore.phase === 'editing' || currentQuickFormulaId" class="title-status-tag"
-              :class="statusTagClass">
-              {{ statusLabel }}
-            </span>
-          </h2>
-        </div>
-      </div>
-      <div class="header-actions">
-        <t-popup v-if="currentQuickFormulaId" trigger="hover" placement="bottom-end"
-          :popup-props="{ appendToBody: true, showArrow: true }">
-          <button class="header-action-btn secondary">
-            <t-icon name="chart" class="btn-icon" />
-            速览
-          </button>
-          <template #content>
-            <div class="nutrition-quick">
-              <div class="nq-header">
-                <t-icon name="chart-pie" size="14px" class="nq-header-icon" />
-                <span class="nq-header-text">营养速览</span>
-              </div>
-              <div class="nq-divider"></div>
-              <div class="nq-item" :class="{ 'nq-item--danger': isRatioOver }">
-                <div class="nq-item-icon nq-icon--ratio">
-                  <t-icon name="chart" size="12px" />
-                </div>
-                <span class="nq-item-label">含量比</span>
-                <span class="nq-item-value">{{ ratioPercent }}%</span>
-              </div>
-              <div class="nq-item">
-                <div class="nq-item-icon nq-icon--energy">
-                  <t-icon name="flashlight" size="12px" />
-                </div>
-                <span class="nq-item-label">能量</span>
-                <span class="nq-item-value">{{ nutrition.energy.toFixed(1) }} <small>kJ</small></span>
-              </div>
-              <div class="nq-item">
-                <div class="nq-item-icon nq-icon--protein">
-                  <t-icon name="flag" size="12px" />
-                </div>
-                <span class="nq-item-label">蛋白质</span>
-                <span class="nq-item-value">{{ nutrition.protein.toFixed(1) }} <small>g</small></span>
-              </div>
-              <div class="nq-item">
-                <div class="nq-item-icon nq-icon--fat">
-                  <t-icon name="rain-light" size="12px" />
-                </div>
-                <span class="nq-item-label">脂肪</span>
-                <span class="nq-item-value">{{ nutrition.fat.toFixed(1) }} <small>g</small></span>
-              </div>
-              <div class="nq-item">
-                <div class="nq-item-icon nq-icon--carb">
-                  <t-icon name="chart-pie" size="12px" />
-                </div>
-                <span class="nq-item-label">碳水</span>
-                <span class="nq-item-value">{{ nutrition.carbohydrate.toFixed(1) }} <small>g</small></span>
-              </div>
-              <div class="nq-divider"></div>
-              <div class="nq-item nq-item--highlight">
-                <div class="nq-item-icon nq-icon--price">
-                  <t-icon name="money" size="12px" />
-                </div>
-                <span class="nq-item-label">报价</span>
-                <span class="nq-item-value">¥{{ quickFormulaStore.totalPrice.toFixed(2) }}</span>
-              </div>
+  <div class="quick-formula-panel-host" :class="{ 'quick-formula-panel-host--fullscreen': isFullscreen }">
+    <Teleport to="body" :disabled="!isFullscreen">
+      <div class="quick-formula-panel" :class="{ 'quick-formula-panel--fullscreen': isFullscreen }">
+        <header class="detail-header">
+          <div class="header-left">
+            <button class="header-back-btn" @click="handleBack" title="返回列表" aria-label="返回配方列表">
+              <t-icon name="arrow-left" />
+            </button>
+            <div class="header-title-group">
+              <nav class="header-breadcrumb">
+                <a class="breadcrumb-link" @click="handleBack">配方管理</a>
+                <t-icon name="chevron-right" class="breadcrumb-sep" />
+                <span class="breadcrumb-current">快速录入</span>
+              </nav>
+              <h2 class="formula-title">
+                {{ headerTitle }}
+                <span v-if="quickFormulaStore.phase === 'editing' || currentQuickFormulaId" class="title-status-tag"
+                  :class="statusTagClass">
+                  {{ statusLabel }}
+                </span>
+              </h2>
             </div>
-          </template>
-        </t-popup>
-        <button class="header-action-btn secondary" @click="handleBack" aria-label="取消，返回列表">
-          <t-icon name="close" class="btn-icon" />
-          取消
-        </button>
-        <button v-if="currentQuickFormulaId" class="header-action-btn" :disabled="saving" @click="handleSave">
-          <t-icon name="save" class="btn-icon" />
-          {{ saving ? '保存中...' : '保存' }}
-        </button>
-        <button v-if="currentQuickFormulaId" class="header-action-btn" @click="showPublishDrawer = true">
-          <t-icon name="upload" class="btn-icon" />
-          发布
-        </button>
-        <t-tooltip :content="isFullscreen ? '退出全屏' : '全屏模式'">
-          <button class="header-action-btn secondary" @click="toggleFullscreen"
-            :aria-label="isFullscreen ? '退出全屏' : '全屏模式'">
-            <t-icon :name="isFullscreen ? 'fullscreen-exit' : 'fullscreen'" class="btn-icon" />
-          </button>
-        </t-tooltip>
+          </div>
+          <div class="header-actions">
+            <!-- 速览按钮 -->
+            <t-popup v-if="currentQuickFormulaId" trigger="hover" placement="bottom-end"
+              :popup-props="{ appendToBody: true, showArrow: true }">
+              <button class="header-action-btn secondary">
+                <t-icon name="chart" class="btn-icon" />
+                速览
+              </button>
+              <template #content>
+                <div class="nutrition-quick">
+                  <div class="nq-header">
+                    <t-icon name="chart-pie" size="14px" class="nq-header-icon" />
+                    <span class="nq-header-text">营养速览</span>
+                  </div>
+                  <div class="nq-divider"></div>
+                  <div class="nq-item" :class="{ 'nq-item--danger': isRatioOver }">
+                    <div class="nq-item-icon nq-icon--ratio">
+                      <t-icon name="chart" size="12px" />
+                    </div>
+                    <span class="nq-item-label">含量比</span>
+                    <span class="nq-item-value">{{ ratioPercent }}%</span>
+                  </div>
+                  <div class="nq-item">
+                    <div class="nq-item-icon nq-icon--energy">
+                      <t-icon name="flashlight" size="12px" />
+                    </div>
+                    <span class="nq-item-label">能量</span>
+                    <span class="nq-item-value">{{ nutrition.energy.toFixed(1) }} <small>kJ</small>
+                      <span class="nq-nrv">NRV{{ nrvPercent.energy.toFixed(1) }}%</span>
+                    </span>
+                  </div>
+                  <div class="nq-item">
+                    <div class="nq-item-icon nq-icon--protein">
+                      <t-icon name="flag" size="12px" />
+                    </div>
+                    <span class="nq-item-label">蛋白质</span>
+                    <span class="nq-item-value">{{ nutrition.protein.toFixed(1) }} <small>g</small>
+                      <span class="nq-nrv">NRV{{ nrvPercent.protein.toFixed(1) }}%</span>
+                    </span>
+                  </div>
+                  <div class="nq-item">
+                    <div class="nq-item-icon nq-icon--fat">
+                      <t-icon name="rain-light" size="12px" />
+                    </div>
+                    <span class="nq-item-label">脂肪</span>
+                    <span class="nq-item-value">{{ nutrition.fat.toFixed(1) }} <small>g</small>
+                      <span class="nq-nrv">NRV{{ nrvPercent.fat.toFixed(1) }}%</span>
+                    </span>
+                  </div>
+                  <div class="nq-item">
+                    <div class="nq-item-icon nq-icon--carb">
+                      <t-icon name="chart-pie" size="12px" />
+                    </div>
+                    <span class="nq-item-label">碳水</span>
+                    <span class="nq-item-value">{{ nutrition.carbohydrate.toFixed(1) }} <small>g</small>
+                      <span class="nq-nrv">NRV{{ nrvPercent.carbohydrate.toFixed(1) }}%</span>
+                    </span>
+                  </div>
+                  <div class="nq-item">
+                    <div class="nq-item-icon nq-icon--sodium">
+                      <t-icon name="precise-monitor" size="12px" />
+                    </div>
+                    <span class="nq-item-label">钠</span>
+                    <span class="nq-item-value">{{ nutrition.sodium.toFixed(1) }} <small>mg</small>
+                      <span class="nq-nrv">NRV{{ nrvPercent.sodium.toFixed(1) }}%</span>
+                    </span>
+                  </div>
+                  <div class="nq-divider"></div>
+                  <div class="nq-item nq-item--highlight">
+                    <div class="nq-item-icon nq-icon--price">
+                      <t-icon name="money" size="12px" />
+                    </div>
+                    <span class="nq-item-label">报价</span>
+                    <span class="nq-item-value">¥{{ quickFormulaStore.totalPrice.toFixed(2) }}</span>
+                  </div>
+                </div>
+              </template>
+            </t-popup>
+            <button class="header-action-btn secondary" @click="handleBack" aria-label="取消，返回列表">
+              <t-icon name="close" class="btn-icon" />
+              取消
+            </button>
+            <button v-if="currentQuickFormulaId" class="header-action-btn" :disabled="saving || isCurrentPublished"
+              @click="handleSave()">
+              <t-icon name="save" class="btn-icon" />
+              {{ saving ? '保存中...' : '保存' }}
+            </button>
+            <t-tooltip v-if="currentQuickFormulaId && isCurrentPublished" content="已发布的配方不可修改">
+              <button class="header-action-btn" disabled>
+                <t-icon name="upload" class="btn-icon" />
+                发布
+              </button>
+            </t-tooltip>
+            <button v-else-if="currentQuickFormulaId" class="header-action-btn" @click="showPublishDrawer = true">
+              <t-icon name="upload" class="btn-icon" />
+              发布
+            </button>
+            <t-tooltip :content="isFullscreen ? '退出全屏' : '全屏模式'">
+              <button class="header-action-btn secondary" @click="toggleFullscreen"
+                :aria-label="isFullscreen ? '退出全屏' : '全屏模式'">
+                <t-icon :name="isFullscreen ? 'fullscreen-exit' : 'fullscreen'" class="btn-icon" />
+              </button>
+            </t-tooltip>
+          </div>
+        </header>
+        <div class="panel-body">
+          <QuickFormulaSidebar ref="sidebarRef" :is-editing="!!currentQuickFormulaId"
+            v-model:collapsed="sidebarCollapsed" :current-quick-formula-id="currentQuickFormulaId"
+            v-model:trigger-create="triggerCreate" @select="handleSelectQuickFormula"
+            @select-published="handleSelectPublished" @create="handleQuickFormulaCreated"
+            @restore-draft="handleRestoreDraft" @save-template="showTemplateManager = true" />
+          <div class="panel-main">
+            <FormulaWorkspace :sidebar-collapsed="sidebarCollapsed"
+              @toggle-sidebar="sidebarCollapsed = !sidebarCollapsed" @submitted="handleSubmitSuccess"
+              @publish="showPublishDrawer = true" @save="handleSave" @request-create="handleRequestCreate" />
+          </div>
+        </div>
+        <PublishDrawer :visible="showPublishDrawer" :quick-formula-id="currentQuickFormulaId || ''"
+          @update:visible="showPublishDrawer = $event" @published="handlePublished" />
+        <TemplateManager :visible="showTemplateManager" @close="showTemplateManager = false"
+          @load="handleLoadTemplate" />
       </div>
-    </header>
-    <div class="panel-body">
-      <QuickFormulaSidebar :is-editing="!!currentQuickFormulaId" v-model:collapsed="sidebarCollapsed"
-        @select="handleSelectQuickFormula" @select-published="handleSelectPublished" @create="handleQuickFormulaCreated"
-        @restore-draft="handleRestoreDraft" />
-      <div class="panel-main">
-        <FormulaWorkspace :sidebar-collapsed="sidebarCollapsed" @toggle-sidebar="sidebarCollapsed = !sidebarCollapsed"
-          @submitted="handleSubmitSuccess" />
-      </div>
-    </div>
-    <PublishDrawer :visible="showPublishDrawer" :quick-formula-id="currentQuickFormulaId || ''"
-      @update:visible="showPublishDrawer = $event" @published="handlePublished" />
+    </Teleport>
   </div>
 </template>
 
 <style lang="scss" scoped>
 @use "@/assets/styles/variables" as *;
+
+.quick-formula-panel-host {
+  display: contents;
+
+  &--fullscreen {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    visibility: hidden;
+  }
+}
 
 .quick-formula-panel {
   display: flex;
@@ -430,6 +519,11 @@ onBeforeUnmount(() => {
           &.status-tag--editing {
             background: $color-info-bg;
             color: $color-info;
+          }
+
+          &.status-tag--published {
+            background: var(--color-primary-lighter);
+            color: var(--color-primary);
           }
         }
       }
@@ -544,8 +638,8 @@ onBeforeUnmount(() => {
 }
 
 .nutrition-quick {
-  min-width: 200px;
-  padding: $space-1 0;
+  min-width: 280px;
+  padding: $space-2 0;
 }
 
 .nq-header {
@@ -641,6 +735,11 @@ onBeforeUnmount(() => {
   color: $chart-carb-deep;
 }
 
+.nq-icon--sodium {
+  background: rgba($chart-sodium-deep, 0.08);
+  color: $chart-sodium-deep;
+}
+
 .nq-icon--price {
   background: $overlay-emerald-08;
   color: $emerald-500;
@@ -663,5 +762,18 @@ onBeforeUnmount(() => {
     color: $text-tertiary;
     margin-left: $space-0-5;
   }
+}
+
+.nq-nrv {
+  display: inline-block;
+  margin-left: $space-1;
+  padding: 0 $space-1;
+  border-radius: $radius-sm;
+  background: $overlay-emerald-04;
+  color: $emerald-600;
+  font-size: 10px;
+  font-weight: $font-weight-semibold;
+  line-height: 1.6;
+  white-space: nowrap;
 }
 </style>

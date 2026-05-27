@@ -524,7 +524,7 @@ const typeOptions = [
 .pool-materials {
   display: flex;
   flex-wrap: wrap;
-  gap: $space-3;
+  gap: $space-2;
 }
 
 .pool-free {

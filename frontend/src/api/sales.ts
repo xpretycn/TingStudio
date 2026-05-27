@@ -41,6 +41,34 @@ export interface DuplicateEntryData {
   notes: string | null;
 }
 
+export interface BatchCreateRecord {
+  formulaId: string
+  salesmanId: string
+  periodType?: 'monthly' | 'quarterly' | 'yearly'
+  periodStart: string
+  quantity: number
+  revenue: number
+  notes?: string
+}
+
+export interface BatchResultItem {
+  index: number
+  status: 'success' | 'merged' | 'skipped' | 'failed'
+  recordId?: string
+  formulaCode?: string
+  salesmanName?: string
+  action: 'created' | 'accumulated' | 'replaced' | 'skipped' | 'none'
+  message: string
+}
+
+export interface BatchResult {
+  total: number
+  succeeded: number
+  failed: number
+  skipped: number
+  results: BatchResultItem[]
+}
+
 export interface SaleStats {
   totalQuantity: number;
   totalRevenue: number;
@@ -97,5 +125,8 @@ export const salesApi = {
   },
   delete(id: string) {
     return http.delete<unknown, { message: string }>(`/sales/${id}`);
+  },
+  batchCreate(data: { records: BatchCreateRecord[]; mergeMode?: 'accumulate' | 'replace' }, options?: { _silent?: boolean }) {
+    return http.post<unknown, BatchResult>("/sales/batch", data, options);
   },
 };

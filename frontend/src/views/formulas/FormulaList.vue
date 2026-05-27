@@ -100,6 +100,16 @@
                 <t-icon name="edit-1" class="quick-icon" />
                 快速录入
               </button>
+              <button class="quick-formula-btn quick-formula-btn--outline" @click="batchDrawerVisible = true" aria-label="批量录入销量">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="3" width="7" height="7" />
+                  <rect x="14" y="3" width="7" height="7" />
+                  <rect x="3" y="14" width="7" height="7" />
+                  <rect x="14" y="14" width="7" height="7" />
+                </svg>
+                批量录入销量
+              </button>
               <button class="add-formula-btn" @click="handleCreate" aria-label="创建新配方" data-testid="formula-add-btn">
                 <t-icon name="add" class="add-icon" />
                 创建新配方
@@ -528,6 +538,8 @@
 
     <SalesRecordDrawer :visible="salesDialogVisible" @update:visible="salesDialogVisible = $event"
       :formula-id="salesDialogFormulaId" :edit-record="salesEditRecord" @success="onSalesDialogSuccess" />
+
+    <SalesBatchDrawer v-model:visible="batchDrawerVisible" @success="onBatchDrawerSuccess" />
   </div>
 </template>
 
@@ -545,6 +557,7 @@ import { formulaApi } from '@/api/formula';
 import type { SaleRecord } from '@/api/sales';
 import type { Material } from '@/api/material';
 import SalesRecordDrawer from '@/components/SalesRecordDrawer.vue';
+import SalesBatchDrawer from '@/components/SalesBatchDrawer.vue';
 import PageSkeleton from '@/components/Skeleton/PageSkeleton.vue';
 
 const router = useRouter();
@@ -1418,6 +1431,7 @@ const salesDialogVisible = ref(false);
 const salesDialogFormulaId = ref('');
 const salesEditRecord = ref<SaleRecord | null>(null);
 const salesDataMap = ref<Record<string, number>>({});
+const batchDrawerVisible = ref(false);
 
 const openSalesDialog = async (row: Formula) => {
   salesDialogFormulaId.value = row.id;
@@ -1438,6 +1452,10 @@ const openSalesDialog = async (row: Formula) => {
 };
 
 const onSalesDialogSuccess = async () => {
+  await loadSalesData();
+};
+
+const onBatchDrawerSuccess = async () => {
   await loadSalesData();
 };
 
@@ -2799,6 +2817,20 @@ const getSalesQuantity = (row: Formula): number => {
 
     &:hover .quick-icon {
       transform: scale(1.1);
+    }
+
+    &--outline {
+      background-color: transparent;
+      color: var(--color-text-primary);
+      border: 1px solid var(--color-border);
+      box-shadow: none;
+
+      &:hover {
+        background-color: var(--color-bg-page);
+        border-color: var(--color-primary);
+        color: var(--color-primary);
+        filter: none;
+      }
     }
   }
 

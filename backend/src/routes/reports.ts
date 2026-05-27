@@ -15,9 +15,11 @@ import {
   deleteTarget,
   exportReportPdf,
   exportReportExcel,
+  batchExportExcel,
   compareReports,
   getAIAnalysis,
   saveAIAnalysis,
+  checkPeriodExists,
 } from "../controllers/reportController.js";
 import { validateBody } from "../middleware/validate.js";
 
@@ -25,6 +27,10 @@ export const reportRoutes = Router();
 
 reportRoutes.use(authMiddleware);
 
+reportRoutes.post("/check-period", validateBody({
+  type: { type: "string", required: true, message: "请选择报告类型" },
+  periodStart: { type: "string", required: true, message: "请选择开始日期" },
+}), checkPeriodExists);
 reportRoutes.get("/data/weekly", getWeeklyData);
 reportRoutes.get("/data/monthly", getMonthlyData);
 reportRoutes.get("/targets", getTargetList);
@@ -47,6 +53,9 @@ reportRoutes.get("/", getReportList);
 reportRoutes.get("/:id", getReportById);
 reportRoutes.get("/:id/export/pdf", exportReportPdf);
 reportRoutes.get("/:id/export/excel", exportReportExcel);
+reportRoutes.post("/batch-export/excel", validateBody({
+  reportIds: { type: "array", required: true, message: "请选择要导出的报告" },
+}), batchExportExcel);
 reportRoutes.put("/:id", updateReport);
 reportRoutes.delete("/:id", deleteReport);
 reportRoutes.post("/:id/publish", publishReport);

@@ -2,85 +2,59 @@
 import { ref } from "vue";
 import { MessagePlugin } from "tdesign-vue-next";
 import { useQuickFormulaStore } from "@/stores/quickFormula";
-import { useFormulaStore } from "@/stores/formula";
-import { useAuthStore } from "@/stores/auth";
-import { useSalesmanStore } from "@/stores/salesman";
-import type { FormulaForm } from "@/api/formula";
-import type { QuickFormulaMaterial } from "@/types/quickFormula";
+import { useQuickFormulaListStore } from "@/stores/quickFormulaList";
 
 const emit = defineEmits<{
-  "save-template": [];
-  "submitted": [];
+  submitted: [];
+  publish: [];
+  save: [];
+  "request-create": [];
 }>();
 
 const store = useQuickFormulaStore();
-const formulaStore = useFormulaStore();
-const authStore = useAuthStore();
-const salesmanStore = useSalesmanStore();
+const quickFormulaListStore = useQuickFormulaListStore();
 
-const submitting = ref(false);
 const errorMessages = ref<string[]>([]);
+const restoreFlashId = ref<string | null>(null);
 
 function handleQuantityChange(materialId: string, value: number) {
   store.updateMaterialQuantity(materialId, value);
+}
+
+function handleUnitPriceChange(materialId: string, value: number) {
+  store.updateMaterialUnitPrice(materialId, value);
+}
+
+function handleRestorePrice(materialId: string) {
+  const m = store.formulaData.materials.find((item) => item.materialId === materialId);
+  if (!m) return;
+  store.restoreMaterialUnitPrice(materialId);
+  restoreFlashId.value = materialId;
+  setTimeout(() => { restoreFlashId.value = null; }, 600);
+  MessagePlugin.success(`已恢复「${m.materialName}」单价为基价`);
 }
 
 function handleDelete(materialId: string) {
   store.removeMaterial(materialId);
 }
 
-async function handleSubmit() {
+function handleSave() {
+  if (!quickFormulaListStore.selectedId) {
+    MessagePlugin.info("请先创建配方");
+    emit("request-create");
+    return;
+  }
+  emit("save");
+}
+
+function handlePublish() {
   errorMessages.value = [];
   const errors = store.validate();
   if (errors.length > 0) {
     errorMessages.value = errors;
     return;
   }
-
-  submitting.value = true;
-  try {
-    if (salesmanStore.allSalesmen.length === 0) {
-      await salesmanStore.fetchAllForSelect();
-    }
-
-    const firstSalesman = salesmanStore.allSalesmen[0];
-    const salesmanId = authStore.user?.id || firstSalesman?.id || "default-salesman-id";
-
-    const form: FormulaForm = {
-      name: store.formulaName,
-      salesmanId,
-      materials: store.formulaData.materials.map((m: QuickFormulaMaterial) => ({
-        materialId: m.materialId,
-        materialName: m.materialName,
-        quantity: m.quantity,
-      })),
-      finishedWeight: store.formulaData.finishedWeight,
-      ratioFactor: store.formulaData.ratioFactor,
-      supplementRatioFactor: store.formulaData.supplementRatioFactor,
-      packagingPrice: store.formulaData.packagingPrice,
-      otherPrice: store.formulaData.otherPrice,
-      profitMargin: store.formulaData.profitMargin,
-    };
-
-    const result = await formulaStore.createFormula(form);
-    if (result.success) {
-      MessagePlugin.success("配方提交成功");
-      store.clearDraft();
-      store.exitEditMode();
-      emit("submitted");
-    } else {
-      errorMessages.value = [result.message || "提交失败，请重试"];
-    }
-  } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : "提交失败，请重试";
-    errorMessages.value = [msg];
-  } finally {
-    submitting.value = false;
-  }
-}
-
-function handleSaveTemplate() {
-  emit("save-template");
+  emit("publish");
 }
 </script>
 
@@ -121,20 +95,61 @@ function handleSaveTemplate() {
       </div>
       <div class="section-body">
         <template v-if="store.formulaData.materials.length > 0">
+          <div class="material-table-header">
+            <span class="col-index">#</span>
+            <span class="col-name">原料名称</span>
+            <span class="col-qty">用量(g)</span>
+            <span class="col-price">单价(元/kg)</span>
+            <span class="col-ratio">含量比</span>
+            <span class="col-subtotal">小计</span>
+            <span class="col-action">操作</span>
+          </div>
           <div v-if="store.herbMaterials.length > 0" class="material-group">
             <div class="group-label">
               <span class="group-dot group-dot--herb" />
               主料
             </div>
-            <div v-for="(material, index) in store.herbMaterials" :key="material.materialId" class="material-row">
+            <div v-for="(material, index) in store.herbMaterials" :key="material.materialId" class="material-row"
+              :class="{ 'material-row--price-adjusted': material.isPriceAdjusted }">
               <span class="material-index">{{ index + 1 }}</span>
               <span class="material-name">{{ material.materialName }}</span>
-              <t-tag size="small" theme="success" variant="light">主料</t-tag>
               <t-input-number :value="material.quantity" :min="0" :step="1" theme="normal" size="small"
                 class="quantity-input" @change="(val: number) => handleQuantityChange(material.materialId, val)" />
-              <t-popconfirm content="确认移除该原料？" @confirm="handleDelete(material.materialId)">
-                <t-icon name="delete" class="delete-icon" />
-              </t-popconfirm>
+              <div class="price-input-wrap">
+                <t-input-number v-if="material.unitPrice != null" :value="material.unitPrice" :min="0"
+                  :decimal-places="2" theme="normal" size="small" class="price-input"
+                  @change="(val: number) => handleUnitPriceChange(material.materialId, val)" />
+                <span v-else class="price-missing">未录入</span>
+              </div>
+              <span class="material-ratio">
+                {{ store.calculateMaterialRatio(material) }}
+              </span>
+              <span class="material-subtotal"
+                :class="{ 'material-subtotal--missing': store.calculateMaterialSubtotal(material) == null }">
+                {{ store.calculateMaterialSubtotal(material) != null ? '¥' +
+                  store.calculateMaterialSubtotal(material)!.toFixed(2) : '—' }}
+              </span>
+              <span class="material-action">
+                <span v-if="material.isPriceAdjusted" class="col-adjust-badge"
+                  :title="'基价: ¥' + (material.baseUnitPrice ?? '--') + '/kg'">
+                  <svg viewBox="0 0 12 12" width="10" height="10">
+                    <path d="M6 1L7.5 4.5L11 5L8.5 7.5L9 11L6 9L3 11L3.5 7.5L1 5L4.5 4.5Z"
+                      fill="var(--color-warning)" />
+                  </svg>
+                  价
+                </span>
+                <button v-if="material.isPriceAdjusted" type="button" class="col-restore-btn"
+                  :class="{ 'col-restore-btn--flash': restoreFlashId === material.materialId }"
+                  @click="handleRestorePrice(material.materialId)"
+                  :title="'恢复基价: ¥' + (material.baseUnitPrice ?? '--') + '/kg'">
+                  <t-icon name="rollback" size="12px" />
+                </button>
+                <t-popconfirm content="确认移除该原料？" @confirm="handleDelete(material.materialId)">
+                  <button type="button" class="remove-material-btn" title="移除此原料">
+                    <t-icon name="delete" size="12px" />
+                  </button>
+                </t-popconfirm>
+              </span>
             </div>
           </div>
 
@@ -143,15 +158,47 @@ function handleSaveTemplate() {
               <span class="group-dot group-dot--supplement" />
               辅料
             </div>
-            <div v-for="(material, index) in store.supplementMaterials" :key="material.materialId" class="material-row">
+            <div v-for="(material, index) in store.supplementMaterials" :key="material.materialId" class="material-row"
+              :class="{ 'material-row--price-adjusted': material.isPriceAdjusted }">
               <span class="material-index">{{ store.herbMaterials.length + index + 1 }}</span>
               <span class="material-name">{{ material.materialName }}</span>
-              <t-tag size="small" theme="warning" variant="light">辅料</t-tag>
               <t-input-number :value="material.quantity" :min="0" :step="1" theme="normal" size="small"
                 class="quantity-input" @change="(val: number) => handleQuantityChange(material.materialId, val)" />
-              <t-popconfirm content="确认移除该原料？" @confirm="handleDelete(material.materialId)">
-                <t-icon name="delete" class="delete-icon" />
-              </t-popconfirm>
+              <div class="price-input-wrap">
+                <t-input-number v-if="material.unitPrice != null" :value="material.unitPrice" :min="0"
+                  :decimal-places="2" theme="normal" size="small" class="price-input"
+                  @change="(val: number) => handleUnitPriceChange(material.materialId, val)" />
+                <span v-else class="price-missing">未录入</span>
+              </div>
+              <span class="material-ratio material-ratio--supplement">
+                {{ store.calculateMaterialRatio(material) }}
+              </span>
+              <span class="material-subtotal"
+                :class="{ 'material-subtotal--missing': store.calculateMaterialSubtotal(material) == null }">
+                {{ store.calculateMaterialSubtotal(material) != null ? '¥' +
+                  store.calculateMaterialSubtotal(material)!.toFixed(2) : '—' }}
+              </span>
+              <span class="material-action">
+                <span v-if="material.isPriceAdjusted" class="col-adjust-badge"
+                  :title="'基价: ¥' + (material.baseUnitPrice ?? '--') + '/kg'">
+                  <svg viewBox="0 0 12 12" width="10" height="10">
+                    <path d="M6 1L7.5 4.5L11 5L8.5 7.5L9 11L6 9L3 11L3.5 7.5L1 5L4.5 4.5Z"
+                      fill="var(--color-warning)" />
+                  </svg>
+                  价
+                </span>
+                <button v-if="material.isPriceAdjusted" type="button" class="col-restore-btn"
+                  :class="{ 'col-restore-btn--flash': restoreFlashId === material.materialId }"
+                  @click="handleRestorePrice(material.materialId)"
+                  :title="'恢复基价: ¥' + (material.baseUnitPrice ?? '--') + '/kg'">
+                  <t-icon name="rollback" size="12px" />
+                </button>
+                <t-popconfirm content="确认移除该原料？" @confirm="handleDelete(material.materialId)">
+                  <button type="button" class="remove-material-btn" title="移除此原料">
+                    <t-icon name="delete" size="12px" />
+                  </button>
+                </t-popconfirm>
+              </span>
             </div>
           </div>
         </template>
@@ -169,30 +216,34 @@ function handleSaveTemplate() {
         <span class="section-title">费用与操作</span>
       </div>
       <div class="section-body">
-        <div class="param-row">
-          <label class="param-label">包材费用</label>
-          <t-input-number v-model="store.formulaData.packagingPrice" :min="0" :decimal-places="2" theme="normal"
-            size="small" />
+        <!-- 费用输入框 -->
+        <div class="param-row-group">
+          <div class="param-row">
+            <label class="param-label">包材费用</label>
+            <t-input-number v-model="store.formulaData.packagingPrice" :min="0" :decimal-places="2" theme="normal"
+              size="small" />
+          </div>
+          <div class="param-row">
+            <label class="param-label">其他费用</label>
+            <t-input-number v-model="store.formulaData.otherPrice" :min="0" :decimal-places="2" theme="normal"
+              size="small" />
+          </div>
+          <div class="param-row">
+            <label class="param-label">利润率(%)</label>
+            <t-input-number v-model="store.formulaData.profitMargin" :min="0" :max="100" :decimal-places="1"
+              theme="normal" size="small" />
+          </div>
         </div>
-        <div class="param-row">
-          <label class="param-label">其他费用</label>
-          <t-input-number v-model="store.formulaData.otherPrice" :min="0" :decimal-places="2" theme="normal"
-            size="small" />
-        </div>
-        <div class="param-row">
-          <label class="param-label">利润率(%)</label>
-          <t-input-number v-model="store.formulaData.profitMargin" :min="0" :max="100" :decimal-places="1"
-            theme="normal" size="small" />
-        </div>
-
+        <!-- 操作按钮区域 -->
         <div class="actions-area">
-          <t-button variant="outline" block @click="handleSaveTemplate">
-            <template #icon><t-icon name="folder" /></template>
-            保存为模板
+          <t-button variant="outline" block @click="handleSave">
+            <template #icon><t-icon name="save" /></template>
+            保存配方
           </t-button>
-          <t-button theme="default" block class="btn-emerald-fill" :loading="submitting" @click="handleSubmit">
-            <template #icon><t-icon name="check-circle" /></template>
-            提交配方
+          <t-button theme="default" block class="btn-emerald-fill" :disabled="!quickFormulaListStore.selectedId"
+            @click="handlePublish">
+            <template #icon><t-icon name="upload" /></template>
+            发布配方
           </t-button>
         </div>
 
@@ -312,7 +363,61 @@ function handleSaveTemplate() {
 .material-group {
   display: flex;
   flex-direction: column;
-  gap: $space-2;
+  gap: $space-1;
+}
+
+.material-table-header {
+  display: flex;
+  align-items: center;
+  gap: $space-1;
+  padding: $space-1 $space-3;
+  font-size: $font-size-caption;
+  font-weight: $font-weight-semibold;
+  color: $text-tertiary;
+  border-bottom: 1px solid $border-color-light;
+  letter-spacing: $ls-caption;
+
+  .col-index {
+    width: 20px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .col-name {
+    flex: 1;
+    min-width: 0;
+    text-align: left;
+  }
+
+  .col-qty {
+    width: 90px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .col-price {
+    width: 90px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .col-ratio {
+    width: 60px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .col-subtotal {
+    width: 60px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .col-action {
+    min-width: 50px;
+    flex-shrink: 0;
+    text-align: center;
+  }
 }
 
 .group-label {
@@ -343,14 +448,24 @@ function handleSaveTemplate() {
 .material-row {
   display: flex;
   align-items: center;
-  gap: $space-2;
-  padding: $space-2 $space-3;
+  gap: $space-1;
+  padding: $space-1-5 $space-3;
   background: $bg-page;
   border-radius: $radius-lg;
   transition: background $transition-fast;
 
   &:hover {
     background: $bg-hover;
+  }
+
+  &--price-adjusted {
+    border-left: 3px solid $color-warning;
+    background: linear-gradient(90deg, var(--color-warning-bg) 0%, transparent 100%);
+
+    .material-name {
+      color: var(--color-warning-dark);
+      font-weight: $font-weight-semibold;
+    }
   }
 
   .material-index {
@@ -371,22 +486,152 @@ function handleSaveTemplate() {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    text-align: left;
   }
 
   .quantity-input {
-    width: 100px;
+    width: 90px;
     flex-shrink: 0;
+
+    :deep(.t-input__inner) {
+      text-align: center;
+    }
   }
 
-  .delete-icon {
-    color: $text-tertiary;
-    cursor: pointer;
+  .price-input-wrap {
+    width: 90px;
     flex-shrink: 0;
-    transition: color $transition-fast;
 
-    &:hover {
-      color: $color-danger;
+    .price-input {
+      width: 100%;
+
+      :deep(.t-input__inner) {
+        text-align: center;
+      }
     }
+
+    .price-missing {
+      font-size: $font-size-caption;
+      color: $color-warning;
+      font-weight: $font-weight-medium;
+    }
+  }
+
+  .material-ratio {
+    width: 60px;
+    text-align: center;
+    font-size: $font-size-caption;
+    font-weight: $font-weight-medium;
+    color: $text-secondary;
+    font-variant-numeric: tabular-nums;
+    flex-shrink: 0;
+
+    &--supplement {
+      color: $color-warning-orange;
+    }
+  }
+
+  .material-subtotal {
+    width: 60px;
+    text-align: center;
+    font-size: $font-size-caption;
+    font-weight: $font-weight-semibold;
+    color: $text-primary;
+    font-variant-numeric: tabular-nums;
+    flex-shrink: 0;
+
+    &--missing {
+      color: $text-placeholder;
+    }
+  }
+
+  .material-action {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: $space-0-5;
+    flex-shrink: 0;
+    min-width: 50px;
+  }
+}
+
+.col-adjust-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-0-5;
+  font-size: 10px;
+  line-height: 1.4;
+  padding: $space-0-5 $space-1-5;
+  border-radius: 6px;
+  background: linear-gradient(135deg, var(--color-warning-bg), var(--color-warning-border));
+  color: var(--color-warning-dark);
+  font-weight: $font-weight-bold;
+  flex-shrink: 0;
+  cursor: help;
+  transition: all 0.2s;
+  white-space: nowrap;
+
+  &:hover {
+    background: linear-gradient(135deg, var(--color-warning-border), var(--color-warning-border));
+    transform: scale(1.05);
+  }
+}
+
+.col-restore-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: $radius-sm;
+  border: 1px solid $border-color;
+  background: $bg-container;
+  color: $text-secondary;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+  padding: 0;
+
+  &:hover {
+    background: $bg-hover;
+    border-color: $border-color;
+    color: var(--color-primary-dark);
+    transform: scale(1.1);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+
+  &--flash {
+    animation: restore-flash 0.5s ease;
+  }
+}
+
+.remove-material-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: $radius-sm;
+  border: 1px solid $border-color;
+  background: transparent;
+  color: $text-placeholder;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+  padding: 0;
+
+  &:hover {
+    background: var(--color-danger-bg);
+    border-color: var(--color-danger-border);
+    color: $color-danger;
+    transform: scale(1.1);
+  }
+
+  &:active {
+    transform: scale(0.95);
   }
 }
 
@@ -451,6 +696,23 @@ function handleSaveTemplate() {
     background-color: $text-placeholder !important;
     border-color: $text-placeholder !important;
     cursor: not-allowed;
+  }
+}
+
+@keyframes restore-flash {
+  0% {
+    background: var(--color-primary-bg);
+    box-shadow: 0 0 0 0 var(--overlay-emerald-40);
+  }
+
+  50% {
+    background: var(--color-primary-lightest);
+    box-shadow: 0 0 8px 2px var(--overlay-emerald-30);
+  }
+
+  100% {
+    background: $bg-container;
+    box-shadow: none;
   }
 }
 </style>

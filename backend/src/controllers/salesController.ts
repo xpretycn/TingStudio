@@ -289,6 +289,215 @@ export async function deleteSale(req: AuthenticatedRequest, res: Response) {
   }
 }
 
+export async function batchCreateSales(req: AuthenticatedRequest, res: Response) {
+  try {
+    const { records, mergeMode = "accumulate" } = req.body as {
+      records: Record<string, unknown>[];
+      mergeMode?: "accumulate" | "replace";
+    };
+
+    if (!Array.isArray(records) || records.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: { message: "records必须是非空数组", code: "VALIDATION_ERROR" }
+      });
+    }
+
+    const MAX_BATCH_SIZE = 200;
+    if (records.length > MAX_BATCH_SIZE) {
+      return res.status(400).json({
+        success: false,
+        error: { message: `单次批量录入不得超过${MAX_BATCH_SIZE}条`, code: "VALIDATION_ERROR" }
+      });
+    }
+
+    const currentDate = new Date();
+    const maxMonth = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, "0")}-01`;
+
+    const userId = req.user.userId;
+    const role = req.user.role;
+
+    const results: Record<string, unknown>[] = [];
+    let succeeded = 0;
+    let failed = 0;
+    let skipped = 0;
+
+    for (let i = 0; i < records.length; i++) {
+      const record = records[i];
+      const formulaId = record.formulaId as string | undefined;
+      const salesmanId = record.salesmanId as string | undefined;
+      const periodStart = record.periodStart as string | undefined;
+      const periodType = (record.periodType as string) || "monthly";
+      const quantity = Number(record.quantity) || 0;
+      const revenue = Number(record.revenue) || 0;
+      const notes = record.notes as string | undefined;
+
+      if (!formulaId || !salesmanId || !periodStart) {
+        failed++;
+        results.push({
+          index: i,
+          status: "failed",
+          formulaCode: "",
+          salesmanName: "",
+          action: "none",
+          message: "缺少必填字段(formulaId, salesmanId, periodStart)"
+        });
+        continue;
+      }
+
+      if (periodStart > maxMonth) {
+        failed++;
+        results.push({
+          index: i,
+          status: "failed",
+          formulaCode: "",
+          salesmanName: "",
+          action: "none",
+          message: "periodStart不得晚于当前月份"
+        });
+        continue;
+      }
+
+      const [[formulaRow]]: [Record<string, unknown>[]] = await query(
+        "SELECT id, code, created_by FROM formulas WHERE id = ?",
+        [formulaId]
+      );
+      if (!formulaRow) {
+        failed++;
+        results.push({
+          index: i,
+          status: "failed",
+          formulaCode: "",
+          salesmanName: "",
+          action: "none",
+          message: "配方不存在"
+        });
+        continue;
+      }
+
+      const formulaCode = formulaRow.code as string;
+      const formulaCreatedBy = formulaRow.created_by as string;
+
+      const [[salesmanRow]]: [Record<string, unknown>[]] = await query(
+        "SELECT id, name FROM salesmen WHERE id = ?",
+        [salesmanId]
+      );
+      let salesmanName = "";
+      if (salesmanRow) {
+        salesmanName = salesmanRow.name as string;
+      } else {
+        const [[formulaSalesmanRow]]: [Record<string, unknown>[]] = await query(
+          "SELECT salesman_name FROM formulas WHERE id = ?",
+          [formulaId]
+        );
+        if (formulaSalesmanRow) {
+          salesmanName = (formulaSalesmanRow.salesman_name as string) || "";
+        }
+      }
+
+      if (role === "formulist" && formulaCreatedBy !== userId) {
+        failed++;
+        results.push({
+          index: i,
+          status: "failed",
+          formulaCode,
+          salesmanName,
+          action: "none",
+          message: "无权操作此配方"
+        });
+        continue;
+      }
+
+      if (quantity === 0 && revenue === 0) {
+        skipped++;
+        results.push({
+          index: i,
+          status: "skipped",
+          formulaCode,
+          salesmanName,
+          action: "skipped",
+          message: "销量和金额均为空，跳过"
+        });
+        continue;
+      }
+
+      const periodEnd = calcPeriodEnd(periodStart, periodType);
+
+      const [existingRows]: [Record<string, unknown>[]] = await query(
+        "SELECT id, quantity, revenue FROM formula_sales WHERE formula_id = ? AND salesman_id = ? AND period_type = ? AND period_start = ?",
+        [formulaId, salesmanId, periodType, periodStart]
+      );
+
+      if (existingRows && existingRows.length > 0) {
+        const existingRow = existingRows[0] as Record<string, unknown>;
+        const existingId = existingRow.id as string;
+
+        if (mergeMode === "accumulate") {
+          const newQuantity = Number(existingRow.quantity) + quantity;
+          const newRevenue = Number(existingRow.revenue) + revenue;
+          await query(
+            "UPDATE formula_sales SET quantity = ?, revenue = ?, updated_at = ? WHERE id = ?",
+            [newQuantity, newRevenue, now(), existingId]
+          );
+          succeeded++;
+          results.push({
+            index: i,
+            status: "merged",
+            recordId: existingId,
+            formulaCode,
+            salesmanName,
+            action: "accumulated",
+            message: "已累加到已有记录"
+          });
+        } else if (mergeMode === "replace") {
+          await query(
+            "UPDATE formula_sales SET quantity = ?, revenue = ?, notes = ?, updated_at = ? WHERE id = ?",
+            [quantity, revenue, notes || null, now(), existingId]
+          );
+          succeeded++;
+          results.push({
+            index: i,
+            status: "merged",
+            recordId: existingId,
+            formulaCode,
+            salesmanName,
+            action: "replaced",
+            message: "已替换已有记录"
+          });
+        }
+      } else {
+        const id = generateId();
+        await query(
+          `INSERT INTO formula_sales (id, formula_id, salesman_id, period_type, period_start, period_end, quantity, revenue, notes, created_by, created_at, updated_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          [id, formulaId, salesmanId, periodType, periodStart, periodEnd, quantity, revenue, notes || null, userId, now(), now()]
+        );
+        succeeded++;
+        results.push({
+          index: i,
+          status: "success",
+          recordId: id,
+          formulaCode,
+          salesmanName,
+          action: "created",
+          message: "新建成功"
+        });
+      }
+    }
+
+    res.json(success({
+      total: records.length,
+      succeeded,
+      failed,
+      skipped,
+      results
+    }));
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : "批量录入销量失败";
+    res.status(500).json({ success: false, error: { message: msg, code: "INTERNAL_ERROR" } });
+  }
+}
+
 function calcPeriodEnd(periodStart: string, periodType: string): string {
   const [year, month] = periodStart.split('-').map(Number);
   if (periodType === 'monthly') {

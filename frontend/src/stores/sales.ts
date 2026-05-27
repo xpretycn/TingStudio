@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { salesApi } from '@/api/sales'
-import type { SaleRecord, SaleStats, DuplicateEntryData } from '@/api/sales'
+import type { SaleRecord, SaleStats, DuplicateEntryData, BatchCreateRecord, BatchResult } from '@/api/sales'
 import { MessagePlugin } from 'tdesign-vue-next'
 
 export const useSalesStore = defineStore('sales', () => {
@@ -109,6 +109,17 @@ export const useSalesStore = defineStore('sales', () => {
     }
   }
 
+  const batchCreateSales = async (records: BatchCreateRecord[], mergeMode: 'accumulate' | 'replace' = 'accumulate') => {
+    try {
+      const res = await salesApi.batchCreate({ records, mergeMode }, { _silent: true })
+      return { success: true as const, data: res }
+    } catch (error: unknown) {
+      console.error('批量录入销量失败:', error)
+      MessagePlugin.error(error instanceof Error ? error.message : '批量录入销量失败')
+      return { success: false as const, message: error instanceof Error ? error.message : '批量录入销量失败' }
+    }
+  }
+
   return {
     sales,
     stats,
@@ -122,5 +133,6 @@ export const useSalesStore = defineStore('sales', () => {
     updateSale,
     deleteSale,
     getSalesByFormula,
+    batchCreateSales,
   }
 })
