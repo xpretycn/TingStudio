@@ -23,6 +23,22 @@ function ensureColumn(db: any, table: string, col: string, type: string, default
   }
 }
 
+/** 安全地创建表（如果不存在） */
+function ensureTable(db: any, tableName: string, createSql: string) {
+  try {
+    const tables = db.pragma(`table_info(${tableName})`) as any[]
+    if (tables.length === 0) {
+      db.exec(createSql)
+      console.log(`  ✓ 创建表: ${tableName}`)
+    } else {
+      console.log(`  ⊘ 跳过: ${tableName} (已存在)`)
+    }
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err)
+    console.error(`  ✗ 创建表失败: ${tableName} - ${message}`)
+  }
+}
+
 /** 迁移：确保所有新增列都已存在于旧数据库中 */
 function runMigrations(db: any) {
   console.log('执行数据库迁移...')
@@ -38,6 +54,27 @@ function runMigrations(db: any) {
   // formula_versions 表
   ensureColumn(db, 'formula_versions', 'ratio_factor', "REAL", "0.18")
   ensureColumn(db, 'formula_versions', 'supplement_ratio_factor', "REAL", "1.0")
+
+  // formula_templates 表
+  ensureTable(db, 'formula_templates', `
+    CREATE TABLE IF NOT EXISTS formula_templates (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      description TEXT DEFAULT NULL,
+      ratio_factor REAL NOT NULL DEFAULT 0.18,
+      supplement_ratio_factor REAL NOT NULL DEFAULT 1.0,
+      finished_weight REAL NOT NULL DEFAULT 0,
+      materials_json TEXT NOT NULL,
+      packaging_price REAL NOT NULL DEFAULT 0,
+      other_price REAL NOT NULL DEFAULT 0,
+      profit_margin REAL NOT NULL DEFAULT 20,
+      created_by TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+    CREATE INDEX IF NOT EXISTS idx_template_name ON formula_templates(name);
+    CREATE INDEX IF NOT EXISTS idx_template_created_by ON formula_templates(created_by);
+  `)
 
   console.log('✓ 数据库迁移完成\n')
 }

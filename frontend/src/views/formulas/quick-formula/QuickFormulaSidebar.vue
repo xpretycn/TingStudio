@@ -18,6 +18,7 @@ const emit = defineEmits<{
   "update:collapsed": [value: boolean];
   "restore-draft": [draft: QuickFormulaDraft];
   "save-template": [];
+  "show-template-manager": [];
   "update:triggerCreate": [value: boolean];
 }>();
 
@@ -56,21 +57,23 @@ watch(
 
 const isOverlayMode = computed(() => props.isEditing && !props.collapsed);
 
-const statusLabel = computed(() => {
-  return (status: string) => {
-    if (status === "draft") return "编辑中";
-    if (status === "published") return "已发布";
-    return status;
-  };
-});
+function statusLabel(status: string) {
+  if (status === "draft") return "编辑中";
+  if (status === "published") return "已发布";
+  return status;
+}
 
-const statusTagClass = computed(() => {
-  return (status: string) => {
-    if (status === "draft") return "status-tag--draft";
-    if (status === "published") return "status-tag--published";
-    return "";
-  };
-});
+function statusTagClass(status: string) {
+  if (status === "draft") return "item-status--draft";
+  if (status === "published") return "item-status--published";
+  return "";
+}
+
+function statusIcon(status: string) {
+  if (status === "draft") return "edit-1";
+  if (status === "published") return "check-circle";
+  return "help-circle";
+}
 
 function toggleCollapse() {
   emit("update:collapsed", !props.collapsed);
@@ -203,9 +206,14 @@ defineExpose({ clearDraftBanner });
       <template v-else>
         <div class="sidebar-header">
           <h3 class="sidebar-title">快速配方</h3>
-          <button class="collapse-btn" title="折叠侧边栏" @click="toggleCollapse">
-            <t-icon name="chevron-left" size="16px" />
-          </button>
+          <div class="sidebar-header-actions">
+            <button class="template-manager-btn" title="模板管理" @click="emit('show-template-manager')">
+              <t-icon name="folder" size="14px" />
+            </button>
+            <button class="collapse-btn" title="折叠侧边栏" @click="toggleCollapse">
+              <t-icon name="chevron-left" size="16px" />
+            </button>
+          </div>
         </div>
 
         <button class="new-formula-btn" @click="startCreateInline" title="新建快速配方">
@@ -247,6 +255,7 @@ defineExpose({ clearDraftBanner });
                 <template v-else>
                   <span class="item-name" @dblclick.stop="startRename(item)">{{ item.name }}</span>
                   <span class="item-status" :class="statusTagClass(item.status)">
+                    <t-icon :name="statusIcon(item.status)" size="12px" class="status-icon" />
                     {{ statusLabel(item.status) }}
                   </span>
                 </template>
@@ -341,6 +350,13 @@ defineExpose({ clearDraftBanner });
   letter-spacing: $ls-heading;
 }
 
+.sidebar-header-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-1;
+}
+
+.template-manager-btn,
 .collapse-btn {
   display: inline-flex;
   align-items: center;
@@ -356,7 +372,7 @@ defineExpose({ clearDraftBanner });
 
   &:hover {
     background: $bg-hover;
-    color: $text-secondary;
+    color: $emerald-500;
   }
 }
 
@@ -597,19 +613,33 @@ defineExpose({ clearDraftBanner });
   flex-shrink: 0;
   display: inline-flex;
   align-items: center;
+  gap: 2px;
   padding: 1px $space-1;
   border-radius: $radius-pill;
   font-size: $font-size-micro;
   font-weight: $font-weight-semibold;
+  line-height: 1;
+
+  .status-icon {
+    flex-shrink: 0;
+  }
 
   &--draft {
     background: $color-warning-bg;
-    color: $color-warning;
+    color: $color-warning-orange;
+
+    .status-icon {
+      color: $color-warning;
+    }
   }
 
   &--published {
     background: $color-success-bg;
     color: $color-success;
+
+    .status-icon {
+      color: $color-success;
+    }
   }
 }
 

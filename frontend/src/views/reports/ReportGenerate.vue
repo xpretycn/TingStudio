@@ -47,30 +47,23 @@
               </svg>
               时间范围
             </h3>
-            <div class="date-range-row">
-              <t-form-item label="开始日期" name="periodStart" class="date-field">
-                <t-date-picker
-                  v-model="formData.periodStart"
-                  mode="date"
-                  placeholder="选择开始日期"
-                  clearable
-                  style="width: 100%"
-                />
+            <div class="period-select-row">
+              <t-form-item label="选择年份" class="period-field">
+                <t-select v-model="selectedYear" :options="yearOptions" value-key="value" />
               </t-form-item>
-              <span class="date-separator">至</span>
-              <t-form-item label="结束日期" name="periodEnd" class="date-field">
-                <t-date-picker
-                  v-model="formData.periodEnd"
-                  mode="date"
-                  placeholder="选择结束日期"
-                  clearable
-                  style="width: 100%"
-                />
+              <t-form-item label="选择月份" class="period-field">
+                <t-select v-model="selectedMonth" :options="monthOptions" value-key="value" />
+              </t-form-item>
+              <t-form-item v-if="formData.type === 'weekly'" label="选择周次" class="period-field">
+                <t-select v-model="selectedWeek" placeholder="请选择周次">
+                  <t-option v-for="week in weekOptions" :key="week.value" :value="week.value" :label="week.label" />
+                </t-select>
               </t-form-item>
             </div>
-            <p class="date-hint">
-              {{ formData.type === 'weekly' ? '选择周报范围，系统将自动计算该周的起止日期' : '选择月报范围，系统将自动计算该月的起止日期' }}
-            </p>
+            <div class="period-preview">
+              <div class="preview-label">日期范围预览</div>
+              <div class="preview-value">{{ periodPreview }}</div>
+            </div>
           </div>
 
           <div class="form-section">
@@ -93,7 +86,8 @@
             <button type="button" class="action-btn action-btn--cancel" @click="handleCancel">
               取消
             </button>
-            <button type="submit" class="action-btn action-btn--submit" :disabled="generating">
+            <button type="submit" class="action-btn action-btn--submit"
+              :disabled="generating || (formData.type === 'weekly' && !selectedWeekInfo)">
               <svg v-if="generating" class="spin-icon" width="16" height="16" viewBox="0 0 24 24" fill="none"
                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M21 12a9 9 0 1 1-6.219-8.56" />
@@ -108,18 +102,34 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import { useReportStore } from '@/stores/report'
-import { MessagePlugin } from 'tdesign-vue-next'
-import type { FormInstanceFunctions, FormRule } from 'tdesign-vue-next'
+import { ref, reactive, computed, watch, onMounted } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
+import { useReportStore } from '@/stores/report';
+import { MessagePlugin } from 'tdesign-vue-next';
+import type { FormInstanceFunctions, FormRule } from 'tdesign-vue-next';
+import { getWeeksInMonth, getMonthsInYear, getCurrentMonth, getCurrentYear, getYearsRange, type WeekOption } from '@/utils/isoWeekUtils';
 
-const router = useRouter()
-const route = useRoute()
-const reportStore = useReportStore()
+const router = useRouter();
+const route = useRoute();
+const reportStore = useReportStore();
 
-const formRef = ref<FormInstanceFunctions>()
-const generating = ref(false)
+const formRef = ref<FormInstanceFunctions>();
+const generating = ref(false);
+
+const currentYear = getCurrentYear();
+const currentMonth = getCurrentMonth();
+
+const selectedYear = ref(currentYear);
+const selectedMonth = ref(currentMonth);
+const selectedWeek = ref<number | null>(null);
+const selectedWeekInfo = ref<WeekOption | null>(null);
+
+const yearOptions = computed(() => getYearsRange(2024, currentYear + 1));
+const monthOptions = computed(() => getMonthsInYear(selectedYear.value));
+const weekOptions = computed<WeekOption[]>(() => {
+  if (formData.type !== 'weekly') return [];
+  return getWeeksInMonth(selectedYear.value, selectedMonth.value);
+});
 
 const formData = reactive({
   type: 'weekly' as 'weekly' | 'monthly',
@@ -128,65 +138,84 @@ const formData = reactive({
   includePlans: true,
   includeAIAnalysis: true,
   includeMaterialWarning: false,
-})
+});
 
 const formRules: Record<string, FormRule[]> = {
   type: [{ required: true, message: '请选择报告类型' }],
-  periodStart: [{ required: true, message: '请选择开始日期' }],
-  periodEnd: [{ required: true, message: '请选择结束日期' }],
-}
+};
 
-const getWeekRange = (date: Date) => {
-  const day = date.getDay()
-  const diffToMonday = day === 0 ? -6 : 1 - day
-  const monday = new Date(date)
-  monday.setDate(date.getDate() + diffToMonday)
-  monday.setHours(0, 0, 0, 0)
-  const sunday = new Date(monday)
-  sunday.setDate(monday.getDate() + 6)
-  sunday.setHours(23, 59, 59, 999)
-  return { start: monday, end: sunday }
-}
+const periodPreview = computed(() => {
+  if (formData.type === 'monthly') {
+    const monthStr = String(selectedMonth.value).padStart(2, '0');
+    const lastDay = new Date(selectedYear.value, selectedMonth.value, 0).getDate();
+    return `${selectedYear.value}年${selectedMonth.value}月（${selectedYear.value}-${monthStr}-01 ~ ${selectedYear.value}-${monthStr}-${lastDay}）`;
+  }
+  if (selectedWeekInfo.value) {
+    return `${selectedWeekInfo.value.periodStart} ~ ${selectedWeekInfo.value.periodEnd}`;
+  }
+  return '请选择周次';
+});
 
-const getMonthRange = (date: Date) => {
-  const start = new Date(date.getFullYear(), date.getMonth(), 1)
-  start.setHours(0, 0, 0, 0)
-  const end = new Date(date.getFullYear(), date.getMonth() + 1, 0)
-  end.setHours(23, 59, 59, 999)
-  return { start, end }
-}
-
-const formatDateStr = (date: Date) => {
-  const y = date.getFullYear()
-  const m = String(date.getMonth() + 1).padStart(2, '0')
-  const d = String(date.getDate()).padStart(2, '0')
-  return `${y}-${m}-${d}`
-}
-
-const autoFillDates = (type: 'weekly' | 'monthly') => {
-  const now = new Date()
-  if (type === 'weekly') {
-    const { start, end } = getWeekRange(now)
-    formData.periodStart = formatDateStr(start)
-    formData.periodEnd = formatDateStr(end)
-    formData.includeMaterialWarning = false
+function updatePeriodFromSelection() {
+  if (formData.type === 'weekly') {
+    if (selectedWeekInfo.value) {
+      formData.periodStart = selectedWeekInfo.value.periodStart;
+      formData.periodEnd = selectedWeekInfo.value.periodEnd;
+    } else {
+      formData.periodStart = '';
+      formData.periodEnd = '';
+    }
   } else {
-    const { start, end } = getMonthRange(now)
-    formData.periodStart = formatDateStr(start)
-    formData.periodEnd = formatDateStr(end)
-    formData.includeMaterialWarning = true
+    const monthStr = String(selectedMonth.value).padStart(2, '0');
+    const lastDay = new Date(selectedYear.value, selectedMonth.value, 0).getDate();
+    const lastDayStr = String(lastDay).padStart(2, '0');
+    formData.periodStart = `${selectedYear.value}-${monthStr}-01`;
+    formData.periodEnd = `${selectedYear.value}-${monthStr}-${lastDayStr}`;
   }
 }
 
+watch(selectedMonth, () => {
+  selectedWeek.value = null;
+  selectedWeekInfo.value = null;
+});
+
+watch(selectedWeek, (val) => {
+  if (val !== null) {
+    selectedWeekInfo.value = weekOptions.value.find((w) => w.value === val) || null;
+  } else {
+    selectedWeekInfo.value = null;
+  }
+});
+
+watch([selectedWeekInfo, selectedYear, selectedMonth], () => {
+  updatePeriodFromSelection();
+});
+
 const handleTypeChange = (value: 'weekly' | 'monthly') => {
-  autoFillDates(value)
-}
+  formData.type = value;
+  selectedWeek.value = null;
+  selectedWeekInfo.value = null;
+  if (value === 'monthly') {
+    formData.includeMaterialWarning = true;
+  } else {
+    formData.includeMaterialWarning = false;
+  }
+  updatePeriodFromSelection();
+};
 
-const handleGenerate = async ({ validateResult }: { validateResult: boolean | Record<string, unknown>[] }) => {
-  if (validateResult !== true) return
-  if (generating.value) return
+const handleGenerate = async ({ validateResult }: { validateResult: boolean | Record<string, unknown>[]; }) => {
+  if (validateResult !== true) return;
+  if (generating.value) return;
+  if (formData.type === 'weekly' && !selectedWeekInfo.value) {
+    MessagePlugin.warning('请选择周次');
+    return;
+  }
+  if (!formData.periodStart || !formData.periodEnd) {
+    MessagePlugin.warning('请完善时间范围');
+    return;
+  }
 
-  generating.value = true
+  generating.value = true;
   try {
     const result = await reportStore.generateReport({
       type: formData.type,
@@ -194,36 +223,39 @@ const handleGenerate = async ({ validateResult }: { validateResult: boolean | Re
       periodEnd: formData.periodEnd,
       includePlans: formData.includePlans,
       includeAIAnalysis: formData.includeAIAnalysis,
-    })
+    });
     if (result) {
       const path = formData.type === 'weekly'
         ? `/reports/weekly/${result.id}`
-        : `/reports/monthly/${result.id}`
-      router.push(path)
+        : `/reports/monthly/${result.id}`;
+      router.push(path);
     }
   } catch (error: unknown) {
-    const err = error as { message?: string }
-    MessagePlugin.error(err.message || '生成报告失败，请重试')
+    const err = error as { message?: string; };
+    MessagePlugin.error(err.message || '生成报告失败，请重试');
   } finally {
-    generating.value = false
+    generating.value = false;
   }
-}
+};
 
 const handleCancel = () => {
-  router.push('/reports')
-}
+  router.push('/reports');
+};
 
 const goBack = () => {
-  router.push('/reports')
-}
+  router.push('/reports');
+};
 
 onMounted(() => {
-  const queryType = route.query.type as string
+  const queryType = route.query.type as string;
   if (queryType === 'weekly' || queryType === 'monthly') {
-    formData.type = queryType
+    formData.type = queryType;
   }
-  autoFillDates(formData.type)
-})
+  if (formData.type === 'monthly') {
+    formData.includeMaterialWarning = true;
+  }
+  updatePeriodFromSelection();
+});
 </script>
 
 <style scoped lang="scss">
@@ -240,6 +272,7 @@ onMounted(() => {
     opacity: 0;
     transform: translateY(8px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -338,6 +371,7 @@ onMounted(() => {
     opacity: 0;
     transform: translateY(-8px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -354,6 +388,7 @@ onMounted(() => {
     opacity: 0;
     transform: translateY(16px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -396,12 +431,12 @@ onMounted(() => {
   }
 }
 
-.date-range-row {
+.period-select-row {
   display: flex;
   align-items: stretch;
   gap: 16px;
 
-  .date-field {
+  .period-field {
     flex: 1;
 
     :deep(.t-form__item) {
@@ -415,24 +450,25 @@ onMounted(() => {
       align-items: center;
     }
   }
-
-  .date-separator {
-    font-size: $font-size-body;
-    color: var(--color-text-placeholder);
-    font-weight: $font-weight-medium;
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    align-self: center;
-  }
 }
 
-.date-hint {
-  font-size: $font-size-caption;
-  color: var(--color-text-placeholder);
-  margin: 8px 0 0;
-  letter-spacing: $ls-caption;
+.period-preview {
+  margin-top: 20px;
+  padding: 16px;
+  background: var(--color-bg-page);
+  border-radius: 12px;
+
+  .preview-label {
+    font-size: $font-size-caption;
+    color: var(--color-text-placeholder);
+    margin-bottom: 8px;
+  }
+
+  .preview-value {
+    font-size: $font-size-body;
+    color: var(--color-text-primary);
+    font-weight: $font-weight-semibold;
+  }
 }
 
 .checkbox-group {
@@ -514,6 +550,7 @@ onMounted(() => {
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
@@ -531,7 +568,7 @@ onMounted(() => {
   }
 }
 
-:deep(.t-date-picker) {
+:deep(.t-select) {
   .t-input {
     background-color: var(--color-bg-page) !important;
     border: 1px solid #F1F5F9 !important;

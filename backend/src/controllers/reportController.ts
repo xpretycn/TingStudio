@@ -16,15 +16,6 @@ import { exportReportToExcel, exportMultipleReportsToExcel } from "../utils/repo
 import { aiService } from "../services/ai/AIService.js";
 import { getISOWeekKey, getMonthKey } from "../utils/isoWeekUtils.js";
 
-async function getUserRole(userId: string): Promise<string> {
-  try {
-    const [[user]]: any[][] = await query("SELECT role FROM users WHERE id = ?", [userId]);
-    return user?.role || "formulist";
-  } catch {
-    return "formulist";
-  }
-}
-
 function getPeriodKey(type: string, periodStart: string): string {
   if (type === "weekly") {
     return getISOWeekKey(periodStart);
@@ -102,7 +93,7 @@ export async function getReportList(req: any, res: Response) {
   try {
     const { type, status, startDate, endDate, generatedBy, page, pageSize } = req.query;
     const { page: p, pageSize: size, offset } = buildPagination(Number(page), Number(pageSize));
-    const userRole = await getUserRole(req.user.userId);
+    const userRole = req.user.role;
 
     let whereSql = "WHERE 1=1";
     const params: any[] = [];
@@ -151,7 +142,7 @@ export async function getReportById(req: any, res: Response) {
       return res.status(404).json({ success: false, message: "报告不存在" });
     }
 
-    const userRole = await getUserRole(req.user.userId);
+    const userRole = req.user.role;
     if (userRole === "formulist" && report.created_by !== req.user.userId && report.status !== "published") {
       return res.status(403).json({ success: false, message: "无权查看此报告" });
     }
@@ -167,11 +158,6 @@ export async function getReportById(req: any, res: Response) {
 
 export async function generateReport(req: any, res: Response) {
   try {
-    const userRole = await getUserRole(req.user.userId);
-    if (userRole !== "admin") {
-      return res.status(403).json({ success: false, message: "仅管理员可生成报告" });
-    }
-
     const { type, periodStart, periodEnd, includePlans, includeAIAnalysis } = req.body;
     const userId = req.user.userId;
 
@@ -226,7 +212,7 @@ export async function updateReport(req: any, res: Response) {
       return res.status(404).json({ success: false, message: "报告不存在" });
     }
 
-    const userRole = await getUserRole(req.user.userId);
+    const userRole = req.user.role;
     if (userRole === "formulist" && existing.created_by !== req.user.userId) {
       return res.status(403).json({ success: false, message: "无权编辑此报告" });
     }
@@ -297,7 +283,7 @@ export async function deleteReport(req: any, res: Response) {
     console.log(`[ReportController]   - created_at: ${existing.created_at}`)
 
     console.log(`[ReportController] 🔐 步骤2: 验证用户权限...`)
-    const userRole = await getUserRole(req.user.userId);
+    const userRole = req.user.role;
     console.log(`[ReportController]   - 用户角色: ${userRole}`)
     console.log(`[ReportController]   - 用户ID: ${req.user?.userId}`)
     console.log(`[ReportController]   - 报告创建者ID: ${existing.created_by}`)
@@ -335,7 +321,7 @@ export async function publishReport(req: any, res: Response) {
       return res.status(404).json({ success: false, message: "报告不存在" });
     }
 
-    const userRole = await getUserRole(req.user.userId);
+    const userRole = req.user.role;
     if (userRole !== "admin") {
       return res.status(403).json({ success: false, message: "仅管理员可发布报告" });
     }
@@ -555,7 +541,7 @@ export async function batchExportExcel(req: any, res: Response) {
     }
 
     const userId = req.user.userId;
-    const userRole = await getUserRole(userId);
+    const userRole = req.user.role;
 
     const placeholders = reportIds.map(() => "?").join(",");
     const reportQuery = userRole === "admin"
@@ -721,7 +707,7 @@ export async function saveAIAnalysis(req: any, res: Response) {
       return res.status(404).json({ success: false, message: "报告不存在" });
     }
 
-    const userRole = await getUserRole(req.user.userId);
+    const userRole = req.user.role;
     if (userRole === "formulist" && existing.created_by !== req.user.userId) {
       return res.status(403).json({ success: false, message: "无权编辑此报告" });
     }

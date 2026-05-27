@@ -132,8 +132,15 @@
 .t-input:focus-within,
 .t-textarea.t-is-focused,
 .t-textarea:focus-within {
-  border-color: $brand-primary-light;
-  box-shadow: 0 0 0 3px rgba(255, 143, 171, 0.1);
+  border-color: $emerald-500;
+  box-shadow: 0 0 0 3px $overlay-emerald-08;
+}
+
+.t-textarea.t-is-focused .t-textarea__inner,
+.t-textarea__inner:focus {
+  border-color: $emerald-500 !important;
+  box-shadow: none !important;
+  outline: none;
 }
 
 // ─── Table（表格）─────────────────────────────────────────

@@ -182,7 +182,8 @@
                         :class="{ 'report-list-card--selected': selectedReportIds.includes(report.id) }"
                         @click="handleCardClick(report)">
                         <div class="card-actions" @click.stop>
-                          <button class="card-action-btn card-action-btn--export" title="导出报告" @click="handleSingleExport(report)">
+                          <button class="card-action-btn card-action-btn--export" title="导出报告"
+                            @click="handleSingleExport(report)">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                               stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
@@ -190,10 +191,11 @@
                               <line x1="12" y1="15" x2="12" y2="3" />
                             </svg>
                           </button>
-                          <button class="card-action-btn" :class="report.status === 'draft' ? 'card-action-btn--publish' : 'card-action-btn--archive'"
+                          <button class="card-action-btn"
+                            :class="report.status === 'draft' ? 'card-action-btn--publish' : 'card-action-btn--archive'"
                             :title="report.status === 'draft' ? '发布报告' : '归档报告'" @click="handleSinglePublish(report)">
-                            <svg v-if="report.status === 'draft'" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                              stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <svg v-if="report.status === 'draft'" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                               <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
                               <polyline points="22 4 12 14.01 9 11.01" />
                             </svg>
@@ -209,7 +211,8 @@
                               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <polyline points="3 6 5 6 21 6" />
-                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2" />
+                                <path
+                                  d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2" />
                               </svg>
                             </button>
                           </t-popconfirm>
@@ -235,8 +238,9 @@
                         </div>
                         <h3 class="card-title">{{ report.title }}</h3>
                         <p class="card-period">
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-placeholder)" stroke-width="2"
-                            stroke-linecap="round" stroke-linejoin="round">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                            stroke="var(--color-text-placeholder)" stroke-width="2" stroke-linecap="round"
+                            stroke-linejoin="round">
                             <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
                             <line x1="16" y1="2" x2="16" y2="6" />
                             <line x1="8" y1="2" x2="8" y2="6" />
@@ -246,8 +250,9 @@
                         </p>
                         <div class="card-footer">
                           <span class="card-creator">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-placeholder)"
-                              stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                              stroke="var(--color-text-placeholder)" stroke-width="2" stroke-linecap="round"
+                              stroke-linejoin="round">
                               <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                               <circle cx="12" cy="7" r="4" />
                             </svg>
@@ -274,8 +279,8 @@
                           <span>正在生成月报...</span>
                         </template>
                         <template v-else-if="generateError && generateErrorKey === `monthly-${group.monthKey}`">
-                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-danger)" stroke-width="2"
-                            stroke-linecap="round" stroke-linejoin="round">
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-danger)"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <circle cx="12" cy="12" r="10" />
                             <line x1="15" y1="9" x2="9" y2="15" />
                             <line x1="9" y1="9" x2="15" y2="15" />
@@ -283,8 +288,8 @@
                           <span>生成失败，点击重试</span>
                         </template>
                         <template v-else>
-                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2"
-                            stroke-linecap="round" stroke-linejoin="round">
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <line x1="12" y1="5" x2="12" y2="19" />
                             <line x1="5" y1="12" x2="19" y2="12" />
                           </svg>
@@ -297,7 +302,8 @@
                         :class="{ 'report-list-card--selected': selectedReportIds.includes(report.id) }"
                         @click="handleCardClick(report)">
                         <div class="card-actions" @click.stop>
-                          <button class="card-action-btn card-action-btn--export" title="导出报告" @click="handleSingleExport(report)">
+                          <button class="card-action-btn card-action-btn--export" title="导出报告"
+                            @click="handleSingleExport(report)">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                               stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
@@ -305,10 +311,11 @@
                               <line x1="12" y1="15" x2="12" y2="3" />
                             </svg>
                           </button>
-                          <button class="card-action-btn" :class="report.status === 'draft' ? 'card-action-btn--publish' : 'card-action-btn--archive'"
+                          <button class="card-action-btn"
+                            :class="report.status === 'draft' ? 'card-action-btn--publish' : 'card-action-btn--archive'"
                             :title="report.status === 'draft' ? '发布报告' : '归档报告'" @click="handleSinglePublish(report)">
-                            <svg v-if="report.status === 'draft'" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                              stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <svg v-if="report.status === 'draft'" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                               <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
                               <polyline points="22 4 12 14.01 9 11.01" />
                             </svg>
@@ -324,7 +331,8 @@
                               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <polyline points="3 6 5 6 21 6" />
-                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2" />
+                                <path
+                                  d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2" />
                               </svg>
                             </button>
                           </t-popconfirm>
@@ -350,8 +358,9 @@
                         </div>
                         <h3 class="card-title">{{ report.title }}</h3>
                         <p class="card-period">
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-placeholder)" stroke-width="2"
-                            stroke-linecap="round" stroke-linejoin="round">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                            stroke="var(--color-text-placeholder)" stroke-width="2" stroke-linecap="round"
+                            stroke-linejoin="round">
                             <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
                             <line x1="16" y1="2" x2="16" y2="6" />
                             <line x1="8" y1="2" x2="8" y2="6" />
@@ -361,8 +370,9 @@
                         </p>
                         <div class="card-footer">
                           <span class="card-creator">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-placeholder)"
-                              stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                              stroke="var(--color-text-placeholder)" stroke-width="2" stroke-linecap="round"
+                              stroke-linejoin="round">
                               <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                               <circle cx="12" cy="7" r="4" />
                             </svg>
@@ -389,8 +399,8 @@
                           <span>正在生成周报...</span>
                         </template>
                         <template v-else-if="generateError && generateErrorKey === `weekly-${group.monthKey}`">
-                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-danger)" stroke-width="2"
-                            stroke-linecap="round" stroke-linejoin="round">
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-danger)"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <circle cx="12" cy="12" r="10" />
                             <line x1="15" y1="9" x2="9" y2="15" />
                             <line x1="9" y1="9" x2="15" y2="15" />
@@ -398,8 +408,8 @@
                           <span>生成失败，点击重试</span>
                         </template>
                         <template v-else>
-                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2"
-                            stroke-linecap="round" stroke-linejoin="round">
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <line x1="12" y1="5" x2="12" y2="19" />
                             <line x1="5" y1="12" x2="19" y2="12" />
                           </svg>
@@ -544,8 +554,8 @@
                   </div>
                 </div>
                 <div class="assistant-empty" v-else>
-                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="1.5"
-                    stroke-linecap="round" stroke-linejoin="round">
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)"
+                    stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
                     <polyline points="22 4 12 14.01 9 11.01" />
                   </svg>
@@ -577,16 +587,8 @@
       </div>
     </Transition>
 
-    <WeekSelectDrawer
-      v-model:visible="weekSelectDrawerVisible"
-      @confirm="handleWeekSelectConfirm"
-    />
-
-    <ExportFormatDialog
-      v-model:visible="exportFormatDialogVisible"
-      :report-title="exportReportTitle"
-      @confirm="handleExportFormatConfirm"
-    />
+    <ExportFormatDialog v-model:visible="exportFormatDialogVisible" :report-title="exportReportTitle"
+      @confirm="handleExportFormatConfirm" />
   </div>
 </template>
 
@@ -599,7 +601,6 @@ import type { Report } from '@/api/report';
 import { reportApi } from '@/api/report';
 import PageSkeleton from '@/components/Skeleton/PageSkeleton.vue';
 import EmptyState from '@/components/EmptyState.vue';
-import WeekSelectDrawer from '@/components/WeekSelectDrawer.vue';
 import ExportFormatDialog from '@/components/ExportFormatDialog.vue';
 
 const router = useRouter();
@@ -608,7 +609,6 @@ const reportStore = useReportStore();
 const initialized = ref(false);
 const loadError = ref('');
 
-const weekSelectDrawerVisible = ref(false);
 const exportFormatDialogVisible = ref(false);
 const selectedExportReport = ref<Report | null>(null);
 const exportReportTitle = ref('');
@@ -703,7 +703,7 @@ const loadData = async () => {
     }
     await reportStore.fetchReports(params);
   } catch (e: unknown) {
-    const err = e as { message?: string };
+    const err = e as { message?: string; };
     loadError.value = err.message || '加载失败，请稍后重试';
   }
 };
@@ -726,36 +726,11 @@ const handleCardClick = (report: Report) => {
 };
 
 const handleGenerateWeekly = () => {
-  weekSelectDrawerVisible.value = true;
+  router.push({ path: '/reports/generate', query: { type: 'weekly' } });
 };
 
 const handleGenerateMonthly = () => {
-  weekSelectDrawerVisible.value = true;
-};
-
-const handleWeekSelectConfirm = async (data: { periodStart: string; periodEnd: string; type: string }) => {
-  try {
-    const result = await reportApi.checkPeriodExists(
-      data.type as 'weekly' | 'monthly',
-      data.periodStart
-    );
-    if (result.data.exists) {
-      await MessagePlugin.warning(result.data.existingReport
-        ? `该周期的报告已存在（${result.data.existingReport.title}）`
-        : '该周期的报告已存在，请勿重复生成');
-      return;
-    }
-    router.push({
-      path: '/reports/generate',
-      query: {
-        type: data.type,
-        periodStart: data.periodStart,
-        periodEnd: data.periodEnd,
-      },
-    });
-  } catch (error: any) {
-    await MessagePlugin.error(error.message || '检查周期失败');
-  }
+  router.push({ path: '/reports/generate', query: { type: 'monthly' } });
 };
 
 const generatingType = ref('');
@@ -799,7 +774,7 @@ const handleGenerateForMonth = async (type: 'weekly' | 'monthly', monthKey: stri
       await loadData();
     }
   } catch (e: unknown) {
-    const err = e as { message?: string };
+    const err = e as { message?: string; };
     generateError.value = err.message || '生成失败';
     generateErrorKey.value = key;
     MessagePlugin.error(generateError.value);
@@ -860,7 +835,7 @@ const handleSinglePublish = async (report: Report) => {
       MessagePlugin.success(`「${report.title}」已发布`);
       await loadData();
     } catch (e: unknown) {
-      const err = e as { message?: string };
+      const err = e as { message?: string; };
       MessagePlugin.error(err.message || '发布失败');
     }
   } else {
@@ -869,7 +844,7 @@ const handleSinglePublish = async (report: Report) => {
       MessagePlugin.success(`「${report.title}」已归档`);
       await loadData();
     } catch (e: unknown) {
-      const err = e as { message?: string };
+      const err = e as { message?: string; };
       MessagePlugin.error(err.message || '归档失败');
     }
   }
@@ -891,7 +866,7 @@ const handleBatchDelete = async () => {
     if (ok) {
       successCount++;
     } else {
-      console.warn(`[ReportCenter]   ❌ 删除失败: ${report.id}`)
+      console.warn(`[ReportCenter]   ❌ 删除失败: ${report.id}`);
     }
   }
   MessagePlugin.success(`成功删除 ${successCount}/${count} 个报告`);
@@ -1108,7 +1083,7 @@ onMounted(async () => {
   try {
     await loadData();
   } catch (e: unknown) {
-    const err = e as { message?: string };
+    const err = e as { message?: string; };
     loadError.value = err.message || '初始化失败';
   } finally {
     initialized.value = true;

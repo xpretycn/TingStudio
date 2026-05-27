@@ -36,8 +36,11 @@
 // ─── TDesign 焦点环兼容 ────────────────────────────────
 .t-input.t-is-focused,
 .t-textarea.t-is-focused,
+.t-textarea.t-is-focused .t-textarea__inner,
+.t-textarea__inner:focus,
 .t-select-input.t-is-focused {
-  box-shadow: 0 0 0 3px rgba(255, 107, 138, 0.2) !important;
+  box-shadow: 0 0 0 3px $overlay-emerald-08 !important;
+  outline: none !important;
 }
 
 // ═══════════════════════════════════════════════════════════════

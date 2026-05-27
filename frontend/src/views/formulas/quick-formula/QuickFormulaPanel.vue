@@ -377,7 +377,9 @@ onBeforeUnmount(() => {
             v-model:collapsed="sidebarCollapsed" :current-quick-formula-id="currentQuickFormulaId"
             v-model:trigger-create="triggerCreate" @select="handleSelectQuickFormula"
             @select-published="handleSelectPublished" @create="handleQuickFormulaCreated"
-            @restore-draft="handleRestoreDraft" @save-template="showTemplateManager = true" />
+            @restore-draft="handleRestoreDraft"
+            @save-template="showTemplateManager = true"
+            @show-template-manager="showTemplateManager = true" />
           <div class="panel-main">
             <FormulaWorkspace :sidebar-collapsed="sidebarCollapsed"
               @toggle-sidebar="sidebarCollapsed = !sidebarCollapsed" @submitted="handleSubmitSuccess"

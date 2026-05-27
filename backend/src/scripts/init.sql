@@ -351,4 +351,23 @@ CREATE TABLE IF NOT EXISTS `quick_formulas` (
 CREATE INDEX IF NOT EXISTS `idx_qf_name` ON `quick_formulas`(`name`);
 CREATE INDEX IF NOT EXISTS `idx_qf_status` ON `quick_formulas`(`status`);
 CREATE INDEX IF NOT EXISTS `idx_qf_created_by` ON `quick_formulas`(`created_by`);
-CREATE UNIQUE INDEX IF NOT EXISTS `idx_qf_name_user` ON `quick_formulas`(`name`, `created_by`);
+CREATE INDEX IF NOT EXISTS `idx_qf_name_user` ON `quick_formulas`(`name`, `created_by`);
+
+-- 配方模板表
+CREATE TABLE IF NOT EXISTS `formula_templates` (
+  `id` TEXT PRIMARY KEY,
+  `name` TEXT NOT NULL,
+  `description` TEXT DEFAULT NULL,
+  `ratio_factor` REAL NOT NULL DEFAULT 0.18,
+  `supplement_ratio_factor` REAL NOT NULL DEFAULT 1.0,
+  `finished_weight` REAL NOT NULL DEFAULT 0,
+  `materials_json` TEXT NOT NULL,
+  `packaging_price` REAL NOT NULL DEFAULT 0,
+  `other_price` REAL NOT NULL DEFAULT 0,
+  `profit_margin` REAL NOT NULL DEFAULT 20,
+  `created_by` TEXT NOT NULL,
+  `created_at` TEXT NOT NULL DEFAULT (datetime('now')),
+  `updated_at` TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS `idx_template_name` ON `formula_templates`(`name`);
+CREATE INDEX IF NOT EXISTS `idx_template_created_by` ON `formula_templates`(`created_by`);

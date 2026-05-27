@@ -246,6 +246,10 @@ import * as echarts from "echarts";
 import ApprovalCard from "@/components/dashboard/ApprovalCard.vue";
 import { useApprovalStore } from "@/stores/approval";
 
+function cssVar(name: string): string {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+
 const router = useRouter();
 const authStore = useAuthStore();
 const dashboardStore = useDashboardStore();
@@ -447,7 +451,7 @@ const updateChart = () => {
   if (!data || data.length === 0) return;
 
   const isDark = document.documentElement.getAttribute("theme-mode") === "dark";
-  const textColor = isDark ? "var(--color-text-placeholder)" : "var(--color-text-secondary)";
+  const textColor = isDark ? cssVar("--color-text-placeholder") : cssVar("--color-text-secondary");
   const gridColor = isDark ? "rgba(148, 163, 184, 0.08)" : "rgba(0, 0, 0, 0.04)";
 
   const option: echarts.EChartsOption = {
@@ -459,11 +463,11 @@ const updateChart = () => {
     },
     tooltip: {
       trigger: "axis",
-      backgroundColor: isDark ? "var(--color-text-primary)" : "#fff",
-      borderColor: isDark ? "var(--color-text-primary)" : "var(--color-border)",
+      backgroundColor: isDark ? cssVar("--color-text-primary") : "#fff",
+      borderColor: isDark ? cssVar("--color-text-primary") : cssVar("--color-border"),
       borderWidth: 1,
       textStyle: {
-        color: isDark ? "var(--color-border)" : "var(--color-text-primary)",
+        color: isDark ? cssVar("--color-border") : cssVar("--color-text-primary"),
         fontSize: 12,
       },
       formatter: (params: Record<string, unknown>) => {
@@ -505,12 +509,12 @@ const updateChart = () => {
         lineStyle: {
           width: 2.5,
           color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
-            { offset: 0, color: "var(--color-primary)" },
-            { offset: 1, color: "var(--color-primary-light)" },
+            { offset: 0, color: cssVar("--color-primary") },
+            { offset: 1, color: cssVar("--color-primary-light") },
           ]),
         },
         itemStyle: {
-          color: "var(--color-primary)",
+          color: cssVar("--color-primary"),
           borderWidth: 2,
           borderColor: "#fff",
         },
