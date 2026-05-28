@@ -42,19 +42,22 @@ describe('Nutrition Constants', () => {
 
   describe('ZERO_THRESHOLD', () => {
     it('should contain zero-label thresholds for all nutrients', () => {
-      expect(ZERO_THRESHOLD).toHaveProperty('energy_kJ', 17);
-      expect(ZERO_THRESHOLD).toHaveProperty('protein_g', 0.5);
-      expect(ZERO_THRESHOLD).toHaveProperty('fat_g', 0.5);
-      expect(ZERO_THRESHOLD).toHaveProperty('carbohydrate_g', 0.5);
-      expect(ZERO_THRESHOLD).toHaveProperty('sodium_mg', 5);
+      expect(ZERO_THRESHOLD).toHaveProperty('energy', 17);
+      expect(ZERO_THRESHOLD).toHaveProperty('protein', 0.5);
+      expect(ZERO_THRESHOLD).toHaveProperty('fat', 0.5);
+      expect(ZERO_THRESHOLD).toHaveProperty('carbohydrate', 0.5);
+      expect(ZERO_THRESHOLD).toHaveProperty('sodium', 5);
+      expect(ZERO_THRESHOLD).toHaveProperty('fiber', 0.5);
+      expect(ZERO_THRESHOLD).toHaveProperty('sugars', 0.5);
+      expect(ZERO_THRESHOLD).toHaveProperty('cholesterol', 5);
     });
 
     it('should have reasonable threshold values', () => {
-      expect(ZERO_THRESHOLD.energy_kJ).toBeLessThan(100);
-      expect(ZERO_THRESHOLD.protein_g).toBeLessThan(1);
-      expect(ZERO_THRESHOLD.fat_g).toBeLessThan(1);
-      expect(ZERO_THRESHOLD.carbohydrate_g).toBeLessThan(1);
-      expect(ZERO_THRESHOLD.sodium_mg).toBeLessThan(10);
+      expect(ZERO_THRESHOLD.energy).toBeLessThan(100);
+      expect(ZERO_THRESHOLD.protein).toBeLessThan(1);
+      expect(ZERO_THRESHOLD.fat).toBeLessThan(1);
+      expect(ZERO_THRESHOLD.carbohydrate).toBeLessThan(1);
+      expect(ZERO_THRESHOLD.sodium).toBeLessThan(10);
     });
   });
 

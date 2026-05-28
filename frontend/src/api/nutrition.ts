@@ -58,6 +58,92 @@ export interface NutritionTableData {
   ingredients: Record<string, unknown>[]
 }
 
+export interface NutritionAnalysisResult {
+  formulaId: string
+  formulaName: string
+  finishedWeight: number
+  ratioFactor: number
+  supplementRatioFactor: number
+  coverage: CoverageResult
+  nutritionLabel: NutritionLabelResult
+  materialContributions: MaterialContributionItem[]
+  claims: ClaimResult[]
+  fortificationChecks: FortificationCheckItem[]
+  summary: AnalysisSummary
+  calculatedAt: string
+}
+
+export interface CoverageResult {
+  totalMaterials: number
+  withNutrition: number
+  coverageRate: number
+  missingMaterials: MissingMaterial[]
+  weightCoverage?: number
+  confidenceLevel?: "high" | "medium" | "low"
+}
+
+export interface MissingMaterial {
+  materialId: string
+  materialName: string
+  materialType: string
+}
+
+export interface NutritionLabelItem {
+  field: string
+  label: string
+  value: number
+  unit: string
+  nrvPercent: number | null
+  isZero: boolean
+  isCore: boolean
+}
+
+export interface NutritionLabelResult {
+  items: NutritionLabelItem[]
+}
+
+export interface MaterialContributionItem {
+  materialId: string
+  materialName: string
+  materialType: string
+  quantity: number
+  ratio: number
+  hasNutritionData: boolean
+  contributions: Record<string, number>
+  contributionPercent: Record<string, number>
+}
+
+export interface ClaimResult {
+  claim: string
+  field: string
+  currentValue: number
+  threshold: number
+  unit: string
+  satisfied: boolean
+  gap: number
+  standard: string
+}
+
+export interface FortificationCheckItem {
+  materialId: string
+  materialName: string
+  nutrient: string
+  usageAmountPerKg: number
+  unit: string
+  minAllowed: number | null
+  maxAllowed: number | null
+  status: "compliant" | "below_min" | "exceeded" | "not_in_standard"
+  standard: string
+}
+
+export interface AnalysisSummary {
+  coverageLevel: "good" | "warning" | "poor"
+  complianceLevel: "good" | "warning" | "poor"
+  claimsCount: number
+  fortificationStatus: "compliant" | "warning" | "non_compliant"
+  oneLineSummary: string
+}
+
 export const nutritionApi = {
   getMaterialNutrition(materialId: string, silent = false) {
     return http.get<unknown, MaterialNutrition>(`/nutrition/material/${materialId}`, { _silent: silent })
@@ -89,5 +175,11 @@ export const nutritionApi = {
   },
   getFormulaNutritionTables(formulaId: string) {
     return http.get<unknown, NutritionTableData>(`/nutrition/tables/${formulaId}`)
+  },
+  analyzeFormula(formulaId: string) {
+    return http.post<unknown, NutritionAnalysisResult>(`/nutrition/analyze/${formulaId}`)
+  },
+  getCoverage(formulaId: string) {
+    return http.get<unknown, CoverageResult>(`/nutrition/coverage/${formulaId}`)
   },
 }

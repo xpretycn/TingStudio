@@ -1,5 +1,5 @@
 export { nutritionEngine } from './nutritionEngine.js';
-export type { MaterialInput, FormulaInput, CalculationResult } from '../../types/nutrition.js';
+export type { MaterialInput, FormulaInput, CalculationResult, AnalyzeInput, AnalyzeMaterial, NutritionAnalysisResult, CoverageResult, NutritionLabelResult, MaterialContributionItem, ClaimResult, FortificationCheckItem, AnalysisSummary } from '../../types/nutrition.js';
 
 export { ratioFactorValidator } from './ratioFactorValidator.js';
 export type { ValidationLevel, ValidationResult } from './ratioFactorValidator.js';

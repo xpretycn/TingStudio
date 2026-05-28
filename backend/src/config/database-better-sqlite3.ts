@@ -1,5 +1,6 @@
 // 使用 better-sqlite3 作为默认数据库驱动
 import Database from "better-sqlite3";
+import crypto from "node:crypto";
 import { config } from "./index.js";
 import { logger } from "../utils/logger.js";
 import fs from "fs";
@@ -842,6 +843,59 @@ function runAutoMigrations(dbInstance: Database.Database) {
 
   ensureTable(
     dbInstance,
+    "parse_results",
+    `
+    CREATE TABLE parse_results (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      call_type TEXT NOT NULL,
+      file_hash TEXT NOT NULL,
+      file_name TEXT NOT NULL,
+      file_size INTEGER NOT NULL,
+      parsed_result TEXT NOT NULL,
+      raw_response TEXT NOT NULL,
+      model_provider TEXT,
+      model_name TEXT,
+      tokens_used INTEGER NOT NULL DEFAULT 0,
+      prompt_tokens INTEGER NOT NULL DEFAULT 0,
+      completion_tokens INTEGER NOT NULL DEFAULT 0,
+      status TEXT NOT NULL DEFAULT 'pending',
+      error_message TEXT,
+      used_count INTEGER NOT NULL DEFAULT 0,
+      is_linked INTEGER NOT NULL DEFAULT 0,
+      linked_formula_id TEXT,
+      linked_material_id TEXT,
+      expires_at TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_parse_results_user_id ON parse_results(user_id);
+    CREATE INDEX IF NOT EXISTS idx_parse_results_file_hash ON parse_results(file_hash);
+    CREATE INDEX IF NOT EXISTS idx_parse_results_call_type ON parse_results(call_type);
+    CREATE INDEX IF NOT EXISTS idx_parse_results_status ON parse_results(status);
+    CREATE INDEX IF NOT EXISTS idx_parse_results_created_at ON parse_results(created_at);
+    CREATE INDEX IF NOT EXISTS idx_parse_results_expires_at ON parse_results(expires_at)
+    `,
+  );
+
+  ensureTable(
+    dbInstance,
+    "parse_result_configs",
+    `
+    CREATE TABLE parse_result_configs (
+      id TEXT PRIMARY KEY,
+      config_key TEXT UNIQUE NOT NULL,
+      config_value TEXT NOT NULL,
+      description TEXT,
+      updated_at TEXT NOT NULL
+    )
+    `,
+  );
+
+  seedParseResultConfigs(dbInstance);
+
+  ensureTable(
+    dbInstance,
     "ratio_threshold_configs",
     `
     CREATE TABLE ratio_threshold_configs (
@@ -885,6 +939,33 @@ function runAutoMigrations(dbInstance: Database.Database) {
   } catch (_err) {}
 
   ensureInitialAiModels(dbInstance);
+}
+
+function seedParseResultConfigs(dbInstance: Database.Database) {
+  try {
+    const count = (dbInstance.prepare("SELECT COUNT(*) as cnt FROM parse_result_configs").get() as any).cnt;
+    if (count > 0) return;
+
+    const now = new Date().toISOString();
+    const configs = [
+      { key: "storage_limit", value: 5000, desc: "最大解析结果数量" },
+      { key: "cleanup_threshold_percent", value: 95, desc: "触发自动清理的阈值（百分比）" },
+      { key: "cleanup_batch_percent", value: 5, desc: "每次清理的比例（百分比）" },
+      { key: "retention_days", value: 30, desc: "保留天数（预留字段）" },
+      { key: "max_file_size_bytes", value: 5242880, desc: "可缓存文件大小上限（5MB）" },
+    ];
+
+    for (const config of configs) {
+      dbInstance
+        .prepare(
+          "INSERT INTO parse_result_configs (id, config_key, config_value, description, updated_at) VALUES (?, ?, ?, ?, ?)"
+        )
+        .run(crypto.randomUUID(), config.key, JSON.stringify(config.value), config.desc, now);
+    }
+    logger.info("数据库初始化: 已插入默认解析结果配置");
+  } catch (err: any) {
+    logger.error("插入默认解析结果配置失败: " + err.message);
+  }
 }
 
 function ensureInitialAiModels(dbInstance: Database.Database) {

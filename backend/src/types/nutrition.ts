@@ -1,6 +1,6 @@
 export interface MaterialInput {
   name: string;
-  type: 'herb' | 'supplement';
+  type: "herb" | "supplement";
   quantity: number;
   nutrition_per_100g: {
     protein?: number;
@@ -33,4 +33,97 @@ export interface CalculationResult {
     per100g: Record<string, number>;
     details: Array<Record<string, unknown>>;
   };
+}
+
+export interface AnalyzeMaterial {
+  materialId: string;
+  materialName: string;
+  materialType: "herb" | "supplement";
+  quantity: number;
+  per100g: Record<string, number>;
+  hasNutritionData: boolean;
+}
+
+export interface AnalyzeInput {
+  formulaId: string;
+  formulaName: string;
+  finishedWeight: number;
+  ratioFactor: number;
+  supplementRatioFactor: number;
+  materials: AnalyzeMaterial[];
+}
+
+export interface CoverageResult {
+  totalMaterials: number;
+  withNutrition: number;
+  coverageRate: number;
+  missingMaterials: Array<{
+    materialId: string;
+    materialName: string;
+    materialType: string;
+  }>;
+  weightCoverage: number;
+  confidenceLevel: "high" | "medium" | "low";
+}
+
+export interface NutritionLabelResult {
+  per100g: Record<string, number>;
+  nrvPercent: Record<string, number>;
+  energyKj: number;
+  calories: number;
+}
+
+export interface MaterialContributionItem {
+  materialId: string;
+  materialName: string;
+  materialType: string;
+  quantity: number;
+  ratio: number;
+  contribution: Record<string, number>;
+}
+
+export interface ClaimResult {
+  claim: string;
+  field: string;
+  currentValue: number;
+  threshold: number;
+  unit: string;
+  satisfied: boolean;
+  gap: number;
+  standard: string;
+}
+
+export interface FortificationCheckItem {
+  materialId: string;
+  materialName: string;
+  nutrient: string;
+  usageAmountPerKg: number;
+  unit: string;
+  minAllowed: number;
+  maxAllowed: number;
+  status: "compliant" | "below_min" | "exceeded" | "not_in_standard";
+  standard: string;
+}
+
+export interface AnalysisSummary {
+  coverageLevel: "good" | "warning" | "poor";
+  complianceLevel: "good" | "warning" | "poor";
+  claimsCount: number;
+  fortificationStatus: "compliant" | "warning" | "non_compliant";
+  oneLineSummary: string;
+}
+
+export interface NutritionAnalysisResult {
+  formulaId: string;
+  formulaName: string;
+  finishedWeight: number;
+  ratioFactor: number;
+  supplementRatioFactor: number;
+  coverage: CoverageResult;
+  nutritionLabel: NutritionLabelResult;
+  materialContributions: MaterialContributionItem[];
+  claims: ClaimResult[];
+  fortificationChecks: FortificationCheckItem[];
+  summary: AnalysisSummary;
+  calculatedAt: string;
 }

@@ -263,65 +263,70 @@
               <!-- ====== Tab: 模板管理 ====== -->
               <div v-show="activeTab === 'templates'" class="tab-panel">
                 <div class="panel-inner">
-                  <div class="create-form-bar create-form-bar--header">
-                    <span class="form-bar-title">模板列表</span>
-                    <t-button theme="primary" @click="handleOpenTemplateDialog(null)">
-                      <template #icon><t-icon name="add" /></template>新增模板
-                    </t-button>
+                  <div class="section-header-enhanced">
+                    <div class="section-title-group">
+                      <svg class="section-title-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                        <line x1="3" y1="9" x2="21" y2="9" />
+                        <line x1="9" y1="21" x2="9" y2="9" />
+                      </svg>
+                      <h4 class="section-title-text">业务模块模板配置</h4>
+                    </div>
+                    <span class="section-title-count">共 {{ 4 }} 个模块</span>
                   </div>
-                  <div class="table-area">
-                    <t-table :data="exportStore.templates" :columns="templateColumns" :loading="exportStore.loading"
-                      row-key="templateId" hover size="small" table-layout="auto">
-                      <template #empty><t-empty description="暂无模板" role="status" /></template>
-                      <template #category="{ row }">
-                        <t-tag variant="light" theme="success">{{ categoryLabel(row.category) }}</t-tag>
-                      </template>
-                      <template #type="{ row }">
-                        <t-tag variant="light">{{ row.type?.toUpperCase() }}</t-tag>
-                      </template>
-                      <template #isDefault="{ row }">
-                        <t-tag v-if="row.isDefault" theme="primary" variant="light">默认</t-tag>
-                      </template>
-                      <template #createdAt="{ row }">
-                        {{ formatDateTime(row.createdAt) }}
-                      </template>
-                      <template #operation="{ row }">
-                        <t-space :size="6">
-                          <t-button variant="outline" theme="primary" size="small" class="btn-edit"
-                            @click="handleOpenTemplateDialog(row)">
-                            <template #icon><t-icon name="edit" /></template>编辑
-                          </t-button>
-                          <t-popconfirm content="确定要删除该模板吗？" @confirm="handleDeleteTemplate(row.templateId)">
-                            <t-button variant="outline" theme="danger" size="small" class="btn-delete">
-                              <template #icon><t-icon name="delete" /></template>删除
-                            </t-button>
-                          </t-popconfirm>
-                        </t-space>
-                      </template>
-                    </t-table>
 
-                    <div v-if="exportStore.templateTotal > 0 && activeTab === 'templates'" class="table-pagination">
-                      <div class="pagination-info">
-                        显示第 {{ (exportStore.templateCurrentPage - 1) * exportStore.templatePageSize + 1 }}-{{
-                          Math.min(exportStore.templateCurrentPage * exportStore.templatePageSize,
-                            exportStore.templateTotal)
-                        }} 条，共 {{ exportStore.templateTotal }} 条数据
+                  <div v-if="categoryCards.length === 0 && !exportStore.loading" class="empty-state">
+                    <div class="empty-icon-wrap">
+                      <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-placeholder)"
+                        stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                        <line x1="3" y1="9" x2="21" y2="9" />
+                        <line x1="9" y1="21" x2="9" y2="9" />
+                      </svg>
+                    </div>
+                    <p class="empty-text">暂无模板配置</p>
+                    <p class="empty-hint">为各业务模块配置导出模板，选择导出字段和格式</p>
+                  </div>
+
+                  <div v-else class="template-category-grid">
+                    <div v-for="card in categoryCards" :key="card.category" class="template-category-card">
+                      <div class="tcc-header">
+                        <div class="tcc-icon-wrap" :style="{ background: card.iconBg }">
+                          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" :stroke="card.iconColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" v-html="card.iconSvg"></svg>
+                        </div>
+                        <div class="tcc-title-group">
+                          <h5 class="tcc-title">{{ card.name }}</h5>
+                          <span class="tcc-subtitle">{{ card.categoryLabel }}</span>
+                        </div>
                       </div>
-                      <div class="pagination-controls">
-                        <button class="pagination-btn"
-                          :class="{ 'pagination-btn--disabled': exportStore.templateCurrentPage === 1 }"
-                          :disabled="exportStore.templateCurrentPage === 1"
-                          @click="goToTemplatePage(exportStore.templateCurrentPage - 1)">上一页</button>
-                        <template v-for="page in templatePageNumbers" :key="page">
-                          <button v-if="page !== '...'" class="pagination-btn"
-                            :class="{ 'pagination-btn--active': page === exportStore.templateCurrentPage }"
-                            @click="typeof page === 'number' && goToTemplatePage(page)">{{ page }}</button>
-                          <span v-else class="pagination-ellipsis">...</span>
-                        </template>
-                        <button class="pagination-btn"
-                          :class="{ 'pagination-btn--disabled': exportStore.templateCurrentPage === templateTotalPages }"
-                          :disabled="exportStore.templateCurrentPage === templateTotalPages"
-                          @click="goToTemplatePage(exportStore.templateCurrentPage + 1)">下一页</button>
+                      <div class="tcc-body">
+                        <div class="tcc-stat-row">
+                          <div class="tcc-stat">
+                            <span class="tcc-stat-value">{{ card.templateCount }}</span>
+                            <span class="tcc-stat-label">模板数量</span>
+                          </div>
+                          <div class="tcc-stat">
+                            <span class="tcc-stat-value">{{ card.defaultFormat }}</span>
+                            <span class="tcc-stat-label">默认格式</span>
+                          </div>
+                          <div class="tcc-stat">
+                            <span class="tcc-stat-value">{{ card.selectedFieldCount }}/{{ card.totalFieldCount }}</span>
+                            <span class="tcc-stat-label">已选字段</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="tcc-footer">
+                        <button class="tcc-config-btn" @click="openTemplateDrawer(card.category)">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="3" />
+                            <path
+                              d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                          </svg>
+                          配置模板
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -522,12 +527,185 @@
       </t-card>
     </Transition>
 
+    <t-drawer v-model:visible="templateDrawerVisible" :header="drawerTitle"
+      :footer="false" :size="drawerSize" :attach="'body'" :close-on-overlay-click="false"
+      :class="{ 'template-drawer--with-preview': previewVisible }">
+      <div class="template-drawer-body" :class="{ 'with-preview': previewVisible }">
+        <div class="td-config-panel" :class="{ collapsed: previewVisible }">
+          <div class="td-section">
+            <div class="td-section-header">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="3" />
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+              </svg>
+              <span>导出格式配置</span>
+            </div>
+            <div class="td-config-form">
+              <div class="td-form-row">
+                <label class="td-form-label">默认导出格式</label>
+                <t-select v-model="formConfig.exportFormat" :popup-props="{ appendToBody: true }" style="width: 120px">
+                  <t-option value="pdf" label="PDF" />
+                  <t-option value="excel" label="Excel" />
+                </t-select>
+              </div>
+              <div class="td-form-row">
+                <label class="td-form-label">默认模板</label>
+                <div class="td-form-row-inner">
+                  <t-select v-model="formConfig.defaultTemplateId" :popup-props="{ appendToBody: true }" style="flex: 1"
+                    clearable :placeholder="'选择模板'">
+                    <t-option v-for="t in drawerTemplates" :key="t.templateId" :value="t.templateId"
+                      :label="t.name" />
+                  </t-select>
+                  <button class="td-add-btn" @click="handleAddTemplate">新增</button>
+                  <button v-if="formConfig.defaultTemplateId" class="td-delete-btn"
+                    @click="handleDeleteSelectedTemplate">删除</button>
+                </div>
+              </div>
+              <div class="td-form-row">
+                <label class="td-form-label">页面方向</label>
+                <t-select v-model="formConfig.orientation" :popup-props="{ appendToBody: true }" style="width: 120px">
+                  <t-option value="portrait" label="纵向" />
+                  <t-option value="landscape" label="横向" />
+                </t-select>
+                <label class="td-form-label" style="margin-left: 16px">纸张大小</label>
+                <t-select v-model="formConfig.pageSize" :popup-props="{ appendToBody: true }" style="width: 100px">
+                  <t-option value="A4" label="A4" />
+                  <t-option value="A3" label="A3" />
+                  <t-option value="Letter" label="Letter" />
+                </t-select>
+              </div>
+              <div class="td-form-row">
+                <label class="td-form-label">字号</label>
+                <t-select v-model="formConfig.fontSize" :popup-props="{ appendToBody: true }" style="width: 100px">
+                  <t-option :value="10" label="10" />
+                  <t-option :value="11" label="11" />
+                  <t-option :value="12" label="12" />
+                  <t-option :value="14" label="14" />
+                  <t-option :value="16" label="16" />
+                </t-select>
+              </div>
+              <div class="td-form-row td-form-row--checks">
+                <t-checkbox v-model="formConfig.includeHeader">显示页眉</t-checkbox>
+                <t-checkbox v-model="formConfig.includeFooter">显示页脚</t-checkbox>
+              </div>
+            </div>
+          </div>
+
+          <div class="td-section">
+            <div class="td-section-header">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" />
+                <rect x="9" y="3" width="6" height="4" rx="1" />
+                <path d="M9 14l2 2 4-4" />
+              </svg>
+              <span>导出字段配置</span>
+              <span class="td-section-actions">
+                <t-button size="small" variant="text" @click="selectAllFields">全选</t-button>
+                <t-button size="small" variant="text" @click="deselectAllFields">全不选</t-button>
+                <t-button size="small" variant="text" @click="resetFieldsToDefault">恢复默认</t-button>
+              </span>
+            </div>
+            <div class="td-field-groups">
+              <div v-for="group in drawerFieldGroups" :key="group.groupName" class="td-field-group">
+                <div class="td-field-group-title">
+                  <span :class="group.required ? 'td-required-mark' : 'td-optional-mark'">
+                    {{ group.required ? '◆' : '◇' }}
+                  </span>
+                  {{ group.groupName }}
+                  <span v-if="group.required" class="td-required-badge">必选</span>
+                </div>
+                <div class="td-field-chips">
+                  <t-checkbox v-for="field in group.fields" :key="field.key"
+                    :checked="selectedFields.has(field.key)"
+                    :disabled="group.required"
+                    @change="(val: boolean) => toggleField(field.key, val)">
+                    {{ field.label }}
+                  </t-checkbox>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="td-actions">
+            <t-button variant="outline" @click="closeTemplateDrawer">取消</t-button>
+            <t-button variant="outline" theme="primary" @click="handleSaveAndPreview">
+              <template #icon><t-icon name="view-module" /></template>保存并预览
+            </t-button>
+            <t-button theme="primary" @click="handleSaveTemplateConfig">保存</t-button>
+          </div>
+        </div>
+
+        <div v-if="previewVisible" class="template-preview-panel">
+          <div class="tpp-header">
+            <div class="tpp-header-left">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+              <span>模板预览</span>
+            </div>
+            <t-button size="small" variant="text" @click="handleBackToEdit">
+              <t-icon name="close" />
+            </t-button>
+          </div>
+          <div class="tpp-controls">
+            <div class="tpp-control-item">
+              <label>预览数据</label>
+              <t-select v-model="previewDataIndex" :popup-props="{ appendToBody: true }" size="small"
+                style="width: 180px" @change="fetchPreviewData">
+                <t-option v-for="(item, idx) in previewDataList" :key="idx" :value="idx"
+                  :label="item.label" />
+              </t-select>
+            </div>
+            <div class="tpp-control-item">
+              <label>预览格式</label>
+              <t-select v-model="previewFormat" :popup-props="{ appendToBody: true }" size="small"
+                style="width: 100px">
+                <t-option value="pdf" label="PDF 排版" />
+                <t-option value="excel" label="Excel 排版" />
+              </t-select>
+            </div>
+          </div>
+          <div class="tpp-content">
+            <div v-if="previewLoading" class="tpp-loading">
+              <t-loading size="medium" text="加载预览数据..." />
+            </div>
+            <div v-else-if="previewFields.length === 0" class="tpp-empty">
+              <p>请先选择导出字段</p>
+            </div>
+            <div v-else class="tpp-preview-table">
+              <table>
+                <thead>
+                  <tr>
+                    <th style="width: 30%">字段</th>
+                    <th>值</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="pf in previewFields" :key="pf.key">
+                    <td class="tpp-field-label">{{ pf.label }}</td>
+                    <td class="tpp-field-value">{{ pf.value || '--' }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="tpp-footer">
+            <t-button size="small" variant="outline" @click="handleBackToEdit">返回编辑</t-button>
+          </div>
+        </div>
+      </div>
+    </t-drawer>
+
     <t-dialog v-model:visible="showTemplateDialog" :header="editingTemplate ? '编辑模板' : '创建导出模板'"
-      @confirm="handleSaveTemplate" @close="resetTemplateForm">
-      <t-form :data="templateForm" label-width="100px">
-        <t-form-item label="模板名称"><t-input v-model="templateForm.name" placeholder="请输入模板名称" /></t-form-item>
-        <t-form-item label="模板分类">
-          <t-select v-model="templateForm.category" :popup-props="{ appendToBody: true }">
+      @confirm="handleSaveTemplate" @close="resetTemplateDialogForm">
+      <t-form :data="templateDialogForm" label-width="100px">
+        <t-form-item label="模板名称"><t-input v-model="templateDialogForm.name" placeholder="请输入模板名称" /></t-form-item>
+        <t-form-item label="模板分类" v-if="!drawerCategory">
+          <t-select v-model="templateDialogForm.category" :popup-props="{ appendToBody: true }">
             <t-option value="formula" label="配方" />
             <t-option value="material" label="原料" />
             <t-option value="weekly-report" label="周报" />
@@ -535,13 +713,13 @@
           </t-select>
         </t-form-item>
         <t-form-item label="类型">
-          <t-select v-model="templateForm.type" :popup-props="{ appendToBody: true }">
+          <t-select v-model="templateDialogForm.type" :popup-props="{ appendToBody: true }">
             <t-option value="pdf" label="PDF" />
             <t-option value="excel" label="Excel" />
           </t-select>
         </t-form-item>
-        <t-form-item label="描述"><t-textarea v-model="templateForm.description" placeholder="可选" /></t-form-item>
-        <t-form-item label="设为默认"><t-switch v-model="templateForm.isDefault" /></t-form-item>
+        <t-form-item label="描述"><t-textarea v-model="templateDialogForm.description" placeholder="可选" /></t-form-item>
+        <t-form-item label="设为默认"><t-switch v-model="templateDialogForm.isDefault" /></t-form-item>
       </t-form>
     </t-dialog>
 
@@ -549,13 +727,19 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue';
+import { ref, reactive, computed, onMounted, watch } from 'vue';
 import { useExportStore } from '@/stores/export';
 import { useAuthStore } from '@/stores/auth';
 import { MessagePlugin } from 'tdesign-vue-next';
 import { formulaApi } from '@/api/formula';
+import { materialApi } from '@/api/material';
 import type { ExportJob, ShareItem, ExportTemplate, ExportStatistics } from '@/api/export';
 import PageSkeleton from '@/components/Skeleton/PageSkeleton.vue';
+import {
+  EXPORT_FIELD_CONFIG, CATEGORY_META, getDefaultFields, getTotalFieldCount,
+  getSelectedFieldCount, getAllFieldKeys, getRequiredFieldKeys,
+} from '@/utils/fieldConfig';
+import type { FieldGroup } from '@/utils/fieldConfig';
 
 const exportStore = useExportStore();
 const authStore = useAuthStore();
@@ -590,7 +774,28 @@ const formulaList = ref<{ id: string; name: string }[]>([]);
 const searchKeyword = ref('');
 
 const shareForm = reactive({ formulaId: '', password: '', expireDate: '' });
-const templateForm = reactive({ name: '', type: 'excel', category: 'formula', description: '', isDefault: false });
+const templateForm = reactive({ name: '', type: 'excel' as string, category: 'formula' as string, description: '', isDefault: false });
+
+const templateDrawerVisible = ref(false);
+const drawerCategory = ref('');
+const previewVisible = ref(false);
+const previewLoading = ref(false);
+const previewFormat = ref('pdf');
+const previewDataIndex = ref(0);
+const previewRawData = ref<Record<string, unknown>>({});
+const previewDataList = ref<Array<{ label: string; id: string }>>([]);
+
+const formConfig = reactive({
+  exportFormat: 'pdf' as string,
+  defaultTemplateId: '' as string,
+  orientation: 'portrait' as string,
+  pageSize: 'A4' as string,
+  fontSize: 12 as number,
+  includeHeader: true,
+  includeFooter: true,
+});
+
+const selectedFields = ref<Set<string>>(new Set());
 
 const statistics = ref<ExportStatistics | null>(null);
 async function loadStatistics() {
@@ -682,20 +887,6 @@ const goToPage = (page: number) => {
   exportStore.fetchJobs({ page, pageSize: exportStore.pageSize });
 };
 
-const templateTotalPages = computed(() => Math.ceil(exportStore.templateTotal / exportStore.templatePageSize) || 1);
-const templatePageNumbers = computed<(number | string)[]>(() => {
-  const total = templateTotalPages.value;
-  const current = exportStore.templateCurrentPage;
-  if (total <= 5) return Array.from({ length: total }, (_, i) => i + 1);
-  if (current <= 3) return [1, 2, 3, '...', total];
-  if (current >= total - 2) return [1, '...', total - 2, total - 1, total];
-  return [1, '...', current - 1, current, current + 1, '...', total];
-});
-const goToTemplatePage = (page: number) => {
-  exportStore.setTemplatePage(page);
-  exportStore.fetchTemplates({ page, pageSize: exportStore.templatePageSize });
-};
-
 let searchTimer: ReturnType<typeof setTimeout> | null = null;
 const handleSearch = () => {
   if (searchTimer) clearTimeout(searchTimer);
@@ -768,7 +959,7 @@ function handleTabChange(tab: string) {
   } else if (tab === 'export') {
     exportStore.fetchJobs({ page: 1 });
   } else if (tab === 'templates') {
-    exportStore.fetchTemplates({ page: 1, pageSize: exportStore.templatePageSize });
+    exportStore.fetchTemplates({ pageSize: 100 });
   } else if (tab === 'share') {
     exportStore.fetchShares();
   } else if (tab === 'config') {
@@ -890,15 +1081,6 @@ async function handleDeleteShare(shareId: string) {
   else MessagePlugin.error(result.message || '删除失败');
 }
 
-const templateColumns = [
-  { colKey: 'name', title: '模板名称' },
-  { colKey: 'category', title: '分类', width: 90, cell: 'category' },
-  { colKey: 'type', title: '类型', width: 100, cell: 'type' },
-  { colKey: 'isDefault', title: '默认', width: 80, cell: 'isDefault' },
-  { colKey: 'createdAt', title: '创建时间', width: 170, cell: 'createdAt' },
-  { colKey: 'operation', title: '操作', width: 130, cell: 'operation' },
-];
-
 function handleOpenTemplateDialog(template: ExportTemplate | null) {
   if (template) {
     editingTemplate.value = template;
@@ -909,45 +1091,41 @@ function handleOpenTemplateDialog(template: ExportTemplate | null) {
     templateForm.isDefault = !!template.isDefault;
   } else {
     editingTemplate.value = null;
-    resetTemplateForm();
+    resetTemplateDialogForm();
   }
   showTemplateDialog.value = true;
 }
 
-function resetTemplateForm() {
+function resetTemplateDialogForm() {
   templateForm.name = '';
   templateForm.type = 'excel';
-  templateForm.category = 'formula';
+  templateForm.category = drawerCategory.value || 'formula';
   templateForm.description = '';
   templateForm.isDefault = false;
   editingTemplate.value = null;
 }
 
 async function handleSaveTemplate() {
-  if (!templateForm.name) { MessagePlugin.warning('请输入模板名称'); return; }
-  let result;
+  if (!templateForm.name.trim()) { MessagePlugin.warning('请输入模板名称'); return; }
+  const config = editingTemplate.value?.formatConfig || {};
+  const payload = {
+    name: templateForm.name.trim(),
+    type: templateForm.type,
+    category: editingTemplate.value?.category || templateForm.category,
+    description: templateForm.description.trim() || '',
+    formatConfig: JSON.stringify(config),
+    isDefault: templateForm.isDefault ? 1 : 0,
+  };
+  let result: { success: boolean; message?: string; data?: Record<string, unknown> };
   if (editingTemplate.value) {
-    result = await exportStore.updateTemplate(editingTemplate.value.templateId, {
-      name: templateForm.name,
-      type: templateForm.type,
-      category: templateForm.category,
-      description: templateForm.description,
-      formatConfig: {},
-      isDefault: templateForm.isDefault,
-    });
+    result = await exportStore.updateTemplate(editingTemplate.value.templateId, payload);
   } else {
-    result = await exportStore.createTemplate({
-      name: templateForm.name,
-      type: templateForm.type,
-      category: templateForm.category,
-      description: templateForm.description,
-      formatConfig: {},
-      isDefault: templateForm.isDefault,
-    });
+    result = await exportStore.createTemplate(payload);
   }
   if (result.success) {
-    MessagePlugin.success(editingTemplate.value ? '模板更新成功' : '模板创建成功');
+    MessagePlugin.success(editingTemplate.value ? '模板已更新' : '模板已创建');
     showTemplateDialog.value = false;
+    await exportStore.fetchTemplates({ category: drawerCategory.value || undefined, pageSize: 100 });
   } else {
     MessagePlugin.error(result.message || '操作失败');
   }
@@ -955,8 +1133,264 @@ async function handleSaveTemplate() {
 
 async function handleDeleteTemplate(templateId: string) {
   const result = await exportStore.deleteTemplate(templateId);
-  if (result.success) MessagePlugin.success('模板已删除');
-  else MessagePlugin.error(result.message || '删除失败');
+  if (result.success) {
+    MessagePlugin.success('模板已删除');
+    await exportStore.fetchTemplates({ category: drawerCategory.value || undefined, pageSize: 100 });
+  } else {
+    MessagePlugin.error(result.message || '删除失败');
+  }
+}
+
+async function handleDeleteSelectedTemplate() {
+  if (!formConfig.defaultTemplateId) return;
+  await handleDeleteTemplate(formConfig.defaultTemplateId);
+  formConfig.defaultTemplateId = '';
+}
+
+function handleAddTemplate() {
+  resetTemplateDialogForm();
+  editingTemplate.value = null;
+  showTemplateDialog.value = true;
+}
+
+// ====== Drawer 模板配置 ======
+const drawerSize = computed(() => previewVisible.value ? '900px' : '600px');
+
+const drawerTitle = computed(() => {
+  const meta = CATEGORY_META[drawerCategory.value];
+  if (!meta) return '配置模板';
+  return `配置模板 - ${meta.name}`;
+});
+
+const categoryCards = computed(() => {
+  const categories = ['formula', 'material', 'weekly-report', 'monthly-report'];
+  return categories.map((cat) => {
+    const meta = CATEGORY_META[cat];
+    const templates = exportStore.templates.filter((t: ExportTemplate) => t.category === cat);
+    const defaultTemplate = templates.find((t: ExportTemplate) => t.isDefault === 1);
+    const totalFields = getTotalFieldCount(cat);
+    const defaultTemplateFields = defaultTemplate?.formatConfig && typeof defaultTemplate.formatConfig === 'object' && 'selectedFields' in defaultTemplate.formatConfig
+      ? (defaultTemplate.formatConfig as Record<string, unknown>).selectedFields as string[] || []
+      : getDefaultFields(cat);
+    return {
+      category: cat,
+      name: meta?.name || cat,
+      categoryLabel: CATEGORY_MAP[cat] || cat,
+      iconSvg: getCategoryIcon(cat),
+      iconBg: getCategoryIconBg(cat),
+      iconColor: getCategoryIconColor(cat),
+      templateCount: templates.length,
+      defaultFormat: defaultTemplate ? defaultTemplate.type.toUpperCase() : '--',
+      selectedFieldCount: getSelectedFieldCount(cat, defaultTemplateFields),
+      totalFieldCount: totalFields,
+    };
+  });
+});
+
+const drawerTemplates = computed(() =>
+  exportStore.templates.filter((t: ExportTemplate) => t.category === drawerCategory.value));
+
+const drawerFieldGroups = computed(() => EXPORT_FIELD_CONFIG[drawerCategory.value] || []);
+
+const previewFields = computed(() => {
+  const groups = EXPORT_FIELD_CONFIG[drawerCategory.value];
+  if (!groups) return [];
+  const result: Array<{ key: string; label: string; value: string }> = [];
+  for (const group of groups) {
+    for (const field of group.fields) {
+      if (selectedFields.value.has(field.key)) {
+        const value = previewRawData.value[field.key];
+        result.push({
+          key: field.key,
+          label: field.label,
+          value: value !== undefined && value !== null ? String(value) : '--',
+        });
+      }
+    }
+  }
+  return result;
+});
+
+function openTemplateDrawer(category: string) {
+  drawerCategory.value = category;
+  previewVisible.value = false;
+  previewRawData.value = {};
+  previewDataList.value = [];
+  previewDataIndex.value = 0;
+
+  const templates = exportStore.templates.filter((t: ExportTemplate) => t.category === category);
+  const defaultTemplate = templates.find((t: ExportTemplate) => t.isDefault === 1) || templates[0];
+  if (defaultTemplate) {
+    const cfg = defaultTemplate.formatConfig || {};
+    formConfig.exportFormat = (cfg as Record<string, unknown>).exportFormat as string || defaultTemplate.type || 'pdf';
+    formConfig.defaultTemplateId = defaultTemplate.templateId;
+    formConfig.orientation = (cfg as Record<string, unknown>).orientation as string || 'portrait';
+    formConfig.pageSize = (cfg as Record<string, unknown>).pageSize as string || 'A4';
+    formConfig.fontSize = (cfg as Record<string, unknown>).fontSize as number || 12;
+    formConfig.includeHeader = ((cfg as Record<string, unknown>).includeHeader as boolean) ?? true;
+    formConfig.includeFooter = ((cfg as Record<string, unknown>).includeFooter as boolean) ?? true;
+    const fields = (cfg as Record<string, unknown>).selectedFields as string[] || getDefaultFields(category);
+    selectedFields.value = new Set(fields);
+  } else {
+    formConfig.exportFormat = 'pdf';
+    formConfig.defaultTemplateId = '';
+    formConfig.orientation = 'portrait';
+    formConfig.pageSize = 'A4';
+    formConfig.fontSize = 12;
+    formConfig.includeHeader = true;
+    formConfig.includeFooter = true;
+    selectedFields.value = new Set(getDefaultFields(category));
+  }
+
+  templateDrawerVisible.value = true;
+}
+
+function closeTemplateDrawer() {
+  templateDrawerVisible.value = false;
+  previewVisible.value = false;
+  drawerCategory.value = '';
+}
+
+function toggleField(key: string, value: boolean) {
+  if (value) {
+    selectedFields.value.add(key);
+  } else {
+    selectedFields.value.delete(key);
+  }
+  selectedFields.value = new Set(selectedFields.value);
+}
+
+function selectAllFields() {
+  const allKeys = getAllFieldKeys(drawerCategory.value);
+  selectedFields.value = new Set(allKeys);
+}
+
+function deselectAllFields() {
+  const requiredKeys = getRequiredFieldKeys(drawerCategory.value);
+  selectedFields.value = new Set(requiredKeys);
+}
+
+function resetFieldsToDefault() {
+  const defaults = getDefaultFields(drawerCategory.value);
+  selectedFields.value = new Set(defaults);
+}
+
+async function handleSaveAndPreview() {
+  await handleSaveTemplateConfig(true);
+  await fetchPreviewDataList();
+  previewVisible.value = true;
+}
+
+async function handleSaveTemplateConfig(silent = false) {
+  if (!formConfig.defaultTemplateId) {
+    if (!silent) MessagePlugin.warning('请选择默认模板');
+    return;
+  }
+  const config = {
+    selectedFields: Array.from(selectedFields.value),
+    requiredFields: getRequiredFieldKeys(drawerCategory.value),
+    exportFormat: formConfig.exportFormat,
+    orientation: formConfig.orientation,
+    pageSize: formConfig.pageSize,
+    fontSize: formConfig.fontSize,
+    includeHeader: formConfig.includeHeader,
+    includeFooter: formConfig.includeFooter,
+  };
+  const result = await exportStore.updateTemplate(formConfig.defaultTemplateId, {
+    formatConfig: JSON.stringify(config),
+    isDefault: 1,
+  } as Parameters<typeof exportStore.updateTemplate>[1]);
+  if (result.success) {
+    if (!silent) MessagePlugin.success('模板配置已保存');
+    await exportStore.fetchTemplates({ category: drawerCategory.value, pageSize: 100 });
+  } else {
+    if (!silent) MessagePlugin.error(result.message || '保存失败');
+  }
+}
+
+async function fetchPreviewDataList() {
+  previewLoading.value = true;
+  previewDataList.value = [];
+  try {
+    if (drawerCategory.value === 'formula') {
+      const res = await formulaApi.getList({ page: 1, pageSize: 10 });
+      previewDataList.value = (res.list || []).map((item: { id: string; name: string }) => ({
+        id: item.id,
+        label: item.name,
+      }));
+    } else if (drawerCategory.value === 'material') {
+      const res = await materialApi.getList({ page: 1, pageSize: 10 });
+      previewDataList.value = (res.list || []).map((item: { id: string; name: string }) => ({
+        id: item.id,
+        label: item.name,
+      }));
+    } else {
+      previewDataList.value = [{ id: 'sample', label: '示例数据（周报/月报）' }];
+    }
+    if (previewDataList.value.length > 0) {
+      previewDataIndex.value = 0;
+      await fetchPreviewData();
+    }
+  } catch {
+    previewDataList.value = [];
+  } finally {
+    previewLoading.value = false;
+  }
+}
+
+async function fetchPreviewData() {
+  const item = previewDataList.value[previewDataIndex.value];
+  if (!item) return;
+  previewLoading.value = true;
+  try {
+    if (drawerCategory.value === 'formula') {
+      const res = await formulaApi.getById(item.id);
+      previewRawData.value = (res as Record<string, unknown>) || {};
+    } else if (drawerCategory.value === 'material') {
+      const res = await materialApi.getById(item.id);
+      previewRawData.value = (res as Record<string, unknown>) || {};
+    } else {
+      previewRawData.value = {
+        periodRange: '2026-05-19 ~ 2026-05-25',
+        generatedAt: new Date().toISOString(),
+        newFormulasCount: '12',
+        newMaterialsCount: '5',
+        exportCount: '28',
+        topFormulas: '枸杞养生茶、当归四物汤...',
+        salesmanStats: '张三(8)、李四(6)...',
+        dataCutoffTime: new Date().toISOString(),
+        generatedBy: previewRawData.value.generatedBy || 'admin',
+      };
+    }
+  } catch {
+    previewRawData.value = {};
+  } finally {
+    previewLoading.value = false;
+  }
+}
+
+function handleBackToEdit() {
+  previewVisible.value = false;
+}
+
+function getCategoryIcon(cat: string): string {
+  const icons: Record<string, string> = {
+    formula: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>',
+    material: '<polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>',
+    'weekly-report': '<line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>',
+    'monthly-report': '<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>',
+  };
+  return icons[cat] || '';
+}
+
+function getCategoryIconBg(cat: string): string {
+  const bgs: Record<string, string> = { formula: '#EFF6FF', material: '#FEF3C7', 'weekly-report': '#ECFDF5', 'monthly-report': '#F3E8FF' };
+  return bgs[cat] || '#F5F5F5';
+}
+
+function getCategoryIconColor(cat: string): string {
+  const colors: Record<string, string> = { formula: '#3B82F6', material: '#F59E0B', 'weekly-report': '#10B981', 'monthly-report': '#8B5CF6' };
+  return colors[cat] || '#666';
 }
 
 const exportConfig = ref({
@@ -2111,4 +2545,473 @@ onMounted(async () => {
     transform: translateY(-8px);
   }
 }
+
+// ====== 模板管理卡片 ======
+.section-header-enhanced {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-4);
+  .section-title-group {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+  .section-title-icon {
+    flex-shrink: 0;
+  }
+  .section-title-text {
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin: 0;
+  }
+  .section-title-count {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+  }
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px var(--space-4);
+  .empty-icon-wrap {
+    margin-bottom: var(--space-3);
+  }
+  .empty-text {
+    font-size: var(--font-size-md);
+    color: var(--color-text-secondary);
+    margin: 0 0 var(--space-1);
+  }
+  .empty-hint {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-placeholder);
+    margin: 0;
+  }
+}
+
+.template-category-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-4);
+}
+
+.template-category-card {
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  &:hover {
+    box-shadow: var(--shadow-md);
+    border-color: var(--color-primary-border);
+  }
+}
+
+.tcc-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-4) var(--space-2);
+}
+
+.tcc-icon-wrap {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.tcc-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tcc-title {
+  font-size: var(--font-size-md);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0;
+  line-height: 1.3;
+}
+
+.tcc-subtitle {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-placeholder);
+}
+
+.tcc-body {
+  padding: var(--space-2) var(--space-4);
+  flex: 1;
+}
+
+.tcc-stat-row {
+  display: flex;
+  gap: var(--space-4);
+}
+
+.tcc-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tcc-stat-value {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.tcc-stat-label {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-placeholder);
+}
+
+.tcc-footer {
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid var(--color-border-light);
+}
+
+.tcc-config-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1-5);
+  padding: var(--space-1-5) var(--space-4);
+  background: var(--color-primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  &:hover {
+    background: var(--color-primary-hover);
+  }
+}
+
+// ====== 模板 Drawer ======
+.template-drawer-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding-bottom: var(--space-4);
+
+  &.with-preview {
+    flex-direction: row;
+    gap: 0;
+    padding-bottom: 0;
+    height: 100%;
+    overflow: hidden;
+
+    .td-config-panel {
+      width: 340px;
+      min-width: 340px;
+      flex-shrink: 0;
+      overflow-y: auto;
+      padding-right: var(--space-3);
+    }
+
+    .template-preview-panel {
+      flex: 1;
+      min-width: 320px;
+    }
+  }
+}
+
+.td-config-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+
+  &.collapsed {
+    gap: var(--space-2);
+
+    .td-section {
+      padding: var(--space-2);
+    }
+
+    .td-section-header {
+      margin-bottom: var(--space-1);
+    }
+
+    .td-config-form {
+      gap: var(--space-1);
+    }
+
+    .td-form-row {
+      flex-wrap: wrap;
+    }
+
+    .td-field-groups {
+      max-height: 200px;
+    }
+
+    .td-actions {
+      padding-top: var(--space-1);
+    }
+  }
+}
+
+.template-drawer--with-preview {
+  :deep(.t-drawer__body) {
+    display: flex !important;
+    flex-direction: row !important;
+    padding: var(--space-4) !important;
+    overflow: hidden !important;
+  }
+}
+
+.td-section {
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+}
+
+.td-section-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1-5);
+  margin-bottom: var(--space-3);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.td-section-actions {
+  margin-left: auto;
+  display: flex;
+  gap: var(--space-1);
+}
+
+.td-config-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.td-form-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.td-form-row--checks {
+  gap: var(--space-4);
+}
+
+.td-form-label {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  min-width: 80px;
+}
+
+.td-form-row-inner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex: 1;
+}
+
+.td-add-btn {
+  padding: var(--space-1) var(--space-2-5);
+  border: 1px solid var(--color-primary);
+  color: var(--color-primary);
+  background: transparent;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+  white-space: nowrap;
+  &:hover {
+    background: var(--color-primary-bg);
+  }
+}
+
+.td-delete-btn {
+  padding: var(--space-1) var(--space-2-5);
+  border: 1px solid var(--color-danger);
+  color: var(--color-danger);
+  background: transparent;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+  white-space: nowrap;
+  &:hover {
+    background: var(--color-danger-bg);
+  }
+}
+
+.td-field-groups {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  max-height: 360px;
+  overflow-y: auto;
+}
+
+.td-field-group {
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+}
+
+.td-field-group-title {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-2);
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.td-required-mark {
+  color: var(--color-danger);
+  font-size: var(--font-size-xs);
+}
+
+.td-optional-mark {
+  color: var(--color-text-placeholder);
+  font-size: var(--font-size-xs);
+}
+
+.td-required-badge {
+  font-size: var(--font-size-2xs);
+  color: var(--color-danger);
+  background: var(--color-danger-bg);
+  padding: 1px 6px;
+  border-radius: var(--radius-xs);
+}
+
+.td-field-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.td-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-border-light);
+}
+
+// ====== 预览面板 ======
+.template-preview-panel {
+  flex: 1;
+  border-left: 1px solid var(--color-border-light);
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg-primary);
+  overflow: hidden;
+
+  .tpp-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-3) var(--space-4);
+    border-bottom: 1px solid var(--color-border-light);
+    flex-shrink: 0;
+  }
+}
+
+.tpp-header-left {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1-5);
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    color: var(--color-text-primary);
+  }
+
+  .tpp-controls {
+    display: flex;
+    gap: var(--space-3);
+    padding: var(--space-2) var(--space-4);
+    border-bottom: 1px solid var(--color-border-light);
+    flex-shrink: 0;
+  }
+
+  .tpp-control-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    label {
+      font-size: var(--font-size-2xs);
+      color: var(--color-text-placeholder);
+    }
+  }
+
+  .tpp-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--space-3) var(--space-4);
+  }
+
+  .tpp-loading {
+    display: flex;
+    justify-content: center;
+    padding: var(--space-8);
+  }
+
+  .tpp-empty {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    p {
+      color: var(--color-text-placeholder);
+      font-size: var(--font-size-sm);
+    }
+  }
+
+  .tpp-preview-table {
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: var(--font-size-sm);
+    }
+    th {
+      background: var(--color-bg-secondary);
+      padding: var(--space-1-5) var(--space-2);
+      text-align: left;
+      font-weight: 500;
+      color: var(--color-text-secondary);
+      border-bottom: 1px solid var(--color-border-light);
+    }
+    td {
+      padding: var(--space-1-5) var(--space-2);
+      border-bottom: 1px solid var(--color-border-light);
+    }
+  }
+
+  .tpp-field-label {
+    color: var(--color-text-secondary);
+    font-weight: 500;
+  }
+
+  .tpp-field-value {
+    color: var(--color-text-primary);
+    word-break: break-all;
+  }
+
+  .tpp-footer {
+    padding: var(--space-2) var(--space-4);
+    border-top: 1px solid var(--color-border-light);
+    display: flex;
+    justify-content: flex-end;
+    flex-shrink: 0;
+  }
 </style>

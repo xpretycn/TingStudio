@@ -1,7 +1,7 @@
 // 种子数据 - SQLite 版本
 import 'dotenv/config'
 import bcrypt from 'bcryptjs'
-import { connectDatabase, getDb, closeDatabase } from '../config/database.js'
+import { connectDatabase, getDb, transaction, closeDatabase } from '../config/database.js'
 import { generateId, now } from '../utils/helpers.js'
 
 // ═══════════════════════════════════════════════════════
@@ -104,7 +104,7 @@ async function seedData() {
   await connectDatabase()
   const db = getDb()
 
-  const insert = db.transaction(() => {
+  transaction(() => {
     // ═══════════════════════════════════════════════════════
     // 1. 用户表 users（10条）
     // ═══════════════════════════════════════════════════════
@@ -266,32 +266,48 @@ async function seedData() {
 
     // ═══════════════════════════════════════════════════════
     // 6. 导出模板表 export_templates（6条）
+    //    配方: 标准配方PDF / 生产配方Excel / 营养标签PDF（共3条）
+    //    原料: 原料清单Excel（共1条）
+    //    周报: 周报导出Excel（共1条）
+    //    月报: 月报导出Excel（共1条）
     // ═══════════════════════════════════════════════════════
     console.log('\n--- 创建导出模板 (6条) ---')
-    const templateNames = [
-      '标准配方PDF模板', '生产配方Excel模板', 'MES对接API模板',
-      '营养标签PDF模板', '原料清单Excel模板', '质检报告打印模板',
+
+    const formulaFields = ['name','code','createdAt','salesmanName','salesmanPhone','customerName','remark','finishedWeight','herbList','supplementList','protein','fat','carbs','sodium','energy','cost','profitRate','suggestedPrice','version','updatedAt','createdBy']
+    const materialFields = ['name','code','materialType','spec','unit','stockQuantity','supplierName','unitPrice','createdAt']
+    const reportFields = ['periodRange','generatedAt','newFormulasCount','newMaterialsCount','exportCount','topFormulas','salesmanStats','dataCutoffTime','generatedBy']
+
+    const templateDefs: Array<{ name: string; category: string; type: string; isDefault: boolean; fields: string[]; orientation: string }> = [
+      { name: '标准配方PDF模板', category: 'formula', type: 'pdf', isDefault: true, fields: formulaFields, orientation: 'portrait' },
+      { name: '生产配方Excel模板', category: 'formula', type: 'excel', isDefault: true, fields: formulaFields, orientation: 'landscape' },
+      { name: '营养标签PDF模板', category: 'formula', type: 'pdf', isDefault: false, fields: ['name','code','createdAt','protein','fat','carbs','sodium','energy','finishedWeight','herbList','supplementList'], orientation: 'portrait' },
+      { name: '原料清单Excel模板', category: 'material', type: 'excel', isDefault: true, fields: materialFields, orientation: 'landscape' },
+      { name: '周报导出Excel模板', category: 'weekly-report', type: 'excel', isDefault: true, fields: reportFields, orientation: 'landscape' },
+      { name: '月报导出Excel模板', category: 'monthly-report', type: 'excel', isDefault: true, fields: reportFields, orientation: 'landscape' },
     ]
-    const types = ['pdf', 'excel', 'api', 'print'] as const
+
     const stmtEt = db.prepare(
-      'INSERT OR IGNORE INTO export_templates (template_id, name, description, type, format_config_json, is_default, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+      'INSERT OR IGNORE INTO export_templates (template_id, name, description, category, type, format_config_json, is_default, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
     )
     const templateIds: string[] = []
-    for (let i = 0; i < templateNames.length; i++) {
+    for (const tpl of templateDefs) {
       const tid = generateId()
       templateIds.push(tid)
-      const type = types[i % 4]
-      const isDefault = i === 0 ? 1 : 0
       const config = {
-        columns: ['配方名称', '业务员名称', '原料列表', '创建时间'],
-        orientation: i % 2 === 0 ? 'portrait' : 'landscape',
+        selectedFields: tpl.fields,
+        requiredFields: tpl.fields.filter((f: string) => ['name','code','createdAt','periodRange','generatedAt'].includes(f)),
+        exportFormat: tpl.type,
+        orientation: tpl.orientation,
+        pageSize: 'A4',
         fontSize: 12,
+        includeHeader: true,
+        includeFooter: true,
       }
       try {
-        stmtEt.run(tid, templateNames[i], `${templateNames[i]}的描述信息`, type, JSON.stringify(config), isDefault, userIds[0], now())
-        console.log(`✓ 导出模板: ${templateNames[i]} (${type})`)
+        stmtEt.run(tid, tpl.name, `${tpl.name}的默认配置`, tpl.category, tpl.type, JSON.stringify(config), tpl.isDefault ? 1 : 0, userIds[0], now(), now())
+        console.log(`✓ 导出模板: ${tpl.name} (${tpl.category}/${tpl.type})`)
       } catch (e) {
-        console.log(`  导出模板 ${templateNames[i]} 已存在: ${e}`)
+        console.log(`  导出模板 ${tpl.name} 已存在: ${e}`)
       }
     }
 

@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { nutritionApi } from '@/api/nutrition'
-import type { NutritionProfile } from '@/api/nutrition'
+import type { NutritionProfile, NutritionAnalysisResult } from '@/api/nutrition'
 
 export const useNutritionStore = defineStore('nutrition', () => {
   const loading = ref(false)
@@ -9,6 +9,7 @@ export const useNutritionStore = defineStore('nutrition', () => {
   const materialNutrition = ref<Record<string, unknown> | null>(null)
   const formulaNutrition = ref<Record<string, unknown> | null>(null)
   const complianceResult = ref<Record<string, unknown> | null>(null)
+  const analysisResult = ref<NutritionAnalysisResult | null>(null)
 
   const getMaterialNutrition = async (materialId: string) => {
     loading.value = true
@@ -105,12 +106,26 @@ export const useNutritionStore = defineStore('nutrition', () => {
     }
   }
 
+  const analyzeFormula = async (formulaId: string) => {
+    loading.value = true
+    try {
+      const res = await nutritionApi.analyzeFormula(formulaId)
+      analysisResult.value = res
+      return { success: true }
+    } catch (error: unknown) {
+      return { success: false, message: (error as Error).message || '分析失败' }
+    } finally {
+      loading.value = false
+    }
+  }
+
   return {
     loading,
     profiles,
     materialNutrition,
     formulaNutrition,
     complianceResult,
+    analysisResult,
     getMaterialNutrition,
     setMaterialNutrition,
     calculateFormulaNutrition,
@@ -119,5 +134,6 @@ export const useNutritionStore = defineStore('nutrition', () => {
     updateProfile,
     deleteProfile,
     checkCompliance,
+    analyzeFormula,
   }
 })

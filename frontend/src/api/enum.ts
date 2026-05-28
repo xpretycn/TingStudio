@@ -15,6 +15,20 @@ export interface EnumCategoryMap {
   efficacy: EnumOption[];
 }
 
+export interface ExclusionRule {
+  id: string;
+  category: "appearance" | "taste";
+  valueA: string;
+  valueB: string;
+  labelA: string | null;
+  labelB: string | null;
+}
+
+export interface GroupedExclusions {
+  appearance: ExclusionRule[];
+  taste: ExclusionRule[];
+}
+
 export const enumApi = {
   getAll() {
     return http.get<unknown, EnumCategoryMap>("/enums");
@@ -30,5 +44,14 @@ export const enumApi = {
   },
   delete(id: string) {
     return http.delete<unknown, { deletedId: string; referenceCount: number }>(`/enums/${id}`);
+  },
+  getExclusions() {
+    return http.get<unknown, GroupedExclusions>("/enums/exclusions");
+  },
+  createExclusion(data: { category: string; valueA: string; valueB: string }) {
+    return http.post<unknown, ExclusionRule>("/enums/exclusions", data);
+  },
+  deleteExclusion(id: string) {
+    return http.delete<unknown, { deletedId: string }>(`/enums/exclusions/${id}`);
   },
 };

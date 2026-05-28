@@ -1113,3 +1113,187 @@ async function getVersionHistory(formulaId: string): Promise<any[]> {
     return [];
   }
 }
+
+export async function analyzeFormula(req: any, res: Response) {
+  try {
+    const { formulaId } = req.params;
+    const userId = req.user.userId;
+    const userRole = req.user.role;
+
+    const [[formula]]: any[][] = await query("SELECT * FROM formulas WHERE id = ?", [formulaId]);
+    if (!formula) {
+      res.status(404).json({ success: false, error: { message: "配方不存在", code: "NOT_FOUND" } });
+      return;
+    }
+
+    if (userRole !== "admin" && formula.created_by !== userId) {
+      res.status(403).json({ success: false, error: { message: "无权分析该配方", code: "FORBIDDEN" } });
+      return;
+    }
+
+    let materials: Array<Record<string, any>> = safeJsonParse(formula.materials_json, []);
+    if (typeof materials === "string") {
+      try { materials = JSON.parse(materials as string); } catch (_) { materials = []; }
+    }
+    if (!Array.isArray(materials)) materials = [];
+
+    if (materials.length === 0) {
+      res.status(400).json({ success: false, error: { message: "配方无原料", code: "VALIDATION_ERROR" } });
+      return;
+    }
+
+    const finishedWeight = Number(formula.finished_weight) || 0;
+    if (finishedWeight <= 0) {
+      res.status(400).json({ success: false, error: { message: "成品重量为0", code: "VALIDATION_ERROR" } });
+      return;
+    }
+
+    const materialTypes: Record<string, string> = {};
+    const matIds = materials.map(m => m.materialId).filter(Boolean);
+    if (matIds.length > 0) {
+      const placeholders = matIds.map(() => "?").join(",");
+      const [matRows]: any[] = await query(`SELECT id, material_type FROM materials WHERE id IN (${placeholders})`, matIds);
+      for (const row of matRows) {
+        materialTypes[row.id] = row.material_type || "herb";
+      }
+    }
+
+    const nutritionMap: Record<string, Record<string, number>> = {};
+    if (matIds.length > 0) {
+      const placeholders = matIds.map(() => "?").join(",");
+      const [nutritionRows]: any[] = await query(
+        `SELECT material_id, per_100g_json FROM material_nutrition WHERE material_id IN (${placeholders}) AND is_latest = 1`,
+        matIds
+      );
+      for (const row of nutritionRows) {
+        nutritionMap[row.material_id] = normalizePer100g(safeJsonParse(row.per_100g_json, {}));
+      }
+    }
+
+    for (const mat of materials) {
+      if (!nutritionMap[mat.materialId] && mat.materialName) {
+        const normalizedName = normalizeMaterialName(mat.materialName);
+        const [[altMaterial]]: any[][] = await query("SELECT id FROM materials WHERE name = ? LIMIT 1", [normalizedName]);
+        if (altMaterial) {
+          const [[altNutrition]]: any[][] = await query(
+            "SELECT per_100g_json FROM material_nutrition WHERE material_id = ? AND is_latest = 1",
+            [altMaterial.id]
+          );
+          if (altNutrition) {
+            nutritionMap[mat.materialId] = normalizePer100g(safeJsonParse(altNutrition.per_100g_json, {}));
+          }
+        }
+      }
+    }
+
+    const formulaRatioFactor = Number(formula.ratio_factor) || 0.18;
+    let supplementRatioFactor = 1.0;
+    try {
+      supplementRatioFactor = Number(formula.supplement_ratio_factor) || 1.0;
+    } catch (_) {}
+
+    const analyzeMaterials = materials.map(mat => {
+      const per100g = nutritionMap[mat.materialId] || {};
+      const hasNutritionData = Object.keys(per100g).length > 0;
+      const materialType = materialTypes[mat.materialId] || "herb";
+      return {
+        materialId: mat.materialId,
+        materialName: mat.materialName || "",
+        materialType,
+        quantity: Number(mat.quantity) || 0,
+        per100g,
+        hasNutritionData,
+      };
+    });
+
+    const { nutritionEngine } = await import("../services/formula/nutritionEngine.js");
+    const result = nutritionEngine.analyze({
+      formulaId,
+      formulaName: formula.name,
+      finishedWeight,
+      ratioFactor: formulaRatioFactor,
+      supplementRatioFactor,
+      materials: analyzeMaterials,
+    });
+
+    res.json(success(result));
+  } catch (error: any) {
+    console.error("[Nutrition] analyzeFormula 错误:", error.message);
+    res.status(500).json({ success: false, error: { message: "营养分析失败", code: "INTERNAL_ERROR" } });
+  }
+}
+
+export async function getCoverage(req: any, res: Response) {
+  try {
+    const { formulaId } = req.params;
+    const userRole = req.user.role;
+    const userId = req.user.userId;
+
+    const [[formula]]: any[][] = await query("SELECT * FROM formulas WHERE id = ?", [formulaId]);
+    if (!formula) {
+      res.status(404).json({ success: false, error: { message: "配方不存在", code: "NOT_FOUND" } });
+      return;
+    }
+
+    if (userRole !== "admin" && formula.created_by !== userId) {
+      res.status(403).json({ success: false, error: { message: "无权访问该配方", code: "FORBIDDEN" } });
+      return;
+    }
+
+    let materials: Array<Record<string, any>> = safeJsonParse(formula.materials_json, []);
+    if (typeof materials === "string") {
+      try { materials = JSON.parse(materials as string); } catch (_) { materials = []; }
+    }
+    if (!Array.isArray(materials)) materials = [];
+
+    const matIds = materials.map(m => m.materialId).filter(Boolean);
+    const materialTypes: Record<string, string> = {};
+    if (matIds.length > 0) {
+      const placeholders = matIds.map(() => "?").join(",");
+      const [matRows]: any[] = await query(`SELECT id, name, material_type FROM materials WHERE id IN (${placeholders})`, matIds);
+      for (const row of matRows) {
+        materialTypes[row.id] = row.material_type || "herb";
+      }
+    }
+
+    let withNutrition = 0;
+    const missingMaterials: Array<{ materialId: string; materialName: string; materialType: string }> = [];
+    let weightWithNutrition = 0;
+    let totalWeight = 0;
+
+    for (const mat of materials) {
+      const quantity = Number(mat.quantity) || 0;
+      totalWeight += quantity;
+      const [[nutrition]]: any[][] = await query(
+        "SELECT nutrition_id FROM material_nutrition WHERE material_id = ? AND is_latest = 1",
+        [mat.materialId]
+      );
+      if (nutrition) {
+        withNutrition++;
+        weightWithNutrition += quantity;
+      } else {
+        missingMaterials.push({
+          materialId: mat.materialId,
+          materialName: mat.materialName || "",
+          materialType: materialTypes[mat.materialId] || "herb",
+        });
+      }
+    }
+
+    const coverageRate = materials.length > 0 ? withNutrition / materials.length : 0;
+    const weightCoverage = totalWeight > 0 ? weightWithNutrition / totalWeight : 0;
+    const confidenceLevel: "high" | "medium" | "low" = coverageRate >= 0.9 ? "high" : coverageRate >= 0.7 ? "medium" : "low";
+
+    res.json(success({
+      formulaId,
+      totalMaterials: materials.length,
+      withNutrition,
+      coverageRate: Math.round(coverageRate * 10000) / 10000,
+      missingMaterials,
+      weightCoverage: Math.round(weightCoverage * 10000) / 10000,
+      confidenceLevel,
+    }));
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: { message: "获取覆盖度失败", code: "INTERNAL_ERROR" } });
+  }
+}

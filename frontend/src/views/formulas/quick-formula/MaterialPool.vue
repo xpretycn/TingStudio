@@ -99,11 +99,53 @@ function clearFilter() {
   store.poolFilter.efficacy = [];
 }
 
+const disabledValues = computed(() => {
+  const result: Record<string, Set<string>> = {
+    appearance: new Set<string>(),
+    taste: new Set<string>(),
+    efficacy: new Set<string>(),
+  };
+  for (const field of ["appearance", "taste"] as const) {
+    const selected = store.poolFilter[field];
+    for (const val of selected) {
+      const excluded = enumStore.getExcludedValues(field, val);
+      for (const ex of excluded) {
+        result[field].add(ex);
+      }
+    }
+  }
+  return result;
+});
+
+function getDisabledTooltip(field: "appearance" | "taste" | "efficacy", value: string): string {
+  const disabled = disabledValues.value[field];
+  if (!disabled.has(value)) return "";
+  const selected = store.poolFilter[field];
+  const conflictingValues: string[] = [];
+  for (const sel of selected) {
+    const excluded = enumStore.getExcludedValues(field, sel);
+    if (excluded.has(value)) {
+      conflictingValues.push(sel);
+    }
+  }
+  if (conflictingValues.length === 0) return "";
+  return `与已选「${conflictingValues.join("」「")}」互斥`;
+}
+
 function toggleMultiFilter(field: "appearance" | "taste" | "efficacy", value: string) {
   const arr = store.poolFilter[field];
   const idx = arr.indexOf(value);
   if (idx === -1) {
     arr.push(value);
+    const excluded = enumStore.getExcludedValues(field, value);
+    if (excluded.size > 0) {
+      for (const exVal of excluded) {
+        const exIdx = arr.indexOf(exVal);
+        if (exIdx !== -1) {
+          arr.splice(exIdx, 1);
+        }
+      }
+    }
   } else {
     arr.splice(idx, 1);
   }
@@ -215,7 +257,12 @@ const typeOptions = [
           <span class="filter-label">性状</span>
           <div class="filter-tags">
             <button v-for="opt in appearanceOptions" :key="opt.value" class="tag-btn"
-              :class="{ 'tag-btn--active': store.poolFilter.appearance.includes(opt.value) }"
+              :class="{
+                'tag-btn--active': store.poolFilter.appearance.includes(opt.value),
+                'tag-btn--disabled': disabledValues.appearance.has(opt.value)
+              }"
+              :disabled="disabledValues.appearance.has(opt.value)"
+              :title="getDisabledTooltip('appearance', opt.value)"
               @click="toggleMultiFilter('appearance', opt.value)">
               {{ opt.label }}
             </button>
@@ -226,7 +273,12 @@ const typeOptions = [
           <span class="filter-label">口感</span>
           <div class="filter-tags">
             <button v-for="opt in tasteOptions" :key="opt.value" class="tag-btn"
-              :class="{ 'tag-btn--active': store.poolFilter.taste.includes(opt.value) }"
+              :class="{
+                'tag-btn--active': store.poolFilter.taste.includes(opt.value),
+                'tag-btn--disabled': disabledValues.taste.has(opt.value)
+              }"
+              :disabled="disabledValues.taste.has(opt.value)"
+              :title="getDisabledTooltip('taste', opt.value)"
               @click="toggleMultiFilter('taste', opt.value)">
               {{ opt.label }}
             </button>
@@ -386,6 +438,18 @@ const typeOptions = [
     border-color: $emerald-500;
     color: $emerald-600;
     font-weight: $font-weight-semibold;
+  }
+
+  &:disabled,
+  &--disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    pointer-events: auto;
+
+    &:hover {
+      border-color: $border-color;
+      color: $text-tertiary;
+    }
   }
 }
 

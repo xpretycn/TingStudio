@@ -23,84 +23,157 @@
     <div class="mm-content">
       <Transition name="content-fade" mode="out-in">
         <div :key="activeCategory" class="tab-panel">
-          <div class="section-header-enhanced">
-            <div class="section-title-group">
-              <svg class="section-title-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                :stroke="currentCategoryColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                v-html="currentCategory.iconPath"></svg>
-              <h4 class="section-title-text">{{ currentCategory.label }}管理</h4>
-            </div>
-            <div class="section-header-right">
-              <span class="section-title-count">共 {{ currentList.length }} 项</span>
-              <div v-if="currentList.length > 0" class="activity-nav">
-                <button class="activity-nav-btn" :disabled="currentPage <= 1" @click="pagePrev" title="上一页">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                    stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="15 18 9 12 15 6" />
-                  </svg>
-                </button>
-                <span class="activity-nav-page">{{ currentPage }} / {{ totalPages }}</span>
-                <button class="activity-nav-btn" :disabled="currentPage >= totalPages" @click="pageNext" title="下一页">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                    stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="9 18 15 12 9 6" />
-                  </svg>
-                </button>
+          <!-- 互斥规则 Tab -->
+          <template v-if="activeCategory === 'exclusion-rules'">
+            <div class="section-header-enhanced">
+              <div class="section-title-group">
+                <svg class="section-title-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                  :stroke="currentCategoryColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                  v-html="currentCategory.iconPath"></svg>
+                <h4 class="section-title-text">互斥规则管理</h4>
+              </div>
+              <div class="section-header-right">
+                <span class="section-title-count">共 {{ currentList.length }} 条规则</span>
               </div>
             </div>
-          </div>
 
-          <div class="enum-toolbar">
-            <t-input v-model="keyword" placeholder="搜索枚举值..." clearable class="enum-search-input">
-              <template #prefix-icon><t-icon name="search" /></template>
-            </t-input>
-            <t-button theme="primary" @click="openCreateDialog">
-              <template #icon><t-icon name="add" /></template>
-              添加枚举值
-            </t-button>
-          </div>
+            <div class="enum-toolbar">
+              <t-input v-model="keyword" placeholder="搜索互斥规则..." clearable class="enum-search-input">
+                <template #prefix-icon><t-icon name="search" /></template>
+              </t-input>
+              <t-button theme="primary" @click="openCreateExclusionDialog">
+                <template #icon><t-icon name="add" /></template>
+                添加互斥规则
+              </t-button>
+            </div>
 
-          <div v-if="currentList.length > 0" class="enum-list">
-            <div v-for="(item, index) in pagedList" :key="item.id" class="enum-card"
-              :class="{ 'is-inactive': !item.isActive }">
-              <div class="enum-card-header">
-                <div class="enum-name-row">
-                  <div class="enum-index-wrap">
-                    <span class="enum-index">{{ (currentPage - 1) * PAGE_SIZE + index + 1 }}</span>
+            <div v-if="currentList.length > 0" class="enum-list">
+              <div v-for="(item, index) in pagedList" :key="item.id" class="enum-card exclusion-card">
+                <div class="enum-card-header">
+                  <div class="enum-name-row">
+                    <div class="enum-index-wrap">
+                      <span class="enum-index">{{ (currentPage - 1) * PAGE_SIZE + index + 1 }}</span>
+                    </div>
+                    <div class="exclusion-relation">
+                      <span class="exclusion-value">{{ item.labelA || item.valueA }}</span>
+                      <span class="exclusion-symbol">&harr;</span>
+                      <span class="exclusion-value">{{ item.labelB || item.valueB }}</span>
+                    </div>
+                    <t-tag
+                      :theme="item.category === 'appearance' ? 'primary' : 'success'"
+                      variant="light"
+                      size="small"
+                    >
+                      {{ item.category === 'appearance' ? '性状' : '口感' }}
+                    </t-tag>
                   </div>
-                  <span class="enum-label">{{ item.label }}</span>
-                  <t-tag v-if="!item.isActive" theme="default" variant="light" size="small">已停用</t-tag>
                 </div>
-              </div>
-              <div class="enum-card-footer">
-                <div class="enum-usage-mini">
-                  <span>{{ item.isActive ? '启用中' : '已停用' }}</span>
-                  <span>排序 #{{ item.sortOrder }}</span>
-                </div>
-                <div class="enum-actions">
-                  <t-switch :value="item.isActive" size="small" @change="(val: boolean) => handleToggleActive(item, val)" />
-                  <t-button variant="text" theme="default" size="small" @click="openEditDialog(item)">
-                    编辑
-                  </t-button>
-                  <t-popconfirm content="确定删除该枚举值吗？删除后不可恢复。" @confirm="handleDelete(item)">
-                    <t-button variant="text" theme="danger" size="small">删除</t-button>
-                  </t-popconfirm>
+                <div class="enum-card-footer">
+                  <div class="enum-usage-mini">
+                    <span>{{ item.category === 'appearance' ? '性状分类' : '口感分类' }}</span>
+                  </div>
+                  <div class="enum-actions">
+                    <t-popconfirm content="确定删除该互斥规则吗？删除后不可恢复。" @confirm="handleDeleteExclusion(item)">
+                      <t-button variant="text" theme="danger" size="small">删除</t-button>
+                    </t-popconfirm>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          <div v-else class="empty-state">
-            <div class="empty-icon-wrap">
-              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-placeholder)"
-                stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" />
-                <polyline points="13 2 13 9 20 9" />
-              </svg>
+            <div v-else class="empty-state">
+              <div class="empty-icon-wrap">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-placeholder)"
+                  stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M18 6L6 18M6 6l12 12" />
+                </svg>
+              </div>
+              <p class="empty-text">{{ keyword ? '未找到匹配的互斥规则' : '暂无互斥规则' }}</p>
+              <p class="empty-hint">{{ keyword ? '尝试其他关键词' : '点击上方按钮添加第一条互斥规则' }}</p>
             </div>
-            <p class="empty-text">{{ keyword ? '未找到匹配的枚举值' : '暂无枚举值' }}</p>
-            <p class="empty-hint">{{ keyword ? '尝试其他关键词' : '点击上方按钮添加第一个枚举值' }}</p>
-          </div>
+          </template>
+
+          <!-- 枚举值 Tab（原有逻辑） -->
+          <template v-else>
+            <div class="section-header-enhanced">
+              <div class="section-title-group">
+                <svg class="section-title-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                  :stroke="currentCategoryColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                  v-html="currentCategory.iconPath"></svg>
+                <h4 class="section-title-text">{{ currentCategory.label }}管理</h4>
+              </div>
+              <div class="section-header-right">
+                <span class="section-title-count">共 {{ currentList.length }} 项</span>
+                <div v-if="currentList.length > 0" class="activity-nav">
+                  <button class="activity-nav-btn" :disabled="currentPage <= 1" @click="pagePrev" title="上一页">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                      stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="15 18 9 12 15 6" />
+                    </svg>
+                  </button>
+                  <span class="activity-nav-page">{{ currentPage }} / {{ totalPages }}</span>
+                  <button class="activity-nav-btn" :disabled="currentPage >= totalPages" @click="pageNext" title="下一页">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                      stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="9 18 15 12 9 6" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="enum-toolbar">
+              <t-input v-model="keyword" placeholder="搜索枚举值..." clearable class="enum-search-input">
+                <template #prefix-icon><t-icon name="search" /></template>
+              </t-input>
+              <t-button theme="primary" @click="openCreateDialog">
+                <template #icon><t-icon name="add" /></template>
+                添加枚举值
+              </t-button>
+            </div>
+
+            <div v-if="currentList.length > 0" class="enum-list">
+              <div v-for="(item, index) in pagedList" :key="item.id" class="enum-card"
+                :class="{ 'is-inactive': !item.isActive }">
+                <div class="enum-card-header">
+                  <div class="enum-name-row">
+                    <div class="enum-index-wrap">
+                      <span class="enum-index">{{ (currentPage - 1) * PAGE_SIZE + index + 1 }}</span>
+                    </div>
+                    <span class="enum-label">{{ item.label }}</span>
+                    <t-tag v-if="!item.isActive" theme="default" variant="light" size="small">已停用</t-tag>
+                  </div>
+                </div>
+                <div class="enum-card-footer">
+                  <div class="enum-usage-mini">
+                    <span>{{ item.isActive ? '启用中' : '已停用' }}</span>
+                    <span>排序 #{{ item.sortOrder }}</span>
+                  </div>
+                  <div class="enum-actions">
+                    <t-switch :value="item.isActive" size="small" @change="(val: boolean) => handleToggleActive(item, val)" />
+                    <t-button variant="text" theme="default" size="small" @click="openEditDialog(item)">
+                      编辑
+                    </t-button>
+                    <t-popconfirm content="确定删除该枚举值吗？删除后不可恢复。" @confirm="handleDelete(item)">
+                      <t-button variant="text" theme="danger" size="small">删除</t-button>
+                    </t-popconfirm>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div v-else class="empty-state">
+              <div class="empty-icon-wrap">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-placeholder)"
+                  stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" />
+                  <polyline points="13 2 13 9 20 9" />
+                </svg>
+              </div>
+              <p class="empty-text">{{ keyword ? '未找到匹配的枚举值' : '暂无枚举值' }}</p>
+              <p class="empty-hint">{{ keyword ? '尝试其他关键词' : '点击上方按钮添加第一个枚举值' }}</p>
+            </div>
+          </template>
         </div>
       </Transition>
     </div>
@@ -121,13 +194,32 @@
       </t-form-item>
     </t-form>
   </t-dialog>
+
+  <t-dialog v-model:visible="exclusionDialogVisible"
+    header="添加互斥规则"
+    :confirm-btn="{ loading: exclusionDialogLoading }"
+    :on-confirm="handleCreateExclusion"
+    @close="exclusionFormValueA = ''; exclusionFormValueB = ''">
+    <t-form label-width="80px">
+      <t-form-item label="分类">
+        <t-select v-model="exclusionFormCategory" :options="[{ label: '性状', value: 'appearance' }, { label: '口感', value: 'taste' }]" />
+      </t-form-item>
+      <t-form-item label="选项A">
+        <t-select v-model="exclusionFormValueA" :options="exclusionCategoryOptions" placeholder="请选择选项A" clearable filterable />
+      </t-form-item>
+      <t-form-item label="选项B">
+        <t-select v-model="exclusionFormValueB" :options="exclusionCategoryOptions" placeholder="请选择选项B" clearable filterable />
+      </t-form-item>
+    </t-form>
+  </t-dialog>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from "vue";
 import { MessagePlugin } from "tdesign-vue-next";
 import { useEnumStore } from "@/stores/enum";
-import type { EnumOption } from "@/api/enum";
+import { enumApi } from "@/api/enum";
+import type { EnumOption, ExclusionRule } from "@/api/enum";
 
 const enumStore = useEnumStore();
 
@@ -140,16 +232,26 @@ const dialogMode = ref<"create" | "edit">("create");
 const editingItem = ref<EnumOption | null>(null);
 const formLabel = ref("");
 
+const exclusionList = ref<ExclusionRule[]>([]);
+const exclusionLoading = ref(false);
+const exclusionDialogVisible = ref(false);
+const exclusionDialogLoading = ref(false);
+const exclusionFormCategory = ref<"appearance" | "taste">("appearance");
+const exclusionFormValueA = ref("");
+const exclusionFormValueB = ref("");
+
 const CATEGORY_LABELS: Record<string, string> = {
   appearance: "性状",
   taste: "口感",
   efficacy: "功效",
+  "exclusion-rules": "互斥规则",
 };
 
 const CATEGORY_COLORS: Record<string, string> = {
   appearance: "#3B82F6",
   taste: "#10B981",
   efficacy: "#F59E0B",
+  "exclusion-rules": "#EF4444",
 };
 
 const categories = [
@@ -171,6 +273,12 @@ const categories = [
     iconPath:
       '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
   },
+  {
+    value: "exclusion-rules",
+    label: "互斥规则",
+    iconPath:
+      '<path d="M18 6L6 18M6 6l12 12"/>',
+  },
 ];
 
 const currentCategory = computed(() =>
@@ -182,6 +290,16 @@ const currentCategoryColor = computed(
 );
 
 const currentList = computed(() => {
+  if (activeCategory.value === "exclusion-rules") {
+    if (!keyword.value) return exclusionList.value;
+    const kw = keyword.value.toLowerCase();
+    return exclusionList.value.filter(
+      (item) =>
+        (item.labelA || item.valueA).toLowerCase().includes(kw) ||
+        (item.labelB || item.valueB).toLowerCase().includes(kw) ||
+        item.category.toLowerCase().includes(kw)
+    );
+  }
   const list = enumStore.getOptionsByCategory(
     activeCategory.value as "appearance" | "taste" | "efficacy"
   );
@@ -214,6 +332,7 @@ watch(() => currentList.value.length, () => {
 
 onMounted(() => {
   enumStore.fetchEnums();
+  fetchExclusionRules();
 });
 
 const openCreateDialog = () => {
@@ -292,6 +411,72 @@ const handleToggleActive = async (item: EnumOption, newActive: boolean) => {
     MessagePlugin.error(msg);
   }
 };
+
+async function fetchExclusionRules() {
+  exclusionLoading.value = true;
+  try {
+    const data = await enumApi.getExclusions();
+    exclusionList.value = [...(data.appearance || []), ...(data.taste || [])];
+  } catch {
+    exclusionList.value = [];
+  } finally {
+    exclusionLoading.value = false;
+  }
+}
+
+function openCreateExclusionDialog() {
+  exclusionFormCategory.value = "appearance";
+  exclusionFormValueA.value = "";
+  exclusionFormValueB.value = "";
+  exclusionDialogVisible.value = true;
+}
+
+async function handleCreateExclusion() {
+  if (!exclusionFormValueA.value || !exclusionFormValueB.value) {
+    MessagePlugin.warning("请选择两个互斥选项");
+    return false;
+  }
+  if (exclusionFormValueA.value === exclusionFormValueB.value) {
+    MessagePlugin.warning("两个选项不能相同");
+    return false;
+  }
+  exclusionDialogLoading.value = true;
+  try {
+    await enumApi.createExclusion({
+      category: exclusionFormCategory.value,
+      valueA: exclusionFormValueA.value,
+      valueB: exclusionFormValueB.value,
+    });
+    MessagePlugin.success("互斥规则创建成功");
+    exclusionDialogVisible.value = false;
+    await fetchExclusionRules();
+    await enumStore.fetchExclusions();
+    return true;
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : "创建失败";
+    MessagePlugin.error(msg);
+    return false;
+  } finally {
+    exclusionDialogLoading.value = false;
+  }
+}
+
+async function handleDeleteExclusion(item: ExclusionRule) {
+  try {
+    await enumApi.deleteExclusion(item.id);
+    MessagePlugin.success("互斥规则删除成功");
+    await fetchExclusionRules();
+    await enumStore.fetchExclusions();
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : "删除失败";
+    MessagePlugin.error(msg);
+  }
+}
+
+const exclusionCategoryOptions = computed(() => {
+  const options = enumStore.getActiveOptionsByCategory(exclusionFormCategory.value);
+  return options.map((o) => ({ label: o.label, value: o.value }));
+});
 </script>
 
 <style scoped lang="scss">
@@ -613,6 +798,26 @@ const handleToggleActive = async (item: EnumOption, newActive: boolean) => {
     font-size: 13px;
     color: var(--color-text-placeholder);
     margin: 0;
+  }
+}
+
+.exclusion-relation {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+
+  .exclusion-value {
+    padding: 2px 8px;
+    border-radius: 6px;
+    background: var(--color-bg-page, #f3f4f6);
+  }
+
+  .exclusion-symbol {
+    color: #EF4444;
+    font-weight: 600;
   }
 }
 

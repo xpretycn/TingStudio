@@ -7,6 +7,7 @@ import {
   getNutritionProfiles, createNutritionProfile, updateNutritionProfile, deleteNutritionProfile,
   checkCompliance,
   getFormulaNutritionTables,
+  analyzeFormula, getCoverage,
 } from '../controllers/nutritionController.js'
 import { validateBody } from '../middleware/validate.js'
 
@@ -30,3 +31,7 @@ nutritionRoutes.delete('/profiles/:profileId', deleteNutritionProfile)
 
 // 合规检查
 nutritionRoutes.post('/compliance/:formulaId', checkCompliance)
+
+// 一键营养分析
+nutritionRoutes.post('/analyze/:formulaId', analyzeFormula)
+nutritionRoutes.get('/coverage/:formulaId', getCoverage)

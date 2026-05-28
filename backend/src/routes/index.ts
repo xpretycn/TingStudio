@@ -19,6 +19,7 @@ import { parseTemplateRoutes } from "./parseTemplates.js";
 import { ratioThresholdRoutes } from "./ratioThresholds.js";
 import { formulaTemplateRoutes } from "./formulaTemplates.js";
 import { enumRoutes } from "./enums.js";
+import { exclusionRoutes } from "./exclusions.js";
 import { quickFormulaRoutes } from "./quickFormulas.js";
 
 export function createAppRouter(): Router {
@@ -42,6 +43,7 @@ export function createAppRouter(): Router {
   router.use("/parse-templates", parseTemplateRoutes);
   router.use("/ratio-thresholds", ratioThresholdRoutes);
   router.use("/formula-templates", formulaTemplateRoutes);
+  router.use("/enums/exclusions", exclusionRoutes);
   router.use("/enums", enumRoutes);
   router.use("/quick-formulas", quickFormulaRoutes);
 

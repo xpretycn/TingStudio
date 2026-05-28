@@ -50,7 +50,7 @@ export interface ExportTemplate {
   name: string
   description: string | null
   category: string
-  type: 'pdf' | 'excel' | 'api' | 'print'
+  type: 'pdf' | 'excel'
   formatConfig: Record<string, unknown>
   isDefault: number
   createdBy: string
