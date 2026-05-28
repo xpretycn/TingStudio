@@ -117,32 +117,44 @@ CREATE TABLE IF NOT EXISTS `export_templates` (
   `template_id` VARCHAR(36) PRIMARY KEY,
   `name` VARCHAR(255) NOT NULL,
   `description` TEXT DEFAULT NULL,
+  `category` VARCHAR(20) NOT NULL DEFAULT 'formula',
   `type` VARCHAR(20) NOT NULL,
   `format_config_json` JSON NOT NULL,
   `is_default` TINYINT(1) NOT NULL DEFAULT 0,
   `created_by` VARCHAR(36) NOT NULL,
-  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX `idx_et_category` (`category`),
+  INDEX `idx_et_type` (`type`),
+  INDEX `idx_et_category_type` (`category`, `type`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 导出任务表
 CREATE TABLE IF NOT EXISTS `export_jobs` (
   `job_id` VARCHAR(36) PRIMARY KEY,
-  `formula_id` VARCHAR(36) NOT NULL,
+  `formula_id` VARCHAR(36) DEFAULT NULL,
   `version_id` VARCHAR(36) DEFAULT NULL,
   `template_id` VARCHAR(36) DEFAULT NULL,
+  `data_category` VARCHAR(20) NOT NULL DEFAULT 'formula',
+  `target_ids_json` JSON DEFAULT NULL,
   `export_type` VARCHAR(20) NOT NULL,
   `status` VARCHAR(20) NOT NULL DEFAULT 'pending',
   `file_url` VARCHAR(500) DEFAULT NULL,
   `file_name` VARCHAR(255) DEFAULT NULL,
-  `api_endpoint` VARCHAR(500) DEFAULT NULL,
   `progress` INT NOT NULL DEFAULT 0,
   `error_message` TEXT DEFAULT NULL,
+  `period_start` VARCHAR(20) DEFAULT NULL,
+  `period_end` VARCHAR(20) DEFAULT NULL,
   `created_by` VARCHAR(36) NOT NULL,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `completed_at` TIMESTAMP NULL DEFAULT NULL,
-  INDEX `idx_formula_id` (`formula_id`),
-  INDEX `idx_status` (`status`),
-  FOREIGN KEY (`formula_id`) REFERENCES `formulas`(`id`) ON DELETE CASCADE
+  INDEX `idx_ej_formula` (`formula_id`),
+  INDEX `idx_ej_status` (`status`),
+  INDEX `idx_ej_data_category` (`data_category`),
+  INDEX `idx_ej_created_by` (`created_by`),
+  INDEX `idx_ej_category_status` (`data_category`, `status`),
+  FOREIGN KEY (`formula_id`) REFERENCES `formulas`(`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 原料营养成分表
@@ -192,28 +204,48 @@ CREATE TABLE IF NOT EXISTS `api_data_interfaces` (
   `interface_id` VARCHAR(36) PRIMARY KEY,
   `name` VARCHAR(255) NOT NULL,
   `description` TEXT DEFAULT NULL,
-  `endpoint` VARCHAR(500) NOT NULL,
-  `method` VARCHAR(10) NOT NULL,
-  `headers_json` JSON DEFAULT NULL,
-  `parameters_json` JSON DEFAULT NULL,
-  `response_format` VARCHAR(50) DEFAULT NULL,
-  `status` VARCHAR(20) NOT NULL DEFAULT 'active',
+  `endpoint` VARCHAR(500) NOT NULL UNIQUE,
+  `method` VARCHAR(10) NOT NULL DEFAULT 'GET',
+  `authentication` VARCHAR(20) NOT NULL DEFAULT 'none',
+  `auth_config_json` JSON DEFAULT NULL,
+  `data_format` VARCHAR(10) NOT NULL DEFAULT 'json',
+  `field_mapping_json` JSON DEFAULT NULL,
+  `rate_limit_json` JSON DEFAULT NULL,
+  `retry_config_json` JSON DEFAULT NULL,
+  `created_by` VARCHAR(36) NOT NULL,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE INDEX `uk_adi_endpoint` (`endpoint`),
+  INDEX `idx_adi_authentication` (`authentication`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 分享配置表
 CREATE TABLE IF NOT EXISTS `share_configs` (
-  `config_id` VARCHAR(36) PRIMARY KEY,
+  `share_id` VARCHAR(36) PRIMARY KEY,
   `formula_id` VARCHAR(36) NOT NULL,
   `version_id` VARCHAR(36) DEFAULT NULL,
-  `share_type` VARCHAR(20) NOT NULL,
+  `share_type` VARCHAR(20) NOT NULL DEFAULT 'link',
   `share_url` VARCHAR(500) DEFAULT NULL,
-  `expires_at` TIMESTAMP NULL DEFAULT NULL,
-  `is_active` TINYINT(1) NOT NULL DEFAULT 1,
+  `password` VARCHAR(100) DEFAULT NULL,
+  `expire_date` VARCHAR(20) DEFAULT NULL,
+  `allowed_emails_json` JSON DEFAULT NULL,
+  `download_limit` INT DEFAULT NULL,
+  `download_count` INT NOT NULL DEFAULT 0,
   `created_by` VARCHAR(36) NOT NULL,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  INDEX `idx_formula_id` (`formula_id`),
-  INDEX `idx_is_active` (`is_active`),
+  INDEX `idx_sc_formula` (`formula_id`),
+  INDEX `idx_sc_share_type` (`share_type`),
+  INDEX `idx_sc_expire_date` (`expire_date`),
   FOREIGN KEY (`formula_id`) REFERENCES `formulas`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 导出中心配置表
+CREATE TABLE IF NOT EXISTS `export_center_config` (
+  `config_key` VARCHAR(100) PRIMARY KEY,
+  `config_value` TEXT NOT NULL,
+  `config_type` VARCHAR(20) NOT NULL DEFAULT 'string',
+  `description` TEXT DEFAULT NULL,
+  `updated_by` VARCHAR(36) NOT NULL,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX `idx_ecc_config_type` (`config_type`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

@@ -161,33 +161,44 @@ CREATE TABLE IF NOT EXISTS `export_templates` (
   `name` TEXT NOT NULL,
   `description` TEXT DEFAULT NULL,
   `type` TEXT NOT NULL CHECK(type IN ('pdf', 'excel', 'api', 'print')),
+  `category` TEXT NOT NULL DEFAULT 'formula' CHECK(category IN ('formula', 'material', 'weekly-report', 'monthly-report')),
   `format_config_json` TEXT NOT NULL,
   `is_default` INTEGER NOT NULL DEFAULT 0,
   `created_by` TEXT NOT NULL,
-  `created_at` TEXT NOT NULL DEFAULT (datetime('now'))
+  `created_at` TEXT NOT NULL DEFAULT (datetime('now')),
+  `updated_at` TEXT NOT NULL DEFAULT (datetime('now'))
 );
 CREATE INDEX IF NOT EXISTS `idx_et_type` ON `export_templates`(`type`);
+CREATE INDEX IF NOT EXISTS `idx_et_category` ON `export_templates`(`category`);
+CREATE INDEX IF NOT EXISTS `idx_et_category_type` ON `export_templates`(`category`, `type`);
 
 -- 导出任务表
 CREATE TABLE IF NOT EXISTS `export_jobs` (
   `job_id` TEXT PRIMARY KEY,
-  `formula_id` TEXT NOT NULL,
+  `formula_id` TEXT DEFAULT NULL,
   `version_id` TEXT DEFAULT NULL,
   `template_id` TEXT DEFAULT NULL,
-  `export_type` TEXT NOT NULL CHECK(export_type IN ('pdf', 'excel', 'api')),
+  `data_category` TEXT NOT NULL DEFAULT 'formula' CHECK(data_category IN ('formula', 'material', 'weekly-report', 'monthly-report')),
+  `target_ids_json` TEXT DEFAULT NULL,
+  `export_type` TEXT NOT NULL CHECK(export_type IN ('pdf', 'excel')),
   `status` TEXT NOT NULL DEFAULT 'pending' CHECK(status IN ('pending', 'processing', 'completed', 'failed')),
   `file_url` TEXT DEFAULT NULL,
   `file_name` TEXT DEFAULT NULL,
-  `api_endpoint` TEXT DEFAULT NULL,
   `progress` INTEGER NOT NULL DEFAULT 0,
   `error_message` TEXT DEFAULT NULL,
+  `period_start` TEXT DEFAULT NULL,
+  `period_end` TEXT DEFAULT NULL,
   `created_by` TEXT NOT NULL,
   `created_at` TEXT NOT NULL DEFAULT (datetime('now')),
+  `updated_at` TEXT NOT NULL DEFAULT (datetime('now')),
   `completed_at` TEXT DEFAULT NULL,
-  FOREIGN KEY (`formula_id`) REFERENCES `formulas`(`id`) ON DELETE CASCADE
+  FOREIGN KEY (`formula_id`) REFERENCES `formulas`(`id`) ON DELETE SET NULL
 );
 CREATE INDEX IF NOT EXISTS `idx_ej_formula` ON `export_jobs`(`formula_id`);
 CREATE INDEX IF NOT EXISTS `idx_ej_status` ON `export_jobs`(`status`);
+CREATE INDEX IF NOT EXISTS `idx_ej_data_category` ON `export_jobs`(`data_category`);
+CREATE INDEX IF NOT EXISTS `idx_ej_created_by` ON `export_jobs`(`created_by`);
+CREATE INDEX IF NOT EXISTS `idx_ej_category_status` ON `export_jobs`(`data_category`, `status`);
 
 -- API数据接口表
 CREATE TABLE IF NOT EXISTS `api_data_interfaces` (
@@ -225,6 +236,16 @@ CREATE TABLE IF NOT EXISTS `share_configs` (
   FOREIGN KEY (`formula_id`) REFERENCES `formulas`(`id`) ON DELETE CASCADE
 );
 CREATE INDEX IF NOT EXISTS `idx_sc_formula` ON `share_configs`(`formula_id`);
+
+CREATE TABLE IF NOT EXISTS `export_center_config` (
+  `config_key` TEXT PRIMARY KEY,
+  `config_value` TEXT NOT NULL,
+  `config_type` TEXT NOT NULL DEFAULT 'string' CHECK(config_type IN ('string', 'number', 'boolean', 'json')),
+  `description` TEXT DEFAULT NULL,
+  `updated_by` TEXT NOT NULL,
+  `updated_at` TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS `idx_ecc_config_type` ON `export_center_config`(`config_type`);
 
 -- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 -- 营养成分集成模块

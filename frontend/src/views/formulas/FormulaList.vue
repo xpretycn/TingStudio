@@ -58,7 +58,7 @@
                         <polyline points="7 10 12 15 17 10" />
                         <line x1="12" y1="15" x2="12" y2="3" />
                       </svg>
-                      批量导出
+                      导出
                     </button>
                     <button class="batch-action-btn batch-action-btn--compare" @click="handleCompare"
                       :disabled="selectedRows.length > 3" :title="selectedRows.length > 3 ? '最多选择3个配方进行对比' : '对比所选配方'">
@@ -540,11 +540,41 @@
       :formula-id="salesDialogFormulaId" :edit-record="salesEditRecord" @success="onSalesDialogSuccess" />
 
     <SalesBatchDrawer v-model:visible="batchDrawerVisible" @success="onBatchDrawerSuccess" />
+
+    <t-drawer v-model:visible="showExportDrawer" header="导出配方" :footer="true" placement="right" size="400px" :destroyOnClose="false">
+      <t-form layout="vertical">
+        <t-form-item label="已选配方">
+          <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+            <t-tag v-for="f in selectedRows" :key="f.id" closable theme="primary" variant="light" @close="removeFromExportSelection(f.id)">
+              {{ f.name }}
+            </t-tag>
+          </div>
+        </t-form-item>
+        <t-form-item label="导出格式">
+          <t-radio-group v-model="exportForm.exportType">
+            <t-radio-button value="excel">Excel</t-radio-button>
+            <t-radio-button value="pdf">PDF</t-radio-button>
+          </t-radio-group>
+        </t-form-item>
+        <t-form-item label="导出模板">
+          <t-select v-model="exportForm.templateId" clearable filterable :popup-props="{ appendToBody: true }" placeholder="可选，使用默认模板">
+            <t-option v-for="t in formulaTemplates" :key="t.templateId" :value="t.templateId" :label="t.name" />
+          </t-select>
+        </t-form-item>
+        <t-form-item label="包含版本信息">
+          <t-switch v-model="exportForm.includeVersionInfo" />
+        </t-form-item>
+      </t-form>
+      <template #footer>
+        <t-button theme="default" @click="showExportDrawer = false">取消</t-button>
+        <t-button theme="primary" :loading="exporting" @click="handleExport">开始导出</t-button>
+      </template>
+    </t-drawer>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, onActivated, watch, nextTick, h } from 'vue';
+import { ref, reactive, computed, onMounted, onUnmounted, onActivated, watch, nextTick, h } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useFormulaStore } from '@/stores/formula';
 import { useMaterialStore } from '@/stores/material';
@@ -556,6 +586,8 @@ import type { Formula, FormulaVersion, FormulaForm } from '@/api/formula';
 import { formulaApi } from '@/api/formula';
 import type { SaleRecord } from '@/api/sales';
 import type { Material } from '@/api/material';
+import { useExportStore } from '@/stores/export';
+import type { ExportTemplate } from '@/api/export';
 import SalesRecordDrawer from '@/components/SalesRecordDrawer.vue';
 import SalesBatchDrawer from '@/components/SalesBatchDrawer.vue';
 import PageSkeleton from '@/components/Skeleton/PageSkeleton.vue';
@@ -567,6 +599,7 @@ const materialStore = useMaterialStore();
 const salesmanStore = useSalesmanStore();
 const salesStore = useSalesStore();
 const paginationStore = usePaginationStore();
+const exportStore = useExportStore();
 
 const initialized = ref(false);
 
@@ -748,12 +781,60 @@ const clearSelection = () => {
   selectedRows.value = [];
 };
 
+const showExportDrawer = ref(false);
+const exporting = ref(false);
+const exportForm = reactive({
+  exportType: 'pdf' as 'excel' | 'pdf',
+  templateId: '',
+  includeVersionInfo: false,
+});
+
+const formulaTemplates = computed(() => {
+  return exportStore.templates.filter((t: ExportTemplate) => t.category === 'formula' && t.type === exportForm.exportType);
+});
+
 const handleBatchExport = () => {
   if (selectedRows.value.length === 0) return;
-  const ids = selectedRows.value.map(f => f.id).join(',');
-  router.push({ path: '/exports', query: { formulaIds: ids } });
-  MessagePlugin.success(`已选择 ${selectedRows.value.length} 个配方进行导出`);
-  clearSelection();
+  showExportDrawer.value = true;
+};
+
+const removeFromExportSelection = (id: string) => {
+  selectedRowKeys.value = selectedRowKeys.value.filter((k: string | number) => k !== id);
+  selectedRows.value = selectedRows.value.filter((f: { id: string }) => f.id !== id);
+  if (selectedRows.value.length === 0) {
+    showExportDrawer.value = false;
+  }
+};
+
+const handleExport = async () => {
+  if (selectedRows.value.length === 0) return;
+  exporting.value = true;
+  try {
+    const formulaIds = selectedRows.value.map((f: { id: string }) => f.id);
+    const res = await exportStore.createJob({
+      dataCategory: 'formula',
+      exportType: exportForm.exportType,
+      formulaIds,
+      templateId: exportForm.templateId || undefined,
+      includeVersionInfo: exportForm.includeVersionInfo,
+    });
+    if (res.success && res.data) {
+      if (res.data.status === 'completed' && res.data.fileName) {
+        await exportStore.downloadFile(res.data.jobId, res.data.fileName, exportForm.exportType);
+        MessagePlugin.success('导出成功');
+      } else if (res.data.status === 'failed') {
+        MessagePlugin.error(res.data.errorMessage || '导出失败');
+      }
+    } else {
+      MessagePlugin.error(res.message || '导出失败');
+    }
+  } catch (error: unknown) {
+    MessagePlugin.error(error instanceof Error ? error.message : '导出失败');
+  } finally {
+    exporting.value = false;
+    showExportDrawer.value = false;
+    clearSelection();
+  }
 };
 
 const handleCompare = () => {
@@ -1298,6 +1379,7 @@ onMounted(async () => {
   ]);
   await loadSalesData();
   await salesStore.fetchStats();
+  await exportStore.fetchTemplates({ category: 'formula', pageSize: 100 });
   initialized.value = true;
 
   pendingRefreshTimer = setInterval(() => {

@@ -112,7 +112,7 @@ export async function exportReportToExcel(
     XLSX.utils.book_append_sheet(workbook, salesSheet, "销售数据");
   }
 
-  if (dataJson.plans) {
+  if (type === "weekly" && dataJson.plans) {
     const plansData: any[][] = [["未来规划"]];
 
     if (dataJson.plans.nextWeekPlans?.length > 0) {

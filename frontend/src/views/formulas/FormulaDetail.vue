@@ -651,7 +651,7 @@ const formatDate = (date: string | Date) => {
 };
 
 const handleExport = () => {
-  router.push({ path: '/exports', query: { formulaId: route.params.id, formulaName: data.value?.formulaName } });
+  router.push({ path: '/system/config', query: { tab: 'export-center', formulaId: route.params.id, formulaName: data.value?.formulaName } });
 };
 
 const loadData = async () => {

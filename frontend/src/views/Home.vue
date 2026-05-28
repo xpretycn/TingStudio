@@ -488,7 +488,7 @@ const activePath = computed(() => {
   // 按最长前缀匹配，优先精确匹配，再按路径段前缀匹配
   const pathMap = [
     '/dashboard', '/formulas', '/materials', '/files', '/salesmen', '/sales',
-    '/reports', '/exports', '/nutrition', '/tools', '/ai-assistant', '/smart-tools',
+    '/reports', '/nutrition', '/tools', '/ai-assistant', '/smart-tools',
     '/model-management', '/system'
   ];
   for (const key of pathMap) {
@@ -549,7 +549,6 @@ const pageIcon = computed(() => {
     '/salesmen': 'usergroup',
     '/sales': 'chart',
     '/reports': 'file-icon',
-    '/exports': 'download',
     '/nutrition': 'chart-pie',
     '/tools': 'setting',
     '/ai-assistant': 'precise-monitor',
@@ -589,7 +588,6 @@ const navGroups = {
     items: [
       { path: '/sales', label: '销量分析', icon: 'chart' },
       { path: '/reports', label: '报告中心', icon: 'file-icon' },
-      { path: '/exports', label: '导出中心', icon: 'download' },
       { path: '/nutrition', label: '营养分析', icon: 'chart-pie' }
     ] as NavItem[]
   },
@@ -741,7 +739,6 @@ const pageTitle = computed(() => {
     '/salesmen': '业务员管理',
     '/sales': '销量分析',
     '/reports': '报告中心',
-    '/exports': '导出中心',
     '/nutrition': '营养分析',
     '/tools': '工具箱',
     '/ai-assistant': 'AI 助手',
@@ -780,7 +777,7 @@ const breadcrumbs = computed(() => {
   // 列表页无父级，不需要面包屑
   const listPaths = [
     '/dashboard', '/formulas', '/materials', '/salesmen', '/sales',
-    '/reports', '/exports', '/nutrition', '/tools', '/ai-assistant', '/smart-tools', '/settings',
+    '/reports', '/nutrition', '/tools', '/ai-assistant', '/smart-tools', '/settings',
     '/model-management', '/system/config'
   ];
   if (listPaths.includes(path)) return [];

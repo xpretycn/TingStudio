@@ -3,24 +3,69 @@ import type { Pagination } from './http'
 
 const TOKEN_KEY = 'tingstudio_token'
 
+export interface ExportStatistics {
+  totalJobs: number
+  completedJobs: number
+  failedJobs: number
+  processingJobs: number
+  activeShares: number
+  templateCount: number
+  recentActivities: Array<{
+    type: string
+    title: string
+    desc: string
+    time: string
+  }>
+}
+
+export interface ExportConfigItem {
+  configKey: string
+  configValue: string
+  configType: string
+  description: string | null
+}
+
+export interface ExportMaterial {
+  id: string
+  name: string
+  code: string
+  unit: string
+  materialType: string
+  version: number
+  isLatest: boolean
+  totalVersions: number
+}
+
+export interface ExportReport {
+  id: string
+  title: string
+  type: 'weekly' | 'monthly'
+  periodStart: string
+  periodEnd: string
+  status: 'draft' | 'published' | 'archived'
+}
+
 export interface ExportTemplate {
   templateId: string
   name: string
   description: string | null
+  category: string
   type: 'pdf' | 'excel' | 'api' | 'print'
   formatConfig: Record<string, unknown>
   isDefault: number
   createdBy: string
   createdAt: string
+  updatedAt?: string
 }
 
 export interface ExportJob {
   jobId: string
-  formulaId: string
+  formulaId: string | null
   formulaName?: string
   versionId: string | null
   templateId: string | null
-  exportType: 'pdf' | 'excel' | 'api'
+  dataCategory: string
+  exportType: 'pdf' | 'excel'
   status: 'pending' | 'processing' | 'completed' | 'failed'
   fileUrl: string | null
   fileName: string | null
@@ -28,6 +73,7 @@ export interface ExportJob {
   errorMessage: string | null
   createdBy: string
   createdAt: string
+  updatedAt?: string
   completedAt: string | null
 }
 
@@ -47,53 +93,47 @@ export interface ShareItem {
   createdAt: string
 }
 
-export interface ApiInterface {
-  interfaceId: string
-  name: string
-  description: string | null
-  endpoint: string
-  method: string
-  authentication: string
-  authConfig: Record<string, unknown>
-  dataFormat: string
-  fieldMapping: Record<string, unknown>[]
-  rateLimit: Record<string, unknown>
-  retryConfig: Record<string, unknown>
-  createdBy: string
-  createdAt: string
-  updatedAt: string
-}
-
-interface CreateApiInterfaceData {
-  name: string
-  description?: string
-  endpoint: string
-  method: string
-  authentication: string
-  authConfig?: Record<string, unknown>
-  dataFormat?: string
-  fieldMapping?: Record<string, unknown>[]
-  rateLimit?: Record<string, unknown>
-  retryConfig?: Record<string, unknown>
-}
-
 export const exportApi = {
-  getTemplates(params?: { type?: string; page?: number; pageSize?: number }) {
+  getStatistics() {
+    return http.get<unknown, ExportStatistics>('/exports/statistics')
+  },
+  getConfig() {
+    return http.get<unknown, ExportConfigItem[]>('/exports/config')
+  },
+  updateConfig(configs: Array<{ configKey: string; configValue: string }>) {
+    return http.put<unknown, { updatedCount: number }>('/exports/config', { configs })
+  },
+  getMaterials(params?: { keyword?: string; page?: number; pageSize?: number }) {
+    return http.get<unknown, { list: ExportMaterial[]; pagination: Pagination }>('/exports/materials', { params })
+  },
+  getReports(params: { type: 'weekly' | 'monthly'; periodStart?: string; periodEnd?: string; page?: number; pageSize?: number }) {
+    return http.get<unknown, { list: ExportReport[]; pagination: Pagination }>('/exports/reports', { params })
+  },
+  getTemplates(params?: { type?: string; category?: string; page?: number; pageSize?: number }) {
     return http.get<unknown, { list: ExportTemplate[]; pagination: Pagination }>('/exports/templates', { params })
   },
-  createTemplate(data: { name: string; description?: string; type: string; formatConfig: Record<string, unknown>; isDefault?: boolean }) {
+  createTemplate(data: { name: string; description?: string; type: string; category: string; formatConfig: Record<string, unknown>; isDefault?: boolean }) {
     return http.post<unknown, { templateId: string }>('/exports/templates', data)
   },
-  updateTemplate(templateId: string, data: { name: string; description?: string; type: string; formatConfig: Record<string, unknown>; isDefault?: boolean }) {
+  updateTemplate(templateId: string, data: { name?: string; description?: string; type?: string; category?: string; formatConfig?: Record<string, unknown>; isDefault?: boolean }) {
     return http.put<unknown, { success: boolean; message: string }>(`/exports/templates/${templateId}`, data)
   },
   deleteTemplate(templateId: string) {
     return http.delete<unknown, { success: boolean; message: string }>(`/exports/templates/${templateId}`)
   },
-  createJob(data: { formulaId: string; versionId?: string; templateId?: string; exportType: string }) {
+  createJob(data: {
+    dataCategory: 'formula' | 'material' | 'weekly-report' | 'monthly-report'
+    exportType: 'excel' | 'pdf'
+    formulaIds?: string[]
+    materialIds?: string[]
+    includeVersionInfo?: boolean
+    periodStart?: string
+    periodEnd?: string
+    templateId?: string
+  }) {
     return http.post<unknown, { jobId: string; status: string; fileName?: string; errorMessage?: string }>('/exports/jobs', data)
   },
-  getJobs(params?: { status?: string; page?: number; pageSize?: number }) {
+  getJobs(params?: { status?: string; dataCategory?: string; page?: number; pageSize?: number }) {
     return http.get<unknown, { list: ExportJob[]; pagination: Pagination }>('/exports/jobs', { params })
   },
   getJob(jobId: string) {
@@ -106,7 +146,7 @@ export const exportApi = {
     return http.post<unknown, { jobId: string; status: string; fileName?: string }>(`/exports/jobs/${jobId}/re-export`)
   },
   downloadFile(jobId: string) {
-    return http.get(`/api/exports/jobs/${jobId}/download`, {
+    return http.get(`/exports/jobs/${jobId}/download`, {
       responseType: 'blob',
       headers: { Authorization: `Bearer ${localStorage.getItem(TOKEN_KEY) || ''}` },
     })
@@ -119,11 +159,5 @@ export const exportApi = {
   },
   deleteShare(shareId: string) {
     return http.delete<unknown, { message: string }>(`/exports/share/${shareId}`)
-  },
-  getApiInterfaces(params?: { page?: number; pageSize?: number }) {
-    return http.get<unknown, { list: ApiInterface[]; pagination: Pagination }>('/exports/api-interfaces', { params })
-  },
-  createApiInterface(data: CreateApiInterfaceData) {
-    return http.post<unknown, { interfaceId: string }>('/exports/api-interfaces', data)
   },
 }

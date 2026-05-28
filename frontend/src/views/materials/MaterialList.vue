@@ -48,7 +48,7 @@
                       <polyline points="7 10 12 15 17 10" />
                       <line x1="12" y1="15" x2="12" y2="3" />
                     </svg>
-                    批量导出
+                    导出
                   </button>
                 </div>
               </div>
@@ -490,12 +490,38 @@
       </div>
     </section>
 
+    <t-drawer v-model:visible="showExportDrawer" header="导出原料" :footer="true" placement="right" size="400px" :destroyOnClose="false">
+      <t-form layout="vertical">
+        <t-form-item label="已选原料">
+          <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+            <t-tag v-for="m in selectedRows" :key="m.id" closable theme="primary" variant="light" @close="removeFromExportSelection(m.id)">
+              {{ m.name }}
+            </t-tag>
+          </div>
+        </t-form-item>
+        <t-form-item label="导出格式">
+          <t-radio-group v-model="exportForm.exportType">
+            <t-radio-button value="excel">Excel</t-radio-button>
+            <t-radio-button value="pdf">PDF</t-radio-button>
+          </t-radio-group>
+        </t-form-item>
+        <t-form-item label="导出模板">
+          <t-select v-model="exportForm.templateId" clearable filterable :popup-props="{ appendToBody: true }" placeholder="可选，使用默认模板">
+            <t-option v-for="t in materialTemplates" :key="t.templateId" :value="t.templateId" :label="t.name" />
+          </t-select>
+        </t-form-item>
+      </t-form>
+      <template #footer>
+        <t-button theme="default" @click="showExportDrawer = false">取消</t-button>
+        <t-button theme="primary" :loading="exporting" @click="handleExport">开始导出</t-button>
+      </template>
+    </t-drawer>
 
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, onActivated, watch, nextTick, h } from 'vue';
+import { ref, reactive, computed, onMounted, onUnmounted, onActivated, watch, nextTick, h } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useMaterialStore } from '@/stores/material';
 import { usePaginationStore } from '@/stores/pagination';
@@ -504,6 +530,8 @@ import { nutritionApi } from '@/api/nutrition';
 import { MessagePlugin } from 'tdesign-vue-next';
 import type { Material } from '@/api/material';
 import { materialApi } from '@/api/material';
+import { useExportStore } from '@/stores/export';
+import type { ExportTemplate } from '@/api/export';
 import PageSkeleton from '@/components/Skeleton/PageSkeleton.vue';
 
 const router = useRouter();
@@ -511,6 +539,7 @@ const route = useRoute();
 const materialStore = useMaterialStore();
 const paginationStore = usePaginationStore();
 const authStore = useAuthStore();
+const exportStore = useExportStore();
 
 const isAdmin = computed(() => authStore.user?.role === "admin");
 
@@ -777,10 +806,58 @@ const handleBatchDelete = async () => {
   loadNutritionStatus();
 };
 
+const showExportDrawer = ref(false);
+const exporting = ref(false);
+const exportForm = reactive({
+  exportType: 'excel' as 'excel' | 'pdf',
+  templateId: '',
+});
+
+const materialTemplates = computed(() => {
+  return exportStore.templates.filter((t: ExportTemplate) => t.category === 'material' && t.type === exportForm.exportType);
+});
+
 const handleBatchExport = () => {
   if (selectedRows.value.length === 0) return;
-  MessagePlugin.success(`已选择 ${selectedRows.value.length} 个原料进行导出`);
-  clearSelection();
+  showExportDrawer.value = true;
+};
+
+const removeFromExportSelection = (id: string) => {
+  selectedRowKeys.value = selectedRowKeys.value.filter((k: string | number) => k !== id);
+  selectedRows.value = selectedRows.value.filter((m: { id: string }) => m.id !== id);
+  if (selectedRows.value.length === 0) {
+    showExportDrawer.value = false;
+  }
+};
+
+const handleExport = async () => {
+  if (selectedRows.value.length === 0) return;
+  exporting.value = true;
+  try {
+    const materialIds = selectedRows.value.map((m: { id: string }) => m.id);
+    const res = await exportStore.createJob({
+      dataCategory: 'material',
+      exportType: exportForm.exportType,
+      materialIds,
+      templateId: exportForm.templateId || undefined,
+    });
+    if (res.success && res.data) {
+      if (res.data.status === 'completed' && res.data.fileName) {
+        await exportStore.downloadFile(res.data.jobId, res.data.fileName, exportForm.exportType);
+        MessagePlugin.success('导出成功');
+      } else if (res.data.status === 'failed') {
+        MessagePlugin.error(res.data.errorMessage || '导出失败');
+      }
+    } else {
+      MessagePlugin.error(res.message || '导出失败');
+    }
+  } catch (error: unknown) {
+    MessagePlugin.error(error instanceof Error ? error.message : '导出失败');
+  } finally {
+    exporting.value = false;
+    showExportDrawer.value = false;
+    clearSelection();
+  }
 };
 
 const statusFilterOptions = [
@@ -1025,6 +1102,7 @@ onMounted(async () => {
 
   loadMaterials();
   fetchStats();
+  exportStore.fetchTemplates({ category: 'material', pageSize: 100 });
 });
 
 // 处理 keep-alive 缓存的组件重新激活时恢复搜索状态

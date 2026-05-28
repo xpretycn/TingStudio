@@ -98,7 +98,8 @@ export async function exportReportToPdf(
     doc.fontSize(9).fillColor("#374151");
     let x = startX;
     for (let i = 0; i < headers.length; i++) {
-      doc.text(headers[i], x + 4, y + cellPadding, { width: colWidths[i] - 8, align: "center" });
+      const align: "left" | "center" = i === 0 ? "left" : "center";
+      doc.text(headers[i], x + 4, y + cellPadding, { width: colWidths[i] - 8, align });
       x += colWidths[i];
     }
     y += rowHeight;
@@ -111,7 +112,8 @@ export async function exportReportToPdf(
       doc.fontSize(9).fillColor("#333333");
       x = startX;
       for (let c = 0; c < rows[r].length; c++) {
-        doc.text(String(rows[r][c] ?? ""), x + 4, y + cellPadding, { width: colWidths[c] - 8, align: "center" });
+        const align: "left" | "center" = c === 0 ? "left" : "center";
+        doc.text(String(rows[r][c] ?? ""), x + 4, y + cellPadding, { width: colWidths[c] - 8, align });
         x += colWidths[c];
       }
       y += rowHeight;

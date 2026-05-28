@@ -1,13 +1,12 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { exportApi } from '@/api/export'
-import type { ExportTemplate, ExportJob, ShareItem, ApiInterface } from '@/api/export'
+import type { ExportTemplate, ExportJob, ShareItem, ExportStatistics, ExportConfigItem, ExportMaterial, ExportReport } from '@/api/export'
 
 export const useExportStore = defineStore('export', () => {
   const templates = ref<ExportTemplate[]>([])
   const jobs = ref<ExportJob[]>([])
   const shares = ref<ShareItem[]>([])
-  const apiInterfaces = ref<ApiInterface[]>([])
   const loading = ref(false)
   const total = ref(0)
   const currentPage = ref(1)
@@ -15,12 +14,12 @@ export const useExportStore = defineStore('export', () => {
   const templateTotal = ref(0)
   const templateCurrentPage = ref(1)
   const templatePageSize = ref(10)
-  const apiTotal = ref(0)
-  const apiCurrentPage = ref(1)
-  const apiPageSize = ref(10)
+  const statistics = ref<ExportStatistics | null>(null)
+  const configList = ref<ExportConfigItem[]>([])
+  const materialList = ref<ExportMaterial[]>([])
+  const reportList = ref<ExportReport[]>([])
 
-  // ===== 模板 =====
-  const fetchTemplates = async (params?: { type?: string; page?: number; pageSize?: number }) => {
+  const fetchTemplates = async (params?: { type?: string; category?: string; page?: number; pageSize?: number }) => {
     loading.value = true
     try {
       const res = await exportApi.getTemplates(params)
@@ -35,7 +34,7 @@ export const useExportStore = defineStore('export', () => {
     }
   }
 
-  const createTemplate = async (data: { name: string; description?: string; type: string; formatConfig: Record<string, unknown>; isDefault?: boolean }) => {
+  const createTemplate = async (data: { name: string; description?: string; type: string; category: string; formatConfig: Record<string, unknown>; isDefault?: boolean }) => {
     try {
       await exportApi.createTemplate(data)
       await fetchTemplates({ page: templateCurrentPage.value, pageSize: templatePageSize.value })
@@ -45,7 +44,7 @@ export const useExportStore = defineStore('export', () => {
     }
   }
 
-  const updateTemplate = async (templateId: string, data: { name: string; description?: string; type: string; formatConfig: Record<string, unknown>; isDefault?: boolean }) => {
+  const updateTemplate = async (templateId: string, data: { name?: string; description?: string; type?: string; category?: string; formatConfig?: Record<string, unknown>; isDefault?: boolean }) => {
     try {
       await exportApi.updateTemplate(templateId, data)
       await fetchTemplates({ page: templateCurrentPage.value, pageSize: templatePageSize.value })
@@ -65,8 +64,16 @@ export const useExportStore = defineStore('export', () => {
     }
   }
 
-  // ===== 导出任务 =====
-  const createJob = async (data: { formulaId: string; versionId?: string; templateId?: string; exportType: string }) => {
+  const createJob = async (data: {
+    dataCategory: 'formula' | 'material' | 'weekly-report' | 'monthly-report'
+    exportType: 'excel' | 'pdf'
+    formulaIds?: string[]
+    materialIds?: string[]
+    includeVersionInfo?: boolean
+    periodStart?: string
+    periodEnd?: string
+    templateId?: string
+  }) => {
     loading.value = true
     try {
       const res = await exportApi.createJob(data)
@@ -78,11 +85,10 @@ export const useExportStore = defineStore('export', () => {
     }
   }
 
-  const fetchJobs = async (params?: { status?: string; page?: number; pageSize?: number }) => {
+  const fetchJobs = async (params?: { status?: string; dataCategory?: string; page?: number; pageSize?: number }) => {
     loading.value = true
     try {
       const res = await exportApi.getJobs(params)
-      // axios 拦截器已经提取了 res.data，所以这里直接使用 res
       jobs.value = res.list
       total.value = res.pagination.total
     } catch (error) {
@@ -95,7 +101,6 @@ export const useExportStore = defineStore('export', () => {
   const getJob = async (jobId: string): Promise<ExportJob | null> => {
     try {
       const res = await exportApi.getJob(jobId)
-      // axios 拦截器已经提取了 res.data，所以这里直接使用 res
       return res
     } catch {
       return null
@@ -143,7 +148,6 @@ export const useExportStore = defineStore('export', () => {
     }
   }
 
-  // ===== 分享 =====
   const createShare = async (data: { formulaId: string; versionId?: string; shareType?: string; password?: string; expireDate?: string; downloadLimit?: number }) => {
     try {
       const res = await exportApi.createShare(data)
@@ -152,17 +156,16 @@ export const useExportStore = defineStore('export', () => {
       return { success: false, message: error instanceof Error ? error.message : '创建分享失败' }
     }
   }
-  
+
   const fetchShares = async () => {
     try {
       const res = await exportApi.getShares()
-      // axios 拦截器已经提取了 res.data，所以这里直接使用 res
       shares.value = res
     } catch (error) {
       console.error('获取分享列表失败:', error)
     }
   }
-  
+
   const deleteShare = async (shareId: string) => {
     try {
       await exportApi.deleteShare(shareId)
@@ -172,50 +175,77 @@ export const useExportStore = defineStore('export', () => {
       return { success: false, message: error instanceof Error ? error.message : '删除分享失败' }
     }
   }
-  
-  // ===== API 接口 =====
-  const fetchApiInterfaces = async (params?: { page?: number; pageSize?: number }) => {
+
+  const fetchStatistics = async () => {
     try {
-      const res = await exportApi.getApiInterfaces(params)
-      apiInterfaces.value = res.list
-      apiTotal.value = res.pagination.total
-      apiCurrentPage.value = res.pagination.page
-      apiPageSize.value = res.pagination.pageSize
+      const res = await exportApi.getStatistics()
+      statistics.value = res
+      return res
     } catch (error) {
-      console.error('获取 API 接口列表失败:', error)
-    }
-  }
-  
-  const createApiInterface = async (data: Record<string, unknown>) => {
-    try {
-      await exportApi.createApiInterface(data)
-      await fetchApiInterfaces({ page: apiCurrentPage.value, pageSize: apiPageSize.value })
-      return { success: true }
-    } catch (error: unknown) {
-      return { success: false, message: error instanceof Error ? error.message : '创建 API 接口失败' }
+      console.error('[ExportStore] 获取统计失败:', error)
+      return null
     }
   }
 
-  // ===== 分页 =====
+  const fetchConfig = async () => {
+    try {
+      const res = await exportApi.getConfig()
+      configList.value = res
+      return res
+    } catch (error) {
+      console.error('[ExportStore] 获取配置失败:', error)
+      return null
+    }
+  }
+
+  const updateConfig = async (configs: Array<{ configKey: string; configValue: string }>) => {
+    try {
+      await exportApi.updateConfig(configs)
+      await fetchConfig()
+      return { success: true }
+    } catch (error: unknown) {
+      return { success: false, message: error instanceof Error ? error.message : '更新配置失败' }
+    }
+  }
+
+  const fetchMaterials = async (params?: { keyword?: string; page?: number; pageSize?: number }) => {
+    try {
+      const res = await exportApi.getMaterials(params)
+      materialList.value = res.list
+      return res
+    } catch (error) {
+      console.error('[ExportStore] 获取原料列表失败:', error)
+      return null
+    }
+  }
+
+  const fetchReports = async (params: { type: 'weekly' | 'monthly'; periodStart?: string; periodEnd?: string; page?: number; pageSize?: number }) => {
+    try {
+      const res = await exportApi.getReports(params)
+      reportList.value = res.list
+      return res
+    } catch (error) {
+      console.error('[ExportStore] 获取报告列表失败:', error)
+      return null
+    }
+  }
+
   const setPage = (page: number) => {
     currentPage.value = page
   }
   const setTemplatePage = (page: number) => {
     templateCurrentPage.value = page
   }
-  const setApiPage = (page: number) => {
-    apiCurrentPage.value = page
-  }
 
   return {
-    templates, jobs, shares, apiInterfaces,
+    templates, jobs, shares,
     loading, total, currentPage, pageSize,
     templateTotal, templateCurrentPage, templatePageSize,
-    apiTotal, apiCurrentPage, apiPageSize,
+    statistics, configList, materialList, reportList,
     fetchTemplates, createTemplate, updateTemplate, deleteTemplate,
     createJob, fetchJobs, getJob, retryJob, reExportJob, downloadFile,
     createShare, fetchShares, deleteShare,
-    fetchApiInterfaces, createApiInterface,
-    setPage, setTemplatePage, setApiPage,
+    fetchStatistics, fetchConfig, updateConfig, fetchMaterials, fetchReports,
+    setPage, setTemplatePage,
   }
 })

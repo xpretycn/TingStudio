@@ -1,14 +1,17 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
+import { useRoute } from 'vue-router';
 import { MessagePlugin } from 'tdesign-vue-next';
 import { parseResultApi } from '@/api/parseResult';
 import { ratioThresholdApi } from '@/api/ratioThreshold';
 import type { RatioThresholdConfig } from '@/api/ratioThreshold';
 import { useAuthStore } from '@/stores/auth';
 import EnumManage from '@/views/system/EnumManage.vue';
+import ExportCenter from '@/views/system/ExportCenter.vue';
 
 const authStore = useAuthStore();
 const isAdmin = computed(() => authStore.user?.role === 'admin');
+const route = useRoute();
 
 interface ConfigData {
   storageLimit: number;
@@ -123,12 +126,16 @@ const dashboardCards = computed(() => [
   },
 ]);
 
-const tabs = [
-  { value: 'cache', label: '缓存配置' },
-  { value: 'ratio', label: '含量比配置' },
-  { value: 'overview', label: '数据概览' },
-  { value: 'enum-manage', label: '原料值管理' },
-];
+const tabs = computed(() => {
+  const base = [
+    { value: 'cache', label: '缓存配置' },
+    { value: 'ratio', label: '含量比配置' },
+    { value: 'overview', label: '数据概览' },
+    { value: 'enum-manage', label: '原料值管理' },
+    { value: 'export-center', label: '导出中心' },
+  ];
+  return base;
+});
 
 const ratioThresholds = ref<RatioThresholdConfig>({
   normalLow: 0.98,
@@ -415,7 +422,13 @@ onMounted(async () => {
     fetchStatistics(),
     fetchRatioThresholds(),
   ]);
+
+  const tabParam = route.query.tab as string | undefined;
+  if (tabParam && tabs.value.some(t => t.value === tabParam)) {
+    activeTab.value = tabParam;
+  }
 });
+
 
 
 </script>
@@ -1044,6 +1057,11 @@ onMounted(async () => {
           <!-- 原料值管理 Tab -->
           <div v-else-if="activeTab === 'enum-manage'" key="enum-manage" class="tab-panel">
             <EnumManage />
+          </div>
+
+          <!-- 导出中心 Tab -->
+          <div v-else-if="activeTab === 'export-center'" key="export-center" class="tab-panel">
+            <ExportCenter />
           </div>
         </Transition>
       </div>

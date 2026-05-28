@@ -6,7 +6,7 @@ const mockCreateJob = vi.hoisted(() => vi.fn(() => Promise.resolve({ id: "j1", s
 
 vi.mock("@/api/export", () => ({
   exportApi: {
-    getTemplates: vi.fn(() => Promise.resolve([{ id: "t1", name: "标准模板" }])),
+    getTemplates: vi.fn(() => Promise.resolve({ list: [{ id: "t1", name: "标准模板" }], pagination: { total: 1, page: 1, pageSize: 10 } })),
     createTemplate: vi.fn(() => Promise.resolve()),
     updateTemplate: vi.fn(() => Promise.resolve()),
     deleteTemplate: vi.fn(() => Promise.resolve()),
@@ -18,8 +18,6 @@ vi.mock("@/api/export", () => ({
     createShare: vi.fn(() => Promise.resolve({ id: "s1", token: "abc" })),
     getShares: vi.fn(() => Promise.resolve([])),
     deleteShare: vi.fn(() => Promise.resolve()),
-    getApiInterfaces: vi.fn(() => Promise.resolve([])),
-    createApiInterface: vi.fn(() => Promise.resolve()),
   },
 }));
 
@@ -73,7 +71,8 @@ describe("Export Store", () => {
 
   it("EXP-06: createJob 应创建导出任务", async () => {
     const result = await store.createJob({
-      formulaId: "f1",
+      dataCategory: "formula",
+      formulaIds: ["f1"],
       exportType: "excel",
     });
     expect(result.success).toBe(true);
@@ -114,11 +113,6 @@ describe("Export Store", () => {
     expect(result.success).toBe(true);
   });
 
-  it("EXP-13: fetchApiInterfaces 应加载接口列表", async () => {
-    await store.fetchApiInterfaces();
-    expect(Array.isArray(store.apiInterfaces)).toBe(true);
-  });
-
   it("EXP-14: setPage 应更新当前页码", () => {
     store.setPage(3);
     expect(store.currentPage).toBe(3);
@@ -126,7 +120,7 @@ describe("Export Store", () => {
 
   it("EXP-15: API 失败时应返回 success: false", async () => {
     mockCreateJob.mockRejectedValueOnce(new Error("服务异常"));
-    const result = await store.createJob({ formulaId: "f1", exportType: "excel" });
+    const result = await store.createJob({ dataCategory: "formula", formulaIds: ["f1"], exportType: "excel" });
     expect(result.success).toBe(false);
   });
 });

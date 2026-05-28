@@ -195,12 +195,6 @@ const router = createRouter({
           meta: { title: "版本对比", hideHeader: true },
         },
         {
-          path: "exports",
-          name: "ExportCenter",
-          component: () => import(/* webpackPrefetch: true */ "@/views/exports/ExportCenter.vue"),
-          meta: { title: "导出中心" },
-        },
-        {
           path: "files",
           name: "FileManagement",
           component: () => import(/* webpackPrefetch: true */ "@/views/files/FileManagement.vue"),

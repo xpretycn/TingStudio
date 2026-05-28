@@ -773,7 +773,7 @@ const quickActions = [
   { label: '+ 新建配方', icon: 'add-circle', path: '/formulas/new', primary: true },
   { label: '+ 添加原料', icon: 'add', path: '/materials/new' },
   { label: '生成周报', icon: 'file-icon', path: '/reports/generate?type=weekly' },
-  { label: '导出数据', icon: 'download', path: '/exports' },
+  { label: '导出数据', icon: 'download', path: '/system/config' },
   { label: '📝 智能填单', icon: 'edit', path: 'smart-form', isAIFeature: true, badge: 'AI', action: 'tab' },
   { label: '📥 智能导入', icon: 'upload', path: 'smart-import', isAIFeature: true, badge: 'AI', action: 'tab' }
 ];
@@ -2081,7 +2081,7 @@ const parseActionsFromResponse = (content: string): ActionItem[] => {
       else if (target.includes('原料') || target.includes('material')) path = '/materials';
       else if (target.includes('销量') || target.includes('销售')) path = '/sales';
       else if (target.includes('报告')) path = '/reports';
-      else if (target.includes('导出')) path = '/exports';
+      else if (target.includes('导出')) path = '/system/config';
       else if (target.includes('文件')) path = '/files';
       else if (target.includes('营养')) path = '/nutrition';
       else if (target.includes('工具')) path = '/tools';
