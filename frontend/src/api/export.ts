@@ -1,8 +1,6 @@
 import http from './http'
 import type { Pagination } from './http'
 
-const TOKEN_KEY = 'tingstudio_token'
-
 export interface ExportStatistics {
   totalJobs: number
   completedJobs: number
@@ -148,7 +146,6 @@ export const exportApi = {
   downloadFile(jobId: string) {
     return http.get(`/exports/jobs/${jobId}/download`, {
       responseType: 'blob',
-      headers: { Authorization: `Bearer ${localStorage.getItem(TOKEN_KEY) || ''}` },
     })
   },
   createShare(data: { formulaId: string; versionId?: string; shareType?: string; password?: string; expireDate?: string; downloadLimit?: number }) {

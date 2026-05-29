@@ -47,7 +47,7 @@ export const useEnumStore = defineStore("enum", () => {
         const allRules = [...(exclusions.appearance || []), ...(exclusions.taste || [])];
         exclusionMap.value = buildExclusionMap(allRules);
       } catch (exclusionError) {
-        console.error("获取互斥规则失败:", exclusionError);
+        console.warn("[EnumStore] 互斥规则加载失败，使用空规则列表:", exclusionError instanceof Error ? exclusionError.message : String(exclusionError));
         exclusionMap.value = new Map();
       }
       loaded.value = true;

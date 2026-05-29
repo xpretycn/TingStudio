@@ -27,6 +27,10 @@
             <t-icon name="edit" class="btn-icon" />
             编辑原料
           </button>
+          <button class="header-action-btn" @click="handleExport">
+            <t-icon name="send" class="btn-icon" />
+            导出原料
+          </button>
         </div>
       </header>
 
@@ -271,6 +275,31 @@
       </main>
 
     </template>
+
+    <t-drawer v-model:visible="showExportDrawer" header="导出原料" :footer="true" placement="right" size="400px" :destroyOnClose="false">
+      <t-form layout="vertical">
+        <t-form-item label="导出原料">
+          <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+            <t-tag theme="primary" variant="light">{{ material?.name || '当前原料' }}</t-tag>
+          </div>
+        </t-form-item>
+        <t-form-item label="导出格式">
+          <t-radio-group v-model="exportForm.exportType">
+            <t-radio-button value="excel">Excel</t-radio-button>
+            <t-radio-button value="pdf">PDF</t-radio-button>
+          </t-radio-group>
+        </t-form-item>
+        <t-form-item label="导出模板">
+          <t-select v-model="exportForm.templateId" clearable filterable :popup-props="{ appendToBody: true }" placeholder="可选，使用默认模板">
+            <t-option v-for="t in materialTemplates" :key="t.templateId" :value="t.templateId" :label="t.name" />
+          </t-select>
+        </t-form-item>
+      </t-form>
+      <template #footer>
+        <t-button theme="default" @click="showExportDrawer = false">取消</t-button>
+        <t-button theme="primary" :loading="exporting" @click="doExport">开始导出</t-button>
+      </template>
+    </t-drawer>
   </div>
 </template>
 
@@ -280,6 +309,9 @@ import { useRouter, useRoute } from 'vue-router';
 import { useMaterialStore } from '@/stores/material';
 import { useNutritionStore } from '@/stores/nutrition';
 import { useAuthStore } from '@/stores/auth';
+import { useExportStore } from '@/stores/export';
+import type { ExportTemplate } from '@/api/export';
+import { MessagePlugin } from 'tdesign-vue-next';
 import PageSkeleton from '@/components/Skeleton/PageSkeleton.vue';
 import { formatTimestamp } from '@/utils/timeFormat';
 import type { Material } from '@/api/material';
@@ -289,6 +321,7 @@ const route = useRoute();
 const materialStore = useMaterialStore();
 const nutritionStore = useNutritionStore();
 const authStore = useAuthStore();
+const exportStore = useExportStore();
 
 const material = ref<Material | null>(null);
 
@@ -436,7 +469,54 @@ const loadData = async () => {
   }
 };
 
-onMounted(() => { loadData(); });
+const showExportDrawer = ref(false);
+const exporting = ref(false);
+const exportForm = reactive({
+  exportType: 'excel' as 'excel' | 'pdf',
+  templateId: '',
+});
+
+const materialTemplates = computed(() => {
+  return exportStore.templates.filter((t: ExportTemplate) => t.category === 'material' && t.type === exportForm.exportType);
+});
+
+const handleExport = () => {
+  showExportDrawer.value = true;
+};
+
+const doExport = async () => {
+  const materialId = route.params.id as string;
+  if (!materialId) return;
+  exporting.value = true;
+  try {
+    const res = await exportStore.createJob({
+      dataCategory: 'material',
+      exportType: exportForm.exportType,
+      materialIds: [materialId],
+      templateId: exportForm.templateId || undefined,
+    });
+    if (res.success && res.data) {
+      if (res.data.status === 'completed' && res.data.fileName) {
+        await exportStore.downloadFile(res.data.jobId, res.data.fileName, exportForm.exportType);
+        MessagePlugin.success('导出成功');
+      } else if (res.data.status === 'failed') {
+        MessagePlugin.error(res.data.errorMessage || '导出失败');
+      }
+    } else {
+      MessagePlugin.error(res.message || '导出失败');
+    }
+  } catch (error: unknown) {
+    MessagePlugin.error(error instanceof Error ? error.message : '导出失败');
+  } finally {
+    exporting.value = false;
+    showExportDrawer.value = false;
+  }
+};
+
+onMounted(() => {
+  loadData();
+  exportStore.fetchTemplates({ category: 'material' });
+});
 </script>
 
 <style scoped lang="scss">

@@ -1,7 +1,7 @@
 // 认证控制器
 import { Request, Response } from "express";
 import bcrypt from "bcryptjs";
-import { query, adaptSQL } from "../config/database-adapter.js";
+import { query, adaptSQL, getDatabaseType } from "../config/database-adapter.js";
 import { generateId, now, success, rowToCamelCase } from "../utils/helpers.js";
 import { generateToken } from "../middleware/auth.js";
 
@@ -50,7 +50,7 @@ export async function register(req: Request, res: Response) {
       [userId, username, hashedPassword, displayName, email, phone, currentTime, currentTime],
     );
 
-    const token = generateToken({ userId, username, role: "formulist" });
+    const token = await generateToken({ userId, username, role: "formulist" });
     const userRow = {
       id: userId,
       username,
@@ -83,7 +83,7 @@ export async function login(req: Request, res: Response) {
 
     const userResult = await query(
       adaptSQL(
-        "SELECT id, username, password, role, display_name, avatar, bio, email, phone, created_at FROM users WHERE username = ?",
+        "SELECT id, username, password, role, role_id, display_name, avatar, bio, email, phone, created_at FROM users WHERE username = ?",
       ),
       [username],
     );
@@ -99,7 +99,7 @@ export async function login(req: Request, res: Response) {
       return;
     }
 
-    const token = generateToken({ userId: user.id, username: user.username, role: user.role });
+    const token = await generateToken({ userId: user.id, username: user.username, role: user.role, roleId: user.role_id || undefined });
     const { password: _, ...userWithoutPassword } = rowToCamelCase(user);
 
     res.json(
@@ -241,5 +241,52 @@ export async function changePassword(req: any, res: Response) {
     res.json(success(null, "密码修改成功"));
   } catch (error: any) {
     res.status(500).json({ success: false, message: "密码修改失败", error: error.message });
+  }
+}
+
+export async function getPreferences(req: any, res: Response) {
+  try {
+    const userId = req.user.userId;
+    const result = await query(
+      adaptSQL("SELECT preferences_json FROM user_preferences WHERE user_id = ?"),
+      [userId],
+    );
+    const row = result.rows[0];
+    const preferences = row ? JSON.parse(row.preferences_json) : {};
+    res.json(success(preferences));
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: "获取偏好设置失败", error: error.message });
+  }
+}
+
+export async function updatePreferences(req: any, res: Response) {
+  try {
+    const userId = req.user.userId;
+    const { preferences } = req.body;
+
+    if (preferences === null || typeof preferences !== "object") {
+      res.status(400).json({ success: false, message: "偏好数据格式不正确" });
+      return;
+    }
+
+    const preferencesJson = JSON.stringify(preferences);
+    const currentTime = now();
+    const dbType = getDatabaseType();
+
+    if (dbType === "mysql") {
+      await query(
+        "INSERT INTO user_preferences (user_id, preferences_json, updated_at) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE preferences_json = ?, updated_at = ?",
+        [userId, preferencesJson, currentTime, preferencesJson, currentTime],
+      );
+    } else {
+      await query(
+        "INSERT OR REPLACE INTO user_preferences (user_id, preferences_json, updated_at) VALUES (?, ?, ?)",
+        [userId, preferencesJson, currentTime],
+      );
+    }
+
+    res.json(success(preferences, "偏好设置已保存"));
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: "保存偏好设置失败", error: error.message });
   }
 }

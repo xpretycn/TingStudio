@@ -451,6 +451,7 @@ import { useMaterialStore } from '@/stores/material';
 import { useSalesmanStore } from '@/stores/salesman';
 import { useThemeStore } from '@/stores/theme';
 import { useWeatherStore } from '@/stores/weather';
+import { usePreferencesStore } from '@/stores/preferences';
 import { brandColorDots, brandColorLabels } from '@/assets/styles/tokens';
 import type { BrandColor } from '@/stores/theme';
 import { MessagePlugin } from 'tdesign-vue-next';
@@ -463,6 +464,7 @@ const materialStore = useMaterialStore();
 const salesmanStore = useSalesmanStore();
 const themeStore = useThemeStore();
 const weatherStore = useWeatherStore();
+const preferencesStore = usePreferencesStore();
 
 // 品牌色选项
 const brandColorOptions: Array<{ value: BrandColor; label: string; dot: string; }> = [
@@ -1014,10 +1016,23 @@ const focusLastNavItem = () => {
   last?.focus();
 };
 
-onMounted(() => {
+onMounted(async () => {
   updateDateInfo();
   weatherStore.init();
   refreshWittyComment();
+
+  await preferencesStore.fetchPreferences();
+  const prefs = preferencesStore.preferences;
+
+  if (prefs.sidebarDefaultCollapsed) {
+    sidebarCollapsed.value = true;
+  }
+
+  if (prefs.defaultHomePage && prefs.defaultHomePage !== '/dashboard') {
+    if (route.path === '/' || route.path === '/dashboard') {
+      router.replace(prefs.defaultHomePage);
+    }
+  }
 
   // Ctrl+B 切换侧边栏折叠
   document.addEventListener('keydown', (e: KeyboardEvent) => {

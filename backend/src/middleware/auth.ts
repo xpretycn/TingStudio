@@ -1,10 +1,12 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
+import { getPermissionsByRoleId } from "../services/permissionService.js";
 
 interface AuthenticatedRequest extends Request {
   user?: {
     userId: string;
     role: string;
+    roleId?: string;
     permissions: string[];
   };
 }
@@ -12,14 +14,27 @@ interface AuthenticatedRequest extends Request {
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-in-production";
 const JWT_EXPIRES_IN = "7d";
 
-export function generateToken(payload: { userId: string; username: string; role: string }): string {
+export async function generateToken(payload: { userId: string; username: string; role: string; roleId?: string }): Promise<string> {
+  let permissions: string[] = [];
+
+  if (payload.role === "admin") {
+    permissions = ["*"];
+  } else if (payload.roleId) {
+    try {
+      permissions = await getPermissionsByRoleId(payload.roleId);
+    } catch {
+      permissions = [];
+    }
+  }
+
   return jwt.sign(
     {
       sub: payload.userId,
       userId: payload.userId,
       username: payload.username,
       role: payload.role,
-      permissions: payload.role === "admin" ? ["*"] : [],
+      roleId: payload.roleId || null,
+      permissions,
     },
     JWT_SECRET,
     { expiresIn: JWT_EXPIRES_IN },
@@ -42,17 +57,18 @@ export function authMiddleware(req: AuthenticatedRequest, res: Response, next: N
   const token = authHeader.substring(7);
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as any;
+    const decoded = jwt.verify(token, JWT_SECRET) as Record<string, unknown>;
 
     req.user = {
-      userId: decoded.userId || decoded.sub || "unknown",
-      role: decoded.role || "user",
-      permissions: decoded.permissions || [],
+      userId: (decoded.userId || decoded.sub || "unknown") as string,
+      role: (decoded.role || "user") as string,
+      roleId: (decoded.roleId || undefined) as string | undefined,
+      permissions: (decoded.permissions || []) as string[],
     };
 
     next();
   } catch (error) {
-    if ((error as any).name === "TokenExpiredError") {
+    if ((error as Record<string, unknown>).name === "TokenExpiredError") {
       res.status(401).json({
         success: false,
         error: { message: "Token has expired", code: "TOKEN_EXPIRED" },
@@ -96,11 +112,12 @@ export function optionalAuth(req: AuthenticatedRequest, _res: Response, next: Ne
     const token = authHeader.substring(7);
 
     try {
-      const decoded = jwt.verify(token, JWT_SECRET) as any;
+      const decoded = jwt.verify(token, JWT_SECRET) as Record<string, unknown>;
       req.user = {
-        userId: decoded.userId || decoded.sub || "unknown",
-        role: decoded.role || "user",
-        permissions: decoded.permissions || [],
+        userId: (decoded.userId || decoded.sub || "unknown") as string,
+        role: (decoded.role || "user") as string,
+        roleId: (decoded.roleId || undefined) as string | undefined,
+        permissions: (decoded.permissions || []) as string[],
       };
     } catch {
       // Token invalid but continue anyway

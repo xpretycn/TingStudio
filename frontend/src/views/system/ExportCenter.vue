@@ -727,7 +727,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted, watch } from 'vue';
+import { ref, reactive, computed, onMounted, onBeforeUnmount, watch } from 'vue';
 import { useExportStore } from '@/stores/export';
 import { useAuthStore } from '@/stores/auth';
 import { MessagePlugin } from 'tdesign-vue-next';
@@ -774,7 +774,7 @@ const formulaList = ref<{ id: string; name: string }[]>([]);
 const searchKeyword = ref('');
 
 const shareForm = reactive({ formulaId: '', password: '', expireDate: '' });
-const templateForm = reactive({ name: '', type: 'excel' as string, category: 'formula' as string, description: '', isDefault: false });
+const templateDialogForm = reactive({ name: '', type: 'excel' as string, category: 'formula' as string, description: '', isDefault: false });
 
 const templateDrawerVisible = ref(false);
 const drawerCategory = ref('');
@@ -1084,11 +1084,11 @@ async function handleDeleteShare(shareId: string) {
 function handleOpenTemplateDialog(template: ExportTemplate | null) {
   if (template) {
     editingTemplate.value = template;
-    templateForm.name = template.name;
-    templateForm.type = template.type;
-    templateForm.category = template.category || 'formula';
-    templateForm.description = template.description || '';
-    templateForm.isDefault = !!template.isDefault;
+    templateDialogForm.name = template.name;
+    templateDialogForm.type = template.type;
+    templateDialogForm.category = template.category || 'formula';
+    templateDialogForm.description = template.description || '';
+    templateDialogForm.isDefault = !!template.isDefault;
   } else {
     editingTemplate.value = null;
     resetTemplateDialogForm();
@@ -1097,24 +1097,24 @@ function handleOpenTemplateDialog(template: ExportTemplate | null) {
 }
 
 function resetTemplateDialogForm() {
-  templateForm.name = '';
-  templateForm.type = 'excel';
-  templateForm.category = drawerCategory.value || 'formula';
-  templateForm.description = '';
-  templateForm.isDefault = false;
+  templateDialogForm.name = '';
+  templateDialogForm.type = 'excel';
+  templateDialogForm.category = drawerCategory.value || 'formula';
+  templateDialogForm.description = '';
+  templateDialogForm.isDefault = false;
   editingTemplate.value = null;
 }
 
 async function handleSaveTemplate() {
-  if (!templateForm.name.trim()) { MessagePlugin.warning('请输入模板名称'); return; }
+  if (!templateDialogForm.name.trim()) { MessagePlugin.warning('请输入模板名称'); return; }
   const config = editingTemplate.value?.formatConfig || {};
   const payload = {
-    name: templateForm.name.trim(),
-    type: templateForm.type,
-    category: editingTemplate.value?.category || templateForm.category,
-    description: templateForm.description.trim() || '',
+    name: templateDialogForm.name.trim(),
+    type: templateDialogForm.type,
+    category: editingTemplate.value?.category || templateDialogForm.category,
+    description: templateDialogForm.description.trim() || '',
     formatConfig: JSON.stringify(config),
-    isDefault: templateForm.isDefault ? 1 : 0,
+    isDefault: templateDialogForm.isDefault ? 1 : 0,
   };
   let result: { success: boolean; message?: string; data?: Record<string, unknown> };
   if (editingTemplate.value) {
@@ -1297,7 +1297,7 @@ async function handleSaveTemplateConfig(silent = false) {
     includeFooter: formConfig.includeFooter,
   };
   const result = await exportStore.updateTemplate(formConfig.defaultTemplateId, {
-    formatConfig: JSON.stringify(config),
+    formatConfig: config,
     isDefault: 1,
   } as Parameters<typeof exportStore.updateTemplate>[1]);
   if (result.success) {
@@ -1489,6 +1489,12 @@ async function loadExportConfig() {
 onMounted(async () => {
   await Promise.all([fetchFormulaList(), exportStore.fetchJobs({ page: 1 }), loadStatistics()]);
   initialized.value = true;
+});
+
+onBeforeUnmount(() => {
+  showTemplateDialog.value = false;
+  templateDrawerVisible.value = false;
+  previewVisible.value = false;
 });
 </script>
 

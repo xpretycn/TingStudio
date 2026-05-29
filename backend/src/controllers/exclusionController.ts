@@ -14,7 +14,8 @@ export async function getAllExclusions(_req: AuthRequest, res: Response) {
     const data = await exclusionService.getAllExclusions();
     res.json(success(data));
   } catch (error: unknown) {
-    console.error("[ExclusionController] getAllExclusions Error:", error);
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error("[ExclusionController] getAllExclusions Error:", msg);
     res.status(500).json({
       success: false,
       error: { message: "获取互斥规则失败", code: "INTERNAL_ERROR" },

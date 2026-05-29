@@ -21,6 +21,10 @@ import { formulaTemplateRoutes } from "./formulaTemplates.js";
 import { enumRoutes } from "./enums.js";
 import { exclusionRoutes } from "./exclusions.js";
 import { quickFormulaRoutes } from "./quickFormulas.js";
+import { roleRoutes } from "./roles.js";
+import { permissionRoutes } from "./permissions.js";
+import { userRoutes } from "./users.js";
+import { dbRoutes } from "./db.js";
 
 export function createAppRouter(): Router {
   const router = Router();
@@ -46,6 +50,10 @@ export function createAppRouter(): Router {
   router.use("/enums/exclusions", exclusionRoutes);
   router.use("/enums", enumRoutes);
   router.use("/quick-formulas", quickFormulaRoutes);
+  router.use("/roles", roleRoutes);
+  router.use("/permissions", permissionRoutes);
+  router.use("/users", userRoutes);
+  router.use("/db", dbRoutes);
 
   return router;
 }

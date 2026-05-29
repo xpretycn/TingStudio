@@ -6,6 +6,8 @@ export interface UserInfo {
   id: string
   username: string
   role: string
+  roleId?: string | null
+  permissions?: string[]
   displayName?: string | null
   avatar?: string | null
   bio?: string | null
@@ -24,6 +26,16 @@ export interface ChangePasswordParams {
   oldPassword: string
   newPassword: string
 }
+export interface UserPreferences {
+  themeMode?: 'auto' | 'light' | 'dark'
+  brandColor?: 'pink' | 'yellow' | 'blue' | 'green'
+  sidebarDefaultCollapsed?: boolean
+  defaultHomePage?: string
+  defaultPageSize?: number
+  formulaDefaultView?: 'card' | 'table'
+  defaultExportFormat?: 'excel' | 'pdf'
+  formulaDefaultSort?: 'updatedAt' | 'createdAt' | 'name' | 'salesman'
+}
 
 export const authApi = {
   login(params: LoginParams) {
@@ -40,6 +52,12 @@ export const authApi = {
   },
   changePassword(params: ChangePasswordParams) {
     return http.put<unknown, null>('/auth/password', params)
+  },
+  getPreferences() {
+    return http.get<unknown, UserPreferences>('/auth/preferences')
+  },
+  updatePreferences(preferences: UserPreferences) {
+    return http.put<unknown, UserPreferences>('/auth/preferences', { preferences })
   },
 }
 

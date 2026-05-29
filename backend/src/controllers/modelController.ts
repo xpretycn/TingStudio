@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { AuthRequest } from "../middleware/auth.js";
 import { getDb } from "../config/database-better-sqlite3.js";
 import { aiService } from "../services/ai/AIService.js";
-import { fixGarbledText, formatFriendlyErrorMessage, generateId, success } from "../utils/helpers.js";
+import { fixGarbledText, generateId, success } from "../utils/helpers.js";
 import crypto from "node:crypto";
 
 function isAdmin(req: Request): boolean {

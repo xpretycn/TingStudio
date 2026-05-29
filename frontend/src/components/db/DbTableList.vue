@@ -1,0 +1,282 @@
+<script setup lang="ts">
+import { ref, inject } from "vue"
+import { MessagePlugin } from "tdesign-vue-next"
+import type { TableInfo, ColumnInfo, IndexInfo } from "@/api/db"
+import { getTableSchema } from "@/api/db"
+
+defineProps<{
+  tables: TableInfo[]
+}>()
+
+const navigateToTable = inject<(name: string) => void>("navigateToTable", () => {})
+
+const drawerVisible = ref(false)
+const drawerLoading = ref(false)
+const currentTableName = ref("")
+const currentColumns = ref<ColumnInfo[]>([])
+const currentIndexes = ref<IndexInfo[]>([])
+
+const tableColumns = [
+  {
+    colKey: "name",
+    title: "表名",
+    width: 200,
+    cell: (_h: unknown, { row }: { row: TableInfo }) => {
+      return row.name
+    },
+  },
+  { colKey: "rowCount", title: "行数", width: 120 },
+  { colKey: "columnCount", title: "字段数", width: 100 },
+  { colKey: "indexCount", title: "索引数", width: 100 },
+  {
+    colKey: "actions",
+    title: "操作",
+    width: 120,
+  },
+]
+
+function handleTableNameClick(tableName: string) {
+  navigateToTable(tableName)
+}
+
+async function handleViewSchema(tableName: string) {
+  currentTableName.value = tableName
+  drawerVisible.value = true
+  drawerLoading.value = true
+  try {
+    const schema = await getTableSchema(tableName)
+    currentColumns.value = schema.columns
+    currentIndexes.value = schema.indexes
+  } catch {
+    MessagePlugin.error("获取表结构失败")
+  } finally {
+    drawerLoading.value = false
+  }
+}
+
+function formatRowCount(count: number): string {
+  return count.toLocaleString()
+}
+
+const schemaColumns = [
+  { colKey: "name", title: "字段名", width: 160 },
+  { colKey: "type", title: "类型", width: 120 },
+  {
+    colKey: "pk",
+    title: "主键",
+    width: 80,
+    cell: (_h: unknown, { row }: { row: ColumnInfo }) => {
+      return row.pk === 1 ? "✓" : ""
+    },
+  },
+  {
+    colKey: "notnull",
+    title: "非空",
+    width: 80,
+    cell: (_h: unknown, { row }: { row: ColumnInfo }) => {
+      return row.notnull === 1 ? "✓" : ""
+    },
+  },
+  {
+    colKey: "dfltValue",
+    title: "默认值",
+    width: 160,
+    cell: (_h: unknown, { row }: { row: ColumnInfo }) => {
+      if (row.dfltValue === null || row.dfltValue === undefined) return "--"
+      return String(row.dfltValue)
+    },
+  },
+]
+
+const indexColumns = [
+  { colKey: "name", title: "索引名", width: 180 },
+  {
+    colKey: "unique",
+    title: "唯一",
+    width: 80,
+    cell: (_h: unknown, { row }: { row: IndexInfo }) => {
+      return row.unique ? "✓" : ""
+    },
+  },
+  {
+    colKey: "columns",
+    title: "字段",
+    cell: (_h: unknown, { row }: { row: IndexInfo }) => {
+      return row.columns.join(", ") || "--"
+    },
+  },
+]
+</script>
+
+<template>
+  <div class="db-table-list">
+    <div class="section-header">
+      <h3 class="section-title">
+        <span class="section-icon">📋</span>
+        数据表列表
+      </h3>
+      <t-tag variant="light" size="small">
+        {{ tables.length }} 张表
+      </t-tag>
+    </div>
+
+    <t-table
+      :data="tables"
+      :columns="tableColumns"
+      row-key="name"
+      table-layout="auto"
+      :max-height="480"
+      hover
+      stripe
+      class="table-list-table"
+    >
+      <template #name="{ row }">
+        <span class="table-name-link" @click="handleTableNameClick(row.name)">
+          {{ row.name }}
+        </span>
+      </template>
+      <template #rowCount="{ row }">
+        {{ formatRowCount(row.rowCount) }}
+      </template>
+      <template #actions="{ row }">
+        <t-button
+          variant="text"
+          size="small"
+          theme="primary"
+          @click="handleViewSchema(row.name)"
+        >
+          查看结构
+        </t-button>
+      </template>
+    </t-table>
+
+    <t-drawer
+      v-model:visible="drawerVisible"
+      :header="`表结构 - ${currentTableName}`"
+      :size="640"
+      placement="right"
+      :close-btn="true"
+      class="schema-drawer"
+    >
+      <t-loading :loading="drawerLoading">
+        <div class="schema-section">
+          <h4 class="schema-section-title">字段列表</h4>
+          <t-table
+            :data="currentColumns"
+            :columns="schemaColumns"
+            row-key="cid"
+            table-layout="auto"
+            size="small"
+            :max-height="320"
+            hover
+            stripe
+          />
+        </div>
+
+        <div v-if="currentIndexes.length > 0" class="schema-section">
+          <h4 class="schema-section-title">索引列表</h4>
+          <t-table
+            :data="currentIndexes"
+            :columns="indexColumns"
+            row-key="name"
+            table-layout="auto"
+            size="small"
+            :max-height="240"
+            hover
+            stripe
+          />
+        </div>
+
+        <t-empty
+          v-if="!drawerLoading && currentColumns.length === 0"
+          description="未获取到表结构数据"
+        />
+      </t-loading>
+    </t-drawer>
+  </div>
+</template>
+
+<style lang="scss" scoped>
+.db-table-list {
+  background: $overlay-white-80;
+  backdrop-filter: blur(10px);
+  border-radius: $radius-3xl;
+  border: 2px solid var(--overlay-brand-lighter-15);
+  box-shadow: $shadow-xs;
+  padding: 24px;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+
+  .section-title {
+    font-size: $font-size-h3;
+    font-weight: $font-weight-semibold;
+    color: $text-primary;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    .section-icon {
+      font-size: 20px;
+    }
+  }
+}
+
+.table-name-link {
+  color: var(--color-primary);
+  cursor: pointer;
+  font-weight: $font-weight-medium;
+  transition: all $transition-fast;
+
+  &:hover {
+    text-decoration: underline;
+    color: var(--color-primary-dark);
+  }
+}
+
+.table-list-table {
+  :deep(.t-table) {
+    border-radius: $radius-lg;
+  }
+
+  :deep(.t-table__header th) {
+    background: $bg-container-alt;
+    color: $text-secondary;
+    font-weight: $font-weight-medium;
+    font-size: $font-size-caption;
+  }
+
+  :deep(.t-table__body td) {
+    font-size: $font-size-body-sm;
+    color: $text-primary;
+  }
+
+  :deep(.t-table__row--hover td) {
+    background: $bg-hover;
+  }
+}
+
+.schema-section {
+  margin-bottom: 24px;
+
+  .schema-section-title {
+    font-size: $font-size-body;
+    font-weight: $font-weight-semibold;
+    color: $text-primary;
+    margin: 0 0 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid $border-color-light;
+  }
+}
+
+.schema-drawer {
+  :deep(.t-drawer__body) {
+    padding: 24px;
+  }
+}
+</style>

@@ -1,5 +1,6 @@
-import { query } from "../config/database-adapter.js";
+import { query, getDatabaseType } from "../config/database-adapter.js";
 import { generateId, now, rowToCamelCase, rowsToCamelCase } from "../utils/helpers.js";
+import { logger } from "../utils/logger.js";
 
 const VALID_EXCLUSION_CATEGORIES = ["appearance", "taste"] as const;
 type ExclusionCategory = (typeof VALID_EXCLUSION_CATEGORIES)[number];
@@ -39,6 +40,32 @@ function createAppError(message: string, code: string): Error & { code: string }
   return error;
 }
 
+async function ensureExclusionsTable(): Promise<void> {
+  try {
+    const dbType = getDatabaseType();
+    if (dbType === "sqlite") {
+      const { getDb } = await import("../config/database-better-sqlite3.js");
+      const db = getDb();
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS enum_exclusions (
+          id VARCHAR(36) PRIMARY KEY,
+          category VARCHAR(50) NOT NULL,
+          value_a VARCHAR(100) NOT NULL,
+          value_b VARCHAR(100) NOT NULL,
+          created_at DATETIME NOT NULL,
+          updated_at DATETIME NOT NULL,
+          UNIQUE(category, value_a, value_b)
+        )
+      `);
+      db.exec("CREATE INDEX IF NOT EXISTS idx_exclusion_category ON enum_exclusions(category)");
+      db.exec("CREATE INDEX IF NOT EXISTS idx_exclusion_value_a ON enum_exclusions(value_a)");
+      db.exec("CREATE INDEX IF NOT EXISTS idx_exclusion_value_b ON enum_exclusions(value_b)");
+    }
+  } catch {
+    // ignore if table already exists
+  }
+}
+
 const EXCLUSION_JOIN_QUERY = `
   SELECT
     e.id,
@@ -53,6 +80,7 @@ const EXCLUSION_JOIN_QUERY = `
 `;
 
 export async function getAllExclusions(): Promise<GroupedExclusions> {
+  await ensureExclusionsTable();
   const sql = EXCLUSION_JOIN_QUERY + " ORDER BY e.category, e.value_a";
   const result = await query<ExclusionRuleRow>(sql);
   const rows = rowsToCamelCase<ExclusionRule>(result.rows || []);
@@ -67,6 +95,7 @@ export async function getAllExclusions(): Promise<GroupedExclusions> {
 }
 
 export async function createExclusion(data: CreateExclusionData): Promise<ExclusionRule> {
+  await ensureExclusionsTable();
   // 校验 category 必须为 appearance 或 taste
   if (!VALID_EXCLUSION_CATEGORIES.includes(data.category as ExclusionCategory)) {
     throw createAppError("互斥规则分类必须为 appearance 或 taste", "VALIDATION_ERROR");
@@ -128,6 +157,7 @@ export async function createExclusion(data: CreateExclusionData): Promise<Exclus
 }
 
 export async function deleteExclusion(id: string): Promise<{ deletedId: string }> {
+  await ensureExclusionsTable();
   const existing = await query<Record<string, unknown>>(
     "SELECT id FROM enum_exclusions WHERE id = ?",
     [id],

@@ -420,18 +420,50 @@
 
       </main>
     </template>
+
+    <t-drawer v-model:visible="showExportDrawer" header="导出配方" :footer="true" placement="right" size="400px" :destroyOnClose="false">
+      <t-form layout="vertical">
+        <t-form-item label="导出配方">
+          <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+            <t-tag theme="primary" variant="light">{{ data?.formulaName || '当前配方' }}</t-tag>
+          </div>
+        </t-form-item>
+        <t-form-item label="导出格式">
+          <t-radio-group v-model="exportForm.exportType">
+            <t-radio-button value="excel">Excel</t-radio-button>
+            <t-radio-button value="pdf">PDF</t-radio-button>
+          </t-radio-group>
+        </t-form-item>
+        <t-form-item label="导出模板">
+          <t-select v-model="exportForm.templateId" clearable filterable :popup-props="{ appendToBody: true }" placeholder="可选，使用默认模板">
+            <t-option v-for="t in formulaTemplates" :key="t.templateId" :value="t.templateId" :label="t.name" />
+          </t-select>
+        </t-form-item>
+        <t-form-item label="包含版本信息">
+          <t-switch v-model="exportForm.includeVersionInfo" />
+        </t-form-item>
+      </t-form>
+      <template #footer>
+        <t-button theme="default" @click="showExportDrawer = false">取消</t-button>
+        <t-button theme="primary" :loading="exporting" @click="doExport">开始导出</t-button>
+      </template>
+    </t-drawer>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, reactive, computed, onMounted, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
+import { MessagePlugin } from 'tdesign-vue-next';
 import { nutritionApi } from '@/api/nutrition';
 import { formulaApi } from '@/api/formula';
+import { useExportStore } from '@/stores/export';
+import type { ExportTemplate } from '@/api/export';
 import type { RatioFactorValidationResult, PriceQuote } from '@/api/formula';
 
 const router = useRouter();
 const route = useRoute();
+const exportStore = useExportStore();
 
 interface FormulaNutritionData {
   version?: string | number;
@@ -650,8 +682,50 @@ const formatDate = (date: string | Date) => {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
 };
 
+const showExportDrawer = ref(false);
+const exporting = ref(false);
+const exportForm = reactive({
+  exportType: 'pdf' as 'excel' | 'pdf',
+  templateId: '',
+  includeVersionInfo: false,
+});
+
+const formulaTemplates = computed(() => {
+  return exportStore.templates.filter((t: ExportTemplate) => t.category === 'formula' && t.type === exportForm.exportType);
+});
+
 const handleExport = () => {
-  router.push({ path: '/system/config', query: { tab: 'export-center', formulaId: route.params.id, formulaName: data.value?.formulaName } });
+  showExportDrawer.value = true;
+};
+
+const doExport = async () => {
+  const formulaId = route.params.id as string;
+  if (!formulaId) return;
+  exporting.value = true;
+  try {
+    const res = await exportStore.createJob({
+      dataCategory: 'formula',
+      exportType: exportForm.exportType,
+      formulaIds: [formulaId],
+      templateId: exportForm.templateId || undefined,
+      includeVersionInfo: exportForm.includeVersionInfo,
+    });
+    if (res.success && res.data) {
+      if (res.data.status === 'completed' && res.data.fileName) {
+        await exportStore.downloadFile(res.data.jobId, res.data.fileName, exportForm.exportType);
+        MessagePlugin.success('导出成功');
+      } else if (res.data.status === 'failed') {
+        MessagePlugin.error(res.data.errorMessage || '导出失败');
+      }
+    } else {
+      MessagePlugin.error(res.message || '导出失败');
+    }
+  } catch (error: unknown) {
+    MessagePlugin.error(error instanceof Error ? error.message : '导出失败');
+  } finally {
+    exporting.value = false;
+    showExportDrawer.value = false;
+  }
 };
 
 const loadData = async () => {
@@ -675,7 +749,10 @@ const loadData = async () => {
   }
 };
 
-onMounted(() => { loadData(); });
+onMounted(() => {
+  loadData();
+  exportStore.fetchTemplates({ category: 'formula' });
+});
 
 watch(() => route.params.id, (newId) => {
   if (newId && newId !== 'undefined') {

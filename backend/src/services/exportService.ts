@@ -375,24 +375,54 @@ export async function updateTemplate(
 
   if (isDefault) {
     const catValue = (category as string) ?? "formula";
-    query("UPDATE export_templates SET is_default = 0 WHERE type = ? AND category = ?", [
-      type,
-      catValue,
-    ]);
+    const typeValue = type as string;
+    if (typeValue) {
+      query("UPDATE export_templates SET is_default = 0 WHERE type = ? AND category = ?", [
+        typeValue,
+        catValue,
+      ]);
+    }
   }
 
+  const setClauses: string[] = [];
+  const params: unknown[] = [];
+
+  if (name !== undefined) {
+    setClauses.push("name = ?");
+    params.push(name);
+  }
+  if (description !== undefined) {
+    setClauses.push("description = ?");
+    params.push(description ?? null);
+  }
+  if (type !== undefined) {
+    setClauses.push("type = ?");
+    params.push(type);
+  }
+  if (formatConfig !== undefined) {
+    setClauses.push("format_config_json = ?");
+    params.push(
+      typeof formatConfig === "string" ? formatConfig : JSON.stringify(formatConfig),
+    );
+  }
+  if (isDefault !== undefined) {
+    setClauses.push("is_default = ?");
+    params.push(isDefault ? 1 : 0);
+  }
+  if (category !== undefined) {
+    setClauses.push("category = ?");
+    params.push(category);
+  }
+
+  if (setClauses.length === 0) return;
+
+  setClauses.push("updated_at = ?");
+  params.push(now());
+  params.push(templateId);
+
   query(
-    `UPDATE export_templates SET name = ?, description = ?, type = ?, format_config_json = ?, is_default = ?, category = ?, updated_at = ? WHERE template_id = ?`,
-    [
-      name,
-      description ?? null,
-      type,
-      JSON.stringify(formatConfig ?? {}),
-      isDefault ? 1 : 0,
-      (category as string) ?? "formula",
-      now(),
-      templateId,
-    ],
+    `UPDATE export_templates SET ${setClauses.join(", ")} WHERE template_id = ?`,
+    params,
   );
 }
 

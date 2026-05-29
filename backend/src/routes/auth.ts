@@ -1,7 +1,7 @@
 // 认证路由
 import { Router } from 'express'
 import { validateBody } from '../middleware/validate.js'
-import { register, login, getCurrentUser, updateProfile, changePassword } from '../controllers/authController.js'
+import { register, login, getCurrentUser, updateProfile, changePassword, getPreferences, updatePreferences } from '../controllers/authController.js'
 import { authMiddleware } from '../middleware/auth.js'
 
 export const authRoutes = Router()
@@ -36,4 +36,14 @@ authRoutes.put('/password',
     newPassword: { type: 'string', required: true, minLength: 6, message: '新密码长度至少6个字符' },
   }),
   changePassword
+)
+
+authRoutes.get('/preferences', authMiddleware, getPreferences)
+
+authRoutes.put('/preferences',
+  authMiddleware,
+  validateBody({
+    preferences: { type: 'object', required: true, message: '偏好数据格式不正确' },
+  }),
+  updatePreferences
 )

@@ -23,6 +23,12 @@ const router = createRouter({
       meta: { requiresAuth: false },
     },
     {
+      path: "/404",
+      name: "NotFound",
+      component: () => import("@/views/errors/NotFound.vue"),
+      meta: { requiresAuth: false, hideHeader: true },
+    },
+    {
       path: "/",
       component: () => import("@/views/Home.vue"),
       meta: { requiresAuth: true },
@@ -255,6 +261,12 @@ const router = createRouter({
           meta: { title: "账号设置", hideHeader: true },
         },
       ],
+    },
+    {
+      path: "/:pathMatch(.*)*",
+      name: "NotFoundCatchAll",
+      component: () => import("@/views/errors/NotFound.vue"),
+      meta: { requiresAuth: false, hideHeader: true },
     },
   ],
 });

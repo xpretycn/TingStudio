@@ -581,6 +581,7 @@ import { useMaterialStore } from '@/stores/material';
 import { useSalesmanStore } from '@/stores/salesman';
 import { useSalesStore } from '@/stores/sales';
 import { usePaginationStore } from '@/stores/pagination';
+import { usePreferencesStore } from '@/stores/preferences';
 import { MessagePlugin } from 'tdesign-vue-next';
 import type { Formula, FormulaVersion, FormulaForm } from '@/api/formula';
 import { formulaApi } from '@/api/formula';
@@ -600,6 +601,7 @@ const salesmanStore = useSalesmanStore();
 const salesStore = useSalesStore();
 const paginationStore = usePaginationStore();
 const exportStore = useExportStore();
+const preferencesStore = usePreferencesStore();
 
 const initialized = ref(false);
 
@@ -1363,6 +1365,11 @@ let isRestoringFromRoute = false;
 let pendingRefreshTimer: ReturnType<typeof setInterval> | null = null;
 
 onMounted(async () => {
+  const prefPageSize = preferencesStore.preferences.defaultPageSize;
+  if (prefPageSize && prefPageSize !== formulaStore.pageSize) {
+    formulaStore.pageSize = prefPageSize;
+  }
+
   if (route.query.keyword) {
     const keyword = route.query.keyword as string;
     isRestoringFromRoute = true;

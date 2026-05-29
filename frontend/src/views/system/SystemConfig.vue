@@ -8,6 +8,7 @@ import type { RatioThresholdConfig } from '@/api/ratioThreshold';
 import { useAuthStore } from '@/stores/auth';
 import EnumManage from '@/views/system/EnumManage.vue';
 import ExportCenter from '@/views/system/ExportCenter.vue';
+import PermissionManage from '@/views/system/PermissionManage.vue';
 
 const authStore = useAuthStore();
 const isAdmin = computed(() => authStore.user?.role === 'admin');
@@ -134,6 +135,9 @@ const tabs = computed(() => {
     { value: 'enum-manage', label: '原料值管理' },
     { value: 'export-center', label: '导出中心' },
   ];
+  if (isAdmin.value) {
+    base.push({ value: 'permission-manage', label: '权限管理' });
+  }
   return base;
 });
 
@@ -435,7 +439,7 @@ onMounted(async () => {
 
 <template>
   <div class="system-config">
-
+    <!-- 系统管理卡片 -->
     <t-card class="content-card" bordered>
 
       <div class="data-center-toolbar">
@@ -1062,6 +1066,11 @@ onMounted(async () => {
           <!-- 导出中心 Tab -->
           <div v-else-if="activeTab === 'export-center'" key="export-center" class="tab-panel">
             <ExportCenter />
+          </div>
+
+          <!-- 权限管理 Tab -->
+          <div v-else-if="activeTab === 'permission-manage'" key="permission-manage" class="tab-panel">
+            <PermissionManage />
           </div>
         </Transition>
       </div>

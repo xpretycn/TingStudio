@@ -93,6 +93,13 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  const hasPermission = (permission: string): boolean => {
+    if (!user.value) return false
+    if (user.value.role === 'admin') return true
+    const permissions = (user.value as UserInfo & { permissions?: string[] }).permissions
+    return permissions?.includes(permission) ?? false
+  }
+
   return {
     user,
     loading,
@@ -103,6 +110,7 @@ export const useAuthStore = defineStore('auth', () => {
     logout,
     updateProfile,
     changePassword,
-    fetchCurrentUser
+    fetchCurrentUser,
+    hasPermission
   }
 })

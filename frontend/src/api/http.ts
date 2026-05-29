@@ -62,13 +62,21 @@ http.interceptors.response.use(
         error.message?.includes("Network Error") ||
         error.message?.includes("Failed to fetch"));
 
-    if (isNetworkError) {
-      console.warn("[HTTP] 后端服务不可用，即将跳转服务器故障页");
+    const isBackendDown = (() => {
+      if (isNetworkError) return true;
+      const status = error.response?.status;
+      if (status && status >= 500) return true;
+      return false;
+    })();
+
+    if (isBackendDown) {
+      console.warn("[HTTP] 后端服务不可用，即将跳转 404 页面");
       clearToken();
       clearUser();
-      MessagePlugin.error("后端服务未启动或网络连接失败，请检查后端服务状态");
+      MessagePlugin.error("后端服务未启动或网络连接失败");
       setTimeout(() => {
-        window.location.href = "/server-error";
+        const target = window.top || window;
+        target.location.href = "/404";
       }, 1200);
       return Promise.reject(error);
     }
@@ -83,8 +91,9 @@ http.interceptors.response.use(
     if (error.response?.status === 401) {
       clearToken();
       clearUser();
-      if (!window.location.pathname.startsWith("/login")) {
-        window.location.href = "/login";
+      const target = window.top || window;
+      if (!target.location.pathname.startsWith("/login")) {
+        target.location.href = "/login";
       }
       MessagePlugin.error("登录已过期，请重新登录");
     } else if (!error.config?._silent) {

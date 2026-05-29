@@ -2,17 +2,21 @@
 import { computed } from "vue";
 import type { NutritionLabelItem } from "@/api/nutrition";
 
-const props = defineProps<{
-  items: NutritionLabelItem[];
-}>();
+const props = withDefaults(defineProps<{
+  items?: NutritionLabelItem[];
+}>(), {
+  items: () => [],
+});
+
+const safeItems = computed(() => props.items ?? []);
 
 const sortedItems = computed(() => {
-  const core = props.items.filter((i) => i.isCore);
-  const extended = props.items.filter((i) => !i.isCore);
+  const core = safeItems.value.filter((i) => i.isCore);
+  const extended = safeItems.value.filter((i) => !i.isCore);
   return [...core, ...extended];
 });
 
-const hasExtended = computed(() => props.items.some((i) => !i.isCore));
+const hasExtended = computed(() => safeItems.value.some((i) => !i.isCore));
 
 function formatValue(item: NutritionLabelItem): string {
   if (item.isZero) return "0";

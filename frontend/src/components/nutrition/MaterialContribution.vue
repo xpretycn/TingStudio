@@ -2,14 +2,16 @@
 import { computed } from "vue";
 import type { MaterialContributionItem } from "@/api/nutrition";
 
-const props = defineProps<{
-  materials: MaterialContributionItem[];
-}>();
+const props = withDefaults(defineProps<{
+  materials?: MaterialContributionItem[];
+}>(), {
+  materials: () => [],
+});
 
 const coreNutrientKeys = computed(() => {
   const keys = new Set<string>();
   props.materials.forEach((m) => {
-    Object.keys(m.contributionPercent).forEach((k) => keys.add(k));
+    Object.keys(m.contributionPercent ?? {}).forEach((k) => keys.add(k));
   });
   return Array.from(keys).slice(0, 4);
 });
@@ -30,10 +32,10 @@ const tableData = computed(() =>
   props.materials.map((m) => {
     const row: Record<string, unknown> = {
       ...m,
-      ratioDisplay: `${(m.ratio * 100).toFixed(1)}%`,
+      ratioDisplay: `${((m.ratio ?? 0) * 100).toFixed(1)}%`,
     };
     coreNutrientKeys.value.forEach((key) => {
-      const percent = m.contributionPercent[key];
+      const percent = (m.contributionPercent ?? {})[key];
       row[`contrib_${key}`] = percent != null ? percent : null;
     });
     return row;

@@ -129,12 +129,12 @@ export const useExportStore = defineStore('export', () => {
 
   const downloadFile = async (jobId: string, fileName: string, exportType: string = 'excel') => {
     try {
-      const res = await exportApi.downloadFile(jobId)
+      const blob = await exportApi.downloadFile(jobId) as unknown as Blob
       const contentType = exportType === 'pdf'
         ? 'application/pdf'
         : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-      const blob = new Blob([res.data], { type: contentType })
-      const url = window.URL.createObjectURL(blob)
+      const typedBlob = new Blob([blob], { type: contentType })
+      const url = window.URL.createObjectURL(typedBlob)
       const link = document.createElement('a')
       link.href = url
       link.download = fileName

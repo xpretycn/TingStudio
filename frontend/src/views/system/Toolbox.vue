@@ -18,6 +18,28 @@
       </div>
     </div>
 
+    <!-- 数据库管理区域（仅管理员可见） -->
+    <div v-if="isAdmin" class="db-management-section">
+      <div class="section-header">
+        <h3 class="section-title">🗄️ 数据库管理</h3>
+        <t-tag theme="primary" variant="light" size="small">仅管理员</t-tag>
+      </div>
+      <t-tabs v-model="activeDbTab" class="db-tabs">
+        <t-tab-panel value="overview" label="概览">
+          <DbOverview ref="overviewRef" />
+        </t-tab-panel>
+        <t-tab-panel value="browser" label="数据浏览">
+          <DbTableBrowser :initial-table="selectedTableForBrowser" />
+        </t-tab-panel>
+        <t-tab-panel value="backup" label="备份">
+          <DbBackup ref="backupRef" />
+        </t-tab-panel>
+        <t-tab-panel value="scripts" label="脚本">
+          <DbScripts />
+        </t-tab-panel>
+      </t-tabs>
+    </div>
+
     <!-- 天气详情区域 -->
     <div class="weather-section">
       <div class="weather-card">
@@ -139,10 +161,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed, provide } from 'vue'
 import { MessagePlugin } from 'tdesign-vue-next'
 import { useWeatherStore } from '@/stores/weather'
+import { useAuthStore } from '@/stores/auth'
 import type { CityLocation } from '@/api/weather'
+import DbOverview from '@/components/db/DbOverview.vue'
+import DbTableBrowser from '@/components/db/DbTableBrowser.vue'
+import DbBackup from '@/components/db/DbBackup.vue'
+import DbScripts from '@/components/db/DbScripts.vue'
 import {
   gradientToolPink,
   gradientToolPurple,
@@ -153,7 +180,21 @@ import {
 } from '@/assets/styles/tokens'
 
 const weatherStore = useWeatherStore()
+const authStore = useAuthStore()
 const searchKeyword = ref('')
+const activeDbTab = ref('overview')
+const selectedTableForBrowser = ref('')
+const overviewRef = ref<InstanceType<typeof DbOverview> | null>(null)
+const backupRef = ref<InstanceType<typeof DbBackup> | null>(null)
+
+const isAdmin = computed(() => authStore.user?.role === 'admin')
+
+function navigateToTable(tableName: string) {
+  selectedTableForBrowser.value = tableName
+  activeDbTab.value = 'browser'
+}
+
+provide('navigateToTable', navigateToTable)
 let debounceTimer: ReturnType<typeof setTimeout> | null = null
 
 const tools = ref([
@@ -315,6 +356,40 @@ function formatTime(updateTime: string): string {
   &:hover .tool-arrow {
     color: $brand-primary;
     transform: translateX(4px);
+  }
+}
+
+// ─── 数据库管理区域 ───
+.db-management-section {
+  margin-bottom: 24px;
+  padding: 24px;
+  background: $overlay-white-80;
+  backdrop-filter: blur(10px);
+  border-radius: $radius-3xl;
+  border: 2px solid var(--overlay-brand-lighter-15);
+  box-shadow: $shadow-xs;
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+
+    .section-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: $text-primary;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+  }
+
+  .db-tabs {
+    :deep(.t-tabs__nav) {
+      margin-bottom: 16px;
+    }
   }
 }
 

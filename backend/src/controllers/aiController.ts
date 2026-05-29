@@ -612,14 +612,35 @@ export async function naturalSearch(req: any, res: Response) {
     const [[userRow]]: any[][] = await query("SELECT role FROM users WHERE id = ?", [userId]);
     const isAdmin = userRow?.role === "admin";
 
-    let finalSQL = validation.sql;
+    const finalSQL = validation.sql;
+
     if (!isAdmin) {
-      if (/formulas/i.test(finalSQL) && !/created_by/i.test(finalSQL)) {
-        finalSQL = finalSQL.replace(/FROM\s+formulas/i, "FROM formulas WHERE created_by = ?");
+      const injected = injectCreatedByFilter(finalSQL, userId);
+      const [rows]: any[][] = await query(injected.sql, injected.params);
+      const queryType = detectQueryType(finalSQL);
+
+      let exportUrl: string | undefined;
+      if (exportFormat === "csv" && rows.length > 0) {
+        exportUrl = await generateCSVExport(rows, userId, finalSQL);
       }
+
+      res.json({
+        success: true,
+        data: {
+          sql: injected.sql,
+          originalSQL: aiResult.content.trim(),
+          rows,
+          rowCount: rows.length,
+          model: aiResult.model,
+          usage: aiResult.usage,
+          queryType,
+          exportUrl,
+        },
+      });
+      return;
     }
 
-    const [rows]: any[][] = await query(finalSQL, isAdmin ? [] : [userId]);
+    const [rows]: any[][] = await query(finalSQL);
 
     const queryType = detectQueryType(finalSQL);
 
@@ -641,9 +662,44 @@ export async function naturalSearch(req: any, res: Response) {
         exportUrl,
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[AI] naturalSearch error:", error);
-    res.status(500).json({ success: false, message: `AI 检索失败: ${error.message}` });
+    const err = error as Error;
+    const message = err.message || "";
+
+    if (message.includes("SQLITE_ERROR") || message.includes("no such column") || message.includes("syntax error") || message.includes("no such table")) {
+      res.status(422).json({
+        success: false,
+        message: `SQL 执行失败，请尝试换个说法重试：${message}`,
+        code: "SQL_EXECUTION_ERROR",
+      });
+    } else if (
+      message.includes("malformed JSON") ||
+      message.includes("bad JSON") ||
+      message.includes("bad JSON path") ||
+      message.includes("json path") ||
+      message.includes("not valid JSON") ||
+      message.includes("JSON path") ||
+      message.includes("JSON")
+    ) {
+      res.status(422).json({
+        success: false,
+        message: `AI 生成的查询包含 JSON 提取操作，但配方数据中存在格式异常，请尝试换个说法重试，或联系管理员检查配方数据。`,
+        code: "SQL_EXECUTION_ERROR",
+      });
+    } else if (message.includes("API") || message.includes("请求失败") || message.includes("超时")) {
+      res.status(502).json({
+        success: false,
+        message: `AI 服务请求失败，请稍后重试：${message}`,
+        code: "AI_SERVICE_ERROR",
+      });
+    } else {
+      res.status(500).json({
+        success: false,
+        message: `检索失败：${message}`,
+        code: "INTERNAL_ERROR",
+      });
+    }
   }
 }
 
@@ -652,6 +708,41 @@ function detectQueryType(sql: string): string {
   if (/GROUP BY/i.test(sql)) return "aggregate";
   if (/JOIN/i.test(sql)) return "join";
   return "simple";
+}
+
+const TABLES_WITH_CREATED_BY = ["formulas", "materials", "salesmen", "formula_sales", "formula_versions"];
+
+function injectCreatedByFilter(sql: string, userId: string): { sql: string; params: string[] } {
+  const aliasMap: Record<string, string> = {};
+  const regex = /\b(?:FROM|JOIN)\s+(\w+)(?:\s+(?:AS\s+)?(\w+))?/gi;
+  let m;
+  while ((m = regex.exec(sql)) !== null) {
+    const table = m[1].toLowerCase();
+    if (TABLES_WITH_CREATED_BY.includes(table)) {
+      aliasMap[table] = (m[2] || m[1]).toLowerCase();
+    }
+  }
+
+  if (Object.keys(aliasMap).length === 0) return { sql, params: [] };
+  if (/created_by/i.test(sql)) return { sql, params: [] };
+
+  const conditions = Object.values(aliasMap).map((alias) => `${alias}.created_by = ?`);
+  const whereInjection = conditions.join(" AND ");
+  const paramCount = conditions.length;
+
+  if (/\bWHERE\b/i.test(sql)) {
+    return { sql: sql.replace(/\bWHERE\b/i, `WHERE ${whereInjection} AND `), params: Array(paramCount).fill(userId) };
+  }
+
+  const tailMatch = sql.match(/\b(GROUP\s+BY|ORDER\s+BY|LIMIT|HAVING)\b/i);
+  if (tailMatch && tailMatch.index !== undefined) {
+    return {
+      sql: sql.substring(0, tailMatch.index) + ` WHERE ${whereInjection} ` + sql.substring(tailMatch.index),
+      params: Array(paramCount).fill(userId),
+    };
+  }
+
+  return { sql: `${sql} WHERE ${whereInjection}`, params: Array(paramCount).fill(userId) };
 }
 
 async function generateCSVExport(rows: Record<string, any>[], userId: string, sql: string): Promise<string> {

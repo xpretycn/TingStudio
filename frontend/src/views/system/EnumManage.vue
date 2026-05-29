@@ -24,7 +24,7 @@
       <Transition name="content-fade" mode="out-in">
         <div :key="activeCategory" class="tab-panel">
           <!-- 互斥规则 Tab -->
-          <template v-if="activeCategory === 'exclusion-rules'">
+          <div v-if="activeCategory === 'exclusion-rules'" class="category-content">
             <div class="section-header-enhanced">
               <div class="section-title-group">
                 <svg class="section-title-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
@@ -91,10 +91,10 @@
               <p class="empty-text">{{ keyword ? '未找到匹配的互斥规则' : '暂无互斥规则' }}</p>
               <p class="empty-hint">{{ keyword ? '尝试其他关键词' : '点击上方按钮添加第一条互斥规则' }}</p>
             </div>
-          </template>
+          </div>
 
           <!-- 枚举值 Tab（原有逻辑） -->
-          <template v-else>
+          <div v-else class="category-content">
             <div class="section-header-enhanced">
               <div class="section-title-group">
                 <svg class="section-title-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
@@ -173,7 +173,7 @@
               <p class="empty-text">{{ keyword ? '未找到匹配的枚举值' : '暂无枚举值' }}</p>
               <p class="empty-hint">{{ keyword ? '尝试其他关键词' : '点击上方按钮添加第一个枚举值' }}</p>
             </div>
-          </template>
+          </div>
         </div>
       </Transition>
     </div>
@@ -207,8 +207,8 @@
       <t-form-item label="选项A">
         <t-select v-model="exclusionFormValueA" :options="exclusionCategoryOptions" placeholder="请选择选项A" clearable filterable />
       </t-form-item>
-      <t-form-item label="选项B">
-        <t-select v-model="exclusionFormValueB" :options="exclusionCategoryOptions" placeholder="请选择选项B" clearable filterable />
+      <t-form-item label="选项B" :help="exclusionBHelpText">
+        <t-select v-model="exclusionFormValueB" :options="exclusionFormBOptions" placeholder="请选择选项B" clearable filterable />
       </t-form-item>
     </t-form>
   </t-dialog>
@@ -330,6 +330,25 @@ watch(() => currentList.value.length, () => {
   }
 });
 
+watch(exclusionFormValueA, (newA) => {
+  const bVal = exclusionFormValueB.value;
+  if (!bVal) return;
+  if (bVal === newA) {
+    exclusionFormValueB.value = "";
+    return;
+  }
+  if (!newA) return;
+  const excludedValues = enumStore.getExcludedValues(exclusionFormCategory.value, newA);
+  if (excludedValues.has(bVal)) {
+    exclusionFormValueB.value = "";
+  }
+});
+
+watch(exclusionFormCategory, () => {
+  exclusionFormValueA.value = "";
+  exclusionFormValueB.value = "";
+});
+
 onMounted(() => {
   enumStore.fetchEnums();
   fetchExclusionRules();
@@ -440,12 +459,29 @@ async function handleCreateExclusion() {
     MessagePlugin.warning("两个选项不能相同");
     return false;
   }
+  const aVal = exclusionFormValueA.value;
+  const bVal = exclusionFormValueB.value;
+  const cat = exclusionFormCategory.value;
+  const existsInList = exclusionList.value.some(
+    (r) =>
+      (r.valueA === aVal && r.valueB === bVal) ||
+      (r.valueA === bVal && r.valueB === aVal)
+  );
+  if (existsInList) {
+    MessagePlugin.warning("该组合的互斥规则（或逆向组合）已存在，请重新选择");
+    return false;
+  }
+  const aExcluded = enumStore.getExcludedValues(cat, aVal);
+  if (aExcluded.has(bVal)) {
+    MessagePlugin.warning("该组合的互斥规则（或逆向组合）已存在，请重新选择");
+    return false;
+  }
   exclusionDialogLoading.value = true;
   try {
     await enumApi.createExclusion({
-      category: exclusionFormCategory.value,
-      valueA: exclusionFormValueA.value,
-      valueB: exclusionFormValueB.value,
+      category: cat,
+      valueA: aVal,
+      valueB: bVal,
     });
     MessagePlugin.success("互斥规则创建成功");
     exclusionDialogVisible.value = false;
@@ -476,6 +512,37 @@ async function handleDeleteExclusion(item: ExclusionRule) {
 const exclusionCategoryOptions = computed(() => {
   const options = enumStore.getActiveOptionsByCategory(exclusionFormCategory.value);
   return options.map((o) => ({ label: o.label, value: o.value }));
+});
+
+const exclusionFormBOptions = computed(() => {
+  const allOptions = enumStore.getActiveOptionsByCategory(exclusionFormCategory.value);
+  const aVal = exclusionFormValueA.value;
+  if (!aVal) return allOptions.map((o) => ({ label: o.label, value: o.value }));
+
+  const excludedValues = enumStore.getExcludedValues(exclusionFormCategory.value, aVal);
+
+  return allOptions
+    .filter((o) => o.value !== aVal)
+    .filter((o) => !excludedValues.has(o.value))
+    .map((o) => ({ label: o.label, value: o.value }));
+});
+
+const exclusionFilteredCount = computed(() => {
+  const allOptions = enumStore.getActiveOptionsByCategory(exclusionFormCategory.value);
+  const aVal = exclusionFormValueA.value;
+  if (!aVal) return 0;
+  const excludedValues = enumStore.getExcludedValues(exclusionFormCategory.value, aVal);
+  let count = 0;
+  if (allOptions.some((o) => o.value === aVal)) count++;
+  count += [...excludedValues].filter((v) => allOptions.some((o) => o.value === v)).length;
+  return count;
+});
+
+const exclusionBHelpText = computed(() => {
+  if (!exclusionFormValueA.value) return "";
+  const count = exclusionFilteredCount.value;
+  if (count === 0) return "";
+  return `已根据选项A过滤 ${count} 个不可选的选项（相同值或已有互斥规则）`;
 });
 </script>
 

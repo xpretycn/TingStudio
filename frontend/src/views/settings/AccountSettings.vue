@@ -197,22 +197,186 @@
             </div>
           </section>
         </div>
+
+        <!-- 偏好设置 -->
+        <div v-show="activeTab === 'preferences'" class="right-content-stack">
+          <!-- 主题模式 -->
+          <section class="info-card content-card">
+            <h3 class="card-label">
+              <t-icon name="palette" class="label-icon" />
+              主题模式
+            </h3>
+            <div class="pref-section">
+              <div class="pref-group">
+                <div class="pref-group-label">外观模式</div>
+                <div class="theme-mode-cards">
+                  <div
+                    v-for="opt in themeModeOptions"
+                    :key="opt.value"
+                    class="theme-mode-card"
+                    :class="{ active: currentThemeMode === opt.value }"
+                    @click="handleThemeModeChange(opt.value)"
+                  >
+                    <t-icon :name="opt.icon" size="24px" class="mode-icon" />
+                    <span class="mode-label">{{ opt.label }}</span>
+                    <div v-if="currentThemeMode === opt.value" class="mode-check">
+                      <t-icon name="check" size="12px" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="pref-group">
+                <div class="pref-group-label">品牌色</div>
+                <div class="brand-color-row">
+                  <div
+                    v-for="opt in brandColorOptions"
+                    :key="opt.value"
+                    class="brand-color-item"
+                    :class="{ active: currentBrandColor === opt.value }"
+                    @click="handleBrandColorChange(opt.value)"
+                  >
+                    <div class="color-swatch" :style="{ backgroundColor: opt.color }">
+                      <t-icon v-if="currentBrandColor === opt.value" name="check" size="16px" />
+                    </div>
+                    <span class="color-label">{{ opt.label }}</span>
+                  </div>
+                </div>
+              </div>
+              <div class="pref-hint">
+                <t-icon name="info-circle" size="14px" />
+                <span>主题切换即时生效，无需手动保存</span>
+              </div>
+            </div>
+          </section>
+
+          <!-- 布局与显示偏好 -->
+          <section class="info-card content-card">
+            <h3 class="card-label">
+              <t-icon name="layout" class="label-icon" />
+              布局与显示
+            </h3>
+            <div class="pref-section">
+              <div class="pref-row">
+                <div class="pref-row-label">
+                  <span>侧边栏默认收起</span>
+                  <span class="pref-row-desc">登录后侧边栏默认折叠状态</span>
+                </div>
+                <t-switch v-model="prefForm.sidebarDefaultCollapsed" />
+              </div>
+              <div class="pref-row">
+                <div class="pref-row-label">
+                  <span>默认首页</span>
+                  <span class="pref-row-desc">登录后默认跳转的页面</span>
+                </div>
+                <t-select
+                  v-model="prefForm.defaultHomePage"
+                  :options="homePageOptions"
+                  style="width: 160px"
+                  :popup-props="{ appendToBody: true }"
+                />
+              </div>
+              <div class="pref-row">
+                <div class="pref-row-label">
+                  <span>表格每页条数</span>
+                  <span class="pref-row-desc">列表页默认分页大小</span>
+                </div>
+                <t-select
+                  v-model="prefForm.defaultPageSize"
+                  :options="pageSizeOptions"
+                  style="width: 160px"
+                  :popup-props="{ appendToBody: true }"
+                />
+              </div>
+            </div>
+          </section>
+
+          <!-- 业务偏好 -->
+          <section class="info-card content-card">
+            <h3 class="card-label">
+              <t-icon name="formula" class="label-icon" />
+              业务偏好
+            </h3>
+            <div class="pref-section">
+              <div class="pref-row">
+                <div class="pref-row-label">
+                  <span>配方默认视图</span>
+                  <span class="pref-row-desc">进入配方列表时的默认展示方式</span>
+                </div>
+                <div class="view-toggle">
+                  <div
+                    v-for="opt in formulaViewOptions"
+                    :key="opt.value"
+                    class="view-toggle-btn"
+                    :class="{ active: prefForm.formulaDefaultView === opt.value }"
+                    @click="prefForm.formulaDefaultView = opt.value"
+                  >
+                    <t-icon :name="opt.icon" size="16px" />
+                    <span>{{ opt.label }}</span>
+                  </div>
+                </div>
+              </div>
+              <div class="pref-row">
+                <div class="pref-row-label">
+                  <span>默认导出格式</span>
+                  <span class="pref-row-desc">导出配方时的首选文件格式</span>
+                </div>
+                <div class="view-toggle">
+                  <div
+                    v-for="opt in exportFormatOptions"
+                    :key="opt.value"
+                    class="view-toggle-btn"
+                    :class="{ active: prefForm.defaultExportFormat === opt.value }"
+                    @click="prefForm.defaultExportFormat = opt.value"
+                  >
+                    <t-icon :name="opt.icon" size="16px" />
+                    <span>{{ opt.label }}</span>
+                  </div>
+                </div>
+              </div>
+              <div class="pref-row">
+                <div class="pref-row-label">
+                  <span>配方默认排序</span>
+                  <span class="pref-row-desc">配方列表的默认排序方式</span>
+                </div>
+                <t-select
+                  v-model="prefForm.formulaDefaultSort"
+                  :options="formulaSortOptions"
+                  style="width: 160px"
+                  :popup-props="{ appendToBody: true }"
+                />
+              </div>
+            </div>
+
+            <div class="pref-actions">
+              <t-space>
+                <t-button theme="primary" :loading="prefSaving" @click="handlePrefSave">保存偏好</t-button>
+                <t-button theme="default" variant="outline" @click="handlePrefReset">恢复默认</t-button>
+              </t-space>
+            </div>
+          </section>
+        </div>
       </div>
     </main>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, onMounted, computed } from 'vue';
 import { useAuthStore } from '@/stores/auth';
+import { usePreferencesStore } from '@/stores/preferences';
+import { useThemeStore } from '@/stores/theme';
+import type { ThemeMode, BrandColor } from '@/stores/theme';
 import { MessagePlugin } from 'tdesign-vue-next';
 import type { FormInstanceFunctions, FormRule } from 'tdesign-vue-next';
 
 const authStore = useAuthStore();
+const preferencesStore = usePreferencesStore();
+const themeStore = useThemeStore();
 
 const tabs = [
   { value: 'profile', label: '个人资料', icon: 'user-circle' },
   { value: 'security', label: '账号安全', icon: 'lock-on' },
+  { value: 'preferences', label: '偏好设置', icon: 'setting-1' },
 ];
 const activeTab = ref('profile');
 
@@ -372,6 +536,119 @@ const maskPhone = (phone: string) => {
   return phone;
 };
 
+// ─── 偏好设置 ───
+const themeModeOptions = [
+  { value: 'auto', label: '跟随系统', icon: 'browse' },
+  { value: 'light', label: '浅色模式', icon: 'sunny' },
+  { value: 'dark', label: '深色模式', icon: 'moon' },
+] as const
+
+const brandColorOptions = [
+  { value: 'pink', label: '玫瑰', color: '#ec4899' },
+  { value: 'yellow', label: '琥珀', color: '#f59e0b' },
+  { value: 'blue', label: '天青', color: '#3b82f6' },
+  { value: 'green', label: '翡翠', color: '#10b981' },
+] as const
+
+const homePageOptions = [
+  { value: '/dashboard', label: '工作台' },
+  { value: '/formulas', label: '配方管理' },
+  { value: '/materials', label: '原料管理' },
+  { value: '/sales', label: '销量分析' },
+]
+
+const pageSizeOptions = [
+  { value: 5, label: '5 条/页' },
+  { value: 8, label: '8 条/页' },
+  { value: 10, label: '10 条/页' },
+  { value: 20, label: '20 条/页' },
+]
+
+const formulaViewOptions = [
+  { value: 'card', label: '卡片视图', icon: 'view-module' },
+  { value: 'table', label: '列表视图', icon: 'view-list' },
+] as const
+
+const exportFormatOptions = [
+  { value: 'excel', label: 'Excel (.xlsx)', icon: 'file-excel' },
+  { value: 'pdf', label: 'PDF', icon: 'file-pdf' },
+] as const
+
+const formulaSortOptions = [
+  { value: 'updatedAt', label: '最近更新' },
+  { value: 'createdAt', label: '创建时间' },
+  { value: 'name', label: '名称排序' },
+  { value: 'salesman', label: '业务员排序' },
+]
+
+const prefForm = reactive({
+  themeMode: preferencesStore.preferences.themeMode || 'auto',
+  brandColor: preferencesStore.preferences.brandColor || 'pink',
+  sidebarDefaultCollapsed: preferencesStore.preferences.sidebarDefaultCollapsed ?? false,
+  defaultHomePage: preferencesStore.preferences.defaultHomePage || '/formulas',
+  defaultPageSize: preferencesStore.preferences.defaultPageSize || 8,
+  formulaDefaultView: preferencesStore.preferences.formulaDefaultView || 'card',
+  defaultExportFormat: preferencesStore.preferences.defaultExportFormat || 'excel',
+  formulaDefaultSort: preferencesStore.preferences.formulaDefaultSort || 'updatedAt',
+})
+
+const currentThemeMode = computed(() => themeStore.mode)
+const currentBrandColor = computed(() => themeStore.brandColor)
+
+function handleThemeModeChange(mode: ThemeMode) {
+  prefForm.themeMode = mode
+  themeStore.setMode(mode)
+  preferencesStore.updatePreferences({ themeMode: mode })
+}
+
+function handleBrandColorChange(color: BrandColor) {
+  prefForm.brandColor = color
+  themeStore.setBrandColor(color)
+  preferencesStore.updatePreferences({ brandColor: color })
+}
+
+const prefSaving = ref(false)
+
+async function handlePrefSave() {
+  prefSaving.value = true
+  try {
+    const result = await preferencesStore.updatePreferences({
+      sidebarDefaultCollapsed: prefForm.sidebarDefaultCollapsed,
+      defaultHomePage: prefForm.defaultHomePage,
+      defaultPageSize: prefForm.defaultPageSize,
+      formulaDefaultView: prefForm.formulaDefaultView,
+      defaultExportFormat: prefForm.defaultExportFormat,
+      formulaDefaultSort: prefForm.formulaDefaultSort,
+    })
+    if (result.success) {
+      MessagePlugin.success('偏好设置已保存')
+    } else {
+      MessagePlugin.error(result.message || '保存失败')
+    }
+  } finally {
+    prefSaving.value = false
+  }
+}
+
+async function handlePrefReset() {
+  const result = await preferencesStore.resetToDefault()
+  if (result.success) {
+    prefForm.themeMode = 'auto'
+    prefForm.brandColor = 'pink'
+    prefForm.sidebarDefaultCollapsed = false
+    prefForm.defaultHomePage = '/formulas'
+    prefForm.defaultPageSize = 8
+    prefForm.formulaDefaultView = 'card'
+    prefForm.defaultExportFormat = 'excel'
+    prefForm.formulaDefaultSort = 'updatedAt'
+    themeStore.setMode('auto')
+    themeStore.setBrandColor('pink')
+    MessagePlugin.success('已恢复默认偏好')
+  } else {
+    MessagePlugin.error(result.message || '重置失败')
+  }
+}
+
 // ─── 初始化 ───
 onMounted(async () => {
   await authStore.fetchCurrentUser();
@@ -383,6 +660,7 @@ onMounted(async () => {
     profileForm.email = u.email || '';
     profileForm.phone = u.phone || '';
   }
+  preferencesStore.fetchPreferences();
 });
 </script>
 
@@ -714,6 +992,237 @@ onMounted(async () => {
       color: var(--color-text-placeholder);
       margin-top: var(--space-1-5);
       line-height: 1.4;
+    }
+
+    // ══ 偏好设置样式 ══
+    .pref-section {
+      display: flex;
+      flex-direction: column;
+      gap: $space-5;
+    }
+
+    .pref-group {
+      .pref-group-label {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--color-text-secondary);
+        margin-bottom: $space-3;
+      }
+    }
+
+    .theme-mode-cards {
+      display: flex;
+      gap: $space-3;
+
+      .theme-mode-card {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: $space-2;
+        padding: $space-4 $space-3;
+        border-radius: $radius-xl;
+        border: 2px solid var(--color-border);
+        cursor: pointer;
+        transition: all $transition-fast;
+        position: relative;
+        background: var(--color-bg-page);
+
+        .mode-icon {
+          color: var(--color-text-placeholder);
+          transition: color $transition-fast;
+        }
+
+        .mode-label {
+          font-size: 13px;
+          font-weight: 500;
+          color: var(--color-text-secondary);
+        }
+
+        .mode-check {
+          position: absolute;
+          top: 6px;
+          right: 6px;
+          width: 18px;
+          height: 18px;
+          border-radius: 50%;
+          background: var(--color-primary);
+          color: #fff;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        &:hover {
+          border-color: var(--color-primary-lightest);
+          background: var(--color-primary-bg);
+
+          .mode-icon {
+            color: var(--color-primary);
+          }
+        }
+
+        &.active {
+          border-color: var(--color-primary);
+          background: linear-gradient(135deg, var(--color-primary-bg), rgba(16, 185, 129, 0.05));
+          box-shadow: 0 2px 8px rgba(16, 185, 129, 0.1);
+
+          .mode-icon {
+            color: var(--color-primary-dark);
+          }
+
+          .mode-label {
+            color: var(--color-primary-dark);
+            font-weight: 600;
+          }
+        }
+      }
+    }
+
+    .brand-color-row {
+      display: flex;
+      gap: $space-4;
+
+      .brand-color-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: $space-1-5;
+        cursor: pointer;
+
+        .color-swatch {
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #fff;
+          transition: all $transition-fast;
+          border: 3px solid transparent;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .color-label {
+          font-size: 12px;
+          color: var(--color-text-placeholder);
+          font-weight: 500;
+        }
+
+        &:hover .color-swatch {
+          transform: scale(1.1);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        &.active {
+          .color-swatch {
+            border-color: var(--color-primary-dark);
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+          }
+
+          .color-label {
+            color: var(--color-primary-dark);
+            font-weight: 600;
+          }
+        }
+      }
+    }
+
+    .pref-hint {
+      display: flex;
+      align-items: center;
+      gap: $space-2;
+      padding: $space-2-5 $space-3;
+      border-radius: $radius-lg;
+      background: var(--color-primary-bg);
+      font-size: 12px;
+      color: var(--color-primary-dark);
+
+      .t-icon {
+        color: var(--color-primary);
+        flex-shrink: 0;
+      }
+    }
+
+    .pref-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: $space-4;
+      padding: $space-3-5 $space-4;
+      border-radius: $radius-xl;
+      background: var(--color-bg-page);
+      border: 1px solid #f1f5f9;
+      transition: all $transition-fast;
+
+      &:hover {
+        border-color: var(--color-primary-lightest);
+      }
+
+      .pref-row-label {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+
+        > span:first-child {
+          font-size: 14px;
+          font-weight: 600;
+          color: var(--color-text-primary);
+        }
+
+        .pref-row-desc {
+          font-size: 12px;
+          color: var(--color-text-placeholder);
+        }
+      }
+    }
+
+    .view-toggle {
+      display: flex;
+      gap: $space-1;
+      background: var(--color-bg-page);
+      border-radius: $radius-lg;
+      padding: 3px;
+      border: 1px solid var(--color-border);
+
+      .view-toggle-btn {
+        display: flex;
+        align-items: center;
+        gap: $space-1-5;
+        padding: $space-1-5 $space-3;
+        border-radius: $radius-md;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--color-text-secondary);
+        transition: all $transition-fast;
+        white-space: nowrap;
+
+        .t-icon {
+          color: var(--color-text-placeholder);
+        }
+
+        &:hover {
+          color: var(--color-primary);
+        }
+
+        &.active {
+          background: #fff;
+          color: var(--color-primary-dark);
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+
+          .t-icon {
+            color: var(--color-primary);
+          }
+        }
+      }
+    }
+
+    .pref-actions {
+      margin-top: $space-4;
+      padding-top: $space-4;
+      border-top: 1px solid #f1f5f9;
     }
 
     // 头像上传（保持原有交互，美化外观）

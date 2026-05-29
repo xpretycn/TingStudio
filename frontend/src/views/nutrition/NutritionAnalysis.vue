@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { MessagePlugin } from 'tdesign-vue-next'
-import { useFormulaStore } from '@/stores/formula'
+import { formulaApi } from '@/api/formula'
+import type { Formula } from '@/api/formula'
 import { useNutritionStore } from '@/stores/nutrition'
 import { useAuthStore } from '@/stores/auth'
 import NutritionLabelTable from '@/components/nutrition/NutritionLabelTable.vue'
@@ -11,17 +12,19 @@ import NutritionClaimsCard from '@/components/nutrition/NutritionClaimsCard.vue'
 import FortificationCheckCard from '@/components/nutrition/FortificationCheckCard.vue'
 import AnalysisSummaryCard from '@/components/nutrition/AnalysisSummaryCard.vue'
 
-const formulaStore = useFormulaStore()
 const nutritionStore = useNutritionStore()
 const authStore = useAuthStore()
 
 const selectedFormulaId = ref('')
 const analyzing = ref(false)
+const allFormulas = ref<Formula[]>([])
+const formulasLoading = ref(false)
+let disposed = false
 
 const availableFormulas = computed(() => {
   const user = authStore.user
-  if (!user || user.role === 'admin') return formulaStore.formulas
-  return formulaStore.formulas.filter(f => f.createdBy === user.id)
+  if (!user || user.role === 'admin') return allFormulas.value
+  return allFormulas.value.filter(f => f.createdBy === user.id)
 })
 
 async function handleAnalyze() {
@@ -41,10 +44,23 @@ async function handleAnalyze() {
 }
 
 onMounted(async () => {
-  const prevPageSize = formulaStore.pageSize
-  formulaStore.pageSize = 999
-  await formulaStore.fetchFormulas()
-  formulaStore.pageSize = prevPageSize
+  formulasLoading.value = true
+  try {
+    const res = await formulaApi.getList({ page: 1, pageSize: 999 })
+    if (!disposed) {
+      allFormulas.value = res.list
+    }
+  } catch {
+    if (!disposed) {
+      MessagePlugin.error('获取配方列表失败')
+    }
+  } finally {
+    formulasLoading.value = false
+  }
+})
+
+onBeforeUnmount(() => {
+  disposed = true
 })
 </script>
 
@@ -82,7 +98,7 @@ onMounted(async () => {
       </div>
     </div>
 
-    <template v-if="nutritionStore.analysisResult">
+    <div v-if="nutritionStore.analysisResult" class="analysis-results">
       <div class="summary-section">
         <AnalysisSummaryCard :summary="nutritionStore.analysisResult.summary" />
       </div>
@@ -93,7 +109,7 @@ onMounted(async () => {
 
       <div class="label-section">
         <t-card title="营养成分表" subtitle="GB 28050 格式" bordered>
-          <NutritionLabelTable :items="nutritionStore.analysisResult.nutritionLabel.items" />
+          <NutritionLabelTable :items="nutritionStore.analysisResult.nutritionLabel?.items" />
         </t-card>
       </div>
 
@@ -107,10 +123,10 @@ onMounted(async () => {
         </t-card>
       </div>
 
-      <div v-if="nutritionStore.analysisResult.fortificationChecks.length > 0" class="fortification-section">
+      <div v-if="nutritionStore.analysisResult.fortificationChecks?.length" class="fortification-section">
         <FortificationCheckCard :checks="nutritionStore.analysisResult.fortificationChecks" />
       </div>
-    </template>
+    </div>
 
     <div v-else-if="!analyzing" class="empty-state">
       <t-empty description="选择配方并点击「开始分析」查看营养分析结果" />
@@ -151,6 +167,11 @@ onMounted(async () => {
     gap: 12px;
     flex-shrink: 0;
   }
+}
+
+.analysis-results {
+  display: flex;
+  flex-direction: column;
 }
 
 .summary-section,

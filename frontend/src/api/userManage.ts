@@ -1,0 +1,31 @@
+import http from './http'
+
+export interface UserManageItem {
+  id: string
+  username: string
+  displayName: string | null
+  role: string
+  roleId: string | null
+  roleName: string
+  isActive: boolean
+  createdAt: string
+}
+
+interface Pagination {
+  page: number
+  pageSize: number
+  total: number
+  totalPages: number
+}
+
+export const userManageApi = {
+  getList(params?: { keyword?: string; roleId?: string; isActive?: string; page?: number; pageSize?: number }) {
+    return http.get<unknown, { list: UserManageItem[]; pagination: Pagination }>('/users', { params })
+  },
+  updateRole(userId: string, roleId: string) {
+    return http.put<unknown, void>(`/users/${userId}/role`, { roleId })
+  },
+  updateStatus(userId: string, isActive: boolean) {
+    return http.put<unknown, void>(`/users/${userId}/status`, { isActive })
+  },
+}
