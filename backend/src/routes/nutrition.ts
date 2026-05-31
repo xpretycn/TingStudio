@@ -1,5 +1,4 @@
-// 营养成分路由
-import { Router } from 'express'
+import { Router, RequestHandler } from 'express'
 import { authMiddleware } from '../middleware/auth.js'
 import {
   getMaterialNutrition, setMaterialNutrition,
@@ -11,27 +10,33 @@ import {
 } from '../controllers/nutritionController.js'
 import { validateBody } from '../middleware/validate.js'
 
+const H = (fn: unknown) => fn as RequestHandler;
+
 export const nutritionRoutes = Router()
 
 nutritionRoutes.use(authMiddleware)
 
-// 原料营养
-nutritionRoutes.get('/material/:materialId', getMaterialNutrition)
-nutritionRoutes.put('/material/:materialId', setMaterialNutrition)
+nutritionRoutes.get('/material/:materialId', H(getMaterialNutrition))
+nutritionRoutes.put('/material/:materialId', validateBody({
+  per100g: { required: true, type: 'object', message: 'per100g 为必填对象' },
+  confidence: { type: 'string', message: 'confidence 必须为字符串' },
+}), H(setMaterialNutrition))
 
-// 配方营养计算
-nutritionRoutes.post('/calculate/:formulaId', calculateFormulaNutrition)
-nutritionRoutes.get('/tables/:formulaId', getFormulaNutritionTables)
+nutritionRoutes.post('/calculate/:formulaId', H(calculateFormulaNutrition))
+nutritionRoutes.get('/tables/:formulaId', H(getFormulaNutritionTables))
 
-// 营养标准
-nutritionRoutes.get('/profiles', getNutritionProfiles)
-nutritionRoutes.post('/profiles', createNutritionProfile)
-nutritionRoutes.put('/profiles/:profileId', updateNutritionProfile)
-nutritionRoutes.delete('/profiles/:profileId', deleteNutritionProfile)
+nutritionRoutes.get('/profiles', H(getNutritionProfiles))
+nutritionRoutes.post('/profiles', validateBody({
+  name: { required: true, type: 'string', minLength: 1, maxLength: 100, message: '名称为必填项(1-100字)' },
+  targetValues: { required: true, type: 'object', message: 'targetValues 为必填对象' },
+}), H(createNutritionProfile))
+nutritionRoutes.put('/profiles/:profileId', validateBody({
+  name: { type: 'string', minLength: 1, maxLength: 100, message: '名称长度1-100字' },
+  targetValues: { type: 'object', message: 'targetValues 必须为对象' },
+}), H(updateNutritionProfile))
+nutritionRoutes.delete('/profiles/:profileId', H(deleteNutritionProfile))
 
-// 合规检查
-nutritionRoutes.post('/compliance/:formulaId', checkCompliance)
+nutritionRoutes.post('/compliance/:formulaId', H(checkCompliance))
 
-// 一键营养分析
-nutritionRoutes.post('/analyze/:formulaId', analyzeFormula)
-nutritionRoutes.get('/coverage/:formulaId', getCoverage)
+nutritionRoutes.post('/analyze/:formulaId', H(analyzeFormula))
+nutritionRoutes.get('/coverage/:formulaId', H(getCoverage))

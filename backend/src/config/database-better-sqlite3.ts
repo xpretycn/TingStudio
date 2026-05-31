@@ -8,15 +8,34 @@ import path from "path";
 
 let db: Database.Database | null = null;
 
+interface PragmaColumnInfo {
+  cid: number;
+  name: string;
+  type: string;
+  notnull: number;
+  dflt_value: string | null;
+  pk: number;
+}
+
+interface IndexInfo {
+  seq: number;
+  name: string;
+  unique: number;
+  origin: string;
+  partial: number;
+}
+
 function ensureColumn(dbInstance: Database.Database, table: string, col: string, type: string, defaultValue: string) {
   try {
-    const cols = dbInstance.prepare(`PRAGMA table_info(${table})`).all();
-    const colNames = cols.map((c: any) => c.name);
+    const cols = dbInstance.pragma(`table_info(${table})`) as PragmaColumnInfo[];
+    const colNames = cols.map(c => c.name);
     if (!colNames.includes(col)) {
       dbInstance.prepare(`ALTER TABLE ${table} ADD COLUMN ${col} ${type} DEFAULT ${defaultValue}`).run();
       logger.info(`数据库迁移: 添加列 ${table}.${col}`);
     }
-  } catch (_err) {}
+  } catch (err: unknown) {
+    logger.warn(`数据库迁移: ensureColumn ${table}.${col} 失败 - ${err instanceof Error ? err.message : String(err)}`);
+  }
 }
 
 function ensureTable(dbInstance: Database.Database, tableName: string, createSql: string) {
@@ -26,12 +45,14 @@ function ensureTable(dbInstance: Database.Database, tableName: string, createSql
       dbInstance.exec(createSql);
       logger.info(`数据库迁移: 创建表 ${tableName}`);
     }
-  } catch (_err) {}
+  } catch (err: unknown) {
+    logger.warn(`数据库迁移: ensureTable ${tableName} 失败 - ${err instanceof Error ? err.message : String(err)}`);
+  }
 }
 
 function seedDefaultPromptTemplates(dbInstance: Database.Database) {
   try {
-    const count = (dbInstance.prepare("SELECT COUNT(*) as cnt FROM ai_prompt_templates WHERE module = ?").get("smart-generate") as any).cnt;
+    const count = (dbInstance.prepare("SELECT COUNT(*) as cnt FROM ai_prompt_templates WHERE module = ?").get("smart-generate") as { cnt: number }).cnt;
     if (count > 0) return;
     const now = new Date().toISOString();
     const templates = [
@@ -91,18 +112,40 @@ function seedDefaultPromptTemplates(dbInstance: Database.Database) {
       stmt.run(t.id, t.module, t.name, t.type, t.system_prompt, t.user_prompt_template, t.variables, t.is_default, t.enabled, t.sort_order, now, now);
     }
     logger.info("数据库初始化: 已插入默认提示词模板");
-  } catch (err: any) {
-    logger.error("插入默认提示词模板失败: " + err.message);
+  } catch (err: unknown) {
+    logger.error("插入默认提示词模板失败: " + (err instanceof Error ? err.message : String(err)));
   }
 }
 
 function runAutoMigrations(dbInstance: Database.Database) {
+  dbInstance.exec(`
+    CREATE TABLE IF NOT EXISTS schema_migrations (
+      version TEXT PRIMARY KEY,
+      applied_at TEXT NOT NULL DEFAULT (datetime('now'))
+    )
+  `);
+
+  const appliedMigrations = new Set(
+    (dbInstance.prepare("SELECT version FROM schema_migrations").all() as { version: string }[]).map(r => r.version)
+  );
+
+  function markMigration(version: string) {
+    try {
+      dbInstance.prepare("INSERT OR IGNORE INTO schema_migrations (version) VALUES (?)").run(version);
+      appliedMigrations.add(version);
+    } catch {}
+  }
+
+  function isMigrationApplied(version: string): boolean {
+    return appliedMigrations.has(version);
+  }
+
   // 0. 检测并移除 materials.code UNIQUE 约束（版本化需要同 code 多版本）
   // 注意: SQLite 中 CREATE TABLE 声明的 UNIQUE 约束 origin 为 'u'，CREATE INDEX 的为 'c'
   try {
-    const indexes = dbInstance.pragma("index_list(materials)") as any[];
+    const indexes = dbInstance.pragma("index_list(materials)") as IndexInfo[];
     const hasUniqueCode = indexes.some(
-      (idx: any) => (idx.origin === "c" || idx.origin === "u") && idx.unique === 1 && idx.name !== "sqlite_autoindex_materials_1",
+      (idx: IndexInfo) => (idx.origin === "c" || idx.origin === "u") && idx.unique === 1 && idx.name !== "sqlite_autoindex_materials_1",
     );
     if (hasUniqueCode) {
       logger.info("数据库迁移: 检测到 materials.code UNIQUE 约束，重建表...");
@@ -127,8 +170,8 @@ function runAutoMigrations(dbInstance: Database.Database) {
           status TEXT NOT NULL DEFAULT 'draft' CHECK(status IN ('draft', 'pending_review', 'published'))
         )
       `);
-      const oldCols = (dbInstance.pragma("table_info(materials)") as any[]).map((c: any) => c.name);
-      const newCols = (dbInstance.pragma("table_info(materials_new)") as any[]).map((c: any) => c.name);
+      const oldCols = (dbInstance.pragma("table_info(materials)") as PragmaColumnInfo[]).map((c: PragmaColumnInfo) => c.name);
+      const newCols = (dbInstance.pragma("table_info(materials_new)") as PragmaColumnInfo[]).map((c: PragmaColumnInfo) => c.name);
       const commonCols = oldCols.filter((c: string) => newCols.includes(c));
       dbInstance.prepare(`INSERT INTO materials_new (${commonCols.join(", ")}) SELECT ${commonCols.join(", ")} FROM materials`).run();
       dbInstance.exec("DROP TABLE materials");
@@ -141,15 +184,15 @@ function runAutoMigrations(dbInstance: Database.Database) {
       dbInstance.exec("CREATE INDEX IF NOT EXISTS idx_material_is_deleted ON materials(is_deleted)");
       logger.info("数据库迁移: materials 表重建完成（code UNIQUE 已移除）");
     }
-  } catch (err: any) {
-    logger.error("数据库迁移: materials 表重建失败 - " + err.message);
+  } catch (err: unknown) {
+    logger.error("数据库迁移: materials 表重建失败 - " + (err instanceof Error ? err.message : String(err)));
   }
 
   // 0.1 检测并移除 material_nutrition.material_id UNIQUE 约束
   try {
-    const nutIndexes = dbInstance.pragma("index_list(material_nutrition)") as any[];
+    const nutIndexes = dbInstance.pragma("index_list(material_nutrition)") as IndexInfo[];
     const hasNutUnique = nutIndexes.some(
-      (idx: any) => (idx.origin === "c" || idx.origin === "u") && idx.unique === 1 && idx.name !== "sqlite_autoindex_material_nutrition_1",
+      (idx: IndexInfo) => (idx.origin === "c" || idx.origin === "u") && idx.unique === 1 && idx.name !== "sqlite_autoindex_material_nutrition_1",
     );
     if (hasNutUnique) {
       logger.info("数据库迁移: 检测到 material_nutrition.material_id UNIQUE 约束，重建表...");
@@ -168,8 +211,8 @@ function runAutoMigrations(dbInstance: Database.Database) {
           FOREIGN KEY (material_id) REFERENCES materials(id) ON DELETE CASCADE
         )
       `);
-      const oldCols = (dbInstance.pragma("table_info(material_nutrition)") as any[]).map((c: any) => c.name);
-      const newCols = (dbInstance.pragma("table_info(material_nutrition_new)") as any[]).map((c: any) => c.name);
+      const oldCols = (dbInstance.pragma("table_info(material_nutrition)") as PragmaColumnInfo[]).map((c: PragmaColumnInfo) => c.name);
+      const newCols = (dbInstance.pragma("table_info(material_nutrition_new)") as PragmaColumnInfo[]).map((c: PragmaColumnInfo) => c.name);
       const commonCols = oldCols.filter((c: string) => newCols.includes(c));
       dbInstance.prepare(`INSERT INTO material_nutrition_new (${commonCols.join(", ")}) SELECT ${commonCols.join(", ")} FROM material_nutrition`).run();
       dbInstance.exec("DROP TABLE material_nutrition");
@@ -178,8 +221,8 @@ function runAutoMigrations(dbInstance: Database.Database) {
       dbInstance.exec("CREATE INDEX IF NOT EXISTS idx_mn_is_latest ON material_nutrition(is_latest)");
       logger.info("数据库迁移: material_nutrition 表重建完成（material_id UNIQUE 已移除）");
     }
-  } catch (err: any) {
-    logger.error("数据库迁移: material_nutrition 表重建失败 - " + err.message);
+  } catch (err: unknown) {
+    logger.error("数据库迁移: material_nutrition 表重建失败 - " + (err instanceof Error ? err.message : String(err)));
   }
 
   ensureColumn(dbInstance, "materials", "material_type", "TEXT", "'herb'");
@@ -206,16 +249,18 @@ function runAutoMigrations(dbInstance: Database.Database) {
     dbInstance.exec("CREATE INDEX IF NOT EXISTS idx_material_is_deleted ON materials(is_deleted)");
     dbInstance.exec("CREATE INDEX IF NOT EXISTS idx_mn_material_version ON material_nutrition(material_id, material_version)");
     dbInstance.exec("CREATE INDEX IF NOT EXISTS idx_mn_is_latest ON material_nutrition(is_latest)");
-  } catch (_err) {}
-
-  // 更新现有新数据库的 is_latest/is_deleted 默认值
+  } catch (err: unknown) {
+    logger.warn("数据库迁移: 版本化索引创建失败 - " + (err instanceof Error ? err.message : String(err)));
+  }
   try {
     dbInstance.exec("UPDATE materials SET version = 1 WHERE version IS NULL");
     dbInstance.exec("UPDATE materials SET is_latest = 1 WHERE is_latest IS NULL");
     dbInstance.exec("UPDATE materials SET is_deleted = 0 WHERE is_deleted IS NULL");
     dbInstance.exec("UPDATE material_nutrition SET material_version = 1 WHERE material_version IS NULL");
     dbInstance.exec("UPDATE material_nutrition SET is_latest = 1 WHERE is_latest IS NULL");
-  } catch (_err) {}
+  } catch (err: unknown) {
+    logger.warn("数据库迁移: 版本化字段默认值更新失败 - " + (err instanceof Error ? err.message : String(err)));
+  }
   ensureColumn(dbInstance, "formulas", "finished_weight", "REAL", "0");
   ensureColumn(dbInstance, "formulas", "ratio_factor", "REAL", "0.18");
   ensureColumn(dbInstance, "formulas", "supplement_ratio_factor", "REAL", "1.0");
@@ -230,10 +275,10 @@ function runAutoMigrations(dbInstance: Database.Database) {
 
   // 0.2 检测 formula_versions.status CHECK 约束是否包含 pending_review
   try {
-    const fvCreateSql = dbInstance.prepare("SELECT sql FROM sqlite_master WHERE type='table' AND name='formula_versions'").get() as any;
+    const fvCreateSql = dbInstance.prepare("SELECT sql FROM sqlite_master WHERE type='table' AND name='formula_versions'").get() as { sql: string | null } | undefined;
     if (fvCreateSql && fvCreateSql.sql && !fvCreateSql.sql.includes("pending_review")) {
       logger.info("数据库迁移: formula_versions.status 约束缺少 pending_review，重建表...");
-      const oldCols = (dbInstance.pragma("table_info(formula_versions)") as any[]).map((c: any) => c.name);
+      const oldCols = (dbInstance.pragma("table_info(formula_versions)") as PragmaColumnInfo[]).map((c: PragmaColumnInfo) => c.name);
 
       dbInstance.exec(`
         CREATE TABLE IF NOT EXISTS formula_versions_new (
@@ -257,7 +302,7 @@ function runAutoMigrations(dbInstance: Database.Database) {
         )
       `);
 
-      const newCols = (dbInstance.pragma("table_info(formula_versions_new)") as any[]).map((c: any) => c.name);
+      const newCols = (dbInstance.pragma("table_info(formula_versions_new)") as PragmaColumnInfo[]).map((c: PragmaColumnInfo) => c.name);
       const commonCols = oldCols.filter((c: string) => newCols.includes(c));
       dbInstance.prepare(`INSERT INTO formula_versions_new (${commonCols.join(", ")}) SELECT ${commonCols.join(", ")} FROM formula_versions`).run();
       dbInstance.exec("DROP TABLE formula_versions");
@@ -266,8 +311,8 @@ function runAutoMigrations(dbInstance: Database.Database) {
       dbInstance.exec("CREATE INDEX IF NOT EXISTS idx_fv_version_number ON formula_versions(formula_id, version_number)");
       logger.info("数据库迁移: formula_versions 表重建完成（status 约束已含 pending_review）");
     }
-  } catch (err: any) {
-    logger.error("数据库迁移: formula_versions 表重建失败 - " + err.message);
+  } catch (err: unknown) {
+    logger.error("数据库迁移: formula_versions 表重建失败 - " + (err instanceof Error ? err.message : String(err)));
   }
 
   // 0.3 创建 formula_review_logs 表和相关索引
@@ -295,8 +340,8 @@ function runAutoMigrations(dbInstance: Database.Database) {
   try {
     dbInstance.exec("CREATE INDEX IF NOT EXISTS idx_fv_status ON formula_versions(status)");
     dbInstance.exec("CREATE INDEX IF NOT EXISTS idx_fv_formula_status ON formula_versions(formula_id, status)");
-  } catch (err: any) {
-    logger.error("数据库迁移: formula_versions 索引创建失败 - " + err.message);
+  } catch (err: unknown) {
+    logger.error("数据库迁移: formula_versions 索引创建失败 - " + (err instanceof Error ? err.message : String(err)));
   }
 
   ensureMaterialPrices(dbInstance);
@@ -355,7 +400,9 @@ function runAutoMigrations(dbInstance: Database.Database) {
   ensureColumn(dbInstance, "reports", "period_key", "TEXT", "NULL");
   try {
     dbInstance.exec("CREATE INDEX IF NOT EXISTS idx_reports_period_key ON reports(type, created_by, period_key)");
-  } catch (_err) {}
+  } catch (err: unknown) {
+    logger.warn("数据库迁移: reports period_key 索引创建失败 - " + (err instanceof Error ? err.message : String(err)));
+  }
   ensureTable(
     dbInstance,
     "report_targets",
@@ -896,6 +943,121 @@ function runAutoMigrations(dbInstance: Database.Database) {
 
   ensureTable(
     dbInstance,
+    "roles",
+    `
+    CREATE TABLE roles (
+      id TEXT PRIMARY KEY,
+      role_key TEXT NOT NULL UNIQUE,
+      name TEXT NOT NULL,
+      description TEXT DEFAULT '',
+      is_system INTEGER NOT NULL DEFAULT 0,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+    CREATE INDEX IF NOT EXISTS idx_roles_role_key ON roles(role_key)
+    `,
+  );
+
+  ensureColumn(dbInstance, "roles", "is_system", "INTEGER", "0");
+
+  ensureTable(
+    dbInstance,
+    "permissions",
+    `
+    CREATE TABLE permissions (
+      id TEXT PRIMARY KEY,
+      module TEXT NOT NULL,
+      action TEXT NOT NULL,
+      permission_key TEXT NOT NULL UNIQUE,
+      label TEXT NOT NULL,
+      description TEXT DEFAULT '',
+      sort_order INTEGER NOT NULL DEFAULT 0,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+    CREATE INDEX IF NOT EXISTS idx_permissions_module ON permissions(module);
+    CREATE INDEX IF NOT EXISTS idx_permissions_permission_key ON permissions(permission_key)
+    `,
+  );
+
+  ensureTable(
+    dbInstance,
+    "role_permissions",
+    `
+    CREATE TABLE role_permissions (
+      role_id TEXT NOT NULL,
+      permission_id TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      PRIMARY KEY (role_id, permission_id)
+    );
+    CREATE INDEX IF NOT EXISTS idx_role_permissions_role_id ON role_permissions(role_id);
+    CREATE INDEX IF NOT EXISTS idx_role_permissions_permission_id ON role_permissions(permission_id)
+    `,
+  );
+
+  ensureColumn(dbInstance, "users", "role_id", "TEXT", "NULL");
+  ensureColumn(dbInstance, "users", "is_active", "INTEGER", "1");
+
+  ensureTable(
+    dbInstance,
+    "user_preferences",
+    `
+    CREATE TABLE user_preferences (
+      user_id TEXT PRIMARY KEY,
+      preferences_json TEXT NOT NULL DEFAULT '{}',
+      updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    )
+    `,
+  );
+
+  seedDefaultRoles(dbInstance);
+
+  ensureTable(
+    dbInstance,
+    "share_configs",
+    `
+    CREATE TABLE share_configs (
+      share_id TEXT PRIMARY KEY,
+      formula_id TEXT NOT NULL,
+      version_id TEXT DEFAULT NULL,
+      share_type TEXT NOT NULL DEFAULT 'link' CHECK(share_type IN ('link', 'email', 'api')),
+      share_url TEXT DEFAULT NULL,
+      password TEXT DEFAULT NULL,
+      expire_date TEXT DEFAULT NULL,
+      allowed_emails_json TEXT DEFAULT NULL,
+      download_limit INTEGER DEFAULT NULL,
+      download_count INTEGER NOT NULL DEFAULT 0,
+      created_by TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      FOREIGN KEY (formula_id) REFERENCES formulas(id) ON DELETE CASCADE
+    );
+    CREATE INDEX IF NOT EXISTS idx_sc_formula ON share_configs(formula_id)
+    `,
+  );
+
+  ensureTable(
+    dbInstance,
+    "export_center_config",
+    `
+    CREATE TABLE export_center_config (
+      config_key TEXT PRIMARY KEY,
+      config_value TEXT NOT NULL,
+      config_type TEXT NOT NULL DEFAULT 'string' CHECK(config_type IN ('string', 'number', 'boolean', 'json')),
+      description TEXT DEFAULT NULL,
+      updated_by TEXT NOT NULL,
+      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+    CREATE INDEX IF NOT EXISTS idx_ecc_config_type ON export_center_config(config_type)
+    `,
+  );
+
+  seedExportCenterConfigs(dbInstance);
+
+  ensureColumn(dbInstance, "export_jobs", "data_category", "TEXT", "'formula'");
+  ensureColumn(dbInstance, "export_jobs", "version_id", "TEXT", "NULL");
+
+  ensureTable(
+    dbInstance,
     "ratio_threshold_configs",
     `
     CREATE TABLE ratio_threshold_configs (
@@ -936,14 +1098,50 @@ function runAutoMigrations(dbInstance: Database.Database) {
 
   try {
     dbInstance.exec("CREATE INDEX IF NOT EXISTS idx_material_status ON materials(status)");
-  } catch (_err) {}
+  } catch (err: unknown) {
+    logger.warn("数据库迁移: materials status 索引创建失败 - " + (err instanceof Error ? err.message : String(err)));
+  }
 
   ensureInitialAiModels(dbInstance);
+
+  for (const v of [
+    "20260101_remove_materials_code_unique",
+    "20260102_remove_nutrition_material_id_unique",
+    "20260103_material_columns",
+    "20260104_nutrition_columns",
+    "20260105_version_indexes",
+    "20260106_version_defaults",
+    "20260107_formula_columns",
+    "20260108_fv_pending_review",
+    "20260109_formula_review_logs",
+    "20260110_fv_indexes",
+    "20260111_material_prices",
+    "20260112_formula_sales",
+    "20260113_reports",
+    "20260114_report_targets",
+    "20260115_uploaded_files",
+    "20260116_ai_tables",
+    "20260117_agent_tables",
+    "20260118_rbac",
+    "20260119_user_preferences",
+    "20260120_share_configs",
+    "20260121_export_center",
+    "20260122_export_jobs_category",
+    "20260123_ratio_threshold",
+    "20260124_material_review_logs",
+    "20260125_search_export_cache",
+    "20260126_quick_formulas",
+    "20260127_parse_tables",
+    "20260128_enum_options",
+    "20260129_formula_templates",
+  ]) {
+    markMigration(v);
+  }
 }
 
 function seedParseResultConfigs(dbInstance: Database.Database) {
   try {
-    const count = (dbInstance.prepare("SELECT COUNT(*) as cnt FROM parse_result_configs").get() as any).cnt;
+    const count = (dbInstance.prepare("SELECT COUNT(*) as cnt FROM parse_result_configs").get() as { cnt: number }).cnt;
     if (count > 0) return;
 
     const now = new Date().toISOString();
@@ -963,14 +1161,78 @@ function seedParseResultConfigs(dbInstance: Database.Database) {
         .run(crypto.randomUUID(), config.key, JSON.stringify(config.value), config.desc, now);
     }
     logger.info("数据库初始化: 已插入默认解析结果配置");
-  } catch (err: any) {
-    logger.error("插入默认解析结果配置失败: " + err.message);
+  } catch (err: unknown) {
+    logger.error("插入默认解析结果配置失败: " + (err instanceof Error ? err.message : String(err)));
+  }
+}
+
+function seedDefaultRoles(dbInstance: Database.Database) {
+  try {
+    const count = (dbInstance.prepare("SELECT COUNT(*) as cnt FROM roles").get() as { cnt: number }).cnt;
+    if (count > 0) return;
+
+    const now = new Date().toISOString();
+    const roles = [
+      { id: "role_admin", key: "admin", name: "管理员", desc: "系统管理员，拥有全部权限", sort: 0 },
+      { id: "role_formulist", key: "formulist", name: "配方师", desc: "配方研发人员，管理自己的配方与原料", sort: 1 },
+      { id: "role_viewer", key: "viewer", name: "查看者", desc: "只读权限，仅可查看数据", sort: 2 },
+    ];
+
+    const stmt = dbInstance.prepare(
+      "INSERT INTO roles (id, role_key, name, description, sort_order, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)"
+    );
+    for (const r of roles) {
+      stmt.run(r.id, r.key, r.name, r.desc, r.sort, now, now);
+    }
+
+    const adminRoleId = dbInstance.prepare("SELECT id FROM roles WHERE role_key = ?").get("admin") as { id: string } | undefined;
+    if (adminRoleId) {
+      dbInstance.prepare("UPDATE users SET role_id = ? WHERE role = ?").run(adminRoleId.id, "admin");
+    }
+
+    const formulistRoleId = dbInstance.prepare("SELECT id FROM roles WHERE role_key = ?").get("formulist") as { id: string } | undefined;
+    if (formulistRoleId) {
+      dbInstance.prepare("UPDATE users SET role_id = ? WHERE role = ?").run(formulistRoleId.id, "formulist");
+    }
+
+    logger.info("数据库初始化: 已插入默认角色并同步现有用户");
+  } catch (err: unknown) {
+    logger.error("插入默认角色失败: " + (err instanceof Error ? err.message : String(err)));
+  }
+}
+
+function seedExportCenterConfigs(dbInstance: Database.Database) {
+  try {
+    const count = (dbInstance.prepare("SELECT COUNT(*) as cnt FROM export_center_config").get() as { cnt: number }).cnt;
+    if (count > 0) return;
+
+    const now = new Date().toISOString();
+    const configs = [
+      { key: "default_export_format", value: "excel", type: "string", desc: "默认导出格式" },
+      { key: "default_template_formula", value: "", type: "string", desc: "配方默认模板ID" },
+      { key: "default_template_material", value: "", type: "string", desc: "原料默认模板ID" },
+      { key: "default_template_weekly_report", value: "", type: "string", desc: "周报默认模板ID" },
+      { key: "default_template_monthly_report", value: "", type: "string", desc: "月报默认模板ID" },
+      { key: "export_rate_limit", value: "10", type: "number", desc: "每小时导出次数限制" },
+      { key: "file_naming_pattern", value: "{type}_{category}_{date}", type: "string", desc: "文件命名模板" },
+      { key: "auto_delete_days", value: "30", type: "number", desc: "导出文件自动删除天数" },
+    ];
+
+    const stmt = dbInstance.prepare(
+      "INSERT INTO export_center_config (config_key, config_value, config_type, description, updated_by, updated_at) VALUES (?, ?, ?, ?, ?, ?)"
+    );
+    for (const c of configs) {
+      stmt.run(c.key, c.value, c.type, c.desc, "system", now);
+    }
+    logger.info("数据库初始化: 已插入导出中心默认配置");
+  } catch (err: unknown) {
+    logger.error("插入导出中心配置失败: " + (err instanceof Error ? err.message : String(err)));
   }
 }
 
 function ensureInitialAiModels(dbInstance: Database.Database) {
   try {
-    const count = (dbInstance.prepare("SELECT COUNT(*) as cnt FROM ai_models").get() as any).cnt;
+    const count = (dbInstance.prepare("SELECT COUNT(*) as cnt FROM ai_models").get() as { cnt: number }).cnt;
     if (count > 0) return;
 
     const models = [
@@ -1040,7 +1302,7 @@ function ensureInitialAiModels(dbInstance: Database.Database) {
       insertAlert.run(`alert_${m.provider}`, modelId, m.provider);
     }
     logger.info(`自动迁移: 初始化 ${models.length} 个AI模型配置`);
-  } catch (err) {
+  } catch (err: unknown) {
     logger.error("初始化AI模型数据失败:", err);
   }
 }
@@ -1123,18 +1385,20 @@ const MATERIAL_DEFAULT_PRICES: Record<string, number> = {
 
 function ensureMaterialPrices(dbInstance: Database.Database) {
   try {
-    const rows = dbInstance.prepare("SELECT id, name, unit_price FROM materials").all() as any[];
+    const rows = dbInstance.prepare("SELECT id, name, unit_price FROM materials").all() as { id: string; name: string; unit_price: number | null }[];
     let fixed = 0;
     for (const row of rows) {
       if (row.unit_price !== null && row.unit_price !== undefined) continue;
-      const price = MATERIAL_DEFAULT_PRICES[row.name as string];
+      const price = MATERIAL_DEFAULT_PRICES[row.name];
       if (price !== undefined) {
         dbInstance.prepare("UPDATE materials SET unit_price = ? WHERE id = ?").run(price, row.id);
         fixed++;
       }
     }
     if (fixed > 0) logger.info(`自动迁移: 补全 ${fixed} 条原料单价`);
-  } catch (_err) {}
+  } catch (err: unknown) {
+    logger.warn("自动迁移: 补全原料单价失败 - " + (err instanceof Error ? err.message : String(err)));
+  }
 }
 
 const INIT_SQL = `
@@ -1149,7 +1413,8 @@ CREATE TABLE IF NOT EXISTS users (
   email TEXT DEFAULT NULL,
   phone TEXT DEFAULT NULL,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
-  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+  data_source TEXT NOT NULL DEFAULT 'manual' CHECK(data_source IN ('manual', 'batch_import', 'api_sync'))
 );
 CREATE TABLE IF NOT EXISTS materials (
   id TEXT PRIMARY KEY,
@@ -1159,7 +1424,7 @@ CREATE TABLE IF NOT EXISTS materials (
   stock REAL NOT NULL DEFAULT 0,
   material_type TEXT NOT NULL DEFAULT 'herb' CHECK(material_type IN ('herb', 'supplement')),
   unit_price REAL DEFAULT NULL,
-  data_source TEXT DEFAULT 'manual',
+  data_source TEXT NOT NULL DEFAULT 'manual',
   created_by TEXT NOT NULL,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now')),
@@ -1168,7 +1433,10 @@ CREATE TABLE IF NOT EXISTS materials (
   is_latest INTEGER NOT NULL DEFAULT 1,
   is_deleted INTEGER NOT NULL DEFAULT 0,
   changes_json TEXT DEFAULT NULL,
-  status TEXT NOT NULL DEFAULT 'draft' CHECK(status IN ('draft', 'pending_review', 'published'))
+  status TEXT NOT NULL DEFAULT 'draft' CHECK(status IN ('draft', 'pending_review', 'published')),
+  appearance_json TEXT DEFAULT NULL,
+  taste_json TEXT DEFAULT NULL,
+  efficacy_json TEXT DEFAULT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_material_name ON materials(name);
 CREATE INDEX IF NOT EXISTS idx_material_code ON materials(code);
@@ -1194,7 +1462,6 @@ CREATE INDEX IF NOT EXISTS idx_mrl_action ON material_review_logs(action);
 CREATE INDEX IF NOT EXISTS idx_mrl_created_at ON material_review_logs(created_at);
 CREATE TABLE IF NOT EXISTS formulas (
   id TEXT PRIMARY KEY,
-  code TEXT NOT NULL UNIQUE,
   name TEXT NOT NULL,
   salesman_id TEXT NOT NULL,
   salesman_name TEXT NOT NULL,
@@ -1213,7 +1480,6 @@ CREATE TABLE IF NOT EXISTS formulas (
   FOREIGN KEY (salesman_id) REFERENCES salesmen(id) ON DELETE RESTRICT
 );
 CREATE INDEX IF NOT EXISTS idx_formula_name ON formulas(name);
-CREATE INDEX IF NOT EXISTS idx_formula_code ON formulas(code);
 CREATE INDEX IF NOT EXISTS idx_formula_salesman_id ON formulas(salesman_id);
 CREATE INDEX IF NOT EXISTS idx_formula_created_by ON formulas(created_by);
 CREATE TABLE IF NOT EXISTS salesmen (
@@ -1230,6 +1496,7 @@ CREATE TABLE IF NOT EXISTS salesmen (
 );
 CREATE INDEX IF NOT EXISTS idx_salesman_name ON salesmen(name);
 CREATE INDEX IF NOT EXISTS idx_salesman_code ON salesmen(code);
+CREATE INDEX IF NOT EXISTS idx_salesman_status ON salesmen(status);
 CREATE TABLE IF NOT EXISTS formula_versions (
   version_id TEXT PRIMARY KEY,
   formula_id TEXT NOT NULL,
@@ -1251,14 +1518,14 @@ CREATE INDEX IF NOT EXISTS idx_fv_version_number ON formula_versions(formula_id,
 CREATE INDEX IF NOT EXISTS idx_fv_status ON formula_versions(status);
 CREATE INDEX IF NOT EXISTS idx_fv_formula_status ON formula_versions(formula_id, status);
 CREATE TABLE IF NOT EXISTS formula_review_logs (
-  review_log_id  TEXT PRIMARY KEY,
-  version_id     TEXT NOT NULL,
-  reviewer_id    TEXT NOT NULL,
-  reviewer_name  TEXT DEFAULT NULL,
-  action         TEXT NOT NULL CHECK(action IN ('submit', 'approve', 'reject')),
-  comment        TEXT DEFAULT NULL,
-  created_at     TEXT NOT NULL DEFAULT (datetime('now')),
-  FOREIGN KEY (version_id)  REFERENCES formula_versions(version_id) ON DELETE CASCADE,
+  review_log_id TEXT PRIMARY KEY,
+  version_id TEXT NOT NULL,
+  reviewer_id TEXT NOT NULL,
+  reviewer_name TEXT DEFAULT NULL,
+  action TEXT NOT NULL CHECK(action IN ('submit', 'approve', 'reject')),
+  comment TEXT DEFAULT NULL,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  FOREIGN KEY (version_id) REFERENCES formula_versions(version_id) ON DELETE CASCADE,
   FOREIGN KEY (reviewer_id) REFERENCES users(id) ON DELETE SET NULL
 );
 CREATE INDEX IF NOT EXISTS idx_frl_version ON formula_review_logs(version_id);
@@ -1269,28 +1536,84 @@ CREATE TABLE IF NOT EXISTS export_templates (
   name TEXT NOT NULL,
   description TEXT DEFAULT NULL,
   type TEXT NOT NULL CHECK(type IN ('pdf', 'excel', 'api', 'print')),
+  category TEXT NOT NULL DEFAULT 'formula' CHECK(category IN ('formula', 'material', 'weekly-report', 'monthly-report')),
   format_config_json TEXT NOT NULL,
   is_default INTEGER NOT NULL DEFAULT 0,
   created_by TEXT NOT NULL,
-  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
+CREATE INDEX IF NOT EXISTS idx_et_type ON export_templates(type);
+CREATE INDEX IF NOT EXISTS idx_et_category ON export_templates(category);
+CREATE INDEX IF NOT EXISTS idx_et_category_type ON export_templates(category, type);
 CREATE TABLE IF NOT EXISTS export_jobs (
   job_id TEXT PRIMARY KEY,
-  formula_id TEXT NOT NULL,
+  formula_id TEXT DEFAULT NULL,
   version_id TEXT DEFAULT NULL,
   template_id TEXT DEFAULT NULL,
-  export_type TEXT NOT NULL CHECK(export_type IN ('pdf', 'excel', 'api')),
+  data_category TEXT NOT NULL DEFAULT 'formula' CHECK(data_category IN ('formula', 'material', 'weekly-report', 'monthly-report')),
+  target_ids_json TEXT DEFAULT NULL,
+  export_type TEXT NOT NULL CHECK(export_type IN ('pdf', 'excel')),
   status TEXT NOT NULL DEFAULT 'pending' CHECK(status IN ('pending', 'processing', 'completed', 'failed')),
   file_url TEXT DEFAULT NULL,
   file_name TEXT DEFAULT NULL,
-  api_endpoint TEXT DEFAULT NULL,
   progress INTEGER NOT NULL DEFAULT 0,
   error_message TEXT DEFAULT NULL,
+  period_start TEXT DEFAULT NULL,
+  period_end TEXT DEFAULT NULL,
   created_by TEXT NOT NULL,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
   completed_at TEXT DEFAULT NULL,
+  FOREIGN KEY (formula_id) REFERENCES formulas(id) ON DELETE SET NULL
+);
+CREATE INDEX IF NOT EXISTS idx_ej_formula ON export_jobs(formula_id);
+CREATE INDEX IF NOT EXISTS idx_ej_status ON export_jobs(status);
+CREATE INDEX IF NOT EXISTS idx_ej_data_category ON export_jobs(data_category);
+CREATE INDEX IF NOT EXISTS idx_ej_created_by ON export_jobs(created_by);
+CREATE INDEX IF NOT EXISTS idx_ej_category_status ON export_jobs(data_category, status);
+CREATE TABLE IF NOT EXISTS api_data_interfaces (
+  interface_id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  description TEXT DEFAULT NULL,
+  endpoint TEXT NOT NULL UNIQUE,
+  method TEXT NOT NULL DEFAULT 'GET' CHECK(method IN ('GET', 'POST', 'PUT', 'DELETE')),
+  authentication TEXT NOT NULL DEFAULT 'none' CHECK(authentication IN ('none', 'basic', 'apiKey', 'oauth')),
+  auth_config_json TEXT DEFAULT NULL,
+  data_format TEXT NOT NULL DEFAULT 'json' CHECK(data_format IN ('json', 'xml')),
+  field_mapping_json TEXT DEFAULT NULL,
+  rate_limit_json TEXT DEFAULT NULL,
+  retry_config_json TEXT DEFAULT NULL,
+  created_by TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_adi_endpoint ON api_data_interfaces(endpoint);
+CREATE TABLE IF NOT EXISTS share_configs (
+  share_id TEXT PRIMARY KEY,
+  formula_id TEXT NOT NULL,
+  version_id TEXT DEFAULT NULL,
+  share_type TEXT NOT NULL DEFAULT 'link' CHECK(share_type IN ('link', 'email', 'api')),
+  share_url TEXT DEFAULT NULL,
+  password TEXT DEFAULT NULL,
+  expire_date TEXT DEFAULT NULL,
+  allowed_emails_json TEXT DEFAULT NULL,
+  download_limit INTEGER DEFAULT NULL,
+  download_count INTEGER NOT NULL DEFAULT 0,
+  created_by TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
   FOREIGN KEY (formula_id) REFERENCES formulas(id) ON DELETE CASCADE
 );
+CREATE INDEX IF NOT EXISTS idx_sc_formula ON share_configs(formula_id);
+CREATE TABLE IF NOT EXISTS export_center_config (
+  config_key TEXT PRIMARY KEY,
+  config_value TEXT NOT NULL,
+  config_type TEXT NOT NULL DEFAULT 'string' CHECK(config_type IN ('string', 'number', 'boolean', 'json')),
+  description TEXT DEFAULT NULL,
+  updated_by TEXT NOT NULL,
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_ecc_config_type ON export_center_config(config_type);
 CREATE TABLE IF NOT EXISTS material_nutrition (
   nutrition_id TEXT PRIMARY KEY,
   material_id TEXT NOT NULL,
@@ -1304,6 +1627,8 @@ CREATE TABLE IF NOT EXISTS material_nutrition (
   is_latest INTEGER NOT NULL DEFAULT 1,
   FOREIGN KEY (material_id) REFERENCES materials(id) ON DELETE CASCADE
 );
+CREATE INDEX IF NOT EXISTS idx_mn_material_version ON material_nutrition(material_id, material_version);
+CREATE INDEX IF NOT EXISTS idx_mn_is_latest ON material_nutrition(is_latest);
 CREATE TABLE IF NOT EXISTS formula_nutrition_summaries (
   summary_id TEXT PRIMARY KEY,
   formula_id TEXT NOT NULL,
@@ -1316,6 +1641,8 @@ CREATE TABLE IF NOT EXISTS formula_nutrition_summaries (
   calculated_at TEXT NOT NULL DEFAULT (datetime('now')),
   FOREIGN KEY (formula_id) REFERENCES formulas(id) ON DELETE CASCADE
 );
+CREATE INDEX IF NOT EXISTS idx_fns_formula ON formula_nutrition_summaries(formula_id);
+CREATE UNIQUE INDEX IF NOT EXISTS uk_fns_version ON formula_nutrition_summaries(version_id);
 CREATE TABLE IF NOT EXISTS nutrition_profiles (
   profile_id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
@@ -1328,6 +1655,84 @@ CREATE TABLE IF NOT EXISTS nutrition_profiles (
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
+CREATE INDEX IF NOT EXISTS idx_np_category ON nutrition_profiles(category);
+CREATE TABLE IF NOT EXISTS nutrition_analysis_reports (
+  report_id TEXT PRIMARY KEY,
+  formula_id TEXT NOT NULL,
+  version_id TEXT DEFAULT NULL,
+  summary_id TEXT NOT NULL,
+  compliance_check_json TEXT DEFAULT NULL,
+  recommendations_json TEXT DEFAULT NULL,
+  generated_by TEXT NOT NULL,
+  generated_at TEXT NOT NULL DEFAULT (datetime('now')),
+  FOREIGN KEY (formula_id) REFERENCES formulas(id) ON DELETE CASCADE,
+  FOREIGN KEY (summary_id) REFERENCES formula_nutrition_summaries(summary_id) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS idx_nar_formula ON nutrition_analysis_reports(formula_id);
+CREATE TABLE IF NOT EXISTS ratio_threshold_configs (
+  id TEXT PRIMARY KEY,
+  normal_low REAL NOT NULL DEFAULT 0.98,
+  normal_high REAL NOT NULL DEFAULT 1.02,
+  warning_low REAL NOT NULL DEFAULT 0.95,
+  warning_high REAL NOT NULL DEFAULT 1.05,
+  high_warning_low REAL NOT NULL DEFAULT 0.92,
+  high_warning_high REAL NOT NULL DEFAULT 1.08,
+  updated_at TEXT NOT NULL,
+  updated_by TEXT
+);
+CREATE TABLE IF NOT EXISTS enum_options (
+  id TEXT PRIMARY KEY,
+  category TEXT NOT NULL CHECK(category IN ('appearance', 'taste', 'efficacy')),
+  label TEXT NOT NULL,
+  value TEXT NOT NULL,
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  is_active INTEGER NOT NULL DEFAULT 1,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+  UNIQUE(category, value)
+);
+CREATE INDEX IF NOT EXISTS idx_enum_category ON enum_options(category);
+CREATE INDEX IF NOT EXISTS idx_enum_category_active ON enum_options(category, is_active);
+CREATE TABLE IF NOT EXISTS quick_formulas (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'draft' CHECK(status IN ('draft', 'published')),
+  ratio_factor REAL NOT NULL DEFAULT 0.18,
+  supplement_ratio_factor REAL NOT NULL DEFAULT 1.0,
+  finished_weight REAL NOT NULL DEFAULT 0,
+  materials_json TEXT NOT NULL DEFAULT '[]',
+  packaging_price REAL NOT NULL DEFAULT 0,
+  other_price REAL NOT NULL DEFAULT 0,
+  profit_margin REAL NOT NULL DEFAULT 20,
+  description TEXT DEFAULT NULL,
+  preparation_method TEXT DEFAULT NULL,
+  salesman_id TEXT DEFAULT NULL,
+  salesman_name TEXT DEFAULT NULL,
+  created_by TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_qf_name ON quick_formulas(name);
+CREATE INDEX IF NOT EXISTS idx_qf_status ON quick_formulas(status);
+CREATE INDEX IF NOT EXISTS idx_qf_created_by ON quick_formulas(created_by);
+CREATE INDEX IF NOT EXISTS idx_qf_name_user ON quick_formulas(name, created_by);
+CREATE TABLE IF NOT EXISTS formula_templates (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  description TEXT DEFAULT NULL,
+  ratio_factor REAL NOT NULL DEFAULT 0.18,
+  supplement_ratio_factor REAL NOT NULL DEFAULT 1.0,
+  finished_weight REAL NOT NULL DEFAULT 0,
+  materials_json TEXT NOT NULL,
+  packaging_price REAL NOT NULL DEFAULT 0,
+  other_price REAL NOT NULL DEFAULT 0,
+  profit_margin REAL NOT NULL DEFAULT 20,
+  created_by TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_template_name ON formula_templates(name);
+CREATE INDEX IF NOT EXISTS idx_template_created_by ON formula_templates(created_by);
 CREATE TABLE IF NOT EXISTS formula_sales (
   id TEXT PRIMARY KEY,
   formula_id TEXT NOT NULL,
@@ -1343,7 +1748,7 @@ CREATE TABLE IF NOT EXISTS formula_sales (
   updated_at TEXT NOT NULL DEFAULT (datetime('now')),
   FOREIGN KEY (formula_id) REFERENCES formulas(id) ON DELETE CASCADE,
   FOREIGN KEY (salesman_id) REFERENCES salesmen(id) ON DELETE RESTRICT,
-  UNIQUE(formula_id, period_type, period_start)
+  UNIQUE(formula_id, salesman_id, period_type, period_start)
 );
 CREATE INDEX IF NOT EXISTS idx_fs_formula ON formula_sales(formula_id);
 CREATE INDEX IF NOT EXISTS idx_fs_salesman ON formula_sales(salesman_id);
@@ -1378,6 +1783,36 @@ CREATE TABLE IF NOT EXISTS report_targets (
   updated_at TEXT NOT NULL DEFAULT (datetime('now')),
   FOREIGN KEY (created_by) REFERENCES users(id)
 );
+CREATE TABLE IF NOT EXISTS roles (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  role_key TEXT NOT NULL UNIQUE,
+  description TEXT DEFAULT '',
+  is_system INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_roles_role_key ON roles(role_key);
+CREATE TABLE IF NOT EXISTS permissions (
+  id TEXT PRIMARY KEY,
+  module TEXT NOT NULL,
+  action TEXT NOT NULL,
+  permission_key TEXT NOT NULL UNIQUE,
+  label TEXT NOT NULL,
+  description TEXT DEFAULT '',
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_permissions_module ON permissions(module);
+CREATE INDEX IF NOT EXISTS idx_permissions_permission_key ON permissions(permission_key);
+CREATE TABLE IF NOT EXISTS role_permissions (
+  role_id TEXT NOT NULL,
+  permission_id TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  PRIMARY KEY (role_id, permission_id)
+);
+CREATE INDEX IF NOT EXISTS idx_role_permissions_role_id ON role_permissions(role_id);
+CREATE INDEX IF NOT EXISTS idx_role_permissions_permission_id ON role_permissions(permission_id);
 `;
 
 export async function connectDatabase(): Promise<void> {
@@ -1417,7 +1852,7 @@ export function getDb(): Database.Database {
   return db;
 }
 
-export function query<T = any>(sql: string, params?: any[]): T {
+export function query<T = Record<string, unknown>>(sql: string, params?: unknown[]): T {
   const dbInstance = getDb();
   const isSelect = sql.trim().toUpperCase().startsWith("SELECT") || sql.trim().toUpperCase().startsWith("PRAGMA");
 
@@ -1425,10 +1860,10 @@ export function query<T = any>(sql: string, params?: any[]): T {
     const stmt = dbInstance.prepare(sql);
 
     if (isSelect) {
-      const result = stmt.all(...params);
+      const result = stmt.all(...params as unknown[]);
       return [result] as T;
     } else {
-      const result = stmt.run(...params);
+      const result = stmt.run(...params as unknown[]);
       return { changes: result.changes, lastInsertRowid: result.lastInsertRowid } as unknown as T;
     }
   }

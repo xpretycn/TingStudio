@@ -532,7 +532,18 @@ export async function getMaterialUpdates(req: any, res: Response) {
       [formulaId]
     )
     if (!currentVersion) {
-      res.status(404).json({ success: false, error: { message: '配方无当前版本', code: 'NOT_FOUND' } })
+      res.json(success({
+        formulaId,
+        formulaName: formula.name,
+        versionId: null,
+        versionNumber: null,
+        materials: [],
+        hasUpdates: false,
+        hasPriceChanges: false,
+        totalMaterials: 0,
+        outdatedCount: 0,
+        priceChangedCount: 0,
+      }))
       return
     }
 

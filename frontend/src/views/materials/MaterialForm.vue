@@ -13,8 +13,14 @@
           </nav>
           <h2 class="formula-title">
             {{ isEdit ? (formData.name || '编辑原料') : '新增原料' }}
-            <span v-if="isEdit && versionMode.versioning" class="title-version-tag">v{{ versionMode.currentVersion
-            }}</span>
+            <span v-if="formData.materialType === 'supplement'" class="type-tag type-tag--supplement">辅料</span>
+            <span v-else class="type-tag type-tag--herb">药材</span>
+            <span v-if="isEdit" class="title-version-tag">v{{ versionMode.currentVersion }}</span>
+            <span v-if="isEdit && materialStatus === 'draft'" class="title-status-tag title-status-tag--draft">草稿</span>
+            <span v-else-if="isEdit && materialStatus === 'pending_review'"
+              class="title-status-tag title-status-tag--pending">审批中</span>
+            <span v-else-if="isEdit && materialStatus === 'published'"
+              class="title-status-tag title-status-tag--published">已发布</span>
           </h2>
         </div>
       </div>
@@ -36,7 +42,7 @@
         </button>
       </div>
     </header>
-
+    <!-- 版本化编辑模式提示 -->
     <div v-if="versionMode.versioning" class="version-banner">
       <div class="version-banner-content">
         <div class="version-banner-icon">
@@ -54,13 +60,36 @@
         </div>
         <t-tag theme="warning" variant="light">修改后将创建新版本</t-tag>
       </div>
+      <div v-if="versionMode.referencedFormulas.length > 0" class="version-banner-formulas">
+        <div class="formula-list-header">
+          <t-icon name="link" size="14px" />
+          <span>引用此原料的配方</span>
+        </div>
+        <div class="formula-list-items">
+          <div v-for="(formula, index) in versionMode.referencedFormulas" :key="formula.id" class="formula-list-item"
+            @click="router.push(`/formulas/${formula.id}`)">
+            <span class="formula-item-index">#{{ index + 1 }}</span>
+            <span class="formula-item-code">{{ formula.id }}</span>
+            <span class="formula-item-name">{{ formula.name }}</span>
+            <span class="formula-item-version">v{{ formula.version }}</span>
+            <span class="formula-item-status" :class="{
+              'formula-item-status--draft': formula.status === 'draft',
+              'formula-item-status--pending': formula.status === 'pending_review',
+              'formula-item-status--published': formula.status === 'published',
+            }">
+              {{ formula.status === 'draft' ? '草稿' : formula.status === 'pending_review' ? '审批中' : '已发布' }}
+            </span>
+            <t-icon name="chevron-right" size="14px" class="formula-item-arrow" />
+          </div>
+        </div>
+      </div>
     </div>
-
-    <div v-if="!isEdit" class="status-banner">
+    <!-- 状态提示 -->
+    <div v-if="!isEdit" class="status-banner status-banner--top">
       <t-alert theme="info" message="新建原料为草稿状态，完成编辑后需提交审批" />
     </div>
 
-    <div v-if="isEdit && materialStatus === 'draft'" class="status-banner">
+    <div v-if="isEdit && materialStatus === 'draft'" class="status-banner status-banner--top">
       <t-alert theme="info" message="当前原料为草稿状态，保存后可提交审批" />
     </div>
 
@@ -142,22 +171,22 @@
                   <div class="form-field field-compact field-inline">
                     <label class="field-label">性状</label>
                     <div class="field-input">
-                      <t-select v-model="formData.appearance" multiple :options="appearanceOptions" placeholder="选择性状（可多选）" clearable
-                        :popup-props="{ appendToBody: true }" />
+                      <t-select v-model="formData.appearance" multiple :options="appearanceOptions"
+                        placeholder="选择性状（可多选）" clearable :popup-props="{ appendToBody: true }" />
                     </div>
                   </div>
                   <div class="form-field field-compact field-inline">
                     <label class="field-label">口感</label>
                     <div class="field-input">
-                      <t-select v-model="formData.taste" multiple :options="tasteOptions" placeholder="选择口感（可多选）" clearable
-                        :popup-props="{ appendToBody: true }" />
+                      <t-select v-model="formData.taste" multiple :options="tasteOptions" placeholder="选择口感（可多选）"
+                        clearable :popup-props="{ appendToBody: true }" />
                     </div>
                   </div>
                   <div class="form-field field-compact field-inline">
                     <label class="field-label">功效</label>
                     <div class="field-input">
-                      <t-select v-model="formData.efficacy" multiple :options="efficacyOptions" placeholder="选择功效（可多选）" clearable
-                        :popup-props="{ appendToBody: true }" />
+                      <t-select v-model="formData.efficacy" multiple :options="efficacyOptions" placeholder="选择功效（可多选）"
+                        clearable :popup-props="{ appendToBody: true }" />
                     </div>
                   </div>
                 </div>
@@ -313,7 +342,7 @@ const versionMode = reactive({
   currentVersion: 1,
   nextVersion: 2,
   referenceCount: 0,
-  referencedFormulas: [] as { id: string; name: string }[],
+  referencedFormulas: [] as { id: string; name: string; formulaCode: string; version: number; status: string; }[],
 });
 
 interface MaterialFormData {
@@ -505,13 +534,13 @@ const handleUnitPriceChange = (val: number | undefined) => {
   }
 };
 
-const handleSubmit = async ({ validateResult }: { validateResult: boolean | Record<string, unknown> }) => {
+const handleSubmit = async ({ validateResult }: { validateResult: boolean | Record<string, unknown>; }) => {
   if (validateResult === true) {
     if (loading.value) return;
     loading.value = true;
     try {
       const id = route.params.id as string;
-      let result: { success: boolean; message?: string; data?: Material; result?: UpdateResult };
+      let result: { success: boolean; message?: string; data?: Material; result?: UpdateResult; };
       if (isEdit.value && id) {
         result = await materialStore.updateMaterial(id, formData);
       } else {
@@ -608,11 +637,11 @@ onMounted(async () => {
         efficacy: material.efficacy || [],
       });
       materialStatus.value = material.status || "draft";
+      versionMode.currentVersion = material.version || 1;
       await loadNutrition(id);
 
       if (material.referenceCount > 0) {
         versionMode.versioning = true;
-        versionMode.currentVersion = material.version;
         versionMode.referenceCount = material.referenceCount;
         versionMode.referencedFormulas = material.referencedFormulas || [];
       }
@@ -632,7 +661,7 @@ onMounted(async () => {
   .version-banner {
     margin: 16px 0 0;
     padding: 12px 20px;
-    background: #fffbeb;
+    background: var(--color-warning-bg);
     border: 1px solid #fde68a;
     border-radius: 12px;
 
@@ -654,8 +683,8 @@ onMounted(async () => {
       width: 36px;
       height: 36px;
       border-radius: 10px;
-      background: #fef3c7;
-      color: #d97706;
+      background: var(--color-warning-bg);
+      color: var(--color-warning);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -673,7 +702,7 @@ onMounted(async () => {
     .version-banner-title {
       font-size: 14px;
       font-weight: 600;
-      color: #92400e;
+      color: var(--color-warning-dark);
     }
 
     .version-banner-desc {
@@ -689,6 +718,122 @@ onMounted(async () => {
       border-radius: 4px;
       display: inline-block;
       margin-top: var(--space-0-5);
+    }
+
+    .version-banner-formulas {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px dashed #fde68a;
+
+      .formula-list-header {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        font-weight: 600;
+        color: #92400e;
+        margin-bottom: 8px;
+      }
+
+      .formula-list-items {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .formula-list-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 12px;
+        background: rgba(255, 255, 255, 0.7);
+        border: 1px solid #fde68a;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.15s ease;
+
+        &:hover {
+          background: rgba(255, 255, 255, 0.95);
+          border-color: #fbbf24;
+          box-shadow: 0 2px 6px rgba(251, 191, 36, 0.15);
+          transform: translateX(2px);
+        }
+
+        .formula-item-name {
+          font-size: 13px;
+          font-weight: 600;
+          color: var(--color-text-primary);
+          flex: 1;
+          min-width: 0;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        .formula-item-index {
+          font-size: 10px;
+          font-weight: 700;
+          color: var(--color-text-placeholder);
+          background: var(--color-bg-page);
+          padding: 1px 7px;
+          border-radius: 999px;
+          flex-shrink: 0;
+          font-family: ui-monospace, SFMono-Regular, 'Cascadia Code', monospace;
+        }
+
+        .formula-item-version {
+          font-size: 11px;
+          font-weight: 700;
+          color: var(--color-primary);
+          background: var(--color-primary-bg);
+          padding: 1px 8px;
+          border-radius: 999px;
+          font-family: ui-monospace, SFMono-Regular, 'Cascadia Code', monospace;
+          flex-shrink: 0;
+        }
+
+        .formula-item-status {
+          font-size: 10px;
+          font-weight: 700;
+          padding: 1px 8px;
+          border-radius: 999px;
+          flex-shrink: 0;
+
+          &--draft {
+            background: var(--color-bg-page);
+            color: var(--color-text-placeholder);
+          }
+
+          &--pending {
+            background: var(--color-warning-bg);
+            color: var(--color-warning);
+          }
+
+          &--published {
+            background: var(--color-primary-bg);
+            color: var(--color-primary-dark);
+          }
+        }
+
+        .formula-item-arrow {
+          color: var(--color-text-placeholder);
+          flex-shrink: 0;
+          transition: transform 0.15s;
+        }
+
+        &:hover .formula-item-arrow {
+          transform: translateX(2px);
+          color: var(--color-primary);
+        }
+      }
+    }
+  }
+
+  .status-banner--top {
+    margin-top: 16px;
+
+    :deep(.t-alert) {
+      border-radius: 12px;
     }
   }
 
@@ -775,6 +920,28 @@ onMounted(async () => {
           color: var(--color-text-primary);
           line-height: 1.35;
 
+          .type-tag {
+            display: inline-block !important;
+            padding: var(--space-0-5) 8px;
+            font-size: 10px;
+            font-weight: 900;
+            border-radius: 6px;
+            line-height: 1.6;
+            white-space: nowrap;
+            letter-spacing: 0.02em;
+            flex-shrink: 0;
+
+            &--supplement {
+              background-color: var(--color-info-bg);
+              color: var(--color-info);
+            }
+
+            &--herb {
+              background-color: var(--color-primary-bg);
+              color: var(--color-primary-dark);
+            }
+          }
+
           .title-version-tag {
             display: inline-flex;
             align-items: center;
@@ -785,6 +952,32 @@ onMounted(async () => {
             font-weight: 700;
             border-radius: 999px;
             font-family: ui-monospace, SFMono-Regular, 'Cascadia Code', monospace;
+          }
+
+          .title-status-tag {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 10px;
+            font-size: 10px;
+            font-weight: 700;
+            border-radius: 999px;
+            letter-spacing: 0.02em;
+
+            &--draft {
+              background: var(--color-bg-page);
+              color: var(--color-text-placeholder);
+              border: 1px solid var(--color-border-light);
+            }
+
+            &--pending {
+              background: var(--color-warning-bg);
+              color: var(--color-warning);
+            }
+
+            &--published {
+              background: var(--color-primary-bg);
+              color: var(--color-primary-dark);
+            }
           }
         }
       }
@@ -801,7 +994,7 @@ onMounted(async () => {
         gap: 8px;
         padding: 8px 16px;
         background-color: $emerald-500;
-        color: #ffffff;
+        color: var(--color-text-white);
         border: none;
         border-radius: 12px;
         font-size: 14px;
@@ -837,16 +1030,16 @@ onMounted(async () => {
           }
 
           &:active {
-            background-color: #cbd5e1;
+            background-color: var(--color-text-placeholder);
           }
         }
 
         &.submit-review-btn {
-          background-color: #3b82f6;
+          background-color: var(--color-info);
           box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.25);
 
           &:hover {
-            background-color: #2563eb;
+            background-color: var(--color-info-dark);
             box-shadow: 0 14px 20px -3px rgba(59, 130, 246, 0.35);
           }
 
@@ -869,7 +1062,7 @@ onMounted(async () => {
     }
 
     .form-section {
-      background: #fff;
+      background: var(--color-bg-container);
       padding: 32px;
       border-radius: 2.5rem;
       box-shadow: 0 1px 3px $overlay-black-05;
@@ -882,8 +1075,8 @@ onMounted(async () => {
       align-items: center;
       justify-content: space-between;
       padding: 12px 16px;
-      background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 50%, #f0f9ff 100%);
-      border: 1.5px dashed #86efac;
+      background: linear-gradient(135deg, var(--color-emerald-50) 0%, var(--color-emerald-50) 50%, var(--color-info-bg) 100%);
+      border: 1.5px dashed var(--color-emerald-400);
       border-radius: 12px;
       cursor: pointer;
       transition: all 0.25s ease;
@@ -891,7 +1084,7 @@ onMounted(async () => {
 
       &:hover {
         background: linear-gradient(135deg, #dcfce7 0%, var(--color-primary-bg) 50%, #e0f2fe 100%);
-        border-color: #4ade80;
+        border-color: var(--color-emerald-400);
         box-shadow: 0 2px 8px rgba(34, 197, 94, 0.12);
         transform: translateY(-1px);
       }
@@ -914,8 +1107,8 @@ onMounted(async () => {
       width: 36px;
       height: 36px;
       border-radius: 10px;
-      background: linear-gradient(135deg, #22c55e, #16a34a);
-      color: #fff;
+      background: linear-gradient(135deg, var(--color-emerald-400), var(--color-emerald-600));
+      color: var(--color-text-white);
       flex-shrink: 0;
       box-shadow: 0 2px 6px rgba(34, 197, 94, 0.3);
     }
@@ -923,12 +1116,12 @@ onMounted(async () => {
     .info-collapsed-text {
       font-size: 14px;
       font-weight: 700;
-      color: #15803d;
+      color: var(--color-emerald-600);
     }
 
     .info-collapsed-hint {
       font-size: 11px;
-      color: #86efac;
+      color: var(--color-emerald-400);
       background: rgba(34, 197, 94, 0.1);
       padding: var(--space-0-5) 8px;
       border-radius: 6px;
@@ -936,7 +1129,7 @@ onMounted(async () => {
     }
 
     .info-collapsed-arrow {
-      color: #86efac;
+      color: var(--color-emerald-400);
       transition: transform 0.2s;
     }
 
@@ -1005,7 +1198,7 @@ onMounted(async () => {
         }
 
         &.t-is-focused .t-select__wrap {
-          background-color: #fff !important;
+          background-color: var(--color-bg-container) !important;
           border-color: transparent !important;
           box-shadow: 0 0 0 2px $emerald-500 !important;
           outline: none !important;
@@ -1118,10 +1311,13 @@ onMounted(async () => {
               font-size: 12px;
               font-weight: 700;
               color: var(--color-text-secondary);
+            }
+          }
 
-              .required {
-                color: #f43f5e;
-              }
+          .field-label {
+            .required {
+              color: #e34d59 !important;
+              margin-left: 2px;
             }
           }
 
@@ -1153,7 +1349,7 @@ onMounted(async () => {
             }
 
             &.t-is-focused {
-              background-color: #fff !important;
+              background-color: var(--color-bg-container) !important;
               border-color: transparent !important;
               box-shadow: 0 0 0 2px $emerald-500 !important;
               outline: none !important;
@@ -1187,7 +1383,7 @@ onMounted(async () => {
             }
 
             &.t-is-focused .t-select__wrap {
-              background-color: #fff !important;
+              background-color: var(--color-bg-container) !important;
               border-color: transparent !important;
               box-shadow: 0 0 0 2px $emerald-500 !important;
               outline: none !important;
@@ -1221,7 +1417,7 @@ onMounted(async () => {
             }
 
             &.t-is-focused {
-              background-color: #fff !important;
+              background-color: var(--color-bg-container) !important;
               border-color: transparent !important;
               box-shadow: 0 0 0 2px $emerald-500 !important;
               outline: none !important;
@@ -1401,7 +1597,7 @@ onMounted(async () => {
         padding: 12px 16px;
 
         &:hover {
-          background-color: #f1f5f9;
+          background-color: var(--color-bg-hover);
         }
       }
 
@@ -1574,8 +1770,8 @@ onMounted(async () => {
       align-items: center;
       justify-content: space-between;
       padding: 12px 16px;
-      background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 50%, #f0f9ff 100%);
-      border: 1.5px dashed #86efac;
+      background: linear-gradient(135deg, var(--color-emerald-50) 0%, var(--color-emerald-50) 50%, var(--color-info-bg) 100%);
+      border: 1.5px dashed var(--color-emerald-400);
       border-radius: 12px;
       cursor: pointer;
       transition: all 0.25s ease;
@@ -1583,7 +1779,7 @@ onMounted(async () => {
 
       &:hover {
         background: linear-gradient(135deg, #dcfce7 0%, var(--color-primary-bg) 50%, #e0f2fe 100%);
-        border-color: #4ade80;
+        border-color: var(--color-emerald-400);
         box-shadow: 0 2px 8px rgba(34, 197, 94, 0.12);
         transform: translateY(-1px);
       }
@@ -1606,8 +1802,8 @@ onMounted(async () => {
       width: 36px;
       height: 36px;
       border-radius: 10px;
-      background: linear-gradient(135deg, #22c55e, #16a34a);
-      color: #fff;
+      background: linear-gradient(135deg, var(--color-emerald-400), var(--color-emerald-600));
+      color: var(--color-text-white);
       flex-shrink: 0;
       box-shadow: 0 2px 6px rgba(34, 197, 94, 0.3);
     }
@@ -1615,12 +1811,12 @@ onMounted(async () => {
     .excel-collapsed-text {
       font-size: 14px;
       font-weight: 600;
-      color: #15803d;
+      color: var(--color-emerald-600);
     }
 
     .excel-collapsed-hint {
       font-size: 11px;
-      color: #86efac;
+      color: var(--color-emerald-400);
       background: rgba(34, 197, 94, 0.1);
       padding: var(--space-0-5) 8px;
       border-radius: 6px;
@@ -1628,7 +1824,7 @@ onMounted(async () => {
     }
 
     .excel-collapsed-arrow {
-      color: #86efac;
+      color: var(--color-emerald-400);
       transition: transform 0.2s;
     }
 

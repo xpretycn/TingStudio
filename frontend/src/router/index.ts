@@ -90,7 +90,7 @@ const router = createRouter({
           path: "formulas",
           name: "FormulaList",
           component: () => import(/* webpackPrefetch: true */ "@/views/formulas/FormulaList.vue"),
-          meta: { title: "配方管理" },
+          meta: { title: "配方管理", keepAlive: true },
         },
         {
           path: "formulas/:id",

@@ -45,9 +45,10 @@ http.interceptors.response.use(
     const res = response.data;
     if (res.success === false) {
       if (!response.config._silent) {
-        MessagePlugin.error(res.message || "请求失败");
+        const errorMsg = res.error?.message || res.message || "请求失败";
+        MessagePlugin.error(errorMsg);
       }
-      return Promise.reject(new Error(res.message));
+      return Promise.reject(new Error(res.error?.message || res.message));
     }
     return res.data;
   },
@@ -62,34 +63,28 @@ http.interceptors.response.use(
         error.message?.includes("Network Error") ||
         error.message?.includes("Failed to fetch"));
 
-    const isBackendDown = (() => {
-      if (isNetworkError) return true;
-      const status = error.response?.status;
-      if (status && status >= 500) return true;
-      return false;
-    })();
-
-    if (isBackendDown) {
-      console.warn("[HTTP] 后端服务不可用，即将跳转 404 页面");
-      clearToken();
-      clearUser();
+    if (isNetworkError) {
+      console.warn("[HTTP] 后端服务不可用，即将跳转服务器故障页面");
       MessagePlugin.error("后端服务未启动或网络连接失败");
       setTimeout(() => {
         const target = window.top || window;
-        target.location.href = "/404";
+        target.location.href = "/server-error";
       }, 1200);
       return Promise.reject(error);
     }
 
-    const msg = error.response?.data?.message || error.message || "网络错误";
+    const status = error.response?.status;
+    const responseData = error.response?.data;
+    const msg = responseData?.error?.message || responseData?.message || error.message || "网络错误";
     const label = error.config?._logLabel || "";
     console.error(
-      `[HTTP-ERR] ${error.config?.method?.toUpperCase()} ${error.config?.baseURL}${error.config?.url} [${error.response?.status}] ${label ? "(" + label + ")" : ""}:`,
+      `[HTTP-ERR] ${error.config?.method?.toUpperCase()} ${error.config?.baseURL}${error.config?.url} [${status}] ${label ? "(" + label + ")" : ""}:`,
       msg,
       error.response?.data,
     );
-    if (error.response?.status === 401) {
-      clearToken();
+
+    if (status === 401) {
+      removeToken();
       clearUser();
       const target = window.top || window;
       if (!target.location.pathname.startsWith("/login")) {
@@ -109,11 +104,6 @@ export function setToken(token: string) {
 }
 
 export function removeToken() {
-  sessionStorage.removeItem(TOKEN_KEY);
-  localStorage.removeItem(TOKEN_KEY);
-}
-
-function clearToken() {
   sessionStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(TOKEN_KEY);
 }

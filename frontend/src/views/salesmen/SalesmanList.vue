@@ -765,23 +765,6 @@ const displaySmPendingItems = computed<SmTodoItem[]>(() => {
     }
   }
 
-  if (salesmen.length === 0 || items.length === 0) {
-    items.push(
-      {
-        id: 'sm-mock-1', type: 'warning' as const, priority: 'high' as const,
-        title: '配方待发布', desc: '周伯通 的「人参养颜膏」有新版本草稿未发布', actionText: '去处理', actionType: 'view' as const
-      },
-      {
-        id: 'sm-mock-2', type: 'info' as const, priority: 'medium' as const,
-        title: '配方状态提醒', desc: '杨康 有2个配方处于草稿状态', actionText: '查看详情', actionType: 'formulas' as const
-      },
-      {
-        id: 'sm-mock-3', type: 'default' as const, priority: 'low' as const,
-        title: '销售数据缺失', desc: '杨过 本月暂无销售数据，请及时录入', actionText: '去录入', actionType: 'view' as const
-      },
-    );
-  }
-
   const priorityOrder = { high: 0, medium: 1, low: 2 };
   items.sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
 

@@ -100,7 +100,8 @@
                 <t-icon name="edit-1" class="quick-icon" />
                 快速录入
               </button>
-              <button class="quick-formula-btn quick-formula-btn--outline" @click="batchDrawerVisible = true" aria-label="批量录入销量">
+              <button class="quick-formula-btn quick-formula-btn--outline" @click="batchDrawerVisible = true"
+                aria-label="批量录入销量">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                   stroke-linecap="round" stroke-linejoin="round">
                   <rect x="3" y="3" width="7" height="7" />
@@ -114,6 +115,13 @@
                 <t-icon name="add" class="add-icon" />
                 创建新配方
               </button>
+              <button class="add-formula-btn" @click="handleRefreshList" title="刷新列表" aria-label="刷新配方列表">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="23 4 23 10 17 10" />
+                  <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+                </svg>
+              </button>
               <button class="filter-btn" aria-label="筛选配方类型" aria-haspopup="true">
                 <t-icon name="filter" class="filter-icon" />
                 <span class="filter-dot"></span>
@@ -123,6 +131,7 @@
           <t-table :data="sortedFormulas" :columns="columns" :loading="formulaStore.loading" :pagination="undefined"
             row-key="id" hover table-layout="auto" :expanded-row-keys="expandedRowKeys" @expand-change="onExpandChange"
             @select-change="handleSelectChange" :selected-row-keys="selectedRowKeys" @row-click="handleRowClick">
+            <!-- 自定义名称列 -->
             <template #name="{ row }">
               <div class="formula-info">
                 <div class="formula-avatar" :style="{
@@ -133,8 +142,10 @@
                 </div>
                 <div class="formula-details">
                   <p class="formula-name">{{ row.name }}</p>
-                  <t-tag size="small" variant="light" theme="primary" class="formula-version-tag">{{
-                    getFormulaStatus(row).version }}</t-tag>
+                  <t-tag v-if="row.code" size="small" variant="light" theme="default" class="formula-version-tag">{{
+                    row.id.slice(-6) }}</t-tag>
+                  <t-tag v-else size="small" variant="light" theme="default" class="formula-version-tag">{{
+                    row.code }}</t-tag>
                 </div>
               </div>
             </template>
@@ -213,9 +224,10 @@
                 <span class="creator-name">{{ row.createdByName || row.createdBy }}</span>
               </div>
             </template>
-
+            <!-- 自定义状态列 -->
             <template #formulaStatus="{ row }">
               <div class="version-status">
+                <span class="version-number">{{ getFormulaStatus(row).version }}</span>
                 <span class="status-text" :style="{ color: getFormulaStatus(row).color }">
                   <t-icon :name="getFormulaStatus(row).icon" />
                   {{ getFormulaStatus(row).label }}
@@ -541,11 +553,13 @@
 
     <SalesBatchDrawer v-model:visible="batchDrawerVisible" @success="onBatchDrawerSuccess" />
 
-    <t-drawer v-model:visible="showExportDrawer" header="导出配方" :footer="true" placement="right" size="400px" :destroyOnClose="false">
+    <t-drawer v-model:visible="showExportDrawer" header="导出配方" :footer="true" placement="right" size="400px"
+      :destroyOnClose="false">
       <t-form layout="vertical">
         <t-form-item label="已选配方">
           <div style="display: flex; flex-wrap: wrap; gap: 6px;">
-            <t-tag v-for="f in selectedRows" :key="f.id" closable theme="primary" variant="light" @close="removeFromExportSelection(f.id)">
+            <t-tag v-for="f in selectedRows" :key="f.id" closable theme="primary" variant="light"
+              @close="removeFromExportSelection(f.id)">
               {{ f.name }}
             </t-tag>
           </div>
@@ -557,7 +571,8 @@
           </t-radio-group>
         </t-form-item>
         <t-form-item label="导出模板">
-          <t-select v-model="exportForm.templateId" clearable filterable :popup-props="{ appendToBody: true }" placeholder="可选，使用默认模板">
+          <t-select v-model="exportForm.templateId" clearable filterable :popup-props="{ appendToBody: true }"
+            placeholder="可选，使用默认模板">
             <t-option v-for="t in formulaTemplates" :key="t.templateId" :value="t.templateId" :label="t.name" />
           </t-select>
         </t-form-item>
@@ -592,6 +607,8 @@ import type { ExportTemplate } from '@/api/export';
 import SalesRecordDrawer from '@/components/SalesRecordDrawer.vue';
 import SalesBatchDrawer from '@/components/SalesBatchDrawer.vue';
 import PageSkeleton from '@/components/Skeleton/PageSkeleton.vue';
+
+defineOptions({ name: 'FormulaList' });
 
 const router = useRouter();
 const route = useRoute();
@@ -802,7 +819,7 @@ const handleBatchExport = () => {
 
 const removeFromExportSelection = (id: string) => {
   selectedRowKeys.value = selectedRowKeys.value.filter((k: string | number) => k !== id);
-  selectedRows.value = selectedRows.value.filter((f: { id: string }) => f.id !== id);
+  selectedRows.value = selectedRows.value.filter((f: { id: string; }) => f.id !== id);
   if (selectedRows.value.length === 0) {
     showExportDrawer.value = false;
   }
@@ -812,7 +829,7 @@ const handleExport = async () => {
   if (selectedRows.value.length === 0) return;
   exporting.value = true;
   try {
-    const formulaIds = selectedRows.value.map((f: { id: string }) => f.id);
+    const formulaIds = selectedRows.value.map((f: { id: string; }) => f.id);
     const res = await exportStore.createJob({
       dataCategory: 'formula',
       exportType: exportForm.exportType,
@@ -897,7 +914,7 @@ const formatVersionTime = (timeStr: string): string => {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
 };
 
-const parseChanges = (changesJson: string): Array<{ field: string; fieldLabel?: string;[key: string]: unknown }> => {
+const parseChanges = (changesJson: string): Array<{ field: string; fieldLabel?: string;[key: string]: unknown; }> => {
   try {
     const arr = JSON.parse(changesJson);
     return Array.isArray(arr) ? arr : [];
@@ -1026,7 +1043,7 @@ const pagination = computed(() => ({
   current: formulaStore.currentPage,
   pageSize: formulaStore.pageSize,
   total: formulaStore.total,
-  onChange: (pageInfo: { current: number }) => {
+  onChange: (pageInfo: { current: number; }) => {
     formulaStore.setPage(pageInfo.current);
     formulaStore.fetchFormulas();
   }
@@ -1390,7 +1407,7 @@ onMounted(async () => {
   initialized.value = true;
 
   pendingRefreshTimer = setInterval(() => {
-    formulaStore.fetchFormulas();
+    formulaStore.refreshFormulas();
     materialStore.fetchMaterials();
   }, 5 * 60 * 1000);
 
@@ -1411,20 +1428,33 @@ onUnmounted(() => {
   }
 });
 
-// 处理 keep-alive 缓存的组件重新激活时恢复搜索状态
-onActivated(async () => {
-  if (route.query.keyword && route.query.keyword !== searchKeyword.value) {
-    const keyword = route.query.keyword as string;
-    isRestoringFromRoute = true;
-    searchKeyword.value = keyword;
-    formulaStore.setKeyword(keyword);
-    await nextTick();
-    formulaStore.fetchFormulas();
-  }
-});
+	// keep-alive 重新激活：检测用户切换 + 恢复搜索状态
+	onActivated(async () => {
+	  const currentUserId = localStorage.getItem("tingstudio_user_id");
+	  const cachedUserId = sessionStorage.getItem("formula_list_user_id");
+	
+	  if (cachedUserId && currentUserId && cachedUserId !== currentUserId) {
+	    formulaStore.refreshFormulas();
+	  }
+	
+	  // 保存当前用户ID
+	  if (currentUserId) {
+	    sessionStorage.setItem("formula_list_user_id", currentUserId);
+	  }
+	
+	  // 恢复路由中的搜索状态
+	  if (route.query.keyword && route.query.keyword !== searchKeyword.value) {
+	    const keyword = route.query.keyword as string;
+	    isRestoringFromRoute = true;
+	    searchKeyword.value = keyword;
+	    formulaStore.setKeyword(keyword);
+	    await nextTick();
+	    formulaStore.fetchFormulas();
+	  }
+	});
 
 watch(() => router.currentRoute.value.path, (path) => {
-  if (path === '/formulas') formulaStore.fetchFormulas();
+  if (path === '/formulas') formulaStore.fetchFormulas(false);
 });
 
 onUnmounted(() => {
@@ -1466,6 +1496,13 @@ const handleCreate = () => {
   });
 };
 
+const handleRefreshList = () => {
+  searchKeyword.value = '';
+  formulaStore.clearKeyword();
+  router.replace({ query: {} });
+  formulaStore.refreshFormulas();
+};
+
 const handleRowClick = ({ row }: { row: Formula; }) => {
   router.push({
     path: `/formulas/${row.id}`,
@@ -1492,6 +1529,7 @@ const handleDelete = async (row: Formula) => {
     const result = await formulaStore.deleteFormula(row.id);
     if (result.success) {
       MessagePlugin.success('删除成功');
+      await formulaStore.fetchFormulas();
     } else {
       MessagePlugin.error(result.message || '删除失败');
     }
@@ -1509,7 +1547,7 @@ const handlePublish = async (row: Formula) => {
   try {
     await formulaApi.publish(row.id);
     MessagePlugin.success('发布成功');
-    formulaStore.fetchFormulas();
+    formulaStore.refreshFormulas();
   } catch {
     MessagePlugin.error('发布失败');
   }
@@ -1595,11 +1633,11 @@ const getSalesQuantity = (row: Formula): number => {
     margin-bottom: 0;
 
     .stat-card {
-      background: #fff;
+      background: $bg-container;
       padding: var(--space-2-5) 16px;
       border-radius: 12px;
-      border: 1px solid #fff;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+      border: 1px solid $bg-container;
+      box-shadow: $shadow-elevation-1;
       transition: all $transition-slow;
       animation: dashboard-fade-in 0.5s ease forwards;
       opacity: 0;
@@ -1610,7 +1648,7 @@ const getSalesQuantity = (row: Formula): number => {
 
       &:hover {
         transform: translateY(-2px);
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+        box-shadow: $shadow-elevation-3;
         border-color: transparent;
       }
 
@@ -1655,7 +1693,7 @@ const getSalesQuantity = (row: Formula): number => {
       .stat-value {
         font-size: 18px;
         font-weight: 700;
-        color: #0F172A;
+        color: $text-primary;
         line-height: 1.2;
         width: 100%;
 
@@ -1671,17 +1709,17 @@ const getSalesQuantity = (row: Formula): number => {
   // ─── 内容卡片 - 参照 index.html 第226行 "数据中心列表" ───
   .content-card {
     min-height: 400px;
-    background-color: #fff;
+    background-color: $bg-container;
     border-radius: var(--radius-5xl) !important;
     border: 1px solid var(--color-bg-page) !important;
     overflow: hidden;
-    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
+    box-shadow: $shadow-elevation-2;
     transition: all $transition-slow;
 
     // index.html hover: border-emerald-100
     &:hover {
-      box-shadow: 0 8px 30px rgba(15, 23, 42, 0.10), 0 2px 6px rgba(15, 23, 42, 0.05);
-      border-color: #ecfdf5 !important; // hover:border-emerald-100
+      box-shadow: $shadow-elevation-4;
+      border-color: $emerald-50 !important; // hover:border-emerald-100
     }
 
     // 覆盖 TDesign t-card 默认 body padding（index.html 无额外 padding，工具栏自带 p-8）
@@ -1770,7 +1808,7 @@ const getSalesQuantity = (row: Formula): number => {
     .current-tag {
       font-size: $font-size-micro;
       background: var(--color-primary);
-      color: #fff;
+      color: $text-white;
     }
 
     .status-tag {
@@ -1783,13 +1821,13 @@ const getSalesQuantity = (row: Formula): number => {
       }
 
       &--draft {
-        background: rgba(245, 158, 11, 0.10);
-        color: #d97706;
+        background: $overlay-amber-10;
+        color: $amber-600;
         border: none;
       }
 
       &--archived {
-        background: #f1f5f9;
+        background: $border-color-light;
         color: var(--color-text-secondary);
         border: none;
       }
@@ -1954,17 +1992,15 @@ const getSalesQuantity = (row: Formula): number => {
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: rgba(100, 100, 110, 0.06);
+    background-color: $overlay-black-05;
   }
 
   :global(.batch-dialog-card) {
     width: 440px;
     max-width: 90vw;
-    background: #fff;
+    background: $bg-container;
     border-radius: 16px;
-    box-shadow:
-      0 24px 80px rgba(0, 0, 0, 0.12),
-      0 6px 24px rgba(0, 0, 0, 0.08);
+    box-shadow: $shadow-elevation-4;
     overflow: hidden;
     animation: dialog-pop-in 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
@@ -1996,7 +2032,7 @@ const getSalesQuantity = (row: Formula): number => {
       transition: all $transition-fast !important;
 
       &:hover {
-        background: #f1f5f9 !important;
+        background: $border-color-light !important;
         color: var(--color-text-secondary) !important;
       }
     }
@@ -2034,7 +2070,7 @@ const getSalesQuantity = (row: Formula): number => {
     transition: all $transition-fast !important;
 
     &:hover {
-      background: #f1f5f9 !important;
+      background: $border-color-light !important;
       color: var(--color-text-secondary) !important;
     }
   }
@@ -2072,7 +2108,7 @@ const getSalesQuantity = (row: Formula): number => {
 
         &.is-checked .t-checkbox__input__inner::after,
         &.is-indeterminate .t-checkbox__input__inner::after {
-          border-color: #fff;
+          border-color: $text-white;
         }
 
         &.is-focus .t-checkbox__input__inner {
@@ -2157,7 +2193,7 @@ const getSalesQuantity = (row: Formula): number => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #fff;
+  background-color: $bg-container;
   border-top: 1px solid var(--color-bg-page);
 
   /* 左侧数据量信息 */
@@ -2208,10 +2244,10 @@ const getSalesQuantity = (row: Formula): number => {
 
     &.pagination-btn--active {
       background-color: var(--color-primary, var(--color-primary));
-      color: #fff;
+      color: $text-white;
       border-color: var(--color-primary, var(--color-primary));
       font-weight: 600;
-      box-shadow: 0 1px 3px var(--overlay-brand-25, rgba(255, 107, 138, 0.25));
+      box-shadow: $shadow-brand-sm;
       pointer-events: none;
     }
   }
@@ -2246,21 +2282,21 @@ const getSalesQuantity = (row: Formula): number => {
   border-radius: var(--radius-4xl);
   overflow: hidden;
   border: 1px solid var(--color-bg-page);
-  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
+  box-shadow: $shadow-elevation-2;
 
   :deep(.t-collapse-panel) {
     border-bottom: none;
   }
 
   :deep(.t-collapse-panel__header) {
-    background: #fff;
+    background: $bg-container;
     padding: 20px 24px;
     font-size: 15px;
     font-weight: 600;
     color: var(--color-text-primary);
 
     &:hover {
-      background: #fafafa;
+      background: $bg-cool-gray;
     }
   }
 
@@ -2271,20 +2307,20 @@ const getSalesQuantity = (row: Formula): number => {
 
 // 动态卡片基础样式
 .activity-card {
-  background-color: #fff;
+  background-color: $bg-container;
   border-radius: 20px;
   padding: 24px;
-  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
+  box-shadow: $shadow-elevation-2;
   border: 1px solid var(--color-bg-page);
 
   // 右侧小助手卡片 - 白色背景
   &--assistant {
-    background: #fff;
+    background: $bg-container;
     border: 1px solid var(--color-bg-page);
-    color: #0F172A;
+    color: $text-primary;
     position: relative;
     overflow: hidden;
-    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
+    box-shadow: $shadow-elevation-2;
   }
 }
 
@@ -2337,8 +2373,8 @@ const getSalesQuantity = (row: Formula): number => {
     &:disabled {
       opacity: 0.3;
       cursor: not-allowed;
-      border-color: rgba(148, 163, 184, 0.15);
-      color: #cbd5e1;
+      border-color: $overlay-white-15;
+      color: $border-color;
       background: transparent;
     }
   }
@@ -2375,7 +2411,7 @@ const getSalesQuantity = (row: Formula): number => {
     top: 28px; // top-[28px]
     bottom: 0;
     width: 1px; // w-[1px]
-    background-color: #f1f5f9; // bg-slate-100
+    background-color: $border-color-light; // bg-slate-100
   }
 }
 
@@ -2397,12 +2433,12 @@ const getSalesQuantity = (row: Formula): number => {
 
   // bg-emerald-100
   &--warning {
-    background-color: #fef3c7;
+    background-color: $amber-100;
   }
 
   // bg-amber-100
   &--info {
-    background-color: #dbeafe;
+    background-color: $blue-100;
   }
 
   // bg-blue-100
@@ -2424,7 +2460,7 @@ const getSalesQuantity = (row: Formula): number => {
 
   // bg-amber-500
   .timeline-dot--info & {
-    background-color: #3b82f6;
+    background-color: $blue-500;
   }
 
   // bg-blue-500
@@ -2453,12 +2489,12 @@ const getSalesQuantity = (row: Formula): number => {
   }
 
   :deep(.text-amber-600) {
-    color: #d97706 !important;
+    color: $amber-600 !important;
     font-weight: 700 !important;
   }
 
   :deep(.text-blue-600) {
-    color: #2563eb !important;
+    color: $blue-600 !important;
     font-weight: 700 !important;
   }
 
@@ -2469,7 +2505,7 @@ const getSalesQuantity = (row: Formula): number => {
 
 .timeline-time {
   font-size: 10px; // text-[10px]
-  color: #cbd5e1; // text-slate-300
+  color: $border-color; // text-slate-300
   text-transform: uppercase;
   display: inline-block;
   margin-top: 4px;
@@ -2491,7 +2527,7 @@ const getSalesQuantity = (row: Formula): number => {
     gap: 8px;
     font-size: 16px;
     font-weight: 700;
-    color: #fff;
+    color: $text-white;
     margin: 0;
   }
 }
@@ -2508,22 +2544,22 @@ const getSalesQuantity = (row: Formula): number => {
     width: 26px;
     height: 26px;
     border-radius: 8px;
-    border: 1.5px solid rgba(255, 255, 255, 0.3);
-    background: rgba(255, 255, 255, 0.15);
-    color: #fff;
+    border: 1.5px solid $overlay-white-30;
+    background: $overlay-white-15;
+    color: $text-white;
     cursor: pointer;
     transition: all 0.2s;
 
     &:hover:not(:disabled) {
-      background: rgba(255, 255, 255, 0.25);
-      border-color: rgba(255, 255, 255, 0.5);
+      background: $overlay-white-25;
+      border-color: $overlay-white-50;
     }
 
     &:disabled {
       opacity: 0.3;
       cursor: not-allowed;
-      border-color: rgba(255, 255, 255, 0.15);
-      color: rgba(255, 255, 255, 0.5);
+      border-color: $overlay-white-15;
+      color: $overlay-white-50;
       background: transparent;
     }
   }
@@ -2531,7 +2567,7 @@ const getSalesQuantity = (row: Formula): number => {
   .activity-nav-page {
     font-size: 12px;
     font-weight: 600;
-    color: rgba(255, 255, 255, 0.85);
+    color: $overlay-white-85;
     min-width: 32px;
     text-align: center;
     user-select: none;
@@ -2553,47 +2589,47 @@ const getSalesQuantity = (row: Formula): number => {
   padding: var(--space-3-5);
   background: var(--color-bg-page);
   border-radius: 14px;
-  border: 1px solid #f1f5f9;
+  border: 1px solid $border-color-light;
   transition: all 0.25s ease;
   cursor: default;
   animation: todoSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
 
   &:hover {
-    background: #f1f5f9;
+    background: $border-color-light;
     border-color: var(--color-border);
     transform: translateX(4px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    box-shadow: $shadow-elevation-1;
   }
 
   &--high {
-    background: #FFFBEB;
-    border-color: #FEF08A;
+    background: $amber-50;
+    border-color: $amber-200;
 
     &:hover {
-      background: #FEF9C3;
-      border-color: #FDE047;
+      background: $amber-100;
+      border-color: $amber-300;
     }
 
     .todo-item__title {
-      color: #92400E;
+      color: $amber-800;
     }
 
     .todo-item__desc {
-      color: #78716C;
+      color: $stone-500;
     }
   }
 
   &--medium {
-    background: #EFF6FF;
-    border-color: #BFDBFE;
+    background: $blue-50;
+    border-color: $blue-200;
 
     &:hover {
-      background: #DBEAFE;
-      border-color: #93C5FD;
+      background: $blue-100;
+      border-color: $blue-200;
     }
 
     .todo-item__title {
-      color: #1E40AF;
+      color: $blue-600;
     }
 
     .todo-item__desc {
@@ -2603,20 +2639,20 @@ const getSalesQuantity = (row: Formula): number => {
 
   &--low,
   &:not(&--high):not(&--medium) {
-    background: #F5F3FF;
-    border-color: #DDD6FE;
+    background: $purple-50;
+    border-color: $purple-200;
 
     &:hover {
-      background: #EDE9FE;
-      border-color: #C4B5FD;
+      background: $purple-100;
+      border-color: $purple-300;
     }
 
     .todo-item__title {
-      color: #5B21B6;
+      color: $violet-800;
     }
 
     .todo-item__desc {
-      color: #6B7280;
+      color: $stone-500;
     }
   }
 
@@ -2630,18 +2666,18 @@ const getSalesQuantity = (row: Formula): number => {
     justify-content: center;
 
     &--warning {
-      background: linear-gradient(135deg, #FEF3C7, #FDE68A);
-      color: #D97706;
+      background: $gradient-amber-badge;
+      color: $amber-600;
     }
 
     &--info {
-      background: linear-gradient(135deg, #DBEAFE, #BFDBFE);
-      color: #2563EB;
+      background: linear-gradient(135deg, $blue-100, $blue-200);
+      color: $blue-600;
     }
 
     &--default {
-      background: linear-gradient(135deg, #EDE9FE, #DDD6FE);
-      color: #7C3AED;
+      background: linear-gradient(135deg, $purple-100, $purple-200);
+      color: $violet-600;
     }
   }
 
@@ -2671,7 +2707,7 @@ const getSalesQuantity = (row: Formula): number => {
     height: 28px;
     border-radius: 8px;
     border: 1.5px solid var(--color-border);
-    background: #fff;
+    background: $bg-container;
     color: var(--color-text-secondary);
     cursor: pointer;
     display: inline-flex;
@@ -2682,7 +2718,7 @@ const getSalesQuantity = (row: Formula): number => {
     &:hover {
       background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
       border-color: transparent;
-      color: #fff;
+      color: $text-white;
       transform: scale(1.05);
     }
   }
@@ -2731,7 +2767,7 @@ const getSalesQuantity = (row: Formula): number => {
   p {
     font-size: 15px;
     font-weight: 600;
-    color: #0F172A;
+    color: $text-primary;
     margin: 0 0 var(--space-1-5) 0;
   }
 
@@ -2744,7 +2780,7 @@ const getSalesQuantity = (row: Formula): number => {
 .assistant-footer {
   margin-top: 16px;
   padding-top: 16px;
-  border-top: 1px solid #f1f5f9;
+  border-top: 1px solid $border-color-light;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -2760,7 +2796,7 @@ const getSalesQuantity = (row: Formula): number => {
   height: 28px;
   border-radius: 8px;
   border: 1.5px solid var(--color-border);
-  background: #fff;
+  background: $bg-container;
   color: var(--color-text-secondary);
   cursor: pointer;
   display: inline-flex;
@@ -2769,8 +2805,8 @@ const getSalesQuantity = (row: Formula): number => {
   transition: all 0.2s ease;
 
   &:hover {
-    background: #f1f5f9;
-    border-color: #cbd5e1;
+    background: $border-color-light;
+    border-color: $border-color;
     color: var(--color-text-secondary);
     transform: rotate(180deg);
   }
@@ -2861,9 +2897,9 @@ const getSalesQuantity = (row: Formula): number => {
         width: 256px; // w-64
 
         &:focus {
-          box-shadow: 0 0 0 2px rgba(167, 243, 208, 0.50); // focus:ring-2 ring-emerald-200
+          box-shadow: 0 0 0 2px $overlay-emerald-100-50; // focus:ring-2 ring-emerald-200
           outline: none;
-          background-color: #fff;
+          background-color: $bg-container;
         }
 
         &::placeholder {
@@ -2885,14 +2921,14 @@ const getSalesQuantity = (row: Formula): number => {
     font-size: 14px;
     font-weight: 500;
     transition: all $transition-fast;
-    box-shadow: 0 4px 6px rgba(16, 185, 129, 0.25);
+    box-shadow: $shadow-emerald-sm;
     border: none;
     cursor: pointer;
 
     &:hover {
       filter: brightness(1.05);
       transform: translateY(-1px);
-      box-shadow: 0 6px 10px rgba(16, 185, 129, 0.3);
+      box-shadow: $shadow-emerald-md;
     }
 
     &:active {
@@ -2935,7 +2971,7 @@ const getSalesQuantity = (row: Formula): number => {
     font-size: 14px; // text-sm
     font-weight: 500; // font-medium
     transition: all $transition-fast; // transition-colors
-    box-shadow: 0 4px 6px rgba(15, 23, 42, 0.15); // shadow-md
+    box-shadow: $shadow-elevation-2; // shadow-md
     border: none;
     cursor: pointer;
 
@@ -2962,7 +2998,7 @@ const getSalesQuantity = (row: Formula): number => {
     padding: 8px; // p-2
     color: var(--color-text-placeholder); // text-slate-400
     background-color: transparent;
-    border: 1px solid #f1f5f9; // border border-slate-100
+    border: 1px solid $border-color-light; // border border-slate-100
     border-radius: 8px; // rounded-lg
     transition: all $transition-fast; // transition-colors
     cursor: pointer;
@@ -3005,14 +3041,14 @@ const getSalesQuantity = (row: Formula): number => {
   bottom: 0;
   z-index: 20; // index.html: z-20
   background-color: var(--color-primary-dark); // bg-emerald-600
-  color: #fff;
+  color: $text-white;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 20px 32px; // px-8
   // 上方圆角匹配 content-card 的 32px 圆角
   border-radius: var(--radius-5xl) var(--radius-5xl) 0 0;
-  box-shadow: 0 4px 18px rgba(5, 150, 105, 0.25);
+  box-shadow: $shadow-emerald-lg;
 
   // index.html 第238行: flex items-center gap-6(24px)
   .batch-info {
@@ -3034,7 +3070,7 @@ const getSalesQuantity = (row: Formula): number => {
     .batch-divider {
       width: 1px;
       height: 16px;
-      background: rgba(52, 211, 153, 0.5);
+      background: $overlay-emerald-50;
     }
 
     // 按钮组 - index.html: flex gap-4(16px)
@@ -3052,7 +3088,7 @@ const getSalesQuantity = (row: Formula): number => {
       font-weight: 500;
       background: none;
       border: none;
-      color: #fff;
+      color: $text-white;
       cursor: pointer;
       padding: 4px 8px;
       border-radius: 6px;
@@ -3092,7 +3128,7 @@ const getSalesQuantity = (row: Formula): number => {
     padding: 4px 12px; // px-3 py-1
     border-radius: 8px; // rounded-lg
     background: transparent;
-    color: #fff;
+    color: $text-white;
     cursor: pointer;
     transition: all $transition-fast;
 
@@ -3176,7 +3212,7 @@ const getSalesQuantity = (row: Formula): number => {
 }
 
 .t-table__body {
-  background: #fff !important;
+  background: $bg-container !important;
 
   .t-table__row {
     transition: background-color 0.2s ease;
@@ -3184,19 +3220,19 @@ const getSalesQuantity = (row: Formula): number => {
     // 悬停/选中 - emerald 色系，覆盖全局粉色
     &:hover td,
     &.t-table__row--hover td {
-      background-color: rgba(209, 250, 229, 0.35) !important;
+      background-color: $overlay-emerald-100-35 !important;
       box-shadow: inset 3px 0 0 var(--color-primary-light) !important;
     }
 
     &.t-table__row--selected td,
     &.t-table__row--selected.t-table__row--hover td {
-      background-color: rgba(209, 250, 229, 0.55) !important;
+      background-color: $overlay-emerald-100-55 !important;
       box-shadow: inset 3px 0 0 var(--color-primary) !important;
     }
 
     td {
       padding: 3px 16px !important;
-      border-bottom: 1px solid #f1f5f9 !important;
+      border-bottom: 1px solid $border-color-light !important;
       vertical-align: middle;
       font-size: 13px !important;
 
@@ -3238,7 +3274,7 @@ const getSalesQuantity = (row: Formula): number => {
     font-weight: 700;
     font-size: 9px;
     text-transform: uppercase;
-    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    box-shadow: $shadow-elevation-1;
     flex-shrink: 0;
   }
 
@@ -3273,7 +3309,7 @@ const getSalesQuantity = (row: Formula): number => {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #fff;
+    color: $text-white;
     font-size: 11px;
     font-weight: 600;
     flex-shrink: 0;
@@ -3301,9 +3337,18 @@ const getSalesQuantity = (row: Formula): number => {
 // 版本状态列
 .version-status {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  gap: 2px;
+
+  .version-number {
+    font-size: 11px;
+    font-weight: 700;
+    font-family: ui-monospace, SFMono-Regular, 'Cascadia Code', monospace;
+    color: var(--color-text-primary);
+    line-height: 1.4;
+  }
 
   .status-text {
     display: flex;
@@ -3343,7 +3388,7 @@ const getSalesQuantity = (row: Formula): number => {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #fff;
+    color: $text-white;
     font-size: 11px;
     font-weight: 600;
     flex-shrink: 0;
@@ -3365,7 +3410,7 @@ const getSalesQuantity = (row: Formula): number => {
   align-items: center;
 
   &:hover {
-    background: #ecfdf5;
+    background: $emerald-50;
   }
 
   .sales-qty-value {
@@ -3375,7 +3420,7 @@ const getSalesQuantity = (row: Formula): number => {
 
     &--clickable {
       text-decoration: underline;
-      text-decoration-color: rgba(5, 150, 105, 0.3);
+      text-decoration-color: $overlay-emerald-30;
       text-underline-offset: 3px;
       cursor: pointer;
 
@@ -3396,20 +3441,20 @@ const getSalesQuantity = (row: Formula): number => {
     font-size: 12px;
     color: var(--color-text-placeholder);
     padding: var(--space-0-5) 8px;
-    border: 1px dashed #cbd5e1;
+    border: 1px dashed $border-color;
     border-radius: 6px;
     transition: all 0.2s;
 
     &--clickable {
       text-decoration: underline;
-      text-decoration-color: rgba(148, 163, 184, 0.3);
+      text-decoration-color: $overlay-white-30;
       text-underline-offset: 3px;
       cursor: pointer;
 
       &:hover {
         color: var(--color-primary-dark);
         border-color: var(--color-primary-dark);
-        background: #ecfdf5;
+        background: $emerald-50;
         text-decoration-color: var(--color-primary-dark);
       }
     }
@@ -3417,17 +3462,17 @@ const getSalesQuantity = (row: Formula): number => {
     &:hover {
       color: var(--color-primary-dark);
       border-color: var(--color-primary-dark);
-      background: #ecfdf5;
+      background: $emerald-50;
     }
   }
 }
 
 .action-btn.sales-btn {
-  color: #8b5cf6;
+  color: $purple-500;
 
   &:hover {
-    color: #7c3aed;
-    background: #f5f3ff;
+    color: $violet-600;
+    background: $purple-50;
   }
 }
 
@@ -3481,11 +3526,11 @@ const getSalesQuantity = (row: Formula): number => {
   gap: var(--space-1);
   font-size: 11px;
   font-weight: 500;
-  color: #b45309;
-  background: #fffbeb;
+  color: $amber-700;
+  background: $amber-50;
   padding: 1px 6px;
   border-radius: 10px;
-  border: 1px solid #fde68a;
+  border: 1px solid $amber-200;
   cursor: help;
   white-space: nowrap;
   line-height: 1.4;
@@ -3532,7 +3577,7 @@ const getSalesQuantity = (row: Formula): number => {
     white-space: nowrap;
 
     &:hover {
-      background: #f1f5f9;
+      background: $border-color-light;
     }
 
     svg {
@@ -3541,18 +3586,18 @@ const getSalesQuantity = (row: Formula): number => {
   }
 
   .action-menu-item--danger {
-    color: #e34d59;
+    color: $color-danger;
 
     &:hover {
-      background: #fff1f0;
+      background: $color-danger-light;
     }
   }
 
   .action-menu-item--publish {
-    color: #2ba471;
+    color: $color-success;
 
     &:hover {
-      background: #e8f8f2;
+      background: $color-success-light;
     }
   }
 }
@@ -3564,19 +3609,19 @@ const getSalesQuantity = (row: Formula): number => {
   gap: var(--space-1);
   font-size: 11px;
   font-weight: 500;
-  color: #2563eb;
-  background: #eff6ff;
+  color: $blue-600;
+  background: $blue-50;
   padding: 1px 6px;
   border-radius: 10px;
-  border: 1px solid #bfdbfe;
+  border: 1px solid $blue-200;
   cursor: pointer;
   white-space: nowrap;
   line-height: 1.4;
   transition: all 0.2s;
 
   &:hover {
-    background: #dbeafe;
-    border-color: #93c5fd;
+    background: $blue-100;
+    border-color: $blue-200;
   }
 }
 
@@ -3611,13 +3656,13 @@ const getSalesQuantity = (row: Formula): number => {
 .formula-list .content-card .t-table .t-table__body-wrapper,
 .formula-list .content-card .t-table .t-table__body-inner,
 .formula-list .content-card .t-table .t-table__body {
-  background: #fff !important;
+  background: $bg-container !important;
 }
 
 /* 2. 所有行 - 白色 */
 .formula-list .content-card .t-table .t-table__body tr,
 .formula-list .content-card .t-table .t-table__body .t-table__row {
-  background-color: #fff !important;
+  background-color: $bg-container !important;
 }
 
 /* 3. 所有单元格（含 TDesign --hover 类）- 无竖线 */
@@ -3625,7 +3670,7 @@ const getSalesQuantity = (row: Formula): number => {
 .formula-list .content-card .t-table .t-table__body .t-table__row td,
 .formula-list .content-card .t-table .t-table__body .t-table__row.t-table__row--hover td {
   background-color: transparent !important;
-  border-bottom-color: #f1f5f9 !important;
+  border-bottom-color: $border-color-light !important;
   color: var(--color-text-primary) !important;
   box-shadow: none !important;
 }
@@ -3633,7 +3678,7 @@ const getSalesQuantity = (row: Formula): number => {
 /* 4. CSS :hover 伪类（优先级最高）→ emerald 浅绿 + 首列绿条 */
 .formula-list .content-card .t-table .t-table__body tr:hover>td,
 .formula-list .content-card .t-table .t-table__body .t-table__row:hover>td {
-  background-color: rgba(209, 250, 229, 0.35) !important;
+  background-color: $overlay-emerald-100-35 !important;
 }
 
 .formula-list .content-card .t-table .t-table__body tr:hover>td:first-child,
@@ -3643,7 +3688,7 @@ const getSalesQuantity = (row: Formula): number => {
 
 /* 5. 选中行 → emerald 更深 + 绿条 */
 .formula-list .content-card .t-table .t-table__body .t-table__row.t-table__row--selected>td {
-  background-color: rgba(209, 250, 229, 0.6) !important;
+  background-color: $overlay-emerald-100-60 !important;
   box-shadow: inset 3px 0 0 var(--color-primary) !important;
 }
 
@@ -3673,7 +3718,7 @@ const getSalesQuantity = (row: Formula): number => {
 
   .t-checkbox .t-checkbox__input.is-checked .t-checkbox__input__inner::after,
   .t-checkbox .t-checkbox__input.is-indeterminate .t-checkbox__input__inner::after {
-    border-color: #fff !important;
+    border-color: $text-white !important;
   }
 
   .t-checkbox .t-checkbox__input:hover .t-checkbox__input__inner {
@@ -3698,7 +3743,7 @@ const getSalesQuantity = (row: Formula): number => {
   border: none !important;
   cursor: pointer !important;
   transition: all $transition-fast !important;
-  box-shadow: 0 4px 6px rgba(15, 23, 42, 0.15) !important;
+  box-shadow: $shadow-elevation-2 !important;
 
   &:hover {
     background-color: var(--color-text-primary) !important;

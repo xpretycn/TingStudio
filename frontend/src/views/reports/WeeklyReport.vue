@@ -351,8 +351,7 @@ import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useReportStore } from '@/stores/report';
 import { MessagePlugin } from 'tdesign-vue-next';
-import * as echarts from 'echarts';
-import type { EChartsOption } from 'echarts';
+import type { EChartsOption, ECharts } from 'echarts';
 import {
   buildDailyFormulaTrendChart,
   buildStatusDistributionChart,
@@ -386,7 +385,7 @@ const reportData = computed(() => {
 });
 
 const chartRefs = ref<Record<string, HTMLElement | null>>({});
-const chartInstances = ref<Record<string, echarts.ECharts | null>>({});
+const chartInstances = ref<Record<string, ECharts | null>>({});
 
 const setChartRef = (key: string) => (el: unknown) => {
   chartRefs.value[key] = el as HTMLElement | null;
@@ -459,7 +458,8 @@ const salesIndicators = computed(() => {
   ];
 });
 
-const initChart = (key: string, option: EChartsOption) => {
+const initChart = async (key: string, option: EChartsOption) => {
+  const echarts = await import('echarts')
   const el = chartRefs.value[key];
   if (!el) return;
 

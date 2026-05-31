@@ -17,25 +17,12 @@ const tableRows = ref<Record<string, unknown>[]>([])
 const pagination = ref({ page: 1, pageSize: 20, total: 0, totalPages: 0 })
 const search = ref<string>("")
 const sortColumn = ref<string>("")
-const sortOrder = ref<string>("ASC")
 const loading = ref(false)
 const jsonDialogContent = ref<string>("")
 const jsonDialogVisible = ref(false)
 const tableOptions = ref<Array<{ label: string; value: string }>>([])
 
 let debounceTimer: ReturnType<typeof setTimeout> | null = null
-
-const pageSizeOptions = [
-  { label: "10 条/页", value: 10 },
-  { label: "20 条/页", value: 20 },
-  { label: "50 条/页", value: 50 },
-  { label: "100 条/页", value: 100 },
-]
-
-const sortOrderOptions = [
-  { label: "升序", value: "ASC" },
-  { label: "降序", value: "DESC" },
-]
 
 const sortColumnOptions = computed(() =>
   tableColumns.value.map((col) => ({ label: col.name, value: col.name }))
@@ -139,7 +126,6 @@ async function loadTableData() {
       pageSize: pagination.value.pageSize,
       search: search.value || undefined,
       sort: sortColumn.value || undefined,
-      order: sortOrder.value,
     })
 
     tableColumns.value = (data.columns as ColumnMeta[]).map((col) => ({
@@ -166,7 +152,6 @@ function handleTableChange(value: string) {
   pagination.value.page = 1
   search.value = ""
   sortColumn.value = ""
-  sortOrder.value = "ASC"
   loadTableData()
 }
 
@@ -179,19 +164,6 @@ function handleSearch() {
 }
 
 function handleSortColumnChange() {
-  pagination.value.page = 1
-  loadTableData()
-}
-
-function handleSortOrderChange() {
-  if (sortColumn.value) {
-    pagination.value.page = 1
-    loadTableData()
-  }
-}
-
-function handlePageSizeChange(value: number) {
-  pagination.value.pageSize = value
   pagination.value.page = 1
   loadTableData()
 }
@@ -292,19 +264,6 @@ onMounted(() => {
         @change="handleSortColumnChange"
       />
 
-      <t-select
-        v-model="sortOrder"
-        :options="sortOrderOptions"
-        class="toolbar-select order-select"
-        @change="handleSortOrderChange"
-      />
-
-      <t-select
-        :value="pagination.pageSize"
-        :options="pageSizeOptions"
-        class="toolbar-select pagesize-select"
-        @change="handlePageSizeChange"
-      />
     </div>
 
     <div class="browser-table-area">
@@ -410,18 +369,13 @@ function highlightJson(jsonStr: string): string {
 
 .browser-toolbar {
   display: flex;
-  flex-wrap: wrap;
-  gap: $space-3;
+  flex-wrap: nowrap;
+  gap: $space-2;
   align-items: center;
-  padding: $space-4;
-  background: $overlay-white-80;
-  backdrop-filter: blur(10px);
-  border-radius: $radius-3xl;
-  border: 2px solid $overlay-pink-lighter-15;
-  box-shadow: $shadow-xs;
+  padding: $space-2 0;
 
   .toolbar-select {
-    min-width: 140px;
+    min-width: 100px;
   }
 
   .table-select {
@@ -429,20 +383,13 @@ function highlightJson(jsonStr: string): string {
   }
 
   .toolbar-input {
-    min-width: 180px;
-    max-width: 260px;
+    min-width: 140px;
+    flex: 1;
+    max-width: 280px;
   }
 
   .sort-select {
-    min-width: 150px;
-  }
-
-  .order-select {
-    min-width: 100px;
-  }
-
-  .pagesize-select {
-    min-width: 120px;
+    min-width: 130px;
   }
 }
 

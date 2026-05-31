@@ -3,7 +3,7 @@
 > 基础地址：`http://localhost:3000/api`
 > 认证方式：Bearer Token（JWT）
 > Content-Type：`application/json`
-> 最后更新：2026-05-27
+> 最后更新：2026-06-01
 
 ---
 
@@ -2795,6 +2795,44 @@
 
 需认证。**仅管理员**可删除。
 
+### 20.6 获取互斥规则列表
+
+**GET** `/api/enums/exclusions`
+
+需认证。返回所有枚举互斥规则。
+
+#### 响应字段
+
+| 字段       | 类型   | 说明                                  |
+| ---------- | ------ | ------------------------------------- |
+| `id`       | string | 规则 ID                               |
+| `category` | string | 分类：`appearance` / `taste`          |
+| `valueA`   | string | 选项 A                                |
+| `valueB`   | string | 选项 B                                |
+| `createdAt` | string | 创建时间                             |
+
+### 20.7 创建互斥规则
+
+**POST** `/api/enums/exclusions`
+
+需认证。**仅管理员**可创建。
+
+#### 请求参数
+
+| 字段       | 类型   | 必填 | 约束                       | 说明     |
+| ---------- | ------ | ---- | -------------------------- | -------- |
+| `category` | string | 是   | `appearance` 或 `taste`    | 分类     |
+| `valueA`   | string | 是   | -                          | 选项 A   |
+| `valueB`   | string | 是   | -                          | 选项 B   |
+
+> 同一分类下 valueA 和 valueB 的组合不可重复。
+
+### 20.8 删除互斥规则
+
+**DELETE** `/api/enums/exclusions/:id`
+
+需认证。**仅管理员**可删除。
+
 ---
 
 ## 二十一、AI 解析结果 `/api/ai/parse-results`
@@ -3455,3 +3493,271 @@
 | 404         | `NOT_FOUND`       | 快速配方不存在            |
 | 403         | `FORBIDDEN`       | 无权发布该配方            |
 | 400         | `VALIDATION_ERROR`| 非草稿状态不可发布        |
+
+---
+
+## 二十四、角色管理 `/api/roles`
+
+> 所有接口需认证。角色增删改需要 `permission:write` 权限。
+
+### 24.1 获取角色列表
+
+**GET** `/api/roles`
+
+需认证。返回所有角色列表。
+
+#### 响应字段
+
+| 字段          | 类型    | 说明                    |
+| ------------- | ------- | ----------------------- |
+| `id`          | string  | 角色 ID                 |
+| `name`        | string  | 角色名称                |
+| `roleKey`     | string  | 角色标识                |
+| `description` | string  | 描述                    |
+| `isSystem`    | number  | 是否为系统角色（1/0）   |
+| `createdAt`   | string  | 创建时间                |
+| `updatedAt`   | string  | 更新时间                |
+
+### 24.2 获取角色详情
+
+**GET** `/api/roles/:id`
+
+需认证。
+
+### 24.3 创建角色
+
+**POST** `/api/roles`
+
+需认证。需要 `permission:write` 权限。
+
+#### 请求参数
+
+| 字段          | 类型   | 必填 | 说明         |
+| ------------- | ------ | ---- | ------------ |
+| `name`        | string | 是   | 角色名称     |
+| `roleKey`     | string | 是   | 角色标识     |
+| `description` | string | 否   | 描述         |
+
+### 24.4 更新角色
+
+**PUT** `/api/roles/:id`
+
+需认证。需要 `permission:write` 权限。
+
+#### 请求参数
+
+| 字段          | 类型   | 必填 | 说明         |
+| ------------- | ------ | ---- | ------------ |
+| `name`        | string | 是   | 角色名称     |
+
+### 24.5 删除角色
+
+**DELETE** `/api/roles/:id`
+
+需认证。需要 `permission:write` 权限。
+
+### 24.6 获取角色权限
+
+**GET** `/api/roles/:id/permissions`
+
+需认证。返回指定角色的权限列表。
+
+### 24.7 更新角色权限
+
+**PUT** `/api/roles/:id/permissions`
+
+需认证。需要 `permission:write` 权限。
+
+#### 请求参数
+
+| 字段            | 类型     | 必填 | 说明         |
+| --------------- | -------- | ---- | ------------ |
+| `permissionIds` | string[] | 是   | 权限 ID 列表 |
+
+---
+
+## 二十五、权限管理 `/api/permissions`
+
+> 所有接口需认证。
+
+### 25.1 获取权限列表
+
+**GET** `/api/permissions`
+
+需认证。返回所有权限列表。
+
+#### 响应字段
+
+| 字段            | 类型   | 说明           |
+| --------------- | ------ | -------------- |
+| `id`            | string | 权限 ID        |
+| `module`        | string | 所属模块       |
+| `action`        | string | 操作类型       |
+| `permissionKey` | string | 权限标识       |
+| `label`         | string | 显示名称       |
+| `description`   | string | 描述           |
+| `sortOrder`     | number | 排序序号       |
+
+---
+
+## 二十六、用户管理 `/api/users`
+
+> 所有接口需认证。需要 `user:read` 或 `user:write` 权限。
+
+### 26.1 获取用户列表
+
+**GET** `/api/users`
+
+需认证。需要 `user:read` 权限。
+
+#### 响应字段
+
+| 字段         | 类型   | 说明         |
+| ------------ | ------ | ------------ |
+| `id`         | string | 用户 ID      |
+| `username`   | string | 用户名       |
+| `role`       | string | 角色         |
+| `displayName` | string | 昵称        |
+| `email`      | string | 邮箱         |
+| `phone`      | string | 手机号       |
+| `createdAt`  | string | 创建时间     |
+
+### 26.2 更新用户角色
+
+**PUT** `/api/users/:id/role`
+
+需认证。需要 `user:write` 权限。
+
+#### 请求参数
+
+| 字段     | 类型   | 必填 | 说明     |
+| -------- | ------ | ---- | -------- |
+| `roleId` | string | 是   | 角色 ID  |
+
+### 26.3 更新用户状态
+
+**PUT** `/api/users/:id/status`
+
+需认证。需要 `user:write` 权限。
+
+#### 请求参数
+
+| 字段       | 类型   | 必填 | 说明             |
+| ---------- | ------ | ---- | ---------------- |
+| `isActive` | number | 是   | 状态值（1/0）    |
+
+---
+
+## 二十七、数据库管理 `/api/db`
+
+> 所有接口需认证。**仅管理员**可访问。
+
+### 27.1 获取数据库信息
+
+**GET** `/api/db/info`
+
+需认证。返回数据库基本信息。
+
+#### 响应字段
+
+| 字段       | 类型   | 说明           |
+| ---------- | ------ | -------------- |
+| `dbType`   | string | 数据库类型     |
+| `dbSize`   | string | 数据库大小     |
+| `tableCount` | number | 表数量       |
+
+### 27.2 获取数据表列表
+
+**GET** `/api/db/tables`
+
+需认证。返回所有数据表概要信息。
+
+#### 响应字段
+
+| 字段        | 类型   | 说明       |
+| ----------- | ------ | ---------- |
+| `name`      | string | 表名       |
+| `rowCount`  | number | 行数       |
+| `colCount`  | number | 列数       |
+
+### 27.3 获取表结构
+
+**GET** `/api/db/tables/:tableName/schema`
+
+需认证。返回指定表的列定义。
+
+### 27.4 获取表数据
+
+**GET** `/api/db/tables/:tableName/data`
+
+需认证。分页查询指定表的数据。
+
+#### 请求参数
+
+| 参数       | 类型   | 说明                                         |
+| ---------- | ------ | -------------------------------------------- |
+| `keyword`  | string | 搜索关键词                                   |
+| `sortColumn` | string | 排序字段                                   |
+| `page`     | number | 页码                                         |
+| `pageSize` | number | 每页数量                                     |
+
+### 27.5 获取备份列表
+
+**GET** `/api/db/backups`
+
+需认证。返回所有数据库备份文件列表。
+
+### 27.6 创建备份
+
+**POST** `/api/db/backups`
+
+需认证。创建数据库备份。
+
+### 27.7 下载备份
+
+**GET** `/api/db/backups/:fileName/download`
+
+需认证。下载指定的备份文件。
+
+### 27.8 恢复备份
+
+**POST** `/api/db/backups/:fileName/restore`
+
+需认证。从指定的备份文件恢复数据库。
+
+### 27.9 删除备份
+
+**DELETE** `/api/db/backups/:fileName`
+
+需认证。删除指定的备份文件。
+
+### 27.10 上传并恢复备份
+
+**POST** `/api/db/backups/upload-restore`
+
+需认证。上传 JSON 备份文件并恢复数据库。
+
+#### 请求格式
+
+- Content-Type: `multipart/form-data`
+- 文件字段名: `backup`
+- 支持格式: `.json`
+- 文件大小限制: 100MB
+
+### 27.11 获取脚本列表
+
+**GET** `/api/db/scripts`
+
+需认证。返回可执行的数据库脚本列表。
+
+### 27.12 执行脚本
+
+**POST** `/api/db/scripts/:scriptId/execute`
+
+需认证。执行指定的数据库脚本。
+
+### 27.13 获取脚本执行历史
+
+**GET** `/api/db/scripts/:scriptId/history`
+
+需认证。返回指定脚本的执行历史记录。

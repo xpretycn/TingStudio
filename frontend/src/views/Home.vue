@@ -430,10 +430,12 @@
       <main id="main-content" class="content-body">
         <!-- 页面内容 -->
         <div class="content-main">
-          <router-view v-slot="{ Component }">
+          <router-view v-slot="{ Component, route: childRoute }">
             <transition :name="transitionName" mode="out-in" @before-leave="onTransitionBeforeLeave"
               @after-leave="onTransitionAfterLeave">
-              <component :is="Component" :key="contentRefreshKey + route.fullPath" />
+              <keep-alive :include="keepAliveComponents">
+                <component :is="Component" :key="contentRefreshKey + childRoute.fullPath" />
+              </keep-alive>
             </transition>
           </router-view>
         </div>
@@ -485,12 +487,21 @@ const sidebarCollapsed = ref(false);
 const mobileDrawerOpen = ref(false);
 const contentRefreshKey = ref(0);
 const showVersionCard = ref(false);
+
+// 需要缓存的组件名称列表（组件必须定义 name 属性与此匹配）
+const KEEP_ALIVE_COMPONENTS = ['FormulaList'];
+const keepAliveComponents = KEEP_ALIVE_COMPONENTS;
+
+// 判断路由是否应使用缓存 key（缓存页用 path 作 key，非缓存页用 fullPath）
+const shouldUseCache = (route: { meta: Record<string, unknown>; name: string | symbol | null | undefined }) => {
+  return !!route.meta?.keepAlive || KEEP_ALIVE_COMPONENTS.includes(route.name as string);
+};
 const activePath = computed(() => {
   const path = route.path;
   // 按最长前缀匹配，优先精确匹配，再按路径段前缀匹配
   const pathMap = [
     '/dashboard', '/formulas', '/materials', '/files', '/salesmen', '/sales',
-    '/reports', '/nutrition', '/tools', '/ai-assistant', '/smart-tools',
+    '/reports', '/nutrition/profiles', '/nutrition', '/tools', '/ai-assistant', '/smart-tools',
     '/model-management', '/system'
   ];
   for (const key of pathMap) {
@@ -590,7 +601,8 @@ const navGroups = {
     items: [
       { path: '/sales', label: '销量分析', icon: 'chart' },
       { path: '/reports', label: '报告中心', icon: 'file-icon' },
-      { path: '/nutrition', label: '营养分析', icon: 'chart-pie' }
+      { path: '/nutrition', label: '营养分析', icon: 'chart-pie' },
+      { path: '/nutrition/profiles', label: '营养标准', icon: 'setting' }
     ] as NavItem[]
   },
   tools: {
@@ -713,7 +725,7 @@ const refreshWittyComment = async () => {
       }
     }
 
-    await new Promise(resolve => setTimeout(resolve, 300));
+    await new Promise(resolve => setTimeout(resolve, 0));
     const randomComment = WITTY_FALLBACK_POOL[Math.floor(Math.random() * WITTY_FALLBACK_POOL.length)];
     wittyComment.value = randomComment;
 
@@ -868,6 +880,13 @@ const navigateTo = (path: string) => {
 // 刷新子页面（只刷新右侧内容区域）
 const handleRefresh = () => {
   if (isTransitioning) return;
+  // 失效当前路由对应 store 的缓存，组件重新挂载时从 API 拉取最新数据
+  const path = route.path;
+  if (path.startsWith('/formulas')) {
+    formulaStore.invalidateCache();
+  } else if (path.startsWith('/materials')) {
+    materialStore.invalidateCache();
+  }
   contentRefreshKey.value++;
 };
 

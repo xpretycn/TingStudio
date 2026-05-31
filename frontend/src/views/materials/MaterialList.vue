@@ -267,7 +267,7 @@
                 </button>
                 <template #content>
                   <div class="action-menu">
-                    <div v-for="action in getRowActions(row)" :key="action.key"
+                    <div v-for="action in getRowActions(row).filter(a => a.key !== 'delete')" :key="action.key"
                       :class="['action-menu-item', action.menuClass]" @click="action.handler(row)">
                       <svg v-if="action.key === 'viewVersions'" width="14" height="14" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -294,13 +294,20 @@
                         <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
                         <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
                       </svg>
-                      <svg v-else-if="action.key === 'delete'" width="14" height="14" viewBox="0 0 24 24" fill="none"
-                        stroke="var(--color-danger)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <polyline points="3 6 5 6 21 6" />
-                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2" />
-                      </svg>
                       <span>{{ action.label }}</span>
                     </div>
+                    <t-popconfirm theme="danger"
+                      :content="`确定要删除原料「${row.name}」吗？删除后无法恢复。`"
+                      @confirm="handleDelete(row)">
+                      <div class="action-menu-item action-menu-item--danger">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                          stroke="var(--color-danger)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <polyline points="3 6 5 6 21 6" />
+                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2" />
+                        </svg>
+                        <span>删除</span>
+                      </div>
+                    </t-popconfirm>
                   </div>
                 </template>
               </t-popup>
@@ -351,7 +358,7 @@
       <div class="activity-card activity-card--timeline">
         <div class="activity-header">
           <h4 class="activity-title">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-info)" stroke-width="2"
               stroke-linecap="round" stroke-linejoin="round">
               <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
             </svg>
@@ -392,7 +399,7 @@
       <div class="activity-card activity-card--assistant">
         <div class="assistant-header">
           <h4 class="assistant-title">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-white)" stroke-width="2"
               stroke-linecap="round" stroke-linejoin="round">
               <path d="M20 7h-9" />
               <path d="M14 17H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-3" />
@@ -578,9 +585,9 @@ const dashboardCards = computed(() => {
       unit: '种',
       badge: `${total > 0 ? '+' + Math.min(total, 99) : 0}`,
       badgeColor: 'var(--color-primary)',
-      badgeBg: '#ECFDF5',
-      iconBg: '#EFF6FF',
-      iconColor: '#3B82F6',
+      badgeBg: 'var(--color-emerald-50)',
+      iconBg: 'var(--color-info-bg)',
+      iconColor: 'var(--color-info)',
       iconPath: '<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="M3.27 6.96L12 12.01l8.73-5.05"/><line x1="12" y1="22.08" x2="12" y2="12"/>',
     },
     {
@@ -590,7 +597,7 @@ const dashboardCards = computed(() => {
       badge: '主料',
       badgeColor: 'var(--color-primary-dark)',
       badgeBg: 'var(--color-primary-bg)',
-      iconBg: '#FFFBEB',
+      iconBg: 'var(--color-warning-bg)',
       iconColor: 'var(--color-warning)',
       iconPath: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
     },
@@ -599,8 +606,8 @@ const dashboardCards = computed(() => {
       value: supplementCount.toString(),
       unit: '种',
       badge: '补充剂',
-      badgeColor: '#D97706',
-      badgeBg: '#FEF3C7',
+      badgeColor: 'var(--color-warning)',
+      badgeBg: 'var(--color-warning-bg)',
       iconBg: '#FAF5FF',
       iconColor: '#A855F7',
       iconPath: '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>',
@@ -611,8 +618,8 @@ const dashboardCards = computed(() => {
       unit: '项',
       badge: nutritionCount >= total && total > 0 ? '完整' : '待补全',
       badgeColor: nutritionCount >= total ? 'var(--color-primary)' : 'var(--color-danger)',
-      badgeBg: nutritionCount >= total ? '#ECFDF5' : '#FEF2F2',
-      iconBg: '#ECFDF5',
+      badgeBg: nutritionCount >= total ? 'var(--color-emerald-50)' : 'var(--color-danger-bg)',
+      iconBg: 'var(--color-emerald-50)',
       iconColor: 'var(--color-primary)',
       iconPath: '<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>',
     },
@@ -752,9 +759,9 @@ const getMaterialAvatar = (row: Material) => {
 
 const getAvatarColor = (text: string) => {
   const colors = [
-    { bg: '#DBEAFE', text: '#3B82F6' },
-    { bg: '#FEE2E2', text: 'var(--color-danger)' },
-    { bg: '#FEF3C7', text: 'var(--color-warning)' },
+    { bg: 'var(--color-info-bg)', text: 'var(--color-info)' },
+    { bg: 'var(--color-danger-bg)', text: 'var(--color-danger)' },
+    { bg: 'var(--color-warning-bg)', text: 'var(--color-warning)' },
     { bg: 'var(--color-primary-bg)', text: 'var(--color-primary)' },
     { bg: '#E0E7FF', text: '#6366F1' },
     { bg: '#F3E8FF', text: '#A855F7' },
@@ -1065,6 +1072,7 @@ const refreshMatPending = () => {
 const handleRefreshList = () => {
   searchKeyword.value = '';
   materialStore.clearKeyword();
+  materialStore.invalidateCache();
   router.replace({ query: {} });
   loadMaterials();
 };
@@ -1081,32 +1089,47 @@ function formatTimeAgo(dateStr: string): string {
   return `${days}天前`;
 }
 
+let pendingRefreshTimer: ReturnType<typeof setInterval> | null = null;
+
 onMounted(async () => {
-  window.addEventListener('global-search', handleGlobalSearch);
+  window.addEventListener("global-search", handleGlobalSearch);
   paginationStore.register(pagination.value);
   watch(pagination, (val) => paginationStore.update(val), { deep: true });
 
   // 从路由查询参数恢复搜索关键字（在加载数据之前）
   if (route.query.keyword) {
     const keyword = route.query.keyword as string;
-    // 设置标志位，防止 watch 触发重复搜索
     isRestoringFromRoute = true;
     searchKeyword.value = keyword;
     materialStore.setKeyword(keyword);
-    // 等待 DOM 更新，确保输入框显示关键字
     await nextTick();
   } else if (materialStore.keyword) {
-    // 路由无关键字但 store 有，同步到本地状态
     searchKeyword.value = materialStore.keyword;
   }
 
   loadMaterials();
   fetchStats();
-  exportStore.fetchTemplates({ category: 'material', pageSize: 100 });
+  exportStore.fetchTemplates({ category: "material", pageSize: 100 });
+
+  pendingRefreshTimer = setInterval(() => {
+    materialStore.refreshMaterials();
+    materialStore.fetchAllForSelect();
+  }, 5 * 60 * 1000);
 });
 
-// 处理 keep-alive 缓存的组件重新激活时恢复搜索状态
+// keep-alive 重新激活：检测用户切换 + 恢复搜索状态
 onActivated(async () => {
+  const currentUserId = localStorage.getItem("tingstudio_user_id");
+  const cachedUserId = sessionStorage.getItem("material_list_user_id");
+
+  if (cachedUserId && currentUserId && cachedUserId !== currentUserId) {
+    materialStore.refreshMaterials();
+  }
+
+  if (currentUserId) {
+    sessionStorage.setItem("material_list_user_id", currentUserId);
+  }
+
   if (route.query.keyword) {
     if (route.query.keyword !== searchKeyword.value) {
       const keyword = route.query.keyword as string;
@@ -1118,7 +1141,7 @@ onActivated(async () => {
     }
   } else {
     if (searchKeyword.value || materialStore.keyword) {
-      searchKeyword.value = '';
+      searchKeyword.value = "";
       materialStore.clearKeyword();
       materialStore.fetchMaterials();
     }
@@ -1126,8 +1149,12 @@ onActivated(async () => {
 });
 
 onUnmounted(() => {
-  window.removeEventListener('global-search', handleGlobalSearch);
+  window.removeEventListener("global-search", handleGlobalSearch);
   paginationStore.unregister();
+  if (pendingRefreshTimer) {
+    clearInterval(pendingRefreshTimer);
+    pendingRefreshTimer = null;
+  }
 });
 
 const loadMaterials = async () => {
@@ -1311,20 +1338,11 @@ const getRowActions = (row: Material): RowAction[] => {
       icon: 'delete',
       btnClass: 'delete-btn',
       menuClass: 'action-menu-item--danger',
-      handler: (r: Material) => { handleDeleteWithConfirm(r); },
+      handler: handleDelete,
     });
   }
 
   return actions;
-};
-
-const handleDeleteWithConfirm = (row: Material) => {
-  MessagePlugin.confirm({
-    header: '确认删除',
-    body: `确定要删除原料「${row.name}」吗？`,
-    confirmBtn: { content: '确认删除', theme: 'danger' },
-    onConfirm: () => handleDelete(row),
-  });
 };
 
 const handleDelete = async (row: Material) => {
@@ -1336,8 +1354,14 @@ const handleDelete = async (row: Material) => {
     } else {
       MessagePlugin.error(result.message || '删除失败');
     }
-  } catch {
-    MessagePlugin.error('删除失败');
+  } catch (err: unknown) {
+    const axiosErr = err as { response?: { data?: { error?: { message?: string } } } };
+    const serverMsg = axiosErr?.response?.data?.error?.message;
+    if (serverMsg) {
+      MessagePlugin.error(serverMsg);
+    } else {
+      MessagePlugin.error('删除失败');
+    }
   }
 };
 
@@ -1407,10 +1431,10 @@ const handleStatusFilterChange = () => {
     margin-bottom: 0;
 
     .stat-card {
-      background: #fff;
+      background: var(--color-bg-container);
       padding: var(--space-2-5) 16px;
       border-radius: 12px;
-      border: 1px solid #fff;
+      border: 1px solid var(--color-bg-container);
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
       transition: all $transition-slow;
       animation: dashboard-fade-in 0.5s ease forwards;
@@ -1467,7 +1491,7 @@ const handleStatusFilterChange = () => {
       .stat-value {
         font-size: 18px;
         font-weight: 700;
-        color: #0F172A;
+        color: var(--color-text-primary);
         line-height: 1.2;
         width: 100%;
 
@@ -1483,7 +1507,7 @@ const handleStatusFilterChange = () => {
   // ─── 内容卡片 ───
   .content-card {
     min-height: 400px;
-    background-color: #fff;
+    background-color: var(--color-bg-container);
     border-radius: var(--radius-5xl) !important;
     border: 1px solid var(--color-bg-page) !important;
     overflow: hidden;
@@ -1492,7 +1516,7 @@ const handleStatusFilterChange = () => {
 
     &:hover {
       box-shadow: 0 8px 30px rgba(15, 23, 42, 0.10), 0 2px 6px rgba(15, 23, 42, 0.05);
-      border-color: #ecfdf5 !important;
+      border-color: var(--color-emerald-50) !important;
     }
 
     :deep(.t-card__body) {
@@ -1549,9 +1573,9 @@ const handleStatusFilterChange = () => {
 
     .nutrition-item {
       padding: 16px var(--space-4-5);
-      background: #fff;
+      background: var(--color-bg-container);
       border-radius: 12px;
-      border: 1px solid #f1f5f9;
+      border: 1px solid var(--color-border-light);
       transition: all $transition-fast;
       position: relative;
 
@@ -1563,7 +1587,7 @@ const handleStatusFilterChange = () => {
 
       &--highlight {
         border-color: var(--color-primary-bg);
-        background: linear-gradient(135deg, #ffffff, #f0fdf4);
+        background: linear-gradient(135deg, var(--color-bg-container), var(--color-emerald-50));
 
         .nutri-label {
           color: var(--color-primary-dark);
@@ -1603,7 +1627,7 @@ const handleStatusFilterChange = () => {
       .nutri-bar-track {
         width: 100%;
         height: 6px;
-        background: #f1f5f9;
+        background: var(--color-bg-hover);
         border-radius: 999px;
         overflow: hidden;
         margin-bottom: var(--space-1-5);
@@ -1633,7 +1657,7 @@ const handleStatusFilterChange = () => {
 
       .t-icon {
         font-size: 40px;
-        color: #cbd5e1;
+        color: var(--color-text-placeholder);
         margin-bottom: 12px;
       }
 
@@ -1645,7 +1669,7 @@ const handleStatusFilterChange = () => {
 
       .empty-hint {
         font-size: 13px;
-        color: #cbd5e1;
+        color: var(--color-text-placeholder);
         margin-top: 8px;
       }
     }
@@ -1713,7 +1737,7 @@ const handleStatusFilterChange = () => {
         white-space: nowrap;
 
         &.active {
-          background: #fff;
+          background: var(--color-bg-container);
           color: var(--color-primary);
           font-weight: 600;
           box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
@@ -1755,7 +1779,7 @@ const handleStatusFilterChange = () => {
           &:focus {
             box-shadow: 0 0 0 2px rgba(167, 243, 208, 0.50);
             outline: none;
-            background-color: #fff;
+            background-color: var(--color-bg-container);
           }
 
           &::placeholder {
@@ -1799,7 +1823,7 @@ const handleStatusFilterChange = () => {
       padding: 8px;
       color: var(--color-text-placeholder);
       background-color: transparent;
-      border: 1px solid #f1f5f9;
+      border: 1px solid var(--color-border-light);
       border-radius: 8px;
       transition: all $transition-fast;
       cursor: pointer;
@@ -1820,7 +1844,7 @@ const handleStatusFilterChange = () => {
         height: 8px;
         background-color: var(--color-primary);
         border-radius: 50%;
-        border: 2px solid white;
+        border: 2px solid var(--color-bg-container);
         opacity: 0;
         transition: opacity 0.2s;
       }
@@ -1840,7 +1864,7 @@ const handleStatusFilterChange = () => {
     bottom: 0;
     z-index: 20;
     background-color: var(--color-primary-dark);
-    color: #fff;
+    color: var(--color-text-white);
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -1882,7 +1906,7 @@ const handleStatusFilterChange = () => {
         font-weight: 500;
         background: none;
         border: none;
-        color: #fff;
+        color: var(--color-text-white);
         cursor: pointer;
         padding: 4px 8px;
         border-radius: 6px;
@@ -1907,7 +1931,7 @@ const handleStatusFilterChange = () => {
       padding: 4px 12px;
       border-radius: 8px;
       background: transparent;
-      color: #fff;
+      color: var(--color-text-white);
       cursor: pointer;
       transition: all $transition-fast;
 
@@ -1924,7 +1948,7 @@ const handleStatusFilterChange = () => {
     padding: var(--space-2-5) 12px;
     background: var(--color-bg-page);
     border-radius: 8px;
-    border-left: 3px solid #fecdd3;
+    border-left: 3px solid var(--color-danger-border);
   }
 
   // 表格样式
@@ -1960,7 +1984,7 @@ const handleStatusFilterChange = () => {
     }
 
     .t-table__body {
-      background: #fff !important;
+      background: var(--color-bg-container) !important;
 
       .t-table__row {
         transition: background-color 0.2s ease;
@@ -1978,7 +2002,7 @@ const handleStatusFilterChange = () => {
 
         td {
           padding: var(--space-4-5) 20px !important;
-          border-bottom: 1px solid #f1f5f9 !important;
+          border-bottom: 1px solid var(--color-border-light) !important;
           vertical-align: middle;
 
           &:first-child {
@@ -2094,7 +2118,7 @@ const handleStatusFilterChange = () => {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #fff;
+    color: var(--color-text-white);
     font-size: 11px;
     font-weight: 600;
     flex-shrink: 0;
@@ -2146,7 +2170,7 @@ const handleStatusFilterChange = () => {
 
 // 营养空标签
 .nutrition-empty {
-  color: #cbd5e1;
+  color: var(--color-text-placeholder);
   font-size: 12px;
   display: inline-flex;
   align-items: center;
@@ -2194,32 +2218,32 @@ const handleStatusFilterChange = () => {
 
     &.edit-btn:hover {
       color: var(--color-primary);
-      background: #ecfdf5;
+      background: var(--color-emerald-50);
       border-color: var(--color-primary-lightest);
     }
 
     &.delete-btn:hover {
       color: var(--color-danger);
-      background: #fef2f2;
-      border-color: #fecaca;
+      background: var(--color-danger-bg);
+      border-color: var(--color-danger-border);
     }
 
     &.submit-btn:hover {
-      color: #3b82f6;
-      background: #eff6ff;
-      border-color: #bfdbfe;
+      color: var(--color-info);
+      background: var(--color-info-bg);
+      border-color: var(--color-info-border);
     }
 
     &.approve-btn:hover {
       color: var(--color-primary);
-      background: #ecfdf5;
+      background: var(--color-emerald-50);
       border-color: var(--color-primary-lightest);
     }
 
     &.reject-btn:hover {
       color: var(--color-danger);
-      background: #fef2f2;
-      border-color: #fecaca;
+      background: var(--color-danger-bg);
+      border-color: var(--color-danger-border);
     }
 
     .t-icon {
@@ -2268,7 +2292,7 @@ const handleStatusFilterChange = () => {
     white-space: nowrap;
 
     &:hover {
-      background: #f1f5f9;
+      background: var(--color-bg-hover);
     }
 
     svg {
@@ -2277,18 +2301,18 @@ const handleStatusFilterChange = () => {
   }
 
   .action-menu-item--danger {
-    color: #e34d59;
+    color: var(--color-danger);
 
     &:hover {
-      background: #fff1f0;
+      background: var(--color-danger-bg);
     }
   }
 
   .action-menu-item--publish {
-    color: #2ba471;
+    color: var(--color-emerald-600);
 
     &:hover {
-      background: #e8f8f2;
+      background: var(--color-success-bg);
     }
   }
 }
@@ -2299,7 +2323,7 @@ const handleStatusFilterChange = () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #fff;
+  background-color: var(--color-bg-container);
   border-top: 1px solid var(--color-bg-page);
 
   .pagination-info {
@@ -2347,7 +2371,7 @@ const handleStatusFilterChange = () => {
 
     &.pagination-btn--active {
       background-color: var(--color-primary, var(--color-primary));
-      color: #fff;
+      color: var(--color-text-white);
       border-color: var(--color-primary, var(--color-primary));
       font-weight: 600;
       box-shadow: 0 1px 3px var(--overlay-brand-25, rgba(255, 107, 138, 0.25));
@@ -2381,16 +2405,16 @@ const handleStatusFilterChange = () => {
 }
 
 .activity-card {
-  background-color: #fff;
+  background-color: var(--color-bg-container);
   border-radius: var(--radius-4xl);
   padding: 32px;
   box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
   border: 1px solid var(--color-bg-page);
 
   &--assistant {
-    background: #fff;
+    background: var(--color-bg-container);
     border: 1px solid var(--color-bg-page);
-    color: #0F172A;
+    color: var(--color-text-primary);
     position: relative;
     overflow: hidden;
     box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
@@ -2442,7 +2466,7 @@ const handleStatusFilterChange = () => {
       opacity: 0.3;
       cursor: not-allowed;
       border-color: rgba(148, 163, 184, 0.15);
-      color: #cbd5e1;
+      color: var(--color-text-placeholder);
       background: transparent;
     }
   }
@@ -2477,7 +2501,7 @@ const handleStatusFilterChange = () => {
     top: 28px;
     bottom: 0;
     width: 1px;
-    background-color: #f1f5f9;
+    background-color: var(--color-border-light);
   }
 }
 
@@ -2497,11 +2521,11 @@ const handleStatusFilterChange = () => {
   }
 
   &--warning {
-    background-color: #fef3c7;
+    background-color: var(--color-warning-bg);
   }
 
   &--info {
-    background-color: #dbeafe;
+    background-color: var(--color-info-bg);
   }
 }
 
@@ -2519,7 +2543,7 @@ const handleStatusFilterChange = () => {
   }
 
   .timeline-dot--info & {
-    background-color: #3b82f6;
+    background-color: var(--color-info);
   }
 }
 
@@ -2545,7 +2569,7 @@ const handleStatusFilterChange = () => {
   }
 
   :deep(.text-amber-600) {
-    color: #d97706 !important;
+    color: var(--color-warning) !important;
     font-weight: 700 !important;
   }
 
@@ -2556,7 +2580,7 @@ const handleStatusFilterChange = () => {
 
 .timeline-time {
   font-size: 10px;
-  color: #cbd5e1;
+  color: var(--color-text-placeholder);
   text-transform: uppercase;
   display: inline-block;
   margin-top: 4px;
@@ -2578,7 +2602,7 @@ const handleStatusFilterChange = () => {
     gap: 8px;
     font-size: 16px;
     font-weight: 700;
-    color: #fff;
+    color: var(--color-text-white);
     margin: 0;
   }
 }
@@ -2640,20 +2664,20 @@ const handleStatusFilterChange = () => {
   padding: var(--space-3-5);
   background: var(--color-bg-page);
   border-radius: 14px;
-  border: 1px solid #f1f5f9;
+  border: 1px solid var(--color-border-light);
   transition: all 0.25s ease;
   cursor: default;
   animation: todoSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
 
   &:hover {
-    background: #f1f5f9;
+    background: var(--color-bg-hover);
     border-color: var(--color-border);
     transform: translateX(4px);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   }
 
   &--high {
-    background: #FFFBEB;
+    background: var(--color-warning-bg);
     border-color: #FEF08A;
 
     &:hover {
@@ -2662,25 +2686,25 @@ const handleStatusFilterChange = () => {
     }
 
     .todo-item__title {
-      color: #92400E;
+      color: var(--color-warning-dark);
     }
 
     .todo-item__desc {
-      color: #78716C;
+      color: var(--color-text-secondary);
     }
   }
 
   &--medium {
-    background: #EFF6FF;
-    border-color: #BFDBFE;
+    background: var(--color-info-bg);
+    border-color: var(--color-info-border);
 
     &:hover {
-      background: #DBEAFE;
+      background: var(--color-info-bg);
       border-color: #93C5FD;
     }
 
     .todo-item__title {
-      color: #1E40AF;
+      color: var(--color-info);
     }
 
     .todo-item__desc {
@@ -2703,7 +2727,7 @@ const handleStatusFilterChange = () => {
     }
 
     .todo-item__desc {
-      color: #6B7280;
+      color: var(--color-text-secondary);
     }
   }
 
@@ -2717,13 +2741,13 @@ const handleStatusFilterChange = () => {
     justify-content: center;
 
     &--warning {
-      background: linear-gradient(135deg, #FEF3C7, #FDE68A);
-      color: #D97706;
+      background: linear-gradient(135deg, var(--color-warning-bg), #FDE68A);
+      color: var(--color-warning);
     }
 
     &--info {
-      background: linear-gradient(135deg, #DBEAFE, #BFDBFE);
-      color: #2563EB;
+      background: linear-gradient(135deg, var(--color-info-bg), var(--color-info-border));
+      color: var(--color-info);
     }
 
     &--default {
@@ -2758,7 +2782,7 @@ const handleStatusFilterChange = () => {
     height: 28px;
     border-radius: 8px;
     border: 1.5px solid var(--color-border);
-    background: #fff;
+    background: var(--color-bg-container);
     color: var(--color-text-secondary);
     cursor: pointer;
     display: inline-flex;
@@ -2769,7 +2793,7 @@ const handleStatusFilterChange = () => {
     &:hover {
       background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
       border-color: transparent;
-      color: #fff;
+      color: var(--color-text-white);
       transform: scale(1.05);
     }
   }
@@ -2817,7 +2841,7 @@ const handleStatusFilterChange = () => {
   p {
     font-size: 15px;
     font-weight: 600;
-    color: #0F172A;
+    color: var(--color-text-primary);
     margin: 0 0 var(--space-1-5) 0;
   }
 
@@ -2830,7 +2854,7 @@ const handleStatusFilterChange = () => {
 .assistant-footer {
   margin-top: 16px;
   padding-top: 16px;
-  border-top: 1px solid #f1f5f9;
+  border-top: 1px solid var(--color-border-light);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -2846,7 +2870,7 @@ const handleStatusFilterChange = () => {
   height: 28px;
   border-radius: 8px;
   border: 1.5px solid var(--color-border);
-  background: #fff;
+  background: var(--color-bg-container);
   color: var(--color-text-secondary);
   cursor: pointer;
   display: inline-flex;
@@ -2855,8 +2879,8 @@ const handleStatusFilterChange = () => {
   transition: all 0.2s ease;
 
   &:hover {
-    background: #f1f5f9;
-    border-color: #cbd5e1;
+    background: var(--color-bg-hover);
+    border-color: var(--color-text-placeholder);
     color: var(--color-text-secondary);
     transform: rotate(180deg);
   }
@@ -2952,19 +2976,19 @@ const handleStatusFilterChange = () => {
 .material-list .content-card .t-table .t-table__body-wrapper,
 .material-list .content-card .t-table .t-table__body-inner,
 .material-list .content-card .t-table .t-table__body {
-  background: #fff !important;
+  background: var(--color-bg-container) !important;
 }
 
 .material-list .content-card .t-table .t-table__body tr,
 .material-list .content-card .t-table .t-table__body .t-table__row {
-  background-color: #fff !important;
+  background-color: var(--color-bg-container) !important;
 }
 
 .material-list .content-card .t-table .t-table__body td,
 .material-list .content-card .t-table .t-table__body .t-table__row td,
 .material-list .content-card .t-table .t-table__body .t-table__row.t-table__row--hover td {
   background-color: transparent !important;
-  border-bottom-color: #f1f5f9 !important;
+  border-bottom-color: var(--color-border-light) !important;
   color: var(--color-text-primary) !important;
   box-shadow: none !important;
 }
@@ -2981,7 +3005,7 @@ const handleStatusFilterChange = () => {
   padding: var(--space-2-5) 20px !important;
   border-radius: 12px !important;
   background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark)) !important;
-  color: #fff !important;
+  color: var(--color-text-white) !important;
   font-size: 13px !important;
   font-weight: 700 !important;
   border: none !important;

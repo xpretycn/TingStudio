@@ -21,6 +21,7 @@
             <h2 class="formula-title">
               {{ data.formulaName }}
               <span class="version-tag">{{ currentVersion || 'V1.0' }}</span>
+              <span class="status-tag" :class="statusTagInfo.cls">{{ statusTagInfo.label }}</span>
             </h2>
           </div>
         </div>
@@ -169,7 +170,7 @@
                   <span class="qtm-detail">{{ m.quantity }}g × ¥{{ m.unitPrice ?? '--' }}/kg
                     <span v-if="m.isAdjusted" class="qtm-adjust-badge" :title="'基价: ¥' + (m.basePrice ?? '--') + '/kg'">
                       <svg viewBox="0 0 12 12" width="10" height="10">
-                        <path d="M6 1L7.5 4.5L11 5L8.5 7.5L9 11L6 9L3 11L3.5 7.5L1 5L4.5 4.5Z" fill="#b45309" />
+                        <path d="M6 1L7.5 4.5L11 5L8.5 7.5L9 11L6 9L3 11L3.5 7.5L1 5L4.5 4.5Z" fill="var(--color-warning-dark)" />
                       </svg>调
                     </span></span>
                   <span class="qtm-sub"><strong>{{ m.unitPrice != null ? `¥${m.subtotal.toFixed(2)}` : '--'
@@ -499,6 +500,17 @@ interface FormulaNutritionData {
 const loading = ref(false);
 const data = ref<FormulaNutritionData | null>(null);
 const priceQuote = ref<PriceQuote | null>(null);
+const formulaStatus = ref('draft');
+
+const statusTagInfo = computed(() => {
+  const map: Record<string, { label: string; cls: string }> = {
+    draft: { label: '草稿', cls: 'status-tag--draft' },
+    pending_review: { label: '审核中', cls: 'status-tag--pending' },
+    published: { label: '已发布', cls: 'status-tag--published' },
+    archived: { label: '已归档', cls: 'status-tag--archived' },
+  };
+  return map[formulaStatus.value] || map.draft;
+});
 const missingMaterials = computed<string[]>(() => {
   return data.value?.missingNutritionMaterials || [];
 });
@@ -742,6 +754,12 @@ const loadData = async () => {
     try {
       priceQuote.value = await formulaApi.getPriceQuote(formulaId);
     } catch { /* 报价数据可选 */ }
+    try {
+      const formula = await formulaApi.getById(formulaId);
+      if (formula?.status) {
+        formulaStatus.value = formula.status;
+      }
+    } catch { /* 状态数据可选 */ }
   } catch (error: unknown) {
     console.error('获取营养计算表格失败:', error);
   } finally {
@@ -782,9 +800,9 @@ watch(() => route.params.id, (newId) => {
     margin-left: -32px;
     margin-right: -32px;
     padding: 8px 32px; // px-8 py-4（内部内容仍保持间距）
-    background-color: rgba(255, 255, 255, 0.80); // bg-white/80
+    background-color: $overlay-white-80; // bg-white/80
     backdrop-filter: blur(12px); // backdrop-blur-md
-    border-bottom: 1px solid #f1f5f9; // border-slate-100
+    border-bottom: 1px solid $border-color-light; // border-slate-100
     animation: fadeInDown 0.3s cubic-bezier(0.4, 0, 0.2, 1) both;
 
     // ── 左侧：返回按钮 + 标题组 ──
@@ -810,7 +828,7 @@ watch(() => route.params.id, (newId) => {
 
         &:hover {
           color: var(--color-primary); // hover:text-emerald-500
-          background-color: #ecfdf5; // hover:bg-emerald-50
+          background-color: $emerald-50; // hover:bg-emerald-50
         }
       }
 
@@ -874,6 +892,38 @@ watch(() => route.params.id, (newId) => {
             letter-spacing: 0.02em;
             flex-shrink: 0; // 防止被压缩隐藏
           }
+
+          .status-tag {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 10px;
+            font-size: 11px;
+            font-weight: 600;
+            border-radius: 999px;
+            white-space: nowrap;
+            flex-shrink: 0;
+
+            &--draft {
+              background: #f3f3f3;
+              color: #a0a0a0;
+              border: 1px solid #e7e7e7;
+            }
+
+            &--pending {
+              background: rgba(234, 179, 8, 0.12);
+              color: #a16207;
+            }
+
+            &--published {
+              background: var(--color-primary-bg);
+              color: var(--color-primary);
+            }
+
+            &--archived {
+              background: rgba(107, 114, 128, 0.1);
+              color: #6b7280;
+            }
+          }
         }
       }
     }
@@ -890,12 +940,12 @@ watch(() => route.params.id, (newId) => {
         gap: 8px; // gap-2
         padding: 8px 16px; // px-4 py-2
         background-color: var(--color-primary); // bg-emerald-500
-        color: #ffffff;
+        color: $text-white;
         border: none;
         border-radius: 12px; // rounded-xl
         font-size: 14px; // text-sm
         font-weight: 700; // font-bold
-        box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.25); // shadow-lg shadow-emerald-100
+        box-shadow: $shadow-emerald-lg; // shadow-lg shadow-emerald-100
         cursor: pointer;
         transition: all $transition-fast; // transition-all
 
@@ -906,7 +956,7 @@ watch(() => route.params.id, (newId) => {
         &:hover {
           background-color: var(--color-primary-dark); // hover:bg-emerald-600
           transform: translateY(-1px);
-          box-shadow: 0 14px 20px -3px rgba(16, 185, 129, 0.35);
+          box-shadow: $shadow-emerald-xl;
         }
 
         &:active {
@@ -958,10 +1008,10 @@ watch(() => route.params.id, (newId) => {
 
     // ══ 通用卡片样式（匹配参考设计 bg-white rounded-[2rem] shadow-sm border-slate-50） ══
     .info-card {
-      background: #fff;
+      background: $bg-container;
       padding: $space-6; // p-8 = 32px
       border-radius: $radius-2xl; // rounded-[2rem]
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04); // shadow-sm
+      box-shadow: $shadow-elevation-1; // shadow-sm
       border: 1px solid var(--color-bg-page); // border-slate-50
       animation: fadeInUp 0.35s ease both;
 
@@ -1012,7 +1062,7 @@ watch(() => route.params.id, (newId) => {
         border-radius: 6px;
 
         &:hover {
-          background-color: #f1f5f9;
+          background-color: $border-color-light;
         }
 
         &--warn {
@@ -1025,18 +1075,18 @@ watch(() => route.params.id, (newId) => {
 
         &--adjusted {
           border-left: 3px solid var(--color-warning);
-          background: linear-gradient(90deg, rgba(254, 243, 199, 0.4) 0%, transparent 100%);
+          background: linear-gradient(90deg, $overlay-amber-100-50 0%, transparent 100%);
 
           .qtm-name {
-            color: #92400e;
+            color: $amber-800;
             font-weight: 600;
           }
 
           .qtm-sub {
-            color: #78716c;
+            color: $stone-500;
 
             .qtm-base-hint {
-              color: #d97706;
+              color: $amber-600;
             }
           }
         }
@@ -1062,8 +1112,8 @@ watch(() => route.params.id, (newId) => {
           line-height: 1.4;
           padding: var(--space-0-5) var(--space-1-5);
           border-radius: 6px;
-          background: linear-gradient(135deg, #fef3c7, #fde68a);
-          color: #b45309;
+          background: $gradient-amber-badge;
+          color: $amber-700;
           font-weight: 700;
           margin-left: 4px;
           vertical-align: middle;
@@ -1096,10 +1146,10 @@ watch(() => route.params.id, (newId) => {
         gap: var(--space-1-5);
         font-size: 12px;
         color: var(--color-warning);
-        background: #fffbeb;
+        background: $amber-50;
         padding: var(--space-2-5) var(--space-3-5);
         border-radius: 10px;
-        border: 1px solid #fde68a;
+        border: 1px solid $amber-200;
       }
 
       .qt-summary {
@@ -1108,7 +1158,7 @@ watch(() => route.params.id, (newId) => {
         gap: var(--space-0-5);
         background: var(--color-bg-page);
         border-radius: 16px;
-        border: 1px solid #f1f5f9;
+        border: 1px solid $border-color-light;
         padding: var(--space-2-5) 16px;
       }
 
@@ -1142,11 +1192,11 @@ watch(() => route.params.id, (newId) => {
         }
 
         &:hover {
-          background-color: #fff;
+          background-color: $bg-container;
         }
 
         &--primary {
-          background: #ecfdf5;
+          background: $emerald-50;
 
           span,
           .qts-icon {
@@ -1155,11 +1205,11 @@ watch(() => route.params.id, (newId) => {
         }
 
         &--warn {
-          background: #fffbeb !important;
+          background: $amber-50 !important;
 
           span,
           .qts-icon {
-            color: #b45309 !important;
+            color: $amber-700 !important;
           }
         }
 
@@ -1185,16 +1235,16 @@ watch(() => route.params.id, (newId) => {
           }
 
           &.qts-item--warn {
-            background: #fef3c7 !important;
-            border: 1px solid #fde68a;
+            background: $amber-100 !important;
+            border: 1px solid $amber-200;
             border-radius: 10px;
 
             span {
-              color: #b45309 !important;
+              color: $amber-700 !important;
             }
 
             .qts-icon {
-              color: #b45309 !important;
+              color: $amber-700 !important;
             }
           }
         }
@@ -1224,7 +1274,7 @@ watch(() => route.params.id, (newId) => {
         }
 
         strong.warn-text {
-          color: #b45309;
+          color: $amber-700;
           font-weight: 700;
         }
 
@@ -1240,11 +1290,11 @@ watch(() => route.params.id, (newId) => {
           gap: var(--space-0-5);
           font-size: 10px;
           font-weight: 500;
-          color: #b45309;
-          background: #fef3c7;
+          color: $amber-700;
+          background: $amber-100;
           padding: 1px var(--space-1-5);
           border-radius: 8px;
-          border: 1px solid #fde68a;
+          border: 1px solid $amber-200;
           white-space: nowrap;
         }
       }
@@ -1255,7 +1305,7 @@ watch(() => route.params.id, (newId) => {
         margin: 4px 0;
 
         &--bold {
-          background: #cbd5e1;
+          background: $border-color;
           margin: var(--space-1-5) 0;
         }
       }
@@ -1271,7 +1321,7 @@ watch(() => route.params.id, (newId) => {
         padding: $space-3; // p-4 = 16px
         background: var(--color-bg-page); // bg-slate-50
         border-radius: $radius-xl; // rounded-2xl
-        border: 1px solid #f1f5f9; // border-slate-100
+        border: 1px solid $border-color-light; // border-slate-100
 
         label {
           display: flex;
@@ -1330,14 +1380,14 @@ watch(() => route.params.id, (newId) => {
             display: inline-flex;
             align-items: center;
             gap: 4px;
-            color: #3b82f6;
+            color: $blue-500;
             font-size: 13px;
             cursor: pointer;
             text-decoration: none;
             transition: color 0.2s;
 
             &:hover {
-              color: #2563eb;
+              color: $blue-600;
               text-decoration: underline;
             }
 
@@ -1360,7 +1410,7 @@ watch(() => route.params.id, (newId) => {
         right: 0;
         width: 128px;
         height: 128px;
-        background: #eff6ff; // blue-50
+        background: $blue-50; // blue-50
         border-radius: 50%;
         transform: translate(50%, -50%);
         opacity: 0.5;
@@ -1383,7 +1433,7 @@ watch(() => route.params.id, (newId) => {
           width: 48px;
           height: 48px;
           border-radius: $radius-xl; // rounded-2xl
-          background: linear-gradient(135deg, #ecfdf5, #dbeafe);
+          background: linear-gradient(135deg, $emerald-50, $blue-100);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -1406,10 +1456,10 @@ watch(() => route.params.id, (newId) => {
       }
 
       .demand-box {
-        background: rgba(59, 130, 246, 0.05); // blue-50/50
+        background: $overlay-blue-25; // blue-50/50
         padding: $space-3;
         border-radius: $radius-xl;
-        border: 1px solid #bfdbfe; // blue-100
+        border: 1px solid $blue-200; // blue-100
 
         .demand-header {
           display: flex;
@@ -1420,15 +1470,15 @@ watch(() => route.params.id, (newId) => {
           .demand-tag {
             font-size: 12px;
             font-weight: 900;
-            color: #2563eb; // blue-600
+            color: $blue-600; // blue-600
             text-transform: uppercase;
             letter-spacing: -0.02em;
           }
 
           .priority-badge {
             padding: var(--space-0-5) 8px;
-            background: #dbeafe; // blue-100
-            color: #1d4ed8; // blue-700
+            background: $blue-100; // blue-100
+            color: $blue-600; // blue-700
             font-size: 10px;
             font-weight: 700;
             border-radius: 4px;
@@ -1459,7 +1509,7 @@ watch(() => route.params.id, (newId) => {
       padding: $space-3;
       background: var(--color-bg-page); // slate-50
       border-radius: $radius-xl;
-      border: 1px solid #f1f5f9; // slate-100
+      border: 1px solid $border-color-light; // slate-100
     }
 
     // ══ 变更记录时间线 ══
@@ -1505,7 +1555,7 @@ watch(() => route.params.id, (newId) => {
         top: 28px;
         bottom: -$space-5;
         width: 2px;
-        background: #f1f5f9; // bg-slate-50
+        background: $border-color-light; // bg-slate-50
       }
 
       .timeline-dot {
@@ -1518,8 +1568,8 @@ watch(() => route.params.id, (newId) => {
         flex-shrink: 0;
 
         &.past {
-          background: #cbd5e1; // slate-200
-          border-color: #f1f5f9; // slate-50
+          background: $border-color; // slate-200
+          border-color: $border-color-light; // slate-50
         }
       }
 
@@ -1565,7 +1615,7 @@ watch(() => route.params.id, (newId) => {
 
     // ══ 右侧：计算器表格区域 ══
     .calc-section {
-      background: #fff;
+      background: $bg-container;
       border-radius: $radius-2xl;
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
       border: 1px solid var(--color-bg-page);
@@ -1576,7 +1626,7 @@ watch(() => route.params.id, (newId) => {
         padding: $space-5 $space-6;
         padding-bottom: $space-6;
         border-bottom: 1px solid var(--color-bg-page);
-        background: rgba(248, 250, 252, 0.5);
+        background: $overlay-slate-50-50;
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -1604,11 +1654,11 @@ watch(() => route.params.id, (newId) => {
           display: flex;
           align-items: center;
           gap: $space-2;
-          background: #fff;
+          background: $bg-container;
           padding: 8px 12px; // p-2
           border-radius: $radius-xl; // rounded-2xl
           box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04); // shadow-sm
-          border: 1px solid #f1f5f9; // border-slate-100
+          border: 1px solid $border-color-light; // border-slate-100
 
           .weight-badge-label {
             font-size: 10px; // text-[10px]
@@ -1646,7 +1696,7 @@ watch(() => route.params.id, (newId) => {
 
     // ══ 含量比校验信息卡片 ══
     .ratio-validation-section {
-      background: #fff;
+      background: $bg-container;
       border-radius: $radius-2xl;
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
       border: 1px solid var(--color-bg-page);
@@ -1679,23 +1729,23 @@ watch(() => route.params.id, (newId) => {
           transition: all 0.3s ease;
 
           &--normal {
-            background: #f0fdf4;
-            border-color: #bbf7d0;
+            background: $green-50;
+            border-color: $green-200;
           }
 
           &--warning {
-            background: #fffbeb;
-            border-color: #fde68a;
+            background: $amber-50;
+            border-color: $amber-200;
           }
 
           &--high_warning {
-            background: #fff7ed;
-            border-color: #fed7aa;
+            background: $orange-50;
+            border-color: $orange-200;
           }
 
           &--error {
-            background: #fef2f2;
-            border-color: #fecaca;
+            background: $red-50;
+            border-color: $red-200;
           }
         }
 
@@ -1706,15 +1756,15 @@ watch(() => route.params.id, (newId) => {
           margin-bottom: 12px;
 
           .ratio-summary--normal & {
-            color: #16a34a;
+            color: $green-600;
           }
 
           .ratio-summary--warning & {
-            color: #d97706;
+            color: $amber-600;
           }
 
           .ratio-summary--high_warning & {
-            color: #ea580c;
+            color: $orange-600;
           }
 
           .ratio-summary--error & {
@@ -1736,12 +1786,12 @@ watch(() => route.params.id, (newId) => {
           height: 8px;
           background: linear-gradient(to right,
               var(--color-danger) 0%,
-              #f97316 15%,
-              #eab308 30%,
-              #22c55e 45%,
-              #22c55e 55%,
-              #eab308 70%,
-              #f97316 85%,
+              $orange-500 15%,
+              $yellow-500 30%,
+              $green-500 45%,
+              $green-500 55%,
+              $yellow-500 70%,
+              $orange-500 85%,
               var(--color-danger) 100%);
           border-radius: 4px;
           overflow: visible;
@@ -1756,7 +1806,7 @@ watch(() => route.params.id, (newId) => {
           top: -4px;
           width: 16px;
           height: 16px;
-          background: #fff;
+          background: $bg-container;
           border: 3px solid var(--color-text-primary);
           border-radius: 50%;
           transform: translateX(-50%);
@@ -1802,15 +1852,15 @@ watch(() => route.params.id, (newId) => {
           font-weight: 600;
 
           &.deviation--normal {
-            color: #16a34a;
+            color: $green-600;
           }
 
           &.deviation--warning {
-            color: #d97706;
+            color: $amber-600;
           }
 
           &.deviation--high_warning {
-            color: #ea580c;
+            color: $orange-600;
           }
 
           &.deviation--error {
@@ -1831,11 +1881,11 @@ watch(() => route.params.id, (newId) => {
           gap: var(--space-1-5);
           margin-top: var(--space-2-5);
           padding: 8px 12px;
-          background: rgba(234, 88, 12, 0.08);
+          background: $overlay-orange-08;
           border-radius: 8px;
           font-size: 13px;
           font-weight: 600;
-          color: #ea580c;
+          color: $orange-600;
         }
 
         .ratio-breakdown {
@@ -1886,7 +1936,7 @@ watch(() => route.params.id, (newId) => {
 
           td {
             padding: 8px 12px;
-            border-bottom: 1px solid #f1f5f9;
+            border-bottom: 1px solid $border-color-light;
             color: var(--color-text-primary);
           }
 
@@ -1911,7 +1961,7 @@ watch(() => route.params.id, (newId) => {
 
       .nutrition-section,
       .notes-section {
-        background: #fff;
+        background: $bg-container;
         padding: $space-6;
         border-radius: $radius-2xl;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
@@ -1927,7 +1977,7 @@ watch(() => route.params.id, (newId) => {
         margin: 0 0 $space-5;
 
         &.info-color {
-          color: #0ea5e9;
+          color: $sky-500;
         }
 
         // info 蓝
@@ -1943,17 +1993,17 @@ watch(() => route.params.id, (newId) => {
 
         th:nth-child(5),
         td:nth-child(5) {
-          background-color: #fef3c7 !important;
+          background-color: $amber-100 !important;
         }
 
         th:nth-child(6),
         td:nth-child(6) {
-          background-color: #fde68a !important;
+          background-color: $amber-200 !important;
         }
 
         th:nth-child(5),
         th:nth-child(6) {
-          color: #d97706;
+          color: $amber-600;
           font-weight: 600;
         }
       }
@@ -1987,16 +2037,16 @@ watch(() => route.params.id, (newId) => {
     }
 
     .missing-nutrition-icon {
-      color: #f97316;
+      color: $orange-500;
       margin-left: 4px;
     }
 
     .partial-nutrition {
-      color: #8b8b8b;
+      color: $text-placeholder;
     }
 
     .partial-nutrition-icon {
-      color: #a78bfa;
+      color: $purple-400;
       margin-left: 4px;
     }
 
@@ -2053,6 +2103,10 @@ watch(() => route.params.id, (newId) => {
               font-size: 16px;
 
               .version-tag {
+                display: none;
+              }
+
+              .status-tag {
                 display: none;
               }
             }

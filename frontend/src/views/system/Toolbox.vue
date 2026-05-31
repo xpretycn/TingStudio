@@ -1,162 +1,174 @@
 <template>
   <div class="tools-page">
-    <!-- 工具卡片网格 -->
-    <div class="tools-grid">
-      <div v-for="tool in tools" :key="tool.id" class="tool-card" @click="handleToolClick(tool)">
-        <div class="tool-icon" :style="{ background: tool.bgColor }">
-          {{ tool.icon }}
+    <t-tabs v-model="activeTab" class="page-tabs">
+      <t-tab-panel value="tools">
+        <template #label>
+          <span class="tab-label">🔧 工具箱</span>
+        </template>
+        <div class="tools-grid">
+          <div v-for="tool in tools" :key="tool.id" class="tool-card" @click="handleToolClick(tool)">
+            <div class="tool-icon" :style="{ background: tool.bgColor }">
+              {{ tool.icon }}
+            </div>
+            <div class="tool-info">
+              <h3 class="tool-title">{{ tool.title }}</h3>
+              <p class="tool-desc">{{ tool.description }}</p>
+            </div>
+            <div class="tool-arrow">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            </div>
+          </div>
         </div>
-        <div class="tool-info">
-          <h3 class="tool-title">{{ tool.title }}</h3>
-          <p class="tool-desc">{{ tool.description }}</p>
-        </div>
-        <div class="tool-arrow">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="9 18 15 12 9 6" />
-          </svg>
-        </div>
-      </div>
-    </div>
+      </t-tab-panel>
 
-    <!-- 数据库管理区域（仅管理员可见） -->
-    <div v-if="isAdmin" class="db-management-section">
-      <div class="section-header">
-        <h3 class="section-title">🗄️ 数据库管理</h3>
-        <t-tag theme="primary" variant="light" size="small">仅管理员</t-tag>
-      </div>
-      <t-tabs v-model="activeDbTab" class="db-tabs">
-        <t-tab-panel value="overview" label="概览">
-          <DbOverview ref="overviewRef" />
-        </t-tab-panel>
-        <t-tab-panel value="browser" label="数据浏览">
-          <DbTableBrowser :initial-table="selectedTableForBrowser" />
-        </t-tab-panel>
-        <t-tab-panel value="backup" label="备份">
-          <DbBackup ref="backupRef" />
-        </t-tab-panel>
-        <t-tab-panel value="scripts" label="脚本">
-          <DbScripts />
-        </t-tab-panel>
-      </t-tabs>
-    </div>
-
-    <!-- 天气详情区域 -->
-    <div class="weather-section">
-      <div class="weather-card">
-        <div class="weather-header">
-          <h3 class="weather-section-title">
-            <span class="weather-section-icon">🌤️</span>
-            实时天气
-          </h3>
-          <div class="weather-actions">
-            <t-input
-              v-model="searchKeyword"
-              placeholder="搜索城市..."
-              clearable
-              size="small"
-              class="city-search-input"
-              @enter="handleSearch"
-              @clear="handleClearSearch"
-            >
-              <template #prefix-icon>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="11" cy="11" r="8" />
-                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                </svg>
-              </template>
-            </t-input>
-            <t-tooltip content="自动定位">
-              <t-button
-                theme="default"
+      <t-tab-panel value="weather">
+        <template #label>
+          <span class="tab-label">🌤️ 天气</span>
+        </template>
+        <div class="weather-section">
+          <div class="weather-header">
+            <h3 class="weather-section-title">
+              <span class="weather-section-icon">🌤️</span>
+              实时天气
+            </h3>
+            <div class="weather-actions">
+              <t-input
+                v-model="searchKeyword"
+                placeholder="搜索城市..."
+                clearable
                 size="small"
-                :loading="weatherStore.geoLoading"
-                class="locate-btn"
-                @click="weatherStore.autoLocate()"
+                class="city-search-input"
+                @enter="handleSearch"
+                @clear="handleClearSearch"
               >
-                <template #icon>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="4" />
-                    <line x1="12" y1="2" x2="12" y2="5" />
-                    <line x1="12" y1="19" x2="12" y2="22" />
-                    <line x1="2" y1="12" x2="5" y2="12" />
-                    <line x1="19" y1="12" x2="22" y2="12" />
+                <template #prefix-icon>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8" />
+                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
                   </svg>
                 </template>
-              </t-button>
-            </t-tooltip>
+              </t-input>
+              <t-tooltip content="自动定位">
+                <t-button
+                  theme="default"
+                  size="small"
+                  :loading="weatherStore.geoLoading"
+                  class="locate-btn"
+                  @click="weatherStore.autoLocate()"
+                >
+                  <template #icon>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="12" cy="12" r="4" />
+                      <line x1="12" y1="2" x2="12" y2="5" />
+                      <line x1="12" y1="19" x2="12" y2="22" />
+                      <line x1="2" y1="12" x2="5" y2="12" />
+                      <line x1="19" y1="12" x2="22" y2="12" />
+                    </svg>
+                  </template>
+                </t-button>
+              </t-tooltip>
+            </div>
           </div>
-        </div>
 
-        <!-- 搜索结果下拉 -->
-        <div v-if="weatherStore.searchResults.length > 0" class="search-dropdown">
-          <div
-            v-for="city in weatherStore.searchResults"
-            :key="city.id"
-            class="search-item"
-            @click="handleSelectCity(city)"
+          <!-- 搜索结果下拉 -->
+          <div v-if="weatherStore.searchResults.length > 0" class="search-dropdown">
+            <div
+              v-for="city in weatherStore.searchResults"
+              :key="city.id"
+              class="search-item"
+              @click="handleSelectCity(city)"
+            >
+              <span class="search-item-name">{{ city.name }}</span>
+              <span class="search-item-detail">{{ city.adm1 }} · {{ city.adm2 }}</span>
+            </div>
+          </div>
+
+          <!-- 加载状态 -->
+          <div v-if="weatherStore.loading" class="weather-loading">
+            <t-loading size="medium" text="正在获取天气数据..." />
+          </div>
+
+          <!-- 错误提示 -->
+          <t-alert
+            v-else-if="weatherStore.errorMsg"
+            :theme="weatherStore.rateLimited ? 'warning' : 'error'"
+            class="weather-error"
+            closable
+            @close="weatherStore.errorMsg = ''"
           >
-            <span class="search-item-name">{{ city.name }}</span>
-            <span class="search-item-detail">{{ city.adm1 }} · {{ city.adm2 }}</span>
-          </div>
-        </div>
+            {{ weatherStore.errorMsg }}
+          </t-alert>
 
-        <!-- 加载状态 -->
-        <div v-if="weatherStore.loading" class="weather-loading">
-          <t-loading size="medium" text="正在获取天气数据..." />
-        </div>
+          <!-- 天气数据展示 -->
+          <div v-else-if="weatherStore.hasWeather" class="weather-content">
+            <div class="weather-main">
+              <div class="weather-temp-area">
+                <span class="weather-emoji-lg">{{ weatherStore.weatherEmoji }}</span>
+                <span class="weather-temp">{{ weatherStore.temperature }}<small>°C</small></span>
+                <span class="weather-text">{{ weatherStore.weatherText }}</span>
+              </div>
+              <div class="weather-city">{{ weatherStore.cityName }}</div>
+              <div v-if="weatherStore.updateTime" class="weather-update">
+                更新于 {{ formatTime(weatherStore.updateTime) }}
+              </div>
+            </div>
 
-        <!-- 错误提示 -->
-        <t-alert
-          v-else-if="weatherStore.errorMsg"
-          :theme="weatherStore.rateLimited ? 'warning' : 'error'"
-          class="weather-error"
-          closable
-          @close="weatherStore.errorMsg = ''"
-        >
-          {{ weatherStore.errorMsg }}
-        </t-alert>
-
-        <!-- 天气数据展示 -->
-        <div v-else-if="weatherStore.hasWeather" class="weather-content">
-          <div class="weather-main">
-            <div class="weather-temp-area">
-              <span class="weather-emoji-lg">{{ weatherStore.weatherEmoji }}</span>
-              <span class="weather-temp">{{ weatherStore.temperature }}<small>°C</small></span>
-              <span class="weather-text">{{ weatherStore.weatherText }}</span>
-            </div>
-            <div class="weather-city">{{ weatherStore.cityName }}</div>
-            <div v-if="weatherStore.updateTime" class="weather-update">
-              更新于 {{ formatTime(weatherStore.updateTime) }}
-            </div>
-          </div>
-
-          <div class="weather-details">
-            <div class="detail-item">
-              <span class="detail-label">体感温度</span>
-              <span class="detail-value">{{ weatherStore.feelsLike }}°C</span>
-            </div>
-            <div class="detail-item">
-              <span class="detail-label">相对湿度</span>
-              <span class="detail-value">{{ weatherStore.humidity }}%</span>
-            </div>
-            <div class="detail-item">
-              <span class="detail-label">风向风力</span>
-              <span class="detail-value">{{ weatherStore.windDir }} {{ weatherStore.windScale }}级</span>
-            </div>
-            <div class="detail-item">
-              <span class="detail-label">风速</span>
-              <span class="detail-value">{{ weatherStore.windSpeed }} km/h</span>
+            <div class="weather-details">
+              <div class="detail-item">
+                <span class="detail-label">体感温度</span>
+                <span class="detail-value">{{ weatherStore.feelsLike }}°C</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">相对湿度</span>
+                <span class="detail-value">{{ weatherStore.humidity }}%</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">风向风力</span>
+                <span class="detail-value">{{ weatherStore.windDir }} {{ weatherStore.windScale }}级</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">风速</span>
+                <span class="detail-value">{{ weatherStore.windSpeed }} km/h</span>
+              </div>
             </div>
           </div>
-        </div>
 
-        <!-- 无数据占位 -->
-        <div v-else class="weather-empty">
-          <span class="empty-icon">🌡️</span>
-          <p>点击定位按钮或搜索城市名查看天气</p>
+          <!-- 无数据占位 -->
+          <div v-else class="weather-empty">
+            <span class="empty-icon">🌡️</span>
+            <p>点击定位按钮或搜索城市名查看天气</p>
+          </div>
         </div>
-      </div>
-    </div>
+      </t-tab-panel>
+
+      <t-tab-panel v-if="isAdmin" value="db">
+        <template #label>
+          <span class="tab-label">🗄️ 数据库管理</span>
+        </template>
+        <div class="db-management-section">
+          <div class="section-header">
+            <h3 class="section-title">🗄️ 数据库管理</h3>
+            <t-tag theme="primary" variant="light" size="small">仅管理员</t-tag>
+          </div>
+          <t-tabs v-model="activeDbTab" class="db-tabs">
+            <t-tab-panel value="overview" label="概览">
+              <DbOverview ref="overviewRef" />
+            </t-tab-panel>
+            <t-tab-panel value="browser" label="数据浏览">
+              <DbTableBrowser :initial-table="selectedTableForBrowser" />
+            </t-tab-panel>
+            <t-tab-panel value="backup" label="备份">
+              <DbBackup ref="backupRef" />
+            </t-tab-panel>
+            <t-tab-panel value="scripts" label="脚本">
+              <DbScripts />
+            </t-tab-panel>
+          </t-tabs>
+        </div>
+      </t-tab-panel>
+    </t-tabs>
   </div>
 </template>
 
@@ -181,6 +193,7 @@ import {
 
 const weatherStore = useWeatherStore()
 const authStore = useAuthStore()
+const activeTab = ref('tools')
 const searchKeyword = ref('')
 const activeDbTab = ref('overview')
 const selectedTableForBrowser = ref('')
@@ -287,11 +300,66 @@ function formatTime(updateTime: string): string {
   width: 100%;
 }
 
+// ─── 页面级 Tabs ───
+.page-tabs {
+  :deep(.t-tabs__nav) {
+    margin-bottom: 0;
+    padding-left: 8px;
+    background: transparent;
+
+    &::after {
+      display: none;
+    }
+
+    .t-tabs__item {
+      padding: 14px 24px;
+      font-size: 15px;
+      font-weight: 500;
+      transition: all $transition-fast;
+
+      &:hover {
+        color: $brand-primary;
+      }
+
+      .tab-label {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+    }
+
+    .t-tabs__item--active {
+      color: $brand-primary;
+      font-weight: 600;
+    }
+
+    .t-tabs__bottom-bar {
+      background: $brand-primary;
+      height: 3px;
+      border-radius: 3px 3px 0 0;
+    }
+  }
+
+  :deep(.t-tabs__content) {
+    padding: 24px;
+    background: $overlay-white-80;
+    backdrop-filter: blur(10px);
+    border-radius: $radius-3xl;
+    border: 2px solid var(--overlay-brand-lighter-15);
+    box-shadow: $shadow-xs;
+    margin-top: 8px;
+  }
+
+  :deep(.t-tab-panel) {
+    padding: 0;
+  }
+}
+
+// ─── 工具卡片网格 ───
 .tools-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 20px;
-  margin-bottom: 24px;
 }
 
 .tool-card {
@@ -361,14 +429,6 @@ function formatTime(updateTime: string): string {
 
 // ─── 数据库管理区域 ───
 .db-management-section {
-  margin-bottom: 24px;
-  padding: 24px;
-  background: $overlay-white-80;
-  backdrop-filter: blur(10px);
-  border-radius: $radius-3xl;
-  border: 2px solid var(--overlay-brand-lighter-15);
-  box-shadow: $shadow-xs;
-
   .section-header {
     display: flex;
     align-items: center;
@@ -396,15 +456,6 @@ function formatTime(updateTime: string): string {
 // ─── 天气详情区域 ───
 .weather-section {
   position: relative;
-}
-
-.weather-card {
-  padding: 24px;
-  background: $overlay-white-80;
-  backdrop-filter: blur(10px);
-  border-radius: $radius-3xl;
-  border: 2px solid var(--overlay-brand-lighter-15);
-  box-shadow: $shadow-xs;
 }
 
 .weather-header {

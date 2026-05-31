@@ -6,8 +6,14 @@
         <ApprovalCard />
         <!-- 动态卡片 -->
         <section class="bento-card bento-activity">
-          <div class="card-header">
-            <h3 class="card-title">近期动态</h3>
+          <div class="activity-header">
+            <h4 class="activity-title">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-info)" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+              </svg>
+              近期动态
+            </h4>
             <div class="activity-nav" v-if="dashboardStore.activities.length > 0 && !dashboardStore.activityLoading">
               <button class="activity-nav-btn" :disabled="activityPage <= 1" @click="activityPrev" title="上一页">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
@@ -27,7 +33,7 @@
           </div>
           <div class="activity-body">
             <template v-if="dashboardStore.activityLoading">
-              <div class="activity-skeleton" v-for="i in 5" :key="i">
+              <div class="timeline-skeleton" v-for="i in 4" :key="i">
                 <div class="skeleton-circle" />
                 <div class="skeleton-lines">
                   <div class="skeleton-line skeleton-line--title" />
@@ -36,22 +42,29 @@
               </div>
             </template>
             <template v-else-if="dashboardStore.activities.length === 0">
-              <div class="activity-empty">
+              <div class="timeline-empty">
                 <t-icon name="time" size="28px" />
                 <p>暂无动态</p>
               </div>
             </template>
             <template v-else>
-              <div v-for="activity in paginatedActivities" :key="activity.id" class="activity-item"
-                @click="handleActivityClick(activity)">
-                <div class="activity-dot" :class="`activity-dot--${activity.type}`" />
-                <div class="activity-content">
-                  <span class="activity-name">{{ activity.name }}</span>
-                  <span class="activity-time">{{ formatRelativeTime(activity.updatedAt) }}</span>
+              <div class="timeline-list">
+                <div v-for="(activity, index) in paginatedActivities" :key="activity.id" class="timeline-item"
+                  :class="{ 'timeline-item--last': index === paginatedActivities.length - 1 }"
+                  @click="handleActivityClick(activity)">
+                  <div class="timeline-dot" :class="`timeline-dot--${activity.type === 'formula' ? 'success' : 'info'}`">
+                    <span class="timeline-dot-inner"></span>
+                  </div>
+                  <div class="timeline-content">
+                    <p class="timeline-title">{{ activity.name }}</p>
+                    <p class="timeline-desc">
+                      <strong :class="activity.type === 'formula' ? 'text-emerald-600' : 'text-blue-600'">
+                        {{ activity.type === 'formula' ? '配方' : '原料' }}
+                      </strong>
+                    </p>
+                    <span class="timeline-time">{{ formatRelativeTime(activity.updatedAt) }}</span>
+                  </div>
                 </div>
-                <span class="activity-type-badge" :class="`activity-type-badge--${activity.type}`">
-                  {{ activity.type === 'formula' ? '配方' : '原料' }}
-                </span>
               </div>
             </template>
           </div>
@@ -92,37 +105,37 @@
             <template v-if="!isAdmin">
               <button class="quick-btn quick-btn--highlight" @click="router.push('/formulas/quick')">
                 <div class="quick-icon"
-                  style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(45, 212, 191, 0.15));">
-                  <t-icon name="edit-1" size="20px" style="color: #10b981;" />
+                  style="background: linear-gradient(135deg, var(--overlay-emerald-15), var(--overlay-emerald-15));">
+                  <t-icon name="edit-1" size="20px" style="color: var(--color-emerald);" />
                 </div>
                 <span>快速录入</span>
               </button>
               <button class="quick-btn" @click="router.push('/ai-assistant')">
-                <div class="quick-icon" style="background: rgba(168, 85, 247, 0.1);">
-                  <t-icon name="precise-monitor" size="20px" style="color: #a855f7;" />
+                <div class="quick-icon" style="background: var(--overlay-brand-10);">
+                  <t-icon name="precise-monitor" size="20px" style="color: var(--color-primary);" />
                 </div>
                 <span>AI 助手</span>
               </button>
               <button class="quick-btn" @click="router.push('/smart-tools')">
-                <div class="quick-icon" style="background: rgba(16, 185, 129, 0.1);">
+                <div class="quick-icon" style="background: var(--overlay-emerald-10);">
                   <t-icon name="tools" size="20px" style="color: var(--color-primary);" />
                 </div>
                 <span>智能工具</span>
               </button>
               <button class="quick-btn" @click="router.push('/formulas')">
-                <div class="quick-icon" style="background: rgba(59, 130, 246, 0.1);">
-                  <t-icon name="edit" size="20px" style="color: #3b82f6;" />
+                <div class="quick-icon" style="background: var(--color-info-medium);">
+                  <t-icon name="edit" size="20px" style="color: var(--color-info);" />
                 </div>
                 <span>配方管理</span>
               </button>
               <button class="quick-btn" @click="router.push('/materials')">
-                <div class="quick-icon" style="background: rgba(245, 158, 11, 0.1);">
+                <div class="quick-icon" style="background: var(--color-warning-medium);">
                   <t-icon name="chart-bar" size="20px" style="color: var(--color-warning);" />
                 </div>
                 <span>原料管理</span>
               </button>
               <button class="quick-btn" @click="router.push('/reports')">
-                <div class="quick-icon" style="background: rgba(239, 68, 68, 0.1);">
+                <div class="quick-icon" style="background: var(--color-danger-strong);">
                   <t-icon name="file-icon" size="20px" style="color: var(--color-danger);" />
                 </div>
                 <span>报告中心</span>
@@ -131,31 +144,31 @@
             <template v-else>
               <button class="quick-btn quick-btn--highlight" @click="router.push('/formulas/quick')">
                 <div class="quick-icon"
-                  style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(45, 212, 191, 0.15));">
-                  <t-icon name="edit-1" size="20px" style="color: #10b981;" />
+                  style="background: linear-gradient(135deg, var(--overlay-emerald-15), var(--overlay-emerald-15));">
+                  <t-icon name="edit-1" size="20px" style="color: var(--color-emerald);" />
                 </div>
                 <span>快速录入</span>
               </button>
               <button class="quick-btn" @click="router.push('/formulas/new')">
-                <div class="quick-icon" style="background: rgba(16, 185, 129, 0.1);">
+                <div class="quick-icon" style="background: var(--overlay-emerald-10);">
                   <t-icon name="add" size="20px" style="color: var(--color-primary);" />
                 </div>
                 <span>新建配方</span>
               </button>
               <button class="quick-btn" @click="router.push('/system')">
-                <div class="quick-icon" style="background: rgba(59, 130, 246, 0.1);">
-                  <t-icon name="setting" size="20px" style="color: #3b82f6;" />
+                <div class="quick-icon" style="background: var(--color-info-medium);">
+                  <t-icon name="setting" size="20px" style="color: var(--color-info);" />
                 </div>
                 <span>系统管理</span>
               </button>
               <button class="quick-btn" @click="router.push('/model-management')">
-                <div class="quick-icon" style="background: rgba(168, 85, 247, 0.1);">
-                  <t-icon name="control-platform" size="20px" style="color: #a855f7;" />
+                <div class="quick-icon" style="background: var(--overlay-brand-10);">
+                  <t-icon name="control-platform" size="20px" style="color: var(--color-primary);" />
                 </div>
                 <span>模型管理</span>
               </button>
               <button class="quick-btn" @click="router.push('/users')">
-                <div class="quick-icon" style="background: rgba(245, 158, 11, 0.1);">
+                <div class="quick-icon" style="background: var(--color-warning-medium);">
                   <t-icon name="user" size="20px" style="color: var(--color-warning);" />
                 </div>
                 <span>用户管理</span>
@@ -242,7 +255,7 @@ import { useAuthStore } from "@/stores/auth";
 import { useDashboardStore } from "@/stores/dashboard";
 import { useFormulaStore } from "@/stores/formula";
 import { formatCompact } from "@/utils/timeFormat";
-import * as echarts from "echarts";
+import type { ECharts, EChartsOption } from 'echarts'
 import ApprovalCard from "@/components/dashboard/ApprovalCard.vue";
 import { useApprovalStore } from "@/stores/approval";
 
@@ -260,7 +273,7 @@ const approvalStore = useApprovalStore();
 const isAdmin = computed(() => authStore.user?.role === "admin");
 
 const chartRef = ref<HTMLElement | null>(null);
-let chartInstance: echarts.ECharts | null = null;
+let chartInstance: ECharts | null = null;
 const activeChartTab = ref<"week" | "month" | "year">("month");
 let isUnmounted = false;
 let chartInitTimer: ReturnType<typeof setTimeout> | null = null;
@@ -280,7 +293,7 @@ const statCards = computed(() => {
         label: "我的配方",
         display: s ? formatCompact(s.formulas) : "--",
         icon: "edit",
-        iconBg: "rgba(16, 185, 129, 0.1)",
+        iconBg: "var(--overlay-emerald-10)",
         iconColor: "var(--color-primary)",
         route: "/formulas",
       },
@@ -289,8 +302,8 @@ const statCards = computed(() => {
         label: "我的原料",
         display: s ? formatCompact(s.materials) : "--",
         icon: "chart-bar",
-        iconBg: "rgba(59, 130, 246, 0.1)",
-        iconColor: "#3b82f6",
+        iconBg: "var(--color-info-medium)",
+        iconColor: "var(--color-info)",
         route: "/materials",
       },
       {
@@ -298,7 +311,7 @@ const statCards = computed(() => {
         label: "本月营收",
         display: s ? `¥${formatCompact(s.sales.revenue)}` : "--",
         icon: "chart",
-        iconBg: "rgba(245, 158, 11, 0.1)",
+        iconBg: "var(--color-warning-medium)",
         iconColor: "var(--color-warning)",
         route: "/sales",
       },
@@ -307,8 +320,8 @@ const statCards = computed(() => {
         label: "本月报告",
         display: s ? `${s.sales.formulaCount} 款` : "--",
         icon: "file-icon",
-        iconBg: "rgba(168, 85, 247, 0.1)",
-        iconColor: "#a855f7",
+        iconBg: "var(--overlay-brand-10)",
+        iconColor: "var(--color-primary)",
         route: "/reports",
       },
     ] as const;
@@ -319,7 +332,7 @@ const statCards = computed(() => {
       label: "配方总数",
       display: s ? formatCompact(s.formulas) : "--",
       icon: "edit",
-      iconBg: "rgba(16, 185, 129, 0.1)",
+      iconBg: "var(--overlay-emerald-10)",
       iconColor: "var(--color-primary)",
       route: "/formulas",
     },
@@ -328,8 +341,8 @@ const statCards = computed(() => {
       label: "原料总数",
       display: s ? formatCompact(s.materials) : "--",
       icon: "chart-bar",
-      iconBg: "rgba(59, 130, 246, 0.1)",
-      iconColor: "#3b82f6",
+      iconBg: "var(--color-info-medium)",
+      iconColor: "var(--color-info)",
       route: "/materials",
     },
     {
@@ -337,7 +350,7 @@ const statCards = computed(() => {
       label: "本月营收",
       display: s ? `¥${formatCompact(s.sales.revenue)}` : "--",
       icon: "chart",
-      iconBg: "rgba(245, 158, 11, 0.1)",
+      iconBg: "var(--color-warning-medium)",
       iconColor: "var(--color-warning)",
       route: "/sales",
     },
@@ -346,8 +359,8 @@ const statCards = computed(() => {
       label: "销量配方",
       display: s ? `${s.sales.formulaCount} 款` : "--",
       icon: "shop",
-      iconBg: "rgba(168, 85, 247, 0.1)",
-      iconColor: "#a855f7",
+      iconBg: "var(--overlay-brand-10)",
+      iconColor: "var(--color-primary)",
       route: "/sales",
     },
   ] as const;
@@ -364,10 +377,10 @@ const featuredFormulas = computed(() => {
 
 const FORMULA_GRADIENTS = [
   "linear-gradient(135deg, var(--color-primary), var(--color-primary-light))",
-  "linear-gradient(135deg, #3b82f6, #60a5fa)",
-  "linear-gradient(135deg, #a855f7, #c084fc)",
-  "linear-gradient(135deg, var(--color-warning), #fbbf24)",
-  "linear-gradient(135deg, var(--color-danger), #f87171)",
+  "linear-gradient(135deg, var(--color-info), var(--color-info-dark))",
+  "linear-gradient(135deg, var(--color-primary), var(--color-primary-light))",
+  "linear-gradient(135deg, var(--color-warning), var(--color-warning))",
+  "linear-gradient(135deg, var(--color-danger), var(--color-danger))",
 ];
 
 const getFormulaGradient = (formula: { id: string; }) => {
@@ -434,17 +447,18 @@ const isDomReady = (): boolean => {
   return true;
 };
 
-const initChart = () => {
+const initChart = async () => {
   if (!isDomReady()) return;
   if (chartInstance) {
     chartInstance.dispose();
     chartInstance = null;
   }
+  const echarts = await import('echarts')
   chartInstance = echarts.init(chartRef.value);
   updateChart();
 };
 
-const updateChart = () => {
+const updateChart = async () => {
   if (!isDomReady()) return;
   if (!chartInstance) return;
   const data = dashboardStore.salesTrend;
@@ -454,7 +468,8 @@ const updateChart = () => {
   const textColor = isDark ? cssVar("--color-text-placeholder") : cssVar("--color-text-secondary");
   const gridColor = isDark ? "rgba(148, 163, 184, 0.08)" : "rgba(0, 0, 0, 0.04)";
 
-  const option: echarts.EChartsOption = {
+  const echarts = await import('echarts')
+  const option: EChartsOption = {
     grid: {
       top: 16,
       right: 16,
@@ -463,7 +478,7 @@ const updateChart = () => {
     },
     tooltip: {
       trigger: "axis",
-      backgroundColor: isDark ? cssVar("--color-text-primary") : "#fff",
+      backgroundColor: isDark ? cssVar("--color-text-primary") : cssVar("--color-bg-container"),
       borderColor: isDark ? cssVar("--color-text-primary") : cssVar("--color-border"),
       borderWidth: 1,
       textStyle: {
@@ -516,12 +531,12 @@ const updateChart = () => {
         itemStyle: {
           color: cssVar("--color-primary"),
           borderWidth: 2,
-          borderColor: "#fff",
+          borderColor: cssVar("--color-bg-container"),
         },
         areaStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: "rgba(16, 185, 129, 0.2)" },
-            { offset: 1, color: "rgba(16, 185, 129, 0.01)" },
+            { offset: 0, color: cssVar("--overlay-emerald-20") },
+            { offset: 1, color: "transparent" },
           ]),
         },
       },
@@ -610,7 +625,7 @@ onUnmounted(() => {
 }
 
 .bento-card {
-  background: #fff;
+  background: var(--color-bg-container);
   border-radius: 16px;
   padding: 20px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.03);
@@ -678,7 +693,7 @@ onUnmounted(() => {
     display: block;
     font-size: 22px;
     font-weight: 700;
-    color: #0f172a;
+    color: var(--color-text-primary);
     line-height: 1.2;
   }
 
@@ -690,7 +705,7 @@ onUnmounted(() => {
   }
 
   .stat-arrow {
-    color: #cbd5e1;
+    color: var(--color-text-placeholder);
     transition: all 0.2s ease;
     flex-shrink: 0;
   }
@@ -716,7 +731,7 @@ onUnmounted(() => {
 
     .skeleton-bar {
       flex: 1;
-      background: linear-gradient(180deg, #f1f5f9 0%, var(--color-border) 100%);
+      background: linear-gradient(180deg, var(--color-bg-hover) 0%, var(--color-border) 100%);
       border-radius: 6px 6px 0 0;
       animation: shimmer 1.5s ease-in-out infinite;
     }
@@ -728,7 +743,7 @@ onUnmounted(() => {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    color: #cbd5e1;
+    color: var(--color-text-placeholder);
     gap: 8px;
 
     p {
@@ -782,7 +797,7 @@ onUnmounted(() => {
       display: block;
       font-size: 14px;
       font-weight: 600;
-      color: #0f172a;
+      color: var(--color-text-primary);
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -796,7 +811,7 @@ onUnmounted(() => {
     }
 
     .formula-arrow {
-      color: #cbd5e1;
+      color: var(--color-text-placeholder);
       flex-shrink: 0;
       transition: all 0.2s ease;
     }
@@ -808,7 +823,7 @@ onUnmounted(() => {
     align-items: center;
     justify-content: center;
     padding: 32px 0;
-    color: #cbd5e1;
+    color: var(--color-text-placeholder);
     gap: 8px;
 
     p {
@@ -820,89 +835,141 @@ onUnmounted(() => {
 }
 
 .bento-activity {
-  .activity-body {
-    margin-top: 12px;
+  .activity-header {
     display: flex;
-    flex-direction: column;
-    gap: var(--space-0-5);
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
   }
 
-  .activity-item {
+  .activity-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--color-text-primary);
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: var(--space-2-5) 12px;
-    border-radius: 10px;
+    gap: 8px;
+    margin: 0;
+  }
+
+  .activity-body {
+    margin-top: 12px;
+  }
+
+  .timeline-list {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .timeline-item {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    position: relative;
+    padding-bottom: 24px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: opacity 0.2s ease;
 
     &:hover {
-      background: var(--color-bg-page);
+      opacity: 0.8;
+    }
+
+    &:not(.timeline-item--last)::after {
+      content: '';
+      position: absolute;
+      left: 11px;
+      top: 28px;
+      bottom: 0;
+      width: 1px;
+      background-color: var(--color-bg-hover);
     }
   }
 
-  .activity-dot {
+  .timeline-dot {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    z-index: 10;
+    position: relative;
+
+    &--success {
+      background-color: var(--color-primary-bg);
+    }
+
+    &--info {
+      background-color: var(--color-info-bg);
+    }
+  }
+
+  .timeline-dot-inner {
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    flex-shrink: 0;
 
-    &--formula {
-      background: var(--color-primary);
+    .timeline-dot--success & {
+      background-color: var(--color-primary);
     }
 
-    &--material {
-      background: #3b82f6;
+    .timeline-dot--info & {
+      background-color: var(--color-info);
     }
   }
 
-  .activity-content {
+  .timeline-content {
     flex: 1;
     min-width: 0;
   }
 
-  .activity-name {
-    display: block;
-    font-size: 13px;
+  .timeline-title {
+    font-size: 14px;
     font-weight: 500;
-    color: #0f172a;
+    color: var(--color-text-primary);
+    margin: 0 0 4px 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
 
-  .activity-time {
-    display: block;
-    font-size: 11px;
+  .timeline-desc {
+    font-size: 12px;
     color: var(--color-text-placeholder);
-    margin-top: 1px;
-  }
+    margin: 0 0 4px 0;
 
-  .activity-type-badge {
-    font-size: 11px;
-    padding: var(--space-0-5) 8px;
-    border-radius: 6px;
-    font-weight: 500;
-    flex-shrink: 0;
-
-    &--formula {
-      background: rgba(16, 185, 129, 0.08);
-      color: var(--color-primary);
+    :deep(.text-emerald-600) {
+      color: var(--color-primary-dark) !important;
+      font-weight: 700 !important;
     }
 
-    &--material {
-      background: rgba(59, 130, 246, 0.08);
-      color: #3b82f6;
+    :deep(.text-blue-600) {
+      color: var(--color-info) !important;
+      font-weight: 700 !important;
+    }
+
+    :deep(strong) {
+      font-weight: 700;
     }
   }
 
-  .activity-empty {
+  .timeline-time {
+    font-size: 10px;
+    color: var(--color-text-placeholder);
+    text-transform: uppercase;
+    display: inline-block;
+    margin-top: 4px;
+  }
+
+  .timeline-empty {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     padding: 32px 0;
-    color: #cbd5e1;
+    color: var(--color-text-placeholder);
     gap: 8px;
 
     p {
@@ -924,23 +991,27 @@ onUnmounted(() => {
       width: 28px;
       height: 28px;
       border-radius: 8px;
-      border: 1.5px solid rgba(16, 185, 129, 0.2);
-      background: rgba(16, 185, 129, 0.04);
+      border: 1.5px solid $overlay-emerald-20;
+      background: $overlay-emerald-04;
       color: var(--color-primary);
       cursor: pointer;
       transition: all 0.15s ease;
 
       &:hover:not(:disabled) {
-        background: rgba(16, 185, 129, 0.12);
+        background: $overlay-emerald-12;
         border-color: var(--color-primary);
         color: var(--color-primary-dark);
+      }
+
+      &:active:not(:disabled) {
+        transform: scale(0.94);
       }
 
       &:disabled {
         opacity: 0.3;
         cursor: not-allowed;
-        border-color: rgba(148, 163, 184, 0.15);
-        color: #cbd5e1;
+        border-color: var(--color-border-light);
+        color: var(--color-text-placeholder);
         background: transparent;
       }
     }
@@ -975,7 +1046,7 @@ onUnmounted(() => {
     padding: var(--space-3-5);
     border-radius: 12px;
     border: 1px solid var(--color-border);
-    background: #fff;
+    background: var(--color-bg-container);
     cursor: pointer;
     transition: all 0.2s ease;
     font-size: 13px;
@@ -983,13 +1054,13 @@ onUnmounted(() => {
     color: var(--color-text-primary);
 
     &--highlight {
-      background: linear-gradient(135deg, rgba(16, 185, 129, 0.06), rgba(45, 212, 191, 0.06));
-      border-color: rgba(16, 185, 129, 0.25);
+      background: linear-gradient(135deg, var(--overlay-emerald-06), var(--overlay-emerald-06));
+      border-color: var(--overlay-emerald-25);
 
       &:hover {
         border-color: var(--color-primary);
-        background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(45, 212, 191, 0.12));
-        box-shadow: 0 4px 16px rgba(16, 185, 129, 0.15);
+        background: linear-gradient(135deg, var(--overlay-emerald-12), var(--overlay-emerald-12));
+        box-shadow: 0 4px 16px var(--overlay-emerald-15);
       }
     }
 
@@ -997,7 +1068,7 @@ onUnmounted(() => {
       border-color: var(--color-primary);
       background: var(--color-bg-page);
       transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.08);
+      box-shadow: 0 4px 12px var(--overlay-emerald-08);
     }
 
     &:active {
@@ -1025,7 +1096,7 @@ onUnmounted(() => {
   .card-title {
     font-size: 15px;
     font-weight: 600;
-    color: #0f172a;
+    color: var(--color-text-primary);
     margin: 0;
   }
 
@@ -1044,7 +1115,7 @@ onUnmounted(() => {
 
     &:hover {
       color: var(--color-primary);
-      background: rgba(16, 185, 129, 0.06);
+      background: var(--overlay-emerald-06);
     }
   }
 }
@@ -1052,7 +1123,7 @@ onUnmounted(() => {
 .chart-tabs {
   display: flex;
   gap: var(--space-0-5);
-  background: #f1f5f9;
+  background: var(--color-bg-hover);
   border-radius: 8px;
   padding: var(--space-0-5);
 
@@ -1068,8 +1139,8 @@ onUnmounted(() => {
     transition: all 0.2s ease;
 
     &.active {
-      background: #fff;
-      color: #0f172a;
+      background: var(--color-bg-container);
+      color: var(--color-text-primary);
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
     }
 
@@ -1094,7 +1165,7 @@ onUnmounted(() => {
 .skeleton-line {
   height: 10px;
   border-radius: 4px;
-  background: linear-gradient(90deg, #f1f5f9 25%, var(--color-border) 50%, #f1f5f9 75%);
+  background: linear-gradient(90deg, var(--color-bg-hover) 25%, var(--color-border) 50%, var(--color-bg-hover) 75%);
   background-size: 200% 100%;
   animation: skeletonSlide 1.5s ease-in-out infinite;
 
@@ -1118,7 +1189,7 @@ onUnmounted(() => {
 }
 
 .formula-skeleton,
-.activity-skeleton {
+.timeline-skeleton {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -1240,7 +1311,7 @@ onUnmounted(() => {
   .bento-formulas {
     .formula-card {
       &:hover {
-        background: #0f172a;
+        background: var(--color-bg-page);
         border-color: rgba(255, 255, 255, 0.08);
       }
     }
@@ -1267,19 +1338,31 @@ onUnmounted(() => {
   }
 
   .bento-activity {
-    .activity-item:hover {
-      background: #0f172a;
-    }
-
-    .activity-name {
+    .activity-title {
       color: var(--color-border);
     }
 
-    .activity-time {
+    .timeline-item:hover {
+      opacity: 0.8;
+    }
+
+    .timeline-item:not(.timeline-item--last)::after {
+      background-color: rgba(255, 255, 255, 0.06);
+    }
+
+    .timeline-title {
+      color: var(--color-border);
+    }
+
+    .timeline-desc {
       color: var(--color-text-secondary);
     }
 
-    .activity-empty {
+    .timeline-time {
+      color: var(--color-text-secondary);
+    }
+
+    .timeline-empty {
       color: var(--color-text-secondary);
 
       p {
@@ -1289,17 +1372,17 @@ onUnmounted(() => {
 
     .activity-nav {
       .activity-nav-btn {
-        border-color: rgba(16, 185, 129, 0.15);
-        background: rgba(16, 185, 129, 0.06);
+        border-color: var(--overlay-emerald-15);
+        background: var(--overlay-emerald-06);
 
         &:hover:not(:disabled) {
-          background: rgba(16, 185, 129, 0.18);
+          background: var(--overlay-emerald-18);
           border-color: var(--color-primary-light);
         }
 
         &:disabled {
           opacity: 0.25;
-          border-color: rgba(148, 163, 184, 0.1);
+          border-color: var(--color-border-light);
           color: var(--color-text-secondary);
           background: transparent;
         }
@@ -1314,18 +1397,18 @@ onUnmounted(() => {
   .bento-quick {
     .quick-btn {
       border-color: rgba(255, 255, 255, 0.08);
-      background: #0f172a;
-      color: #cbd5e1;
+      background: var(--color-bg-page);
+      color: var(--color-text-placeholder);
 
       &:hover {
         border-color: var(--color-primary);
-        background: #162033;
+        background: var(--color-bg-hover);
       }
     }
   }
 
   .chart-tabs {
-    background: #0f172a;
+    background: var(--color-bg-page);
 
     .chart-tab {
       color: var(--color-text-secondary);

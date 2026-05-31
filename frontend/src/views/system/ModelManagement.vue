@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="model-management">
     <section class="dashboard-grid">
       <div v-for="(card, idx) in dashboardCards" :key="card.label" class="stat-card"
@@ -150,7 +150,7 @@
               <div class="section-header-enhanced">
                 <div class="section-title-group">
                   <svg class="section-title-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                    stroke="#8B5CF6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    stroke="var(--color-info)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path
                       d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
                     <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
@@ -285,7 +285,7 @@
                   <div class="ptc-header">
                     <div class="ptc-title-row">
                       <span class="ptc-name">{{ tpl.name }}</span>
-                      <t-tag v-if="tpl.isDefault || tpl.is_default" size="small" theme="primary" variant="light">默认</t-tag>
+                      <t-tag v-if="tpl.isDefault" size="small" theme="primary" variant="light">默认</t-tag>
                       <t-tag v-if="!tpl.enabled" size="small" theme="default" variant="light">已禁用</t-tag>
                     </div>
                     <span class="ptc-type">{{ promptTypeOptions.find(o => o.value === tpl.type)?.label || tpl.type }}</span>
@@ -293,11 +293,11 @@
                   <div class="ptc-body">
                     <div class="ptc-field">
                       <span class="ptc-field-label">System Prompt</span>
-                      <span class="ptc-field-value ptc-field-value--truncate">{{ (tpl.systemPrompt || tpl.system_prompt || '').slice(0, 80) }}{{ (tpl.systemPrompt || tpl.system_prompt || '').length > 80 ? '...' : '' }}</span>
+                      <span class="ptc-field-value ptc-field-value--truncate">{{ (tpl.systemPrompt || '').slice(0, 80) }}{{ (tpl.systemPrompt || '').length > 80 ? '...' : '' }}</span>
                     </div>
                     <div class="ptc-field">
                       <span class="ptc-field-label">User Prompt</span>
-                      <span class="ptc-field-value ptc-field-value--truncate">{{ (tpl.userPromptTemplate || tpl.user_prompt_template || '').slice(0, 100) }}{{ (tpl.userPromptTemplate || tpl.user_prompt_template || '').length > 100 ? '...' : '' }}</span>
+                      <span class="ptc-field-value ptc-field-value--truncate">{{ (tpl.userPromptTemplate || '').slice(0, 100) }}{{ (tpl.userPromptTemplate || '').length > 100 ? '...' : '' }}</span>
                     </div>
                     <div v-if="(tpl.variables || []).length" class="ptc-variables">
                       <t-tag v-for="v in tpl.variables" :key="v" size="small" variant="outline" style="margin: 2px;">{{ formatVarTag(v) }}</t-tag>
@@ -320,7 +320,7 @@
                 <div class="prompt-form">
                   <div class="prompt-form-row">
                     <div class="prompt-form-field">
-                      <label class="prompt-form-label">模板名称 <span style="color:#f43f5e">*</span></label>
+                      <label class="prompt-form-label">模板名称 <span style="color:var(--color-danger)">*</span></label>
                       <t-input v-model="promptForm.name" placeholder="例如：标准配方描述模板" />
                     </div>
                     <div class="prompt-form-field">
@@ -364,7 +364,7 @@
               <div class="section-header-enhanced">
                 <div class="section-title-group">
                   <svg class="section-title-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                    stroke="#3B82F6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    stroke="var(--color-info)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <line x1="18" y1="20" x2="18" y2="10" />
                     <line x1="12" y1="20" x2="12" y2="4" />
                     <line x1="6" y1="20" x2="6" y2="14" />
@@ -391,7 +391,7 @@
                   <div class="section-header-enhanced section-header-inline">
                     <div class="section-title-group">
                       <svg class="section-title-icon" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                        stroke="#8B5CF6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        stroke="var(--color-info)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
                         <polyline points="17 6 23 6 23 12" />
                       </svg>
@@ -419,7 +419,7 @@
                   <div class="section-header-enhanced section-header-inline">
                     <div class="section-title-group">
                       <svg class="section-title-icon" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                        stroke="#EC4899" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        stroke="var(--color-danger)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="12" cy="12" r="10" />
                         <path d="M8 12l3 3 5-5" />
                       </svg>
@@ -486,9 +486,9 @@
                 <div v-for="config in modelStore.alertConfigs" :key="config.id" class="alert-config-card">
                   <div class="alert-config-header">
                     <div class="alert-config-name-row model-logo-wrap model-logo-wrap--md">
-                      <img loading="lazy" :src="getModelLogo(config.provider)" :alt="config.model_name"
+                      <img loading="lazy" :src="getModelLogo(config.provider)" :alt="config.modelName"
                         class="model-logo" @error="(e: Event) => handleLogoError(e)" />
-                      <span class="alert-config-model-name">{{ config.model_name }}</span>
+                      <span class="alert-config-model-name">{{ config.modelName }}</span>
                     </div>
                     <t-switch :value="!!config.enabled" :disabled="!isAdmin"
                       @change="(val: string | number | boolean) => { config.enabled = val ? 1 : 0; handleAlertConfigChange(config); }" />
@@ -497,7 +497,7 @@
                     <div class="alert-config-field alert-config-field--row">
                       <span class="field-label">日调用上限</span>
                       <div class="field-input-with-unit">
-                        <t-input-number v-model="config.daily_call_limit" :disabled="!isAdmin" size="small" :min="0"
+                        <t-input-number v-model="config.dailyCallLimit" :disabled="!isAdmin" size="small" :min="0"
                           :step="100" theme="normal" @change="() => scheduleAlertConfigSave(config)" />
                         <span class="field-unit">次/日</span>
                       </div>
@@ -505,28 +505,28 @@
                     <div class="alert-config-field alert-config-field--row">
                       <span class="field-label">月Token上限</span>
                       <div class="field-input-with-unit">
-                        <t-input-number v-model="config.monthly_token_limit" :disabled="!isAdmin" size="small" :min="0"
+                        <t-input-number v-model="config.monthlyTokenLimit" :disabled="!isAdmin" size="small" :min="0"
                           :step="100000" theme="normal" @change="() => scheduleAlertConfigSave(config)" />
                         <span class="field-unit">Token/月</span>
-                        <span v-if="config.monthly_token_limit >= 10000" class="field-hint">{{ formatTokenInput(config.monthly_token_limit) }}</span>
+                        <span v-if="config.monthlyTokenLimit >= 10000" class="field-hint">{{ formatTokenInput(config.monthlyTokenLimit) }}</span>
                       </div>
                     </div>
                     <div class="alert-config-field alert-config-field--row">
                       <span class="field-label">预警阈值</span>
                       <div class="field-input-with-unit">
-                        <t-input-number v-model="config.warning_threshold" :disabled="!isAdmin" size="small" :min="1"
+                        <t-input-number v-model="config.warningThreshold" :disabled="!isAdmin" size="small" :min="1"
                           :max="100" theme="normal" @change="() => scheduleAlertConfigSave(config)" />
                         <span class="field-unit">%</span>
-                        <span v-if="config.monthly_token_limit > 0 && config.warning_threshold > 0" class="field-hint">≈ {{ formatTokenInput(Math.round(config.monthly_token_limit * config.warning_threshold / 100)) }} Token</span>
+                        <span v-if="config.monthlyTokenLimit > 0 && config.warningThreshold > 0" class="field-hint">≈ {{ formatTokenInput(Math.round(config.monthlyTokenLimit * config.warningThreshold / 100)) }} Token</span>
                       </div>
                     </div>
                     <div class="alert-config-field alert-config-field--row">
                       <span class="field-label">严重阈值</span>
                       <div class="field-input-with-unit">
-                        <t-input-number v-model="config.critical_threshold" :disabled="!isAdmin" size="small" :min="1"
+                        <t-input-number v-model="config.criticalThreshold" :disabled="!isAdmin" size="small" :min="1"
                           :max="100" theme="normal" @change="() => scheduleAlertConfigSave(config)" />
                         <span class="field-unit">%</span>
-                        <span v-if="config.monthly_token_limit > 0 && config.critical_threshold > 0" class="field-hint">≈ {{ formatTokenInput(Math.round(config.monthly_token_limit * config.critical_threshold / 100)) }} Token</span>
+                        <span v-if="config.monthlyTokenLimit > 0 && config.criticalThreshold > 0" class="field-hint">≈ {{ formatTokenInput(Math.round(config.monthlyTokenLimit * config.criticalThreshold / 100)) }} Token</span>
                       </div>
                     </div>
                   </div>
@@ -563,7 +563,7 @@
               <t-table v-if="modelStore.alertRecords.length > 0" :data="pagedAlertRecords"
                 :columns="alertRecordColumns" size="small" row-key="id" />
               <div v-else class="data-empty">
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="1.5"
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-placeholder)" stroke-width="1.5"
                   stroke-linecap="round" stroke-linejoin="round">
                   <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
                   <line x1="12" y1="9" x2="12" y2="13" />
@@ -578,7 +578,7 @@
               <div class="section-header-enhanced">
                 <div class="section-title-group">
                   <svg class="section-title-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                    stroke="#6366F1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    stroke="var(--color-info)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                     <polyline points="14 2 14 8 20 8" />
                     <line x1="16" y1="13" x2="8" y2="13" />
@@ -632,7 +632,7 @@
                 </div>
               </div>
               <div v-else class="data-empty">
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="1.5"
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-placeholder)" stroke-width="1.5"
                   stroke-linecap="round" stroke-linejoin="round">
                   <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                   <polyline points="14 2 14 8 20 8" />
@@ -706,7 +706,7 @@
                   <div class="fa-card-header">
                     <div class="fa-card-header-left">
                       <svg class="fa-card-icon" width="18" height="18" viewBox="0 0 24 24" fill="none"
-                        stroke="#8B5CF6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        stroke="var(--color-info)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
                       </svg>
                       <span class="fa-card-title">外观设置</span>
@@ -816,7 +816,7 @@
         class="app-dialog" destroy-on-close>
         <template #header>
           <div class="app-dialog-header">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" stroke-width="2"
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-info)" stroke-width="2"
               stroke-linecap="round" stroke-linejoin="round">
               <path
                 d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
@@ -905,7 +905,7 @@
         class="app-dialog" destroy-on-close>
         <template #header>
           <div class="app-dialog-header">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2"
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-info)" stroke-width="2"
               stroke-linecap="round" stroke-linejoin="round">
               <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
               <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
@@ -1037,7 +1037,7 @@
         </div>
         <div class="drawer-card api-card">
           <div class="card-header">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2"
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--color-info)" stroke-width="2"
               stroke-linecap="round" stroke-linejoin="round">
               <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
               <path d="M7 11V7a5 5 0 0 1 10 0v4" />
@@ -1085,7 +1085,7 @@
       <template #header>
         <div class="drawer-header">
           <div class="header-left">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2"
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-info)" stroke-width="2"
               stroke-linecap="round" stroke-linejoin="round">
               <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
               <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
@@ -1132,7 +1132,7 @@
         </div>
         <div class="drawer-card api-card">
           <div class="card-header">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2"
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--color-info)" stroke-width="2"
               stroke-linecap="round" stroke-linejoin="round">
               <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
               <path d="M7 11V7a5 5 0 0 1 10 0v4" />
@@ -1208,7 +1208,7 @@
       <div class="activity-card activity-card--timeline">
         <div class="activity-header">
           <h4 class="activity-title">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-info)" stroke-width="2"
               stroke-linecap="round" stroke-linejoin="round">
               <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
             </svg>
@@ -1284,40 +1284,11 @@ import { MessagePlugin } from "tdesign-vue-next";
 import { useModelStore } from "@/stores/model";
 import { useAuthStore } from "@/stores/auth";
 import { useFloatAgentStore } from "@/stores/floatAgent";
-import type { ModelItem, AlertConfigItem, ActivityItem, UsageSummaryItem, AlertRecordItem, UsageLogItem } from "@/api/model";
+import type { ModelItem, AlertConfigItem, ActivityItem, UsageSummaryItem, AlertRecordItem, UsageLogItem, ModelApplication, PromptTemplate } from "@/api/model";
 import { modelApi, type ModelVersionOption } from "@/api/model";
 import type { AgentFloatConfig } from "@/api/agent";
 import { agentApi } from "@/api/agent";
-import * as echarts from "echarts";
-
-interface ModelApplication {
-  id: string;
-  module: string;
-  moduleName?: string;
-  provider: string;
-  model: string;
-  description: string;
-  enabled: boolean;
-  updatedAt: string;
-  createdAt: string;
-}
-
-interface PromptTemplate {
-  id: string;
-  module: string;
-  name: string;
-  type: string;
-  systemPrompt?: string;
-  system_prompt?: string;
-  userPromptTemplate?: string;
-  user_prompt_template?: string;
-  variables: string[];
-  isDefault?: boolean;
-  is_default?: boolean;
-  enabled: boolean;
-  sortOrder?: number;
-  sort_order?: number;
-}
+import type { ECharts } from 'echarts'
 
 type CellRendererParam<T> = { row: T };
 type HFunction = typeof import("vue").h;
@@ -1646,22 +1617,22 @@ const dashboardCards = computed(() => [
     value: modelStore.stats.configuredModels,
     unit: `/${modelStore.stats.totalModels}`,
     iconPath: '<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>',
-    iconBg: "linear-gradient(135deg, #DBEAFE, #BFDBFE)",
-    iconColor: "#3B82F6",
+    iconBg: "linear-gradient(135deg, var(--color-info-bg), var(--color-info-light))",
+    iconColor: "var(--color-info)",
     badge: modelStore.stats.activeAlerts > 0 ? `${modelStore.stats.activeAlerts}预警` : "正常",
     badgeColor: modelStore.stats.activeAlerts > 0 ? "var(--color-warning)" : "var(--color-primary)",
-    badgeBg: modelStore.stats.activeAlerts > 0 ? "#FEF3C7" : "var(--color-primary-bg)",
+    badgeBg: modelStore.stats.activeAlerts > 0 ? "var(--color-warning-bg)" : "var(--color-primary-bg)",
   },
   {
     label: "今日调用",
     value: formatNumber(modelStore.stats.todayCalls),
     unit: "",
     iconPath: '<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>',
-    iconBg: "linear-gradient(135deg, #FCE7F3, #FBCFE8)",
-    iconColor: "#EC4899",
+    iconBg: "linear-gradient(135deg, var(--color-danger-bg), var(--color-danger-light))",
+    iconColor: "var(--color-danger)",
     badge: "实时",
-    badgeColor: "#8B5CF6",
-    badgeBg: "#EDE9FE",
+    badgeColor: "var(--color-info)",
+    badgeBg: "var(--color-info-bg)",
   },
   {
     label: "今日Token",
@@ -1671,19 +1642,19 @@ const dashboardCards = computed(() => [
     iconBg: "linear-gradient(135deg, var(--color-primary-bg), var(--color-primary-lightest))",
     iconColor: "var(--color-primary)",
     badge: "统计",
-    badgeColor: "#6366F1",
-    badgeBg: "#E0E7FF",
+    badgeColor: "var(--color-info)",
+    badgeBg: "var(--color-info-bg)",
   },
   {
     label: "本月Token",
     value: formatTokens(modelStore.stats.monthTokens),
     unit: "",
     iconPath: '<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>',
-    iconBg: "linear-gradient(135deg, #FEF3C7, #FDE68A)",
+    iconBg: "linear-gradient(135deg, var(--color-warning-bg), var(--color-warning-light))",
     iconColor: "var(--color-warning)",
     badge: "月度",
-    badgeColor: "#EC4899",
-    badgeBg: "#FCE7F3",
+    badgeColor: "var(--color-danger)",
+    badgeBg: "var(--color-danger-bg)",
   },
 ]);
 
@@ -1712,8 +1683,8 @@ const editForm = ref({
 
 const trendChartRef = ref<HTMLElement>();
 const pieChartRef = ref<HTMLElement>();
-let trendChart: echarts.ECharts | null = null;
-let pieChart: echarts.ECharts | null = null;
+let trendChart: ECharts | null = null;
+let pieChart: ECharts | null = null;
 
 const PROVIDER_VERSIONS: Record<string, { value: string; label: string; }[]> = {
   dashscope: [
@@ -1953,10 +1924,10 @@ function scheduleAlertConfigSave(config: AlertConfigItem) {
 async function handleAlertConfigSave(config: AlertConfigItem, skipRefresh = false) {
   try {
     await modelStore.updateAlertConfig(config.id, {
-      dailyCallLimit: config.daily_call_limit,
-      monthlyTokenLimit: config.monthly_token_limit,
-      warningThreshold: config.warning_threshold,
-      criticalThreshold: config.critical_threshold,
+      dailyCallLimit: config.dailyCallLimit,
+      monthlyTokenLimit: config.monthlyTokenLimit,
+      warningThreshold: config.warningThreshold,
+      criticalThreshold: config.criticalThreshold,
       enabled: !!config.enabled,
     }, skipRefresh);
   } catch (err: unknown) {
@@ -2031,18 +2002,18 @@ const usageColumns = [
       ]);
     }
   },
-  { colKey: "total_calls", title: "总调用", width: 100, cell: (_h: ReturnType<typeof import("vue").h>, { row }: CellRendererParam<UsageSummaryItem>) => formatNumber(row.total_calls) },
-  { colKey: "total_tokens", title: "总Token", width: 120, cell: (_h: ReturnType<typeof import("vue").h>, { row }: CellRendererParam<UsageSummaryItem>) => formatTokens(row.total_tokens) },
-  { colKey: "today_calls", title: "今日调用", width: 100, cell: (_h: ReturnType<typeof import("vue").h>, { row }: CellRendererParam<UsageSummaryItem>) => formatNumber(row.today_calls) },
-  { colKey: "today_tokens", title: "今日Token", width: 120, cell: (_h: ReturnType<typeof import("vue").h>, { row }: CellRendererParam<UsageSummaryItem>) => formatTokens(row.today_tokens) },
-  { colKey: "month_tokens", title: "本月Token", width: 120, cell: (_h: ReturnType<typeof import("vue").h>, { row }: CellRendererParam<UsageSummaryItem>) => formatTokens(row.month_tokens) },
-  { colKey: "avg_latency_ms", title: "平均延迟", width: 100, cell: (_h: ReturnType<typeof import("vue").h>, { row }: CellRendererParam<UsageSummaryItem>) => `${Math.round(row.avg_latency_ms)}ms` },
+  { colKey: "totalCalls", title: "总调用", width: 100, cell: (_h: ReturnType<typeof import("vue").h>, { row }: CellRendererParam<UsageSummaryItem>) => formatNumber(row.totalCalls) },
+  { colKey: "totalTokens", title: "总Token", width: 120, cell: (_h: ReturnType<typeof import("vue").h>, { row }: CellRendererParam<UsageSummaryItem>) => formatTokens(row.totalTokens) },
+  { colKey: "todayCalls", title: "今日调用", width: 100, cell: (_h: ReturnType<typeof import("vue").h>, { row }: CellRendererParam<UsageSummaryItem>) => formatNumber(row.todayCalls) },
+  { colKey: "todayTokens", title: "今日Token", width: 120, cell: (_h: ReturnType<typeof import("vue").h>, { row }: CellRendererParam<UsageSummaryItem>) => formatTokens(row.todayTokens) },
+  { colKey: "monthTokens", title: "本月Token", width: 120, cell: (_h: ReturnType<typeof import("vue").h>, { row }: CellRendererParam<UsageSummaryItem>) => formatTokens(row.monthTokens) },
+  { colKey: "avgLatencyMs", title: "平均延迟", width: 100, cell: (_h: ReturnType<typeof import("vue").h>, { row }: CellRendererParam<UsageSummaryItem>) => `${Math.round(row.avgLatencyMs)}ms` },
 ];
 
 const alertRecordColumns = [
   {
-    colKey: "model_name", title: "模型", width: 140, cell: (h: ReturnType<typeof import("vue").h>, { row }: CellRendererParam<AlertRecordItem>) => {
-      const provider = row.provider || row.model_name || '';
+    colKey: "modelName", title: "模型", width: 140, cell: (h: ReturnType<typeof import("vue").h>, { row }: CellRendererParam<AlertRecordItem>) => {
+      const provider = row.provider || row.modelName || '';
       const logoUrl = getModelLogo(provider);
       return h('div', { style: 'display: flex; align-items: center; gap: 8px; flex-wrap: nowrap; white-space: nowrap; overflow: hidden; width: 100%;' }, [
         h('div', { style: 'position: relative; width: 20px; height: 20px; min-width: 20px; flex-shrink: 0;' }, [
@@ -2062,11 +2033,11 @@ const alertRecordColumns = [
             style: `position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 10px; font-weight: 700; display: none; color: ${getFallbackColor(provider)};`
           }, getFallbackLetter(provider))
         ]),
-        h('span', { style: 'font-size: 13px; font-weight: 500; color: var(--color-text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 1;' }, row.model_name)
+        h('span', { style: 'font-size: 13px; font-weight: 500; color: var(--color-text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 1;' }, row.modelName)
       ]);
     }
   },
-  { colKey: "alert_type", title: "类型", width: 100, cell: (_h: ReturnType<typeof import("vue").h>, { row }: CellRendererParam<AlertRecordItem>) => row.alert_type === "daily_call" ? "日调用" : "月Token" },
+  { colKey: "alertType", title: "类型", width: 100, cell: (_h: ReturnType<typeof import("vue").h>, { row }: CellRendererParam<AlertRecordItem>) => row.alertType === "daily_call" ? "日调用" : "月Token" },
   {
     colKey: "level", title: "级别", width: 80, cell: (h: ReturnType<typeof import("vue").h>, { row }: CellRendererParam<AlertRecordItem>) => {
       const isCritical = row.level === "critical";
@@ -2080,7 +2051,7 @@ const alertRecordColumns = [
     }
   },
   { colKey: "message", title: "消息", ellipsis: true },
-  { colKey: "created_at", title: "时间", width: 160, cell: (_h: ReturnType<typeof import("vue").h>, { row }: CellRendererParam<AlertRecordItem>) => formatDateTime(row.created_at) },
+  { colKey: "createdAt", title: "时间", width: 160, cell: (_h: ReturnType<typeof import("vue").h>, { row }: CellRendererParam<AlertRecordItem>) => formatDateTime(row.createdAt) },
 ];
 
 const logColumns = [
@@ -2217,15 +2188,16 @@ const logColumns = [
   { colKey: "createdAt", title: "时间", width: 150, cell: (_h: ReturnType<typeof import("vue").h>, { row }: CellRendererParam<UsageLogItem>) => formatDateTime(row.createdAt) },
 ];
 
-function renderCharts() {
+async function renderCharts() {
+  const echarts = await import('echarts')
   const providers = modelStore.models.map(m => m.provider);
   const providerNames: Record<string, string> = {};
   modelStore.models.forEach(m => { providerNames[m.provider] = m.name; });
 
   const providerColors: Record<string, string> = {
     dashscope: "var(--color-primary)",
-    zhipu: "#5B8FF9",
-    deepseek: "#5AD8A6",
+    zhipu: "var(--color-info)",
+    deepseek: "var(--color-success)",
   };
 
   if (modelStore.usageTrend.length > 0 && trendChartRef.value && trendChartRef.value.parentNode) {
@@ -2245,7 +2217,7 @@ function renderCharts() {
           smooth: true,
           data: modelStore.usageTrend.map(t => (t as Record<string, string | number>)[p] || 0),
           lineStyle: { width: 2 },
-          itemStyle: { color: providerColors[p] || "#999" },
+          itemStyle: { color: providerColors[p] || "var(--color-text-placeholder)" },
           areaStyle: { opacity: 0.1 },
         })),
       });
@@ -2268,7 +2240,7 @@ function renderCharts() {
           data: modelStore.usageDistribution.filter(d => d.tokens > 0).map(d => ({
             name: d.name,
             value: d.tokens,
-            itemStyle: { color: providerColors[d.provider] || "#999" },
+            itemStyle: { color: providerColors[d.provider] || "var(--color-text-placeholder)" },
           })),
         }],
       });
@@ -2315,14 +2287,8 @@ const stopModelsRefresh = () => {
 
 const fetchModelApplications = async () => {
   try {
-    const token = localStorage.getItem('tingstudio_token') || '';
-    const res = await fetch("/api/ai/model-applications", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    const data = await res.json();
-    if (data.success) {
-      modelApplications.value = data.data || [];
-    }
+    const data = await modelApi.getModelApplications();
+    modelApplications.value = (data as unknown as ModelApplication[]) || [];
   } catch (error) {
     console.error("获取模型应用配置失败:", error);
   }
@@ -2363,14 +2329,8 @@ const promptVariableOptions = [
 const fetchPromptTemplates = async () => {
   promptLoading.value = true;
   try {
-    const token = localStorage.getItem('tingstudio_token') || '';
-    const res = await fetch("/api/ai/prompt-templates?module=smart-generate", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    const data = await res.json();
-    if (data.success) {
-      promptTemplates.value = data.data || [];
-    }
+    const data = await modelApi.getPromptTemplates({ module: "smart-generate" });
+    promptTemplates.value = (data as unknown as PromptTemplate[]) || [];
   } catch (error) {
     console.error("获取提示词模板失败:", error);
   } finally {
@@ -2395,11 +2355,11 @@ const openEditPromptDialog = (row: PromptTemplate) => {
   promptForm.value = {
     id: row.id, module: row.module || "smart-generate", name: row.name,
     type: row.type || "description",
-    systemPrompt: row.systemPrompt || row.system_prompt || "",
-    userPromptTemplate: row.userPromptTemplate || row.user_prompt_template || "",
+    systemPrompt: row.systemPrompt || "",
+    userPromptTemplate: row.userPromptTemplate || "",
     variables: row.variables || [],
-    isDefault: row.isDefault ?? row.is_default ?? false,
-    enabled: row.enabled ?? true, sortOrder: row.sortOrder ?? row.sort_order ?? 0,
+    isDefault: row.isDefault ?? false,
+    enabled: row.enabled ?? true, sortOrder: row.sortOrder ?? 0,
   };
   showPromptDialog.value = true;
 };
@@ -2409,52 +2369,36 @@ const savePromptTemplate = async () => {
     MessagePlugin.warning("请填写模板名称");
     return;
   }
-  const token = localStorage.getItem('tingstudio_token') || '';
-  const url = promptFormMode.value === "create"
-    ? "/api/ai/prompt-templates"
-    : `/api/ai/prompt-templates/${promptForm.value.id}`;
-  const method = promptFormMode.value === "create" ? "POST" : "PUT";
   try {
-    const res = await fetch(url, {
-      method,
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-      body: JSON.stringify({
-        module: promptForm.value.module,
-        name: promptForm.value.name,
-        type: promptForm.value.type,
-        systemPrompt: promptForm.value.systemPrompt,
-        userPromptTemplate: promptForm.value.userPromptTemplate,
-        variables: promptForm.value.variables,
-        isDefault: promptForm.value.isDefault,
-        enabled: promptForm.value.enabled,
-        sortOrder: promptForm.value.sortOrder,
-      }),
-    });
-    const data = await res.json();
-    if (data.success) {
-      MessagePlugin.success(promptFormMode.value === "create" ? "模板创建成功" : "模板更新成功");
-      showPromptDialog.value = false;
-      fetchPromptTemplates();
+    const formData = {
+      module: promptForm.value.module,
+      name: promptForm.value.name,
+      type: promptForm.value.type,
+      systemPrompt: promptForm.value.systemPrompt,
+      userPromptTemplate: promptForm.value.userPromptTemplate,
+      variables: promptForm.value.variables,
+      isDefault: promptForm.value.isDefault,
+      enabled: promptForm.value.enabled,
+      sortOrder: promptForm.value.sortOrder,
+    };
+    if (promptFormMode.value === "create") {
+      await modelApi.createPromptTemplate(formData);
     } else {
-      MessagePlugin.error(data.message || "操作失败");
+      await modelApi.updatePromptTemplate(promptForm.value.id, formData);
     }
+    MessagePlugin.success(promptFormMode.value === "create" ? "模板创建成功" : "模板更新成功");
+    showPromptDialog.value = false;
+    fetchPromptTemplates();
   } catch {
     MessagePlugin.error("操作失败");
   }
 };
 
 const deletePromptTemplate = async (id: string) => {
-  const token = localStorage.getItem('tingstudio_token') || '';
   try {
-    const res = await fetch(`/api/ai/prompt-templates/${id}`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    const data = await res.json();
-    if (data.success) {
-      MessagePlugin.success("模板已删除");
-      fetchPromptTemplates();
-    }
+    await modelApi.deletePromptTemplate(id);
+    MessagePlugin.success("模板已删除");
+    fetchPromptTemplates();
   } catch {
     MessagePlugin.error("删除失败");
   }
@@ -2494,14 +2438,14 @@ const getModuleIcon = (module: string): string => {
 
 const getModuleIconBg = (module: string): string => {
   const bgMap: Record<string, string> = {
-    "weekly-report": "linear-gradient(135deg, #DBEAFE, #BFDBFE)",
-    "monthly-report": "linear-gradient(135deg, #FCE7F3, #FBCFE8)",
+    "weekly-report": "linear-gradient(135deg, var(--color-info-bg), var(--color-info-light))",
+    "monthly-report": "linear-gradient(135deg, var(--color-danger-bg), var(--color-danger-light))",
     "smart-form": "linear-gradient(135deg, var(--color-primary-bg), var(--color-primary-lightest))",
-    "smart-import": "linear-gradient(135deg, #FEF3C7, #FDE68A)",
-    "smart-search": "linear-gradient(135deg, #EDE9FE, #DDD6FE)",
+    "smart-import": "linear-gradient(135deg, var(--color-warning-bg), var(--color-warning-light))",
+    "smart-search": "linear-gradient(135deg, var(--color-info-bg), var(--color-info-light))",
     "smart-generate": "linear-gradient(135deg, var(--color-primary-bg), var(--color-primary-lighter))",
   };
-  return bgMap[module] || "#F1F5F9";
+  return bgMap[module] || "var(--color-bg-hover)";
 };
 
 const getModelNameByProvider = (provider: string): string => {
@@ -2563,24 +2507,11 @@ const openEditAppDialog = (app: ModelApplication) => {
 const submitAddApp = async () => {
   try {
     appSubmitting.value = true;
-    const token = localStorage.getItem('tingstudio_token') || '';
-    const res = await fetch("/api/ai/model-applications", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(appFormData),
-    });
-    const data = await res.json();
-    if (data.success) {
-      MessagePlugin.success("添加成功");
-      showAddAppDialog.value = false;
-      Object.assign(appFormData, { module: "", provider: "", model: "", description: "", enabled: true });
-      await fetchModelApplications();
-    } else {
-      MessagePlugin.error(data.message || "添加失败");
-    }
+    await modelApi.createModelApplication(appFormData);
+    MessagePlugin.success("添加成功");
+    showAddAppDialog.value = false;
+    Object.assign(appFormData, { module: "", provider: "", model: "", description: "", enabled: true });
+    await fetchModelApplications();
   } catch (error) {
     console.error("添加配置失败:", error);
     MessagePlugin.error("添加失败");
@@ -2592,23 +2523,10 @@ const submitAddApp = async () => {
 const submitEditApp = async () => {
   try {
     appSubmitting.value = true;
-    const token = localStorage.getItem('tingstudio_token') || '';
-    const res = await fetch(`/api/ai/model-applications/${editingAppId.value}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(editAppFormData),
-    });
-    const data = await res.json();
-    if (data.success) {
-      MessagePlugin.success("保存成功");
-      showEditAppDialog.value = false;
-      await fetchModelApplications();
-    } else {
-      MessagePlugin.error(data.message || "保存失败");
-    }
+    await modelApi.updateModelApplication(editingAppId.value, editAppFormData);
+    MessagePlugin.success("保存成功");
+    showEditAppDialog.value = false;
+    await fetchModelApplications();
   } catch (error) {
     console.error("保存配置失败:", error);
     MessagePlugin.error("保存失败");
@@ -2620,22 +2538,9 @@ const submitEditApp = async () => {
 const toggleAppStatus = async (app: ModelApplication) => {
   try {
     const newStatus = !app.enabled;
-    const token = localStorage.getItem('tingstudio_token') || '';
-    const res = await fetch(`/api/ai/model-applications/${app.id}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ enabled: newStatus }),
-    });
-    const data = await res.json();
-    if (data.success) {
-      app.enabled = newStatus;
-      MessagePlugin.success(newStatus ? "已启用" : "已禁用");
-    } else {
-      MessagePlugin.error(data.message || "操作失败");
-    }
+    await modelApi.patchModelApplication(app.id, { enabled: newStatus });
+    app.enabled = newStatus;
+    MessagePlugin.success(newStatus ? "已启用" : "已禁用");
   } catch (error) {
     console.error("切换状态失败:", error);
     MessagePlugin.error("操作失败");
@@ -2644,18 +2549,9 @@ const toggleAppStatus = async (app: ModelApplication) => {
 
 const deleteApplication = async (id: string) => {
   try {
-    const token = localStorage.getItem('tingstudio_token') || '';
-    const res = await fetch(`/api/ai/model-applications/${id}`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    const data = await res.json();
-    if (data.success) {
-      MessagePlugin.success("删除成功");
-      await fetchModelApplications();
-    } else {
-      MessagePlugin.error(data.message || "删除失败");
-    }
+    await modelApi.deleteModelApplication(id);
+    MessagePlugin.success("删除成功");
+    await fetchModelApplications();
   } catch (error) {
     console.error("删除配置失败:", error);
     MessagePlugin.error("删除失败");
@@ -2777,17 +2673,17 @@ $transition-normal: 0.25s ease;
   margin-bottom: 30px;
 
   .stat-card {
-    background: #fff;
+    background: var(--color-bg-container);
     padding: 24px;
     border-radius: var(--radius-4xl);
-    border: 1px solid #fff;
+    border: 1px solid var(--color-bg-container);
     box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
     transition: all 0.3s ease;
     animation: dashboard-fade-in 0.5s ease forwards;
     opacity: 0;
 
     &:hover {
-      border-color: #DBEAFE;
+      border-color: var(--color-info-light);
       transform: translateY(-2px);
       box-shadow: 0 14px 36px -6px rgba(0, 0, 0, 0.08);
     }
@@ -2826,7 +2722,7 @@ $transition-normal: 0.25s ease;
     .stat-value {
       font-size: 24px;
       font-weight: 700;
-      color: #0F172A;
+      color: var(--color-text-primary);
       line-height: 1.2;
 
       .stat-unit {
@@ -2910,7 +2806,7 @@ $transition-normal: 0.25s ease;
   }
 
   &:active {
-    background-color: #0f172a;
+    background-color: var(--color-text-primary);
     transform: scale(0.98);
   }
 
@@ -2994,7 +2890,7 @@ $transition-normal: 0.25s ease;
     }
 
     &:hover {
-      background: #f1f5f9;
+      background: var(--color-bg-hover);
       color: var(--color-text-primary);
     }
 
@@ -3020,16 +2916,16 @@ $transition-normal: 0.25s ease;
     height: 32px;
     border-radius: 8px;
     border: 1px solid var(--color-border);
-    background: #fff;
+    background: var(--color-bg-container);
     cursor: pointer;
     transition: all 0.2s ease;
     margin-bottom: 12px;
     color: var(--color-text-placeholder);
 
     &:hover {
-      background: #f1f5f9;
+      background: var(--color-bg-hover);
       color: var(--color-text-secondary);
-      border-color: #cbd5e1;
+      border-color: var(--color-text-placeholder);
     }
   }
 }
@@ -3038,7 +2934,7 @@ $transition-normal: 0.25s ease;
   flex: 1;
   min-width: 0;
   padding: 24px var(--space-7);
-  border-left: 1px solid #f1f5f9;
+  border-left: 1px solid var(--color-bg-hover);
 }
 
 .content-fade-enter-active,
@@ -3061,7 +2957,7 @@ $transition-normal: 0.25s ease;
   align-items: center;
   justify-content: space-between;
   padding: 24px;
-  background-color: #fff;
+  background-color: var(--color-bg-container);
   border-top: 1px solid var(--color-bg-page);
   border-radius: 0 0 var(--radius-5xl) var(--radius-5xl);
 
@@ -3081,7 +2977,7 @@ $transition-normal: 0.25s ease;
       padding: 0 var(--space-2-5);
       border-radius: 10px;
       border: 1px solid var(--color-border);
-      background: #fff;
+      background: var(--color-bg-container);
       font-size: 13px;
       font-weight: 500;
       color: var(--color-text-secondary);
@@ -3091,12 +2987,12 @@ $transition-normal: 0.25s ease;
       &:hover:not(.pagination-btn--disabled) {
         border-color: var(--color-primary-lighter);
         color: var(--color-primary-dark);
-        background: #ECFDF5;
+        background: var(--color-success-bg);
       }
 
       &.pagination-btn--active {
         background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
-        color: #fff;
+        color: var(--color-text-white);
         border-color: transparent;
         box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
       }
@@ -3132,7 +3028,7 @@ $transition-normal: 0.25s ease;
 
   .data-empty-hint {
     font-size: 12px;
-    color: #cbd5e1;
+    color: var(--color-text-placeholder);
     margin: 0;
   }
 }
@@ -3202,7 +3098,7 @@ $transition-normal: 0.25s ease;
   padding: var(--space-1-5) var(--space-3-5);
   border-radius: 10px;
   border: 1px solid var(--color-border);
-  background: #fff;
+  background: var(--color-bg-container);
   color: var(--color-text-secondary);
   font-size: 13px;
   font-weight: 500;
@@ -3217,7 +3113,7 @@ $transition-normal: 0.25s ease;
 
   &:hover {
     background: var(--color-bg-page);
-    border-color: #cbd5e1;
+    border-color: var(--color-text-placeholder);
     color: var(--color-text-primary);
     box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
     transform: translateY(-1px);
@@ -3230,9 +3126,9 @@ $transition-normal: 0.25s ease;
 
   &--spinning {
     pointer-events: none;
-    color: #3b82f6;
-    border-color: #bfdbfe;
-    background: #eff6ff;
+    color: var(--color-info);
+    border-color: var(--color-info-light);
+    background: var(--color-info-bg);
 
     svg {
       animation: refresh-spin 0.8s linear infinite;
@@ -3319,9 +3215,9 @@ $transition-normal: 0.25s ease;
 }
 
 .model-card {
-  background: #fff;
+  background: var(--color-bg-container);
   border-radius: 20px;
-  border: 1px solid #f1f5f9;
+  border: 1px solid var(--color-border);
   box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
   overflow: hidden;
   transition: all 0.3s ease;
@@ -3369,7 +3265,7 @@ $transition-normal: 0.25s ease;
         justify-content: center;
         font-size: 13px;
         font-weight: 700;
-        background: #f1f5f9;
+        background: var(--color-bg-hover);
         border-radius: 8px;
       }
     }
@@ -3406,8 +3302,8 @@ $transition-normal: 0.25s ease;
       }
 
       &.degraded {
-        background: #FEF3C7;
-        color: #D97706;
+        background: var(--color-warning-bg);
+        color: var(--color-warning);
 
         &::before {
           content: '';
@@ -3419,7 +3315,7 @@ $transition-normal: 0.25s ease;
       }
 
       &.unhealthy {
-        background: #FEE2E2;
+        background: var(--color-danger-bg);
         color: var(--color-danger);
 
         &::before {
@@ -3432,7 +3328,7 @@ $transition-normal: 0.25s ease;
       }
 
       &.unknown {
-        background: #F1F5F9;
+        background: var(--color-bg-hover);
         color: var(--color-text-secondary);
 
         &::before {
@@ -3490,7 +3386,7 @@ $transition-normal: 0.25s ease;
     justify-content: space-between;
     padding: var(--space-2-5) 20px;
     border-top: 1px solid var(--color-bg-page);
-    background: #fafbfc;
+    background: var(--color-bg-page);
 
     .model-usage-mini {
       display: flex;
@@ -3514,9 +3410,9 @@ $transition-normal: 0.25s ease;
 }
 
 .chart-card {
-  background: #fff;
+  background: var(--color-bg-container);
   border-radius: 20px;
-  border: 1px solid #f1f5f9;
+  border: 1px solid var(--color-border);
   box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
   padding: 20px;
 
@@ -3538,7 +3434,7 @@ $transition-normal: 0.25s ease;
     align-items: center;
     justify-content: center;
     gap: 16px;
-    background: linear-gradient(135deg, var(--color-bg-page) 0%, #f1f5f9 100%);
+    background: linear-gradient(135deg, var(--color-bg-page) 0%, var(--color-bg-hover) 100%);
     border-radius: 16px;
     margin-top: 8px;
 
@@ -3553,7 +3449,7 @@ $transition-normal: 0.25s ease;
       width: 36px;
       height: 36px;
       border: 3px solid var(--color-border);
-      border-top: 3px solid #8B5CF6;
+      border-top: 3px solid var(--color-info);
       border-radius: 50%;
       animation: chart-spin 0.8s linear infinite;
     }
@@ -3566,7 +3462,7 @@ $transition-normal: 0.25s ease;
     align-items: center;
     justify-content: center;
     gap: 12px;
-    background: linear-gradient(135deg, var(--color-bg-page) 0%, #f1f5f9 100%);
+    background: linear-gradient(135deg, var(--color-bg-page) 0%, var(--color-bg-hover) 100%);
     border-radius: 16px;
     margin-top: 8px;
 
@@ -3574,7 +3470,7 @@ $transition-normal: 0.25s ease;
       width: 72px;
       height: 72px;
       border-radius: 50%;
-      background: #fff;
+      background: var(--color-bg-container);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -3602,7 +3498,7 @@ $transition-normal: 0.25s ease;
       padding: var(--space-1-5) 16px;
       border-radius: 8px;
       border: 1px solid var(--color-border);
-      background: #fff;
+      background: var(--color-bg-container);
       color: var(--color-text-secondary);
       font-size: 12px;
       font-weight: 500;
@@ -3613,16 +3509,16 @@ $transition-normal: 0.25s ease;
       &:hover {
         background: var(--color-bg-page);
         color: var(--color-text-primary);
-        border-color: #cbd5e1;
+        border-color: var(--color-text-placeholder);
       }
     }
   }
 }
 
 .usage-table-card {
-  background: #fff;
+  background: var(--color-bg-container);
   border-radius: 20px;
-  border: 1px solid #f1f5f9;
+  border: 1px solid var(--color-border);
   box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
   padding: 20px;
 
@@ -3641,9 +3537,9 @@ $transition-normal: 0.25s ease;
 }
 
 .alert-config-card {
-  background: #fff;
+  background: var(--color-bg-container);
   border-radius: 20px;
-  border: 1px solid #f1f5f9;
+  border: 1px solid var(--color-border);
   box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
   padding: 20px 24px;
   overflow: visible;
@@ -3774,7 +3670,7 @@ $transition-normal: 0.25s ease;
     .header-title {
       font-size: 16px;
       font-weight: 700;
-      color: #0F172A;
+      color: var(--color-text-primary);
     }
   }
 
@@ -3796,7 +3692,7 @@ $transition-normal: 0.25s ease;
 
       &.create-btn {
         background: var(--gradient-btn, linear-gradient(135deg, var(--color-primary), var(--color-primary-dark)));
-        color: #fff;
+        color: var(--color-text-white);
         box-shadow: 0 2px 8px var(--overlay-brand-25, rgba(0, 0, 0, 0.2));
 
         &:hover:not(:disabled) {
@@ -3807,7 +3703,7 @@ $transition-normal: 0.25s ease;
 
       &.update-btn {
         background: var(--gradient-btn, linear-gradient(135deg, var(--color-primary), var(--color-primary-dark)));
-        color: #fff;
+        color: var(--color-text-white);
         box-shadow: 0 2px 8px var(--overlay-brand-25, rgba(0, 0, 0, 0.2));
 
         &:hover:not(:disabled) {
@@ -3840,7 +3736,7 @@ $transition-normal: 0.25s ease;
 
   .drawer-card {
     margin-bottom: 16px;
-    border: 1px solid #f1f5f9;
+    border: 1px solid var(--color-bg-hover);
     border-radius: 12px;
     overflow: hidden;
 
@@ -3853,7 +3749,7 @@ $transition-normal: 0.25s ease;
     }
 
     &.api-card {
-      border-left: 3px solid #3b82f6;
+      border-left: 3px solid var(--color-info);
     }
 
     &.param-card {
@@ -3866,7 +3762,7 @@ $transition-normal: 0.25s ease;
       gap: 8px;
       padding: 12px 16px;
       background: var(--color-bg-page);
-      border-bottom: 1px solid #f1f5f9;
+      border-bottom: 1px solid var(--color-bg-hover);
 
       span {
         font-size: 14px;
@@ -3985,7 +3881,7 @@ $transition-normal: 0.25s ease;
 }
 
 .activity-card {
-  background-color: #fff;
+  background-color: var(--color-bg-container);
   border-radius: var(--radius-4xl);
   padding: 32px;
   box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
@@ -3994,7 +3890,7 @@ $transition-normal: 0.25s ease;
   &--assistant {
     background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
     border: none;
-    color: #fff;
+    color: var(--color-text-white);
     position: relative;
     overflow: hidden;
     box-shadow: 0 20px 25px -5px $overlay-emerald-15, 0 10px 10px -5px $overlay-emerald-04;
@@ -4032,7 +3928,7 @@ $transition-normal: 0.25s ease;
   height: 28px;
   border-radius: 8px;
   border: none;
-  background: #f1f5f9;
+  background: var(--color-bg-hover);
   color: var(--color-text-secondary);
   cursor: pointer;
   transition: all $transition-fast;
@@ -4091,7 +3987,7 @@ $transition-normal: 0.25s ease;
   justify-content: center;
   flex-shrink: 0;
   z-index: 1;
-  background: #fff;
+  background: var(--color-bg-container);
   border: 2px solid var(--color-border);
 
   &--success {
@@ -4106,13 +4002,13 @@ $transition-normal: 0.25s ease;
   }
 
   &--info {
-    border-color: #3b82f6;
+    border-color: var(--color-info);
 
     .timeline-dot-inner {
       width: 8px;
       height: 8px;
       border-radius: 50%;
-      background: #3b82f6;
+      background: var(--color-info);
     }
   }
 
@@ -4202,7 +4098,7 @@ $transition-normal: 0.25s ease;
   background: $overlay-white-20;
   backdrop-filter: blur(10px);
   border: 1px solid $overlay-white-30;
-  color: #fff;
+  color: var(--color-text-white);
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
@@ -4297,7 +4193,7 @@ $transition-normal: 0.25s ease;
 
   .mm-content {
     border-left: none;
-    border-top: 1px solid #f1f5f9;
+    border-top: 1px solid var(--color-bg-hover);
     padding: 16px;
   }
 
@@ -4314,7 +4210,7 @@ $transition-normal: 0.25s ease;
 }
 
 .application-card {
-  background: #fff;
+  background: var(--color-bg-container);
   border-radius: 16px;
   border: 1px solid var(--color-border);
   padding: 20px;
@@ -4322,7 +4218,7 @@ $transition-normal: 0.25s ease;
 
   &:hover {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    border-color: #cbd5e1;
+    border-color: var(--color-text-placeholder);
     transform: translateY(-2px);
   }
 
@@ -4332,7 +4228,7 @@ $transition-normal: 0.25s ease;
     align-items: center;
     margin-bottom: 16px;
     padding-bottom: 12px;
-    border-bottom: 1px solid #f1f5f9;
+    border-bottom: 1px solid var(--color-bg-hover);
 
     .app-module-info {
       display: flex;
@@ -4346,7 +4242,7 @@ $transition-normal: 0.25s ease;
         display: flex;
         align-items: center;
         justify-content: center;
-        color: #fff;
+        color: var(--color-text-white);
         flex-shrink: 0;
       }
 
@@ -4378,7 +4274,7 @@ $transition-normal: 0.25s ease;
       }
 
       &.disabled {
-        background: #fee2e2;
+        background: var(--color-danger-bg);
         color: var(--color-danger);
       }
     }
@@ -4441,7 +4337,7 @@ $transition-normal: 0.25s ease;
             justify-content: center;
             font-size: 13px;
             font-weight: 700;
-            background: #f1f5f9;
+            background: var(--color-bg-hover);
             border-radius: 6px;
           }
 
@@ -4465,7 +4361,7 @@ $transition-normal: 0.25s ease;
   .application-card-footer {
     margin-top: 16px;
     padding-top: 12px;
-    border-top: 1px solid #f1f5f9;
+    border-top: 1px solid var(--color-bg-hover);
 
     .app-actions {
       display: flex;
@@ -4483,7 +4379,7 @@ $transition-normal: 0.25s ease;
 }
 
 .prompt-template-card {
-  background: #fff;
+  background: var(--color-bg-container);
   border: 1px solid var(--color-border);
   border-radius: 12px;
   padding: 16px;
@@ -4548,7 +4444,7 @@ $transition-normal: 0.25s ease;
   .ptc-footer {
     margin-top: 12px;
     padding-top: var(--space-2-5);
-    border-top: 1px solid #f1f5f9;
+    border-top: 1px solid var(--color-bg-hover);
     display: flex;
     justify-content: flex-end;
     gap: 8px;
@@ -4591,8 +4487,8 @@ $transition-normal: 0.25s ease;
     align-items: center;
     gap: var(--space-1-5);
     padding: 8px var(--space-4-5);
-    background: linear-gradient(135deg, #8B5CF6, #7C3AED);
-    color: #fff;
+    background: linear-gradient(135deg, var(--color-info), var(--color-info-dark));
+    color: var(--color-text-white);
     border: none;
     border-radius: 10px;
     font-size: 14px;
@@ -4634,8 +4530,8 @@ $transition-normal: 0.25s ease;
     align-items: center;
     gap: var(--space-1-5);
     padding: var(--space-2-5) var(--space-6);
-    background: linear-gradient(135deg, #8B5CF6, #7C3AED);
-    color: #fff;
+    background: linear-gradient(135deg, var(--color-info), var(--color-info-dark));
+    color: var(--color-text-white);
     border: none;
     border-radius: 10px;
     font-size: 14px;
@@ -4675,7 +4571,7 @@ $transition-normal: 0.25s ease;
     cursor: pointer;
     transition: all 0.2s ease;
     border: none;
-    color: #fff;
+    color: var(--color-text-white);
     background-color: var(--color-primary, var(--color-primary));
     box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);
 
@@ -4711,12 +4607,12 @@ $transition-normal: 0.25s ease;
     cursor: pointer;
     transition: all 0.2s ease;
     border: 1px solid var(--color-border);
-    background: #fff;
+    background: var(--color-bg-container);
     color: var(--color-text-secondary);
 
     &:hover {
       background: var(--color-bg-page);
-      border-color: #cbd5e1;
+      border-color: var(--color-text-placeholder);
       color: var(--color-text-primary);
     }
   }
@@ -4726,7 +4622,7 @@ $transition-normal: 0.25s ease;
     justify-content: flex-end;
     gap: 12px;
     padding-top: 16px;
-    border-top: 1px solid #f1f5f9;
+    border-top: 1px solid var(--color-bg-hover);
   }
 }
 
@@ -4737,9 +4633,9 @@ $transition-normal: 0.25s ease;
   padding: 4px 0;
 
   .fa-card {
-    background: #fff;
+    background: var(--color-bg-container);
     border-radius: 20px;
-    border: 1px solid #f1f5f9;
+    border: 1px solid var(--color-border);
     box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
     overflow: hidden;
     transition: all 0.3s ease;
@@ -4820,7 +4716,7 @@ $transition-normal: 0.25s ease;
     display: inline-flex;
     align-items: center;
     gap: var(--space-0-5);
-    background: #f1f5f9;
+    background: var(--color-bg-hover);
     border-radius: 10px;
     padding: var(--space-1);
     flex-shrink: 0;
@@ -4844,7 +4740,7 @@ $transition-normal: 0.25s ease;
       }
 
       &.active {
-        background: #fff;
+        background: var(--color-bg-container);
         color: var(--color-primary);
         box-shadow: 0 1px 4px rgba(16, 185, 129, 0.18);
         font-weight: 600;

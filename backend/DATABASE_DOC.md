@@ -4,13 +4,13 @@
 > SQLite 文件路径：`./data/tingstudio.db`
 > 运行时初始化：`backend/src/config/database-better-sqlite3.ts`
 > 参考脚本：`backend/src/scripts/init.sql`
-> 最后更新：2026-05-27
+> 最后更新：2026-06-01
 
 ---
 
 ## 一、数据库概览
 
-系统共包含 **45 张表**，分为 18 个功能模块：
+系统共包含 **46 张表**，分为 19 个功能模块：
 
 | 模块           | 表数量 | 表名                                                                                                   |
 | -------------- | ------ | ------------------------------------------------------------------------------------------------------ |
@@ -29,9 +29,10 @@
 | 审核管理       | 2      | formula_review_logs, material_review_logs                                                              |
 | 解析与模板     | 4      | parse_results, parse_result_configs, parse_templates, ai_prompt_templates                             |
 | 含量比配置     | 1      | ratio_threshold_configs                                                                                |
-| 枚举管理       | 1      | enum_options                                                                 |
+| 枚举管理       | 2      | enum_options, enum_exclusions                                                                 |
 | 配方模板       | 1      | formula_templates                                                            |
 | 快速配方       | 1      | quick_formulas                                                               |
+| RBAC 权限      | 3      | roles, permissions, role_permissions                                        |
 
 ---
 
@@ -1436,6 +1437,28 @@
 
 ---
 
+### 2.43.1 枚举互斥规则表 `enum_exclusions`
+
+存储枚举选项之间的互斥规则，用于原料筛选时提示互斥组合。
+
+| 字段         | 类型 | 约束                       | 说明                          |
+| ------------ | ---- | -------------------------- | ----------------------------- |
+| `id`         | TEXT | PRIMARY KEY                | 规则 ID                       |
+| `category`   | TEXT | NOT NULL                   | 分类：`appearance` / `taste`  |
+| `value_a`    | TEXT | NOT NULL                   | 选项 A                        |
+| `value_b`    | TEXT | NOT NULL                   | 选项 B                        |
+| `created_at` | TEXT | NOT NULL, DEFAULT CURRENT_TIMESTAMP | 创建时间            |
+
+**唯一约束**：`UNIQUE(category, value_a, value_b)`
+
+**业务含义**：
+
+- 同一分类下 `value_a` 和 `value_b` 的组合不可重复
+- 在原料筛选时，如果同时选择了互斥的两个选项，系统会提示用户
+- 增删操作仅管理员可执行
+
+---
+
 ### 2.44 配方模板表 `formula_templates`
 
 存储配方模板，用于快速创建配方。
@@ -1519,6 +1542,73 @@
 
 ---
 
+### 2.46 角色表 `roles`
+
+存储系统角色定义。
+
+| 字段          | 类型 | 约束                       | 说明                    |
+| ------------- | ---- | -------------------------- | ----------------------- |
+| `id`          | TEXT | PRIMARY KEY                | 角色 ID                 |
+| `name`        | TEXT | NOT NULL                   | 角色名称                |
+| `role_key`    | TEXT | NOT NULL, UNIQUE           | 角色标识（如 admin/formulist） |
+| `description` | TEXT | DEFAULT NULL               | 描述                    |
+| `is_system`   | INTEGER | NOT NULL, DEFAULT 0     | 是否系统角色（1/0）     |
+| `created_at`  | TEXT | NOT NULL                   | 创建时间                |
+| `updated_at`  | TEXT | NOT NULL                   | 更新时间                |
+
+**索引**：
+
+- `idx_roles_key`：按角色标识（UNIQUE）
+
+**业务含义**：
+
+- `is_system`：系统角色不可删除，保护 admin 和 formulist 等基础角色
+- 角色标识 `role_key` 全局唯一
+
+---
+
+### 2.47 权限表 `permissions`
+
+存储系统权限定义。
+
+| 字段            | 类型 | 约束                       | 说明           |
+| --------------- | ---- | -------------------------- | -------------- |
+| `id`            | TEXT | PRIMARY KEY                | 权限 ID        |
+| `module`        | TEXT | NOT NULL                   | 所属模块       |
+| `action`        | TEXT | NOT NULL                   | 操作类型       |
+| `permission_key` | TEXT | NOT NULL, UNIQUE         | 权限标识       |
+| `label`         | TEXT | NOT NULL                   | 显示名称       |
+| `description`   | TEXT | DEFAULT NULL               | 描述           |
+| `sort_order`    | INTEGER | NOT NULL, DEFAULT 0     | 排序序号       |
+| `created_at`    | TEXT | NOT NULL                   | 创建时间       |
+| `updated_at`    | TEXT | NOT NULL                   | 更新时间       |
+
+**索引**：
+
+- `idx_permissions_key`：按权限标识（UNIQUE）
+
+---
+
+### 2.48 角色权限关联表 `role_permissions`
+
+存储角色与权限的多对多关联关系。
+
+| 字段            | 类型 | 约束                       | 说明           |
+| --------------- | ---- | -------------------------- | -------------- |
+| `id`            | TEXT | PRIMARY KEY                | 关联 ID        |
+| `role_id`       | TEXT | NOT NULL, FOREIGN KEY      | 角色 ID        |
+| `permission_id` | TEXT | NOT NULL, FOREIGN KEY      | 权限 ID        |
+| `created_at`    | TEXT | NOT NULL                   | 创建时间       |
+
+**外键**：
+
+- `role_id` → `roles(id)` ON DELETE CASCADE
+- `permission_id` → `permissions(id)` ON DELETE CASCADE
+
+**唯一约束**：`UNIQUE(role_id, permission_id)`
+
+---
+
 ## 三、ER 关系图（文字描述）
 
 ```
@@ -1597,6 +1687,20 @@ parse_results
   ├── 被引用 → materials (parse_result_id)
   └── 被引用 → parse_results.linked_formula_id / linked_material_id
 
+roles
+  ├── 1:N → role_permissions (role_id) ON DELETE CASCADE
+  └── 1:N → users (role_id) 关联角色
+
+permissions
+  └── 1:N → role_permissions (permission_id) ON DELETE CASCADE
+
+role_permissions
+  ├── N:1 → roles (role_id) ON DELETE CASCADE
+  └── N:1 → permissions (permission_id) ON DELETE CASCADE
+
+enum_exclusions
+  └── (独立表，存储枚举互斥规则)
+
 parse_result_configs
   └── (独立配置表，被清理服务和监控服务引用)
 
@@ -1671,6 +1775,10 @@ quick_formulas
 | enum_options              | 0          | 枚举选项（运行时配置）           |
 | formula_templates         | 0          | 配方模板（运行时配置）           |
 | quick_formulas            | 0          | 快速配方（运行时创建）           |
+| enum_exclusions           | 0          | 枚举互斥规则（运行时配置）       |
+| roles                     | 2          | admin + formulist 角色           |
+| permissions               | 8          | 基础权限项                       |
+| role_permissions          | 8          | 角色权限关联                     |
 
 ---
 
@@ -1732,4 +1840,5 @@ quick_formulas
 | agent_messages           | role                    | IN ('user', 'assistant', 'system', 'tool')                        |
 | parse_templates          | category                | IN ('formula', 'nutrition', 'general')                            |
 | enum_options              | category              | IN ('appearance', 'taste', 'efficacy') |
+| enum_exclusions           | category              | IN ('appearance', 'taste')            |
 | quick_formulas            | status                | IN ('draft', 'published')              |

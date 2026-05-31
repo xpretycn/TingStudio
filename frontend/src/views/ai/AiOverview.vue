@@ -105,7 +105,7 @@
       <div class="activity-card activity-card--timeline">
         <div class="activity-header">
           <h4 class="activity-title">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-info)" stroke-width="2"
               stroke-linecap="round" stroke-linejoin="round">
               <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
             </svg>
@@ -284,7 +284,7 @@ const FALLBACK_ICONS: Record<string, { letter: string; color: string; }> = {
   claude: { letter: 'C', color: '#d97757' },
   google: { letter: 'G', color: '#4285f4' },
   deepseek: { letter: 'D', color: '#4b6bfb' },
-  qwen: { letter: 'Q', color: '#6366f1' },
+  qwen: { letter: 'Q', color: 'var(--color-lavender)' },
   alibabacloud: { letter: 'Q', color: '#ff6a00' },
   zhipu: { letter: 'Z', color: '#4268fa' },
   baidu: { letter: 'B', color: '#2932e1' },
@@ -351,9 +351,9 @@ const dashboardCards = computed(() => {
       unit: '个',
       badge: models > 0 ? `${models} 个就绪` : '未配置',
       badgeColor: models > 0 ? 'var(--color-primary)' : 'var(--color-danger)',
-      badgeBg: models > 0 ? '#ECFDF5' : '#FEF2F2',
-      iconBg: '#EFF6FF',
-      iconColor: '#3B82F6',
+      badgeBg: models > 0 ? 'var(--color-emerald-50)' : 'var(--color-danger-bg)',
+      iconBg: 'var(--color-info-bg)',
+      iconColor: 'var(--color-info)',
       iconPath: '<path d="M12 2L2 7L12 12L22 7L12 2Z"/><path d="M2 17L12 22L22 17" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 12L12 17L22 12" stroke-linecap="round" stroke-linejoin="round"/>',
     },
     {
@@ -362,9 +362,9 @@ const dashboardCards = computed(() => {
       unit: '',
       badge: isAborted ? '已终止' : aiStore.parseLoading || aiStore.materialParseLoading ? '解析中...' : hasResult ? '成功' : '等待',
       badgeColor: isAborted ? 'var(--color-danger)' : aiStore.parseLoading || aiStore.materialParseLoading ? 'var(--color-warning)' : hasResult ? 'var(--color-primary)' : 'var(--color-text-placeholder)',
-      badgeBg: isAborted ? '#FEF2F2' : aiStore.parseLoading || aiStore.materialParseLoading ? '#FFFBEB' : hasResult ? '#ECFDF5' : '#F1F5F9',
-      iconBg: isAborted ? '#FEF2F2' : hasResult ? '#ECFDF5' : '#EFF6FF',
-      iconColor: isAborted ? 'var(--color-danger)' : hasResult ? 'var(--color-primary)' : '#3B82F6',
+      badgeBg: isAborted ? 'var(--color-danger-bg)' : aiStore.parseLoading || aiStore.materialParseLoading ? 'var(--color-warning-bg)' : hasResult ? 'var(--color-emerald-50)' : 'var(--color-border-light)',
+      iconBg: isAborted ? 'var(--color-danger-bg)' : hasResult ? 'var(--color-emerald-50)' : 'var(--color-info-bg)',
+      iconColor: isAborted ? 'var(--color-danger)' : hasResult ? 'var(--color-primary)' : 'var(--color-info)',
       iconPath: '<path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>',
       aborted: isAborted,
     },
@@ -378,8 +378,8 @@ const dashboardCards = computed(() => {
           ? `已消耗 ${displayTokens}`
           : '暂无',
       badgeColor: displayTokens > 0 ? 'var(--color-warning)' : 'var(--color-text-placeholder)',
-      badgeBg: displayTokens > 0 ? '#FFFBEB' : '#F1F5F9',
-      iconBg: '#FFFBEB',
+      badgeBg: displayTokens > 0 ? 'var(--color-warning-bg)' : 'var(--color-border-light)',
+      iconBg: 'var(--color-warning-bg)',
       iconColor: 'var(--color-warning)',
       iconPath: '<path d="M12 1v22M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>',
     },
@@ -474,10 +474,10 @@ onMounted(async () => {
     const statsRes = await modelApi.getUsageStats();
     if (statsRes.summary && statsRes.summary.length > 0) {
       usageStats.value = {
-        totalCalls: statsRes.summary.reduce((sum, item) => sum + (item.total_calls || 0), 0),
-        todayTokens: statsRes.summary.reduce((sum, item) => sum + (item.today_tokens || 0), 0),
-        monthTokens: statsRes.summary.reduce((sum, item) => sum + (item.month_tokens || 0), 0),
-        totalTokens: statsRes.summary.reduce((sum, item) => sum + (item.total_tokens || 0), 0),
+        totalCalls: statsRes.summary.reduce((sum, item) => sum + (item.totalCalls || 0), 0),
+        todayTokens: statsRes.summary.reduce((sum, item) => sum + (item.todayTokens || 0), 0),
+        monthTokens: statsRes.summary.reduce((sum, item) => sum + (item.monthTokens || 0), 0),
+        totalTokens: statsRes.summary.reduce((sum, item) => sum + (item.totalTokens || 0), 0),
       };
     }
   } catch (e) {
@@ -499,17 +499,17 @@ onMounted(async () => {
     margin-bottom: 30px;
 
     .stat-card {
-      background: #fff;
+      background: var(--color-bg-container);
       padding: 24px;
       border-radius: var(--radius-4xl);
-      border: 1px solid #fff;
+      border: 1px solid var(--color-bg-container);
       box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
       transition: all $transition-slow;
       animation: dashboard-fade-in 0.5s ease forwards;
       opacity: 0;
 
       &:hover {
-        border-color: #DBEAFE;
+        border-color: var(--color-info-bg);
         transform: translateY(-2px);
         box-shadow: 0 14px 36px -6px rgba(0, 0, 0, 0.08);
       }
@@ -548,7 +548,7 @@ onMounted(async () => {
       .stat-value {
         font-size: 24px;
         font-weight: 700;
-        color: #0F172A;
+        color: var(--color-text-primary);
         line-height: 1.2;
 
         .stat-unit {
@@ -710,7 +710,7 @@ onMounted(async () => {
               padding: var(--space-0-5) var(--space-1-5);
               line-height: 1;
               background: var(--gradient-brand, linear-gradient(135deg, var(--color-primary), var(--color-primary-dark)));
-              color: #fff;
+              color: var(--color-text-white);
               border-radius: 8px;
               font-weight: 700;
               letter-spacing: 0.3px;
@@ -718,7 +718,7 @@ onMounted(async () => {
             }
 
             .model-type-badge--vision {
-              background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+              background: linear-gradient(135deg, var(--color-lavender), var(--color-lavender));
             }
           }
 
@@ -811,7 +811,7 @@ onMounted(async () => {
       }
 
       &:hover {
-        background: #f1f5f9;
+        background: var(--color-border-light);
         color: var(--color-text-primary);
       }
 
@@ -861,9 +861,9 @@ onMounted(async () => {
       transition: all 0.2s;
 
       &:hover {
-        background: #f1f5f9;
+        background: var(--color-border-light);
         color: var(--color-text-primary);
-        border-color: #cbd5e1;
+        border-color: var(--color-text-placeholder);
       }
     }
   }
@@ -892,7 +892,7 @@ onMounted(async () => {
       border-radius: 10px;
       border: none;
       background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
-      color: #fff;
+      color: var(--color-text-white);
       cursor: pointer;
       display: flex;
       align-items: center;
@@ -938,8 +938,8 @@ onMounted(async () => {
 
       &:hover {
         color: var(--color-primary);
-        border-color: #86efac;
-        background: #ecfdf5;
+        border-color: var(--color-emerald-400);
+        background: var(--color-emerald-50);
       }
     }
   }
@@ -968,7 +968,7 @@ onMounted(async () => {
       font-family: 'Fira Code', 'Consolas', 'Monaco', monospace;
       font-size: 13px;
       line-height: 1.7;
-      color: #93c5fd;
+      color: var(--color-info-border);
       margin: 0;
       white-space: pre-wrap;
       word-break: break-all;
@@ -1008,8 +1008,8 @@ onMounted(async () => {
 
       &:hover {
         color: var(--color-primary);
-        border-color: #86efac;
-        background: #ecfdf5;
+        border-color: var(--color-emerald-400);
+        background: var(--color-emerald-50);
       }
     }
   }
@@ -1026,7 +1026,7 @@ onMounted(async () => {
   }
 
   .activity-card {
-    background-color: #fff;
+    background-color: var(--color-bg-container);
     border-radius: var(--radius-4xl);
     padding: 32px;
     box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
@@ -1035,7 +1035,7 @@ onMounted(async () => {
     &--assistant {
       background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
       border: none;
-      color: #fff;
+      color: var(--color-text-white);
       position: relative;
       overflow: hidden;
       box-shadow: 0 20px 25px -5px $overlay-emerald-15, 0 10px 10px -5px $overlay-emerald-04;
@@ -1073,7 +1073,7 @@ onMounted(async () => {
     height: 28px;
     border-radius: 8px;
     border: none;
-    background: #f1f5f9;
+    background: var(--color-border-light);
     color: var(--color-text-secondary);
     cursor: pointer;
     transition: all $transition-fast;
@@ -1132,7 +1132,7 @@ onMounted(async () => {
     justify-content: center;
     flex-shrink: 0;
     z-index: 1;
-    background: #fff;
+    background: var(--color-bg-container);
     border: 2px solid var(--color-border);
 
     &--success {
@@ -1147,13 +1147,13 @@ onMounted(async () => {
     }
 
     &--info {
-      border-color: #3b82f6;
+      border-color: var(--color-info);
 
       .timeline-dot-inner {
         width: 8px;
         height: 8px;
         border-radius: 50%;
-        background: #3b82f6;
+        background: var(--color-info);
       }
     }
 
@@ -1226,7 +1226,7 @@ onMounted(async () => {
     background: $overlay-white-20;
     backdrop-filter: blur(10px);
     border: 1px solid $overlay-white-30;
-    color: #fff;
+    color: var(--color-text-white);
     font-size: 13px;
     font-weight: 600;
     cursor: pointer;

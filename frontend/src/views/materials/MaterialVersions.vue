@@ -765,7 +765,7 @@ async function confirmReject() {
       height: 16px;
       padding: 0 4px;
       background: var(--color-primary);
-      color: #fff;
+      color: var(--color-text-white);
       font-size: 10px;
       font-weight: $font-weight-bold;
       border-radius: $radius-pill;
@@ -828,7 +828,7 @@ async function confirmReject() {
     }
 
     &.active {
-      background: #fff;
+      background: var(--color-bg-container);
       color: var(--color-primary);
       box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
     }
@@ -1020,7 +1020,7 @@ async function confirmReject() {
   }
 
   &.action-submit {
-    background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+    background: linear-gradient(135deg, var(--color-info) 0%, var(--color-info-dark) 100%);
     color: $text-white;
     box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);
 
@@ -1715,12 +1715,12 @@ async function confirmReject() {
 <style lang="scss">
 .t-dialog.version-create-dialog {
   .t-dialog__footer .t-btn--theme-primary {
-    background: linear-gradient(135deg, #34d399 0%, #10b981 100%) !important;
+    background: linear-gradient(135deg, var(--color-emerald-400) 0%, var(--color-emerald) 100%) !important;
     border: none;
     box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
 
     &:hover {
-      background: linear-gradient(135deg, #6ee7b7 0%, #34d399 100%) !important;
+      background: linear-gradient(135deg, var(--color-emerald-400) 0%, var(--color-emerald-400) 100%) !important;
       box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
     }
   }

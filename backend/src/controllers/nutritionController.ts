@@ -1,682 +1,220 @@
-// 营养成分管理控制器
 import { Request, Response } from "express";
-import { query } from "../config/database-better-sqlite3.js";
-import { generateId, now, success, rowToCamelCase, rowsToCamelCase, safeJsonParse } from "../utils/helpers.js";
+import { success } from "../utils/helpers.js";
+import {
+  NRV_REFERENCE,
+  NUTRIENT_LABELS,
+  CORE_NUTRIENT_COLS,
+} from "../config/nutritionConstants.js";
+import { normalizeNutrientKey } from "../utils/nutritionHelpers.js";
+import * as nutritionService from "../services/nutritionService.js";
 
-// 营养成分字段列表
-const NUTRIENT_FIELDS = [
-  "energy",
-  "protein",
-  "fat",
-  "carbohydrate",
-  "fiber",
-  "sugars",
-  "sodium",
-  "potassium",
-  "calcium",
-  "iron",
-  "zinc",
-  "magnesium",
-  "phosphorus",
-  "vitaminA",
-  "vitaminC",
-  "vitaminD",
-  "vitaminE",
-  "vitaminK",
-  "vitaminB1",
-  "vitaminB2",
-  "vitaminB3",
-  "vitaminB6",
-  "vitaminB12",
-  "folate",
-  "cholesterol",
-  "transFat",
-  "saturatedFat",
-];
-
-// DB 键名 → 标准键名映射（兼容带单位后缀的键名）
-function normalizeNutrientKey(key: string): string {
-  const map: Record<string, string> = {
-    energy_kj: "energy",
-    protein_g: "protein",
-    fat_g: "fat",
-    carbohydrate_g: "carbohydrate",
-    dietary_fiber_g: "fiber",
-    sugars_g: "sugars",
-    sodium_mg: "sodium",
-    potassium_mg: "potassium",
-    calcium_mg: "calcium",
-    iron_mg: "iron",
-    zinc_mg: "zinc",
-    magnesium_mg: "magnesium",
-    phosphorus_mg: "phosphorus",
-    vitaminA_ug: "vitaminA",
-    vitaminC_mg: "vitaminC",
-    vitaminD_ug: "vitaminD",
-    vitaminE_mg: "vitaminE",
-    vitaminK_ug: "vitaminK",
-    vitaminB1_mg: "vitaminB1",
-    vitaminB2_mg: "vitaminB2",
-    vitaminB3_mg: "vitaminB3",
-    vitaminB6_mg: "vitaminB6",
-    vitaminB12_ug: "vitaminB12",
-    folate_ug: "folate",
-    cholesterol_mg: "cholesterol",
-    transFat_g: "transFat",
-    saturatedFat_g: "saturatedFat",
-  };
-  if (map[key]) return map[key];
-  // 去掉常见的单位后缀
-  const cleaned = key.replace(/_(mg|g|ug|μg|kj|kcal)$/, "");
-  return map[cleaned] || key;
-}
-
-/** 将 DB 中的 per_100g_json 键名标准化 */
-function normalizePer100g(raw: Record<string, any>): Record<string, number> {
-  const result: Record<string, number> = {};
-  for (const [k, v] of Object.entries(raw)) {
-    if (typeof v === "number") {
-      result[normalizeNutrientKey(k)] = v;
-    }
-  }
-  if (result.energy == null || isNaN(result.energy)) {
-    const protein = result.protein ?? 0;
-    const fat = result.fat ?? 0;
-    const carbohydrate = result.carbohydrate ?? 0;
-    if (protein > 0 || fat > 0 || carbohydrate > 0) {
-      result.energy = Math.round((protein * 17 + fat * 37 + carbohydrate * 17) * 100) / 100;
-    }
-  }
-  return result;
-}
-
-// 营养素参考值 (NRV)
-const NRV: Record<string, number> = {
-  energy: 8400,
-  protein: 60,
-  fat: 60,
-  carbohydrate: 300,
-  sodium: 2000,
-  potassium: 2000,
-  calcium: 800,
-  iron: 15,
-  zinc: 15,
-  vitaminA: 800,
-  vitaminC: 100,
-  vitaminD: 5,
-  vitaminE: 14,
-  vitaminB1: 1.4,
-  vitaminB2: 1.4,
-  vitaminB3: 14,
-  vitaminB6: 1.4,
-  vitaminB12: 2.4,
-  folate: 400,
-  cholesterol: 300,
-  dietaryFiber: 25,
-};
-
-function normalizeMaterialName(name: string): string {
-  if (!name) return name;
-  return name.replace(/[\uFEFF\u200B\u200C\u200D\u00A0\u3000]/g, "").trim();
-}
-
-/** 获取原料营养成分 */
 export async function getMaterialNutrition(req: Request, res: Response) {
   try {
     const { materialId } = req.params;
-    const [[nutrition]]: any[][] = await query("SELECT * FROM material_nutrition WHERE material_id = ?", [materialId]);
-    if (!nutrition) {
-      res.json({ success: true, data: null });
-      return;
-    }
-    res.json(
-      success({
-        ...rowToCamelCase(nutrition),
-        per100g: normalizePer100g(safeJsonParse(nutrition.per_100g_json, {})),
-      }),
-    );
-  } catch (error: any) {
-    res.status(500).json({ success: false, message: "获取营养成分失败", error: error.message });
+    const data = await nutritionService.getMaterialNutritionData(materialId);
+    res.json(data ? success(data) : { success: true, data: null });
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : "未知错误";
+    res.status(500).json({ success: false, message: "获取营养成分失败", error: msg });
   }
 }
 
-/** 设置/更新原料营养成分 */
-export async function setMaterialNutrition(req: any, res: Response) {
+export async function setMaterialNutrition(req: Request & { user: { userId: string } }, res: Response) {
   try {
     const { materialId } = req.params;
     const { per100g, dataSource, notes, confidence } = req.body;
     const userId = req.user.userId;
 
-    // 验证原料存在
-    const [[material]]: any[][] = await query("SELECT id, name, code FROM materials WHERE id = ?", [materialId]);
-    if (!material) {
-      res.status(404).json({ success: false, message: "原料不存在" });
+    const result = await nutritionService.setMaterialNutritionData(
+      materialId, per100g, dataSource, notes, confidence, userId,
+    );
+
+    if (!result.success) {
+      res.status(404).json({ success: false, message: result.message });
       return;
     }
-
-    let hasConfidenceCol = false;
-    try {
-      await query("SELECT confidence FROM material_nutrition LIMIT 1");
-      hasConfidenceCol = true;
-    } catch {
-      hasConfidenceCol = false;
-    }
-
-    const selCols = hasConfidenceCol
-      ? "nutrition_id, per_100g_json, data_source, notes, data_version, confidence"
-      : "nutrition_id, per_100g_json, data_source, notes, data_version";
-    const [[existing]]: any[][] = await query(`SELECT ${selCols} FROM material_nutrition WHERE material_id = ?`, [
-      materialId,
-    ]);
-
-    // 验证 confidence 值
-    const validConfidence = ["high", "medium", "low"].includes(confidence) ? confidence : "medium";
-
-    if (existing) {
-      // 增量更新：将新数据合并到已有数据中
-      const oldData: Record<string, number> = safeJsonParse(existing.per_100g_json, {});
-      const merged = { ...oldData };
-      for (const [key, val] of Object.entries(per100g)) {
-        if (typeof val === "number" && val > 0) {
-          merged[key] = val;
-        } else {
-          // 值为0或负数时，移除该字段
-          delete merged[key];
-        }
-      }
-
-      const version = existing.data_version;
-      const match = version.match(/^(\d+)\./);
-      const newVersion = match ? `${parseInt(match[1]) + 1}.0` : "2.0";
-
-      if (hasConfidenceCol) {
-        await query(
-          `UPDATE material_nutrition SET per_100g_json = ?, data_source = ?, notes = ?, confidence = ?, data_version = ?, last_updated = ?
-           WHERE material_id = ?`,
-          [
-            JSON.stringify(merged),
-            dataSource || existing.data_source,
-            notes || existing.notes,
-            validConfidence,
-            newVersion,
-            now(),
-            materialId,
-          ],
-        );
-      } else {
-        await query(
-          `UPDATE material_nutrition SET per_100g_json = ?, data_source = ?, notes = ?, data_version = ?, last_updated = ?
-           WHERE material_id = ?`,
-          [
-            JSON.stringify(merged),
-            dataSource || existing.data_source,
-            notes || existing.notes,
-            newVersion,
-            now(),
-            materialId,
-          ],
-        );
-      }
-    } else {
-      // 新建
-      const nutritionId = generateId();
-      if (hasConfidenceCol) {
-        await query(
-          `INSERT INTO material_nutrition (nutrition_id, material_id, per_100g_json, data_source, notes, confidence, data_version, last_updated)
-           VALUES (?, ?, ?, ?, ?, ?, '1.0', ?)`,
-          [nutritionId, materialId, JSON.stringify(per100g), dataSource, notes, validConfidence, now()],
-        );
-      } else {
-        await query(
-          `INSERT INTO material_nutrition (nutrition_id, material_id, per_100g_json, data_source, notes, data_version, last_updated)
-           VALUES (?, ?, ?, ?, ?, '1.0', ?)`,
-          [nutritionId, materialId, JSON.stringify(per100g), dataSource, notes, now()],
-        );
-      }
-    }
-
-    await query("UPDATE materials SET updated_at = datetime('now') WHERE id = ?", [materialId]);
-
-    res.json(success(null, "营养成分保存成功"));
-  } catch (error: any) {
-    res.status(500).json({ success: false, message: "保存营养成分失败", error: error.message });
+    res.json(success(null, "营养成分已保存"));
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : "未知错误";
+    res.status(500).json({ success: false, message: "保存营养成分失败", error: msg });
   }
 }
 
-/** 计算配方营养汇总 */
-export async function calculateFormulaNutrition(req: any, res: Response) {
+export async function calculateFormulaNutrition(req: Request & { user: { userId: string } }, res: Response) {
   try {
     const { formulaId } = req.params;
     const userId = req.user.userId;
 
-    // 获取配方数据
-    const [[formula]]: any[][] = await query("SELECT * FROM formulas WHERE id = ?", [formulaId]);
-    if (!formula) {
+    const result = await nutritionService.calculateFormulaNutritionData(formulaId, userId);
+    if (!result) {
       res.status(404).json({ success: false, message: "配方不存在" });
       return;
     }
-
-    // 安全解析 materials_json（可能存在双重编码）
-    let materials = safeJsonParse(formula.materials_json, []);
-    if (typeof materials === "string") {
-      try {
-        materials = JSON.parse(materials);
-      } catch (_) {
-        materials = [];
-      }
-    }
-    if (!Array.isArray(materials)) materials = [];
-    const formulaRatioFactor = formula.ratio_factor ?? 0.18;
-
-    // 获取每个原料的营养数据
-    const breakdown: any[] = [];
-    let totalWeight = 0;
-    const totalNutrition: Record<string, number> = {};
-    for (const field of NUTRIENT_FIELDS) {
-      totalNutrition[field] = 0;
-    }
-
-    for (const mat of materials) {
-      let [[nutrition]]: any[][] = await query("SELECT per_100g_json FROM material_nutrition WHERE material_id = ?", [
-        mat.materialId,
-      ]);
-
-      // 备选查找：如果通过 materialId 找不到营养数据，尝试通过原料名称匹配
-      if (!nutrition && mat.materialName) {
-        const normalizedName = normalizeMaterialName(mat.materialName);
-        const [[altMaterial]]: any[][] = await query("SELECT id FROM materials WHERE name = ? LIMIT 1", [
-          normalizedName,
-        ]);
-        if (altMaterial) {
-          const [[altNutrition]]: any[][] = await query(
-            "SELECT per_100g_json FROM material_nutrition WHERE material_id = ?",
-            [altMaterial.id],
-          );
-          if (altNutrition) {
-            nutrition = altNutrition;
-          }
-        }
-      }
-
-      const rawPer100g = nutrition ? safeJsonParse(nutrition.per_100g_json, {}) : {};
-      const per100g = normalizePer100g(rawPer100g);
-      const quantity = mat.quantity || 0;
-      const contribution: Record<string, number> = {};
-
-      for (const field of NUTRIENT_FIELDS) {
-        const val = (per100g[field] || 0) * (quantity / 100);
-        contribution[field] = val;
-        totalNutrition[field] += val;
-      }
-
-      totalWeight += quantity;
-      breakdown.push({
-        materialId: mat.materialId,
-        materialName: mat.materialName,
-        materialCode: "",
-        quantity,
-        unit: "g",
-        weightContribution: quantity,
-        percentage: 0,
-        nutritionContribution: contribution,
-      });
-    }
-
-    // 计算占比
-    if (totalWeight > 0) {
-      for (const item of breakdown) {
-        item.percentage = Math.round((item.weightContribution / totalWeight) * 10000) / 100;
-      }
-    }
-
-    // 计算 per100g
-    const per100gNutrition: Record<string, number> = {};
-    if (totalWeight > 0) {
-      for (const field of NUTRIENT_FIELDS) {
-        per100gNutrition[field] = Math.round((totalNutrition[field] / totalWeight) * 100 * 100) / 100;
-      }
-    }
-
-    // 保存汇总
-    const [[existingSummary]]: any[][] = await query(
-      "SELECT summary_id FROM formula_nutrition_summaries WHERE formula_id = ?",
-      [formulaId],
-    );
-
-    if (existingSummary) {
-      await query(
-        `UPDATE formula_nutrition_summaries SET total_weight = ?, total_nutrition_json = ?, per_100g_nutrition_json = ?, material_breakdown_json = ?, calculated_by = ?, calculated_at = ?
-         WHERE formula_id = ?`,
-        [
-          totalWeight,
-          JSON.stringify(totalNutrition),
-          JSON.stringify(per100gNutrition),
-          JSON.stringify(breakdown),
-          userId,
-          now(),
-          formulaId,
-        ],
-      );
-    } else {
-      const summaryId = generateId();
-      await query(
-        `INSERT INTO formula_nutrition_summaries (summary_id, formula_id, total_weight, total_nutrition_json, per_100g_nutrition_json, material_breakdown_json, calculated_by, calculated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-        [
-          summaryId,
-          formulaId,
-          totalWeight,
-          JSON.stringify(totalNutrition),
-          JSON.stringify(per100gNutrition),
-          JSON.stringify(breakdown),
-          userId,
-          now(),
-        ],
-      );
-    }
-
-    res.json(
-      success({
-        formulaId,
-        formulaName: formula.name,
-        totalWeight,
-        totalNutrition,
-        per100gNutrition,
-        materialBreakdown: breakdown,
-      }),
-    );
-  } catch (error: any) {
-    res.status(500).json({ success: false, message: "营养计算失败", error: error.message });
+    res.json(success(result));
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : "未知错误";
+    res.status(500).json({ success: false, message: "营养计算失败", error: msg });
   }
 }
 
-/** 获取营养标准列表 */
 export async function getNutritionProfiles(req: Request, res: Response) {
   try {
-    const { category } = req.query;
-    let sql = "SELECT * FROM nutrition_profiles";
-    const params: any[] = [];
-
-    if (category) {
-      sql += " WHERE category = ?";
-      params.push(category);
-    }
-    sql += " ORDER BY created_at DESC";
-
-    const [profiles]: any[] = await query(sql, params);
-    const result = profiles.map((p: any) => ({
-      ...rowToCamelCase(p),
-      targetValues: safeJsonParse(p.target_values_json, {}),
-      toleranceRanges: safeJsonParse(p.tolerance_ranges_json, []),
-      mandatoryFields: safeJsonParse(p.mandatory_fields_json, []),
-    }));
-
-    res.json(success(result));
-  } catch (error: any) {
-    res.status(500).json({ success: false, message: "获取营养标准失败", error: error.message });
+    const { category, keyword } = req.query as { category?: string; keyword?: string };
+    const profiles = await nutritionService.getNutritionProfilesList(category, keyword);
+    res.json(success(profiles));
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : "未知错误";
+    res.status(500).json({ success: false, message: "获取营养标准失败", error: msg });
   }
 }
 
-/** 创建营养标准 */
-export async function createNutritionProfile(req: Request, res: Response) {
+export async function createNutritionProfile(req: Request & { user: { userId: string } }, res: Response) {
   try {
-    const { name, description, category, targetValues, toleranceRanges, mandatoryFields } = req.body;
-    const id = generateId();
-
-    await query(
-      `INSERT INTO nutrition_profiles (profile_id, name, description, category, target_values_json, tolerance_ranges_json, mandatory_fields_json, is_preset, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?)`,
-      [
-        id,
-        name,
-        description,
-        category,
-        JSON.stringify(targetValues),
-        JSON.stringify(toleranceRanges || []),
-        JSON.stringify(mandatoryFields || []),
-        now(),
-      ],
-    );
-
-    res.status(201).json(success({ profileId: id }, "营养标准创建成功"));
-  } catch (error: any) {
-    res.status(500).json({ success: false, message: "创建营养标准失败", error: error.message });
+    const userId = req.user.userId;
+    const result = await nutritionService.createNutritionProfile(req.body, userId);
+    res.status(201).json(success(result, "营养标准创建成功"));
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : "未知错误";
+    res.status(500).json({ success: false, message: "创建营养标准失败", error: msg });
   }
 }
 
-/** 更新营养标准 */
-export async function updateNutritionProfile(req: Request, res: Response) {
+export async function updateNutritionProfile(req: Request & { user: { userId: string } }, res: Response) {
   try {
     const { profileId } = req.params;
-    const { name, description, category, targetValues, toleranceRanges, mandatoryFields } = req.body;
+    const userId = req.user.userId;
+    const result = await nutritionService.updateNutritionProfileData(profileId, req.body, userId);
 
-    // 检查是否存在
-    const [[profile]]: any[][] = await query("SELECT * FROM nutrition_profiles WHERE profile_id = ?", [profileId]);
-    if (!profile) {
-      res.status(404).json({ success: false, message: "营养标准不存在" });
+    if (!result.success) {
+      const status = result.message?.includes("预置") ? 403 : 404;
+      res.status(status).json({ success: false, message: result.message });
       return;
     }
-
-    // 预置标准不可修改
-    if (profile.is_preset === 1) {
-      res.status(403).json({ success: false, message: "预置营养标准不可修改" });
-      return;
-    }
-
-    await query(
-      `UPDATE nutrition_profiles SET name = ?, description = ?, category = ?,
-       target_values_json = ?, tolerance_ranges_json = ?, mandatory_fields_json = ?, updated_at = ?
-       WHERE profile_id = ?`,
-      [
-        name,
-        description,
-        category,
-        JSON.stringify(targetValues),
-        JSON.stringify(toleranceRanges || []),
-        JSON.stringify(mandatoryFields || []),
-        now(),
-        profileId,
-      ],
-    );
-
     res.json(success(null, "营养标准更新成功"));
-  } catch (error: any) {
-    res.status(500).json({ success: false, message: "更新营养标准失败", error: error.message });
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : "未知错误";
+    res.status(500).json({ success: false, message: "更新营养标准失败", error: msg });
   }
 }
 
-/** 删除营养标准 */
 export async function deleteNutritionProfile(req: Request, res: Response) {
   try {
     const { profileId } = req.params;
+    const result = await nutritionService.deleteNutritionProfileData(profileId);
 
-    // 检查是否存在
-    const [[profile]]: any[][] = await query("SELECT * FROM nutrition_profiles WHERE profile_id = ?", [profileId]);
-    if (!profile) {
-      res.status(404).json({ success: false, message: "营养标准不存在" });
+    if (!result.success) {
+      const status = result.message?.includes("预置") ? 403 : 404;
+      res.status(status).json({ success: false, message: result.message });
       return;
     }
-
-    // 预置标准不可删除
-    if (profile.is_preset === 1) {
-      res.status(403).json({ success: false, message: "预置营养标准不可删除" });
-      return;
-    }
-
-    await query("DELETE FROM nutrition_profiles WHERE profile_id = ?", [profileId]);
     res.json(success(null, "营养标准删除成功"));
-  } catch (error: any) {
-    res.status(500).json({ success: false, message: "删除营养标准失败", error: error.message });
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : "未知错误";
+    res.status(500).json({ success: false, message: "删除营养标准失败", error: msg });
   }
 }
 
-/** 合规性检查 */
-export async function checkCompliance(req: any, res: Response) {
+export async function checkCompliance(req: Request & { user: { userId: string } }, res: Response) {
   try {
     const { formulaId } = req.params;
-    const profileId = req.query.profileId as string | undefined;
     const userId = req.user.userId;
 
-    console.log("[Nutrition] 合规检查:", { formulaId, profileId });
-    console.log("[Nutrition] req.query:", req.query);
-    console.log("[Nutrition] req.user:", req.user);
-
-    // 获取配方营养汇总
-    const [[summary]]: any[][] = await query("SELECT * FROM formula_nutrition_summaries WHERE formula_id = ?", [
-      formulaId,
-    ]);
+    const summary = await nutritionService.getComplianceCheckData(formulaId);
     if (!summary) {
-      console.error("[Nutrition] 未找到配方营养汇总:", formulaId);
-      res.status(404).json({ success: false, message: "请先计算配方营养成分" });
+      res.status(404).json({ success: false, message: "请先计算配方营养汇总" });
       return;
     }
 
-    console.log("[Nutrition] 配方营养汇总:", summary.formula_id);
+    const per100g = safeJsonParse(summary.per_100g_nutrition_json as string, {}) as Record<string, number>;
+    const profileId = req.body.profileId;
+    const profile = profileId ? await nutritionService.getProfileById(profileId) : null;
+    const targets = profile?.targetValues as Record<string, number> || {};
+    const tolerances = profile?.toleranceRanges || [];
 
-    const per100g = safeJsonParse(summary.per_100g_nutrition_json, {});
-    console.log("[Nutrition] per100g:", per100g);
+    const normalizedTargets: Record<string, number> = {};
+    for (const [key, val] of Object.entries(targets)) {
+      normalizedTargets[normalizeNutrientKey(key)] = val;
+    }
 
-    const profile = profileId ? await getProfile(profileId) : null;
-    console.log("[Nutrition] profile:", profile ? profile.name : "无");
-
-    // 营养素中文名映射
-    const NUTRIENT_LABELS: Record<string, string> = {
-      energy: "能量",
-      protein: "蛋白质",
-      fat: "脂肪",
-      carbohydrate: "碳水化合物",
-      fiber: "膳食纤维",
-      sugars: "糖",
-      sodium: "钠",
-      potassium: "钾",
-      calcium: "钙",
-      iron: "铁",
-      zinc: "锌",
-      magnesium: "镁",
-      phosphorus: "磷",
-      vitaminA: "维生素A",
-      vitaminC: "维生素C",
-      vitaminD: "维生素D",
-      vitaminE: "维生素E",
-      vitaminK: "维生素K",
-      vitaminB1: "维生素B1",
-      vitaminB2: "维生素B2",
-      vitaminB3: "烟酸",
-      vitaminB6: "维生素B6",
-      vitaminB12: "维生素B12",
-      folate: "叶酸",
-      cholesterol: "胆固醇",
-      transFat: "反式脂肪",
-      saturatedFat: "饱和脂肪",
-    };
-
-    // 将 profile 的 targetValues 和 toleranceRanges 标准化为统一的内部格式
-    // 数据库可能存储两种格式：
-    //   1) 数组格式: toleranceRanges=[{field, label, min, max, alertLevel}]
-    //   2) 对象格式: toleranceRanges={energy_kj:{min:0.9,max:1.1}} (倍率) + targetValues={energy_kj:1900}
-    let normalizedTolerances: Record<string, { min: number; max: number; label: string; alertLevel?: string }> = {};
-    let normalizedTargets: Record<string, number> = {};
-
-    if (profile) {
-      // 标准化 targetValues（兼容带单位后缀的键名）
-      const rawTargets = profile.targetValues || {};
-      for (const [key, val] of Object.entries(rawTargets)) {
-        const normalizedKey = normalizeNutrientKey(key);
-        if (typeof val === "number") {
-          normalizedTargets[normalizedKey] = val;
-        }
+    const normalizedTolerances: Record<string, { min: number; max: number; label: string; alertLevel?: string }> = {};
+    if (Array.isArray(tolerances)) {
+      for (const r of tolerances as Record<string, unknown>[]) {
+        const normalizedKey = normalizeNutrientKey((r.field as string) || "");
+        normalizedTolerances[normalizedKey] = {
+          min: r.min as number,
+          max: r.max as number,
+          label: (r.label as string) || NUTRIENT_LABELS[normalizedKey] || normalizedKey,
+          alertLevel: r.alertLevel as string | undefined,
+        };
       }
-
-      const rawRanges = profile.toleranceRanges;
-      if (Array.isArray(rawRanges)) {
-        // 数组格式: [{field:"energy", label:"能量", min:10, max:15}, ...]
-        for (const r of rawRanges) {
-          const normalizedKey = normalizeNutrientKey(r.field || "");
+    } else if (tolerances && typeof tolerances === "object") {
+      for (const [key, range] of Object.entries(tolerances as Record<string, Record<string, unknown>>)) {
+        const normalizedKey = normalizeNutrientKey(key);
+        const target = normalizedTargets[normalizedKey];
+        if (target && typeof range.min === "number" && typeof range.max === "number") {
           normalizedTolerances[normalizedKey] = {
-            min: r.min,
-            max: r.max,
-            label: r.label || NUTRIENT_LABELS[normalizedKey] || normalizedKey,
-            alertLevel: r.alertLevel,
+            min: Math.round(target * range.min * 100) / 100,
+            max: Math.round(target * range.max * 100) / 100,
+            label: NUTRIENT_LABELS[normalizedKey] || normalizedKey,
+            alertLevel: "warning",
           };
-        }
-      } else if (rawRanges && typeof rawRanges === "object") {
-        // 对象格式: {energy_kj:{min:0.9,max:1.1}, protein_g:{min:0.8,max:1.2}}
-        // min/max 是倍率，需要乘以 target 得到实际范围
-        for (const [key, range] of Object.entries(rawRanges)) {
-          const normalizedKey = normalizeNutrientKey(key);
-          const target = normalizedTargets[normalizedKey];
-          const r = range as any;
-          if (target && typeof r.min === "number" && typeof r.max === "number") {
-            normalizedTolerances[normalizedKey] = {
-              min: Math.round(target * r.min * 100) / 100,
-              max: Math.round(target * r.max * 100) / 100,
-              label: NUTRIENT_LABELS[normalizedKey] || normalizedKey,
-              alertLevel: "warning",
-            };
-          }
         }
       }
     }
 
-    const complianceChecks: any[] = [];
-    const recommendations: any[] = [];
+    const complianceChecks: Array<Record<string, unknown>> = [];
+    const recommendations: Array<Record<string, unknown>> = [];
 
-    for (const field of NUTRIENT_FIELDS) {
-      const actualValue = per100g[field] || 0;
-      if (actualValue === 0) continue;
+    for (const field of CORE_NUTRIENT_COLS) {
+      const actualValue = (per100g as Record<string, number>)[field] || 0;
+      const label = NUTRIENT_LABELS[field] || field;
+      const tolerance = normalizedTolerances[field];
+      const target = normalizedTargets[field];
 
-      if (profile) {
-        const tolerance = normalizedTolerances[field];
-        const target = normalizedTargets[field];
-        const label = NUTRIENT_LABELS[field] || field;
-
-        if (tolerance) {
-          let status: "pass" | "warning" | "fail" = "pass";
-          let deviation = 0;
-          let message = "";
-          let suggestedActions: string[] = [];
-
-          if (target !== undefined) {
-            deviation = actualValue - target;
-
-            if (actualValue < tolerance.min) {
-              status = "fail";
-              message = `${label} 不足: 实际 ${actualValue.toFixed(2)} < 最小值 ${tolerance.min}`;
-              suggestedActions = [`增加富含${label}的原料`, `调整配方比例以提高${label}含量`];
-            } else if (actualValue > tolerance.max) {
-              status = "fail";
-              message = `${label} 超标: 实际 ${actualValue.toFixed(2)} > 最大值 ${tolerance.max}`;
-              suggestedActions = [`减少富含${label}的原料`, `调整配方比例以降低${label}含量`];
-            } else if (tolerance.alertLevel === "warning") {
-              const range = tolerance.max - tolerance.min;
-              const deviationPercent = Math.abs(deviation) / range;
-              if (deviationPercent > 0.8) {
-                status = "warning";
-                message = `${label} 接近临界值: 实际 ${actualValue.toFixed(2)}, 范围 ${tolerance.min}-${tolerance.max}`;
-                suggestedActions = [`关注${label}含量变化`, `考虑微调配方`];
-              }
-            }
-          }
-
+      if (tolerance) {
+        if (actualValue < tolerance.min || actualValue > tolerance.max) {
           complianceChecks.push({
             field,
             label,
             actualValue,
-            targetRange: { min: tolerance.min, max: tolerance.max },
-            target,
-            status,
-            deviation: Math.round(deviation * 100) / 100,
-            message,
-            suggestedActions,
+            targetMin: tolerance.min,
+            targetMax: tolerance.max,
+            status: "fail",
+            message: `${label}: ${actualValue.toFixed(2)} 不在范围 [${tolerance.min}, ${tolerance.max}]`,
+            suggestedActions: [
+              actualValue < tolerance.min ? `增加${label}含量` : `减少${label}含量`,
+            ],
+          });
+        } else if (
+          actualValue < tolerance.min * 1.05 && actualValue > tolerance.min * 0.95 ||
+          actualValue > tolerance.max * 0.95 && actualValue < tolerance.max * 1.05
+        ) {
+          complianceChecks.push({
+            field,
+            label,
+            actualValue,
+            targetMin: tolerance.min,
+            targetMax: tolerance.max,
+            status: "warning",
+            message: `${label}: ${actualValue.toFixed(2)} 接近边界`,
+            suggestedActions: [`关注${label}含量变化`],
+          });
+        } else {
+          complianceChecks.push({
+            field,
+            label,
+            actualValue,
+            status: "pass",
+            message: `${label}: ${actualValue.toFixed(2)}`,
+            suggestedActions: [],
           });
         }
-      } else {
-        // 没有标准时，只显示数值
-        const label = NUTRIENT_LABELS[field] || field;
+      } else if (target) {
         complianceChecks.push({
           field,
           label,
           actualValue,
+          target,
           status: "pass" as const,
           message: `${label}: ${actualValue.toFixed(2)}`,
           suggestedActions: [],
@@ -684,10 +222,9 @@ export async function checkCompliance(req: any, res: Response) {
       }
     }
 
-    // 生成推荐建议（结构化）
-    const passCount = complianceChecks.filter((c: any) => c.status === "pass").length;
-    const warningCount = complianceChecks.filter((c: any) => c.status === "warning").length;
-    const failCount = complianceChecks.filter((c: any) => c.status === "fail").length;
+    const passCount = complianceChecks.filter((c) => c.status === "pass").length;
+    const warningCount = complianceChecks.filter((c) => c.status === "warning").length;
+    const failCount = complianceChecks.filter((c) => c.status === "fail").length;
 
     if (failCount > 0) {
       recommendations.push({
@@ -697,8 +234,8 @@ export async function checkCompliance(req: any, res: Response) {
         description: `有 ${failCount} 项营养指标不达标，建议调整配方`,
         actionable: true,
         suggestedActions: complianceChecks
-          .filter((c: any) => c.status === "fail")
-          .flatMap((c: any) => c.suggestedActions || []),
+          .filter((c) => c.status === "fail")
+          .flatMap((c) => (c.suggestedActions as string[]) || []),
       });
     }
 
@@ -710,8 +247,8 @@ export async function checkCompliance(req: any, res: Response) {
         description: `有 ${warningCount} 项营养指标接近临界值，建议关注`,
         actionable: true,
         suggestedActions: complianceChecks
-          .filter((c: any) => c.status === "warning")
-          .flatMap((c: any) => c.suggestedActions || []),
+          .filter((c) => c.status === "warning")
+          .flatMap((c) => (c.suggestedActions as string[]) || []),
       });
     }
 
@@ -726,20 +263,12 @@ export async function checkCompliance(req: any, res: Response) {
       });
     }
 
-    // 保存报告
-    const reportId = generateId();
-    await query(
-      `INSERT INTO nutrition_analysis_reports (report_id, formula_id, summary_id, compliance_check_json, recommendations_json, generated_by, generated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [
-        reportId,
-        formulaId,
-        summary.summary_id,
-        JSON.stringify(complianceChecks),
-        JSON.stringify(recommendations),
-        userId,
-        now(),
-      ],
+    const reportId = await nutritionService.saveComplianceReport(
+      formulaId,
+      summary.summary_id as string | undefined,
+      complianceChecks,
+      recommendations,
+      userId,
     );
 
     res.json(
@@ -755,545 +284,88 @@ export async function checkCompliance(req: any, res: Response) {
         },
       }),
     );
-  } catch (error: any) {
-    console.error("[Nutrition] 合规检查出错:", error);
-    console.error("[Nutrition] 错误堆栈:", error.stack);
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : "未知错误";
     res.status(500).json({
       success: false,
       message: "服务器内部错误",
-      error: error.message,
+      error: msg,
     });
   }
 }
 
-async function getProfile(profileId: string): Promise<any | null> {
-  const [[profile]]: any[][] = await query("SELECT * FROM nutrition_profiles WHERE profile_id = ?", [profileId]);
-  if (!profile) return null;
-
-  const result = {
-    ...rowToCamelCase(profile),
-    targetValues: safeJsonParse(profile.target_values_json, {}),
-    toleranceRanges: safeJsonParse(profile.tolerance_ranges_json, []),
-    mandatoryFields: safeJsonParse(profile.mandatory_fields_json, []),
-  };
-
-  console.log("[Nutrition] getProfile:", {
-    profileId,
-    hasToleranceRanges: Array.isArray(result.toleranceRanges),
-    toleranceRangesCount: result.toleranceRanges?.length || 0,
-    targetValuesCount: Object.keys(result.targetValues).length,
-  });
-
-  return result;
+function safeJsonParse(str: string | null, def: unknown): unknown {
+  if (!str) return def;
+  try {
+    return JSON.parse(str);
+  } catch {
+    return def;
+  }
 }
 
-/** 获取配方营养计算表格数据（与 XLS 格式一致） */
-export async function getFormulaNutritionTables(req: any, res: Response) {
+export async function getFormulaNutritionTables(req: Request, res: Response) {
   try {
     const { formulaId } = req.params;
-
-    // 检查 formulas 表是否包含必要列，避免旧数据库报错
-    let dbHasSupplementRatio = true;
-    try {
-      const [[testRow]]: any[][] = await query("SELECT supplement_ratio_factor FROM formulas LIMIT 1", []);
-      dbHasSupplementRatio = true;
-    } catch (_err) {
-      dbHasSupplementRatio = false;
-      console.warn("[Nutrition] 数据库缺少 supplement_ratio_factor 列，将使用默认值 1.0");
-    }
-
-    const [[formula]]: any[][] = await query("SELECT * FROM formulas WHERE id = ?", [formulaId]);
-    if (!formula) {
+    const data = await nutritionService.getFormulaNutritionTablesData(formulaId);
+    if (!data) {
       res.status(404).json({ success: false, message: "配方不存在" });
       return;
     }
-
-    // 查询关联的业务员详细信息（部门等）
-    let salesmanInfo: Record<string, any> | null = null;
-    if (formula.salesman_id) {
-      const [[sm]]: any[][] = await query(
-        "SELECT id, name, code, department, phone, email FROM salesmen WHERE id = ?",
-        [formula.salesman_id],
-      );
-      if (sm) {
-        salesmanInfo = rowToCamelCase(sm);
-      }
-    }
-
-    // 安全解析 materials_json（可能存在双重编码）
-    let materials = safeJsonParse(formula.materials_json, []);
-    if (typeof materials === "string") {
-      try {
-        materials = JSON.parse(materials);
-      } catch (_) {
-        materials = [];
-      }
-    }
-    if (!Array.isArray(materials)) {
-      console.warn(
-        "[Nutrition] materials_json 解析后非数组，原始值前200字:",
-        String(formula.materials_json).substring(0, 200),
-      );
-      materials = [];
-    }
-    const NUTRIENT_COLS = ["protein", "fat", "carbohydrate", "sodium"] as const;
-    const finishedWeight = Number(formula.finished_weight) || 0;
-    const formulaRatioFactor = Number(formula.ratio_factor) || 0.18;
-    const supplementRatioFactor = dbHasSupplementRatio ? Number(formula.supplement_ratio_factor) || 1.0 : 1.0;
-
-    // 批量获取所有原料的类型（区分药材和辅料）
-    // ratio_factor 现在存储在 formulas 表中，不再从 materials 表获取
-    // 批量获取所有原料的类型（区分药材和辅料）
-    // 注意：直接 SELECT 返回的行是原始 snake_case 键名，不是 camelCase
-    const materialTypes: Record<string, string> = {};
-    if (materials.length > 0) {
-      try {
-        const matIds = materials.map((m: any) => m.materialId).filter(Boolean);
-        console.log(`[Nutrition] 配方原料数: ${materials.length}, 有效ID数: ${matIds.length}`);
-        if (matIds.length > 0) {
-          const placeholders = matIds.map(() => "?").join(",");
-          const sql = `SELECT id, material_type FROM materials WHERE id IN (${placeholders})`;
-          const [matRows]: any[] = await query(sql, matIds);
-          for (const row of matRows) {
-            materialTypes[row.id] = row.material_type || "herb";
-          }
-          console.log(`[Nutrition] 查询到 ${matRows.length}/${matIds.length} 个原料类型`);
-        }
-      } catch (err: any) {
-        console.error("[Nutrition] material_type 查询失败:", err.message);
-        // 打印完整错误堆栈以便排查
-        if (err.stack) console.error("[Nutrition] 堆栈:", err.stack);
-      }
-    }
-
-    const LABEL_INFO: Record<string, { name: string; unit: string; zeroThreshold: string; tolerance: string }> = {
-      energy: { name: "能量", unit: "千焦(kJ)", zeroThreshold: "≤17千焦(kJ)", tolerance: "≤120%标示值" },
-      protein: { name: "蛋白质", unit: "克(g)", zeroThreshold: "≤0.5克(g)", tolerance: "≥80%标示值" },
-      fat: { name: "脂肪", unit: "克(g)", zeroThreshold: "≤0.5克(g)", tolerance: "≤120%标示值" },
-      carbohydrate: { name: "碳水化合物", unit: "克(g)", zeroThreshold: "≤0.5克(g)", tolerance: "≥80%标示值" },
-      sodium: { name: "钠", unit: "毫克(mg)", zeroThreshold: "≤5毫克(mg)", tolerance: "≤120%标示值" },
-    };
-
-    let totalQuantity = 0;
-    let totalRatio = 0;
-
-    // 记录缺少营养数据的原料
-    const missingNutritionMaterials: string[] = [];
-
-    // 表1：营养成分计算表格行数据
-    const calcRows: any[] = [];
-    for (const mat of materials) {
-      let [[nutrition]]: any[][] = await query("SELECT per_100g_json FROM material_nutrition WHERE material_id = ?", [
-        mat.materialId,
-      ]);
-
-      // 备选查找：如果通过 materialId 找不到营养数据，尝试通过原料名称匹配
-      if (!nutrition && mat.materialName) {
-        const normalizedName = normalizeMaterialName(mat.materialName);
-        const [[altMaterial]]: any[][] = await query("SELECT id FROM materials WHERE name = ? LIMIT 1", [
-          normalizedName,
-        ]);
-        if (altMaterial) {
-          const [[altNutrition]]: any[][] = await query(
-            "SELECT per_100g_json FROM material_nutrition WHERE material_id = ?",
-            [altMaterial.id],
-          );
-          if (altNutrition) {
-            nutrition = altNutrition;
-          }
-        }
-      }
-
-      const hasNutrition = !!nutrition && nutrition.per_100g_json;
-      const per100g = hasNutrition ? normalizePer100g(safeJsonParse(nutrition.per_100g_json, {})) : {};
-
-      const nutritionFieldLabels: Record<string, string> = {
-        energy: "能量",
-        protein: "蛋白质",
-        fat: "脂肪",
-        carbohydrate: "碳水化合物",
-        sodium: "钠",
-      };
-      const emptyNutritionFields: string[] = [];
-      if (!hasNutrition || Object.keys(per100g).length === 0) {
-        missingNutritionMaterials.push(mat.materialName || mat.materialId);
-        emptyNutritionFields.push(...Object.values(nutritionFieldLabels));
-      } else {
-        for (const [key, label] of Object.entries(nutritionFieldLabels)) {
-          if (per100g[key] === undefined || per100g[key] === null) {
-            emptyNutritionFields.push(label);
-          }
-        }
-      }
-
-      const quantity = mat.quantity || 0;
-
-      // 含量比 = quantity / finishedWeight * ratioFactor
-      // 药材使用 ratio_factor，辅料使用 supplement_ratio_factor
-      const isSupplement = materialTypes[mat.materialId] === "supplement";
-      const effectiveRatio = isSupplement ? supplementRatioFactor : formulaRatioFactor;
-      const ratio = finishedWeight > 0 ? Math.round((quantity / finishedWeight) * effectiveRatio * 100000) / 100000 : 0;
-
-      const row: any = {
-        name: mat.materialName,
-        materialId: mat.materialId,
-        quantity,
-        ratio,
-        materialType: materialTypes[mat.materialId] || 'herb',
-        energy: "", // 能量由DB不直接提供，单独计算
-        protein: per100g.protein ?? 0,
-        fat: per100g.fat ?? 0,
-        carbohydrate: per100g.carbohydrate ?? 0,
-        sodium: per100g.sodium ?? 0,
-        hasEmptyNutrition: !hasNutrition || Object.keys(per100g).length === 0,
-        emptyNutritionFields,
-      };
-      calcRows.push(row);
-
-      totalQuantity += quantity;
-      totalRatio += ratio;
-    }
-
-    // 汇总行：营养成分表
-    // 计算：Σ(per100g营养素 × 含量比)
-    const summaryNutrition: Record<string, number> = {};
-    for (const f of NUTRIENT_COLS) {
-      let sum = 0;
-      for (const row of calcRows) {
-        sum += (row[f] || 0) * row.ratio;
-      }
-      summaryNutrition[f] = Math.round(sum * 10000) / 10000;
-    }
-    // 能量 = 蛋白质 * 17 + 脂肪 * 37 + 碳水化合物 * 17
-    const summaryEnergy =
-      Math.round(
-        (summaryNutrition.protein * 17 + summaryNutrition.fat * 37 + summaryNutrition.carbohydrate * 17) * 100,
-      ) / 100;
-
-    const summaryRow: any = {
-      name: "营养成分表",
-      quantity: totalQuantity,
-      ratio: Math.round(totalRatio * 100000) / 100000,
-      energy: summaryEnergy,
-      protein: summaryNutrition.protein,
-      fat: summaryNutrition.fat,
-      carbohydrate: summaryNutrition.carbohydrate,
-      sodium: summaryNutrition.sodium,
-    };
-
-    // NRV% 计算
-    const nrvRow: any = { name: "营养素参考值(NRV)", quantity: "", ratio: "" };
-    const nrvPercentRow: any = { name: "营养素参考值%", quantity: "", ratio: "" };
-    // 能量NRV
-    nrvRow.energy = NRV.energy ?? "";
-    nrvPercentRow.energy = NRV.energy ? Math.round((summaryEnergy / NRV.energy) * 10000) / 100 : 0;
-    for (const f of NUTRIENT_COLS) {
-      nrvRow[f] = NRV[f] ?? "";
-      nrvPercentRow[f] = NRV[f] ? Math.round((summaryNutrition[f] / NRV[f]) * 10000) / 100 : 0;
-    }
-
-    // 表2：营养成分表 + 技术处理依据
-    // 技术处理规则（与 Excel 一致）：
-    //   - 低于 0 界限值的归零
-    //   - 能量需要重新计算（排除归零的蛋白质/脂肪/碳水贡献后用换算系数重算）
-    const ZERO_THRESHOLDS: Record<string, number> = {
-      energy: 17, // ≤17 kJ
-      protein: 0.5, // ≤0.5 g
-      fat: 0.5, // ≤0.5 g
-      carbohydrate: 0.5, // ≤0.5 g
-      sodium: 5, // ≤5 mg
-    };
-    const labelRows: any[] = [];
-
-    // 先确定哪些营养素需要归零
-    const labelValues: Record<string, number> = {};
-    labelValues.energy = summaryEnergy;
-    for (const f of NUTRIENT_COLS) {
-      labelValues[f] = summaryNutrition[f];
-    }
-
-    // 技术处理：低于 0 界限值的归零
-    const zeroedFields = new Set<string>();
-    for (const f of NUTRIENT_COLS) {
-      if (Math.abs(labelValues[f]) < ZERO_THRESHOLDS[f]) {
-        zeroedFields.add(f);
-        labelValues[f] = 0;
-      }
-    }
-    // 能量归零判断
-    if (Math.abs(labelValues.energy) < ZERO_THRESHOLDS.energy) {
-      zeroedFields.add("energy");
-      labelValues.energy = 0;
-    }
-
-    // 能量重新计算：用技术处理后的蛋白质、脂肪、碳水计算
-    // 能量(kJ) = 蛋白质(g) × 17 + 脂肪(g) × 37 + 碳水化合物(g) × 17
-    if (!zeroedFields.has("energy")) {
-      const techEnergy = labelValues.protein * 17 + labelValues.fat * 37 + labelValues.carbohydrate * 17;
-      labelValues.energy = Math.round(techEnergy);
-    }
-
-    // 生成表2行
-    // 能量行
-    const energyNrv = NRV.energy || 1;
-    const energyNrvPercent = labelValues.energy > 0 ? Math.round((labelValues.energy / energyNrv) * 10000) / 100 : 0;
-    labelRows.push({
-      item: "能量",
-      value: labelValues.energy,
-      unit: "千焦(kJ)",
-      nrvPercent: energyNrvPercent,
-      zeroThreshold: "≤17千焦(kJ)",
-      tolerance: "≤120%标示值",
-    });
-    for (const f of NUTRIENT_COLS) {
-      const info = LABEL_INFO[f];
-      const val = labelValues[f];
-      const nrv = NRV[f] || 1;
-      const nrvPct = val > 0 ? Math.round((val / nrv) * 10000) / 100 : 0;
-      labelRows.push({
-        item: info.name,
-        value: val,
-        unit: info.unit,
-        nrvPercent: nrvPct,
-        zeroThreshold: info.zeroThreshold,
-        tolerance: info.tolerance,
-      });
-    }
-
-    res.json(
-      success({
-        // 配方基础信息
-        formulaId: formula.id,
-        formulaName: formula.name,
-        finishedWeight,
-        ratioFactor: formulaRatioFactor,
-        supplementRatioFactor,
-        parseResultId: formula.parse_result_id || null,
-        // 业务员信息
-        salesmanName: salesmanInfo?.name || formula.salesman_name || "",
-        salesmanDept: salesmanInfo?.department || "",
-        // 需求信息（从 description 提取）
-        demandTitle: formula.description ? `配方需求：${formula.name}` : null,
-        demandCode: formula.id,
-        demandDesc: formula.description,
-        demandPriority: null,
-        // 营养计算数据
-        totalWeight: totalQuantity,
-        calcRows,
-        summaryRow,
-        nrvRow,
-        nrvPercentRow,
-        labelRows,
-        missingNutritionMaterials,
-        // 版本历史（取最近3条，排除当前版本）
-        versionHistory: await getVersionHistory(formulaId),
-      }),
-    );
-  } catch (error: any) {
-    console.error("[Nutrition] getFormulaNutritionTables 错误:", error.message);
-    console.error("[Nutrition] 错误堆栈:", error.stack);
-    res.status(500).json({ success: false, message: "获取营养计算表格失败", error: error.message });
+    res.json(success(data));
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : "未知错误";
+    res.status(500).json({ success: false, message: "获取营养计算表格失败", error: msg });
   }
 }
 
-/** 获取配方的版本历史（用于详情页时间线展示） */
-async function getVersionHistory(formulaId: string): Promise<any[]> {
-  try {
-    const [versions]: any[] = await query(
-      `SELECT version_number, version_name, version_reason as note,
-              created_by, created_at, status
-       FROM formula_versions
-       WHERE formula_id = ? AND is_current = 0
-       ORDER BY created_at DESC LIMIT 3`,
-      [formulaId],
-    );
-    return rowsToCamelCase(versions);
-  } catch (err) {
-    console.error("[Nutrition] getVersionHistory 查询失败:", err);
-    return [];
-  }
-}
-
-export async function analyzeFormula(req: any, res: Response) {
+export async function analyzeFormula(req: Request & { user: { userId: string; role: string } }, res: Response) {
   try {
     const { formulaId } = req.params;
     const userId = req.user.userId;
     const userRole = req.user.role;
 
-    const [[formula]]: any[][] = await query("SELECT * FROM formulas WHERE id = ?", [formulaId]);
-    if (!formula) {
-      res.status(404).json({ success: false, error: { message: "配方不存在", code: "NOT_FOUND" } });
+    const data = await nutritionService.getAnalyzeFormulaData(formulaId, userId, userRole);
+
+    if (data && "error" in data) {
+      const statusMap: Record<string, number> = { NOT_FOUND: 404, FORBIDDEN: 403, VALIDATION_ERROR: 400 };
+      const errCode = data.error as string;
+      res.status(statusMap[errCode] || 400).json({
+        success: false,
+        error: { message: data.message, code: errCode },
+      });
       return;
     }
-
-    if (userRole !== "admin" && formula.created_by !== userId) {
-      res.status(403).json({ success: false, error: { message: "无权分析该配方", code: "FORBIDDEN" } });
-      return;
-    }
-
-    let materials: Array<Record<string, any>> = safeJsonParse(formula.materials_json, []);
-    if (typeof materials === "string") {
-      try { materials = JSON.parse(materials as string); } catch (_) { materials = []; }
-    }
-    if (!Array.isArray(materials)) materials = [];
-
-    if (materials.length === 0) {
-      res.status(400).json({ success: false, error: { message: "配方无原料", code: "VALIDATION_ERROR" } });
-      return;
-    }
-
-    const finishedWeight = Number(formula.finished_weight) || 0;
-    if (finishedWeight <= 0) {
-      res.status(400).json({ success: false, error: { message: "成品重量为0", code: "VALIDATION_ERROR" } });
-      return;
-    }
-
-    const materialTypes: Record<string, string> = {};
-    const matIds = materials.map(m => m.materialId).filter(Boolean);
-    if (matIds.length > 0) {
-      const placeholders = matIds.map(() => "?").join(",");
-      const [matRows]: any[] = await query(`SELECT id, material_type FROM materials WHERE id IN (${placeholders})`, matIds);
-      for (const row of matRows) {
-        materialTypes[row.id] = row.material_type || "herb";
-      }
-    }
-
-    const nutritionMap: Record<string, Record<string, number>> = {};
-    if (matIds.length > 0) {
-      const placeholders = matIds.map(() => "?").join(",");
-      const [nutritionRows]: any[] = await query(
-        `SELECT material_id, per_100g_json FROM material_nutrition WHERE material_id IN (${placeholders}) AND is_latest = 1`,
-        matIds
-      );
-      for (const row of nutritionRows) {
-        nutritionMap[row.material_id] = normalizePer100g(safeJsonParse(row.per_100g_json, {}));
-      }
-    }
-
-    for (const mat of materials) {
-      if (!nutritionMap[mat.materialId] && mat.materialName) {
-        const normalizedName = normalizeMaterialName(mat.materialName);
-        const [[altMaterial]]: any[][] = await query("SELECT id FROM materials WHERE name = ? LIMIT 1", [normalizedName]);
-        if (altMaterial) {
-          const [[altNutrition]]: any[][] = await query(
-            "SELECT per_100g_json FROM material_nutrition WHERE material_id = ? AND is_latest = 1",
-            [altMaterial.id]
-          );
-          if (altNutrition) {
-            nutritionMap[mat.materialId] = normalizePer100g(safeJsonParse(altNutrition.per_100g_json, {}));
-          }
-        }
-      }
-    }
-
-    const formulaRatioFactor = Number(formula.ratio_factor) || 0.18;
-    let supplementRatioFactor = 1.0;
-    try {
-      supplementRatioFactor = Number(formula.supplement_ratio_factor) || 1.0;
-    } catch (_) {}
-
-    const analyzeMaterials = materials.map(mat => {
-      const per100g = nutritionMap[mat.materialId] || {};
-      const hasNutritionData = Object.keys(per100g).length > 0;
-      const materialType = materialTypes[mat.materialId] || "herb";
-      return {
-        materialId: mat.materialId,
-        materialName: mat.materialName || "",
-        materialType,
-        quantity: Number(mat.quantity) || 0,
-        per100g,
-        hasNutritionData,
-      };
-    });
 
     const { nutritionEngine } = await import("../services/formula/nutritionEngine.js");
-    const result = nutritionEngine.analyze({
-      formulaId,
-      formulaName: formula.name,
-      finishedWeight,
-      ratioFactor: formulaRatioFactor,
-      supplementRatioFactor,
-      materials: analyzeMaterials,
-    });
-
+    const result = nutritionEngine.analyze(data as Parameters<typeof nutritionEngine.analyze>[0]);
     res.json(success(result));
-  } catch (error: any) {
-    console.error("[Nutrition] analyzeFormula 错误:", error.message);
-    res.status(500).json({ success: false, error: { message: "营养分析失败", code: "INTERNAL_ERROR" } });
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : "未知错误";
+    res.status(500).json({ success: false, error: { message: "营养分析失败", code: "INTERNAL_ERROR", detail: msg } });
   }
 }
 
-export async function getCoverage(req: any, res: Response) {
+export async function getCoverage(req: Request & { user: { userId: string; role: string } }, res: Response) {
   try {
     const { formulaId } = req.params;
-    const userRole = req.user.role;
     const userId = req.user.userId;
+    const userRole = req.user.role;
 
-    const [[formula]]: any[][] = await query("SELECT * FROM formulas WHERE id = ?", [formulaId]);
-    if (!formula) {
-      res.status(404).json({ success: false, error: { message: "配方不存在", code: "NOT_FOUND" } });
+    const data = await nutritionService.getCoverageData(formulaId, userId, userRole);
+
+    if (data && "error" in data) {
+      const statusMap: Record<string, number> = { NOT_FOUND: 404, FORBIDDEN: 403 };
+      const errCode = data.error as string;
+      res.status(statusMap[errCode] || 400).json({
+        success: false,
+        error: { message: data.message, code: errCode },
+      });
       return;
     }
 
-    if (userRole !== "admin" && formula.created_by !== userId) {
-      res.status(403).json({ success: false, error: { message: "无权访问该配方", code: "FORBIDDEN" } });
-      return;
-    }
-
-    let materials: Array<Record<string, any>> = safeJsonParse(formula.materials_json, []);
-    if (typeof materials === "string") {
-      try { materials = JSON.parse(materials as string); } catch (_) { materials = []; }
-    }
-    if (!Array.isArray(materials)) materials = [];
-
-    const matIds = materials.map(m => m.materialId).filter(Boolean);
-    const materialTypes: Record<string, string> = {};
-    if (matIds.length > 0) {
-      const placeholders = matIds.map(() => "?").join(",");
-      const [matRows]: any[] = await query(`SELECT id, name, material_type FROM materials WHERE id IN (${placeholders})`, matIds);
-      for (const row of matRows) {
-        materialTypes[row.id] = row.material_type || "herb";
-      }
-    }
-
-    let withNutrition = 0;
-    const missingMaterials: Array<{ materialId: string; materialName: string; materialType: string }> = [];
-    let weightWithNutrition = 0;
-    let totalWeight = 0;
-
-    for (const mat of materials) {
-      const quantity = Number(mat.quantity) || 0;
-      totalWeight += quantity;
-      const [[nutrition]]: any[][] = await query(
-        "SELECT nutrition_id FROM material_nutrition WHERE material_id = ? AND is_latest = 1",
-        [mat.materialId]
-      );
-      if (nutrition) {
-        withNutrition++;
-        weightWithNutrition += quantity;
-      } else {
-        missingMaterials.push({
-          materialId: mat.materialId,
-          materialName: mat.materialName || "",
-          materialType: materialTypes[mat.materialId] || "herb",
-        });
-      }
-    }
-
-    const coverageRate = materials.length > 0 ? withNutrition / materials.length : 0;
-    const weightCoverage = totalWeight > 0 ? weightWithNutrition / totalWeight : 0;
-    const confidenceLevel: "high" | "medium" | "low" = coverageRate >= 0.9 ? "high" : coverageRate >= 0.7 ? "medium" : "low";
-
-    res.json(success({
-      formulaId,
-      totalMaterials: materials.length,
-      withNutrition,
-      coverageRate: Math.round(coverageRate * 10000) / 10000,
-      missingMaterials,
-      weightCoverage: Math.round(weightCoverage * 10000) / 10000,
-      confidenceLevel,
-    }));
-  } catch (error: any) {
-    res.status(500).json({ success: false, error: { message: "获取覆盖度失败", code: "INTERNAL_ERROR" } });
+    res.json(success(data));
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : "未知错误";
+    res.status(500).json({ success: false, error: { message: "获取覆盖度失败", code: "INTERNAL_ERROR", detail: msg } });
   }
 }

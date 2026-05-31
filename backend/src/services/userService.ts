@@ -117,7 +117,7 @@ export async function toggleUserActive(userId: string, isActive: number, current
     throw new Error("NOT_FOUND");
   }
 
-  if ((user as Record<string, unknown>).role === "admin" && isActive === 0) {
+  if (user.role === "admin" && isActive === 0) {
     throw new Error("CANNOT_DISABLE_ADMIN");
   }
 

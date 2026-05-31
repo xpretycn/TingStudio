@@ -371,7 +371,7 @@
                       <span v-if="priceAdjustments[index]?.isAdjusted" class="col-adjust-badge"
                         :title="'原价: ¥' + (priceAdjustments[index]?.originalPrice ?? '--') + '/kg'">
                         <svg viewBox="0 0 12 12" width="10" height="10">
-                          <path d="M6 1L7.5 4.5L11 5L8.5 7.5L9 11L6 9L3 11L3.5 7.5L1 5L4.5 4.5Z" fill="#d97706" />
+                          <path d="M6 1L7.5 4.5L11 5L8.5 7.5L9 11L6 9L3 11L3.5 7.5L1 5L4.5 4.5Z" fill="var(--color-warning)" />
                         </svg>
                         价
                       </span>
@@ -461,7 +461,7 @@
             <div v-if="sequentialActive && sequentialCurrentItem" class="sequential-confirm-card">
               <div class="sequential-confirm-header">
                 <div class="sequential-confirm-title">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2"
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-lavender)" stroke-width="2"
                     stroke-linecap="round" stroke-linejoin="round">
                     <line x1="8" y1="6" x2="21" y2="6" />
                     <line x1="8" y1="12" x2="21" y2="12" />
@@ -646,7 +646,7 @@
     <t-dialog v-model:visible="diffDialogVisible" :footer="false" width="760px" :attach="'body'">
       <template #header>
         <div class="diff-dialog-header">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2"
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-lavender)" stroke-width="2"
             stroke-linecap="round" stroke-linejoin="round">
             <path d="M16 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V8z" />
             <polyline points="14 3 14 8 21 8" />
@@ -699,7 +699,7 @@
         </table>
         <div class="diff-summary" v-if="hasAnyChange">
           <div class="diff-summary-icon">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2"
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-lavender)" stroke-width="2"
               stroke-linecap="round" stroke-linejoin="round">
               <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
               <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
@@ -1096,7 +1096,7 @@ const FALLBACK_ICONS: Record<string, { letter: string; color: string; }> = {
   claude: { letter: 'C', color: '#d97757' },
   google: { letter: 'G', color: '#4285f4' },
   deepseek: { letter: 'D', color: '#4b6bfb' },
-  qwen: { letter: 'Q', color: '#6366f1' },
+  qwen: { letter: 'Q', color: 'var(--color-lavender)' },
   zhipu: { letter: 'Z', color: '#4268fa' },
   baidu: { letter: 'B', color: '#2932e1' },
   bytedance: { letter: 'D', color: '#25f4ee' },
@@ -1786,7 +1786,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
 }
 
 .ai-panel {
-  background: linear-gradient(145deg, #ffffff 0%, var(--color-bg-page) 50%, $border-color-light 100%);
+  background: linear-gradient(145deg, var(--color-bg-container) 0%, var(--color-bg-page) 50%, $border-color-light 100%);
   padding: 32px;
   border-radius: 2.5rem;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.06), 0 8px 10px -6px $overlay-emerald-06;
@@ -1831,7 +1831,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
 
       .t-icon {
         font-size: 24px;
-        color: #fff;
+        color: var(--color-text-white);
       }
     }
 
@@ -1871,7 +1871,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
 
       .status-indicator--loading {
         background: rgba(59, 130, 246, 0.08);
-        color: #3b82f6;
+        color: var(--color-info);
         border: 1px solid rgba(59, 130, 246, 0.15);
       }
 
@@ -1883,7 +1883,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
 
       .status-indicator--ready {
         background: rgba(245, 158, 11, 0.08);
-        color: #d97706;
+        color: var(--color-warning);
         border: 1px solid rgba(245, 158, 11, 0.15);
       }
 
@@ -1906,7 +1906,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
       }
 
       .status-dot--pulse {
-        background: #3b82f6;
+        background: var(--color-info);
         animation: dot-pulse 1.4s ease-in-out infinite;
       }
 
@@ -2038,7 +2038,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
         gap: var(--space-1-5);
         font-size: 13px;
         font-weight: 600;
-        color: #6366f1;
+        color: var(--color-lavender);
         white-space: nowrap;
         flex-shrink: 0;
         margin-top: var(--space-1-25);
@@ -2051,8 +2051,8 @@ watch(() => aiStore.materialParseResult, (newVal) => {
       justify-content: space-between;
       margin-top: 16px;
       padding: var(--space-3-5) var(--space-4-5);
-      background: linear-gradient(135deg, #ecfdf5, #f0fdf4);
-      border: 1px solid #bbf7d0;
+      background: linear-gradient(135deg, var(--color-emerald-50), var(--color-emerald-50));
+      border: 1px solid var(--color-emerald-50);
       border-radius: 12px;
 
       .file-info {
@@ -2100,7 +2100,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
       padding: 8px var(--space-4-5);
       border-radius: 10px;
       background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
-      color: #fff;
+      color: var(--color-text-white);
       font-size: 13px;
       font-weight: 700;
       border: none;
@@ -2126,13 +2126,13 @@ watch(() => aiStore.materialParseResult, (newVal) => {
       height: 32px;
       border-radius: 8px;
       border: none;
-      background: #fff;
+      background: var(--color-bg-container);
       color: var(--color-text-placeholder);
       cursor: pointer;
       transition: all $transition-fast;
 
       &:hover {
-        background: #fef2f2;
+        background: var(--color-danger-bg);
         color: var(--color-danger);
       }
 
@@ -2145,13 +2145,13 @@ watch(() => aiStore.materialParseResult, (newVal) => {
         font-weight: 700;
         border-radius: 10px;
         border: 1px solid var(--color-border);
-        background: #fff;
+        background: var(--color-bg-container);
         color: var(--color-text-placeholder);
 
         &:hover {
-          background: #fef2f2;
+          background: var(--color-danger-bg);
           color: var(--color-danger);
-          border-color: #fecaca;
+          border-color: var(--color-danger-border);
         }
       }
     }
@@ -2190,8 +2190,8 @@ watch(() => aiStore.materialParseResult, (newVal) => {
           display: inline-flex;
           align-items: center;
           padding: var(--space-0-5) var(--space-2-5);
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          color: #fff;
+          background: linear-gradient(135deg, var(--color-lavender) 0%, var(--color-lavender) 100%);
+          color: var(--color-text-white);
           font-size: 11px;
           font-weight: 700;
           font-family: 'SF Mono', 'Fira Code', monospace;
@@ -2218,7 +2218,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
           gap: var(--space-1-25);
           padding: var(--space-1-25) var(--space-3-5);
           background: linear-gradient(135deg, var(--color-danger) 0%, var(--color-danger) 100%);
-          color: #fff;
+          color: var(--color-text-white);
           font-size: 12px;
           font-weight: 600;
           border: none;
@@ -2231,7 +2231,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
           &:hover {
             transform: translateY(-1px);
             box-shadow: 0 4px 12px rgba(239, 68, 68, 0.45);
-            background: linear-gradient(135deg, var(--color-danger) 0%, #b91c1c 100%);
+            background: linear-gradient(135deg, var(--color-danger) 0%, var(--color-danger) 100%);
           }
 
           &:active {
@@ -2310,7 +2310,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
         background: rgba(99, 102, 241, 0.06);
         border: 1px solid rgba(99, 102, 241, 0.12);
         border-radius: 8px;
-        color: #6366f1;
+        color: var(--color-lavender);
         font-size: 11px;
 
         svg {
@@ -2398,8 +2398,8 @@ watch(() => aiStore.materialParseResult, (newVal) => {
         align-items: center;
         gap: 4px;
         padding: var(--space-1-25) 12px;
-        background: linear-gradient(135deg, var(--color-warning), #d97706);
-        color: #fff;
+        background: linear-gradient(135deg, var(--color-warning), var(--color-warning));
+        color: var(--color-text-white);
         border: none;
         border-radius: 8px;
         font-size: 11px;
@@ -2443,7 +2443,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
             font-size: 12px;
             font-weight: 500;
             color: var(--color-text-placeholder);
-            background: #f1f5f9;
+            background: var(--color-border-light);
             padding: var(--space-0-5) 8px;
             border-radius: 6px;
           }
@@ -2473,8 +2473,8 @@ watch(() => aiStore.materialParseResult, (newVal) => {
             }
 
             &--clear {
-              background: #fef2f2;
-              border: 1px solid #fecaca;
+              background: var(--color-danger-bg);
+              border: 1px solid var(--color-danger-border);
               color: var(--color-danger);
 
               svg {
@@ -2482,49 +2482,49 @@ watch(() => aiStore.materialParseResult, (newVal) => {
               }
 
               &:hover {
-                background: #fee2e2;
-                border-color: #fca5a5;
-                color: #b91c1c;
+                background: var(--color-danger-bg);
+                border-color: var(--color-danger-border);
+                color: var(--color-danger);
 
                 svg {
-                  color: #b91c1c;
+                  color: var(--color-danger);
                 }
               }
 
               &:active {
-                background: #fecaca;
+                background: var(--color-danger-border);
                 transform: scale(0.97);
               }
             }
 
             &--save-template {
-              background: #eef2ff;
-              border: 1px solid #c7d2fe;
-              color: #4f46e5;
+              background: var(--color-lavender);
+              border: 1px solid var(--color-lavender);
+              color: var(--color-lavender);
 
               svg {
-                color: #4f46e5;
+                color: var(--color-lavender);
               }
 
               &:hover {
-                background: #e0e7ff;
-                border-color: #a5b4fc;
-                color: #3730a3;
+                background: var(--color-lavender);
+                border-color: var(--color-lavender);
+                color: var(--color-lavender);
 
                 svg {
-                  color: #3730a3;
+                  color: var(--color-lavender);
                 }
               }
 
               &:active {
-                background: #c7d2fe;
+                background: var(--color-lavender);
                 transform: scale(0.97);
               }
             }
 
             &--reparse {
-              background: #f0fdf4;
-              border: 1px solid #bbf7d0;
+              background: var(--color-emerald-50);
+              border: 1px solid var(--color-emerald-50);
               color: var(--color-primary-dark);
 
               svg {
@@ -2532,8 +2532,8 @@ watch(() => aiStore.materialParseResult, (newVal) => {
               }
 
               &:hover {
-                background: #dcfce7;
-                border-color: #86efac;
+                background: var(--color-emerald-50);
+                border-color: var(--color-emerald-400);
                 color: var(--color-primary-deep);
 
                 svg {
@@ -2542,7 +2542,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
               }
 
               &:active {
-                background: #bbf7d0;
+                background: var(--color-emerald-50);
                 transform: scale(0.97);
               }
             }
@@ -2552,8 +2552,8 @@ watch(() => aiStore.materialParseResult, (newVal) => {
     }
 
     .validation-summary {
-      background: #fffbeb;
-      border: 1px solid #fde68a;
+      background: var(--color-warning-bg);
+      border: 1px solid var(--color-warning);
       border-radius: 12px;
       padding: 16px 20px;
       margin-bottom: 20px;
@@ -2564,7 +2564,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
         gap: var(--space-1-5);
         font-size: 14px;
         font-weight: 600;
-        color: #92400e;
+        color: var(--color-warning-dark);
         margin-bottom: var(--space-2-5);
       }
 
@@ -2578,7 +2578,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
         }
 
         &--warning {
-          color: #d97706;
+          color: var(--color-warning);
         }
       }
     }
@@ -2586,7 +2586,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
     .material-table-wrapper {
       overflow-x: auto;
       border-radius: 12px;
-      border: 1px solid #f1f5f9;
+      border: 1px solid var(--color-border-light);
     }
 
     .material-table {
@@ -2609,7 +2609,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
 
       td {
         padding: var(--space-2-5) var(--space-3-5);
-        border-bottom: 1px solid #f1f5f9;
+        border-bottom: 1px solid var(--color-border-light);
         color: var(--color-text-primary);
         vertical-align: middle;
       }
@@ -2676,7 +2676,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
       transition: background $transition-fast;
 
       &:hover {
-        background: #f1f5f9;
+        background: var(--color-border-light);
       }
 
       &--readonly {
@@ -2728,8 +2728,8 @@ watch(() => aiStore.materialParseResult, (newVal) => {
         line-height: 1.4;
         padding: var(--space-0-5) var(--space-1-5);
         border-radius: 6px;
-        background: linear-gradient(135deg, #fef3c7, #fde68a);
-        color: #b45309;
+        background: linear-gradient(135deg, var(--color-warning-bg), var(--color-warning));
+        color: var(--color-warning-dark);
         font-weight: 700;
         flex-shrink: 0;
         cursor: help;
@@ -2737,7 +2737,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
         white-space: nowrap;
 
         &:hover {
-          background: linear-gradient(135deg, #fde68a, #fcd34d);
+          background: linear-gradient(135deg, var(--color-warning), var(--color-warning));
           transform: scale(1.05);
         }
       }
@@ -2750,7 +2750,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
         height: 20px;
         border-radius: var(--radius-sm);
         border: 1px solid var(--color-border);
-        background: #fff;
+        background: var(--color-bg-container);
         color: var(--color-text-secondary);
         cursor: pointer;
         transition: all 0.2s;
@@ -2759,8 +2759,8 @@ watch(() => aiStore.materialParseResult, (newVal) => {
         vertical-align: middle;
 
         &:hover {
-          background: #f1f5f9;
-          border-color: #cbd5e1;
+          background: var(--color-border-light);
+          border-color: var(--color-text-placeholder);
           color: var(--color-primary-dark);
           transform: scale(1.1);
         }
@@ -2835,10 +2835,10 @@ watch(() => aiStore.materialParseResult, (newVal) => {
       background: transparent;
 
       &--diff {
-        color: #3b82f6;
+        color: var(--color-info);
 
         &:hover {
-          background: #eff6ff;
+          background: var(--color-info-bg);
         }
       }
 
@@ -2846,7 +2846,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
         color: var(--color-text-placeholder);
 
         &:hover {
-          background: #fef2f2;
+          background: var(--color-danger-bg);
           color: var(--color-danger);
         }
       }
@@ -2894,7 +2894,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
 
       &--all {
         background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
-        color: #fff;
+        color: var(--color-text-white);
 
         &:hover:not(:disabled) {
           transform: translateY(-2px);
@@ -2903,8 +2903,8 @@ watch(() => aiStore.materialParseResult, (newVal) => {
       }
 
       &--sequential {
-        background: linear-gradient(135deg, #6366f1, #4f46e5);
-        color: #fff;
+        background: linear-gradient(135deg, var(--color-lavender), var(--color-lavender));
+        color: var(--color-text-white);
         border: none;
 
         &:hover:not(:disabled) {
@@ -2924,7 +2924,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
       padding: 20px;
       background: var(--color-bg-page);
       border-radius: 12px;
-      border: 1px solid #f1f5f9;
+      border: 1px solid var(--color-border-light);
 
       .progress-header {
         display: flex;
@@ -2970,8 +2970,8 @@ watch(() => aiStore.materialParseResult, (newVal) => {
     .sequential-confirm-card {
       margin-top: 20px;
       padding: 20px;
-      background: linear-gradient(135deg, #eef2ff, #e0e7ff);
-      border: 1px solid #c7d2fe;
+      background: linear-gradient(135deg, var(--color-lavender), var(--color-lavender));
+      border: 1px solid var(--color-lavender);
       border-radius: 16px;
       animation: fadeInUp 0.3s ease both;
 
@@ -2987,7 +2987,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
           gap: 8px;
           font-size: 14px;
           font-weight: 700;
-          color: #3730a3;
+          color: var(--color-lavender);
         }
 
         .sequential-progress-badge {
@@ -2996,7 +2996,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
           border-radius: 8px;
           font-size: 12px;
           font-weight: 700;
-          color: #4f46e5;
+          color: var(--color-lavender);
           font-variant-numeric: tabular-nums;
         }
       }
@@ -3011,7 +3011,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
 
         .sequential-progress-fill {
           height: 100%;
-          background: linear-gradient(90deg, #6366f1, #4f46e5);
+          background: linear-gradient(90deg, var(--color-lavender), var(--color-lavender));
           border-radius: var(--radius-xs);
           transition: width 0.3s ease;
         }
@@ -3019,7 +3019,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
 
       .sequential-item-detail {
         padding: var(--space-3-5) 16px;
-        background: #fff;
+        background: var(--color-bg-container);
         border-radius: 12px;
         border: 1px solid var(--color-border);
         margin-bottom: 16px;
@@ -3051,7 +3051,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
 
           span {
             padding: var(--space-0-5) 8px;
-            background: #f1f5f9;
+            background: var(--color-border-light);
             border-radius: 6px;
             font-size: 11px;
             font-weight: 600;
@@ -3081,7 +3081,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
 
         &--confirm {
           background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
-          color: #fff;
+          color: var(--color-text-white);
 
           &:hover {
             transform: translateY(-1px);
@@ -3090,13 +3090,13 @@ watch(() => aiStore.materialParseResult, (newVal) => {
         }
 
         &--skip {
-          background: #fff;
+          background: var(--color-bg-container);
           color: var(--color-text-secondary);
           border: 1px solid var(--color-border);
 
           &:hover {
             background: var(--color-bg-page);
-            border-color: #cbd5e1;
+            border-color: var(--color-text-placeholder);
           }
         }
 
@@ -3106,8 +3106,8 @@ watch(() => aiStore.materialParseResult, (newVal) => {
           border: 1px solid rgba(239, 68, 68, 0.2);
 
           &:hover {
-            background: #fef2f2;
-            border-color: #fca5a5;
+            background: var(--color-danger-bg);
+            border-color: var(--color-danger-border);
           }
         }
       }
@@ -3115,9 +3115,9 @@ watch(() => aiStore.materialParseResult, (newVal) => {
 
     .summary-card {
       margin-top: 24px;
-      background: #fff;
+      background: var(--color-bg-container);
       border-radius: 16px;
-      border: 1px solid #f1f5f9;
+      border: 1px solid var(--color-border-light);
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
       overflow: hidden;
 
@@ -3126,7 +3126,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
         align-items: center;
         gap: 8px;
         padding: 16px 20px;
-        background: linear-gradient(135deg, #ecfdf5, #f0fdf4);
+        background: linear-gradient(135deg, var(--color-emerald-50), var(--color-emerald-50));
         font-size: 15px;
         font-weight: 700;
         color: var(--color-primary-dark);
@@ -3173,7 +3173,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
         width: 100%;
         margin-top: 12px;
         padding-top: 12px;
-        border-top: 1px solid #f1f5f9;
+        border-top: 1px solid var(--color-border-light);
 
         .summary-error-item {
           font-size: 12px;
@@ -3189,17 +3189,17 @@ watch(() => aiStore.materialParseResult, (newVal) => {
       align-items: center;
       gap: 8px;
       padding: 12px 20px;
-      border-top: 1px solid #f1f5f9;
+      border-top: 1px solid var(--color-border-light);
       font-size: 12px;
 
       &--success {
         color: var(--color-primary-dark);
-        background: #f0fdf4;
+        background: var(--color-emerald-50);
       }
 
       &--fail {
         color: var(--color-danger);
-        background: #fef2f2;
+        background: var(--color-danger-bg);
       }
 
       .summary-file-name {
@@ -3222,7 +3222,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
 
     .summary-undo {
       padding: 12px 20px;
-      border-top: 1px solid #f1f5f9;
+      border-top: 1px solid var(--color-border-light);
       display: flex;
       justify-content: flex-end;
 
@@ -3232,8 +3232,8 @@ watch(() => aiStore.materialParseResult, (newVal) => {
         gap: var(--space-1-5);
         padding: var(--space-2) 16px;
         border-radius: 10px;
-        background: linear-gradient(135deg, var(--color-warning), #d97706);
-        color: #fff;
+        background: linear-gradient(135deg, var(--color-warning), var(--color-warning));
+        color: var(--color-text-white);
         font-size: 12px;
         font-weight: 700;
         border: none;
@@ -3270,7 +3270,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
     color: var(--color-text-primary);
     margin-bottom: 16px;
     padding-bottom: 12px;
-    border-bottom: 1px solid #f1f5f9;
+    border-bottom: 1px solid var(--color-border-light);
   }
 }
 
@@ -3311,7 +3311,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
 
   td {
     padding: var(--space-2-5) var(--space-3-5);
-    border-bottom: 1px solid #f1f5f9;
+    border-bottom: 1px solid var(--color-border-light);
     color: var(--color-text-primary);
   }
 
@@ -3333,7 +3333,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
     border-radius: 4px;
     padding: var(--space-0-5) var(--space-1-5);
     font-weight: 600;
-    color: #d97706;
+    color: var(--color-warning);
   }
 
   .diff-same {
@@ -3348,7 +3348,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
     text-align: center;
 
     &.preview-old {
-      color: #2563eb;
+      color: var(--color-info);
       background: rgba(59, 130, 246, 0.08);
       border-radius: 4px;
       padding: var(--space-0-5) 8px;
@@ -3408,8 +3408,8 @@ watch(() => aiStore.materialParseResult, (newVal) => {
     }
 
     &:hover {
-      background: #f1f5f9;
-      color: var(--td-radio-bg-color, #3b82f6);
+      background: var(--color-border-light);
+      color: var(--td-radio-bg-color, var(--color-info));
 
       &::after {
         opacity: 1;
@@ -3417,14 +3417,14 @@ watch(() => aiStore.materialParseResult, (newVal) => {
     }
 
     &.t-is-checked {
-      background: var(--td-radio-bg-color, #3b82f6);
-      color: #fff;
+      background: var(--td-radio-bg-color, var(--color-info));
+      color: var(--color-text-white);
       box-shadow: 0 2px 4px rgba(59, 130, 246, 0.25);
       transform: scale(1);
 
       &:hover {
         opacity: 0.9;
-        color: #fff;
+        color: var(--color-text-white);
 
         &::after {
           opacity: 0;
@@ -3466,7 +3466,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
   gap: var(--space-2-5);
 
   .diff-summary-icon {
-    color: #6366f1;
+    color: var(--color-lavender);
     flex-shrink: 0;
     margin-top: 1px;
   }
@@ -3477,7 +3477,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
 
     .summary-label {
       font-weight: 600;
-      color: #4338ca;
+      color: var(--color-lavender);
       margin-right: var(--space-1-5);
     }
 
@@ -3501,7 +3501,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
 
       &.item-keep {
         background: rgba(59, 130, 246, 0.08);
-        color: #2563eb;
+        color: var(--color-info);
       }
     }
   }
@@ -3513,7 +3513,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
   gap: 4px;
   padding: 8px 16px;
   border-radius: 10px;
-  background: #fff;
+  background: var(--color-bg-container);
   color: var(--color-text-secondary);
   font-size: 13px;
   font-weight: 600;
@@ -3522,8 +3522,8 @@ watch(() => aiStore.materialParseResult, (newVal) => {
   transition: all $transition-fast;
 
   &:hover {
-    background: #f1f5f9;
-    border-color: #cbd5e1;
+    background: var(--color-border-light);
+    border-color: var(--color-text-placeholder);
   }
 }
 
@@ -3533,8 +3533,8 @@ watch(() => aiStore.materialParseResult, (newVal) => {
   gap: 4px;
   padding: 8px 16px;
   border-radius: 10px;
-  background: linear-gradient(135deg, var(--color-warning), #d97706);
-  color: #fff;
+  background: linear-gradient(135deg, var(--color-warning), var(--color-warning));
+  color: var(--color-text-white);
   font-size: 13px;
   font-weight: 600;
   border: none;
@@ -3560,7 +3560,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
   &:hover {
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(245, 158, 11, 0.35);
-    background: linear-gradient(135deg, #d97706, #b45309);
+    background: linear-gradient(135deg, var(--color-warning), var(--color-warning-dark));
 
     &::before {
       width: 200px;
@@ -3602,7 +3602,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
   padding: 8px 20px;
   border-radius: 10px;
   background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
-  color: #fff;
+  color: var(--color-text-white);
   font-size: 13px;
   font-weight: 700;
   border: none;
@@ -3763,7 +3763,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
     white-space: nowrap !important;
 
     &:hover {
-      background-color: #f1f5f9 !important;
+      background-color: var(--color-border-light) !important;
     }
 
     &.t-dropdown__item--active {
@@ -3792,7 +3792,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
       display: flex !important;
       align-items: center !important;
       justify-content: center !important;
-      background: #f1f5f9 !important;
+      background: var(--color-border-light) !important;
 
       img {
         width: 15px !important;

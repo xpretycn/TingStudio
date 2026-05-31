@@ -127,6 +127,7 @@
   --overlay-emerald-40: #{$overlay-emerald-40};
   --overlay-emerald-50: #{$overlay-emerald-50};
   --overlay-emerald-55: #{$overlay-emerald-55};
+  --overlay-emerald-60: #{$overlay-emerald-60};
 
   // ─── 白色覆盖层 ───
   --overlay-white-15: #{$overlay-white-15};
@@ -139,6 +140,10 @@
   --color-skin: #{$color-skin};
   --color-lavender: #{$color-lavender};
   --color-lavender-alpha: rgba(240, 230, 255, 0.08);
+
+  // ─── 扩展语义色（Purple）───
+  --color-purple-50: #{$purple-50};
+  --color-purple-500: #{$purple-500};
 
   // ─── 通用阴影（亮色）───
   --shadow-xs: #{$shadow-xs};

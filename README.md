@@ -1,4 +1,4 @@
-# TingStudio v2.34.0
+# TingStudio v2.35.0
 
 食品配方工作数据管理平台 — 前后端分离架构
 
@@ -14,7 +14,7 @@ TingStudio 是一个专业的食品配方工作数据管理平台，面向食品
 |------|------|------|
 | **前端框架** | Vue 3 + TypeScript + Vite | Composition API + `<script setup>` |
 | **UI 组件库** | TDesign Vue Next (v1.9) | 企业级组件库 |
-| **状态管理** | Pinia (23个 Store) | 模块化 Store |
+| **状态管理** | Pinia (25个 Store) | 模块化 Store |
 | **路由** | Vue Router 4 | 懒加载路由 |
 | **样式方案** | SCSS + Design Tokens | 模块化变量系统 + CSS 变量 |
 | **图表** | ECharts 6 | 数据可视化 |
@@ -142,9 +142,9 @@ TingStudio/
 ├── backend/                          # 后端服务
 │   ├── src/
 │   │   ├── config/                   # 数据库配置、安全配置、限流、营养常量
-│   │   ├── controllers/              # 控制器层（19个模块）
+│   │   ├── controllers/              # 控制器层（24个模块）
 │   │   ├── middleware/               # 认证、错误处理、日志、校验
-│   │   ├── routes/                   # 路由定义（20个路由文件 + Agent端点）
+│   │   ├── routes/                   # 路由定义（25个路由模块）
 │   │   ├── services/                 # 业务逻辑层
 │   │   │   ├── ai/                   # AI 服务（Agent/LLM/意图引擎）
 │   │   │   │   └── agent/            # Agent 系统（12个模块）
@@ -177,7 +177,7 @@ TingStudio/
 │
 ├── frontend/                         # 前端应用
 │   ├── src/
-│   │   ├── api/                      # API 客户端（axios 封装，23个模块）
+│   │   ├── api/                      # API 客户端（axios 封装，25个模块）
 │   │   ├── assets/                   # 样式（Design Tokens/变量/主题）
 │   │   ├── components/               # 公共组件（35个 Vue 组件，含3个子目录）
 │   │   │   ├── AiAssistantFloat/     # 悬浮助手组件体系（8 Vue + 2 TS）
@@ -185,7 +185,7 @@ TingStudio/
 │   │   │   ├── formula/              # 配方专用组件（MaterialTableCore/UnifiedMaterialTable）
 │   │   │   └── Skeleton/             # 骨架屏组件
 │   │   ├── router/                   # Vue Router 配置
-│   │   ├── stores/                   # Pinia 状态管理（23个 Store）
+│   │   ├── stores/                   # Pinia 状态管理（25个 Store）
 │   │   ├── utils/                    # 工具函数（时间格式化/图表/模拟数据）
 │   │   ├── views/                    # 页面视图（44个 .vue 文件）
 │   │   │   ├── ai/                   # AI 助手工作台 + 智能工具 + 总览
@@ -249,8 +249,10 @@ TingStudio/
 | **📁 版本管理** | 版本快照、版本对比（含量/报价双模式）、变更追踪 |
 | **⚙️ 账号设置** | 个人资料管理（昵称/头像/简介/邮箱/手机号） |
 | **⚡ 快速配方** | 快速配方录入面板、可折叠侧边栏（自动收起）、原料池多维度筛选（类型/性状/口感/功效）、配方仪表盘、实时营养计算、草稿保存、发布为正式配方、模板管理 |
-| **🏷️ 枚举管理** | 原料枚举字段管理（性状/口感/功效）、选项增删改、排序、启用/禁用 |
+| **🏷️ 枚举管理** | 原料枚举字段管理（性状/口感/功效）、选项增删改、排序、启用/禁用、互斥规则 |
 | **📐 配方模板** | 配方模板 CRUD、快速创建配方、模板复用 |
+| **🔐 RBAC 权限** | 角色管理（CRUD + 权限分配）、权限列表、用户角色分配、用户状态管理 |
+| **🗄️ 数据库管理** | 数据库信息概览、数据表浏览/搜索/排序、备份创建/恢复/下载/删除、脚本执行、上传恢复 |
 
 ---
 
@@ -292,7 +294,7 @@ cd frontend && npm run test:coverage
 
 ## 🗄️ 数据库概览
 
-SQLite (better-sqlite3) + WAL 模式，共 **45 张表**：
+SQLite (better-sqlite3) + WAL 模式，共 **46 张表**：
 
 | 分类 | 表名 | 说明 |
 |------|------|------|
@@ -308,8 +310,10 @@ SQLite (better-sqlite3) + WAL 模式，共 **45 张表**：
 | **审核系统** | formula_review_logs, material_review_logs | 配方审核/原料审核 |
 | **其他** | search_export_cache | 缓存 |
 | **枚举管理** | enum_options | 枚举选项（性状/口感/功效） |
+| **枚举互斥** | enum_exclusions | 枚举互斥规则 |
 | **配方模板** | formula_templates | 配方模板 |
 | **快速配方** | quick_formulas | 快速配方草稿/发布 |
+| **RBAC 权限** | roles, permissions, role_permissions | 角色/权限/角色权限关联 |
 
 备份/恢复工具：
 
@@ -325,6 +329,38 @@ npx tsx src/scripts/restoreDatabase.ts    # 恢复数据库
 <!-- 以下为历史版本更新日志，保留已有内容，自动补全 2026-05-27 最新更新 -->
 <!-- ====================================================================== -->---
 
+## 🚀 最新更新 (2026-06-01)
+
+### ✅ 文档同步更新 + 新增模块
+
+#### 📝 文档同步
+
+同步更新项目文档，补全新增加的功能模块：
+
+- Pinia Store 数量：23 → 25（新增 role、permission 等 Store）
+- API 模块数量：23 → 25（新增 role、permission、user、db、exclusion 等 API）
+- 数据库表数量：45 → 46（新增 enum_exclusions、roles、permissions、role_permissions）
+- 路由模块数量：20 → 25（新增 roles、permissions、users、db、exclusions）
+- 控制器数量：19 → 24（新增 role、permission、user、db、exclusion 控制器）
+
+#### 🆕 新增功能模块
+
+| 模块 | 说明 | 关键端点 |
+|------|------|---------|
+| **🔐 RBAC 权限管理** | 角色 CRUD + 权限分配、权限列表查询、用户角色/状态管理 | `/api/roles`、`/api/permissions`、`/api/users` |
+| **🔄 枚举互斥规则** | 性状/口感枚举值互斥规则管理（CRUD） | `/api/enums/exclusions` |
+| **🗄️ 数据库管理** | 数据库信息概览、表结构/数据浏览、备份管理（创建/恢复/下载/删除/上传恢复）、脚本执行 | `/api/db` |
+
+#### 🗄️ 新增数据库表
+
+| 表名 | 说明 |
+|------|------|
+| `roles` | 角色表（name/role_key/description/is_system） |
+| `permissions` | 权限表（module/action/permission_key/label） |
+| `role_permissions` | 角色权限关联表 |
+| `enum_exclusions` | 枚举互斥规则表（category/value_a/value_b） |
+
+---
 ## 🚀 最新更新 (2026-05-27)
 
 ### ✅ 文档同步更新 + Bug 修复

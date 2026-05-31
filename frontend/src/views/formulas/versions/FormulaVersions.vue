@@ -1018,9 +1018,9 @@ onMounted(async () => {
       }
 
       &.active {
-        background: #fff;
+        background: $bg-container;
         color: var(--color-primary);
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+        box-shadow: $shadow-xs;
       }
     }
   }
@@ -1214,12 +1214,12 @@ onMounted(async () => {
     }
 
     &.action-submit {
-      background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+      background: $gradient-blue-btn;
       color: $text-white;
-      box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);
+      box-shadow: 0 2px 8px $overlay-blue-25;
 
       &:hover {
-        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);
+        box-shadow: 0 4px 12px $overlay-blue-35;
         transform: translateY(-1px);
       }
     }
@@ -2258,13 +2258,13 @@ onMounted(async () => {
 <style lang="scss">
 .t-dialog.version-create-dialog {
   .t-dialog__footer .t-btn--theme-primary {
-    background: linear-gradient(135deg, #34d399 0%, #10b981 100%) !important;
+    background: $gradient-emerald-btn !important;
     border: none;
-    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
+    box-shadow: 0 2px 8px $overlay-emerald-25;
 
     &:hover {
-      background: linear-gradient(135deg, #6ee7b7 0%, #34d399 100%) !important;
-      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
+      background: $gradient-emerald-btn-hover !important;
+      box-shadow: 0 4px 12px $overlay-emerald-35;
     }
   }
 }

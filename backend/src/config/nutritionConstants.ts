@@ -149,6 +149,46 @@ export const CONTENT_CLAIMS: ReadonlyArray<{
   { claim: "无反式脂肪", field: "transFat", operator: "<=", threshold: 0.3, unit: "g", standard: "GB 28050" },
 ];
 
+export const NUTRIENT_LABELS: Record<string, string> = {
+  energy: "能量",
+  protein: "蛋白质",
+  fat: "脂肪",
+  carbohydrate: "碳水化合物",
+  fiber: "膳食纤维",
+  sugars: "糖",
+  sodium: "钠",
+  potassium: "钾",
+  calcium: "钙",
+  iron: "铁",
+  zinc: "锌",
+  magnesium: "镁",
+  phosphorus: "磷",
+  vitaminA: "维生素A",
+  vitaminC: "维生素C",
+  vitaminD: "维生素D",
+  vitaminE: "维生素E",
+  vitaminK: "维生素K",
+  vitaminB1: "维生素B1",
+  vitaminB2: "维生素B2",
+  vitaminB3: "烟酸",
+  vitaminB6: "维生素B6",
+  vitaminB12: "维生素B12",
+  folate: "叶酸",
+  cholesterol: "胆固醇",
+  transFat: "反式脂肪",
+  saturatedFat: "饱和脂肪",
+};
+
+export const CORE_NUTRIENT_COLS = ["protein", "fat", "carbohydrate", "sodium"] as const;
+
+export const LABEL_INFO: Record<string, { name: string; unit: string; zeroThreshold: string; tolerance: string }> = {
+  energy: { name: "能量", unit: "千焦(kJ)", zeroThreshold: "≤17千焦(kJ)", tolerance: "≤120%标示值" },
+  protein: { name: "蛋白质", unit: "克(g)", zeroThreshold: "≤0.5克(g)", tolerance: "≥80%标示值" },
+  fat: { name: "脂肪", unit: "克(g)", zeroThreshold: "≤0.5克(g)", tolerance: "≤120%标示值" },
+  carbohydrate: { name: "碳水化合物", unit: "克(g)", zeroThreshold: "≤0.5克(g)", tolerance: "≥80%标示值" },
+  sodium: { name: "钠", unit: "毫克(mg)", zeroThreshold: "≤5毫克(mg)", tolerance: "≤120%标示值" },
+};
+
 export const FORTIFICATION_LIMITS: ReadonlyArray<{
   nutrient: string;
   name: string;

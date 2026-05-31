@@ -35,8 +35,8 @@
                       style="width: 16px; height: 16px; object-fit: contain; margin-right: 6px;"
                       @error="(e: Event) => { (e.target as HTMLImageElement).style.display = 'none'; }"
                     />
-                    <span style="font-size: 11px; padding: 1px 6px; background: #f3e8ff; border-radius: 6px; color: #9333ea; line-height: 14px; margin-right: 4px;">文本</span>
-                    <span v-if="currentModelInfo.supportsVision" style="font-size: 11px; padding: 1px 6px; background: #dcfce7; border-radius: 6px; color: #16a34a; line-height: 14px;">图片</span>
+                    <span style="font-size: 11px; padding: 1px 6px; background: var(--color-lavender); border-radius: 6px; color: var(--color-lavender); line-height: 14px; margin-right: 4px;">文本</span>
+                    <span v-if="currentModelInfo.supportsVision" style="font-size: 11px; padding: 1px 6px; background: var(--color-emerald-50); border-radius: 6px; color: var(--color-emerald-600); line-height: 14px;">图片</span>
                   </template>
                   <t-option-group v-for="group in modelGroups" :key="group.provider" :label="group.name">
                     <t-option
@@ -53,8 +53,8 @@
                           @error="(e: Event) => handleLogoError(e)"
                         />
                         <span style="font-size: 12px; line-height: 16px; flex-shrink: 0;">{{ v.label }}</span>
-                        <span style="font-size: 11px; padding: 1px 6px; background: #f3e8ff; border-radius: 6px; color: #9333ea; line-height: 14px; flex-shrink: 0;">文本</span>
-                        <span v-if="getModelSupportsVision(group.provider)" style="font-size: 11px; padding: 1px 6px; background: #dcfce7; border-radius: 6px; color: #16a34a; line-height: 14px; flex-shrink: 0;">图片</span>
+                        <span style="font-size: 11px; padding: 1px 6px; background: var(--color-lavender); border-radius: 6px; color: var(--color-lavender); line-height: 14px; flex-shrink: 0;">文本</span>
+                        <span v-if="getModelSupportsVision(group.provider)" style="font-size: 11px; padding: 1px 6px; background: var(--color-emerald-50); border-radius: 6px; color: var(--color-emerald-600); line-height: 14px; flex-shrink: 0;">图片</span>
                         <svg
                           v-if="selectedModelKey === group.provider + '|' + v.value"
                           style="width: 14px; height: 14px; flex-shrink: 0; margin-left: auto;"
@@ -335,7 +335,7 @@ onMounted(async () => {
 
   .data-center-toolbar {
     padding: 20px 32px;
-    border-bottom: 1px solid #f1f5f9;
+    border-bottom: 1px solid var(--color-border-light);
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
@@ -392,13 +392,13 @@ onMounted(async () => {
           }
 
           &:hover {
-            background: #f1f5f9;
+            background: var(--color-border-light);
             color: var(--color-text-primary);
           }
 
           &.active {
             background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
-            color: #fff;
+            color: var(--color-text-white);
             box-shadow: 0 4px 12px $overlay-emerald-25;
             font-weight: 600;
           }
@@ -446,7 +446,7 @@ onMounted(async () => {
             align-items: center;
             gap: var(--space-1-5);
             font-size: 12px !important;
-            color: #333;
+            color: var(--color-text-primary);
 
             &::after {
               content: '';

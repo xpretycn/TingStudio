@@ -1,7 +1,6 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
-import TDesign from 'tdesign-vue-next'
-import 'tdesign-vue-next/es/style/index.css'
+import { LoadingPlugin, LoadingDirective } from 'tdesign-vue-next'
 import App from './App.vue'
 import router from './router'
 import './assets/styles/main.scss'
@@ -12,7 +11,8 @@ const pinia = createPinia()
 
 app.use(pinia)
 app.use(router)
-app.use(TDesign)
+app.use(LoadingPlugin)
+app.directive('loading', LoadingDirective)
 
 installGlobalErrorHandler(app)
 installWindowErrorHandler()

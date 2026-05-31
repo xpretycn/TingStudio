@@ -33,7 +33,7 @@
     <t-form ref="formRef" :data="formData" :rules="formRules" label-align="top" @submit.prevent>
       <div class="drawer-card info-card">
         <div class="card-header">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2"
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--color-info)" stroke-width="2"
             stroke-linecap="round" stroke-linejoin="round">
             <path d="M9 3h6v8l-3 4-3-4V3z" />
             <line x1="12" y1="7" x2="12" y2="3" />
@@ -134,7 +134,7 @@
 
       <div v-if="existingRecords.length > 0" class="drawer-card history-card">
         <div class="card-header warn">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2"
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--color-warning)" stroke-width="2"
             stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="10" />
             <line x1="12" y1="8" x2="12" y2="12" />
@@ -420,7 +420,7 @@ const handleMerge = async (mode: 'accumulate' | 'replace') => {
     .header-title {
       font-size: 16px;
       font-weight: 700;
-      color: #0F172A;
+      color: var(--color-text-primary);
     }
   }
 
@@ -442,7 +442,7 @@ const handleMerge = async (mode: 'accumulate' | 'replace') => {
 
       &.create-btn {
         background: var(--gradient-btn, linear-gradient(135deg, var(--color-primary), var(--color-primary-dark)));
-        color: #fff;
+        color: var(--color-text-white);
         box-shadow: 0 2px 8px var(--overlay-brand-25, rgba(0, 0, 0, 0.2));
 
         &:hover:not(:disabled) {
@@ -453,7 +453,7 @@ const handleMerge = async (mode: 'accumulate' | 'replace') => {
 
       &.update-btn {
         background: var(--gradient-btn, linear-gradient(135deg, var(--color-primary), var(--color-primary-dark)));
-        color: #fff;
+        color: var(--color-text-white);
         box-shadow: 0 2px 8px var(--overlay-brand-25, rgba(0, 0, 0, 0.2));
 
         &:hover:not(:disabled) {
@@ -475,7 +475,7 @@ const handleMerge = async (mode: 'accumulate' | 'replace') => {
 }
 
 .drawer-card {
-  background: #fff;
+  background: var(--color-bg-container);
   border: 1px solid var(--color-border);
   border-radius: 12px;
   margin-bottom: 16px;
@@ -493,9 +493,9 @@ const handleMerge = async (mode: 'accumulate' | 'replace') => {
     color: var(--color-text-primary);
 
     &.warn {
-      background: #FFFBEB;
-      color: #D97706;
-      border-color: #FDE68A;
+      background: var(--color-warning-bg);
+      color: var(--color-warning);
+      border-color: var(--color-warning);
     }
   }
 
@@ -505,7 +505,7 @@ const handleMerge = async (mode: 'accumulate' | 'replace') => {
 }
 
 .info-card {
-  border-left: 3px solid #3B82F6;
+  border-left: 3px solid var(--color-info);
 }
 
 .period-card {
@@ -521,9 +521,9 @@ const handleMerge = async (mode: 'accumulate' | 'replace') => {
 }
 
 .history-card {
-  border-left: 3px solid #D97706;
-  background: #FFFBEB;
-  border-color: #FDE68A;
+  border-left: 3px solid var(--color-warning);
+  background: var(--color-warning-bg);
+  border-color: var(--color-warning);
 }
 
 .form-row {
@@ -553,7 +553,7 @@ const handleMerge = async (mode: 'accumulate' | 'replace') => {
   padding: var(--space-2) 12px;
   background: var(--color-bg-page);
   border-radius: 8px;
-  border: 1px dashed #CBD5E1;
+  border: 1px dashed var(--color-text-placeholder);
   min-height: 36px;
   color: var(--color-text-placeholder);
   font-size: 13px;
@@ -581,7 +581,7 @@ const handleMerge = async (mode: 'accumulate' | 'replace') => {
   }
 
   .history-qty {
-    color: #3B82F6;
+    color: var(--color-info);
     font-weight: 700;
 
     b {
@@ -598,11 +598,11 @@ const handleMerge = async (mode: 'accumulate' | 'replace') => {
 
 .history-more {
   font-size: 12px;
-  color: #B45309;
+  color: var(--color-warning-dark);
   text-align: center;
   margin-top: 4px;
   padding-top: 8px;
-  border-top: 1px dashed #FCD34D;
+  border-top: 1px dashed var(--color-warning);
 }
 
 .merge-dialog-body {
@@ -638,7 +638,7 @@ const handleMerge = async (mode: 'accumulate' | 'replace') => {
     padding: 16px 12px;
     border-radius: 12px;
     border: 2px solid var(--color-border);
-    background: #fff;
+    background: var(--color-bg-container);
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
@@ -652,15 +652,15 @@ const handleMerge = async (mode: 'accumulate' | 'replace') => {
     &--accumulate {
       &:hover {
         border-color: var(--color-primary);
-        background: #ECFDF5;
+        background: var(--color-success-bg);
         color: var(--color-primary-dark);
       }
     }
     &--replace {
       &:hover {
-        border-color: #3B82F6;
-        background: #EFF6FF;
-        color: #2563EB;
+        border-color: var(--color-info);
+        background: var(--color-info-bg);
+        color: var(--color-info);
       }
     }
   }

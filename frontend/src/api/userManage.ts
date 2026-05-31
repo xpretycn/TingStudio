@@ -1,4 +1,4 @@
-import http from './http'
+import http, { type Pagination } from './http'
 
 export interface UserManageItem {
   id: string
@@ -9,13 +9,6 @@ export interface UserManageItem {
   roleName: string
   isActive: boolean
   createdAt: string
-}
-
-interface Pagination {
-  page: number
-  pageSize: number
-  total: number
-  totalPages: number
 }
 
 export const userManageApi = {

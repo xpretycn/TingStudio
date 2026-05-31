@@ -2,14 +2,34 @@
 import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
 import compression from "vite-plugin-compression";
+import Components from "unplugin-vue-components/vite";
+import AutoImport from "unplugin-auto-import/vite";
+import { TDesignResolver } from "unplugin-vue-components/resolvers";
+import { visualizer } from "rollup-plugin-visualizer";
 import { resolve } from "path";
 
 export default defineConfig({
   plugins: [
     vue(),
+    Components({
+      resolvers: [TDesignResolver({ library: "vue-next" })],
+    }),
+    AutoImport({
+      resolvers: [TDesignResolver({ library: "vue-next" })],
+    }),
     compression({
       algorithm: "gzip",
       threshold: 1024,
+    }),
+    compression({
+      algorithm: "brotliCompress",
+      threshold: 1024,
+    }),
+    visualizer({
+      open: false,
+      gzipSize: true,
+      brotliSize: true,
+      filename: "dist/stats.html",
     }),
   ],
   resolve: {
@@ -47,6 +67,7 @@ export default defineConfig({
   },
   build: {
     cssCodeSplit: true,
+    target: "es2020",
     rollupOptions: {
       output: {
         manualChunks(id) {
@@ -61,7 +82,16 @@ export default defineConfig({
           ) {
             return "vendor-vue";
           }
-          if (id.includes("node_modules") && !id.includes("tdesign") && !id.includes("vue") && !id.includes("pinia")) {
+          if (id.includes("node_modules/echarts")) {
+            return "vendor-echarts";
+          }
+          if (id.includes("node_modules/xlsx")) {
+            return "vendor-xlsx";
+          }
+          if (id.includes("node_modules/marked")) {
+            return "vendor-marked";
+          }
+          if (id.includes("node_modules") && !id.includes("tdesign") && !id.includes("vue") && !id.includes("pinia") && !id.includes("echarts") && !id.includes("xlsx") && !id.includes("marked")) {
             return "vendor-utils";
           }
         },
@@ -76,13 +106,11 @@ export default defineConfig({
         target: "http://localhost:3000",
         changeOrigin: true,
       },
-      // 高德地图 API 代理（解决 CORS）
       "/amap": {
         target: "https://restapi.amap.com",
         changeOrigin: true,
         rewrite: path => path.replace(/^\/amap/, ""),
       },
-      // ip-api.com 代理（备用定位服务）
       "/ip-api": {
         target: "http://ip-api.com",
         changeOrigin: true,

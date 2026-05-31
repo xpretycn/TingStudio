@@ -235,11 +235,11 @@ function handleCancel() {
   border: 1px solid var(--color-border);
   border-radius: 12px;
   overflow: hidden;
-  background: #fff;
+  background: var(--color-bg-container);
 
   .form-header {
     padding: 12px 16px;
-    background: linear-gradient(135deg, #f0f7ff 0%, #f5f0ff 100%);
+    background: linear-gradient(135deg, var(--color-info-bg) 0%, var(--color-info-bg) 100%);
     border-bottom: 1px solid var(--color-border);
 
     .form-title {
@@ -271,7 +271,7 @@ function handleCancel() {
         :deep(.t-input),
         :deep(.t-textarea__inner),
         :deep(.t-select) {
-          border-color: #e34d59;
+          border-color: var(--color-danger);
         }
       }
 
@@ -281,14 +281,14 @@ function handleCancel() {
         color: var(--color-text-primary);
 
         .required-mark {
-          color: #e34d59;
+          color: var(--color-danger);
           margin-left: var(--space-0-5);
         }
       }
 
       .field-error {
         font-size: 12px;
-        color: #e34d59;
+        color: var(--color-danger);
         margin-top: var(--space-0-5);
       }
     }
@@ -316,7 +316,7 @@ function handleCancel() {
         width: 28px;
         height: 28px;
         border: none;
-        background: #fef2f2;
+        background: var(--color-danger-bg);
         color: var(--color-danger);
         border-radius: 6px;
         cursor: pointer;
@@ -327,13 +327,13 @@ function handleCancel() {
         flex-shrink: 0;
 
         &:hover {
-          background: #fee2e2;
+          background: var(--color-danger-border);
         }
       }
     }
 
     .material-add-btn {
-      border: 1px dashed #cbd5e1;
+      border: 1px dashed var(--color-text-placeholder);
       background: transparent;
       color: var(--color-text-secondary);
       padding: var(--space-1-5) 12px;
@@ -343,9 +343,9 @@ function handleCancel() {
       text-align: center;
 
       &:hover {
-        border-color: #3b82f6;
-        color: #3b82f6;
-        background: #eff6ff;
+        border-color: var(--color-info);
+        color: var(--color-info);
+        background: var(--color-info-bg);
       }
     }
   }

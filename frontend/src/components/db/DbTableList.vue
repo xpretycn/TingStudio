@@ -1,14 +1,39 @@
 <script setup lang="ts">
-import { ref, inject } from "vue"
+import { ref, computed, inject } from "vue"
 import { MessagePlugin } from "tdesign-vue-next"
 import type { TableInfo, ColumnInfo, IndexInfo } from "@/api/db"
 import { getTableSchema } from "@/api/db"
 
-defineProps<{
+const props = defineProps<{
   tables: TableInfo[]
 }>()
 
 const navigateToTable = inject<(name: string) => void>("navigateToTable", () => {})
+
+const currentPage = ref(1)
+const pageSize = ref(10)
+
+const totalCount = computed(() => props.tables.length)
+const totalPages = computed(() => Math.ceil(totalCount.value / pageSize.value) || 1)
+
+const pagedTables = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value
+  return props.tables.slice(start, start + pageSize.value)
+})
+
+const pageNumbers = computed<(number | string)[]>(() => {
+  const total = totalPages.value
+  const current = currentPage.value
+  if (total <= 5) return Array.from({ length: total }, (_, i) => i + 1)
+  if (current <= 3) return [1, 2, 3, '...', total]
+  if (current >= total - 2) return [1, '...', total - 2, total - 1, total]
+  return [1, '...', current - 1, current, current + 1, '...', total]
+})
+
+const setPage = (page: number) => {
+  if (page < 1 || page > totalPages.value) return
+  currentPage.value = page
+}
 
 const drawerVisible = ref(false)
 const drawerLoading = ref(false)
@@ -116,16 +141,15 @@ const indexColumns = [
         数据表列表
       </h3>
       <t-tag variant="light" size="small">
-        {{ tables.length }} 张表
+        {{ totalCount }} 张表
       </t-tag>
     </div>
 
     <t-table
-      :data="tables"
+      :data="pagedTables"
       :columns="tableColumns"
       row-key="name"
       table-layout="auto"
-      :max-height="480"
       hover
       stripe
       class="table-list-table"
@@ -150,10 +174,28 @@ const indexColumns = [
       </template>
     </t-table>
 
+    <div v-if="totalCount > 0" class="table-pagination">
+      <div class="pagination-info">
+        显示第 {{ (currentPage - 1) * pageSize + 1 }}-{{ Math.min(currentPage * pageSize, totalCount) }} 条，共 {{ totalCount }} 条数据
+      </div>
+      <div class="pagination-controls">
+        <button class="pagination-btn" :class="{ 'pagination-btn--disabled': currentPage === 1 }"
+          :disabled="currentPage === 1" @click="setPage(currentPage - 1)">上一页</button>
+        <template v-for="page in pageNumbers" :key="page">
+          <button v-if="page !== '...'" class="pagination-btn"
+            :class="{ 'pagination-btn--active': page === currentPage }"
+            @click="typeof page === 'number' && setPage(page)">{{ page }}</button>
+          <span v-else class="pagination-ellipsis">...</span>
+        </template>
+        <button class="pagination-btn" :class="{ 'pagination-btn--disabled': currentPage === totalPages }"
+          :disabled="currentPage === totalPages" @click="setPage(currentPage + 1)">下一页</button>
+      </div>
+    </div>
+
     <t-drawer
       v-model:visible="drawerVisible"
       :header="`表结构 - ${currentTableName}`"
-      :size="640"
+      size="640"
       placement="right"
       :close-btn="true"
       class="schema-drawer"
@@ -203,26 +245,26 @@ const indexColumns = [
   border-radius: $radius-3xl;
   border: 2px solid var(--overlay-brand-lighter-15);
   box-shadow: $shadow-xs;
-  padding: 24px;
+  padding: 20px;
 }
 
 .section-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 20px;
+  margin-bottom: 12px;
 
   .section-title {
-    font-size: $font-size-h3;
+    font-size: $font-size-body;
     font-weight: $font-weight-semibold;
     color: $text-primary;
     margin: 0;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
 
     .section-icon {
-      font-size: 20px;
+      font-size: 16px;
     }
   }
 }
@@ -258,6 +300,79 @@ const indexColumns = [
 
   :deep(.t-table__row--hover td) {
     background: $bg-hover;
+  }
+}
+
+.table-pagination {
+  padding: 12px 16px 4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: var(--color-bg-container);
+  border-top: 1px solid var(--color-bg-page);
+
+  .pagination-info {
+    font-size: 14px;
+    color: var(--color-text-placeholder);
+    font-weight: 400;
+    white-space: nowrap;
+  }
+
+  .pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .pagination-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-1-5) 12px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md, 8px);
+    background-color: transparent;
+    color: var(--color-text-regular, #6e6178);
+    font-size: 14px;
+    cursor: pointer;
+    transition: all var(--transition-fast, 0.15s);
+    white-space: nowrap;
+    user-select: none;
+
+    &:hover:not(.pagination-btn--disabled):not(.pagination-btn--active) {
+      background-color: var(--color-primary-bg, var(--color-primary-bg));
+      border-color: var(--color-primary-lighter, var(--color-primary-lighter));
+      color: var(--color-primary-dark, var(--color-primary-dark));
+    }
+
+    &.pagination-btn--disabled {
+      opacity: 0.5;
+      cursor: not-allowed !important;
+      color: var(--color-text-placeholder, #d4c5d0);
+      background-color: transparent;
+      border-color: var(--color-border);
+      pointer-events: none;
+    }
+
+    &.pagination-btn--active {
+      background-color: var(--color-primary, var(--color-primary));
+      color: var(--color-text-white);
+      border-color: var(--color-primary, var(--color-primary));
+      font-weight: 600;
+      box-shadow: 0 1px 3px var(--overlay-brand-25, rgba(255, 107, 138, 0.25));
+      pointer-events: none;
+    }
+  }
+
+  .pagination-ellipsis {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 34px;
+    color: var(--color-text-placeholder);
+    font-size: 14px;
+    user-select: none;
   }
 }
 

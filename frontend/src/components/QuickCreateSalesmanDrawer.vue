@@ -48,7 +48,7 @@
     >
       <div class="drawer-card info-card">
         <div class="card-header">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2"
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--color-info)" stroke-width="2"
             stroke-linecap="round" stroke-linejoin="round">
             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
             <circle cx="12" cy="7" r="4" />
@@ -339,7 +339,7 @@ const handleSubmit = async () => {
 
         &.create-btn {
           background: var(--color-primary);
-          color: #fff;
+          color: var(--color-text-white);
 
           &:hover {
             background: var(--color-primary-dark);
@@ -365,7 +365,7 @@ const handleSubmit = async () => {
       margin-top: 16px;
     }
 
-    border: 1px solid #f1f5f9;
+    border: 1px solid var(--color-border-light);
     border-radius: 12px;
     overflow: hidden;
 
@@ -374,7 +374,7 @@ const handleSubmit = async () => {
     }
 
     &.info-card {
-      border-left: 3px solid #3b82f6;
+      border-left: 3px solid var(--color-info);
     }
 
     &.note-card {
@@ -387,7 +387,7 @@ const handleSubmit = async () => {
       gap: 8px;
       padding: 12px 16px;
       background: var(--color-bg-page);
-      border-bottom: 1px solid #f1f5f9;
+      border-bottom: 1px solid var(--color-border-light);
 
       span {
         font-size: 14px;
@@ -440,7 +440,7 @@ const handleSubmit = async () => {
   }
 
   .code-readonly :deep(.t-input) {
-    background: #f1f5f9;
+    background: var(--color-bg-hover);
     cursor: not-allowed;
 
     .t-input__inner {

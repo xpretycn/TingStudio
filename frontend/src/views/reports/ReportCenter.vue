@@ -221,9 +221,9 @@
                           <svg v-if="selectedReportIds.includes(report.id)" width="18" height="18" viewBox="0 0 24 24"
                             fill="var(--color-primary-dark)" stroke="var(--color-primary-dark)" stroke-width="2">
                             <rect x="3" y="3" width="18" height="18" rx="4" />
-                            <polyline points="20 6 9 17 4 12" stroke="#fff" stroke-width="2.5" fill="none" />
+                            <polyline points="20 6 9 17 4 12" stroke="var(--color-text-white)" stroke-width="2.5" fill="none" />
                           </svg>
-                          <svg v-else width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1"
+                          <svg v-else width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-placeholder)"
                             stroke-width="2">
                             <rect x="3" y="3" width="18" height="18" rx="4" />
                           </svg>
@@ -259,7 +259,7 @@
                             {{ report.creatorName || '系统' }}
                           </span>
                           <span class="card-time">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1"
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-placeholder)"
                               stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                               <circle cx="12" cy="12" r="10" />
                               <polyline points="12 6 12 12 16 14" />
@@ -341,9 +341,9 @@
                           <svg v-if="selectedReportIds.includes(report.id)" width="18" height="18" viewBox="0 0 24 24"
                             fill="var(--color-primary-dark)" stroke="var(--color-primary-dark)" stroke-width="2">
                             <rect x="3" y="3" width="18" height="18" rx="4" />
-                            <polyline points="20 6 9 17 4 12" stroke="#fff" stroke-width="2.5" fill="none" />
+                            <polyline points="20 6 9 17 4 12" stroke="var(--color-text-white)" stroke-width="2.5" fill="none" />
                           </svg>
-                          <svg v-else width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1"
+                          <svg v-else width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-placeholder)"
                             stroke-width="2">
                             <rect x="3" y="3" width="18" height="18" rx="4" />
                           </svg>
@@ -379,7 +379,7 @@
                             {{ report.creatorName || '系统' }}
                           </span>
                           <span class="card-time">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1"
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-placeholder)"
                               stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                               <circle cx="12" cy="12" r="10" />
                               <polyline points="12 6 12 12 16 14" />
@@ -448,7 +448,7 @@
               <div class="activity-card activity-card--timeline">
                 <div class="activity-header">
                   <h4 class="activity-title">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-info)" stroke-width="2"
                       stroke-linecap="round" stroke-linejoin="round">
                       <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
                     </svg>
@@ -488,7 +488,7 @@
               <div class="activity-card activity-card--assistant">
                 <div class="assistant-header">
                   <h4 class="assistant-title">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-white)" stroke-width="2"
                       stroke-linecap="round" stroke-linejoin="round">
                       <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                       <polyline points="14 2 14 8 20 8" />
@@ -919,9 +919,9 @@ const dashboardCards = computed(() => {
       unit: '份',
       badge: total > 0 ? `${total} 份` : '--',
       badgeColor: 'var(--color-primary)',
-      badgeBg: '#ECFDF5',
-      iconBg: '#EFF6FF',
-      iconColor: '#3B82F6',
+      badgeBg: 'var(--color-success-bg)',
+      iconBg: 'var(--color-info-bg)',
+      iconColor: 'var(--color-info)',
       iconPath: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>',
     },
     {
@@ -930,8 +930,8 @@ const dashboardCards = computed(() => {
       unit: '份',
       badge: weeklyCount > 0 ? `本周${weeklyCount}` : '持平',
       badgeColor: weeklyCount > 0 ? 'var(--color-primary)' : 'var(--color-text-placeholder)',
-      badgeBg: weeklyCount > 0 ? '#ECFDF5' : '#F1F5F9',
-      iconBg: '#FFFBEB',
+      badgeBg: weeklyCount > 0 ? 'var(--color-success-bg)' : 'var(--color-bg-hover)',
+      iconBg: 'var(--color-warning-bg)',
       iconColor: 'var(--color-warning)',
       iconPath: '<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
     },
@@ -941,8 +941,8 @@ const dashboardCards = computed(() => {
       unit: '份',
       badge: monthlyCount > 0 ? `本月${monthlyCount}` : '持平',
       badgeColor: monthlyCount > 0 ? 'var(--color-primary)' : 'var(--color-text-placeholder)',
-      badgeBg: monthlyCount > 0 ? '#ECFDF5' : '#F1F5F9',
-      iconBg: '#ECFDF5',
+      badgeBg: monthlyCount > 0 ? 'var(--color-success-bg)' : 'var(--color-bg-hover)',
+      iconBg: 'var(--color-success-bg)',
       iconColor: 'var(--color-primary)',
       iconPath: '<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>',
     },
@@ -952,7 +952,7 @@ const dashboardCards = computed(() => {
       unit: '份',
       badge: thisMonthCount > 0 ? `+${thisMonthCount}` : '--',
       badgeColor: thisMonthCount > 0 ? 'var(--color-primary)' : 'var(--color-text-placeholder)',
-      badgeBg: thisMonthCount > 0 ? '#ECFDF5' : '#F1F5F9',
+      badgeBg: thisMonthCount > 0 ? 'var(--color-success-bg)' : 'var(--color-bg-hover)',
       iconBg: '#FAF5FF',
       iconColor: '#A855F7',
       iconPath: '<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',
@@ -1113,7 +1113,7 @@ onMounted(async () => {
 
 .report-content-area {
   position: relative;
-  background: #fff;
+  background: var(--color-bg-container);
   border-radius: var(--radius-4xl);
   border: 1px solid var(--color-bg-page);
   box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
@@ -1129,7 +1129,7 @@ onMounted(async () => {
   align-items: center;
   gap: 16px;
   position: relative;
-  background: linear-gradient(180deg, var(--color-bg-page) 0%, #fff 100%);
+  background: linear-gradient(180deg, var(--color-bg-page) 0%, var(--color-bg-container) 100%);
   box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
 
   .toolbar-left-section {
@@ -1176,12 +1176,12 @@ onMounted(async () => {
         font-size: 14px;
 
         &:hover {
-          border-color: #d1d5db !important;
+          border-color: var(--color-border) !important;
         }
 
         &:focus-within {
           box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);
-          background-color: #fff;
+          background-color: var(--color-bg-container);
           border-color: var(--color-primary) !important;
         }
       }
@@ -1214,12 +1214,12 @@ onMounted(async () => {
         font-size: 14px;
 
         &:hover {
-          border-color: #d1d5db !important;
+          border-color: var(--color-border) !important;
         }
 
         &:focus-within {
           box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);
-          background-color: #fff;
+          background-color: var(--color-bg-container);
           border-color: var(--color-primary) !important;
         }
       }
@@ -1256,7 +1256,7 @@ onMounted(async () => {
         &:focus {
           box-shadow: 0 0 0 2px rgba(167, 243, 208, 0.50);
           outline: none;
-          background-color: #fff;
+          background-color: var(--color-bg-container);
         }
 
         &::placeholder {
@@ -1266,62 +1266,12 @@ onMounted(async () => {
     }
   }
 
-  .add-report-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 16px;
-    background-color: var(--color-text-primary);
-    color: white;
-    border-radius: 12px;
-    font-size: 14px;
-    font-weight: 500;
-    transition: all $transition-fast;
-    box-shadow: 0 4px 6px rgba(15, 23, 42, 0.15);
-    border: none;
-    cursor: pointer;
-
-    &:hover {
-      background-color: var(--color-text-primary);
-    }
-
-    &:active {
-      background-color: #0f172a;
-      transform: translateY(0);
-    }
-
-    &:focus-visible {
-      outline: 2px solid var(--color-text-secondary);
-      outline-offset: 2px;
-    }
-
-    .add-icon {
-      font-size: 18px;
-      transition: transform 0.2s;
-    }
-
-    &:hover .add-icon {
-      transform: rotate(90deg);
-    }
-
-    &--monthly {
-      &:hover .add-icon {
-        transform: none;
-      }
-
-      svg {
-        width: 16px;
-        height: 16px;
-      }
-    }
-  }
-
   .filter-btn {
     position: relative;
     padding: 8px;
     color: var(--color-text-placeholder);
     background-color: transparent;
-    border: 1px solid #f1f5f9;
+    border: 1px solid var(--color-border-light);
     border-radius: 8px;
     transition: all $transition-fast;
     cursor: pointer;
@@ -1342,12 +1292,62 @@ onMounted(async () => {
       height: 8px;
       background-color: var(--color-primary);
       border-radius: 50%;
-      border: 2px solid white;
+      border: 2px solid var(--color-bg-container);
       transition: opacity 0.2s;
     }
 
     &:hover .filter-dot {
       opacity: 1;
+    }
+  }
+}
+
+.add-report-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background-color: var(--color-text-primary);
+  color: var(--color-text-white);
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all $transition-fast;
+  box-shadow: 0 4px 6px rgba(15, 23, 42, 0.15);
+  border: none;
+  cursor: pointer;
+
+  &:hover {
+    background-color: var(--color-text-primary);
+  }
+
+  &:active {
+    background-color: var(--color-text-primary);
+    transform: translateY(0);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-text-secondary);
+    outline-offset: 2px;
+  }
+
+  .add-icon {
+    font-size: 18px;
+    transition: transform 0.2s;
+  }
+
+  &:hover .add-icon {
+    transform: rotate(90deg);
+  }
+
+  &--monthly {
+    &:hover .add-icon {
+      transform: none;
+    }
+
+    svg {
+      width: 16px;
+      height: 16px;
     }
   }
 }
@@ -1450,7 +1450,7 @@ onMounted(async () => {
   border-radius: var(--radius-4xl);
   color: var(--color-text-placeholder);
   font-size: 14px;
-  background: #FAFBFC;
+  background: var(--color-bg-page);
   cursor: pointer;
   transition: all $transition-normal;
 
@@ -1478,13 +1478,13 @@ onMounted(async () => {
   }
 
   &--error {
-    border-color: #FCA5A5;
-    background: #FEF2F2;
+    border-color: var(--color-danger-border);
+    background: var(--color-danger-bg);
     color: var(--color-danger);
 
     &:hover {
       border-color: var(--color-danger);
-      background: #FEE2E2;
+      background: var(--color-danger-bg);
       color: var(--color-danger);
       box-shadow: 0 4px 12px rgba(239, 68, 68, 0.1);
     }
@@ -1503,8 +1503,8 @@ onMounted(async () => {
 
 .report-list-card {
   position: relative;
-  background: #fff;
-  border: 1px solid #F1F5F9;
+  background: var(--color-bg-container);
+  border: 1px solid var(--color-border-light);
   border-radius: var(--radius-4xl);
   padding: 24px;
   cursor: pointer;
@@ -1558,27 +1558,27 @@ onMounted(async () => {
     transition: all $transition-fast;
 
     &:hover {
-      background: #F1F5F9;
+      background: var(--color-bg-hover);
       color: var(--color-text-secondary);
     }
 
     &--export:hover {
-      background: #EFF6FF;
-      color: #3B82F6;
+      background: var(--color-info-bg);
+      color: var(--color-info);
     }
 
     &--publish:hover {
-      background: #ECFDF5;
+      background: var(--color-success-bg);
       color: var(--color-primary);
     }
 
     &--archive:hover {
-      background: #FFFBEB;
+      background: var(--color-warning-bg);
       color: var(--color-warning);
     }
 
     &--delete:hover {
-      background: #FEF2F2;
+      background: var(--color-danger-bg);
       color: var(--color-danger);
     }
   }
@@ -1619,13 +1619,13 @@ onMounted(async () => {
     letter-spacing: $ls-caption;
 
     &--weekly {
-      background: #DBEAFE;
-      color: #2563EB;
+      background: var(--color-info-bg);
+      color: var(--color-info);
     }
 
     &--monthly {
-      background: #FEF3C7;
-      color: #D97706;
+      background: var(--color-warning-bg);
+      color: var(--color-warning);
     }
   }
 
@@ -1639,7 +1639,7 @@ onMounted(async () => {
     letter-spacing: $ls-caption;
 
     &--draft {
-      background: #F1F5F9;
+      background: var(--color-bg-hover);
       color: var(--color-text-secondary);
     }
 
@@ -1649,7 +1649,7 @@ onMounted(async () => {
     }
 
     &--archived {
-      background: #FEE2E2;
+      background: var(--color-danger-bg);
       color: var(--color-danger);
     }
   }
@@ -1720,7 +1720,7 @@ onMounted(async () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #fff;
+  background-color: var(--color-bg-container);
   border-top: 1px solid var(--color-bg-page);
 
   .pagination-info {
@@ -1774,7 +1774,7 @@ onMounted(async () => {
 
     &.pagination-btn--active {
       background-color: $emerald-500;
-      color: #fff;
+      color: var(--color-text-white);
       border-color: $emerald-500;
       font-weight: $font-weight-semibold;
       box-shadow: 0 1px 3px $overlay-emerald-25;
@@ -1802,7 +1802,7 @@ onMounted(async () => {
   bottom: 0;
   z-index: 20;
   background-color: var(--color-primary-dark);
-  color: #fff;
+  color: var(--color-text-white);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1843,7 +1843,7 @@ onMounted(async () => {
       font-weight: $font-weight-medium;
       background: none;
       border: none;
-      color: #fff;
+      color: var(--color-text-white);
       cursor: pointer;
       padding: 4px 8px;
       border-radius: $radius-sm;
@@ -1861,10 +1861,10 @@ onMounted(async () => {
     }
 
     .batch-action-btn--compare {
-      color: #fbbf24;
+      color: var(--color-warning);
 
       &:hover {
-        color: #fcd34d;
+        color: var(--color-warning);
         background: rgba(251, 191, 36, 0.15);
       }
     }
@@ -1877,7 +1877,7 @@ onMounted(async () => {
     padding: 4px 12px;
     border-radius: $radius-md;
     background: transparent;
-    color: #fff;
+    color: var(--color-text-white);
     cursor: pointer;
     transition: all $transition-fast;
 
@@ -1935,11 +1935,10 @@ onMounted(async () => {
     gap: var(--space-1-5);
     padding: 8px 20px;
     background-color: var(--color-text-primary);
-    color: #fff;
+    color: var(--color-text-white);
     border: none;
     border-radius: 10px;
     font-size: $font-size-body;
-    font-weight: $font-weight-semibold;
     cursor: pointer;
     transition: all $transition-normal;
 
@@ -1974,10 +1973,10 @@ onMounted(async () => {
   }
 
   .stat-card {
-    background: #fff;
+    background: var(--color-bg-container);
     padding: 24px;
     border-radius: var(--radius-4xl);
-    border: 1px solid #fff;
+    border: 1px solid var(--color-bg-container);
     box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
     transition: all $transition-slow;
     animation: dashboard-fade-in 0.5s ease forwards;
@@ -2023,7 +2022,7 @@ onMounted(async () => {
     .stat-value {
       font-size: 24px;
       font-weight: 700;
-      color: #0F172A;
+      color: var(--color-text-primary);
       line-height: 1.2;
 
       .stat-unit {
@@ -2048,16 +2047,16 @@ onMounted(async () => {
 }
 
 .activity-card {
-  background-color: #fff;
+  background-color: var(--color-bg-container);
   border-radius: var(--radius-4xl);
   padding: 32px;
   box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
   border: 1px solid var(--color-bg-page);
 
   &--assistant {
-    background: #fff;
+    background: var(--color-bg-container);
     border: 1px solid var(--color-bg-page);
-    color: #0F172A;
+    color: var(--color-text-primary);
     position: relative;
     overflow: hidden;
     box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
@@ -2113,7 +2112,7 @@ onMounted(async () => {
       opacity: 0.3;
       cursor: not-allowed;
       border-color: rgba(148, 163, 184, 0.15);
-      color: #cbd5e1;
+      color: var(--color-text-placeholder);
       background: transparent;
     }
   }
@@ -2148,7 +2147,7 @@ onMounted(async () => {
     top: 28px;
     bottom: 0;
     width: 1px;
-    background-color: #f1f5f9;
+    background-color: var(--color-border-light);
   }
 }
 
@@ -2168,11 +2167,11 @@ onMounted(async () => {
   }
 
   &--warning {
-    background-color: #fef3c7;
+    background-color: var(--color-warning-bg);
   }
 
   &--info {
-    background-color: #dbeafe;
+    background-color: var(--color-info-bg);
   }
 }
 
@@ -2190,7 +2189,7 @@ onMounted(async () => {
   }
 
   .timeline-dot--info & {
-    background-color: #3b82f6;
+    background-color: var(--color-info);
   }
 }
 
@@ -2216,12 +2215,12 @@ onMounted(async () => {
   }
 
   :deep(.text-amber-600) {
-    color: #d97706 !important;
+    color: var(--color-warning) !important;
     font-weight: 700 !important;
   }
 
   :deep(.text-blue-600) {
-    color: #2563eb !important;
+    color: var(--color-info) !important;
     font-weight: 700 !important;
   }
 
@@ -2232,7 +2231,7 @@ onMounted(async () => {
 
 .timeline-time {
   font-size: 10px;
-  color: #cbd5e1;
+  color: var(--color-text-placeholder);
   text-transform: uppercase;
   display: inline-block;
   margin-top: 4px;
@@ -2253,7 +2252,7 @@ onMounted(async () => {
     gap: 8px;
     font-size: 16px;
     font-weight: 700;
-    color: #fff;
+    color: var(--color-text-white);
     margin: 0;
   }
 }
@@ -2272,7 +2271,7 @@ onMounted(async () => {
     border-radius: 8px;
     border: 1.5px solid rgba(255, 255, 255, 0.3);
     background: rgba(255, 255, 255, 0.15);
-    color: #fff;
+    color: var(--color-text-white);
     cursor: pointer;
     transition: all 0.2s;
 
@@ -2315,20 +2314,20 @@ onMounted(async () => {
   padding: var(--space-3-5);
   background: var(--color-bg-page);
   border-radius: 14px;
-  border: 1px solid #f1f5f9;
+  border: 1px solid var(--color-border-light);
   transition: all 0.25s ease;
   cursor: default;
   animation: todoSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
 
   &:hover {
-    background: #f1f5f9;
+    background: var(--color-bg-hover);
     border-color: var(--color-border);
     transform: translateX(4px);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   }
 
   &--high {
-    background: #FFFBEB;
+    background: var(--color-warning-bg);
     border-color: #FEF08A;
 
     &:hover {
@@ -2337,25 +2336,25 @@ onMounted(async () => {
     }
 
     .todo-item__title {
-      color: #92400E;
+      color: var(--color-warning-dark);
     }
 
     .todo-item__desc {
-      color: #78716C;
+      color: var(--color-text-secondary);
     }
   }
 
   &--medium {
-    background: #EFF6FF;
+    background: var(--color-info-bg);
     border-color: #BFDBFE;
 
     &:hover {
-      background: #DBEAFE;
+      background: var(--color-info-bg);
       border-color: #93C5FD;
     }
 
     .todo-item__title {
-      color: #1E40AF;
+      color: var(--color-info);
     }
 
     .todo-item__desc {
@@ -2378,7 +2377,7 @@ onMounted(async () => {
     }
 
     .todo-item__desc {
-      color: #6B7280;
+      color: var(--color-text-secondary);
     }
   }
 
@@ -2392,13 +2391,13 @@ onMounted(async () => {
     justify-content: center;
 
     &--warning {
-      background: linear-gradient(135deg, #FEF3C7, #FDE68A);
-      color: #D97706;
+      background: linear-gradient(135deg, var(--color-warning-bg), #FDE68A);
+      color: var(--color-warning);
     }
 
     &--info {
-      background: linear-gradient(135deg, #DBEAFE, #BFDBFE);
-      color: #2563EB;
+      background: linear-gradient(135deg, var(--color-info-bg), #BFDBFE);
+      color: var(--color-info);
     }
 
     &--default {
@@ -2433,7 +2432,7 @@ onMounted(async () => {
     height: 28px;
     border-radius: 8px;
     border: 1.5px solid var(--color-border);
-    background: #fff;
+    background: var(--color-bg-container);
     color: var(--color-text-secondary);
     cursor: pointer;
     display: inline-flex;
@@ -2444,7 +2443,7 @@ onMounted(async () => {
     &:hover {
       background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
       border-color: transparent;
-      color: #fff;
+      color: var(--color-text-white);
       transform: scale(1.05);
     }
   }
@@ -2478,7 +2477,7 @@ onMounted(async () => {
   p {
     font-size: 15px;
     font-weight: 600;
-    color: #0F172A;
+    color: var(--color-text-primary);
     margin: 0 0 var(--space-1-5) 0;
   }
 
@@ -2491,7 +2490,7 @@ onMounted(async () => {
 .assistant-footer {
   margin-top: 16px;
   padding-top: 16px;
-  border-top: 1px solid #f1f5f9;
+  border-top: 1px solid var(--color-border-light);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -2507,7 +2506,7 @@ onMounted(async () => {
   height: 28px;
   border-radius: 8px;
   border: 1.5px solid var(--color-border);
-  background: #fff;
+  background: var(--color-bg-container);
   color: var(--color-text-secondary);
   cursor: pointer;
   display: inline-flex;
@@ -2516,8 +2515,8 @@ onMounted(async () => {
   transition: all 0.2s ease;
 
   &:hover {
-    background: #f1f5f9;
-    border-color: #cbd5e1;
+    background: var(--color-bg-hover);
+    border-color: var(--color-border);
     color: var(--color-text-secondary);
     transform: rotate(180deg);
   }

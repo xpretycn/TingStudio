@@ -422,7 +422,7 @@ $radius-2xl: 2rem;
     padding: 8px 32px;
     background-color: rgba(255, 255, 255, 0.80);
     backdrop-filter: blur(10px);
-    border-bottom: 1px solid #f1f5f9;
+    border-bottom: 1px solid var(--color-border-light);
     animation: fadeInDown 0.35s ease both;
 
     .header-left {
@@ -446,7 +446,7 @@ $radius-2xl: 2rem;
 
         &:hover {
           color: var(--color-primary);
-          background-color: #ecfdf5;
+          background-color: var(--color-emerald-50);
         }
       }
 
@@ -525,7 +525,7 @@ $radius-2xl: 2rem;
       .reset-btn {
         padding: 8px var(--space-4-5);
         background: rgba(244, 63, 94, 0.08);
-        color: #f43f5e;
+        color: var(--color-danger);
         border: 1px solid rgba(244, 63, 94, 0.2);
         border-radius: 12px;
         font-size: 13px;
@@ -569,7 +569,7 @@ $radius-2xl: 2rem;
     .back-select-btn {
       padding: var(--space-2-5) var(--space-7);
       background: var(--color-primary);
-      color: #ffffff;
+      color: var(--color-text-white);
       border: none;
       border-radius: 12px;
       font-size: 13px;
@@ -606,7 +606,7 @@ $radius-2xl: 2rem;
     min-width: 340px;
     max-width: 400px;
     flex-shrink: 0;
-    background: #ffffff;
+    background: var(--color-bg-container);
     border-radius: $radius-2xl;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
     border: 1px solid var(--color-bg-page);
@@ -618,7 +618,7 @@ $radius-2xl: 2rem;
       box-shadow: 0 1px 3px rgba(16, 185, 129, 0.08);
 
       .card-header {
-        background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 100%);
+        background: linear-gradient(135deg, var(--color-emerald-50) 0%, var(--color-emerald-50) 100%);
         border-bottom-color: var(--color-primary-bg);
       }
     }
@@ -648,7 +648,7 @@ $radius-2xl: 2rem;
 
         &.base-pill {
           background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
-          color: #ffffff;
+          color: var(--color-text-white);
           letter-spacing: 0.05em;
         }
       }
@@ -675,7 +675,7 @@ $radius-2xl: 2rem;
 
         &:hover {
           color: var(--color-primary);
-          background-color: #ecfdf5;
+          background-color: var(--color-emerald-50);
           transform: rotate(-30deg);
         }
       }
@@ -689,13 +689,13 @@ $radius-2xl: 2rem;
         border: none;
         border-radius: 8px;
         background: transparent;
-        color: #cbd5e1;
+        color: var(--color-text-placeholder);
         cursor: pointer;
         transition: color 0.2s;
         font-size: 16px;
 
         &:hover {
-          color: #f43f5e;
+          color: var(--color-danger);
         }
       }
 
@@ -750,21 +750,21 @@ $radius-2xl: 2rem;
         background: rgba(248, 250, 252, 0.50);
 
         &.diff-added {
-          background: #ecfdf5;
+          background: var(--color-emerald-50);
           color: var(--color-primary-dark);
           font-weight: 700;
         }
 
         &.diff-changed {
-          background: #fffbeb;
-          color: #d97706;
+          background: var(--color-warning-bg);
+          color: var(--color-warning);
           font-weight: 700;
         }
 
         &.diff-missing {
           border-style: dashed;
-          border-color: #fca5a5;
-          background: #fef2f2;
+          border-color: var(--color-danger-border);
+          background: var(--color-danger-bg);
 
           .ing-name {
             color: var(--color-danger) !important;
@@ -773,7 +773,7 @@ $radius-2xl: 2rem;
           }
 
           .ing-value {
-            color: #f87171 !important;
+            color: var(--color-danger) !important;
             font-weight: 900;
           }
         }
@@ -855,11 +855,11 @@ $radius-2xl: 2rem;
 
   .add-placeholder-card {
     border: 2px dashed var(--color-border);
-    background: #fafbfc;
+    background: var(--color-bg-page);
     overflow: visible;
 
     .placeholder-tag {
-      background: #f1f5f9;
+      background: var(--color-bg-hover);
       color: var(--color-text-placeholder);
     }
 
@@ -890,14 +890,14 @@ $radius-2xl: 2rem;
         gap: 4px;
         padding: var(--space-3-5) 16px;
         border-radius: 12px;
-        border: 1px solid #f1f5f9;
-        background: #ffffff;
+        border: 1px solid var(--color-border-light);
+        background: var(--color-bg-container);
         cursor: pointer;
         transition: all $transition-fast;
 
         &:hover {
           border-color: var(--color-primary);
-          background: #ecfdf5;
+          background: var(--color-emerald-50);
           box-shadow: 0 1px 3px rgba(16, 185, 129, 0.08);
 
           .avail-ver-num {
@@ -933,7 +933,7 @@ $radius-2xl: 2rem;
 
           .avail-arrow {
             font-size: 16px;
-            color: #cbd5e1;
+            color: var(--color-text-placeholder);
             transition: all $transition-fast;
           }
         }

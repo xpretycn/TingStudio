@@ -28,11 +28,9 @@
 
     <div v-if="!loading && userList.length > 0" class="user-table-wrap">
       <t-table
-        :data="userList"
+        :data="sortedUsers"
         :columns="tableColumns"
         row-key="id"
-        :pagination="tablePagination"
-        @page-change="handlePageChange"
         table-layout="auto"
         hover
         stripe
@@ -62,6 +60,26 @@
           </div>
         </template>
       </t-table>
+      <div v-if="paginationStore.visible && pagination.total > 0" class="table-pagination">
+        <div class="pagination-info">
+          显示第 {{ (pagination.page - 1) * pagination.pageSize + 1 }}-{{ Math.min(pagination.page * pagination.pageSize, pagination.total) }} 条，共 {{ pagination.total }} 条数据
+        </div>
+        <div class="pagination-controls">
+          <button class="pagination-btn" :class="{ 'pagination-btn--disabled': pagination.page === 1 }"
+            :disabled="pagination.page === 1"
+            @click="setPage(pagination.page - 1)">上一页</button>
+          <template v-for="page in pageNumbers" :key="page">
+            <button v-if="page !== '...'" class="pagination-btn"
+              :class="{ 'pagination-btn--active': page === pagination.page }"
+              @click="typeof page === 'number' && setPage(page)">{{ page }}</button>
+            <span v-else class="pagination-ellipsis">...</span>
+          </template>
+          <button class="pagination-btn"
+            :class="{ 'pagination-btn--disabled': pagination.page === totalPages }"
+            :disabled="pagination.page === totalPages"
+            @click="setPage(pagination.page + 1)">下一页</button>
+        </div>
+      </div>
     </div>
 
     <div v-if="!loading && userList.length === 0" class="empty-state">
@@ -97,21 +115,23 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch, onUnmounted, h } from 'vue'
 import { MessagePlugin } from 'tdesign-vue-next'
 import { userManageApi } from '@/api/userManage'
 import type { UserManageItem } from '@/api/userManage'
 import { roleApi } from '@/api/role'
 import type { Role } from '@/api/role'
 import { useAuthStore } from '@/stores/auth'
+import { usePaginationStore } from '@/stores/pagination'
 import { formatDate } from '@/utils/timeFormat'
 
 const authStore = useAuthStore()
 const currentUserId = computed(() => authStore.user?.id ?? '')
+const paginationStore = usePaginationStore()
 
 const loading = ref(false)
 const userList = ref<UserManageItem[]>([])
-const pagination = ref({ page: 1, pageSize: 20, total: 0, totalPages: 0 })
+const pagination = ref({ page: 1, pageSize: 10, total: 0, totalPages: 0 })
 
 const searchKeyword = ref('')
 const filterRoleId = ref<string | undefined>(undefined)
@@ -140,22 +160,81 @@ const roleSelectOptions = computed(() => {
     .map(r => ({ label: r.name, value: r.id }))
 })
 
+const sortKey = ref<string>('')
+const sortOrder = ref<'asc' | 'desc' | ''>('')
+const sortedUsers = ref<UserManageItem[]>([])
+
+const toggleSort = (key: string) => {
+  if (sortKey.value !== key) {
+    sortKey.value = key
+    sortOrder.value = 'asc'
+  } else {
+    sortOrder.value = sortOrder.value === 'asc' ? 'desc' : (sortOrder.value === 'desc' ? '' : 'asc')
+    if (sortOrder.value === '') sortKey.value = ''
+  }
+  applySort()
+}
+
+const sortIconClass = (key: string) => {
+  if (sortKey.value !== key) return 'custom-sort custom-sort--none'
+  return sortOrder.value === 'asc' ? 'custom-sort custom-sort--asc' : 'custom-sort custom-sort--desc'
+}
+
+const sortTitle = (label: string, key: string) => {
+  return () => h('span', {
+    class: 'custom-sort-header',
+    onClick: (e: Event) => { e.stopPropagation(); toggleSort(key); }
+  }, [label, h('span', { class: sortIconClass(key) })])
+}
+
+const applySort = () => {
+  if (!sortKey.value || !sortOrder.value) {
+    sortedUsers.value = [...userList.value]
+    return
+  }
+  const dir = sortOrder.value === 'desc' ? -1 : 1
+
+  const sortFns: Record<string, (a: UserManageItem, b: UserManageItem) => number> = {
+    username: (a, b) => (a.username || '').localeCompare(b.username || '', 'zh'),
+    displayName: (a, b) => (a.displayName || '').localeCompare(b.displayName || '', 'zh'),
+    roleName: (a, b) => (a.roleName || '').localeCompare(b.roleName || '', 'zh'),
+    isActive: (a, b) => Number(a.isActive) - Number(b.isActive),
+    createdAt: (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+  }
+
+  const fn = sortFns[sortKey.value]
+  sortedUsers.value = fn
+    ? [...userList.value].sort((a, b) => fn(a, b) * dir)
+    : [...userList.value]
+}
+
+watch(userList, (val) => {
+  if (sortKey.value && sortOrder.value) {
+    applySort()
+  } else {
+    sortedUsers.value = [...val]
+  }
+}, { immediate: true })
+
 const tableColumns = [
-  { colKey: 'username', title: '用户名', width: 120 },
-  { colKey: 'displayName', title: '显示名称', width: 120, cell: (h: unknown, { row }: { row: UserManageItem }) => row.displayName || '--' },
-  { colKey: 'roleName', title: '角色', width: 120 },
-  { colKey: 'isActive', title: '状态', width: 80, cell: { component: 'isActive' } },
-  { colKey: 'createdAt', title: '创建时间', width: 120, cell: { component: 'createdAt' } },
+  { colKey: 'username', title: sortTitle('用户名', 'username'), width: 120 },
+  { colKey: 'displayName', title: sortTitle('显示名称', 'displayName'), width: 120, cell: (_h: unknown, { row }: { row: UserManageItem }) => row.displayName || '--' },
+  { colKey: 'roleName', title: sortTitle('角色', 'roleName'), width: 120 },
+  { colKey: 'isActive', title: sortTitle('状态', 'isActive'), width: 80, cell: { component: 'isActive' } },
+  { colKey: 'createdAt', title: sortTitle('创建时间', 'createdAt'), width: 120, cell: { component: 'createdAt' } },
   { colKey: 'actions', title: '操作', width: 180, cell: { component: 'actions' } },
 ]
 
-const tablePagination = computed(() => ({
-  current: pagination.value.page,
-  pageSize: pagination.value.pageSize,
-  total: pagination.value.total,
-  showJumper: true,
-  pageSizeOptions: [10, 20, 50],
-}))
+const totalPages = computed(() => Math.ceil(pagination.value.total / pagination.value.pageSize) || 1)
+
+const pageNumbers = computed<(number | string)[]>(() => {
+  const total = totalPages.value
+  const current = pagination.value.page
+  if (total <= 5) return Array.from({ length: total }, (_, i) => i + 1)
+  if (current <= 3) return [1, 2, 3, '...', total]
+  if (current >= total - 2) return [1, '...', total - 2, total - 1, total]
+  return [1, '...', current - 1, current, current + 1, '...', total]
+})
 
 async function fetchUsers() {
   loading.value = true
@@ -185,13 +264,28 @@ async function fetchRoles() {
 }
 
 onMounted(() => {
+  paginationStore.register({
+    current: pagination.value.page,
+    pageSize: pagination.value.pageSize,
+    total: pagination.value.total,
+    onChange: (pageInfo: { current: number }) => {
+      pagination.value.page = pageInfo.current
+      fetchUsers()
+    },
+  })
+  watch(pagination, (val) => paginationStore.update(val), { deep: true })
+
   fetchUsers()
   fetchRoles()
 })
 
-function handlePageChange(params: { current: number; pageSize: number }) {
-  pagination.value.page = params.current
-  pagination.value.pageSize = params.pageSize
+onUnmounted(() => {
+  paginationStore.unregister()
+})
+
+function setPage(page: number) {
+  if (page < 1 || page > totalPages.value) return
+  pagination.value.page = page
   fetchUsers()
 }
 
@@ -282,7 +376,9 @@ async function handleToggleStatus(user: UserManageItem) {
 .user-toolbar {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 12px;
+  margin-top: 12px;
   margin-bottom: 16px;
 
   .user-search-input {
@@ -358,5 +454,121 @@ async function handleToggleStatus(user: UserManageItem) {
       width: 100%;
     }
   }
+}
+
+// 分页样式 — 参照 FormulaList.vue
+.table-pagination {
+  padding: 16px 24px 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: $bg-container;
+  border-top: 1px solid var(--color-bg-page);
+
+  .pagination-info {
+    font-size: 14px;
+    color: var(--color-text-placeholder);
+    font-weight: 400;
+    white-space: nowrap;
+  }
+
+  .pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .pagination-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-1-5) 12px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md, 8px);
+    background-color: transparent;
+    color: var(--color-text-regular, #6e6178);
+    font-size: 14px;
+    cursor: pointer;
+    transition: all var(--transition-fast, 0.15s);
+    white-space: nowrap;
+    user-select: none;
+
+    &:hover:not(.pagination-btn--disabled):not(.pagination-btn--active) {
+      background-color: var(--color-primary-bg);
+      border-color: var(--color-primary-lighter);
+      color: var(--color-primary-dark);
+    }
+
+    &.pagination-btn--disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      color: var(--color-text-placeholder);
+      background-color: transparent;
+      border-color: var(--color-border);
+      pointer-events: none;
+    }
+
+    &.pagination-btn--active {
+      background-color: var(--color-primary);
+      color: $text-white;
+      border-color: var(--color-primary);
+      font-weight: 600;
+      box-shadow: $shadow-brand-sm;
+      pointer-events: none;
+    }
+  }
+
+  .pagination-ellipsis {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 34px;
+    color: var(--color-text-placeholder);
+    font-size: 14px;
+    user-select: none;
+  }
+}
+</style>
+
+<style lang="scss">
+.user-manage .custom-sort-header {
+  cursor: pointer;
+  user-select: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.user-manage .custom-sort-header:hover {
+  color: var(--color-primary);
+}
+
+.user-manage .custom-sort {
+  display: inline-block;
+  width: 0;
+  height: 0;
+  margin-left: var(--space-0-5);
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  opacity: 0.25;
+  transition: all 0.2s;
+}
+
+.user-manage .custom-sort--none {
+  border-top: 5px solid var(--color-text-placeholder);
+  border-bottom: none;
+}
+
+.user-manage .custom-sort--asc {
+  border-bottom: 5px solid var(--color-primary);
+  border-top: none;
+  opacity: 1;
+}
+
+.user-manage .custom-sort--desc {
+  border-top: 5px solid var(--color-primary);
+  border-bottom: none;
+  opacity: 1;
 }
 </style>

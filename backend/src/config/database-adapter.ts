@@ -1,12 +1,12 @@
 // 数据库适配器 - 支持 SQLite (better-sqlite3) 和 MySQL
 import { config } from './index.js';
-import { query as sqliteQuery, getDb as getSqliteDb, connectDatabase as connectSqlite } from './database-better-sqlite3.js';
+import { query as sqliteQuery, getDb as getSqliteDb, connectDatabase as connectSqlite, transaction as sqliteTransaction } from './database-better-sqlite3.js';
 import { query as mysqlQuery, connectMySQL, closeMySQL, getMySQLPool } from './mysql.js';
 import { logger } from '../utils/logger.js';
 
 export type DatabaseType = 'sqlite' | 'mysql';
 
-export interface QueryResult<T = any> {
+export interface QueryResult<T = Record<string, unknown>> {
   rows: T[];
   changes?: number;
   lastInsertId?: number;
@@ -24,7 +24,7 @@ export async function connectDatabase(): Promise<void> {
   logger.info(`数据库已连接 (类型: ${dbType})`);
 }
 
-export async function query<T = any>(sql: string, params?: any[]): Promise<QueryResult<T>> {
+export async function query<T = Record<string, unknown>>(sql: string, params?: unknown[]): Promise<QueryResult<T>> {
   const dbType = config.database.type as DatabaseType;
   
   try {
@@ -48,12 +48,12 @@ export async function query<T = any>(sql: string, params?: any[]): Promise<Query
   }
 }
 
-export async function execute(sql: string, params?: any[]): Promise<{ changes: number; lastInsertId?: number }> {
+export async function execute(sql: string, params?: unknown[]): Promise<{ changes: number; lastInsertId?: number }> {
   const dbType = config.database.type as DatabaseType;
   
   try {
     if (dbType === 'mysql') {
-      const [result] = await getMySQLPool().execute(sql, params);
+      const [result] = await getMySQLPool().execute(sql, params as (string | number | boolean | null | Buffer)[]);
       const mysqlResult = result as any;
       return {
         changes: mysqlResult.affectedRows || 0,
@@ -87,6 +87,16 @@ export function getDatabaseType(): DatabaseType {
 }
 
 // 数据库特定的 SQL 适配器
+export function transaction<T>(fn: () => T): T {
+  const dbType = config.database.type as DatabaseType;
+  
+  if (dbType === 'mysql') {
+    throw new Error('MySQL 事务暂未实现，请使用 SQLite');
+  }
+  
+  return sqliteTransaction(fn);
+}
+
 export function adaptSQL(sql: string): string {
   const dbType = config.database.type as DatabaseType;
   

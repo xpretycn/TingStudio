@@ -112,7 +112,7 @@
                       <span v-if="item.isAdjusted" class="pi-adjust-badge"
                         :title="'基价: ¥' + (item.basePrice ?? '--') + '/kg'">
                         <svg viewBox="0 0 12 12" width="10" height="10">
-                          <path d="M6 1L7.5 4.5L11 5L8.5 7.5L9 11L6 9L3 11L3.5 7.5L1 5L4.5 4.5Z" fill="#b45309" />
+                          <path d="M6 1L7.5 4.5L11 5L8.5 7.5L9 11L6 9L3 11L3.5 7.5L1 5L4.5 4.5Z" fill="var(--color-warning-dark)" />
                         </svg>调
                       </span>
                     </div>
@@ -460,6 +460,8 @@ onMounted(async () => {
 </script>
 
 <style scoped lang="scss">
+@use '@/assets/styles/variables.scss' as *;
+
 $radius-2xl: 2rem;
 
 @keyframes fadeInDown {
@@ -497,9 +499,9 @@ $radius-2xl: 2rem;
     margin-left: -32px;
     margin-right: -32px;
     padding: 8px 32px;
-    background-color: rgba(255, 255, 255, 0.80);
+    background-color: $overlay-white-80;
     backdrop-filter: blur(10px);
-    border-bottom: 1px solid #f1f5f9;
+    border-bottom: 1px solid $border-color-light;
     animation: fadeInDown 0.35s ease both;
 
     .header-left {
@@ -523,7 +525,7 @@ $radius-2xl: 2rem;
 
         &:hover {
           color: var(--color-primary);
-          background-color: #ecfdf5;
+          background-color: $emerald-50;
         }
       }
 
@@ -601,9 +603,9 @@ $radius-2xl: 2rem;
 
       .reset-btn {
         padding: 8px var(--space-4-5);
-        background: rgba(244, 63, 94, 0.08);
-        color: #f43f5e;
-        border: 1px solid rgba(244, 63, 94, 0.2);
+        background: $overlay-rose-08;
+        color: $rose-500;
+        border: 1px solid $overlay-rose-20;
         border-radius: 12px;
         font-size: 13px;
         font-weight: 600;
@@ -611,8 +613,8 @@ $radius-2xl: 2rem;
         transition: all $transition-fast;
 
         &:hover {
-          background: rgba(244, 63, 94, 0.15);
-          border-color: rgba(244, 63, 94, 0.35);
+          background: $overlay-rose-15;
+          border-color: $overlay-rose-35;
         }
       }
 
@@ -621,9 +623,9 @@ $radius-2xl: 2rem;
         align-items: center;
         gap: var(--space-1-5);
         padding: 8px var(--space-4-5);
-        background: rgba(16, 185, 129, 0.08);
+        background: $overlay-emerald-08;
         color: var(--color-primary-dark);
-        border: 1px solid rgba(16, 185, 129, 0.2);
+        border: 1px solid $overlay-emerald-20;
         border-radius: 12px;
         font-size: 13px;
         font-weight: 600;
@@ -631,18 +633,18 @@ $radius-2xl: 2rem;
         transition: all $transition-fast;
 
         &:hover {
-          background: rgba(16, 185, 129, 0.15);
-          border-color: rgba(16, 185, 129, 0.35);
+          background: $overlay-emerald-15;
+          border-color: $overlay-emerald-35;
         }
 
         &--price {
-          background: rgba(245, 158, 11, 0.08);
-          color: #d97706;
-          border-color: rgba(245, 158, 11, 0.2);
+          background: $overlay-amber-08;
+          color: $amber-600;
+          border-color: $overlay-amber-20;
 
           &:hover {
-            background: rgba(245, 158, 11, 0.15);
-            border-color: rgba(245, 158, 11, 0.35);
+            background: $overlay-amber-15;
+            border-color: $overlay-amber-35;
           }
         }
 
@@ -688,7 +690,7 @@ $radius-2xl: 2rem;
     .back-select-btn {
       padding: var(--space-2-5) var(--space-7);
       background: var(--color-primary);
-      color: #ffffff;
+      color: $text-white;
       border: none;
       border-radius: 12px;
       font-size: 13px;
@@ -725,7 +727,7 @@ $radius-2xl: 2rem;
     min-width: 400px;
     max-width: 420px;
     flex-shrink: 0;
-    background: #ffffff;
+    background: $bg-container;
     border-radius: $radius-2xl;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
     border: 1px solid var(--color-bg-page);
@@ -733,11 +735,11 @@ $radius-2xl: 2rem;
     animation: slideIn 0.5s ease-out both;
 
     &.is-base-card {
-      border-color: #bbf7d0;
+      border-color: $green-200;
       box-shadow: 0 1px 3px rgba(16, 185, 129, 0.08);
 
       .card-header {
-        background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 100%);
+        background: linear-gradient(135deg, $emerald-50 0%, $green-50 100%);
         border-bottom-color: var(--color-primary-bg);
       }
     }
@@ -745,7 +747,7 @@ $radius-2xl: 2rem;
     .card-header {
       padding: 24px;
       border-bottom: 1px solid var(--color-bg-page);
-      background: rgba(248, 250, 252, 0.30);
+      background: $overlay-slate-50-30;
       position: relative;
 
       .card-header-top {
@@ -767,7 +769,7 @@ $radius-2xl: 2rem;
 
         &.base-pill {
           background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
-          color: #ffffff;
+          color: $text-white;
           letter-spacing: 0.05em;
         }
       }
@@ -794,7 +796,7 @@ $radius-2xl: 2rem;
 
         &:hover {
           color: var(--color-primary);
-          background-color: #ecfdf5;
+          background-color: $emerald-50;
           transform: rotate(-30deg);
         }
       }
@@ -808,13 +810,13 @@ $radius-2xl: 2rem;
         border: none;
         border-radius: 8px;
         background: transparent;
-        color: #cbd5e1;
+        color: $border-color;
         cursor: pointer;
         transition: color 0.2s;
         font-size: 16px;
 
         &:hover {
-          color: #f43f5e;
+          color: $rose-500;
         }
       }
 
@@ -860,31 +862,31 @@ $radius-2xl: 2rem;
         border-radius: 16px;
         border: 1px solid var(--color-bg-page);
         transition: all $transition-fast;
-        background: rgba(248, 250, 252, 0.50);
+        background: $overlay-slate-50-50;
 
         &.diff-added {
-          background: #ecfdf5;
+          background: $emerald-50;
           color: var(--color-primary-dark);
           font-weight: 700;
         }
 
         &.diff-removed {
-          background: #fef2f2;
+          background: $red-50;
           color: var(--color-danger);
           text-decoration: line-through;
           opacity: 0.6;
         }
 
         &.diff-changed {
-          background: #fffbeb;
-          color: #d97706;
+          background: $amber-50;
+          color: $amber-600;
           font-weight: 700;
         }
 
         &.diff-missing {
           border-style: dashed;
-          border-color: #fca5a5;
-          background: #fef2f2;
+          border-color: $red-300;
+          background: $red-50;
 
           .ing-name {
             color: var(--color-danger) !important;
@@ -893,7 +895,7 @@ $radius-2xl: 2rem;
           }
 
           .ing-value {
-            color: #f87171 !important;
+            color: $red-400 !important;
             font-weight: 900;
           }
 
@@ -939,7 +941,7 @@ $radius-2xl: 2rem;
         .ing-bar-track {
           width: 100%;
           height: 6px;
-          background: rgba(226, 232, 240, 0.30);
+          background: $overlay-slate-200-30;
           border-radius: 999px;
           overflow: hidden;
 
@@ -975,23 +977,23 @@ $radius-2xl: 2rem;
           padding: var(--space-2-5) var(--space-3-5);
           margin-bottom: var(--space-1-5);
           border-radius: 12px;
-          background: rgba(248, 250, 252, 0.50);
+          background: $overlay-slate-50-50;
           border: 1px solid var(--color-bg-page);
           transition: all $transition-fast;
 
           &.cs-diff-up {
-            background: #fef2f2;
-            border-color: #fecaca;
+            background: $red-50;
+            border-color: $red-200;
           }
 
           &.cs-diff-down {
-            background: #f0fdf4;
-            border-color: #bbf7d0;
+            background: $green-50;
+            border-color: $green-200;
           }
 
           &.cs-diff-changed {
-            background: #fffbeb;
-            border-color: #fde68a;
+            background: $amber-50;
+            border-color: $amber-200;
           }
 
           .cs-label {
@@ -1011,11 +1013,11 @@ $radius-2xl: 2rem;
             }
 
             &.cs-val-down {
-              color: #16a34a;
+              color: $green-600;
             }
 
             &.cs-val-warn {
-              color: #d97706;
+              color: $amber-600;
             }
           }
         }
@@ -1027,24 +1029,24 @@ $radius-2xl: 2rem;
         border-radius: 16px;
         border: 1px solid var(--color-bg-page);
         transition: all $transition-fast;
-        background: rgba(248, 250, 252, 0.50);
+        background: $overlay-slate-50-50;
 
         &.diff-added {
-          background: #ecfdf5;
+          background: $emerald-50;
           color: var(--color-primary-dark);
           font-weight: 700;
         }
 
         &.diff-changed {
-          background: #fffbeb;
-          color: #d97706;
+          background: $amber-50;
+          color: $amber-600;
           font-weight: 700;
         }
 
         &.diff-missing {
           border-style: dashed;
-          border-color: #fca5a5;
-          background: #fef2f2;
+          border-color: $red-300;
+          background: $red-50;
 
           .pi-name {
             color: var(--color-danger) !important;
@@ -1077,7 +1079,7 @@ $radius-2xl: 2rem;
               color: var(--color-text-primary);
 
               &.pi-adjusted {
-                color: #d97706;
+                color: $amber-600;
               }
             }
 
@@ -1089,8 +1091,8 @@ $radius-2xl: 2rem;
               line-height: 1.4;
               padding: var(--space-0-5) var(--space-1-5);
               border-radius: 6px;
-              background: linear-gradient(135deg, #fef3c7, #fde68a);
-              color: #b45309;
+              background: $gradient-amber-badge;
+              color: $amber-700;
               font-weight: 700;
               flex-shrink: 0;
               cursor: help;
@@ -1140,9 +1142,9 @@ $radius-2xl: 2rem;
           line-height: 1.7;
           font-style: italic;
           padding: 16px;
-          background: rgba(209, 250, 229, 0.50);
+          background: $overlay-emerald-100-50;
           border-radius: 16px;
-          border: 1px solid rgba(209, 250, 229, 0.30);
+          border: 1px solid $overlay-emerald-100-30;
         }
       }
     }
@@ -1150,11 +1152,11 @@ $radius-2xl: 2rem;
 
   .add-placeholder-card {
     border: 2px dashed var(--color-border);
-    background: #fafbfc;
+    background: $bg-container-alt;
     overflow: visible;
 
     .placeholder-tag {
-      background: #f1f5f9;
+      background: $border-color-light;
       color: var(--color-text-placeholder);
     }
 
@@ -1185,14 +1187,14 @@ $radius-2xl: 2rem;
         gap: 4px;
         padding: var(--space-3-5) 16px;
         border-radius: 12px;
-        border: 1px solid #f1f5f9;
-        background: #ffffff;
+        border: 1px solid $border-color-light;
+        background: $bg-container;
         cursor: pointer;
         transition: all $transition-fast;
 
         &:hover {
           border-color: var(--color-primary);
-          background: #ecfdf5;
+          background: $emerald-50;
           box-shadow: 0 1px 3px rgba(16, 185, 129, 0.08);
 
           .avail-ver-num {
@@ -1228,7 +1230,7 @@ $radius-2xl: 2rem;
 
           .avail-arrow {
             font-size: 16px;
-            color: #cbd5e1;
+            color: $border-color;
             transition: all $transition-fast;
           }
         }

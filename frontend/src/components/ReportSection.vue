@@ -40,7 +40,7 @@ withDefaults(defineProps<{
 }>(), {
   icon: 'file',
   theme: 'formula',
-  iconColor: '#3B82F6',
+  iconColor: 'var(--color-info)',
   editable: false,
 })
 
@@ -72,7 +72,7 @@ const cancelEdit = () => {
 @use '@/assets/styles/variables.scss' as *;
 
 .report-section-card {
-  background: #fff;
+  background: var(--color-bg-container);
   border: 1px solid var(--color-border);
   border-radius: 12px;
   margin-bottom: 20px;
@@ -88,13 +88,13 @@ const cancelEdit = () => {
     box-shadow: 0 0 0 3px var(--color-primary-bg);
   }
 
-  &.section-formula { border-left: 3px solid #3B82F6; }
+  &.section-formula { border-left: 3px solid var(--color-info); }
   &.section-sales { border-left: 3px solid var(--color-primary); }
-  &.section-plans { border-left: 3px solid #8B5CF6; }
+  &.section-plans { border-left: 3px solid var(--color-purple); }
   &.section-summary { border-left: 3px solid var(--color-warning); }
-  &.section-trend { border-left: 3px solid #06B6D4; }
+  &.section-trend { border-left: 3px solid var(--color-cyan); }
   &.section-target { border-left: 3px solid var(--color-primary); }
-  &.section-team { border-left: 3px solid #6366F1; }
+  &.section-team { border-left: 3px solid var(--color-indigo); }
   &.section-issues { border-left: 3px solid var(--color-danger); }
 }
 
@@ -143,7 +143,7 @@ const cancelEdit = () => {
   height: 28px;
   border-radius: 6px;
   border: 1px solid var(--color-border);
-  background: #fff;
+  background: var(--color-bg-container);
   color: var(--color-text-secondary);
   cursor: pointer;
   display: flex;
@@ -161,18 +161,18 @@ const cancelEdit = () => {
 .section-save-btn {
   background: var(--color-primary);
   border-color: var(--color-primary);
-  color: #fff;
+  color: var(--color-text-white);
 
   &:hover {
     background: var(--color-primary-dark);
     border-color: var(--color-primary-dark);
-    color: #fff;
+    color: var(--color-text-white);
   }
 }
 
 .section-cancel-btn:hover {
-  background: #FEF2F2;
+  background: var(--color-danger-bg);
   color: var(--color-danger);
-  border-color: #FCA5A5;
+  border-color: var(--color-danger-border);
 }
 </style>

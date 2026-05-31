@@ -661,7 +661,20 @@ export function createBackup(): Record<string, unknown> {
       }));
 
       const rows = db.prepare(`SELECT * FROM "${tableName}"`).all() as Record<string, unknown>[];
-      const rowsJson = JSON.stringify(rows);
+      let sanitizedRows = rows;
+      if (tableName === "users") {
+        sanitizedRows = rows.map(row => ({
+          ...row,
+          password: "[REDACTED]",
+        }));
+      }
+      if (tableName === "ai_models") {
+        sanitizedRows = rows.map(row => ({
+          ...row,
+          api_key: row.api_key ? "[REDACTED]" : null,
+        }));
+      }
+      const rowsJson = JSON.stringify(sanitizedRows);
       const dataHash = computeHash(rowsJson);
       schemaHashParts.push(table.sql || "");
 
@@ -674,7 +687,7 @@ export function createBackup(): Record<string, unknown> {
           rowCount: rows.length,
           dataHash,
         },
-        rows,
+        rows: sanitizedRows,
       });
 
       totalRows += rows.length;
@@ -689,6 +702,17 @@ export function createBackup(): Record<string, unknown> {
     db.close();
 
     const fileSize = fs.statSync(outputFile).size;
+
+    const backupFiles = fs.readdirSync(BACKUP_DIR)
+      .filter(f => f.startsWith("tingstudio_backup_") && f.endsWith(".json"))
+      .sort()
+      .reverse();
+    const MAX_BACKUPS = 10;
+    for (let i = MAX_BACKUPS; i < backupFiles.length; i++) {
+      try {
+        fs.unlinkSync(path.join(BACKUP_DIR, backupFiles[i]));
+      } catch {}
+    }
 
     return {
       fileName: path.basename(outputFile),

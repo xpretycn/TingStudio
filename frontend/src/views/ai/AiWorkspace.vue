@@ -1534,8 +1534,6 @@ const refreshWittyComment = async () => {
     if (cached) {
       wittyComment.value = JSON.parse(cached).comment;
     } else {
-      // 随机选择一条（Phase 2将接入真实API）
-      await new Promise(resolve => setTimeout(resolve, 300)); // 模拟延迟
       const randomComment = FALLBACK_POOL[Math.floor(Math.random() * FALLBACK_POOL.length)];
       wittyComment.value = randomComment;
 
@@ -1862,57 +1860,12 @@ const handleSend = async (confirmed = false) => {
     const errorMessage = error instanceof Error ? error.message : '网络连接异常';
     showErrorToast(`AI 对话失败: ${errorMessage}`);
 
-    console.warn('Falling back to mock response due to:', errorMessage);
-
-    await new Promise(resolve => setTimeout(resolve, 800));
-    const mockResponse = getMockResponse(content);
-
-    let currentIndex = 0;
-    const streamInterval = setInterval(() => {
-      if (currentIndex < mockResponse.length) {
-        streamingContent.value += mockResponse[currentIndex];
-        currentIndex++;
-        autoScrollToBottom();
-      } else {
-        clearInterval(streamInterval);
-
-        messages.value.push({
-          id: (Date.now() + 1).toString(),
-          role: 'assistant',
-          content: mockResponse,
-          timestamp: new Date(),
-          metadata: {
-            model: displayModelName.value,
-            tokens: mockResponse.length,
-            latency: 800
-          },
-          actions: parseActionsFromResponse(mockResponse)
-        });
-
-        streamingContent.value = '';
-        isLoading.value = false;
-        loadSessions();
-      }
-    }, 15);
+    isLoading.value = false;
   }
 };
 
 // 初始化防抖函数（Phase 5 预留，按需启用）
 // debouncedHandleSend = debounce(handleSend, 200)
-
-// 模拟响应（Phase 3替换为真实API）
-const getMockResponse = (query: string): string => {
-  if (query.includes('销量')) {
-    return `根据数据分析，本月销量呈现以下特点：\n\n📊 **总销售额**: ¥2,450,000 (+18% vs 上月)\n📈 **增长最快**: 配方#F2024-088 (+32%)\n⚠️ **需要关注**: 华南地区销量下降5%\n\n建议重点关注华南地区的市场推广策略。`;
-  }
-  if (query.includes('配方')) {
-    return `关于配方的优化建议：\n\n✅ 当前热门配方TOP3已更新\n🔬 建议优化原料配比以降低成本约8%\n📝 可以尝试新建实验配方进行测试\n\n需要我帮你创建新配方吗？`;
-  }
-  if (query.includes('库存')) {
-    return `库存预警信息：\n\n🚨 **紧急**: 维生素C库存仅剩3天用量\n⚠️ **注意**: 蛋白粉库存低于安全线\n✅ **正常**: 其他原料库存充足\n\n建议立即安排维生素C的采购订单。`;
-  }
-  return `收到你的问题："${query}"\n\n作为TingStudio AI助手，我可以帮助你：\n- 分析销售数据和趋势\n- 优化配方和降低成本\n- 管理原料库存\n- 生成各类报告\n\n请告诉我你具体想了解什么？`;
-};
 
 const CLICKABLE_PROMPT_PATTERNS = [
   /查看(改配方|该配方|此配方|配方)(营养成分|营养|成分)/g,
@@ -2415,8 +2368,6 @@ const loadRecentVisits = () => {
 const fetchPendingTasks = async () => {
   tasksLoading.value = true;
   try {
-    // Phase 2对接真实API，这里用mock数据
-    await new Promise(resolve => setTimeout(resolve, 500));
     pendingTasks.value = [];
   } catch (error) {
     console.error('Failed to fetch tasks:', error);
@@ -2446,38 +2397,32 @@ const formatRelativeTime = (date: Date | string): string => {
   return d.toLocaleDateString('zh-CN');
 };
 
-// 数据加载（Phase 2: 对接真实API）
 const fetchDashboardData = async () => {
   try {
     const response = await http.get<unknown, DashboardStatsResponse>('/dashboard/stats', { _logLabel: 'Dashboard Stats' });
 
     dataCards.value = dataCards.value.map((card) => {
       let value: number | null = null;
-      let trend = null;
 
       switch (card.id) {
         case 'formulas':
           value = response.formulas || 0;
-          trend = { direction: 'up' as const, value: '+12%' };
           break;
         case 'materials':
           value = response.materials || 0;
-          trend = { direction: 'up' as const, value: '+5新增' };
           break;
         case 'sales':
           value = response.sales?.revenue || 0;
-          trend = { direction: 'up' as const, value: '+18%' };
           break;
         case 'pending':
           value = response.pendingTasks || 0;
-          trend = null;
           break;
       }
 
       return {
         ...card,
         value,
-        trend,
+        trend: null,
         loading: false
       };
     });
@@ -2488,13 +2433,10 @@ const fetchDashboardData = async () => {
     recordPerformance('errors');
     console.warn('[Dashboard] 使用默认数据作为 fallback');
 
-    // Fallback: 使用默认值显示
-    dataCards.value = dataCards.value.map((card, index) => ({
+    dataCards.value = dataCards.value.map((card) => ({
       ...card,
-      value: [128, 56, 2400000, 3][index],
-      trend: index < 3 ?
-        { direction: index % 2 === 0 ? 'up' as const : 'neutral' as const, value: index === 0 ? '+12%' : index === 1 ? '+5新增' : '+18%' }
-        : null,
+      value: null,
+      trend: null,
       loading: false
     }));
   }

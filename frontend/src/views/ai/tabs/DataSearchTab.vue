@@ -114,7 +114,7 @@
       </div>
 
       <div v-if="searchResult.rows.length === 0" class="no-results">
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-placeholder)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="11" cy="11" r="8" />
           <line x1="21" y1="21" x2="16.65" y2="16.65" />
           <line x1="8" y1="11" x2="14" y2="11" />
@@ -276,7 +276,7 @@ onUnmounted(() => {
     gap: var(--space-2);
     padding: var(--space-2) var(--space-3);
     margin-bottom: 12px;
-    background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+    background: linear-gradient(135deg, var(--color-emerald-50) 0%, var(--color-emerald-50) 100%);
     border: 1px solid var(--color-primary-lightest);
     border-radius: 8px;
     font-size: 12px;
@@ -340,8 +340,8 @@ onUnmounted(() => {
         transition: all 0.2s;
 
         &:hover:not(:disabled) {
-          background: #f1f5f9;
-          border-color: #cbd5e1;
+          background: var(--color-border-light);
+          border-color: var(--color-text-placeholder);
         }
 
         &:disabled {
@@ -387,8 +387,8 @@ onUnmounted(() => {
 
   .search-error {
     padding: 16px;
-    background: #fef2f2;
-    border: 1px solid #fecaca;
+    background: var(--color-danger-bg);
+    border: 1px solid var(--color-danger-border);
     border-radius: 8px;
 
     .error-header {
@@ -430,7 +430,7 @@ onUnmounted(() => {
       border-radius: 10px;
       overflow: hidden;
       margin-bottom: 16px;
-      background: #fff;
+      background: var(--color-bg-container);
 
       .sql-header {
         display: flex;
@@ -443,7 +443,7 @@ onUnmounted(() => {
         transition: background 0.15s;
 
         &:hover {
-          background: #f1f5f9;
+          background: var(--color-border-light);
         }
 
         .sql-header-left {
@@ -474,18 +474,18 @@ onUnmounted(() => {
           font-weight: 500;
 
           &.simple {
-            background: #ecfdf5;
+            background: var(--color-emerald-50);
             color: var(--color-primary-dark);
           }
 
           &.join {
-            background: #eff6ff;
-            color: #2563eb;
+            background: var(--color-info-bg);
+            color: var(--color-info);
           }
 
           &.aggregate {
-            background: #fef3c7;
-            color: #d97706;
+            background: var(--color-warning-bg);
+            color: var(--color-warning);
           }
         }
       }
@@ -500,7 +500,7 @@ onUnmounted(() => {
         font-size: 12px;
         font-family: "Fira Code", "Monaco", "Consolas", monospace;
         color: var(--color-text-primary);
-        background: #fafbfc;
+        background: var(--color-bg-page);
         white-space: pre-wrap;
         word-break: break-all;
         line-height: 1.5;
@@ -532,7 +532,7 @@ onUnmounted(() => {
           font-size: 11px;
           padding: var(--space-0-5) 8px;
           border-radius: 6px;
-          background: #f1f5f9;
+          background: var(--color-border-light);
           color: var(--color-text-secondary);
           font-weight: 500;
         }
@@ -543,7 +543,7 @@ onUnmounted(() => {
       border: 1px solid var(--color-border);
       border-radius: 10px;
       overflow: hidden;
-      background: #fff;
+      background: var(--color-bg-container);
     }
 
     .result-table-container {
@@ -562,13 +562,13 @@ onUnmounted(() => {
         position: sticky;
         top: 0;
         z-index: 1;
-        background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+        background: linear-gradient(135deg, var(--color-emerald-50) 0%, var(--color-emerald-50) 100%);
 
         th {
           padding: var(--space-2-5) var(--space-3);
           text-align: left;
           font-weight: 600;
-          color: #065f46;
+          color: var(--color-emerald-600);
           font-size: 12px;
           letter-spacing: 0.3px;
           border-bottom: 2px solid var(--color-primary-lightest);
@@ -585,12 +585,12 @@ onUnmounted(() => {
           }
 
           &:hover {
-            background: #ecfdf5;
+            background: var(--color-emerald-50);
           }
 
           td {
             padding: var(--space-2) var(--space-3);
-            border-bottom: 1px solid #f1f5f9;
+            border-bottom: 1px solid var(--color-border-light);
             color: var(--color-text-primary);
             line-height: 1.5;
             max-width: 320px;
@@ -621,7 +621,7 @@ onUnmounted(() => {
 
       .no-results-hint {
         font-size: 12px;
-        color: #94a3b8;
+        color: var(--color-text-placeholder);
       }
     }
   }

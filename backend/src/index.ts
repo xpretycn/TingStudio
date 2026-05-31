@@ -17,6 +17,7 @@ import { initializeLLMAgentService } from "./services/ai/agent/index.js";
 import { registerAllTools } from "./services/ai/agent/toolRegistration.js";
 import { parseResultCleanupService } from "./services/parseResultCleanupService.js";
 import { loadThresholdsFromConfig } from "./services/ratioFactorValidator.js";
+import { startBackupScheduler } from "./services/backupScheduler.js";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -94,6 +95,8 @@ function initializeApp(): void {
       registerAllTools();
 
       parseResultCleanupService.startScheduledCleanup();
+
+      startBackupScheduler();
 
       loadThresholdsFromConfig().then(thresholds => {
         console.log(`[Startup] ✓ Ratio validation thresholds loaded: normal [${thresholds.normalLow}, ${thresholds.normalHigh}]`);

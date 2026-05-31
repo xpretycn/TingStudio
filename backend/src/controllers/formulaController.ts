@@ -1,7 +1,7 @@
 // 配方管理控制器
 import { Request, Response } from "express";
 import crypto from "crypto";
-import { query } from "../config/database-better-sqlite3.js";
+import { query, transaction } from "../config/database-better-sqlite3.js";
 import {
   generateId,
   now,
@@ -236,95 +236,77 @@ export async function createFormula(req: any, res: Response) {
       return;
     }
 
-    await query(
-      `INSERT INTO formulas (id, code, name, salesman_id, salesman_name, materials_json, finished_weight, ratio_factor, supplement_ratio_factor, packaging_price, other_price, profit_margin, description, preparation_method, original_name, original_weight, parse_result_id, created_by, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        id,
-        code,
-        name,
-        salesmanId,
-        salesman.name,
-        JSON.stringify(materialItems),
-        finishedWeight || 0,
-        ratioFactor ?? 0.18,
-        supRatio,
-        packagingPrice ?? 0,
-        otherPrice ?? 0,
-        profitMargin ?? 20,
-        description,
-        preparationMethod || null,
-        originalName || null,
-        originalWeight != null ? originalWeight : null,
-        parseResultId || null,
-        userId,
-        now(),
-      ],
-    );
-
-    // 如果有关联的解析结果，更新解析记录的关联状态
-    if (parseResultId) {
-      try {
-        await query(
-          `UPDATE parse_results SET is_linked = 1, linked_formula_id = ?, updated_at = ? WHERE id = ?`,
-          [id, now(), parseResultId]
-        );
-        console.log(`[Formula] 已关联解析记录: ${parseResultId} -> 配方: ${id}`);
-      } catch (linkErr) {
-        console.warn(`[Formula] 更新解析记录关联失败:`, linkErr);
-      }
-    }
-
-    // 自动创建初始版本
-    const versionId = generateId();
-
-    // 查询当时原料库的基价，记录到快照中
-    const matIds = materialItems.map((m: any) => m.materialId).filter(Boolean);
-    let basePriceMap: Record<string, number> = {};
-    if (matIds.length > 0) {
-      const placeholders = matIds.map(() => "?").join(",");
-      const [priceRows]: any[] = await query(
-        `SELECT id, unit_price FROM materials WHERE id IN (${placeholders})`,
-        matIds,
-      );
-      for (const r of priceRows) {
-        if (r.unit_price != null) basePriceMap[r.id] = Number(r.unit_price);
-      }
-    }
-    const snapshotMaterials = materialItems.map((m: any) => ({
-      ...m,
-      basePriceAtSave: basePriceMap[m.materialId] ?? null,
-    }));
-
-    const initialStatus = req.user.role === "admin" ? "published" : "draft";
-
-    await query(
-      `INSERT INTO formula_versions (version_id, formula_id, version_number, version_name, snapshot_json, status, is_current, ratio_factor, supplement_ratio_factor, created_by, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?)`,
-      [
-        versionId,
-        id,
-        "v1.0",
-        `首次创建，含${materialItems.length}种原料`,
-        JSON.stringify({
+    transaction(() => {
+      query(
+        `INSERT INTO formulas (id, code, name, salesman_id, salesman_name, materials_json, finished_weight, ratio_factor, supplement_ratio_factor, packaging_price, other_price, profit_margin, description, preparation_method, original_name, original_weight, parse_result_id, created_by, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          id,
           code,
           name,
           salesmanId,
-          salesmanName: salesman.name,
-          materials: snapshotMaterials,
-          finishedWeight,
-          ratioFactor,
-          supplementRatioFactor: supRatio,
-          packagingPrice: packagingPrice ?? 0,
-          otherPrice: otherPrice ?? 0,
-          profitMargin: profitMargin ?? 20,
+          salesman.name,
+          JSON.stringify(materialItems),
+          finishedWeight || 0,
+          ratioFactor ?? 0.18,
+          supRatio,
+          packagingPrice ?? 0,
+          otherPrice ?? 0,
+          profitMargin ?? 20,
           description,
-          preparationMethod: preparationMethod || null,
-          formulaData: {
+          preparationMethod || null,
+          originalName || null,
+          originalWeight != null ? originalWeight : null,
+          parseResultId || null,
+          userId,
+          now(),
+        ],
+      );
+
+      if (parseResultId) {
+        try {
+          query(
+            `UPDATE parse_results SET is_linked = 1, linked_formula_id = ?, updated_at = ? WHERE id = ?`,
+            [id, now(), parseResultId]
+          );
+        } catch {}
+      }
+
+      const versionId = generateId();
+
+      const matIds = materialItems.map((m: any) => m.materialId).filter(Boolean);
+      let basePriceMap: Record<string, number> = {};
+      if (matIds.length > 0) {
+        const placeholders = matIds.map(() => "?").join(",");
+        const [priceRows]: any[] = query(
+          `SELECT id, unit_price FROM materials WHERE id IN (${placeholders})`,
+          matIds,
+        );
+        for (const r of priceRows) {
+          if (r.unit_price != null) basePriceMap[r.id] = Number(r.unit_price);
+        }
+      }
+      const snapshotMaterials = materialItems.map((m: any) => ({
+        ...m,
+        basePriceAtSave: basePriceMap[m.materialId] ?? null,
+      }));
+
+      const initialStatus = req.user.role === "admin" ? "published" : "draft";
+
+      query(
+        `INSERT INTO formula_versions (version_id, formula_id, version_number, version_name, snapshot_json, status, is_current, ratio_factor, supplement_ratio_factor, created_by, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?)`,
+        [
+          versionId,
+          id,
+          "v1.0",
+          `首次创建，含${materialItems.length}种原料`,
+          JSON.stringify({
             code,
             name,
             salesmanId,
-            materials,
+            salesmanName: salesman.name,
+            materials: snapshotMaterials,
             finishedWeight,
             ratioFactor,
             supplementRatioFactor: supRatio,
@@ -333,15 +315,29 @@ export async function createFormula(req: any, res: Response) {
             profitMargin: profitMargin ?? 20,
             description,
             preparationMethod: preparationMethod || null,
-          },
-        }),
-        initialStatus,
-        ratioFactor ?? 0.18,
-        supRatio,
-        userId,
-        now(),
-      ],
-    );
+            formulaData: {
+              code,
+              name,
+              salesmanId,
+              materials,
+              finishedWeight,
+              ratioFactor,
+              supplementRatioFactor: supRatio,
+              packagingPrice: packagingPrice ?? 0,
+              otherPrice: otherPrice ?? 0,
+              profitMargin: profitMargin ?? 20,
+              description,
+              preparationMethod: preparationMethod || null,
+            },
+          }),
+          initialStatus,
+          ratioFactor ?? 0.18,
+          supRatio,
+          userId,
+          now(),
+        ],
+      );
+    });
 
     const [[formula]]: any[][] = await query("SELECT * FROM formulas WHERE id = ?", [id]);
     res.status(201).json(success(rowToCamelCase(formula), "配方创建成功"));
@@ -425,124 +421,117 @@ export async function updateFormula(req: any, res: Response) {
       }
     }
 
-    await query(
-      `UPDATE formulas SET name=?, salesman_id=?, salesman_name=?, materials_json=?, finished_weight=?, ratio_factor=?, supplement_ratio_factor=?, packaging_price=?, other_price=?, profit_margin=?, description=?, preparation_method=? WHERE id=?`,
-      [
-        name || oldFormula.name,
-        salesmanId || oldFormula.salesman_id,
-        salesmanName,
-        JSON.stringify(materialItems),
-        finishedWeight !== undefined ? finishedWeight : oldFormula.finished_weight,
-        ratioFactor !== undefined ? ratioFactor : oldFormula.ratio_factor,
-        supplementRatioFactor !== undefined ? supplementRatioFactor : oldFormula.supplement_ratio_factor,
-        packagingPrice !== undefined ? packagingPrice : oldFormula.packaging_price,
-        otherPrice !== undefined ? otherPrice : oldFormula.other_price,
-        profitMargin !== undefined ? profitMargin : oldFormula.profit_margin,
-        description !== undefined ? description : oldFormula.description,
-        preparationMethod !== undefined ? preparationMethod : oldFormula.preparation_method,
-        id,
-      ],
-    );
-
-    // 创建新版本（如果材料有变更）
-    if (materials) {
-      // 将旧当前版本设为非当前
-      await query("UPDATE formula_versions SET is_current = 0 WHERE formula_id = ?", [id]);
-
-      // 获取最新版本号
-      const [versions]: any[] = await query(
-        `SELECT version_number FROM formula_versions WHERE formula_id = ? ORDER BY created_at DESC LIMIT 1`,
-        [id],
+    transaction(() => {
+      query(
+        `UPDATE formulas SET name=?, salesman_id=?, salesman_name=?, materials_json=?, finished_weight=?, ratio_factor=?, supplement_ratio_factor=?, packaging_price=?, other_price=?, profit_margin=?, description=?, preparation_method=? WHERE id=?`,
+        [
+          name || oldFormula.name,
+          salesmanId || oldFormula.salesman_id,
+          salesmanName,
+          JSON.stringify(materialItems),
+          finishedWeight !== undefined ? finishedWeight : oldFormula.finished_weight,
+          ratioFactor !== undefined ? ratioFactor : oldFormula.ratio_factor,
+          supplementRatioFactor !== undefined ? supplementRatioFactor : oldFormula.supplement_ratio_factor,
+          packagingPrice !== undefined ? packagingPrice : oldFormula.packaging_price,
+          otherPrice !== undefined ? otherPrice : oldFormula.other_price,
+          profitMargin !== undefined ? profitMargin : oldFormula.profit_margin,
+          description !== undefined ? description : oldFormula.description,
+          preparationMethod !== undefined ? preparationMethod : oldFormula.preparation_method,
+          id,
+        ],
       );
 
-      const lastVersionNum = versions.length > 0 ? versions[0].version_number : "v0.0";
-      const match = lastVersionNum.match(/v(\d+)\.(\d+)/);
-      let newVersionNum = "v1.1";
-      if (match) {
-        newVersionNum = `v${match[1]}.${parseInt(match[2]) + 1}`;
-      }
+      if (materials) {
+        query("UPDATE formula_versions SET is_current = 0 WHERE formula_id = ?", [id]);
 
-      const versionId = generateId();
-      // 计算变更
-      const oldMaterials = JSON.parse(oldFormula.materials_json || "[]");
-      const changes = buildChanges(oldMaterials, materialItems, oldFormula, {
-        name,
-        salesmanId,
-        salesmanName,
-        finishedWeight,
-        ratioFactor,
-        supplementRatioFactor,
-        description,
-      });
-      // 空变更存 null，避免前端误显示"查看变更"按钮后展示"暂无变更记录"
-      const changesJsonStr = changes.length > 0 ? JSON.stringify(changes) : null;
-
-      // 查询当时原料库的基价，记录到快照中（报价历史快照）
-      const matIds = materialItems.map((m: any) => m.materialId).filter(Boolean);
-      let basePriceMap: Record<string, number> = {};
-      if (matIds.length > 0) {
-        const placeholders = matIds.map(() => "?").join(",");
-        const [priceRows]: any[] = await query(
-          `SELECT id, unit_price FROM materials WHERE id IN (${placeholders})`,
-          matIds,
+        const [versions]: any[] = query(
+          `SELECT version_number FROM formula_versions WHERE formula_id = ? ORDER BY created_at DESC LIMIT 1`,
+          [id],
         );
-        for (const r of priceRows) {
-          if (r.unit_price != null) basePriceMap[r.id] = Number(r.unit_price);
+
+        const lastVersionNum = versions.length > 0 ? versions[0].version_number : "v0.0";
+        const match = lastVersionNum.match(/v(\d+)\.(\d+)/);
+        let newVersionNum = "v1.1";
+        if (match) {
+          newVersionNum = `v${match[1]}.${parseInt(match[2]) + 1}`;
         }
-      }
-      const snapshotMaterials = materialItems.map((m: any) => ({
-        ...m,
-        basePriceAtSave: basePriceMap[m.materialId] ?? null,
-      }));
 
-      // 将旧的当前版本设为非当前（保留其原始状态，不归档）
-      await query(`UPDATE formula_versions SET is_current = 0 WHERE formula_id = ? AND is_current = 1`, [id]);
+        const versionId = generateId();
+        const oldMaterials = JSON.parse(oldFormula.materials_json || "[]");
+        const changes = buildChanges(oldMaterials, materialItems, oldFormula, {
+          name,
+          salesmanId,
+          salesmanName,
+          finishedWeight,
+          ratioFactor,
+          supplementRatioFactor,
+          description,
+        });
+        const changesJsonStr = changes.length > 0 ? JSON.stringify(changes) : null;
 
-      await query(
-        `INSERT INTO formula_versions (version_id, formula_id, version_number, version_name, version_reason, changes_json, snapshot_json, status, is_current, ratio_factor, supplement_ratio_factor, created_by, created_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, 'draft', 1, ?, ?, ?, ?)`,
-        [
-          versionId,
-          id,
-          newVersionNum,
-          buildVersionName(changes, materialItems.length),
-          versionReason?.trim() || null,
-          changesJsonStr,
-          JSON.stringify({
-            name: name || oldFormula.name,
-            salesmanId: salesmanId || oldFormula.salesman_id,
-            salesmanName,
-            materials: snapshotMaterials,
-            finishedWeight: finishedWeight !== undefined ? finishedWeight : oldFormula.finished_weight,
-            ratioFactor: ratioFactor !== undefined ? ratioFactor : oldFormula.ratio_factor,
-            supplementRatioFactor:
-              supplementRatioFactor !== undefined ? supplementRatioFactor : oldFormula.supplement_ratio_factor,
-            packagingPrice: packagingPrice !== undefined ? packagingPrice : oldFormula.packaging_price,
-            otherPrice: otherPrice !== undefined ? otherPrice : oldFormula.other_price,
-            profitMargin: profitMargin !== undefined ? profitMargin : oldFormula.profit_margin,
-            description: description !== undefined ? description : oldFormula.description,
-            preparationMethod: preparationMethod !== undefined ? preparationMethod : oldFormula.preparation_method,
-            formulaData: {
-              name,
-              salesmanId,
-              materials,
-              finishedWeight,
-              ratioFactor,
-              supplementRatioFactor,
+        const matIds = materialItems.map((m: any) => m.materialId).filter(Boolean);
+        let basePriceMap: Record<string, number> = {};
+        if (matIds.length > 0) {
+          const placeholders = matIds.map(() => "?").join(",");
+          const [priceRows]: any[] = query(
+            `SELECT id, unit_price FROM materials WHERE id IN (${placeholders})`,
+            matIds,
+          );
+          for (const r of priceRows) {
+            if (r.unit_price != null) basePriceMap[r.id] = Number(r.unit_price);
+          }
+        }
+        const snapshotMaterials = materialItems.map((m: any) => ({
+          ...m,
+          basePriceAtSave: basePriceMap[m.materialId] ?? null,
+        }));
+
+        query(
+          `INSERT INTO formula_versions (version_id, formula_id, version_number, version_name, version_reason, changes_json, snapshot_json, status, is_current, ratio_factor, supplement_ratio_factor, created_by, created_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, 'draft', 1, ?, ?, ?, ?)`,
+          [
+            versionId,
+            id,
+            newVersionNum,
+            buildVersionName(changes, materialItems.length),
+            versionReason?.trim() || null,
+            changesJsonStr,
+            JSON.stringify({
+              name: name || oldFormula.name,
+              salesmanId: salesmanId || oldFormula.salesman_id,
+              salesmanName,
+              materials: snapshotMaterials,
+              finishedWeight: finishedWeight !== undefined ? finishedWeight : oldFormula.finished_weight,
+              ratioFactor: ratioFactor !== undefined ? ratioFactor : oldFormula.ratio_factor,
+              supplementRatioFactor:
+                supplementRatioFactor !== undefined ? supplementRatioFactor : oldFormula.supplement_ratio_factor,
               packagingPrice: packagingPrice !== undefined ? packagingPrice : oldFormula.packaging_price,
               otherPrice: otherPrice !== undefined ? otherPrice : oldFormula.other_price,
               profitMargin: profitMargin !== undefined ? profitMargin : oldFormula.profit_margin,
-              description,
-              preparationMethod: preparationMethod || null,
-            },
-          }),
-          ratioFactor !== undefined ? ratioFactor : oldFormula.ratio_factor,
-          supplementRatioFactor !== undefined ? supplementRatioFactor : oldFormula.supplement_ratio_factor,
-          userId,
-          now(),
-        ],
-      );
-    }
+              description: description !== undefined ? description : oldFormula.description,
+              preparationMethod: preparationMethod !== undefined ? preparationMethod : oldFormula.preparation_method,
+              formulaData: {
+                name,
+                salesmanId,
+                materials,
+                finishedWeight,
+                ratioFactor,
+                supplementRatioFactor,
+                packagingPrice: packagingPrice !== undefined ? packagingPrice : oldFormula.packaging_price,
+                otherPrice: otherPrice !== undefined ? otherPrice : oldFormula.other_price,
+                profitMargin: profitMargin !== undefined ? profitMargin : oldFormula.profit_margin,
+                description,
+                preparationMethod: preparationMethod || null,
+              },
+            }),
+            ratioFactor !== undefined ? ratioFactor : oldFormula.ratio_factor,
+            supplementRatioFactor !== undefined ? supplementRatioFactor : oldFormula.supplement_ratio_factor,
+            userId,
+            now(),
+          ],
+        );
+      }
+    });
 
     const [[formula]]: any[][] = await query("SELECT * FROM formulas WHERE id = ?", [id]);
     res.json(success(rowToCamelCase(formula), "配方更新成功"));

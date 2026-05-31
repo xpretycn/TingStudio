@@ -84,8 +84,8 @@ export async function updateRole(id: string, data: UpdateRoleData): Promise<Role
     throw new Error("NOT_FOUND");
   }
 
-  const isSystem = (existing as Record<string, unknown>).is_system;
-  if (isSystem === 1 && (existing as Record<string, unknown>).role_key === "admin") {
+  const isSystem = existing.is_system;
+  if (isSystem === 1 && existing.role_key === "admin") {
     throw new Error("FORBIDDEN");
   }
 
@@ -106,7 +106,7 @@ export async function deleteRole(id: string): Promise<void> {
     throw new Error("NOT_FOUND");
   }
 
-  if ((existing as Record<string, unknown>).is_system === 1) {
+  if (existing.is_system === 1) {
     throw new Error("FORBIDDEN");
   }
 

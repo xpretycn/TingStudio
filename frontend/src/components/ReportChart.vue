@@ -91,9 +91,9 @@ onUnmounted(() => {
 @use '@/assets/styles/variables.scss' as *;
 
 .chart-container {
-  background: #fff;
+  background: var(--color-bg-container);
   border-radius: var(--radius-4xl);
-  border: 1px solid #f1f5f9;
+  border: 1px solid var(--color-border-light);
   box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
   overflow: hidden;
   padding: 20px;

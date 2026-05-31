@@ -196,6 +196,7 @@ $overlay-white-65: rgba(255, 255, 255, 0.65);
 $overlay-white-70: rgba(255, 255, 255, 0.7);
 $overlay-white-80: rgba(255, 255, 255, 0.8);
 $overlay-white-82: rgba(255, 255, 255, 0.82);
+$overlay-white-85: rgba(255, 255, 255, 0.85);
 $overlay-white-90: rgba(255, 255, 255, 0.9);
 $overlay-white-92: rgba(255, 255, 255, 0.92);
 $overlay-white-98: rgba(255, 255, 255, 0.98);
@@ -350,6 +351,7 @@ $overlay-emerald-35: rgba(16, 185, 129, 0.35);
 $overlay-emerald-40: rgba(16, 185, 129, 0.4);
 $overlay-emerald-50: rgba(16, 185, 129, 0.5);
 $overlay-emerald-55: rgba(16, 185, 129, 0.55);
+$overlay-emerald-60: rgba(16, 185, 129, 0.6);
 
 // Emerald 阴影
 $shadow-emerald-sm: 0 4px 12px -2px rgba(16, 185, 129, 0.12);
@@ -357,8 +359,139 @@ $shadow-emerald-md: 0 4px 12px -2px rgba(16, 185, 129, 0.2);
 $shadow-emerald-lg:
   0 6px 24px rgba(16, 185, 129, 0.28),
   0 2px 8px rgba(16, 185, 129, 0.12);
+$shadow-emerald-xl:
+  0 14px 20px -3px rgba(16, 185, 129, 0.35);
 
 // Emerald 渐变
 $gradient-emerald: linear-gradient(135deg, $emerald-500, $emerald-teal);
 $gradient-emerald-strong: linear-gradient(135deg, $emerald-500, $emerald-600);
 $gradient-emerald-light: linear-gradient(90deg, $emerald-500, $emerald-400, $emerald-500);
+
+// ─── 15. Extended Semantic Palette ──────────────────────────
+// Tailwind-equivalent shades for formulas module UI states
+
+// 15.1 Green (success/positive states — 纯绿色系，区别于 emerald 青绿色)
+$green-50: #f0fdf4;
+$green-100: #dcfce7;
+$green-200: #bbf7d0;
+$green-300: #86efac;
+$green-400: #4ade80;
+$green-500: #22c55e;
+$green-600: #16a34a;
+$green-700: #15803d;
+$green-800: #166534;
+
+// 15.2 Amber (warning/caution states)
+$amber-50: #fffbeb;
+$amber-100: #fef3c7;
+$amber-200: #fde68a;
+$amber-300: #fcd34d;
+$amber-400: #fbbf24;
+$amber-600: #d97706;
+$amber-700: #b45309;
+$amber-800: #92400e;
+
+// 15.3 Red (danger/error states)
+$red-50: #fef2f2;
+$red-100: #fee2e2;
+$red-200: #fecaca;
+$red-300: #fca5a5;
+$red-400: #f87171;
+$red-800: #991b1b;
+
+// 15.4 Rose (required markers, accent)
+$rose-500: #f43f5e;
+
+// 15.5 Orange (high-warning states)
+$orange-50: #fff7ed;
+$orange-200: #fed7aa;
+$orange-500: #f97316;
+$orange-600: #ea580c;
+
+// 15.6 Blue (info states, action buttons)
+$blue-50: #eff6ff;
+$blue-100: #dbeafe;
+$blue-200: #bfdbfe;
+$blue-400: #60a5fa;
+$blue-500: #3b82f6;
+$blue-600: #2563eb;
+
+// 15.7 Purple/Indigo (supplement type, accent)
+$purple-50: #faf5ff;
+$purple-100: #f3e8ff;
+$purple-200: #e9d5ff;
+$purple-300: #d8b4fe;
+$purple-400: #c084fc;
+$indigo-500: #6366f1;
+$purple-500: #a855f7;
+$violet-600: #7c3aed;
+$violet-800: #5b21b6;
+
+// 15.8 Yellow (gradient accents)
+$yellow-500: #eab308;
+
+// 15.9 Sky (gradient accents)
+$sky-50: #f0f9ff;
+$sky-100: #e0f2fe;
+$sky-500: #0ea5e9;
+
+// 15.10 Stone (muted text)
+$stone-500: #78716c;
+
+// 15.11 Slate overlays
+$overlay-slate-200-30: rgba(226, 232, 240, 0.30);
+$overlay-slate-50-30: rgba(248, 250, 252, 0.30);
+$overlay-slate-50-50: rgba(248, 250, 252, 0.50);
+$overlay-slate-50-60: rgba(248, 250, 252, 0.60);
+
+// 15.12 Rose overlays
+$overlay-rose-08: rgba(244, 63, 94, 0.08);
+$overlay-rose-15: rgba(244, 63, 94, 0.15);
+$overlay-rose-20: rgba(244, 63, 94, 0.2);
+$overlay-rose-35: rgba(244, 63, 94, 0.35);
+
+// 15.13 Amber overlays
+$overlay-amber-04: rgba(217, 119, 6, 0.04);
+$overlay-amber-08: rgba(245, 158, 11, 0.08);
+$overlay-amber-10: rgba(245, 158, 11, 0.10);
+$overlay-amber-15: rgba(245, 158, 11, 0.15);
+$overlay-amber-20: rgba(245, 158, 11, 0.2);
+$overlay-amber-25: rgba(217, 119, 6, 0.25);
+$overlay-amber-35: rgba(245, 158, 11, 0.35);
+$overlay-amber-45: rgba(217, 119, 6, 0.45);
+$overlay-amber-100-50: rgba(254, 243, 199, 0.5);
+
+// 15.14 Blue overlays
+$overlay-blue-25: rgba(59, 130, 246, 0.25);
+$overlay-blue-35: rgba(59, 130, 246, 0.35);
+
+// 15.15 Green overlays
+$overlay-green-12: rgba(34, 197, 94, 0.12);
+$overlay-green-30: rgba(34, 197, 94, 0.3);
+
+// 15.16 Red overlays
+$overlay-red-10: rgba(239, 68, 68, 0.1);
+$overlay-red-15: rgba(239, 68, 68, 0.15);
+
+// 15.17 Orange overlays
+$overlay-orange-08: rgba(234, 88, 12, 0.08);
+
+// 15.18 Emerald extended overlays
+$overlay-emerald-100-30: rgba(209, 250, 229, 0.30);
+$overlay-emerald-100-35: rgba(209, 250, 229, 0.35);
+$overlay-emerald-100-50: rgba(209, 250, 229, 0.50);
+$overlay-emerald-100-55: rgba(209, 250, 229, 0.55);
+$overlay-emerald-100-60: rgba(209, 250, 229, 0.60);
+
+// 15.19 Common gradients (formulas module)
+$gradient-emerald-card: linear-gradient(135deg, $emerald-50 0%, $green-50 100%);
+$gradient-green-icon: linear-gradient(135deg, $green-500, $green-600);
+$gradient-collapsed-bar: linear-gradient(135deg, $green-50 0%, $emerald-50 50%, $sky-50 100%);
+$gradient-collapsed-bar-hover: linear-gradient(135deg, $green-100 0%, $brand-primary-bg 50%, $sky-100 100%);
+$gradient-blue-btn: linear-gradient(135deg, $blue-400 0%, $blue-500 100%);
+$gradient-blue-btn-hover: linear-gradient(135deg, #6ee7b7 0%, $emerald-400 100%);
+$gradient-amber-badge: linear-gradient(135deg, $amber-100, $amber-200);
+$gradient-amber-badge-hover: linear-gradient(135deg, $amber-200, $amber-300);
+$gradient-amber-toolbar: linear-gradient(135deg, $amber-50, $amber-100);
+$gradient-emerald-btn: linear-gradient(135deg, $emerald-400 0%, $emerald-500 100%);
+$gradient-emerald-btn-hover: linear-gradient(135deg, $emerald-400 0%, $emerald-400 100%);

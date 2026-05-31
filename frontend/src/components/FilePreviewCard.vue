@@ -223,7 +223,7 @@ onMounted(() => {
 
 <style scoped lang="scss">
 .file-preview-card {
-  background: #fff;
+  background: var(--color-bg-container);
   border-radius: 2rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06);
   overflow: hidden;
@@ -235,7 +235,7 @@ onMounted(() => {
   align-items: center;
   justify-content: space-between;
   padding: 16px 24px;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid var(--color-border-light);
 
   .toolbar-left {
     display: flex;
@@ -270,7 +270,7 @@ onMounted(() => {
     padding: 4px 12px;
     border: 1px solid var(--color-border);
     border-radius: 6px;
-    background: #fff;
+    background: var(--color-bg-container);
     color: var(--color-text-secondary);
     font-size: 12px;
     cursor: pointer;
@@ -281,7 +281,7 @@ onMounted(() => {
     }
 
     &--active {
-      background: #ecfdf5;
+      background: var(--color-success-bg);
       border-color: var(--color-primary);
       color: var(--color-primary-dark);
       font-weight: 600;
@@ -296,7 +296,7 @@ onMounted(() => {
     height: 32px;
     border: 1px solid var(--color-border);
     border-radius: 8px;
-    background: #fff;
+    background: var(--color-bg-container);
     color: var(--color-text-secondary);
     cursor: pointer;
     transition: all 0.2s;
@@ -343,10 +343,10 @@ onMounted(() => {
     align-items: center;
     gap: var(--space-1-5);
     padding: 8px 16px;
-    background: #fffbeb;
-    color: #b45309;
+    background: var(--color-warning-bg);
+    color: var(--color-warning-dark);
     font-size: 12px;
-    border-bottom: 1px solid #fef3c7;
+    border-bottom: 1px solid var(--color-warning-bg);
   }
 
   .table-scroll {
@@ -400,11 +400,11 @@ onMounted(() => {
     }
 
     .row-even td {
-      background: #fafbfc;
+      background: var(--color-bg-page);
     }
 
     tbody tr:hover td {
-      background: #ecfdf5;
+      background: var(--color-success-bg);
     }
   }
 }

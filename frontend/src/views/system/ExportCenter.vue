@@ -24,140 +24,17 @@
         </div>
 
         <div class="export-body">
-          <div class="export-nav" :class="{ 'export-nav--collapsed': navCollapsed }">
-            <div v-for="tab in exportTabs" :key="tab.value" class="nav-tab" :class="{ active: activeTab === tab.value }"
-              :title="navCollapsed ? tab.label : ''" role="tab" tabindex="0" @click="switchTab(tab.value)"
+          <div class="export-tabs-bar">
+            <div v-for="tab in exportTabs" :key="tab.value" class="horizontal-tab" :class="{ active: activeTab === tab.value }"
+              role="tab" tabindex="0" @click="switchTab(tab.value)"
               @keydown.enter="switchTab(tab.value)">
-              <svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              <svg class="horizontal-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                 stroke-linecap="round" stroke-linejoin="round" v-html="tab.iconPath"></svg>
-              <span class="nav-tab-label">{{ tab.label }}</span>
+              <span class="horizontal-tab-label">{{ tab.label }}</span>
             </div>
-            <button type="button" class="nav-collapse-btn" @click="toggleNavCollapse"
-              :title="navCollapsed ? '展开导航' : '折叠导航'" aria-label="切换导航折叠状态">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round"
-                :style="{ transform: navCollapsed ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s ease' }">
-                <polyline points="15 18 9 12 15 6" />
-              </svg>
-            </button>
           </div>
           <div class="export-content">
             <div class="export-tab-panels">
-              <!-- ====== Tab: 仪表盘 ====== -->
-              <div v-show="activeTab === 'dashboard'" class="tab-panel">
-                <div class="panel-inner">
-                  <section class="dashboard-grid">
-                    <div v-for="(card, idx) in dashboardCards" :key="card.label" class="stat-card"
-                      :style="{ animationDelay: `${(idx + 1) * 0.1}s` }">
-                      <div class="stat-card-top">
-                        <div class="stat-icon" :style="{ background: card.iconBg, color: card.iconColor }">
-                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                            stroke-linecap="round" stroke-linejoin="round" v-html="card.iconPath"></svg>
-                        </div>
-                        <span class="stat-badge" :style="{ color: card.badgeColor, background: card.badgeBg }">{{ card.badge }}</span>
-                      </div>
-                      <p class="stat-label">{{ card.label }}</p>
-                      <p class="stat-value">{{ card.value }} <small class="stat-unit">{{ card.unit }}</small></p>
-                    </div>
-                  </section>
-
-                  <div v-if="isAdmin" class="quick-export-section">
-                    <div class="section-header-enhanced">
-                      <div class="section-title-group">
-                        <svg class="section-title-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                          <polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/>
-                          <polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/>
-                        </svg>
-                        <h4 class="section-title-text">快捷导出</h4>
-                      </div>
-                    </div>
-                    <div class="quick-export-grid">
-                      <button class="quick-export-card" @click="handleQuickExport('weekly-report')">
-                        <div class="quick-export-icon" style="background: #EFF6FF; color: #3B82F6;">
-                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
-                          </svg>
-                        </div>
-                        <span class="quick-export-label">周报导出</span>
-                      </button>
-                      <button class="quick-export-card" @click="handleQuickExport('monthly-report')">
-                        <div class="quick-export-icon" style="background: #F5F3FF; color: #8B5CF6;">
-                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
-                          </svg>
-                        </div>
-                        <span class="quick-export-label">月报导出</span>
-                      </button>
-                    </div>
-                  </div>
-
-                  <div class="activity-card activity-card--timeline" style="margin-top: 24px;">
-                    <div class="activity-header">
-                      <h4 class="activity-title">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"
-                          stroke-linecap="round" stroke-linejoin="round">
-                          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-                        </svg>
-                        近期导出动态
-                      </h4>
-                      <div class="activity-nav">
-                        <button class="activity-nav-btn" :disabled="activityPage <= 1" @click="activityPrev" title="上一页">
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                            stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="15 18 9 12 15 6" />
-                          </svg>
-                        </button>
-                        <span class="activity-nav-page">{{ activityPage }} / {{ activityTotalPages }}</span>
-                        <button class="activity-nav-btn" :disabled="activityPage >= activityTotalPages" @click="activityNext"
-                          title="下一页">
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                            stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="9 18 15 12 9 6" />
-                          </svg>
-                        </button>
-                      </div>
-                    </div>
-                    <div class="timeline-list">
-                      <div v-for="(item, index) in pagedActivityItems" :key="index" class="timeline-item"
-                        :class="{ 'timeline-item--last': index === pagedActivityItems.length - 1 }">
-                        <div class="timeline-dot" :class="'timeline-dot--' + item.type">
-                          <span class="timeline-dot-inner"></span>
-                        </div>
-                        <div class="timeline-content">
-                          <p class="timeline-title">{{ item.title }}</p>
-                          <p class="timeline-desc" v-html="item.desc"></p>
-                          <span class="timeline-time">{{ item.time }}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div class="activity-card activity-card--assistant" style="margin-top: 24px;">
-                    <div class="assistant-content">
-                      <h4 class="assistant-title">导出小助手</h4>
-                      <p class="assistant-desc">{{ assistantMessage }}</p>
-                      <button class="assistant-btn" @click="activeTab = 'export'">查看导出任务</button>
-                      <div class="assistant-footer">
-                        <div class="assistant-avatar-group">
-                          <span class="assistant-avatar">导</span>
-                          <span class="assistant-avatar">出</span>
-                          <span class="assistant-avatar">中</span>
-                        </div>
-                        <span class="assistant-hint">{{ exportStore.jobs?.length || 0 }} 个任务在列</span>
-                      </div>
-                    </div>
-                    <svg class="assistant-bg-icon" width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                      stroke-width="1">
-                      <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
-                      <polyline points="14 2 14 8 20 8" />
-                      <line x1="16" y1="13" x2="8" y2="13" />
-                      <line x1="16" y1="17" x2="8" y2="17" />
-                      <polyline points="10 9 9 9 8 9" />
-                    </svg>
-                  </div>
-                </div>
-              </div>
-
               <!-- ====== Tab: 导出任务 ====== -->
               <div v-show="activeTab === 'export'" class="tab-panel">
                 <div class="panel-inner">
@@ -745,18 +622,11 @@ const exportStore = useExportStore();
 const authStore = useAuthStore();
 const isAdmin = computed(() => authStore.user?.role === 'admin');
 const initialized = ref(false);
-const activeTab = ref('dashboard');
-const navCollapsed = ref(false);
-
-function toggleNavCollapse() {
-  navCollapsed.value = !navCollapsed.value;
-}
+const activeTab = ref('export');
 
 const exportTabs = [
-  { value: 'dashboard', label: '仪表盘', iconPath: '<path d="M3 3v18h18"/><path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"/>' },
   { value: 'export', label: '导出任务', iconPath: '<path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>' },
   { value: 'templates', label: '模板管理', iconPath: '<rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/>' },
-  { value: 'share', label: '分享管理', iconPath: '<path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/>' },
   { value: 'config', label: '导出配置', iconPath: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/>' },
 ];
 
@@ -832,9 +702,9 @@ const dashboardCards = computed(() => {
       unit: '个',
       badge: s.completedJobs > 0 ? `已完成 ${s.completedJobs}` : '—',
       badgeColor: 'var(--color-primary)',
-      badgeBg: '#ECFDF5',
-      iconBg: '#EFF6FF',
-      iconColor: '#3B82F6',
+      badgeBg: 'var(--color-emerald-50)',
+      iconBg: 'var(--color-info-bg)',
+      iconColor: 'var(--color-info)',
       iconPath: '<path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>',
     },
     {
@@ -843,8 +713,8 @@ const dashboardCards = computed(() => {
       unit: '条',
       badge: s.activeShares > 0 ? `${s.activeShares} 活跃` : '无',
       badgeColor: 'var(--color-primary)',
-      badgeBg: '#ECFDF5',
-      iconBg: '#ECFDF5',
+      badgeBg: 'var(--color-emerald-50)',
+      iconBg: 'var(--color-emerald-50)',
       iconColor: 'var(--color-primary)',
       iconPath: '<path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/>',
     },
@@ -854,8 +724,8 @@ const dashboardCards = computed(() => {
       unit: '个',
       badge: '可用',
       badgeColor: 'var(--color-text-placeholder)',
-      badgeBg: '#F1F5F9',
-      iconBg: '#FFFBEB',
+      badgeBg: 'var(--color-bg-hover)',
+      iconBg: 'var(--color-warning-bg)',
       iconColor: 'var(--color-warning)',
       iconPath: '<rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/>',
     },
@@ -865,8 +735,8 @@ const dashboardCards = computed(() => {
       unit: '',
       badge: s.failedJobs > 0 ? `${s.failedJobs} 失败` : '正常',
       badgeColor: s.failedJobs > 0 ? 'var(--color-danger)' : 'var(--color-primary)',
-      badgeBg: s.failedJobs > 0 ? '#FEE2E2' : 'var(--color-primary-bg)',
-      iconBg: '#ECFDF5',
+      badgeBg: s.failedJobs > 0 ? 'var(--color-danger-bg)' : 'var(--color-primary-bg)',
+      iconBg: 'var(--color-emerald-50)',
       iconColor: 'var(--color-primary)',
       iconPath: '<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>',
     },
@@ -1325,7 +1195,7 @@ async function fetchPreviewDataList() {
         label: item.name,
       }));
     } else {
-      previewDataList.value = [{ id: 'sample', label: '示例数据（周报/月报）' }];
+      previewDataList.value = [];
     }
     if (previewDataList.value.length > 0) {
       previewDataIndex.value = 0;
@@ -1384,13 +1254,13 @@ function getCategoryIcon(cat: string): string {
 }
 
 function getCategoryIconBg(cat: string): string {
-  const bgs: Record<string, string> = { formula: '#EFF6FF', material: '#FEF3C7', 'weekly-report': '#ECFDF5', 'monthly-report': '#F3E8FF' };
-  return bgs[cat] || '#F5F5F5';
+  const bgs: Record<string, string> = { formula: 'var(--color-info-bg)', material: 'var(--color-warning-bg)', 'weekly-report': 'var(--color-emerald-50)', 'monthly-report': 'var(--color-info-bg)' };
+  return bgs[cat] || 'var(--color-bg-hover)';
 }
 
 function getCategoryIconColor(cat: string): string {
-  const colors: Record<string, string> = { formula: '#3B82F6', material: '#F59E0B', 'weekly-report': '#10B981', 'monthly-report': '#8B5CF6' };
-  return colors[cat] || '#666';
+  const colors: Record<string, string> = { formula: 'var(--color-info)', material: 'var(--color-warning)', 'weekly-report': 'var(--color-emerald)', 'monthly-report': 'var(--color-info)' };
+  return colors[cat] || 'var(--color-text-secondary)';
 }
 
 const exportConfig = ref({
@@ -1504,12 +1374,12 @@ onBeforeUnmount(() => {
   .content-card {
     border-radius: var(--radius-5xl) !important;
     overflow: hidden;
-    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
-    border: 1px solid var(--color-bg-page) !important;
+    box-shadow: var(--shadow-elevation-1);
+    border: 1px solid var(--color-border-light) !important;
     transition: all $transition-slow;
 
     &:hover {
-      box-shadow: 0 10px 28px rgba(15, 23, 42, 0.09), 0 2px 6px rgba(15, 23, 42, 0.04);
+      box-shadow: var(--shadow-lg);
     }
 
     :deep(.t-card__body) {
@@ -1518,105 +1388,60 @@ onBeforeUnmount(() => {
 
     .export-body {
       display: flex;
+      flex-direction: column;
       gap: 0;
       min-height: 480px;
     }
 
-    .export-nav {
-      width: 170px;
-      flex-shrink: 0;
-      padding: 24px 12px;
-      transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), padding 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    .export-tabs-bar {
       display: flex;
-      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 20px 32px 0;
+      background: transparent;
+      border-bottom: 1px solid var(--color-bg-page);
+    }
+
+    .horizontal-tab {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-1-5);
+      padding: 10px 20px;
+      border-radius: 10px 10px 0 0;
+      cursor: pointer;
+      transition: all $transition-normal;
+      color: var(--color-text-secondary);
+      font-size: 14px;
+      font-weight: 500;
+      border: 1px solid transparent;
+      border-bottom: none;
+      margin-bottom: -1px;
+      white-space: nowrap;
       position: relative;
+      z-index: 1;
 
-      &--collapsed {
-        width: 56px;
-        padding: 24px var(--space-1-5);
-
-        .nav-tab {
-          justify-content: center;
-          padding: 12px 0;
-
-          .nav-tab-icon {
-            width: 24px;
-            height: 24px;
-          }
-
-          .nav-tab-label {
-            display: none;
-          }
-        }
-
-        .nav-collapse-btn {
-          margin: 0 auto;
-          width: 36px;
-          height: 36px;
-        }
+      .horizontal-tab-icon {
+        width: 18px;
+        height: 18px;
+        flex-shrink: 0;
       }
 
-      .nav-tab {
-        display: flex;
-        align-items: center;
-        gap: var(--space-2-5);
-        padding: 12px 16px;
-        border-radius: 12px;
-        cursor: pointer;
-        transition: all $transition-normal;
-        color: var(--color-text-secondary);
-        font-size: 14px;
-        font-weight: 500;
-        border: 1px solid transparent;
-        margin-bottom: 8px;
-        white-space: nowrap;
-        overflow: hidden;
-
-        .nav-tab-icon {
-          width: 18px;
-          height: 18px;
-          flex-shrink: 0;
-          transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        &:hover {
-          background: #f1f5f9;
-          color: var(--color-text-primary);
-        }
-
-        &.active {
-          background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
-          color: white;
-          box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
-          border-color: transparent;
-          font-weight: 600;
-        }
-
-        .nav-tab-label {
-          flex: 1;
-          transition: opacity 0.2s ease;
-        }
+      &:hover {
+        color: var(--color-text-primary);
+        background: rgba(0, 0, 0, 0.03);
       }
 
-      .nav-collapse-btn {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 32px;
-        height: 32px;
-        border-radius: 8px;
-        border: 1px solid var(--color-border);
-        background: transparent;
-        color: var(--color-text-placeholder);
-        cursor: pointer;
-        margin-top: 12px;
-        transition: all 0.2s;
+      &.active {
+        color: var(--color-primary);
+        background: var(--color-bg-container);
+        border-color: var(--color-border);
+        border-bottom-color: var(--color-bg-container);
+        font-weight: 600;
+        box-shadow: var(--shadow-xs);
+      }
 
-        &:hover {
-          background: #f1f5f9;
-          color: var(--color-text-primary);
-          border-color: #cbd5e1;
-        }
+      .horizontal-tab-label {
+        flex: 1;
       }
     }
 
@@ -1688,7 +1513,7 @@ onBeforeUnmount(() => {
 
         &:focus-within {
           width: 300px;
-          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.08);
+          box-shadow: 0 0 0 3px var(--color-info-bg);
         }
 
         :deep(.t-input__inner) {
@@ -1708,19 +1533,19 @@ onBeforeUnmount(() => {
     gap: 24px;
 
     .stat-card {
-      background: #fff;
+      background: var(--color-bg-container);
       padding: 24px;
       border-radius: var(--radius-4xl);
-      border: 1px solid #fff;
-      box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
+      border: 1px solid var(--color-border-light);
+      box-shadow: var(--shadow-sm);
       transition: all $transition-slow;
       animation: dashboard-fade-in 0.5s ease forwards;
       opacity: 0;
 
       &:hover {
-        border-color: #DBEAFE;
+        border-color: var(--color-info-border);
         transform: translateY(-2px);
-        box-shadow: 0 14px 36px -6px rgba(0, 0, 0, 0.08);
+        box-shadow: var(--shadow-md);
       }
 
       .stat-card-top {
@@ -1757,7 +1582,7 @@ onBeforeUnmount(() => {
       .stat-value {
         font-size: 24px;
         font-weight: 700;
-        color: #0F172A;
+        color: var(--color-text-primary);
         line-height: 1.2;
 
         .stat-unit {
@@ -1784,14 +1609,14 @@ onBeforeUnmount(() => {
       gap: 16px;
       padding: 20px 24px;
       border-radius: 14px;
-      border: 1px solid #f1f5f9;
-      background: #fff;
+      border: 1px solid var(--color-border-light);
+      background: var(--color-bg-container);
       cursor: pointer;
-      transition: all 0.25s ease;
+      transition: all $transition-normal;
 
       &:hover {
         border-color: var(--color-primary);
-        box-shadow: 0 4px 16px rgba(16, 185, 129, 0.1);
+        box-shadow: var(--shadow-brand-sm);
         transform: translateY(-2px);
       }
 
@@ -1832,7 +1657,7 @@ onBeforeUnmount(() => {
     .section-title-text {
       font-size: 16px;
       font-weight: 600;
-      color: #0F172A;
+      color: var(--color-text-primary);
       margin: 0;
     }
 
@@ -1847,10 +1672,10 @@ onBeforeUnmount(() => {
   .edit-hint {
     font-size: 12px;
     color: var(--color-warning);
-    background: #FFFBEB;
+    background: var(--color-warning-bg);
     padding: 4px var(--space-2-5);
-    border-radius: 6px;
-    border: 1px solid #FDE68A;
+    border-radius: $radius-sm;
+    border: 1px solid var(--color-warning-light);
   }
 
   .config-display-grid {
@@ -1861,22 +1686,22 @@ onBeforeUnmount(() => {
 
     .config-info-card {
       background: var(--color-bg-page);
-      border: 1px solid #f1f5f9;
+      border: 1px solid var(--color-border-light);
       border-radius: 12px;
       padding: 20px;
       transition: all 0.2s;
 
       &:hover {
         border-color: var(--color-border);
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        box-shadow: var(--shadow-xs);
       }
 
       &.is-editing {
-        background: #F0F7FF;
-        border-color: #93C5FD;
+        background: var(--color-info-bg);
+        border-color: var(--color-info-border);
 
         .config-info-label {
-          color: #2563EB;
+          color: var(--color-info-dark);
         }
       }
     }
@@ -1890,7 +1715,7 @@ onBeforeUnmount(() => {
     .config-info-value {
       font-size: 22px;
       font-weight: 700;
-      color: #0F172A;
+      color: var(--color-text-primary);
 
       .config-info-unit {
         font-size: 14px;
@@ -1926,25 +1751,25 @@ onBeforeUnmount(() => {
       gap: var(--space-1-5);
       padding: var(--space-1-5) var(--space-3-5);
       border: 1px solid var(--color-border);
-      border-radius: 8px;
-      background: #fff;
+      border-radius: $radius-md;
+      background: var(--color-bg-container);
       color: var(--color-text-secondary);
       font-size: 13px;
       cursor: pointer;
       transition: all 0.2s;
 
       &:hover {
-        border-color: #3B82F6;
-        color: #3B82F6;
-        background: #F0F7FF;
+        border-color: var(--color-info);
+        color: var(--color-info);
+        background: var(--color-info-bg);
       }
     }
 
     .cancel-btn {
       padding: 8px 20px;
       border: 1px solid var(--color-border);
-      border-radius: 8px;
-      background: #fff;
+      border-radius: $radius-md;
+      background: var(--color-bg-container);
       color: var(--color-text-secondary);
       font-size: 14px;
       cursor: pointer;
@@ -1962,16 +1787,16 @@ onBeforeUnmount(() => {
       gap: var(--space-1-5);
       padding: 8px 20px;
       border: none;
-      border-radius: 8px;
-      background: #3B82F6;
-      color: #fff;
+      border-radius: $radius-md;
+      background: var(--color-primary);
+      color: $text-white;
       font-size: 14px;
       font-weight: 500;
       cursor: pointer;
       transition: all 0.2s;
 
       &:hover:not(:disabled) {
-        background: #2563EB;
+        background: var(--color-primary-light);
       }
 
       &:disabled {
@@ -1990,7 +1815,7 @@ onBeforeUnmount(() => {
     align-items: center;
     gap: 16px;
     padding: 20px 24px;
-    background: linear-gradient(135deg, var(--color-bg-page) 0%, #f1f5f9 100%);
+    background: linear-gradient(135deg, var(--color-bg-page) 0%, var(--color-border-light) 100%);
     border-radius: 16px;
     margin-bottom: 20px;
     border: 1px solid var(--color-border);
@@ -2013,7 +1838,7 @@ onBeforeUnmount(() => {
       border: none;
       padding: 0 0 16px 0;
       margin-bottom: 0;
-      border-bottom: 1px solid #f1f5f9;
+      border-bottom: 1px solid var(--color-border-light);
     }
 
     .form-bar-title {
@@ -2031,17 +1856,17 @@ onBeforeUnmount(() => {
     border-radius: 10px;
     border: none;
     background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
-    color: #fff;
+    color: var(--color-text-white);
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
     transition: all $transition-normal;
     white-space: nowrap;
-    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
+    box-shadow: $shadow-brand-sm;
 
     &:hover:not(:disabled) {
       transform: translateY(-1px);
-      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+      box-shadow: 0 4px 14px $overlay-emerald-35;
     }
 
     &:active:not(:disabled) {
@@ -2055,9 +1880,11 @@ onBeforeUnmount(() => {
   }
 
   .table-area {
-    background: #fff;
-    border-radius: 16px;
-    border: 1px solid #f1f5f9;
+    background: var(--color-bg-container);
+    border-radius: $radius-3xl;
+    border: 1px solid var(--color-border-light);
+    border-radius: $radius-3xl;
+    border: 1px solid var(--color-border-light);
     overflow: hidden;
 
     :deep(.t-table) {
@@ -2078,7 +1905,7 @@ onBeforeUnmount(() => {
     }
 
     :deep(.t-table__body tr:hover td) {
-      background: #f0fdf4;
+      background: var(--color-emerald-50);
     }
   }
 
@@ -2098,18 +1925,18 @@ onBeforeUnmount(() => {
 
     &--download {
       background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
-      color: #fff;
+      color: var(--color-text-white);
       border-color: transparent;
-      box-shadow: 0 1px 4px rgba(16, 185, 129, 0.2);
+      box-shadow: $shadow-brand-xs;
 
       &:hover {
         transform: translateY(-1px);
-        box-shadow: 0 3px 10px rgba(16, 185, 129, 0.35);
+        box-shadow: 0 3px 10px $overlay-emerald-35;
       }
 
       &:active {
         transform: translateY(0);
-        box-shadow: 0 1px 3px rgba(16, 185, 129, 0.2);
+        box-shadow: $shadow-brand-xs;
       }
     }
 
@@ -2117,7 +1944,7 @@ onBeforeUnmount(() => {
       background: transparent;
       color: var(--color-primary-dark);
       border-color: var(--color-primary-lighter);
-      background-color: #ecfdf5;
+      background-color: var(--color-emerald-50);
 
       &:hover:not(:disabled) {
         background: var(--color-primary-bg);
@@ -2138,17 +1965,17 @@ onBeforeUnmount(() => {
     &--retry {
       background: transparent;
       color: var(--color-warning);
-      border-color: #fcd34d;
-      background-color: #fffbeb;
+      border-color: var(--color-warning-light);
+      background-color: var(--color-warning-bg);
 
       &:hover:not(:disabled) {
-        background: #fef3c7;
+        background: var(--color-warning-medium);
         border-color: var(--color-warning);
-        color: #d97706;
+        color: var(--color-warning-dark);
       }
 
       &:active:not(:disabled) {
-        background: #fde68a;
+        background: var(--color-warning-light);
       }
 
       &:disabled {
@@ -2199,7 +2026,7 @@ onBeforeUnmount(() => {
 
       &:hover:not(.pagination-btn--disabled):not(.pagination-btn--active) {
         background-color: var(--color-bg-page);
-        border-color: #cbd5e1;
+        border-color: var(--color-border);
         color: var(--color-text-primary);
       }
 
@@ -2212,10 +2039,10 @@ onBeforeUnmount(() => {
 
       &.pagination-btn--active {
         background-color: var(--color-primary);
-        color: #fff;
+        color: $text-white;
         border-color: var(--color-primary);
         font-weight: 600;
-        box-shadow: 0 1px 3px rgba(16, 185, 129, 0.25);
+        box-shadow: 0 1px 3px $overlay-emerald-25;
         pointer-events: none;
       }
     }
@@ -2233,19 +2060,19 @@ onBeforeUnmount(() => {
   }
 
   .activity-card {
-    background-color: #fff;
+    background-color: var(--color-bg-container);
     border-radius: var(--radius-4xl);
     padding: 32px;
-    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
-    border: 1px solid var(--color-bg-page);
+    box-shadow: var(--shadow-elevation-1);
+    border: 1px solid var(--color-border-light);
 
     &--assistant {
       background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
       border: none;
-      color: #fff;
+      color: var(--color-text-white);
       position: relative;
       overflow: hidden;
-      box-shadow: 0 20px 25px -5px rgba(16, 185, 129, 0.15), 0 10px 10px -5px rgba(16, 185, 129, 0.04);
+      box-shadow: $overlay-emerald-15 $overlay-emerald-04;
     }
   }
 
@@ -2278,23 +2105,23 @@ onBeforeUnmount(() => {
       width: 28px;
       height: 28px;
       border-radius: 8px;
-      border: 1.5px solid rgba(59, 130, 246, 0.2);
-      background: rgba(59, 130, 246, 0.04);
-      color: #3B82F6;
+      border: 1.5px solid var(--color-info-medium);
+      background: var(--color-info-bg);
+      color: var(--color-info);
       cursor: pointer;
       transition: all $transition-fast;
 
       &:hover:not(:disabled) {
-        background: rgba(59, 130, 246, 0.12);
-        border-color: #3B82F6;
-        color: #2563eb;
+        background: var(--color-info-medium);
+        border-color: var(--color-info);
+        color: var(--color-info-dark);
       }
 
       &:disabled {
         opacity: 0.3;
         cursor: not-allowed;
-        border-color: rgba(148, 163, 184, 0.15);
-        color: #cbd5e1;
+        border-color: var(--color-border-light);
+        color: var(--color-text-placeholder);
         background: transparent;
       }
     }
@@ -2327,7 +2154,7 @@ onBeforeUnmount(() => {
       top: 28px;
       bottom: 0;
       width: 2px;
-      background: #f1f5f9;
+      background: var(--color-border-light);
     }
 
     &--last {
@@ -2346,18 +2173,18 @@ onBeforeUnmount(() => {
     margin-top: var(--space-0-5);
 
     &--success {
-      background: #ecfdf5;
+      background: var(--color-emerald-50);
       color: var(--color-primary);
     }
 
     &--warning {
-      background: #fffbeb;
+      background: var(--color-warning-bg);
       color: var(--color-warning);
     }
 
     &--info {
-      background: #eff6ff;
-      color: #3b82f6;
+      background: var(--color-info-bg);
+      color: var(--color-info);
     }
 
     .timeline-dot-inner {
@@ -2415,10 +2242,10 @@ onBeforeUnmount(() => {
     align-items: center;
     gap: var(--space-1-5);
     padding: var(--space-2-5) var(--space-6);
-    border-radius: 12px;
-    border: 2px solid rgba(255, 255, 255, 0.35);
-    background: rgba(255, 255, 255, 0.15);
-    color: #fff;
+    border-radius: $radius-2xl;
+    border: 2px solid var(--overlay-white-35);
+    background: var(--overlay-white-15);
+    color: var(--color-text-white);
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
@@ -2426,8 +2253,8 @@ onBeforeUnmount(() => {
     transition: all $transition-normal;
 
     &:hover {
-      background: rgba(255, 255, 255, 0.25);
-      border-color: rgba(255, 255, 255, 0.5);
+      background: $overlay-white-25;
+      border-color: $overlay-white-50;
       transform: translateY(-1px);
     }
   }
@@ -2438,7 +2265,7 @@ onBeforeUnmount(() => {
     justify-content: space-between;
     margin-top: 24px;
     padding-top: 16px;
-    border-top: 1px solid rgba(255, 255, 255, 0.15);
+    border-top: 1px solid $overlay-white-15;
   }
 
   .assistant-avatar-group {
@@ -2450,7 +2277,7 @@ onBeforeUnmount(() => {
     width: 28px;
     height: 28px;
     border-radius: 8px;
-    background: rgba(255, 255, 255, 0.2);
+    background: var(--overlay-white-20);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -2693,15 +2520,22 @@ onBeforeUnmount(() => {
   gap: var(--space-1-5);
   padding: var(--space-1-5) var(--space-4);
   background: var(--color-primary);
-  color: #fff;
+  color: $text-white;
   border: none;
   border-radius: var(--radius-md);
   font-size: var(--font-size-sm);
   font-weight: 500;
   cursor: pointer;
-  transition: background 0.2s ease;
+  transition: all $transition-fast;
+
   &:hover {
-    background: var(--color-primary-hover);
+    background: var(--color-primary-light);
+    box-shadow: $shadow-brand-sm;
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
   }
 }
 

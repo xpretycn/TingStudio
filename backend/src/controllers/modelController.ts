@@ -4,6 +4,139 @@ import { getDb } from "../config/database-better-sqlite3.js";
 import { aiService } from "../services/ai/AIService.js";
 import { fixGarbledText, generateId, success } from "../utils/helpers.js";
 import crypto from "node:crypto";
+import Database from "better-sqlite3";
+
+interface ModelRow {
+  id: string;
+  provider: string;
+  name: string;
+  base_url: string;
+  api_key: string;
+  model: string;
+  vision_model: string;
+  vision_max_tokens: number | null;
+  description: string;
+  supports_vision: number;
+  health_status: string;
+  health_check_interval_days: number;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+  today_calls: number;
+  today_tokens: number;
+  month_tokens: number;
+}
+
+interface CountRow {
+  cnt: number;
+}
+
+interface MaxSortRow {
+  max_sort: number | null;
+}
+
+interface FallbackRow {
+  provider: string;
+  fallback_provider: string;
+}
+
+interface UsageLogRow {
+  id: string;
+  provider: string;
+  model: string;
+  call_type: string;
+  prompt_tokens: number;
+  completion_tokens: number;
+  total_tokens: number;
+  latency_ms: number | null;
+  status: string;
+  error_message: string | null;
+  request_summary: string | null;
+  user_id: string | null;
+  fallback_from: string | null;
+  application_name: string | null;
+  application_location: string | null;
+  created_at: string;
+  model_name?: string;
+}
+
+interface AlertConfigRow {
+  id: string;
+  model_id: string;
+  provider: string;
+  model_name: string;
+  daily_call_limit: number;
+  monthly_token_limit: number;
+  warning_threshold: number;
+  critical_threshold: number;
+  enabled: number;
+}
+
+interface AlertRecordRow {
+  id: string;
+  provider: string;
+  model_name: string;
+  alert_type: string;
+  level: string;
+  threshold: number;
+  current_value: number;
+  limit_value: number;
+  message: string;
+  is_read: number;
+  created_at: string;
+}
+
+interface ModelProviderRow {
+  provider: string;
+  name: string;
+  model: string;
+}
+
+interface ActivityItem {
+  type: "success" | "warning" | "error" | "info";
+  title: string;
+  desc: string;
+  time: string;
+  provider?: string;
+}
+
+interface UsageLogSmartRow {
+  id: string;
+  provider: string;
+  model: string;
+  call_type: string;
+  total_tokens: number;
+  latency_ms: number | null;
+  status: string;
+  error_message: string | null;
+  request_summary: string | null;
+  created_at: string;
+}
+
+interface TotalRow {
+  total: number;
+}
+
+interface PromptTemplateRow {
+  id: string;
+  module: string;
+  name: string;
+  type: string;
+  system_prompt: string;
+  user_prompt_template: string;
+  variables: string;
+  is_default: number;
+  enabled: number;
+  sort_order: number;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+interface UsageRecordRow {
+  id: string;
+  user_id: string | null;
+}
 
 function isAdmin(req: Request): boolean {
   return (req as AuthRequest).user?.role === "admin";
@@ -39,13 +172,13 @@ export async function getModelsList(req: Request, res: Response) {
       ORDER BY m.sort_order
     `,
       )
-      .all();
+      .all() as ModelRow[];
 
     const totalModels = models.length;
-    const configuredModels = models.filter((m: any) => m.api_key).length;
-    const todayCalls = models.reduce((sum: number, m: any) => sum + (m.today_calls || 0), 0);
-    const todayTokens = models.reduce((sum: number, m: any) => sum + (m.today_tokens || 0), 0);
-    const monthTokens = models.reduce((sum: number, m: any) => sum + (m.month_tokens || 0), 0);
+    const configuredModels = models.filter((m) => m.api_key).length;
+    const todayCalls = models.reduce((sum, m) => sum + (m.today_calls || 0), 0);
+    const todayTokens = models.reduce((sum, m) => sum + (m.today_tokens || 0), 0);
+    const monthTokens = models.reduce((sum, m) => sum + (m.month_tokens || 0), 0);
 
     const activeAlerts = (
       db
@@ -54,18 +187,18 @@ export async function getModelsList(req: Request, res: Response) {
       SELECT COUNT(*) as cnt FROM ai_alert_records WHERE is_read = 0
     `,
         )
-        .get() as any
+        .get() as CountRow
     ).cnt;
 
     const fallbackRows = db
       .prepare("SELECT provider, fallback_provider FROM ai_fallback_configs WHERE enabled = 1")
-      .all();
+      .all() as FallbackRow[];
     const fallbackMap: Record<string, string> = {};
-    for (const row of fallbackRows as any[]) {
+    for (const row of fallbackRows) {
       fallbackMap[row.provider] = row.fallback_provider;
     }
 
-    const result = models.map((m: any) => ({
+    const result = models.map((m) => ({
       id: m.id,
       provider: m.provider,
       name: m.name,
@@ -94,8 +227,8 @@ export async function getModelsList(req: Request, res: Response) {
         stats: { totalModels, configuredModels, todayCalls, todayTokens, monthTokens, activeAlerts },
       },
     });
-  } catch (error: any) {
-    res.status(500).json({ success: false, message: error.message });
+  } catch (error: unknown) {
+    res.status(500).json({ success: false, message: error instanceof Error ? error.message : "操作失败" });
   }
 }
 
@@ -133,7 +266,7 @@ export async function createModel(req: Request, res: Response) {
 
     const id = `model_${crypto.randomUUID().slice(0, 8)}`;
     const now = new Date().toISOString();
-    const maxSort = (db.prepare("SELECT MAX(sort_order) as max_sort FROM ai_models").get() as any)?.max_sort || 0;
+    const maxSort = (db.prepare("SELECT MAX(sort_order) as max_sort FROM ai_models").get() as MaxSortRow)?.max_sort || 0;
 
     db.prepare(
       `
@@ -178,8 +311,8 @@ export async function createModel(req: Request, res: Response) {
       success: true,
       data: { id, provider, name, apiKeyConfigured: !!apiKey, model, healthStatus: "unknown", createdAt: now },
     });
-  } catch (error: any) {
-    res.status(500).json({ success: false, message: error.message });
+  } catch (error: unknown) {
+    res.status(500).json({ success: false, message: error instanceof Error ? error.message : "操作失败" });
   }
 }
 
@@ -192,7 +325,7 @@ export async function updateModel(req: Request, res: Response) {
 
     const { id } = req.params;
     const db = getDb();
-    const existing = db.prepare("SELECT * FROM ai_models WHERE id = ?").get(id);
+    const existing = db.prepare("SELECT * FROM ai_models WHERE id = ?").get(id) as ModelRow | undefined;
     if (!existing) {
       res.status(404).json({ success: false, message: "模型不存在" });
       return;
@@ -213,7 +346,7 @@ export async function updateModel(req: Request, res: Response) {
     const now = new Date().toISOString();
 
     const sets: string[] = [];
-    const vals: any[] = [];
+    const vals: unknown[] = [];
 
     if (name !== undefined) {
       sets.push("name = ?");
@@ -261,7 +394,6 @@ export async function updateModel(req: Request, res: Response) {
     }
 
     if (fallbackProvider !== undefined) {
-      const row = existing as any;
       db.prepare("DELETE FROM ai_fallback_configs WHERE model_id = ? AND fallback_priority = 1").run(id);
       if (fallbackProvider) {
         db.prepare(
@@ -269,15 +401,15 @@ export async function updateModel(req: Request, res: Response) {
           INSERT INTO ai_fallback_configs (id, model_id, provider, fallback_provider, fallback_priority, enabled, created_at, updated_at)
           VALUES (?, ?, ?, ?, 1, 1, ?, ?)
         `,
-        ).run(`fb_${crypto.randomUUID().slice(0, 8)}`, id, row.provider, fallbackProvider, now, now);
+        ).run(`fb_${crypto.randomUUID().slice(0, 8)}`, id, existing.provider, fallbackProvider, now, now);
       }
     }
 
     aiService.reloadModels();
 
     res.json({ success: true, data: { id, updatedAt: now } });
-  } catch (error: any) {
-    res.status(500).json({ success: false, message: error.message });
+  } catch (error: unknown) {
+    res.status(500).json({ success: false, message: error instanceof Error ? error.message : "操作失败" });
   }
 }
 
@@ -290,15 +422,14 @@ export async function deleteModel(req: Request, res: Response) {
 
     const { id } = req.params;
     const db = getDb();
-    const existing = db.prepare("SELECT * FROM ai_models WHERE id = ?").get(id);
+    const existing = db.prepare("SELECT * FROM ai_models WHERE id = ?").get(id) as ModelRow | undefined;
     if (!existing) {
       res.status(404).json({ success: false, message: "模型不存在" });
       return;
     }
 
-    const row = existing as any;
     const usageCount = (
-      db.prepare("SELECT COUNT(*) as cnt FROM ai_usage_logs WHERE provider = ?").get(row.provider) as any
+      db.prepare("SELECT COUNT(*) as cnt FROM ai_usage_logs WHERE provider = ?").get(existing.provider) as CountRow
     ).cnt;
     if (usageCount > 0) {
       res.status(400).json({ success: false, message: "该模型存在调用记录，无法移除" });
@@ -312,8 +443,8 @@ export async function deleteModel(req: Request, res: Response) {
     aiService.reloadModels();
 
     res.json({ success: true, message: "模型已移除" });
-  } catch (error: any) {
-    res.status(500).json({ success: false, message: error.message });
+  } catch (error: unknown) {
+    res.status(500).json({ success: false, message: error instanceof Error ? error.message : "操作失败" });
   }
 }
 
@@ -326,7 +457,7 @@ export async function testModelConnection(req: Request, res: Response) {
 
     const { id } = req.params;
     const db = getDb();
-    const model = db.prepare("SELECT * FROM ai_models WHERE id = ?").get(id) as any;
+    const model = db.prepare("SELECT * FROM ai_models WHERE id = ?").get(id) as ModelRow | undefined;
     if (!model) {
       res.status(404).json({ success: false, message: "模型不存在" });
       return;
@@ -359,9 +490,10 @@ export async function testModelConnection(req: Request, res: Response) {
         success: true,
         data: { provider: model.provider, status: "healthy", latencyMs, model: model.model, testedAt: now },
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       const latencyMs = Date.now() - start;
       const now = new Date().toISOString();
+      const errMsg = err instanceof Error ? err.message : "连接失败";
 
       db.prepare(
         "UPDATE ai_models SET health_status = 'unhealthy', last_health_check = ?, last_health_latency = ?, updated_at = ? WHERE id = ?",
@@ -372,15 +504,15 @@ export async function testModelConnection(req: Request, res: Response) {
         INSERT INTO ai_health_records (id, provider, status, latency_ms, error_message, checked_at)
         VALUES (?, ?, 'unhealthy', ?, ?, ?)
       `,
-      ).run(`hr_${crypto.randomUUID().slice(0, 8)}`, model.provider, latencyMs, err.message, now);
+      ).run(`hr_${crypto.randomUUID().slice(0, 8)}`, model.provider, latencyMs, errMsg, now);
 
       res.json({
         success: false,
-        data: { provider: model.provider, status: "unhealthy", error: err.message, testedAt: now },
+        data: { provider: model.provider, status: "unhealthy", error: errMsg, testedAt: now },
       });
     }
-  } catch (error: any) {
-    res.status(500).json({ success: false, message: error.message });
+  } catch (error: unknown) {
+    res.status(500).json({ success: false, message: error instanceof Error ? error.message : "操作失败" });
   }
 }
 
@@ -388,7 +520,7 @@ export async function getModelVersions(req: Request, res: Response) {
   try {
     const { id } = req.params;
     const db = getDb();
-    const model = db.prepare("SELECT * FROM ai_models WHERE id = ?").get(id) as any;
+    const model = db.prepare("SELECT * FROM ai_models WHERE id = ?").get(id) as ModelRow | undefined;
     if (!model) {
       res.status(404).json({ success: false, message: "模型不存在" });
       return;
@@ -400,8 +532,8 @@ export async function getModelVersions(req: Request, res: Response) {
       success: true,
       data: { provider: model.provider, currentModel: model.model, versions },
     });
-  } catch (error: any) {
-    res.status(500).json({ success: false, message: error.message });
+  } catch (error: unknown) {
+    res.status(500).json({ success: false, message: error instanceof Error ? error.message : "操作失败" });
   }
 }
 
@@ -410,13 +542,13 @@ export async function getModelVersionsByProvider(req: Request, res: Response) {
     const { provider } = req.params;
     const versions = aiService.getAvailableVersions(provider);
     const db = getDb();
-    const model = db.prepare("SELECT model FROM ai_models WHERE provider = ?").get(provider) as any;
+    const model = db.prepare("SELECT model FROM ai_models WHERE provider = ?").get(provider) as ModelProviderRow | undefined;
     res.json({
       success: true,
       data: { provider, currentModel: model?.model || "", versions },
     });
-  } catch (error: any) {
-    res.status(500).json({ success: false, message: error.message });
+  } catch (error: unknown) {
+    res.status(500).json({ success: false, message: error instanceof Error ? error.message : "操作失败" });
   }
 }
 
@@ -441,8 +573,8 @@ export async function switchModelVersion(req: Request, res: Response) {
     db.prepare("UPDATE ai_models SET model = ?, updated_at = datetime('now') WHERE provider = ?").run(model, provider);
     aiService.reloadModels();
     res.json({ success: true, data: { provider, model } });
-  } catch (error: any) {
-    res.status(500).json({ success: false, message: error.message });
+  } catch (error: unknown) {
+    res.status(500).json({ success: false, message: error instanceof Error ? error.message : "操作失败" });
   }
 }
 
@@ -455,7 +587,7 @@ export async function getUsageStats(req: Request, res: Response) {
     const end = (endDate as string) || new Date().toISOString().slice(0, 10);
 
     let providerFilter = "";
-    const params: any[] = [start, end];
+    const params: unknown[] = [start, end];
 
     if (provider) {
       providerFilter = "AND provider = ?";
@@ -494,7 +626,7 @@ export async function getUsageStats(req: Request, res: Response) {
       )
       .all(...params);
 
-    const trendParams: any[] = [start, end];
+    const trendParams: unknown[] = [start, end];
     let trendFilter = "";
     if (provider) {
       trendFilter = "AND provider = ?";
@@ -513,15 +645,15 @@ export async function getUsageStats(req: Request, res: Response) {
       )
       .all(...trendParams);
 
-    const allProviders = db.prepare("SELECT provider, name FROM ai_models ORDER BY sort_order").all() as any[];
+    const allProviders = db.prepare("SELECT provider, name FROM ai_models ORDER BY sort_order").all() as ModelProviderRow[];
     const trendMap: Record<string, Record<string, number>> = {};
-    for (const row of trendRows as any[]) {
+    for (const row of trendRows as { date: string; provider: string; tokens: number }[]) {
       if (!trendMap[row.date]) trendMap[row.date] = {};
       trendMap[row.date][row.provider] = row.tokens;
     }
 
     const trend = Object.entries(trendMap).map(([date, tokens]) => {
-      const entry: Record<string, any> = { date };
+      const entry: Record<string, string | number> = { date };
       for (const p of allProviders) {
         entry[p.provider] = tokens[p.provider] || 0;
       }
@@ -544,8 +676,8 @@ export async function getUsageStats(req: Request, res: Response) {
       .all(start, end);
 
     res.json({ success: true, data: { summary, trend, distribution } });
-  } catch (error: any) {
-    res.status(500).json({ success: false, message: error.message });
+  } catch (error: unknown) {
+    res.status(500).json({ success: false, message: error instanceof Error ? error.message : "操作失败" });
   }
 }
 
@@ -555,7 +687,7 @@ export async function getUsageLogs(req: Request, res: Response) {
     const { page = "1", pageSize = "20", provider, callType, status, startDate, endDate } = req.query;
 
     const conditions: string[] = [];
-    const params: any[] = [];
+    const params: unknown[] = [];
 
     if (provider) {
       conditions.push("l.provider = ?");
@@ -585,7 +717,7 @@ export async function getUsageLogs(req: Request, res: Response) {
 
     const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
-    const total = (db.prepare(`SELECT COUNT(*) as cnt FROM ai_usage_logs l ${where}`).get(...params) as any).cnt;
+    const total = (db.prepare(`SELECT COUNT(*) as cnt FROM ai_usage_logs l ${where}`).get(...params) as CountRow).cnt;
 
     const offset = (parseInt(page as string) - 1) * parseInt(pageSize as string);
     const logs = db
@@ -599,12 +731,12 @@ export async function getUsageLogs(req: Request, res: Response) {
       LIMIT ? OFFSET ?
     `,
       )
-      .all(...params, parseInt(pageSize as string), offset);
+      .all(...params, parseInt(pageSize as string), offset) as UsageLogRow[];
 
     res.json({
       success: true,
       data: {
-        logs: logs.map((l: any) => ({
+        logs: logs.map((l) => ({
           id: l.id,
           provider: l.provider,
           modelName: l.model_name || l.provider,
@@ -628,8 +760,8 @@ export async function getUsageLogs(req: Request, res: Response) {
         pageSize: parseInt(pageSize as string),
       },
     });
-  } catch (error: any) {
-    res.status(500).json({ success: false, message: error.message });
+  } catch (error: unknown) {
+    res.status(500).json({ success: false, message: error instanceof Error ? error.message : "操作失败" });
   }
 }
 
@@ -648,8 +780,8 @@ export async function getAlertConfigs(req: Request, res: Response) {
       .all();
 
     res.json({ success: true, data: { configs } });
-  } catch (error: any) {
-    res.status(500).json({ success: false, message: error.message });
+  } catch (error: unknown) {
+    res.status(500).json({ success: false, message: error instanceof Error ? error.message : "操作失败" });
   }
 }
 
@@ -682,8 +814,8 @@ export async function updateAlertConfig(req: Request, res: Response) {
     );
 
     res.json({ success: true, data: { id, updatedAt: now } });
-  } catch (error: any) {
-    res.status(500).json({ success: false, message: error.message });
+  } catch (error: unknown) {
+    res.status(500).json({ success: false, message: error instanceof Error ? error.message : "操作失败" });
   }
 }
 
@@ -693,7 +825,7 @@ export async function getAlertRecords(req: Request, res: Response) {
     const { page = "1", pageSize = "20", level } = req.query;
 
     const conditions: string[] = [];
-    const params: any[] = [];
+    const params: unknown[] = [];
 
     if (level) {
       conditions.push("level = ?");
@@ -702,8 +834,8 @@ export async function getAlertRecords(req: Request, res: Response) {
 
     const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
-    const total = (db.prepare(`SELECT COUNT(*) as cnt FROM ai_alert_records ${where}`).get(...params) as any).cnt;
-    const activeAlerts = (db.prepare(`SELECT COUNT(*) as cnt FROM ai_alert_records WHERE is_read = 0`).get() as any)
+    const total = (db.prepare(`SELECT COUNT(*) as cnt FROM ai_alert_records ${where}`).get(...params) as CountRow).cnt;
+    const activeAlerts = (db.prepare(`SELECT COUNT(*) as cnt FROM ai_alert_records WHERE is_read = 0`).get() as CountRow)
       .cnt;
 
     const offset = (parseInt(page as string) - 1) * parseInt(pageSize as string);
@@ -715,12 +847,12 @@ export async function getAlertRecords(req: Request, res: Response) {
       LIMIT ? OFFSET ?
     `,
       )
-      .all(...params, parseInt(pageSize as string), offset);
+      .all(...params, parseInt(pageSize as string), offset) as AlertRecordRow[];
 
     res.json({
       success: true,
       data: {
-        records: (records as any[]).map((r: any) => ({
+        records: records.map((r) => ({
           ...r,
           created_at: r.created_at ? (r.created_at.includes('T') ? r.created_at : r.created_at.replace(' ', 'T') + 'Z') : r.created_at,
         })),
@@ -730,8 +862,8 @@ export async function getAlertRecords(req: Request, res: Response) {
         pageSize: parseInt(pageSize as string),
       },
     });
-  } catch (error: any) {
-    res.status(500).json({ success: false, message: error.message });
+  } catch (error: unknown) {
+    res.status(500).json({ success: false, message: error instanceof Error ? error.message : "操作失败" });
   }
 }
 
@@ -749,8 +881,8 @@ export async function getHealthStatus(req: Request, res: Response) {
       .all();
 
     res.json({ success: true, data: { models } });
-  } catch (error: any) {
-    res.status(500).json({ success: false, message: error.message });
+  } catch (error: unknown) {
+    res.status(500).json({ success: false, message: error instanceof Error ? error.message : "操作失败" });
   }
 }
 
@@ -778,8 +910,8 @@ export async function getHealthHistory(req: Request, res: Response) {
       .all(provider, days);
 
     res.json({ success: true, data: { provider, history } });
-  } catch (error: any) {
-    res.status(500).json({ success: false, message: error.message });
+  } catch (error: unknown) {
+    res.status(500).json({ success: false, message: error instanceof Error ? error.message : "操作失败" });
   }
 }
 
@@ -793,7 +925,7 @@ export async function setFallback(req: Request, res: Response) {
     const { id } = req.params;
     const { fallbackProvider } = req.body;
     const db = getDb();
-    const model = db.prepare("SELECT * FROM ai_models WHERE id = ?").get(id) as any;
+    const model = db.prepare("SELECT * FROM ai_models WHERE id = ?").get(id) as ModelRow | undefined;
     if (!model) {
       res.status(404).json({ success: false, message: "模型不存在" });
       return;
@@ -815,12 +947,12 @@ export async function setFallback(req: Request, res: Response) {
       success: true,
       data: { modelId: id, provider: model.provider, fallbackProvider: fallbackProvider || null },
     });
-  } catch (error: any) {
-    res.status(500).json({ success: false, message: error.message });
+  } catch (error: unknown) {
+    res.status(500).json({ success: false, message: error instanceof Error ? error.message : "操作失败" });
   }
 }
 
-export async function checkAndFireAlerts(provider: string, totalTokens: number, db: any) {
+export async function checkAndFireAlerts(provider: string, totalTokens: number, db: Database.Database) {
   const config = db
     .prepare(
       `
@@ -830,7 +962,7 @@ export async function checkAndFireAlerts(provider: string, totalTokens: number, 
     WHERE ac.provider = ? AND ac.enabled = 1
   `,
     )
-    .get(provider) as any;
+    .get(provider) as AlertConfigRow | undefined;
 
   if (!config) return;
 
@@ -845,7 +977,7 @@ export async function checkAndFireAlerts(provider: string, totalTokens: number, 
       WHERE provider = ? AND date(created_at) = date('now')
     `,
         )
-        .get(provider) as any
+        .get(provider) as CountRow
     ).cnt;
 
     const pct = Math.round((todayCalls / config.daily_call_limit) * 100);
@@ -894,7 +1026,7 @@ export async function checkAndFireAlerts(provider: string, totalTokens: number, 
       WHERE provider = ? AND created_at >= strftime('%Y-%m-01', 'now')
     `,
           )
-          .get(provider) as any
+          .get(provider) as TotalRow
       ).total || 0;
 
     const pct = Math.round((monthTokens / config.monthly_token_limit) * 100);
@@ -934,7 +1066,7 @@ export async function checkAndFireAlerts(provider: string, totalTokens: number, 
   }
 }
 
-function ensureModelApplicationsTable(db: any) {
+function ensureModelApplicationsTable(db: Database.Database) {
   try {
     const tableExists = db
       .prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='model_applications'")
@@ -958,8 +1090,8 @@ function ensureModelApplicationsTable(db: any) {
       `);
       console.log("✅ 数据库迁移: 创建表 model_applications");
     }
-  } catch (err: any) {
-    console.error("创建 model_applications 表失败:", err.message);
+  } catch (err: unknown) {
+    console.error("创建 model_applications 表失败:", err instanceof Error ? err.message : "操作失败");
   }
 }
 
@@ -980,9 +1112,9 @@ export async function getModelApplications(req: Request, res: Response) {
       .all();
 
     return res.json({ success: true, data: applications });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("获取模型应用配置失败:", error);
-    return res.status(500).json({ success: false, message: "获取配置失败", error: error.message });
+    return res.status(500).json({ success: false, message: "获取配置失败", error: error instanceof Error ? error.message : "操作失败" });
   }
 }
 
@@ -1038,9 +1170,9 @@ export async function createModelApplication(req: Request, res: Response) {
 
     const newApp = db.prepare("SELECT * FROM model_applications WHERE id = ?").get(id);
     return res.status(201).json({ success: true, data: newApp, message: "创建成功" });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("创建模型应用配置失败:", error);
-    return res.status(500).json({ success: false, message: "创建失败", error: error.message });
+    return res.status(500).json({ success: false, message: "创建失败", error: error instanceof Error ? error.message : "操作失败" });
   }
 }
 
@@ -1075,9 +1207,9 @@ export async function updateModelApplication(req: Request, res: Response) {
 
     const updated = db.prepare("SELECT * FROM model_applications WHERE id = ?").get(id);
     return res.json({ success: true, data: updated, message: "更新成功" });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("更新模型应用配置失败:", error);
-    return res.status(500).json({ success: false, message: "更新失败", error: error.message });
+    return res.status(500).json({ success: false, message: "更新失败", error: error instanceof Error ? error.message : "操作失败" });
   }
 }
 
@@ -1106,9 +1238,9 @@ export async function patchModelApplication(req: Request, res: Response) {
     ).run(enabled !== false ? 1 : 0, now, id);
 
     return res.json({ success: true, message: "状态更新成功" });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("更新模型应用状态失败:", error);
-    return res.status(500).json({ success: false, message: "更新失败", error: error.message });
+    return res.status(500).json({ success: false, message: "更新失败", error: error instanceof Error ? error.message : "操作失败" });
   }
 }
 
@@ -1130,9 +1262,9 @@ export async function deleteModelApplication(req: Request, res: Response) {
     db.prepare("DELETE FROM model_applications WHERE id = ?").run(id);
 
     return res.json({ success: true, message: "删除成功" });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("删除模型应用配置失败:", error);
-    return res.status(500).json({ success: false, message: "删除失败", error: error.message });
+    return res.status(500).json({ success: false, message: "删除失败", error: error instanceof Error ? error.message : "操作失败" });
   }
 }
 
@@ -1146,22 +1278,22 @@ export async function getRecentActivity(req: Request, res: Response) {
        FROM ai_usage_logs
        ORDER BY created_at DESC
        LIMIT ?`,
-    ).all(limit) as any[];
+    ).all(limit) as UsageLogSmartRow[];
 
     const alerts = db.prepare(
       `SELECT id, provider, alert_type, level, threshold, current_value, created_at
        FROM ai_alert_records
        ORDER BY created_at DESC
        LIMIT ?`,
-    ).all(limit) as any[];
+    ).all(limit) as { id: string; provider: string; alert_type: string; level: string; threshold: number; current_value: number; created_at: string }[];
 
     const modelNameMap: Record<string, string> = {};
-    const models = db.prepare("SELECT provider, name FROM ai_models").all() as any[];
+    const models = db.prepare("SELECT provider, name FROM ai_models").all() as ModelProviderRow[];
     for (const m of models) {
       modelNameMap[m.provider] = m.name;
     }
 
-    const items: any[] = [];
+    const items: ActivityItem[] = [];
 
     for (const log of logs) {
       const name = modelNameMap[log.provider] || log.provider;
@@ -1198,8 +1330,8 @@ export async function getRecentActivity(req: Request, res: Response) {
     items.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
 
     res.json({ success: true, data: { items: items.slice(0, limit) } });
-  } catch (error: any) {
-    res.status(500).json({ success: false, message: error.message });
+  } catch (error: unknown) {
+    res.status(500).json({ success: false, message: error instanceof Error ? error.message : "操作失败" });
   }
 }
 
@@ -1220,7 +1352,7 @@ export async function getSmartToolHistory(req: Request, res: Response) {
     const callType = req.query.callType as string | undefined;
 
     let whereClause = `WHERE call_type IN (${SMART_TOOL_CALL_TYPES.map(() => "?").join(", ")})`;
-    const params: any[] = [...SMART_TOOL_CALL_TYPES];
+    const params: unknown[] = [...SMART_TOOL_CALL_TYPES];
 
     if (callType && SMART_TOOL_CALL_TYPES.includes(callType)) {
       whereClause += " AND call_type = ?";
@@ -1229,17 +1361,17 @@ export async function getSmartToolHistory(req: Request, res: Response) {
 
     const totalResult = db.prepare(
       `SELECT COUNT(*) as total FROM ai_usage_logs ${whereClause}`,
-    ).get(...params) as any;
+    ).get(...params) as TotalRow;
 
     const logs = db.prepare(
       `SELECT id, provider, model, call_type, total_tokens, latency_ms, status, error_message, request_summary, created_at
        FROM ai_usage_logs ${whereClause}
        ORDER BY created_at DESC
        LIMIT ? OFFSET ?`,
-    ).all(...params, pageSize, offset) as any[];
+    ).all(...params, pageSize, offset) as UsageLogSmartRow[];
 
     const modelInfoMap: Record<string, { name: string; model: string }> = {};
-    const models = db.prepare("SELECT provider, name, model FROM ai_models").all() as any[];
+    const models = db.prepare("SELECT provider, name, model FROM ai_models").all() as ModelProviderRow[];
     for (const m of models) {
       modelInfoMap[m.provider] = { name: m.name, model: m.model };
     }
@@ -1281,8 +1413,8 @@ export async function getSmartToolHistory(req: Request, res: Response) {
         },
       },
     });
-  } catch (error: any) {
-    res.status(500).json({ success: false, message: error.message });
+  } catch (error: unknown) {
+    res.status(500).json({ success: false, message: error instanceof Error ? error.message : "操作失败" });
   }
 }
 
@@ -1296,7 +1428,7 @@ export async function deleteSmartToolHistory(req: Request, res: Response) {
     }
 
     const userId = (req as AuthRequest).user?.userId;
-    const record = db.prepare("SELECT id, user_id FROM ai_usage_logs WHERE id = ?").get(id) as any;
+    const record = db.prepare("SELECT id, user_id FROM ai_usage_logs WHERE id = ?").get(id) as UsageRecordRow | undefined;
     
     if (!record) {
       return res.status(404).json({ success: false, message: "记录不存在" });
@@ -1311,8 +1443,8 @@ export async function deleteSmartToolHistory(req: Request, res: Response) {
     console.log(`[SmartTools] 已删除历史记录: id=${id}, operator=${userId}`);
 
     res.json({ success: true, message: "删除成功" });
-  } catch (error: any) {
-    res.status(500).json({ success: false, message: error.message });
+  } catch (error: unknown) {
+    res.status(500).json({ success: false, message: error instanceof Error ? error.message : "操作失败" });
   }
 }
 
@@ -1321,11 +1453,11 @@ export async function getPromptTemplates(req: Request, res: Response) {
     const db = getDb();
     const { module, type } = req.query;
     let sql = "SELECT * FROM ai_prompt_templates WHERE 1=1";
-    const params: any[] = [];
+    const params: unknown[] = [];
     if (module) { sql += " AND module = ?"; params.push(module); }
     if (type) { sql += " AND type = ?"; params.push(type); }
     sql += " ORDER BY sort_order ASC, created_at DESC";
-    const rows = db.prepare(sql).all(...params) as any[];
+    const rows = db.prepare(sql).all(...params) as PromptTemplateRow[];
     const result = rows.map(row => ({
       ...row,
       variables: JSON.parse(row.variables || "[]"),
@@ -1336,8 +1468,8 @@ export async function getPromptTemplates(req: Request, res: Response) {
       createdBy: row.created_by,
     }));
     res.json(success(result));
-  } catch (error: any) {
-    res.status(500).json({ success: false, message: error.message });
+  } catch (error: unknown) {
+    res.status(500).json({ success: false, message: error instanceof Error ? error.message : "操作失败" });
   }
 }
 
@@ -1358,8 +1490,8 @@ export async function createPromptTemplate(req: Request, res: Response) {
         sortOrder || 0, userId || null, now, now
     );
     res.json(success({ id, module, name }));
-  } catch (error: any) {
-    res.status(500).json({ success: false, message: error.message });
+  } catch (error: unknown) {
+    res.status(500).json({ success: false, message: error instanceof Error ? error.message : "操作失败" });
   }
 }
 
@@ -1368,7 +1500,7 @@ export async function updatePromptTemplate(req: Request, res: Response) {
     const db = getDb();
     const { id } = req.params;
     const { module, name, type, systemPrompt, userPromptTemplate, variables, isDefault, enabled, sortOrder } = req.body;
-    const existing = db.prepare("SELECT id FROM ai_prompt_templates WHERE id = ?").get(id) as any;
+    const existing = db.prepare("SELECT id FROM ai_prompt_templates WHERE id = ?").get(id) as PromptTemplateRow | undefined;
     if (!existing) {
       return res.status(404).json({ success: false, message: "模板不存在" });
     }
@@ -1382,8 +1514,8 @@ export async function updatePromptTemplate(req: Request, res: Response) {
         enabled != null ? (enabled ? 1 : 0) : null, sortOrder ?? null, now, id
     );
     res.json(success({ id }));
-  } catch (error: any) {
-    res.status(500).json({ success: false, message: error.message });
+  } catch (error: unknown) {
+    res.status(500).json({ success: false, message: error instanceof Error ? error.message : "操作失败" });
   }
 }
 
@@ -1391,13 +1523,13 @@ export async function deletePromptTemplate(req: Request, res: Response) {
   try {
     const db = getDb();
     const { id } = req.params;
-    const existing = db.prepare("SELECT id FROM ai_prompt_templates WHERE id = ?").get(id) as any;
+    const existing = db.prepare("SELECT id FROM ai_prompt_templates WHERE id = ?").get(id) as PromptTemplateRow | undefined;
     if (!existing) {
       return res.status(404).json({ success: false, message: "模板不存在" });
     }
     db.prepare("DELETE FROM ai_prompt_templates WHERE id = ?").run(id);
     res.json(success({ id }));
-  } catch (error: any) {
-    res.status(500).json({ success: false, message: error.message });
+  } catch (error: unknown) {
+    res.status(500).json({ success: false, message: error instanceof Error ? error.message : "操作失败" });
   }
 }

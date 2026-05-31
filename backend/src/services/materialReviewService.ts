@@ -1,5 +1,25 @@
 import { query } from "../config/database-adapter.js";
-import { generateId, now, rowsToCamelCase } from "../utils/helpers.js";
+import { generateId, now, rowsToCamelCase, buildPagination, buildLike } from "../utils/helpers.js";
+
+interface ReviewLogRow {
+  reviewLogId: string;
+  materialId: string;
+  reviewerId: string;
+  reviewerName: string | null;
+  action: string;
+  comment: string | null;
+  createdAt: string;
+  reviewerDisplayName: string | null;
+}
+
+interface PendingReviewRow {
+  id: string;
+  name: string;
+  code: string;
+  status: string;
+  submitterName: string | null;
+  updatedAt: string;
+}
 
 async function getReviewerName(reviewerId: string): Promise<string | null> {
   const result = await query<{ display_name: string }>("SELECT display_name FROM users WHERE id = ?", [reviewerId]);
@@ -25,8 +45,8 @@ export async function createReviewLog(params: {
   return logId;
 }
 
-export async function getReviewLogs(materialId: string): Promise<any[]> {
-  const result = await query<any>(
+export async function getReviewLogs(materialId: string): Promise<ReviewLogRow[]> {
+  const result = await query<Record<string, unknown>>(
     `SELECT mrl.*, u.display_name AS reviewer_display_name
      FROM material_review_logs mrl
      LEFT JOIN users u ON mrl.reviewer_id = u.id
@@ -35,20 +55,19 @@ export async function getReviewLogs(materialId: string): Promise<any[]> {
     [materialId],
   );
 
-  return rowsToCamelCase(result.rows || []);
+  return rowsToCamelCase<ReviewLogRow>(result.rows || []);
 }
 
 export async function getPendingReviewList(params: {
   keyword?: string;
   page: number;
   pageSize: number;
-}): Promise<any> {
+}): Promise<{ list: PendingReviewRow[]; pagination: { page: number; pageSize: number; total: number; totalPages: number } }> {
   const { keyword, page, pageSize } = params;
-  const { buildPagination, buildLike } = await import("../utils/helpers.js");
   const { page: p, pageSize: size, offset } = buildPagination(page, pageSize);
 
   const conditions: string[] = ["m.status = 'pending_review'", "m.is_deleted = 0", "m.is_latest = 1"];
-  const queryParams: any[] = [];
+  const queryParams: unknown[] = [];
 
   if (keyword) {
     conditions.push("(m.name LIKE ? OR m.code LIKE ?)");
@@ -58,7 +77,7 @@ export async function getPendingReviewList(params: {
 
   const whereClause = conditions.join(" AND ");
 
-  const dataResult = await query<any>(
+  const dataResult = await query<Record<string, unknown>>(
     `SELECT m.*, u.display_name AS submitter_name
      FROM materials m
      LEFT JOIN users u ON m.created_by = u.id
@@ -73,7 +92,7 @@ export async function getPendingReviewList(params: {
     queryParams,
   );
 
-  const list = rowsToCamelCase(dataResult.rows || []);
+  const list = rowsToCamelCase<PendingReviewRow>(dataResult.rows || []);
   const total = countResult.rows?.[0]?.total || 0;
 
   return {

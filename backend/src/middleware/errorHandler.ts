@@ -5,6 +5,18 @@ interface ErrorWithStatus extends Error {
   code?: string;
 }
 
+interface ErrorResponse {
+  success: false;
+  error: {
+    message: string;
+    code: string;
+    timestamp: string;
+    path: string;
+    method: string;
+    stack?: string;
+  };
+}
+
 export function errorHandler(err: ErrorWithStatus, req: Request, res: Response, _next: NextFunction): void {
   console.error(`[Error] ${new Date().toISOString()} - ${req.method} ${req.path}`);
   console.error(`[Error] Message: ${err.message}`);
@@ -16,7 +28,7 @@ export function errorHandler(err: ErrorWithStatus, req: Request, res: Response, 
   const status = err.status || 500;
   const code = err.code || 'INTERNAL_ERROR';
 
-  const response = {
+  const response: ErrorResponse = {
     success: false,
     error: {
       message: status === 500 ? 'Internal server error' : err.message,
@@ -28,7 +40,7 @@ export function errorHandler(err: ErrorWithStatus, req: Request, res: Response, 
   };
 
   if (process.env.NODE_ENV === 'development') {
-    (response.error as any).stack = err.stack;
+    response.error.stack = err.stack;
   }
 
   res.status(status).json(response);

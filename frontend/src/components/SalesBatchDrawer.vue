@@ -122,7 +122,7 @@
         </div>
         <div class="card-body table-card-body">
           <div v-if="!periodStart" class="table-empty">
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" stroke-width="1.5"
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-placeholder)" stroke-width="1.5"
               stroke-linecap="round" stroke-linejoin="round">
               <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
               <line x1="16" y1="2" x2="16" y2="6" />
@@ -132,7 +132,7 @@
             <p>请先选择统计周期</p>
           </div>
           <div v-else-if="tableData.length === 0" class="table-empty">
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" stroke-width="1.5"
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-placeholder)" stroke-width="1.5"
               stroke-linecap="round" stroke-linejoin="round">
               <line x1="18" y1="20" x2="18" y2="10" />
               <line x1="12" y1="20" x2="12" y2="4" />
@@ -647,7 +647,7 @@ const confirmMergeModeChange = () => {
     .header-title {
       font-size: 16px;
       font-weight: 700;
-      color: #0F172A;
+      color: var(--color-text-primary);
     }
   }
 
@@ -669,7 +669,7 @@ const confirmMergeModeChange = () => {
       border: none;
 
       &.cancel-btn {
-        background: #fff;
+        background: var(--color-bg-container);
         color: var(--color-text-secondary);
         border: 1px solid var(--color-border);
 
@@ -681,7 +681,7 @@ const confirmMergeModeChange = () => {
 
       &.create-btn {
         background: var(--gradient-btn, linear-gradient(135deg, var(--color-primary), var(--color-primary-dark)));
-        color: #fff;
+        color: var(--color-text-white);
         box-shadow: 0 2px 8px var(--overlay-brand-25, rgba(0, 0, 0, 0.2));
 
         &:hover:not(:disabled) {
@@ -703,7 +703,7 @@ const confirmMergeModeChange = () => {
 }
 
 .drawer-card {
-  background: #fff;
+  background: var(--color-bg-container);
   border: 1px solid var(--color-border);
   border-radius: 12px;
   margin-bottom: 12px;
@@ -756,14 +756,14 @@ const confirmMergeModeChange = () => {
 
   &--error {
     border-left-color: var(--color-danger);
-    background: #FEF2F2;
-    border-color: #FECACA;
+    background: var(--color-danger-bg);
+    border-color: var(--color-danger-border);
   }
 
   &--success {
-    border-left-color: #10B981;
-    background: #F0FDF4;
-    border-color: #BBF7D0;
+    border-left-color: var(--color-success);
+    background: var(--color-success-bg);
+    border-color: var(--color-success-border);
   }
 
   .card-body {
@@ -791,11 +791,11 @@ const confirmMergeModeChange = () => {
   margin-bottom: 8px;
 
   .result-stat--success {
-    color: #10B981;
+    color: var(--color-success);
   }
 
   .result-stat--skip {
-    color: #F59E0B;
+    color: var(--color-warning);
   }
 
   .result-stat--error {

@@ -19,6 +19,12 @@
               {{ material.name }}
               <span v-if="material.materialType === 'supplement'" class="type-tag type-tag--supplement">辅料</span>
               <span v-else class="type-tag type-tag--herb">药材</span>
+              <span class="title-version-tag">v{{ material.version }}</span>
+              <span v-if="material.status === 'draft'" class="title-status-tag title-status-tag--draft">草稿</span>
+              <span v-else-if="material.status === 'pending_review'"
+                class="title-status-tag title-status-tag--pending">审批中</span>
+              <span v-else-if="material.status === 'published'"
+                class="title-status-tag title-status-tag--published">已发布</span>
             </h2>
           </div>
         </div>
@@ -88,19 +94,22 @@
               <div v-if="material.appearance?.length" class="field-item">
                 <label><t-icon name="image" size="12px" /> 性状</label>
                 <div class="field-tags">
-                  <t-tag v-for="item in material.appearance" :key="item" size="small" theme="primary" variant="light">{{ item }}</t-tag>
+                  <t-tag v-for="item in material.appearance" :key="item" size="small" theme="primary" variant="light">{{
+                    item }}</t-tag>
                 </div>
               </div>
               <div v-if="material.taste?.length" class="field-item">
                 <label><t-icon name="star" size="12px" /> 口感</label>
                 <div class="field-tags">
-                  <t-tag v-for="item in material.taste" :key="item" size="small" theme="success" variant="light">{{ item }}</t-tag>
+                  <t-tag v-for="item in material.taste" :key="item" size="small" theme="success" variant="light">{{ item
+                  }}</t-tag>
                 </div>
               </div>
               <div v-if="material.efficacy?.length" class="field-item">
-                <label><t-icon name="shield" size="12px" /> 功效</label>
+                <label><t-icon name="secured" size="12px" /> 功效</label>
                 <div class="field-tags">
-                  <t-tag v-for="item in material.efficacy" :key="item" size="small" theme="warning" variant="light">{{ item }}</t-tag>
+                  <t-tag v-for="item in material.efficacy" :key="item" size="small" theme="warning" variant="light">{{
+                    item }}</t-tag>
                 </div>
               </div>
               <div class="field-grid-2">
@@ -229,12 +238,12 @@
                 <div class="total-energy-card">
                   <div class="total-left">
                     <span class="total-label">总能量 (每100g)</span>
-                    <span class="total-value">{{ energyCalcData.total }}<small class="total-unit">kcal</small></span>
+                    <span class="total-value">{{ energyCalcData.total }}<small class="total-unit">kJ</small></span>
                   </div>
                   <div class="total-right">
                     <div v-for="(item, idx) in energyCalcData.breakdown" :key="idx" class="breakdown-bar"
                       :style="{ width: item.percent + '%' }">
-                      <span class="breakdown-tooltip">{{ item.name }}: {{ item.cal }}kcal ({{ item.percent }}%)</span>
+                      <span class="breakdown-tooltip">{{ item.name }}: {{ item.cal }}kJ ({{ item.percent }}%)</span>
                     </div>
                   </div>
                 </div>
@@ -247,18 +256,18 @@
                   <div class="formula-items">
                     <div class="formula-item">
                       <span class="formula-label">蛋白质</span>
-                      <span class="formula-coeff">{{ energyCalcData.protein }}g × 17 kcal/g</span>
-                      <span class="formula-result">= {{ energyCalcData.proteinCal }} kcal</span>
+                      <span class="formula-coeff">{{ energyCalcData.protein }}g × 17 kJ/g</span>
+                      <span class="formula-result">= {{ energyCalcData.proteinCal }} kJ</span>
                     </div>
                     <div class="formula-item">
                       <span class="formula-label">脂肪</span>
-                      <span class="formula-coeff">{{ energyCalcData.fat }}g × 37 kcal/g</span>
-                      <span class="formula-result">= {{ energyCalcData.fatCal }} kcal</span>
+                      <span class="formula-coeff">{{ energyCalcData.fat }}g × 37 kJ/g</span>
+                      <span class="formula-result">= {{ energyCalcData.fatCal }} kJ</span>
                     </div>
                     <div class="formula-item">
                       <span class="formula-label">碳水化合物</span>
-                      <span class="formula-coeff">{{ energyCalcData.carb }}g × 17 kcal/g</span>
-                      <span class="formula-result">= {{ energyCalcData.carbCal }} kcal</span>
+                      <span class="formula-coeff">{{ energyCalcData.carb }}g × 17 kJ/g</span>
+                      <span class="formula-result">= {{ energyCalcData.carbCal }} kJ</span>
                     </div>
                   </div>
                 </div>
@@ -276,7 +285,8 @@
 
     </template>
 
-    <t-drawer v-model:visible="showExportDrawer" header="导出原料" :footer="true" placement="right" size="400px" :destroyOnClose="false">
+    <t-drawer v-model:visible="showExportDrawer" header="导出原料" :footer="true" placement="right" size="400px"
+      :destroyOnClose="false">
       <t-form layout="vertical">
         <t-form-item label="导出原料">
           <div style="display: flex; flex-wrap: wrap; gap: 6px;">
@@ -290,7 +300,8 @@
           </t-radio-group>
         </t-form-item>
         <t-form-item label="导出模板">
-          <t-select v-model="exportForm.templateId" clearable filterable :popup-props="{ appendToBody: true }" placeholder="可选，使用默认模板">
+          <t-select v-model="exportForm.templateId" clearable filterable :popup-props="{ appendToBody: true }"
+            placeholder="可选，使用默认模板">
             <t-option v-for="t in materialTemplates" :key="t.templateId" :value="t.templateId" :label="t.name" />
           </t-select>
         </t-form-item>
@@ -355,7 +366,7 @@ const confidenceLabel = computed(() => confidenceMap[nutritionMeta.confidence]?.
 const confidenceTheme = computed(() => confidenceMap[nutritionMeta.confidence]?.theme || 'warning');
 
 const nutrientInfoMap: Record<string, [string, string]> = {
-  energy: ['能量', 'kcal'], protein: ['蛋白质', 'g'], fat: ['脂肪', 'g'], carbohydrate: ['碳水化合物', 'g'],
+  energy: ['能量', 'kJ'], protein: ['蛋白质', 'g'], fat: ['脂肪', 'g'], carbohydrate: ['碳水化合物', 'g'],
   fiber: ['膳食纤维', 'g'], sugars: ['糖类', 'g'], sodium: ['钠', 'mg'], potassium: ['钾', 'mg'],
   calcium: ['钙', 'mg'], iron: ['铁', 'mg'], zinc: ['锌', 'mg'], magnesium: ['镁', 'mg'],
   phosphorus: ['磷', 'mg'], vitaminA: ['维生素A', 'μg'], vitaminC: ['维生素C', 'mg'],
@@ -404,7 +415,7 @@ const energyCalcData = computed(() => {
   const carbCal = Math.round(carb * 17);
   const total = proteinCal + fatCal + carbCal;
   const breakdown = [
-    { name: '蛋白质', cal: proteinCal, percent: total > 0 ? Math.round((proteinCal / total) * 100) : 0, color: '#3b82f6' },
+    { name: '蛋白质', cal: proteinCal, percent: total > 0 ? Math.round((proteinCal / total) * 100) : 0, color: 'var(--color-info)' },
     { name: '脂肪', cal: fatCal, percent: total > 0 ? Math.round((fatCal / total) * 100) : 0, color: 'var(--color-warning)' },
     { name: '碳水', cal: carbCal, percent: total > 0 ? Math.round((carbCal / total) * 100) : 0, color: 'var(--color-primary)' },
   ];
@@ -413,7 +424,7 @@ const energyCalcData = computed(() => {
 
 const nrvData = computed(() => {
   const nrvBase: Record<string, { nrv: number; nrvUnit: string; color: string; }> = {
-    '蛋白质': { nrv: 60, nrvUnit: 'g', color: '#3b82f6' },
+    '蛋白质': { nrv: 60, nrvUnit: 'g', color: 'var(--color-info)' },
     '脂肪': { nrv: 60, nrvUnit: 'g', color: 'var(--color-warning)' },
     '碳水化合物': { nrv: 300, nrvUnit: 'g', color: 'var(--color-primary)' },
     '膳食纤维': { nrv: 25, nrvUnit: 'g', color: '#8b5cf6' },
@@ -534,7 +545,7 @@ onMounted(() => {
     padding: 8px 32px;
     background-color: rgba(255, 255, 255, 0.80);
     backdrop-filter: blur(12px);
-    border-bottom: 1px solid #f1f5f9;
+    border-bottom: 1px solid var(--color-border-light);
     animation: fadeInDown 0.3s cubic-bezier(0.4, 0, 0.2, 1) both;
 
     .header-left {
@@ -558,7 +569,7 @@ onMounted(() => {
 
         &:hover {
           color: var(--color-primary);
-          background-color: #ecfdf5;
+          background-color: var(--color-emerald-50);
         }
       }
 
@@ -617,12 +628,50 @@ onMounted(() => {
             flex-shrink: 0;
 
             &--supplement {
-              background-color: #dbeafe;
-              color: #2563eb;
+              background-color: var(--color-info-bg);
+              color: var(--color-info);
             }
 
             &--herb {
               background-color: var(--color-primary-bg);
+              color: var(--color-primary-dark);
+            }
+          }
+
+          .title-version-tag {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 10px;
+            background: var(--color-primary-bg);
+            color: var(--color-primary);
+            font-size: 12px;
+            font-weight: 700;
+            border-radius: 999px;
+            font-family: ui-monospace, SFMono-Regular, 'Cascadia Code', monospace;
+          }
+
+          .title-status-tag {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 10px;
+            font-size: 10px;
+            font-weight: 700;
+            border-radius: 999px;
+            letter-spacing: 0.02em;
+
+            &--draft {
+              background: var(--color-bg-page);
+              color: var(--color-text-placeholder);
+              border: 1px solid var(--color-border-light);
+            }
+
+            &--pending {
+              background: var(--color-warning-bg);
+              color: var(--color-warning);
+            }
+
+            &--published {
+              background: var(--color-primary-bg);
               color: var(--color-primary-dark);
             }
           }
@@ -641,7 +690,7 @@ onMounted(() => {
         gap: 8px;
         padding: 8px 16px;
         background-color: var(--color-primary);
-        color: #ffffff;
+        color: var(--color-text-white);
         border: none;
         border-radius: 12px;
         font-size: 14px;
@@ -701,7 +750,7 @@ onMounted(() => {
     }
 
     .info-card {
-      background: #fff;
+      background: var(--color-bg-container);
       padding: 24px;
       border-radius: var(--radius-4xl);
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
@@ -736,7 +785,7 @@ onMounted(() => {
         padding: 12px;
         background: var(--color-bg-page);
         border-radius: 16px;
-        border: 1px solid #f1f5f9;
+        border: 1px solid var(--color-border-light);
 
         label {
           display: flex;
@@ -815,7 +864,7 @@ onMounted(() => {
         top: 28px;
         bottom: -24px;
         width: 2px;
-        background: #f1f5f9;
+        background: var(--color-border-light);
       }
 
       .timeline-dot {
@@ -828,8 +877,8 @@ onMounted(() => {
         flex-shrink: 0;
 
         &.past {
-          background: #cbd5e1;
-          border-color: #f1f5f9;
+          background: var(--color-text-placeholder);
+          border-color: var(--color-border-light);
         }
       }
 
@@ -872,7 +921,7 @@ onMounted(() => {
     }
 
     .nutrition-section {
-      background: #fff;
+      background: var(--color-bg-container);
       border-radius: var(--radius-4xl);
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
       border: 1px solid var(--color-bg-page);
@@ -923,7 +972,7 @@ onMounted(() => {
         padding: 16px;
         background: var(--color-bg-page);
         border-radius: 16px;
-        border: 1px solid #f1f5f9;
+        border: 1px solid var(--color-border-light);
         transition: all $transition-fast;
 
         &:hover {
@@ -932,7 +981,7 @@ onMounted(() => {
         }
 
         &--highlight {
-          background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 100%);
+          background: linear-gradient(135deg, var(--color-emerald-50) 0%, var(--color-emerald-50) 100%);
           border-color: var(--color-primary-bg);
 
           .nutri-label {
@@ -1004,7 +1053,7 @@ onMounted(() => {
     }
 
     .energy-calc-section {
-      background: #fff;
+      background: var(--color-bg-container);
       border-radius: var(--radius-4xl);
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
       border: 1px solid var(--color-bg-page);
@@ -1070,9 +1119,9 @@ onMounted(() => {
           align-items: center;
           gap: 12px;
           padding: var(--space-2-5) var(--space-3-5);
-          background: #fff;
+          background: var(--color-bg-container);
           border-radius: 10px;
-          border: 1px solid #f1f5f9;
+          border: 1px solid var(--color-border-light);
 
           .formula-label {
             font-size: 13px;
@@ -1097,7 +1146,7 @@ onMounted(() => {
       }
 
       .total-energy-card {
-        background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 100%);
+        background: linear-gradient(135deg, var(--color-emerald-50) 0%, var(--color-emerald-50) 100%);
         border-radius: 16px;
         border: 1px solid var(--color-primary-bg);
         padding: 20px 24px;
@@ -1166,9 +1215,8 @@ onMounted(() => {
               transition: opacity 0.2s;
               pointer-events: none;
               background: var(--color-text-primary);
-              color: #fff;
+              color: var(--color-text-white);
               padding: 4px 8px;
-              border-radius: 6px;
             }
 
             &:hover .breakdown-tooltip {
@@ -1179,9 +1227,9 @@ onMounted(() => {
       }
 
       .nrv-compare-card {
-        background: #fff;
+        background: var(--color-bg-container);
         border-radius: 16px;
-        border: 1px solid #f1f5f9;
+        border: 1px solid var(--color-border-light);
         overflow: hidden;
 
         .nrv-header {
@@ -1219,7 +1267,7 @@ onMounted(() => {
 
           .nrv-bar-track {
             height: 8px;
-            background: #f1f5f9;
+            background: var(--color-bg-hover);
             border-radius: 4px;
             overflow: hidden;
 

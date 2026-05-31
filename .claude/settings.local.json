@@ -10,7 +10,16 @@
       "Bash(curl -s -X POST http://localhost:3000/api/auth/login -H \"Content-Type: application/json\" -d '{\"username\":\"admin\",\"password\":\"admin123\"}' -o /tmp/admin_login.json -w \"%{http_code}\")",
       "Bash(grep -o '\"token\":\"[^\"]*\"' /tmp/admin_login.json | head -1 | cut -d'\"' -f4)",
       "Read(//tmp/**)",
-      "Bash(curl -s -X POST http://localhost:3000/api/auth/login -H \"Content-Type: application/json\" -d '{\"username\":\"user01\",\"password\":\"user123\"}' -o /tmp/user01_login.json -w \"%{http_code}\")"
+      "Bash(curl -s -X POST http://localhost:3000/api/auth/login -H \"Content-Type: application/json\" -d '{\"username\":\"user01\",\"password\":\"user123\"}' -o /tmp/user01_login.json -w \"%{http_code}\")",
+      "mcp__ide__getDiagnostics",
+      "Bash(npx skills *)",
+      "WebSearch",
+      "Bash(curl -s http://localhost:3000/api/health)",
+      "Bash(curl -s http://localhost:3000/api/formulas)",
+      "Bash(curl -s http://localhost:3000/)",
+      "Bash(npx tsx *)",
+      "Bash(sed -i 's|// 处理 keep-alive 缓存的组件重新激活时恢复搜索状态和检查缓存|// keep-alive 重新激活：检测用户切换 + 恢复搜索状态|' FormulaList.vue)",
+      "Bash(sed -i 's|  // 检查用户是否切换（通过 localStorage 中的用户ID对比）|  const currentUserId = localStorage.getItem\\('\\\\''tingstudio_user_id'\\\\''\\);|' FormulaList.vue)"
     ]
   },
   "language": "chinese"

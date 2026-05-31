@@ -223,7 +223,7 @@ function onWheel(e: WheelEvent) {
     transition: all 0.2s;
 
     &:hover {
-      background: #f1f5f9;
+      background: var(--color-bg-hover);
       color: var(--color-text-secondary);
     }
   }
@@ -265,7 +265,7 @@ function onWheel(e: WheelEvent) {
     display: flex;
     gap: 4px;
     margin-bottom: 12px;
-    border-bottom: 1px solid #f1f5f9;
+    border-bottom: 1px solid var(--color-border-light);
     padding-bottom: 8px;
     flex-shrink: 0;
   }
@@ -274,7 +274,7 @@ function onWheel(e: WheelEvent) {
     padding: var(--space-1-5) 16px;
     border: 1px solid var(--color-border);
     border-radius: 8px;
-    background: #fff;
+    background: var(--color-bg-container);
     color: var(--color-text-secondary);
     font-size: 13px;
     cursor: pointer;
@@ -282,11 +282,11 @@ function onWheel(e: WheelEvent) {
 
     &:hover {
       background: var(--color-bg-page);
-      border-color: #cbd5e1;
+      border-color: var(--color-text-placeholder);
     }
 
     &--active {
-      background: #ecfdf5;
+      background: var(--color-success-bg);
       border-color: var(--color-primary);
       color: var(--color-primary-dark);
       font-weight: 600;
@@ -301,7 +301,7 @@ function onWheel(e: WheelEvent) {
   .table-wrapper {
     overflow: auto;
     max-height: 65vh;
-    border: 1px solid #f1f5f9;
+    border: 1px solid var(--color-border-light);
     border-radius: 12px;
   }
 
@@ -351,11 +351,11 @@ function onWheel(e: WheelEvent) {
     }
 
     .row-even td {
-      background: #fafbfc;
+      background: var(--color-bg-page);
     }
 
     tbody tr:hover td {
-      background: #ecfdf5;
+      background: var(--color-success-bg);
     }
   }
 }
@@ -401,7 +401,7 @@ function onWheel(e: WheelEvent) {
     height: 28px;
     border: 1px solid var(--color-border);
     border-radius: 6px;
-    background: #fff;
+    background: var(--color-bg-container);
     color: var(--color-text-secondary);
     cursor: pointer;
     transition: all 0.2s;
@@ -425,7 +425,7 @@ function onWheel(e: WheelEvent) {
   align-items: center;
   justify-content: space-between;
   padding: 16px 24px;
-  border-top: 1px solid #f1f5f9;
+  border-top: 1px solid var(--color-border-light);
   margin-top: auto;
 
   .footer-left {

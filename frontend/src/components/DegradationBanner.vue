@@ -154,7 +154,7 @@ onMounted(() => {
     display: flex;
     gap: 16px;
     font-size: 12px;
-    color: #666;
+    color: var(--color-text-secondary);
 
     .stat-item {
       display: flex;
@@ -177,7 +177,7 @@ onMounted(() => {
     .recommendations-list {
       margin: 0;
       padding-left: 16px;
-      color: #555;
+      color: var(--color-text-secondary);
 
       li {
         margin-bottom: var(--space-0-5);

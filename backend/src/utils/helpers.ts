@@ -1,18 +1,13 @@
-// 通用工具函数
+import { pinyin } from "pinyin-pro";
 
-import { pinyin } from 'pinyin-pro';
-
-/** 生成唯一 ID */
 export function generateId(): string {
   return Date.now().toString(36) + Math.random().toString(36).substring(2, 10);
 }
 
-/** 获取当前时间 ISO 字符串 */
 export function now(): string {
   return new Date().toISOString();
 }
 
-/** 构建分页参数 */
 export function buildPagination(page?: number, pageSize?: number) {
   const p = Math.max(1, page || 1);
   const size = Math.min(100, Math.max(1, pageSize || 20));
@@ -20,18 +15,15 @@ export function buildPagination(page?: number, pageSize?: number) {
   return { page: p, pageSize: size, offset };
 }
 
-/** 构建模糊搜索 LIKE 条件 */
 export function buildLike(keyword: string): string {
   return `%${keyword.replace(/[%_\\]/g, "\\$&")}%`;
 }
 
-/** 构建成功响应 */
-export function success<T = any>(data: T, message = "操作成功") {
+export function success<T = unknown>(data: T, message = "操作成功") {
   return { success: true, message, data };
 }
 
-/** 构建分页成功响应 */
-export function successWithPagination<T = any>(list: T[], total: number, page: number, pageSize: number) {
+export function successWithPagination<T = unknown>(list: T[], total: number, page: number, pageSize: number) {
   return {
     success: true,
     message: "查询成功",
@@ -47,32 +39,27 @@ export function successWithPagination<T = any>(list: T[], total: number, page: n
   };
 }
 
-/** 将下划线命名转为驼峰 */
 export function snakeToCamel(str: string): string {
   return str.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
 }
 
-/** 将驼峰转为下划线命名 */
 export function camelToSnake(str: string): string {
   return str.replace(/[A-Z]/g, c => `_${c.toLowerCase()}`);
 }
 
-/** 将数据库行（下划线）转换为对象（驼峰） */
-export function rowToCamelCase<T = any>(row: Record<string, any>): T {
-  const result: Record<string, any> = {};
+export function rowToCamelCase<T = Record<string, unknown>>(row: Record<string, unknown>): T {
+  const result: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(row)) {
     result[snakeToCamel(key)] = value;
   }
   return result as T;
 }
 
-/** 批量转换数据库行 */
-export function rowsToCamelCase<T = any>(rows: Record<string, any>[]): T[] {
+export function rowsToCamelCase<T = Record<string, unknown>>(rows: Record<string, unknown>[]): T[] {
   return rows.map(row => rowToCamelCase<T>(row));
 }
 
-/** 安全解析 JSON */
-export function safeJsonParse<T = any>(str: string | null | undefined, defaultValue: T): T {
+export function safeJsonParse<T = unknown>(str: string | null | undefined, defaultValue: T): T {
   if (!str) return defaultValue;
   try {
     return JSON.parse(str) as T;
@@ -271,29 +258,13 @@ const PINYIN_MAP: Record<string, string> = {
 };
 
 export function generateFormulaCode(name: string): string {
-  let code = "";
-  let i = 0;
-  while (i < name.length && code.length < 5) {
-    const ch = name[i];
-    if (PINYIN_MAP[ch]) {
-      code += PINYIN_MAP[ch];
-      i++;
-    } else if (/[\u4e00-\u9fff]/.test(ch)) {
-      i++;
-    } else {
-      i++;
-    }
-  }
-  if (!code || code.length < 2) {
-    code = name
-      .replace(/[^a-zA-Z]/g, "")
-      .toUpperCase()
-      .slice(0, 5);
-  }
-  if (!code || code.length < 2) {
-    code = "FM";
-  }
-  return code;
+  const pinyinChars = [...name].filter(ch => PINYIN_MAP[ch]);
+  const code = pinyinChars.slice(0, 5).map(ch => PINYIN_MAP[ch]).join("");
+
+  if (code.length >= 2) return code;
+
+  const latinCode = name.replace(/[^a-zA-Z]/g, "").toUpperCase().slice(0, 5);
+  return latinCode.length >= 2 ? latinCode : "FM";
 }
 
 const MATERIAL_CODE_MAP: Record<string, string> = {
@@ -331,103 +302,66 @@ export function generateMaterialCode(name: string): string {
   return code || 'MAT' + String(Date.now()).slice(-4);
 }
 
+const GARBLE_FIX_ENCODINGS: Array<{ from: BufferEncoding; to: BufferEncoding }> = [
+  { from: "latin1", to: "utf8" },
+  { from: "binary", to: "utf8" },
+  { from: "win1252", to: "utf8" },
+  { from: "iso-8859-1", to: "utf8" },
+  { from: "cp1252", to: "utf8" },
+];
+
+function tryDecodeGarbled(text: string, encodings: Array<{ from: BufferEncoding; to: BufferEncoding }>): string | null {
+  let bestResult: string | null = null;
+  let bestScore = 0;
+
+  for (const { from, to } of encodings) {
+    try {
+      const fixed = Buffer.from(text, from).toString(to);
+      if (fixed === text || /\ufffd/.test(fixed)) continue;
+
+      const chineseCount = (fixed.match(/[\u4e00-\u9fff]/g) || []).length;
+      if (chineseCount > 0 && chineseCount * 10 > bestScore) {
+        bestResult = fixed;
+        bestScore = chineseCount * 10;
+      }
+    } catch {
+      continue;
+    }
+  }
+
+  return bestResult;
+}
+
 export function fixMulterOriginalname(originalname: string): string {
   if (!originalname) return originalname;
-  
-  try {
-    // 如果已经是正常的中文文件名，直接返回
-    if (/[\u4e00-\u9fff]/.test(originalname)) {
-      return originalname;
-    }
-    
-    // 常见的乱码编码方式列表
-    const encodings = [
-      { from: 'latin1', to: 'utf8', name: 'Latin1→UTF8' },
-      { from: 'binary', to: 'utf8', name: 'Binary→UTF8' },
-      { from: 'win1252', to: 'utf8', name: 'Win1252→UTF8' },
-      { from: 'iso-8859-1', to: 'utf8', name: 'ISO-8859-1→UTF8' },
-      { from: 'cp1252', to: 'utf8', name: 'CP1252→UTF8' },
-    ];
-    
-    let bestResult = originalname;
-    let bestScore = 0;
-    
-    for (const { from, to } of encodings) {
-      try {
-        const fixed = Buffer.from(originalname, from as BufferEncoding).toString(to as BufferEncoding);
-        
-        // 如果转换后包含中文字符，且没有替换字符，认为是成功的转换
-        if (fixed !== originalname && !/\ufffd/.test(fixed)) {
-          const hasChinese = /[\u4e00-\u9fff]/.test(fixed);
-          const chineseCount = (fixed.match(/[\u4e00-\u9fff]/g) || []).length;
-          
-          // 计算得分：中文越多，得分越高
-          const score = chineseCount * 10;
-          
-          if (score > bestScore && hasChinese) {
-            bestResult = fixed;
-            bestScore = score;
-          }
-        }
-      } catch {
-        continue;
-      }
-    }
-    
-    // 如果找到了更好的结果，且结果合理，返回修复后的版本
-    if (bestScore > 0) {
-      return bestResult;
-    }
-    
-    return originalname;
-  } catch {
-    return originalname;
-  }
+  if (/[\u4e00-\u9fff]/.test(originalname)) return originalname;
+  return tryDecodeGarbled(originalname, GARBLE_FIX_ENCODINGS) || originalname;
 }
 
 export function isLikelyGarbled(text: string): boolean {
   if (!text) return false;
-  
-  // 如果包含替换字符，很可能是乱码
-  if (/\ufffd/.test(text)) {
-    return true;
-  }
-  
-  // 如果同时包含中文和高位的西欧字符，很可能是乱码
-  const hasChinese = /[\u4e00-\u9fff]/.test(text);
-  const hasHighCode = /[\u0080-\u00FF]/.test(text);
-  
-  if (hasChinese && hasHighCode) {
-    return true;
-  }
-  
-  // 如果包含大量西欧字符（超过30%），且没有正常的ASCII扩展字符，可能是乱码
+  if (/\ufffd/.test(text)) return true;
+  if (/[\u4e00-\u9fff]/.test(text) && /[\u0080-\u00FF]/.test(text)) return true;
   const westernChars = (text.match(/[\u00C0-\u00FF]/g) || []).length;
-  if (westernChars > text.length * 0.3 && !hasChinese) {
-    return true;
-  }
-  
-  return false;
+  return westernChars > text.length * 0.3 && !/[\u4e00-\u9fff]/.test(text);
 }
 
 export function fixGarbledText(text: string): string {
   if (!text) return text;
-  try {
-    const encodings = ['latin1', 'binary', 'win1252'];
-    for (const encoding of encodings) {
-      try {
-        const fixed = Buffer.from(text, encoding as any).toString('utf8');
-        if (fixed !== text && !/\ufffd/.test(fixed)) {
-          return fixed;
-        }
-      } catch {
-        continue;
-      }
+  const simpleEncodings: Array<{ from: BufferEncoding; to: BufferEncoding }> = [
+    { from: "latin1", to: "utf8" },
+    { from: "binary", to: "utf8" },
+    { from: "win1252", to: "utf8" },
+  ];
+  for (const { from, to } of simpleEncodings) {
+    try {
+      const fixed = Buffer.from(text, from).toString(to);
+      if (fixed !== text && !/\ufffd/.test(fixed)) return fixed;
+    } catch {
+      continue;
     }
-    return text;
-  } catch {
-    return text;
   }
+  return text;
 }
 
 export function buildContentDisposition(fileName: string): string {

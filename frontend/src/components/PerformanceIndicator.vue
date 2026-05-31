@@ -163,8 +163,8 @@ onMounted(() => {
         <div class="storage-bar">
           <t-progress
             :percentage="metrics.storageUsage.percentage"
-            :color="metrics.storageUsage.percentage >= 95 ? '#e34d59' : metrics.storageUsage.percentage >= 80 ? '#ed7b2f' : '#2a59a8'"
-            :track-color="'#e8e8e8'"
+            :color="metrics.storageUsage.percentage >= 95 ? 'var(--color-danger)' : metrics.storageUsage.percentage >= 80 ? 'var(--color-warning)' : 'var(--color-info)'"
+            :track-color="'var(--color-border-light)'"
             :label="false"
           />
         </div>
@@ -238,7 +238,7 @@ function formatNumber(num: number): string {
 
 <style lang="scss" scoped>
 .performance-indicator {
-  background: #fff;
+  background: var(--color-bg-container);
   border-radius: 8px;
   padding: 16px;
 
@@ -277,22 +277,22 @@ function formatNumber(num: number): string {
 
       &--critical {
         background: rgba(227, 77, 89, 0.1);
-        border-left: 3px solid #e34d59;
+        border-left: 3px solid var(--color-danger);
       }
 
       &--error {
         background: rgba(238, 70, 70, 0.1);
-        border-left: 3px solid #ee4648;
+        border-left: 3px solid var(--color-danger);
       }
 
       &--warning {
         background: rgba(237, 123, 47, 0.1);
-        border-left: 3px solid #ed7b2f;
+        border-left: 3px solid var(--color-warning);
       }
 
       &--info {
         background: rgba(42, 89, 168, 0.1);
-        border-left: 3px solid #2a59a8;
+        border-left: 3px solid var(--color-info);
       }
 
       .alert-icon {
@@ -309,12 +309,12 @@ function formatNumber(num: number): string {
 
         .alert-message {
           font-size: 13px;
-          color: #666;
+          color: var(--color-text-secondary);
         }
 
         .alert-meta {
           font-size: 12px;
-          color: #999;
+          color: var(--color-text-placeholder);
           margin-top: 4px;
         }
       }
@@ -333,7 +333,7 @@ function formatNumber(num: number): string {
       gap: 12px;
       padding: 12px;
       border-radius: 8px;
-      background: #f5f5f5;
+      background: var(--color-bg-hover);
 
       .metric-icon {
         font-size: 24px;
@@ -346,12 +346,12 @@ function formatNumber(num: number): string {
 
       .metric-label {
         font-size: 12px;
-        color: #666;
+        color: var(--color-text-secondary);
       }
 
       &--success {
         background: rgba(42, 89, 168, 0.1);
-        color: #2a59a8;
+        color: var(--color-info);
       }
 
       &--cache {
@@ -361,7 +361,7 @@ function formatNumber(num: number): string {
 
       &--tokens {
         background: rgba(139, 92, 246, 0.1);
-        color: #8b5cf6;
+        color: var(--color-purple);
       }
 
       &--requests {
@@ -388,7 +388,7 @@ function formatNumber(num: number): string {
       display: flex;
       justify-content: space-between;
       font-size: 12px;
-      color: #666;
+      color: var(--color-text-secondary);
     }
   }
 
@@ -412,7 +412,7 @@ function formatNumber(num: number): string {
       justify-content: space-between;
       align-items: center;
       padding: 8px;
-      background: #f5f5f5;
+      background: var(--color-bg-hover);
       border-radius: 4px;
 
       .model-info {
@@ -422,8 +422,8 @@ function formatNumber(num: number): string {
 
         .model-provider {
           font-size: 12px;
-          color: #666;
-          background: #e8e8e8;
+          color: var(--color-text-secondary);
+          background: var(--color-border-light);
           padding: var(--space-0-5) var(--space-1-5);
           border-radius: 4px;
         }
@@ -439,12 +439,12 @@ function formatNumber(num: number): string {
         font-size: 13px;
 
         .model-count {
-          color: #666;
+          color: var(--color-text-secondary);
         }
 
         .model-percent {
           font-weight: 500;
-          color: #2a59a8;
+          color: var(--color-info);
         }
       }
     }
@@ -459,14 +459,14 @@ function formatNumber(num: number): string {
       display: flex;
       justify-content: space-between;
       padding: 8px 0;
-      border-bottom: 1px solid #f0f0f0;
+      border-bottom: 1px solid var(--color-border-light);
 
       &:last-child {
         border-bottom: none;
       }
 
       .stat-label {
-        color: #666;
+        color: var(--color-text-secondary);
       }
 
       .stat-value {
@@ -477,7 +477,7 @@ function formatNumber(num: number): string {
         }
 
         &--error {
-          color: #e34d59;
+          color: var(--color-danger);
         }
 
         &--pending {

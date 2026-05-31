@@ -315,14 +315,14 @@ const handleSubmit = async () => {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #fff;
+    color: var(--color-text-white);
     flex-shrink: 0;
   }
 
   .dialog-header-title {
     font-size: 17px;
     font-weight: 700;
-    color: #0f172a;
+    color: var(--color-text-primary);
   }
 }
 
@@ -378,11 +378,11 @@ const handleSubmit = async () => {
 
 .code-readonly {
   :deep(.t-input) {
-    background: #f1f5f9;
+    background: var(--color-bg-hover);
     cursor: not-allowed;
 
     .t-input__wrap {
-      background: #f1f5f9;
+      background: var(--color-bg-hover);
     }
 
     .t-input__inner {
@@ -411,7 +411,7 @@ const handleSubmit = async () => {
     &--primary {
       background: linear-gradient(135deg, var(--td-brand-color, var(--color-primary)), var(--td-brand-color-hover, var(--color-primary-dark)));
       border: none;
-      color: #fff;
+      color: var(--color-text-white);
 
       &:hover {
         background: linear-gradient(135deg, var(--td-brand-color-hover, var(--color-primary-dark)), var(--td-brand-color-active, var(--color-primary-deep)));

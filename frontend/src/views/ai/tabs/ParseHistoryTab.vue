@@ -122,7 +122,7 @@
     </div>
 
     <div v-else-if="items.length === 0" class="history-empty">
-      <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="1.5"
+      <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-placeholder)" stroke-width="1.5"
         stroke-linecap="round" stroke-linejoin="round">
         <circle cx="12" cy="12" r="10" />
         <polyline points="12 6 12 12 16 14" />
@@ -714,7 +714,7 @@ onMounted(() => {
         &:focus {
           box-shadow: 0 0 0 2px rgba(167, 243, 208, 0.50);
           outline: none;
-          background-color: #fff;
+          background-color: var(--color-bg-container);
         }
 
         &::placeholder {
@@ -870,11 +870,11 @@ onMounted(() => {
     }
 
     &.card-blue {
-      border-color: #3B82F6;
+      border-color: var(--color-info);
     }
 
     &.card-purple {
-      border-color: #8B5CF6;
+      border-color: var(--color-lavender);
     }
 
     &.card-amber {
@@ -934,11 +934,11 @@ onMounted(() => {
   }
 
   &.card-blue .card-header {
-    color: #3B82F6;
+    color: var(--color-info);
   }
 
   &.card-purple .card-header {
-    color: #8B5CF6;
+    color: var(--color-lavender);
   }
 
   &.card-amber .card-header {
@@ -978,14 +978,14 @@ onMounted(() => {
 }
 
 .history-card {
-  background: #fff;
+  background: var(--color-bg-container);
   border: 1px solid var(--color-border);
   border-radius: 12px;
   padding: 16px 20px;
   transition: all 0.2s;
 
   &:hover {
-    border-color: #cbd5e1;
+    border-color: var(--color-text-placeholder);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   }
 
@@ -1002,9 +1002,9 @@ onMounted(() => {
   }
 
   &--highlight {
-    border-color: #3b82f6;
-    border-left: 3px solid #3b82f6;
-    background: #eff6ff;
+    border-color: var(--color-info);
+    border-left: 3px solid var(--color-info);
+    background: var(--color-info-bg);
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
     animation: highlightPulse 3s ease;
   }
@@ -1056,13 +1056,13 @@ onMounted(() => {
   font-weight: 600;
 
   &--parse_formula {
-    background: #eff6ff;
-    color: #3b82f6;
+    background: var(--color-info-bg);
+    color: var(--color-info);
   }
 
   &--parse_nutrition {
-    background: #faf5ff;
-    color: #a855f7;
+    background: var(--color-lavender);
+    color: var(--color-lavender);
   }
 }
 
@@ -1124,7 +1124,7 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #fff;
+  background-color: var(--color-bg-container);
   border-top: 1px solid var(--color-bg-page);
 
   .pagination-info {
@@ -1148,7 +1148,7 @@ onMounted(() => {
     border: 1px solid var(--color-border);
     border-radius: 8px;
     background-color: transparent;
-    color: #6e6178;
+    color: var(--color-text-secondary);
     font-size: 14px;
     cursor: pointer;
     transition: all 0.15s;
@@ -1156,7 +1156,7 @@ onMounted(() => {
     user-select: none;
 
     &:hover:not(.pagination-btn--disabled):not(.pagination-btn--active) {
-      background-color: #ecfdf5;
+      background-color: var(--color-emerald-50);
       border-color: var(--color-primary-lightest);
       color: var(--color-primary-dark);
     }
@@ -1164,7 +1164,7 @@ onMounted(() => {
     &.pagination-btn--disabled {
       opacity: 0.5;
       cursor: not-allowed !important;
-      color: #d4c5d0;
+      color: var(--color-text-placeholder);
       background-color: transparent;
       border-color: var(--color-border);
       pointer-events: none;
@@ -1172,7 +1172,7 @@ onMounted(() => {
 
     &.pagination-btn--active {
       background-color: var(--color-primary);
-      color: #fff;
+      color: var(--color-text-white);
       border-color: var(--color-primary);
       font-weight: 600;
       box-shadow: 0 1px 3px rgba(16, 185, 129, 0.25);
@@ -1199,7 +1199,7 @@ onMounted(() => {
     .detail-row {
       display: flex;
       padding: 8px 0;
-      border-bottom: 1px solid #f1f5f9;
+      border-bottom: 1px solid var(--color-border-light);
 
       .detail-label {
         width: 100px;
@@ -1245,8 +1245,8 @@ onMounted(() => {
     &.error-section {
       .error-message {
         padding: 16px;
-        background: #fef2f2;
-        border: 1px solid #fecaca;
+        background: var(--color-danger-bg);
+        border: 1px solid var(--color-danger-border);
         border-radius: 8px;
         color: var(--color-danger);
         font-size: 14px;
@@ -1261,8 +1261,8 @@ onMounted(() => {
 }
 
 @keyframes highlightPulse {
-  0% { background: #eff6ff; }
-  50% { background: #dbeafe; }
-  100% { background: #eff6ff; }
+  0% { background: var(--color-info-bg); }
+  50% { background: var(--color-info-bg); }
+  100% { background: var(--color-info-bg); }
 }
 </style>

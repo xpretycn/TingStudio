@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { query } from "../config/database-better-sqlite3.js";
+import { query, transaction } from "../config/database-better-sqlite3.js";
 import {
   generateId,
   generateMaterialCode,
@@ -364,7 +364,9 @@ export async function submitMaterialReview(req: any, res: Response) {
       return;
     }
 
-    await query("UPDATE materials SET status = 'pending_review', updated_at = ? WHERE id = ?", [now(), id]);
+    transaction(() => {
+      query("UPDATE materials SET status = 'pending_review', updated_at = ? WHERE id = ?", [now(), id]);
+    });
     await materialReviewService.createReviewLog({
       materialId: id,
       reviewerId: user.userId,
@@ -373,7 +375,6 @@ export async function submitMaterialReview(req: any, res: Response) {
 
     res.json(success(null, "原料已提交审批"));
   } catch (error: any) {
-    console.error("[MaterialController] submitMaterialReview Error:", error);
     res.status(500).json({ success: false, error: { message: "提交审批失败", code: "INTERNAL_ERROR" } });
   }
 }
@@ -405,7 +406,9 @@ export async function approveMaterial(req: any, res: Response) {
       return;
     }
 
-    await query("UPDATE materials SET status = 'published', updated_at = ? WHERE id = ?", [now(), id]);
+    transaction(() => {
+      query("UPDATE materials SET status = 'published', updated_at = ? WHERE id = ?", [now(), id]);
+    });
     await materialReviewService.createReviewLog({
       materialId: id,
       reviewerId: user.userId,
@@ -414,7 +417,6 @@ export async function approveMaterial(req: any, res: Response) {
 
     res.json(success(null, "原料已审批通过并发布"));
   } catch (error: any) {
-    console.error("[MaterialController] approveMaterial Error:", error);
     res.status(500).json({ success: false, error: { message: "审批操作失败", code: "INTERNAL_ERROR" } });
   }
 }
@@ -455,7 +457,9 @@ export async function rejectMaterial(req: any, res: Response) {
       return;
     }
 
-    await query("UPDATE materials SET status = 'draft', updated_at = ? WHERE id = ?", [now(), id]);
+    transaction(() => {
+      query("UPDATE materials SET status = 'draft', updated_at = ? WHERE id = ?", [now(), id]);
+    });
     await materialReviewService.createReviewLog({
       materialId: id,
       reviewerId: user.userId,
@@ -465,7 +469,6 @@ export async function rejectMaterial(req: any, res: Response) {
 
     res.json(success(null, "原料已驳回"));
   } catch (error: any) {
-    console.error("[MaterialController] rejectMaterial Error:", error);
     res.status(500).json({ success: false, error: { message: "驳回操作失败", code: "INTERNAL_ERROR" } });
   }
 }
@@ -497,7 +500,9 @@ export async function publishMaterial(req: any, res: Response) {
       return;
     }
 
-    await query("UPDATE materials SET status = 'published', updated_at = ? WHERE id = ?", [now(), id]);
+    transaction(() => {
+      query("UPDATE materials SET status = 'published', updated_at = ? WHERE id = ?", [now(), id]);
+    });
     await materialReviewService.createReviewLog({
       materialId: id,
       reviewerId: user.userId,
@@ -506,7 +511,6 @@ export async function publishMaterial(req: any, res: Response) {
 
     res.json(success(null, "原料已发布"));
   } catch (error: any) {
-    console.error("[MaterialController] publishMaterial Error:", error);
     res.status(500).json({ success: false, error: { message: "发布操作失败", code: "INTERNAL_ERROR" } });
   }
 }

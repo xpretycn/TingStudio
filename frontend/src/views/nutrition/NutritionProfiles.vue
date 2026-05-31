@@ -1,5 +1,6 @@
 <template>
   <div class="nutrition-profiles" :aria-busy="!initialized">
+    <!-- 仪表盘卡片 -->
     <section class="dashboard-grid">
       <div v-for="(card, idx) in dashboardCards" :key="card.label" class="stat-card"
         :style="{ animationDelay: `${(idx + 1) * 0.1}s` }">
@@ -14,17 +15,44 @@
         <p class="stat-value">{{ card.value }} <small class="stat-unit">{{ card.unit }}</small></p>
       </div>
     </section>
-
+    <!-- 内容卡片 -->
     <Transition name="content-fade" mode="out-in">
       <PageSkeleton v-if="!initialized" type="table" :rows="5" :columns="6" />
       <t-card v-else class="content-card" bordered>
         <div class="data-center-toolbar">
+          <!-- 批量操作栏 (默认隐藏) -->
+          <Transition name="batch-bar-slide">
+            <div v-if="selectedRows.length > 0" class="batch-action-bar">
+              <div class="batch-info">
+                <span class="batch-count"><strong>{{ selectedRows.length }}</strong> 项已选择</span>
+                <div class="batch-divider"></div>
+                <div class="batch-buttons">
+                  <t-popconfirm theme="danger" :content="`确定要删除所选的 ${selectedRows.length} 个标准吗？预置标准不会被删除。`"
+                    @confirm="handleBatchDelete">
+                    <button class="batch-action-btn">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="3 6 5 6 21 6" />
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2" />
+                      </svg>
+                      批量删除
+                    </button>
+                  </t-popconfirm>
+                </div>
+              </div>
+              <button class="batch-cancel-btn" @click="clearSelection">取消</button>
+            </div>
+          </Transition>
+
+          <!-- 左侧：标题和描述 -->
           <div class="toolbar-left-section">
             <div class="toolbar-title-section">
               <h3 class="toolbar-title">营养标准管理中心</h3>
               <p class="toolbar-subtitle">管理营养标准配置、指标值与合规检查基准</p>
             </div>
           </div>
+
+          <!-- 右侧：搜索和新增按钮 -->
           <div class="toolbar-right-section">
             <div class="search-container">
               <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -32,8 +60,7 @@
                 <circle cx="11" cy="11" r="8"></circle>
                 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
               </svg>
-              <t-input v-model="searchKeyword" class="search-input" placeholder="搜索标准名称..." @input="handleSearch"
-                @clear="handleSearch" clearable />
+              <t-input v-model="searchKeyword" class="search-input" placeholder="搜索标准名称..." clearable />
             </div>
             <t-select v-model="filterForm.category" placeholder="全部类别" clearable style="width: 140px"
               :popup-props="{ appendToBody: true }" @change="handleFilter">
@@ -55,9 +82,22 @@
           </div>
         </div>
 
-        <t-table :data="filteredProfiles" :columns="columns" :loading="nutritionStore.loading" row-key="profileId" hover
-          table-layout="auto">
-          <template #empty><t-empty description="暂无营养标准" role="status" /></template>
+        <t-table :data="pagedProfiles" :columns="columns" :loading="nutritionStore.loading" row-key="profileId" hover
+          table-layout="auto" @select-change="handleSelectChange" :selected-row-keys="selectedRowKeys">
+          <template #empty>
+            <t-empty description="暂无营养标准" role="status">
+              <template #action>
+                <button class="add-formula-btn" @click="showDialog = true; resetForm()">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                  </svg>
+                  创建第一个标准
+                </button>
+              </template>
+            </t-empty>
+          </template>
           <template #category="{ row }">
             <t-tag :theme="categoryTheme(row.category)" variant="light">{{ categoryLabel(row.category) }}</t-tag>
           </template>
@@ -83,28 +123,52 @@
               <button v-if="!row.isPreset" class="table-action-btn table-action-btn--success" @click="handleEdit(row)">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                   stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
-                  <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
                 </svg>编辑
               </button>
-              <button v-if="!row.isPreset" class="table-action-btn table-action-btn--danger" @click="handleDelete(row)">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                  stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="3 6 5 6 21 6" />
-                  <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
-                </svg>删除
-              </button>
+              <t-popconfirm v-if="!row.isPreset" theme="danger" :content="`确定要删除标准「${row.name}」吗？`"
+                @confirm="handleDelete(row)">
+                <button class="table-action-btn table-action-btn--danger">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3 6 5 6 21 6" />
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2" />
+                  </svg>删除
+                </button>
+              </t-popconfirm>
             </t-space>
           </template>
         </t-table>
+
+        <!-- 分页 -->
+        <div v-if="totalCount > 0" class="table-pagination">
+          <div class="pagination-info">
+            显示第 {{ (currentPage - 1) * pageSize + 1 }}-{{ Math.min(currentPage * pageSize, totalCount) }} 条，共 {{
+              totalCount }}
+            条数据
+          </div>
+          <div class="pagination-controls">
+            <button class="pagination-btn" :class="{ 'pagination-btn--disabled': currentPage === 1 }"
+              :disabled="currentPage === 1" @click="setPage(currentPage - 1)">上一页</button>
+            <template v-for="page in pageNumbers" :key="page">
+              <button v-if="page !== '...'" class="pagination-btn"
+                :class="{ 'pagination-btn--active': page === currentPage }"
+                @click="typeof page === 'number' && setPage(page)">{{ page }}</button>
+              <span v-else class="pagination-ellipsis">...</span>
+            </template>
+            <button class="pagination-btn" :class="{ 'pagination-btn--disabled': currentPage === totalPages }"
+              :disabled="currentPage === totalPages" @click="setPage(currentPage + 1)">下一页</button>
+          </div>
+        </div>
       </t-card>
     </Transition>
-
+    <!-- 活动卡片 -->
     <section class="activity-section">
       <div class="activity-card activity-card--timeline">
         <div class="activity-header">
           <h4 class="activity-title">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-info)" stroke-width="2"
               stroke-linecap="round" stroke-linejoin="round">
               <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
             </svg>
@@ -218,16 +282,47 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue';
+import { ref, reactive, computed, onMounted, onBeforeUnmount, watch } from 'vue';
 import { useNutritionStore } from '@/stores/nutrition';
-import { MessagePlugin, Dialog } from 'tdesign-vue-next';
+import { usePaginationStore } from '@/stores/pagination';
+import { MessagePlugin } from 'tdesign-vue-next';
 import type { NutritionProfile } from '@/api/nutrition';
 import PageSkeleton from '@/components/Skeleton/PageSkeleton.vue';
 
 const nutritionStore = useNutritionStore();
+const paginationStore = usePaginationStore();
 
 const initialized = ref(false);
 const searchKeyword = ref('');
+const currentPage = ref(1);
+const pageSize = ref(10);
+
+const selectedRowKeys = ref<(string | number)[]>([]);
+const selectedRows = ref<NutritionProfile[]>([]);
+
+const handleSelectChange = (value: Array<string | number>, { selectedRowData }: { selectedRowData: NutritionProfile[]; }) => {
+  selectedRowKeys.value = value;
+  selectedRows.value = selectedRowData;
+};
+
+const clearSelection = () => {
+  selectedRowKeys.value = [];
+  selectedRows.value = [];
+};
+
+const handleBatchDelete = async () => {
+  if (selectedRows.value.length === 0) return;
+  const deletable = selectedRows.value.filter((p: NutritionProfile) => !p.isPreset);
+  if (deletable.length === 0) {
+    MessagePlugin.warning('所选标准均为预置标准，不可删除');
+    return;
+  }
+  for (const p of deletable) {
+    await nutritionStore.deleteProfile(p.profileId);
+  }
+  MessagePlugin.success(`已删除 ${deletable.length} 个标准`);
+  clearSelection();
+};
 
 const filterForm = reactive({ category: '' });
 const showDialog = ref(false);
@@ -258,12 +353,13 @@ const categoryLabel = (c: string) => categoryMap[c] || c;
 const categoryTheme = (c: string) => c === 'infant' ? 'warning' : c === 'adult' ? 'primary' : 'success';
 
 const columns = [
+  { colKey: 'row-select', type: 'multiple', width: 50 },
   { colKey: 'name', title: '标准名称', width: 200 },
   { colKey: 'category', title: '适用类别', width: 120 },
   { colKey: 'isPreset', title: '预置', width: 80 },
   { colKey: 'targetCount', title: '指标数量', width: 120 },
   { colKey: 'createdAt', title: '创建时间', width: 180, cell: 'createdAt' },
-  { colKey: 'operation', title: '操作', width: 220, align: 'center' }
+  { colKey: 'operation', title: '操作', width: 200, align: 'center', cell: 'operation' }
 ];
 
 const targetDetailColumns = [
@@ -279,6 +375,32 @@ const filteredProfiles = computed(() => {
     list = list.filter((p: NutritionProfile) => p.name?.toLowerCase().includes(kw));
   }
   return list;
+});
+
+const totalCount = computed(() => filteredProfiles.value.length);
+const totalPages = computed(() => Math.ceil(totalCount.value / pageSize.value) || 1);
+
+const pagedProfiles = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value;
+  return filteredProfiles.value.slice(start, start + pageSize.value);
+});
+
+const pageNumbers = computed<(number | string)[]>(() => {
+  const total = totalPages.value;
+  const current = currentPage.value;
+  if (total <= 5) return Array.from({ length: total }, (_, i) => i + 1);
+  if (current <= 3) return [1, 2, 3, '...', total];
+  if (current >= total - 2) return [1, '...', total - 2, total - 1, total];
+  return [1, '...', current - 1, current, current + 1, '...', total];
+});
+
+const setPage = (page: number) => {
+  if (page < 1 || page > totalPages.value) return;
+  currentPage.value = page;
+};
+
+watch([searchKeyword, () => filterForm.category], () => {
+  currentPage.value = 1;
 });
 
 const profileTargetList = computed(() => {
@@ -299,9 +421,9 @@ const dashboardCards = computed(() => {
       unit: '个',
       badge: customCount > 0 ? `自定义 ${customCount}` : '—',
       badgeColor: 'var(--color-primary)',
-      badgeBg: '#ECFDF5',
-      iconBg: '#EFF6FF',
-      iconColor: '#3B82F6',
+      badgeBg: 'var(--color-emerald-50)',
+      iconBg: 'var(--color-info-bg)',
+      iconColor: 'var(--color-info)',
       iconPath: '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>',
     },
     {
@@ -310,8 +432,8 @@ const dashboardCards = computed(() => {
       unit: '个',
       badge: presetCount > 0 ? '系统内置' : '无',
       badgeColor: 'var(--color-warning)',
-      badgeBg: '#FFFBEB',
-      iconBg: '#FFFBEB',
+      badgeBg: 'var(--color-warning-bg)',
+      iconBg: 'var(--color-warning-bg)',
       iconColor: 'var(--color-warning)',
       iconPath: '<path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>',
     },
@@ -321,8 +443,8 @@ const dashboardCards = computed(() => {
       unit: '类',
       badge: `${categories} 类人群`,
       badgeColor: 'var(--color-text-placeholder)',
-      badgeBg: '#F1F5F9',
-      iconBg: '#ECFDF5',
+      badgeBg: 'var(--color-bg-hover)',
+      iconBg: 'var(--color-emerald-50)',
       iconColor: 'var(--color-primary)',
       iconPath: '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
     },
@@ -331,10 +453,10 @@ const dashboardCards = computed(() => {
       value: profiles.reduce((sum: number, p: NutritionProfile) => sum + Object.keys(p.targetValues || {}).length, 0).toString(),
       unit: '项',
       badge: '活跃',
-      badgeColor: '#A855F7',
-      badgeBg: '#FAF5FF',
-      iconBg: '#FAF5FF',
-      iconColor: '#A855F7',
+      badgeColor: 'var(--color-purple-500)',
+      badgeBg: 'var(--color-purple-50)',
+      iconBg: 'var(--color-purple-50)',
+      iconColor: 'var(--color-purple-500)',
       iconPath: '<rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/>',
     },
   ];
@@ -400,27 +522,7 @@ const removeTarget = (key: string) => {
   delete profileForm.targetValues[key];
 };
 
-const handleSearch = () => { };
 const handleFilter = () => { };
-
-// handleCreate is called from template
-// @ts-expect-error function called programmatically
-async function _handleCreate() {
-  if (!profileForm.name) { MessagePlugin.warning('请输入标准名称'); return; }
-  if (!Object.keys(profileForm.targetValues).length) { MessagePlugin.warning('请至少添加一项营养指标'); return; }
-  const result = await nutritionStore.createProfile({
-    name: profileForm.name,
-    category: profileForm.category,
-    description: profileForm.description || undefined,
-    targetValues: profileForm.targetValues
-  });
-  if (result.success) {
-    MessagePlugin.success('创建成功');
-    showDialog.value = false;
-  } else {
-    MessagePlugin.error(result.message || '创建失败');
-  }
-};
 
 const handleEdit = (row: NutritionProfile) => {
   isEditMode.value = true;
@@ -463,17 +565,9 @@ const handleSave = async () => {
 
 const handleDelete = async (row: NutritionProfile) => {
   if (row.isPreset) { MessagePlugin.warning('预置营养标准不可删除'); return; }
-  const confirmed = await Dialog.confirm({
-    header: '确认删除',
-    content: `确定要删除营养标准"${row.name}"吗？`,
-    confirmBtn: { theme: 'danger', content: '确定' },
-    cancelBtn: { theme: 'default', content: '取消' },
-  });
-  if (confirmed) {
-    const result = await nutritionStore.deleteProfile(row.profileId);
-    if (result.success) MessagePlugin.success('删除成功');
-    else MessagePlugin.error(result.message || '删除失败');
-  }
+  const result = await nutritionStore.deleteProfile(row.profileId);
+  if (result.success) MessagePlugin.success('删除成功');
+  else MessagePlugin.error(result.message || '删除失败');
 };
 
 const handleViewDetail = (row: NutritionProfile) => {
@@ -484,6 +578,29 @@ const handleViewDetail = (row: NutritionProfile) => {
 onMounted(async () => {
   await nutritionStore.fetchProfiles();
   initialized.value = true;
+  paginationStore.register({
+    current: currentPage.value,
+    pageSize: pageSize.value,
+    total: totalCount.value,
+    onChange: (pageInfo: { current: number; pageSize: number; }) => {
+      currentPage.value = pageInfo.current;
+      if (pageInfo.pageSize !== pageSize.value) {
+        pageSize.value = pageInfo.pageSize;
+        currentPage.value = 1;
+      }
+    }
+  });
+  watch([currentPage, pageSize, totalCount], () => {
+    paginationStore.update({
+      current: currentPage.value,
+      pageSize: pageSize.value,
+      total: totalCount.value
+    });
+  });
+});
+
+onBeforeUnmount(() => {
+  paginationStore.unregister();
 });
 </script>
 
@@ -496,17 +613,17 @@ onMounted(async () => {
     margin-bottom: 30px;
 
     .stat-card {
-      background: #fff;
+      background: var(--color-bg-container);
       padding: 24px;
       border-radius: var(--radius-4xl);
-      border: 1px solid #fff;
+      border: 1px solid var(--color-bg-container);
       box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
       transition: all $transition-slow;
       animation: dashboard-fade-in 0.5s ease forwards;
       opacity: 0;
 
       &:hover {
-        border-color: #DBEAFE;
+        border-color: var(--color-info-bg);
         transform: translateY(-2px);
         box-shadow: 0 14px 36px -6px rgba(0, 0, 0, 0.08);
       }
@@ -545,7 +662,7 @@ onMounted(async () => {
       .stat-value {
         font-size: 24px;
         font-weight: 700;
-        color: #0F172A;
+        color: var(--color-text-primary);
         line-height: 1.2;
 
         .stat-unit {
@@ -568,8 +685,151 @@ onMounted(async () => {
       padding: 0;
     }
 
-    :deep(.t-table__body .t-table__row) {
-      animation: rowFadeIn 0.3s ease both;
+    :deep(.t-table) {
+      --td-brand-color: var(--color-emerald);
+      --td-brand-color-hover: var(--color-success);
+      --td-border-level-1-color: transparent;
+      --td-border-level-2-color: transparent;
+
+      &::before,
+      &::after {
+        display: none !important;
+      }
+
+      .t-table__header th {
+        background: var(--color-bg-page) !important;
+        color: var(--color-text-secondary) !important;
+        border-color: var(--color-bg-page) !important;
+        border-left: none !important;
+        border-right: none !important;
+        border-top: none !important;
+      }
+
+      .t-table__body .t-table__row {
+        animation: rowFadeIn 0.3s ease both;
+
+        td {
+          padding: 12px 16px !important;
+          border-bottom: 1px solid var(--color-bg-hover) !important;
+          border-left: none !important;
+          border-right: none !important;
+          border-top: none !important;
+          border-color: var(--color-bg-hover) !important;
+          vertical-align: middle;
+          font-size: 13px !important;
+          box-sizing: border-box !important;
+          position: relative;
+          overflow: hidden;
+
+          &::before,
+          &::after {
+            display: none !important;
+            content: none !important;
+          }
+        }
+
+        &:last-child td {
+          border-bottom: none !important;
+        }
+
+        &--selected,
+        &--selected.t-table__row--hover {
+          >td {
+            background-color: rgba(209, 250, 229, 0.55) !important;
+            border-color: rgba(209, 250, 229, 0.8) !important;
+            border-left: none !important;
+            border-right: none !important;
+            border-top: none !important;
+            border-bottom: 1px solid rgba(209, 250, 229, 0.8) !important;
+            box-shadow: none !important;
+
+            &:first-child {
+              box-shadow: inset 3px 0 0 var(--color-emerald) !important;
+            }
+          }
+        }
+
+        &:hover:not(.t-table__row--selected)>td:first-child {
+          box-shadow: inset 3px 0 0 var(--color-primary-light);
+        }
+      }
+
+      .t-table__inner-border {
+        display: none !important;
+      }
+    }
+  }
+
+  .table-pagination {
+    padding: 16px 24px 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--color-bg-container);
+    border-top: 1px solid var(--color-bg-page);
+
+    .pagination-info {
+      font-size: 14px;
+      color: var(--color-text-placeholder);
+      font-weight: 400;
+      white-space: nowrap;
+    }
+
+    .pagination-controls {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .pagination-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: var(--space-1-5) 12px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md, 8px);
+      background-color: transparent;
+      color: var(--color-text-regular, #6e6178);
+      font-size: 14px;
+      cursor: pointer;
+      transition: all var(--transition-fast, 0.15s);
+      white-space: nowrap;
+      user-select: none;
+
+      &:hover:not(.pagination-btn--disabled):not(.pagination-btn--active) {
+        background-color: var(--color-primary-bg, var(--color-primary-bg));
+        border-color: var(--color-primary-lighter, var(--color-primary-lighter));
+        color: var(--color-primary-dark, var(--color-primary-dark));
+      }
+
+      &.pagination-btn--disabled {
+        opacity: 0.5;
+        cursor: not-allowed !important;
+        color: var(--color-text-placeholder, #d4c5d0);
+        background-color: transparent;
+        border-color: var(--color-border);
+        pointer-events: none;
+      }
+
+      &.pagination-btn--active {
+        background-color: var(--color-primary, var(--color-primary));
+        color: var(--color-text-white);
+        border-color: var(--color-primary, var(--color-primary));
+        font-weight: 600;
+        box-shadow: 0 1px 3px var(--overlay-brand-25, rgba(255, 107, 138, 0.25));
+        pointer-events: none;
+      }
+    }
+
+    .pagination-ellipsis {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 34px;
+      color: var(--color-text-placeholder);
+      font-size: 14px;
+      user-select: none;
     }
   }
 
@@ -645,8 +905,8 @@ onMounted(async () => {
       gap: var(--space-1-5);
       padding: var(--space-2-5) 20px;
       border-radius: 12px;
-      background: linear-gradient(135deg, #374151, #1f2937);
-      color: #fff;
+      background: linear-gradient(135deg, var(--color-text-primary), var(--color-text-secondary));
+      color: var(--color-text-white);
       font-size: 13px;
       font-weight: 700;
       border: none;
@@ -669,40 +929,146 @@ onMounted(async () => {
     color: var(--color-text-placeholder);
   }
 
+  .batch-action-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 20;
+    background-color: var(--color-primary-dark);
+    color: var(--color-text-white);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 32px;
+    border-radius: var(--radius-5xl) var(--radius-5xl) 0 0;
+    box-shadow: 0 4px 18px rgba(5, 150, 105, 0.25);
+
+    .batch-info {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+
+      .batch-count {
+        font-weight: 700;
+        font-size: 14px;
+
+        strong {
+          font-weight: 800;
+          margin-right: 4px;
+        }
+      }
+
+      .batch-divider {
+        width: 1px;
+        height: 16px;
+        background: rgba(52, 211, 153, 0.5);
+      }
+
+      .batch-buttons {
+        display: flex;
+        gap: 16px;
+      }
+
+      .batch-action-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 14px;
+        font-weight: 500;
+        background: none;
+        border: none;
+        color: var(--color-text-white);
+        cursor: pointer;
+        padding: 4px 8px;
+        border-radius: 6px;
+        transition: all $transition-fast;
+
+        &:hover {
+          color: var(--color-primary-bg);
+        }
+
+        svg {
+          width: 14px;
+          height: 14px;
+          stroke-width: 2;
+        }
+      }
+    }
+
+    .batch-cancel-btn {
+      font-size: 14px;
+      font-weight: 500;
+      border: 1px solid var(--color-primary-light);
+      padding: 4px 12px;
+      border-radius: 8px;
+      background: transparent;
+      color: var(--color-text-white);
+      cursor: pointer;
+      transition: all $transition-fast;
+
+      &:hover {
+        background-color: var(--color-primary-deep);
+      }
+    }
+  }
+
+  .batch-bar-slide-enter-active,
+  .batch-bar-slide-leave-active {
+    transition: all $transition-slow;
+  }
+
+  .batch-bar-slide-enter-from,
+  .batch-bar-slide-leave-to {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
   .table-action-btn {
     display: inline-flex;
     align-items: center;
-    gap: 4px;
-    padding: var(--space-1-25) var(--space-2-5);
-    border-radius: 8px;
-    font-size: 12px;
-    font-weight: 500;
-    border: none;
+    gap: var(--space-1);
+    padding: var(--space-1) var(--space-2-5);
+    border-radius: var(--radius-xs);
+    font-size: $font-size-caption;
+    font-weight: $font-weight-medium;
     cursor: pointer;
     transition: all $transition-fast;
-    background: transparent;
+    white-space: nowrap;
+    border: none;
+
+    svg {
+      width: 14px;
+      height: 14px;
+      stroke-width: 2;
+    }
 
     &--primary {
-      color: #3b82f6;
+      color: var(--color-info);
+      background: rgba(24, 144, 255, 0.08);
 
       &:hover {
-        background: #eff6ff;
+        background: rgba(24, 144, 255, 0.15);
+        color: var(--color-info-dark);
       }
     }
 
     &--success {
-      color: var(--color-primary);
+      color: var(--color-success);
+      background: rgba(123, 198, 126, 0.08);
 
       &:hover {
-        background: #ecfdf5;
+        background: rgba(123, 198, 126, 0.15);
       }
     }
 
     &--danger {
       color: var(--color-danger);
+      background: rgba(227, 77, 89, 0.06);
 
       &:hover {
-        background: #fef2f2;
+        background: rgba(227, 77, 89, 0.12);
       }
     }
   }
@@ -754,7 +1120,7 @@ onMounted(async () => {
   }
 
   .activity-card {
-    background-color: #fff;
+    background-color: var(--color-bg-container);
     border-radius: var(--radius-4xl);
     padding: 32px;
     box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
@@ -763,7 +1129,7 @@ onMounted(async () => {
     &--assistant {
       background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
       border: none;
-      color: #fff;
+      color: var(--color-text-white);
       position: relative;
       overflow: hidden;
       box-shadow: 0 20px 25px -5px rgba(16, 185, 129, 0.15), 0 10px 10px -5px rgba(16, 185, 129, 0.04);
@@ -801,7 +1167,7 @@ onMounted(async () => {
     height: 28px;
     border-radius: 8px;
     border: none;
-    background: #f1f5f9;
+    background: var(--color-bg-hover);
     color: var(--color-text-secondary);
     cursor: pointer;
     transition: all $transition-fast;
@@ -860,7 +1226,7 @@ onMounted(async () => {
     justify-content: center;
     flex-shrink: 0;
     z-index: 1;
-    background: #fff;
+    background: var(--color-bg-container);
     border: 2px solid var(--color-border);
 
     &--success {
@@ -875,13 +1241,13 @@ onMounted(async () => {
     }
 
     &--info {
-      border-color: #3b82f6;
+      border-color: var(--color-info);
 
       .timeline-dot-inner {
         width: 8px;
         height: 8px;
         border-radius: 50%;
-        background: #3b82f6;
+        background: var(--color-info);
       }
     }
 
@@ -954,7 +1320,7 @@ onMounted(async () => {
     background: rgba(255, 255, 255, 0.2);
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.3);
-    color: #fff;
+    color: var(--color-text-white);
     font-size: 13px;
     font-weight: 600;
     cursor: pointer;
@@ -1028,6 +1394,66 @@ onMounted(async () => {
     to {
       opacity: 1;
       transform: translateX(0);
+    }
+  }
+}
+</style>
+
+<style lang="scss">
+.nutrition-profiles-page {
+  .t-table {
+    --td-brand-color: var(--color-emerald) !important;
+    --td-brand-color-hover: var(--color-success) !important;
+    --td-border-level-1-color: transparent !important;
+    --td-border-level-2-color: transparent !important;
+
+    .t-table__inner-border,
+    .t-table__inner-border::before,
+    .t-table__inner-border::after {
+      display: none !important;
+    }
+
+    .t-table__header th {
+      border-left: none !important;
+      border-right: none !important;
+      border-top: none !important;
+      border-color: var(--color-bg-page) !important;
+    }
+
+    .t-table__body .t-table__row td {
+      border-left: none !important;
+      border-right: none !important;
+      border-top: none !important;
+      border-bottom: 1px solid var(--color-bg-hover) !important;
+      position: relative;
+
+      &::before,
+      &::after {
+        display: none !important;
+        content: none !important;
+      }
+    }
+
+    .t-table__row.t-table__row--selected>td,
+    .t-table__row.t-table__row--selected.t-table__row--hover>td {
+      background-color: rgba(209, 250, 229, 0.55) !important;
+      box-shadow: none !important;
+      border-left: none !important;
+      border-right: none !important;
+      border-top: none !important;
+      border-bottom: 1px solid rgba(209, 250, 229, 0.8) !important;
+      border-color: rgba(209, 250, 229, 0.8) !important;
+    }
+
+    .t-table__row.t-table__row--selected>td:first-child,
+    .t-table__row.t-table__row--selected.t-table__row--hover>td:first-child {
+      box-shadow: inset 3px 0 0 var(--color-emerald) !important;
+    }
+
+    .t-table__row__text {
+      &::after {
+        display: none !important;
+      }
     }
   }
 }

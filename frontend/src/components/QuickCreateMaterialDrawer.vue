@@ -46,7 +46,7 @@
     >
       <div class="drawer-card info-card">
         <div class="card-header">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2"
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--color-info)" stroke-width="2"
             stroke-linecap="round" stroke-linejoin="round">
             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
             <circle cx="12" cy="7" r="4" />
@@ -484,7 +484,7 @@ const handleSubmit = async () => {
 
         &.create-btn {
           background: var(--color-primary);
-          color: #fff;
+          color: var(--color-text-white);
 
           &:hover {
             background: var(--color-primary-dark);
@@ -510,7 +510,7 @@ const handleSubmit = async () => {
       margin-top: 16px;
     }
 
-    border: 1px solid #f1f5f9;
+    border: 1px solid var(--color-border-light);
     border-radius: 12px;
     overflow: hidden;
 
@@ -519,7 +519,7 @@ const handleSubmit = async () => {
     }
 
     &.info-card {
-      border-left: 3px solid #3b82f6;
+      border-left: 3px solid var(--color-info);
     }
 
     &.nutrition-card {
@@ -536,7 +536,7 @@ const handleSubmit = async () => {
       gap: 8px;
       padding: 12px 16px;
       background: var(--color-bg-page);
-      border-bottom: 1px solid #f1f5f9;
+      border-bottom: 1px solid var(--color-border-light);
 
       span {
         font-size: 14px;
@@ -583,7 +583,7 @@ const handleSubmit = async () => {
   }
 
   .code-readonly :deep(.t-input) {
-    background: #f1f5f9;
+    background: var(--color-bg-hover);
     cursor: not-allowed;
 
     .t-input__inner {
@@ -635,12 +635,12 @@ const handleSubmit = async () => {
 
       :deep(.t-form__label) {
         font-size: 12px;
-        color: #166534;
+        color: var(--color-emerald-600);
       }
 
       :deep(.t-input-number.field-auto-filled) {
-        background: #ecfdf5;
-        border-color: #86efac;
+        background: var(--color-success-bg);
+        border-color: var(--color-success-border);
       }
     }
   }
@@ -664,13 +664,13 @@ const handleSubmit = async () => {
 
     .missing-field-tag {
       font-size: 11px;
-      color: #b45309;
-      background: #fef3c7;
+      color: var(--color-warning-dark);
+      background: var(--color-warning-bg);
       padding: var(--space-1) var(--space-2-5);
       border-radius: 6px;
       font-weight: 600;
       cursor: default;
-      border: 1px dashed #fcd34d;
+      border: 1px dashed var(--color-warning);
     }
   }
 }

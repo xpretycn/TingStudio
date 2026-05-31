@@ -1,184 +1,263 @@
 <template>
-  <div class="mm-body">
-    <div class="mm-nav" :class="{ 'mm-nav--collapsed': navCollapsed }">
-      <button type="button" class="nav-collapse-btn" @click="navCollapsed = !navCollapsed"
-        :title="navCollapsed ? '展开导航' : '折叠导航'" aria-label="切换导航折叠状态">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-          stroke-linecap="round" stroke-linejoin="round"
-          :style="{ transform: navCollapsed ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s ease' }">
-          <polyline points="15 18 9 12 15 6" />
-        </svg>
-      </button>
-      <div v-for="cat in categories" :key="cat.value" class="nav-tab"
-        :class="{ active: activeCategory === cat.value }"
-        :title="navCollapsed ? cat.label : ''" role="tab" tabindex="0"
-        @click="activeCategory = cat.value; keyword = ''"
-        @keydown.enter="activeCategory = cat.value; keyword = ''">
-        <svg class="nav-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-          stroke-linecap="round" stroke-linejoin="round" v-html="cat.iconPath"></svg>
-        <span class="nav-tab-label">{{ cat.label }}</span>
+  <div class="enum-manage-grid">
+    <!-- 性状 Card -->
+    <div class="enum-category-card">
+      <div class="enum-card-header">
+        <div class="enum-card-title-group">
+          <div class="enum-card-icon" style="background: var(--color-info-medium); color: var(--color-info);">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="3"/><path d="M12 2v4m0 12v4m10-10h-4M6 12H2m15.07-5.07l-2.83 2.83M9.76 14.24l-2.83 2.83m11.14 0l-2.83-2.83M9.76 9.76L6.93 6.93"/>
+            </svg>
+          </div>
+          <div class="enum-card-title-details">
+            <h5 class="enum-card-title">性状管理</h5>
+            <span class="enum-card-subtitle">共 {{ appearanceList.length }} 项</span>
+          </div>
+        </div>
+        <div class="enum-card-actions-top">
+          <t-input v-model="keywordMap.appearance" placeholder="搜索..." clearable size="small" class="enum-search-sm">
+            <template #prefix-icon><t-icon name="search" /></template>
+          </t-input>
+          <t-button theme="primary" size="small" @click="openCreateDialog('appearance')">
+            <template #icon><t-icon name="add" /></template>
+            添加
+          </t-button>
+        </div>
+      </div>
+
+      <div v-if="pagedAppearanceList.length > 0" class="enum-card-body">
+        <div v-for="(item, index) in pagedAppearanceList" :key="item.id" class="enum-item"
+          :class="{ 'is-inactive': !item.isActive }">
+          <div class="enum-item-main">
+            <div class="enum-item-index">{{ (appearancePage - 1) * PAGE_SIZE + index + 1 }}</div>
+            <span class="enum-item-label">{{ item.label }}</span>
+            <t-tag v-if="!item.isActive" theme="default" variant="light" size="small">已停用</t-tag>
+          </div>
+          <div class="enum-item-actions">
+            <t-switch :value="item.isActive" size="small" @change="(val: boolean) => handleToggleActive(item, val)" />
+            <t-button variant="text" theme="default" size="small" @click="openEditDialog(item)">编辑</t-button>
+            <t-popconfirm content="确定删除该枚举值吗？删除后不可恢复。" @confirm="handleDelete(item)">
+              <t-button variant="text" theme="danger" size="small">删除</t-button>
+            </t-popconfirm>
+          </div>
+        </div>
+      </div>
+      <div v-else class="enum-card-empty">
+        <p>{{ keywordMap.appearance ? '未找到匹配项' : '暂无数据' }}</p>
+      </div>
+
+      <div v-if="appearanceTotalPages > 1" class="enum-card-footer">
+        <div class="enum-pagination">
+          <button class="pagination-btn" :disabled="appearancePage <= 1" @click="appearancePage--">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+              stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          <span class="pagination-text">{{ appearancePage }} / {{ appearanceTotalPages }}</span>
+          <button class="pagination-btn" :disabled="appearancePage >= appearanceTotalPages" @click="appearancePage++">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+              stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+        </div>
       </div>
     </div>
 
-    <div class="mm-content">
-      <Transition name="content-fade" mode="out-in">
-        <div :key="activeCategory" class="tab-panel">
-          <!-- 互斥规则 Tab -->
-          <div v-if="activeCategory === 'exclusion-rules'" class="category-content">
-            <div class="section-header-enhanced">
-              <div class="section-title-group">
-                <svg class="section-title-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                  :stroke="currentCategoryColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                  v-html="currentCategory.iconPath"></svg>
-                <h4 class="section-title-text">互斥规则管理</h4>
-              </div>
-              <div class="section-header-right">
-                <span class="section-title-count">共 {{ currentList.length }} 条规则</span>
-              </div>
-            </div>
-
-            <div class="enum-toolbar">
-              <t-input v-model="keyword" placeholder="搜索互斥规则..." clearable class="enum-search-input">
-                <template #prefix-icon><t-icon name="search" /></template>
-              </t-input>
-              <t-button theme="primary" @click="openCreateExclusionDialog">
-                <template #icon><t-icon name="add" /></template>
-                添加互斥规则
-              </t-button>
-            </div>
-
-            <div v-if="currentList.length > 0" class="enum-list">
-              <div v-for="(item, index) in pagedList" :key="item.id" class="enum-card exclusion-card">
-                <div class="enum-card-header">
-                  <div class="enum-name-row">
-                    <div class="enum-index-wrap">
-                      <span class="enum-index">{{ (currentPage - 1) * PAGE_SIZE + index + 1 }}</span>
-                    </div>
-                    <div class="exclusion-relation">
-                      <span class="exclusion-value">{{ item.labelA || item.valueA }}</span>
-                      <span class="exclusion-symbol">&harr;</span>
-                      <span class="exclusion-value">{{ item.labelB || item.valueB }}</span>
-                    </div>
-                    <t-tag
-                      :theme="item.category === 'appearance' ? 'primary' : 'success'"
-                      variant="light"
-                      size="small"
-                    >
-                      {{ item.category === 'appearance' ? '性状' : '口感' }}
-                    </t-tag>
-                  </div>
-                </div>
-                <div class="enum-card-footer">
-                  <div class="enum-usage-mini">
-                    <span>{{ item.category === 'appearance' ? '性状分类' : '口感分类' }}</span>
-                  </div>
-                  <div class="enum-actions">
-                    <t-popconfirm content="确定删除该互斥规则吗？删除后不可恢复。" @confirm="handleDeleteExclusion(item)">
-                      <t-button variant="text" theme="danger" size="small">删除</t-button>
-                    </t-popconfirm>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div v-else class="empty-state">
-              <div class="empty-icon-wrap">
-                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-placeholder)"
-                  stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M18 6L6 18M6 6l12 12" />
-                </svg>
-              </div>
-              <p class="empty-text">{{ keyword ? '未找到匹配的互斥规则' : '暂无互斥规则' }}</p>
-              <p class="empty-hint">{{ keyword ? '尝试其他关键词' : '点击上方按钮添加第一条互斥规则' }}</p>
-            </div>
+    <!-- 口感 Card -->
+    <div class="enum-category-card">
+      <div class="enum-card-header">
+        <div class="enum-card-title-group">
+          <div class="enum-card-icon" style="background: var(--overlay-emerald-10); color: var(--color-emerald);">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/>
+              <path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/>
+            </svg>
           </div>
-
-          <!-- 枚举值 Tab（原有逻辑） -->
-          <div v-else class="category-content">
-            <div class="section-header-enhanced">
-              <div class="section-title-group">
-                <svg class="section-title-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                  :stroke="currentCategoryColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                  v-html="currentCategory.iconPath"></svg>
-                <h4 class="section-title-text">{{ currentCategory.label }}管理</h4>
-              </div>
-              <div class="section-header-right">
-                <span class="section-title-count">共 {{ currentList.length }} 项</span>
-                <div v-if="currentList.length > 0" class="activity-nav">
-                  <button class="activity-nav-btn" :disabled="currentPage <= 1" @click="pagePrev" title="上一页">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                      stroke-linecap="round" stroke-linejoin="round">
-                      <polyline points="15 18 9 12 15 6" />
-                    </svg>
-                  </button>
-                  <span class="activity-nav-page">{{ currentPage }} / {{ totalPages }}</span>
-                  <button class="activity-nav-btn" :disabled="currentPage >= totalPages" @click="pageNext" title="下一页">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                      stroke-linecap="round" stroke-linejoin="round">
-                      <polyline points="9 18 15 12 9 6" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <div class="enum-toolbar">
-              <t-input v-model="keyword" placeholder="搜索枚举值..." clearable class="enum-search-input">
-                <template #prefix-icon><t-icon name="search" /></template>
-              </t-input>
-              <t-button theme="primary" @click="openCreateDialog">
-                <template #icon><t-icon name="add" /></template>
-                添加枚举值
-              </t-button>
-            </div>
-
-            <div v-if="currentList.length > 0" class="enum-list">
-              <div v-for="(item, index) in pagedList" :key="item.id" class="enum-card"
-                :class="{ 'is-inactive': !item.isActive }">
-                <div class="enum-card-header">
-                  <div class="enum-name-row">
-                    <div class="enum-index-wrap">
-                      <span class="enum-index">{{ (currentPage - 1) * PAGE_SIZE + index + 1 }}</span>
-                    </div>
-                    <span class="enum-label">{{ item.label }}</span>
-                    <t-tag v-if="!item.isActive" theme="default" variant="light" size="small">已停用</t-tag>
-                  </div>
-                </div>
-                <div class="enum-card-footer">
-                  <div class="enum-usage-mini">
-                    <span>{{ item.isActive ? '启用中' : '已停用' }}</span>
-                    <span>排序 #{{ item.sortOrder }}</span>
-                  </div>
-                  <div class="enum-actions">
-                    <t-switch :value="item.isActive" size="small" @change="(val: boolean) => handleToggleActive(item, val)" />
-                    <t-button variant="text" theme="default" size="small" @click="openEditDialog(item)">
-                      编辑
-                    </t-button>
-                    <t-popconfirm content="确定删除该枚举值吗？删除后不可恢复。" @confirm="handleDelete(item)">
-                      <t-button variant="text" theme="danger" size="small">删除</t-button>
-                    </t-popconfirm>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div v-else class="empty-state">
-              <div class="empty-icon-wrap">
-                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-placeholder)"
-                  stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" />
-                  <polyline points="13 2 13 9 20 9" />
-                </svg>
-              </div>
-              <p class="empty-text">{{ keyword ? '未找到匹配的枚举值' : '暂无枚举值' }}</p>
-              <p class="empty-hint">{{ keyword ? '尝试其他关键词' : '点击上方按钮添加第一个枚举值' }}</p>
-            </div>
+          <div class="enum-card-title-details">
+            <h5 class="enum-card-title">口感管理</h5>
+            <span class="enum-card-subtitle">共 {{ tasteList.length }} 项</span>
           </div>
         </div>
-      </Transition>
+        <div class="enum-card-actions-top">
+          <t-input v-model="keywordMap.taste" placeholder="搜索..." clearable size="small" class="enum-search-sm">
+            <template #prefix-icon><t-icon name="search" /></template>
+          </t-input>
+          <t-button theme="primary" size="small" @click="openCreateDialog('taste')">
+            <template #icon><t-icon name="add" /></template>
+            添加
+          </t-button>
+        </div>
+      </div>
+
+      <div v-if="pagedTasteList.length > 0" class="enum-card-body">
+        <div v-for="(item, index) in pagedTasteList" :key="item.id" class="enum-item"
+          :class="{ 'is-inactive': !item.isActive }">
+          <div class="enum-item-main">
+            <div class="enum-item-index">{{ (tastePage - 1) * PAGE_SIZE + index + 1 }}</div>
+            <span class="enum-item-label">{{ item.label }}</span>
+            <t-tag v-if="!item.isActive" theme="default" variant="light" size="small">已停用</t-tag>
+          </div>
+          <div class="enum-item-actions">
+            <t-switch :value="item.isActive" size="small" @change="(val: boolean) => handleToggleActive(item, val)" />
+            <t-button variant="text" theme="default" size="small" @click="openEditDialog(item)">编辑</t-button>
+            <t-popconfirm content="确定删除该枚举值吗？删除后不可恢复。" @confirm="handleDelete(item)">
+              <t-button variant="text" theme="danger" size="small">删除</t-button>
+            </t-popconfirm>
+          </div>
+        </div>
+      </div>
+      <div v-else class="enum-card-empty">
+        <p>{{ keywordMap.taste ? '未找到匹配项' : '暂无数据' }}</p>
+      </div>
+
+      <div v-if="tasteTotalPages > 1" class="enum-card-footer">
+        <div class="enum-pagination">
+          <button class="pagination-btn" :disabled="tastePage <= 1" @click="tastePage--">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+              stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          <span class="pagination-text">{{ tastePage }} / {{ tasteTotalPages }}</span>
+          <button class="pagination-btn" :disabled="tastePage >= tasteTotalPages" @click="tastePage++">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+              stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 功效 Card -->
+    <div class="enum-category-card">
+      <div class="enum-card-header">
+        <div class="enum-card-title-group">
+          <div class="enum-card-icon" style="background: var(--color-warning-medium); color: var(--color-warning);">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+          </div>
+          <div class="enum-card-title-details">
+            <h5 class="enum-card-title">功效管理</h5>
+            <span class="enum-card-subtitle">共 {{ efficacyList.length }} 项</span>
+          </div>
+        </div>
+        <div class="enum-card-actions-top">
+          <t-input v-model="keywordMap.efficacy" placeholder="搜索..." clearable size="small" class="enum-search-sm">
+            <template #prefix-icon><t-icon name="search" /></template>
+          </t-input>
+          <t-button theme="primary" size="small" @click="openCreateDialog('efficacy')">
+            <template #icon><t-icon name="add" /></template>
+            添加
+          </t-button>
+        </div>
+      </div>
+
+      <div v-if="pagedEfficacyList.length > 0" class="enum-card-body">
+        <div v-for="(item, index) in pagedEfficacyList" :key="item.id" class="enum-item"
+          :class="{ 'is-inactive': !item.isActive }">
+          <div class="enum-item-main">
+            <div class="enum-item-index">{{ (efficacyPage - 1) * PAGE_SIZE + index + 1 }}</div>
+            <span class="enum-item-label">{{ item.label }}</span>
+            <t-tag v-if="!item.isActive" theme="default" variant="light" size="small">已停用</t-tag>
+          </div>
+          <div class="enum-item-actions">
+            <t-switch :value="item.isActive" size="small" @change="(val: boolean) => handleToggleActive(item, val)" />
+            <t-button variant="text" theme="default" size="small" @click="openEditDialog(item)">编辑</t-button>
+            <t-popconfirm content="确定删除该枚举值吗？删除后不可恢复。" @confirm="handleDelete(item)">
+              <t-button variant="text" theme="danger" size="small">删除</t-button>
+            </t-popconfirm>
+          </div>
+        </div>
+      </div>
+      <div v-else class="enum-card-empty">
+        <p>{{ keywordMap.efficacy ? '未找到匹配项' : '暂无数据' }}</p>
+      </div>
+
+      <div v-if="efficacyTotalPages > 1" class="enum-card-footer">
+        <div class="enum-pagination">
+          <button class="pagination-btn" :disabled="efficacyPage <= 1" @click="efficacyPage--">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+              stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          <span class="pagination-text">{{ efficacyPage }} / {{ efficacyTotalPages }}</span>
+          <button class="pagination-btn" :disabled="efficacyPage >= efficacyTotalPages" @click="efficacyPage++">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+              stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 互斥规则 Card -->
+    <div class="enum-category-card">
+      <div class="enum-card-header">
+        <div class="enum-card-title-group">
+          <div class="enum-card-icon" style="background: var(--color-danger-strong); color: var(--color-danger);">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 6L6 18M6 6l12 12"/>
+            </svg>
+          </div>
+          <div class="enum-card-title-details">
+            <h5 class="enum-card-title">互斥规则</h5>
+            <span class="enum-card-subtitle">共 {{ exclusionFilteredList.length }} 条</span>
+          </div>
+        </div>
+        <div class="enum-card-actions-top">
+          <t-input v-model="exclusionKeyword" placeholder="搜索..." clearable size="small" class="enum-search-sm">
+            <template #prefix-icon><t-icon name="search" /></template>
+          </t-input>
+          <t-button theme="primary" size="small" @click="openCreateExclusionDialog">
+            <template #icon><t-icon name="add" /></template>
+            添加
+          </t-button>
+        </div>
+      </div>
+
+      <div v-if="pagedExclusionList.length > 0" class="enum-card-body">
+        <div v-for="(item, index) in pagedExclusionList" :key="item.id" class="enum-item exclusion-item">
+          <div class="enum-item-main">
+            <div class="enum-item-index">{{ (exclusionPage - 1) * PAGE_SIZE + index + 1 }}</div>
+            <div class="exclusion-relation">
+              <span class="exclusion-value">{{ item.labelA || item.valueA }}</span>
+              <span class="exclusion-symbol">&harr;</span>
+              <span class="exclusion-value">{{ item.labelB || item.valueB }}</span>
+            </div>
+            <t-tag
+              :theme="item.category === 'appearance' ? 'primary' : 'success'"
+              variant="light"
+              size="small"
+            >
+              {{ item.category === 'appearance' ? '性状' : '口感' }}
+            </t-tag>
+          </div>
+          <div class="enum-item-actions">
+            <t-popconfirm content="确定删除该互斥规则吗？删除后不可恢复。" @confirm="handleDeleteExclusion(item)">
+              <t-button variant="text" theme="danger" size="small">删除</t-button>
+            </t-popconfirm>
+          </div>
+        </div>
+      </div>
+      <div v-else class="enum-card-empty">
+        <p>{{ exclusionKeyword ? '未找到匹配规则' : '暂无互斥规则' }}</p>
+      </div>
+
+      <div v-if="exclusionTotalPages > 1" class="enum-card-footer">
+        <div class="enum-pagination">
+          <button class="pagination-btn" :disabled="exclusionPage <= 1" @click="exclusionPage--">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+              stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          <span class="pagination-text">{{ exclusionPage }} / {{ exclusionTotalPages }}</span>
+          <button class="pagination-btn" :disabled="exclusionPage >= exclusionTotalPages" @click="exclusionPage++">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+              stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 
+  <!-- 枚举值新建/编辑对话框 -->
   <t-dialog v-model:visible="dialogVisible"
     :header="dialogMode === 'create' ? '添加枚举值' : '编辑枚举值'"
     :confirm-btn="{ loading: dialogLoading }"
@@ -186,7 +265,7 @@
     @close="handleDialogClose">
     <t-form label-width="80px">
       <t-form-item label="所属分类">
-        <t-tag theme="primary" variant="light">{{ CATEGORY_LABELS[activeCategory] }}</t-tag>
+        <t-tag theme="primary" variant="light">{{ CATEGORY_LABELS[dialogCategory] }}</t-tag>
       </t-form-item>
       <t-form-item label="枚举值名称">
         <t-input v-model="formLabel" placeholder="请输入枚举值名称" clearable maxlength="50" show-limit-number
@@ -195,6 +274,7 @@
     </t-form>
   </t-dialog>
 
+  <!-- 互斥规则对话框 -->
   <t-dialog v-model:visible="exclusionDialogVisible"
     header="添加互斥规则"
     :confirm-btn="{ loading: exclusionDialogLoading }"
@@ -215,7 +295,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from "vue";
+import { ref, computed, watch, onMounted, reactive } from "vue";
 import { MessagePlugin } from "tdesign-vue-next";
 import { useEnumStore } from "@/stores/enum";
 import { enumApi } from "@/api/enum";
@@ -223,17 +303,31 @@ import type { EnumOption, ExclusionRule } from "@/api/enum";
 
 const enumStore = useEnumStore();
 
-const navCollapsed = ref(false);
-const activeCategory = ref("appearance");
-const keyword = ref("");
+const PAGE_SIZE = 8;
+
+// ─── 搜索关键词（每个分类独立） ───
+const keywordMap = reactive<Record<string, string>>({
+  appearance: "",
+  taste: "",
+  efficacy: "",
+});
+const exclusionKeyword = ref("");
+
+// ─── 分页状态（每个分类独立） ───
+const appearancePage = ref(1);
+const tastePage = ref(1);
+const efficacyPage = ref(1);
+const exclusionPage = ref(1);
+
+// ─── 对话框状态 ───
 const dialogVisible = ref(false);
 const dialogLoading = ref(false);
 const dialogMode = ref<"create" | "edit">("create");
+const dialogCategory = ref<"appearance" | "taste" | "efficacy">("appearance");
 const editingItem = ref<EnumOption | null>(null);
 const formLabel = ref("");
 
 const exclusionList = ref<ExclusionRule[]>([]);
-const exclusionLoading = ref(false);
 const exclusionDialogVisible = ref(false);
 const exclusionDialogLoading = ref(false);
 const exclusionFormCategory = ref<"appearance" | "taste">("appearance");
@@ -247,103 +341,89 @@ const CATEGORY_LABELS: Record<string, string> = {
   "exclusion-rules": "互斥规则",
 };
 
-const CATEGORY_COLORS: Record<string, string> = {
-  appearance: "#3B82F6",
-  taste: "#10B981",
-  efficacy: "#F59E0B",
-  "exclusion-rules": "#EF4444",
-};
+// ─── 各分类列表（带搜索过滤） ───
+const appearanceList = computed(() => {
+  const list = enumStore.getOptionsByCategory("appearance");
+  if (!keywordMap.appearance) return list;
+  const kw = keywordMap.appearance.toLowerCase();
+  return list.filter((item) => item.label.toLowerCase().includes(kw) || item.value.toLowerCase().includes(kw));
+});
 
-const categories = [
-  {
-    value: "appearance",
-    label: "性状",
-    iconPath:
-      '<circle cx="12" cy="12" r="3"/><path d="M12 2v4m0 12v4m10-10h-4M6 12H2m15.07-5.07l-2.83 2.83M9.76 14.24l-2.83 2.83m11.14 0l-2.83-2.83M9.76 9.76L6.93 6.93"/>',
-  },
-  {
-    value: "taste",
-    label: "口感",
-    iconPath:
-      '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/>',
-  },
-  {
-    value: "efficacy",
-    label: "功效",
-    iconPath:
-      '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
-  },
-  {
-    value: "exclusion-rules",
-    label: "互斥规则",
-    iconPath:
-      '<path d="M18 6L6 18M6 6l12 12"/>',
-  },
-];
+const tasteList = computed(() => {
+  const list = enumStore.getOptionsByCategory("taste");
+  if (!keywordMap.taste) return list;
+  const kw = keywordMap.taste.toLowerCase();
+  return list.filter((item) => item.label.toLowerCase().includes(kw) || item.value.toLowerCase().includes(kw));
+});
 
-const currentCategory = computed(() =>
-  categories.find((c) => c.value === activeCategory.value) || categories[0]
-);
+const efficacyList = computed(() => {
+  const list = enumStore.getOptionsByCategory("efficacy");
+  if (!keywordMap.efficacy) return list;
+  const kw = keywordMap.efficacy.toLowerCase();
+  return list.filter((item) => item.label.toLowerCase().includes(kw) || item.value.toLowerCase().includes(kw));
+});
 
-const currentCategoryColor = computed(
-  () => CATEGORY_COLORS[activeCategory.value] || "#3B82F6"
-);
-
-const currentList = computed(() => {
-  if (activeCategory.value === "exclusion-rules") {
-    if (!keyword.value) return exclusionList.value;
-    const kw = keyword.value.toLowerCase();
-    return exclusionList.value.filter(
-      (item) =>
-        (item.labelA || item.valueA).toLowerCase().includes(kw) ||
-        (item.labelB || item.valueB).toLowerCase().includes(kw) ||
-        item.category.toLowerCase().includes(kw)
-    );
-  }
-  const list = enumStore.getOptionsByCategory(
-    activeCategory.value as "appearance" | "taste" | "efficacy"
-  );
-  if (!keyword.value) return list;
-  const kw = keyword.value.toLowerCase();
-  return list.filter(
+const exclusionFilteredList = computed(() => {
+  if (!exclusionKeyword.value) return exclusionList.value;
+  const kw = exclusionKeyword.value.toLowerCase();
+  return exclusionList.value.filter(
     (item) =>
-      item.label.toLowerCase().includes(kw) ||
-      item.value.toLowerCase().includes(kw)
+      (item.labelA || item.valueA).toLowerCase().includes(kw) ||
+      (item.labelB || item.valueB).toLowerCase().includes(kw) ||
+      item.category.toLowerCase().includes(kw)
   );
 });
 
-const PAGE_SIZE = 10;
-const currentPage = ref(1);
-const totalPages = computed(() => Math.max(1, Math.ceil(currentList.value.length / PAGE_SIZE)));
-const pagedList = computed(() => {
-  const start = (currentPage.value - 1) * PAGE_SIZE;
-  return currentList.value.slice(start, start + PAGE_SIZE);
-});
-const pagePrev = () => { if (currentPage.value > 1) currentPage.value--; };
-const pageNext = () => { if (currentPage.value < totalPages.value) currentPage.value++; };
+// ─── 分页计算 ───
+const appearanceTotalPages = computed(() => Math.max(1, Math.ceil(appearanceList.value.length / PAGE_SIZE)));
+const tasteTotalPages = computed(() => Math.max(1, Math.ceil(tasteList.value.length / PAGE_SIZE)));
+const efficacyTotalPages = computed(() => Math.max(1, Math.ceil(efficacyList.value.length / PAGE_SIZE)));
+const exclusionTotalPages = computed(() => Math.max(1, Math.ceil(exclusionFilteredList.value.length / PAGE_SIZE)));
 
-watch(activeCategory, () => { currentPage.value = 1; });
-watch(keyword, () => { currentPage.value = 1; });
-watch(() => currentList.value.length, () => {
-  if (currentPage.value > totalPages.value) {
-    currentPage.value = Math.max(1, totalPages.value);
-  }
+const pagedAppearanceList = computed(() => {
+  const start = (appearancePage.value - 1) * PAGE_SIZE;
+  return appearanceList.value.slice(start, start + PAGE_SIZE);
+});
+const pagedTasteList = computed(() => {
+  const start = (tastePage.value - 1) * PAGE_SIZE;
+  return tasteList.value.slice(start, start + PAGE_SIZE);
+});
+const pagedEfficacyList = computed(() => {
+  const start = (efficacyPage.value - 1) * PAGE_SIZE;
+  return efficacyList.value.slice(start, start + PAGE_SIZE);
+});
+const pagedExclusionList = computed(() => {
+  const start = (exclusionPage.value - 1) * PAGE_SIZE;
+  return exclusionFilteredList.value.slice(start, start + PAGE_SIZE);
+});
+
+// ─── 搜索/列表变化时重置分页 ───
+watch(() => keywordMap.appearance, () => { appearancePage.value = 1; });
+watch(() => keywordMap.taste, () => { tastePage.value = 1; });
+watch(() => keywordMap.efficacy, () => { efficacyPage.value = 1; });
+watch(exclusionKeyword, () => { exclusionPage.value = 1; });
+
+watch(() => appearanceList.value.length, () => {
+  if (appearancePage.value > appearanceTotalPages.value) appearancePage.value = Math.max(1, appearanceTotalPages.value);
+});
+watch(() => tasteList.value.length, () => {
+  if (tastePage.value > tasteTotalPages.value) tastePage.value = Math.max(1, tasteTotalPages.value);
+});
+watch(() => efficacyList.value.length, () => {
+  if (efficacyPage.value > efficacyTotalPages.value) efficacyPage.value = Math.max(1, efficacyTotalPages.value);
+});
+watch(() => exclusionFilteredList.value.length, () => {
+  if (exclusionPage.value > exclusionTotalPages.value) exclusionPage.value = Math.max(1, exclusionTotalPages.value);
 });
 
 watch(exclusionFormValueA, (newA) => {
   const bVal = exclusionFormValueB.value;
   if (!bVal) return;
-  if (bVal === newA) {
-    exclusionFormValueB.value = "";
-    return;
-  }
+  if (bVal === newA) { exclusionFormValueB.value = ""; return; }
   if (!newA) return;
   const excludedValues = enumStore.getExcludedValues(exclusionFormCategory.value, newA);
-  if (excludedValues.has(bVal)) {
-    exclusionFormValueB.value = "";
-  }
+  if (excludedValues.has(bVal)) exclusionFormValueB.value = "";
 });
-
 watch(exclusionFormCategory, () => {
   exclusionFormValueA.value = "";
   exclusionFormValueB.value = "";
@@ -354,8 +434,10 @@ onMounted(() => {
   fetchExclusionRules();
 });
 
-const openCreateDialog = () => {
+// ─── 枚举值 CRUD ───
+const openCreateDialog = (category: "appearance" | "taste" | "efficacy") => {
   dialogMode.value = "create";
+  dialogCategory.value = category;
   editingItem.value = null;
   formLabel.value = "";
   dialogVisible.value = true;
@@ -363,6 +445,7 @@ const openCreateDialog = () => {
 
 const openEditDialog = (item: EnumOption) => {
   dialogMode.value = "edit";
+  dialogCategory.value = item.category as "appearance" | "taste" | "efficacy";
   editingItem.value = item;
   formLabel.value = item.label;
   dialogVisible.value = true;
@@ -382,7 +465,7 @@ const handleDialogConfirm = async () => {
   try {
     if (dialogMode.value === "create") {
       await enumStore.createOption({
-        category: activeCategory.value,
+        category: dialogCategory.value,
         label: formLabel.value.trim(),
         value: formLabel.value.trim(),
       });
@@ -409,9 +492,7 @@ const handleDelete = async (item: EnumOption) => {
   try {
     const result = await enumStore.deleteOption(item.id);
     if (result.referenceCount > 0) {
-      MessagePlugin.warning(
-        `该选项已被 ${result.referenceCount} 个原料使用，已删除`
-      );
+      MessagePlugin.warning(`该选项已被 ${result.referenceCount} 个原料使用，已删除`);
     } else {
       MessagePlugin.success("删除成功");
     }
@@ -431,15 +512,13 @@ const handleToggleActive = async (item: EnumOption, newActive: boolean) => {
   }
 };
 
+// ─── 互斥规则 CRUD ───
 async function fetchExclusionRules() {
-  exclusionLoading.value = true;
   try {
     const data = await enumApi.getExclusions();
     exclusionList.value = [...(data.appearance || []), ...(data.taste || [])];
   } catch {
     exclusionList.value = [];
-  } finally {
-    exclusionLoading.value = false;
   }
 }
 
@@ -463,9 +542,7 @@ async function handleCreateExclusion() {
   const bVal = exclusionFormValueB.value;
   const cat = exclusionFormCategory.value;
   const existsInList = exclusionList.value.some(
-    (r) =>
-      (r.valueA === aVal && r.valueB === bVal) ||
-      (r.valueA === bVal && r.valueB === aVal)
+    (r) => (r.valueA === aVal && r.valueB === bVal) || (r.valueA === bVal && r.valueB === aVal)
   );
   if (existsInList) {
     MessagePlugin.warning("该组合的互斥规则（或逆向组合）已存在，请重新选择");
@@ -478,11 +555,7 @@ async function handleCreateExclusion() {
   }
   exclusionDialogLoading.value = true;
   try {
-    await enumApi.createExclusion({
-      category: cat,
-      valueA: aVal,
-      valueB: bVal,
-    });
+    await enumApi.createExclusion({ category: cat, valueA: aVal, valueB: bVal });
     MessagePlugin.success("互斥规则创建成功");
     exclusionDialogVisible.value = false;
     await fetchExclusionRules();
@@ -518,9 +591,7 @@ const exclusionFormBOptions = computed(() => {
   const allOptions = enumStore.getActiveOptionsByCategory(exclusionFormCategory.value);
   const aVal = exclusionFormValueA.value;
   if (!aVal) return allOptions.map((o) => ({ label: o.label, value: o.value }));
-
   const excludedValues = enumStore.getExcludedValues(exclusionFormCategory.value, aVal);
-
   return allOptions
     .filter((o) => o.value !== aVal)
     .filter((o) => !excludedValues.has(o.value))
@@ -549,388 +620,241 @@ const exclusionBHelpText = computed(() => {
 <style scoped lang="scss">
 @use "@/assets/styles/variables.scss" as *;
 
-.mm-body {
-  display: flex;
-  gap: 0;
-  min-height: 480px;
+.enum-manage-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
 }
 
-.mm-nav {
-  width: 170px;
-  flex-shrink: 0;
-  padding: 24px 12px;
-  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-    padding 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  display: flex;
-  flex-direction: column;
-  position: relative;
-
-  &--collapsed {
-    width: 56px;
-    padding: 24px var(--space-1-5);
-
-    .nav-tab {
-      justify-content: center;
-      padding: 12px 0;
-
-      .nav-tab-icon {
-        width: 24px;
-        height: 24px;
-      }
-
-      .nav-tab-label {
-        display: none;
-      }
-    }
-
-    .nav-collapse-btn {
-      margin: 0 auto 12px auto;
-      width: 36px;
-      height: 36px;
-    }
-  }
-
-  .nav-tab {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2-5);
-    padding: 12px 16px;
-    border-radius: 12px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    color: var(--color-text-secondary);
-    font-size: 14px;
-    font-weight: 500;
-    border: 1px solid transparent;
-    margin-bottom: 8px;
-    white-space: nowrap;
-    overflow: hidden;
-
-    .nav-tab-icon {
-      width: 18px;
-      height: 18px;
-      flex-shrink: 0;
-      transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-        height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    &:hover {
-      background: #f1f5f9;
-      color: var(--color-text-primary);
-    }
-
-    &.active {
-      background: linear-gradient(
-        135deg,
-        var(--color-primary),
-        var(--color-primary-dark)
-      );
-      color: white;
-      box-shadow: 0 4px 12px $overlay-emerald-25;
-      border-color: transparent;
-      font-weight: 600;
-    }
-
-    .nav-tab-label {
-      flex: 1;
-      transition: opacity 0.2s ease;
-    }
-  }
-
-  .nav-collapse-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
-    border: 1px solid var(--color-border);
-    background: #fff;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    margin-bottom: 12px;
-    color: var(--color-text-placeholder);
-
-    &:hover {
-      background: #f1f5f9;
-      color: var(--color-text-secondary);
-      border-color: #cbd5e1;
-    }
-  }
-}
-
-.mm-content {
-  flex: 1;
-  min-width: 0;
-  padding: 24px var(--space-7);
-  border-left: 1px solid #f1f5f9;
-}
-
-.content-fade-enter-active,
-.content-fade-leave-active {
-  transition: opacity 0.2s ease;
-}
-
-.content-fade-enter-from,
-.content-fade-leave-to {
-  opacity: 0;
-}
-
-.section-header-enhanced {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 20px;
-
-  .section-title-group {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-
-    .section-title-icon {
-      flex-shrink: 0;
-    }
-
-    .section-title-text {
-      margin: 0;
-      font-size: 16px;
-      font-weight: 600;
-      color: var(--color-text-primary);
-    }
-  }
-
-  .section-header-right {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-left: auto;
-  }
-
-  .section-title-count {
-    font-size: 13px;
-    color: var(--color-text-placeholder);
-  }
-}
-
-.activity-nav {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.activity-nav-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
-  border: none;
-  background: #f1f5f9;
-  color: var(--color-text-secondary);
-  cursor: pointer;
-  transition: all $transition-fast;
-
-  &:hover:not(:disabled) {
-    background: var(--color-border);
-    color: var(--color-text-primary);
-  }
-
-  &:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-  }
-}
-
-.activity-nav-page {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--color-text-placeholder);
-  min-width: 40px;
-  text-align: center;
-}
-
-.enum-toolbar {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
-
-  .enum-search-input {
-    max-width: 280px;
-  }
-}
-
-.enum-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.enum-card {
-  border-radius: 12px;
-  border: 1px solid var(--color-border-light, #e5e7eb);
-  background: var(--color-bg-container, #fff);
+.enum-category-card {
+  background: var(--color-bg-container);
+  border-radius: 16px;
+  border: 1px solid var(--color-border);
   transition: all 0.2s ease;
-  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 
   &:hover {
-    border-color: var(--color-border, #d1d5db);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-  }
-
-  &.is-inactive {
-    opacity: 0.6;
-
-    .enum-label {
-      color: var(--color-text-disabled, #9ca3af);
-      text-decoration: line-through;
-    }
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border-color: var(--color-text-placeholder);
+    transform: translateY(-2px);
   }
 
   .enum-card-header {
-    padding: 14px 16px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0;
+    padding: 20px 20px 12px;
+    border-bottom: 1px solid var(--color-border-light);
+    gap: 12px;
 
-    .enum-name-row {
+    .enum-card-title-group {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
+      flex-shrink: 0;
 
-      .enum-index-wrap {
-        display: inline-flex;
+      .enum-card-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        display: flex;
         align-items: center;
         justify-content: center;
-        width: 28px;
-        height: 28px;
-        border-radius: 8px;
-        background: var(--color-bg-page, #f3f4f6);
         flex-shrink: 0;
+      }
 
-        .enum-index {
-          font-size: 12px;
+      .enum-card-title-details {
+        .enum-card-title {
+          font-size: 15px;
           font-weight: 600;
-          color: var(--color-text-placeholder, #9ca3af);
+          color: var(--color-text-primary);
+          margin: 0 0 4px 0;
+        }
+
+        .enum-card-subtitle {
+          font-size: 12px;
+          color: var(--color-text-placeholder);
         }
       }
-
-      .enum-label {
-        flex: 1;
-        font-size: 14px;
-        font-weight: 500;
-        color: var(--color-text-primary, #1f2937);
-      }
-    }
-  }
-
-  .enum-card-footer {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 10px 16px 14px;
-
-    .enum-usage-mini {
-      display: flex;
-      gap: 12px;
-      font-size: 12px;
-      color: var(--color-text-placeholder, #9ca3af);
     }
 
-    .enum-actions {
+    .enum-card-actions-top {
       display: flex;
       align-items: center;
       gap: 8px;
+      margin-left: auto;
+      flex-shrink: 0;
+
+      .enum-search-sm {
+        width: 140px;
+      }
     }
   }
-}
 
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 48px 0;
+  .enum-card-body {
+    flex: 1;
+    padding: 12px 20px;
+    overflow-y: auto;
+    max-height: 460px;
 
-  .empty-icon-wrap {
-    margin-bottom: 16px;
+    .enum-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--color-bg-hover);
+      transition: background 0.15s ease;
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      &.is-inactive {
+        opacity: 0.6;
+        .enum-item-label {
+          color: var(--color-text-disabled);
+          text-decoration: line-through;
+        }
+      }
+
+      .enum-item-main {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex: 1;
+        min-width: 0;
+
+        .enum-item-index {
+          width: 24px;
+          height: 24px;
+          border-radius: 6px;
+          background: var(--color-bg-page);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 11px;
+          font-weight: 600;
+          color: var(--color-text-placeholder);
+          flex-shrink: 0;
+        }
+
+        .enum-item-label {
+          font-size: 14px;
+          font-weight: 500;
+          color: var(--color-text-primary);
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+      }
+
+      .enum-item-actions {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        flex-shrink: 0;
+      }
+    }
   }
 
-  .empty-text {
-    font-size: 15px;
-    font-weight: 500;
-    color: var(--color-text-secondary);
-    margin: 0 0 4px;
-  }
-
-  .empty-hint {
-    font-size: 13px;
+  .enum-card-empty {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 20px;
     color: var(--color-text-placeholder);
-    margin: 0;
+    font-size: 13px;
+  }
+
+  .enum-card-footer {
+    padding: 10px 20px 14px;
+    border-top: 1px solid var(--color-border-light);
+
+    .enum-pagination {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .pagination-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      border: none;
+      background: var(--color-bg-hover);
+      color: var(--color-text-secondary);
+      cursor: pointer;
+      transition: all $transition-fast;
+
+      &:hover:not(:disabled) {
+        background: var(--color-border);
+        color: var(--color-text-primary);
+      }
+
+      &:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+      }
+    }
+
+    .pagination-text {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--color-text-placeholder);
+      min-width: 40px;
+      text-align: center;
+    }
   }
 }
 
 .exclusion-relation {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   font-size: 14px;
   font-weight: 500;
   color: var(--color-text-primary);
+  overflow: hidden;
 
   .exclusion-value {
     padding: 2px 8px;
     border-radius: 6px;
-    background: var(--color-bg-page, #f3f4f6);
+    background: var(--color-bg-page);
+    white-space: nowrap;
   }
 
   .exclusion-symbol {
-    color: #EF4444;
+    color: var(--color-danger);
     font-weight: 600;
+    flex-shrink: 0;
   }
 }
 
-@media (max-width: 768px) {
-  .mm-body {
+@media (max-width: 900px) {
+  .enum-manage-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .enum-category-card .enum-card-header {
     flex-direction: column;
-  }
 
-  .mm-nav {
-    width: 100% !important;
-    flex-direction: row;
-    padding: 8px;
-    overflow-x: auto;
-    border-bottom: 1px solid #f1f5f9;
+    .enum-card-actions-top {
+      width: 100%;
+      margin-left: 0;
 
-    .nav-collapse-btn {
-      display: none;
-    }
-
-    .nav-tab {
-      padding: 8px 12px;
-      margin-bottom: 0;
-      margin-right: 4px;
-
-      .nav-tab-icon {
-        width: 16px;
-        height: 16px;
+      .enum-search-sm {
+        flex: 1;
+        width: auto;
       }
-
-      .nav-tab-label {
-        font-size: 13px;
-      }
-    }
-  }
-
-  .mm-content {
-    padding: 16px;
-    border-left: none;
-  }
-
-  .enum-toolbar {
-    flex-direction: column;
-    align-items: stretch;
-
-    .enum-search-input {
-      max-width: none;
     }
   }
 }

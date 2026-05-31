@@ -1,15 +1,18 @@
 <template>
-  <t-config-provider :theme="themeStore.isDark ? 'dark' : 'light'" :t="tdesignTokens">
-    <router-view v-bind="$attrs" />
-    <AiAssistantFloat />
+  <t-config-provider :global-config="tdesignTokens">
+    <div id="app-root">
+      <router-view />
+      <AiAssistantFloat />
+    </div>
   </t-config-provider>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, defineAsyncComponent } from 'vue'
 import { useThemeStore } from '@/stores/theme'
 import { getTDesignTokens } from '@/assets/styles/tokens'
-import { AiAssistantFloat } from '@/components/AiAssistantFloat'
+
+const AiAssistantFloat = defineAsyncComponent(() => import('@/components/AiAssistantFloat/AiAssistantFloat.vue'))
 
 const themeStore = useThemeStore()
 

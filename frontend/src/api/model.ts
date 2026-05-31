@@ -44,13 +44,13 @@ export interface ModelVersionOption {
 export interface UsageSummaryItem {
   provider: string;
   name: string;
-  total_calls: number;
-  total_tokens: number;
-  today_calls: number;
-  today_tokens: number;
-  month_calls: number;
-  month_tokens: number;
-  avg_latency_ms: number;
+  totalCalls: number;
+  totalTokens: number;
+  todayCalls: number;
+  todayTokens: number;
+  monthCalls: number;
+  monthTokens: number;
+  avgLatencyMs: number;
 }
 
 export interface UsageTrendItem {
@@ -87,28 +87,28 @@ export interface UsageLogItem {
 
 export interface AlertConfigItem {
   id: string;
-  model_id: string;
+  modelId: string;
   provider: string;
-  model_name: string;
-  daily_call_limit: number;
-  monthly_token_limit: number;
-  warning_threshold: number;
-  critical_threshold: number;
+  modelName: string;
+  dailyCallLimit: number;
+  monthlyTokenLimit: number;
+  warningThreshold: number;
+  criticalThreshold: number;
   enabled: number;
 }
 
 export interface AlertRecordItem {
   id: string;
   provider: string;
-  model_name: string;
-  alert_type: string;
+  modelName: string;
+  alertType: string;
   level: string;
   threshold: number;
-  current_value: number;
-  limit_value: number;
+  currentValue: number;
+  limitValue: number;
   message: string;
-  is_read: number;
-  created_at: string;
+  isRead: number;
+  createdAt: string;
 }
 
 export interface HealthHistoryItem {
@@ -117,7 +117,7 @@ export interface HealthHistoryItem {
   healthy: number;
   degraded: number;
   unhealthy: number;
-  avg_latency_ms: number;
+  avgLatencyMs: number;
 }
 
 export interface ActivityItem {
@@ -134,7 +134,53 @@ export interface SmartToolHistoryItem {
   callType: string;
   status: string;
   createdAt: string;
-  [key: string]: unknown;
+  promptTokens?: number;
+  completionTokens?: number;
+  totalTokens?: number;
+  latencyMs?: number | null;
+  requestSummary?: string | null;
+}
+
+export interface ModelApplication {
+  id: string;
+  module: string;
+  moduleName: string;
+  provider: string;
+  model: string;
+  description: string;
+  enabled: boolean | number;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PromptTemplate {
+  id: string;
+  module: string;
+  name: string;
+  type: string;
+  systemPrompt: string;
+  userPromptTemplate: string;
+  variables: string[];
+  isDefault: boolean;
+  enabled: boolean;
+  sortOrder: number;
+}
+
+function toCamelCaseKey(key: string): string {
+  return key.replace(/_([a-z])/g, (_, letter: string) => letter.toUpperCase());
+}
+
+function toCamelCase<T extends Record<string, unknown>>(obj: Record<string, unknown>): T {
+  const result: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(obj)) {
+    result[toCamelCaseKey(key)] = value;
+  }
+  return result as T;
+}
+
+function toCamelCaseArray<T extends Record<string, unknown>>(arr: Record<string, unknown>[]): T[] {
+  return arr.map(item => toCamelCase<T>(item));
 }
 
 export const modelApi = {
@@ -203,11 +249,15 @@ export const modelApi = {
     return http.put<unknown, { success: boolean }>(`/ai/models-manage/${id}/fallback`, { fallbackProvider });
   },
 
-  getUsageStats(params?: { startDate?: string; endDate?: string; provider?: string }) {
-    return http.get<
+  async getUsageStats(params?: { startDate?: string; endDate?: string; provider?: string }) {
+    const res = await http.get<
       unknown,
-      { summary: UsageSummaryItem[]; trend: UsageTrendItem[]; distribution: UsageDistributionItem[] }
+      { summary: Record<string, unknown>[]; trend: UsageTrendItem[]; distribution: UsageDistributionItem[] }
     >("/ai/usage", { params });
+    return {
+      ...res,
+      summary: toCamelCaseArray<UsageSummaryItem>(res.summary),
+    };
   },
 
   getUsageLogs(params?: {
@@ -224,8 +274,9 @@ export const modelApi = {
     });
   },
 
-  getAlertConfigs() {
-    return http.get<unknown, { configs: AlertConfigItem[] }>("/ai/alerts/configs");
+  async getAlertConfigs() {
+    const res = await http.get<unknown, { configs: Record<string, unknown>[] }>("/ai/alerts/configs");
+    return { configs: toCamelCaseArray<AlertConfigItem>(res.configs) };
   },
 
   updateAlertConfig(
@@ -241,42 +292,143 @@ export const modelApi = {
     return http.put<unknown, { success: boolean }>(`/ai/alerts/configs/${id}`, data);
   },
 
-  getAlertRecords(params?: { page?: number; pageSize?: number; level?: string }) {
-    return http.get<
+  async getAlertRecords(params?: { page?: number; pageSize?: number; level?: string }) {
+    const res = await http.get<
       unknown,
-      { records: AlertRecordItem[]; total: number; activeAlerts: number; page: number; pageSize: number }
+      { records: Record<string, unknown>[]; total: number; activeAlerts: number; page: number; pageSize: number }
     >("/ai/alerts/records", { params });
+    return {
+      ...res,
+      records: toCamelCaseArray<AlertRecordItem>(res.records),
+    };
   },
 
-  getHealthStatus() {
-    return http.get<
+  async getHealthStatus() {
+    const res = await http.get<
       unknown,
-      {
-        models: Array<{
-          provider: string;
-          name: string;
-          health_status: string;
-          lastCheckAt: string | null;
-          latencyMs: number | null;
-        }>;
-      }
+      { models: Record<string, unknown>[] }
     >("/ai/health");
+    return {
+      models: res.models.map(m => toCamelCase<{
+        provider: string;
+        name: string;
+        healthStatus: string;
+        lastCheckAt: string | null;
+        latencyMs: number | null;
+      }>(m)),
+    };
   },
 
-  getHealthHistory(provider: string, days?: number) {
-    return http.get<unknown, { provider: string; history: HealthHistoryItem[] }>(`/ai/health/${provider}/history`, {
+  async getHealthHistory(provider: string, days?: number) {
+    const res = await http.get<unknown, { provider: string; history: Record<string, unknown>[] }>(`/ai/health/${provider}/history`, {
       params: { days },
     });
+    return {
+      ...res,
+      history: toCamelCaseArray<HealthHistoryItem>(res.history),
+    };
   },
 
   getRecentActivity(limit?: number) {
     return http.get<unknown, { items: ActivityItem[] }>("/ai/recent-activity", { params: { limit } });
   },
 
-  getSmartToolHistory(params?: { page?: number; pageSize?: number; callType?: string }) {
-    return http.get<unknown, SmartToolHistoryItem>("/ai/smart-tool-history", { params });
+  async getSmartToolHistory(params?: { page?: number; pageSize?: number; callType?: string }) {
+    const res = await http.get<unknown, { items?: Record<string, unknown>[]; list?: Record<string, unknown>[]; total?: number; page?: number; pageSize?: number }>("/ai/smart-tool-history", { params });
+    const rawList = res.items || res.list || [];
+    return {
+      ...res,
+      items: toCamelCaseArray<SmartToolHistoryItem>(rawList),
+    };
   },
+
   deleteSmartToolHistory(id: string) {
     return http.delete<unknown, { success: boolean }>(`/ai/smart-tool-history/${id}`);
+  },
+
+  async getModelApplications() {
+    const res = await http.get<unknown, Record<string, unknown>[]>("/ai/model-applications");
+    return toCamelCaseArray<ModelApplication>(Array.isArray(res) ? res : []);
+  },
+
+  async createModelApplication(data: {
+    module: string;
+    provider: string;
+    model: string;
+    description?: string;
+    enabled?: boolean;
+  }) {
+    const res = await http.post<unknown, { success: boolean; data: Record<string, unknown> }>("/ai/model-applications", data);
+    return {
+      success: res.success,
+      data: toCamelCase<ModelApplication>(res.data),
+    };
+  },
+
+  updateModelApplication(
+    id: string,
+    data: {
+      provider?: string;
+      model?: string;
+      description?: string;
+      enabled?: boolean;
+    },
+  ) {
+    return http.put<unknown, { success: boolean }>(`/ai/model-applications/${id}`, data);
+  },
+
+  patchModelApplication(
+    id: string,
+    data: { enabled?: boolean },
+  ) {
+    return http.patch<unknown, { success: boolean }>(`/ai/model-applications/${id}`, data);
+  },
+
+  deleteModelApplication(id: string) {
+    return http.delete<unknown, { success: boolean }>(`/ai/model-applications/${id}`);
+  },
+
+  async getPromptTemplates(params?: { module?: string }) {
+    const res = await http.get<unknown, Record<string, unknown>[]>("/ai/prompt-templates", { params });
+    return toCamelCaseArray<PromptTemplate>(Array.isArray(res) ? res : []);
+  },
+
+  async createPromptTemplate(data: {
+    module: string;
+    name: string;
+    type: string;
+    systemPrompt?: string;
+    userPromptTemplate?: string;
+    variables?: string[];
+    isDefault?: boolean;
+    enabled?: boolean;
+    sortOrder?: number;
+  }) {
+    const res = await http.post<unknown, { success: boolean; data: Record<string, unknown> }>("/ai/prompt-templates", data);
+    return {
+      success: res.success,
+      data: toCamelCase<PromptTemplate>(res.data),
+    };
+  },
+
+  async updatePromptTemplate(
+    id: string,
+    data: {
+      module?: string;
+      name?: string;
+      type?: string;
+      systemPrompt?: string;
+      userPromptTemplate?: string;
+      variables?: string[];
+      isDefault?: boolean;
+      enabled?: boolean;
+      sortOrder?: number;
+    },
+  ) {
+    return http.put<unknown, { success: boolean }>(`/ai/prompt-templates/${id}`, data);
+  },
+
+  deletePromptTemplate(id: string) {
+    return http.delete<unknown, { success: boolean }>(`/ai/prompt-templates/${id}`);
   },
 };

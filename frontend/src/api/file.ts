@@ -1,7 +1,5 @@
 import http from './http'
 
-const TOKEN_KEY = 'tingstudio_token'
-
 interface FileRelation {
   relationId: string
   fileId: string
@@ -120,9 +118,8 @@ export const fileApi = {
   },
 
   download(fileId: string) {
-    return http.get(`/api/files/${fileId}/download`, {
+    return http.get(`/files/${fileId}/download`, {
       responseType: 'blob',
-      headers: { Authorization: `Bearer ${localStorage.getItem(TOKEN_KEY) || ''}` },
     })
   },
 
@@ -131,7 +128,8 @@ export const fileApi = {
   },
 
   thumbnail(fileId: string) {
-    return `/api/files/${fileId}/thumbnail?token=${localStorage.getItem(TOKEN_KEY) || ''}`
+    const token = sessionStorage.getItem('tingstudio_token') || localStorage.getItem('tingstudio_token') || ''
+    return `/api/files/${fileId}/thumbnail?token=${token}`
   },
 
   getStats() {

@@ -8,7 +8,7 @@
     </div>
 
     <div v-if="targets.length === 0" class="target-empty">
-      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#D1D5DB" stroke-width="1.5"
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--color-border)" stroke-width="1.5"
         stroke-linecap="round" stroke-linejoin="round">
         <circle cx="12" cy="12" r="10" />
         <circle cx="12" cy="12" r="6" />
@@ -305,7 +305,7 @@ onMounted(() => {
   padding: 16px;
   border-radius: 12px;
   background: var(--color-bg-page);
-  border: 1px solid #f1f5f9;
+  border: 1px solid var(--color-border-light);
   transition: all $transition-fast;
 
   &:hover {
@@ -347,8 +347,8 @@ onMounted(() => {
 .target-metric-item {
   padding: var(--space-2-5) 12px;
   border-radius: 8px;
-  background: #fff;
-  border: 1px solid #f1f5f9;
+  background: var(--color-bg-container);
+  border: 1px solid var(--color-border-light);
 
   .metric-header {
     display: flex;
@@ -360,7 +360,7 @@ onMounted(() => {
   .metric-name {
     font-size: 14px;
     font-weight: 600;
-    color: #0F172A;
+    color: var(--color-text-primary);
   }
 
   .metric-rate {
@@ -391,11 +391,11 @@ onMounted(() => {
     transition: width 0.6s ease;
 
     &.warning {
-      background: linear-gradient(90deg, var(--color-warning), #FBBF24);
+      background: linear-gradient(90deg, var(--color-warning), var(--color-warning));
     }
 
     &.danger {
-      background: linear-gradient(90deg, var(--color-danger), #F87171);
+      background: linear-gradient(90deg, var(--color-danger), var(--color-danger));
     }
   }
 

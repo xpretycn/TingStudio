@@ -652,7 +652,7 @@ const handleSubmit = async ({ validateResult }: { validateResult: boolean | Reco
     &:focus-within,
     &.t-is-focused {
       border-color: var(--color-primary-light);
-      background: #ffffff !important;
+      background: var(--color-bg-container) !important;
       box-shadow: 0 0 0 4px var(--overlay-brand-12);
     }
 
@@ -662,27 +662,27 @@ const handleSubmit = async ({ validateResult }: { validateResult: boolean | Reco
     }
 
     .t-input__wrap {
-      color: #3a2d3d;
+      color: var(--color-text-primary);
       font-size: 14px;
       caret-color: var(--color-primary);
       background: transparent !important;
     }
 
     .t-input__inner {
-      color: #3a2d3d !important;
+      color: var(--color-text-primary) !important;
       background: transparent !important;
 
       &::selection {
         background: var(--overlay-brand-20);
-        color: #3a2d3d;
+        color: var(--color-text-primary);
       }
 
       &:-webkit-autofill,
       &:-webkit-autofill:hover,
       &:-webkit-autofill:focus,
       &:-webkit-autofill:active {
-        -webkit-text-fill-color: #3a2d3d !important;
-        -webkit-box-shadow: 0 0 0 48px #ffffff inset !important;
+        -webkit-text-fill-color: var(--color-text-primary) !important;
+        -webkit-box-shadow: 0 0 0 48px var(--color-bg-container) inset !important;
         caret-color: var(--color-primary);
         transition: background-color 5000s ease-in-out 0s;
       }
@@ -708,7 +708,7 @@ const handleSubmit = async ({ validateResult }: { validateResult: boolean | Reco
 .eye-btn {
   background: none;
   border: none;
-  color: #a1a1aa;
+  color: var(--color-text-placeholder);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -717,7 +717,7 @@ const handleSubmit = async ({ validateResult }: { validateResult: boolean | Reco
   transition: color 0.2s;
 
   &:hover {
-    color: #3f3f46;
+    color: var(--color-text-secondary);
   }
 }
 

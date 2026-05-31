@@ -114,7 +114,7 @@
 import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useReportStore } from '@/stores/report'
-import * as echarts from 'echarts'
+import type { ECharts } from 'echarts'
 import PageSkeleton from '@/components/Skeleton/PageSkeleton.vue'
 import type { Report } from '@/api/report'
 
@@ -181,10 +181,11 @@ const comparisonMetrics = computed(() => {
 
 const formulaCompareChartRef = ref<HTMLElement | null>(null)
 const salesCompareChartRef = ref<HTMLElement | null>(null)
-let formulaChartInstance: echarts.ECharts | null = null
-let salesChartInstance: echarts.ECharts | null = null
+let formulaChartInstance: ECharts | null = null
+let salesChartInstance: ECharts | null = null
 
-const initCharts = () => {
+const initCharts = async () => {
+  const echarts = await import('echarts')
   const d1 = reportData1.value
   const d2 = reportData2.value
   if (!d1 || !d2) return

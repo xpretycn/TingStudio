@@ -392,3 +392,43 @@ CREATE TABLE IF NOT EXISTS `formula_templates` (
 );
 CREATE INDEX IF NOT EXISTS `idx_template_name` ON `formula_templates`(`name`);
 CREATE INDEX IF NOT EXISTS `idx_template_created_by` ON `formula_templates`(`created_by`);
+
+-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+-- RBAC 权限管理模块
+-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+-- 角色表
+CREATE TABLE IF NOT EXISTS `roles` (
+  `id` TEXT PRIMARY KEY,
+  `name` TEXT NOT NULL,
+  `role_key` TEXT NOT NULL UNIQUE,
+  `description` TEXT DEFAULT '',
+  `is_system` INTEGER NOT NULL DEFAULT 0,
+  `created_at` TEXT NOT NULL DEFAULT (datetime('now')),
+  `updated_at` TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS `idx_roles_role_key` ON `roles`(`role_key`);
+
+-- 权限表
+CREATE TABLE IF NOT EXISTS `permissions` (
+  `id` TEXT PRIMARY KEY,
+  `module` TEXT NOT NULL,
+  `action` TEXT NOT NULL,
+  `permission_key` TEXT NOT NULL UNIQUE,
+  `label` TEXT NOT NULL,
+  `description` TEXT DEFAULT '',
+  `sort_order` INTEGER NOT NULL DEFAULT 0,
+  `created_at` TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS `idx_permissions_module` ON `permissions`(`module`);
+CREATE INDEX IF NOT EXISTS `idx_permissions_permission_key` ON `permissions`(`permission_key`);
+
+-- 角色权限关联表
+CREATE TABLE IF NOT EXISTS `role_permissions` (
+  `role_id` TEXT NOT NULL,
+  `permission_id` TEXT NOT NULL,
+  `created_at` TEXT NOT NULL DEFAULT (datetime('now')),
+  PRIMARY KEY (`role_id`, `permission_id`)
+);
+CREATE INDEX IF NOT EXISTS `idx_role_permissions_role_id` ON `role_permissions`(`role_id`);
+CREATE INDEX IF NOT EXISTS `idx_role_permissions_permission_id` ON `role_permissions`(`permission_id`);

@@ -250,7 +250,7 @@ onMounted(() => {
 
       .last-update {
         font-size: 12px;
-        color: #999;
+        color: var(--color-text-placeholder);
       }
     }
   }
@@ -270,7 +270,7 @@ onMounted(() => {
   .notification-footer {
     text-align: center;
     font-size: 12px;
-    color: #999;
+    color: var(--color-text-placeholder);
   }
 }
 </style>

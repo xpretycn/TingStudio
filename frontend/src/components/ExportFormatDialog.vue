@@ -99,10 +99,10 @@ function handleExport() {
 
 .export-title {
   font-size: 13px;
-  color: #909399;
+  color: var(--color-text-secondary);
   margin-bottom: 16px;
   padding-bottom: 12px;
-  border-bottom: 1px solid #ebeef5;
+  border-bottom: 1px solid var(--color-border-light);
 }
 
 .export-format-options {
@@ -116,19 +116,19 @@ function handleExport() {
   display: flex;
   align-items: center;
   padding: 16px;
-  border: 1px solid #e4e7ed;
+  border: 1px solid var(--color-border);
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s;
 
   &:hover {
-    border-color: #3d7fff;
-    background: #f5f7ff;
+    border-color: var(--color-info);
+    background: var(--color-info-bg);
   }
 
   &.selected {
-    border-color: #3d7fff;
-    background: #ecf5ff;
+    border-color: var(--color-info);
+    background: var(--color-info-bg);
   }
 
   .format-icon {
@@ -137,14 +137,14 @@ function handleExport() {
     justify-content: center;
     width: 48px;
     height: 48px;
-    background: #f5f7fa;
+    background: var(--color-bg-page);
     border-radius: 8px;
-    color: #606266;
+    color: var(--color-text-regular);
     margin-right: 16px;
 
     .selected & {
-      background: #3d7fff;
-      color: #fff;
+      background: var(--color-info);
+      color: var(--color-text-white);
     }
   }
 
@@ -157,17 +157,17 @@ function handleExport() {
     .format-name {
       font-size: 14px;
       font-weight: 500;
-      color: #303133;
+      color: var(--color-text-primary);
     }
 
     .format-desc {
       font-size: 12px;
-      color: #909399;
+      color: var(--color-text-secondary);
     }
   }
 
   .format-check {
-    color: #3d7fff;
+    color: var(--color-info);
     font-size: 20px;
   }
 }

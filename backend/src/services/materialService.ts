@@ -1,4 +1,4 @@
-import { query } from "../config/database-adapter.js";
+import { query, transaction } from "../config/database-adapter.js";
 import { generateId, now, rowToCamelCase, safeJsonParse } from "../utils/helpers.js";
 import * as materialReviewService from "./materialReviewService.js";
 
@@ -257,8 +257,6 @@ export async function updateMaterial(
 }
 
 export async function createNewVersion(current: MaterialRow, newData: Record<string, any>): Promise<MaterialRow> {
-  await query("UPDATE materials SET is_latest = 0 WHERE id = ?", [current.id]);
-
   const newId = generateId();
   const newVersion = current.version + 1;
 
@@ -271,9 +269,7 @@ export async function createNewVersion(current: MaterialRow, newData: Record<str
   if (nutritionRow) {
     try {
       currentNutrition = normalizePer100g(JSON.parse(nutritionRow.per_100g_json));
-    } catch {
-      // ignore
-    }
+    } catch {}
   }
 
   const changesJson = buildChangesSummary(current, newData, currentNutrition, nutritionRow?.per_100g_json ?? null);
@@ -317,26 +313,29 @@ export async function createNewVersion(current: MaterialRow, newData: Record<str
   const placeholders = fields.map(() => "?").join(", ");
   const values = fields.map((f) => newRow[f]);
 
-  await query(`INSERT INTO materials (${fields.join(", ")}) VALUES (${placeholders})`, values);
+  transaction(() => {
+    query("UPDATE materials SET is_latest = 0 WHERE id = ?", [current.id]);
+    query(`INSERT INTO materials (${fields.join(", ")}) VALUES (${placeholders})`, values);
 
-  if (nutritionRow) {
-    const newNutritionId = generateId();
-    await query(
-      `INSERT INTO material_nutrition (nutrition_id, material_id, per_100g_json, data_version, data_source, notes, confidence, last_updated, material_version, is_latest)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`,
-      [
-        newNutritionId,
-        newId,
-        nutritionRow.per_100g_json,
-        nutritionRow.data_version,
-        nutritionRow.data_source,
-        nutritionRow.notes,
-        nutritionRow.confidence,
-        now(),
-        newVersion,
-      ],
-    );
-  }
+    if (nutritionRow) {
+      const newNutritionId = generateId();
+      query(
+        `INSERT INTO material_nutrition (nutrition_id, material_id, per_100g_json, data_version, data_source, notes, confidence, last_updated, material_version, is_latest)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`,
+        [
+          newNutritionId,
+          newId,
+          nutritionRow.per_100g_json,
+          nutritionRow.data_version,
+          nutritionRow.data_source,
+          nutritionRow.notes,
+          nutritionRow.confidence,
+          now(),
+          newVersion,
+        ],
+      );
+    }
+  });
 
   const result = await query<any>("SELECT * FROM materials WHERE id = ?", [newId]);
   return result.rows?.[0] || null;
@@ -674,7 +673,7 @@ export async function getMaterialDetail(materialId: string, userId: string): Pro
   );
 
   const formulaResult = await query<any>(
-    "SELECT id, name FROM formulas WHERE materials_json LIKE ?",
+    "SELECT f.id, f.name, f.code, fv.version_number, fv.status FROM formulas f LEFT JOIN formula_versions fv ON f.id = fv.formula_id AND fv.is_current = 1 WHERE f.materials_json LIKE ?",
     [`%"materialId":"${materialId}"%`],
   );
 
@@ -683,7 +682,13 @@ export async function getMaterialDetail(materialId: string, userId: string): Pro
   res.referenceCount = row.reference_count || 0;
   res.totalVersions = row.total_versions || 1;
   res.hasNewerVersion = !row.is_latest;
-  res.referencedFormulas = (formulaResult.rows || []).map((f: any) => ({ id: f.id, name: f.name }));
+  res.referencedFormulas = (formulaResult.rows || []).map((f: any) => ({
+    id: f.id,
+    name: f.name,
+    formulaCode: f.code || "",
+    version: f.version_number || "v0.0.0",
+    status: f.status || "draft",
+  }));
 
   const nutRow = nutritionResult.rows?.[0];
   if (nutRow) {

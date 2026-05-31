@@ -1009,27 +1009,6 @@ const displaySalesPendingItems = computed<SalesTodoItem[]>(() => {
     }
   }
 
-  if (formulas.length === 0 || items.length === 0) {
-    items.push(
-      {
-        id: 'mock-1', type: 'warning' as const, priority: 'high' as const,
-        title: '销量待录入', desc: '「人参养荣汤」本月暂无销量数据', actionText: '去录入', actionType: 'edit' as const, formulaId: 'demo-001'
-      },
-      {
-        id: 'mock-2', type: 'warning' as const, priority: 'high' as const,
-        title: '销量待录入', desc: '「十全大补汤」本月暂无销量数据', actionText: '去录入', actionType: 'edit' as const, formulaId: 'demo-002'
-      },
-      {
-        id: 'mock-3', type: 'info' as const, priority: 'medium' as const,
-        title: '配方未发布', desc: '「归脾汤」仍为草稿状态，无法统计销量', actionText: '查看详情', actionType: 'view' as const, formulaId: 'demo-003'
-      },
-      {
-        id: 'mock-4', type: 'default' as const, priority: 'low' as const,
-        title: '数据更新提示', desc: '「补中益气汤」超过30天未更新销量', actionText: '去更新', actionType: 'edit' as const, formulaId: 'demo-004'
-      },
-    );
-  }
-
   const priorityOrder = { high: 0, medium: 1, low: 2 };
   items.sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
 

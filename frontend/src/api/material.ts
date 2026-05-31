@@ -23,7 +23,7 @@ export interface Material {
   hasNewerVersion: boolean;
   nutrition?: Record<string, number>;
   remark?: string;
-  referencedFormulas?: { id: string; name: string }[];
+  referencedFormulas?: { id: string; name: string; formulaCode: string; version: number; status: string }[];
   status: "draft" | "pending_review" | "published";
   reviewLogs?: MaterialReviewLog[];
   appearance: string[] | null;

@@ -5,7 +5,7 @@
         <div class="sql-card">
           <div class="sql-header">
             <div class="sql-header-left">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2"
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-info)" stroke-width="2"
                 stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="16 18 22 12 16 6" />
                 <polyline points="8 6 2 12 8 18" />
@@ -235,7 +235,7 @@ const cardItems = computed(() => {
 
   .nl2sql-result {
     .sql-card {
-      border: 1px solid #dbeafe;
+      border: 1px solid var(--color-info-bg);
       border-radius: 10px;
       overflow: hidden;
       margin-bottom: 12px;
@@ -245,7 +245,7 @@ const cardItems = computed(() => {
         align-items: center;
         justify-content: space-between;
         padding: var(--space-2-5) var(--space-3-5);
-        background: #eff6ff;
+        background: var(--color-info-bg);
 
         .sql-header-left {
           display: flex;
@@ -255,7 +255,7 @@ const cardItems = computed(() => {
           .sql-label {
             font-size: 13px;
             font-weight: 600;
-            color: #1e40af;
+            color: var(--color-info);
           }
         }
 
@@ -270,16 +270,16 @@ const cardItems = computed(() => {
             justify-content: center;
             width: 28px;
             height: 28px;
-            border: 1px solid #bfdbfe;
+            border: 1px solid var(--color-info-bg);
             border-radius: 6px;
-            background: #fff;
-            color: #3b82f6;
+            background: var(--color-bg-container);
+            color: var(--color-info);
             cursor: pointer;
             transition: all 0.2s;
 
             &:hover {
-              background: #dbeafe;
-              border-color: #93c5fd;
+              background: var(--color-info-bg);
+              border-color: var(--color-info);
             }
           }
         }
@@ -321,17 +321,17 @@ const cardItems = computed(() => {
           align-items: center;
           gap: var(--space-1-25);
           padding: var(--space-1-25) 12px;
-          border: 1px solid #d1d5db;
+          border: 1px solid var(--color-border);
           border-radius: 6px;
-          background: #fff;
-          color: #374151;
+          background: var(--color-bg-container);
+          color: var(--color-text-primary);
           font-size: 12px;
           cursor: pointer;
           transition: all 0.2s;
 
           &:hover {
-            background: #f3f4f6;
-            border-color: #9ca3af;
+            background: var(--color-bg-hover);
+            border-color: var(--color-text-placeholder);
           }
         }
       }
@@ -398,12 +398,12 @@ const cardItems = computed(() => {
     font-weight: 500;
 
     &.success {
-      background: #ecfdf5;
+      background: var(--color-success-bg);
       color: var(--color-primary-dark);
     }
 
     &.error {
-      background: #fef2f2;
+      background: var(--color-danger-bg);
       color: var(--color-danger);
     }
   }

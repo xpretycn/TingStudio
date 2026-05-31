@@ -1,4 +1,3 @@
-// MySQL 数据库配置
 import mysql from 'mysql2/promise';
 import { logger } from '../utils/logger.js';
 
@@ -37,7 +36,6 @@ export async function connectMySQL(): Promise<void> {
     const config = getMySQLConfig();
     pool = mysql.createPool(config);
 
-    // 测试连接
     const connection = await pool.getConnection();
     await connection.ping();
     connection.release();
@@ -56,15 +54,32 @@ export function getMySQLPool(): mysql.Pool {
   return pool;
 }
 
-export async function query<T = any>(sql: string, params?: any[]): Promise<T> {
+export async function query<T = Record<string, unknown>>(sql: string, params?: unknown[]): Promise<T> {
   const poolInstance = getMySQLPool();
-  
+
   try {
-    const [rows] = await poolInstance.execute(sql, params);
+    const [rows] = await poolInstance.execute(sql, params as (string | number | boolean | null | Buffer)[]);
     return rows as T;
   } catch (error) {
     logger.error('MySQL 查询错误:', { sql, params, error });
     throw error;
+  }
+}
+
+export async function transaction<T>(fn: (conn: mysql.PoolConnection) => Promise<T>): Promise<T> {
+  const poolInstance = getMySQLPool();
+  const conn = await poolInstance.getConnection();
+
+  try {
+    await conn.beginTransaction();
+    const result = await fn(conn);
+    await conn.commit();
+    return result;
+  } catch (error) {
+    await conn.rollback();
+    throw error;
+  } finally {
+    conn.release();
   }
 }
 

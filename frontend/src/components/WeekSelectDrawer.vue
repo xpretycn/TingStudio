@@ -145,18 +145,18 @@ function handleClose() {
 .period-preview {
   margin-top: 24px;
   padding: 16px;
-  background: #f5f7fa;
+  background: var(--color-bg-page);
   border-radius: 8px;
 
   .preview-label {
     font-size: 12px;
-    color: #909399;
+    color: var(--color-text-secondary);
     margin-bottom: 8px;
   }
 
   .preview-value {
     font-size: 14px;
-    color: #303133;
+    color: var(--color-text-primary);
     font-weight: 500;
   }
 }

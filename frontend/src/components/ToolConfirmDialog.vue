@@ -11,7 +11,7 @@
   >
     <div class="tool-confirm-dialog">
       <div class="confirm-warning">
-        <t-icon name="error-circle" size="24px" style="color: #e37318" />
+        <t-icon name="error-circle" size="24px" style="color: var(--color-warning)" />
         <span>此操作需要确认</span>
       </div>
       <div class="confirm-message">{{ message }}</div>
@@ -80,10 +80,10 @@ const fieldLabels: Record<string, string> = {
 
   .confirm-message {
     padding: 12px 16px;
-    background: #fff8ed;
-    border: 1px solid #fde68a;
+    background: var(--color-warning-bg);
+    border: 1px solid var(--color-warning);
     border-radius: 8px;
-    color: #92400e;
+    color: var(--color-warning-dark);
     font-size: 14px;
     line-height: 1.6;
     margin-bottom: 16px;
@@ -100,7 +100,7 @@ const fieldLabels: Record<string, string> = {
       display: flex;
       justify-content: space-between;
       padding: var(--space-1-5) 0;
-      border-bottom: 1px solid #f1f5f9;
+      border-bottom: 1px solid var(--color-border-light);
       font-size: 13px;
 
       .param-key {
