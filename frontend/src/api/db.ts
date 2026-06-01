@@ -129,3 +129,35 @@ export function uploadAndRestore(file: File) {
     timeout: 120_000,
   })
 }
+
+export interface ScriptContent {
+  content: string
+  scriptPath: string
+}
+
+export function getScriptContent(scriptId: string) {
+  return http.get<unknown, ScriptContent>(`/db/scripts/${encodeURIComponent(scriptId)}/content`)
+}
+
+export function updateScriptContent(scriptId: string, content: string, changeSummary?: string) {
+  return http.put<unknown, { scriptPath: string }>(`/db/scripts/${encodeURIComponent(scriptId)}/content`, { content, changeSummary })
+}
+
+export interface ScriptVersion {
+  id: string
+  scriptId: string
+  scriptName: string
+  scriptPath: string
+  content: string
+  savedBy: string
+  savedAt: string
+  changeSummary: string | null
+}
+
+export function getScriptVersions(scriptId: string, limit?: number) {
+  return http.get<unknown, ScriptVersion[]>(`/db/scripts/${encodeURIComponent(scriptId)}/versions`, { params: { limit } })
+}
+
+export function restoreScriptVersion(scriptId: string, versionId: string) {
+  return http.post<unknown, { scriptPath: string }>(`/db/scripts/${encodeURIComponent(scriptId)}/versions/restore`, { versionId })
+}

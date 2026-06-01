@@ -2,17 +2,45 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { authApi, saveAuthData, saveUserOnly, clearAuthData, getCachedUser } from '@/api/auth'
 import type { UserInfo, LoginParams, RegisterParams, UpdateProfileParams, ChangePasswordParams } from '@/api/auth'
+import { usePreferencesStore } from '@/stores/preferences'
+import { useThemeStore } from '@/stores/theme'
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<UserInfo | null>(getCachedUser())
   const loading = ref(false)
+  let preferencesInitialized = false
 
   const isAuthenticated = computed(() => !!user.value)
+
+  /** 加载当前用户的偏好设置到相关 store */
+  const syncUserPreferences = async () => {
+    if (!user.value) return
+    const preferencesStore = usePreferencesStore()
+    const themeStore = useThemeStore()
+
+    await preferencesStore.fetchPreferences()
+    themeStore.applyPreferences({
+      themeMode: preferencesStore.preferences.themeMode,
+      brandColor: preferencesStore.preferences.brandColor,
+    })
+  }
+
+  /** 清理当前用户的本地偏好缓存 */
+  const clearUserPreferences = () => {
+    const currentUserId = user.value?.id
+    if (!currentUserId) return
+    usePreferencesStore().clearLocal(currentUserId)
+    useThemeStore().clearLocal(currentUserId)
+  }
 
   const initAuth = () => {
     const cached = getCachedUser()
     if (cached) {
       user.value = cached
+      if (!preferencesInitialized) {
+        preferencesInitialized = true
+        syncUserPreferences()
+      }
     }
   }
 
@@ -23,6 +51,8 @@ export const useAuthStore = defineStore('auth', () => {
       const { user: userInfo, token } = res
       user.value = userInfo
       saveAuthData(userInfo, token)
+      preferencesInitialized = true
+      await syncUserPreferences()
       return { success: true }
     } catch (error: unknown) {
       return { success: false, message: error instanceof Error ? error.message : '登录失败' }
@@ -38,6 +68,8 @@ export const useAuthStore = defineStore('auth', () => {
       const { user: userInfo, token } = res
       user.value = userInfo
       saveAuthData(userInfo, token)
+      preferencesInitialized = true
+      await syncUserPreferences()
       return { success: true }
     } catch (error: unknown) {
       return { success: false, message: error instanceof Error ? error.message : '注册失败' }
@@ -47,8 +79,10 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   const logout = () => {
+    clearUserPreferences()
     clearAuthData()
     user.value = null
+    preferencesInitialized = false
   }
 
   const updateProfile = async (params: UpdateProfileParams) => {

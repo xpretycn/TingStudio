@@ -15,7 +15,8 @@
               <p class="tool-desc">{{ tool.description }}</p>
             </div>
             <div class="tool-arrow">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="9 18 15 12 9 6" />
               </svg>
             </div>
@@ -34,32 +35,22 @@
               实时天气
             </h3>
             <div class="weather-actions">
-              <t-input
-                v-model="searchKeyword"
-                placeholder="搜索城市..."
-                clearable
-                size="small"
-                class="city-search-input"
-                @enter="handleSearch"
-                @clear="handleClearSearch"
-              >
+              <t-input v-model="searchKeyword" placeholder="搜索城市..." clearable size="small" class="city-search-input"
+                @enter="handleSearch" @clear="handleClearSearch">
                 <template #prefix-icon>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="11" cy="11" r="8" />
                     <line x1="21" y1="21" x2="16.65" y2="16.65" />
                   </svg>
                 </template>
               </t-input>
               <t-tooltip content="自动定位">
-                <t-button
-                  theme="default"
-                  size="small"
-                  :loading="weatherStore.geoLoading"
-                  class="locate-btn"
-                  @click="weatherStore.autoLocate()"
-                >
+                <t-button theme="default" size="small" :loading="weatherStore.geoLoading" class="locate-btn"
+                  @click="weatherStore.autoLocate()">
                   <template #icon>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                      stroke-linecap="round" stroke-linejoin="round">
                       <circle cx="12" cy="12" r="4" />
                       <line x1="12" y1="2" x2="12" y2="5" />
                       <line x1="12" y1="19" x2="12" y2="22" />
@@ -74,12 +65,8 @@
 
           <!-- 搜索结果下拉 -->
           <div v-if="weatherStore.searchResults.length > 0" class="search-dropdown">
-            <div
-              v-for="city in weatherStore.searchResults"
-              :key="city.id"
-              class="search-item"
-              @click="handleSelectCity(city)"
-            >
+            <div v-for="city in weatherStore.searchResults" :key="city.id" class="search-item"
+              @click="handleSelectCity(city)">
               <span class="search-item-name">{{ city.name }}</span>
               <span class="search-item-detail">{{ city.adm1 }} · {{ city.adm2 }}</span>
             </div>
@@ -91,13 +78,8 @@
           </div>
 
           <!-- 错误提示 -->
-          <t-alert
-            v-else-if="weatherStore.errorMsg"
-            :theme="weatherStore.rateLimited ? 'warning' : 'error'"
-            class="weather-error"
-            closable
-            @close="weatherStore.errorMsg = ''"
-          >
+          <t-alert v-else-if="weatherStore.errorMsg" :theme="weatherStore.rateLimited ? 'warning' : 'error'"
+            class="weather-error" closable @close="weatherStore.errorMsg = ''">
             {{ weatherStore.errorMsg }}
           </t-alert>
 
@@ -173,15 +155,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, provide } from 'vue'
-import { MessagePlugin } from 'tdesign-vue-next'
-import { useWeatherStore } from '@/stores/weather'
-import { useAuthStore } from '@/stores/auth'
-import type { CityLocation } from '@/api/weather'
-import DbOverview from '@/components/db/DbOverview.vue'
-import DbTableBrowser from '@/components/db/DbTableBrowser.vue'
-import DbBackup from '@/components/db/DbBackup.vue'
-import DbScripts from '@/components/db/DbScripts.vue'
+import { ref, computed, provide } from 'vue';
+import { MessagePlugin } from 'tdesign-vue-next';
+import { useWeatherStore } from '@/stores/weather';
+import { useAuthStore } from '@/stores/auth';
+import type { CityLocation } from '@/api/weather';
+import DbOverview from '@/components/db/DbOverview.vue';
+import DbTableBrowser from '@/components/db/DbTableBrowser.vue';
+import DbBackup from '@/components/db/DbBackup.vue';
+import DbScripts from '@/components/db/DbScripts.vue';
 import {
   gradientToolPink,
   gradientToolPurple,
@@ -189,26 +171,26 @@ import {
   gradientToolOrange,
   gradientToolGreen,
   gradientToolGray,
-} from '@/assets/styles/tokens'
+} from '@/assets/styles/tokens';
 
-const weatherStore = useWeatherStore()
-const authStore = useAuthStore()
-const activeTab = ref('tools')
-const searchKeyword = ref('')
-const activeDbTab = ref('overview')
-const selectedTableForBrowser = ref('')
-const overviewRef = ref<InstanceType<typeof DbOverview> | null>(null)
-const backupRef = ref<InstanceType<typeof DbBackup> | null>(null)
+const weatherStore = useWeatherStore();
+const authStore = useAuthStore();
+const activeTab = ref('tools');
+const searchKeyword = ref('');
+const activeDbTab = ref('overview');
+const selectedTableForBrowser = ref('');
+const overviewRef = ref<InstanceType<typeof DbOverview> | null>(null);
+const backupRef = ref<InstanceType<typeof DbBackup> | null>(null);
 
-const isAdmin = computed(() => authStore.user?.role === 'admin')
+const isAdmin = computed(() => authStore.user?.role === 'admin');
 
 function navigateToTable(tableName: string) {
-  selectedTableForBrowser.value = tableName
-  activeDbTab.value = 'browser'
+  selectedTableForBrowser.value = tableName;
+  activeDbTab.value = 'browser';
 }
 
-provide('navigateToTable', navigateToTable)
-let debounceTimer: ReturnType<typeof setTimeout> | null = null
+provide('navigateToTable', navigateToTable);
+let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 
 const tools = ref([
   {
@@ -253,44 +235,44 @@ const tools = ref([
     description: '配置系统参数和偏好设置',
     bgColor: gradientToolGray
   }
-])
+]);
 
-const handleToolClick = (tool: { id: number; icon: string; title: string; description: string; bgColor: string }) => {
-  MessagePlugin.info(`${tool.title} 功能开发中，敬请期待~`)
-}
+const handleToolClick = (tool: { id: number; icon: string; title: string; description: string; bgColor: string; }) => {
+  MessagePlugin.info(`${tool.title} 功能开发中，敬请期待~`);
+};
 
 // 300ms 防抖搜索
 function handleSearch() {
-  const keyword = searchKeyword.value.trim()
+  const keyword = searchKeyword.value.trim();
   if (!keyword) {
-    weatherStore.clearSearch()
-    return
+    weatherStore.clearSearch();
+    return;
   }
-  if (debounceTimer) clearTimeout(debounceTimer)
+  if (debounceTimer) clearTimeout(debounceTimer);
   debounceTimer = setTimeout(() => {
-    weatherStore.searchAndFetchWeather(keyword)
-  }, 300)
+    weatherStore.searchAndFetchWeather(keyword);
+  }, 300);
 }
 
 function handleClearSearch() {
-  searchKeyword.value = ''
-  weatherStore.clearSearch()
+  searchKeyword.value = '';
+  weatherStore.clearSearch();
 }
 
 function handleSelectCity(city: CityLocation) {
-  searchKeyword.value = city.name
-  weatherStore.selectCity(city)
+  searchKeyword.value = city.name;
+  weatherStore.selectCity(city);
 }
 
 function formatTime(updateTime: string): string {
-  if (!updateTime) return ''
+  if (!updateTime) return '';
   try {
-    const date = new Date(updateTime)
-    const h = String(date.getHours()).padStart(2, '0')
-    const m = String(date.getMinutes()).padStart(2, '0')
-    return `${h}:${m}`
+    const date = new Date(updateTime);
+    const h = String(date.getHours()).padStart(2, '0');
+    const m = String(date.getMinutes()).padStart(2, '0');
+    return `${h}:${m}`;
   } catch {
-    return updateTime
+    return updateTime;
   }
 }
 </script>
@@ -492,7 +474,10 @@ function formatTime(updateTime: string): string {
         border-color: var(--color-primary-lightest);
         background: var(--overlay-brand-bg-30);
 
-        &:hover { border-color: var(--color-primary-lighter); }
+        &:hover {
+          border-color: var(--color-primary-lighter);
+        }
+
         &:focus-within {
           border-color: var(--color-primary-light);
           box-shadow: 0 0 0 3px var(--overlay-brand-10);
@@ -614,14 +599,20 @@ function formatTime(updateTime: string): string {
 }
 
 .weather-details {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 12px;
 
   .detail-item {
     display: flex;
-    justify-content: space-between;
+    flex-direction: column;
+    justify-content: center;
     align-items: center;
+    gap: 4px;
+    flex: 1 1 160px;
+    max-width: 200px;
+    min-width: 160px;
     padding: var(--space-3-5) 16px;
     background: $bg-page;
     border-radius: 12px;
@@ -695,10 +686,5 @@ function formatTime(updateTime: string): string {
     }
   }
 
-  .weather-details {
-    grid-template-columns: repeat(2, 1fr);
-  }
 }
 </style>
-
-

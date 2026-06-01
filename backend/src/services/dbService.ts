@@ -150,6 +150,16 @@ const SCRIPT_REGISTRY: ScriptDefinition[] = [
     details: ["根据拼音首字母重新生成编码", "确保编码唯一性", "更新关联数据"],
   },
   {
+    id: "fix-all-material-codes",
+    name: "修复全部原料编码",
+    description: "批量修复所有原料编码异常",
+    category: "fix",
+    dangerLevel: "medium",
+    scriptPath: "fixAllMaterialCodes.ts",
+    estimatedTime: "10-30s",
+    details: ["扫描所有原料", "批量修复编码", "更新关联表"],
+  },
+  {
     id: "fix-created-by",
     name: "修复创建人字段",
     description: "修复数据中缺失或错误的创建人信息",
@@ -158,6 +168,26 @@ const SCRIPT_REGISTRY: ScriptDefinition[] = [
     scriptPath: "fixCreatedBy.ts",
     estimatedTime: "5-10s",
     details: ["补全缺失的created_by字段", "修正无效的用户引用", "同步创建人名称"],
+  },
+  {
+    id: "fix-diju",
+    name: "修复地级数据",
+    description: "修复原料地级字段异常数据",
+    category: "fix",
+    dangerLevel: "medium",
+    scriptPath: "fixDiju.ts",
+    estimatedTime: "5-10s",
+    details: ["扫描地级字段", "修复异常值", "标准化数据格式"],
+  },
+  {
+    id: "refresh-material-updated-at",
+    name: "刷新原料更新时间",
+    description: "批量刷新所有原料的updated_at字段",
+    category: "fix",
+    dangerLevel: "low",
+    scriptPath: "refreshMaterialUpdatedAt.ts",
+    estimatedTime: "5-10s",
+    details: ["扫描所有原料", "更新更新时间戳", "保持数据一致性"],
   },
   {
     id: "seed-data",
@@ -190,6 +220,36 @@ const SCRIPT_REGISTRY: ScriptDefinition[] = [
     details: ["插入常见药材营养数据", "插入辅料营养数据", "设置NRV参考值"],
   },
   {
+    id: "seed-permissions",
+    name: "初始化权限数据",
+    description: "插入RBAC权限和角色数据",
+    category: "seed",
+    dangerLevel: "low",
+    scriptPath: "seedPermissions.ts",
+    estimatedTime: "5-10s",
+    details: ["插入权限定义", "分配角色权限", "设置系统角色"],
+  },
+  {
+    id: "seed-enhanced-data",
+    name: "初始化增强数据",
+    description: "插入增强版种子数据",
+    category: "seed",
+    dangerLevel: "low",
+    scriptPath: "seedEnhancedData.ts",
+    estimatedTime: "10-20s",
+    details: ["插入扩展业务数据", "初始化高级配置", "填充示例数据"],
+  },
+  {
+    id: "fill-material-enums",
+    name: "填充原料枚举",
+    description: "为原料填充枚举字段值",
+    category: "seed",
+    dangerLevel: "low",
+    scriptPath: "fillMaterialEnums.ts",
+    estimatedTime: "5-10s",
+    details: ["扫描原料缺失枚举", "根据规则填充", "更新数据库"],
+  },
+  {
     id: "import-materials-excel",
     name: "从Excel导入原料",
     description: "从Excel文件批量导入原料数据",
@@ -208,6 +268,66 @@ const SCRIPT_REGISTRY: ScriptDefinition[] = [
     scriptPath: "importRealData.ts",
     estimatedTime: "30-120s",
     details: ["读取数据源", "数据清洗转换", "批量导入并验证"],
+  },
+  {
+    id: "import-real-materials",
+    name: "导入真实原料",
+    description: "导入真实原料数据",
+    category: "import",
+    dangerLevel: "medium",
+    scriptPath: "importRealMaterials.ts",
+    estimatedTime: "30-60s",
+    details: ["读取原料数据源", "解析并清洗", "批量写入数据库"],
+  },
+  {
+    id: "import-to-database",
+    name: "通用数据导入",
+    description: "通用数据导入数据库工具",
+    category: "import",
+    dangerLevel: "medium",
+    scriptPath: "importToDatabase.ts",
+    estimatedTime: "30-120s",
+    details: ["读取数据文件", "格式转换", "写入数据库"],
+  },
+  {
+    id: "import-formulas-from-files",
+    name: "从文件导入配方",
+    description: "从数据文件导入配方记录",
+    category: "import",
+    dangerLevel: "medium",
+    scriptPath: "importFormulasFromFiles.ts",
+    estimatedTime: "30-60s",
+    details: ["扫描配方文件", "解析配方结构", "批量导入"],
+  },
+  {
+    id: "full-data-import",
+    name: "全量数据导入",
+    description: "执行全量业务数据导入",
+    category: "import",
+    dangerLevel: "high",
+    scriptPath: "fullDataImport.ts",
+    estimatedTime: "60-180s",
+    details: ["清空现有数据", "全量导入", "数据校验"],
+  },
+  {
+    id: "reimport-all-materials",
+    name: "重新导入全部原料",
+    description: "重新导入所有原料数据",
+    category: "import",
+    dangerLevel: "high",
+    scriptPath: "reimportAllMaterials.ts",
+    estimatedTime: "60-120s",
+    details: ["删除现有原料", "重新导入", "重建关联"],
+  },
+  {
+    id: "import-nutrition-data",
+    name: "导入营养数据",
+    description: "导入原料营养成分数据",
+    category: "import",
+    dangerLevel: "medium",
+    scriptPath: "importNutritionData.ts",
+    estimatedTime: "30-60s",
+    details: ["读取营养数据源", "匹配原料", "写入营养表"],
   },
   {
     id: "clean-invalid-materials",
@@ -260,6 +380,56 @@ const SCRIPT_REGISTRY: ScriptDefinition[] = [
     details: ["统计AI调用量", "检查用量日志", "验证Token消耗记录"],
   },
   {
+    id: "check-nutrition-table",
+    name: "检查营养表状态",
+    description: "检查material_nutrition表数据状态",
+    category: "verify",
+    dangerLevel: "low",
+    scriptPath: "checkNutritionTable.ts",
+    estimatedTime: "3-5s",
+    details: ["统计记录数", "检查is_latest分布", "输出示例数据"],
+  },
+  {
+    id: "check-weekly-report-data",
+    name: "检查周报数据",
+    description: "检查周报生成所需数据完整性",
+    category: "verify",
+    dangerLevel: "low",
+    scriptPath: "check-weekly-report-data.ts",
+    estimatedTime: "5-10s",
+    details: ["检查配方数据", "检查原料数据", "检查销售数据"],
+  },
+  {
+    id: "check-reports",
+    name: "检查报表数据",
+    description: "检查各类报表数据状态",
+    category: "verify",
+    dangerLevel: "low",
+    scriptPath: "check-reports.ts",
+    estimatedTime: "5-10s",
+    details: ["扫描报表表", "统计数据量", "检查异常"],
+  },
+  {
+    id: "check-sqlite-data",
+    name: "检查SQLite数据",
+    description: "检查SQLite数据库数据质量",
+    category: "verify",
+    dangerLevel: "low",
+    scriptPath: "check-sqlite-data.ts",
+    estimatedTime: "5-10s",
+    details: ["检查表完整性", "验证数据格式", "输出诊断报告"],
+  },
+  {
+    id: "verify-nutrition-data",
+    name: "验证营养数据",
+    description: "验证营养成分数据准确性",
+    category: "verify",
+    dangerLevel: "low",
+    scriptPath: "verifyNutritionData.ts",
+    estimatedTime: "10-30s",
+    details: ["检查营养素计算", "验证NRV百分比", "排查异常值"],
+  },
+  {
     id: "migrate-ratio-factor",
     name: "迁移比系数",
     description: "迁移配方比系数字段到新格式",
@@ -289,7 +459,141 @@ const SCRIPT_REGISTRY: ScriptDefinition[] = [
     estimatedTime: "5-15s",
     details: ["查找缺失编码的配方", "根据名称生成编码", "确保编码唯一性"],
   },
+  {
+    id: "migrate-to-mysql",
+    name: "迁移到MySQL",
+    description: "将SQLite数据迁移到MySQL数据库",
+    category: "mysql",
+    dangerLevel: "high",
+    scriptPath: "migrate-to-mysql.ts",
+    estimatedTime: "60-180s",
+    details: ["连接MySQL", "转换表结构", "迁移数据", "验证一致性"],
+  },
+  {
+    id: "init-database",
+    name: "初始化数据库",
+    description: "执行数据库表结构初始化",
+    category: "init",
+    dangerLevel: "high",
+    scriptPath: "initDatabase.ts",
+    estimatedTime: "10-30s",
+    details: ["读取init.sql", "创建表结构", "执行基础迁移"],
+  },
+  {
+    id: "create-admin",
+    name: "创建管理员",
+    description: "创建默认管理员账号",
+    category: "admin",
+    dangerLevel: "medium",
+    scriptPath: "createAdmin.ts",
+    estimatedTime: "3-5s",
+    details: ["检查现有用户", "创建admin账号", "输出账号信息"],
+  },
+  {
+    id: "export-database",
+    name: "导出数据库",
+    description: "导出完整数据库到JSON备份",
+    category: "export",
+    dangerLevel: "low",
+    scriptPath: "exportDatabase.ts",
+    estimatedTime: "30-120s",
+    details: ["扫描所有表", "导出结构和数据", "生成备份文件"],
+  },
+  {
+    id: "restore-database",
+    name: "恢复数据库",
+    description: "从JSON备份恢复数据库",
+    category: "export",
+    dangerLevel: "high",
+    scriptPath: "restoreDatabase.ts",
+    estimatedTime: "30-120s",
+    details: ["读取备份文件", "重建表结构", "导入数据", "一致性校验"],
+  },
+  {
+    id: "audit-supplement-nutrition",
+    name: "营养数据排查补充",
+    description: "排查并补充原料营养数据",
+    category: "nutrition",
+    dangerLevel: "medium",
+    scriptPath: "auditAndSupplementNutrition.ts",
+    estimatedTime: "30-60s",
+    details: ["读取Excel参考", "匹配数据库原料", "补充缺失营养数据"],
+  },
+  {
+    id: "analyze-nutrition-files",
+    name: "分析营养文件",
+    description: "分析营养数据文件内容",
+    category: "nutrition",
+    dangerLevel: "low",
+    scriptPath: "analyzeNutritionFiles.ts",
+    estimatedTime: "10-30s",
+    details: ["读取营养文件", "分析数据结构", "输出分析报告"],
+  },
 ];
+
+function autoCategorize(fileName: string, relativePath: string): string {
+  const lower = fileName.toLowerCase();
+  const dir = path.dirname(relativePath).toLowerCase();
+
+  if (dir.includes("migration")) return "migrate";
+  if (lower.startsWith("fix")) return "fix";
+  if (lower.startsWith("seed")) return "seed";
+  if (lower.startsWith("import")) return "import";
+  if (lower.startsWith("clean")) return "clean";
+  if (lower.startsWith("verify") || lower.startsWith("check") || lower.startsWith("test")) return "verify";
+  if (lower.startsWith("migrate")) return "migrate";
+  if (lower.startsWith("init")) return "init";
+  if (lower.includes("mysql")) return "mysql";
+  if (lower.includes("nutrition")) return "nutrition";
+  if (lower.startsWith("export")) return "export";
+  if (lower.startsWith("create") && (lower.includes("admin") || lower.includes("user"))) return "admin";
+  if (lower.startsWith("restore")) return "export";
+  if (lower.includes("report") || lower.includes("audit") || lower.includes("analyze")) return "verify";
+  return "other";
+}
+
+function getAllScriptDefinitions(): ScriptDefinition[] {
+  const registeredMap = new Map<string, ScriptDefinition>();
+  for (const s of SCRIPT_REGISTRY) {
+    registeredMap.set(s.scriptPath, s);
+  }
+
+  const discovered = new Map<string, ScriptDefinition>();
+
+  function scanDir(dir: string, baseDir: string) {
+    if (!fs.existsSync(dir)) return;
+    const items = fs.readdirSync(dir);
+    for (const item of items) {
+      const fullPath = path.join(dir, item);
+      const stat = fs.statSync(fullPath);
+      if (stat.isDirectory()) {
+        scanDir(fullPath, baseDir);
+      } else if (/\.(ts|js|cjs|sql)$/.test(item)) {
+        const relativePath = path.relative(baseDir, fullPath).replace(/\\/g, "/");
+        if (!registeredMap.has(relativePath) && !discovered.has(relativePath)) {
+          const category = autoCategorize(item, relativePath);
+          const id = relativePath.replace(/\//g, "-").replace(/\.(ts|js|cjs|sql)$/, "");
+          const name = item.replace(/\.(ts|js|cjs|sql)$/, "");
+          const isDangerous = category === "clean" || category === "migrate" || category === "export" || category === "mysql";
+          discovered.set(relativePath, {
+            id,
+            name,
+            description: `脚本文件: ${relativePath}`,
+            category,
+            dangerLevel: isDangerous ? "high" : "medium",
+            scriptPath: relativePath,
+            estimatedTime: "未知",
+            details: [],
+          });
+        }
+      }
+    }
+  }
+
+  scanDir(SCRIPTS_DIR, SCRIPTS_DIR);
+
+  return [...SCRIPT_REGISTRY, ...discovered.values()];
+}
 
 function formatFileSize(bytes: number): string {
   if (bytes === 0) return "0 B";
@@ -322,6 +626,24 @@ function ensureScriptLogsTable(): void {
     CREATE INDEX IF NOT EXISTS idx_script_logs_script_id ON db_script_logs(script_id);
     CREATE INDEX IF NOT EXISTS idx_script_logs_status ON db_script_logs(status);
     CREATE INDEX IF NOT EXISTS idx_script_logs_started_at ON db_script_logs(started_at)
+  `);
+}
+
+function ensureScriptVersionsTable(): void {
+  const db = getDb();
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS db_script_versions (
+      id TEXT PRIMARY KEY,
+      script_id TEXT NOT NULL,
+      script_name TEXT NOT NULL,
+      script_path TEXT NOT NULL,
+      content TEXT NOT NULL,
+      saved_by TEXT NOT NULL,
+      saved_at TEXT NOT NULL,
+      change_summary TEXT DEFAULT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_script_versions_script_id ON db_script_versions(script_id);
+    CREATE INDEX IF NOT EXISTS idx_script_versions_saved_at ON db_script_versions(saved_at)
   `);
 }
 
@@ -932,15 +1254,17 @@ export function getScriptList(): Record<string, unknown> {
       // logMap remains empty
     }
 
+    const allScripts = getAllScriptDefinitions();
+
     const grouped: Record<string, ScriptDefinition[]> = {};
-    for (const script of SCRIPT_REGISTRY) {
+    for (const script of allScripts) {
       if (!grouped[script.category]) {
         grouped[script.category] = [];
       }
       grouped[script.category].push(script);
     }
 
-    const scripts = SCRIPT_REGISTRY.map((script) => {
+    const scripts = allScripts.map((script) => {
       const logInfo = logMap.get(script.id);
       return {
         ...script,
@@ -952,7 +1276,7 @@ export function getScriptList(): Record<string, unknown> {
     return {
       categories: Object.keys(grouped),
       scripts,
-      total: SCRIPT_REGISTRY.length,
+      total: allScripts.length,
     };
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "获取脚本列表失败";
@@ -968,7 +1292,8 @@ export async function executeScript(
     throw new Error("无效的脚本ID格式");
   }
 
-  const script = SCRIPT_REGISTRY.find((s) => s.id === scriptId);
+  const allScripts = getAllScriptDefinitions();
+  const script = allScripts.find((s) => s.id === scriptId);
   if (!script) {
     throw new Error(`脚本不存在: ${scriptId}`);
   }
@@ -1072,6 +1397,153 @@ export function getScriptHistory(
     return rows.map((row) => rowToCamelCase<ScriptLogRow>(row));
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "获取脚本历史失败";
+    throw new Error(message);
+  }
+}
+
+export function getScriptContent(scriptId: string): { content: string; scriptPath: string } {
+  if (!/^[a-zA-Z0-9\-]+$/.test(scriptId)) {
+    throw new Error("无效的脚本ID格式");
+  }
+
+  const allScripts = getAllScriptDefinitions();
+  const script = allScripts.find((s) => s.id === scriptId);
+  if (!script) {
+    throw new Error(`脚本不存在: ${scriptId}`);
+  }
+
+  const scriptPath = path.resolve(SCRIPTS_DIR, script.scriptPath);
+  if (!fs.existsSync(scriptPath)) {
+    throw new Error(`脚本文件不存在: ${script.scriptPath}`);
+  }
+
+  const content = fs.readFileSync(scriptPath, "utf-8");
+  return { content, scriptPath: script.scriptPath };
+}
+
+export function saveScriptContent(
+  scriptId: string,
+  content: string,
+  savedBy: string = "unknown",
+  changeSummary?: string
+): { scriptPath: string } {
+  if (!/^[a-zA-Z0-9\-]+$/.test(scriptId)) {
+    throw new Error("无效的脚本ID格式");
+  }
+
+  const allScripts = getAllScriptDefinitions();
+  const script = allScripts.find((s) => s.id === scriptId);
+  if (!script) {
+    throw new Error(`脚本不存在: ${scriptId}`);
+  }
+
+  const scriptPath = path.resolve(SCRIPTS_DIR, script.scriptPath);
+  if (!fs.existsSync(scriptPath)) {
+    throw new Error(`脚本文件不存在: ${script.scriptPath}`);
+  }
+
+  // Save current content as a version before overwriting
+  const currentContent = fs.readFileSync(scriptPath, "utf-8");
+  if (currentContent !== content) {
+    ensureScriptVersionsTable();
+    const db = getDb();
+    const versionId = generateId();
+    db.prepare(
+      `INSERT INTO db_script_versions (id, script_id, script_name, script_path, content, saved_by, saved_at, change_summary)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+    ).run(versionId, script.id, script.name, script.scriptPath, currentContent, savedBy, now(), changeSummary ?? null);
+
+    // Keep only last 20 versions per script
+    const versionsToDelete = db.prepare(
+      `SELECT id FROM db_script_versions WHERE script_id = ? ORDER BY saved_at DESC LIMIT -1 OFFSET 20`
+    ).all(scriptId) as { id: string }[];
+    for (const v of versionsToDelete) {
+      db.prepare("DELETE FROM db_script_versions WHERE id = ?").run(v.id);
+    }
+  }
+
+  fs.writeFileSync(scriptPath, content, "utf-8");
+  return { scriptPath: script.scriptPath };
+}
+
+export interface ScriptVersionRow {
+  id: string;
+  scriptId: string;
+  scriptName: string;
+  scriptPath: string;
+  content: string;
+  savedBy: string;
+  savedAt: string;
+  changeSummary: string | null;
+}
+
+export function getScriptVersions(scriptId: string, limit: number = 20): ScriptVersionRow[] {
+  if (!/^[a-zA-Z0-9\-]+$/.test(scriptId)) {
+    throw new Error("无效的脚本ID格式");
+  }
+
+  try {
+    ensureScriptVersionsTable();
+
+    const db = getDb();
+    const safeLimit = Math.min(50, Math.max(1, limit));
+
+    const rows = db.prepare(
+      "SELECT * FROM db_script_versions WHERE script_id = ? ORDER BY saved_at DESC LIMIT ?"
+    ).all(scriptId, safeLimit) as Record<string, unknown>[];
+
+    return rows.map((row) => rowToCamelCase<ScriptVersionRow>(row));
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "获取脚本版本历史失败";
+    throw new Error(message);
+  }
+}
+
+export function restoreScriptVersion(scriptId: string, versionId: string, savedBy: string = "unknown"): { scriptPath: string } {
+  if (!/^[a-zA-Z0-9\-]+$/.test(scriptId) || !/^[a-zA-Z0-9\-]+$/.test(versionId)) {
+    throw new Error("无效的ID格式");
+  }
+
+  try {
+    ensureScriptVersionsTable();
+
+    const db = getDb();
+    const versionRow = db.prepare(
+      "SELECT * FROM db_script_versions WHERE id = ? AND script_id = ?"
+    ).get(versionId, scriptId) as Record<string, unknown> | undefined;
+
+    if (!versionRow) {
+      throw new Error("版本记录不存在");
+    }
+
+    const version = rowToCamelCase<ScriptVersionRow>(versionRow);
+
+    // Save current content before restoring
+    const allScripts = getAllScriptDefinitions();
+    const script = allScripts.find((s) => s.id === scriptId);
+    if (!script) {
+      throw new Error(`脚本不存在: ${scriptId}`);
+    }
+
+    const scriptPath = path.resolve(SCRIPTS_DIR, script.scriptPath);
+    if (!fs.existsSync(scriptPath)) {
+      throw new Error(`脚本文件不存在: ${script.scriptPath}`);
+    }
+
+    const currentContent = fs.readFileSync(scriptPath, "utf-8");
+    const autoVersionId = generateId();
+    db.prepare(
+      `INSERT INTO db_script_versions (id, script_id, script_name, script_path, content, saved_by, saved_at, change_summary)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+    ).run(autoVersionId, script.id, script.name, script.scriptPath, currentContent, savedBy, now(), "恢复版本前自动备份");
+
+    fs.writeFileSync(scriptPath, version.content, "utf-8");
+    return { scriptPath: script.scriptPath };
+  } catch (error: unknown) {
+    if (error instanceof Error && error.message.includes("不存在")) {
+      throw error;
+    }
+    const message = error instanceof Error ? error.message : "恢复脚本版本失败";
     throw new Error(message);
   }
 }

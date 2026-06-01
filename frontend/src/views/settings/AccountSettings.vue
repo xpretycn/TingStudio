@@ -649,6 +649,19 @@ async function handlePrefReset() {
   }
 }
 
+/** 同步 prefForm 与 store 中的偏好设置 */
+function syncPrefForm() {
+  const p = preferencesStore.preferences
+  prefForm.themeMode = p.themeMode || 'auto'
+  prefForm.brandColor = p.brandColor || 'pink'
+  prefForm.sidebarDefaultCollapsed = p.sidebarDefaultCollapsed ?? false
+  prefForm.defaultHomePage = p.defaultHomePage || '/formulas'
+  prefForm.defaultPageSize = p.defaultPageSize || 8
+  prefForm.formulaDefaultView = p.formulaDefaultView || 'card'
+  prefForm.defaultExportFormat = p.defaultExportFormat || 'excel'
+  prefForm.formulaDefaultSort = p.formulaDefaultSort || 'updatedAt'
+}
+
 // ─── 初始化 ───
 onMounted(async () => {
   await authStore.fetchCurrentUser();
@@ -660,7 +673,8 @@ onMounted(async () => {
     profileForm.email = u.email || '';
     profileForm.phone = u.phone || '';
   }
-  preferencesStore.fetchPreferences();
+  await preferencesStore.fetchPreferences();
+  syncPrefForm();
 });
 </script>
 

@@ -39,3 +39,7 @@ dbRoutes.post("/backups/upload-restore", upload.single("backup"), dbController.u
 dbRoutes.get("/scripts", dbController.getScriptList);
 dbRoutes.post("/scripts/:scriptId/execute", dbController.executeScript);
 dbRoutes.get("/scripts/:scriptId/history", dbController.getScriptHistory);
+dbRoutes.get("/scripts/:scriptId/content", dbController.getScriptContent);
+dbRoutes.put("/scripts/:scriptId/content", dbController.updateScriptContent);
+dbRoutes.get("/scripts/:scriptId/versions", dbController.getScriptVersions);
+dbRoutes.post("/scripts/:scriptId/versions/restore", dbController.restoreScriptVersion);

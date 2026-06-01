@@ -593,7 +593,7 @@ export async function getMaterialList(params: {
     };
     if (row.per_100g_json) {
       try {
-        item.nutrition = JSON.parse(row.per_100g_json);
+        item.nutrition = normalizePer100g(JSON.parse(row.per_100g_json));
       } catch {
         item.nutrition = null;
       }
@@ -692,7 +692,7 @@ export async function getMaterialDetail(materialId: string, userId: string): Pro
 
   const nutRow = nutritionResult.rows?.[0];
   if (nutRow) {
-    res.nutrition = JSON.parse(nutRow.per_100g_json);
+    res.nutrition = normalizePer100g(JSON.parse(nutRow.per_100g_json));
   }
 
   res.appearance = row.appearance_json ? safeJsonParse<string[]>(row.appearance_json, []) : null;

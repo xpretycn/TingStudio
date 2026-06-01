@@ -1,9 +1,31 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { authApi } from '@/api/auth'
+import { authApi, getCachedUser } from '@/api/auth'
 import type { UserPreferences } from '@/api/auth'
 
 const PREFS_STORAGE_KEY = 'ting-preferences'
+const PREFS_KEY_PREFIX = 'ting-preferences'
+
+function getUserId(): string | null {
+  return getCachedUser()?.id || null
+}
+
+function getPrefsKey(userId?: string | null): string {
+  const uid = userId || getUserId()
+  return uid ? `${PREFS_KEY_PREFIX}-${uid}` : `${PREFS_KEY_PREFIX}-guest`
+}
+
+/** 迁移旧的全局 key 数据到 user-specific key */
+function migrateOldPrefs(userId?: string | null): void {
+  try {
+    const oldData = localStorage.getItem(PREFS_STORAGE_KEY)
+    if (!oldData) return
+    const newKey = getPrefsKey(userId)
+    if (localStorage.getItem(newKey)) return
+    localStorage.setItem(newKey, oldData)
+    localStorage.removeItem(PREFS_STORAGE_KEY)
+  } catch { /* ignore */ }
+}
 
 const defaultPreferences: UserPreferences = {
   themeMode: 'auto',
@@ -20,9 +42,10 @@ export const usePreferencesStore = defineStore('preferences', () => {
   const preferences = ref<UserPreferences>({ ...defaultPreferences })
   const loading = ref(false)
 
-  function loadFromLocal(): UserPreferences {
+  function loadFromLocal(userId?: string): UserPreferences {
+    migrateOldPrefs(userId)
     try {
-      const stored = localStorage.getItem(PREFS_STORAGE_KEY)
+      const stored = localStorage.getItem(getPrefsKey(userId))
       if (stored) {
         return { ...defaultPreferences, ...JSON.parse(stored) }
       }
@@ -30,9 +53,26 @@ export const usePreferencesStore = defineStore('preferences', () => {
     return { ...defaultPreferences }
   }
 
-  function saveToLocal(prefs: UserPreferences) {
+  function saveToLocal(prefs: UserPreferences, userId?: string) {
     try {
-      localStorage.setItem(PREFS_STORAGE_KEY, JSON.stringify(prefs))
+      localStorage.setItem(getPrefsKey(userId), JSON.stringify(prefs))
+    } catch { /* ignore */ }
+  }
+
+  /** 清理指定用户或所有用户的偏好设置本地缓存 */
+  function clearLocal(userId?: string) {
+    try {
+      if (userId) {
+        localStorage.removeItem(getPrefsKey(userId))
+      } else {
+        for (let i = localStorage.length - 1; i >= 0; i--) {
+          const key = localStorage.key(i)
+          if (key && key.startsWith(PREFS_KEY_PREFIX)) {
+            localStorage.removeItem(key)
+          }
+        }
+        localStorage.removeItem(PREFS_STORAGE_KEY)
+      }
     } catch { /* ignore */ }
   }
 
@@ -77,6 +117,7 @@ export const usePreferencesStore = defineStore('preferences', () => {
     }
   }
 
+  // 初始化时尝试加载当前用户的本地缓存
   const localPrefs = loadFromLocal()
   preferences.value = localPrefs
 
@@ -87,5 +128,8 @@ export const usePreferencesStore = defineStore('preferences', () => {
     fetchPreferences,
     updatePreferences,
     resetToDefault,
+    clearLocal,
+    loadFromLocal,
+    saveToLocal,
   }
 })

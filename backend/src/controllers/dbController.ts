@@ -281,3 +281,111 @@ export async function getScriptHistory(req: Request, res: Response) {
     });
   }
 }
+
+export async function getScriptContent(req: Request, res: Response) {
+  try {
+    const { scriptId } = req.params;
+    if (!scriptId) {
+      res.status(400).json({
+        success: false,
+        message: "缺少脚本ID参数",
+        error: { message: "Script ID is required", code: "VALIDATION_ERROR" },
+      });
+      return;
+    }
+    const data = dbService.getScriptContent(scriptId);
+    res.json(success(data));
+  } catch (error: unknown) {
+    console.error("[DbController] Error getting script content:", error);
+    res.status(500).json({
+      success: false,
+      message: "获取脚本内容失败",
+      error: { message: (error as Error).message, code: "INTERNAL_ERROR" },
+    });
+  }
+}
+
+export async function updateScriptContent(req: Request, res: Response) {
+  try {
+    const { scriptId } = req.params;
+    if (!scriptId) {
+      res.status(400).json({
+        success: false,
+        message: "缺少脚本ID参数",
+        error: { message: "Script ID is required", code: "VALIDATION_ERROR" },
+      });
+      return;
+    }
+    const { content, changeSummary } = req.body as { content: string; changeSummary?: string };
+    if (typeof content !== "string") {
+      res.status(400).json({
+        success: false,
+        message: "缺少内容参数",
+        error: { message: "Content is required", code: "VALIDATION_ERROR" },
+      });
+      return;
+    }
+    const authReq = req as Request & { user?: { userId: string } };
+    const savedBy = authReq.user?.userId || "unknown";
+    const data = dbService.saveScriptContent(scriptId, content, savedBy, changeSummary);
+    res.json(success(data));
+  } catch (error: unknown) {
+    console.error("[DbController] Error updating script content:", error);
+    res.status(500).json({
+      success: false,
+      message: "保存脚本内容失败",
+      error: { message: (error as Error).message, code: "INTERNAL_ERROR" },
+    });
+  }
+}
+
+export async function getScriptVersions(req: Request, res: Response) {
+  try {
+    const { scriptId } = req.params;
+    if (!scriptId) {
+      res.status(400).json({
+        success: false,
+        message: "缺少脚本ID参数",
+        error: { message: "Script ID is required", code: "VALIDATION_ERROR" },
+      });
+      return;
+    }
+    const rawLimit = Number(req.query.limit) || 20;
+    const limit = Math.min(Math.max(1, rawLimit), 50);
+    const data = dbService.getScriptVersions(scriptId, limit);
+    res.json(success(data));
+  } catch (error: unknown) {
+    console.error("[DbController] Error getting script versions:", error);
+    res.status(500).json({
+      success: false,
+      message: "获取脚本版本历史失败",
+      error: { message: (error as Error).message, code: "INTERNAL_ERROR" },
+    });
+  }
+}
+
+export async function restoreScriptVersion(req: Request, res: Response) {
+  try {
+    const { scriptId } = req.params;
+    const { versionId } = req.body as { versionId: string };
+    if (!scriptId || !versionId) {
+      res.status(400).json({
+        success: false,
+        message: "缺少脚本ID或版本ID参数",
+        error: { message: "Script ID and version ID are required", code: "VALIDATION_ERROR" },
+      });
+      return;
+    }
+    const authReq = req as Request & { user?: { userId: string } };
+    const savedBy = authReq.user?.userId || "unknown";
+    const data = dbService.restoreScriptVersion(scriptId, versionId, savedBy);
+    res.json(success(data));
+  } catch (error: unknown) {
+    console.error("[DbController] Error restoring script version:", error);
+    res.status(500).json({
+      success: false,
+      message: "恢复脚本版本失败",
+      error: { message: (error as Error).message, code: "INTERNAL_ERROR" },
+    });
+  }
+}
