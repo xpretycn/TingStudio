@@ -329,7 +329,7 @@
                         <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
                         <polyline points="22 4 12 14.01 9 11.01" />
                       </svg>
-                      <span>发布</span>
+                      <span>{{ isAdmin ? '发布' : '提交审批' }}</span>
                     </div>
                     <div class="action-menu-item" @click="handleVersion(row)">
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -597,9 +597,11 @@ import { useSalesmanStore } from '@/stores/salesman';
 import { useSalesStore } from '@/stores/sales';
 import { usePaginationStore } from '@/stores/pagination';
 import { usePreferencesStore } from '@/stores/preferences';
+import { useAuthStore } from '@/stores/auth';
 import { MessagePlugin } from 'tdesign-vue-next';
 import type { Formula, FormulaVersion, FormulaForm } from '@/api/formula';
 import { formulaApi } from '@/api/formula';
+import { approvalApi } from '@/api/approval';
 import type { SaleRecord } from '@/api/sales';
 import type { Material } from '@/api/material';
 import { useExportStore } from '@/stores/export';
@@ -619,8 +621,11 @@ const salesStore = useSalesStore();
 const paginationStore = usePaginationStore();
 const exportStore = useExportStore();
 const preferencesStore = usePreferencesStore();
+const authStore = useAuthStore();
 
 const initialized = ref(false);
+
+const isAdmin = computed(() => authStore.user?.role === 'admin');
 
 // ─── 数据看板 ───
 const dashboardCards = computed(() => {
@@ -1428,30 +1433,30 @@ onUnmounted(() => {
   }
 });
 
-	// keep-alive 重新激活：检测用户切换 + 恢复搜索状态
-	onActivated(async () => {
-	  const currentUserId = localStorage.getItem("tingstudio_user_id");
-	  const cachedUserId = sessionStorage.getItem("formula_list_user_id");
-	
-	  if (cachedUserId && currentUserId && cachedUserId !== currentUserId) {
-	    formulaStore.refreshFormulas();
-	  }
-	
-	  // 保存当前用户ID
-	  if (currentUserId) {
-	    sessionStorage.setItem("formula_list_user_id", currentUserId);
-	  }
-	
-	  // 恢复路由中的搜索状态
-	  if (route.query.keyword && route.query.keyword !== searchKeyword.value) {
-	    const keyword = route.query.keyword as string;
-	    isRestoringFromRoute = true;
-	    searchKeyword.value = keyword;
-	    formulaStore.setKeyword(keyword);
-	    await nextTick();
-	    formulaStore.fetchFormulas();
-	  }
-	});
+// keep-alive 重新激活：检测用户切换 + 恢复搜索状态
+onActivated(async () => {
+  const currentUserId = localStorage.getItem("tingstudio_user_id");
+  const cachedUserId = sessionStorage.getItem("formula_list_user_id");
+
+  if (cachedUserId && currentUserId && cachedUserId !== currentUserId) {
+    formulaStore.refreshFormulas();
+  }
+
+  // 保存当前用户ID
+  if (currentUserId) {
+    sessionStorage.setItem("formula_list_user_id", currentUserId);
+  }
+
+  // 恢复路由中的搜索状态
+  if (route.query.keyword && route.query.keyword !== searchKeyword.value) {
+    const keyword = route.query.keyword as string;
+    isRestoringFromRoute = true;
+    searchKeyword.value = keyword;
+    formulaStore.setKeyword(keyword);
+    await nextTick();
+    formulaStore.fetchFormulas();
+  }
+});
 
 watch(() => router.currentRoute.value.path, (path) => {
   if (path === '/formulas') formulaStore.fetchFormulas(false);
@@ -1545,11 +1550,22 @@ const isDraft = (row: Formula) => {
 
 const handlePublish = async (row: Formula) => {
   try {
-    await formulaApi.publish(row.id);
-    MessagePlugin.success('发布成功');
+    const currentVersion = (row.versions || []).find((v: FormulaVersion) => v.isCurrent);
+    if (!currentVersion) {
+      MessagePlugin.error('配方没有当前版本');
+      return;
+    }
+    
+    if (isAdmin.value) {
+      await formulaApi.publish(row.id);
+      MessagePlugin.success('发布成功');
+    } else {
+      await approvalApi.submitVersion(currentVersion.versionId);
+      MessagePlugin.success('已提交审批，请等待管理员审核');
+    }
     formulaStore.refreshFormulas();
   } catch {
-    MessagePlugin.error('发布失败');
+    MessagePlugin.error(isAdmin.value ? '发布失败' : '提交审批失败');
   }
 };
 
@@ -3047,7 +3063,7 @@ const getSalesQuantity = (row: Formula): number => {
   justify-content: space-between;
   padding: 20px 32px; // px-8
   // 上方圆角匹配 content-card 的 32px 圆角
-  border-radius: var(--radius-5xl) var(--radius-5xl) 0 0;
+  border-radius: var(--radius-4xl) var(--radius-4xl) 0 0;
   box-shadow: $shadow-emerald-lg;
 
   // index.html 第238行: flex items-center gap-6(24px)
@@ -3802,5 +3818,14 @@ const getSalesQuantity = (row: Formula): number => {
   border-top: 5px solid var(--color-primary);
   border-bottom: none;
   opacity: 1;
+}
+
+/* 覆盖全局 _td-overrides .t-card 圆角，与近期业务员动态卡片一致 (radius-4xl = 24px) */
+html .formula-list .content-card.t-card {
+  border-radius: var(--radius-4xl) !important;
+}
+
+html .formula-list .content-card .t-card__body {
+  border-radius: 0 0 var(--radius-4xl) var(--radius-4xl) !important;
 }
 </style>

@@ -1918,7 +1918,7 @@ onMounted(async () => {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  margin-bottom: 20px;
+  margin-bottom: 12px;
   // 去除玻璃态，改为简洁透明（匹配参考设计的无背景顶栏）
 
   // 左侧：图标 + 面包屑

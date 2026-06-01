@@ -99,11 +99,22 @@ export async function exportFormulaToExcel(
       });
 
       const [nutRows]: any[][] = await query(
-        `SELECT * FROM material_nutrition WHERE material_id IN (${placeholders})`,
+        `SELECT * FROM material_nutrition WHERE material_id IN (${placeholders}) AND is_latest = 1`,
         materialIds,
       );
       nutRows.forEach((row: any) => {
-        nutritionData.set(row.material_id, rowToCamelCase<NutritionRow>(row));
+        const per100g = safeJsonParse<Record<string, number>>(row.per_100g_json, null);
+        if (per100g && row.material_id) {
+          nutritionData.set(row.material_id, {
+            materialId: row.material_id,
+            protein: per100g.protein ?? 0,
+            fat: per100g.fat ?? 0,
+            carbohydrate: per100g.carbohydrate ?? 0,
+            sodium: per100g.sodium ?? 0,
+            calories: per100g.calories ?? per100g.energy ?? 0,
+            dietaryFiber: per100g.dietary_fiber ?? per100g.dietaryFiber ?? 0,
+          });
+        }
       });
     }
   }

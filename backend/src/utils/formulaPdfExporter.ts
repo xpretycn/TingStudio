@@ -126,10 +126,23 @@ async function getFormulaData(formulaId: string, versionId?: string) {
       matRows.forEach((row: any) => materialDetails.set(row.id, rowToCamelCase<MaterialRow>(row)));
 
       const [nutRows]: any[][] = await query(
-        `SELECT * FROM material_nutrition WHERE material_id IN (${placeholders})`,
+        `SELECT * FROM material_nutrition WHERE material_id IN (${placeholders}) AND is_latest = 1`,
         materialIds,
       );
-      nutRows.forEach((row: any) => nutritionData.set(row.material_id, rowToCamelCase<NutritionRow>(row)));
+      nutRows.forEach((row: any) => {
+        const per100g = safeJsonParse<Record<string, number>>(row.per_100g_json, null);
+        if (per100g && row.material_id) {
+          nutritionData.set(row.material_id, {
+            materialId: row.material_id,
+            protein: per100g.protein ?? 0,
+            fat: per100g.fat ?? 0,
+            carbohydrate: per100g.carbohydrate ?? 0,
+            sodium: per100g.sodium ?? 0,
+            calories: per100g.calories ?? per100g.energy ?? 0,
+            dietaryFiber: per100g.dietary_fiber ?? per100g.dietaryFiber ?? 0,
+          });
+        }
+      });
     }
   }
 
@@ -296,7 +309,7 @@ export async function exportFormulaToPdf(
     doc.fillColor(isAdjusted ? "#92400e" : "#333333");
     x = startX;
     for (let j = 0; j < rowData.length; j++) {
-      doc.text(rowData[j], x + 3, y + dataCellPadding, { width: colWidths[j] - 6, align: j === 1 ? "left" : "center" });
+      doc.text(rowData[j], x + 3, y + dataCellPadding, { width: colWidths[j] - 6, align: "center" });
       x += colWidths[j];
     }
     y += dataRowHeight;
@@ -329,21 +342,21 @@ export async function exportFormulaToPdf(
   const quotationItems: [string, string][] = [
     ["规格(成品重量)", pFwLabel],
     ["", ""],
-    ["原料总成本", `¥ ${materialTotalCost.toFixed(2)}`],
-    ["包装费", `¥ ${pPackagingPrice.toFixed(2)}`],
-    ["其他费用", `¥ ${pOtherPrice.toFixed(2)}`],
-    ["成本小计", `¥ ${pCostSubtotal.toFixed(2)}`],
+    ["原料总成本", `${materialTotalCost.toFixed(2)} 元`],
+    ["包装费", `${pPackagingPrice.toFixed(2)} 元`],
+    ["其他费用", `${pOtherPrice.toFixed(2)} 元`],
+    ["成本小计", `${pCostSubtotal.toFixed(2)} 元`],
     ["利润率", `${pProfitMargin}%`],
-    ["利润金额", `¥ ${pProfitAmount.toFixed(2)}`],
+    ["利润金额", `${pProfitAmount.toFixed(2)} 元`],
     ["", ""],
-    ["报价总价", `¥ ${pTotalPrice.toFixed(2)}`],
+    ["报价总价", `${pTotalPrice.toFixed(2)} 元`],
   ];
 
   doc.fontSize(10);
   for (const [label, value] of quotationItems) {
     if (!label && !value) { y += 6; continue; }
-    doc.fillColor("#666666").text(label + ":", startX, y, { continued: false });
-    doc.fillColor(label === "报价总价" ? "#D97706" : "#333333").text(value, startX + 125, y);
+    doc.fillColor("#666666").text(label + ":", startX, y);
+    doc.fillColor(label === "报价总价" ? "#D97706" : "#333333").text(value, startX + 125, y, { width: pageWidth - 125 });
     y = doc.y + 4;
   }
 
@@ -447,6 +460,83 @@ export async function exportFormulaToPdf(
     x += nutColWidths[j];
   }
   y += 35;
+
+  // ===== 营养成分表 (NRV%) =====
+  doc.fontSize(14).fillColor("#333333");
+  doc.text("营养成分表", startX, y);
+  y = doc.y + 10;
+
+  const nrvColWidths = [120, 100, 100, 100];
+  const nrvHeaders = ["营养成分", "每份含量", "每100g含量", "NRV%"];
+  const nrvRowHeight = 24;
+  const nrvCellPadding = 7;
+  const finishedWeightG = formula.finishedWeight || 1;
+
+  const NRV_REF: Record<string, { unit: string; refValue: number }> = {
+    energy: { unit: "kJ", refValue: 8400 },
+    protein: { unit: "g", refValue: 60 },
+    fat: { unit: "g", refValue: 60 },
+    carbohydrate: { unit: "g", refValue: 300 },
+    sodium: { unit: "mg", refValue: 2000 },
+    dietaryFiber: { unit: "g", refValue: 25 },
+  };
+
+  const nutritionItems = [
+    { key: "energy", label: "能量", value: totalNutrition.calories },
+    { key: "protein", label: "蛋白质", value: totalNutrition.protein },
+    { key: "fat", label: "脂肪", value: totalNutrition.fat },
+    { key: "carbohydrate", label: "碳水化合物", value: totalNutrition.carbohydrate },
+    { key: "sodium", label: "钠", value: totalNutrition.sodium / 1000 },
+    { key: "dietaryFiber", label: "膳食纤维", value: totalNutrition.dietaryFiber },
+  ];
+
+  // 表头
+  doc.rect(startX, y, pageWidth, nrvRowHeight).fill("#4A90D9");
+  doc.fontSize(10).fillColor("#FFFFFF");
+  x = startX;
+  for (let i = 0; i < nrvHeaders.length; i++) {
+    doc.text(nrvHeaders[i], x + 4, y + nrvCellPadding, { width: nrvColWidths[i] - 8, align: "center" });
+    x += nrvColWidths[i];
+  }
+  y += nrvRowHeight;
+
+  // 数据行
+  doc.fontSize(9);
+  const nrvDataRowHeight = 22;
+  const nrvDataCellPadding = 6;
+
+  nutritionItems.forEach((item, i) => {
+    if (y > 700) {
+      doc.addPage();
+      y = 50;
+    }
+
+    if (i % 2 === 0) {
+      doc.rect(startX, y, pageWidth, nrvDataRowHeight).fill("#EDF4FD");
+    }
+
+    const ref = NRV_REF[item.key];
+    const perServing = item.value * (finishedWeightG / 100);
+    const per100g = item.value;
+    const nrvPercent = ((per100g / ref.refValue) * 100).toFixed(1);
+
+    const rowData = [
+      item.label,
+      `${perServing.toFixed(2)} ${ref.unit}`,
+      `${per100g.toFixed(2)} ${ref.unit}`,
+      `${nrvPercent}%`,
+    ];
+
+    doc.fillColor("#333333");
+    x = startX;
+    for (let j = 0; j < rowData.length; j++) {
+      doc.text(rowData[j], x + 3, y + nrvDataCellPadding, { width: nrvColWidths[j] - 6, align: "center" });
+      x += nrvColWidths[j];
+    }
+    y += nrvDataRowHeight;
+  });
+
+  y += 20;
 
   // ===== 页脚 =====
   doc.fontSize(9).fillColor("#AAAAAA");

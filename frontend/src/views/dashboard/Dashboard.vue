@@ -615,13 +615,14 @@ onUnmounted(() => {
 <style scoped lang="scss">
 .dashboard-page {
   min-height: 100%;
-  padding: 4px 4px 24px;
+  padding: 0 4px 24px;
 }
 
 .bento-grid {
   display: grid;
   grid-template-columns: 6fr 4fr;
   gap: 16px;
+  padding-top: 4px;
 }
 
 .bento-card {

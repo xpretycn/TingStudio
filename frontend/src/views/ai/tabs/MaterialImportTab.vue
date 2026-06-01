@@ -2024,13 +2024,13 @@ watch(() => aiStore.materialParseResult, (newVal) => {
 
     .template-selector {
       display: flex;
-      align-items: flex-start;
+      align-items: center;
       gap: var(--space-2-5);
       margin-top: 12px;
       padding: var(--space-2-5) 16px;
-      background: rgba(99, 102, 241, 0.04);
-      border: 1px solid rgba(99, 102, 241, 0.12);
-      border-radius: 12px;
+      background: var(--color-primary-bg);
+      border: 1px solid var(--color-primary-lightest);
+      border-radius: var(--radius-xl);
 
       .template-selector-label {
         display: flex;
@@ -2038,10 +2038,9 @@ watch(() => aiStore.materialParseResult, (newVal) => {
         gap: var(--space-1-5);
         font-size: 13px;
         font-weight: 600;
-        color: var(--color-lavender);
+        color: var(--color-primary);
         white-space: nowrap;
         flex-shrink: 0;
-        margin-top: var(--space-1-25);
       }
     }
 

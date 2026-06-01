@@ -128,6 +128,7 @@ CREATE TABLE IF NOT EXISTS `formula_versions` (
   `supplement_ratio_factor` REAL NOT NULL DEFAULT 1.0 CHECK(supplement_ratio_factor >= 0.5 AND supplement_ratio_factor <= 1.5),
   `created_by` TEXT NOT NULL,
   `created_at` TEXT NOT NULL DEFAULT (datetime('now')),
+  `updated_at` TEXT NOT NULL DEFAULT (datetime('now')),
   FOREIGN KEY (`formula_id`) REFERENCES `formulas`(`id`) ON DELETE CASCADE
 );
 CREATE INDEX IF NOT EXISTS `idx_fv_formula` ON `formula_versions`(`formula_id`);

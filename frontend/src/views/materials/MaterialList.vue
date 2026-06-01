@@ -296,12 +296,11 @@
                       </svg>
                       <span>{{ action.label }}</span>
                     </div>
-                    <t-popconfirm theme="danger"
-                      :content="`确定要删除原料「${row.name}」吗？删除后无法恢复。`"
+                    <t-popconfirm theme="danger" :content="`确定要删除原料「${row.name}」吗？删除后无法恢复。`"
                       @confirm="handleDelete(row)">
                       <div class="action-menu-item action-menu-item--danger">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                          stroke="var(--color-danger)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-danger)"
+                          stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                           <polyline points="3 6 5 6 21 6" />
                           <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2" />
                         </svg>
@@ -399,8 +398,8 @@
       <div class="activity-card activity-card--assistant">
         <div class="assistant-header">
           <h4 class="assistant-title">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-white)" stroke-width="2"
-              stroke-linecap="round" stroke-linejoin="round">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-white)"
+              stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M20 7h-9" />
               <path d="M14 17H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-3" />
               <circle cx="9" cy="11" r="2" />
@@ -497,11 +496,13 @@
       </div>
     </section>
 
-    <t-drawer v-model:visible="showExportDrawer" header="导出原料" :footer="true" placement="right" size="400px" :destroyOnClose="false">
+    <t-drawer v-model:visible="showExportDrawer" header="导出原料" :footer="true" placement="right" size="400px"
+      :destroyOnClose="false">
       <t-form layout="vertical">
         <t-form-item label="已选原料">
           <div style="display: flex; flex-wrap: wrap; gap: 6px;">
-            <t-tag v-for="m in selectedRows" :key="m.id" closable theme="primary" variant="light" @close="removeFromExportSelection(m.id)">
+            <t-tag v-for="m in selectedRows" :key="m.id" closable theme="primary" variant="light"
+              @close="removeFromExportSelection(m.id)">
               {{ m.name }}
             </t-tag>
           </div>
@@ -513,7 +514,8 @@
           </t-radio-group>
         </t-form-item>
         <t-form-item label="导出模板">
-          <t-select v-model="exportForm.templateId" clearable filterable :popup-props="{ appendToBody: true }" placeholder="可选，使用默认模板">
+          <t-select v-model="exportForm.templateId" clearable filterable :popup-props="{ appendToBody: true }"
+            placeholder="可选，使用默认模板">
             <t-option v-for="t in materialTemplates" :key="t.templateId" :value="t.templateId" :label="t.name" />
           </t-select>
         </t-form-item>
@@ -793,21 +795,40 @@ const handleBatchDelete = async () => {
   const count = selectedRows.value.length;
   let successCount = 0;
   const failedNames: string[] = [];
+  const permissionFailedNames: string[] = [];
+  
   for (const m of selectedRows.value) {
     try {
-      await materialStore.deleteMaterial(m.id);
-      successCount++;
+      const result = await materialStore.deleteMaterial(m.id);
+      if (result.success) {
+        successCount++;
+      } else {
+        if (result.message?.includes('权限') || result.message?.includes('仅管理员') || result.message?.includes('无权限')) {
+          permissionFailedNames.push(m.name || m.id);
+        } else {
+          failedNames.push(m.name || m.id);
+        }
+      }
     } catch {
       failedNames.push(m.name || m.id);
     }
   }
-  if (failedNames.length === 0) {
-    MessagePlugin.success(`成功删除 ${count} 个原料`);
-  } else if (successCount > 0) {
-    MessagePlugin.warning(`成功删除 ${successCount} 个，${failedNames.length} 个删除失败`);
-  } else {
-    MessagePlugin.error('删除失败，所选原料可能已被配方引用');
+  
+  if (permissionFailedNames.length > 0) {
+    if (successCount > 0) {
+      MessagePlugin.warning(`成功删除 ${successCount} 个，${permissionFailedNames.length} 个无权限删除`);
+    } else {
+      MessagePlugin.error(`删除失败，您没有删除权限（${permissionFailedNames.length} 个原料）`);
+    }
+    if (failedNames.length > 0) {
+      MessagePlugin.error(`以下原料已被配方引用，无法删除：${failedNames.join('、')}`);
+    }
+  } else if (failedNames.length === 0 && successCount > 0) {
+    MessagePlugin.success(`成功删除 ${successCount} 个原料`);
+  } else if (failedNames.length > 0) {
+    MessagePlugin.error(`删除失败，以下原料已被配方引用：${failedNames.join('、')}`);
   }
+  
   clearSelection();
   await Promise.all([materialStore.fetchMaterials(), materialStore.fetchAllForSelect()]);
   loadNutritionStatus();
@@ -1508,7 +1529,7 @@ const handleStatusFilterChange = () => {
   .content-card {
     min-height: 400px;
     background-color: var(--color-bg-container);
-    border-radius: var(--radius-5xl) !important;
+    border-radius: var(--radius-4xl) !important;
     border: 1px solid var(--color-bg-page) !important;
     overflow: hidden;
     box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
@@ -1869,7 +1890,7 @@ const handleStatusFilterChange = () => {
     align-items: center;
     justify-content: space-between;
     padding: 20px 32px;
-    border-radius: var(--radius-5xl) var(--radius-5xl) 0 0;
+    border-radius: var(--radius-4xl) var(--radius-4xl) 0 0;
     box-shadow: 0 4px 18px rgba(5, 150, 105, 0.25);
 
     .batch-info {
@@ -3117,5 +3138,14 @@ const handleStatusFilterChange = () => {
   border-top: 5px solid var(--color-primary);
   border-bottom: none;
   opacity: 1;
+}
+
+/* 覆盖全局 _td-overrides .t-card 圆角，与近期业务员动态卡片一致 (radius-4xl = 24px) */
+html .material-list .content-card.t-card {
+  border-radius: var(--radius-4xl) !important;
+}
+
+html .material-list .content-card .t-card__body {
+  border-radius: 0 0 var(--radius-4xl) var(--radius-4xl) !important;
 }
 </style>

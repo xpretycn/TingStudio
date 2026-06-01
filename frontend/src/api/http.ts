@@ -77,12 +77,7 @@ http.interceptors.response.use(
     const responseData = error.response?.data;
     const msg = responseData?.error?.message || responseData?.message || error.message || "网络错误";
     const label = error.config?._logLabel || "";
-    console.error(
-      `[HTTP-ERR] ${error.config?.method?.toUpperCase()} ${error.config?.baseURL}${error.config?.url} [${status}] ${label ? "(" + label + ")" : ""}:`,
-      msg,
-      error.response?.data,
-    );
-
+    
     if (status === 401) {
       removeToken();
       clearUser();
@@ -91,8 +86,16 @@ http.interceptors.response.use(
         target.location.href = "/login";
       }
       MessagePlugin.error("登录已过期，请重新登录");
-    } else if (!error.config?._silent) {
-      MessagePlugin.error(msg);
+    } else if (status === 403) {
+    } else {
+      if (!error.config?._silent) {
+        console.error(
+          `[HTTP-ERR] ${error.config?.method?.toUpperCase()} ${error.config?.baseURL}${error.config?.url} [${status}] ${label ? "(" + label + ")" : ""}:`,
+          msg,
+          error.response?.data,
+        );
+        MessagePlugin.error(msg);
+      }
     }
     return Promise.reject(error);
   },

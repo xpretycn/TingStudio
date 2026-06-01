@@ -213,6 +213,7 @@ CREATE TABLE IF NOT EXISTS `formula_versions` (
   `supplement_ratio_factor` DOUBLE NOT NULL DEFAULT 1.0 CHECK(supplement_ratio_factor >= 0.5 AND supplement_ratio_factor <= 1.5),
   `created_by` VARCHAR(36) NOT NULL,
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   INDEX `idx_fv_formula` (`formula_id`),
   INDEX `idx_fv_version_number` (`formula_id`, `version_number`),
   INDEX `idx_fv_status` (`status`),

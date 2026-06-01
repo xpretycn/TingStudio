@@ -137,10 +137,12 @@
 
           <template #operation="{ row }">
             <div class="action-buttons" role="group" aria-label="业务员操作">
-              <button class="action-btn sales-btn" @click.stop="handleAddSales(row)" title="录入销量" :aria-label="`录入${row.name}的销量`">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
-                  <polyline points="17 6 23 6 23 12"/>
+              <button class="action-btn sales-btn" @click.stop="handleAddSales(row)" title="录入销量"
+                :aria-label="`录入${row.name}的销量`">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+                  <polyline points="17 6 23 6 23 12" />
                 </svg>
               </button>
               <button class="action-btn edit-btn" @click.stop="handleEdit(row)" title="编辑"
@@ -236,8 +238,8 @@
       <div class="activity-card activity-card--assistant">
         <div class="assistant-header">
           <h4 class="assistant-title">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-white)" stroke-width="2"
-              stroke-linecap="round" stroke-linejoin="round">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-white)"
+              stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
               <circle cx="9" cy="7" r="4" />
               <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
@@ -325,7 +327,8 @@
       </div>
     </section>
 
-    <SalesRecordDrawer v-model:visible="salesDrawerVisible" :salesman-id="salesDrawerSalesmanId" @success="onSalesDrawerSuccess" />
+    <SalesRecordDrawer v-model:visible="salesDrawerVisible" :salesman-id="salesDrawerSalesmanId"
+      @success="onSalesDrawerSuccess" />
   </div>
 </template>
 
@@ -1158,7 +1161,7 @@ const handleDelete = async (row: Salesman) => {
       align-items: center;
       justify-content: space-between;
       padding: 20px 32px;
-      border-radius: var(--radius-5xl) var(--radius-5xl) 0 0;
+      border-radius: var(--radius-4xl) var(--radius-4xl) 0 0;
       box-shadow: 0 4px 18px var(--overlay-emerald-25);
 
       .batch-info {
@@ -1247,7 +1250,7 @@ const handleDelete = async (row: Salesman) => {
   .content-card {
     min-height: 400px;
     background-color: var(--color-bg-container);
-    border-radius: var(--radius-5xl) !important;
+    border-radius: var(--radius-4xl) !important;
     border: 1px solid var(--color-bg-page) !important;
     overflow: hidden;
     box-shadow: var(--shadow-elevation-1);
@@ -1261,7 +1264,7 @@ const handleDelete = async (row: Salesman) => {
     :deep(.t-card__body) {
       padding: 0 !important;
       overflow: hidden;
-      border-radius: 0 0 var(--radius-5xl) var(--radius-5xl);
+      border-radius: 0 0 var(--radius-4xl) var(--radius-4xl);
     }
 
     :deep(.t-table__body .t-table__row) {
@@ -1420,7 +1423,7 @@ const handleDelete = async (row: Salesman) => {
     align-items: center;
     background-color: var(--color-bg-container);
     border-top: 1px solid var(--color-bg-page);
-    border-radius: 0 0 var(--radius-5xl) var(--radius-5xl);
+    border-radius: 0 0 var(--radius-4xl) var(--radius-4xl);
 
     .pagination-info {
       font-size: 14px;
@@ -2464,5 +2467,14 @@ const handleDelete = async (row: Salesman) => {
   border-top: 5px solid var(--color-primary);
   border-bottom: none;
   opacity: 1;
+}
+
+/* 覆盖全局 _td-overrides .t-card 圆角，与近期业务员动态卡片一致 (radius-4xl = 24px) */
+html .salesman-list .content-card.t-card {
+  border-radius: var(--radius-4xl) !important;
+}
+
+html .salesman-list .content-card .t-card__body {
+  border-radius: 0 0 var(--radius-4xl) var(--radius-4xl) !important;
 }
 </style>

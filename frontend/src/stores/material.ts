@@ -164,7 +164,10 @@ export const useMaterialStore = defineStore("material", () => {
       total.value = Math.max(0, total.value - 1)
       return { success: true };
     } catch (error: unknown) {
-      return { success: false, message: error instanceof Error ? error.message : "删除失败" };
+      const err = error as { response?: { data?: { error?: { message?: string }; message?: string } }; message?: string };
+      const backendMsg = err.response?.data?.error?.message || err.response?.data?.message;
+      const msg = backendMsg || err.message || "删除失败";
+      return { success: false, message: msg };
     } finally {
       loading.value = false;
     }
