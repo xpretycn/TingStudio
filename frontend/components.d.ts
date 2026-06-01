@@ -27,6 +27,7 @@ declare module 'vue' {
     DbInfoCards: typeof import('./src/components/db/DbInfoCards.vue')['default']
     DbOverview: typeof import('./src/components/db/DbOverview.vue')['default']
     DbScripts: typeof import('./src/components/db/DbScripts.vue')['default']
+    DbScripts1: typeof import('./src/components/db/DbScripts1.vue')['default']
     DbTableBrowser: typeof import('./src/components/db/DbTableBrowser.vue')['default']
     DbTableList: typeof import('./src/components/db/DbTableList.vue')['default']
     DegradationBanner: typeof import('./src/components/DegradationBanner.vue')['default']

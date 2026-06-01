@@ -87,6 +87,9 @@ http.interceptors.response.use(
       }
       MessagePlugin.error("登录已过期，请重新登录");
     } else if (status === 403) {
+      if (!error.config?._silent) {
+        MessagePlugin.warning("权限不足，无法访问该资源");
+      }
     } else {
       if (!error.config?._silent) {
         console.error(

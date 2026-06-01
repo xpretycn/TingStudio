@@ -17,6 +17,8 @@ const BACKUP_DIR = path.resolve(__dirname, "../../data/backup");
 const SCRIPTS_DIR = path.resolve(__dirname, "../scripts");
 
 const execFileAsync = promisify(execFile);
+const MAX_VERSIONS_PER_SCRIPT = 20;
+const MAX_CHANGE_SUMMARY_LENGTH = 200;
 
 interface ColumnInfo {
   cid: number;
@@ -1288,7 +1290,7 @@ export async function executeScript(
   scriptId: string,
   triggeredBy: string
 ): Promise<Record<string, unknown>> {
-  if (!/^[a-zA-Z0-9\-]+$/.test(scriptId)) {
+  if (!/^[a-zA-Z0-9\-_]+$/.test(scriptId)) {
     throw new Error("无效的脚本ID格式");
   }
 
@@ -1380,7 +1382,7 @@ export function getScriptHistory(
   scriptId: string,
   limit: number = 20
 ): ScriptLogRow[] {
-  if (!/^[a-zA-Z0-9\-]+$/.test(scriptId)) {
+  if (!/^[a-zA-Z0-9\-_]+$/.test(scriptId)) {
     throw new Error("无效的脚本ID格式");
   }
 
@@ -1402,7 +1404,7 @@ export function getScriptHistory(
 }
 
 export function getScriptContent(scriptId: string): { content: string; scriptPath: string } {
-  if (!/^[a-zA-Z0-9\-]+$/.test(scriptId)) {
+  if (!/^[a-zA-Z0-9\-_]+$/.test(scriptId)) {
     throw new Error("无效的脚本ID格式");
   }
 
@@ -1427,7 +1429,7 @@ export function saveScriptContent(
   savedBy: string = "unknown",
   changeSummary?: string
 ): { scriptPath: string } {
-  if (!/^[a-zA-Z0-9\-]+$/.test(scriptId)) {
+  if (!/^[a-zA-Z0-9\-_]+$/.test(scriptId)) {
     throw new Error("无效的脚本ID格式");
   }
 
@@ -1448,18 +1450,25 @@ export function saveScriptContent(
     ensureScriptVersionsTable();
     const db = getDb();
     const versionId = generateId();
-    db.prepare(
-      `INSERT INTO db_script_versions (id, script_id, script_name, script_path, content, saved_by, saved_at, change_summary)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
-    ).run(versionId, script.id, script.name, script.scriptPath, currentContent, savedBy, now(), changeSummary ?? null);
+    const trimmedSummary = changeSummary && changeSummary.length > MAX_CHANGE_SUMMARY_LENGTH
+      ? changeSummary.slice(0, MAX_CHANGE_SUMMARY_LENGTH)
+      : changeSummary;
 
-    // Keep only last 20 versions per script
-    const versionsToDelete = db.prepare(
-      `SELECT id FROM db_script_versions WHERE script_id = ? ORDER BY saved_at DESC LIMIT -1 OFFSET 20`
-    ).all(scriptId) as { id: string }[];
-    for (const v of versionsToDelete) {
-      db.prepare("DELETE FROM db_script_versions WHERE id = ?").run(v.id);
-    }
+    const saveVersionTx = db.transaction(() => {
+      db.prepare(
+        `INSERT INTO db_script_versions (id, script_id, script_name, script_path, content, saved_by, saved_at, change_summary)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+      ).run(versionId, script.id, script.name, script.scriptPath, currentContent, savedBy, now(), trimmedSummary ?? null);
+
+      // Keep only last N versions per script
+      const versionsToDelete = db.prepare(
+        `SELECT id FROM db_script_versions WHERE script_id = ? ORDER BY saved_at DESC LIMIT -1 OFFSET ?`
+      ).all(scriptId, MAX_VERSIONS_PER_SCRIPT) as { id: string }[];
+      for (const v of versionsToDelete) {
+        db.prepare("DELETE FROM db_script_versions WHERE id = ?").run(v.id);
+      }
+    });
+    saveVersionTx();
   }
 
   fs.writeFileSync(scriptPath, content, "utf-8");
@@ -1478,7 +1487,7 @@ export interface ScriptVersionRow {
 }
 
 export function getScriptVersions(scriptId: string, limit: number = 20): ScriptVersionRow[] {
-  if (!/^[a-zA-Z0-9\-]+$/.test(scriptId)) {
+  if (!/^[a-zA-Z0-9\-_]+$/.test(scriptId)) {
     throw new Error("无效的脚本ID格式");
   }
 
@@ -1500,7 +1509,7 @@ export function getScriptVersions(scriptId: string, limit: number = 20): ScriptV
 }
 
 export function restoreScriptVersion(scriptId: string, versionId: string, savedBy: string = "unknown"): { scriptPath: string } {
-  if (!/^[a-zA-Z0-9\-]+$/.test(scriptId) || !/^[a-zA-Z0-9\-]+$/.test(versionId)) {
+  if (!/^[a-zA-Z0-9\-_]+$/.test(scriptId) || !/^[a-zA-Z0-9\-_]+$/.test(versionId)) {
     throw new Error("无效的ID格式");
   }
 
@@ -1532,10 +1541,14 @@ export function restoreScriptVersion(scriptId: string, versionId: string, savedB
 
     const currentContent = fs.readFileSync(scriptPath, "utf-8");
     const autoVersionId = generateId();
-    db.prepare(
-      `INSERT INTO db_script_versions (id, script_id, script_name, script_path, content, saved_by, saved_at, change_summary)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
-    ).run(autoVersionId, script.id, script.name, script.scriptPath, currentContent, savedBy, now(), "恢复版本前自动备份");
+
+    const restoreTx = db.transaction(() => {
+      db.prepare(
+        `INSERT INTO db_script_versions (id, script_id, script_name, script_path, content, saved_by, saved_at, change_summary)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+      ).run(autoVersionId, script.id, script.name, script.scriptPath, currentContent, savedBy, now(), "恢复版本前自动备份");
+    });
+    restoreTx();
 
     fs.writeFileSync(scriptPath, version.content, "utf-8");
     return { scriptPath: script.scriptPath };
