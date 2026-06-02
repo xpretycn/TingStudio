@@ -125,14 +125,11 @@
           <!-- 版本 -->
           <template #version="{ row }">
             <div class="version-cell">
-              <t-tag :theme="row.isLatest ? 'success' : 'default'" variant="light" size="small"
-                class="version-tag-inline" @click.stop="handleViewVersions(row)">
-                v{{ row.version }}
-              </t-tag>
-              <t-tooltip :content="`共 ${row.totalVersions} 个版本`" v-if="row.totalVersions > 1">
-                <span class="version-count-inline" @click.stop="handleViewVersions(row)">{{ row.totalVersions
-                }}个版本</span>
-              </t-tooltip>
+              <t-tag v-if="row.status === 'draft'" theme="default" variant="light" size="small">草稿</t-tag>
+              <t-tag v-else-if="row.status === 'pending_review'" theme="warning" variant="light" size="small">待审批</t-tag>
+              <t-tag v-else-if="row.status === 'published'" theme="success" variant="light" size="small">已发布</t-tag>
+              <t-tag v-else theme="default" variant="light" size="small">{{ row.status || '草稿' }}</t-tag>
+              <span class="version-label" @click.stop="handleViewVersions(row)">V{{ row.version }}</span>
             </div>
           </template>
 
@@ -177,13 +174,6 @@
             </div>
             <span v-else class="text-muted">--</span>
           </template>
-          <!-- 状态 -->
-          <template #status="{ row }">
-            <t-tag v-if="row.status === 'draft'" theme="default" variant="light" size="small">草稿</t-tag>
-            <t-tag v-else-if="row.status === 'pending_review'" theme="warning" variant="light" size="small">待审批</t-tag>
-            <t-tag v-else-if="row.status === 'published'" theme="success" variant="light" size="small">已发布</t-tag>
-            <t-tag v-else theme="default" variant="light" size="small">{{ row.status || '草稿' }}</t-tag>
-          </template>
           <!-- 创建时间 -->
           <template #createdAt="{ row }">
             <span v-if="row.createdAt" class="date-cell">{{ formatDateCell(row.createdAt) }}</span>
@@ -204,6 +194,11 @@
               <t-icon name="info-circle" size="14px" />
               未录入
             </span>
+          </template>
+
+          <template #sourceType="{ row }">
+            <NutritionSourceTag v-if="sourceTypeMap[row.id]" :source-type="sourceTypeMap[row.id]" :source-detail="sourceDetailMap[row.id]" size="small" />
+            <span v-else class="text-muted">--</span>
           </template>
 
           <template #expandedRow="{ row }">
@@ -542,6 +537,7 @@ import { materialApi } from '@/api/material';
 import { useExportStore } from '@/stores/export';
 import type { ExportTemplate } from '@/api/export';
 import PageSkeleton from '@/components/Skeleton/PageSkeleton.vue';
+import NutritionSourceTag from '@/components/nutrition/NutritionSourceTag.vue';
 
 const router = useRouter();
 const route = useRoute();
@@ -556,6 +552,8 @@ const initialized = ref(false);
 
 const searchKeyword = ref('');
 const nutritionMap = ref<Record<string, string>>({});
+const sourceTypeMap = ref<Record<string, string>>({});
+const sourceDetailMap = ref<Record<string, string>>({});
 const expandedNutrition = ref<Record<string, Record<string, number>>>({});
 const selectedRowKeys = ref<(string | number)[]>([]);
 const selectedRows = ref<Material[]>([]);
@@ -898,14 +896,14 @@ const statusFilterOptions = [
 const columns = computed(() => [
   { colKey: 'row-select', type: 'multiple', width: 50, resizable: false },
   { colKey: 'name', title: sortTitle('原料信息', 'name'), width: 200 },
-  { colKey: 'version', title: '版本', width: 110, align: 'center' },
-  { colKey: 'status', title: '状态', width: 100, align: 'center' },
+  { colKey: 'version', title: '版本', width: 90, align: 'center' },
   { colKey: 'createdByName', title: '创建人', width: 130, align: 'center' },
   { colKey: 'appearance', title: '性状', width: 160, align: 'center' },
   { colKey: 'taste', title: '口感', width: 160, align: 'center' },
   { colKey: 'efficacy', title: '功效', width: 180, align: 'center' },
   { colKey: 'unitPrice', title: sortTitle('单价(元/kg)', 'unitPrice'), width: 120, align: 'center' },
   { colKey: 'nutrition', title: '营养', width: 110, align: 'center' },
+  { colKey: 'sourceType', title: '来源', width: 100, align: 'center' },
   { colKey: 'createdAt', title: sortTitle('创建时间', 'createdAt'), width: 160 },
   { colKey: 'operation', title: '操作', width: 80, align: 'center', className: 'operation-col-center' }
 ]);
@@ -1191,6 +1189,8 @@ const loadNutritionStatus = async () => {
   const materials = materialStore.materials;
   if (!materials.length) return;
   const map: Record<string, string> = {};
+  const srcMap: Record<string, string> = {};
+  const srcDetailMap: Record<string, string> = {};
   const promises = materials.map(async (m: Material) => {
     try {
       const res = await nutritionApi.getMaterialNutrition(m.id);
@@ -1198,10 +1198,14 @@ const loadNutritionStatus = async () => {
         const count = Object.keys(res.per100g).filter(k => res.per100g[k] > 0).length;
         if (count > 0) map[m.id] = `${count}`;
       }
+      if (res?.sourceType) srcMap[m.id] = res.sourceType;
+      if (res?.sourceDetail) srcDetailMap[m.id] = res.sourceDetail;
     } catch { /* no data */ }
   });
   await Promise.all(promises);
   nutritionMap.value = map;
+  sourceTypeMap.value = srcMap;
+  sourceDetailMap.value = srcDetailMap;
 };
 
 const handleGlobalSearch = (e: Event) => {
@@ -2108,16 +2112,14 @@ const handleStatusFilterChange = () => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
+  gap: 4px;
 
-  .version-tag-inline {
+  .version-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--color-text-secondary);
     cursor: pointer;
-  }
-
-  .version-count-inline {
-    font-size: 11px;
-    color: var(--color-text-placeholder);
-    cursor: pointer;
+    letter-spacing: 0.02em;
 
     &:hover {
       color: var(--color-primary);

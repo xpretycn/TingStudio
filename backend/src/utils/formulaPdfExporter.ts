@@ -6,6 +6,7 @@
 import PDFDocument from "pdfkit";
 import { query } from "../config/database-better-sqlite3.js";
 import { safeJsonParse, rowToCamelCase } from "./helpers.js";
+import { TemplateConfig, getDefaultTemplateConfig, getDefaultSelectedFields } from "./exportFieldRegistry.js";
 import path from "path";
 import fs from "fs";
 
@@ -164,6 +165,7 @@ async function getFormulaData(formulaId: string, versionId?: string) {
 export async function exportFormulaToPdf(
   formulaId: string,
   versionId?: string,
+  templateConfig?: TemplateConfig,
 ): Promise<{ buffer: Buffer; fileName: string }> {
   const {
     formula,
@@ -176,8 +178,13 @@ export async function exportFormulaToPdf(
     nutritionData,
   } = await getFormulaData(formulaId, versionId);
 
+  const config = templateConfig || getDefaultTemplateConfig('formula', 'pdf');
+  const fields = config.selectedFields.length > 0
+    ? config.selectedFields
+    : getDefaultSelectedFields('formula');
+
   const doc = new PDFDocument({
-    size: "A4",
+    size: config.pageSize === 'A4' ? "A4" : (config.pageSize || "A4"),
     margins: { top: 50, bottom: 50, left: 50, right: 50 },
     info: {
       Title: `${formula.name} - 配方导出`,
@@ -203,6 +210,7 @@ export async function exportFormulaToPdf(
   const pageWidth = doc.page.width - 100; // 左右各 50 margin
   const startX = 50;
   let y = 50;
+  let x = startX;
 
   // ===== 标题 =====
   doc.fontSize(22).fillColor("#333333");
@@ -223,42 +231,46 @@ export async function exportFormulaToPdf(
   y += 15;
 
   // ===== 配方基本信息 =====
-  doc.fontSize(14).fillColor("#333333");
-  doc.text("配方基本信息", startX, y);
-  y = doc.y + 10;
+  if (fields.some((f: string) => ['name','code','salesmanName','finishedWeight','version','createdAt','updatedAt','description','preparationMethod'].includes(f))) {
+    doc.fontSize(14).fillColor("#333333");
+    doc.text("配方基本信息", startX, y);
+    y = doc.y + 10;
 
-  const infoItems: [string, string][] = [
-    ["配方名称", formula.name],
-    ["业务员", formula.salesmanName],
-    ["版本", versionLabel],
-    ["创建时间", new Date(formula.createdAt).toLocaleString("zh-CN")],
-    ["更新时间", new Date(formula.updatedAt).toLocaleString("zh-CN")],
-    ["成品重量(g)", String(formula.finishedWeight)],
-    ["药材比系数", String(ratioFactor)],
-    ["辅料比系数", String(supplementRatioFactor)],
-  ];
+    const infoItems: [string, string][] = [];
+    if (fields.includes('name')) infoItems.push(["配方名称", formula.name]);
+    if (fields.includes('code')) infoItems.push(["配方编码", formula.code || '—']);
+    if (fields.includes('salesmanName')) infoItems.push(["业务员", formula.salesmanName]);
+    if (fields.includes('version')) infoItems.push(["版本", versionLabel]);
+    if (fields.includes('createdAt')) infoItems.push(["创建时间", new Date(formula.createdAt).toLocaleString("zh-CN")]);
+    if (fields.includes('updatedAt')) infoItems.push(["更新时间", new Date(formula.updatedAt).toLocaleString("zh-CN")]);
+    if (fields.includes('finishedWeight')) infoItems.push(["成品重量(g)", String(formula.finishedWeight)]);
+    if (fields.includes('description') || fields.includes('preparationMethod')) {
+      // 这些字段在 other 分组
+    }
 
-  if (version?.versionReason) {
-    infoItems.push(["版本说明", version.versionReason]);
+    const extraInfoItems: [string, string][] = [];
+    if (fields.includes('salesmanPhone')) extraInfoItems.push(["业务员电话", '—']);
+    if (fields.includes('customerName')) extraInfoItems.push(["客户名称", '—']);
+    if (fields.includes('versionReason') && version?.versionReason) extraInfoItems.push(["版本说明", version.versionReason]);
+    if (fields.includes('description')) extraInfoItems.push(["备注", formula.description || "无"]);
+    if (fields.includes('preparationMethod')) extraInfoItems.push(["制法", formula.preparationMethod || "无"]);
+
+    const allInfoItems = [...infoItems, ...extraInfoItems];
+
+    doc.fontSize(10);
+    for (const [label, value] of allInfoItems) {
+      doc.fillColor("#666666").text(label + ":", startX, y, { width: 100 });
+      doc.fillColor("#333333").text(value, startX + 105, y, { width: pageWidth - 105 });
+      y = doc.y + 6;
+    }
+    y += 10;
   }
-  infoItems.push(["备注", formula.description || "无"]);
-  infoItems.push(["制法", formula.preparationMethod || "无"]);
-
-  // 每个信息项独占一行，标签和值分两列显示
-  doc.fontSize(10);
-  for (const [label, value] of infoItems) {
-    // 标签列
-    doc.fillColor("#666666").text(label + ":", startX, y, { width: 100 });
-    // 值列（换行显示）
-    doc.fillColor("#333333").text(value, startX + 105, y, { width: pageWidth - 105 });
-    y = doc.y + 6;
-  }
-  y += 10;
 
   // ===== 原料清单表格 =====
-  doc.fontSize(14).fillColor("#333333");
-  doc.text("原料清单", startX, y);
-  y = doc.y + 10;
+  if (fields.includes('materialList')) {
+    doc.fontSize(14).fillColor("#333333");
+    doc.text("原料清单", startX, y);
+    y = doc.y + 10;
 
   // 表头背景 - 列宽总和等于pageWidth(495)
   // 列顺序：序号、原料名称、数量(g)、类型、基价、调整价、状态
@@ -270,7 +282,7 @@ export async function exportFormulaToPdf(
   // 表头
   doc.rect(startX, y, pageWidth, rowHeight).fill("#FF6B8A");
   doc.fontSize(10).fillColor("#FFFFFF");
-  let x = startX;
+  x = startX;
   for (let i = 0; i < colHeaders.length; i++) {
     doc.text(colHeaders[i], x + 4, y + cellPadding, { width: colWidths[i] - 8, align: "center" });
     x += colWidths[i];
@@ -316,9 +328,11 @@ export async function exportFormulaToPdf(
   });
 
   y += 20;
+  }
 
   // ===== 报价信息 =====
-  doc.fontSize(14).fillColor("#333333");
+  if (fields.includes('priceInfo')) {
+    doc.fontSize(14).fillColor("#333333");
   doc.text("报价信息", startX, y);
   y = doc.y + 10;
 
@@ -364,10 +378,12 @@ export async function exportFormulaToPdf(
   y += 4;
   doc.text("计算公式: 报价 = (原料总成本 + 包装费 + 其他费) × (1 + 利润率%)", startX, y, { width: pageWidth });
   y = doc.y + 20;
+  }
 
   // ===== 营养数据表格 =====
-  doc.fontSize(14).fillColor("#333333");
-  doc.text("营养数据", startX, y);
+  if (fields.includes('nutritionTable')) {
+    doc.fontSize(14).fillColor("#333333");
+    doc.text("营养数据", startX, y);
   y = doc.y + 10;
 
   // 列宽总和等于pageWidth(495)
@@ -460,25 +476,25 @@ export async function exportFormulaToPdf(
     x += nutColWidths[j];
   }
   y += 35;
+  }
 
-  // ===== 营养成分表 (NRV%) =====
-  doc.fontSize(14).fillColor("#333333");
-  doc.text("营养成分表", startX, y);
-  y = doc.y + 10;
+  // ===== 营养成分表 (与详情页格式一致) =====
+  if (fields.includes('nrvTable')) {
+    doc.fontSize(14).fillColor("#333333");
+    doc.text("营养成分表", startX, y);
+    y = doc.y + 10;
 
-  const nrvColWidths = [120, 100, 100, 100];
-  const nrvHeaders = ["营养成分", "每份含量", "每100g含量", "NRV%"];
-  const nrvRowHeight = 24;
-  const nrvCellPadding = 7;
-  const finishedWeightG = formula.finishedWeight || 1;
+  const nrvColWidths = [70, 75, 65, 80, 100, 105];
+  const nrvHeaders = ["项目", "每100克(g)", "", "营养素参考值%", "0界限值", "允许误差范围"];
+  const nrvRowHeight = 26;
+  const nrvCellPadding = 8;
 
-  const NRV_REF: Record<string, { unit: string; refValue: number }> = {
-    energy: { unit: "kJ", refValue: 8400 },
-    protein: { unit: "g", refValue: 60 },
-    fat: { unit: "g", refValue: 60 },
-    carbohydrate: { unit: "g", refValue: 300 },
-    sodium: { unit: "mg", refValue: 2000 },
-    dietaryFiber: { unit: "g", refValue: 25 },
+  const NRV_CONFIG: Record<string, { unitLabel: string; refValue: number; zeroLimit: string; tolerance: string }> = {
+    energy: { unitLabel: "千焦(kJ)", refValue: 8400, zeroLimit: "≤17千焦(kJ)", tolerance: "≤120%标示值" },
+    protein: { unitLabel: "克(g)", refValue: 60, zeroLimit: "≤0.5克(g)", tolerance: "≥80%标示值" },
+    fat: { unitLabel: "克(g)", refValue: 60, zeroLimit: "≤0.5克(g)", tolerance: "≤120%标示值" },
+    carbohydrate: { unitLabel: "克(g)", refValue: 300, zeroLimit: "≤0.5克(g)", tolerance: "≥80%标示值" },
+    sodium: { unitLabel: "毫克(mg)", refValue: 2000, zeroLimit: "≤5毫克(mg)", tolerance: "≤120%标示值" },
   };
 
   const nutritionItems = [
@@ -487,23 +503,24 @@ export async function exportFormulaToPdf(
     { key: "fat", label: "脂肪", value: totalNutrition.fat },
     { key: "carbohydrate", label: "碳水化合物", value: totalNutrition.carbohydrate },
     { key: "sodium", label: "钠", value: totalNutrition.sodium / 1000 },
-    { key: "dietaryFiber", label: "膳食纤维", value: totalNutrition.dietaryFiber },
   ];
 
   // 表头
-  doc.rect(startX, y, pageWidth, nrvRowHeight).fill("#4A90D9");
-  doc.fontSize(10).fillColor("#FFFFFF");
+  doc.rect(startX, y, pageWidth, nrvRowHeight).fill("#1890FF");
+  doc.fontSize(9).fillColor("#FFFFFF");
   x = startX;
   for (let i = 0; i < nrvHeaders.length; i++) {
-    doc.text(nrvHeaders[i], x + 4, y + nrvCellPadding, { width: nrvColWidths[i] - 8, align: "center" });
+    if (nrvHeaders[i]) {
+      doc.text(nrvHeaders[i], x + 4, y + nrvCellPadding, { width: nrvColWidths[i] - 8, align: "center" });
+    }
     x += nrvColWidths[i];
   }
   y += nrvRowHeight;
 
   // 数据行
   doc.fontSize(9);
-  const nrvDataRowHeight = 22;
-  const nrvDataCellPadding = 6;
+  const nrvDataRowHeight = 24;
+  const nrvDataCellPadding = 7;
 
   nutritionItems.forEach((item, i) => {
     if (y > 700) {
@@ -512,19 +529,20 @@ export async function exportFormulaToPdf(
     }
 
     if (i % 2 === 0) {
-      doc.rect(startX, y, pageWidth, nrvDataRowHeight).fill("#EDF4FD");
+      doc.rect(startX, y, pageWidth, nrvDataRowHeight).fill("#F0F7FF");
     }
 
-    const ref = NRV_REF[item.key];
-    const perServing = item.value * (finishedWeightG / 100);
+    const config = NRV_CONFIG[item.key];
     const per100g = item.value;
-    const nrvPercent = ((per100g / ref.refValue) * 100).toFixed(1);
+    const nrvPercent = config.refValue > 0 ? ((per100g / config.refValue) * 100).toFixed(2) : "0.00";
 
     const rowData = [
       item.label,
-      `${perServing.toFixed(2)} ${ref.unit}`,
-      `${per100g.toFixed(2)} ${ref.unit}`,
-      `${nrvPercent}%`,
+      per100g > 0 ? per100g.toFixed(4).replace(/\.?0+$/, "") : "0",
+      config.unitLabel,
+      nrvPercent,
+      config.zeroLimit,
+      config.tolerance,
     ];
 
     doc.fillColor("#333333");
@@ -537,13 +555,43 @@ export async function exportFormulaToPdf(
   });
 
   y += 20;
+  }
+
+  // ===== 使用说明 =====
+  if (fields.includes('usageNotes')) {
+    if (y > 600) {
+      doc.addPage();
+      y = 50;
+    }
+
+    doc.fontSize(14).fillColor("#333333");
+    doc.text("使用说明", startX, y);
+    y = doc.y + 12;
+
+  const usageNotes = [
+    "(1) 含量比指原料在成品中含量比",
+    "(2) 每100g原料中营养素值通过中国食物成分表或原料营养标签或自检测中查找",
+    "(3) 营养素参考值(NRV)在GB 28050附录A查找",
+    "(4) 只需输入配料重量和各配料营养素值就可自动计算出营养成分表",
+    "(5) 通过技术处理就可以得出正式营养成分表",
+  ];
+
+  doc.fontSize(9).fillColor("#666666");
+  for (const note of usageNotes) {
+    doc.text(note, startX, y, { width: pageWidth });
+    y = doc.y + 4;
+  }
+  y += 15;
+  }
 
   // ===== 页脚 =====
-  doc.fontSize(9).fillColor("#AAAAAA");
+  if (config.includeFooter !== false) {
+    doc.fontSize(9).fillColor("#AAAAAA");
   doc.text(`由 TingStudio 生成于 ${new Date().toLocaleString("zh-CN")}`, startX, y, {
     width: pageWidth,
     align: "center",
-  });
+    });
+  }
 
   doc.end();
 

@@ -265,25 +265,34 @@ async function seedData() {
     })
 
     // ═══════════════════════════════════════════════════════
-    // 6. 导出模板表 export_templates（6条）
-    //    配方: 标准配方PDF / 生产配方Excel / 营养标签PDF（共3条）
-    //    原料: 原料清单Excel（共1条）
-    //    周报: 周报导出Excel（共1条）
-    //    月报: 月报导出Excel（共1条）
+    // 6. 导出模板表 export_templates（12条）
+    //    配方: 标准配方PDF / 生产配方Excel / 营养标签PDF / 出库单 / 送货单 / 发票 / 客户信息 / 质检报告（共8条）
+    //    原料: 原料清单Excel / 库存管理Excel（共2条）
+    //    报告: 周报导出Excel / 月报导出Excel（共2条）
     // ═══════════════════════════════════════════════════════
-    console.log('\n--- 创建导出模板 (6条) ---')
+    console.log('\n--- 创建导出模板 (12条) ---')
 
-    const formulaFields = ['name','code','createdAt','salesmanName','salesmanPhone','customerName','remark','finishedWeight','herbList','supplementList','protein','fat','carbs','sodium','energy','cost','profitRate','suggestedPrice','version','updatedAt','createdBy']
-    const materialFields = ['name','code','materialType','spec','unit','stockQuantity','supplierName','unitPrice','createdAt']
-    const reportFields = ['periodRange','generatedAt','newFormulasCount','newMaterialsCount','exportCount','topFormulas','salesmanStats','dataCutoffTime','generatedBy']
-
-    const templateDefs: Array<{ name: string; category: string; type: string; isDefault: boolean; fields: string[]; orientation: string }> = [
-      { name: '标准配方PDF模板', category: 'formula', type: 'pdf', isDefault: true, fields: formulaFields, orientation: 'portrait' },
-      { name: '生产配方Excel模板', category: 'formula', type: 'excel', isDefault: true, fields: formulaFields, orientation: 'landscape' },
-      { name: '营养标签PDF模板', category: 'formula', type: 'pdf', isDefault: false, fields: ['name','code','createdAt','protein','fat','carbs','sodium','energy','finishedWeight','herbList','supplementList'], orientation: 'portrait' },
-      { name: '原料清单Excel模板', category: 'material', type: 'excel', isDefault: true, fields: materialFields, orientation: 'landscape' },
-      { name: '周报导出Excel模板', category: 'weekly-report', type: 'excel', isDefault: true, fields: reportFields, orientation: 'landscape' },
-      { name: '月报导出Excel模板', category: 'monthly-report', type: 'excel', isDefault: true, fields: reportFields, orientation: 'landscape' },
+    const templateDefs: Array<{
+      name: string;
+      category: string;
+      type: string;
+      isDefault: boolean;
+      fields: string[];
+      orientation: string;
+      description: string;
+    }> = [
+      { name: '标准配方PDF', category: 'formula', type: 'pdf', isDefault: true, fields: ['name','code','salesmanName','finishedWeight','version','createdAt','description','preparationMethod','materialList','priceInfo','nutritionTable','nrvTable','usageNotes'], orientation: 'portrait', description: '包含全部内容的完整配方导出模板' },
+      { name: '生产配方Excel', category: 'formula', type: 'excel', isDefault: true, fields: ['name','code','salesmanName','finishedWeight','version','createdAt','materialList','priceInfo'], orientation: 'landscape', description: '用于生产环节的配方导出' },
+      { name: '营养标签PDF', category: 'formula', type: 'pdf', isDefault: false, fields: ['name','finishedWeight','nrvTable','usageNotes'], orientation: 'portrait', description: '仅包含名称、重量和NRV营养标签' },
+      { name: '出库单模板', category: 'formula', type: 'pdf', isDefault: false, fields: ['name','code','salesmanName','createdAt','materialList'], orientation: 'portrait', description: '原料出库单据模板' },
+      { name: '送货单模板', category: 'formula', type: 'pdf', isDefault: false, fields: ['name','customerName','salesmanName','createdAt','materialList','priceInfo'], orientation: 'portrait', description: '送货单据模板' },
+      { name: '发票模板', category: 'formula', type: 'pdf', isDefault: false, fields: ['name','customerName','salesmanName','salesmanPhone','createdAt','materialList','priceInfo'], orientation: 'portrait', description: '销售发票模板' },
+      { name: '客户信息模板', category: 'formula', type: 'excel', isDefault: false, fields: ['name','code','customerName','salesmanName','salesmanPhone','createdAt'], orientation: 'landscape', description: '客户相关信息的汇总' },
+      { name: '质检报告模板', category: 'formula', type: 'pdf', isDefault: false, fields: ['name','code','salesmanName','createdAt','nutritionTable','nrvTable'], orientation: 'portrait', description: '质量检验报告' },
+      { name: '原料清单Excel', category: 'material', type: 'excel', isDefault: true, fields: ['name','code','materialType','spec','unit','stockQuantity','supplierName','unitPrice','nutrition'], orientation: 'landscape', description: '完整的原料清单导出' },
+      { name: '库存管理模板', category: 'material', type: 'excel', isDefault: false, fields: ['name','code','materialType','unit','stockQuantity','supplierName','unitPrice','stockStatus'], orientation: 'landscape', description: '库存管理专用' },
+      { name: '周报导出Excel', category: 'weekly-report', type: 'excel', isDefault: true, fields: ['periodRange','generatedAt','generatedBy','newFormulasCount','newMaterialsCount','exportCount','topFormulas','salesmanStats','dataCutoffTime'], orientation: 'landscape', description: '周度运营数据报告' },
+      { name: '月报导出Excel', category: 'monthly-report', type: 'excel', isDefault: true, fields: ['periodRange','generatedAt','generatedBy','newFormulasCount','newMaterialsCount','exportCount','topFormulas','salesmanStats','dataCutoffTime'], orientation: 'landscape', description: '月度运营数据报告' },
     ]
 
     const stmtEt = db.prepare(
@@ -304,7 +313,7 @@ async function seedData() {
         includeFooter: true,
       }
       try {
-        stmtEt.run(tid, tpl.name, `${tpl.name}的默认配置`, tpl.category, tpl.type, JSON.stringify(config), tpl.isDefault ? 1 : 0, userIds[0], now(), now())
+        stmtEt.run(tid, tpl.name, tpl.description || `${tpl.name}的默认配置`, tpl.category, tpl.type, JSON.stringify(config), tpl.isDefault ? 1 : 0, userIds[0], now(), now())
         console.log(`✓ 导出模板: ${tpl.name} (${tpl.category}/${tpl.type})`)
       } catch (e) {
         console.log(`  导出模板 ${tpl.name} 已存在: ${e}`)

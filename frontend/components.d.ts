@@ -45,6 +45,8 @@ declare module 'vue' {
     NutritionClaimsCard: typeof import('./src/components/nutrition/NutritionClaimsCard.vue')['default']
     NutritionExcelImport: typeof import('./src/components/NutritionExcelImport.vue')['default']
     NutritionLabelTable: typeof import('./src/components/nutrition/NutritionLabelTable.vue')['default']
+    NutritionSourceCompare: typeof import('./src/components/nutrition/NutritionSourceCompare.vue')['default']
+    NutritionSourceTag: typeof import('./src/components/nutrition/NutritionSourceTag.vue')['default']
     PageSkeleton: typeof import('./src/components/Skeleton/PageSkeleton.vue')['default']
     PerformanceIndicator: typeof import('./src/components/PerformanceIndicator.vue')['default']
     QuickCreateMaterialDrawer: typeof import('./src/components/QuickCreateMaterialDrawer.vue')['default']

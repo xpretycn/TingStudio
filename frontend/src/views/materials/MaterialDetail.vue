@@ -161,17 +161,22 @@
               </div>
               <div class="nutrition-header-right">
                 <label>数据源：</label>
-                <t-tag variant="light" theme="success" size="small" shape="round">标准参考</t-tag>
+                <NutritionSourceTag :source-type="nutritionSourceType" :source-detail="nutritionMeta.sourceDetail || nutritionMeta.dataSource" />
                 <template v-if="nutritionMeta.dataSource">
-                  <t-tag theme="default" variant="light" size="small">
-                    <template #icon><t-icon name="books" /></template>
-                    {{ nutritionMeta.dataSource }}
-                  </t-tag>
                   <t-tag :theme="confidenceTheme" variant="light" size="small">
                     <template #icon><t-icon name="checked" /></template>
                     {{ confidenceLabel }}
                   </t-tag>
                 </template>
+                <t-button
+                  v-if="nutritionData.length > 0"
+                  theme="default"
+                  variant="text"
+                  size="small"
+                  @click="showSourceCompare = !showSourceCompare"
+                >
+                  {{ showSourceCompare ? '收起来源对比 ▲' : '查看所有来源 ▼' }}
+                </t-button>
               </div>
             </div>
 
@@ -197,6 +202,12 @@
                 <t-empty description="暂无营养数据，请前往编辑页面录入" role="status" />
               </div>
             </Transition>
+
+            <NutritionSourceCompare
+              v-if="showSourceCompare && material"
+              :material-id="material.id"
+              :visible="showSourceCompare"
+            />
           </section>
 
           <!-- 能量计算过程及结果 -->
@@ -319,6 +330,7 @@ import { ref, reactive, computed, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useMaterialStore } from '@/stores/material';
 import { useNutritionStore } from '@/stores/nutrition';
+import { useNutritionSourceStore } from '@/stores/nutritionSource';
 import { useAuthStore } from '@/stores/auth';
 import { useExportStore } from '@/stores/export';
 import type { ExportTemplate } from '@/api/export';
@@ -326,11 +338,14 @@ import { MessagePlugin } from 'tdesign-vue-next';
 import PageSkeleton from '@/components/Skeleton/PageSkeleton.vue';
 import { formatTimestamp } from '@/utils/timeFormat';
 import type { Material } from '@/api/material';
+import NutritionSourceTag from '@/components/nutrition/NutritionSourceTag.vue';
+import NutritionSourceCompare from '@/components/nutrition/NutritionSourceCompare.vue';
 
 const router = useRouter();
 const route = useRoute();
 const materialStore = useMaterialStore();
 const nutritionStore = useNutritionStore();
+const nutritionSourceStore = useNutritionSourceStore();
 const authStore = useAuthStore();
 const exportStore = useExportStore();
 
@@ -353,8 +368,13 @@ const nutritionLoading = ref(false);
 const nutritionData = ref<NutritionItem[]>([]);
 const nutritionMeta = reactive({
   dataSource: '',
+  sourceDetail: '',
   confidence: 'medium' as 'high' | 'medium' | 'low',
 });
+
+const nutritionFieldSources = ref<Record<string, { sourceId: string; sourceType: string; sourceDetail: string }> | null>(null);
+const nutritionSourceType = ref<string>('manual');
+const showSourceCompare = ref(false);
 
 const confidenceMap: Record<string, { label: string; theme: 'success' | 'warning' | 'default'; }> = {
   high: { label: '高可信度', theme: 'success' },
@@ -471,7 +491,10 @@ const loadData = async () => {
           };
         });
       if (res.data.dataSource) nutritionMeta.dataSource = res.data.dataSource;
+      if (res.data.sourceDetail) nutritionMeta.sourceDetail = res.data.sourceDetail;
       if (res.data.confidence) nutritionMeta.confidence = res.data.confidence;
+      if (res.data.fieldSources) nutritionFieldSources.value = res.data.fieldSources;
+      if (res.data.sourceType) nutritionSourceType.value = res.data.sourceType;
     }
   } catch {
     // ignore nutrition fetch failure

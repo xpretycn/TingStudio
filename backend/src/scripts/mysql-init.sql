@@ -998,3 +998,40 @@ CREATE TABLE IF NOT EXISTS `search_export_cache` (
   INDEX `idx_search_export_expires` (`expires_at`),
   CONSTRAINT `fk_sec_user` FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================================
+-- 营养数据治理模块
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS `material_nutrition_sources` (
+  `source_id`     VARCHAR(36) PRIMARY KEY,
+  `material_id`   VARCHAR(36) NOT NULL,
+  `source_type`   VARCHAR(20) NOT NULL DEFAULT 'manual' CHECK(source_type IN ('manual', 'tianapi', 'seed', 'ai', 'excel_import', 'other')),
+  `source_detail` VARCHAR(500) DEFAULT NULL,
+  `per_100g_json` JSON NOT NULL,
+  `confidence`    VARCHAR(20) DEFAULT 'medium' CHECK(confidence IN ('high', 'medium', 'low')),
+  `match_score`   DECIMAL(5,4) DEFAULT NULL,
+  `notes`         TEXT DEFAULT NULL,
+  `created_at`    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_by`    VARCHAR(36) DEFAULT NULL,
+  `is_active`     TINYINT(1) NOT NULL DEFAULT 1,
+  INDEX `idx_mns_material` (`material_id`),
+  INDEX `idx_mns_source_type` (`source_type`),
+  INDEX `idx_mns_material_type` (`material_id`, `source_type`),
+  CONSTRAINT `fk_mns_material` FOREIGN KEY (`material_id`) REFERENCES `materials`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `formula_nutrition_snapshots` (
+  `snapshot_id`         VARCHAR(36) PRIMARY KEY,
+  `formula_id`          VARCHAR(36) NOT NULL,
+  `formula_version_id`  VARCHAR(36) DEFAULT NULL,
+  `nutrition_refs_json` JSON NOT NULL,
+  `total_nutrition_json` JSON NOT NULL,
+  `per_100g_json`       JSON NOT NULL,
+  `material_breakdown_json` JSON DEFAULT NULL,
+  `calculated_at`       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `calculated_by`       VARCHAR(36) DEFAULT NULL,
+  INDEX `idx_fnss_formula` (`formula_id`),
+  UNIQUE INDEX `uk_fnss_version` (`formula_id`, `formula_version_id`),
+  CONSTRAINT `fk_fnss_formula` FOREIGN KEY (`formula_id`) REFERENCES `formulas`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

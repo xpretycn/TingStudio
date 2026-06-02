@@ -22,6 +22,9 @@ export async function getMaterialNutritionData(materialId: string): Promise<DbRo
   return {
     ...rowToCamelCase(nutrition),
     per100g: normalizePer100g(safeJsonParse(nutrition.per_100g_json as string, {})),
+    fieldSources: safeJsonParse(nutrition.field_sources_json as string | null, null),
+    sourceType: (nutrition.source_type as string) || "manual",
+    sourceDetail: (nutrition.source_detail as string) || null,
   };
 }
 
@@ -104,6 +107,12 @@ export async function setMaterialNutritionData(
   }
 
   await query("UPDATE materials SET updated_at = ? WHERE id = ?", [now(), materialId]);
+
+  try {
+    const { addNutritionSource } = await import("./nutritionSourceService.js");
+    await addNutritionSource(materialId, "manual", merged, dataSource || "manual", confidence, undefined, notes, userId);
+  } catch { /* 来源层写入失败不影响主流程 */ }
+
   return { success: true };
 }
 
@@ -233,6 +242,36 @@ export async function calculateFormulaNutritionData(formulaId: string, userId: s
       [summaryId, formulaId, totalWeight, JSON.stringify(totalNutrition), JSON.stringify(per100gNutrition), JSON.stringify(breakdown), userId, now()],
     );
   }
+
+  try {
+    const { saveNutritionSnapshot } = await import("./nutritionSnapshotService.js");
+    const nutritionRefs: Record<string, { nutritionId: string; dataVersion: string; sourceType: string; per100gSnapshot: Record<string, number> }> = {};
+    for (const mat of materials) {
+      const materialId = mat.materialId as string;
+      const per100g = nutritionMap[materialId] || {};
+      if (Object.keys(per100g).length > 0) {
+        const nutritionRow = (await query(
+          "SELECT nutrition_id, data_version, source_type FROM material_nutrition WHERE material_id = ? AND is_latest = 1",
+          [materialId],
+        )).rows[0] as DbRow | undefined;
+        nutritionRefs[materialId] = {
+          nutritionId: (nutritionRow?.nutrition_id as string) || "",
+          dataVersion: (nutritionRow?.data_version as string) || "1.0",
+          sourceType: (nutritionRow?.source_type as string) || "manual",
+          per100gSnapshot: per100g,
+        };
+      }
+    }
+    await saveNutritionSnapshot(
+      formulaId,
+      formula.parse_result_id as string | null || null,
+      nutritionRefs,
+      totalNutrition,
+      per100gNutrition,
+      breakdown,
+      userId,
+    );
+  } catch { /* 快照保存失败不影响主流程 */ }
 
   return {
     formulaId,
@@ -371,6 +410,91 @@ export async function getProfileById(profileId: string): Promise<Record<string, 
 }
 
 export async function getFormulaNutritionTablesData(formulaId: string) {
+  try {
+    const { getNutritionSnapshot } = await import("./nutritionSnapshotService.js");
+    const snapshot = await getNutritionSnapshot(formulaId);
+    if (snapshot) {
+      const formula = (await query("SELECT * FROM formulas WHERE id = ?", [formulaId])).rows[0] as DbRow | undefined;
+      if (formula) {
+        let salesmanInfo: Record<string, unknown> | null = null;
+        if (formula.salesman_id) {
+          const sm = (await query(
+            "SELECT id, name, code, department, phone, email FROM salesmen WHERE id = ?",
+            [formula.salesman_id],
+          )).rows[0] as DbRow | undefined;
+          if (sm) salesmanInfo = rowToCamelCase(sm);
+        }
+        const versionHistory = await getVersionHistoryData(formulaId);
+        const snapshotPer100g = snapshot.per100g as Record<string, number>;
+        const snapshotTotal = snapshot.totalNutrition as Record<string, number>;
+        const summaryEnergy = Math.round(
+          (snapshotTotal.protein * 17 + snapshotTotal.fat * 37 + snapshotTotal.carbohydrate * 17) * 100,
+        ) / 100;
+        const summaryRow: Record<string, unknown> = {
+          name: "营养成分表",
+          quantity: Number(formula.finished_weight) || 0,
+          ratio: 1,
+          energy: summaryEnergy,
+          protein: snapshotTotal.protein,
+          fat: snapshotTotal.fat,
+          carbohydrate: snapshotTotal.carbohydrate,
+          sodium: snapshotTotal.sodium,
+        };
+        const nrvRow: Record<string, unknown> = { name: "营养素参考值(NRV)", quantity: "", ratio: "" };
+        const nrvPercentRow: Record<string, unknown> = { name: "营养素参考值%", quantity: "", ratio: "" };
+        nrvRow.energy = NRV_REFERENCE.energy ?? "";
+        nrvPercentRow.energy = NRV_REFERENCE.energy ? Math.round((summaryEnergy / NRV_REFERENCE.energy) * 10000) / 100 : 0;
+        for (const f of CORE_NUTRIENT_COLS) {
+          nrvRow[f] = NRV_REFERENCE[f] ?? "";
+          nrvPercentRow[f] = NRV_REFERENCE[f] ? Math.round((snapshotTotal[f] / NRV_REFERENCE[f]) * 10000) / 100 : 0;
+        }
+        const labelValues: Record<string, number> = { energy: summaryEnergy };
+        for (const f of CORE_NUTRIENT_COLS) labelValues[f] = snapshotTotal[f];
+        const zeroedFields = new Set<string>();
+        for (const f of CORE_NUTRIENT_COLS) {
+          if (Math.abs(labelValues[f]) < ZERO_THRESHOLD[f]) { zeroedFields.add(f); labelValues[f] = 0; }
+        }
+        if (Math.abs(labelValues.energy) < ZERO_THRESHOLD.energy) { zeroedFields.add("energy"); labelValues.energy = 0; }
+        if (!zeroedFields.has("energy")) {
+          labelValues.energy = Math.round(labelValues.protein * 17 + labelValues.fat * 37 + labelValues.carbohydrate * 17);
+        }
+        const labelRows: Array<Record<string, unknown>> = [];
+        const energyNrv = NRV_REFERENCE.energy || 1;
+        labelRows.push({ item: "能量", value: labelValues.energy, unit: "千焦(kJ)", nrvPercent: labelValues.energy > 0 ? Math.round((labelValues.energy / energyNrv) * 10000) / 100 : 0, zeroThreshold: "≤17千焦(kJ)", tolerance: "≤120%标示值" });
+        for (const f of CORE_NUTRIENT_COLS) {
+          const info = LABEL_INFO[f];
+          const val = labelValues[f];
+          const nrv = NRV_REFERENCE[f] || 1;
+          labelRows.push({ item: info.name, value: val, unit: info.unit, nrvPercent: val > 0 ? Math.round((val / nrv) * 10000) / 100 : 0, zeroThreshold: info.zeroThreshold, tolerance: info.tolerance });
+        }
+        return {
+          formulaId: formula.id,
+          formulaName: formula.name,
+          finishedWeight: Number(formula.finished_weight) || 0,
+          ratioFactor: Number(formula.ratio_factor) || 0.18,
+          supplementRatioFactor: Number(formula.supplement_ratio_factor) || 1.0,
+          parseResultId: formula.parse_result_id || null,
+          salesmanName: (salesmanInfo?.name as string) || (formula.salesman_name as string) || "",
+          salesmanDept: (salesmanInfo?.department as string) || "",
+          demandTitle: formula.description ? `配方需求：${formula.name}` : null,
+          demandCode: formula.id,
+          demandDesc: formula.description,
+          demandPriority: null,
+          totalWeight: Number(formula.finished_weight) || 0,
+          calcRows: snapshot.materialBreakdown as Array<Record<string, unknown>> || [],
+          summaryRow,
+          nrvRow,
+          nrvPercentRow,
+          labelRows,
+          missingNutritionMaterials: [],
+          versionHistory,
+          fromSnapshot: true,
+          snapshotCalculatedAt: snapshot.calculatedAt,
+        };
+      }
+    }
+  } catch { /* 快照读取失败，回退到实时计算 */ }
+
   let dbHasSupplementRatio = true;
   try {
     await query("SELECT supplement_ratio_factor FROM formulas LIMIT 1", []);

@@ -433,3 +433,40 @@ CREATE TABLE IF NOT EXISTS `role_permissions` (
 );
 CREATE INDEX IF NOT EXISTS `idx_role_permissions_role_id` ON `role_permissions`(`role_id`);
 CREATE INDEX IF NOT EXISTS `idx_role_permissions_permission_id` ON `role_permissions`(`permission_id`);
+
+-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+-- 营养数据治理模块
+-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+CREATE TABLE IF NOT EXISTS `material_nutrition_sources` (
+  `source_id`     TEXT PRIMARY KEY,
+  `material_id`   TEXT NOT NULL,
+  `source_type`   TEXT NOT NULL DEFAULT 'manual' CHECK(source_type IN ('manual', 'tianapi', 'seed', 'ai', 'excel_import', 'other')),
+  `source_detail` TEXT DEFAULT NULL,
+  `per_100g_json` TEXT NOT NULL,
+  `confidence`    TEXT DEFAULT 'medium' CHECK(confidence IN ('high', 'medium', 'low')),
+  `match_score`   REAL DEFAULT NULL,
+  `notes`         TEXT DEFAULT NULL,
+  `created_at`    TEXT NOT NULL DEFAULT (datetime('now')),
+  `created_by`    TEXT DEFAULT NULL,
+  `is_active`     INTEGER NOT NULL DEFAULT 1,
+  FOREIGN KEY (`material_id`) REFERENCES `materials`(`id`) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS `idx_mns_material` ON `material_nutrition_sources`(`material_id`);
+CREATE INDEX IF NOT EXISTS `idx_mns_source_type` ON `material_nutrition_sources`(`source_type`);
+CREATE INDEX IF NOT EXISTS `idx_mns_material_type` ON `material_nutrition_sources`(`material_id`, `source_type`);
+
+CREATE TABLE IF NOT EXISTS `formula_nutrition_snapshots` (
+  `snapshot_id`         TEXT PRIMARY KEY,
+  `formula_id`          TEXT NOT NULL,
+  `formula_version_id`  TEXT DEFAULT NULL,
+  `nutrition_refs_json` TEXT NOT NULL,
+  `total_nutrition_json` TEXT NOT NULL,
+  `per_100g_json`       TEXT NOT NULL,
+  `material_breakdown_json` TEXT DEFAULT NULL,
+  `calculated_at`       TEXT NOT NULL DEFAULT (datetime('now')),
+  `calculated_by`       TEXT DEFAULT NULL,
+  FOREIGN KEY (`formula_id`) REFERENCES `formulas`(`id`) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS `idx_fnss_formula` ON `formula_nutrition_snapshots`(`formula_id`);
+CREATE UNIQUE INDEX IF NOT EXISTS `uk_fnss_version` ON `formula_nutrition_snapshots`(`formula_id`, `formula_version_id`);

@@ -10,6 +10,7 @@ import {
   rowsToCamelCase,
   safeJsonParse,
 } from "../utils/helpers.js";
+import { TemplateConfig, getFieldsByCategory, resolveFieldDependencies } from "../utils/exportFieldRegistry.js";
 import { exportFormulaToExcel } from "../utils/formulaExporter.js";
 import { exportFormulaToPdf } from "../utils/formulaPdfExporter.js";
 import { exportMaterialToExcel, exportMaterialToPdf } from "../utils/materialExporter.js";
@@ -126,11 +127,12 @@ async function executeFormulaExport(
   formulaId: string,
   versionId: string | undefined,
   exportType: string,
+  templateConfig?: TemplateConfig,
 ): Promise<{ buffer: Buffer; fileName: string }> {
   if (exportType === "pdf") {
-    return exportFormulaToPdf(formulaId, versionId);
+    return exportFormulaToPdf(formulaId, versionId, templateConfig);
   }
-  return exportFormulaToExcel(formulaId, versionId);
+  return exportFormulaToExcel(formulaId, versionId, templateConfig);
 }
 
 async function executeMaterialExport(
@@ -459,11 +461,16 @@ export async function createJob(
       ? materialIds ?? []
       : [];
 
+  const firstFormulaId = dataCategory === "formula" && formulaIds && formulaIds.length > 0
+    ? formulaIds[0]
+    : null;
+
   query(
-    `INSERT INTO export_jobs (job_id, data_category, target_ids_json, period_start, period_end, template_id, export_type, status, created_by, created_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, 'processing', ?, ?)`,
+    `INSERT INTO export_jobs (job_id, formula_id, data_category, target_ids_json, period_start, period_end, template_id, export_type, status, created_by, created_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'processing', ?, ?)`,
     [
       id,
+      firstFormulaId,
       dataCategory,
       JSON.stringify(targetIds),
       periodStart ?? null,
@@ -480,6 +487,22 @@ export async function createJob(
     let fileName: string;
     const ext = exportType === "pdf" ? "pdf" : "xlsx";
 
+    // 如果传了 templateId，从数据库读取模板配置
+    let templateConfig: TemplateConfig | undefined = undefined;
+    if (templateId) {
+      const [tplRows]: any[][] = await query(
+        "SELECT * FROM export_templates WHERE template_id = ?",
+        [templateId]
+      );
+      if (tplRows.length > 0) {
+        templateConfig = safeJsonParse<TemplateConfig>(tplRows[0].format_config_json, null);
+        if (templateConfig && templateConfig.selectedFields.length > 0) {
+          const allFields = getFieldsByCategory(dataCategory as 'formula' | 'material' | 'weekly-report' | 'monthly-report');
+          templateConfig.selectedFields = resolveFieldDependencies(templateConfig.selectedFields, allFields);
+        }
+      }
+    }
+
     switch (dataCategory) {
       case "formula": {
         const ids = formulaIds ?? [];
@@ -487,12 +510,12 @@ export async function createJob(
           throw new Error("未指定配方ID");
         }
         if (ids.length === 1) {
-          const result = await executeFormulaExport(ids[0], undefined, exportType);
+          const result = await executeFormulaExport(ids[0], undefined, exportType, templateConfig);
           buffer = result.buffer;
           fileName = result.fileName;
         } else {
           const results = await Promise.all(
-            ids.map(id => executeFormulaExport(id, undefined, exportType)),
+            ids.map(id => executeFormulaExport(id, undefined, exportType, templateConfig)),
           );
           if (exportType === "pdf") {
             const { mergePdfs } = await import("../utils/pdfMerger.js");
@@ -624,16 +647,18 @@ export async function getJobs(
 
   const whereSql = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
+  const effectiveFormulaId = `COALESCE(ej.formula_id, json_extract(ej.target_ids_json, '$[0]'))`;
+
   const [list] = query(
     `SELECT ej.*, f.name as formula_name
      FROM export_jobs ej
-     LEFT JOIN formulas f ON ej.formula_id = f.id
+     LEFT JOIN formulas f ON ${effectiveFormulaId} = f.id
      ${whereSql} ORDER BY ej.created_at DESC LIMIT ? OFFSET ?`,
     [...queryParams, size, offset],
   ) as [Record<string, unknown>[]];
 
   const [countResult] = query(
-    `SELECT COUNT(*) as total FROM export_jobs ej LEFT JOIN formulas f ON ej.formula_id = f.id ${whereSql}`,
+    `SELECT COUNT(*) as total FROM export_jobs ej LEFT JOIN formulas f ON ${effectiveFormulaId} = f.id ${whereSql}`,
     queryParams,
   ) as [Record<string, unknown>[]];
 
@@ -700,10 +725,25 @@ export async function retryJob(
     const dataCategory = (job.data_category as string) ?? "formula";
     const targetIds = safeJsonParse(job.target_ids_json as string, []) as string[];
 
+    let retryTemplateConfig: TemplateConfig | undefined = undefined;
+    if (job.template_id) {
+      const [tplRows]: any[][] = await query(
+        "SELECT * FROM export_templates WHERE template_id = ?",
+        [job.template_id]
+      );
+      if (tplRows.length > 0) {
+        retryTemplateConfig = safeJsonParse<TemplateConfig>(tplRows[0].format_config_json, null);
+        if (retryTemplateConfig && retryTemplateConfig.selectedFields.length > 0) {
+          const allFields = getFieldsByCategory(dataCategory as 'formula' | 'material' | 'weekly-report' | 'monthly-report');
+          retryTemplateConfig.selectedFields = resolveFieldDependencies(retryTemplateConfig.selectedFields, allFields);
+        }
+      }
+    }
+
     switch (dataCategory) {
       case "formula": {
         const formulaId = job.formula_id as string;
-        const result = await executeFormulaExport(formulaId, job.version_id as string, exportType);
+        const result = await executeFormulaExport(formulaId, job.version_id as string, exportType, retryTemplateConfig);
         buffer = result.buffer;
         fileName = result.fileName;
         break;
@@ -730,7 +770,7 @@ export async function retryJob(
       }
       default: {
         const formulaId = job.formula_id as string;
-        const result = await executeFormulaExport(formulaId, job.version_id as string, exportType);
+        const result = await executeFormulaExport(formulaId, job.version_id as string, exportType, retryTemplateConfig);
         buffer = result.buffer;
         fileName = result.fileName;
         break;
@@ -789,10 +829,25 @@ export async function reExportJob(
     const dataCategory = (job.data_category as string) ?? "formula";
     const targetIds = safeJsonParse(job.target_ids_json as string, []) as string[];
 
+    let reExportTemplateConfig: TemplateConfig | undefined = undefined;
+    if (job.template_id) {
+      const [tplRows]: any[][] = await query(
+        "SELECT * FROM export_templates WHERE template_id = ?",
+        [job.template_id]
+      );
+      if (tplRows.length > 0) {
+        reExportTemplateConfig = safeJsonParse<TemplateConfig>(tplRows[0].format_config_json, null);
+        if (reExportTemplateConfig && reExportTemplateConfig.selectedFields.length > 0) {
+          const allFields = getFieldsByCategory(dataCategory as 'formula' | 'material' | 'weekly-report' | 'monthly-report');
+          reExportTemplateConfig.selectedFields = resolveFieldDependencies(reExportTemplateConfig.selectedFields, allFields);
+        }
+      }
+    }
+
     switch (dataCategory) {
       case "formula": {
         const formulaId = job.formula_id as string;
-        const result = await executeFormulaExport(formulaId, job.version_id as string, exportType);
+        const result = await executeFormulaExport(formulaId, job.version_id as string, exportType, reExportTemplateConfig);
         buffer = result.buffer;
         fileName = result.fileName;
         break;
@@ -819,7 +874,7 @@ export async function reExportJob(
       }
       default: {
         const formulaId = job.formula_id as string;
-        const result = await executeFormulaExport(formulaId, job.version_id as string, exportType);
+        const result = await executeFormulaExport(formulaId, job.version_id as string, exportType, reExportTemplateConfig);
         buffer = result.buffer;
         fileName = result.fileName;
         break;

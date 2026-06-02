@@ -374,13 +374,22 @@
   }
 }
 
-// ─── Popup / Dropdown — Level 3 玻璃态 ──────────────────
+// ─── Popup / Dropdown — Level 3 玻璃态（仅下拉菜单）──────────────────
+// tooltip 使用 t-tooltip__content，不应施加 backdrop-filter（会导致内容模糊）
 .t-popup__content {
+  visibility: visible !important;
+  opacity: 1 !important;
+  color: var(--color-text-primary, #374151) !important;
   background: rgba(255, 255, 255, 0.98) !important;
-  backdrop-filter: blur(16px);
   border: 1.5px solid $overlay-pink-lighter-25;
   border-radius: $radius-xl !important;
   box-shadow: 0 4px 8px rgba(255, 107, 138, 0.08), 0 8px 24px rgba(255, 107, 138, 0.12);
+}
+
+.t-dropdown-menu,
+.t-select__dropdown,
+.t-popup--dropdown .t-popup__content {
+  backdrop-filter: blur(16px);
 }
 
 // ─── Collapse（折叠面板）─────────────────────────────────

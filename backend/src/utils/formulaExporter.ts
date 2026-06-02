@@ -5,6 +5,7 @@
 import XLSX from "xlsx";
 import { query } from "../config/database-better-sqlite3.js";
 import { safeJsonParse, rowToCamelCase } from "./helpers.js";
+import { TemplateConfig, getDefaultTemplateConfig, getDefaultSelectedFields } from "./exportFieldRegistry.js";
 
 interface FormulaRow {
   id: string;
@@ -61,6 +62,7 @@ interface NutritionRow {
 export async function exportFormulaToExcel(
   formulaId: string,
   versionId?: string,
+  templateConfig?: TemplateConfig,
 ): Promise<{ buffer: Buffer; fileName: string }> {
   // 获取配方基本信息
   const [formulas]: any[][] = await query("SELECT * FROM formulas WHERE id = ?", [formulaId]);
@@ -119,35 +121,40 @@ export async function exportFormulaToExcel(
     }
   }
 
+  const config = templateConfig || getDefaultTemplateConfig('formula', 'excel');
+  const fields = config.selectedFields.length > 0
+    ? config.selectedFields
+    : getDefaultSelectedFields('formula');
+
   // 构建工作簿
   const workbook = XLSX.utils.book_new();
 
   // ===== Sheet 1: 配方信息 =====
-  const infoData = [
-    ["配方基本信息"],
-    [""],
-    ["配方名称", formula.name],
-    ["业务员", formula.salesmanName],
-    ["版本", versionLabel],
-    ["创建时间", formula.createdAt],
-    ["最后更新", formula.updatedAt],
-    [""],
-    ["成品重量(g)", formula.finishedWeight],
-    ["药材比系数", ratioFactor],
-    ["辅料比系数", supplementRatioFactor],
-    [""],
-    ["备注", formula.description || "无"],
-    ["制法", formula.preparationMethod || "无"],
-  ];
-  if (version?.versionReason) {
-    infoData.push(["版本说明", version.versionReason]);
+  if (fields.some((f: string) => ['name','code','salesmanName','finishedWeight','version','createdAt','updatedAt','description','preparationMethod'].includes(f))) {
+    const infoData: (string | number)[][] = [["配方基本信息"], [""]];
+    if (fields.includes('name')) infoData.push(["配方名称", formula.name]);
+    if (fields.includes('code')) infoData.push(["配方编码", formula.code || '—']);
+    if (fields.includes('salesmanName')) infoData.push(["业务员", formula.salesmanName]);
+    if (fields.includes('version')) infoData.push(["版本", versionLabel]);
+    if (fields.includes('createdAt')) infoData.push(["创建时间", formula.createdAt]);
+    if (fields.includes('updatedAt')) infoData.push(["最后更新", formula.updatedAt]);
+    infoData.push([""]);
+    if (fields.includes('finishedWeight')) infoData.push(["成品重量(g)", formula.finishedWeight]);
+    if (fields.includes('description') || fields.includes('preparationMethod')) {
+      if (fields.includes('description')) infoData.push(["备注", formula.description || "无"]);
+      if (fields.includes('preparationMethod')) infoData.push(["制法", formula.preparationMethod || "无"]);
+    }
+    if (fields.includes('versionReason') && version?.versionReason) {
+      infoData.push(["版本说明", version.versionReason]);
+    }
+    const infoSheet = XLSX.utils.aoa_to_sheet(infoData);
+    infoSheet["!cols"] = [{ wch: 16 }, { wch: 50 }];
+    XLSX.utils.book_append_sheet(workbook, infoSheet, "配方信息");
   }
-  const infoSheet = XLSX.utils.aoa_to_sheet(infoData);
-  infoSheet["!cols"] = [{ wch: 16 }, { wch: 50 }];
-  XLSX.utils.book_append_sheet(workbook, infoSheet, "配方信息");
 
-  // ===== Sheet 2: 原料清单（含报价信息） =====
-  const materialHeader = [
+  // ===== Sheet 2: 原料清单 =====
+  if (fields.includes('materialList')) {
+    const materialHeader = [
     "序号",
     "原料名称",
     "原料编码",
@@ -210,9 +217,11 @@ export async function exportFormulaToExcel(
     }
   }
   XLSX.utils.book_append_sheet(workbook, materialSheet, "原料清单");
+  }
 
   // ===== Sheet 3: 报价信息 =====
-  const materialTotalCost = materials.reduce((sum: number, m: any) => {
+  if (fields.includes('priceInfo')) {
+    const materialTotalCost = materials.reduce((sum: number, m: any) => {
     const detail = m.materialId ? materialDetails.get(m.materialId) : null;
     const basePrice = m.basePriceAtSave ?? detail?.unitPrice ?? null;
     const adjPrice = m.adjustedPrice ?? null;
@@ -248,9 +257,11 @@ export async function exportFormulaToExcel(
   const quotationSheet = XLSX.utils.aoa_to_sheet(quotationData);
   quotationSheet["!cols"] = [{ wch: 30 }, { wch: 50 }];
   XLSX.utils.book_append_sheet(workbook, quotationSheet, "报价信息");
+  }
 
   // ===== Sheet 4: 营养数据 =====
-  const nutritionHeader = [
+  if (fields.includes('nutritionTable')) {
+    const nutritionHeader = [
     "序号",
     "原料名称",
     "蛋白质(g/100g)",
@@ -318,6 +329,7 @@ export async function exportFormulaToExcel(
     { wch: 18 },
   ];
   XLSX.utils.book_append_sheet(workbook, nutritionSheet, "营养数据");
+  }
 
   // 生成文件
   const buffer = XLSX.write(workbook, { type: "buffer", bookType: "xlsx" });

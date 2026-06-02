@@ -11,8 +11,8 @@ export interface FieldGroup {
 }
 
 const CORE_FIELD_KEYS: Record<string, string[]> = {
-  formula: ["name", "code", "createdAt"],
-  material: ["name", "code", "materialType"],
+  formula: ["name"],
+  material: ["name"],
   "weekly-report": ["periodRange", "generatedAt"],
   "monthly-report": ["periodRange", "generatedAt"],
 }
@@ -20,214 +20,133 @@ const CORE_FIELD_KEYS: Record<string, string[]> = {
 export const EXPORT_FIELD_CONFIG: Record<string, FieldGroup[]> = {
   formula: [
     {
-      groupName: "核心字段",
-      required: true,
+      groupName: "基本信息",
+      required: false,
       fields: [
         { key: "name", label: "配方名称", defaultSelected: true },
         { key: "code", label: "配方编码", defaultSelected: true },
-        { key: "createdAt", label: "创建时间", defaultSelected: true },
-      ],
-    },
-    {
-      groupName: "业务信息",
-      required: false,
-      fields: [
-        { key: "salesmanName", label: "业务员名称", defaultSelected: true },
-        { key: "salesmanPhone", label: "业务员电话", defaultSelected: true },
-        { key: "customerName", label: "客户名称", defaultSelected: true },
-        { key: "processDescription", label: "工艺说明", defaultSelected: false },
-        { key: "efficacyDescription", label: "功效描述", defaultSelected: false },
-        { key: "applicableCrowd", label: "适用人群", defaultSelected: false },
-        { key: "contraindications", label: "禁忌说明", defaultSelected: false },
-        { key: "remark", label: "备注", defaultSelected: true },
-      ],
-    },
-    {
-      groupName: "配方数据",
-      required: false,
-      fields: [
+        { key: "salesmanName", label: "业务员", defaultSelected: true },
+        { key: "salesmanPhone", label: "业务员电话", defaultSelected: false },
+        { key: "customerName", label: "客户名称", defaultSelected: false },
         { key: "finishedWeight", label: "成品重量(g)", defaultSelected: true },
-        { key: "herbList", label: "药材列表", defaultSelected: true },
-        { key: "supplementList", label: "辅料列表", defaultSelected: true },
-      ],
-    },
-    {
-      groupName: "营养成分",
-      required: false,
-      fields: [
-        { key: "protein", label: "蛋白质(g/100g)", defaultSelected: true },
-        { key: "fat", label: "脂肪(g/100g)", defaultSelected: true },
-        { key: "carbs", label: "碳水化合物(g/100g)", defaultSelected: true },
-        { key: "sodium", label: "钠(mg/100g)", defaultSelected: true },
-        { key: "energy", label: "能量(kJ/100g)", defaultSelected: true },
-      ],
-    },
-    {
-      groupName: "成本信息",
-      required: false,
-      fields: [
-        { key: "cost", label: "成本估算(元)", defaultSelected: true },
-        { key: "profitRate", label: "利润率(%)", defaultSelected: true },
-        { key: "suggestedPrice", label: "建议售价(元)", defaultSelected: true },
-      ],
-    },
-    {
-      groupName: "版本信息",
-      required: false,
-      fields: [
         { key: "version", label: "版本号", defaultSelected: true },
-        { key: "updatedAt", label: "最近更新时间", defaultSelected: true },
-        { key: "createdBy", label: "创建人", defaultSelected: true },
+        { key: "versionReason", label: "版本说明", defaultSelected: false },
+        { key: "createdAt", label: "创建时间", defaultSelected: false },
+        { key: "updatedAt", label: "更新时间", defaultSelected: false },
+        { key: "createdBy", label: "创建人", defaultSelected: false },
+      ],
+    },
+    {
+      groupName: "其他",
+      required: false,
+      fields: [
+        { key: "description", label: "备注说明", defaultSelected: false },
+        { key: "preparationMethod", label: "制法", defaultSelected: false },
+      ],
+    },
+    {
+      groupName: "原料清单",
+      required: true,
+      fields: [
+        { key: "materialList", label: "原料清单表格", defaultSelected: true },
+      ],
+    },
+    {
+      groupName: "报价信息",
+      required: false,
+      fields: [
+        { key: "priceInfo", label: "报价信息区域", defaultSelected: true },
+      ],
+    },
+    {
+      groupName: "营养数据",
+      required: false,
+      fields: [
+        { key: "nutritionTable", label: "营养数据表", defaultSelected: true },
+        { key: "nrvTable", label: "营养成分表(NRV%)", defaultSelected: true },
+      ],
+    },
+    {
+      groupName: "页脚",
+      required: false,
+      fields: [
+        { key: "usageNotes", label: "使用说明", defaultSelected: true },
       ],
     },
   ],
   material: [
     {
-      groupName: "核心字段",
+      groupName: "基本信息",
       required: true,
       fields: [
         { key: "name", label: "原料名称", defaultSelected: true },
         { key: "code", label: "原料编码", defaultSelected: true },
-        { key: "materialType", label: "原料类型", defaultSelected: true },
+        { key: "materialType", label: "类型", defaultSelected: true },
+        { key: "spec", label: "规格", defaultSelected: false },
+        { key: "unit", label: "单位", defaultSelected: true },
       ],
     },
     {
       groupName: "库存信息",
       required: false,
       fields: [
-        { key: "spec", label: "规格型号", defaultSelected: true },
-        { key: "unit", label: "单位", defaultSelected: true },
-        { key: "stockQuantity", label: "库存数量", defaultSelected: true },
-        { key: "safetyStock", label: "安全库存", defaultSelected: false },
+        { key: "stockQuantity", label: "库存数量", defaultSelected: false },
+        { key: "supplierName", label: "供应商", defaultSelected: false },
+        { key: "unitPrice", label: "单价(元)", defaultSelected: false },
+        { key: "stockStatus", label: "库存状态", defaultSelected: false },
       ],
     },
     {
-      groupName: "供应商信息",
+      groupName: "营养数据",
       required: false,
       fields: [
-        { key: "supplierName", label: "供应商名称", defaultSelected: true },
-        { key: "supplierContact", label: "联系人", defaultSelected: false },
-        { key: "supplierPhone", label: "联系电话", defaultSelected: false },
-      ],
-    },
-    {
-      groupName: "采购信息",
-      required: false,
-      fields: [
-        { key: "unitPrice", label: "采购单价(元)", defaultSelected: true },
-        { key: "lastPurchaseDate", label: "最近采购日期", defaultSelected: false },
-      ],
-    },
-    {
-      groupName: "营养成分",
-      required: false,
-      fields: [
-        { key: "protein", label: "蛋白质(g/100g)", defaultSelected: false },
-        { key: "fat", label: "脂肪(g/100g)", defaultSelected: false },
-        { key: "carbs", label: "碳水化合物(g/100g)", defaultSelected: false },
-        { key: "sodium", label: "钠(mg/100g)", defaultSelected: false },
-        { key: "energy", label: "能量(kJ/100g)", defaultSelected: false },
-      ],
-    },
-    {
-      groupName: "其他信息",
-      required: false,
-      fields: [
-        { key: "origin", label: "产地", defaultSelected: false },
-        { key: "shelfLife", label: "保质期(月)", defaultSelected: false },
-        { key: "createdAt", label: "创建时间", defaultSelected: true },
-        { key: "updatedAt", label: "最近更新时间", defaultSelected: false },
+        { key: "nutrition", label: "营养数据", defaultSelected: false },
       ],
     },
   ],
   "weekly-report": [
     {
-      groupName: "核心字段",
+      groupName: "基本信息",
       required: true,
       fields: [
-        { key: "periodRange", label: "报告周期", defaultSelected: true },
+        { key: "periodRange", label: "统计周期", defaultSelected: true },
         { key: "generatedAt", label: "生成时间", defaultSelected: true },
+        { key: "generatedBy", label: "生成人", defaultSelected: false },
       ],
     },
     {
-      groupName: "新增统计",
+      groupName: "统计数据",
       required: false,
       fields: [
-        { key: "newFormulasCount", label: "本周新增配方数", defaultSelected: true },
-        { key: "newMaterialsCount", label: "本周新增原料数", defaultSelected: true },
-        { key: "exportCount", label: "本周导出次数", defaultSelected: true },
-      ],
-    },
-    {
-      groupName: "排行榜",
-      required: false,
-      fields: [
-        { key: "topFormulas", label: "配方Top5", defaultSelected: true },
-        { key: "topMaterials", label: "原料消耗Top10", defaultSelected: false },
-      ],
-    },
-    {
-      groupName: "分析统计",
-      required: false,
-      fields: [
-        { key: "salesmanStats", label: "各业务员配方统计", defaultSelected: true },
-        { key: "formulaTypeRatio", label: "各类型配方占比", defaultSelected: false },
-      ],
-    },
-    {
-      groupName: "其他信息",
-      required: false,
-      fields: [
-        { key: "anomalyAlerts", label: "异常提醒", defaultSelected: false },
-        { key: "dataCutoffTime", label: "数据截止时间", defaultSelected: true },
-        { key: "generatedBy", label: "生成人", defaultSelected: true },
-        { key: "remark", label: "备注", defaultSelected: false },
+        { key: "newFormulasCount", label: "新增配方数", defaultSelected: true },
+        { key: "newMaterialsCount", label: "新增原料数", defaultSelected: true },
+        { key: "exportCount", label: "导出次数", defaultSelected: true },
+        { key: "topFormulas", label: "热门配方 TOP5", defaultSelected: false },
+        { key: "salesmanStats", label: "业务员统计", defaultSelected: false },
+        { key: "dataCutoffTime", label: "数据截止时间", defaultSelected: false },
       ],
     },
   ],
   "monthly-report": [
     {
-      groupName: "核心字段",
+      groupName: "基本信息",
       required: true,
       fields: [
-        { key: "periodRange", label: "报告周期", defaultSelected: true },
+        { key: "periodRange", label: "统计周期", defaultSelected: true },
         { key: "generatedAt", label: "生成时间", defaultSelected: true },
+        { key: "generatedBy", label: "生成人", defaultSelected: false },
       ],
     },
     {
-      groupName: "新增统计",
+      groupName: "统计数据",
       required: false,
       fields: [
-        { key: "newFormulasCount", label: "本月新增配方数", defaultSelected: true },
-        { key: "newMaterialsCount", label: "本月新增原料数", defaultSelected: true },
-        { key: "exportCount", label: "本月导出次数", defaultSelected: true },
-      ],
-    },
-    {
-      groupName: "排行榜",
-      required: false,
-      fields: [
-        { key: "topFormulas", label: "配方Top10", defaultSelected: true },
-        { key: "topMaterials", label: "原料消耗Top20", defaultSelected: false },
-      ],
-    },
-    {
-      groupName: "分析统计",
-      required: false,
-      fields: [
-        { key: "salesmanStats", label: "各业务员配方统计", defaultSelected: true },
-        { key: "formulaTypeRatio", label: "各类型配方占比", defaultSelected: true },
-        { key: "trendAnalysis", label: "月度趋势分析", defaultSelected: false },
-      ],
-    },
-    {
-      groupName: "其他信息",
-      required: false,
-      fields: [
-        { key: "anomalyAlerts", label: "异常提醒", defaultSelected: false },
-        { key: "dataCutoffTime", label: "数据截止时间", defaultSelected: true },
-        { key: "generatedBy", label: "生成人", defaultSelected: true },
-        { key: "remark", label: "备注", defaultSelected: false },
+        { key: "newFormulasCount", label: "新增配方数", defaultSelected: true },
+        { key: "newMaterialsCount", label: "新增原料数", defaultSelected: true },
+        { key: "exportCount", label: "导出次数", defaultSelected: true },
+        { key: "topFormulas", label: "热门配方 TOP5", defaultSelected: false },
+        { key: "salesmanStats", label: "业务员统计", defaultSelected: false },
+        { key: "dataCutoffTime", label: "数据截止时间", defaultSelected: false },
       ],
     },
   ],

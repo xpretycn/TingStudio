@@ -200,6 +200,7 @@
                 <t-icon name="chart-bar" />
                 营养成分（每100g）
                 <t-tag v-if="hasNutrition" theme="success" variant="light" size="small" shape="round">已录入</t-tag>
+                <NutritionSourceTag v-if="hasNutrition" :source-type="nutritionSourceType" size="small" />
               </h3>
             </div>
             <div class="zone-content">
@@ -316,6 +317,7 @@ import { MessagePlugin } from 'tdesign-vue-next';
 import type { FormInstanceFunctions, FormRule } from 'tdesign-vue-next';
 import type { Material, UpdateResult } from '@/api/material';
 import NutritionExcelImport from '@/components/NutritionExcelImport.vue';
+import NutritionSourceTag from '@/components/nutrition/NutritionSourceTag.vue';
 
 const router = useRouter();
 const route = useRoute();
@@ -462,6 +464,7 @@ const nutritionMeta = reactive({
   dataSource: '', notes: '',
   confidence: 'medium' as 'high' | 'medium' | 'low',
 });
+const nutritionSourceType = ref<string>('manual');
 
 const confidenceOptions = [
   { label: '高（实验室检测）', value: 'high' },
@@ -616,6 +619,7 @@ const loadNutrition = async (materialId: string) => {
       if (res.dataSource) nutritionMeta.dataSource = res.dataSource;
       if (res.notes) nutritionMeta.notes = res.notes;
       if (res.confidence) nutritionMeta.confidence = res.confidence;
+      if (res.sourceType) nutritionSourceType.value = res.sourceType;
     }
   } catch {
     // ignore nutrition fetch failure

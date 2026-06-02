@@ -20,6 +20,9 @@ export interface MaterialNutrition {
   notes: string | null
   confidence: 'high' | 'medium' | 'low' | null
   updatedAt: string
+  fieldSources: Record<string, { sourceId: string; sourceType: string; sourceDetail: string }> | null
+  sourceType: 'manual' | 'tianapi' | 'seed' | 'ai' | 'excel_import' | 'other' | null
+  sourceDetail: string | null
 }
 
 interface FormulaNutritionResult {
