@@ -170,12 +170,13 @@
                 </template>
                 <t-button
                   v-if="nutritionData.length > 0"
-                  theme="default"
+                  theme="primary"
                   variant="text"
                   size="small"
-                  @click="showSourceCompare = !showSourceCompare"
+                  @click="goToSourceCompare"
                 >
-                  {{ showSourceCompare ? '收起来源对比 ▲' : '查看所有来源 ▼' }}
+                  <template #icon><t-icon name="fullscreen" /></template>
+                  打开对比页
                 </t-button>
               </div>
             </div>
@@ -375,6 +376,10 @@ const nutritionMeta = reactive({
 const nutritionFieldSources = ref<Record<string, { sourceId: string; sourceType: string; sourceDetail: string }> | null>(null);
 const nutritionSourceType = ref<string>('manual');
 const showSourceCompare = ref(false);
+
+function goToSourceCompare() {
+  router.push(`/materials/${route.params.id}/nutrition-sources`);
+}
 
 const confidenceMap: Record<string, { label: string; theme: 'success' | 'warning' | 'default'; }> = {
   high: { label: '高可信度', theme: 'success' },

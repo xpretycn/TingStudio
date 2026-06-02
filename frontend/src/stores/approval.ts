@@ -2,6 +2,7 @@ import { ref } from "vue"
 import { defineStore } from "pinia"
 import { approvalApi, type ApprovalItem, type PendingReviewItem, type ReviewedItem } from "@/api/approval"
 import { materialApi, type Material } from "@/api/material"
+import { useAuthStore } from "@/stores/auth"
 
 export interface MyMaterialItem {
   id: string
@@ -76,6 +77,12 @@ export const useApprovalStore = defineStore("approval", () => {
   }
 
   async function fetchPendingReviews(params?: { page?: number; pageSize?: number; keyword?: string }) {
+    if (useAuthStore().user?.role !== "admin") {
+      pendingReviews.value = []
+      pendingCount.value = 0
+      pendingTotal.value = 0
+      return
+    }
     loading.value = true
     try {
       const page = params?.page ?? pendingPage.value
@@ -123,6 +130,11 @@ export const useApprovalStore = defineStore("approval", () => {
   }
 
   async function fetchMaterialPendingReviews(params?: { page?: number; pageSize?: number; keyword?: string }) {
+    if (useAuthStore().user?.role !== "admin") {
+      materialPendingReviews.value = []
+      materialPendingCount.value = 0
+      return
+    }
     try {
       const page = params?.page ?? materialPendingPage.value
       const pageSize = params?.pageSize ?? materialPendingPageSize.value

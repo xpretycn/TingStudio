@@ -40,6 +40,12 @@ vi.mock("@/api/version", () => ({
   },
 }));
 
+vi.mock("@/stores/auth", () => ({
+  useAuthStore: vi.fn(() => ({
+    user: { id: "u-admin", username: "admin", role: "admin" },
+  })),
+}));
+
 describe("useVersionStore", () => {
   let store: ReturnType<typeof useVersionStore>;
 

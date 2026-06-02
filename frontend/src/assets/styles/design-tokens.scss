@@ -32,6 +32,7 @@ $text-placeholder: #d4c5d0; // 占位符
 $text-white: #ffffff;
 $text-white-80: rgba(255, 255, 255, 0.8);
 $text-white-60: rgba(255, 255, 255, 0.6);
+$text-on-primary: #ffffff; // 品牌色背景上的文字
 
 // 1.4 边框色
 $border-color: #e4e7ed; // 主要边框
@@ -43,6 +44,9 @@ $color-warning: #f0a040;
 $color-danger: #e34d59;
 $color-info: #1890ff;
 $color-info-dark: #3da1ff;
+
+// 语义状态背景色
+$bg-warn-light: #fff7e6;
 
 // 1.6 语义装饰色
 $color-blush: #ffb5c2; // 腮红装饰
@@ -69,6 +73,15 @@ $font-family:
   "Helvetica Neue",
   Arial,
   sans-serif;
+
+$font-family-mono:
+  ui-monospace,
+  SFMono-Regular,
+  "SF Mono",
+  Menlo,
+  Consolas,
+  "Liberation Mono",
+  monospace;
 
 $font-size-display: 28px;
 $font-size-h1: 24px;

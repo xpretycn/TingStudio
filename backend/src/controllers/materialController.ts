@@ -517,13 +517,15 @@ export async function publishMaterial(req: any, res: Response) {
 
 export async function getMaterialPendingReviews(req: any, res: Response) {
   try {
-    const user = req.user;
-
-    if (user.role !== "admin") {
-      res.status(403).json({
-        success: false,
-        error: { message: "仅管理员可查看待审批列表", code: "FORBIDDEN" },
-      });
+    if (req.user.role !== "admin") {
+      res.json(
+        successWithPagination(
+          [],
+          0,
+          Number(req.query.page) || 1,
+          Number(req.query.pageSize) || 20,
+        ),
+      );
       return;
     }
 

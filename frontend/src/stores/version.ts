@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { versionApi } from '@/api/version'
 import type { FormulaVersion, MaterialUpdatesResult, VersionReviewLog, VersionCompareResult } from '@/api/version'
+import { useAuthStore } from '@/stores/auth'
 
 export const useVersionStore = defineStore('version', () => {
   const versions = ref<FormulaVersion[]>([])
@@ -109,6 +110,9 @@ export const useVersionStore = defineStore('version', () => {
   }
 
   const fetchPendingReviews = async (params?: { page?: number; pageSize?: number; keyword?: string }) => {
+    if (useAuthStore().user?.role !== 'admin') {
+      return { success: false, message: '仅管理员可查看待审核列表' }
+    }
     loading.value = true
     try {
       const res = await versionApi.getPendingReview(params)

@@ -79,13 +79,15 @@ http.interceptors.response.use(
     const label = error.config?._logLabel || "";
     
     if (status === 401) {
-      removeToken();
-      clearUser();
-      const target = window.top || window;
-      if (!target.location.pathname.startsWith("/login")) {
-        target.location.href = "/login";
+      if (!error.config?._silent) {
+        removeToken();
+        clearUser();
+        const target = window.top || window;
+        if (!target.location.pathname.startsWith("/login")) {
+          target.location.href = "/login";
+        }
+        MessagePlugin.error("登录已过期，请重新登录");
       }
-      MessagePlugin.error("登录已过期，请重新登录");
     } else if (status === 403) {
       if (!error.config?._silent) {
         MessagePlugin.warning("权限不足，无法访问该资源");

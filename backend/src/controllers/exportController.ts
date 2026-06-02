@@ -243,7 +243,14 @@ export async function getExportConfig(req: Request, res: Response) {
   try {
     const role = (req as { user?: { userId: string; role: string } }).user?.role ?? "";
     if (role !== "admin") {
-      res.status(403).json({ success: false, error: { message: "无权限访问", code: "FORBIDDEN" } });
+      res.json(
+        success([
+          { configKey: "default_export_format", configValue: "excel", configType: "string", description: "默认导出格式", updatedBy: "", updatedAt: "" },
+          { configKey: "export_rate_limit", configValue: "10", configType: "number", description: "每小时最大导出次数", updatedBy: "", updatedAt: "" },
+          { configKey: "file_naming_pattern", configValue: "{type}_{category}_{date}", configType: "string", description: "文件命名模式", updatedBy: "", updatedAt: "" },
+          { configKey: "auto_delete_days", configValue: "30", configType: "number", description: "导出文件自动删除天数", updatedBy: "", updatedAt: "" },
+        ]),
+      );
       return;
     }
     const result = await exportService.getConfig();
@@ -258,7 +265,7 @@ export async function updateExportConfig(req: Request, res: Response) {
   try {
     const role = (req as { user?: { userId: string; role: string } }).user?.role ?? "";
     if (role !== "admin") {
-      res.status(403).json({ success: false, error: { message: "无权限访问", code: "FORBIDDEN" } });
+      res.json(success({ updatedCount: 0 }));
       return;
     }
     const userId = (req as { user?: { userId: string; role: string } }).user?.userId ?? "";

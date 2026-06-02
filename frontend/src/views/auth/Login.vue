@@ -173,6 +173,19 @@
             </div>
           </t-form-item>
 
+          <t-form-item v-if="formError">
+            <transition name="error-fade">
+              <div class="form-error" data-testid="login-error">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="8" x2="12" y2="12" />
+                  <line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg>
+                <span>{{ formError }}</span>
+              </div>
+            </transition>
+          </t-form-item>
+
           <t-form-item>
             <t-button type="submit" theme="primary" size="large" block :loading="loading" class="cute-btn"
               data-testid="login-btn">
@@ -195,7 +208,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from "vue";
+import { ref, reactive, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
 import { MessagePlugin } from "tdesign-vue-next";
@@ -209,6 +222,7 @@ const formRef = ref<FormInstanceFunctions>();
 const loading = ref(false);
 const isTyping = ref(false);
 const showPassword = ref(false);
+const formError = ref("");
 
 const formData = reactive({
   username: "",
@@ -226,9 +240,17 @@ const rules: Record<string, FormRule[]> = {
   ],
 };
 
+watch(
+  () => [formData.username, formData.password],
+  () => {
+    if (formError.value) formError.value = "";
+  },
+);
+
 const handleSubmit = async ({ validateResult }: { validateResult: boolean | Record<string, unknown>[] }) => {
   if (validateResult === true) {
     loading.value = true;
+    formError.value = "";
     try {
       const result = await authStore.login({
         username: formData.username,
@@ -238,7 +260,7 @@ const handleSubmit = async ({ validateResult }: { validateResult: boolean | Reco
         MessagePlugin.success("登录成功啦~ 欢迎回来！");
         router.push("/");
       } else {
-        MessagePlugin.error(result.message || "登录失败了，再试试吧~");
+        formError.value = result.message || "登录失败了，再试试吧~";
       }
     } finally {
       loading.value = false;
@@ -658,6 +680,50 @@ const handleSubmit = async ({ validateResult }: { validateResult: boolean | Reco
   &:hover {
     color: var(--color-text-secondary);
   }
+}
+
+// ───── Inline Form Error ─────
+.form-error {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2-5) var(--space-3);
+  border-radius: 12px;
+  background: rgba(227, 77, 89, 0.08);
+  border: 1px solid rgba(227, 77, 89, 0.2);
+  color: var(--color-danger, #e34d59);
+  font-size: 13px;
+  line-height: 1.5;
+  animation: errorShake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+
+  svg {
+    flex-shrink: 0;
+    color: var(--color-danger, #e34d59);
+  }
+
+  span {
+    flex: 1;
+    word-break: break-word;
+  }
+}
+
+.error-fade-enter-active,
+.error-fade-leave-active {
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.error-fade-enter-from,
+.error-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
+}
+
+@keyframes errorShake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-4px); }
+  40% { transform: translateX(4px); }
+  60% { transform: translateX(-3px); }
+  80% { transform: translateX(2px); }
 }
 
 // ───── Button ─────

@@ -71,7 +71,7 @@ export async function deleteSource(req: AuthRequest, res: Response) {
   try {
     const { materialId, sourceId } = req.params;
     if (req.user.role !== "admin") {
-      res.status(403).json({ success: false, message: "仅管理员可删除来源数据" });
+      res.json(success(null, "非管理员，跳过删除操作"));
       return;
     }
     const result = await softDeleteNutritionSource(sourceId, materialId);
@@ -91,7 +91,7 @@ export async function setAuthoritative(req: AuthRequest, res: Response) {
     const { materialId } = req.params;
     const { fieldSelections } = req.body;
     if (req.user.role !== "admin") {
-      res.status(403).json({ success: false, message: "仅管理员可设定权威数据" });
+      res.json(success(null, "非管理员，跳过设定操作"));
       return;
     }
     const result = await setAuthoritativeFromSources(materialId, fieldSelections, req.user.userId);
@@ -146,7 +146,7 @@ export async function enrichNutrition(req: AuthRequest, res: Response) {
 export async function bulkEnrichNutritionHandler(req: AuthRequest, res: Response) {
   try {
     if (req.user.role !== "admin") {
-      res.status(403).json({ success: false, message: "仅管理员可批量补全" });
+      res.json(success({ successCount: 0, failedCount: 0 }, "非管理员，跳过批量补全操作"));
       return;
     }
     if (!isSmartFetchAllowed()) {

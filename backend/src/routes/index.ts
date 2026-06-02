@@ -26,6 +26,7 @@ import { permissionRoutes } from "./permissions.js";
 import { userRoutes } from "./users.js";
 import { dbRoutes } from "./db.js";
 import nutritionSourceRoutes from "./nutritionSource.js";
+import nutritionSourceBatchRoutes from "./nutritionSourceBatch.js";
 
 export function createAppRouter(): Router {
   const router = Router();
@@ -38,6 +39,7 @@ export function createAppRouter(): Router {
   router.use("/exports", exportRoutes);
   router.use("/nutrition", nutritionRoutes);
   router.use("/nutrition", nutritionSourceRoutes);
+  router.use("/nutrition", nutritionSourceBatchRoutes);
   router.use("/import", excelImportRoutes);
   router.use("/ai", aiRoutes);
   router.use("/agent", agentRouter);

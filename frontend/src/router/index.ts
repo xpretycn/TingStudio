@@ -81,6 +81,12 @@ const router = createRouter({
           meta: { title: "版本对比", hideHeader: true },
         },
         {
+          path: "materials/:id/nutrition-sources",
+          name: "NutritionSourcesCompare",
+          component: () => import(/* webpackPrefetch: true */ "@/views/materials/NutritionSourcesCompare.vue"),
+          meta: { title: "营养数据来源对比", hideHeader: true },
+        },
+        {
           path: "formulas/compare",
           name: "FormulaCompare",
           component: () => import(/* webpackPrefetch: true */ "@/views/formulas/FormulaCompare.vue"),

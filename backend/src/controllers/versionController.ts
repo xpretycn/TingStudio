@@ -415,7 +415,12 @@ export async function rejectVersion(req: any, res: Response) {
 export async function getPendingReviews(req: any, res: Response) {
   try {
     if (req.user.role !== 'admin') {
-      res.status(403).json({ success: false, error: { message: '仅管理员可查看待审核列表', code: 'FORBIDDEN' } })
+      res.json(
+        success({
+          list: [],
+          pagination: { page: 1, pageSize: Number(req.query.pageSize) || 20, total: 0, totalPages: 0 },
+        }),
+      )
       return
     }
 

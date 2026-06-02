@@ -39,10 +39,10 @@ export interface UserPreferences {
 
 export const authApi = {
   login(params: LoginParams) {
-    return http.post<unknown, { user: UserInfo; token: string }>('/auth/login', params)
+    return http.post<unknown, { user: UserInfo; token: string }>('/auth/login', params, { _silent: true } as any)
   },
   register(params: RegisterParams) {
-    return http.post<unknown, { user: UserInfo; token: string }>('/auth/register', params)
+    return http.post<unknown, { user: UserInfo; token: string }>('/auth/register', params, { _silent: true } as any)
   },
   getMe() {
     return http.get<unknown, UserInfo>('/auth/me')

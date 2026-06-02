@@ -5,6 +5,14 @@ import type { UserInfo, LoginParams, RegisterParams, UpdateProfileParams, Change
 import { usePreferencesStore } from '@/stores/preferences'
 import { useThemeStore } from '@/stores/theme'
 
+function extractErrorMessage(error: unknown, fallback: string): string {
+  if (error && typeof error === "object") {
+    const err = error as { response?: { data?: { message?: string; error?: { message?: string } } }; message?: string }
+    return err.response?.data?.message || err.response?.data?.error?.message || err.message || fallback
+  }
+  return fallback
+}
+
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<UserInfo | null>(getCachedUser())
   const loading = ref(false)
@@ -55,7 +63,7 @@ export const useAuthStore = defineStore('auth', () => {
       await syncUserPreferences()
       return { success: true }
     } catch (error: unknown) {
-      return { success: false, message: error instanceof Error ? error.message : '登录失败' }
+      return { success: false, message: extractErrorMessage(error, '登录失败') }
     } finally {
       loading.value = false
     }
@@ -72,7 +80,7 @@ export const useAuthStore = defineStore('auth', () => {
       await syncUserPreferences()
       return { success: true }
     } catch (error: unknown) {
-      return { success: false, message: error instanceof Error ? error.message : '注册失败' }
+      return { success: false, message: extractErrorMessage(error, '注册失败') }
     } finally {
       loading.value = false
     }
