@@ -12,7 +12,7 @@
         <thead>
           <tr>
             <th class="col-nutrient">营养素</th>
-            <th class="col-value">主用值</th>
+            <th class="col-value col-value--auth">主用值</th>
             <th
               v-for="src in sources"
               :key="src.sourceId"
@@ -21,6 +21,15 @@
               <div class="source-th">
                 <t-icon :name="iconFor(src.sourceType)" size="14px" />
                 <span class="source-th-name">{{ typeLabel(src.sourceType) }}</span>
+                <t-tooltip
+                  v-if="isDemoSource(src.sourceType)"
+                  content="演示数据：当前未配置真实 API Key，所拉取的数据为本地 mock 兜底值，并非来自天行API 真实接口"
+                  placement="top"
+                >
+                  <t-tag size="small" theme="warning" variant="light" class="demo-tag">
+                    演示数据
+                  </t-tag>
+                </t-tooltip>
                 <t-tag size="small" variant="light" :theme="confidenceTheme(src.confidence)">
                   {{ confidenceLabel(src.confidence) }}
                 </t-tag>
@@ -65,7 +74,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import SourceDiffBadge from './SourceDiffBadge.vue'
-import { SOURCE_TYPE_SHORT_LABELS, SOURCE_TYPE_ICONS, CONFIDENCE_SHORT_LABELS, CONFIDENCE_THEMES } from '@/constants/sourceTypes'
+import { SOURCE_TYPE_SHORT_LABELS, SOURCE_TYPE_ICONS, CONFIDENCE_SHORT_LABELS, CONFIDENCE_THEMES, DEMO_SOURCE_TYPES } from '@/constants/sourceTypes'
 import type { SourceComparisonNutrient } from '@/api/nutritionSource'
 import type { NutritionSource } from '@/api/nutritionSource'
 
@@ -87,6 +96,10 @@ function confidenceLabel(c: string) {
 }
 function confidenceTheme(c: string): 'success' | 'warning' | 'default' {
   return CONFIDENCE_THEMES[c] ?? 'warning'
+}
+
+function isDemoSource(sourceType: string): boolean {
+  return DEMO_SOURCE_TYPES.has(sourceType)
 }
 
 function getValue(n: SourceComparisonNutrient, sourceId: string): number {
@@ -181,6 +194,10 @@ function formatAbsDiff(v: number, base: number) {
     background: var(--color-primary-bg);
     font-weight: $font-weight-semibold;
     color: var(--color-primary-deep);
+    // 主用值列左对齐：与"营养素"列对齐风格一致，便于跨列阅读数值
+    text-align: left;
+    // 视觉补偿：与右对齐数字保持一致的"重心"
+    padding-left: $space-5;
   }
 
   .col-source {
@@ -196,6 +213,12 @@ function formatAbsDiff(v: number, base: number) {
 
 .source-th-name {
   font-weight: $font-weight-semibold;
+}
+
+.demo-tag {
+  flex-shrink: 0;
+  // 演示数据标签：黄色系警告色，与可信度/类型徽章区分开
+  border: 1px dashed currentColor;
 }
 
 .cell-content {

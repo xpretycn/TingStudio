@@ -94,11 +94,19 @@ export async function enrichMaterialNutrition(
       continue;
     }
 
+    const sourceLabel = sourceType === "tianapi" ? "天行数据" : "种子库";
+    const dataSourceText = result.dataSource
+      ? `${result.dataSource}${result.dataVersion ? ` v${result.dataVersion}` : ""}`
+      : "";
+    const detailText = dataSourceText
+      ? `${sourceLabel}·${dataSourceText}·${result.rawName}`
+      : `${sourceLabel}-${result.rawName}`;
+
     const addResult = await addNutritionSource(
       materialId,
       sourceType,
       result.per100g,
-      `${sourceType === "tianapi" ? "天行数据" : "种子库"}-${result.rawName}`,
+      detailText,
       result.confidence,
       result.matchScore,
       undefined,
@@ -111,7 +119,7 @@ export async function enrichMaterialNutrition(
       found: true,
       matchScore: result.matchScore,
       confidence: result.confidence,
-      sourceDetail: `${sourceType === "tianapi" ? "天行数据" : "种子库"}-${result.rawName}`,
+      sourceDetail: detailText,
       per100g: result.per100g,
     });
     summary.totalFound++;

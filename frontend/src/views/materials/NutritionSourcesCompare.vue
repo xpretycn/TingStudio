@@ -51,14 +51,14 @@
       <div class="page-content">
         <div class="content-left">
           <SourceListPanel :sources="store.scoredSources" :active-id="activeSourceId"
-            :selected-ids="store.selectedSourceIds" :authoritative-source-id="authoritativeSourceId"
+            :selected-ids="store.selectedSourceIds" :authoritative-source-id="store.currentAuthoritativeSourceId"
             @select="handleSourceSelect" @toggle-select="handleToggleSelect" @clear-selection="store.clearSelection()"
             @filter-type-change="handleTypeFilterChange" />
         </div>
 
         <div class="content-right">
           <div v-if="radarSeries.length > 1" class="radar-section">
-            <SourceRadarCard :series="radarSeries" :indicators="radarIndicators" :height="240" />
+            <SourceRadarCard :series="radarSeries" :indicators="radarIndicators" :units="radarUnits" :height="320" />
           </div>
           <div class="view-tabs">
             <t-tabs :value="store.activeView" @change="handleViewChange">
@@ -96,9 +96,11 @@
           <div class="view-content">
             <Transition name="fade" mode="out-in">
               <div v-if="store.activeView === 'overview'" key="overview">
-                <SourceOverview :nutrients="store.comparison?.nutrients ?? null" :recommendation="store.recommendation"
-                  :recommendation-source-type="recommendationSourceType"
-                  :recommendation-source-detail="recommendationSourceDetail" :summary="store.summary"
+                <SourceOverview :nutrients="store.comparison?.nutrients ?? null"
+                  :recommend-candidates="store.recommendCandidates"
+                  :sources="store.sources"
+                  :active-authoritative-source-id="store.currentAuthoritativeSourceId"
+                  :summary="store.summary"
                   :can-apply="canEdit" :applying="applying" @drill-down="handleDrillDown"
                   @apply="handleApplyRecommendation" />
               </div>
@@ -174,15 +176,25 @@ const showSnapshotDialog = ref(false);
 const showShortcutHint = ref(true);
 
 const RADAR_FIELDS = [
-  { field: 'energy', label: '能量' },
-  { field: 'protein', label: '蛋白质' },
-  { field: 'fat', label: '脂肪' },
-  { field: 'carbohydrate', label: '碳水' },
-  { field: 'sodium', label: '钠' },
-  { field: 'fiber', label: '纤维' },
+  { field: 'energy', label: '能量', unit: 'kJ' },
+  { field: 'protein', label: '蛋白质', unit: 'g' },
+  { field: 'fat', label: '脂肪', unit: 'g' },
+  { field: 'carbohydrate', label: '碳水', unit: 'g' },
+  { field: 'sodium', label: '钠', unit: 'mg' },
+  { field: 'fiber', label: '纤维', unit: 'g' },
 ];
 
 const radarIndicators = computed(() => RADAR_FIELDS.map((f) => f.label));
+const radarUnits = computed(() => RADAR_FIELDS.map((f) => f.unit));
+
+const SOURCE_TYPE_NAME_MAP: Record<string, string> = {
+  manual: '手工录入',
+  tianapi: '天行API',
+  seed: '种子库',
+  ai: 'AI估算',
+  excel_import: 'Excel导入',
+  other: '其他',
+};
 
 const radarSeries = computed(() => {
   const sources = store.activeSources;
@@ -197,8 +209,9 @@ const radarSeries = computed(() => {
       const v = n?.sources.find((s) => s.sourceId === src.sourceId)?.value ?? 0;
       values.push(v);
     }
+    const typeName = SOURCE_TYPE_NAME_MAP[src.sourceType] ?? src.sourceType;
     return {
-      name: `${src.sourceType}#${idx + 1}`,
+      name: `${typeName} #${idx + 1}`,
       values,
     };
   });
@@ -234,26 +247,10 @@ const shortcutHintTimer = setTimeout(() => {
   showShortcutHint.value = false;
 }, 4000);
 
-const recommendationSourceType = computed(() => {
-  if (!store.recommendation) return undefined;
-  const found = store.scoredSources.find(s => s.sourceId === store.recommendation?.sourceId);
-  return found?.sourceType;
-});
-
-const recommendationSourceDetail = computed(() => {
-  if (!store.recommendation) return undefined;
-  const found = store.scoredSources.find(s => s.sourceId === store.recommendation?.sourceId);
-  return found?.sourceDetail;
-});
-
 const canEdit = computed(() => authStore.user?.role === 'admin');
 
 const canArchive = computed(() => {
   return authStore.user?.role === 'admin' || authStore.user?.role === 'formulist';
-});
-
-const authoritativeSourceId = computed(() => {
-  return store.recommendation?.sourceId ?? null;
 });
 
 const selectedScoredSources = computed(() => {
@@ -265,7 +262,7 @@ async function loadData() {
   store.resetForNewMaterial(materialId.value);
   await store.fetchAll(materialId.value);
   try {
-    const material = await materialStore.fetchMaterial(materialId.value);
+    const material = await materialStore.getMaterial(materialId.value);
     materialName.value = material?.name ?? '原料';
   } catch {
     materialName.value = '原料';
@@ -301,7 +298,7 @@ function handleExport(format: 'excel' | 'pdf') {
   store.exportAs(format);
 }
 
-async function handleApplyRecommendation(recommendation: ScoredSource) {
+async function handleApplyRecommendation(sourceId: string) {
   if (!canEdit.value) {
     MessagePlugin.warning('当前账号无权限切换主用源');
     return;
@@ -310,7 +307,7 @@ async function handleApplyRecommendation(recommendation: ScoredSource) {
   try {
     const result = await store.batchSetAuthoritative({
       strategy: 'best-deviation',
-      sourceIds: [recommendation.sourceId],
+      sourceIds: [sourceId],
     });
     if (result.success) {
       MessagePlugin.success('已应用推荐为主用值');
@@ -554,7 +551,8 @@ onUnmounted(() => {
   flex: 1;
   display: grid;
   grid-template-columns: 320px 1fr;
-  gap: $space-6;
+  // 左右栏间距调整为 18px（$space-4-5）
+  gap: $space-4-5;
   padding: $space-4 4px;
   min-height: 0;
   overflow: hidden;

@@ -11,6 +11,10 @@ export interface ScoredSource {
   recencyScore: number
   matchScoreNorm: number
   rank: number
+  /** 来源类型（与 getSourcesWithScores 保持一致） */
+  sourceType?: string
+  /** 来源详情描述（如"种子库-阿胶"） */
+  sourceDetail?: string | null
 }
 
 export interface SourceWithScore {
@@ -48,7 +52,7 @@ export const nutritionSourceBatchApi = {
     }>(`/nutrition/material/${materialId}/sources/recommendation`)
   },
 
-  batchSetAuthoritative(materialId: string, data: BatchStrategy) {
+  batchSetAuthoritative(materialId: string, data: { strategy: BatchStrategy; sourceIds?: string[]; fieldSelections?: Record<string, string> }) {
     return http.post<{
       materialId: string
       updatedFields: number

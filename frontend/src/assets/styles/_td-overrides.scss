@@ -50,7 +50,7 @@
   &--theme-default {
     border: 1.5px solid $brand-primary-lighter !important;
     color: $text-primary !important;
-    background: rgba(255, 255, 255, 0.9) !important;
+    background: var(--td-bg-color-container) !important;
 
     &:hover {
       border-color: $brand-primary !important;
@@ -269,7 +269,7 @@
 .btn-more {
   color: $text-primary !important;
   border-color: $border-color !important;
-  background: $overlay-white-90 !important;
+  background: var(--td-bg-color-container) !important;
 
   .t-button__icon {
     color: $text-primary !important;
@@ -367,7 +367,7 @@
 
   // Level 3 玻璃态 — 弹窗层级
   &__ctx {
-    background: rgba(255, 255, 255, 0.98) !important;
+    background: var(--td-bg-color-container) !important;
     backdrop-filter: blur(16px);
     border: 1.5px solid $overlay-pink-lighter-25;
     box-shadow: 0 4px 8px rgba(255, 107, 138, 0.08), 0 8px 24px rgba(255, 107, 138, 0.12);
@@ -380,7 +380,7 @@
   visibility: visible !important;
   opacity: 1 !important;
   color: var(--color-text-primary, #374151) !important;
-  background: rgba(255, 255, 255, 0.98) !important;
+  background: var(--td-bg-color-container) !important;
   border: 1.5px solid $overlay-pink-lighter-25;
   border-radius: $radius-xl !important;
   box-shadow: 0 4px 8px rgba(255, 107, 138, 0.08), 0 8px 24px rgba(255, 107, 138, 0.12);
@@ -398,7 +398,7 @@
   border: none;
 
   .t-collapse-panel__header {
-    background: rgba(255, 255, 255, 0.6);
+    background: var(--td-bg-color-secondarycontainer);
     border-radius: $radius-lg;
     padding: $space-3 $space-4;
     margin-bottom: $space-2;
@@ -406,7 +406,7 @@
     transition: all $transition-normal;
 
     &:hover {
-      background: rgba(255, 255, 255, 0.9);
+      background: var(--td-bg-color-container);
       border-color: rgba($brand-primary-lighter, 0.3);
     }
   }

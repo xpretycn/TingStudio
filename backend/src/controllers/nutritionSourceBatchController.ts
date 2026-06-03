@@ -31,13 +31,38 @@ async function loadSourcesForScoring(materialId: string): Promise<SourceScoreInp
 export async function getRecommendation(req: AuthRequest, res: Response) {
   try {
     const { materialId } = req.params;
-    const sources = await loadSourcesForScoring(materialId);
+    // 同时加载 sourceType / sourceDetail 等上下文信息，
+    // 避免 scoreSources 后只返回纯评分数据导致前端缺少"来源类型/详情"
+    const sourceRows = (await query(
+      "SELECT source_id, source_type, source_detail, confidence, created_at, match_score, is_active FROM material_nutrition_sources WHERE material_id = ? AND is_active = 1",
+      [materialId],
+    )).rows as DbRow[];
+
+    const sources: SourceScoreInput[] = sourceRows.map((r) => ({
+      sourceId: r.source_id as string,
+      sourceType: r.source_type as string,
+      sourceDetail: (r.source_detail as string) ?? null,
+      confidence: (r.confidence as "high" | "medium" | "low") ?? "medium",
+      createdAt: (r.created_at as string) ?? new Date().toISOString(),
+      matchScore: r.match_score != null ? Number(r.match_score) : null,
+      isActive: 1,
+    }));
+
     const ranked = scoreSources(sources);
-    const top = ranked[0] ?? null;
+    // 把 sourceType / sourceDetail 合并进排名结果
+    const enriched = ranked.map((r) => {
+      const ctx = sources.find((s) => s.sourceId === r.sourceId);
+      return {
+        ...r,
+        sourceType: ctx?.sourceType ?? "unknown",
+        sourceDetail: ctx?.sourceDetail ?? null,
+      };
+    });
+    const top = enriched[0] ?? null;
 
     res.json(success({
       materialId,
-      sources: ranked,
+      sources: enriched,
       recommendation: top,
     }));
   } catch (error: unknown) {
@@ -333,12 +358,13 @@ export async function exportSources(req: AuthRequest, res: Response) {
     };
 
     const safeName = (material.name as string).replace(/[\\/:*?"<>|\r\n]/g, "_").replace(/\.\./g, "_");
+    const asciiName = safeName.replace(/[^\x20-\x7E]/g, "_");
     if (format === "pdf") {
       const buf = await exportNutritionSourcesPdf(payload);
       res.setHeader("Content-Type", "application/pdf");
       res.setHeader(
         "Content-Disposition",
-        `attachment; filename="nutrition_sources_${safeName}.pdf"; filename*=UTF-8''${encodeURIComponent(`营养来源对比_${safeName}.pdf`)}`,
+        `attachment; filename="${asciiName}.pdf"; filename*=UTF-8''${encodeURIComponent(`营养来源对比_${safeName}.pdf`)}`,
       );
       res.send(buf);
     } else {
@@ -346,7 +372,7 @@ export async function exportSources(req: AuthRequest, res: Response) {
       res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
       res.setHeader(
         "Content-Disposition",
-        `attachment; filename="nutrition_sources_${safeName}.xlsx"; filename*=UTF-8''${encodeURIComponent(`营养来源对比_${safeName}.xlsx`)}`,
+        `attachment; filename="${asciiName}.xlsx"; filename*=UTF-8''${encodeURIComponent(`营养来源对比_${safeName}.xlsx`)}`,
       );
       res.send(buf);
     }
@@ -364,7 +390,7 @@ export async function getSourcesWithScores(req: AuthRequest, res: Response) {
   try {
     const { materialId } = req.params;
     const sourceRows = (await query(
-      "SELECT source_id, source_type, source_detail, confidence, match_score, notes, created_at, created_by, is_active FROM material_nutrition_sources WHERE material_id = ? ORDER BY created_at DESC",
+      "SELECT source_id, source_type, source_detail, confidence, match_score, notes, created_at, created_by, is_active FROM material_nutrition_sources WHERE material_id = ? AND is_active = 1 ORDER BY created_at DESC",
       [materialId],
     )).rows as DbRow[];
 

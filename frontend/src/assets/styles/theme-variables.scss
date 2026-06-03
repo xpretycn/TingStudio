@@ -473,6 +473,49 @@
   --shadow-elevation-2: 0 2px 4px rgba(0, 0, 0, 0.15), 0 4px 12px rgba(0, 0, 0, 0.2);
   --shadow-elevation-3: 0 4px 8px rgba(0, 0, 0, 0.18), 0 8px 24px rgba(0, 0, 0, 0.25);
   --shadow-elevation-4: 0 8px 16px rgba(0, 0, 0, 0.2), 0 16px 48px rgba(0, 0, 0, 0.3);
+
+  // ═══ TDesign 暗色适配（让 t-tabs/t-tag/t-input/t-card 等随主题切换）═══
+  // 背景层级：page < container < secondarycontainer < elevated
+  --td-bg-color-page: #1a1520;
+  --td-bg-color-container: #241e2b;
+  --td-bg-color-container-hover: #2d2535;
+  --td-bg-color-container-active: #3d3445;
+  --td-bg-color-secondarycontainer: #1f1925;
+  --td-bg-color-secondarycontainer-hover: #2d2535;
+  --td-bg-color-elevated: #2d2535;
+
+  // 文字
+  --td-text-color-primary: #e8dfe8;
+  --td-text-color-secondary: #b8aec0;
+  --td-text-color-placeholder: #6b5f70;
+  --td-text-color-disabled: #5a4f60;
+  --td-text-color-anti: #ffffff;
+  --td-text-color-success: #7bc67e;
+  --td-text-color-warning: #f0a040;
+  --td-text-color-error: #ff6b7a;
+
+  // 边框 / 描边
+  --td-component-stroke: #3d3445;
+  --td-component-border: #3d3445;
+
+  // 品牌色（取自 --color-primary，会被 4a/4b/4c/4d 品牌暗色块进一步覆盖）
+  --td-brand-color: var(--color-primary);
+  --td-brand-color-hover: var(--color-primary-light);
+  --td-brand-color-active: var(--color-primary-dark);
+  --td-brand-color-light: var(--color-primary-bg);
+  --td-brand-color-light-hover: var(--color-primary-bg);
+  --td-brand-color-disabled: var(--color-primary-lightest);
+
+  // 状态色
+  --td-success-color: #7bc67e;
+  --td-warning-color: #f0a040;
+  --td-error-color: #ff6b7a;
+  --td-success-color-1: #1f2d20;
+  --td-success-color-2: #1f2d20;
+  --td-warning-color-1: #2d2510;
+  --td-warning-color-2: #2d2510;
+  --td-error-color-1: #2d1518;
+  --td-error-color-2: #2d1518;
 }
 
 // ═══════════════════════════════════════════════════════════════

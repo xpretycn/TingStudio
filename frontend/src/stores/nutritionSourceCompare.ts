@@ -19,12 +19,48 @@ export interface SourceFilters {
   dateRange: [string, string]
 }
 
+/**
+ * 多数投票：根据 material_nutrition.field_sources_json 推断"当前主用来源 ID"。
+ * 27 个营养素字段中，出现频次最高的 sourceId 视为"当前主用"。
+ * - 返回 null 当无 fieldSources 数据或所有 sourceId 各只出现 1 次且不为单一 source
+ */
+function computeMajorityAuthoritative(
+  fieldSources: Record<string, { sourceId: string; sourceType: string; sourceDetail: string }> | undefined | null,
+): string | null {
+  if (!fieldSources) return null
+  const entries = Object.values(fieldSources)
+  if (entries.length === 0) return null
+  const counts = new Map<string, number>()
+  for (const e of entries) {
+    counts.set(e.sourceId, (counts.get(e.sourceId) ?? 0) + 1)
+  }
+  let maxId: string | null = null
+  let maxCount = 0
+  for (const [id, c] of counts) {
+    if (c > maxCount) {
+      maxCount = c
+      maxId = id
+    }
+  }
+  // 仅当该 sourceId 覆盖了超过 50% 的字段才认作主用，避免误判
+  if (maxCount / entries.length < 0.5) return null
+  return maxId
+}
+
 export const useNutritionSourceCompareStore = defineStore('nutritionSourceCompare', () => {
   const materialId = ref<string>('')
   const sources = ref<NutritionSource[]>([])
   const scoredSources = ref<SourceWithScore[]>([])
   const comparison = ref<SourceComparison | null>(null)
   const recommendation = ref<ScoredSource | null>(null)
+  /** top N 主用推荐候选（默认取前 3） */
+  const recommendCandidates = ref<ScoredSource[]>([])
+  /**
+   * 当前主用来源 ID：通过对 authoritative.fieldSources 做多数投票计算。
+   * 27 个营养素字段中如果 100% 来自同一个 sourceId，则该 sourceId 即为"当前主用"。
+   * 如果来自多个 source，则取出现频次最高者（"字段主用" source）。
+   */
+  const currentAuthoritativeSourceId = ref<string | null>(null)
   const loading = ref(false)
   const exportLoading = ref(false)
 
@@ -74,6 +110,8 @@ export const useNutritionSourceCompareStore = defineStore('nutritionSourceCompar
     scoredSources.value = []
     comparison.value = null
     recommendation.value = null
+    recommendCandidates.value = []
+    currentAuthoritativeSourceId.value = null
     selectedSourceIds.value = []
     activeView.value = 'overview'
     selectedNutrientField.value = null
@@ -99,6 +137,12 @@ export const useNutritionSourceCompareStore = defineStore('nutritionSourceCompar
       scoredSources.value = scoredRes.sources
       comparison.value = compareRes
       recommendation.value = recommendRes?.recommendation ?? null
+      // 多数投票：计算 currentAuthoritativeSourceId
+      currentAuthoritativeSourceId.value = computeMajorityAuthoritative(compareRes?.authoritative?.fieldSources)
+      // 取后端返回的 top 候选，默认 3 个；后端若未排序则按 totalScore 降序
+      const sortedCandidates = (recommendRes?.sources ?? []).slice()
+      sortedCandidates.sort((a, b) => b.totalScore - a.totalScore)
+      recommendCandidates.value = sortedCandidates.slice(0, 3)
     } catch (error: unknown) {
       const msg = error instanceof Error ? error.message : '加载营养数据来源失败'
       MessagePlugin.error(msg)
@@ -141,10 +185,10 @@ export const useNutritionSourceCompareStore = defineStore('nutritionSourceCompar
     }
   }
 
-  async function batchSetAuthoritative(strategy: BatchStrategy) {
+  async function batchSetAuthoritative(payload: { strategy: BatchStrategy; sourceIds?: string[]; fieldSelections?: Record<string, string> }) {
     if (!materialId.value) return { success: false, message: '原料ID为空' }
     try {
-      const result = await nutritionSourceBatchApi.batchSetAuthoritative(materialId.value, strategy)
+      const result = await nutritionSourceBatchApi.batchSetAuthoritative(materialId.value, payload)
       MessagePlugin.success('已批量设为主用值')
       await fetchAll(materialId.value)
       return { success: true, data: result }
@@ -219,6 +263,8 @@ export const useNutritionSourceCompareStore = defineStore('nutritionSourceCompar
     scoredSources,
     comparison,
     recommendation,
+    recommendCandidates,
+    currentAuthoritativeSourceId,
     loading,
     exportLoading,
     selectedSourceIds,

@@ -33,12 +33,10 @@
     </div>
 
     <SourceRecommendationCard
-      v-if="recommendation"
-      :recommendation="recommendation"
-      :source-type="recommendationSourceType"
-      :source-detail="recommendationSourceDetail"
-      :can-apply="canApply"
-      :applying="applying"
+      v-if="recommendCandidates.length > 0"
+      :candidates="recommendCandidates"
+      :sources="sources"
+      :active-authoritative-source-id="activeAuthoritativeSourceId"
       @apply="handleApply"
     />
 
@@ -59,14 +57,19 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import SourceRecommendationCard from './SourceRecommendationCard.vue'
-import type { SourceComparisonNutrient } from '@/api/nutritionSource'
+import type { SourceComparisonNutrient, NutritionSource } from '@/api/nutritionSource'
 import type { ScoredSource } from '@/api/nutritionSourceBatch'
 
 const props = defineProps<{
   nutrients: SourceComparisonNutrient[] | null
-  recommendation: ScoredSource | null
-  recommendationSourceType?: string
-  recommendationSourceDetail?: string
+  /** 兼容旧 API：仅展示 top 1 推荐（已弃用，推荐用 recommendCandidates） */
+  recommendation?: ScoredSource | null
+  /** 推荐候选 top N（按 totalScore 降序） */
+  recommendCandidates: ScoredSource[]
+  /** 全量 source 列表，用于展示更多上下文 */
+  sources: NutritionSource[]
+  /** 当前主用来源 ID */
+  activeAuthoritativeSourceId?: string | null
   summary: {
     totalSources: number
     totalNutrients: number
@@ -80,7 +83,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'drill-down', field: string): void
-  (e: 'apply', recommendation: ScoredSource): void
+  (e: 'apply', sourceId: string): void
 }>()
 
 const CORE_FIELDS = ['energy', 'protein', 'fat', 'carbohydrate', 'sodium']
@@ -139,8 +142,9 @@ const metricCards = computed(() => {
   ]
 })
 
-function handleApply(recommendation: ScoredSource) {
-  emit('apply', recommendation)
+function handleApply(sourceId: string) {
+  // 转发 sourceId 给父组件，由父组件调用 store.batchSetAuthoritative
+  emit('apply', sourceId)
 }
 </script>
 

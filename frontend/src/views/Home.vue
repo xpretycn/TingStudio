@@ -1087,13 +1087,13 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
-  background: $bg-container;
+  background: var(--color-bg-container);
   border-radius: 0;
   position: relative;
   overflow: visible;
   z-index: 2;
-  border-right: 1px solid #F1F5F9; // slate-100 — 匹配参考设计 aside 右边框
-  box-shadow: $shadow-elevation-1;
+  border-right: 1px solid var(--color-border-light);
+  box-shadow: var(--shadow-elevation-1);
   transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
     min-width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
     max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
@@ -1709,7 +1709,7 @@ onMounted(async () => {
       font-weight: 500;
 
       &:hover {
-        background: $bg-container;
+        background: var(--color-bg-container);
         color: $text-primary;
       }
 
@@ -1952,7 +1952,7 @@ onMounted(async () => {
       display: flex;
       align-items: center;
       justify-content: center;
-      background: #fff;
+      background: var(--color-bg-container);
       border: 1px solid $border-color-light;
       color: $text-secondary; // slate-600 ≈ var(--color-text-secondary)
       cursor: pointer;
@@ -2003,7 +2003,7 @@ onMounted(async () => {
       cursor: pointer;
       padding: var(--space-1-5) 16px var(--space-1-5) var(--space-1-5); // p-1.5 pr-4 → var(--space-1-5) 16px
       border-radius: 9999px; // rounded-full / pill shape
-      background: #fff;
+      background: var(--color-bg-container);
       border: 1px solid $border-color-light;
       box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05); // shadow-sm
       transition: all $transition-normal;

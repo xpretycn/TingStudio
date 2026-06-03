@@ -76,6 +76,9 @@ export async function getNutritionSourcesCompare(materialId: string): Promise<Re
   const authoritativePer100g = authoritativeRow ? normalizePer100g(safeJsonParse(authoritativeRow.per_100g_json as string, {})) : {};
   const authoritativeSourceType = (authoritativeRow?.source_type as string) || "manual";
   const authoritativeSourceDetail = (authoritativeRow?.source_detail as string) || null;
+  const authoritativeFieldSources = authoritativeRow
+    ? safeJsonParse((authoritativeRow.field_sources_json as string) ?? "{}", {})
+    : {};
 
   const nutrients = NUTRIENT_FIELDS.map((field) => {
     const label = (NUTRIENT_LABELS as Record<string, string>)[field] || field;
@@ -125,6 +128,7 @@ export async function getNutritionSourcesCompare(materialId: string): Promise<Re
       sourceType: authoritativeSourceType,
       sourceDetail: authoritativeSourceDetail,
       per100g: authoritativePer100g,
+      fieldSources: authoritativeFieldSources,
     },
     nutrients,
     summary: {
@@ -234,17 +238,52 @@ export async function setAuthoritativeFromSources(
 
   const compositeSourceType = sourceTypes.size === 1 ? [...sourceTypes][0] : "composite";
 
+  // 从各字段来源提取"标准数据来源"标识（如《中国食物成分表》v1.0）
+  // fieldSources 中每个值包含 {sourceId, sourceType, sourceDetail}
+  const sourceDetailList: string[] = [];
+  const seenSourceIds = new Set<string>();
+  for (const fs of Object.values(fieldSources)) {
+    const f = fs as { sourceId: string; sourceType: string; sourceDetail: string | null };
+    if (!seenSourceIds.has(f.sourceId)) {
+      seenSourceIds.add(f.sourceId);
+      // 优先从 sourceDetail 中提取《xxx》格式的标准来源
+      const detail = f.sourceDetail || "";
+      const standardMatch = detail.match(/《[^》]+》/g);
+      if (standardMatch && standardMatch.length > 0) {
+        const std = standardMatch[standardMatch.length - 1];
+        const versionMatch = detail.match(/v\d+(\.\d+)*/i);
+        sourceDetailList.push(versionMatch ? `${std} ${versionMatch[0]}` : std);
+      } else {
+        // 回退到 sourceType 映射
+        const fallbackMap: Record<string, string> = {
+          seed: "《中国食物成分表》 v1.0",
+          tianapi: "天眼查营养数据",
+          excel_import: "Excel 外部数据",
+          ai: "AI 估算",
+          manual: "手工录入",
+        };
+        sourceDetailList.push(fallbackMap[f.sourceType] || f.sourceType);
+      }
+    }
+  }
+  // 组装最终的 source_detail 和 data_source
+  const compositeSourceDetail = sourceDetailList.length > 0
+    ? (sourceDetailList.length === 1
+        ? sourceDetailList[0]
+        : `多源组合：${sourceDetailList.join("、")}`)
+    : `由 ${updatedFields} 个字段组合`;
+
   if (existing) {
     await query(
-      `UPDATE material_nutrition SET per_100g_json = ?, field_sources_json = ?, source_type = ?, source_detail = ?, last_updated = ? WHERE material_id = ? AND is_latest = 1`,
-      [JSON.stringify(newPer100g), JSON.stringify(fieldSources), compositeSourceType, `由 ${updatedFields} 个字段组合`, now(), materialId],
+      `UPDATE material_nutrition SET per_100g_json = ?, field_sources_json = ?, source_type = ?, source_detail = ?, data_source = ?, last_updated = ? WHERE material_id = ? AND is_latest = 1`,
+      [JSON.stringify(newPer100g), JSON.stringify(fieldSources), compositeSourceType, compositeSourceDetail, compositeSourceDetail, now(), materialId],
     );
   } else {
     const nutritionId = generateId();
     await query(
       `INSERT INTO material_nutrition (nutrition_id, material_id, per_100g_json, data_version, data_source, notes, confidence, last_updated, material_version, is_latest, field_sources_json, source_type, source_detail, created_at, created_by)
        VALUES (?, ?, ?, '1.0', ?, NULL, 'medium', ?, 1, 1, ?, ?, ?, ?, ?)`,
-      [nutritionId, materialId, JSON.stringify(newPer100g), compositeSourceType, now(), JSON.stringify(fieldSources), compositeSourceType, `由 ${updatedFields} 个字段组合`, now(), userId],
+      [nutritionId, materialId, JSON.stringify(newPer100g), compositeSourceDetail, now(), JSON.stringify(fieldSources), compositeSourceType, compositeSourceDetail, now(), userId],
     );
   }
 

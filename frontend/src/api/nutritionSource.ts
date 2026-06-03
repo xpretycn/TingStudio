@@ -37,6 +37,8 @@ export interface SourceComparison {
     sourceType: string
     sourceDetail: string | null
     per100g: Record<string, number>
+    /** 主用值各营养素字段来自哪个 sourceId —— 用于前端 majority vote 算出"当前主用来源 ID" */
+    fieldSources?: Record<string, { sourceId: string; sourceType: string; sourceDetail: string }>
   }
   nutrients: SourceComparisonNutrient[]
   summary: {

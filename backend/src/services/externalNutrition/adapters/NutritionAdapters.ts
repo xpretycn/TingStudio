@@ -9,6 +9,10 @@ export interface ExternalNutritionResult {
   rawName: string;
   confidence: "high" | "medium" | "low";
   matchScore: number;
+  /** 标准来源名称（如《中国食物成分表》v1.0） */
+  dataSource?: string;
+  /** 数据版本号 */
+  dataVersion?: string;
 }
 
 export interface NutritionSourceAdapter {
@@ -258,6 +262,8 @@ export class SeedDataAdapter implements NutritionSourceAdapter {
             rawName: seed.aliases[0],
             confidence: "high",
             matchScore: 1.0,
+            dataSource: seed.source,
+            dataVersion: seed.dataVersion,
           };
         }
       }

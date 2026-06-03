@@ -193,7 +193,10 @@ export function getThemeTokens(isDark: boolean, brand: BrandColor = "pink") {
   };
 }
 
-/** 获取 TDesign ConfigProvider 所需的品牌色 token */
+/** 获取 TDesign ConfigProvider 所需的品牌色 token
+ * 注：TDesign v1.x 不支持通过 globalConfig 切换暗色 token，
+ * 暗色适配由 theme-variables.scss 的 [data-theme="dark"] 覆盖 --td-* CSS 变量实现。
+ */
 export function getTDesignTokens(isDark: boolean, brand: BrandColor = "pink") {
   const palette = isDark ? darkBrandPalettes[brand] : brandColorPalettes[brand];
   return {

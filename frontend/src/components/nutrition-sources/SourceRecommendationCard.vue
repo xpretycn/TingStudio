@@ -1,153 +1,374 @@
 <template>
-  <section v-if="recommendation" class="recommendation-card">
-    <div class="card-header">
-      <div class="header-left">
-        <t-icon name="star-filled" class="header-icon" />
-        <span class="header-label">主用推荐</span>
-        <t-tag size="small" theme="primary" variant="light">
-          综合评分 {{ recommendation.totalScore }}
-        </t-tag>
-      </div>
-      <t-button
-        v-if="canApply"
-        theme="primary"
-        size="small"
-        :loading="applying"
-        @click="handleApply"
+  <div class="recommendation-card">
+    <div v-if="candidates.length === 0" class="recommendation-empty">
+      <t-empty description="暂无推荐结果，请先触发评分" size="small" />
+    </div>
+
+    <div v-else class="candidates-list">
+      <div
+        v-for="(c, idx) in candidates"
+        :key="c.sourceId"
+        class="candidate-item"
+        :class="{
+          'candidate-item--primary': idx === 0,
+          'candidate-item--authoritative': c.sourceId === activeAuthoritativeSourceId,
+        }"
       >
-        应用为主用
-      </t-button>
+        <div class="candidate-header">
+          <div class="candidate-header-left">
+            <span v-if="idx === 0" class="rank-badge rank-badge--gold" title="系统首选推荐">
+              <t-icon name="star-filled" size="12px" />
+              <span>推荐</span>
+            </span>
+            <span v-else class="rank-badge rank-badge--gray">#{{ idx + 1 }}</span>
+
+            <t-icon :name="iconFor(c.sourceType)" size="14px" />
+            <span class="candidate-type">{{ typeLabel(c.sourceType) }}</span>
+
+            <t-tooltip
+              v-if="isDemoSource(c.sourceType)"
+              content="演示数据：当前未配置真实 API Key"
+              placement="top"
+            >
+              <t-tag size="small" theme="warning" variant="light" class="demo-tag">演示</t-tag>
+            </t-tooltip>
+
+            <t-tag size="small" variant="light" :theme="confidenceTheme(c.confidence)">
+              {{ confidenceLabel(c.confidence) }}
+            </t-tag>
+
+            <span v-if="c.sourceId === activeAuthoritativeSourceId" class="current-authoritative-tag">
+              <t-icon name="check-circle-filled" size="12px" />
+              <span>当前主用</span>
+            </span>
+          </div>
+
+          <div class="candidate-score">
+            <span class="score-value">{{ c.totalScore.toFixed(1) }}</span>
+            <span class="score-label">综合分</span>
+          </div>
+        </div>
+
+        <div class="candidate-detail">
+          <span class="detail-label">来源详情:</span>
+          <span class="detail-text">{{ c.sourceDetail || '—' }}</span>
+        </div>
+
+        <div v-if="c.scoreBreakdown" class="candidate-breakdown">
+          <span
+            v-for="item in c.scoreBreakdown"
+            :key="item.label"
+            class="breakdown-chip"
+            :title="`${item.label}: ${item.score.toFixed(1)}/${item.maxScore}（${item.reason}）`"
+          >
+            <span class="chip-label">{{ item.label }}</span>
+            <span class="chip-score">{{ item.score.toFixed(1) }}</span>
+          </span>
+        </div>
+
+        <div class="candidate-actions">
+          <t-button
+            v-if="c.sourceId === activeAuthoritativeSourceId"
+            size="small"
+            theme="success"
+            variant="outline"
+            disabled
+          >
+            <template #icon>
+              <t-icon name="check-circle-filled" />
+            </template>
+            已是主用
+          </t-button>
+          <t-popconfirm
+            v-else
+            :content="confirmText(c, idx)"
+            placement="top-right"
+            :confirm-btn-props="{ theme: 'primary', content: '确认替换' }"
+            :cancel-btn-props="{ content: '取消' }"
+            @confirm="handleApply(c.sourceId)"
+          >
+            <t-button
+              size="small"
+              theme="primary"
+              :loading="applyingId === c.sourceId"
+            >
+              <template #icon>
+                <t-icon :name="idx === 0 ? 'check' : 'check-circle-filled'" />
+              </template>
+              {{ idx === 0 ? '一键应用为主用' : '应用此候选为主用' }}
+            </t-button>
+          </t-popconfirm>
+        </div>
+      </div>
     </div>
-    <div class="card-body">
-      <div class="info-row">
-        <span class="info-label">来源类型</span>
-        <span class="info-value">{{ typeLabel }}</span>
-      </div>
-      <div v-if="sourceDetail" class="info-row">
-        <span class="info-label">来源详情</span>
-        <span class="info-value">{{ sourceDetail }}</span>
-      </div>
-      <div class="info-row">
-        <span class="info-label">置信度</span>
-        <t-tag size="small" :theme="confidenceTheme" variant="light">
-          {{ confidenceLabel }}
-        </t-tag>
-      </div>
-      <div class="info-row">
-        <span class="info-label">评分依据</span>
-        <span class="info-value">
-          置信 {{ recommendation.confScore }} · 时效 {{ recommendation.recencyScore }} · 匹配 {{ recommendation.matchScoreNorm }}
-        </span>
-      </div>
-    </div>
-  </section>
-  <section v-else class="recommendation-card recommendation-card--empty">
-    <div class="empty-content">
-      <t-icon name="info-circle" size="20px" />
-      <span>暂无推荐来源</span>
-    </div>
-  </section>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { ref } from 'vue'
 import { MessagePlugin } from 'tdesign-vue-next'
-import { SOURCE_TYPE_LABELS, CONFIDENCE_LABELS, CONFIDENCE_THEMES } from '@/constants/sourceTypes'
-import type { ScoredSource } from '@/api/nutritionSourceBatch'
+import {
+  SOURCE_TYPE_LABELS,
+  SOURCE_TYPE_ICONS,
+  CONFIDENCE_LABELS,
+  CONFIDENCE_THEMES,
+  DEMO_SOURCE_TYPES,
+} from '@/constants/sourceTypes'
+import type { ScoredSource, NutritionSource } from '@/api/nutritionSourceBatch'
+import { useNutritionSourceCompareStore } from '@/stores/nutritionSourceCompare'
 
-const props = defineProps<{
-  recommendation: ScoredSource | null
-  sourceType?: string
-  sourceDetail?: string | null
-  canApply?: boolean
-  applying?: boolean
-}>()
+const store = useNutritionSourceCompareStore()
 
-const emit = defineEmits<{
-  (e: 'apply', recommendation: ScoredSource): void
-}>()
-
-const typeLabel = computed(() => {
-  const key = props.sourceType ?? ''
-  return SOURCE_TYPE_LABELS[key] ?? key ?? '未知'
+const props = withDefaults(defineProps<{
+  /** top N 主用推荐候选（按综合分降序） */
+  candidates: ScoredSource[]
+  /** 所有 source 列表，用于匹配 sourceId 显示信息 */
+  sources?: NutritionSource[]
+  /** 当前主用来源 ID */
+  activeAuthoritativeSourceId?: string | null
+}>(), {
+  sources: () => [],
+  activeAuthoritativeSourceId: null,
 })
 
-const confidenceLabel = computed(() => CONFIDENCE_LABELS[props.recommendation?.confidence ?? 'medium'] ?? '中可信')
-const confidenceTheme = computed(() => CONFIDENCE_THEMES[props.recommendation?.confidence ?? 'medium'] ?? 'warning')
+const emit = defineEmits<{
+  (e: 'apply', sourceId: string): void
+}>()
 
-function handleApply() {
-  if (!props.recommendation) {
-    MessagePlugin.warning('暂无推荐来源')
-    return
+const applyingId = ref<string | null>(null)
+
+function typeLabel(t: string): string {
+  return SOURCE_TYPE_LABELS[t] ?? t
+}
+
+function iconFor(t: string): string {
+  return SOURCE_TYPE_ICONS[t] ?? 'ellipsis'
+}
+
+function confidenceLabel(c: string): string {
+  return CONFIDENCE_LABELS[c] ?? c
+}
+
+function confidenceTheme(c: string): 'success' | 'warning' | 'default' {
+  return CONFIDENCE_THEMES[c] ?? 'warning'
+}
+
+function isDemoSource(t: string): boolean {
+  return DEMO_SOURCE_TYPES.has(t)
+}
+
+/**
+ * 二次确认文案：明确告知用户会发生什么
+ *  - 第 1 名："一键应用" → 强调系统推荐 + 替换全部营养素
+ *  - 第 2/3 名：列出与当前主用的差异
+ */
+function confirmText(c: ScoredSource, idx: number): string {
+  const typeText = typeLabel(c.sourceType)
+  if (idx === 0) {
+    return `将使用「${typeText}·${c.sourceDetail || ''}」作为主用值，覆盖 27 项营养素的当前数据，是否继续？`
   }
-  emit('apply', props.recommendation)
+  return `确定将主用值切换为「${typeText}·${c.sourceDetail || ''}」吗？将覆盖当前 27 项营养素。`
+}
+
+async function handleApply(sourceId: string) {
+  applyingId.value = sourceId
+  try {
+    // 使用 best-deviation 策略切换为该 source 的全量数据
+    const result = await store.batchSetAuthoritative({
+      strategy: 'best-deviation',
+      sourceIds: [sourceId],
+    })
+    if (result.success) {
+      MessagePlugin.success('已应用为主用值')
+      emit('apply', sourceId)
+    } else {
+      MessagePlugin.error(result.message ?? '应用失败')
+    }
+  } finally {
+    applyingId.value = null
+  }
 }
 </script>
 
 <style lang="scss" scoped>
 .recommendation-card {
-  background: linear-gradient(135deg, var(--color-primary-bg) 0%, $bg-container 100%);
-  border: 1px solid var(--color-primary-lighter);
-  border-radius: $radius-xl;
-  padding: $space-4 $space-5;
-
-  &--empty {
-    background: $bg-container-alt;
-    border-color: $border-color-light;
-  }
-}
-
-.card-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: $space-3;
-}
-
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: $space-2;
-}
-
-.header-icon {
-  color: var(--color-primary);
-  font-size: 18px;
-}
-
-.header-label {
-  font-size: $font-size-h3;
-  font-weight: $font-weight-semibold;
-  color: $text-primary;
-}
-
-.card-body {
   display: flex;
   flex-direction: column;
   gap: $space-2;
 }
 
-.info-row {
+.recommendation-empty {
+  padding: $space-4 0;
+}
+
+.candidates-list {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+}
+
+.candidate-item {
+  position: relative;
+  padding: $space-2-5 $space-3;
+  border: 1px solid $border-color-light;
+  border-radius: $radius-lg;
+  background: $bg-container;
+  transition: all 0.2s;
+
+  &:hover {
+    border-color: color-mix(in srgb, var(--color-primary) 40%, transparent);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+  }
+
+  &--primary {
+    border-color: var(--color-primary);
+    background: linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--color-primary-bg) 60%, transparent) 0%,
+      $bg-container 100%
+    );
+  }
+
+  &--authoritative {
+    border-left: 4px solid var(--color-primary);
+    padding-left: $space-2;
+  }
+}
+
+.candidate-header {
   display: flex;
   align-items: center;
-  gap: $space-3;
-  font-size: $font-size-body-sm;
+  justify-content: space-between;
+  gap: $space-2;
+  margin-bottom: $space-1-5;
 }
 
-.info-label {
-  color: $text-tertiary;
-  min-width: 72px;
+.candidate-header-left {
+  display: flex;
+  align-items: center;
+  gap: $space-1-5;
+  flex: 1;
+  min-width: 0;
+  flex-wrap: wrap;
 }
 
-.info-value {
+.candidate-type {
+  font-weight: $font-weight-semibold;
   color: $text-primary;
 }
 
-.empty-content {
+.demo-tag {
+  flex-shrink: 0;
+}
+
+.current-authoritative-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 1px 6px 1px 4px;
+  background: var(--color-primary);
+  color: $text-on-primary;
+  border-radius: $radius-pill;
+  font-size: 11px;
+  font-weight: $font-weight-semibold;
+}
+
+.rank-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 1px 6px 1px 4px;
+  border-radius: $radius-pill;
+  font-size: 11px;
+  font-weight: $font-weight-semibold;
+  flex-shrink: 0;
+
+  &--gold {
+    background: $color-warning;
+    color: $text-on-primary;
+  }
+
+  &--gray {
+    background: $bg-container-alt;
+    color: $text-secondary;
+  }
+}
+
+.candidate-score {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  line-height: 1.1;
+  flex-shrink: 0;
+}
+
+.score-value {
+  font-size: $font-size-h3;
+  font-weight: $font-weight-bold;
+  color: var(--color-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.score-label {
+  font-size: $font-size-caption;
+  color: $text-tertiary;
+}
+
+.candidate-detail {
   display: flex;
   align-items: center;
-  gap: $space-2;
-  color: $text-tertiary;
+  gap: $space-1;
   font-size: $font-size-body-sm;
+  color: $text-secondary;
+  margin-bottom: $space-1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.detail-label {
+  color: $text-tertiary;
+  flex-shrink: 0;
+}
+
+.detail-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.candidate-breakdown {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-1;
+  margin-bottom: $space-2;
+}
+
+.breakdown-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  background: $bg-container-alt;
+  border-radius: $radius-sm;
+  font-size: $font-size-caption;
+  cursor: help;
+}
+
+.chip-label {
+  color: $text-tertiary;
+}
+
+.chip-score {
+  color: $text-primary;
+  font-weight: $font-weight-semibold;
+  font-variant-numeric: tabular-nums;
+}
+
+.candidate-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: $space-1;
 }
 </style>

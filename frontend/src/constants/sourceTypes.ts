@@ -49,6 +49,13 @@ export const CONFIDENCE_THEMES: Record<string, "success" | "warning" | "default"
 export const VALID_STRATEGIES = ["best-deviation", "manual", "highest-confidence", "newest"] as const
 export type BatchStrategy = (typeof VALID_STRATEGIES)[number]
 
+/**
+ * 标记当前为"演示数据"的来源类型集合。
+ * 用于在 UI 上给用户明确的提示——这些来源的数据不是从真实外部接口拉取的，
+ * 而是来自本地 mock / seed JSON / 兜底数据，避免误以为来源于真实接口。
+ */
+export const DEMO_SOURCE_TYPES: ReadonlySet<string> = new Set(["tianapi"])
+
 export const SOURCE_TYPE_OPTIONS = [
   { value: "manual", label: "手工录入" },
   { value: "tianapi", label: "天行" },
