@@ -270,7 +270,7 @@ watch(
 .fish-name {
   font-size: $font-size-caption;
   font-weight: $font-weight-medium;
-  color: $text-primary;
+  color: var(--color-text-primary);
   max-width: 60px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -300,10 +300,10 @@ watch(
   position: absolute;
   width: 200px;
   padding: $space-3;
-  background: $bg-container;
+  background: var(--color-bg-container);
   border-radius: $radius-xl;
   box-shadow: $shadow-elevation-3;
-  border: 1px solid $border-color-light;
+  border: 1px solid var(--color-border-light);
   z-index: 20;
   display: flex;
   flex-direction: column;
@@ -320,7 +320,7 @@ watch(
 .info-name {
   font-size: $font-size-body-sm;
   font-weight: $font-weight-semibold;
-  color: $text-primary;
+  color: var(--color-text-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -328,7 +328,7 @@ watch(
 
 .info-version {
   font-size: $font-size-caption;
-  color: $text-tertiary;
+  color: var(--color-text-placeholder);
 }
 
 .info-nutrition {
@@ -336,7 +336,7 @@ watch(
   flex-direction: column;
   gap: 2px;
   padding: $space-2;
-  background: $bg-page;
+  background: var(--color-bg-page);
   border-radius: $radius-md;
 }
 
@@ -348,19 +348,19 @@ watch(
   line-height: 1.6;
 
   .nutrition-label {
-    color: $text-tertiary;
+    color: var(--color-text-placeholder);
   }
 
   .nutrition-value {
     font-weight: $font-weight-medium;
-    color: $text-secondary;
+    color: var(--color-text-regular);
     font-variant-numeric: tabular-nums;
   }
 }
 
 .info-price {
   font-size: $font-size-caption;
-  color: $text-secondary;
+  color: var(--color-text-regular);
   font-weight: $font-weight-medium;
 }
 

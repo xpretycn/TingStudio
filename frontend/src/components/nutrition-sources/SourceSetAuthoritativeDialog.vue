@@ -180,7 +180,7 @@ function handleConfirm() {
 .dialog-desc {
   margin: 0;
   font-size: $font-size-body-sm;
-  color: $text-secondary;
+  color: var(--color-text-secondary);
 
   strong {
     color: var(--color-primary-deep);
@@ -201,13 +201,13 @@ function handleConfirm() {
   align-items: center;
   gap: $space-2;
   padding: $space-2 $space-3;
-  background: $bg-container-alt;
+  background: var(--color-bg-container-alt);
   border-radius: $radius-md;
 }
 
 .mapping-field {
   font-size: $font-size-body-sm;
-  color: $text-primary;
+  color: var(--color-text-primary);
   font-weight: $font-weight-medium;
   min-width: 110px;
 }

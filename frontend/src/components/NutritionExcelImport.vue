@@ -317,7 +317,7 @@ export const NUTRIENT_UNITS: Record<string, string> = {
 
 .nutrition-excel-import {
   padding: $space-4;
-  background: $bg-container-alt;
+  background: var(--color-bg-container-alt);
   border-radius: $radius-md;
   margin-bottom: $space-4;
 }
@@ -329,7 +329,7 @@ export const NUTRIENT_UNITS: Record<string, string> = {
 .guide-content {
   margin-top: $space-2;
   font-size: $font-size-body-sm;
-  color: $text-regular;
+  color: var(--color-text-regular);
 
   p {
     margin: $space-1 0;
@@ -347,7 +347,7 @@ export const NUTRIENT_UNITS: Record<string, string> = {
 
   .result-summary {
     margin-bottom: $space-3;
-    background: $bg-container;
+    background: var(--color-bg-container);
 
     .summary-content {
       display: flex;

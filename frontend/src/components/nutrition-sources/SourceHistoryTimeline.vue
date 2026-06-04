@@ -70,9 +70,9 @@ function confidenceTheme(c: string): 'success' | 'warning' | 'default' {
 <style lang="scss" scoped>
 .history-timeline {
   padding: $space-5;
-  background: $bg-container;
+  background: var(--color-bg-container);
   border-radius: $radius-xl;
-  border: 1px solid $border-color-light;
+  border: 1px solid var(--color-border-light);
 }
 
 .timeline-header {
@@ -89,12 +89,12 @@ function confidenceTheme(c: string): 'success' | 'warning' | 'default' {
   margin: 0;
   font-size: $font-size-h3;
   font-weight: $font-weight-semibold;
-  color: $text-primary;
+  color: var(--color-text-primary);
 }
 
 .timeline-count {
   font-size: $font-size-caption;
-  color: $text-tertiary;
+  color: var(--color-text-placeholder);
 }
 
 .empty {
@@ -115,7 +115,7 @@ function confidenceTheme(c: string): 'success' | 'warning' | 'default' {
   top: 12px;
   bottom: 12px;
   width: 2px;
-  background: $border-color-light;
+  background: var(--color-border-light);
 }
 
 .timeline-item {
@@ -134,8 +134,8 @@ function confidenceTheme(c: string): 'success' | 'warning' | 'default' {
   width: 16px;
   height: 16px;
   border-radius: $radius-circle;
-  background: $bg-container;
-  border: 2px solid $border-color;
+  background: var(--color-bg-container);
+  border: 2px solid var(--color-border);
   flex-shrink: 0;
   position: relative;
   z-index: 1;
@@ -171,17 +171,17 @@ function confidenceTheme(c: string): 'success' | 'warning' | 'default' {
 .timeline-type {
   font-size: $font-size-body-sm;
   font-weight: $font-weight-semibold;
-  color: $text-primary;
+  color: var(--color-text-primary);
 }
 
 .timeline-time {
   font-size: $font-size-caption;
-  color: $text-tertiary;
+  color: var(--color-text-placeholder);
 }
 
 .timeline-detail {
   font-size: $font-size-body-sm;
-  color: $text-secondary;
+  color: var(--color-text-secondary);
   word-break: break-all;
 }
 
@@ -190,9 +190,9 @@ function confidenceTheme(c: string): 'success' | 'warning' | 'default' {
   align-items: center;
   gap: $space-1;
   font-size: $font-size-caption;
-  color: $text-tertiary;
+  color: var(--color-text-placeholder);
   padding: $space-1-5 $space-2;
-  background: $bg-container-alt;
+  background: var(--color-bg-container-alt);
   border-radius: $radius-xs;
 }
 </style>

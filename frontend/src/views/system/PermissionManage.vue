@@ -68,7 +68,7 @@ import UserManage from './UserManage.vue'
 
   &:hover {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    border-color: #cbd5e1;
+    border-color: var(--color-border);
     transform: translateY(-2px);
   }
 
@@ -77,7 +77,7 @@ import UserManage from './UserManage.vue'
     justify-content: space-between;
     align-items: center;
     padding: 20px 20px 12px;
-    border-bottom: 1px solid #f1f5f9;
+    border-bottom: 1px solid var(--color-border-light);
 
     .pm-card-title-group {
       display: flex;

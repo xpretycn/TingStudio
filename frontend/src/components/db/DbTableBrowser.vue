@@ -394,9 +394,9 @@ function highlightJson(jsonStr: string): string {
 }
 
 .browser-table-area {
-  background: $bg-container;
+  background: var(--color-bg-container);
   border-radius: $radius-2xl;
-  border: 1.5px solid $border-color-light;
+  border: 1.5px solid var(--color-border-light);
   box-shadow: $shadow-xs;
   overflow: hidden;
 
@@ -406,19 +406,19 @@ function highlightJson(jsonStr: string): string {
     }
 
     :deep(.t-table__header th) {
-      background: $bg-container-alt;
+      background: var(--color-bg-container-alt);
       font-weight: $font-weight-semibold;
-      color: $text-secondary;
+      color: var(--color-text-secondary);
       font-size: $font-size-caption;
     }
 
     :deep(.t-table__body td) {
       font-size: $font-size-body-sm;
-      color: $text-primary;
+      color: var(--color-text-primary);
     }
 
     :deep(.t-table__row:hover td) {
-      background: $bg-table-row-hover;
+      background: var(--color-bg-hover);
     }
   }
 
@@ -450,7 +450,7 @@ function highlightJson(jsonStr: string): string {
   align-items: center;
   justify-content: center;
   padding: $space-16 0;
-  color: $text-placeholder;
+  color: var(--color-text-placeholder);
   gap: $space-4;
 
   p {

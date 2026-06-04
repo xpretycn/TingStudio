@@ -199,7 +199,7 @@ watch(
   align-items: flex-start;
   gap: $space-3;
   padding: $space-3;
-  background: $bg-container-alt;
+  background: var(--color-bg-container-alt);
   border-radius: $radius-md;
   border: 1px solid transparent;
   cursor: pointer;
@@ -234,7 +234,7 @@ watch(
   &--primary { background: var(--color-primary-bg); color: var(--color-primary); }
   &--warning { background: $color-warning-light; color: $color-warning; }
   &--success { background: $color-success-light; color: $color-success; }
-  &--default { background: $bg-cool-gray; color: $text-secondary; }
+  &--default { background: var(--color-bg-hover); color: var(--color-text-secondary); }
 }
 
 .item-content {
@@ -255,12 +255,12 @@ watch(
 .item-action {
   font-size: $font-size-body;
   font-weight: $font-weight-semibold;
-  color: $text-primary;
+  color: var(--color-text-primary);
 }
 
 .item-time {
   font-size: $font-size-caption;
-  color: $text-tertiary;
+  color: var(--color-text-placeholder);
 }
 
 .item-meta {
@@ -268,7 +268,7 @@ watch(
   align-items: center;
   gap: $space-3;
   font-size: $font-size-caption;
-  color: $text-secondary;
+  color: var(--color-text-secondary);
 }
 
 .meta-operator,
@@ -280,9 +280,9 @@ watch(
 
 .item-note {
   font-size: $font-size-caption;
-  color: $text-secondary;
+  color: var(--color-text-secondary);
   padding: $space-1-5 $space-2;
-  background: $bg-container;
+  background: var(--color-bg-container);
   border-radius: $radius-xs;
   border-left: 2px solid var(--color-primary);
 }
@@ -290,9 +290,9 @@ watch(
 .item-payload {
   margin-top: $space-2;
   padding: $space-2;
-  background: $bg-page;
+  background: var(--color-bg-page);
   border-radius: $radius-xs;
-  border: 1px solid $border-color-light;
+  border: 1px solid var(--color-border-light);
   font-family: $font-family-mono;
   font-size: $font-size-caption;
   max-height: 200px;
@@ -306,7 +306,7 @@ watch(
 }
 
 .item-toggle {
-  color: $text-tertiary;
+  color: var(--color-text-placeholder);
   align-self: center;
   flex-shrink: 0;
 }

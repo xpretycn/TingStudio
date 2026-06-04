@@ -100,9 +100,9 @@ watch(typeFilter, (val) => {
 .source-list-panel {
   display: flex;
   flex-direction: column;
-  background: $bg-container;
+  background: var(--color-bg-container);
   border-radius: $radius-xl;
-  border: 1px solid $border-color-light;
+  border: 1px solid var(--color-border-light);
   height: 100%;
   overflow: hidden;
 }
@@ -112,7 +112,7 @@ watch(typeFilter, (val) => {
   align-items: center;
   justify-content: space-between;
   padding: $space-4;
-  border-bottom: 1px solid $border-color-light;
+  border-bottom: 1px solid var(--color-border-light);
   flex-shrink: 0;
 }
 
@@ -123,7 +123,7 @@ watch(typeFilter, (val) => {
   margin: 0;
   font-size: $font-size-h3;
   font-weight: $font-weight-semibold;
-  color: $text-primary;
+  color: var(--color-text-primary);
 }
 
 .title-count {
@@ -142,7 +142,7 @@ watch(typeFilter, (val) => {
 
 .panel-toolbar {
   padding: $space-3 $space-4;
-  border-bottom: 1px solid $border-color-light;
+  border-bottom: 1px solid var(--color-border-light);
   flex-shrink: 0;
 }
 

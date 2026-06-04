@@ -67,9 +67,9 @@ function handleRequestCreate() {
 }
 
 .workspace-panel {
-  background: $bg-container;
+  background: var(--color-bg-container);
   border-radius: $radius-3xl;
-  border: 1px solid $border-color-light;
+  border: 1px solid var(--color-border-light);
   box-shadow: $shadow-elevation-1;
   display: flex;
   flex-direction: column;

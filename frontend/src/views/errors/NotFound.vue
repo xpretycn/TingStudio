@@ -120,7 +120,7 @@ const goBack = () => {
   width: 64px;
   height: 64px;
   border-radius: 14px;
-  background: white;
+  background: var(--color-bg-container);
   box-shadow:
     0 1px 3px rgba(15, 23, 42, 0.06),
     0 1px 2px rgba(15, 23, 42, 0.04),
@@ -227,14 +227,14 @@ const goBack = () => {
   }
 
   &.btn-outline {
-    background: white;
+    background: var(--color-bg-container);
     color: var(--color-text-secondary);
-    border-color: #e4e4e7;
+    border-color: var(--color-border-light);
     box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
 
     &:hover {
-      background: #f4f4f5;
-      border-color: #d4d4d8;
+      background: var(--color-bg-page);
+      border-color: var(--color-border);
       color: var(--color-text-primary);
       transform: translateY(-1px);
       box-shadow: 0 3px 8px rgba(15, 23, 42, 0.08);

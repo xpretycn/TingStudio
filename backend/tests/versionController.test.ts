@@ -487,7 +487,7 @@ describe("VersionController - 版本审批控制器", () => {
       });
     });
 
-    it("非管理员应返回 403", async () => {
+    it("非管理员应返回空列表（非403）", async () => {
       (mockReq as any).user = { userId: "user-001", role: "formulist" };
 
       const { getPendingReviews } = await import(
@@ -495,11 +495,12 @@ describe("VersionController - 版本审批控制器", () => {
       );
       await getPendingReviews(mockReq as Request, mockRes as Response);
 
-      expect(statusMock).toHaveBeenCalledWith(403);
       expect(jsonMock).toHaveBeenCalledWith(
         expect.objectContaining({
-          success: false,
-          error: expect.objectContaining({ code: "FORBIDDEN" }),
+          success: true,
+          data: expect.objectContaining({
+            list: [],
+          }),
         })
       );
     });
@@ -718,7 +719,7 @@ describe("VersionController - 版本审批控制器", () => {
       );
     });
 
-    it("配方无当前版本应返回 404", async () => {
+    it("配方无当前版本应返回空数据（非404）", async () => {
       mockReq.params = { formulaId: "f-001" };
       (mockReq as any).user = { userId: "user-001", role: "formulist" };
 
@@ -731,11 +732,15 @@ describe("VersionController - 版本审批控制器", () => {
       );
       await getMaterialUpdates(mockReq as Request, mockRes as Response);
 
-      expect(statusMock).toHaveBeenCalledWith(404);
       expect(jsonMock).toHaveBeenCalledWith(
         expect.objectContaining({
-          success: false,
-          error: expect.objectContaining({ code: "NOT_FOUND" }),
+          success: true,
+          data: expect.objectContaining({
+            formulaId: "f-001",
+            hasUpdates: false,
+            totalMaterials: 0,
+            outdatedCount: 0,
+          }),
         })
       );
     });

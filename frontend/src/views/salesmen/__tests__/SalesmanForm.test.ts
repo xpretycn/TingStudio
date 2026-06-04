@@ -6,6 +6,7 @@ import SalesmanForm from "@/views/salesmen/SalesmanForm.vue";
 const push = vi.fn();
 const mockRoute = vi.hoisted(() => ({
   params: {} as Record<string, string>,
+  query: {} as Record<string, string>,
 }));
 
 vi.mock("vue-router", () => ({
@@ -33,6 +34,12 @@ vi.mock("@/stores/salesman", () => ({
 
 vi.mock("tdesign-vue-next", () => ({
   MessagePlugin: { success: vi.fn(), error: vi.fn() },
+  Icon: { name: "Icon", template: "<span><slot /></span>" },
+  Input: { name: "Input", template: "<input />" },
+  Button: { name: "Button", template: "<button><slot /></button>" },
+  Form: { name: "Form", template: "<form><slot /></form>" },
+  FormItem: { name: "FormItem", template: "<div><slot /></div>" },
+  Upload: { name: "Upload", template: "<div><slot /></div>" },
 }));
 
 describe("SalesmanForm 组件", () => {
@@ -45,10 +52,12 @@ describe("SalesmanForm 组件", () => {
     return mount(SalesmanForm, {
       global: {
         stubs: {
-          "t-form": { template: "<form><slot /></form>" },
+          "t-form": { template: "<form><slot /></form>", props: ["data", "rules"] },
+        "t-form-item": { template: "<div><slot /></div>" },
           "t-input": { template: "<input />" },
           "t-icon": { template: "<span />" },
           "t-button": { template: "<button><slot /></button>" },
+          "t-upload": { template: "<div><slot /></div>" },
         },
       },
     });
@@ -79,7 +88,7 @@ describe("SalesmanForm 组件", () => {
     const cancelBtns = wrapper.findAll(".header-action-btn.secondary");
     if (cancelBtns.length > 0) {
       await cancelBtns[0].trigger("click");
-      expect(push).toHaveBeenCalledWith("/salesmen");
+      expect(push).toHaveBeenCalledWith({ path: "/salesmen", query: {} });
     }
   });
 

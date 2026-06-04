@@ -27,15 +27,15 @@ describe('PromptEngine', () => {
 
       expect(result).toContain('确定性优先');
       expect(result).toContain('工具驱动');
-      expect(result).toContain('透明可控');
-      expect(result).toContain('渐进引导');
+      expect(result).toContain('查询优先');
+      expect(result).toContain('写入指引');
     });
 
     it('should contain role definition', () => {
       const result = engine.buildSystemPrompt('[]');
 
       expect(result).toContain('TingStudio');
-      expect(result).toContain('确定性业务执行器');
+      expect(result).toContain('专业配方管理 AI 助手');
     });
   });
 

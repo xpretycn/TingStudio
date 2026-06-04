@@ -63,10 +63,58 @@ vi.mock("@/stores/ai", () => ({
 
 vi.mock("tdesign-vue-next", () => ({
   MessagePlugin: { success: vi.fn(), error: vi.fn(), warning: vi.fn(), info: vi.fn() },
+  Icon: { name: "Icon", template: "<span><slot /></span>" },
+  Input: { name: "Input", template: "<input />" },
+  Button: { name: "Button", template: "<button><slot /></button>" },
+  Form: { name: "Form", template: "<form><slot /></form>" },
+  FormItem: { name: "FormItem", template: "<div><slot /></div>" },
+  Select: { name: "Select", template: "<select><slot /></select>" },
+  Option: { name: "Option", template: "<option><slot /></option>" },
+  InputNumber: { name: "InputNumber", template: '<input type="number" />' },
+  Textarea: { name: "Textarea", template: "<textarea></textarea>" },
+  Alert: { name: "Alert", template: '<div><slot /></div>' },
+  Tag: { name: "Tag", template: "<span><slot /></span>" },
+  Dropdown: { name: "Dropdown", template: "<div><slot /></div>" },
+  DropdownMenu: { name: "DropdownMenu", template: "<div><slot /></div>" },
+  DropdownItem: { name: "DropdownItem", template: "<div><slot /></div>" },
+  RadioGroup: { name: "RadioGroup", template: "<div><slot /></div>" },
+  RadioButton: { name: "RadioButton", template: "<div><slot /></div>" },
+  Checkbox: { name: "Checkbox", template: '<input type="checkbox" />' },
+  Dialog: { name: "Dialog", template: "<div><slot /></div>" },
+  Card: { name: "Card", template: "<div><slot /></div>" },
+  Collapse: { name: "Collapse", template: "<div><slot /></div>" },
+  CollapsePanel: { name: "CollapsePanel", template: "<div><slot /></div>" },
+  Upload: { name: "Upload", template: "<div><slot /></div>" },
+  Tooltip: { name: "Tooltip", template: "<div><slot /></div>" },
+  Popup: { name: "Popup", template: "<div><slot /></div>" },
+  Drawer: { name: "Drawer", template: "<div><slot /></div>" },
+  Table: { name: "Table", template: "<div><slot /></div>" },
+  Space: { name: "Space", template: "<div><slot /></div>" },
+  Popconfirm: { name: "Popconfirm", template: "<div><slot /></div>" },
 }));
 
 vi.mock("@/components/ExcelImportPanel.vue", () => ({
   default: { template: '<div class="excel-import-mock">ExcelImportPanel</div>' },
+}));
+
+vi.mock("@/components/formula/MaterialTableCore.vue", () => ({
+  default: { template: '<div class="material-table-core-mock">MaterialTableCore</div>' },
+}));
+
+vi.mock("@/components/QuickCreateSalesmanDialog.vue", () => ({
+  default: { template: '<div class="quick-create-salesman-mock">QuickCreateSalesmanDialog</div>' },
+}));
+
+vi.mock("@/api/agent", () => ({
+  agentApi: {
+    chat: vi.fn(() => Promise.resolve({ content: "" })),
+  },
+}));
+
+vi.mock("@/api/version", () => ({
+  versionApi: {
+    create: vi.fn(() => Promise.resolve({ success: true })),
+  },
 }));
 
 vi.mock("@/components/formula/UnifiedMaterialTable.vue", () => ({
@@ -159,10 +207,10 @@ describe("FormulaForm 组件", () => {
     expect(wrapper.text()).toContain("基础信息");
   });
 
-  it("FF-06: 应包含 AI 解析区域", async () => {
+  it("FF-06: 应包含智能生成区域", async () => {
     wrapper = createWrapper();
     await wrapper.vm.$nextTick();
-    expect(wrapper.text()).toContain("AI 智能解析");
+    expect(wrapper.text()).toContain("智能生成");
   });
 
   it("FF-07: 应包含原料配比表区域", async () => {

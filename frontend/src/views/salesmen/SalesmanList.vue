@@ -1087,7 +1087,7 @@ const handleDelete = async (row: Salesman) => {
       align-items: center;
       gap: 8px;
       padding: 8px 16px;
-      background-color: var(--color-text-primary);
+      background-color: var(--color-primary); // 品牌色背景（明暗模式均有白字对比度）
       color: var(--color-text-white);
       border-radius: 12px;
       font-size: 14px;
@@ -1098,7 +1098,7 @@ const handleDelete = async (row: Salesman) => {
       cursor: pointer;
 
       &:hover {
-        background-color: var(--color-text-primary);
+        background-color: var(--color-primary-dark);
       }
 
       .add-icon {
@@ -2379,7 +2379,7 @@ const handleDelete = async (row: Salesman) => {
   gap: 8px !important;
   padding: 8px 16px !important;
   border-radius: 12px !important;
-  background-color: var(--color-text-primary) !important;
+  background-color: var(--color-primary) !important;
   color: var(--color-text-white) !important;
   font-size: 14px !important;
   font-weight: 500 !important;
@@ -2389,7 +2389,7 @@ const handleDelete = async (row: Salesman) => {
   box-shadow: var(--shadow-elevation-3) !important;
 
   &:hover {
-    background-color: var(--color-text-primary) !important;
+    background-color: var(--color-primary-dark) !important;
   }
 
   .add-icon {

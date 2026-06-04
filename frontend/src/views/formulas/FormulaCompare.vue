@@ -520,9 +520,9 @@ $radius-2xl: 2rem;
     margin-left: -32px;
     margin-right: -32px;
     padding: 8px 32px;
-    background-color: $overlay-white-80;
+    background-color: var(--color-bg-container);
     backdrop-filter: blur(10px);
-    border-bottom: 1px solid $border-color-light;
+    border-bottom: 1px solid var(--color-border-light);
     animation: fadeInDown 0.35s ease both;
 
     .header-left {
@@ -733,7 +733,7 @@ $radius-2xl: 2rem;
     min-width: 400px;
     max-width: 420px;
     flex-shrink: 0;
-    background: $bg-container;
+    background: var(--color-bg-container);
     border-radius: $radius-2xl;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
     border: 1px solid var(--color-bg-page);
@@ -816,7 +816,7 @@ $radius-2xl: 2rem;
         border: none;
         border-radius: 8px;
         background: transparent;
-        color: $border-color;
+        color: var(--color-border);
         cursor: pointer;
         transition: color 0.2s;
         font-size: 16px;
@@ -1145,11 +1145,11 @@ $radius-2xl: 2rem;
 
   .add-placeholder-card {
     border: 2px dashed var(--color-border);
-    background: $bg-container-alt;
+    background: var(--color-bg-container-alt);
     overflow: visible;
 
     .placeholder-tag {
-      background: $border-color-light;
+      background: var(--color-border-light);
       color: var(--color-text-placeholder);
     }
 
@@ -1180,8 +1180,8 @@ $radius-2xl: 2rem;
         gap: 4px;
         padding: var(--space-3-5) 16px;
         border-radius: 12px;
-        border: 1px solid $border-color-light;
-        background: $bg-container;
+        border: 1px solid var(--color-border-light);
+        background: var(--color-bg-container);
         cursor: pointer;
         transition: all 0.15s;
 
@@ -1223,7 +1223,7 @@ $radius-2xl: 2rem;
 
           .avail-arrow {
             font-size: 16px;
-            color: $border-color;
+            color: var(--color-border);
             transition: all 0.15s;
           }
         }

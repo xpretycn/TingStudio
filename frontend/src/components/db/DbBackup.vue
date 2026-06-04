@@ -327,7 +327,7 @@ defineExpose({ refresh: fetchBackups })
 .cell-filename {
   font-size: $font-size-body-sm;
   font-weight: $font-weight-medium;
-  color: $text-primary;
+  color: var(--color-text-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -338,20 +338,20 @@ defineExpose({ refresh: fetchBackups })
 
 .cell-time {
   font-size: $font-size-caption;
-  color: $text-secondary;
+  color: var(--color-text-secondary);
   font-variant-numeric: tabular-nums;
 }
 
 .cell-number {
   font-size: $font-size-body-sm;
   font-weight: $font-weight-semibold;
-  color: $text-primary;
+  color: var(--color-text-primary);
   font-variant-numeric: tabular-nums;
 }
 
 .cell-hash {
   font-size: $font-size-caption;
-  color: $text-tertiary;
+  color: var(--color-text-placeholder);
   font-family: "Fira Code", "Consolas", "Monaco", monospace;
   letter-spacing: 0.3px;
 }

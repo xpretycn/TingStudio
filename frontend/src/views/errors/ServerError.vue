@@ -264,7 +264,7 @@ const goLogin = () => {
   flex-direction: column;
   gap: 10px;
   padding: 16px 20px;
-  background: white;
+  background: var(--color-bg-container);
   border: 1px solid var(--color-border);
   border-radius: 14px;
   box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
@@ -275,14 +275,14 @@ const goLogin = () => {
   align-items: center;
   gap: 10px;
   font-size: 14px;
-  color: #b45309;
+  color: var(--color-warning-dark);
   line-height: 1.5;
 
   .error-icon {
     flex-shrink: 0;
     width: 16px;
     height: 16px;
-    color: #d97706;
+    color: var(--color-warning);
     stroke-width: 2;
   }
 }
@@ -379,14 +379,14 @@ const goLogin = () => {
   }
 
   &.btn-outline {
-    background: white;
+    background: var(--color-bg-container);
     color: var(--color-text-secondary);
     border-color: var(--color-border);
     box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
 
     &:hover:not(:disabled) {
       background: var(--color-bg-page);
-      border-color: #cbd5e1;
+      border-color: var(--color-border-light);
       color: var(--color-text-primary);
       transform: translateY(-1px);
       box-shadow: 0 3px 8px rgba(15, 23, 42, 0.08);

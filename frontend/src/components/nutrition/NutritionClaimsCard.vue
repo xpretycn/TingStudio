@@ -127,7 +127,7 @@ function formatValue(val: number, unit: string): string {
     .group-title {
       font-size: $font-size-body;
       font-weight: $font-weight-semibold;
-      color: $text-primary;
+      color: var(--color-text-primary);
     }
   }
 
@@ -136,7 +136,7 @@ function formatValue(val: number, unit: string): string {
   }
 
   &--unsatisfied .group-icon {
-    color: $text-tertiary;
+    color: var(--color-text-placeholder);
   }
 }
 
@@ -157,8 +157,8 @@ function formatValue(val: number, unit: string): string {
   }
 
   &--unsatisfied {
-    background: $bg-container-alt;
-    border-color: $border-color-light;
+    background: var(--color-bg-container-alt);
+    border-color: var(--color-border-light);
   }
 
   .claim-main {
@@ -170,12 +170,12 @@ function formatValue(val: number, unit: string): string {
     .claim-name {
       font-size: $font-size-body;
       font-weight: $font-weight-semibold;
-      color: $text-primary;
+      color: var(--color-text-primary);
     }
 
     .claim-field {
       font-size: $font-size-caption;
-      color: $text-tertiary;
+      color: var(--color-text-placeholder);
     }
   }
 
@@ -188,16 +188,16 @@ function formatValue(val: number, unit: string): string {
 
     .detail-value {
       font-weight: $font-weight-medium;
-      color: $text-primary;
+      color: var(--color-text-primary);
       font-variant-numeric: tabular-nums;
     }
 
     .detail-vs {
-      color: $text-tertiary;
+      color: var(--color-text-placeholder);
     }
 
     .detail-threshold {
-      color: $text-secondary;
+      color: var(--color-text-secondary);
     }
 
     .detail-gap {
@@ -217,7 +217,7 @@ function formatValue(val: number, unit: string): string {
 
   .claim-standard {
     font-size: $font-size-micro;
-    color: $text-tertiary;
+    color: var(--color-text-placeholder);
   }
 }
 
@@ -225,7 +225,7 @@ function formatValue(val: number, unit: string): string {
   text-align: center;
   padding: $space-6 0;
   font-size: $font-size-body-sm;
-  color: $text-tertiary;
+  color: var(--color-text-placeholder);
 }
 
 .claims-source {
@@ -233,8 +233,8 @@ function formatValue(val: number, unit: string): string {
   align-items: center;
   gap: $space-1;
   font-size: $font-size-micro;
-  color: $text-tertiary;
+  color: var(--color-text-placeholder);
   padding-top: $space-2;
-  border-top: 1px solid $border-color-light;
+  border-top: 1px solid var(--color-border-light);
 }
 </style>

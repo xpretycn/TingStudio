@@ -1,4 +1,4 @@
-﻿<template>
+<template>
 <div class="db-scripts">
     <div class="scripts-toolbar">
       <t-input
@@ -869,7 +869,7 @@ defineExpose({ refresh: fetchScriptList });
     .cat-name {
         font-size: $font-size-h4;
         font-weight: $font-weight-semibold;
-        color: $text-primary;
+        color: var(--color-text-primary);
     }
 
     .cat-count {
@@ -896,8 +896,8 @@ defineExpose({ refresh: fetchScriptList });
 
 .script-card {
     padding: $space-4;
-    background: $bg-container;
-    border: 1px solid $border-color-light;
+    background: var(--color-bg-container);
+    border: 1px solid var(--color-border-light);
     border-radius: $radius-lg;
     transition: all 0.2s ease;
 
@@ -908,7 +908,7 @@ defineExpose({ refresh: fetchScriptList });
 
     &--executing {
         border-color: var(--color-warning-border, #f0a040);
-        background: #fffbeb;
+        background: var(--color-warning-bg);
     }
 }
 
@@ -923,7 +923,7 @@ defineExpose({ refresh: fetchScriptList });
 .script-name {
     font-size: $font-size-body;
     font-weight: $font-weight-semibold;
-    color: $text-primary;
+    color: var(--color-text-primary);
 }
 
 .danger-tag {
@@ -932,7 +932,7 @@ defineExpose({ refresh: fetchScriptList });
 
 .script-desc {
     font-size: $font-size-body-sm;
-    color: $text-secondary;
+    color: var(--color-text-secondary);
     margin: 0 0 $space-2;
     line-height: $line-height-relaxed;
 }
@@ -950,7 +950,7 @@ defineExpose({ refresh: fetchScriptList });
     align-items: center;
     gap: 4px;
     font-size: $font-size-caption;
-    color: $text-tertiary;
+    color: var(--color-text-placeholder);
 }
 
 .card-actions {
@@ -1019,7 +1019,7 @@ defineExpose({ refresh: fetchScriptList });
     gap: $space-2;
     margin-top: $space-3;
     padding: $space-2 $space-3;
-    background: $bg-container-alt;
+    background: var(--color-bg-container-alt);
     border-radius: $radius-md;
     font-size: $font-size-caption;
 }
@@ -1034,14 +1034,14 @@ defineExpose({ refresh: fetchScriptList });
 
 .result-text {
     font-weight: $font-weight-medium;
-    color: $text-primary;
+    color: var(--color-text-primary);
 }
 
 .result-duration {
     display: inline-flex;
     align-items: center;
     gap: 2px;
-    color: $text-tertiary;
+    color: var(--color-text-placeholder);
     margin-left: auto;
 }
 
@@ -1051,20 +1051,20 @@ defineExpose({ refresh: fetchScriptList });
         align-items: center;
         gap: $space-2;
         font-weight: $font-weight-semibold;
-        color: $text-primary;
+        color: var(--color-text-primary);
         margin-bottom: $space-3;
     }
 
     .confirm-desc {
         font-size: $font-size-body-sm;
-        color: $text-secondary;
+        color: var(--color-text-secondary);
         margin: 0 0 $space-2;
         line-height: $line-height-relaxed;
     }
 
     .confirm-meta {
         font-size: $font-size-caption;
-        color: $text-tertiary;
+        color: var(--color-text-placeholder);
         margin: 0 0 $space-3;
     }
 }
@@ -1077,7 +1077,7 @@ defineExpose({ refresh: fetchScriptList });
         flex-direction: column;
         gap: $space-1;
         padding: $space-3 0;
-        border-bottom: 1px solid $border-color-light;
+        border-bottom: 1px solid var(--color-border-light);
 
         &:last-child {
             border-bottom: none;
@@ -1089,18 +1089,18 @@ defineExpose({ refresh: fetchScriptList });
         align-items: center;
         gap: 4px;
         font-size: $font-size-caption;
-        color: $text-secondary;
+        color: var(--color-text-secondary);
         font-weight: $font-weight-medium;
     }
 
     .section-value {
         font-size: $font-size-body-sm;
-        color: $text-primary;
+        color: var(--color-text-primary);
 
         &.mono {
             font-family: "Consolas", "Menlo", monospace;
             font-size: $font-size-micro;
-            background: $bg-container-alt;
+            background: var(--color-bg-container-alt);
             padding: $space-1 $space-2;
             border-radius: $radius-sm;
             word-break: break-all;
@@ -1113,14 +1113,14 @@ defineExpose({ refresh: fetchScriptList });
         gap: 4px;
         font-size: $font-size-body-sm;
         font-weight: $font-weight-semibold;
-        color: $text-primary;
+        color: var(--color-text-primary);
         margin: 0 0 $space-2;
     }
 
     .detail-list {
         padding-left: $space-5;
         margin: 0;
-        color: $text-secondary;
+        color: var(--color-text-secondary);
         font-size: $font-size-body-sm;
         line-height: $line-height-relaxed;
 
@@ -1134,10 +1134,10 @@ defineExpose({ refresh: fetchScriptList });
         align-items: center;
         justify-content: space-between;
         padding: $space-3;
-        background: $bg-container-alt;
+        background: var(--color-bg-container-alt);
         border-radius: $radius-md;
         font-size: $font-size-body-sm;
-        color: $text-secondary;
+        color: var(--color-text-secondary);
     }
 }
 
@@ -1150,7 +1150,7 @@ defineExpose({ refresh: fetchScriptList });
 
     .preview-path {
         font-size: $font-size-caption;
-        color: $text-tertiary;
+        color: var(--color-text-placeholder);
         font-family: "Consolas", "Menlo", monospace;
         flex: 1;
         word-break: break-all;
@@ -1205,8 +1205,8 @@ defineExpose({ refresh: fetchScriptList });
 
 .history-item {
     padding: $space-3;
-    background: $bg-container;
-    border: 1px solid $border-color-light;
+    background: var(--color-bg-container);
+    border: 1px solid var(--color-border-light);
     border-radius: $radius-lg;
 
     .history-header {
@@ -1217,7 +1217,7 @@ defineExpose({ refresh: fetchScriptList });
 
         .history-time {
             font-size: $font-size-caption;
-            color: $text-tertiary;
+            color: var(--color-text-placeholder);
         }
 
         .history-duration {
@@ -1225,7 +1225,7 @@ defineExpose({ refresh: fetchScriptList });
             align-items: center;
             gap: 2px;
             font-size: $font-size-caption;
-            color: $text-tertiary;
+            color: var(--color-text-placeholder);
             margin-left: auto;
         }
     }
@@ -1236,11 +1236,11 @@ defineExpose({ refresh: fetchScriptList });
         pre {
             margin: 0;
             padding: $space-2;
-            background: $bg-container-alt;
+            background: var(--color-bg-container-alt);
             border-radius: $radius-md;
             font-family: "Consolas", "Menlo", monospace;
             font-size: $font-size-micro;
-            color: $text-secondary;
+            color: var(--color-text-secondary);
             white-space: pre-wrap;
             word-break: break-all;
             max-height: 200px;
@@ -1254,7 +1254,7 @@ defineExpose({ refresh: fetchScriptList });
 
     .history-trigger {
         font-size: $font-size-caption;
-        color: $text-tertiary;
+        color: var(--color-text-placeholder);
     }
 }
 
@@ -1266,8 +1266,8 @@ defineExpose({ refresh: fetchScriptList });
 
 .version-item {
     padding: $space-3;
-    background: $bg-container;
-    border: 1px solid $border-color-light;
+    background: var(--color-bg-container);
+    border: 1px solid var(--color-border-light);
     border-radius: $radius-lg;
 
     .version-header {
@@ -1290,7 +1290,7 @@ defineExpose({ refresh: fetchScriptList });
 
         .version-time {
             font-size: $font-size-caption;
-            color: $text-tertiary;
+            color: var(--color-text-placeholder);
         }
     }
 
@@ -1299,16 +1299,16 @@ defineExpose({ refresh: fetchScriptList });
         align-items: center;
         gap: 4px;
         font-size: $font-size-body-sm;
-        color: $text-secondary;
+        color: var(--color-text-secondary);
         margin-bottom: $space-2;
         padding: $space-2;
-        background: $bg-container-alt;
+        background: var(--color-bg-container-alt);
         border-radius: $radius-md;
     }
 
     .version-meta {
         font-size: $font-size-caption;
-        color: $text-tertiary;
+        color: var(--color-text-placeholder);
         margin-bottom: $space-2;
     }
 

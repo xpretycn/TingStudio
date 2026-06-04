@@ -291,8 +291,8 @@ defineExpose({ clearDraftBanner });
 .quick-formula-sidebar {
   position: relative;
   overflow: visible;
-  background: $bg-container;
-  border-right: 1px solid $border-color-light;
+  background: var(--color-bg-container);
+  border-right: 1px solid var(--color-border-light);
   width: 220px;
   min-width: 220px;
   max-width: 220px;
@@ -346,7 +346,7 @@ defineExpose({ clearDraftBanner });
   margin: 0;
   font-size: $font-size-body;
   font-weight: $font-weight-bold;
-  color: $text-primary;
+  color: var(--color-text-primary);
   letter-spacing: $ls-heading;
 }
 
@@ -366,12 +366,12 @@ defineExpose({ clearDraftBanner });
   border: none;
   border-radius: $radius-md;
   background: transparent;
-  color: $text-tertiary;
+  color: var(--color-text-placeholder);
   cursor: pointer;
   transition: all $transition-fast;
 
   &:hover {
-    background: $bg-hover;
+    background: var(--color-bg-hover);
     color: $emerald-500;
   }
 }
@@ -382,11 +382,11 @@ defineExpose({ clearDraftBanner });
   gap: $space-2;
   margin: 0 $space-2-5 $space-2;
   padding: $space-2 $space-3;
-  border: 1px dashed $border-color;
+  border: 1px dashed var(--color-border);
   border-radius: $radius-lg;
-  background: $bg-container;
+  background: var(--color-bg-container);
   cursor: pointer;
-  color: $text-secondary;
+  color: var(--color-text-regular);
   font-size: $font-size-body-sm;
   font-weight: $font-weight-medium;
   transition: all $transition-fast;
@@ -458,8 +458,8 @@ defineExpose({ clearDraftBanner });
 
 .draft-discard-btn {
   background: transparent;
-  color: $text-tertiary;
-  border: 1px solid $border-color;
+  color: var(--color-text-placeholder);
+  border: 1px solid var(--color-border);
 
   &:hover {
     border-color: $color-danger;
@@ -477,7 +477,7 @@ defineExpose({ clearDraftBanner });
   }
 
   &::-webkit-scrollbar-thumb {
-    background: $border-color;
+    background: var(--color-border);
     border-radius: 2px;
   }
 }
@@ -488,7 +488,7 @@ defineExpose({ clearDraftBanner });
   align-items: center;
   gap: $space-2;
   padding: $space-6 0;
-  color: $text-placeholder;
+  color: var(--color-text-placeholder);
   font-size: $font-size-body-sm;
 }
 
@@ -503,7 +503,7 @@ defineExpose({ clearDraftBanner });
   margin-bottom: $space-0-5;
 
   &:hover {
-    background: $bg-hover;
+    background: var(--color-bg-hover);
 
     .item-delete-btn,
     .item-rename-btn,
@@ -539,10 +539,10 @@ defineExpose({ clearDraftBanner });
   padding: 2px $space-1;
   border: 1px solid $emerald-500;
   border-radius: $radius-sm;
-  background: $bg-container;
+  background: var(--color-bg-container);
   font-size: $font-size-body-sm;
   font-weight: $font-weight-medium;
-  color: $text-primary;
+  color: var(--color-text-primary);
   outline: none;
   line-height: 1.4;
 
@@ -567,7 +567,7 @@ defineExpose({ clearDraftBanner });
   border: none;
   border-radius: $radius-sm;
   background: transparent;
-  color: $text-placeholder;
+  color: var(--color-text-placeholder);
   cursor: pointer;
   opacity: 0;
   transition: all $transition-fast;
@@ -603,7 +603,7 @@ defineExpose({ clearDraftBanner });
 .item-name {
   font-size: $font-size-body-sm;
   font-weight: $font-weight-medium;
-  color: $text-primary;
+  color: var(--color-text-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -652,7 +652,7 @@ defineExpose({ clearDraftBanner });
   border: none;
   border-radius: $radius-sm;
   background: transparent;
-  color: $text-placeholder;
+  color: var(--color-text-placeholder);
   cursor: pointer;
   opacity: 0;
   transition: all $transition-fast;

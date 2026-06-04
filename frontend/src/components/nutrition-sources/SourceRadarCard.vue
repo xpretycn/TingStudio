@@ -253,8 +253,8 @@ onUnmounted(() => {
 
 <style lang="scss" scoped>
 .radar-card {
-  background: $bg-container;
-  border: 1px solid $border-color-light;
+  background: var(--color-bg-container);
+  border: 1px solid var(--color-border-light);
   border-radius: $radius-xl;
   padding: $space-3 $space-4;
   // 兜底：即使 ECharts tooltip 渲染到容器外，也不让 card 撑大溢出
@@ -278,12 +278,12 @@ onUnmounted(() => {
   margin: 0;
   font-size: $font-size-body-sm;
   font-weight: $font-weight-semibold;
-  color: $text-primary;
+  color: var(--color-text-primary);
 }
 
 .card-hint {
   font-size: $font-size-caption;
-  color: $text-tertiary;
+  color: var(--color-text-placeholder);
 }
 
 .radar-canvas {

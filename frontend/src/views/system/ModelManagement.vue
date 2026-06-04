@@ -4736,7 +4736,7 @@ $transition-normal: 0.25s ease;
 
       &:hover:not(.active) {
         color: var(--color-text-primary);
-        background: rgba(255, 255, 255, 0.7);
+        background: var(--color-bg-hover);
       }
 
       &.active {

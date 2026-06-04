@@ -347,8 +347,8 @@ const dashboardCards = computed(() => {
       unit: '个文件',
       badge: s.total > 0 ? `${s.total}` : '0',
       badgeColor: '#3B82F6',
-      badgeBg: '#EFF6FF',
-      iconBg: '#EFF6FF',
+      badgeBg: 'var(--color-blue-50, #EFF6FF)',
+      iconBg: 'var(--color-blue-50, #EFF6FF)',
       iconColor: '#3B82F6',
       iconPath: '<path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>',
     },
@@ -358,8 +358,8 @@ const dashboardCards = computed(() => {
       unit: '个文件',
       badge: s.total > 0 ? `${Math.round((s.parsed / s.total) * 100)}%` : '--',
       badgeColor: 'var(--color-primary)',
-      badgeBg: '#ECFDF5',
-      iconBg: '#ECFDF5',
+      badgeBg: 'var(--color-emerald-50, #ECFDF5)',
+      iconBg: 'var(--color-emerald-50, #ECFDF5)',
       iconColor: 'var(--color-primary)',
       iconPath: '<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>',
     },
@@ -369,8 +369,8 @@ const dashboardCards = computed(() => {
       unit: '条数据',
       badge: s.linked > 0 ? `${s.linked}` : '0',
       badgeColor: '#8B5CF6',
-      badgeBg: '#F5F3FF',
-      iconBg: '#F5F3FF',
+      badgeBg: 'var(--color-violet-50, #F5F3FF)',
+      iconBg: 'var(--color-violet-50, #F5F3FF)',
       iconColor: '#8B5CF6',
       iconPath: '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
     },
@@ -380,8 +380,8 @@ const dashboardCards = computed(() => {
       unit: '',
       badge: s.totalSize > 1073741824 ? '超限' : '正常',
       badgeColor: s.totalSize > 1073741824 ? 'var(--color-danger)' : 'var(--color-primary)',
-      badgeBg: s.totalSize > 1073741824 ? '#FEE2E2' : '#ECFDF5',
-      iconBg: '#FFFBEB',
+      badgeBg: s.totalSize > 1073741824 ? 'var(--color-red-100, #FEE2E2)' : 'var(--color-emerald-50, #ECFDF5)',
+      iconBg: 'var(--color-amber-50, #FFFBEB)',
       iconColor: 'var(--color-warning)',
       iconPath: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>',
     },
@@ -841,10 +841,10 @@ watch(() => router.currentRoute.value.path, (path) => {
     margin-bottom: 30px;
 
     .stat-card {
-      background: #fff;
+      background: var(--color-bg-container);
       padding: 24px;
       border-radius: var(--radius-4xl);
-      border: 1px solid #fff;
+      border: 1px solid var(--color-bg-container);
       box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
       transition: all $transition-slow;
       animation: dashboard-fade-in 0.5s ease forwards;
@@ -890,7 +890,7 @@ watch(() => router.currentRoute.value.path, (path) => {
       .stat-value {
         font-size: 24px;
         font-weight: 700;
-        color: #0F172A;
+        color: var(--color-text-primary);
         line-height: 1.2;
 
         .stat-unit {
@@ -904,7 +904,7 @@ watch(() => router.currentRoute.value.path, (path) => {
 
   .content-card {
     min-height: 400px;
-    background-color: #fff;
+    background-color: var(--color-bg-container);
     border-radius: var(--radius-5xl) !important;
     border: 1px solid var(--color-bg-page) !important;
     overflow: hidden;
@@ -994,7 +994,7 @@ watch(() => router.currentRoute.value.path, (path) => {
           &:focus {
             box-shadow: 0 0 0 2px rgba(167, 243, 208, 0.50);
             outline: none;
-            background-color: #fff;
+            background-color: var(--color-bg-container);
           }
 
           &::placeholder {
@@ -1038,7 +1038,7 @@ watch(() => router.currentRoute.value.path, (path) => {
       padding: 8px;
       color: var(--color-text-placeholder);
       background-color: transparent;
-      border: 1px solid #f1f5f9;
+      border: 1px solid var(--color-border-light);
       border-radius: 8px;
       transition: all $transition-fast;
       cursor: pointer;
@@ -1227,7 +1227,7 @@ watch(() => router.currentRoute.value.path, (path) => {
 }
 
 .t-table__body {
-  background: #fff !important;
+  background: var(--color-bg-container) !important;
 
   .t-table__row {
     transition: background-color 0.2s ease;
@@ -1246,7 +1246,7 @@ watch(() => router.currentRoute.value.path, (path) => {
 
     td {
       padding: var(--space-4-5) 20px !important;
-      border-bottom: 1px solid #f1f5f9 !important;
+      border-bottom: 1px solid var(--color-border-light) !important;
       vertical-align: middle;
 
       &:first-child {
@@ -1397,7 +1397,7 @@ watch(() => router.currentRoute.value.path, (path) => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #fff;
+  background-color: var(--color-bg-container);
   border-top: 1px solid var(--color-bg-page);
 
   .pagination-info {
@@ -1421,7 +1421,7 @@ watch(() => router.currentRoute.value.path, (path) => {
     border: 1px solid var(--color-border);
     border-radius: 8px;
     background-color: transparent;
-    color: #6e6178;
+    color: var(--color-text-secondary);
     font-size: 14px;
     cursor: pointer;
     transition: all 0.15s;
@@ -1478,16 +1478,16 @@ watch(() => router.currentRoute.value.path, (path) => {
 }
 
 .activity-card {
-  background-color: #fff;
+  background-color: var(--color-bg-container);
   border-radius: var(--radius-4xl);
   padding: 32px;
   box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
   border: 1px solid var(--color-bg-page);
 
   &--assistant {
-    background: #fff;
+    background: var(--color-bg-container);
     border: 1px solid var(--color-bg-page);
-    color: #0F172A;
+    color: var(--color-text-primary);
     position: relative;
     overflow: hidden;
     box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
@@ -1543,7 +1543,7 @@ watch(() => router.currentRoute.value.path, (path) => {
       opacity: 0.3;
       cursor: not-allowed;
       border-color: rgba(148, 163, 184, 0.15);
-      color: #cbd5e1;
+      color: var(--color-text-placeholder);
       background: transparent;
     }
   }
@@ -1578,7 +1578,7 @@ watch(() => router.currentRoute.value.path, (path) => {
     top: 28px;
     bottom: 0;
     width: 1px;
-    background-color: #f1f5f9;
+    background-color: var(--color-border-light);
   }
 }
 
@@ -1657,7 +1657,7 @@ watch(() => router.currentRoute.value.path, (path) => {
 
 .timeline-time {
   font-size: 10px;
-  color: #cbd5e1;
+  color: var(--color-text-placeholder);
   text-transform: uppercase;
   display: inline-block;
   margin-top: 4px;
@@ -1740,13 +1740,13 @@ watch(() => router.currentRoute.value.path, (path) => {
   padding: var(--space-3-5);
   background: var(--color-bg-page);
   border-radius: 14px;
-  border: 1px solid #f1f5f9;
+  border: 1px solid var(--color-border-light);
   transition: all 0.25s ease;
   cursor: default;
   animation: todoSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
 
   &:hover {
-    background: #f1f5f9;
+    background: var(--color-bg-page);
     border-color: var(--color-border);
     transform: translateX(4px);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
@@ -1858,7 +1858,7 @@ watch(() => router.currentRoute.value.path, (path) => {
     height: 28px;
     border-radius: 8px;
     border: 1.5px solid var(--color-border);
-    background: #fff;
+    background: var(--color-bg-container);
     color: var(--color-text-secondary);
     cursor: pointer;
     display: inline-flex;
@@ -1918,7 +1918,7 @@ watch(() => router.currentRoute.value.path, (path) => {
   p {
     font-size: 15px;
     font-weight: 600;
-    color: #0F172A;
+    color: var(--color-text-primary);
     margin: 0 0 var(--space-1-5) 0;
   }
 
@@ -1931,7 +1931,7 @@ watch(() => router.currentRoute.value.path, (path) => {
 .assistant-footer {
   margin-top: 16px;
   padding-top: 16px;
-  border-top: 1px solid #f1f5f9;
+  border-top: 1px solid var(--color-border-light);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1947,7 +1947,7 @@ watch(() => router.currentRoute.value.path, (path) => {
   height: 28px;
   border-radius: 8px;
   border: 1.5px solid var(--color-border);
-  background: #fff;
+  background: var(--color-bg-container);
   color: var(--color-text-secondary);
   cursor: pointer;
   display: inline-flex;
@@ -1956,8 +1956,8 @@ watch(() => router.currentRoute.value.path, (path) => {
   transition: all 0.2s ease;
 
   &:hover {
-    background: #f1f5f9;
-    border-color: #cbd5e1;
+    background: var(--color-bg-page);
+    border-color: var(--color-border-light);
     color: var(--color-text-secondary);
     transform: rotate(180deg);
   }
@@ -2054,19 +2054,19 @@ watch(() => router.currentRoute.value.path, (path) => {
 .file-management .content-card .t-table .t-table__body-wrapper,
 .file-management .content-card .t-table .t-table__body-inner,
 .file-management .content-card .t-table .t-table__body {
-  background: #fff !important;
+  background: var(--color-bg-container) !important;
 }
 
 .file-management .content-card .t-table .t-table__body tr,
 .file-management .content-card .t-table .t-table__body .t-table__row {
-  background-color: #fff !important;
+  background-color: var(--color-bg-container) !important;
 }
 
 .file-management .content-card .t-table .t-table__body td,
 .file-management .content-card .t-table .t-table__body .t-table__row td,
 .file-management .content-card .t-table .t-table__body .t-table__row.t-table__row--hover td {
   background-color: transparent !important;
-  border-bottom-color: #f1f5f9 !important;
+  border-bottom-color: var(--color-border-light) !important;
   color: var(--color-text-primary) !important;
   box-shadow: none !important;
 }

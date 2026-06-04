@@ -32,6 +32,14 @@ vi.mock("tdesign-vue-next", () => ({
     error: vi.fn(),
     warning: vi.fn(),
   },
+  Icon: { name: "Icon", template: "<span><slot /></span>" },
+  Button: { name: "Button", template: "<button><slot /></button>" },
+  Card: { name: "Card", template: "<div><slot /></div>" },
+  Upload: { name: "Upload", template: "<div><slot /></div>" },
+  Tag: { name: "Tag", template: "<span><slot /></span>" },
+  Space: { name: "Space", template: "<div><slot /></div>" },
+  Table: { name: "Table", template: "<div><slot /></div>" },
+  Alert: { name: "Alert", template: '<div><slot name="title" /><slot /></div>' },
 }));
 
 type NutritionComponentVM = {
@@ -56,12 +64,12 @@ describe("NutritionExcelImport 组件", () => {
       global: {
         stubs: {
           "t-alert": { template: '<div><slot name="title" /><slot /></div>' },
-          "t-button": true,
-          "t-card": true,
-          "t-upload": true,
-          "t-tag": true,
-          "t-space": true,
-          "t-table": true,
+          "t-button": { template: "<button><slot /></button>" },
+          "t-card": { template: "<div><slot /></div>" },
+          "t-upload": { template: "<div><slot /></div>" },
+          "t-tag": { template: "<span><slot /></span>" },
+          "t-space": { template: "<div><slot /></div>" },
+          "t-table": { template: "<div><slot /></div>" },
           "t-icon": { template: "<span></span>" },
         },
       },
@@ -73,12 +81,13 @@ describe("NutritionExcelImport 组件", () => {
     expect(title.exists()).toBe(true);
     expect(title.text()).toContain("营养素 Excel 导入");
 
-    const buttons = wrapper.findAllComponents({ name: "TButton" });
+    const buttons = wrapper.findAll("button");
     expect(buttons.length).toBeGreaterThanOrEqual(1);
   });
 
   it("N02: 点击下载模板应调用 XLSX 生成 Excel 文件", async () => {
-    const downloadBtn = wrapper.findAllComponents({ name: "TButton" })[0];
+    const buttons = wrapper.findAll("button");
+    const downloadBtn = buttons[0];
     await downloadBtn.trigger("click");
 
     await wrapper.vm.$nextTick();
@@ -90,7 +99,8 @@ describe("NutritionExcelImport 组件", () => {
   });
 
   it("N03: 模板应包含正确的表头和营养素行", async () => {
-    const downloadBtn = wrapper.findAllComponents({ name: "TButton" })[0];
+    const buttons = wrapper.findAll("button");
+    const downloadBtn = buttons[0];
     await downloadBtn.trigger("click");
 
     const sheetRows = aoa_to_sheet.mock.calls[0]?.[0] as string[][];

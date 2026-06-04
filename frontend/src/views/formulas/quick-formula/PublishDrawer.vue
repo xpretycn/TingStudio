@@ -191,13 +191,13 @@ onMounted(() => {
 .drawer-header-title {
   font-size: $font-size-h4;
   font-weight: $font-weight-bold;
-  color: $text-primary;
+  color: var(--color-text-primary);
   line-height: 1.4;
 }
 
 .drawer-header-desc {
   font-size: $font-size-caption;
-  color: $text-tertiary;
+  color: var(--color-text-placeholder);
   line-height: 1.4;
 }
 
@@ -241,7 +241,7 @@ onMounted(() => {
   gap: $space-1-5;
   font-size: $font-size-body-sm;
   font-weight: $font-weight-medium;
-  color: $text-primary;
+  color: var(--color-text-primary);
   letter-spacing: $ls-caption;
 }
 
@@ -277,8 +277,8 @@ onMounted(() => {
   }
 
   &:disabled {
-    background-color: $text-placeholder !important;
-    border-color: $text-placeholder !important;
+    background-color: var(--color-text-placeholder) !important;
+    border-color: var(--color-text-placeholder) !important;
     cursor: not-allowed;
   }
 }

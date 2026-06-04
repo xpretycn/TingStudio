@@ -571,7 +571,7 @@ onMounted(() => {
     margin-left: -32px;
     margin-right: -32px;
     padding: 8px 32px;
-    background-color: rgba(255, 255, 255, 0.80);
+    background-color: var(--color-bg-container);
     backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--color-border-light);
     animation: fadeInDown 0.3s cubic-bezier(0.4, 0, 0.2, 1) both;
@@ -959,7 +959,7 @@ onMounted(() => {
       .nutrition-header {
         padding: 20px 24px;
         border-bottom: 1px solid var(--color-bg-page);
-        background: rgba(248, 250, 252, 0.5);
+        background: var(--color-emerald-50);
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -1091,7 +1091,7 @@ onMounted(() => {
       .energy-header {
         padding: 20px 24px;
         border-bottom: 1px solid var(--color-bg-page);
-        background: rgba(16, 185, 129, 0.08);
+        background: var(--color-emerald-50);
         display: flex;
         justify-content: space-between;
         align-items: center;

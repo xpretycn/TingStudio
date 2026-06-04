@@ -126,21 +126,47 @@ async function getFormulaData(formulaId: string, versionId?: string) {
       const [matRows]: any[][] = await query(`SELECT * FROM materials WHERE id IN (${placeholders})`, materialIds);
       matRows.forEach((row: any) => materialDetails.set(row.id, rowToCamelCase<MaterialRow>(row)));
 
+      // 优先取 is_latest=1 的版本；如果没有，则回退到该原料任意一条最新的营养记录
       const [nutRows]: any[][] = await query(
-        `SELECT * FROM material_nutrition WHERE material_id IN (${placeholders}) AND is_latest = 1`,
+        `SELECT * FROM material_nutrition
+         WHERE material_id IN (${placeholders})
+         ORDER BY is_latest DESC, last_updated DESC`,
         materialIds,
       );
+      const seenMaterialIds = new Set<string>();
+      // 先从 DB 取（按优先级：is_latest=1 的最新版本）
       nutRows.forEach((row: any) => {
+        if (seenMaterialIds.has(row.material_id)) return; // 每个原料只取第一条（最新版本）
+        seenMaterialIds.add(row.material_id);
         const per100g = safeJsonParse<Record<string, number>>(row.per_100g_json, null);
         if (per100g && row.material_id) {
+          // 数据库字段命名：protein_g / fat_g / carbohydrate_g / dietary_fiber_g / sodium_mg / energy_kj
           nutritionData.set(row.material_id, {
             materialId: row.material_id,
-            protein: per100g.protein ?? 0,
-            fat: per100g.fat ?? 0,
-            carbohydrate: per100g.carbohydrate ?? 0,
-            sodium: per100g.sodium ?? 0,
-            calories: per100g.calories ?? per100g.energy ?? 0,
-            dietaryFiber: per100g.dietary_fiber ?? per100g.dietaryFiber ?? 0,
+            protein: per100g.protein_g ?? per100g.protein ?? 0,
+            fat: per100g.fat_g ?? per100g.fat ?? 0,
+            carbohydrate: per100g.carbohydrate_g ?? per100g.carbohydrate ?? 0,
+            sodium: per100g.sodium_mg ?? per100g.sodium ?? 0,
+            calories: per100g.energy_kj ?? per100g.calories ?? per100g.energy ?? 0,
+            dietaryFiber: per100g.dietary_fiber_g ?? per100g.dietaryFiber ?? 0,
+          });
+        }
+      });
+
+      // 配方 materialsJson 中也可能内嵌 nutrition 字段，优先使用 DB 中没有但配方中有的
+      materials.forEach((m: any) => {
+        if (!m.materialId) return;
+        if (nutritionData.has(m.materialId)) return; // 优先 DB
+        const n = m.nutrition;
+        if (n && typeof n === "object") {
+          nutritionData.set(m.materialId, {
+            materialId: m.materialId,
+            protein: n.protein ?? n.protein_g ?? 0,
+            fat: n.fat ?? n.fat_g ?? 0,
+            carbohydrate: n.carbohydrate ?? n.carbohydrate_g ?? 0,
+            sodium: n.sodium ?? n.sodium_mg ?? 0,
+            calories: n.energy ?? n.calories ?? n.energy_kj ?? 0,
+            dietaryFiber: n.fiber ?? n.dietaryFiber ?? n.dietary_fiber_g ?? 0,
           });
         }
       });
@@ -380,6 +406,21 @@ export async function exportFormulaToPdf(
   y = doc.y + 20;
   }
 
+  // 预计算总营养成分（nutritionTable 和 nrvTable 共用）
+  const totalNutrition = { protein: 0, fat: 0, carbohydrate: 0, sodium: 0, calories: 0, dietaryFiber: 0 };
+  materials.forEach((m: any) => {
+    const nutrition = m.materialId ? nutritionData.get(m.materialId) : null;
+    if (nutrition) {
+      const ratio = (m.quantity || 0) / 100;
+      totalNutrition.protein += nutrition.protein * ratio;
+      totalNutrition.fat += nutrition.fat * ratio;
+      totalNutrition.carbohydrate += nutrition.carbohydrate * ratio;
+      totalNutrition.sodium += nutrition.sodium * ratio;
+      totalNutrition.calories += nutrition.calories * ratio;
+      totalNutrition.dietaryFiber += nutrition.dietaryFiber * ratio;
+    }
+  });
+
   // ===== 营养数据表格 =====
   if (fields.includes('nutritionTable')) {
     doc.fontSize(14).fillColor("#333333");
@@ -402,8 +443,7 @@ export async function exportFormulaToPdf(
   }
   y += nutRowHeight;
 
-  // 数据行 + 合计
-  const totalNutrition = { protein: 0, fat: 0, carbohydrate: 0, sodium: 0, calories: 0, dietaryFiber: 0 };
+  // 数据行 + 合计（totalNutrition 已在上方预计算）
 
   doc.fontSize(9);
   const nutDataRowHeight = 22;
@@ -412,16 +452,6 @@ export async function exportFormulaToPdf(
     const detail = m.materialId ? materialDetails.get(m.materialId) : null;
     const name = detail?.name || m.materialName || "未知";
     const nutrition = m.materialId ? nutritionData.get(m.materialId) : null;
-
-    if (nutrition) {
-      const ratio = (m.quantity || 0) / 100;
-      totalNutrition.protein += nutrition.protein * ratio;
-      totalNutrition.fat += nutrition.fat * ratio;
-      totalNutrition.carbohydrate += nutrition.carbohydrate * ratio;
-      totalNutrition.sodium += nutrition.sodium * ratio;
-      totalNutrition.calories += nutrition.calories * ratio;
-      totalNutrition.dietaryFiber += nutrition.dietaryFiber * ratio;
-    }
 
     // 检查是否需要分页
     if (y > 700) {
@@ -505,8 +535,8 @@ export async function exportFormulaToPdf(
     { key: "sodium", label: "钠", value: totalNutrition.sodium / 1000 },
   ];
 
-  // 表头
-  doc.rect(startX, y, pageWidth, nrvRowHeight).fill("#1890FF");
+  // 表头（与营养数据表颜色统一）
+  doc.rect(startX, y, pageWidth, nrvRowHeight).fill("#FF6B8A");
   doc.fontSize(9).fillColor("#FFFFFF");
   x = startX;
   for (let i = 0; i < nrvHeaders.length; i++) {

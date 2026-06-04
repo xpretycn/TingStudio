@@ -608,7 +608,7 @@ const dashboardCards = computed(() => {
       badge: '补充剂',
       badgeColor: 'var(--color-warning)',
       badgeBg: 'var(--color-warning-bg)',
-      iconBg: '#FAF5FF',
+      iconBg: 'var(--color-violet-50, #FAF5FF)',
       iconColor: '#A855F7',
       iconPath: '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>',
     },
@@ -763,10 +763,10 @@ const getAvatarColor = (text: string) => {
     { bg: 'var(--color-danger-bg)', text: 'var(--color-danger)' },
     { bg: 'var(--color-warning-bg)', text: 'var(--color-warning)' },
     { bg: 'var(--color-primary-bg)', text: 'var(--color-primary)' },
-    { bg: '#E0E7FF', text: '#6366F1' },
-    { bg: '#F3E8FF', text: '#A855F7' },
-    { bg: '#E0F2FE', text: '#0EA5E9' },
-    { bg: '#FFEDD5', text: '#F97316' }
+    { bg: 'var(--color-indigo-100, #E0E7FF)', text: '#6366F1' },
+    { bg: 'var(--color-violet-100, #F3E8FF)', text: '#A855F7' },
+    { bg: 'var(--color-sky-50, #E0F2FE)', text: '#0EA5E9' },
+    { bg: 'var(--color-orange-50, #FFEDD5)', text: '#F97316' }
   ];
   const index = text.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % colors.length;
   return colors[index];
@@ -1743,6 +1743,7 @@ const handleStatusFilterChange = () => {
         gap: var(--space-0-5);
         padding: var(--space-1);
         background: var(--color-primary-bg);
+        border: 1px solid var(--color-border-light);
         border-radius: 12px;
       }
 
@@ -1754,7 +1755,7 @@ const handleStatusFilterChange = () => {
         border: none;
         border-radius: 8px;
         background: transparent;
-        color: var(--color-text-placeholder);
+        color: var(--color-text-secondary);
         font-size: 13px;
         font-weight: 500;
         cursor: pointer;
@@ -1769,7 +1770,7 @@ const handleStatusFilterChange = () => {
         }
 
         &:hover:not(.active) {
-          color: var(--color-text-secondary);
+          color: var(--color-text-primary);
         }
       }
     }
@@ -1819,8 +1820,8 @@ const handleStatusFilterChange = () => {
       align-items: center;
       gap: 8px;
       padding: 8px 16px;
-      background-color: var(--color-text-primary);
-      color: white;
+      background-color: var(--color-primary); // 品牌色背景（明暗模式均有白字对比度）
+      color: var(--color-text-white);
       border-radius: 12px;
       font-size: 14px;
       font-weight: 500;
@@ -1830,7 +1831,7 @@ const handleStatusFilterChange = () => {
       cursor: pointer;
 
       &:hover {
-        background-color: var(--color-text-primary);
+        background-color: var(--color-primary-dark);
       }
 
       .add-icon {

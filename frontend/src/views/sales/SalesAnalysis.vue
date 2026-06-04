@@ -668,8 +668,8 @@ const dashboardCards = computed(() => {
       unit: '件',
       badge: comp && comp.quantityGrowthRate !== 0 ? `${comp.quantityGrowthRate > 0 ? '+' : ''}${comp.quantityGrowthRate}%` : '--',
       badgeColor: (comp?.quantityGrowthRate || 0) >= 0 ? 'var(--color-primary)' : 'var(--color-danger)',
-      badgeBg: (comp?.quantityGrowthRate || 0) >= 0 ? '#ECFDF5' : '#FEF2F2',
-      iconBg: '#EFF6FF',
+      badgeBg: (comp?.quantityGrowthRate || 0) >= 0 ? 'var(--color-emerald-50, #ECFDF5)' : 'var(--color-red-50, #FEF2F2)',
+      iconBg: 'var(--color-blue-50, #EFF6FF)',
       iconColor: '#3B82F6',
       iconPath: '<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>',
     },
@@ -679,8 +679,8 @@ const dashboardCards = computed(() => {
       unit: '万元',
       badge: comp && comp.revenueGrowthRate !== 0 ? `${comp.revenueGrowthRate > 0 ? '+' : ''}${comp.revenueGrowthRate}%` : '--',
       badgeColor: (comp?.revenueGrowthRate || 0) >= 0 ? 'var(--color-primary)' : 'var(--color-danger)',
-      badgeBg: (comp?.revenueGrowthRate || 0) >= 0 ? '#ECFDF5' : '#FEF2F2',
-      iconBg: '#ECFDF5',
+      badgeBg: (comp?.revenueGrowthRate || 0) >= 0 ? 'var(--color-emerald-50, #ECFDF5)' : 'var(--color-red-50, #FEF2F2)',
+      iconBg: 'var(--color-emerald-50, #ECFDF5)',
       iconColor: 'var(--color-primary)',
       iconPath: '<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',
     },
@@ -690,8 +690,8 @@ const dashboardCards = computed(() => {
       unit: '款',
       badge: '有销量',
       badgeColor: '#3B82F6',
-      badgeBg: '#EFF6FF',
-      iconBg: '#FFFBEB',
+      badgeBg: 'var(--color-blue-50, #EFF6FF)',
+      iconBg: 'var(--color-amber-50, #FFFBEB)',
       iconColor: 'var(--color-warning)',
       iconPath: '<path d="M9 3h6v8l-3 4-3-4V3z"/><line x1="12" y1="7" x2="12" y2="3"/><line x1="9" y1="15" x2="15" y2="15"/><path d="M8 19h8"/>',
     },
@@ -701,8 +701,8 @@ const dashboardCards = computed(() => {
       unit: '人',
       badge: '有贡献',
       badgeColor: '#8B5CF6',
-      badgeBg: '#F5F3FF',
-      iconBg: '#FAF5FF',
+      badgeBg: 'var(--color-violet-50, #F5F3FF)',
+      iconBg: 'var(--color-violet-50, #FAF5FF)',
       iconColor: '#A855F7',
       iconPath: '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
     },
@@ -815,9 +815,9 @@ const getPeriodTheme = (type: string) => ({ monthly: 'primary', quarterly: 'warn
 
 const getAvatarColor = (text: string) => {
   const colors = [
-    { bg: '#DBEAFE', text: '#3B82F6' }, { bg: '#FEE2E2', text: 'var(--color-danger)' },
-    { bg: '#FEF3C7', text: 'var(--color-warning)' }, { bg: 'var(--color-primary-bg)', text: 'var(--color-primary)' },
-    { bg: '#E0E7FF', text: '#6366F1' }, { bg: '#F3E8FF', text: '#A855F7' },
+    { bg: 'var(--color-blue-100, #DBEAFE)', text: '#3B82F6' }, { bg: 'var(--color-red-100, #FEE2E2)', text: 'var(--color-danger)' },
+    { bg: 'var(--color-amber-100, #FEF3C7)', text: 'var(--color-warning)' }, { bg: 'var(--color-primary-bg)', text: 'var(--color-primary)' },
+    { bg: 'var(--color-indigo-100, #E0E7FF)', text: '#6366F1' }, { bg: 'var(--color-violet-100, #F3E8FF)', text: '#A855F7' },
   ];
   const index = (text || '').split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % colors.length;
   return colors[index];
@@ -1124,7 +1124,6 @@ onMounted(async () => {
 </script>
 
 <style scoped lang="scss">
-@use 'sass:color';
 @use '@/assets/styles/variables.scss' as *;
 
 .sales-analysis {
@@ -1160,16 +1159,16 @@ onMounted(async () => {
 }
 
 .activity-card {
-  background-color: #fff;
+  background-color: var(--color-bg-container);
   border-radius: var(--radius-4xl);
   padding: 32px;
   box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
   border: 1px solid var(--color-bg-page);
 
   &--assistant {
-    background: #fff;
+    background: var(--color-bg-container);
     border: 1px solid var(--color-bg-page);
-    color: #0F172A;
+    color: var(--color-text-primary);
     position: relative;
     overflow: hidden;
     box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
@@ -1221,7 +1220,7 @@ onMounted(async () => {
       opacity: 0.3;
       cursor: not-allowed;
       border-color: rgba(148, 163, 184, 0.15);
-      color: #cbd5e1;
+      color: var(--color-text-placeholder);
       background: transparent;
     }
   }
@@ -1256,7 +1255,7 @@ onMounted(async () => {
     top: 28px;
     bottom: 0;
     width: 1px;
-    background-color: #f1f5f9;
+    background-color: var(--color-border-light);
   }
 }
 
@@ -1340,7 +1339,7 @@ onMounted(async () => {
 
 .timeline-time {
   font-size: 10px;
-  color: #cbd5e1;
+  color: var(--color-text-placeholder);
   text-transform: uppercase;
   display: inline-block;
   margin-top: 4px;
@@ -1424,13 +1423,13 @@ onMounted(async () => {
     padding: var(--space-3-5);
     background: var(--color-bg-page);
     border-radius: 14px;
-    border: 1px solid #f1f5f9;
+    border: 1px solid var(--color-border-light);
     transition: all 0.25s ease;
     cursor: default;
     animation: todoSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
 
     &:hover {
-      background: #f1f5f9;
+      background: var(--color-bg-page);
       border-color: var(--color-border);
       transform: translateX(4px);
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
@@ -1542,7 +1541,7 @@ onMounted(async () => {
       height: 28px;
       border-radius: 8px;
       border: 1.5px solid var(--color-border);
-      background: #fff;
+      background: var(--color-bg-container);
       color: var(--color-text-secondary);
       cursor: pointer;
       display: inline-flex;
@@ -1586,7 +1585,7 @@ onMounted(async () => {
     p {
       font-size: 15px;
       font-weight: 600;
-      color: #0F172A;
+      color: var(--color-text-primary);
       margin: 0 0 var(--space-1-5) 0;
     }
 
@@ -1599,7 +1598,7 @@ onMounted(async () => {
   .assistant-footer {
     margin-top: 16px;
     padding-top: 16px;
-    border-top: 1px solid #f1f5f9;
+    border-top: 1px solid var(--color-border-light);
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -1615,7 +1614,7 @@ onMounted(async () => {
     height: 28px;
     border-radius: 8px;
     border: 1.5px solid var(--color-border);
-    background: #fff;
+    background: var(--color-bg-container);
     color: var(--color-text-secondary);
     cursor: pointer;
     display: inline-flex;
@@ -1624,8 +1623,8 @@ onMounted(async () => {
     transition: all 0.2s ease;
 
     &:hover {
-      background: #f1f5f9;
-      border-color: #cbd5e1;
+      background: var(--color-bg-page);
+      border-color: var(--color-border-light);
       color: var(--color-text-secondary);
       transform: rotate(180deg);
     }
@@ -1673,7 +1672,7 @@ onMounted(async () => {
   .error-title {
     font-size: 18px;
     font-weight: 700;
-    color: #0F172A;
+    color: var(--color-text-primary);
     margin: 0 0 8px;
   }
 
@@ -1691,7 +1690,7 @@ onMounted(async () => {
     padding: var(--space-2-5) 24px;
     border-radius: 12px;
     border: none;
-    background: $brand-primary;
+    background: var(--color-primary);
     color: #fff;
     font-size: 14px;
     font-weight: 600;
@@ -1699,7 +1698,7 @@ onMounted(async () => {
     transition: all 0.2s;
 
     &:hover {
-      background: color.adjust($brand-primary, $lightness: -8%);
+      background: var(--color-primary-dark);
       transform: translateY(-1px);
     }
   }
@@ -1712,10 +1711,10 @@ onMounted(async () => {
   margin-bottom: 30px;
 
   .stat-card {
-    background: #fff;
+    background: var(--color-bg-container);
     padding: 24px;
     border-radius: var(--radius-4xl);
-    border: 1px solid #fff;
+    border: 1px solid var(--color-bg-container);
     box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
     transition: all $transition-slow;
     animation: dashboard-fade-in 0.5s ease forwards;
@@ -1761,7 +1760,7 @@ onMounted(async () => {
     .stat-value {
       font-size: 24px;
       font-weight: 700;
-      color: #0F172A;
+      color: var(--color-text-primary);
       line-height: 1.2;
 
       .stat-unit {
@@ -1813,9 +1812,9 @@ onMounted(async () => {
 }
 
 .chart-card {
-  background: #fff;
+  background: var(--color-bg-container);
   border-radius: var(--radius-4xl);
-  border: 1px solid #f1f5f9;
+  border: 1px solid var(--color-border-light);
   box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
   overflow: hidden;
 
@@ -1831,7 +1830,7 @@ onMounted(async () => {
       gap: 8px;
       font-size: 16px;
       font-weight: 600;
-      color: #0F172A;
+      color: var(--color-text-primary);
       margin: 0;
     }
   }
@@ -1962,7 +1961,7 @@ onMounted(async () => {
     gap: 20px;
     margin-top: 16px;
     padding-top: 12px;
-    border-top: 1px solid #F1F5F9;
+    border-top: 1px solid var(--color-border-light);
 
     .legend-item {
       display: flex;
@@ -2015,7 +2014,7 @@ onMounted(async () => {
       opacity: 0.3;
       cursor: not-allowed;
       border-color: rgba(148, 163, 184, 0.15);
-      color: #cbd5e1;
+      color: var(--color-text-placeholder);
       background: transparent;
     }
   }
@@ -2052,10 +2051,10 @@ onMounted(async () => {
     font-size: 12px;
     font-weight: 700;
     color: var(--color-text-placeholder);
-    background: #F1F5F9;
-    flex-shrink: 0;
+    background: var(--color-border-light);
+      flex-shrink: 0;
 
-    &.rank-top {
+      &.rank-top {
       background: linear-gradient(135deg, #FEF3C7, #FDE68A);
       color: #D97706;
     }
@@ -2077,7 +2076,7 @@ onMounted(async () => {
 
     .rank-bar-track {
       height: 6px;
-      background: #F1F5F9;
+      background: var(--color-border-light);
       border-radius: var(--radius-xs);
       overflow: hidden;
     }
@@ -2093,7 +2092,7 @@ onMounted(async () => {
   .rank-value {
     font-size: 14px;
     font-weight: 700;
-    color: #0F172A;
+    color: var(--color-text-primary);
     flex-shrink: 0;
 
     small {
@@ -2106,7 +2105,7 @@ onMounted(async () => {
 
 .content-card {
   min-height: 400px;
-  background-color: #fff;
+  background-color: var(--color-bg-container);
   border-radius: var(--radius-5xl) !important;
   border: 1px solid var(--color-bg-page) !important;
   overflow: hidden;
@@ -2146,7 +2145,7 @@ onMounted(async () => {
   align-items: center;
   justify-content: space-between;
   padding: 20px var(--space-7);
-  border-bottom: 1px solid #F1F5F9;
+  border-bottom: 1px solid var(--color-border-light);
   flex-wrap: wrap;
   gap: 12px;
   position: relative;
@@ -2161,7 +2160,7 @@ onMounted(async () => {
       h3.toolbar-title {
         font-size: 16px;
         font-weight: 700;
-        color: #0F172A;
+        color: var(--color-text-primary);
         margin: 0 0 4px;
       }
 
@@ -2283,7 +2282,7 @@ onMounted(async () => {
     .formula-name-text {
       font-size: 14px;
       font-weight: 600;
-      color: #0F172A;
+      color: var(--color-text-primary);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -2346,7 +2345,7 @@ onMounted(async () => {
     height: 32px;
     border-radius: 10px;
     border: 1px solid var(--color-border);
-    background: #fff;
+    background: var(--color-bg-container);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -2388,7 +2387,7 @@ onMounted(async () => {
   }
 
   td {
-    border-bottom: 1px solid #f1f5f9 !important;
+    border-bottom: 1px solid var(--color-border-light) !important;
     vertical-align: middle !important;
 
     &:last-child {
@@ -2446,7 +2445,7 @@ onMounted(async () => {
   align-items: center;
   justify-content: space-between;
   padding: 24px;
-  background-color: #fff;
+  background-color: var(--color-bg-container);
   border-top: 1px solid var(--color-bg-page);
   border-radius: 0 0 var(--radius-5xl) var(--radius-5xl);
 
@@ -2466,7 +2465,7 @@ onMounted(async () => {
       padding: 0 var(--space-2-5);
       border-radius: 10px;
       border: 1px solid var(--color-border);
-      background: #fff;
+      background: var(--color-bg-container);
       font-size: 13px;
       font-weight: 500;
       color: var(--color-text-secondary);
@@ -2493,7 +2492,7 @@ onMounted(async () => {
     }
 
     .pagination-ellipsis {
-      color: #CBD5E1;
+      color: var(--color-text-placeholder);
       padding: 0 4px;
       font-size: 13px;
     }
@@ -2654,16 +2653,16 @@ onMounted(async () => {
 }
 
 .activity-card {
-  background-color: #fff;
+  background-color: var(--color-bg-container);
   border-radius: var(--radius-4xl);
   padding: 32px;
   box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
   border: 1px solid var(--color-bg-page);
 
   &--assistant {
-    background: #fff;
+    background: var(--color-bg-container);
     border: 1px solid var(--color-bg-page);
-    color: #0F172A;
+    color: var(--color-text-primary);
     position: relative;
     overflow: hidden;
     box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
@@ -2715,7 +2714,7 @@ onMounted(async () => {
       opacity: 0.3;
       cursor: not-allowed;
       border-color: rgba(148, 163, 184, 0.15);
-      color: #cbd5e1;
+      color: var(--color-text-placeholder);
       background: transparent;
     }
   }
@@ -2750,7 +2749,7 @@ onMounted(async () => {
     top: 28px;
     bottom: 0;
     width: 1px;
-    background-color: #f1f5f9;
+    background-color: var(--color-border-light);
   }
 }
 
@@ -2834,7 +2833,7 @@ onMounted(async () => {
 
 .timeline-time {
   font-size: 10px;
-  color: #cbd5e1;
+  color: var(--color-text-placeholder);
   text-transform: uppercase;
   display: inline-block;
   margin-top: 4px;
@@ -2862,7 +2861,7 @@ onMounted(async () => {
 .assistant-btn {
   width: 100%;
   padding: 12px;
-  background-color: #fff;
+  background-color: var(--color-bg-container);
   color: var(--color-primary-dark);
   font-weight: 700;
   border-radius: 16px;

@@ -2217,7 +2217,7 @@ onBeforeUnmount(() => {
       transition: background 0.15s;
       white-space: nowrap;
 
-      &:hover { background: $border-color-light; }
+      &:hover { background: var(--color-border-light); }
 
       svg { flex-shrink: 0; }
     }

@@ -462,7 +462,7 @@ async function handleToggleStatus(user: UserManageItem) {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: $bg-container;
+  background-color: var(--color-bg-container);
   border-top: 1px solid var(--color-bg-page);
 
   .pagination-info {

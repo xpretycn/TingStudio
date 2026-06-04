@@ -136,12 +136,10 @@ describe("useVersionStore", () => {
   });
 
   it("V09: fetchReviewLogs 成功获取审核日志", async () => {
-    const logsData = {
-      logs: [
-        { reviewLogId: "rl-001", versionId: "v-001", action: "submit", comment: "提交审核", createdAt: "2024-01-01T00:00:00Z" },
-        { reviewLogId: "rl-002", versionId: "v-001", action: "approve", comment: "审核通过", createdAt: "2024-01-02T00:00:00Z" },
-      ],
-    };
+    const logsData = [
+      { reviewLogId: "rl-001", versionId: "v-001", action: "submit", comment: "提交审核", createdAt: "2024-01-01T00:00:00Z" },
+      { reviewLogId: "rl-002", versionId: "v-001", action: "approve", comment: "审核通过", createdAt: "2024-01-02T00:00:00Z" },
+    ];
     getReviewLogs.mockResolvedValue(logsData);
 
     const result = await store.fetchReviewLogs("v-001");

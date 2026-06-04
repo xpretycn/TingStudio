@@ -241,6 +241,38 @@ function runAutoMigrations(dbInstance: Database.Database) {
   ensureColumn(dbInstance, "material_nutrition", "material_version", "INTEGER", "1");
   ensureColumn(dbInstance, "material_nutrition", "is_latest", "INTEGER", "1");
 
+  // 营养数据治理：来源层/字段级溯源（与 addNutritionSourceLayer.ts 保持一致）
+  ensureColumn(dbInstance, "material_nutrition", "field_sources_json", "TEXT", "NULL");
+  ensureColumn(dbInstance, "material_nutrition", "source_type", "TEXT", "'manual'");
+  ensureColumn(dbInstance, "material_nutrition", "source_detail", "TEXT", "NULL");
+  ensureColumn(dbInstance, "material_nutrition", "created_at", "TEXT", "NULL");
+  ensureColumn(dbInstance, "material_nutrition", "created_by", "TEXT", "NULL");
+
+  // 来源层表 material_nutrition_sources（与 addNutritionSourceLayer.ts 保持一致）
+  ensureTable(dbInstance, "material_nutrition_sources", `
+    CREATE TABLE IF NOT EXISTS material_nutrition_sources (
+      source_id     TEXT PRIMARY KEY,
+      material_id   TEXT NOT NULL,
+      source_type   TEXT NOT NULL DEFAULT 'manual' CHECK(source_type IN ('manual', 'tianapi', 'seed', 'ai', 'excel_import', 'other')),
+      source_detail TEXT DEFAULT NULL,
+      per_100g_json TEXT NOT NULL,
+      confidence    TEXT DEFAULT 'medium' CHECK(confidence IN ('high', 'medium', 'low')),
+      match_score   REAL DEFAULT NULL,
+      notes         TEXT DEFAULT NULL,
+      created_at    TEXT NOT NULL DEFAULT (datetime('now')),
+      created_by    TEXT DEFAULT NULL,
+      is_active     INTEGER NOT NULL DEFAULT 1,
+      FOREIGN KEY (material_id) REFERENCES materials(id) ON DELETE CASCADE
+    )
+  `);
+  try {
+    dbInstance.exec("CREATE INDEX IF NOT EXISTS idx_mns_material ON material_nutrition_sources(material_id)");
+    dbInstance.exec("CREATE INDEX IF NOT EXISTS idx_mns_source_type ON material_nutrition_sources(source_type)");
+    dbInstance.exec("CREATE INDEX IF NOT EXISTS idx_mns_material_type ON material_nutrition_sources(material_id, source_type)");
+  } catch (err: unknown) {
+    logger.warn("数据库迁移: material_nutrition_sources 索引创建失败 - " + (err instanceof Error ? err.message : String(err)));
+  }
+
   // 版本化索引
   try {
     dbInstance.exec("CREATE INDEX IF NOT EXISTS idx_material_version ON materials(version)");

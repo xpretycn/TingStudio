@@ -289,9 +289,9 @@ onMounted(() => {
   margin-left: -32px;
   margin-right: -32px;
   padding: 16px 32px;
-  background-color: rgba(255, 255, 255, 0.80);
+  background-color: var(--color-bg-container);
   backdrop-filter: blur(12px);
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid var(--color-border-light);
   animation: fadeInDown 0.3s cubic-bezier(0.4, 0, 0.2, 1) both;
 
   .header-left {
@@ -396,7 +396,7 @@ onMounted(() => {
 }
 
 .form-card {
-  background: #fff;
+  background: var(--color-bg-container);
   border-radius: var(--radius-4xl);
   padding: 32px;
   box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
@@ -584,7 +584,7 @@ onMounted(() => {
     }
 
     &.t-is-focused {
-      background-color: #fff !important;
+      background-color: var(--color-bg-container) !important;
       border-color: transparent !important;
       box-shadow: 0 0 0 2px var(--color-primary) !important;
       outline: none !important;

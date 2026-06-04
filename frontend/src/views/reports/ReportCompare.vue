@@ -63,7 +63,7 @@
             </section>
 
             <div class="compare-sections">
-              <div class="report-section-card" :style="{ borderLeftColor: '#3B82F6' }">
+              <div class="report-section-card" :style="{ borderLeftColor: 'var(--color-blue-500, #3B82F6)' }">
                 <div class="section-header">
                   <div class="section-title-group">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2"
@@ -347,9 +347,9 @@ onUnmounted(() => {
   margin-left: -32px;
   margin-right: -32px;
   padding: 16px 32px;
-  background-color: rgba(255, 255, 255, 0.80);
+  background-color: var(--color-bg-container);
   backdrop-filter: blur(12px);
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid var(--color-border-light);
   animation: fadeInDown 0.3s cubic-bezier(0.4, 0, 0.2, 1) both;
 
   .header-left {
@@ -451,10 +451,10 @@ onUnmounted(() => {
 }
 
 .compare-metric-card {
-  background: #fff;
+  background: var(--color-bg-container);
   padding: 24px;
   border-radius: var(--radius-4xl);
-  border: 1px solid #fff;
+  border: 1px solid var(--color-bg-container);
   box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
   transition: all $transition-slow;
 
@@ -486,7 +486,7 @@ onUnmounted(() => {
   .metric-value {
     font-size: 20px;
     font-weight: 700;
-    color: #0F172A;
+    color: var(--color-text-primary);
     display: block;
   }
 
@@ -530,9 +530,9 @@ onUnmounted(() => {
 }
 
 .report-section-card {
-  background: #fff;
+  background: var(--color-bg-container);
   border-radius: 20px;
-  border: 1px solid #f1f5f9;
+  border: 1px solid var(--color-border-light);
   border-left: 4px solid #3B82F6;
   box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04);
   overflow: hidden;
@@ -546,7 +546,7 @@ onUnmounted(() => {
   .section-header {
     padding: var(--space-3-5) 20px;
     background: var(--color-bg-page);
-    border-bottom: 1px solid #f1f5f9;
+    border-bottom: 1px solid var(--color-border-light);
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -561,7 +561,7 @@ onUnmounted(() => {
   .section-title {
     font-size: 16px;
     font-weight: 600;
-    color: #0F172A;
+    color: var(--color-text-primary);
     margin: 0;
   }
 
@@ -577,8 +577,8 @@ onUnmounted(() => {
 
 .chart-container {
   border-radius: 12px;
-  background: #fff;
-  border: 1px solid #f1f5f9;
+  background: var(--color-bg-container);
+  border: 1px solid var(--color-border-light);
 }
 
 .error-state {
@@ -597,7 +597,7 @@ onUnmounted(() => {
   .error-title {
     font-size: 18px;
     font-weight: 700;
-    color: #0F172A;
+    color: var(--color-text-primary);
     margin: 0 0 8px;
   }
 

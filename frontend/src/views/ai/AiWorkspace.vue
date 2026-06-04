@@ -17,18 +17,18 @@
       </div>
     </Transition>
 
-    <!-- ══�?三栏布局容器 ══�?-->
+    <!-- ═══ 三栏布局容器 ═══ -->
     <div class="dashboard-layout">
 
-      <!-- ══�?中间主区：区�? - AI对话区（核心�?══�?-->
+      <!-- ═══ 中间主区：区域 - AI对话区（核心）═══ -->
       <main class="layout-main">
         <section class="ai-chat-section">
           <div class="chat-container">
             <!-- AI 对话 Tab 内容 -->
             <template v-if="activeTab === 'chat'">
-              <!-- 历史会话侧边�?+ 聊天内容 并排区域 -->
+              <!-- 历史会话侧边栏 + 聊天内容 并排区域 -->
               <div class="chat-body-row">
-                <!-- 历史会话侧边�?-->
+                <!-- 历史会话侧边栏 -->
                 <aside class="history-sidebar" :class="{ collapsed: !showHistory }">
                   <div class="history-sidebar-inner">
                     <div class="history-header">
@@ -51,7 +51,7 @@
                       <div v-for="session in sessions" :key="session.id" class="history-item"
                         :class="{ active: conversationId === session.id }" @click="switchToSession(session.id)">
                         <div class="session-info">
-                          <span class="session-title">{{ session.title || '未命名会�? }}</span>
+                          <span class="session-title">{{ session.title || '未命名会话' }}</span>
                           <span class="session-time">{{ formatRelativeTime(session.updatedAt) }}</span>
                         </div>
                         <button class="session-delete-btn" @click="deleteSessionFromHistory(session.id, $event)"
@@ -65,7 +65,7 @@
                     </div>
                   </div>
                 </aside>
-                <!-- 聊天主区域（消息 + 输入框，整体随侧边栏右移�?-->
+                <!-- 聊天主区域（消息 + 输入框，整体随侧边栏右移）-->
                 <div class="chat-main">
                   <!-- 消息区域 -->
                   <div class="messages-wrapper" ref="messagesContainer" @scroll="handleMessagesScroll">
@@ -93,11 +93,11 @@
                       <p>我可以帮你：</p>
                       <ul class="welcome-features">
                         <li @click="handleQuickQuestion('分析销售数据和趋势')">分析销售数据和趋势</li>
-                        <li @click="handleQuickQuestion('优化配方和降低成�?)">优化配方和降低成�?/li>
-                        <li @click="handleQuickQuestion('管理原料库存和采�?)">管理原料库存和采�?/li>
+                        <li @click="handleQuickQuestion('优化配方和降低成本')">优化配方和降低成本</li>
+                        <li @click="handleQuickQuestion('管理原料库存和采购')">管理原料库存和采购</li>
                         <li @click="handleQuickQuestion('生成各类业务报告')">生成各类业务报告</li>
                       </ul>
-                      <p class="welcome-hint">试试问我一个问题吧�?/p>
+                      <p class="welcome-hint">试试问我一个问题吧！</p>
                     </div>
 
                     <!-- 消息列表 -->
@@ -164,7 +164,7 @@
                               <div v-for="(gl, idx) in msg.writeGuidanceLinks" :key="idx" class="guidance-link-item">
                                 <t-icon name="link" size="14px" />
                                 <a :href="gl.navigationLink" @click.prevent="navigateTo(gl.navigationLink)" class="guidance-nav-link">
-                                  前往操作 �?
+                                  前往操作 →
                                 </a>
                               </div>
                             </div>
@@ -242,7 +242,7 @@
                       </div>
                     </div>
 
-                    <!-- 加载指示�?-->
+                    <!-- 加载指示器 -->
                     <div v-if="isLoading && !streamingContent" class="typing-indicator">
                       <span></span><span></span><span></span>
                     </div>
@@ -254,7 +254,7 @@
                       <span v-if="isLoading" class="scroll-btn-pulse"></span>
                     </button>
                   </Transition>
-                  <!-- 输入框区�?-->
+                  <!-- 输入框区域 -->
                   <div class="chat-input-bar">
                     <div class="input-wrapper" ref="inputWrapperRef">
                       <!-- 斜杠指令弹出面板 -->
@@ -300,7 +300,7 @@
                           </div>
                         </div>
                       </Transition>
-                      <textarea v-model="inputText" placeholder="输入问题�?/ 调用指令... (Shift+Enter换行)"
+                      <textarea v-model="inputText" placeholder="输入问题 / 调用指令... (Shift+Enter换行)"
                         @keydown.enter.exact="() => handleSend()" @input="handleInputChange"
                         @keydown="handleInputKeydown" :disabled="isLoading" rows="1" ref="textareaRef"></textarea>
                       <div class="input-actions">
@@ -319,7 +319,7 @@
                               <div v-if="showModelMenu" class="model-dropdown-panel">
                                 <div v-if="modelsLoading" class="model-dropdown-loading">
                                   <t-icon name="loading" size="16px" class="spin-icon" />
-                                  <span>加载模型�?..</span>
+                                  <span>加载模型中...</span>
                                 </div>
                                 <div v-else-if="modelsLoadError" class="model-dropdown-error">
                                   <t-icon name="error-circle" size="16px" />
@@ -364,7 +364,7 @@
         </section>
       </main>
 
-      <!-- ══�?右侧栏：数据卡片 + 快捷操作 ══�?-->
+      <!-- ═══ 右侧栏：数据卡片 + 快捷操作 ═══ -->
       <aside class="layout-sidebar layout-right">
         <section class="data-overview-cards">
           <TransitionGroup name="card-fade" tag="div" class="cards-grid">
@@ -399,7 +399,7 @@
           </TransitionGroup>
         </section>
 
-        <!-- ══�?快捷操作 ══�?-->
+        <!-- ═══ 快捷操作 ═══ -->
         <section class="quick-actions-row">
           <div class="quick-actions-grid">
             <button v-for="action in quickActions" :key="action.path" class="action-item"
@@ -415,7 +415,7 @@
       <ToolConfirmDialog :show="confirmDialogVisible" :message="confirmMessage" :tool-name="confirmToolName"
         :params="confirmParams" @confirm="handleConfirmAction" @cancel="handleCancelAction" />
 
-      <!-- ══�?身份设置弹窗 ══�?-->
+      <!-- ═══ 身份设置弹窗 ═══ -->
       <Teleport to="body">
         <Transition name="modal-fade">
           <div v-if="showRoleConfigDialog" class="modal-overlay" @click.self="showRoleConfigDialog = false">
@@ -431,35 +431,35 @@
                   <span class="form-hint">这是AI助手对自己的称呼</span>
                 </div>
                 <div class="form-group">
-                  <label>对您的称�?/label>
+                  <label>对您的称呼</label>
                   <input v-model="roleConfig.user_title" type="text" placeholder="例如：老板、师傅、老师" />
                   <span class="form-hint">AI助手将这样称呼您</span>
                 </div>
                 <div class="form-group">
                   <label>语气风格</label>
                   <select v-model="roleConfig.tone_style">
-                    <option value="professional">专业 · 简洁高�?/option>
+                    <option value="professional">专业 · 简洁高效</option>
                     <option value="friendly">亲切 · 温暖活泼</option>
                     <option value="respectful">恭敬 · 礼貌正式</option>
                     <option value="casual">轻松 · 随意自然</option>
                   </select>
                 </div>
                 <div class="form-group">
-                  <label>开场问候语 <span class="optional-tag">可�?/span></label>
+                  <label>开场问候语 <span class="optional-tag">可选</span></label>
                   <input v-model="roleConfig.greeting" type="text" placeholder="例如：老板好！今天有什么配方需要处理？" />
                   <span class="form-hint">每次新对话开始时的问候语</span>
                 </div>
                 <div class="form-group">
-                  <label>自定义指�?<span class="optional-tag">可�?/span></label>
+                  <label>自定义指令<span class="optional-tag">可选</span></label>
                   <textarea v-model="roleConfig.custom_instructions" rows="3"
-                    placeholder="例如：回答时多用表格展示、优先推荐低成本方案�?></textarea>
-                  <span class="form-hint">额外的行为指令，AI助手会遵循这些要�?/span>
+                    placeholder="例如：回答时多用表格展示、优先推荐低成本方案"></textarea>
+                  <span class="form-hint">额外的行为指令，AI助手会遵循这些要求</span>
                 </div>
               </div>
               <div class="modal-footer">
                 <button class="btn-cancel" @click="showRoleConfigDialog = false">取消</button>
                 <button class="btn-confirm" @click="saveRoleConfig" :disabled="roleConfigSaving">
-                  {{ roleConfigSaving ? '保存�?..' : '保存设置' }}
+                  {{ roleConfigSaving ? '保存中...' : '保存设置' }}
                 </button>
               </div>
             </div>
@@ -467,7 +467,7 @@
         </Transition>
       </Teleport>
 
-      <!-- ══�?智能填单模态框 ══�?-->
+      <!-- ═══ 智能填单模态框 ═══ -->
       <Teleport to="body">
         <Transition name="modal-fade">
           <div v-if="showSmartFormModal" class="modal-overlay" @click.self="showSmartFormModal = false">
@@ -484,7 +484,7 @@
         </Transition>
       </Teleport>
 
-      <!-- ══�?智能导入模态框 ══�?-->
+      <!-- ═══ 智能导入模态框 ═══ -->
       <Teleport to="body">
         <Transition name="modal-fade">
           <div v-if="showSmartImportModal" class="modal-overlay" @click.self="showSmartImportModal = false">
@@ -632,30 +632,30 @@ const showActionToast = (message: string) => {
 };
 
 // ════════════════════════════════════════
-// Tab 切换状�?
+// Tab 切换状态
 // ════════════════════════════════════════
 const activeTab = ref<'chat'>('chat');
 
-// 模态框状态（用于智能填单/导入�?
+// 模态框状态（用于智能填单/导入）
 const showSmartFormModal = ref(false);
 const showSmartImportModal = ref(false);
 
 // ════════════════════════════════════════
-// 状态定�?
+// 状态定义
 // ════════════════════════════════════════
 
-// AI俏皮�?
+// AI俏皮话
 const wittyComment = ref('');
 const wittyLoading = ref(false);
 const FALLBACK_POOL = [
-  "又是搬砖的一天，今天也要加油�?💪",
-  "配方调得再好，也别忘了喝�?🥤",
-  "据说周五的配方成功率最高，是真的吗？�?,
-  "今天的原料价格波动了吗？快去看看�?👀",
-  "AI提示：连续工�?小时记得站起来活动一�?🏃",
+  "又是搬砖的一天，今天也要加油哦💪",
+  "配方调得再好，也别忘了喝水🥤",
+  "据说周五的配方成功率最高，是真的吗？🤔",
+  "今天的原料价格波动了吗？快去看看吧👀",
+  "AI提示：连续工作2小时记得站起来活动一下🏃",
   "周一综合症？不存在的，我们有AI助手呀 😎",
-  "库存不足预警比闹钟还准时�?�?,
-  "今天的目标：完成3个配方优化任�?🎯"
+  "库存不足预警比闹钟还准时呢🔔",
+  "今天的目标：完成3个配方优化任务🎯"
 ];
 
 // 数据卡片
@@ -675,7 +675,7 @@ interface DataCard {
 // Phase 5: 错误处理与性能优化工具
 // ════════════════════════════════════════
 
-// 全局错误状�?
+// 全局错误状态
 const globalError = ref<string | null>(null);
 const showErrorToast = (message: string) => {
   globalError.value = message;
@@ -689,7 +689,7 @@ const showErrorToast = (message: string) => {
   }, 5000);
 };
 
-// 防抖函数（Phase 5 预留，按需启用�?
+// 防抖函数（Phase 5 预留，按需启用）
 // const debounce = <T extends (...args: unknown[]) => unknown>(
 //   fn: T,
 //   delay: number = 300
@@ -719,7 +719,7 @@ const recordPerformance = (metric: keyof typeof performanceMetrics.value, value?
   }
 };
 
-// 使用防抖优化的搜�?输入处理（Phase 5 预留，按需启用�?
+// 使用防抖优化的搜索输入处理（Phase 5 预留，按需启用）
 // const debouncedHandleSend: ((...args: unknown[]) => void) | null = null
 
 const dataCards = ref<DataCard[]>([
@@ -745,7 +745,7 @@ const dataCards = ref<DataCard[]>([
   },
   {
     id: 'sales',
-    title: '本月销�?,
+    title: '本月销量',
     icon: 'chart',
     value: null,
     trend: null,
@@ -755,7 +755,7 @@ const dataCards = ref<DataCard[]>([
   },
   {
     id: 'pending',
-    title: '待处理任�?,
+    title: '待处理任务',
     icon: 'time',
     value: null,
     trend: null,
@@ -785,19 +785,19 @@ interface Suggestion {
 }
 
 const STATIC_SUGGESTIONS: Suggestion[] = [
-  { text: '帮我分析本月销量趋�?📈', category: 'analytics' },
-  { text: '检查哪些原料库存不�?🧪', category: 'analytics' },
+  { text: '帮我分析本月销量趋势📈', category: 'analytics' },
+  { text: '检查哪些原料库存不足🧪', category: 'analytics' },
   { text: '生成本周业务周报 📝', category: 'reporting' },
   { text: '对比上月配方使用情况 📊', category: 'analytics' },
-  { text: '预测下季度原料需�?🔮', category: 'optimization' },
-  { text: '优化配方的成本结�?💰', category: 'optimization' },
+  { text: '预测下季度原料需求🔮', category: 'optimization' },
+  { text: '优化配方的成本结构💰', category: 'optimization' },
   { text: '创建新的实验配方 🧪', category: 'creation' },
-  { text: '导出本季度销售报�?📄', category: 'reporting' }
+  { text: '导出本季度销售报告📄', category: 'reporting' }
 ];
 
 const displayedSuggestions = ref<Suggestion[]>([]);
 
-// AI对话状�?
+// AI对话状态
 const messages = ref<ChatMessage[]>([]);
 const inputText = ref('');
 const isLoading = ref(false);
@@ -1063,7 +1063,7 @@ const selectModel = async (m: ModelVersionItem) => {
 const copyMessageContent = async (content: string) => {
   try {
     await navigator.clipboard.writeText(content);
-    showActionToast('内容已复�?);
+    showActionToast('内容已复制');
   } catch {
     const textarea = document.createElement('textarea');
     textarea.value = content;
@@ -1073,7 +1073,7 @@ const copyMessageContent = async (content: string) => {
     textarea.select();
     document.execCommand('copy');
     document.body.removeChild(textarea);
-    showActionToast('内容已复�?);
+    showActionToast('内容已复制');
   }
 };
 
@@ -1098,7 +1098,7 @@ const deleteMessage = (msgId: string) => {
   const index = messages.value.findIndex((m: ChatMessage) => m.id === msgId);
   if (index !== -1) {
     messages.value.splice(index, 1);
-    showActionToast('消息已删�?);
+    showActionToast('消息已删除');
   }
 };
 
@@ -1121,7 +1121,7 @@ interface SlashCommand {
 const COMMAND_CATEGORIES: Record<string, { label: string; icon: string; color: string }> = {
   formula: { label: '配方查询', icon: 'edit', color: 'var(--color-primary)' },
   material: { label: '原料查询', icon: 'chart-bar', color: '#3B82F6' },
-  salesperson: { label: '业务员查�?, icon: 'user', color: '#8B5CF6' },
+  salesperson: { label: '业务员查询', icon: 'user', color: '#8B5CF6' },
   analytics: { label: '数据分析', icon: 'chart', color: '#EC4899' },
   report: { label: '报表报告', icon: 'file-icon', color: 'var(--color-warning)' },
 };
@@ -1134,7 +1134,7 @@ const commandRegistry = ref<SlashCommand[]>([
     label: '查询配方',
     description: '按名称、编号或条件搜索配方',
     icon: 'search',
-    iconBg: '#ecfdf5',
+    iconBg: 'var(--color-emerald-50, #ecfdf5)',
     iconColor: 'var(--color-primary)',
     prefix: '请帮我查询配方，',
     keywords: ['配方', '查询', '搜索', '查找', 'formula', 'query', 'search'],
@@ -1178,7 +1178,7 @@ const commandRegistry = ref<SlashCommand[]>([
     label: '查询原料',
     description: '按名称、编码或类型搜索原料信息',
     icon: 'search',
-    iconBg: '#eff6ff',
+    iconBg: 'var(--color-blue-50, #eff6ff)',
     iconColor: '#3B82F6',
     prefix: '请帮我查询原料，',
     keywords: ['原料', '查询', '搜索', '查找', 'material', 'query', 'search'],
@@ -1187,20 +1187,20 @@ const commandRegistry = ref<SlashCommand[]>([
   {
     id: '原料详情',
     label: '原料详情',
-    description: '查看指定原料的详细属性、价格和供应�?,
+    description: '查看指定原料的详细属性、价格和供应商',
     icon: 'file-icon',
-    iconBg: '#dbeafe',
+    iconBg: 'var(--color-blue-100, #dbeafe)',
     iconColor: '#2563eb',
     prefix: '请帮我查看原料详情，',
-    keywords: ['原料', '详情', '信息', '属�?, 'material', 'detail'],
+    keywords: ['原料', '详情', '信息', '属性', 'material', 'detail'],
     category: 'material',
   },
   {
     id: '库存查询',
     label: '库存查询',
-    description: '查看原料库存状态、库存量及预警信�?,
+    description: '查看原料库存状态、库存量及预警信息',
     icon: 'warehouse',
-    iconBg: '#bfdbfe',
+    iconBg: 'var(--color-blue-200, #bfdbfe)',
     iconColor: '#1d4ed8',
     prefix: '请帮我查询库存情况，',
     keywords: ['库存', '查询', '预警', '不足', 'inventory', 'stock'],
@@ -1211,62 +1211,62 @@ const commandRegistry = ref<SlashCommand[]>([
     label: '原料价格趋势',
     description: '查看原料价格的历史变化和趋势预测',
     icon: 'chart-line',
-    iconBg: '#93c5fd',
+    iconBg: 'var(--color-blue-300, #93c5fd)',
     iconColor: '#1e40af',
     prefix: '请帮我查看原料价格趋势，',
     keywords: ['原料', '价格', '趋势', '波动', 'material', 'price', 'trend'],
     category: 'material',
   },
   {
-    id: '查询业务�?,
-    label: '查询业务�?,
-    description: '按姓名、工号或区域搜索业务员信�?,
+    id: '查询业务员',
+    label: '查询业务员',
+    description: '按姓名、工号或区域搜索业务员信息',
     icon: 'search',
-    iconBg: '#f3e8ff',
+    iconBg: 'var(--color-violet-100, #f3e8ff)',
     iconColor: '#8B5CF6',
-    prefix: '请帮我查询业务员�?,
-    keywords: ['业务�?, '查询', '搜索', '查找', 'salesman', 'query', 'search'],
+    prefix: '请帮我查询业务员：',
+    keywords: ['业务员', '查询', '搜索', '查找', 'salesman', 'query', 'search'],
     category: 'salesperson',
   },
   {
-    id: '业务员详�?,
-    label: '业务员详�?,
+    id: '业务员详情',
+    label: '业务员详情',
     description: '查看业务员的详细信息、负责区域和业绩',
     icon: 'user',
-    iconBg: '#e9d5ff',
+    iconBg: 'var(--color-violet-200, #e9d5ff)',
     iconColor: '#7c3aed',
-    prefix: '请帮我查看业务员详情�?,
-    keywords: ['业务�?, '详情', '信息', '业绩', 'salesman', 'detail'],
+    prefix: '请帮我查看业务员详情：',
+    keywords: ['业务员', '详情', '信息', '业绩', 'salesman', 'detail'],
     category: 'salesperson',
   },
   {
-    id: '业务员业�?,
-    label: '业务员业�?,
-    description: '查看业务员的销售业绩排名和完成�?,
+    id: '业务员业绩',
+    label: '业务员业绩',
+    description: '查看业务员的销售业绩排名和完成率',
     icon: 'chart',
-    iconBg: '#c4b5fd',
+    iconBg: 'var(--color-violet-300, #c4b5fd)',
     iconColor: '#6d28d9',
-    prefix: '请帮我查看业务员业绩�?,
-    keywords: ['业务�?, '业绩', '排名', '完成�?, 'salesman', 'performance'],
+    prefix: '请帮我查看业务员业绩：',
+    keywords: ['业务员', '业绩', '排名', '完成率', 'salesman', 'performance'],
     category: 'salesperson',
   },
   {
-    id: '销量分�?,
-    label: '销量分�?,
+    id: '销量分析',
+    label: '销量分析',
     description: '分析销售数据、趋势和同比环比变化',
     icon: 'chart',
-    iconBg: '#fce7f3',
+    iconBg: 'var(--color-pink-100, #fce7f3)',
     iconColor: '#EC4899',
     prefix: '请帮我分析销量数据，',
-    keywords: ['销�?, '销�?, '趋势', '分析', '同比', '环比', 'sales', 'trend', 'analysis'],
+    keywords: ['销量', '销售', '趋势', '分析', '同比', '环比', 'sales', 'trend', 'analysis'],
     category: 'analytics',
   },
   {
     id: '数据概览',
     label: '数据概览',
-    description: '查看关键业务指标和整体运营概�?,
+    description: '查看关键业务指标和整体运营概览',
     icon: 'dashboard',
-    iconBg: '#fbcfe8',
+    iconBg: 'var(--color-pink-200, #fbcfe8)',
     iconColor: '#db2777',
     prefix: '请帮我查看数据概览，',
     keywords: ['概览', '指标', '概况', '总览', 'dashboard', 'overview', 'kpi'],
@@ -1277,10 +1277,10 @@ const commandRegistry = ref<SlashCommand[]>([
     label: '配方用量统计',
     description: '统计各配方的使用频次和原料消耗量',
     icon: 'chart-pie',
-    iconBg: '#f9a8d4',
+    iconBg: 'var(--color-pink-300, #f9a8d4)',
     iconColor: '#be185d',
     prefix: '请帮我统计配方用量，',
-    keywords: ['配方', '用量', '统计', '频次', '消�?, 'formula', 'usage', 'stats'],
+    keywords: ['配方', '用量', '统计', '频次', '消耗', 'formula', 'usage', 'stats'],
     category: 'analytics',
   },
   {
@@ -1288,7 +1288,7 @@ const commandRegistry = ref<SlashCommand[]>([
     label: '成本趋势分析',
     description: '分析配方成本的变化趋势和影响因素',
     icon: 'chart-line',
-    iconBg: '#fecdd3',
+    iconBg: 'var(--color-rose-200, #fecdd3)',
     iconColor: '#9f1239',
     prefix: '请帮我分析成本趋势，',
     keywords: ['成本', '趋势', '分析', '变化', 'cost', 'trend'],
@@ -1297,9 +1297,9 @@ const commandRegistry = ref<SlashCommand[]>([
   {
     id: '查询月报',
     label: '查询月报',
-    description: '获取月度统计报告和关键指标汇�?,
+    description: '获取月度统计报告和关键指标汇总',
     icon: 'file-icon',
-    iconBg: '#fef3c7',
+    iconBg: 'var(--color-amber-100, #fef3c7)',
     iconColor: 'var(--color-warning)',
     prefix: '请帮我查看本月月报，',
     keywords: ['月报', '报告', '统计', '月度', 'report', 'monthly'],
@@ -1308,9 +1308,9 @@ const commandRegistry = ref<SlashCommand[]>([
   {
     id: '查询周报',
     label: '查询周报',
-    description: '获取周度统计报告和环比变�?,
+    description: '获取周度统计报告和环比变化',
     icon: 'file-icon',
-    iconBg: '#fde68a',
+    iconBg: 'var(--color-amber-200, #fde68a)',
     iconColor: '#d97706',
     prefix: '请帮我查看本周周报，',
     keywords: ['周报', '报告', '统计', '周度', 'report', 'weekly'],
@@ -1321,7 +1321,7 @@ const commandRegistry = ref<SlashCommand[]>([
     label: '查询营养',
     description: '查询特定食材或配方的营养成分数据',
     icon: 'heart',
-    iconBg: '#fff7ed',
+    iconBg: 'var(--color-orange-50, #fff7ed)',
     iconColor: '#EA580C',
     prefix: '请帮我查询营养成分，',
     keywords: ['营养', '查询', '成分', '含量', 'nutrition', 'query'],
@@ -1392,8 +1392,8 @@ const isWriteIntentPrefix = (text: string): boolean => {
 const WRITE_NAV_MAP: Record<string, { navigationLink: string; message: string }> = {
   '配方': { navigationLink: '/formula', message: '配方管理' },
   '原料': { navigationLink: '/material', message: '原料管理' },
-  '业务�?: { navigationLink: '/salesman', message: '业务员管�? },
-  '销�?: { navigationLink: '/salesman', message: '销售管�? },
+  '业务员': { navigationLink: '/salesman', message: '业务员管理' },
+  '销售': { navigationLink: '/salesman', message: '销售管理' },
 };
 
 const extractWriteNavigationLinks = (text: string): Array<{ message: string; navigationLink: string }> => {
@@ -1487,7 +1487,7 @@ const handleInputKeydown = (e: KeyboardEvent) => {
   }
 };
 
-// 最近访�?
+// 最近访问
 const recentVisits = ref<RecentVisitItem[]>([]);
 
 // 待办事项
@@ -1521,7 +1521,7 @@ const handleQuickAction = (action: QuickActionItem) => {
   }
 };
 
-// 刷新俏皮�?
+// 刷新俏皮话
 const refreshWittyComment = async () => {
   if (wittyLoading.value) return;
   wittyLoading.value = true;
@@ -1589,11 +1589,11 @@ const handleQuickQuestion = (question: string) => {
   handleSend();
 };
 
-// 添加活动记录（来自智能填�?导入组件�?
+// 添加活动记录（来自智能填单/导入组件）
 const addActivity = (_activity: Record<string, unknown>) => {
 };
 
-// 发送消�?
+// 发送消息
 const handleSend = async (confirmed = false) => {
   const content = inputText.value.trim();
   if (!content && !selectedFile.value && !confirmed) return;
@@ -1674,7 +1674,7 @@ const handleSend = async (confirmed = false) => {
 
     const heartbeatCheck = setInterval(() => {
       if (Date.now() - lastDataTime > SSE_TIMEOUT_MS && isLoading.value) {
-        console.warn('[AiWorkspace] SSE心跳超时，尝试重�?..');
+        console.warn('[AiWorkspace] SSE心跳超时，尝试重连...');
         clearInterval(heartbeatCheck);
       }
     }, 5000);
@@ -1864,7 +1864,7 @@ const handleSend = async (confirmed = false) => {
   }
 };
 
-// 初始化防抖函数（Phase 5 预留，按需启用�?
+// 初始化防抖函数（Phase 5 预留，按需启用）
 // debouncedHandleSend = debounce(handleSend, 200)
 
 const CLICKABLE_PROMPT_PATTERNS = [
@@ -1876,12 +1876,12 @@ const CLICKABLE_PROMPT_PATTERNS = [
   /生成(周报|月报|报告|报表)/g,
   /对比(配方|数据|销量|价格)/g,
   /预测(需求|趋势|用量)/g,
-  /检�?库存|原料|用量)/g,
+  /检查(库存|原料|用量)/g,
   /导出(数据|报表|报告)/g,
   /计算(成本|含量|比例)/g,
-  /搜索(配方|原料|业务�?/g,
-  /查询(库存|价格|销�?/g,
-  /创建(配方|原料|业务�?/g,
+  /搜索(配方|原料|业务员)/g,
+  /查询(库存|价格|销量)/g,
+  /创建(配方|原料|业务员)/g,
   /修改(配方|原料|价格)/g,
   /删除(配方|原料|记录)/g,
 ];
@@ -1901,7 +1901,7 @@ const enhanceMarkdownHtml = (html: string): string => {
     });
   }
 
-  enhanced = enhanced.replace(/�?[^】]+)�?g, (match, content) => {
+  enhanced = enhanced.replace(/【([^】]+)】/g, (match, content) => {
     const isAction = /^(查看|校验|分析|优化|生成|对比|预测|检查|导出|计算|搜索|查询|创建|修改|删除|打开|前往)/.test(content);
     if (isAction) {
       return `<span class="clickable-prompt" data-prompt="${content}">${match}</span>`;
@@ -1956,14 +1956,14 @@ const copyTableToClipboard = async (table: HTMLTableElement) => {
     });
     const text = lines.join('\n');
     await navigator.clipboard.writeText(text);
-    showActionToast('表格数据已复制到剪贴�?);
+    showActionToast('表格数据已复制到剪贴板');
   } catch (e) {
     console.error('复制表格失败:', e);
     showActionToast('复制失败，请手动选择复制');
   }
 };
 
-// 执行操作（Phase 4: 完整实现�?
+// 执行操作（Phase 4: 完整实现）
 interface ActionItem {
   id: string;
   label: string;
@@ -1974,11 +1974,11 @@ interface ActionItem {
 
 // 操作类型定义
 const ACTION_PATTERNS = {
-  navigate: /(?:跳转|前往|打开|查看|进入)\s*(?:页面|)?�?([^】]+)�?/g,
-  create: /(?:创建|新建|添加|生成)\s*(?:新的|)?�?([^】]+)�?/g,
-  export: /(?:导出|下载|保存|输出)\s*(?:为|成|�??�?([^】]+)�?/g,
-  copy: /(?:复制|拷贝)\s*(?:文本|内容|数据)?�?([^】]+)�?/g,
-  search: /(?:搜索|查找|查询)\s*(?:关于|)?�?([^】]+)�?/g
+  navigate: /(?:跳转|前往|打开|查看|进入)\s*(?:页面|)?【([^】]+)】/g,
+  create: /(?:创建|新建|添加|生成)\s*(?:新的|)?【([^】]+)】/g,
+  export: /(?:导出|下载|保存|输出)\s*(?:为|成|格式)?【([^】]+)】/g,
+  copy: /(?:复制|拷贝)\s*(?:文本|内容|数据)?【([^】]+)】/g,
+  search: /(?:搜索|查找|查询)\s*(?:关于|)?【([^】]+)】/g
 };
 
 const executeAction = (action: ActionItem) => {
@@ -2018,7 +2018,7 @@ const executeAction = (action: ActionItem) => {
   }
 };
 
-// �?AI 响应中提取可操作的动�?
+// 从AI 响应中提取可操作的动作
 const parseActionsFromResponse = (content: string): ActionItem[] => {
   const actions: ActionItem[] = [];
 
@@ -2032,7 +2032,7 @@ const parseActionsFromResponse = (content: string): ActionItem[] => {
       // 关键词映射到路由路径
       if (target.includes('配方') || target.includes('formula')) path = '/formulas';
       else if (target.includes('原料') || target.includes('material')) path = '/materials';
-      else if (target.includes('销�?) || target.includes('销�?)) path = '/sales';
+      else if (target.includes('销量') || target.includes('销售')) path = '/sales';
       else if (target.includes('报告')) path = '/reports';
       else if (target.includes('导出')) path = '/system/config';
       else if (target.includes('文件')) path = '/files';
@@ -2074,34 +2074,34 @@ const parseActionsFromResponse = (content: string): ActionItem[] => {
     }
   }
 
-  return actions.slice(0, 3); // 最多显�?个操作按�?
+  return actions.slice(0, 3); // 最多显示3个操作按钮
 };
 
 // AI 推荐智能更新（基于用户行为）
 const updateSuggestionsBasedOnContext = () => {
   const currentPath = route.path;
 
-  // 根据当前所在页面调整推�?
+  // 根据当前所在页面调整推荐
   if (currentPath.includes('/formulas')) {
     displayedSuggestions.value = [
-      { text: '📊 分析这个配方的成本结�?, category: 'analytics' },
-      { text: '🔬 推荐相似的高销量配�?, category: 'optimization' },
-      { text: '⚠️ 检查原料库存是否充�?, category: 'analytics' }
+      { text: '📊 分析这个配方的成本结构', category: 'analytics' },
+      { text: '🔬 推荐相似的高销量配方', category: 'optimization' },
+      { text: '⚠️ 检查原料库存是否充足', category: 'analytics' }
     ];
   } else if (currentPath.includes('/sales')) {
     displayedSuggestions.value = [
-      { text: '📈 预测下月销量趋�?, category: 'analytics' },
-      { text: '📝 生成本月销售报�?, category: 'reporting' },
+      { text: '📈 预测下月销量趋势', category: 'analytics' },
+      { text: '📝 生成本月销售报告', category: 'reporting' },
       { text: '🔍 对比去年同期数据', category: 'analytics' }
     ];
   } else if (currentPath.includes('/materials')) {
     displayedSuggestions.value = [
       { text: '💰 分析原料价格波动趋势', category: 'analytics' },
       { text: '🚨 库存不足预警清单', category: 'analytics' },
-      { text: '📋 生成采购建议�?, category: 'optimization' }
+      { text: '📋 生成采购建议单', category: 'optimization' }
     ];
   } else {
-    // 默认推荐（已�?onMounted 中初始化�?
+    // 默认推荐（已在 onMounted 中初始化）
     shuffleSuggestions();
   }
 };
@@ -2153,7 +2153,7 @@ const saveRoleConfig = async () => {
   try {
     await agentApi.updateRoleConfig(roleConfig.value);
     showRoleConfigDialog.value = false;
-    showActionToast('身份设置已保�?);
+    showActionToast('身份设置已保存');
   } catch {
     showErrorToast('保存身份设置失败');
   } finally {
@@ -2253,7 +2253,7 @@ const handleCancelAction = () => {
   messages.value.push({
     id: Date.now().toString(),
     role: 'assistant',
-    content: '操作已取消�?,
+    content: '操作已取消',
     timestamp: new Date(),
   });
 };
@@ -2281,7 +2281,7 @@ const handleFormSubmit = async (msg: ChatMessage, formData: Record<string, unkno
       msg.formSubmitSuccess = true;
       showActionToast('操作成功');
     } else if (result.validationErrors && result.validationErrors.length > 0) {
-      const errorMessages = result.validationErrors.map((e: ValidationError) => e.message).join('�?);
+      const errorMessages = result.validationErrors.map((e: ValidationError) => e.message).join('；');
       showActionToast(errorMessages);
     } else {
       msg.formSubmitted = true;
@@ -2292,7 +2292,7 @@ const handleFormSubmit = async (msg: ChatMessage, formData: Record<string, unkno
     msg.formSubmitted = true;
     msg.formSubmitSuccess = false;
     const errorMsg = error instanceof Error ? error.message : '未知错误';
-    showActionToast(`提交失败�?{errorMsg}`);
+    showActionToast(`提交失败：${errorMsg}`);
   }
 };
 
@@ -2302,7 +2302,7 @@ const handleFormCancel = (msg: ChatMessage) => {
   messages.value.push({
     id: Date.now().toString(),
     role: 'assistant',
-    content: '表单已取消�?,
+    content: '表单已取消',
     timestamp: new Date(),
   });
 };
@@ -2317,7 +2317,7 @@ const handleFileUpload = (event: Event) => {
   }
 };
 
-// 滚动到底�?
+// 滚动到底部
 const scrollToBottom = () => {
   nextTick(() => {
     if (messagesContainer.value) {
@@ -2353,7 +2353,7 @@ const scrollToBottomClick = () => {
   showScrollBottom.value = false;
 };
 
-// 最近访问管�?
+// 最近访问管理
 const VISITS_STORAGE_KEY = 'tingstudio_recent_visits';
 
 const loadRecentVisits = () => {
@@ -2376,7 +2376,7 @@ const fetchPendingTasks = async () => {
   }
 };
 
-// 时间格式�?
+// 时间格式化
 const formatTime = (date: Date | string): string => {
   const d = typeof date === 'string' ? new Date(date) : date;
   return d.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
@@ -2429,7 +2429,7 @@ const fetchDashboardData = async () => {
   } catch (error) {
     console.error('Failed to fetch dashboard stats:', error);
 
-    // Phase 5: 记录错误但不显示提示（使�?fallback 数据�?
+    // Phase 5: 记录错误但不显示提示（使用 fallback 数据）
     recordPerformance('errors');
     console.warn('[Dashboard] 使用默认数据作为 fallback');
 
@@ -2731,7 +2731,7 @@ onUnmounted(() => {
 }
 
 .data-card {
-  background: white;
+  background: var(--color-bg-container);
   border-radius: 12px;
   padding: 16px;
   cursor: pointer;
@@ -2782,6 +2782,7 @@ onUnmounted(() => {
       font-size: 24px;
       font-weight: 700;
       line-height: 1.2;
+      color: var(--color-text-primary);
     }
 
     .skeleton-value {
@@ -2826,7 +2827,7 @@ onUnmounted(() => {
     border-radius: 12px;
   }
 
-  // 卡片主题�?
+  // 卡片主题色
   &.card-emerald .card-header {
     color: var(--color-primary);
   }
@@ -2920,7 +2921,7 @@ onUnmounted(() => {
     flex-direction: column;
     align-items: center;
     gap: var(--space-1-5);
-    background: white;
+    background: var(--color-bg-container);
     position: relative;
 
     &:hover {
@@ -2944,7 +2945,7 @@ onUnmounted(() => {
     }
 
     &.ai-feature::after {
-      content: '�?;
+      content: '✨';
       position: absolute;
       top: 8px;
       right: 8px;
@@ -2955,6 +2956,7 @@ onUnmounted(() => {
       font-size: 13px;
       font-weight: 500;
       text-align: center;
+      color: var(--color-text-primary);
     }
 
     .action-badge {
@@ -2980,8 +2982,8 @@ onUnmounted(() => {
 }
 
 .ai-suggestion-bubble {
-  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-  border: 2px solid #bae6fd;
+  background: linear-gradient(135deg, var(--color-info-bg, #f0f9ff) 0%, var(--color-sky-50, #e0f2fe) 100%);
+  border: 2px solid var(--color-border-light);
   border-radius: 20px;
   padding: 20px;
   position: relative;
@@ -2996,7 +2998,7 @@ onUnmounted(() => {
     height: 0;
     border-top: 10px solid transparent;
     border-bottom: 10px solid transparent;
-    border-right: 12px solid #bae6fd;
+    border-right: 12px solid var(--color-border-light);
   }
 
   .bubble-header {
@@ -3018,7 +3020,7 @@ onUnmounted(() => {
 
     .bubble-title {
       font-weight: 600;
-      color: #0369a1;
+      color: var(--color-info, #0369a1);
       flex: 1;
     }
 
@@ -3026,12 +3028,12 @@ onUnmounted(() => {
       background: none;
       border: none;
       cursor: pointer;
-      color: #0ea5e9;
+      color: var(--color-info, #0ea5e9);
       padding: 4px;
       border-radius: 50%;
 
       &:hover {
-        background: #bae6fd;
+        background: var(--color-bg-hover);
       }
     }
   }
@@ -3043,7 +3045,7 @@ onUnmounted(() => {
 
     .suggestion-item {
       padding: 12px 16px;
-      background: white;
+      background: var(--color-bg-container);
       border-radius: 12px;
       cursor: pointer;
       transition: all 0.2s ease;
@@ -3053,7 +3055,7 @@ onUnmounted(() => {
       border-left: 3px solid transparent;
 
       &:hover {
-        background: #f0fdf4;
+        background: var(--color-bg-hover);
         border-left-color: var(--color-primary);
         transform: translateX(4px);
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
@@ -3102,7 +3104,7 @@ onUnmounted(() => {
 }
 
 // ════════════════════════════════════════
-// 区域3: AI对话�?
+// 区域3: AI对话区
 // ════════════════════════════════════════
 .ai-chat-section {
   flex: 1;
@@ -3115,7 +3117,7 @@ onUnmounted(() => {
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   overflow: hidden;
 
-  // Tab 导航栏样�?
+  // Tab 导航栏样式
   .ai-tabs-nav {
     display: flex;
     gap: 8px;
@@ -3922,7 +3924,7 @@ onUnmounted(() => {
         color: var(--color-text-secondary);
 
         &::before {
-          content: '�?';
+          content: '•';
           margin-right: 8px;
         }
       }
@@ -4528,7 +4530,7 @@ onUnmounted(() => {
 }
 
 // ════════════════════════════════════════
-// Phase 5: 响应式设�?+ 性能优化
+// Phase 5: 响应式设计 + 性能优化
 // ════════════════════════════════════════
 @media (max-width: 1400px) {
   .dashboard-layout {
@@ -4590,7 +4592,7 @@ onUnmounted(() => {
   }
 
   .ai-chat-section {
-    min-height: 0; // 响应式模式下也移除固定高�?
+    min-height: 0; // 响应式模式下也移除固定高度
   }
 
   .global-error-toast {
@@ -4626,7 +4628,7 @@ onUnmounted(() => {
 }
 
 // ════════════════════════════════════════
-// Phase 5: 无障碍性增�?(a11y)
+// Phase 5: 无障碍性增强(a11y)
 // ════════════════════════════════════════
 
 // 高对比度模式支持
@@ -4653,7 +4655,7 @@ onUnmounted(() => {
   }
 }
 
-// 焦点可见性（键盘导航�?
+// 焦点可见性（键盘导航）
 *:focus-visible {
   outline: 2px solid #3b82f6;
   outline-offset: 2px;
@@ -4673,7 +4675,7 @@ onUnmounted(() => {
   border: 0;
 }
 
-// 性能优化：使�?GPU 加�?
+// 性能优化：使用 GPU 加速
 .data-card,
 .chat-message,
 .action-btn,
@@ -4705,7 +4707,7 @@ onUnmounted(() => {
 }
 
 // ════════════════════════════════════════
-// 区域4: 底部活动�?
+// 区域4: 底部活动栏
 // ════════════════════════════════════════
 .activity-footer {
   border-radius: 16px;
@@ -4799,7 +4801,7 @@ onUnmounted(() => {
     height: 22px;
     border-radius: 50%;
     border: 2px solid #d1d5db;
-    background: white;
+    background: var(--color-bg-container);
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -4867,7 +4869,7 @@ onUnmounted(() => {
 }
 
 // ════════════════════════════════════════
-// 全局响应�?
+// 全局响应式
 // ════════════════════════════════════════
 @media (max-width: 480px) {
   .layout-left .cards-grid {
@@ -4897,7 +4899,7 @@ onUnmounted(() => {
 }
 
 .modal-container {
-  background: white;
+  background: var(--color-bg-container);
   border-radius: 16px;
   width: 90%;
   max-width: 900px;
@@ -5019,7 +5021,7 @@ body:has(.ai-dashboard) {
       border-radius: 8px;
       font-size: 14px;
       color: var(--color-text-primary);
-      background: #fff;
+      background: var(--color-bg-container);
       transition: border-color 0.2s;
       box-sizing: border-box;
 
@@ -5068,7 +5070,7 @@ body:has(.ai-dashboard) {
       padding: 8px 20px;
       border: 1px solid #d1d5db;
       border-radius: 8px;
-      background: #fff;
+      background: var(--color-bg-container);
       color: var(--color-text-secondary);
       cursor: pointer;
       font-size: 14px;

@@ -89,11 +89,11 @@ onMounted(() => {
 .entry-card {
   width: 420px;
   max-width: 90vw;
-  background: $bg-container;
+  background: var(--color-bg-container);
   border-radius: $radius-3xl;
   padding: $space-10 $space-8;
   box-shadow: $shadow-elevation-2;
-  border: 1px solid $border-color-light;
+  border: 1px solid var(--color-border-light);
   text-align: center;
 }
 
@@ -112,14 +112,14 @@ onMounted(() => {
 .entry-title {
   font-size: $font-size-h1;
   font-weight: $font-weight-bold;
-  color: $text-primary;
+  color: var(--color-text-primary);
   margin: 0 0 $space-2;
   letter-spacing: $ls-heading;
 }
 
 .entry-desc {
   font-size: $font-size-body-sm;
-  color: $text-secondary;
+  color: var(--color-text-regular);
   margin: 0 0 $space-8;
   line-height: $line-height-normal;
 }
@@ -133,7 +133,7 @@ onMounted(() => {
 .draft-section {
   margin-top: $space-6;
   padding-top: $space-5;
-  border-top: 1px dashed $border-color;
+  border-top: 1px dashed var(--color-border);
 }
 
 .draft-header {
@@ -168,8 +168,8 @@ onMounted(() => {
   }
 
   &:disabled {
-    background-color: $text-placeholder !important;
-    border-color: $text-placeholder !important;
+    background-color: var(--color-text-placeholder) !important;
+    border-color: var(--color-text-placeholder) !important;
     cursor: not-allowed;
   }
 }

@@ -78,14 +78,14 @@ withDefaults(defineProps<{
   .empty-title {
     font-size: 16px;
     font-weight: 600;
-    color: $text-primary;
+    color: var(--color-text-primary);
     margin: 0 0 var(--space-1-5);
     letter-spacing: $ls-heading;
   }
 
   .empty-description {
     font-size: 13px;
-    color: $text-secondary;
+    color: var(--color-text-secondary);
     margin: 0;
     line-height: $line-height-normal;
   }

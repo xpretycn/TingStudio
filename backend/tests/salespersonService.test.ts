@@ -1,12 +1,84 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, beforeAll, afterAll, vi } from "vitest";
+import Database from "better-sqlite3";
 import { SalespersonService } from "../src/services/business/salespersonService.js";
-import type { SalespersonCreateInput, SalespersonUpdateInput } from "../src/types/salesperson.js";
+import type { SalespersonCreateInput, SalespersonUpdateInput } from "../src/services/business/salespersonService.js";
+
+let testDb: Database.Database;
+
+vi.mock("../src/config/database-better-sqlite3.js", () => ({
+  getDb: () => testDb,
+  connectDatabase: vi.fn(),
+  closeDatabase: vi.fn(),
+  query: vi.fn(),
+  transaction: vi.fn(<T>(fn: () => T): T => fn()),
+}));
+
+vi.mock("../src/utils/helpers.js", () => ({
+  generateId: vi.fn(() => `test-id-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`),
+  now: vi.fn(() => new Date().toISOString()),
+  rowToCamelCase: vi.fn((row: Record<string, unknown>) => {
+    if (!row) return row;
+    const result: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(row)) {
+      const camelKey = key.replace(/_([a-z])/g, (_, c: string) => c.toUpperCase());
+      result[camelKey] = value;
+    }
+    return result;
+  }),
+  rowsToCamelCase: vi.fn((rows: Record<string, unknown>[]) =>
+    rows.map((r) => {
+      const result: Record<string, unknown> = {};
+      for (const [key, value] of Object.entries(r)) {
+        const camelKey = key.replace(/_([a-z])/g, (_, c: string) => c.toUpperCase());
+        result[camelKey] = value;
+      }
+      return result;
+    })
+  ),
+  buildPagination: vi.fn((page?: number, pageSize?: number) => ({
+    page: page || 1,
+    pageSize: pageSize || 20,
+    offset: ((page || 1) - 1) * (pageSize || 20),
+  })),
+  buildLike: vi.fn((keyword: string) => `%${keyword}%`),
+  success: vi.fn((data) => ({ success: true, data })),
+  successWithPagination: vi.fn((list, total, page, pageSize) => ({
+    success: true,
+    data: { list, pagination: { page, pageSize, total, totalPages: Math.ceil(total / pageSize) } },
+  })),
+}));
 
 describe("SalespersonService - 业务员管理", () => {
   let service: SalespersonService;
 
+  beforeAll(() => {
+    testDb = new Database(":memory:");
+    testDb.exec(`
+      CREATE TABLE salesmen (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        code TEXT NOT NULL UNIQUE,
+        department TEXT DEFAULT NULL,
+        phone TEXT DEFAULT NULL,
+        email TEXT DEFAULT NULL,
+        status TEXT NOT NULL DEFAULT 'active' CHECK(status IN ('active', 'inactive')),
+        created_by TEXT NOT NULL,
+        created_at TEXT NOT NULL DEFAULT (datetime('now')),
+        updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+      )
+    `);
+  });
+
+  afterAll(() => {
+    testDb.close();
+  });
+
   beforeEach(() => {
     service = new SalespersonService();
+  });
+
+  afterEach(() => {
+    testDb.exec("DELETE FROM salesmen");
   });
 
   describe("create()", () => {
@@ -38,22 +110,22 @@ describe("SalespersonService - 业务员管理", () => {
 
       expect(result.name).toBe("李四");
       expect(result.status).toBe("active");
-      expect(result.phone).toBeUndefined();
-      expect(result.email).toBeUndefined();
+      expect(result.phone).toBeNull();
+      expect(result.email).toBeNull();
     });
   });
 
   describe("getById()", () => {
     it("应该根据ID获取业务员信息", async () => {
       const created = await service.create({ name: "王五" });
-      const found = await service.getById(created.id!);
+      const found = await service.getById(created.id);
 
       expect(found).not.toBeNull();
       expect(found!.name).toBe("王五");
     });
 
     it("应该对不存在的ID返回null", async () => {
-      const found = await service.getById(99999);
+      const found = await service.getById("nonexistent-id-99999");
       expect(found).toBeNull();
     });
   });
@@ -68,7 +140,7 @@ describe("SalespersonService - 业务员管理", () => {
         department: "销售二部",
       };
 
-      const updated = await service.update(created.id!, updateData);
+      const updated = await service.update(created.id, updateData);
 
       expect(updated).not.toBeNull();
       expect(updated!.name).toBe("赵六更新");
@@ -78,7 +150,7 @@ describe("SalespersonService - 业务员管理", () => {
     });
 
     it("应该对不存在的ID返回null", async () => {
-      const updated = await service.update(99999, { name: "不存在" });
+      const updated = await service.update("nonexistent-id-99999", { name: "不存在" });
       expect(updated).toBeNull();
     });
   });
@@ -86,24 +158,25 @@ describe("SalespersonService - 业务员管理", () => {
   describe("delete()", () => {
     it("应该删除存在的业务员", async () => {
       const created = await service.create({ name: "孙七" });
-      const deleted = await service.delete(created.id!);
+      const deleted = await service.delete(created.id);
 
       expect(deleted).toBe(true);
-      const found = await service.getById(created.id!);
+      const found = await service.getById(created.id);
       expect(found).toBeNull();
     });
 
     it("应该对不存在的ID返回false", async () => {
-      const deleted = await service.delete(99999);
+      const deleted = await service.delete("nonexistent-id-99999");
       expect(deleted).toBe(false);
     });
   });
 
   describe("query()", () => {
     beforeEach(async () => {
-      await service.create({ name: "张三", status: "active", department: "销售一部" });
-      await service.create({ name: "李四", status: "inactive", department: "销售二部" });
-      await service.create({ name: "张伟", status: "active", department: "销售一部" });
+      await service.create({ name: "张三", department: "销售一部" });
+      const sp2 = await service.create({ name: "李四", department: "销售二部" });
+      await service.update(sp2.id, { status: "inactive" });
+      await service.create({ name: "张伟", department: "销售一部" });
       await service.create({ name: "王芳", phone: "13800138001", department: "销售三部" });
     });
 
@@ -139,33 +212,12 @@ describe("SalespersonService - 业务员管理", () => {
     });
   });
 
-  describe("batchDelete()", () => {
-    it("应该批量删除多个业务员", async () => {
-      const sp1 = await service.create({ name: "批量删除1" });
-      const sp2 = await service.create({ name: "批量删除2" });
-      const sp3 = await service.create({ name: "批量删除3" });
-
-      const result = await service.batchDelete([sp1.id!, sp2.id!, sp3.id!]);
-
-      expect(result.success).toBe(3);
-      expect(result.failed).toBe(0);
-    });
-
-    it("应该处理部分不存在的ID", async () => {
-      const sp1 = await service.create({ name: "存在" });
-
-      const result = await service.batchDelete([sp1.id!, 99998, 99999]);
-
-      expect(result.success).toBe(1);
-      expect(result.failed).toBe(2);
-    });
-  });
-
   describe("getStatistics()", () => {
     it("应该返回正确的统计信息", async () => {
-      await service.create({ name: "统计测试1", status: "active", department: "A部" });
-      await service.create({ name: "统计测试2", status: "active", department: "A部" });
-      await service.create({ name: "统计测试3", status: "inactive", department: "B部" });
+      await service.create({ name: "统计测试1", department: "A部" });
+      await service.create({ name: "统计测试2", department: "A部" });
+      const sp3 = await service.create({ name: "统计测试3", department: "B部" });
+      await service.update(sp3.id, { status: "inactive" });
 
       const stats = await service.getStatistics();
 

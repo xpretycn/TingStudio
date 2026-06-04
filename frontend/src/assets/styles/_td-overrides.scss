@@ -8,7 +8,7 @@
 // ─── Card ───────────────────────────────────────────────────
 .t-card {
   border-radius: $radius-xl !important;
-  border-color: $border-color !important;
+  border-color: var(--color-border) !important;
   box-shadow: $shadow-xs !important;
 
   &__body {
@@ -29,14 +29,14 @@
 
   // Primary 实心
   &--variant-base.t-button--theme-primary {
-    background: $gradient-btn !important;
+    background: var(--gradient-btn) !important;
     border: none !important;
     color: $text-white !important;
-    box-shadow: $shadow-brand;
+    box-shadow: var(--shadow-brand-xs);
 
     &:hover {
-      background: $gradient-btn-hover !important;
-      box-shadow: $shadow-lg;
+      background: var(--gradient-btn-hover) !important;
+      box-shadow: var(--shadow-brand-sm);
       transform: translateY(-1px);
     }
 
@@ -48,13 +48,13 @@
   // Default / Outline
   &--variant-outline.t-button--theme-primary,
   &--theme-default {
-    border: 1.5px solid $brand-primary-lighter !important;
-    color: $text-primary !important;
+    border: 1.5px solid var(--color-primary-lighter) !important;
+    color: var(--color-text-primary) !important;
     background: var(--td-bg-color-container) !important;
 
     &:hover {
-      border-color: $brand-primary !important;
-      color: $brand-primary !important;
+      border-color: var(--color-primary) !important;
+      color: var(--color-primary) !important;
       transform: translateY(-1px);
     }
 
@@ -63,13 +63,13 @@
     }
 
     .t-button__icon {
-      color: $brand-primary-light !important;
+      color: var(--color-primary-light) !important;
     }
   }
 
   // Danger
   &--theme-danger.t-button--variant-base {
-    background: linear-gradient(135deg, $brand-primary, $color-danger) !important;
+    background: linear-gradient(135deg, var(--color-primary), var(--color-danger)) !important;
     border: none !important;
     color: $text-white !important;
 
@@ -81,20 +81,20 @@
 
   // Text / Link variant
   &--variant-text {
-    color: $brand-primary-light !important;
+    color: var(--color-primary-light) !important;
 
     .t-button__text,
     .t-button__icon {
-      color: $brand-primary-light !important;
+      color: var(--color-primary-light) !important;
     }
 
     &:hover {
-      background-color: $bg-hover !important;
-      color: $brand-primary !important;
+      background-color: var(--color-bg-hover) !important;
+      color: var(--color-primary) !important;
 
       .t-button__text,
       .t-button__icon {
-        color: $brand-primary !important;
+        color: var(--color-primary) !important;
       }
     }
   }
@@ -120,11 +120,12 @@
 .t-select .t-input,
 .t-input-number {
   border-radius: $radius-lg;
-  border-color: $border-color;
+  border-color: var(--color-border);
+  background-color: var(--td-bg-color-specialcomponent, var(--color-bg-container));
   transition: border-color $transition-normal, box-shadow $transition-normal;
 
   &:hover {
-    border-color: $brand-primary-lighter;
+    border-color: var(--color-primary-lighter);
   }
 }
 
@@ -143,27 +144,132 @@
   outline: none;
 }
 
+// ─── Input inner（输入框内部元素）──────────────────────────
+.t-input__inner,
+.t-textarea__inner {
+  color: var(--color-text-primary);
+  background-color: transparent;
+
+  &::placeholder {
+    color: var(--color-text-placeholder);
+  }
+}
+
+// ─── Select（下拉选择器）──────────────────────────────────
+.t-select-input .t-input,
+.t-select .t-input {
+  background-color: var(--td-bg-color-specialcomponent, var(--color-bg-container));
+}
+
+.t-select-input .t-input__inner {
+  color: var(--color-text-primary);
+}
+
+// ─── Select dropdown（下拉弹出面板）──────────────────────
+.t-select__dropdown,
+.t-select-dropdown {
+  background-color: var(--td-bg-color-elevated, #2d2535) !important;
+
+  .t-select-option {
+    color: var(--color-text-primary);
+
+    &:hover {
+      background-color: var(--color-bg-hover);
+    }
+
+    &.t-is-selected {
+      color: var(--color-primary);
+      background-color: var(--color-primary-bg);
+    }
+
+    &.t-is-disabled {
+      color: var(--color-text-placeholder);
+    }
+  }
+}
+
+// ─── InputNumber（数字输入框）──────────────────────────────
+.t-input-number {
+  background-color: var(--td-bg-color-specialcomponent, var(--color-bg-container));
+
+  .t-input-number__decrease,
+  .t-input-number__increase {
+    color: var(--color-text-secondary);
+    border-color: var(--color-border);
+
+    &:hover {
+      color: var(--color-primary);
+    }
+  }
+}
+
+// ─── DatePicker（日期选择器）──────────────────────────────
+.t-date-picker,
+.t-date-range-picker {
+  .t-input {
+    background-color: var(--td-bg-color-specialcomponent, var(--color-bg-container));
+  }
+}
+
+// ─── TagInput（标签输入）──────────────────────────────────
+.t-tag-input {
+  background-color: var(--td-bg-color-specialcomponent, var(--color-bg-container));
+
+  .t-input {
+    background-color: transparent;
+  }
+}
+
+// ─── Checkbox / Radio（多选/单选）─────────────────────────
+.t-checkbox,
+.t-radio {
+  .t-checkbox__inner,
+  .t-radio__inner {
+    border-color: var(--color-border);
+    background-color: var(--td-bg-color-specialcomponent, var(--color-bg-container));
+  }
+
+  .t-checkbox__label,
+  .t-radio__label {
+    color: var(--color-text-primary);
+  }
+}
+
+// ─── Switch（开关）────────────────────────────────────────
+.t-switch {
+  background-color: var(--color-border) !important;
+
+  &.t-is-checked {
+    background-color: var(--color-primary) !important;
+  }
+}
+
+// ─── Textarea（文本域）────────────────────────────────────
+.t-textarea {
+  background-color: var(--td-bg-color-specialcomponent, var(--color-bg-container));
+}
+
 // ─── Table（表格）─────────────────────────────────────────
 .t-table {
   border-radius: $radius-lg !important;
 
   // 现代化表头：纯色背景 + 底部分割线
   th {
-    background: $bg-page !important;
-    color: $text-primary !important;
+    background: var(--color-bg-page) !important;
+    color: var(--color-text-primary) !important;
     font-weight: $font-weight-semibold !important;
     font-size: $font-size-body-sm !important;
     letter-spacing: 0.3px;
-    border-bottom: 1.5px solid $border-color !important;
+    border-bottom: 1.5px solid var(--color-border) !important;
     padding: 12px 16px !important;
   }
 
   // 数据单元格：统一间距
   td {
-    border-bottom-color: $skeleton-border !important;
+    border-bottom-color: var(--color-border-light) !important;
     padding: 12px 16px !important;
     font-size: 13px;
-    color: $text-primary;
+    color: var(--color-text-primary);
     transition: background $transition-fast;
   }
 
@@ -174,24 +280,24 @@
 
   // 统一 hover 效果：浅粉背景 + 左侧品牌色指示条
   .t-table__row--hover td {
-    background-color: $bg-table-row-hover !important;
-    box-shadow: inset 3px 0 0 $brand-primary-light;
+    background-color: var(--color-bg-hover) !important;
+    box-shadow: inset 3px 0 0 var(--color-primary-light);
   }
 
   // 选中行样式
   .t-table__row--selected td,
   .t-table__row--selected.t-table__row--hover td {
-    background-color: $bg-table-row-selected !important;
-    box-shadow: inset 3px 0 0 $brand-primary;
+    background-color: var(--color-primary-bg) !important;
+    box-shadow: inset 3px 0 0 var(--color-primary);
   }
 
   .t-table__row--selected.t-table__row--hover td {
-    background-color: $bg-table-row-selected-hover !important;
+    background-color: var(--color-primary-bg) !important;
   }
 
   // bordered 表格差异化
   &.t-table--bordered td {
-    border-bottom-color: $border-color-light !important;
+    border-bottom-color: var(--color-border-light) !important;
   }
 
   // Sticky header（表格滚动时固定表头）
@@ -211,20 +317,20 @@
       padding: var(--space-2-5) 12px !important;
 
       .t-table__cell-text {
-        color: $text-primary !important;
+        color: var(--color-text-primary) !important;
         font-weight: $font-weight-semibold !important;
       }
 
       // 排序指示器品牌色
       .t-table__cell--sortable:hover {
-        color: $brand-primary !important;
+        color: var(--color-primary) !important;
       }
     }
   }
 
   // Expanded row
   .t-table__expanded-row {
-    background: $bg-page !important;
+    background: var(--color-bg-page) !important;
   }
 
   // Hide inline pagination (when using external pagination bar)
@@ -267,12 +373,12 @@
 }
 
 .btn-more {
-  color: $text-primary !important;
-  border-color: $border-color !important;
+  color: var(--color-text-primary) !important;
+  border-color: var(--color-border) !important;
   background: var(--td-bg-color-container) !important;
 
   .t-button__icon {
-    color: $text-primary !important;
+    color: var(--color-text-primary) !important;
   }
 
   &:hover {
@@ -288,29 +394,29 @@
 // ─── Tag（标签）───────────────────────────────────────────
 .t-tag--theme-primary,
 .t-tag--primary-light {
-  background: $brand-primary-bg !important;
-  color: $brand-primary !important;
-  border-color: $brand-primary-lightest !important;
+  background: var(--color-primary-bg) !important;
+  color: var(--color-primary) !important;
+  border-color: var(--color-primary-lightest) !important;
 }
 
 // ─── Link（链接）──────────────────────────────────────────
 .t-link--theme-primary {
-  color: $brand-primary;
+  color: var(--color-primary);
 
   &:hover {
-    color: $brand-primary-light;
+    color: var(--color-primary-light);
   }
 }
 
 // ─── Pagination（分页）────────────────────────────────────
 .t-pagination {
   .t-pagination__total {
-    color: $text-secondary;
+    color: var(--color-text-secondary);
     font-size: $font-size-body-sm;
   }
 
   .t-pagination__btn {
-    color: $text-primary;
+    color: var(--color-text-primary);
     border-radius: $radius-md;
     min-width: 32px;
     height: 32px;
@@ -318,8 +424,8 @@
     transition: all $transition-normal;
 
     &:hover:not(.t-is-disabled):not(.t-is-current) {
-      color: $brand-primary;
-      border-color: $brand-primary-lighter;
+      color: var(--color-primary);
+      border-color: var(--color-primary-lighter);
       background: rgba(255, 143, 171, 0.08);
     }
   }
@@ -335,13 +441,13 @@
 
   .t-pagination__select,
   .t-pagination__jumper-input {
-    border-color: $brand-primary-lightest !important;
+    border-color: var(--color-primary-lightest) !important;
     border-radius: $radius-md !important;
-    color: $text-primary !important;
+    color: var(--color-text-primary) !important;
 
     &:hover,
     &:focus {
-      border-color: $brand-primary-lighter !important;
+      border-color: var(--color-primary-lighter) !important;
     }
   }
 }
@@ -402,12 +508,12 @@
     border-radius: $radius-lg;
     padding: $space-3 $space-4;
     margin-bottom: $space-2;
-    border: 1px solid rgba($brand-primary-lighter, 0.15);
+    border: 1px solid var(--color-primary-lightest);
     transition: all $transition-normal;
 
     &:hover {
       background: var(--td-bg-color-container);
-      border-color: rgba($brand-primary-lighter, 0.3);
+      border-color: var(--color-primary-lighter);
     }
   }
 
@@ -424,12 +530,12 @@
   background: transparent !important;
 
   .t-empty__image svg {
-    color: $brand-primary-lighter;
+    color: var(--color-primary-lighter);
     animation: emptyFloat 3s ease-in-out infinite;
   }
 
   .t-empty__description {
-    color: $text-secondary;
+    color: var(--color-text-secondary);
     font-size: $font-size-body;
     font-weight: $font-weight-medium;
   }

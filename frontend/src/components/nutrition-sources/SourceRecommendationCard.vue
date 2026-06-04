@@ -210,9 +210,9 @@ async function handleApply(sourceId: string) {
 .candidate-item {
   position: relative;
   padding: $space-2-5 $space-3;
-  border: 1px solid $border-color-light;
+  border: 1px solid var(--color-border-light);
   border-radius: $radius-lg;
-  background: $bg-container;
+  background: var(--color-bg-container);
   transition: all 0.2s;
 
   &:hover {
@@ -224,8 +224,8 @@ async function handleApply(sourceId: string) {
     border-color: var(--color-primary);
     background: linear-gradient(
       135deg,
-      color-mix(in srgb, var(--color-primary-bg) 60%, transparent) 0%,
-      $bg-container 100%
+      var(--color-primary-bg) 0%,
+      var(--color-bg-container) 100%
     );
   }
 
@@ -254,7 +254,7 @@ async function handleApply(sourceId: string) {
 
 .candidate-type {
   font-weight: $font-weight-semibold;
-  color: $text-primary;
+  color: var(--color-text-primary);
 }
 
 .demo-tag {
@@ -289,8 +289,8 @@ async function handleApply(sourceId: string) {
   }
 
   &--gray {
-    background: $bg-container-alt;
-    color: $text-secondary;
+    background: var(--color-bg-container-alt);
+    color: var(--color-text-secondary);
   }
 }
 
@@ -311,7 +311,7 @@ async function handleApply(sourceId: string) {
 
 .score-label {
   font-size: $font-size-caption;
-  color: $text-tertiary;
+  color: var(--color-text-placeholder);
 }
 
 .candidate-detail {
@@ -319,7 +319,7 @@ async function handleApply(sourceId: string) {
   align-items: center;
   gap: $space-1;
   font-size: $font-size-body-sm;
-  color: $text-secondary;
+  color: var(--color-text-secondary);
   margin-bottom: $space-1;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -327,7 +327,7 @@ async function handleApply(sourceId: string) {
 }
 
 .detail-label {
-  color: $text-tertiary;
+  color: var(--color-text-placeholder);
   flex-shrink: 0;
 }
 
@@ -350,18 +350,18 @@ async function handleApply(sourceId: string) {
   align-items: center;
   gap: 4px;
   padding: 2px 8px;
-  background: $bg-container-alt;
+  background: var(--color-bg-container-alt);
   border-radius: $radius-sm;
   font-size: $font-size-caption;
   cursor: help;
 }
 
 .chip-label {
-  color: $text-tertiary;
+  color: var(--color-text-placeholder);
 }
 
 .chip-score {
-  color: $text-primary;
+  color: var(--color-text-primary);
   font-weight: $font-weight-semibold;
   font-variant-numeric: tabular-nums;
 }

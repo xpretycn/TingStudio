@@ -1164,7 +1164,7 @@ onMounted(async () => {
 
     .alert-warning {
       font-size: $font-size-caption;
-      color: $text-tertiary;
+      color: var(--color-text-tertiary);
     }
 
     .alert-actions {
@@ -1184,11 +1184,11 @@ onMounted(async () => {
 
       &--dismiss {
         background: transparent;
-        color: $text-secondary;
-        border: 1px solid $border-color;
+        color: var(--color-text-secondary);
+        border: 1px solid var(--color-border);
 
         &:hover {
-          border-color: $border-color-light;
+          border-color: var(--color-border-light);
         }
       }
 
@@ -1224,9 +1224,9 @@ onMounted(async () => {
     margin-left: -32px;
     margin-right: -32px;
     padding: 8px 32px; // px-8 py-4（内部内容仍保持间距）
-    background-color: $overlay-white-80; // bg-white/80
+    background-color: var(--color-bg-container); // bg-white/80
     backdrop-filter: blur(12px); // backdrop-blur-md
-    border-bottom: 1px solid $border-color-light; // border-slate-100
+    border-bottom: 1px solid var(--color-border-light); // border-slate-100
     animation: fadeInDown 0.3s cubic-bezier(0.4, 0, 0.2, 1) both;
 
     // ── 左侧：返回按钮 + 标题组 ──
@@ -1245,7 +1245,7 @@ onMounted(async () => {
         border: none;
         border-radius: 12px; // rounded-xl
         background: transparent;
-        color: $text-placeholder; // text-slate-400
+        color: var(--color-text-placeholder); // text-slate-400
         cursor: pointer;
         transition: all $transition-fast; // transition-all
         font-size: 20px; // text-2xl
@@ -1271,7 +1271,7 @@ onMounted(async () => {
           line-height: 1;
 
           .breadcrumb-link {
-            color: $text-placeholder; // text-slate-400
+            color: var(--color-text-placeholder); // text-slate-400
             cursor: pointer;
             transition: color 0.15s;
             text-decoration: none;
@@ -1283,7 +1283,7 @@ onMounted(async () => {
 
           .breadcrumb-sep {
             font-size: 12px;
-            color: $text-placeholder;
+            color: var(--color-text-placeholder);
           }
 
           .breadcrumb-current {
@@ -1324,9 +1324,9 @@ onMounted(async () => {
             white-space: nowrap;
 
             &--draft {
-              background: #f3f3f3;
-              color: #a0a0a0;
-              border: 1px solid #e7e7e7;
+              background: var(--color-bg-cool-gray);
+              color: var(--color-text-tertiary);
+              border: 1px solid var(--color-border-light);
             }
 
             &--pending {
@@ -1341,7 +1341,7 @@ onMounted(async () => {
 
             &--archived {
               background: rgba(107, 114, 128, 0.1);
-              color: #6b7280;
+              color: var(--color-text-tertiary);
             }
           }
         }
@@ -1393,7 +1393,7 @@ onMounted(async () => {
 
         // 次要按钮样式
         &.secondary {
-          background-color: $border-color-light; // slate-100
+          background-color: var(--color-border-light); // slate-100
           color: var(--color-text-secondary); // slate-500
           box-shadow: 0 1px 3px $overlay-black-05;
 
@@ -1404,7 +1404,7 @@ onMounted(async () => {
           }
 
           &:active {
-            background-color: $border-color; // slate-300
+            background-color: var(--color-border); // slate-300
           }
         }
       }
@@ -1426,7 +1426,7 @@ onMounted(async () => {
     // 区域样式
     .zone-basic-info,
     .zone-materials-table {
-      background: $bg-container;
+      background: var(--color-bg-container);
       padding: 32px;
       border-radius: 2.5rem;
       box-shadow: 0 1px 3px $overlay-black-05;
@@ -1517,7 +1517,7 @@ onMounted(async () => {
       gap: 8px;
       font-size: 14px;
       font-weight: 700;
-      // color: $text-placeholder;
+      // color: var(--color-text-placeholder);
       text-transform: uppercase;
       letter-spacing: 0.12em;
 
@@ -1709,7 +1709,7 @@ onMounted(async () => {
 
           :deep(.t-input) {
             background-color: var(--color-bg-page) !important;
-            border: 1px solid $border-color-light !important;
+            border: 1px solid var(--color-border-light) !important;
             padding: 8px var(--space-3-5) !important;
             font-size: 13px !important;
             color: var(--color-text-primary) !important;
@@ -1720,14 +1720,14 @@ onMounted(async () => {
             }
 
             &.t-is-focused {
-              background-color: $bg-container !important;
+              background-color: var(--color-bg-container) !important;
               border-color: transparent !important;
               box-shadow: 0 0 0 2px $emerald-500 !important;
               outline: none !important;
             }
 
             &::placeholder {
-              color: $text-placeholder !important;
+              color: var(--color-text-placeholder) !important;
             }
           }
 
@@ -1742,7 +1742,7 @@ onMounted(async () => {
 
             .t-select__wrap {
               background-color: var(--color-bg-page) !important;
-              border: 1px solid $border-color-light !important;
+              border: 1px solid var(--color-border-light) !important;
               border-radius: 12px !important;
               padding: var(--space-1-5) var(--space-2-5) !important;
               min-height: 36px;
@@ -1754,7 +1754,7 @@ onMounted(async () => {
             }
 
             &.t-is-focused .t-select__wrap {
-              background-color: $bg-container !important;
+              background-color: var(--color-bg-container) !important;
               border-color: transparent !important;
               box-shadow: 0 0 0 2px $emerald-500 !important;
               outline: none !important;
@@ -1767,18 +1767,18 @@ onMounted(async () => {
             }
 
             .t-select__placeholder {
-              color: $text-placeholder !important;
+              color: var(--color-text-placeholder) !important;
             }
 
             .t-icon {
-              color: $text-placeholder !important;
+              color: var(--color-text-placeholder) !important;
             }
           }
 
           :deep(.t-input-number) {
             width: 100%;
             background-color: var(--color-bg-page) !important;
-            border: 1px solid $border-color-light !important;
+            border: 1px solid var(--color-border-light) !important;
             border-radius: 12px !important;
             min-height: 36px;
             transition: all $transition-fast;
@@ -1788,7 +1788,7 @@ onMounted(async () => {
             }
 
             &.t-is-focused {
-              background-color: $bg-container !important;
+              background-color: var(--color-bg-container) !important;
               border-color: transparent !important;
               box-shadow: 0 0 0 2px $emerald-500 !important;
               outline: none !important;
@@ -1826,7 +1826,7 @@ onMounted(async () => {
               min-height: 34px;
 
               &::placeholder {
-                color: $text-placeholder !important;
+                color: var(--color-text-placeholder) !important;
               }
             }
           }
@@ -1834,7 +1834,7 @@ onMounted(async () => {
           :deep(.t-textarea) {
             .t-textarea__inner {
               background-color: var(--color-bg-page) !important;
-              border: 1px solid $border-color-light !important;
+              border: 1px solid var(--color-border-light) !important;
               border-radius: 12px !important;
               padding: var(--space-2-5) var(--space-3-5) !important;
               font-size: 13px !important;
@@ -1846,14 +1846,14 @@ onMounted(async () => {
               }
 
               &:focus {
-                background-color: $bg-container !important;
+                background-color: var(--color-bg-container) !important;
                 border-color: transparent !important;
                 box-shadow: 0 0 0 2px $emerald-500 !important;
                 outline: none !important;
               }
 
               &::placeholder {
-                color: $text-placeholder !important;
+                color: var(--color-text-placeholder) !important;
               }
             }
           }
@@ -1963,7 +1963,7 @@ onMounted(async () => {
 
       &.badge--warning {
         background: $amber-100;
-        color: $amber-800;
+        color: var(--color-warning, $amber-800);
       }
 
       &.badge--high_warning {
@@ -2091,7 +2091,7 @@ onMounted(async () => {
             }
 
             .rtc-label {
-              color: $amber-800;
+              color: var(--color-warning, $amber-800);
             }
           }
 
@@ -2155,7 +2155,7 @@ onMounted(async () => {
           align-items: center;
           gap: 4px;
           font-size: 12px;
-          color: $amber-800;
+          color: var(--color-warning, $amber-800);
         }
       }
 
@@ -2323,7 +2323,7 @@ onMounted(async () => {
 
     // 表单 Section 样式
     .form-section {
-      background: $bg-container;
+      background: var(--color-bg-container);
       padding: 32px;
       border-radius: 2.5rem;
       box-shadow: 0 1px 3px $overlay-black-05;
@@ -2343,7 +2343,7 @@ onMounted(async () => {
         gap: 8px;
         font-size: 14px;
         font-weight: 700;
-        color: $text-placeholder;
+        color: var(--color-text-placeholder);
         text-transform: uppercase;
         letter-spacing: 0.12em;
         margin: 0 0 24px;
@@ -2473,7 +2473,7 @@ onMounted(async () => {
               &:disabled {
                 opacity: 0.45;
                 cursor: not-allowed;
-                border-color: $border-color;
+                border-color: var(--color-border);
                 color: var(--color-text-placeholder);
                 background: transparent;
               }
@@ -2550,7 +2550,7 @@ onMounted(async () => {
 
           :deep(.t-input) {
             background-color: var(--color-bg-page) !important;
-            border: 1px solid $border-color-light !important;
+            border: 1px solid var(--color-border-light) !important;
             border-radius: 16px !important;
             padding: var(--space-3-5) 20px !important;
             min-height: 48px;
@@ -2563,14 +2563,14 @@ onMounted(async () => {
             }
 
             &.t-is-focused {
-              background-color: $bg-container !important;
+              background-color: var(--color-bg-container) !important;
               border-color: transparent !important;
               box-shadow: 0 0 0 2px $emerald-500 !important;
               outline: none !important;
             }
 
             &::placeholder {
-              color: $text-placeholder !important;
+              color: var(--color-text-placeholder) !important;
             }
           }
 
@@ -2585,7 +2585,7 @@ onMounted(async () => {
 
             .t-select__wrap {
               background-color: var(--color-bg-page) !important;
-              border: 1px solid $border-color-light !important;
+              border: 1px solid var(--color-border-light) !important;
               border-radius: 16px !important;
               padding: var(--space-2-5) 12px !important;
               min-height: 48px;
@@ -2597,7 +2597,7 @@ onMounted(async () => {
             }
 
             &.t-is-focused .t-select__wrap {
-              background-color: $bg-container !important;
+              background-color: var(--color-bg-container) !important;
               border-color: transparent !important;
               box-shadow: 0 0 0 2px $emerald-500 !important;
               outline: none !important;
@@ -2611,18 +2611,18 @@ onMounted(async () => {
             }
 
             .t-select__placeholder {
-              color: $text-placeholder !important;
+              color: var(--color-text-placeholder) !important;
             }
 
             .t-icon {
-              color: $text-placeholder !important;
+              color: var(--color-text-placeholder) !important;
             }
           }
 
           :deep(.t-input-number) {
             width: 100%;
             background-color: var(--color-bg-page) !important;
-            border: 1px solid $border-color-light !important;
+            border: 1px solid var(--color-border-light) !important;
             border-radius: 16px !important;
             min-height: 48px;
             transition: all $transition-fast;
@@ -2632,7 +2632,7 @@ onMounted(async () => {
             }
 
             &.t-is-focused {
-              background-color: $bg-container !important;
+              background-color: var(--color-bg-container) !important;
               border-color: transparent !important;
               box-shadow: 0 0 0 2px $emerald-500 !important;
               outline: none !important;
@@ -2670,7 +2670,7 @@ onMounted(async () => {
               min-height: 46px;
 
               &::placeholder {
-                color: $text-placeholder !important;
+                color: var(--color-text-placeholder) !important;
               }
             }
           }
@@ -2678,7 +2678,7 @@ onMounted(async () => {
           :deep(.t-textarea) {
             .t-textarea__inner {
               background-color: var(--color-bg-page) !important;
-              border: 1px solid $border-color-light !important;
+              border: 1px solid var(--color-border-light) !important;
               border-radius: 16px !important;
               padding: var(--space-3-5) 20px !important;
               font-size: 14px !important;
@@ -2690,14 +2690,14 @@ onMounted(async () => {
               }
 
               &:focus {
-                background-color: $bg-container !important;
+                background-color: var(--color-bg-container) !important;
                 border-color: transparent !important;
                 box-shadow: 0 0 0 2px $emerald-500 !important;
                 outline: none !important;
               }
 
               &::placeholder {
-                color: $text-placeholder !important;
+                color: var(--color-text-placeholder) !important;
               }
             }
           }
@@ -2720,7 +2720,7 @@ onMounted(async () => {
               padding: 8px 12px;
               font-size: 10px;
               font-weight: 900;
-              color: $text-placeholder;
+              color: var(--color-text-placeholder);
               text-transform: uppercase;
               letter-spacing: 0.05em;
               text-align: left;
@@ -2850,7 +2850,7 @@ onMounted(async () => {
                   height: 22px;
                   border: 1px solid var(--color-border);
                   border-radius: 6px;
-                  background: $bg-container;
+                  background: var(--color-bg-container);
                   color: var(--color-text-secondary);
                   cursor: pointer;
                   margin-left: 4px;
@@ -2937,7 +2937,7 @@ onMounted(async () => {
         padding: var(--space-2-5) 0;
         font-size: 13px;
         font-weight: 700;
-        color: $text-placeholder;
+        color: var(--color-text-placeholder);
         text-transform: uppercase;
         letter-spacing: 0.1em;
         background-color: transparent;
@@ -2948,13 +2948,13 @@ onMounted(async () => {
 
         .t-icon {
           font-size: 20px;
-          color: $text-placeholder;
+          color: var(--color-text-placeholder);
         }
 
         &:hover {
           color: $emerald-500;
           border-color: $overlay-emerald-40;
-          background-color: $bg-container;
+          background-color: var(--color-bg-container);
 
           .t-icon {
             color: $emerald-500;
@@ -3067,7 +3067,7 @@ onMounted(async () => {
       transition: background 0.2s;
 
       &:hover {
-        background: $border-color-light;
+        background: var(--color-border-light);
       }
     }
 
@@ -3166,12 +3166,12 @@ onMounted(async () => {
           background: linear-gradient(90deg, $overlay-amber-100-50 0%, transparent 100%);
 
           .qm-name {
-            color: $amber-800;
+            color: var(--color-warning, $amber-800);
             font-weight: 600;
           }
 
           .qm-sub {
-            color: $stone-500;
+            color: var(--color-text-secondary, $stone-500);
 
             .qm-base-hint {
               color: $amber-600;
@@ -3240,7 +3240,7 @@ onMounted(async () => {
         height: 20px;
         border-radius: var(--radius-sm);
         border: 1px solid var(--color-border);
-        background: $bg-container;
+        background: var(--color-bg-container);
         color: var(--color-text-secondary);
         cursor: pointer;
         transition: all 0.2s;
@@ -3248,8 +3248,8 @@ onMounted(async () => {
         padding: 0;
 
         &:hover {
-          background: $border-color-light;
-          border-color: $border-color;
+          background: var(--color-border-light);
+          border-color: var(--color-border);
           color: var(--color-primary-dark);
           transform: scale(1.1);
         }
@@ -3271,7 +3271,7 @@ onMounted(async () => {
         }
 
         100% {
-          background: $bg-container;
+          background: var(--color-bg-container);
           border-color: var(--color-border);
           color: var(--color-text-secondary);
         }
@@ -3292,7 +3292,7 @@ onMounted(async () => {
           align-items: center;
           gap: var(--space-1-5);
           font-size: 12px;
-          color: $amber-800;
+          color: var(--color-warning, $amber-800);
           font-weight: 600;
         }
 
@@ -3303,7 +3303,7 @@ onMounted(async () => {
           padding: var(--space-1-25) var(--space-3-5);
           border: 1px solid $overlay-amber-25;
           border-radius: 8px;
-          background: $overlay-white-80;
+          background: var(--color-bg-container);
           color: $amber-600;
           font-size: 12px;
           font-weight: 600;
@@ -3410,14 +3410,14 @@ onMounted(async () => {
         background: var(--color-border);
 
         &--bold {
-          background: $border-color;
+          background: var(--color-border);
         }
       }
     }
 
     // 提示面板
     .tips-panel {
-      background: $bg-container;
+      background: var(--color-bg-container);
       padding: 32px;
       border-radius: 2.5rem;
       box-shadow: 0 1px 3px $overlay-black-05;
@@ -3428,7 +3428,7 @@ onMounted(async () => {
       .tips-title {
         font-size: 14px;
         font-weight: 700;
-        color: $text-placeholder;
+        color: var(--color-text-placeholder);
         text-transform: uppercase;
         letter-spacing: 0.1em;
         margin: 0 0 16px;
@@ -3484,7 +3484,7 @@ onMounted(async () => {
       .form-title {
         font-size: $font-size-h3;
         font-weight: $font-weight-semibold;
-        color: $text-primary;
+        color: var(--color-text-primary);
       }
     }
 
@@ -3503,9 +3503,9 @@ onMounted(async () => {
           align-items: center;
           padding: $space-3 $space-3;
           margin-bottom: $space-2;
-          background-color: $bg-page;
+          background-color: var(--color-bg-page);
           border-radius: $radius-lg;
-          border: 1px solid $border-color-light;
+          border: 1px solid var(--color-border-light);
         }
       }
     }
@@ -3513,14 +3513,14 @@ onMounted(async () => {
     .help-text {
       margin-left: $space-3;
       font-size: $font-size-caption;
-      color: $text-secondary;
+      color: var(--color-text-secondary);
       line-height: 32px;
     }
 
     .select-empty-tip {
       padding: $space-2 0;
       text-align: center;
-      color: $text-placeholder;
+      color: var(--color-text-placeholder);
     }
 
     // ═══ 动画关键帧 ═══
@@ -3728,7 +3728,7 @@ onMounted(async () => {
       top: -4px;
       width: 16px;
       height: 16px;
-      background: $bg-container;
+      background: var(--color-bg-container);
       border: 3px solid var(--color-text-primary);
       border-radius: 50%;
       transform: translateX(-50%);
@@ -3858,7 +3858,7 @@ onMounted(async () => {
 
       td {
         padding: 8px 12px;
-        border-bottom: 1px solid $border-color-light;
+        border-bottom: 1px solid var(--color-border-light);
         color: var(--color-text-primary);
       }
 

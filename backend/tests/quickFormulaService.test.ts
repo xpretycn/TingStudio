@@ -2,9 +2,12 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const mockQuery = vi.fn();
 
-vi.mock("../src/config/database.js", () => ({
+vi.mock("../src/config/database-better-sqlite3.js", () => ({
   query: mockQuery,
   connectDatabase: vi.fn(),
+  getDb: vi.fn(),
+  closeDatabase: vi.fn(),
+  transaction: vi.fn(),
 }));
 
 vi.mock("../src/utils/helpers.js", () => ({

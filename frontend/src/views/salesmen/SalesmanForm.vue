@@ -299,9 +299,9 @@ onMounted(async () => {
     margin-left: -32px;
     margin-right: -32px;
     padding: 8px 32px;
-    background-color: rgba(255, 255, 255, 0.80);
+    background-color: var(--color-bg-container);
     backdrop-filter: blur(12px);
-    border-bottom: 1px solid #f1f5f9;
+    border-bottom: 1px solid var(--color-border-light);
     animation: fadeInDown 0.3s cubic-bezier(0.4, 0, 0.2, 1) both;
 
     .header-left {
@@ -411,7 +411,7 @@ onMounted(async () => {
         }
 
         &.secondary {
-          background-color: #f1f5f9;
+          background-color: var(--color-bg-page);
           color: var(--color-text-secondary);
           box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 
@@ -422,7 +422,7 @@ onMounted(async () => {
           }
 
           &:active {
-            background-color: #cbd5e1;
+            background-color: var(--color-border-light);
           }
         }
       }
@@ -430,7 +430,7 @@ onMounted(async () => {
   }
 
   .upload-panel {
-    background: linear-gradient(145deg, #ffffff 0%, var(--color-bg-page) 50%, #f1f5f9 100%);
+    background: linear-gradient(145deg, var(--color-bg-container) 0%, var(--color-bg-page) 50%, var(--color-border-light) 100%);
     padding: 32px;
     border-radius: 2.5rem;
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.06), 0 8px 10px -6px rgba(16, 185, 129, 0.06);
@@ -565,7 +565,7 @@ onMounted(async () => {
           height: 160px;
           border-radius: 50%;
           overflow: hidden;
-          border: 3px solid #f1f5f9;
+          border: 3px solid var(--color-border-light);
           box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
           background-color: var(--color-bg-page);
 
@@ -674,7 +674,7 @@ onMounted(async () => {
   }
 
   .form-section {
-    background: #fff;
+    background: var(--color-bg-container);
     padding: 32px;
     border-radius: 2.5rem;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
@@ -724,7 +724,7 @@ onMounted(async () => {
 
         :deep(.t-input) {
           background-color: var(--color-bg-page) !important;
-          border: 1px solid #f1f5f9 !important;
+          border: 1px solid var(--color-border-light) !important;
           border-radius: 16px !important;
           padding: var(--space-3-5) 20px !important;
           min-height: 48px;
@@ -737,7 +737,7 @@ onMounted(async () => {
           }
 
           &.t-is-focused {
-            background-color: #fff !important;
+            background-color: var(--color-bg-container) !important;
             border-color: transparent !important;
             box-shadow: 0 0 0 2px var(--color-primary) !important;
             outline: none !important;

@@ -5,7 +5,7 @@ import VersionCompare from "@/views/formulas/versions/VersionCompare.vue";
 
 const push = vi.fn();
 const mockRoute = vi.hoisted(() => ({
-  params: { id: "f1" } as Record<string, string>,
+  params: { formulaId: "f1" } as Record<string, string>,
   query: { versions: "v1,v2" } as Record<string, string>,
 }));
 
@@ -50,8 +50,17 @@ vi.mock("@/stores/version", () => ({
   })),
 }));
 
+vi.mock("@/stores/formula", () => ({
+  useFormulaStore: vi.fn(() => ({
+    getFormula: vi.fn(() => Promise.resolve({ id: "f1", name: "佛手玫苓膏" })),
+  })),
+}));
+
 vi.mock("tdesign-vue-next", () => ({
-  MessagePlugin: { success: vi.fn(), error: vi.fn() },
+  MessagePlugin: { success: vi.fn(), error: vi.fn(), warning: vi.fn() },
+  Icon: { name: "Icon", template: "<span><slot /></span>" },
+  Popconfirm: { name: "Popconfirm", template: "<div><slot /></div>" },
+  Button: { name: "Button", template: "<button><slot /></button>" },
 }));
 
 describe("VersionCompare 组件", () => {
@@ -84,10 +93,10 @@ describe("VersionCompare 组件", () => {
     expect(wrapper.find(".version-compare").exists()).toBe(true);
   });
 
-  it("VC-02: 标题应显示'版本多维对比视图'", async () => {
+  it("VC-02: 标题应显示'版本差异对比'", async () => {
     wrapper = createWrapper();
     await new Promise((resolve) => setTimeout(resolve, 100));
-    expect(wrapper.text()).toContain("版本多维对比视图");
+    expect(wrapper.text()).toContain("版本差异对比");
   });
 
   it("VC-03: 应显示当前对比版本数", async () => {

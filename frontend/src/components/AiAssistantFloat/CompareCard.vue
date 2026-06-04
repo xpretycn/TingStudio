@@ -119,8 +119,8 @@ function diffClass(v: number): string {
 
 <style scoped lang="scss">
 .compare-card {
-  background: $bg-container;
-  border: 1px solid $border-color-light;
+  background: var(--color-bg-container);
+  border: 1px solid var(--color-border-light);
   border-radius: 12px;
   padding: var(--space-3-5);
   margin: 8px 0;
@@ -132,7 +132,7 @@ function diffClass(v: number): string {
   align-items: center;
   gap: var(--space-1-5);
   font-weight: 600;
-  color: $text-primary;
+  color: var(--color-text-primary);
   margin-bottom: 12px;
 }
 
@@ -166,21 +166,21 @@ function diffClass(v: number): string {
 
   .info-name {
     font-weight: 500;
-    color: $text-primary;
+    color: var(--color-text-primary);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
 
   .info-detail {
-    color: $text-tertiary;
+    color: var(--color-text-placeholder);
     font-size: 12px;
   }
 
   .info-vs {
     font-weight: 700;
     font-size: 11px;
-    color: $text-tertiary;
+    color: var(--color-text-placeholder);
     flex-shrink: 0;
   }
 }
@@ -190,14 +190,14 @@ function diffClass(v: number): string {
 
   .section-title {
     font-weight: 600;
-    color: $text-secondary;
+    color: var(--color-text-secondary);
     margin-bottom: 8px;
     font-size: 12px;
   }
 }
 
 .diff-table {
-  border: 1px solid $border-color-light;
+  border: 1px solid var(--color-border-light);
   border-radius: 8px;
   overflow: hidden;
 }
@@ -208,9 +208,9 @@ function diffClass(v: number): string {
   font-size: 12px;
 
   &--header {
-    background: $bg-page;
+    background: var(--color-bg-page);
     font-weight: 600;
-    color: $text-tertiary;
+    color: var(--color-text-placeholder);
   }
 
   &--only {
@@ -218,7 +218,7 @@ function diffClass(v: number): string {
   }
 
   &:not(:last-child) {
-    border-bottom: 1px solid $border-color-light;
+    border-bottom: 1px solid var(--color-border-light);
   }
 }
 
@@ -230,7 +230,7 @@ function diffClass(v: number): string {
 
 .diff-up { color: var(--color-primary); }
 .diff-down { color: var(--color-danger); }
-.diff-zero { color: $text-tertiary; }
+.diff-zero { color: var(--color-text-placeholder); }
 
 .nutrition-grid {
   display: grid;
@@ -241,11 +241,11 @@ function diffClass(v: number): string {
   display: grid;
   grid-template-columns: 1fr 60px 60px;
   padding: var(--space-1-25) var(--space-2-5);
-  background: $bg-page;
+  background: var(--color-bg-page);
   border-radius: 6px;
   font-size: 12px;
 
-  .nutri-label { color: $text-secondary; }
+  .nutri-label { color: var(--color-text-secondary); }
   .nutri-val-a { text-align: right; color: var(--color-primary); font-weight: 500; }
   .nutri-val-b { text-align: right; color: var(--color-primary); font-weight: 500; }
 }

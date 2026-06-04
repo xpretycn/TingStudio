@@ -428,7 +428,7 @@ onBeforeUnmount(() => {
   padding: 8px 24px;
   background-color: $overlay-white-80;
   backdrop-filter: blur(12px);
-  border-bottom: 1px solid $border-color-light;
+  border-bottom: 1px solid var(--color-border-light);
   animation: fadeInDown 0.3s cubic-bezier(0.4, 0, 0.2, 1) both;
   flex-shrink: 0;
 
@@ -446,7 +446,7 @@ onBeforeUnmount(() => {
       border: none;
       border-radius: 12px;
       background: transparent;
-      color: $text-placeholder;
+      color: var(--color-text-placeholder);
       cursor: pointer;
       transition: all $transition-fast;
       font-size: 20px;
@@ -470,7 +470,7 @@ onBeforeUnmount(() => {
         line-height: 1;
 
         .breadcrumb-link {
-          color: $text-placeholder;
+          color: var(--color-text-placeholder);
           cursor: pointer;
           transition: color 0.15s;
           text-decoration: none;
@@ -482,7 +482,7 @@ onBeforeUnmount(() => {
 
         .breadcrumb-sep {
           font-size: 12px;
-          color: $text-placeholder;
+          color: var(--color-text-placeholder);
         }
 
         .breadcrumb-current {
@@ -575,7 +575,7 @@ onBeforeUnmount(() => {
       }
 
       &.secondary {
-        background-color: $border-color-light;
+        background-color: var(--color-border-light);
         color: var(--color-text-secondary);
         box-shadow: $shadow-elevation-1;
 
@@ -586,7 +586,7 @@ onBeforeUnmount(() => {
         }
 
         &:active {
-          background-color: $border-color;
+          background-color: var(--color-border);
         }
       }
     }
@@ -620,7 +620,7 @@ onBeforeUnmount(() => {
   position: fixed;
   inset: 0;
   z-index: 100;
-  background: $bg-page;
+  background: var(--color-bg-page);
 
   .panel-main {
     padding: $space-4;
@@ -658,13 +658,13 @@ onBeforeUnmount(() => {
 .nq-header-text {
   font-size: $font-size-caption;
   font-weight: $font-weight-bold;
-  color: $text-primary;
+  color: var(--color-text-primary);
   letter-spacing: $ls-caption;
 }
 
 .nq-divider {
   height: 1px;
-  background: $border-color-light;
+  background: var(--color-border-light);
   margin: $space-1 $space-2;
 }
 
@@ -677,7 +677,7 @@ onBeforeUnmount(() => {
   transition: background $transition-fast;
 
   &:hover {
-    background: $bg-hover;
+    background: var(--color-bg-hover);
   }
 
   &--danger {
@@ -750,18 +750,18 @@ onBeforeUnmount(() => {
 .nq-item-label {
   flex: 1;
   font-size: $font-size-caption;
-  color: $text-tertiary;
+  color: var(--color-text-placeholder);
 }
 
 .nq-item-value {
   font-size: $font-size-body-sm;
   font-weight: $font-weight-semibold;
-  color: $text-primary;
+  color: var(--color-text-primary);
 
   small {
     font-size: $font-size-caption;
     font-weight: $font-weight-regular;
-    color: $text-tertiary;
+    color: var(--color-text-placeholder);
     margin-left: $space-0-5;
   }
 }

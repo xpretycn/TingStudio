@@ -643,8 +643,8 @@ const dashboardCards = computed(() => {
       unit: '款',
       badge: '+12.5%',
       badgeColor: 'var(--color-primary)',
-      badgeBg: '#ECFDF5',
-      iconBg: '#EFF6FF',
+      badgeBg: 'var(--color-emerald-50, #ECFDF5)',
+      iconBg: 'var(--color-info-bg, #EFF6FF)',
       iconColor: '#3B82F6',
       iconPath: '<path d="M9 3h6v8l-3 4-3-4V3z"/><line x1="12" y1="7" x2="12" y2="3"/><line x1="9" y1="15" x2="15" y2="15"/><path d="M8 19h8"/>',
     },
@@ -654,8 +654,8 @@ const dashboardCards = computed(() => {
       unit: '种',
       badge: '持平',
       badgeColor: 'var(--color-text-placeholder)',
-      badgeBg: '#F1F5F9',
-      iconBg: '#FFFBEB',
+      badgeBg: 'var(--color-bg-page, #F1F5F9)',
+      iconBg: 'var(--color-warning-bg, #FFFBEB)',
       iconColor: 'var(--color-warning)',
       iconPath: '<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="M3.27 6.96L12 12.01l8.73-5.05"/><line x1="12" y1="22.08" x2="12" y2="12"/>',
     },
@@ -665,8 +665,8 @@ const dashboardCards = computed(() => {
       unit: '件',
       badge: qtyGrowth !== 0 ? `${qtyGrowth > 0 ? '+' : ''}${qtyGrowth}%` : '--',
       badgeColor: qtyGrowth >= 0 ? 'var(--color-primary)' : 'var(--color-danger)',
-      badgeBg: qtyGrowth >= 0 ? '#ECFDF5' : '#FEF2F2',
-      iconBg: '#ECFDF5',
+      badgeBg: qtyGrowth >= 0 ? 'var(--color-emerald-50, #ECFDF5)' : 'var(--color-danger-bg, #FEF2F2)',
+      iconBg: 'var(--color-emerald-50, #ECFDF5)',
       iconColor: 'var(--color-primary)',
       iconPath: '<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>',
     },
@@ -676,8 +676,8 @@ const dashboardCards = computed(() => {
       unit: '万元',
       badge: revGrowth !== 0 ? `${revGrowth > 0 ? '+' : ''}${revGrowth}%` : '--',
       badgeColor: revGrowth >= 0 ? 'var(--color-primary)' : 'var(--color-danger)',
-      badgeBg: revGrowth >= 0 ? '#ECFDF5' : '#FEF2F2',
-      iconBg: '#FAF5FF',
+      badgeBg: revGrowth >= 0 ? 'var(--color-emerald-50, #ECFDF5)' : 'var(--color-danger-bg, #FEF2F2)',
+      iconBg: 'var(--color-purple-50, #FAF5FF)',
       iconColor: '#A855F7',
       iconPath: '<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',
     },
@@ -949,14 +949,14 @@ const getFormulaAvatar = (row: Formula) => {
 
 const getAvatarColor = (text: string) => {
   const colors = [
-    { bg: '#DBEAFE', text: '#3B82F6' },
-    { bg: '#FEE2E2', text: 'var(--color-danger)' },
-    { bg: '#FEF3C7', text: 'var(--color-warning)' },
+    { bg: 'var(--color-info-bg, #DBEAFE)', text: '#3B82F6' },
+    { bg: 'var(--color-danger-bg, #FEE2E2)', text: 'var(--color-danger)' },
+    { bg: 'var(--color-warning-bg, #FEF3C7)', text: 'var(--color-warning)' },
     { bg: 'var(--color-primary-bg)', text: 'var(--color-primary)' },
-    { bg: '#E0E7FF', text: '#6366F1' },
-    { bg: '#F3E8FF', text: '#A855F7' },
-    { bg: '#E0F2FE', text: '#0EA5E9' },
-    { bg: '#FFEDD5', text: '#F97316' }
+    { bg: 'var(--color-indigo-100, #E0E7FF)', text: '#6366F1' },
+    { bg: 'var(--color-purple-50, #F3E8FF)', text: '#A855F7' },
+    { bg: 'var(--color-sky-50, #E0F2FE)', text: '#0EA5E9' },
+    { bg: 'var(--color-orange-50, #FFEDD5)', text: '#F97316' }
   ];
   const index = text.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % colors.length;
   return colors[index];
@@ -1649,10 +1649,10 @@ const getSalesQuantity = (row: Formula): number => {
     margin-bottom: 0;
 
     .stat-card {
-      background: $bg-container;
+      background: var(--color-bg-container);
       padding: var(--space-2-5) 16px;
       border-radius: 12px;
-      border: 1px solid $bg-container;
+      border: 1px solid var(--color-bg-container);
       box-shadow: $shadow-elevation-1;
       transition: all $transition-slow;
       animation: dashboard-fade-in 0.5s ease forwards;
@@ -1709,7 +1709,7 @@ const getSalesQuantity = (row: Formula): number => {
       .stat-value {
         font-size: 18px;
         font-weight: 700;
-        color: $text-primary;
+        color: var(--color-text-primary);
         line-height: 1.2;
         width: 100%;
 
@@ -1725,7 +1725,7 @@ const getSalesQuantity = (row: Formula): number => {
   // ─── 内容卡片 - 参照 index.html 第226行 "数据中心列表" ───
   .content-card {
     min-height: 400px;
-    background-color: $bg-container;
+    background-color: var(--color-bg-container);
     border-radius: var(--radius-5xl) !important;
     border: 1px solid var(--color-bg-page) !important;
     overflow: hidden;
@@ -1752,9 +1752,9 @@ const getSalesQuantity = (row: Formula): number => {
   // 展开行样式（保留原有 SCSS 变量）
   .expanded-content {
     padding: $space-4 $space-6;
-    background-color: $bg-page;
+    background-color: var(--color-bg-page);
     border-radius: $radius-lg;
-    border: 1px solid $border-color-light;
+    border: 1px solid var(--color-border-light);
     animation: expandRowFadeIn 0.3s ease both;
 
     .version-section {
@@ -1764,7 +1764,7 @@ const getSalesQuantity = (row: Formula): number => {
         margin: 0 0 $space-3 0;
         font-size: 15px;
         font-weight: $font-weight-semibold;
-        color: $text-primary;
+        color: var(--color-text-primary);
         display: flex;
         align-items: center;
         gap: $space-2;
@@ -1774,7 +1774,7 @@ const getSalesQuantity = (row: Formula): number => {
           display: inline-block;
           width: $space-1;
           height: $font-size-h3;
-          background: $gradient-btn;
+          background: var(--gradient-btn);
           border-radius: $radius-xs;
         }
       }
@@ -1791,14 +1791,14 @@ const getSalesQuantity = (row: Formula): number => {
       align-items: center;
       gap: $space-4;
       padding: var(--space-2-5) $space-4;
-      background: $bg-container;
+      background: var(--color-bg-container);
       border-radius: $radius-md;
-      border: 1px solid $border-color;
+      border: 1px solid var(--color-border);
       transition: $transition-fast;
 
       &:hover {
-        border-color: $brand-primary-lightest;
-        background: $bg-container-alt;
+        border-color: var(--color-primary-light);
+        background: var(--color-bg-container-alt);
       }
 
       &.is-current {
@@ -1818,7 +1818,7 @@ const getSalesQuantity = (row: Formula): number => {
     .version-number {
       font-size: $font-size-body;
       font-weight: $font-weight-semibold;
-      color: $text-primary;
+      color: var(--color-text-primary);
     }
 
     .current-tag {
@@ -1831,7 +1831,7 @@ const getSalesQuantity = (row: Formula): number => {
       font-size: $font-size-micro;
 
       &--published {
-        background: var(--color-primary-lightest);
+        background: var(--color-primary-bg);
         color: var(--color-primary);
         border: none;
       }
@@ -1843,7 +1843,7 @@ const getSalesQuantity = (row: Formula): number => {
       }
 
       &--archived {
-        background: $border-color-light;
+        background: var(--color-border-light);
         color: var(--color-text-secondary);
         border: none;
       }
@@ -1859,7 +1859,7 @@ const getSalesQuantity = (row: Formula): number => {
 
     .version-name {
       font-size: $font-size-body;
-      color: $text-primary;
+      color: var(--color-text-primary);
       font-weight: $font-weight-medium;
     }
 
@@ -1870,7 +1870,7 @@ const getSalesQuantity = (row: Formula): number => {
 
     .version-time {
       font-size: $font-size-caption;
-      color: $text-secondary;
+      color: var(--color-text-secondary);
     }
 
     .version-changes {
@@ -1879,9 +1879,9 @@ const getSalesQuantity = (row: Formula): number => {
       .changes-detail {
         margin-top: $space-2;
         padding: $space-2 $space-3;
-        background: $bg-container-alt;
+        background: var(--color-bg-container-alt);
         border-radius: $radius-sm;
-        border: 1px solid $border-color;
+        border: 1px solid var(--color-border);
       }
 
       .changes-list {
@@ -1903,7 +1903,7 @@ const getSalesQuantity = (row: Formula): number => {
       }
 
       .change-label {
-        color: $text-primary;
+        color: var(--color-text-primary);
         font-weight: $font-weight-medium;
         flex-shrink: 0;
       }
@@ -1923,7 +1923,7 @@ const getSalesQuantity = (row: Formula): number => {
       }
 
       .change-arrow {
-        color: $text-secondary;
+        color: var(--color-text-secondary);
         font-weight: $font-weight-semibold;
       }
 
@@ -1939,7 +1939,7 @@ const getSalesQuantity = (row: Formula): number => {
     .empty-versions {
       text-align: center;
       padding: $space-6;
-      color: $text-secondary;
+      color: var(--color-text-secondary);
       font-size: $font-size-body;
     }
   }
@@ -1951,7 +1951,7 @@ const getSalesQuantity = (row: Formula): number => {
       margin: 0 0 $space-3 0;
       font-size: 15px;
       font-weight: $font-weight-semibold;
-      color: $text-primary;
+      color: var(--color-text-primary);
       display: flex;
       align-items: center;
       gap: $space-1-5;
@@ -1961,7 +1961,7 @@ const getSalesQuantity = (row: Formula): number => {
         display: inline-block;
         width: $space-1;
         height: $font-size-h3;
-        background: $gradient-btn;
+        background: var(--gradient-btn);
         border-radius: $radius-xs;
       }
     }
@@ -1975,12 +1975,12 @@ const getSalesQuantity = (row: Formula): number => {
     p {
       margin: 0;
       font-size: $font-size-body;
-      color: $text-secondary;
+      color: var(--color-text-secondary);
       line-height: $line-height-normal;
       padding: $space-3;
-      background: $bg-container;
+      background: var(--color-bg-container);
       border-radius: $radius-md;
-      border-left: 3px solid $brand-primary-lightest;
+      border-left: 3px solid var(--color-primary);
     }
   }
 
@@ -1991,13 +1991,13 @@ const getSalesQuantity = (row: Formula): number => {
   }
 
   .delete-info {
-    color: $text-primary;
+    color: var(--color-text-primary);
     font-size: $font-size-body;
     margin-top: $space-2;
     padding: $space-3;
-    background: $bg-page;
+    background: var(--color-bg-page);
     border-radius: $radius-md;
-    border-left: 3px solid $brand-primary-lightest;
+    border-left: 3px solid var(--color-primary);
   }
 
   // ─── 自定义半透明悬浮对话框（:global — Teleport 到 body 需要）───
@@ -2014,7 +2014,7 @@ const getSalesQuantity = (row: Formula): number => {
   :global(.batch-dialog-card) {
     width: 440px;
     max-width: 90vw;
-    background: $bg-container;
+    background: var(--color-bg-container);
     border-radius: 16px;
     box-shadow: $shadow-elevation-4;
     overflow: hidden;
@@ -2048,7 +2048,7 @@ const getSalesQuantity = (row: Formula): number => {
       transition: all $transition-fast !important;
 
       &:hover {
-        background: $border-color-light !important;
+        background: var(--color-border-light) !important;
         color: var(--color-text-secondary) !important;
       }
     }
@@ -2086,7 +2086,7 @@ const getSalesQuantity = (row: Formula): number => {
     transition: all $transition-fast !important;
 
     &:hover {
-      background: $border-color-light !important;
+      background: var(--color-border-light) !important;
       color: var(--color-text-secondary) !important;
     }
   }
@@ -2209,7 +2209,7 @@ const getSalesQuantity = (row: Formula): number => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: $bg-container;
+  background-color: var(--color-bg-container);
   border-top: 1px solid var(--color-bg-page);
 
   /* 左侧数据量信息 */
@@ -2305,14 +2305,14 @@ const getSalesQuantity = (row: Formula): number => {
   }
 
   :deep(.t-collapse-panel__header) {
-    background: $bg-container;
+    background: var(--color-bg-container);
     padding: 20px 24px;
     font-size: 15px;
     font-weight: 600;
     color: var(--color-text-primary);
 
     &:hover {
-      background: $bg-cool-gray;
+      background: var(--color-bg-hover);
     }
   }
 
@@ -2323,7 +2323,7 @@ const getSalesQuantity = (row: Formula): number => {
 
 // 动态卡片基础样式
 .activity-card {
-  background-color: $bg-container;
+  background-color: var(--color-bg-container);
   border-radius: 20px;
   padding: 24px;
   box-shadow: $shadow-elevation-2;
@@ -2331,9 +2331,9 @@ const getSalesQuantity = (row: Formula): number => {
 
   // 右侧小助手卡片 - 白色背景
   &--assistant {
-    background: $bg-container;
+    background: var(--color-bg-container);
     border: 1px solid var(--color-bg-page);
-    color: $text-primary;
+    color: var(--color-text-primary);
     position: relative;
     overflow: hidden;
     box-shadow: $shadow-elevation-2;
@@ -2390,7 +2390,7 @@ const getSalesQuantity = (row: Formula): number => {
       opacity: 0.3;
       cursor: not-allowed;
       border-color: $overlay-white-15;
-      color: $border-color;
+      color: var(--color-border);
       background: transparent;
     }
   }
@@ -2427,7 +2427,7 @@ const getSalesQuantity = (row: Formula): number => {
     top: 28px; // top-[28px]
     bottom: 0;
     width: 1px; // w-[1px]
-    background-color: $border-color-light; // bg-slate-100
+    background-color: var(--color-border-light); // bg-slate-100
   }
 }
 
@@ -2521,7 +2521,7 @@ const getSalesQuantity = (row: Formula): number => {
 
 .timeline-time {
   font-size: 10px; // text-[10px]
-  color: $border-color; // text-slate-300
+  color: var(--color-border); // text-slate-300
   text-transform: uppercase;
   display: inline-block;
   margin-top: 4px;
@@ -2605,47 +2605,47 @@ const getSalesQuantity = (row: Formula): number => {
   padding: var(--space-3-5);
   background: var(--color-bg-page);
   border-radius: 14px;
-  border: 1px solid $border-color-light;
+  border: 1px solid var(--color-border-light);
   transition: all 0.25s ease;
   cursor: default;
   animation: todoSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
 
   &:hover {
-    background: $border-color-light;
+    background: var(--color-border-light);
     border-color: var(--color-border);
     transform: translateX(4px);
     box-shadow: $shadow-elevation-1;
   }
 
   &--high {
-    background: $amber-50;
-    border-color: $amber-200;
+    background: var(--color-amber-50, $amber-50);
+    border-color: var(--color-amber-200, $amber-200);
 
     &:hover {
-      background: $amber-100;
-      border-color: $amber-300;
+      background: var(--color-amber-100, $amber-100);
+      border-color: var(--color-amber-200, $amber-300);
     }
 
     .todo-item__title {
-      color: $amber-800;
+      color: var(--color-warning, $amber-800);
     }
 
     .todo-item__desc {
-      color: $stone-500;
+      color: var(--color-text-secondary, $stone-500);
     }
   }
 
   &--medium {
-    background: $blue-50;
-    border-color: $blue-200;
+    background: var(--color-blue-50, $blue-50);
+    border-color: var(--color-blue-200, $blue-200);
 
     &:hover {
-      background: $blue-100;
-      border-color: $blue-200;
+      background: var(--color-blue-100, $blue-100);
+      border-color: var(--color-blue-200, $blue-200);
     }
 
     .todo-item__title {
-      color: $blue-600;
+      color: var(--color-info, $blue-600);
     }
 
     .todo-item__desc {
@@ -2655,20 +2655,20 @@ const getSalesQuantity = (row: Formula): number => {
 
   &--low,
   &:not(&--high):not(&--medium) {
-    background: $purple-50;
-    border-color: $purple-200;
+    background: var(--color-purple-50, $purple-50);
+    border-color: var(--color-violet-200, $purple-200);
 
     &:hover {
-      background: $purple-100;
-      border-color: $purple-300;
+      background: var(--color-violet-100, $purple-100);
+      border-color: var(--color-violet-300, $purple-300);
     }
 
     .todo-item__title {
-      color: $violet-800;
+      color: var(--color-primary, $violet-800);
     }
 
     .todo-item__desc {
-      color: $stone-500;
+      color: var(--color-text-secondary, $stone-500);
     }
   }
 
@@ -2683,17 +2683,17 @@ const getSalesQuantity = (row: Formula): number => {
 
     &--warning {
       background: $gradient-amber-badge;
-      color: $amber-600;
+      color: var(--color-warning, $amber-600);
     }
 
     &--info {
-      background: linear-gradient(135deg, $blue-100, $blue-200);
-      color: $blue-600;
+      background: linear-gradient(135deg, var(--color-blue-100, $blue-100), var(--color-blue-200, $blue-200));
+      color: var(--color-info, $blue-600);
     }
 
     &--default {
-      background: linear-gradient(135deg, $purple-100, $purple-200);
-      color: $violet-600;
+      background: linear-gradient(135deg, var(--color-violet-100, $purple-100), var(--color-violet-200, $purple-200));
+      color: var(--color-primary, $violet-600);
     }
   }
 
@@ -2723,7 +2723,7 @@ const getSalesQuantity = (row: Formula): number => {
     height: 28px;
     border-radius: 8px;
     border: 1.5px solid var(--color-border);
-    background: $bg-container;
+    background: var(--color-bg-container);
     color: var(--color-text-secondary);
     cursor: pointer;
     display: inline-flex;
@@ -2783,7 +2783,7 @@ const getSalesQuantity = (row: Formula): number => {
   p {
     font-size: 15px;
     font-weight: 600;
-    color: $text-primary;
+    color: var(--color-text-primary);
     margin: 0 0 var(--space-1-5) 0;
   }
 
@@ -2796,7 +2796,7 @@ const getSalesQuantity = (row: Formula): number => {
 .assistant-footer {
   margin-top: 16px;
   padding-top: 16px;
-  border-top: 1px solid $border-color-light;
+  border-top: 1px solid var(--color-border-light);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -2812,7 +2812,7 @@ const getSalesQuantity = (row: Formula): number => {
   height: 28px;
   border-radius: 8px;
   border: 1.5px solid var(--color-border);
-  background: $bg-container;
+  background: var(--color-bg-container);
   color: var(--color-text-secondary);
   cursor: pointer;
   display: inline-flex;
@@ -2821,8 +2821,8 @@ const getSalesQuantity = (row: Formula): number => {
   transition: all 0.2s ease;
 
   &:hover {
-    background: $border-color-light;
-    border-color: $border-color;
+    background: var(--color-border-light);
+    border-color: var(--color-border);
     color: var(--color-text-secondary);
     transform: rotate(180deg);
   }
@@ -2915,7 +2915,7 @@ const getSalesQuantity = (row: Formula): number => {
         &:focus {
           box-shadow: 0 0 0 2px $overlay-emerald-100-50; // focus:ring-2 ring-emerald-200
           outline: none;
-          background-color: $bg-container;
+          background-color: var(--color-bg-container);
         }
 
         &::placeholder {
@@ -2981,8 +2981,8 @@ const getSalesQuantity = (row: Formula): number => {
     align-items: center;
     gap: 8px; // gap-2
     padding: 8px 16px; // px-4 py-2
-    background-color: var(--color-text-primary); // bg-slate-800
-    color: white;
+    background-color: var(--color-primary); // 品牌色背景（明暗模式均有白字对比度）
+    color: var(--color-text-white);
     border-radius: 12px; // rounded-xl
     font-size: 14px; // text-sm
     font-weight: 500; // font-medium
@@ -2992,7 +2992,7 @@ const getSalesQuantity = (row: Formula): number => {
     cursor: pointer;
 
     &:hover {
-      background-color: var(--color-text-primary);
+      background-color: var(--color-primary-dark);
     }
 
     // hover:bg-slate-700 (无 translateY)
@@ -3014,7 +3014,7 @@ const getSalesQuantity = (row: Formula): number => {
     padding: 8px; // p-2
     color: var(--color-text-placeholder); // text-slate-400
     background-color: transparent;
-    border: 1px solid $border-color-light; // border border-slate-100
+    border: 1px solid var(--color-border-light); // border border-slate-100
     border-radius: 8px; // rounded-lg
     transition: all $transition-fast; // transition-colors
     cursor: pointer;
@@ -3228,7 +3228,7 @@ const getSalesQuantity = (row: Formula): number => {
 }
 
 .t-table__body {
-  background: $bg-container !important;
+  background: var(--color-bg-container) !important;
 
   .t-table__row {
     transition: background-color 0.2s ease;
@@ -3248,7 +3248,7 @@ const getSalesQuantity = (row: Formula): number => {
 
     td {
       padding: 3px 16px !important;
-      border-bottom: 1px solid $border-color-light !important;
+      border-bottom: 1px solid var(--color-border-light) !important;
       vertical-align: middle;
       font-size: 13px !important;
 
@@ -3457,7 +3457,7 @@ const getSalesQuantity = (row: Formula): number => {
     font-size: 12px;
     color: var(--color-text-placeholder);
     padding: var(--space-0-5) 8px;
-    border: 1px dashed $border-color;
+    border: 1px dashed var(--color-border);
     border-radius: 6px;
     transition: all 0.2s;
 
@@ -3593,7 +3593,7 @@ const getSalesQuantity = (row: Formula): number => {
     white-space: nowrap;
 
     &:hover {
-      background: $border-color-light;
+      background: var(--color-border-light);
     }
 
     svg {
@@ -3672,13 +3672,13 @@ const getSalesQuantity = (row: Formula): number => {
 .formula-list .content-card .t-table .t-table__body-wrapper,
 .formula-list .content-card .t-table .t-table__body-inner,
 .formula-list .content-card .t-table .t-table__body {
-  background: $bg-container !important;
+  background: var(--color-bg-container) !important;
 }
 
 /* 2. 所有行 - 白色 */
 .formula-list .content-card .t-table .t-table__body tr,
 .formula-list .content-card .t-table .t-table__body .t-table__row {
-  background-color: $bg-container !important;
+  background-color: var(--color-bg-container) !important;
 }
 
 /* 3. 所有单元格（含 TDesign --hover 类）- 无竖线 */
@@ -3686,7 +3686,7 @@ const getSalesQuantity = (row: Formula): number => {
 .formula-list .content-card .t-table .t-table__body .t-table__row td,
 .formula-list .content-card .t-table .t-table__body .t-table__row.t-table__row--hover td {
   background-color: transparent !important;
-  border-bottom-color: $border-color-light !important;
+  border-bottom-color: var(--color-border-light) !important;
   color: var(--color-text-primary) !important;
   box-shadow: none !important;
 }
@@ -3752,8 +3752,8 @@ const getSalesQuantity = (row: Formula): number => {
   gap: 8px !important;
   padding: 8px 16px !important;
   border-radius: 12px !important;
-  background-color: var(--color-text-primary) !important;
-  color: white !important;
+  background-color: var(--color-primary) !important;
+  color: var(--color-text-white) !important;
   font-size: 14px !important;
   font-weight: 500 !important;
   border: none !important;
@@ -3762,7 +3762,7 @@ const getSalesQuantity = (row: Formula): number => {
   box-shadow: $shadow-elevation-2 !important;
 
   &:hover {
-    background-color: var(--color-text-primary) !important;
+    background-color: var(--color-primary-dark) !important;
   }
 
   .add-icon {

@@ -4,13 +4,13 @@
 > SQLite 文件路径：`./data/tingstudio.db`
 > 运行时初始化：`backend/src/config/database-better-sqlite3.ts`
 > 参考脚本：`backend/src/scripts/init.sql`
-> 最后更新：2026-06-01
+> 最后更新：2026-06-03
 
 ---
 
 ## 一、数据库概览
 
-系统共包含 **46 张表**，分为 19 个功能模块：
+系统共包含 **48 张表**，分为 19 个功能模块：
 
 | 模块           | 表数量 | 表名                                                                                                   |
 | -------------- | ------ | ------------------------------------------------------------------------------------------------------ |
@@ -18,8 +18,8 @@
 | 业务员管理     | 1      | salesmen                                                                                               |
 | 销量数据       | 1      | formula_sales                                                                                          |
 | 版本控制       | 1      | formula_versions                                                                                       |
-| 导出管理       | 4      | export_templates, export_jobs, api_data_interfaces, share_configs                                      |
-| 营养分析       | 4      | material_nutrition, formula_nutrition_summaries, nutrition_profiles, nutrition_analysis_reports        |
+| 导出管理       | 5      | export_templates, export_jobs, api_data_interfaces, share_configs, export_center_config                |
+| 营养分析       | 6      | material_nutrition, formula_nutrition_summaries, nutrition_profiles, nutrition_analysis_reports, material_nutrition_sources, formula_nutrition_snapshots |
 | 报表管理       | 2      | reports, report_targets                                                                                |
 | 文件管理       | 3      | uploaded_files, file_audit_log, file_relations                                                         |
 | AI 模型管理    | 7      | ai_models, ai_usage_logs, ai_alert_configs, ai_alert_records, ai_health_records, ai_fallback_configs, model_applications |
@@ -356,18 +356,24 @@
 
 存储配方导出的模板配置。
 
-| 字段                 | 类型    | 约束                | 说明                                    |
-| -------------------- | ------- | ------------------- | --------------------------------------- |
-| `template_id`        | TEXT    | PRIMARY KEY         | 模板 ID                                 |
-| `name`               | TEXT    | NOT NULL            | 模板名称                                |
-| `description`        | TEXT    | DEFAULT NULL        | 描述                                    |
-| `type`               | TEXT    | NOT NULL            | 类型：`pdf` / `excel` / `api` / `print` |
-| `format_config_json` | TEXT    | NOT NULL            | 格式配置 JSON                           |
-| `is_default`         | INTEGER | NOT NULL, DEFAULT 0 | 是否为默认模板                          |
-| `created_by`         | TEXT    | NOT NULL            | 创建人                                  |
-| `created_at`         | TEXT    | NOT NULL            | 创建时间                                |
+| 字段                 | 类型    | 约束                                                    | 说明                                              |
+| -------------------- | ------- | ------------------------------------------------------- | ------------------------------------------------- |
+| `template_id`        | TEXT    | PRIMARY KEY                                              | 模板 ID                                           |
+| `name`               | TEXT    | NOT NULL                                                 | 模板名称                                          |
+| `description`        | TEXT    | DEFAULT NULL                                             | 描述                                              |
+| `type`               | TEXT    | NOT NULL                                                 | 类型：`pdf` / `excel` / `api` / `print`          |
+| `category`           | TEXT    | NOT NULL, DEFAULT 'formula'                              | **新增** 分类：`formula` / `material` / `weekly-report` / `monthly-report` |
+| `format_config_json` | TEXT    | NOT NULL                                                 | 格式配置 JSON                                     |
+| `is_default`         | INTEGER | NOT NULL, DEFAULT 0                                      | 是否为默认模板                                    |
+| `created_by`         | TEXT    | NOT NULL                                                 | 创建人                                            |
+| `created_at`         | TEXT    | NOT NULL                                                 | 创建时间                                          |
+| `updated_at`         | TEXT    | NOT NULL                                                 | **新增** 更新时间                                 |
 
-**索引**：`idx_et_type`：按类型
+**索引**：
+
+- `idx_et_type`：按类型
+- `idx_et_category`：按分类
+- `idx_et_category_type`：按分类+类型（复合：category, type）
 
 ---
 
@@ -375,29 +381,36 @@
 
 存储配方导出的任务记录。
 
-| 字段            | 类型    | 约束                        | 说明                                                    |
-| --------------- | ------- | --------------------------- | ------------------------------------------------------- |
-| `job_id`        | TEXT    | PRIMARY KEY                 | 任务 ID                                                 |
-| `formula_id`    | TEXT    | NOT NULL, FK → formulas.id  | 配方 ID                                                 |
-| `version_id`    | TEXT    | DEFAULT NULL                | 版本 ID                                                 |
-| `template_id`   | TEXT    | DEFAULT NULL                | 模板 ID                                                 |
-| `export_type`   | TEXT    | NOT NULL                    | 导出类型：`pdf` / `excel` / `api`                       |
-| `status`        | TEXT    | NOT NULL, DEFAULT 'pending' | 状态：`pending` / `processing` / `completed` / `failed` |
-| `file_url`      | TEXT    | DEFAULT NULL                | 文件路径                                                |
-| `file_name`     | TEXT    | DEFAULT NULL                | 文件名                                                  |
-| `api_endpoint`  | TEXT    | DEFAULT NULL                | API 推送端点                                            |
-| `progress`      | INTEGER | NOT NULL, DEFAULT 0         | 进度百分比（0-100）                                     |
-| `error_message` | TEXT    | DEFAULT NULL                | 错误信息                                                |
-| `created_by`    | TEXT    | NOT NULL                    | 创建人                                                  |
-| `created_at`    | TEXT    | NOT NULL                    | 创建时间                                                |
-| `completed_at`  | TEXT    | DEFAULT NULL                | 完成时间                                                |
+| 字段             | 类型    | 约束                        | 说明                                                    |
+| ---------------- | ------- | --------------------------- | ------------------------------------------------------- |
+| `job_id`         | TEXT    | PRIMARY KEY                 | 任务 ID                                                 |
+| `formula_id`     | TEXT    | DEFAULT NULL, FK → formulas.id | 配方 ID（按数据分类可选）                             |
+| `version_id`     | TEXT    | DEFAULT NULL                | 版本 ID                                                 |
+| `template_id`    | TEXT    | DEFAULT NULL                | 模板 ID                                                 |
+| `data_category`  | TEXT    | NOT NULL, DEFAULT 'formula' | **新增** 数据分类：`formula` / `material` / `weekly-report` / `monthly-report` |
+| `target_ids_json`| TEXT    | DEFAULT NULL                | **新增** 目标 ID 列表 JSON（批量导出时使用）            |
+| `export_type`    | TEXT    | NOT NULL                    | 导出类型：`pdf` / `excel`                               |
+| `status`         | TEXT    | NOT NULL, DEFAULT 'pending' | 状态：`pending` / `processing` / `completed` / `failed` |
+| `file_url`       | TEXT    | DEFAULT NULL                | 文件路径                                                |
+| `file_name`      | TEXT    | DEFAULT NULL                | 文件名                                                  |
+| `progress`       | INTEGER | NOT NULL, DEFAULT 0         | 进度百分比（0-100）                                     |
+| `error_message`  | TEXT    | DEFAULT NULL                | 错误信息                                                |
+| `period_start`   | TEXT    | DEFAULT NULL                | **新增** 周期起始日期（报告导出时使用）                 |
+| `period_end`     | TEXT    | DEFAULT NULL                | **新增** 周期结束日期（报告导出时使用）                 |
+| `created_by`     | TEXT    | NOT NULL                    | 创建人                                                  |
+| `created_at`     | TEXT    | NOT NULL                    | 创建时间                                                |
+| `updated_at`     | TEXT    | NOT NULL                    | **新增** 更新时间                                       |
+| `completed_at`   | TEXT    | DEFAULT NULL                | 完成时间                                                |
 
-**外键**：`formula_id` → `formulas(id)` ON DELETE CASCADE
+**外键**：`formula_id` → `formulas(id)` ON DELETE SET NULL
 
 **索引**：
 
 - `idx_ej_formula`：按配方
 - `idx_ej_status`：按状态
+- `idx_ej_data_category`：按数据分类
+- `idx_ej_created_by`：按创建人
+- `idx_ej_category_status`：按数据分类+状态（复合：data_category, status）
 
 ---
 
@@ -448,6 +461,29 @@
 **外键**：`formula_id` → `formulas(id)` ON DELETE CASCADE
 
 **索引**：`idx_sc_formula`：按配方
+
+---
+
+### 2.10-A 导出中心配置表 `export_center_config`
+
+存储导出中心的全局配置参数。
+
+| 字段           | 类型 | 约束                                                | 说明                                                |
+| -------------- | ---- | --------------------------------------------------- | --------------------------------------------------- |
+| `config_key`   | TEXT | PRIMARY KEY                                          | 配置键名                                            |
+| `config_value` | TEXT | NOT NULL                                             | 配置值                                              |
+| `config_type`  | TEXT | NOT NULL, DEFAULT 'string'                           | 值类型：`string` / `number` / `boolean` / `json`   |
+| `description`  | TEXT | DEFAULT NULL                                         | 配置说明                                            |
+| `updated_by`   | TEXT | NOT NULL                                             | 更新人                                              |
+| `updated_at`   | TEXT | NOT NULL                                             | 更新时间                                            |
+
+**索引**：`idx_ecc_config_type`：按配置类型
+
+**业务含义**：
+
+- `config_key`：配置键名，如 `default_template_formula`、`default_template_material` 等
+- `config_type`：标识配置值的类型，前端据此解析
+- 管理员可通过 API 修改配置值，无需重启服务
 
 ---
 
@@ -1609,6 +1645,71 @@
 
 ---
 
+### 2.49 原料营养数据源表 `material_nutrition_sources`
+
+存储原料的多源营养数据，支持同一原料来自不同数据源的营养成分记录。
+
+| 字段           | 类型    | 约束                                                     | 说明                                                      |
+| -------------- | ------- | -------------------------------------------------------- | --------------------------------------------------------- |
+| `source_id`    | TEXT    | PRIMARY KEY                                               | 数据源 ID                                                 |
+| `material_id`  | TEXT    | NOT NULL, FK → materials.id ON DELETE CASCADE             | 原料 ID                                                   |
+| `source_type`  | TEXT    | NOT NULL, DEFAULT 'manual'                                | 来源类型：`manual` / `tianapi` / `seed` / `ai` / `excel_import` / `other` |
+| `source_detail`| TEXT    | DEFAULT NULL                                              | 来源详情                                                  |
+| `per_100g_json`| TEXT    | NOT NULL                                                  | 每100g营养成分 JSON                                       |
+| `confidence`   | TEXT    | DEFAULT 'medium'                                          | 数据可信度：`high` / `medium` / `low`                     |
+| `match_score`  | REAL    | DEFAULT NULL                                              | 匹配评分（用于推荐排序）                                  |
+| `notes`        | TEXT    | DEFAULT NULL                                              | 备注                                                      |
+| `created_at`   | TEXT    | NOT NULL                                                  | 创建时间                                                  |
+| `created_by`   | TEXT    | DEFAULT NULL                                              | 创建人                                                    |
+| `is_active`    | INTEGER | NOT NULL, DEFAULT 1                                       | 是否启用（1/0）                                           |
+
+**外键**：`material_id` → `materials(id)` ON DELETE CASCADE
+
+**索引**：
+
+- `idx_mns_material`：按原料 ID
+- `idx_mns_source_type`：按来源类型
+- `idx_mns_material_type`：按原料+来源类型（复合：material_id, source_type）
+
+**业务含义**：
+
+- `source_type`：标识数据来源，`manual` 为手动录入，`tianapi` 为天行数据 API，`seed` 为种子数据，`ai` 为 AI 推断，`excel_import` 为 Excel 导入
+- `match_score`：系统根据数据完整度、可信度等维度计算的评分，用于推荐最优数据源
+- `is_active`：归档后置 0，不再参与推荐和对比
+- 同一原料可有多条数据源记录，通过权威来源设置决定最终使用哪个数据源
+
+---
+
+### 2.50 配方营养快照表 `formula_nutrition_snapshots`
+
+存储配方的营养计算快照，与配方版本关联。
+
+| 字段                      | 类型 | 约束                                                     | 说明                |
+| ------------------------- | ---- | -------------------------------------------------------- | ------------------- |
+| `snapshot_id`             | TEXT | PRIMARY KEY                                               | 快照 ID             |
+| `formula_id`              | TEXT | NOT NULL, FK → formulas.id ON DELETE CASCADE              | 配方 ID             |
+| `formula_version_id`      | TEXT | DEFAULT NULL                                              | 配方版本 ID         |
+| `nutrition_refs_json`     | TEXT | NOT NULL                                                  | 营养数据引用 JSON   |
+| `total_nutrition_json`    | TEXT | NOT NULL                                                  | 总营养成分 JSON     |
+| `per_100g_json`           | TEXT | NOT NULL                                                  | 每100g营养 JSON     |
+| `material_breakdown_json` | TEXT | DEFAULT NULL                                              | 各原料贡献明细 JSON |
+| `calculated_at`           | TEXT | NOT NULL                                                  | 计算时间            |
+| `calculated_by`           | TEXT | DEFAULT NULL                                              | 计算人              |
+
+**外键**：`formula_id` → `formulas(id)` ON DELETE CASCADE
+
+**唯一约束**：`uk_fnss_version`：`UNIQUE(formula_id, formula_version_id)`（一个配方版本只能有一个快照）
+
+**索引**：`idx_fnss_formula`：按配方
+
+**业务含义**：
+
+- `nutrition_refs_json`：记录计算时使用的各原料数据源引用，便于溯源
+- `formula_version_id`：关联配方版本，每次版本变更后可重新计算生成新快照
+- 与 `formula_nutrition_summaries` 互补，快照表记录更详细的计算引用信息
+
+---
+
 ## 三、ER 关系图（文字描述）
 
 ```
@@ -1635,6 +1736,7 @@ users
 
 materials
   ├── 1:N → material_nutrition (material_id) ON DELETE CASCADE
+  ├── 1:N → material_nutrition_sources (material_id) ON DELETE CASCADE
   ├── 1:N → material_review_logs (material_id) ON DELETE CASCADE
   ├── 自引用 → materials (previous_version_id) 版本链
   ├── N:1 → parse_results (parse_result_id) 关联解析来源
@@ -1647,6 +1749,7 @@ formulas
   ├── 1:N → formula_versions (formula_id)
   ├── 1:N → export_jobs (formula_id)
   ├── 1:N → formula_nutrition_summaries (formula_id)
+  ├── 1:N → formula_nutrition_snapshots (formula_id)
   ├── 1:N → share_configs (formula_id)
   ├── 1:N → nutrition_analysis_reports (formula_id)
   ├── N:1 → parse_results (parse_result_id) 关联解析来源
@@ -1779,6 +1882,9 @@ quick_formulas
 | roles                     | 2          | admin + formulist 角色           |
 | permissions               | 8          | 基础权限项                       |
 | role_permissions          | 8          | 角色权限关联                     |
+| material_nutrition_sources| 0          | 营养数据源（运行时生成）         |
+| formula_nutrition_snapshots| 0         | 营养快照（运行时生成）           |
+| export_center_config      | 0          | 导出中心配置（运行时配置）       |
 
 ---
 
@@ -1820,7 +1926,9 @@ quick_formulas
 | formula_review_logs      | action                  | IN ('submit', 'approve', 'reject')                                |
 | material_review_logs     | action                  | IN ('submit', 'approve', 'reject', 'publish')                     |
 | export_templates         | type                    | IN ('pdf', 'excel', 'api', 'print')                               |
-| export_jobs              | export_type             | IN ('pdf', 'excel', 'api')                                        |
+| export_templates         | category                | IN ('formula', 'material', 'weekly-report', 'monthly-report')     |
+| export_jobs              | data_category           | IN ('formula', 'material', 'weekly-report', 'monthly-report')     |
+| export_jobs              | export_type             | IN ('pdf', 'excel')                                               |
 | export_jobs              | status                  | IN ('pending', 'processing', 'completed', 'failed')               |
 | api_data_interfaces      | method                  | IN ('GET', 'POST', 'PUT', 'DELETE')                               |
 | api_data_interfaces      | authentication          | IN ('none', 'basic', 'apiKey', 'oauth')                           |
@@ -1842,3 +1950,6 @@ quick_formulas
 | enum_options              | category              | IN ('appearance', 'taste', 'efficacy') |
 | enum_exclusions           | category              | IN ('appearance', 'taste')            |
 | quick_formulas            | status                | IN ('draft', 'published')              |
+| material_nutrition_sources| source_type           | IN ('manual', 'tianapi', 'seed', 'ai', 'excel_import', 'other') |
+| material_nutrition_sources| confidence            | IN ('high', 'medium', 'low')           |
+| export_center_config      | config_type           | IN ('string', 'number', 'boolean', 'json') |

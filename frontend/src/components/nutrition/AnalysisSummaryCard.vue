@@ -108,7 +108,7 @@ const indicators = computed(() => [
   align-items: center;
   gap: $space-2;
   padding: $space-3;
-  background: $bg-container-alt;
+  background: var(--color-bg-container-alt);
   border-radius: $radius-md;
 
   .indicator-dot {
@@ -126,7 +126,7 @@ const indicators = computed(() => [
 
     .indicator-label {
       font-size: $font-size-caption;
-      color: $text-secondary;
+      color: var(--color-text-secondary);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -142,14 +142,14 @@ const indicators = computed(() => [
 
 .summary-one-line {
   padding: $space-3 $space-4;
-  background: $brand-primary-bg;
+  background: var(--color-primary-bg);
   border-radius: $radius-md;
-  border-left: 3px solid $brand-primary;
+  border-left: 3px solid var(--color-primary);
 
   .one-line-text {
     font-size: $font-size-body;
     font-weight: $font-weight-medium;
-    color: $text-primary;
+    color: var(--color-text-primary);
     line-height: $line-height-normal;
   }
 }

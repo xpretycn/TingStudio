@@ -2009,7 +2009,7 @@ const goToDashboard = () => {
 }
 
 .ai-panel {
-  background: linear-gradient(145deg, var(--color-bg-container) 0%, var(--color-bg-page) 50%, $border-color-light 100%);
+  background: linear-gradient(145deg, var(--color-bg-container) 0%, var(--color-bg-page) 50%, var(--color-border-light) 100%);
   padding: 32px 20px;
   border-radius: 2.5rem;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.06), 0 8px 10px -6px $overlay-emerald-06;
@@ -2018,7 +2018,7 @@ const goToDashboard = () => {
   overflow: hidden;
   animation: fadeInUp 0.5s ease both;
   animation-delay: 0.1s;
-  border: 1px solid rgba(148, 163, 184, 0.15);
+  border: 1px solid var(--color-border-light);
 
   .ai-panel-bg {
     position: absolute;
@@ -2067,7 +2067,7 @@ const goToDashboard = () => {
 
       .ai-subtitle {
         font-size: 12px;
-        color: $text-placeholder;
+        color: var(--color-text-placeholder);
         margin: 4px 0 0;
       }
     }
@@ -2194,7 +2194,7 @@ const goToDashboard = () => {
 
   .ai-body {
     .upload-zone {
-      border: 2px dashed rgba(148, 163, 184, 0.25);
+      border: 2px dashed var(--color-border);
       border-radius: var(--radius-4xl);
       padding: 32px;
       display: flex;
@@ -2382,7 +2382,7 @@ const goToDashboard = () => {
       padding: 24px;
       background: $overlay-emerald-04;
       border-radius: var(--radius-4xl);
-      border: 1px solid rgba(148, 163, 184, 0.18);
+      border: 1px solid var(--color-border-light);
 
       .progress-header {
         display: flex;
@@ -2498,7 +2498,7 @@ const goToDashboard = () => {
 
       .progress-bar {
         height: 6px;
-        background: rgba(148, 163, 184, 0.20);
+        background: var(--color-border-light);
         border-radius: var(--radius-xs);
         overflow: hidden;
         margin-bottom: 12px;
@@ -2667,7 +2667,7 @@ const goToDashboard = () => {
 .info-card {
   background: var(--color-bg-container);
   border-radius: 16px;
-  border: 1px solid rgba(148, 163, 184, 0.15);
+  border: 1px solid var(--color-border-light);
   overflow: hidden;
   transition: box-shadow 0.2s;
 
@@ -2686,7 +2686,7 @@ const goToDashboard = () => {
     text-transform: uppercase;
     letter-spacing: 0.05em;
     background: $overlay-emerald-04;
-    border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+    border-bottom: 1px solid var(--color-border-light);
     position: relative;
 
     .t-icon {
@@ -2896,7 +2896,7 @@ const goToDashboard = () => {
     }
 
     &--empty {
-      color: $text-placeholder;
+      color: var(--color-text-placeholder);
       font-weight: 500;
     }
 
@@ -3075,7 +3075,7 @@ const goToDashboard = () => {
   overflow-y: auto;
 
   &.info-value--empty {
-    color: $text-placeholder;
+    color: var(--color-text-placeholder);
     font-weight: 500;
   }
 }
@@ -3106,7 +3106,7 @@ const goToDashboard = () => {
     padding: var(--space-1-25) var(--space-3-5);
     border: 1px solid rgba(217, 119, 6, 0.25);
     border-radius: 8px;
-    background: rgba(255, 255, 255, 0.8);
+    background: var(--color-bg-container);
     color: var(--color-warning);
     font-size: 12px;
     font-weight: 600;
@@ -3376,7 +3376,7 @@ const goToDashboard = () => {
   padding: var(--space-3-5) 16px;
   background: var(--color-bg-container);
   border-radius: 12px;
-  border: 1px solid rgba(148, 163, 184, 0.15);
+  border: 1px solid var(--color-border-light);
 
   &--normal {
     background: linear-gradient(135deg, var(--color-emerald-50), var(--color-emerald-50));
@@ -3713,11 +3713,11 @@ const goToDashboard = () => {
     padding: var(--space-2) var(--space-3-5);
     font-size: 12px;
     color: var(--color-text-primary);
-    border-top: 1px solid rgba(148, 163, 184, 0.08);
+    border-top: 1px solid var(--color-border-light);
     align-items: center;
 
     &:nth-child(even) {
-      background: rgba(248, 250, 252, 0.5);
+      background: var(--color-bg-hover);
     }
 
     &:hover {
@@ -3734,7 +3734,7 @@ const goToDashboard = () => {
 
     &--adjusted {
       border-left: 3px solid var(--color-warning);
-      background: linear-gradient(90deg, rgba(254, 243, 199, 0.5) 0%, transparent 100%);
+      background: linear-gradient(90deg, var(--color-warning-bg) 0%, transparent 100%);
 
       .col-name {
         color: var(--color-warning-dark);
@@ -3744,7 +3744,7 @@ const goToDashboard = () => {
 
     &--qty-adjusted {
       border-left: 3px solid var(--color-info);
-      background: linear-gradient(90deg, rgba(219, 234, 254, 0.5) 0%, transparent 100%);
+      background: linear-gradient(90deg, var(--color-info-bg) 0%, transparent 100%);
 
       .col-name {
         color: var(--color-info);
@@ -4048,7 +4048,7 @@ const goToDashboard = () => {
 
 .materials-add-row {
   padding: var(--space-2-5) var(--space-3-5);
-  border-top: 1px solid rgba(148, 163, 184, 0.08);
+  border-top: 1px solid var(--color-border-light);
   width: 100%;
   box-sizing: border-box;
 
@@ -4131,7 +4131,7 @@ const goToDashboard = () => {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: $border-color-light;
+    background: var(--color-border-light);
 
     img {
       width: 16px;
@@ -4422,7 +4422,7 @@ const goToDashboard = () => {
   gap: var(--space-1-5);
   padding: var(--space-2-5) 20px;
   border-radius: 12px;
-  background: linear-gradient(135deg, #f59e0b, var(--color-warning));
+  background: linear-gradient(135deg, var(--color-warning), var(--color-warning));
   color: var(--color-text-white);
   font-size: 13px;
   font-weight: 700;

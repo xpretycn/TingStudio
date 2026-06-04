@@ -74,9 +74,9 @@ function getSeverity(diff: number): 'success' | 'info' | 'warning' | 'danger' {
 <style lang="scss" scoped>
 .deviation-chart {
   padding: $space-5;
-  background: $bg-container;
+  background: var(--color-bg-container);
   border-radius: $radius-xl;
-  border: 1px solid $border-color-light;
+  border: 1px solid var(--color-border-light);
 }
 
 .chart-header {
@@ -90,13 +90,13 @@ function getSeverity(diff: number): 'success' | 'info' | 'warning' | 'danger' {
   margin: 0 0 $space-1 0;
   font-size: $font-size-h3;
   font-weight: $font-weight-semibold;
-  color: $text-primary;
+  color: var(--color-text-primary);
 }
 
 .chart-subtitle {
   margin: 0;
   font-size: $font-size-caption;
-  color: $text-tertiary;
+  color: var(--color-text-placeholder);
 }
 
 .empty {
@@ -108,7 +108,7 @@ function getSeverity(diff: number): 'success' | 'info' | 'warning' | 'danger' {
   flex-direction: column;
   border-radius: $radius-md;
   overflow: hidden;
-  border: 1px solid $border-color-light;
+  border: 1px solid var(--color-border-light);
 }
 
 .heatmap-row {
@@ -116,7 +116,7 @@ function getSeverity(diff: number): 'success' | 'info' | 'warning' | 'danger' {
   grid-template-columns: 100px repeat(v-bind('sources.length'), 1fr);
 
   &:not(:last-child) {
-    border-bottom: 1px solid $border-color-light;
+    border-bottom: 1px solid var(--color-border-light);
   }
 }
 
@@ -130,16 +130,16 @@ function getSeverity(diff: number): 'success' | 'info' | 'warning' | 'danger' {
   font-variant-numeric: tabular-nums;
 
   &--corner {
-    background: $bg-container-alt;
+    background: var(--color-bg-container-alt);
     font-weight: $font-weight-semibold;
     justify-content: flex-start;
-    color: $text-primary;
+    color: var(--color-text-primary);
   }
 
   &--header {
-    background: $bg-container-alt;
+    background: var(--color-bg-container-alt);
     font-weight: $font-weight-semibold;
-    color: $text-primary;
+    color: var(--color-text-primary);
     gap: $space-1;
     font-size: $font-size-caption;
   }
@@ -147,13 +147,13 @@ function getSeverity(diff: number): 'success' | 'info' | 'warning' | 'danger' {
   &--label {
     justify-content: flex-start;
     font-weight: $font-weight-medium;
-    color: $text-primary;
-    background: $bg-container-alt;
-    border-right: 1px solid $border-color-light;
+    color: var(--color-text-primary);
+    background: var(--color-bg-container-alt);
+    border-right: 1px solid var(--color-border-light);
   }
 
   &--value {
-    color: $text-primary;
+    color: var(--color-text-primary);
     font-weight: $font-weight-medium;
   }
 }

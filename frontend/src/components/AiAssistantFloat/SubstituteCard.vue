@@ -71,8 +71,8 @@ function typeLabel(t: string): string {
 
 <style scoped lang="scss">
 .substitute-card {
-  background: $bg-container;
-  border: 1px solid $border-color-light;
+  background: var(--color-bg-container);
+  border: 1px solid var(--color-border-light);
   border-radius: 12px;
   padding: var(--space-3-5);
   margin: 8px 0;
@@ -84,7 +84,7 @@ function typeLabel(t: string): string {
   align-items: center;
   gap: var(--space-1-5);
   font-weight: 600;
-  color: $text-primary;
+  color: var(--color-text-primary);
   margin-bottom: var(--space-2-5);
 }
 
@@ -93,15 +93,15 @@ function typeLabel(t: string): string {
   align-items: center;
   gap: var(--space-1-5);
   padding: 8px var(--space-2-5);
-  background: $bg-page;
+  background: var(--color-bg-page);
   border-radius: 8px;
   margin-bottom: var(--space-2-5);
   font-size: 12px;
   flex-wrap: wrap;
 
-  .ori-label { color: $text-tertiary; }
-  .ori-name { font-weight: 600; color: $text-primary; }
-  .ori-type { color: $text-tertiary; background: $border-color-light; padding: 1px 6px; border-radius: 4px; font-size: 11px; }
+  .ori-label { color: var(--color-text-placeholder); }
+  .ori-name { font-weight: 600; color: var(--color-text-primary); }
+  .ori-type { color: var(--color-text-placeholder); background: var(--color-border-light); padding: 1px 6px; border-radius: 4px; font-size: 11px; }
   .ori-price { color: var(--color-primary); font-weight: 500; margin-left: auto; }
 }
 
@@ -116,13 +116,13 @@ function typeLabel(t: string): string {
   align-items: center;
   gap: 8px;
   padding: 8px var(--space-2-5);
-  background: $bg-page;
+  background: var(--color-bg-page);
   border-radius: 8px;
   font-size: 12px;
   transition: background 0.15s;
 
   &:hover {
-    background: $bg-hover;
+    background: var(--color-bg-hover);
   }
 }
 
@@ -130,7 +130,7 @@ function typeLabel(t: string): string {
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: $gradient-brand;
+  background: var(--gradient-brand);
   color: #fff;
   font-size: 11px;
   font-weight: 700;
@@ -148,12 +148,12 @@ function typeLabel(t: string): string {
 
   .sub-name {
     font-weight: 500;
-    color: $text-primary;
+    color: var(--color-text-primary);
   }
 
   .sub-type {
     font-size: 11px;
-    color: $text-tertiary;
+    color: var(--color-text-placeholder);
   }
 }
 
@@ -170,7 +170,7 @@ function typeLabel(t: string): string {
 
   .sub-stock {
     font-size: 10px;
-    color: $text-tertiary;
+    color: var(--color-text-placeholder);
   }
 }
 
@@ -189,7 +189,7 @@ function typeLabel(t: string): string {
 .empty-state {
   text-align: center;
   padding: 20px;
-  color: $text-tertiary;
+  color: var(--color-text-placeholder);
   font-size: 13px;
 }
 </style>

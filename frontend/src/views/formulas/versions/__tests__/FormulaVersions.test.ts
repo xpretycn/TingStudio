@@ -5,7 +5,7 @@ import FormulaVersions from "@/views/formulas/versions/FormulaVersions.vue";
 
 const push = vi.fn();
 const mockRoute = vi.hoisted(() => ({
-  params: { id: "f1" } as Record<string, string>,
+  params: { formulaId: "f1" } as Record<string, string>,
   query: {} as Record<string, string>,
 }));
 
@@ -57,11 +57,32 @@ vi.mock("@/stores/formula", () => ({
 vi.mock("@/stores/material", () => ({
   useMaterialStore: vi.fn(() => ({
     fetchMaterials: vi.fn(() => Promise.resolve()),
+    fetchAllForSelect: vi.fn(() => Promise.resolve()),
+    allMaterials: [],
+  })),
+}));
+
+vi.mock("@/stores/auth", () => ({
+  useAuthStore: vi.fn(() => ({
+    user: { role: "admin" },
   })),
 }));
 
 vi.mock("tdesign-vue-next", () => ({
-  MessagePlugin: { success: vi.fn(), error: vi.fn() },
+  MessagePlugin: { success: vi.fn(), error: vi.fn(), warning: vi.fn() },
+  Icon: { name: "Icon", template: "<span><slot /></span>" },
+  Input: { name: "Input", template: "<input />" },
+  Button: { name: "Button", template: "<button><slot /></button>" },
+  Tag: { name: "Tag", template: "<span><slot /></span>" },
+  Popconfirm: { name: "Popconfirm", template: "<div><slot /></div>" },
+  Dialog: { name: "Dialog", template: "<div><slot /></div>" },
+  RadioGroup: { name: "RadioGroup", template: "<div><slot /></div>" },
+  RadioButton: { name: "RadioButton", template: "<div><slot /></div>" },
+  Empty: { name: "Empty", template: "<div>empty</div>" },
+  Tooltip: { name: "Tooltip", template: "<div><slot /></div>" },
+  Space: { name: "Space", template: "<div><slot /></div>" },
+  Card: { name: "Card", template: "<div><slot /></div>" },
+  Table: { name: "Table", template: "<div><slot /></div>" },
 }));
 
 vi.mock("@/components/Skeleton/PageSkeleton.vue", () => ({
@@ -111,7 +132,7 @@ describe("FormulaVersions 组件", () => {
     expect(wrapper.text()).toContain("版本控制中心");
   });
 
-  it("FV-03: 应包含状态筛选按钮组（全部/草稿/已发布/已归档）", async () => {
+  it("FV-03: 应包含状态筛选按钮组（全部/草稿/已发布等）", async () => {
     wrapper = createWrapper();
     await new Promise((resolve) => setTimeout(resolve, 100));
     const content = wrapper.text();
@@ -119,26 +140,27 @@ describe("FormulaVersions 组件", () => {
       content.includes("全部") ||
         content.includes("草稿") ||
         content.includes("已发布") ||
-        content.includes("已归档")
+        content.includes("已归档") ||
+        content.includes("待审批")
     ).toBeTruthy();
   });
 
-  it("FV-04: 应包含创建版本按钮", async () => {
+  it("FV-04: 应包含版本对比按钮", async () => {
     wrapper = createWrapper();
     await new Promise((resolve) => setTimeout(resolve, 100));
-    expect(wrapper.text()).toContain("创建版本");
+    expect(wrapper.text()).toContain("版本对比");
   });
 
-  it("FV-05: 应包含进入对比按钮", async () => {
+  it("FV-05: 应包含加入对比选项", async () => {
     wrapper = createWrapper();
     await new Promise((resolve) => setTimeout(resolve, 100));
-    expect(wrapper.text()).toContain("进入对比");
+    expect(wrapper.text()).toContain("加入对比");
   });
 
   it("FV-06: 返回按钮应导航到配方列表", async () => {
     wrapper = createWrapper();
     await new Promise((resolve) => setTimeout(resolve, 100));
-    const backBtn = wrapper.find(".header-back-btn");
+    const backBtn = wrapper.find(".back-btn");
     if (backBtn.exists()) {
       await backBtn.trigger("click");
       expect(push).toHaveBeenCalledWith("/formulas");

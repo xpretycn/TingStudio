@@ -3,7 +3,7 @@
 > 基础地址：`http://localhost:3000/api`
 > 认证方式：Bearer Token（JWT）
 > Content-Type：`application/json`
-> 最后更新：2026-06-01
+> 最后更新：2026-06-03
 
 ---
 
@@ -206,6 +206,30 @@
 | ------------- | ------ | ---- | ----------- | -------- |
 | `oldPassword` | string | 是   | -           | 当前密码 |
 | `newPassword` | string | 是   | 最少 6 字符 | 新密码   |
+
+### 1.6 获取用户偏好
+
+**GET** `/api/auth/preferences`
+
+需认证。返回当前用户的偏好设置。
+
+#### 响应字段
+
+| 字段          | 类型   | 说明               |
+| ------------- | ------ | ------------------ |
+| `preferences` | object | 偏好数据（键值对） |
+
+### 1.7 更新用户偏好
+
+**PUT** `/api/auth/preferences`
+
+需认证。更新当前用户的偏好设置。
+
+#### 请求参数
+
+| 字段          | 类型   | 必填 | 说明               |
+| ------------- | ------ | ---- | ------------------ |
+| `preferences` | object | 是   | 偏好数据（键值对） |
 
 ---
 
@@ -734,15 +758,52 @@
 
 > 除公开分享路由外，所有接口需认证。
 
-### 6.1 获取导出模板列表
+### 6.1 获取导出统计
+
+**GET** `/api/exports/statistics`
+
+需认证。返回导出中心统计数据。
+
+### 6.2 获取导出配置
+
+**GET** `/api/exports/config`
+
+需认证。返回导出中心配置。
+
+### 6.3 更新导出配置
+
+**PUT** `/api/exports/config`
+
+需认证。更新导出中心配置。
+
+#### 请求参数
+
+| 字段      | 类型  | 必填 | 说明         |
+| --------- | ----- | ---- | ------------ |
+| `configs` | array | 是   | 配置项列表   |
+
+### 6.4 获取可导出原料列表
+
+**GET** `/api/exports/materials`
+
+需认证。返回可导出的原料数据列表。
+
+### 6.5 获取可导出报告列表
+
+**GET** `/api/exports/reports`
+
+需认证。返回可导出的报告数据列表。
+
+### 6.6 获取导出模板列表
 
 **GET** `/api/exports/templates`
 
-| 参数   | 类型   | 说明                                        |
-| ------ | ------ | ------------------------------------------- |
-| `type` | string | 筛选类型：`pdf` / `excel` / `api` / `print` |
+| 参数     | 类型   | 说明                                              |
+| -------- | ------ | ------------------------------------------------- |
+| `type`   | string | 筛选类型：`pdf` / `excel` / `api` / `print`       |
+| `category` | string | 筛选分类                                          |
 
-### 6.2 创建导出模板
+### 6.7 创建导出模板
 
 **POST** `/api/exports/templates`
 
@@ -751,31 +812,30 @@
 | `name`         | string  | 是   | 模板名称       |
 | `description`  | string  | 否   | 描述           |
 | `type`         | string  | 是   | 类型           |
+| `category`     | string  | 否   | 分类           |
 | `formatConfig` | object  | 是   | 格式配置       |
 | `isDefault`    | boolean | 否   | 是否为默认模板 |
 
-### 6.3 更新导出模板
+### 6.8 更新导出模板
 
 **PUT** `/api/exports/templates/:templateId`
 
 参数同创建。
 
-### 6.4 删除导出模板
+### 6.9 删除导出模板
 
 **DELETE** `/api/exports/templates/:templateId`
 
-### 6.5 创建导出任务
+### 6.10 创建导出任务
 
 **POST** `/api/exports/jobs`
 
-| 字段         | 类型   | 必填 | 说明                              |
-| ------------ | ------ | ---- | --------------------------------- |
-| `formulaId`  | string | 是   | 配方 ID                           |
-| `versionId`  | string | 否   | 版本 ID                           |
-| `templateId` | string | 否   | 模板 ID                           |
-| `exportType` | string | 是   | 导出类型：`pdf` / `excel` / `api` |
+| 字段           | 类型   | 必填 | 说明                              |
+| -------------- | ------ | ---- | --------------------------------- |
+| `dataCategory` | string | 是   | 数据分类                          |
+| `exportType`   | string | 是   | 导出类型：`pdf` / `excel` / `api` |
 
-### 6.6 获取导出任务列表
+### 6.11 获取导出任务列表
 
 **GET** `/api/exports/jobs`
 
@@ -785,23 +845,23 @@
 | `page`     | number | 页码                                                        |
 | `pageSize` | number | 每页数量                                                    |
 
-### 6.7 获取导出任务详情
+### 6.12 获取导出任务详情
 
 **GET** `/api/exports/jobs/:jobId`
 
-### 6.8 下载导出文件
+### 6.13 下载导出文件
 
 **GET** `/api/exports/jobs/:jobId/download`
 
 需认证。下载已完成的导出文件。
 
-### 6.9 重试导出任务
+### 6.14 重试导出任务
 
 **POST** `/api/exports/jobs/:jobId/retry`
 
 需认证。重新执行失败的导出任务。
 
-### 6.10 重新导出任务
+### 6.15 重新导出任务
 
 **POST** `/api/exports/jobs/:jobId/re-export`
 
@@ -809,7 +869,7 @@
 
 > 与 `retry` 不同，`re-export` 会创建新的导出任务而非重试失败任务。
 
-### 6.11 创建分享链接
+### 6.16 创建分享链接
 
 **POST** `/api/exports/share`
 
@@ -823,29 +883,29 @@
 | `allowedEmails` | array  | 否   | 允许的邮箱列表                        |
 | `downloadLimit` | number | 否   | 下载次数限制                          |
 
-### 6.12 获取分享列表
+### 6.17 获取分享列表
 
 **GET** `/api/exports/shares`
 
 需认证。返回当前用户创建的所有分享链接。
 
-### 6.13 获取分享内容（公开）
+### 6.18 获取分享内容（公开）
 
-**GET** `/api/exports/share/:shareId`
+**GET** `/api/exports/public/share/:shareId`
 
-> ⚠️ **注意**：该端点控制器已实现但路由暂未注册，当前不可访问。无需认证。会检查过期和下载次数限制。
+> 无需认证。会检查过期和下载次数限制。
 
-### 6.14 删除分享
+### 6.19 删除分享
 
 **DELETE** `/api/exports/share/:shareId`
 
 需认证。删除指定的分享链接。
 
-### 6.15 获取 API 接口列表
+### 6.20 获取 API 接口列表
 
 **GET** `/api/exports/api-interfaces`
 
-### 6.16 创建 API 接口
+### 6.21 创建 API 接口
 
 **POST** `/api/exports/api-interfaces`
 
@@ -1048,6 +1108,175 @@
 | `nrvPercent`    | number | NRV 百分比           |
 | `zeroThreshold` | string | 0 界限值说明         |
 | `tolerance`     | string | 允许误差范围         |
+
+### 7.10 营养分析
+
+**POST** `/api/nutrition/analyze/:formulaId`
+
+需认证。对配方进行营养分析。
+
+### 7.11 获取营养覆盖率
+
+**GET** `/api/nutrition/coverage/:formulaId`
+
+需认证。返回配方的营养数据覆盖率。
+
+#### 响应字段
+
+| 字段       | 类型    | 说明               |
+| ---------- | ------- | ------------------ |
+| `coverage` | number  | 覆盖率百分比       |
+| `total`    | number  | 总原料数           |
+| `covered`  | number  | 有营养数据的原料数 |
+
+---
+
+## 七-A、营养数据源管理 `/api/nutrition`
+
+> 所有接口需认证。管理原料的多源营养数据，支持数据源 CRUD、对比、权威来源设置、批量富集和快照。
+
+### 7A.1 获取原料营养数据源列表
+
+**GET** `/api/nutrition/material/:materialId/sources`
+
+需认证。返回指定原料的所有营养数据源。
+
+#### 响应字段
+
+| 字段           | 类型   | 说明                                                      |
+| -------------- | ------ | --------------------------------------------------------- |
+| `id`           | string | 数据源 ID                                                 |
+| `materialId`   | string | 原料 ID                                                   |
+| `sourceType`   | string | 来源类型：`manual` / `tianapi` / `seed` / `ai` / `excel_import` / `other` |
+| `per100g`      | object | 每100g营养成分（解析自 JSON）                             |
+| `isAuthoritative` | number | 是否为权威来源（1/0）                                  |
+| `isArchived`   | number | 是否已归档（1/0）                                         |
+| `sourceName`   | string | 来源名称                                                  |
+| `notes`        | string | 备注                                                      |
+| `createdAt`    | string | 创建时间                                                  |
+
+### 7A.2 添加营养数据源
+
+**POST** `/api/nutrition/material/:materialId/sources`
+
+需认证。为指定原料添加新的营养数据源。
+
+#### 请求参数
+
+| 字段          | 类型   | 必填 | 说明                                                      |
+| ------------- | ------ | ---- | --------------------------------------------------------- |
+| `sourceType`  | string | 是   | 来源类型：`manual` / `tianapi` / `seed` / `ai` / `excel_import` / `other` |
+| `per100g`     | object | 是   | 每100g营养成分                                            |
+
+### 7A.3 获取数据源对比
+
+**GET** `/api/nutrition/material/:materialId/sources/compare`
+
+需认证。返回指定原料所有数据源的对比数据。
+
+### 7A.4 更新数据源
+
+**PUT** `/api/nutrition/material/:materialId/sources/:sourceId`
+
+需认证。更新指定数据源的营养数据。
+
+### 7A.5 删除数据源
+
+**DELETE** `/api/nutrition/material/:materialId/sources/:sourceId`
+
+需认证。删除指定数据源。
+
+### 7A.6 设置权威来源
+
+**PUT** `/api/nutrition/material/:materialId/authoritative`
+
+需认证。按字段设置权威数据源。
+
+#### 请求参数
+
+| 字段             | 类型   | 必填 | 说明                     |
+| ---------------- | ------ | ---- | ------------------------ |
+| `fieldSelections` | object | 是  | 字段→数据源ID映射        |
+
+### 7A.7 富集营养数据
+
+**POST** `/api/nutrition/material/:materialId/enrich-nutrition`
+
+需认证。从权威来源富集原料的营养数据。
+
+### 7A.8 批量富集营养数据
+
+**POST** `/api/nutrition/bulk-enrich-nutrition`
+
+需认证。批量从权威来源富集多个原料的营养数据。
+
+### 7A.9 获取带评分的数据源列表
+
+**GET** `/api/nutrition/material/:materialId/sources/scored`
+
+需认证。返回带评分的数据源列表，用于推荐。
+
+### 7A.10 获取推荐数据源
+
+**GET** `/api/nutrition/material/:materialId/sources/recommendation`
+
+需认证。返回系统推荐的最优数据源。
+
+### 7A.11 批量设置权威来源
+
+**POST** `/api/nutrition/material/:materialId/sources/batch-set-authoritative`
+
+需认证。批量设置权威数据源。
+
+#### 请求参数
+
+| 字段             | 类型   | 必填 | 说明                       |
+| ---------------- | ------ | ---- | -------------------------- |
+| `strategy`       | string | 否   | 策略：`highest_score` 等   |
+| `sourceIds`      | array  | 否   | 指定数据源 ID 列表         |
+| `fieldSelections` | object | 否  | 字段→数据源ID映射          |
+
+### 7A.12 批量归档数据源
+
+**POST** `/api/nutrition/material/:materialId/sources/batch-archive`
+
+需认证。批量归档数据源。
+
+#### 请求参数
+
+| 字段       | 类型     | 必填 | 说明             |
+| ---------- | -------- | ---- | ---------------- |
+| `sourceIds` | string[] | 是  | 数据源 ID 列表   |
+
+### 7A.13 批量恢复数据源
+
+**POST** `/api/nutrition/material/:materialId/sources/batch-restore`
+
+需认证。批量恢复已归档的数据源。
+
+#### 请求参数
+
+| 字段       | 类型     | 必填 | 说明             |
+| ---------- | -------- | ---- | ---------------- |
+| `sourceIds` | string[] | 是  | 数据源 ID 列表   |
+
+### 7A.14 导出数据源
+
+**GET** `/api/nutrition/material/:materialId/sources/export`
+
+需认证。导出指定原料的所有数据源数据。
+
+### 7A.15 获取原料营养快照列表
+
+**GET** `/api/nutrition/material/:materialId/snapshots`
+
+需认证。返回指定原料的营养数据快照列表。
+
+### 7A.16 获取快照详情
+
+**GET** `/api/nutrition/snapshots/:snapshotId`
+
+需认证。返回指定快照的详细数据。
 
 ---
 
@@ -1711,6 +1940,20 @@
 
 > 同一配方在同一周期类型+起始日期下不可重复创建（409 冲突错误）。
 
+### 12.4.1 批量创建销量记录
+
+**POST** `/api/sales/batch`
+
+需认证。批量创建销量记录。
+
+#### 请求参数
+
+| 字段    | 类型  | 必填 | 说明         |
+| ------- | ----- | ---- | ------------ |
+| `items` | array | 是   | 销量记录列表 |
+
+`items` 数组元素结构同 12.4 创建销量记录的请求参数。
+
 ### 12.5 更新销量记录
 
 **PUT** `/api/sales/:id`
@@ -2283,6 +2526,31 @@
 **GET** `/api/reports/:id/export/excel`
 
 需认证。导出报告为 Excel 文件。
+
+### 15.17.1 批量导出报告 Excel
+
+**POST** `/api/reports/batch-export/excel`
+
+需认证。批量导出多个报告为 Excel 文件。
+
+#### 请求参数
+
+| 字段        | 类型     | 必填 | 说明             |
+| ----------- | -------- | ---- | ---------------- |
+| `reportIds` | string[] | 是   | 报告 ID 列表     |
+
+### 15.17.2 检查周期是否已存在报告
+
+**POST** `/api/reports/check-period`
+
+需认证。检查指定周期是否已存在报告。
+
+#### 请求参数
+
+| 字段          | 类型   | 必填 | 说明         |
+| ------------- | ------ | ---- | ------------ |
+| `type`        | string | 是   | 报告类型     |
+| `periodStart` | string | 是   | 统计起始日期 |
 
 ---
 
@@ -3761,3 +4029,27 @@
 **GET** `/api/db/scripts/:scriptId/history`
 
 需认证。返回指定脚本的执行历史记录。
+
+### 27.14 获取脚本内容
+
+**GET** `/api/db/scripts/:scriptId/content`
+
+需认证。返回指定脚本的源代码内容。
+
+### 27.15 更新脚本内容
+
+**PUT** `/api/db/scripts/:scriptId/content`
+
+需认证。更新指定脚本的源代码内容。
+
+### 27.16 获取脚本版本列表
+
+**GET** `/api/db/scripts/:scriptId/versions`
+
+需认证。返回指定脚本的版本历史列表。
+
+### 27.17 恢复脚本版本
+
+**POST** `/api/db/scripts/:scriptId/versions/restore`
+
+需认证。恢复脚本到指定版本。

@@ -81,8 +81,8 @@ function autoResize() {
 <style scoped lang="scss">
 .chat-input {
   padding: 12px 16px;
-  border-top: 1px solid $border-color-light;
-  background: $bg-container;
+  border-top: 1px solid var(--color-border-light);
+  background: var(--color-bg-container);
   flex-shrink: 0;
 }
 
@@ -92,17 +92,17 @@ function autoResize() {
   gap: 4px;
   padding: var(--space-1) var(--space-2-5);
   margin-bottom: 8px;
-  border: 1px dashed $border-color;
+  border: 1px dashed var(--color-border);
   border-radius: 6px;
   background: transparent;
-  color: $text-tertiary;
+  color: var(--color-text-placeholder);
   font-size: 11px;
   cursor: pointer;
   transition: all 0.15s;
 
   &:hover {
-    border-color: $brand-primary;
-    color: $brand-primary;
+    border-color: var(--color-primary);
+    color: var(--color-primary);
     background: rgba(255, 107, 138, 0.05);
   }
 }
@@ -119,10 +119,10 @@ function autoResize() {
   align-items: center;
   gap: 4px;
   padding: 4px var(--space-2-5);
-  border: 1px solid $border-color;
+  border: 1px solid var(--color-border);
   border-radius: 6px;
-  background: $bg-page;
-  color: $text-secondary;
+  background: var(--color-bg-page);
+  color: var(--color-text-secondary);
   font-size: 11px;
   cursor: pointer;
   transition: all 0.15s;
@@ -153,14 +153,14 @@ function autoResize() {
   display: flex;
   align-items: flex-end;
   gap: 8px;
-  background: $bg-page;
-  border: 1px solid $border-color;
+  background: var(--color-bg-page);
+  border: 1px solid var(--color-border);
   border-radius: 12px;
   padding: 8px 8px 8px var(--space-3-5);
   transition: border-color 0.2s;
 
   &:focus-within {
-    border-color: $brand-primary;
+    border-color: var(--color-primary);
     box-shadow: 0 0 0 2px rgba(255, 107, 138, 0.1);
   }
 
@@ -172,12 +172,12 @@ function autoResize() {
     background: transparent;
     font-size: $font-size-body-sm;
     line-height: $line-height-normal;
-    color: $text-primary;
+    color: var(--color-text-primary);
     font-family: $font-family;
     max-height: 120px;
 
     &::placeholder {
-      color: $text-placeholder;
+      color: var(--color-text-placeholder);
     }
 
     &:disabled {
@@ -191,7 +191,7 @@ function autoResize() {
   height: 32px;
   border-radius: 8px;
   border: none;
-  background: $gradient-btn;
+  background: var(--gradient-btn);
   color: $text-white;
   cursor: pointer;
   display: flex;
@@ -201,7 +201,7 @@ function autoResize() {
   transition: all 0.2s;
 
   &:hover:not(:disabled) {
-    background: $gradient-btn-hover;
+    background: var(--gradient-btn-hover);
     transform: scale(1.05);
   }
 
@@ -215,7 +215,7 @@ function autoResize() {
   margin-top: 4px;
   text-align: right;
   font-size: $font-size-micro;
-  color: $text-placeholder;
+  color: var(--color-text-placeholder);
 }
 
 .cmd-slide-enter-active,

@@ -171,12 +171,12 @@ function handleApply(sourceId: string) {
   margin: 0;
   font-size: $font-size-h3;
   font-weight: $font-weight-semibold;
-  color: $text-primary;
+  color: var(--color-text-primary);
 }
 
 .overview-summary {
   font-size: $font-size-caption;
-  color: $text-tertiary;
+  color: var(--color-text-placeholder);
 }
 
 .heatmap {
@@ -190,11 +190,11 @@ function handleApply(sourceId: string) {
   flex-direction: column;
   gap: $space-2;
   padding: $space-3;
-  background: $bg-container-alt;
+  background: var(--color-bg-container-alt);
   border-radius: $radius-md;
   cursor: pointer;
   transition: all $transition-fast;
-  border: 1px solid $border-color-light;
+  border: 1px solid var(--color-border-light);
 
   &:hover {
     background: var(--color-primary-bg);
@@ -205,12 +205,12 @@ function handleApply(sourceId: string) {
 .cell-label {
   font-size: $font-size-body-sm;
   font-weight: $font-weight-semibold;
-  color: $text-primary;
+  color: var(--color-text-primary);
 }
 
 .cell-bar {
   height: 6px;
-  background: $bg-cool-gray-deep;
+  background: var(--color-bg-hover);
   border-radius: $radius-pill;
   overflow: hidden;
 }
@@ -252,8 +252,8 @@ function handleApply(sourceId: string) {
   align-items: center;
   gap: $space-3;
   padding: $space-3 $space-4;
-  background: $bg-container;
-  border: 1px solid $border-color-light;
+  background: var(--color-bg-container);
+  border: 1px solid var(--color-border-light);
   border-radius: $radius-md;
 }
 
@@ -278,13 +278,13 @@ function handleApply(sourceId: string) {
 
 .metric-label {
   font-size: $font-size-caption;
-  color: $text-tertiary;
+  color: var(--color-text-placeholder);
 }
 
 .metric-value {
   font-size: $font-size-h3;
   font-weight: $font-weight-semibold;
-  color: $text-primary;
+  color: var(--color-text-primary);
 }
 
 @media (max-width: 1199px) {

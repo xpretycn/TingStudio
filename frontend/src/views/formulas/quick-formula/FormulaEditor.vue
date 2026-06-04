@@ -275,15 +275,15 @@ function handlePublish() {
   }
 
   &::-webkit-scrollbar-thumb {
-    background: $border-color;
+    background: var(--color-border);
     border-radius: 2px;
   }
 }
 
 .editor-section {
-  background: $bg-container;
+  background: var(--color-bg-container);
   border-radius: $radius-3xl;
-  border: 1px solid $border-color-light;
+  border: 1px solid var(--color-border-light);
   padding: $space-5;
   box-shadow: $shadow-elevation-1;
 }
@@ -302,7 +302,7 @@ function handlePublish() {
   .section-title {
     font-size: $font-size-h4;
     font-weight: $font-weight-semibold;
-    color: $text-primary;
+    color: var(--color-text-primary);
   }
 
   .section-count {
@@ -350,7 +350,7 @@ function handlePublish() {
     min-width: 80px;
     font-size: $font-size-body-sm;
     font-weight: $font-weight-medium;
-    color: $text-secondary;
+    color: var(--color-text-regular);
     flex-shrink: 0;
   }
 
@@ -373,8 +373,8 @@ function handlePublish() {
   padding: $space-1 $space-3;
   font-size: $font-size-caption;
   font-weight: $font-weight-semibold;
-  color: $text-tertiary;
-  border-bottom: 1px solid $border-color-light;
+  color: var(--color-text-placeholder);
+  border-bottom: 1px solid var(--color-border-light);
   letter-spacing: $ls-caption;
 
   .col-index {
@@ -426,9 +426,9 @@ function handlePublish() {
   gap: $space-1-5;
   font-size: $font-size-caption;
   font-weight: $font-weight-semibold;
-  color: $text-tertiary;
+  color: var(--color-text-placeholder);
   padding-bottom: $space-1;
-  border-bottom: 1px solid $border-color-light;
+  border-bottom: 1px solid var(--color-border-light);
 }
 
 .group-dot {
@@ -450,12 +450,12 @@ function handlePublish() {
   align-items: center;
   gap: $space-1;
   padding: $space-1-5 $space-3;
-  background: $bg-page;
+  background: var(--color-bg-page);
   border-radius: $radius-lg;
   transition: background $transition-fast;
 
   &:hover {
-    background: $bg-hover;
+    background: var(--color-bg-hover);
   }
 
   &--price-adjusted {
@@ -472,7 +472,7 @@ function handlePublish() {
     width: 20px;
     font-size: $font-size-caption;
     font-weight: $font-weight-semibold;
-    color: $text-tertiary;
+    color: var(--color-text-placeholder);
     text-align: center;
     flex-shrink: 0;
   }
@@ -482,7 +482,7 @@ function handlePublish() {
     min-width: 0;
     font-size: $font-size-body-sm;
     font-weight: $font-weight-medium;
-    color: $text-primary;
+    color: var(--color-text-primary);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -522,7 +522,7 @@ function handlePublish() {
     text-align: center;
     font-size: $font-size-caption;
     font-weight: $font-weight-medium;
-    color: $text-secondary;
+    color: var(--color-text-regular);
     font-variant-numeric: tabular-nums;
     flex-shrink: 0;
 
@@ -536,12 +536,12 @@ function handlePublish() {
     text-align: center;
     font-size: $font-size-caption;
     font-weight: $font-weight-semibold;
-    color: $text-primary;
+    color: var(--color-text-primary);
     font-variant-numeric: tabular-nums;
     flex-shrink: 0;
 
     &--missing {
-      color: $text-placeholder;
+      color: var(--color-text-placeholder);
     }
   }
 
@@ -584,17 +584,17 @@ function handlePublish() {
   width: 20px;
   height: 20px;
   border-radius: $radius-sm;
-  border: 1px solid $border-color;
-  background: $bg-container;
-  color: $text-secondary;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-container);
+  color: var(--color-text-regular);
   cursor: pointer;
   transition: all 0.2s;
   flex-shrink: 0;
   padding: 0;
 
   &:hover {
-    background: $bg-hover;
-    border-color: $border-color;
+    background: var(--color-bg-hover);
+    border-color: var(--color-border);
     color: var(--color-primary-dark);
     transform: scale(1.1);
   }
@@ -615,9 +615,9 @@ function handlePublish() {
   width: 20px;
   height: 20px;
   border-radius: $radius-sm;
-  border: 1px solid $border-color;
+  border: 1px solid var(--color-border);
   background: transparent;
-  color: $text-placeholder;
+  color: var(--color-text-placeholder);
   cursor: pointer;
   transition: all 0.2s;
   flex-shrink: 0;
@@ -644,12 +644,12 @@ function handlePublish() {
 
   .empty-icon {
     font-size: 32px;
-    color: $text-placeholder;
+    color: var(--color-text-placeholder);
   }
 
   .empty-text {
     font-size: $font-size-body-sm;
-    color: $text-tertiary;
+    color: var(--color-text-placeholder);
   }
 }
 
@@ -658,7 +658,7 @@ function handlePublish() {
   flex-direction: column;
   gap: $space-2;
   padding-top: $space-4;
-  border-top: 1px solid $border-color-light;
+  border-top: 1px solid var(--color-border-light);
 }
 
 .error-list {
@@ -693,8 +693,8 @@ function handlePublish() {
   }
 
   &:disabled {
-    background-color: $text-placeholder !important;
-    border-color: $text-placeholder !important;
+    background-color: var(--color-text-placeholder) !important;
+    border-color: var(--color-text-placeholder) !important;
     cursor: not-allowed;
   }
 }
@@ -711,7 +711,7 @@ function handlePublish() {
   }
 
   100% {
-    background: $bg-container;
+    background: var(--color-bg-container);
     box-shadow: none;
   }
 }

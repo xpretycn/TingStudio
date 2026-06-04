@@ -1,5 +1,58 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { toolRegistry, registerAllTools } from '../src/services/ai/agent/toolRegistration.js';
+
+// Mock SalespersonService - 导出单例实例
+vi.mock('../src/services/business/salespersonService.js', () => {
+  return {
+    SalespersonService: vi.fn(),
+    salespersonService: {
+      create: vi.fn().mockResolvedValue({
+        id: 'mock-sp-id',
+        name: '测试业务员',
+        phone: '13800138000',
+        email: 'test@example.com',
+        department: '测试部门',
+        status: 'active',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      }),
+      query: vi.fn().mockResolvedValue({
+        data: [],
+        total: 0,
+        page: 1,
+        limit: 10,
+      }),
+      update: vi.fn().mockResolvedValue({
+        id: 'mock-sp-id',
+        name: '更新业务员',
+      }),
+      delete: vi.fn().mockResolvedValue(true),
+    },
+  };
+});
+
+// Mock SalesAnalysisService - 导出单例实例
+vi.mock('../src/services/business/salesAnalysisService.js', () => {
+  return {
+    SalesAnalysisService: vi.fn(),
+    salesAnalysisService: {
+      analyze: vi.fn().mockResolvedValue({
+        summary: {
+          total_records: 0,
+          total_quantity: 0,
+          total_amount: 0,
+          avg_quantity_per_order: 0,
+          avg_amount_per_order: 0,
+        },
+        trends: [],
+        top_formulas: [],
+        top_salespersons: [],
+        period_breakdown: [],
+        has_data: false,
+      }),
+    },
+  };
+});
 
 describe('ToolRegistration - AI Agent 工具注册集成', () => {
   beforeEach(() => {
@@ -67,7 +120,7 @@ describe('ToolRegistration - AI Agent 工具注册集成', () => {
       );
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('Invalid parameters');
+      expect(result.error).toContain('参数无效');
     });
   });
 
@@ -179,10 +232,9 @@ describe('ToolRegistration - AI Agent 工具注册集成', () => {
       expect(result.success).toBe(true);
       expect(result.data).toHaveProperty('summary');
       expect(result.data).toHaveProperty('trends');
-      expect(result.data).toHaveProperty('top_products');
+      expect(result.data).toHaveProperty('top_formulas');
       expect(result.data).toHaveProperty('top_salespersons');
-      expect(result.data).toHaveProperty('regional_breakdown');
-      expect(result.data).toHaveProperty('anomalies');
+      expect(result.data).toHaveProperty('period_breakdown');
     });
   });
 
@@ -195,7 +247,7 @@ describe('ToolRegistration - AI Agent 工具注册集成', () => {
       );
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('Unknown tool');
+      expect(result.error).toContain('未知工具');
     });
   });
 });

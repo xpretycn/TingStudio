@@ -302,7 +302,7 @@ onUnmounted(() => {
         align-items: center;
         gap: 2px;
         padding: 1px 6px;
-        background: rgba(255, 255, 255, 0.8);
+        background: var(--color-bg-container);
         border-radius: 4px;
         color: var(--color-text-secondary);
         font-size: 11px;
@@ -332,7 +332,7 @@ onUnmounted(() => {
         padding: var(--space-1-5) var(--space-3-5);
         border: 1px solid var(--color-border);
         border-radius: 6px;
-        background: white;
+        background: var(--color-bg-container);
         cursor: pointer;
         font-size: 13px;
         color: var(--color-text-secondary);
@@ -416,7 +416,7 @@ onUnmounted(() => {
       .error-hint {
         margin-top: 8px;
         padding: 8px 10px;
-        background: white;
+        background: var(--color-bg-container);
         border-radius: 4px;
         font-size: 12px;
         color: var(--color-text-secondary);

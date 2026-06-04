@@ -101,15 +101,15 @@ function getStatusTheme(
     font-size: $font-size-body-sm;
 
     th {
-      background: $bg-container-alt;
+      background: var(--color-bg-container-alt);
       font-weight: $font-weight-semibold;
-      color: $text-primary;
+      color: var(--color-text-primary);
       padding: $space-2;
     }
 
     td {
       padding: $space-2;
-      color: $text-regular;
+      color: var(--color-text-regular);
     }
   }
 }
@@ -122,7 +122,7 @@ function getStatusTheme(
   gap: $space-2;
   padding: $space-8 0;
   font-size: $font-size-body-sm;
-  color: $text-secondary;
+  color: var(--color-text-secondary);
 }
 
 .amount-cell {

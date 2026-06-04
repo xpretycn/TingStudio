@@ -811,9 +811,9 @@ onMounted(async () => {
 
   .timeline-section,
   .detail-section {
-    background: $bg-container;
+    background: var(--color-bg-container);
     border-radius: $radius-2xl;
-    border: 1px solid $border-color;
+    border: 1px solid var(--color-border);
     box-shadow: $shadow-elevation-1;
   }
 
@@ -843,7 +843,7 @@ onMounted(async () => {
       }
 
       &::-webkit-scrollbar-thumb {
-        background: $border-color;
+        background: var(--color-border);
         border-radius: 4px;
       }
     }
@@ -860,7 +860,7 @@ onMounted(async () => {
     align-items: center;
     justify-content: space-between;
     padding: 20px 24px 16px;
-    border-bottom: 1px solid $border-color-light;
+    border-bottom: 1px solid var(--color-border-light);
 
     .section-head-left {
       display: flex;
@@ -872,7 +872,7 @@ onMounted(async () => {
       margin: 0;
       font-size: $font-size-h4;
       font-weight: $font-weight-semibold;
-      color: $text-primary;
+      color: var(--color-text-primary);
       line-height: 1.3;
     }
 
@@ -900,12 +900,12 @@ onMounted(async () => {
       border: none;
       border-radius: $radius-md;
       background: transparent;
-      color: $text-tertiary;
+      color: var(--color-text-tertiary);
       cursor: pointer;
       transition: all $transition-fast;
 
       &:hover {
-        color: $text-regular;
+        color: var(--color-text-regular);
         background: var(--overlay-brand-08);
       }
     }
@@ -921,10 +921,10 @@ onMounted(async () => {
       align-items: center;
       gap: 4px;
       padding: 4px 12px;
-      border: 1px solid $border-color;
+      border: 1px solid var(--color-border);
       border-radius: $radius-pill;
       background: transparent;
-      color: $text-tertiary;
+      color: var(--color-text-tertiary);
       font-size: $font-size-caption;
       font-weight: $font-weight-medium;
       cursor: pointer;
@@ -996,7 +996,7 @@ onMounted(async () => {
     .filter-tabs {
       display: flex;
       gap: 2px;
-      background: $bg-container;
+      background: var(--color-bg-container);
       border-radius: $radius-md;
       padding: 2px;
     }
@@ -1006,7 +1006,7 @@ onMounted(async () => {
       border: none;
       border-radius: $radius-md;
       background: transparent;
-      color: $text-tertiary;
+      color: var(--color-text-tertiary);
       font-size: $font-size-caption;
       font-weight: $font-weight-semibold;
       cursor: pointer;
@@ -1014,11 +1014,11 @@ onMounted(async () => {
       white-space: nowrap;
 
       &:hover {
-        color: $text-secondary;
+        color: var(--color-text-secondary);
       }
 
       &.active {
-        background: $bg-container;
+        background: var(--color-bg-container);
         color: var(--color-primary);
         box-shadow: $shadow-xs;
       }
@@ -1036,10 +1036,10 @@ onMounted(async () => {
     margin-left: -32px;
     margin-right: -32px;
     padding: 8px 32px;
-    background: $overlay-white-80;
+    background: var(--color-bg-container);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
-    border-bottom: 1px solid $border-color-light;
+    border-bottom: 1px solid var(--color-border-light);
     animation: fadeInDown 0.3s ease both;
 
     .header-left {
@@ -1056,7 +1056,7 @@ onMounted(async () => {
         border: none;
         border-radius: $radius-lg;
         background: transparent;
-        color: $text-tertiary;
+        color: var(--color-text-tertiary);
         cursor: pointer;
         transition: all $transition-fast;
         font-size: 20px;
@@ -1078,10 +1078,10 @@ onMounted(async () => {
           gap: var(--space-1-5);
           font-size: 12px;
           line-height: 1;
-          color: $text-tertiary;
+          color: var(--color-text-tertiary);
 
           .breadcrumb-link {
-            color: $text-tertiary;
+            color: var(--color-text-tertiary);
             cursor: pointer;
             transition: color 0.15s;
             text-decoration: none;
@@ -1092,11 +1092,11 @@ onMounted(async () => {
           }
 
           .breadcrumb-sep {
-            color: $text-placeholder;
+            color: var(--color-text-placeholder);
           }
 
           .breadcrumb-current {
-            color: $text-secondary;
+            color: var(--color-text-secondary);
           }
         }
 
@@ -1104,7 +1104,7 @@ onMounted(async () => {
           margin: 0;
           font-size: $font-size-h2;
           font-weight: $font-weight-bold;
-          color: $text-primary;
+          color: var(--color-text-primary);
           line-height: 1.35;
           display: flex;
           align-items: center;
@@ -1147,7 +1147,7 @@ onMounted(async () => {
         border: none;
         border-radius: 8px;
         background: transparent;
-        color: $text-tertiary;
+        color: var(--color-text-tertiary);
         font-size: $font-size-caption;
         font-weight: $font-weight-medium;
         cursor: pointer;
@@ -1155,14 +1155,14 @@ onMounted(async () => {
         white-space: nowrap;
 
         &.active {
-          background: $bg-container;
+          background: var(--color-bg-container);
           color: var(--color-primary);
           font-weight: $font-weight-semibold;
           box-shadow: $shadow-xs;
         }
 
         &:hover:not(.active) {
-          color: $text-regular;
+          color: var(--color-text-regular);
         }
       }
     }
@@ -1236,8 +1236,8 @@ onMounted(async () => {
 
     &.action-secondary {
       background: transparent;
-      color: $text-secondary;
-      border: 1px solid $border-color;
+      color: var(--color-text-secondary);
+      border: 1px solid var(--color-border);
 
       &:hover {
         border-color: var(--color-primary-light);
@@ -1256,20 +1256,20 @@ onMounted(async () => {
     padding: var(--space-16) 24px;
 
     .empty-icon {
-      color: $text-placeholder;
+      color: var(--color-text-placeholder);
       margin-bottom: 12px;
     }
 
     .empty-text {
       margin: 0 0 16px;
       font-size: $font-size-body;
-      color: $text-tertiary;
+      color: var(--color-text-tertiary);
     }
 
     .empty-hint {
       margin: -8px 0 16px;
       font-size: $font-size-caption;
-      color: $text-placeholder;
+      color: var(--color-text-placeholder);
     }
   }
 
@@ -1308,7 +1308,7 @@ onMounted(async () => {
       width: 12px;
       height: 12px;
       border-radius: $radius-circle;
-      background: $border-color;
+      background: var(--color-border);
       margin-top: var(--space-3-5);
       flex-shrink: 0;
       z-index: 1;
@@ -1333,14 +1333,14 @@ onMounted(async () => {
       width: 2px;
       flex: 1;
       min-height: 20px;
-      background: linear-gradient(to bottom, $border-color, transparent);
+      background: linear-gradient(to bottom, var(--color-border), transparent);
     }
   }
 
   .tl-card {
     flex: 1;
-    background: $bg-container;
-    border: 1px solid $border-color-light;
+    background: var(--color-bg-container);
+    border: 1px solid var(--color-border-light);
     border-radius: $radius-xl;
     padding: var(--space-3-5) 16px;
     margin-bottom: var(--space-3-5);
@@ -1411,14 +1411,14 @@ onMounted(async () => {
     }
 
     &.chip-archived {
-      background: $bg-cool-gray;
-      color: $text-tertiary;
+      background: var(--color-bg-cool-gray);
+      color: var(--color-text-tertiary);
     }
   }
 
   .tl-date {
     font-size: $font-size-caption;
-    color: $text-tertiary;
+    color: var(--color-text-tertiary);
     white-space: nowrap;
     flex-shrink: 0;
     margin-top: var(--space-1);
@@ -1427,7 +1427,7 @@ onMounted(async () => {
   .tl-reason {
     margin: var(--space-1-5) 0 0;
     font-size: $font-size-body-sm;
-    color: $text-regular;
+    color: var(--color-text-regular);
     line-height: 1.5;
     display: -webkit-box;
     -webkit-line-clamp: 2;
@@ -1475,15 +1475,15 @@ onMounted(async () => {
     padding: var(--space-0-5) 8px;
     font-size: 10px;
     font-weight: $font-weight-medium;
-    color: $text-tertiary;
-    background: $bg-cool-gray;
+    color: var(--color-text-tertiary);
+    background: var(--color-bg-cool-gray);
     border-radius: $radius-pill;
   }
 
   .tl-card-footer {
     margin-top: var(--space-2-5);
     padding-top: 8px;
-    border-top: 1px solid $border-color-light;
+    border-top: 1px solid var(--color-border-light);
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -1506,7 +1506,7 @@ onMounted(async () => {
       appearance: none;
       width: 16px;
       height: 16px;
-      border: 1.5px solid $border-color;
+      border: 1.5px solid var(--color-border);
       border-radius: 4px;
       cursor: pointer;
       position: relative;
@@ -1537,12 +1537,12 @@ onMounted(async () => {
 
     .tl-checkbox-text {
       font-size: $font-size-caption;
-      color: $text-tertiary;
+      color: var(--color-text-tertiary);
       transition: color $transition-fast;
     }
 
     &:hover .tl-checkbox-text {
-      color: $text-secondary;
+      color: var(--color-text-secondary);
     }
   }
 
@@ -1551,10 +1551,10 @@ onMounted(async () => {
     align-items: center;
     gap: 4px;
     padding: 3px 10px;
-    border: 1px solid $border-color;
+    border: 1px solid var(--color-border);
     border-radius: $radius-pill;
     background: transparent;
-    color: $text-secondary;
+    color: var(--color-text-secondary);
     font-size: 11px;
     font-weight: $font-weight-medium;
     cursor: pointer;
@@ -1615,8 +1615,8 @@ onMounted(async () => {
     border-radius: $radius-pill;
     font-size: 11px;
     font-weight: $font-weight-medium;
-    color: $text-tertiary;
-    background: $bg-cool-gray;
+    color: var(--color-text-tertiary);
+    background: var(--color-bg-cool-gray);
   }
 
   .tl-status-published {
@@ -1634,14 +1634,14 @@ onMounted(async () => {
     text-align: center;
 
     .detail-empty-visual {
-      color: $text-placeholder;
+      color: var(--color-text-placeholder);
       margin-bottom: 16px;
     }
 
     .detail-empty-text {
       margin: 0;
       font-size: $font-size-body;
-      color: $text-tertiary;
+      color: var(--color-text-tertiary);
       line-height: 1.7;
     }
   }
@@ -1654,7 +1654,7 @@ onMounted(async () => {
   .detail-identity {
     margin-bottom: 24px;
     padding-bottom: 20px;
-    border-bottom: 1px solid $border-color-light;
+    border-bottom: 1px solid var(--color-border-light);
 
     .identity-main {
       display: flex;
@@ -1666,14 +1666,14 @@ onMounted(async () => {
     .identity-version {
       font-size: 28px;
       font-weight: $font-weight-bold;
-      color: $text-primary;
+      color: var(--color-text-primary);
       font-family: ui-monospace, SFMono-Regular, 'Cascadia Code', monospace;
       line-height: 1.2;
     }
 
     .identity-name {
       font-size: $font-size-h4;
-      color: $text-secondary;
+      color: var(--color-text-secondary);
       font-weight: $font-weight-medium;
     }
 
@@ -1708,8 +1708,8 @@ onMounted(async () => {
       }
 
       &.st-archived {
-        background: $bg-cool-gray;
-        color: $text-tertiary;
+        background: var(--color-bg-cool-gray);
+        color: var(--color-text-tertiary);
       }
     }
 
@@ -1726,7 +1726,7 @@ onMounted(async () => {
 
     .identity-time {
       font-size: $font-size-caption;
-      color: $text-tertiary;
+      color: var(--color-text-tertiary);
       margin-left: auto;
     }
   }
@@ -1739,7 +1739,7 @@ onMounted(async () => {
       margin: 0 0 12px;
       font-size: $font-size-caption;
       font-weight: $font-weight-semibold;
-      color: $text-secondary;
+      color: var(--color-text-secondary);
       text-transform: uppercase;
       letter-spacing: 0.05em;
     }
@@ -1756,7 +1756,7 @@ onMounted(async () => {
 
       .material-total {
         font-size: $font-size-caption;
-        color: $text-tertiary;
+        color: var(--color-text-tertiary);
         font-weight: $font-weight-medium;
       }
     }
@@ -1812,7 +1812,7 @@ onMounted(async () => {
     }
 
     .change-field {
-      color: $text-regular;
+      color: var(--color-text-regular);
       font-weight: $font-weight-medium;
       min-width: 60px;
     }
@@ -1821,7 +1821,7 @@ onMounted(async () => {
       display: flex;
       align-items: center;
       gap: 4px;
-      color: $text-secondary;
+      color: var(--color-text-secondary);
     }
 
     .change-old {
@@ -1831,12 +1831,12 @@ onMounted(async () => {
     }
 
     .change-new {
-      color: $text-primary;
+      color: var(--color-text-primary);
       font-weight: $font-weight-medium;
     }
 
     .change-arrow {
-      color: $text-placeholder;
+      color: var(--color-text-placeholder);
     }
   }
 
@@ -1869,7 +1869,7 @@ onMounted(async () => {
       .sn-field-label {
         font-size: $font-size-micro;
         font-weight: $font-weight-semibold;
-        color: $text-tertiary;
+        color: var(--color-text-tertiary);
         text-transform: uppercase;
         letter-spacing: 0.04em;
       }
@@ -1877,7 +1877,7 @@ onMounted(async () => {
       .sn-field-value {
         font-size: $font-size-h4;
         font-weight: $font-weight-semibold;
-        color: $text-primary;
+        color: var(--color-text-primary);
       }
     }
   }
@@ -1897,10 +1897,10 @@ onMounted(async () => {
       padding: 8px 12px;
       font-size: 10px;
       font-weight: $font-weight-semibold;
-      color: $text-tertiary;
+      color: var(--color-text-tertiary);
       text-transform: none;
       letter-spacing: 0.03em;
-      border-bottom: 1px solid $border-color-light;
+      border-bottom: 1px solid var(--color-border-light);
       text-align: center;
       align-items: center;
 
@@ -1942,12 +1942,12 @@ onMounted(async () => {
       justify-content: center;
       width: 20px;
       height: 20px;
-      background: $bg-container;
-      border: 1px solid $border-color-light;
+      background: var(--color-bg-container);
+      border: 1px solid var(--color-border-light);
       border-radius: $radius-xs;
       font-size: 10px;
       font-weight: $font-weight-bold;
-      color: $text-tertiary;
+      color: var(--color-text-tertiary);
       flex-shrink: 0;
     }
 
@@ -1962,7 +1962,7 @@ onMounted(async () => {
     .material-name-text {
       font-size: $font-size-body-sm;
       font-weight: $font-weight-medium;
-      color: $text-primary;
+      color: var(--color-text-primary);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -2001,28 +2001,28 @@ onMounted(async () => {
 
     .material-pct {
       font-size: $font-size-caption;
-      color: $text-secondary;
+      color: var(--color-text-secondary);
       font-family: ui-monospace, SFMono-Regular, 'Cascadia Code', monospace;
       text-align: center;
     }
 
     .material-nutrient {
       font-size: $font-size-caption;
-      color: $text-regular;
+      color: var(--color-text-regular);
       font-family: ui-monospace, SFMono-Regular, 'Cascadia Code', monospace;
       text-align: center;
     }
 
     .material-version {
       font-size: $font-size-caption;
-      color: $text-tertiary;
+      color: var(--color-text-tertiary);
       font-family: ui-monospace, SFMono-Regular, 'Cascadia Code', monospace;
       text-align: center;
     }
 
     .material-empty {
       text-align: center;
-      color: $text-tertiary;
+      color: var(--color-text-tertiary);
       font-size: $font-size-body-sm;
       padding: 24px 0;
       margin: 0;
@@ -2034,7 +2034,7 @@ onMounted(async () => {
       display: flex;
       flex-direction: column;
       gap: 0;
-      border: 1px solid $border-color-light;
+      border: 1px solid var(--color-border-light);
       border-radius: $radius-md;
       overflow: hidden;
     }
@@ -2061,11 +2061,11 @@ onMounted(async () => {
     }
 
     .nsz-row--header {
-      background: $bg-cool-gray;
+      background: var(--color-bg-cool-gray);
 
       .nsz-col {
         font-weight: $font-weight-semibold;
-        color: $text-tertiary;
+        color: var(--color-text-tertiary);
         font-size: 10px;
         letter-spacing: 0.03em;
         padding: 6px 10px;
@@ -2073,11 +2073,11 @@ onMounted(async () => {
     }
 
     .nsz-row--total {
-      background: $bg-container;
-      border-top: 1px solid $border-color-light;
+      background: var(--color-bg-container);
+      border-top: 1px solid var(--color-border-light);
 
       .nsz-total-label {
-        color: $text-primary;
+        color: var(--color-text-primary);
         font-weight: $font-weight-bold;
       }
 
@@ -2089,22 +2089,22 @@ onMounted(async () => {
 
     .nsz-row--nrv {
       background: rgba(var(--color-primary-rgb, 0, 112, 240), 0.03);
-      border-top: 1px solid $border-color-light;
+      border-top: 1px solid var(--color-border-light);
 
       .nsz-nrv-label {
-        color: $text-secondary;
+        color: var(--color-text-secondary);
         font-weight: $font-weight-medium;
       }
 
       .nsz-nutrient--nrv {
-        color: $text-secondary;
+        color: var(--color-text-secondary);
         font-size: 10px;
       }
     }
 
     .nsz-row--nrv-pct {
       background: rgba(var(--color-primary-rgb, 0, 112, 240), 0.06);
-      border-top: 1px solid $border-color-light;
+      border-top: 1px solid var(--color-border-light);
 
       .nsz-nrv-pct-label {
         color: var(--color-primary);
@@ -2125,7 +2125,7 @@ onMounted(async () => {
     gap: var(--space-2-5);
     margin-top: 24px;
     padding-top: 20px;
-    border-top: 1px solid $border-color-light;
+    border-top: 1px solid var(--color-border-light);
 
     .pending-hint {
       display: inline-flex;
@@ -2153,7 +2153,7 @@ onMounted(async () => {
   :deep(.t-dialog__header) {
     font-size: $font-size-h3;
     font-weight: $font-weight-semibold;
-    color: $text-primary;
+    color: var(--color-text-primary);
   }
 
   :deep(.t-dialog__body) {
@@ -2170,7 +2170,7 @@ onMounted(async () => {
       margin-bottom: 8px;
       font-size: $font-size-body-sm;
       font-weight: $font-weight-medium;
-      color: $text-primary;
+      color: var(--color-text-primary);
 
       .required {
         color: $color-danger;
@@ -2181,19 +2181,19 @@ onMounted(async () => {
       display: block;
       width: 100%;
       padding: var(--space-2-5) 12px;
-      border: 1px solid $border-color;
+      border: 1px solid var(--color-border);
       border-radius: $radius-md;
       font-size: $font-size-body-sm;
       font-family: inherit;
-      color: $text-primary;
-      background: $bg-container;
+      color: var(--color-text-primary);
+      background: var(--color-bg-container);
       resize: vertical;
       transition: border-color $transition-fast;
       outline: none;
       box-sizing: border-box;
 
       &::placeholder {
-        color: $text-placeholder;
+        color: var(--color-text-placeholder);
       }
 
       &:focus {

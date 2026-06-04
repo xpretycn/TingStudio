@@ -353,9 +353,9 @@ onMounted(() => { loadData(); });
     margin-left: -32px;
     margin-right: -32px;
     padding: 8px 32px;
-    background-color: rgba(255, 255, 255, 0.80);
+    background-color: var(--color-bg-container);
     backdrop-filter: blur(12px);
-    border-bottom: 1px solid #f1f5f9;
+    border-bottom: 1px solid var(--color-border-light);
     animation: fadeInDown 0.3s cubic-bezier(0.4, 0, 0.2, 1) both;
 
     .header-left {
@@ -486,7 +486,7 @@ onMounted(() => { loadData(); });
         }
 
         &.secondary {
-          background-color: #f1f5f9;
+          background-color: var(--color-bg-page);
           color: var(--color-text-secondary);
           box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 
@@ -497,7 +497,7 @@ onMounted(() => { loadData(); });
           }
 
           &:active {
-            background-color: #cbd5e1;
+            background-color: var(--color-border-light);
           }
         }
       }
@@ -537,7 +537,7 @@ onMounted(() => { loadData(); });
     }
 
     .info-card {
-      background: #fff;
+      background: var(--color-bg-container);
       padding: 24px;
       border-radius: var(--radius-4xl);
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
@@ -572,7 +572,7 @@ onMounted(() => { loadData(); });
         padding: 12px;
         background: var(--color-bg-page);
         border-radius: 16px;
-        border: 1px solid #f1f5f9;
+        border: 1px solid var(--color-border-light);
 
         label {
           display: flex;
@@ -671,7 +671,7 @@ onMounted(() => { loadData(); });
         top: 28px;
         bottom: -24px;
         width: 2px;
-        background: #f1f5f9;
+        background: var(--color-border-light);
       }
 
       .timeline-dot {
@@ -684,8 +684,8 @@ onMounted(() => { loadData(); });
         flex-shrink: 0;
 
         &.past {
-          background: #cbd5e1;
-          border-color: #f1f5f9;
+          background: var(--color-text-placeholder);
+          border-color: var(--color-border-light);
         }
       }
 
@@ -724,7 +724,7 @@ onMounted(() => { loadData(); });
     }
 
     .formula-section {
-      background: #fff;
+      background: var(--color-bg-container);
       border-radius: var(--radius-4xl);
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
       border: 1px solid var(--color-bg-page);
@@ -734,7 +734,7 @@ onMounted(() => { loadData(); });
       .formula-header {
         padding: 20px 24px;
         border-bottom: 1px solid var(--color-bg-page);
-        background: rgba(248, 250, 252, 0.5);
+        background: var(--color-bg-page);
 
         .formula-title {
           font-size: 18px;
@@ -767,12 +767,12 @@ onMounted(() => { loadData(); });
         padding: 20px;
         background: var(--color-bg-page);
         border-radius: 16px;
-        border: 1px solid #f1f5f9;
+        border: 1px solid var(--color-border-light);
         cursor: pointer;
         transition: all $transition-normal;
 
         &:hover {
-          background: #fff;
+          background: var(--color-bg-container);
           border-color: var(--color-primary);
           box-shadow: 0 4px 12px rgba(16, 185, 129, 0.08);
           transform: translateY(-1px);
@@ -838,7 +838,7 @@ onMounted(() => { loadData(); });
           gap: var(--space-1-5);
 
           .t-icon {
-            color: #cbd5e1;
+            color: var(--color-text-placeholder);
             flex-shrink: 0;
           }
         }
@@ -885,7 +885,7 @@ onMounted(() => { loadData(); });
 
           &:hover:not(.pagination-btn--disabled):not(.pagination-btn--active) {
             background-color: var(--color-bg-page);
-            border-color: #cbd5e1;
+            border-color: var(--color-border-light);
             color: var(--color-text-primary);
           }
 

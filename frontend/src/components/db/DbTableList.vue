@@ -257,7 +257,7 @@ const indexColumns = [
   .section-title {
     font-size: $font-size-body;
     font-weight: $font-weight-semibold;
-    color: $text-primary;
+    color: var(--color-text-primary);
     margin: 0;
     display: flex;
     align-items: center;
@@ -287,19 +287,19 @@ const indexColumns = [
   }
 
   :deep(.t-table__header th) {
-    background: $bg-container-alt;
-    color: $text-secondary;
+    background: var(--color-bg-container-alt);
+    color: var(--color-text-secondary);
     font-weight: $font-weight-medium;
     font-size: $font-size-caption;
   }
 
   :deep(.t-table__body td) {
     font-size: $font-size-body-sm;
-    color: $text-primary;
+    color: var(--color-text-primary);
   }
 
   :deep(.t-table__row--hover td) {
-    background: $bg-hover;
+    background: var(--color-bg-hover);
   }
 }
 
@@ -382,10 +382,10 @@ const indexColumns = [
   .schema-section-title {
     font-size: $font-size-body;
     font-weight: $font-weight-semibold;
-    color: $text-primary;
+    color: var(--color-text-primary);
     margin: 0 0 12px;
     padding-bottom: 8px;
-    border-bottom: 1px solid $border-color-light;
+    border-bottom: 1px solid var(--color-border-light);
   }
 }
 

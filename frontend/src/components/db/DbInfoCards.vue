@@ -108,14 +108,14 @@ const cards = computed<CardItem[]>(() => [
 
     .card-label {
       font-size: $font-size-caption;
-      color: $text-secondary;
+      color: var(--color-text-secondary);
       line-height: 1;
     }
 
     .card-value {
       font-size: $font-size-h3;
       font-weight: $font-weight-semibold;
-      color: $text-primary;
+      color: var(--color-text-primary);
       line-height: 1.3;
       overflow: hidden;
       text-overflow: ellipsis;

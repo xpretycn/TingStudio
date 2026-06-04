@@ -175,7 +175,7 @@ watch(activeTab, () => {
 
       <t-loading :loading="store.loading" size="small">
         <div v-if="store.mySubmissions.length === 0" class="my-approval__empty">
-          <t-icon name="inbox" size="48px" />
+          <t-icon name="check-circle" size="48px" color="var(--td-success-color)" />
           <p>暂无审批记录</p>
           <span>提交配方后，审批状态将在此显示</span>
         </div>
@@ -270,7 +270,7 @@ watch(activeTab, () => {
 
       <t-loading :loading="store.myMaterialLoading" size="small">
         <div v-if="store.myMaterialSubmissions.length === 0" class="my-approval__empty">
-          <t-icon name="inbox" size="48px" />
+          <t-icon name="check-circle" size="48px" color="var(--td-success-color)" />
           <p>暂无原料审批记录</p>
           <span>创建原料后，可在此提交审批</span>
         </div>

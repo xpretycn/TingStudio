@@ -622,9 +622,9 @@ async function confirmReject() {
 
 .timeline-section,
 .detail-section {
-  background: $bg-container;
+  background: var(--color-bg-container);
   border-radius: $radius-2xl;
-  border: 1px solid $border-color;
+  border: 1px solid var(--color-border);
   box-shadow: $shadow-elevation-1;
 }
 
@@ -654,7 +654,7 @@ async function confirmReject() {
     }
 
     &::-webkit-scrollbar-thumb {
-      background: $border-color;
+      background: var(--color-border);
       border-radius: 4px;
     }
   }
@@ -670,7 +670,7 @@ async function confirmReject() {
   align-items: center;
   justify-content: space-between;
   padding: 20px 24px 16px;
-  border-bottom: 1px solid $border-color-light;
+  border-bottom: 1px solid var(--color-border-light);
 
   .section-head-left {
     display: flex;
@@ -682,7 +682,7 @@ async function confirmReject() {
     margin: 0;
     font-size: $font-size-h4;
     font-weight: $font-weight-bold;
-    color: $text-primary;
+    color: var(--color-text-primary);
     line-height: 1.3;
   }
 
@@ -710,12 +710,12 @@ async function confirmReject() {
     border: none;
     border-radius: $radius-md;
     background: transparent;
-    color: $text-tertiary;
+    color: var(--color-text-tertiary);
     cursor: pointer;
     transition: all $transition-fast;
 
     &:hover {
-      color: $text-regular;
+      color: var(--color-text-regular);
       background: var(--overlay-brand-08);
     }
   }
@@ -731,10 +731,10 @@ async function confirmReject() {
     align-items: center;
     gap: 4px;
     padding: 4px 12px;
-    border: 1px solid $border-color;
+    border: 1px solid var(--color-border);
     border-radius: $radius-pill;
     background: transparent;
-    color: $text-tertiary;
+    color: var(--color-text-tertiary);
     font-size: $font-size-caption;
     font-weight: $font-weight-medium;
     cursor: pointer;
@@ -806,7 +806,7 @@ async function confirmReject() {
   .filter-tabs {
     display: flex;
     gap: 2px;
-    background: $bg-container;
+    background: var(--color-bg-container);
     border-radius: $radius-md;
     padding: 2px;
   }
@@ -816,7 +816,7 @@ async function confirmReject() {
     border: none;
     border-radius: $radius-md;
     background: transparent;
-    color: $text-tertiary;
+    color: var(--color-text-tertiary);
     font-size: $font-size-caption;
     font-weight: $font-weight-semibold;
     cursor: pointer;
@@ -824,7 +824,7 @@ async function confirmReject() {
     white-space: nowrap;
 
     &:hover {
-      color: $text-secondary;
+      color: var(--color-text-secondary);
     }
 
     &.active {
@@ -845,10 +845,10 @@ async function confirmReject() {
   margin-left: -32px;
   margin-right: -32px;
   padding: 8px 32px;
-  background: $overlay-white-80;
+  background: var(--color-bg-container);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border-bottom: 1px solid $border-color-light;
+  border-bottom: 1px solid var(--color-border-light);
   animation: fadeInDown 0.3s ease both;
 
   .header-left {
@@ -865,7 +865,7 @@ async function confirmReject() {
       border: none;
       border-radius: $radius-lg;
       background: transparent;
-      color: $text-tertiary;
+      color: var(--color-text-tertiary);
       cursor: pointer;
       transition: all $transition-fast;
       font-size: 20px;
@@ -887,10 +887,10 @@ async function confirmReject() {
         gap: var(--space-1-5);
         font-size: 12px;
         line-height: 1;
-        color: $text-tertiary;
+        color: var(--color-text-tertiary);
 
         .breadcrumb-link {
-          color: $text-tertiary;
+          color: var(--color-text-tertiary);
           cursor: pointer;
           transition: color 0.15s;
           text-decoration: none;
@@ -901,11 +901,11 @@ async function confirmReject() {
         }
 
         .breadcrumb-sep {
-          color: $text-placeholder;
+          color: var(--color-text-placeholder);
         }
 
         .breadcrumb-current {
-          color: $text-secondary;
+          color: var(--color-text-secondary);
         }
       }
 
@@ -913,7 +913,7 @@ async function confirmReject() {
         margin: 0;
         font-size: $font-size-h2;
         font-weight: $font-weight-bold;
-        color: $text-primary;
+        color: var(--color-text-primary);
         line-height: 1.35;
         display: flex;
         align-items: center;
@@ -957,7 +957,7 @@ async function confirmReject() {
       border: none;
       border-radius: 8px;
       background: transparent;
-      color: $text-tertiary;
+      color: var(--color-text-tertiary);
       font-size: $font-size-caption;
       font-weight: $font-weight-medium;
       cursor: pointer;
@@ -965,14 +965,14 @@ async function confirmReject() {
       white-space: nowrap;
 
       &.active {
-        background: $bg-container;
+        background: var(--color-bg-container);
         color: var(--color-primary);
         font-weight: $font-weight-semibold;
         box-shadow: $shadow-xs;
       }
 
       &:hover:not(.active) {
-        color: $text-regular;
+        color: var(--color-text-regular);
       }
     }
   }
@@ -998,8 +998,8 @@ async function confirmReject() {
 
   &.action-secondary {
     background: transparent;
-    color: $text-secondary;
-    border: 1px solid $border-color;
+    color: var(--color-text-secondary);
+    border: 1px solid var(--color-border);
 
     &:hover {
       border-color: var(--color-primary-light);
@@ -1057,7 +1057,7 @@ async function confirmReject() {
     appearance: none;
     width: 16px;
     height: 16px;
-    border: 1.5px solid $border-color;
+    border: 1.5px solid var(--color-border);
     border-radius: 4px;
     cursor: pointer;
     position: relative;
@@ -1088,19 +1088,19 @@ async function confirmReject() {
 
   .tl-checkbox-text {
     font-size: $font-size-caption;
-    color: $text-tertiary;
+    color: var(--color-text-tertiary);
     transition: color $transition-fast;
   }
 
   &:hover .tl-checkbox-text {
-    color: $text-secondary;
+    color: var(--color-text-secondary);
   }
 }
 
 .tl-card-footer {
   margin-top: var(--space-2-5);
   padding-top: 8px;
-  border-top: 1px solid $border-color-light;
+  border-top: 1px solid var(--color-border-light);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1165,8 +1165,8 @@ async function confirmReject() {
   border-radius: $radius-pill;
   font-size: 11px;
   font-weight: $font-weight-medium;
-  color: $text-tertiary;
-  background: $bg-cool-gray;
+  color: var(--color-text-tertiary);
+  background: var(--color-bg-cool-gray);
 
   &.tl-status-published {
     color: $color-success;
@@ -1180,7 +1180,7 @@ async function confirmReject() {
   gap: var(--space-2-5);
   margin-top: 24px;
   padding-top: 20px;
-  border-top: 1px solid $border-color-light;
+  border-top: 1px solid var(--color-border-light);
 
   .pending-hint {
     display: inline-flex;
@@ -1219,20 +1219,20 @@ async function confirmReject() {
   padding: var(--space-16) 24px;
 
   .empty-icon {
-    color: $text-placeholder;
+    color: var(--color-text-placeholder);
     margin-bottom: 12px;
   }
 
   .empty-text {
     margin: 0 0 16px;
     font-size: $font-size-body;
-    color: $text-tertiary;
+    color: var(--color-text-tertiary);
   }
 
   .empty-hint {
     margin: -8px 0 16px;
     font-size: $font-size-caption;
-    color: $text-placeholder;
+    color: var(--color-text-placeholder);
   }
 }
 
@@ -1270,7 +1270,7 @@ async function confirmReject() {
     width: 12px;
     height: 12px;
     border-radius: $radius-circle;
-    background: $border-color;
+    background: var(--color-border);
     margin-top: var(--space-3-5);
     flex-shrink: 0;
     z-index: 1;
@@ -1295,14 +1295,14 @@ async function confirmReject() {
     width: 2px;
     flex: 1;
     min-height: 20px;
-    background: linear-gradient(to bottom, $border-color, transparent);
+    background: linear-gradient(to bottom, var(--color-border), transparent);
   }
 }
 
 .tl-card {
   flex: 1;
-  background: $bg-container;
-  border: 1px solid $border-color-light;
+  background: var(--color-bg-container);
+  border: 1px solid var(--color-border-light);
   border-radius: $radius-xl;
   padding: var(--space-3-5) 16px;
   margin-bottom: var(--space-3-5);
@@ -1373,14 +1373,14 @@ async function confirmReject() {
   }
 
   &.chip-archived {
-    background: $bg-cool-gray;
-    color: $text-tertiary;
+    background: var(--color-bg-cool-gray);
+    color: var(--color-text-tertiary);
   }
 }
 
 .tl-date {
   font-size: $font-size-caption;
-  color: $text-tertiary;
+  color: var(--color-text-tertiary);
   white-space: nowrap;
   flex-shrink: 0;
   margin-top: var(--space-1);
@@ -1425,15 +1425,15 @@ async function confirmReject() {
   padding: var(--space-0-5) 8px;
   font-size: 10px;
   font-weight: $font-weight-medium;
-  color: $text-tertiary;
-  background: $bg-cool-gray;
+  color: var(--color-text-tertiary);
+  background: var(--color-bg-cool-gray);
   border-radius: $radius-pill;
 }
 
 .tl-reason {
   margin: var(--space-1-5) 0 0;
   font-size: $font-size-body-sm;
-  color: $text-regular;
+  color: var(--color-text-regular);
   line-height: 1.5;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -1451,14 +1451,14 @@ async function confirmReject() {
   text-align: center;
 
   .detail-empty-visual {
-    color: $text-placeholder;
+    color: var(--color-text-placeholder);
     margin-bottom: 16px;
   }
 
   .detail-empty-text {
     margin: 0;
     font-size: $font-size-body;
-    color: $text-tertiary;
+    color: var(--color-text-tertiary);
     line-height: 1.7;
   }
 }
@@ -1470,7 +1470,7 @@ async function confirmReject() {
 .detail-identity {
   margin-bottom: 24px;
   padding-bottom: 20px;
-  border-bottom: 1px solid $border-color-light;
+  border-bottom: 1px solid var(--color-border-light);
 
   .identity-main {
     display: flex;
@@ -1482,7 +1482,7 @@ async function confirmReject() {
   .identity-version {
     font-size: 28px;
     font-weight: $font-weight-bold;
-    color: $text-primary;
+    color: var(--color-text-primary);
     font-family: ui-monospace, SFMono-Regular, "Cascadia Code", monospace;
     line-height: 1.2;
   }
@@ -1518,8 +1518,8 @@ async function confirmReject() {
     }
 
     &.st-archived {
-      background: $bg-cool-gray;
-      color: $text-tertiary;
+      background: var(--color-bg-cool-gray);
+      color: var(--color-text-tertiary);
     }
   }
 
@@ -1536,7 +1536,7 @@ async function confirmReject() {
 
   .identity-time {
     font-size: $font-size-caption;
-    color: $text-tertiary;
+    color: var(--color-text-tertiary);
     margin-left: auto;
   }
 }
@@ -1548,7 +1548,7 @@ async function confirmReject() {
     margin: 0 0 12px;
     font-size: $font-size-caption;
     font-weight: $font-weight-semibold;
-    color: $text-secondary;
+    color: var(--color-text-secondary);
     text-transform: uppercase;
     letter-spacing: 0.05em;
   }
@@ -1581,7 +1581,7 @@ async function confirmReject() {
   .sn-field-label {
     font-size: $font-size-micro;
     font-weight: $font-weight-semibold;
-    color: $text-tertiary;
+    color: var(--color-text-tertiary);
     text-transform: uppercase;
     letter-spacing: 0.04em;
   }
@@ -1589,7 +1589,7 @@ async function confirmReject() {
   .sn-field-value {
     font-size: $font-size-h4;
     font-weight: $font-weight-semibold;
-    color: $text-primary;
+    color: var(--color-text-primary);
   }
 }
 
@@ -1610,7 +1610,7 @@ async function confirmReject() {
   .nutrition-label {
     font-size: $font-size-micro;
     font-weight: $font-weight-semibold;
-    color: $text-tertiary;
+    color: var(--color-text-tertiary);
     text-transform: uppercase;
     letter-spacing: 0.04em;
   }
@@ -1618,7 +1618,7 @@ async function confirmReject() {
   .nutrition-value {
     font-size: $font-size-body;
     font-weight: $font-weight-semibold;
-    color: $text-primary;
+    color: var(--color-text-primary);
     font-family: ui-monospace, SFMono-Regular, "Cascadia Code", monospace;
   }
 }
@@ -1629,7 +1629,7 @@ async function confirmReject() {
     margin-bottom: 8px;
     font-size: $font-size-body-sm;
     font-weight: $font-weight-medium;
-    color: $text-primary;
+    color: var(--color-text-primary);
 
     .required {
       color: $color-danger;
@@ -1640,19 +1640,19 @@ async function confirmReject() {
     display: block;
     width: 100%;
     padding: var(--space-2-5) 12px;
-    border: 1px solid $border-color;
+    border: 1px solid var(--color-border);
     border-radius: $radius-md;
     font-size: $font-size-body-sm;
     font-family: inherit;
-    color: $text-primary;
-    background: $bg-container;
+    color: var(--color-text-primary);
+    background: var(--color-bg-container);
     resize: vertical;
     transition: border-color $transition-fast;
     outline: none;
     box-sizing: border-box;
 
     &::placeholder {
-      color: $text-placeholder;
+      color: var(--color-text-placeholder);
     }
 
     &:focus {

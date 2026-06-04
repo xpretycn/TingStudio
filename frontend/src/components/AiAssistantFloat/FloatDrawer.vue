@@ -173,9 +173,9 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   border-radius: 16px;
-  background: $bg-container;
+  background: var(--color-bg-container);
   box-shadow: 0 16px 48px rgba(93, 78, 96, 0.15), 0 2px 8px rgba(255, 107, 138, 0.1);
-  border: 1px solid $border-color;
+  border: 1px solid var(--color-border);
   overflow: hidden;
 
   &--fullscreen {
@@ -191,7 +191,7 @@ onUnmounted(() => {
   align-items: center;
   justify-content: space-between;
   padding: 12px 16px;
-  background: $gradient-brand;
+  background: var(--gradient-brand);
   color: $text-white;
   flex-shrink: 0;
   cursor: grab;

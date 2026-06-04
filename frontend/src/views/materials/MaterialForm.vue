@@ -851,9 +851,9 @@ onMounted(async () => {
     margin-left: -32px;
     margin-right: -32px;
     padding: 8px 32px;
-    background-color: $overlay-white-80;
+    background-color: var(--color-bg-container);
     backdrop-filter: blur(12px);
-    border-bottom: 1px solid $border-color-light;
+    border-bottom: 1px solid var(--color-border-light);
     animation: fadeInDown 0.3s cubic-bezier(0.4, 0, 0.2, 1) both;
 
     .header-left {
@@ -870,7 +870,7 @@ onMounted(async () => {
         border: none;
         border-radius: 12px;
         background: transparent;
-        color: $text-placeholder;
+        color: var(--color-text-placeholder);
         cursor: pointer;
         transition: all $transition-fast;
         font-size: 20px;
@@ -894,7 +894,7 @@ onMounted(async () => {
           line-height: 1;
 
           .breadcrumb-link {
-            color: $text-placeholder;
+            color: var(--color-text-placeholder);
             cursor: pointer;
             transition: color 0.15s;
             text-decoration: none;
@@ -906,7 +906,7 @@ onMounted(async () => {
 
           .breadcrumb-sep {
             font-size: 12px;
-            color: $text-placeholder;
+            color: var(--color-text-placeholder);
           }
 
           .breadcrumb-current {
@@ -1023,7 +1023,7 @@ onMounted(async () => {
         }
 
         &.secondary {
-          background-color: $border-color-light;
+          background-color: var(--color-border-light);
           color: var(--color-text-secondary);
           box-shadow: 0 1px 3px rgba(0, 0, 0, 0.10);
 
@@ -1179,7 +1179,7 @@ onMounted(async () => {
       gap: 16px;
       margin-top: 20px;
       padding-top: 20px;
-      border-top: 1px dashed $border-color-light;
+      border-top: 1px dashed var(--color-border-light);
 
       .field-inline .field-input {
         max-width: calc(100% - 100px);
@@ -1190,7 +1190,7 @@ onMounted(async () => {
 
         .t-select__wrap {
           background-color: var(--color-bg-page) !important;
-          border: 1px solid $border-color-light !important;
+          border: 1px solid var(--color-border-light) !important;
           border-radius: 12px !important;
           padding: var(--space-1-5) var(--space-2-5) !important;
           min-height: 36px;
@@ -1342,7 +1342,7 @@ onMounted(async () => {
 
           :deep(.t-input) {
             background-color: var(--color-bg-page) !important;
-            border: 1px solid $border-color-light !important;
+            border: 1px solid var(--color-border-light) !important;
             padding: 8px var(--space-3-5) !important;
             font-size: 13px !important;
             color: var(--color-text-primary) !important;
@@ -1360,7 +1360,7 @@ onMounted(async () => {
             }
 
             &::placeholder {
-              color: $text-placeholder !important;
+              color: var(--color-text-placeholder) !important;
             }
           }
 
@@ -1375,7 +1375,7 @@ onMounted(async () => {
 
             .t-select__wrap {
               background-color: var(--color-bg-page) !important;
-              border: 1px solid $border-color-light !important;
+              border: 1px solid var(--color-border-light) !important;
               border-radius: 12px !important;
               padding: var(--space-1-5) var(--space-2-5) !important;
               min-height: 36px;
@@ -1400,18 +1400,18 @@ onMounted(async () => {
             }
 
             .t-select__placeholder {
-              color: $text-placeholder !important;
+              color: var(--color-text-placeholder) !important;
             }
 
             .t-icon {
-              color: $text-placeholder !important;
+              color: var(--color-text-placeholder) !important;
             }
           }
 
           :deep(.t-input-number) {
             width: 100%;
             background-color: var(--color-bg-page) !important;
-            border: 1px solid $border-color-light !important;
+            border: 1px solid var(--color-border-light) !important;
             border-radius: 12px !important;
             min-height: 36px;
             transition: all $transition-fast;
@@ -1459,7 +1459,7 @@ onMounted(async () => {
               min-height: 34px;
 
               &::placeholder {
-                color: $text-placeholder !important;
+                color: var(--color-text-placeholder) !important;
               }
             }
           }
@@ -1618,12 +1618,12 @@ onMounted(async () => {
 
       .t-radio-button {
         background-color: var(--color-bg-page) !important;
-        border: 1px solid $border-color-light !important;
+        border: 1px solid var(--color-border-light) !important;
         border-radius: 10px !important;
         transition: all $transition-fast;
 
         &:hover:not(.t-is-checked) {
-          background-color: $border-color-light !important;
+          background-color: var(--color-border-light) !important;
           border-color: var(--color-border) !important;
         }
 
@@ -1640,7 +1640,7 @@ onMounted(async () => {
       align-items: center;
       gap: 8px;
       font-weight: $font-weight-semibold;
-      color: $text-primary;
+      color: var(--color-text-primary);
     }
 
     .nutrition-grid {
@@ -1694,7 +1694,7 @@ onMounted(async () => {
         .nf-calc-formula {
           font-size: 10px;
           color: var(--color-text-placeholder);
-          background: $border-color-light;
+          background: var(--color-border-light);
           padding: var(--space-1) 8px;
           border-radius: 6px;
           white-space: nowrap;
@@ -1714,7 +1714,7 @@ onMounted(async () => {
           flex-shrink: 0;
           font-size: 11px;
           color: var(--color-text-placeholder);
-          background: $border-color-light;
+          background: var(--color-border-light);
           padding: 4px var(--space-2-5);
           border-radius: 8px;
           white-space: nowrap;
@@ -1727,7 +1727,7 @@ onMounted(async () => {
     .nutrition-meta {
       margin-top: 24px;
       padding-top: 24px;
-      border-top: 1px solid $border-color-light;
+      border-top: 1px solid var(--color-border-light);
 
       .nm-row {
         display: flex;
@@ -1862,7 +1862,7 @@ onMounted(async () => {
       transition: background 0.2s;
 
       &:hover {
-        background: $border-color-light;
+        background: var(--color-border-light);
       }
     }
 

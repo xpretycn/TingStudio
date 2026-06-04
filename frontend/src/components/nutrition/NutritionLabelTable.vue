@@ -79,7 +79,7 @@ const tableData = computed(() =>
 
 <style lang="scss" scoped>
 .nutrition-label-table {
-  border: 2px solid $text-primary;
+  border: 2px solid var(--color-text-primary);
   border-radius: $radius-xs;
   overflow: hidden;
 
@@ -88,18 +88,18 @@ const tableData = computed(() =>
     justify-content: space-between;
     align-items: center;
     padding: $space-2 $space-3;
-    background: $bg-container-alt;
-    border-bottom: 2px solid $text-primary;
+    background: var(--color-bg-container-alt);
+    border-bottom: 2px solid var(--color-text-primary);
 
     .label-title {
       font-size: $font-size-body;
       font-weight: $font-weight-bold;
-      color: $text-primary;
+      color: var(--color-text-primary);
     }
 
     .label-subtitle {
       font-size: $font-size-caption;
-      color: $text-secondary;
+      color: var(--color-text-secondary);
     }
   }
 
@@ -107,35 +107,35 @@ const tableData = computed(() =>
     font-size: $font-size-body-sm;
 
     th {
-      background: $bg-container-alt;
+      background: var(--color-bg-container-alt);
       font-weight: $font-weight-semibold;
-      color: $text-primary;
-      border-color: $text-primary;
+      color: var(--color-text-primary);
+      border-color: var(--color-text-primary);
       padding: $space-1-5 $space-2;
     }
 
     td {
-      border-color: $border-color;
+      border-color: var(--color-border);
       padding: $space-1-5 $space-2;
-      color: $text-regular;
+      color: var(--color-text-regular);
     }
 
     .row-core td {
-      border-bottom: 2px solid $text-primary;
+      border-bottom: 2px solid var(--color-text-primary);
     }
 
     .row-extended td {
-      border-bottom: 1px solid $border-color;
+      border-bottom: 1px solid var(--color-border);
     }
   }
 
   .label-core {
     font-weight: $font-weight-semibold;
-    color: $text-primary;
+    color: var(--color-text-primary);
   }
 
   .value-zero {
-    color: $text-tertiary;
+    color: var(--color-text-placeholder);
   }
 
   .nrv-cell {
@@ -146,9 +146,9 @@ const tableData = computed(() =>
     text-align: center;
     padding: $space-1-5 $space-2;
     font-size: $font-size-caption;
-    color: $text-tertiary;
-    background: $bg-container-alt;
-    border-top: 1px dashed $border-color;
+    color: var(--color-text-placeholder);
+    background: var(--color-bg-container-alt);
+    border-top: 1px dashed var(--color-border);
   }
 }
 </style>

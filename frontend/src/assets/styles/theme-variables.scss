@@ -145,6 +145,46 @@
   --color-purple-50: #{$purple-50};
   --color-purple-500: #{$purple-500};
 
+  // ─── 扩展色板 CSS 变量（用于 Vue :style 绑定的暗色适配）───
+  // Blue
+  --color-blue-50: #{$blue-50};
+  --color-blue-100: #{$blue-100};
+  --color-blue-200: #{$blue-200};
+  --color-blue-500: #{$blue-500};
+  // Red
+  --color-red-50: #{$red-50};
+  --color-red-100: #{$red-100};
+  // Amber
+  --color-amber-50: #{$amber-50};
+  --color-amber-100: #{$amber-100};
+  --color-amber-200: #{$amber-200};
+  // Violet
+  --color-violet-50: #{$purple-50};
+  --color-violet-100: #{$purple-100};
+  --color-violet-200: #{$purple-200};
+  --color-violet-300: #{$purple-300};
+  --color-violet-500: #{$purple-500};
+  // Indigo
+  --color-indigo-100: #{$purple-100};
+  --color-indigo-500: #{$indigo-500};
+  // Green
+  --color-green-50: #{$green-50};
+  // Orange
+  --color-orange-50: #{$orange-50};
+  // Sky
+  --color-sky-50: #{$sky-50};
+  --color-sky-100: #{$sky-100};
+  --color-sky-500: #{$sky-500};
+  // Pink
+  --color-pink-100: #{$purple-100};
+  --color-pink-200: #{$purple-200};
+  --color-pink-300: #{$purple-300};
+  // Rose
+  --color-rose-200: #{$red-200};
+  // Cyan
+  --color-cyan-50: #{$sky-50};
+  --color-cyan-500: #{$sky-500};
+
   // ─── 通用阴影（亮色）───
   --shadow-xs: #{$shadow-xs};
   --shadow-sm: #{$shadow-sm};
@@ -474,15 +514,71 @@
   --shadow-elevation-3: 0 4px 8px rgba(0, 0, 0, 0.18), 0 8px 24px rgba(0, 0, 0, 0.25);
   --shadow-elevation-4: 0 8px 16px rgba(0, 0, 0, 0.2), 0 16px 48px rgba(0, 0, 0, 0.3);
 
+  // ─── 状态色背景（暗色适配）───
+  --color-success-bg: rgba(123, 198, 126, 0.12);
+  --color-warning-bg: rgba(240, 160, 64, 0.12);
+  --color-danger-bg: rgba(227, 77, 89, 0.1);
+  --color-info-bg: rgba(24, 144, 255, 0.1);
+
+  // ─── Emerald 语义色（暗色适配）───
+  --color-emerald-50: rgba(16, 185, 129, 0.1);
+  --color-emerald-100: rgba(16, 185, 129, 0.15);
+
+  // ─── 扩展语义色（暗色适配）───
+  --color-purple-50: rgba(168, 85, 247, 0.1);
+
+  // ─── 扩展色板 CSS 变量（暗色适配）───
+  // Blue
+  --color-blue-50: rgba(59, 130, 246, 0.1);
+  --color-blue-100: rgba(59, 130, 246, 0.15);
+  --color-blue-200: rgba(59, 130, 246, 0.2);
+  --color-blue-500: #{$blue-500};
+  // Red
+  --color-red-50: rgba(227, 77, 89, 0.1);
+  --color-red-100: rgba(227, 77, 89, 0.15);
+  // Amber
+  --color-amber-50: rgba(240, 160, 64, 0.1);
+  --color-amber-100: rgba(240, 160, 64, 0.15);
+  --color-amber-200: rgba(240, 160, 64, 0.2);
+  // Violet
+  --color-violet-50: rgba(168, 85, 247, 0.1);
+  --color-violet-100: rgba(168, 85, 247, 0.15);
+  --color-violet-200: rgba(168, 85, 247, 0.2);
+  --color-violet-300: rgba(168, 85, 247, 0.28);
+  --color-violet-500: #{$purple-500};
+  // Indigo
+  --color-indigo-100: rgba(99, 102, 241, 0.15);
+  --color-indigo-500: #{$indigo-500};
+  // Green
+  --color-green-50: rgba(34, 197, 94, 0.1);
+  // Orange
+  --color-orange-50: rgba(249, 115, 22, 0.1);
+  // Sky
+  --color-sky-50: rgba(14, 165, 233, 0.1);
+  --color-sky-100: rgba(14, 165, 233, 0.15);
+  --color-sky-500: #{$sky-500};
+  // Pink
+  --color-pink-100: rgba(236, 72, 153, 0.15);
+  --color-pink-200: rgba(236, 72, 153, 0.2);
+  --color-pink-300: rgba(236, 72, 153, 0.28);
+  // Rose
+  --color-rose-200: rgba(244, 63, 94, 0.2);
+  // Cyan
+  --color-cyan-50: rgba(6, 182, 212, 0.1);
+  --color-cyan-500: #{$sky-500};
+
   // ═══ TDesign 暗色适配（让 t-tabs/t-tag/t-input/t-card 等随主题切换）═══
   // 背景层级：page < container < secondarycontainer < elevated
   --td-bg-color-page: #1a1520;
   --td-bg-color-container: #241e2b;
   --td-bg-color-container-hover: #2d2535;
   --td-bg-color-container-active: #3d3445;
+  --td-bg-color-container-select: #3d3445;
   --td-bg-color-secondarycontainer: #1f1925;
   --td-bg-color-secondarycontainer-hover: #2d2535;
+  --td-bg-color-secondarycontainer-active: #3d3445;
   --td-bg-color-elevated: #2d2535;
+  --td-bg-color-specialcomponent: #241e2b;  // t-input / t-select / t-textarea 背景
 
   // 文字
   --td-text-color-primary: #e8dfe8;
@@ -516,6 +612,55 @@
   --td-warning-color-2: #2d2510;
   --td-error-color-1: #2d1518;
   --td-error-color-2: #2d1518;
+
+  // ═══ TDesign 表单组件暗色适配 ═══
+  // 输入框 / 下拉框 / 文本域 背景
+  --td-input-bg: #241e2b;
+  --td-input-border-color: #3d3445;
+  --td-input-hover-border-color: #5a4f60;
+  --td-input-active-border-color: var(--color-primary);
+  --td-input-placeholder-color: #6b5f70;
+  --td-input-text-color: #e8dfe8;
+
+  // 下拉选择器
+  --td-select-bg: #241e2b;
+  --td-select-border-color: #3d3445;
+  --td-select-hover-border-color: #5a4f60;
+  --td-select-active-border-color: var(--color-primary);
+
+  // 文本域
+  --td-textarea-bg: #241e2b;
+  --td-textarea-border-color: #3d3445;
+  --td-textarea-hover-border-color: #5a4f60;
+  --td-textarea-active-border-color: var(--color-primary);
+
+  // 数字输入框
+  --td-input-number-bg: #241e2b;
+
+  // 日期选择器
+  --td-date-picker-bg: #241e2b;
+
+  // 标签输入
+  --td-tag-input-bg: #241e2b;
+
+  // 下拉弹出面板
+  --td-popup-bg: #2d2535;
+
+  // 开关
+  --td-switch-bg: #3d3445;
+
+  // 多选框 / 单选框
+  --td-checkbox-bg: #241e2b;
+  --td-radio-bg: #241e2b;
+
+  // 穿梭框
+  --td-transfer-bg: #241e2b;
+
+  // 时间选择器
+  --td-time-picker-bg: #241e2b;
+
+  // 颜色选择器
+  --td-color-picker-bg: #241e2b;
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -562,8 +707,8 @@
   --overlay-brand-bg-60: rgba(45, 21, 37, 0.8);
 
   --gradient-brand: linear-gradient(135deg, #ffb5c8 0%, #ff8fab 50%, #ff6b8a 100%);
-  --gradient-btn: linear-gradient(135deg, #ffb5c8 0%, #ff8fab 100%);
-  --gradient-btn-hover: linear-gradient(135deg, #ffd6e0 0%, #ffb5c8 100%);
+  --gradient-btn: linear-gradient(135deg, #9b4d6e 0%, #7a3d5a 100%);
+  --gradient-btn-hover: linear-gradient(135deg, #b5607e 0%, #9b4d6e 100%);
 }
 
 // ─── 4b. 黄色暗色 ───
@@ -606,8 +751,8 @@
   --overlay-brand-bg-60: rgba(45, 37, 16, 0.8);
 
   --gradient-brand: linear-gradient(135deg, #ffd68a 0%, #ffbe4f 50%, #f5a623 100%);
-  --gradient-btn: linear-gradient(135deg, #ffd68a 0%, #ffbe4f 100%);
-  --gradient-btn-hover: linear-gradient(135deg, #ffe8b3 0%, #ffd68a 100%);
+  --gradient-btn: linear-gradient(135deg, #7a6230 0%, #5e4a20 100%);
+  --gradient-btn-hover: linear-gradient(135deg, #9b7a3d 0%, #7a6230 100%);
 }
 
 // ─── 4c. 蓝色暗色 ───
@@ -650,8 +795,8 @@
   --overlay-brand-bg-60: rgba(21, 30, 45, 0.8);
 
   --gradient-brand: linear-gradient(135deg, #a3c8f0 0%, #6ba8e8 50%, #4a90d9 100%);
-  --gradient-btn: linear-gradient(135deg, #a3c8f0 0%, #6ba8e8 100%);
-  --gradient-btn-hover: linear-gradient(135deg, #c8e0f8 0%, #a3c8f0 100%);
+  --gradient-btn: linear-gradient(135deg, #3d5a7a 0%, #2d4560 100%);
+  --gradient-btn-hover: linear-gradient(135deg, #4d6d8e 0%, #3d5a7a 100%);
 }
 
 // ─── 4d. 绿色暗色 ───
@@ -694,6 +839,6 @@
   --overlay-brand-bg-60: rgba(6, 78, 59, 0.8);
 
   --gradient-brand: linear-gradient(135deg, #6ee7b7 0%, #34d399 50%, #10b981 100%);
-  --gradient-btn: linear-gradient(135deg, #6ee7b7 0%, #34d399 100%);
-  --gradient-btn-hover: linear-gradient(135deg, #a7f3d0 0%, #6ee7b7 100%);
+  --gradient-btn: linear-gradient(135deg, #2d6e50 0%, #1f5a3e 100%);
+  --gradient-btn-hover: linear-gradient(135deg, #3d8a66 0%, #2d6e50 100%);
 }

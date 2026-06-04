@@ -48,12 +48,15 @@ const baseMaterialRow: Record<string, unknown> = {
 
 const baseNutritionRow: Record<string, unknown> = {
   material_id: "m1",
-  protein: 15.5,
-  fat: 3.2,
-  carbohydrate: 45.0,
-  sodium: 120,
-  calories: 280,
-  dietary_fiber: 8.5,
+  per_100g_json: JSON.stringify({
+    protein: 15.5,
+    fat: 3.2,
+    carbohydrate: 45.0,
+    sodium: 120,
+    calories: 280,
+    dietary_fiber: 8.5,
+  }),
+  is_latest: 1,
 };
 
 function setupMocksWithoutVersion(): void {
@@ -114,7 +117,18 @@ describe("formulaExporter - 配方导出引擎", () => {
     mockQuery.mockResolvedValueOnce([[baseMaterialRow]]);
     mockQuery.mockResolvedValueOnce([[baseNutritionRow]]);
 
-    const result = await exportFormulaToExcel("f1", "v1");
+    const templateConfig = {
+      selectedFields: ['name', 'code', 'salesmanName', 'finishedWeight', 'version', 'versionReason', 'materialList', 'priceInfo', 'nutritionTable'],
+      requiredFields: ['name'],
+      exportFormat: 'excel' as const,
+      orientation: 'landscape' as const,
+      pageSize: 'A4',
+      fontSize: 10,
+      includeHeader: true,
+      includeFooter: true,
+    };
+
+    const result = await exportFormulaToExcel("f1", "v1", templateConfig);
     const workbook = XLSX.read(result.buffer, { type: "buffer" });
     const infoData = readSheet(workbook, "配方信息");
     const versionLabelRow = infoData.find((row) => row[0] === "版本");

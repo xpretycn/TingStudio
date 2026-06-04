@@ -107,8 +107,8 @@ defineProps<{
 
 <style scoped lang="scss">
 .quotation-card {
-  background: $bg-container;
-  border: 1px solid $border-color-light;
+  background: var(--color-bg-container);
+  border: 1px solid var(--color-border-light);
   border-radius: 12px;
   padding: var(--space-3-5);
   margin: 8px 0;
@@ -120,12 +120,12 @@ defineProps<{
   align-items: center;
   gap: var(--space-1-5);
   font-weight: 600;
-  color: $text-primary;
+  color: var(--color-text-primary);
   margin-bottom: 12px;
 
   .formula-name {
     font-weight: 400;
-    color: $text-tertiary;
+    color: var(--color-text-placeholder);
     font-size: 12px;
     margin-left: auto;
   }
@@ -141,17 +141,17 @@ defineProps<{
   display: flex;
   justify-content: space-between;
   padding: var(--space-1-25) var(--space-2-5);
-  background: $bg-page;
+  background: var(--color-bg-page);
   border-radius: 6px;
   font-size: 12px;
 
   .cost-label {
-    color: $text-secondary;
+    color: var(--color-text-secondary);
   }
 
   .cost-val {
     font-weight: 500;
-    color: $text-primary;
+    color: var(--color-text-primary);
 
     &--sub {
       color: var(--color-warning);
@@ -175,7 +175,7 @@ defineProps<{
 
   .total-label {
     font-weight: 600;
-    color: $text-primary;
+    color: var(--color-text-primary);
   }
 
   .total-val {
@@ -190,7 +190,7 @@ defineProps<{
   gap: 16px;
   padding: var(--space-1-5) var(--space-2-5);
   font-size: 11px;
-  color: $text-tertiary;
+  color: var(--color-text-placeholder);
 }
 
 .section {
@@ -198,14 +198,14 @@ defineProps<{
 
   .section-title {
     font-weight: 600;
-    color: $text-secondary;
+    color: var(--color-text-secondary);
     margin-bottom: var(--space-1-5);
     font-size: 12px;
   }
 }
 
 .mat-table {
-  border: 1px solid $border-color-light;
+  border: 1px solid var(--color-border-light);
   border-radius: 8px;
   overflow: hidden;
 }
@@ -218,13 +218,13 @@ defineProps<{
   gap: 4px;
 
   &--header {
-    background: $bg-page;
+    background: var(--color-bg-page);
     font-weight: 600;
-    color: $text-tertiary;
+    color: var(--color-text-placeholder);
   }
 
   &:not(:last-child) {
-    border-bottom: 1px solid $border-color-light;
+    border-bottom: 1px solid var(--color-border-light);
   }
 }
 </style>

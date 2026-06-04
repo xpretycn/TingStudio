@@ -225,7 +225,7 @@ onUnmounted(() => {
     width: 56px;
     height: 56px;
     border-radius: 50%;
-    background: $gradient-brand;
+    background: var(--gradient-brand);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -294,7 +294,7 @@ onUnmounted(() => {
     flex-direction: column;
     gap: 4px;
     padding: var(--space-1-5);
-    background: $bg-container;
+    background: var(--color-bg-container);
     border-radius: 12px;
     box-shadow: 0 8px 24px rgba(93, 78, 96, 0.18);
     min-width: 110px;
@@ -322,14 +322,14 @@ onUnmounted(() => {
       border: none;
       border-radius: 8px;
       background: transparent;
-      color: $text-primary;
+      color: var(--color-text-primary);
       font-size: 13px;
       cursor: pointer;
       transition: background 0.15s;
       white-space: nowrap;
 
       &:hover {
-        background: $bg-hover;
+        background: var(--color-bg-hover);
       }
 
       .cmd-icon {

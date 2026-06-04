@@ -800,9 +800,9 @@ watch(() => route.params.id, (newId) => {
     margin-left: -32px;
     margin-right: -32px;
     padding: 8px 32px; // px-8 py-4（内部内容仍保持间距）
-    background-color: $overlay-white-80; // bg-white/80
+    background-color: var(--color-bg-container); // bg-white/80
     backdrop-filter: blur(12px); // backdrop-blur-md
-    border-bottom: 1px solid $border-color-light; // border-slate-100
+    border-bottom: 1px solid var(--color-border-light); // border-slate-100
     animation: fadeInDown 0.3s cubic-bezier(0.4, 0, 0.2, 1) both;
 
     // ── 左侧：返回按钮 + 标题组 ──
@@ -828,7 +828,7 @@ watch(() => route.params.id, (newId) => {
 
         &:hover {
           color: var(--color-primary); // hover:text-emerald-500
-          background-color: $emerald-50; // hover:bg-emerald-50
+          background-color: var(--color-emerald-50); // hover:bg-emerald-50
         }
       }
 
@@ -904,9 +904,9 @@ watch(() => route.params.id, (newId) => {
             flex-shrink: 0;
 
             &--draft {
-              background: #f3f3f3;
-              color: #a0a0a0;
-              border: 1px solid #e7e7e7;
+              background: var(--color-bg-cool-gray);
+              color: var(--color-text-tertiary);
+              border: 1px solid var(--color-border-light);
             }
 
             &--pending {
@@ -921,7 +921,7 @@ watch(() => route.params.id, (newId) => {
 
             &--archived {
               background: rgba(107, 114, 128, 0.1);
-              color: #6b7280;
+              color: var(--color-text-tertiary);
             }
           }
         }
@@ -1008,7 +1008,7 @@ watch(() => route.params.id, (newId) => {
 
     // ══ 通用卡片样式（匹配参考设计 bg-white rounded-[2rem] shadow-sm border-slate-50） ══
     .info-card {
-      background: $bg-container;
+      background: var(--color-bg-container);
       padding: $space-6; // p-8 = 32px
       border-radius: $radius-2xl; // rounded-[2rem]
       box-shadow: $shadow-elevation-1; // shadow-sm
@@ -1062,7 +1062,7 @@ watch(() => route.params.id, (newId) => {
         border-radius: 6px;
 
         &:hover {
-          background-color: $border-color-light;
+          background-color: var(--color-border-light);
         }
 
         &--warn {
@@ -1075,15 +1075,15 @@ watch(() => route.params.id, (newId) => {
 
         &--adjusted {
           border-left: 3px solid var(--color-warning);
-          background: linear-gradient(90deg, $overlay-amber-100-50 0%, transparent 100%);
+          background: linear-gradient(90deg, var(--color-amber-100) 0%, transparent 100%);
 
           .qtm-name {
-            color: $amber-800;
+            color: var(--color-warning, $amber-800);
             font-weight: 600;
           }
 
           .qtm-sub {
-            color: $stone-500;
+            color: var(--color-text-secondary, $stone-500);
 
             .qtm-base-hint {
               color: $amber-600;
@@ -1112,7 +1112,7 @@ watch(() => route.params.id, (newId) => {
           line-height: 1.4;
           padding: var(--space-0-5) var(--space-1-5);
           border-radius: 6px;
-          background: $gradient-amber-badge;
+          background: var(--color-amber-100);
           color: $amber-700;
           font-weight: 700;
           margin-left: 4px;
@@ -1146,10 +1146,10 @@ watch(() => route.params.id, (newId) => {
         gap: var(--space-1-5);
         font-size: 12px;
         color: var(--color-warning);
-        background: $amber-50;
+        background: var(--color-amber-50);
         padding: var(--space-2-5) var(--space-3-5);
         border-radius: 10px;
-        border: 1px solid $amber-200;
+        border: 1px solid var(--color-amber-200);
       }
 
       .qt-summary {
@@ -1158,7 +1158,7 @@ watch(() => route.params.id, (newId) => {
         gap: var(--space-0-5);
         background: var(--color-bg-page);
         border-radius: 16px;
-        border: 1px solid $border-color-light;
+        border: 1px solid var(--color-border-light);
         padding: var(--space-2-5) 16px;
       }
 
@@ -1192,11 +1192,11 @@ watch(() => route.params.id, (newId) => {
         }
 
         &:hover {
-          background-color: $bg-container;
+          background-color: var(--color-bg-container);
         }
 
         &--primary {
-          background: $emerald-50;
+          background: var(--color-emerald-50);
 
           span,
           .qts-icon {
@@ -1205,7 +1205,7 @@ watch(() => route.params.id, (newId) => {
         }
 
         &--warn {
-          background: $amber-50 !important;
+          background: var(--color-amber-50) !important;
 
           span,
           .qts-icon {
@@ -1235,8 +1235,8 @@ watch(() => route.params.id, (newId) => {
           }
 
           &.qts-item--warn {
-            background: $amber-100 !important;
-            border: 1px solid $amber-200;
+            background: var(--color-amber-100) !important;
+            border: 1px solid var(--color-amber-200);
             border-radius: 10px;
 
             span {
@@ -1291,10 +1291,10 @@ watch(() => route.params.id, (newId) => {
           font-size: 10px;
           font-weight: 500;
           color: $amber-700;
-          background: $amber-100;
+          background: var(--color-amber-100);
           padding: 1px var(--space-1-5);
           border-radius: 8px;
-          border: 1px solid $amber-200;
+          border: 1px solid var(--color-amber-200);
           white-space: nowrap;
         }
       }
@@ -1305,7 +1305,7 @@ watch(() => route.params.id, (newId) => {
         margin: 4px 0;
 
         &--bold {
-          background: $border-color;
+          background: var(--color-border);
           margin: var(--space-1-5) 0;
         }
       }
@@ -1321,7 +1321,7 @@ watch(() => route.params.id, (newId) => {
         padding: $space-3; // p-4 = 16px
         background: var(--color-bg-page); // bg-slate-50
         border-radius: $radius-xl; // rounded-2xl
-        border: 1px solid $border-color-light; // border-slate-100
+        border: 1px solid var(--color-border-light); // border-slate-100
 
         label {
           display: flex;
@@ -1410,7 +1410,7 @@ watch(() => route.params.id, (newId) => {
         right: 0;
         width: 128px;
         height: 128px;
-        background: $blue-50; // blue-50
+        background: var(--color-blue-50); // blue-50
         border-radius: 50%;
         transform: translate(50%, -50%);
         opacity: 0.5;
@@ -1433,7 +1433,7 @@ watch(() => route.params.id, (newId) => {
           width: 48px;
           height: 48px;
           border-radius: $radius-xl; // rounded-2xl
-          background: linear-gradient(135deg, $emerald-50, $blue-100);
+          background: linear-gradient(135deg, var(--color-emerald-50), var(--color-blue-100));
           display: flex;
           align-items: center;
           justify-content: center;
@@ -1456,10 +1456,10 @@ watch(() => route.params.id, (newId) => {
       }
 
       .demand-box {
-        background: $overlay-blue-25; // blue-50/50
+        background: var(--color-blue-50); // blue-50/50
         padding: $space-3;
         border-radius: $radius-xl;
-        border: 1px solid $blue-200; // blue-100
+        border: 1px solid var(--color-blue-200); // blue-100
 
         .demand-header {
           display: flex;
@@ -1477,7 +1477,7 @@ watch(() => route.params.id, (newId) => {
 
           .priority-badge {
             padding: var(--space-0-5) 8px;
-            background: $blue-100; // blue-100
+            background: var(--color-blue-100); // blue-100
             color: $blue-600; // blue-700
             font-size: 10px;
             font-weight: 700;
@@ -1509,7 +1509,7 @@ watch(() => route.params.id, (newId) => {
       padding: $space-3;
       background: var(--color-bg-page); // slate-50
       border-radius: $radius-xl;
-      border: 1px solid $border-color-light; // slate-100
+      border: 1px solid var(--color-border-light); // slate-100
     }
 
     // ══ 变更记录时间线 ══
@@ -1555,7 +1555,7 @@ watch(() => route.params.id, (newId) => {
         top: 28px;
         bottom: -$space-5;
         width: 2px;
-        background: $border-color-light; // bg-slate-50
+        background: var(--color-border-light); // bg-slate-50
       }
 
       .timeline-dot {
@@ -1568,8 +1568,8 @@ watch(() => route.params.id, (newId) => {
         flex-shrink: 0;
 
         &.past {
-          background: $border-color; // slate-200
-          border-color: $border-color-light; // slate-50
+          background: var(--color-border); // slate-200
+          border-color: var(--color-border-light); // slate-50
         }
       }
 
@@ -1615,7 +1615,7 @@ watch(() => route.params.id, (newId) => {
 
     // ══ 右侧：计算器表格区域 ══
     .calc-section {
-      background: $bg-container;
+      background: var(--color-bg-container);
       border-radius: $radius-2xl;
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
       border: 1px solid var(--color-bg-page);
@@ -1626,7 +1626,7 @@ watch(() => route.params.id, (newId) => {
         padding: $space-5 $space-6;
         padding-bottom: $space-6;
         border-bottom: 1px solid var(--color-bg-page);
-        background: $overlay-slate-50-50;
+        background: var(--color-bg-page);
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -1654,11 +1654,11 @@ watch(() => route.params.id, (newId) => {
           display: flex;
           align-items: center;
           gap: $space-2;
-          background: $bg-container;
+          background: var(--color-bg-container);
           padding: 8px 12px; // p-2
           border-radius: $radius-xl; // rounded-2xl
           box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04); // shadow-sm
-          border: 1px solid $border-color-light; // border-slate-100
+          border: 1px solid var(--color-border-light); // border-slate-100
 
           .weight-badge-label {
             font-size: 10px; // text-[10px]
@@ -1696,7 +1696,7 @@ watch(() => route.params.id, (newId) => {
 
     // ══ 含量比校验信息卡片 ══
     .ratio-validation-section {
-      background: $bg-container;
+      background: var(--color-bg-container);
       border-radius: $radius-2xl;
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
       border: 1px solid var(--color-bg-page);
@@ -1729,23 +1729,23 @@ watch(() => route.params.id, (newId) => {
           transition: all 0.3s ease;
 
           &--normal {
-            background: $green-50;
-            border-color: $green-200;
+            background: var(--color-green-50);
+            border-color: var(--color-emerald-100);
           }
 
           &--warning {
-            background: $amber-50;
-            border-color: $amber-200;
+            background: var(--color-amber-50);
+            border-color: var(--color-amber-200);
           }
 
           &--high_warning {
-            background: $orange-50;
-            border-color: $orange-200;
+            background: var(--color-orange-50);
+            border-color: var(--color-amber-200);
           }
 
           &--error {
-            background: $red-50;
-            border-color: $red-200;
+            background: var(--color-red-50);
+            border-color: var(--color-rose-200);
           }
         }
 
@@ -1806,7 +1806,7 @@ watch(() => route.params.id, (newId) => {
           top: -4px;
           width: 16px;
           height: 16px;
-          background: $bg-container;
+          background: var(--color-bg-container);
           border: 3px solid var(--color-text-primary);
           border-radius: 50%;
           transform: translateX(-50%);
@@ -1881,7 +1881,7 @@ watch(() => route.params.id, (newId) => {
           gap: var(--space-1-5);
           margin-top: var(--space-2-5);
           padding: 8px 12px;
-          background: $overlay-orange-08;
+          background: var(--color-orange-50);
           border-radius: 8px;
           font-size: 13px;
           font-weight: 600;
@@ -1936,7 +1936,7 @@ watch(() => route.params.id, (newId) => {
 
           td {
             padding: 8px 12px;
-            border-bottom: 1px solid $border-color-light;
+            border-bottom: 1px solid var(--color-border-light);
             color: var(--color-text-primary);
           }
 
@@ -1961,7 +1961,7 @@ watch(() => route.params.id, (newId) => {
 
       .nutrition-section,
       .notes-section {
-        background: $bg-container;
+        background: var(--color-bg-container);
         padding: $space-6;
         border-radius: $radius-2xl;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
@@ -1993,12 +1993,12 @@ watch(() => route.params.id, (newId) => {
 
         th:nth-child(5),
         td:nth-child(5) {
-          background-color: $amber-100 !important;
+          background-color: var(--color-amber-100) !important;
         }
 
         th:nth-child(6),
         td:nth-child(6) {
-          background-color: $amber-200 !important;
+          background-color: var(--color-amber-200) !important;
         }
 
         th:nth-child(5),
@@ -2042,7 +2042,7 @@ watch(() => route.params.id, (newId) => {
     }
 
     .partial-nutrition {
-      color: $text-placeholder;
+      color: var(--color-text-placeholder);
     }
 
     .partial-nutrition-icon {

@@ -300,7 +300,7 @@ function formatTime(updateTime: string): string {
       transition: all $transition-fast;
 
       &:hover {
-        color: $brand-primary;
+        color: var(--color-primary);
       }
 
       .tab-label {
@@ -311,12 +311,12 @@ function formatTime(updateTime: string): string {
     }
 
     .t-tabs__item--active {
-      color: $brand-primary;
+      color: var(--color-primary);
       font-weight: 600;
     }
 
     .t-tabs__bottom-bar {
-      background: $brand-primary;
+      background: var(--color-primary);
       height: 3px;
       border-radius: 3px 3px 0 0;
     }
@@ -385,26 +385,26 @@ function formatTime(updateTime: string): string {
     .tool-title {
       font-size: 16px;
       font-weight: 600;
-      color: $text-primary;
+      color: var(--color-text-primary);
       margin: 0 0 var(--space-1-5) 0;
     }
 
     .tool-desc {
       font-size: 13px;
-      color: $text-secondary;
+      color: var(--color-text-secondary);
       margin: 0;
       line-height: 1.5;
     }
   }
 
   .tool-arrow {
-    color: $text-secondary;
+    color: var(--color-text-secondary);
     transition: all $transition-slow;
     flex-shrink: 0;
   }
 
   &:hover .tool-arrow {
-    color: $brand-primary;
+    color: var(--color-primary);
     transform: translateX(4px);
   }
 }
@@ -420,7 +420,7 @@ function formatTime(updateTime: string): string {
     .section-title {
       font-size: 16px;
       font-weight: 600;
-      color: $text-primary;
+      color: var(--color-text-primary);
       margin: 0;
       display: flex;
       align-items: center;
@@ -450,7 +450,7 @@ function formatTime(updateTime: string): string {
   .weather-section-title {
     font-size: 16px;
     font-weight: 600;
-    color: $text-primary;
+    color: var(--color-text-primary);
     margin: 0;
     display: flex;
     align-items: center;
@@ -496,7 +496,7 @@ function formatTime(updateTime: string): string {
 .search-dropdown {
   margin: -12px 0 16px;
   padding: var(--space-1-5);
-  background: $bg-container;
+  background: var(--color-bg-container);
   border-radius: 12px;
   border: 1.5px solid var(--color-primary-lightest);
   box-shadow: $shadow-md;
@@ -517,12 +517,12 @@ function formatTime(updateTime: string): string {
     .search-item-name {
       font-size: 14px;
       font-weight: 500;
-      color: $text-primary;
+      color: var(--color-text-primary);
     }
 
     .search-item-detail {
       font-size: 12px;
-      color: $text-secondary;
+      color: var(--color-text-secondary);
     }
   }
 }
@@ -565,14 +565,14 @@ function formatTime(updateTime: string): string {
     .weather-temp {
       font-size: 48px;
       font-weight: 700;
-      color: $text-primary;
+      color: var(--color-text-primary);
       line-height: 1;
       letter-spacing: -2px;
 
       small {
         font-size: 20px;
         font-weight: 500;
-        color: $text-secondary;
+        color: var(--color-text-secondary);
         vertical-align: super;
         letter-spacing: 0;
       }
@@ -587,14 +587,14 @@ function formatTime(updateTime: string): string {
 
   .weather-city {
     font-size: 16px;
-    color: $text-secondary;
+    color: var(--color-text-secondary);
     font-weight: 500;
     margin-bottom: 4px;
   }
 
   .weather-update {
     font-size: 12px;
-    color: $text-placeholder;
+    color: var(--color-text-placeholder);
   }
 }
 
@@ -614,9 +614,9 @@ function formatTime(updateTime: string): string {
     max-width: 200px;
     min-width: 160px;
     padding: var(--space-3-5) 16px;
-    background: $bg-page;
+    background: var(--color-bg-page);
     border-radius: 12px;
-    border: 1px solid $border-color-light;
+    border: 1px solid var(--color-border-light);
     transition: all $transition-slow;
 
     &:hover {
@@ -626,13 +626,13 @@ function formatTime(updateTime: string): string {
 
     .detail-label {
       font-size: 13px;
-      color: $text-secondary;
+      color: var(--color-text-secondary);
     }
 
     .detail-value {
       font-size: 14px;
       font-weight: 600;
-      color: $text-primary;
+      color: var(--color-text-primary);
     }
   }
 }
@@ -641,7 +641,7 @@ function formatTime(updateTime: string): string {
 .weather-empty {
   text-align: center;
   padding: 40px 0;
-  color: $text-secondary;
+  color: var(--color-text-secondary);
 
   .empty-icon {
     font-size: 48px;

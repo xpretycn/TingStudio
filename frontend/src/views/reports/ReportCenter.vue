@@ -953,7 +953,7 @@ const dashboardCards = computed(() => {
       badge: thisMonthCount > 0 ? `+${thisMonthCount}` : '--',
       badgeColor: thisMonthCount > 0 ? 'var(--color-primary)' : 'var(--color-text-placeholder)',
       badgeBg: thisMonthCount > 0 ? 'var(--color-success-bg)' : 'var(--color-bg-hover)',
-      iconBg: '#FAF5FF',
+      iconBg: 'var(--color-violet-50, #FAF5FF)',
       iconColor: '#A855F7',
       iconPath: '<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',
     },
@@ -1744,7 +1744,7 @@ onMounted(async () => {
     border: 1px solid var(--color-border);
     border-radius: $radius-md;
     background-color: transparent;
-    color: $text-regular;
+    color: var(--color-text-primary);
     font-size: $font-size-body;
     cursor: pointer;
     transition: all $transition-fast;
@@ -1766,7 +1766,7 @@ onMounted(async () => {
     &.pagination-btn--disabled {
       opacity: 0.5;
       cursor: not-allowed !important;
-      color: $text-placeholder;
+      color: var(--color-text-placeholder);
       background-color: transparent;
       border-color: var(--color-border);
       pointer-events: none;

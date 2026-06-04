@@ -285,7 +285,7 @@ watch(() => props.loading, autoScrollToBottom);
   }
 
   &::-webkit-scrollbar-thumb {
-    background: $border-color;
+    background: var(--color-border);
     border-radius: var(--radius-2xs);
   }
 }
@@ -297,7 +297,7 @@ watch(() => props.loading, autoScrollToBottom);
   align-items: center;
   justify-content: center;
   gap: 12px;
-  color: $text-secondary;
+  color: var(--color-text-secondary);
   font-size: $font-size-body-sm;
 
   svg {
@@ -337,7 +337,7 @@ watch(() => props.loading, autoScrollToBottom);
   height: 28px;
   border-radius: 50%;
   flex-shrink: 0;
-  background: $brand-primary-bg;
+  background: var(--color-primary-bg);
   overflow: hidden;
 
   svg {
@@ -375,15 +375,15 @@ watch(() => props.loading, autoScrollToBottom);
   word-break: break-word;
 
   &--user {
-    background: $gradient-brand;
+    background: var(--gradient-brand);
     color: $text-white;
     border-bottom-right-radius: 4px;
   }
 
   &--assistant {
-    background: $bg-container-alt;
-    color: $text-primary;
-    border: 1px solid $border-color-light;
+    background: var(--color-bg-container-alt);
+    color: var(--color-text-primary);
+    border: 1px solid var(--color-border-light);
     border-bottom-left-radius: 4px;
   }
 }
@@ -394,7 +394,7 @@ watch(() => props.loading, autoScrollToBottom);
   :deep(h1),
   :deep(h2),
   :deep(h3) {
-    color: $text-primary;
+    color: var(--color-text-primary);
     margin-top: var(--space-2-5);
     margin-bottom: var(--space-1-5);
     font-size: 14px;
@@ -438,7 +438,7 @@ watch(() => props.loading, autoScrollToBottom);
 
   :deep(strong) {
     font-weight: 600;
-    color: $text-primary;
+    color: var(--color-text-primary);
   }
 
   :deep(table) {
@@ -450,18 +450,18 @@ watch(() => props.loading, autoScrollToBottom);
     th,
     td {
       padding: var(--space-1-25) 8px;
-      border: 1px solid $border-color-light;
+      border: 1px solid var(--color-border-light);
       text-align: left;
     }
 
     th {
-      background: $bg-page;
+      background: var(--color-bg-page);
       font-weight: 600;
-      color: $text-secondary;
+      color: var(--color-text-secondary);
     }
 
     td {
-      color: $text-primary;
+      color: var(--color-text-primary);
     }
 
     tr:nth-child(even) td {
@@ -470,10 +470,10 @@ watch(() => props.loading, autoScrollToBottom);
   }
 
   :deep(blockquote) {
-    border-left: 3px solid $brand-primary;
+    border-left: 3px solid var(--color-primary);
     padding-left: var(--space-2-5);
     margin: var(--space-1-5) 0;
-    color: $text-secondary;
+    color: var(--color-text-secondary);
   }
 }
 
@@ -499,14 +499,14 @@ watch(() => props.loading, autoScrollToBottom);
   border: none;
   background: transparent;
   cursor: pointer;
-  color: $text-tertiary;
+  color: var(--color-text-placeholder);
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.2s;
 
   &:hover {
-    background: $bg-page;
+    background: var(--color-bg-page);
     color: $brand-emerald;
   }
 
@@ -527,7 +527,7 @@ watch(() => props.loading, autoScrollToBottom);
   flex-wrap: wrap;
 
   .meta-model {
-    background: #f1f5f9;
+    background: var(--color-bg-hover);
     color: var(--color-text-secondary);
     padding: 1px var(--space-1-5);
     border-radius: 4px;
@@ -535,7 +535,7 @@ watch(() => props.loading, autoScrollToBottom);
   }
 
   .meta-sep {
-    color: #cbd5e1;
+    color: var(--color-text-placeholder);
   }
 
   .meta-latency {
@@ -551,7 +551,7 @@ watch(() => props.loading, autoScrollToBottom);
 .parsed-fields {
   margin-top: 8px;
   padding-top: 8px;
-  border-top: 1px dashed $border-color;
+  border-top: 1px dashed var(--color-border);
 }
 
 .fields-header {
@@ -559,7 +559,7 @@ watch(() => props.loading, autoScrollToBottom);
   align-items: center;
   gap: 4px;
   font-size: $font-size-caption;
-  color: $brand-primary;
+  color: var(--color-primary);
   font-weight: $font-weight-medium;
   margin-bottom: var(--space-1-5);
 }
@@ -576,15 +576,15 @@ watch(() => props.loading, autoScrollToBottom);
   gap: 4px;
   padding: var(--space-1) 8px;
   border-radius: 6px;
-  background: $brand-primary-bg;
+  background: var(--color-primary-bg);
   font-size: $font-size-micro;
 
   .field-key {
-    color: $text-secondary;
+    color: var(--color-text-secondary);
   }
 
   .field-val {
-    color: $text-primary;
+    color: var(--color-text-primary);
     font-weight: $font-weight-medium;
   }
 }
@@ -596,15 +596,15 @@ watch(() => props.loading, autoScrollToBottom);
   margin-top: 8px;
   padding: var(--space-1-25) 12px;
   border-radius: 8px;
-  border: 1px solid $brand-primary;
+  border: 1px solid var(--color-primary);
   background: transparent;
-  color: $brand-primary;
+  color: var(--color-primary);
   font-size: $font-size-caption;
   cursor: pointer;
   transition: all 0.2s;
 
   &:hover {
-    background: $brand-primary;
+    background: var(--color-primary);
     color: $text-white;
   }
 }
@@ -639,7 +639,7 @@ watch(() => props.loading, autoScrollToBottom);
     width: 6px;
     height: 6px;
     border-radius: 50%;
-    background: $brand-primary-light;
+    background: var(--color-primary-light);
     animation: typing-bounce 1.2s ease-in-out infinite;
 
     &:nth-child(2) {
@@ -675,7 +675,7 @@ watch(() => props.loading, autoScrollToBottom);
   height: 36px;
   border-radius: 50%;
   border: 1px solid var(--color-border);
-  background: white;
+  background: var(--color-bg-container);
   color: var(--color-text-secondary);
   cursor: pointer;
   display: flex;

@@ -266,7 +266,7 @@ function triggerUpload() {
 <style scoped lang="scss">
 .excel-import-panel {
   padding: $space-4;
-  background: $bg-container-alt;
+  background: var(--color-bg-container-alt);
   border-radius: $radius-md;
   margin-bottom: $space-5;
 }
@@ -278,7 +278,7 @@ function triggerUpload() {
 .guide-content {
   margin-top: $space-2;
   font-size: $font-size-body-sm;
-  color: $text-regular;
+  color: var(--color-text-regular);
 
   p {
     margin: $space-1 0;

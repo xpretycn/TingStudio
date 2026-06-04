@@ -143,15 +143,15 @@ function getProgressColor(val: number): string {
     font-size: $font-size-body-sm;
 
     th {
-      background: $bg-container-alt;
+      background: var(--color-bg-container-alt);
       font-weight: $font-weight-semibold;
-      color: $text-primary;
+      color: var(--color-text-primary);
       padding: $space-2 $space-2;
     }
 
     td {
       padding: $space-2 $space-2;
-      color: $text-regular;
+      color: var(--color-text-regular);
     }
   }
 
@@ -173,7 +173,7 @@ function getProgressColor(val: number): string {
 
     .contribution-percent {
       font-size: $font-size-caption;
-      color: $text-secondary;
+      color: var(--color-text-secondary);
       min-width: 42px;
       text-align: right;
       font-variant-numeric: tabular-nums;
@@ -182,12 +182,12 @@ function getProgressColor(val: number): string {
 
   .expanded-detail {
     padding: $space-3 $space-4;
-    background: $bg-container-alt;
+    background: var(--color-bg-container-alt);
 
     .detail-title {
       font-size: $font-size-caption;
       font-weight: $font-weight-medium;
-      color: $text-secondary;
+      color: var(--color-text-secondary);
       margin-bottom: $space-2;
     }
 
@@ -204,18 +204,18 @@ function getProgressColor(val: number): string {
       font-size: $font-size-caption;
 
       .detail-key {
-        color: $text-secondary;
+        color: var(--color-text-secondary);
         min-width: 60px;
       }
 
       .detail-val {
-        color: $text-primary;
+        color: var(--color-text-primary);
         font-weight: $font-weight-medium;
         font-variant-numeric: tabular-nums;
       }
 
       .detail-percent {
-        color: $brand-primary;
+        color: var(--color-primary);
         font-variant-numeric: tabular-nums;
       }
     }

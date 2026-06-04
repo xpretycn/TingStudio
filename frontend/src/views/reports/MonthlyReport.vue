@@ -81,7 +81,7 @@
             </section>
 
             <div class="report-sections">
-              <div class="report-section-card" :style="{ borderLeftColor: '#3B82F6' }">
+              <div class="report-section-card" :style="{ borderLeftColor: 'var(--color-blue-500, #3B82F6)' }">
                 <div class="section-header">
                   <div class="section-title-group">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2"
@@ -244,7 +244,7 @@
               </div>
 
               <div ref="futurePlansRef" class="report-section-card" :class="{ 'editing-overflow': isEditingPlans }"
-                :style="{ borderLeftColor: '#8B5CF6' }">
+                :style="{ borderLeftColor: 'var(--color-violet-500, #8B5CF6)' }">
                 <div class="section-header" @click="plansExpanded = !plansExpanded" style="cursor: pointer;">
                   <div class="section-title-group">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" stroke-width="2"
@@ -409,7 +409,7 @@
                 </div>
               </div>
 
-              <div class="report-section-card" :style="{ borderLeftColor: '#06B6D4' }">
+              <div class="report-section-card" :style="{ borderLeftColor: 'var(--color-cyan-500, #06B6D4)' }">
                 <div class="section-header">
                   <div class="section-title-group">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#06B6D4" stroke-width="2"
@@ -704,8 +704,8 @@ const dashboardCards = computed(() => {
       unit: '个',
       badge: formula.newFormulaCount != null ? `${formula.newFormulaCount}个` : (data?.newFormulasGrowth ? `${data.newFormulasGrowth > 0 ? '+' : ''}${data.newFormulasGrowth}%` : '--'),
       badgeColor: 'var(--color-primary)',
-      badgeBg: '#ECFDF5',
-      iconBg: '#EFF6FF',
+      badgeBg: 'var(--color-emerald-50, #ECFDF5)',
+      iconBg: 'var(--color-blue-50, #EFF6FF)',
       iconColor: '#3B82F6',
       iconPath: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/>',
     },
@@ -715,8 +715,8 @@ const dashboardCards = computed(() => {
       unit: '个',
       badge: formula.completionRate != null ? `完成率${formula.completionRate}%` : (data?.completedFormulasGrowth ? `${data.completedFormulasGrowth > 0 ? '+' : ''}${data.completedFormulasGrowth}%` : '--'),
       badgeColor: 'var(--color-primary)',
-      badgeBg: '#ECFDF5',
-      iconBg: '#ECFDF5',
+      badgeBg: 'var(--color-emerald-50, #ECFDF5)',
+      iconBg: 'var(--color-emerald-50, #ECFDF5)',
       iconColor: 'var(--color-primary)',
       iconPath: '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>',
     },
@@ -726,8 +726,8 @@ const dashboardCards = computed(() => {
       unit: '%',
       badge: formula.completionRate != null ? `${formula.completionRate}%` : (data?.completionRateGrowth ? `${data.completionRateGrowth > 0 ? '+' : ''}${data.completionRateGrowth}%` : '--'),
       badgeColor: (formula.completionRate || 0) >= 70 ? 'var(--color-primary)' : (formula.completionRate || 0) >= 50 ? 'var(--color-warning)' : 'var(--color-danger)',
-      badgeBg: (formula.completionRate || 0) >= 70 ? '#ECFDF5' : (formula.completionRate || 0) >= 50 ? '#FFFBEB' : '#FEF2F2',
-      iconBg: '#FFFBEB',
+      badgeBg: (formula.completionRate || 0) >= 70 ? 'var(--color-emerald-50, #ECFDF5)' : (formula.completionRate || 0) >= 50 ? 'var(--color-amber-50, #FFFBEB)' : 'var(--color-red-50, #FEF2F2)',
+      iconBg: 'var(--color-amber-50, #FFFBEB)',
       iconColor: 'var(--color-warning)',
       iconPath: '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
     },
@@ -737,8 +737,8 @@ const dashboardCards = computed(() => {
       unit: '件',
       badge: sales.quantityGrowthRate != null ? `${sales.quantityGrowthRate > 0 ? '+' : ''}${sales.quantityGrowthRate}%` : (data?.quantityGrowth ? `${data.quantityGrowth > 0 ? '+' : ''}${data.quantityGrowth}%` : '--'),
       badgeColor: (sales.quantityGrowthRate || 0) >= 0 ? 'var(--color-primary)' : 'var(--color-danger)',
-      badgeBg: (sales.quantityGrowthRate || 0) >= 0 ? '#ECFDF5' : '#FEF2F2',
-      iconBg: '#F0FDF4',
+      badgeBg: (sales.quantityGrowthRate || 0) >= 0 ? 'var(--color-emerald-50, #ECFDF5)' : 'var(--color-red-50, #FEF2F2)',
+      iconBg: 'var(--color-green-50, #F0FDF4)',
       iconColor: '#22C55E',
       iconPath: '<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>',
     },
@@ -748,8 +748,8 @@ const dashboardCards = computed(() => {
       unit: '万元',
       badge: sales.revenueGrowthRate != null ? `${sales.revenueGrowthRate > 0 ? '+' : ''}${sales.revenueGrowthRate}%` : (data?.revenueGrowth ? `${data.revenueGrowth > 0 ? '+' : ''}${data.revenueGrowth}%` : '--'),
       badgeColor: (sales.revenueGrowthRate || 0) >= 0 ? 'var(--color-primary)' : 'var(--color-danger)',
-      badgeBg: (sales.revenueGrowthRate || 0) >= 0 ? '#ECFDF5' : '#FEF2F2',
-      iconBg: '#FAF5FF',
+      badgeBg: (sales.revenueGrowthRate || 0) >= 0 ? 'var(--color-emerald-50, #ECFDF5)' : 'var(--color-red-50, #FEF2F2)',
+      iconBg: 'var(--color-violet-50, #FAF5FF)',
       iconColor: '#A855F7',
       iconPath: '<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',
     },
@@ -776,11 +776,11 @@ const dashboardCards = computed(() => {
       })(),
       badgeBg: (() => {
         const mom = trend.monthOverMonth;
-        if (!mom) return '#F1F5F9';
+        if (!mom) return 'var(--color-bg-page, #F1F5F9)';
         const n = typeof mom === 'number' ? mom : (mom.quantity ?? 0);
-        return n >= 0 ? '#ECFDF5' : '#FEF2F2';
+        return n >= 0 ? 'var(--color-emerald-50, #ECFDF5)' : 'var(--color-red-50, #FEF2F2)';
       })(),
-      iconBg: '#ECFEFF',
+      iconBg: 'var(--color-cyan-50, #ECFEFF)',
       iconColor: '#06B6D4',
       iconPath: '<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>',
     },
@@ -976,9 +976,9 @@ onUnmounted(() => {
   margin-left: -32px;
   margin-right: -32px;
   padding: 16px 32px;
-  background-color: rgba(255, 255, 255, 0.80);
+  background-color: var(--color-bg-container);
   backdrop-filter: blur(12px);
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid var(--color-border-light);
   animation: fadeInDown 0.3s cubic-bezier(0.4, 0, 0.2, 1) both;
 
   .header-left {
@@ -1148,10 +1148,10 @@ onUnmounted(() => {
 }
 
 .stat-card {
-  background: #fff;
+  background: var(--color-bg-container);
   padding: 24px;
   border-radius: var(--radius-4xl);
-  border: 1px solid #fff;
+  border: 1px solid var(--color-bg-container);
   box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
   transition: all $transition-slow;
   animation: dashboard-fade-in 0.5s ease forwards;
@@ -1197,7 +1197,7 @@ onUnmounted(() => {
   .stat-value {
     font-size: 24px;
     font-weight: 700;
-    color: #0F172A;
+    color: var(--color-text-primary);
     line-height: 1.2;
 
     .stat-unit {
@@ -1227,9 +1227,9 @@ onUnmounted(() => {
 }
 
 .report-section-card {
-  background: #fff;
+  background: var(--color-bg-container);
   border-radius: 20px;
-  border: 1px solid #f1f5f9;
+  border: 1px solid var(--color-border-light);
   border-left: 4px solid #3B82F6;
   box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04);
   overflow: hidden;
@@ -1241,13 +1241,13 @@ onUnmounted(() => {
 
   &:hover {
     box-shadow: 0 8px 30px rgba(15, 23, 42, 0.08);
-    border-color: #fffbeb;
+    border-color: var(--color-primary-bg);
   }
 
   .section-header {
     padding: var(--space-3-5) 20px;
     background: var(--color-bg-page);
-    border-bottom: 1px solid #f1f5f9;
+    border-bottom: 1px solid var(--color-border-light);
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -1289,7 +1289,7 @@ onUnmounted(() => {
   .section-title {
     font-size: 16px;
     font-weight: 600;
-    color: #0F172A;
+    color: var(--color-text-primary);
     margin: 0;
   }
 
@@ -1310,7 +1310,7 @@ onUnmounted(() => {
     line-height: 1.7;
     margin-top: 16px;
     padding-top: 16px;
-    border-top: 1px solid #f1f5f9;
+    border-top: 1px solid var(--color-border-light);
   }
 }
 
@@ -1321,8 +1321,8 @@ onUnmounted(() => {
 
 .chart-container {
   border-radius: 12px;
-  background: #fff;
-  border: 1px solid #f1f5f9;
+  background: var(--color-bg-container);
+  border: 1px solid var(--color-border-light);
 }
 
 .chart-empty-state {
@@ -1345,7 +1345,7 @@ onUnmounted(() => {
 
   .empty-subtitle {
     font-size: 12px;
-    color: #CBD5E1;
+    color: var(--color-text-placeholder);
     margin: 0;
   }
 }
@@ -1370,7 +1370,7 @@ onUnmounted(() => {
 
   .section-empty-subtitle {
     font-size: 13px;
-    color: #CBD5E1;
+    color: var(--color-text-placeholder);
     margin: 0 0 20px;
   }
 
@@ -1381,7 +1381,7 @@ onUnmounted(() => {
     padding: 8px 20px;
     border-radius: 10px;
     border: 1px solid var(--color-border);
-    background: #fff;
+    background: var(--color-bg-container);
     color: var(--color-text-secondary);
     font-size: 13px;
     font-weight: 500;
@@ -1401,7 +1401,7 @@ onUnmounted(() => {
   gap: 16px;
   margin-top: 20px;
   padding-top: 16px;
-  border-top: 1px solid #f1f5f9;
+  border-top: 1px solid var(--color-border-light);
 }
 
 .stat-indicator {
@@ -1413,7 +1413,7 @@ onUnmounted(() => {
   padding: 12px 8px;
   border-radius: 12px;
   background: var(--color-bg-page);
-  border: 1px solid #f1f5f9;
+  border: 1px solid var(--color-border-light);
 
   .indicator-label {
     font-size: 12px;
@@ -1424,7 +1424,7 @@ onUnmounted(() => {
   .indicator-value {
     font-size: 18px;
     font-weight: 700;
-    color: #0F172A;
+    color: var(--color-text-primary);
     line-height: 1.2;
 
     .indicator-unit {
@@ -1445,7 +1445,7 @@ onUnmounted(() => {
   padding: 12px 16px;
   border-radius: 12px;
   background: var(--color-bg-page);
-  border: 1px solid #f1f5f9;
+  border: 1px solid var(--color-border-light);
 
   .target-header {
     display: flex;
@@ -1457,7 +1457,7 @@ onUnmounted(() => {
   .target-metric {
     font-size: 14px;
     font-weight: 600;
-    color: #0F172A;
+    color: var(--color-text-primary);
   }
 
   .target-rate {
@@ -1538,7 +1538,7 @@ onUnmounted(() => {
   padding: 12px 16px;
   border-radius: 12px;
   background: var(--color-bg-page);
-  border: 1px solid #f1f5f9;
+  border: 1px solid var(--color-border-light);
 
   .plan-label {
     font-size: 12px;
@@ -1570,7 +1570,7 @@ onUnmounted(() => {
   .error-title {
     font-size: 18px;
     font-weight: 700;
-    color: #0F172A;
+    color: var(--color-text-primary);
     margin: 0 0 8px;
   }
 

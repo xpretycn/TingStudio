@@ -154,15 +154,15 @@ function handleToggleSelect() {
   padding: $space-3;
   border-radius: $radius-lg;
   border: 1px solid transparent;
-  background: $bg-container;
+  background: var(--color-bg-container);
   cursor: pointer;
   transition: all $transition-fast;
   position: relative;
   min-height: 88px;
 
   &:hover {
-    background: $bg-hover;
-    border-color: $border-color-light;
+    background: var(--color-bg-hover);
+    border-color: var(--color-border-light);
   }
 
   &--active {
@@ -227,7 +227,7 @@ function handleToggleSelect() {
 .item-title {
   font-size: $font-size-body;
   font-weight: $font-weight-semibold;
-  color: $text-primary;
+  color: var(--color-text-primary);
 }
 
 .authoritative-badge {
@@ -288,11 +288,11 @@ function handleToggleSelect() {
   align-items: center;
   gap: $space-2;
   font-size: $font-size-caption;
-  color: $text-secondary;
+  color: var(--color-text-secondary);
 }
 
 .item-time {
-  color: $text-tertiary;
+  color: var(--color-text-placeholder);
   font-size: $font-size-caption;
 }
 
@@ -303,7 +303,7 @@ function handleToggleSelect() {
   padding: 2px 8px;
   margin-top: 2px;
   align-self: flex-start;
-  background: linear-gradient(135deg, var(--color-primary-bg) 0%, color-mix(in srgb, var(--color-primary-bg) 60%, $bg-container) 100%);
+  background: linear-gradient(135deg, var(--color-primary-bg) 0%, color-mix(in srgb, var(--color-primary-bg) 60%, var(--color-bg-container)) 100%);
   color: var(--color-primary-deep);
   border: 1px solid color-mix(in srgb, var(--color-primary) 18%, transparent);
   border-radius: $radius-sm;
@@ -329,7 +329,7 @@ function handleToggleSelect() {
 
 .item-detail {
   font-size: $font-size-caption;
-  color: $text-tertiary;
+  color: var(--color-text-placeholder);
   line-height: 1.4;
   word-break: break-all;
 }

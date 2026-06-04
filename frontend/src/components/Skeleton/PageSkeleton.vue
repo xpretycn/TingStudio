@@ -98,11 +98,11 @@ withDefaults(defineProps<{
   border-radius: $radius-md;
   background: linear-gradient(
     90deg,
-    $skeleton-border 0%,
+    var(--color-border-light) 0%,
     $skeleton-shimmer 40%,
     $brand-primary-lightest 50%,
     $skeleton-shimmer 60%,
-    $skeleton-border 100%
+    var(--color-border-light) 100%
   );
   background-size: 400% 100%;
   animation: skeleton-shimmer 2s ease-in-out infinite;
@@ -112,22 +112,22 @@ withDefaults(defineProps<{
 .skeleton-table {
   border-radius: $radius-lg;
   overflow: hidden;
-  border: 1px solid $border-color;
+  border: 1px solid var(--color-border);
 }
 
 .skeleton-table-header {
   display: flex;
-  background: $bg-page;
+  background: var(--color-bg-page);
   padding: $space-3 $space-4;
   gap: $space-2;
-  border-bottom: 1px solid $border-color;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .skeleton-table-row {
   display: flex;
   padding: var(--space-3-5) $space-4;
   gap: $space-2;
-  border-bottom: 1px solid $skeleton-border;
+  border-bottom: 1px solid var(--color-border-light);
 
   &:last-child {
     border-bottom: none;
@@ -141,11 +141,11 @@ withDefaults(defineProps<{
   border-radius: $radius-xs;
   background: linear-gradient(
     90deg,
-    $skeleton-border 0%,
+    var(--color-border-light) 0%,
     $skeleton-shimmer 40%,
     $brand-primary-lightest 50%,
     $skeleton-shimmer 60%,
-    $skeleton-border 100%
+    var(--color-border-light) 100%
   );
   background-size: 400% 100%;
   animation: skeleton-shimmer 2s ease-in-out infinite;
@@ -166,8 +166,8 @@ withDefaults(defineProps<{
 .skeleton-card {
   padding: $space-5;
   border-radius: $radius-xl;
-  border: 1px solid $border-color;
-  background: $bg-container;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-container);
 
   .skeleton-card-title {
     height: 18px;
@@ -176,11 +176,11 @@ withDefaults(defineProps<{
     border-radius: $radius-sm;
     background: linear-gradient(
       90deg,
-      $skeleton-border 0%,
+      var(--color-border-light) 0%,
       $skeleton-shimmer 40%,
       $brand-primary-lightest 50%,
       $skeleton-shimmer 60%,
-      $skeleton-border 100%
+      var(--color-border-light) 100%
     );
     background-size: 400% 100%;
     animation: skeleton-shimmer 2s ease-in-out infinite;
@@ -198,11 +198,11 @@ withDefaults(defineProps<{
     border-radius: $radius-xs;
     background: linear-gradient(
       90deg,
-      $skeleton-border 0%,
+      var(--color-border-light) 0%,
       $skeleton-shimmer 40%,
       $brand-primary-lightest 50%,
       $skeleton-shimmer 60%,
-      $skeleton-border 100%
+      var(--color-border-light) 100%
     );
     background-size: 400% 100%;
     animation: skeleton-shimmer 2s ease-in-out infinite;
@@ -218,8 +218,8 @@ withDefaults(defineProps<{
 .skeleton-detail-card {
   padding: $space-5;
   border-radius: $radius-lg;
-  border: 1px solid $border-color;
-  background: $bg-container;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-container);
 }
 
 .skeleton-detail-header {
@@ -236,7 +236,7 @@ withDefaults(defineProps<{
   margin-bottom: $space-6;
   padding: $space-4;
   border-radius: $radius-md;
-  background: $bg-page;
+  background: var(--color-bg-page);
 }
 
 .skeleton-desc-item {
@@ -251,11 +251,11 @@ withDefaults(defineProps<{
   margin-bottom: $space-3;
   background: linear-gradient(
     90deg,
-    $skeleton-border 0%,
+    var(--color-border-light) 0%,
     $skeleton-shimmer 40%,
     $brand-primary-lightest 50%,
     $skeleton-shimmer 60%,
-    $skeleton-border 100%
+    var(--color-border-light) 100%
   );
   background-size: 400% 100%;
   animation: skeleton-shimmer 2s ease-in-out infinite;

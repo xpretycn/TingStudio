@@ -89,7 +89,7 @@ describe('ToolRegistry', () => {
       });
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('Unknown tool');
+      expect(result.error).toContain('未知工具');
     });
 
     it('should validate parameters and return error for invalid params', async () => {
@@ -111,7 +111,7 @@ describe('ToolRegistry', () => {
       });
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('Invalid parameters');
+      expect(result.error).toContain('参数无效');
     });
 
     it('should execute tool successfully with valid params', async () => {

@@ -14,7 +14,7 @@ TingStudio 是一个专业的食品配方工作数据管理平台，面向食品
 |------|------|------|
 | **前端框架** | Vue 3 + TypeScript + Vite | Composition API + `<script setup>` |
 | **UI 组件库** | TDesign Vue Next (v1.9) | 企业级组件库 |
-| **状态管理** | Pinia (25个 Store) | 模块化 Store |
+| **状态管理** | Pinia (26个 Store) | 模块化 Store |
 | **路由** | Vue Router 4 | 懒加载路由 |
 | **样式方案** | SCSS + Design Tokens | 模块化变量系统 + CSS 变量 |
 | **图表** | ECharts 6 | 数据可视化 |
@@ -142,9 +142,9 @@ TingStudio/
 ├── backend/                          # 后端服务
 │   ├── src/
 │   │   ├── config/                   # 数据库配置、安全配置、限流、营养常量
-│   │   ├── controllers/              # 控制器层（24个模块）
+│   │   ├── controllers/              # 控制器层（26个模块）
 │   │   ├── middleware/               # 认证、错误处理、日志、校验
-│   │   ├── routes/                   # 路由定义（25个路由模块）
+│   │   ├── routes/                   # 路由定义（27个路由模块）
 │   │   ├── services/                 # 业务逻辑层
 │   │   │   ├── ai/                   # AI 服务（Agent/LLM/意图引擎）
 │   │   │   │   └── agent/            # Agent 系统（12个模块）
@@ -177,7 +177,7 @@ TingStudio/
 │
 ├── frontend/                         # 前端应用
 │   ├── src/
-│   │   ├── api/                      # API 客户端（axios 封装，25个模块）
+│   │   ├── api/                      # API 客户端（axios 封装，27个模块）
 │   │   ├── assets/                   # 样式（Design Tokens/变量/主题）
 │   │   ├── components/               # 公共组件（35个 Vue 组件，含3个子目录）
 │   │   │   ├── AiAssistantFloat/     # 悬浮助手组件体系（8 Vue + 2 TS）
@@ -185,7 +185,7 @@ TingStudio/
 │   │   │   ├── formula/              # 配方专用组件（MaterialTableCore/UnifiedMaterialTable）
 │   │   │   └── Skeleton/             # 骨架屏组件
 │   │   ├── router/                   # Vue Router 配置
-│   │   ├── stores/                   # Pinia 状态管理（25个 Store）
+│   │   ├── stores/                   # Pinia 状态管理（26个 Store）
 │   │   ├── utils/                    # 工具函数（时间格式化/图表/模拟数据）
 │   │   ├── views/                    # 页面视图（44个 .vue 文件）
 │   │   │   ├── ai/                   # AI 助手工作台 + 智能工具 + 总览
@@ -232,9 +232,9 @@ TingStudio/
 | **✅ 版本审批** | 配方版本审批流程（提交→管理员审核→通过/驳回）、审批面板（待审/已办）、通知提醒 |
 | **📊 销量分析** | 多维聚合分析（日月/业务员/区域）、趋势图、TOP 排行 |
 | **📄 报告中心** | 周报/月报 AI 自动分析、Markdown 渲染、报告对比、指标管理 |
-| **🥗 营养分析** | 7 步法营养成分计算、NRV%、合规校验、营养档案管理 |
+| **🥗 营养分析** | 7 步法营养成分计算、NRV%、合规校验、营养档案管理、多源营养数据治理（数据源 CRUD/对比/权威来源/批量富集/快照） |
 | **📎 文件管理** | 文件上传/预览、Excel/PDF/图片解析、批量导入、审计日志 |
-| **📦 导出中心** | Excel/PDF 导出、自定义模板、API 接口管理 |
+| **📦 导出中心** | Excel/PDF 导出、自定义模板、API 接口管理、导出配置、原料/报告导出 |
 | **🤖 AI 助手** | Agent 对话（ReAct 循环）、意图识别、工具调用、写操作守卫、身份定义、悬浮助手（双模路由/SSE流式/结果卡片） |
 | **🔮 悬浮助手** | 表单字段解析、智能对话、配方对比/成本/替代建议、指令模板、双模路由（fill/agent）、模型配置（位置/主题色/轮次/策略） |
 | **🔍 智能检索** | NL2SQL 自然语言查询、跨表关联查询、聚合分析 |
@@ -294,15 +294,15 @@ cd frontend && npm run test:coverage
 
 ## 🗄️ 数据库概览
 
-SQLite (better-sqlite3) + WAL 模式，共 **46 张表**：
+SQLite (better-sqlite3) + WAL 模式，共 **48 张表**：
 
 | 分类 | 表名 | 说明 |
 |------|------|------|
 | **核心业务** | users, materials, formulas, salesmen, formula_versions | 用户/原料/配方/业务员/版本 |
-| **营养体系** | material_nutrition, formula_nutrition_summaries, nutrition_profiles, nutrition_analysis_reports | 营养数据/汇总/标准/分析报告 |
+| **营养体系** | material_nutrition, formula_nutrition_summaries, nutrition_profiles, nutrition_analysis_reports, material_nutrition_sources, formula_nutrition_snapshots | 营养数据/汇总/标准/分析报告/数据源/快照 |
 | **销量报告** | formula_sales, reports, report_targets | 销量/报告/指标 |
 | **文件管理** | uploaded_files, file_audit_log, file_relations | 文件/审计/关联 |
-| **导出系统** | export_templates, export_jobs, api_data_interfaces, share_configs | 模板/任务/API接口/分享 |
+| **导出系统** | export_templates, export_jobs, api_data_interfaces, share_configs, export_center_config | 模板/任务/API接口/分享/导出配置 |
 | **解析系统** | parse_results, parse_result_configs, parse_templates | 解析结果/配置/模板 |
 | **阈值配置** | ratio_threshold_configs | 含量比校验阈值配置 |
 | **AI 模型** | ai_models, ai_usage_logs, ai_alert_configs, ai_alert_records, ai_health_records, ai_fallback_configs, ai_prompt_templates, model_applications | 模型/用量/告警/健康/降级/提示词模板/应用 |
@@ -329,7 +329,25 @@ npx tsx src/scripts/restoreDatabase.ts    # 恢复数据库
 <!-- 以下为历史版本更新日志，保留已有内容，自动补全 2026-05-27 最新更新 -->
 <!-- ====================================================================== -->---
 
-## 🚀 最新更新 (2026-06-01)
+## 🚀 最新更新 (2026-06-03)
+
+### ✅ 文档同步更新 + 新增营养数据源/导出配置模块
+
+#### 📝 文档同步
+
+同步更新项目文档，补全新增加的功能模块：
+
+- Pinia Store 数量：25 → 26（新增 nutritionSource Store）
+- API 模块数量：25 → 27（新增 nutritionSource、nutritionSourceBatch API）
+- 数据库表数量：46 → 48（新增 material_nutrition_sources、formula_nutrition_snapshots、export_center_config）
+- 路由模块数量：25 → 27（新增 nutritionSource、nutritionSourceBatch）
+- 控制器数量：24 → 26（新增 nutritionSource、nutritionSourceBatch 控制器）
+- 导出中心增强：新增导出配置、原料导出、报告导出端点
+- 配方表增强：新增 code(唯一编码)、packaging_price、other_price、profit_margin 等字段
+
+---
+
+## 🚀 历史更新 (2026-06-01)
 
 ### ✅ 文档同步更新 + 新增模块
 

@@ -138,7 +138,7 @@ const missingNames = computed(() =>
 
     .ring-unit {
       font-size: $font-size-body;
-      color: $text-secondary;
+      color: var(--color-text-secondary);
       margin-left: 1px;
     }
   }
@@ -152,22 +152,22 @@ const missingNames = computed(() =>
   .coverage-title {
     font-size: $font-size-h3;
     font-weight: $font-weight-semibold;
-    color: $text-primary;
+    color: var(--color-text-primary);
   }
 
   .coverage-detail {
     font-size: $font-size-body-sm;
-    color: $text-secondary;
+    color: var(--color-text-secondary);
 
     .detail-num {
       font-weight: $font-weight-semibold;
-      color: $text-primary;
+      color: var(--color-text-primary);
       font-variant-numeric: tabular-nums;
     }
 
     .detail-sep {
       margin: 0 2px;
-      color: $text-tertiary;
+      color: var(--color-text-placeholder);
     }
 
     .detail-total {
@@ -186,7 +186,7 @@ const missingNames = computed(() =>
 
     .confidence-label {
       font-size: $font-size-caption;
-      color: $text-secondary;
+      color: var(--color-text-secondary);
     }
   }
 }

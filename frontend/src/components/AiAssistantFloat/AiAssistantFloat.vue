@@ -258,7 +258,7 @@ onUnmounted(() => {
 }
 
 .fill-feedback-card {
-  background: $bg-container;
+  background: var(--color-bg-container);
   border-radius: 16px;
   padding: 20px;
   width: 320px;
@@ -273,7 +273,7 @@ onUnmounted(() => {
   gap: 8px;
   font-size: $font-size-h3;
   font-weight: $font-weight-semibold;
-  color: $text-primary;
+  color: var(--color-text-primary);
   margin-bottom: 12px;
 }
 
@@ -289,7 +289,7 @@ onUnmounted(() => {
   gap: 8px;
   padding: var(--space-1-5) var(--space-2-5);
   border-radius: 8px;
-  background: $bg-page;
+  background: var(--color-bg-page);
   font-size: $font-size-body-sm;
 
   &--fail {
@@ -297,13 +297,13 @@ onUnmounted(() => {
   }
 
   .feedback-key {
-    color: $text-secondary;
+    color: var(--color-text-secondary);
     min-width: 60px;
   }
 
   .feedback-val {
     flex: 1;
-    color: $text-primary;
+    color: var(--color-text-primary);
     font-weight: $font-weight-medium;
   }
 
@@ -318,7 +318,7 @@ onUnmounted(() => {
   padding: 8px;
   border-radius: 10px;
   border: none;
-  background: $gradient-btn;
+  background: var(--gradient-btn);
   color: $text-white;
   font-size: $font-size-body-sm;
   font-weight: $font-weight-medium;
@@ -326,7 +326,7 @@ onUnmounted(() => {
   transition: background 0.2s;
 
   &:hover {
-    background: $gradient-btn-hover;
+    background: var(--gradient-btn-hover);
   }
 }
 

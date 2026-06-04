@@ -345,9 +345,9 @@ const typeOptions = [
   flex-direction: column;
   gap: $space-2;
   padding: $space-3;
-  background: $bg-container;
+  background: var(--color-bg-container);
   border-radius: $radius-3xl $radius-3xl 0 0;
-  border: 1px solid $border-color-light;
+  border: 1px solid var(--color-border-light);
   border-bottom: none;
 
   .filter-search {
@@ -373,10 +373,10 @@ const typeOptions = [
   justify-content: center;
   width: 28px;
   height: 28px;
-  border: 1px solid $border-color;
+  border: 1px solid var(--color-border);
   border-radius: $radius-md;
-  background: $bg-container;
-  color: $text-tertiary;
+  background: var(--color-bg-container);
+  color: var(--color-text-placeholder);
   cursor: pointer;
   transition: all $transition-fast;
 
@@ -401,7 +401,7 @@ const typeOptions = [
 .filter-label {
   font-size: $font-size-caption;
   font-weight: $font-weight-medium;
-  color: $text-tertiary;
+  color: var(--color-text-placeholder);
   flex-shrink: 0;
   line-height: 26px;
   min-width: 28px;
@@ -417,12 +417,12 @@ const typeOptions = [
 
 .tag-btn {
   padding: $space-0-5 $space-2;
-  border: 1px solid $border-color;
+  border: 1px solid var(--color-border);
   border-radius: $radius-pill;
-  background: $bg-container;
+  background: var(--color-bg-container);
   font-size: $font-size-caption;
   font-weight: $font-weight-medium;
-  color: $text-secondary;
+  color: var(--color-text-secondary);
   cursor: pointer;
   transition: all $transition-fast;
   white-space: nowrap;
@@ -447,8 +447,8 @@ const typeOptions = [
     pointer-events: auto;
 
     &:hover {
-      border-color: $border-color;
-      color: $text-tertiary;
+      border-color: var(--color-border);
+      color: var(--color-text-placeholder);
     }
   }
 }
@@ -484,7 +484,7 @@ const typeOptions = [
   border: none;
   background: transparent;
   font-size: $font-size-caption;
-  color: $text-tertiary;
+  color: var(--color-text-placeholder);
   cursor: pointer;
   transition: color $transition-fast;
 
@@ -513,7 +513,7 @@ const typeOptions = [
   flex-direction: column;
   gap: $space-2;
   padding-top: $space-2;
-  border-top: 1px solid $border-color-light;
+  border-top: 1px solid var(--color-border-light);
 }
 
 .filter-reset {
@@ -525,11 +525,11 @@ const typeOptions = [
   align-items: center;
   gap: $space-2-5;
   padding: $space-1-5 $space-3;
-  background: $bg-container;
-  border: 1px solid $border-color-light;
+  background: var(--color-bg-container);
+  border: 1px solid var(--color-border-light);
   border-top: none;
   font-size: $font-size-caption;
-  color: $text-tertiary;
+  color: var(--color-text-placeholder);
 }
 
 .counter-item {
@@ -538,7 +538,7 @@ const typeOptions = [
   gap: $space-1;
 
   strong {
-    color: $text-secondary;
+    color: var(--color-text-secondary);
     font-weight: $font-weight-bold;
   }
 }
@@ -561,14 +561,14 @@ const typeOptions = [
 .counter-total {
   margin-left: auto;
   font-size: $font-size-micro;
-  color: $text-placeholder;
+  color: var(--color-text-placeholder);
 }
 
 .pool-content {
   flex: 1;
   display: flex;
   min-height: 0;
-  border: 1px solid $border-color-light;
+  border: 1px solid var(--color-border-light);
   border-top: none;
   border-radius: 0 0 $radius-3xl $radius-3xl;
   overflow: hidden;
@@ -606,12 +606,12 @@ const typeOptions = [
 
   .pool-empty-icon {
     font-size: 40px;
-    color: $text-placeholder;
+    color: var(--color-text-placeholder);
   }
 
   .pool-empty-text {
     font-size: $font-size-body-sm;
-    color: $text-tertiary;
+    color: var(--color-text-placeholder);
   }
 }
 </style>

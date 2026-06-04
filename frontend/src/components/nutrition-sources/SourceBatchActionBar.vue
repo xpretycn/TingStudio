@@ -59,7 +59,7 @@ const emit = defineEmits<{
   align-items: center;
   gap: $space-5;
   padding: $space-3 $space-5;
-  background: $bg-container;
+  background: var(--color-bg-container);
   border: 1px solid var(--color-primary);
   border-radius: $radius-2xl;
   box-shadow: $shadow-float;
@@ -79,7 +79,7 @@ const emit = defineEmits<{
   align-items: center;
   gap: $space-2;
   font-size: $font-size-body;
-  color: $text-primary;
+  color: var(--color-text-primary);
 }
 
 .info-icon {

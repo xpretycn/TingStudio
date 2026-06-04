@@ -236,7 +236,7 @@ watch(
   gap: $space-1-5;
   font-size: $font-size-h4;
   font-weight: $font-weight-semibold;
-  color: $text-primary;
+  color: var(--color-text-primary);
   margin: 0;
   flex-shrink: 0;
 }
@@ -255,9 +255,9 @@ watch(
   flex-direction: column;
   gap: $space-2-5;
   padding: $space-4;
-  background: $bg-page;
+  background: var(--color-bg-page);
   border-radius: $radius-xl;
-  border: 1px solid $border-color-light;
+  border: 1px solid var(--color-border-light);
 }
 
 .tm-field {
@@ -272,10 +272,10 @@ watch(
   gap: $space-1;
   font-size: $font-size-body-sm;
   font-weight: $font-weight-medium;
-  color: $text-secondary;
+  color: var(--color-text-regular);
 
   .t-icon {
-    color: $text-tertiary;
+    color: var(--color-text-placeholder);
   }
 }
 
@@ -295,7 +295,7 @@ watch(
   gap: $space-3;
   padding: $space-3-5 $space-4;
   border-radius: $radius-lg;
-  border: 1px solid $border-color-light;
+  border: 1px solid var(--color-border-light);
   transition: all $transition-fast;
 
   &+& {
@@ -303,8 +303,8 @@ watch(
   }
 
   &:hover {
-    background: $bg-hover;
-    border-color: $border-color;
+    background: var(--color-bg-hover);
+    border-color: var(--color-border);
   }
 }
 
@@ -319,7 +319,7 @@ watch(
   gap: $space-2;
   font-size: $font-size-body-sm;
   font-weight: $font-weight-semibold;
-  color: $text-primary;
+  color: var(--color-text-primary);
 }
 
 .tm-item-file-icon {
@@ -339,7 +339,7 @@ watch(
   align-items: center;
   gap: $space-0-5;
   font-size: $font-size-caption;
-  color: $text-tertiary;
+  color: var(--color-text-placeholder);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -351,12 +351,12 @@ watch(
   align-items: center;
   gap: $space-0-5;
   font-size: $font-size-micro;
-  color: $text-placeholder;
+  color: var(--color-text-placeholder);
   flex-shrink: 0;
 }
 
 .tm-meta-icon {
-  color: $text-placeholder;
+  color: var(--color-text-placeholder);
   flex-shrink: 0;
 }
 
@@ -374,11 +374,11 @@ watch(
   justify-content: center;
   gap: $space-2;
   padding: $space-8 $space-4;
-  color: $text-placeholder;
+  color: var(--color-text-placeholder);
 
   span {
     font-size: $font-size-body-sm;
-    color: $text-tertiary;
+    color: var(--color-text-placeholder);
   }
 }
 
@@ -398,8 +398,8 @@ watch(
   }
 
   &:disabled {
-    background-color: $text-placeholder !important;
-    border-color: $text-placeholder !important;
+    background-color: var(--color-text-placeholder) !important;
+    border-color: var(--color-text-placeholder) !important;
     cursor: not-allowed;
   }
 }

@@ -579,7 +579,7 @@ async function handleSavePermissions() {
   }
 
   .permission-group {
-    background: #fff;
+    background: var(--color-bg-container);
     border: 1px solid var(--color-border-light, #e5e7eb);
     border-radius: 10px;
     padding: 12px;

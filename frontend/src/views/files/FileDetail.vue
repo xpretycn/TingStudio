@@ -735,9 +735,9 @@ watch(() => route.query.action, (action) => {
     margin-left: -32px;
     margin-right: -32px;
     padding: 8px 32px;
-    background-color: rgba(255, 255, 255, 0.80);
+    background-color: var(--color-bg-container);
     backdrop-filter: blur(12px);
-    border-bottom: 1px solid #f1f5f9;
+    border-bottom: 1px solid var(--color-border-light);
     animation: fadeInDown 0.3s cubic-bezier(0.4, 0, 0.2, 1) both;
 
     .header-left {
@@ -840,7 +840,7 @@ watch(() => route.query.action, (action) => {
             }
 
             &--archived {
-              background-color: #f1f5f9;
+              background-color: var(--color-bg-page);
               color: var(--color-text-secondary);
             }
           }
@@ -933,7 +933,7 @@ watch(() => route.query.action, (action) => {
     }
 
     .info-card {
-      background: #fff;
+      background: var(--color-bg-container);
       padding: $space-6;
       border-radius: $radius-2xl;
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
@@ -968,7 +968,7 @@ watch(() => route.query.action, (action) => {
         padding: $space-3;
         background: var(--color-bg-page);
         border-radius: $radius-xl;
-        border: 1px solid #f1f5f9;
+        border: 1px solid var(--color-border-light);
 
         label {
           display: flex;
@@ -1087,9 +1087,9 @@ watch(() => route.query.action, (action) => {
           transition: all 0.15s ease;
 
           &:hover {
-            background: #f1f5f9;
+            background: var(--color-bg-page);
             color: var(--color-text-primary);
-            border-color: #cbd5e1;
+            border-color: var(--color-border-light);
           }
         }
       }
@@ -1201,7 +1201,7 @@ watch(() => route.query.action, (action) => {
           padding: $space-3;
           background: var(--color-bg-page);
           border-radius: $radius-xl;
-          border: 1px solid #f1f5f9;
+          border: 1px solid var(--color-border-light);
 
           label {
             display: flex;
@@ -1255,7 +1255,7 @@ watch(() => route.query.action, (action) => {
         overflow: auto;
         background: var(--color-bg-page);
         border-radius: $radius-xl;
-        border: 1px solid #f1f5f9;
+        border: 1px solid var(--color-border-light);
         padding: $space-3;
 
         pre {
@@ -1271,7 +1271,7 @@ watch(() => route.query.action, (action) => {
     }
 
     .preview-section {
-      background: #fff;
+      background: var(--color-bg-container);
       border-radius: $radius-2xl;
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
       border: 1px solid var(--color-bg-page);
@@ -1281,7 +1281,7 @@ watch(() => route.query.action, (action) => {
       .preview-header {
         padding: $space-5 $space-6;
         border-bottom: 1px solid var(--color-bg-page);
-        background: rgba(248, 250, 252, 0.5);
+        background: var(--color-bg-page);
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -1334,7 +1334,7 @@ watch(() => route.query.action, (action) => {
             top: 30px;
             bottom: 0;
             width: 2px;
-            background: #f1f5f9;
+            background: var(--color-border-light);
           }
 
           .audit-dot {
@@ -1357,7 +1357,7 @@ watch(() => route.query.action, (action) => {
 
             &--grey {
               background: var(--color-text-placeholder);
-              border: 3px solid #f1f5f9;
+              border: 3px solid var(--color-border-light);
             }
 
             &--red {
@@ -1569,7 +1569,7 @@ watch(() => route.query.action, (action) => {
       .link-results-header {
         padding: 8px var(--space-3-5);
         background: var(--color-bg-page);
-        border-bottom: 1px solid #f1f5f9;
+        border-bottom: 1px solid var(--color-border-light);
 
         .link-results-count {
           font-size: 12px;
@@ -1658,7 +1658,7 @@ watch(() => route.query.action, (action) => {
       justify-content: flex-end;
       gap: var(--space-2-5);
       padding-top: 8px;
-      border-top: 1px solid #f1f5f9;
+      border-top: 1px solid var(--color-border-light);
       margin-top: 4px;
 
       .link-close-btn {
@@ -1666,7 +1666,7 @@ watch(() => route.query.action, (action) => {
         align-items: center;
         gap: var(--space-1-5);
         padding: 8px var(--space-4-5);
-        background: #fff;
+        background: var(--color-bg-container);
         color: var(--color-text-secondary);
         border: 1px solid var(--color-border);
         border-radius: 10px;
@@ -1677,12 +1677,12 @@ watch(() => route.query.action, (action) => {
 
         &:hover {
           background: var(--color-bg-page);
-          border-color: #cbd5e1;
+          border-color: var(--color-border-light);
           color: var(--color-text-primary);
         }
 
         &:active {
-          background: #f1f5f9;
+          background: var(--color-bg-page);
         }
       }
 

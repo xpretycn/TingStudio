@@ -1119,7 +1119,7 @@ onMounted(async () => {
   gap: 8px;
   margin-bottom: 12px;
   padding-bottom: 12px;
-  border-bottom: 1px solid $border-color-light;
+  border-bottom: 1px solid var(--color-border-light);
 
   .logo-cat {
     width: 38px;
@@ -1137,7 +1137,7 @@ onMounted(async () => {
   .logo-text {
     font-size: 18px;
     font-weight: 700;
-    color: $text-primary;
+    color: var(--color-text-primary);
     margin: 0;
     letter-spacing: 0.5px;
   }
@@ -1475,32 +1475,32 @@ onMounted(async () => {
     align-items: center;
     justify-content: space-between;
     padding: 8px var(--space-2-5);
-    background: $bg-page;
+    background: var(--color-bg-page);
     border-radius: 8px;
     margin-bottom: var(--space-1-5);
     cursor: pointer;
     transition: all $transition-slow;
-    border: 1px solid $border-color-light;
+    border: 1px solid var(--color-border-light);
 
     &:hover {
       box-shadow: $shadow-xs;
     }
 
     .nav-icon {
-      color: $text-primary;
+      color: var(--color-text-primary);
       flex-shrink: 0;
     }
 
     .nav-title {
       font-size: 13px;
       font-weight: 600;
-      color: $text-primary;
+      color: var(--color-text-primary);
       flex: 1;
       margin-left: var(--space-1-5);
     }
 
     .nav-toggle {
-      color: $text-primary;
+      color: var(--color-text-primary);
       transition: transform 0.3s;
 
       &.expanded {
@@ -1544,7 +1544,7 @@ onMounted(async () => {
       }
 
       &:focus-visible {
-        background: $bg-page;
+        background: var(--color-bg-page);
         border-radius: 8px;
         outline: none;
       }
@@ -1583,7 +1583,7 @@ onMounted(async () => {
       .nav-item-text {
         flex: 1;
         font-size: 13px;
-        color: $text-primary;
+        color: var(--color-text-primary);
         font-weight: 500;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -1592,7 +1592,7 @@ onMounted(async () => {
       }
 
       .nav-item-arrow {
-        color: $text-secondary;
+        color: var(--color-text-secondary);
         transition: all $transition-slow;
 
         svg {
@@ -1677,7 +1677,7 @@ onMounted(async () => {
     // 分隔线
     .nav-divider {
       height: 1px;
-      background: $border-color-light;
+      background: var(--color-border-light);
       margin: 8px var(--space-3-5);
       opacity: 0.6;
     }
@@ -1704,13 +1704,13 @@ onMounted(async () => {
       border: none;
       background: transparent;
       width: calc(100% - 16px);
-      color: $text-secondary;
+      color: var(--color-text-secondary);
       font-size: 13px;
       font-weight: 500;
 
       &:hover {
         background: var(--color-bg-container);
-        color: $text-primary;
+        color: var(--color-text-primary);
       }
 
       &.expanded {
@@ -1748,7 +1748,7 @@ onMounted(async () => {
   flex-shrink: 0;
   margin: 0 var(--space-4-5) 16px;
   padding: var(--space-3-5);
-  background: $overlay-white-60;
+  background: var(--color-bg-container);
   backdrop-filter: blur(10px);
   border-radius: 14px;
   border: 1px solid var(--overlay-brand-lighter-15);
@@ -1768,7 +1768,7 @@ onMounted(async () => {
       flex: 1;
       font-size: 13px;
       font-weight: 700;
-      color: $text-primary;
+      color: var(--color-text-primary);
     }
 
     .guide-close {
@@ -1779,7 +1779,7 @@ onMounted(async () => {
       justify-content: center;
       border-radius: 50%;
       font-size: 14px;
-      color: $text-secondary;
+      color: var(--color-text-secondary);
       cursor: pointer;
       transition: all $transition-fast;
 
@@ -1851,12 +1851,12 @@ onMounted(async () => {
       .step-text {
         flex: 1;
         font-size: 12px;
-        color: $text-primary;
+        color: var(--color-text-primary);
         font-weight: 500;
       }
 
       .step-arrow {
-        color: $text-secondary;
+        color: var(--color-text-secondary);
         flex-shrink: 0;
       }
     }
@@ -1953,8 +1953,8 @@ onMounted(async () => {
       align-items: center;
       justify-content: center;
       background: var(--color-bg-container);
-      border: 1px solid $border-color-light;
-      color: $text-secondary; // slate-600 ≈ var(--color-text-secondary)
+      border: 1px solid var(--color-border-light);
+      color: var(--color-text-secondary); // slate-600 ≈ var(--color-text-secondary)
       cursor: pointer;
       transition: all $transition-fast;
       flex-shrink: 0;
@@ -2004,7 +2004,7 @@ onMounted(async () => {
       padding: var(--space-1-5) 16px var(--space-1-5) var(--space-1-5); // p-1.5 pr-4 → var(--space-1-5) 16px
       border-radius: 9999px; // rounded-full / pill shape
       background: var(--color-bg-container);
-      border: 1px solid $border-color-light;
+      border: 1px solid var(--color-border-light);
       box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05); // shadow-sm
       transition: all $transition-normal;
 
@@ -2027,13 +2027,13 @@ onMounted(async () => {
       .user-display-name {
         font-size: 14px;
         font-weight: 500;
-        color: $text-primary; // slate-900
+        color: var(--color-text-primary); // slate-900
         white-space: nowrap;
         line-height: 1;
       }
 
       .user-avatar-arrow {
-        color: $text-secondary; // slate-400
+        color: var(--color-text-secondary); // slate-400
         flex-shrink: 0;
         transition: transform 0.3s ease;
       }
@@ -2069,7 +2069,7 @@ onMounted(async () => {
     padding: 8px 12px;
     border-radius: 8px;
     font-size: 13px;
-    color: $text-primary;
+    color: var(--color-text-primary);
     cursor: pointer;
     transition: all $transition-fast;
 
@@ -2106,7 +2106,7 @@ onMounted(async () => {
   padding: 4px;
   min-width: 140px;
   border-radius: 10px;
-  background: $overlay-white-98;
+  background: var(--color-bg-container);
   backdrop-filter: blur(12px);
   border: 1.5px solid var(--overlay-brand-lighter-20);
   box-shadow: $shadow-xl;
@@ -2118,7 +2118,7 @@ onMounted(async () => {
     padding: 8px 12px;
     border-radius: 8px;
     font-size: 13px;
-    color: $text-primary;
+    color: var(--color-text-primary);
     cursor: pointer;
     transition: all $transition-fast;
 
@@ -2524,7 +2524,7 @@ onMounted(async () => {
     padding: 4px !important;
     min-width: 150px !important;
     border-radius: 10px !important;
-    background: rgba(255, 255, 255, 0.98) !important;
+    background: var(--color-bg-container) !important;
     backdrop-filter: blur(12px) !important;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08), 0 1px 4px rgba(16, 185, 129, 0.06) !important;
   }

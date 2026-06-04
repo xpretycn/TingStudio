@@ -1786,7 +1786,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
 }
 
 .ai-panel {
-  background: linear-gradient(145deg, var(--color-bg-container) 0%, var(--color-bg-page) 50%, $border-color-light 100%);
+  background: linear-gradient(145deg, var(--color-bg-container) 0%, var(--color-bg-page) 50%, var(--color-border-light) 100%);
   padding: 32px;
   border-radius: 2.5rem;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.06), 0 8px 10px -6px $overlay-emerald-06;
@@ -1844,7 +1844,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
 
       .ai-subtitle {
         font-size: 12px;
-        color: $text-placeholder;
+        color: var(--color-text-placeholder);
         margin: 4px 0 0;
       }
     }
@@ -2867,7 +2867,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
       background: rgba(245, 158, 11, 0.06);
       border: 1px solid rgba(245, 158, 11, 0.2);
       font-size: 13px;
-      color: #B45309;
+      color: var(--color-warning-dark);
 
       svg {
         flex-shrink: 0;
@@ -3633,7 +3633,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: $border-color-light;
+    background: var(--color-border-light);
 
     img {
       width: 16px;

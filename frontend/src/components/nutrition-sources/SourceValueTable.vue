@@ -130,9 +130,9 @@ function formatAbsDiff(v: number, base: number) {
 .value-table-wrapper {
   display: flex;
   flex-direction: column;
-  background: $bg-container;
+  background: var(--color-bg-container);
   border-radius: $radius-xl;
-  border: 1px solid $border-color-light;
+  border: 1px solid var(--color-border-light);
   overflow: hidden;
 }
 
@@ -141,12 +141,12 @@ function formatAbsDiff(v: number, base: number) {
   align-items: center;
   justify-content: space-between;
   padding: $space-3 $space-4;
-  border-bottom: 1px solid $border-color-light;
+  border-bottom: 1px solid var(--color-border-light);
 }
 
 .toolbar-label {
   font-size: $font-size-caption;
-  color: $text-tertiary;
+  color: var(--color-text-placeholder);
 }
 
 .table-scroll {
@@ -163,13 +163,13 @@ function formatAbsDiff(v: number, base: number) {
   th, td {
     padding: $space-3 $space-4;
     text-align: left;
-    border-bottom: 1px solid $border-color-light;
+    border-bottom: 1px solid var(--color-border-light);
   }
 
   th {
-    background: $bg-container-alt;
+    background: var(--color-bg-container-alt);
     font-weight: $font-weight-semibold;
-    color: $text-primary;
+    color: var(--color-text-primary);
     white-space: nowrap;
   }
 
@@ -177,12 +177,12 @@ function formatAbsDiff(v: number, base: number) {
     min-width: 120px;
     position: sticky;
     left: 0;
-    background: $bg-container;
+    background: var(--color-bg-container);
     z-index: 1;
   }
 
   thead .col-nutrient {
-    background: $bg-container-alt;
+    background: var(--color-bg-container-alt);
   }
 
   .col-value {
@@ -230,25 +230,25 @@ function formatAbsDiff(v: number, base: number) {
 
 .cell-value {
   font-size: $font-size-body;
-  color: $text-primary;
+  color: var(--color-text-primary);
   font-variant-numeric: tabular-nums;
 }
 
 .cell-abs-diff {
   font-size: $font-size-caption;
-  color: $text-tertiary;
+  color: var(--color-text-placeholder);
   font-variant-numeric: tabular-nums;
 }
 
 .nutrient-name {
   font-weight: $font-weight-medium;
-  color: $text-primary;
+  color: var(--color-text-primary);
 }
 
 .nutrient-unit {
   margin-left: $space-1;
   font-size: $font-size-caption;
-  color: $text-tertiary;
+  color: var(--color-text-placeholder);
   font-weight: $font-weight-regular;
 }
 </style>

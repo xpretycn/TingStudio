@@ -154,7 +154,7 @@ describe("exportController - 导出控制器", () => {
     );
   });
 
-  it("getExportConfig 非 admin 应返回 403 FORBIDDEN", async () => {
+  it("getExportConfig 非 admin 应返回默认配置列表", async () => {
     (mockReq as unknown as Record<string, unknown>).user = { userId: "u1", role: "formulist" };
 
     const { getConfig } = await import("../src/services/exportService.js");
@@ -163,13 +163,17 @@ describe("exportController - 导出控制器", () => {
     await getExportConfig(mockReq as Request, mockRes as Response);
 
     expect(getConfig).not.toHaveBeenCalled();
-    expect(statusMock).toHaveBeenCalledWith(403);
     expect(jsonMock).toHaveBeenCalledWith(
-      expect.objectContaining({ success: false, error: expect.objectContaining({ code: "FORBIDDEN" }) }),
+      expect.objectContaining({
+        success: true,
+        data: expect.arrayContaining([
+          expect.objectContaining({ configKey: "default_export_format" }),
+        ]),
+      }),
     );
   });
 
-  it("updateExportConfig 非 admin 应返回 403 FORBIDDEN", async () => {
+  it("updateExportConfig 非 admin 应返回 updatedCount 0", async () => {
     (mockReq as unknown as Record<string, unknown>).user = { userId: "u1", role: "formulist" };
     mockReq.body = { configs: [] };
 
@@ -179,9 +183,11 @@ describe("exportController - 导出控制器", () => {
     await updateExportConfig(mockReq as Request, mockRes as Response);
 
     expect(updateConfig).not.toHaveBeenCalled();
-    expect(statusMock).toHaveBeenCalledWith(403);
     expect(jsonMock).toHaveBeenCalledWith(
-      expect.objectContaining({ success: false, error: expect.objectContaining({ code: "FORBIDDEN" }) }),
+      expect.objectContaining({
+        success: true,
+        data: expect.objectContaining({ updatedCount: 0 }),
+      }),
     );
   });
 });

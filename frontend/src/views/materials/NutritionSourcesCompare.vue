@@ -365,7 +365,7 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   min-height: calc(100vh - #{$header-height});
-  background: $bg-page;
+  background: var(--color-bg-page);
 }
 
 .detail-header {
@@ -378,9 +378,9 @@ onUnmounted(() => {
   margin-left: -32px;
   margin-right: -32px;
   padding: 8px 32px;
-  background-color: color-mix(in srgb, $bg-container 80%, transparent);
+  background-color: color-mix(in srgb, var(--color-bg-container) 80%, transparent);
   backdrop-filter: blur(12px);
-  border-bottom: 1px solid $border-color-light;
+  border-bottom: 1px solid var(--color-border-light);
   animation: fadeInDown 0.3s cubic-bezier(0.4, 0, 0.2, 1) both;
 }
 
@@ -401,7 +401,7 @@ onUnmounted(() => {
   border: none;
   border-radius: 12px;
   background: transparent;
-  color: $text-placeholder;
+  color: var(--color-text-placeholder);
   cursor: pointer;
   transition: all $transition-fast;
   font-size: 20px;
@@ -422,7 +422,7 @@ onUnmounted(() => {
   align-items: center;
   gap: $space-1;
   font-size: $font-size-caption;
-  color: $text-tertiary;
+  color: var(--color-text-tertiary);
   margin-bottom: 2px;
 }
 
@@ -437,11 +437,11 @@ onUnmounted(() => {
 
 .breadcrumb-sep {
   font-size: 12px;
-  color: $text-placeholder;
+  color: var(--color-text-placeholder);
 }
 
 .breadcrumb-current {
-  color: $text-secondary;
+  color: var(--color-text-secondary);
   font-weight: $font-weight-medium;
 }
 
@@ -452,15 +452,15 @@ onUnmounted(() => {
   margin: 0;
   font-size: $font-size-h2;
   font-weight: $font-weight-bold;
-  color: $text-primary;
+  color: var(--color-text-primary);
 }
 
 .title-version-tag {
   display: inline-flex;
   align-items: center;
   padding: 2px 10px;
-  background: $bg-cool-gray;
-  color: $text-secondary;
+  background: var(--color-bg-cool-gray);
+  color: var(--color-text-secondary);
   border-radius: $radius-xs;
   font-size: $font-size-caption;
   font-weight: $font-weight-semibold;
@@ -476,12 +476,12 @@ onUnmounted(() => {
   font-weight: $font-weight-medium;
 
   &--draft {
-    background: $bg-warn-light;
+    background: var(--color-warning-bg);
     color: $color-warning;
   }
 
   &--pending {
-    background: $bg-warn-light;
+    background: var(--color-warning-bg);
     color: $color-warning;
   }
 
@@ -503,7 +503,7 @@ onUnmounted(() => {
   gap: $space-2;
   padding: 8px 16px;
   background-color: var(--color-primary);
-  color: $text-on-primary;
+  color: var(--color-text-on-primary);
   border: none;
   border-radius: 12px;
   font-size: $font-size-body-sm;
@@ -522,13 +522,13 @@ onUnmounted(() => {
   }
 
   &--ghost {
-    background-color: $bg-container;
-    color: $text-primary;
-    border: 1px solid $border-color-light;
+    background-color: var(--color-bg-container);
+    color: var(--color-text-primary);
+    border: 1px solid var(--color-border-light);
     box-shadow: none;
 
     &:hover {
-      background-color: $bg-container-alt;
+      background-color: var(--color-bg-container-alt);
       box-shadow: none;
       transform: none;
     }
@@ -569,15 +569,15 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   min-width: 0;
-  background: $bg-container;
+  background: var(--color-bg-container);
   border-radius: $radius-xl;
-  border: 1px solid $border-color-light;
+  border: 1px solid var(--color-border-light);
   overflow: hidden;
 }
 
 .view-tabs {
   padding: 0 $space-4;
-  border-bottom: 1px solid $border-color-light;
+  border-bottom: 1px solid var(--color-border-light);
   flex-shrink: 0;
 }
 
@@ -596,8 +596,8 @@ onUnmounted(() => {
   height: 16px;
   padding: 0 4px;
   margin-left: $space-1;
-  background: $bg-cool-gray;
-  color: $text-tertiary;
+  background: var(--color-bg-cool-gray);
+  color: var(--color-text-tertiary);
   border-radius: $radius-xs;
   font-family: $font-family-mono;
   font-size: 10px;
@@ -620,8 +620,8 @@ onUnmounted(() => {
   align-items: center;
   gap: $space-4;
   padding: $space-2 $space-4;
-  background: color-mix(in srgb, $text-primary 85%, transparent);
-  color: $text-on-primary;
+  background: color-mix(in srgb, var(--color-text-primary) 85%, transparent);
+  color: var(--color-text-on-primary);
   border-radius: $radius-pill;
   font-size: $font-size-caption;
   box-shadow: $shadow-float;

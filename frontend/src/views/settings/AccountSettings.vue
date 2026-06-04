@@ -808,7 +808,7 @@ onMounted(async () => {
 
     // ══ 通用卡片样式（匹配 FormulaDetail info-card） ══
     .info-card {
-      background: #fff;
+      background: var(--color-bg-container);
       padding: $space-6;
       border-radius: $radius-2xl;
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
@@ -1222,7 +1222,7 @@ onMounted(async () => {
         }
 
         &.active {
-          background: #fff;
+          background: var(--color-bg-container);
           color: var(--color-primary-dark);
           box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 

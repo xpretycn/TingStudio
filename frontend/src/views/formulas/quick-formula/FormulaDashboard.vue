@@ -208,15 +208,15 @@ const costMetrics = computed(() => [
   }
 
   &::-webkit-scrollbar-thumb {
-    background: $border-color;
+    background: var(--color-border);
     border-radius: 2px;
   }
 }
 
 .dashboard-section {
-  background: $bg-container;
+  background: var(--color-bg-container);
   border-radius: $radius-xl;
-  border: 1px solid $border-color-light;
+  border: 1px solid var(--color-border-light);
   box-shadow: $shadow-elevation-1;
   padding: $space-2-5 $space-2;
 }
@@ -233,7 +233,7 @@ const costMetrics = computed(() => [
   gap: $space-1;
   font-size: $font-size-caption;
   font-weight: $font-weight-bold;
-  color: $text-secondary;
+  color: var(--color-text-regular);
   margin: 0 0 $space-1-5;
   letter-spacing: $ls-caption;
 }
@@ -251,7 +251,7 @@ const costMetrics = computed(() => [
   transition: background $transition-fast;
 
   &:hover {
-    background: $bg-hover;
+    background: var(--color-bg-hover);
   }
 
   &--ratio-normal {
@@ -353,7 +353,7 @@ const costMetrics = computed(() => [
 
 .metric-label {
   font-size: $font-size-caption;
-  color: $text-tertiary;
+  color: var(--color-text-placeholder);
   letter-spacing: $ls-caption;
   white-space: nowrap;
   line-height: 1.2;
@@ -362,7 +362,7 @@ const costMetrics = computed(() => [
 .metric-value {
   font-size: $font-size-body-sm;
   font-weight: $font-weight-bold;
-  color: $text-primary;
+  color: var(--color-text-primary);
   line-height: 1.3;
   white-space: nowrap;
 
@@ -405,7 +405,7 @@ const costMetrics = computed(() => [
 .metric-unit {
   font-size: $font-size-caption;
   font-weight: $font-weight-regular;
-  color: $text-tertiary;
+  color: var(--color-text-placeholder);
   margin-left: 1px;
 }
 
