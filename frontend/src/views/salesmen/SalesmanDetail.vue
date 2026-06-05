@@ -726,15 +726,14 @@ onMounted(() => { loadData(); });
     .formula-section {
       background: var(--color-bg-container);
       border-radius: var(--radius-4xl);
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-      border: 1px solid var(--color-bg-page);
+      border: 1px solid var(--color-border);
       overflow: hidden;
       animation: fadeInUp 0.4s ease both;
 
       .formula-header {
         padding: 20px 24px;
-        border-bottom: 1px solid var(--color-bg-page);
-        background: var(--color-bg-page);
+        border-bottom: 1px solid var(--color-border-light);
+        background: transparent;
 
         .formula-title {
           font-size: 18px;
@@ -765,16 +764,16 @@ onMounted(() => { loadData(); });
 
       .formula-item {
         padding: 20px;
-        background: var(--color-bg-page);
+        background: var(--color-bg-container-secondary, rgba(255, 255, 255, 0.03));
         border-radius: 16px;
         border: 1px solid var(--color-border-light);
         cursor: pointer;
         transition: all $transition-normal;
 
         &:hover {
-          background: var(--color-bg-container);
+          background: var(--color-bg-hover);
           border-color: var(--color-primary);
-          box-shadow: 0 4px 12px rgba(16, 185, 129, 0.08);
+          box-shadow: 0 4px 12px rgba(255, 107, 138, 0.1);
           transform: translateY(-1px);
         }
 

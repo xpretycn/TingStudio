@@ -16,6 +16,7 @@
             </nav>
             <h3 class="page-title">
               {{ formulaName || '配方' }}
+              <span class="formula-id-tag">{{ formulaId.slice(-6) }}</span>
               <span v-if="currentVersionNumber" class="version-tag">{{ currentVersionNumber }}</span>
             </h3>
           </div>
@@ -626,10 +627,8 @@ const formatRatioFactor = (val: unknown): string => {
 };
 
 const calcActualWeight = (material: SnapshotMaterial): number => {
-  const finishedWeight = _resolveSnapshotValue<number>('finishedWeight', 0)
-    || _resolveSnapshotValue<number>('finished_weight', 0);
-  const quantity = material.quantity || 0;
-  return (quantity / 100) * Number(finishedWeight);
+  // quantity 在数据库中已存储为实际克重，无需再乘以成品重量
+  return material.quantity || 0;
 };
 
 const calcRatio = (material: SnapshotMaterial): number => {
@@ -1109,6 +1108,17 @@ onMounted(async () => {
           display: flex;
           align-items: center;
           gap: 8px;
+
+          .formula-id-tag {
+            display: inline-flex;
+            align-items: center;
+            padding: 1px 8px;
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--color-text-secondary, rgba(255, 255, 255, 0.55));
+            font-size: 12px;
+            border-radius: $radius-sm;
+            font-family: ui-monospace, SFMono-Regular, 'Cascadia Code', monospace;
+          }
 
           .version-tag {
             display: inline-flex;

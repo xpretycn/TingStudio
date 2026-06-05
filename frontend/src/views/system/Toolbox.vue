@@ -337,6 +337,41 @@ function formatTime(updateTime: string): string {
   }
 }
 
+// ─── 暗色模式适配 ───
+[data-theme="dark"] {
+  .page-tabs {
+    :deep(.t-tabs__content) {
+      background: var(--color-bg-container-alt);
+      border-color: var(--color-border);
+      box-shadow: none;
+    }
+  }
+
+  .tool-card {
+    background: var(--color-bg-container);
+    border-color: var(--color-border);
+
+    &:hover {
+      box-shadow: $shadow-elevation-1;
+      border-color: var(--color-primary-lighter);
+    }
+  }
+
+  .weather-section {
+    .weather-main {
+      padding: 32px 40px;
+      background: var(--color-bg-container);
+      border-radius: $radius-2xl;
+      border: 1px solid var(--color-border);
+    }
+
+    .weather-details .detail-item {
+      background: var(--color-bg-container-alt);
+      border-color: var(--color-border);
+    }
+  }
+}
+
 // ─── 工具卡片网格 ───
 .tools-grid {
   display: grid;

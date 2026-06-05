@@ -116,15 +116,6 @@ function onFormulaPageChange(val: unknown) {
 const formulaTotalPages = computed(() => Math.ceil(store.myTotal / store.myPageSize));
 const materialTotalPages = computed(() => Math.ceil(store.myMaterialTotal / store.myMaterialPageSize));
 
-const materialPageNumbers = computed<(number | string)[]>(() => {
-  const total = materialTotalPages.value;
-  const current = store.myMaterialPage;
-  if (total <= 5) return Array.from({ length: total }, (_, i) => i + 1);
-  if (current <= 3) return [1, 2, 3, "...", total];
-  if (current >= total - 2) return [1, "...", total - 2, total - 1, total];
-  return [1, "...", current - 1, current, current + 1, "...", total];
-});
-
 onMounted(() => {
   store.fetchMySubmissions({ page: 1 });
   store.fetchMyMaterialSubmissions({ page: 1 });
@@ -346,25 +337,14 @@ watch(activeTab, () => {
         </div>
 
         <div v-if="materialTotalPages > 1" class="my-approval__pagination">
-          <div class="pagination-info">
-            显示第 {{ (store.myMaterialPage - 1) * store.myMaterialPageSize + 1 }}-{{ Math.min(store.myMaterialPage *
-              store.myMaterialPageSize, store.myMaterialTotal) }} 条，共 {{ store.myMaterialTotal }} 条数据
-          </div>
-          <div class="pagination-controls">
-            <button class="pagination-btn" :class="{ 'pagination-btn--disabled': store.myMaterialPage === 1 }"
-              :disabled="store.myMaterialPage === 1"
-              @click="store.fetchMyMaterialSubmissions({ page: store.myMaterialPage - 1 })">上一页</button>
-            <template v-for="page in materialPageNumbers" :key="page">
-              <button v-if="page !== '...'" class="pagination-btn"
-                :class="{ 'pagination-btn--active': page === store.myMaterialPage }"
-                @click="typeof page === 'number' && store.fetchMyMaterialSubmissions({ page })">{{ page }}</button>
-              <span v-else class="pagination-ellipsis">...</span>
-            </template>
-            <button class="pagination-btn"
-              :class="{ 'pagination-btn--disabled': store.myMaterialPage === materialTotalPages }"
-              :disabled="store.myMaterialPage === materialTotalPages"
-              @click="store.fetchMyMaterialSubmissions({ page: store.myMaterialPage + 1 })">下一页</button>
-          </div>
+          <button class="pagination-btn" :class="{ 'pagination-btn--disabled': store.myMaterialPage === 1 }"
+            :disabled="store.myMaterialPage === 1"
+            @click="store.fetchMyMaterialSubmissions({ page: store.myMaterialPage - 1 })">上一页</button>
+          <span class="pagination-page">{{ store.myMaterialPage }} / {{ materialTotalPages }}</span>
+          <button class="pagination-btn"
+            :class="{ 'pagination-btn--disabled': store.myMaterialPage === materialTotalPages }"
+            :disabled="store.myMaterialPage === materialTotalPages"
+            @click="store.fetchMyMaterialSubmissions({ page: store.myMaterialPage + 1 })">下一页</button>
         </div>
       </t-loading>
     </template>
@@ -373,6 +353,11 @@ watch(activeTab, () => {
 
 <style lang="scss" scoped>
 .my-approval {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+
   &__module-tabs {
     margin-bottom: 4px;
     --td-brand-color: var(--color-primary);
@@ -415,6 +400,9 @@ watch(activeTab, () => {
     display: flex;
     flex-direction: column;
     gap: 12px;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
   }
 
   &__item {
@@ -575,28 +563,26 @@ watch(activeTab, () => {
 
   &__pagination {
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
+    gap: 12px;
     margin-top: 12px;
     padding-top: 8px;
+    flex-shrink: 0;
 
-    .pagination-info {
+    .pagination-page {
       font-size: 12px;
       color: var(--td-text-color-placeholder);
-      white-space: nowrap;
-    }
-
-    .pagination-controls {
-      display: flex;
-      align-items: center;
-      gap: 4px;
+      min-width: 36px;
+      text-align: center;
+      user-select: none;
     }
 
     .pagination-btn {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      padding: 4px 10px;
+      padding: 4px 14px;
       border: 1px solid var(--td-component-border);
       border-radius: 6px;
       background-color: transparent;
@@ -607,39 +593,18 @@ watch(activeTab, () => {
       white-space: nowrap;
       user-select: none;
 
-      &:hover:not(.pagination-btn--disabled):not(.pagination-btn--active) {
+      &:hover:not(.pagination-btn--disabled) {
         background-color: var(--td-brand-color-light);
         border-color: var(--color-primary);
         color: var(--color-primary);
       }
 
       &.pagination-btn--disabled {
-        opacity: 0.5;
-        cursor: not-allowed !important;
+        opacity: 0.4;
+        cursor: not-allowed;
         color: var(--td-text-color-placeholder);
-        background-color: transparent;
-        border-color: var(--td-component-border);
         pointer-events: none;
       }
-
-      &.pagination-btn--active {
-        background-color: var(--color-primary);
-        color: #fff;
-        border-color: var(--color-primary);
-        font-weight: 600;
-        pointer-events: none;
-      }
-    }
-
-    .pagination-ellipsis {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 28px;
-      height: 26px;
-      color: var(--td-text-color-placeholder);
-      font-size: 12px;
-      user-select: none;
     }
   }
 }

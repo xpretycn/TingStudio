@@ -259,6 +259,20 @@ export async function exportFormulaToExcel(
   XLSX.utils.book_append_sheet(workbook, quotationSheet, "报价信息");
   }
 
+  // 预计算配方总营养成分（nutritionTable 和 nrvTable 共用）
+  const totalNutrition = { protein: 0, fat: 0, carbohydrate: 0, sodium: 0, calories: 0 };
+  materials.forEach((m: any) => {
+    const nutrition = m.materialId ? nutritionData.get(m.materialId) : null;
+    if (nutrition) {
+      const ratio = (m.quantity || 0) / 100;
+      totalNutrition.protein += nutrition.protein * ratio;
+      totalNutrition.fat += nutrition.fat * ratio;
+      totalNutrition.carbohydrate += nutrition.carbohydrate * ratio;
+      totalNutrition.sodium += nutrition.sodium * ratio;
+      totalNutrition.calories += nutrition.calories * ratio;
+    }
+  });
+
   // ===== Sheet 4: 营养数据 =====
   if (fields.includes('nutritionTable')) {
     const nutritionHeader = [
@@ -271,64 +285,103 @@ export async function exportFormulaToExcel(
     "热量(kcal/100g)",
     "膳食纤维(g/100g)",
   ];
-  const nutritionRows = materials.map((m: any, i: number) => {
-    const detail = m.materialId ? materialDetails.get(m.materialId) : null;
-    const nutrition = m.materialId ? nutritionData.get(m.materialId) : null;
-    return [
-      i + 1,
-      detail?.name || m.materialName || "未匹配原料",
-      nutrition?.protein ?? 0,
-      nutrition?.fat ?? 0,
-      nutrition?.carbohydrate ?? 0,
-      nutrition?.sodium ?? 0,
-      nutrition?.calories ?? 0,
-      nutrition?.dietaryFiber ?? 0,
-    ];
-  });
-  const nutritionData2 = [nutritionHeader, ...nutritionRows];
-
-  // 计算配方总量
-  const totalNutrition = materials.reduce(
-    (acc: any, m: any) => {
-      const ratio = (m.quantity || 0) / 100;
+    const nutritionRows = materials.map((m: any, i: number) => {
+      const detail = m.materialId ? materialDetails.get(m.materialId) : null;
       const nutrition = m.materialId ? nutritionData.get(m.materialId) : null;
-      if (nutrition) {
-        acc.protein += nutrition.protein * ratio;
-        acc.fat += nutrition.fat * ratio;
-        acc.carbohydrate += nutrition.carbohydrate * ratio;
-        acc.sodium += nutrition.sodium * ratio;
-        acc.calories += nutrition.calories * ratio;
-        acc.dietaryFiber += nutrition.dietaryFiber * ratio;
-      }
-      return acc;
-    },
-    { protein: 0, fat: 0, carbohydrate: 0, sodium: 0, calories: 0, dietaryFiber: 0 },
-  );
+      return [
+        i + 1,
+        detail?.name || m.materialName || "未匹配原料",
+        nutrition?.protein ?? 0,
+        nutrition?.fat ?? 0,
+        nutrition?.carbohydrate ?? 0,
+        nutrition?.sodium ?? 0,
+        nutrition?.calories ?? 0,
+        nutrition?.dietaryFiber ?? 0,
+      ];
+    });
+    const nutritionData2 = [nutritionHeader, ...nutritionRows];
 
-  nutritionData2.push([]);
-  nutritionData2.push([
-    "",
-    "配方合计",
-    totalNutrition.protein.toFixed(2),
-    totalNutrition.fat.toFixed(2),
-    totalNutrition.carbohydrate.toFixed(2),
-    totalNutrition.sodium.toFixed(2),
-    totalNutrition.calories.toFixed(2),
-    totalNutrition.dietaryFiber.toFixed(2),
-  ]);
+    nutritionData2.push([]);
+    nutritionData2.push([
+      "",
+      "配方合计",
+      totalNutrition.protein.toFixed(2),
+      totalNutrition.fat.toFixed(2),
+      totalNutrition.carbohydrate.toFixed(2),
+      totalNutrition.sodium.toFixed(2),
+      totalNutrition.calories.toFixed(2),
+      "--",
+    ]);
 
-  const nutritionSheet = XLSX.utils.aoa_to_sheet(nutritionData2);
-  nutritionSheet["!cols"] = [
-    { wch: 6 },
-    { wch: 20 },
-    { wch: 14 },
-    { wch: 14 },
-    { wch: 18 },
-    { wch: 14 },
-    { wch: 16 },
-    { wch: 18 },
-  ];
-  XLSX.utils.book_append_sheet(workbook, nutritionSheet, "营养数据");
+    const nutritionSheet = XLSX.utils.aoa_to_sheet(nutritionData2);
+    nutritionSheet["!cols"] = [
+      { wch: 6 },
+      { wch: 20 },
+      { wch: 14 },
+      { wch: 14 },
+      { wch: 18 },
+      { wch: 14 },
+      { wch: 16 },
+      { wch: 18 },
+    ];
+    XLSX.utils.book_append_sheet(workbook, nutritionSheet, "营养数据");
+  }
+
+  // ===== Sheet 5: 营养成分表(NRV%) =====
+  if (fields.includes('nrvTable')) {
+    const NRV_CONFIG: Record<string, { unitLabel: string; refValue: number; zeroLimit: string; tolerance: string }> = {
+      energy:   { unitLabel: "千焦(kJ)", refValue: 8400, zeroLimit: "≤17千焦(kJ)", tolerance: "≤120%标示值" },
+      protein:  { unitLabel: "克(g)",   refValue: 60,   zeroLimit: "≤0.5克(g)",   tolerance: "≥80%标示值" },
+      fat:       { unitLabel: "克(g)",   refValue: 60,   zeroLimit: "≤0.5克(g)",   tolerance: "≤120%标示值" },
+      carbohydrate: { unitLabel: "克(g)", refValue: 300, zeroLimit: "≤0.5克(g)", tolerance: "≥80%标示值" },
+      sodium:    { unitLabel: "毫克(mg)", refValue: 2000, zeroLimit: "≤5毫克(mg)", tolerance: "≤120%标示值" },
+    };
+
+    const nrvItems = [
+      { key: "energy", label: "能量", value: totalNutrition.calories },
+      { key: "protein", label: "蛋白质", value: totalNutrition.protein },
+      { key: "fat", label: "脂肪", value: totalNutrition.fat },
+      { key: "carbohydrate", label: "碳水化合物", value: totalNutrition.carbohydrate },
+      { key: "sodium", label: "钠", value: totalNutrition.sodium / 1000 },
+    ];
+
+    const nrvHeader = ["项目", "每100克(g)", "", "营养素参考值%", "0界限值", "允许误差范围"];
+    const nrvRows = nrvItems.map((item) => {
+      const config = NRV_CONFIG[item.key];
+      const per100g = item.value;
+      const nrvPct = config.refValue > 0 ? ((per100g / config.refValue) * 100).toFixed(2) : "0.00";
+      return [
+        item.label,
+        per100g > 0 ? parseFloat(per100g.toFixed(4).replace(/\.?0+$/, "")) : 0,
+        config.unitLabel,
+        nrvPct,
+        config.zeroLimit,
+        config.tolerance,
+      ];
+    });
+
+    const nrvData = [["营养成分表"], [""], nrvHeader, ...nrvRows];
+    const nrvSheet = XLSX.utils.aoa_to_sheet(nrvData);
+    nrvSheet["!cols"] = [{ wch: 14 }, { wch: 16 }, { wch: 14 }, { wch: 18 }, { wch: 18 }, { wch: 18 }];
+    XLSX.utils.book_append_sheet(workbook, nrvSheet, "营养成分表");
+  }
+
+  // ===== Sheet 6: 使用说明 =====
+  if (fields.includes('usageNotes')) {
+    const usageData = [
+      ["使用说明"],
+      [""],
+      ["(1) 含量比指原料在成品中含量比"],
+      ["(2) 每100g原料中营养素值通过中国食物成分表或原料营养标签或自检测中查找"],
+      ["(3) 营养素参考值(NRV)在GB 28050附录A查找"],
+      ["(4) 只需输入配料重量和各配料营养素值就可自动计算出营养成分表"],
+      ["(5) 通过技术处理就可以得出正式营养成分表"],
+      [""],
+      [`由 TingStudio 生成于 ${new Date().toLocaleString("zh-CN")}`],
+    ];
+    const usageSheet = XLSX.utils.aoa_to_sheet(usageData);
+    usageSheet["!cols"] = [{ wch: 70 }];
+    XLSX.utils.book_append_sheet(workbook, usageSheet, "使用说明");
   }
 
   // 生成文件

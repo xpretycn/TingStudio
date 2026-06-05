@@ -2028,8 +2028,8 @@ watch(() => aiStore.materialParseResult, (newVal) => {
       gap: var(--space-2-5);
       margin-top: 12px;
       padding: var(--space-2-5) 16px;
-      background: var(--color-primary-bg);
-      border: 1px solid var(--color-primary-lightest);
+      background: var(--color-bg-container);
+      border: 1px solid var(--color-border);
       border-radius: var(--radius-xl);
 
       .template-selector-label {
@@ -2050,8 +2050,8 @@ watch(() => aiStore.materialParseResult, (newVal) => {
       justify-content: space-between;
       margin-top: 16px;
       padding: var(--space-3-5) var(--space-4-5);
-      background: linear-gradient(135deg, var(--color-emerald-50), var(--color-emerald-50));
-      border: 1px solid var(--color-emerald-50);
+      background: var(--color-bg-container);
+      border: 1px solid var(--color-border);
       border-radius: 12px;
 
       .file-info {
@@ -2189,13 +2189,13 @@ watch(() => aiStore.materialParseResult, (newVal) => {
           display: inline-flex;
           align-items: center;
           padding: var(--space-0-5) var(--space-2-5);
-          background: linear-gradient(135deg, var(--color-lavender) 0%, var(--color-lavender) 100%);
+          background: var(--color-primary);
           color: var(--color-text-white);
           font-size: 11px;
           font-weight: 700;
           font-family: 'SF Mono', 'Fira Code', monospace;
           border-radius: 20px;
-          box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+          box-shadow: 0 2px 8px $overlay-emerald-25;
           animation: timerPulse 1s ease-in-out infinite;
 
           @keyframes timerPulse {
@@ -2306,10 +2306,10 @@ watch(() => aiStore.materialParseResult, (newVal) => {
         gap: var(--space-1-5);
         margin-top: var(--space-2-5);
         padding: var(--space-1-5) var(--space-2-5);
-        background: rgba(99, 102, 241, 0.06);
-        border: 1px solid rgba(99, 102, 241, 0.12);
+        background: var(--color-bg-container);
+        border: 1px solid var(--color-border);
         border-radius: 8px;
-        color: var(--color-lavender);
+        color: var(--color-text-secondary);
         font-size: 11px;
 
         svg {
@@ -2497,51 +2497,51 @@ watch(() => aiStore.materialParseResult, (newVal) => {
             }
 
             &--save-template {
-              background: var(--color-lavender);
-              border: 1px solid var(--color-lavender);
-              color: var(--color-lavender);
+              background: var(--color-primary-bg);
+              border: 1px solid var(--color-primary);
+              color: var(--color-primary);
 
               svg {
-                color: var(--color-lavender);
+                color: var(--color-primary);
               }
 
               &:hover {
-                background: var(--color-lavender);
-                border-color: var(--color-lavender);
-                color: var(--color-lavender);
+                background: var(--color-primary);
+                border-color: var(--color-primary);
+                color: var(--color-text-white);
 
                 svg {
-                  color: var(--color-lavender);
+                  color: var(--color-text-white);
                 }
               }
 
               &:active {
-                background: var(--color-lavender);
+                background: var(--color-primary-dark);
                 transform: scale(0.97);
               }
             }
 
             &--reparse {
-              background: var(--color-emerald-50);
-              border: 1px solid var(--color-emerald-50);
-              color: var(--color-primary-dark);
+              background: var(--color-bg-container);
+              border: 1px solid var(--color-border);
+              color: var(--color-text-secondary);
 
               svg {
-                color: var(--color-primary-dark);
+                color: var(--color-text-secondary);
               }
 
               &:hover {
-                background: var(--color-emerald-50);
-                border-color: var(--color-emerald-400);
-                color: var(--color-primary-deep);
+                background: var(--color-primary-bg);
+                border-color: var(--color-primary);
+                color: var(--color-primary);
 
                 svg {
-                  color: var(--color-primary-deep);
+                  color: var(--color-primary);
                 }
               }
 
               &:active {
-                background: var(--color-emerald-50);
+                background: var(--color-primary-bg);
                 transform: scale(0.97);
               }
             }
@@ -2902,13 +2902,13 @@ watch(() => aiStore.materialParseResult, (newVal) => {
       }
 
       &--sequential {
-        background: linear-gradient(135deg, var(--color-lavender), var(--color-lavender));
-        color: var(--color-text-white);
-        border: none;
+        background: var(--color-bg-container);
+        color: var(--color-primary);
+        border: 1px solid var(--color-primary);
 
         &:hover:not(:disabled) {
           transform: translateY(-2px);
-          box-shadow: 0 6px 20px rgba(99, 102, 241, 0.35);
+          box-shadow: 0 6px 20px $overlay-emerald-25;
         }
       }
 
@@ -2969,8 +2969,8 @@ watch(() => aiStore.materialParseResult, (newVal) => {
     .sequential-confirm-card {
       margin-top: 20px;
       padding: 20px;
-      background: linear-gradient(135deg, var(--color-lavender), var(--color-lavender));
-      border: 1px solid var(--color-lavender);
+      background: var(--color-bg-container);
+      border: 1px solid var(--color-border);
       border-radius: 16px;
       animation: fadeInUp 0.3s ease both;
 
@@ -2986,16 +2986,16 @@ watch(() => aiStore.materialParseResult, (newVal) => {
           gap: 8px;
           font-size: 14px;
           font-weight: 700;
-          color: var(--color-lavender);
+          color: var(--color-text-primary);
         }
 
         .sequential-progress-badge {
           padding: var(--space-1) var(--space-2-5);
-          background: rgba(99, 102, 241, 0.15);
+          background: var(--color-primary-bg);
           border-radius: 8px;
           font-size: 12px;
           font-weight: 700;
-          color: var(--color-lavender);
+          color: var(--color-primary);
           font-variant-numeric: tabular-nums;
         }
       }
@@ -3003,14 +3003,14 @@ watch(() => aiStore.materialParseResult, (newVal) => {
       .sequential-progress-bar {
         width: 100%;
         height: 6px;
-        background: rgba(99, 102, 241, 0.15);
+        background: var(--color-border-light);
         border-radius: var(--radius-xs);
         overflow: hidden;
         margin-bottom: 16px;
 
         .sequential-progress-fill {
           height: 100%;
-          background: linear-gradient(90deg, var(--color-lavender), var(--color-lavender));
+          background: var(--color-primary);
           border-radius: var(--radius-xs);
           transition: width 0.3s ease;
         }
@@ -3125,10 +3125,10 @@ watch(() => aiStore.materialParseResult, (newVal) => {
         align-items: center;
         gap: 8px;
         padding: 16px 20px;
-        background: linear-gradient(135deg, var(--color-emerald-50), var(--color-emerald-50));
+        background: var(--color-primary-bg);
         font-size: 15px;
         font-weight: 700;
-        color: var(--color-primary-dark);
+        color: var(--color-primary);
       }
 
       .summary-body {
@@ -3193,7 +3193,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
 
       &--success {
         color: var(--color-primary-dark);
-        background: var(--color-emerald-50);
+        background: var(--color-primary-bg);
       }
 
       &--fail {

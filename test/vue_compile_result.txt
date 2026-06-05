@@ -1,0 +1,11 @@
+=== Script Setup ===
+THROW: [vue/compiler-sfc] Unexpected token (219:31)
+
+anonymous.vue
+723|  // const debouncedHandleSend: ((...args: unknown[]) => void) | null = null
+724|  
+725|  const dataCards = ref<DataCard[]>([
+   |                                 ^
+726|    {
+727|      id: 'formulas',
+  at Lundefined:Cundefined

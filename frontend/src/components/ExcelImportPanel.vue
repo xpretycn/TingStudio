@@ -266,9 +266,27 @@ function triggerUpload() {
 <style scoped lang="scss">
 .excel-import-panel {
   padding: $space-4;
-  background: var(--color-bg-container-alt);
+  background: var(--color-bg-container);
   border-radius: $radius-md;
   margin-bottom: $space-5;
+  border: 1px solid var(--color-border);
+
+  :deep(.t-alert) {
+    background: var(--color-bg-container-secondary, rgba(255, 255, 255, 0.04));
+    border-color: var(--color-border-light);
+    border-radius: $radius-sm;
+
+    .t-alert__title,
+    .t-alert__content,
+    .t-alert__description,
+    .t-alert__message {
+      color: var(--color-text-primary);
+    }
+
+    .t-icon {
+      color: var(--color-primary);
+    }
+  }
 }
 
 .guide-title {
@@ -400,20 +418,20 @@ function triggerUpload() {
   border-top: 1px solid transparent;
 
   &--error {
-    background: var(--color-danger-light);
-    border-color: var(--color-danger-bg);
+    background: var(--color-danger-bg, rgba(255, 77, 79, 0.08));
+    border-color: var(--color-danger-border, rgba(255, 77, 79, 0.2));
     color: var(--color-danger);
   }
 
   &--warning {
-    background: var(--color-warning-light);
-    border-color: var(--color-warning-bg);
+    background: var(--color-warning-bg, rgba(250, 173, 20, 0.08));
+    border-color: var(--color-warning-border, rgba(250, 173, 20, 0.2));
     color: var(--color-warning-dark);
   }
 
   &--info {
-    background: var(--color-info-light);
-    border-color: var(--color-info-bg);
+    background: var(--color-info-bg, rgba(22, 119, 255, 0.08));
+    border-color: var(--color-info-border, rgba(22, 119, 255, 0.2));
     color: var(--color-info);
   }
 
@@ -574,9 +592,9 @@ function triggerUpload() {
     padding: var(--space-2-5) var(--space-3-5);
     font-size: 11px;
     font-weight: 800;
-    color: $emerald-600;
+    color: var(--color-primary);
     letter-spacing: 0.05em;
-    background: $overlay-emerald-08;
+    background: var(--color-bg-container-secondary, rgba(255, 255, 255, 0.03));
   }
 
   .parse-table-row {
@@ -594,7 +612,7 @@ function triggerUpload() {
     }
 
     &:hover {
-      background: $overlay-emerald-04;
+      background: var(--color-bg-hover);
     }
   }
 

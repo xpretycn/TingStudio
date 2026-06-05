@@ -74,6 +74,7 @@ const materialPendingCount = computed(() => approvalStore.materialPendingCount)
   &__body {
     flex: 1;
     min-height: 0;
+    max-height: 700px;
     overflow-y: auto;
   }
 }

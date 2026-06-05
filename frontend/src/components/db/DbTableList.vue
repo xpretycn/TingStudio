@@ -248,6 +248,15 @@ const indexColumns = [
   padding: 20px;
 }
 
+// ─── 暗色模式适配 ───
+[data-theme="dark"] {
+  .db-table-list {
+    background: var(--color-bg-container);
+    border-color: var(--color-border);
+    box-shadow: none;
+  }
+}
+
 .section-header {
   display: flex;
   align-items: center;

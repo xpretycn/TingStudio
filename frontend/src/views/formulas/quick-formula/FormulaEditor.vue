@@ -145,7 +145,7 @@ function handlePublish() {
                   <t-icon name="rollback" size="12px" />
                 </button>
                 <t-popconfirm content="确认移除该原料？" @confirm="handleDelete(material.materialId)">
-                  <button type="button" class="remove-material-btn" title="移除此原料">
+                  <button type="button" class="remove-material-btn" title="移除此原料" tabindex="-1">
                     <t-icon name="delete" size="12px" />
                   </button>
                 </t-popconfirm>
@@ -194,7 +194,7 @@ function handlePublish() {
                   <t-icon name="rollback" size="12px" />
                 </button>
                 <t-popconfirm content="确认移除该原料？" @confirm="handleDelete(material.materialId)">
-                  <button type="button" class="remove-material-btn" title="移除此原料">
+                  <button type="button" class="remove-material-btn" title="移除此原料" tabindex="-1">
                     <t-icon name="delete" size="12px" />
                   </button>
                 </t-popconfirm>
@@ -678,18 +678,18 @@ function handlePublish() {
 }
 
 .btn-emerald-fill {
-  background-color: $emerald-500 !important;
-  color: $text-white !important;
-  border-color: $emerald-500 !important;
+  background-color: var(--color-primary) !important;
+  color: #fff !important;
+  border-color: var(--color-primary) !important;
 
   &:hover {
-    background-color: $emerald-600 !important;
-    border-color: $emerald-600 !important;
+    background-color: var(--color-primary-dark) !important;
+    border-color: var(--color-primary-dark) !important;
   }
 
   &:active {
-    background-color: $emerald-600 !important;
-    border-color: $emerald-600 !important;
+    background-color: var(--color-primary-deep) !important;
+    border-color: var(--color-primary-deep) !important;
   }
 
   &:disabled {

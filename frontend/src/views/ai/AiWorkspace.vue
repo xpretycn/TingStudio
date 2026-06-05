@@ -770,7 +770,9 @@ const valueRefs = ref<HTMLElement[]>([]);
 
 // 快捷操作
 const quickActions = [
-  { label: '+ 新建配方', icon: 'add-circle', path: '/formulas/new', primary: true },
+  { label: '快速录入', icon: 'edit-1', path: '/formulas/quick', primary: true },
+  { label: '+ 新建配方', icon: 'add-circle', path: '/formulas/new' },
+  { label: '工具箱', icon: 'control-platform', path: '/tools' },
   { label: '+ 添加原料', icon: 'add', path: '/materials/new' },
   { label: '生成周报', icon: 'file-icon', path: '/reports/generate?type=weekly' },
   { label: '导出数据', icon: 'download', path: '/system/config' },
@@ -2768,6 +2770,10 @@ onUnmounted(() => {
     gap: 8px;
     margin-bottom: 12px;
 
+    .t-icon {
+      color: var(--color-primary);
+    }
+
     .card-title {
       font-size: 12px;
       color: var(--color-text-secondary);
@@ -2923,6 +2929,11 @@ onUnmounted(() => {
     gap: var(--space-1-5);
     background: var(--color-bg-container);
     position: relative;
+    color: var(--color-text-primary);
+
+    .t-icon {
+      color: var(--color-primary);
+    }
 
     &:hover {
       border-color: var(--color-primary);
@@ -2938,6 +2949,10 @@ onUnmounted(() => {
       background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
       color: white;
       border-color: transparent;
+
+      .t-icon {
+        color: #ffffff;
+      }
 
       &:hover {
         box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
@@ -3775,6 +3790,8 @@ onUnmounted(() => {
             height: 14px;
             border-radius: var(--radius-2xs);
             vertical-align: middle;
+            background: var(--color-bg-container);
+            padding: 1px;
           }
 
           .meta-model-logo-fallback {
@@ -3788,11 +3805,12 @@ onUnmounted(() => {
             font-weight: 700;
             vertical-align: middle;
             flex-shrink: 0;
+            background: var(--color-bg-container);
           }
 
           .meta-model {
-            background: var(--color-bg-container-alt);
-            color: var(--color-text-secondary);
+            background: var(--color-bg-container);
+            color: var(--color-text-primary);
             padding: 1px var(--space-1-5);
             border-radius: 4px;
             font-weight: 500;
@@ -4224,10 +4242,15 @@ onUnmounted(() => {
             cursor: pointer;
             transition: all 0.2s;
             white-space: nowrap;
+            color: var(--color-text-primary);
 
             &:hover {
               border-color: var(--color-primary);
-              background: #f0fdf4;
+              background: var(--color-bg-container-alt);
+            }
+
+            .t-icon {
+              color: var(--color-text-secondary);
             }
 
             .model-trigger-logo {
@@ -4342,13 +4365,14 @@ onUnmounted(() => {
             border-radius: 8px;
             cursor: pointer;
             transition: all 0.15s;
+            color: var(--color-text-primary);
 
             &:hover {
               background: var(--color-bg-container-alt);
             }
 
             &.active {
-              background: #ecfdf5;
+              background: var(--color-primary-bg);
             }
 
             .model-item-logo-wrap {
@@ -4360,7 +4384,7 @@ onUnmounted(() => {
               justify-content: center;
               flex-shrink: 0;
               border-radius: 4px;
-              background: var(--color-bg-page);
+              background: var(--color-bg-container);
               overflow: hidden;
 
               .model-item-logo {

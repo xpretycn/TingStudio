@@ -276,8 +276,8 @@ onUnmounted(() => {
     gap: var(--space-2);
     padding: var(--space-2) var(--space-3);
     margin-bottom: 12px;
-    background: linear-gradient(135deg, var(--color-emerald-50) 0%, var(--color-emerald-50) 100%);
-    border: 1px solid var(--color-primary-lightest);
+    background: var(--color-primary-bg);
+    border: 1px solid var(--color-primary);
     border-radius: 8px;
     font-size: 12px;
 
@@ -474,8 +474,8 @@ onUnmounted(() => {
           font-weight: 500;
 
           &.simple {
-            background: var(--color-emerald-50);
-            color: var(--color-primary-dark);
+            background: var(--color-primary-bg);
+            color: var(--color-primary);
           }
 
           &.join {
@@ -562,16 +562,16 @@ onUnmounted(() => {
         position: sticky;
         top: 0;
         z-index: 1;
-        background: linear-gradient(135deg, var(--color-emerald-50) 0%, var(--color-emerald-50) 100%);
+        background: var(--color-primary-bg);
 
         th {
           padding: var(--space-2-5) var(--space-3);
           text-align: left;
           font-weight: 600;
-          color: var(--color-emerald-600);
+          color: var(--color-primary);
           font-size: 12px;
           letter-spacing: 0.3px;
-          border-bottom: 2px solid var(--color-primary-lightest);
+          border-bottom: 2px solid var(--color-primary);
           white-space: nowrap;
         }
       }
@@ -585,7 +585,7 @@ onUnmounted(() => {
           }
 
           &:hover {
-            background: var(--color-emerald-50);
+            background: var(--color-primary-bg);
           }
 
           td {

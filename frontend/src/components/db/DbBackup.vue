@@ -374,6 +374,26 @@ defineExpose({ refresh: fetchBackups })
   box-shadow: $shadow-xs;
 }
 
+// ─── 暗色模式适配 ───
+[data-theme="dark"] {
+  .backup-table-wrap {
+    background: var(--color-bg-container);
+    border-color: var(--color-border);
+    box-shadow: none;
+
+    &:hover {
+      box-shadow: $shadow-elevation-1;
+      border-color: var(--color-primary-lighter);
+    }
+  }
+
+  .backup-empty {
+    background: var(--color-bg-container);
+    border-color: var(--color-border);
+    box-shadow: none;
+  }
+}
+
 .create-dialog-body {
   padding: 8px 0;
 }

@@ -480,6 +480,33 @@
   }
 }
 
+// ─── TDesign Icon（图标）──────────────────────────────────
+.t-icon {
+  // 暗色模式下默认使用浅色图标，避免黑色图标看不清
+  svg {
+    transition: color $transition-fast;
+  }
+}
+
+[data-theme="dark"] {
+  // 全局 t-icon 默认色（亮色），避免暗色背景上看不见
+  .t-icon:not([class*="t-icon-"]) {
+    color: var(--color-text-secondary);
+  }
+
+  // 卡片 / 容器 / 侧边栏等区域内的 t-icon：跟随文字色
+  .t-card .t-icon,
+  .t-collapse .t-icon,
+  .t-dialog .t-icon,
+  .t-drawer .t-icon,
+  .t-popup .t-icon,
+  .t-input .t-icon,
+  .t-textarea .t-icon,
+  .t-select .t-icon {
+    color: var(--color-text-secondary);
+  }
+}
+
 // ─── Popup / Dropdown — Level 3 玻璃态（仅下拉菜单）──────────────────
 // tooltip 使用 t-tooltip__content，不应施加 backdrop-filter（会导致内容模糊）
 .t-popup__content {

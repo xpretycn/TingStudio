@@ -298,17 +298,17 @@ const formatDate = (val: string | undefined) => {
 
 const getIngredients = (ver: CompareVersion, idx: number): IngredientRow[] => {
   const materials = ver.snapshot?.materials || [];
-  const finishedWeight = ver.snapshot?.finishedWeight || ver.snapshot?.finished_weight || 0;
   if (idx === 0) {
     return materials.map((m: SnapshotMaterial) => ({
       name: m.materialName || '--',
       value: m.quantity || 0,
-      weight: finishedWeight ? (m.quantity || 0) / 100 * finishedWeight : (m.quantity || 0),
+      weight: m.quantity || 0,
     }));
   }
   const baseVer = compareVersions.value[0];
   const baseIngs = baseVer?.snapshot?.materials || [];
-  const currentMap = new Map<string, { quantity: number; weight: number }>(materials.map((m: SnapshotMaterial) => [m.materialName || '--', { quantity: m.quantity || 0, weight: finishedWeight ? (m.quantity || 0) / 100 * finishedWeight : (m.quantity || 0) }]));
+  // quantity 在数据库中已存储为实际克重，无需再乘以成品重量
+  const currentMap = new Map<string, { quantity: number; weight: number }>(materials.map((m: SnapshotMaterial) => [m.materialName || '--', { quantity: m.quantity || 0, weight: m.quantity || 0 }]));
   const aligned: IngredientRow[] = [];
   baseIngs.forEach((b: SnapshotMaterial) => {
     const name = b.materialName || '--';

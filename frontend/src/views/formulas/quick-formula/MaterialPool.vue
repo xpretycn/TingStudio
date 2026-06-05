@@ -577,12 +577,10 @@ const typeOptions = [
 .pool-area {
   flex: 1;
   overflow-y: auto;
-  padding: $space-3;
+  padding: $space-3 $space-3 $space-6 $space-3;
   background: linear-gradient(180deg,
-      $overlay-emerald-04 0%,
-      $overlay-emerald-06 40%,
-      $overlay-emerald-05 70%,
-      $overlay-emerald-08 100%);
+      var(--color-bg-container, #fff) 0%,
+      var(--color-bg-container, #fff) 100%);
 }
 
 .pool-materials {

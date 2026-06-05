@@ -856,6 +856,20 @@ defineExpose({ refresh: fetchScriptList });
     }
 }
 
+// ─── 暗色模式适配 ───
+[data-theme="dark"] {
+    .scripts-collapse {
+        :deep(.t-collapse-panel__header) {
+            background: var(--color-bg-container);
+            border-color: var(--color-border);
+
+            &:hover {
+                box-shadow: $shadow-elevation-1;
+            }
+        }
+    }
+}
+
 .cat-header {
     display: flex;
     align-items: center;

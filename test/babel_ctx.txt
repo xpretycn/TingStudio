@@ -1,0 +1,17 @@
+Context 5700-5900:
+---
+[]) => void) | null = null
+
+const dataCards = ref<DataCard[]>([
+  {
+    id: 'formulas',
+    title: '配方总数',
+    icon: 'edit',
+    value: null,
+    trend: null,
+    loading: true,
+    color: '
+---
+Char at 5761: "]"
+Before (5750-5761): "f<DataCard["
+After (5761-5770): "]>([\r\n  {"

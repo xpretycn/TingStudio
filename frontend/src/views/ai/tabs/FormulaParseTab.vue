@@ -2273,8 +2273,8 @@ const goToDashboard = () => {
       justify-content: space-between;
       margin-top: 16px;
       padding: var(--space-3-5) var(--space-4-5);
-      background: linear-gradient(135deg, var(--color-emerald-50), var(--color-emerald-50));
-      border: 1px solid var(--color-emerald-50);
+      background: var(--color-bg-container);
+      border: 1px solid var(--color-border);
       border-radius: 12px;
 
       .file-info {
@@ -2412,13 +2412,13 @@ const goToDashboard = () => {
           display: inline-flex;
           align-items: center;
           padding: var(--space-0-5) var(--space-2-5);
-          background: linear-gradient(135deg, var(--color-lavender) 0%, var(--color-lavender) 100%);
+          background: var(--color-primary);
           color: var(--color-text-white);
           font-size: 11px;
           font-weight: 700;
           font-family: 'SF Mono', 'Fira Code', monospace;
           border-radius: 20px;
-          box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+          box-shadow: 0 2px 8px $overlay-emerald-25;
           animation: timerPulse 1s ease-in-out infinite;
 
           @keyframes timerPulse {
@@ -2529,10 +2529,10 @@ const goToDashboard = () => {
         gap: var(--space-1-5);
         margin-top: var(--space-2-5);
         padding: var(--space-1-5) var(--space-2-5);
-        background: rgba(99, 102, 241, 0.06);
-        border: 1px solid rgba(99, 102, 241, 0.12);
+        background: var(--color-bg-container);
+        border: 1px solid var(--color-border);
         border-radius: 8px;
-        color: var(--color-lavender);
+        color: var(--color-text-secondary);
         font-size: 11px;
 
         svg {
@@ -3379,8 +3379,8 @@ const goToDashboard = () => {
   border: 1px solid var(--color-border-light);
 
   &--normal {
-    background: linear-gradient(135deg, var(--color-emerald-50), var(--color-emerald-50));
-    border-color: var(--color-emerald-50);
+    background: var(--color-primary-bg);
+    border-color: var(--color-primary);
   }
 
   &--warning {
@@ -3448,7 +3448,7 @@ const goToDashboard = () => {
       position: relative;
       width: 100%;
       height: 8px;
-      background: linear-gradient(90deg, var(--color-danger-border) 0%, var(--color-warning) 15%, var(--color-emerald-50) 35%, var(--color-emerald-50) 50%, var(--color-emerald-50) 65%, var(--color-warning) 85%, var(--color-danger-border) 100%);
+      background: linear-gradient(90deg, var(--color-danger-border) 0%, var(--color-warning) 15%, var(--color-primary) 35%, var(--color-primary) 50%, var(--color-primary) 65%, var(--color-warning) 85%, var(--color-danger-border) 100%);
       border-radius: 4px;
       margin-bottom: 4px;
       box-sizing: border-box;
@@ -3800,9 +3800,9 @@ const goToDashboard = () => {
 
       .material-type-tag--supplement {
         flex-shrink: 0;
-        background: rgba(99, 102, 241, 0.1);
-        color: var(--color-lavender);
-        border-color: var(--color-lavender);
+        background: var(--color-primary-bg);
+        color: var(--color-primary);
+        border-color: var(--color-primary);
         font-size: 10px;
         padding: 0 4px;
         height: 18px;
@@ -3860,7 +3860,7 @@ const goToDashboard = () => {
       font-size: 11px;
 
       &--supplement {
-        color: var(--color-lavender);
+        color: var(--color-primary);
       }
     }
 
@@ -4290,7 +4290,7 @@ const goToDashboard = () => {
     margin-top: 4px;
 
     &:hover {
-      background: var(--color-emerald-50);
+      background: var(--color-primary-bg);
     }
   }
 }
@@ -4306,7 +4306,7 @@ const goToDashboard = () => {
   transition: background $transition-fast;
 
   &:hover {
-    background: var(--color-emerald-50);
+    background: var(--color-primary-bg);
   }
 }
 
@@ -4321,8 +4321,8 @@ const goToDashboard = () => {
 
   .success-card {
     border-radius: 16px;
-    background: linear-gradient(135deg, var(--color-emerald-50), var(--color-primary-bg));
-    border: 1px solid var(--color-primary-lightest);
+    background: var(--color-primary-bg);
+    border: 1px solid var(--color-primary);
     padding: 40px 32px;
     text-align: center;
 
@@ -4369,8 +4369,8 @@ const goToDashboard = () => {
 .success-file-info {
   margin-top: 16px;
   padding: 12px 16px;
-  background: var(--color-emerald-50);
-  border: 1px solid var(--color-emerald-50);
+  background: var(--color-primary-bg);
+  border: 1px solid var(--color-primary);
   border-radius: 12px;
 
   .sfi-header {
@@ -4455,7 +4455,7 @@ const goToDashboard = () => {
   &:hover {
     border-color: var(--color-primary);
     color: var(--color-primary-dark);
-    background: var(--color-emerald-50);
+    background: var(--color-primary-bg);
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
   }

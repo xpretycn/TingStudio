@@ -1,0 +1,12 @@
+Babel error:
+Message: Unexpected token (219:31)
+Loc: {"line":219,"column":31,"index":5761}
+Pos: 5761
+Vue line: NaN
+Line undefined: undefined
+Context: ...) | null = null
+
+const dataCards = ref<DataCard[|]>([
+  {
+    id: 'formulas',
+    title: '配方总数',...

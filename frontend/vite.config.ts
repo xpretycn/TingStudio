@@ -7,8 +7,14 @@ import AutoImport from "unplugin-auto-import/vite";
 import { TDesignResolver } from "unplugin-vue-components/resolvers";
 import { visualizer } from "rollup-plugin-visualizer";
 import { resolve } from "path";
+import { readFileSync } from "fs";
+
+const pkg = JSON.parse(readFileSync(resolve(__dirname, "package.json"), "utf-8"));
 
 export default defineConfig({
+  define: {
+    __APP_VERSION__: JSON.stringify(pkg.version),
+  },
   plugins: [
     vue(),
     Components({

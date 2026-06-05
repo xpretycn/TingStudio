@@ -20,6 +20,7 @@
             <!-- 标题行（名称 + 版本标签同行） -->
             <h2 class="formula-title">
               {{ data.formulaName }}
+              <span class="formula-id-tag">{{ (route.params.id as string).slice(-6) }}</span>
               <span class="version-tag">{{ currentVersion || 'V1.0' }}</span>
               <span class="status-tag" :class="statusTagInfo.cls">{{ statusTagInfo.label }}</span>
             </h2>
@@ -661,14 +662,16 @@ const ratioDeviationText = computed(() => {
 const ratioBarWidth = computed(() => {
   const val = ratioValidation.value.totalRatio;
   if (val <= 0) return '0%';
-  const pct = Math.min(Math.max((val / 1.16) * 100, 0), 100);
+  const { highWarningLow, highWarningHigh } = ratioValidation.value.thresholds;
+  const pct = Math.min(Math.max(((val - highWarningLow) / (highWarningHigh - highWarningLow)) * 100, 0), 100);
   return `${pct}%`;
 });
 
 const ratioMarkerLeft = computed(() => {
   const val = ratioValidation.value.totalRatio;
   if (val <= 0) return '0%';
-  const pct = Math.min(Math.max((val / 1.16) * 100, 0), 100);
+  const { highWarningLow, highWarningHigh } = ratioValidation.value.thresholds;
+  const pct = Math.min(Math.max(((val - highWarningLow) / (highWarningHigh - highWarningLow)) * 100, 0), 100);
   return `${pct}%`;
 });
 
@@ -877,6 +880,20 @@ watch(() => route.params.id, (newId) => {
           font-weight: 700; // font-bold
           color: var(--color-text-primary); // slate-800
           line-height: 1.35;
+
+          // 配方ID标签：在标题内部同行显示
+          .formula-id-tag {
+            display: inline-flex;
+            align-items: center;
+            padding: 1px 8px;
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--color-text-secondary, rgba(255, 255, 255, 0.55));
+            font-size: 12px;
+            border-radius: 4px;
+            font-family: ui-monospace, SFMono-Regular, 'Cascadia Code', monospace;
+            flex-shrink: 0;
+            line-height: 1.6;
+          }
 
           // 版本标签：在标题内部同行显示
           .version-tag {
@@ -1615,7 +1632,7 @@ watch(() => route.params.id, (newId) => {
 
     // ══ 右侧：计算器表格区域 ══
     .calc-section {
-      background: var(--color-bg-container);
+      background: rgb(35, 46, 52);
       border-radius: $radius-2xl;
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
       border: 1px solid var(--color-bg-page);
@@ -1625,8 +1642,8 @@ watch(() => route.params.id, (newId) => {
       .calc-header {
         padding: $space-5 $space-6;
         padding-bottom: $space-6;
-        border-bottom: 1px solid var(--color-bg-page);
-        background: var(--color-bg-page);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgb(35, 46, 52);
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -1654,11 +1671,11 @@ watch(() => route.params.id, (newId) => {
           display: flex;
           align-items: center;
           gap: $space-2;
-          background: var(--color-bg-container);
+          background: rgba(255, 255, 255, 0.05);
           padding: 8px 12px; // p-2
           border-radius: $radius-xl; // rounded-2xl
           box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04); // shadow-sm
-          border: 1px solid var(--color-border-light); // border-slate-100
+          border: 1px solid rgba(255, 255, 255, 0.1); // border-slate-100
 
           .weight-badge-label {
             font-size: 10px; // text-[10px]
@@ -1684,6 +1701,19 @@ watch(() => route.params.id, (newId) => {
       .calc-table {
         :deep(.t-table) {
           font-size: 13px;
+
+          // 暗色/统一背景色下的表格适配
+          th,
+          td {
+            background: rgb(35, 46, 52) !important;
+            border-color: rgba(255, 255, 255, 0.08) !important;
+            color: var(--color-text-primary) !important;
+          }
+
+          th {
+            color: var(--color-text-secondary) !important;
+            font-weight: 600;
+          }
         }
 
         padding: 0 $space-6 $space-6;

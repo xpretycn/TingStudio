@@ -19,6 +19,7 @@
           <!-- 标题行（名称 + 版本标签同行） -->
           <h2 class="formula-title">
             {{ isEdit ? (formData.name || '编辑配方') : '新增配方' }}
+            <span v-if="isEdit" class="formula-id-tag">{{ (route.params.id as string).slice(-6) }}</span>
             <span v-if="isEdit" class="title-version-tag">{{ currentVersionNumber || 'V1.0' }}</span>
             <span v-if="isEdit" class="title-status-tag" :class="statusTagInfo.cls">{{ statusTagInfo.label }}</span>
           </h2>
@@ -528,14 +529,16 @@ const ratioDeviationText = computed(() => {
 const ratioBarWidth = computed(() => {
   const val = ratioValidation.value.totalRatio;
   if (val <= 0) return '0%';
-  const pct = Math.min(Math.max((val / 1.16) * 100, 0), 100);
+  const { highWarningLow, highWarningHigh } = ratioValidation.value.thresholds;
+  const pct = Math.min(Math.max(((val - highWarningLow) / (highWarningHigh - highWarningLow)) * 100, 0), 100);
   return `${pct}%`;
 });
 
 const ratioMarkerLeft = computed(() => {
   const val = ratioValidation.value.totalRatio;
   if (val <= 0) return '0%';
-  const pct = Math.min(Math.max((val / 1.16) * 100, 0), 100);
+  const { highWarningLow, highWarningHigh } = ratioValidation.value.thresholds;
+  const pct = Math.min(Math.max(((val - highWarningLow) / (highWarningHigh - highWarningLow)) * 100, 0), 100);
   return `${pct}%`;
 });
 
@@ -1301,6 +1304,19 @@ onMounted(async () => {
           font-weight: 700;
           color: var(--color-text-primary);
           line-height: 1.35;
+
+          .formula-id-tag {
+            display: inline-flex;
+            align-items: center;
+            padding: 1px 8px;
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--color-text-secondary, rgba(255, 255, 255, 0.55));
+            font-size: 12px;
+            border-radius: 4px;
+            font-family: ui-monospace, SFMono-Regular, 'Cascadia Code', monospace;
+            line-height: 1.6;
+            flex-shrink: 0;
+          }
 
           .title-version-tag {
             display: inline-flex;
@@ -2979,17 +2995,17 @@ onMounted(async () => {
       align-items: center;
       justify-content: space-between;
       padding: 12px 16px;
-      background: $gradient-collapsed-bar;
-      border: 1.5px dashed $green-300;
+      background: var(--color-bg-container);
+      border: 1.5px dashed var(--color-primary-lightest, rgba(34, 197, 94, 0.3));
       border-radius: 12px;
       cursor: pointer;
       transition: all 0.25s ease;
       user-select: none;
 
       &:hover {
-        background: $gradient-collapsed-bar-hover;
-        border-color: $green-400;
-        box-shadow: 0 2px 8px $overlay-green-12;
+        background: var(--color-bg-hover);
+        border-color: var(--color-primary-light, rgba(34, 197, 94, 0.5));
+        box-shadow: 0 2px 8px var(--overlay-green-12, rgba(34, 197, 94, 0.12));
         transform: translateY(-1px);
       }
 
@@ -3011,29 +3027,29 @@ onMounted(async () => {
       width: 36px;
       height: 36px;
       border-radius: 10px;
-      background: $gradient-green-icon;
-      color: $text-white;
+      background: var(--color-primary);
+      color: #fff;
       flex-shrink: 0;
-      box-shadow: 0 2px 6px $overlay-green-30;
+      box-shadow: 0 2px 6px rgba(34, 197, 94, 0.3);
     }
 
     .excel-collapsed-text {
       font-size: 14px;
       font-weight: 600;
-      color: $green-700;
+      color: var(--color-text-primary);
     }
 
     .excel-collapsed-hint {
       font-size: 11px;
-      color: $green-300;
-      background: $overlay-green-12;
+      color: var(--color-primary-light, rgba(34, 197, 94, 0.6));
+      background: var(--overlay-emerald-10, rgba(34, 197, 94, 0.1));
       padding: var(--space-0-5) 8px;
       border-radius: 6px;
       font-weight: 500;
     }
 
     .excel-collapsed-arrow {
-      color: $green-300;
+      color: var(--color-text-placeholder);
       transition: transform 0.2s;
     }
 

@@ -283,14 +283,16 @@ onBeforeUnmount(() => {
                   </div>
                   <div class="nq-divider"></div>
                   <div class="nq-item" :class="{ 'nq-item--danger': isRatioOver }">
-                    <div class="nq-item-icon nq-icon--ratio">
+                    <div class="nq-item-icon nq-icon--ratio"
+                      :style="{ background: 'rgba(16, 185, 129, 0.08)', color: '#10b981' }">
                       <t-icon name="chart" size="12px" />
                     </div>
                     <span class="nq-item-label">含量比</span>
                     <span class="nq-item-value">{{ ratioPercent }}%</span>
                   </div>
                   <div class="nq-item">
-                    <div class="nq-item-icon nq-icon--energy">
+                    <div class="nq-item-icon nq-icon--energy"
+                      :style="{ background: 'rgba(245, 166, 35, 0.08)', color: '#f5a623' }">
                       <t-icon name="flashlight" size="12px" />
                     </div>
                     <span class="nq-item-label">能量</span>
@@ -299,7 +301,8 @@ onBeforeUnmount(() => {
                     </span>
                   </div>
                   <div class="nq-item">
-                    <div class="nq-item-icon nq-icon--protein">
+                    <div class="nq-item-icon nq-icon--protein"
+                      :style="{ background: 'rgba(255, 107, 138, 0.08)', color: '#ff6b8a' }">
                       <t-icon name="flag" size="12px" />
                     </div>
                     <span class="nq-item-label">蛋白质</span>
@@ -308,7 +311,8 @@ onBeforeUnmount(() => {
                     </span>
                   </div>
                   <div class="nq-item">
-                    <div class="nq-item-icon nq-icon--fat">
+                    <div class="nq-item-icon nq-icon--fat"
+                      :style="{ background: 'rgba(249, 115, 22, 0.08)', color: '#f97316' }">
                       <t-icon name="rain-light" size="12px" />
                     </div>
                     <span class="nq-item-label">脂肪</span>
@@ -317,7 +321,8 @@ onBeforeUnmount(() => {
                     </span>
                   </div>
                   <div class="nq-item">
-                    <div class="nq-item-icon nq-icon--carb">
+                    <div class="nq-item-icon nq-icon--carb"
+                      :style="{ background: 'rgba(139, 92, 246, 0.08)', color: '#8b5cf6' }">
                       <t-icon name="chart-pie" size="12px" />
                     </div>
                     <span class="nq-item-label">碳水</span>
@@ -326,7 +331,8 @@ onBeforeUnmount(() => {
                     </span>
                   </div>
                   <div class="nq-item">
-                    <div class="nq-item-icon nq-icon--sodium">
+                    <div class="nq-item-icon nq-icon--sodium"
+                      :style="{ background: 'rgba(99, 102, 241, 0.08)', color: '#6366f1' }">
                       <t-icon name="precise-monitor" size="12px" />
                     </div>
                     <span class="nq-item-label">钠</span>
@@ -336,7 +342,8 @@ onBeforeUnmount(() => {
                   </div>
                   <div class="nq-divider"></div>
                   <div class="nq-item nq-item--highlight">
-                    <div class="nq-item-icon nq-icon--price">
+                    <div class="nq-item-icon nq-icon--price"
+                      :style="{ background: 'rgba(16, 185, 129, 0.08)', color: '#10b981' }">
                       <t-icon name="money" size="12px" />
                     </div>
                     <span class="nq-item-label">报价</span>
@@ -426,7 +433,7 @@ onBeforeUnmount(() => {
   justify-content: space-between;
   align-items: center;
   padding: 8px 24px;
-  background-color: $overlay-white-80;
+  background-color: var(--color-bg-container);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--color-border-light);
   animation: fadeInDown 0.3s cubic-bezier(0.4, 0, 0.2, 1) both;
@@ -542,13 +549,13 @@ onBeforeUnmount(() => {
       align-items: center;
       gap: 8px;
       padding: 8px 16px;
-      background-color: $emerald-500;
-      color: $text-white;
+      background-color: var(--color-primary);
+      color: #fff;
       border: none;
       border-radius: 12px;
       font-size: 14px;
       font-weight: 700;
-      box-shadow: 0 10px 15px -3px $overlay-emerald-25;
+      box-shadow: 0 10px 15px -3px rgba(255, 107, 138, 0.25);
       cursor: pointer;
       transition: all $transition-fast;
 
@@ -557,14 +564,14 @@ onBeforeUnmount(() => {
       }
 
       &:hover {
-        background-color: $emerald-600;
+        background-color: var(--color-primary-dark);
         transform: translateY(-1px);
-        box-shadow: 0 14px 20px -3px $overlay-emerald-35;
+        box-shadow: 0 14px 20px -3px rgba(255, 107, 138, 0.35);
       }
 
       &:active {
         transform: translateY(0);
-        background-color: $emerald-600;
+        background-color: var(--color-primary-dark);
       }
 
       &:disabled {

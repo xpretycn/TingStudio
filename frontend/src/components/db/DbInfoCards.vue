@@ -123,4 +123,18 @@ const cards = computed<CardItem[]>(() => [
     }
   }
 }
+
+// ─── 暗色模式适配 ───
+[data-theme="dark"] {
+  .info-card {
+    background: var(--color-bg-container);
+    border-color: var(--color-border);
+    box-shadow: none;
+
+    &:hover {
+      box-shadow: $shadow-elevation-1;
+      border-color: var(--color-primary-lighter);
+    }
+  }
+}
 </style>
