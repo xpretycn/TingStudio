@@ -88,6 +88,19 @@ export async function createMaterial(req: any, res: Response) {
     const userId = req.user.userId;
     const id = generateId();
 
+    // 检查编码唯一性（同一 code 在未删除的原料中不应重复）
+    const [existingCodes]: any[][] = await query(
+      "SELECT id FROM materials WHERE code = ? AND is_deleted = 0",
+      [code],
+    );
+    if (existingCodes && existingCodes.length > 0) {
+      res.status(409).json({
+        success: false,
+        error: { message: "原料编码已存在", code: "DUPLICATE_ENTRY" },
+      });
+      return;
+    }
+
     await query(
       `INSERT INTO materials (id, name, code, unit, stock, material_type, unit_price, data_source, created_by, version, is_latest, status, created_at, appearance_json, taste_json, efficacy_json)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 1, 'draft', ?, ?, ?, ?)`,
@@ -367,11 +380,15 @@ export async function submitMaterialReview(req: any, res: Response) {
     transaction(() => {
       query("UPDATE materials SET status = 'pending_review', updated_at = ? WHERE id = ?", [now(), id]);
     });
-    await materialReviewService.createReviewLog({
-      materialId: id,
-      reviewerId: user.userId,
-      action: "submit",
-    });
+    try {
+      await materialReviewService.createReviewLog({
+        materialId: id,
+        reviewerId: user.userId,
+        action: "submit",
+      });
+    } catch (logError) {
+      console.error("[MaterialController] 提交审批日志写入失败:", logError);
+    }
 
     res.json(success(null, "原料已提交审批"));
   } catch (error: any) {
@@ -409,11 +426,15 @@ export async function approveMaterial(req: any, res: Response) {
     transaction(() => {
       query("UPDATE materials SET status = 'published', updated_at = ? WHERE id = ?", [now(), id]);
     });
-    await materialReviewService.createReviewLog({
-      materialId: id,
-      reviewerId: user.userId,
-      action: "approve",
-    });
+    try {
+      await materialReviewService.createReviewLog({
+        materialId: id,
+        reviewerId: user.userId,
+        action: "approve",
+      });
+    } catch (logError) {
+      console.error("[MaterialController] 审批日志写入失败:", logError);
+    }
 
     res.json(success(null, "原料已审批通过并发布"));
   } catch (error: any) {
@@ -460,12 +481,16 @@ export async function rejectMaterial(req: any, res: Response) {
     transaction(() => {
       query("UPDATE materials SET status = 'draft', updated_at = ? WHERE id = ?", [now(), id]);
     });
-    await materialReviewService.createReviewLog({
-      materialId: id,
-      reviewerId: user.userId,
-      action: "reject",
-      comment,
-    });
+    try {
+      await materialReviewService.createReviewLog({
+        materialId: id,
+        reviewerId: user.userId,
+        action: "reject",
+        comment,
+      });
+    } catch (logError) {
+      console.error("[MaterialController] 驳回日志写入失败:", logError);
+    }
 
     res.json(success(null, "原料已驳回"));
   } catch (error: any) {
@@ -503,11 +528,15 @@ export async function publishMaterial(req: any, res: Response) {
     transaction(() => {
       query("UPDATE materials SET status = 'published', updated_at = ? WHERE id = ?", [now(), id]);
     });
-    await materialReviewService.createReviewLog({
-      materialId: id,
-      reviewerId: user.userId,
-      action: "publish",
-    });
+    try {
+      await materialReviewService.createReviewLog({
+        materialId: id,
+        reviewerId: user.userId,
+        action: "publish",
+      });
+    } catch (logError) {
+      console.error("[MaterialController] 发布日志写入失败:", logError);
+    }
 
     res.json(success(null, "原料已发布"));
   } catch (error: any) {

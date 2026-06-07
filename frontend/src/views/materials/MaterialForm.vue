@@ -397,9 +397,13 @@ const rules: Record<string, FormRule[]> = {
   name: [
     { required: true, message: '请输入原料名称', trigger: 'blur' },
     { min: 2, message: '原料名称至少2个字符', trigger: 'change' },
+    { max: 100, message: '原料名称不能超过100个字符', trigger: 'change' },
   ],
   unit: [{ required: true, message: '请选择单位', trigger: 'change' }],
   stock: [{ required: true, message: '请输入库存数量', trigger: 'blur' }],
+  unitPrice: [
+    { validator: (val: number) => val == null || val >= 0, message: '单价不能为负数', trigger: 'blur' },
+  ],
 };
 
 const nutritionFieldGroups = [

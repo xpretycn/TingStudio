@@ -1,0 +1,222 @@
+{
+  "FormulaList": [
+    {
+      "case_id": "E01-P01",
+      "name": "按配方名称搜索",
+      "result": "✅ 通过",
+      "expected": "搜索结果包含关键词",
+      "actual": "找到1条,首行含'佛手': 是",
+      "screenshot": ""
+    },
+    {
+      "case_id": "E01-P03",
+      "name": "清除搜索",
+      "result": "❌ 失败",
+      "expected": "搜索框清空",
+      "actual": "值: '佛手'",
+      "screenshot": ""
+    },
+    {
+      "case_id": "E01-E01",
+      "name": "搜索不存在的配方",
+      "result": "✅ 通过",
+      "expected": "显示空状态",
+      "actual": "无匹配结果",
+      "screenshot": ""
+    },
+    {
+      "case_id": "E01-B01",
+      "name": "输入特殊字符搜索",
+      "result": "✅ 通过",
+      "expected": "页面不崩溃",
+      "actual": "页面正常",
+      "screenshot": ""
+    },
+    {
+      "case_id": "E02-P01",
+      "name": "跳转快速录入页",
+      "result": "❌ 失败",
+      "expected": "跳转到快速录入",
+      "actual": "URL: http://localhost:5173/formulas",
+      "screenshot": "d:\\ProgramData\\workspace-codeby\\ting-studio\\test\\screenshots\\fl-E02-P01.png"
+    },
+    {
+      "case_id": "E04-P01",
+      "name": "跳转创建配方页",
+      "result": "❌ 失败",
+      "expected": "跳转到创建页",
+      "actual": "Locator.is_visible: Error: strict mode violation: locator(\"button.add-formula-bt",
+      "screenshot": "d:\\ProgramData\\workspace-codeby\\ting-studio\\test\\screenshots\\fl-E04-P01.png"
+    },
+    {
+      "case_id": "E12-U01",
+      "name": "表格加载骨架屏",
+      "result": "✅ 通过",
+      "expected": "显示骨架屏或直接加载",
+      "actual": "加载过快直接显示",
+      "screenshot": ""
+    },
+    {
+      "case_id": "E17-B01",
+      "name": "第1页时上一页禁用",
+      "result": "⏭ 跳过",
+      "expected": "分页可见",
+      "actual": "无分页（数据不足一页）",
+      "screenshot": ""
+    }
+  ],
+  "FormulaForm": [
+    {
+      "case_id": "E01-P01",
+      "name": "输入配方名称",
+      "result": "⏭ 跳过",
+      "expected": "输入框可见",
+      "actual": "未找到名称输入框",
+      "screenshot": ""
+    },
+    {
+      "case_id": "E01-B01",
+      "name": "空名称提交校验",
+      "result": "⏭ 跳过",
+      "expected": "输入框可见",
+      "actual": "名称输入框不可见",
+      "screenshot": ""
+    },
+    {
+      "case_id": "E02-P01",
+      "name": "输入配方描述",
+      "result": "✅ 通过",
+      "expected": "描述填入",
+      "actual": "值: E2E测试描述内容",
+      "screenshot": ""
+    },
+    {
+      "case_id": "E04-P01",
+      "name": "返回列表页",
+      "result": "⏭ 跳过",
+      "expected": "按钮存在",
+      "actual": "未找到返回按钮",
+      "screenshot": ""
+    }
+  ],
+  "FormulaDetail": [
+    {
+      "case_id": "E01-P01",
+      "name": "返回按钮存在",
+      "result": "⏭ 跳过",
+      "expected": "返回按钮可见",
+      "actual": "未找到返回按钮",
+      "screenshot": ""
+    },
+    {
+      "case_id": "E02-P01",
+      "name": "查看配方基本信息",
+      "result": "❌ 失败",
+      "expected": "信息区域可见",
+      "actual": "Locator.text_content: Error: strict mode violation: locator(\"main\") resolved to ",
+      "screenshot": ""
+    },
+    {
+      "case_id": "E07-P01",
+      "name": "查看营养计算表",
+      "result": "⏭ 跳过",
+      "expected": "营养表格可见",
+      "actual": "表格不可见",
+      "screenshot": ""
+    },
+    {
+      "case_id": "E09-P01",
+      "name": "编辑按钮存在",
+      "result": "✅ 通过",
+      "expected": "编辑按钮可见",
+      "actual": "按钮存在",
+      "screenshot": ""
+    },
+    {
+      "case_id": "E10-P01",
+      "name": "删除按钮存在",
+      "result": "⏭ 跳过",
+      "expected": "删除按钮可见",
+      "actual": "未找到删除按钮",
+      "screenshot": ""
+    }
+  ],
+  "FormulaCompare": [
+    {
+      "case_id": "E01-P01",
+      "name": "返回按钮",
+      "result": "✅ 通过",
+      "expected": "返回按钮可见",
+      "actual": "按钮存在",
+      "screenshot": ""
+    },
+    {
+      "case_id": "E02-P01",
+      "name": "切换对比模式",
+      "result": "✅ 通过",
+      "expected": "模式切换成功",
+      "actual": "按钮可点击",
+      "screenshot": ""
+    },
+    {
+      "case_id": "E03-P01",
+      "name": "重置对比按钮",
+      "result": "✅ 通过",
+      "expected": "按钮可见",
+      "actual": "按钮存在",
+      "screenshot": ""
+    },
+    {
+      "case_id": "E06-P01",
+      "name": "添加对比占位卡",
+      "result": "✅ 通过",
+      "expected": "占位卡可见",
+      "actual": "可添加配方",
+      "screenshot": ""
+    }
+  ],
+  "FormulaVersions": [
+    {
+      "case_id": "NAV",
+      "name": "获取配方ID",
+      "result": "⏭ 跳过",
+      "expected": "列表有配方ID",
+      "actual": "无法从行获取配方ID",
+      "screenshot": ""
+    }
+  ],
+  "QuickFormula": [
+    {
+      "case_id": "E01-P01",
+      "name": "侧边栏折叠",
+      "result": "✅ 通过",
+      "expected": "侧边栏折叠",
+      "actual": "按钮可点击",
+      "screenshot": ""
+    },
+    {
+      "case_id": "E04-P01",
+      "name": "主料系数输入框",
+      "result": "⏭ 跳过",
+      "expected": "输入框可见",
+      "actual": "未找到系数输入框",
+      "screenshot": ""
+    },
+    {
+      "case_id": "E11-P01",
+      "name": "保存按钮存在",
+      "result": "✅ 通过",
+      "expected": "保存按钮可见",
+      "actual": "按钮存在",
+      "screenshot": ""
+    },
+    {
+      "case_id": "E12-P01",
+      "name": "发布按钮存在",
+      "result": "✅ 通过",
+      "expected": "发布按钮可见",
+      "actual": "按钮存在",
+      "screenshot": ""
+    }
+  ]
+}

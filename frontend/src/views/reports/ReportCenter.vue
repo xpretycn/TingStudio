@@ -602,6 +602,8 @@ import { reportApi } from '@/api/report';
 import PageSkeleton from '@/components/Skeleton/PageSkeleton.vue';
 import EmptyState from '@/components/EmptyState.vue';
 import ExportFormatDialog from '@/components/ExportFormatDialog.vue';
+import { useTodoPagination } from '@/composables/useTodoPagination';
+import { usePageNumbers } from '@/composables/usePageNumbers';
 
 const router = useRouter();
 const reportStore = useReportStore();
@@ -671,16 +673,11 @@ function formatTimeAgo(dateStr: string): string {
   return `${Math.floor(days / 30)}个月前`;
 }
 
-const totalPages = computed(() => Math.ceil(reportStore.total / reportStore.pageSize) || 1);
-
-const pageNumbers = computed<(number | string)[]>(() => {
-  const total = totalPages.value;
-  const current = reportStore.currentPage;
-  if (total <= 5) return Array.from({ length: total }, (_, i) => i + 1);
-  if (current <= 3) return [1, 2, 3, '...', total];
-  if (current >= total - 2) return [1, '...', total - 2, total - 1, total];
-  return [1, '...', current - 1, current, current + 1, '...', total];
-});
+const { totalPages, pageNumbers } = usePageNumbers(
+  () => reportStore.total,
+  () => reportStore.pageSize,
+  () => reportStore.currentPage
+);
 
 const goPage = (page: number) => {
   if (page < 1 || page > totalPages.value) return;
@@ -902,7 +899,6 @@ const handleCompare = () => {
 };
 
 const ACTIVITY_PAGE_SIZE = 4;
-const TODO_PAGE_SIZE = 3;
 
 const dashboardCards = computed(() => {
   const total = reportStore.total ?? 0;
@@ -1012,7 +1008,6 @@ const allActivityItems = computed(() => {
   return items.slice(0, 20);
 });
 
-const todoPage = ref(1);
 const displayTodoItems = computed(() => {
   const items: { id: string; type: string; priority: string; title: string; desc: string; actionText: string; action: string; }[] = [];
   const reports = reportStore.reports;
@@ -1059,14 +1054,15 @@ const displayTodoItems = computed(() => {
   }
   return items;
 });
-const paginatedTodoItems = computed(() => {
-  const start = (todoPage.value - 1) * TODO_PAGE_SIZE;
-  return displayTodoItems.value.slice(start, start + TODO_PAGE_SIZE);
-});
-const todoTotalPages = computed(() => Math.max(1, Math.ceil(displayTodoItems.value.length / TODO_PAGE_SIZE)));
-const todoPrev = () => { if (todoPage.value > 1) todoPage.value--; };
-const todoNext = () => { if (todoPage.value < todoTotalPages.value) todoPage.value++; };
-const refreshTodo = () => { todoPage.value = 1; };
+const {
+  page: todoPage,
+  totalPages: todoTotalPages,
+  paginatedItems: paginatedTodoItems,
+  prev: todoPrev,
+  next: todoNext,
+  resetPage: resetTodoPage
+} = useTodoPagination(displayTodoItems);
+const refreshTodo = () => { resetTodoPage(); };
 
 const handleTodoAction = (item: Record<string, unknown>) => {
   if (item.action === 'generate' || item.action === 'generate-weekly') {

@@ -1,0 +1,122 @@
+﻿A05-P01|get-models|PASS|200|139ms
+A05-R01|get-models-noauth|PASS|401|0ms
+A07-P01|get-models-manage|PASS|200|5ms
+A07-R01|get-models-manage-noauth|PASS|401|0ms
+A16-P01|get-usage|PASS|200|4ms
+A17-P01|get-usage-logs|PASS|200|3ms
+A18-P01|get-alerts-configs|PASS|200|3ms
+A20-P01|get-alerts-records|PASS|200|4ms
+A21-P01|get-health|PASS|200|3ms
+A28-P01|get-recent-activity|PASS|200|3ms
+A29-P01|get-smart-tool-history|PASS|200|3ms
+A31-P01|get-prompt-templates|PASS|200|6ms
+A35-P01|get-parse-results|PASS|200|3ms
+A36-P01|get-parse-statistics|PASS|200|3ms
+A37-P01|get-parse-config|PASS|200|3ms
+A38-P01|get-parse-degradation|PASS|200|4ms
+A39-P01|get-parse-metrics|FAIL|500|expected 200
+A41-P01|get-parse-performance|PASS|200|3ms
+A23-P01|admin-get-model-apps|PASS|200|3ms
+A23-E01|formulist-get-model-apps|PASS|403|0ms
+A40-P01|admin-get-parse-alerts|FAIL|500|expected 200
+A40-E01|formulist-get-parse-alerts|PASS|403|0ms
+A13-P01|get-provider-versions|PASS|200|3ms
+A22-P01|get-health-history|PASS|200|4ms
+A08-P01|admin-create-model|PASS|200|13ms
+A08-E01|formulist-create-model|PASS|403|0ms
+A09-P01|admin-update-model|PASS|200|4ms
+A12-P01|get-model-versions|PASS|200|3ms
+A10-P01|admin-delete-model|PASS|200|3ms
+A09-E01|update-nonexistent-model|PASS|404|0ms
+A10-E01|delete-nonexistent-model|PASS|404|0ms
+A32-P01|create-prompt-template|PASS|200|3ms
+A32-E01|create-template-no-module|PASS|400|0ms
+A33-P01|update-prompt-template|PASS|200|3ms
+A34-P01|delete-prompt-template|PASS|200|16ms
+A33-E01|update-nonexistent-template|PASS|404|0ms
+A34-E01|delete-nonexistent-template|PASS|404|0ms
+A47-P01|save-parse-result|PASS|200|4ms
+A48-P01|check-existing-parse|PASS|200|4ms
+A48-P02|check-nonexisting-parse|PASS|200|3ms
+A42-P01|get-parse-detail|PASS|200|3ms
+A52-P01|mark-parse-used|PASS|200|3ms
+A53-P01|delete-parse-result|PASS|200|3ms
+A42-E01|get-nonexistent-parse|PASS|404|0ms
+A50-P01|admin-cleanup|PASS|200|3ms
+A50-E01|formulist-cleanup|PASS|403|0ms
+A49-P01|admin-update-parse-config|PASS|200|4ms
+A49-E01|formulist-update-parse-config|PASS|403|0ms
+A19-E01|formulist-update-alert|PASS|403|0ms
+A01-P01|parse-formula|SKIP|0|requires AI API Key
+A02-P01|parse-material-nutrition|SKIP|0|requires AI API Key
+A03-P01|natural-search|SKIP|0|requires AI API Key
+A06-P01|chat-sse|SKIP|0|requires AI API Key
+A04-P01|export-file|SKIP|0|depends on A03
+G04-P01|get-agent-sessions|PASS|200|3ms
+G04-E01|get-sessions-noauth|PASS|401|0ms
+G07-P01|get-role-config|PASS|200|3ms
+G07-E01|get-role-config-noauth|PASS|401|0ms
+G09-P01|get-float-config|PASS|200|3ms
+G09-E01|get-float-config-noauth|PASS|401|0ms
+G14-P01|get-field-hints|PASS|200|9ms
+G15-P01|get-agent-health|PASS|200|4ms
+G08-P01|update-role-config|PASS|200|6ms
+G10-P01|admin-update-float-config|PASS|200|4ms
+G10-E01|formulist-update-float-config|PASS|403|0ms
+G01-P01|agent-chat|SKIP|0|requires AI API Key
+G02-P01|submit-form|SKIP|0|depends on G01
+G03-P01|get-pending-form|SKIP|0|depends on G01
+G11-P01|parse-form|SKIP|0|requires AI API Key
+G12-P01|float-chat|SKIP|0|requires AI API Key
+G13-P01|generate-description|SKIP|0|requires AI API Key
+P01-P01|get-parse-templates|PASS|200|13ms
+P01-E01|get-templates-noauth|PASS|401|0ms
+P03-P01|create-parse-template|PASS|201|3ms
+P03-E01|create-template-no-name|PASS|400|0ms
+P03-E02|create-template-empty-name|PASS|400|0ms
+P02-P01|get-template-detail|PASS|200|3ms
+P04-P01|update-parse-template|PASS|200|3ms
+P05-P01|delete-parse-template|PASS|200|3ms
+P02-E01|get-nonexistent-template|PASS|404|0ms
+P04-E01|update-nonexistent-template|PASS|404|0ms
+P05-E01|delete-nonexistent-template|PASS|404|0ms
+NUT-SETUP|create-test-material|PASS|200|4ms
+A01-P01|get-material-nutrition|PASS|200|3ms
+A01-R01|get-nutrition-noauth|PASS|401|0ms
+A02-P01|set-material-nutrition|PASS|200|6ms
+A02-E01|set-nutrition-nonexistent|PASS|404|0ms
+A02-V01|set-nutrition-no-per100g|PASS|400|0ms
+B01-P01|get-material-sources|PASS|200|5ms
+B01-R01|get-sources-noauth|PASS|401|0ms
+B02-P01|add-manual-source|PASS|200|4ms
+B02-E01|add-invalid-source-type|PASS|400|0ms
+B03-P01|get-sources-compare|PASS|200|6ms
+B04-P01|update-source|PASS|200|4ms
+B06-P01|set-authoritative|FAIL|400|expected fieldSelections\:{\protein\:\mq3xue65dl0h4me1\}}
+B05-P01|delete-source|PASS|200|4ms
+C01-P01|get-scored-sources|PASS|200|4ms
+C02-P01|get-source-recommendation|PASS|200|4ms
+C07-P01|get-snapshots|PASS|200|5ms
+C06-P01|export-sources|PASS|200|11ms
+A05-P01|get-nutrition-profiles|PASS|200|3ms
+A05-R01|get-profiles-noauth|PASS|401|0ms
+A06-P01|create-nutrition-profile|FAIL|500|expected 201
+A06-V01|create-profile-no-name|PASS|400|0ms
+A07-E01|update-nonexistent-profile|PASS|404|0ms
+A08-E01|delete-nonexistent-profile|PASS|404|0ms
+NUT-SETUP2|create-test-formula|FAIL|400|expected 200
+D01-P01|get-exclusions|PASS|200|4ms
+D01-R01|get-exclusions-noauth|PASS|401|0ms
+D02-P01|create-exclusion|FAIL|400|expected 201
+D02-E01|create-exclusion-invalid-cat|PASS|400|0ms
+D02-V01|create-exclusion-no-category|PASS|400|0ms
+D02-R01|formulist-create-exclusion|PASS|403|0ms
+D03-E01|delete-nonexistent-exclusion|PASS|404|0ms
+D03-R01|formulist-delete-exclusion|PASS|403|0ms
+E01-P01|get-ratio-thresholds|PASS|200|3ms
+E01-R01|get-thresholds-noauth|PASS|401|0ms
+E02-P01|update-ratio-thresholds|PASS|200|3ms
+E02-E01|update-thresholds-invalid|PASS|400|0ms
+E02-R01|formulist-update-thresholds|PASS|403|0ms
+E02-CLEANUP|reset-ratio-thresholds|PASS|200|3ms
+

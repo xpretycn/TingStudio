@@ -1,6 +1,7 @@
 import PDFDocument from "pdfkit";
 import path from "path";
 import fs from "fs";
+import { logger } from "./logger.js";
 
 const SECTION_COLORS: Record<string, string> = {
   formula: "#3B82F6",
@@ -33,11 +34,17 @@ function getChineseFontPath(): { path: string; name: string } | null {
 let cachedFont: { path: string; name: string } | null = null;
 try {
   cachedFont = getChineseFontPath();
-} catch (_e) {}
+} catch (_e) {
+  logger.warn("PDF导出: 未找到中文字体文件，将使用默认字体");
+}
 
-export async function exportReportToPdf(
-  report: { type: string; title: string; periodStart: string; periodEnd: string; dataJson: any }
-): Promise<{ buffer: Buffer; fileName: string }> {
+export async function exportReportToPdf(report: {
+  type: string;
+  title: string;
+  periodStart: string;
+  periodEnd: string;
+  dataJson: any;
+}): Promise<{ buffer: Buffer; fileName: string }> {
   const { type, title, periodStart, periodEnd, dataJson } = report;
 
   const doc = new PDFDocument({
@@ -55,7 +62,9 @@ export async function exportReportToPdf(
     try {
       doc.registerFont(fontName, cachedFont.path);
       doc.font(fontName);
-    } catch (_e) {}
+    } catch (_e) {
+      logger.warn(`PDF导出: 字体注册失败 (${cachedFont.path})，将使用默认字体`);
+    }
   }
 
   const chunks: Buffer[] = [];
@@ -78,13 +87,21 @@ export async function exportReportToPdf(
     doc.fontSize(14).fillColor("#333333");
     doc.text(text, startX + 12, y + 2, { width: pageWidth - 12 });
     y = doc.y + 8;
-    doc.moveTo(startX, y).lineTo(startX + pageWidth, y).strokeColor("#E5E7EB").lineWidth(0.5).stroke();
+    doc
+      .moveTo(startX, y)
+      .lineTo(startX + pageWidth, y)
+      .strokeColor("#E5E7EB")
+      .lineWidth(0.5)
+      .stroke();
     y += 8;
   }
 
   function drawKeyValue(label: string, value: string | number, labelWidth = 120) {
     checkPage(20);
-    doc.fontSize(10).fillColor("#666666").text(label + ":", startX + 12, y, { width: labelWidth });
+    doc
+      .fontSize(10)
+      .fillColor("#666666")
+      .text(label + ":", startX + 12, y, { width: labelWidth });
     doc.fillColor("#333333").text(String(value), startX + 12 + labelWidth, y, { width: pageWidth - labelWidth - 12 });
     y = doc.y + 4;
   }
@@ -130,7 +147,12 @@ export async function exportReportToPdf(
   doc.text(`${typeLabel} | ${periodStart} ~ ${periodEnd}`, startX, y, { width: pageWidth, align: "center" });
   y = doc.y + 12;
 
-  doc.moveTo(startX, y).lineTo(startX + pageWidth, y).strokeColor("#3B82F6").lineWidth(2).stroke();
+  doc
+    .moveTo(startX, y)
+    .lineTo(startX + pageWidth, y)
+    .strokeColor("#3B82F6")
+    .lineWidth(2)
+    .stroke();
   y += 15;
 
   if (dataJson.formula) {
@@ -175,9 +197,7 @@ export async function exportReportToPdf(
 
     if (dataJson.sales.weeklyComparison?.length > 0) {
       const headers = ["周次", "销量", "销售额"];
-      const rows = dataJson.sales.weeklyComparison.map((d: any) => [
-        d.week, d.quantity ?? 0, "¥" + (d.revenue ?? 0),
-      ]);
+      const rows = dataJson.sales.weeklyComparison.map((d: any) => [d.week, d.quantity ?? 0, "¥" + (d.revenue ?? 0)]);
       const colWidths = [pageWidth * 0.4, pageWidth * 0.3, pageWidth * 0.3];
       drawTable(headers, rows, colWidths);
     }
@@ -187,9 +207,7 @@ export async function exportReportToPdf(
     drawSectionTitle("未来规划", SECTION_COLORS.plans);
     if (dataJson.plans.nextWeekPlans?.length > 0) {
       const headers = ["计划", "优先级"];
-      const rows = dataJson.plans.nextWeekPlans.map((d: any) => [
-        d.content ?? d.plan ?? "", d.priority ?? "",
-      ]);
+      const rows = dataJson.plans.nextWeekPlans.map((d: any) => [d.content ?? d.plan ?? "", d.priority ?? ""]);
       const colWidths = [pageWidth * 0.7, pageWidth * 0.3];
       drawTable(headers, rows, colWidths);
     }
@@ -216,7 +234,10 @@ export async function exportReportToPdf(
       if (dataJson.monthlySummary.weeklyBreakdown?.length > 0) {
         const headers = ["周次", "销量", "销售额", "配方数"];
         const rows = dataJson.monthlySummary.weeklyBreakdown.map((d: any) => [
-          d.week, d.quantity ?? 0, "¥" + (d.revenue ?? 0), d.formulaCount ?? 0,
+          d.week,
+          d.quantity ?? 0,
+          "¥" + (d.revenue ?? 0),
+          d.formulaCount ?? 0,
         ]);
         const colWidths = [pageWidth * 0.2, pageWidth * 0.25, pageWidth * 0.3, pageWidth * 0.25];
         drawTable(headers, rows, colWidths);
@@ -228,7 +249,10 @@ export async function exportReportToPdf(
       if (dataJson.trend.monthlyTrend?.length > 0) {
         const headers = ["月份", "销量", "销售额", "配方数"];
         const rows = dataJson.trend.monthlyTrend.map((d: any) => [
-          d.month, d.quantity ?? 0, "¥" + (d.revenue ?? 0), d.formulaCount ?? 0,
+          d.month,
+          d.quantity ?? 0,
+          "¥" + (d.revenue ?? 0),
+          d.formulaCount ?? 0,
         ]);
         const colWidths = [pageWidth * 0.2, pageWidth * 0.25, pageWidth * 0.3, pageWidth * 0.25];
         drawTable(headers, rows, colWidths);
@@ -248,7 +272,10 @@ export async function exportReportToPdf(
       if (dataJson.targets.quarterlyTargets?.length > 0) {
         const headers = ["指标", "目标", "实际", "达成率"];
         const rows = dataJson.targets.quarterlyTargets.map((d: any) => [
-          d.metric ?? "", d.target ?? 0, d.actual ?? 0, (d.rate ?? 0) + "%",
+          d.metric ?? "",
+          d.target ?? 0,
+          d.actual ?? 0,
+          (d.rate ?? 0) + "%",
         ]);
         const colWidths = [pageWidth * 0.3, pageWidth * 0.2, pageWidth * 0.25, pageWidth * 0.25];
         drawTable(headers, rows, colWidths);
@@ -261,7 +288,8 @@ export async function exportReportToPdf(
       if (dataJson.team.salesmanPerformance?.length > 0) {
         const headers = ["业务员", "销量", "销售额"];
         const rows = dataJson.team.salesmanPerformance.map((d: any) => [
-          d.salesmanName ?? d.salesman_name ?? "", d.totalQuantity ?? d.total_quantity ?? 0,
+          d.salesmanName ?? d.salesman_name ?? "",
+          d.totalQuantity ?? d.total_quantity ?? 0,
           "¥" + (d.totalRevenue ?? d.total_revenue ?? 0),
         ]);
         const colWidths = [pageWidth * 0.4, pageWidth * 0.3, pageWidth * 0.3];
@@ -278,14 +306,22 @@ export async function exportReportToPdf(
         drawTable(headers, rows, colWidths);
       }
       if (dataJson.issues.suggestions?.length > 0) {
-        drawKeyValue("改进建议", dataJson.issues.suggestions.map((s: any) => s.content ?? s.suggestion ?? "").join("; "));
+        drawKeyValue(
+          "改进建议",
+          dataJson.issues.suggestions.map((s: any) => s.content ?? s.suggestion ?? "").join("; "),
+        );
       }
     }
   }
 
   checkPage(30);
   y += 20;
-  doc.moveTo(startX, y).lineTo(startX + pageWidth, y).strokeColor("#D1D5DB").lineWidth(0.5).stroke();
+  doc
+    .moveTo(startX, y)
+    .lineTo(startX + pageWidth, y)
+    .strokeColor("#D1D5DB")
+    .lineWidth(0.5)
+    .stroke();
   y += 8;
   doc.fontSize(9).fillColor("#9CA3AF");
   doc.text(`由 TingStudio 生成于 ${new Date().toLocaleString("zh-CN")}`, startX, y, {

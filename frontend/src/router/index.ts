@@ -243,6 +243,12 @@ const router = createRouter({
           meta: { title: "AI 助手工作台", hideHeader: true, fullBleed: true },
         },
         {
+          path: "ai-overview",
+          name: "AiOverview",
+          component: () => import("@/views/ai/AiOverview.vue"),
+          meta: { title: "AI 概览" },
+        },
+        {
           path: "smart-tools",
           name: "SmartTools",
           component: () => import("@/views/ai/SmartTools.vue"),

@@ -43,7 +43,7 @@
             </div>
             <div class="upload-text">
               <p class="upload-title">点击或拖拽文件上传</p>
-              <p class="upload-hint">支持 .xlsx, .jpg, .png (最大 10MB)</p>
+              <p class="upload-hint">支持 Excel/图片文件 (最大 10MB)</p>
             </div>
           </div>
 

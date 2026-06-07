@@ -1,0 +1,181 @@
+﻿[
+    {
+        "Id":  "M01-P01",
+        "Name":  "Create material success",
+        "Time":  "240ms",
+        "Result":  "PASS",
+        "Detail":  "",
+        "Status":  "200"
+    },
+    {
+        "Id":  "M01-E01",
+        "Name":  "Create material missing name",
+        "Resp":  "",
+        "Time":  "14ms",
+        "Result":  "PASS",
+        "Detail":  "",
+        "Status":  "400"
+    },
+    {
+        "Id":  "M01-E02",
+        "Name":  "Create material missing code",
+        "Resp":  "",
+        "Time":  "4ms",
+        "Result":  "PASS",
+        "Detail":  "",
+        "Status":  "400"
+    },
+    {
+        "Id":  "M01-V01",
+        "Name":  "Create material empty body",
+        "Resp":  "",
+        "Time":  "3ms",
+        "Result":  "PASS",
+        "Detail":  "",
+        "Status":  "400"
+    },
+    {
+        "Id":  "M01-R01",
+        "Name":  "Create material no token",
+        "Resp":  "",
+        "Time":  "2ms",
+        "Result":  "PASS",
+        "Detail":  "",
+        "Status":  "401"
+    },
+    {
+        "Id":  "M02-P01",
+        "Name":  "List materials success",
+        "Time":  "14ms",
+        "Result":  "PASS",
+        "Detail":  "",
+        "Status":  "200"
+    },
+    {
+        "Id":  "M02-P02",
+        "Name":  "List materials with pagination",
+        "Time":  "10ms",
+        "Result":  "PASS",
+        "Detail":  "",
+        "Status":  "200"
+    },
+    {
+        "Id":  "M02-P03",
+        "Name":  "List materials with search",
+        "Time":  "6ms",
+        "Result":  "PASS",
+        "Detail":  "",
+        "Status":  "200"
+    },
+    {
+        "Id":  "M02-P04",
+        "Name":  "List materials with category filter",
+        "Time":  "11ms",
+        "Result":  "PASS",
+        "Detail":  "",
+        "Status":  "200"
+    },
+    {
+        "Id":  "M02-R01",
+        "Name":  "List materials no token",
+        "Resp":  "",
+        "Time":  "5ms",
+        "Result":  "PASS",
+        "Detail":  "",
+        "Status":  "401"
+    },
+    {
+        "Id":  "M03-P01",
+        "Name":  "Get material detail",
+        "Time":  "5ms",
+        "Result":  "PASS",
+        "Detail":  "",
+        "Status":  "200"
+    },
+    {
+        "Id":  "M03-E01",
+        "Name":  "Get material not found",
+        "Resp":  "",
+        "Time":  "3ms",
+        "Result":  "PASS",
+        "Detail":  "",
+        "Status":  "404"
+    },
+    {
+        "Id":  "M03-R01",
+        "Name":  "Get material no token",
+        "Resp":  "",
+        "Time":  "1ms",
+        "Result":  "PASS",
+        "Detail":  "",
+        "Status":  "401"
+    },
+    {
+        "Id":  "M04-P01",
+        "Name":  "Update material name",
+        "Time":  "107ms",
+        "Result":  "PASS",
+        "Detail":  "",
+        "Status":  "200"
+    },
+    {
+        "Id":  "M04-E01",
+        "Name":  "Update material not found",
+        "Resp":  "",
+        "Time":  "7ms",
+        "Result":  "PASS",
+        "Detail":  "",
+        "Status":  "404"
+    },
+    {
+        "Id":  "M04-R01",
+        "Name":  "Update material no token",
+        "Resp":  "",
+        "Time":  "2ms",
+        "Result":  "PASS",
+        "Detail":  "",
+        "Status":  "401"
+    },
+    {
+        "Id":  "M05-P01",
+        "Name":  "Delete material success",
+        "Time":  "100ms",
+        "Result":  "PASS",
+        "Detail":  "",
+        "Status":  "200"
+    },
+    {
+        "Id":  "M05-E01",
+        "Name":  "Delete material not found",
+        "Time":  "5ms",
+        "Result":  "PASS",
+        "Detail":  "",
+        "Status":  "200"
+    },
+    {
+        "Id":  "M05-R01",
+        "Name":  "Delete material no token",
+        "Resp":  "",
+        "Time":  "2ms",
+        "Result":  "PASS",
+        "Detail":  "",
+        "Status":  "401"
+    },
+    {
+        "Id":  "M06-D01",
+        "Name":  "Formulist sees own material",
+        "Time":  "4ms",
+        "Result":  "PASS",
+        "Detail":  "",
+        "Status":  "200"
+    },
+    {
+        "Id":  "M07-P01",
+        "Name":  "Get next material code",
+        "Resp":  "",
+        "Time":  "3ms",
+        "Result":  "FAIL",
+        "Detail":  "expected:200 got:400",
+        "Status":  "400"
+    }
+]

@@ -75,8 +75,17 @@ export async function createQuickFormula(req: AuthRequest, res: Response) {
     const { name } = req.body as Record<string, unknown>;
     const userId = req.user?.userId ?? "";
 
+    const trimmedName = String(name).trim();
+    if (trimmedName.length === 0) {
+      res.status(400).json({
+        success: false,
+        error: { message: "快速配方名称不能为空", code: "VALIDATION_ERROR", timestamp: new Date().toISOString() },
+      });
+      return;
+    }
+
     // 校验名称唯一性
-    const existing = await quickFormulaService.findByName(String(name).trim(), userId);
+    const existing = await quickFormulaService.findByName(trimmedName, userId);
     if (existing) {
       res.status(409).json({
         success: false,
@@ -86,7 +95,7 @@ export async function createQuickFormula(req: AuthRequest, res: Response) {
     }
 
     const quickFormula = await quickFormulaService.create({
-      name: String(name).trim(),
+      name: trimmedName,
       createdBy: userId,
       createdByName: "",
     });
@@ -140,14 +149,24 @@ export async function updateQuickFormula(req: AuthRequest, res: Response) {
     const body = req.body as Record<string, unknown>;
 
     // 如果修改了名称，检查新名称是否重复
-    if (body.name !== undefined && String(body.name).trim() !== existing.name) {
-      const duplicate = await quickFormulaService.findByName(String(body.name).trim(), existing.createdBy as string);
-      if (duplicate) {
-        res.status(409).json({
+    if (body.name !== undefined && body.name !== null) {
+      const trimmedName = String(body.name).trim();
+      if (trimmedName.length === 0) {
+        res.status(400).json({
           success: false,
-          error: { message: "快速配方名称已存在", code: "DUPLICATE_ENTRY", timestamp: new Date().toISOString() },
+          error: { message: "快速配方名称不能为空", code: "VALIDATION_ERROR", timestamp: new Date().toISOString() },
         });
         return;
+      }
+      if (trimmedName !== existing.name) {
+        const duplicate = await quickFormulaService.findByName(trimmedName, existing.createdBy as string);
+        if (duplicate) {
+          res.status(409).json({
+            success: false,
+            error: { message: "快速配方名称已存在", code: "DUPLICATE_ENTRY", timestamp: new Date().toISOString() },
+          });
+          return;
+        }
       }
     }
 

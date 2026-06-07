@@ -46,7 +46,7 @@ export async function register(req: Request, res: Response) {
     const currentTime = now();
 
     await query(
-      adaptSQL("INSERT INTO users (id, username, password, role, display_name, email, phone, created_at, updated_at) VALUES (?, ?, ?, \"formulist\", ?, ?, ?, ?, ?)"),
+      adaptSQL("INSERT INTO users (id, username, password, role, display_name, email, phone, created_at, updated_at) VALUES (?, ?, ?, 'formulist', ?, ?, ?, ?, ?)"),
       [userId, username, hashedPassword, displayName, email, phone, currentTime, currentTime],
     );
 

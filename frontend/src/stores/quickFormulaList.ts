@@ -68,11 +68,20 @@ export const useQuickFormulaListStore = defineStore('quickFormulaList', () => {
 
   async function saveQuickFormula(id: string, data: Record<string, unknown>): Promise<boolean> {
     try {
-      await quickFormulaApi.updateQuickFormula(id, data)
+      await quickFormulaApi.updateQuickFormula(id, data, { _silent: true })
       MessagePlugin.success('保存成功')
       await fetchList()
       return true
-    } catch {
+    } catch (error: unknown) {
+      const axiosErr = error as { response?: { status?: number; data?: { error?: { message?: string; details?: string[] } } } }
+      const errData = axiosErr?.response?.data?.error
+      if (errData?.details && errData.details.length > 0) {
+        MessagePlugin.warning(errData.details.join('；'))
+      } else if (errData?.message) {
+        MessagePlugin.warning(errData.message)
+      } else {
+        MessagePlugin.error('保存失败，请检查数据后重试')
+      }
       return false
     }
   }

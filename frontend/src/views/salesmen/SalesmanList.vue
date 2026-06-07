@@ -343,6 +343,8 @@ import { MessagePlugin } from 'tdesign-vue-next';
 import type { Salesman } from '@/api/salesman';
 import PageSkeleton from '@/components/Skeleton/PageSkeleton.vue';
 import SalesRecordDrawer from '@/components/SalesRecordDrawer.vue';
+import { useTodoPagination } from '@/composables/useTodoPagination';
+import { usePageNumbers } from '@/composables/usePageNumbers';
 
 const router = useRouter();
 const route = useRoute();
@@ -554,15 +556,11 @@ const pagination = computed(() => ({
   }
 }));
 
-const totalPages = computed(() => Math.ceil(salesmanStore.total / salesmanStore.pageSize) || 1);
-const pageNumbers = computed<(number | string)[]>(() => {
-  const total = totalPages.value;
-  const current = salesmanStore.currentPage;
-  if (total <= 5) return Array.from({ length: total }, (_, i) => i + 1);
-  if (current <= 3) return [1, 2, 3, '...', total];
-  if (current >= total - 2) return [1, '...', total - 2, total - 1, total];
-  return [1, '...', current - 1, current, current + 1, '...', total];
-});
+const { totalPages, pageNumbers } = usePageNumbers(
+  () => salesmanStore.total,
+  () => salesmanStore.pageSize,
+  () => salesmanStore.currentPage
+);
 
 // ─── 动态时间线 ───
 interface ActivityItem { type: 'success' | 'warning' | 'info'; title: string; desc: string; time: string; }
@@ -774,18 +772,13 @@ const displaySmPendingItems = computed<SmTodoItem[]>(() => {
   return items.slice(0, 6);
 });
 
-const SM_TODO_PAGE_SIZE = 3;
-const smTodoPage = ref(1);
-
-const smTodoTotalPages = computed(() => Math.max(1, Math.ceil(displaySmPendingItems.value.length / SM_TODO_PAGE_SIZE)));
-
-const paginatedSmTodoItems = computed(() => {
-  const start = (smTodoPage.value - 1) * SM_TODO_PAGE_SIZE;
-  return displaySmPendingItems.value.slice(start, start + SM_TODO_PAGE_SIZE);
-});
-
-const smTodoPrev = () => { if (smTodoPage.value > 1) smTodoPage.value--; };
-const smTodoNext = () => { if (smTodoPage.value < smTodoTotalPages.value) smTodoPage.value++; };
+const {
+  page: smTodoPage,
+  totalPages: smTodoTotalPages,
+  paginatedItems: paginatedSmTodoItems,
+  prev: smTodoPrev,
+  next: smTodoNext
+} = useTodoPagination(displaySmPendingItems);
 
 const handleSmTodoAction = (item: SmTodoItem) => {
   switch (item.actionType) {

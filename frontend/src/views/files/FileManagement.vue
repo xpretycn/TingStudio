@@ -320,6 +320,8 @@ import { fileApi } from '@/api/file';
 import type { UploadedFile } from '@/api/file';
 import FilePreviewDialog from '@/components/FilePreviewDialog.vue';
 import PageSkeleton from '@/components/Skeleton/PageSkeleton.vue';
+import { useTodoPagination } from '@/composables/useTodoPagination';
+import { usePageNumbers } from '@/composables/usePageNumbers';
 
 const router = useRouter();
 const route = useRoute();
@@ -465,16 +467,11 @@ const columns = computed(() => [
   { colKey: 'operation', title: '操作', width: 160, align: 'center' },
 ]);
 
-const totalPages = computed(() => Math.ceil(fileStore.total / (fileStore.queryParams.pageSize ?? 20)) || 1);
-
-const pageNumbers = computed<(number | string)[]>(() => {
-  const total = totalPages.value;
-  const current = fileStore.queryParams.page ?? 1;
-  if (total <= 5) return Array.from({ length: total }, (_, i) => i + 1);
-  if (current <= 3) return [1, 2, 3, '...', total];
-  if (current >= total - 2) return [1, '...', total - 2, total - 1, total];
-  return [1, '...', current - 1, current, current + 1, '...', total];
-});
+const { totalPages, pageNumbers } = usePageNumbers(
+  () => fileStore.total,
+  () => fileStore.queryParams.pageSize ?? 20,
+  () => fileStore.queryParams.page ?? 1
+);
 
 const formatFileSize = (bytes: number): string => {
   if (!bytes || bytes === 0) return '0 B';
@@ -695,18 +692,13 @@ const pendingItems = computed<PendingItem[]>(() => {
 
 const displayPendingItems = computed<PendingItem[]>(() => pendingItems.value);
 
-const TODO_PAGE_SIZE = 3;
-const todoPage = ref(1);
-
-const todoTotalPages = computed(() => Math.max(1, Math.ceil(displayPendingItems.value.length / TODO_PAGE_SIZE)));
-
-const paginatedTodoItems = computed(() => {
-  const start = (todoPage.value - 1) * TODO_PAGE_SIZE;
-  return displayPendingItems.value.slice(start, start + TODO_PAGE_SIZE);
-});
-
-const todoPrev = () => { if (todoPage.value > 1) todoPage.value--; };
-const todoNext = () => { if (todoPage.value < todoTotalPages.value) todoPage.value++; };
+const {
+  page: todoPage,
+  totalPages: todoTotalPages,
+  paginatedItems: paginatedTodoItems,
+  prev: todoPrev,
+  next: todoNext
+} = useTodoPagination(displayPendingItems);
 
 const handleTodoAction = (item: PendingItem) => {
   switch (item.actionType) {

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, inject } from "vue"
+import { usePageNumbers } from "@/composables/usePageNumbers"
 import { MessagePlugin } from "tdesign-vue-next"
 import type { TableInfo, ColumnInfo, IndexInfo } from "@/api/db"
 import { getTableSchema } from "@/api/db"
@@ -14,20 +15,11 @@ const currentPage = ref(1)
 const pageSize = ref(10)
 
 const totalCount = computed(() => props.tables.length)
-const totalPages = computed(() => Math.ceil(totalCount.value / pageSize.value) || 1)
+const { totalPages, pageNumbers } = usePageNumbers(totalCount, pageSize, currentPage)
 
 const pagedTables = computed(() => {
   const start = (currentPage.value - 1) * pageSize.value
   return props.tables.slice(start, start + pageSize.value)
-})
-
-const pageNumbers = computed<(number | string)[]>(() => {
-  const total = totalPages.value
-  const current = currentPage.value
-  if (total <= 5) return Array.from({ length: total }, (_, i) => i + 1)
-  if (current <= 3) return [1, 2, 3, '...', total]
-  if (current >= total - 2) return [1, '...', total - 2, total - 1, total]
-  return [1, '...', current - 1, current, current + 1, '...', total]
 })
 
 const setPage = (page: number) => {

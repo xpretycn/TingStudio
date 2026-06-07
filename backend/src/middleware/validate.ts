@@ -21,9 +21,14 @@ export function validateBody(rules: ValidationRules) {
     for (const [field, rule] of Object.entries(rules)) {
       const value = body[field]
 
-      if (rule.required && (value === undefined || value === null || value === '')) {
-        errors.push(rule.message || `${field} 为必填项`)
-        continue
+      if (rule.required) {
+        const isEmpty = value === undefined || value === null
+          || (typeof value === 'string' && value.trim() === '')
+          || (Array.isArray(value) && value.length === 0)
+        if (isEmpty) {
+          errors.push(rule.message || `${field} 为必填项`)
+          continue
+        }
       }
 
       if (value === undefined || value === null) continue
@@ -39,11 +44,21 @@ export function validateBody(rules: ValidationRules) {
       }
 
       if (typeof value === 'string') {
-        if (rule.minLength && value.length < rule.minLength) {
+        const trimmed = value.trim()
+        if (rule.minLength && trimmed.length < rule.minLength) {
           errors.push(rule.message || `${field} 长度不能少于 ${rule.minLength}`)
         }
-        if (rule.maxLength && value.length > rule.maxLength) {
+        if (rule.maxLength && trimmed.length > rule.maxLength) {
           errors.push(rule.message || `${field} 长度不能超过 ${rule.maxLength}`)
+        }
+      }
+
+      if (Array.isArray(value)) {
+        if (rule.minLength && value.length < rule.minLength) {
+          errors.push(rule.message || `${field} 至少需要 ${rule.minLength} 项`)
+        }
+        if (rule.maxLength && value.length > rule.maxLength) {
+          errors.push(rule.message || `${field} 不能超过 ${rule.maxLength} 项`)
         }
       }
 
@@ -58,7 +73,15 @@ export function validateBody(rules: ValidationRules) {
     }
 
     if (errors.length > 0) {
-      res.status(400).json({ success: false, message: '参数验证失败', errors })
+      res.status(400).json({
+        success: false,
+        error: {
+          message: '参数验证失败',
+          code: 'VALIDATION_ERROR',
+          timestamp: new Date().toISOString(),
+          details: errors,
+        },
+      })
       return
     }
 

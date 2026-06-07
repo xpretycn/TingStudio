@@ -455,6 +455,20 @@ export async function createJob(
     };
   }
 
+  // 校验配方是否存在
+  if (dataCategory === "formula" && formulaIds && formulaIds.length > 0) {
+    for (const fid of formulaIds) {
+      const [fRows] = query("SELECT id FROM formulas WHERE id = ?", [fid]) as [Record<string, unknown>[]];
+      if (!fRows || fRows.length === 0) {
+        return {
+          jobId: id,
+          status: "failed",
+          errorMessage: "配方不存在",
+        };
+      }
+    }
+  }
+
   const targetIds = dataCategory === "formula"
     ? formulaIds ?? []
     : dataCategory === "material"

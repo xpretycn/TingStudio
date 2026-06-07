@@ -44,7 +44,14 @@ materialRoutes.post(
   }),
   createMaterial,
 );
-materialRoutes.put("/:id", updateMaterial);
+materialRoutes.put(
+  "/:id",
+  validateBody({
+    name: { type: "string", required: false, minLength: 1, message: "原料名称至少1个字符" },
+    code: { type: "string", required: false, minLength: 1, message: "原料编码至少1个字符" },
+  }),
+  updateMaterial,
+);
 materialRoutes.delete("/:id", deleteMaterial);
 materialRoutes.post("/:id/submit-review", submitMaterialReview);
 materialRoutes.put("/:id/approve", approveMaterial);

@@ -33,7 +33,7 @@ export async function addSource(req: AuthRequest, res: Response) {
       res.status(400).json({ success: false, message: result.message });
       return;
     }
-    res.json(success({ sourceId: result.sourceId, materialId, sourceType, sourceDetail, confidence, matchScore, createdAt: new Date().toISOString() }));
+    res.status(201).json(success({ sourceId: result.sourceId, materialId, sourceType, sourceDetail, confidence, matchScore, createdAt: new Date().toISOString() }));
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : String(error);
     res.status(500).json({ success: false, message: "添加来源数据失败", error: msg });

@@ -288,6 +288,7 @@ import { usePaginationStore } from '@/stores/pagination';
 import { MessagePlugin } from 'tdesign-vue-next';
 import type { NutritionProfile } from '@/api/nutrition';
 import PageSkeleton from '@/components/Skeleton/PageSkeleton.vue';
+import { usePageNumbers } from '@/composables/usePageNumbers';
 
 const nutritionStore = useNutritionStore();
 const paginationStore = usePaginationStore();
@@ -378,20 +379,11 @@ const filteredProfiles = computed(() => {
 });
 
 const totalCount = computed(() => filteredProfiles.value.length);
-const totalPages = computed(() => Math.ceil(totalCount.value / pageSize.value) || 1);
+const { totalPages, pageNumbers } = usePageNumbers(totalCount, pageSize, currentPage);
 
 const pagedProfiles = computed(() => {
   const start = (currentPage.value - 1) * pageSize.value;
   return filteredProfiles.value.slice(start, start + pageSize.value);
-});
-
-const pageNumbers = computed<(number | string)[]>(() => {
-  const total = totalPages.value;
-  const current = currentPage.value;
-  if (total <= 5) return Array.from({ length: total }, (_, i) => i + 1);
-  if (current <= 3) return [1, 2, 3, '...', total];
-  if (current >= total - 2) return [1, '...', total - 2, total - 1, total];
-  return [1, '...', current - 1, current, current + 1, '...', total];
 });
 
 const setPage = (page: number) => {

@@ -1,0 +1,182 @@
+﻿[
+    {
+        "Id":  "F01-P01",
+        "Name":  "Create formula success",
+        "Time":  "142ms",
+        "Result":  "PASS",
+        "Detail":  "",
+        "Status":  "200"
+    },
+    {
+        "Id":  "F01-E01",
+        "Name":  "Create formula missing name",
+        "Resp":  "",
+        "Time":  "11ms",
+        "Result":  "PASS",
+        "Detail":  "",
+        "Status":  "400"
+    },
+    {
+        "Id":  "F01-V01",
+        "Name":  "Create formula empty body",
+        "Resp":  "",
+        "Time":  "4ms",
+        "Result":  "PASS",
+        "Detail":  "",
+        "Status":  "400"
+    },
+    {
+        "Id":  "F01-R01",
+        "Name":  "Create formula no token",
+        "Resp":  "",
+        "Time":  "2ms",
+        "Result":  "PASS",
+        "Detail":  "",
+        "Status":  "401"
+    },
+    {
+        "Id":  "F02-P01",
+        "Name":  "List formulas success",
+        "Time":  "11ms",
+        "Result":  "PASS",
+        "Detail":  "",
+        "Status":  "200"
+    },
+    {
+        "Id":  "F02-P02",
+        "Name":  "List formulas with pagination",
+        "Time":  "6ms",
+        "Result":  "PASS",
+        "Detail":  "",
+        "Status":  "200"
+    },
+    {
+        "Id":  "F02-P03",
+        "Name":  "List formulas with search",
+        "Time":  "6ms",
+        "Result":  "PASS",
+        "Detail":  "",
+        "Status":  "200"
+    },
+    {
+        "Id":  "F02-R01",
+        "Name":  "List formulas no token",
+        "Resp":  "",
+        "Time":  "6ms",
+        "Result":  "PASS",
+        "Detail":  "",
+        "Status":  "401"
+    },
+    {
+        "Id":  "F03-P01",
+        "Name":  "Get formula detail",
+        "Time":  "4ms",
+        "Result":  "PASS",
+        "Detail":  "",
+        "Status":  "200"
+    },
+    {
+        "Id":  "F03-E01",
+        "Name":  "Get formula not found",
+        "Resp":  "",
+        "Time":  "5ms",
+        "Result":  "PASS",
+        "Detail":  "",
+        "Status":  "404"
+    },
+    {
+        "Id":  "F03-R01",
+        "Name":  "Get formula no token",
+        "Resp":  "",
+        "Time":  "1ms",
+        "Result":  "PASS",
+        "Detail":  "",
+        "Status":  "401"
+    },
+    {
+        "Id":  "F04-P01",
+        "Name":  "Update formula name",
+        "Time":  "137ms",
+        "Result":  "PASS",
+        "Detail":  "",
+        "Status":  "200"
+    },
+    {
+        "Id":  "F04-E01",
+        "Name":  "Update formula not found",
+        "Resp":  "",
+        "Time":  "7ms",
+        "Result":  "PASS",
+        "Detail":  "",
+        "Status":  "404"
+    },
+    {
+        "Id":  "F04-R01",
+        "Name":  "Update formula no token",
+        "Resp":  "",
+        "Time":  "2ms",
+        "Result":  "PASS",
+        "Detail":  "",
+        "Status":  "401"
+    },
+    {
+        "Id":  "F05-P01",
+        "Name":  "Delete formula success",
+        "Time":  "151ms",
+        "Result":  "PASS",
+        "Detail":  "",
+        "Status":  "200"
+    },
+    {
+        "Id":  "F05-E01",
+        "Name":  "Delete formula not found",
+        "Resp":  "",
+        "Time":  "12ms",
+        "Result":  "PASS",
+        "Detail":  "",
+        "Status":  "404"
+    },
+    {
+        "Id":  "F05-R01",
+        "Name":  "Delete formula no token",
+        "Resp":  "",
+        "Time":  "3ms",
+        "Result":  "PASS",
+        "Detail":  "",
+        "Status":  "401"
+    },
+    {
+        "Id":  "F06-D01",
+        "Name":  "Formulist sees own formula",
+        "Time":  "6ms",
+        "Result":  "PASS",
+        "Detail":  "",
+        "Status":  "200"
+    },
+    {
+        "Id":  "F07-P01",
+        "Name":  "Publish formula",
+        "Resp":  "",
+        "Time":  "4ms",
+        "Result":  "FAIL",
+        "Detail":  "expected:200 got:400",
+        "Status":  "400"
+    },
+    {
+        "Id":  "F08-P01",
+        "Name":  "Get price quote",
+        "Resp":  "",
+        "Time":  "4ms",
+        "Result":  "FAIL",
+        "Detail":  "expected:200 got:500",
+        "Status":  "500"
+    },
+    {
+        "Id":  "F09-P01",
+        "Name":  "Validate ratio",
+        "Time":  "5ms",
+        "Result":  "PASS",
+        "Detail":  "",
+        "Status":  "200"
+    }
+]

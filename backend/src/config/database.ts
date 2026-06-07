@@ -22,7 +22,9 @@ function ensureColumn(dbInstance: SqlJsDatabase, table: string, col: string, typ
       dbInstance.exec(`ALTER TABLE ${table} ADD COLUMN ${col} ${type} DEFAULT ${defaultValue}`);
       logger.info(`数据库迁移: 添加列 ${table}.${col}`);
     }
-  } catch (_err) {}
+  } catch (_err) {
+    logger.warn(`数据库迁移失败: ${table}.${col} 添加列时出错`);
+  }
 }
 
 function ensureTable(dbInstance: SqlJsDatabase, tableName: string, createSql: string) {
@@ -85,11 +87,15 @@ function runAutoMigrations(dbInstance: SqlJsDatabase) {
         const newColsResult = dbInstance.exec("PRAGMA table_info(formula_versions_new)");
         const newCols = newColsResult[0]?.values?.map((c: any[]) => c[1]) || [];
         const commonCols = oldCols.filter((c: string) => newCols.includes(c));
-        dbInstance.run(`INSERT INTO formula_versions_new (${commonCols.join(", ")}) SELECT ${commonCols.join(", ")} FROM formula_versions`);
+        dbInstance.run(
+          `INSERT INTO formula_versions_new (${commonCols.join(", ")}) SELECT ${commonCols.join(", ")} FROM formula_versions`,
+        );
         dbInstance.run("DROP TABLE formula_versions");
         dbInstance.run("ALTER TABLE formula_versions_new RENAME TO formula_versions");
         dbInstance.run("CREATE INDEX IF NOT EXISTS idx_fv_formula ON formula_versions(formula_id)");
-        dbInstance.run("CREATE INDEX IF NOT EXISTS idx_fv_version_number ON formula_versions(formula_id, version_number)");
+        dbInstance.run(
+          "CREATE INDEX IF NOT EXISTS idx_fv_version_number ON formula_versions(formula_id, version_number)",
+        );
         logger.info("数据库迁移: formula_versions 表重建完成（status 约束已含 pending_review）");
       }
     }

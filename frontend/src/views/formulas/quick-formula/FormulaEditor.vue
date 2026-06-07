@@ -240,7 +240,8 @@ function handlePublish() {
             <template #icon><t-icon name="save" /></template>
             保存配方
           </t-button>
-          <t-button theme="default" block class="btn-emerald-fill" :disabled="!quickFormulaListStore.selectedId"
+          <t-button theme="default" block class="btn-emerald-fill"
+            :disabled="!quickFormulaListStore.selectedId || store.formulaStatus === 'published'"
             @click="handlePublish">
             <template #icon><t-icon name="upload" /></template>
             发布配方

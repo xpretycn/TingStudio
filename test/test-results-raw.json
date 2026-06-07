@@ -1,0 +1,714 @@
+{
+  "MaterialList": [
+    {
+      "id": "E01-P01",
+      "name": "页面加载展示看板",
+      "status": "pass",
+      "screenshot": "",
+      "actualResult": ""
+    },
+    {
+      "id": "E02-P01",
+      "name": "切换到草稿状态",
+      "status": "fail",
+      "screenshot": "",
+      "actualResult": "未找到草稿筛选按钮"
+    },
+    {
+      "id": "E02-P02",
+      "name": "切换到待审批状态",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "未找到待审批筛选按钮"
+    },
+    {
+      "id": "E02-P03",
+      "name": "切换到已发布状态",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "未找到已发布筛选按钮"
+    },
+    {
+      "id": "E02-P04",
+      "name": "切换到全部",
+      "status": "fail",
+      "screenshot": "",
+      "actualResult": "未找到全部筛选按钮"
+    },
+    {
+      "id": "E03-P01",
+      "name": "按名称搜索",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "未找到搜索输入框"
+    },
+    {
+      "id": "E03-B02",
+      "name": "输入特殊字符",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "未找到搜索输入框"
+    },
+    {
+      "id": "E04-P01",
+      "name": "点击刷新列表",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "未找到刷新按钮"
+    },
+    {
+      "id": "E05-P01",
+      "name": "点击录入原料",
+      "status": "fail",
+      "screenshot": "",
+      "actualResult": "跳转URL: http://localhost:5173/materials"
+    },
+    {
+      "id": "E07-P01",
+      "name": "点击行查看详情",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "未找到可点击的表格行"
+    },
+    {
+      "id": "ERROR",
+      "name": "MaterialList测试异常",
+      "status": "fail",
+      "screenshot": "",
+      "actualResult": "locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[class*=\"expand\"] button, [class*=\"expand-icon\"], .t-table__expand-box').first()\u001b[22m\n\u001b[2m    - locator resolved to <svg data-v-2dc54a20=\"\" class=\"t-icon t-icon-menu-unfold collapse-expand-icon\">…</svg>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not visible\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not visible\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    46 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is not visible\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n"
+    }
+  ],
+  "MaterialForm": [
+    {
+      "id": "ALL",
+      "name": "所有MaterialForm用例",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "无法导航到新增原料页面，URL: http://localhost:5173/login"
+    }
+  ],
+  "MaterialDetail": [
+    {
+      "id": "ALL",
+      "name": "所有MaterialDetail用例",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "无法导航到原料详情页，URL: http://localhost:5173/materials"
+    },
+    {
+      "id": "E02-B01",
+      "name": "非创建者无编辑权限",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需切换非创建者账号"
+    },
+    {
+      "id": "E04-P01",
+      "name": "跳转营养来源对比",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需有营养数据"
+    },
+    {
+      "id": "E04-B01",
+      "name": "无营养数据时按钮不显示",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需无营养数据的原料"
+    },
+    {
+      "id": "E05-P01",
+      "name": "打开导出抽屉",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需点击导出按钮"
+    },
+    {
+      "id": "E05-P02",
+      "name": "关闭导出抽屉",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需打开导出抽屉"
+    },
+    {
+      "id": "E05-U01",
+      "name": "导出抽屉动画",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需肉眼观察动画"
+    },
+    {
+      "id": "E06-P01",
+      "name": "选择Excel格式",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需打开导出抽屉"
+    },
+    {
+      "id": "E06-P02",
+      "name": "选择PDF格式",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需打开导出抽屉"
+    },
+    {
+      "id": "E07-P01",
+      "name": "选择导出模板",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需打开导出抽屉"
+    },
+    {
+      "id": "E07-B01",
+      "name": "无可用模板",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需无模板数据"
+    },
+    {
+      "id": "E08-P01",
+      "name": "点击取消关闭抽屉",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需打开导出抽屉"
+    },
+    {
+      "id": "E09-P01",
+      "name": "导出Excel",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需打开导出抽屉并导出"
+    },
+    {
+      "id": "E09-P02",
+      "name": "导出PDF",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需打开导出抽屉并导出"
+    },
+    {
+      "id": "E09-E01",
+      "name": "导出接口失败",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需模拟后端异常"
+    },
+    {
+      "id": "E09-U01",
+      "name": "导出按钮loading态",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需点击导出后观察"
+    }
+  ],
+  "MaterialVersions": [
+    {
+      "id": "ALL",
+      "name": "所有MaterialVersions用例",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "未找到版本链接"
+    },
+    {
+      "id": "E02-P01",
+      "name": "筛选草稿版本",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需有草稿版本"
+    },
+    {
+      "id": "E02-P02",
+      "name": "筛选待审批版本",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需有待审批版本"
+    },
+    {
+      "id": "E02-P03",
+      "name": "筛选已发布版本",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需有已发布版本"
+    },
+    {
+      "id": "E02-P04",
+      "name": "显示全部",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需有多个版本"
+    },
+    {
+      "id": "E02-B01",
+      "name": "某状态无版本",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需清空某状态版本"
+    },
+    {
+      "id": "E03-P01",
+      "name": "按版本号搜索",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需有多个版本"
+    },
+    {
+      "id": "E03-P02",
+      "name": "按操作人搜索",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需有多个版本"
+    },
+    {
+      "id": "E03-P03",
+      "name": "清空搜索",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需已输入搜索词"
+    },
+    {
+      "id": "E03-B01",
+      "name": "搜索无结果",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需输入不存在的版本号"
+    },
+    {
+      "id": "E04-P01",
+      "name": "切换到最新",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需有多个版本"
+    },
+    {
+      "id": "E04-P02",
+      "name": "切换到历史",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需有多个版本"
+    },
+    {
+      "id": "E05-P01",
+      "name": "选中2个版本后对比",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需选中2个版本"
+    },
+    {
+      "id": "E05-B01",
+      "name": "不足2个版本时按钮禁用",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需选中0或1个版本"
+    },
+    {
+      "id": "E06-P01",
+      "name": "清除所有对比选择",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需已选中版本"
+    },
+    {
+      "id": "E07-P01",
+      "name": "点击版本卡片查看详情",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需有版本数据"
+    },
+    {
+      "id": "E07-E01",
+      "name": "版本详情加载失败",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需模拟后端异常"
+    },
+    {
+      "id": "E07-U01",
+      "name": "选中卡片高亮",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需肉眼观察UI"
+    },
+    {
+      "id": "E08-P01",
+      "name": "勾选版本加入对比",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需有版本数据"
+    },
+    {
+      "id": "E08-B01",
+      "name": "最多选择3个版本",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需选中3个版本后尝试第4个"
+    },
+    {
+      "id": "E09-P01",
+      "name": "提交审批",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需草稿状态最新版本"
+    },
+    {
+      "id": "E09-E01",
+      "name": "提交审批失败",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需模拟后端异常"
+    },
+    {
+      "id": "E10-P01",
+      "name": "批准原料",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需管理员+待审批"
+    },
+    {
+      "id": "E10-B01",
+      "name": "非管理员不显示批准按钮",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需切换非管理员"
+    },
+    {
+      "id": "E11-P01",
+      "name": "驳回原料",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需管理员+待审批"
+    },
+    {
+      "id": "E12-P01",
+      "name": "关闭版本详情",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需已选中版本"
+    },
+    {
+      "id": "E13-P01",
+      "name": "填写驳回原因并确认",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需打开驳回对话框"
+    },
+    {
+      "id": "E13-B01",
+      "name": "驳回原因为空",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需打开驳回对话框"
+    }
+  ],
+  "MaterialVersionCompare": [
+    {
+      "id": "E01-P01",
+      "name": "返回版本历史",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需从版本对比页点击返回"
+    },
+    {
+      "id": "E02-P01",
+      "name": "重置所有对比",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需有选中版本"
+    },
+    {
+      "id": "E02-U01",
+      "name": "重置按钮样式",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需肉眼观察UI"
+    },
+    {
+      "id": "E03-P01",
+      "name": "设为基准版本",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需有2个以上版本对比"
+    },
+    {
+      "id": "E03-B01",
+      "name": "基准版本不显示设为基准按钮",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需观察基准卡片"
+    },
+    {
+      "id": "E03-L01",
+      "name": "设为基准后对比结果更新",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需有2个版本"
+    },
+    {
+      "id": "E04-P01",
+      "name": "移除非基准版本",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需有3个版本对比"
+    },
+    {
+      "id": "E04-P02",
+      "name": "移除后仅剩1个版本",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需有2个版本对比"
+    },
+    {
+      "id": "E04-L01",
+      "name": "移除后可选版本更新",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需有3个版本对比"
+    },
+    {
+      "id": "E05-P01",
+      "name": "从可选列表添加版本",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需有可选版本"
+    },
+    {
+      "id": "E05-B01",
+      "name": "已达3个版本上限",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需已选3个版本"
+    },
+    {
+      "id": "E05-B02",
+      "name": "无可选版本",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需所有版本已选中"
+    },
+    {
+      "id": "E05-U01",
+      "name": "差异项高亮样式",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需有对比结果"
+    },
+    {
+      "id": "E05-U02",
+      "name": "无差异提示",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需基本信息无差异"
+    }
+  ],
+  "NutritionSourcesCompare": [
+    {
+      "id": "E01-P01",
+      "name": "返回原料详情",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需从营养来源对比页点击返回"
+    },
+    {
+      "id": "E02-P01",
+      "name": "打开变更历史对话框",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需点击变更历史按钮"
+    },
+    {
+      "id": "E03-P01",
+      "name": "导出Excel格式",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需点击导出报告下拉"
+    },
+    {
+      "id": "E03-P02",
+      "name": "导出PDF格式",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需点击导出报告下拉"
+    },
+    {
+      "id": "E03-E01",
+      "name": "导出失败",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需模拟后端异常"
+    },
+    {
+      "id": "E04-P01",
+      "name": "选择来源查看详情",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需有多个来源"
+    },
+    {
+      "id": "E04-P02",
+      "name": "勾选来源加入对比",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需有多个来源"
+    },
+    {
+      "id": "E04-P03",
+      "name": "按类型筛选来源",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需有不同类型来源"
+    },
+    {
+      "id": "E04-P04",
+      "name": "清除选择",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需已选中来源"
+    },
+    {
+      "id": "E05-P01",
+      "name": "切换到概览视图",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需点击概览标签"
+    },
+    {
+      "id": "E05-P02",
+      "name": "切换到数值对比视图",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需点击数值对比标签"
+    },
+    {
+      "id": "E05-P03",
+      "name": "切换到偏差分析视图",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需点击偏差分析标签"
+    },
+    {
+      "id": "E05-P04",
+      "name": "切换到历史视图",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需点击历史标签"
+    },
+    {
+      "id": "E05-U01",
+      "name": "标签页切换动画",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需肉眼观察动画"
+    },
+    {
+      "id": "E05-U02",
+      "name": "快捷键提示标签",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需肉眼观察UI"
+    },
+    {
+      "id": "E05-L01",
+      "name": "概览下钻联动",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需在概览视图点击营养素"
+    },
+    {
+      "id": "E06-P01",
+      "name": "批量设置主用源",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需管理员+已选中来源"
+    },
+    {
+      "id": "E06-E01",
+      "name": "设置主用源失败",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需模拟后端异常"
+    },
+    {
+      "id": "E06-B01",
+      "name": "非管理员无权限",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需切换非管理员"
+    },
+    {
+      "id": "E07-P01",
+      "name": "批量归档来源",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需管理员+已选中来源"
+    },
+    {
+      "id": "E07-P02",
+      "name": "清除选择",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需已选中来源"
+    },
+    {
+      "id": "E07-B01",
+      "name": "无选中来源时操作栏不显示",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需无选中来源"
+    },
+    {
+      "id": "E08-P01",
+      "name": "快捷键1切换概览",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需按键盘1"
+    },
+    {
+      "id": "E08-P02",
+      "name": "快捷键2切换数值",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需按键盘2"
+    },
+    {
+      "id": "E08-P03",
+      "name": "快捷键3切换偏差",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需按键盘3"
+    },
+    {
+      "id": "E08-P04",
+      "name": "快捷键4切换历史",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需按键盘4"
+    },
+    {
+      "id": "E08-P05",
+      "name": "快捷键?切换提示",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需按键盘?"
+    },
+    {
+      "id": "E08-P06",
+      "name": "快捷键Esc关闭",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需按键盘Esc"
+    },
+    {
+      "id": "E08-U01",
+      "name": "快捷键提示自动隐藏",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需等待4秒"
+    },
+    {
+      "id": "E08-U02",
+      "name": "快捷键提示动画",
+      "status": "skip",
+      "screenshot": "",
+      "actualResult": "需手动验证：需肉眼观察动画"
+    }
+  ]
+}

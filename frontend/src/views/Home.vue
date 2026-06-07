@@ -325,8 +325,10 @@
                   </div>
 
                   <!-- 切换外观（hover 子菜单） -->
-                  <t-popup placement="right-top" trigger="hover">
-                    <div class="user-menu-item user-menu-item--has-sub" role="menuitem" aria-haspopup="true">
+                  <t-popup placement="right-top" trigger="hover" :visible="themeSubmenuVisible"
+                    @visible-change="(v: boolean) => themeSubmenuVisible = v">
+                    <div class="user-menu-item user-menu-item--has-sub" role="menuitem" aria-haspopup="true"
+                      :aria-expanded="themeSubmenuVisible">
                       <t-icon name="browse" size="16px" />
                       <span>切换外观</span>
                       <svg class="submenu-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none"
@@ -353,8 +355,10 @@
                   </t-popup>
 
                   <!-- 切换品牌色（hover 子菜单） -->
-                  <t-popup placement="right-top" trigger="hover">
-                    <div class="user-menu-item user-menu-item--has-sub" role="menuitem" aria-haspopup="true">
+                  <t-popup placement="right-top" trigger="hover" :visible="brandSubmenuVisible"
+                    @visible-change="(v: boolean) => brandSubmenuVisible = v">
+                    <div class="user-menu-item user-menu-item--has-sub" role="menuitem" aria-haspopup="true"
+                      :aria-expanded="brandSubmenuVisible">
                       <t-icon name="palette" size="16px" />
                       <span>切换品牌色</span>
                       <svg class="submenu-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none"
@@ -490,6 +494,8 @@ const activePath = computed(() => {
 
 // 用户下拉菜单
 const userMenuVisible = ref(false);
+const themeSubmenuVisible = ref(false);
+const brandSubmenuVisible = ref(false);
 // 主题模式选项
 const themeModeOptions = [
   { value: 'auto' as const, label: '跟随系统', icon: 'laptop' },
@@ -517,7 +523,10 @@ const handleUserMenuClick = (value: string) => {
       router.push('/settings');
       break;
     case 'switchAccount':
-      handleLogout();
+      // 切换账号：仅清除认证数据，保留主题偏好
+      authStore.logout();
+      MessagePlugin.info('请重新登录');
+      router.push('/login');
       break;
     case 'logout':
       handleLogout();
@@ -903,6 +912,7 @@ const handleGoForward = () => {
 // 处理退出登录
 const handleLogout = () => {
   authStore.logout();
+  themeStore.clearLocal();
   MessagePlugin.success('已退出登录~');
   router.push('/login');
 };

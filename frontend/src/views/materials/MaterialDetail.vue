@@ -461,10 +461,12 @@ const nrvData = computed(() => {
   return Object.entries(nrvBase).map(([name, base]) => {
     let value = getNutrientValue(name);
     const unit = nutritionData.value.find(n => n.nutrient === name)?.unit || base.nrvUnit;
-    if (name === '钠') value = value / 1000;
-    let percent = Math.round((value / base.nrv) * 100);
+    // 如果数据单位是 g 但 NRV 参考值单位是 mg，需要乘以 1000 转换
+    let percent = 0;
     if (base.nrvUnit === 'mg' && unit === 'g') {
       percent = Math.round((value * 1000 / base.nrv) * 100);
+    } else {
+      percent = Math.round((value / base.nrv) * 100);
     }
     return { name, value, unit, ...base, percent };
   }).filter(d => d.value > 0);

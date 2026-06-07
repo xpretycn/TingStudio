@@ -1,4 +1,4 @@
-// 数据验证脚本
+// ??????
 import { connectDatabase, query, closeDatabase } from '../config/database.js'
 
 async function verifyData() {
@@ -10,11 +10,11 @@ async function verifyData() {
     'material_nutrition', 'formula_nutrition_summaries', 'nutrition_profiles', 'nutrition_analysis_reports'
   ]
   
-  console.log('=== 数据库数据统计 ===')
+  console.log('=== ??????? ===')
   for (const table of tables) {
     const result = query(`SELECT COUNT(*) as count FROM ${table}`) as any[]
     const count = result[0][0].count
-    console.log(`${table.padEnd(25)}: ${count} 条数据`)
+    console.log(`${table.padEnd(25)}: ${count} ???`)
   }
   
   await closeDatabase()

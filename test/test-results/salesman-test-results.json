@@ -1,0 +1,240 @@
+{
+  "timestamp": "2026-06-05T23:23:42.336Z",
+  "summary": {
+    "total": 38,
+    "pass": 33,
+    "fail": 4,
+    "skip": 1,
+    "rate": "86.8%"
+  },
+  "results": [
+    {
+      "id": "E01-P01",
+      "name": "按姓名搜索",
+      "status": "FAIL",
+      "detail": "未找到郭靖"
+    },
+    {
+      "id": "E01-P02",
+      "name": "按工号搜索",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "E01-P03",
+      "name": "清空搜索",
+      "status": "FAIL",
+      "detail": "输入框值=测试"
+    },
+    {
+      "id": "E01-E01",
+      "name": "搜索无结果",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "E01-B01",
+      "name": "输入特殊字符",
+      "status": "FAIL",
+      "detail": "页面可能崩溃"
+    },
+    {
+      "id": "E01-U01",
+      "name": "搜索框聚焦态",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "E02-P01",
+      "name": "点击添加业务员",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "E03-P01",
+      "name": "点击筛选按钮",
+      "status": "SKIP",
+      "detail": "筛选按钮不可见"
+    },
+    {
+      "id": "E04-P01",
+      "name": "勾选单行",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "E05-P01",
+      "name": "点击行查看详情",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "E07-P01",
+      "name": "点击编辑",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "E08-P01",
+      "name": "停用按钮-popconfirm",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "E09-P01",
+      "name": "删除按钮-popconfirm",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "X-L03",
+      "name": "数据看板显示",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "X-TABLE",
+      "name": "表格列头完整",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "SD-E01-P01",
+      "name": "返回按钮存在",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "SD-E04-P01",
+      "name": "编辑按钮存在",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "SD-E10-P01",
+      "name": "状态标签展示",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "SD-概况",
+      "name": "概况卡片字段完整",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "SD-配方",
+      "name": "关联配方列表展示",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "SD-变更",
+      "name": "变更记录展示",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "SD-E02-P01",
+      "name": "面包屑导航",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "SF-E05-P01",
+      "name": "输入合法姓名",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "SF-E06-P02",
+      "name": "新增模式自动生成工号",
+      "status": "PASS",
+      "detail": "工号=YW86393"
+    },
+    {
+      "id": "SF-E07-P02",
+      "name": "新增模式默认部门",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "SF-E05-E01",
+      "name": "姓名为空失焦校验",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "SF-E05-B01",
+      "name": "输入1个字符校验",
+      "status": "FAIL",
+      "detail": "校验错误未显示"
+    },
+    {
+      "id": "SF-E06-B01",
+      "name": "输入中文工号校验",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "SF-E08-E01",
+      "name": "错误格式手机号校验",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "SF-E09-E01",
+      "name": "错误格式邮箱校验",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "SF-E04-U01",
+      "name": "新增模式按钮文字",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "SF-E10-U01",
+      "name": "头像上传区域展示",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "SF-X-L05",
+      "name": "新增模式标题",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "SF-E04-E01",
+      "name": "必填字段为空提交",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "SF-E04-P01",
+      "name": "正常创建业务员",
+      "status": "PASS",
+      "detail": "URL=http://localhost:5173/salesmen/new"
+    },
+    {
+      "id": "SF-EDIT-X-L05",
+      "name": "编辑模式标题和按钮",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "SF-EDIT-X-L02",
+      "name": "编辑模式回填数据",
+      "status": "PASS",
+      "detail": "姓名=郭靖, 工号=YW00001"
+    },
+    {
+      "id": "SF-E03-P01",
+      "name": "取消按钮返回列表",
+      "status": "PASS",
+      "detail": ""
+    }
+  ]
+}

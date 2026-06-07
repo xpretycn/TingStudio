@@ -124,33 +124,26 @@ export async function updateSalesman(req: Request, res: Response) {
     const { id } = req.params;
     const { name, code, department, phone, email, status } = req.body;
 
-    // 只更新传入的字段，status 未传则保持原值
-    if (status !== undefined) {
-      await query("UPDATE salesmen SET name=?, code=?, department=?, phone=?, email=?, status=? WHERE id=?", [
-        name,
-        code,
-        department,
-        phone,
-        email,
-        status,
-        id,
-      ]);
-    } else {
-      await query("UPDATE salesmen SET name=?, code=?, department=?, phone=?, email=? WHERE id=?", [
-        name,
-        code,
-        department,
-        phone,
-        email,
-        id,
-      ]);
-    }
-
-    const [[salesman]]: any[][] = await query("SELECT * FROM salesmen WHERE id = ?", [id]);
-    if (!salesman) {
+    // 先查询现有数据，未传入的字段保留原值
+    const [[existing]]: any[][] = await query("SELECT * FROM salesmen WHERE id = ?", [id]);
+    if (!existing) {
       res.status(404).json({ success: false, message: "业务员不存在" });
       return;
     }
+
+    const resolvedName = name ?? existing.name;
+    const resolvedCode = code ?? existing.code;
+    const resolvedDepartment = department ?? existing.department;
+    const resolvedPhone = phone ?? existing.phone;
+    const resolvedEmail = email ?? existing.email;
+    const resolvedStatus = status ?? existing.status;
+
+    await query(
+      "UPDATE salesmen SET name=?, code=?, department=?, phone=?, email=?, status=?, updated_at=? WHERE id=?",
+      [resolvedName, resolvedCode, resolvedDepartment, resolvedPhone, resolvedEmail, resolvedStatus, now(), id],
+    );
+
+    const [[salesman]]: any[][] = await query("SELECT * FROM salesmen WHERE id = ?", [id]);
     res.json(success(rowToCamelCase(salesman), "业务员更新成功"));
   } catch (error: any) {
     res.status(500).json({ success: false, message: "更新业务员失败", error: error.message });

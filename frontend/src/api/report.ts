@@ -102,7 +102,9 @@ export const reportApi = {
     return http.get<unknown, Report>(`/reports/${id}`);
   },
   generate(data: ReportGenerateForm) {
-    return http.post<unknown, Report>("/reports/generate", data);
+    return http.post<unknown, Report>("/reports/generate", data, {
+      timeout: 60000
+    });
   },
   update(id: string, data: Partial<{ title: string; dataJson: Record<string, unknown>; status: string }>) {
     return http.put<unknown, Report>(`/reports/${id}`, data);

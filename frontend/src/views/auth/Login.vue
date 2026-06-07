@@ -128,7 +128,7 @@
           </t-form-item>
 
           <t-form-item name="password">
-            <div class="field-wrap">
+            <div class="field-wrap field-wrap--password">
               <label class="field-label">
                 <span class="label-dot"></span>
                 密码
@@ -138,7 +138,6 @@
                 :type="showPassword ? 'text' : 'password'"
                 placeholder="请输入密码"
                 size="large"
-                clearable
                 class="cute-input"
                 data-testid="login-password"
                 @focus="isTyping = true"
@@ -151,25 +150,24 @@
                     <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                   </svg>
                 </template>
-                <template #suffix-icon>
-                  <button
-                    type="button"
-                    class="eye-btn"
-                    @click="showPassword = !showPassword"
-                  >
-                    <svg v-if="showPassword" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" />
-                      <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68" />
-                      <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61" />
-                      <line x1="2" x2="22" y1="2" y2="22" />
-                    </svg>
-                    <svg v-else width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
-                      <circle cx="12" cy="12" r="3" />
-                    </svg>
-                  </button>
-                </template>
               </t-input>
+              <button
+                type="button"
+                class="eye-btn"
+                data-testid="toggle-password-visibility"
+                @mousedown.prevent="showPassword = !showPassword"
+              >
+                <svg v-if="showPassword" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" />
+                  <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68" />
+                  <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61" />
+                  <line x1="2" x2="22" y1="2" y2="22" />
+                </svg>
+                <svg v-else width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+              </button>
             </div>
           </t-form-item>
 
@@ -262,6 +260,8 @@ const handleSubmit = async ({ validateResult }: { validateResult: boolean | Reco
       } else {
         formError.value = result.message || "登录失败了，再试试吧~";
       }
+    } catch (error: any) {
+      formError.value = "网络异常，请检查网络后重试~";
     } finally {
       loading.value = false;
     }
@@ -572,6 +572,10 @@ const handleSubmit = async ({ validateResult }: { validateResult: boolean | Reco
   +.field-wrap {
     margin-top: 4px;
   }
+
+  &--password {
+    position: relative;
+  }
 }
 
 :deep(.t-form__item) {
@@ -667,6 +671,11 @@ const handleSubmit = async ({ validateResult }: { validateResult: boolean | Reco
 }
 
 .eye-btn {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  margin-top: 12px;
   background: none;
   border: none;
   color: var(--color-text-placeholder);
@@ -676,6 +685,7 @@ const handleSubmit = async ({ validateResult }: { validateResult: boolean | Reco
   justify-content: center;
   padding: 4px;
   transition: color 0.2s;
+  z-index: 2;
 
   &:hover {
     color: var(--color-text-secondary);

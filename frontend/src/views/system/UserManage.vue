@@ -124,6 +124,7 @@ import type { Role } from '@/api/role'
 import { useAuthStore } from '@/stores/auth'
 import { usePaginationStore } from '@/stores/pagination'
 import { formatDate } from '@/utils/timeFormat'
+import { usePageNumbers } from '@/composables/usePageNumbers'
 
 const authStore = useAuthStore()
 const currentUserId = computed(() => authStore.user?.id ?? '')
@@ -225,16 +226,11 @@ const tableColumns = [
   { colKey: 'actions', title: '操作', width: 180, cell: { component: 'actions' } },
 ]
 
-const totalPages = computed(() => Math.ceil(pagination.value.total / pagination.value.pageSize) || 1)
-
-const pageNumbers = computed<(number | string)[]>(() => {
-  const total = totalPages.value
-  const current = pagination.value.page
-  if (total <= 5) return Array.from({ length: total }, (_, i) => i + 1)
-  if (current <= 3) return [1, 2, 3, '...', total]
-  if (current >= total - 2) return [1, '...', total - 2, total - 1, total]
-  return [1, '...', current - 1, current, current + 1, '...', total]
-})
+const { totalPages, pageNumbers } = usePageNumbers(
+  () => pagination.value.total,
+  () => pagination.value.pageSize,
+  () => pagination.value.page
+)
 
 async function fetchUsers() {
   loading.value = true

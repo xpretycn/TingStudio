@@ -159,8 +159,8 @@ export function buildChangesSummary(
           changes.push({ field: `nutrition_${key}`, label: `营养·${label}`, old: oldVal, new: newVal });
         }
       }
-    } catch {
-      // ignore nutrition parse errors
+    } catch (parseError) {
+      console.error("[MaterialService] 营养数据JSON解析失败:", parseError);
     }
   }
 
@@ -269,7 +269,9 @@ export async function createNewVersion(current: MaterialRow, newData: Record<str
   if (nutritionRow) {
     try {
       currentNutrition = normalizePer100g(JSON.parse(nutritionRow.per_100g_json));
-    } catch {}
+    } catch (parseError) {
+      console.error("[MaterialService] 营养数据JSON解析失败:", parseError);
+    }
   }
 
   const changesJson = buildChangesSummary(current, newData, currentNutrition, nutritionRow?.per_100g_json ?? null);
@@ -548,6 +550,12 @@ export async function getMaterialList(params: {
 
   const conditions: string[] = ["m.is_deleted = 0", "m.is_latest = 1"];
   const queryParams: any[] = [];
+
+  // 数据隔离：formulist 只能看自己创建的原料
+  if (userRole !== "admin") {
+    conditions.push("m.created_by = ?");
+    queryParams.push(userId);
+  }
 
   if (keyword) {
     conditions.push("(m.name LIKE ? OR m.code LIKE ?)");

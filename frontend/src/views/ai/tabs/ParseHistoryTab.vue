@@ -268,6 +268,7 @@ import { formatTimestamp } from '@/utils/timeFormat';
 import DegradationBanner from '@/components/DegradationBanner.vue';
 import { useAiStore } from '@/stores/ai';
 import type { ParseResultItem } from '@/api/parseResult';
+import { usePageNumbers } from '@/composables/usePageNumbers';
 
 const router = useRouter();
 const aiStore = useAiStore();
@@ -327,16 +328,11 @@ const linkedCount = computed(() => {
   return items.value.filter(item => item.isLinked).length;
 });
 
-const totalPages = computed(() => Math.ceil(pagination.value.total / pagination.value.pageSize) || 1);
-
-const pageNumbers = computed<(number | string)[]>(() => {
-  const total = totalPages.value;
-  const current = pagination.value.page;
-  if (total <= 5) return Array.from({ length: total }, (_, i) => i + 1);
-  if (current <= 3) return [1, 2, 3, '...', total];
-  if (current >= total - 2) return [1, '...', total - 2, total - 1, total];
-  return [1, '...', current - 1, current, current + 1, '...', total];
-});
+const { totalPages, pageNumbers } = usePageNumbers(
+  () => pagination.value.total,
+  () => pagination.value.pageSize,
+  () => pagination.value.page
+);
 
 const selectAll = computed({
   get: () => selectedIds.value.length === items.value.length && items.value.length > 0,

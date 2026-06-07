@@ -375,6 +375,13 @@ export async function unlinkFile(req: AuthRequest, res: Response) {
 export async function getFileRelations(req: AuthRequest, res: Response) {
   try {
     const { fileId } = req.params;
+
+    const [[fileRecord]]: any[][] = await query("SELECT file_id FROM uploaded_files WHERE file_id = ?", [fileId]);
+    if (!fileRecord) {
+      res.status(404).json({ success: false, error: { message: "文件不存在", code: "NOT_FOUND" } });
+      return;
+    }
+
     const [relations]: any[] = await query(
       "SELECT * FROM file_relations WHERE file_id = ? ORDER BY created_at ASC",
       [fileId],
@@ -418,6 +425,12 @@ export async function reparseFile(req: AuthRequest, res: Response) {
 export async function getFileAuditLog(req: AuthRequest, res: Response) {
   try {
     const { fileId } = req.params;
+
+    const [[fileRecord]]: any[][] = await query("SELECT file_id FROM uploaded_files WHERE file_id = ?", [fileId]);
+    if (!fileRecord) {
+      res.status(404).json({ success: false, error: { message: "文件不存在", code: "NOT_FOUND" } });
+      return;
+    }
 
     const [logs]: any[] = await query("SELECT * FROM file_audit_log WHERE file_id = ? ORDER BY timestamp DESC", [
       fileId,

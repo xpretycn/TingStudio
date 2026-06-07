@@ -1,6 +1,6 @@
 // 配方模板控制器
 import { Response } from "express";
-import { query } from "../config/database.js";
+import { query } from "../config/database-adapter.js";
 import {
   generateId,
   now,
@@ -37,20 +37,19 @@ export async function getTemplates(req: AuthRequest, res: Response) {
 
     const whereSql = whereParts.length > 0 ? `WHERE ${whereParts.join(" AND ")}` : "";
 
-    const [list]: unknown[] = await query(
+    const { rows: listRows } = await query(
       `SELECT id, name, description, ratio_factor, supplement_ratio_factor, finished_weight, materials_json, packaging_price, other_price, profit_margin, created_by, created_at, updated_at FROM formula_templates ${whereSql} ORDER BY created_at DESC LIMIT ? OFFSET ?`,
       [...params, size, offset],
     );
 
-    const [countResult]: unknown[] = await query(
+    const { rows: countRows } = await query(
       `SELECT COUNT(*) as total FROM formula_templates ${whereSql}`,
       params,
     );
 
-    const countRows = countResult as Record<string, unknown>[];
     const total = countRows.length > 0 ? Number(countRows[0].total) : 0;
 
-    res.json(successWithPagination(rowsToCamelCase(list as Record<string, unknown>[]), total, p, size));
+    res.json(successWithPagination(rowsToCamelCase(listRows as Record<string, unknown>[]), total, p, size));
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "获取模板列表失败";
     res.status(500).json({
@@ -67,7 +66,7 @@ export async function getTemplateById(req: AuthRequest, res: Response) {
     const userId = req.user?.userId ?? "";
     const userRole = req.user?.role ?? "";
 
-    const [rows]: unknown[] = await query(
+    const { rows } = await query(
       "SELECT id, name, description, ratio_factor, supplement_ratio_factor, finished_weight, materials_json, packaging_price, other_price, profit_margin, created_by, created_at, updated_at FROM formula_templates WHERE id = ?",
       [id],
     );
@@ -168,11 +167,11 @@ export async function createTemplate(req: AuthRequest, res: Response) {
     }
 
     // 校验：同一用户下模板名称不能重复
-    const [existing]: unknown[] = await query(
+    const { rows: existingRows } = await query(
       "SELECT id FROM formula_templates WHERE name = ? AND created_by = ?",
       [String(name).trim(), userId],
     );
-    if ((existing as Record<string, unknown>[]).length > 0) {
+    if (existingRows.length > 0) {
       res.status(409).json({
         success: false,
         error: { message: "模板名称已存在", code: "DUPLICATE_ENTRY", timestamp: new Date().toISOString() },
@@ -203,7 +202,7 @@ export async function createTemplate(req: AuthRequest, res: Response) {
       ],
     );
 
-    const [newRows]: unknown[] = await query(
+    const { rows: newRows } = await query(
       "SELECT id, name, description, ratio_factor, supplement_ratio_factor, finished_weight, materials_json, packaging_price, other_price, profit_margin, created_by, created_at, updated_at FROM formula_templates WHERE id = ?",
       [id],
     );
@@ -226,7 +225,7 @@ export async function updateTemplate(req: AuthRequest, res: Response) {
     const userRole = req.user?.role ?? "";
 
     // 查询现有模板
-    const [rows]: unknown[] = await query(
+    const { rows } = await query(
       "SELECT id, name, description, ratio_factor, supplement_ratio_factor, finished_weight, materials_json, packaging_price, other_price, profit_margin, created_by FROM formula_templates WHERE id = ?",
       [id],
     );
@@ -293,7 +292,7 @@ export async function updateTemplate(req: AuthRequest, res: Response) {
 
     // 校验：如果修改了名称，检查新名称是否重复
     if (body.name !== undefined && newName !== existing.name) {
-      const [dupRows]: unknown[] = await query(
+      const { rows: dupRows } = await query(
         "SELECT id FROM formula_templates WHERE name = ? AND created_by = ? AND id != ?",
         [newName, existing.created_by, id],
       );
@@ -323,7 +322,7 @@ export async function updateTemplate(req: AuthRequest, res: Response) {
       ],
     );
 
-    const [updatedRows]: unknown[] = await query(
+    const { rows: updatedRows } = await query(
       "SELECT id, name, description, ratio_factor, supplement_ratio_factor, finished_weight, materials_json, packaging_price, other_price, profit_margin, created_by, created_at, updated_at FROM formula_templates WHERE id = ?",
       [id],
     );
@@ -345,7 +344,7 @@ export async function deleteTemplate(req: AuthRequest, res: Response) {
     const userId = req.user?.userId ?? "";
     const userRole = req.user?.role ?? "";
 
-    const [rows]: unknown[] = await query(
+    const { rows } = await query(
       "SELECT id, created_by FROM formula_templates WHERE id = ?",
       [id],
     );

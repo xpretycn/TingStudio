@@ -19,7 +19,7 @@
           <t-icon name="close" class="btn-icon" />
           取消
         </button>
-        <button class="header-action-btn" @click="handleSubmit({ validateResult: true })">
+        <button class="header-action-btn" @click="handleManualSubmit">
           <t-icon name="save" class="btn-icon" />
           {{ isEdit ? '保存' : '创建' }}
         </button>
@@ -36,38 +36,38 @@
                 基础信息录入
               </h3>
               <div class="section-content space-y-6">
-                <div class="form-field">
+                <t-form-item name="name" class="form-field">
                   <label class="field-label">姓名 <span class="required">*</span></label>
                   <t-input v-model="formData.name" placeholder="请输入姓名" clearable class="field-input"
                     data-field="name" />
-                </div>
+                </t-form-item>
 
                 <div class="grid grid-cols-2 gap-6">
-                  <div class="form-field">
+                  <t-form-item name="code" class="form-field">
                     <label class="field-label">工号 <span class="required">*</span></label>
                     <t-input v-model="formData.code" placeholder="请输入工号" clearable class="field-input"
                       data-field="code" />
-                  </div>
-                  <div class="form-field">
+                  </t-form-item>
+                  <t-form-item name="department" class="form-field">
                     <label class="field-label">部门</label>
                     <t-input v-model="formData.department" placeholder="请输入部门" clearable class="field-input"
                       data-field="department" />
-                  </div>
+                  </t-form-item>
                 </div>
 
                 <div class="grid grid-cols-2 gap-6">
-                  <div class="form-field">
+                  <t-form-item name="phone" class="form-field">
                     <label class="field-label">电话</label>
                     <t-input v-model="formData.phone" placeholder="请输入 11 位手机号" clearable maxlength="11"
                       class="field-input" data-field="phone" />
                     <p class="field-help">选填，格式如 13800138000</p>
-                  </div>
-                  <div class="form-field">
+                  </t-form-item>
+                  <t-form-item name="email" class="form-field">
                     <label class="field-label">邮箱</label>
                     <t-input v-model="formData.email" placeholder="请输入邮箱地址" clearable class="field-input"
                       data-field="email" />
                     <p class="field-help">选填，格式如 user@example.com</p>
-                  </div>
+                  </t-form-item>
                 </div>
               </div>
             </section>
@@ -214,7 +214,7 @@ const emailValidator = (val: string) => {
 const rules: Record<string, FormRule[]> = {
   name: [
     { required: true, message: '请输入姓名', trigger: 'blur' },
-    { min: 2, max: 20, message: '姓名需 2-20 个字符', trigger: 'blur' },
+    { min: 2, max: 20, message: '姓名需 2-20 个字符', trigger: 'change' },
   ],
   code: [
     { required: true, message: '请输入工号', trigger: 'blur' },
@@ -252,6 +252,13 @@ const handleSubmit = async ({ validateResult }: { validateResult: boolean | Reco
     } finally {
       loading.value = false;
     }
+  }
+};
+
+const handleManualSubmit = async () => {
+  const validateResult = await formRef.value?.validate();
+  if (validateResult === true) {
+    await handleSubmit({ validateResult: true });
   }
 };
 
@@ -700,6 +707,23 @@ onMounted(async () => {
 
     .section-content {
       .form-field {
+        &.t-form__item {
+          margin-bottom: 0;
+        }
+
+        :deep(.t-form__label) {
+          display: none;
+        }
+
+        :deep(.t-form__controls) {
+          margin-left: 0 !important;
+        }
+
+        :deep(.t-input__tips) {
+          font-size: 12px;
+          margin-top: 4px;
+        }
+
         .field-label {
           display: block;
           font-size: 14px;

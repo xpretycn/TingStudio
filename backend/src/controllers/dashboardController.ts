@@ -75,7 +75,8 @@ export async function getDashboardStats(req: any, res: Response) {
 export async function getRecentActivity(req: any, res: Response) {
   try {
     const { limit = 10 } = req.query;
-    const limitNum = Math.min(Number(limit), 20);
+    const parsedLimit = parseInt(String(limit), 10);
+    const limitNum = Math.min(Number.isNaN(parsedLimit) ? 10 : parsedLimit, 20);
     const halfLimit = Math.floor(limitNum / 2);
     const userFilter = getUserFilter(req);
 

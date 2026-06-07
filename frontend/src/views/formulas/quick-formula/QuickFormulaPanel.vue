@@ -153,7 +153,8 @@ async function handleSave(id?: string) {
       profitMargin: quickFormulaStore.formulaData.profitMargin,
       materials: quickFormulaStore.formulaData.materials,
     };
-    await quickFormulaListStore.saveQuickFormula(targetId, data);
+    const success = await quickFormulaListStore.saveQuickFormula(targetId, data);
+    if (!success) return;
     quickFormulaStore.clearDraft();
     quickFormulaStore.hasUnsavedChanges = false;
     sidebarRef.value?.clearDraftBanner();

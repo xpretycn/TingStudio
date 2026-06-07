@@ -409,21 +409,20 @@ import MaterialTableCore from '@/components/formula/MaterialTableCore.vue';
 import type { MaterialTableRow } from '@/components/formula/MaterialTableCore.vue';
 import { versionApi } from '@/api/version';
 import type { MaterialUpdateInfo } from '@/api/version';
+import { useFormulaAiGeneration } from './components/useFormulaAiGeneration';
 
 const router = useRouter();
 const route = useRoute();
 const formulaStore = useFormulaStore();
 const salesmanStore = useSalesmanStore();
 const materialStore = useMaterialStore();
+const { aiLoadingDescription, aiLoadingPreparation, aiLoadingVersionReason, handleAiGenerate } = useFormulaAiGeneration();
 
 const formRef = ref<Record<string, unknown> | null>(null);
 const versionReasonRef = ref<Record<string, unknown> | null>(null);
 const loading = ref(false);
 const supplementPriceMap = ref<Record<string, number>>({});
 const versionReasonError = ref(false);
-const aiLoadingDescription = ref(false);
-const aiLoadingPreparation = ref(false);
-const aiLoadingVersionReason = ref(false);
 const materialVersionsMap = ref<Record<string, { currentVersion: number; latestVersion: number; isLatest: boolean; }>>({});
 const materialUpdatesInfo = ref<MaterialUpdateInfo[]>([]);
 const hasMaterialUpdates = ref(false);
@@ -780,55 +779,23 @@ async function handleGenerateDescription() {
     MessagePlugin.warning('请先填写配方名称');
     return;
   }
+  if (isEdit.value && formData.description && !formData.versionReason?.trim()) {
+    MessagePlugin.warning('编辑模式下请先填写升版原因');
+    return;
+  }
   const materials = formData.materials.map((m: FormMaterialItem) => ({
     name: m.materialName || m.name,
     quantity: m.quantity,
     type: m.supplement ? 'supplement' : 'herb',
   }));
-  if (isEdit.value && formData.description) {
-    const reason = formData.versionReason || '';
-    if (!reason) {
-      MessagePlugin.warning('编辑模式下请先填写升版原因');
-      return;
-    }
-    aiLoadingDescription.value = true;
-    try {
-      const res = await agentApi.generateDescription({
-        formulaName: formData.name,
-        materials,
-        finishedWeight: formData.finishedWeight || undefined,
-        revisionReason: reason,
-        existingDescription: formData.description,
-        type: 'description',
-      });
-      if (res?.content) {
-        formData.description = res.content;
-        MessagePlugin.success('配方描述已智能生成');
-      }
-    } catch {
-      MessagePlugin.error('生成失败');
-    } finally {
-      aiLoadingDescription.value = false;
-    }
-    return;
-  }
-  aiLoadingDescription.value = true;
-  try {
-    const res = await agentApi.generateDescription({
-      formulaName: formData.name,
-      materials,
-      finishedWeight: formData.finishedWeight || undefined,
-      type: 'description',
-    });
-    if (res?.content) {
-      formData.description = res.content;
-      MessagePlugin.success('配方描述已智能生成');
-    }
-  } catch {
-    MessagePlugin.error('生成失败');
-  } finally {
-    aiLoadingDescription.value = false;
-  }
+  await handleAiGenerate({
+    formulaName: formData.name,
+    materials,
+    finishedWeight: formData.finishedWeight,
+    type: 'description',
+    revisionReason: formData.versionReason || undefined,
+    existingDescription: formData.description || undefined,
+  }, (content) => { formData.description = content; });
 }
 
 async function handleGeneratePreparation() {
@@ -842,23 +809,12 @@ async function handleGeneratePreparation() {
     quantity: m.quantity,
     type: m.supplement ? 'supplement' : 'herb',
   }));
-  aiLoadingPreparation.value = true;
-  try {
-    const res = await agentApi.generateDescription({
-      formulaName: formData.name,
-      materials,
-      finishedWeight: formData.finishedWeight || undefined,
-      type: 'preparation',
-    });
-    if (res?.content) {
-      formData.preparationMethod = res.content;
-      MessagePlugin.success('制法已智能生成');
-    }
-  } catch {
-    MessagePlugin.error('生成失败');
-  } finally {
-    aiLoadingPreparation.value = false;
-  }
+  await handleAiGenerate({
+    formulaName: formData.name,
+    materials,
+    finishedWeight: formData.finishedWeight,
+    type: 'preparation',
+  }, (content) => { formData.preparationMethod = content; });
 }
 
 async function handleGenerateVersionReason() {
@@ -872,23 +828,12 @@ async function handleGenerateVersionReason() {
     quantity: m.quantity,
     type: m.supplement ? 'supplement' : 'herb',
   }));
-  aiLoadingVersionReason.value = true;
-  try {
-    const res = await agentApi.generateDescription({
-      formulaName: formData.name,
-      materials,
-      finishedWeight: formData.finishedWeight || undefined,
-      type: 'version_reason',
-    });
-    if (res?.content) {
-      formData.versionReason = res.content;
-      MessagePlugin.success('升版原因已智能生成');
-    }
-  } catch {
-    MessagePlugin.error('生成失败');
-  } finally {
-    aiLoadingVersionReason.value = false;
-  }
+  await handleAiGenerate({
+    formulaName: formData.name,
+    materials,
+    finishedWeight: formData.finishedWeight,
+    type: 'version_reason',
+  }, (content) => { formData.versionReason = content; });
 }
 
 const clearVersionReasonError = () => {

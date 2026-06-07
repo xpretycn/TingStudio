@@ -1,0 +1,11 @@
+import Database from 'better-sqlite3';
+const db = new Database('./data/tingstudio.db');
+db.prepare("DELETE FROM materials WHERE name LIKE '[test]%'").run();
+db.prepare("DELETE FROM nutrition_profiles WHERE name LIKE '[test]%'").run();
+db.prepare("DELETE FROM ai_models WHERE name LIKE '[test]%'").run();
+db.prepare("DELETE FROM parse_results WHERE file_name LIKE '[test]%'").run();
+db.prepare("DELETE FROM ai_prompt_templates WHERE name LIKE '[test]%'").run();
+db.prepare('DELETE FROM users WHERE username = ?').run('testadmin');
+db.prepare('UPDATE users SET role = ? WHERE username = ?').run('formulist', 'admin');
+console.log('Cleanup done');
+db.close();

@@ -175,6 +175,13 @@ export async function createSale(req: AuthenticatedRequest, res: Response) {
     };
     const userId = req.user.userId;
 
+    if (!periodStart) {
+      return res.status(400).json({
+        success: false,
+        error: { message: "periodStart 为必填项", code: "VALIDATION_ERROR" }
+      });
+    }
+
     const currentMonth = new Date();
     const maxMonth = `${currentMonth.getFullYear()}-${String(currentMonth.getMonth() + 1).padStart(2, '0')}-01`;
     if (periodStart > maxMonth) {

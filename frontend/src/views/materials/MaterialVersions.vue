@@ -5,12 +5,14 @@ import { MessagePlugin } from "tdesign-vue-next";
 import { materialApi } from "@/api/material";
 import type { Material, MaterialVersion } from "@/api/material";
 import { useAuthStore } from "@/stores/auth";
+import { useMaterialStore } from "@/stores/material";
 import { formatTimestamp, splitDateTime } from "@/utils/timeFormat";
 import PageSkeleton from "@/components/Skeleton/PageSkeleton.vue";
 
 const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
+const materialStore = useMaterialStore();
 const materialId = route.params.id as string;
 
 const isAdmin = computed(() => authStore.user?.role === "admin");
@@ -66,8 +68,10 @@ const statusLabel = (s: string) =>
   s === 'published' ? '已发布' : s === 'pending_review' ? '待审批' : s === 'draft' ? '草稿' : '已归档';
 
 function getVersionStatus(ver: MaterialVersion | null): string {
-  if (!ver || ver.isLatest) return materialStatus.value;
-  return "published";
+  if (!ver) return materialStatus.value;
+  if (ver.isLatest) return materialStatus.value;
+  // 非最新版本使用版本自身状态，若无则回退到已发布
+  return ver.status || "published";
 }
 
 const stored = localStorage.getItem('compare_versions');
@@ -189,6 +193,7 @@ async function handleSubmitReview() {
     await materialApi.submitReview(materialId);
     MessagePlugin.success("原料已提交审批");
     materialStatus.value = "pending_review";
+    materialStore.invalidateCache();
   } catch {
     MessagePlugin.error("提交审批失败");
   } finally {
@@ -201,6 +206,7 @@ async function handleApprove() {
     await materialApi.approve(materialId);
     MessagePlugin.success("原料审批通过，已发布");
     materialStatus.value = "published";
+    materialStore.invalidateCache();
     const detail = await materialApi.getById(materialId).catch(() => null);
     if (detail) materialStatus.value = detail.status;
   } catch {
@@ -226,6 +232,7 @@ async function confirmReject() {
     rejectDialogVisible.value = false;
     MessagePlugin.success("已驳回，原料已退回草稿状态");
     materialStatus.value = "draft";
+    materialStore.invalidateCache();
     const detail = await materialApi.getById(materialId).catch(() => null);
     if (detail) materialStatus.value = detail.status;
   } catch {

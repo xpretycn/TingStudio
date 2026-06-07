@@ -383,7 +383,7 @@
             </div>
             <div class="timeline-content">
               <p class="timeline-title">{{ item.title }}</p>
-              <p class="timeline-desc" v-html="item.desc"></p>
+              <p class="timeline-desc">{{ item.desc }}</p>
               <span class="timeline-time">{{ item.time }}</span>
             </div>
           </div>
@@ -538,6 +538,8 @@ import { useExportStore } from '@/stores/export';
 import type { ExportTemplate } from '@/api/export';
 import PageSkeleton from '@/components/Skeleton/PageSkeleton.vue';
 import NutritionSourceTag from '@/components/nutrition/NutritionSourceTag.vue';
+import { useTodoPagination } from '@/composables/useTodoPagination';
+import { usePageNumbers } from '@/composables/usePageNumbers';
 
 const router = useRouter();
 const route = useRoute();
@@ -918,15 +920,11 @@ const pagination = computed(() => ({
   }
 }));
 
-const totalPages = computed(() => Math.ceil(materialStore.total / materialStore.pageSize) || 1);
-const pageNumbers = computed<(number | string)[]>(() => {
-  const total = totalPages.value;
-  const current = materialStore.currentPage;
-  if (total <= 5) return Array.from({ length: total }, (_, i) => i + 1);
-  if (current <= 3) return [1, 2, 3, '...', total];
-  if (current >= total - 2) return [1, '...', total - 2, total - 1, total];
-  return [1, '...', current - 1, current, current + 1, '...', total];
-});
+const { totalPages, pageNumbers } = usePageNumbers(
+  () => materialStore.total,
+  () => materialStore.pageSize,
+  () => materialStore.currentPage
+);
 
 // 底部活动数据
 interface ActivityItem { type: 'success' | 'warning' | 'info'; title: string; desc: string; time: string; }
@@ -962,7 +960,7 @@ const allActivityItems = computed<ActivityItem[]>(() => {
       items.push({
         type,
         title: `新录入：${m.name}`,
-        desc: `<strong>${m.name}</strong> 已加入原料库（${typeName}），编码 <span class="text-emerald-600 font-bold">${m.code}</span>，当前库存 ${m.stock}${m.unit}`,
+        desc: `${m.name} 已加入原料库（${typeName}），编码 ${m.code}，当前库存 ${m.stock}${m.unit}`,
         time: timeAgo
       });
     } else {
@@ -971,8 +969,8 @@ const allActivityItems = computed<ActivityItem[]>(() => {
         type: hasPrice ? 'warning' : 'info',
         title: hasPrice ? `单价更新：${m.name}` : `信息更新：${m.name}`,
         desc: hasPrice
-          ? `<strong>${m.name}</strong>（${typeName}，编码 <span class="text-blue-600">${m.code}</span>）单价更新为 <span class="text-amber-600 font-bold">¥${m.unitPrice}/kg</span>`
-          : `<strong>${m.name}</strong> 原料信息已更新，编码 <span class="text-emerald-600 font-bold">${m.code}</span>，当前库存 ${m.stock}${m.unit}`,
+          ? `${m.name}（${typeName}，编码 ${m.code}）单价更新为 ¥${m.unitPrice}/kg`
+          : `${m.name} 原料信息已更新，编码 ${m.code}，当前库存 ${m.stock}${m.unit}`,
         time: timeAgo
       });
     }
@@ -1057,18 +1055,13 @@ const displayMatPendingItems = computed<MatTodoItem[]>(() => {
   return items.slice(0, 8);
 });
 
-const MAT_TODO_PAGE_SIZE = 3;
-const matTodoPage = ref(1);
-
-const matTodoTotalPages = computed(() => Math.max(1, Math.ceil(displayMatPendingItems.value.length / MAT_TODO_PAGE_SIZE)));
-
-const paginatedMatTodoItems = computed(() => {
-  const start = (matTodoPage.value - 1) * MAT_TODO_PAGE_SIZE;
-  return displayMatPendingItems.value.slice(start, start + MAT_TODO_PAGE_SIZE);
-});
-
-const matTodoPrev = () => { if (matTodoPage.value > 1) matTodoPage.value--; };
-const matTodoNext = () => { if (matTodoPage.value < matTodoTotalPages.value) matTodoPage.value++; };
+const {
+  page: matTodoPage,
+  totalPages: matTodoTotalPages,
+  paginatedItems: paginatedMatTodoItems,
+  prev: matTodoPrev,
+  next: matTodoNext
+} = useTodoPagination(displayMatPendingItems);
 
 const handleMatTodoAction = (item: MatTodoItem) => {
   switch (item.actionType) {
@@ -1245,13 +1238,18 @@ const handleRealTimeSearch = () => {
 
 // 监听 searchKeyword 变化后触发搜索（仅在用户主动输入时触发）
 let isRestoringFromRoute = false;
+let searchDebounceTimer: ReturnType<typeof setTimeout> | null = null;
 watch(searchKeyword, () => {
   // 如果正在从路由参数恢复，不触发搜索（避免重复请求）
   if (isRestoringFromRoute) {
     isRestoringFromRoute = false;
     return;
   }
-  handleRealTimeSearch();
+  // 防抖：300ms 内不重复请求
+  if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
+  searchDebounceTimer = setTimeout(() => {
+    handleRealTimeSearch();
+  }, 300);
 });
 
 const handleCreate = () => {

@@ -1,0 +1,82 @@
+[
+  {
+    "case_id": "E01-P01",
+    "name": "按配方名称搜索",
+    "result": "✅ 通过",
+    "expected": "搜索功能正常",
+    "actual": "无匹配结果（正常）",
+    "screenshot": ""
+  },
+  {
+    "case_id": "E01-P03",
+    "name": "清除搜索",
+    "result": "✅ 通过",
+    "expected": "搜索框清空",
+    "actual": "已清空",
+    "screenshot": ""
+  },
+  {
+    "case_id": "E01-E01",
+    "name": "搜索不存在的配方",
+    "result": "✅ 通过",
+    "expected": "显示空状态",
+    "actual": "无匹配结果",
+    "screenshot": ""
+  },
+  {
+    "case_id": "E01-B01",
+    "name": "输入特殊字符搜索",
+    "result": "✅ 通过",
+    "expected": "页面不崩溃",
+    "actual": "页面正常",
+    "screenshot": ""
+  },
+  {
+    "case_id": "E04-P01",
+    "name": "跳转创建配方页",
+    "result": "⏭ 跳过",
+    "expected": "按钮存在",
+    "actual": "未找到创建按钮",
+    "screenshot": ""
+  },
+  {
+    "case_id": "E12-P01",
+    "name": "点击行跳转详情",
+    "result": "⏭ 跳过",
+    "expected": "列表有数据",
+    "actual": "列表无数据",
+    "screenshot": ""
+  },
+  {
+    "case_id": "E05-P01",
+    "name": "刷新列表",
+    "result": "⏭ 跳过",
+    "expected": "按钮存在",
+    "actual": "未找到刷新按钮",
+    "screenshot": ""
+  },
+  {
+    "case_id": "E17-B01",
+    "name": "第1页时上一页禁用",
+    "result": "⏭ 跳过",
+    "expected": "分页可见",
+    "actual": "无分页（数据不足一页）",
+    "screenshot": ""
+  },
+  {
+    "case_id": "E12-U01",
+    "name": "表格加载骨架屏",
+    "result": "✅ 通过",
+    "expected": "显示骨架屏或直接加载",
+    "actual": "加载过快直接显示",
+    "screenshot": ""
+  },
+  {
+    "case_id": "E14-P01",
+    "name": "打开操作菜单",
+    "result": "⏭ 跳过",
+    "expected": "操作按钮存在",
+    "actual": "未找到操作按钮",
+    "screenshot": ""
+  }
+]

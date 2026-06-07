@@ -297,12 +297,12 @@ const retryLoad = async () => {
 }
 
 watch([report1, report2], () => {
-  if (report1.value?.dataJson && report2.value?.dataJson) {
+  if (report1.value?.dataJson && report2.value?.dataJson && initialized.value) {
     nextTick(() => {
       initCharts()
     })
   }
-}, { immediate: true })
+})
 
 onMounted(async () => {
   window.addEventListener('resize', handleResize)
@@ -313,6 +313,11 @@ onMounted(async () => {
     loadError.value = err.message || '初始化失败'
   } finally {
     initialized.value = true
+    if (report1.value?.dataJson && report2.value?.dataJson) {
+      nextTick(() => {
+        initCharts()
+      })
+    }
   }
 })
 

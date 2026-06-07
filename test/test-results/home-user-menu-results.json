@@ -1,0 +1,352 @@
+{
+  "total": 49,
+  "passed": 46,
+  "failed": 0,
+  "skipped": 3,
+  "results": [
+    {
+      "id": "E01-P01",
+      "name": "Hover展开菜单",
+      "status": "通过",
+      "screenshot": null,
+      "detail": ""
+    },
+    {
+      "id": "E01-P02",
+      "name": "显示用户信息",
+      "status": "通过",
+      "screenshot": null,
+      "detail": ""
+    },
+    {
+      "id": "E01-P03",
+      "name": "鼠标移出关闭菜单",
+      "status": "通过",
+      "screenshot": null,
+      "detail": ""
+    },
+    {
+      "id": "E01-P04",
+      "name": "Enter键切换菜单",
+      "status": "通过",
+      "screenshot": null,
+      "detail": ""
+    },
+    {
+      "id": "E01-E01",
+      "name": "头像图片加载失败",
+      "status": "跳过",
+      "screenshot": null,
+      "detail": "需手动验证：需模拟图片加载失败场景"
+    },
+    {
+      "id": "E01-B01",
+      "name": "用户名为空",
+      "status": "跳过",
+      "screenshot": null,
+      "detail": "需手动验证：需特殊账号数据"
+    },
+    {
+      "id": "E01-U01",
+      "name": "aria-expanded属性切换",
+      "status": "通过",
+      "screenshot": null,
+      "detail": ""
+    },
+    {
+      "id": "E01-U02",
+      "name": "role和tabindex属性",
+      "status": "通过",
+      "screenshot": null,
+      "detail": ""
+    },
+    {
+      "id": "E02-P01",
+      "name": "点击跳转设置页",
+      "status": "通过",
+      "screenshot": null,
+      "detail": ""
+    },
+    {
+      "id": "E02-P02",
+      "name": "Enter键跳转设置页",
+      "status": "通过",
+      "screenshot": null,
+      "detail": ""
+    },
+    {
+      "id": "E02-E01",
+      "name": "设置页路由不存在",
+      "status": "跳过",
+      "screenshot": null,
+      "detail": "路由已验证存在，此场景不适用"
+    },
+    {
+      "id": "E02-U01",
+      "name": "图标和文字展示",
+      "status": "通过",
+      "screenshot": null,
+      "detail": ""
+    },
+    {
+      "id": "E03-P01",
+      "name": "Hover展开外观子菜单",
+      "status": "通过",
+      "screenshot": null,
+      "detail": ""
+    },
+    {
+      "id": "E03-P02",
+      "name": "鼠标移出关闭子菜单",
+      "status": "通过",
+      "screenshot": null,
+      "detail": ""
+    },
+    {
+      "id": "E03-U01",
+      "name": "子菜单箭头指示",
+      "status": "通过",
+      "screenshot": null,
+      "detail": ""
+    },
+    {
+      "id": "E03-U02",
+      "name": "has-sub样式标识",
+      "status": "通过",
+      "screenshot": null,
+      "detail": ""
+    },
+    {
+      "id": "E04-P01",
+      "name": "切换到跟随系统",
+      "status": "通过",
+      "screenshot": null,
+      "detail": ""
+    },
+    {
+      "id": "E04-P02",
+      "name": "切换到亮色模式",
+      "status": "通过",
+      "screenshot": null,
+      "detail": ""
+    },
+    {
+      "id": "E04-P03",
+      "name": "切换到暗色模式",
+      "status": "通过",
+      "screenshot": null,
+      "detail": ""
+    },
+    {
+      "id": "E04-P04",
+      "name": "Enter键切换主题",
+      "status": "通过",
+      "screenshot": null,
+      "detail": ""
+    },
+    {
+      "id": "E04-B01",
+      "name": "重复选择当前主题",
+      "status": "通过",
+      "screenshot": null,
+      "detail": ""
+    },
+    {
+      "id": "E04-U01",
+      "name": "当前选中项勾选标识",
+      "status": "通过",
+      "screenshot": null,
+      "detail": ""
+    },
+    {
+      "id": "E04-U02",
+      "name": "非选中项无勾选",
+      "status": "通过",
+      "screenshot": null,
+      "detail": ""
+    },
+    {
+      "id": "E04-U03",
+      "name": "三个选项图标",
+      "status": "通过",
+      "screenshot": null,
+      "detail": ""
+    },
+    {
+      "id": "E05-P01",
+      "name": "Hover展开品牌色子菜单",
+      "status": "通过",
+      "screenshot": null,
+      "detail": ""
+    },
+    {
+      "id": "E05-P02",
+      "name": "鼠标移出关闭子菜单",
+      "status": "通过",
+      "screenshot": null,
+      "detail": ""
+    },
+    {
+      "id": "E05-U01",
+      "name": "子菜单箭头指示",
+      "status": "通过",
+      "screenshot": null,
+      "detail": ""
+    },
+    {
+      "id": "E06-P01",
+      "name": "切换到粉色品牌色",
+      "status": "通过",
+      "screenshot": null,
+      "detail": ""
+    },
+    {
+      "id": "E06-P02",
+      "name": "切换到黄色品牌色",
+      "status": "通过",
+      "screenshot": null,
+      "detail": ""
+    },
+    {
+      "id": "E06-P03",
+      "name": "切换到蓝色品牌色",
+      "status": "通过",
+      "screenshot": null,
+      "detail": ""
+    },
+    {
+      "id": "E06-P04",
+      "name": "切换到绿色品牌色",
+      "status": "通过",
+      "screenshot": null,
+      "detail": ""
+    },
+    {
+      "id": "E06-P05",
+      "name": "Enter键切换品牌色",
+      "status": "通过",
+      "screenshot": null,
+      "detail": ""
+    },
+    {
+      "id": "E06-B01",
+      "name": "重复选择当前品牌色",
+      "status": "通过",
+      "screenshot": null,
+      "detail": ""
+    },
+    {
+      "id": "E06-U01",
+      "name": "当前选中项勾选标识",
+      "status": "通过",
+      "screenshot": null,
+      "detail": ""
+    },
+    {
+      "id": "E06-U02",
+      "name": "品牌色圆点指示",
+      "status": "通过",
+      "screenshot": null,
+      "detail": ""
+    },
+    {
+      "id": "E06-U03",
+      "name": "品牌色切换后全局生效",
+      "status": "通过",
+      "screenshot": null,
+      "detail": ""
+    },
+    {
+      "id": "E07-P01",
+      "name": "点击切换账号",
+      "status": "通过",
+      "screenshot": null,
+      "detail": ""
+    },
+    {
+      "id": "E07-P02",
+      "name": "Enter键切换账号",
+      "status": "通过",
+      "screenshot": null,
+      "detail": ""
+    },
+    {
+      "id": "E07-U01",
+      "name": "图标和文字展示",
+      "status": "通过",
+      "screenshot": null,
+      "detail": ""
+    },
+    {
+      "id": "E08-P01",
+      "name": "点击退出登录",
+      "status": "通过",
+      "screenshot": null,
+      "detail": ""
+    },
+    {
+      "id": "E08-P02",
+      "name": "Enter键退出登录",
+      "status": "通过",
+      "screenshot": null,
+      "detail": ""
+    },
+    {
+      "id": "E08-U01",
+      "name": "危险样式标识",
+      "status": "通过",
+      "screenshot": null,
+      "detail": ""
+    },
+    {
+      "id": "E08-U02",
+      "name": "图标和文字展示",
+      "status": "通过",
+      "screenshot": null,
+      "detail": ""
+    },
+    {
+      "id": "X-L01",
+      "name": "切换主题后菜单勾选状态更新",
+      "status": "通过",
+      "screenshot": null,
+      "detail": ""
+    },
+    {
+      "id": "X-L02",
+      "name": "切换品牌色后菜单勾选状态更新",
+      "status": "通过",
+      "screenshot": null,
+      "detail": ""
+    },
+    {
+      "id": "X-L03",
+      "name": "点击菜单项后菜单自动关闭",
+      "status": "通过",
+      "screenshot": null,
+      "detail": ""
+    },
+    {
+      "id": "X-L04",
+      "name": "退出登录后Token清除",
+      "status": "通过",
+      "screenshot": null,
+      "detail": ""
+    },
+    {
+      "id": "X-L05",
+      "name": "切换账号与退出登录行为一致",
+      "status": "通过",
+      "screenshot": null,
+      "detail": ""
+    },
+    {
+      "id": "X-L06",
+      "name": "外观子菜单与品牌色子菜单互斥",
+      "status": "通过",
+      "screenshot": null,
+      "detail": ""
+    }
+  ],
+  "timestamp": "2026-06-06T00:06:02.943Z"
+}

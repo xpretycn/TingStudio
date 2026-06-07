@@ -1,0 +1,304 @@
+﻿[
+    {
+        "Id":  "A01-P01",
+        "Name":  "Register success",
+        "Time":  "370ms",
+        "Result":  "PASS",
+        "Detail":  "",
+        "Status":  "200"
+    },
+    {
+        "Id":  "A01-P03",
+        "Name":  "Register default role formulist",
+        "Time":  "225ms",
+        "Result":  "PASS",
+        "Detail":  "",
+        "Status":  "200"
+    },
+    {
+        "Id":  "A01-E01",
+        "Name":  "Username already exists",
+        "Resp":  "",
+        "Time":  "10ms",
+        "Result":  "PASS",
+        "Detail":  "",
+        "Status":  "409"
+    },
+    {
+        "Id":  "A01-B04",
+        "Name":  "Username 1 char",
+        "Resp":  "",
+        "Time":  "2ms",
+        "Result":  "PASS",
+        "Detail":  "",
+        "Status":  "400"
+    },
+    {
+        "Id":  "A01-B06",
+        "Name":  "Password 5 chars",
+        "Resp":  "",
+        "Time":  "3ms",
+        "Result":  "PASS",
+        "Detail":  "",
+        "Status":  "400"
+    },
+    {
+        "Id":  "A01-V01",
+        "Name":  "Missing username",
+        "Resp":  "",
+        "Time":  "3ms",
+        "Result":  "PASS",
+        "Detail":  "",
+        "Status":  "400"
+    },
+    {
+        "Id":  "A01-V02",
+        "Name":  "Missing password",
+        "Resp":  "",
+        "Time":  "2ms",
+        "Result":  "PASS",
+        "Detail":  "",
+        "Status":  "400"
+    },
+    {
+        "Id":  "A01-V07",
+        "Name":  "Empty body",
+        "Resp":  "",
+        "Time":  "2ms",
+        "Result":  "PASS",
+        "Detail":  "",
+        "Status":  "400"
+    },
+    {
+        "Id":  "A01-S01",
+        "Name":  "Duplicate register",
+        "Time":  "249ms",
+        "Result":  "PASS",
+        "Detail":  "",
+        "Status":  "200"
+    },
+    {
+        "Id":  "A01-S01b",
+        "Name":  "Duplicate register 2nd",
+        "Resp":  "",
+        "Time":  "5ms",
+        "Result":  "PASS",
+        "Detail":  "",
+        "Status":  "409"
+    },
+    {
+        "Id":  "A02-P01",
+        "Name":  "Login success",
+        "Time":  "107ms",
+        "Result":  "PASS",
+        "Detail":  "",
+        "Status":  "200"
+    },
+    {
+        "Id":  "A02-E01",
+        "Name":  "Username not exist",
+        "Resp":  "",
+        "Time":  "4ms",
+        "Result":  "PASS",
+        "Detail":  "",
+        "Status":  "401"
+    },
+    {
+        "Id":  "A02-E02",
+        "Name":  "Wrong password",
+        "Resp":  "",
+        "Time":  "98ms",
+        "Result":  "PASS",
+        "Detail":  "",
+        "Status":  "401"
+    },
+    {
+        "Id":  "A02-V03",
+        "Name":  "Empty body login",
+        "Resp":  "",
+        "Time":  "2ms",
+        "Result":  "PASS",
+        "Detail":  "",
+        "Status":  "401"
+    },
+    {
+        "Id":  "A02-P04",
+        "Name":  "Login resp no password",
+        "Time":  "92ms",
+        "Result":  "PASS",
+        "Detail":  "",
+        "Status":  "200"
+    },
+    {
+        "Id":  "A03-P01",
+        "Name":  "Get user info success",
+        "Time":  "20ms",
+        "Result":  "PASS",
+        "Detail":  "",
+        "Status":  "200"
+    },
+    {
+        "Id":  "A03-R01",
+        "Name":  "No token",
+        "Resp":  "",
+        "Time":  "7ms",
+        "Result":  "PASS",
+        "Detail":  "",
+        "Status":  "401"
+    },
+    {
+        "Id":  "A03-R02",
+        "Name":  "Invalid token",
+        "Resp":  "",
+        "Time":  "2ms",
+        "Result":  "PASS",
+        "Detail":  "",
+        "Status":  "401"
+    },
+    {
+        "Id":  "A03-P02",
+        "Name":  "Resp no password field",
+        "Time":  "3ms",
+        "Result":  "PASS",
+        "Detail":  "",
+        "Status":  "200"
+    },
+    {
+        "Id":  "A04-P01",
+        "Name":  "Update display name",
+        "Time":  "131ms",
+        "Result":  "PASS",
+        "Detail":  "",
+        "Status":  "200"
+    },
+    {
+        "Id":  "A04-P02",
+        "Name":  "Update email",
+        "Time":  "78ms",
+        "Result":  "PASS",
+        "Detail":  "",
+        "Status":  "200"
+    },
+    {
+        "Id":  "A04-R01",
+        "Name":  "No token update profile",
+        "Resp":  "",
+        "Time":  "2ms",
+        "Result":  "PASS",
+        "Detail":  "",
+        "Status":  "401"
+    },
+    {
+        "Id":  "A04-B07",
+        "Name":  "Invalid email format",
+        "Resp":  "",
+        "Time":  "5ms",
+        "Result":  "PASS",
+        "Detail":  "",
+        "Status":  "400"
+    },
+    {
+        "Id":  "A05-P01",
+        "Name":  "Change password success",
+        "Time":  "321ms",
+        "Result":  "PASS",
+        "Detail":  "",
+        "Status":  "200"
+    },
+    {
+        "Id":  "A05-P02",
+        "Name":  "Login with new password",
+        "Time":  "134ms",
+        "Result":  "PASS",
+        "Detail":  "",
+        "Status":  "200"
+    },
+    {
+        "Id":  "A05-E01",
+        "Name":  "Old password wrong",
+        "Resp":  "",
+        "Time":  "95ms",
+        "Result":  "PASS",
+        "Detail":  "",
+        "Status":  "400"
+    },
+    {
+        "Id":  "A05-R01",
+        "Name":  "No token change password",
+        "Resp":  "",
+        "Time":  "2ms",
+        "Result":  "PASS",
+        "Detail":  "",
+        "Status":  "401"
+    },
+    {
+        "Id":  "A05-V01",
+        "Name":  "Missing oldPassword",
+        "Resp":  "",
+        "Time":  "3ms",
+        "Result":  "PASS",
+        "Detail":  "",
+        "Status":  "400"
+    },
+    {
+        "Id":  "A06-P01",
+        "Name":  "Get preferences",
+        "Time":  "3ms",
+        "Result":  "PASS",
+        "Detail":  "",
+        "Status":  "200"
+    },
+    {
+        "Id":  "A06-R01",
+        "Name":  "No token get preferences",
+        "Resp":  "",
+        "Time":  "1ms",
+        "Result":  "PASS",
+        "Detail":  "",
+        "Status":  "401"
+    },
+    {
+        "Id":  "A07-P01",
+        "Name":  "Update preferences",
+        "Time":  "150ms",
+        "Result":  "PASS",
+        "Detail":  "",
+        "Status":  "200"
+    },
+    {
+        "Id":  "A07-R01",
+        "Name":  "No token update preferences",
+        "Resp":  "",
+        "Time":  "8ms",
+        "Result":  "PASS",
+        "Detail":  "",
+        "Status":  "401"
+    },
+    {
+        "Id":  "A07-V01",
+        "Name":  "Missing preferences",
+        "Resp":  "",
+        "Time":  "4ms",
+        "Result":  "PASS",
+        "Detail":  "",
+        "Status":  "400"
+    },
+    {
+        "Id":  "A07-V02",
+        "Name":  "Preferences null",
+        "Resp":  "",
+        "Time":  "4ms",
+        "Result":  "PASS",
+        "Detail":  "",
+        "Status":  "400"
+    },
+    {
+        "Id":  "X-MD01",
+        "Name":  "GET on register",
+        "Resp":  "",
+        "Time":  "2ms",
+        "Result":  "PASS",
+        "Detail":  "",
+        "Status":  "404"
+    }
+]

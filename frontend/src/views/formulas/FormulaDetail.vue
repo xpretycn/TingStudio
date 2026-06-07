@@ -1632,7 +1632,7 @@ watch(() => route.params.id, (newId) => {
 
     // ══ 右侧：计算器表格区域 ══
     .calc-section {
-      background: rgb(35, 46, 52);
+      background: var(--color-bg-container);
       border-radius: $radius-2xl;
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
       border: 1px solid var(--color-bg-page);
@@ -1642,8 +1642,8 @@ watch(() => route.params.id, (newId) => {
       .calc-header {
         padding: $space-5 $space-6;
         padding-bottom: $space-6;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-        background: rgb(35, 46, 52);
+        border-bottom: 1px solid var(--color-border-light);
+        background: var(--color-bg-container);
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -1671,11 +1671,11 @@ watch(() => route.params.id, (newId) => {
           display: flex;
           align-items: center;
           gap: $space-2;
-          background: rgba(255, 255, 255, 0.05);
+          background: var(--color-bg-page);
           padding: 8px 12px; // p-2
           border-radius: $radius-xl; // rounded-2xl
           box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04); // shadow-sm
-          border: 1px solid rgba(255, 255, 255, 0.1); // border-slate-100
+          border: 1px solid var(--color-border-light); // border-slate-100
 
           .weight-badge-label {
             font-size: 10px; // text-[10px]
@@ -1702,11 +1702,11 @@ watch(() => route.params.id, (newId) => {
         :deep(.t-table) {
           font-size: 13px;
 
-          // 暗色/统一背景色下的表格适配
+          // 表格背景色统一适配
           th,
           td {
-            background: rgb(35, 46, 52) !important;
-            border-color: rgba(255, 255, 255, 0.08) !important;
+            background: var(--color-bg-container) !important;
+            border-color: var(--color-border-light) !important;
             color: var(--color-text-primary) !important;
           }
 

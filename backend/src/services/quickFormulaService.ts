@@ -121,51 +121,51 @@ export async function update(id: string, data: Record<string, unknown>) {
   const setParts: string[] = [];
   const params: unknown[] = [];
 
-  if (data.name !== undefined) {
+  if (data.name !== undefined && data.name !== null) {
     setParts.push("name = ?");
     params.push(String(data.name).trim());
   }
-  if (data.ratioFactor !== undefined) {
+  if (data.ratioFactor !== undefined && data.ratioFactor !== null) {
     setParts.push("ratio_factor = ?");
     params.push(Number(data.ratioFactor));
   }
-  if (data.supplementRatioFactor !== undefined) {
+  if (data.supplementRatioFactor !== undefined && data.supplementRatioFactor !== null) {
     setParts.push("supplement_ratio_factor = ?");
     params.push(Number(data.supplementRatioFactor));
   }
-  if (data.finishedWeight !== undefined) {
+  if (data.finishedWeight !== undefined && data.finishedWeight !== null) {
     setParts.push("finished_weight = ?");
     params.push(Number(data.finishedWeight));
   }
-  if (data.materials !== undefined) {
+  if (data.materials !== undefined && data.materials !== null) {
     setParts.push("materials_json = ?");
     params.push(JSON.stringify(data.materials));
   }
-  if (data.packagingPrice !== undefined) {
+  if (data.packagingPrice !== undefined && data.packagingPrice !== null) {
     setParts.push("packaging_price = ?");
     params.push(Number(data.packagingPrice));
   }
-  if (data.otherPrice !== undefined) {
+  if (data.otherPrice !== undefined && data.otherPrice !== null) {
     setParts.push("other_price = ?");
     params.push(Number(data.otherPrice));
   }
-  if (data.profitMargin !== undefined) {
+  if (data.profitMargin !== undefined && data.profitMargin !== null) {
     setParts.push("profit_margin = ?");
     params.push(Number(data.profitMargin));
   }
-  if (data.description !== undefined) {
+  if (data.description !== undefined && data.description !== null) {
     setParts.push("description = ?");
     params.push(data.description as string | null);
   }
-  if (data.preparationMethod !== undefined) {
+  if (data.preparationMethod !== undefined && data.preparationMethod !== null) {
     setParts.push("preparation_method = ?");
     params.push(data.preparationMethod as string | null);
   }
-  if (data.salesmanId !== undefined) {
+  if (data.salesmanId !== undefined && data.salesmanId !== null) {
     setParts.push("salesman_id = ?");
     params.push(data.salesmanId as string | null);
   }
-  if (data.salesmanName !== undefined) {
+  if (data.salesmanName !== undefined && data.salesmanName !== null) {
     setParts.push("salesman_name = ?");
     params.push(data.salesmanName as string | null);
   }
@@ -220,6 +220,17 @@ export async function publish(
     throw new Error("只有草稿状态的快速配方才能发布");
   }
 
+  // 校验成品重量必须大于 0
+  const finishedWeight = Number(quickFormula.finished_weight);
+  if (finishedWeight <= 0) {
+    throw new Error("成品重量必须大于 0");
+  }
+
+  // 校验发布描述不能为空或仅空格
+  if (!publishData.description || !publishData.description.trim()) {
+    throw new Error("发布描述不能为空");
+  }
+
   // 2. 校验 salesmanId 在 salesmen 表中存在
   const [salesmanRows]: unknown[] = query(
     "SELECT id, name FROM salesmen WHERE id = ?",
@@ -237,13 +248,12 @@ export async function publish(
   const name = String(quickFormula.name);
   const code = generateFormulaCode(name);
   const materialsJson = String(quickFormula.materials_json);
-  const finishedWeight = Number(quickFormula.finished_weight);
   const ratioFactor = Number(quickFormula.ratio_factor);
   const supplementRatioFactor = Number(quickFormula.supplement_ratio_factor);
   const packagingPrice = Number(quickFormula.packaging_price);
   const otherPrice = Number(quickFormula.other_price);
   const profitMargin = Number(quickFormula.profit_margin);
-  const description = publishData.description || (quickFormula.description as string | null);
+  const description = publishData.description.trim();
   const preparationMethod = publishData.preparationMethod || (quickFormula.preparation_method as string | null);
 
   // 4. 生成配方编码

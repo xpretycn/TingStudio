@@ -1,22 +1,7 @@
 <template>
   <div class="formula-list" :aria-busy="!initialized" data-testid="formula-list">
     <!-- 顶部：数据看板 -->
-    <section class="dashboard-grid" data-testid="formula-dashboard">
-      <div class="stat-card" v-for="(card, idx) in dashboardCards" :key="card.label"
-        :style="{ animationDelay: `${(idx + 1) * 0.1}s` }">
-        <div class="stat-card-top">
-          <div class="stat-icon" :style="{ background: card.iconBg, color: card.iconColor }">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-              stroke-linecap="round" stroke-linejoin="round" v-html="card.iconPath"></svg>
-          </div>
-          <span class="stat-badge" :style="{ color: card.badgeColor, background: card.badgeBg }">
-            {{ card.badge }}
-          </span>
-        </div>
-        <p class="stat-label">{{ card.label }}</p>
-        <p class="stat-value">{{ card.value }} <small class="stat-unit">{{ card.unit }}</small></p>
-      </div>
-    </section>
+    <FormulaDashboardCards :cards="dashboardCards" />
 
     <!-- 主区域：配方列表 -->
     <main class="main-area">
@@ -604,11 +589,14 @@ import { formulaApi } from '@/api/formula';
 import { approvalApi } from '@/api/approval';
 import type { SaleRecord } from '@/api/sales';
 import type { Material } from '@/api/material';
+import { useTodoPagination } from '@/composables/useTodoPagination';
+import { usePageNumbers } from '@/composables/usePageNumbers';
 import { useExportStore } from '@/stores/export';
 import type { ExportTemplate } from '@/api/export';
 import SalesRecordDrawer from '@/components/SalesRecordDrawer.vue';
 import SalesBatchDrawer from '@/components/SalesBatchDrawer.vue';
 import PageSkeleton from '@/components/Skeleton/PageSkeleton.vue';
+import FormulaDashboardCards from './components/FormulaDashboardCards.vue';
 
 defineOptions({ name: 'FormulaList' });
 
@@ -1055,15 +1043,11 @@ const pagination = computed(() => ({
 }));
 
 // 分页页码计算（用于手动分页按钮）
-const totalPages = computed(() => Math.ceil(formulaStore.total / formulaStore.pageSize) || 1);
-const pageNumbers = computed<(number | string)[]>(() => {
-  const total = totalPages.value;
-  const current = formulaStore.currentPage;
-  if (total <= 5) return Array.from({ length: total }, (_, i) => i + 1);
-  if (current <= 3) return [1, 2, 3, '...', total];
-  if (current >= total - 2) return [1, '...', total - 2, total - 1, total];
-  return [1, '...', current - 1, current, current + 1, '...', total];
-});
+const { totalPages, pageNumbers } = usePageNumbers(
+  () => formulaStore.total,
+  () => formulaStore.pageSize,
+  () => formulaStore.currentPage
+);
 
 // 底部动态数据 - 基于实际配方数据生成
 interface ActivityItem { type: 'success' | 'warning' | 'info'; title: string; desc: string; time: string; }
@@ -1313,23 +1297,13 @@ const displayPendingItems = computed<PendingItem[]>(() => {
   return pendingItems.value;
 });
 
-const TODO_PAGE_SIZE = 3;
-const todoPage = ref(1);
-
-const todoTotalPages = computed(() => Math.max(1, Math.ceil(displayPendingItems.value.length / TODO_PAGE_SIZE)));
-
-const paginatedTodoItems = computed(() => {
-  const start = (todoPage.value - 1) * TODO_PAGE_SIZE;
-  return displayPendingItems.value.slice(start, start + TODO_PAGE_SIZE);
-});
-
-const todoPrev = () => {
-  if (todoPage.value > 1) todoPage.value--;
-};
-
-const todoNext = () => {
-  if (todoPage.value < todoTotalPages.value) todoPage.value++;
-};
+const {
+  page: todoPage,
+  totalPages: todoTotalPages,
+  paginatedItems: paginatedTodoItems,
+  prev: todoPrev,
+  next: todoNext
+} = useTodoPagination(displayPendingItems);
 
 const handleTodoAction = (item: PendingItem) => {
   switch (item.actionType) {
@@ -1639,87 +1613,6 @@ const getSalesQuantity = (row: Formula): number => {
     min-width: 0;
     overflow: hidden;
     margin-bottom: 0;
-  }
-
-  // ─── 数据看板 ───
-  .dashboard-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 16px;
-    margin-bottom: 0;
-
-    .stat-card {
-      background: var(--color-bg-container);
-      padding: var(--space-2-5) 16px;
-      border-radius: 12px;
-      border: 1px solid var(--color-bg-container);
-      box-shadow: $shadow-elevation-1;
-      transition: all $transition-slow;
-      animation: dashboard-fade-in 0.5s ease forwards;
-      opacity: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 0;
-
-      &:hover {
-        transform: translateY(-2px);
-        box-shadow: $shadow-elevation-3;
-        border-color: transparent;
-      }
-
-      .stat-card-top {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        width: 100%;
-        margin-bottom: 4px;
-      }
-
-      .stat-icon {
-        width: 28px;
-        height: 28px;
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-
-        svg {
-          width: 16px;
-          height: 16px;
-        }
-      }
-
-      .stat-badge {
-        font-size: 10px;
-        font-weight: 700;
-        padding: 1px var(--space-1-5);
-        border-radius: 4px;
-        white-space: nowrap;
-      }
-
-      .stat-label {
-        font-size: 9px;
-        color: var(--color-text-placeholder);
-        margin-bottom: 1px;
-        width: 100%;
-      }
-
-      .stat-value {
-        font-size: 18px;
-        font-weight: 700;
-        color: var(--color-text-primary);
-        line-height: 1.2;
-        width: 100%;
-
-        .stat-unit {
-          font-size: 11px;
-          font-weight: 400;
-          color: var(--color-text-placeholder);
-        }
-      }
-    }
   }
 
   // ─── 内容卡片 - 参照 index.html 第226行 "数据中心列表" ───
@@ -2174,32 +2067,6 @@ const getSalesQuantity = (row: Formula): number => {
   to {
     opacity: 1;
     transform: translateY(0);
-  }
-}
-
-@keyframes dashboard-fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@media screen and (max-width: 1024px) {
-  .formula-list .dashboard-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media screen and (max-width: 768px) {
-  .formula-list .dashboard-grid {
-    grid-template-columns: 1fr;
-    gap: 16px;
-    margin-bottom: 24px;
   }
 }
 

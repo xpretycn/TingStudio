@@ -628,6 +628,8 @@ import type { SaleRecord } from '@/api/sales';
 import SalesRecordDrawer from '@/components/SalesRecordDrawer.vue';
 import SalesBatchDrawer from '@/components/SalesBatchDrawer.vue';
 import PageSkeleton from '@/components/Skeleton/PageSkeleton.vue';
+import { useTodoPagination } from '@/composables/useTodoPagination';
+import { usePageNumbers } from '@/composables/usePageNumbers';
 
 const salesStore = useSalesStore();
 const salesmanStore = useSalesmanStore();
@@ -825,15 +827,11 @@ const getAvatarColor = (text: string) => {
 
 const getInitial = (name: string) => (name || '?').charAt(0).toUpperCase();
 
-const totalPages = computed(() => Math.ceil(salesStore.total / salesStore.pageSize) || 1);
-const pageNumbers = computed<(number | string)[]>(() => {
-  const total = totalPages.value;
-  const current = salesStore.currentPage;
-  if (total <= 5) return Array.from({ length: total }, (_, i) => i + 1);
-  if (current <= 3) return [1, 2, 3, '...', total];
-  if (current >= total - 2) return [1, '...', total - 2, total - 1, total];
-  return [1, '...', current - 1, current, current + 1, '...', total];
-});
+const { totalPages, pageNumbers } = usePageNumbers(
+  () => salesStore.total,
+  () => salesStore.pageSize,
+  () => salesStore.currentPage
+);
 
 const goPage = (page: number) => {
   if (page < 1 || page > totalPages.value) return;
@@ -972,9 +970,6 @@ interface SalesTodoItem {
   formulaId?: string;
 }
 
-const SALES_TODO_PAGE_SIZE = 3;
-const salesTodoPage = ref(1);
-
 const displaySalesPendingItems = computed<SalesTodoItem[]>(() => {
   const items: SalesTodoItem[] = [];
   const formulas = formulaStore.formulas || [];
@@ -1015,15 +1010,14 @@ const displaySalesPendingItems = computed<SalesTodoItem[]>(() => {
   return items.slice(0, 8);
 });
 
-const salesTodoTotalPages = computed(() => Math.max(1, Math.ceil(displaySalesPendingItems.value.length / SALES_TODO_PAGE_SIZE)));
-
-const paginatedSalesTodoItems = computed<SalesTodoItem[]>(() => {
-  const start = (salesTodoPage.value - 1) * SALES_TODO_PAGE_SIZE;
-  return displaySalesPendingItems.value.slice(start, start + SALES_TODO_PAGE_SIZE);
-});
-
-const salesTodoPrev = () => { if (salesTodoPage.value > 1) salesTodoPage.value--; };
-const salesTodoNext = () => { if (salesTodoPage.value < salesTodoTotalPages.value) salesTodoPage.value++; };
+const {
+  page: salesTodoPage,
+  totalPages: salesTodoTotalPages,
+  paginatedItems: paginatedSalesTodoItems,
+  prev: salesTodoPrev,
+  next: salesTodoNext,
+  resetPage: resetSalesTodoPage
+} = useTodoPagination(displaySalesPendingItems);
 
 const handleSalesTodoAction = (item: SalesTodoItem) => {
   if (item.actionType === 'edit' && item.formulaId) {
@@ -1038,7 +1032,7 @@ const refreshSalesPending = async () => {
     formulaStore.fetchFormulas(),
     loadData()
   ]);
-  salesTodoPage.value = 1;
+  resetSalesTodoPage();
 };
 
 const ACTIVITY_PAGE_SIZE = 4;

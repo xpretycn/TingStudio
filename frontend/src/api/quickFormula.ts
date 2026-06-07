@@ -13,8 +13,8 @@ export function createQuickFormula(data: { name: string }, config?: Record<strin
   return http.post('/quick-formulas', data, { _logLabel: '创建快速配方', ...config })
 }
 
-export function updateQuickFormula(id: string, data: Record<string, unknown>) {
-  return http.put(`/quick-formulas/${id}`, data, { _logLabel: '更新快速配方' })
+export function updateQuickFormula(id: string, data: Record<string, unknown>, config?: Record<string, unknown>) {
+  return http.put(`/quick-formulas/${id}`, data, { _logLabel: '更新快速配方', ...config })
 }
 
 export function deleteQuickFormula(id: string) {

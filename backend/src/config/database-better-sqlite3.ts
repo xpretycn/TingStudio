@@ -957,6 +957,18 @@ function runAutoMigrations(dbInstance: Database.Database) {
     `,
   );
 
+  // 确保监控模块所需的列存在（兼容旧表结构）
+  ensureColumn(dbInstance, "parse_results", "tokens_used", "INTEGER", "0");
+  ensureColumn(dbInstance, "parse_results", "used_count", "INTEGER", "0");
+  ensureColumn(dbInstance, "parse_results", "model_provider", "TEXT", "NULL");
+  ensureColumn(dbInstance, "parse_results", "model_name", "TEXT", "NULL");
+  ensureColumn(dbInstance, "parse_results", "status", "TEXT", "'pending'");
+  ensureColumn(dbInstance, "parse_results", "prompt_tokens", "INTEGER", "0");
+  ensureColumn(dbInstance, "parse_results", "completion_tokens", "INTEGER", "0");
+  ensureColumn(dbInstance, "parse_results", "is_linked", "INTEGER", "0");
+  ensureColumn(dbInstance, "parse_results", "linked_formula_id", "TEXT", "NULL");
+  ensureColumn(dbInstance, "parse_results", "linked_material_id", "TEXT", "NULL");
+
   ensureTable(
     dbInstance,
     "parse_result_configs",
@@ -1932,9 +1944,32 @@ export async function connectDatabase(): Promise<void> {
 
     db = new Database(config.database.path);
 
-    // 启用 WAL 模式和外键约束
-    db.pragma("journal_mode = WAL");
-    db.pragma("foreign_keys = ON");
+    // 启用日志模式和外键约束
+    // Windows 环境下 WAL 模式可能因 SHM 映射失败，直接使用 DELETE 模式
+    let journalMode = "DELETE";
+    try {
+      db.pragma("journal_mode = DELETE");
+    } catch (deleteError) {
+      logger.warn("DELETE 模式失败，尝试不设置日志模式", deleteError);
+      try { db.close(); } catch { /* ignore */ }
+      const walFile = config.database.path + '-wal';
+      const shmFile = config.database.path + '-shm';
+      try { if (fs.existsSync(walFile)) fs.unlinkSync(walFile); } catch { /* ignore */ }
+      try { if (fs.existsSync(shmFile)) fs.unlinkSync(shmFile); } catch { /* ignore */ }
+      db = new Database(config.database.path);
+      journalMode = "default";
+    }
+    try {
+      db.pragma("foreign_keys = ON");
+    } catch (fkError) {
+      logger.warn("foreign_keys 设置失败，尝试重新打开数据库", fkError);
+      try { db.close(); } catch { /* ignore */ }
+      const walFile = config.database.path + '-wal';
+      const shmFile = config.database.path + '-shm';
+      try { if (fs.existsSync(walFile)) fs.unlinkSync(walFile); } catch { /* ignore */ }
+      try { if (fs.existsSync(shmFile)) fs.unlinkSync(shmFile); } catch { /* ignore */ }
+      db = new Database(config.database.path);
+    }
 
     // 检查是否需要初始化数据库
     const tables = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='users'").all();
