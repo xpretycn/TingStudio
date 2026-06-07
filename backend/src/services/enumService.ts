@@ -116,7 +116,6 @@ export async function deleteEnumOption(id: string): Promise<{ deletedId: string;
   const row = existing.rows[0];
   const refCount = await getReferenceCount(row.category as string, row.value as string);
   await query("DELETE FROM enum_options WHERE id = ?", [id]);
-  await query("DELETE FROM enum_exclusions WHERE category = ? AND (value_a = ? OR value_b = ?)", [row.category, row.value, row.value]);
   return { deletedId: id, referenceCount: refCount };
 }
 

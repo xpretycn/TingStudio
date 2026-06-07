@@ -305,6 +305,69 @@ function runAutoMigrations(dbInstance: Database.Database) {
   ensureColumn(dbInstance, "formula_versions", "ratio_factor", "REAL", "0.18");
   ensureColumn(dbInstance, "formula_versions", "supplement_ratio_factor", "REAL", "1.0");
 
+  // 0.3 迁移 uploaded_files 表结构（旧表名 file_id, uploaded_by, uploaded_at → 新表名 id, created_by, created_at，添加 updated_at）
+  try {
+    const ufCols = dbInstance.pragma("table_info(uploaded_files)") as PragmaColumnInfo[];
+    const ufColNames = ufCols.map(c => c.name);
+    const hasOldColumns = ufColNames.includes("file_id") || ufColNames.includes("uploaded_by") || ufColNames.includes("uploaded_at");
+    if (hasOldColumns) {
+      logger.info("数据库迁移: 检测到 uploaded_files 旧表结构，重建表...");
+      dbInstance.exec(`
+        CREATE TABLE IF NOT EXISTS uploaded_files_new (
+          id TEXT PRIMARY KEY,
+          original_name TEXT NOT NULL,
+          storage_path TEXT NOT NULL,
+          file_size INTEGER NOT NULL DEFAULT 0,
+          mime_type TEXT,
+          file_type TEXT DEFAULT 'formula' CHECK(file_type IN ('formula', 'material')),
+          status TEXT NOT NULL DEFAULT 'uploaded' CHECK(status IN ('uploaded', 'parsed', 'linked', 'orphaned', 'archived')),
+          related_id TEXT DEFAULT NULL,
+          related_type TEXT DEFAULT NULL CHECK(related_type IS NULL OR related_type IN ('formula', 'material')),
+          parse_result_json TEXT DEFAULT NULL,
+          parse_model TEXT DEFAULT NULL,
+          parse_confidence REAL DEFAULT NULL,
+          parse_usage_json TEXT DEFAULT NULL,
+          version INTEGER NOT NULL DEFAULT 1,
+          created_by TEXT NOT NULL,
+          created_at TEXT NOT NULL DEFAULT (datetime('now')),
+          updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+          last_accessed_at TEXT DEFAULT NULL
+        )
+      `);
+      // 复制数据
+      const sourceIdCol = ufColNames.includes("file_id") ? "file_id" : "id";
+      const sourceCreatedByCol = ufColNames.includes("uploaded_by") ? "uploaded_by" : "created_by";
+      const sourceCreatedAtCol = ufColNames.includes("uploaded_at") ? "uploaded_at" : "created_at";
+      const hasUpdatedAt = ufColNames.includes("updated_at");
+      
+      const copySql = `
+        INSERT INTO uploaded_files_new (
+          id, original_name, storage_path, file_size, mime_type, file_type, status, 
+          related_id, related_type, parse_result_json, parse_model, parse_confidence, 
+          parse_usage_json, version, created_by, created_at, updated_at, last_accessed_at
+        )
+        SELECT 
+          ${sourceIdCol}, original_name, storage_path, file_size, mime_type, file_type, status,
+          related_id, related_type, parse_result_json, parse_model, parse_confidence,
+          parse_usage_json, version, ${sourceCreatedByCol}, ${sourceCreatedAtCol}, 
+          ${hasUpdatedAt ? "updated_at" : "datetime('now')"}, last_accessed_at
+        FROM uploaded_files
+      `;
+      dbInstance.exec(copySql);
+      dbInstance.exec("DROP TABLE uploaded_files");
+      dbInstance.exec("ALTER TABLE uploaded_files_new RENAME TO uploaded_files");
+      // 重建索引
+      dbInstance.exec("CREATE INDEX IF NOT EXISTS idx_uploaded_files_related ON uploaded_files(related_id, related_type)");
+      dbInstance.exec("CREATE INDEX IF NOT EXISTS idx_uploaded_files_type ON uploaded_files(file_type)");
+      dbInstance.exec("CREATE INDEX IF NOT EXISTS idx_uploaded_files_status ON uploaded_files(status)");
+      dbInstance.exec("CREATE INDEX IF NOT EXISTS idx_uploaded_files_created_by ON uploaded_files(created_by)");
+      dbInstance.exec("CREATE INDEX IF NOT EXISTS idx_uploaded_files_created_at ON uploaded_files(created_at)");
+      logger.info("数据库迁移: uploaded_files 表重建完成");
+    }
+  } catch (err: unknown) {
+    logger.error("数据库迁移: uploaded_files 表重建失败 - " + (err instanceof Error ? err.message : String(err)));
+  }
+
   // 0.2 检测 formula_versions.status CHECK 约束是否包含 pending_review
   try {
     const fvCreateSql = dbInstance.prepare("SELECT sql FROM sqlite_master WHERE type='table' AND name='formula_versions'").get() as { sql: string | null } | undefined;
@@ -457,12 +520,12 @@ function runAutoMigrations(dbInstance: Database.Database) {
     "uploaded_files",
     `
     CREATE TABLE uploaded_files (
-      file_id TEXT PRIMARY KEY,
+      id TEXT PRIMARY KEY,
       original_name TEXT NOT NULL,
       storage_path TEXT NOT NULL,
-      file_size INTEGER NOT NULL,
-      mime_type TEXT NOT NULL,
-      file_type TEXT NOT NULL CHECK(file_type IN ('formula', 'material')),
+      file_size INTEGER NOT NULL DEFAULT 0,
+      mime_type TEXT,
+      file_type TEXT DEFAULT 'formula' CHECK(file_type IN ('formula', 'material')),
       status TEXT NOT NULL DEFAULT 'uploaded' CHECK(status IN ('uploaded', 'parsed', 'linked', 'orphaned', 'archived')),
       related_id TEXT DEFAULT NULL,
       related_type TEXT DEFAULT NULL CHECK(related_type IS NULL OR related_type IN ('formula', 'material')),
@@ -471,15 +534,16 @@ function runAutoMigrations(dbInstance: Database.Database) {
       parse_confidence REAL DEFAULT NULL,
       parse_usage_json TEXT DEFAULT NULL,
       version INTEGER NOT NULL DEFAULT 1,
-      uploaded_by TEXT NOT NULL,
-      uploaded_at TEXT NOT NULL DEFAULT (datetime('now')),
+      created_by TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now')),
       last_accessed_at TEXT DEFAULT NULL
     );
     CREATE INDEX IF NOT EXISTS idx_uploaded_files_related ON uploaded_files(related_id, related_type);
     CREATE INDEX IF NOT EXISTS idx_uploaded_files_type ON uploaded_files(file_type);
     CREATE INDEX IF NOT EXISTS idx_uploaded_files_status ON uploaded_files(status);
-    CREATE INDEX IF NOT EXISTS idx_uploaded_files_uploaded_by ON uploaded_files(uploaded_by);
-    CREATE INDEX IF NOT EXISTS idx_uploaded_files_uploaded_at ON uploaded_files(uploaded_at)
+    CREATE INDEX IF NOT EXISTS idx_uploaded_files_created_by ON uploaded_files(created_by);
+    CREATE INDEX IF NOT EXISTS idx_uploaded_files_created_at ON uploaded_files(created_at)
     `,
   );
   ensureTable(
@@ -494,7 +558,7 @@ function runAutoMigrations(dbInstance: Database.Database) {
       timestamp TEXT NOT NULL DEFAULT (datetime('now')),
       detail_json TEXT DEFAULT NULL,
       ip_address TEXT DEFAULT NULL,
-      FOREIGN KEY (file_id) REFERENCES uploaded_files(file_id) ON DELETE CASCADE
+      FOREIGN KEY (file_id) REFERENCES uploaded_files(id) ON DELETE CASCADE
     );
     CREATE INDEX IF NOT EXISTS idx_file_audit_file ON file_audit_log(file_id);
     CREATE INDEX IF NOT EXISTS idx_file_audit_operator ON file_audit_log(operator);
@@ -513,7 +577,7 @@ function runAutoMigrations(dbInstance: Database.Database) {
       related_name TEXT NOT NULL,
       created_by TEXT NOT NULL,
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
-      FOREIGN KEY (file_id) REFERENCES uploaded_files(file_id) ON DELETE CASCADE,
+      FOREIGN KEY (file_id) REFERENCES uploaded_files(id) ON DELETE CASCADE,
       UNIQUE(file_id, related_id, related_type)
     );
     CREATE INDEX IF NOT EXISTS idx_fr_file ON file_relations(file_id);
@@ -1146,6 +1210,9 @@ function runAutoMigrations(dbInstance: Database.Database) {
     logger.warn("数据库迁移: materials status 索引创建失败 - " + (err instanceof Error ? err.message : String(err)));
   }
 
+  // nutrition_profiles 缺少 created_by 列
+  ensureColumn(dbInstance, "nutrition_profiles", "created_by", "TEXT", "NULL");
+
   ensureInitialAiModels(dbInstance);
 
   ensureTable(
@@ -1223,6 +1290,7 @@ function runAutoMigrations(dbInstance: Database.Database) {
     "20260128_enum_options",
     "20260129_formula_templates",
     "20260130_nutrition_sources",
+    "20260131_nutrition_profiles_created_by",
   ]) {
     markMigration(v);
   }
@@ -1772,6 +1840,7 @@ CREATE TABLE IF NOT EXISTS nutrition_profiles (
   tolerance_ranges_json TEXT DEFAULT NULL,
   mandatory_fields_json TEXT DEFAULT NULL,
   is_preset INTEGER NOT NULL DEFAULT 0,
+  created_by TEXT DEFAULT NULL,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );

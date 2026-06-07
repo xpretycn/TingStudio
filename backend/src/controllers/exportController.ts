@@ -59,6 +59,10 @@ export async function createExportJob(req: Request, res: Response) {
       req.body as exportService.CreateJobInput,
       userId ?? "",
     );
+    if (result.status === "failed" && result.errorMessage === "配方不存在") {
+      res.status(404).json({ success: false, error: { message: "配方不存在", code: "NOT_FOUND" } });
+      return;
+    }
     res.status(201).json(success(result));
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : "操作失败";
