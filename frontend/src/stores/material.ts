@@ -70,10 +70,14 @@ export const useMaterialStore = defineStore("material", () => {
       materials.value = res.list
       total.value = res.pagination.total
 
-      // 更新缓存信息
-      lastFetchTime = Date.now()
-      isCacheValid = true
-      lastQueryKey = currentQueryKey
+      // 仅缓存"有数据"的结果：空数据不算有效缓存，避免后续 keep-alive 激活时误用空数据
+      if (res.list.length > 0) {
+        lastFetchTime = Date.now()
+        isCacheValid = true
+        lastQueryKey = currentQueryKey
+      } else {
+        isCacheValid = false
+      }
     }).catch((error: unknown) => {
       console.error("获取原料列表失败:", error);
     }).finally(() => {

@@ -695,10 +695,10 @@ onMounted(async () => {
     align-items: center;
     margin-left: -32px;
     margin-right: -32px;
-    padding: 16px 32px;
-    background-color: rgba(255, 255, 255, 0.80);
+    padding: 8px 32px;
+    background-color: var(--color-bg-container);
     backdrop-filter: blur(12px);
-    border-bottom: 1px solid #f1f5f9;
+    border-bottom: 1px solid var(--color-border-light);
     animation: fadeInDown 0.3s cubic-bezier(0.4, 0, 0.2, 1) both;
 
     .header-left {
@@ -974,7 +974,7 @@ onMounted(async () => {
         transition: all 0.2s;
 
         &:hover {
-          border-color: #cbd5e1;
+          border-color: var(--color-border-hover, #cbd5e1);
         }
 
         &.t-is-focused,
@@ -982,6 +982,25 @@ onMounted(async () => {
           border-color: var(--color-primary-lightest);
           box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
         }
+
+        // disabled 状态暗色适配 — 背景与边框与正常输入框完全一致
+        &.t-is-disabled {
+          background-color: var(--color-bg-container);
+          border-color: var(--color-border);
+          color: var(--color-text-primary);
+
+          .t-input__inner {
+            background-color: var(--color-bg-container);
+            color: var(--color-text-primary);
+            -webkit-text-fill-color: var(--color-text-primary);
+          }
+        }
+      }
+
+      // 用户名输入框宽度与昵称一致
+      :deep(.t-form__item:nth-child(2) .t-input),
+      :deep(.t-form__item:nth-child(3) .t-input) {
+        width: 100%;
       }
 
       :deep(.t-button--variant-base-theme-primary) {

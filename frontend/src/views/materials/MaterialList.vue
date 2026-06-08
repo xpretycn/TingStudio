@@ -1156,6 +1156,10 @@ onActivated(async () => {
       searchKeyword.value = "";
       materialStore.clearKeyword();
       materialStore.fetchMaterials();
+    } else if (materialStore.materials.length === 0) {
+      // 兜底：缓存或上次失败导致 store 为空时，强制重新拉取
+      materialStore.invalidateCache();
+      materialStore.fetchMaterials();
     }
   }
 });

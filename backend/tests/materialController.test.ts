@@ -176,7 +176,7 @@ describe("materialController - 原料控制器", () => {
       const { getMaterial } = await import("../src/controllers/materialController.js");
       await getMaterial(mockReq as unknown as Request, mockRes as Response);
 
-      expect(vi.mocked(getMaterialDetail)).toHaveBeenCalledWith("mat-001", "user-001");
+      expect(vi.mocked(getMaterialDetail)).toHaveBeenCalledWith("mat-001", "user-001", "formulist");
       expect(jsonMock).toHaveBeenCalledWith(
         expect.objectContaining({
           success: true,

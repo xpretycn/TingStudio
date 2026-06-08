@@ -37,7 +37,6 @@ const materialPendingCount = computed(() => approvalStore.materialPendingCount)
 .bento-approval {
   display: flex;
   flex-direction: column;
-  height: 100%;
   background: var(--color-bg-container);
   border-radius: var(--radius-3xl, 16px);
   padding: var(--space-5, 20px);
@@ -59,6 +58,7 @@ const materialPendingCount = computed(() => approvalStore.materialPendingCount)
     gap: 8px;
     padding-bottom: var(--space-3, 12px);
     border-bottom: 1px solid var(--color-border-light);
+    flex-shrink: 0;
   }
 
   &__title {
@@ -74,8 +74,9 @@ const materialPendingCount = computed(() => approvalStore.materialPendingCount)
   &__body {
     flex: 1;
     min-height: 0;
-    max-height: 700px;
-    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
   }
 }
 </style>
