@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from "vue"
+import { ref, computed, onMounted, onBeforeUnmount, watch } from "vue"
 import type { Material } from "@/api/material"
 import type { QuickFormulaMaterial } from "@/types/quickFormula"
 
@@ -25,6 +25,18 @@ const freePos = ref({ x: 0, y: 0 })
 let hideTimer: ReturnType<typeof setTimeout> | null = null
 
 const isHerb = computed(() => props.material.materialType === "herb")
+
+// 包围盒尺寸（与 MaterialPool 算法保持一致：基于名字长度）
+const fishBox = computed(() => {
+  const len = props.material.name.length
+  let halfW: number
+  if (len <= 2) halfW = 36
+  else if (len === 3) halfW = 42
+  else if (len === 4) halfW = 48
+  else if (len === 5) halfW = 52
+  else halfW = 55
+  return { halfW, halfH: 14 }
+})
 
 const typeLabel = computed(() => (isHerb.value ? "主料" : "辅料"))
 
@@ -141,11 +153,17 @@ watch(
       'material-fish--hovered': isHovered,
       'material-fish--free': freeMove,
     }"
-    :style="{
-      animationDuration: animDuration,
-      animationDelay: animDelay,
-      ...(freeMove ? { left: freePos.x + '%', top: freePos.y + '%' } : {}),
-    }"
+    :style="freeMove
+      ? {
+        '--fish-anim-duration': animDuration,
+        '--fish-anim-delay': animDelay,
+        '--fish-x': freePos.x + 'px',
+        '--fish-y': freePos.y + 'px',
+      }
+      : {
+        '--fish-anim-duration': animDuration,
+        '--fish-anim-delay': animDelay,
+      }"
     @mouseenter="handleMouseEnter"
     @mouseleave="handleMouseLeave"
   >
@@ -213,22 +231,10 @@ watch(
 <style lang="scss" scoped>
 @use "@/assets/styles/variables.scss" as *;
 
-@keyframes fish-float {
-  0% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-3px);
-  }
-  100% {
-    transform: translateY(0);
-  }
-}
-
 .material-fish {
   position: relative;
   z-index: 1;
-  animation: fish-float v-bind(animDuration) ease-in-out v-bind(animDelay) infinite;
+  animation: fish-float var(--fish-anim-duration, 10s) ease-in-out var(--fish-anim-delay, 0s) infinite;
   will-change: transform;
   cursor: pointer;
 
@@ -239,7 +245,31 @@ watch(
 
   &--free {
     position: absolute;
-    transition: left 20s linear, top 20s linear;
+    top: var(--fish-y, 0);
+    left: var(--fish-x, 0);
+    /* 中心点定位：x,y 是 fish 中心点，用 translate 反向补偿 */
+    transform: translate(-50%, -50%);
+    /* 关闭 keyframe 浮动，由 RAF 每帧直接驱动 --fish-x/--fish-y */
+    animation: none;
+    /* 抗锯齿：避免高速位移模糊 */
+    backface-visibility: hidden;
+
+    /* 自由模式下 hover 仍然放大 */
+    &.material-fish--hovered {
+      transform: translate(-50%, -50%) scale(1.08);
+    }
+  }
+}
+
+@keyframes fish-float {
+  0% {
+    transform: translate(var(--fish-shift-x, 0px), var(--fish-shift-y, 0px));
+  }
+  50% {
+    transform: translate(var(--fish-shift-x, 0px), calc(var(--fish-shift-y, 0px) - 3px));
+  }
+  100% {
+    transform: translate(var(--fish-shift-x, 0px), var(--fish-shift-y, 0px));
   }
 }
 
@@ -268,13 +298,14 @@ watch(
 }
 
 .fish-name {
-  font-size: $font-size-caption;
+  font-size: 11px;
   font-weight: $font-weight-medium;
   color: var(--color-text-primary);
-  max-width: 60px;
+  max-width: 52px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  line-height: 1.3;
 }
 
 .fish-type {

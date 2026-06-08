@@ -4,6 +4,7 @@ import { useRouter, onBeforeRouteLeave } from "vue-router";
 import { MessagePlugin } from "tdesign-vue-next";
 import { useQuickFormulaStore } from "@/stores/quickFormula";
 import { useQuickFormulaListStore } from "@/stores/quickFormulaList";
+import { useFormulaStore } from "@/stores/formula";
 import QuickFormulaSidebar from "./QuickFormulaSidebar.vue";
 import PublishDrawer from "./PublishDrawer.vue";
 import FormulaWorkspace from "./FormulaWorkspace.vue";
@@ -13,6 +14,7 @@ import type { QuickFormulaItem, QuickFormulaDraft, FormulaTemplate } from "@/typ
 const router = useRouter();
 const quickFormulaStore = useQuickFormulaStore();
 const quickFormulaListStore = useQuickFormulaListStore();
+const formulaStore = useFormulaStore();
 
 const isFullscreen = ref(false);
 const showPublishDrawer = ref(false);
@@ -169,6 +171,8 @@ function handlePublished(_data: { formulaId: string; versionId: string; }) {
   currentQuickFormulaId.value = null;
   quickFormulaListStore.selectedId = null;
   quickFormulaStore.exitEditMode();
+  // 使配方管理列表缓存失效，确保跳转后列表从 API 拉取最新数据
+  formulaStore.invalidateCache();
   router.push("/formulas");
 }
 
@@ -232,6 +236,7 @@ onMounted(() => {
   window.addEventListener("beforeunload", handleBeforeUnload);
   document.addEventListener("fullscreenchange", handleFullscreenChange);
   quickFormulaListStore.fetchList();
+  quickFormulaListStore.selectedId = null;
 });
 
 onBeforeUnmount(() => {
@@ -284,16 +289,14 @@ onBeforeUnmount(() => {
                   </div>
                   <div class="nq-divider"></div>
                   <div class="nq-item" :class="{ 'nq-item--danger': isRatioOver }">
-                    <div class="nq-item-icon nq-icon--ratio"
-                      :style="{ background: 'rgba(16, 185, 129, 0.08)', color: '#10b981' }">
+                    <div class="nq-item-icon nq-icon--ratio">
                       <t-icon name="chart" size="12px" />
                     </div>
                     <span class="nq-item-label">含量比</span>
                     <span class="nq-item-value">{{ ratioPercent }}%</span>
                   </div>
                   <div class="nq-item">
-                    <div class="nq-item-icon nq-icon--energy"
-                      :style="{ background: 'rgba(245, 166, 35, 0.08)', color: '#f5a623' }">
+                    <div class="nq-item-icon nq-icon--energy">
                       <t-icon name="flashlight" size="12px" />
                     </div>
                     <span class="nq-item-label">能量</span>
@@ -302,8 +305,7 @@ onBeforeUnmount(() => {
                     </span>
                   </div>
                   <div class="nq-item">
-                    <div class="nq-item-icon nq-icon--protein"
-                      :style="{ background: 'rgba(255, 107, 138, 0.08)', color: '#ff6b8a' }">
+                    <div class="nq-item-icon nq-icon--protein">
                       <t-icon name="flag" size="12px" />
                     </div>
                     <span class="nq-item-label">蛋白质</span>
@@ -312,8 +314,7 @@ onBeforeUnmount(() => {
                     </span>
                   </div>
                   <div class="nq-item">
-                    <div class="nq-item-icon nq-icon--fat"
-                      :style="{ background: 'rgba(249, 115, 22, 0.08)', color: '#f97316' }">
+                    <div class="nq-item-icon nq-icon--fat">
                       <t-icon name="rain-light" size="12px" />
                     </div>
                     <span class="nq-item-label">脂肪</span>
@@ -322,8 +323,7 @@ onBeforeUnmount(() => {
                     </span>
                   </div>
                   <div class="nq-item">
-                    <div class="nq-item-icon nq-icon--carb"
-                      :style="{ background: 'rgba(139, 92, 246, 0.08)', color: '#8b5cf6' }">
+                    <div class="nq-item-icon nq-icon--carb">
                       <t-icon name="chart-pie" size="12px" />
                     </div>
                     <span class="nq-item-label">碳水</span>
@@ -332,8 +332,7 @@ onBeforeUnmount(() => {
                     </span>
                   </div>
                   <div class="nq-item">
-                    <div class="nq-item-icon nq-icon--sodium"
-                      :style="{ background: 'rgba(99, 102, 241, 0.08)', color: '#6366f1' }">
+                    <div class="nq-item-icon nq-icon--sodium">
                       <t-icon name="precise-monitor" size="12px" />
                     </div>
                     <span class="nq-item-label">钠</span>
@@ -343,8 +342,7 @@ onBeforeUnmount(() => {
                   </div>
                   <div class="nq-divider"></div>
                   <div class="nq-item nq-item--highlight">
-                    <div class="nq-item-icon nq-icon--price"
-                      :style="{ background: 'rgba(16, 185, 129, 0.08)', color: '#10b981' }">
+                    <div class="nq-item-icon nq-icon--price">
                       <t-icon name="money" size="12px" />
                     </div>
                     <span class="nq-item-label">报价</span>
@@ -647,36 +645,36 @@ onBeforeUnmount(() => {
   }
 }
 
-.nutrition-quick {
+:global(.nutrition-quick) {
   min-width: 280px;
   padding: $space-2 0;
 }
 
-.nq-header {
+:global(.nq-header) {
   display: flex;
   align-items: center;
   gap: $space-1-5;
   padding: $space-1-5 $space-3 $space-1;
 }
 
-.nq-header-icon {
+:global(.nq-header-icon) {
   color: $emerald-500;
 }
 
-.nq-header-text {
+:global(.nq-header-text) {
   font-size: $font-size-caption;
   font-weight: $font-weight-bold;
   color: var(--color-text-primary);
   letter-spacing: $ls-caption;
 }
 
-.nq-divider {
+:global(.nq-divider) {
   height: 1px;
   background: var(--color-border-light);
   margin: $space-1 $space-2;
 }
 
-.nq-item {
+:global(.nq-item) {
   display: flex;
   align-items: center;
   gap: $space-1-5;
@@ -687,30 +685,30 @@ onBeforeUnmount(() => {
   &:hover {
     background: var(--color-bg-hover);
   }
+}
 
-  &--danger {
-    .nq-item-value {
-      color: $color-danger;
-      font-weight: $font-weight-bold;
-    }
-
-    .nq-icon--ratio {
-      background: $color-danger-medium;
-      color: $color-danger;
-    }
+:global(.nq-item--danger) {
+  :global(.nq-item-value) {
+    color: $color-danger;
+    font-weight: $font-weight-bold;
   }
 
-  &--highlight {
-    background: $overlay-emerald-04;
-
-    .nq-item-value {
-      color: $emerald-600;
-      font-weight: $font-weight-bold;
-    }
+  :global(.nq-icon--ratio) {
+    background: $color-danger-medium;
+    color: $color-danger;
   }
 }
 
-.nq-item-icon {
+:global(.nq-item--highlight) {
+  background: $overlay-emerald-04;
+
+  :global(.nq-item-value) {
+    color: $emerald-600;
+    font-weight: $font-weight-bold;
+  }
+}
+
+:global(.nq-item-icon) {
   width: 20px;
   height: 20px;
   border-radius: $radius-sm;
@@ -720,48 +718,53 @@ onBeforeUnmount(() => {
   flex-shrink: 0;
 }
 
-.nq-icon--ratio {
+:global(.nq-item-icon svg),
+:global(.nq-item-icon .t-icon) {
+  color: inherit !important;
+}
+
+:global(.nq-icon--ratio) {
   background: $overlay-emerald-08;
   color: $emerald-500;
 }
 
-.nq-icon--energy {
+:global(.nq-icon--energy) {
   background: rgba($chart-energy-deep, 0.08);
   color: $chart-energy-deep;
 }
 
-.nq-icon--protein {
+:global(.nq-icon--protein) {
   background: rgba($chart-protein-deep, 0.08);
   color: $chart-protein-deep;
 }
 
-.nq-icon--fat {
+:global(.nq-icon--fat) {
   background: rgba($chart-fat-deep, 0.08);
   color: $chart-fat-deep;
 }
 
-.nq-icon--carb {
+:global(.nq-icon--carb) {
   background: rgba($chart-carb-deep, 0.08);
   color: $chart-carb-deep;
 }
 
-.nq-icon--sodium {
+:global(.nq-icon--sodium) {
   background: rgba($chart-sodium-deep, 0.08);
   color: $chart-sodium-deep;
 }
 
-.nq-icon--price {
+:global(.nq-icon--price) {
   background: $overlay-emerald-08;
   color: $emerald-500;
 }
 
-.nq-item-label {
+:global(.nq-item-label) {
   flex: 1;
   font-size: $font-size-caption;
   color: var(--color-text-placeholder);
 }
 
-.nq-item-value {
+:global(.nq-item-value) {
   font-size: $font-size-body-sm;
   font-weight: $font-weight-semibold;
   color: var(--color-text-primary);
@@ -774,7 +777,7 @@ onBeforeUnmount(() => {
   }
 }
 
-.nq-nrv {
+:global(.nq-nrv) {
   display: inline-block;
   margin-left: $space-1;
   padding: 0 $space-1;

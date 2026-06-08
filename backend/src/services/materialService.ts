@@ -539,23 +539,21 @@ export async function getMaterialList(params: {
   keyword?: string;
   page: number;
   pageSize: number;
-  scope?: string;
   userId: string;
   userRole: string;
   status?: string;
+  scope?: string;
 }) {
-  const { keyword, page, pageSize, scope, userId, userRole, status } = params;
+  const { keyword, page, pageSize, userId, userRole, status, scope } = params;
   const { buildPagination, buildLike } = await import("../utils/helpers.js");
   const { page: p, pageSize: size, offset } = buildPagination(page, pageSize);
 
   const conditions: string[] = ["m.is_deleted = 0", "m.is_latest = 1"];
   const queryParams: any[] = [];
 
-  // 数据隔离：formulist 只能看自己创建的原料
-  if (userRole !== "admin") {
-    conditions.push("m.created_by = ?");
-    queryParams.push(userId);
-  }
+  // 数据隔离：配方师拥有所有原料的查看权，仅写操作限定 created_by
+  // 原料池（scope='all'）和列表（默认）都返回全量原料
+  // 后续修改/删除/审批接口维持 created_by 隔离
 
   if (keyword) {
     conditions.push("(m.name LIKE ? OR m.code LIKE ?)");
@@ -660,7 +658,9 @@ export async function getMyMaterialStatusCounts(userId: string): Promise<Record<
   return counts;
 }
 
-export async function getMaterialDetail(materialId: string, userId: string): Promise<any> {
+export async function getMaterialDetail(materialId: string, userId: string, userRole: string): Promise<any> {
+  // 配方师拥有所有原料的查看权：详情接口不做 created_by 隔离
+  // 返回 isOwner 字段供前端判断是否可编辑/删除
   const result = await query<any>(
     `SELECT m.*,
             COALESCE(u.display_name, u.username) AS created_by_name,

@@ -167,7 +167,10 @@ function runAutoMigrations(dbInstance: Database.Database) {
           is_latest INTEGER NOT NULL DEFAULT 1,
           is_deleted INTEGER NOT NULL DEFAULT 0,
           changes_json TEXT DEFAULT NULL,
-          status TEXT NOT NULL DEFAULT 'draft' CHECK(status IN ('draft', 'pending_review', 'published'))
+          status TEXT NOT NULL DEFAULT 'draft' CHECK(status IN ('draft', 'pending_review', 'published')),
+          appearance_json TEXT DEFAULT NULL,
+          taste_json TEXT DEFAULT NULL,
+          efficacy_json TEXT DEFAULT NULL
         )
       `);
       const oldCols = (dbInstance.pragma("table_info(materials)") as PragmaColumnInfo[]).map((c: PragmaColumnInfo) => c.name);
@@ -182,6 +185,8 @@ function runAutoMigrations(dbInstance: Database.Database) {
       dbInstance.exec("CREATE INDEX IF NOT EXISTS idx_material_previous_version ON materials(previous_version_id)");
       dbInstance.exec("CREATE INDEX IF NOT EXISTS idx_material_is_latest ON materials(is_latest)");
       dbInstance.exec("CREATE INDEX IF NOT EXISTS idx_material_is_deleted ON materials(is_deleted)");
+      dbInstance.exec("CREATE INDEX IF NOT EXISTS idx_material_status ON materials(status)");
+      dbInstance.exec("CREATE INDEX IF NOT EXISTS idx_material_created_by ON materials(created_by)");
       logger.info("数据库迁移: materials 表重建完成（code UNIQUE 已移除）");
     }
   } catch (err: unknown) {
@@ -208,6 +213,11 @@ function runAutoMigrations(dbInstance: Database.Database) {
           last_updated TEXT NOT NULL DEFAULT (datetime('now')),
           material_version INTEGER NOT NULL DEFAULT 1,
           is_latest INTEGER NOT NULL DEFAULT 1,
+          field_sources_json TEXT DEFAULT NULL,
+          source_type TEXT DEFAULT 'manual',
+          source_detail TEXT DEFAULT NULL,
+          created_at TEXT DEFAULT NULL,
+          created_by TEXT DEFAULT NULL,
           FOREIGN KEY (material_id) REFERENCES materials(id) ON DELETE CASCADE
         )
       `);
@@ -1294,6 +1304,32 @@ function runAutoMigrations(dbInstance: Database.Database) {
   ]) {
     markMigration(v);
   }
+
+  // 兜底：确保 schema_migrations 已标记的表实际存在（历史 bug 修复）
+  // 旧数据库可能因迁移标记与 SQL 不同步导致表缺失
+  ensureTable(
+    dbInstance,
+    "formula_templates",
+    `
+    CREATE TABLE IF NOT EXISTS formula_templates (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      description TEXT DEFAULT NULL,
+      ratio_factor REAL NOT NULL DEFAULT 0.18,
+      supplement_ratio_factor REAL NOT NULL DEFAULT 1.0,
+      finished_weight REAL NOT NULL DEFAULT 0,
+      materials_json TEXT NOT NULL,
+      packaging_price REAL NOT NULL DEFAULT 0,
+      other_price REAL NOT NULL DEFAULT 0,
+      profit_margin REAL NOT NULL DEFAULT 20,
+      created_by TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+    CREATE INDEX IF NOT EXISTS idx_template_name ON formula_templates(name);
+    CREATE INDEX IF NOT EXISTS idx_template_created_by ON formula_templates(created_by);
+  `,
+  );
 }
 
 function seedParseResultConfigs(dbInstance: Database.Database) {

@@ -648,7 +648,7 @@ onUnmounted(() => {
   gap: 16px;
 
   &--left {
-    min-height: 560px;
+    min-height: 680px;
 
     .bento-card {
       width: 100%;
@@ -888,8 +888,8 @@ onUnmounted(() => {
   }
 
   .timeline-dot {
-    width: 24px;
-    height: 24px;
+    width: 12px;
+    height: 12px;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -897,19 +897,22 @@ onUnmounted(() => {
     flex-shrink: 0;
     z-index: 10;
     position: relative;
+    border: 2px solid;
 
     &--success {
       background-color: var(--color-primary-bg);
+      border-color: var(--color-primary);
     }
 
     &--info {
       background-color: var(--color-info-bg);
+      border-color: var(--color-info);
     }
   }
 
   .timeline-dot-inner {
-    width: 8px;
-    height: 8px;
+    width: 4px;
+    height: 4px;
     border-radius: 50%;
 
     .timeline-dot--success & {
@@ -1222,7 +1225,7 @@ onUnmounted(() => {
   }
 
   .bento-grid__col--left {
-    min-height: 440px;
+    min-height: 560px;
   }
 
   .stat-grid {
@@ -1250,7 +1253,7 @@ onUnmounted(() => {
   }
 
   .bento-grid__col--left {
-    min-height: 400px;
+    min-height: 520px;
   }
 
   .bento-quick .quick-body {

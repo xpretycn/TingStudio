@@ -1,5 +1,6 @@
 import http from "./http"
 import type { Pagination } from "./http"
+import type { FetchListParams } from "@/stores/approval"
 
 export interface ReviewLog {
   action: string
@@ -51,7 +52,7 @@ export interface ReviewedItem {
 }
 
 export const approvalApi = {
-  getMySubmissions(params?: { page?: number; pageSize?: number; keyword?: string; status?: string }) {
+  getMySubmissions(params?: FetchListParams) {
     return http.get<unknown, { list: ApprovalItem[]; pagination: Pagination }>("/versions/my-submissions", { params })
   },
 
@@ -59,11 +60,11 @@ export const approvalApi = {
     return http.get<unknown, Record<string, number>>("/versions/my-submissions/counts")
   },
 
-  getPendingReviews(params?: { page?: number; pageSize?: number; keyword?: string }) {
+  getPendingReviews(params?: FetchListParams) {
     return http.get<unknown, { list: PendingReviewItem[]; pagination: Pagination }>("/versions/pending-review", { params })
   },
 
-  getReviewedHistory(params?: { page?: number; pageSize?: number; keyword?: string; action?: string }) {
+  getReviewedHistory(params?: FetchListParams) {
     return http.get<unknown, { list: ReviewedItem[]; pagination: Pagination }>("/versions/reviewed-by-me", { params })
   },
 
@@ -81,5 +82,9 @@ export const approvalApi = {
 
   submitVersion(versionId: string) {
     return http.post(`/versions/submit/${versionId}`)
+  },
+
+  getMyMaterialSubmissions(params?: FetchListParams) {
+    return http.get<unknown, { list: unknown[]; pagination: Pagination }>("/materials/my-submissions", { params })
   },
 }

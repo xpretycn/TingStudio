@@ -262,23 +262,26 @@ onMounted(() => {
 }
 
 .btn-emerald-fill {
-  background-color: $emerald-500 !important;
-  color: $text-white !important;
-  border-color: $emerald-500 !important;
+  background-color: var(--color-primary) !important;
+  color: #fff !important;
+  border-color: var(--color-primary) !important;
+  box-shadow: 0 10px 15px -3px rgba(255, 107, 138, 0.25);
 
   &:hover {
-    background-color: $emerald-600 !important;
-    border-color: $emerald-600 !important;
+    background-color: var(--color-primary-dark) !important;
+    border-color: var(--color-primary-dark) !important;
+    box-shadow: 0 14px 20px -3px rgba(255, 107, 138, 0.35);
   }
 
   &:active {
-    background-color: $emerald-600 !important;
-    border-color: $emerald-600 !important;
+    background-color: var(--color-primary-dark) !important;
+    border-color: var(--color-primary-dark) !important;
   }
 
   &:disabled {
     background-color: var(--color-text-placeholder) !important;
     border-color: var(--color-text-placeholder) !important;
+    box-shadow: none;
     cursor: not-allowed;
   }
 }

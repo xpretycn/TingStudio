@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted } from "vue";
+import { ref, computed, watch, onMounted, onUnmounted } from "vue";
 import { useRouter } from "vue-router";
 import { useApprovalStore } from "@/stores/approval";
 import { formatTimestamp } from "@/utils/timeFormat";
@@ -9,7 +9,66 @@ const store = useApprovalStore();
 const currentView = ref<"pending" | "history" | "material">("pending");
 const searchKeyword = ref("");
 const searchTimer = ref<ReturnType<typeof setTimeout> | null>(null);
-const historyAction = ref<string>("all");
+
+// 筛选折叠
+const filterExpanded = ref(false);
+
+// 时间范围快捷选项
+const dateRangeOptions = [
+  { label: "今天", value: "today" },
+  { label: "近3天", value: "3d" },
+  { label: "近7天", value: "7d" },
+  { label: "近30天", value: "30d" },
+];
+
+// 排序相关
+type SortableField = "createdAt" | "formulaName" | "submittedByName";
+const sortableFields: { key: SortableField; label: string }[] = [
+  { key: "createdAt", label: "时间" },
+  { key: "formulaName", label: "名称" },
+  { key: "submittedByName", label: "提交人" },
+];
+
+function toggleSort(field: SortableField) {
+  if (store.adminSortBy === field) {
+    if (store.adminSortOrder === "asc") {
+      store.adminSortOrder = "desc";
+    } else {
+      // 取消排序，恢复默认
+      store.adminSortBy = "createdAt";
+      store.adminSortOrder = "desc";
+    }
+  } else {
+    store.adminSortBy = field;
+    store.adminSortOrder = "asc";
+  }
+  fetchCurrentView();
+}
+
+// 获取激活的筛选数量
+const activeFilterCount = computed(() => {
+  let count = 0;
+  if (store.adminDateRange) count++;
+  if (store.adminSubmitter) count++;
+  if (currentView.value === "history" && store.adminReviewAction !== "all") count++;
+  return count;
+});
+
+// 重置筛选
+function resetFilters() {
+  store.adminDateRange = "";
+  store.adminSubmitter = "";
+  store.adminReviewAction = "all";
+  fetchCurrentView();
+}
+
+// 提交人列表（从当前数据中提取去重）
+const submitterOptions = computed(() => {
+  const names = new Set<string>();
+  store.pendingReviews.forEach((item) => names.add(item.submittedByName));
+  store.reviewedHistory.forEach((item) => names.add(item.submittedByName));
+  return Array.from(names).sort().map((name) => ({ label: name, value: name }));
+});
 
 function goReview(formulaId: string) {
   router.push(`/versions/formula/${formulaId}`);
@@ -26,7 +85,7 @@ function fetchCurrentView() {
   } else if (currentView.value === "material") {
     store.fetchMaterialPendingReviews({ keyword, page: 1 });
   } else {
-    const action = historyAction.value === "all" ? undefined : historyAction.value;
+    const action = store.adminReviewAction === "all" ? undefined : store.adminReviewAction;
     store.fetchReviewedHistory({ keyword, action, page: 1 });
   }
 }
@@ -59,17 +118,18 @@ function onMaterialPageChange(val: unknown) {
 function onHistoryPageChange(val: unknown) {
   const page = toPage(val)
   const keyword = searchKeyword.value.trim() || undefined;
-  const action = historyAction.value === "all" ? undefined : historyAction.value;
+  const action = store.adminReviewAction === "all" ? undefined : store.adminReviewAction;
   store.fetchReviewedHistory({ keyword, action, page });
 }
 
 watch(currentView, () => {
   searchKeyword.value = "";
-  historyAction.value = "all";
-  fetchCurrentView();
-});
-
-watch(historyAction, () => {
+  // 切换 tab 时重置筛选条件
+  store.adminDateRange = "";
+  store.adminSubmitter = "";
+  store.adminReviewAction = "all";
+  store.adminSortBy = "createdAt";
+  store.adminSortOrder = "desc";
   fetchCurrentView();
 });
 
@@ -109,12 +169,70 @@ onUnmounted(() => {
       </t-input>
     </div>
 
-    <div v-if="currentView === 'history'" class="admin-review__filter">
-      <t-radio-group v-model="historyAction" variant="default-filled" size="small">
-        <t-radio-button value="all">全部</t-radio-button>
-        <t-radio-button value="approve">已通过</t-radio-button>
-        <t-radio-button value="reject">已驳回</t-radio-button>
-      </t-radio-group>
+    <!-- 可折叠筛选栏 -->
+    <div class="admin-review__filter-bar">
+      <div class="admin-review__filter-toggle" @click="filterExpanded = !filterExpanded">
+        <t-icon :name="filterExpanded ? 'chevron-up' : 'chevron-down'" />
+        <span>筛选</span>
+        <t-tag v-if="activeFilterCount > 0" size="small" variant="light" theme="primary">
+          {{ activeFilterCount }}
+        </t-tag>
+      </div>
+
+      <div v-show="filterExpanded" class="admin-review__filter-content">
+        <!-- 时间范围 -->
+        <div class="admin-review__filter-row">
+          <span class="admin-review__filter-label">
+            <t-icon name="time" size="14px" /> 时间范围
+          </span>
+          <div class="admin-review__filter-options">
+            <t-check-tag-group v-model="store.adminDateRange" @change="fetchCurrentView()">
+              <t-check-tag v-for="opt in dateRangeOptions" :key="opt.value" :value="opt.value">
+                {{ opt.label }}
+              </t-check-tag>
+            </t-check-tag-group>
+            <button
+              v-if="store.adminDateRange"
+              class="admin-review__filter-clear-btn"
+              @click="store.adminDateRange = ''; fetchCurrentView()"
+            >
+              <t-icon name="close-circle-filled" size="12px" />
+            </button>
+          </div>
+        </div>
+
+        <!-- 提交人（非已审核tab显示） -->
+        <div v-if="currentView !== 'history'" class="admin-review__filter-row">
+          <span class="admin-review__filter-label">
+            <t-icon name="user" size="14px" /> 提交人
+          </span>
+          <t-select
+            v-model="store.adminSubmitter"
+            placeholder="全部提交人"
+            clearable
+            size="small"
+            :options="submitterOptions"
+            style="width: 140px;"
+            @change="fetchCurrentView()"
+          />
+        </div>
+
+        <!-- 审核结果（仅已审核tab显示） -->
+        <div v-if="currentView === 'history'" class="admin-review__filter-row">
+          <span class="admin-review__filter-label">
+            <t-icon name="check-circle" size="14px" /> 审核结果
+          </span>
+          <t-check-tag-group v-model="store.adminReviewAction" @change="fetchCurrentView()">
+            <t-check-tag value="all">全部</t-check-tag>
+            <t-check-tag value="approve">已通过</t-check-tag>
+            <t-check-tag value="reject">已驳回</t-check-tag>
+          </t-check-tag-group>
+        </div>
+
+        <div class="admin-review__filter-footer">
+          <button class="admin-review__reset-btn" @click="resetFilters()">重置筛选</button>
+        </div>
+      </div>
     </div>
 
     <t-loading :loading="store.loading" size="small">
@@ -125,6 +243,39 @@ onUnmounted(() => {
       </div>
 
       <div v-else-if="currentView === 'pending' && store.pendingReviews.length > 0">
+        <!-- 排序列头（数据>5条时显示） -->
+        <div v-if="store.pendingReviews.length > 5" class="admin-review__sort-header">
+          <span
+            class="admin-review__sort-col admin-review__sort-col--name"
+            :class="{ active: store.adminSortBy === 'formulaName' }"
+            @click="toggleSort('formulaName')"
+          >
+            名称
+            <span v-if="store.adminSortBy === 'formulaName'" class="admin-review__sort-arrow">
+              {{ store.adminSortOrder === 'asc' ? '\u2191' : '\u2193' }}
+            </span>
+          </span>
+          <span
+            class="admin-review__sort-col admin-review__sort-col--submitter"
+            :class="{ active: store.adminSortBy === 'submittedByName' }"
+            @click="toggleSort('submittedByName')"
+          >
+            提交人
+            <span v-if="store.adminSortBy === 'submittedByName'" class="admin-review__sort-arrow">
+              {{ store.adminSortOrder === 'asc' ? '\u2191' : '\u2193' }}
+            </span>
+          </span>
+          <span
+            class="admin-review__sort-col admin-review__sort-col--time"
+            :class="{ active: store.adminSortBy === 'createdAt' }"
+            @click="toggleSort('createdAt')"
+          >
+            时间
+            <span v-if="store.adminSortBy === 'createdAt'" class="admin-review__sort-arrow">
+              {{ store.adminSortOrder === 'asc' ? '\u2191' : '\u2193' }}
+            </span>
+          </span>
+        </div>
         <div class="admin-review__list">
           <div v-for="item in store.pendingReviews" :key="item.versionId" class="admin-review__item">
             <div class="admin-review__item-info">
@@ -160,6 +311,29 @@ onUnmounted(() => {
       </div>
 
       <div v-else-if="currentView === 'material' && store.materialPendingReviews.length > 0">
+        <!-- 排序列头（数据>5条时显示） -->
+        <div v-if="store.materialPendingReviews.length > 5" class="admin-review__sort-header">
+          <span
+            class="admin-review__sort-col admin-review__sort-col--name"
+            :class="{ active: store.adminSortBy === 'formulaName' }"
+            @click="toggleSort('formulaName')"
+          >
+            名称
+            <span v-if="store.adminSortBy === 'formulaName'" class="admin-review__sort-arrow">
+              {{ store.adminSortOrder === 'asc' ? '\u2191' : '\u2193' }}
+            </span>
+          </span>
+          <span
+            class="admin-review__sort-col admin-review__sort-col--time"
+            :class="{ active: store.adminSortBy === 'createdAt' }"
+            @click="toggleSort('createdAt')"
+          >
+            时间
+            <span v-if="store.adminSortBy === 'createdAt'" class="admin-review__sort-arrow">
+              {{ store.adminSortOrder === 'asc' ? '\u2191' : '\u2193' }}
+            </span>
+          </span>
+        </div>
         <div class="admin-review__list">
           <div v-for="item in store.materialPendingReviews" :key="item.id" class="admin-review__item">
             <div class="admin-review__item-info">
@@ -194,6 +368,39 @@ onUnmounted(() => {
       </div>
 
       <div v-else-if="currentView === 'history' && store.reviewedHistory.length > 0">
+        <!-- 排序列头（数据>5条时显示） -->
+        <div v-if="store.reviewedHistory.length > 5" class="admin-review__sort-header">
+          <span
+            class="admin-review__sort-col admin-review__sort-col--name"
+            :class="{ active: store.adminSortBy === 'formulaName' }"
+            @click="toggleSort('formulaName')"
+          >
+            名称
+            <span v-if="store.adminSortBy === 'formulaName'" class="admin-review__sort-arrow">
+              {{ store.adminSortOrder === 'asc' ? '\u2191' : '\u2193' }}
+            </span>
+          </span>
+          <span
+            class="admin-review__sort-col admin-review__sort-col--submitter"
+            :class="{ active: store.adminSortBy === 'submittedByName' }"
+            @click="toggleSort('submittedByName')"
+          >
+            提交人
+            <span v-if="store.adminSortBy === 'submittedByName'" class="admin-review__sort-arrow">
+              {{ store.adminSortOrder === 'asc' ? '\u2191' : '\u2193' }}
+            </span>
+          </span>
+          <span
+            class="admin-review__sort-col admin-review__sort-col--time"
+            :class="{ active: store.adminSortBy === 'createdAt' }"
+            @click="toggleSort('createdAt')"
+          >
+            审核时间
+            <span v-if="store.adminSortBy === 'createdAt'" class="admin-review__sort-arrow">
+              {{ store.adminSortOrder === 'asc' ? '\u2191' : '\u2193' }}
+            </span>
+          </span>
+        </div>
         <div class="admin-review__list">
           <div v-for="item in store.reviewedHistory" :key="item.versionId" class="admin-review__item">
             <div class="admin-review__item-info">
@@ -321,6 +528,12 @@ onUnmounted(() => {
       gap: 8px;
       flex-shrink: 0;
     }
+
+    &-result {
+      display: flex;
+      align-items: center;
+      flex-shrink: 0;
+    }
   }
 
   &__pagination {
@@ -328,6 +541,140 @@ onUnmounted(() => {
     justify-content: center;
     margin-top: 12px;
     padding-top: 8px;
+  }
+
+  &__filter-bar {
+    margin-bottom: 8px;
+  }
+
+  &__filter-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border: 1px solid var(--td-component-border);
+    border-radius: var(--td-radius-medium);
+    cursor: pointer;
+    font-size: 12px;
+    color: var(--td-text-color-secondary);
+    background: var(--td-bg-color-container);
+    transition: all 0.2s;
+
+    &:hover {
+      border-color: var(--color-primary);
+      color: var(--color-primary);
+    }
+  }
+
+  &__filter-content {
+    margin-top: 8px;
+    padding: 10px 12px;
+    border: 1px solid var(--td-component-border);
+    border-radius: var(--td-radius-medium);
+    background: var(--td-bg-color-secondarycontainer);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  &__filter-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  &__filter-label {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    color: var(--td-text-color-placeholder);
+    white-space: nowrap;
+    min-width: 70px;
+  }
+
+  &__filter-options {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  &__filter-clear-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border: none;
+    background: none;
+    color: var(--td-text-color-placeholder);
+    cursor: pointer;
+    border-radius: 50%;
+
+    &:hover {
+      color: var(--color-danger);
+      background: rgba(var(--color-danger-rgb, 255,82,82), 0.08);
+    }
+  }
+
+  &__filter-footer {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 4px;
+    border-top: 1px dashed var(--td-component-border);
+  }
+
+  &__reset-btn {
+    font-size: 12px;
+    color: var(--td-text-color-placeholder);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 2px 8px;
+    border-radius: var(--td-radius-small);
+
+    &:hover {
+      color: var(--color-primary);
+      background: rgba(var(--color-primary-rgb, 16,185,129), 0.06);
+    }
+  }
+
+  &__sort-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 16px;
+    font-size: 11px;
+    color: var(--td-text-color-placeholder);
+    border-bottom: 1px solid var(--td-component-border);
+    user-select: none;
+  }
+
+  &__sort-col {
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    transition: color 0.15s;
+    white-space: nowrap;
+
+    &:hover {
+      color: var(--td-text-color-secondary);
+    }
+
+    &.active {
+      color: var(--color-primary);
+      font-weight: 500;
+    }
+
+    &--name { flex: 1; }
+    &--submitter { width: 80px; text-align: center; }
+    &--time { width: 100px; text-align: right; }
+  }
+
+  &__sort-arrow {
+    font-size: 10px;
   }
 }
 </style>

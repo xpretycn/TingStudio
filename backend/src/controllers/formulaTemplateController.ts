@@ -13,6 +13,23 @@ import {
 } from "../utils/helpers.js";
 import { AuthRequest } from "../middleware/auth.js";
 
+/** 将 DB 行的 materials_json 字符串解析为 materials 数组 */
+function parseMaterials(row: Record<string, unknown>): Record<string, unknown> {
+  const result = { ...row }
+  const raw = result.materialsJson
+  if (typeof raw === "string" && raw.length > 0) {
+    try {
+      const parsed = JSON.parse(raw) as unknown
+      result.materials = Array.isArray(parsed) ? parsed : []
+    } catch {
+      result.materials = []
+    }
+  } else {
+    result.materials = []
+  }
+  return result
+}
+
 /** 获取模板列表（支持关键词搜索和分页，admin 见全部，formulist 仅见自己） */
 export async function getTemplates(req: AuthRequest, res: Response) {
   try {
@@ -49,7 +66,8 @@ export async function getTemplates(req: AuthRequest, res: Response) {
 
     const total = countRows.length > 0 ? Number(countRows[0].total) : 0;
 
-    res.json(successWithPagination(rowsToCamelCase(listRows as Record<string, unknown>[]), total, p, size));
+    const list = (rowsToCamelCase(listRows as Record<string, unknown>[]) || []).map(parseMaterials)
+    res.json(successWithPagination(list, total, p, size));
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "获取模板列表失败";
     res.status(500).json({
@@ -91,7 +109,7 @@ export async function getTemplateById(req: AuthRequest, res: Response) {
       return;
     }
 
-    res.json(success(rowToCamelCase(template)));
+    res.json(success(parseMaterials(rowToCamelCase(template))));
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "获取模板详情失败";
     res.status(500).json({
@@ -207,7 +225,7 @@ export async function createTemplate(req: AuthRequest, res: Response) {
       [id],
     );
 
-    res.status(201).json(success(rowToCamelCase((newRows as Record<string, unknown>[])[0]), "模板创建成功"));
+    res.status(201).json(success(parseMaterials(rowToCamelCase((newRows as Record<string, unknown>[])[0])), "模板创建成功"));
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "创建模板失败";
     res.status(500).json({
@@ -327,7 +345,7 @@ export async function updateTemplate(req: AuthRequest, res: Response) {
       [id],
     );
 
-    res.json(success(rowToCamelCase((updatedRows as Record<string, unknown>[])[0]), "模板更新成功"));
+    res.json(success(parseMaterials(rowToCamelCase((updatedRows as Record<string, unknown>[])[0])), "模板更新成功"));
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "更新模板失败";
     res.status(500).json({

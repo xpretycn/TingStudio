@@ -14,7 +14,7 @@ import * as materialReviewService from "../services/materialReviewService.js";
 
 export async function getMaterials(req: any, res: Response) {
   try {
-    const { keyword, page, pageSize, scope, status } = req.query;
+    const { keyword, page, pageSize, status, scope } = req.query;
     const kw = Array.isArray(keyword) ? keyword[0] : keyword || "";
     const userId = req.user.userId;
     const userRole = req.user.role;
@@ -23,10 +23,10 @@ export async function getMaterials(req: any, res: Response) {
       keyword: kw,
       page: Number(page),
       pageSize: Number(pageSize),
-      scope,
       userId,
       userRole,
       status: status ? String(status) : undefined,
+      scope: scope ? String(scope) : undefined,
     });
 
     res.json({
@@ -43,7 +43,9 @@ export async function getMaterials(req: any, res: Response) {
 export async function getMaterial(req: Request, res: Response) {
   try {
     const { id } = req.params;
-    const result = await materialService.getMaterialDetail(id, (req as any).user?.userId || "");
+    const userId = (req as any).user?.userId || "";
+    const userRole = (req as any).user?.role || "formulist";
+    const result = await materialService.getMaterialDetail(id, userId, userRole);
 
     if (!result) {
       res.status(404).json({ success: false, message: "原料不存在" });
@@ -188,10 +190,14 @@ export async function updateMaterial(req: Request, res: Response) {
     }
   } catch (error: any) {
     if (error.message?.includes("UNIQUE constraint failed") && error.message?.includes("materials.code")) {
-      const refInfo = await materialService.checkReference(id);
-      if (!refInfo.referenced) {
-        res.status(409).json({ success: false, message: "原料编码已存在" });
-        return;
+      try {
+        const refInfo = await materialService.checkReference(id);
+        if (!refInfo.referenced) {
+          res.status(409).json({ success: false, message: "原料编码已存在" });
+          return;
+        }
+      } catch {
+        // checkReference 失败时仍返回 409
       }
       res.status(409).json({ success: false, message: "原料编码冲突，请重启服务器以完成数据库升级" });
       return;
@@ -328,10 +334,15 @@ export async function compareMaterialVersions(req: Request, res: Response) {
 
 export async function getMaterialStats(req: any, res: Response) {
   try {
-    const [[total]]: any[] = await query("SELECT COUNT(*) as count FROM materials WHERE is_deleted = 0 AND is_latest = 1");
-    const [[herbCount]]: any[] = await query("SELECT COUNT(*) as count FROM materials WHERE material_type = 'herb' AND is_deleted = 0 AND is_latest = 1");
+    // 配方师拥有所有原料的查看权：stats 统计全量
+    const [[total]]: any[] = await query(
+      `SELECT COUNT(*) as count FROM materials WHERE is_deleted = 0 AND is_latest = 1`,
+    );
+    const [[herbCount]]: any[] = await query(
+      `SELECT COUNT(*) as count FROM materials WHERE material_type = 'herb' AND is_deleted = 0 AND is_latest = 1`,
+    );
     const [[supplementCount]]: any[] = await query(
-      "SELECT COUNT(*) as count FROM materials WHERE material_type != 'herb' AND is_deleted = 0 AND is_latest = 1",
+      `SELECT COUNT(*) as count FROM materials WHERE material_type != 'herb' AND is_deleted = 0 AND is_latest = 1`,
     );
     const [[nutritionCount]]: any[] = await query(
       "SELECT COUNT(DISTINCT material_id) as count FROM material_nutrition WHERE is_latest = 1",

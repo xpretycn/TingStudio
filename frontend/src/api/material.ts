@@ -155,7 +155,7 @@ export const materialApi = {
   publish(id: string, comment?: string) {
     return http.put(`/materials/${id}/publish`, { comment });
   },
-  getPendingReviews(params?: { keyword?: string; page?: number; pageSize?: number }) {
+  getPendingReviews(params?: { keyword?: string; page?: number; pageSize?: number; sortBy?: string; sortOrder?: string }) {
     return http.get<unknown, { list: Material[]; pagination: Pagination }>("/materials/pending-review", { params });
   },
   getReviewLogs(id: string) {

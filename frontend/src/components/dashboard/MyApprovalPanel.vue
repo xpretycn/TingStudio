@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from "vue";
 import { useRouter } from "vue-router";
-import { useApprovalStore, type MyMaterialItem } from "@/stores/approval";
+import { useApprovalStore, type MyMaterialItem, type SortField, type SortOrder } from "@/stores/approval";
 import { formatTimestamp } from "@/utils/timeFormat";
 import type { ApprovalItem } from "@/api/approval";
 
@@ -11,6 +11,55 @@ const activeTab = ref("all");
 const moduleTab = ref("formula");
 const searchKeyword = ref("");
 const searchTimer = ref<ReturnType<typeof setTimeout> | null>(null);
+
+// 筛选折叠
+const filterExpanded = ref(false);
+
+// 时间范围快捷选项
+const dateRangeOptions = [
+  { label: "今天", value: "today" },
+  { label: "近3天", value: "3d" },
+  { label: "近7天", value: "7d" },
+  { label: "近30天", value: "30d" },
+];
+
+// 排序相关
+type MySortableField = "createdAt" | "formulaName" | "status";
+const mySortableFields: { key: MySortableField; label: string }[] = [
+  { key: "createdAt", label: "时间" },
+  { key: "formulaName", label: "名称" },
+  { key: "status", label: "状态" },
+];
+
+function toggleSort(field: MySortableField) {
+  if (store.myListSortBy === field) {
+    if (store.myListSortOrder === "asc") {
+      store.myListSortOrder = "desc";
+    } else {
+      store.myListSortBy = "createdAt";
+      store.myListSortOrder = "desc";
+    }
+  } else {
+    store.myListSortBy = field;
+    store.myListSortOrder = "asc";
+  }
+  fetchCurrentData();
+}
+
+// 激活筛选数量
+const activeFilterCount = computed(() => {
+  let count = 0;
+  if (store.myListDateRange) count++;
+  if (moduleTab.value === "material" && store.myListMaterialType) count++;
+  return count;
+});
+
+// 重置筛选
+function resetFilters() {
+  store.myListDateRange = "";
+  store.myListMaterialType = "";
+  fetchCurrentData();
+}
 
 const statusMap: Record<string, { label: string; theme: string; }> = {
   pending_review: { label: "待审核", theme: "warning" },
@@ -87,9 +136,25 @@ function fetchCurrentData() {
   const keyword = searchKeyword.value.trim() || undefined;
   const status = getFilterStatus();
   if (moduleTab.value === "formula") {
-    store.fetchMySubmissions({ keyword, status, page: 1 });
+    store.fetchMySubmissions({
+      keyword,
+      status,
+      page: 1,
+      sortBy: store.myListSortBy === "formulaName" ? "formulaName" :
+              store.myListSortBy === "status" ? undefined as unknown as SortField : "createdAt",
+      sortOrder: store.myListSortOrder,
+      dateRange: store.myListDateRange || undefined,
+    });
   } else {
-    store.fetchMyMaterialSubmissions({ keyword, status, page: 1 });
+    store.fetchMyMaterialSubmissions({
+      keyword,
+      status,
+      page: 1,
+      sortBy: store.myListSortBy === "formulaName" ? "name" as SortField :
+              store.myListSortBy === "status" ? undefined as unknown as SortField : "createdAt",
+      sortOrder: store.myListSortOrder,
+      dateRange: store.myListDateRange || undefined,
+    });
   }
 }
 
@@ -126,6 +191,7 @@ onMounted(() => {
 watch(moduleTab, () => {
   activeTab.value = "all";
   searchKeyword.value = "";
+  store.myListMaterialType = ""; // 重置类型筛选
   store.fetchMySubmissions({ page: 1 });
   store.fetchMyMaterialSubmissions({ page: 1 });
 });
@@ -153,6 +219,56 @@ watch(activeTab, () => {
       </t-input>
     </div>
 
+    <!-- 可折叠筛选栏 -->
+    <div class="my-approval__filter-bar">
+      <div class="my-approval__filter-toggle" @click="filterExpanded = !filterExpanded">
+        <t-icon :name="filterExpanded ? 'chevron-up' : 'chevron-down'" />
+        <span>筛选</span>
+        <t-tag v-if="activeFilterCount > 0" size="small" variant="light" theme="primary">
+          {{ activeFilterCount }}
+        </t-tag>
+      </div>
+
+      <div v-show="filterExpanded" class="my-approval__filter-content">
+        <!-- 时间范围 -->
+        <div class="my-approval__filter-row">
+          <span class="my-approval__filter-label">
+            <t-icon name="time" size="14px" /> 时间范围
+          </span>
+          <div class="my-approval__filter-options">
+            <t-check-tag-group v-model="store.myListDateRange" @change="fetchCurrentData()">
+              <t-check-tag v-for="opt in dateRangeOptions" :key="opt.value" :value="opt.value">
+                {{ opt.label }}
+              </t-check-tag>
+            </t-check-tag-group>
+            <button
+              v-if="store.myListDateRange"
+              class="my-approval__filter-clear-btn"
+              @click="store.myListDateRange = ''; fetchCurrentData()"
+            >
+              <t-icon name="close-circle-filled" size="12px" />
+            </button>
+          </div>
+        </div>
+
+        <!-- 类型筛选（仅原料审批tab） -->
+        <div v-if="moduleTab === 'material'" class="my-approval__filter-row">
+          <span class="my-approval__filter-label">
+            <t-icon name="category" size="14px" /> 类型
+          </span>
+          <t-check-tag-group v-model="store.myListMaterialType" @change="fetchCurrentData()">
+            <t-check-tag value="">全部</t-check-tag>
+            <t-check-tag value="herb">药材</t-check-tag>
+            <t-check-tag value="supplement">辅料</t-check-tag>
+          </t-check-tag-group>
+        </div>
+
+        <div class="my-approval__filter-footer">
+          <button class="my-approval__reset-btn" @click="resetFilters()">重置筛选</button>
+        </div>
+      </div>
+    </div>
+
     <template v-if="moduleTab === 'formula'">
       <div class="my-approval__tabs">
         <t-tabs v-model="activeTab" size="medium">
@@ -169,6 +285,39 @@ watch(activeTab, () => {
           <t-icon name="check-circle" size="48px" color="var(--td-success-color)" />
           <p>暂无审批记录</p>
           <span>提交配方后，审批状态将在此显示</span>
+        </div>
+
+        <div v-if="store.mySubmissions.length > 5" class="my-approval__sort-header">
+          <span
+            class="my-approval__sort-col my-approval__sort-col--name"
+            :class="{ active: store.myListSortBy === 'formulaName' }"
+            @click="toggleSort('formulaName')"
+          >
+            名称
+            <span v-if="store.myListSortBy === 'formulaName'" class="my-approval__sort-arrow">
+              {{ store.myListSortOrder === 'asc' ? '\u2191' : '\u2193' }}
+            </span>
+          </span>
+          <span
+            class="my-approval__sort-col my-approval__sort-col--status"
+            :class="{ active: store.myListSortBy === 'status' }"
+            @click="toggleSort('status')"
+          >
+            状态
+            <span v-if="store.myListSortBy === 'status'" class="my-approval__sort-arrow">
+              {{ store.myListSortOrder === 'asc' ? '\u2191' : '\u2193' }}
+            </span>
+          </span>
+          <span
+            class="my-approval__sort-col my-approval__sort-col--time"
+            :class="{ active: store.myListSortBy === 'createdAt' }"
+            @click="toggleSort('createdAt')"
+          >
+            时间
+            <span v-if="store.myListSortBy === 'createdAt'" class="my-approval__sort-arrow">
+              {{ store.myListSortOrder === 'asc' ? '\u2191' : '\u2193' }}
+            </span>
+          </span>
         </div>
 
         <div v-else class="my-approval__list">
@@ -264,6 +413,39 @@ watch(activeTab, () => {
           <t-icon name="check-circle" size="48px" color="var(--td-success-color)" />
           <p>暂无原料审批记录</p>
           <span>创建原料后，可在此提交审批</span>
+        </div>
+
+        <div v-if="store.myMaterialSubmissions.length > 5" class="my-approval__sort-header">
+          <span
+            class="my-approval__sort-col my-approval__sort-col--name"
+            :class="{ active: store.myListSortBy === 'formulaName' }"
+            @click="toggleSort('formulaName')"
+          >
+            名称
+            <span v-if="store.myListSortBy === 'formulaName'" class="my-approval__sort-arrow">
+              {{ store.myListSortOrder === 'asc' ? '\u2191' : '\u2193' }}
+            </span>
+          </span>
+          <span
+            class="my-approval__sort-col my-approval__sort-col--status"
+            :class="{ active: store.myListSortBy === 'status' }"
+            @click="toggleSort('status')"
+          >
+            状态
+            <span v-if="store.myListSortBy === 'status'" class="my-approval__sort-arrow">
+              {{ store.myListSortOrder === 'asc' ? '\u2191' : '\u2193' }}
+            </span>
+          </span>
+          <span
+            class="my-approval__sort-col my-approval__sort-col--time"
+            :class="{ active: store.myListSortBy === 'createdAt' }"
+            @click="toggleSort('createdAt')"
+          >
+            时间
+            <span v-if="store.myListSortBy === 'createdAt'" class="my-approval__sort-arrow">
+              {{ store.myListSortOrder === 'asc' ? '\u2191' : '\u2193' }}
+            </span>
+          </span>
         </div>
 
         <div v-else class="my-approval__list">
@@ -368,6 +550,140 @@ watch(activeTab, () => {
     margin-bottom: 4px;
   }
 
+  &__filter-bar {
+    margin-bottom: 8px;
+  }
+
+  &__filter-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border: 1px solid var(--td-component-border);
+    border-radius: var(--td-radius-medium);
+    cursor: pointer;
+    font-size: 12px;
+    color: var(--td-text-color-secondary);
+    background: var(--td-bg-color-container);
+    transition: all 0.2s;
+
+    &:hover {
+      border-color: var(--color-primary);
+      color: var(--color-primary);
+    }
+  }
+
+  &__filter-content {
+    margin-top: 8px;
+    padding: 10px 12px;
+    border: 1px solid var(--td-component-border);
+    border-radius: var(--td-radius-medium);
+    background: var(--td-bg-color-secondarycontainer);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  &__filter-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  &__filter-label {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    color: var(--td-text-color-placeholder);
+    white-space: nowrap;
+    min-width: 70px;
+  }
+
+  &__filter-options {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  &__filter-clear-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border: none;
+    background: none;
+    color: var(--td-text-color-placeholder);
+    cursor: pointer;
+    border-radius: 50%;
+
+    &:hover {
+      color: var(--color-danger);
+      background: rgba(var(--color-danger-rgb, 255,82,82), 0.08);
+    }
+  }
+
+  &__filter-footer {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 4px;
+    border-top: 1px dashed var(--td-component-border);
+  }
+
+  &__reset-btn {
+    font-size: 12px;
+    color: var(--td-text-color-placeholder);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 2px 8px;
+    border-radius: var(--td-radius-small);
+
+    &:hover {
+      color: var(--color-primary);
+      background: rgba(var(--color-primary-rgb, 16,185,129), 0.06);
+    }
+  }
+
+  &__sort-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    font-size: 11px;
+    color: var(--td-text-color-placeholder);
+    border-bottom: 1px solid var(--td-component-border);
+    user-select: none;
+  }
+
+  &__sort-col {
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    transition: color 0.15s;
+    white-space: nowrap;
+
+    &:hover {
+      color: var(--td-text-color-secondary);
+    }
+
+    &.active {
+      color: var(--color-primary);
+      font-weight: 500;
+    }
+
+    &--name { flex: 1; }
+    &--status { width: 70px; text-align: center; }
+    &--time { width: 90px; text-align: right; }
+  }
+
+  &__sort-arrow {
+    font-size: 10px;
+  }
+
   &__tabs {
     margin-bottom: 12px;
     --td-brand-color: var(--color-primary);
@@ -402,7 +718,7 @@ watch(activeTab, () => {
     gap: 12px;
     flex: 1;
     min-height: 0;
-    overflow-y: auto;
+    overflow: hidden;
   }
 
   &__item {

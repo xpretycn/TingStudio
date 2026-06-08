@@ -1389,7 +1389,7 @@ onMounted(async () => {
     .zone-materials-table {
       background: var(--color-bg-container);
       padding: 32px;
-      border-radius: 2.5rem;
+      border-radius: var(--radius-4xl);
       box-shadow: 0 1px 3px $overlay-black-05;
       border: 1px solid var(--color-bg-page);
       overflow: hidden;
@@ -1498,8 +1498,9 @@ onMounted(async () => {
     .zone-basic-info {
       .basic-info-two-col {
         display: grid;
-        grid-template-columns: 40% 60%;
-        gap: 32px;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+        min-width: 0;
 
         @media (max-width: 900px) {
           grid-template-columns: 1fr;
@@ -1510,6 +1511,8 @@ onMounted(async () => {
           display: flex;
           flex-direction: column;
           gap: 16px;
+          min-width: 0;
+          overflow: hidden;
         }
 
         .info-col-left {
@@ -1518,13 +1521,9 @@ onMounted(async () => {
           }
         }
 
-        .info-col-right {
-          padding-right: 20px;
-        }
-
         .info-card {
           border: 1px solid var(--color-border);
-          border-radius: 16px;
+          border-radius: var(--radius-xl);
           padding: 20px;
         }
 
@@ -1683,7 +1682,7 @@ onMounted(async () => {
             &.t-is-focused {
               background-color: var(--color-bg-container) !important;
               border-color: transparent !important;
-              box-shadow: 0 0 0 2px $emerald-500 !important;
+              box-shadow: 0 0 0 2px var(--color-primary) !important;
               outline: none !important;
             }
 
@@ -1717,7 +1716,7 @@ onMounted(async () => {
             &.t-is-focused .t-select__wrap {
               background-color: var(--color-bg-container) !important;
               border-color: transparent !important;
-              box-shadow: 0 0 0 2px $emerald-500 !important;
+              box-shadow: 0 0 0 2px var(--color-primary) !important;
               outline: none !important;
             }
 
@@ -1751,7 +1750,7 @@ onMounted(async () => {
             &.t-is-focused {
               background-color: var(--color-bg-container) !important;
               border-color: transparent !important;
-              box-shadow: 0 0 0 2px $emerald-500 !important;
+              box-shadow: 0 0 0 2px var(--color-primary) !important;
               outline: none !important;
             }
 
@@ -1765,7 +1764,7 @@ onMounted(async () => {
             .t-input-number__increase {
               border: none !important;
               background: transparent !important;
-              color: $emerald-500 !important;
+              color: var(--color-primary) !important;
               border-radius: 50% !important;
               width: 24px !important;
               height: 24px !important;
@@ -1774,8 +1773,8 @@ onMounted(async () => {
               transition: all 0.15s ease;
 
               &:hover {
-                background-color: $overlay-emerald-08 !important;
-                color: $emerald-600 !important;
+                background-color: var(--color-primary-bg) !important;
+                color: var(--color-primary-dark) !important;
               }
             }
 
@@ -1809,7 +1808,7 @@ onMounted(async () => {
               &:focus {
                 background-color: var(--color-bg-container) !important;
                 border-color: transparent !important;
-                box-shadow: 0 0 0 2px $emerald-500 !important;
+                box-shadow: 0 0 0 2px var(--color-primary) !important;
                 outline: none !important;
               }
 
@@ -1888,7 +1887,7 @@ onMounted(async () => {
 
     .summary-card {
       background: var(--color-bg-page);
-      border-radius: 16px;
+      border-radius: var(--radius-xl);
       border: 1px solid var(--color-border);
       padding: 20px 24px;
     }
@@ -2286,7 +2285,7 @@ onMounted(async () => {
     .form-section {
       background: var(--color-bg-container);
       padding: 32px;
-      border-radius: 2.5rem;
+      border-radius: var(--radius-4xl);
       box-shadow: 0 1px 3px $overlay-black-05;
       border: 1px solid var(--color-bg-page);
       animation: fadeInUp 0.35s ease both;
@@ -2526,7 +2525,7 @@ onMounted(async () => {
             &.t-is-focused {
               background-color: var(--color-bg-container) !important;
               border-color: transparent !important;
-              box-shadow: 0 0 0 2px $emerald-500 !important;
+              box-shadow: 0 0 0 2px var(--color-primary) !important;
               outline: none !important;
             }
 
@@ -2560,7 +2559,7 @@ onMounted(async () => {
             &.t-is-focused .t-select__wrap {
               background-color: var(--color-bg-container) !important;
               border-color: transparent !important;
-              box-shadow: 0 0 0 2px $emerald-500 !important;
+              box-shadow: 0 0 0 2px var(--color-primary) !important;
               outline: none !important;
             }
 
@@ -2595,7 +2594,7 @@ onMounted(async () => {
             &.t-is-focused {
               background-color: var(--color-bg-container) !important;
               border-color: transparent !important;
-              box-shadow: 0 0 0 2px $emerald-500 !important;
+              box-shadow: 0 0 0 2px var(--color-primary) !important;
               outline: none !important;
             }
 
@@ -2609,7 +2608,7 @@ onMounted(async () => {
             .t-input-number__increase {
               border: none !important;
               background: transparent !important;
-              color: $emerald-500 !important;
+              color: var(--color-primary) !important;
               border-radius: 50% !important;
               width: 28px !important;
               height: 28px !important;
@@ -2618,8 +2617,8 @@ onMounted(async () => {
               transition: all 0.15s ease;
 
               &:hover {
-                background-color: $overlay-emerald-08 !important;
-                color: $emerald-600 !important;
+                background-color: var(--color-primary-bg) !important;
+                color: var(--color-primary-dark) !important;
               }
             }
 
@@ -2653,7 +2652,7 @@ onMounted(async () => {
               &:focus {
                 background-color: var(--color-bg-container) !important;
                 border-color: transparent !important;
-                box-shadow: 0 0 0 2px $emerald-500 !important;
+                box-shadow: 0 0 0 2px var(--color-primary) !important;
                 outline: none !important;
               }
 
@@ -3852,78 +3851,78 @@ onMounted(async () => {
 
     .t-input,
     .t-select__wrap {
-      border-color: $overlay-emerald-25 !important;
+      border-color: var(--color-border) !important;
       transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
     }
 
     &:hover:not(.t-is-disabled) .t-input,
     &:hover:not(.t-is-disabled) .t-select__wrap {
-      border-color: $overlay-emerald-40 !important;
+      border-color: var(--color-primary-lighter) !important;
     }
   }
 
   .t-select .t-input,
   .t-select .t-input.t-is-focused,
   .t-select .t-input:focus-within {
-    border-color: $emerald-500 !important;
-    box-shadow: 0 0 0 3px $overlay-emerald-12 !important;
+    border-color: var(--color-primary) !important;
+    box-shadow: 0 0 0 3px var(--color-primary-bg) !important;
   }
 
   .t-select.t-is-focused .t-input,
   .t-select.t-is-focused .t-select__wrap,
   .t-select.t-is-focused .t-input.t-is-focused {
-    border-color: $emerald-500 !important;
-    box-shadow: 0 0 0 3px $overlay-emerald-12 !important;
+    border-color: var(--color-primary) !important;
+    box-shadow: 0 0 0 3px var(--color-primary-bg) !important;
   }
 
   // ── 数量输入框 ──
   .t-input-number {
-    border-color: $overlay-emerald-25 !important;
+    border-color: var(--color-border) !important;
     transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
 
     &:hover:not(.t-is-disabled) {
-      border-color: $overlay-emerald-40 !important;
+      border-color: var(--color-primary-lighter) !important;
     }
   }
 
   .t-input-number .t-input,
   .t-input-number .t-input.t-is-focused,
   .t-input-number .t-input:focus-within {
-    border-color: $emerald-500 !important;
+    border-color: var(--color-primary) !important;
     box-shadow: none !important;
   }
 
   .t-input-number.t-is-focused,
   .t-input-number.t-is-focused .t-input,
   .t-input-number.t-is-focused .t-input.t-is-focused {
-    border-color: $emerald-500 !important;
-    box-shadow: 0 0 0 3px $overlay-emerald-12 !important;
+    border-color: var(--color-primary) !important;
+    box-shadow: 0 0 0 3px var(--color-primary-bg) !important;
   }
 
   .t-input-number__decrease,
   .t-input-number__increase {
-    color: $emerald-500 !important;
-    border-color: $overlay-emerald-30 !important;
+    color: var(--color-primary) !important;
+    border-color: var(--color-border-light) !important;
 
     &:hover {
-      background: $overlay-emerald-10 !important;
-      color: $emerald-600 !important;
-      border-color: $overlay-emerald-50 !important;
+      background: var(--color-primary-bg) !important;
+      color: var(--color-primary-dark) !important;
+      border-color: var(--color-primary-lighter) !important;
     }
   }
 
   .t-input-number__increase {
-    border-left-color: $overlay-emerald-30 !important;
+    border-left-color: var(--color-border-light) !important;
   }
 
   .t-input-number__decrease {
-    border-right-color: $overlay-emerald-30 !important;
+    border-right-color: var(--color-border-light) !important;
   }
 
-  // ── 删除按钮（去掉红色/粉色）──
+  // ── 删除按钮 ──
   .delete-btn,
   .t-button--variant-text {
-    color: $overlay-emerald-60 !important;
+    color: var(--color-text-secondary) !important;
     border: none !important;
 
     .t-button__text,
@@ -3933,14 +3932,14 @@ onMounted(async () => {
     }
 
     &:hover {
-      color: $emerald-500 !important;
-      background: $overlay-emerald-08 !important;
+      color: var(--color-danger) !important;
+      background: var(--color-danger-bg) !important;
       border: none !important;
 
       .t-button__text,
       .t-button__icon,
       .t-icon {
-        color: $emerald-500 !important;
+        color: var(--color-danger) !important;
       }
     }
   }
