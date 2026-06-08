@@ -48,17 +48,17 @@ function toggleSort(field: SortableField) {
 // 获取激活的筛选数量
 const activeFilterCount = computed(() => {
   let count = 0;
-  if (store.adminDateRange) count++;
+  if (store.adminDateRange.length > 0) count++;
   if (store.adminSubmitter) count++;
-  if (currentView.value === "history" && store.adminReviewAction !== "all") count++;
+  if (currentView.value === "history" && store.adminReviewAction.length > 0 && !store.adminReviewAction.includes("all")) count++;
   return count;
 });
 
 // 重置筛选
 function resetFilters() {
-  store.adminDateRange = "";
+  store.adminDateRange = [];
   store.adminSubmitter = "";
-  store.adminReviewAction = "all";
+  store.adminReviewAction = [];
   fetchCurrentView();
 }
 
@@ -85,7 +85,7 @@ function fetchCurrentView() {
   } else if (currentView.value === "material") {
     store.fetchMaterialPendingReviews({ keyword, page: 1 });
   } else {
-    const action = store.adminReviewAction === "all" ? undefined : store.adminReviewAction;
+    const action = store.adminReviewAction.includes("all") || store.adminReviewAction.length === 0 ? undefined : store.adminReviewAction[0];
     store.fetchReviewedHistory({ keyword, action, page: 1 });
   }
 }
@@ -118,16 +118,16 @@ function onMaterialPageChange(val: unknown) {
 function onHistoryPageChange(val: unknown) {
   const page = toPage(val)
   const keyword = searchKeyword.value.trim() || undefined;
-  const action = store.adminReviewAction === "all" ? undefined : store.adminReviewAction;
+  const action = store.adminReviewAction.includes("all") || store.adminReviewAction.length === 0 ? undefined : store.adminReviewAction[0];
   store.fetchReviewedHistory({ keyword, action, page });
 }
 
 watch(currentView, () => {
   searchKeyword.value = "";
   // 切换 tab 时重置筛选条件
-  store.adminDateRange = "";
+  store.adminDateRange = [];
   store.adminSubmitter = "";
-  store.adminReviewAction = "all";
+  store.adminReviewAction = [];
   store.adminSortBy = "createdAt";
   store.adminSortOrder = "desc";
   fetchCurrentView();
@@ -192,9 +192,9 @@ onUnmounted(() => {
               </t-check-tag>
             </t-check-tag-group>
             <button
-              v-if="store.adminDateRange"
+              v-if="store.adminDateRange.length > 0"
               class="admin-review__filter-clear-btn"
-              @click="store.adminDateRange = ''; fetchCurrentView()"
+              @click="store.adminDateRange = []; fetchCurrentView()"
             >
               <t-icon name="close-circle-filled" size="12px" />
             </button>

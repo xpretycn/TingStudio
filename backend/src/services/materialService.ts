@@ -553,7 +553,13 @@ export async function getMaterialList(params: {
 
   // 数据隔离：配方师拥有所有原料的查看权，仅写操作限定 created_by
   // 原料池（scope='all'）和列表（默认）都返回全量原料
+  // scope='mine' 仅返回当前用户提交的原料（用于"我的提交"面板）
   // 后续修改/删除/审批接口维持 created_by 隔离
+
+  if (scope === "mine" && userId) {
+    conditions.push("m.created_by = ?");
+    queryParams.push(userId);
+  }
 
   if (keyword) {
     conditions.push("(m.name LIKE ? OR m.code LIKE ?)");

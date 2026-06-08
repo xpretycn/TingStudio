@@ -579,7 +579,7 @@ const handleSubmit = async ({ validateResult }: { validateResult: boolean | Reco
 }
 
 :deep(.t-form__item) {
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
 .field-label {
@@ -689,6 +689,13 @@ const handleSubmit = async ({ validateResult }: { validateResult: boolean | Reco
 
   &:hover {
     color: var(--color-text-secondary);
+  }
+}
+
+// 隐藏 TDesign password 类型自带的眼睛图标，避免与自定义 eye-btn 重影
+.field-wrap--password {
+  :deep(.t-input__suffix) {
+    display: none;
   }
 }
 
@@ -815,7 +822,6 @@ const handleSubmit = async ({ validateResult }: { validateResult: boolean | Reco
   gap: var(--space-1-5);
   padding-top: var(--space-3-5);
   margin-top: 4px;
-  border-top: 1px dashed var(--color-primary-lightest);
   font-size: 13px;
   color: var(--color-text-secondary);
 

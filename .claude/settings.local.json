@@ -22,5 +22,12 @@
       "Bash(sed -i 's|  // 检查用户是否切换（通过 localStorage 中的用户ID对比）|  const currentUserId = localStorage.getItem\\('\\\\''tingstudio_user_id'\\\\''\\);|' FormulaList.vue)"
     ]
   },
-  "language": "chinese"
+  "language": "chinese",
+  "enabledMcpjsonServers": [
+    "gitee",
+    "filesystem",
+    "context7",
+    "playwright",
+    "chrome-devtools"
+  ]
 }

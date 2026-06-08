@@ -19,6 +19,7 @@ import {
   getMaterialPendingReviews,
   getMaterialReviewLogs,
   getMyMaterialCounts,
+  getMyMaterialSubmissions,
 } from "../controllers/materialController.js";
 import { validateBody } from "../middleware/validate.js";
 
@@ -30,6 +31,7 @@ materialRoutes.get("/", getMaterials);
 materialRoutes.get("/stats", getMaterialStats);
 materialRoutes.get("/next-code", getNextCode);
 materialRoutes.get("/my-counts", getMyMaterialCounts);
+materialRoutes.get("/my-submissions", getMyMaterialSubmissions);
 materialRoutes.get("/pending-review", getMaterialPendingReviews);
 materialRoutes.get("/:id", getMaterial);
 materialRoutes.get("/:id/versions", getMaterialVersions);

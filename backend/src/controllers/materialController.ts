@@ -40,6 +40,35 @@ export async function getMaterials(req: any, res: Response) {
   }
 }
 
+/** 我的原料提交列表 — 仅返回当前用户创建的原料 */
+export async function getMyMaterialSubmissions(req: any, res: Response) {
+  try {
+    const { keyword, page, pageSize, status } = req.query;
+    const kw = Array.isArray(keyword) ? keyword[0] : keyword || "";
+    const userId = req.user.userId;
+    const userRole = req.user.role;
+
+    const result = await materialService.getMaterialList({
+      keyword: kw,
+      page: Number(page),
+      pageSize: Number(pageSize),
+      userId,
+      userRole,
+      status: status ? String(status) : undefined,
+      scope: "mine",
+    });
+
+    res.json({
+      success: true,
+      message: "查询成功",
+      data: result,
+    });
+  } catch (error: any) {
+    console.error("[MaterialController] getMyMaterialSubmissions Error:", error);
+    res.status(500).json({ success: false, message: "获取我的原料提交失败", error: error.message });
+  }
+}
+
 export async function getMaterial(req: Request, res: Response) {
   try {
     const { id } = req.params;

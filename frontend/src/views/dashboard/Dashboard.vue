@@ -444,16 +444,28 @@ const isDomReady = (): boolean => {
   if (isUnmounted) return false;
   if (!chartRef.value) return false;
   if (!chartRef.value.isConnected) return false;
+  // ECharts 要求容器有非 0 尺寸，否则抛 "invalid dom"
+  const { clientWidth, clientHeight } = chartRef.value;
+  if (clientWidth === 0 || clientHeight === 0) return false;
   return true;
 };
 
 const initChart = async () => {
-  if (!isDomReady()) return;
+  if (!isDomReady()) {
+    // 容器尚未拥有尺寸，等下一帧再试，避免 "Initialize failed: invalid dom"
+    if (!isUnmounted) {
+      requestAnimationFrame(() => {
+        if (isDomReady() && !chartInstance) initChart();
+      });
+    }
+    return;
+  }
   if (chartInstance) {
     chartInstance.dispose();
     chartInstance = null;
   }
   const echarts = await import('echarts')
+  if (!isDomReady() || isUnmounted) return;
   chartInstance = echarts.init(chartRef.value);
   updateChart();
 };
@@ -469,6 +481,7 @@ const updateChart = async () => {
   const gridColor = isDark ? "rgba(148, 163, 184, 0.08)" : "rgba(0, 0, 0, 0.04)";
 
   const echarts = await import('echarts')
+  if (!chartInstance || isUnmounted) return;
   const option: EChartsOption = {
     grid: {
       top: 16,

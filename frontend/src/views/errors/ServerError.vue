@@ -38,7 +38,8 @@
             </div>
             <div class="error-hint-row">
               <span class="hint-emoji">💡</span>
-              <span>请确保后端服务已启动（通常运行在 <strong>localhost:3000</strong>）</span>
+              <span v-if="isDev">请确保后端服务已启动（通常运行在 <strong>localhost:3000</strong>）</span>
+              <span v-else>请稍后重试，或联系技术支持</span>
             </div>
           </div>
 
@@ -84,14 +85,34 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { MessagePlugin } from 'tdesign-vue-next';
 
 const router = useRouter();
 const isRefreshing = ref(false);
+const isDev = import.meta.env.DEV;
 
 const handleRefresh = async () => {
   isRefreshing.value = true;
-  await new Promise(r => setTimeout(r, 1500));
-  window.location.reload();
+  try {
+    // 轻量健康检查：成功则用 router.replace 回首页（真正保留 SPA 状态）
+    const baseURL = import.meta.env?.VITE_API_BASE_URL || '/api';
+    // /health 在 /api 前缀之外，需手动拼接
+    const healthURL = baseURL.replace(/\/api\/?$/, '') + '/health';
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 3000);
+    const res = await fetch(healthURL, { signal: controller.signal });
+    clearTimeout(timer);
+    if (res.ok) {
+      MessagePlugin.success('服务已恢复');
+      router.replace('/');
+      return;
+    }
+    throw new Error('Service unavailable');
+  } catch {
+    MessagePlugin.warning('后端仍不可用，请稍后再试');
+  } finally {
+    isRefreshing.value = false;
+  }
 };
 
 const goHome = () => {
@@ -116,8 +137,8 @@ const goLogin = () => {
     position: absolute;
     inset: 0;
     background:
-      radial-gradient(ellipse 600px 400px at 50% 30%, rgba(239, 68, 68, 0.04) 0%, transparent 70%),
-      radial-gradient(ellipse 400px 300px at 20% 80%, rgba(16, 185, 129, 0.03) 0%, transparent 60%);
+      radial-gradient(ellipse 600px 400px at 50% 30%, var(--color-danger-bg) 0%, transparent 70%),
+      radial-gradient(ellipse 400px 300px at 20% 80%, var(--color-success-bg) 0%, transparent 60%);
     pointer-events: none;
   }
 }
@@ -213,7 +234,7 @@ const goLogin = () => {
   font-weight: 900;
   line-height: 1;
   letter-spacing: -4px;
-  background: linear-gradient(135deg, #ef4444 0%, #f97316 50%, #eab308 100%);
+  background: linear-gradient(135deg, var(--color-danger) 0%, var(--color-warning-orange) 50%, var(--color-warning) 100%);
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -267,7 +288,7 @@ const goLogin = () => {
   background: var(--color-bg-container);
   border: 1px solid var(--color-border);
   border-radius: 14px;
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+  box-shadow: 0 2px 8px var(--overlay-brand-05);
 }
 
 .error-detail-row {
@@ -292,11 +313,11 @@ const goLogin = () => {
   align-items: flex-start;
   gap: 8px;
   padding: 10px 12px;
-  background: #f0fdf4;
+  background: var(--color-success-bg);
   border-radius: 8px;
-  border: 1px solid #bbf7d0;
+  border: 1px solid var(--color-success-border);
   font-size: 13px;
-  color: #166534;
+  color: var(--color-success);
   line-height: 1.6;
 
   .hint-emoji {
@@ -308,7 +329,7 @@ const goLogin = () => {
   strong {
     font-weight: 600;
     font-family: 'Fira Code', 'Monaco', monospace;
-    background: rgba(22, 101, 52, 0.08);
+    background: var(--overlay-brand-08);
     padding: 1px 5px;
     border-radius: 4px;
     font-size: 12px;
@@ -355,13 +376,13 @@ const goLogin = () => {
 
   &.btn-default {
     background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
-    color: white;
+    color: var(--color-text-white);
     border-color: var(--color-primary);
-    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
+    box-shadow: 0 2px 8px var(--overlay-brand-25);
 
     &:hover:not(:disabled) {
       transform: translateY(-1px);
-      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+      box-shadow: 0 4px 14px var(--overlay-brand-35);
 
       .refresh-icon {
         transform: rotate(-45deg);
@@ -382,14 +403,14 @@ const goLogin = () => {
     background: var(--color-bg-container);
     color: var(--color-text-secondary);
     border-color: var(--color-border);
-    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+    box-shadow: 0 1px 3px var(--overlay-brand-08);
 
     &:hover:not(:disabled) {
       background: var(--color-bg-page);
       border-color: var(--color-border-light);
       color: var(--color-text-primary);
       transform: translateY(-1px);
-      box-shadow: 0 3px 8px rgba(15, 23, 42, 0.08);
+      box-shadow: 0 3px 8px var(--overlay-brand-08);
     }
 
     &:active:not(:disabled) {

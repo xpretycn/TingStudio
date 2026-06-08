@@ -49,15 +49,15 @@ function toggleSort(field: MySortableField) {
 // 激活筛选数量
 const activeFilterCount = computed(() => {
   let count = 0;
-  if (store.myListDateRange) count++;
-  if (moduleTab.value === "material" && store.myListMaterialType) count++;
+  if (store.myListDateRange.length > 0) count++;
+  if (moduleTab.value === "material" && store.myListMaterialType.length > 0) count++;
   return count;
 });
 
 // 重置筛选
 function resetFilters() {
-  store.myListDateRange = "";
-  store.myListMaterialType = "";
+  store.myListDateRange = [];
+  store.myListMaterialType = [];
   fetchCurrentData();
 }
 
@@ -143,7 +143,7 @@ function fetchCurrentData() {
       sortBy: store.myListSortBy === "formulaName" ? "formulaName" :
               store.myListSortBy === "status" ? undefined as unknown as SortField : "createdAt",
       sortOrder: store.myListSortOrder,
-      dateRange: store.myListDateRange || undefined,
+      dateRange: store.myListDateRange[0] || undefined,
     });
   } else {
     store.fetchMyMaterialSubmissions({
@@ -153,7 +153,7 @@ function fetchCurrentData() {
       sortBy: store.myListSortBy === "formulaName" ? "name" as SortField :
               store.myListSortBy === "status" ? undefined as unknown as SortField : "createdAt",
       sortOrder: store.myListSortOrder,
-      dateRange: store.myListDateRange || undefined,
+      dateRange: store.myListDateRange[0] || undefined,
     });
   }
 }
@@ -191,7 +191,7 @@ onMounted(() => {
 watch(moduleTab, () => {
   activeTab.value = "all";
   searchKeyword.value = "";
-  store.myListMaterialType = ""; // 重置类型筛选
+  store.myListMaterialType = []; // 重置类型筛选
   store.fetchMySubmissions({ page: 1 });
   store.fetchMyMaterialSubmissions({ page: 1 });
 });
@@ -242,9 +242,9 @@ watch(activeTab, () => {
               </t-check-tag>
             </t-check-tag-group>
             <button
-              v-if="store.myListDateRange"
+              v-if="store.myListDateRange.length > 0"
               class="my-approval__filter-clear-btn"
-              @click="store.myListDateRange = ''; fetchCurrentData()"
+              @click="store.myListDateRange = []; fetchCurrentData()"
             >
               <t-icon name="close-circle-filled" size="12px" />
             </button>

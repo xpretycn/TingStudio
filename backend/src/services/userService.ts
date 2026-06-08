@@ -75,6 +75,14 @@ export async function getUserList(filters: UserListFilters): Promise<UserListRes
 
   const list = rowsToCamelCase<UserListRow>(result.rows || []);
 
+  // Fallback: if role_name is null (role_id not set), derive from role field
+  const ROLE_DISPLAY_MAP: Record<string, string> = { admin: "管理员", formulist: "配方师" };
+  for (const user of list) {
+    if (!user.roleName && user.role) {
+      user.roleName = ROLE_DISPLAY_MAP[user.role] || user.role;
+    }
+  }
+
   return {
     list,
     pagination: {

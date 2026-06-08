@@ -245,8 +245,33 @@ export async function executeScript(req: Request, res: Response) {
     }
     const authReq = req as Request & { user?: { userId: string } };
     const triggeredBy = authReq.user?.userId || "unknown";
-    const data = await dbService.executeScript(scriptId, triggeredBy);
-    res.json(success(data));
+    const data = await dbService.executeScript(scriptId, triggeredBy) as {
+      scriptId: string;
+      scriptName: string;
+      status: "completed" | "failed";
+      durationMs: number;
+      resultSummary?: string;
+      stderr?: string | null;
+      errorMessage?: string;
+    };
+
+    // 将 service 返回结构适配为前端 DbScripts.vue 期望的契约：
+    // { logs: string[], success: boolean, duration: number, message?: string }
+    const stdoutText = data.resultSummary ?? "";
+    const stderrText = data.stderr ?? data.errorMessage ?? "";
+    const logLines = [
+      ...stdoutText.split(/\r?\n/),
+      ...(stderrText ? stderrText.split(/\r?\n/) : []),
+    ].filter((line) => line.length > 0);
+
+    res.json(success({
+      scriptId: data.scriptId,
+      scriptName: data.scriptName,
+      success: data.status === "completed",
+      duration: data.durationMs,
+      logs: logLines,
+      message: data.status === "completed" ? "脚本执行成功" : (data.errorMessage || "脚本执行失败"),
+    }));
   } catch (error: unknown) {
     console.error("[DbController] Error executing script:", error);
     res.status(500).json({
