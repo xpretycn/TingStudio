@@ -1474,6 +1474,8 @@ export async function executeScript(
     const startTime = Date.now();
 
     try {
+      // Windows 上 npx 是 npx.cmd 批处理文件，execFile 默认不通过 shell 解析会 ENOENT
+      // 需要加 shell: true 让系统通过 PATH 找到 npx.cmd
       const { stdout, stderr } = await execFileAsync(
         "npx",
         ["tsx", scriptPath],
@@ -1481,6 +1483,7 @@ export async function executeScript(
           cwd: path.resolve(__dirname, "../../"),
           timeout: 300000,
           maxBuffer: 10 * 1024 * 1024,
+          shell: process.platform === "win32",
         }
       );
 

@@ -52,7 +52,8 @@
                 <div v-for="(activity, index) in paginatedActivities" :key="activity.id" class="timeline-item"
                   :class="{ 'timeline-item--last': index === paginatedActivities.length - 1 }"
                   @click="handleActivityClick(activity)">
-                  <div class="timeline-dot" :class="`timeline-dot--${activity.type === 'formula' ? 'success' : 'info'}`">
+                  <div class="timeline-dot"
+                    :class="`timeline-dot--${activity.type === 'formula' ? 'success' : 'info'}`">
                     <span class="timeline-dot-inner"></span>
                   </div>
                   <div class="timeline-content">
@@ -1291,7 +1292,7 @@ onUnmounted(() => {
 
 :root[theme-mode="dark"] {
   .bento-card {
-    background: var(--color-text-primary);
+    background: var(--color-bg-container);
     border-color: rgba(255, 255, 255, 0.06);
 
     &:hover {
@@ -1317,7 +1318,7 @@ onUnmounted(() => {
 
   .bento-chart {
     .chart-skeleton .skeleton-bar {
-      background: linear-gradient(180deg, var(--color-text-primary) 0%, var(--color-text-primary) 100%);
+      background: linear-gradient(180deg, var(--color-bg-hover) 0%, var(--color-bg-hover) 100%);
     }
 
     .chart-empty {
@@ -1431,8 +1432,8 @@ onUnmounted(() => {
       color: var(--color-text-secondary);
 
       &.active {
-        background: var(--color-text-primary);
-        color: var(--color-border);
+        background: var(--color-primary);
+        color: var(--color-text-white);
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
       }
 
@@ -1443,11 +1444,11 @@ onUnmounted(() => {
   }
 
   .skeleton-line {
-    background: linear-gradient(90deg, var(--color-text-primary) 25%, var(--color-text-primary) 50%, var(--color-text-primary) 75%);
+    background: linear-gradient(90deg, var(--color-bg-hover) 25%, var(--color-bg-hover) 50%, var(--color-bg-hover) 75%);
   }
 
   .skeleton-circle {
-    background: var(--color-text-primary);
+    background: var(--color-bg-hover);
   }
 }
 </style>

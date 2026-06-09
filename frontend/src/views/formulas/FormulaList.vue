@@ -3100,16 +3100,16 @@ const getSalesQuantity = (row: Formula): number => {
   .t-table__row {
     transition: background-color 0.2s ease;
 
-    // 悬停/选中 - emerald 色系，覆盖全局粉色
+    // 悬停/选中 - 使用主题变量，自动适配暗色模式
     &:hover td,
     &.t-table__row--hover td {
-      background-color: $overlay-emerald-100-35 !important;
+      background-color: var(--color-row-hover-bg) !important;
       box-shadow: inset 3px 0 0 var(--color-primary-light) !important;
     }
 
     &.t-table__row--selected td,
     &.t-table__row--selected.t-table__row--hover td {
-      background-color: $overlay-emerald-100-55 !important;
+      background-color: var(--color-row-selected-bg) !important;
       box-shadow: inset 3px 0 0 var(--color-primary) !important;
     }
 
@@ -3558,10 +3558,10 @@ const getSalesQuantity = (row: Formula): number => {
   box-shadow: none !important;
 }
 
-/* 4. CSS :hover 伪类（优先级最高）→ emerald 浅绿 + 首列绿条 */
+/* 4. CSS :hover 伪类（优先级最高）→ 主题变量 + 首列绿条 */
 .formula-list .content-card .t-table .t-table__body tr:hover>td,
 .formula-list .content-card .t-table .t-table__body .t-table__row:hover>td {
-  background-color: $overlay-emerald-100-35 !important;
+  background-color: var(--color-row-hover-bg) !important;
 }
 
 .formula-list .content-card .t-table .t-table__body tr:hover>td:first-child,
@@ -3569,9 +3569,9 @@ const getSalesQuantity = (row: Formula): number => {
   box-shadow: inset 3px 0 0 var(--color-primary-light) !important;
 }
 
-/* 5. 选中行 → emerald 更深 + 绿条 */
+/* 5. 选中行 → 主题变量 + 绿条 */
 .formula-list .content-card .t-table .t-table__body .t-table__row.t-table__row--selected>td {
-  background-color: $overlay-emerald-100-60 !important;
+  background-color: var(--color-row-selected-bg) !important;
   box-shadow: inset 3px 0 0 var(--color-primary) !important;
 }
 

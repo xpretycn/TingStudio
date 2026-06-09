@@ -2395,13 +2395,15 @@ const handleDelete = async (row: Salesman) => {
   }
 }
 
-.salesman-list .content-card .t-table .t-table__body tr td,
+.salesman-list .content-card .t-table .t-table__body .t-table__row--hover td {
+  background-color: var(--color-row-hover-bg) !important;
+  box-shadow: inset 3px 0 0 var(--color-primary-light) !important;
+}
+
 .salesman-list .content-card .t-table .t-table__body .t-table__row--selected td,
-.salesman-list .content-card .t-table .t-table__body .t-table__row--hover td,
 .salesman-list .content-card .t-table .t-table__body .t-table__row--selected.t-table__row--hover td {
-  background-color: var(--color-bg-container) !important;
-  box-shadow: none !important;
-  border-left: none !important;
+  background-color: var(--color-row-selected-bg) !important;
+  box-shadow: inset 3px 0 0 var(--color-primary) !important;
 }
 
 /* 操作列强制居中 */

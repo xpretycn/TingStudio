@@ -15,8 +15,8 @@
             :class="{ 'aborted-status': aiStore.materialParseAborted }">
             <div v-if="aiStore.materialParseLoading" class="status-indicator status-indicator--loading">
               <span class="status-dot status-dot--pulse"></span>
-                <span class="status-text">正在解析: {{ selectedFile?.name || '文件' }}</span>
-              </div>
+              <span class="status-text">正在解析: {{ selectedFile?.name || '文件' }}</span>
+            </div>
             <div v-else-if="aiStore.materialParseAborted" class="status-indicator status-indicator--aborted">
               <span class="status-dot status-dot--aborted"></span>
               <span class="status-text">已终止: {{ selectedFile?.name || '文件' }}</span>
@@ -47,7 +47,8 @@
             </div>
           </div>
 
-          <div v-if="templateList.length > 0 && !aiStore.materialParseLoading && !parsedItems.length" class="template-selector">
+          <div v-if="templateList.length > 0 && !aiStore.materialParseLoading && !parsedItems.length"
+            class="template-selector">
             <div class="template-selector-label">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                 stroke-linecap="round" stroke-linejoin="round">
@@ -58,17 +59,10 @@
               </svg>
               解析模板
             </div>
-            <t-radio-group
-              v-model="selectedTemplateId"
-              variant="default-filled"
-              size="small"
-              @change="handleTemplateChange"
-            >
-              <t-radio-button
-                v-for="t in templateList"
-                :key="t.id"
-                :value="t.id"
-              >{{ t.name }}{{ t.isPreset ? ' (预设)' : '' }}</t-radio-button>
+            <t-radio-group v-model="selectedTemplateId" variant="default-filled" size="small"
+              @change="handleTemplateChange">
+              <t-radio-button v-for="t in templateList" :key="t.id" :value="t.id">{{ t.name }}{{ t.isPreset ? ' (预设)' :
+                '' }}</t-radio-button>
             </t-radio-group>
           </div>
 
@@ -170,8 +164,8 @@
           <div v-if="parsedItems.length && !aiStore.materialParseAborted" class="parse-result">
             <div class="result-header">
               <h4 class="result-title">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2"
-                  stroke-linecap="round" stroke-linejoin="round">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)"
+                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
                   <polyline points="22 4 12 14.01 9 11.01" />
                 </svg>
@@ -179,7 +173,8 @@
                 <span class="result-count">共 {{ parsedItems.length }} 条</span>
               </h4>
               <div class="result-actions">
-                <button type="button" class="header-action-btn header-action-btn--save-template" @click="showSaveTemplateDialog">
+                <button type="button" class="header-action-btn header-action-btn--save-template"
+                  @click="showSaveTemplateDialog">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                     stroke-linecap="round" stroke-linejoin="round">
                     <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z" />
@@ -236,8 +231,8 @@
 
             <div class="validation-summary" v-if="validationIssues.length">
               <div class="validation-title">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-warning)" stroke-width="2"
-                  stroke-linecap="round" stroke-linejoin="round">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-warning)"
+                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
                   <line x1="12" y1="9" x2="12" y2="13" />
                   <line x1="12" y1="17" x2="12.01" y2="17" />
@@ -371,7 +366,8 @@
                       <span v-if="priceAdjustments[index]?.isAdjusted" class="col-adjust-badge"
                         :title="'原价: ¥' + (priceAdjustments[index]?.originalPrice ?? '--') + '/kg'">
                         <svg viewBox="0 0 12 12" width="10" height="10">
-                          <path d="M6 1L7.5 4.5L11 5L8.5 7.5L9 11L6 9L3 11L3.5 7.5L1 5L4.5 4.5Z" fill="var(--color-warning)" />
+                          <path d="M6 1L7.5 4.5L11 5L8.5 7.5L9 11L6 9L3 11L3.5 7.5L1 5L4.5 4.5Z"
+                            fill="var(--color-warning)" />
                         </svg>
                         价
                       </span>
@@ -424,8 +420,8 @@
 
             <div class="batch-actions">
               <div v-if="pendingItems.length > 0" class="batch-pending-hint">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-warning)" stroke-width="2"
-                  stroke-linecap="round" stroke-linejoin="round">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-warning)"
+                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
                   <line x1="12" y1="9" x2="12" y2="13" />
                   <line x1="12" y1="17" x2="12.01" y2="17" />
@@ -461,8 +457,8 @@
             <div v-if="sequentialActive && sequentialCurrentItem" class="sequential-confirm-card">
               <div class="sequential-confirm-header">
                 <div class="sequential-confirm-title">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-lavender)" stroke-width="2"
-                    stroke-linecap="round" stroke-linejoin="round">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-lavender)"
+                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <line x1="8" y1="6" x2="21" y2="6" />
                     <line x1="8" y1="12" x2="21" y2="12" />
                     <line x1="8" y1="18" x2="21" y2="18" />
@@ -495,7 +491,7 @@
                   <span v-if="sequentialCurrentItem.protein != null">蛋白质: {{ sequentialCurrentItem.protein }}</span>
                   <span v-if="sequentialCurrentItem.fat != null">脂肪: {{ sequentialCurrentItem.fat }}</span>
                   <span v-if="sequentialCurrentItem.carbohydrate != null">碳水: {{ sequentialCurrentItem.carbohydrate
-                    }}</span>
+                  }}</span>
                   <span v-if="sequentialCurrentItem.sodium != null">钠: {{ sequentialCurrentItem.sodium }}</span>
                 </div>
               </div>
@@ -531,8 +527,8 @@
 
             <div v-if="batchSummary" class="summary-card">
               <div class="summary-header">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2"
-                  stroke-linecap="round" stroke-linejoin="round">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)"
+                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
                   <polyline points="22 4 12 14.01 9 11.01" />
                 </svg>
@@ -541,8 +537,8 @@
               <div class="summary-body">
                 <div class="summary-item summary-item--success">
                   <span class="summary-icon">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2"
-                      stroke-linecap="round" stroke-linejoin="round">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)"
+                      stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                       <polyline points="20 6 9 17 4 12" />
                     </svg>
                   </span>
@@ -551,8 +547,8 @@
                 </div>
                 <div class="summary-item summary-item--fail">
                   <span class="summary-icon">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-danger)" stroke-width="2"
-                      stroke-linecap="round" stroke-linejoin="round">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-danger)"
+                      stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                       <circle cx="12" cy="12" r="10" />
                       <line x1="15" y1="9" x2="9" y2="15" />
                       <line x1="9" y1="9" x2="15" y2="15" />
@@ -574,8 +570,8 @@
                   <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
                   <polyline points="14 2 14 8 20 8" />
                 </svg>
-                <svg v-else width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-danger)" stroke-width="2"
-                  stroke-linecap="round" stroke-linejoin="round">
+                <svg v-else width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-danger)"
+                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <circle cx="12" cy="12" r="10" />
                   <line x1="15" y1="9" x2="9" y2="15" />
                   <line x1="9" y1="9" x2="15" y2="15" />
@@ -601,8 +597,8 @@
     </section>
 
     <t-dialog v-model:visible="saveTemplateDialogVisible" :attach="'body'" width="480px"
-      :confirm-btn="{ content: '保存', theme: 'primary', loading: saveTemplateLoading }"
-      :cancel-btn="{ content: '取消' }" @confirm="handleSaveTemplate">
+      :confirm-btn="{ content: '保存', theme: 'primary', loading: saveTemplateLoading }" :cancel-btn="{ content: '取消' }"
+      @confirm="handleSaveTemplate">
       <template #header>
         <div class="save-template-dialog-header">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2"
@@ -621,24 +617,22 @@
         </div>
         <div class="form-field">
           <label class="form-label">分类</label>
-          <t-select v-model="saveTemplateForm.category"
-            :options="[
-              { label: '营养数据', value: 'nutrition' },
-              { label: '配方文件', value: 'formula' },
-              { label: '通用', value: 'general' },
-            ]" />
+          <t-select v-model="saveTemplateForm.category" :options="[
+            { label: '营养数据', value: 'nutrition' },
+            { label: '配方文件', value: 'formula' },
+            { label: '通用', value: 'general' },
+          ]" />
         </div>
         <div class="form-field">
           <label class="form-label">默认模型</label>
           <t-select v-model="saveTemplateForm.defaultProvider"
-            :options="aiStore.models.map((m: AIModel) => ({ label: m.name, value: m.provider }))"
-            clearable placeholder="跟随全局设置" />
+            :options="aiStore.models.map((m: AIModel) => ({ label: m.name, value: m.provider }))" clearable
+            placeholder="跟随全局设置" />
         </div>
         <div class="form-field">
           <label class="form-label">自定义提示词</label>
-          <t-textarea v-model="saveTemplateForm.customPrompt"
-            placeholder="如：此文件中文表头，A列为原料名称，B列为类型..."
-            :maxlength="500" :autosize="{ minRows: 2, maxRows: 4 }" />
+          <t-textarea v-model="saveTemplateForm.customPrompt" placeholder="如：此文件中文表头，A列为原料名称，B列为类型..." :maxlength="500"
+            :autosize="{ minRows: 2, maxRows: 4 }" />
         </div>
       </div>
     </t-dialog>
@@ -3416,9 +3410,9 @@ watch(() => aiStore.materialParseResult, (newVal) => {
     }
 
     &.t-is-checked {
-      background: var(--td-radio-bg-color, var(--color-info));
+      background: var(--td-radio-bg-color, var(--color-primary));
       color: var(--color-text-white);
-      box-shadow: 0 2px 4px rgba(59, 130, 246, 0.25);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
       transform: scale(1);
 
       &:hover {

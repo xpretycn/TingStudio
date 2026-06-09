@@ -23,14 +23,18 @@ export const useAuthStore = defineStore('auth', () => {
   /** 加载当前用户的偏好设置到相关 store */
   const syncUserPreferences = async () => {
     if (!user.value) return
-    const preferencesStore = usePreferencesStore()
-    const themeStore = useThemeStore()
+    try {
+      const preferencesStore = usePreferencesStore()
+      const themeStore = useThemeStore()
 
-    await preferencesStore.fetchPreferences()
-    themeStore.applyPreferences({
-      themeMode: preferencesStore.preferences.themeMode,
-      brandColor: preferencesStore.preferences.brandColor,
-    })
+      await preferencesStore.fetchPreferences()
+      themeStore.applyPreferences({
+        themeMode: preferencesStore.preferences.themeMode,
+        brandColor: preferencesStore.preferences.brandColor,
+      })
+    } catch {
+      // 偏好同步失败不应阻塞应用：使用默认主题即可
+    }
   }
 
   /** 清理当前用户的本地偏好缓存 */

@@ -12,7 +12,6 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     AdminReviewPanel: typeof import('./src/components/dashboard/AdminReviewPanel.vue')['default']
-    AgentFormRenderer: typeof import('./src/components/AgentFormRenderer.vue')['default']
     AgentResultRenderer: typeof import('./src/components/AgentResultRenderer.vue')['default']
     AIAnalysisPanel: typeof import('./src/components/AIAnalysisPanel.vue')['default']
     AiAssistantFloat: typeof import('./src/components/AiAssistantFloat/AiAssistantFloat.vue')['default']
@@ -81,8 +80,6 @@ declare module 'vue' {
     TCard: typeof import('tdesign-vue-next')['Card']
     TCheckbox: typeof import('tdesign-vue-next')['Checkbox']
     TCheckboxGroup: typeof import('tdesign-vue-next')['CheckboxGroup']
-    TCheckTag: typeof import('tdesign-vue-next')['CheckTag']
-    TCheckTagGroup: typeof import('tdesign-vue-next')['CheckTagGroup']
     TCollapse: typeof import('tdesign-vue-next')['Collapse']
     TCollapsePanel: typeof import('tdesign-vue-next')['CollapsePanel']
     TConfigProvider: typeof import('tdesign-vue-next')['ConfigProvider']

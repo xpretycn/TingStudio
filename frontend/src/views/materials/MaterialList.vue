@@ -2019,12 +2019,12 @@ const handleStatusFilterChange = () => {
 
         &:hover td,
         &.t-table__row--hover td {
-          background-color: rgba(209, 250, 229, 0.35) !important;
+          background-color: var(--color-row-hover-bg) !important;
           box-shadow: inset 3px 0 0 var(--color-primary-light) !important;
         }
 
         &.t-table__row--selected td {
-          background-color: rgba(209, 250, 229, 0.55) !important;
+          background-color: var(--color-row-selected-bg) !important;
           box-shadow: inset 3px 0 0 var(--color-primary) !important;
         }
 
@@ -3021,7 +3021,7 @@ const handleStatusFilterChange = () => {
 
 .material-list .content-card .t-table .t-table__body tr:hover>td,
 .material-list .content-card .t-table .t-table__body .t-table__row:hover>td {
-  background-color: rgba(209, 250, 229, 0.35) !important;
+  background-color: var(--color-row-hover-bg) !important;
 }
 
 .material-list .empty-add-btn {
@@ -3065,7 +3065,7 @@ const handleStatusFilterChange = () => {
 }
 
 .material-list .content-card .t-table .t-table__body .t-table__row.t-table__row--selected>td {
-  background-color: rgba(209, 250, 229, 0.6) !important;
+  background-color: var(--color-row-selected-bg) !important;
   box-shadow: inset 3px 0 0 var(--color-primary) !important;
 }
 

@@ -55,23 +55,13 @@ function handleExport() {
 </script>
 
 <template>
-  <t-dialog
-    :visible="visible"
-    header="导出报告"
-    :footer="false"
-    width="360px"
-    @update:visible="(val: boolean) => emit('update:visible', val)"
-  >
+  <t-dialog :visible="visible" header="导出报告" :footer="false" width="360px"
+    @update:visible="(val: boolean) => emit('update:visible', val)">
     <div class="export-format-content">
       <div v-if="reportTitle" class="export-title">{{ reportTitle }}</div>
       <div class="export-format-options">
-        <div
-          v-for="format in formats"
-          :key="format.value"
-          class="format-option"
-          :class="{ selected: selectedFormat === format.value }"
-          @click="selectedFormat = format.value"
-        >
+        <div v-for="format in formats" :key="format.value" class="format-option"
+          :class="{ selected: selectedFormat === format.value }" @click="selectedFormat = format.value">
           <div class="format-icon" v-html="format.icon"></div>
           <div class="format-info">
             <span class="format-name">{{ format.label }}</span>
@@ -143,7 +133,7 @@ function handleExport() {
     margin-right: 16px;
 
     .selected & {
-      background: var(--color-info);
+      background: var(--color-primary);
       color: var(--color-text-white);
     }
   }

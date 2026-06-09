@@ -2791,8 +2791,8 @@ $transition-normal: 0.25s ease;
   align-items: center;
   gap: 8px;
   padding: 8px 16px;
-  background-color: var(--color-text-primary);
-  color: white;
+  background-color: var(--color-primary);
+  color: var(--color-text-white);
   border-radius: 12px;
   font-size: 14px;
   font-weight: 500;
@@ -2802,11 +2802,11 @@ $transition-normal: 0.25s ease;
   cursor: pointer;
 
   &:hover {
-    background-color: var(--color-text-primary);
+    background-color: var(--color-primary-light);
   }
 
   &:active {
-    background-color: var(--color-text-primary);
+    background-color: var(--color-primary-dark);
     transform: scale(0.98);
   }
 
@@ -4487,7 +4487,7 @@ $transition-normal: 0.25s ease;
     align-items: center;
     gap: var(--space-1-5);
     padding: 8px var(--space-4-5);
-    background: linear-gradient(135deg, var(--color-info), var(--color-info-dark));
+    background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
     color: var(--color-text-white);
     border: none;
     border-radius: 10px;
@@ -4498,7 +4498,7 @@ $transition-normal: 0.25s ease;
 
     &:hover {
       transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     }
   }
 }
@@ -4530,7 +4530,7 @@ $transition-normal: 0.25s ease;
     align-items: center;
     gap: var(--space-1-5);
     padding: var(--space-2-5) var(--space-6);
-    background: linear-gradient(135deg, var(--color-info), var(--color-info-dark));
+    background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
     color: var(--color-text-white);
     border: none;
     border-radius: 10px;
@@ -4541,7 +4541,7 @@ $transition-normal: 0.25s ease;
 
     &:hover {
       transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     }
   }
 }

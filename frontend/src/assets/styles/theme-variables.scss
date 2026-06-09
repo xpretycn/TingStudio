@@ -62,6 +62,10 @@
   --color-bg-container-alt: #{$bg-container-alt};
   --color-bg-hover: #{$bg-hover};
 
+  // ─── 表格行交互背景（亮色：emerald 浅绿半透明）───
+  --color-row-hover-bg: rgba(209, 250, 229, 0.35);
+  --color-row-selected-bg: rgba(209, 250, 229, 0.55);
+
   // ─── 文字色（亮色）───
   --color-text-primary: #{$text-primary};
   --color-text-regular: #{$text-regular};
@@ -472,6 +476,10 @@
   --color-bg-container: #241e2b;
   --color-bg-container-alt: #1f1925;
   --color-bg-hover: #2d1525;
+
+  // ─── 表格行交互背景（暗色：低饱和度 emerald 覆盖层）───
+  --color-row-hover-bg: rgba(16, 185, 129, 0.12);
+  --color-row-selected-bg: rgba(16, 185, 129, 0.20);
 
   // ─── 文字色 ───
   --color-text-primary: #e8dfe8;

@@ -1076,16 +1076,16 @@ onMounted(async () => {
         }
 
         &.submit-review-btn {
-          background-color: var(--color-info);
-          box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.25);
+          background-color: var(--color-primary);
+          box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.15);
 
           &:hover {
-            background-color: var(--color-info-dark);
-            box-shadow: 0 14px 20px -3px rgba(59, 130, 246, 0.35);
+            background-color: var(--color-primary-light);
+            box-shadow: 0 14px 20px -3px rgba(0, 0, 0, 0.2);
           }
 
           &:active {
-            background-color: var(--color-info-dark);
+            background-color: var(--color-primary-dark);
           }
         }
       }
@@ -2097,7 +2097,7 @@ onMounted(async () => {
 
       // 提交审批按钮 active 状态
       .detail-header .header-actions .submit-review-btn:active {
-        background-color: var(--color-info-dark);
+        background-color: var(--color-primary-dark);
       }
     }
 

@@ -221,10 +221,11 @@
                           <svg v-if="selectedReportIds.includes(report.id)" width="18" height="18" viewBox="0 0 24 24"
                             fill="var(--color-primary-dark)" stroke="var(--color-primary-dark)" stroke-width="2">
                             <rect x="3" y="3" width="18" height="18" rx="4" />
-                            <polyline points="20 6 9 17 4 12" stroke="var(--color-text-white)" stroke-width="2.5" fill="none" />
+                            <polyline points="20 6 9 17 4 12" stroke="var(--color-text-white)" stroke-width="2.5"
+                              fill="none" />
                           </svg>
-                          <svg v-else width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-placeholder)"
-                            stroke-width="2">
+                          <svg v-else width="18" height="18" viewBox="0 0 24 24" fill="none"
+                            stroke="var(--color-text-placeholder)" stroke-width="2">
                             <rect x="3" y="3" width="18" height="18" rx="4" />
                           </svg>
                         </div>
@@ -259,8 +260,9 @@
                             {{ report.creatorName || '系统' }}
                           </span>
                           <span class="card-time">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-placeholder)"
-                              stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                              stroke="var(--color-text-placeholder)" stroke-width="2" stroke-linecap="round"
+                              stroke-linejoin="round">
                               <circle cx="12" cy="12" r="10" />
                               <polyline points="12 6 12 12 16 14" />
                             </svg>
@@ -341,10 +343,11 @@
                           <svg v-if="selectedReportIds.includes(report.id)" width="18" height="18" viewBox="0 0 24 24"
                             fill="var(--color-primary-dark)" stroke="var(--color-primary-dark)" stroke-width="2">
                             <rect x="3" y="3" width="18" height="18" rx="4" />
-                            <polyline points="20 6 9 17 4 12" stroke="var(--color-text-white)" stroke-width="2.5" fill="none" />
+                            <polyline points="20 6 9 17 4 12" stroke="var(--color-text-white)" stroke-width="2.5"
+                              fill="none" />
                           </svg>
-                          <svg v-else width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-placeholder)"
-                            stroke-width="2">
+                          <svg v-else width="18" height="18" viewBox="0 0 24 24" fill="none"
+                            stroke="var(--color-text-placeholder)" stroke-width="2">
                             <rect x="3" y="3" width="18" height="18" rx="4" />
                           </svg>
                         </div>
@@ -379,8 +382,9 @@
                             {{ report.creatorName || '系统' }}
                           </span>
                           <span class="card-time">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-placeholder)"
-                              stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                              stroke="var(--color-text-placeholder)" stroke-width="2" stroke-linecap="round"
+                              stroke-linejoin="round">
                               <circle cx="12" cy="12" r="10" />
                               <polyline points="12 6 12 12 16 14" />
                             </svg>
@@ -448,8 +452,8 @@
               <div class="activity-card activity-card--timeline">
                 <div class="activity-header">
                   <h4 class="activity-title">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-info)" stroke-width="2"
-                      stroke-linecap="round" stroke-linejoin="round">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-info)"
+                      stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                       <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
                     </svg>
                     近期动态
@@ -488,8 +492,8 @@
               <div class="activity-card activity-card--assistant">
                 <div class="assistant-header">
                   <h4 class="assistant-title">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-white)" stroke-width="2"
-                      stroke-linecap="round" stroke-linejoin="round">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-white)"
+                      stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                       <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                       <polyline points="14 2 14 8 20 8" />
                       <line x1="16" y1="13" x2="8" y2="13" />
@@ -1929,7 +1933,7 @@ onMounted(async () => {
     align-items: center;
     gap: var(--space-1-5);
     padding: 8px 20px;
-    background-color: var(--color-text-primary);
+    background-color: var(--color-primary);
     color: var(--color-text-white);
     border: none;
     border-radius: 10px;
@@ -1938,7 +1942,7 @@ onMounted(async () => {
     transition: all $transition-normal;
 
     &:hover {
-      background-color: var(--color-text-primary);
+      background-color: var(--color-primary-light);
     }
   }
 }

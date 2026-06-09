@@ -1027,12 +1027,12 @@ async function confirmReject() {
   }
 
   &.action-submit {
-    background: linear-gradient(135deg, var(--color-info) 0%, var(--color-info-dark) 100%);
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
     color: $text-white;
-    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 
     &:hover:not(:disabled) {
-      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
       transform: translateY(-1px);
     }
 
@@ -1671,6 +1671,7 @@ async function confirmReject() {
 
 // ─── 暗色模式适配 ───
 [data-theme="dark"] {
+
   .timeline-section,
   .detail-section {
     box-shadow: $shadow-elevation-1;

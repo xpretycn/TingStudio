@@ -1001,8 +1001,8 @@ watch(() => router.currentRoute.value.path, (path) => {
       align-items: center;
       gap: 8px;
       padding: 8px 16px;
-      background-color: var(--color-text-primary);
-      color: white;
+      background-color: var(--color-primary);
+      color: var(--color-text-white);
       border-radius: 12px;
       font-size: 14px;
       font-weight: 500;
@@ -1012,7 +1012,7 @@ watch(() => router.currentRoute.value.path, (path) => {
       cursor: pointer;
 
       &:hover {
-        background-color: var(--color-text-primary);
+        background-color: var(--color-primary-light);
       }
 
       .add-icon {
@@ -2120,8 +2120,8 @@ watch(() => router.currentRoute.value.path, (path) => {
   gap: 8px !important;
   padding: 8px 16px !important;
   border-radius: 12px !important;
-  background-color: var(--color-text-primary) !important;
-  color: white !important;
+  background-color: var(--color-primary) !important;
+  color: var(--color-text-white) !important;
   font-size: 14px !important;
   font-weight: 500 !important;
   border: none !important;
@@ -2130,7 +2130,7 @@ watch(() => router.currentRoute.value.path, (path) => {
   box-shadow: 0 4px 6px rgba(15, 23, 42, 0.15) !important;
 
   &:hover {
-    background-color: var(--color-text-primary) !important;
+    background-color: var(--color-primary-light) !important;
   }
 
   svg {

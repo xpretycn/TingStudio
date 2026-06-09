@@ -521,12 +521,12 @@ onMounted(() => {
   }
 
   &--submit {
-    background-color: var(--color-text-primary);
-    color: #fff;
+    background-color: var(--color-primary);
+    color: var(--color-text-white);
     box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
 
     &:hover:not(:disabled) {
-      background-color: var(--color-text-primary);
+      background-color: var(--color-primary-light);
       transform: translateY(-1px);
       box-shadow: 0 6px 16px rgba(15, 23, 42, 0.2);
     }
@@ -561,9 +561,9 @@ onMounted(() => {
     border-radius: 10px !important;
 
     &.t-is-checked {
-      background-color: var(--color-text-primary) !important;
-      border-color: var(--color-text-primary) !important;
-      color: #fff !important;
+      background-color: var(--color-primary) !important;
+      border-color: var(--color-primary) !important;
+      color: var(--color-text-white) !important;
     }
   }
 }
@@ -571,7 +571,7 @@ onMounted(() => {
 :deep(.t-select) {
   .t-input {
     background-color: var(--color-bg-page) !important;
-    border: 1px solid #F1F5F9 !important;
+    border: 1px solid var(--color-border) !important;
     border-radius: 12px !important;
     padding: var(--space-2-5) 16px !important;
     min-height: 44px;
