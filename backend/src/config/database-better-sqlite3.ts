@@ -378,6 +378,38 @@ function runAutoMigrations(dbInstance: Database.Database) {
     logger.error("数据库迁移: uploaded_files 表重建失败 - " + (err instanceof Error ? err.message : String(err)));
   }
 
+  // 0.15 修复 file_audit_log 外键引用 uploaded_files(file_id) → uploaded_files(id)
+  try {
+    const falCreateSql = dbInstance.prepare("SELECT sql FROM sqlite_master WHERE type='table' AND name='file_audit_log'").get() as { sql: string | null } | undefined;
+    if (falCreateSql?.sql && falCreateSql.sql.includes("REFERENCES uploaded_files(file_id)")) {
+      logger.info("数据库迁移: file_audit_log 外键引用 uploaded_files(file_id)，需修复为 uploaded_files(id)，重建表...");
+      const falCols = (dbInstance.pragma("table_info(file_audit_log)") as PragmaColumnInfo[]).map((c: PragmaColumnInfo) => c.name);
+      dbInstance.exec(`
+        CREATE TABLE IF NOT EXISTS file_audit_log_new (
+          log_id TEXT PRIMARY KEY,
+          file_id TEXT NOT NULL,
+          action TEXT NOT NULL CHECK(action IN ('upload', 'parse', 'link', 'unlink', 'reparse', 'download', 'delete', 'archive')),
+          operator TEXT NOT NULL,
+          timestamp TEXT NOT NULL DEFAULT (datetime('now')),
+          detail_json TEXT DEFAULT NULL,
+          ip_address TEXT DEFAULT NULL,
+          FOREIGN KEY (file_id) REFERENCES uploaded_files(id) ON DELETE CASCADE
+        )
+      `);
+      const newFalCols = (dbInstance.pragma("table_info(file_audit_log_new)") as PragmaColumnInfo[]).map((c: PragmaColumnInfo) => c.name);
+      const commonFalCols = falCols.filter((c: string) => newFalCols.includes(c));
+      dbInstance.prepare(`INSERT INTO file_audit_log_new (${commonFalCols.join(", ")}) SELECT ${commonFalCols.join(", ")} FROM file_audit_log`).run();
+      dbInstance.exec("DROP TABLE file_audit_log");
+      dbInstance.exec("ALTER TABLE file_audit_log_new RENAME TO file_audit_log");
+      dbInstance.exec("CREATE INDEX IF NOT EXISTS idx_file_audit_file ON file_audit_log(file_id)");
+      dbInstance.exec("CREATE INDEX IF NOT EXISTS idx_file_audit_operator ON file_audit_log(operator)");
+      dbInstance.exec("CREATE INDEX IF NOT EXISTS idx_file_audit_timestamp ON file_audit_log(timestamp)");
+      logger.info("数据库迁移: file_audit_log 外键修复完成");
+    }
+  } catch (err: unknown) {
+    logger.error("数据库迁移: file_audit_log 外键修复失败 - " + (err instanceof Error ? err.message : String(err)));
+  }
+
   // 0.2 检测 formula_versions.status CHECK 约束是否包含 pending_review
   try {
     const fvCreateSql = dbInstance.prepare("SELECT sql FROM sqlite_master WHERE type='table' AND name='formula_versions'").get() as { sql: string | null } | undefined;

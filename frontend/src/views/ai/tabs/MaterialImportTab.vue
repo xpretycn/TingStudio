@@ -1789,7 +1789,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
   background: linear-gradient(145deg, var(--color-bg-container) 0%, var(--color-bg-page) 50%, var(--color-border-light) 100%);
   padding: 32px;
   border-radius: 2.5rem;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.06), 0 8px 10px -6px $overlay-emerald-06;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.06), 0 8px 10px -6px rgba(0, 0, 0, 0.03);
   color: var(--color-text-primary);
   position: relative;
   overflow: hidden;
@@ -1803,7 +1803,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
     right: -40px;
     width: 180px;
     height: 180px;
-    background: radial-gradient(circle, $overlay-emerald-12 0%, transparent 70%);
+    background: radial-gradient(circle, var(--color-primary-bg) 0%, transparent 70%);
     filter: blur(60px);
     border-radius: 50%;
   }
@@ -1822,7 +1822,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
     .ai-icon {
       width: 40px;
       height: 40px;
-      background: linear-gradient(135deg, $emerald-500, $emerald-teal);
+      background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
       border-radius: 12px;
       display: flex;
       align-items: center;
@@ -1984,20 +1984,20 @@ watch(() => aiStore.materialParseResult, (newVal) => {
 
       &:hover,
       &.drag-over {
-        border-color: $overlay-emerald-50;
-        background: $overlay-emerald-04;
+        border-color: var(--color-primary-lighter);
+        background: var(--color-primary-bg);
       }
 
       .upload-icon {
         width: 64px;
         height: 64px;
-        background: $overlay-emerald-08;
+        background: var(--color-primary-bg);
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
         font-size: 32px;
-        color: $emerald-500;
+        color: var(--color-primary);
         transition: transform 0.2s ease;
       }
 
@@ -2108,7 +2108,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
 
       &:hover:not(:disabled) {
         transform: translateY(-2px);
-        box-shadow: 0 6px 20px $overlay-emerald-35;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
       }
 
       &:disabled {
@@ -2157,7 +2157,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
 
     .parsing-progress {
       padding: 24px;
-      background: $overlay-emerald-04;
+      background: var(--color-primary-bg);
       border-radius: var(--radius-4xl);
       border: 1px solid rgba(148, 163, 184, 0.18);
 
@@ -2182,7 +2182,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
         .progress-percent {
           font-size: 12px;
           font-family: monospace;
-          color: $emerald-500;
+          color: var(--color-primary);
         }
 
         .progress-timer {
@@ -2195,7 +2195,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
           font-weight: 700;
           font-family: 'SF Mono', 'Fira Code', monospace;
           border-radius: 20px;
-          box-shadow: 0 2px 8px $overlay-emerald-25;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
           animation: timerPulse 1s ease-in-out infinite;
 
           @keyframes timerPulse {
@@ -2897,7 +2897,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
 
         &:hover:not(:disabled) {
           transform: translateY(-2px);
-          box-shadow: 0 6px 20px $overlay-emerald-35;
+          box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
         }
       }
 
@@ -2908,7 +2908,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
 
         &:hover:not(:disabled) {
           transform: translateY(-2px);
-          box-shadow: 0 6px 20px $overlay-emerald-25;
+          box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
         }
       }
 
@@ -3084,7 +3084,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
 
           &:hover {
             transform: translateY(-1px);
-            box-shadow: 0 4px 12px $overlay-emerald-25;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
           }
         }
 
@@ -3610,7 +3610,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
 
   &:hover {
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px $overlay-emerald-25;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
   }
 }
 

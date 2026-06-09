@@ -56,9 +56,9 @@ function formatPercent(val: number | null): string {
 }
 
 function getProgressColor(val: number): string {
-  if (val >= 40) return "#ff4d4f";
-  if (val >= 20) return "#faad14";
-  return "#52c41a";
+  if (val >= 40) return "var(--color-danger)";
+  if (val >= 20) return "var(--color-warning)";
+  return "var(--color-success)";
 }
 </script>
 
@@ -71,9 +71,6 @@ function getProgressColor(val: number): string {
       :bordered="true"
       table-layout="auto"
       size="small"
-      expand-icon
-      :expanded-row-keys="[]"
-      :expanded-row-render="() => null"
       disable-data-page
     >
       <template #materialName="{ row }">
@@ -113,24 +110,6 @@ function getProgressColor(val: number): string {
             :label="false"
           />
           <span class="contribution-percent">{{ formatPercent(row[`contrib_${key}`]) }}</span>
-        </div>
-      </template>
-      <template #expandedRow="{ row }">
-        <div class="expanded-detail">
-          <div class="detail-title">完整营养素贡献明细</div>
-          <div class="detail-grid">
-            <div
-              v-for="(val, nutrientKey) in row.contributions"
-              :key="nutrientKey"
-              class="detail-item"
-            >
-              <span class="detail-key">{{ nutrientKey }}</span>
-              <span class="detail-val">{{ Number(val).toFixed(2) }}</span>
-              <span class="detail-percent">
-                {{ formatPercent(row.contributionPercent[nutrientKey as string] ?? null) }}
-              </span>
-            </div>
-          </div>
         </div>
       </template>
     </t-table>
@@ -177,47 +156,6 @@ function getProgressColor(val: number): string {
       min-width: 42px;
       text-align: right;
       font-variant-numeric: tabular-nums;
-    }
-  }
-
-  .expanded-detail {
-    padding: $space-3 $space-4;
-    background: var(--color-bg-container-alt);
-
-    .detail-title {
-      font-size: $font-size-caption;
-      font-weight: $font-weight-medium;
-      color: var(--color-text-secondary);
-      margin-bottom: $space-2;
-    }
-
-    .detail-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-      gap: $space-1-5;
-    }
-
-    .detail-item {
-      display: flex;
-      align-items: center;
-      gap: $space-1;
-      font-size: $font-size-caption;
-
-      .detail-key {
-        color: var(--color-text-secondary);
-        min-width: 60px;
-      }
-
-      .detail-val {
-        color: var(--color-text-primary);
-        font-weight: $font-weight-medium;
-        font-variant-numeric: tabular-nums;
-      }
-
-      .detail-percent {
-        color: var(--color-primary);
-        font-variant-numeric: tabular-nums;
-      }
     }
   }
 }

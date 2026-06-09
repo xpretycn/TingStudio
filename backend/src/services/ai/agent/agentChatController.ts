@@ -3,7 +3,6 @@ import { llmAgentService } from "./llmService.js";
 import { toolRegistry } from "./toolRegistry.js";
 import { promptEngine } from "./promptEngine.js";
 import { sessionStore } from "./sessionStore.js";
-import { checkWriteGuard } from "./agentWriteGuard.js";
 import type { ToolContext, ToolResult } from "../../../types/ai.js";
 import { getDb } from "../../../config/database-better-sqlite3.js";
 import crypto from "node:crypto";
@@ -215,8 +214,6 @@ class AgentChatController {
         };
         messages.push(assistantMsg);
 
-        let hasWriteBlock = false;
-
         for (const toolCall of llmResponse.tool_calls) {
           if (abortController.signal.aborted) break;
 
@@ -226,37 +223,6 @@ class AgentChatController {
             params = JSON.parse(toolCall.function.arguments);
           } catch {
             params = {};
-          }
-
-          const guardResult = checkWriteGuard(toolName, params);
-
-          if (guardResult.blocked) {
-            hasWriteBlock = true;
-            this.sendSSEEvent(res, "write_guidance", {
-              toolName: guardResult.toolName,
-              params: guardResult.params,
-              message: guardResult.guidanceMessage,
-              navigationLink: guardResult.navigationLink,
-            });
-
-            streamedContent += guardResult.guidanceMessage || "";
-            finalContent = guardResult.guidanceMessage || "";
-
-            allToolCalls.push({ name: toolName, arguments: params });
-            allToolResults.push({
-              success: true,
-              data: { guidance: guardResult.guidanceMessage, navigationLink: guardResult.navigationLink },
-            });
-
-            messages.push({
-              role: "tool",
-              content: JSON.stringify({
-                blocked: true,
-                guidance: guardResult.guidanceMessage,
-              }).slice(0, MAX_TOOL_RESULT_LENGTH),
-              tool_call_id: toolCall.id,
-            });
-            continue;
           }
 
           this.sendSSEEvent(res, "tool_calls", {
@@ -299,10 +265,6 @@ class AgentChatController {
             content: toolResultStr,
             tool_call_id: toolCall.id,
           });
-        }
-
-        if (hasWriteBlock) {
-          break;
         }
       }
 
@@ -529,22 +491,6 @@ class AgentChatController {
       try {
         const params = JSON.parse(tc.arguments);
 
-        const guardResult = checkWriteGuard(tc.name, params);
-        if (guardResult.blocked) {
-          results.push({
-            id: tc.id,
-            name: tc.name,
-            result: {
-              success: true,
-              data: {
-                guidance: guardResult.guidanceMessage,
-                navigationLink: guardResult.navigationLink,
-              },
-            },
-          });
-          continue;
-        }
-
         const context: ToolContext = {
           userId,
           userRole: "user",
@@ -655,27 +601,6 @@ class AgentChatController {
           params = JSON.parse(toolCall.function.arguments);
         } catch {
           params = {};
-        }
-
-        const guardResult = checkWriteGuard(toolName, params);
-        if (guardResult.blocked) {
-          this.sendSSEEvent(res, "write_guidance", {
-            toolName: guardResult.toolName,
-            params: guardResult.params,
-            message: guardResult.guidanceMessage,
-            navigationLink: guardResult.navigationLink,
-          });
-          allToolCalls.push({ name: toolName, arguments: params });
-          allToolResults.push({ success: true, data: { guidance: guardResult.guidanceMessage } });
-          messages.push({
-            role: "tool",
-            content: JSON.stringify({ blocked: true, guidance: guardResult.guidanceMessage }).slice(
-              0,
-              MAX_TOOL_RESULT_LENGTH,
-            ),
-            tool_call_id: toolCall.id,
-          });
-          continue;
         }
 
         this.sendSSEEvent(res, "tool_calls", { calls: [{ name: toolName, arguments: params }] });

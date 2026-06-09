@@ -320,6 +320,38 @@ export const NUTRIENT_UNITS: Record<string, string> = {
   background: var(--color-bg-container-alt);
   border-radius: $radius-md;
   margin-bottom: $space-4;
+
+  // 暗色模式适配
+  [data-theme="dark"] & {
+    background: var(--color-bg-container);
+
+    :deep(.t-alert) {
+      background-color: var(--color-bg-container-alt) !important;
+    }
+
+    .import-actions {
+      :deep(.t-button--theme-primary) {
+        background: none !important;
+      }
+
+      :deep(.t-button--theme-success) {
+        background: none !important;
+      }
+    }
+
+    .result-summary,
+    .preview-card {
+      :deep(.t-card) {
+        background: var(--color-bg-container-alt);
+      }
+    }
+
+    .result-alert {
+      :deep(.t-alert) {
+        background: rgba(234, 179, 8, 0.08) !important;
+      }
+    }
+  }
 }
 
 .guide-title {

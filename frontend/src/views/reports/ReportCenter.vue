@@ -1303,27 +1303,26 @@ onMounted(async () => {
   align-items: center;
   gap: 8px;
   padding: 8px 16px;
-  background-color: var(--color-text-primary);
-  color: var(--color-text-white);
-  border-radius: 12px;
+  background-color: var(--color-primary);
+  color: #fff;
+  border-radius: $radius-md;
   font-size: 14px;
   font-weight: 500;
   transition: all $transition-fast;
-  box-shadow: 0 4px 6px rgba(15, 23, 42, 0.15);
   border: none;
   cursor: pointer;
 
   &:hover {
-    background-color: var(--color-text-primary);
+    background-color: var(--color-primary-light);
   }
 
   &:active {
-    background-color: var(--color-text-primary);
+    background-color: var(--color-primary-light);
     transform: translateY(0);
   }
 
   &:focus-visible {
-    outline: 2px solid var(--color-text-secondary);
+    outline: 2px solid var(--color-primary-lighter);
     outline-offset: 2px;
   }
 

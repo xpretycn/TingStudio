@@ -11,9 +11,9 @@ const coveragePercent = computed(() => {
 });
 
 const coverageColor = computed(() => {
-  if (coveragePercent.value >= 80) return "#52c41a";
-  if (coveragePercent.value >= 60) return "#faad14";
-  return "#ff4d4f";
+  if (coveragePercent.value >= 80) return "var(--color-success)";
+  if (coveragePercent.value >= 60) return "var(--color-warning)";
+  return "var(--color-danger)";
 });
 
 const confidenceTheme = computed<"success" | "warning" | "danger">(() => {
@@ -38,6 +38,15 @@ const missingNames = computed(() =>
 
 <template>
   <t-card class="data-coverage-card" :bordered="true">
+    <template #title>
+      <div class="card-title">
+        <t-icon name="view-module" class="card-title-icon" />
+        <span>数据覆盖度</span>
+      </div>
+    </template>
+    <template #subtitle>
+      <span>原料营养数据完整度评估</span>
+    </template>
     <div class="coverage-body">
       <div class="coverage-main">
         <div class="coverage-ring">
@@ -47,7 +56,7 @@ const missingNames = computed(() =>
             theme="circle"
             :size="120"
             :stroke-width="8"
-            :track-color="'#e7e7e7'"
+            :track-color="'var(--color-bg-container-alt)'"
           >
             <template #label>
               <div class="ring-label">
@@ -103,10 +112,21 @@ const missingNames = computed(() =>
 
 <style lang="scss" scoped>
 .data-coverage-card {
-  border-radius: $radius-xl;
+  border-radius: $radius-xl !important;
 
   :deep(.t-card__body) {
-    padding: $space-4;
+    padding: $space-5 !important;
+  }
+}
+
+.card-title {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+
+  .card-title-icon {
+    color: var(--color-primary);
+    font-size: $font-size-h4;
   }
 }
 

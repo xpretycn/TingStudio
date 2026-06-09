@@ -90,15 +90,6 @@ export interface ParseFormResponse {
   sessionId: string;
 }
 
-interface SubmitFormResult {
-  success: boolean;
-  data?: Record<string, unknown>;
-  error?: string;
-  displayType?: string;
-  toolName?: string;
-  validationErrors?: Array<{ field: string; message: string }>;
-}
-
 interface FieldHintsResult {
   missingFields: string[];
   hints: Record<string, unknown>[];
@@ -128,14 +119,6 @@ export const agentApi = {
       confirmed: params.confirmed ?? false,
       model: params.model,
     });
-  },
-
-  submitForm(data: { sessionId: string; formId: string; formData: Record<string, unknown> }) {
-    return http.post<unknown, SubmitFormResult>("/agent/submit-form", data);
-  },
-
-  getPendingForm(sessionId: string) {
-    return http.get<unknown, Record<string, unknown>>(`/agent/pending-form/${sessionId}`);
   },
 
   getRoleConfig() {

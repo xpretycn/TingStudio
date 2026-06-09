@@ -1309,7 +1309,7 @@ async function confirmReject() {
 .tl-card {
   flex: 1;
   background: var(--color-bg-container);
-  border: 1px solid var(--color-border-light);
+  border: 1px solid var(--color-border);
   border-radius: $radius-xl;
   padding: var(--space-3-5) 16px;
   margin-bottom: var(--space-3-5);
@@ -1666,6 +1666,56 @@ async function confirmReject() {
       border-color: var(--color-primary-light);
       box-shadow: 0 0 0 2px var(--overlay-brand-10);
     }
+  }
+}
+
+// ─── 暗色模式适配 ───
+[data-theme="dark"] {
+  .timeline-section,
+  .detail-section {
+    box-shadow: $shadow-elevation-1;
+    border-color: var(--color-border);
+  }
+
+  .section-head,
+  .section-toolbar,
+  .page-header {
+    border-bottom-color: var(--color-border);
+  }
+
+  // 营养项背景
+  .nutrition-item {
+    background: rgba(34, 197, 94, 0.08);
+  }
+
+  // 快照字段背景
+  .snapshot-field {
+    background: var(--color-bg-container-alt);
+  }
+
+  // 卡片边框
+  .tl-card {
+    border-color: var(--color-border);
+
+    &:hover {
+      box-shadow: $shadow-elevation-2;
+    }
+  }
+
+  .tl-card-footer {
+    border-top-color: var(--color-border);
+  }
+
+  .detail-identity {
+    border-bottom-color: var(--color-border);
+  }
+
+  .detail-actions {
+    border-top-color: var(--color-border);
+  }
+
+  .filter-tab.active {
+    box-shadow: none;
   }
 }
 

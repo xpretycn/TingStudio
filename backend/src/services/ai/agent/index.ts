@@ -7,7 +7,5 @@ export { aiAgentController } from "./agentController.js";
 export { registerAllTools, getAvailableTools } from "./toolRegistration.js";
 export { IntentEngine, IntentType } from "./intentEngine.js";
 export type { IntentResult } from "./intentEngine.js";
-export { DialogManager } from "./dialogManager.js";
-export type { DialogAction, PendingConfirmation } from "./dialogManager.js";
 export { sessionStore } from "./sessionStore.js";
 export type { SessionRecord, MessageRecord } from "./sessionStore.js";

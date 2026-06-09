@@ -1265,5 +1265,110 @@ $radius-2xl: 2rem;
       }
     }
   }
+
+  // ─── 暗色模式适配 ───
+  [data-theme="dark"] {
+    .compare-card {
+      box-shadow: $shadow-elevation-1;
+      border-color: var(--color-border);
+
+      &.is-base-card {
+        border-color: var(--color-primary-lighter);
+        box-shadow: $shadow-elevation-2;
+
+        .card-header {
+          background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(34, 197, 94, 0.08) 100%);
+          border-bottom-color: var(--color-border);
+        }
+      }
+
+      .card-header {
+        background: var(--color-bg-container-alt);
+        border-bottom-color: var(--color-border);
+      }
+
+      .card-body {
+        .ingredient-item {
+          background: var(--color-bg-container-alt);
+          border-color: var(--color-border);
+
+          &.diff-missing {
+            background: rgba(239, 68, 68, 0.08);
+            border-color: rgba(239, 68, 68, 0.2);
+          }
+
+          .ing-bar-track {
+            background: var(--color-border);
+          }
+        }
+
+        .price-item {
+          background: var(--color-bg-container-alt);
+          border-color: var(--color-border);
+
+          &.diff-missing {
+            background: rgba(239, 68, 68, 0.08);
+            border-color: rgba(239, 68, 68, 0.2);
+          }
+        }
+
+        .cost-summary-section {
+          border-top-color: var(--color-border);
+
+          .cost-summary-item {
+            background: var(--color-bg-container-alt);
+            border-color: var(--color-border);
+
+            &.cs-diff-up {
+              background: rgba(239, 68, 68, 0.1);
+              border-color: rgba(239, 68, 68, 0.25);
+            }
+
+            &.cs-diff-down {
+              background: rgba(34, 197, 94, 0.1);
+              border-color: rgba(34, 197, 94, 0.25);
+            }
+
+            &.cs-diff-changed {
+              background: rgba(245, 158, 11, 0.1);
+              border-color: rgba(245, 158, 11, 0.25);
+            }
+          }
+        }
+
+        .summary-section {
+          border-top-color: var(--color-border);
+
+          .summary-box {
+            background: rgba(16, 185, 129, 0.06);
+            border-color: rgba(16, 185, 129, 0.15);
+          }
+        }
+      }
+    }
+
+    .add-placeholder-card {
+      border-color: var(--color-border);
+      background: transparent;
+
+      .card-header {
+        border-bottom-color: var(--color-border);
+      }
+
+      .available-item {
+        background: var(--color-bg-container-alt);
+        border-color: var(--color-border);
+
+        &:hover {
+          background: rgba(16, 185, 129, 0.08);
+          box-shadow: none;
+        }
+      }
+    }
+
+    .detail-header {
+      border-bottom-color: var(--color-border);
+    }
+  }
 }
 </style>

@@ -2012,7 +2012,7 @@ const goToDashboard = () => {
   background: linear-gradient(145deg, var(--color-bg-container) 0%, var(--color-bg-page) 50%, var(--color-border-light) 100%);
   padding: 32px 20px;
   border-radius: 2.5rem;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.06), 0 8px 10px -6px $overlay-emerald-06;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.06), 0 8px 10px -6px rgba(0, 0, 0, 0.03);
   color: var(--color-text-primary);
   position: relative;
   overflow: hidden;
@@ -2026,7 +2026,7 @@ const goToDashboard = () => {
     right: -40px;
     width: 180px;
     height: 180px;
-    background: radial-gradient(circle, $overlay-emerald-12 0%, transparent 70%);
+    background: radial-gradient(circle, var(--color-primary-bg) 0%, transparent 70%);
     filter: blur(60px);
     border-radius: 50%;
   }
@@ -2045,7 +2045,7 @@ const goToDashboard = () => {
     .ai-icon {
       width: 40px;
       height: 40px;
-      background: linear-gradient(135deg, $emerald-500, $emerald-teal);
+      background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
       border-radius: 12px;
       display: flex;
       align-items: center;
@@ -2207,20 +2207,20 @@ const goToDashboard = () => {
 
       &:hover,
       &.drag-over {
-        border-color: $overlay-emerald-50;
-        background: $overlay-emerald-04;
+        border-color: var(--color-primary-lighter);
+        background: var(--color-primary-bg);
       }
 
       .upload-icon {
         width: 64px;
         height: 64px;
-        background: $overlay-emerald-08;
+        background: var(--color-primary-bg);
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
         font-size: 32px;
-        color: $emerald-500;
+        color: var(--color-primary);
         transition: transform 0.2s ease;
       }
 
@@ -2331,7 +2331,7 @@ const goToDashboard = () => {
 
       &:hover:not(:disabled) {
         transform: translateY(-2px);
-        box-shadow: 0 6px 20px $overlay-emerald-35;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
       }
 
       &:disabled {
@@ -2380,7 +2380,7 @@ const goToDashboard = () => {
 
     .parsing-progress {
       padding: 24px;
-      background: $overlay-emerald-04;
+      background: var(--color-primary-bg);
       border-radius: var(--radius-4xl);
       border: 1px solid var(--color-border-light);
 
@@ -2405,7 +2405,7 @@ const goToDashboard = () => {
         .progress-percent {
           font-size: 12px;
           font-family: monospace;
-          color: $emerald-500;
+          color: var(--color-primary);
         }
 
         .progress-timer {
@@ -2418,7 +2418,7 @@ const goToDashboard = () => {
           font-weight: 700;
           font-family: 'SF Mono', 'Fira Code', monospace;
           border-radius: 20px;
-          box-shadow: 0 2px 8px $overlay-emerald-25;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
           animation: timerPulse 1s ease-in-out infinite;
 
           @keyframes timerPulse {
@@ -2682,15 +2682,15 @@ const goToDashboard = () => {
     padding: 12px 16px;
     font-size: 12px;
     font-weight: 800;
-    color: $emerald-600;
+    color: var(--color-primary);
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    background: $overlay-emerald-04;
+    background: var(--color-primary-bg);
     border-bottom: 1px solid var(--color-border-light);
     position: relative;
 
     .t-icon {
-      color: $emerald-500;
+      color: var(--color-primary);
     }
 
     &--materials {
@@ -2715,8 +2715,8 @@ const goToDashboard = () => {
 
     .card-header-badge {
       padding: 1px 8px;
-      background: $overlay-emerald-12;
-      color: $emerald-600;
+      background: var(--color-primary-lightest);
+      color: var(--color-primary-deep);
       border-radius: 6px;
       font-size: 11px;
       font-weight: 700;
@@ -2730,15 +2730,15 @@ const goToDashboard = () => {
       border-radius: 6px;
       font-size: 11px;
       font-weight: 600;
-      color: $emerald-600;
-      background: $overlay-emerald-08;
-      border: 1px solid rgba(16, 185, 129, 0.2);
+      color: var(--color-primary);
+      background: var(--color-primary-bg);
+      border: 1px solid var(--color-primary-lightest);
       cursor: pointer;
       transition: all $transition-fast;
 
       &:hover {
-        background: $overlay-emerald-12;
-        border-color: rgba(16, 185, 129, 0.4);
+        background: var(--color-primary-lightest);
+        border-color: var(--color-primary-lighter);
       }
     }
   }
@@ -2913,8 +2913,8 @@ const goToDashboard = () => {
 
   .info-badge {
     padding: var(--space-0-5) 8px;
-    background: $overlay-emerald-12;
-    color: $emerald-600;
+    background: var(--color-primary-lightest);
+    color: var(--color-primary-deep);
     border-radius: 4px;
     font-size: 11px;
     font-weight: 700;
@@ -3232,7 +3232,7 @@ const goToDashboard = () => {
     border-radius: 8px;
 
     &--high {
-      background: $overlay-emerald-06;
+      background: var(--color-primary-bg);
     }
 
     &--medium {
@@ -3280,11 +3280,11 @@ const goToDashboard = () => {
     }
 
     &--high .ci-fill {
-      background: linear-gradient(90deg, $emerald-500, $emerald-400);
+      background: linear-gradient(90deg, var(--color-primary), var(--color-primary-light));
     }
 
     &--high .ci-value {
-      color: $emerald-600;
+      color: var(--color-primary-deep);
     }
 
     &--medium .ci-fill {
@@ -3543,7 +3543,7 @@ const goToDashboard = () => {
   font-size: 13px;
   padding: var(--space-2-5) 20px;
   height: auto;
-  box-shadow: 0 4px 12px -2px $overlay-emerald-20;
+  box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.12);
   margin-bottom: 8px;
 }
 
@@ -3672,10 +3672,10 @@ const goToDashboard = () => {
     padding: var(--space-2-5) var(--space-3-5);
     font-size: 11px;
     font-weight: 800;
-    color: $emerald-600;
+    color: var(--color-primary);
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    background: $overlay-emerald-08;
+    background: var(--color-primary-bg);
     position: sticky;
     top: 0;
     z-index: 1;
@@ -3721,7 +3721,7 @@ const goToDashboard = () => {
     }
 
     &:hover {
-      background: $overlay-emerald-04;
+      background: var(--color-primary-bg);
     }
 
     &--warn {
@@ -4165,7 +4165,7 @@ const goToDashboard = () => {
     height: 16px;
     flex-shrink: 0;
     margin-left: 4px;
-    color: $emerald-500;
+    color: var(--color-primary);
   }
 }
 

@@ -152,23 +152,6 @@
                               :display-type="msg.toolResultData.displayType || 'card'" :data="msg.toolResultData.data"
                               :is-success="msg.toolResultData.success" :tool-name="msg.toolResultData.toolName" />
 
-                            <AgentFormRenderer v-if="msg.formSchema && !msg.formSubmitted" :form-schema="msg.formSchema"
-                              @submit="(data) => handleFormSubmit(msg, data)" @cancel="handleFormCancel(msg)" />
-
-                            <div v-if="msg.formSubmitted" class="form-submitted-notice">
-                              <t-icon name="check-circle" size="16px" />
-                              <span>{{ msg.formSubmitSuccess ? '表单提交成功' : '表单提交失败' }}</span>
-                            </div>
-
-                            <div v-if="msg.writeGuidanceLinks?.length" class="write-guidance-links">
-                              <div v-for="(gl, idx) in msg.writeGuidanceLinks" :key="idx" class="guidance-link-item">
-                                <t-icon name="link" size="14px" />
-                                <a :href="gl.navigationLink" @click.prevent="navigateTo(gl.navigationLink)" class="guidance-nav-link">
-                                  前往操作 →
-                                </a>
-                              </div>
-                            </div>
-
                             <div v-if="(msg.actions?.length ?? 0) > 0" class="message-actions">
                               <button v-for="action in msg.actions" :key="action.id" class="action-btn"
                                 @click="executeAction(action)">
@@ -346,12 +329,8 @@
                             </Transition>
                           </div>
                         </div>
-                        <label class="action-circle-btn attach-btn" title="上传图片">
-                          <t-icon name="attach" size="18px" />
-                          <input type="file" accept="image/*,.pdf,.xlsx" @change="handleFileUpload" hidden />
-                        </label>
                         <button class="send-btn" @click="() => handleSend()"
-                          :disabled="!inputText.trim() && !selectedFile" :loading="isLoading">
+                          :disabled="!inputText.trim()" :loading="isLoading">
                           <t-icon name="send" size="18px" />
                         </button>
                       </div>
@@ -412,9 +391,6 @@
         </section>
       </aside>
 
-      <ToolConfirmDialog :show="confirmDialogVisible" :message="confirmMessage" :tool-name="confirmToolName"
-        :params="confirmParams" @confirm="handleConfirmAction" @cancel="handleCancelAction" />
-
       <!-- ═══ 身份设置弹窗 ═══ -->
       <Teleport to="body">
         <Transition name="modal-fade">
@@ -466,40 +442,6 @@
           </div>
         </Transition>
       </Teleport>
-
-      <!-- ═══ 智能填单模态框 ═══ -->
-      <Teleport to="body">
-        <Transition name="modal-fade">
-          <div v-if="showSmartFormModal" class="modal-overlay" @click.self="showSmartFormModal = false">
-            <div class="modal-container">
-              <div class="modal-header">
-                <h3>📝 智能填单</h3>
-                <button @click="showSmartFormModal = false" class="modal-close-btn">×</button>
-              </div>
-              <div class="modal-body">
-                <FormulaParseTab @activity-add="addActivity" />
-              </div>
-            </div>
-          </div>
-        </Transition>
-      </Teleport>
-
-      <!-- ═══ 智能导入模态框 ═══ -->
-      <Teleport to="body">
-        <Transition name="modal-fade">
-          <div v-if="showSmartImportModal" class="modal-overlay" @click.self="showSmartImportModal = false">
-            <div class="modal-container">
-              <div class="modal-header">
-                <h3>📥 智能导入</h3>
-                <button @click="showSmartImportModal = false" class="modal-close-btn">×</button>
-              </div>
-              <div class="modal-body">
-                <MaterialImportTab @activity-add="addActivity" />
-              </div>
-            </div>
-          </div>
-        </Transition>
-      </Teleport>
     </div>
   </div>
 </template>
@@ -509,17 +451,13 @@ import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { marked } from 'marked';
 import http from '@/api/http';
-import FormulaParseTab from './tabs/FormulaParseTab.vue';
-import MaterialImportTab from './tabs/MaterialImportTab.vue';
-import ToolConfirmDialog from '@/components/ToolConfirmDialog.vue';
 import AgentResultRenderer from '@/components/AgentResultRenderer.vue';
-import AgentFormRenderer, { type FormSchema } from '@/components/AgentFormRenderer.vue';
 import { useAuthStore } from '@/stores/auth';
 import { useAgentStore } from '@/stores/agent';
 import { useModelStore } from '@/stores/model';
 import { useAiStore } from '@/stores/ai';
 import { agentApi } from '@/api/agent';
-import { useSlashCommands, COMMAND_CATEGORIES, isWriteIntentPrefix, extractWriteNavigationLinks, type SlashCommand } from './components/useSlashCommands';
+import { useSlashCommands, COMMAND_CATEGORIES, type SlashCommand } from './components/useSlashCommands';
 import type { ModelItem } from '@/api/model';
 
 const router = useRouter();
@@ -537,12 +475,6 @@ interface ToolCallItem {
 interface IntentData {
   intent?: string;
   [key: string]: unknown;
-}
-
-interface PendingConfirmData {
-  toolName: string;
-  params: Record<string, unknown>;
-  message: string;
 }
 
 interface ToolResultData {
@@ -567,11 +499,6 @@ interface ChatMessage {
   actions?: ActionItem[];
   toolResult?: ToolCallItem[];
   toolResultData?: ToolResultData | null;
-  pendingConfirm?: PendingConfirmData | null;
-  formSchema?: FormSchema | null;
-  formSubmitted?: boolean;
-  formSubmitSuccess?: boolean;
-  writeGuidanceLinks?: Array<{ message: string; navigationLink: string }>;
 }
 
 interface RecentVisitItem {
@@ -599,25 +526,12 @@ interface QuickActionItem {
   action?: string;
 }
 
-interface ValidationError {
-  field: string;
-  message: string;
-}
-
 interface DashboardStatsResponse {
   formulas?: number;
   materials?: number;
   sales?: { revenue: number };
   pendingTasks?: number;
 }
-
-const confirmDialogVisible = ref(false);
-const confirmMessage = ref('');
-const confirmToolName = ref('');
-const confirmParams = ref<Record<string, unknown>>({});
-
-const pendingFormSchema = ref<FormSchema | null>(null);
-const pendingFormSessionId = ref<string>('');
 
 const toastMessage = ref('');
 const toastVisible = ref(false);
@@ -636,10 +550,6 @@ const showActionToast = (message: string) => {
 // Tab 切换状态
 // ════════════════════════════════════════
 const activeTab = ref<'chat'>('chat');
-
-// 模态框状态（用于智能填单/导入）
-const showSmartFormModal = ref(false);
-const showSmartImportModal = ref(false);
 
 // ════════════════════════════════════════
 // 状态定义
@@ -776,9 +686,7 @@ const quickActions = [
   { label: '工具箱', icon: 'control-platform', path: '/tools' },
   { label: '+ 添加原料', icon: 'add', path: '/materials/new' },
   { label: '生成周报', icon: 'file-icon', path: '/reports/generate?type=weekly' },
-  { label: '导出数据', icon: 'download', path: '/system/config' },
-  { label: '📝 智能填单', icon: 'edit', path: 'smart-form', isAIFeature: true, badge: 'AI', action: 'tab' },
-  { label: '📥 智能导入', icon: 'upload', path: 'smart-import', isAIFeature: true, badge: 'AI', action: 'tab' }
+  { label: '导出数据', icon: 'download', path: '/system/config' }
 ];
 
 // AI推荐
@@ -824,7 +732,6 @@ const currentModelVersion = computed({
   get: () => aiStore.selectedVersion || 'deepseek-v4-flash',
   set: (val: string) => { aiStore.selectedVersion = val; },
 });
-const selectedFile = ref<File | null>(null);
 const showModelMenu = ref(false);
 const modelDropdownRef = ref<HTMLElement | null>(null);
 const modelsLoading = ref(true);
@@ -1212,15 +1119,7 @@ const navigateTo = (path: string) => {
 
 // 处理快捷操作点击（支持模态框和页面导航）
 const handleQuickAction = (action: QuickActionItem) => {
-  if (action.action === 'tab') {
-    if (action.path === 'smart-form') {
-      showSmartFormModal.value = true;
-    } else if (action.path === 'smart-import') {
-      showSmartImportModal.value = true;
-    }
-  } else {
-    navigateTo(action.path);
-  }
+  navigateTo(action.path);
 };
 
 // 刷新俏皮话
@@ -1291,36 +1190,13 @@ const handleQuickQuestion = (question: string) => {
   handleSend();
 };
 
-// 添加活动记录（来自智能填单/导入组件）
-const addActivity = (_activity: Record<string, unknown>) => {
-};
-
 // 发送消息
 const handleSend = async (confirmed = false) => {
   const content = inputText.value.trim();
-  if (!content && !selectedFile.value && !confirmed) return;
+  if (!content && !confirmed) return;
   if (isLoading.value) return;
 
   closeCommandPalette();
-
-  if (!confirmed && isWriteIntentPrefix(content)) {
-    const guidanceMsg = `⚠️ 该操作需要前往管理页面完成，AI助手仅支持数据查询。\n\n如需继续查询相关信息，请修改提问方式（如"查询配方"而非"创建配方"）。`;
-    messages.value.push({
-      id: Date.now().toString(),
-      role: 'user',
-      content,
-      timestamp: new Date()
-    });
-    messages.value.push({
-      id: (Date.now() + 1).toString(),
-      role: 'assistant',
-      content: guidanceMsg,
-      timestamp: new Date(),
-      writeGuidanceLinks: extractWriteNavigationLinks(content),
-    });
-    inputText.value = '';
-    return;
-  }
 
   if (!confirmed) {
     messages.value.push({
@@ -1330,7 +1206,6 @@ const handleSend = async (confirmed = false) => {
       timestamp: new Date()
     });
     inputText.value = '';
-    selectedFile.value = null;
   }
 
   await nextTick();
@@ -1368,9 +1243,7 @@ const handleSend = async (confirmed = false) => {
     let fullContent = '';
     let currentToolCalls: ToolCallItem[] = [];
     let currentIntent: IntentData | null = null;
-    let pendingConfirm: PendingConfirmData | null = null;
     let lastToolResult: ToolResultData | null = null;
-    let writeGuidanceLinks: Array<{ message: string; navigationLink: string }> = [];
     let lastDataTime = Date.now();
     const SSE_TIMEOUT_MS = 20000;
 
@@ -1416,26 +1289,6 @@ const handleSend = async (confirmed = false) => {
                   autoScrollToBottom();
                   break;
 
-                case 'confirm':
-                  pendingConfirm = {
-                    toolName: parsed.toolName,
-                    params: parsed.params,
-                    message: parsed.message
-                  };
-                  fullContent += parsed.message;
-                  streamingContent.value += parsed.message;
-                  autoScrollToBottom();
-                  break;
-
-                case 'form':
-                  pendingFormSchema.value = parsed.formSchema as FormSchema;
-                  pendingFormSessionId.value = parsed.sessionId || conversationId.value || '';
-                  if (parsed.message) {
-                    fullContent += parsed.message;
-                    streamingContent.value += parsed.message;
-                  }
-                  break;
-
                 case 'tool_calls':
                   currentToolCalls = parsed.calls || [];
                   break;
@@ -1455,20 +1308,6 @@ const handleSend = async (confirmed = false) => {
                     data: parsed.data,
                     success: parsed.success,
                   };
-                  break;
-
-                case 'write_guidance':
-                  if (parsed.message) {
-                    fullContent += parsed.message;
-                    streamingContent.value += parsed.message;
-                    autoScrollToBottom();
-                  }
-                  if (parsed.navigationLink) {
-                    writeGuidanceLinks.push({
-                      message: parsed.message || '',
-                      navigationLink: parsed.navigationLink,
-                    });
-                  }
                   break;
 
                 case 'done':
@@ -1493,21 +1332,10 @@ const handleSend = async (confirmed = false) => {
                     actions: parseActionsFromResponse(fullContent),
                     toolResult: currentToolCalls.length === 0 ? undefined : currentToolCalls,
                     toolResultData: lastToolResult,
-                    pendingConfirm,
-                    formSchema: pendingFormSchema.value,
-                    writeGuidanceLinks: writeGuidanceLinks.length > 0 ? writeGuidanceLinks : undefined,
                   });
-
-                  if (pendingConfirm) {
-                    confirmMessage.value = pendingConfirm.message;
-                    confirmToolName.value = pendingConfirm.toolName;
-                    confirmParams.value = pendingConfirm.params;
-                    confirmDialogVisible.value = true;
-                  }
 
                   streamingContent.value = '';
                   isLoading.value = false;
-                  pendingFormSchema.value = null;
                   loadSessions();
                   scrollToBottom();
                   return;
@@ -1527,16 +1355,6 @@ const handleSend = async (confirmed = false) => {
     }
 
     if (fullContent) {
-      let recoveredFormSchema: FormSchema | null = null;
-      try {
-        const formRes = await agentApi.getPendingForm(conversationId.value || '');
-        if (formRes.success && formRes.data) {
-          recoveredFormSchema = formRes.data as FormSchema;
-        }
-      } catch {
-        // ignore pending form recovery failure
-      }
-
       messages.value.push({
         id: (Date.now() + 1).toString(),
         role: 'assistant',
@@ -1549,7 +1367,6 @@ const handleSend = async (confirmed = false) => {
           tokenUsage: null,
         },
         actions: parseActionsFromResponse(fullContent),
-        formSchema: recoveredFormSchema ?? undefined,
       });
       streamingContent.value = '';
     }
@@ -1670,14 +1487,13 @@ interface ActionItem {
   id: string;
   label: string;
   icon?: string;
-  type: 'navigate' | 'api' | 'copy' | 'download' | 'create';
+  type: 'navigate' | 'api' | 'copy' | 'download';
   payload?: Record<string, unknown>;
 }
 
 // 操作类型定义
 const ACTION_PATTERNS = {
   navigate: /(?:跳转|前往|打开|查看|进入)\s*(?:页面|)?【([^】]+)】/g,
-  create: /(?:创建|新建|添加|生成)\s*(?:新的|)?【([^】]+)】/g,
   export: /(?:导出|下载|保存|输出)\s*(?:为|成|格式)?【([^】]+)】/g,
   copy: /(?:复制|拷贝)\s*(?:文本|内容|数据)?【([^】]+)】/g,
   search: /(?:搜索|查找|查询)\s*(?:关于|)?【([^】]+)】/g
@@ -1688,16 +1504,6 @@ const executeAction = (action: ActionItem) => {
     case 'navigate':
       if (action.payload?.path && typeof action.payload.path === 'string') {
         router.push(action.payload.path);
-      }
-      break;
-
-    case 'create':
-      if (action.payload?.type === 'formula') {
-        router.push('/formulas/new');
-      } else if (action.payload?.type === 'material') {
-        router.push('/materials/new');
-      } else if (action.payload?.type === 'report') {
-        router.push('/reports/generate');
       }
       break;
 
@@ -1748,29 +1554,6 @@ const parseActionsFromResponse = (content: string): ActionItem[] => {
           icon: 'chevron-right',
           type: 'navigate',
           payload: { path, target }
-        });
-      }
-    }
-  }
-
-  // 检测创建类操作
-  const createMatches = content.matchAll(ACTION_PATTERNS.create);
-  for (const match of createMatches) {
-    const target = match[1]?.trim();
-    if (target) {
-      let type: 'formula' | 'material' | 'report' | undefined;
-
-      if (target.includes('配方')) type = 'formula';
-      else if (target.includes('原料')) type = 'material';
-      else if (target.includes('报告') || target.includes('周报') || target.includes('月报')) type = 'report';
-
-      if (type) {
-        actions.push({
-          id: `create_${Date.now()}_${actions.length}`,
-          label: `创建${target}`,
-          icon: 'add-circle',
-          type: 'create',
-          payload: { type, target }
         });
       }
     }
@@ -1929,94 +1712,7 @@ const switchToSession = async (sessionId: string) => {
     };
   });
 
-  try {
-    const res = await agentApi.getPendingForm(sessionId);
-    if (res.success && res.data) {
-      const lastAssistantMsg = messages.value.filter(m => m.role === 'assistant').pop();
-      if (lastAssistantMsg && !lastAssistantMsg.formSchema) {
-        lastAssistantMsg.formSchema = res.data as FormSchema;
-        lastAssistantMsg.formSubmitted = false;
-      }
-    }
-  } catch {
-    // ignore form schema fetch failure
-  }
-
   scrollToBottom();
-};
-
-const handleConfirmAction = () => {
-  confirmDialogVisible.value = false;
-  handleSend(true);
-};
-
-const handleCancelAction = () => {
-  confirmDialogVisible.value = false;
-  messages.value.push({
-    id: Date.now().toString(),
-    role: 'assistant',
-    content: '操作已取消',
-    timestamp: new Date(),
-  });
-};
-
-const handleFormSubmit = async (msg: ChatMessage, formData: Record<string, unknown>) => {
-  try {
-    const token = localStorage.getItem('tingstudio_token');
-    const response = await fetch('/api/agent/submit-form', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        sessionId: conversationId.value,
-        formId: msg.formSchema?.formId ?? "",
-        formData,
-      }),
-    });
-
-    const result = await response.json();
-
-    if (result.success) {
-      msg.formSubmitted = true;
-      msg.formSubmitSuccess = true;
-      showActionToast('操作成功');
-    } else if (result.validationErrors && result.validationErrors.length > 0) {
-      const errorMessages = result.validationErrors.map((e: ValidationError) => e.message).join('；');
-      showActionToast(errorMessages);
-    } else {
-      msg.formSubmitted = true;
-      msg.formSubmitSuccess = false;
-      showActionToast(result.error || '操作失败');
-    }
-  } catch (error: unknown) {
-    msg.formSubmitted = true;
-    msg.formSubmitSuccess = false;
-    const errorMsg = error instanceof Error ? error.message : '未知错误';
-    showActionToast(`提交失败：${errorMsg}`);
-  }
-};
-
-const handleFormCancel = (msg: ChatMessage) => {
-  msg.formSubmitted = true;
-  msg.formSubmitSuccess = false;
-  messages.value.push({
-    id: Date.now().toString(),
-    role: 'assistant',
-    content: '表单已取消',
-    timestamp: new Date(),
-  });
-};
-
-// 文件上传
-const handleFileUpload = (event: Event) => {
-  const input = event.target as HTMLInputElement;
-  const file = input.files?.[0];
-  if (file) {
-    selectedFile.value = file;
-    handleSend();
-  }
 };
 
 // 滚动到底部
@@ -3828,7 +3524,7 @@ onUnmounted(() => {
 
           &:hover,
           &.active {
-            background: #f0fdf4;
+            background: var(--color-bg-hover);
           }
 
           &.active {
@@ -4606,7 +4302,7 @@ onUnmounted(() => {
 }
 
 // ════════════════════════════════════════
-// 智能填单/导入模态框
+// 身份设置模态框
 // ════════════════════════════════════════
 .modal-overlay {
   position: fixed;

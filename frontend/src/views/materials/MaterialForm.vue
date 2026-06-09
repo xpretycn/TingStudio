@@ -666,6 +666,17 @@ onMounted(async () => {
 .material-form {
   padding-bottom: 24px;
 
+  // 暗色模式下覆盖 TDesign 亮色 CSS 变量
+  [data-theme="dark"] & {
+    --td-bg-color-component: var(--color-bg-container-alt);
+    --td-bg-color-component-disabled: var(--color-bg-container-alt);
+    --td-bg-color-secondarycontainer: var(--color-bg-container-alt);
+    --td-bg-color-container: var(--color-bg-container);
+    --td-bg-color-container-active: var(--color-bg-hover);
+    --td-bg-color-container-hover: var(--color-bg-hover);
+    --td-bg-color-specialcomponent: var(--color-bg-container-alt);
+  }
+
   .version-banner {
     margin: 16px 0 0;
     padding: 12px 20px;
@@ -845,6 +856,28 @@ onMounted(async () => {
     }
   }
 
+  // 非 light 主题下修复 t-alert 亮色背景
+  [data-theme="dark"] &,
+  :global([data-theme="dark"]) & {
+    .status-banner--top {
+      :deep(.t-alert) {
+        background-color: var(--color-info-bg) !important;
+        border-color: var(--color-info-light, var(--color-info)) !important;
+
+        .t-alert__icon,
+        .t-alert__title,
+        .t-alert__message,
+        .t-alert__close {
+          color: var(--color-info) !important;
+        }
+
+        .t-alert__content {
+          background: transparent !important;
+        }
+      }
+    }
+  }
+
   .detail-header {
     position: sticky;
     top: 0;
@@ -880,8 +913,8 @@ onMounted(async () => {
         font-size: 20px;
 
         &:hover {
-          color: $emerald-500;
-          background-color: $emerald-50;
+          color: var(--color-primary);
+          background-color: var(--color-primary-bg);
         }
       }
 
@@ -904,7 +937,7 @@ onMounted(async () => {
             text-decoration: none;
 
             &:hover {
-              color: $emerald-500;
+              color: var(--color-primary);
             }
           }
 
@@ -1001,13 +1034,13 @@ onMounted(async () => {
         align-items: center;
         gap: 8px;
         padding: 8px 16px;
-        background-color: $emerald-500;
+        background-color: var(--color-primary);
         color: var(--color-text-white);
         border: none;
         border-radius: 12px;
         font-size: 14px;
         font-weight: 700;
-        box-shadow: 0 10px 15px -3px $overlay-emerald-25;
+        box-shadow: 0 10px 15px -3px var(--shadow-brand-xs, rgba(0, 0, 0, 0.1));
         cursor: pointer;
         transition: all $transition-fast;
 
@@ -1016,14 +1049,14 @@ onMounted(async () => {
         }
 
         &:hover {
-          background-color: $emerald-600;
+          background-color: var(--color-primary-dark, var(--color-primary));
           transform: translateY(-1px);
-          box-shadow: 0 14px 20px -3px $overlay-emerald-35;
+          box-shadow: 0 14px 20px -3px var(--shadow-brand-sm, rgba(0, 0, 0, 0.15));
         }
 
         &:active {
           transform: translateY(0);
-          background-color: var(--color-primary-deep);
+          background-color: var(--color-primary-deep, var(--color-primary-dark, var(--color-primary)));
         }
 
         &.secondary {
@@ -1052,7 +1085,7 @@ onMounted(async () => {
           }
 
           &:active {
-            background-color: #1d4ed8;
+            background-color: var(--color-info-dark);
           }
         }
       }
@@ -1072,7 +1105,7 @@ onMounted(async () => {
     .form-section {
       background: var(--color-bg-container);
       padding: 32px;
-      border-radius: 2.5rem;
+      border-radius: 24px;
       box-shadow: 0 1px 3px $overlay-black-05;
       border: 1px solid var(--color-bg-page);
       overflow: hidden;
@@ -1083,17 +1116,17 @@ onMounted(async () => {
       align-items: center;
       justify-content: space-between;
       padding: 12px 16px;
-      background: linear-gradient(135deg, var(--color-emerald-50) 0%, var(--color-emerald-50) 50%, var(--color-info-bg) 100%);
-      border: 1.5px dashed var(--color-emerald-400);
+      background: linear-gradient(135deg, var(--color-primary-bg) 0%, var(--color-primary-bg) 50%, var(--color-info-bg) 100%);
+      border: 1.5px dashed var(--color-primary-light, var(--color-primary));
       border-radius: 12px;
       cursor: pointer;
       transition: all 0.25s ease;
       user-select: none;
 
       &:hover {
-        background: linear-gradient(135deg, #dcfce7 0%, var(--color-primary-bg) 50%, #e0f2fe 100%);
-        border-color: var(--color-emerald-400);
-        box-shadow: 0 2px 8px rgba(34, 197, 94, 0.12);
+        background: linear-gradient(135deg, var(--color-primary-light, rgba(0, 0, 0, 0.06)) 0%, var(--color-primary-bg) 50%, var(--color-info-bg) 100%);
+        border-color: var(--color-primary);
+        box-shadow: 0 2px 8px var(--shadow-brand-xs, rgba(0, 0, 0, 0.08));
         transform: translateY(-1px);
       }
 
@@ -1115,29 +1148,29 @@ onMounted(async () => {
       width: 36px;
       height: 36px;
       border-radius: 10px;
-      background: linear-gradient(135deg, var(--color-emerald-400), var(--color-emerald-600));
+      background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark, var(--color-primary)));
       color: var(--color-text-white);
       flex-shrink: 0;
-      box-shadow: 0 2px 6px rgba(34, 197, 94, 0.3);
+      box-shadow: 0 2px 6px var(--shadow-brand-xs, rgba(0, 0, 0, 0.15));
     }
 
     .info-collapsed-text {
       font-size: 14px;
       font-weight: 700;
-      color: var(--color-emerald-600);
+      color: var(--color-primary);
     }
 
     .info-collapsed-hint {
       font-size: 11px;
-      color: var(--color-emerald-400);
-      background: rgba(34, 197, 94, 0.1);
+      color: var(--color-primary-light, var(--color-primary));
+      background: var(--color-primary-bg);
       padding: var(--space-0-5) 8px;
       border-radius: 6px;
       font-weight: 500;
     }
 
     .info-collapsed-arrow {
-      color: var(--color-emerald-400);
+      color: var(--color-primary-light, var(--color-primary));
       transition: transform 0.2s;
     }
 
@@ -1165,7 +1198,7 @@ onMounted(async () => {
       letter-spacing: 0.12em;
 
       .t-icon {
-        color: $emerald-500;
+        color: var(--color-primary);
         font-size: 16px;
       }
     }
@@ -1203,12 +1236,19 @@ onMounted(async () => {
           &:hover:not(.t-is-disabled) {
             border-color: var(--color-border) !important;
           }
+
+          // 多选标签暗色适配
+          .t-tag {
+            background-color: var(--color-primary-bg) !important;
+            color: var(--color-primary-dark, var(--color-primary)) !important;
+            border-color: var(--color-primary-light, var(--color-border)) !important;
+          }
         }
 
         &.t-is-focused .t-select__wrap {
           background-color: var(--color-bg-container) !important;
           border-color: transparent !important;
-          box-shadow: 0 0 0 2px $emerald-500 !important;
+          box-shadow: 0 0 0 2px var(--color-primary) !important;
           outline: none !important;
         }
       }
@@ -1234,8 +1274,9 @@ onMounted(async () => {
     .zone-basic-info {
       .basic-info-two-col {
         display: grid;
-        grid-template-columns: 40% 60%;
+        grid-template-columns: 2fr 3fr;
         gap: 32px;
+        min-width: 0;
 
         @media (max-width: 900px) {
           grid-template-columns: 1fr;
@@ -1255,12 +1296,12 @@ onMounted(async () => {
         }
 
         .info-col-right {
-          padding-right: 20px;
+          min-width: 0;
         }
 
         .info-card {
           border: 1px solid var(--color-border);
-          border-radius: 16px;
+          border-radius: 12px;
           padding: 20px;
         }
 
@@ -1359,7 +1400,7 @@ onMounted(async () => {
             &.t-is-focused {
               background-color: var(--color-bg-container) !important;
               border-color: transparent !important;
-              box-shadow: 0 0 0 2px $emerald-500 !important;
+              box-shadow: 0 0 0 2px var(--color-primary) !important;
               outline: none !important;
             }
 
@@ -1393,7 +1434,7 @@ onMounted(async () => {
             &.t-is-focused .t-select__wrap {
               background-color: var(--color-bg-container) !important;
               border-color: transparent !important;
-              box-shadow: 0 0 0 2px $emerald-500 !important;
+              box-shadow: 0 0 0 2px var(--color-primary) !important;
               outline: none !important;
             }
 
@@ -1427,7 +1468,7 @@ onMounted(async () => {
             &.t-is-focused {
               background-color: var(--color-bg-container) !important;
               border-color: transparent !important;
-              box-shadow: 0 0 0 2px $emerald-500 !important;
+              box-shadow: 0 0 0 2px var(--color-primary) !important;
               outline: none !important;
             }
 
@@ -1441,7 +1482,7 @@ onMounted(async () => {
             .t-input-number__increase {
               border: none !important;
               background: transparent !important;
-              color: $emerald-500 !important;
+              color: var(--color-primary) !important;
               border-radius: 50% !important;
               width: 24px !important;
               height: 24px !important;
@@ -1450,8 +1491,8 @@ onMounted(async () => {
               transition: all 0.15s ease;
 
               &:hover {
-                background-color: $overlay-emerald-08 !important;
-                color: $emerald-600 !important;
+                background-color: var(--color-primary-bg) !important;
+                color: var(--color-primary-dark, var(--color-primary)) !important;
               }
             }
 
@@ -1513,7 +1554,7 @@ onMounted(async () => {
         margin: 0;
 
         .t-icon {
-          color: $emerald-500;
+          color: var(--color-primary);
           font-size: 16px;
         }
       }
@@ -1537,9 +1578,9 @@ onMounted(async () => {
       gap: 4px;
       font-size: 12px;
       font-weight: 700;
-      color: $emerald-600;
+      color: var(--color-primary);
       padding: var(--space-1-5) 12px;
-      background-color: $overlay-emerald-08;
+      background-color: var(--color-primary-bg);
       border: none;
       border-radius: 8px;
       cursor: pointer;
@@ -1550,8 +1591,8 @@ onMounted(async () => {
       }
 
       &:hover {
-        color: var(--color-primary-deep);
-        background-color: $overlay-emerald-15;
+        color: var(--color-primary-deep, var(--color-primary-dark, var(--color-primary)));
+        background-color: var(--color-primary-light, rgba(0, 0, 0, 0.06));
       }
     }
 
@@ -1561,9 +1602,9 @@ onMounted(async () => {
       gap: 4px;
       font-size: 12px;
       font-weight: 700;
-      color: $emerald-600;
+      color: var(--color-primary);
       padding: var(--space-1-5) 12px;
-      background-color: $overlay-emerald-08;
+      background-color: var(--color-primary-bg);
       border: none;
       border-radius: 8px;
       cursor: pointer;
@@ -1574,8 +1615,8 @@ onMounted(async () => {
       }
 
       &:hover:not(:disabled) {
-        color: var(--color-primary-deep);
-        background-color: $overlay-emerald-15;
+        color: var(--color-primary-deep, var(--color-primary-dark, var(--color-primary)));
+        background-color: var(--color-primary-light, rgba(0, 0, 0, 0.06));
       }
 
       &:disabled {
@@ -1632,7 +1673,7 @@ onMounted(async () => {
         }
 
         &.t-is-checked {
-          background-color: $overlay-emerald-08 !important;
+          background-color: var(--color-primary-bg) !important;
           border-color: var(--color-primary) !important;
           color: var(--color-primary-dark) !important;
         }
@@ -1669,8 +1710,8 @@ onMounted(async () => {
       }
 
       &.nf-calculated {
-        background: linear-gradient(135deg, $overlay-emerald-04, rgba(45, 212, 191, 0.03));
-        border: 1px solid $overlay-emerald-12;
+        background: linear-gradient(135deg, var(--color-primary-bg), rgba(0, 0, 0, 0.02));
+        border: 1px solid var(--color-border-light);
         border-radius: 12px;
         padding: 12px var(--space-3-5);
       }
@@ -1778,17 +1819,17 @@ onMounted(async () => {
       align-items: center;
       justify-content: space-between;
       padding: 12px 16px;
-      background: linear-gradient(135deg, var(--color-emerald-50) 0%, var(--color-emerald-50) 50%, var(--color-info-bg) 100%);
-      border: 1.5px dashed var(--color-emerald-400);
+      background: linear-gradient(135deg, var(--color-primary-bg) 0%, var(--color-primary-bg) 50%, var(--color-info-bg) 100%);
+      border: 1.5px dashed var(--color-primary-light, var(--color-primary));
       border-radius: 12px;
       cursor: pointer;
       transition: all 0.25s ease;
       user-select: none;
 
       &:hover {
-        background: linear-gradient(135deg, #dcfce7 0%, var(--color-primary-bg) 50%, #e0f2fe 100%);
-        border-color: var(--color-emerald-400);
-        box-shadow: 0 2px 8px rgba(34, 197, 94, 0.12);
+        background: linear-gradient(135deg, var(--color-primary-light, rgba(0, 0, 0, 0.06)) 0%, var(--color-primary-bg) 50%, var(--color-info-bg) 100%);
+        border-color: var(--color-primary);
+        box-shadow: 0 2px 8px var(--shadow-brand-xs, rgba(0, 0, 0, 0.08));
         transform: translateY(-1px);
       }
 
@@ -1810,29 +1851,29 @@ onMounted(async () => {
       width: 36px;
       height: 36px;
       border-radius: 10px;
-      background: linear-gradient(135deg, var(--color-emerald-400), var(--color-emerald-600));
+      background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark, var(--color-primary)));
       color: var(--color-text-white);
       flex-shrink: 0;
-      box-shadow: 0 2px 6px rgba(34, 197, 94, 0.3);
+      box-shadow: 0 2px 6px var(--shadow-brand-xs, rgba(0, 0, 0, 0.15));
     }
 
     .excel-collapsed-text {
       font-size: 14px;
       font-weight: 600;
-      color: var(--color-emerald-600);
+      color: var(--color-primary);
     }
 
     .excel-collapsed-hint {
       font-size: 11px;
-      color: var(--color-emerald-400);
-      background: rgba(34, 197, 94, 0.1);
+      color: var(--color-primary-light, var(--color-primary));
+      background: var(--color-primary-bg);
       padding: var(--space-0-5) 8px;
       border-radius: 6px;
       font-weight: 500;
     }
 
     .excel-collapsed-arrow {
-      color: var(--color-emerald-400);
+      color: var(--color-primary-light, var(--color-primary));
       transition: transform 0.2s;
     }
 
@@ -1886,6 +1927,178 @@ onMounted(async () => {
 
     .excel-panel {
       margin-bottom: 0;
+    }
+
+    // ─── 暗色模式适配 ───
+    [data-theme="dark"] {
+
+      // 版本横幅 - 修复亮色硬编码
+      .version-banner {
+        border-color: var(--color-border);
+        background: rgba(234, 179, 8, 0.08);
+
+        .version-banner-desc {
+          color: var(--color-text-tertiary);
+        }
+
+        .version-banner-refs {
+          color: var(--color-warning);
+          background: rgba(234, 179, 8, 0.12);
+        }
+
+        .version-banner-formulas {
+          border-top-color: var(--color-border);
+
+          .formula-list-header {
+            color: var(--color-text-secondary);
+          }
+
+          .formula-list-item {
+            background: var(--color-bg-container-alt);
+            border-color: var(--color-border);
+
+            &:hover {
+              background: var(--color-bg-hover);
+              border-color: var(--color-primary-light);
+              box-shadow: $shadow-elevation-1;
+            }
+          }
+        }
+      }
+
+      // 状态提示条
+      .status-banner--top :deep(.t-alert) {
+        background: var(--color-bg-container-alt) !important;
+      }
+
+      // 基础信息折叠栏 - 修复亮色渐变背景
+      .info-collapsed-bar,
+      .excel-collapsed-bar {
+        background: linear-gradient(135deg, rgba(34, 197, 94, 0.06) 0%, rgba(34, 197, 94, 0.06) 50%, var(--color-info-bg) 100%);
+        border-color: var(--color-primary-light);
+
+        &:hover {
+          background: linear-gradient(135deg, rgba(34, 197, 94, 0.12) 0%, var(--color-primary-bg) 50%, rgba(59, 130, 246, 0.08) 100%);
+        }
+      }
+
+      .info-collapsed-text,
+      .excel-collapsed-text {
+        color: var(--color-primary);
+      }
+
+      .info-collapsed-hint,
+      .excel-collapsed-hint {
+        color: var(--color-primary-light);
+        background: rgba(34, 197, 94, 0.1);
+      }
+
+      .info-collapsed-icon,
+      .excel-collapsed-icon {
+        box-shadow: 0 2px 6px rgba(34, 197, 94, 0.15);
+      }
+
+      // 输入框 focus 边框 - 使用主题色变量替代硬编码
+      .zone-basic-info .field-compact {
+
+        :deep(.t-input.t-is-focused),
+        :deep(.t-input-number.t-is-focused) {
+          box-shadow: 0 0 0 2px var(--color-primary) !important;
+        }
+
+        :deep(.t-select.t-is-focused .t-select__wrap) {
+          box-shadow: 0 0 0 2px var(--color-primary) !important;
+        }
+      }
+
+      .enum-fields-row {
+        :deep(.t-select.t-is-focused .t-select__wrap) {
+          box-shadow: 0 0 0 2px var(--color-primary) !important;
+        }
+      }
+
+      // Excel 展开区域
+      .excel-expanded-area {
+        border-color: var(--color-border);
+      }
+
+      .excel-expanded-header {
+        background: var(--color-bg-container-alt);
+        border-bottom-color: var(--color-border);
+
+        &:hover {
+          background: var(--color-bg-hover);
+        }
+      }
+
+      // 必填星号颜色
+      .field-compact .field-label .required {
+        color: #f87171 !important;
+      }
+
+      // 表单 section 边框
+      .form-section {
+        border-color: var(--color-border);
+      }
+
+      // info-card 暗色边框
+      .zone-basic-info .basic-info-two-col .info-card {
+        border-color: var(--color-border);
+        background: var(--color-bg-container-alt);
+      }
+
+      // 折叠面板暗色适配
+      :deep(.t-collapse) {
+        background-color: transparent;
+      }
+
+      :deep(.t-collapse-panel) {
+        background-color: transparent;
+
+        .t-collapse-panel__header {
+          background-color: var(--color-bg-container-alt);
+
+          &:hover {
+            background-color: var(--color-bg-hover);
+          }
+        }
+
+        .t-collapse-panel__body {
+          background-color: transparent;
+        }
+      }
+
+      // radio 暗色适配
+      :deep(.t-radio-group .t-radio-button) {
+        background-color: var(--color-bg-container-alt) !important;
+        border-color: var(--color-border) !important;
+
+        &:hover:not(.t-is-checked) {
+          background-color: var(--color-bg-hover) !important;
+        }
+      }
+
+      // 营养计算行暗色
+      .nutrition-field-item.nf-calculated {
+        background: linear-gradient(135deg, rgba(34, 197, 94, 0.04), rgba(45, 212, 191, 0.03));
+        border-color: var(--color-border);
+      }
+
+      // 头部按钮 secondary 暗色
+      .detail-header .header-actions .header-action-btn.secondary {
+        background-color: var(--color-bg-container-alt);
+        border: 1px solid var(--color-border);
+
+        &:hover {
+          background-color: var(--color-bg-hover);
+          border-color: var(--color-border);
+        }
+      }
+
+      // 提交审批按钮 active 状态
+      .detail-header .header-actions .submit-review-btn:active {
+        background-color: var(--color-info-dark);
+      }
     }
 
     @keyframes fadeInDown {

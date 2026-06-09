@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from "vue";
 import { useRouter } from "vue-router";
-import { useApprovalStore, type MyMaterialItem, type SortField, type SortOrder } from "@/stores/approval";
+import { useApprovalStore, type MyMaterialItem } from "@/stores/approval";
 import { formatTimestamp } from "@/utils/timeFormat";
 import type { ApprovalItem } from "@/api/approval";
 
@@ -23,41 +23,112 @@ const dateRangeOptions = [
   { label: "近30天", value: "30d" },
 ];
 
-// 排序相关
-type MySortableField = "createdAt" | "formulaName" | "status";
-const mySortableFields: { key: MySortableField; label: string }[] = [
-  { key: "createdAt", label: "时间" },
-  { key: "formulaName", label: "名称" },
-  { key: "status", label: "状态" },
-];
-
-function toggleSort(field: MySortableField) {
+// 排序相关（三态切换：升序→降序→恢复默认）
+function toggleSort(field: "createdAt" | "formulaName" | "status") {
   if (store.myListSortBy === field) {
-    if (store.myListSortOrder === "asc") {
+    if (!store.myListSortOrder || store.myListSortOrder === "asc") {
       store.myListSortOrder = "desc";
     } else {
-      store.myListSortBy = "createdAt";
-      store.myListSortOrder = "desc";
+      // 第三次点击：清除排序，回到默认（无箭头，按时间降序）
+      store.myListSortBy = "";
+      store.myListSortOrder = "";
     }
   } else {
     store.myListSortBy = field;
     store.myListSortOrder = "asc";
   }
-  fetchCurrentData();
 }
 
-// 激活筛选数量
+// 状态排序优先级
+const STATUS_ORDER: Record<string, number> = { draft: 0, pending_review: 1, published: 2, rejected: 3 };
+
+/** 解析时间范围，返回截止时间戳（不含则返回 null） */
+function getDateRangeLimit(range: string): Date | null {
+  if (!range) return null;
+  const now = new Date();
+  const map: Record<string, number> = { today: 0, "3d": 3, "7d": 7, "30d": 30 };
+  const days = map[range];
+  if (days == null) return null;
+  const limit = new Date(now);
+  limit.setDate(limit.getDate() - days);
+  return limit;
+}
+
+/** 前端内存排序+筛选后的配方列表 */
+const displayedFormulas = computed(() => {
+  let list = [...store.mySubmissions];
+
+  // 时间范围筛选
+  const limit = getDateRangeLimit(store.myListDateRange);
+  if (limit) {
+    list = list.filter((item) => new Date(item.createdAt) >= limit);
+  }
+
+  // 排序
+  const field = store.myListSortBy;
+  const order = store.myListSortOrder === "asc" ? 1 : -1;
+
+  if (field === "formulaName") {
+    list.sort((a, b) => order * a.formulaName.localeCompare(b.formulaName, "zh"));
+  } else if (field === "status") {
+    list.sort((a, b) => {
+      const aStatus = a.latestReview?.action === "reject" ? "rejected" : a.status;
+      const bStatus = b.latestReview?.action === "reject" ? "rejected" : b.status;
+      return order * ((STATUS_ORDER[aStatus] ?? 99) - (STATUS_ORDER[bStatus] ?? 99));
+    });
+  } else {
+    // createdAt (默认)
+    list.sort((a, b) => order * (new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()));
+  }
+
+  return list;
+});
+
+/** 前端内存排序+筛选后的原料列表 */
+const displayedMaterials = computed(() => {
+  let list = [...store.myMaterialSubmissions];
+
+  // 时间范围筛选
+  const limit = getDateRangeLimit(store.myListDateRange);
+  if (limit) {
+    list = list.filter((item) => new Date(item.createdAt) >= limit);
+  }
+
+  // 类型筛选
+  if (store.myListMaterialType) {
+    list = list.filter((item) => item.materialType === store.myListMaterialType);
+  }
+
+  // 排序
+  const field = store.myListSortBy;
+  const order = store.myListSortOrder === "asc" ? 1 : -1;
+
+  if (field === "formulaName") {
+    list.sort((a, b) => order * a.name.localeCompare(b.name, "zh"));
+  } else if (field === "status") {
+    list.sort((a, b) => {
+      const aStatus = a.latestReview?.action === "reject" ? "rejected" : a.status;
+      const bStatus = b.latestReview?.action === "reject" ? "rejected" : b.status;
+      return order * ((STATUS_ORDER[aStatus] ?? 99) - (STATUS_ORDER[bStatus] ?? 99));
+    });
+  } else {
+    // createdAt (默认)
+    list.sort((a, b) => order * (new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()));
+  }
+
+  return list;
+});
 const activeFilterCount = computed(() => {
   let count = 0;
-  if (store.myListDateRange.length > 0) count++;
-  if (moduleTab.value === "material" && store.myListMaterialType.length > 0) count++;
+  if (store.myListDateRange) count++;
+  if (moduleTab.value === "material" && store.myListMaterialType) count++;
   return count;
 });
 
 // 重置筛选
 function resetFilters() {
-  store.myListDateRange = [];
-  store.myListMaterialType = [];
+  store.myListDateRange = "";
+  store.myListMaterialType = "";
   fetchCurrentData();
 }
 
@@ -140,20 +211,19 @@ function fetchCurrentData() {
       keyword,
       status,
       page: 1,
-      sortBy: store.myListSortBy === "formulaName" ? "formulaName" :
-              store.myListSortBy === "status" ? undefined as unknown as SortField : "createdAt",
+      sortBy: store.myListSortBy,
       sortOrder: store.myListSortOrder,
-      dateRange: store.myListDateRange[0] || undefined,
+      dateRange: store.myListDateRange || undefined,
     });
   } else {
     store.fetchMyMaterialSubmissions({
       keyword,
       status,
       page: 1,
-      sortBy: store.myListSortBy === "formulaName" ? "name" as SortField :
-              store.myListSortBy === "status" ? undefined as unknown as SortField : "createdAt",
+      sortBy: store.myListSortBy,
       sortOrder: store.myListSortOrder,
-      dateRange: store.myListDateRange[0] || undefined,
+      dateRange: store.myListDateRange || undefined,
+      materialType: store.myListMaterialType || undefined,
     });
   }
 }
@@ -191,7 +261,7 @@ onMounted(() => {
 watch(moduleTab, () => {
   activeTab.value = "all";
   searchKeyword.value = "";
-  store.myListMaterialType = []; // 重置类型筛选
+  store.myListMaterialType = ""; // 重置类型筛选
   store.fetchMySubmissions({ page: 1 });
   store.fetchMyMaterialSubmissions({ page: 1 });
 });
@@ -205,7 +275,7 @@ watch(activeTab, () => {
   <div class="my-approval">
     <div class="my-approval__module-tabs">
       <t-tabs v-model="moduleTab" size="medium">
-        <t-tab-panel value="formula" label="配方审批" />
+        <t-tab-panel value="formula" :label="`配方审批 (${store.myTotal})`" />
         <t-tab-panel value="material" :label="`原料审批 (${store.myMaterialTotal})`" />
       </t-tabs>
     </div>
@@ -217,10 +287,6 @@ watch(activeTab, () => {
           <t-icon name="search" />
         </template>
       </t-input>
-    </div>
-
-    <!-- 可折叠筛选栏 -->
-    <div class="my-approval__filter-bar">
       <div class="my-approval__filter-toggle" @click="filterExpanded = !filterExpanded">
         <t-icon :name="filterExpanded ? 'chevron-up' : 'chevron-down'" />
         <span>筛选</span>
@@ -228,23 +294,25 @@ watch(activeTab, () => {
           {{ activeFilterCount }}
         </t-tag>
       </div>
+    </div>
 
-      <div v-show="filterExpanded" class="my-approval__filter-content">
+    <!-- 可折叠筛选内容 -->
+    <div v-show="filterExpanded" class="my-approval__filter-content">
         <!-- 时间范围 -->
         <div class="my-approval__filter-row">
           <span class="my-approval__filter-label">
             <t-icon name="time" size="14px" /> 时间范围
           </span>
           <div class="my-approval__filter-options">
-            <t-check-tag-group v-model="store.myListDateRange" @change="fetchCurrentData()">
-              <t-check-tag v-for="opt in dateRangeOptions" :key="opt.value" :value="opt.value">
+            <t-radio-group v-model="store.myListDateRange" variant="default" size="small" @change="fetchCurrentData()">
+              <t-radio-button v-for="opt in dateRangeOptions" :key="opt.value" :value="opt.value">
                 {{ opt.label }}
-              </t-check-tag>
-            </t-check-tag-group>
+              </t-radio-button>
+            </t-radio-group>
             <button
-              v-if="store.myListDateRange.length > 0"
+              v-if="store.myListDateRange"
               class="my-approval__filter-clear-btn"
-              @click="store.myListDateRange = []; fetchCurrentData()"
+              @click="store.myListDateRange = ''; fetchCurrentData()"
             >
               <t-icon name="close-circle-filled" size="12px" />
             </button>
@@ -256,17 +324,16 @@ watch(activeTab, () => {
           <span class="my-approval__filter-label">
             <t-icon name="category" size="14px" /> 类型
           </span>
-          <t-check-tag-group v-model="store.myListMaterialType" @change="fetchCurrentData()">
-            <t-check-tag value="">全部</t-check-tag>
-            <t-check-tag value="herb">药材</t-check-tag>
-            <t-check-tag value="supplement">辅料</t-check-tag>
-          </t-check-tag-group>
+          <t-radio-group v-model="store.myListMaterialType" variant="default" size="small" @change="fetchCurrentData()">
+            <t-radio-button value="">全部</t-radio-button>
+            <t-radio-button value="herb">药材</t-radio-button>
+            <t-radio-button value="supplement">辅料</t-radio-button>
+          </t-radio-group>
         </div>
 
         <div class="my-approval__filter-footer">
           <button class="my-approval__reset-btn" @click="resetFilters()">重置筛选</button>
         </div>
-      </div>
     </div>
 
     <template v-if="moduleTab === 'formula'">
@@ -281,13 +348,13 @@ watch(activeTab, () => {
       </div>
 
       <t-loading :loading="store.loading" size="small">
-        <div v-if="store.mySubmissions.length === 0" class="my-approval__empty">
+        <div v-if="displayedFormulas.length === 0" class="my-approval__empty">
           <t-icon name="check-circle" size="48px" color="var(--td-success-color)" />
           <p>暂无审批记录</p>
           <span>提交配方后，审批状态将在此显示</span>
         </div>
 
-        <div v-if="store.mySubmissions.length > 5" class="my-approval__sort-header">
+        <div v-if="displayedFormulas.length > 5" class="my-approval__sort-header">
           <span
             class="my-approval__sort-col my-approval__sort-col--name"
             :class="{ active: store.myListSortBy === 'formulaName' }"
@@ -320,8 +387,8 @@ watch(activeTab, () => {
           </span>
         </div>
 
-        <div v-else class="my-approval__list">
-          <div v-for="item in store.mySubmissions" :key="item.versionId" class="my-approval__item">
+        <div class="my-approval__list">
+          <div v-for="item in displayedFormulas" :key="item.versionId" class="my-approval__item">
             <div class="my-approval__item-header">
               <div class="my-approval__item-info">
                 <router-link :to="`/versions/formula/${item.formulaId}`" class="my-approval__item-name">
@@ -409,13 +476,13 @@ watch(activeTab, () => {
       </div>
 
       <t-loading :loading="store.myMaterialLoading" size="small">
-        <div v-if="store.myMaterialSubmissions.length === 0" class="my-approval__empty">
+        <div v-if="displayedMaterials.length === 0" class="my-approval__empty">
           <t-icon name="check-circle" size="48px" color="var(--td-success-color)" />
           <p>暂无原料审批记录</p>
           <span>创建原料后，可在此提交审批</span>
         </div>
 
-        <div v-if="store.myMaterialSubmissions.length > 5" class="my-approval__sort-header">
+        <div v-if="displayedMaterials.length > 5" class="my-approval__sort-header">
           <span
             class="my-approval__sort-col my-approval__sort-col--name"
             :class="{ active: store.myListSortBy === 'formulaName' }"
@@ -448,8 +515,8 @@ watch(activeTab, () => {
           </span>
         </div>
 
-        <div v-else class="my-approval__list">
-          <div v-for="item in store.myMaterialSubmissions" :key="item.id" class="my-approval__item">
+        <div class="my-approval__list">
+          <div v-for="item in displayedMaterials" :key="item.id" class="my-approval__item">
             <div class="my-approval__item-header">
               <div class="my-approval__item-info">
                 <a class="my-approval__item-name" @click="goMaterial(item.id)">
@@ -518,15 +585,9 @@ watch(activeTab, () => {
           </div>
         </div>
 
-        <div v-if="materialTotalPages > 1" class="my-approval__pagination">
-          <button class="pagination-btn" :class="{ 'pagination-btn--disabled': store.myMaterialPage === 1 }"
-            :disabled="store.myMaterialPage === 1"
-            @click="store.fetchMyMaterialSubmissions({ page: store.myMaterialPage - 1 })">上一页</button>
-          <span class="pagination-page">{{ store.myMaterialPage }} / {{ materialTotalPages }}</span>
-          <button class="pagination-btn"
-            :class="{ 'pagination-btn--disabled': store.myMaterialPage === materialTotalPages }"
-            :disabled="store.myMaterialPage === materialTotalPages"
-            @click="store.fetchMyMaterialSubmissions({ page: store.myMaterialPage + 1 })">下一页</button>
+        <div v-if="store.myMaterialTotal > store.myMaterialPageSize" class="my-approval__pagination">
+          <t-pagination :current="store.myMaterialPage" :page-size="store.myMaterialPageSize" :total="store.myMaterialTotal"
+            size="small" :total-content="false" @current-change="onMaterialPageChange" />
         </div>
       </t-loading>
     </template>
@@ -546,25 +607,32 @@ watch(activeTab, () => {
   }
 
   &__search {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     margin-top: 8px;
     margin-bottom: 4px;
-  }
 
-  &__filter-bar {
-    margin-bottom: 8px;
+    .t-input {
+      flex: 1;
+      min-width: 0;
+    }
   }
 
   &__filter-toggle {
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    padding: 4px 10px;
+    padding: 0 10px;
+    height: 22px;
     border: 1px solid var(--td-component-border);
     border-radius: var(--td-radius-medium);
     cursor: pointer;
     font-size: 12px;
     color: var(--td-text-color-secondary);
     background: var(--td-bg-color-container);
+    white-space: nowrap;
+    flex-shrink: 0;
     transition: all 0.2s;
 
     &:hover {

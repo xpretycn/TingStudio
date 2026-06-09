@@ -420,7 +420,7 @@ $radius-2xl: 2rem;
     margin-left: -32px;
     margin-right: -32px;
     padding: 8px 32px;
-    background-color: rgba(255, 255, 255, 0.80);
+    background-color: var(--color-bg-container);
     backdrop-filter: blur(10px);
     border-bottom: 1px solid var(--color-border-light);
     animation: fadeInDown 0.35s ease both;
@@ -569,7 +569,7 @@ $radius-2xl: 2rem;
     .back-select-btn {
       padding: var(--space-2-5) var(--space-7);
       background: var(--color-primary);
-      color: var(--color-text-white);
+      color: $text-white;
       border: none;
       border-radius: 12px;
       font-size: 13px;
@@ -648,7 +648,7 @@ $radius-2xl: 2rem;
 
         &.base-pill {
           background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
-          color: var(--color-text-white);
+          color: $text-white;
           letter-spacing: 0.05em;
         }
       }
@@ -966,6 +966,68 @@ $radius-2xl: 2rem;
           font-size: 18px;
         }
       }
+    }
+  }
+
+  // ─── 暗色模式适配 ───
+  [data-theme="dark"] {
+    .compare-card {
+      box-shadow: $shadow-elevation-1;
+      border-color: var(--color-border);
+
+      &.is-base-card {
+        border-color: var(--color-primary-lighter);
+        box-shadow: $shadow-elevation-2;
+
+        .card-header {
+          background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(34, 197, 94, 0.08) 100%);
+          border-bottom-color: var(--color-border);
+        }
+      }
+
+      .card-header {
+        background: var(--color-bg-container-alt);
+        border-bottom-color: var(--color-border);
+      }
+
+      .card-body {
+        .ingredient-item {
+          background: var(--color-bg-container-alt);
+          border-color: var(--color-border);
+
+          &.diff-missing {
+            background: rgba(239, 68, 68, 0.08);
+            border-color: rgba(239, 68, 68, 0.2);
+          }
+
+          .ing-bar-track {
+            background: var(--color-border);
+          }
+        }
+      }
+    }
+
+    .add-placeholder-card {
+      border-color: var(--color-border);
+      background: transparent;
+
+      .card-header {
+        border-bottom-color: var(--color-border);
+      }
+
+      .available-item {
+        background: var(--color-bg-container-alt);
+        border-color: var(--color-border);
+
+        &:hover {
+          background: rgba(16, 185, 129, 0.08);
+          box-shadow: none;
+        }
+      }
+    }
+
+    .detail-header {
+      border-bottom-color: var(--color-border);
     }
   }
 }

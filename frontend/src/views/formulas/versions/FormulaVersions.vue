@@ -382,6 +382,9 @@
               <span v-if="selectedVersion.status === 'pending_review' && !isAdmin" class="pending-hint">
                 <t-icon name="time" /> 等待管理员审核中…
               </span>
+              <button class="action-btn action-secondary" @click="handleViewDetail">
+                <t-icon name="browse" /> 配方详情
+              </button>
               <button class="action-btn action-secondary" @click="handleCompare">
                 <t-icon name="book" /> 对比版本
               </button>
@@ -595,6 +598,8 @@ const clearCompareSelection = () => {
 };
 
 const handleCompare = () => router.push(`/versions/compare/${formulaId}`);
+
+const handleViewDetail = () => router.push(`/formulas/${formulaId}`);
 
 const getMaterialVersion = (material: SnapshotMaterial): string => {
   if (!material || (!material.materialId && !material.id)) return '--';
@@ -1350,7 +1355,7 @@ onMounted(async () => {
   .tl-card {
     flex: 1;
     background: var(--color-bg-container);
-    border: 1px solid var(--color-border-light);
+    border: 1px solid var(--color-border);
     border-radius: $radius-xl;
     padding: var(--space-3-5) 16px;
     margin-bottom: var(--space-3-5);
@@ -2210,6 +2215,102 @@ onMounted(async () => {
         border-color: var(--color-primary-light);
         box-shadow: 0 0 0 2px var(--overlay-brand-10);
       }
+    }
+  }
+
+  // ─── 暗色模式适配 ───
+  [data-theme="dark"] {
+    .page-header {
+      .header-title-group .page-title .formula-id-tag {
+        background: var(--color-bg-container-alt);
+        color: var(--color-text-secondary);
+      }
+    }
+
+    .timeline-section,
+    .detail-section {
+      box-shadow: $shadow-elevation-1;
+      border-color: var(--color-border);
+    }
+
+    .section-head,
+    .section-toolbar,
+    .page-header {
+      border-bottom-color: var(--color-border);
+    }
+
+    // 变更行背景色
+    .detail-changes .change-row {
+      &.cr-add {
+        background: rgba(34, 197, 94, 0.08);
+      }
+
+      &.cr-delete {
+        background: rgba(239, 68, 68, 0.08);
+      }
+
+      &.cr-modify {
+        background: rgba(59, 130, 246, 0.08);
+      }
+    }
+
+    // 快照字段背景
+    .detail-snapshot .snapshot-field {
+      background: var(--color-bg-container-alt);
+    }
+
+    // 营养表头
+    .detail-nutrition .nsz-row--header {
+      background: var(--color-bg-container-alt);
+      border-bottom-color: var(--color-border);
+    }
+
+    .detail-nutrition .nsz-row--total {
+      background: var(--color-bg-container-alt);
+      border-top-color: var(--color-border);
+    }
+
+    .detail-nutrition .nsz-row--nrv,
+    .detail-nutrition .nsz-row--nrv-pct {
+      border-top-color: var(--color-border);
+    }
+
+    // 卡片边框
+    .tl-card {
+      border-color: var(--color-border);
+
+      &:hover {
+        box-shadow: $shadow-elevation-2;
+      }
+    }
+
+    .tl-card-footer {
+      border-top-color: var(--color-border);
+    }
+
+    .detail-identity {
+      border-bottom-color: var(--color-border);
+    }
+
+    .detail-actions {
+      border-top-color: var(--color-border);
+    }
+
+    .nutrition-summary-zone {
+      border-color: var(--color-border);
+    }
+
+    .material-header-row {
+      border-bottom-color: var(--color-border);
+    }
+
+    .material-index {
+      border-color: var(--color-border);
+      color: var(--color-text-secondary);
+    }
+
+    .filter-tab.active {
+      box-shadow: none;
     }
   }
 }

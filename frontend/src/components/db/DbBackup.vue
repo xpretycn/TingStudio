@@ -405,3 +405,26 @@ defineExpose({ refresh: fetchBackups })
   }
 }
 </style>
+
+<!-- 全局样式：dialog 通过 teleport 渲染，scoped 无法命中 -->
+<style lang="scss">
+// ─── 暗色模式：创建备份 dialog 内 alert 背景色适配 ───
+[data-theme="dark"] {
+  .create-dialog-body {
+    .t-alert {
+      background: var(--color-bg-container-alt, #241e2b) !important;
+      border-color: var(--color-border, #3d3445) !important;
+
+      .t-alert__title,
+      .t-alert__message,
+      .t-alert__content {
+        color: var(--color-text-regular, #b8aec0);
+      }
+
+      .t-alert__icon {
+        color: var(--color-info-dark, #3da1ff);
+      }
+    }
+  }
+}
+</style>

@@ -1,8 +1,6 @@
 import { Request, Response } from "express";
 import { llmAgentService } from "./llmService.js";
-import { DialogManager, PendingConfirmation, FormSchema } from "./dialogManager.js";
 import { sessionStore } from "./sessionStore.js";
-import type { ToolContext, ToolResult } from "../../../types/ai.js";
 import { getDb } from "../../../config/database-better-sqlite3.js";
 import { checkWriteIntentFromText } from "./agentWriteGuard.js";
 import crypto from "node:crypto";
@@ -20,79 +18,6 @@ interface ChatMessage {
     type: "function";
     function: { name: string; arguments: string };
   }>;
-}
-
-const pendingConfirmations = new Map<string, PendingConfirmation>();
-const pendingForms = new Map<string, FormSchema>();
-
-function savePendingForm(sessionId: string, formSchema: FormSchema): void {
-  try {
-    const db = getDb();
-    db.prepare(
-      "INSERT OR REPLACE INTO agent_pending_forms (session_id, form_id, tool_name, form_json) VALUES (?, ?, ?, ?)",
-    ).run(sessionId, formSchema.formId, formSchema.toolName, JSON.stringify(formSchema));
-  } catch (error) {
-    console.error("[AIAgent] 保存表单状态失败:", error);
-  }
-}
-
-function loadPendingForm(sessionId: string): FormSchema | null {
-  try {
-    const db = getDb();
-    const row = db.prepare("SELECT * FROM agent_pending_forms WHERE session_id = ?").get(sessionId) as any;
-    if (!row) return null;
-    return JSON.parse(row.form_json);
-  } catch (error) {
-    console.error("[AIAgent] 加载表单状态失败:", error);
-    return pendingForms.get(sessionId) || null;
-  }
-}
-
-function deletePendingForm(sessionId: string): void {
-  try {
-    const db = getDb();
-    db.prepare("DELETE FROM agent_pending_forms WHERE session_id = ?").run(sessionId);
-  } catch (error) {
-    console.error("[AIAgent] 删除表单状态失败:", error);
-  }
-  pendingForms.delete(sessionId);
-}
-
-function savePendingConfirmation(sessionId: string, pending: PendingConfirmation): void {
-  try {
-    const db = getDb();
-    db.prepare(
-      "INSERT OR REPLACE INTO agent_pending_confirmations (session_id, tool_name, params_json, confirm_message) VALUES (?, ?, ?, ?)",
-    ).run(sessionId, pending.toolName, JSON.stringify(pending.params), pending.confirmMessage);
-  } catch (error) {
-    console.error("[AIAgent] 保存确认状态失败:", error);
-  }
-}
-
-function loadPendingConfirmation(sessionId: string): PendingConfirmation | null {
-  try {
-    const db = getDb();
-    const row = db.prepare("SELECT * FROM agent_pending_confirmations WHERE session_id = ?").get(sessionId) as any;
-    if (!row) return null;
-    return {
-      toolName: row.tool_name,
-      params: JSON.parse(row.params_json),
-      confirmMessage: row.confirm_message,
-    };
-  } catch (error) {
-    console.error("[AIAgent] 加载确认状态失败:", error);
-    return pendingConfirmations.get(sessionId) || null;
-  }
-}
-
-function deletePendingConfirmation(sessionId: string): void {
-  try {
-    const db = getDb();
-    db.prepare("DELETE FROM agent_pending_confirmations WHERE session_id = ?").run(sessionId);
-  } catch (error) {
-    console.error("[AIAgent] 删除确认状态失败:", error);
-  }
-  pendingConfirmations.delete(sessionId);
 }
 
 class AIAgentController {
@@ -136,8 +61,6 @@ class AIAgentController {
     }
     const deleted = sessionStore.deleteSession(sessionId);
     if (deleted) {
-      deletePendingConfirmation(sessionId);
-      deletePendingForm(sessionId);
       res.json({ success: true, message: "会话已删除" });
     } else {
       res.status(404).json({ success: false, error: "会话不存在" });
@@ -439,144 +362,6 @@ class AIAgentController {
       console.error("[AIAgent] parseForm error:", error);
       res.status(500).json({ code: 1, error: error instanceof Error ? error.message : "表单解析失败" });
     }
-  }
-
-  async submitForm(req: Request, res: Response): Promise<void> {
-    const { sessionId, formId, formData } = req.body;
-    const userId = (req as any).user?.userId;
-
-    if (!userId) {
-      res.status(401).json({ success: false, error: "认证信息缺失" });
-      return;
-    }
-
-    if (!sessionId || !formId || !formData) {
-      res.status(400).json({ success: false, error: "缺少必要参数" });
-      return;
-    }
-
-    const formSchema = loadPendingForm(sessionId);
-    if (!formSchema || formSchema.formId !== formId) {
-      res.status(400).json({ success: false, error: "表单已过期或不存在，请重新发起操作" });
-      return;
-    }
-
-    const validationErrors = this.validateFormData(formSchema, formData);
-    if (validationErrors.length > 0) {
-      res.json({
-        success: false,
-        error: "表单校验失败",
-        validationErrors,
-      });
-      return;
-    }
-
-    deletePendingForm(sessionId);
-
-    const toolName = formSchema.toolName;
-    const context: ToolContext = {
-      userId,
-      userRole: "user",
-      sessionId,
-      requestId: `req_${crypto.randomUUID().substring(0, 9)}`,
-    };
-
-    let toolResult: ToolResult;
-    try {
-      const { toolRegistry } = await import("./toolRegistry.js");
-      toolResult = await toolRegistry.execute(toolName, formData, context);
-    } catch (error) {
-      toolResult = {
-        success: false,
-        error: error instanceof Error ? error.message : "工具执行失败",
-      };
-    }
-
-    sessionStore.addMessage(sessionId, "user", `[表单提交] ${formSchema.title}`);
-    sessionStore.addMessage(
-      sessionId,
-      "assistant",
-      toolResult.success ? `${formSchema.title}操作成功` : `操作失败：${toolResult.error}`,
-      {
-        toolCalls: [{ name: toolName, arguments: formData }],
-        toolResults: [toolResult],
-      },
-    );
-    sessionStore.updateSessionActivity(sessionId);
-
-    res.json({
-      success: toolResult.success,
-      data: toolResult.data || toolResult.error,
-      toolName,
-    });
-  }
-
-  async getPendingForm(req: Request, res: Response): Promise<void> {
-    const userId = (req as any).user?.userId;
-    const { sessionId } = req.params;
-
-    if (!userId) {
-      res.status(401).json({ success: false, error: "认证信息缺失" });
-      return;
-    }
-
-    const formSchema = loadPendingForm(sessionId);
-    if (!formSchema) {
-      res.json({ success: true, data: null });
-      return;
-    }
-
-    res.json({ success: true, data: formSchema });
-  }
-
-  private validateFormData(
-    formSchema: FormSchema,
-    formData: Record<string, any>,
-  ): Array<{ field: string; message: string }> {
-    const errors: Array<{ field: string; message: string }> = [];
-
-    for (const field of formSchema.fields) {
-      const value = formData[field.name];
-
-      if (field.required && (value === undefined || value === null || value === "")) {
-        errors.push({ field: field.name, message: `${field.label}不能为空` });
-        continue;
-      }
-
-      if (value === undefined || value === null || value === "") continue;
-
-      if (field.type === "number") {
-        const num = Number(value);
-        if (isNaN(num)) {
-          errors.push({ field: field.name, message: `${field.label}必须是数字` });
-          continue;
-        }
-        if (field.validation?.min !== undefined && num < field.validation.min) {
-          errors.push({
-            field: field.name,
-            message: field.validation.message || `${field.label}不能小于${field.validation.min}`,
-          });
-        }
-        if (field.validation?.max !== undefined && num > field.validation.max) {
-          errors.push({
-            field: field.name,
-            message: field.validation.message || `${field.label}不能大于${field.validation.max}`,
-          });
-        }
-      }
-
-      if (field.validation?.pattern) {
-        const regex = new RegExp(field.validation.pattern);
-        if (!regex.test(String(value))) {
-          errors.push({
-            field: field.name,
-            message: field.validation.message || `${field.label}格式不正确`,
-          });
-        }
-      }
-    }
-
-    return errors;
   }
 
   private deserializeFloatConfig(row: any): Record<string, any> {

@@ -34,6 +34,10 @@
         <template #icon><t-icon name="refresh" /></template>
         刷新
       </t-button>
+      <t-button theme="default" variant="outline" size="small" @click="toggleExpandAll">
+        <template #icon><t-icon :name="isAllExpanded ? 'unfold-less' : 'unfold-more'" /></template>
+        {{ isAllExpanded ? '全部折叠' : '全部展开' }}
+      </t-button>
     </div>
 
 <t-loading :loading="loading && categories.length === 0">
@@ -72,6 +76,21 @@
               </div>
 
               <p class="script-desc">{{ script.description }}</p>
+
+              <div v-if="script.impact || script.reversible !== undefined || script.usageNote" class="script-guide">
+                <div v-if="script.impact" class="guide-item guide-item--impact">
+                  <t-icon name="error-circle" size="14px" />
+                  <span>影响: {{ script.impact }}</span>
+                </div>
+                <div v-if="script.reversible !== undefined" class="guide-item" :class="script.reversible ? 'guide-item--reversible' : 'guide-item--irreversible'">
+                  <t-icon :name="script.reversible ? 'check-circle' : 'close-circle'" size="14px" />
+                  <span>{{ script.reversible ? '可撤回' : '不可撤回' }}</span>
+                </div>
+                <div v-if="script.usageNote" class="guide-item guide-item--note">
+                  <t-icon name="info-circle" size="14px" />
+                  <span>{{ script.usageNote }}</span>
+                </div>
+              </div>
 
               <div class="script-meta">
                 <span class="meta-item">
@@ -192,11 +211,19 @@
     cancel-btn="取消" @confirm="confirmExecution">
       <div class="confirm-body">
         <div class="confirm-warning">
-          <t-icon name="error-circle" size="20px" color="#F0A040" />
+          <t-icon name="error-circle" size="20px" class="confirm-warning-icon" />
           <span>即将执行脚本：{{ confirmScript?.name }}</span>
         </div>
         <p class="confirm-desc">{{ confirmScript?.description }}</p>
         <p class="confirm-meta">预计耗时：{{ confirmScript?.estimatedTime }}</p>
+        <div v-if="confirmScript?.impact" class="confirm-impact">
+          <t-icon name="error-circle" size="14px" />
+          <span>影响：{{ confirmScript.impact }}</span>
+        </div>
+        <div v-if="confirmScript?.reversible === false" class="confirm-irreversible">
+          <t-icon name="close-circle" size="14px" />
+          <span>此操作不可撤回！</span>
+        </div>
         <t-alert theme="warning" message="请确认已做好数据备份！" />
       </div>
     </t-dialog>
@@ -244,6 +271,30 @@
           <ol class="detail-list">
             <li v-for="(item, i) in detailScript.details" :key="i">{{ item }}</li>
           </ol>
+        </div>
+
+        <div v-if="detailScript.impact || detailScript.reversible !== undefined || detailScript.usageNote" class="drawer-section">
+          <h4 class="section-title">
+            <t-icon name="help-circle" size="16px" /> 使用指导
+          </h4>
+          <div v-if="detailScript.impact" class="guide-drawer-item">
+            <span class="guide-drawer-label">执行影响</span>
+            <span class="guide-drawer-value">{{ detailScript.impact }}</span>
+          </div>
+          <div v-if="detailScript.reversible !== undefined" class="guide-drawer-item">
+            <span class="guide-drawer-label">是否可撤回</span>
+            <t-tag
+              :theme="detailScript.reversible ? 'success' : 'danger'"
+              variant="light"
+              size="small"
+            >
+              {{ detailScript.reversible ? '可撤回' : '不可撤回' }}
+            </t-tag>
+          </div>
+          <div v-if="detailScript.usageNote" class="guide-drawer-item">
+            <span class="guide-drawer-label">使用建议</span>
+            <span class="guide-drawer-value">{{ detailScript.usageNote }}</span>
+          </div>
         </div>
 
         <div v-if="detailScript.lastExecutedAt" class="drawer-section">
@@ -421,6 +472,9 @@ export interface ScriptDefinition {
     estimatedTime: string;
     scriptPath: string;
     details?: string[];
+    impact?: string;
+    reversible?: boolean;
+    usageNote?: string;
     lastExecutedAt?: string | null;
     lastStatus?: string | null;
 }
@@ -572,6 +626,19 @@ function handleClearSearch() {
     searchKeyword.value = "";
 }
 
+const isAllExpanded = computed(() => {
+    const catsWithScripts = filteredCategories.value.filter((c) => c.scripts.length);
+    return catsWithScripts.length > 0 && catsWithScripts.every((c) => activePanels.value.includes(c.key));
+});
+
+function toggleExpandAll() {
+    if (isAllExpanded.value) {
+        activePanels.value = [];
+    } else {
+        activePanels.value = filteredCategories.value.map((c) => c.key);
+    }
+}
+
 async function fetchScriptList() {
     loading.value = true;
     try {
@@ -595,7 +662,8 @@ async function fetchScriptList() {
             }
         }
         categories.value = cats;
-        activePanels.value = cats.filter((c) => c.scripts.length).map((c) => c.key);
+        const catsWithScripts = cats.filter((c) => c.scripts.length);
+        activePanels.value = catsWithScripts.length > 0 ? [catsWithScripts[0].key] : [];
     } catch {
         // interceptor handles error
     } finally {
@@ -807,7 +875,7 @@ defineExpose({ refresh: fetchScriptList });
 @use '@/assets/styles/variables.scss' as *;
 
 .db-scripts {
-    padding: $space-4 0;
+    padding: $space-2 0;
 }
 
 .scripts-toolbar {
@@ -951,6 +1019,65 @@ defineExpose({ refresh: fetchScriptList });
     line-height: $line-height-relaxed;
 }
 
+.script-guide {
+    display: flex;
+    flex-direction: column;
+    gap: $space-1-5;
+    margin-bottom: $space-2;
+    padding: $space-2 $space-3;
+    background: var(--color-bg-container-alt);
+    border-radius: $radius-md;
+    border: 1px solid var(--color-border-light);
+}
+
+.guide-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 4px;
+    font-size: $font-size-caption;
+    line-height: $line-height-relaxed;
+
+    &--impact {
+        color: var(--color-warning, #f0a040);
+    }
+
+    &--reversible {
+        color: $color-success;
+    }
+
+    &--irreversible {
+        color: $color-danger;
+    }
+
+    &--note {
+        color: var(--color-text-secondary);
+    }
+}
+
+.guide-drawer-item {
+    display: flex;
+    flex-direction: column;
+    gap: $space-1;
+    padding: $space-2 0;
+    border-bottom: 1px solid var(--color-border-light);
+
+    &:last-child {
+        border-bottom: none;
+    }
+}
+
+.guide-drawer-label {
+    font-size: $font-size-caption;
+    color: var(--color-text-secondary);
+    font-weight: $font-weight-medium;
+}
+
+.guide-drawer-value {
+    font-size: $font-size-body-sm;
+    color: var(--color-text-primary);
+    line-height: $line-height-relaxed;
+}
+
 .script-meta {
     display: flex;
     align-items: center;
@@ -1067,6 +1194,10 @@ defineExpose({ refresh: fetchScriptList });
         font-weight: $font-weight-semibold;
         color: var(--color-text-primary);
         margin-bottom: $space-3;
+
+        .confirm-warning-icon {
+            color: var(--color-warning, #f0a040);
+        }
     }
 
     .confirm-desc {
@@ -1080,6 +1211,25 @@ defineExpose({ refresh: fetchScriptList });
         font-size: $font-size-caption;
         color: var(--color-text-placeholder);
         margin: 0 0 $space-3;
+    }
+
+    .confirm-impact {
+        display: flex;
+        align-items: flex-start;
+        gap: 4px;
+        font-size: $font-size-caption;
+        color: var(--color-warning, #f0a040);
+        margin-bottom: $space-2;
+    }
+
+    .confirm-irreversible {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: $font-size-caption;
+        color: $color-danger;
+        font-weight: $font-weight-semibold;
+        margin-bottom: $space-3;
     }
 }
 
@@ -1377,6 +1527,29 @@ defineExpose({ refresh: fetchScriptList });
     .card-actions {
         .t-button {
             flex: 1;
+        }
+    }
+}
+</style>
+
+<!-- 全局样式：dialog 通过 teleport 渲染，scoped 无法命中 -->
+<style lang="scss">
+// ─── 暗色模式：脚本确认 dialog 内 alert 背景色适配 ───
+[data-theme="dark"] {
+    .confirm-body {
+        .t-alert {
+            background: var(--color-bg-container-alt, #241e2b) !important;
+            border-color: var(--color-border, #3d3445) !important;
+
+            .t-alert__title,
+            .t-alert__message,
+            .t-alert__content {
+                color: var(--color-text-regular, #b8aec0);
+            }
+
+            .t-alert__icon {
+                color: var(--color-warning, #f0a040);
+            }
         }
     }
 }

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import type { ClaimResult } from "@/api/nutrition";
 
 const props = defineProps<{
@@ -14,6 +14,9 @@ const unsatisfiedClaims = computed(() =>
   props.claims.filter((c) => !c.satisfied)
 );
 
+const showSatisfied = ref(true);
+const showUnsatisfied = ref(true);
+
 function formatGap(gap: number): string {
   if (gap > 0) return `+${gap.toFixed(1)}`;
   return gap.toFixed(1);
@@ -26,16 +29,35 @@ function formatValue(val: number, unit: string): string {
 
 <template>
   <t-card class="nutrition-claims-card" :bordered="true">
+    <template #title>
+      <div class="card-title">
+        <t-icon name="check-circle" class="card-title-icon" />
+        <span>含量声称判定</span>
+        <span class="claims-summary-inline">
+          <t-tag theme="success" size="small" variant="light" class="summary-tag">
+            已满足 {{ satisfiedClaims.length }}
+          </t-tag>
+          <t-tag theme="default" size="small" variant="light" class="summary-tag">
+            未满足 {{ unsatisfiedClaims.length }}
+          </t-tag>
+        </span>
+      </div>
+    </template>
+    <template #subtitle>
+      <span>GB 28050 附录 C.1 · 按声明含量阈值判定</span>
+    </template>
+
     <div class="claims-body">
       <div v-if="satisfiedClaims.length > 0" class="claims-group claims-group--satisfied">
-        <div class="group-header">
-          <span class="group-icon">&#10003;</span>
+        <div class="group-header" @click="showSatisfied = !showSatisfied">
+          <span class="group-icon">✓</span>
           <span class="group-title">已满足的声称</span>
           <t-tag theme="success" size="small" variant="light">
             {{ satisfiedClaims.length }}
           </t-tag>
+          <t-icon :name="showSatisfied ? 'chevron-down' : 'chevron-right'" class="toggle-icon" />
         </div>
-        <div class="claims-list">
+        <div v-show="showSatisfied" class="claims-list">
           <div
             v-for="claim in satisfiedClaims"
             :key="claim.claim"
@@ -48,23 +70,26 @@ function formatValue(val: number, unit: string): string {
             <div class="claim-detail">
               <span class="detail-value">{{ formatValue(claim.currentValue, claim.unit) }}</span>
               <span class="detail-vs">vs</span>
-              <span class="detail-threshold">阈值 {{ formatValue(claim.threshold, claim.unit) }}</span>
-              <span class="detail-gap detail-gap--positive">{{ formatGap(claim.gap) }}</span>
+              <span class="detail-threshold">{{ formatValue(claim.threshold, claim.unit) }}</span>
             </div>
-            <div class="claim-standard">{{ claim.standard }}</div>
+            <div class="claim-meta">
+              <span class="detail-gap detail-gap--positive">{{ formatGap(claim.gap) }}</span>
+              <span class="claim-standard">{{ claim.standard }}</span>
+            </div>
           </div>
         </div>
       </div>
 
       <div v-if="unsatisfiedClaims.length > 0" class="claims-group claims-group--unsatisfied">
-        <div class="group-header">
-          <span class="group-icon">&#10007;</span>
+        <div class="group-header" @click="showUnsatisfied = !showUnsatisfied">
+          <span class="group-icon">✗</span>
           <span class="group-title">未满足的声称</span>
           <t-tag theme="default" size="small" variant="light">
             {{ unsatisfiedClaims.length }}
           </t-tag>
+          <t-icon :name="showUnsatisfied ? 'chevron-down' : 'chevron-right'" class="toggle-icon" />
         </div>
-        <div class="claims-list">
+        <div v-show="showUnsatisfied" class="claims-list">
           <div
             v-for="claim in unsatisfiedClaims"
             :key="claim.claim"
@@ -77,21 +102,19 @@ function formatValue(val: number, unit: string): string {
             <div class="claim-detail">
               <span class="detail-value">{{ formatValue(claim.currentValue, claim.unit) }}</span>
               <span class="detail-vs">vs</span>
-              <span class="detail-threshold">阈值 {{ formatValue(claim.threshold, claim.unit) }}</span>
-              <span class="detail-gap detail-gap--negative">{{ formatGap(claim.gap) }}</span>
+              <span class="detail-threshold">{{ formatValue(claim.threshold, claim.unit) }}</span>
             </div>
-            <div class="claim-standard">{{ claim.standard }}</div>
+            <div class="claim-meta">
+              <span class="detail-gap detail-gap--negative">{{ formatGap(claim.gap) }}</span>
+              <span class="claim-standard">{{ claim.standard }}</span>
+            </div>
           </div>
         </div>
       </div>
 
       <div v-if="claims.length === 0" class="claims-empty">
+        <t-icon name="info-circle" size="20px" />
         <span>暂无含量声称判定数据</span>
-      </div>
-
-      <div class="claims-source">
-        <t-icon name="info-circle" size="12px" />
-        <span>标准来源：GB 28050 附录C.1</span>
       </div>
     </div>
   </t-card>
@@ -99,10 +122,10 @@ function formatValue(val: number, unit: string): string {
 
 <style lang="scss" scoped>
 .nutrition-claims-card {
-  border-radius: $radius-xl;
+  border-radius: $radius-xl !important;
 
   :deep(.t-card__body) {
-    padding: $space-4;
+    padding: $space-5 !important;
   }
 }
 
@@ -117,11 +140,20 @@ function formatValue(val: number, unit: string): string {
     display: flex;
     align-items: center;
     gap: $space-1-5;
-    margin-bottom: $space-2;
+    margin-bottom: $space-2-5;
+    cursor: pointer;
+    user-select: none;
+    padding: $space-1 0;
 
     .group-icon {
-      font-size: $font-size-h3;
+      font-size: $font-size-body;
       font-weight: $font-weight-bold;
+      width: 18px;
+      height: 18px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: $radius-circle;
     }
 
     .group-title {
@@ -129,27 +161,42 @@ function formatValue(val: number, unit: string): string {
       font-weight: $font-weight-semibold;
       color: var(--color-text-primary);
     }
+
+    .toggle-icon {
+      margin-left: auto;
+      color: var(--color-text-placeholder);
+    }
   }
 
-  &--satisfied .group-icon {
+  &--satisfied .group-header .group-icon {
     color: $color-success;
+    background: $color-success-bg;
   }
 
-  &--unsatisfied .group-icon {
-    color: var(--color-text-placeholder);
+  &--unsatisfied .group-header .group-icon {
+    color: var(--color-danger);
+    background: var(--color-danger-bg);
   }
 }
 
 .claims-list {
-  display: flex;
-  flex-direction: column;
-  gap: $space-2;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: $space-2-5;
+
+  @media (max-width: 1280px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 .claim-item {
-  padding: $space-3;
+  padding: $space-2-5 $space-3;
   border-radius: $radius-md;
   border: 1px solid transparent;
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
+  min-width: 0;
 
   &--satisfied {
     background: $color-success-bg;
@@ -165,17 +212,21 @@ function formatValue(val: number, unit: string): string {
     display: flex;
     align-items: baseline;
     gap: $space-1;
-    margin-bottom: $space-1;
+    min-width: 0;
 
     .claim-name {
-      font-size: $font-size-body;
+      font-size: $font-size-body-sm;
       font-weight: $font-weight-semibold;
       color: var(--color-text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .claim-field {
-      font-size: $font-size-caption;
+      font-size: $font-size-micro;
       color: var(--color-text-placeholder);
+      flex-shrink: 0;
     }
   }
 
@@ -184,7 +235,7 @@ function formatValue(val: number, unit: string): string {
     align-items: center;
     gap: $space-1;
     font-size: $font-size-caption;
-    margin-bottom: $space-0-5;
+    color: var(--color-text-secondary);
 
     .detail-value {
       font-weight: $font-weight-medium;
@@ -197,13 +248,20 @@ function formatValue(val: number, unit: string): string {
     }
 
     .detail-threshold {
-      color: var(--color-text-secondary);
+      font-variant-numeric: tabular-nums;
     }
+  }
+
+  .claim-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: $space-1;
 
     .detail-gap {
+      font-size: $font-size-caption;
       font-weight: $font-weight-semibold;
       font-variant-numeric: tabular-nums;
-      margin-left: $space-1;
 
       &--positive {
         color: $color-success;
@@ -213,28 +271,46 @@ function formatValue(val: number, unit: string): string {
         color: $color-danger;
       }
     }
-  }
 
-  .claim-standard {
-    font-size: $font-size-micro;
-    color: var(--color-text-placeholder);
+    .claim-standard {
+      font-size: $font-size-micro;
+      color: var(--color-text-placeholder);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
   }
 }
 
 .claims-empty {
-  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $space-2;
   padding: $space-6 0;
   font-size: $font-size-body-sm;
   color: var(--color-text-placeholder);
 }
 
-.claims-source {
+.card-title {
   display: flex;
   align-items: center;
-  gap: $space-1;
-  font-size: $font-size-micro;
-  color: var(--color-text-placeholder);
-  padding-top: $space-2;
-  border-top: 1px solid var(--color-border-light);
+  gap: $space-2;
+
+  .card-title-icon {
+    color: $color-success;
+    font-size: $font-size-h4;
+  }
+
+  .claims-summary-inline {
+    display: inline-flex;
+    align-items: center;
+    gap: $space-1;
+    margin-left: $space-1;
+
+    .summary-tag {
+      font-variant-numeric: tabular-nums;
+    }
+  }
 }
 </style>

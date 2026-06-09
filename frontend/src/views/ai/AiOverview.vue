@@ -577,7 +577,7 @@ onMounted(async () => {
     border-radius: var(--radius-4xl) !important;
     overflow: hidden;
     border: none;
-    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
 
     :deep(.t-card__body) {
       padding: 0;
@@ -631,7 +631,7 @@ onMounted(async () => {
             align-items: center;
             gap: 8px;
             padding: 8px var(--space-3-5);
-            background: $overlay-emerald-04;
+            background: var(--color-primary-bg);
             border: 1px solid rgba(148, 163, 184, 0.18);
             border-radius: 14px;
             color: var(--color-text-secondary);
@@ -644,17 +644,17 @@ onMounted(async () => {
 
             &:hover {
               opacity: 1;
-              background: $overlay-emerald-08;
-              border-color: $overlay-emerald-25;
+              background: var(--color-primary-lightest);
+              border-color: var(--color-primary-lighter);
               transform: translateY(-1px);
             }
 
             &.active {
-              background: linear-gradient(135deg, $overlay-emerald-12 0%, rgba(45, 212, 191, 0.08) 100%);
-              border-color: $overlay-emerald-35;
+              background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-bg) 100%);
+              border-color: var(--color-primary);
               opacity: 1;
               color: var(--color-primary-dark);
-              box-shadow: 0 4px 12px -2px $overlay-emerald-12;
+              box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.1);
             }
 
             .model-check-icon {
@@ -688,7 +688,7 @@ onMounted(async () => {
               justify-content: center;
               font-size: 13px;
               font-weight: 700;
-              background: $overlay-emerald-08;
+              background: var(--color-primary-bg);
               border-radius: 6px;
             }
 
@@ -818,7 +818,7 @@ onMounted(async () => {
       &.active {
         background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
         color: white;
-        box-shadow: 0 4px 12px $overlay-emerald-25;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         border-color: transparent;
         font-weight: 600;
       }
@@ -898,11 +898,11 @@ onMounted(async () => {
       align-items: center;
       justify-content: center;
       transition: all $transition-normal;
-      box-shadow: 0 4px 12px $overlay-emerald-25;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
 
       &:hover:not(:disabled) {
         transform: scale(1.05);
-        box-shadow: 0 6px 16px $overlay-emerald-35;
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
       }
 
       &:disabled {
@@ -1029,7 +1029,7 @@ onMounted(async () => {
     background-color: var(--color-bg-container);
     border-radius: var(--radius-4xl);
     padding: 32px;
-    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
     border: 1px solid var(--color-bg-page);
 
     &--assistant {
@@ -1038,7 +1038,7 @@ onMounted(async () => {
       color: var(--color-text-white);
       position: relative;
       overflow: hidden;
-      box-shadow: 0 20px 25px -5px $overlay-emerald-15, 0 10px 10px -5px $overlay-emerald-04;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 10px 10px -5px rgba(0, 0, 0, 0.03);
     }
   }
 

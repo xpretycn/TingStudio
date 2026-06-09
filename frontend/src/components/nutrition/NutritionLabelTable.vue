@@ -1,154 +1,341 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import type { NutritionLabelItem } from "@/api/nutrition";
+import type { NutritionLabelResult } from "@/api/nutrition";
 
-const props = withDefaults(defineProps<{
-  items?: NutritionLabelItem[];
-}>(), {
-  items: () => [],
+const props = defineProps<{
+  label?: NutritionLabelResult | null;
+}>();
+
+interface NutrientMeta {
+  label: string;
+  unit: string;
+  isCore: boolean;
+}
+
+const NUTRIENT_META: Record<string, NutrientMeta> = {
+  energy:       { label: "能量",       unit: "kJ",  isCore: true },
+  protein:      { label: "蛋白质",     unit: "g",   isCore: true },
+  fat:          { label: "脂肪",       unit: "g",   isCore: true },
+  carbohydrate: { label: "碳水化合物", unit: "g",   isCore: true },
+  sodium:       { label: "钠",         unit: "mg",  isCore: true },
+  fiber:        { label: "膳食纤维",   unit: "g",   isCore: false },
+  sugars:       { label: "糖",         unit: "g",   isCore: false },
+  potassium:    { label: "钾",         unit: "mg",  isCore: false },
+  calcium:      { label: "钙",         unit: "mg",  isCore: false },
+  iron:         { label: "铁",         unit: "mg",  isCore: false },
+  zinc:         { label: "锌",         unit: "mg",  isCore: false },
+  magnesium:    { label: "镁",         unit: "mg",  isCore: false },
+  phosphorus:   { label: "磷",         unit: "mg",  isCore: false },
+  vitaminA:     { label: "维生素A",    unit: "μg",  isCore: false },
+  vitaminC:     { label: "维生素C",    unit: "mg",  isCore: false },
+  vitaminD:     { label: "维生素D",    unit: "μg",  isCore: false },
+  vitaminE:     { label: "维生素E",    unit: "mg",  isCore: false },
+  vitaminK:     { label: "维生素K",    unit: "μg",  isCore: false },
+  vitaminB1:    { label: "维生素B1",   unit: "mg",  isCore: false },
+  vitaminB2:    { label: "维生素B2",   unit: "mg",  isCore: false },
+  vitaminB3:    { label: "维生素B3",   unit: "mg",  isCore: false },
+  vitaminB6:    { label: "维生素B6",   unit: "mg",  isCore: false },
+  vitaminB12:   { label: "维生素B12",  unit: "μg",  isCore: false },
+  folate:       { label: "叶酸",       unit: "μg",  isCore: false },
+  cholesterol:  { label: "胆固醇",     unit: "mg",  isCore: false },
+  transFat:     { label: "反式脂肪酸", unit: "g",   isCore: false },
+  saturatedFat: { label: "饱和脂肪酸", unit: "g",   isCore: false },
+};
+
+// 0界限归零阈值
+const ZERO_THRESHOLD: Record<string, number> = {
+  energy: 17, protein: 0.5, fat: 0.5, carbohydrate: 0.5, sodium: 5,
+};
+
+const CORE_ORDER = ["energy", "protein", "fat", "carbohydrate", "sodium"];
+
+interface LabelItem {
+  field: string;
+  label: string;
+  value: number;
+  unit: string;
+  nrvPercent: number | null;
+  isZero: boolean;
+  isCore: boolean;
+}
+
+const items = computed<LabelItem[]>(() => {
+  const per100g = props.label?.per100g;
+  const nrvPercent = props.label?.nrvPercent;
+  if (!per100g) return [];
+
+  const result: LabelItem[] = [];
+  // 核心营养素按固定顺序
+  for (const field of CORE_ORDER) {
+    const meta = NUTRIENT_META[field];
+    if (!meta || per100g[field] === undefined) continue;
+    const rawValue = per100g[field];
+    const threshold = ZERO_THRESHOLD[field];
+    const isZero = threshold !== undefined && rawValue <= threshold;
+    result.push({
+      field,
+      label: meta.label,
+      value: isZero ? 0 : rawValue,
+      unit: meta.unit,
+      nrvPercent: nrvPercent?.[field] ?? null,
+      isZero,
+      isCore: true,
+    });
+  }
+  // 扩展营养素按数据中的出现顺序
+  for (const [field, rawValue] of Object.entries(per100g)) {
+    if (CORE_ORDER.includes(field)) continue;
+    const meta = NUTRIENT_META[field];
+    if (!meta) continue;
+    const threshold = ZERO_THRESHOLD[field];
+    const isZero = threshold !== undefined && rawValue <= threshold;
+    result.push({
+      field,
+      label: meta.label,
+      value: isZero ? 0 : rawValue,
+      unit: meta.unit,
+      nrvPercent: nrvPercent?.[field] ?? null,
+      isZero,
+      isCore: false,
+    });
+  }
+  return result;
 });
 
-const safeItems = computed(() => props.items ?? []);
+const coreItems = computed(() => items.value.filter((i) => i.isCore));
+const extendedItems = computed(() => items.value.filter((i) => !i.isCore));
+const hasExtended = computed(() => extendedItems.value.length > 0);
 
-const sortedItems = computed(() => {
-  const core = safeItems.value.filter((i) => i.isCore);
-  const extended = safeItems.value.filter((i) => !i.isCore);
-  return [...core, ...extended];
-});
-
-const hasExtended = computed(() => safeItems.value.some((i) => !i.isCore));
-
-function formatValue(item: NutritionLabelItem): string {
+function formatValue(item: LabelItem): string {
   if (item.isZero) return "0";
   return item.value.toFixed(item.value < 10 ? 1 : 0);
 }
 
 function formatNrv(nrv: number | null): string {
   if (nrv === null || nrv === 0) return "--";
-  return `${nrv.toFixed(0)}%`;
+  return `NRV${nrv.toFixed(1)}%`;
 }
 
-const columns = computed(() => [
-  { colKey: "label", title: "项目", width: "40%" },
-  { colKey: "valueDisplay", title: "每100g", width: "30%" },
-  { colKey: "nrvDisplay", title: "NRV%", width: "30%" },
-]);
+interface NutrientIcon {
+  icon: string;
+  colorClass: string;
+}
 
-const tableData = computed(() =>
-  sortedItems.value.map((item) => ({
-    ...item,
-    valueDisplay: `${formatValue(item)} ${item.unit}`,
-    nrvDisplay: formatNrv(item.nrvPercent),
-    _isCore: item.isCore,
-  }))
-);
+const nutrientIconMap: Record<string, NutrientIcon> = {
+  energy:       { icon: "flashlight",      colorClass: "nl-icon--energy" },
+  protein:      { icon: "flag",            colorClass: "nl-icon--protein" },
+  fat:          { icon: "rain-light",      colorClass: "nl-icon--fat" },
+  carbohydrate: { icon: "chart-pie",       colorClass: "nl-icon--carb" },
+  sodium:       { icon: "precise-monitor", colorClass: "nl-icon--sodium" },
+  fiber:        { icon: "tree-round-dot",  colorClass: "nl-icon--fiber" },
+  sugars:       { icon: "heart",           colorClass: "nl-icon--sugar" },
+  calcium:      { icon: "circle",          colorClass: "nl-icon--mineral" },
+  iron:         { icon: "circle",          colorClass: "nl-icon--mineral" },
+  zinc:         { icon: "circle",          colorClass: "nl-icon--mineral" },
+  potassium:    { icon: "circle",          colorClass: "nl-icon--mineral" },
+};
+
+const DEFAULT_ICON: NutrientIcon = { icon: "circle", colorClass: "nl-icon--default" };
+
+function getIcon(field: string): NutrientIcon {
+  return nutrientIconMap[field] ?? DEFAULT_ICON;
+}
 </script>
 
 <template>
-  <div class="nutrition-label-table">
-    <div class="label-header">
-      <span class="label-title">营养成分表</span>
-      <span class="label-subtitle">每100g</span>
-    </div>
-    <t-table
-      :data="tableData"
-      :columns="columns"
-      row-key="field"
-      :bordered="true"
-      table-layout="auto"
-      :row-class-name="(_row: Record<string, unknown>, _index: number, row: Record<string, unknown>) => (row._isCore ? 'row-core' : 'row-extended')"
-      size="small"
-      :header-affixed-top="false"
-      disable-data-page
-    >
-      <template #label="{ row }">
-        <span :class="{ 'label-core': row._isCore }">{{ row.label }}</span>
-      </template>
-      <template #valueDisplay="{ row }">
-        <span :class="{ 'value-zero': row.isZero }">{{ row.valueDisplay }}</span>
-      </template>
-      <template #nrvDisplay="{ row }">
-        <span class="nrv-cell">{{ row.nrvDisplay }}</span>
-      </template>
-    </t-table>
-    <div v-if="hasExtended" class="label-divider-label">
-      <span>— 核心营养素以上，扩展营养素以下 —</span>
-    </div>
+  <div class="nutrition-label-list">
+    <template v-if="items.length > 0">
+      <div
+        v-for="item in coreItems"
+        :key="item.field"
+        class="nl-item"
+        :class="{ 'nl-item--zero': item.isZero }"
+      >
+        <div class="nl-item-icon" :class="getIcon(item.field).colorClass">
+          <t-icon :name="getIcon(item.field).icon" size="12px" />
+        </div>
+        <span class="nl-item-label">{{ item.label }}</span>
+        <span class="nl-item-value">
+          {{ formatValue(item) }}
+          <small>{{ item.unit }}</small>
+        </span>
+        <span v-if="item.nrvPercent !== null && item.nrvPercent > 0" class="nl-nrv">
+          {{ formatNrv(item.nrvPercent) }}
+        </span>
+      </div>
+
+      <div v-if="hasExtended" class="nl-divider">
+        <span>扩展营养素</span>
+      </div>
+
+      <div
+        v-for="item in extendedItems"
+        :key="item.field"
+        class="nl-item"
+        :class="{ 'nl-item--zero': item.isZero }"
+      >
+        <div class="nl-item-icon" :class="getIcon(item.field).colorClass">
+          <t-icon :name="getIcon(item.field).icon" size="12px" />
+        </div>
+        <span class="nl-item-label">{{ item.label }}</span>
+        <span class="nl-item-value">
+          {{ formatValue(item) }}
+          <small>{{ item.unit }}</small>
+        </span>
+        <span v-if="item.nrvPercent !== null && item.nrvPercent > 0" class="nl-nrv">
+          {{ formatNrv(item.nrvPercent) }}
+        </span>
+      </div>
+    </template>
+
+    <div v-else class="nl-empty">暂无数据</div>
   </div>
 </template>
 
 <style lang="scss" scoped>
-.nutrition-label-table {
-  border: 2px solid var(--color-text-primary);
-  border-radius: $radius-xs;
-  overflow: hidden;
+.nutrition-label-list {
+  padding: $space-1 0;
+}
 
-  .label-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: $space-2 $space-3;
-    background: var(--color-bg-container-alt);
-    border-bottom: 2px solid var(--color-text-primary);
+.nl-item {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  padding: $space-1-5 $space-2;
+  border-radius: $radius-md;
+  transition: background $transition-fast;
 
-    .label-title {
-      font-size: $font-size-body;
-      font-weight: $font-weight-bold;
-      color: var(--color-text-primary);
-    }
-
-    .label-subtitle {
-      font-size: $font-size-caption;
-      color: var(--color-text-secondary);
-    }
+  &:hover {
+    background: var(--color-bg-hover);
   }
 
-  :deep(.t-table) {
-    font-size: $font-size-body-sm;
-
-    th {
-      background: var(--color-bg-container-alt);
-      font-weight: $font-weight-semibold;
-      color: var(--color-text-primary);
-      border-color: var(--color-text-primary);
-      padding: $space-1-5 $space-2;
-    }
-
-    td {
-      border-color: var(--color-border);
-      padding: $space-1-5 $space-2;
-      color: var(--color-text-regular);
-    }
-
-    .row-core td {
-      border-bottom: 2px solid var(--color-text-primary);
-    }
-
-    .row-extended td {
-      border-bottom: 1px solid var(--color-border);
+  &--zero {
+    .nl-item-value {
+      color: var(--color-text-placeholder);
     }
   }
+}
 
-  .label-core {
-    font-weight: $font-weight-semibold;
-    color: var(--color-text-primary);
+.nl-item-icon {
+  width: 22px;
+  height: 22px;
+  border-radius: $radius-sm;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  :deep(svg),
+  :deep(.t-icon) {
+    color: inherit !important;
   }
+}
 
-  .value-zero {
+.nl-icon--energy {
+  background: rgba($chart-energy-deep, 0.08);
+  color: $chart-energy-deep;
+}
+
+.nl-icon--protein {
+  background: rgba($chart-protein-deep, 0.08);
+  color: $chart-protein-deep;
+}
+
+.nl-icon--fat {
+  background: rgba($chart-fat-deep, 0.08);
+  color: $chart-fat-deep;
+}
+
+.nl-icon--carb {
+  background: rgba($chart-carb-deep, 0.08);
+  color: $chart-carb-deep;
+}
+
+.nl-icon--sodium {
+  background: rgba($chart-sodium-deep, 0.08);
+  color: $chart-sodium-deep;
+}
+
+.nl-icon--fiber {
+  background: $overlay-emerald-08;
+  color: $emerald-500;
+}
+
+.nl-icon--sugar {
+  background: rgba($chart-protein-deep, 0.06);
+  color: $chart-protein;
+}
+
+.nl-icon--mineral {
+  background: rgba($chart-carb-deep, 0.06);
+  color: $chart-carb-deep;
+}
+
+.nl-icon--default {
+  background: var(--color-bg-container-alt);
+  color: var(--color-text-placeholder);
+}
+
+.nl-item-label {
+  flex: 1;
+  font-size: $font-size-body-sm;
+  color: var(--color-text-regular);
+  min-width: 0;
+}
+
+.nl-item-value {
+  font-size: $font-size-body-sm;
+  font-weight: $font-weight-semibold;
+  color: var(--color-text-primary);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+
+  small {
+    font-size: $font-size-caption;
+    font-weight: $font-weight-regular;
     color: var(--color-text-placeholder);
+    margin-left: $space-0-5;
+  }
+}
+
+.nl-nrv {
+  display: inline-block;
+  padding: 0 $space-1-5;
+  border-radius: $radius-sm;
+  background: $overlay-emerald-06;
+  color: $emerald-600;
+  font-size: 10px;
+  font-weight: $font-weight-semibold;
+  line-height: 1.8;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.nl-divider {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  padding: $space-2 $space-2 $space-1;
+
+  &::before,
+  &::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--color-border-light);
   }
 
-  .nrv-cell {
-    font-variant-numeric: tabular-nums;
-  }
-
-  .label-divider-label {
-    text-align: center;
-    padding: $space-1-5 $space-2;
+  span {
     font-size: $font-size-caption;
     color: var(--color-text-placeholder);
-    background: var(--color-bg-container-alt);
-    border-top: 1px dashed var(--color-border);
+    white-space: nowrap;
   }
+}
+
+.nl-empty {
+  text-align: center;
+  padding: $space-6 $space-4;
+  color: var(--color-text-placeholder);
+  font-size: $font-size-body-sm;
 }
 </style>

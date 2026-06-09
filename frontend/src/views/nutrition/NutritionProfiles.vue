@@ -896,9 +896,9 @@ onBeforeUnmount(() => {
       align-items: center;
       gap: var(--space-1-5);
       padding: var(--space-2-5) 20px;
-      border-radius: 12px;
-      background: linear-gradient(135deg, var(--color-text-primary), var(--color-text-secondary));
-      color: var(--color-text-white);
+      border-radius: $radius-md;
+      background-color: var(--color-primary);
+      color: #fff;
       font-size: 13px;
       font-weight: 700;
       border: none;
@@ -908,7 +908,7 @@ onBeforeUnmount(() => {
 
       &:hover {
         transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(55, 65, 81, 0.35);
+        background-color: var(--color-primary-light);
       }
 
       &:active {

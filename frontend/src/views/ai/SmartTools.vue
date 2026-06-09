@@ -326,7 +326,7 @@ onMounted(async () => {
     border-radius: var(--radius-4xl) !important;
     overflow: hidden;
     border: none;
-    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
 
     :deep(.t-card__body) {
       padding: 0;
@@ -392,14 +392,14 @@ onMounted(async () => {
           }
 
           &:hover {
-            background: var(--color-border-light);
+            background: var(--color-primary-bg);
             color: var(--color-text-primary);
           }
 
           &.active {
             background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
             color: var(--color-text-white);
-            box-shadow: 0 4px 12px $overlay-emerald-25;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
             font-weight: 600;
           }
         }
@@ -500,6 +500,19 @@ onMounted(async () => {
     to {
       opacity: 1;
       transform: translateY(0);
+    }
+  }
+
+  // 暗色模式下模型 logo 亮度修正，确保可见
+  :deep(.t-select__selected-single img),
+  :deep(.t-option img) {
+    transition: filter 0.2s ease;
+  }
+
+  :global([data-theme="dark"]) {
+    .t-select__selected-single img,
+    .t-option img {
+      filter: brightness(1.3) contrast(1.1);
     }
   }
 }

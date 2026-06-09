@@ -9,9 +9,9 @@ const props = defineProps<{
 type LevelColor = "good" | "warning" | "poor";
 
 const levelColorMap: Record<LevelColor, string> = {
-  good: "#52c41a",
-  warning: "#faad14",
-  poor: "#ff4d4f",
+  good: "var(--color-success)",
+  warning: "var(--color-warning)",
+  poor: "var(--color-danger)",
 };
 
 const levelLabelMap: Record<LevelColor, string> = {
@@ -45,7 +45,7 @@ const indicators = computed(() => [
     key: "claims",
     label: "可用声称",
     level: props.summary.claimsCount > 0 ? "good" : "poor",
-    color: props.summary.claimsCount > 0 ? "#52c41a" : "#ff4d4f",
+    color: props.summary.claimsCount > 0 ? "var(--color-success)" : "var(--color-danger)",
     display: `${props.summary.claimsCount} 项`,
   },
   {
@@ -59,6 +59,15 @@ const indicators = computed(() => [
 
 <template>
   <t-card class="analysis-summary-card" :bordered="true">
+    <template #title>
+      <div class="card-title">
+        <t-icon name="chart-analytics" class="card-title-icon" />
+        <span>分析摘要</span>
+      </div>
+    </template>
+    <template #subtitle>
+      <span>核心指标综合判定</span>
+    </template>
     <div class="summary-body">
       <div class="summary-indicators">
         <div
@@ -84,10 +93,21 @@ const indicators = computed(() => [
 
 <style lang="scss" scoped>
 .analysis-summary-card {
-  border-radius: $radius-xl;
+  border-radius: $radius-xl !important;
 
   :deep(.t-card__body) {
-    padding: $space-4;
+    padding: $space-5 !important;
+  }
+}
+
+.card-title {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+
+  .card-title-icon {
+    color: var(--color-primary);
+    font-size: $font-size-h4;
   }
 }
 

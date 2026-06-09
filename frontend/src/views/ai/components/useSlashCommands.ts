@@ -215,7 +215,6 @@ const DEFAULT_COMMANDS: SlashCommand[] = [
   },
   {
     id: "查询营养",
-    label: "查询营养",
     description: "查询特定食材或配方的营养成分数据",
     icon: "heart",
     iconBg: "var(--color-orange-50, #fff7ed)",
@@ -225,39 +224,6 @@ const DEFAULT_COMMANDS: SlashCommand[] = [
     category: "report",
   },
 ];
-
-// 写操作意图匹配
-const WRITE_INTENT_PATTERNS = [
-  /创建|新建|添加|录入|新增|增加/i,
-  /修改|编辑|更新|调整|变更/i,
-  /删除|移除|清除|作废/i,
-  /提交|保存|确认|发布/i,
-];
-
-const WRITE_NAV_MAP: Record<string, { navigationLink: string; message: string }> = {
-  配方: { navigationLink: "/formula", message: "配方管理" },
-  原料: { navigationLink: "/material", message: "原料管理" },
-  业务员: { navigationLink: "/salesman", message: "业务员管理" },
-  销售: { navigationLink: "/salesman", message: "销售管理" },
-};
-
-export function isWriteIntentPrefix(text: string): boolean {
-  const trimmed = text.trim();
-  for (const pattern of WRITE_INTENT_PATTERNS) {
-    if (pattern.test(trimmed)) return true;
-  }
-  return false;
-}
-
-export function extractWriteNavigationLinks(text: string): Array<{ message: string; navigationLink: string }> {
-  const links: Array<{ message: string; navigationLink: string }> = [];
-  for (const [keyword, nav] of Object.entries(WRITE_NAV_MAP)) {
-    if (text.includes(keyword)) {
-      links.push(nav);
-    }
-  }
-  return links;
-}
 
 /**
  * 斜杠指令系统 composable

@@ -102,7 +102,10 @@ export interface NutritionLabelItem {
 }
 
 export interface NutritionLabelResult {
-  items: NutritionLabelItem[]
+  per100g: Record<string, number>
+  nrvPercent: Record<string, number>
+  energyKj: number
+  calories: number
 }
 
 export interface MaterialContributionItem {

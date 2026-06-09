@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { authApi, saveAuthData, saveUserOnly, clearAuthData, getCachedUser } from '@/api/auth'
 import type { UserInfo, LoginParams, RegisterParams, UpdateProfileParams, ChangePasswordParams } from '@/api/auth'
 import { usePreferencesStore } from '@/stores/preferences'
@@ -141,6 +141,17 @@ export const useAuthStore = defineStore('auth', () => {
     const permissions = (user.value as UserInfo & { permissions?: string[] }).permissions
     return permissions?.includes(permission) ?? false
   }
+
+  // 监听用户变化，自动重载对应用户的主题设置，防止品牌色跨用户污染
+  watch(() => user.value?.id, (newUserId, oldUserId) => {
+    if (newUserId && newUserId !== oldUserId) {
+      const themeStore = useThemeStore()
+      const cachedUser = getCachedUser()
+      // admin 默认绿色，其他角色默认粉色
+      const defaultBrand = cachedUser?.role === 'admin' ? 'green' : 'pink'
+      themeStore.loadForUserWithDefault(newUserId, defaultBrand)
+    }
+  })
 
   return {
     user,

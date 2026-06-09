@@ -2217,18 +2217,17 @@ onMounted(async () => {
   align-items: center;
   gap: 8px;
   padding: 8px 16px;
-  border-radius: 12px;
+  border-radius: $radius-md;
   border: none;
-  background-color: var(--color-text-primary);
-  color: white;
+  background-color: var(--color-primary);
+  color: #fff;
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
   transition: all $transition-fast;
-  box-shadow: 0 4px 6px rgba(15, 23, 42, 0.15);
 
   &:hover {
-    background-color: var(--color-text-primary);
+    background-color: var(--color-primary-light);
     transform: translateY(-1px);
   }
 

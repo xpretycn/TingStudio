@@ -708,7 +708,7 @@ onMounted(() => {
         width: 270px;
 
         &:focus {
-          box-shadow: 0 0 0 2px rgba(167, 243, 208, 0.50);
+          box-shadow: 0 0 0 2px var(--color-primary-lightest);
           outline: none;
           background-color: var(--color-bg-container);
         }
@@ -725,18 +725,19 @@ onMounted(() => {
     align-items: center;
     gap: 8px;
     padding: 8px 16px;
-    background-color: var(--color-text-primary);
-    color: white;
+    background-color: var(--color-primary);
+    color: var(--color-text-white);
     border-radius: 12px;
     font-size: 14px;
     font-weight: 500;
     transition: all 0.2s;
-    box-shadow: 0 4px 6px rgba(15, 23, 42, 0.15);
+    box-shadow: var(--shadow-sm-light, 0 1px 4px rgba(0, 0, 0, 0.06));
     border: none;
     cursor: pointer;
 
     &:hover {
-      background-color: var(--color-text-primary);
+      background-color: var(--color-primary-light);
+      color: var(--color-text-white);
     }
 
     svg {
@@ -753,13 +754,13 @@ onMounted(() => {
   bottom: 0;
   z-index: 20;
   background-color: var(--color-primary-dark);
-  color: #{$text-white};
+  color: var(--color-text-white);
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 20px 32px;
   border-radius: var(--radius-5xl) var(--radius-5xl) 0 0;
-  box-shadow: 0 4px 18px rgba(5, 150, 105, 0.25);
+  box-shadow: 0 4px 18px color-mix(in srgb, var(--color-primary-dark) 25%, transparent);
 
   .batch-info {
     display: flex;
@@ -779,7 +780,7 @@ onMounted(() => {
     .batch-divider {
       width: 1px;
       height: 16px;
-      background: rgba(52, 211, 153, 0.5);
+      background: color-mix(in srgb, var(--color-primary-light) 50%, transparent);
     }
 
     .batch-buttons {
@@ -795,7 +796,7 @@ onMounted(() => {
       font-weight: 500;
       background: none;
       border: none;
-      color: #{$text-white};
+      color: var(--color-text-white);
       cursor: pointer;
       padding: 4px 8px;
       border-radius: 6px;
@@ -820,7 +821,7 @@ onMounted(() => {
     padding: 4px 12px;
     border-radius: 8px;
     background: transparent;
-    color: #{$text-white};
+    color: var(--color-text-white);
     cursor: pointer;
     transition: all 0.2s;
 
@@ -859,7 +860,7 @@ onMounted(() => {
 
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+    box-shadow: var(--shadow-float, 0 2px 4px rgba(0, 0, 0, 0.06), 0 4px 12px rgba(0, 0, 0, 0.08));
 
     &.card-emerald {
       border-color: var(--color-primary);
@@ -982,7 +983,7 @@ onMounted(() => {
 
   &:hover {
     border-color: var(--color-text-placeholder);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    box-shadow: var(--shadow-card, 0 1px 2px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.06));
   }
 
   &--error {
@@ -1001,7 +1002,7 @@ onMounted(() => {
     border-color: var(--color-info);
     border-left: 3px solid var(--color-info);
     background: var(--color-info-bg);
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-info) 15%, transparent);
     animation: highlightPulse 3s ease;
   }
 }
@@ -1039,7 +1040,7 @@ onMounted(() => {
 
   &:hover {
     color: var(--color-danger);
-    background: #{$color-danger-light};
+    background: var(--color-danger-light);
   }
 }
 
@@ -1171,7 +1172,7 @@ onMounted(() => {
       color: var(--color-text-white);
       border-color: var(--color-primary);
       font-weight: 600;
-      box-shadow: 0 1px 3px rgba(16, 185, 129, 0.25);
+      box-shadow: 0 1px 3px color-mix(in srgb, var(--color-primary) 25%, transparent);
       pointer-events: none;
     }
   }

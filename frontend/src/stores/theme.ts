@@ -143,11 +143,16 @@ export const useThemeStore = defineStore('theme', () => {
 
   /** 从 localStorage 重新加载指定用户的设置 */
   const loadForUser = (userId?: string) => {
+    loadForUserWithDefault(userId, 'pink')
+  }
+
+  /** 从 localStorage 加载指定用户的设置，支持自定义默认品牌色 */
+  const loadForUserWithDefault = (userId?: string, defaultBrand: BrandColor = 'pink') => {
     migrateOldTheme(userId)
     const loadedMode = (localStorage.getItem(getThemeKey(userId)) as ThemeMode) || 'auto'
-    const loadedBrand = (localStorage.getItem(getBrandKey(userId)) as BrandColor) || 'pink'
+    const storedBrand = localStorage.getItem(getBrandKey(userId)) as BrandColor
+    brandColor.value = storedBrand || defaultBrand
     mode.value = loadedMode
-    brandColor.value = loadedBrand
     applyToDOM()
   }
 
@@ -219,6 +224,7 @@ export const useThemeStore = defineStore('theme', () => {
     cycleBrandColor,
     toggleTheme,
     loadForUser,
+    loadForUserWithDefault,
     applyPreferences,
     clearLocal,
   }

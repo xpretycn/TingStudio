@@ -73,7 +73,7 @@ const materialPendingCount = computed(() => approvalStore.materialPendingCount)
 
   &__body {
     flex: 1;
-    min-height: 0;
+    min-height: 500px;
     display: flex;
     flex-direction: column;
     overflow: hidden;
