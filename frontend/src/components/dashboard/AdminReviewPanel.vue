@@ -528,12 +528,6 @@ onUnmounted(() => {
       gap: 8px;
       flex-shrink: 0;
     }
-
-    &-result {
-      display: flex;
-      align-items: center;
-      flex-shrink: 0;
-    }
   }
 
   &__pagination {
