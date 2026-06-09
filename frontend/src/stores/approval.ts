@@ -71,11 +71,11 @@ export const useApprovalStore = defineStore("approval", () => {
   const myListSortOrder = ref<SortOrder>("desc")
 
   // 筛选状态
-  const adminDateRange = ref<string>("")
+  const adminDateRange = ref<string[]>([])
   const adminSubmitter = ref<string>("")
-  const adminReviewAction = ref<string>("all")
-  const myListDateRange = ref<string>("")
-  const myListMaterialType = ref<string>("")
+  const adminReviewAction = ref<string[]>([])
+  const myListDateRange = ref<string[]>([])
+  const myListMaterialType = ref<string[]>([])
 
   async function fetchMySubmissions(params?: FetchListParams) {
     loading.value = true
@@ -89,7 +89,7 @@ export const useApprovalStore = defineStore("approval", () => {
         status: params?.status,
         sortBy: params?.sortBy ?? myListSortBy.value,
         sortOrder: params?.sortOrder ?? myListSortOrder.value,
-        dateRange: params?.dateRange || myListDateRange.value || undefined,
+        dateRange: params?.dateRange || myListDateRange.value[0] || undefined,
       })
       mySubmissions.value = data.list
       myTotal.value = data.pagination.total
@@ -128,7 +128,7 @@ export const useApprovalStore = defineStore("approval", () => {
         keyword: params?.keyword,
         sortBy: params?.sortBy ?? adminSortBy.value,
         sortOrder: params?.sortOrder ?? adminSortOrder.value,
-        dateRange: params?.dateRange || adminDateRange.value || undefined,
+        dateRange: params?.dateRange || adminDateRange.value[0] || undefined,
       })
       pendingReviews.value = data.list
       pendingCount.value = data.pagination.total
@@ -148,7 +148,7 @@ export const useApprovalStore = defineStore("approval", () => {
     try {
       const page = params?.page ?? reviewedPage.value
       const pageSize = params?.pageSize ?? reviewedPageSize.value
-      const action = params?.action ?? (adminReviewAction.value === "all" ? undefined : adminReviewAction.value)
+      const action = params?.action ?? (adminReviewAction.value.length === 0 || adminReviewAction.value.includes("all") ? undefined : adminReviewAction.value[0])
       const data = await approvalApi.getReviewedHistory({
         page,
         pageSize,
@@ -156,7 +156,7 @@ export const useApprovalStore = defineStore("approval", () => {
         action,
         sortBy: params?.sortBy ?? adminSortBy.value === "createdAt" ? "reviewedAt" as SortField : adminSortBy.value,
         sortOrder: params?.sortOrder ?? adminSortOrder.value,
-        dateRange: params?.dateRange || adminDateRange.value || undefined,
+        dateRange: params?.dateRange || adminDateRange.value[0] || undefined,
       })
       reviewedHistory.value = data.list
       reviewedTotal.value = data.pagination.total
@@ -230,7 +230,7 @@ export const useApprovalStore = defineStore("approval", () => {
         status: params?.status,
         sortBy: params?.sortBy ?? myListSortBy.value === "formulaName" ? "name" as SortField : myListSortBy.value,
         sortOrder: params?.sortOrder ?? myListSortOrder.value,
-        dateRange: params?.dateRange || myListDateRange.value || undefined,
+        dateRange: params?.dateRange || myListDateRange.value[0] || undefined,
       })
       const ownedMaterials = (data.list || []).filter((m: Material) => m.isOwner)
 

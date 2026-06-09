@@ -64,11 +64,15 @@ http.interceptors.response.use(
         error.message?.includes("Failed to fetch"));
 
     if (isNetworkError) {
+      // 防止已在错误页面时重复跳转，避免死循环
+      if (window.location.pathname === "/server-error") {
+        return Promise.reject(error);
+      }
       console.warn("[HTTP] 后端服务不可用，即将跳转服务器故障页面");
       MessagePlugin.error("后端服务未启动或网络连接失败");
       setTimeout(() => {
-        const target = window.top || window;
-        target.location.href = "/server-error";
+        // 通过事件解耦：避免 http.ts 直接依赖 router 造成循环引用
+        window.dispatchEvent(new CustomEvent("app:navigate", { detail: { path: "/server-error" } }));
       }, 1200);
       return Promise.reject(error);
     }
@@ -82,9 +86,9 @@ http.interceptors.response.use(
       if (!error.config?._silent) {
         removeToken();
         clearUser();
-        const target = window.top || window;
-        if (!target.location.pathname.startsWith("/login")) {
-          target.location.href = "/login";
+        if (!window.location.pathname.startsWith("/login")) {
+          // 通过事件解耦：避免循环依赖
+          window.dispatchEvent(new CustomEvent("app:navigate", { detail: { path: "/login" } }));
         }
         MessagePlugin.error("登录已过期，请重新登录");
       }

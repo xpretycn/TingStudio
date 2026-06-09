@@ -56,7 +56,12 @@ const goHome = () => {
 };
 
 const goBack = () => {
-  window.history.back();
+  // 无历史记录时回首页，避免按钮无效
+  if (window.history.length > 1) {
+    router.back();
+  } else {
+    router.push('/');
+  }
 };
 </script>
 
@@ -73,8 +78,8 @@ const goBack = () => {
     position: absolute;
     inset: 0;
     background:
-      radial-gradient(ellipse 500px 350px at 50% 35%, rgba(59, 130, 246, 0.04) 0%, transparent 70%),
-      radial-gradient(ellipse 300px 250px at 25% 80%, rgba(139, 92, 246, 0.03) 0%, transparent 60%);
+      radial-gradient(ellipse 500px 350px at 50% 35%, var(--color-info-bg) 0%, transparent 70%),
+      radial-gradient(ellipse 300px 250px at 25% 80%, var(--color-primary-bg) 0%, transparent 60%);
     pointer-events: none;
   }
 }
@@ -122,9 +127,9 @@ const goBack = () => {
   border-radius: 14px;
   background: var(--color-bg-container);
   box-shadow:
-    0 1px 3px rgba(15, 23, 42, 0.06),
-    0 1px 2px rgba(15, 23, 42, 0.04),
-    inset 0 0 0 1px rgba(15, 23, 42, 0.05);
+    0 1px 3px var(--overlay-brand-08),
+    0 1px 2px var(--overlay-brand-05),
+    inset 0 0 0 1px var(--color-border-light);
 }
 
 .ghost-icon {
@@ -139,7 +144,7 @@ const goBack = () => {
   font-weight: 900;
   line-height: 1;
   letter-spacing: -3px;
-  background: linear-gradient(135deg, #3b82f6 0%, #6366f1 50%, #8b5cf6 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 50%, var(--color-lavender) 100%);
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -202,7 +207,7 @@ const goBack = () => {
   outline: none;
 
   &:focus-visible {
-    outline: 2px solid #3b82f6;
+    outline: 2px solid var(--color-primary);
     outline-offset: 2px;
   }
 
@@ -212,13 +217,13 @@ const goBack = () => {
   }
 
   &.btn-default {
-    background: #18181b;
-    color: #fafafa;
-    border-color: #18181b;
+    background: var(--color-text-primary);
+    color: var(--color-bg-container);
+    border-color: var(--color-text-primary);
 
     &:hover {
       transform: translateY(-1px);
-      box-shadow: 0 4px 14px rgba(24, 24, 27, 0.25);
+      box-shadow: 0 4px 14px var(--overlay-brand-25);
     }
 
     &:active {
@@ -230,14 +235,14 @@ const goBack = () => {
     background: var(--color-bg-container);
     color: var(--color-text-secondary);
     border-color: var(--color-border-light);
-    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+    box-shadow: 0 1px 3px var(--overlay-brand-05);
 
     &:hover {
       background: var(--color-bg-page);
       border-color: var(--color-border);
       color: var(--color-text-primary);
       transform: translateY(-1px);
-      box-shadow: 0 3px 8px rgba(15, 23, 42, 0.08);
+      box-shadow: 0 3px 8px var(--overlay-brand-08);
     }
 
     &:active {

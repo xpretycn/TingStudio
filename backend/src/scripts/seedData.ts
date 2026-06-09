@@ -133,8 +133,9 @@ async function seedData() {
     // 2. 原料表 materials（Excel 数据）
     // ═══════════════════════════════════════════════════════
     console.log(`\n--- 创建原料 (${materialsFromExcel.length}条，来源 nutrition1/2.xls) ---`)
+    // ratio_factor 已从 materials 表移除（迁移到配方层级），此处不再写入
     const stmtMat = db.prepare(
-      'INSERT OR IGNORE INTO materials (id, name, code, unit, stock, material_type, ratio_factor, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+      'INSERT OR IGNORE INTO materials (id, name, code, unit, stock, material_type, unit_price, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
     )
     const materialIds: string[] = []
     materialsFromExcel.forEach((mat, i) => {
@@ -148,7 +149,7 @@ async function seedData() {
         const id = generateId()
         materialIds.push(id)
         try {
-          stmtMat.run(id, mat.name, code, 'g', 50000, mat.materialType, mat.ratioFactor, userIds[0], now(), now())
+          stmtMat.run(id, mat.name, code, 'g', 50000, mat.materialType, mat.unitPrice, userIds[0], now(), now())
           console.log(`✓ 原料: ${mat.name} (${code})`)
         } catch (e) {
           console.log(`  原料 ${mat.name} 创建失败: ${e}`)
@@ -325,23 +326,25 @@ async function seedData() {
     // ═══════════════════════════════════════════════════════
     console.log('\n--- 创建导出任务 (4条) ---')
     const jobStatuses = ['completed', 'completed', 'processing', 'pending'] as const
+    const exportTypes = ['pdf', 'excel', 'pdf', 'excel'] as const
+    // 表已移除 api_endpoint 列；data_category 留默认 'formula'
     const stmtEj = db.prepare(
-      'INSERT OR IGNORE INTO export_jobs (job_id, formula_id, version_id, template_id, export_type, status, file_url, file_name, api_endpoint, progress, error_message, created_by, created_at, completed_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+      'INSERT OR IGNORE INTO export_jobs (job_id, formula_id, version_id, template_id, export_type, status, file_url, file_name, progress, error_message, created_by, created_at, completed_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
     )
     for (let i = 0; i < 4; i++) {
       const jid = generateId()
       const formulaIdx = i % formulaIds.length
       const status = jobStatuses[i]
-      const exportType = types[i % 4] === 'print' ? 'pdf' : types[i % 4]
+      const exportType = exportTypes[i % exportTypes.length]
       const progress = status === 'completed' ? 100 : status === 'pending' ? 0 : 65
-      const fileUrl = status === 'completed' ? `/exports/formula_${i + 1}_${Date.now()}.pdf` : null
-      const fileName = status === 'completed' ? `配方_${formulaDataFromExcel[formulaIdx].name}.pdf` : null
+      const fileUrl = status === 'completed' ? `/exports/formula_${i + 1}_${Date.now()}.${exportType}` : null
+      const fileName = status === 'completed' ? `配方_${formulaDataFromExcel[formulaIdx].name}.${exportType}` : null
       const completedAt = status === 'completed' ? now() : null
       try {
         stmtEj.run(
           jid, formulaIds[formulaIdx], versionIds[formulaIdx],
           templateIds[i % templateIds.length], exportType, status,
-          fileUrl, fileName, null, progress, null, userIds[0], now(), completedAt
+          fileUrl, fileName, progress, null, userIds[0], now(), completedAt
         )
         console.log(`✓ 导出任务: ${formulaDataFromExcel[formulaIdx].name} (${status})`)
       } catch (e) {
@@ -413,7 +416,6 @@ async function seedData() {
     console.log(`  原料营养: ${materialsFromExcel.length} 条`)
   })
 
-  insert()
   await closeDatabase()
 }
 

@@ -20,7 +20,7 @@ const router = createRouter({
       path: "/server-error",
       name: "ServerError",
       component: () => import("@/views/errors/ServerError.vue"),
-      meta: { requiresAuth: false },
+      meta: { requiresAuth: false, hideHeader: true },
     },
     {
       path: "/404",
