@@ -458,8 +458,8 @@ onBeforeUnmount(() => {
       font-size: 20px;
 
       &:hover {
-        color: $emerald-500;
-        background-color: $emerald-50;
+        color: var(--color-primary);
+        background-color: var(--color-primary-bg);
       }
     }
 
