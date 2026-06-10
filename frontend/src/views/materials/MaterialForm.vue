@@ -204,26 +204,36 @@
               </h3>
             </div>
             <div class="zone-content">
-              <div class="excel-panel-wrapper">
-                <div v-if="!nutritionExcelExpanded" class="excel-collapsed-bar" @click="nutritionExcelExpanded = true">
-                  <div class="excel-collapsed-left">
-                    <div class="excel-collapsed-icon">
-                      <t-icon name="file-excel" />
-                    </div>
-                    <span class="excel-collapsed-text">Excel导入营养成分</span>
-                    <span class="excel-collapsed-hint">点击展开</span>
+              <div class="nutrition-toolbar">
+                <button type="button" class="seed-enrich-btn" @click="seedEnrichVisible = true"
+                  :disabled="!formData.name" :title="formData.name ? '从种子库填充营养数据' : '请先输入原料名称'" aria-label="从种子库填充营养数据">
+                  <div class="seed-enrich-icon">
+                    <t-icon name="root-list" />
                   </div>
-                  <t-icon name="chevron-down" class="excel-collapsed-arrow" />
-                </div>
-                <div v-else class="excel-expanded-area">
-                  <div class="excel-expanded-header" @click="nutritionExcelExpanded = false">
-                    <div class="excel-expanded-title">
-                      <t-icon name="file-excel" />
-                      <span>Excel 导入</span>
+                  <span>从种子库填充</span>
+                </button>
+                <div class="excel-panel-wrapper">
+                  <div v-if="!nutritionExcelExpanded" class="excel-collapsed-bar"
+                    @click="nutritionExcelExpanded = true">
+                    <div class="excel-collapsed-left">
+                      <div class="excel-collapsed-icon">
+                        <t-icon name="file-excel" />
+                      </div>
+                      <span class="excel-collapsed-text">Excel导入营养成分</span>
+                      <span class="excel-collapsed-hint">点击展开</span>
                     </div>
-                    <t-icon name="chevron-up" class="excel-expanded-arrow" />
+                    <t-icon name="chevron-down" class="excel-collapsed-arrow" />
                   </div>
-                  <NutritionExcelImport @import="handleNutritionExcelImport" class="excel-panel" />
+                  <div v-else class="excel-expanded-area">
+                    <div class="excel-expanded-header" @click="nutritionExcelExpanded = false">
+                      <div class="excel-expanded-title">
+                        <t-icon name="file-excel" />
+                        <span>Excel 导入</span>
+                      </div>
+                      <t-icon name="chevron-up" class="excel-expanded-arrow" />
+                    </div>
+                    <NutritionExcelImport @import="handleNutritionExcelImport" class="excel-panel" />
+                  </div>
                 </div>
               </div>
 
@@ -279,9 +289,11 @@
 
               <div class="nutrition-meta">
                 <div class="nm-row">
-                  <label class="nm-label">数据来源</label>
-                  <t-input v-model="nutritionMeta.dataSource" placeholder="如：中国食物成分表（第6版）" clearable
-                    style="width: 280px" />
+                  <label class="nm-label">来源类型</label>
+                  <t-select v-model="nutritionSourceType" :options="sourceTypeOptions" style="width: 140px"
+                    placeholder="选择来源" />
+                  <t-input v-model="nutritionMeta.dataSource" placeholder="来源详情（如：中国食物成分表第6版）" clearable
+                    style="flex: 1; min-width: 180px" />
                 </div>
                 <div class="nm-row nm-row--confidence">
                   <label class="nm-label">数据可信度</label>
@@ -303,6 +315,10 @@
         </div>
       </t-form>
     </main>
+
+    <SeedEnrichDialog v-model:visible="seedEnrichVisible" :material-name="formData.name"
+      :material-id="(route.params.id as string) || ''" :current-nutrition="nutritionData"
+      @confirm="handleSeedEnrichConfirm" />
   </div>
 </template>
 
@@ -318,6 +334,8 @@ import type { FormInstanceFunctions, FormRule } from 'tdesign-vue-next';
 import type { Material, UpdateResult } from '@/api/material';
 import NutritionExcelImport from '@/components/NutritionExcelImport.vue';
 import NutritionSourceTag from '@/components/nutrition/NutritionSourceTag.vue';
+import SeedEnrichDialog from '@/components/nutrition/SeedEnrichDialog.vue';
+import { SOURCE_TYPE_OPTIONS } from '@/constants/sourceTypes';
 
 const router = useRouter();
 const route = useRoute();
@@ -329,6 +347,7 @@ const loading = ref(false);
 const showNutrition = ref(false);
 const hasNutrition = ref(false);
 const nutritionExcelExpanded = ref(false);
+const seedEnrichVisible = ref(false);
 const basicInfoCollapsed = ref(localStorage.getItem('material-basic-info-collapsed') === 'true');
 
 function toggleBasicInfoCollapsed() {
@@ -470,6 +489,10 @@ const nutritionMeta = reactive({
 });
 const nutritionSourceType = ref<string>('manual');
 
+const sourceTypeOptions = SOURCE_TYPE_OPTIONS.filter(
+  (opt) => !['tianapi', 'ai'].includes(opt.value)
+);
+
 const confidenceOptions = [
   { label: '高（实验室检测）', value: 'high' },
   { label: '中（文献数据）', value: 'medium' },
@@ -507,6 +530,29 @@ const handleNutritionExcelImport = (data: { nutritionData: Record<string, number
   MessagePlugin.success(`已导入 ${count} 项营养素数据`);
 };
 
+const handleSeedEnrichConfirm = (data: {
+  nutritionData: Record<string, number>;
+  dataSource: string;
+  confidence: string;
+  sourceType: string;
+  notes: string;
+}) => {
+  showNutrition.value = true;
+  hasNutrition.value = true;
+
+  for (const [key, val] of Object.entries(data.nutritionData)) {
+    if (nutritionData[key] !== undefined) nutritionData[key] = Number(val);
+  }
+
+  if (data.dataSource) nutritionMeta.dataSource = data.dataSource;
+  if (data.confidence) nutritionMeta.confidence = data.confidence as 'high' | 'medium' | 'low';
+  if (data.notes) nutritionMeta.notes = data.notes;
+  nutritionSourceType.value = data.sourceType || 'seed';
+
+  const count = Object.values(data.nutritionData).filter(v => v > 0).length;
+  MessagePlugin.success(`已从种子库填充 ${count} 项营养素数据`);
+};
+
 const handleCollapseChange = (value: string[]) => {
   for (const key of Object.keys(collapseExpanded)) collapseExpanded[key] = value.includes(key);
 };
@@ -531,6 +577,7 @@ const saveNutrition = async (materialId: string) => {
       dataSource: nutritionMeta.dataSource || undefined,
       notes: nutritionMeta.notes || undefined,
       confidence: nutritionMeta.confidence,
+      sourceType: nutritionSourceType.value || undefined,
     });
   } catch (error: unknown) { console.error('保存营养成分失败:', error); }
 };
@@ -568,7 +615,8 @@ const handleSubmit = async ({ validateResult }: { validateResult: boolean | Reco
 
       if (result.success) {
         if (showNutrition.value) {
-          const materialId = isEdit.value ? id : result.data?.id;
+          // 版本创建时使用新版本ID保存营养数据
+          const materialId = result.result?.id || (isEdit.value ? id : result.data?.id);
           if (materialId) await saveNutrition(materialId);
         }
         const isVersioned = versionMode.versioning && result.result?.versionAction === "created";
@@ -588,12 +636,40 @@ const handleSubmit = async ({ validateResult }: { validateResult: boolean | Reco
 const handleSubmitReview = async () => {
   const id = route.params.id as string;
   if (!id) return;
-  const result = await materialStore.submitReview(id);
-  if (result.success) {
-    MessagePlugin.success("已提交审批");
-    router.push({ path: "/materials", query: route.query });
-  } else {
-    MessagePlugin.error(result.message || "提交审批失败");
+  if (loading.value) return;
+
+  // 先验证表单，确保必填字段有效
+  const validateResult = await formRef.value?.validate();
+  if (validateResult !== true) {
+    MessagePlugin.warning("请先完善必填信息");
+    return;
+  }
+
+  loading.value = true;
+  try {
+    // 先保存表单数据，再提交审批，避免用户修改的数据丢失
+    const saveResult = await materialStore.updateMaterial(id, formData);
+    if (!saveResult.success) {
+      MessagePlugin.error(saveResult.message || "保存失败，无法提交审批");
+      return;
+    }
+    // 保存营养成分
+    if (showNutrition.value) {
+      const savedId = saveResult.result?.id || id;
+      await saveNutrition(savedId);
+    }
+    // 提交审批
+    const result = await materialStore.submitReview(saveResult.result?.id || id);
+    if (result.success) {
+      MessagePlugin.success("已提交审批");
+      router.push({ path: "/materials", query: route.query });
+    } else {
+      MessagePlugin.error(result.message || "提交审批失败");
+    }
+  } catch (error: unknown) {
+    MessagePlugin.error("操作失败");
+  } finally {
+    loading.value = false;
   }
 };
 
@@ -609,6 +685,7 @@ interface NutritionDataResponse {
   dataSource?: string;
   notes?: string;
   confidence?: 'high' | 'medium' | 'low';
+  sourceType?: string;
 }
 
 const loadNutrition = async (materialId: string) => {
@@ -648,7 +725,7 @@ onMounted(async () => {
       versionMode.currentVersion = material.version || 1;
       await loadNutrition(id);
 
-      if (material.referenceCount > 0) {
+      if (material.referenceCount > 0 || material.status === "published") {
         versionMode.versioning = true;
         versionMode.referenceCount = material.referenceCount;
         versionMode.referencedFormulas = material.referencedFormulas || [];
@@ -1810,8 +1887,62 @@ onMounted(async () => {
       }
     }
 
+    .nutrition-toolbar {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+      align-items: flex-start;
+    }
+
+    .seed-enrich-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 12px 16px;
+      background: linear-gradient(135deg, var(--color-success-bg, rgba(0, 168, 112, 0.08)) 0%, var(--color-primary-bg) 100%);
+      border: 1.5px dashed var(--color-success, #00a870);
+      border-radius: 12px;
+      color: var(--color-success, #00a870);
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      white-space: nowrap;
+      flex-shrink: 0;
+
+      &:hover:not(:disabled) {
+        background: linear-gradient(135deg, var(--color-success-bg, rgba(0, 168, 112, 0.12)) 0%, var(--color-primary-bg) 100%);
+        border-color: var(--color-success, #00a870);
+        box-shadow: 0 2px 8px rgba(0, 168, 112, 0.15);
+        transform: translateY(-1px);
+      }
+
+      &:active:not(:disabled) {
+        transform: translateY(0);
+      }
+
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+    }
+
+    .seed-enrich-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--color-success), var(--color-success, #00a870));
+      color: var(--color-text-white);
+      flex-shrink: 0;
+      box-shadow: 0 2px 6px rgba(0, 168, 112, 0.15);
+    }
+
     .excel-panel-wrapper {
       margin-bottom: 16px;
+      flex: 1;
+      min-width: 0;
     }
 
     .excel-collapsed-bar {
@@ -1994,7 +2125,8 @@ onMounted(async () => {
       }
 
       .info-collapsed-icon,
-      .excel-collapsed-icon {
+      .excel-collapsed-icon,
+      .seed-enrich-icon {
         box-shadow: 0 2px 6px rgba(34, 197, 94, 0.15);
       }
 

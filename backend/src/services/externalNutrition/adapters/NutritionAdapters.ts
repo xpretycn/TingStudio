@@ -9,10 +9,14 @@ export interface ExternalNutritionResult {
   rawName: string;
   confidence: "high" | "medium" | "low";
   matchScore: number;
+  /** 数据层级：A=权威来源，C=估算参考 */
+  layer: "A" | "C";
   /** 标准来源名称（如《中国食物成分表》v1.0） */
   dataSource?: string;
   /** 数据版本号 */
   dataVersion?: string;
+  /** 原料类型：herb=药材，supplement=辅料 */
+  materialType?: string;
 }
 
 export interface NutritionSourceAdapter {
@@ -91,6 +95,7 @@ export class TianApiAdapter implements NutritionSourceAdapter {
         rawName,
         confidence: matchScore >= 0.8 ? "medium" : "low",
         matchScore,
+        layer: "C",
       };
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -177,6 +182,7 @@ export class MockNutritionAdapter implements NutritionSourceAdapter {
           rawName: name,
           confidence: matchScore >= 0.9 ? "medium" : "low",
           matchScore,
+          layer: "C",
         };
       }
     }
@@ -209,17 +215,26 @@ export class MockNutritionAdapter implements NutritionSourceAdapter {
       rawName: foodName,
       confidence: "low",
       matchScore: 0.6,
+      layer: "C",
     };
   }
 }
 
 export class SeedDataAdapter implements NutritionSourceAdapter {
   name = "seed";
-  private seedData: Array<{
+  private seedDataA: Array<{
     aliases: string[];
     per100g: Record<string, number>;
     source: string;
     dataVersion: string;
+    materialType?: string;
+  }> = [];
+  private seedDataC: Array<{
+    aliases: string[];
+    per100g: Record<string, number>;
+    source: string;
+    dataVersion: string;
+    materialType?: string;
   }> = [];
   private aliasMap: Record<string, string[]> = {};
   private loaded = false;
@@ -228,12 +243,23 @@ export class SeedDataAdapter implements NutritionSourceAdapter {
 
   async load(): Promise<void> {
     if (this.loaded) return;
+
+    // A层：权威来源（中国食物成分表）
     try {
-      const seedPath = join(this.__dirname, "..", "..", "..", "data", "nutrition-seeds", "yao-shi-tong-yuan-seed.json");
-      const raw = readFileSync(seedPath, "utf-8");
-      this.seedData = JSON.parse(raw) as typeof this.seedData;
+      const seedPathA = join(this.__dirname, "..", "..", "..", "data", "nutrition-seeds", "cnfct-official.json");
+      const raw = readFileSync(seedPathA, "utf-8");
+      this.seedDataA = JSON.parse(raw) as typeof this.seedDataA;
     } catch {
-      this.seedData = [];
+      this.seedDataA = [];
+    }
+
+    // C层：估算参考数据
+    try {
+      const seedPathC = join(this.__dirname, "..", "..", "..", "data", "nutrition-seeds", "herb-estimated.json");
+      const raw = readFileSync(seedPathC, "utf-8");
+      this.seedDataC = JSON.parse(raw) as typeof this.seedDataC;
+    } catch {
+      this.seedDataC = [];
     }
 
     try {
@@ -249,26 +275,43 @@ export class SeedDataAdapter implements NutritionSourceAdapter {
 
   async search(foodName: string): Promise<ExternalNutritionResult | null> {
     await this.load();
-    if (this.seedData.length === 0) return null;
 
     const searchNames = [foodName, ...(this.aliasMap[foodName] || [])];
 
-    for (const seed of this.seedData) {
+    // A层优先搜索
+    const resultA = this.searchInLayer(searchNames, this.seedDataA, "A", "high");
+    if (resultA) return resultA;
+
+    // C层次之搜索
+    const resultC = this.searchInLayer(searchNames, this.seedDataC, "C", "low");
+    if (resultC) return resultC;
+
+    return null;
+  }
+
+  private searchInLayer(
+    searchNames: string[],
+    data: Array<{ aliases: string[]; per100g: Record<string, number>; source: string; dataVersion: string; materialType?: string }>,
+    layer: "A" | "C",
+    confidence: "high" | "low",
+  ): ExternalNutritionResult | null {
+    for (const seed of data) {
       for (const name of searchNames) {
         if (seed.aliases.some((alias) => alias === name || alias.includes(name) || name.includes(alias))) {
           return {
             source: "seed",
             per100g: normalizePer100g(seed.per100g),
             rawName: seed.aliases[0],
-            confidence: "high",
+            confidence,
             matchScore: 1.0,
+            layer,
             dataSource: seed.source,
             dataVersion: seed.dataVersion,
+            materialType: seed.materialType,
           };
         }
       }
     }
-
     return null;
   }
 }

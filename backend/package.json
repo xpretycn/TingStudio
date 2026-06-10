@@ -17,7 +17,8 @@
     "migrate-to-mysql": "tsx src/scripts/migrate-to-mysql.ts",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "sync-seeds": "node src/data/nutrition-seeds/sync-seed-data.cjs"
   },
   "dependencies": {
     "@types/node-cron": "^3.0.11",

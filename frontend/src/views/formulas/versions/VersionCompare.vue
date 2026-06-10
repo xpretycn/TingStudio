@@ -525,7 +525,7 @@ $radius-2xl: 2rem;
 
         &:hover {
           color: var(--color-primary);
-          background-color: $emerald-50;
+          background-color: var(--color-primary-bg);
         }
       }
 

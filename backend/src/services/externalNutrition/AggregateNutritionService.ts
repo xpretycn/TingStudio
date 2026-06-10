@@ -1,7 +1,7 @@
 import { readFileSync } from "fs";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
-import { TianApiAdapter, SeedDataAdapter, MockNutritionAdapter } from "./adapters/NutritionAdapters.js";
+import { TianApiAdapter, SeedDataAdapter, MockNutritionAdapter, ExternalNutritionResult } from "./adapters/NutritionAdapters.js";
 import { addNutritionSource } from "../nutritionSourceService.js";
 import { query } from "../../config/database-adapter.js";
 
@@ -13,6 +13,7 @@ interface EnrichResult {
   found: boolean;
   matchScore: number;
   confidence: string;
+  layer: string;
   sourceDetail: string | null;
   per100g: Record<string, number>;
 }
@@ -72,12 +73,15 @@ export async function enrichMaterialNutrition(
   for (const sourceType of sources) {
     summary.totalAttempted++;
 
-    let result: { source: string; per100g: Record<string, number>; rawName: string; confidence: string; matchScore: number } | null = null;
+    let result: ExternalNutritionResult | null = null;
 
     try {
       if (sourceType === "seed") {
+        // 种子库是本地数据，不受 EXTERNAL_NUTRITION_ENABLED 限制
         result = await seedDataAdapter.search(materialName);
       } else if (sourceType === "tianapi") {
+        // 天行API需要外部网络，受 EXTERNAL_NUTRITION_ENABLED 限制
+        if (!isExternalNutritionEnabled()) continue;
         const adapter = getTianApiAdapter();
         for (const name of searchNames) {
           result = await adapter.search(name);
@@ -95,12 +99,13 @@ export async function enrichMaterialNutrition(
     }
 
     const sourceLabel = sourceType === "tianapi" ? "天行数据" : "种子库";
+    const layerLabel = result.layer === "A" ? "A层" : "C层";
     const dataSourceText = result.dataSource
       ? `${result.dataSource}${result.dataVersion ? ` v${result.dataVersion}` : ""}`
       : "";
     const detailText = dataSourceText
-      ? `${sourceLabel}·${dataSourceText}·${result.rawName}`
-      : `${sourceLabel}-${result.rawName}`;
+      ? `${sourceLabel}·${layerLabel}·${dataSourceText}·${result.rawName}`
+      : `${sourceLabel}·${layerLabel}-${result.rawName}`;
 
     const addResult = await addNutritionSource(
       materialId,
@@ -119,6 +124,7 @@ export async function enrichMaterialNutrition(
       found: true,
       matchScore: result.matchScore,
       confidence: result.confidence,
+      layer: result.layer,
       sourceDetail: detailText,
       per100g: result.per100g,
     });
@@ -140,8 +146,15 @@ export async function bulkEnrichNutrition(
   totalFailed: number;
   results: Array<{ materialId: string; materialName: string; found: boolean; sourcesAdded: number }>;
 }> {
-  if (!isExternalNutritionEnabled()) {
-    throw new Error("外部营养数据功能未启用");
+  // 种子库是本地数据不需要外部网络，过滤掉需要外部网络的 source
+  const sources = requestedSources || ["seed", "tianapi"];
+  const hasSeedOnly = sources.length === 1 && sources[0] === "seed";
+  const hasExternalSource = sources.some((s) => s !== "seed");
+
+  if (hasExternalSource && !isExternalNutritionEnabled()) {
+    if (!hasSeedOnly) {
+      throw new Error("外部营养数据功能未启用");
+    }
   }
 
   const ids = materialIds.length > 0 ? materialIds : (

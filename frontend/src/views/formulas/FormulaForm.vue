@@ -1199,8 +1199,8 @@ onMounted(async () => {
         font-size: 20px; // text-2xl
 
         &:hover {
-          color: $emerald-500; // hover:text-emerald-500
-          background-color: $emerald-50; // hover:bg-emerald-50
+          color: var(--color-primary);
+          background-color: var(--color-primary-bg);
         }
       }
 

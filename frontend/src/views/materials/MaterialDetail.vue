@@ -354,6 +354,8 @@ const material = ref<Material | null>(null);
 
 const canEdit = computed(() => {
   if (!material.value) return false;
+  // 审批中的原料不可编辑
+  if (material.value.status === 'pending_review') return false;
   const user = authStore.user;
   if (!user) return false;
   if (user.role === 'admin') return true;

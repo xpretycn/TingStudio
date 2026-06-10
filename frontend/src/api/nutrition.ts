@@ -154,7 +154,7 @@ export const nutritionApi = {
   getMaterialNutrition(materialId: string, silent = false) {
     return http.get<unknown, MaterialNutrition>(`/nutrition/material/${materialId}`, { _silent: silent })
   },
-  setMaterialNutrition(materialId: string, data: { per100g: Record<string, number>; dataSource?: string; notes?: string; confidence?: 'high' | 'medium' | 'low' }) {
+  setMaterialNutrition(materialId: string, data: { per100g: Record<string, number>; dataSource?: string; notes?: string; confidence?: 'high' | 'medium' | 'low'; sourceType?: string }) {
     return http.put<unknown, { success: boolean; message: string }>(`/nutrition/material/${materialId}`, data)
   },
   calculateFormulaNutrition(formulaId: string) {

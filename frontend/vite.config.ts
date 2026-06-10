@@ -97,7 +97,15 @@ export default defineConfig({
           if (id.includes("node_modules/marked")) {
             return "vendor-marked";
           }
-          if (id.includes("node_modules") && !id.includes("tdesign") && !id.includes("vue") && !id.includes("pinia") && !id.includes("echarts") && !id.includes("xlsx") && !id.includes("marked")) {
+          if (
+            id.includes("node_modules") &&
+            !id.includes("tdesign") &&
+            !id.includes("vue") &&
+            !id.includes("pinia") &&
+            !id.includes("echarts") &&
+            !id.includes("xlsx") &&
+            !id.includes("marked")
+          ) {
             return "vendor-utils";
           }
         },

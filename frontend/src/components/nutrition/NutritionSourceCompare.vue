@@ -269,19 +269,19 @@ async function handleSubmitAuthoritative() {
 }
 
 .empty-desc {
-  font-size: var(--font-size-small, 12px);
-  color: var(--text-color-secondary, rgba(0, 0, 0, 0.6));
+  font-size: var(--font-size-caption, 12px);
+  color: var(--color-text-secondary, rgba(0, 0, 0, 0.6));
   margin-bottom: var(--space-2, 8px);
 }
 
 .compare-summary {
-  font-size: var(--font-size-small, 12px);
-  color: var(--text-color-secondary, rgba(0, 0, 0, 0.6));
+  font-size: var(--font-size-caption, 12px);
+  color: var(--color-text-secondary, rgba(0, 0, 0, 0.6));
   margin-bottom: var(--space-3, 12px);
 }
 
 .compare-hint {
-  color: var(--brand-primary, #0052d9);
+  color: var(--color-primary, #0052d9);
   margin-left: var(--space-1, 4px);
 }
 
@@ -292,17 +292,17 @@ async function handleSubmitAuthoritative() {
 .compare-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: var(--font-size-small, 12px);
+  font-size: var(--font-size-caption, 12px);
 
   th, td {
     padding: var(--space-2, 8px) var(--space-3, 12px);
-    border: 1px solid var(--component-border, #dcdcdc);
+    border: 1px solid var(--color-border, #dcdcdc);
     text-align: right;
     white-space: nowrap;
   }
 
   th {
-    background: var(--bg-color-container, #f3f3f3);
+    background: var(--color-bg-container, #f3f3f3);
     font-weight: 500;
     text-align: center;
   }
@@ -334,7 +334,7 @@ async function handleSubmitAuthoritative() {
 
 .cell-selected {
   background: rgba(0, 82, 217, 0.1) !important;
-  outline: 2px solid var(--brand-primary, #0052d9);
+  outline: 2px solid var(--color-primary, #0052d9);
   outline-offset: -2px;
 }
 
@@ -345,13 +345,13 @@ async function handleSubmitAuthoritative() {
 }
 
 .selected-icon {
-  color: var(--brand-primary, #0052d9);
+  color: var(--color-primary, #0052d9);
   font-size: 14px;
   margin-left: 2px;
 }
 
 .unit {
-  color: var(--text-color-secondary, rgba(0, 0, 0, 0.6));
+  color: var(--color-text-secondary, rgba(0, 0, 0, 0.6));
   margin-left: 2px;
   font-size: 11px;
 }
@@ -373,7 +373,7 @@ async function handleSubmitAuthoritative() {
   gap: var(--space-2, 8px);
   margin-top: var(--space-3, 12px);
   padding-top: var(--space-3, 12px);
-  border-top: 1px solid var(--component-border, #dcdcdc);
+  border-top: 1px solid var(--color-border, #dcdcdc);
 }
 
 .cell-low-diff {

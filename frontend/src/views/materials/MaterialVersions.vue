@@ -93,6 +93,17 @@ onMounted(async () => {
     materialCode.value = res.materialCode;
     currentVersion.value = res.currentVersion;
     versions.value = res.versions;
+    // 清理 localStorage 中已过期的对比选择（版本已删除或切换了原料）
+    const validIds = new Set(res.versions.map((v: MaterialVersion) => v.id));
+    const cleaned = selectedForCompare.value.filter(id => validIds.has(id));
+    if (cleaned.length !== selectedForCompare.value.length) {
+      selectedForCompare.value = cleaned;
+      if (cleaned.length > 0) {
+        localStorage.setItem('compare_versions', JSON.stringify(cleaned));
+      } else {
+        localStorage.removeItem('compare_versions');
+      }
+    }
     if (detail) materialStatus.value = detail.status;
   } catch {
     MessagePlugin.error("获取版本历史失败");

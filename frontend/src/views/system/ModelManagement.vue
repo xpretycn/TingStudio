@@ -99,7 +99,8 @@
                           <span style="display:inline-flex;align-items:center;gap:4px;">
                             {{ v.label }}
                             <svg v-if="v.value === model.model" width="14" height="14" viewBox="0 0 24 24" fill="none"
-                              stroke="var(--color-primary)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                              stroke="var(--color-primary)" stroke-width="2.5" stroke-linecap="round"
+                              stroke-linejoin="round">
                               <polyline points="20 6 9 17 4 12" />
                             </svg>
                           </span>
@@ -170,8 +171,8 @@
 
               <div v-if="modelApplications.length === 0" class="empty-state">
                 <div class="empty-icon-wrap">
-                  <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-placeholder)" stroke-width="1.2"
-                    stroke-linecap="round" stroke-linejoin="round">
+                  <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-placeholder)"
+                    stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
                     <path
                       d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
                     <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
@@ -257,7 +258,8 @@
                 <div class="section-title-group">
                   <svg class="section-title-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
                     stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+                    <path d="M12 20h9" />
+                    <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
                   </svg>
                   <h4 class="section-title-text">提示词模板</h4>
                 </div>
@@ -288,19 +290,23 @@
                       <t-tag v-if="tpl.isDefault" size="small" theme="primary" variant="light">默认</t-tag>
                       <t-tag v-if="!tpl.enabled" size="small" theme="default" variant="light">已禁用</t-tag>
                     </div>
-                    <span class="ptc-type">{{ promptTypeOptions.find(o => o.value === tpl.type)?.label || tpl.type }}</span>
+                    <span class="ptc-type">{{promptTypeOptions.find(o => o.value === tpl.type)?.label || tpl.type
+                      }}</span>
                   </div>
                   <div class="ptc-body">
                     <div class="ptc-field">
                       <span class="ptc-field-label">System Prompt</span>
-                      <span class="ptc-field-value ptc-field-value--truncate">{{ (tpl.systemPrompt || '').slice(0, 80) }}{{ (tpl.systemPrompt || '').length > 80 ? '...' : '' }}</span>
+                      <span class="ptc-field-value ptc-field-value--truncate">{{ (tpl.systemPrompt || '').slice(0, 80)
+                        }}{{ (tpl.systemPrompt || '').length > 80 ? '...' : '' }}</span>
                     </div>
                     <div class="ptc-field">
                       <span class="ptc-field-label">User Prompt</span>
-                      <span class="ptc-field-value ptc-field-value--truncate">{{ (tpl.userPromptTemplate || '').slice(0, 100) }}{{ (tpl.userPromptTemplate || '').length > 100 ? '...' : '' }}</span>
+                      <span class="ptc-field-value ptc-field-value--truncate">{{ (tpl.userPromptTemplate || '').slice(0,
+                        100) }}{{ (tpl.userPromptTemplate || '').length > 100 ? '...' : '' }}</span>
                     </div>
                     <div v-if="(tpl.variables || []).length" class="ptc-variables">
-                      <t-tag v-for="v in tpl.variables" :key="v" size="small" variant="outline" style="margin: 2px;">{{ formatVarTag(v) }}</t-tag>
+                      <t-tag v-for="v in tpl.variables" :key="v" size="small" variant="outline" style="margin: 2px;">{{
+                        formatVarTag(v) }}</t-tag>
                     </div>
                   </div>
                   <div class="ptc-footer">
@@ -313,10 +319,9 @@
               </div>
 
               <!-- 提示词模板编辑对话框 -->
-              <t-dialog v-model:visible="showPromptDialog"
-                :header="promptFormMode === 'create' ? '新建提示词模板' : '编辑提示词模板'"
-                :confirm-btn="{ content: '保存', theme: 'primary' }"
-                @confirm="savePromptTemplate" width="680px" :attach="'body'">
+              <t-dialog v-model:visible="showPromptDialog" :header="promptFormMode === 'create' ? '新建提示词模板' : '编辑提示词模板'"
+                :confirm-btn="{ content: '保存', theme: 'primary' }" @confirm="savePromptTemplate" width="680px"
+                :attach="'body'">
                 <div class="prompt-form">
                   <div class="prompt-form-row">
                     <div class="prompt-form-field">
@@ -325,15 +330,15 @@
                     </div>
                     <div class="prompt-form-field">
                       <label class="prompt-form-label">生成类型</label>
-                      <t-select v-model="promptForm.type" :options="promptTypeOptions" :popup-props="{ appendToBody: true }" />
+                      <t-select v-model="promptForm.type" :options="promptTypeOptions"
+                        :popup-props="{ appendToBody: true }" />
                     </div>
                   </div>
                   <div class="prompt-form-field">
                     <label class="prompt-form-label">可用变量（点击插入到 User Prompt）</label>
                     <div class="prompt-var-chips">
                       <t-tag v-for="v in promptVariableOptions" :key="v.value" size="small" variant="outline"
-                        style="cursor:pointer; margin: 2px;"
-                        @click="insertVariable(v.value)">
+                        style="cursor:pointer; margin: 2px;" @click="insertVariable(v.value)">
                         {{ v.label }}
                       </t-tag>
                     </div>
@@ -405,8 +410,8 @@
                   <div v-else-if="modelStore.usageTrend.length > 0" ref="trendChartRef" class="chart-container"></div>
                   <div v-else class="chart-empty">
                     <div class="chart-empty-icon-wrap">
-                      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-placeholder)" stroke-width="1.2"
-                        stroke-linecap="round" stroke-linejoin="round">
+                      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-placeholder)"
+                        stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
                         <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
                         <polyline points="17 6 23 6 23 12" />
                       </svg>
@@ -434,8 +439,8 @@
                     class="chart-container"></div>
                   <div v-else class="chart-empty">
                     <div class="chart-empty-icon-wrap">
-                      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-placeholder)" stroke-width="1.2"
-                        stroke-linecap="round" stroke-linejoin="round">
+                      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-placeholder)"
+                        stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M21.21 15.89A10 10 0 1 1 8 2.83" />
                         <path d="M22 12A10 10 0 0 0 12 2v10z" />
                       </svg>
@@ -508,7 +513,8 @@
                         <t-input-number v-model="config.monthlyTokenLimit" :disabled="!isAdmin" size="small" :min="0"
                           :step="100000" theme="normal" @change="() => scheduleAlertConfigSave(config)" />
                         <span class="field-unit">Token/月</span>
-                        <span v-if="config.monthlyTokenLimit >= 10000" class="field-hint">{{ formatTokenInput(config.monthlyTokenLimit) }}</span>
+                        <span v-if="config.monthlyTokenLimit >= 10000" class="field-hint">{{
+                          formatTokenInput(config.monthlyTokenLimit) }}</span>
                       </div>
                     </div>
                     <div class="alert-config-field alert-config-field--row">
@@ -517,7 +523,9 @@
                         <t-input-number v-model="config.warningThreshold" :disabled="!isAdmin" size="small" :min="1"
                           :max="100" theme="normal" @change="() => scheduleAlertConfigSave(config)" />
                         <span class="field-unit">%</span>
-                        <span v-if="config.monthlyTokenLimit > 0 && config.warningThreshold > 0" class="field-hint">≈ {{ formatTokenInput(Math.round(config.monthlyTokenLimit * config.warningThreshold / 100)) }} Token</span>
+                        <span v-if="config.monthlyTokenLimit > 0 && config.warningThreshold > 0" class="field-hint">≈ {{
+                          formatTokenInput(Math.round(config.monthlyTokenLimit * config.warningThreshold / 100)) }}
+                          Token</span>
                       </div>
                     </div>
                     <div class="alert-config-field alert-config-field--row">
@@ -526,7 +534,9 @@
                         <t-input-number v-model="config.criticalThreshold" :disabled="!isAdmin" size="small" :min="1"
                           :max="100" theme="normal" @change="() => scheduleAlertConfigSave(config)" />
                         <span class="field-unit">%</span>
-                        <span v-if="config.monthlyTokenLimit > 0 && config.criticalThreshold > 0" class="field-hint">≈ {{ formatTokenInput(Math.round(config.monthlyTokenLimit * config.criticalThreshold / 100)) }} Token</span>
+                        <span v-if="config.monthlyTokenLimit > 0 && config.criticalThreshold > 0" class="field-hint">≈
+                          {{ formatTokenInput(Math.round(config.monthlyTokenLimit * config.criticalThreshold / 100)) }}
+                          Token</span>
                       </div>
                     </div>
                   </div>
@@ -544,15 +554,16 @@
                   <h4 class="section-title-text">预警记录</h4>
                 </div>
                 <div v-if="modelStore.alertRecords.length > 0" class="activity-nav">
-                  <button class="activity-nav-btn" :disabled="alertRecordPage <= 1" @click="alertRecordPrev" title="上一页">
+                  <button class="activity-nav-btn" :disabled="alertRecordPage <= 1" @click="alertRecordPrev"
+                    title="上一页">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
                       stroke-linecap="round" stroke-linejoin="round">
                       <polyline points="15 18 9 12 15 6" />
                     </svg>
                   </button>
                   <span class="activity-nav-page">{{ alertRecordPage }} / {{ alertRecordTotalPages }}</span>
-                  <button class="activity-nav-btn" :disabled="alertRecordPage >= alertRecordTotalPages" @click="alertRecordNext"
-                    title="下一页">
+                  <button class="activity-nav-btn" :disabled="alertRecordPage >= alertRecordTotalPages"
+                    @click="alertRecordNext" title="下一页">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
                       stroke-linecap="round" stroke-linejoin="round">
                       <polyline points="9 18 15 12 9 6" />
@@ -560,11 +571,11 @@
                   </button>
                 </div>
               </div>
-              <t-table v-if="modelStore.alertRecords.length > 0" :data="pagedAlertRecords"
-                :columns="alertRecordColumns" size="small" row-key="id" />
+              <t-table v-if="modelStore.alertRecords.length > 0" :data="pagedAlertRecords" :columns="alertRecordColumns"
+                size="small" row-key="id" />
               <div v-else class="data-empty">
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-placeholder)" stroke-width="1.5"
-                  stroke-linecap="round" stroke-linejoin="round">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-placeholder)"
+                  stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
                   <line x1="12" y1="9" x2="12" y2="13" />
                   <line x1="12" y1="17" x2="12.01" y2="17" />
@@ -632,8 +643,8 @@
                 </div>
               </div>
               <div v-else class="data-empty">
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-placeholder)" stroke-width="1.5"
-                  stroke-linecap="round" stroke-linejoin="round">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-placeholder)"
+                  stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                   <polyline points="14 2 14 8 20 8" />
                   <line x1="16" y1="13" x2="8" y2="13" />
@@ -676,9 +687,12 @@
                       <t-select v-model="floatModelKey" placeholder="选择模型" size="small" style="width: 100%"
                         @change="onFloatModelChange">
                         <t-option-group v-for="group in allFloatModelGroups" :key="group.provider" :label="group.name">
-                          <t-option v-for="v in group.versions" :key="group.provider + '|' + v.value" :value="group.provider + '|' + v.value" :label="v.label">
+                          <t-option v-for="v in group.versions" :key="group.provider + '|' + v.value"
+                            :value="group.provider + '|' + v.value" :label="v.label">
                             <span style="display:inline-flex;align-items:center;gap:6px;">
-                              <img :src="getModelLogo(group.provider)" :alt="group.name" style="width:16px;height:16px;object-fit:contain;flex-shrink:0;" @error="(e: Event) => handleLogoError(e)" />
+                              <img :src="getModelLogo(group.provider)" :alt="group.name"
+                                style="width:16px;height:16px;object-fit:contain;flex-shrink:0;"
+                                @error="(e: Event) => handleLogoError(e)" />
                               {{ v.label }}
                             </span>
                           </t-option>
@@ -690,9 +704,12 @@
                       <t-select v-model="floatFallbackModelKey" placeholder="可选" clearable size="small"
                         style="width: 100%" @change="onFloatFallbackModelChange">
                         <t-option-group v-for="group in allFloatModelGroups" :key="group.provider" :label="group.name">
-                          <t-option v-for="v in group.versions" :key="group.provider + '|' + v.value" :value="group.provider + '|' + v.value" :label="v.label">
+                          <t-option v-for="v in group.versions" :key="group.provider + '|' + v.value"
+                            :value="group.provider + '|' + v.value" :label="v.label">
                             <span style="display:inline-flex;align-items:center;gap:6px;">
-                              <img :src="getModelLogo(group.provider)" :alt="group.name" style="width:16px;height:16px;object-fit:contain;flex-shrink:0;" @error="(e: Event) => handleLogoError(e)" />
+                              <img :src="getModelLogo(group.provider)" :alt="group.name"
+                                style="width:16px;height:16px;object-fit:contain;flex-shrink:0;"
+                                @error="(e: Event) => handleLogoError(e)" />
                               {{ v.label }}
                             </span>
                           </t-option>
@@ -707,7 +724,9 @@
                     <div class="fa-card-header-left">
                       <svg class="fa-card-icon" width="18" height="18" viewBox="0 0 24 24" fill="none"
                         stroke="var(--color-info)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                        <circle cx="12" cy="12" r="3" />
+                        <path
+                          d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
                       </svg>
                       <span class="fa-card-title">外观设置</span>
                     </div>
@@ -715,8 +734,10 @@
                   <div class="fa-card-body">
                     <div class="fa-field">
                       <span class="fa-field-label">悬浮球位置</span>
-                      <div class="fa-toggle-group" @change="(e: Event) => { const target = e.target as HTMLInputElement | null; if (target?.value) floatConfig.position = target.value as 'right' | 'left'; saveFloatConfig('position'); }">
-                        <button type="button" class="fa-toggle-btn" :class="{ active: floatConfig.position === 'right' }"
+                      <div class="fa-toggle-group"
+                        @change="(e: Event) => { const target = e.target as HTMLInputElement | null; if (target?.value) floatConfig.position = target.value as 'right' | 'left'; saveFloatConfig('position'); }">
+                        <button type="button" class="fa-toggle-btn"
+                          :class="{ active: floatConfig.position === 'right' }"
                           @click="floatConfig.position = 'right'; saveFloatConfig('position')">
                           右侧
                         </button>
@@ -729,7 +750,8 @@
                     <div class="fa-field">
                       <span class="fa-field-label">抽屉宽度</span>
                       <t-input-number v-model="floatConfig.drawerWidth" :min="320" :max="600" :step="10" size="small"
-                        theme="normal" style="width: 180px" @change="(val: number) => { const v = Math.min(600, Math.max(320, Number(val) || 320)); floatConfig.drawerWidth = v; saveFloatConfig('drawerWidth', v); }" />
+                        theme="normal" style="width: 180px"
+                        @change="(val: number) => { const v = Math.min(600, Math.max(320, Number(val) || 320)); floatConfig.drawerWidth = v; saveFloatConfig('drawerWidth', v); }" />
                     </div>
                     <div class="fa-field">
                       <span class="fa-field-label">主题色</span>
@@ -756,7 +778,8 @@
                   <div class="fa-card-body">
                     <div class="fa-field fa-field--block">
                       <span class="fa-field-label">启用页面</span>
-                      <t-checkbox-group v-model="floatConfig.enabledPages" @change="(val: string[]) => saveFloatConfig('enabledPages', val)">
+                      <t-checkbox-group v-model="floatConfig.enabledPages"
+                        @change="(val: string[]) => saveFloatConfig('enabledPages', val)">
                         <t-checkbox value="formula-add">新增配方</t-checkbox>
                         <t-checkbox value="formula-edit">编辑配方</t-checkbox>
                         <t-checkbox value="material-add">新增原料</t-checkbox>
@@ -768,16 +791,19 @@
                     <div class="fa-field">
                       <span class="fa-field-label">最大对话轮次</span>
                       <t-input-number v-model="floatConfig.maxRounds" :min="3" :max="30" :step="1" size="small"
-                        theme="normal" style="width: 180px" @change="(val: number) => { const v = Math.min(30, Math.max(3, Number(val) || 10)); floatConfig.maxRounds = v; saveFloatConfig('maxRounds', v); }" />
+                        theme="normal" style="width: 180px"
+                        @change="(val: number) => { const v = Math.min(30, Math.max(3, Number(val) || 10)); floatConfig.maxRounds = v; saveFloatConfig('maxRounds', v); }" />
                     </div>
                     <div class="fa-field">
                       <span class="fa-field-label">回填策略</span>
                       <div class="fa-toggle-group">
-                        <button type="button" class="fa-toggle-btn" :class="{ active: floatConfig.fillStrategy === 'overwrite' }"
+                        <button type="button" class="fa-toggle-btn"
+                          :class="{ active: floatConfig.fillStrategy === 'overwrite' }"
                           @click="floatConfig.fillStrategy = 'overwrite'; saveFloatConfig('fillStrategy')">
                           覆盖填充
                         </button>
-                        <button type="button" class="fa-toggle-btn" :class="{ active: floatConfig.fillStrategy === 'preserve' }"
+                        <button type="button" class="fa-toggle-btn"
+                          :class="{ active: floatConfig.fillStrategy === 'preserve' }"
                           @click="floatConfig.fillStrategy = 'preserve'; saveFloatConfig('fillStrategy')">
                           仅填空值
                         </button>
@@ -786,11 +812,13 @@
                     <div class="fa-field">
                       <span class="fa-field-label">上下文模式</span>
                       <div class="fa-toggle-group">
-                        <button type="button" class="fa-toggle-btn" :class="{ active: floatConfig.contextMode === 'page' }"
+                        <button type="button" class="fa-toggle-btn"
+                          :class="{ active: floatConfig.contextMode === 'page' }"
                           @click="floatConfig.contextMode = 'page'; saveFloatConfig('contextMode')">
                           按页面隔离
                         </button>
-                        <button type="button" class="fa-toggle-btn" :class="{ active: floatConfig.contextMode === 'clear' }"
+                        <button type="button" class="fa-toggle-btn"
+                          :class="{ active: floatConfig.contextMode === 'clear' }"
                           @click="floatConfig.contextMode = 'clear'; saveFloatConfig('contextMode')">
                           每次清空
                         </button>
@@ -4746,6 +4774,20 @@ $transition-normal: 0.25s ease;
         font-weight: 600;
       }
     }
+  }
+}
+
+// ═══ 暗色模式：提升模型 Logo 可见性 ═══
+:host-context([data-theme="dark"]) {
+  .model-logo-wrap {
+    background: var(--color-bg-hover);
+  }
+
+  .model-logo,
+  .model-logo-sm,
+  .model-logo-img-mini,
+  .timeline-model-logo {
+    filter: brightness(0) invert(1) opacity(0.85);
   }
 }
 </style>

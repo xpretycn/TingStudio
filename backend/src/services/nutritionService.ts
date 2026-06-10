@@ -35,6 +35,7 @@ export async function setMaterialNutritionData(
   notes?: string,
   confidence?: string,
   userId?: string,
+  sourceType?: string,
 ): Promise<{ success: boolean; message?: string }> {
   const material = (await query("SELECT id, name, code FROM materials WHERE id = ?", [materialId])).rows[0] as DbRow | undefined;
   if (!material) return { success: false, message: "原料不存在" };
@@ -77,13 +78,13 @@ export async function setMaterialNutritionData(
   if (existing) {
     if (hasConfidence) {
       await query(
-        `UPDATE material_nutrition SET per_100g_json = ?, data_source = ?, notes = ?, confidence = ?, last_updated = ? WHERE material_id = ?`,
-        [per100gJson, dataSource || existing.data_source || "manual", notes || existing.notes || "", confidence || existing.confidence || "medium", now(), materialId],
+        `UPDATE material_nutrition SET per_100g_json = ?, data_source = ?, notes = ?, confidence = ?, source_type = ?, last_updated = ? WHERE material_id = ?`,
+        [per100gJson, dataSource || existing.data_source || "manual", notes || existing.notes || "", confidence || existing.confidence || "medium", sourceType || existing.source_type || "manual", now(), materialId],
       );
     } else {
       await query(
-        `UPDATE material_nutrition SET per_100g_json = ?, data_source = ?, notes = ?, last_updated = ? WHERE material_id = ?`,
-        [per100gJson, dataSource || existing.data_source || "manual", notes || existing.notes || "", now(), materialId],
+        `UPDATE material_nutrition SET per_100g_json = ?, data_source = ?, notes = ?, source_type = ?, last_updated = ? WHERE material_id = ?`,
+        [per100gJson, dataSource || existing.data_source || "manual", notes || existing.notes || "", sourceType || existing.source_type || "manual", now(), materialId],
       );
     }
   } else {
@@ -93,15 +94,15 @@ export async function setMaterialNutritionData(
 
     if (hasConfidence) {
       await query(
-        `INSERT INTO material_nutrition (nutrition_id, material_id, per_100g_json, data_version, data_source, notes, confidence, last_updated, material_version, is_latest)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`,
-        [nutritionId, materialId, per100gJson, `${majorVersion + 1}.0`, dataSource || "manual", notes || "", confidence || "medium", now(), majorVersion + 1],
+        `INSERT INTO material_nutrition (nutrition_id, material_id, per_100g_json, data_version, data_source, notes, confidence, source_type, last_updated, material_version, is_latest)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`,
+        [nutritionId, materialId, per100gJson, `${majorVersion + 1}.0`, dataSource || "manual", notes || "", confidence || "medium", sourceType || "manual", now(), majorVersion + 1],
       );
     } else {
       await query(
-        `INSERT INTO material_nutrition (nutrition_id, material_id, per_100g_json, data_version, data_source, notes, last_updated, material_version, is_latest)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)`,
-        [nutritionId, materialId, per100gJson, `${majorVersion + 1}.0`, dataSource || "manual", notes || "", now(), majorVersion + 1],
+        `INSERT INTO material_nutrition (nutrition_id, material_id, per_100g_json, data_version, data_source, notes, source_type, last_updated, material_version, is_latest)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`,
+        [nutritionId, materialId, per100gJson, `${majorVersion + 1}.0`, dataSource || "manual", notes || "", sourceType || "manual", now(), majorVersion + 1],
       );
     }
   }
