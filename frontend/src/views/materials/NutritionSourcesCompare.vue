@@ -380,7 +380,7 @@ onUnmounted(() => {
   padding: 8px 32px;
   background-color: color-mix(in srgb, var(--color-bg-container) 80%, transparent);
   backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--color-border-light);
+  border-bottom: 1px solid var(--color-border);
   animation: fadeInDown 0.3s cubic-bezier(0.4, 0, 0.2, 1) both;
 }
 
@@ -524,7 +524,7 @@ onUnmounted(() => {
   &--ghost {
     background-color: var(--color-bg-container);
     color: var(--color-text-primary);
-    border: 1px solid var(--color-border-light);
+    border: 1px solid var(--color-border);
     box-shadow: none;
 
     &:hover {
@@ -571,13 +571,13 @@ onUnmounted(() => {
   min-width: 0;
   background: var(--color-bg-container);
   border-radius: $radius-xl;
-  border: 1px solid var(--color-border-light);
+  border: 1px solid var(--color-border);
   overflow: hidden;
 }
 
 .view-tabs {
   padding: 0 $space-4;
-  border-bottom: 1px solid var(--color-border-light);
+  border-bottom: 1px solid var(--color-border);
   flex-shrink: 0;
 }
 

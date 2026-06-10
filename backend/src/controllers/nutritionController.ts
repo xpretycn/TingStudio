@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { success } from "../utils/helpers.js";
+import { success, fail } from "../utils/helpers.js";
 import {
   NRV_REFERENCE,
   NUTRIENT_LABELS,
@@ -14,8 +14,7 @@ export async function getMaterialNutrition(req: Request, res: Response) {
     const data = await nutritionService.getMaterialNutritionData(materialId);
     res.json(data ? success(data) : { success: true, data: null });
   } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : "未知错误";
-    res.status(500).json({ success: false, message: "获取营养成分失败", error: msg });
+    res.status(500).json(fail("获取营养成分失败"));
   }
 }
 
@@ -30,13 +29,12 @@ export async function setMaterialNutrition(req: Request & { user: { userId: stri
     );
 
     if (!result.success) {
-      res.status(404).json({ success: false, message: result.message });
+      res.status(404).json(fail(result.message, "NOT_FOUND"));
       return;
     }
     res.json(success(null, "营养成分已保存"));
   } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : "未知错误";
-    res.status(500).json({ success: false, message: "保存营养成分失败", error: msg });
+    res.status(500).json(fail("保存营养成分失败"));
   }
 }
 
@@ -47,13 +45,12 @@ export async function calculateFormulaNutrition(req: Request & { user: { userId:
 
     const result = await nutritionService.calculateFormulaNutritionData(formulaId, userId);
     if (!result) {
-      res.status(404).json({ success: false, message: "配方不存在" });
+      res.status(404).json(fail("配方不存在", "NOT_FOUND"));
       return;
     }
     res.json(success(result));
   } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : "未知错误";
-    res.status(500).json({ success: false, message: "营养计算失败", error: msg });
+    res.status(500).json(fail("营养计算失败"));
   }
 }
 
@@ -63,8 +60,7 @@ export async function getNutritionProfiles(req: Request, res: Response) {
     const profiles = await nutritionService.getNutritionProfilesList(category, keyword);
     res.json(success(profiles));
   } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : "未知错误";
-    res.status(500).json({ success: false, message: "获取营养标准失败", error: msg });
+    res.status(500).json(fail("获取营养标准失败"));
   }
 }
 
@@ -74,8 +70,7 @@ export async function createNutritionProfile(req: Request & { user: { userId: st
     const result = await nutritionService.createNutritionProfile(req.body, userId);
     res.status(201).json(success(result, "营养标准创建成功"));
   } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : "未知错误";
-    res.status(500).json({ success: false, message: "创建营养标准失败", error: msg });
+    res.status(500).json(fail("创建营养标准失败"));
   }
 }
 
@@ -87,13 +82,13 @@ export async function updateNutritionProfile(req: Request & { user: { userId: st
 
     if (!result.success) {
       const status = result.message?.includes("预置") ? 403 : 404;
-      res.status(status).json({ success: false, message: result.message });
+      const code = status === 403 ? "FORBIDDEN" : "NOT_FOUND";
+      res.status(status).json(fail(result.message, code));
       return;
     }
     res.json(success(null, "营养标准更新成功"));
   } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : "未知错误";
-    res.status(500).json({ success: false, message: "更新营养标准失败", error: msg });
+    res.status(500).json(fail("更新营养标准失败"));
   }
 }
 
@@ -104,13 +99,13 @@ export async function deleteNutritionProfile(req: Request, res: Response) {
 
     if (!result.success) {
       const status = result.message?.includes("预置") ? 403 : 404;
-      res.status(status).json({ success: false, message: result.message });
+      const code = status === 403 ? "FORBIDDEN" : "NOT_FOUND";
+      res.status(status).json(fail(result.message, code));
       return;
     }
     res.json(success(null, "营养标准删除成功"));
   } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : "未知错误";
-    res.status(500).json({ success: false, message: "删除营养标准失败", error: msg });
+    res.status(500).json(fail("删除营养标准失败"));
   }
 }
 
@@ -121,7 +116,7 @@ export async function checkCompliance(req: Request & { user: { userId: string } 
 
     const summary = await nutritionService.getComplianceCheckData(formulaId);
     if (!summary) {
-      res.status(404).json({ success: false, message: "请先计算配方营养汇总" });
+      res.status(404).json(fail("请先计算配方营养汇总", "NOT_FOUND"));
       return;
     }
 
@@ -285,12 +280,7 @@ export async function checkCompliance(req: Request & { user: { userId: string } 
       }),
     );
   } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : "未知错误";
-    res.status(500).json({
-      success: false,
-      message: "服务器内部错误",
-      error: msg,
-    });
+    res.status(500).json(fail("服务器内部错误"));
   }
 }
 
@@ -308,13 +298,12 @@ export async function getFormulaNutritionTables(req: Request, res: Response) {
     const { formulaId } = req.params;
     const data = await nutritionService.getFormulaNutritionTablesData(formulaId);
     if (!data) {
-      res.status(404).json({ success: false, message: "配方不存在" });
+      res.status(404).json(fail("配方不存在", "NOT_FOUND"));
       return;
     }
     res.json(success(data));
   } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : "未知错误";
-    res.status(500).json({ success: false, message: "获取营养计算表格失败", error: msg });
+    res.status(500).json(fail("获取营养计算表格失败"));
   }
 }
 
@@ -340,8 +329,7 @@ export async function analyzeFormula(req: Request & { user: { userId: string; ro
     const result = nutritionEngine.analyze(data as Parameters<typeof nutritionEngine.analyze>[0]);
     res.json(success(result));
   } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : "未知错误";
-    res.status(500).json({ success: false, error: { message: "营养分析失败", code: "INTERNAL_ERROR", detail: msg } });
+    res.status(500).json(fail("营养分析失败"));
   }
 }
 
@@ -365,7 +353,6 @@ export async function getCoverage(req: Request & { user: { userId: string; role:
 
     res.json(success(data));
   } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : "未知错误";
-    res.status(500).json({ success: false, error: { message: "获取覆盖度失败", code: "INTERNAL_ERROR", detail: msg } });
+    res.status(500).json(fail("获取覆盖度失败"));
   }
 }

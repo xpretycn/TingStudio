@@ -90,11 +90,11 @@ export const useApprovalStore = defineStore("approval", () => {
   const myListSortOrder = ref<SortOrder>("desc");
 
   // 筛选状态
-  const adminDateRange = ref<string[]>([]);
+  const adminDateRange = ref<string>("");
   const adminSubmitter = ref<string>("");
-  const adminReviewAction = ref<string[]>([]);
-  const myListDateRange = ref<string[]>([]);
-  const myListMaterialType = ref<string[]>([]);
+  const adminReviewAction = ref<string>("all");
+  const myListDateRange = ref<string>("");
+  const myListMaterialType = ref<string>("");
 
   async function fetchMySubmissions(params?: FetchListParams) {
     loading.value = true;
@@ -169,9 +169,9 @@ export const useApprovalStore = defineStore("approval", () => {
       const pageSize = params?.pageSize ?? reviewedPageSize.value;
       const action =
         params?.action ??
-        (adminReviewAction.value.length === 0 || adminReviewAction.value.includes("all")
+        (!adminReviewAction.value || adminReviewAction.value === "all"
           ? undefined
-          : adminReviewAction.value[0]);
+          : adminReviewAction.value);
       const data = await approvalApi.getReviewedHistory({
         page,
         pageSize,

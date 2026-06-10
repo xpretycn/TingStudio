@@ -290,22 +290,8 @@ export function registerAllTools(): void {
         const db = getDb();
         const { keyword, material_type, page = 1, limit = 10 } = params;
         const offset = (page - 1) * limit;
-        const conditions: string[] = [];
+        const conditions: string[] = ["is_deleted = 0"];
         const sqlParams: any[] = [];
-
-        const userId = context?.userId;
-        let userRole = "user";
-        if (userId) {
-          try {
-            const userRow = db.prepare("SELECT role FROM users WHERE id = ?").get(userId) as any;
-            if (userRow?.role === "admin") userRole = "admin";
-          } catch {}
-        }
-
-        if (userRole !== "admin" && userId) {
-          conditions.push("created_by = ?");
-          sqlParams.push(userId);
-        }
 
         if (keyword) {
           conditions.push("(name LIKE ? OR code LIKE ?)");
@@ -317,7 +303,7 @@ export function registerAllTools(): void {
           sqlParams.push(material_type);
         }
 
-        const whereSql = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+        const whereSql = `WHERE ${conditions.join(" AND ")}`;
         const rows = db
           .prepare(
             `SELECT id, code, name, unit, stock, material_type, unit_price FROM materials ${whereSql} ORDER BY created_at DESC LIMIT ? OFFSET ?`,

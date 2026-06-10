@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { AuthRequest } from "../middleware/auth.js";
 import { getDb } from "../config/database-better-sqlite3.js";
 import { aiService } from "../services/ai/AIService.js";
-import { fixGarbledText, generateId, success } from "../utils/helpers.js";
+import { fail, fixGarbledText, generateId, success } from "../utils/helpers.js";
 import crypto from "node:crypto";
 import Database from "better-sqlite3";
 
@@ -228,14 +228,14 @@ export async function getModelsList(req: Request, res: Response) {
       },
     });
   } catch (error: unknown) {
-    res.status(500).json({ success: false, message: error instanceof Error ? error.message : "操作失败" });
+    res.status(500).json(fail("操作失败"));
   }
 }
 
 export async function createModel(req: Request, res: Response) {
   try {
     if (!isAdmin(req)) {
-      res.status(403).json({ success: false, message: "仅管理员可操作" });
+      res.status(403).json(fail("仅管理员可操作", "FORBIDDEN"));
       return;
     }
 
@@ -253,14 +253,14 @@ export async function createModel(req: Request, res: Response) {
     } = req.body;
 
     if (!provider || !name || !baseUrl || !model) {
-      res.status(400).json({ success: false, message: "缺少必填字段: provider, name, baseUrl, model" });
+      res.status(400).json(fail("缺少必填字段: provider, name, baseUrl, model", "VALIDATION_ERROR"));
       return;
     }
 
     const db = getDb();
     const existing = db.prepare("SELECT id FROM ai_models WHERE provider = ?").get(provider);
     if (existing) {
-      res.status(400).json({ success: false, message: `provider "${provider}" 已存在` });
+      res.status(400).json(fail(`provider "${provider}" 已存在`, "DUPLICATE_ENTRY"));
       return;
     }
 
@@ -312,14 +312,14 @@ export async function createModel(req: Request, res: Response) {
       data: { id, provider, name, apiKeyConfigured: !!apiKey, model, healthStatus: "unknown", createdAt: now },
     });
   } catch (error: unknown) {
-    res.status(500).json({ success: false, message: error instanceof Error ? error.message : "操作失败" });
+    res.status(500).json(fail("操作失败"));
   }
 }
 
 export async function updateModel(req: Request, res: Response) {
   try {
     if (!isAdmin(req)) {
-      res.status(403).json({ success: false, message: "仅管理员可操作" });
+      res.status(403).json(fail("仅管理员可操作", "FORBIDDEN"));
       return;
     }
 
@@ -327,7 +327,7 @@ export async function updateModel(req: Request, res: Response) {
     const db = getDb();
     const existing = db.prepare("SELECT * FROM ai_models WHERE id = ?").get(id) as ModelRow | undefined;
     if (!existing) {
-      res.status(404).json({ success: false, message: "模型不存在" });
+      res.status(404).json(fail("模型不存在", "NOT_FOUND"));
       return;
     }
 
@@ -409,14 +409,14 @@ export async function updateModel(req: Request, res: Response) {
 
     res.json({ success: true, data: { id, updatedAt: now } });
   } catch (error: unknown) {
-    res.status(500).json({ success: false, message: error instanceof Error ? error.message : "操作失败" });
+    res.status(500).json(fail("操作失败"));
   }
 }
 
 export async function deleteModel(req: Request, res: Response) {
   try {
     if (!isAdmin(req)) {
-      res.status(403).json({ success: false, message: "仅管理员可操作" });
+      res.status(403).json(fail("仅管理员可操作", "FORBIDDEN"));
       return;
     }
 
@@ -424,7 +424,7 @@ export async function deleteModel(req: Request, res: Response) {
     const db = getDb();
     const existing = db.prepare("SELECT * FROM ai_models WHERE id = ?").get(id) as ModelRow | undefined;
     if (!existing) {
-      res.status(404).json({ success: false, message: "模型不存在" });
+      res.status(404).json(fail("模型不存在", "NOT_FOUND"));
       return;
     }
 
@@ -432,7 +432,7 @@ export async function deleteModel(req: Request, res: Response) {
       db.prepare("SELECT COUNT(*) as cnt FROM ai_usage_logs WHERE provider = ?").get(existing.provider) as CountRow
     ).cnt;
     if (usageCount > 0) {
-      res.status(400).json({ success: false, message: "该模型存在调用记录，无法移除" });
+      res.status(400).json(fail("该模型存在调用记录，无法移除", "VALIDATION_ERROR"));
       return;
     }
 
@@ -444,14 +444,14 @@ export async function deleteModel(req: Request, res: Response) {
 
     res.json({ success: true, message: "模型已移除" });
   } catch (error: unknown) {
-    res.status(500).json({ success: false, message: error instanceof Error ? error.message : "操作失败" });
+    res.status(500).json(fail("操作失败"));
   }
 }
 
 export async function testModelConnection(req: Request, res: Response) {
   try {
     if (!isAdmin(req)) {
-      res.status(403).json({ success: false, message: "仅管理员可操作" });
+      res.status(403).json(fail("仅管理员可操作", "FORBIDDEN"));
       return;
     }
 
@@ -459,7 +459,7 @@ export async function testModelConnection(req: Request, res: Response) {
     const db = getDb();
     const model = db.prepare("SELECT * FROM ai_models WHERE id = ?").get(id) as ModelRow | undefined;
     if (!model) {
-      res.status(404).json({ success: false, message: "模型不存在" });
+      res.status(404).json(fail("模型不存在", "NOT_FOUND"));
       return;
     }
 
@@ -512,7 +512,7 @@ export async function testModelConnection(req: Request, res: Response) {
       });
     }
   } catch (error: unknown) {
-    res.status(500).json({ success: false, message: error instanceof Error ? error.message : "操作失败" });
+    res.status(500).json(fail("操作失败"));
   }
 }
 
@@ -522,7 +522,7 @@ export async function getModelVersions(req: Request, res: Response) {
     const db = getDb();
     const model = db.prepare("SELECT * FROM ai_models WHERE id = ?").get(id) as ModelRow | undefined;
     if (!model) {
-      res.status(404).json({ success: false, message: "模型不存在" });
+      res.status(404).json(fail("模型不存在", "NOT_FOUND"));
       return;
     }
 
@@ -533,7 +533,7 @@ export async function getModelVersions(req: Request, res: Response) {
       data: { provider: model.provider, currentModel: model.model, versions },
     });
   } catch (error: unknown) {
-    res.status(500).json({ success: false, message: error instanceof Error ? error.message : "操作失败" });
+    res.status(500).json(fail("操作失败"));
   }
 }
 
@@ -548,33 +548,33 @@ export async function getModelVersionsByProvider(req: Request, res: Response) {
       data: { provider, currentModel: model?.model || "", versions },
     });
   } catch (error: unknown) {
-    res.status(500).json({ success: false, message: error instanceof Error ? error.message : "操作失败" });
+    res.status(500).json(fail("操作失败"));
   }
 }
 
 export async function switchModelVersion(req: Request, res: Response) {
   try {
     if (!isAdmin(req)) {
-      res.status(403).json({ success: false, message: "仅管理员可操作" });
+      res.status(403).json(fail("仅管理员可操作", "FORBIDDEN"));
       return;
     }
     const { provider } = req.params;
     const { model } = req.body;
     if (!model || typeof model !== "string") {
-      res.status(400).json({ success: false, message: "请提供有效的模型版本" });
+      res.status(400).json(fail("请提供有效的模型版本", "VALIDATION_ERROR"));
       return;
     }
     const db = getDb();
     const existing = db.prepare("SELECT id FROM ai_models WHERE provider = ?").get(provider);
     if (!existing) {
-      res.status(404).json({ success: false, message: "模型不存在" });
+      res.status(404).json(fail("模型不存在", "NOT_FOUND"));
       return;
     }
     db.prepare("UPDATE ai_models SET model = ?, updated_at = datetime('now') WHERE provider = ?").run(model, provider);
     aiService.reloadModels();
     res.json({ success: true, data: { provider, model } });
   } catch (error: unknown) {
-    res.status(500).json({ success: false, message: error instanceof Error ? error.message : "操作失败" });
+    res.status(500).json(fail("操作失败"));
   }
 }
 
@@ -677,7 +677,7 @@ export async function getUsageStats(req: Request, res: Response) {
 
     res.json({ success: true, data: { summary, trend, distribution } });
   } catch (error: unknown) {
-    res.status(500).json({ success: false, message: error instanceof Error ? error.message : "操作失败" });
+    res.status(500).json(fail("操作失败"));
   }
 }
 
@@ -761,7 +761,7 @@ export async function getUsageLogs(req: Request, res: Response) {
       },
     });
   } catch (error: unknown) {
-    res.status(500).json({ success: false, message: error instanceof Error ? error.message : "操作失败" });
+    res.status(500).json(fail("操作失败"));
   }
 }
 
@@ -781,14 +781,14 @@ export async function getAlertConfigs(req: Request, res: Response) {
 
     res.json({ success: true, data: { configs } });
   } catch (error: unknown) {
-    res.status(500).json({ success: false, message: error instanceof Error ? error.message : "操作失败" });
+    res.status(500).json(fail("操作失败"));
   }
 }
 
 export async function updateAlertConfig(req: Request, res: Response) {
   try {
     if (!isAdmin(req)) {
-      res.status(403).json({ success: false, message: "仅管理员可操作" });
+      res.status(403).json(fail("仅管理员可操作", "FORBIDDEN"));
       return;
     }
 
@@ -815,7 +815,7 @@ export async function updateAlertConfig(req: Request, res: Response) {
 
     res.json({ success: true, data: { id, updatedAt: now } });
   } catch (error: unknown) {
-    res.status(500).json({ success: false, message: error instanceof Error ? error.message : "操作失败" });
+    res.status(500).json(fail("操作失败"));
   }
 }
 
@@ -863,7 +863,7 @@ export async function getAlertRecords(req: Request, res: Response) {
       },
     });
   } catch (error: unknown) {
-    res.status(500).json({ success: false, message: error instanceof Error ? error.message : "操作失败" });
+    res.status(500).json(fail("操作失败"));
   }
 }
 
@@ -882,7 +882,7 @@ export async function getHealthStatus(req: Request, res: Response) {
 
     res.json({ success: true, data: { models } });
   } catch (error: unknown) {
-    res.status(500).json({ success: false, message: error instanceof Error ? error.message : "操作失败" });
+    res.status(500).json(fail("操作失败"));
   }
 }
 
@@ -911,14 +911,14 @@ export async function getHealthHistory(req: Request, res: Response) {
 
     res.json({ success: true, data: { provider, history } });
   } catch (error: unknown) {
-    res.status(500).json({ success: false, message: error instanceof Error ? error.message : "操作失败" });
+    res.status(500).json(fail("操作失败"));
   }
 }
 
 export async function setFallback(req: Request, res: Response) {
   try {
     if (!isAdmin(req)) {
-      res.status(403).json({ success: false, message: "仅管理员可操作" });
+      res.status(403).json(fail("仅管理员可操作", "FORBIDDEN"));
       return;
     }
 
@@ -927,7 +927,7 @@ export async function setFallback(req: Request, res: Response) {
     const db = getDb();
     const model = db.prepare("SELECT * FROM ai_models WHERE id = ?").get(id) as ModelRow | undefined;
     if (!model) {
-      res.status(404).json({ success: false, message: "模型不存在" });
+      res.status(404).json(fail("模型不存在", "NOT_FOUND"));
       return;
     }
 
@@ -948,7 +948,7 @@ export async function setFallback(req: Request, res: Response) {
       data: { modelId: id, provider: model.provider, fallbackProvider: fallbackProvider || null },
     });
   } catch (error: unknown) {
-    res.status(500).json({ success: false, message: error instanceof Error ? error.message : "操作失败" });
+    res.status(500).json(fail("操作失败"));
   }
 }
 
@@ -1098,7 +1098,7 @@ function ensureModelApplicationsTable(db: Database.Database) {
 export async function getModelApplications(req: Request, res: Response) {
   try {
     if (!isAdmin(req)) {
-      return res.status(403).json({ success: false, message: "仅管理员可访问" });
+      return res.status(403).json(fail("仅管理员可访问", "FORBIDDEN"));
     }
 
     const db = getDb();
@@ -1114,20 +1114,20 @@ export async function getModelApplications(req: Request, res: Response) {
     return res.json({ success: true, data: applications });
   } catch (error: unknown) {
     console.error("获取模型应用配置失败:", error);
-    return res.status(500).json({ success: false, message: "获取配置失败", error: error instanceof Error ? error.message : "操作失败" });
+    return res.status(500).json(fail("获取配置失败"));
   }
 }
 
 export async function createModelApplication(req: Request, res: Response) {
   try {
     if (!isAdmin(req)) {
-      return res.status(403).json({ success: false, message: "仅管理员可操作" });
+      return res.status(403).json(fail("仅管理员可操作", "FORBIDDEN"));
     }
 
     const { module: moduleName, provider, model, description, enabled } = req.body;
 
     if (!moduleName || !provider || !model) {
-      return res.status(400).json({ success: false, message: "缺少必要字段" });
+      return res.status(400).json(fail("缺少必要字段", "VALIDATION_ERROR"));
     }
 
     const db = getDb();
@@ -1172,28 +1172,28 @@ export async function createModelApplication(req: Request, res: Response) {
     return res.status(201).json({ success: true, data: newApp, message: "创建成功" });
   } catch (error: unknown) {
     console.error("创建模型应用配置失败:", error);
-    return res.status(500).json({ success: false, message: "创建失败", error: error instanceof Error ? error.message : "操作失败" });
+    return res.status(500).json(fail("创建失败"));
   }
 }
 
 export async function updateModelApplication(req: Request, res: Response) {
   try {
     if (!isAdmin(req)) {
-      return res.status(403).json({ success: false, message: "仅管理员可操作" });
+      return res.status(403).json(fail("仅管理员可操作", "FORBIDDEN"));
     }
 
     const { id } = req.params;
     const { provider, model, description, enabled } = req.body;
 
     if (!provider || !model) {
-      return res.status(400).json({ success: false, message: "缺少必要字段" });
+      return res.status(400).json(fail("缺少必要字段", "VALIDATION_ERROR"));
     }
 
     const db = getDb();
     const existing = db.prepare("SELECT * FROM model_applications WHERE id = ?").get(id);
 
     if (!existing) {
-      return res.status(404).json({ success: false, message: "配置不存在" });
+      return res.status(404).json(fail("配置不存在", "NOT_FOUND"));
     }
 
     const now = new Date().toISOString();
@@ -1209,14 +1209,14 @@ export async function updateModelApplication(req: Request, res: Response) {
     return res.json({ success: true, data: updated, message: "更新成功" });
   } catch (error: unknown) {
     console.error("更新模型应用配置失败:", error);
-    return res.status(500).json({ success: false, message: "更新失败", error: error instanceof Error ? error.message : "操作失败" });
+    return res.status(500).json(fail("更新失败"));
   }
 }
 
 export async function patchModelApplication(req: Request, res: Response) {
   try {
     if (!isAdmin(req)) {
-      return res.status(403).json({ success: false, message: "仅管理员可操作" });
+      return res.status(403).json(fail("仅管理员可操作", "FORBIDDEN"));
     }
 
     const { id } = req.params;
@@ -1226,7 +1226,7 @@ export async function patchModelApplication(req: Request, res: Response) {
     const existing = db.prepare("SELECT * FROM model_applications WHERE id = ?").get(id);
 
     if (!existing) {
-      return res.status(404).json({ success: false, message: "配置不存在" });
+      return res.status(404).json(fail("配置不存在", "NOT_FOUND"));
     }
 
     const now = new Date().toISOString();
@@ -1240,14 +1240,14 @@ export async function patchModelApplication(req: Request, res: Response) {
     return res.json({ success: true, message: "状态更新成功" });
   } catch (error: unknown) {
     console.error("更新模型应用状态失败:", error);
-    return res.status(500).json({ success: false, message: "更新失败", error: error instanceof Error ? error.message : "操作失败" });
+    return res.status(500).json(fail("更新失败"));
   }
 }
 
 export async function deleteModelApplication(req: Request, res: Response) {
   try {
     if (!isAdmin(req)) {
-      return res.status(403).json({ success: false, message: "仅管理员可操作" });
+      return res.status(403).json(fail("仅管理员可操作", "FORBIDDEN"));
     }
 
     const { id } = req.params;
@@ -1256,7 +1256,7 @@ export async function deleteModelApplication(req: Request, res: Response) {
     const existing = db.prepare("SELECT * FROM model_applications WHERE id = ?").get(id);
 
     if (!existing) {
-      return res.status(404).json({ success: false, message: "配置不存在" });
+      return res.status(404).json(fail("配置不存在", "NOT_FOUND"));
     }
 
     db.prepare("DELETE FROM model_applications WHERE id = ?").run(id);
@@ -1264,7 +1264,7 @@ export async function deleteModelApplication(req: Request, res: Response) {
     return res.json({ success: true, message: "删除成功" });
   } catch (error: unknown) {
     console.error("删除模型应用配置失败:", error);
-    return res.status(500).json({ success: false, message: "删除失败", error: error instanceof Error ? error.message : "操作失败" });
+    return res.status(500).json(fail("删除失败"));
   }
 }
 
@@ -1331,7 +1331,7 @@ export async function getRecentActivity(req: Request, res: Response) {
 
     res.json({ success: true, data: { items: items.slice(0, limit) } });
   } catch (error: unknown) {
-    res.status(500).json({ success: false, message: error instanceof Error ? error.message : "操作失败" });
+    res.status(500).json(fail("操作失败"));
   }
 }
 
@@ -1414,7 +1414,7 @@ export async function getSmartToolHistory(req: Request, res: Response) {
       },
     });
   } catch (error: unknown) {
-    res.status(500).json({ success: false, message: error instanceof Error ? error.message : "操作失败" });
+    res.status(500).json(fail("操作失败"));
   }
 }
 
@@ -1424,18 +1424,18 @@ export async function deleteSmartToolHistory(req: Request, res: Response) {
     const { id } = req.params;
 
     if (!id) {
-      return res.status(400).json({ success: false, message: "缺少记录 ID" });
+      return res.status(400).json(fail("缺少记录 ID", "VALIDATION_ERROR"));
     }
 
     const userId = (req as AuthRequest).user?.userId;
     const record = db.prepare("SELECT id, user_id FROM ai_usage_logs WHERE id = ?").get(id) as UsageRecordRow | undefined;
     
     if (!record) {
-      return res.status(404).json({ success: false, message: "记录不存在" });
+      return res.status(404).json(fail("记录不存在", "NOT_FOUND"));
     }
 
     if (record.user_id && record.user_id !== userId && !isAdmin(req)) {
-      return res.status(403).json({ success: false, message: "无权删除该记录" });
+      return res.status(403).json(fail("无权删除该记录", "FORBIDDEN"));
     }
 
     db.prepare("DELETE FROM ai_usage_logs WHERE id = ?").run(id);
@@ -1444,7 +1444,7 @@ export async function deleteSmartToolHistory(req: Request, res: Response) {
 
     res.json({ success: true, message: "删除成功" });
   } catch (error: unknown) {
-    res.status(500).json({ success: false, message: error instanceof Error ? error.message : "操作失败" });
+    res.status(500).json(fail("操作失败"));
   }
 }
 
@@ -1469,7 +1469,7 @@ export async function getPromptTemplates(req: Request, res: Response) {
     }));
     res.json(success(result));
   } catch (error: unknown) {
-    res.status(500).json({ success: false, message: error instanceof Error ? error.message : "操作失败" });
+    res.status(500).json(fail("操作失败"));
   }
 }
 
@@ -1479,7 +1479,7 @@ export async function createPromptTemplate(req: Request, res: Response) {
     const userId = (req as AuthRequest).user?.userId;
     const { module, name, type, systemPrompt, userPromptTemplate, variables, isDefault, enabled, sortOrder } = req.body;
     if (!module || !name) {
-      return res.status(400).json({ success: false, message: "模块和名称不能为空" });
+      return res.status(400).json(fail("模块和名称不能为空", "VALIDATION_ERROR"));
     }
     const id = generateId();
     const now = new Date().toISOString();
@@ -1491,7 +1491,7 @@ export async function createPromptTemplate(req: Request, res: Response) {
     );
     res.json(success({ id, module, name }));
   } catch (error: unknown) {
-    res.status(500).json({ success: false, message: error instanceof Error ? error.message : "操作失败" });
+    res.status(500).json(fail("操作失败"));
   }
 }
 
@@ -1502,7 +1502,7 @@ export async function updatePromptTemplate(req: Request, res: Response) {
     const { module, name, type, systemPrompt, userPromptTemplate, variables, isDefault, enabled, sortOrder } = req.body;
     const existing = db.prepare("SELECT id FROM ai_prompt_templates WHERE id = ?").get(id) as PromptTemplateRow | undefined;
     if (!existing) {
-      return res.status(404).json({ success: false, message: "模板不存在" });
+      return res.status(404).json(fail("模板不存在", "NOT_FOUND"));
     }
     const now = new Date().toISOString();
     db.prepare(`UPDATE ai_prompt_templates SET module = COALESCE(?, module), name = COALESCE(?, name), type = COALESCE(?, type),
@@ -1515,7 +1515,7 @@ export async function updatePromptTemplate(req: Request, res: Response) {
     );
     res.json(success({ id }));
   } catch (error: unknown) {
-    res.status(500).json({ success: false, message: error instanceof Error ? error.message : "操作失败" });
+    res.status(500).json(fail("操作失败"));
   }
 }
 
@@ -1525,11 +1525,11 @@ export async function deletePromptTemplate(req: Request, res: Response) {
     const { id } = req.params;
     const existing = db.prepare("SELECT id FROM ai_prompt_templates WHERE id = ?").get(id) as PromptTemplateRow | undefined;
     if (!existing) {
-      return res.status(404).json({ success: false, message: "模板不存在" });
+      return res.status(404).json(fail("模板不存在", "NOT_FOUND"));
     }
     db.prepare("DELETE FROM ai_prompt_templates WHERE id = ?").run(id);
     res.json(success({ id }));
   } catch (error: unknown) {
-    res.status(500).json({ success: false, message: error instanceof Error ? error.message : "操作失败" });
+    res.status(500).json(fail("操作失败"));
   }
 }

@@ -132,7 +132,7 @@ function formatAbsDiff(v: number, base: number) {
   flex-direction: column;
   background: var(--color-bg-container);
   border-radius: $radius-xl;
-  border: 1px solid var(--color-border-light);
+  border: 1px solid var(--color-border);
   overflow: hidden;
 }
 
@@ -141,7 +141,7 @@ function formatAbsDiff(v: number, base: number) {
   align-items: center;
   justify-content: space-between;
   padding: $space-3 $space-4;
-  border-bottom: 1px solid var(--color-border-light);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .toolbar-label {
@@ -163,7 +163,7 @@ function formatAbsDiff(v: number, base: number) {
   th, td {
     padding: $space-3 $space-4;
     text-align: left;
-    border-bottom: 1px solid var(--color-border-light);
+    border-bottom: 1px solid var(--color-border);
   }
 
   th {

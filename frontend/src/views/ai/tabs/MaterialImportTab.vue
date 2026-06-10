@@ -1734,7 +1734,7 @@ const resetAllData = () => {
 };
 
 watch(() => route.path, (newPath, oldPath) => {
-  if (oldPath && !oldPath.startsWith('/ai-assistant') && newPath.startsWith('/ai-assistant')) {
+  if (oldPath && !oldPath.startsWith('/tools/ai-assistant') && newPath.startsWith('/tools/ai-assistant')) {
     resetAllData();
   }
 });

@@ -8,7 +8,7 @@ import {
   setAuthoritativeFromSources,
 } from "../services/nutritionSourceService.js";
 import { enrichMaterialNutrition, bulkEnrichNutrition } from "../services/externalNutrition/AggregateNutritionService.js";
-import { success } from "../utils/helpers.js";
+import { success, fail } from "../utils/helpers.js";
 
 type AuthRequest = Request & { user: { userId: string; role: string } };
 
@@ -19,8 +19,7 @@ export async function getSources(req: Request, res: Response) {
     const data = await getNutritionSources(materialId, includeInactive);
     res.json(success(data));
   } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : String(error);
-    res.status(500).json({ success: false, message: "获取来源数据失败", error: msg });
+    res.status(500).json(fail("获取来源数据失败"));
   }
 }
 
@@ -30,13 +29,12 @@ export async function addSource(req: AuthRequest, res: Response) {
     const { sourceType, per100g, sourceDetail, confidence, matchScore, notes } = req.body;
     const result = await addNutritionSource(materialId, sourceType, per100g, sourceDetail, confidence, matchScore, notes, req.user.userId);
     if (!result.success) {
-      res.status(400).json({ success: false, message: result.message });
+      res.status(400).json(fail(result.message, "VALIDATION_ERROR"));
       return;
     }
     res.status(201).json(success({ sourceId: result.sourceId, materialId, sourceType, sourceDetail, confidence, matchScore, createdAt: new Date().toISOString() }));
   } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : String(error);
-    res.status(500).json({ success: false, message: "添加来源数据失败", error: msg });
+    res.status(500).json(fail("添加来源数据失败"));
   }
 }
 
@@ -46,8 +44,7 @@ export async function getSourcesCompare(req: Request, res: Response) {
     const data = await getNutritionSourcesCompare(materialId);
     res.json(success(data));
   } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : String(error);
-    res.status(500).json({ success: false, message: "获取来源对比失败", error: msg });
+    res.status(500).json(fail("获取来源对比失败"));
   }
 }
 
@@ -57,13 +54,12 @@ export async function updateSource(req: AuthRequest, res: Response) {
     const { sourceDetail, confidence, notes } = req.body;
     const result = await updateNutritionSource(materialId, sourceId, sourceDetail, confidence, notes);
     if (!result.success) {
-      res.status(400).json({ success: false, message: result.message });
+      res.status(400).json(fail(result.message, "VALIDATION_ERROR"));
       return;
     }
     res.json(success(null, "来源数据已更新"));
   } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : String(error);
-    res.status(500).json({ success: false, message: "更新来源数据失败", error: msg });
+    res.status(500).json(fail("更新来源数据失败"));
   }
 }
 
@@ -76,13 +72,12 @@ export async function deleteSource(req: AuthRequest, res: Response) {
     }
     const result = await softDeleteNutritionSource(sourceId, materialId);
     if (!result.success) {
-      res.status(400).json({ success: false, message: result.message });
+      res.status(400).json(fail(result.message, "VALIDATION_ERROR"));
       return;
     }
     res.json(success(null, "来源数据已删除"));
   } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : String(error);
-    res.status(500).json({ success: false, message: "删除来源数据失败", error: msg });
+    res.status(500).json(fail("删除来源数据失败"));
   }
 }
 
@@ -96,7 +91,7 @@ export async function setAuthoritative(req: AuthRequest, res: Response) {
     }
     const result = await setAuthoritativeFromSources(materialId, fieldSelections, req.user.userId);
     if (!result.success) {
-      res.status(400).json({ success: false, message: result.message });
+      res.status(400).json(fail(result.message, "VALIDATION_ERROR"));
       return;
     }
     res.json(success({
@@ -106,8 +101,7 @@ export async function setAuthoritative(req: AuthRequest, res: Response) {
       fieldSources: result.fieldSources,
     }, "权威数据已更新"));
   } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : String(error);
-    res.status(500).json({ success: false, message: "设定权威数据失败", error: msg });
+    res.status(500).json(fail("设定权威数据失败"));
   }
 }
 
@@ -127,7 +121,7 @@ export async function enrichNutrition(req: AuthRequest, res: Response) {
     const { sources } = req.body || {};
     const material = (await (await import("../config/database-adapter.js")).query("SELECT id, name FROM materials WHERE id = ?", [materialId])).rows[0] as Record<string, unknown> | undefined;
     if (!material) {
-      res.status(404).json({ success: false, message: "原料不存在" });
+      res.status(404).json(fail("原料不存在", "NOT_FOUND"));
       return;
     }
     const result = await enrichMaterialNutrition(materialId, material.name as string, req.user.userId, sources);
@@ -138,8 +132,7 @@ export async function enrichNutrition(req: AuthRequest, res: Response) {
       summary: result.summary,
     }));
   } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : String(error);
-    res.status(500).json({ success: false, message: "获取外部营养数据失败", error: msg });
+    res.status(500).json(fail("获取外部营养数据失败"));
   }
 }
 
@@ -157,7 +150,6 @@ export async function bulkEnrichNutritionHandler(req: AuthRequest, res: Response
     const result = await bulkEnrichNutrition(materialIds || [], req.user.userId, sources, overwriteExisting);
     res.json(success(result));
   } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : String(error);
-    res.status(500).json({ success: false, message: "批量补全失败", error: msg });
+    res.status(500).json(fail("批量补全失败"));
   }
 }

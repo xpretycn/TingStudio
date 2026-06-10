@@ -507,13 +507,7 @@ onMounted(async () => {
   :deep(.t-select__selected-single img),
   :deep(.t-option img) {
     transition: filter 0.2s ease;
-  }
-
-  :global([data-theme="dark"]) {
-    .t-select__selected-single img,
-    .t-option img {
-      filter: brightness(1.3) contrast(1.1);
-    }
+    filter: var(--img-brightness, none);
   }
 }
 </style>

@@ -292,7 +292,7 @@ watch(
   padding: $space-2;
   background: var(--color-bg-page);
   border-radius: $radius-xs;
-  border: 1px solid var(--color-border-light);
+  border: 1px solid var(--color-border);
   font-family: $font-family-mono;
   font-size: $font-size-caption;
   max-height: 200px;

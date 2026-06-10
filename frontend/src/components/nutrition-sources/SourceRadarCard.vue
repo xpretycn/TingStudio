@@ -98,7 +98,7 @@ const buildOption = (): EChartsOption => {
   const root = document.documentElement
   const style = getComputedStyle(root)
   const textColor = style.getPropertyValue('--color-text-secondary').trim() || '#6b7280'
-  const borderColor = style.getPropertyValue('--color-border-light').trim() || '#e5e7eb'
+  const borderColor = style.getPropertyValue('--color-border').trim() || '#e5e7eb'
   const bgColor = style.getPropertyValue('--color-bg-container').trim() || '#ffffff'
   const textPrimary = style.getPropertyValue('--color-text-primary').trim() || '#1f2937'
   const chartColors = getChartColors()
@@ -254,7 +254,7 @@ onUnmounted(() => {
 <style lang="scss" scoped>
 .radar-card {
   background: var(--color-bg-container);
-  border: 1px solid var(--color-border-light);
+  border: 1px solid var(--color-border);
   border-radius: $radius-xl;
   padding: $space-3 $space-4;
   // 兜底：即使 ECharts tooltip 渲染到容器外，也不让 card 撑大溢出

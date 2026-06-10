@@ -4,6 +4,7 @@ import {
   generateId,
   now,
   success,
+  fail,
   successWithPagination,
   buildPagination,
   rowToCamelCase,
@@ -85,7 +86,7 @@ export async function checkPeriodExists(req: any, res: Response) {
 
     return res.json(success(result, result.exists ? "该周期报告已存在" : "该周期报告不存在，可以生成"));
   } catch (error: any) {
-    return res.status(500).json({ success: false, message: "检查周期失败", error: error.message });
+    return res.status(500).json(fail("检查周期失败"));
   }
 }
 
@@ -126,7 +127,7 @@ export async function getReportList(req: any, res: Response) {
 
     res.json(successWithPagination(formattedList, countResult[0].total, p, size));
   } catch (error: any) {
-    res.status(500).json({ success: false, message: "获取报告列表失败", error: error.message });
+    res.status(500).json(fail("获取报告列表失败"));
   }
 }
 
@@ -139,12 +140,12 @@ export async function getReportById(req: any, res: Response) {
     );
 
     if (!report) {
-      return res.status(404).json({ success: false, message: "报告不存在" });
+      return res.status(404).json(fail("报告不存在", "NOT_FOUND"));
     }
 
     const userRole = req.user.role;
     if (userRole === "formulist" && report.created_by !== req.user.userId && report.status !== "published") {
-      return res.status(403).json({ success: false, message: "无权查看此报告" });
+      return res.status(403).json(fail("无权查看此报告", "FORBIDDEN"));
     }
 
     res.json(success({
@@ -152,7 +153,7 @@ export async function getReportById(req: any, res: Response) {
       dataJson: safeJsonParse(report.data_json, {}),
     }));
   } catch (error: any) {
-    res.status(500).json({ success: false, message: "获取报告详情失败", error: error.message });
+    res.status(500).json(fail("获取报告详情失败"));
   }
 }
 
@@ -162,11 +163,11 @@ export async function generateReport(req: any, res: Response) {
     const userId = req.user.userId;
 
     if (!type || !periodStart || !periodEnd) {
-      return res.status(400).json({ success: false, message: "缺少必要参数: type, periodStart, periodEnd" });
+      return res.status(400).json(fail("缺少必要参数: type, periodStart, periodEnd", "VALIDATION_ERROR"));
     }
 
     if (type !== "weekly" && type !== "monthly") {
-      return res.status(400).json({ success: false, message: "type 必须是 weekly 或 monthly" });
+      return res.status(400).json(fail("type 必须是 weekly 或 monthly", "VALIDATION_ERROR"));
     }
 
     const periodCheck = await checkPeriodUniqueness(type, periodStart, userId);
@@ -198,7 +199,7 @@ export async function generateReport(req: any, res: Response) {
       dataJson: safeJsonParse(created.data_json, {}),
     }, "报告生成成功"));
   } catch (error: any) {
-    res.status(500).json({ success: false, message: "生成报告失败", error: error.message });
+    res.status(500).json(fail("生成报告失败"));
   }
 }
 
@@ -209,12 +210,12 @@ export async function updateReport(req: any, res: Response) {
 
     const [[existing]]: any[][] = await query("SELECT * FROM reports WHERE id = ?", [id]);
     if (!existing) {
-      return res.status(404).json({ success: false, message: "报告不存在" });
+      return res.status(404).json(fail("报告不存在", "NOT_FOUND"));
     }
 
     const userRole = req.user.role;
     if (userRole === "formulist" && existing.created_by !== req.user.userId) {
-      return res.status(403).json({ success: false, message: "无权编辑此报告" });
+      return res.status(403).json(fail("无权编辑此报告", "FORBIDDEN"));
     }
 
     if (userRole === "formulist" && dataJson !== undefined) {
@@ -238,7 +239,7 @@ export async function updateReport(req: any, res: Response) {
     if (status !== undefined) { updates.push("status = ?"); params.push(status); }
 
     if (updates.length === 0) {
-      return res.status(400).json({ success: false, message: "没有需要更新的字段" });
+      return res.status(400).json(fail("没有需要更新的字段", "VALIDATION_ERROR"));
     }
 
     updates.push("updated_at = ?");
@@ -253,7 +254,7 @@ export async function updateReport(req: any, res: Response) {
       dataJson: safeJsonParse(updated.data_json, {}),
     }));
   } catch (error: any) {
-    res.status(500).json({ success: false, message: "更新报告失败", error: error.message });
+    res.status(500).json(fail("更新报告失败"));
   }
 }
 
@@ -271,7 +272,7 @@ export async function deleteReport(req: any, res: Response) {
 
     if (!existing) {
       console.warn(`[ReportController] ⚠️ 步骤1结果: 报告不存在! id=${id}`)
-      return res.status(404).json({ success: false, message: "报告不存在" });
+      return res.status(404).json(fail("报告不存在", "NOT_FOUND"));
     }
 
     console.log(`[ReportController] ✅ 步骤1结果: 报告已找到`)
@@ -303,13 +304,13 @@ export async function deleteReport(req: any, res: Response) {
 
     console.warn(`[ReportController] ❌ 步骤2结果: 权限验证失败!`)
     console.warn(`[ReportController]   - 原因: role="${userRole}" !== "admin" 且 created_by="${existing.created_by}" !== userId="${req.user?.userId}"`)
-    return res.status(403).json({ success: false, message: "仅管理员或报告创建者可删除报告" });
+    return res.status(403).json(fail("仅管理员或报告创建者可删除报告", "FORBIDDEN"));
   } catch (error: any) {
     console.error(`[ReportController] ❌ ========== 删除异常 ==========`)
     console.error(`[ReportController] 错误类型: ${error.name}`)
     console.error(`[ReportController] 错误消息: ${error.message}`)
     console.error(`[ReportController] 错误堆栈:`, error.stack)
-    res.status(500).json({ success: false, message: "删除报告失败", error: error.message });
+    res.status(500).json(fail("删除报告失败"));
   }
 }
 
@@ -318,12 +319,12 @@ export async function publishReport(req: any, res: Response) {
     const { id } = req.params;
     const [[existing]]: any[][] = await query("SELECT * FROM reports WHERE id = ?", [id]);
     if (!existing) {
-      return res.status(404).json({ success: false, message: "报告不存在" });
+      return res.status(404).json(fail("报告不存在", "NOT_FOUND"));
     }
 
     const userRole = req.user.role;
     if (userRole !== "admin") {
-      return res.status(403).json({ success: false, message: "仅管理员可发布报告" });
+      return res.status(403).json(fail("仅管理员可发布报告", "FORBIDDEN"));
     }
 
     await query(
@@ -337,7 +338,7 @@ export async function publishReport(req: any, res: Response) {
       dataJson: safeJsonParse(updated.data_json, {}),
     }, "报告已发布"));
   } catch (error: any) {
-    res.status(500).json({ success: false, message: "发布报告失败", error: error.message });
+    res.status(500).json(fail("发布报告失败"));
   }
 }
 
@@ -345,12 +346,12 @@ export async function getWeeklyData(req: any, res: Response) {
   try {
     const { periodStart, periodEnd } = req.query;
     if (!periodStart || !periodEnd) {
-      return res.status(400).json({ success: false, message: "缺少时间范围参数" });
+      return res.status(400).json(fail("缺少时间范围参数", "VALIDATION_ERROR"));
     }
     const data = await aggregateReportData("weekly", periodStart as string, periodEnd as string, false, false);
     res.json(success(data));
   } catch (error: any) {
-    res.status(500).json({ success: false, message: "获取周报数据失败", error: error.message });
+    res.status(500).json(fail("获取周报数据失败"));
   }
 }
 
@@ -358,12 +359,12 @@ export async function getMonthlyData(req: any, res: Response) {
   try {
     const { periodStart, periodEnd } = req.query;
     if (!periodStart || !periodEnd) {
-      return res.status(400).json({ success: false, message: "缺少时间范围参数" });
+      return res.status(400).json(fail("缺少时间范围参数", "VALIDATION_ERROR"));
     }
     const data = await aggregateReportData("monthly", periodStart as string, periodEnd as string, false, false);
     res.json(success(data));
   } catch (error: any) {
-    res.status(500).json({ success: false, message: "获取月报数据失败", error: error.message });
+    res.status(500).json(fail("获取月报数据失败"));
   }
 }
 
@@ -386,7 +387,7 @@ export async function getTargetList(req: any, res: Response) {
 
     res.json(success(formattedList));
   } catch (error: any) {
-    res.status(500).json({ success: false, message: "获取目标列表失败", error: error.message });
+    res.status(500).json(fail("获取目标列表失败"));
   }
 }
 
@@ -408,7 +409,7 @@ export async function createTarget(req: any, res: Response) {
       targetsJson: safeJsonParse(created.targets_json, {}),
     }));
   } catch (error: any) {
-    res.status(500).json({ success: false, message: "创建目标失败", error: error.message });
+    res.status(500).json(fail("创建目标失败"));
   }
 }
 
@@ -419,7 +420,7 @@ export async function updateTarget(req: any, res: Response) {
 
     const [[existing]]: any[][] = await query("SELECT * FROM report_targets WHERE id = ?", [id]);
     if (!existing) {
-      return res.status(404).json({ success: false, message: "目标不存在" });
+      return res.status(404).json(fail("目标不存在", "NOT_FOUND"));
     }
 
     const updates: string[] = [];
@@ -431,7 +432,7 @@ export async function updateTarget(req: any, res: Response) {
     if (targetsJson !== undefined) { updates.push("targets_json = ?"); params.push(JSON.stringify(targetsJson)); }
 
     if (updates.length === 0) {
-      return res.status(400).json({ success: false, message: "没有需要更新的字段" });
+      return res.status(400).json(fail("没有需要更新的字段", "VALIDATION_ERROR"));
     }
 
     updates.push("updated_at = ?");
@@ -446,7 +447,7 @@ export async function updateTarget(req: any, res: Response) {
       targetsJson: safeJsonParse(updated.targets_json, {}),
     }));
   } catch (error: any) {
-    res.status(500).json({ success: false, message: "更新目标失败", error: error.message });
+    res.status(500).json(fail("更新目标失败"));
   }
 }
 
@@ -455,12 +456,12 @@ export async function deleteTarget(req: any, res: Response) {
     const { id } = req.params;
     const [[existing]]: any[][] = await query("SELECT * FROM report_targets WHERE id = ?", [id]);
     if (!existing) {
-      return res.status(404).json({ success: false, message: "目标不存在" });
+      return res.status(404).json(fail("目标不存在", "NOT_FOUND"));
     }
     await query("DELETE FROM report_targets WHERE id = ?", [id]);
     res.json(success({ id }, "删除成功"));
   } catch (error: any) {
-    res.status(500).json({ success: false, message: "删除目标失败", error: error.message });
+    res.status(500).json(fail("删除目标失败"));
   }
 }
 
@@ -470,7 +471,7 @@ export async function exportReportPdf(req: any, res: Response) {
     const [[report]]: any[][] = await query("SELECT * FROM reports WHERE id = ?", [id]);
 
     if (!report) {
-      return res.status(404).json({ success: false, message: "报告不存在" });
+      return res.status(404).json(fail("报告不存在", "NOT_FOUND"));
     }
 
     const reportData = {
@@ -488,7 +489,7 @@ export async function exportReportPdf(req: any, res: Response) {
     res.setHeader("Content-Length", buffer.length);
     res.send(buffer);
   } catch (error: any) {
-    res.status(500).json({ success: false, message: "导出PDF失败", error: error.message });
+    res.status(500).json(fail("导出PDF失败"));
   }
 }
 
@@ -498,7 +499,7 @@ export async function exportReportExcel(req: any, res: Response) {
     const [[report]]: any[][] = await query("SELECT * FROM reports WHERE id = ?", [id]);
 
     if (!report) {
-      return res.status(404).json({ success: false, message: "报告不存在" });
+      return res.status(404).json(fail("报告不存在", "NOT_FOUND"));
     }
 
     const reportData = {
@@ -516,7 +517,7 @@ export async function exportReportExcel(req: any, res: Response) {
     res.setHeader("Content-Length", buffer.length);
     res.send(buffer);
   } catch (error: any) {
-    res.status(500).json({ success: false, message: "导出Excel失败", error: error.message });
+    res.status(500).json(fail("导出Excel失败"));
   }
 }
 
@@ -552,7 +553,7 @@ export async function batchExportExcel(req: any, res: Response) {
     const [reports]: any[][] = await query(reportQuery, params);
 
     if (reports.length === 0) {
-      return res.status(404).json({ success: false, message: "没有找到可导出的报告" });
+      return res.status(404).json(fail("没有找到可导出的报告", "NOT_FOUND"));
     }
 
     const reportData = reports.map((r: any) => ({
@@ -571,7 +572,7 @@ export async function batchExportExcel(req: any, res: Response) {
     res.setHeader("Content-Length", buffer.length);
     res.send(buffer);
   } catch (error: any) {
-    res.status(500).json({ success: false, message: "批量导出Excel失败", error: error.message });
+    res.status(500).json(fail("批量导出Excel失败"));
   }
 }
 
@@ -579,14 +580,14 @@ export async function compareReports(req: any, res: Response) {
   try {
     const { reportId1, reportId2 } = req.body;
     if (!reportId1 || !reportId2) {
-      return res.status(400).json({ success: false, message: "请提供两个报告ID" });
+      return res.status(400).json(fail("请提供两个报告ID", "VALIDATION_ERROR"));
     }
 
     const [[report1]]: any[][] = await query("SELECT * FROM reports WHERE id = ?", [reportId1]);
     const [[report2]]: any[][] = await query("SELECT * FROM reports WHERE id = ?", [reportId2]);
 
     if (!report1 || !report2) {
-      return res.status(404).json({ success: false, message: "报告不存在" });
+      return res.status(404).json(fail("报告不存在", "NOT_FOUND"));
     }
 
     const data1 = safeJsonParse(report1.data_json, {}) as any;
@@ -624,7 +625,7 @@ export async function compareReports(req: any, res: Response) {
       diff,
     }));
   } catch (error: any) {
-    res.status(500).json({ success: false, message: "报告对比失败", error: error.message });
+    res.status(500).json(fail("报告对比失败"));
   }
 }
 
@@ -632,7 +633,7 @@ export async function getAIAnalysis(req: any, res: Response) {
   try {
     const { reportData, provider } = req.body;
     if (!reportData) {
-      return res.status(400).json({ success: false, message: "请提供报告数据" });
+      return res.status(400).json(fail("请提供报告数据", "VALIDATION_ERROR"));
     }
 
     const availableModels = aiService.getAvailableModels();
@@ -689,7 +690,7 @@ export async function getAIAnalysis(req: any, res: Response) {
       provider: selectedProvider,
     }));
   } catch (error: any) {
-    res.status(500).json({ success: false, message: "AI分析失败", error: error.message });
+    res.status(500).json(fail("AI分析失败"));
   }
 }
 
@@ -699,17 +700,17 @@ export async function saveAIAnalysis(req: any, res: Response) {
     const { aiAnalysis } = req.body;
 
     if (!aiAnalysis) {
-      return res.status(400).json({ success: false, message: "请提供AI分析数据" });
+      return res.status(400).json(fail("请提供AI分析数据", "VALIDATION_ERROR"));
     }
 
     const [[existing]]: any[][] = await query("SELECT * FROM reports WHERE id = ?", [id]);
     if (!existing) {
-      return res.status(404).json({ success: false, message: "报告不存在" });
+      return res.status(404).json(fail("报告不存在", "NOT_FOUND"));
     }
 
     const userRole = req.user.role;
     if (userRole === "formulist" && existing.created_by !== req.user.userId) {
-      return res.status(403).json({ success: false, message: "无权编辑此报告" });
+      return res.status(403).json(fail("无权编辑此报告", "FORBIDDEN"));
     }
 
     const currentData = safeJsonParse(existing.data_json, {});
@@ -726,7 +727,7 @@ export async function saveAIAnalysis(req: any, res: Response) {
       dataJson: safeJsonParse(updated.data_json, {}),
     }, "AI分析保存成功"));
   } catch (error: any) {
-    res.status(500).json({ success: false, message: "保存AI分析失败", error: error.message });
+    res.status(500).json(fail("保存AI分析失败"));
   }
 }
 

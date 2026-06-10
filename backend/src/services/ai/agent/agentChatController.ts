@@ -189,6 +189,7 @@ class AgentChatController {
             streamedContent += chunk;
             this.sendSSEEvent(res, "chunk", { content: chunk });
           },
+          iteration === 1, // 首次迭代强制工具调用
         );
 
         if (llmResponse.usage) {
@@ -209,7 +210,9 @@ class AgentChatController {
 
         const assistantMsg: ChatMessage = {
           role: "assistant",
-          content: iterationContent || llmResponse.content || "",
+          content: llmResponse.tool_calls?.length
+            ? ""
+            : iterationContent || llmResponse.content || "",
           tool_calls: llmResponse.tool_calls,
         };
         messages.push(assistantMsg);
@@ -273,18 +276,51 @@ class AgentChatController {
         allToolResults.length > 0 ? this.inferDisplayType(allToolCalls[0]?.name || "", allToolResults[0]) : undefined;
       const isCardDisplay = ["compare", "quotation", "substitute"].includes(mainDisplayType || "");
 
+      // 兜底：LLM未调用工具但回答涉及"没有数据"时，强制查询原料/配方
+      const noDataPatterns = /暂无|没有(任何|找到|查询到|数据|记录|结果)|不存在|为空|数量为\s*0|0\s*(种|条|个|项)/;
+      if (!hasToolCalls && finalContent && noDataPatterns.test(finalContent)) {
+        console.log("[AIAgent] 检测到LLM未调用工具但返回'无数据'，触发兜底查询");
+        this.sendSSEEvent(res, "content_clear", {});
+        streamedContent = "";
+        finalContent = "";
+
+        const fallbackTools = this.detectFallbackTools(userMessage);
+        for (const toolName of fallbackTools) {
+          try {
+            const context: ToolContext = { userId, userRole: "user", sessionId, requestId: `fallback_${Date.now()}` };
+            const toolResult = await toolRegistry.execute(toolName, {}, context);
+            allToolCalls.push({ name: toolName, arguments: {} });
+            allToolResults.push(toolResult);
+            this.sendSSEEvent(res, "tool_result", {
+              name: toolName,
+              toolName,
+              success: toolResult.success,
+              data: toolResult.data || toolResult.error,
+              displayType: this.inferDisplayType(toolName, toolResult),
+            });
+            messages.push({
+              role: "tool",
+              content: JSON.stringify(toolResult.data || toolResult.error).slice(0, MAX_TOOL_RESULT_LENGTH),
+              tool_call_id: `fallback_${toolName}`,
+            });
+          } catch (e) {
+            console.error(`[AIAgent] 兜底工具 ${toolName} 执行失败:`, e);
+          }
+        }
+      }
+
       const needsSummary =
         !isCardDisplay &&
-        ((!finalContent && !streamedContent) || (hasToolCalls && (!finalContent || finalContent.trim().length < 20)));
+        ((!finalContent && !streamedContent) || (allToolCalls.length > 0 && (!finalContent || finalContent.trim().length < 30)));
 
       if (needsSummary) {
         const summaryMessages: ChatMessage[] = [
           ...messages,
           {
             role: "user",
-            content: hasToolCalls
-              ? "请根据以上工具调用结果，生成简洁的中文总结。要求：1.用markdown表格展示关键数据；2.文字精简，不超过3句话；3.不要重复工具已返回的完整数据，只提炼要点。"
-              : "请根据以上对话内容，生成简洁的中文回复。",
+            content: allToolCalls.length > 0
+              ? "请根据以上工具调用结果，生成简洁的中文总结。要求：1.用markdown表格展示关键数据；2.文字精简，不超过3句话；3.不要重复工具已返回的完整数据，只提炼要点；4.直接给出结论，不要重复说明查询过程。"
+              : "请根据以上对话内容，生成简洁的中文回复。直接给出回答，不要重复之前的内容。",
           },
         ];
         let streamContent = "";
@@ -351,6 +387,7 @@ class AgentChatController {
     abortController: AbortController,
     modelVersion?: string,
     onChunk?: (chunk: string) => void,
+    forceToolCall: boolean = false,
   ): Promise<{
     content: string;
     tool_calls?: Array<{
@@ -372,7 +409,7 @@ class AgentChatController {
     const toolCallResults: Array<{ id: string; name: string; arguments: string }> = [];
 
     const result = await llmAgentService.streamChat(
-      { messages, tools },
+      { messages, tools, tool_choice: forceToolCall ? "required" : "auto" },
       chunk => {
         if (onChunk) {
           onChunk(chunk);
@@ -422,6 +459,32 @@ class AgentChatController {
       return "table";
     }
     return "card";
+  }
+
+  /**
+   * 根据用户消息检测应该兜底调用的工具
+   * 当LLM未调用工具但返回"无数据"时，根据关键词匹配强制查询
+   */
+  private detectFallbackTools(userMessage: string): string[] {
+    const msg = userMessage.toLowerCase();
+    const tools: string[] = [];
+
+    if (/原料|材料|material|有多少种|列表/.test(msg)) {
+      tools.push("query_materials");
+    }
+    if (/配方|formula|方子|膏|茶|丸/.test(msg)) {
+      tools.push("query_formulas");
+    }
+    if (/业务员|销售|salesman|salesperson/.test(msg)) {
+      tools.push("query_salespersons");
+    }
+
+    // 如果没有匹配到任何具体工具，默认查询原料（最常见场景）
+    if (tools.length === 0) {
+      tools.push("query_materials");
+    }
+
+    return tools;
   }
 
   private async handleNormalChat(res: Response, sessionId: string, userId: string, userMessage: string): Promise<void> {
@@ -567,6 +630,7 @@ class AgentChatController {
           streamedContent += chunk;
           this.sendSSEEvent(res, "chunk", { content: chunk });
         },
+        iteration === 1, // 首次迭代强制工具调用
       );
 
       if (llmResponse.usage) {
@@ -587,7 +651,9 @@ class AgentChatController {
 
       const assistantMsg: ChatMessage = {
         role: "assistant",
-        content: iterationContent || llmResponse.content || "",
+        content: llmResponse.tool_calls?.length
+          ? ""
+          : iterationContent || llmResponse.content || "",
         tool_calls: llmResponse.tool_calls,
       };
       messages.push(assistantMsg);
@@ -644,18 +710,51 @@ class AgentChatController {
       allToolResults.length > 0 ? this.inferDisplayType(allToolCalls[0]?.name || "", allToolResults[0]) : undefined;
     const isCardDisplay = ["compare", "quotation", "substitute"].includes(displayType || "");
 
+    // 兜底：LLM未调用工具但回答涉及"没有数据"时，强制查询
+    const noDataPatternsFloat = /暂无|没有(任何|找到|查询到|数据|记录|结果)|不存在|为空|数量为\s*0|0\s*(种|条|个|项)/;
+    if (!hasToolCalls && finalContent && noDataPatternsFloat.test(finalContent)) {
+      console.log("[AIAgent-Float] 检测到LLM未调用工具但返回'无数据'，触发兜底查询");
+      this.sendSSEEvent(res, "content_clear", {});
+      streamedContent = "";
+      finalContent = "";
+
+      const fallbackTools = this.detectFallbackTools(userMessage);
+      for (const toolName of fallbackTools) {
+        try {
+          const context: ToolContext = { userId, userRole: "user", sessionId, requestId: `fallback_${Date.now()}` };
+          const toolResult = await toolRegistry.execute(toolName, {}, context);
+          allToolCalls.push({ name: toolName, arguments: {} });
+          allToolResults.push(toolResult);
+          this.sendSSEEvent(res, "tool_result", {
+            name: toolName,
+            toolName,
+            success: toolResult.success,
+            data: toolResult.data || toolResult.error,
+            displayType: this.inferDisplayType(toolName, toolResult),
+          });
+          messages.push({
+            role: "tool",
+            content: JSON.stringify(toolResult.data || toolResult.error).slice(0, MAX_TOOL_RESULT_LENGTH),
+            tool_call_id: `fallback_${toolName}`,
+          });
+        } catch (e) {
+          console.error(`[AIAgent-Float] 兜底工具 ${toolName} 执行失败:`, e);
+        }
+      }
+    }
+
     const needsSummary =
       !isCardDisplay &&
-      ((!finalContent && !streamedContent) || (hasToolCalls && (!finalContent || finalContent.trim().length < 20)));
+      ((!finalContent && !streamedContent) || (allToolCalls.length > 0 && (!finalContent || finalContent.trim().length < 30)));
 
     if (needsSummary) {
       const summaryMessages: ChatMessage[] = [
         ...messages,
         {
           role: "user",
-          content: hasToolCalls
-            ? "请根据以上工具调用结果，生成简洁的中文总结。要求：1.用markdown表格展示关键数据；2.文字精简，不超过3句话；3.不要重复工具已返回的完整数据，只提炼要点。"
-            : "请根据以上对话内容，生成简洁的中文回复。",
+          content: allToolCalls.length > 0
+            ? "请根据以上工具调用结果，生成简洁的中文总结。要求：1.用markdown表格展示关键数据；2.文字精简，不超过3句话；3.不要重复工具已返回的完整数据，只提炼要点；4.直接给出结论，不要重复说明查询过程。"
+            : "请根据以上对话内容，生成简洁的中文回复。直接给出回答，不要重复之前的内容。",
         },
       ];
       let streamContent = "";

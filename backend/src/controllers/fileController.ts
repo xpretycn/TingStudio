@@ -7,6 +7,7 @@ import {
   generateId,
   now,
   success,
+  fail,
   buildPagination,
   rowToCamelCase,
   rowsToCamelCase,
@@ -102,15 +103,14 @@ export async function listFiles(req: AuthRequest, res: Response) {
       }),
     );
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "获取文件列表失败";
-    res.status(500).json({ success: false, message: "获取文件列表失败", error: message });
+    res.status(500).json(fail("获取文件列表失败"));
   }
 }
 
 export async function uploadFile(req: AuthRequest, res: Response) {
   try {
     if (!req.file) {
-      res.status(400).json({ success: false, message: "请上传文件" });
+      res.status(400).json(fail("请上传文件", "VALIDATION_ERROR"));
       return;
     }
 
@@ -157,8 +157,7 @@ export async function uploadFile(req: AuthRequest, res: Response) {
     const { rows: fileRows } = await query("SELECT * FROM uploaded_files WHERE id = ?", [fileId]);
     res.status(201).json(success(rowToCamelCase(fileRows[0] as Record<string, unknown>), "文件上传成功"));
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "文件上传失败";
-    res.status(500).json({ success: false, message: "文件上传失败", error: message });
+    res.status(500).json(fail("文件上传失败"));
   }
 }
 
@@ -183,7 +182,7 @@ export async function getFile(req: AuthRequest, res: Response) {
 
     const fileRecord = fileRows[0] as Record<string, unknown> | undefined;
     if (!fileRecord) {
-      res.status(404).json({ success: false, message: "文件不存在" });
+      res.status(404).json(fail("文件不存在", "NOT_FOUND"));
       return;
     }
 
@@ -196,15 +195,14 @@ export async function getFile(req: AuthRequest, res: Response) {
 
     res.json(success({ ...rowToCamelCase(fileRecord), relations: rowsToCamelCase(relations as Record<string, unknown>[]) }));
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "获取文件信息失败";
-    res.status(500).json({ success: false, message: "获取文件信息失败", error: message });
+    res.status(500).json(fail("获取文件信息失败"));
   }
 }
 
 export async function deleteFile(req: AuthRequest, res: Response) {
   try {
     if (req.user!.role !== "admin") {
-      res.status(403).json({ success: false, message: "仅管理员可删除文件" });
+      res.status(403).json(fail("仅管理员可删除文件", "FORBIDDEN"));
       return;
     }
 
@@ -213,7 +211,7 @@ export async function deleteFile(req: AuthRequest, res: Response) {
     const { rows: fileRows } = await query("SELECT * FROM uploaded_files WHERE id = ?", [fileId]);
     const fileRecord = fileRows[0] as Record<string, unknown> | undefined;
     if (!fileRecord) {
-      res.status(404).json({ success: false, message: "文件不存在" });
+      res.status(404).json(fail("文件不存在", "NOT_FOUND"));
       return;
     }
 
@@ -228,8 +226,7 @@ export async function deleteFile(req: AuthRequest, res: Response) {
 
     res.json(success(null, "文件删除成功"));
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "删除文件失败";
-    res.status(500).json({ success: false, message: "删除文件失败", error: message });
+    res.status(500).json(fail("删除文件失败"));
   }
 }
 
@@ -240,13 +237,13 @@ export async function downloadFile(req: AuthRequest, res: Response) {
     const { rows: fileRows } = await query("SELECT * FROM uploaded_files WHERE id = ?", [fileId]);
     const fileRecord = fileRows[0] as Record<string, unknown> | undefined;
     if (!fileRecord) {
-      res.status(404).json({ success: false, message: "文件不存在" });
+      res.status(404).json(fail("文件不存在", "NOT_FOUND"));
       return;
     }
 
     const absolutePath = path.join(process.cwd(), fileRecord.storage_path as string);
     if (!fs.existsSync(absolutePath)) {
-      res.status(404).json({ success: false, message: "文件已丢失" });
+      res.status(404).json(fail("文件已丢失", "NOT_FOUND"));
       return;
     }
 
@@ -260,8 +257,7 @@ export async function downloadFile(req: AuthRequest, res: Response) {
     const fileStream = fs.createReadStream(absolutePath);
     fileStream.pipe(res);
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "文件下载失败";
-    res.status(500).json({ success: false, message: "文件下载失败", error: message });
+    res.status(500).json(fail("文件下载失败"));
   }
 }
 
@@ -271,14 +267,14 @@ export async function linkFile(req: AuthRequest, res: Response) {
     const { relatedId, relatedType } = req.body as Record<string, string>;
 
     if (!relatedId || !relatedType) {
-      res.status(400).json({ success: false, message: "缺少关联ID或关联类型" });
+      res.status(400).json(fail("缺少关联ID或关联类型", "VALIDATION_ERROR"));
       return;
     }
 
     const { rows: fileRows } = await query("SELECT * FROM uploaded_files WHERE id = ?", [fileId]);
     const fileRecord = fileRows[0] as Record<string, unknown> | undefined;
     if (!fileRecord) {
-      res.status(404).json({ success: false, message: "文件不存在" });
+      res.status(404).json(fail("文件不存在", "NOT_FOUND"));
       return;
     }
 
@@ -292,7 +288,7 @@ export async function linkFile(req: AuthRequest, res: Response) {
     }
 
     if (!relatedName) {
-      res.status(400).json({ success: false, message: "关联的记录不存在" });
+      res.status(400).json(fail("关联的记录不存在", "VALIDATION_ERROR"));
       return;
     }
 
@@ -320,8 +316,7 @@ export async function linkFile(req: AuthRequest, res: Response) {
 
     res.json(success(null, "文件关联成功"));
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "关联文件失败";
-    res.status(500).json({ success: false, message: "关联文件失败", error: message });
+    res.status(500).json(fail("关联文件失败"));
   }
 }
 
@@ -333,7 +328,7 @@ export async function unlinkFile(req: AuthRequest, res: Response) {
     const { rows: fileRows } = await query("SELECT * FROM uploaded_files WHERE id = ?", [fileId]);
     const fileRecord = fileRows[0] as Record<string, unknown> | undefined;
     if (!fileRecord) {
-      res.status(404).json({ success: false, message: "文件不存在" });
+      res.status(404).json(fail("文件不存在", "NOT_FOUND"));
       return;
     }
 
@@ -383,8 +378,7 @@ export async function unlinkFile(req: AuthRequest, res: Response) {
 
     res.json(success(null, "取消关联成功"));
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "取消关联失败";
-    res.status(500).json({ success: false, message: "取消关联失败", error: message });
+    res.status(500).json(fail("取消关联失败"));
   }
 }
 
@@ -394,7 +388,7 @@ export async function getFileRelations(req: AuthRequest, res: Response) {
 
     const { rows: fileRows } = await query("SELECT id FROM uploaded_files WHERE id = ?", [fileId]);
     if (!fileRows[0]) {
-      res.status(404).json({ success: false, error: { message: "文件不存在", code: "NOT_FOUND" } });
+      res.status(404).json(fail("文件不存在", "NOT_FOUND"));
       return;
     }
 
@@ -404,8 +398,7 @@ export async function getFileRelations(req: AuthRequest, res: Response) {
     );
     res.json(success(rowsToCamelCase(relations as Record<string, unknown>[])));
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "获取关联关系失败";
-    res.status(500).json({ success: false, message: "获取关联关系失败", error: message });
+    res.status(500).json(fail("获取关联关系失败"));
   }
 }
 
@@ -417,7 +410,7 @@ export async function reparseFile(req: AuthRequest, res: Response) {
     const { rows: fileRows } = await query("SELECT * FROM uploaded_files WHERE id = ?", [fileId]);
     const fileRecord = fileRows[0] as Record<string, unknown> | undefined;
     if (!fileRecord) {
-      res.status(404).json({ success: false, message: "文件不存在" });
+      res.status(404).json(fail("文件不存在", "NOT_FOUND"));
       return;
     }
 
@@ -436,8 +429,7 @@ export async function reparseFile(req: AuthRequest, res: Response) {
 
     res.json(success(null, "重新解析已触发"));
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "重新解析失败";
-    res.status(500).json({ success: false, message: "重新解析失败", error: message });
+    res.status(500).json(fail("重新解析失败"));
   }
 }
 
@@ -447,7 +439,7 @@ export async function getFileAuditLog(req: AuthRequest, res: Response) {
 
     const { rows: fileRows } = await query("SELECT id FROM uploaded_files WHERE id = ?", [fileId]);
     if (!fileRows[0]) {
-      res.status(404).json({ success: false, error: { message: "文件不存在", code: "NOT_FOUND" } });
+      res.status(404).json(fail("文件不存在", "NOT_FOUND"));
       return;
     }
 
@@ -457,8 +449,7 @@ export async function getFileAuditLog(req: AuthRequest, res: Response) {
 
     res.json(success(rowsToCamelCase(logs as Record<string, unknown>[])));
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "获取审计日志失败";
-    res.status(500).json({ success: false, message: "获取审计日志失败", error: message });
+    res.status(500).json(fail("获取审计日志失败"));
   }
 }
 
@@ -472,13 +463,13 @@ export async function previewFile(req: AuthRequest, res: Response) {
     const { rows: fileRows } = await query("SELECT * FROM uploaded_files WHERE id = ?", [fileId]);
     const fileRecord = fileRows[0] as Record<string, unknown> | undefined;
     if (!fileRecord) {
-      res.status(404).json({ success: false, message: "文件不存在" });
+      res.status(404).json(fail("文件不存在", "NOT_FOUND"));
       return;
     }
 
     const absolutePath = path.join(process.cwd(), fileRecord.storage_path as string);
     if (!fs.existsSync(absolutePath)) {
-      res.status(404).json({ success: false, message: "文件已丢失" });
+      res.status(404).json(fail("文件已丢失", "NOT_FOUND"));
       return;
     }
 
@@ -533,11 +524,10 @@ export async function previewFile(req: AuthRequest, res: Response) {
         }),
       );
     } else {
-      res.status(400).json({ success: false, message: "不支持预览该文件类型" });
+      res.status(400).json(fail("不支持预览该文件类型", "VALIDATION_ERROR"));
     }
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "文件预览失败";
-    res.status(500).json({ success: false, message: "文件预览失败", error: message });
+    res.status(500).json(fail("文件预览失败"));
   }
 }
 
@@ -548,13 +538,13 @@ export async function getThumbnail(req: AuthRequest, res: Response) {
     const { rows: fileRows } = await query("SELECT * FROM uploaded_files WHERE id = ?", [fileId]);
     const fileRecord = fileRows[0] as Record<string, unknown> | undefined;
     if (!fileRecord) {
-      res.status(404).json({ success: false, message: "文件不存在" });
+      res.status(404).json(fail("文件不存在", "NOT_FOUND"));
       return;
     }
 
     const absolutePath = path.join(process.cwd(), fileRecord.storage_path as string);
     if (!fs.existsSync(absolutePath)) {
-      res.status(404).json({ success: false, message: "文件已丢失" });
+      res.status(404).json(fail("文件已丢失", "NOT_FOUND"));
       return;
     }
 
@@ -576,11 +566,10 @@ export async function getThumbnail(req: AuthRequest, res: Response) {
         res.redirect(`/api/files/${fileId}/download`);
       }
     } else {
-      res.status(404).json({ success: false, message: "该文件类型不支持缩略图" });
+      res.status(404).json(fail("该文件类型不支持缩略图", "NOT_FOUND"));
     }
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "获取缩略图失败";
-    res.status(500).json({ success: false, message: "获取缩略图失败", error: message });
+    res.status(500).json(fail("获取缩略图失败"));
   }
 }
 
@@ -607,21 +596,20 @@ export async function getStats(req: AuthRequest, res: Response) {
       }),
     );
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "获取文件统计失败";
-    res.status(500).json({ success: false, message: "获取文件统计失败", error: message });
+    res.status(500).json(fail("获取文件统计失败"));
   }
 }
 
 export async function batchDelete(req: AuthRequest, res: Response) {
   try {
     if (req.user!.role !== "admin") {
-      res.status(403).json({ success: false, message: "仅管理员可批量删除文件" });
+      res.status(403).json(fail("仅管理员可批量删除文件", "FORBIDDEN"));
       return;
     }
 
     const { fileIds } = req.body as { fileIds: string[] };
     if (!Array.isArray(fileIds) || fileIds.length === 0) {
-      res.status(400).json({ success: false, message: "请提供要删除的文件ID列表" });
+      res.status(400).json(fail("请提供要删除的文件ID列表", "VALIDATION_ERROR"));
       return;
     }
 
@@ -658,8 +646,7 @@ export async function batchDelete(req: AuthRequest, res: Response) {
 
     res.json(success({ deleted, failed }, `批量删除完成：成功 ${deleted} 个，失败 ${failed} 个`));
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "批量删除失败";
-    res.status(500).json({ success: false, message: "批量删除失败", error: message });
+    res.status(500).json(fail("批量删除失败"));
   }
 }
 
@@ -667,7 +654,7 @@ export async function batchArchive(req: AuthRequest, res: Response) {
   try {
     const { fileIds } = req.body as { fileIds: string[] };
     if (!Array.isArray(fileIds) || fileIds.length === 0) {
-      res.status(400).json({ success: false, message: "请提供要归档的文件ID列表" });
+      res.status(400).json(fail("请提供要归档的文件ID列表", "VALIDATION_ERROR"));
       return;
     }
 
@@ -692,8 +679,7 @@ export async function batchArchive(req: AuthRequest, res: Response) {
 
     res.json(success({ archived, failed }, `批量归档完成：成功 ${archived} 个，失败 ${failed} 个`));
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "批量归档失败";
-    res.status(500).json({ success: false, message: "批量归档失败", error: message });
+    res.status(500).json(fail("批量归档失败"));
   }
 }
 
@@ -710,8 +696,7 @@ export async function fixGarbledFilenames(_req: AuthRequest, res: Response) {
     }
     res.json(success({ total: files.length, fixed }, `修复完成：共 ${files.length} 条记录，修复 ${fixed} 条`));
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "修复乱码失败";
-    res.status(500).json({ success: false, message: "修复乱码失败", error: message });
+    res.status(500).json(fail("修复乱码失败"));
   }
 }
 

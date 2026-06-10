@@ -28,6 +28,10 @@
           <t-icon name="download" size="16px" />
           <span>导出CSV</span>
         </button>
+        <button v-if="searchResult || searchQuery" class="clear-btn" @click="handleClear">
+          <t-icon name="close-circle" size="16px" />
+          <span>清空</span>
+        </button>
       </div>
     </div>
 
@@ -248,6 +252,13 @@ const handleExport = async () => {
   }
 };
 
+const handleClear = () => {
+  searchQuery.value = "";
+  searchResult.value = null;
+  searchError.value = "";
+  sqlExpanded.value = false;
+};
+
 function onKeydown(e: KeyboardEvent) {
   if (e.key === "Enter" && e.ctrlKey) {
     e.preventDefault();
@@ -315,17 +326,40 @@ onUnmounted(() => {
     gap: 8px;
     margin-bottom: 12px;
 
-    :deep(.t-textarea__inner) {
-      font-size: 14px;
+    :deep(.t-textarea) {
+      flex: 1 1 auto;
+      min-width: 0;
+
+      .t-textarea__inner {
+        font-size: 14px;
+        background: var(--color-bg-container);
+        border-color: var(--color-border);
+        color: var(--color-text-primary);
+
+        &::placeholder {
+          color: var(--color-text-placeholder);
+        }
+
+        &:hover {
+          border-color: var(--color-text-placeholder);
+        }
+
+        &:focus {
+          border-color: var(--color-primary);
+          box-shadow: 0 0 0 2px var(--overlay-brand-15);
+        }
+      }
     }
 
     .search-actions {
       display: flex;
-      flex-direction: column;
+      flex-direction: row;
+      align-items: flex-start;
       gap: var(--space-1-5);
 
       .search-btn,
-      .export-btn {
+      .export-btn,
+      .clear-btn {
         display: flex;
         align-items: center;
         gap: 4px;
@@ -352,12 +386,23 @@ onUnmounted(() => {
 
       .search-btn {
         background: var(--color-primary);
-        color: white;
+        color: var(--color-text-white);
         border-color: var(--color-primary);
 
         &:hover:not(:disabled) {
           background: var(--color-primary-dark);
           border-color: var(--color-primary-dark);
+        }
+      }
+
+      .clear-btn {
+        background: var(--color-bg-container);
+        color: var(--color-text-secondary);
+
+        &:hover:not(:disabled) {
+          background: var(--color-danger-bg);
+          color: var(--color-danger);
+          border-color: var(--color-danger-border);
         }
       }
     }
@@ -636,14 +681,22 @@ onUnmounted(() => {
       color: var(--color-text-secondary);
 
       .clear-history-btn {
-        border: none;
-        background: none;
-        color: var(--color-text-placeholder);
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 10px;
+        border: 1px solid var(--color-border);
+        border-radius: 6px;
+        background: var(--color-bg-container);
+        color: var(--color-text-secondary);
         cursor: pointer;
         font-size: 12px;
+        transition: all 0.2s;
 
         &:hover {
-          color: var(--color-text-secondary);
+          background: var(--color-danger-bg);
+          color: var(--color-danger);
+          border-color: var(--color-danger-border);
         }
       }
     }

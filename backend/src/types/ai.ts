@@ -6,6 +6,7 @@ export interface LLMRequest {
     tool_calls?: Array<{ id: string; type: 'function'; function: { name: string; arguments: string } }>;
   }>;
   tools?: ToolDefinition[];
+  tool_choice?: 'auto' | 'required' | 'none';
   temperature?: number;
   max_tokens?: number;
 }

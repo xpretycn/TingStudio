@@ -752,7 +752,7 @@ const resetAllData = () => {
 };
 
 watch(() => route.path, (newPath, oldPath) => {
-  if (oldPath && !oldPath.startsWith('/ai-assistant') && newPath.startsWith('/ai-assistant')) {
+  if (oldPath && !oldPath.startsWith('/tools/ai-assistant') && newPath.startsWith('/tools/ai-assistant')) {
     resetAllData();
   }
 });
@@ -2251,8 +2251,8 @@ const goToDashboard = () => {
       gap: var(--space-2-5);
       margin-top: 12px;
       padding: var(--space-2-5) 16px;
-      background: var(--color-primary-bg);
-      border: 1px solid var(--color-primary-lightest);
+      background: var(--color-bg-container);
+      border: 1px solid var(--color-border);
       border-radius: var(--radius-xl);
 
       .template-selector-label {
@@ -2264,6 +2264,25 @@ const goToDashboard = () => {
         color: var(--color-primary);
         white-space: nowrap;
         flex-shrink: 0;
+      }
+
+      :deep(.t-radio-group) {
+        .t-radio-button {
+          background: var(--color-bg-container-alt);
+          border-color: var(--color-border);
+          color: var(--color-text-secondary);
+
+          &:hover {
+            background: var(--color-bg-hover);
+            color: var(--color-text-primary);
+          }
+
+          &.t-is-checked {
+            background: var(--color-primary);
+            border-color: var(--color-primary);
+            color: var(--color-text-white);
+          }
+        }
       }
     }
 

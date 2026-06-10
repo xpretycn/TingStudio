@@ -2,7 +2,7 @@
 import { Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import { query, adaptSQL, getDatabaseType } from "../config/database-adapter.js";
-import { generateId, now, success, rowToCamelCase } from "../utils/helpers.js";
+import { generateId, now, success, fail, rowToCamelCase } from "../utils/helpers.js";
 import { generateToken } from "../middleware/auth.js";
 
 const NICKNAME_PREFIXES = ["小", "阿", "大", "老"];
@@ -34,7 +34,7 @@ export async function register(req: Request, res: Response) {
 
     const existingResult = await query(adaptSQL("SELECT id FROM users WHERE username = ?"), [username]);
     if (existingResult.rows.length > 0) {
-      res.status(409).json({ success: false, message: "用户名已存在" });
+      res.status(409).json(fail("用户名已存在", "DUPLICATE_ENTRY"));
       return;
     }
 
@@ -72,7 +72,7 @@ export async function register(req: Request, res: Response) {
       ),
     );
   } catch (error: any) {
-    res.status(500).json({ success: false, message: "注册失败", error: error.message });
+    res.status(500).json(fail("注册失败"));
   }
 }
 
@@ -89,13 +89,13 @@ export async function login(req: Request, res: Response) {
     );
     const user = userResult.rows[0];
     if (!user) {
-      res.status(401).json({ success: false, message: "用户名或密码错误" });
+      res.status(401).json(fail("用户名或密码错误", "UNAUTHORIZED"));
       return;
     }
 
     const validPassword = await bcrypt.compare(password, user.password);
     if (!validPassword) {
-      res.status(401).json({ success: false, message: "用户名或密码错误" });
+      res.status(401).json(fail("用户名或密码错误", "UNAUTHORIZED"));
       return;
     }
 
@@ -112,7 +112,7 @@ export async function login(req: Request, res: Response) {
       ),
     );
   } catch (error: any) {
-    res.status(500).json({ success: false, message: "登录失败", error: error.message });
+    res.status(500).json(fail("登录失败"));
   }
 }
 
@@ -127,12 +127,12 @@ export async function getCurrentUser(req: any, res: Response) {
     );
     const user = userResult.rows[0];
     if (!user) {
-      res.status(404).json({ success: false, message: "用户不存在" });
+      res.status(404).json(fail("用户不存在", "NOT_FOUND"));
       return;
     }
     res.json(success(rowToCamelCase(user)));
   } catch (error: any) {
-    res.status(500).json({ success: false, message: "获取用户信息失败", error: error.message });
+    res.status(500).json(fail("获取用户信息失败"));
   }
 }
 
@@ -144,13 +144,13 @@ export async function updateProfile(req: any, res: Response) {
 
     // 验证邮箱格式
     if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      res.status(400).json({ success: false, message: "邮箱格式不正确" });
+      res.status(400).json(fail("邮箱格式不正确", "VALIDATION_ERROR"));
       return;
     }
 
     // 验证手机号格式
     if (phone && !/^1[3-9]\d{9}$/.test(phone)) {
-      res.status(400).json({ success: false, message: "手机号格式不正确" });
+      res.status(400).json(fail("手机号格式不正确", "VALIDATION_ERROR"));
       return;
     }
 
@@ -161,7 +161,7 @@ export async function updateProfile(req: any, res: Response) {
         userId,
       ]);
       if (existingEmailResult.rows.length > 0) {
-        res.status(409).json({ success: false, message: "该邮箱已被其他账号绑定" });
+        res.status(409).json(fail("该邮箱已被其他账号绑定", "DUPLICATE_ENTRY"));
         return;
       }
     }
@@ -173,7 +173,7 @@ export async function updateProfile(req: any, res: Response) {
         userId,
       ]);
       if (existingPhoneResult.rows.length > 0) {
-        res.status(409).json({ success: false, message: "该手机号已被其他账号绑定" });
+        res.status(409).json(fail("该手机号已被其他账号绑定", "DUPLICATE_ENTRY"));
         return;
       }
     }
@@ -195,7 +195,7 @@ export async function updateProfile(req: any, res: Response) {
     const updatedUser = updatedUserResult.rows[0];
     res.json(success(rowToCamelCase(updatedUser), "资料更新成功"));
   } catch (error: any) {
-    res.status(500).json({ success: false, message: "更新资料失败", error: error.message });
+    res.status(500).json(fail("更新资料失败"));
   }
 }
 
@@ -206,12 +206,12 @@ export async function changePassword(req: any, res: Response) {
     const { oldPassword, newPassword } = req.body;
 
     if (!oldPassword || !newPassword) {
-      res.status(400).json({ success: false, message: "请输入当前密码和新密码" });
+      res.status(400).json(fail("请输入当前密码和新密码", "VALIDATION_ERROR"));
       return;
     }
 
     if (newPassword.length < 6) {
-      res.status(400).json({ success: false, message: "新密码长度至少6个字符" });
+      res.status(400).json(fail("新密码长度至少6个字符", "VALIDATION_ERROR"));
       return;
     }
 
@@ -219,14 +219,14 @@ export async function changePassword(req: any, res: Response) {
     const userResult = await query(adaptSQL("SELECT password FROM users WHERE id = ?"), [userId]);
     const user = userResult.rows[0];
     if (!user) {
-      res.status(404).json({ success: false, message: "用户不存在" });
+      res.status(404).json(fail("用户不存在", "NOT_FOUND"));
       return;
     }
 
     // 验证旧密码
     const validPassword = await bcrypt.compare(oldPassword, user.password);
     if (!validPassword) {
-      res.status(400).json({ success: false, message: "当前密码不正确" });
+      res.status(400).json(fail("当前密码不正确", "VALIDATION_ERROR"));
       return;
     }
 
@@ -240,7 +240,7 @@ export async function changePassword(req: any, res: Response) {
 
     res.json(success(null, "密码修改成功"));
   } catch (error: any) {
-    res.status(500).json({ success: false, message: "密码修改失败", error: error.message });
+    res.status(500).json(fail("密码修改失败"));
   }
 }
 
@@ -255,7 +255,7 @@ export async function getPreferences(req: any, res: Response) {
     const preferences = row ? JSON.parse(row.preferences_json) : {};
     res.json(success(preferences));
   } catch (error: any) {
-    res.status(500).json({ success: false, message: "获取偏好设置失败", error: error.message });
+    res.status(500).json(fail("获取偏好设置失败"));
   }
 }
 
@@ -265,7 +265,7 @@ export async function updatePreferences(req: any, res: Response) {
     const { preferences } = req.body;
 
     if (preferences === null || typeof preferences !== "object") {
-      res.status(400).json({ success: false, message: "偏好数据格式不正确" });
+      res.status(400).json(fail("偏好数据格式不正确", "VALIDATION_ERROR"));
       return;
     }
 
@@ -287,6 +287,6 @@ export async function updatePreferences(req: any, res: Response) {
 
     res.json(success(preferences, "偏好设置已保存"));
   } catch (error: any) {
-    res.status(500).json({ success: false, message: "保存偏好设置失败", error: error.message });
+    res.status(500).json(fail("保存偏好设置失败"));
   }
 }

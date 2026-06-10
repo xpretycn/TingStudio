@@ -162,7 +162,7 @@ function handleToggleSelect() {
 
   &:hover {
     background: var(--color-bg-hover);
-    border-color: var(--color-border-light);
+    border-color: var(--color-border);
   }
 
   &--active {

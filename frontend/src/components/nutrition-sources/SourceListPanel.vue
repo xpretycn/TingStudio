@@ -102,7 +102,7 @@ watch(typeFilter, (val) => {
   flex-direction: column;
   background: var(--color-bg-container);
   border-radius: $radius-xl;
-  border: 1px solid var(--color-border-light);
+  border: 1px solid var(--color-border);
   height: 100%;
   overflow: hidden;
 }
@@ -112,7 +112,7 @@ watch(typeFilter, (val) => {
   align-items: center;
   justify-content: space-between;
   padding: $space-4;
-  border-bottom: 1px solid var(--color-border-light);
+  border-bottom: 1px solid var(--color-border);
   flex-shrink: 0;
 }
 
@@ -142,7 +142,7 @@ watch(typeFilter, (val) => {
 
 .panel-toolbar {
   padding: $space-3 $space-4;
-  border-bottom: 1px solid var(--color-border-light);
+  border-bottom: 1px solid var(--color-border);
   flex-shrink: 0;
 }
 

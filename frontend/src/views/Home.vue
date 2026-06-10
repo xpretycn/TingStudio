@@ -95,23 +95,6 @@
             </div>
           </div>
 
-          <!-- AI助手 - 独立顶级入口 -->
-          <div class="nav-item nav-item--top-level" :class="{ active: activePath === '/ai-assistant' }" role="menuitem"
-            tabindex="0" :aria-current="activePath === '/ai-assistant' ? 'page' : undefined" title="AI助手工作台"
-            @click="navigateTo('/ai-assistant')" @keydown="handleNavKeydown($event, '/ai-assistant')">
-            <div class="nav-item-icon nav-item-icon--highlight" aria-hidden="true">
-              <t-icon name="precise-monitor" size="18px" />
-              <span v-if="!sidebarCollapsed" class="nav-item-badge">NEW</span>
-            </div>
-            <span v-show="!sidebarCollapsed" class="nav-item-text nav-item-text--highlight">AI 助手</span>
-            <div v-show="!sidebarCollapsed" class="nav-item-arrow">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="9 18 15 12 9 6" />
-              </svg>
-            </div>
-          </div>
-
           <!-- 智能工具 - 独立顶级入口 -->
           <div class="nav-item nav-item--top-level" :class="{ active: activePath === '/smart-tools' }" role="menuitem"
             tabindex="0" :aria-current="activePath === '/smart-tools' ? 'page' : undefined" title="智能工具"
@@ -195,9 +178,9 @@
             <Transition name="group-expand">
               <div v-show="isGroupExpanded('tools')" class="nav-group-content">
                 <div v-for="item in getGroupItems('tools')" :key="item.path" class="nav-item nav-item--grouped"
-                  :class="{ active: route.path === item.path || route.path.startsWith(item.path + '/') }"
+                  :class="{ active: route.path === item.path || (item.path !== '/tools' && route.path.startsWith(item.path + '/')) }"
                   role="menuitem" tabindex="0"
-                  :aria-current="route.path === item.path || route.path.startsWith(item.path + '/') ? 'page' : undefined"
+                  :aria-current="route.path === item.path || (item.path !== '/tools' && route.path.startsWith(item.path + '/')) ? 'page' : undefined"
                   :title="sidebarCollapsed ? item.label : undefined" @click="navigateTo(item.path)"
                   @keydown="handleNavKeydown($event, item.path)">
                   <div class="nav-item-icon" aria-hidden="true"><t-icon :name="item.icon" size="18px" /></div>
@@ -481,7 +464,7 @@ const activePath = computed(() => {
   // 按最长前缀匹配，优先精确匹配，再按路径段前缀匹配
   const pathMap = [
     '/dashboard', '/formulas', '/materials', '/files', '/salesmen', '/sales',
-    '/reports', '/nutrition/profiles', '/nutrition', '/tools', '/ai-assistant', '/smart-tools',
+    '/reports', '/nutrition/profiles', '/nutrition', '/tools', '/tools/ai-assistant', '/smart-tools',
     '/model-management', '/system'
   ];
   for (const key of pathMap) {
@@ -549,7 +532,7 @@ const pageIcon = computed(() => {
     '/reports': 'file-icon',
     '/nutrition': 'chart-pie',
     '/tools': 'setting',
-    '/ai-assistant': 'precise-monitor',
+    '/tools/ai-assistant': 'precise-monitor',
     '/smart-tools': 'ai-tool',
     '/model-management': 'control-platform',
     '/system': 'setting-1',
@@ -593,7 +576,8 @@ const navGroups = {
   tools: {
     label: '系统工具',
     items: [
-      { path: '/tools', label: '工具箱', icon: 'setting' }
+      { path: '/tools', label: '工具箱', icon: 'setting' },
+      { path: '/tools/ai-assistant', label: 'AI 助手', icon: 'precise-monitor' }
     ] as NavItem[]
   }
 } as const;
@@ -607,11 +591,11 @@ const expandedGroup = ref<GroupKey | null>(null);
 const currentGroup = computed((): GroupKey | null => {
   const path = activePath.value;
 
-  // AI助手不属于任何分组
-  if (path === '/dashboard' || path === '/ai-assistant' || path === '/smart-tools') return null;
+  // 独立顶级入口不属于任何分组
+  if (path === '/dashboard' || path === '/smart-tools') return null;
 
   // 系统管理页面归属系统工具分组
-  if (path === '/model-management' || path === '/system') return 'tools';
+  if (path === '/model-management' || path === '/system' || path === '/tools/ai-assistant') return 'tools';
 
   for (const [key, group] of Object.entries(navGroups)) {
     if (group.items.some(item => item.path === path || path.startsWith(item.path + '/'))) {
@@ -740,7 +724,7 @@ const pageTitle = computed(() => {
     '/reports': '报告中心',
     '/nutrition': '营养分析',
     '/tools': '工具箱',
-    '/ai-assistant': 'AI 助手',
+    '/tools/ai-assistant': 'AI 助手',
     '/smart-tools': '智能工具',
     '/model-management': '模型管理',
     '/system': '系统管理',
@@ -776,7 +760,7 @@ const breadcrumbs = computed(() => {
   // 列表页无父级，不需要面包屑
   const listPaths = [
     '/dashboard', '/formulas', '/materials', '/salesmen', '/sales',
-    '/reports', '/nutrition', '/tools', '/ai-assistant', '/smart-tools', '/settings',
+    '/reports', '/nutrition', '/tools', '/tools/ai-assistant', '/smart-tools', '/settings',
     '/model-management', '/system/config'
   ];
   if (listPaths.includes(path)) return [];

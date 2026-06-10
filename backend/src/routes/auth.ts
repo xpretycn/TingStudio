@@ -14,7 +14,13 @@ authRoutes.post('/register',
   register
 )
 
-authRoutes.post('/login', login)
+authRoutes.post('/login',
+  validateBody({
+    username: { type: 'string', required: true, minLength: 1, message: '请输入用户名' },
+    password: { type: 'string', required: true, minLength: 1, message: '请输入密码' },
+  }),
+  login
+)
 
 authRoutes.get('/me', authMiddleware, getCurrentUser)
 

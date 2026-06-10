@@ -181,16 +181,16 @@ function onMaterialPageChange(val: unknown) {
 function onHistoryPageChange(val: unknown) {
   const page = toPage(val)
   const keyword = searchKeyword.value.trim() || undefined;
-  const action = store.adminReviewAction.includes("all") || store.adminReviewAction.length === 0 ? undefined : store.adminReviewAction[0];
+  const action = !store.adminReviewAction || store.adminReviewAction === "all" ? undefined : store.adminReviewAction;
   store.fetchReviewedHistory({ keyword, action, page });
 }
 
 watch(currentView, () => {
   searchKeyword.value = "";
   // 切换 tab 时重置筛选条件
-  store.adminDateRange = [];
+  store.adminDateRange = "";
   store.adminSubmitter = "";
-  store.adminReviewAction = [];
+  store.adminReviewAction = "all";
   store.adminSortBy = "createdAt";
   store.adminSortOrder = "desc";
   fetchCurrentView();
@@ -247,7 +247,7 @@ onUnmounted(() => {
             <t-icon name="time" size="14px" /> 时间范围
           </span>
           <div class="admin-review__filter-options">
-            <t-radio-group v-model="store.adminDateRange" variant="default" size="small" @change="fetchCurrentView()">
+            <t-radio-group v-model="store.adminDateRange" variant="default-filled" size="small" @change="fetchCurrentView()">
               <t-radio-button v-for="opt in dateRangeOptions" :key="opt.value" :value="opt.value">
                 {{ opt.label }}
               </t-radio-button>
@@ -273,7 +273,7 @@ onUnmounted(() => {
           <span class="admin-review__filter-label">
             <t-icon name="check-circle" size="14px" /> 审核结果
           </span>
-          <t-radio-group v-model="store.adminReviewAction" variant="default" size="small" @change="fetchCurrentView()">
+          <t-radio-group v-model="store.adminReviewAction" variant="default-filled" size="small" @change="fetchCurrentView()">
             <t-radio-button value="all">全部</t-radio-button>
             <t-radio-button value="approve">已通过</t-radio-button>
             <t-radio-button value="reject">已驳回</t-radio-button>

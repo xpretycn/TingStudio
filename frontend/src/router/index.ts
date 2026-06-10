@@ -237,10 +237,10 @@ const router = createRouter({
           meta: { title: "工具箱" },
         },
         {
-          path: "ai-assistant",
+          path: "tools/ai-assistant",
           name: "AiAssistant",
           component: () => import("@/views/ai/AiWorkspace.vue"),
-          meta: { title: "AI 助手工作台", hideHeader: true, fullBleed: true },
+          meta: { title: "AI 助手工作台", hideHeader: true, fullBleed: true, requiresAdmin: true },
         },
         {
           path: "ai-overview",
@@ -293,6 +293,8 @@ router.beforeEach((to, _from, next) => {
   if (to.meta.requiresAuth !== false && !authStore.isAuthenticated) {
     next("/login");
   } else if ((to.path === "/login" || to.path === "/register") && authStore.isAuthenticated) {
+    next("/");
+  } else if (to.meta.requiresAdmin && authStore.user?.role !== "admin") {
     next("/");
   } else {
     next();

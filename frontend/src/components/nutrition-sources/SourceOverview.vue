@@ -37,6 +37,7 @@
       :candidates="recommendCandidates"
       :sources="sources"
       :active-authoritative-source-id="activeAuthoritativeSourceId"
+      :can-apply="canApply"
       @apply="handleApply"
     />
 
@@ -194,7 +195,7 @@ function handleApply(sourceId: string) {
   border-radius: $radius-md;
   cursor: pointer;
   transition: all $transition-fast;
-  border: 1px solid var(--color-border-light);
+  border: 1px solid var(--color-border);
 
   &:hover {
     background: var(--color-primary-bg);
@@ -253,7 +254,7 @@ function handleApply(sourceId: string) {
   gap: $space-3;
   padding: $space-3 $space-4;
   background: var(--color-bg-container);
-  border: 1px solid var(--color-border-light);
+  border: 1px solid var(--color-border);
   border-radius: $radius-md;
 }
 

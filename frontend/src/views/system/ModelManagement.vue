@@ -150,7 +150,7 @@
               <div class="section-header-enhanced">
                 <div class="section-title-group">
                   <svg class="section-title-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                    stroke="var(--color-info)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path
                       d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
                     <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
@@ -364,7 +364,7 @@
               <div class="section-header-enhanced">
                 <div class="section-title-group">
                   <svg class="section-title-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                    stroke="var(--color-info)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <line x1="18" y1="20" x2="18" y2="10" />
                     <line x1="12" y1="20" x2="12" y2="4" />
                     <line x1="6" y1="20" x2="6" y2="14" />
@@ -391,7 +391,7 @@
                   <div class="section-header-enhanced section-header-inline">
                     <div class="section-title-group">
                       <svg class="section-title-icon" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                        stroke="var(--color-info)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
                         <polyline points="17 6 23 6 23 12" />
                       </svg>
@@ -419,7 +419,7 @@
                   <div class="section-header-enhanced section-header-inline">
                     <div class="section-title-group">
                       <svg class="section-title-icon" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                        stroke="var(--color-danger)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="12" cy="12" r="10" />
                         <path d="M8 12l3 3 5-5" />
                       </svg>
@@ -459,7 +459,7 @@
                 <div class="section-header-enhanced section-header-inline">
                   <div class="section-title-group">
                     <svg class="section-title-icon" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                      stroke="var(--color-warning)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                       <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                       <polyline points="14 2 14 8 20 8" />
                     </svg>
@@ -475,7 +475,7 @@
               <div class="section-header-enhanced">
                 <div class="section-title-group">
                   <svg class="section-title-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                    stroke="var(--color-warning)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
                     <path d="M13.73 21a2 2 0 0 1-3.46 0" />
                   </svg>
@@ -535,7 +535,7 @@
               <div class="section-header-enhanced" style="margin-top: 24px">
                 <div class="section-title-group">
                   <svg class="section-title-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                    stroke="var(--color-danger)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path
                       d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
                     <line x1="12" y1="9" x2="12" y2="13" />
@@ -578,7 +578,7 @@
               <div class="section-header-enhanced">
                 <div class="section-title-group">
                   <svg class="section-title-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                    stroke="var(--color-info)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                     <polyline points="14 2 14 8 20 8" />
                     <line x1="16" y1="13" x2="8" y2="13" />
@@ -1617,19 +1617,19 @@ const dashboardCards = computed(() => [
     value: modelStore.stats.configuredModels,
     unit: `/${modelStore.stats.totalModels}`,
     iconPath: '<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>',
-    iconBg: "linear-gradient(135deg, var(--color-info-bg), var(--color-info-light))",
-    iconColor: "var(--color-info)",
+    iconBg: "linear-gradient(135deg, var(--color-primary), var(--color-primary-light))",
+    iconColor: "var(--color-text-white)",
     badge: modelStore.stats.activeAlerts > 0 ? `${modelStore.stats.activeAlerts}预警` : "正常",
-    badgeColor: modelStore.stats.activeAlerts > 0 ? "var(--color-warning)" : "var(--color-primary)",
-    badgeBg: modelStore.stats.activeAlerts > 0 ? "var(--color-warning-bg)" : "var(--color-primary-bg)",
+    badgeColor: modelStore.stats.activeAlerts > 0 ? "var(--color-warning)" : "var(--color-emerald)",
+    badgeBg: modelStore.stats.activeAlerts > 0 ? "var(--color-warning-bg)" : "rgba(16,185,129,0.08)",
   },
   {
     label: "今日调用",
     value: formatNumber(modelStore.stats.todayCalls),
     unit: "",
     iconPath: '<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>',
-    iconBg: "linear-gradient(135deg, var(--color-danger-bg), var(--color-danger-light))",
-    iconColor: "var(--color-danger)",
+    iconBg: "linear-gradient(135deg, var(--color-primary), var(--color-primary-light))",
+    iconColor: "var(--color-text-white)",
     badge: "实时",
     badgeColor: "var(--color-info)",
     badgeBg: "var(--color-info-bg)",
@@ -1639,8 +1639,8 @@ const dashboardCards = computed(() => [
     value: formatTokens(modelStore.stats.todayTokens),
     unit: "",
     iconPath: '<line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>',
-    iconBg: "linear-gradient(135deg, var(--color-primary-bg), var(--color-primary-lightest))",
-    iconColor: "var(--color-primary)",
+    iconBg: "linear-gradient(135deg, var(--color-primary), var(--color-primary-light))",
+    iconColor: "var(--color-text-white)",
     badge: "统计",
     badgeColor: "var(--color-info)",
     badgeBg: "var(--color-info-bg)",
@@ -1650,8 +1650,8 @@ const dashboardCards = computed(() => [
     value: formatTokens(modelStore.stats.monthTokens),
     unit: "",
     iconPath: '<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>',
-    iconBg: "linear-gradient(135deg, var(--color-warning-bg), var(--color-warning-light))",
-    iconColor: "var(--color-warning)",
+    iconBg: "linear-gradient(135deg, var(--color-primary), var(--color-primary-light))",
+    iconColor: "var(--color-text-white)",
     badge: "月度",
     badgeColor: "var(--color-danger)",
     badgeBg: "var(--color-danger-bg)",
@@ -2195,9 +2195,9 @@ async function renderCharts() {
   modelStore.models.forEach(m => { providerNames[m.provider] = m.name; });
 
   const providerColors: Record<string, string> = {
-    dashscope: "var(--color-primary)",
-    zhipu: "var(--color-info)",
-    deepseek: "var(--color-success)",
+    dashscope: "#FF6B8A",
+    zhipu: "#4A90D9",
+    deepseek: "#10B981",
   };
 
   if (modelStore.usageTrend.length > 0 && trendChartRef.value && trendChartRef.value.parentNode) {
@@ -2206,19 +2206,19 @@ async function renderCharts() {
     }
     if (trendChart) {
       trendChart.setOption({
-        tooltip: { trigger: "axis" },
-        legend: { data: providers.map(p => providerNames[p] || p), bottom: 0 },
+        tooltip: { trigger: "axis", backgroundColor: "var(--color-bg-container)", borderColor: "var(--color-border)", textStyle: { color: "var(--color-text-primary)" } },
+        legend: { data: providers.map(p => providerNames[p] || p), bottom: 0, textStyle: { color: "var(--color-text-secondary)" } },
         grid: { left: 50, right: 20, top: 10, bottom: 40 },
-        xAxis: { type: "category", data: modelStore.usageTrend.map(t => t.date), axisLabel: { fontSize: 11 } },
-        yAxis: { type: "value", axisLabel: { fontSize: 11, formatter: (v: number) => formatTokens(v) } },
+        xAxis: { type: "category", data: modelStore.usageTrend.map(t => t.date), axisLabel: { fontSize: 11, color: "var(--color-text-regular)" }, axisLine: { lineStyle: { color: "var(--color-border)" } }, splitLine: { show: false } },
+        yAxis: { type: "value", axisLabel: { fontSize: 11, formatter: (v: number) => formatTokens(v), color: "var(--color-text-regular)" }, axisLine: { lineStyle: { color: "var(--color-border)" } }, splitLine: { lineStyle: { color: "var(--color-border-light)", type: "dashed" } } },
         series: providers.map(p => ({
           name: providerNames[p] || p,
           type: "line",
           smooth: true,
           data: modelStore.usageTrend.map(t => (t as Record<string, string | number>)[p] || 0),
-          lineStyle: { width: 2 },
-          itemStyle: { color: providerColors[p] || "var(--color-text-placeholder)" },
-          areaStyle: { opacity: 0.1 },
+          lineStyle: { width: 2, color: providerColors[p] || "#6B5F70" },
+          itemStyle: { color: providerColors[p] || "#6B5F70" },
+          areaStyle: { color: (providerColors[p] || "#FF6B8A") + "15" },
         })),
       });
     }
@@ -2230,17 +2230,17 @@ async function renderCharts() {
     }
     if (pieChart) {
       pieChart.setOption({
-        tooltip: { trigger: "item", formatter: "{b}: {c} ({d}%)" },
-        legend: { bottom: 0 },
+        tooltip: { trigger: "item", formatter: "{b}: {c} ({d}%)", backgroundColor: "var(--color-bg-container)", borderColor: "var(--color-border)", textStyle: { color: "var(--color-text-primary)" } },
+        legend: { bottom: 0, textStyle: { color: "var(--color-text-secondary)" } },
         series: [{
           type: "pie",
           radius: ["40%", "70%"],
           avoidLabelOverlap: true,
-          label: { show: true, formatter: "{b}\n{d}%", fontSize: 12 },
+          label: { show: true, formatter: "{b}\n{d}%", fontSize: 12, color: "var(--color-text-primary)" },
           data: modelStore.usageDistribution.filter(d => d.tokens > 0).map(d => ({
             name: d.name,
             value: d.tokens,
-            itemStyle: { color: providerColors[d.provider] || "var(--color-text-placeholder)" },
+            itemStyle: { color: providerColors[d.provider] || "#6B5F70" },
           })),
         }],
       });
@@ -2677,7 +2677,7 @@ $transition-normal: 0.25s ease;
     padding: 24px;
     border-radius: var(--radius-4xl);
     border: 1px solid var(--color-bg-container);
-    box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
+    box-shadow: var(--shadow-elevation-1);
     transition: all 0.3s ease;
     animation: dashboard-fade-in 0.5s ease forwards;
     opacity: 0;
@@ -2685,7 +2685,7 @@ $transition-normal: 0.25s ease;
     &:hover {
       border-color: var(--color-info-light);
       transform: translateY(-2px);
-      box-shadow: 0 14px 36px -6px rgba(0, 0, 0, 0.08);
+      box-shadow: var(--shadow-elevation-2);
     }
 
     .stat-card-top {
@@ -2739,7 +2739,7 @@ $transition-normal: 0.25s ease;
   border-radius: var(--radius-4xl) !important;
   overflow: hidden;
   border: none;
-  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
+  box-shadow: var(--shadow-elevation-1);
 
   :deep(.t-card__body) {
     padding: 0;
@@ -2797,7 +2797,7 @@ $transition-normal: 0.25s ease;
   font-size: 14px;
   font-weight: 500;
   transition: all 0.2s ease;
-  box-shadow: 0 4px 6px rgba(15, 23, 42, 0.15);
+  box-shadow: var(--shadow-sm);
   border: none;
   cursor: pointer;
 

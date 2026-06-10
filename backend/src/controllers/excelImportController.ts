@@ -5,7 +5,7 @@
 import { Request, Response } from 'express'
 import XLSX from 'xlsx'
 import { query } from "../config/database-better-sqlite3.js";
-import { success } from '../utils/helpers.js'
+import { success, fail } from '../utils/helpers.js'
 
 // Excel模板列定义
 const TEMPLATE_COLUMNS = [
@@ -66,7 +66,7 @@ export async function downloadFormulaTemplate(req: Request, res: Response) {
     res.setHeader('Content-Disposition', 'attachment; filename=formula-import-template.xlsx')
     res.send(buffer)
   } catch (error: any) {
-    res.status(500).json({ success: false, message: '生成模板失败', error: error.message })
+    res.status(500).json(fail('生成模板失败'))
   }
 }
 
@@ -74,7 +74,7 @@ export async function downloadFormulaTemplate(req: Request, res: Response) {
 export async function parseFormulaExcel(req: any, res: Response) {
   try {
     if (!req.file) {
-      res.status(400).json({ success: false, message: '请上传Excel文件' })
+      res.status(400).json(fail('请上传Excel文件', 'VALIDATION_ERROR'))
       return
     }
     
@@ -84,7 +84,7 @@ export async function parseFormulaExcel(req: any, res: Response) {
     const jsonData = XLSX.utils.sheet_to_json(worksheet, { raw: false }) as any[]
     
     if (jsonData.length === 0) {
-      res.status(400).json({ success: false, message: 'Excel文件为空，请填入配方数据' })
+      res.status(400).json(fail('Excel文件为空，请填入配方数据', 'VALIDATION_ERROR'))
       return
     }
     
@@ -161,6 +161,6 @@ export async function parseFormulaExcel(req: any, res: Response) {
     }))
     
   } catch (error: any) {
-    res.status(500).json({ success: false, message: '解析Excel文件失败', error: error.message })
+    res.status(500).json(fail('解析Excel文件失败'))
   }
 }

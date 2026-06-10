@@ -72,7 +72,7 @@ function confidenceTheme(c: string): 'success' | 'warning' | 'default' {
   padding: $space-5;
   background: var(--color-bg-container);
   border-radius: $radius-xl;
-  border: 1px solid var(--color-border-light);
+  border: 1px solid var(--color-border);
 }
 
 .timeline-header {
@@ -115,7 +115,7 @@ function confidenceTheme(c: string): 'success' | 'warning' | 'default' {
   top: 12px;
   bottom: 12px;
   width: 2px;
-  background: var(--color-border-light);
+  background: var(--color-border);
 }
 
 .timeline-item {

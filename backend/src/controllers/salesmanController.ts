@@ -5,6 +5,7 @@ import {
   generateId,
   now,
   success,
+  fail,
   successWithPagination,
   buildPagination,
   buildLike,
@@ -45,7 +46,7 @@ export async function getSalesmen(req: any, res: Response) {
 
     res.json(successWithPagination(rowsToCamelCase(list), countResult[0].total, p, size));
   } catch (error: any) {
-    res.status(500).json({ success: false, message: "获取业务员列表失败", error: error.message });
+    res.status(500).json(fail("获取业务员列表失败"));
   }
 }
 
@@ -55,13 +56,13 @@ export async function getSalesman(req: Request, res: Response) {
     const { id } = req.params;
     const [[salesman]]: any[][] = await query("SELECT * FROM salesmen WHERE id = ?", [id]);
     if (!salesman) {
-      res.status(404).json({ success: false, message: "业务员不存在" });
+      res.status(404).json(fail("业务员不存在", "NOT_FOUND"));
       return;
     }
 
     res.json(success(rowToCamelCase(salesman)));
   } catch (error: any) {
-    res.status(500).json({ success: false, message: "获取业务员详情失败", error: error.message });
+    res.status(500).json(fail("获取业务员详情失败"));
   }
 }
 
@@ -111,10 +112,10 @@ export async function createSalesman(req: any, res: Response) {
     res.status(201).json(success(rowToCamelCase(salesman), "业务员创建成功"));
   } catch (error: any) {
     if (error.message?.includes("UNIQUE constraint failed")) {
-      res.status(409).json({ success: false, message: "业务员工号已存在" });
+      res.status(409).json(fail("业务员工号已存在", "DUPLICATE_ENTRY"));
       return;
     }
-    res.status(500).json({ success: false, message: "创建业务员失败", error: error.message });
+    res.status(500).json(fail("创建业务员失败"));
   }
 }
 
@@ -127,7 +128,7 @@ export async function updateSalesman(req: Request, res: Response) {
     // 先查询现有数据，未传入的字段保留原值
     const [[existing]]: any[][] = await query("SELECT * FROM salesmen WHERE id = ?", [id]);
     if (!existing) {
-      res.status(404).json({ success: false, message: "业务员不存在" });
+      res.status(404).json(fail("业务员不存在", "NOT_FOUND"));
       return;
     }
 
@@ -146,7 +147,7 @@ export async function updateSalesman(req: Request, res: Response) {
     const [[salesman]]: any[][] = await query("SELECT * FROM salesmen WHERE id = ?", [id]);
     res.json(success(rowToCamelCase(salesman), "业务员更新成功"));
   } catch (error: any) {
-    res.status(500).json({ success: false, message: "更新业务员失败", error: error.message });
+    res.status(500).json(fail("更新业务员失败"));
   }
 }
 
@@ -157,7 +158,7 @@ export async function deleteSalesman(req: Request, res: Response) {
 
     const [[salesman]]: any[][] = await query("SELECT id, name FROM salesmen WHERE id = ?", [id]);
     if (!salesman) {
-      return res.status(404).json({ success: false, message: "业务员不存在" });
+      return res.status(404).json(fail("业务员不存在", "NOT_FOUND"));
     }
 
     const [[usageResult]]: any[][] = await query(
@@ -174,7 +175,7 @@ export async function deleteSalesman(req: Request, res: Response) {
     await query("DELETE FROM salesmen WHERE id = ?", [id]);
     res.json(success({ message: "业务员已删除" }, "业务员已删除"));
   } catch (error: any) {
-    res.status(500).json({ success: false, message: "删除业务员失败", error: error.message });
+    res.status(500).json(fail("删除业务员失败"));
   }
 }
 
@@ -184,12 +185,12 @@ export async function toggleSalesmanStatus(req: Request, res: Response) {
     const { id } = req.params;
     const { status } = req.body;
     if (!["active", "inactive"].includes(status)) {
-      return res.status(400).json({ success: false, message: "无效的状态值" });
+      return res.status(400).json(fail("无效的状态值", "VALIDATION_ERROR"));
     }
     await query("UPDATE salesmen SET status = ? WHERE id = ?", [status, id]);
     const msg = status === "active" ? "业务员已启用" : "业务员已停用";
     res.json(success({ message: msg }, msg));
   } catch (error: any) {
-    res.status(500).json({ success: false, message: "更新状态失败", error: error.message });
+    res.status(500).json(fail("更新状态失败"));
   }
 }

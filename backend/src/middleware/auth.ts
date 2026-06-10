@@ -61,7 +61,7 @@ export function authMiddleware(req: AuthenticatedRequest, res: Response, next: N
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     res.status(401).json({
       success: false,
-      error: { message: "Missing or invalid authorization header", code: "UNAUTHORIZED" },
+      error: { message: "Missing or invalid authorization header", code: "UNAUTHORIZED", timestamp: new Date().toISOString() },
     });
     return;
   }
@@ -77,7 +77,7 @@ export function authMiddleware(req: AuthenticatedRequest, res: Response, next: N
     const message = code === "TOKEN_EXPIRED" ? "Token has expired" : "Invalid token";
     res.status(401).json({
       success: false,
-      error: { message, code },
+      error: { message, code, timestamp: new Date().toISOString() },
     });
   }
 }
@@ -87,7 +87,7 @@ export function requirePermission(permission: string) {
     if (!req.user) {
       res.status(401).json({
         success: false,
-        error: { message: "Authentication required", code: "UNAUTHORIZED" },
+        error: { message: "Authentication required", code: "UNAUTHORIZED", timestamp: new Date().toISOString() },
       });
       return;
     }
@@ -95,7 +95,7 @@ export function requirePermission(permission: string) {
     if (!req.user.permissions.includes(permission) && req.user.role !== "admin") {
       res.status(403).json({
         success: false,
-        error: { message: `Insufficient permissions. Required: ${permission}`, code: "FORBIDDEN" },
+        error: { message: `Insufficient permissions. Required: ${permission}`, code: "FORBIDDEN", timestamp: new Date().toISOString() },
       });
       return;
     }

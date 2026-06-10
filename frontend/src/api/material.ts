@@ -121,9 +121,6 @@ export const materialApi = {
   getNextCode(name: string) {
     return http.get<unknown, { code: string }>("/materials/next-code", { params: { name } });
   },
-  getByFormula(formulaId: string) {
-    return http.get<unknown, Material[]>(`/materials/by-formula/${formulaId}`);
-  },
   getStats() {
     return http.get<unknown, { total: number; herbCount: number; supplementCount: number; nutritionCount: number }>(
       "/materials/stats",
@@ -164,5 +161,8 @@ export const materialApi = {
 
   getMyMaterialCounts() {
     return http.get<unknown, Record<string, number>>("/materials/my-counts");
+  },
+  getMySubmissions(params?: { keyword?: string; page?: number; pageSize?: number; status?: string }) {
+    return http.get<unknown, { list: Material[]; pagination: Pagination }>("/materials/my-submissions", { params });
   },
 };

@@ -198,6 +198,7 @@ export class LLMAgentService {
                 requestSummary,
                 overrideModel: modelVersion,
                 tools: request.tools,
+                toolChoice: request.tool_choice,
               } as ChatCompletionOptions,
               onChunk,
               onToolCall,

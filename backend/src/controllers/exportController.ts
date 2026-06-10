@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import path from "path";
 
 import * as exportService from "../services/exportService.js";
-import { success, successWithPagination, buildContentDisposition } from "../utils/helpers.js";
+import { fail, success, successWithPagination, buildContentDisposition } from "../utils/helpers.js";
 
 export async function getExportTemplates(req: Request, res: Response) {
   try {
@@ -14,8 +14,7 @@ export async function getExportTemplates(req: Request, res: Response) {
     const result = await exportService.getTemplates({ type, category, page, pageSize });
     res.json(successWithPagination(result.list, result.total, result.page, result.pageSize));
   } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : "操作失败";
-    res.status(500).json({ success: false, error: { message: msg, code: "INTERNAL_ERROR" } });
+    res.status(500).json(fail("操作失败"));
   }
 }
 
@@ -25,8 +24,7 @@ export async function createExportTemplate(req: Request, res: Response) {
     const result = await exportService.createTemplate(req.body as Record<string, unknown>, userId ?? "");
     res.status(201).json(success(result));
   } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : "操作失败";
-    res.status(500).json({ success: false, error: { message: msg, code: "INTERNAL_ERROR" } });
+    res.status(500).json(fail("操作失败"));
   }
 }
 
@@ -36,8 +34,7 @@ export async function updateExportTemplate(req: Request, res: Response) {
     await exportService.updateTemplate(templateId, req.body as Record<string, unknown>);
     res.json(success(null));
   } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : "操作失败";
-    res.status(500).json({ success: false, error: { message: msg, code: "INTERNAL_ERROR" } });
+    res.status(500).json(fail("操作失败"));
   }
 }
 
@@ -47,8 +44,7 @@ export async function deleteExportTemplate(req: Request, res: Response) {
     await exportService.deleteTemplate(templateId);
     res.json(success(null));
   } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : "操作失败";
-    res.status(500).json({ success: false, error: { message: msg, code: "INTERNAL_ERROR" } });
+    res.status(500).json(fail("操作失败"));
   }
 }
 
@@ -60,13 +56,12 @@ export async function createExportJob(req: Request, res: Response) {
       userId ?? "",
     );
     if (result.status === "failed" && result.errorMessage === "配方不存在") {
-      res.status(404).json({ success: false, error: { message: "配方不存在", code: "NOT_FOUND" } });
+      res.status(404).json(fail("配方不存在", "NOT_FOUND"));
       return;
     }
     res.status(201).json(success(result));
   } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : "操作失败";
-    res.status(500).json({ success: false, error: { message: msg, code: "INTERNAL_ERROR" } });
+    res.status(500).json(fail("操作失败"));
   }
 }
 
@@ -93,8 +88,7 @@ export async function getExportJobs(req: Request, res: Response) {
 
     res.json(successWithPagination(result.list, result.total, result.page, result.pageSize));
   } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : "操作失败";
-    res.status(500).json({ success: false, error: { message: msg, code: "INTERNAL_ERROR" } });
+    res.status(500).json(fail("操作失败"));
   }
 }
 
@@ -103,13 +97,12 @@ export async function getExportJob(req: Request, res: Response) {
     const { jobId } = req.params;
     const job = await exportService.getJob(jobId);
     if (!job) {
-      res.status(404).json({ success: false, error: { message: "导出任务不存在", code: "NOT_FOUND" } });
+      res.status(404).json(fail("导出任务不存在", "NOT_FOUND"));
       return;
     }
     res.json(success(job));
   } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : "操作失败";
-    res.status(500).json({ success: false, error: { message: msg, code: "INTERNAL_ERROR" } });
+    res.status(500).json(fail("操作失败"));
   }
 }
 
@@ -123,10 +116,10 @@ export async function downloadExportFile(req: Request, res: Response) {
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : "操作失败";
     if (msg.includes("不存在")) {
-      res.status(404).json({ success: false, error: { message: msg, code: "NOT_FOUND" } });
+      res.status(404).json(fail(msg, "NOT_FOUND"));
       return;
     }
-    res.status(500).json({ success: false, error: { message: msg, code: "INTERNAL_ERROR" } });
+    res.status(500).json(fail("操作失败"));
   }
 }
 
@@ -137,20 +130,19 @@ export async function retryExportJob(req: Request, res: Response) {
     const result = await exportService.retryJob(jobId, userId);
     if (result.status === "failed" && result.errorMessage) {
       if (result.errorMessage === "任务不存在") {
-        res.status(404).json({ success: false, error: { message: result.errorMessage, code: "NOT_FOUND" } });
+        res.status(404).json(fail(result.errorMessage, "NOT_FOUND"));
         return;
       }
       if (result.errorMessage === "只能重试失败的任务") {
-        res.status(400).json({ success: false, error: { message: result.errorMessage, code: "VALIDATION_ERROR" } });
+        res.status(400).json(fail(result.errorMessage, "VALIDATION_ERROR"));
         return;
       }
-      res.status(500).json({ success: false, error: { message: result.errorMessage, code: "INTERNAL_ERROR" } });
+      res.status(500).json(fail("操作失败"));
       return;
     }
     res.json(success(result));
   } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : "操作失败";
-    res.status(500).json({ success: false, error: { message: msg, code: "INTERNAL_ERROR" } });
+    res.status(500).json(fail("操作失败"));
   }
 }
 
@@ -161,20 +153,19 @@ export async function reExportJob(req: Request, res: Response) {
     const result = await exportService.reExportJob(jobId, userId);
     if (result.status === "failed" && result.errorMessage) {
       if (result.errorMessage === "任务不存在") {
-        res.status(404).json({ success: false, error: { message: result.errorMessage, code: "NOT_FOUND" } });
+        res.status(404).json(fail(result.errorMessage, "NOT_FOUND"));
         return;
       }
       if (result.errorMessage === "只能重新导出已完成或失败的任务") {
-        res.status(400).json({ success: false, error: { message: result.errorMessage, code: "VALIDATION_ERROR" } });
+        res.status(400).json(fail(result.errorMessage, "VALIDATION_ERROR"));
         return;
       }
-      res.status(500).json({ success: false, error: { message: result.errorMessage, code: "INTERNAL_ERROR" } });
+      res.status(500).json(fail("操作失败"));
       return;
     }
     res.json(success(result));
   } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : "操作失败";
-    res.status(500).json({ success: false, error: { message: msg, code: "INTERNAL_ERROR" } });
+    res.status(500).json(fail("操作失败"));
   }
 }
 
@@ -184,8 +175,7 @@ export async function createShare(req: Request, res: Response) {
     const result = await exportService.createShare(req.body as Record<string, unknown>, userId);
     res.status(201).json(success(result));
   } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : "操作失败";
-    res.status(500).json({ success: false, error: { message: msg, code: "INTERNAL_ERROR" } });
+    res.status(500).json(fail("操作失败"));
   }
 }
 
@@ -197,14 +187,14 @@ export async function getShare(req: Request, res: Response) {
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : "操作失败";
     if (msg === "分享不存在") {
-      res.status(404).json({ success: false, error: { message: msg, code: "NOT_FOUND" } });
+      res.status(404).json(fail(msg, "NOT_FOUND"));
       return;
     }
     if (msg === "分享链接已过期" || msg === "下载次数已达上限") {
-      res.status(410).json({ success: false, error: { message: msg, code: "GONE" } });
+      res.status(410).json(fail(msg, "GONE"));
       return;
     }
-    res.status(500).json({ success: false, error: { message: msg, code: "INTERNAL_ERROR" } });
+    res.status(500).json(fail("操作失败"));
   }
 }
 
@@ -215,8 +205,7 @@ export async function getShares(req: Request, res: Response) {
     const result = await exportService.getShares(userId, role);
     res.json(success(result));
   } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : "操作失败";
-    res.status(500).json({ success: false, error: { message: msg, code: "INTERNAL_ERROR" } });
+    res.status(500).json(fail("操作失败"));
   }
 }
 
@@ -226,8 +215,7 @@ export async function deleteShare(req: Request, res: Response) {
     await exportService.deleteShare(shareId);
     res.json(success(null));
   } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : "操作失败";
-    res.status(500).json({ success: false, error: { message: msg, code: "INTERNAL_ERROR" } });
+    res.status(500).json(fail("操作失败"));
   }
 }
 
@@ -238,8 +226,7 @@ export async function getExportStatistics(req: Request, res: Response) {
     const result = await exportService.getStatistics(userId, role);
     res.json(success(result));
   } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : "操作失败";
-    res.status(500).json({ success: false, error: { message: msg, code: "INTERNAL_ERROR" } });
+    res.status(500).json(fail("操作失败"));
   }
 }
 
@@ -260,8 +247,7 @@ export async function getExportConfig(req: Request, res: Response) {
     const result = await exportService.getConfig();
     res.json(success(result));
   } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : "操作失败";
-    res.status(500).json({ success: false, error: { message: msg, code: "INTERNAL_ERROR" } });
+    res.status(500).json(fail("操作失败"));
   }
 }
 
@@ -277,8 +263,7 @@ export async function updateExportConfig(req: Request, res: Response) {
     const result = await exportService.updateConfig(configs, userId);
     res.json(success(result));
   } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : "操作失败";
-    res.status(500).json({ success: false, error: { message: msg, code: "INTERNAL_ERROR" } });
+    res.status(500).json(fail("操作失败"));
   }
 }
 
@@ -290,8 +275,7 @@ export async function getExportMaterials(req: Request, res: Response) {
     const result = await exportService.getMaterialsForExport(keyword, page, pageSize);
     res.json(successWithPagination(result.list, result.total, result.page, result.pageSize));
   } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : "操作失败";
-    res.status(500).json({ success: false, error: { message: msg, code: "INTERNAL_ERROR" } });
+    res.status(500).json(fail("操作失败"));
   }
 }
 
@@ -305,8 +289,7 @@ export async function getExportReports(req: Request, res: Response) {
     const result = await exportService.getReportsForExport(type, periodStart, periodEnd, page, pageSize);
     res.json(successWithPagination(result.list, result.total, result.page, result.pageSize));
   } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : "操作失败";
-    res.status(500).json({ success: false, error: { message: msg, code: "INTERNAL_ERROR" } });
+    res.status(500).json(fail("操作失败"));
   }
 }
 
@@ -318,13 +301,13 @@ export async function getPublicShare(req: Request, res: Response) {
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : "操作失败";
     if (msg === "分享不存在") {
-      res.status(404).json({ success: false, error: { message: msg, code: "NOT_FOUND" } });
+      res.status(404).json(fail(msg, "NOT_FOUND"));
       return;
     }
     if (msg === "分享链接已过期" || msg === "下载次数已达上限") {
-      res.status(410).json({ success: false, error: { message: msg, code: "GONE" } });
+      res.status(410).json(fail(msg, "GONE"));
       return;
     }
-    res.status(500).json({ success: false, error: { message: msg, code: "INTERNAL_ERROR" } });
+    res.status(500).json(fail("操作失败"));
   }
 }

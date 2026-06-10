@@ -6,6 +6,7 @@ import {
   generateId,
   now,
   success,
+  fail,
   successWithPagination,
   buildPagination,
   buildLike,
@@ -33,6 +34,12 @@ export async function getFormulas(req: any, res: Response) {
     if (salesmanId) {
       whereParts.push("f.salesman_id = ?");
       params.push(salesmanId);
+    }
+
+    // 数据隔离：formulist 仅可见自己创建的配方
+    if (req.user.role !== "admin") {
+      whereParts.push("f.created_by = ?");
+      params.push(userId);
     }
 
     const whereSql = whereParts.length > 0 ? `WHERE ${whereParts.join(" AND ")}` : "";
@@ -146,7 +153,7 @@ export async function getFormulas(req: any, res: Response) {
 
     res.json(successWithPagination(listWithSales, countResult[0].total, p, size));
   } catch (error: any) {
-    res.status(500).json({ success: false, message: "获取配方列表失败", error: error.message });
+    res.status(500).json(fail("获取配方列表失败"));
   }
 }
 
@@ -157,7 +164,7 @@ export async function getFormula(req: Request, res: Response) {
     const [[formula]]: any[][] = await query("SELECT * FROM formulas WHERE id = ?", [id]);
 
     if (!formula) {
-      res.status(404).json({ success: false, message: "配方不存在" });
+      res.status(404).json(fail("配方不存在", "NOT_FOUND"));
       return;
     }
 
@@ -171,7 +178,7 @@ export async function getFormula(req: Request, res: Response) {
       currentVersionNumber: currentVer?.version_number || null,
     }));
   } catch (error: any) {
-    res.status(500).json({ success: false, message: "获取配方失败", error: error.message });
+    res.status(500).json(fail("获取配方失败"));
   }
 }
 
@@ -201,7 +208,7 @@ export async function createFormula(req: any, res: Response) {
     // 获取业务员信息
     const [[salesman]]: any[][] = await query("SELECT name FROM salesmen WHERE id = ?", [salesmanId]);
     if (!salesman) {
-      res.status(400).json({ success: false, message: "业务员不存在" });
+      res.status(400).json(fail("业务员不存在", "VALIDATION_ERROR"));
       return;
     }
 
@@ -342,7 +349,7 @@ export async function createFormula(req: any, res: Response) {
     const [[formula]]: any[][] = await query("SELECT * FROM formulas WHERE id = ?", [id]);
     res.status(201).json(success(rowToCamelCase(formula), "配方创建成功"));
   } catch (error: any) {
-    res.status(500).json({ success: false, message: "创建配方失败", error: error.message });
+    res.status(500).json(fail("创建配方失败"));
   }
 }
 
@@ -368,14 +375,20 @@ export async function updateFormula(req: any, res: Response) {
 
     // 升版时必须填写升版原因
     if (materials && !versionReason?.trim()) {
-      res.status(400).json({ success: false, message: "请填写升版原因" });
+      res.status(400).json(fail("请填写升版原因", "VALIDATION_ERROR"));
       return;
     }
 
     // 获取旧配方
     const [[oldFormula]]: any[][] = await query("SELECT * FROM formulas WHERE id = ?", [id]);
     if (!oldFormula) {
-      res.status(404).json({ success: false, message: "配方不存在" });
+      res.status(404).json(fail("配方不存在", "NOT_FOUND"));
+      return;
+    }
+
+    // 权限检查：仅创建者或admin可编辑
+    if (req.user.role !== "admin" && oldFormula.created_by !== userId) {
+      res.status(403).json(fail("无权编辑他人配方", "FORBIDDEN"));
       return;
     }
 
@@ -383,7 +396,7 @@ export async function updateFormula(req: any, res: Response) {
     if (salesmanId && salesmanId !== oldFormula.salesman_id) {
       const [[salesman]]: any[][] = await query("SELECT name FROM salesmen WHERE id = ?", [salesmanId]);
       if (!salesman) {
-        res.status(400).json({ success: false, message: "业务员不存在" });
+        res.status(400).json(fail("业务员不存在", "VALIDATION_ERROR"));
         return;
       }
       salesmanName = salesman.name;
@@ -536,7 +549,7 @@ export async function updateFormula(req: any, res: Response) {
     const [[formula]]: any[][] = await query("SELECT * FROM formulas WHERE id = ?", [id]);
     res.json(success(rowToCamelCase(formula), "配方更新成功"));
   } catch (error: any) {
-    res.status(500).json({ success: false, message: "更新配方失败", error: error.message });
+    res.status(500).json(fail("更新配方失败"));
   }
 }
 
@@ -549,19 +562,21 @@ export async function deleteFormula(req: any, res: Response) {
 
     const [[formula]]: any[][] = await query("SELECT id, created_by FROM formulas WHERE id = ?", [id]);
     if (!formula) {
-      res.status(404).json({ success: false, message: "配方不存在" });
+      res.status(404).json(fail("配方不存在", "NOT_FOUND"));
       return;
     }
 
     if (userRole !== "admin" && formula.created_by !== userId) {
-      res.status(403).json({ success: false, message: "无权删除他人配方" });
+      res.status(403).json(fail("无权删除他人配方", "FORBIDDEN"));
       return;
     }
 
+    // 删除关联版本记录
+    await query("DELETE FROM formula_versions WHERE formula_id = ?", [id]);
     await query("DELETE FROM formulas WHERE id = ?", [id]);
     res.json(success(null, "配方删除成功"));
   } catch (error: any) {
-    res.status(500).json({ success: false, message: "删除配方失败", error: error.message });
+    res.status(500).json(fail("删除配方失败"));
   }
 }
 
@@ -571,7 +586,7 @@ export async function publishFormula(req: any, res: Response) {
     const { id } = req.params;
     const [formulas]: any[] = await query("SELECT id FROM formulas WHERE id = ?", [id]);
     if (!formulas || formulas.length === 0) {
-      res.status(404).json({ success: false, message: "配方不存在" });
+      res.status(404).json(fail("配方不存在", "NOT_FOUND"));
       return;
     }
     const [versions]: any[] = await query(
@@ -579,12 +594,12 @@ export async function publishFormula(req: any, res: Response) {
       [id],
     );
     if (!versions || versions.length === 0) {
-      res.status(400).json({ success: false, message: "配方没有当前版本" });
+      res.status(400).json(fail("配方没有当前版本", "VALIDATION_ERROR"));
       return;
     }
     const currentVersion = versions[0];
     if (currentVersion.status === "published") {
-      res.status(400).json({ success: false, message: "当前版本已发布，无需重复发布" });
+      res.status(400).json(fail("当前版本已发布，无需重复发布", "VALIDATION_ERROR"));
       return;
     }
     await query(
@@ -597,7 +612,7 @@ export async function publishFormula(req: any, res: Response) {
     );
     res.json(success(rowToCamelCase(updated[0]), "配方发布成功"));
   } catch (error: any) {
-    res.status(500).json({ success: false, message: "发布配方失败", error: error.message });
+    res.status(500).json(fail("发布配方失败"));
   }
 }
 
@@ -605,13 +620,15 @@ export async function publishFormula(req: any, res: Response) {
 export async function getFormulasByMaterial(req: Request, res: Response) {
   try {
     const { materialId } = req.params;
+    // 转义 LIKE 通配符，防止 SQL 注入
+    const safeId = String(materialId || "").replace(/[%_\\]/g, "\\$&");
     const [formulas]: any[] = await query(
-      `SELECT * FROM formulas WHERE materials_json LIKE ? ORDER BY created_at DESC`,
-      [`%"materialId":"${materialId}"%`],
+      `SELECT * FROM formulas WHERE materials_json LIKE ? ESCAPE '\\' ORDER BY created_at DESC`,
+      [`%"materialId":"${safeId}"%`],
     );
     res.json(success(rowsToCamelCase(formulas)));
   } catch (error: any) {
-    res.status(500).json({ success: false, message: "查询失败", error: error.message });
+    res.status(500).json(fail("查询失败"));
   }
 }
 
@@ -621,7 +638,7 @@ export async function getPriceQuote(req: Request, res: Response) {
     const { id } = req.params;
     const [[formula]]: any[][] = await query("SELECT * FROM formulas WHERE id = ?", [id]);
     if (!formula) {
-      res.status(404).json({ success: false, message: "配方不存在" });
+      res.status(404).json(fail("配方不存在", "NOT_FOUND"));
       return;
     }
 
@@ -679,7 +696,7 @@ export async function getPriceQuote(req: Request, res: Response) {
       }),
     );
   } catch (error: any) {
-    res.status(500).json({ success: false, message: "获取报价失败", error: error.message });
+    res.status(500).json(fail("获取报价失败"));
   }
 }
 
@@ -901,6 +918,6 @@ export async function validateFormulaRatio(req: any, res: Response) {
 
     res.json(success(result));
   } catch (error: any) {
-    res.status(500).json({ success: false, message: "含量比校验失败", error: error.message });
+    res.status(500).json(fail("含量比校验失败"));
   }
 }

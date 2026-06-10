@@ -111,7 +111,19 @@
                 </div>
                 <span>快速录入</span>
               </button>
-              <button class="quick-btn" @click="router.push('/ai-assistant')">
+              <button class="quick-btn" @click="router.push('/formulas/new')">
+                <div class="quick-icon" style="background: var(--overlay-emerald-10);">
+                  <t-icon name="add" size="20px" style="color: var(--color-primary);" />
+                </div>
+                <span>创建配方</span>
+              </button>
+              <button class="quick-btn" @click="router.push('/materials/new')">
+                <div class="quick-icon" style="background: var(--overlay-brand-10);">
+                  <t-icon name="add" size="20px" style="color: var(--color-primary);" />
+                </div>
+                <span>录入原料</span>
+              </button>
+              <button v-if="authStore.user?.role === 'admin'" class="quick-btn" @click="router.push('/tools/ai-assistant')">
                 <div class="quick-icon" style="background: var(--overlay-brand-10);">
                   <t-icon name="precise-monitor" size="20px" style="color: var(--color-primary);" />
                 </div>
@@ -135,12 +147,6 @@
                 </div>
                 <span>原料管理</span>
               </button>
-              <button class="quick-btn" @click="router.push('/reports')">
-                <div class="quick-icon" style="background: var(--color-danger-strong);">
-                  <t-icon name="file-icon" size="20px" style="color: var(--color-danger);" />
-                </div>
-                <span>报告中心</span>
-              </button>
             </template>
             <template v-else>
               <button class="quick-btn quick-btn--highlight" @click="router.push('/formulas/quick')">
@@ -154,7 +160,13 @@
                 <div class="quick-icon" style="background: var(--overlay-emerald-10);">
                   <t-icon name="add" size="20px" style="color: var(--color-primary);" />
                 </div>
-                <span>新建配方</span>
+                <span>创建配方</span>
+              </button>
+              <button class="quick-btn" @click="router.push('/materials/new')">
+                <div class="quick-icon" style="background: var(--overlay-emerald-10);">
+                  <t-icon name="add" size="20px" style="color: var(--color-primary);" />
+                </div>
+                <span>录入原料</span>
               </button>
               <button class="quick-btn" @click="router.push('/system')">
                 <div class="quick-icon" style="background: var(--color-info-medium);">

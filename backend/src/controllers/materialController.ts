@@ -5,6 +5,7 @@ import {
   generateMaterialCode,
   now,
   success,
+  fail,
   successWithPagination,
   rowToCamelCase,
   rowsToCamelCase,
@@ -36,7 +37,7 @@ export async function getMaterials(req: any, res: Response) {
     });
   } catch (error: any) {
     console.error("[MaterialController] getMaterials Error:", error);
-    res.status(500).json({ success: false, message: "获取原料列表失败", error: error.message });
+    res.status(500).json(fail("获取原料列表失败"));
   }
 }
 
@@ -65,7 +66,7 @@ export async function getMyMaterialSubmissions(req: any, res: Response) {
     });
   } catch (error: any) {
     console.error("[MaterialController] getMyMaterialSubmissions Error:", error);
-    res.status(500).json({ success: false, message: "获取我的原料提交失败", error: error.message });
+    res.status(500).json(fail("获取我的原料提交失败"));
   }
 }
 
@@ -77,14 +78,14 @@ export async function getMaterial(req: Request, res: Response) {
     const result = await materialService.getMaterialDetail(id, userId, userRole);
 
     if (!result) {
-      res.status(404).json({ success: false, message: "原料不存在" });
+      res.status(404).json(fail("原料不存在", "NOT_FOUND"));
       return;
     }
 
     res.json(success(result));
   } catch (error: any) {
     console.error("[MaterialController] getMaterial Error:", error);
-    res.status(500).json({ success: false, message: "获取原料失败", error: error.message });
+    res.status(500).json(fail("获取原料失败"));
   }
 }
 
@@ -92,11 +93,11 @@ export async function getNextCode(req: any, res: Response) {
   try {
     const { name } = req.query;
     if (!name || typeof name !== "string" || !name.trim()) {
-      return res.status(400).json({ success: false, message: "请提供原料名称" });
+      return res.status(400).json(fail("请提供原料名称", "VALIDATION_ERROR"));
     }
     const baseCode = generateMaterialCode(name.trim());
     if (!baseCode) {
-      return res.status(500).json({ success: false, message: "无法生成编码" });
+      return res.status(500).json(fail("无法生成编码"));
     }
     let code = baseCode;
     let suffix = 2;
@@ -109,7 +110,7 @@ export async function getNextCode(req: any, res: Response) {
     res.json(success({ code }));
   } catch (error: any) {
     console.error("[MaterialController] getNextCode Error:", error);
-    res.status(500).json({ success: false, message: "获取编码失败", error: error.message });
+    res.status(500).json(fail("获取编码失败"));
   }
 }
 
@@ -156,11 +157,11 @@ export async function createMaterial(req: any, res: Response) {
     res.status(201).json(success(rowToCamelCase(material), "原料创建成功，当前为草稿状态"));
   } catch (error: any) {
     if (error.message?.includes("UNIQUE constraint failed")) {
-      res.status(409).json({ success: false, message: "原料编码已存在，请使用其他编码" });
+      res.status(409).json(fail("原料编码已存在，请使用其他编码", "DUPLICATE_ENTRY"));
       return;
     }
     console.error("[MaterialController] createMaterial Error:", error);
-    res.status(500).json({ success: false, message: "创建原料失败", error: error.message });
+    res.status(500).json(fail("创建原料失败"));
   }
 }
 
@@ -172,7 +173,7 @@ export async function updateMaterial(req: Request, res: Response) {
 
     const current = await materialService.getLatestVersion(id);
     if (!current) {
-      res.status(404).json({ success: false, message: "原料不存在" });
+      res.status(404).json(fail("原料不存在", "NOT_FOUND"));
       return;
     }
 
@@ -195,7 +196,7 @@ export async function updateMaterial(req: Request, res: Response) {
     const updated = await materialService.updateMaterial(id, body);
 
     if (!updated) {
-      res.status(500).json({ success: false, message: "更新失败" });
+      res.status(500).json(fail("更新失败"));
       return;
     }
 
@@ -222,17 +223,17 @@ export async function updateMaterial(req: Request, res: Response) {
       try {
         const refInfo = await materialService.checkReference(id);
         if (!refInfo.referenced) {
-          res.status(409).json({ success: false, message: "原料编码已存在" });
+          res.status(409).json(fail("原料编码已存在", "DUPLICATE_ENTRY"));
           return;
         }
       } catch {
         // checkReference 失败时仍返回 409
       }
-      res.status(409).json({ success: false, message: "原料编码冲突，请重启服务器以完成数据库升级" });
+      res.status(409).json(fail("原料编码冲突，请重启服务器以完成数据库升级", "DUPLICATE_ENTRY"));
       return;
     }
     console.error("[MaterialController] updateMaterial Error:", error);
-    res.status(500).json({ success: false, message: "更新原料失败", error: error.message });
+    res.status(500).json(fail("更新原料失败"));
   }
 }
 
@@ -265,11 +266,11 @@ export async function deleteMaterial(req: Request, res: Response) {
     if (deleted) {
       res.json(success(null, "原料已删除"));
     } else {
-      res.status(500).json({ success: false, message: "删除失败" });
+      res.status(500).json(fail("删除失败"));
     }
   } catch (error: any) {
     console.error("[MaterialController] deleteMaterial Error:", error);
-    res.status(500).json({ success: false, message: "删除原料失败", error: error.message });
+    res.status(500).json(fail("删除原料失败"));
   }
 }
 
@@ -279,14 +280,14 @@ export async function getMaterialVersions(req: Request, res: Response) {
 
     const result = await materialService.getMaterialVersions(id);
     if (!result) {
-      res.status(404).json({ success: false, message: "原料不存在" });
+      res.status(404).json(fail("原料不存在", "NOT_FOUND"));
       return;
     }
 
     res.json(success(result));
   } catch (error: any) {
     console.error("[MaterialController] getMaterialVersions Error:", error);
-    res.status(500).json({ success: false, message: "获取版本历史失败", error: error.message });
+    res.status(500).json(fail("获取版本历史失败"));
   }
 }
 
@@ -296,14 +297,14 @@ export async function getMaterialVersion(req: Request, res: Response) {
 
     const result = await materialService.getVersionDetail(id, versionId);
     if (!result) {
-      res.status(404).json({ success: false, message: "版本不存在" });
+      res.status(404).json(fail("版本不存在", "NOT_FOUND"));
       return;
     }
 
     res.json(success(result));
   } catch (error: any) {
     console.error("[MaterialController] getMaterialVersion Error:", error);
-    res.status(500).json({ success: false, message: "获取版本详情失败", error: error.message });
+    res.status(500).json(fail("获取版本详情失败"));
   }
 }
 
@@ -313,7 +314,7 @@ export async function getMaterialReferences(req: Request, res: Response) {
 
     const current = await materialService.getLatestVersion(id);
     if (!current) {
-      res.status(404).json({ success: false, message: "原料不存在" });
+      res.status(404).json(fail("原料不存在", "NOT_FOUND"));
       return;
     }
 
@@ -330,7 +331,7 @@ export async function getMaterialReferences(req: Request, res: Response) {
     }));
   } catch (error: any) {
     console.error("[MaterialController] getMaterialReferences Error:", error);
-    res.status(500).json({ success: false, message: "获取引用信息失败", error: error.message });
+    res.status(500).json(fail("获取引用信息失败"));
   }
 }
 
@@ -350,14 +351,14 @@ export async function compareMaterialVersions(req: Request, res: Response) {
 
     const result = await materialService.compareVersions(id, v1, v2);
     if (!result) {
-      res.status(404).json({ success: false, message: "版本不存在" });
+      res.status(404).json(fail("版本不存在", "NOT_FOUND"));
       return;
     }
 
     res.json(success(result));
   } catch (error: any) {
     console.error("[MaterialController] compareMaterialVersions Error:", error);
-    res.status(500).json({ success: false, message: "版本对比失败", error: error.message });
+    res.status(500).json(fail("版本对比失败"));
   }
 }
 
@@ -386,7 +387,7 @@ export async function getMaterialStats(req: any, res: Response) {
     );
   } catch (error: any) {
     console.error("[MaterialController] getMaterialStats Error:", error);
-    res.status(500).json({ success: false, message: "获取统计数据失败", error: error.message });
+    res.status(500).json(fail("获取统计数据失败"));
   }
 }
 
@@ -432,7 +433,7 @@ export async function submitMaterialReview(req: any, res: Response) {
 
     res.json(success(null, "原料已提交审批"));
   } catch (error: any) {
-    res.status(500).json({ success: false, error: { message: "提交审批失败", code: "INTERNAL_ERROR" } });
+    res.status(500).json(fail("提交审批失败"));
   }
 }
 
@@ -478,7 +479,7 @@ export async function approveMaterial(req: any, res: Response) {
 
     res.json(success(null, "原料已审批通过并发布"));
   } catch (error: any) {
-    res.status(500).json({ success: false, error: { message: "审批操作失败", code: "INTERNAL_ERROR" } });
+    res.status(500).json(fail("审批操作失败"));
   }
 }
 
@@ -534,7 +535,7 @@ export async function rejectMaterial(req: any, res: Response) {
 
     res.json(success(null, "原料已驳回"));
   } catch (error: any) {
-    res.status(500).json({ success: false, error: { message: "驳回操作失败", code: "INTERNAL_ERROR" } });
+    res.status(500).json(fail("驳回操作失败"));
   }
 }
 
@@ -580,7 +581,7 @@ export async function publishMaterial(req: any, res: Response) {
 
     res.json(success(null, "原料已发布"));
   } catch (error: any) {
-    res.status(500).json({ success: false, error: { message: "发布操作失败", code: "INTERNAL_ERROR" } });
+    res.status(500).json(fail("发布操作失败"));
   }
 }
 
@@ -610,7 +611,7 @@ export async function getMaterialPendingReviews(req: any, res: Response) {
     res.json(successWithPagination(result.list, result.pagination.total, result.pagination.page, result.pagination.pageSize));
   } catch (error: any) {
     console.error("[MaterialController] getMaterialPendingReviews Error:", error);
-    res.status(500).json({ success: false, error: { message: "获取待审批列表失败", code: "INTERNAL_ERROR" } });
+    res.status(500).json(fail("获取待审批列表失败"));
   }
 }
 
@@ -622,7 +623,7 @@ export async function getMaterialReviewLogs(req: any, res: Response) {
     res.json(success(logs));
   } catch (error: any) {
     console.error("[MaterialController] getMaterialReviewLogs Error:", error);
-    res.status(500).json({ success: false, error: { message: "获取审批日志失败", code: "INTERNAL_ERROR" } });
+    res.status(500).json(fail("获取审批日志失败"));
   }
 }
 
@@ -633,6 +634,6 @@ export async function getMyMaterialCounts(req: any, res: Response) {
     res.json(success(counts));
   } catch (error: any) {
     console.error("[MaterialController] getMyMaterialCounts Error:", error);
-    res.status(500).json({ success: false, error: { message: error.message || "获取原料状态计数失败", code: "INTERNAL_ERROR" } });
+    res.status(500).json(fail("获取原料状态计数失败"));
   }
 }

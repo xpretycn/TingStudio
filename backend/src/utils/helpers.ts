@@ -23,6 +23,17 @@ export function success<T = unknown>(data: T, message = "操作成功") {
   return { success: true, message, data };
 }
 
+export function fail(message: string, code = "INTERNAL_ERROR") {
+  return {
+    success: false as const,
+    error: {
+      message,
+      code,
+      timestamp: new Date().toISOString(),
+    },
+  };
+}
+
 export function successWithPagination<T = unknown>(list: T[], total: number, page: number, pageSize: number) {
   return {
     success: true,

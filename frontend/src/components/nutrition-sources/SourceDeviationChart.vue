@@ -76,7 +76,7 @@ function getSeverity(diff: number): 'success' | 'info' | 'warning' | 'danger' {
   padding: $space-5;
   background: var(--color-bg-container);
   border-radius: $radius-xl;
-  border: 1px solid var(--color-border-light);
+  border: 1px solid var(--color-border);
 }
 
 .chart-header {
@@ -108,7 +108,7 @@ function getSeverity(diff: number): 'success' | 'info' | 'warning' | 'danger' {
   flex-direction: column;
   border-radius: $radius-md;
   overflow: hidden;
-  border: 1px solid var(--color-border-light);
+  border: 1px solid var(--color-border);
 }
 
 .heatmap-row {
@@ -116,7 +116,7 @@ function getSeverity(diff: number): 'success' | 'info' | 'warning' | 'danger' {
   grid-template-columns: 100px repeat(v-bind('sources.length'), 1fr);
 
   &:not(:last-child) {
-    border-bottom: 1px solid var(--color-border-light);
+    border-bottom: 1px solid var(--color-border);
   }
 }
 
@@ -149,7 +149,7 @@ function getSeverity(diff: number): 'success' | 'info' | 'warning' | 'danger' {
     font-weight: $font-weight-medium;
     color: var(--color-text-primary);
     background: var(--color-bg-container-alt);
-    border-right: 1px solid var(--color-border-light);
+    border-right: 1px solid var(--color-border);
   }
 
   &--value {

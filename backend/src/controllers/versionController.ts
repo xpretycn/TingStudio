@@ -1,6 +1,6 @@
 import { Request, Response } from 'express'
 import { query } from '../config/database-better-sqlite3.js'
-import { generateId, now, success, rowToCamelCase, rowsToCamelCase, safeJsonParse } from '../utils/helpers.js'
+import { generateId, now, success, fail, rowToCamelCase, rowsToCamelCase, safeJsonParse } from '../utils/helpers.js'
 import { createReviewLog, getReviewLogs, getPendingReviewList, isFormulaOwner, getMySubmissions, getReviewedByMe, getMySubmissionStatusCounts } from '../services/reviewService.js'
 
 async function syncSnapshotToFormula(version: any, formulaId: string): Promise<void> {
@@ -90,7 +90,7 @@ export async function getVersions(req: Request, res: Response) {
 
     res.json(success(result))
   } catch (error: any) {
-    res.status(500).json({ success: false, message: '获取版本列表失败', error: error.message })
+    res.status(500).json(fail('获取版本列表失败'))
   }
 }
 
@@ -102,7 +102,7 @@ export async function getVersion(req: Request, res: Response) {
       [versionId]
     )
     if (!version) {
-      res.status(404).json({ success: false, message: '版本不存在' })
+      res.status(404).json(fail('版本不存在', 'NOT_FOUND'))
       return
     }
 
@@ -112,7 +112,7 @@ export async function getVersion(req: Request, res: Response) {
       snapshot: safeJsonParse(version.snapshot_json, {}),
     }))
   } catch (error: any) {
-    res.status(500).json({ success: false, message: '获取版本详情失败', error: error.message })
+    res.status(500).json(fail('获取版本详情失败'))
   }
 }
 
@@ -123,13 +123,13 @@ export async function createVersion(req: any, res: Response) {
     const userId = req.user.userId
 
     if (!versionReason?.trim()) {
-      res.status(400).json({ success: false, message: '请填写升版原因' })
+      res.status(400).json(fail('请填写升版原因', 'VALIDATION_ERROR'))
       return
     }
 
     const [[formula]]: any[][] = await query('SELECT * FROM formulas WHERE id = ?', [formulaId])
     if (!formula) {
-      res.status(404).json({ success: false, message: '配方不存在' })
+      res.status(404).json(fail('配方不存在', 'NOT_FOUND'))
       return
     }
 
@@ -173,7 +173,7 @@ export async function createVersion(req: any, res: Response) {
 
     res.status(201).json(success({ versionId, versionNumber: newVersionNum }, '版本创建成功'))
   } catch (error: any) {
-    res.status(500).json({ success: false, message: '创建版本失败', error: error.message })
+    res.status(500).json(fail('创建版本失败'))
   }
 }
 
@@ -183,7 +183,7 @@ export async function publishVersion(req: any, res: Response) {
     const userId = req.user.userId
 
     if (req.user.role !== 'admin') {
-      res.status(403).json({ success: false, error: { message: '仅管理员可直接发布版本，普通用户请提交审批', code: 'FORBIDDEN' } })
+      res.status(403).json(fail('仅管理员可直接发布版本，普通用户请提交审批', 'FORBIDDEN'))
       return
     }
 
@@ -192,12 +192,12 @@ export async function publishVersion(req: any, res: Response) {
       [versionId]
     )
     if (!version) {
-      res.status(404).json({ success: false, error: { message: '版本不存在', code: 'NOT_FOUND' } })
+      res.status(404).json(fail('版本不存在', 'NOT_FOUND'))
       return
     }
 
     if (version.status !== 'draft' && version.status !== 'pending_review') {
-      res.status(400).json({ success: false, error: { message: '仅草稿或待审批版本可发布', code: 'VALIDATION_ERROR' } })
+      res.status(400).json(fail('仅草稿或待审批版本可发布', 'VALIDATION_ERROR'))
       return
     }
 
@@ -208,7 +208,7 @@ export async function publishVersion(req: any, res: Response) {
       [formulaId]
     )
     if (!formula) {
-      res.status(404).json({ success: false, error: { message: '关联的配方不存在，无法发布', code: 'NOT_FOUND' } })
+      res.status(404).json(fail('关联的配方不存在，无法发布', 'NOT_FOUND'))
       return
     }
 
@@ -237,7 +237,7 @@ export async function publishVersion(req: any, res: Response) {
     res.json(success(null, '版本已发布，配方数据已同步'))
   } catch (error: any) {
     console.error('[Version] publishVersion Error:', error)
-    res.status(500).json({ success: false, error: { message: '发布版本失败', code: 'INTERNAL_ERROR' } })
+    res.status(500).json(fail('发布版本失败'))
   }
 }
 
@@ -252,17 +252,17 @@ export async function submitVersion(req: any, res: Response) {
       [versionId]
     )
     if (!version) {
-      res.status(404).json({ success: false, error: { message: '版本不存在', code: 'NOT_FOUND' } })
+      res.status(404).json(fail('版本不存在', 'NOT_FOUND'))
       return
     }
 
     if (version.status !== 'draft') {
-      res.status(400).json({ success: false, error: { message: '仅草稿版本可提交审批', code: 'VALIDATION_ERROR' } })
+      res.status(400).json(fail('仅草稿版本可提交审批', 'VALIDATION_ERROR'))
       return
     }
 
     if (req.user.role !== 'admin' && version.created_by !== userId) {
-      res.status(403).json({ success: false, error: { message: '无权提交他人版本', code: 'FORBIDDEN' } })
+      res.status(403).json(fail('无权提交他人版本', 'FORBIDDEN'))
       return
     }
 
@@ -289,7 +289,7 @@ export async function submitVersion(req: any, res: Response) {
     }, '版本已提交审批'))
   } catch (error: any) {
     console.error('[Version] submitVersion Error:', error)
-    res.status(500).json({ success: false, error: { message: '提交审批失败', code: 'INTERNAL_ERROR' } })
+    res.status(500).json(fail('提交审批失败'))
   }
 }
 
@@ -300,7 +300,7 @@ export async function approveVersion(req: any, res: Response) {
     const { comment } = req.body || {}
 
     if (req.user.role !== 'admin') {
-      res.status(403).json({ success: false, error: { message: '仅管理员可批准版本', code: 'FORBIDDEN' } })
+      res.status(403).json(fail('仅管理员可批准版本', 'FORBIDDEN'))
       return
     }
 
@@ -309,12 +309,12 @@ export async function approveVersion(req: any, res: Response) {
       [versionId]
     )
     if (!version) {
-      res.status(404).json({ success: false, error: { message: '版本不存在', code: 'NOT_FOUND' } })
+      res.status(404).json(fail('版本不存在', 'NOT_FOUND'))
       return
     }
 
     if (version.status !== 'pending_review') {
-      res.status(400).json({ success: false, error: { message: '仅待审批版本可批准', code: 'VALIDATION_ERROR' } })
+      res.status(400).json(fail('仅待审批版本可批准', 'VALIDATION_ERROR'))
       return
     }
 
@@ -351,7 +351,7 @@ export async function approveVersion(req: any, res: Response) {
     }, '版本已批准并发布'))
   } catch (error: any) {
     console.error('[Version] approveVersion Error:', error)
-    res.status(500).json({ success: false, error: { message: '批准版本失败', code: 'INTERNAL_ERROR' } })
+    res.status(500).json(fail('批准版本失败'))
   }
 }
 
@@ -362,12 +362,12 @@ export async function rejectVersion(req: any, res: Response) {
     const { comment } = req.body || {}
 
     if (req.user.role !== 'admin') {
-      res.status(403).json({ success: false, error: { message: '仅管理员可驳回版本', code: 'FORBIDDEN' } })
+      res.status(403).json(fail('仅管理员可驳回版本', 'FORBIDDEN'))
       return
     }
 
     if (!comment?.trim()) {
-      res.status(400).json({ success: false, error: { message: '驳回时必须填写意见', code: 'VALIDATION_ERROR' } })
+      res.status(400).json(fail('驳回时必须填写意见', 'VALIDATION_ERROR'))
       return
     }
 
@@ -376,12 +376,12 @@ export async function rejectVersion(req: any, res: Response) {
       [versionId]
     )
     if (!version) {
-      res.status(404).json({ success: false, error: { message: '版本不存在', code: 'NOT_FOUND' } })
+      res.status(404).json(fail('版本不存在', 'NOT_FOUND'))
       return
     }
 
     if (version.status !== 'pending_review') {
-      res.status(400).json({ success: false, error: { message: '仅待审批版本可驳回', code: 'VALIDATION_ERROR' } })
+      res.status(400).json(fail('仅待审批版本可驳回', 'VALIDATION_ERROR'))
       return
     }
 
@@ -408,7 +408,7 @@ export async function rejectVersion(req: any, res: Response) {
     }, '版本已驳回'))
   } catch (error: any) {
     console.error('[Version] rejectVersion Error:', error)
-    res.status(500).json({ success: false, error: { message: '驳回版本失败', code: 'INTERNAL_ERROR' } })
+    res.status(500).json(fail('驳回版本失败'))
   }
 }
 
@@ -435,7 +435,7 @@ export async function getPendingReviews(req: any, res: Response) {
     res.json(success(result))
   } catch (error: any) {
     console.error('[Version] getPendingReviews Error:', error)
-    res.status(500).json({ success: false, error: { message: '获取待审核列表失败', code: 'INTERNAL_ERROR' } })
+    res.status(500).json(fail('获取待审核列表失败'))
   }
 }
 
@@ -452,7 +452,7 @@ export async function getMySubmissionList(req: any, res: Response) {
     res.json(success(result))
   } catch (error: any) {
     console.error("[VersionController] getMySubmissionList Error:", error)
-    res.status(500).json({ success: false, error: { message: error.message || "获取我的提交列表失败", code: "INTERNAL_ERROR" } })
+    res.status(500).json(fail("获取我的提交列表失败"))
   }
 }
 
@@ -463,7 +463,7 @@ export async function getMySubmissionCounts(req: any, res: Response) {
     res.json(success(counts))
   } catch (error: any) {
     console.error("[VersionController] getMySubmissionCounts Error:", error)
-    res.status(500).json({ success: false, error: { message: error.message || "获取提交状态计数失败", code: "INTERNAL_ERROR" } })
+    res.status(500).json(fail("获取提交状态计数失败"))
   }
 }
 
@@ -480,7 +480,7 @@ export async function getReviewedHistory(req: any, res: Response) {
     res.json(success(result))
   } catch (error: any) {
     console.error("[VersionController] getReviewedHistory Error:", error)
-    res.status(500).json({ success: false, error: { message: error.message || "获取审核历史失败", code: "INTERNAL_ERROR" } })
+    res.status(500).json(fail("获取审核历史失败"))
   }
 }
 
@@ -493,14 +493,14 @@ export async function getVersionReviewLogs(req: any, res: Response) {
       [versionId]
     )
     if (!version) {
-      res.status(404).json({ success: false, error: { message: '版本不存在', code: 'NOT_FOUND' } })
+      res.status(404).json(fail('版本不存在', 'NOT_FOUND'))
       return
     }
 
     if (req.user.role !== 'admin' && version.created_by !== req.user.userId) {
       const isOwner = await isFormulaOwner(version.formula_id, req.user.userId)
       if (!isOwner) {
-        res.status(403).json({ success: false, error: { message: '无权查看此版本的审核日志', code: 'FORBIDDEN' } })
+        res.status(403).json(fail('无权查看此版本的审核日志', 'FORBIDDEN'))
         return
       }
     }
@@ -513,7 +513,7 @@ export async function getVersionReviewLogs(req: any, res: Response) {
     }))
   } catch (error: any) {
     console.error('[Version] getVersionReviewLogs Error:', error)
-    res.status(500).json({ success: false, error: { message: '获取审核日志失败', code: 'INTERNAL_ERROR' } })
+    res.status(500).json(fail('获取审核日志失败'))
   }
 }
 
@@ -523,12 +523,12 @@ export async function getMaterialUpdates(req: any, res: Response) {
 
     const [[formula]]: any[][] = await query('SELECT id, name, created_by FROM formulas WHERE id = ?', [formulaId])
     if (!formula) {
-      res.status(404).json({ success: false, error: { message: '配方不存在', code: 'NOT_FOUND' } })
+      res.status(404).json(fail('配方不存在', 'NOT_FOUND'))
       return
     }
 
     if (req.user.role !== 'admin' && formula.created_by !== req.user.userId) {
-      res.status(403).json({ success: false, error: { message: '无权查看此配方的原料更新', code: 'FORBIDDEN' } })
+      res.status(403).json(fail('无权查看此配方的原料更新', 'FORBIDDEN'))
       return
     }
 
@@ -635,7 +635,7 @@ export async function getMaterialUpdates(req: any, res: Response) {
     }))
   } catch (error: any) {
     console.error('[Version] getMaterialUpdates Error:', error)
-    res.status(500).json({ success: false, error: { message: '检查原料更新失败', code: 'INTERNAL_ERROR' } })
+    res.status(500).json(fail('检查原料更新失败'))
   }
 }
 
@@ -647,12 +647,12 @@ export async function refreshSnapshot(req: any, res: Response) {
 
     const [[formula]]: any[][] = await query('SELECT * FROM formulas WHERE id = ?', [formulaId])
     if (!formula) {
-      res.status(404).json({ success: false, error: { message: '配方不存在', code: 'NOT_FOUND' } })
+      res.status(404).json(fail('配方不存在', 'NOT_FOUND'))
       return
     }
 
     if (req.user.role !== 'admin' && formula.created_by !== userId) {
-      res.status(403).json({ success: false, error: { message: '无权操作此配方', code: 'FORBIDDEN' } })
+      res.status(403).json(fail('无权操作此配方', 'FORBIDDEN'))
       return
     }
 
@@ -661,7 +661,7 @@ export async function refreshSnapshot(req: any, res: Response) {
       [formulaId]
     )
     if (!currentVersion) {
-      res.status(404).json({ success: false, error: { message: '配方无当前版本', code: 'NOT_FOUND' } })
+      res.status(404).json(fail('配方无当前版本', 'NOT_FOUND'))
       return
     }
 
@@ -785,7 +785,7 @@ export async function refreshSnapshot(req: any, res: Response) {
     }, `已刷新 ${changes.length} 种原料至最新版本`))
   } catch (error: any) {
     console.error('[Version] refreshSnapshot Error:', error)
-    res.status(500).json({ success: false, error: { message: '刷新原料数据失败', code: 'INTERNAL_ERROR' } })
+    res.status(500).json(fail('刷新原料数据失败'))
   }
 }
 
@@ -799,25 +799,19 @@ export async function setCurrentVersion(req: any, res: Response) {
       [versionId]
     )
     if (!version) {
-      res.status(404).json({ success: false, error: { message: '版本不存在', code: 'NOT_FOUND' } })
+      res.status(404).json(fail('版本不存在', 'NOT_FOUND'))
       return
     }
 
     if (version.status !== 'published') {
-      res.status(400).json({
-        success: false,
-        error: { message: '仅已发布版本可设为当前版本', code: 'VALIDATION_ERROR' },
-      })
+      res.status(400).json(fail('仅已发布版本可设为当前版本', 'VALIDATION_ERROR'))
       return
     }
 
     if (req.user.role !== 'admin') {
       const isOwner = await isFormulaOwner(version.formula_id, userId)
       if (!isOwner) {
-        res.status(403).json({
-          success: false,
-          error: { message: '无权切换他人配方的当前版本', code: 'FORBIDDEN' },
-        })
+        res.status(403).json(fail('无权切换他人配方的当前版本', 'FORBIDDEN'))
         return
       }
     }
@@ -850,7 +844,7 @@ export async function setCurrentVersion(req: any, res: Response) {
     }, '当前版本已切换，配方数据已同步'))
   } catch (error: any) {
     console.error('[Version] setCurrentVersion Error:', error)
-    res.status(500).json({ success: false, error: { message: '切换当前版本失败', code: 'INTERNAL_ERROR' } })
+    res.status(500).json(fail('切换当前版本失败'))
   }
 }
 
@@ -860,7 +854,7 @@ export async function compareVersions(req: Request, res: Response) {
     const { versionA, versionB } = req.query
 
     if (!versionA || !versionB) {
-      res.status(400).json({ success: false, message: '请提供两个版本ID进行对比' })
+      res.status(400).json(fail('请提供两个版本ID进行对比', 'VALIDATION_ERROR'))
       return
     }
 
@@ -874,7 +868,7 @@ export async function compareVersions(req: Request, res: Response) {
     )
 
     if (!vA || !vB) {
-      res.status(404).json({ success: false, message: '版本不存在' })
+      res.status(404).json(fail('版本不存在', 'NOT_FOUND'))
       return
     }
 
@@ -981,6 +975,6 @@ export async function compareVersions(req: Request, res: Response) {
 
     res.json(success(diffResult))
   } catch (error: any) {
-    res.status(500).json({ success: false, message: '版本对比失败', error: error.message })
+    res.status(500).json(fail('版本对比失败'))
   }
 }

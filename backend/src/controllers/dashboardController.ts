@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { query } from "../config/database-better-sqlite3.js";
-import { success, rowsToCamelCase } from "../utils/helpers.js";
+import { success, fail, rowsToCamelCase } from "../utils/helpers.js";
 
 function isFormulist(req: any): boolean {
   return req.user?.role === "formulist";
@@ -68,7 +68,7 @@ export async function getDashboardStats(req: any, res: Response) {
     res.json(success(stats));
   } catch (error: any) {
     console.error("Dashboard stats error:", error);
-    res.status(500).json({ success: false, message: "获取仪表盘数据失败", error: error.message });
+    res.status(500).json(fail("获取仪表盘数据失败"));
   }
 }
 
@@ -105,7 +105,7 @@ export async function getRecentActivity(req: any, res: Response) {
     res.json(success(allActivities));
   } catch (error: any) {
     console.error("Recent activity error:", error);
-    res.status(500).json({ success: false, message: "获取最近活动失败", error: error.message });
+    res.status(500).json(fail("获取最近活动失败"));
   }
 }
 
@@ -166,6 +166,6 @@ export async function getSalesTrend(req: any, res: Response) {
     res.json(success(rowsToCamelCase(trendData)));
   } catch (error: any) {
     console.error("Sales trend error:", error);
-    res.status(500).json({ success: false, message: "获取销量趋势失败", error: error.message });
+    res.status(500).json(fail("获取销量趋势失败"));
   }
 }

@@ -1422,8 +1422,8 @@ const handleOpenReject = (row: Material) => {
 
 const handleConfirmReject = async () => {
   if (!rejectTarget.value) return false;
-  if (!rejectComment.value.trim()) {
-    MessagePlugin.warning("请填写驳回原因");
+  if (!rejectComment.value || rejectComment.value.trim().length < 5) {
+    MessagePlugin.warning("驳回原因至少5个字符");
     return false;
   }
   const result = await materialStore.rejectMaterial(rejectTarget.value.id, rejectComment.value.trim());

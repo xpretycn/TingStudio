@@ -10,7 +10,6 @@
         :key="c.sourceId"
         class="candidate-item"
         :class="{
-          'candidate-item--primary': idx === 0,
           'candidate-item--authoritative': c.sourceId === activeAuthoritativeSourceId,
         }"
       >
@@ -79,25 +78,26 @@
             </template>
             已是主用
           </t-button>
-          <t-popconfirm
-            v-else
-            :content="confirmText(c, idx)"
-            placement="top-right"
-            :confirm-btn-props="{ theme: 'primary', content: '确认替换' }"
-            :cancel-btn-props="{ content: '取消' }"
-            @confirm="handleApply(c.sourceId)"
-          >
-            <t-button
-              size="small"
-              theme="primary"
-              :loading="applyingId === c.sourceId"
+          <template v-else-if="canApply">
+            <t-popconfirm
+              :content="confirmText(c, idx)"
+              placement="top-right"
+              :confirm-btn-props="{ theme: 'primary', content: '确认替换' }"
+              :cancel-btn-props="{ content: '取消' }"
+              @confirm="handleApply(c.sourceId)"
             >
-              <template #icon>
-                <t-icon :name="idx === 0 ? 'check' : 'check-circle-filled'" />
-              </template>
-              {{ idx === 0 ? '一键应用为主用' : '应用此候选为主用' }}
-            </t-button>
-          </t-popconfirm>
+              <t-button
+                size="small"
+                theme="primary"
+                :loading="applyingId === c.sourceId"
+              >
+                <template #icon>
+                  <t-icon name="check-circle-filled" />
+                </template>
+                应用为主用
+              </t-button>
+            </t-popconfirm>
+          </template>
         </div>
       </div>
     </div>
@@ -126,9 +126,12 @@ const props = withDefaults(defineProps<{
   sources?: NutritionSource[]
   /** 当前主用来源 ID */
   activeAuthoritativeSourceId?: string | null
+  /** 是否有权限操作"应用为主用"（仅 admin） */
+  canApply?: boolean
 }>(), {
   sources: () => [],
   activeAuthoritativeSourceId: null,
+  canApply: false,
 })
 
 const emit = defineEmits<{
@@ -210,7 +213,7 @@ async function handleApply(sourceId: string) {
 .candidate-item {
   position: relative;
   padding: $space-2-5 $space-3;
-  border: 1px solid var(--color-border-light);
+  border: 1px solid var(--color-border);
   border-radius: $radius-lg;
   background: var(--color-bg-container);
   transition: all 0.2s;
@@ -218,15 +221,6 @@ async function handleApply(sourceId: string) {
   &:hover {
     border-color: color-mix(in srgb, var(--color-primary) 40%, transparent);
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
-  }
-
-  &--primary {
-    border-color: var(--color-primary);
-    background: linear-gradient(
-      135deg,
-      var(--color-primary-bg) 0%,
-      var(--color-bg-container) 100%
-    );
   }
 
   &--authoritative {

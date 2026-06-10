@@ -39,6 +39,7 @@ export interface ChatCompletionOptions {
   stream?: boolean;
   onToken?: (token: string) => void;
   tools?: unknown[];
+  toolChoice?: 'auto' | 'required' | 'none';
   applicationName?: string;
   applicationLocation?: string;
 }
@@ -557,6 +558,9 @@ export class AIService {
 
     if (options?.tools && options.tools.length > 0) {
       body.tools = options.tools;
+      if (options.toolChoice) {
+        body.tool_choice = options.toolChoice;
+      }
     }
 
     const controller = new AbortController();

@@ -304,7 +304,7 @@ watch(activeTab, () => {
             <t-icon name="time" size="14px" /> 时间范围
           </span>
           <div class="my-approval__filter-options">
-            <t-radio-group v-model="store.myListDateRange" variant="default" size="small" @change="fetchCurrentData()">
+            <t-radio-group v-model="store.myListDateRange" variant="default-filled" size="small" @change="fetchCurrentData()">
               <t-radio-button v-for="opt in dateRangeOptions" :key="opt.value" :value="opt.value">
                 {{ opt.label }}
               </t-radio-button>
@@ -324,7 +324,7 @@ watch(activeTab, () => {
           <span class="my-approval__filter-label">
             <t-icon name="category" size="14px" /> 类型
           </span>
-          <t-radio-group v-model="store.myListMaterialType" variant="default" size="small" @change="fetchCurrentData()">
+          <t-radio-group v-model="store.myListMaterialType" variant="default-filled" size="small" @change="fetchCurrentData()">
             <t-radio-button value="">全部</t-radio-button>
             <t-radio-button value="herb">药材</t-radio-button>
             <t-radio-button value="supplement">辅料</t-radio-button>
