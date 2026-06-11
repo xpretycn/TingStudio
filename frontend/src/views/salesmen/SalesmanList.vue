@@ -2397,12 +2397,17 @@ const handleDelete = async (row: Salesman) => {
 
 .salesman-list .content-card .t-table .t-table__body .t-table__row--hover td {
   background-color: var(--color-row-hover-bg) !important;
+}
+.salesman-list .content-card .t-table .t-table__body .t-table__row--hover td:first-child {
   box-shadow: inset 3px 0 0 var(--color-primary-light) !important;
 }
 
 .salesman-list .content-card .t-table .t-table__body .t-table__row--selected td,
 .salesman-list .content-card .t-table .t-table__body .t-table__row--selected.t-table__row--hover td {
   background-color: var(--color-row-selected-bg) !important;
+}
+.salesman-list .content-card .t-table .t-table__body .t-table__row--selected td:first-child,
+.salesman-list .content-card .t-table .t-table__body .t-table__row--selected.t-table__row--hover td:first-child {
   box-shadow: inset 3px 0 0 var(--color-primary) !important;
 }
 
@@ -2471,5 +2476,19 @@ html .salesman-list .content-card.t-card {
 
 html .salesman-list .content-card .t-card__body {
   border-radius: 0 0 var(--radius-4xl) var(--radius-4xl) !important;
+}
+
+/* 表头去圆角 — 覆盖全局 _td-overrides 的 border-radius */
+.salesman-list .content-card .t-table {
+  border-radius: 0 !important;
+}
+.salesman-list .content-card .t-table .t-table__header {
+  border-radius: 0 !important;
+}
+.salesman-list .content-card .t-table .t-table__header th:first-child {
+  border-top-left-radius: 0 !important;
+}
+.salesman-list .content-card .t-table .t-table__header th:last-child {
+  border-top-right-radius: 0 !important;
 }
 </style>

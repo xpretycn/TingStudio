@@ -43,27 +43,7 @@
           <QuotationCard v-if="msg.displayType === 'quotation' && msg.toolData" :data="msg.toolData" />
           <SubstituteCard v-if="msg.displayType === 'substitute' && msg.toolData" :data="msg.toolData" />
 
-          <div v-if="msg.fields && Object.keys(msg.fields).length > 0" class="parsed-fields">
-            <div class="fields-header">
-              <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-                <path d="M2 4l4 4-4 4M8 12h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
-                  stroke-linejoin="round" />
-              </svg>
-              <span>已解析字段</span>
-            </div>
-            <div class="fields-grid">
-              <div v-for="(value, key) in msg.fields" :key="key" class="field-chip">
-                <span class="field-key">{{ fieldLabelMap[key] || key }}</span>
-                <span class="field-val">{{ value }}</span>
-              </div>
-            </div>
-            <button class="fill-btn" @click="$emit('fill', msg.fields)">
-              <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-                <path d="M4 8h8M8 4v8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
-              </svg>
-              回填到表单
-            </button>
-          </div>
+
 
           <div v-if="msg.missingFields && msg.missingFields.length > 0" class="missing-fields">
             <span class="missing-label">还需提供：</span>
@@ -199,7 +179,6 @@ const props = defineProps<{
 }>();
 
 defineEmits<{
-  fill: [fields: Record<string, unknown>];
 }>();
 
 const userAvatar = computed(() => authStore.user?.avatar || "");

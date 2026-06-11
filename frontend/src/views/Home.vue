@@ -400,11 +400,35 @@
         </div>
       </main>
     </div>
+
+    <!-- 锁屏覆盖层 -->
+    <Transition name="lock-fade">
+      <div v-if="isLocked" class="lock-screen-overlay" @click="unlock">
+        <div class="lock-screen-content" @click.stop>
+          <!-- 用户头像 -->
+          <div class="lock-avatar-wrap">
+            <img
+              class="lock-avatar"
+              :src="authStore.user?.avatar || '/avatar-default.jpg'"
+              :alt="authStore.user?.username || '用户'"
+            />
+          </div>
+          <!-- 用户名 -->
+          <div class="lock-username">{{ authStore.user?.displayName || authStore.user?.username || '用户' }}</div>
+          <!-- 时间 -->
+          <div class="lock-time">{{ lockTime }}</div>
+          <!-- 日期 -->
+          <div class="lock-date">{{ lockDate }} {{ lockWeekday }}</div>
+          <!-- 解锁提示 -->
+          <div class="lock-hint">点击任意处解锁</div>
+        </div>
+      </div>
+    </Transition>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import { useFormulaStore } from '@/stores/formula';
@@ -576,8 +600,7 @@ const navGroups = {
   tools: {
     label: '系统工具',
     items: [
-      { path: '/tools', label: '工具箱', icon: 'setting' },
-      { path: '/tools/ai-assistant', label: 'AI 助手', icon: 'precise-monitor' }
+      { path: '/tools', label: '工具箱', icon: 'setting' }
     ] as NavItem[]
   }
 } as const;
@@ -632,6 +655,7 @@ const getGroupItems = (groupId: GroupKey): NavItem[] => {
       { path: '/system/config', label: '系统管理', icon: 'file-icon' },
       { path: '/files', label: '文件管理', icon: 'folder' },
       ...baseItems,
+      { path: '/tools/ai-assistant', label: 'AI 助手', icon: 'precise-monitor' },
     ];
   }
 
@@ -654,6 +678,7 @@ const navItems = computed(() => {
   if (authStore.user?.role === 'admin') {
     allItems.push({ path: '/model-management', label: '模型管理', icon: 'control-platform' });
     allItems.push({ path: '/system/config', label: '系统管理', icon: 'file-icon' });
+    allItems.push({ path: '/tools/ai-assistant', label: 'AI 助手', icon: 'precise-monitor' });
   }
   return allItems;
 });
@@ -902,8 +927,38 @@ const handleLogout = () => {
 };
 
 // 处理锁屏
+const isLocked = ref(false);
+const lockTime = ref('');
+const lockDate = ref('');
+const lockWeekday = ref('');
+let lockTimer: ReturnType<typeof setInterval> | null = null;
+
+const WEEKDAYS = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+
+function updateLockClock() {
+  const now = new Date();
+  const h = String(now.getHours()).padStart(2, '0');
+  const m = String(now.getMinutes()).padStart(2, '0');
+  lockTime.value = `${h}:${m}`;
+  const y = now.getFullYear();
+  const mo = String(now.getMonth() + 1).padStart(2, '0');
+  const d = String(now.getDate()).padStart(2, '0');
+  lockDate.value = `${y}年${mo}月${d}日`;
+  lockWeekday.value = WEEKDAYS[now.getDay()];
+}
+
 const handleLock = () => {
-  MessagePlugin.info('锁屏功能开发中');
+  updateLockClock();
+  isLocked.value = true;
+  lockTimer = setInterval(updateLockClock, 1000);
+};
+
+const unlock = () => {
+  isLocked.value = false;
+  if (lockTimer) {
+    clearInterval(lockTimer);
+    lockTimer = null;
+  }
 };
 
 // ─── 新用户引导 ───
@@ -2365,6 +2420,100 @@ onMounted(async () => {
   .drawer-fade-leave-to {
     opacity: 0;
   }
+
+  // ─── 锁屏覆盖层 ───────────────────────────────────────────
+  .lock-screen-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(ellipse at 30% 20%, rgba(30, 40, 80, 0.92) 0%, rgba(10, 12, 30, 0.97) 70%);
+    backdrop-filter: blur(24px);
+    cursor: pointer;
+    user-select: none;
+
+    .lock-screen-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+      pointer-events: none;
+    }
+
+    .lock-avatar-wrap {
+      width: 88px;
+      height: 88px;
+      border-radius: 50%;
+      padding: 3px;
+      background: linear-gradient(135deg, var(--color-primary) 0%, rgba(255, 255, 255, 0.3) 100%);
+      margin-bottom: 20px;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3), 0 0 0 4px rgba(255, 255, 255, 0.08);
+    }
+
+    .lock-avatar {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+      display: block;
+      border: 2px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .lock-username {
+      font-size: 16px;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.85);
+      letter-spacing: 0.5px;
+      margin-bottom: 32px;
+    }
+
+    .lock-time {
+      font-size: 84px;
+      font-weight: 200;
+      color: #fff;
+      line-height: 1;
+      letter-spacing: 4px;
+      font-variant-numeric: tabular-nums;
+      text-shadow: 0 2px 20px rgba(255, 255, 255, 0.15);
+      margin-bottom: 12px;
+    }
+
+    .lock-date {
+      font-size: 15px;
+      font-weight: 400;
+      color: rgba(255, 255, 255, 0.55);
+      letter-spacing: 1px;
+      margin-bottom: 48px;
+    }
+
+    .lock-hint {
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.35);
+      letter-spacing: 0.5px;
+      animation: lockPulse 2.5s ease-in-out infinite;
+    }
+  }
+
+  // 锁屏过渡动画
+  .lock-fade-enter-active {
+    transition: opacity 0.35s ease;
+  }
+
+  .lock-fade-leave-active {
+    transition: opacity 0.3s ease;
+  }
+
+  .lock-fade-enter-from,
+  .lock-fade-leave-to {
+    opacity: 0;
+  }
+}
+
+@keyframes lockPulse {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 0.7; }
 }
 </style>
 

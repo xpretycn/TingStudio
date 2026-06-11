@@ -278,9 +278,11 @@
     justify-content: center;
   }
 
-  // 统一 hover 效果：浅粉背景 + 左侧品牌色指示条
+  // 统一 hover 效果：浅粉背景 + 左侧品牌色指示条（仅首列）
   .t-table__row--hover td {
     background-color: var(--color-bg-hover) !important;
+  }
+  .t-table__row--hover td:first-child {
     box-shadow: inset 3px 0 0 var(--color-primary-light);
   }
 
@@ -288,6 +290,9 @@
   .t-table__row--selected td,
   .t-table__row--selected.t-table__row--hover td {
     background-color: var(--color-primary-bg) !important;
+  }
+  .t-table__row--selected td:first-child,
+  .t-table__row--selected.t-table__row--hover td:first-child {
     box-shadow: inset 3px 0 0 var(--color-primary);
   }
 

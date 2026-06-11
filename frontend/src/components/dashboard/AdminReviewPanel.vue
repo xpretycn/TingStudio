@@ -286,15 +286,16 @@ onUnmounted(() => {
       </div>
 
     <t-loading :loading="store.loading" size="small">
-      <div v-if="currentView === 'pending' && displayedPending.length === 0" class="admin-review__empty">
-        <t-icon name="check-circle" size="48px" color="var(--td-success-color)" />
-        <p>暂无待审核配方</p>
-        <span>所有配方均已审核完毕</span>
-      </div>
+      <div class="admin-review__content">
+        <div v-if="currentView === 'pending' && displayedPending.length === 0" class="admin-review__empty">
+          <t-icon name="check-circle" size="48px" color="var(--td-success-color)" />
+          <p>暂无待审核配方</p>
+          <span>所有配方均已审核完毕</span>
+        </div>
 
-      <div v-else-if="currentView === 'pending' && displayedPending.length > 0">
-        <!-- 排序列头（数据>5条时显示） -->
-        <div v-if="displayedPending.length > 5" class="admin-review__sort-header">
+        <div v-else-if="currentView === 'pending' && displayedPending.length > 0">
+          <!-- 排序列头（数据>5条时显示） -->
+          <div v-if="displayedPending.length > 5" class="admin-review__sort-header">
           <span class="admin-review__sort-col admin-review__sort-col--name"
             :class="{ active: store.adminSortBy === 'formulaName' }" @click="toggleSort('formulaName')">
             名称
@@ -453,6 +454,7 @@ onUnmounted(() => {
           <t-pagination :current="store.reviewedPage" :page-size="store.reviewedPageSize" :total="store.reviewedTotal"
             size="small" :total-content="false" @current-change="onHistoryPageChange" />
         </div>
+      </div>
       </div>
     </t-loading>
   </div>

@@ -55,6 +55,7 @@ const commandTemplates = [
   { label: "营养成分", text: "计算营养成分", icon: '<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.2" fill="none"/><path d="M8 5v6M5 8h6" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>' },
   { label: "成本计算", text: "计算成本", icon: '<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M2 5h12v8H2z" stroke="currentColor" stroke-width="1.2" fill="none"/><circle cx="8" cy="9" r="2" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>' },
   { label: "配方对比", text: "对比配方", icon: '<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="5" height="10" rx="1" stroke="currentColor" stroke-width="1.2" fill="none"/><rect x="9" y="3" width="5" height="10" rx="1" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>' },
+  { label: "字段指南", text: "字段填写指南", icon: '<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.2" fill="none"/><path d="M8 5v4M8 11v0" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>' },
 ];
 
 function handleCommandClick(cmdText: string) {

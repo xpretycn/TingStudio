@@ -2020,11 +2020,16 @@ const handleStatusFilterChange = () => {
         &:hover td,
         &.t-table__row--hover td {
           background-color: var(--color-row-hover-bg) !important;
+        }
+        &:hover td:first-child,
+        &.t-table__row--hover td:first-child {
           box-shadow: inset 3px 0 0 var(--color-primary-light) !important;
         }
 
         &.t-table__row--selected td {
           background-color: var(--color-row-selected-bg) !important;
+        }
+        &.t-table__row--selected td:first-child {
           box-shadow: inset 3px 0 0 var(--color-primary) !important;
         }
 
@@ -3066,6 +3071,8 @@ const handleStatusFilterChange = () => {
 
 .material-list .content-card .t-table .t-table__body .t-table__row.t-table__row--selected>td {
   background-color: var(--color-row-selected-bg) !important;
+}
+.material-list .content-card .t-table .t-table__body .t-table__row.t-table__row--selected>td:first-child {
   box-shadow: inset 3px 0 0 var(--color-primary) !important;
 }
 
@@ -3152,5 +3159,19 @@ html .material-list .content-card.t-card {
 
 html .material-list .content-card .t-card__body {
   border-radius: 0 0 var(--radius-4xl) var(--radius-4xl) !important;
+}
+
+/* 表头去圆角 — 覆盖全局 _td-overrides 的 border-radius */
+.material-list .content-card .t-table {
+  border-radius: 0 !important;
+}
+.material-list .content-card .t-table .t-table__header {
+  border-radius: 0 !important;
+}
+.material-list .content-card .t-table .t-table__header th:first-child {
+  border-top-left-radius: 0 !important;
+}
+.material-list .content-card .t-table .t-table__header th:last-child {
+  border-top-right-radius: 0 !important;
 }
 </style>

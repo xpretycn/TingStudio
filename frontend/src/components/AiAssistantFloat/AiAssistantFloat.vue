@@ -7,48 +7,35 @@
     <FloatDrawer :visible="isOpen" :fullscreen="isFullscreen" :position="config.position" :width="config.drawerWidth"
       :title="store.dynamicTitle" @close="setOpen(false)" @fullscreen="toggleFullscreen">
 
-      <ChatMessages :messages="messages" :loading="loading" :field-label-map="currentFieldLabelMap"
-        @fill="handleFill" />
+      <FieldDetectionPanel
+        :required-missing="requiredMissingFields"
+        :recommended-missing="recommendedMissingFields"
+        @consult="handleFieldConsult" />
+
+      <SubmitAnalysisPanel
+        v-if="submitIssues.length"
+        :issues="submitIssues" />
+
+      <ChatMessages :messages="messages" :loading="loading" :field-label-map="currentFieldLabelMap" />
 
       <ChatInput :disabled="loading" placeholder="描述你要填写的内容…" @send="sendMessage" />
 
     </FloatDrawer>
-
-    <Transition name="fade">
-      <div v-if="fillFeedback" class="fill-feedback-overlay" @click="fillFeedback = null">
-        <div class="fill-feedback-card" @click.stop>
-          <div class="feedback-header">
-            <svg width="20" height="20" viewBox="0 0 16 16" fill="none">
-              <path d="M2 4l4 4-4 4M8 12h6" stroke="var(--color-success)" stroke-width="1.5" stroke-linecap="round"
-                stroke-linejoin="round" />
-            </svg>
-            <span>表单回填结果</span>
-          </div>
-          <div class="feedback-body">
-            <div v-for="item in fillFeedback" :key="item.key" class="feedback-row"
-              :class="{ 'feedback-row--fail': !item.success }">
-              <span class="feedback-key">{{ item.label }}</span>
-              <span class="feedback-val">{{ item.value }}</span>
-              <span class="feedback-status">{{ item.success ? '✓' : '✗' }}</span>
-            </div>
-          </div>
-          <button class="feedback-close-btn" @click="fillFeedback = null">知道了</button>
-        </div>
-      </div>
-    </Transition>
   </Teleport>
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch, onMounted, onUnmounted } from "vue";
+import { computed, watch, onMounted, onUnmounted } from "vue";
 import { useRoute } from "vue-router";
 import { useFloatAgentStore } from "@/stores/floatAgent";
 import { useAuthStore } from "@/stores/auth";
 import FloatBubble from "./FloatBubble.vue";
 import FloatDrawer from "./FloatDrawer.vue";
+import FieldDetectionPanel from "./FieldDetectionPanel.vue";
+import SubmitAnalysisPanel from "./SubmitAnalysisPanel.vue";
 import ChatMessages from "./ChatMessages.vue";
 import ChatInput from "./ChatInput.vue";
-import { fillFormFields, type FillResult } from "./formFillAdapter";
+import type { SubmitIssue } from "./SubmitAnalysisPanel.vue";
 
 const store = useFloatAgentStore();
 const authStore = useAuthStore();
@@ -61,8 +48,6 @@ const messages = computed(() => store.messages);
 const config = computed(() => store.config);
 const isVisible = computed(() => store.isVisible);
 
-const fillFeedback = ref<Array<{ key: string; label: string; value: unknown; success: boolean; }> | null>(null);
-
 const ROUTE_PAGE_MAP: Record<string, string> = {
   "FormulaNew": "formula-add",
   "FormulaEdit": "formula-edit",
@@ -72,55 +57,67 @@ const ROUTE_PAGE_MAP: Record<string, string> = {
   "SalesmanEdit": "salesman-edit",
 };
 
-const REQUIRED_FIELDS: Record<string, string[]> = {
-  "formula-add": ["name", "finished_weight", "salesman_name"],
-  "formula-edit": ["name", "finished_weight", "salesman_name"],
-  "material-add": ["name", "material_type", "unit"],
-  "material-edit": ["name", "material_type", "unit"],
-  "salesman-add": ["name", "phone"],
-  "salesman-edit": ["name", "phone"],
-};
-
-function checkMissingFieldsLocal(): { missingFields: string[]; count: number; } {
-  const pageId = store.currentPageId;
-  const required = REQUIRED_FIELDS[pageId];
-  if (!required) return { missingFields: [], count: 0 };
-
-  const missing: string[] = [];
-  for (const field of required) {
-    const container = document.querySelector(`[data-field="${field}"]`);
-    let hasValue = false;
-
-    if (container) {
-      const isSelect = container.classList.contains("t-select") || container.querySelector(".t-select") !== null;
-      if (isSelect) {
-        const selectedLabel = container.querySelector(".t-select__single-label") || container.querySelector(".t-tag");
-        hasValue = !!selectedLabel && selectedLabel.textContent !== null && selectedLabel.textContent.trim() !== "";
-        if (!hasValue) {
-          const hiddenInput = container.querySelector<HTMLInputElement>("input[type=\"hidden\"]");
-          if (hiddenInput && hiddenInput.value) hasValue = true;
-        }
-      } else {
-        const input = container.querySelector<HTMLInputElement | HTMLTextAreaElement>("input.t-input__inner, input.t-input-number__input, textarea.t-textarea__inner");
-        if (input && input.value && input.value.trim() !== "") hasValue = true;
-      }
-    }
-
-    if (!hasValue) {
-      missing.push(field);
-    }
-  }
-  return { missingFields: missing, count: missing.length };
+interface FieldCheckConfig {
+  key: string;
+  level: "required" | "recommended";
 }
+
+const FIELD_CHECKS: Record<string, FieldCheckConfig[]> = {
+  "formula-add": [
+    { key: "name", level: "required" },
+    { key: "finished_weight", level: "required" },
+    { key: "salesman_name", level: "required" },
+    { key: "ratio_factor", level: "required" },
+    { key: "supplement_ratio_factor", level: "required" },
+    { key: "description", level: "recommended" },
+    { key: "preparation_method", level: "recommended" },
+  ],
+  "formula-edit": [
+    { key: "name", level: "required" },
+    { key: "finished_weight", level: "required" },
+    { key: "salesman_name", level: "required" },
+    { key: "ratio_factor", level: "required" },
+    { key: "supplement_ratio_factor", level: "required" },
+    { key: "version_reason", level: "required" },
+    { key: "description", level: "recommended" },
+    { key: "preparation_method", level: "recommended" },
+  ],
+  "material-add": [
+    { key: "name", level: "required" },
+    { key: "material_type", level: "required" },
+    { key: "unit", level: "required" },
+    { key: "stock", level: "required" },
+    { key: "unit_price", level: "recommended" },
+  ],
+  "material-edit": [
+    { key: "name", level: "required" },
+    { key: "material_type", level: "required" },
+    { key: "unit", level: "required" },
+    { key: "stock", level: "required" },
+    { key: "unit_price", level: "recommended" },
+  ],
+  "salesman-add": [
+    { key: "name", level: "required" },
+    { key: "phone", level: "required" },
+  ],
+  "salesman-edit": [
+    { key: "name", level: "required" },
+    { key: "phone", level: "required" },
+  ],
+};
 
 const FIELD_LABEL_MAPS: Record<string, Record<string, string>> = {
   "formula-add": {
-    name: "配方名称", finished_weight: "成品重量", ratio_factor: "系数",
-    salesman_name: "业务员", description: "描述", materials: "原料列表",
+    name: "配方名称", finished_weight: "成品重量", ratio_factor: "主料系数",
+    supplement_ratio_factor: "辅料系数", salesman_name: "业务员",
+    description: "配方描述", preparation_method: "制法", version_reason: "升版原因",
+    materials: "原料列表",
   },
   "formula-edit": {
-    name: "配方名称", finished_weight: "成品重量", ratio_factor: "系数",
-    salesman_name: "业务员", description: "描述", materials: "原料列表",
+    name: "配方名称", finished_weight: "成品重量", ratio_factor: "主料系数",
+    supplement_ratio_factor: "辅料系数", salesman_name: "业务员",
+    description: "配方描述", preparation_method: "制法", version_reason: "升版原因",
+    materials: "原料列表",
   },
   "material-add": {
     name: "原料名称", code: "编码", material_type: "原料类型",
@@ -144,6 +141,105 @@ const currentFieldLabelMap = computed(() => {
   return FIELD_LABEL_MAPS[store.currentPageId] || {};
 });
 
+// 统一的字段值检测（一次 DOM 查询，多处复用）
+function inspectField(fieldKey: string): boolean {
+  const container = document.querySelector(`[data-field="${fieldKey}"]`);
+  if (!container) return false;
+
+  const isSelect = container.classList.contains("t-select") || container.querySelector(".t-select") !== null;
+  if (isSelect) {
+    const selectedLabel = container.querySelector(".t-select__single-label") || container.querySelector(".t-tag");
+    let hasValue = !!selectedLabel && selectedLabel.textContent !== null && selectedLabel.textContent.trim() !== "";
+    if (!hasValue) {
+      const hiddenInput = container.querySelector<HTMLInputElement>("input[type=\"hidden\"]");
+      if (hiddenInput && hiddenInput.value) hasValue = true;
+    }
+    return hasValue;
+  }
+
+  const input = container.querySelector<HTMLInputElement | HTMLTextAreaElement>(
+    "input.t-input__inner, input.t-input-number__input, textarea.t-textarea__inner",
+  );
+  return !!(input && input.value && input.value.trim() !== "");
+}
+
+// 共享的字段检测结果：required 和 recommended 各跑一次 detect
+const detectedMissing = computed(() => {
+  const pageId = store.currentPageId;
+  const checks = FIELD_CHECKS[pageId];
+  if (!checks) return { required: [] as string[], recommended: [] as string[] };
+
+  const required: string[] = [];
+  const recommended: string[] = [];
+  for (const check of checks) {
+    if (inspectField(check.key)) continue;
+    if (check.level === "required") required.push(check.key);
+    else recommended.push(check.key);
+  }
+  return { required, recommended };
+});
+
+const requiredMissingFields = computed(() => {
+  const pageId = store.currentPageId;
+  const labels = FIELD_LABEL_MAPS[pageId] || {};
+  return detectedMissing.value.required.map(key => ({
+    key,
+    label: labels[key] || key,
+    level: "required" as const,
+  }));
+});
+
+const recommendedMissingFields = computed(() => {
+  const pageId = store.currentPageId;
+  const labels = FIELD_LABEL_MAPS[pageId] || {};
+  return detectedMissing.value.recommended.map(key => ({
+    key,
+    label: labels[key] || key,
+    level: "recommended" as const,
+  }));
+});
+
+const submitIssues = computed(() => {
+  const pageId = store.currentPageId;
+  const issues: SubmitIssue[] = [];
+  const presentKeys = new Set(detectedMissing.value.required);
+
+  if (pageId === "formula-add" || pageId === "formula-edit") {
+    if (presentKeys.has("name")) {
+      issues.push({ type: "error", message: "配方名称不能为空", suggestion: '请填写配方名称，例如"红枣枸杞膏"' });
+    }
+    if (presentKeys.has("salesman_name")) {
+      issues.push({ type: "error", message: "请选择所属业务员", suggestion: "从下拉列表中选择负责该配方的业务员" });
+    }
+    if (presentKeys.has("finished_weight")) {
+      issues.push({ type: "error", message: "成品重量必须大于 0", suggestion: "请输入配方的最终成品重量，单位克(g)" });
+    }
+    if (pageId === "formula-edit" && presentKeys.has("version_reason")) {
+      issues.push({ type: "error", message: "编辑模式需填写升版原因", suggestion: '请说明本次修改的原因，例如"调整原料配比"' });
+    }
+  }
+
+  if (pageId === "material-add" || pageId === "material-edit") {
+    if (presentKeys.has("name")) {
+      issues.push({ type: "error", message: "原料名称不能为空", suggestion: '请填写原料名称，例如"黄芪"' });
+    }
+    if (presentKeys.has("material_type")) {
+      issues.push({ type: "error", message: "请选择原料类型", suggestion: "药材(herb)或辅料(supplement)" });
+    }
+    if (presentKeys.has("unit")) {
+      issues.push({ type: "error", message: "请选择单位", suggestion: "从下拉列表中选择合适的计量单位" });
+    }
+    if (presentKeys.has("stock")) {
+      issues.push({ type: "error", message: "请输入库存数量", suggestion: "填写当前原料的库存数量" });
+    }
+    if (presentKeys.has("unit_price")) {
+      issues.push({ type: "warning", message: "建议录入单价", suggestion: "录入单价后可进行成本计算和报价分析" });
+    }
+  }
+
+  return issues;
+});
+
 watch(
   () => route.name,
   (name) => {
@@ -157,9 +253,11 @@ watch(
 );
 
 function refreshLocalFieldHints() {
-  const result = checkMissingFieldsLocal();
-  store.updateFieldHintsLocal(result.missingFields, result.count);
-  return result;
+  const required = detectedMissing.value.required;
+  const recommended = detectedMissing.value.recommended;
+  const allMissing = [...required, ...recommended];
+  store.updateFieldHintsLocal(allMissing, required.length);
+  return { count: required.length, missingFields: allMissing };
 }
 
 async function toggleOpen() {
@@ -192,24 +290,29 @@ function sendMessage(text: string) {
   store.sendMessage(text);
 }
 
-function handleFill(fields: Record<string, unknown>) {
-  const labelMap = currentFieldLabelMap.value;
-  const results = fillFormFields(fields);
-  fillFeedback.value = results.map((r: FillResult) => ({
-    key: r.key,
-    label: labelMap[r.key] || r.key,
-    value: r.value,
-    success: r.success,
-  }));
-  setTimeout(() => refreshLocalFieldHints(), 500);
-}
-
 function handleQuickCommand(command: string) {
   store.sendQuickCommand(command);
 }
 
+function handleFieldConsult(fieldKey: string) {
+  const label = FIELD_LABEL_MAPS[store.currentPageId]?.[fieldKey] || fieldKey;
+  store.sendMessage(`请解释 '${label}' 字段的填写要求`);
+}
+
 let fieldHintsTimer: ReturnType<typeof setInterval> | null = null;
 let healthTimer: ReturnType<typeof setInterval> | null = null;
+
+function startFieldHintsPolling() {
+  if (fieldHintsTimer || !authStore.isAuthenticated || !store.currentPageId) return;
+  fieldHintsTimer = setInterval(refreshLocalFieldHints, 3000);
+}
+
+function stopFieldHintsPolling() {
+  if (fieldHintsTimer) {
+    clearInterval(fieldHintsTimer);
+    fieldHintsTimer = null;
+  }
+}
 
 onMounted(() => {
   if (!authStore.isAuthenticated) return;
@@ -217,9 +320,7 @@ onMounted(() => {
   healthTimer = setInterval(() => {
     if (authStore.isAuthenticated) store.fetchHealth();
   }, 60000);
-  fieldHintsTimer = setInterval(() => {
-    if (authStore.isAuthenticated && store.currentPageId) refreshLocalFieldHints();
-  }, 3000);
+  if (store.isOpen) startFieldHintsPolling();
 });
 
 watch(
@@ -228,9 +329,21 @@ watch(
     if (pageId) {
       store.fetchFieldHints();
       refreshLocalFieldHints();
+      if (store.isOpen) startFieldHintsPolling();
     }
   },
   { immediate: true },
+);
+
+watch(
+  () => store.isOpen,
+  (open) => {
+    if (open) {
+      startFieldHintsPolling();
+    } else {
+      stopFieldHintsPolling();
+    }
+  },
 );
 
 watch(
@@ -242,101 +355,6 @@ watch(
 
 onUnmounted(() => {
   if (healthTimer) clearInterval(healthTimer);
-  if (fieldHintsTimer) clearInterval(fieldHintsTimer);
+  stopFieldHintsPolling();
 });
 </script>
-
-<style scoped lang="scss">
-.fill-feedback-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 10001;
-  background: rgba(93, 78, 96, 0.3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.fill-feedback-card {
-  background: var(--color-bg-container);
-  border-radius: 16px;
-  padding: 20px;
-  width: 320px;
-  max-height: 60vh;
-  overflow-y: auto;
-  box-shadow: 0 16px 48px rgba(93, 78, 96, 0.2);
-}
-
-.feedback-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: $font-size-h3;
-  font-weight: $font-weight-semibold;
-  color: var(--color-text-primary);
-  margin-bottom: 12px;
-}
-
-.feedback-body {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1-5);
-}
-
-.feedback-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: var(--space-1-5) var(--space-2-5);
-  border-radius: 8px;
-  background: var(--color-bg-page);
-  font-size: $font-size-body-sm;
-
-  &--fail {
-    background: rgba(227, 77, 89, 0.06);
-  }
-
-  .feedback-key {
-    color: var(--color-text-secondary);
-    min-width: 60px;
-  }
-
-  .feedback-val {
-    flex: 1;
-    color: var(--color-text-primary);
-    font-weight: $font-weight-medium;
-  }
-
-  .feedback-status {
-    font-size: $font-size-caption;
-  }
-}
-
-.feedback-close-btn {
-  margin-top: 16px;
-  width: 100%;
-  padding: 8px;
-  border-radius: 10px;
-  border: none;
-  background: var(--gradient-btn);
-  color: $text-white;
-  font-size: $font-size-body-sm;
-  font-weight: $font-weight-medium;
-  cursor: pointer;
-  transition: background 0.2s;
-
-  &:hover {
-    background: var(--gradient-btn-hover);
-  }
-}
-
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.2s;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-</style>

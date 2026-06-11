@@ -3,7 +3,6 @@ import { toolRegistry } from "./toolRegistry.js";
 import { nutritionEngine } from "../../formula/nutritionEngine.js";
 import { ratioFactorValidator } from "../../formula/ratioFactorValidator.js";
 import { costCalculator } from "../../formula/costCalculator.js";
-import { fileParserService } from "../../file/fileParser.js";
 import { salespersonService } from "../../business/salespersonService.js";
 import { salesAnalysisService } from "../../business/salesAnalysisService.js";
 import { getDb } from "../../../config/database-better-sqlite3.js";
@@ -91,63 +90,6 @@ export function registerAllTools(): void {
 
       return { success: true, data: { ...result, unit_cost: unitCost } };
     },
-  });
-
-  toolRegistry.register({
-    name: "parse_file",
-    description: "解析上传的文件（Excel/图片/PDF），提取配方、原料或价格数据",
-    paramsSchema: z.object({
-      file_path: z.string().describe("文件路径"),
-      filename: z.string().describe("文件名称"),
-      file_type: z.enum(["excel", "image", "pdf"]).optional().describe("文件类型，不指定则自动检测"),
-    }),
-    handler: async params => {
-      try {
-        const ALLOWED_DIRS = [
-          path.resolve(process.cwd(), "uploads"),
-          path.resolve(process.cwd(), "data"),
-          path.resolve(process.cwd(), "temp"),
-        ];
-
-        const resolvedPath = path.resolve(params.file_path);
-        const isAllowed = ALLOWED_DIRS.some(dir => resolvedPath.startsWith(dir));
-        if (!isAllowed) {
-          return {
-            success: false,
-            error: `文件路径不在允许的目录内，仅允许读取 uploads/、data/、temp/ 目录下的文件`,
-          };
-        }
-
-        const fs = await import("fs");
-        if (!fs.existsSync(resolvedPath)) {
-          return { success: false, error: `文件不存在: ${params.filename}` };
-        }
-        const buffer = fs.readFileSync(resolvedPath);
-
-        let result;
-        switch (params.file_type || "excel") {
-          case "excel":
-            result = await fileParserService.parseExcel(buffer, params.filename);
-            break;
-          case "image":
-            result = await fileParserService.parseImage(buffer, params.filename);
-            break;
-          case "pdf":
-            result = await fileParserService.parsePDF(buffer, params.filename);
-            break;
-          default:
-            throw new Error(`不支持的文件类型`);
-        }
-
-        return { success: result.success, data: result, error: result.error };
-      } catch (error) {
-        return {
-          success: false,
-          error: error instanceof Error ? error.message : "文件解析失败",
-        };
-      }
-    },
-    requiresConfirmation: false,
   });
 
   toolRegistry.register({

@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
-import { agentApi, type AgentFloatConfig, type ParseFormRequest } from "@/api/agent";
+import { agentApi, type AgentFloatConfig } from "@/api/agent";
 
 export interface TokenUsage {
   total_tokens: number;
@@ -12,7 +12,6 @@ export interface FloatMessage {
   id: string;
   role: "user" | "assistant";
   content: string;
-  fields?: Record<string, unknown>;
   missingFields?: string[];
   toolName?: string;
   displayType?: string;
@@ -35,8 +34,6 @@ const DEFAULT_CONFIG: AgentFloatConfig = {
   showPulse: true,
   enabledPages: [],
   maxRounds: 10,
-  fillStrategy: "overwrite",
-  contextMode: "page",
   updatedAt: "",
   createdAt: "",
 };
@@ -44,17 +41,6 @@ const DEFAULT_CONFIG: AgentFloatConfig = {
 const FORM_PAGE_IDS = ["formula-add", "formula-edit", "material-add", "material-edit", "salesman-add", "salesman-edit"];
 
 const API_BASE = import.meta.env?.VITE_API_BASE_URL || "/api";
-
-function classifyFloatIntent(utterance: string): "fill" | "agent" {
-  const text = utterance.toLowerCase();
-  if (/对比|比较|vs|区别|差异/.test(text)) return "agent";
-  if (/替代|替换|代替|换掉|替补/.test(text)) return "agent";
-  if (/报价|报价单|多少钱|售价|定价|价格/.test(text)) return "agent";
-  if (/生成描述|生成制法|智能生成|写描述|写制法|帮我写/.test(text)) return "agent";
-  if (/算|计算|校验|合规|营养|成本|含量比|系数/.test(text)) return "agent";
-  if (/什么意思|合规吗|范围|规范|单位|标准|规则|是什么|怎么填|能不能|可以吗/.test(text)) return "agent";
-  return "fill";
-}
 
 export const useFloatAgentStore = defineStore("floatAgent", () => {
   const isOpen = ref(false);
@@ -67,7 +53,7 @@ export const useFloatAgentStore = defineStore("floatAgent", () => {
   const configLoaded = ref(false);
   const fieldHintsCount = ref(0);
   const missingFieldsList = ref<string[]>([]);
-  const agentHealthStatus = ref<"online" | "loading" | "error">("online");
+  const agentHealthStatus = ref<"online" | "degraded" | "error">("online");
 
   const isVisible = computed(() => {
     if (!config.value.enabled) return false;
@@ -118,10 +104,8 @@ export const useFloatAgentStore = defineStore("floatAgent", () => {
   function setPageId(pageId: string) {
     if (currentPageId.value !== pageId) {
       currentPageId.value = pageId;
-      if (config.value.contextMode === "page") {
-        messages.value = [];
-        sessionId.value = null;
-      }
+      messages.value = [];
+      sessionId.value = null;
     }
   }
 
@@ -175,7 +159,10 @@ export const useFloatAgentStore = defineStore("floatAgent", () => {
     try {
       const data = await agentApi.getHealth();
       if (data && data.status) {
-        agentHealthStatus.value = data.status as "online" | "loading" | "error";
+        const status = data.status;
+        if (status === "online" || status === "degraded" || status === "error") {
+          agentHealthStatus.value = status;
+        }
       }
     } catch {
       agentHealthStatus.value = "error";
@@ -193,63 +180,7 @@ export const useFloatAgentStore = defineStore("floatAgent", () => {
     };
     messages.value.push(userMsg);
 
-    const intent = classifyFloatIntent(utterance);
-
-    if (intent === "fill") {
-      await sendFillMessage(utterance);
-    } else {
-      await sendAgentMessage(utterance);
-    }
-  }
-
-  async function sendFillMessage(utterance: string) {
-    loading.value = true;
-    try {
-      const context = messages.value
-        .slice(-6)
-        .filter(m => m.role === "user" || m.role === "assistant")
-        .map(m => ({ role: m.role, content: m.content }));
-
-      const params: ParseFormRequest = {
-        pageId: currentPageId.value,
-        utterance,
-        context,
-        sessionId: sessionId.value || undefined,
-      };
-      const data = await agentApi.parseForm(params);
-
-      if (data && (data.fields || data.missingFields)) {
-        sessionId.value = data.sessionId;
-        const fieldCount = data.fields ? Object.keys(data.fields).length : 0;
-        const aiMsg: FloatMessage = {
-          id: `msg_${Date.now()}_ai`,
-          role: "assistant",
-          content: data.message || (fieldCount > 0 ? `已解析${fieldCount}个字段` : "请提供更多信息"),
-          fields: data.fields || {},
-          missingFields: data.missingFields || [],
-          timestamp: Date.now(),
-        };
-        messages.value.push(aiMsg);
-      } else {
-        const aiMsg: FloatMessage = {
-          id: `msg_${Date.now()}_ai`,
-          role: "assistant",
-          content: (data as Record<string, unknown>)?.message as string || "解析失败，请重新描述",
-          timestamp: Date.now(),
-        };
-        messages.value.push(aiMsg);
-      }
-    } catch (error: unknown) {
-      const aiMsg: FloatMessage = {
-        id: `msg_${Date.now()}_ai`,
-        role: "assistant",
-        content: error instanceof Error ? error.message : "网络异常，请稍后重试",
-        timestamp: Date.now(),
-      };
-      messages.value.push(aiMsg);
-    } finally {
-      loading.value = false;
-    }
+    await sendAgentMessage(utterance);
   }
 
   async function sendAgentMessage(utterance: string) {

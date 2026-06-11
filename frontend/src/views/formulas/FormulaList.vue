@@ -1625,10 +1625,9 @@ const getSalesQuantity = (row: Formula): number => {
     box-shadow: $shadow-elevation-2;
     transition: all $transition-slow;
 
-    // index.html hover: border-emerald-100
+    // hover 仅提升阴影，不加亮色边框
     &:hover {
       box-shadow: $shadow-elevation-4;
-      border-color: $emerald-50 !important; // hover:border-emerald-100
     }
 
     // 覆盖 TDesign t-card 默认 body padding（index.html 无额外 padding，工具栏自带 p-8）
@@ -3104,12 +3103,18 @@ const getSalesQuantity = (row: Formula): number => {
     &:hover td,
     &.t-table__row--hover td {
       background-color: var(--color-row-hover-bg) !important;
+    }
+    &:hover td:first-child,
+    &.t-table__row--hover td:first-child {
       box-shadow: inset 3px 0 0 var(--color-primary-light) !important;
     }
 
     &.t-table__row--selected td,
     &.t-table__row--selected.t-table__row--hover td {
       background-color: var(--color-row-selected-bg) !important;
+    }
+    &.t-table__row--selected td:first-child,
+    &.t-table__row--selected.t-table__row--hover td:first-child {
       box-shadow: inset 3px 0 0 var(--color-primary) !important;
     }
 
@@ -3526,6 +3531,20 @@ const getSalesQuantity = (row: Formula): number => {
 .formula-list .content-card .t-table .t-table__body-wrapper {
   overflow: hidden !important;
 }
+
+/* 9. 表头去圆角 — 覆盖全局 _td-overrides 的 border-radius */
+.formula-list .content-card .t-table {
+  border-radius: 0 !important;
+}
+.formula-list .content-card .t-table .t-table__header {
+  border-radius: 0 !important;
+}
+.formula-list .content-card .t-table .t-table__header th:first-child {
+  border-top-left-radius: 0 !important;
+}
+.formula-list .content-card .t-table .t-table__header th:last-child {
+  border-top-right-radius: 0 !important;
+}
 </style>
 
 <!-- ═══════════ 非 scoped 覆盖块：彻底消除全局 _td-overrides.scss 粉色残留 ═══════════ -->
@@ -3572,6 +3591,8 @@ const getSalesQuantity = (row: Formula): number => {
 /* 5. 选中行 → 主题变量 + 绿条 */
 .formula-list .content-card .t-table .t-table__body .t-table__row.t-table__row--selected>td {
   background-color: var(--color-row-selected-bg) !important;
+}
+.formula-list .content-card .t-table .t-table__body .t-table__row.t-table__row--selected>td:first-child {
   box-shadow: inset 3px 0 0 var(--color-primary) !important;
 }
 

@@ -312,6 +312,38 @@
             </div>
           </section>
 
+          <!-- 提交校验区 -->
+          <section class="form-section zone-submit-check">
+            <div class="zone-header">
+              <h3 class="zone-title">
+                <t-icon name="check-circle" />
+                提交校验
+              </h3>
+            </div>
+            <div class="zone-content">
+              <div class="summary-card-body">
+                <div v-if="submitBlockReasons.length" class="submit-block-reasons">
+                  <div v-for="(reason, idx) in submitBlockReasons" :key="idx" class="sbr-item"
+                    :class="'sbr-item--' + reason.type">
+                    <span class="sbr-dot"></span>
+                    <span class="sbr-text">{{ reason.message }}</span>
+                  </div>
+                </div>
+                <div v-else class="sbr-all-pass">
+                  <t-icon name="check-circle" />
+                  <span>所有校验项通过</span>
+                </div>
+                <t-button theme="success" block @click="handleSubmit({ validateResult: true })" :loading="loading"
+                  :disabled="loading || errorCount > 0">
+                  <template #icon>
+                    <t-icon name="check-circle" />
+                  </template>
+                  {{ errorCount > 0 ? `存在 ${errorCount} 项错误，无法提交` : (isEdit ? '保存原料' : '创建原料') }}
+                </t-button>
+              </div>
+            </div>
+          </section>
+
         </div>
       </t-form>
     </main>
@@ -581,6 +613,31 @@ const saveNutrition = async (materialId: string) => {
     });
   } catch (error: unknown) { console.error('保存营养成分失败:', error); }
 };
+
+// 提交阻止原因检测
+const submitBlockReasons = computed(() => {
+  const reasons: { type: 'error' | 'warning'; message: string; }[] = [];
+
+  if (!formData.name?.trim()) {
+    reasons.push({ type: 'error', message: '原料名称不能为空' });
+  }
+  if (!formData.materialType) {
+    reasons.push({ type: 'error', message: '请选择原料类型' });
+  }
+  if (!formData.unit) {
+    reasons.push({ type: 'error', message: '请选择单位' });
+  }
+  if (formData.stock == null || formData.stock < 0) {
+    reasons.push({ type: 'error', message: '请输入有效的库存数量' });
+  }
+  if (formData.unitPrice == null || formData.unitPrice < 0) {
+    reasons.push({ type: 'warning', message: '建议录入单价，用于成本计算' });
+  }
+
+  return reasons;
+});
+
+const errorCount = computed(() => submitBlockReasons.value.filter(r => r.type === 'error').length);
 
 const handleUnitPriceChange = (val: number | undefined) => {
   if (val === undefined || val === null) {
@@ -1634,6 +1691,89 @@ onMounted(async () => {
           color: var(--color-primary);
           font-size: 16px;
         }
+      }
+    }
+
+    .zone-submit-check {
+      .zone-header {
+        margin-bottom: 12px;
+      }
+
+      .zone-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--color-text-primary);
+        margin: 0;
+
+        .t-icon {
+          color: var(--color-primary);
+          font-size: 16px;
+        }
+      }
+
+      .summary-card-body {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .submit-block-reasons {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .sbr-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        padding: 8px 12px;
+        border-radius: 8px;
+        font-size: 13px;
+        line-height: 1.4;
+
+        &--error {
+          background: rgba(227, 77, 89, 0.06);
+          color: var(--color-danger);
+        }
+
+        &--warning {
+          background: rgba(240, 160, 64, 0.06);
+          color: var(--color-warning);
+        }
+
+        .sbr-dot {
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          margin-top: 5px;
+          flex-shrink: 0;
+
+          .sbr-item--error & {
+            background: var(--color-danger);
+          }
+
+          .sbr-item--warning & {
+            background: var(--color-warning);
+          }
+        }
+
+        .sbr-text {
+          flex: 1;
+        }
+      }
+
+      .sbr-all-pass {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: $brand-emerald;
+        font-size: 13px;
+        font-weight: 500;
+        padding: 4px 0;
       }
     }
 

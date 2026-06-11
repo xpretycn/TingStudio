@@ -66,6 +66,7 @@ const commandList = [
   { label: "含量比校验", command: "含量比校验", icon: '<svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 2v12M2 8h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>' },
   { label: "配方对比", command: "对比配方", icon: '<svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="5" height="10" rx="1" stroke="currentColor" stroke-width="1.2" fill="none"/><rect x="9" y="3" width="5" height="10" rx="1" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>' },
   { label: "报价单", command: "生成报价单", icon: '<svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.2" fill="none"/><path d="M4 6h8M4 9h5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>' },
+  { label: "字段指南", command: "字段填写指南", icon: '<svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.2" fill="none"/><path d="M8 5v4M8 11v0" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>' },
 ];
 
 const BUBBLE_SIZE = 56;

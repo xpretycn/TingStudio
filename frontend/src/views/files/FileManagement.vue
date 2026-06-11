@@ -1227,12 +1227,18 @@ watch(() => router.currentRoute.value.path, (path) => {
     &:hover td,
     &.t-table__row--hover td {
       background-color: rgba(209, 250, 229, 0.35) !important;
+    }
+    &:hover td:first-child,
+    &.t-table__row--hover td:first-child {
       box-shadow: inset 3px 0 0 var(--color-primary-light) !important;
     }
 
     &.t-table__row--selected td,
     &.t-table__row--selected.t-table__row--hover td {
       background-color: rgba(209, 250, 229, 0.55) !important;
+    }
+    &.t-table__row--selected td:first-child,
+    &.t-table__row--selected.t-table__row--hover td:first-child {
       box-shadow: inset 3px 0 0 var(--color-primary) !important;
     }
 
@@ -2075,6 +2081,8 @@ watch(() => router.currentRoute.value.path, (path) => {
 
 .file-management .content-card .t-table .t-table__body .t-table__row.t-table__row--selected>td {
   background-color: rgba(209, 250, 229, 0.6) !important;
+}
+.file-management .content-card .t-table .t-table__body .t-table__row.t-table__row--selected>td:first-child {
   box-shadow: inset 3px 0 0 var(--color-primary) !important;
 }
 

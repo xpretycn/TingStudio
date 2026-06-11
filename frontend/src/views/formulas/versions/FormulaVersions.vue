@@ -963,7 +963,7 @@ onMounted(async () => {
         font-size: 10px;
         font-weight: $font-weight-bold;
         border-radius: $radius-pill;
-        line-height: 1;
+        line-height: 16px;
       }
     }
 
@@ -1535,13 +1535,13 @@ onMounted(async () => {
         &::after {
           content: '';
           position: absolute;
-          top: 1px;
-          left: 4px;
+          top: 50%;
+          left: 50%;
           width: 4px;
           height: 8px;
           border: solid $text-white;
           border-width: 0 2px 2px 0;
-          transform: rotate(45deg);
+          transform: translate(-50%, -60%) rotate(45deg);
         }
       }
 

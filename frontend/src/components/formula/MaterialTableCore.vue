@@ -201,7 +201,7 @@
         </div>
         <!-- 添加原料按钮 -->
         <div class="materials-add-row">
-          <button class="add-material-inline-btn" @click="addMaterial">
+          <button type="button" class="add-material-inline-btn" @click="addMaterial">
             <t-icon name="add" size="14px" style="color: var(--color-primary)" />
             添加原料
           </button>

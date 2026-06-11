@@ -465,7 +465,25 @@ const ratioValidation = computed<RatioFactorValidationResult>(() => {
     };
   });
 
-  const totalRatio = Math.round(breakdown.reduce((sum: number, item: { ratioFactor: number; }) => sum + item.ratioFactor, 0) * 100000) / 100000;
+  // 只对已填写完成的原料（有 materialId 且用量 > 0）计算含量比总和
+  const validBreakdown = breakdown.filter(
+    item => item.materialId && item.quantity > 0
+  );
+
+  if (validBreakdown.length === 0) {
+    return {
+      level: 'normal',
+      totalRatio: 0,
+      breakdown,
+      thresholds: { normalLow: 0.98, normalHigh: 1.02, warningLow: 0.95, warningHigh: 1.05, highWarningLow: 0.92, highWarningHigh: 1.08 },
+      message: '待输入数据',
+      description: '请填写原料用量和成品重量后进行含量比校验',
+      allowed: true,
+      requiresManualReview: false,
+    };
+  }
+
+  const totalRatio = Math.round(validBreakdown.reduce((sum: number, item: { ratioFactor: number; }) => sum + item.ratioFactor, 0) * 100000) / 100000;
 
   const thresholds = { normalLow: 0.98, normalHigh: 1.02, warningLow: 0.95, warningHigh: 1.05, highWarningLow: 0.92, highWarningHigh: 1.08 };
 
@@ -897,6 +915,15 @@ const handleSubmit = async ({ validateResult }: Record<string, unknown>) => {
         });
         if (!confirmed) return;
       }
+    }
+
+    // 检查是否有不完整的原料行
+    const incomplete = formData.materials.filter(
+      (m: FormMaterialItem) => !m.materialId || !m.quantity || m.quantity <= 0
+    );
+    if (incomplete.length > 0) {
+      MessagePlugin.error(`${incomplete.length} 种原料信息不完整（缺少名称或用量），请补充完整后再提交`);
+      return;
     }
 
     if (loading.value) return;
@@ -1538,6 +1565,13 @@ onMounted(async () => {
             flex-shrink: 0;
             min-width: 100px;
             justify-content: flex-end;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--color-text-secondary);
+
+            .required {
+              color: $rose-500;
+            }
           }
 
           .field-input {

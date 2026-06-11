@@ -26,6 +26,14 @@ export async function getSalesList(req: AuthenticatedRequest, res: Response) {
     let whereSql = "WHERE 1=1";
     const params: unknown[] = [];
 
+    // 数据隔离：formulist 用户只能看到自己创建的配方关联的销量
+    const userId = req.user.userId;
+    const role = req.user.role;
+    if (role !== "admin") {
+      whereSql += " AND f.created_by = ?";
+      params.push(userId);
+    }
+
     if (formulaId) { whereSql += " AND fs.formula_id = ?"; params.push(formulaId); }
     if (salesmanId) { whereSql += " AND fs.salesman_id = ?"; params.push(salesmanId); }
     if (periodStart) { whereSql += " AND fs.period_start >= ?"; params.push(periodStart); }
@@ -91,6 +99,16 @@ export async function getSalesStats(req: AuthenticatedRequest, res: Response) {
 
     let dateFilter = "WHERE 1=1";
     const params: unknown[] = [];
+
+    // 数据隔离：formulist 用户只能看到自己创建的配方关联的销量
+    const userId = req.user.userId;
+    const role = req.user.role;
+    const isNonAdmin = role !== "admin";
+    if (isNonAdmin) {
+      dateFilter += " AND fs.formula_id IN (SELECT id FROM formulas WHERE created_by = ?)";
+      params.push(userId);
+    }
+
     if (periodStart) { dateFilter += " AND fs.period_start >= ?"; params.push(periodStart); }
     if (periodEnd) { dateFilter += " AND fs.period_start <= ?"; params.push(periodEnd); }
 
@@ -121,13 +139,18 @@ export async function getSalesStats(req: AuthenticatedRequest, res: Response) {
     const prevDate = new Date(now2.getFullYear(), now2.getMonth() - 1, 1);
     const prevMonth = `${prevDate.getFullYear()}-${String(prevDate.getMonth() + 1).padStart(2, '0')}-01`;
 
+    // 环比查询也需要数据隔离
+    const curIsolation = isNonAdmin ? " AND formula_id IN (SELECT id FROM formulas WHERE created_by = ?)" : "";
+    const curParams: unknown[] = isNonAdmin ? [curMonth, userId] : [curMonth];
+    const prevParams: unknown[] = isNonAdmin ? [prevMonth, userId] : [prevMonth];
+
     const [curData]: Record<string, unknown>[][] = await query(
-      `SELECT COALESCE(SUM(quantity), 0) as quantity, COALESCE(SUM(revenue), 0) as revenue FROM formula_sales WHERE period_start = ?`,
-      [curMonth]
+      `SELECT COALESCE(SUM(quantity), 0) as quantity, COALESCE(SUM(revenue), 0) as revenue FROM formula_sales WHERE period_start = ?${curIsolation}`,
+      curParams
     );
     const [prevData]: Record<string, unknown>[][] = await query(
-      `SELECT COALESCE(SUM(quantity), 0) as quantity, COALESCE(SUM(revenue), 0) as revenue FROM formula_sales WHERE period_start = ?`,
-      [prevMonth]
+      `SELECT COALESCE(SUM(quantity), 0) as quantity, COALESCE(SUM(revenue), 0) as revenue FROM formula_sales WHERE period_start = ?${curIsolation}`,
+      prevParams
     );
 
     const curRow = curData[0] as Record<string, unknown>;

@@ -462,7 +462,7 @@ onMounted(async () => {
 <style scoped lang="scss">
 @use '@/assets/styles/variables.scss' as *;
 
-$radius-2xl: 2rem;
+$radius-2xl: 1rem;
 
 @keyframes fadeInDown {
   from {
@@ -663,7 +663,7 @@ $radius-2xl: 2rem;
   }
 
   .detail-main {
-    padding: 32px 0;
+    padding: 16px 0;
     animation: fadeInDown 0.35s ease both;
     animation-delay: 0.05s;
   }
@@ -709,9 +709,9 @@ $radius-2xl: 2rem;
 
   .compare-grid {
     display: flex;
-    gap: 24px;
+    gap: 16px;
     overflow-x: auto;
-    padding-bottom: 24px;
+    padding-bottom: 16px;
 
     &::-webkit-scrollbar {
       height: 8px;
@@ -745,7 +745,7 @@ $radius-2xl: 2rem;
     }
 
     .card-header {
-      padding: 24px;
+      padding: 16px;
       border-bottom: 1px solid var(--color-bg-page);
       background: $overlay-slate-50-30;
       position: relative;
@@ -838,7 +838,7 @@ $radius-2xl: 2rem;
     }
 
     .card-body {
-      padding: 24px;
+      padding: 16px;
 
       .section-label {
         font-size: 10px;
@@ -853,16 +853,16 @@ $radius-2xl: 2rem;
         display: flex;
         flex-direction: column;
         gap: 4px;
-        margin-bottom: 32px;
+        margin-bottom: 16px;
       }
 
       .ingredient-item {
         padding: var(--space-3-5) 16px;
         margin-bottom: var(--space-2-5);
         border-radius: 16px;
-        border: 1px solid var(--color-bg-page);
+        border: 1px solid var(--color-border);
         transition: all $transition-fast;
-        background: $overlay-slate-50-50;
+        background: var(--color-bg-container);
 
         &.diff-added {
           background: $emerald-50;
@@ -958,7 +958,7 @@ $radius-2xl: 2rem;
         display: flex;
         flex-direction: column;
         gap: 4px;
-        margin-bottom: 32px;
+        margin-bottom: 16px;
       }
 
       .cost-summary-section {
@@ -1132,8 +1132,8 @@ $radius-2xl: 2rem;
       }
 
       .summary-section {
-        margin-top: 32px;
-        padding-top: 24px;
+        margin-top: 16px;
+        padding-top: 16px;
         border-top: 1px solid var(--color-bg-page);
 
         .summary-box {
@@ -1178,7 +1178,7 @@ $radius-2xl: 2rem;
       .available-list {
         display: flex;
         flex-direction: column;
-        gap: var(--space-1-5);
+        gap: var(--space-3);
       }
 
       .available-item {
@@ -1275,9 +1275,10 @@ $radius-2xl: 2rem;
       &.is-base-card {
         border-color: var(--color-primary-lighter);
         box-shadow: $shadow-elevation-2;
+        background: var(--color-bg-container-alt);
 
         .card-header {
-          background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(34, 197, 94, 0.08) 100%);
+          background: linear-gradient(135deg, rgba(16, 185, 129, 0.06) 0%, rgba(34, 197, 94, 0.03) 100%);
           border-bottom-color: var(--color-border);
         }
       }
@@ -1290,11 +1291,35 @@ $radius-2xl: 2rem;
       .card-body {
         .ingredient-item {
           background: var(--color-bg-container-alt);
-          border-color: var(--color-border);
+          border-color: var(--color-border-light);
+
+          &.diff-added {
+            background: rgba(16, 185, 129, 0.12);
+            color: var(--color-primary-light);
+          }
+
+          &.diff-changed {
+            background: rgba(245, 158, 11, 0.12);
+            color: var(--color-warning);
+          }
 
           &.diff-missing {
             background: rgba(239, 68, 68, 0.08);
             border-color: rgba(239, 68, 68, 0.2);
+          }
+
+          .ing-top {
+            .ing-name {
+              color: var(--color-text-primary);
+            }
+
+            .ing-weight {
+              color: var(--color-text-secondary);
+            }
+
+            .ing-value {
+              color: var(--color-text-primary);
+            }
           }
 
           .ing-bar-track {
@@ -1306,9 +1331,41 @@ $radius-2xl: 2rem;
           background: var(--color-bg-container-alt);
           border-color: var(--color-border);
 
+          &.diff-added {
+            background: rgba(16, 185, 129, 0.12);
+            color: var(--color-primary-light);
+          }
+
+          &.diff-changed {
+            background: rgba(245, 158, 11, 0.12);
+            color: var(--color-warning);
+          }
+
           &.diff-missing {
             background: rgba(239, 68, 68, 0.08);
             border-color: rgba(239, 68, 68, 0.2);
+          }
+
+          .pi-top {
+            .pi-name {
+              color: var(--color-text-primary);
+            }
+
+            .pi-right {
+              .pi-value {
+                color: var(--color-text-primary);
+              }
+            }
+          }
+
+          .pi-bottom {
+            .pi-sub {
+              color: var(--color-text-secondary);
+            }
+
+            .pi-cost {
+              color: var(--color-text-primary);
+            }
           }
         }
 
