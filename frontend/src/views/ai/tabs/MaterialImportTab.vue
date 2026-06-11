@@ -2276,7 +2276,7 @@ watch(() => aiStore.materialParseResult, (newVal) => {
 
         .progress-fill {
           height: 100%;
-          background: $gradient-emerald-light;
+          background: linear-gradient(90deg, var(--color-primary), var(--color-primary-light), var(--color-primary));
           background-size: 200% 100%;
           border-radius: var(--radius-xs);
 

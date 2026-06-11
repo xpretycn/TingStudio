@@ -1,24 +1,14 @@
 [
   {
     "aliases": [
-      "栀子",
-      "山栀",
-      "黄栀子"
+      "栀子"
     ],
     "per100g": {
-      "energy": 159.3,
       "protein": 2.9,
       "fat": 0.4,
       "carbohydrate": 5.6,
-      "fiber": 8.4,
       "sodium": 5,
-      "potassium": 342,
-      "calcium": 186,
-      "iron": 3.6,
-      "zinc": 0.86,
-      "magnesium": 68,
-      "phosphorus": 128,
-      "vitaminC": 18
+      "energy": 159.3
     },
     "source": "经验证数据",
     "dataVersion": "1.0",
@@ -28,24 +18,31 @@
   },
   {
     "aliases": [
-      "薄荷",
-      "薄荷叶",
-      "野薄荷"
+      "百合"
     ],
     "per100g": {
-      "energy": 457.4,
+      "protein": 6.7,
+      "fat": 0.5,
+      "carbohydrate": 79.5,
+      "sodium": 37,
+      "energy": 1483.9
+    },
+    "source": "经验证数据",
+    "dataVersion": "1.0",
+    "confidence": "medium",
+    "layer": "C",
+    "materialType": "herb"
+  },
+  {
+    "aliases": [
+      "薄荷"
+    ],
+    "per100g": {
       "protein": 0.5,
       "fat": 0.6,
       "carbohydrate": 25.1,
-      "fiber": 12.6,
       "sodium": 5,
-      "potassium": 484,
-      "calcium": 218,
-      "iron": 6.4,
-      "zinc": 1.86,
-      "magnesium": 86,
-      "phosphorus": 48,
-      "vitaminC": 32
+      "energy": 457.4
     },
     "source": "经验证数据",
     "dataVersion": "1.0",
@@ -55,23 +52,14 @@
   },
   {
     "aliases": [
-      "白术",
-      "於术",
-      "冬术"
+      "白术"
     ],
     "per100g": {
-      "energy": 1443.4,
       "protein": 20.2,
       "fat": 0.6,
       "carbohydrate": 63.4,
-      "fiber": 12.4,
       "sodium": 2,
-      "potassium": 268,
-      "calcium": 186,
-      "iron": 4.2,
-      "zinc": 1.56,
-      "magnesium": 86,
-      "phosphorus": 168
+      "energy": 1443.4
     },
     "source": "经验证数据",
     "dataVersion": "1.0",
@@ -81,25 +69,14 @@
   },
   {
     "aliases": [
-      "陈皮",
-      "橘皮",
-      "橘红"
+      "陈皮"
     ],
     "per100g": {
-      "energy": 1530.8,
       "protein": 8,
       "fat": 1.4,
       "carbohydrate": 79,
-      "fiber": 20.7,
       "sodium": 21,
-      "potassium": 186,
-      "calcium": 82,
-      "iron": 3.5,
-      "zinc": 0.92,
-      "magnesium": 52,
-      "phosphorus": 65,
-      "vitaminA": 68,
-      "vitaminC": 7
+      "energy": 1530.8
     },
     "source": "经验证数据",
     "dataVersion": "1.0",
@@ -109,23 +86,48 @@
   },
   {
     "aliases": [
-      "当归",
-      "秦归"
+      "赤小豆"
     ],
     "per100g": {
-      "energy": 1149.6,
+      "protein": 20.2,
+      "fat": 0.6,
+      "carbohydrate": 63.4,
+      "sodium": 2,
+      "energy": 1443.4
+    },
+    "source": "经验证数据",
+    "dataVersion": "1.0",
+    "confidence": "medium",
+    "layer": "C",
+    "materialType": "herb"
+  },
+  {
+    "aliases": [
+      "桑椹"
+    ],
+    "per100g": {
+      "protein": 1.7,
+      "fat": 0.4,
+      "carbohydrate": 13.8,
+      "sodium": 2,
+      "energy": 278.3
+    },
+    "source": "经验证数据",
+    "dataVersion": "1.0",
+    "confidence": "medium",
+    "layer": "C",
+    "materialType": "herb"
+  },
+  {
+    "aliases": [
+      "当归"
+    ],
+    "per100g": {
       "protein": 44.2,
       "fat": 2.4,
       "carbohydrate": 18.2,
-      "fiber": 18.6,
       "sodium": 0,
-      "potassium": 312,
-      "calcium": 118,
-      "iron": 8.4,
-      "zinc": 1.84,
-      "magnesium": 84,
-      "phosphorus": 198,
-      "vitaminB12": 0.8
+      "energy": 1149.6
     },
     "source": "经验证数据",
     "dataVersion": "1.0",
@@ -135,23 +137,14 @@
   },
   {
     "aliases": [
-      "党参",
-      "潞党"
+      "党参"
     ],
     "per100g": {
-      "energy": 1156.3,
       "protein": 53.7,
       "fat": 1.8,
       "carbohydrate": 10.4,
-      "fiber": 14.8,
       "sodium": 0,
-      "potassium": 296,
-      "calcium": 94,
-      "iron": 5.6,
-      "zinc": 1.52,
-      "magnesium": 72,
-      "phosphorus": 168,
-      "vitaminC": 3
+      "energy": 1156.3
     },
     "source": "经验证数据",
     "dataVersion": "1.0",
@@ -161,23 +154,14 @@
   },
   {
     "aliases": [
-      "淡竹叶",
-      "竹叶",
-      "迷身草"
+      "淡竹叶"
     ],
     "per100g": {
-      "energy": 431.7,
       "protein": 12.2,
       "fat": 2.8,
       "carbohydrate": 7.1,
-      "fiber": 6.2,
       "sodium": 0,
-      "potassium": 286,
-      "calcium": 268,
-      "iron": 8.4,
-      "zinc": 1.68,
-      "magnesium": 86,
-      "phosphorus": 86
+      "energy": 431.7
     },
     "source": "经验证数据",
     "dataVersion": "1.0",
@@ -187,21 +171,14 @@
   },
   {
     "aliases": [
-      "阿胶",
-      "驴皮胶"
+      "阿胶"
     ],
     "per100g": {
-      "energy": 1436.2,
       "protein": 10.5,
       "fat": 5,
       "carbohydrate": 63.1,
       "sodium": 46,
-      "calcium": 120,
-      "iron": 8.8,
-      "zinc": 2.3,
-      "potassium": 260,
-      "magnesium": 45,
-      "phosphorus": 180
+      "energy": 1436.2
     },
     "source": "经验证数据",
     "dataVersion": "1.0",
@@ -211,23 +188,31 @@
   },
   {
     "aliases": [
-      "茯苓",
-      "云苓",
-      "白茯苓"
+      "葛根"
     ],
     "per100g": {
-      "energy": 1443.1,
+      "protein": 0.4,
+      "fat": 0.1,
+      "carbohydrate": 94,
+      "sodium": 5,
+      "energy": 1608.5
+    },
+    "source": "经验证数据",
+    "dataVersion": "1.0",
+    "confidence": "medium",
+    "layer": "C",
+    "materialType": "herb"
+  },
+  {
+    "aliases": [
+      "茯苓"
+    ],
+    "per100g": {
       "protein": 1.2,
       "fat": 0.5,
       "carbohydrate": 82.6,
-      "fiber": 32.4,
       "sodium": 1,
-      "potassium": 370,
-      "calcium": 6,
-      "iron": 0.4,
-      "zinc": 0.09,
-      "magnesium": 3,
-      "phosphorus": 32
+      "energy": 1443.1
     },
     "source": "经验证数据",
     "dataVersion": "1.0",
@@ -237,23 +222,31 @@
   },
   {
     "aliases": [
-      "甘草",
-      "国老"
+      "佛手"
     ],
     "per100g": {
-      "energy": 1513.7,
+      "protein": 1.2,
+      "fat": 7.7,
+      "carbohydrate": 92,
+      "sodium": 0,
+      "energy": 1869.3
+    },
+    "source": "经验证数据",
+    "dataVersion": "1.0",
+    "confidence": "medium",
+    "layer": "C",
+    "materialType": "herb"
+  },
+  {
+    "aliases": [
+      "甘草"
+    ],
+    "per100g": {
       "protein": 4.9,
       "fat": 4.2,
       "carbohydrate": 75,
-      "fiber": 22.6,
       "sodium": 155,
-      "potassium": 256,
-      "calcium": 168,
-      "iron": 4.8,
-      "zinc": 1.28,
-      "magnesium": 138,
-      "phosphorus": 198,
-      "vitaminC": 2
+      "energy": 1513.7
     },
     "source": "经验证数据",
     "dataVersion": "1.0",
@@ -263,24 +256,31 @@
   },
   {
     "aliases": [
-      "桔梗",
-      "苦桔梗",
-      "白桔梗"
+      "枸杞子"
     ],
     "per100g": {
-      "energy": 1483.4,
+      "protein": 13.9,
+      "fat": 1.5,
+      "carbohydrate": 64.1,
+      "sodium": 252,
+      "energy": 1381.5
+    },
+    "source": "经验证数据",
+    "dataVersion": "1.0",
+    "confidence": "medium",
+    "layer": "C",
+    "materialType": "herb"
+  },
+  {
+    "aliases": [
+      "桔梗"
+    ],
+    "per100g": {
       "protein": 10.7,
       "fat": 0.9,
       "carbohydrate": 74.6,
-      "fiber": 14.2,
       "sodium": 12,
-      "potassium": 340,
-      "calcium": 268,
-      "iron": 6.2,
-      "zinc": 1.38,
-      "magnesium": 54,
-      "phosphorus": 86,
-      "vitaminC": 8
+      "energy": 1483.4
     },
     "source": "经验证数据",
     "dataVersion": "1.0",
@@ -290,24 +290,14 @@
   },
   {
     "aliases": [
-      "槐米",
       "槐花"
     ],
     "per100g": {
-      "energy": 367.6,
       "protein": 3.1,
       "fat": 0.7,
       "carbohydrate": 17,
-      "fiber": 18.6,
       "sodium": 2.2,
-      "potassium": 286,
-      "calcium": 168,
-      "iron": 5.4,
-      "zinc": 1.62,
-      "magnesium": 86,
-      "phosphorus": 142,
-      "vitaminA": 28,
-      "vitaminC": 32
+      "energy": 367.6
     },
     "source": "经验证数据",
     "dataVersion": "1.0",
@@ -317,25 +307,14 @@
   },
   {
     "aliases": [
-      "沙棘",
-      "醋柳",
-      "酸刺"
+      "沙棘"
     ],
     "per100g": {
-      "energy": 515.4,
       "protein": 0.9,
       "fat": 1.8,
       "carbohydrate": 25.5,
-      "fiber": 8.4,
       "sodium": 28,
-      "potassium": 388,
-      "calcium": 168,
-      "iron": 3.6,
-      "zinc": 0.82,
-      "magnesium": 38,
-      "phosphorus": 48,
-      "vitaminC": 248,
-      "vitaminE": 6.4
+      "energy": 515.4
     },
     "source": "经验证数据",
     "dataVersion": "1.0",
@@ -345,24 +324,14 @@
   },
   {
     "aliases": [
-      "黄精",
-      "老虎姜",
-      "鸡头黄精"
+      "黄精"
     ],
     "per100g": {
-      "energy": 1223.2,
       "protein": 11.6,
       "fat": 3.7,
       "carbohydrate": 52.3,
-      "fiber": 10.6,
       "sodium": 0,
-      "potassium": 268,
-      "calcium": 96,
-      "iron": 3.8,
-      "zinc": 1.42,
-      "magnesium": 62,
-      "phosphorus": 168,
-      "vitaminC": 8
+      "energy": 1223.2
     },
     "source": "经验证数据",
     "dataVersion": "1.0",
@@ -372,23 +341,14 @@
   },
   {
     "aliases": [
-      "黄精蜜炼",
-      "黄精膏",
-      "蜜炼黄精"
+      "黄精蜜炼"
     ],
     "per100g": {
-      "energy": 2062,
       "protein": 18.8,
       "fat": 30,
       "carbohydrate": 37.2,
-      "fiber": 2.6,
       "sodium": 4,
-      "potassium": 248,
-      "calcium": 86,
-      "iron": 3.2,
-      "zinc": 0.92,
-      "magnesium": 48,
-      "phosphorus": 128
+      "energy": 2062
     },
     "source": "经验证数据",
     "dataVersion": "1.0",
@@ -398,24 +358,14 @@
   },
   {
     "aliases": [
-      "火麻仁",
-      "麻子",
-      "麻仁"
+      "火麻仁"
     ],
     "per100g": {
-      "energy": 2505.9,
       "protein": 34.6,
       "fat": 46.5,
       "carbohydrate": 11.6,
-      "fiber": 12.6,
       "sodium": 0,
-      "potassium": 386,
-      "calcium": 168,
-      "iron": 6.8,
-      "zinc": 2.96,
-      "magnesium": 228,
-      "phosphorus": 546,
-      "vitaminE": 4.8
+      "energy": 2505.9
     },
     "source": "经验证数据",
     "dataVersion": "1.0",
@@ -425,23 +375,14 @@
   },
   {
     "aliases": [
-      "黄芪",
-      "绵芪"
+      "黄芪"
     ],
     "per100g": {
-      "energy": 861.8,
       "protein": 14.9,
       "fat": 1.1,
       "carbohydrate": 33.4,
-      "fiber": 16.2,
       "sodium": 0,
-      "potassium": 378,
-      "calcium": 146,
-      "iron": 7.2,
-      "zinc": 2.76,
-      "magnesium": 156,
-      "phosphorus": 286,
-      "vitaminC": 4
+      "energy": 861.8
     },
     "source": "经验证数据",
     "dataVersion": "1.0",
@@ -451,23 +392,14 @@
   },
   {
     "aliases": [
-      "藿香",
-      "土藿香",
-      "野藿香"
+      "藿香"
     ],
     "per100g": {
-      "energy": 1436.2,
       "protein": 10.5,
       "fat": 5,
       "carbohydrate": 63.1,
-      "fiber": 3.8,
       "sodium": 46,
-      "potassium": 286,
-      "calcium": 268,
-      "iron": 12.6,
-      "zinc": 2.64,
-      "magnesium": 126,
-      "phosphorus": 168
+      "energy": 1436.2
     },
     "source": "经验证数据",
     "dataVersion": "1.0",
@@ -477,23 +409,14 @@
   },
   {
     "aliases": [
-      "香橼",
-      "枸橼"
+      "香橼"
     ],
     "per100g": {
-      "energy": 652.1,
       "protein": 6.9,
       "fat": 0.9,
       "carbohydrate": 29.5,
-      "fiber": 1.4,
       "sodium": 0,
-      "potassium": 152,
-      "calcium": 22,
-      "iron": 0.4,
-      "zinc": 0.08,
-      "magnesium": 12,
-      "phosphorus": 16,
-      "vitaminC": 22
+      "energy": 652.1
     },
     "source": "经验证数据",
     "dataVersion": "1.0",
@@ -503,24 +426,14 @@
   },
   {
     "aliases": [
-      "金银花",
-      "忍冬",
-      "银花"
+      "金银花"
     ],
     "per100g": {
-      "energy": 946.8,
       "protein": 13.1,
       "fat": 4.5,
       "carbohydrate": 32.8,
-      "fiber": 18.2,
       "sodium": 0,
-      "potassium": 482,
-      "calcium": 328,
-      "iron": 8.6,
-      "zinc": 2.18,
-      "magnesium": 186,
-      "phosphorus": 228,
-      "vitaminC": 48
+      "energy": 946.8
     },
     "source": "经验证数据",
     "dataVersion": "1.0",
@@ -530,25 +443,14 @@
   },
   {
     "aliases": [
-      "炒白扁豆",
-      "白扁豆",
-      "扁豆"
+      "炒白扁豆"
     ],
     "per100g": {
-      "energy": 1316.3,
       "protein": 19,
       "fat": 1.3,
       "carbohydrate": 55.6,
-      "fiber": 6.8,
       "sodium": 0,
-      "potassium": 692,
-      "calcium": 86,
-      "iron": 4.2,
-      "zinc": 1.86,
-      "magnesium": 68,
-      "phosphorus": 286,
-      "vitaminB1": 0.38,
-      "vitaminB2": 0.14
+      "energy": 1316.3
     },
     "source": "经验证数据",
     "dataVersion": "1.0",
@@ -558,23 +460,31 @@
   },
   {
     "aliases": [
-      "莱菔子",
-      "萝卜子"
+      "小麦"
     ],
     "per100g": {
-      "energy": 2062,
+      "protein": 11.9,
+      "fat": 1.3,
+      "carbohydrate": 75.2,
+      "sodium": 7,
+      "energy": 1528.8
+    },
+    "source": "经验证数据",
+    "dataVersion": "1.0",
+    "confidence": "medium",
+    "layer": "C",
+    "materialType": "herb"
+  },
+  {
+    "aliases": [
+      "莱菔子"
+    ],
+    "per100g": {
       "protein": 18.8,
       "fat": 30,
       "carbohydrate": 37.2,
-      "fiber": 18.2,
       "sodium": 4,
-      "potassium": 428,
-      "calcium": 196,
-      "iron": 6.8,
-      "zinc": 2.86,
-      "magnesium": 168,
-      "phosphorus": 326,
-      "vitaminE": 8.4
+      "energy": 2062
     },
     "source": "经验证数据",
     "dataVersion": "1.0",
@@ -584,25 +494,14 @@
   },
   {
     "aliases": [
-      "荷叶",
-      "莲叶",
-      "鲜荷叶"
+      "荷叶"
     ],
     "per100g": {
-      "energy": 155.3,
       "protein": 3.1,
       "fat": 0.2,
       "carbohydrate": 5.6,
-      "fiber": 14.6,
       "sodium": 5,
-      "potassium": 286,
-      "calcium": 218,
-      "iron": 4.8,
-      "zinc": 1.24,
-      "magnesium": 68,
-      "phosphorus": 48,
-      "vitaminA": 1268,
-      "vitaminC": 32
+      "energy": 155.3
     },
     "source": "经验证数据",
     "dataVersion": "1.0",
@@ -612,25 +511,14 @@
   },
   {
     "aliases": [
-      "小茴香",
-      "茴香",
-      "谷茴香"
+      "小茴香"
     ],
     "per100g": {
-      "energy": 128.7,
       "protein": 2.5,
       "fat": 0.4,
       "carbohydrate": 4.2,
-      "fiber": 24.8,
       "sodium": 0,
-      "potassium": 682,
-      "calcium": 492,
-      "iron": 6.8,
-      "zinc": 2.64,
-      "magnesium": 186,
-      "phosphorus": 268,
-      "vitaminA": 68,
-      "vitaminC": 48
+      "energy": 128.7
     },
     "source": "经验证数据",
     "dataVersion": "1.0",
@@ -640,23 +528,31 @@
   },
   {
     "aliases": [
-      "灵芝",
-      "赤芝",
-      "紫芝"
+      "莲子"
     ],
     "per100g": {
-      "energy": 1670.9,
+      "protein": 17.2,
+      "fat": 2,
+      "carbohydrate": 67.2,
+      "sodium": 5,
+      "energy": 1508.8
+    },
+    "source": "经验证数据",
+    "dataVersion": "1.0",
+    "confidence": "medium",
+    "layer": "C",
+    "materialType": "herb"
+  },
+  {
+    "aliases": [
+      "灵芝"
+    ],
+    "per100g": {
       "protein": 88.8,
       "fat": 2.2,
       "carbohydrate": 4.7,
-      "fiber": 38.6,
       "sodium": 224,
-      "potassium": 196,
-      "calcium": 186,
-      "iron": 4.8,
-      "zinc": 2.12,
-      "magnesium": 86,
-      "phosphorus": 248
+      "energy": 1670.9
     },
     "source": "经验证数据",
     "dataVersion": "1.0",
@@ -666,24 +562,14 @@
   },
   {
     "aliases": [
-      "牡蛎",
-      "生蚝",
-      "海蛎子"
+      "牡蛎"
     ],
     "per100g": {
-      "energy": 277.6,
       "protein": 10.8,
       "fat": 1.3,
       "carbohydrate": 2.7,
       "sodium": 510,
-      "potassium": 375,
-      "calcium": 168,
-      "iron": 5.8,
-      "zinc": 78.6,
-      "magnesium": 84,
-      "phosphorus": 386,
-      "vitaminA": 86,
-      "vitaminE": 4.2
+      "energy": 277.6
     },
     "source": "经验证数据",
     "dataVersion": "1.0",
@@ -693,24 +579,31 @@
   },
   {
     "aliases": [
-      "丹凤牡丹花",
-      "牡丹花",
-      "凤丹皮"
+      "昆布"
     ],
     "per100g": {
-      "energy": 1474.4,
+      "protein": 8,
+      "fat": 2,
+      "carbohydrate": 56.5,
+      "sodium": 2700,
+      "energy": 1170.5
+    },
+    "source": "经验证数据",
+    "dataVersion": "1.0",
+    "confidence": "medium",
+    "layer": "C",
+    "materialType": "herb"
+  },
+  {
+    "aliases": [
+      "丹凤牡丹花"
+    ],
+    "per100g": {
       "protein": 8.5,
       "fat": 4.7,
       "carbohydrate": 68,
-      "fiber": 4.2,
       "sodium": 0,
-      "potassium": 268,
-      "calcium": 168,
-      "iron": 3.2,
-      "zinc": 0.86,
-      "magnesium": 42,
-      "phosphorus": 48,
-      "vitaminC": 32
+      "energy": 1474.4
     },
     "source": "经验证数据",
     "dataVersion": "1.0",
@@ -720,24 +613,14 @@
   },
   {
     "aliases": [
-      "姜黄",
-      "黄姜",
-      "毛姜黄"
+      "姜黄"
     ],
     "per100g": {
-      "energy": 1602.2,
       "protein": 7.8,
       "fat": 9.9,
       "carbohydrate": 64.9,
-      "fiber": 22.8,
       "sodium": 38,
-      "potassium": 268,
-      "calcium": 168,
-      "iron": 6.8,
-      "zinc": 2.86,
-      "magnesium": 142,
-      "phosphorus": 168,
-      "vitaminC": 8
+      "energy": 1602.2
     },
     "source": "经验证数据",
     "dataVersion": "1.0",
@@ -747,23 +630,14 @@
   },
   {
     "aliases": [
-      "山茱萸",
-      "枣皮",
-      "山萸肉"
+      "山茱萸"
     ],
     "per100g": {
-      "energy": 1381.5,
       "protein": 13.9,
       "fat": 1.5,
       "carbohydrate": 64.1,
-      "fiber": 12.4,
       "sodium": 252,
-      "potassium": 486,
-      "calcium": 168,
-      "iron": 3.8,
-      "zinc": 1.24,
-      "magnesium": 68,
-      "phosphorus": 128
+      "energy": 1381.5
     },
     "source": "经验证数据",
     "dataVersion": "1.0",
@@ -773,24 +647,14 @@
   },
   {
     "aliases": [
-      "蒲公英",
-      "黄花地丁"
+      "蒲公英"
     ],
     "per100g": {
-      "energy": 241.3,
       "protein": 4.8,
       "fat": 1.1,
       "carbohydrate": 7,
-      "fiber": 2.1,
       "sodium": 76,
-      "potassium": 327,
-      "calcium": 216,
-      "iron": 4,
-      "zinc": 0.35,
-      "magnesium": 54,
-      "phosphorus": 93,
-      "vitaminA": 735,
-      "vitaminC": 47
+      "energy": 241.3
     },
     "source": "经验证数据",
     "dataVersion": "1.0",
@@ -800,22 +664,14 @@
   },
   {
     "aliases": [
-      "鸡内金",
-      "鸡肫皮",
-      "鸡黄皮"
+      "鸡内金"
     ],
     "per100g": {
-      "energy": 1525.4,
       "protein": 83.1,
       "fat": 1.3,
       "carbohydrate": 3.8,
       "sodium": 0,
-      "potassium": 286,
-      "calcium": 168,
-      "iron": 8.8,
-      "zinc": 6.42,
-      "magnesium": 86,
-      "phosphorus": 486
+      "energy": 1525.4
     },
     "source": "经验证数据",
     "dataVersion": "1.0",
@@ -825,23 +681,14 @@
   },
   {
     "aliases": [
-      "鲜芦根",
       "芦根"
     ],
     "per100g": {
-      "energy": 232.4,
       "protein": 0.8,
       "fat": 0.4,
       "carbohydrate": 12,
-      "fiber": 0.8,
       "sodium": 0,
-      "potassium": 168,
-      "calcium": 28,
-      "iron": 0.6,
-      "zinc": 0.18,
-      "magnesium": 14,
-      "phosphorus": 32,
-      "vitaminC": 12
+      "energy": 232.4
     },
     "source": "经验证数据",
     "dataVersion": "1.0",
@@ -851,24 +698,14 @@
   },
   {
     "aliases": [
-      "化橘红",
-      "化州橘红",
-      "橘红"
+      "化橘红"
     ],
     "per100g": {
-      "energy": 1530.8,
       "protein": 8,
       "fat": 1.4,
       "carbohydrate": 79,
-      "fiber": 8.4,
       "sodium": 21,
-      "potassium": 264,
-      "calcium": 128,
-      "iron": 1.6,
-      "zinc": 0.42,
-      "magnesium": 24,
-      "phosphorus": 28,
-      "vitaminC": 42
+      "energy": 1530.8
     },
     "source": "经验证数据",
     "dataVersion": "1.0",
@@ -878,23 +715,14 @@
   },
   {
     "aliases": [
-      "乌药叶",
-      "乌药",
-      "天台乌药"
+      "乌药叶"
     ],
     "per100g": {
-      "energy": 281,
       "protein": 3.8,
       "fat": 1.3,
       "carbohydrate": 9.9,
-      "fiber": 6.4,
       "sodium": 0,
-      "potassium": 248,
-      "calcium": 168,
-      "iron": 3.8,
-      "zinc": 0.96,
-      "magnesium": 52,
-      "phosphorus": 68
+      "energy": 281
     },
     "source": "经验证数据",
     "dataVersion": "1.0",
@@ -904,23 +732,14 @@
   },
   {
     "aliases": [
-      "黄芥子",
-      "芥子"
+      "黄芥子"
     ],
     "per100g": {
-      "energy": 954.8,
       "protein": 13.4,
       "fat": 6.6,
       "carbohydrate": 28.4,
-      "fiber": 14.2,
       "sodium": 0,
-      "potassium": 386,
-      "calcium": 246,
-      "iron": 7.8,
-      "zinc": 2.64,
-      "magnesium": 178,
-      "phosphorus": 368,
-      "vitaminE": 9.8
+      "energy": 954.8
     },
     "source": "经验证数据",
     "dataVersion": "1.0",
@@ -933,11 +752,11 @@
       "苦杏仁"
     ],
     "per100g": {
-      "energy": 2468.6,
       "protein": 22.5,
       "fat": 45.4,
       "carbohydrate": 23.9,
-      "sodium": 8
+      "sodium": 8,
+      "energy": 2468.6
     },
     "source": "经验证数据",
     "dataVersion": "1.0",
@@ -947,24 +766,14 @@
   },
   {
     "aliases": [
-      "西洋参",
-      "花旗参",
-      "美国人参"
+      "西洋参"
     ],
     "per100g": {
-      "energy": 1294.6,
       "protein": 9.9,
       "fat": 0.3,
       "carbohydrate": 65.6,
-      "fiber": 12.4,
       "sodium": 0,
-      "potassium": 476,
-      "calcium": 168,
-      "iron": 3.2,
-      "zinc": 1.68,
-      "magnesium": 128,
-      "phosphorus": 286,
-      "vitaminC": 18
+      "energy": 1294.6
     },
     "source": "经验证数据",
     "dataVersion": "1.0",
@@ -974,23 +783,31 @@
   },
   {
     "aliases": [
-      "麦冬",
-      "麦门冬",
-      "沿阶草"
+      "马齿苋"
     ],
     "per100g": {
-      "energy": 1530.8,
+      "protein": 1.3,
+      "fat": 0.1,
+      "carbohydrate": 3.4,
+      "sodium": 45,
+      "energy": 83.6
+    },
+    "source": "经验证数据",
+    "dataVersion": "1.0",
+    "confidence": "medium",
+    "layer": "C",
+    "materialType": "herb"
+  },
+  {
+    "aliases": [
+      "麦冬"
+    ],
+    "per100g": {
       "protein": 8,
       "fat": 1.4,
       "carbohydrate": 79,
-      "fiber": 14.2,
       "sodium": 21,
-      "potassium": 286,
-      "calcium": 168,
-      "iron": 3.8,
-      "zinc": 1.24,
-      "magnesium": 62,
-      "phosphorus": 128
+      "energy": 1530.8
     },
     "source": "经验证数据",
     "dataVersion": "1.0",
@@ -1000,22 +817,14 @@
   },
   {
     "aliases": [
-      "地龙蛋白肽粉",
-      "地龙肽",
-      "蚯蚓蛋白肽"
+      "地龙蛋白肽粉"
     ],
     "per100g": {
-      "energy": 1312,
       "protein": 60,
       "fat": 1,
       "carbohydrate": 15,
       "sodium": 0,
-      "potassium": 268,
-      "calcium": 168,
-      "iron": 6.8,
-      "zinc": 8.42,
-      "magnesium": 86,
-      "phosphorus": 428
+      "energy": 1312
     },
     "source": "经验证数据",
     "dataVersion": "1.0",
@@ -1025,23 +834,31 @@
   },
   {
     "aliases": [
-      "肉豆蔻",
-      "玉果",
-      "肉果"
+      "麦芽"
     ],
     "per100g": {
-      "energy": 2176.2,
-      "protein": 8.1,
-      "fat": 35.2,
-      "carbohydrate": 43.3,
-      "fiber": 16.4,
-      "sodium": 26,
-      "potassium": 412,
-      "calcium": 86,
-      "iron": 3.2,
-      "zinc": 1.68,
-      "magnesium": 62,
-      "phosphorus": 126
+      "protein": 10.3,
+      "fat": 1.8,
+      "carbohydrate": 78.3,
+      "sodium": 11,
+      "energy": 1572.8
+    },
+    "source": "经验证数据",
+    "dataVersion": "1.0",
+    "confidence": "medium",
+    "layer": "C",
+    "materialType": "supplement"
+  },
+  {
+    "aliases": [
+      "纳豆"
+    ],
+    "per100g": {
+      "protein": 20.2,
+      "fat": 0.6,
+      "carbohydrate": 63.4,
+      "sodium": 2,
+      "energy": 1443.4
     },
     "source": "经验证数据",
     "dataVersion": "1.0",
@@ -1051,24 +868,31 @@
   },
   {
     "aliases": [
-      "肉桂",
-      "桂皮",
-      "官桂"
+      "肉豆蔻"
     ],
     "per100g": {
-      "energy": 760.5,
+      "protein": 8.1,
+      "fat": 35.2,
+      "carbohydrate": 43.3,
+      "sodium": 26,
+      "energy": 2176.2
+    },
+    "source": "经验证数据",
+    "dataVersion": "1.0",
+    "confidence": "medium",
+    "layer": "C",
+    "materialType": "herb"
+  },
+  {
+    "aliases": [
+      "肉桂"
+    ],
+    "per100g": {
       "protein": 4,
       "fat": 1.9,
       "carbohydrate": 36.6,
-      "fiber": 39.6,
       "sodium": 15,
-      "potassium": 431,
-      "calcium": 882,
-      "iron": 8.4,
-      "zinc": 1.42,
-      "magnesium": 60,
-      "phosphorus": 99,
-      "vitaminK": 15.3
+      "energy": 760.5
     },
     "source": "经验证数据",
     "dataVersion": "1.0",
@@ -1081,38 +905,11 @@
       "重瓣红玫瑰"
     ],
     "per100g": {
-      "energy": 1474.4,
       "protein": 8.5,
       "fat": 4.7,
       "carbohydrate": 68,
-      "sodium": 0
-    },
-    "source": "经验证数据",
-    "dataVersion": "1.0",
-    "confidence": "medium",
-    "layer": "C",
-    "materialType": "herb"
-  },
-  {
-    "aliases": [
-      "重瓣玫瑰花",
-      "玫瑰花",
-      "食用玫瑰"
-    ],
-    "per100g": {
-      "energy": 1474.4,
-      "protein": 8.5,
-      "fat": 4.7,
-      "carbohydrate": 68,
-      "fiber": 3.8,
       "sodium": 0,
-      "potassium": 186,
-      "calcium": 128,
-      "iron": 2.6,
-      "zinc": 0.48,
-      "magnesium": 32,
-      "phosphorus": 36,
-      "vitaminC": 28
+      "energy": 1474.4
     },
     "source": "经验证数据",
     "dataVersion": "1.0",
@@ -1122,23 +919,48 @@
   },
   {
     "aliases": [
-      "白芷",
-      "川白芷",
-      "香白芷"
+      "重瓣玫瑰花"
     ],
     "per100g": {
-      "energy": 1466.5,
+      "protein": 8.5,
+      "fat": 4.7,
+      "carbohydrate": 68,
+      "sodium": 0,
+      "energy": 1474.4
+    },
+    "source": "经验证数据",
+    "dataVersion": "1.0",
+    "confidence": "medium",
+    "layer": "C",
+    "materialType": "herb"
+  },
+  {
+    "aliases": [
+      "芡实"
+    ],
+    "per100g": {
+      "protein": 8.3,
+      "fat": 0.3,
+      "carbohydrate": 79.6,
+      "sodium": 28,
+      "energy": 1505.4
+    },
+    "source": "经验证数据",
+    "dataVersion": "1.0",
+    "confidence": "medium",
+    "layer": "C",
+    "materialType": "herb"
+  },
+  {
+    "aliases": [
+      "白芷"
+    ],
+    "per100g": {
       "protein": 8.9,
       "fat": 1.5,
       "carbohydrate": 74.1,
-      "fiber": 8.6,
       "sodium": 27,
-      "potassium": 286,
-      "calcium": 186,
-      "iron": 4.2,
-      "zinc": 1.36,
-      "magnesium": 64,
-      "phosphorus": 108
+      "energy": 1466.5
     },
     "source": "经验证数据",
     "dataVersion": "1.0",
@@ -1148,23 +970,14 @@
   },
   {
     "aliases": [
-      "草果",
-      "草果仁",
-      "草果子"
+      "草果"
     ],
     "per100g": {
-      "energy": 159.3,
       "protein": 2.9,
       "fat": 0.4,
       "carbohydrate": 5.6,
-      "fiber": 14.8,
       "sodium": 5,
-      "potassium": 316,
-      "calcium": 148,
-      "iron": 4.8,
-      "zinc": 1.96,
-      "magnesium": 86,
-      "phosphorus": 164
+      "energy": 159.3
     },
     "source": "经验证数据",
     "dataVersion": "1.0",
@@ -1174,24 +987,14 @@
   },
   {
     "aliases": [
-      "铁皮石斛",
-      "石斛",
-      "枫斗"
+      "铁皮石斛"
     ],
     "per100g": {
-      "energy": 262.7,
       "protein": 1.6,
       "fat": 2,
       "carbohydrate": 9.5,
-      "fiber": 12.4,
       "sodium": 0,
-      "potassium": 342,
-      "calcium": 168,
-      "iron": 3.6,
-      "zinc": 1.48,
-      "magnesium": 86,
-      "phosphorus": 168,
-      "vitaminC": 28
+      "energy": 262.7
     },
     "source": "经验证数据",
     "dataVersion": "1.0",
@@ -1201,23 +1004,14 @@
   },
   {
     "aliases": [
-      "显脉旋覆花",
-      "金沸草",
-      "旋覆花"
+      "显脉旋覆花"
     ],
     "per100g": {
-      "energy": 1214.1,
       "protein": 5.5,
       "fat": 1.8,
       "carbohydrate": 62,
-      "fiber": 5.6,
       "sodium": 0,
-      "potassium": 286,
-      "calcium": 186,
-      "iron": 4.2,
-      "zinc": 0.72,
-      "magnesium": 48,
-      "phosphorus": 72
+      "energy": 1214.1
     },
     "source": "经验证数据",
     "dataVersion": "1.0",
@@ -1227,25 +1021,14 @@
   },
   {
     "aliases": [
-      "桑葫芦鲜果",
-      "桑葫芦",
-      "桑果鲜",
       "桑葫鲜果"
     ],
     "per100g": {
-      "energy": 83.6,
       "protein": 1.3,
       "fat": 0.1,
       "carbohydrate": 3.4,
-      "fiber": 2.8,
       "sodium": 45,
-      "potassium": 228,
-      "calcium": 48,
-      "iron": 1.2,
-      "zinc": 0.32,
-      "magnesium": 18,
-      "phosphorus": 32,
-      "vitaminC": 22
+      "energy": 83.6
     },
     "source": "经验证数据",
     "dataVersion": "1.0",
@@ -1255,23 +1038,48 @@
   },
   {
     "aliases": [
-      "酸枣蜜炼",
-      "酸枣膏",
-      "蜜炼酸枣"
+      "山药"
     ],
     "per100g": {
-      "energy": 462.5,
+      "protein": 9.4,
+      "fat": 1,
+      "carbohydrate": 70.8,
+      "sodium": 104,
+      "energy": 1400.4
+    },
+    "source": "经验证数据",
+    "dataVersion": "1.0",
+    "confidence": "medium",
+    "layer": "C",
+    "materialType": "herb"
+  },
+  {
+    "aliases": [
+      "山楂"
+    ],
+    "per100g": {
+      "protein": 0.5,
+      "fat": 0.6,
+      "carbohydrate": 25.1,
+      "sodium": 5,
+      "energy": 457.4
+    },
+    "source": "经验证数据",
+    "dataVersion": "1.0",
+    "confidence": "medium",
+    "layer": "C",
+    "materialType": "herb"
+  },
+  {
+    "aliases": [
+      "酸枣蜜炼"
+    ],
+    "per100g": {
       "protein": 0.8,
       "fat": 0.6,
       "carbohydrate": 25.1,
-      "fiber": 1.2,
       "sodium": 15,
-      "potassium": 386,
-      "calcium": 128,
-      "iron": 4.2,
-      "zinc": 0.86,
-      "magnesium": 86,
-      "phosphorus": 142
+      "energy": 462.5
     },
     "source": "经验证数据",
     "dataVersion": "1.0",
@@ -1281,23 +1089,14 @@
   },
   {
     "aliases": [
-      "枣仁",
       "酸枣仁"
     ],
     "per100g": {
-      "energy": 1688.7,
       "protein": 31.8,
       "fat": 25.7,
       "carbohydrate": 11.6,
-      "fiber": 12.4,
       "sodium": 0,
-      "potassium": 486,
-      "calcium": 178,
-      "iron": 6.4,
-      "zinc": 3.46,
-      "magnesium": 196,
-      "phosphorus": 386,
-      "vitaminE": 12.6
+      "energy": 1688.7
     },
     "source": "经验证数据",
     "dataVersion": "1.0",
@@ -1307,23 +1106,14 @@
   },
   {
     "aliases": [
-      "桃仁",
-      "桃核仁",
-      "山桃仁"
+      "桃仁"
     ],
     "per100g": {
-      "energy": 1479.7,
       "protein": 7.4,
       "fat": 0.8,
       "carbohydrate": 77.9,
-      "fiber": 4.6,
       "sodium": 3.8,
-      "potassium": 342,
-      "calcium": 86,
-      "iron": 4.8,
-      "zinc": 2.86,
-      "magnesium": 152,
-      "phosphorus": 342
+      "energy": 1479.7
     },
     "source": "经验证数据",
     "dataVersion": "1.0",
@@ -1333,23 +1123,31 @@
   },
   {
     "aliases": [
-      "短梗五加",
-      "五加皮",
-      "南五加"
+      "大枣"
     ],
     "per100g": {
-      "energy": 1309,
+      "protein": 3.2,
+      "fat": 0.5,
+      "carbohydrate": 67.8,
+      "sodium": 6,
+      "energy": 1225.5
+    },
+    "source": "经验证数据",
+    "dataVersion": "1.0",
+    "confidence": "medium",
+    "layer": "C",
+    "materialType": "herb"
+  },
+  {
+    "aliases": [
+      "短梗五加"
+    ],
+    "per100g": {
       "protein": 12,
       "fat": 0,
       "carbohydrate": 65,
-      "fiber": 4.2,
       "sodium": 0,
-      "potassium": 268,
-      "calcium": 168,
-      "iron": 3.8,
-      "zinc": 0.86,
-      "magnesium": 48,
-      "phosphorus": 64
+      "energy": 1309
     },
     "source": "经验证数据",
     "dataVersion": "1.0",
@@ -1359,23 +1157,14 @@
   },
   {
     "aliases": [
-      "西红花",
-      "藏红花",
-      "番红花"
+      "西红花"
     ],
     "per100g": {
-      "energy": 1523.9,
       "protein": 11.4,
       "fat": 5.9,
       "carbohydrate": 65.4,
-      "fiber": 12.4,
       "sodium": 0,
-      "potassium": 486,
-      "calcium": 168,
-      "iron": 6.4,
-      "zinc": 1.68,
-      "magnesium": 86,
-      "phosphorus": 168
+      "energy": 1523.9
     },
     "source": "经验证数据",
     "dataVersion": "1.0",
@@ -1385,22 +1174,14 @@
   },
   {
     "aliases": [
-      "低聚异麦芽糖",
-      "异麦芽糖",
-      "IMO糖"
+      "低聚异麦芽糖"
     ],
     "per100g": {
-      "energy": 1530,
       "protein": 0,
       "fat": 0,
       "carbohydrate": 90,
       "sodium": 0,
-      "potassium": 12,
-      "calcium": 8,
-      "iron": 0.4,
-      "zinc": 0.08,
-      "magnesium": 4,
-      "phosphorus": 16
+      "energy": 1530
     },
     "source": "经验证数据",
     "dataVersion": "1.0",
@@ -1413,11 +1194,11 @@
       "杏仁"
     ],
     "per100g": {
-      "energy": 2468.6,
       "protein": 22.5,
       "fat": 45.4,
       "carbohydrate": 23.9,
-      "sodium": 8
+      "sodium": 8,
+      "energy": 2468.6
     },
     "source": "经验证数据",
     "dataVersion": "1.0",
@@ -1427,24 +1208,14 @@
   },
   {
     "aliases": [
-      "乌梅",
-      "酸梅",
-      "梅实"
+      "乌梅"
     ],
     "per100g": {
-      "energy": 1502.9,
       "protein": 6.8,
       "fat": 2.3,
       "carbohydrate": 76.6,
-      "fiber": 2.6,
       "sodium": 19,
-      "potassium": 336,
-      "calcium": 52,
-      "iron": 2.4,
-      "zinc": 0.42,
-      "magnesium": 18,
-      "phosphorus": 32,
-      "vitaminC": 16
+      "energy": 1502.9
     },
     "source": "经验证数据",
     "dataVersion": "1.0",
@@ -1454,23 +1225,14 @@
   },
   {
     "aliases": [
-      "鱼腥草",
-      "蕺菜"
+      "鱼腥草"
     ],
     "per100g": {
-      "energy": 1530.8,
       "protein": 8,
       "fat": 1.4,
       "carbohydrate": 79,
-      "fiber": 1.2,
       "sodium": 21,
-      "potassium": 298,
-      "calcium": 72,
-      "iron": 2.8,
-      "zinc": 0.42,
-      "magnesium": 23,
-      "phosphorus": 38,
-      "vitaminC": 21
+      "energy": 1530.8
     },
     "source": "经验证数据",
     "dataVersion": "1.0",
@@ -1480,23 +1242,31 @@
   },
   {
     "aliases": [
-      "平卧菊三七",
-      "菊三七",
-      "止血草"
+      "薏苡仁"
     ],
     "per100g": {
-      "energy": 1409.1,
+      "protein": 0.8,
+      "fat": 0.6,
+      "carbohydrate": 25.1,
+      "sodium": 15,
+      "energy": 462.5
+    },
+    "source": "经验证数据",
+    "dataVersion": "1.0",
+    "confidence": "medium",
+    "layer": "C",
+    "materialType": "herb"
+  },
+  {
+    "aliases": [
+      "平卧菊三七"
+    ],
+    "per100g": {
       "protein": 6.8,
       "fat": 3.9,
       "carbohydrate": 67.6,
-      "fiber": 3.6,
       "sodium": 17.5,
-      "potassium": 286,
-      "calcium": 168,
-      "iron": 3.4,
-      "zinc": 0.68,
-      "magnesium": 42,
-      "phosphorus": 56
+      "energy": 1409.1
     },
     "source": "经验证数据",
     "dataVersion": "1.0",
@@ -1506,263 +1276,18 @@
   },
   {
     "aliases": [
-      "竹叶黄酮",
-      "竹叶提取物",
-      "黄酮粉"
+      "竹叶黄酮"
     ],
     "per100g": {
-      "energy": 0,
       "protein": 0,
       "fat": 0,
       "carbohydrate": 0,
-      "fiber": 8.6,
-      "sodium": 0,
-      "potassium": 168,
-      "calcium": 128,
-      "iron": 2.8,
-      "zinc": 0.68,
-      "magnesium": 48,
-      "phosphorus": 56
+      "sodium": 0
     },
     "source": "经验证数据",
     "dataVersion": "1.0",
     "confidence": "medium",
     "layer": "C",
     "materialType": "supplement"
-  },
-  {
-    "aliases": [
-      "决明子",
-      "草决明"
-    ],
-    "per100g": {
-      "energy": 1130,
-      "protein": 10.6,
-      "fat": 3.8,
-      "carbohydrate": 35.2,
-      "fiber": 18.4,
-      "sodium": 8,
-      "potassium": 264,
-      "calcium": 146,
-      "iron": 4.8,
-      "zinc": 2.12,
-      "magnesium": 128,
-      "phosphorus": 245,
-      "vitaminA": 35
-    },
-    "source": "参考估算",
-    "dataVersion": "1.0",
-    "confidence": "low",
-    "layer": "C",
-    "materialType": "herb"
-  },
-  {
-    "aliases": [
-      "罗汉果",
-      "拉汗果"
-    ],
-    "per100g": {
-      "energy": 686,
-      "protein": 13.4,
-      "fat": 0.8,
-      "carbohydrate": 27,
-      "fiber": 38.6,
-      "sodium": 12,
-      "potassium": 134,
-      "calcium": 40,
-      "iron": 0.8,
-      "zinc": 0.62,
-      "magnesium": 22,
-      "phosphorus": 50,
-      "vitaminC": 5
-    },
-    "source": "参考估算",
-    "dataVersion": "1.0",
-    "confidence": "low",
-    "layer": "C",
-    "materialType": "herb"
-  },
-  {
-    "aliases": [
-      "菊花",
-      "杭菊",
-      "贡菊"
-    ],
-    "per100g": {
-      "energy": 816,
-      "protein": 6.4,
-      "fat": 3.3,
-      "carbohydrate": 35.4,
-      "fiber": 15.9,
-      "sodium": 36,
-      "potassium": 332,
-      "calcium": 234,
-      "iron": 6.7,
-      "zinc": 2.32,
-      "magnesium": 104,
-      "phosphorus": 145,
-      "vitaminA": 42,
-      "vitaminC": 19
-    },
-    "source": "参考估算",
-    "dataVersion": "1.0",
-    "confidence": "low",
-    "layer": "C",
-    "materialType": "herb"
-  },
-  {
-    "aliases": [
-      "丁香",
-      "公丁香"
-    ],
-    "per100g": {
-      "energy": 879,
-      "protein": 3.2,
-      "fat": 17.2,
-      "carbohydrate": 39.6,
-      "fiber": 16.7,
-      "sodium": 22,
-      "potassium": 286,
-      "calcium": 140,
-      "iron": 6.2,
-      "zinc": 1.76,
-      "magnesium": 128,
-      "phosphorus": 108,
-      "vitaminE": 4.6
-    },
-    "source": "参考估算",
-    "dataVersion": "1.0",
-    "confidence": "low",
-    "layer": "C",
-    "materialType": "herb"
-  },
-  {
-    "aliases": [
-      "胖大海",
-      "安南子"
-    ],
-    "per100g": {
-      "energy": 1046,
-      "protein": 8.6,
-      "fat": 2.8,
-      "carbohydrate": 46.2,
-      "fiber": 24.6,
-      "sodium": 6,
-      "potassium": 312,
-      "calcium": 156,
-      "iron": 3.8,
-      "zinc": 1.24,
-      "magnesium": 96,
-      "phosphorus": 178
-    },
-    "source": "参考估算",
-    "dataVersion": "1.0",
-    "confidence": "low",
-    "layer": "C",
-    "materialType": "herb"
-  },
-  {
-    "aliases": [
-      "砂仁",
-      "缩砂蜜"
-    ],
-    "per100g": {
-      "energy": 854,
-      "protein": 8.1,
-      "fat": 2.6,
-      "carbohydrate": 38.8,
-      "fiber": 28.4,
-      "sodium": 14,
-      "potassium": 246,
-      "calcium": 92,
-      "iron": 4.2,
-      "zinc": 1.08,
-      "magnesium": 118,
-      "phosphorus": 164,
-      "vitaminE": 2.8
-    },
-    "source": "参考估算",
-    "dataVersion": "1.0",
-    "confidence": "low",
-    "layer": "C",
-    "materialType": "herb"
-  },
-  {
-    "aliases": [
-      "紫苏",
-      "苏叶"
-    ],
-    "per100g": {
-      "energy": 174,
-      "protein": 3.2,
-      "fat": 1.3,
-      "carbohydrate": 5.6,
-      "fiber": 3.8,
-      "sodium": 6,
-      "potassium": 422,
-      "calcium": 230,
-      "iron": 3.6,
-      "zinc": 0.68,
-      "magnesium": 48,
-      "phosphorus": 42,
-      "vitaminA": 1232,
-      "vitaminC": 26
-    },
-    "source": "参考估算",
-    "dataVersion": "1.0",
-    "confidence": "low",
-    "layer": "C",
-    "materialType": "herb"
-  },
-  {
-    "aliases": [
-      "益智仁",
-      "益智"
-    ],
-    "per100g": {
-      "energy": 1113,
-      "protein": 10.2,
-      "fat": 4.6,
-      "carbohydrate": 46.8,
-      "fiber": 20.4,
-      "sodium": 18,
-      "potassium": 326,
-      "calcium": 128,
-      "iron": 5.2,
-      "zinc": 1.86,
-      "magnesium": 142,
-      "phosphorus": 246,
-      "vitaminE": 3.2
-    },
-    "source": "参考估算",
-    "dataVersion": "1.0",
-    "confidence": "low",
-    "layer": "C",
-    "materialType": "herb"
-  },
-  {
-    "aliases": [
-      "r-氨基丁酸",
-      "GABA",
-      "γ-氨基丁酸"
-    ],
-    "per100g": {
-      "energy": 280,
-      "protein": 8.6,
-      "fat": 0.2,
-      "carbohydrate": 18.4,
-      "sodium": 8,
-      "potassium": 86,
-      "calcium": 42,
-      "iron": 0.8,
-      "zinc": 0.24,
-      "magnesium": 28,
-      "phosphorus": 86
-    },
-    "source": "参考估算",
-    "dataVersion": "1.0",
-    "confidence": "low",
-    "layer": "C",
-    "materialType": "herb"
   }
 ]

@@ -278,13 +278,13 @@ export class SeedDataAdapter implements NutritionSourceAdapter {
 
     const searchNames = [foodName, ...(this.aliasMap[foodName] || [])];
 
-    // A层优先搜索
+    // C层优先搜索（经验证数据，优先级最高）
+    const resultC = this.searchInLayer(searchNames, this.seedDataC, "C", "medium");
+    if (resultC) return resultC;
+
+    // A层次之搜索（权威文献数据）
     const resultA = this.searchInLayer(searchNames, this.seedDataA, "A", "high");
     if (resultA) return resultA;
-
-    // C层次之搜索
-    const resultC = this.searchInLayer(searchNames, this.seedDataC, "C", "low");
-    if (resultC) return resultC;
 
     return null;
   }

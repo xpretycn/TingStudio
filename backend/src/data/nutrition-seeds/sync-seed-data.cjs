@@ -2,22 +2,25 @@
  * 种子数据同步脚本
  *
  * 支持两种数据源：
- *   1. Excel 源文件（原料营养数据源.xlsx）— 自有经验证数据
- *   2. 聚合数据 CSV（juhe-food-nutrition.csv）— 权威文献数据
+ *   1. Excel 源文件（原料营养数据源.xlsx）— 自有经验证数据（C层，优先级最高）
+ *   2. 聚合数据 CSV（juhe-food-nutrition.csv）— 权威文献数据（A层，次优先级）
+ *
+ * 数据优先级：C层(Excel) > A层(聚合数据) > B层(天行API)
+ * 同名原料时，Excel 数据覆盖聚合数据。
  *
  * 用法：
- *   node sync-seed-data.cjs                              # 默认：Excel + 聚合数据CSV（如存在）
- *   node sync-seed-data.cjs --juhe-only                  # 仅从聚合数据CSV生成
- *   node sync-seed-data.cjs --excel 其他文件.xlsx          # 指定 Excel 文件
- *   node sync-seed-data.cjs --juhe 其他CSV.csv            # 指定聚合数据CSV文件
+ *   npm run sync-seeds                                    # 默认：Excel + 聚合数据CSV（如存在）
+ *   node sync-seed-data.cjs --juhe-only                   # 仅从聚合数据CSV生成
+ *   node sync-seed-data.cjs --excel 其他文件.xlsx           # 指定 Excel 文件
+ *   node sync-seed-data.cjs --juhe 其他CSV.csv             # 指定聚合数据CSV文件
  *
  * 输出：
  *   - cnfct-official.json  （A层：权威来源，来自聚合数据）
- *   - herb-estimated.json  （C层：经验证数据 + 参考估算）
+ *   - herb-estimated.json  （C层：经验证数据，来自Excel）
  *
  * 维护流程：
- *   1. 从聚合数据下载 CSV → 放入本目录，命名为 juhe-food-nutrition.csv
- *   2. 编辑「原料营养数据源.xlsx」，增删改自有经验证数据
+ *   1. 编辑「原料营养数据源.xlsx」，增删改自有经验证数据
+ *   2. （可选）从聚合数据下载 CSV → 放入本目录，命名为 juhe-food-nutrition.csv
  *   3. 运行本脚本：npm run sync-seeds
  *   4. 重启后端服务，新数据即生效
  */
@@ -27,24 +30,39 @@ const fs = require("fs");
 const path = require("path");
 
 // ============================================================
-// A 层名单：常见食物，数据来源为《中国食物成分表》
-// 这些食物确实能在权威文献中查到，confidence=high
+// Excel 列名映射（全部27种营养素 + 基础字段）
 // ============================================================
-const A_LAYER_NAMES = new Set([
-  "山药", "枸杞", "枸杞子", "红枣", "大枣", "薏苡仁", "薏米",
-  "百合", "莲子", "蜂蜜", "银耳", "昆布", "海带", "鲜藕", "藕",
-  "葛根", "山楂", "麦芽", "芡实", "佛手", "桑椹", "马齿苋",
-  "赤小豆", "红小豆", "小麦", "纳豆",
-]);
-
-// Excel 列名映射
 const EXCEL_COLUMNS = {
   name: "原料名称",
   type: "类型",
+  // 27种营养素（与 nutritionHelpers.ts 一致）
+  energy: "能量(kJ/100g)",
   protein: "蛋白质(g/100g)",
   fat: "脂肪(g/100g)",
   carbohydrate: "碳水化合物(g/100g)",
+  fiber: "膳食纤维(g/100g)",
+  sugars: "糖(g/100g)",
   sodium: "钠(mg/100g)",
+  potassium: "钾(mg/100g)",
+  calcium: "钙(mg/100g)",
+  iron: "铁(mg/100g)",
+  zinc: "锌(mg/100g)",
+  magnesium: "镁(mg/100g)",
+  phosphorus: "磷(mg/100g)",
+  vitaminA: "维生素A(μg/100g)",
+  vitaminC: "维生素C(mg/100g)",
+  vitaminD: "维生素D(μg/100g)",
+  vitaminE: "维生素E(mg/100g)",
+  vitaminK: "维生素K(μg/100g)",
+  vitaminB1: "维生素B1(mg/100g)",
+  vitaminB2: "维生素B2(mg/100g)",
+  vitaminB3: "维生素B3(mg/100g)",
+  vitaminB6: "维生素B6(mg/100g)",
+  vitaminB12: "维生素B12(μg/100g)",
+  folate: "叶酸(μg/100g)",
+  cholesterol: "胆固醇(mg/100g)",
+  transFat: "反式脂肪(g/100g)",
+  saturatedFat: "饱和脂肪(g/100g)",
 };
 
 // 聚合数据 CSV 字段 → 项目种子字段映射
@@ -77,25 +95,79 @@ const JUHE_FIELD_MAP = {
   iodine: "iodine",
 };
 
-// 聚合数据中需要排除的分类（非食物类目）
-const JUHE_EXCLUDE_CATEGORIES = new Set([
-  "油脂类", "调味品", "饮料", "酒类", "糖蜜饯", "小吃甜饼",
-]);
-
 // ============================================================
 // 工具函数
 // ============================================================
 
 /**
+ * 从 Excel 行读取数值（空字符串返回 undefined）
+ */
+function readExcelNumber(row, columnName) {
+  const val = row[columnName];
+  if (val === undefined || val === null || val === "") return undefined;
+  const num = Number(val);
+  return isNaN(num) ? undefined : num;
+}
+
+/**
+ * 从 Excel 行构建 per100g 对象
+ */
+function buildPer100gFromExcel(row) {
+  const per100g = {};
+  for (const [field, columnName] of Object.entries(EXCEL_COLUMNS)) {
+    if (field === "name" || field === "type") continue;
+    const val = readExcelNumber(row, columnName);
+    if (val !== undefined) {
+      per100g[field] = val;
+    }
+  }
+  // 如果能量为空但有三大营养素，自动计算能量
+  if (per100g.energy == null) {
+    const protein = per100g.protein ?? 0;
+    const fat = per100g.fat ?? 0;
+    const carbohydrate = per100g.carbohydrate ?? 0;
+    if (protein > 0 || fat > 0 || carbohydrate > 0) {
+      per100g.energy = Math.round((protein * 17 + fat * 37 + carbohydrate * 17) * 100) / 100;
+    }
+  }
+  return per100g;
+}
+
+/**
  * 解析聚合数据 CSV 中的数值字段
  * 聚合数据中 "—" 表示未检测，"Tr" 表示未检出，"un" 表示不能得出结果
+ * 字段值可能带单位后缀（如 "1497kJ"、"11.2g"、"0.28mg"），自动剥离
  */
 function parseJuheNumber(value) {
   if (value === undefined || value === null) return undefined;
   const str = String(value).trim();
   if (str === "" || str === "—" || str === "Tr" || str === "un" || str === "-") return undefined;
-  const num = Number(str);
+  // 剥离单位后缀：kJ, g, mg, μg
+  const numStr = str.replace(/(kJ|kCal|kcal|g|mg|μg|µg|%|μgRAE)$/i, "").trim();
+  const num = Number(numStr);
   return isNaN(num) ? undefined : num;
+}
+
+/**
+ * 手动解析 CSV 行（支持引号包裹的字段）
+ */
+function parseCSVLine(line) {
+  const result = [];
+  let current = "";
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (ch === '"') {
+      inQuotes = !inQuotes;
+    } else if (ch === "," && !inQuotes) {
+      result.push(current);
+      current = "";
+    } else {
+      current += ch;
+    }
+  }
+  result.push(current);
+  return result;
 }
 
 /**
@@ -120,7 +192,6 @@ function buildAliasesFromJuhe(row) {
   const aliases = [String(row.food_name || "").trim()];
   const aliasStr = String(row.alias_name || "").trim();
   if (aliasStr && aliasStr !== "NULL") {
-    // 聚合数据别名可能是逗号分隔的
     for (const a of aliasStr.split(/[,，、]/)) {
       const trimmed = a.trim();
       if (trimmed && !aliases.includes(trimmed)) {
@@ -152,7 +223,6 @@ for (let i = 0; i < args.length; i++) {
 
 const seedsDir = __dirname;
 
-// 默认路径
 if (!excelPath) excelPath = path.join(seedsDir, "原料营养数据源.xlsx");
 if (!juhePath) juhePath = path.join(seedsDir, "juhe-food-nutrition.csv");
 
@@ -165,9 +235,15 @@ const hasJuheCSV = fs.existsSync(juhePath);
 
 if (hasJuheCSV) {
   console.log(`[1/5] 读取聚合数据 CSV: ${juhePath}`);
-  const wb = XLSX.readFile(juhePath);
-  const ws = wb.Sheets[wb.SheetNames[0]];
-  juheData = XLSX.utils.sheet_to_json(ws, { defval: "" });
+  const raw = fs.readFileSync(juhePath, "utf-8");
+  const lines = raw.split("\n").filter(l => l.trim());
+  const headers = parseCSVLine(lines[0]);
+  juheData = lines.slice(1).map(line => {
+    const vals = parseCSVLine(line);
+    const row = {};
+    headers.forEach((h, i) => { row[h] = vals[i] || ""; });
+    return row;
+  }).filter(r => r.food_name);
   console.log(`      共 ${juheData.length} 条聚合数据`);
 } else {
   console.log("[1/5] 聚合数据 CSV 不存在，跳过（如需使用，请下载后命名为 juhe-food-nutrition.csv）");
@@ -212,54 +288,15 @@ console.log("[3/5] 合并数据源...");
 
 // ============================================================
 // 4. 构建种子数据
+// 优先级：C层(Excel) > A层(聚合数据) > B层(天行API)
+// 同名原料时，Excel 数据覆盖聚合数据
 // ============================================================
 
 const layerA = [];
 const layerC = [];
 const processedNames = new Set(); // 避免重复
 
-// 4.1 处理聚合数据（A层主要来源）
-if (juheData.length > 0) {
-  for (const row of juheData) {
-    const name = String(row.food_name || "").trim();
-    if (!name || processedNames.has(name)) continue;
-
-    const aliases = buildAliasesFromJuhe(row);
-    const per100g = buildPer100gFromJuhe(row);
-    const isALayer = A_LAYER_NAMES.has(name) || aliases.some(a => A_LAYER_NAMES.has(a));
-
-    // 查找现有数据中的匹配条目（保留额外营养素）
-    const existingEntry = existingMap.get(name);
-
-    const entry = {
-      aliases,
-      per100g,
-      source: "《中国食物成分表》（聚合数据）",
-      dataVersion: "6.0",
-      confidence: isALayer ? "high" : "high",
-      layer: isALayer ? "A" : "A",
-      materialType: "herb", // 聚合数据无类型字段，默认药材
-    };
-
-    // 如果现有数据有 materialType，保留
-    if (existingEntry && existingEntry.materialType) {
-      entry.materialType = existingEntry.materialType;
-    }
-
-    processedNames.add(name);
-    for (const a of aliases) processedNames.add(a);
-
-    if (isALayer) {
-      layerA.push(entry);
-    } else {
-      // 聚合数据全部是权威来源，归入A层
-      layerA.push(entry);
-    }
-  }
-  console.log(`      聚合数据贡献: ${layerA.length} 条 A 层数据`);
-}
-
-// 4.2 处理 Excel 数据（C层主要来源，覆盖聚合数据中的同名字段）
+// 4.1 先处理 Excel 数据（C层，优先级最高）
 const excelNames = new Set();
 for (const row of excelData) {
   const name = String(row[EXCEL_COLUMNS.name] || "").trim();
@@ -267,53 +304,63 @@ for (const row of excelData) {
   excelNames.add(name);
 
   const materialType = String(row[EXCEL_COLUMNS.type] || "").trim() === "辅料" ? "supplement" : "herb";
-  const excelNutrients = {
-    protein: Number(row[EXCEL_COLUMNS.protein]) || 0,
-    fat: Number(row[EXCEL_COLUMNS.fat]) || 0,
-    carbohydrate: Number(row[EXCEL_COLUMNS.carbohydrate]) || 0,
-    sodium: Number(row[EXCEL_COLUMNS.sodium]) || 0,
-  };
-  const energy = Number((excelNutrients.protein * 17 + excelNutrients.fat * 37 + excelNutrients.carbohydrate * 17).toFixed(1));
+  const per100g = buildPer100gFromExcel(row);
 
-  // 查找现有数据中的匹配条目
+  // 查找现有数据中的匹配条目（保留别名）
   const existingEntry = existingMap.get(name);
-
-  // 合并营养数据
-  const per100g = {};
-  if (existingEntry) {
-    Object.assign(per100g, existingEntry.per100g);
-  }
-  // Excel 数据覆盖基础字段
-  per100g.energy = energy;
-  per100g.protein = excelNutrients.protein;
-  per100g.fat = excelNutrients.fat;
-  per100g.carbohydrate = excelNutrients.carbohydrate;
-  per100g.sodium = excelNutrients.sodium;
-
   const aliases = existingEntry ? existingEntry.aliases : [name];
-
-  const isALayer = A_LAYER_NAMES.has(name) || aliases.some(a => A_LAYER_NAMES.has(a));
 
   const entry = {
     aliases,
     per100g,
-    source: isALayer ? "《中国食物成分表》" : "经验证数据",
-    dataVersion: isALayer ? "6.0" : "1.0",
-    confidence: isALayer ? "high" : "medium",
-    layer: isALayer ? "A" : "C",
+    source: "经验证数据",
+    dataVersion: "1.0",
+    confidence: "medium",
+    layer: "C",
     materialType,
   };
 
-  if (isALayer) {
-    layerA.push(entry);
-  } else {
-    layerC.push(entry);
-  }
+  layerC.push(entry);
   processedNames.add(name);
   for (const a of aliases) processedNames.add(a);
 }
 if (excelData.length > 0) {
-  console.log(`      Excel 数据贡献: ${layerC.length} 条 C 层数据`);
+  console.log(`      Excel 数据（C层）: ${layerC.length} 条`);
+}
+
+// 4.2 再处理聚合数据（A层，次优先级）
+// 只添加 Excel 中没有的原料
+if (juheData.length > 0) {
+  let juheAdded = 0;
+  for (const row of juheData) {
+    const name = String(row.food_name || "").trim();
+    if (!name || processedNames.has(name)) continue;
+
+    const aliases = buildAliasesFromJuhe(row);
+    const per100g = buildPer100gFromJuhe(row);
+
+    const entry = {
+      aliases,
+      per100g,
+      source: "《中国食物成分表》（聚合数据）",
+      dataVersion: "6.0",
+      confidence: "high",
+      layer: "A",
+      materialType: "herb",
+    };
+
+    // 如果现有数据有 materialType，保留
+    const existingEntry = existingMap.get(name);
+    if (existingEntry && existingEntry.materialType) {
+      entry.materialType = existingEntry.materialType;
+    }
+
+    layerA.push(entry);
+    processedNames.add(name);
+    for (const a of aliases) processedNames.add(a);
+    juheAdded++;
+  }
+  console.log(`      聚合数据（A层）: ${juheAdded} 条（仅 Excel 中无对应数据的原料）`);
 }
 
 // 4.3 保留 JSON 中有但两个数据源都没有的条目
@@ -327,7 +374,6 @@ for (const entry of existingC) {
   }
 }
 
-// 4.4 保留现有A层中聚合数据没有的条目
 for (const entry of existingA) {
   const mainName = entry.aliases[0];
   if (!processedNames.has(mainName)) {
@@ -341,8 +387,8 @@ for (const entry of existingA) {
 // ============================================================
 
 console.log("[4/5] 生成种子数据文件...");
-console.log(`      A 层（权威来源）: ${layerA.length} 条`);
-console.log(`      C 层（经验证/估算）: ${layerC.length} 条` + (unmatched.length > 0 ? `（含 ${unmatched.length} 条无数据源条目）` : ""));
+console.log(`      A 层（聚合数据）: ${layerA.length} 条`);
+console.log(`      C 层（经验证数据）: ${layerC.length} 条` + (unmatched.length > 0 ? `（含 ${unmatched.length} 条无数据源条目）` : ""));
 
 fs.writeFileSync(cnfctPath, JSON.stringify(layerA, null, 2), "utf-8");
 fs.writeFileSync(herbPath, JSON.stringify(layerC, null, 2), "utf-8");

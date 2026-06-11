@@ -25,7 +25,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, watch, onMounted, onUnmounted } from "vue";
+import { computed, ref, watch, onMounted, onUnmounted, nextTick } from "vue";
 import { useRoute } from "vue-router";
 import { useFloatAgentStore } from "@/stores/floatAgent";
 import { useAuthStore } from "@/stores/auth";
@@ -40,6 +40,9 @@ import type { SubmitIssue } from "./SubmitAnalysisPanel.vue";
 const store = useFloatAgentStore();
 const authStore = useAuthStore();
 const route = useRoute();
+
+const domTick = ref(0);
+let domObserver: MutationObserver | null = null;
 
 const isOpen = computed(() => store.isOpen);
 const isFullscreen = computed(() => store.isFullscreen);
@@ -163,8 +166,10 @@ function inspectField(fieldKey: string): boolean {
   return !!(input && input.value && input.value.trim() !== "");
 }
 
-// 共享的字段检测结果：required 和 recommended 各跑一次 detect
+// 共享的字段检测结果：依赖 domTick 触发重算
 const detectedMissing = computed(() => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+  domTick.value;
   const pageId = store.currentPageId;
   const checks = FIELD_CHECKS[pageId];
   if (!checks) return { required: [] as string[], recommended: [] as string[] };
@@ -253,6 +258,7 @@ watch(
 );
 
 function refreshLocalFieldHints() {
+  domTick.value++;
   const required = detectedMissing.value.required;
   const recommended = detectedMissing.value.recommended;
   const allMissing = [...required, ...recommended];
@@ -314,6 +320,33 @@ function stopFieldHintsPolling() {
   }
 }
 
+function startDomObserver() {
+  if (domObserver) return;
+  const formArea = document.querySelector('.t-form') || document.querySelector('form') || document.body;
+  domObserver = new MutationObserver(() => {
+    nextTick(refreshLocalFieldHints);
+  });
+  domObserver.observe(formArea, {
+    childList: true,
+    subtree: true,
+    characterData: true,
+    attributes: true,
+    attributeFilter: ['value', 'class'],
+  });
+  formArea.addEventListener('input', refreshLocalFieldHints, true);
+  formArea.addEventListener('change', refreshLocalFieldHints, true);
+}
+
+function stopDomObserver() {
+  if (domObserver) {
+    domObserver.disconnect();
+    domObserver = null;
+  }
+  const formArea = document.querySelector('.t-form') || document.querySelector('form') || document.body;
+  formArea.removeEventListener('input', refreshLocalFieldHints, true);
+  formArea.removeEventListener('change', refreshLocalFieldHints, true);
+}
+
 onMounted(() => {
   if (!authStore.isAuthenticated) return;
   store.fetchHealth();
@@ -321,6 +354,13 @@ onMounted(() => {
     if (authStore.isAuthenticated) store.fetchHealth();
   }, 60000);
   if (store.isOpen) startFieldHintsPolling();
+  startDomObserver();
+});
+
+onUnmounted(() => {
+  if (healthTimer) clearInterval(healthTimer);
+  stopFieldHintsPolling();
+  stopDomObserver();
 });
 
 watch(
@@ -352,9 +392,4 @@ watch(
     if (visible && store.currentPageId) store.fetchFieldHints();
   },
 );
-
-onUnmounted(() => {
-  if (healthTimer) clearInterval(healthTimer);
-  stopFieldHintsPolling();
-});
 </script>

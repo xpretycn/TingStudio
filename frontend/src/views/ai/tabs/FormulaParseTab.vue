@@ -430,7 +430,7 @@
                       <span class="sbr-text">{{ reason.message }}</span>
                     </div>
                   </div>
-                  <t-button theme="success" block @click="backfillData" class="backfill-btn"
+                  <t-button theme="primary" block @click="backfillData" class="backfill-btn"
                     :loading="formulaStore.loading"
                     :disabled="formulaStore.loading || submitBlockReasons.some(r => r.type === 'error')"
                     aria-label="确认并直接提交配方到后端">
@@ -2099,9 +2099,9 @@ const goToDashboard = () => {
       }
 
       .status-indicator--done {
-        background: rgba(16, 185, 129, 0.08);
+        background: var(--overlay-brand-08);
         color: var(--color-primary-dark);
-        border: 1px solid rgba(16, 185, 129, 0.15);
+        border: 1px solid var(--overlay-brand-15);
       }
 
       .status-indicator--ready {
@@ -2319,7 +2319,7 @@ const goToDashboard = () => {
 
         .file-format {
           padding: 1px var(--space-1-5);
-          background: rgba(16, 185, 129, 0.1);
+          background: var(--overlay-brand-08);
           color: var(--color-primary-dark);
           border-radius: 4px;
           font-size: 11px;
@@ -2494,7 +2494,7 @@ const goToDashboard = () => {
         align-items: center;
         gap: var(--space-1-5);
         padding: 8px 12px;
-        background: rgba(16, 185, 129, 0.06);
+        background: var(--overlay-brand-05);
         border-radius: 8px;
         margin-bottom: 12px;
 
@@ -2524,7 +2524,7 @@ const goToDashboard = () => {
 
         .progress-fill {
           height: 100%;
-          background: $gradient-emerald-light;
+          background: linear-gradient(90deg, var(--color-primary), var(--color-primary-light), var(--color-primary));
           background-size: 200% 100%;
           border-radius: var(--radius-xs);
 
@@ -3085,8 +3085,8 @@ const goToDashboard = () => {
   text-align: justify;
   word-break: break-word;
   white-space: pre-wrap;
-  background: rgba(16, 185, 129, 0.04);
-  border: 1px solid rgba(16, 185, 129, 0.12);
+  background: var(--overlay-brand-05);
+  border: 1px solid var(--overlay-brand-10);
   border-radius: 8px;
   padding: var(--space-2-5) 12px;
   width: 100%;
@@ -3341,7 +3341,7 @@ const goToDashboard = () => {
 
   &:hover {
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px -2px rgba(16, 185, 129, 0.3);
+    box-shadow: var(--shadow-brand-sm);
   }
 }
 
@@ -3442,7 +3442,7 @@ const goToDashboard = () => {
     font-weight: 700;
 
     &.badge--normal {
-      background: rgba(16, 185, 129, 0.12);
+      background: var(--overlay-brand-10);
       color: var(--color-primary-dark);
     }
 
@@ -3477,7 +3477,7 @@ const goToDashboard = () => {
         top: 0;
         left: 0;
         height: 100%;
-        background: rgba(16, 185, 129, 0.3);
+        background: var(--overlay-brand-25);
         border-radius: 4px;
         transition: width 0.3s ease;
       }
@@ -3776,12 +3776,12 @@ const goToDashboard = () => {
     }
 
     &--new {
-      background: rgba(16, 185, 129, 0.06);
+      background: var(--overlay-brand-05);
       border-left: 3px solid var(--color-primary);
     }
 
     &--selected {
-      background: rgba(16, 185, 129, 0.08);
+      background: var(--overlay-brand-08);
     }
 
     .col-check {
@@ -3808,7 +3808,7 @@ const goToDashboard = () => {
 
       .material-type-tag--herb {
         flex-shrink: 0;
-        background: rgba(16, 185, 129, 0.1);
+        background: var(--overlay-brand-08);
         color: var(--color-primary-dark);
         border-color: var(--color-primary-lightest);
         font-size: 10px;
@@ -4103,12 +4103,12 @@ const goToDashboard = () => {
 @keyframes restore-flash {
   0% {
     background: var(--color-primary-bg);
-    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
+    box-shadow: 0 0 0 0 var(--overlay-brand-25);
   }
 
   50% {
     background: var(--color-primary-lightest);
-    box-shadow: 0 0 8px 2px rgba(16, 185, 129, 0.3);
+    box-shadow: 0 0 8px 2px var(--overlay-brand-20);
   }
 
   100% {
@@ -4352,7 +4352,7 @@ const goToDashboard = () => {
     .success-title {
       font-size: 20px;
       font-weight: 700;
-      color: var(--color-emerald-600);
+      color: var(--color-primary);
       margin: 0 0 8px;
     }
 
@@ -4381,7 +4381,7 @@ const goToDashboard = () => {
 
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.35);
+    box-shadow: var(--shadow-brand-sm);
   }
 }
 
@@ -4476,7 +4476,7 @@ const goToDashboard = () => {
     color: var(--color-primary-dark);
     background: var(--color-primary-bg);
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+    box-shadow: var(--shadow-brand-xs);
   }
 }
 
@@ -4558,7 +4558,7 @@ const goToDashboard = () => {
   width: auto !important;
   border: none !important;
   outline: none !important;
-  box-shadow: 0 6px 24px rgba(16, 185, 129, 0.28), 0 2px 8px rgba(16, 185, 129, 0.12) !important;
+  box-shadow: var(--shadow-brand-md) !important;
 
   .t-dropdown__menu {
     min-width: 140px !important;
