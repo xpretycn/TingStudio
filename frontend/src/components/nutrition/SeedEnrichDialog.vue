@@ -3,6 +3,7 @@
     :visible="visible"
     :header="`从种子库填充 - ${materialName}`"
     :width="700"
+    placement="center"
     :footer="false"
     @close="handleClose"
   >
@@ -291,7 +292,14 @@ async function fetchSeedData() {
   selectedFields.value = new Set()
 
   try {
-    const result = await nutritionSourceApi.enrichNutrition(props.materialId, ["seed"]) as unknown as { results: EnrichResult[] }
+    let result: { results: EnrichResult[] }
+    if (props.materialId) {
+      // 已有原料 ID：走 enrichNutrition 接口
+      result = await nutritionSourceApi.enrichNutrition(props.materialId, ["seed"]) as unknown as { results: EnrichResult[] }
+    } else {
+      // 新建原料：按名称搜索种子库
+      result = await nutritionSourceApi.searchSeedByName(props.materialName) as unknown as { results: EnrichResult[] }
+    }
     const seedResult = result.results?.find((r: EnrichResult) => r.sourceType === "seed")
     if (seedResult) {
       enrichResult.value = seedResult
@@ -456,7 +464,7 @@ function diffClass(percent: number): string {
   th,
   td {
     padding: var(--space-2, 8px) var(--space-3, 12px);
-    text-align: right;
+    text-align: center;
     white-space: nowrap;
     border-bottom: 1px solid var(--color-border-light, #f2f4f7);
   }
@@ -540,5 +548,28 @@ function diffClass(percent: number): string {
   gap: var(--space-2, 8px);
   padding-top: var(--space-3, 12px);
   border-top: 1px solid var(--color-border-light, #f2f4f7);
+}
+</style>
+
+<style lang="scss">
+/* 非 scoped：确保 dialog 居中时可滚动，不超出视口 */
+.t-dialog__ctx .t-dialog__position.t-dialog--center {
+  /* 用 block 替代 flex center，配合子元素 margin:auto 实现“短居中、长可滚动” */
+  align-items: flex-start;
+  padding-top: 24px;
+  padding-bottom: 24px;
+}
+
+.t-dialog__ctx .t-dialog__position.t-dialog--center > .t-dialog {
+  margin-top: auto;
+  margin-bottom: auto;
+  max-height: calc(100vh - 48px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+
+  .t-dialog__body {
+    overflow: visible;
+  }
 }
 </style>

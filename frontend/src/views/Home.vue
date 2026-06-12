@@ -389,11 +389,11 @@
       <main id="main-content" class="content-body">
         <!-- 页面内容 -->
         <div class="content-main">
-          <router-view v-slot="{ Component, route: childRoute }">
+          <router-view v-slot="{ Component }">
             <transition :name="transitionName" mode="out-in" @before-leave="onTransitionBeforeLeave"
               @after-leave="onTransitionAfterLeave">
               <keep-alive :include="keepAliveComponents">
-                <component :is="Component" :key="contentRefreshKey + childRoute.fullPath" />
+                <component :is="Component" />
               </keep-alive>
             </transition>
           </router-view>
@@ -403,8 +403,8 @@
 
     <!-- 锁屏覆盖层 -->
     <Transition name="lock-fade">
-      <div v-if="isLocked" class="lock-screen-overlay" @click="unlock">
-        <div class="lock-screen-content" @click.stop>
+      <div v-if="isLocked" class="lock-screen-overlay">
+        <div class="lock-screen-content">
           <!-- 用户头像 -->
           <div class="lock-avatar-wrap">
             <img
@@ -419,8 +419,30 @@
           <div class="lock-time">{{ lockTime }}</div>
           <!-- 日期 -->
           <div class="lock-date">{{ lockDate }} {{ lockWeekday }}</div>
-          <!-- 解锁提示 -->
-          <div class="lock-hint">点击任意处解锁</div>
+          <!-- 密码输入框 -->
+          <div class="lock-input-wrap" :class="{ 'lock-shake': lockShake }">
+            <input
+              ref="lockInputRef"
+              v-model="lockPassword"
+              type="password"
+              class="lock-password-input"
+              placeholder="输入密码解锁"
+              autocomplete="current-password"
+              :disabled="lockVerifying"
+              @keydown="handleLockKeydown"
+            />
+            <button
+              class="lock-unlock-btn"
+              :disabled="lockVerifying"
+              @click="verifyAndUnlock"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            </button>
+          </div>
+          <!-- 错误提示 -->
+          <div v-if="lockError" class="lock-error">{{ lockError }}</div>
         </div>
       </div>
     </Transition>
@@ -428,8 +450,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
+import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
+import { authApi } from '@/api/auth';
 import { useAuthStore } from '@/stores/auth';
 import { useFormulaStore } from '@/stores/formula';
 import { useMaterialStore } from '@/stores/material';
@@ -472,7 +495,6 @@ const themeModeLabels: Record<string, string> = {
 const navExpanded = ref(true);
 const sidebarCollapsed = ref(false);
 const mobileDrawerOpen = ref(false);
-const contentRefreshKey = ref(0);
 const showVersionCard = ref(false);
 
 // 需要缓存的组件名称列表（组件必须定义 name 属性与此匹配）
@@ -874,14 +896,13 @@ const navigateTo = (path: string) => {
 // 刷新子页面（只刷新右侧内容区域）
 const handleRefresh = () => {
   if (isTransitioning) return;
-  // 失效当前路由对应 store 的缓存，组件重新挂载时从 API 拉取最新数据
+  // 失效当前路由对应 store 的缓存，组件响应式更新
   const path = route.path;
   if (path.startsWith('/formulas')) {
     formulaStore.invalidateCache();
   } else if (path.startsWith('/materials')) {
     materialStore.invalidateCache();
   }
-  contentRefreshKey.value++;
 };
 
 // Transition 安全钩子
@@ -931,6 +952,11 @@ const isLocked = ref(false);
 const lockTime = ref('');
 const lockDate = ref('');
 const lockWeekday = ref('');
+const lockPassword = ref('');
+const lockError = ref('');
+const lockVerifying = ref(false);
+const lockShake = ref(false);
+const lockInputRef = ref<HTMLInputElement | null>(null);
 let lockTimer: ReturnType<typeof setInterval> | null = null;
 
 const WEEKDAYS = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
@@ -948,18 +974,100 @@ function updateLockClock() {
 }
 
 const handleLock = () => {
+  clearAutoLockTimer();
   updateLockClock();
+  lockPassword.value = '';
+  lockError.value = '';
+  lockShake.value = false;
   isLocked.value = true;
   lockTimer = setInterval(updateLockClock, 1000);
+  nextTick(() => {
+    lockInputRef.value?.focus();
+  });
 };
 
-const unlock = () => {
-  isLocked.value = false;
-  if (lockTimer) {
-    clearInterval(lockTimer);
-    lockTimer = null;
+const verifyAndUnlock = async () => {
+  const pwd = lockPassword.value.trim();
+  if (!pwd) {
+    lockError.value = '请输入密码';
+    lockShake.value = true;
+    setTimeout(() => { lockShake.value = false; }, 500);
+    return;
+  }
+  if (lockVerifying.value) return;
+  lockVerifying.value = true;
+  lockError.value = '';
+  try {
+    const username = authStore.user?.username || '';
+    await authApi.login({ username, password: pwd });
+    // 验证成功，解锁
+    isLocked.value = false;
+    lockPassword.value = '';
+    if (lockTimer) {
+      clearInterval(lockTimer);
+      lockTimer = null;
+    }
+    resetAutoLockTimer();
+  } catch {
+    // 验证失败，抖动 + 错误提示
+    lockError.value = '密码错误，请重新输入';
+    lockShake.value = true;
+    setTimeout(() => { lockShake.value = false; }, 500);
+    lockPassword.value = '';
+    lockInputRef.value?.focus();
+  } finally {
+    lockVerifying.value = false;
   }
 };
+
+const handleLockKeydown = (e: KeyboardEvent) => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    verifyAndUnlock();
+  }
+};
+
+// ─── 自动锁屏计时器 ───
+let autoLockTimer: ReturnType<typeof setTimeout> | null = null;
+const ACTIVITY_EVENTS = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'] as const;
+
+function clearAutoLockTimer() {
+  if (autoLockTimer) {
+    clearTimeout(autoLockTimer);
+    autoLockTimer = null;
+  }
+}
+
+function resetAutoLockTimer() {
+  clearAutoLockTimer();
+  const minutes = preferencesStore.preferences.autoLockMinutes ?? 0;
+  if (minutes <= 0 || isLocked.value) return;
+  autoLockTimer = setTimeout(() => {
+    if (!isLocked.value) {
+      handleLock();
+    }
+  }, minutes * 60 * 1000);
+}
+
+function onUserActivity() {
+  if (isLocked.value) return;
+  resetAutoLockTimer();
+}
+
+// 监听自动锁屏偏好变化
+watch(
+  () => preferencesStore.preferences.autoLockMinutes,
+  () => {
+    ACTIVITY_EVENTS.forEach(evt => document.removeEventListener(evt, onUserActivity));
+    clearAutoLockTimer();
+    const minutes = preferencesStore.preferences.autoLockMinutes ?? 0;
+    if (minutes > 0) {
+      ACTIVITY_EVENTS.forEach(evt => document.addEventListener(evt, onUserActivity, { passive: true }));
+      resetAutoLockTimer();
+    }
+  },
+  { immediate: true },
+);
 
 // ─── 新用户引导 ───
 const GUIDE_DISMISSED_KEY = 'ting-guide-dismissed';
@@ -1085,6 +1193,16 @@ onMounted(async () => {
       toggleSidebarCollapse();
     }
   });
+});
+
+onUnmounted(() => {
+  if (lockTimer) {
+    clearInterval(lockTimer);
+    lockTimer = null;
+  }
+  // 清理自动锁屏计时器和事件监听
+  ACTIVITY_EVENTS.forEach(evt => document.removeEventListener(evt, onUserActivity));
+  clearAutoLockTimer();
 });
 </script>
 
@@ -2420,100 +2538,6 @@ onMounted(async () => {
   .drawer-fade-leave-to {
     opacity: 0;
   }
-
-  // ─── 锁屏覆盖层 ───────────────────────────────────────────
-  .lock-screen-overlay {
-    position: fixed;
-    inset: 0;
-    z-index: 9999;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: radial-gradient(ellipse at 30% 20%, rgba(30, 40, 80, 0.92) 0%, rgba(10, 12, 30, 0.97) 70%);
-    backdrop-filter: blur(24px);
-    cursor: pointer;
-    user-select: none;
-
-    .lock-screen-content {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0;
-      pointer-events: none;
-    }
-
-    .lock-avatar-wrap {
-      width: 88px;
-      height: 88px;
-      border-radius: 50%;
-      padding: 3px;
-      background: linear-gradient(135deg, var(--color-primary) 0%, rgba(255, 255, 255, 0.3) 100%);
-      margin-bottom: 20px;
-      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3), 0 0 0 4px rgba(255, 255, 255, 0.08);
-    }
-
-    .lock-avatar {
-      width: 100%;
-      height: 100%;
-      border-radius: 50%;
-      object-fit: cover;
-      display: block;
-      border: 2px solid rgba(255, 255, 255, 0.15);
-    }
-
-    .lock-username {
-      font-size: 16px;
-      font-weight: 600;
-      color: rgba(255, 255, 255, 0.85);
-      letter-spacing: 0.5px;
-      margin-bottom: 32px;
-    }
-
-    .lock-time {
-      font-size: 84px;
-      font-weight: 200;
-      color: #fff;
-      line-height: 1;
-      letter-spacing: 4px;
-      font-variant-numeric: tabular-nums;
-      text-shadow: 0 2px 20px rgba(255, 255, 255, 0.15);
-      margin-bottom: 12px;
-    }
-
-    .lock-date {
-      font-size: 15px;
-      font-weight: 400;
-      color: rgba(255, 255, 255, 0.55);
-      letter-spacing: 1px;
-      margin-bottom: 48px;
-    }
-
-    .lock-hint {
-      font-size: 13px;
-      color: rgba(255, 255, 255, 0.35);
-      letter-spacing: 0.5px;
-      animation: lockPulse 2.5s ease-in-out infinite;
-    }
-  }
-
-  // 锁屏过渡动画
-  .lock-fade-enter-active {
-    transition: opacity 0.35s ease;
-  }
-
-  .lock-fade-leave-active {
-    transition: opacity 0.3s ease;
-  }
-
-  .lock-fade-enter-from,
-  .lock-fade-leave-to {
-    opacity: 0;
-  }
-}
-
-@keyframes lockPulse {
-  0%, 100% { opacity: 0.35; }
-  50% { opacity: 0.7; }
 }
 </style>
 
@@ -2534,5 +2558,180 @@ onMounted(async () => {
     backdrop-filter: blur(12px) !important;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08), 0 1px 4px rgba(16, 185, 129, 0.06) !important;
   }
+}
+
+// ─── 锁屏覆盖层（全局，不受 scoped / 父元素 overflow 影响）────────────
+html .lock-screen-overlay {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  z-index: 99999 !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(ellipse at 30% 20%, rgba(30, 40, 80, 0.92) 0%, rgba(10, 12, 30, 0.97) 70%);
+  backdrop-filter: blur(24px);
+  cursor: pointer;
+  user-select: none;
+
+  .lock-screen-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    pointer-events: none;
+  }
+
+  .lock-avatar-wrap {
+    width: 88px;
+    height: 88px;
+    border-radius: 50%;
+    padding: 3px;
+    background: linear-gradient(135deg, var(--color-primary) 0%, rgba(255, 255, 255, 0.3) 100%);
+    margin-bottom: 20px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3), 0 0 0 4px rgba(255, 255, 255, 0.08);
+  }
+
+  .lock-avatar {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    display: block;
+    border: 2px solid rgba(255, 255, 255, 0.15);
+  }
+
+  .lock-username {
+    font-size: 16px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.85);
+    letter-spacing: 0.5px;
+    margin-bottom: 32px;
+  }
+
+  .lock-time {
+    font-size: 84px;
+    font-weight: 200;
+    color: #fff;
+    line-height: 1;
+    letter-spacing: 4px;
+    font-variant-numeric: tabular-nums;
+    text-shadow: 0 2px 20px rgba(255, 255, 255, 0.15);
+    margin-bottom: 12px;
+  }
+
+  .lock-date {
+    font-size: 15px;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.55);
+    letter-spacing: 1px;
+    margin-bottom: 24px;
+  }
+
+  // 密码输入区域
+  .lock-input-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    width: 280px;
+    height: 44px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 22px;
+    overflow: hidden;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    pointer-events: auto;
+    margin-bottom: 12px;
+
+    &:focus-within {
+      border-color: rgba(255, 255, 255, 0.35);
+      box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.06);
+    }
+  }
+
+  .lock-password-input {
+    flex: 1;
+    height: 100%;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 14px;
+    padding: 0 20px;
+    letter-spacing: 2px;
+    caret-color: rgba(255, 255, 255, 0.6);
+
+    &::placeholder {
+      color: rgba(255, 255, 255, 0.3);
+      letter-spacing: 1px;
+      font-size: 13px;
+    }
+
+    &:disabled {
+      opacity: 0.5;
+    }
+  }
+
+  .lock-unlock-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.45);
+    cursor: pointer;
+    transition: color 0.2s ease, background 0.2s ease;
+    flex-shrink: 0;
+
+    &:hover:not(:disabled) {
+      color: rgba(255, 255, 255, 0.85);
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    &:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+  }
+
+  .lock-error {
+    font-size: 12px;
+    color: #f87171;
+    letter-spacing: 0.3px;
+    min-height: 18px;
+  }
+
+  // 抖动动画
+  .lock-shake {
+    animation: lockShake 0.4s ease;
+  }
+}
+
+// 锁屏过渡动画
+html .lock-fade-enter-active {
+  transition: opacity 0.35s ease;
+}
+
+html .lock-fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+html .lock-fade-enter-from,
+html .lock-fade-leave-to {
+  opacity: 0;
+}
+
+@keyframes lockShake {
+  0%, 100% { transform: translateX(0); }
+  15% { transform: translateX(-8px); }
+  30% { transform: translateX(7px); }
+  45% { transform: translateX(-6px); }
+  60% { transform: translateX(5px); }
+  75% { transform: translateX(-3px); }
+  90% { transform: translateX(2px); }
 }
 </style>

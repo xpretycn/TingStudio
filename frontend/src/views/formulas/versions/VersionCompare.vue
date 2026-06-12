@@ -71,16 +71,29 @@
                 <div v-if="ing.missing" class="ingredient-item diff-missing">
                   <div class="ing-top">
                     <span class="ing-name">{{ ing.name }}</span>
-                    <span class="ing-value">--</span>
+                    <div class="ing-right">
+                      <span class="diff-tag diff-tag--missing">
+                        <t-icon name="minus-circle" />
+                        已移除
+                      </span>
+                      <span class="ing-value">--</span>
+                    </div>
                   </div>
                   <div class="ing-bar-track">
                     <div class="ing-bar-fill missing-bar"></div>
                   </div>
                 </div>
-                <div v-else class="ingredient-item" :class="getDiffClass(ing, ver, idx)">
+                <div v-else class="ingredient-item" :class="ing.diffType ? `diff-${ing.diffType}` : ''">
                   <div class="ing-top">
                     <span class="ing-name">{{ ing.name }}</span>
                     <div class="ing-right">
+                      <span v-if="ing.diffType === 'added'" class="diff-tag diff-tag--added">
+                        <t-icon name="add-circle" />新增
+                      </span>
+                      <span v-else-if="ing.diffType === 'changed'" class="diff-tag diff-tag--changed">
+                        <t-icon :name="ing.value > (ing.baseValue ?? 0) ? 'caret-up' : 'caret-down'" />
+                        {{ ing.value > (ing.baseValue ?? 0) ? '上调' : '下调' }} {{ Math.abs(ing.value - (ing.baseValue ?? 0)).toFixed(1) }}g
+                      </span>
                       <span class="ing-weight">{{ ing.weight.toFixed(1) }}g</span>
                       <span>/</span>
                       <span class="ing-value">{{ ing.value.toFixed(2) }}%</span>
@@ -98,14 +111,25 @@
                 <div v-if="item.missing" class="price-item diff-missing">
                   <div class="pi-top">
                     <span class="pi-name">{{ item.name }}</span>
-                    <span class="pi-value">--</span>
+                    <div class="pi-right">
+                      <span class="diff-tag diff-tag--missing">
+                        <t-icon name="minus-circle" />已移除
+                      </span>
+                      <span class="pi-value">--</span>
+                    </div>
                   </div>
                   <span class="pi-sub">{{ item.quantity }}g</span>
                 </div>
-                <div v-else class="price-item" :class="getPriceDiffClass(item, ver, idx)">
+                <div v-else class="price-item" :class="item.diffType ? `diff-${item.diffType}` : ''">
                   <div class="pi-top">
                     <span class="pi-name">{{ item.name }}</span>
                     <div class="pi-right">
+                      <span v-if="item.diffType === 'added'" class="diff-tag diff-tag--added">
+                        <t-icon name="add-circle" />新增
+                      </span>
+                      <span v-else-if="item.diffType === 'changed'" class="diff-tag diff-tag--changed">
+                        <t-icon name="edit" />已改价
+                      </span>
                       <span class="pi-value" :class="{ 'pi-adjusted': item.isAdjusted }">
                         {{ formatPrice(item.unitPrice) }}
                       </span>
@@ -222,20 +246,26 @@ interface CompareVersion {
   snapshot: VersionSnapshot;
 }
 
+type DiffType = 'added' | 'missing' | 'changed' | null;
+
 interface IngredientRow {
   name: string;
   value: number;
   weight: number;
+  baseValue?: number;
   missing?: boolean;
+  diffType?: DiffType;
 }
 
 interface PriceRow {
   name: string;
   quantity: number;
   unitPrice: number | null;
+  baseUnitPrice?: number | null;
   basePrice: number | null;
   isAdjusted: boolean;
   missing?: boolean;
+  diffType?: DiffType;
 }
 
 const router = useRouter();
@@ -309,19 +339,30 @@ const getIngredients = (ver: CompareVersion, idx: number): IngredientRow[] => {
   const baseIngs = baseVer?.snapshot?.materials || [];
   // quantity 在数据库中已存储为实际克重，无需再乘以成品重量
   const currentMap = new Map<string, { quantity: number; weight: number }>(materials.map((m: SnapshotMaterial) => [m.materialName || '--', { quantity: m.quantity || 0, weight: m.quantity || 0 }]));
+  const baseMap = new Map<string, number>(baseIngs.map((b: SnapshotMaterial) => [b.materialName || '--', b.quantity || 0]));
   const aligned: IngredientRow[] = [];
   baseIngs.forEach((b: SnapshotMaterial) => {
     const name = b.materialName || '--';
+    const baseQty = baseMap.get(name) ?? 0;
     if (currentMap.has(name)) {
       const cur = currentMap.get(name)!;
-      aligned.push({ name, value: cur.quantity, weight: cur.weight, missing: false });
+      const isChanged = baseQty !== cur.quantity;
+      aligned.push({
+        name,
+        value: cur.quantity,
+        weight: cur.weight,
+        baseValue: baseQty,
+        diffType: isChanged ? 'changed' : null,
+      });
       currentMap.delete(name);
     } else {
-      aligned.push({ name, value: 0, weight: 0, missing: true });
+      // 基准里有，当前版本没有 → 已移除
+      aligned.push({ name, value: 0, weight: 0, baseValue: baseQty, missing: true, diffType: 'missing' });
     }
   });
   currentMap.forEach((cur, name) => {
-    aligned.push({ name, value: cur.quantity, weight: cur.weight, missing: false });
+    // 当前版本有但基准没有 → 新增
+    aligned.push({ name, value: cur.quantity, weight: cur.weight, diffType: 'added' });
   });
   return aligned;
 };
@@ -360,19 +401,50 @@ const getPriceItems = (ver: CompareVersion, idx: number): PriceRow[] => {
     const ap = m.adjustedPrice ?? null;
     return [m.materialName || '--', { quantity: m.quantity || 0, unitPrice: ap != null ? ap : bp, basePrice: bp, isAdjusted: ap != null && ap !== bp }];
   }));
+  const baseMap = new Map<string, { quantity: number; unitPrice: number | null }>(baseItems.map((b: SnapshotMaterial) => {
+    const bp = b.basePriceAtSave ?? null;
+    const ap = b.adjustedPrice ?? null;
+    return [b.materialName || '--', { quantity: b.quantity || 0, unitPrice: ap != null ? ap : bp }];
+  }));
   const aligned: PriceRow[] = [];
   baseItems.forEach((b: SnapshotMaterial) => {
     const name = b.materialName || '--';
+    const baseInfo = baseMap.get(name) ?? { quantity: 0, unitPrice: null };
     if (currentMap.has(name)) {
       const cur = currentMap.get(name)!;
-      aligned.push({ name, quantity: cur.quantity, unitPrice: cur.unitPrice, basePrice: cur.basePrice, isAdjusted: cur.isAdjusted, missing: false });
+      const isChanged = baseInfo.unitPrice !== cur.unitPrice;
+      aligned.push({
+        name,
+        quantity: cur.quantity,
+        unitPrice: cur.unitPrice,
+        baseUnitPrice: baseInfo.unitPrice,
+        basePrice: cur.basePrice,
+        isAdjusted: cur.isAdjusted,
+        diffType: isChanged ? 'changed' : null,
+      });
       currentMap.delete(name);
     } else {
-      aligned.push({ name, quantity: b.quantity || 0, unitPrice: null, basePrice: b.basePriceAtSave ?? null, isAdjusted: false, missing: true });
+      aligned.push({
+        name,
+        quantity: b.quantity || 0,
+        unitPrice: null,
+        baseUnitPrice: baseInfo.unitPrice,
+        basePrice: b.basePriceAtSave ?? null,
+        isAdjusted: false,
+        missing: true,
+        diffType: 'missing',
+      });
     }
   });
   currentMap.forEach((val, name) => {
-    aligned.push({ name, quantity: val.quantity, unitPrice: val.unitPrice, basePrice: val.basePrice, isAdjusted: val.isAdjusted, missing: false });
+    aligned.push({
+      name,
+      quantity: val.quantity,
+      unitPrice: val.unitPrice,
+      basePrice: val.basePrice,
+      isAdjusted: val.isAdjusted,
+      diffType: 'added',
+    });
   });
   return aligned;
 };
@@ -868,6 +940,9 @@ $radius-2xl: 1rem;
           background: $emerald-50;
           color: var(--color-primary-dark);
           font-weight: 700;
+          border-color: $green-200;
+          border-left: 3px solid $emerald-500;
+          box-shadow: 0 1px 4px rgba(16, 185, 129, 0.12);
         }
 
         &.diff-removed {
@@ -881,12 +956,17 @@ $radius-2xl: 1rem;
           background: $amber-50;
           color: $amber-600;
           font-weight: 700;
+          border-color: $amber-200;
+          border-left: 3px solid $amber-600;
+          box-shadow: 0 1px 4px rgba(245, 158, 11, 0.12);
         }
 
         &.diff-missing {
           border-style: dashed;
           border-color: $red-300;
           background: $red-50;
+          border-left: 3px solid $red-400;
+          box-shadow: 0 1px 4px rgba(239, 68, 68, 0.08);
 
           .ing-name {
             color: var(--color-danger) !important;
@@ -910,6 +990,7 @@ $radius-2xl: 1rem;
           justify-content: space-between;
           align-items: center;
           margin-bottom: var(--space-1-5);
+          gap: 8px;
 
           .ing-name {
             font-size: 14px;
@@ -920,7 +1001,9 @@ $radius-2xl: 1rem;
           .ing-right {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
           }
 
           .ing-weight {
@@ -935,6 +1018,43 @@ $radius-2xl: 1rem;
             font-size: 14px;
             font-weight: 900;
             color: inherit;
+          }
+        }
+
+        // ─── 差异标识 Tag ───
+        .diff-tag {
+          display: inline-flex;
+          align-items: center;
+          gap: 3px;
+          padding: 2px 7px;
+          font-size: 10px;
+          font-weight: 700;
+          line-height: 1.4;
+          border-radius: 5px;
+          letter-spacing: 0.02em;
+          white-space: nowrap;
+
+          .t-icon {
+            font-size: 11px;
+          }
+
+          &--added {
+            background: $emerald-500;
+            color: $text-white;
+            box-shadow: 0 1px 2px rgba(16, 185, 129, 0.3);
+          }
+
+          &--missing {
+            background: $red-400;
+            color: $text-white;
+            box-shadow: 0 1px 2px rgba(239, 68, 68, 0.3);
+            text-decoration: none;
+          }
+
+          &--changed {
+            background: $amber-600;
+            color: $text-white;
+            box-shadow: 0 1px 2px rgba(245, 158, 11, 0.3);
           }
         }
 
@@ -1035,18 +1155,26 @@ $radius-2xl: 1rem;
           background: $emerald-50;
           color: var(--color-primary-dark);
           font-weight: 700;
+          border-color: $green-200;
+          border-left: 3px solid $emerald-500;
+          box-shadow: 0 1px 4px rgba(16, 185, 129, 0.12);
         }
 
         &.diff-changed {
           background: $amber-50;
           color: $amber-600;
           font-weight: 700;
+          border-color: $amber-200;
+          border-left: 3px solid $amber-600;
+          box-shadow: 0 1px 4px rgba(245, 158, 11, 0.12);
         }
 
         &.diff-missing {
           border-style: dashed;
           border-color: $red-300;
           background: $red-50;
+          border-left: 3px solid $red-400;
+          box-shadow: 0 1px 4px rgba(239, 68, 68, 0.08);
 
           .pi-name {
             color: var(--color-danger) !important;
@@ -1060,6 +1188,7 @@ $radius-2xl: 1rem;
           justify-content: space-between;
           align-items: center;
           margin-bottom: var(--space-1-5);
+          gap: 8px;
 
           .pi-name {
             font-size: 14px;
@@ -1070,7 +1199,9 @@ $radius-2xl: 1rem;
           .pi-right {
             display: flex;
             align-items: center;
-            gap: var(--space-1-5);
+            gap: 6px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
 
             .pi-value {
               font-family: ui-monospace, SFMono-Regular, 'Cascadia Code', monospace;
@@ -1096,6 +1227,43 @@ $radius-2xl: 1rem;
               font-weight: 700;
               flex-shrink: 0;
               cursor: help;
+            }
+
+            // ─── 差异标识 Tag ───
+            .diff-tag {
+              display: inline-flex;
+              align-items: center;
+              gap: 3px;
+              padding: 2px 7px;
+              font-size: 10px;
+              font-weight: 700;
+              line-height: 1.4;
+              border-radius: 5px;
+              letter-spacing: 0.02em;
+              white-space: nowrap;
+
+              .t-icon {
+                font-size: 11px;
+              }
+
+              &--added {
+                background: $emerald-500;
+                color: $text-white;
+                box-shadow: 0 1px 2px rgba(16, 185, 129, 0.3);
+              }
+
+              &--missing {
+                background: $red-400;
+                color: $text-white;
+                box-shadow: 0 1px 2px rgba(239, 68, 68, 0.3);
+                text-decoration: none;
+              }
+
+              &--changed {
+                background: $amber-600;
+                color: $text-white;
+                box-shadow: 0 1px 2px rgba(245, 158, 11, 0.3);
+              }
             }
           }
         }
@@ -1267,19 +1435,20 @@ $radius-2xl: 1rem;
   }
 
   // ─── 暗色模式适配 ───
-  [data-theme="dark"] {
+  [data-theme="dark"] & {
     .compare-card {
       box-shadow: $shadow-elevation-1;
       border-color: var(--color-border);
 
       &.is-base-card {
-        border-color: var(--color-primary-lighter);
+        border-color: rgba(16, 185, 129, 0.35);
         box-shadow: $shadow-elevation-2;
-        background: var(--color-bg-container-alt);
+        background: var(--color-bg-container);
 
         .card-header {
-          background: linear-gradient(135deg, rgba(16, 185, 129, 0.06) 0%, rgba(34, 197, 94, 0.03) 100%);
-          border-bottom-color: var(--color-border);
+          // 暗色基准：深绿低饱和，覆盖原亮绿渐变
+          background: linear-gradient(135deg, rgba(6, 78, 59, 0.55) 0%, rgba(16, 185, 129, 0.08) 100%);
+          border-bottom-color: rgba(16, 185, 129, 0.3);
         }
       }
 
@@ -1288,24 +1457,43 @@ $radius-2xl: 1rem;
         border-bottom-color: var(--color-border);
       }
 
+      .pin-btn {
+        // 暗色下提升默认可见度（placeholder 色在暗背景下对比度不足）
+        color: rgba(232, 223, 232, 0.55);
+        background-color: rgba(255, 255, 255, 0.04);
+
+        &:hover {
+          color: var(--color-primary-light);
+          background-color: rgba(16, 185, 129, 0.18);
+        }
+      }
+
       .card-body {
         .ingredient-item {
           background: var(--color-bg-container-alt);
           border-color: var(--color-border-light);
 
           &.diff-added {
-            background: rgba(16, 185, 129, 0.12);
+            background: rgba(16, 185, 129, 0.14);
             color: var(--color-primary-light);
+            border-color: rgba(16, 185, 129, 0.4);
+            border-left: 3px solid $emerald-500;
+            box-shadow: 0 1px 6px rgba(16, 185, 129, 0.18);
           }
 
           &.diff-changed {
-            background: rgba(245, 158, 11, 0.12);
+            background: rgba(245, 158, 11, 0.14);
             color: var(--color-warning);
+            border-color: rgba(245, 158, 11, 0.4);
+            border-left: 3px solid $amber-600;
+            box-shadow: 0 1px 6px rgba(245, 158, 11, 0.18);
           }
 
           &.diff-missing {
-            background: rgba(239, 68, 68, 0.08);
-            border-color: rgba(239, 68, 68, 0.2);
+            background: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.35);
+            border-left: 3px solid $red-400;
+            box-shadow: 0 1px 6px rgba(239, 68, 68, 0.18);
           }
 
           .ing-top {
@@ -1325,6 +1513,24 @@ $radius-2xl: 1rem;
           .ing-bar-track {
             background: var(--color-border);
           }
+
+          // 暗色模式下的 diff-tag 配色（提亮背景增加可见度）
+          .diff-tag {
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+
+            &--added {
+              background: $emerald-400;
+            }
+
+            &--missing {
+              background: $red-400;
+            }
+
+            &--changed {
+              background: $amber-400;
+              color: #1a1520; // 暗色背景下用深色文字提升可读性
+            }
+          }
         }
 
         .price-item {
@@ -1332,18 +1538,26 @@ $radius-2xl: 1rem;
           border-color: var(--color-border);
 
           &.diff-added {
-            background: rgba(16, 185, 129, 0.12);
+            background: rgba(16, 185, 129, 0.14);
             color: var(--color-primary-light);
+            border-color: rgba(16, 185, 129, 0.4);
+            border-left: 3px solid $emerald-500;
+            box-shadow: 0 1px 6px rgba(16, 185, 129, 0.18);
           }
 
           &.diff-changed {
-            background: rgba(245, 158, 11, 0.12);
+            background: rgba(245, 158, 11, 0.14);
             color: var(--color-warning);
+            border-color: rgba(245, 158, 11, 0.4);
+            border-left: 3px solid $amber-600;
+            box-shadow: 0 1px 6px rgba(245, 158, 11, 0.18);
           }
 
           &.diff-missing {
-            background: rgba(239, 68, 68, 0.08);
-            border-color: rgba(239, 68, 68, 0.2);
+            background: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.35);
+            border-left: 3px solid $red-400;
+            box-shadow: 0 1px 6px rgba(239, 68, 68, 0.18);
           }
 
           .pi-top {
@@ -1354,6 +1568,23 @@ $radius-2xl: 1rem;
             .pi-right {
               .pi-value {
                 color: var(--color-text-primary);
+              }
+
+              .diff-tag {
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+
+                &--added {
+                  background: $emerald-400;
+                }
+
+                &--missing {
+                  background: $red-400;
+                }
+
+                &--changed {
+                  background: $amber-400;
+                  color: #1a1520;
+                }
               }
             }
           }

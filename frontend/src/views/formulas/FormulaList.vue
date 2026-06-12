@@ -965,6 +965,16 @@ const getFormulaStatus = (row: Formula | Record<string, unknown>) => {
       color: 'var(--color-primary)'
     };
   }
+  if (currentVersion && currentVersion.status === 'pending_review') {
+    return {
+      label: '待审核',
+      theme: 'warning',
+      variant: 'light' as const,
+      icon: 'time',
+      version: versionNumber,
+      color: 'var(--color-warning)'
+    };
+  }
   if (currentVersion && currentVersion.status === 'draft') {
     return {
       label: '草稿',

@@ -122,4 +122,15 @@ export const nutritionSourceApi = {
       results: Array<{ materialId: string; materialName: string; found: boolean; sourcesAdded: number }>
     }>('/nutrition/bulk-enrich-nutrition', data)
   },
+
+  checkSeedAvailability(name: string) {
+    return http.get<{ found: boolean; matchScore: number; confidence?: string }>(
+      '/nutrition/check-seed',
+      { params: { name }, _silent: true }
+    )
+  },
+
+  searchSeedByName(name: string) {
+    return http.post<{ results: EnrichResult[] }>('/nutrition/search-seed', { name })
+  },
 }

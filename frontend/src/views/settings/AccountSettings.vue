@@ -287,6 +287,18 @@
                   :popup-props="{ appendToBody: true }"
                 />
               </div>
+              <div class="pref-row">
+                <div class="pref-row-label">
+                  <span>自动锁屏</span>
+                  <span class="pref-row-desc">无操作后自动锁定屏幕</span>
+                </div>
+                <t-select
+                  v-model="prefForm.autoLockMinutes"
+                  :options="autoLockOptions"
+                  style="width: 160px"
+                  :popup-props="{ appendToBody: true }"
+                />
+              </div>
             </div>
           </section>
 
@@ -564,6 +576,16 @@ const pageSizeOptions = [
   { value: 20, label: '20 条/页' },
 ]
 
+const autoLockOptions = [
+  { value: 0, label: '不锁屏' },
+  { value: 5, label: '5 分钟' },
+  { value: 10, label: '10 分钟' },
+  { value: 30, label: '30 分钟' },
+  { value: 60, label: '1 小时' },
+  { value: 120, label: '2 小时' },
+  { value: 240, label: '4 小时' },
+]
+
 const formulaViewOptions = [
   { value: 'card', label: '卡片视图', icon: 'view-module' },
   { value: 'table', label: '列表视图', icon: 'view-list' },
@@ -590,6 +612,7 @@ const prefForm = reactive({
   formulaDefaultView: preferencesStore.preferences.formulaDefaultView || 'card',
   defaultExportFormat: preferencesStore.preferences.defaultExportFormat || 'excel',
   formulaDefaultSort: preferencesStore.preferences.formulaDefaultSort || 'updatedAt',
+  autoLockMinutes: preferencesStore.preferences.autoLockMinutes ?? 0,
 })
 
 const currentThemeMode = computed(() => themeStore.mode)
@@ -619,6 +642,7 @@ async function handlePrefSave() {
       formulaDefaultView: prefForm.formulaDefaultView,
       defaultExportFormat: prefForm.defaultExportFormat,
       formulaDefaultSort: prefForm.formulaDefaultSort,
+      autoLockMinutes: prefForm.autoLockMinutes,
     })
     if (result.success) {
       MessagePlugin.success('偏好设置已保存')
@@ -641,6 +665,7 @@ async function handlePrefReset() {
     prefForm.formulaDefaultView = 'card'
     prefForm.defaultExportFormat = 'excel'
     prefForm.formulaDefaultSort = 'updatedAt'
+    prefForm.autoLockMinutes = 0
     themeStore.setMode('auto')
     themeStore.setBrandColor('pink')
     MessagePlugin.success('已恢复默认偏好')
@@ -660,6 +685,7 @@ function syncPrefForm() {
   prefForm.formulaDefaultView = p.formulaDefaultView || 'card'
   prefForm.defaultExportFormat = p.defaultExportFormat || 'excel'
   prefForm.formulaDefaultSort = p.formulaDefaultSort || 'updatedAt'
+  prefForm.autoLockMinutes = p.autoLockMinutes ?? 0
 }
 
 // ─── 初始化 ───

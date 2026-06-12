@@ -19,15 +19,32 @@
       "Bash(curl -s http://localhost:3000/)",
       "Bash(npx tsx *)",
       "Bash(sed -i 's|// 处理 keep-alive 缓存的组件重新激活时恢复搜索状态和检查缓存|// keep-alive 重新激活：检测用户切换 + 恢复搜索状态|' FormulaList.vue)",
-      "Bash(sed -i 's|  // 检查用户是否切换（通过 localStorage 中的用户ID对比）|  const currentUserId = localStorage.getItem\\('\\\\''tingstudio_user_id'\\\\''\\);|' FormulaList.vue)"
+      "Bash(sed -i 's|  // 检查用户是否切换（通过 localStorage 中的用户ID对比）|  const currentUserId = localStorage.getItem\\('\\\\''tingstudio_user_id'\\\\''\\);|' FormulaList.vue)",
+      "mcp__chrome-devtools__list_pages",
+      "mcp__chrome-devtools__navigate_page",
+      "mcp__chrome-devtools__evaluate_script",
+      "mcp__chrome-devtools__take_screenshot",
+      "mcp__chrome-devtools__list_console_messages",
+      "Bash(curl -s -o /tmp/vc.html -w \"HTTP %{http_code}\\\\n\" \"http://localhost:5173/src/views/formulas/versions/VersionCompare.vue\")",
+      "Bash(cat /tmp/vc.html | head -30)",
+      "Bash(curl -s -o /tmp/vc2.html -w \"HTTP %{http_code}\\\\n\" \"http://localhost:5173/src/views/formulas/versions/VersionCompare.vue?t=1781252601893\")",
+      "Bash(grep -n \"diff-tag\" /tmp/vc2.html | head -5)",
+      "mcp__chrome-devtools__new_page",
+      "Bash(curl -s -w \"\\\\nHTTP %{http_code}\\\\n\" \"http://localhost:5173/src/views/formulas/versions/VersionCompare.vue?t=$\\(date +%s%3N\\)\")",
+      "Bash(curl -s -w \"\\\\nHTTP %{http_code}\\\\n\" \"http://localhost:5173/src/views/formulas/versions/VersionCompare.vue?t=1781252520280&vue&type=style&index=0&scoped=e5c63919&lang.scss\")",
+      "Bash(grep -E \"^\\\\$\\(emerald|amber|red|green\\)-\" \"d:\\\\Program Data\\\\workspace-codebd\\\\TingStudio\\\\frontend\\\\src\\\\assets\\\\styles\\\\design-tokens.scss\")",
+      "Bash(grep -E '\\\\$amber-500|\\\\$red-500|\\\\$emerald-200|\\\\$emerald-300' 'd:\\\\Program Data\\\\workspace-codebd\\\\TingStudio\\\\frontend\\\\src\\\\assets\\\\styles\\\\design-tokens.scss')",
+      "Bash(grep -nE '\\\\$amber-500|\\\\$red-500|\\\\$emerald-200' 'd:\\\\Program Data\\\\workspace-codebd\\\\TingStudio\\\\frontend\\\\src\\\\views\\\\formulas\\\\versions\\\\VersionCompare.vue')",
+      "Bash(curl -s \"http://localhost:5173/src/views/formulas/versions/VersionCompare.vue?t=$\\(date +%s%3N\\)&vue&type=style&index=0&scoped=e5c63919&lang.scss\")",
+      "Bash(curl -s -w \"HTTP %{http_code}\\\\n\" -o /tmp/vc-style.css \"http://localhost:5173/src/views/formulas/versions/VersionCompare.vue?t=$\\(date +%s%3N\\)&vue&type=style&index=0&scoped=e5c63919&lang.scss\")"
     ]
   },
-  "language": "chinese",
   "enabledMcpjsonServers": [
     "gitee",
     "filesystem",
     "context7",
     "playwright",
     "chrome-devtools"
-  ]
+  ],
+  "language": "chinese"
 }

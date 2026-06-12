@@ -8,6 +8,7 @@ import {
   setAuthoritativeFromSources,
 } from "../services/nutritionSourceService.js";
 import { enrichMaterialNutrition, bulkEnrichNutrition } from "../services/externalNutrition/AggregateNutritionService.js";
+import { SeedDataAdapter } from "../services/externalNutrition/adapters/NutritionAdapters.js";
 import { success, fail } from "../utils/helpers.js";
 
 type AuthRequest = Request & { user: { userId: string; role: string } };
@@ -151,5 +152,53 @@ export async function bulkEnrichNutritionHandler(req: AuthRequest, res: Response
     res.json(success(result));
   } catch (error: unknown) {
     res.status(500).json(fail("批量补全失败"));
+  }
+}
+
+const seedAdapter = new SeedDataAdapter();
+
+export async function checkSeedAvailability(req: Request, res: Response) {
+  try {
+    const name = (req.query.name as string | undefined)?.trim();
+    if (!name || name.length < 2) {
+      res.json(success({ found: false, matchScore: 0 }));
+      return;
+    }
+    const result = await seedAdapter.search(name);
+    if (result) {
+      res.json(success({ found: true, matchScore: result.matchScore, confidence: result.confidence }));
+    } else {
+      res.json(success({ found: false, matchScore: 0 }));
+    }
+  } catch (error: unknown) {
+    res.json(success({ found: false, matchScore: 0 }));
+  }
+}
+
+export async function searchSeedByName(req: Request, res: Response) {
+  try {
+    const { name } = req.body || {};
+    if (!name || typeof name !== "string" || name.trim().length < 2) {
+      res.json(success({ results: [] }));
+      return;
+    }
+    const result = await seedAdapter.search(name.trim());
+    if (result) {
+      res.json(success({
+        results: [{
+          sourceType: "seed",
+          sourceId: "",
+          found: true,
+          matchScore: result.matchScore,
+          confidence: result.confidence,
+          sourceDetail: result.dataSource || null,
+          per100g: result.per100g,
+        }],
+      }));
+    } else {
+      res.json(success({ results: [] }));
+    }
+  } catch (error: unknown) {
+    res.json(success({ results: [] }));
   }
 }

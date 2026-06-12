@@ -10,6 +10,8 @@ import {
   setAuthoritative,
   enrichNutrition,
   bulkEnrichNutritionHandler,
+  checkSeedAvailability,
+  searchSeedByName,
 } from "../controllers/nutritionSourceController.js";
 
 type H = unknown;
@@ -64,6 +66,16 @@ nutritionSourceRoutes.post(
 nutritionSourceRoutes.post(
   "/bulk-enrich-nutrition",
   asHandler(bulkEnrichNutritionHandler),
+);
+
+nutritionSourceRoutes.get(
+  "/check-seed",
+  asHandler(checkSeedAvailability),
+);
+
+nutritionSourceRoutes.post(
+  "/search-seed",
+  asHandler(searchSeedByName),
 );
 
 export default nutritionSourceRoutes;

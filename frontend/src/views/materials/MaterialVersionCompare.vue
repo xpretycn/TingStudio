@@ -201,10 +201,6 @@ function onConfirmReset() {
   compareResults.value = [];
 }
 
-function getChangeClass(type: CompareDiffItem["type"]) {
-  return `change-${type}`;
-}
-
 function getDiffClassForVersion(idx: number, val: VersionValue): string {
   if (idx === 0) {
     if (val.rawType === "new") return "diff-missing";
@@ -298,11 +294,18 @@ function getVersionInfo(versionId: string) {
                     <div class="ing-top">
                       <span class="ing-name">{{ item.label }}</span>
                       <div class="ing-right">
-                        <span class="ing-value">{{ item.versionValues[idx].display || "--" }}</span>
-                        <span v-if="item.versionValues[idx].rawType !== 'unchanged'" class="change-badge"
-                          :class="getChangeClass(item.versionValues[idx].rawType)">
+                        <span v-if="item.versionValues[idx].rawType === 'new'" class="diff-tag diff-tag--added">
+                          <t-icon name="add-circle" />新增
+                        </span>
+                        <span v-else-if="item.versionValues[idx].rawType === 'deleted'" class="diff-tag diff-tag--missing">
+                          <t-icon name="minus-circle" />已删除
+                        </span>
+                        <span v-else-if="item.versionValues[idx].rawType === 'increase' || item.versionValues[idx].rawType === 'decrease'"
+                          class="diff-tag diff-tag--changed">
+                          <t-icon :name="item.versionValues[idx].rawType === 'increase' ? 'caret-up' : 'caret-down'" />
                           {{ item.versionValues[idx].change }}
                         </span>
+                        <span class="ing-value">{{ item.versionValues[idx].display || "--" }}</span>
                       </div>
                     </div>
                   </div>
@@ -323,11 +326,18 @@ function getVersionInfo(versionId: string) {
                     <div class="ing-top">
                       <span class="ing-name">{{ item.label }}</span>
                       <div class="ing-right">
-                        <span class="ing-value">{{ item.versionValues[idx].display || "--" }}</span>
-                        <span v-if="item.versionValues[idx].rawType !== 'unchanged'" class="change-badge"
-                          :class="getChangeClass(item.versionValues[idx].rawType)">
+                        <span v-if="item.versionValues[idx].rawType === 'new'" class="diff-tag diff-tag--added">
+                          <t-icon name="add-circle" />新增
+                        </span>
+                        <span v-else-if="item.versionValues[idx].rawType === 'deleted'" class="diff-tag diff-tag--missing">
+                          <t-icon name="minus-circle" />已删除
+                        </span>
+                        <span v-else-if="item.versionValues[idx].rawType === 'increase' || item.versionValues[idx].rawType === 'decrease'"
+                          class="diff-tag diff-tag--changed">
+                          <t-icon :name="item.versionValues[idx].rawType === 'increase' ? 'caret-up' : 'caret-down'" />
                           {{ item.versionValues[idx].change }}
                         </span>
+                        <span class="ing-value">{{ item.versionValues[idx].display || "--" }}</span>
                       </div>
                     </div>
                   </div>
@@ -383,7 +393,7 @@ function getVersionInfo(versionId: string) {
 <style lang="scss" scoped>
 @use "@/assets/styles/variables.scss" as *;
 
-$radius-2xl: 2rem;
+$radius-2xl: 1rem;
 
 @keyframes fadeInDown {
   from {
@@ -542,7 +552,7 @@ $radius-2xl: 2rem;
   }
 
   .detail-main {
-    padding: 32px 0;
+    padding: 16px 0;
     animation: fadeInDown 0.35s ease both;
     animation-delay: 0.05s;
   }
@@ -588,9 +598,9 @@ $radius-2xl: 2rem;
 
   .compare-grid {
     display: flex;
-    gap: 20px;
+    gap: 16px;
     overflow-x: auto;
-    padding-bottom: 24px;
+    padding-bottom: 16px;
 
     &::-webkit-scrollbar {
       height: 8px;
@@ -603,8 +613,8 @@ $radius-2xl: 2rem;
   }
 
   .compare-card {
-    min-width: 340px;
-    max-width: 400px;
+    min-width: 400px;
+    max-width: 420px;
     flex-shrink: 0;
     background: var(--color-bg-container);
     border-radius: $radius-2xl;
@@ -614,7 +624,7 @@ $radius-2xl: 2rem;
     animation: slideIn 0.5s ease-out both;
 
     &.is-base-card {
-      border-color: #bbf7d0;
+      border-color: var(--color-primary-lighter);
       box-shadow: 0 1px 3px rgba(16, 185, 129, 0.08);
 
       .card-header {
@@ -624,9 +634,9 @@ $radius-2xl: 2rem;
     }
 
     .card-header {
-      padding: 24px;
+      padding: 16px;
       border-bottom: 1px solid var(--color-bg-page);
-      background: rgba(248, 250, 252, 0.30);
+      background: var(--color-bg-page-alt);
       position: relative;
 
       .card-header-top {
@@ -668,7 +678,7 @@ $radius-2xl: 2rem;
         border: none;
         border-radius: 8px;
         background: transparent;
-        color: var(--color-text-placeholder);
+        color: var(--color-text-secondary);
         cursor: pointer;
         transition: all $transition-fast;
         font-size: 15px;
@@ -745,26 +755,34 @@ $radius-2xl: 2rem;
         padding: var(--space-3-5) 16px;
         margin-bottom: var(--space-2-5);
         border-radius: 16px;
-        border: 1px solid var(--color-bg-page);
+        border: 1px solid var(--color-border);
         transition: all $transition-fast;
-        background: rgba(248, 250, 252, 0.50);
+        background: var(--color-bg-container);
 
         &.diff-added {
-          background: var(--color-emerald-50);
+          background: $emerald-50;
           color: var(--color-primary-dark);
           font-weight: 700;
+          border-color: $green-200;
+          border-left: 3px solid $emerald-500;
+          box-shadow: 0 1px 4px rgba(16, 185, 129, 0.12);
         }
 
         &.diff-changed {
-          background: var(--color-warning-bg);
-          color: var(--color-warning);
+          background: $amber-50;
+          color: $amber-600;
           font-weight: 700;
+          border-color: $amber-200;
+          border-left: 3px solid $amber-600;
+          box-shadow: 0 1px 4px rgba(245, 158, 11, 0.12);
         }
 
         &.diff-missing {
           border-style: dashed;
-          border-color: var(--color-danger-border);
-          background: var(--color-danger-bg);
+          border-color: $red-300;
+          background: $red-50;
+          border-left: 3px solid $red-400;
+          box-shadow: 0 1px 4px rgba(239, 68, 68, 0.08);
 
           .ing-name {
             color: var(--color-danger) !important;
@@ -773,7 +791,7 @@ $radius-2xl: 2rem;
           }
 
           .ing-value {
-            color: var(--color-danger) !important;
+            color: $red-400 !important;
             font-weight: 900;
           }
         }
@@ -783,6 +801,8 @@ $radius-2xl: 2rem;
           justify-content: space-between;
           align-items: center;
           margin-bottom: var(--space-1-5);
+          gap: 8px;
+          gap: 8px;
 
           .ing-name {
             font-size: 14px;
@@ -793,7 +813,9 @@ $radius-2xl: 2rem;
           .ing-right {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
           }
 
           .ing-value {
@@ -804,35 +826,39 @@ $radius-2xl: 2rem;
           }
         }
 
-        .change-badge {
+        .diff-tag {
           display: inline-flex;
           align-items: center;
-          padding: 2px 8px;
-          border-radius: 999px;
-          font-size: 11px;
+          gap: 3px;
+          padding: 2px 7px;
+          font-size: 10px;
           font-weight: 700;
+          line-height: 1.4;
+          border-radius: 5px;
           letter-spacing: 0.02em;
           white-space: nowrap;
 
-          &.change-increase {
-            background: $color-success-bg;
-            color: $color-success;
+          .t-icon {
+            font-size: 11px;
           }
 
-          &.change-decrease {
-            background: $color-danger-bg;
-            color: $color-danger;
+          &--added {
+            background: $emerald-500;
+            color: $text-white;
+            box-shadow: 0 1px 2px rgba(16, 185, 129, 0.3);
           }
 
-          &.change-new {
-            background: $color-info-bg;
-            color: $color-info;
+          &--missing {
+            background: $red-400;
+            color: $text-white;
+            box-shadow: 0 1px 2px rgba(239, 68, 68, 0.3);
+            text-decoration: none;
           }
 
-          &.change-deleted {
-            background: $color-danger-bg;
-            color: $color-danger;
-            text-decoration: line-through;
+          &--changed {
+            background: $amber-600;
+            color: $text-white;
+            box-shadow: 0 1px 2px rgba(245, 158, 11, 0.3);
           }
         }
       }
@@ -970,7 +996,7 @@ $radius-2xl: 2rem;
   }
 
   // ─── 暗色模式适配 ───
-  [data-theme="dark"] {
+  :deep([data-theme="dark"]) {
     .compare-card {
       box-shadow: $shadow-elevation-1;
       border-color: var(--color-border);
@@ -978,9 +1004,10 @@ $radius-2xl: 2rem;
       &.is-base-card {
         border-color: var(--color-primary-lighter);
         box-shadow: $shadow-elevation-2;
+        background: var(--color-bg-container-alt);
 
         .card-header {
-          background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(34, 197, 94, 0.08) 100%);
+          background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(34, 197, 94, 0.08) 100%);
           border-bottom-color: var(--color-border);
         }
       }
@@ -990,18 +1017,35 @@ $radius-2xl: 2rem;
         border-bottom-color: var(--color-border);
       }
 
+      .pin-btn {
+        color: var(--color-text-secondary);
+
+        &:hover {
+          color: var(--color-primary);
+          background-color: rgba(16, 185, 129, 0.12);
+        }
+      }
+
       .card-body {
         .ingredient-item {
           background: var(--color-bg-container-alt);
-          border-color: var(--color-border);
+          border-color: var(--color-border-light);
+
+          &.diff-added {
+            background: rgba(16, 185, 129, 0.12);
+            color: var(--color-primary-light);
+            border-color: rgba(16, 185, 129, 0.25);
+          }
+
+          &.diff-changed {
+            background: rgba(245, 158, 11, 0.12);
+            color: var(--color-warning);
+            border-color: rgba(245, 158, 11, 0.25);
+          }
 
           &.diff-missing {
             background: rgba(239, 68, 68, 0.08);
             border-color: rgba(239, 68, 68, 0.2);
-          }
-
-          .ing-bar-track {
-            background: var(--color-border);
           }
         }
       }

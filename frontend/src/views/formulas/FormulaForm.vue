@@ -37,6 +37,11 @@
           <t-icon name="save" class="btn-icon" />
           {{submitBlockReasons.some(r => r.type === 'error') ? '校验未通过' : (isEdit ? '保存' : '创建')}}
         </button>
+        <button v-if="canSubmitForReview" class="header-action-btn submit-review-btn" @click="handleSubmitAndSubmit" aria-label="保存并提交审核"
+          data-testid="formula-submit-review-btn" :disabled="submitBlockReasons.some(r => r.type === 'error')">
+          <t-icon name="send" class="btn-icon" />
+          提交审核
+        </button>
       </div>
     </header>
 
@@ -395,6 +400,7 @@ import { useRouter, useRoute } from 'vue-router';
 import { useFormulaStore } from '@/stores/formula';
 import { useSalesmanStore } from '@/stores/salesman';
 import { useMaterialStore } from '@/stores/material';
+import { useAuthStore } from '@/stores/auth';
 import { MessagePlugin, DialogPlugin } from 'tdesign-vue-next';
 import type { FormRule } from 'tdesign-vue-next';
 import type { MaterialItem, RatioFactorValidationResult, FormulaForm as FormulaFormType, PriceQuoteMaterial } from '@/api/formula';
@@ -416,6 +422,7 @@ const route = useRoute();
 const formulaStore = useFormulaStore();
 const salesmanStore = useSalesmanStore();
 const materialStore = useMaterialStore();
+const authStore = useAuthStore();
 const { aiLoadingDescription, aiLoadingPreparation, aiLoadingVersionReason, handleAiGenerate } = useFormulaAiGeneration();
 
 const formRef = ref<Record<string, unknown> | null>(null);
@@ -583,6 +590,8 @@ const priceQuote = computed(() => {
 const isEdit = computed(() => !!route.params.id);
 const currentVersionNumber = ref('');
 const formulaStatus = ref('draft');
+const isAdmin = computed(() => authStore.user?.role === 'admin');
+const canSubmitForReview = computed(() => isEdit.value && formulaStatus.value === 'draft' && !isAdmin.value);
 
 const statusTagInfo = computed(() => {
   const map: Record<string, { label: string; cls: string; }> = {
@@ -950,6 +959,76 @@ const handleSubmit = async ({ validateResult }: Record<string, unknown>) => {
     } finally {
       loading.value = false;
     }
+  }
+};
+
+const handleSubmitAndSubmit = async ({ validateResult }: Record<string, unknown>) => {
+  if (validateResult !== true) return;
+
+  if (isEdit.value && !formData.versionReason?.trim()) {
+    versionReasonError.value = true;
+    await nextTick();
+    const el = versionReasonRef.value?.$el as HTMLElement | undefined;
+    const textareaEl = el?.querySelector('textarea') || el;
+    if (textareaEl) {
+      textareaEl.focus?.();
+      textareaEl.scrollIntoView?.({ behavior: 'smooth', block: 'center' });
+    }
+    return;
+  }
+
+  if (formData.materials.length > 0 && formData.finishedWeight > 0) {
+    const validation = ratioValidation.value;
+    if (!validation.allowed) {
+      MessagePlugin.error(validation.message);
+      return;
+    }
+    if (validation.level === 'high_warning' || validation.level === 'warning') {
+      const confirmed = await new Promise<boolean>((resolve) => {
+        const dialog = DialogPlugin.confirm({
+          header: validation.level === 'high_warning' ? '含量比严重偏差' : '含量比偏差提醒',
+          body: validation.description,
+          confirmBtn: '继续提交',
+          cancelBtn: '返回修改',
+          theme: validation.level === 'high_warning' ? 'warning' : 'info',
+          onConfirm: () => { dialog.destroy(); resolve(true); },
+          onCancel: () => { dialog.destroy(); resolve(false); },
+          onClose: () => { dialog.destroy(); resolve(false); },
+        });
+      });
+      if (!confirmed) return;
+    }
+  }
+
+  const incomplete = formData.materials.filter(
+    (m: FormMaterialItem) => !m.materialId || !m.quantity || m.quantity <= 0
+  );
+  if (incomplete.length > 0) {
+    MessagePlugin.error(`${incomplete.length} 种原料信息不完整（缺少名称或用量），请补充完整后再提交`);
+    return;
+  }
+
+  if (loading.value) return;
+  loading.value = true;
+  try {
+    const id = route.params.id as string;
+    const result = await formulaStore.updateFormula(id, formData);
+
+    if (result.success) {
+      const versions = await versionApi.getList(id);
+      const draftVersion = versions.find((v: { status: string; isCurrent: number }) => v.status === 'draft' && v.isCurrent === 1);
+      if (draftVersion) {
+        await versionApi.submit(draftVersion.versionId);
+        MessagePlugin.success('保存并提交审核成功');
+      } else {
+        MessagePlugin.success('保存成功');
+      }
+      router.push({ path: '/formulas', query: route.query });
+    } else {
+      MessagePlugin.error(result.message || '操作失败');
+    }
+  } finally {
+    loading.value = false;
   }
 };
 
@@ -1393,6 +1472,24 @@ onMounted(async () => {
 
           &:active {
             background-color: var(--color-border); // slate-300
+          }
+        }
+
+        // 提交审核按钮
+        &.submit-review-btn {
+          background-color: var(--color-warning, #F5A623);
+          color: $text-white;
+          box-shadow: 0 10px 15px -3px $overlay-amber-25;
+
+          &:hover {
+            background-color: var(--color-warning-dark, #D4901A);
+            transform: translateY(-1px);
+            box-shadow: 0 14px 20px -3px $overlay-amber-35;
+          }
+
+          &:active {
+            transform: translateY(0);
+            background-color: var(--color-warning-deep, #B07A15);
           }
         }
       }

@@ -774,7 +774,7 @@ const ratioValidation = computed(() => {
   };
 });
 
-// Restore compare selection from localStorage
+// Restore compare selection from localStorage (validate after versions loaded)
 const stored = localStorage.getItem('compare_versions');
 if (stored) {
   try {
@@ -795,6 +795,17 @@ onMounted(async () => {
     })(),
     materialStore.fetchAllForSelect(),
   ]);
+
+  // Validate and clean up stored compare selections against loaded versions
+  if (selectedForCompare.value.length > 0) {
+    const availableIds = new Set((versionStore.versions || []).map((v: FormulaVersion) => v.versionId));
+    const validIds = selectedForCompare.value.filter((id: string) => availableIds.has(id));
+    if (validIds.length !== selectedForCompare.value.length) {
+      selectedForCompare.value = validIds;
+      localStorage.setItem('compare_versions', JSON.stringify(validIds));
+    }
+  }
+
   initialized.value = true;
 });
 </script>

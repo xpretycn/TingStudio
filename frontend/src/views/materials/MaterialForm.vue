@@ -237,55 +237,58 @@
                 </div>
               </div>
 
-              <div class="row-actions collapse-toolbar">
+              <!-- 种子库提示气泡 -->
+              <Transition name="fade-slide">
+                <div v-if="seedAvailable && !hasNutrition" class="seed-hint-banner">
+                  <t-icon name="root-list" />
+                  <span class="seed-hint-text">检测到种子库有该原料的营养数据（匹配度 {{ (seedMatchScore * 100).toFixed(0) }}%）</span>
+                  <t-button theme="primary" variant="text" size="small" @click="seedEnrichVisible = true">一键填充</t-button>
+                  <t-icon name="close" class="seed-hint-close" @click="seedAvailable = false" />
+                </div>
+              </Transition>
+
+              <!-- 进度条 + 隐藏零值 -->
+              <div class="nutrition-progress">
+                <div class="np-bar-wrap">
+                  <div class="np-bar" :style="{ width: progressPercent + '%' }"></div>
+                </div>
+                <span class="np-text">已填 {{ filledCount }}/{{ totalCount }} 项</span>
+                <div class="np-toggle">
+                  <t-switch v-model="hideZeroValues" size="small" />
+                  <span class="np-toggle-label">隐藏零值</span>
+                </div>
                 <button type="button" class="clear-btn" @click="handleClearNutrition" aria-label="清空所有营养成分">
-                  <t-icon name="delete" />
-                  清空
-                </button>
-                <button type="button" class="add-row-btn" @click="expandAllGroups" aria-label="展开所有营养成分分组">
-                  <t-icon name="unfold-more" />
-                  展开
-                </button>
-                <button type="button" class="add-row-btn" @click="collapseAllGroups" aria-label="收起所有营养成分分组">
-                  <t-icon name="unfold-less" />
-                  收起
+                  <t-icon name="delete" />清空
                 </button>
               </div>
 
-              <t-collapse :value="Object.keys(collapseExpanded).filter(k => collapseExpanded[k])"
-                @change="handleCollapseChange">
-                <t-collapse-panel v-for="group in nutritionFieldGroups" :key="group.title" :value="group.title">
-                  <template #header>
-                    <div class="group-header">
-                      <t-icon :name="group.icon" size="16px" />
-                      <span>{{ group.title }}</span>
-                      <t-tag size="small" variant="light" theme="default" shape="round">
-                        {{ group.fields.length }}项
-                      </t-tag>
-                    </div>
-                  </template>
-                  <div class="nutrition-grid">
-                    <div v-for="field in group.fields.filter(f => f.key !== 'energy')" :key="field.key"
-                      class="nutrition-field-item">
-                      <label class="nf-label">{{ field.label }}</label>
-                      <div class="nf-input-wrap">
+              <!-- 全展开平铺分组（两两并排） -->
+              <div v-for="(pair, pairIdx) in nutritionGroupPairs" :key="pairIdx" class="nutrition-group-pair">
+                <div v-for="group in pair" :key="group.title" class="nutrition-group-section">
+                  <div class="ngroup-header">
+                    <t-icon :name="group.icon" size="16px" />
+                    <span>{{ group.title }}</span>
+                    <t-tag size="small" variant="light" theme="default" shape="round">{{ group.fields.length }}项</t-tag>
+                  </div>
+                  <div class="ntg-rows">
+                    <template v-for="field in visibleFields(group)" :key="field.key">
+                      <div v-if="field.key !== 'energy'" class="ntg-row" :class="{ 'is-zero': isFieldZero(field.key) }">
+                        <span class="ntg-label">{{ field.label }}</span>
                         <t-input-number v-model="nutritionData[field.key]" :min="0" :decimal-places="field.decimals"
-                          :placeholder="field.placeholder" theme="normal" style="width: 100px" />
-                        <span class="nf-unit">{{ field.unit }}</span>
+                          :placeholder="field.placeholder" theme="normal" class="ntg-input" />
+                        <span class="ntg-unit">{{ field.unit }}</span>
                       </div>
-                    </div>
-                    <div v-if="group.fields.some(f => f.key === 'energy')"
-                      class="nutrition-field-item nf-calculated nf-full-width" style="margin-top: 12px;">
-                      <label class="nf-label">能量</label>
-                      <div class="nf-calc-wrap">
-                        <span class="nf-calc-value">{{ calculatedEnergy }}</span>
-                        <span class="nf-unit">kJ</span>
-                        <span class="nf-calc-formula">= 蛋白×17 + 脂肪×37 + 碳水×17</span>
-                      </div>
+                    </template>
+                    <!-- 能量行（自动计算） -->
+                    <div v-if="group.fields.some(f => f.key === 'energy')" class="ntg-row ntg-row--calc">
+                      <span class="ntg-label">能量</span>
+                      <span class="ntg-calc-value">{{ calculatedEnergy }}</span>
+                      <span class="ntg-unit">kJ</span>
+                      <span class="ntg-calc-formula">= 蛋白×17 + 脂肪×37 + 碳水×17</span>
                     </div>
                   </div>
-                </t-collapse-panel>
-              </t-collapse>
+                </div>
+              </div>
 
               <div class="nutrition-meta">
                 <div class="nm-row">
@@ -355,11 +358,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue';
+import { ref, reactive, computed, onMounted, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useMaterialStore } from '@/stores/material';
 import { useEnumStore } from '@/stores/enum';
 import { nutritionApi } from '@/api/nutrition';
+import { nutritionSourceApi } from '@/api/nutritionSource';
 import { materialApi } from '@/api/material';
 import { MessagePlugin } from 'tdesign-vue-next';
 import type { FormInstanceFunctions, FormRule } from 'tdesign-vue-next';
@@ -459,7 +463,7 @@ const rules: Record<string, FormRule[]> = {
 
 const nutritionFieldGroups = [
   {
-    title: '基础营养成分', icon: 'chart-bar', expanded: true,
+    title: '基础营养成分', icon: 'chart-bar',
     fields: [
       { key: 'protein', label: '蛋白质', unit: 'g', decimals: 2, placeholder: '克' },
       { key: 'fat', label: '脂肪', unit: 'g', decimals: 2, placeholder: '克' },
@@ -470,7 +474,7 @@ const nutritionFieldGroups = [
     ]
   },
   {
-    title: '矿物质', icon: 'layers', expanded: false,
+    title: '矿物质', icon: 'layers',
     fields: [
       { key: 'sodium', label: '钠', unit: 'mg', decimals: 1, placeholder: '毫克' },
       { key: 'potassium', label: '钾', unit: 'mg', decimals: 1, placeholder: '毫克' },
@@ -482,7 +486,7 @@ const nutritionFieldGroups = [
     ]
   },
   {
-    title: '维生素', icon: 'lightbulb', expanded: false,
+    title: '维生素', icon: 'lightbulb',
     fields: [
       { key: 'vitaminA', label: '维生素A', unit: 'μg RE', decimals: 1, placeholder: '微克视黄醇当量' },
       { key: 'vitaminC', label: '维生素C', unit: 'mg', decimals: 2, placeholder: '毫克' },
@@ -497,7 +501,7 @@ const nutritionFieldGroups = [
     ]
   },
   {
-    title: '其他', icon: 'more', expanded: false,
+    title: '其他', icon: 'more',
     fields: [
       { key: 'cholesterol', label: '胆固醇', unit: 'mg', decimals: 1, placeholder: '毫克' },
       { key: 'saturatedFat', label: '饱和脂肪', unit: 'g', decimals: 2, placeholder: '克' },
@@ -505,10 +509,6 @@ const nutritionFieldGroups = [
     ]
   }
 ];
-
-const collapseExpanded = reactive<Record<string, boolean>>({
-  '基础营养成分': true, '矿物质': false, '维生素': false, '其他': false
-});
 
 const nutritionFields = nutritionFieldGroups.flatMap(g => g.fields);
 
@@ -537,6 +537,60 @@ const calculatedEnergy = computed(() => {
   const c = nutritionData.carbohydrate || 0;
   return (p * 17 + f * 37 + c * 17).toFixed(1);
 });
+
+// 进度指示器
+const hideZeroValues = ref(false);
+const nonEnergyFields = nutritionFields.filter(f => f.key !== 'energy');
+const totalCount = computed(() => nonEnergyFields.length);
+const filledCount = computed(() =>
+  nonEnergyFields.filter(f => (nutritionData[f.key] ?? 0) > 0).length
+);
+const progressPercent = computed(() =>
+  totalCount.value > 0 ? Math.round((filledCount.value / totalCount.value) * 100) : 0
+);
+
+interface NutritionGroup { title: string; icon: string; fields: { key: string; label: string; unit: string; decimals: number; placeholder: string }[] }
+
+// 分组配对：[基础+其他] [矿物质+维生素]
+const nutritionGroupPairs = computed<NutritionGroup[][]>(() => {
+  const groups = nutritionFieldGroups;
+  return [
+    [groups[0], groups[3]], // 基础营养成分 + 其他
+    [groups[1], groups[2]], // 矿物质 + 维生素
+  ];
+});
+
+function visibleFields(group: NutritionGroup) {
+  const fields = group.fields.filter(f => f.key !== 'energy');
+  if (!hideZeroValues.value) return fields;
+  return fields.filter(f => (nutritionData[f.key] ?? 0) > 0);
+}
+function isFieldZero(key: string) {
+  return !nutritionData[key] || nutritionData[key] === 0;
+}
+
+// 种子库自动检测
+const seedAvailable = ref(false);
+const seedMatchScore = ref(0);
+let seedCheckTimer: ReturnType<typeof setTimeout> | null = null;
+
+watch(
+  () => formData.name,
+  (newName) => {
+    if (seedCheckTimer) clearTimeout(seedCheckTimer);
+    seedAvailable.value = false;
+    if (!newName || newName.length < 2) return;
+    seedCheckTimer = setTimeout(async () => {
+      try {
+        const res = await nutritionSourceApi.checkSeedAvailability(newName) as unknown as { found: boolean; matchScore: number };
+        if (res?.found) {
+          seedAvailable.value = true;
+          seedMatchScore.value = res.matchScore ?? 0;
+        }
+      } catch { /* 忽略 */ }
+    }, 600);
+  },
+);
 
 const handleClearNutrition = () => {
   for (const field of nutritionFields) nutritionData[field.key] = 0;
@@ -584,12 +638,6 @@ const handleSeedEnrichConfirm = (data: {
   const count = Object.values(data.nutritionData).filter(v => v > 0).length;
   MessagePlugin.success(`已从种子库填充 ${count} 项营养素数据`);
 };
-
-const handleCollapseChange = (value: string[]) => {
-  for (const key of Object.keys(collapseExpanded)) collapseExpanded[key] = value.includes(key);
-};
-const expandAllGroups = () => { for (const k of Object.keys(collapseExpanded)) collapseExpanded[k] = true; };
-const collapseAllGroups = () => { for (const k of Object.keys(collapseExpanded)) collapseExpanded[k] = false; };
 
 const buildPer100g = (): Record<string, number> => {
   const result: Record<string, number> = {};
@@ -815,7 +863,7 @@ onMounted(async () => {
     margin: 16px 0 0;
     padding: 12px 20px;
     background: var(--color-warning-bg);
-    border: 1px solid #fde68a;
+    border: 1px solid var(--color-warning-light);
     border-radius: 12px;
 
     .status-banner {
@@ -860,13 +908,13 @@ onMounted(async () => {
 
     .version-banner-desc {
       font-size: 12px;
-      color: #a16207;
+      color: var(--color-text-secondary);
     }
 
     .version-banner-refs {
       font-size: 11px;
-      color: #ca8a04;
-      background: #fef9c3;
+      color: var(--color-warning);
+      background: var(--color-warning-bg);
       padding: 1px 8px;
       border-radius: 4px;
       display: inline-block;
@@ -876,7 +924,7 @@ onMounted(async () => {
     .version-banner-formulas {
       margin-top: 12px;
       padding-top: 12px;
-      border-top: 1px dashed #fde68a;
+      border-top: 1px dashed var(--color-warning-light);
 
       .formula-list-header {
         display: flex;
@@ -884,7 +932,7 @@ onMounted(async () => {
         gap: 6px;
         font-size: 12px;
         font-weight: 600;
-        color: #92400e;
+        color: var(--color-text-secondary);
         margin-bottom: 8px;
       }
 
@@ -899,16 +947,16 @@ onMounted(async () => {
         align-items: center;
         gap: 10px;
         padding: 8px 12px;
-        background: rgba(255, 255, 255, 0.7);
-        border: 1px solid #fde68a;
+        background: var(--color-bg-container);
+        border: 1px solid var(--color-warning-light);
         border-radius: 10px;
         cursor: pointer;
         transition: all 0.15s ease;
 
         &:hover {
-          background: rgba(255, 255, 255, 0.95);
-          border-color: #fbbf24;
-          box-shadow: 0 2px 6px rgba(251, 191, 36, 0.15);
+          background: var(--color-bg-hover);
+          border-color: var(--color-warning);
+          box-shadow: 0 2px 6px $overlay-amber-15;
           transform: translateX(2px);
         }
 
@@ -1450,6 +1498,9 @@ onMounted(async () => {
             flex-shrink: 0;
             min-width: 100px;
             justify-content: flex-end;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--color-text-secondary);
           }
 
           .field-input {
@@ -1781,12 +1832,6 @@ onMounted(async () => {
       display: flex;
       align-items: center;
       gap: 8px;
-
-      &.collapse-toolbar {
-        justify-content: flex-end;
-        margin-bottom: var(--space-2-5);
-        padding: 0 4px;
-      }
     }
 
     .add-row-btn {
@@ -1842,36 +1887,208 @@ onMounted(async () => {
       }
     }
 
-    :deep(.t-collapse) {
-      background-color: var(--color-bg-page);
-      border-radius: 16px;
-      padding: 4px;
-    }
-
-    :deep(.t-collapse-panel) {
-      background-color: var(--color-bg-page);
-      border-radius: 12px;
-      margin-bottom: 4px;
+    // 全展开平铺分组
+    .nutrition-group-pair {
+      display: flex;
+      gap: 24px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--color-border-light);
 
       &:last-child {
-        margin-bottom: 0;
+        border-bottom: none;
       }
 
-      .t-collapse-panel__header {
-        background-color: var(--color-bg-page);
-        border-radius: 12px;
-        padding: 12px 16px;
+      @media (max-width: 720px) {
+        flex-direction: column;
+        gap: 0;
+      }
+    }
+
+    .nutrition-group-section {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .ngroup-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: $font-weight-semibold;
+      color: var(--color-text-primary);
+      margin-bottom: 8px;
+      padding: 0 4px;
+    }
+
+    .ntg-rows {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .ntg-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 8px;
+      border-radius: 6px;
+      transition: opacity $transition-fast, background $transition-fast;
+
+      &:hover {
+        background: var(--color-bg-hover);
+      }
+
+      &.is-zero {
+        opacity: 0.5;
 
         &:hover {
-          background-color: var(--color-bg-hover);
+          opacity: 0.8;
         }
       }
 
-      .t-collapse-panel__body {
-        background-color: var(--color-bg-page);
-        padding: 16px;
-        border-radius: 0 0 12px 12px;
+      &.ntg-row--calc {
+        background: linear-gradient(135deg, var(--color-primary-bg), rgba(0, 0, 0, 0.02));
+        border: 1px solid var(--color-border-light);
+        border-radius: 8px;
+        padding: 8px 8px;
+        margin-top: 4px;
+        opacity: 1 !important;
       }
+    }
+
+    .ntg-label {
+      width: 90px;
+      flex-shrink: 0;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--color-text-secondary);
+    }
+
+    .ntg-input {
+      width: 120px;
+      flex-shrink: 0;
+
+      :deep(.t-input-number) {
+        width: 100%;
+      }
+    }
+
+    .ntg-unit {
+      width: 40px;
+      flex-shrink: 0;
+      font-size: 12px;
+      color: var(--color-text-placeholder);
+    }
+
+    .ntg-calc-value {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--color-primary);
+      font-family: 'SF Mono', 'Consolas', monospace;
+    }
+
+    .ntg-calc-formula {
+      font-size: 10px;
+      color: var(--color-text-placeholder);
+      background: var(--color-border-light);
+      padding: 2px 8px;
+      border-radius: 6px;
+      white-space: nowrap;
+      margin-left: auto;
+    }
+
+    // 进度条
+    .nutrition-progress {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 4px;
+      margin-bottom: 8px;
+
+      .np-bar-wrap {
+        flex: 1;
+        height: 6px;
+        background: var(--color-border-light);
+        border-radius: 3px;
+        overflow: hidden;
+        min-width: 80px;
+        max-width: 180px;
+      }
+
+      .np-bar {
+        height: 100%;
+        background: var(--color-primary);
+        border-radius: 3px;
+        transition: width 0.4s ease;
+      }
+
+      .np-text {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--color-text-secondary);
+        white-space: nowrap;
+        flex-shrink: 0;
+      }
+
+      .np-toggle {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-left: auto;
+        flex-shrink: 0;
+
+        .np-toggle-label {
+          font-size: 12px;
+          color: var(--color-text-secondary);
+          white-space: nowrap;
+        }
+      }
+
+      .clear-btn {
+        flex-shrink: 0;
+        font-size: 12px;
+        padding: 2px 8px;
+      }
+    }
+
+    // 种子库提示气泡
+    .seed-hint-banner {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      margin-bottom: 12px;
+      background: linear-gradient(135deg, rgba(0, 168, 112, 0.08), rgba(0, 168, 112, 0.04));
+      border: 1px solid rgba(0, 168, 112, 0.25);
+      border-radius: 10px;
+      color: var(--color-success, #00a870);
+      font-size: 13px;
+
+      .seed-hint-text {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .seed-hint-close {
+        cursor: pointer;
+        color: var(--color-text-placeholder);
+        flex-shrink: 0;
+
+        &:hover {
+          color: var(--color-text-secondary);
+        }
+      }
+    }
+
+    .fade-slide-enter-active,
+    .fade-slide-leave-active {
+      transition: all 0.25s ease;
+    }
+
+    .fade-slide-enter-from,
+    .fade-slide-leave-to {
+      opacity: 0;
+      transform: translateY(-8px);
     }
 
     :deep(.t-radio-group) {
@@ -1893,95 +2110,6 @@ onMounted(async () => {
           background-color: var(--color-primary-bg) !important;
           border-color: var(--color-primary) !important;
           color: var(--color-primary-dark) !important;
-        }
-      }
-    }
-
-    .group-header {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-weight: $font-weight-semibold;
-      color: var(--color-text-primary);
-    }
-
-    .nutrition-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0 24px;
-      padding: 8px 0;
-
-      @media (max-width: 640px) {
-        grid-template-columns: 1fr;
-      }
-
-      >.nutrition-field-item {
-        min-width: 0;
-        overflow: hidden;
-      }
-    }
-
-    .nutrition-field-item {
-      &.nf-full-width {
-        grid-column: 1 / -1;
-      }
-
-      &.nf-calculated {
-        background: linear-gradient(135deg, var(--color-primary-bg), rgba(0, 0, 0, 0.02));
-        border: 1px solid var(--color-border-light);
-        border-radius: 12px;
-        padding: 12px var(--space-3-5);
-      }
-
-      .nf-label {
-        display: block;
-        font-size: 13px;
-        font-weight: 600;
-        color: var(--color-text-secondary);
-        margin-bottom: var(--space-1-5);
-      }
-
-      .nf-calc-wrap {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-
-        .nf-calc-value {
-          font-size: 20px;
-          font-weight: 800;
-          color: var(--color-primary);
-          font-family: 'SF Mono', 'Consolas', monospace;
-        }
-
-        .nf-calc-formula {
-          font-size: 10px;
-          color: var(--color-text-placeholder);
-          background: var(--color-border-light);
-          padding: var(--space-1) 8px;
-          border-radius: 6px;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          flex-shrink: 0;
-          min-width: 0;
-        }
-      }
-
-      .nf-input-wrap {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-
-        .nf-unit {
-          flex-shrink: 0;
-          font-size: 11px;
-          color: var(--color-text-placeholder);
-          background: var(--color-border-light);
-          padding: 4px var(--space-2-5);
-          border-radius: 8px;
-          white-space: nowrap;
-          min-width: 52px;
-          text-align: center;
         }
       }
     }
@@ -2203,40 +2331,6 @@ onMounted(async () => {
     // ─── 暗色模式适配 ───
     [data-theme="dark"] {
 
-      // 版本横幅 - 修复亮色硬编码
-      .version-banner {
-        border-color: var(--color-border);
-        background: rgba(234, 179, 8, 0.08);
-
-        .version-banner-desc {
-          color: var(--color-text-tertiary);
-        }
-
-        .version-banner-refs {
-          color: var(--color-warning);
-          background: rgba(234, 179, 8, 0.12);
-        }
-
-        .version-banner-formulas {
-          border-top-color: var(--color-border);
-
-          .formula-list-header {
-            color: var(--color-text-secondary);
-          }
-
-          .formula-list-item {
-            background: var(--color-bg-container-alt);
-            border-color: var(--color-border);
-
-            &:hover {
-              background: var(--color-bg-hover);
-              border-color: var(--color-primary-light);
-              box-shadow: $shadow-elevation-1;
-            }
-          }
-        }
-      }
-
       // 状态提示条
       .status-banner--top :deep(.t-alert) {
         background: var(--color-bg-container-alt) !important;
@@ -2319,39 +2413,8 @@ onMounted(async () => {
         background: var(--color-bg-container-alt);
       }
 
-      // 折叠面板暗色适配
-      :deep(.t-collapse) {
-        background-color: transparent;
-      }
-
-      :deep(.t-collapse-panel) {
-        background-color: transparent;
-
-        .t-collapse-panel__header {
-          background-color: var(--color-bg-container-alt);
-
-          &:hover {
-            background-color: var(--color-bg-hover);
-          }
-        }
-
-        .t-collapse-panel__body {
-          background-color: transparent;
-        }
-      }
-
-      // radio 暗色适配
-      :deep(.t-radio-group .t-radio-button) {
-        background-color: var(--color-bg-container-alt) !important;
-        border-color: var(--color-border) !important;
-
-        &:hover:not(.t-is-checked) {
-          background-color: var(--color-bg-hover) !important;
-        }
-      }
-
       // 营养计算行暗色
-      .nutrition-field-item.nf-calculated {
+      .ntg-row--calc {
         background: linear-gradient(135deg, rgba(34, 197, 94, 0.04), rgba(45, 212, 191, 0.03));
         border-color: var(--color-border);
       }

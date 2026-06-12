@@ -4,6 +4,7 @@ import { formulaApi } from '@/api/formula'
 import type { Formula, FormulaForm, MaterialItem } from '@/api/formula'
 import { formatTimestamp } from '@/utils/timeFormat'
 import { MessagePlugin } from 'tdesign-vue-next'
+import { useAuthStore } from '@/stores/auth'
 
 // 缓存有效期：30分钟（毫秒）
 const CACHE_DURATION = 30 * 60 * 1000
@@ -22,8 +23,11 @@ export const useFormulaStore = defineStore('formula', () => {
   const isCacheValid = ref(false)
   const lastQueryKey = ref('')
 
-  // 计算当前查询条件键值
-  const getQueryKey = () => `${keyword.value}-${salesmanId.value}-${currentPage.value}-${pageSize.value}`
+  // 计算当前查询条件键值（包含用户ID，防止不同用户共享缓存）
+  const getQueryKey = () => {
+    const userId = useAuthStore().user?.id || ''
+    return `${userId}-${keyword.value}-${salesmanId.value}-${currentPage.value}-${pageSize.value}`
+  }
 
   // 检查缓存是否有效（需要同时满足：时间有效 + 查询条件一致）
   const checkCacheValid = (): boolean => {

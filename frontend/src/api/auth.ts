@@ -35,6 +35,8 @@ export interface UserPreferences {
   formulaDefaultView?: 'card' | 'table'
   defaultExportFormat?: 'excel' | 'pdf'
   formulaDefaultSort?: 'updatedAt' | 'createdAt' | 'name' | 'salesman'
+  /** 自动锁屏时间（分钟），0 表示不自动锁屏 */
+  autoLockMinutes?: number
 }
 
 export const authApi = {

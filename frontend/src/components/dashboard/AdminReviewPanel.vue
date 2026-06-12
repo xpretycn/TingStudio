@@ -343,7 +343,7 @@ onUnmounted(() => {
           <t-pagination :current="store.pendingPage" :page-size="store.pendingPageSize" :total="store.pendingTotal"
             size="small" :total-content="false" @current-change="onPendingPageChange" />
         </div>
-      </div>
+        </div>
 
       <div v-else-if="currentView === 'material' && displayedMaterialPending.length === 0"
         class="admin-review__empty">

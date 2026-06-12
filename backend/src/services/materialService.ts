@@ -495,24 +495,38 @@ export async function compareVersions(
     })
     .filter((d) => d.type !== "unchanged");
 
-  const nutritionFields: Array<{ field: string; label: string; unit: string }> = [
-    { field: "energy", label: "能量", unit: "kJ" },
-    { field: "protein", label: "蛋白质", unit: "g" },
-    { field: "fat", label: "脂肪", unit: "g" },
-    { field: "carbohydrate", label: "碳水化合物", unit: "g" },
-    { field: "fiber", label: "膳食纤维", unit: "g" },
-    { field: "sodium", label: "钠", unit: "mg" },
-  ];
+  const NUTRIENT_LABELS: Record<string, string> = {
+    energy: "能量", protein: "蛋白质", fat: "脂肪",
+    carbohydrate: "碳水化合物", fiber: "膳食纤维", sugars: "糖",
+    sodium: "钠", potassium: "钾", calcium: "钙",
+    iron: "铁", zinc: "锌", magnesium: "镁", phosphorus: "磷",
+    vitaminA: "维生素A", vitaminC: "维生素C", vitaminD: "维生素D",
+    vitaminE: "维生素E", vitaminK: "维生素K",
+    vitaminB1: "维生素B1", vitaminB2: "维生素B2", vitaminB3: "维生素B3",
+    vitaminB6: "维生素B6", vitaminB12: "维生素B12",
+    folate: "叶酸", cholesterol: "胆固醇", transFat: "反式脂肪", saturatedFat: "饱和脂肪",
+  };
+  const NUTRIENT_UNITS: Record<string, string> = {
+    energy: "kJ", protein: "g", fat: "g", carbohydrate: "g",
+    fiber: "g", sugars: "g", sodium: "mg", potassium: "mg", calcium: "mg",
+    iron: "mg", zinc: "mg", magnesium: "mg", phosphorus: "mg",
+    vitaminA: "μg", vitaminC: "mg", vitaminD: "μg", vitaminE: "mg", vitaminK: "μg",
+    vitaminB1: "mg", vitaminB2: "mg", vitaminB3: "mg", vitaminB6: "mg", vitaminB12: "μg",
+    folate: "μg", cholesterol: "mg", transFat: "g", saturatedFat: "g",
+  };
 
   const leftNutrition = leftDetail.nutrition || {};
   const rightNutrition = rightDetail.nutrition || {};
+  const allNutrientKeys = [...new Set([...Object.keys(leftNutrition), ...Object.keys(rightNutrition)])];
 
-  const nutritionDiff = nutritionFields
-    .map(({ field, label, unit }) => {
+  const nutritionDiff = allNutrientKeys
+    .map((field) => {
       const leftVal = leftNutrition[field];
       const rightVal = rightNutrition[field];
       if (leftVal == null && rightVal == null) return null;
       const changeInfo = computeChangeType(leftVal, rightVal);
+      const label = NUTRIENT_LABELS[field] || field;
+      const unit = NUTRIENT_UNITS[field] || "";
       return {
         field,
         label,

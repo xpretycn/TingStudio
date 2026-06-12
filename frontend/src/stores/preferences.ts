@@ -36,6 +36,7 @@ const defaultPreferences: UserPreferences = {
   formulaDefaultView: 'card',
   defaultExportFormat: 'excel',
   formulaDefaultSort: 'updatedAt',
+  autoLockMinutes: 0,
 }
 
 export const usePreferencesStore = defineStore('preferences', () => {
