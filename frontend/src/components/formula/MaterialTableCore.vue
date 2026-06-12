@@ -1143,10 +1143,10 @@ watch(
     padding: var(--space-2-5) var(--space-3-5);
     font-size: 11px;
     font-weight: 800;
-    color: $emerald-600;
+    color: var(--color-primary);
     text-transform: none;
     letter-spacing: 0.05em;
-    background: $overlay-emerald-08;
+    background: var(--color-primary-bg);
     position: sticky;
     top: 0;
     z-index: 1;
