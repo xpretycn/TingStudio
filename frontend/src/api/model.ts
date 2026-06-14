@@ -171,7 +171,8 @@ function toCamelCaseKey(key: string): string {
   return key.replace(/_([a-z])/g, (_, letter: string) => letter.toUpperCase());
 }
 
-function toCamelCase<T extends Record<string, unknown>>(obj: Record<string, unknown>): T {
+function toCamelCase<T extends Record<string, unknown>>(obj: Record<string, unknown> | null | undefined): T {
+  if (!obj) return {} as T;
   const result: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(obj)) {
     result[toCamelCaseKey(key)] = value;
@@ -269,9 +270,12 @@ export const modelApi = {
     startDate?: string;
     endDate?: string;
   }) {
-    return http.get<unknown, { logs: UsageLogItem[]; total: number; page: number; pageSize: number }>("/ai/usage/logs", {
-      params,
-    });
+    return http.get<unknown, { logs: UsageLogItem[]; total: number; page: number; pageSize: number }>(
+      "/ai/usage/logs",
+      {
+        params,
+      },
+    );
   },
 
   async getAlertConfigs() {
@@ -304,25 +308,27 @@ export const modelApi = {
   },
 
   async getHealthStatus() {
-    const res = await http.get<
-      unknown,
-      { models: Record<string, unknown>[] }
-    >("/ai/health");
+    const res = await http.get<unknown, { models: Record<string, unknown>[] }>("/ai/health");
     return {
-      models: res.models.map(m => toCamelCase<{
-        provider: string;
-        name: string;
-        healthStatus: string;
-        lastCheckAt: string | null;
-        latencyMs: number | null;
-      }>(m)),
+      models: res.models.map(m =>
+        toCamelCase<{
+          provider: string;
+          name: string;
+          healthStatus: string;
+          lastCheckAt: string | null;
+          latencyMs: number | null;
+        }>(m),
+      ),
     };
   },
 
   async getHealthHistory(provider: string, days?: number) {
-    const res = await http.get<unknown, { provider: string; history: Record<string, unknown>[] }>(`/ai/health/${provider}/history`, {
-      params: { days },
-    });
+    const res = await http.get<unknown, { provider: string; history: Record<string, unknown>[] }>(
+      `/ai/health/${provider}/history`,
+      {
+        params: { days },
+      },
+    );
     return {
       ...res,
       history: toCamelCaseArray<HealthHistoryItem>(res.history),
@@ -334,7 +340,16 @@ export const modelApi = {
   },
 
   async getSmartToolHistory(params?: { page?: number; pageSize?: number; callType?: string }) {
-    const res = await http.get<unknown, { items?: Record<string, unknown>[]; list?: Record<string, unknown>[]; total?: number; page?: number; pageSize?: number }>("/ai/smart-tool-history", { params });
+    const res = await http.get<
+      unknown,
+      {
+        items?: Record<string, unknown>[];
+        list?: Record<string, unknown>[];
+        total?: number;
+        page?: number;
+        pageSize?: number;
+      }
+    >("/ai/smart-tool-history", { params });
     const rawList = res.items || res.list || [];
     return {
       ...res,
@@ -358,11 +373,8 @@ export const modelApi = {
     description?: string;
     enabled?: boolean;
   }) {
-    const res = await http.post<unknown, { success: boolean; data: Record<string, unknown> }>("/ai/model-applications", data);
-    return {
-      success: res.success,
-      data: toCamelCase<ModelApplication>(res.data),
-    };
+    const res = await http.post<unknown, Record<string, unknown>>("/ai/model-applications", data);
+    return toCamelCase<ModelApplication>(res);
   },
 
   updateModelApplication(
@@ -377,10 +389,7 @@ export const modelApi = {
     return http.put<unknown, { success: boolean }>(`/ai/model-applications/${id}`, data);
   },
 
-  patchModelApplication(
-    id: string,
-    data: { enabled?: boolean },
-  ) {
+  patchModelApplication(id: string, data: { enabled?: boolean }) {
     return http.patch<unknown, { success: boolean }>(`/ai/model-applications/${id}`, data);
   },
 
@@ -404,11 +413,8 @@ export const modelApi = {
     enabled?: boolean;
     sortOrder?: number;
   }) {
-    const res = await http.post<unknown, { success: boolean; data: Record<string, unknown> }>("/ai/prompt-templates", data);
-    return {
-      success: res.success,
-      data: toCamelCase<PromptTemplate>(res.data),
-    };
+    const res = await http.post<unknown, Record<string, unknown>>("/ai/prompt-templates", data);
+    return toCamelCase<PromptTemplate>(res);
   },
 
   async updatePromptTemplate(

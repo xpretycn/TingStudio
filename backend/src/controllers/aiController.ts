@@ -88,7 +88,7 @@ export async function parseFormula(req: any, res: Response) {
       `SELECT id, parsed_result, model_name, tokens_used FROM parse_results 
        WHERE user_id = ? AND file_hash = ? AND status = 'success' AND call_type = 'parse_formula'
        ORDER BY created_at DESC LIMIT 1`,
-      [userId, fileHash]
+      [userId, fileHash],
     );
 
     if (cachedRows && cachedRows.length > 0) {
@@ -96,7 +96,9 @@ export async function parseFormula(req: any, res: Response) {
       try {
         const cachedResult = JSON.parse(cachedRows[0].parsed_result);
         // 清理临时文件
-        try { fs.unlinkSync(file.path); } catch {}
+        try {
+          fs.unlinkSync(file.path);
+        } catch {}
         res.json({
           success: true,
           data: {
@@ -277,15 +279,20 @@ async function saveParseResultToDb(params: {
   const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
 
   // 检查是否已存在相同 (user_id, file_hash, call_type) 的记录
-  const existing = db.prepare(`
+  const existing = db
+    .prepare(
+      `
     SELECT id, used_count FROM parse_results
     WHERE user_id = ? AND file_hash = ? AND call_type = ?
     ORDER BY created_at DESC LIMIT 1
-  `).get(params.userId, params.fileHash, params.callType);
+  `,
+    )
+    .get(params.userId, params.fileHash, params.callType);
 
   if (existing) {
     // 更新已存在的记录（覆盖结果，增加使用次数）
-    db.prepare(`
+    db.prepare(
+      `
       UPDATE parse_results SET
         file_name = ?,
         file_size = ?,
@@ -299,7 +306,8 @@ async function saveParseResultToDb(params: {
         used_count = used_count + 1,
         updated_at = ?
       WHERE id = ?
-    `).run(
+    `,
+    ).run(
       params.fileName,
       params.fileSize,
       JSON.stringify(params.parsedResult),
@@ -310,7 +318,7 @@ async function saveParseResultToDb(params: {
       params.errorMessage || null,
       expiresAt,
       now,
-      (existing as any).id
+      (existing as any).id,
     );
     console.log(`[AI] 更新已有解析记录: ${params.fileName} (id: ${(existing as any).id})`);
     return (existing as any).id;
@@ -318,10 +326,12 @@ async function saveParseResultToDb(params: {
 
   // 插入新记录
   const id = generateId();
-  db.prepare(`
+  db.prepare(
+    `
     INSERT INTO parse_results (id, user_id, call_type, file_hash, file_name, file_size, parsed_result, raw_response, model_provider, model_name, status, error_message, expires_at, created_at, updated_at)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `).run(
+  `,
+  ).run(
     id,
     params.userId,
     params.callType,
@@ -336,7 +346,7 @@ async function saveParseResultToDb(params: {
     params.errorMessage || null,
     expiresAt,
     now,
-    now
+    now,
   );
   return id;
 }
@@ -401,14 +411,16 @@ export async function parseMaterialNutrition(req: any, res: Response) {
       `SELECT id, parsed_result, model_name, tokens_used FROM parse_results
        WHERE user_id = ? AND file_hash = ? AND status = 'success' AND call_type = 'parse_nutrition'
        ORDER BY created_at DESC LIMIT 1`,
-      [userId, fileHash]
+      [userId, fileHash],
     );
 
     if (cachedRows && cachedRows.length > 0) {
       console.log(`[AI] 命中营养解析缓存: ${file.originalname} (hash: ${fileHash})`);
       try {
         const cachedResult = JSON.parse(cachedRows[0].parsed_result);
-        try { fs.unlinkSync(file.path); } catch {}
+        try {
+          fs.unlinkSync(file.path);
+        } catch {}
         res.json({
           success: true,
           data: {
@@ -667,7 +679,12 @@ export async function naturalSearch(req: any, res: Response) {
     const err = error as Error;
     const message = err.message || "";
 
-    if (message.includes("SQLITE_ERROR") || message.includes("no such column") || message.includes("syntax error") || message.includes("no such table")) {
+    if (
+      message.includes("SQLITE_ERROR") ||
+      message.includes("no such column") ||
+      message.includes("syntax error") ||
+      message.includes("no such table")
+    ) {
       res.status(422).json({
         success: false,
         message: `SQL 执行失败，请尝试换个说法重试：${message}`,
@@ -726,7 +743,7 @@ function injectCreatedByFilter(sql: string, userId: string): { sql: string; para
   if (Object.keys(aliasMap).length === 0) return { sql, params: [] };
   if (/created_by/i.test(sql)) return { sql, params: [] };
 
-  const conditions = Object.values(aliasMap).map((alias) => `${alias}.created_by = ?`);
+  const conditions = Object.values(aliasMap).map(alias => `${alias}.created_by = ?`);
   const whereInjection = conditions.join(" AND ");
   const paramCount = conditions.length;
 
@@ -788,6 +805,125 @@ async function generateCSVExport(rows: Record<string, any>[], userId: string, sq
   } catch {}
 
   return `/api/ai/export/${filename}`;
+}
+
+// ─── 智能生成（配方描述/制法/升版原因）───
+
+interface SmartGenerateRequest {
+  type: "description" | "preparation" | "version_reason";
+  formulaName: string;
+  materials: Array<{ name?: string; quantity: number; type: string }>;
+  finishedWeight?: number;
+  revisionReason?: string;
+  existingDescription?: string;
+}
+
+function getModelForModule(module: string): { provider: string; model: string } | null {
+  try {
+    const db = getDb();
+    const row = db
+      .prepare(
+        "SELECT provider, model FROM model_applications WHERE module = ? AND enabled = 1 ORDER BY updated_at DESC LIMIT 1",
+      )
+      .get(module) as { provider: string; model: string } | undefined;
+    return row || null;
+  } catch {
+    return null;
+  }
+}
+
+function getPromptTemplate(type: string): { systemPrompt: string; userPromptTemplate: string } | null {
+  try {
+    const db = getDb();
+    const row = db
+      .prepare(
+        "SELECT system_prompt, user_prompt_template FROM ai_prompt_templates WHERE module = 'smart-generate' AND type = ? AND enabled = 1 ORDER BY is_default DESC, sort_order ASC LIMIT 1",
+      )
+      .get(type) as { system_prompt: string; user_prompt_template: string } | undefined;
+    return row ? { systemPrompt: row.system_prompt, userPromptTemplate: row.user_prompt_template } : null;
+  } catch {
+    return null;
+  }
+}
+
+/** POST /api/ai/smart-generate — 根据提示词模板智能生成配方描述/制法/升版原因 */
+export async function smartGenerate(req: any, res: Response) {
+  try {
+    const { type, formulaName, materials, finishedWeight, revisionReason, existingDescription } =
+      req.body as SmartGenerateRequest;
+
+    if (!type || !["description", "preparation", "version_reason"].includes(type)) {
+      res.status(400).json({ success: false, message: "无效的生成类型" });
+      return;
+    }
+    if (!formulaName) {
+      res.status(400).json({ success: false, message: "配方名称不能为空" });
+      return;
+    }
+
+    // 获取模型配置
+    const modelConfig = getModelForModule("smart-generate");
+    if (!modelConfig) {
+      res
+        .status(400)
+        .json({
+          success: false,
+          message: "未配置智能生成模型，请在「模型管理 → 模型应用」中为「智能生成」模块配置并启用一个模型",
+        });
+      return;
+    }
+
+    // 获取提示词模板
+    const template = getPromptTemplate(type);
+    if (!template) {
+      res
+        .status(400)
+        .json({
+          success: false,
+          message: `未找到类型「${type}」的提示词模板，请在「模型管理 → 提示词模板」中检查配置`,
+        });
+      return;
+    }
+
+    // 构建变量
+    const materialsText = materials
+      .map(
+        (m, i) => `${i + 1}. ${m.name || "未知原料"} ${m.quantity}${m.type === "supplement" ? "（辅料）" : "（药材）"}`,
+      )
+      .join("\n");
+
+    let userPrompt = template.userPromptTemplate
+      .replace(/\{\{formulaName\}\}/g, formulaName)
+      .replace(/\{\{materials\}\}/g, materialsText)
+      .replace(/\{\{finishedWeight\}\}/g, String(finishedWeight || ""))
+      .replace(/\{\{revisionReason\}\}/g, revisionReason || "")
+      .replace(/\{\{existingDescription\}\}/g, existingDescription || "");
+
+    const messages: ChatMessage[] = [
+      { role: "system", content: template.systemPrompt },
+      { role: "user", content: userPrompt },
+    ];
+
+    const result = await aiService.chatCompletion(modelConfig.provider, messages, {
+      temperature: 0.7,
+      maxTokens: 512,
+      callType: `smart-generate-${type}`,
+      userId: req.user?.userId,
+      requestSummary: `智能生成${type}: ${formulaName}`,
+    });
+
+    const content = result.content?.trim() || "";
+    if (!content) {
+      res.status(500).json({ success: false, message: "AI 未返回有效内容，请重试" });
+      return;
+    }
+
+    res.json({ success: true, data: { content } });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error("[AI] smartGenerate Error:", message);
+    res.status(500).json({ success: false, message: `生成失败: ${message}` });
+  }
 }
 
 // ─── 获取可用模型列表 ───

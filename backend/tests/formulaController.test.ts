@@ -440,4 +440,362 @@ describe("formulaController - 配方管理控制器", () => {
       );
     });
   });
+
+  describe("ratio validation - 含量比校验", () => {
+    const mockOldFormula = {
+      id: "f-001",
+      name: "旧配方",
+      code: "FM001",
+      salesman_id: "s-001",
+      salesman_name: "张三",
+      materials_json: JSON.stringify([
+        { materialId: "m-001", materialName: "原料A", quantity: 100, materialType: "herb" },
+      ]),
+      finished_weight: 500,
+      ratio_factor: 0.18,
+      supplement_ratio_factor: 1.0,
+      packaging_price: 0,
+      other_price: 0,
+      profit_margin: 20,
+      description: "测试描述",
+      preparation_method: null,
+      created_by: "user-001",
+      created_at: "2026-05-01T00:00:00.000Z",
+    };
+
+    describe("create - 创建时校验", () => {
+      it("F01: Returns 400 when totalRatio is in error level (< 0.92 or > 1.08)", async () => {
+        mockValidateRatioFactor.mockReturnValue({
+          allowed: false,
+          level: "error",
+          totalRatio: 0.85,
+          message: "含量比校验失败（偏差 -15.00%）",
+          description: "原料含量比总和为 0.85000，偏差 -15.00% 超出允许范围 [0.92, 1.08]",
+          requiresManualReview: false,
+        });
+        mockQuery.mockReturnValueOnce([[{ name: "张三" }]]);
+
+        const req = {
+          body: {
+            name: "错误配方",
+            salesmanId: "s-001",
+            materials: [{ materialId: "m-001", materialName: "原料A", quantity: 100 }],
+            finishedWeight: 500,
+            ratioFactor: 0.18,
+          },
+          user: { userId: "user-001", role: "formulist" },
+        };
+        const res = createMockRes();
+
+        await createFormula(
+          req as unknown as Parameters<typeof createFormula>[0],
+          res as unknown as Response,
+        );
+
+        expect(res.status).toHaveBeenCalledWith(400);
+        const body = (res.json as ReturnType<typeof vi.fn>).mock.calls[0][0];
+        expect(body.success).toBe(false);
+        expect(body.message).toContain("含量比");
+        expect(mockValidateRatioFactor).toHaveBeenCalled();
+      });
+
+      it("F02: Returns 201 when totalRatio is in normal level", async () => {
+        mockValidateRatioFactor.mockReturnValue({
+          allowed: true,
+          level: "normal",
+          totalRatio: 1.0,
+          message: "含量比校验通过",
+          description: "在正常范围内",
+          requiresManualReview: false,
+        });
+        mockQuery
+          .mockReturnValueOnce([[{ name: "张三" }]])
+          .mockReturnValueOnce({ changes: 1 })
+          .mockReturnValueOnce({ changes: 1 })
+          .mockReturnValueOnce([[{ id: "mock-id-123", name: "新配方", code: "FM123", materials_json: "[]", finished_weight: 500, created_at: "2026-05-22T00:00:00.000Z" }]]);
+
+        const req = {
+          body: {
+            name: "新配方",
+            salesmanId: "s-001",
+            materials: [],
+            finishedWeight: 500,
+            ratioFactor: 0.18,
+          },
+          user: { userId: "user-001", role: "formulist" },
+        };
+        const res = createMockRes();
+
+        await createFormula(
+          req as unknown as Parameters<typeof createFormula>[0],
+          res as unknown as Response,
+        );
+
+        expect(res.status).toHaveBeenCalledWith(201);
+        const body = (res.json as ReturnType<typeof vi.fn>).mock.calls[0][0];
+        expect(body.success).toBe(true);
+      });
+
+      it("F03: Returns 201 when totalRatio is in warning level (allowed)", async () => {
+        mockValidateRatioFactor.mockReturnValue({
+          allowed: true,
+          level: "warning",
+          totalRatio: 0.96,
+          message: "含量比偏差预警（偏差 -4.00%）",
+          description: "原料含量比总和为 0.96000，超出正常范围，建议检查",
+          requiresManualReview: false,
+        });
+        mockQuery
+          .mockReturnValueOnce([[{ name: "张三" }]])
+          .mockReturnValueOnce({ changes: 1 })
+          .mockReturnValueOnce({ changes: 1 })
+          .mockReturnValueOnce([[{ id: "mock-id-123", name: "新配方", code: "FM123", materials_json: "[]", finished_weight: 500, created_at: "2026-05-22T00:00:00.000Z" }]]);
+
+        const req = {
+          body: {
+            name: "新配方",
+            salesmanId: "s-001",
+            materials: [],
+            finishedWeight: 500,
+            ratioFactor: 0.18,
+          },
+          user: { userId: "user-001", role: "formulist" },
+        };
+        const res = createMockRes();
+
+        await createFormula(
+          req as unknown as Parameters<typeof createFormula>[0],
+          res as unknown as Response,
+        );
+
+        expect(res.status).toHaveBeenCalledWith(201);
+        const body = (res.json as ReturnType<typeof vi.fn>).mock.calls[0][0];
+        expect(body.success).toBe(true);
+      });
+
+      it("F04: Returns 201 when totalRatio is in high_warning level (allowed with review)", async () => {
+        mockValidateRatioFactor.mockReturnValue({
+          allowed: true,
+          level: "high_warning",
+          totalRatio: 1.06,
+          message: "含量比严重偏差（偏差 6.00%）",
+          description: "原料含量比总和为 1.06000，严重偏离标准值，需要人工审核",
+          requiresManualReview: true,
+        });
+        mockQuery
+          .mockReturnValueOnce([[{ name: "张三" }]])
+          .mockReturnValueOnce({ changes: 1 })
+          .mockReturnValueOnce({ changes: 1 })
+          .mockReturnValueOnce([[{ id: "mock-id-123", name: "新配方", code: "FM123", materials_json: "[]", finished_weight: 500, created_at: "2026-05-22T00:00:00.000Z" }]]);
+
+        const req = {
+          body: {
+            name: "新配方",
+            salesmanId: "s-001",
+            materials: [],
+            finishedWeight: 500,
+            ratioFactor: 0.18,
+          },
+          user: { userId: "user-001", role: "formulist" },
+        };
+        const res = createMockRes();
+
+        await createFormula(
+          req as unknown as Parameters<typeof createFormula>[0],
+          res as unknown as Response,
+        );
+
+        expect(res.status).toHaveBeenCalledWith(201);
+        const body = (res.json as ReturnType<typeof vi.fn>).mock.calls[0][0];
+        expect(body.success).toBe(true);
+      });
+    });
+
+    describe("update - 更新时校验", () => {
+      it("F10: Returns 400 when updated materials cause error level", async () => {
+        mockValidateRatioFactor.mockReturnValue({
+          allowed: false,
+          level: "error",
+          totalRatio: 0.80,
+          message: "含量比校验失败（偏差 -20.00%）",
+          description: "原料含量比总和为 0.80000，偏差 -20.00% 超出允许范围",
+          requiresManualReview: false,
+        });
+        mockQuery.mockReturnValueOnce([[mockOldFormula]]);
+
+        const req = {
+          params: { id: "f-001" },
+          body: {
+            materials: [
+              { materialId: "m-001", materialName: "原料A", quantity: 50 },
+            ],
+            versionReason: "调整用量",
+          },
+          user: { userId: "user-001", role: "formulist" },
+        };
+        const res = createMockRes();
+
+        await updateFormula(
+          req as unknown as Parameters<typeof updateFormula>[0],
+          res as unknown as Response,
+        );
+
+        expect(res.status).toHaveBeenCalledWith(400);
+        const body = (res.json as ReturnType<typeof vi.fn>).mock.calls[0][0];
+        expect(body.success).toBe(false);
+        expect(body.message).toContain("含量比");
+      });
+
+      it("F11: Returns 200 when updated materials are valid", async () => {
+        mockValidateRatioFactor.mockReturnValue({
+          allowed: true,
+          level: "normal",
+          totalRatio: 1.0,
+          message: "含量比校验通过",
+          description: "在正常范围内",
+          requiresManualReview: false,
+        });
+        const updatedFormula = {
+          id: "f-001",
+          name: "旧配方",
+          code: "FM001",
+          materials_json: "[]",
+          finished_weight: 500,
+          created_at: "2026-05-22T00:00:00.000Z",
+        };
+        mockQuery
+          .mockReturnValueOnce([[mockOldFormula]])
+          .mockReturnValueOnce({ changes: 1 })
+          .mockReturnValueOnce({ changes: 1 })
+          .mockReturnValueOnce([[{ version_number: "v1.0" }]])
+          .mockReturnValueOnce([[]])
+          .mockReturnValueOnce({ changes: 1 })
+          .mockReturnValueOnce([[updatedFormula]]);
+
+        const req = {
+          params: { id: "f-001" },
+          body: {
+            materials: [
+              { materialId: "m-001", materialName: "原料A", quantity: 100 },
+            ],
+            versionReason: "调整用量",
+          },
+          user: { userId: "user-001", role: "formulist" },
+        };
+        const res = createMockRes();
+
+        await updateFormula(
+          req as unknown as Parameters<typeof updateFormula>[0],
+          res as unknown as Response,
+        );
+
+        expect(res.json).toHaveBeenCalled();
+        const body = (res.json as ReturnType<typeof vi.fn>).mock.calls[0][0];
+        expect(body.success).toBe(true);
+      });
+    });
+
+    describe("edge cases - 边界情况", () => {
+      it("F20: Empty materials array returns 400", async () => {
+        mockValidateRatioFactor.mockReturnValue({
+          allowed: false,
+          level: "error",
+          totalRatio: 0,
+          message: "无原料数据",
+          description: "配方未包含任何原料，无法进行含量比校验",
+          requiresManualReview: false,
+        });
+        mockQuery.mockReturnValueOnce([[{ name: "张三" }]]);
+
+        const req = {
+          body: {
+            name: "空配方",
+            salesmanId: "s-001",
+            materials: [],
+            finishedWeight: 500,
+            ratioFactor: 0.18,
+          },
+          user: { userId: "user-001", role: "formulist" },
+        };
+        const res = createMockRes();
+
+        await createFormula(
+          req as unknown as Parameters<typeof createFormula>[0],
+          res as unknown as Response,
+        );
+
+        expect(res.status).toHaveBeenCalledWith(400);
+        const body = (res.json as ReturnType<typeof vi.fn>).mock.calls[0][0];
+        expect(body.success).toBe(false);
+        expect(body.message).toBe("无原料数据");
+      });
+
+      it("F21: Zero finishedWeight returns 400", async () => {
+        mockValidateRatioFactor.mockReturnValue({
+          allowed: false,
+          level: "error",
+          totalRatio: 0,
+          message: "成品重量无效",
+          description: "成品重量必须大于0才能进行含量比校验",
+          requiresManualReview: false,
+        });
+        mockQuery.mockReturnValueOnce([[{ name: "张三" }]]);
+
+        const req = {
+          body: {
+            name: "零重量配方",
+            salesmanId: "s-001",
+            materials: [{ materialId: "m-001", materialName: "原料A", quantity: 100 }],
+            finishedWeight: 0,
+            ratioFactor: 0.18,
+          },
+          user: { userId: "user-001", role: "formulist" },
+        };
+        const res = createMockRes();
+
+        await createFormula(
+          req as unknown as Parameters<typeof createFormula>[0],
+          res as unknown as Response,
+        );
+
+        expect(res.status).toHaveBeenCalledWith(400);
+        const body = (res.json as ReturnType<typeof vi.fn>).mock.calls[0][0];
+        expect(body.success).toBe(false);
+        expect(body.message).toBe("成品重量无效");
+      });
+
+      it("F22: NaN quantity in materials handled gracefully", async () => {
+        mockValidateRatioFactor.mockReturnValue({
+          allowed: false,
+          level: "error",
+          totalRatio: NaN,
+          message: "含量比校验失败",
+          description: "配方数据存在错误，无法创建",
+          requiresManualReview: false,
+        });
+        mockQuery.mockReturnValueOnce([[{ name: "张三" }]]);
+
+        const req = {
+          body: {
+            name: "NaN配方",
+            salesmanId: "s-001",
+            materials: [{ materialId: "m-001", materialName: "原料A", quantity: NaN }],
+            finishedWeight: 500,
+            ratioFactor: 0.18,
+          },
+          user: { userId: "user-001", role: "formulist" },
+        };
+        const res = createMockRes();
+
+        await createFormula(
+          req as unknown as Parameters<typeof createFormula>[0],
+          res as unknown as Response,
+        );
+
+        expect(res.status).toHaveBeenCalledWith(400);
+        const body = (res.json as ReturnType<typeof vi.fn>).mock.calls[0][0];
+        expect(body.success).toBe(false);
+      });
+    });
+  });
 });

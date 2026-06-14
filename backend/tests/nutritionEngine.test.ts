@@ -673,3 +673,301 @@ describe('NutritionEngine - 边界值与边缘用例测试', () => {
     });
   });
 });
+
+// ============================================================
+// 计算引擎核心逻辑测试 (N01-N42)
+// ============================================================
+
+describe('NutritionEngine - 计算引擎核心逻辑测试', () => {
+  function makeAnalyzeInput(
+    materials: Array<{
+      materialId: string;
+      materialName: string;
+      materialType: string;
+      quantity: number;
+      per100g: Record<string, number>;
+      hasNutritionData?: boolean;
+    }>,
+    finishedWeight = 100,
+    ratioFactor = 0.18,
+    supplementRatioFactor = 1.0,
+  ): AnalyzeInput {
+    return {
+      formulaId: 'test-formula',
+      formulaName: '测试配方',
+      finishedWeight,
+      ratioFactor,
+      supplementRatioFactor,
+      materials,
+    };
+  }
+
+  function singleHerbAnalyze(
+    per100g: Record<string, number>,
+    quantity = 10,
+    finishedWeight = 100,
+    ratioFactor = 0.18,
+  ): AnalyzeInput {
+    return makeAnalyzeInput(
+      [{ materialId: 'h1', materialName: '药材', materialType: 'herb', quantity, per100g, hasNutritionData: true }],
+      finishedWeight,
+      ratioFactor,
+    );
+  }
+
+  function singleSuppAnalyze(
+    per100g: Record<string, number>,
+    quantity = 100,
+    finishedWeight = 100,
+    supplementRatioFactor = 1.0,
+  ): AnalyzeInput {
+    return makeAnalyzeInput(
+      [{ materialId: 's1', materialName: '辅料', materialType: 'supplement', quantity, per100g, hasNutritionData: true }],
+      finishedWeight,
+      0.18,
+      supplementRatioFactor,
+    );
+  }
+
+  // ----------------------------------------------------------
+  // Ratio calculation
+  // ----------------------------------------------------------
+  describe('Ratio calculation', () => {
+    it('N01: Correct ratio for herb material', () => {
+      const input = singleHerbAnalyze({ protein: 10 }, 10, 100, 0.18);
+      const result = nutritionEngine.analyze(input);
+      const herb = result.materialContributions[0];
+      // ratio = (10/100) × 0.18 = 0.018
+      expect(herb.materialType).toBe('herb');
+      expect(herb.ratio).toBeCloseTo(0.018, 5);
+    });
+
+    it('N02: Correct ratio for supplement material', () => {
+      const input = singleSuppAnalyze({ protein: 10 }, 20, 100, 1.0);
+      const result = nutritionEngine.analyze(input);
+      const supp = result.materialContributions[0];
+      // ratio = (20/100) × 1.0 = 0.2
+      expect(supp.materialType).toBe('supplement');
+      expect(supp.ratio).toBeCloseTo(0.2, 5);
+    });
+
+    it('N03: Materials with quantity=0 produce zero ratio and zero contribution', () => {
+      const input = singleSuppAnalyze({ protein: 10, fat: 5 }, 0, 100);
+      const result = nutritionEngine.analyze(input);
+      const mat = result.materialContributions[0];
+      expect(mat.quantity).toBe(0);
+      expect(mat.ratio).toBe(0);
+      expect(mat.contribution.protein).toBe(0);
+      expect(mat.contribution.fat).toBe(0);
+    });
+
+    it('N04: Handles zero finishedWeight gracefully', () => {
+      const input = singleSuppAnalyze({ protein: 10 }, 50, 0);
+      expect(() => nutritionEngine.analyze(input)).not.toThrow();
+      const result = nutritionEngine.analyze(input);
+      const mat = result.materialContributions[0];
+      expect(mat.ratio).toBe(0);
+      expect(mat.contribution.protein).toBe(0);
+    });
+  });
+
+  // ----------------------------------------------------------
+  // Nutrition contribution per material
+  // ----------------------------------------------------------
+  describe('Nutrition contribution', () => {
+    it('N10: Correct protein contribution per material', () => {
+      const input = singleSuppAnalyze({ protein: 20, fat: 0, carbohydrate: 0, sodium: 0 }, 50, 100);
+      const result = nutritionEngine.analyze(input);
+      // ratio = 50/100 × 1.0 = 0.5, contribution = 20 × 0.5 = 10
+      expect(result.materialContributions[0].contribution.protein).toBeCloseTo(10, 2);
+    });
+
+    it('N11: Correct fat contribution per material', () => {
+      const input = singleSuppAnalyze({ protein: 0, fat: 30, carbohydrate: 0, sodium: 0 }, 25, 100);
+      const result = nutritionEngine.analyze(input);
+      // ratio = 25/100 × 1.0 = 0.25, contribution = 30 × 0.25 = 7.5
+      expect(result.materialContributions[0].contribution.fat).toBeCloseTo(7.5, 2);
+    });
+
+    it('N12: Correct carbohydrate contribution per material', () => {
+      const input = singleSuppAnalyze({ protein: 0, fat: 0, carbohydrate: 60, sodium: 0 }, 10, 100);
+      const result = nutritionEngine.analyze(input);
+      // ratio = 10/100 × 1.0 = 0.1, contribution = 60 × 0.1 = 6
+      expect(result.materialContributions[0].contribution.carbohydrate).toBeCloseTo(6, 2);
+    });
+
+    it('N13: Correct sodium contribution per material', () => {
+      const input = singleSuppAnalyze({ protein: 0, fat: 0, carbohydrate: 0, sodium: 200 }, 10, 100);
+      const result = nutritionEngine.analyze(input);
+      // ratio = 10/100 × 1.0 = 0.1, contribution = 200 × 0.1 = 20
+      expect(result.materialContributions[0].contribution.sodium).toBeCloseTo(20, 2);
+    });
+  });
+
+  // ----------------------------------------------------------
+  // Energy calculation
+  // ----------------------------------------------------------
+  describe('Energy calculation', () => {
+    it('N20: Energy = protein×17 + fat×37 + carbohydrate×17', () => {
+      // protein=5, fat=3, carb=10 → 5×17 + 3×37 + 10×17 = 85 + 111 + 170 = 366
+      const formula: FormulaInput = {
+        finishedWeight: 100,
+        materials: [{
+          name: '测试', type: 'supplement', quantity: 100,
+          nutrition_per_100g: { protein: 5, fat: 3, carbohydrate: 10, sodium: 0 },
+        }],
+      };
+      const result = nutritionEngine.calculate(formula);
+      expect(result.calculation_steps.step4_atwater_energy.energy_kJ_raw).toBe(366);
+    });
+
+    it('N21: Energy rounds to 2 decimal places', () => {
+      // protein=1.23, fat=5.67, carb=9.01
+      // energy = 1.23×17 + 5.67×37 + 9.01×17 = 20.91 + 209.79 + 153.17 = 383.87
+      const formula: FormulaInput = {
+        finishedWeight: 100,
+        materials: [{
+          name: '测试', type: 'supplement', quantity: 100,
+          nutrition_per_100g: { protein: 1.23, fat: 5.67, carbohydrate: 9.01, sodium: 0 },
+        }],
+      };
+      const result = nutritionEngine.calculate(formula);
+      const energy = result.calculation_steps.step4_atwater_energy.energy_kJ_raw;
+      expect(energy).toBe(383.87);
+      const decimalPart = Math.round((energy % 1) * 100);
+      expect(decimalPart).toBeLessThanOrEqual(99);
+    });
+  });
+
+  // ----------------------------------------------------------
+  // 0-boundary zeroing
+  // ----------------------------------------------------------
+  describe('0-boundary zeroing', () => {
+    it('N30: Energy <= 17kJ is zeroed in step6', () => {
+      // protein=1 → energy = 1×17 = 17 (exactly at threshold)
+      const formula: FormulaInput = {
+        finishedWeight: 100,
+        materials: [{
+          name: '测试', type: 'supplement', quantity: 100,
+          nutrition_per_100g: { protein: 1, fat: 0, carbohydrate: 0, sodium: 0 },
+        }],
+      };
+      const result = nutritionEngine.calculate(formula);
+      const energyRule = result.calculation_steps.step6_zero_threshold.find(
+        (r: Record<string, unknown>) => r.nutrient === '能量(kJ)',
+      );
+      expect(energyRule?.is_zeroed).toBe(true);
+    });
+
+    it('N31: Protein <= 0.5g is zeroed', () => {
+      const formula: FormulaInput = {
+        finishedWeight: 100,
+        materials: [{
+          name: '测试', type: 'supplement', quantity: 100,
+          nutrition_per_100g: { protein: 0.5, fat: 1, carbohydrate: 1, sodium: 10 },
+        }],
+      };
+      const result = nutritionEngine.calculate(formula);
+      expect(result.result.label_values.protein).toBe(0);
+    });
+
+    it('N32: Fat <= 0.5g is zeroed', () => {
+      const formula: FormulaInput = {
+        finishedWeight: 100,
+        materials: [{
+          name: '测试', type: 'supplement', quantity: 100,
+          nutrition_per_100g: { protein: 1, fat: 0.5, carbohydrate: 1, sodium: 10 },
+        }],
+      };
+      const result = nutritionEngine.calculate(formula);
+      expect(result.result.label_values.fat).toBe(0);
+    });
+
+    it('N33: Carbohydrate <= 0.5g is zeroed', () => {
+      const formula: FormulaInput = {
+        finishedWeight: 100,
+        materials: [{
+          name: '测试', type: 'supplement', quantity: 100,
+          nutrition_per_100g: { protein: 1, fat: 1, carbohydrate: 0.5, sodium: 10 },
+        }],
+      };
+      const result = nutritionEngine.calculate(formula);
+      expect(result.result.label_values.carbohydrate).toBe(0);
+    });
+
+    it('N34: Sodium <= 5mg is zeroed', () => {
+      const formula: FormulaInput = {
+        finishedWeight: 100,
+        materials: [{
+          name: '测试', type: 'supplement', quantity: 100,
+          nutrition_per_100g: { protein: 1, fat: 1, carbohydrate: 1, sodium: 5 },
+        }],
+      };
+      const result = nutritionEngine.calculate(formula);
+      expect(result.result.label_values.sodium).toBe(0);
+    });
+
+    it('N35: Energy is RECALCULATED after zeroing protein/fat/carb', () => {
+      // protein=0.5(→0), fat=0.5(→0), carb=2 → 归零后 energy = 0 + 0 + 2×17 = 34
+      const formula: FormulaInput = {
+        finishedWeight: 100,
+        materials: [{
+          name: '测试', type: 'supplement', quantity: 100,
+          nutrition_per_100g: { protein: 0.5, fat: 0.5, carbohydrate: 2, sodium: 0 },
+        }],
+      };
+      const result = nutritionEngine.calculate(formula);
+      expect(result.result.label_values.protein).toBe(0);
+      expect(result.result.label_values.fat).toBe(0);
+      expect(result.result.label_values.carbohydrate).toBe(2);
+      expect(result.calculation_steps.step7_final_energy.final_energy_kJ).toBe(34);
+    });
+
+    it('N36: Values above thresholds are NOT zeroed', () => {
+      const formula: FormulaInput = {
+        finishedWeight: 100,
+        materials: [{
+          name: '测试', type: 'supplement', quantity: 100,
+          nutrition_per_100g: { protein: 5, fat: 3, carbohydrate: 10, sodium: 50 },
+        }],
+      };
+      const result = nutritionEngine.calculate(formula);
+      expect(result.result.label_values.protein).toBeGreaterThan(0);
+      expect(result.result.label_values.fat).toBeGreaterThan(0);
+      expect(result.result.label_values.carbohydrate).toBeGreaterThan(0);
+      expect(result.result.label_values.sodium).toBeGreaterThan(0);
+    });
+  });
+
+  // ----------------------------------------------------------
+  // Edge cases
+  // ----------------------------------------------------------
+  describe('Edge cases', () => {
+    it('N40: Empty materials returns zeros', () => {
+      const result = nutritionEngine.analyze({
+        formulaId: 'empty',
+        formulaName: '空配方',
+        finishedWeight: 100,
+        ratioFactor: 0.18,
+        supplementRatioFactor: 1.0,
+        materials: [],
+      });
+      expect(result.nutritionLabel.per100g.protein).toBe(0);
+      expect(result.nutritionLabel.per100g.fat).toBe(0);
+      expect(result.nutritionLabel.per100g.carbohydrate).toBe(0);
+      expect(result.nutritionLabel.per100g.sodium).toBe(0);
+      expect(result.nutritionLabel.energyKj).toBe(0);
+      expect(result.materialContributions).toHaveLength(0);
+    });
+
+    it('N41: NaN quantity handled gracefully (no throw)', () => {
+      const input = singleSuppAnalyze({ protein: 10 }, NaN, 100);
+      expect(() => nutritionEngine.analyze(input)).not.toThrow();
+    });
+
+    it('N42: Infinity quantity handled gracefully (no throw)', () => {
+      const input = singleSuppAnalyze({ protein: 10 }, Infinity, 100);
+      expect(() => nutritionEngine.analyze(input)).not.toThrow();
+    });
+  });
+});

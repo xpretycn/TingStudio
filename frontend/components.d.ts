@@ -33,8 +33,6 @@ declare module 'vue' {
     ExcelImportPanel: typeof import('./src/components/ExcelImportPanel.vue')['default']
     ExportFormatDialog: typeof import('./src/components/ExportFormatDialog.vue')['default']
     FieldDetectionPanel: typeof import('./src/components/AiAssistantFloat/FieldDetectionPanel.vue')['default']
-    FilePreviewCard: typeof import('./src/components/FilePreviewCard.vue')['default']
-    FilePreviewDialog: typeof import('./src/components/FilePreviewDialog.vue')['default']
     FloatBubble: typeof import('./src/components/AiAssistantFloat/FloatBubble.vue')['default']
     FloatDrawer: typeof import('./src/components/AiAssistantFloat/FloatDrawer.vue')['default']
     FortificationCheckCard: typeof import('./src/components/nutrition/FortificationCheckCard.vue')['default']

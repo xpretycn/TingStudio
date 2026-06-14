@@ -343,8 +343,8 @@
                     <div class="ratio-bar-marker" :style="{ left: ratioMarkerLeft }"></div>
                   </div>
                   <div class="ratio-bar-labels">
-                    <span>0.92</span><span>0.95</span><span>0.98</span><span
-                      class="ratio-bar-center">1.00</span><span>1.02</span><span>1.05</span><span>1.08</span>
+                    <span>{{ RATIO_THRESHOLDS.highWarningLow }}</span><span>{{ RATIO_THRESHOLDS.warningLow }}</span><span>{{ RATIO_THRESHOLDS.normalLow }}</span><span
+                      class="ratio-bar-center">1.00</span><span>{{ RATIO_THRESHOLDS.normalHigh }}</span><span>{{ RATIO_THRESHOLDS.warningHigh }}</span><span>{{ RATIO_THRESHOLDS.highWarningHigh }}</span>
                   </div>
                 </div>
                 <div class="ratio-summary-value">
@@ -461,7 +461,8 @@ import { nutritionApi } from '@/api/nutrition';
 import { formulaApi } from '@/api/formula';
 import { useExportStore } from '@/stores/export';
 import type { ExportTemplate } from '@/api/export';
-import type { RatioFactorValidationResult, PriceQuote } from '@/api/formula';
+import type { PriceQuote } from '@/api/formula';
+import { validateRatioFull, RATIO_THRESHOLDS, type RatioFactorValidationResult } from '@/utils/ratioValidation';
 
 const router = useRouter();
 const route = useRoute();
@@ -563,7 +564,7 @@ const ratioValidation = computed<RatioFactorValidationResult>(() => {
       level: 'normal',
       totalRatio: 0,
       breakdown: [],
-      thresholds: { normalLow: 0.98, normalHigh: 1.02, warningLow: 0.95, warningHigh: 1.05, highWarningLow: 0.92, highWarningHigh: 1.08 },
+      thresholds: RATIO_THRESHOLDS,
       message: '待计算',
       description: '配方数据不完整，无法进行含量比校验',
       allowed: true,
@@ -575,72 +576,14 @@ const ratioValidation = computed<RatioFactorValidationResult>(() => {
   const ratioFactor = d.ratioFactor ?? 0.18;
   const supplementRatioFactor = d.supplementRatioFactor ?? 1.0;
 
-  const breakdown = d.calcRows.map((row: Record<string, unknown>) => {
-    const materialType = (row.materialType as string) || 'herb';
-    const isSupplement = materialType === 'supplement';
-    const quantity = (row.quantity as number) || 0;
-    const baseRatio = quantity / finishedWeight;
-    const ratio = Math.round(baseRatio * (isSupplement ? supplementRatioFactor : ratioFactor) * 100000) / 100000;
-    return {
-      materialId: (row.materialId as string) || (row.name as string) || '',
-      materialName: (row.name as string) || '',
-      quantity,
-      materialType,
-      ratioFactor: ratio,
-    };
-  });
+  const materialInputs = d.calcRows.map((row: Record<string, unknown>) => ({
+    materialId: (row.materialId as string) || (row.name as string) || '',
+    materialName: (row.name as string) || '',
+    quantity: (row.quantity as number) || 0,
+    materialType: (row.materialType as string) || 'herb',
+  }));
 
-  const totalRatio = Math.round(breakdown.reduce((sum: number, item: { ratioFactor: number }) => sum + item.ratioFactor, 0) * 100000) / 100000;
-
-  const thresholds = { normalLow: 0.98, normalHigh: 1.02, warningLow: 0.95, warningHigh: 1.05, highWarningLow: 0.92, highWarningHigh: 1.08 };
-
-  let level: RatioFactorValidationResult['level'];
-  if (totalRatio >= thresholds.normalLow && totalRatio <= thresholds.normalHigh) {
-    level = 'normal';
-  } else if (
-    (totalRatio >= thresholds.warningLow && totalRatio < thresholds.normalLow) ||
-    (totalRatio > thresholds.normalHigh && totalRatio <= thresholds.warningHigh)
-  ) {
-    level = 'warning';
-  } else if (
-    (totalRatio >= thresholds.highWarningLow && totalRatio < thresholds.warningLow) ||
-    (totalRatio > thresholds.warningHigh && totalRatio <= thresholds.highWarningHigh)
-  ) {
-    level = 'high_warning';
-  } else {
-    level = 'error';
-  }
-
-  const deviation = ((totalRatio - 1) * 100).toFixed(2);
-  const messages: Record<string, { message: string; description: string; allowed: boolean; requiresManualReview: boolean }> = {
-    normal: {
-      message: '含量比校验通过',
-      description: `原料含量比总和为 ${totalRatio.toFixed(5)}（偏差 ${deviation}%），在正常范围内 [${thresholds.normalLow}, ${thresholds.normalHigh}]`,
-      allowed: true,
-      requiresManualReview: false,
-    },
-    warning: {
-      message: `含量比偏差预警（偏差 ${deviation}%）`,
-      description: `原料含量比总和为 ${totalRatio.toFixed(5)}，超出正常范围 [${thresholds.normalLow}, ${thresholds.normalHigh}]，偏差 ${deviation}%。建议检查原料用量是否合理。`,
-      allowed: true,
-      requiresManualReview: false,
-    },
-    high_warning: {
-      message: `含量比严重偏差（偏差 ${deviation}%）`,
-      description: `原料含量比总和为 ${totalRatio.toFixed(5)}，严重偏离标准值 1.0，偏差 ${deviation}%。需要人工审核确认，请仔细核对原料用量数据。`,
-      allowed: true,
-      requiresManualReview: true,
-    },
-    error: {
-      message: `含量比校验失败（偏差 ${deviation}%）`,
-      description: `原料含量比总和为 ${totalRatio.toFixed(5)}，偏差 ${deviation}% 超出允许范围 [${thresholds.highWarningLow}, ${thresholds.highWarningHigh}]。配方数据存在错误，请修正原料用量后重试。`,
-      allowed: false,
-      requiresManualReview: false,
-    },
-  };
-
-  const msg = messages[level];
-  return { level, totalRatio, breakdown, thresholds, ...msg };
+  return validateRatioFull(materialInputs, finishedWeight, ratioFactor, supplementRatioFactor);
 });
 
 const ratioValidationIcon = computed(() => {

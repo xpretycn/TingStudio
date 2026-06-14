@@ -12,7 +12,6 @@ import { aiRoutes } from "./ai.js";
 import { weatherRoutes } from "./weather.js";
 import { salesRoutes } from "./sales.js";
 import { reportRoutes } from "./reports.js";
-import { fileRoutes } from "./files.js";
 import { dashboardRoutes } from "./dashboard.js";
 import { agentRouter } from "./agent.js";
 import { parseTemplateRoutes } from "./parseTemplates.js";
@@ -46,7 +45,6 @@ export function createAppRouter(): Router {
   router.use("/weather", weatherRoutes);
   router.use("/sales", salesRoutes);
   router.use("/reports", reportRoutes);
-  router.use("/files", fileRoutes);
   router.use("/dashboard", dashboardRoutes);
   router.use("/parse-templates", parseTemplateRoutes);
   router.use("/ratio-thresholds", ratioThresholdRoutes);

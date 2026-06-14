@@ -417,6 +417,7 @@ import type { Material } from '@/api/material';
 import { MessagePlugin } from 'tdesign-vue-next';
 import PageSkeleton from '@/components/Skeleton/PageSkeleton.vue';
 import { splitDateTime } from '@/utils/timeFormat';
+import { roundRatio, calcMaterialRatio } from '@/utils/ratioValidation';
 
 interface SnapshotMaterial {
   materialId?: string;
@@ -645,7 +646,7 @@ const calcRatio = (material: SnapshotMaterial): number => {
   const ratioFactor = materialType === 'supplement'
     ? (_resolveSnapshotValue<number>('supplementRatioFactor', 1.0) || 1.0)
     : (_resolveSnapshotValue<number>('ratioFactor', 0.18) || 0.18);
-  return (quantity / finishedWeight) * ratioFactor;
+  return calcMaterialRatio(quantity, finishedWeight, ratioFactor);
 };
 
 const getMaterialNutrition = (material: SnapshotMaterial): Record<string, number> => {
@@ -767,7 +768,7 @@ const ratioValidation = computed(() => {
     if (quantity <= 0) continue;
     totalRatio += calcRatio(m);
   }
-  totalRatio = Math.round(totalRatio * 100000) / 100000;
+  totalRatio = roundRatio(totalRatio);
 
   return {
     totalRatioDisplay: (totalRatio * 100).toFixed(3) + "%",
@@ -1240,12 +1241,12 @@ onMounted(async () => {
     }
 
     &.action-submit {
-      background: $gradient-blue-btn;
+      background: var(--gradient-btn);
       color: $text-white;
-      box-shadow: 0 2px 8px $overlay-blue-25;
+      box-shadow: var(--shadow-brand-sm);
 
       &:hover {
-        box-shadow: 0 4px 12px $overlay-blue-35;
+        box-shadow: var(--shadow-brand-md);
         transform: translateY(-1px);
       }
     }

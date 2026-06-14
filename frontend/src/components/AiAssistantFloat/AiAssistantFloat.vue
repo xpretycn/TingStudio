@@ -7,14 +7,10 @@
     <FloatDrawer :visible="isOpen" :fullscreen="isFullscreen" :position="config.position" :width="config.drawerWidth"
       :title="store.dynamicTitle" @close="setOpen(false)" @fullscreen="toggleFullscreen">
 
-      <FieldDetectionPanel
-        :required-missing="requiredMissingFields"
-        :recommended-missing="recommendedMissingFields"
+      <FieldDetectionPanel :required-missing="requiredMissingFields" :recommended-missing="recommendedMissingFields"
         @consult="handleFieldConsult" />
 
-      <SubmitAnalysisPanel
-        v-if="submitIssues.length"
-        :issues="submitIssues" />
+      <SubmitAnalysisPanel v-if="submitIssues.length" :issues="submitIssues" />
 
       <ChatMessages :messages="messages" :loading="loading" :field-label-map="currentFieldLabelMap" />
 
@@ -151,11 +147,25 @@ function inspectField(fieldKey: string): boolean {
 
   const isSelect = container.classList.contains("t-select") || container.querySelector(".t-select") !== null;
   if (isSelect) {
+    // 优先检查 TDesign 旧版本的标签元素
     const selectedLabel = container.querySelector(".t-select__single-label") || container.querySelector(".t-tag");
     let hasValue = !!selectedLabel && selectedLabel.textContent !== null && selectedLabel.textContent.trim() !== "";
     if (!hasValue) {
       const hiddenInput = container.querySelector<HTMLInputElement>("input[type=\"hidden\"]");
       if (hiddenInput && hiddenInput.value) hasValue = true;
+    }
+    if (!hasValue) {
+      // TDesign 1.x: 选中值在内部 input.t-input__inner 的 value 中
+      const innerInput = container.querySelector<HTMLInputElement>("input.t-input__inner");
+      if (innerInput && innerInput.value && innerInput.value.trim() !== "") hasValue = true;
+    }
+    if (!hasValue) {
+      // 检查 t-select-input--empty 类名是否存在（TDesign 空状态标记）
+      const selectInput = container.querySelector(".t-select-input");
+      if (selectInput && !selectInput.classList.contains("t-select-input--empty")) {
+        // 非空状态，可能已选中值
+        hasValue = true;
+      }
     }
     return hasValue;
   }

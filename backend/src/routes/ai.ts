@@ -9,6 +9,7 @@ import {
   naturalSearch,
   getModels,
   chatStream,
+  smartGenerate,
 } from "../controllers/aiController.js";
 import {
   getModelsList,
@@ -130,6 +131,9 @@ router.get("/models", getModels);
 
 // AI 对话（SSE 流式）
 router.post("/chat", chatStream);
+
+// 智能生成（配方描述/制法/升版原因）
+router.post("/smart-generate", smartGenerate);
 
 router.get("/models-manage", getModelsList);
 router.post("/models-manage", createModel);

@@ -1610,7 +1610,6 @@ const parseActionsFromResponse = (content: string): ActionItem[] => {
             else if (target.includes('销量') || target.includes('销售')) path = '/sales';
             else if (target.includes('报告')) path = '/reports';
             else if (target.includes('导出')) path = '/system/config';
-            else if (target.includes('文件')) path = '/files';
             else if (target.includes('营养')) path = '/nutrition';
             else if (target.includes('工具')) path = '/tools';
 

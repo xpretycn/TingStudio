@@ -19,9 +19,6 @@ interface ConfigData {
   cleanupThresholdPercent: number;
   cleanupBatchPercent: number;
   maxFileSizeBytes: number;
-  fileRetentionDays: number;
-  fileStorageLimitBytes: number;
-  fileStorageAlertPercent: number;
 }
 
 interface DegradationInfo {
@@ -51,9 +48,6 @@ const configData = ref<ConfigData>({
   cleanupThresholdPercent: 95,
   cleanupBatchPercent: 5,
   maxFileSizeBytes: 5242880,
-  fileRetentionDays: 90,
-  fileStorageLimitBytes: 10737418240,
-  fileStorageAlertPercent: 80,
 });
 const configForm = ref<ConfigData>({ ...configData.value });
 const isEditing = ref(false);
@@ -119,9 +113,6 @@ async function fetchConfig() {
       cleanupThresholdPercent: res.cleanupThresholdPercent ?? 95,
       cleanupBatchPercent: res.cleanupBatchPercent ?? 5,
       maxFileSizeBytes: res.maxFileSizeBytes ?? 5242880,
-      fileRetentionDays: res.fileRetentionDays ?? 90,
-      fileStorageLimitBytes: res.fileStorageLimitBytes ?? 10737418240,
-      fileStorageAlertPercent: res.fileStorageAlertPercent ?? 80,
     };
     configForm.value = { ...configData.value };
   } catch (error: unknown) {
@@ -203,10 +194,7 @@ const hasConfigChanged = computed(() =>
   configForm.value.storageLimit !== configData.value.storageLimit ||
   configForm.value.cleanupThresholdPercent !== configData.value.cleanupThresholdPercent ||
   configForm.value.cleanupBatchPercent !== configData.value.cleanupBatchPercent ||
-  configForm.value.maxFileSizeBytes !== configData.value.maxFileSizeBytes ||
-  configForm.value.fileRetentionDays !== configData.value.fileRetentionDays ||
-  configForm.value.fileStorageLimitBytes !== configData.value.fileStorageLimitBytes ||
-  configForm.value.fileStorageAlertPercent !== configData.value.fileStorageAlertPercent
+  configForm.value.maxFileSizeBytes !== configData.value.maxFileSizeBytes
 );
 
 function startEdit() {
@@ -371,62 +359,6 @@ onMounted(async () => {
                     <template v-else>
                       {{ (configData.maxFileSizeBytes / 1024 / 1024).toFixed(1) }} <span
                         class="config-info-unit">MB</span>
-                    </template>
-                  </div>
-                </div>
-              </div>
-
-              <t-divider />
-
-              <!-- 文件保留策略 -->
-              <div class="section-header-enhanced" style="margin-top: 8px;">
-                <div class="section-title-group">
-                  <svg class="section-title-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                    stroke="var(--color-warning)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                    <polyline points="14 2 14 8 20 8" />
-                    <line x1="16" y1="13" x2="8" y2="13" />
-                    <line x1="16" y1="17" x2="8" y2="17" />
-                  </svg>
-                  <h4 class="section-title-text">文件保留策略</h4>
-                </div>
-              </div>
-
-              <div class="config-display-grid">
-                <div class="config-info-card" :class="{ 'is-editing': isEditing }">
-                  <div class="config-info-label">原文件保留天数</div>
-                  <div class="config-info-value">
-                    <template v-if="isEditing">
-                      <t-input-number v-model="configForm.fileRetentionDays" :min="7" :max="365" :step="1"
-                        placeholder="请输入" theme="column" />
-                    </template>
-                    <template v-else>
-                      {{ configData.fileRetentionDays }} <span class="config-info-unit">天</span>
-                    </template>
-                  </div>
-                </div>
-                <div class="config-info-card" :class="{ 'is-editing': isEditing }">
-                  <div class="config-info-label">存储空间上限</div>
-                  <div class="config-info-value">
-                    <template v-if="isEditing">
-                      <t-input-number v-model="configForm.fileStorageLimitBytes" :min="1073741824" :max="107374182400"
-                        :step="1073741824" placeholder="请输入" theme="column" />
-                    </template>
-                    <template v-else>
-                      {{ (configData.fileStorageLimitBytes / 1024 / 1024 / 1024).toFixed(0) }} <span
-                        class="config-info-unit">GB</span>
-                    </template>
-                  </div>
-                </div>
-                <div class="config-info-card" :class="{ 'is-editing': isEditing }">
-                  <div class="config-info-label">磁盘使用率告警</div>
-                  <div class="config-info-value">
-                    <template v-if="isEditing">
-                      <t-input-number v-model="configForm.fileStorageAlertPercent" :min="50" :max="99" :step="5"
-                        placeholder="请输入" theme="column" />
-                    </template>
-                    <template v-else>
-                      {{ configData.fileStorageAlertPercent }}<span class="config-info-unit">%</span>
                     </template>
                   </div>
                 </div>
@@ -1233,10 +1165,12 @@ $transition-fast: 0.15s ease;
   }
 
   .cleanup-btn {
+    background: var(--color-danger);
     color: var(--color-text-white);
 
     &:hover:not(:disabled) {
       background: var(--color-danger);
+      filter: brightness(1.15);
     }
   }
 }

@@ -173,8 +173,17 @@
   --color-indigo-500: #{$indigo-500};
   // Green
   --color-green-50: #{$green-50};
+  --color-green-100: #{$green-100};
+  --color-green-600: #{$green-600};
+  --color-green-800: #{$green-800};
   // Orange
   --color-orange-50: #{$orange-50};
+  --color-orange-600: #{$orange-600};
+  // Red (extended)
+  --color-red-800: #{$red-800};
+  // Amber (extended)
+  --color-amber-600: #{$amber-600};
+  --color-amber-800: #{$amber-800};
   // Sky
   --color-sky-50: #{$sky-50};
   --color-sky-100: #{$sky-100};
@@ -479,7 +488,7 @@
 
   // ─── 表格行交互背景（暗色：低饱和度 emerald 覆盖层）───
   --color-row-hover-bg: rgba(16, 185, 129, 0.12);
-  --color-row-selected-bg: rgba(16, 185, 129, 0.20);
+  --color-row-selected-bg: rgba(16, 185, 129, 0.2);
 
   // ─── 文字色 ───
   --color-text-primary: #e8dfe8;
@@ -559,8 +568,17 @@
   --color-indigo-500: #{$indigo-500};
   // Green
   --color-green-50: rgba(34, 197, 94, 0.1);
+  --color-green-100: rgba(34, 197, 94, 0.15);
+  --color-green-600: #{$green-400};
+  --color-green-800: #{$green-300};
   // Orange
   --color-orange-50: rgba(249, 115, 22, 0.1);
+  --color-orange-600: #fb923c;
+  // Red (extended)
+  --color-red-800: #{$red-300};
+  // Amber (extended)
+  --color-amber-600: #{$amber-400};
+  --color-amber-800: #{$amber-300};
   // Sky
   --color-sky-50: rgba(14, 165, 233, 0.1);
   --color-sky-100: rgba(14, 165, 233, 0.15);
@@ -586,7 +604,7 @@
   --td-bg-color-secondarycontainer-hover: #2d2535;
   --td-bg-color-secondarycontainer-active: #3d3445;
   --td-bg-color-elevated: #2d2535;
-  --td-bg-color-specialcomponent: #241e2b;  // t-input / t-select / t-textarea 背景
+  --td-bg-color-specialcomponent: #241e2b; // t-input / t-select / t-textarea 背景
 
   // 文字
   --td-text-color-primary: #e8dfe8;

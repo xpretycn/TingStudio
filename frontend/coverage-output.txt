@@ -1,0 +1,2074 @@
+﻿node.exe : npm warn Unknown user config "home". This will stop working in the next major version of npm.
+所在位置 D:\Program Files (x86)\nodejs\npx.ps1:16 字符: 5
++     & "$basedir/node$exe"  "$basedir/node_modules/npm/bin/npx-cli.js" ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (npm warn Unknow...version of npm.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.8 [39m[90mD:/ProgramData/workspace-codeby/ting-studio/frontend[39m
+      [2mCoverage enabled with [22m[33mv8[39m
+
+ [31m鉂?[39m src/views/formulas/quick-formula/__tests__/FormulaEditor.test.ts [2m([22m[2m10 tests[22m[2m | [22m[31m10 failed[39m[2m)[22m[32m 47[2mms[22m[39m
+[31m       [31m脳[31m E01: Displays current ratioFactor value[39m[32m 30[2mms[22m[39m
+[31m       [31m脳[31m E02: Displays current supplementRatioFactor value[39m[32m 2[2mms[22m[39m
+[31m       [31m脳[31m E03: Displays current finishedWeight value[39m[32m 1[2mms[22m[39m
+[31m       [31m脳[31m E10: Shows materials from store[39m[32m 1[2mms[22m[39m
+[31m       [31m脳[31m E11: Shows quantity for each material[39m[32m 3[2mms[22m[39m
+[31m       [31m脳[31m E12: Shows unit price for each material[39m[32m 2[2mms[22m[39m
+[31m       [31m脳[31m E13: Shows ratio percentage for each material[39m[32m 1[2mms[22m[39m
+[31m       [31m脳[31m E20: Save button triggers store save[39m[32m 1[2mms[22m[39m
+[31m       [31m脳[31m E21: Publish button shows validation errors when invalid[39m[32m 2[2mms[22m[39m
+[31m       [31m脳[31m E22: Publish button opens drawer when valid[39m[32m 1[2mms[22m[39m
+ [31m鉂?[39m src/stores/__tests__/auth.test.ts [2m([22m[2m11 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[32m 113[2mms[22m[39m
+     [32m鉁?[39m A01: 鍒濆鐘舵€佸簲涓烘湭鐧诲綍[32m 9[2mms[22m[39m
+     [32m鉁?[39m A02: 鐧诲綍鎴愬姛鍚庡簲瀛樺偍 token 鍜岀敤鎴蜂俊鎭?[32m 8[2mms[22m[39m
+     [32m鉁?[39m A03: 鐧诲綍澶辫触锛堝瘑鐮侀敊璇級搴旇繑鍥為敊璇俊鎭?[32m 1[2mms[22m[39m
+     [32m鉁?[39m A04: 鐧诲嚭鍚庡簲娓呴櫎鎵€鏈夎璇佷俊鎭?[32m 1[2mms[22m[39m
+[31m     [31m脳[31m A05: 娉ㄥ唽鎴愬姛鍚庡簲鑷姩璁剧疆鐧诲綍鎬?[39m[32m 5[2mms[22m[39m
+[31m     [31m脳[31m A06: 娉ㄥ唽澶辫触搴旇繑鍥為敊璇俊鎭?[39m[32m 1[2mms[22m[39m
+     [32m鉁?[39m A07: updateProfile 鎴愬姛搴旀洿鏂?user 淇℃伅[32m 3[2mms[22m[39m
+     [32m鉁?[39m A08: changePassword 澶辫触搴旇繑鍥為敊璇俊鎭?[32m 1[2mms[22m[39m
+     [32m鉁?[39m A09: 鐧诲綍鎴愬姛鍚庡簲鍚屾鐢ㄦ埛鍋忓ソ璁剧疆鍒?store[32m 2[2mms[22m[39m
+     [32m鉁?[39m A10: 鐧诲嚭鏃跺簲娓呯悊褰撳墠鐢ㄦ埛鐨勬湰鍦板亸濂界紦瀛?[32m 2[2mms[22m[39m
+     [32m鉁?[39m A11: initAuth 鍚庡簲寮傛鍔犺浇鐢ㄦ埛鍋忓ソ[32m 77[2mms[22m[39m
+ [31m鉂?[39m src/views/materials/__tests__/MaterialForm.test.ts [2m([22m[2m10 tests[22m[2m | [22m[31m10 failed[39m[2m)[22m[32m 53[2mms[22m[39m
+[31m     [31m脳[31m MF01: 鏂板缓妯″紡搴旀樉绀恒€屾柊澧炲師鏂欍€嶆爣棰?[39m[32m 35[2mms[22m[39m
+[31m     [31m脳[31m MF02: 缂栬緫妯″紡搴旀樉绀恒€岀紪杈戝師鏂欍€嶆爣棰?[39m[32m 2[2mms[22m[39m
+[31m     [31m脳[31m MF03: 鏂板缓妯″紡淇濆瓨鎸夐挳搴旀樉绀恒€屽垱寤恒€嶆枃鏈?[39m[32m 1[2mms[22m[39m
+[31m     [31m脳[31m MF04: 缂栬緫妯″紡淇濆瓨鎸夐挳搴旀樉绀恒€屼繚瀛樸€嶆枃鏈?[39m[32m 1[2mms[22m[39m
+[31m     [31m脳[31m MF05: 鐐瑰嚮杩斿洖鎸夐挳搴斿鑸埌 /materials[39m[32m 2[2mms[22m[39m
+[31m     [31m脳[31m MF06: 鐐瑰嚮鍙栨秷鎸夐挳搴斿鑸埌 /materials[39m[32m 1[2mms[22m[39m
+[31m     [31m脳[31m MF07: 缂栬緫妯″紡涓?AI 闈㈡澘搴旀湁绂佺敤鏍峰紡[39m[32m 2[2mms[22m[39m
+[31m     [31m脳[31m MF08: 鏂板缓妯″紡涓?AI 闈㈡澘涓嶅簲鏈夌鐢ㄦ牱寮?[39m[32m 2[2mms[22m[39m
+[31m     [31m脳[31m MF09: 钀ュ吇绱犲尯鍩熼粯璁や笉鏄剧ず锛坰howNutrition=false锛?[39m[32m 2[2mms[22m[39m
+[31m     [31m脳[31m MF10: handleBack 搴旇皟鐢?router.push("/materials")[39m[32m 2[2mms[22m[39m
+ [31m鉂?[39m src/views/auth/__tests__/Login.test.ts [2m([22m[2m10 tests[22m[2m | [22m[31m10 failed[39m[2m)[22m[32m 45[2mms[22m[39m
+[31m     [31m脳[31m LG01: 椤甸潰搴旀甯告覆鏌擄紝涓嶆姏鍑洪敊璇?[39m[32m 29[2mms[22m[39m
+[31m     [31m脳[31m LG02: 鐧诲綍琛ㄥ崟搴斿瓨鍦?[39m[32m 2[2mms[22m[39m
+[31m     [31m脳[31m LG03: 鐢ㄦ埛鍚嶈緭鍏ユ搴斿瓨鍦?[39m[32m 1[2mms[22m[39m
+[31m     [31m脳[31m LG04: 鐧诲綍鎸夐挳搴斿瓨鍦?[39m[32m 1[2mms[22m[39m
+[31m     [31m脳[31m LG05: 鐧诲綍鎸夐挳鏂囨湰搴斿寘鍚€岀櫥銆嶅瓧[39m[32m 1[2mms[22m[39m
+[31m     [31m脳[31m LG06: 椤甸潰鏍囬鍖哄煙搴斿瓨鍦?[39m[32m 1[2mms[22m[39m
+[31m     [31m脳[31m LG07: 鐧诲綍椤甸潰瀹瑰櫒搴斿瓨鍦?[39m[32m 1[2mms[22m[39m
+[31m     [31m脳[31m LG08: 缁勪欢搴斿寘鍚〃鍗曞紩鐢紙formRef锛?[39m[32m 1[2mms[22m[39m
+[31m     [31m脳[31m LG09: formData 搴斿寘鍚?username 鍜?password 瀛楁[39m[32m 2[2mms[22m[39m
+[31m     [31m脳[31m LG10: handleSubmit 鏂规硶搴斿瓨鍦?[39m[32m 2[2mms[22m[39m
+[90mstderr[2m | src/views/formulas/__tests__/FormulaList.test.ts[2m > [22m[2mFormulaList 缁勪欢[2m > [22m[2mFL-01:
+ 閰嶆柟鍒楄〃椤靛簲姝ｇ‘娓叉煋瀹瑰櫒
+[22m[39m鍔犺浇閿€閲忔暟鎹け璐? TypeError: salesStore.fetchSales is not a function
+    at loadSalesData (D:/ProgramData/workspace-codeby/ting-studio/frontend/src/views/formulas/FormulaList.vue:1593:22)
+    at D:/ProgramData/workspace-codeby/ting-studio/frontend/src/views/formulas/FormulaList.vue:1393:9
+[90m    at processTicksAndRejections (node:internal/process/task_queues:105:5)[39m
+
+[90mstderr[2m | src/views/formulas/__tests__/FormulaList.test.ts[2m > [22m[2mFormulaList 缁勪欢[2m > [22m[2mFL-02:
+ 搴斿寘鍚?Dashboard 鏁版嵁鐪嬫澘鍖哄煙
+[22m[39m鍔犺浇閿€閲忔暟鎹け璐? TypeError: salesStore.fetchSales is not a function
+    at loadSalesData (D:/ProgramData/workspace-codeby/ting-studio/frontend/src/views/formulas/FormulaList.vue:1593:22)
+    at D:/ProgramData/workspace-codeby/ting-studio/frontend/src/views/formulas/FormulaList.vue:1393:9
+
+[90mstderr[2m | src/views/formulas/__tests__/FormulaList.test.ts[2m > [22m[2mFormulaList 缁勪欢[2m > [22m[2mFL-03:
+ 宸ュ叿鏍忓簲鍖呭惈鎼滅储杈撳叆妗?[22m[39m鍔犺浇閿€閲忔暟鎹け璐? TypeError: salesStore.fetchSales is not a function
+    at loadSalesData (D:/ProgramData/workspace-codeby/ting-studio/frontend/src/views/formulas/FormulaList.vue:1593:22)
+    at D:/ProgramData/workspace-codeby/ting-studio/frontend/src/views/formulas/FormulaList.vue:1393:9
+
+[90mstderr[2m | src/views/formulas/__tests__/FormulaList.test.ts[2m > [22m[2mFormulaList 缁勪欢[2m > [22m[2mFL-04:
+ 搴斿寘鍚垱寤烘柊閰嶆柟鎸夐挳
+[22m[39m鍔犺浇閿€閲忔暟鎹け璐? TypeError: salesStore.fetchSales is not a function
+    at loadSalesData (D:/ProgramData/workspace-codeby/ting-studio/frontend/src/views/formulas/FormulaList.vue:1593:22)
+    at D:/ProgramData/workspace-codeby/ting-studio/frontend/src/views/formulas/FormulaList.vue:1393:9
+
+[90mstderr[2m | src/views/formulas/__tests__/FormulaList.test.ts[2m > [22m[2mFormulaList 缁勪欢[2m > [22m[2mFL-05:
+ 鐐瑰嚮鍒涘缓鎸夐挳搴斿鑸埌鏂板缓琛ㄥ崟
+[22m[39m鍔犺浇閿€閲忔暟鎹け璐? TypeError: salesStore.fetchSales is not a function
+    at loadSalesData (D:/ProgramData/workspace-codeby/ting-studio/frontend/src/views/formulas/FormulaList.vue:1593:22)
+    at D:/ProgramData/workspace-codeby/ting-studio/frontend/src/views/formulas/FormulaList.vue:1393:9
+
+[90mstderr[2m | src/views/formulas/__tests__/FormulaList.test.ts[2m > [22m[2mFormulaList 缁勪欢[2m > [22m[2mFL-06:
+ 宸ュ叿鏍忔爣棰樺簲鏄剧ず"閰嶆柟绠＄悊涓績"
+[22m[39m鍔犺浇閿€閲忔暟鎹け璐? TypeError: salesStore.fetchSales is not a function
+    at loadSalesData (D:/ProgramData/workspace-codeby/ting-studio/frontend/src/views/formulas/FormulaList.vue:1593:22)
+    at D:/ProgramData/workspace-codeby/ting-studio/frontend/src/views/formulas/FormulaList.vue:1393:9
+
+ [32m鉁?[39m src/views/salesmen/__tests__/SalesmanList.test.ts [2m([22m[2m8 tests[22m[2m)[22m[33m 1779[2mms[22m[39m
+[90mstderr[2m | src/views/formulas/__tests__/FormulaList.test.ts[2m > [22m[2mFormulaList 缁勪欢[2m > [22m[2mFL-07:
+ 鍒濆鍖栨椂搴旇皟鐢?fetchFormulas 鑾峰彇鏁版嵁
+[22m[39m鍔犺浇閿€閲忔暟鎹け璐? TypeError: salesStore.fetchSales is not a function
+    at loadSalesData (D:/ProgramData/workspace-codeby/ting-studio/frontend/src/views/formulas/FormulaList.vue:1593:22)
+    at D:/ProgramData/workspace-codeby/ting-studio/frontend/src/views/formulas/FormulaList.vue:1393:9
+
+[90mstderr[2m | src/views/formulas/__tests__/FormulaList.test.ts[2m > [22m[2mFormulaList 缁勪欢[2m > [22m[2mFL-08:
+ 搴斿寘鍚瓫閫夋寜閽?[22m[39m鍔犺浇閿€閲忔暟鎹け璐? TypeError: salesStore.fetchSales is not a function
+    at loadSalesData (D:/ProgramData/workspace-codeby/ting-studio/frontend/src/views/formulas/FormulaList.vue:1593:22)
+    at D:/ProgramData/workspace-codeby/ting-studio/frontend/src/views/formulas/FormulaList.vue:1393:9
+
+ [32m鉁?[39m src/views/formulas/__tests__/FormulaList.test.ts [2m([22m[2m8 tests[22m[2m)[22m[33m 1226[2mms[22m[39m
+[90mstderr[2m | src/views/ai/__tests__/AiOverview.test.ts[2m > [22m[2mAiOverview 缁勪欢[2m > [22m[2mAA-01: AI 鍔╂墜瀹
+瑰櫒搴旀纭覆鏌?[22m[39m[Vue warn]: Extraneous non-props attributes (name, mode) were passed to component but could not be 
+automatically inherited because component renders fragment or text or teleport root nodes. 
+  at <Anonymous name="content-fade" mode="out-in" > 
+  at <AiOverview ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/ai/__tests__/AiOverview.test.ts[2m > [22m[2mAiOverview 缁勪欢[2m > [22m[2mAA-01: AI 鍔╂墜瀹
+瑰櫒搴旀纭覆鏌?[22m[39m[AiAssistant] 鍒濆鍖栧け璐? TypeError: aiStore.loadModelVersions is not a function
+    at loadModelVersionsWithLoading (D:/ProgramData/workspace-codeby/ting-studio/frontend/src/views/ai/AiOverview.vue:2
+34:19)
+    at D:/ProgramData/workspace-codeby/ting-studio/frontend/src/views/ai/AiOverview.vue:471:13
+[90m    at processTicksAndRejections (node:internal/process/task_queues:105:5)[39m
+
+[90mstderr[2m | src/views/ai/__tests__/AiOverview.test.ts[2m > [22m[2mAiOverview 缁勪欢[2m > [22m[2mAA-01: AI 鍔╂墜瀹
+瑰櫒搴旀纭覆鏌?[22m[39m[Vue warn]: Extraneous non-props attributes (name, mode) were passed to component but could not be 
+automatically inherited because component renders fragment or text or teleport root nodes. 
+  at <Anonymous name="content-fade" mode="out-in" > 
+  at <AiOverview ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+ [32m鉁?[39m src/views/formulas/versions/__tests__/VersionCompare.test.ts [2m([22m[2m7 tests[22m[2m)[22m[33m 1183[2mms[22m[39m
+     [33m[2m鉁?[22m[39m VC-06: 鏃犻€変腑鐗堟湰鏃跺簲鏄剧ず绌虹姸鎬佹彁绀?[33m 315[2mms[22m[39m
+[90mstderr[2m | src/views/ai/__tests__/AiOverview.test.ts[2m > [22m[2mAiOverview 缁勪欢[2m > [22m[2mAA-02: 搴斿寘鍚?Da
+shboard 鏁版嵁鐪嬫澘鍖哄煙
+[22m[39m[Vue warn]: Extraneous non-props attributes (name, mode) were passed to component but could not be automatica
+lly inherited because component renders fragment or text or teleport root nodes. 
+  at <Anonymous name="content-fade" mode="out-in" > 
+  at <AiOverview ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/ai/__tests__/AiOverview.test.ts[2m > [22m[2mAiOverview 缁勪欢[2m > [22m[2mAA-02: 搴斿寘鍚?Da
+shboard 鏁版嵁鐪嬫澘鍖哄煙
+[22m[39m[AiAssistant] 鍒濆鍖栧け璐? TypeError: aiStore.loadModelVersions is not a function
+    at loadModelVersionsWithLoading (D:/ProgramData/workspace-codeby/ting-studio/frontend/src/views/ai/AiOverview.vue:2
+34:19)
+    at D:/ProgramData/workspace-codeby/ting-studio/frontend/src/views/ai/AiOverview.vue:471:13
+[90m    at processTicksAndRejections (node:internal/process/task_queues:105:5)[39m
+
+[90mstderr[2m | src/views/ai/__tests__/AiOverview.test.ts[2m > [22m[2mAiOverview 缁勪欢[2m > [22m[2mAA-02: 搴斿寘鍚?Da
+shboard 鏁版嵁鐪嬫澘鍖哄煙
+[22m[39m[Vue warn]: Extraneous non-props attributes (name, mode) were passed to component but could not be automatica
+lly inherited because component renders fragment or text or teleport root nodes. 
+  at <Anonymous name="content-fade" mode="out-in" > 
+  at <AiOverview ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/ai/__tests__/AiOverview.test.ts[2m > [22m[2mAiOverview 缁勪欢[2m > [22m[2mAA-03: 鐪嬫澘搴斿寘鍚
+?涓粺璁″崱鐗?[22m[39m[Vue warn]: Extraneous non-props attributes (name, mode) were passed to component but could not be a
+utomatically inherited because component renders fragment or text or teleport root nodes. 
+  at <Anonymous name="content-fade" mode="out-in" > 
+  at <AiOverview ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/ai/__tests__/AiOverview.test.ts[2m > [22m[2mAiOverview 缁勪欢[2m > [22m[2mAA-03: 鐪嬫澘搴斿寘鍚
+?涓粺璁″崱鐗?[22m[39m[AiAssistant] 鍒濆鍖栧け璐? TypeError: aiStore.loadModelVersions is not a function
+    at loadModelVersionsWithLoading (D:/ProgramData/workspace-codeby/ting-studio/frontend/src/views/ai/AiOverview.vue:2
+34:19)
+    at D:/ProgramData/workspace-codeby/ting-studio/frontend/src/views/ai/AiOverview.vue:471:13
+[90m    at processTicksAndRejections (node:internal/process/task_queues:105:5)[39m
+
+[90mstderr[2m | src/views/ai/__tests__/AiOverview.test.ts[2m > [22m[2mAiOverview 缁勪欢[2m > [22m[2mAA-03: 鐪嬫澘搴斿寘鍚
+?涓粺璁″崱鐗?[22m[39m[Vue warn]: Extraneous non-props attributes (name, mode) were passed to component but could not be a
+utomatically inherited because component renders fragment or text or teleport root nodes. 
+  at <Anonymous name="content-fade" mode="out-in" > 
+  at <AiOverview ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/ai/__tests__/AiOverview.test.ts[2m > [22m[2mAiOverview 缁勪欢[2m > [22m[2mAA-04: 鏍囬搴旀樉绀
+?AI 鏅鸿兘鍔╂墜'
+[22m[39m[Vue warn]: Extraneous non-props attributes (name, mode) were passed to component but could not be automatica
+lly inherited because component renders fragment or text or teleport root nodes. 
+  at <Anonymous name="content-fade" mode="out-in" > 
+  at <AiOverview ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/ai/__tests__/AiOverview.test.ts[2m > [22m[2mAiOverview 缁勪欢[2m > [22m[2mAA-04: 鏍囬搴旀樉绀
+?AI 鏅鸿兘鍔╂墜'
+[22m[39m[AiAssistant] 鍒濆鍖栧け璐? TypeError: aiStore.loadModelVersions is not a function
+    at loadModelVersionsWithLoading (D:/ProgramData/workspace-codeby/ting-studio/frontend/src/views/ai/AiOverview.vue:2
+34:19)
+    at D:/ProgramData/workspace-codeby/ting-studio/frontend/src/views/ai/AiOverview.vue:471:13
+[90m    at processTicksAndRejections (node:internal/process/task_queues:105:5)[39m
+
+[90mstderr[2m | src/views/ai/__tests__/AiOverview.test.ts[2m > [22m[2mAiOverview 缁勪欢[2m > [22m[2mAA-04: 鏍囬搴旀樉绀
+?AI 鏅鸿兘鍔╂墜'
+[22m[39m[Vue warn]: Extraneous non-props attributes (name, mode) were passed to component but could not be automatica
+lly inherited because component renders fragment or text or teleport root nodes. 
+  at <Anonymous name="content-fade" mode="out-in" > 
+  at <AiOverview ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/ai/__tests__/AiOverview.test.ts[2m > [22m[2mAiOverview 缁勪欢[2m > [22m[2mAA-05: 搴斿寘鍚櫤鑳
+藉～鍗曞拰鏅鸿兘瀵煎叆 Tab 鏂囧瓧
+[22m[39m[Vue warn]: Extraneous non-props attributes (name, mode) were passed to component but could not be automatica
+lly inherited because component renders fragment or text or teleport root nodes. 
+  at <Anonymous name="content-fade" mode="out-in" > 
+  at <AiOverview ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/ai/__tests__/AiOverview.test.ts[2m > [22m[2mAiOverview 缁勪欢[2m > [22m[2mAA-05: 搴斿寘鍚櫤鑳
+藉～鍗曞拰鏅鸿兘瀵煎叆 Tab 鏂囧瓧
+[22m[39m[AiAssistant] 鍒濆鍖栧け璐? TypeError: aiStore.loadModelVersions is not a function
+    at loadModelVersionsWithLoading (D:/ProgramData/workspace-codeby/ting-studio/frontend/src/views/ai/AiOverview.vue:2
+34:19)
+    at D:/ProgramData/workspace-codeby/ting-studio/frontend/src/views/ai/AiOverview.vue:471:13
+
+[90mstderr[2m | src/views/ai/__tests__/AiOverview.test.ts[2m > [22m[2mAiOverview 缁勪欢[2m > [22m[2mAA-05: 搴斿寘鍚櫤鑳
+藉～鍗曞拰鏅鸿兘瀵煎叆 Tab 鏂囧瓧
+[22m[39m[Vue warn]: Extraneous non-props attributes (name, mode) were passed to component but could not be automatica
+lly inherited because component renders fragment or text or teleport root nodes. 
+  at <Anonymous name="content-fade" mode="out-in" > 
+  at <AiOverview ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/ai/__tests__/AiOverview.test.ts[2m > [22m[2mAiOverview 缁勪欢[2m > [22m[2mAA-06: 搴斿寘鍚鑸
+?Tab 鍖哄煙
+[22m[39m[Vue warn]: Extraneous non-props attributes (name, mode) were passed to component but could not be automatica
+lly inherited because component renders fragment or text or teleport root nodes. 
+  at <Anonymous name="content-fade" mode="out-in" > 
+  at <AiOverview ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/ai/__tests__/AiOverview.test.ts[2m > [22m[2mAiOverview 缁勪欢[2m > [22m[2mAA-06: 搴斿寘鍚鑸
+?Tab 鍖哄煙
+[22m[39m[AiAssistant] 鍒濆鍖栧け璐? TypeError: aiStore.loadModelVersions is not a function
+    at loadModelVersionsWithLoading (D:/ProgramData/workspace-codeby/ting-studio/frontend/src/views/ai/AiOverview.vue:2
+34:19)
+    at D:/ProgramData/workspace-codeby/ting-studio/frontend/src/views/ai/AiOverview.vue:471:13
+
+[90mstderr[2m | src/views/ai/__tests__/AiOverview.test.ts[2m > [22m[2mAiOverview 缁勪欢[2m > [22m[2mAA-06: 搴斿寘鍚鑸
+?Tab 鍖哄煙
+[22m[39m[Vue warn]: Extraneous non-props attributes (name, mode) were passed to component but could not be automatica
+lly inherited because component renders fragment or text or teleport root nodes. 
+  at <Anonymous name="content-fade" mode="out-in" > 
+  at <AiOverview ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/ai/__tests__/AiOverview.test.ts[2m > [22m[2mAiOverview 缁勪欢[2m > [22m[2mAA-07: 缁勪欢鍐呭搴
+斿寘鍚厤鏂硅В鏋愮浉鍏冲厓绱?[22m[39m[Vue warn]: Extraneous non-props attributes (name, mode) were passed to component but could n
+ot be automatically inherited because component renders fragment or text or teleport root nodes. 
+  at <Anonymous name="content-fade" mode="out-in" > 
+  at <AiOverview ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/ai/__tests__/AiOverview.test.ts[2m > [22m[2mAiOverview 缁勪欢[2m > [22m[2mAA-07: 缁勪欢鍐呭搴
+斿寘鍚厤鏂硅В鏋愮浉鍏冲厓绱?[22m[39m[AiAssistant] 鍒濆鍖栧け璐? TypeError: aiStore.loadModelVersions is not a function
+    at loadModelVersionsWithLoading (D:/ProgramData/workspace-codeby/ting-studio/frontend/src/views/ai/AiOverview.vue:2
+34:19)
+    at D:/ProgramData/workspace-codeby/ting-studio/frontend/src/views/ai/AiOverview.vue:471:13
+
+[90mstderr[2m | src/views/ai/__tests__/AiOverview.test.ts[2m > [22m[2mAiOverview 缁勪欢[2m > [22m[2mAA-07: 缁勪欢鍐呭搴
+斿寘鍚厤鏂硅В鏋愮浉鍏冲厓绱?[22m[39m[Vue warn]: Extraneous non-props attributes (name, mode) were passed to component but could n
+ot be automatically inherited because component renders fragment or text or teleport root nodes. 
+  at <Anonymous name="content-fade" mode="out-in" > 
+  at <AiOverview ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/ai/__tests__/AiOverview.test.ts[2m > [22m[2mAiOverview 缁勪欢[2m > [22m[2mAA-08: 缁勪欢搴斿寘鍚
+ā鍨嬬浉鍏冲姛鑳?[22m[39m[Vue warn]: Extraneous non-props attributes (name, mode) were passed to component but could not be 
+automatically inherited because component renders fragment or text or teleport root nodes. 
+  at <Anonymous name="content-fade" mode="out-in" > 
+  at <AiOverview ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/ai/__tests__/AiOverview.test.ts[2m > [22m[2mAiOverview 缁勪欢[2m > [22m[2mAA-08: 缁勪欢搴斿寘鍚
+ā鍨嬬浉鍏冲姛鑳?[22m[39m[AiAssistant] 鍒濆鍖栧け璐? TypeError: aiStore.loadModelVersions is not a function
+    at loadModelVersionsWithLoading (D:/ProgramData/workspace-codeby/ting-studio/frontend/src/views/ai/AiOverview.vue:2
+34:19)
+    at D:/ProgramData/workspace-codeby/ting-studio/frontend/src/views/ai/AiOverview.vue:471:13
+
+[90mstderr[2m | src/views/ai/__tests__/AiOverview.test.ts[2m > [22m[2mAiOverview 缁勪欢[2m > [22m[2mAA-08: 缁勪欢搴斿寘鍚
+ā鍨嬬浉鍏冲姛鑳?[22m[39m[Vue warn]: Extraneous non-props attributes (name, mode) were passed to component but could not be 
+automatically inherited because component renders fragment or text or teleport root nodes. 
+  at <Anonymous name="content-fade" mode="out-in" > 
+  at <AiOverview ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/ai/__tests__/AiOverview.test.ts[2m > [22m[2mAiOverview 缁勪欢[2m > [22m[2mAA-09: 搴斿寘鍚?AI
+ 鏅鸿兘鍔╂墜鐩稿叧鎸夐挳鏂囧瓧
+[22m[39m[Vue warn]: Extraneous non-props attributes (name, mode) were passed to component but could not be automatica
+lly inherited because component renders fragment or text or teleport root nodes. 
+  at <Anonymous name="content-fade" mode="out-in" > 
+  at <AiOverview ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/ai/__tests__/AiOverview.test.ts[2m > [22m[2mAiOverview 缁勪欢[2m > [22m[2mAA-09: 搴斿寘鍚?AI
+ 鏅鸿兘鍔╂墜鐩稿叧鎸夐挳鏂囧瓧
+[22m[39m[AiAssistant] 鍒濆鍖栧け璐? TypeError: aiStore.loadModelVersions is not a function
+    at loadModelVersionsWithLoading (D:/ProgramData/workspace-codeby/ting-studio/frontend/src/views/ai/AiOverview.vue:2
+34:19)
+    at D:/ProgramData/workspace-codeby/ting-studio/frontend/src/views/ai/AiOverview.vue:471:13
+
+[90mstderr[2m | src/views/ai/__tests__/AiOverview.test.ts[2m > [22m[2mAiOverview 缁勪欢[2m > [22m[2mAA-09: 搴斿寘鍚?AI
+ 鏅鸿兘鍔╂墜鐩稿叧鎸夐挳鏂囧瓧
+[22m[39m[Vue warn]: Extraneous non-props attributes (name, mode) were passed to component but could not be automatica
+lly inherited because component renders fragment or text or teleport root nodes. 
+  at <Anonymous name="content-fade" mode="out-in" > 
+  at <AiOverview ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/formulas/versions/__tests__/FormulaVersions.test.ts[2m > [22m[2mFormulaVersions 缁勪欢[2m 
+> [22m[2mFV-01: 鐗堟湰鍒楄〃瀹瑰櫒搴旀纭覆鏌?[22m[39m[Vue warn]: Failed setting prop "size" on <input>: value small is invalid.
+ DOMException {} 
+  at <Input modelValue="" onUpdate:modelValue=fn placeholder="鎼滅储鐗堟湰鍙?鎿嶄綔浜?  ... > 
+  at <FormulaVersions ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/ai/__tests__/AiOverview.test.ts[2m > [22m[2mAiOverview 缁勪欢[2m > [22m[2mAA-10: 搴斿寘鍚ā鍨
+嬮€夋嫨鍖哄煙锛圙PT-4锛?[22m[39m[Vue warn]: Extraneous non-props attributes (name, mode) were passed to component but could no
+t be automatically inherited because component renders fragment or text or teleport root nodes. 
+  at <Anonymous name="content-fade" mode="out-in" > 
+  at <AiOverview ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/ai/__tests__/AiOverview.test.ts[2m > [22m[2mAiOverview 缁勪欢[2m > [22m[2mAA-10: 搴斿寘鍚ā鍨
+嬮€夋嫨鍖哄煙锛圙PT-4锛?[22m[39m[AiAssistant] 鍒濆鍖栧け璐? TypeError: aiStore.loadModelVersions is not a function
+    at loadModelVersionsWithLoading (D:/ProgramData/workspace-codeby/ting-studio/frontend/src/views/ai/AiOverview.vue:2
+34:19)
+    at D:/ProgramData/workspace-codeby/ting-studio/frontend/src/views/ai/AiOverview.vue:471:13
+
+[90mstderr[2m | src/views/ai/__tests__/AiOverview.test.ts[2m > [22m[2mAiOverview 缁勪欢[2m > [22m[2mAA-10: 搴斿寘鍚ā鍨
+嬮€夋嫨鍖哄煙锛圙PT-4锛?[22m[39m[Vue warn]: Extraneous non-props attributes (name, mode) were passed to component but could no
+t be automatically inherited because component renders fragment or text or teleport root nodes. 
+  at <Anonymous name="content-fade" mode="out-in" > 
+  at <AiOverview ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/formulas/versions/__tests__/FormulaVersions.test.ts[2m > [22m[2mFormulaVersions 缁勪欢[2m 
+> [22m[2mFV-02: 鏍囬搴旀樉绀?鐗堟湰鎺у埗涓績'
+[22m[39m[Vue warn]: Failed setting prop "size" on <input>: value small is invalid. DOMException {} 
+  at <Input modelValue="" onUpdate:modelValue=fn placeholder="鎼滅储鐗堟湰鍙?鎿嶄綔浜?  ... > 
+  at <FormulaVersions ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/ai/__tests__/AiOverview.test.ts[2m > [22m[2mAiOverview 缁勪欢[2m > [22m[2mAA-11: 鍒濆鍖栨椂搴
+旇皟鐢?fetchModels 鑾峰彇妯″瀷鍒楄〃
+[22m[39m[Vue warn]: Extraneous non-props attributes (name, mode) were passed to component but could not be automatica
+lly inherited because component renders fragment or text or teleport root nodes. 
+  at <Anonymous name="content-fade" mode="out-in" > 
+  at <AiOverview ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/ai/__tests__/AiOverview.test.ts[2m > [22m[2mAiOverview 缁勪欢[2m > [22m[2mAA-11: 鍒濆鍖栨椂搴
+旇皟鐢?fetchModels 鑾峰彇妯″瀷鍒楄〃
+[22m[39m[AiAssistant] 鍒濆鍖栧け璐? TypeError: aiStore.loadModelVersions is not a function
+    at loadModelVersionsWithLoading (D:/ProgramData/workspace-codeby/ting-studio/frontend/src/views/ai/AiOverview.vue:2
+34:19)
+    at D:/ProgramData/workspace-codeby/ting-studio/frontend/src/views/ai/AiOverview.vue:471:13
+
+[90mstderr[2m | src/views/ai/__tests__/AiOverview.test.ts[2m > [22m[2mAiOverview 缁勪欢[2m > [22m[2mAA-11: 鍒濆鍖栨椂搴
+旇皟鐢?fetchModels 鑾峰彇妯″瀷鍒楄〃
+[22m[39m[Vue warn]: Extraneous non-props attributes (name, mode) were passed to component but could not be automatica
+lly inherited because component renders fragment or text or teleport root nodes. 
+  at <Anonymous name="content-fade" mode="out-in" > 
+  at <AiOverview ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/formulas/versions/__tests__/FormulaVersions.test.ts[2m > [22m[2mFormulaVersions 缁勪欢[2m 
+> [22m[2mFV-03: 搴斿寘鍚姸鎬佺瓫閫夋寜閽粍锛堝叏閮?鑽夌/宸插彂甯冪瓑锛?[22m[39m[Vue warn]: Failed setting prop "size" on <input>: value sm
+all is invalid. DOMException {} 
+  at <Input modelValue="" onUpdate:modelValue=fn placeholder="鎼滅储鐗堟湰鍙?鎿嶄綔浜?  ... > 
+  at <FormulaVersions ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/ai/__tests__/AiOverview.test.ts[2m > [22m[2mAiOverview 缁勪欢[2m > [22m[2mAA-12: 搴斿寘鍚繎鏈
+熸搷浣滃姩鎬佸尯鍩?[22m[39m[Vue warn]: Extraneous non-props attributes (name, mode) were passed to component but could not be 
+automatically inherited because component renders fragment or text or teleport root nodes. 
+  at <Anonymous name="content-fade" mode="out-in" > 
+  at <AiOverview ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/ai/__tests__/AiOverview.test.ts[2m > [22m[2mAiOverview 缁勪欢[2m > [22m[2mAA-12: 搴斿寘鍚繎鏈
+熸搷浣滃姩鎬佸尯鍩?[22m[39m[AiAssistant] 鍒濆鍖栧け璐? TypeError: aiStore.loadModelVersions is not a function
+    at loadModelVersionsWithLoading (D:/ProgramData/workspace-codeby/ting-studio/frontend/src/views/ai/AiOverview.vue:2
+34:19)
+    at D:/ProgramData/workspace-codeby/ting-studio/frontend/src/views/ai/AiOverview.vue:471:13
+
+[90mstderr[2m | src/views/ai/__tests__/AiOverview.test.ts[2m > [22m[2mAiOverview 缁勪欢[2m > [22m[2mAA-12: 搴斿寘鍚繎鏈
+熸搷浣滃姩鎬佸尯鍩?[22m[39m[Vue warn]: Extraneous non-props attributes (name, mode) were passed to component but could not be 
+automatically inherited because component renders fragment or text or teleport root nodes. 
+  at <Anonymous name="content-fade" mode="out-in" > 
+  at <AiOverview ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/ai/__tests__/AiOverview.test.ts[2m > [22m[2mAiOverview 缁勪欢[2m > [22m[2mAA-13: 搴斿寘鍚?AI
+ 鍔╂墜涓績鎻愮ず鍗＄墖
+[22m[39m[Vue warn]: Extraneous non-props attributes (name, mode) were passed to component but could not be automatica
+lly inherited because component renders fragment or text or teleport root nodes. 
+  at <Anonymous name="content-fade" mode="out-in" > 
+  at <AiOverview ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/ai/__tests__/AiOverview.test.ts[2m > [22m[2mAiOverview 缁勪欢[2m > [22m[2mAA-13: 搴斿寘鍚?AI
+ 鍔╂墜涓績鎻愮ず鍗＄墖
+[22m[39m[AiAssistant] 鍒濆鍖栧け璐? TypeError: aiStore.loadModelVersions is not a function
+    at loadModelVersionsWithLoading (D:/ProgramData/workspace-codeby/ting-studio/frontend/src/views/ai/AiOverview.vue:2
+34:19)
+    at D:/ProgramData/workspace-codeby/ting-studio/frontend/src/views/ai/AiOverview.vue:471:13
+
+[90mstderr[2m | src/views/ai/__tests__/AiOverview.test.ts[2m > [22m[2mAiOverview 缁勪欢[2m > [22m[2mAA-13: 搴斿寘鍚?AI
+ 鍔╂墜涓績鎻愮ず鍗＄墖
+[22m[39m[Vue warn]: Extraneous non-props attributes (name, mode) were passed to component but could not be automatica
+lly inherited because component renders fragment or text or teleport root nodes. 
+  at <Anonymous name="content-fade" mode="out-in" > 
+  at <AiOverview ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/ai/__tests__/AiOverview.test.ts[2m > [22m[2mAiOverview 缁勪欢[2m > [22m[2mAA-14: 搴斿寘鍚櫤鑳
+芥绱㈢浉鍏冲姛鑳藉尯鍩?[22m[39m[Vue warn]: Extraneous non-props attributes (name, mode) were passed to component but could not 
+be automatically inherited because component renders fragment or text or teleport root nodes. 
+  at <Anonymous name="content-fade" mode="out-in" > 
+  at <AiOverview ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/ai/__tests__/AiOverview.test.ts[2m > [22m[2mAiOverview 缁勪欢[2m > [22m[2mAA-14: 搴斿寘鍚櫤鑳
+芥绱㈢浉鍏冲姛鑳藉尯鍩?[22m[39m[AiAssistant] 鍒濆鍖栧け璐? TypeError: aiStore.loadModelVersions is not a function
+    at loadModelVersionsWithLoading (D:/ProgramData/workspace-codeby/ting-studio/frontend/src/views/ai/AiOverview.vue:2
+34:19)
+    at D:/ProgramData/workspace-codeby/ting-studio/frontend/src/views/ai/AiOverview.vue:471:13
+
+[90mstderr[2m | src/views/ai/__tests__/AiOverview.test.ts[2m > [22m[2mAiOverview 缁勪欢[2m > [22m[2mAA-14: 搴斿寘鍚櫤鑳
+芥绱㈢浉鍏冲姛鑳藉尯鍩?[22m[39m[Vue warn]: Extraneous non-props attributes (name, mode) were passed to component but could not 
+be automatically inherited because component renders fragment or text or teleport root nodes. 
+  at <Anonymous name="content-fade" mode="out-in" > 
+  at <AiOverview ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/formulas/versions/__tests__/FormulaVersions.test.ts[2m > [22m[2mFormulaVersions 缁勪欢[2m 
+> [22m[2mFV-04: 搴斿寘鍚増鏈姣旀寜閽?[22m[39m[Vue warn]: Failed setting prop "size" on <input>: value small is invalid. DO
+MException {} 
+  at <Input modelValue="" onUpdate:modelValue=fn placeholder="鎼滅储鐗堟湰鍙?鎿嶄綔浜?  ... > 
+  at <FormulaVersions ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/formulas/versions/__tests__/FormulaVersions.test.ts[2m > [22m[2mFormulaVersions 缁勪欢[2m 
+> [22m[2mFV-05: 搴斿寘鍚姞鍏ュ姣旈€夐」
+[22m[39m[Vue warn]: Failed setting prop "size" on <input>: value small is invalid. DOMException {} 
+  at <Input modelValue="" onUpdate:modelValue=fn placeholder="鎼滅储鐗堟湰鍙?鎿嶄綔浜?  ... > 
+  at <FormulaVersions ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+ [32m鉁?[39m src/views/ai/__tests__/AiOverview.test.ts [2m([22m[2m14 tests[22m[2m)[22m[33m 1167[2mms[22m[39m
+[90mstderr[2m | src/views/formulas/versions/__tests__/FormulaVersions.test.ts[2m > [22m[2mFormulaVersions 缁勪欢[2m 
+> [22m[2mFV-06: 杩斿洖鎸夐挳搴斿鑸埌閰嶆柟鍒楄〃
+[22m[39m[Vue warn]: Failed setting prop "size" on <input>: value small is invalid. DOMException {} 
+  at <Input modelValue="" onUpdate:modelValue=fn placeholder="鎼滅储鐗堟湰鍙?鎿嶄綔浜?  ... > 
+  at <FormulaVersions ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/formulas/versions/__tests__/FormulaVersions.test.ts[2m > [22m[2mFormulaVersions 缁勪欢[2m 
+> [22m[2mFV-07: 鍒濆鍖栨椂搴旇皟鐢?fetchVersions 鑾峰彇鏁版嵁
+[22m[39m[Vue warn]: Failed setting prop "size" on <input>: value small is invalid. DOMException {} 
+  at <Input modelValue="" onUpdate:modelValue=fn placeholder="鎼滅储鐗堟湰鍙?鎿嶄綔浜?  ... > 
+  at <FormulaVersions ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+ [32m鉁?[39m src/views/formulas/versions/__tests__/FormulaVersions.test.ts [2m([22m[2m7 tests[22m[2m)[22m[33m 825[2mms[22m[39m
+[90mstderr[2m | src/views/formulas/__tests__/FormulaDetail.test.ts[2m > [22m[2mFormulaDetail 缁勪欢[2m > [22m[2mD0
+5: 搴旀樉绀哄姞杞界姸鎬?[22m[39m[Vue warn]: Failed to resolve directive: loading 
+  at <FormulaDetail ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/formulas/__tests__/FormulaDetail.test.ts[2m > [22m[2mFormulaDetail 缁勪欢[2m > [22m[2mD0
+5: 搴旀樉绀哄姞杞界姸鎬?[22m[39m[Vue warn]: Failed to resolve directive: loading 
+  at <FormulaDetail ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/formulas/__tests__/FormulaDetail.test.ts[2m > [22m[2mFormulaDetail 缁勪欢[2m > [22m[2mD0
+5: 搴旀樉绀哄姞杞界姸鎬?[22m[39m[Vue warn]: Failed to resolve directive: loading 
+  at <FormulaDetail ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/formulas/__tests__/FormulaDetail.test.ts[2m > [22m[2mFormulaDetail 缁勪欢[2m > [22m[2mD0
+1: 搴旀樉绀洪厤鏂瑰悕绉板拰鍩虹淇℃伅
+[22m[39m[Vue warn]: Failed to resolve directive: loading 
+  at <FormulaDetail ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/formulas/__tests__/FormulaDetail.test.ts[2m > [22m[2mFormulaDetail 缁勪欢[2m > [22m[2mD0
+1: 搴旀樉绀洪厤鏂瑰悕绉板拰鍩虹淇℃伅
+[22m[39m[Vue warn]: Failed to resolve directive: loading 
+  at <FormulaDetail ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/formulas/__tests__/FormulaDetail.test.ts[2m > [22m[2mFormulaDetail 缁勪欢[2m > [22m[2mD0
+1: 搴旀樉绀洪厤鏂瑰悕绉板拰鍩虹淇℃伅
+[22m[39m[Vue warn]: Failed to resolve directive: loading 
+  at <FormulaDetail ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/formulas/__tests__/FormulaDetail.test.ts[2m > [22m[2mFormulaDetail 缁勪欢[2m > [22m[2mD0
+1: 搴旀樉绀虹増鏈爣绛?[22m[39m[Vue warn]: Failed to resolve directive: loading 
+  at <FormulaDetail ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/formulas/__tests__/FormulaDetail.test.ts[2m > [22m[2mFormulaDetail 缁勪欢[2m > [22m[2mD0
+1: 搴旀樉绀虹増鏈爣绛?[22m[39m[Vue warn]: Failed to resolve directive: loading 
+  at <FormulaDetail ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/formulas/__tests__/FormulaDetail.test.ts[2m > [22m[2mFormulaDetail 缁勪欢[2m > [22m[2mD0
+1: 搴旀樉绀虹増鏈爣绛?[22m[39m[Vue warn]: Failed to resolve directive: loading 
+  at <FormulaDetail ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/formulas/__tests__/FormulaDetail.test.ts[2m > [22m[2mFormulaDetail 缁勪欢[2m > [22m[2mD0
+1: 搴旀樉绀洪厤鏂规鍐靛崱鐗?[22m[39m[Vue warn]: Failed to resolve directive: loading 
+  at <FormulaDetail ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/formulas/__tests__/FormulaDetail.test.ts[2m > [22m[2mFormulaDetail 缁勪欢[2m > [22m[2mD0
+1: 搴旀樉绀洪厤鏂规鍐靛崱鐗?[22m[39m[Vue warn]: Failed to resolve directive: loading 
+  at <FormulaDetail ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/formulas/__tests__/FormulaDetail.test.ts[2m > [22m[2mFormulaDetail 缁勪欢[2m > [22m[2mD0
+1: 搴旀樉绀洪厤鏂规鍐靛崱鐗?[22m[39m[Vue warn]: Failed to resolve directive: loading 
+  at <FormulaDetail ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/formulas/__tests__/FormulaDetail.test.ts[2m > [22m[2mFormulaDetail 缁勪欢[2m > [22m[2mD0
+1: 搴旀樉绀洪潰鍖呭睉瀵艰埅
+[22m[39m[Vue warn]: Failed to resolve directive: loading 
+  at <FormulaDetail ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/formulas/__tests__/FormulaDetail.test.ts[2m > [22m[2mFormulaDetail 缁勪欢[2m > [22m[2mD0
+1: 搴旀樉绀洪潰鍖呭睉瀵艰埅
+[22m[39m[Vue warn]: Failed to resolve directive: loading 
+  at <FormulaDetail ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/formulas/__tests__/FormulaDetail.test.ts[2m > [22m[2mFormulaDetail 缁勪欢[2m > [22m[2mD0
+1: 搴旀樉绀洪潰鍖呭睉瀵艰埅
+[22m[39m[Vue warn]: Failed to resolve directive: loading 
+  at <FormulaDetail ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/formulas/__tests__/FormulaDetail.test.ts[2m > [22m[2mFormulaDetail 缁勪欢[2m > [22m[2mD0
+2: 搴旀樉绀哄師鏂欏垪琛ㄥ拰钀ュ吇鍊?[22m[39m[Vue warn]: Failed to resolve directive: loading 
+  at <FormulaDetail ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/formulas/__tests__/FormulaDetail.test.ts[2m > [22m[2mFormulaDetail 缁勪欢[2m > [22m[2mD0
+2: 搴旀樉绀哄師鏂欏垪琛ㄥ拰钀ュ吇鍊?[22m[39m[Vue warn]: Failed to resolve directive: loading 
+  at <FormulaDetail ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/formulas/__tests__/FormulaDetail.test.ts[2m > [22m[2mFormulaDetail 缁勪欢[2m > [22m[2mD0
+2: 搴旀樉绀哄師鏂欏垪琛ㄥ拰钀ュ吇鍊?[22m[39m[Vue warn]: Failed to resolve directive: loading 
+  at <FormulaDetail ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/formulas/__tests__/FormulaDetail.test.ts[2m > [22m[2mFormulaDetail 缁勪欢[2m > [22m[2mD0
+2: 搴旀樉绀哄叧鑱斾笟鍔″憳淇℃伅
+[22m[39m[Vue warn]: Failed to resolve directive: loading 
+  at <FormulaDetail ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/formulas/__tests__/FormulaDetail.test.ts[2m > [22m[2mFormulaDetail 缁勪欢[2m > [22m[2mD0
+2: 搴旀樉绀哄叧鑱斾笟鍔″憳淇℃伅
+[22m[39m[Vue warn]: Failed to resolve directive: loading 
+  at <FormulaDetail ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/formulas/__tests__/FormulaDetail.test.ts[2m > [22m[2mFormulaDetail 缁勪欢[2m > [22m[2mD0
+2: 搴旀樉绀哄叧鑱斾笟鍔″憳淇℃伅
+[22m[39m[Vue warn]: Failed to resolve directive: loading 
+  at <FormulaDetail ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/formulas/__tests__/FormulaDetail.test.ts[2m > [22m[2mFormulaDetail 缁勪欢[2m > [22m[2mD0
+2: 搴旀樉绀洪渶姹備俊鎭?[22m[39m[Vue warn]: Failed to resolve directive: loading 
+  at <FormulaDetail ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/formulas/__tests__/FormulaDetail.test.ts[2m > [22m[2mFormulaDetail 缁勪欢[2m > [22m[2mD0
+2: 搴旀樉绀洪渶姹備俊鎭?[22m[39m[Vue warn]: Failed to resolve directive: loading 
+  at <FormulaDetail ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/formulas/__tests__/FormulaDetail.test.ts[2m > [22m[2mFormulaDetail 缁勪欢[2m > [22m[2mD0
+2: 搴旀樉绀洪渶姹備俊鎭?[22m[39m[Vue warn]: Failed to resolve directive: loading 
+  at <FormulaDetail ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/formulas/__tests__/FormulaDetail.test.ts[2m > [22m[2mFormulaDetail 缁勪欢[2m > [22m[2mD0
+2: 搴旀樉绀哄娉ㄤ俊鎭?[22m[39m[Vue warn]: Failed to resolve directive: loading 
+  at <FormulaDetail ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/formulas/__tests__/FormulaDetail.test.ts[2m > [22m[2mFormulaDetail 缁勪欢[2m > [22m[2mD0
+2: 搴旀樉绀哄娉ㄤ俊鎭?[22m[39m[Vue warn]: Failed to resolve directive: loading 
+  at <FormulaDetail ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/formulas/__tests__/FormulaDetail.test.ts[2m > [22m[2mFormulaDetail 缁勪欢[2m > [22m[2mD0
+2: 搴旀樉绀哄娉ㄤ俊鎭?[22m[39m[Vue warn]: Failed to resolve directive: loading 
+  at <FormulaDetail ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/formulas/__tests__/FormulaDetail.test.ts[2m > [22m[2mFormulaDetail 缁勪欢[2m > [22m[2mD0
+3: 搴旀樉绀哄惈閲忔瘮鏍￠獙鍖哄煙
+[22m[39m[Vue warn]: Failed to resolve directive: loading 
+  at <FormulaDetail ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/formulas/__tests__/FormulaDetail.test.ts[2m > [22m[2mFormulaDetail 缁勪欢[2m > [22m[2mD0
+3: 搴旀樉绀哄惈閲忔瘮鏍￠獙鍖哄煙
+[22m[39m[Vue warn]: Failed to resolve directive: loading 
+  at <FormulaDetail ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/formulas/__tests__/FormulaDetail.test.ts[2m > [22m[2mFormulaDetail 缁勪欢[2m > [22m[2mD0
+3: 搴旀樉绀哄惈閲忔瘮鏍￠獙鍖哄煙
+[22m[39m[Vue warn]: Failed to resolve directive: loading 
+  at <FormulaDetail ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/formulas/__tests__/FormulaDetail.test.ts[2m > [22m[2mFormulaDetail 缁勪欢[2m > [22m[2mD0
+3: 搴旀樉绀哄惈閲忔瘮鏍￠獙璇︽儏琛ㄦ牸
+[22m[39m[Vue warn]: Failed to resolve directive: loading 
+  at <FormulaDetail ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/formulas/__tests__/FormulaDetail.test.ts[2m > [22m[2mFormulaDetail 缁勪欢[2m > [22m[2mD0
+3: 搴旀樉绀哄惈閲忔瘮鏍￠獙璇︽儏琛ㄦ牸
+[22m[39m[Vue warn]: Failed to resolve directive: loading 
+  at <FormulaDetail ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/formulas/__tests__/FormulaDetail.test.ts[2m > [22m[2mFormulaDetail 缁勪欢[2m > [22m[2mD0
+3: 搴旀樉绀哄惈閲忔瘮鏍￠獙璇︽儏琛ㄦ牸
+[22m[39m[Vue warn]: Failed to resolve directive: loading 
+  at <FormulaDetail ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/formulas/__tests__/FormulaDetail.test.ts[2m > [22m[2mFormulaDetail 缁勪欢[2m > [22m[2mD0
+4: 搴旀樉绀鸿惀鍏绘垚鍒嗚〃
+[22m[39m[Vue warn]: Failed to resolve directive: loading 
+  at <FormulaDetail ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/formulas/__tests__/FormulaDetail.test.ts[2m > [22m[2mFormulaDetail 缁勪欢[2m > [22m[2mD0
+4: 搴旀樉绀鸿惀鍏绘垚鍒嗚〃
+[22m[39m[Vue warn]: Failed to resolve directive: loading 
+  at <FormulaDetail ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/formulas/__tests__/FormulaDetail.test.ts[2m > [22m[2mFormulaDetail 缁勪欢[2m > [22m[2mD0
+4: 搴旀樉绀鸿惀鍏绘垚鍒嗚〃
+[22m[39m[Vue warn]: Failed to resolve directive: loading 
+  at <FormulaDetail ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/formulas/__tests__/FormulaDetail.test.ts[2m > [22m[2mFormulaDetail 缁勪欢[2m > [22m[2mD0
+4: 搴旀樉绀轰娇鐢ㄨ鏄?[22m[39m[Vue warn]: Failed to resolve directive: loading 
+  at <FormulaDetail ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/formulas/__tests__/FormulaDetail.test.ts[2m > [22m[2mFormulaDetail 缁勪欢[2m > [22m[2mD0
+4: 搴旀樉绀轰娇鐢ㄨ鏄?[22m[39m[Vue warn]: Failed to resolve directive: loading 
+  at <FormulaDetail ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/formulas/__tests__/FormulaDetail.test.ts[2m > [22m[2mFormulaDetail 缁勪欢[2m > [22m[2mD0
+4: 搴旀樉绀轰娇鐢ㄨ鏄?[22m[39m[Vue warn]: Failed to resolve directive: loading 
+  at <FormulaDetail ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/formulas/__tests__/FormulaDetail.test.ts[2m > [22m[2mFormulaDetail 缁勪欢[2m > [22m[2mD0
+4: 搴旀樉绀哄彉鏇磋褰曟椂闂寸嚎
+[22m[39m[Vue warn]: Failed to resolve directive: loading 
+  at <FormulaDetail ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/formulas/__tests__/FormulaDetail.test.ts[2m > [22m[2mFormulaDetail 缁勪欢[2m > [22m[2mD0
+4: 搴旀樉绀哄彉鏇磋褰曟椂闂寸嚎
+[22m[39m[Vue warn]: Failed to resolve directive: loading 
+  at <FormulaDetail ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/formulas/__tests__/FormulaDetail.test.ts[2m > [22m[2mFormulaDetail 缁勪欢[2m > [22m[2mD0
+4: 搴旀樉绀哄彉鏇磋褰曟椂闂寸嚎
+[22m[39m[Vue warn]: Failed to resolve directive: loading 
+  at <FormulaDetail ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/formulas/__tests__/FormulaDetail.test.ts[2m > [22m[2mFormulaDetail 缁勪欢[2m > [22m[2mD1
+0: 缂栬緫鎸夐挳搴斿鑸埌缂栬緫椤甸潰
+[22m[39m[Vue warn]: Failed to resolve directive: loading 
+  at <FormulaDetail ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/formulas/__tests__/FormulaDetail.test.ts[2m > [22m[2mFormulaDetail 缁勪欢[2m > [22m[2mD1
+0: 缂栬緫鎸夐挳搴斿鑸埌缂栬緫椤甸潰
+[22m[39m[Vue warn]: Failed to resolve directive: loading 
+  at <FormulaDetail ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/formulas/__tests__/FormulaDetail.test.ts[2m > [22m[2mFormulaDetail 缁勪欢[2m > [22m[2mD1
+0: 缂栬緫鎸夐挳搴斿鑸埌缂栬緫椤甸潰
+[22m[39m[Vue warn]: Failed to resolve directive: loading 
+  at <FormulaDetail ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/formulas/__tests__/FormulaDetail.test.ts[2m > [22m[2mFormulaDetail 缁勪欢[2m > [22m[2mD1
+1: 瀵煎嚭鎸夐挳搴旀墦寮€瀵煎嚭鎶藉眽
+[22m[39m[Vue warn]: Failed to resolve directive: loading 
+  at <FormulaDetail ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/formulas/__tests__/FormulaDetail.test.ts[2m > [22m[2mFormulaDetail 缁勪欢[2m > [22m[2mD1
+1: 瀵煎嚭鎸夐挳搴旀墦寮€瀵煎嚭鎶藉眽
+[22m[39m[Vue warn]: Failed to resolve directive: loading 
+  at <FormulaDetail ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/formulas/__tests__/FormulaDetail.test.ts[2m > [22m[2mFormulaDetail 缁勪欢[2m > [22m[2mD1
+1: 瀵煎嚭鎸夐挳搴旀墦寮€瀵煎嚭鎶藉眽
+[22m[39m[Vue warn]: Failed to resolve directive: loading 
+  at <FormulaDetail ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/formulas/__tests__/FormulaDetail.test.ts[2m > [22m[2mFormulaDetail 缁勪欢[2m > [22m[2mD1
+1: 瀵煎嚭鎸夐挳搴旀墦寮€瀵煎嚭鎶藉眽
+[22m[39m[Vue warn]: Failed to resolve directive: loading 
+  at <FormulaDetail ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/formulas/__tests__/FormulaDetail.test.ts[2m > [22m[2mFormulaDetail 缁勪欢[2m > [22m[2mD0
+1: 鏃犳暟鎹椂涓嶆覆鏌撲富鍐呭
+[22m[39m[Vue warn]: Failed to resolve directive: loading 
+  at <FormulaDetail ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/views/formulas/__tests__/FormulaDetail.test.ts[2m > [22m[2mFormulaDetail 缁勪欢[2m > [22m[2mD0
+1: 鏃犳暟鎹椂涓嶆覆鏌撲富鍐呭
+[22m[39m[Vue warn]: Failed to resolve directive: loading 
+  at <FormulaDetail ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+鑾峰彇钀ュ吇璁＄畻琛ㄦ牸澶辫触: Error: API error
+    at D:/ProgramData/workspace-codeby/ting-studio/frontend/src/views/formulas/__tests__/FormulaDetail.test.ts:345:53
+    at file:///D:/ProgramData/workspace-codeby/ting-studio/node_modules/[4m@vitest[24m/runner/dist/chunk-artifact.js:
+302:11
+    at file:///D:/ProgramData/workspace-codeby/ting-studio/node_modules/[4m@vitest[24m/runner/dist/chunk-artifact.js:
+1903:26
+    at file:///D:/ProgramData/workspace-codeby/ting-studio/node_modules/[4m@vitest[24m/runner/dist/chunk-artifact.js:
+2326:20
+    at new Promise (<anonymous>)
+    at runWithCancel (file:///D:/ProgramData/workspace-codeby/ting-studio/node_modules/[4m@vitest[24m/runner/dist/chu
+nk-artifact.js:2323:10)
+    at file:///D:/ProgramData/workspace-codeby/ting-studio/node_modules/[4m@vitest[24m/runner/dist/chunk-artifact.js:
+2305:20
+    at new Promise (<anonymous>)
+    at runWithTimeout (file:///D:/ProgramData/workspace-codeby/ting-studio/node_modules/[4m@vitest[24m/runner/dist/ch
+unk-artifact.js:2272:10)
+    at file:///D:/ProgramData/workspace-codeby/ting-studio/node_modules/[4m@vitest[24m/runner/dist/chunk-artifact.js:
+2955:64
+
+[90mstderr[2m | src/views/formulas/__tests__/FormulaDetail.test.ts[2m > [22m[2mFormulaDetail 缁勪欢[2m > [22m[2mD0
+1: 鏃犳暟鎹椂涓嶆覆鏌撲富鍐呭
+[22m[39m[Vue warn]: Failed to resolve directive: loading 
+  at <FormulaDetail ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+ [32m鉁?[39m src/views/formulas/__tests__/FormulaDetail.test.ts [2m([22m[2m17 tests[22m[2m)[22m[33m 845[2mms[22m[39m
+ [32m鉁?[39m src/views/formulas/quick-formula/__tests__/QuickFormulaSidebar.test.ts [2m([22m[2m44 tests[22m[2m)[22m[33m 544[2mms[22m[39m
+ [32m鉁?[39m src/views/materials/__tests__/MaterialList.test.ts [2m([22m[2m10 tests[22m[2m)[22m[33m 510[2mms[22m[39m
+ [32m鉁?[39m src/views/formulas/__tests__/FormulaForm.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 277[2mms[22m[39m
+ [32m鉁?[39m src/views/salesmen/__tests__/SalesmanForm.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 230[2mms[22m[39m
+[90mstderr[2m | src/components/formula/__tests__/MaterialTableCore.test.ts[2m > [22m[2mMaterialTableCore 缁勪欢[2m >
+ [22m[2m娓叉煋[2m > [22m[2mM01: 鎻愪緵 materials 鏃跺簲娓叉煋鍘熸枡琛?[22m[39m[Vue warn]: Invalid prop: type check failed for pr
+op "supplementPriceMap". Expected Object, got Function  
+  at <MaterialTableCore materials= [
+  {
+    materialId: [32m'mat-1'[39m,
+    materialName: [32m'鏋告潪'[39m,
+    quantity: [33m100[39m,
+    unit: [32m'g'[39m,
+    basePrice: [33m50[39m,
+    materialType: [32m'herb'[39m
+  }
+] mode="parse" finishedWeight=500  ... > 
+  at <VTUROOT>
+[Vue warn]: Invalid prop: type check failed for prop "materialVersions". Expected Object, got Function  
+  at <MaterialTableCore materials= [
+  {
+    materialId: [32m'mat-1'[39m,
+    materialName: [32m'鏋告潪'[39m,
+    quantity: [33m100[39m,
+    unit: [32m'g'[39m,
+    basePrice: [33m50[39m,
+    materialType: [32m'herb'[39m
+  }
+] mode="parse" finishedWeight=500  ... > 
+  at <VTUROOT>
+[Vue warn]: Failed setting prop "size" on <input>: value small is invalid. DOMException {} 
+  at <Anonymous model-value=100 onChange=fn<onChange> min=0  ... > 
+  at <MaterialTableCore materials= [
+  {
+    materialId: [32m'mat-1'[39m,
+    materialName: [32m'鏋告潪'[39m,
+    quantity: [33m100[39m,
+    unit: [32m'g'[39m,
+    basePrice: [33m50[39m,
+    materialType: [32m'herb'[39m
+  }
+] mode="parse" finishedWeight=500  ... > 
+  at <VTUROOT>
+[Vue warn]: Failed setting prop "size" on <input>: value small is invalid. DOMException {} 
+  at <Anonymous model-value=50 onChange=fn<onChange> min=0  ... > 
+  at <MaterialTableCore materials= [
+  {
+    materialId: [32m'mat-1'[39m,
+    materialName: [32m'鏋告潪'[39m,
+    quantity: [33m100[39m,
+    unit: [32m'g'[39m,
+    basePrice: [33m50[39m,
+    materialType: [32m'herb'[39m
+  }
+] mode="parse" finishedWeight=500  ... > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/components/formula/__tests__/MaterialTableCore.test.ts[2m > [22m[2mMaterialTableCore 缁勪欢[2m >
+ [22m[2m娓叉煋[2m > [22m[2mM02: 鏃?materials 鏃跺簲鏄剧ず绌虹姸鎬侊紙浠呮坊鍔犳寜閽級
+[22m[39m[Vue warn]: Invalid prop: type check failed for prop "supplementPriceMap". Expected Object, got Function  
+  at <MaterialTableCore materials= [] mode="parse" finishedWeight=500  ... > 
+  at <VTUROOT>
+[Vue warn]: Invalid prop: type check failed for prop "materialVersions". Expected Object, got Function  
+  at <MaterialTableCore materials= [] mode="parse" finishedWeight=500  ... > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/components/formula/__tests__/MaterialTableCore.test.ts[2m > [22m[2mMaterialTableCore 缁勪欢[2m >
+ [22m[2m娓叉煋[2m > [22m[2mM03: 搴旀樉绀哄師鏂欏悕绉般€佺敤閲忓拰鍗曚环
+[22m[39m[Vue warn]: Invalid prop: type check failed for prop "supplementPriceMap". Expected Object, got Function  
+  at <MaterialTableCore materials= [
+  {
+    materialId: [32m'mat-1'[39m,
+    materialName: [32m'鏋告潪'[39m,
+    quantity: [33m100[39m,
+    unit: [32m'g'[39m,
+    basePrice: [33m50[39m,
+    materialType: [32m'herb'[39m
+  }
+] mode="parse" finishedWeight=500  ... > 
+  at <VTUROOT>
+[Vue warn]: Invalid prop: type check failed for prop "materialVersions". Expected Object, got Function  
+  at <MaterialTableCore materials= [
+  {
+    materialId: [32m'mat-1'[39m,
+    materialName: [32m'鏋告潪'[39m,
+    quantity: [33m100[39m,
+    unit: [32m'g'[39m,
+    basePrice: [33m50[39m,
+    materialType: [32m'herb'[39m
+  }
+] mode="parse" finishedWeight=500  ... > 
+  at <VTUROOT>
+[Vue warn]: Failed setting prop "size" on <input>: value small is invalid. DOMException {} 
+  at <Anonymous model-value=100 onChange=fn<onChange> min=0  ... > 
+  at <MaterialTableCore materials= [
+  {
+    materialId: [32m'mat-1'[39m,
+    materialName: [32m'鏋告潪'[39m,
+    quantity: [33m100[39m,
+    unit: [32m'g'[39m,
+    basePrice: [33m50[39m,
+    materialType: [32m'herb'[39m
+  }
+] mode="parse" finishedWeight=500  ... > 
+  at <VTUROOT>
+[Vue warn]: Failed setting prop "size" on <input>: value small is invalid. DOMException {} 
+  at <Anonymous model-value=50 onChange=fn<onChange> min=0  ... > 
+  at <MaterialTableCore materials= [
+  {
+    materialId: [32m'mat-1'[39m,
+    materialName: [32m'鏋告潪'[39m,
+    quantity: [33m100[39m,
+    unit: [32m'g'[39m,
+    basePrice: [33m50[39m,
+    materialType: [32m'herb'[39m
+  }
+] mode="parse" finishedWeight=500  ... > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/components/formula/__tests__/MaterialTableCore.test.ts[2m > [22m[2mMaterialTableCore 缁勪欢[2m >
+ [22m[2m娓叉煋[2m > [22m[2mM04: 鑽潗鍘熸枡搴旀樉绀恒€岃嵂鏉愩€嶆爣绛?[22m[39m[Vue warn]: Invalid prop: type check failed for prop "
+supplementPriceMap". Expected Object, got Function  
+  at <MaterialTableCore materials= [
+  {
+    materialId: [32m'mat-1'[39m,
+    materialName: [32m'鏋告潪'[39m,
+    quantity: [33m100[39m,
+    unit: [32m'g'[39m,
+    basePrice: [33m50[39m,
+    materialType: [32m'herb'[39m
+  }
+] mode="parse" finishedWeight=500  ... > 
+  at <VTUROOT>
+[Vue warn]: Invalid prop: type check failed for prop "materialVersions". Expected Object, got Function  
+  at <MaterialTableCore materials= [
+  {
+    materialId: [32m'mat-1'[39m,
+    materialName: [32m'鏋告潪'[39m,
+    quantity: [33m100[39m,
+    unit: [32m'g'[39m,
+    basePrice: [33m50[39m,
+    materialType: [32m'herb'[39m
+  }
+] mode="parse" finishedWeight=500  ... > 
+  at <VTUROOT>
+[Vue warn]: Failed setting prop "size" on <input>: value small is invalid. DOMException {} 
+  at <Anonymous model-value=100 onChange=fn<onChange> min=0  ... > 
+  at <MaterialTableCore materials= [
+  {
+    materialId: [32m'mat-1'[39m,
+    materialName: [32m'鏋告潪'[39m,
+    quantity: [33m100[39m,
+    unit: [32m'g'[39m,
+    basePrice: [33m50[39m,
+    materialType: [32m'herb'[39m
+  }
+] mode="parse" finishedWeight=500  ... > 
+  at <VTUROOT>
+[Vue warn]: Failed setting prop "size" on <input>: value small is invalid. DOMException {} 
+  at <Anonymous model-value=50 onChange=fn<onChange> min=0  ... > 
+  at <MaterialTableCore materials= [
+  {
+    materialId: [32m'mat-1'[39m,
+    materialName: [32m'鏋告潪'[39m,
+    quantity: [33m100[39m,
+    unit: [32m'g'[39m,
+    basePrice: [33m50[39m,
+    materialType: [32m'herb'[39m
+  }
+] mode="parse" finishedWeight=500  ... > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/components/formula/__tests__/MaterialTableCore.test.ts[2m > [22m[2mMaterialTableCore 缁勪欢[2m >
+ [22m[2m娓叉煋[2m > [22m[2mM05: 杈呮枡鍘熸枡搴旀樉绀恒€岃緟鏂欍€嶆爣绛?[22m[39m[Vue warn]: Invalid prop: type check failed for prop "
+supplementPriceMap". Expected Object, got Function  
+  at <MaterialTableCore materials= [
+  {
+    materialId: [32m'mat-1'[39m,
+    materialName: [32m'鏋告潪'[39m,
+    quantity: [33m100[39m,
+    unit: [32m'g'[39m,
+    basePrice: [33m50[39m,
+    materialType: [32m'supplement'[39m
+  }
+] mode="parse" finishedWeight=500  ... > 
+  at <VTUROOT>
+[Vue warn]: Invalid prop: type check failed for prop "materialVersions". Expected Object, got Function  
+  at <MaterialTableCore materials= [
+  {
+    materialId: [32m'mat-1'[39m,
+    materialName: [32m'鏋告潪'[39m,
+    quantity: [33m100[39m,
+    unit: [32m'g'[39m,
+    basePrice: [33m50[39m,
+    materialType: [32m'supplement'[39m
+  }
+] mode="parse" finishedWeight=500  ... > 
+  at <VTUROOT>
+[Vue warn]: Failed setting prop "size" on <input>: value small is invalid. DOMException {} 
+  at <Anonymous model-value=100 onChange=fn<onChange> min=0  ... > 
+  at <MaterialTableCore materials= [
+  {
+    materialId: [32m'mat-1'[39m,
+    materialName: [32m'鏋告潪'[39m,
+    quantity: [33m100[39m,
+    unit: [32m'g'[39m,
+    basePrice: [33m50[39m,
+    materialType: [32m'supplement'[39m
+  }
+] mode="parse" finishedWeight=500  ... > 
+  at <VTUROOT>
+[Vue warn]: Failed setting prop "size" on <input>: value small is invalid. DOMException {} 
+  at <Anonymous model-value=50 onChange=fn<onChange> min=0  ... > 
+  at <MaterialTableCore materials= [
+  {
+    materialId: [32m'mat-1'[39m,
+    materialName: [32m'鏋告潪'[39m,
+    quantity: [33m100[39m,
+    unit: [32m'g'[39m,
+    basePrice: [33m50[39m,
+    materialType: [32m'supplement'[39m
+  }
+] mode="parse" finishedWeight=500  ... > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/components/formula/__tests__/MaterialTableCore.test.ts[2m > [22m[2mMaterialTableCore 缁勪欢[2m >
+ [22m[2m鍚噺姣旇绠?[2m > [22m[2mM10: 搴旀樉绀烘纭殑鍚噺姣旂櫨鍒嗘瘮
+[22m[39m[Vue warn]: Invalid prop: type check failed for prop "supplementPriceMap". Expected Object, got Function  
+  at <MaterialTableCore materials= [
+  {
+    materialId: [32m'mat-1'[39m,
+    materialName: [32m'鏋告潪'[39m,
+    quantity: [33m1000[39m,
+    unit: [32m'g'[39m,
+    basePrice: [33m50[39m,
+    materialType: [32m'herb'[39m
+  }
+] mode="parse" finishedWeight=500  ... > 
+  at <VTUROOT>
+[Vue warn]: Invalid prop: type check failed for prop "materialVersions". Expected Object, got Function  
+  at <MaterialTableCore materials= [
+  {
+    materialId: [32m'mat-1'[39m,
+    materialName: [32m'鏋告潪'[39m,
+    quantity: [33m1000[39m,
+    unit: [32m'g'[39m,
+    basePrice: [33m50[39m,
+    materialType: [32m'herb'[39m
+  }
+] mode="parse" finishedWeight=500  ... > 
+  at <VTUROOT>
+[Vue warn]: Failed setting prop "size" on <input>: value small is invalid. DOMException {} 
+  at <Anonymous model-value=1000 onChange=fn<onChange> min=0  ... > 
+  at <MaterialTableCore materials= [
+  {
+    materialId: [32m'mat-1'[39m,
+    materialName: [32m'鏋告潪'[39m,
+    quantity: [33m1000[39m,
+    unit: [32m'g'[39m,
+    basePrice: [33m50[39m,
+    materialType: [32m'herb'[39m
+  }
+] mode="parse" finishedWeight=500  ... > 
+  at <VTUROOT>
+[Vue warn]: Failed setting prop "size" on <input>: value small is invalid. DOMException {} 
+  at <Anonymous model-value=50 onChange=fn<onChange> min=0  ... > 
+  at <MaterialTableCore materials= [
+  {
+    materialId: [32m'mat-1'[39m,
+    materialName: [32m'鏋告潪'[39m,
+    quantity: [33m1000[39m,
+    unit: [32m'g'[39m,
+    basePrice: [33m50[39m,
+    materialType: [32m'herb'[39m
+  }
+] mode="parse" finishedWeight=500  ... > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/components/formula/__tests__/MaterialTableCore.test.ts[2m > [22m[2mMaterialTableCore 缁勪欢[2m >
+ [22m[2m鍚噺姣旇绠?[2m > [22m[2mM11: finishedWeight 涓?0 鏃跺惈閲忔瘮搴旀樉绀恒€屸€斻€?[22m[39m[Vue warn]: Invalid prop: type chec
+k failed for prop "supplementPriceMap". Expected Object, got Function  
+  at <MaterialTableCore materials= [
+  {
+    materialId: [32m'mat-1'[39m,
+    materialName: [32m'鏋告潪'[39m,
+    quantity: [33m100[39m,
+    unit: [32m'g'[39m,
+    basePrice: [33m50[39m,
+    materialType: [32m'herb'[39m
+  }
+] mode="parse" finishedWeight=0  ... > 
+  at <VTUROOT>
+[Vue warn]: Invalid prop: type check failed for prop "materialVersions". Expected Object, got Function  
+  at <MaterialTableCore materials= [
+  {
+    materialId: [32m'mat-1'[39m,
+    materialName: [32m'鏋告潪'[39m,
+    quantity: [33m100[39m,
+    unit: [32m'g'[39m,
+    basePrice: [33m50[39m,
+    materialType: [32m'herb'[39m
+  }
+] mode="parse" finishedWeight=0  ... > 
+  at <VTUROOT>
+[Vue warn]: Failed setting prop "size" on <input>: value small is invalid. DOMException {} 
+  at <Anonymous model-value=100 onChange=fn<onChange> min=0  ... > 
+  at <MaterialTableCore materials= [
+  {
+    materialId: [32m'mat-1'[39m,
+    materialName: [32m'鏋告潪'[39m,
+    quantity: [33m100[39m,
+    unit: [32m'g'[39m,
+    basePrice: [33m50[39m,
+    materialType: [32m'herb'[39m
+  }
+] mode="parse" finishedWeight=0  ... > 
+  at <VTUROOT>
+[Vue warn]: Failed setting prop "size" on <input>: value small is invalid. DOMException {} 
+  at <Anonymous model-value=50 onChange=fn<onChange> min=0  ... > 
+  at <MaterialTableCore materials= [
+  {
+    materialId: [32m'mat-1'[39m,
+    materialName: [32m'鏋告潪'[39m,
+    quantity: [33m100[39m,
+    unit: [32m'g'[39m,
+    basePrice: [33m50[39m,
+    materialType: [32m'herb'[39m
+  }
+] mode="parse" finishedWeight=0  ... > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/components/formula/__tests__/MaterialTableCore.test.ts[2m > [22m[2mMaterialTableCore 缁勪欢[2m >
+ [22m[2m鍚噺姣旇绠?[2m > [22m[2mM12: quantity 涓?0 鏃跺惈閲忔瘮搴旀樉绀恒€屸€斻€?[22m[39m[Vue warn]: Invalid prop: type check fail
+ed for prop "supplementPriceMap". Expected Object, got Function  
+  at <MaterialTableCore materials= [
+  {
+    materialId: [32m'mat-1'[39m,
+    materialName: [32m'鏋告潪'[39m,
+    quantity: [33m0[39m,
+    unit: [32m'g'[39m,
+    basePrice: [33m50[39m,
+    materialType: [32m'herb'[39m
+  }
+] mode="parse" finishedWeight=500  ... > 
+  at <VTUROOT>
+[Vue warn]: Invalid prop: type check failed for prop "materialVersions". Expected Object, got Function  
+  at <MaterialTableCore materials= [
+  {
+    materialId: [32m'mat-1'[39m,
+    materialName: [32m'鏋告潪'[39m,
+    quantity: [33m0[39m,
+    unit: [32m'g'[39m,
+    basePrice: [33m50[39m,
+    materialType: [32m'herb'[39m
+  }
+] mode="parse" finishedWeight=500  ... > 
+  at <VTUROOT>
+[Vue warn]: Failed setting prop "size" on <input>: value small is invalid. DOMException {} 
+  at <Anonymous model-value=0 onChange=fn<onChange> min=0  ... > 
+  at <MaterialTableCore materials= [
+  {
+    materialId: [32m'mat-1'[39m,
+    materialName: [32m'鏋告潪'[39m,
+    quantity: [33m0[39m,
+    unit: [32m'g'[39m,
+    basePrice: [33m50[39m,
+    materialType: [32m'herb'[39m
+  }
+] mode="parse" finishedWeight=500  ... > 
+  at <VTUROOT>
+[Vue warn]: Failed setting prop "size" on <input>: value small is invalid. DOMException {} 
+  at <Anonymous model-value=50 onChange=fn<onChange> min=0  ... > 
+  at <MaterialTableCore materials= [
+  {
+    materialId: [32m'mat-1'[39m,
+    materialName: [32m'鏋告潪'[39m,
+    quantity: [33m0[39m,
+    unit: [32m'g'[39m,
+    basePrice: [33m50[39m,
+    materialType: [32m'herb'[39m
+  }
+] mode="parse" finishedWeight=500  ... > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/components/formula/__tests__/MaterialTableCore.test.ts[2m > [22m[2mMaterialTableCore 缁勪欢[2m >
+ [22m[2m鍚噺姣旇绠?[2m > [22m[2mM13: 鑽潗搴斾娇鐢?ratioFactor 璁＄畻鍚噺姣?[22m[39m[Vue warn]: Invalid prop: type check failed
+ for prop "supplementPriceMap". Expected Object, got Function  
+  at <MaterialTableCore materials= [
+  {
+    materialId: [32m'mat-1'[39m,
+    materialName: [32m'鏋告潪'[39m,
+    quantity: [33m500[39m,
+    unit: [32m'g'[39m,
+    basePrice: [33m50[39m,
+    materialType: [32m'herb'[39m
+  }
+] mode="parse" finishedWeight=500  ... > 
+  at <VTUROOT>
+[Vue warn]: Invalid prop: type check failed for prop "materialVersions". Expected Object, got Function  
+  at <MaterialTableCore materials= [
+  {
+    materialId: [32m'mat-1'[39m,
+    materialName: [32m'鏋告潪'[39m,
+    quantity: [33m500[39m,
+    unit: [32m'g'[39m,
+    basePrice: [33m50[39m,
+    materialType: [32m'herb'[39m
+  }
+] mode="parse" finishedWeight=500  ... > 
+  at <VTUROOT>
+[Vue warn]: Failed setting prop "size" on <input>: value small is invalid. DOMException {} 
+  at <Anonymous model-value=500 onChange=fn<onChange> min=0  ... > 
+  at <MaterialTableCore materials= [
+  {
+    materialId: [32m'mat-1'[39m,
+    materialName: [32m'鏋告潪'[39m,
+    quantity: [33m500[39m,
+    unit: [32m'g'[39m,
+    basePrice: [33m50[39m,
+    materialType: [32m'herb'[39m
+  }
+] mode="parse" finishedWeight=500  ... > 
+  at <VTUROOT>
+[Vue warn]: Failed setting prop "size" on <input>: value small is invalid. DOMException {} 
+  at <Anonymous model-value=50 onChange=fn<onChange> min=0  ... > 
+  at <MaterialTableCore materials= [
+  {
+    materialId: [32m'mat-1'[39m,
+    materialName: [32m'鏋告潪'[39m,
+    quantity: [33m500[39m,
+    unit: [32m'g'[39m,
+    basePrice: [33m50[39m,
+    materialType: [32m'herb'[39m
+  }
+] mode="parse" finishedWeight=500  ... > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/components/formula/__tests__/MaterialTableCore.test.ts[2m > [22m[2mMaterialTableCore 缁勪欢[2m >
+ [22m[2m鍚噺姣旇绠?[2m > [22m[2mM14: 杈呮枡搴斾娇鐢?supplementRatioFactor 璁＄畻鍚噺姣?[22m[39m[Vue warn]: Invalid prop: type ch
+eck failed for prop "supplementPriceMap". Expected Object, got Function  
+  at <MaterialTableCore materials= [
+  {
+    materialId: [32m'mat-1'[39m,
+    materialName: [32m'鏋告潪'[39m,
+    quantity: [33m500[39m,
+    unit: [32m'g'[39m,
+    basePrice: [33m50[39m,
+    materialType: [32m'supplement'[39m
+  }
+] mode="parse" finishedWeight=500  ... > 
+  at <VTUROOT>
+[Vue warn]: Invalid prop: type check failed for prop "materialVersions". Expected Object, got Function  
+  at <MaterialTableCore materials= [
+  {
+    materialId: [32m'mat-1'[39m,
+    materialName: [32m'鏋告潪'[39m,
+    quantity: [33m500[39m,
+    unit: [32m'g'[39m,
+    basePrice: [33m50[39m,
+    materialType: [32m'supplement'[39m
+  }
+] mode="parse" finishedWeight=500  ... > 
+  at <VTUROOT>
+[Vue warn]: Failed setting prop "size" on <input>: value small is invalid. DOMException {} 
+  at <Anonymous model-value=500 onChange=fn<onChange> min=0  ... > 
+  at <MaterialTableCore materials= [
+  {
+    materialId: [32m'mat-1'[39m,
+    materialName: [32m'鏋告潪'[39m,
+    quantity: [33m500[39m,
+    unit: [32m'g'[39m,
+    basePrice: [33m50[39m,
+    materialType: [32m'supplement'[39m
+  }
+] mode="parse" finishedWeight=500  ... > 
+  at <VTUROOT>
+[Vue warn]: Failed setting prop "size" on <input>: value small is invalid. DOMException {} 
+  at <Anonymous model-value=50 onChange=fn<onChange> min=0  ... > 
+  at <MaterialTableCore materials= [
+  {
+    materialId: [32m'mat-1'[39m,
+    materialName: [32m'鏋告潪'[39m,
+    quantity: [33m500[39m,
+    unit: [32m'g'[39m,
+    basePrice: [33m50[39m,
+    materialType: [32m'supplement'[39m
+  }
+] mode="parse" finishedWeight=500  ... > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/components/formula/__tests__/MaterialTableCore.test.ts[2m > [22m[2mMaterialTableCore 缁勪欢[2m >
+ [22m[2m鍚噺姣旀牎楠屽睍绀?[2m > [22m[2mM20: 搴旀樉绀烘牎楠屽窘绔犲拰瀵瑰簲 level 鏍峰紡
+[22m[39m[Vue warn]: Invalid prop: type check failed for prop "supplementPriceMap". Expected Object, got Function  
+  at <MaterialTableCore materials= [
+  {
+    materialId: [32m'mat-1'[39m,
+    materialName: [32m'鏋告潪'[39m,
+    quantity: [33m100[39m,
+    unit: [32m'g'[39m,
+    basePrice: [33m50[39m,
+    materialType: [32m'herb'[39m
+  }
+] mode="parse" finishedWeight=500  ... > 
+  at <VTUROOT>
+[Vue warn]: Invalid prop: type check failed for prop "materialVersions". Expected Object, got Function  
+  at <MaterialTableCore materials= [
+  {
+    materialId: [32m'mat-1'[39m,
+    materialName: [32m'鏋告潪'[39m,
+    quantity: [33m100[39m,
+    unit: [32m'g'[39m,
+    basePrice: [33m50[39m,
+    materialType: [32m'herb'[39m
+  }
+] mode="parse" finishedWeight=500  ... > 
+  at <VTUROOT>
+[Vue warn]: Failed setting prop "size" on <input>: value small is invalid. DOMException {} 
+  at <Anonymous model-value=100 onChange=fn<onChange> min=0  ... > 
+  at <MaterialTableCore materials= [
+  {
+    materialId: [32m'mat-1'[39m,
+    materialName: [32m'鏋告潪'[39m,
+    quantity: [33m100[39m,
+    unit: [32m'g'[39m,
+    basePrice: [33m50[39m,
+    materialType: [32m'herb'[39m
+  }
+] mode="parse" finishedWeight=500  ... > 
+  at <VTUROOT>
+[Vue warn]: Failed setting prop "size" on <input>: value small is invalid. DOMException {} 
+  at <Anonymous model-value=50 onChange=fn<onChange> min=0  ... > 
+  at <MaterialTableCore materials= [
+  {
+    materialId: [32m'mat-1'[39m,
+    materialName: [32m'鏋告潪'[39m,
+    quantity: [33m100[39m,
+    unit: [32m'g'[39m,
+    basePrice: [33m50[39m,
+    materialType: [32m'herb'[39m
+  }
+] mode="parse" finishedWeight=500  ... > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/components/formula/__tests__/MaterialTableCore.test.ts[2m > [22m[2mMaterialTableCore 缁勪欢[2m >
+ [22m[2m鍚噺姣旀牎楠屽睍绀?[2m > [22m[2mM21: normal 绾у埆搴旀樉绀恒€岄€氳繃銆?[22m[39m[Vue warn]: Invalid prop: type check failed fo
+r prop "supplementPriceMap". Expected Object, got Function  
+  at <MaterialTableCore materials= [
+  {
+    materialId: [32m'mat-1'[39m,
+    materialName: [32m'鏋告潪'[39m,
+    quantity: [33m100[39m,
+    unit: [32m'g'[39m,
+    basePrice: [33m50[39m,
+    materialType: [32m'herb'[39m
+  }
+] mode="parse" finishedWeight=500  ... > 
+  at <VTUROOT>
+[Vue warn]: Invalid prop: type check failed for prop "materialVersions". Expected Object, got Function  
+  at <MaterialTableCore materials= [
+  {
+    materialId: [32m'mat-1'[39m,
+    materialName: [32m'鏋告潪'[39m,
+    quantity: [33m100[39m,
+    unit: [32m'g'[39m,
+    basePrice: [33m50[39m,
+    materialType: [32m'herb'[39m
+  }
+] mode="parse" finishedWeight=500  ... > 
+  at <VTUROOT>
+[Vue warn]: Failed setting prop "size" on <input>: value small is invalid. DOMException {} 
+  at <Anonymous model-value=100 onChange=fn<onChange> min=0  ... > 
+  at <MaterialTableCore materials= [
+  {
+    materialId: [32m'mat-1'[39m,
+    materialName: [32m'鏋告潪'[39m,
+    quantity: [33m100[39m,
+    unit: [32m'g'[39m,
+    basePrice: [33m50[39m,
+    materialType: [32m'herb'[39m
+  }
+] mode="parse" finishedWeight=500  ... > 
+  at <VTUROOT>
+[Vue warn]: Failed setting prop "size" on <input>: value small is invalid. DOMException {} 
+  at <Anonymous model-value=50 onChange=fn<onChange> min=0  ... > 
+  at <MaterialTableCore materials= [
+  {
+    materialId: [32m'mat-1'[39m,
+    materialName: [32m'鏋告潪'[39m,
+    quantity: [33m100[39m,
+    unit: [32m'g'[39m,
+    basePrice: [33m50[39m,
+    materialType: [32m'herb'[39m
+  }
+] mode="parse" finishedWeight=500  ... > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/components/formula/__tests__/MaterialTableCore.test.ts[2m > [22m[2mMaterialTableCore 缁勪欢[2m >
+ [22m[2m鍚噺姣旀牎楠屽睍绀?[2m > [22m[2mM22: warning 绾у埆搴旀樉绀恒€岄璀︺€?[22m[39m[Vue warn]: Invalid prop: type check failed f
+or prop "supplementPriceMap". Expected Object, got Function  
+  at <MaterialTableCore materials= [
+  {
+    materialId: [32m'mat-1'[39m,
+    materialName: [32m'鏋告潪'[39m,
+    quantity: [33m100[39m,
+    unit: [32m'g'[39m,
+    basePrice: [33m50[39m,
+    materialType: [32m'herb'[39m
+  }
+] mode="parse" finishedWeight=500  ... > 
+  at <VTUROOT>
+[Vue warn]: Invalid prop: type check failed for prop "materialVersions". Expected Object, got Function  
+  at <MaterialTableCore materials= [
+  {
+    materialId: [32m'mat-1'[39m,
+    materialName: [32m'鏋告潪'[39m,
+    quantity: [33m100[39m,
+    unit: [32m'g'[39m,
+    basePrice: [33m50[39m,
+    materialType: [32m'herb'[39m
+  }
+] mode="parse" finishedWeight=500  ... > 
+  at <VTUROOT>
+[Vue warn]: Failed setting prop "size" on <input>: value small is invalid. DOMException {} 
+  at <Anonymous model-value=100 onChange=fn<onChange> min=0  ... > 
+  at <MaterialTableCore materials= [
+  {
+    materialId: [32m'mat-1'[39m,
+    materialName: [32m'鏋告潪'[39m,
+    quantity: [33m100[39m,
+    unit: [32m'g'[39m,
+    basePrice: [33m50[39m,
+    materialType: [32m'herb'[39m
+  }
+] mode="parse" finishedWeight=500  ... > 
+  at <VTUROOT>
+[Vue warn]: Failed setting prop "size" on <input>: value small is invalid. DOMException {} 
+  at <Anonymous model-value=50 onChange=fn<onChange> min=0  ... > 
+  at <MaterialTableCore materials= [
+  {
+    materialId: [32m'mat-1'[39m,
+    materialName: [32m'鏋告潪'[39m,
+    quantity: [33m100[39m,
+    unit: [32m'g'[39m,
+    basePrice: [33m50[39m,
+    materialType: [32m'herb'[39m
+  }
+] mode="parse" finishedWeight=500  ... > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/components/formula/__tests__/MaterialTableCore.test.ts[2m > [22m[2mMaterialTableCore 缁勪欢[2m >
+ [22m[2m鍚噺姣旀牎楠屽睍绀?[2m > [22m[2mM23: high_warning 绾у埆搴旀樉绀恒€岃鍛娿€?[22m[39m[Vue warn]: Invalid prop: type check fai
+led for prop "supplementPriceMap". Expected Object, got Function  
+  at <MaterialTableCore materials= [
+  {
+    materialId: [32m'mat-1'[39m,
+    materialName: [32m'鏋告潪'[39m,
+    quantity: [33m100[39m,
+    unit: [32m'g'[39m,
+    basePrice: [33m50[39m,
+    materialType: [32m'herb'[39m
+  }
+] mode="parse" finishedWeight=500  ... > 
+  at <VTUROOT>
+[Vue warn]: Invalid prop: type check failed for prop "materialVersions". Expected Object, got Function  
+  at <MaterialTableCore materials= [
+  {
+    materialId: [32m'mat-1'[39m,
+    materialName: [32m'鏋告潪'[39m,
+    quantity: [33m100[39m,
+    unit: [32m'g'[39m,
+    basePrice: [33m50[39m,
+    materialType: [32m'herb'[39m
+  }
+] mode="parse" finishedWeight=500  ... > 
+  at <VTUROOT>
+[Vue warn]: Failed setting prop "size" on <input>: value small is invalid. DOMException {} 
+  at <Anonymous model-value=100 onChange=fn<onChange> min=0  ... > 
+  at <MaterialTableCore materials= [
+  {
+    materialId: [32m'mat-1'[39m,
+    materialName: [32m'鏋告潪'[39m,
+    quantity: [33m100[39m,
+    unit: [32m'g'[39m,
+    basePrice: [33m50[39m,
+    materialType: [32m'herb'[39m
+  }
+] mode="parse" finishedWeight=500  ... > 
+  at <VTUROOT>
+[Vue warn]: Failed setting prop "size" on <input>: value small is invalid. DOMException {} 
+  at <Anonymous model-value=50 onChange=fn<onChange> min=0  ... > 
+  at <MaterialTableCore materials= [
+  {
+    materialId: [32m'mat-1'[39m,
+    materialName: [32m'鏋告潪'[39m,
+    quantity: [33m100[39m,
+    unit: [32m'g'[39m,
+    basePrice: [33m50[39m,
+    materialType: [32m'herb'[39m
+  }
+] mode="parse" finishedWeight=500  ... > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/components/formula/__tests__/MaterialTableCore.test.ts[2m > [22m[2mMaterialTableCore 缁勪欢[2m >
+ [22m[2m鍚噺姣旀牎楠屽睍绀?[2m > [22m[2mM24: error 绾у埆搴旀樉绀恒€屽け璐ャ€?[22m[39m[Vue warn]: Invalid prop: type check failed for
+ prop "supplementPriceMap". Expected Object, got Function  
+  at <MaterialTableCore materials= [
+  {
+    materialId: [32m'mat-1'[39m,
+    materialName: [32m'鏋告潪'[39m,
+    quantity: [33m100[39m,
+    unit: [32m'g'[39m,
+    basePrice: [33m50[39m,
+    materialType: [32m'herb'[39m
+  }
+] mode="parse" finishedWeight=500  ... > 
+  at <VTUROOT>
+[Vue warn]: Invalid prop: type check failed for prop "materialVersions". Expected Object, got Function  
+  at <MaterialTableCore materials= [
+  {
+    materialId: [32m'mat-1'[39m,
+    materialName: [32m'鏋告潪'[39m,
+    quantity: [33m100[39m,
+    unit: [32m'g'[39m,
+    basePrice: [33m50[39m,
+    materialType: [32m'herb'[39m
+  }
+] mode="parse" finishedWeight=500  ... > 
+  at <VTUROOT>
+[Vue warn]: Failed setting prop "size" on <input>: value small is invalid. DOMException {} 
+  at <Anonymous model-value=100 onChange=fn<onChange> min=0  ... > 
+  at <MaterialTableCore materials= [
+  {
+    materialId: [32m'mat-1'[39m,
+    materialName: [32m'鏋告潪'[39m,
+    quantity: [33m100[39m,
+    unit: [32m'g'[39m,
+    basePrice: [33m50[39m,
+    materialType: [32m'herb'[39m
+  }
+] mode="parse" finishedWeight=500  ... > 
+  at <VTUROOT>
+[Vue warn]: Failed setting prop "size" on <input>: value small is invalid. DOMException {} 
+  at <Anonymous model-value=50 onChange=fn<onChange> min=0  ... > 
+  at <MaterialTableCore materials= [
+  {
+    materialId: [32m'mat-1'[39m,
+    materialName: [32m'鏋告潪'[39m,
+    quantity: [33m100[39m,
+    unit: [32m'g'[39m,
+    basePrice: [33m50[39m,
+    materialType: [32m'herb'[39m
+  }
+] mode="parse" finishedWeight=500  ... > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/components/formula/__tests__/MaterialTableCore.test.ts[2m > [22m[2mMaterialTableCore 缁勪欢[2m >
+ [22m[2m鍗曚环灞曠ず[2m > [22m[2mM30: 鏈夊崟浠锋椂搴旀樉绀哄崟浠风紪杈戣緭鍏ユ
+[22m[39m[Vue warn]: Invalid prop: type check failed for prop "supplementPriceMap". Expected Object, got Function  
+  at <MaterialTableCore materials= [
+  {
+    materialId: [32m'mat-1'[39m,
+    materialName: [32m'鏋告潪'[39m,
+    quantity: [33m100[39m,
+    unit: [32m'g'[39m,
+    basePrice: [33m50[39m,
+    materialType: [32m'herb'[39m
+  }
+] mode="parse" finishedWeight=500  ... > 
+  at <VTUROOT>
+[Vue warn]: Invalid prop: type check failed for prop "materialVersions". Expected Object, got Function  
+  at <MaterialTableCore materials= [
+  {
+    materialId: [32m'mat-1'[39m,
+    materialName: [32m'鏋告潪'[39m,
+    quantity: [33m100[39m,
+    unit: [32m'g'[39m,
+    basePrice: [33m50[39m,
+    materialType: [32m'herb'[39m
+  }
+] mode="parse" finishedWeight=500  ... > 
+  at <VTUROOT>
+[Vue warn]: Failed setting prop "size" on <input>: value small is invalid. DOMException {} 
+  at <Anonymous model-value=100 onChange=fn<onChange> min=0  ... > 
+  at <MaterialTableCore materials= [
+  {
+    materialId: [32m'mat-1'[39m,
+    materialName: [32m'鏋告潪'[39m,
+    quantity: [33m100[39m,
+    unit: [32m'g'[39m,
+    basePrice: [33m50[39m,
+    materialType: [32m'herb'[39m
+  }
+] mode="parse" finishedWeight=500  ... > 
+  at <VTUROOT>
+[Vue warn]: Failed setting prop "size" on <input>: value small is invalid. DOMException {} 
+  at <Anonymous model-value=50 onChange=fn<onChange> min=0  ... > 
+  at <MaterialTableCore materials= [
+  {
+    materialId: [32m'mat-1'[39m,
+    materialName: [32m'鏋告潪'[39m,
+    quantity: [33m100[39m,
+    unit: [32m'g'[39m,
+    basePrice: [33m50[39m,
+    materialType: [32m'herb'[39m
+  }
+] mode="parse" finishedWeight=500  ... > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/components/formula/__tests__/MaterialTableCore.test.ts[2m > [22m[2mMaterialTableCore 缁勪欢[2m >
+ [22m[2m鍗曚环灞曠ず[2m > [22m[2mM31: 鍗曚环涓?null 鏃跺簲鏄剧ず銆屾湭褰曞叆銆?[22m[39m[Vue warn]: Invalid prop: type check failed for 
+prop "supplementPriceMap". Expected Object, got Function  
+  at <MaterialTableCore materials= [
+  {
+    materialId: [32m'mat-1'[39m,
+    materialName: [32m'鏋告潪'[39m,
+    quantity: [33m100[39m,
+    unit: [32m'g'[39m,
+    basePrice: [1mnull[22m,
+    materialType: [32m'herb'[39m
+  }
+] mode="parse" finishedWeight=500  ... > 
+  at <VTUROOT>
+[Vue warn]: Invalid prop: type check failed for prop "materialVersions". Expected Object, got Function  
+  at <MaterialTableCore materials= [
+  {
+    materialId: [32m'mat-1'[39m,
+    materialName: [32m'鏋告潪'[39m,
+    quantity: [33m100[39m,
+    unit: [32m'g'[39m,
+    basePrice: [1mnull[22m,
+    materialType: [32m'herb'[39m
+  }
+] mode="parse" finishedWeight=500  ... > 
+  at <VTUROOT>
+[Vue warn]: Failed setting prop "size" on <input>: value small is invalid. DOMException {} 
+  at <Anonymous model-value=100 onChange=fn<onChange> min=0  ... > 
+  at <MaterialTableCore materials= [
+  {
+    materialId: [32m'mat-1'[39m,
+    materialName: [32m'鏋告潪'[39m,
+    quantity: [33m100[39m,
+    unit: [32m'g'[39m,
+    basePrice: [1mnull[22m,
+    materialType: [32m'herb'[39m
+  }
+] mode="parse" finishedWeight=500  ... > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/components/formula/__tests__/MaterialTableCore.test.ts[2m > [22m[2mMaterialTableCore 缁勪欢[2m >
+ [22m[2m鍗曚环灞曠ず[2m > [22m[2mM32: 鏈夊崟浠峰拰鐢ㄩ噺鏃跺簲鏄剧ず灏忚閲戦
+[22m[39m[Vue warn]: Invalid prop: type check failed for prop "supplementPriceMap". Expected Object, got Function  
+  at <MaterialTableCore materials= [
+  {
+    materialId: [32m'mat-1'[39m,
+    materialName: [32m'鏋告潪'[39m,
+    quantity: [33m200[39m,
+    unit: [32m'g'[39m,
+    basePrice: [33m50[39m,
+    materialType: [32m'herb'[39m
+  }
+] mode="parse" finishedWeight=500  ... > 
+  at <VTUROOT>
+[Vue warn]: Invalid prop: type check failed for prop "materialVersions". Expected Object, got Function  
+  at <MaterialTableCore materials= [
+  {
+    materialId: [32m'mat-1'[39m,
+    materialName: [32m'鏋告潪'[39m,
+    quantity: [33m200[39m,
+    unit: [32m'g'[39m,
+    basePrice: [33m50[39m,
+    materialType: [32m'herb'[39m
+  }
+] mode="parse" finishedWeight=500  ... > 
+  at <VTUROOT>
+[Vue warn]: Failed setting prop "size" on <input>: value small is invalid. DOMException {} 
+  at <Anonymous model-value=200 onChange=fn<onChange> min=0  ... > 
+  at <MaterialTableCore materials= [
+  {
+    materialId: [32m'mat-1'[39m,
+    materialName: [32m'鏋告潪'[39m,
+    quantity: [33m200[39m,
+    unit: [32m'g'[39m,
+    basePrice: [33m50[39m,
+    materialType: [32m'herb'[39m
+  }
+] mode="parse" finishedWeight=500  ... > 
+  at <VTUROOT>
+[Vue warn]: Failed setting prop "size" on <input>: value small is invalid. DOMException {} 
+  at <Anonymous model-value=50 onChange=fn<onChange> min=0  ... > 
+  at <MaterialTableCore materials= [
+  {
+    materialId: [32m'mat-1'[39m,
+    materialName: [32m'鏋告潪'[39m,
+    quantity: [33m200[39m,
+    unit: [32m'g'[39m,
+    basePrice: [33m50[39m,
+    materialType: [32m'herb'[39m
+  }
+] mode="parse" finishedWeight=500  ... > 
+  at <VTUROOT>
+
+[90mstderr[2m | src/components/formula/__tests__/MaterialTableCore.test.ts[2m > [22m[2mMaterialTableCore 缁勪欢[2m >
+ [22m[2m绉婚櫎鍘熸枡[2m > [22m[2mM40: 鐐瑰嚮鍒犻櫎鎸夐挳搴?emit update:materials 骞剁Щ闄ゅ搴旇
+[22m[39m[Vue warn]: Invalid prop: type check failed for prop "supplementPriceMap". Expected Object, got Function  
+  at <MaterialTableCore materials= [
+  {
+    materialId: [32m'm1'[39m,
+    materialName: [32m'鏋告潪'[39m,
+    quantity: [33m100[39m,
+    unit: [32m'g'[39m,
+    basePrice: [33m50[39m,
+    materialType: [32m'herb'[39m
+  },
+  {
+    materialId: [32m'm2'[39m,
+    materialName: [32m'榛勮姫'[39m,
+    quantity: [33m100[39m,
+    unit: [32m'g'[39m,
+    basePrice: [33m50[39m,
+    materialType: [32m'herb'[39m
+  }
+] mode="parse" finishedWeight=500  ... > 
+  at <VTUROOT>
+[Vue warn]: Invalid prop: type check failed for prop "materialVersions". Expected Object, got Function  
+  at <MaterialTableCore materials= [
+  {
+    materialId: [32m'm1'[39m,
+    materialName: [32m'鏋告潪'[39m,
+    quantity: [33m100[39m,
+    unit: [32m'g'[39m,
+    basePrice: [33m50[39m,
+    materialType: [32m'herb'[39m
+  },
+  {
+    materialId: [32m'm2'[39m,
+    materialName: [32m'榛勮姫'[39m,
+    quantity: [33m100[39m,
+    unit: [32m'g'[39m,
+    basePrice: [33m50[39m,
+    materialType: [32m'herb'[39m
+  }
+] mode="parse" finishedWeight=500  ... > 
+  at <VTUROOT>
+[Vue warn]: Failed setting prop "size" on <input>: value small is invalid. DOMException {} 
+  at <Anonymous model-value=100 onChange=fn<onChange> min=0  ... > 
+  at <MaterialTableCore materials= [
+  {
+    materialId: [32m'm1'[39m,
+    materialName: [32m'鏋告潪'[39m,
+    quantity: [33m100[39m,
+    unit: [32m'g'[39m,
+    basePrice: [33m50[39m,
+    materialType: [32m'herb'[39m
+  },
+  {
+    materialId: [32m'm2'[39m,
+    materialName: [32m'榛勮姫'[39m,
+    quantity: [33m100[39m,
+    unit: [32m'g'[39m,
+    basePrice: [33m50[39m,
+    materialType: [32m'herb'[39m
+  }
+] mode="parse" finishedWeight=500  ... > 
+  at <VTUROOT>
+[Vue warn]: Failed setting prop "size" on <input>: value small is invalid. DOMException {} 
+  at <Anonymous model-value=50 onChange=fn<onChange> min=0  ... > 
+  at <MaterialTableCore materials= [
+  {
+    materialId: [32m'm1'[39m,
+    materialName: [32m'鏋告潪'[39m,
+    quantity: [33m100[39m,
+    unit: [32m'g'[39m,
+    basePrice: [33m50[39m,
+    materialType: [32m'herb'[39m
+  },
+  {
+    materialId: [32m'm2'[39m,
+    materialName: [32m'榛勮姫'[39m,
+    quantity: [33m100[39m,
+    unit: [32m'g'[39m,
+    basePrice: [33m50[39m,
+    materialType: [32m'herb'[39m
+  }
+] mode="parse" finishedWeight=500  ... > 
+  at <VTUROOT>
+[Vue warn]: Failed setting prop "size" on <input>: value small is invalid. DOMException {} 
+  at <Anonymous model-value=100 onChange=fn<onChange> min=0  ... > 
+  at <MaterialTableCore materials= [
+  {
+    materialId: [32m'm1'[39m,
+    materialName: [32m'鏋告潪'[39m,
+    quantity: [33m100[39m,
+    unit: [32m'g'[39m,
+    basePrice: [33m50[39m,
+    materialType: [32m'herb'[39m
+  },
+  {
+    materialId: [32m'm2'[39m,
+    materialName: [32m'榛勮姫'[39m,
+    quantity: [33m100[39m,
+    unit: [32m'g'[39m,
+    basePrice: [33m50[39m,
+    materialType: [32m'herb'[39m
+  }
+] mode="parse" finishedWeight=500  ... > 
+  at <VTUROOT>
+[Vue warn]: Failed setting prop "size" on <input>: value small is invalid. DOMException {} 
+  at <Anonymous model-value=50 onChange=fn<onChange> min=0  ... > 
+  at <MaterialTableCore materials= [
+  {
+    materialId: [32m'm1'[39m,
+    materialName: [32m'鏋告潪'[39m,
+    quantity: [33m100[39m,
+    unit: [32m'g'[39m,
+    basePrice: [33m50[39m,
+    materialType: [32m'herb'[39m
+  },
+  {
+    materialId: [32m'm2'[39m,
+    materialName: [32m'榛勮姫'[39m,
+    quantity: [33m100[39m,
+    unit: [32m'g'[39m,
+    basePrice: [33m50[39m,
+    materialType: [32m'herb'[39m
+  }
+] mode="parse" finishedWeight=500  ... > 
+  at <VTUROOT>
+
+ [32m鉁?[39m src/components/formula/__tests__/MaterialTableCore.test.ts [2m([22m[2m19 tests[22m[2m)[22m[33m 675[2mms[22m[39m
+ [32m鉁?[39m src/components/__tests__/NutritionExcelImport.test.ts [2m([22m[2m12 tests[22m[2m)[22m[32m 222[2mms[22m[39m
+ [32m鉁?[39m src/components/__tests__/PageSkeleton.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 170[2mms[22m[39m
+ [32m鉁?[39m src/components/__tests__/EmptyState.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 117[2mms[22m[39m
+ [32m鉁?[39m src/views/formulas/quick-formula/__tests__/MaterialPool.test.ts [2m([22m[2m8 tests[22m[2m)[22m[33m 314[2mms[22m[39m
+ [32m鉁?[39m src/stores/__tests__/theme.test.ts [2m([22m[2m13 tests[22m[2m)[22m[32m 30[2mms[22m[39m
+ [32m鉁?[39m src/stores/__tests__/quickFormula.test.ts [2m([22m[2m30 tests[22m[2m)[22m[32m 39[2mms[22m[39m
+[90mstderr[2m | src/stores/__tests__/material.test.ts[2m > [22m[2museMaterialStore[2m > [22m[2mM02: fetchMateri
+als 澶辫触鏃?materials 涓虹┖鏁扮粍
+[22m[39m鑾峰彇鍘熸枡鍒楄〃澶辫触: Error: 缃戠粶閿欒
+    at D:/ProgramData/workspace-codeby/ting-studio/frontend/src/stores/__tests__/material.test.ts:73:31
+    at file:///D:/ProgramData/workspace-codeby/ting-studio/node_modules/[4m@vitest[24m/runner/dist/chunk-artifact.js:
+302:11
+    at file:///D:/ProgramData/workspace-codeby/ting-studio/node_modules/[4m@vitest[24m/runner/dist/chunk-artifact.js:
+1903:26
+    at file:///D:/ProgramData/workspace-codeby/ting-studio/node_modules/[4m@vitest[24m/runner/dist/chunk-artifact.js:
+2326:20
+    at new Promise (<anonymous>)
+    at runWithCancel (file:///D:/ProgramData/workspace-codeby/ting-studio/node_modules/[4m@vitest[24m/runner/dist/chu
+nk-artifact.js:2323:10)
+    at file:///D:/ProgramData/workspace-codeby/ting-studio/node_modules/[4m@vitest[24m/runner/dist/chunk-artifact.js:
+2305:20
+    at new Promise (<anonymous>)
+    at runWithTimeout (file:///D:/ProgramData/workspace-codeby/ting-studio/node_modules/[4m@vitest[24m/runner/dist/ch
+unk-artifact.js:2272:10)
+    at file:///D:/ProgramData/workspace-codeby/ting-studio/node_modules/[4m@vitest[24m/runner/dist/chunk-artifact.js:
+2955:64
+
+ [32m鉁?[39m src/stores/__tests__/material.test.ts [2m([22m[2m10 tests[22m[2m)[22m[32m 30[2mms[22m[39m
+ [32m鉁?[39m src/stores/__tests__/version.test.ts [2m([22m[2m17 tests[22m[2m)[22m[32m 27[2mms[22m[39m
+[90mstderr[2m | src/stores/__tests__/salesman.test.ts[2m > [22m[2museSalesmanStore[2m > [22m[2mS02: fetchSalesm
+en 澶辫触鏃?salesmen 涓虹┖
+[22m[39m鑾峰彇涓氬姟鍛樺垪琛ㄥけ璐? Error: 缃戠粶閿欒
+    at D:/ProgramData/workspace-codeby/ting-studio/frontend/src/stores/__tests__/salesman.test.ts:68:31
+    at file:///D:/ProgramData/workspace-codeby/ting-studio/node_modules/[4m@vitest[24m/runner/dist/chunk-artifact.js:
+302:11
+    at file:///D:/ProgramData/workspace-codeby/ting-studio/node_modules/[4m@vitest[24m/runner/dist/chunk-artifact.js:
+1903:26
+    at file:///D:/ProgramData/workspace-codeby/ting-studio/node_modules/[4m@vitest[24m/runner/dist/chunk-artifact.js:
+2326:20
+    at new Promise (<anonymous>)
+    at runWithCancel (file:///D:/ProgramData/workspace-codeby/ting-studio/node_modules/[4m@vitest[24m/runner/dist/chu
+nk-artifact.js:2323:10)
+    at file:///D:/ProgramData/workspace-codeby/ting-studio/node_modules/[4m@vitest[24m/runner/dist/chunk-artifact.js:
+2305:20
+    at new Promise (<anonymous>)
+    at runWithTimeout (file:///D:/ProgramData/workspace-codeby/ting-studio/node_modules/[4m@vitest[24m/runner/dist/ch
+unk-artifact.js:2272:10)
+    at file:///D:/ProgramData/workspace-codeby/ting-studio/node_modules/[4m@vitest[24m/runner/dist/chunk-artifact.js:
+2955:64
+
+ [32m鉁?[39m src/stores/__tests__/salesman.test.ts [2m([22m[2m10 tests[22m[2m)[22m[32m 27[2mms[22m[39m
+ [32m鉁?[39m src/stores/__tests__/export.test.ts [2m([22m[2m14 tests[22m[2m)[22m[32m 24[2mms[22m[39m
+[90mstderr[2m | src/stores/__tests__/formula.test.ts[2m > [22m[2museFormulaStore[2m > [22m[2mF02: fetchFormulas
+ 澶辫触鏃?formulas 涓虹┖鏁扮粍
+[22m[39m鑾峰彇閰嶆柟鍒楄〃澶辫触: Error: 缃戠粶閿欒
+    at D:/ProgramData/workspace-codeby/ting-studio/frontend/src/stores/__tests__/formula.test.ts:70:31
+    at file:///D:/ProgramData/workspace-codeby/ting-studio/node_modules/[4m@vitest[24m/runner/dist/chunk-artifact.js:
+302:11
+    at file:///D:/ProgramData/workspace-codeby/ting-studio/node_modules/[4m@vitest[24m/runner/dist/chunk-artifact.js:
+1903:26
+    at file:///D:/ProgramData/workspace-codeby/ting-studio/node_modules/[4m@vitest[24m/runner/dist/chunk-artifact.js:
+2326:20
+    at new Promise (<anonymous>)
+    at runWithCancel (file:///D:/ProgramData/workspace-codeby/ting-studio/node_modules/[4m@vitest[24m/runner/dist/chu
+nk-artifact.js:2323:10)
+    at file:///D:/ProgramData/workspace-codeby/ting-studio/node_modules/[4m@vitest[24m/runner/dist/chunk-artifact.js:
+2305:20
+    at new Promise (<anonymous>)
+    at runWithTimeout (file:///D:/ProgramData/workspace-codeby/ting-studio/node_modules/[4m@vitest[24m/runner/dist/ch
+unk-artifact.js:2272:10)
+    at file:///D:/ProgramData/workspace-codeby/ting-studio/node_modules/[4m@vitest[24m/runner/dist/chunk-artifact.js:
+2955:64
+
+[90mstderr[2m | src/stores/__tests__/formula.test.ts[2m > [22m[2museFormulaStore[2m > [22m[2mF03b: getFormula 澶
+辫触杩斿洖 null
+[22m[39m鑾峰彇閰嶆柟璇︽儏澶辫触: Error: 鑾峰彇澶辫触
+    at D:/ProgramData/workspace-codeby/ting-studio/frontend/src/stores/__tests__/formula.test.ts:88:31
+    at file:///D:/ProgramData/workspace-codeby/ting-studio/node_modules/[4m@vitest[24m/runner/dist/chunk-artifact.js:
+302:11
+    at file:///D:/ProgramData/workspace-codeby/ting-studio/node_modules/[4m@vitest[24m/runner/dist/chunk-artifact.js:
+1903:26
+    at file:///D:/ProgramData/workspace-codeby/ting-studio/node_modules/[4m@vitest[24m/runner/dist/chunk-artifact.js:
+2326:20
+    at new Promise (<anonymous>)
+    at runWithCancel (file:///D:/ProgramData/workspace-codeby/ting-studio/node_modules/[4m@vitest[24m/runner/dist/chu
+nk-artifact.js:2323:10)
+    at file:///D:/ProgramData/workspace-codeby/ting-studio/node_modules/[4m@vitest[24m/runner/dist/chunk-artifact.js:
+2305:20
+    at new Promise (<anonymous>)
+    at runWithTimeout (file:///D:/ProgramData/workspace-codeby/ting-studio/node_modules/[4m@vitest[24m/runner/dist/ch
+unk-artifact.js:2272:10)
+    at file:///D:/ProgramData/workspace-codeby/ting-studio/node_modules/[4m@vitest[24m/runner/dist/chunk-artifact.js:
+2955:64
+
+ [32m鉁?[39m src/stores/__tests__/formula.test.ts [2m([22m[2m23 tests[22m[2m)[22m[32m 109[2mms[22m[39m
+ [32m鉁?[39m src/stores/__tests__/ai.test.ts [2m([22m[2m10 tests[22m[2m)[22m[32m 28[2mms[22m[39m
+ [32m鉁?[39m src/stores/__tests__/weather.test.ts [2m([22m[2m14 tests[22m[2m)[22m[32m 25[2mms[22m[39m
+ [32m鉁?[39m src/stores/__tests__/pagination.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 20[2mms[22m[39m
+ [32m鉁?[39m src/utils/__tests__/ratioValidation.test.ts [2m([22m[2m48 tests[22m[2m)[22m[32m 17[2mms[22m[39m
+ [32m鉁?[39m src/stores/__tests__/nutrition.test.ts [2m([22m[2m10 tests[22m[2m)[22m[32m 18[2mms[22m[39m
+ [32m鉁?[39m src/stores/__tests__/preferences.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 15[2mms[22m[39m
+ [32m鉁?[39m src/__tests__/smoke.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m鉁?[39m src/utils/__tests__/timeFormat.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m鉁?[39m src/api/__tests__/http.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+
+[31m鈳幆鈳幆鈳幆[39m[1m[41m Failed Tests 32 [49m[22m[31m鈳幆鈳幆鈳幆鈳?[39m
+
+[41m[1m FAIL [22m[49m src/stores/__tests__/auth.test.ts[2m > [22museAuthStore[2m > [22mA05: 娉ㄥ唽鎴愬姛鍚庡簲鑷姩璁剧疆鐧诲綍鎬
+?[31m[1mTypeError[22m: store.register is not a function[39m
+[36m [2m鉂?[22m src/stores/__tests__/auth.test.ts:[2m87:32[22m[39m
+    [90m 85|[39m     getPreferences.mockResolvedValue({ brandColor: "pink", themeMode: 鈥?    [90m 86|[39m
+    [90m 87|[39m     const result = await store.register({ username: "newuser", passwor鈥?    [90m   |[39m          
+                      [31m^[39m
+    [90m 88|[39m
+    [90m 89|[39m     [34mexpect[39m(result[33m.[39msuccess)[33m.[39m[34mtoBe[39m([35mtrue[39m)[33m;[39m
+
+[31m[2m鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳痆1/32]鈳?[22m[39m
+
+[41m[1m FAIL [22m[49m src/stores/__tests__/auth.test.ts[2m > [22museAuthStore[2m > [22mA06: 娉ㄥ唽澶辫触搴旇繑鍥為敊璇俊鎭?[
+31m[1mTypeError[22m: store.register is not a function[39m
+[36m [2m鉂?[22m src/stores/__tests__/auth.test.ts:[2m97:32[22m[39m
+    [90m 95|[39m     register[33m.[39m[34mmockRejectedValue[39m([35mnew[39m [33mError[39m([32m"鐢ㄦ埛宸插瓨鍦?[39m
+))[33m;[39m
+    [90m 96|[39m
+    [90m 97|[39m     const result = await store.register({ username: "existing", passwo鈥?    [90m   |[39m          
+                      [31m^[39m
+    [90m 98|[39m
+    [90m 99|[39m     [34mexpect[39m(result[33m.[39msuccess)[33m.[39m[34mtoBe[39m([35mfalse[39m)[33m;[39m
+
+[31m[2m鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳痆2/32]鈳?[22m[39m
+
+[41m[1m FAIL [22m[49m src/views/auth/__tests__/Login.test.ts[2m > [22mLogin 缁勪欢[2m > [22mLG01: 椤甸潰搴旀甯告覆鏌擄紝涓嶆姏鍑
+洪敊璇?[41m[1m FAIL [22m[49m src/views/auth/__tests__/Login.test.ts[2m > [22mLogin 缁勪欢[2m > [22mLG02: 鐧诲綍琛ㄥ崟搴斿瓨鍦?
+[41m[1m FAIL [22m[49m src/views/auth/__tests__/Login.test.ts[2m > [22mLogin 缁勪欢[2m > [22mLG03: 鐢ㄦ埛鍚嶈緭鍏ユ搴斿瓨鍦?[4
+1m[1m FAIL [22m[49m src/views/auth/__tests__/Login.test.ts[2m > [22mLogin 缁勪欢[2m > [22mLG04: 鐧诲綍鎸夐挳搴斿瓨鍦?[41m[1
+m FAIL [22m[49m src/views/auth/__tests__/Login.test.ts[2m > [22mLogin 缁勪欢[2m > [22mLG05: 鐧诲綍鎸夐挳鏂囨湰搴斿寘鍚€岀櫥銆嶅瓧
+[41m[1m FAIL [22m[49m src/views/auth/__tests__/Login.test.ts[2m > [22mLogin 缁勪欢[2m > [22mLG06: 椤甸潰鏍囬鍖哄煙搴斿瓨鍦?[
+41m[1m FAIL [22m[49m src/views/auth/__tests__/Login.test.ts[2m > [22mLogin 缁勪欢[2m > [22mLG07: 鐧诲綍椤甸潰瀹瑰櫒搴斿瓨鍦?[41
+m[1m FAIL [22m[49m src/views/auth/__tests__/Login.test.ts[2m > [22mLogin 缁勪欢[2m > [22mLG08: 缁勪欢搴斿寘鍚〃鍗曞紩鐢紙formR
+ef锛?[41m[1m FAIL [22m[49m src/views/auth/__tests__/Login.test.ts[2m > [22mLogin 缁勪欢[2m > [22mLG09: formData 搴斿寘
+鍚?username 鍜?password 瀛楁
+[41m[1m FAIL [22m[49m src/views/auth/__tests__/Login.test.ts[2m > [22mLogin 缁勪欢[2m > [22mLG10: handleSubmit 鏂规硶
+搴斿瓨鍦?[31m[1mError[22m: [vitest] No "Dialog" export is defined on the "tdesign-vue-next" mock. Did you forget to retu
+rn it from "vi.mock"?
+If you need to partially mock a module, you can use "importOriginal" helper inside:
+[39m
+vi.mock(import("tdesign-vue-next"), async (importOriginal) => {
+  const actual = await importOriginal()
+  return {
+    ...actual,
+    // your mocked methods
+  }
+})
+
+[36m [2m鉂?[22m Proxy._sfc_render src/views/auth/Login.vue:[2m174:53[22m[39m
+    [90m173|[39m               data-testid="login-btn">
+    [90m174|[39m               <span class="btn-text">鈾?鐧?褰?/span>
+    [90m175|[39m             </t-button>
+    [90m   |[39m  [31m^[39m
+    [90m176|[39m           </t-form-item>
+    [90m177|[39m         </t-form>
+[90m [2m鉂?[22m renderComponentRoot ../node_modules/@vue/runtime-core/dist/runtime-core.cjs.js:[2m4558:16[22m[39m
+[90m [2m鉂?[22m ReactiveEffect.componentUpdateFn [as fn] ../node_modules/@vue/runtime-core/dist/runtime-core.cjs.js:[
+2m6085:46[22m[39m
+[90m [2m鉂?[22m ReactiveEffect.run ../node_modules/@vue/reactivity/dist/reactivity.cjs.js:[2m264:19[22m[39m
+[90m [2m鉂?[22m setupRenderEffect ../node_modules/@vue/runtime-core/dist/runtime-core.cjs.js:[2m6220:5[22m[39m
+[90m [2m鉂?[22m mountComponent ../node_modules/@vue/runtime-core/dist/runtime-core.cjs.js:[2m5992:7[22m[39m
+[90m [2m鉂?[22m processComponent ../node_modules/@vue/runtime-core/dist/runtime-core.cjs.js:[2m5944:9[22m[39m
+[90m [2m鉂?[22m patch ../node_modules/@vue/runtime-core/dist/runtime-core.cjs.js:[2m5454:11[22m[39m
+
+[31m[2m鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳痆3/32]鈳?[22m[39m
+
+[41m[1m FAIL [22m[49m src/views/materials/__tests__/MaterialForm.test.ts[2m > [22mMaterialForm 缁勪欢[2m > [22mMF0
+1: 鏂板缓妯″紡搴旀樉绀恒€屾柊澧炲師鏂欍€嶆爣棰?[41m[1m FAIL [22m[49m src/views/materials/__tests__/MaterialForm.test.ts[2m > [22mMate
+rialForm 缁勪欢[2m > [22mMF02: 缂栬緫妯″紡搴旀樉绀恒€岀紪杈戝師鏂欍€嶆爣棰?[41m[1m FAIL [22m[49m src/views/materials/__tests__/MaterialF
+orm.test.ts[2m > [22mMaterialForm 缁勪欢[2m > [22mMF03: 鏂板缓妯″紡淇濆瓨鎸夐挳搴旀樉绀恒€屽垱寤恒€嶆枃鏈?[41m[1m FAIL [22m[49m src/views
+/materials/__tests__/MaterialForm.test.ts[2m > [22mMaterialForm 缁勪欢[2m > [22mMF04: 缂栬緫妯″紡淇濆瓨鎸夐挳搴旀樉绀恒€屼繚瀛樸€嶆枃鏈?[41m
+[1m FAIL [22m[49m src/views/materials/__tests__/MaterialForm.test.ts[2m > [22mMaterialForm 缁勪欢[2m > [22mMF05: 鐐瑰
+嚮杩斿洖鎸夐挳搴斿鑸埌 /materials
+[41m[1m FAIL [22m[49m src/views/materials/__tests__/MaterialForm.test.ts[2m > [22mMaterialForm 缁勪欢[2m > [22mMF0
+6: 鐐瑰嚮鍙栨秷鎸夐挳搴斿鑸埌 /materials
+[41m[1m FAIL [22m[49m src/views/materials/__tests__/MaterialForm.test.ts[2m > [22mMaterialForm 缁勪欢[2m > [22mMF0
+7: 缂栬緫妯″紡涓?AI 闈㈡澘搴旀湁绂佺敤鏍峰紡
+[41m[1m FAIL [22m[49m src/views/materials/__tests__/MaterialForm.test.ts[2m > [22mMaterialForm 缁勪欢[2m > [22mMF0
+8: 鏂板缓妯″紡涓?AI 闈㈡澘涓嶅簲鏈夌鐢ㄦ牱寮?[41m[1m FAIL [22m[49m src/views/materials/__tests__/MaterialForm.test.ts[2m > [22mMat
+erialForm 缁勪欢[2m > [22mMF09: 钀ュ吇绱犲尯鍩熼粯璁や笉鏄剧ず锛坰howNutrition=false锛?[41m[1m FAIL [22m[49m src/views/materials/__tes
+ts__/MaterialForm.test.ts[2m > [22mMaterialForm 缁勪欢[2m > [22mMF10: handleBack 搴旇皟鐢?router.push("/materials")
+[31m[1mError[22m: [vitest] No "Switch" export is defined on the "tdesign-vue-next" mock. Did you forget to return it
+ from "vi.mock"?
+If you need to partially mock a module, you can use "importOriginal" helper inside:
+[39m
+vi.mock(import("tdesign-vue-next"), async (importOriginal) => {
+  const actual = await importOriginal()
+  return {
+    ...actual,
+    // your mocked methods
+  }
+})
+
+[36m [2m鉂?[22m Proxy._sfc_render src/views/materials/MaterialForm.vue:[2m628:53[22m[39m
+    [90m627|[39m   hasNutrition.value = true;
+    [90m628|[39m
+    [90m629|[39m   for (const [key, val] of Object.entries(data.nutritionData)) {
+    [90m   |[39m                                                   [31m^[39m
+    [90m630|[39m     if (nutritionData[key] !== undefined) nutritionData[key] = Number(鈥?    [90m631|[39m   }
+[90m [2m鉂?[22m renderComponentRoot ../node_modules/@vue/runtime-core/dist/runtime-core.cjs.js:[2m4558:16[22m[39m
+[90m [2m鉂?[22m ReactiveEffect.componentUpdateFn [as fn] ../node_modules/@vue/runtime-core/dist/runtime-core.cjs.js:[
+2m6085:46[22m[39m
+[90m [2m鉂?[22m ReactiveEffect.run ../node_modules/@vue/reactivity/dist/reactivity.cjs.js:[2m264:19[22m[39m
+[90m [2m鉂?[22m setupRenderEffect ../node_modules/@vue/runtime-core/dist/runtime-core.cjs.js:[2m6220:5[22m[39m
+[90m [2m鉂?[22m mountComponent ../node_modules/@vue/runtime-core/dist/runtime-core.cjs.js:[2m5992:7[22m[39m
+[90m [2m鉂?[22m processComponent ../node_modules/@vue/runtime-core/dist/runtime-core.cjs.js:[2m5944:9[22m[39m
+[90m [2m鉂?[22m patch ../node_modules/@vue/runtime-core/dist/runtime-core.cjs.js:[2m5454:11[22m[39m
+
+[31m[2m鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳痆4/32]鈳?[22m[39m
+
+[41m[1m FAIL [22m[49m src/views/formulas/quick-formula/__tests__/FormulaEditor.test.ts[2m > [22mFormulaEditor[2m
+ > [22mParameter settings[2m > [22mE01: Displays current ratioFactor value
+[41m[1m FAIL [22m[49m src/views/formulas/quick-formula/__tests__/FormulaEditor.test.ts[2m > [22mFormulaEditor[2m
+ > [22mParameter settings[2m > [22mE02: Displays current supplementRatioFactor value
+[41m[1m FAIL [22m[49m src/views/formulas/quick-formula/__tests__/FormulaEditor.test.ts[2m > [22mFormulaEditor[2m
+ > [22mParameter settings[2m > [22mE03: Displays current finishedWeight value
+[41m[1m FAIL [22m[49m src/views/formulas/quick-formula/__tests__/FormulaEditor.test.ts[2m > [22mFormulaEditor[2m
+ > [22mMaterial list[2m > [22mE10: Shows materials from store
+[41m[1m FAIL [22m[49m src/views/formulas/quick-formula/__tests__/FormulaEditor.test.ts[2m > [22mFormulaEditor[2m
+ > [22mMaterial list[2m > [22mE11: Shows quantity for each material
+[41m[1m FAIL [22m[49m src/views/formulas/quick-formula/__tests__/FormulaEditor.test.ts[2m > [22mFormulaEditor[2m
+ > [22mMaterial list[2m > [22mE12: Shows unit price for each material
+[41m[1m FAIL [22m[49m src/views/formulas/quick-formula/__tests__/FormulaEditor.test.ts[2m > [22mFormulaEditor[2m
+ > [22mMaterial list[2m > [22mE13: Shows ratio percentage for each material
+[41m[1m FAIL [22m[49m src/views/formulas/quick-formula/__tests__/FormulaEditor.test.ts[2m > [22mFormulaEditor[2m
+ > [22mActions[2m > [22mE20: Save button triggers store save
+[41m[1m FAIL [22m[49m src/views/formulas/quick-formula/__tests__/FormulaEditor.test.ts[2m > [22mFormulaEditor[2m
+ > [22mActions[2m > [22mE21: Publish button shows validation errors when invalid
+[41m[1m FAIL [22m[49m src/views/formulas/quick-formula/__tests__/FormulaEditor.test.ts[2m > [22mFormulaEditor[2m
+ > [22mActions[2m > [22mE22: Publish button opens drawer when valid
+[31m[1mError[22m: [vitest] No "Icon" export is defined on the "tdesign-vue-next" mock. Did you forget to return it f
+rom "vi.mock"?
+If you need to partially mock a module, you can use "importOriginal" helper inside:
+[39m
+vi.mock(import("tdesign-vue-next"), async (importOriginal) => {
+  const actual = await importOriginal()
+  return {
+    ...actual,
+    // your mocked methods
+  }
+})
+
+[36m [2m鉂?[22m Proxy._sfc_render src/views/formulas/quick-formula/FormulaEditor.vue:[2m146:51[22m[39m
+    [90m145|[39m                   <t-icon name="rollback" size="12px" />
+    [90m146|[39m                 </button>
+    [90m147|[39m                 <t-popconfirm content="纭绉婚櫎璇ュ師鏂欙紵" @confirm="handleDelet鈥?    [90m   |[39m      
+                  [31m^[39m
+    [90m148|[39m                   <button type="button" class="remove-material-btn" ti鈥?    [90m149|[39m          
+           <t-icon name="delete" size="12px" />
+[90m [2m鉂?[22m renderComponentRoot ../node_modules/@vue/runtime-core/dist/runtime-core.cjs.js:[2m4558:16[22m[39m
+[90m [2m鉂?[22m ReactiveEffect.componentUpdateFn [as fn] ../node_modules/@vue/runtime-core/dist/runtime-core.cjs.js:[
+2m6085:46[22m[39m
+[90m [2m鉂?[22m ReactiveEffect.run ../node_modules/@vue/reactivity/dist/reactivity.cjs.js:[2m264:19[22m[39m
+[90m [2m鉂?[22m setupRenderEffect ../node_modules/@vue/runtime-core/dist/runtime-core.cjs.js:[2m6220:5[22m[39m
+[90m [2m鉂?[22m mountComponent ../node_modules/@vue/runtime-core/dist/runtime-core.cjs.js:[2m5992:7[22m[39m
+[90m [2m鉂?[22m processComponent ../node_modules/@vue/runtime-core/dist/runtime-core.cjs.js:[2m5944:9[22m[39m
+[90m [2m鉂?[22m patch ../node_modules/@vue/runtime-core/dist/runtime-core.cjs.js:[2m5454:11[22m[39m
+
+[31m[2m鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳幆鈳痆5/32]鈳?[22m[39m
+
+
+[2m Test Files [22m [1m[31m4 failed[39m[22m[2m | [22m[1m[32m31 passed[39m[22m[90m (35)[39m
+[2m      Tests [22m [1m[31m32 failed[39m[22m[2m | [22m[1m[32m421 passed[39m[22m[90m (453)[39m
+[2m   Start at [22m 07:57:44
+[2m   Duration [22m 84.15s[2m (transform 8.61s, setup 6.74s, import 77.96s, tests 10.77s, environment 105.83s)[22m
+

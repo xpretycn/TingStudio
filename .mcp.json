@@ -5,16 +5,12 @@
       "args": ["-y", "@gitee/mcp-gitee@latest"],
       "env": {
         "GITEE_API_BASE": "https://gitee.com/api/v5",
-        "GITEE_ACCESS_TOKEN": "<替换为你的Gitee私人访问令牌>"
+        "GITEE_ACCESS_TOKEN": "ef1a7ef4ac7a80dbc9026851414a59b6"
       }
     },
     "filesystem": {
       "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-filesystem",
-        "d:\\ProgramData\\workspace-codeby\\ting-studio"
-      ]
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "d:\\ProgramData\\workspace-codeby\\ting-studio"]
     },
     "context7": {
       "command": "npx",

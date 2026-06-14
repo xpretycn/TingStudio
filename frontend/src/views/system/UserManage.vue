@@ -17,24 +17,24 @@
     </div>
 
     <div class="user-toolbar">
-      <t-input v-model="searchKeyword" placeholder="搜索用户名..." clearable class="user-search-input" @enter="fetchUsers" @clear="fetchUsers">
+      <t-input v-model="searchKeyword" placeholder="搜索用户名..." clearable class="user-search-input" @enter="fetchUsers"
+        @clear="fetchUsers">
         <template #prefix-icon><t-icon name="search" /></template>
       </t-input>
-      <t-select v-model="filterRoleId" :options="roleFilterOptions" placeholder="角色筛选" clearable class="user-filter-select" @change="fetchUsers" />
-      <t-select v-model="filterStatus" :options="statusFilterOptions" placeholder="状态筛选" clearable class="user-filter-select" @change="fetchUsers" />
+      <t-select v-model="filterRoleId" :options="roleFilterOptions" placeholder="角色筛选" clearable
+        class="user-filter-select" @change="fetchUsers" />
+      <t-select v-model="filterStatus" :options="statusFilterOptions" placeholder="状态筛选" clearable
+        class="user-filter-select" @change="fetchUsers" />
+      <t-button theme="primary" size="small" @click="showCreateDialog = true">
+        <template #icon><t-icon name="add" /></template>
+        新建用户
+      </t-button>
     </div>
 
     <t-loading :loading="loading" />
 
     <div v-if="!loading && userList.length > 0" class="user-table-wrap">
-      <t-table
-        :data="sortedUsers"
-        :columns="tableColumns"
-        row-key="id"
-        table-layout="auto"
-        hover
-        stripe
-      >
+      <t-table :data="sortedUsers" :columns="tableColumns" row-key="id" table-layout="auto" hover stripe>
         <template #isActive="{ row }">
           <t-tag v-if="row.isActive" theme="success" variant="light" size="small">启用</t-tag>
           <t-tag v-else theme="default" variant="light" size="small">禁用</t-tag>
@@ -45,11 +45,8 @@
         <template #actions="{ row }">
           <div class="user-actions" v-if="row.id !== currentUserId">
             <t-button variant="text" theme="primary" size="small" @click="openRoleDialog(row)">切换角色</t-button>
-            <t-popconfirm
-              v-if="row.role !== 'admin'"
-              :content="row.isActive ? '确定禁用该用户吗？' : '确定启用该用户吗？'"
-              @confirm="handleToggleStatus(row)"
-            >
+            <t-popconfirm v-if="row.role !== 'admin'" :content="row.isActive ? '确定禁用该用户吗？' : '确定启用该用户吗？'"
+              @confirm="handleToggleStatus(row)">
               <t-button variant="text" :theme="row.isActive ? 'warning' : 'success'" size="small">
                 {{ row.isActive ? '禁用' : '启用' }}
               </t-button>
@@ -62,22 +59,20 @@
       </t-table>
       <div v-if="paginationStore.visible && pagination.total > 0" class="table-pagination">
         <div class="pagination-info">
-          显示第 {{ (pagination.page - 1) * pagination.pageSize + 1 }}-{{ Math.min(pagination.page * pagination.pageSize, pagination.total) }} 条，共 {{ pagination.total }} 条数据
+          显示第 {{ (pagination.page - 1) * pagination.pageSize + 1 }}-{{ Math.min(pagination.page * pagination.pageSize,
+            pagination.total) }} 条，共 {{ pagination.total }} 条数据
         </div>
         <div class="pagination-controls">
           <button class="pagination-btn" :class="{ 'pagination-btn--disabled': pagination.page === 1 }"
-            :disabled="pagination.page === 1"
-            @click="setPage(pagination.page - 1)">上一页</button>
+            :disabled="pagination.page === 1" @click="setPage(pagination.page - 1)">上一页</button>
           <template v-for="page in pageNumbers" :key="page">
             <button v-if="page !== '...'" class="pagination-btn"
               :class="{ 'pagination-btn--active': page === pagination.page }"
               @click="typeof page === 'number' && setPage(page)">{{ page }}</button>
             <span v-else class="pagination-ellipsis">...</span>
           </template>
-          <button class="pagination-btn"
-            :class="{ 'pagination-btn--disabled': pagination.page === totalPages }"
-            :disabled="pagination.page === totalPages"
-            @click="setPage(pagination.page + 1)">下一页</button>
+          <button class="pagination-btn" :class="{ 'pagination-btn--disabled': pagination.page === totalPages }"
+            :disabled="pagination.page === totalPages" @click="setPage(pagination.page + 1)">下一页</button>
         </div>
       </div>
     </div>
@@ -91,14 +86,11 @@
         </svg>
       </div>
       <p class="empty-text">{{ searchKeyword ? '未找到匹配的用户' : '暂无用户' }}</p>
-      <p class="empty-hint">{{ searchKeyword ? '尝试其他关键词' : '用户注册后将在此展示' }}</p>
+      <p class="empty-hint">{{ searchKeyword ? '尝试其他关键词' : '点击“新建用户”创建账号' }}</p>
     </div>
 
-    <t-dialog v-model:visible="roleDialogVisible"
-      header="切换用户角色"
-      :confirm-btn="{ loading: roleDialogLoading }"
-      :on-confirm="handleRoleChange"
-      @close="roleDialogUser = null; selectedRoleId = null">
+    <t-dialog v-model:visible="roleDialogVisible" header="切换用户角色" :confirm-btn="{ loading: roleDialogLoading }"
+      :on-confirm="handleRoleChange" @close="roleDialogUser = null; selectedRoleId = null">
       <div v-if="roleDialogUser" class="role-dialog-content">
         <div class="role-dialog-current">
           <span class="role-dialog-label">当前角色：</span>
@@ -111,12 +103,33 @@
         </t-form>
       </div>
     </t-dialog>
+
+    <!-- 新建用户对话框 -->
+    <t-dialog v-model:visible="showCreateDialog" header="新建用户" :confirm-btn="{ loading: createLoading }"
+      :on-confirm="handleCreateUser" @close="resetCreateForm" :width="420">
+      <t-form ref="createFormRef" :data="createForm" :rules="createRules" label-width="80px" style="margin-top: 8px;">
+        <t-form-item label="用户名" name="username">
+          <t-input v-model="createForm.username" placeholder="请输入用户名" clearable maxlength="50" />
+        </t-form-item>
+        <t-form-item label="初始密码" name="password">
+          <t-input v-model="createForm.password" type="password" placeholder="至少6个字符" clearable />
+          <template #tips>用户首次登录后将被要求修改密码</template>
+        </t-form-item>
+        <t-form-item label="昵称" name="displayName">
+          <t-input v-model="createForm.displayName" placeholder="选填" clearable maxlength="50" />
+        </t-form-item>
+        <t-form-item label="角色" name="role">
+          <t-select v-model="createForm.role" :options="createRoleOptions" placeholder="请选择角色" />
+        </t-form-item>
+      </t-form>
+    </t-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch, onUnmounted, h } from 'vue'
+import { ref, reactive, computed, onMounted, watch, onUnmounted, h } from 'vue'
 import { MessagePlugin } from 'tdesign-vue-next'
+import type { FormInstanceFunctions, FormRule } from 'tdesign-vue-next'
 import { userManageApi } from '@/api/userManage'
 import type { UserManageItem } from '@/api/userManage'
 import { roleApi } from '@/api/role'
@@ -324,6 +337,67 @@ async function handleToggleStatus(user: UserManageItem) {
     MessagePlugin.error(msg)
   }
 }
+
+// ─── 新建用户 ───
+const showCreateDialog = ref(false)
+const createLoading = ref(false)
+const createFormRef = ref<FormInstanceFunctions>()
+const createForm = reactive({
+  username: '',
+  password: '',
+  displayName: '',
+  role: 'formulist',
+})
+const createRules: Record<string, FormRule[]> = {
+  username: [
+    { required: true, message: '请输入用户名', trigger: 'blur' },
+    { min: 2, max: 50, message: '用户名长度为2-50个字符', trigger: 'blur' },
+  ],
+  password: [
+    { required: true, message: '请输入初始密码', trigger: 'blur' },
+    { min: 6, message: '密码长度至少6个字符', trigger: 'blur' },
+  ],
+}
+const createRoleOptions = [
+  { label: '配方师', value: 'formulist' },
+  { label: '管理员', value: 'admin' },
+]
+
+function resetCreateForm() {
+  createForm.username = ''
+  createForm.password = ''
+  createForm.displayName = ''
+  createForm.role = 'formulist'
+  createFormRef.value?.reset()
+}
+
+async function handleCreateUser() {
+  try {
+    await createFormRef.value?.validate()
+  } catch {
+    return false
+  }
+  createLoading.value = true
+  try {
+    await userManageApi.createUser({
+      username: createForm.username,
+      password: createForm.password,
+      role: createForm.role,
+      displayName: createForm.displayName || undefined,
+    })
+    MessagePlugin.success(`用户「${createForm.username}」创建成功，首次登录需修改密码`)
+    showCreateDialog.value = false
+    resetCreateForm()
+    await fetchUsers()
+    return true
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : '创建用户失败'
+    MessagePlugin.error(msg)
+    return false
+  } finally {
+    createLoading.value = false
+  }
+}
 </script>
 
 <style lang="scss" scoped>
@@ -373,6 +447,7 @@ async function handleToggleStatus(user: UserManageItem) {
   display: flex;
   align-items: center;
   justify-content: flex-end;
+  flex-wrap: wrap;
   gap: 12px;
   margin-top: 12px;
   margin-bottom: 16px;

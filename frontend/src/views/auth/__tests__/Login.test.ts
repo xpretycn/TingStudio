@@ -32,6 +32,13 @@ vi.mock("tdesign-vue-next", () => ({
   Form: { name: "Form", template: "<form><slot /></form>" },
   FormItem: { name: "FormItem", template: "<div><slot /></div>" },
   Checkbox: { name: "Checkbox", template: '<label><input type="checkbox" /><slot /></label>' },
+  Dialog: { name: "Dialog", template: "<div><slot /></div>", props: ["visible"] },
+}));
+
+vi.mock("@/api/auth", () => ({
+  authApi: {
+    changePassword: vi.fn(),
+  },
 }));
 
 describe("Login 组件", () => {
@@ -51,6 +58,7 @@ describe("Login 组件", () => {
           "t-form-item": { template: "<div><slot /></div>" },
           "t-button": { template: "<button><slot /></button>" },
           "t-checkbox": { template: '<label><input type="checkbox" /><slot /></label>' },
+          "t-dialog": { template: "<div><slot /></div>" },
           "router-link": { template: "<a><slot /></a>" },
           AnimatedCharacters: true,
         },

@@ -11,19 +11,17 @@
       <div class="left-panel__content">
         <div class="brand">
           <div class="brand-icon">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path
+                d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
             </svg>
           </div>
           <span>TingStudio</span>
         </div>
 
         <div class="characters-area">
-          <AnimatedCharacters
-            :is-typing="isTyping"
-            :has-secret="!!formData.password"
-            :secret-visible="showPassword"
-          />
+          <AnimatedCharacters :is-typing="isTyping" :has-secret="!!formData.password" :secret-visible="showPassword" />
         </div>
 
         <div class="footer-links">
@@ -56,7 +54,8 @@
                 <ellipse cx="25" cy="28.5" rx="1.2" ry="1.5" fill="#fff" />
                 <ellipse cx="37" cy="28.5" rx="1.2" ry="1.5" fill="#fff" />
                 <ellipse cx="30" cy="35.5" rx="2.5" ry="1.8" fill="#FFB5C2" />
-                <path d="M27 38Q30 42 33 38" stroke="var(--color-primary-dark)" stroke-width="1" fill="none" stroke-linecap="round" />
+                <path d="M27 38Q30 42 33 38" stroke="var(--color-primary-dark)" stroke-width="1" fill="none"
+                  stroke-linecap="round" />
                 <ellipse cx="20" cy="36" rx="4" ry="2.5" fill="#FFB5C2" opacity="0.35" />
                 <ellipse cx="40" cy="36" rx="4" ry="2.5" fill="#FFB5C2" opacity="0.35" />
               </svg>
@@ -79,7 +78,8 @@
               <ellipse cx="40" cy="49" rx="2" ry="2.5" fill="#fff" />
               <ellipse cx="64" cy="49" rx="2" ry="2.5" fill="#fff" />
               <ellipse cx="50" cy="62" rx="3.5" ry="2.5" fill="#FFB5C2" />
-              <path d="M44 68Q50 73 56 68" stroke="var(--color-primary-dark)" stroke-width="1.2" fill="none" stroke-linecap="round" />
+              <path d="M44 68Q50 73 56 68" stroke="var(--color-primary-dark)" stroke-width="1.2" fill="none"
+                stroke-linecap="round" />
               <ellipse cx="32" cy="62" rx="6" ry="3.5" fill="#FFB5C2" opacity="0.35" />
               <ellipse cx="68" cy="62" rx="6" ry="3.5" fill="#FFB5C2" opacity="0.35" />
               <line x1="20" y1="60" x2="35" y2="62" stroke="var(--color-primary-dark)" stroke-width="1" opacity="0.4" />
@@ -106,16 +106,8 @@
                 <span class="label-dot"></span>
                 用户名
               </label>
-              <t-input
-                v-model="formData.username"
-                placeholder="请输入用户名"
-                size="large"
-                clearable
-                class="cute-input"
-                data-testid="login-username"
-                @focus="isTyping = true"
-                @blur="isTyping = false"
-              >
+              <t-input v-model="formData.username" placeholder="请输入用户名" size="large" clearable class="cute-input"
+                data-testid="login-username" @focus="isTyping = true" @blur="isTyping = false">
                 <template #prefix-icon>
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
                     stroke-linecap="round" stroke-linejoin="round">
@@ -133,16 +125,9 @@
                 <span class="label-dot"></span>
                 密码
               </label>
-              <t-input
-                v-model="formData.password"
-                :type="showPassword ? 'text' : 'password'"
-                placeholder="请输入密码"
-                size="large"
-                class="cute-input"
-                data-testid="login-password"
-                @focus="isTyping = true"
-                @blur="isTyping = false"
-              >
+              <t-input v-model="formData.password" :type="showPassword ? 'text' : 'password'" placeholder="请输入密码"
+                size="large" class="cute-input" data-testid="login-password" @focus="isTyping = true"
+                @blur="isTyping = false">
                 <template #prefix-icon>
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
                     stroke-linecap="round" stroke-linejoin="round">
@@ -151,19 +136,17 @@
                   </svg>
                 </template>
               </t-input>
-              <button
-                type="button"
-                class="eye-btn"
-                data-testid="toggle-password-visibility"
-                @mousedown.prevent="showPassword = !showPassword"
-              >
-                <svg v-if="showPassword" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <button type="button" class="eye-btn" data-testid="toggle-password-visibility"
+                @mousedown.prevent="showPassword = !showPassword">
+                <svg v-if="showPassword" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" />
                   <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68" />
                   <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61" />
                   <line x1="2" x2="22" y1="2" y2="22" />
                 </svg>
-                <svg v-else width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <svg v-else width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
                   <circle cx="12" cy="12" r="3" />
                 </svg>
@@ -174,7 +157,8 @@
           <t-form-item v-if="formError">
             <transition name="error-fade">
               <div class="form-error" data-testid="login-error">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
                   <circle cx="12" cy="12" r="10" />
                   <line x1="12" y1="8" x2="12" y2="12" />
                   <line x1="12" y1="16" x2="12.01" y2="16" />
@@ -192,16 +176,29 @@
           </t-form-item>
         </t-form>
 
-        <div class="form-footer">
-          <span>还没有账号？</span>
-          <router-link to="/register" class="go-register">去注册 →</router-link>
-        </div>
       </div>
 
       <div class="right-panel__copyright">
         © 2026 TingStudio · 用心记录每一天 ♡
       </div>
     </div>
+
+    <!-- 首次登录强制改密弹窗 -->
+    <t-dialog v-model:visible="showForcePwdDialog" header="修改初始密码" :close-on-esc-keydown="false"
+      :close-on-overlay-click="false" :confirm-btn="{ loading: pwdChangeLoading }" :on-confirm="handleForcePwdChange"
+      :cancel-btn="null" :width="400" placement="center">
+      <p style="margin-bottom: 16px; color: var(--color-text-secondary); font-size: 13px;">
+        管理员为您创建了账号，请设置一个新密码后继续使用。
+      </p>
+      <t-form ref="pwdFormRef" :data="pwdForm" :rules="pwdRules" label-width="90px">
+        <t-form-item label="新密码" name="newPassword">
+          <t-input v-model="pwdForm.newPassword" type="password" placeholder="至少6个字符" clearable />
+        </t-form-item>
+        <t-form-item label="确认密码" name="confirmPassword">
+          <t-input v-model="pwdForm.confirmPassword" type="password" placeholder="请再次输入新密码" clearable />
+        </t-form-item>
+      </t-form>
+    </t-dialog>
   </div>
 </template>
 
@@ -209,6 +206,7 @@
 import { ref, reactive, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
+import { authApi } from "@/api/auth";
 import { MessagePlugin } from "tdesign-vue-next";
 import type { FormInstanceFunctions, FormRule } from "tdesign-vue-next";
 import AnimatedCharacters from "./AnimatedCharacters.vue";
@@ -255,8 +253,12 @@ const handleSubmit = async ({ validateResult }: { validateResult: boolean | Reco
         password: formData.password,
       });
       if (result.success) {
-        MessagePlugin.success("登录成功啦~ 欢迎回来！");
-        router.push("/");
+        if (result.mustChangePassword) {
+          showForcePwdDialog.value = true;
+        } else {
+          MessagePlugin.success("登录成功啦~ 欢迎回来！");
+          router.push("/");
+        }
       } else {
         formError.value = result.message || "登录失败了，再试试吧~";
       }
@@ -265,6 +267,52 @@ const handleSubmit = async ({ validateResult }: { validateResult: boolean | Reco
     } finally {
       loading.value = false;
     }
+  }
+};
+
+// ─── 强制改密 ───
+const showForcePwdDialog = ref(false);
+const pwdChangeLoading = ref(false);
+const pwdFormRef = ref<FormInstanceFunctions>();
+const pwdForm = reactive({ newPassword: "", confirmPassword: "" });
+const pwdRules: Record<string, FormRule[]> = {
+  newPassword: [
+    { required: true, message: "请输入新密码", trigger: "blur" },
+    { min: 6, message: "密码长度至少6个字符", trigger: "blur" },
+  ],
+  confirmPassword: [
+    { required: true, message: "请再次输入新密码", trigger: "blur" },
+    {
+      validator: (val: string) => val === pwdForm.newPassword,
+      message: "两次密码输入不一致",
+      trigger: "blur",
+    },
+  ],
+};
+
+const handleForcePwdChange = async () => {
+  try {
+    await pwdFormRef.value?.validate();
+  } catch {
+    return false;
+  }
+  pwdChangeLoading.value = true;
+  try {
+    await authApi.changePassword({
+      oldPassword: formData.password,
+      newPassword: pwdForm.newPassword,
+    });
+    showForcePwdDialog.value = false;
+    formData.password = "";
+    MessagePlugin.success("密码修改成功，欢迎使用！");
+    router.push("/");
+    return true;
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : "密码修改失败";
+    MessagePlugin.error(msg);
+    return false;
+  } finally {
+    pwdChangeLoading.value = false;
   }
 };
 </script>
@@ -459,7 +507,7 @@ const handleSubmit = async ({ validateResult }: { validateResult: boolean | Reco
   width: 100%;
   max-width: 400px;
   padding: var(--space-7) 32px 20px;
-  background: rgba(255, 255, 255, 0.72);
+  background: color-mix(in srgb, var(--color-bg-container) 72%, transparent);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border-radius: var(--radius-4xl);
@@ -736,11 +784,27 @@ const handleSubmit = async ({ validateResult }: { validateResult: boolean | Reco
 }
 
 @keyframes errorShake {
-  0%, 100% { transform: translateX(0); }
-  20% { transform: translateX(-4px); }
-  40% { transform: translateX(4px); }
-  60% { transform: translateX(-3px); }
-  80% { transform: translateX(2px); }
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  20% {
+    transform: translateX(-4px);
+  }
+
+  40% {
+    transform: translateX(4px);
+  }
+
+  60% {
+    transform: translateX(-3px);
+  }
+
+  80% {
+    transform: translateX(2px);
+  }
 }
 
 // ───── Button ─────
@@ -835,6 +899,43 @@ const handleSubmit = async ({ validateResult }: { validateResult: boolean | Reco
       color: var(--color-primary-light);
       text-decoration: none;
     }
+  }
+}
+
+// ═══════════════════════════════════════
+//  DARK MODE
+// ═══════════════════════════════════════
+:global([data-theme="dark"]) {
+  .form-card {
+    border-color: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.2);
+  }
+
+  .cute-input {
+    :deep(.t-input) {
+      border-color: rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.04) !important;
+
+      &:hover {
+        border-color: rgba(255, 255, 255, 0.18);
+        background: rgba(255, 255, 255, 0.06) !important;
+      }
+
+      &:focus-within,
+      &.t-is-focused {
+        border-color: var(--color-primary-light);
+        background: rgba(255, 255, 255, 0.08) !important;
+        box-shadow: 0 0 0 4px var(--overlay-brand-12);
+      }
+    }
+  }
+
+  .deco-glow {
+    opacity: 0.15;
+  }
+
+  .deco-grid-light {
+    opacity: 0.3;
   }
 }
 

@@ -291,13 +291,13 @@
                       <t-tag v-if="!tpl.enabled" size="small" theme="default" variant="light">已禁用</t-tag>
                     </div>
                     <span class="ptc-type">{{promptTypeOptions.find(o => o.value === tpl.type)?.label || tpl.type
-                      }}</span>
+                    }}</span>
                   </div>
                   <div class="ptc-body">
                     <div class="ptc-field">
                       <span class="ptc-field-label">System Prompt</span>
                       <span class="ptc-field-value ptc-field-value--truncate">{{ (tpl.systemPrompt || '').slice(0, 80)
-                        }}{{ (tpl.systemPrompt || '').length > 80 ? '...' : '' }}</span>
+                      }}{{ (tpl.systemPrompt || '').length > 80 ? '...' : '' }}</span>
                     </div>
                     <div class="ptc-field">
                       <span class="ptc-field-label">User Prompt</span>
@@ -4778,7 +4778,7 @@ $transition-normal: 0.25s ease;
 }
 
 // ═══ 暗色模式：提升模型 Logo 可见性 ═══
-:host-context([data-theme="dark"]) {
+:global([data-theme="dark"]) {
   .model-logo-wrap {
     background: var(--color-bg-hover);
   }

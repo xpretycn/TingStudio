@@ -1,17 +1,17 @@
 <template>
   <t-dialog
-    :visible="visible"
-    :on-close="handleClose"
+    v-model:visible="dialogVisible"
     :close-btn="true"
     :footer="false"
-    width="520px"
+    width="620px"
+    :attach="'body'"
     placement="center"
     class="quick-create-salesman-dialog"
     destroy-on-close
     :prevent-scroll-through="false"
     :close-on-overlay-click="false"
     :close-on-esc-keydown="!submitting"
-    :show-overlay="false"
+    :show-overlay="true"
     :z-index="9999"
     aria-label="快速创建业务员"
     role="dialog"
@@ -171,6 +171,17 @@ const emit = defineEmits<{
 const formRef = ref()
 const nameInputRef = ref()
 const submitting = ref(false)
+const dialogVisible = ref(false)
+
+watch(() => props.visible, (val) => {
+  dialogVisible.value = val
+}, { immediate: true })
+
+watch(dialogVisible, (val) => {
+  if (val !== props.visible) {
+    emit('update:visible', val)
+  }
+})
 
 const formData = ref({
   name: '',
@@ -235,7 +246,7 @@ watch(() => props.visible, async (val) => {
 
 const handleClose = () => {
   if (submitting.value) return
-  emit('update:visible', false)
+  dialogVisible.value = false
 }
 
 const handleSubmit = async () => {
@@ -257,9 +268,9 @@ const handleSubmit = async () => {
     })
     MessagePlugin.success('业务员创建成功')
     emit('created', created)
-    handleClose()
+    dialogVisible.value = false
   } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : '创建业务员失败';
+    const msg = error instanceof Error ? error.message : '创建业务员失败'
     MessagePlugin.error(msg)
   } finally {
     submitting.value = false
@@ -280,8 +291,12 @@ const handleSubmit = async () => {
     position: fixed !important;
     top: 0 !important;
     left: 0 !important;
-    width: 100% !important;
-    height: 100% !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
 
   :deep(.t-dialog__ctx) {
@@ -290,6 +305,8 @@ const handleSubmit = async () => {
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15), 0 8px 24px rgba(0, 0, 0, 0.1);
     position: relative !important;
     margin: auto !important;
+    max-height: 90vh;
+    overflow-y: auto;
   }
 
   :deep(.t-dialog__header) {

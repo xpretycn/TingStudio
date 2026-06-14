@@ -3,6 +3,10 @@
   "version": "2.9.0",
   "description": "TingStudio - 食品配方工作数据管理平台",
   "private": true,
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
   "scripts": {
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
     "dev:backend": "npm run dev --workspace=backend",

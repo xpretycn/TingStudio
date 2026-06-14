@@ -24,6 +24,15 @@ interface FieldHintsResult {
   count: number;
 }
 
+export interface SmartGenerateParams {
+  type: "description" | "preparation" | "version_reason";
+  formulaName: string;
+  materials: Array<{ name?: string; quantity: number; type: string }>;
+  finishedWeight?: number;
+  revisionReason?: string;
+  existingDescription?: string;
+}
+
 export const agentApi = {
   getFloatConfig() {
     return http.get<unknown, AgentFloatConfig>("/agent/float-config");
@@ -46,12 +55,14 @@ export const agentApi = {
   },
 
   getFieldHints(pageId: string) {
-    return http.get<unknown, FieldHintsResult>(
-      "/agent/field-hints", { params: { pageId } },
-    );
+    return http.get<unknown, FieldHintsResult>("/agent/field-hints", { params: { pageId } });
   },
 
   getHealth() {
     return http.get<unknown, { status: string }>("/agent/health");
+  },
+
+  generateDescription(params: SmartGenerateParams) {
+    return http.post<unknown, { content: string }>("/ai/smart-generate", params);
   },
 };

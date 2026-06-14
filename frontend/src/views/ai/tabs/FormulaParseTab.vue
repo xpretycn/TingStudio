@@ -399,12 +399,12 @@
                         <div class="ratio-bar-marker" :style="{ left: ratioValidationMarkerLeft }"></div>
                       </div>
                       <div class="ratio-bar-labels">
-                        <span>0.92</span><span>0.98</span><span class="ratio-bar-center">1.00</span><span>1.02</span><span>1.08</span>
+                        <span>{{ RATIO_THRESHOLDS.highWarningLow }}</span><span>{{ RATIO_THRESHOLDS.normalLow }}</span><span class="ratio-bar-center">1.00</span><span>{{ RATIO_THRESHOLDS.normalHigh }}</span><span>{{ RATIO_THRESHOLDS.highWarningHigh }}</span>
                       </div>
                       <div class="ratio-validation-detail">
                         <div class="ratio-detail-row">
                           <span class="ratio-detail-label">含量比总和：</span>
-                          <span class="ratio-detail-value">{{ ratioValidationInfo.totalRatio.toFixed(5) }}</span>
+                          <span class="ratio-detail-value">{{ (ratioValidationInfo.totalRatio * 100).toFixed(2) }}%</span>
                           <span class="ratio-detail-deviation" :class="'deviation--' + ratioValidationInfo.level">
                             ({{ ratioValidationDeviationText }})
                           </span>
@@ -600,21 +600,6 @@
         <h4 class="success-title">配方创建成功</h4>
         <p class="success-desc">配方「{{ submittedName }}」已成功创建并保存。</p>
 
-        <div v-if="uploadedFileInfo" class="success-file-info">
-          <div class="sfi-header">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2"
-              stroke-linecap="round" stroke-linejoin="round">
-              <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
-              <polyline points="14 2 14 8 20 8" />
-            </svg>
-            <span class="sfi-title">已上传文件</span>
-          </div>
-          <div class="sfi-body">
-            <span class="sfi-name">{{ uploadedFileInfo.fileName }}</span>
-            <span class="sfi-size">{{ formatFileSize(uploadedFileInfo.fileSize) }}</span>
-          </div>
-        </div>
-
         <div class="success-actions">
           <button class="add-formula-btn" @click="handleCreateAnother">
             <t-icon name="add" size="14px" />
@@ -624,15 +609,11 @@
             <t-icon name="send" size="14px" />
             去发布
           </button>
-          <button v-if="uploadedFileInfo" class="view-file-btn" @click="goToFileDetail">
-            <t-icon name="browse" size="14px" />
-            查看文件详情
-          </button>
         </div>
       </div>
     </div>
 
-    <QuickCreateSalesmanDrawer v-model:visible="showQuickCreateSalesman" :default-name="parsedSalesmanName"
+    <QuickCreateSalesmanDialog v-model:visible="showQuickCreateSalesman" :default-name="parsedSalesmanName"
       @created="onSalesmanCreated" />
 
     <QuickCreateMaterialDrawer v-model:visible="showQuickCreateMaterial" :material-data="quickCreateMaterialData"
@@ -701,14 +682,14 @@ import { useFormulaStore } from '@/stores/formula';
 import { useMaterialStore } from '@/stores/material';
 import type { Material } from '@/api/material';
 import { MessagePlugin } from 'tdesign-vue-next';
-import QuickCreateSalesmanDrawer from '@/components/QuickCreateSalesmanDrawer.vue';
+import QuickCreateSalesmanDialog from '@/components/QuickCreateSalesmanDialog.vue';
 import QuickCreateMaterialDrawer from '@/components/QuickCreateMaterialDrawer.vue';
 import type { ParsedFormula, ParsedMaterial, AIModel } from '@/api/ai';
 import type { FormulaForm } from '@/api/formula';
 import type { Salesman } from '@/api/salesman';
 import { salesmanApi } from '@/api/salesman';
-import { fileApi } from '@/api/file';
 import { parseTemplateApi, type ParseTemplate } from '@/api/parseTemplate';
+import { validateRatio, RATIO_THRESHOLDS, type RatioValidationResult } from '@/utils/ratioValidation';
 import MaterialTableCore from '@/components/formula/MaterialTableCore.vue';
 import type { MaterialTableRow } from '@/components/formula/MaterialTableCore.vue';
 import type { ModelItem } from '@/api/model';
@@ -848,7 +829,6 @@ const showFormSection = ref(false);
 const submitSuccess = ref(false);
 const submittedName = ref('');
 const submittedFormulaId = ref<string | null>(null);
-const uploadedFileInfo = ref<{ fileId: string; fileName: string; fileSize: number; } | null>(null);
 const formRef = ref();
 const parseStartTime = ref(Date.now());
 const parseElapsedTime = ref(0);
@@ -1149,17 +1129,10 @@ const isSupplementMaterial = (m: ParsedMaterial): boolean => {
   return false;
 };
 
-interface RatioValidationResult {
-  level: 'none' | 'normal' | 'warning' | 'high_warning' | 'error';
-  totalRatio: number;
-  badgeText: string;
-  description: string;
-}
-
 const ratioValidationInfo = computed<RatioValidationResult>(() => {
   const data = aiStore.parseResult;
   if (!data || !data.materials?.length || !editedWeight.value || editedWeight.value <= 0) {
-    return { level: 'none', totalRatio: 0, badgeText: '', description: '' };
+    return { level: 'none', totalRatio: 0, badgeText: '', description: '', breakdown: [], thresholds: RATIO_THRESHOLDS, message: '', allowed: true, requiresManualReview: false } as RatioValidationResult;
   }
 
   const finishedWeight = editedWeight.value;
@@ -1169,58 +1142,12 @@ const ratioValidationInfo = computed<RatioValidationResult>(() => {
   const materials = data.materials || [];
   const validMaterials = materials.filter((m: ParsedMaterial) => m.name?.trim());
 
-  let totalRatio = 0;
-  for (const m of validMaterials) {
-    const effectiveQty = qtyAdjustments.value[materials.indexOf(m)] ?? m.quantity ?? 0;
-    if (!effectiveQty || effectiveQty <= 0) continue;
-    const baseRatio = effectiveQty / finishedWeight;
-    const effectiveRatioFactor = isSupplementMaterial(m) ? supplementRatioFactor : ratioFactor;
-    const ratio = Math.round(baseRatio * effectiveRatioFactor * 100000) / 100000;
-    totalRatio += ratio;
-  }
-  totalRatio = Math.round(totalRatio * 100000) / 100000;
+  const materialInputs = validMaterials.map((m: ParsedMaterial) => ({
+    quantity: qtyAdjustments.value[materials.indexOf(m)] ?? m.quantity ?? 0,
+    materialType: isSupplementMaterial(m) ? 'supplement' : 'herb',
+  }));
 
-  const thresholds = { normalLow: 0.98, normalHigh: 1.02, warningLow: 0.95, warningHigh: 1.05, highWarningLow: 0.92, highWarningHigh: 1.08 };
-
-  let level: RatioValidationResult['level'];
-  if (totalRatio >= thresholds.normalLow && totalRatio <= thresholds.normalHigh) {
-    level = 'normal';
-  } else if (
-    (totalRatio >= thresholds.warningLow && totalRatio < thresholds.normalLow) ||
-    (totalRatio > thresholds.normalHigh && totalRatio <= thresholds.warningHigh)
-  ) {
-    level = 'warning';
-  } else if (
-    (totalRatio >= thresholds.highWarningLow && totalRatio < thresholds.warningLow) ||
-    (totalRatio > thresholds.warningHigh && totalRatio <= thresholds.highWarningHigh)
-  ) {
-    level = 'high_warning';
-  } else {
-    level = 'error';
-  }
-
-  const deviation = ((totalRatio - 1) * 100).toFixed(2);
-  const messages: Record<string, { badgeText: string; description: string }> = {
-    normal: {
-      badgeText: '通过',
-      description: `含量比总和 ${totalRatio.toFixed(5)}（偏差 ${deviation}%），在正常范围内`,
-    },
-    warning: {
-      badgeText: '预警',
-      description: `含量比总和 ${totalRatio.toFixed(5)}，偏差 ${deviation}%，超出正常范围，建议检查用量`,
-    },
-    high_warning: {
-      badgeText: '警告',
-      description: `含量比总和 ${totalRatio.toFixed(5)}，偏差 ${deviation}%，需人工审核确认`,
-    },
-    error: {
-      badgeText: '失败',
-      description: `含量比总和 ${totalRatio.toFixed(5)}，偏差 ${deviation}%，超出允许范围，请修正用量`,
-    },
-  };
-
-  const msg = messages[level];
-  return { level, totalRatio, ...msg };
+  return validateRatio(materialInputs, finishedWeight, ratioFactor, supplementRatioFactor);
 });
 
 const ratioValidationIcon = computed(() => {
@@ -1236,8 +1163,8 @@ const ratioValidationIcon = computed(() => {
 
 const ratioValidationBarWidth = computed(() => {
   const ratio = ratioValidationInfo.value.totalRatio;
-  const minRatio = 0.92;
-  const maxRatio = 1.08;
+  const minRatio = RATIO_THRESHOLDS.highWarningLow;
+  const maxRatio = RATIO_THRESHOLDS.highWarningHigh;
   const clampedRatio = Math.max(minRatio, Math.min(maxRatio, ratio));
   const percentage = ((clampedRatio - minRatio) / (maxRatio - minRatio)) * 100;
   return `${percentage}%`;
@@ -1245,8 +1172,8 @@ const ratioValidationBarWidth = computed(() => {
 
 const ratioValidationMarkerLeft = computed(() => {
   const ratio = ratioValidationInfo.value.totalRatio;
-  const minRatio = 0.92;
-  const maxRatio = 1.08;
+  const minRatio = RATIO_THRESHOLDS.highWarningLow;
+  const maxRatio = RATIO_THRESHOLDS.highWarningHigh;
   const clampedRatio = Math.max(minRatio, Math.min(maxRatio, ratio));
   const percentage = ((clampedRatio - minRatio) / (maxRatio - minRatio)) * 100;
   return `${percentage}%`;
@@ -1683,28 +1610,6 @@ const backfillData = async () => {
     submittedFormulaId.value = result.success && "data" in result ? result.data?.id || null : null;
     MessagePlugin.success(`配方「${payload.name}」创建成功`);
 
-    if (selectedFile.value) {
-      try {
-        const fd = new FormData();
-        fd.append('file', selectedFile.value);
-        fd.append('fileType', 'formula');
-        const uploaded = await fileApi.upload(fd);
-        const formulaId = result.success && "data" in result ? result.data?.id : undefined;
-        if (formulaId && uploaded?.fileId) {
-          await fileApi.link(uploaded.fileId, { relatedId: formulaId, relatedType: 'formula' });
-          uploadedFileInfo.value = {
-            fileId: uploaded.fileId,
-            fileName: selectedFile.value.name,
-            fileSize: selectedFile.value.size,
-          };
-          MessagePlugin.success('原文件已上传并关联至配方');
-        }
-      } catch (fileErr: unknown) {
-        console.warn('文件上传或关联失败:', fileErr);
-        MessagePlugin.warning('配方已创建，但原文件上传失败');
-      }
-    }
-
     emit('activity-add', {
       type: 'success',
       title: '配方创建成功',
@@ -1960,7 +1865,6 @@ const handleFormSubmit = async () => {
 
 const handleCreateAnother = () => {
   submitSuccess.value = false;
-  uploadedFileInfo.value = null;
   showFormSection.value = false;
   aiStore.clearParseResult();
   selectedFile.value = null;
@@ -1984,12 +1888,6 @@ const handleCreateAnother = () => {
     description: '',
   };
   formErrors.value = {};
-};
-
-const goToFileDetail = () => {
-  if (uploadedFileInfo.value?.fileId) {
-    router.push({ name: 'FileDetail', params: { id: uploadedFileInfo.value.fileId } });
-  }
 };
 
 const goToDashboard = () => {

@@ -1,5 +1,6 @@
 import { query } from "../config/database-adapter.js";
-import { buildPagination, buildLike, rowsToCamelCase, now } from "../utils/helpers.js";
+import { buildPagination, buildLike, rowsToCamelCase, now, generateId } from "../utils/helpers.js";
+import bcrypt from "bcryptjs";
 
 interface UserListRow {
   id: string;
@@ -57,10 +58,7 @@ export async function getUserList(filters: UserListFilters): Promise<UserListRes
 
   const whereClause = conditions.length > 0 ? "WHERE " + conditions.join(" AND ") : "";
 
-  const countResult = await query<{ cnt: number }>(
-    "SELECT COUNT(*) AS cnt FROM users u " + whereClause,
-    params
-  );
+  const countResult = await query<{ cnt: number }>("SELECT COUNT(*) AS cnt FROM users u " + whereClause, params);
   const total = Number((countResult.rows || [])[0]?.cnt || 0);
 
   const result = await query<Record<string, unknown>>(
@@ -70,7 +68,7 @@ export async function getUserList(filters: UserListFilters): Promise<UserListRes
      ${whereClause}
      ORDER BY u.created_at DESC
      LIMIT ? OFFSET ?`,
-    [...params, size, offset]
+    [...params, size, offset],
   );
 
   const list = rowsToCamelCase<UserListRow>(result.rows || []);
@@ -95,21 +93,25 @@ export async function getUserList(filters: UserListFilters): Promise<UserListRes
 }
 
 export async function updateUserRole(userId: string, roleId: string): Promise<Record<string, unknown>> {
-  const roleResult = await query<Record<string, unknown>>("SELECT id, role_key, name FROM roles WHERE id = ?", [roleId]);
+  const roleResult = await query<Record<string, unknown>>("SELECT id, role_key, name FROM roles WHERE id = ?", [
+    roleId,
+  ]);
   const role = (roleResult.rows || [])[0];
   if (!role) {
     throw new Error("NOT_FOUND");
   }
 
   const currentTime = now();
-  await query(
-    "UPDATE users SET role_id = ?, role = ?, updated_at = ? WHERE id = ?",
-    [roleId, (role as Record<string, unknown>).role_key, currentTime, userId]
-  );
+  await query("UPDATE users SET role_id = ?, role = ?, updated_at = ? WHERE id = ?", [
+    roleId,
+    (role as Record<string, unknown>).role_key,
+    currentTime,
+    userId,
+  ]);
 
   const userResult = await query<Record<string, unknown>>(
     "SELECT id, username, role, display_name, email, phone, is_active, role_id, created_at FROM users WHERE id = ?",
-    [userId]
+    [userId],
   );
   return (userResult.rows || [])[0] as Record<string, unknown>;
 }
@@ -131,6 +133,54 @@ export async function toggleUserActive(userId: string, isActive: number, current
 
   const currentTime = now();
   await query("UPDATE users SET is_active = ?, updated_at = ? WHERE id = ?", [isActive, currentTime, userId]);
+}
+
+export async function createUser(params: {
+  username: string;
+  password: string;
+  role?: string;
+  displayName?: string;
+  email?: string;
+  phone?: string;
+}): Promise<Record<string, unknown>> {
+  const { username, password, role = "formulist", displayName, email, phone } = params;
+
+  // 检查用户名是否已存在
+  const existing = await query<Record<string, unknown>>("SELECT id FROM users WHERE username = ?", [username]);
+  if ((existing.rows || []).length > 0) {
+    throw new Error("DUPLICATE_USERNAME");
+  }
+
+  const userId = generateId();
+  const hashedPassword = await bcrypt.hash(password, 10);
+  const currentTime = now();
+
+  // 查找角色 ID
+  const roleResult = await query<Record<string, unknown>>("SELECT id FROM roles WHERE role_key = ?", [role]);
+  const roleId = ((roleResult.rows || [])[0]?.id as string | undefined) || null;
+
+  await query(
+    `INSERT INTO users (id, username, password, role, role_id, display_name, email, phone, is_active, must_change_password, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, 1, ?, ?)`,
+    [
+      userId,
+      username,
+      hashedPassword,
+      role,
+      roleId,
+      displayName || null,
+      email || null,
+      phone || null,
+      currentTime,
+      currentTime,
+    ],
+  );
+
+  const result = await query<Record<string, unknown>>(
+    "SELECT id, username, role, role_id, display_name, email, phone, is_active, must_change_password, created_at FROM users WHERE id = ?",
+    [userId],
+  );
+  return (result.rows || [])[0] as Record<string, unknown>;
 }
 
 export async function getUserCountByRoleId(roleId: string): Promise<number> {

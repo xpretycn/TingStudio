@@ -238,78 +238,78 @@ onBeforeUnmount(() => {
 
     <div v-if="nutritionStore.analysisResult" class="nutrition-content-card">
       <div class="analysis-grid">
-        <!-- 第一行：摘要 + 覆盖度 -->
+        <!-- 第一行：摘要 + 覆盖度 + 声称判定概览 -->
         <div class="grid-cell grid-cell--half">
           <AnalysisSummaryCard :summary="nutritionStore.analysisResult.summary" />
         </div>
-        <div class="grid-cell grid-cell--half">
+        <div class="grid-cell grid-cell--quarter">
           <DataCoverageCard :coverage="nutritionStore.analysisResult.coverage" />
         </div>
+        <div class="grid-cell grid-cell--quarter">
+          <t-card class="section-card claims-stat-card" :bordered="true">
+            <template #title>
+              <div class="card-title">
+                <t-icon name="check-circle" class="card-title-icon card-title-icon--success" />
+                <span>声称判定概览</span>
+              </div>
+            </template>
+            <template #subtitle>
+              <span>GB 28050 附录 C.1</span>
+            </template>
+            <div class="section-body claims-stat-body">
+              <div class="claims-stat-ring">
+                <svg viewBox="0 0 80 80" class="ring-svg">
+                  <circle cx="40" cy="40" r="34" class="ring-track" />
+                  <circle
+                    cx="40"
+                    cy="40"
+                    r="34"
+                    class="ring-progress"
+                    :stroke-dasharray="213.6"
+                    :stroke-dashoffset="213.6 - (213.6 * claimsSummary.ratio / 100)"
+                  />
+                </svg>
+                <div class="ring-value">
+                  <span class="ring-num">{{ claimsSummary.ratio }}</span>
+                  <span class="ring-unit">%</span>
+                </div>
+              </div>
+              <div class="claims-stat-info">
+                <div class="stat-line">
+                  <span class="stat-dot stat-dot--success" />
+                  <span class="stat-label">已满足</span>
+                  <span class="stat-value stat-value--success">{{ claimsSummary.satisfied }}</span>
+                </div>
+                <div class="stat-line">
+                  <span class="stat-dot stat-dot--default" />
+                  <span class="stat-label">未满足</span>
+                  <span class="stat-value">{{ claimsSummary.unsatisfied }}</span>
+                </div>
+                <div class="stat-line stat-line--total">
+                  <span class="stat-label">合计</span>
+                  <span class="stat-value">{{ claimsSummary.total }} 项</span>
+                </div>
+              </div>
+            </div>
+          </t-card>
+        </div>
 
-        <!-- 第二行：左列（成分表+声称统计竖排） | 右列（原料贡献） -->
-        <div class="grid-cell grid-cell--left-stack">
-          <div class="left-stack-inner">
-            <t-card class="section-card" :bordered="true">
-              <template #title>
-                <div class="card-title">
-                  <t-icon name="view-list" class="card-title-icon" />
-                  <span>营养成分表</span>
-                </div>
-              </template>
-              <template #subtitle>
-                <span>每100g · GB 28050 格式</span>
-              </template>
-              <div class="section-body nutrition-table-body">
-                <NutritionLabelTable :label="nutritionStore.analysisResult?.nutritionLabel" />
+        <!-- 第二行：左列（成分表） | 右列（原料贡献） -->
+        <div class="grid-cell grid-cell--quarter">
+          <t-card class="section-card" :bordered="true">
+            <template #title>
+              <div class="card-title">
+                <t-icon name="view-list" class="card-title-icon" />
+                <span>营养成分表</span>
               </div>
-            </t-card>
-            <t-card class="section-card claims-stat-card" :bordered="true">
-              <template #title>
-                <div class="card-title">
-                  <t-icon name="check-circle" class="card-title-icon card-title-icon--success" />
-                  <span>声称判定概览</span>
-                </div>
-              </template>
-              <template #subtitle>
-                <span>GB 28050 附录 C.1</span>
-              </template>
-              <div class="section-body claims-stat-body">
-                <div class="claims-stat-ring">
-                  <svg viewBox="0 0 80 80" class="ring-svg">
-                    <circle cx="40" cy="40" r="34" class="ring-track" />
-                    <circle
-                      cx="40"
-                      cy="40"
-                      r="34"
-                      class="ring-progress"
-                      :stroke-dasharray="213.6"
-                      :stroke-dashoffset="213.6 - (213.6 * claimsSummary.ratio / 100)"
-                    />
-                  </svg>
-                  <div class="ring-value">
-                    <span class="ring-num">{{ claimsSummary.ratio }}</span>
-                    <span class="ring-unit">%</span>
-                  </div>
-                </div>
-                <div class="claims-stat-info">
-                  <div class="stat-line">
-                    <span class="stat-dot stat-dot--success" />
-                    <span class="stat-label">已满足</span>
-                    <span class="stat-value stat-value--success">{{ claimsSummary.satisfied }}</span>
-                  </div>
-                  <div class="stat-line">
-                    <span class="stat-dot stat-dot--default" />
-                    <span class="stat-label">未满足</span>
-                    <span class="stat-value">{{ claimsSummary.unsatisfied }}</span>
-                  </div>
-                  <div class="stat-line stat-line--total">
-                    <span class="stat-label">合计</span>
-                    <span class="stat-value">{{ claimsSummary.total }} 项</span>
-                  </div>
-                </div>
-              </div>
-            </t-card>
-          </div>
+            </template>
+            <template #subtitle>
+              <span>每100g · GB 28050 格式</span>
+            </template>
+            <div class="section-body nutrition-table-body">
+              <NutritionLabelTable :label="nutritionStore.analysisResult?.nutritionLabel" />
+            </div>
+          </t-card>
         </div>
         <div class="grid-cell grid-cell--right-main">
           <t-card class="section-card" :bordered="true">
@@ -534,41 +534,17 @@ onBeforeUnmount(() => {
 
   &--quarter {
     grid-column: span 1;
-  }
 
-  &--double {
-    grid-column: span 2;
+    @media (max-width: 1280px) {
+      grid-column: span 2;
+    }
     @media (max-width: 768px) {
       grid-column: span 1;
     }
   }
 
-  &--left-stack {
-    grid-column: span 1;
-
-    .left-stack-inner {
-      display: flex;
-      flex-direction: column;
-      gap: $space-5;
-      height: 100%;
-
-      > :deep(.t-card) {
-        flex: 1;
-        min-height: 0;
-        display: flex;
-        flex-direction: column;
-
-        :deep(.t-card__body) {
-          flex: 1;
-          display: flex;
-          flex-direction: column;
-        }
-      }
-    }
-
-    @media (max-width: 1280px) {
-      grid-column: span 2;
-    }
+  &--double {
+    grid-column: span 2;
     @media (max-width: 768px) {
       grid-column: span 1;
     }
@@ -625,6 +601,7 @@ onBeforeUnmount(() => {
 
 .section-body {
   min-height: 0;
+  overflow-y: auto;
 }
 
 .nutrition-table-body {

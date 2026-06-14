@@ -39,7 +39,8 @@
     "pdfkit": "^0.18.0",
     "pinyin-pro": "^3.28.1",
     "sql.js": "^1.14.1",
-    "xlsx": "^0.18.5"
+    "xlsx": "^0.18.5",
+    "xlsx-js-style": "^1.2.0"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",

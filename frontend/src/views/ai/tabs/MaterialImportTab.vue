@@ -34,7 +34,7 @@
 
         <div class="ai-body">
           <div v-if="!aiStore.materialParseLoading && !parsedItems.length && !aiStore.materialParseAborted"
-            class="upload-zone" :class="{ 'drag-over': isDragOver }" @click="triggerFileUpload"
+            class="upload-zone" :class="{ 'drag-over': isDragOver }" @click="fileInputRef?.click()"
             @dragover.prevent="handleDragOver" @dragleave="handleDragLeave" @drop.prevent="handleDrop">
             <input ref="fileInputRef" type="file" accept=".xlsx,.xls,.csv,.png,.jpg,.jpeg,.gif,.webp"
               style="display: none" @change="handleFileInputChange" />
@@ -563,23 +563,6 @@
                   </div>
                 </div>
               </div>
-              <div v-if="fileUploadStatus" class="summary-file-status"
-                :class="{ 'summary-file-status--success': fileUploadStatus.uploaded, 'summary-file-status--fail': !fileUploadStatus.uploaded }">
-                <svg v-if="fileUploadStatus.uploaded" width="14" height="14" viewBox="0 0 24 24" fill="none"
-                  stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
-                  <polyline points="14 2 14 8 20 8" />
-                </svg>
-                <svg v-else width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-danger)"
-                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="12" cy="12" r="10" />
-                  <line x1="15" y1="9" x2="9" y2="15" />
-                  <line x1="9" y1="9" x2="15" y2="15" />
-                </svg>
-                <span class="summary-file-name">{{ fileUploadStatus.fileName }}</span>
-                <span class="summary-file-size">{{ formatFileSize(fileUploadStatus.fileSize) }}</span>
-                <span class="summary-file-result">{{ fileUploadStatus.uploaded ? '已上传' : '上传失败' }}</span>
-              </div>
               <div v-if="canUndoImport" class="summary-undo">
                 <button type="button" class="undo-btn" :disabled="undoLoading" @click="handleUndoImport">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -741,7 +724,6 @@ import { useThemeStore } from '@/stores/theme';
 import { getThemeTokens } from '@/assets/styles/tokens';
 import { materialApi } from '@/api/material';
 import { nutritionApi } from '@/api/nutrition';
-import { fileApi } from '@/api/file';
 import { parseTemplateApi, type ParseTemplate } from '@/api/parseTemplate';
 import { MessagePlugin } from 'tdesign-vue-next';
 import type { MaterialNutritionItem } from '@/api/ai';
@@ -960,12 +942,6 @@ const pendingConfirmSet = ref<Set<number>>(new Set());
 
 const confirmedSet = ref<Set<number>>(new Set());
 
-const fileUploadStatus = ref<{ uploaded: boolean; fileName: string; fileSize: number; fileId?: string; error?: string; } | null>(null);
-
-const triggerFileUpload = () => {
-  fileInputRef.value?.click();
-};
-
 const handleDragOver = () => {
   isDragOver.value = true;
 };
@@ -1143,7 +1119,6 @@ const handleClearResult = () => {
   sequentialActive.value = false;
   sequentialCurrentItem.value = null;
   sequentialResults.value = [];
-  fileUploadStatus.value = null;
   diffStatusMap.value = {};
   fieldSourceMap.value = {};
   pendingConfirmSet.value.clear();
@@ -1424,29 +1399,8 @@ const handleBatchSubmit = async () => {
     MessagePlugin.success(`录入完成：成功 ${success}，失败 ${failed}`);
     await materialStore.fetchMaterials();
 
-    if (selectedFile.value && success > 0) {
-      try {
-        const fd = new FormData();
-        fd.append('file', selectedFile.value);
-        fd.append('fileType', 'material');
-        const uploaded = await fileApi.upload(fd);
-        fileUploadStatus.value = {
-          uploaded: true,
-          fileName: selectedFile.value.name,
-          fileSize: selectedFile.value.size,
-          fileId: uploaded.fileId,
-        };
-        MessagePlugin.success(`源文件「${selectedFile.value.name}」已上传`);
-      } catch (fileErr: unknown) {
-        const e = fileErr as { message?: string };
-        fileUploadStatus.value = {
-          uploaded: false,
-          fileName: selectedFile.value.name,
-          fileSize: selectedFile.value.size,
-          error: e?.message || '上传失败',
-        };
-        MessagePlugin.warning('原料数据已录入，但源文件上传失败');
-      }
+    if (success > 0) {
+      MessagePlugin.success(`成功录入 ${success} 条原料数据`);
     }
   }
 };
@@ -1724,7 +1678,6 @@ const resetAllData = () => {
   diffIndex.value = -1;
   diffExistingNutrition.value = {};
   Object.keys(diffChoices).forEach(k => delete diffChoices[Number(k)]);
-  fileUploadStatus.value = null;
   aiStore.clearMaterialParseResult();
   pendingConfirmSet.value.clear();
   confirmedSet.value.clear();
@@ -1745,7 +1698,6 @@ onMounted(() => {
   selectedFile.value = null;
   batchSummary.value = null;
   priceAdjustments.value = {};
-  fileUploadStatus.value = null;
   diffStatusMap.value = {};
   fieldSourceMap.value = {};
   checkUndoSession();

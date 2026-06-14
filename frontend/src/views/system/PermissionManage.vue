@@ -7,7 +7,7 @@
           <div class="pm-card-icon" style="background: rgba(59, 130, 246, 0.1); color: #3B82F6;">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
               stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
             </svg>
           </div>
           <div class="pm-card-title-details">
@@ -28,8 +28,10 @@
           <div class="pm-card-icon" style="background: rgba(16, 185, 129, 0.1); color: #10B981;">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
               stroke-linecap="round" stroke-linejoin="round">
-              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
-              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
             </svg>
           </div>
           <div class="pm-card-title-details">
@@ -115,6 +117,11 @@ import UserManage from './UserManage.vue'
 
     :deep(.section-header-enhanced) {
       display: none;
+    }
+
+    :deep(.user-toolbar) {
+      padding: 16px 20px 0;
+      margin-bottom: 12px;
     }
 
     :deep(.role-list),

@@ -367,13 +367,6 @@
                     </template>
                   </t-popup>
 
-                  <!-- 切换账号 -->
-                  <div class="user-menu-item" role="menuitem" tabindex="0" @click="handleUserMenuClick('switchAccount')"
-                    @keydown.enter="handleUserMenuClick('switchAccount')">
-                    <t-icon name="usergroup" size="16px" />
-                    <span>切换账号</span>
-                  </div>
-
                   <!-- 退出登录 -->
                   <div class="user-menu-item user-menu-item--danger" role="menuitem" tabindex="0"
                     @click="handleUserMenuClick('logout')" @keydown.enter="handleUserMenuClick('logout')">
@@ -407,11 +400,8 @@
         <div class="lock-screen-content">
           <!-- 用户头像 -->
           <div class="lock-avatar-wrap">
-            <img
-              class="lock-avatar"
-              :src="authStore.user?.avatar || '/avatar-default.jpg'"
-              :alt="authStore.user?.username || '用户'"
-            />
+            <img class="lock-avatar" :src="authStore.user?.avatar || '/avatar-default.jpg'"
+              :alt="authStore.user?.username || '用户'" />
           </div>
           <!-- 用户名 -->
           <div class="lock-username">{{ authStore.user?.displayName || authStore.user?.username || '用户' }}</div>
@@ -421,28 +411,20 @@
           <div class="lock-date">{{ lockDate }} {{ lockWeekday }}</div>
           <!-- 密码输入框 -->
           <div class="lock-input-wrap" :class="{ 'lock-shake': lockShake }">
-            <input
-              ref="lockInputRef"
-              v-model="lockPassword"
-              type="password"
-              class="lock-password-input"
-              placeholder="输入密码解锁"
-              autocomplete="current-password"
-              :disabled="lockVerifying"
-              @keydown="handleLockKeydown"
-            />
-            <button
-              class="lock-unlock-btn"
-              :disabled="lockVerifying"
-              @click="verifyAndUnlock"
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <input ref="lockInputRef" v-model="lockPassword" type="password" class="lock-password-input"
+              placeholder="输入密码解锁" autocomplete="current-password" :disabled="lockVerifying"
+              @keydown="handleLockKeydown" />
+            <button class="lock-unlock-btn" :disabled="lockVerifying" @click="verifyAndUnlock">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="9 18 15 12 9 6" />
               </svg>
             </button>
           </div>
           <!-- 错误提示 -->
           <div v-if="lockError" class="lock-error">{{ lockError }}</div>
+          <!-- 退出登录逃生链接 -->
+          <button class="lock-logout-link" @click="handleLockLogout">退出登录</button>
         </div>
       </div>
     </Transition>
@@ -509,7 +491,7 @@ const activePath = computed(() => {
   const path = route.path;
   // 按最长前缀匹配，优先精确匹配，再按路径段前缀匹配
   const pathMap = [
-    '/dashboard', '/formulas', '/materials', '/files', '/salesmen', '/sales',
+    '/dashboard', '/formulas', '/materials', '/salesmen', '/sales',
     '/reports', '/nutrition/profiles', '/nutrition', '/tools', '/tools/ai-assistant', '/smart-tools',
     '/model-management', '/system'
   ];
@@ -544,18 +526,12 @@ const handleBrandSelect = (color: BrandColor) => {
   MessagePlugin.success(`品牌色已切换为${brandColorLabels[color]}`);
 };
 
-// 用户菜单点击（保留 settings / switchAccount / logout）
+// 用户菜单点击（settings / logout）
 const handleUserMenuClick = (value: string) => {
   userMenuVisible.value = false;
   switch (value) {
     case 'settings':
       router.push('/settings');
-      break;
-    case 'switchAccount':
-      // 切换账号：仅清除认证数据，保留主题偏好
-      authStore.logout();
-      MessagePlugin.info('请重新登录');
-      router.push('/login');
       break;
     case 'logout':
       handleLogout();
@@ -572,7 +548,6 @@ const pageIcon = computed(() => {
     '/dashboard': 'dashboard',
     '/formulas': 'edit',
     '/materials': 'chart-bar',
-    '/files': 'folder',
     '/salesmen': 'usergroup',
     '/sales': 'chart',
     '/reports': 'file-icon',
@@ -675,7 +650,6 @@ const getGroupItems = (groupId: GroupKey): NavItem[] => {
     return [
       { path: '/model-management', label: '模型管理', icon: 'control-platform' },
       { path: '/system/config', label: '系统管理', icon: 'file-icon' },
-      { path: '/files', label: '文件管理', icon: 'folder' },
       ...baseItems,
       { path: '/tools/ai-assistant', label: 'AI 助手', icon: 'precise-monitor' },
     ];
@@ -765,7 +739,6 @@ const pageTitle = computed(() => {
     '/dashboard': '工作台',
     '/formulas': '配方管理',
     '/materials': '原料管理',
-    '/files': '文件管理',
     '/salesmen': '业务员管理',
     '/sales': '销量分析',
     '/reports': '报告中心',
@@ -1027,6 +1000,41 @@ const handleLockKeydown = (e: KeyboardEvent) => {
   }
 };
 
+const handleLockLogout = () => {
+  if (lockTimer) {
+    clearInterval(lockTimer);
+    lockTimer = null;
+  }
+  clearAutoLockTimer();
+  isLocked.value = false;
+  authStore.logout();
+  themeStore.clearLocal();
+  router.push('/login');
+};
+
+// ─── 锁屏状态拦截路由跳转 ───
+const lockRouteGuard = () => {
+  return router.beforeEach((_to, _from, next) => {
+    if (isLocked.value) {
+      // 锁屏状态下禁止导航，回到当前页
+      next(false);
+    } else {
+      next();
+    }
+  });
+};
+let removeLockGuard: (() => void) | null = null;
+
+// 监听锁屏状态变化，动态添加/移除路由守卫
+watch(isLocked, (locked) => {
+  if (locked) {
+    removeLockGuard = lockRouteGuard();
+  } else if (removeLockGuard) {
+    removeLockGuard();
+    removeLockGuard = null;
+  }
+});
+
 // ─── 自动锁屏计时器 ───
 let autoLockTimer: ReturnType<typeof setTimeout> | null = null;
 const ACTIVITY_EVENTS = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'] as const;
@@ -1199,6 +1207,11 @@ onUnmounted(() => {
   if (lockTimer) {
     clearInterval(lockTimer);
     lockTimer = null;
+  }
+  // 清理锁屏路由守卫
+  if (removeLockGuard) {
+    removeLockGuard();
+    removeLockGuard = null;
   }
   // 清理自动锁屏计时器和事件监听
   ACTIVITY_EVENTS.forEach(evt => document.removeEventListener(evt, onUserActivity));
@@ -2571,7 +2584,8 @@ html .lock-screen-overlay {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: radial-gradient(ellipse at 30% 20%, rgba(30, 40, 80, 0.92) 0%, rgba(10, 12, 30, 0.97) 70%);
+  background:
+    radial-gradient(ellipse at 30% 20%, color-mix(in srgb, var(--color-primary) 18%, rgba(0, 0, 0, 0.92)) 0%, rgba(0, 0, 0, 0.97) 70%);
   backdrop-filter: blur(24px);
   cursor: pointer;
   user-select: none;
@@ -2614,7 +2628,7 @@ html .lock-screen-overlay {
   .lock-time {
     font-size: 84px;
     font-weight: 200;
-    color: #fff;
+    color: var(--color-text-white, #fff);
     line-height: 1;
     letter-spacing: 4px;
     font-variant-numeric: tabular-nums;
@@ -2700,9 +2714,25 @@ html .lock-screen-overlay {
 
   .lock-error {
     font-size: 12px;
-    color: #f87171;
+    color: var(--color-danger);
     letter-spacing: 0.3px;
     min-height: 18px;
+  }
+
+  .lock-logout-link {
+    margin-top: 16px;
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 12px;
+    cursor: pointer;
+    pointer-events: auto;
+    transition: color 0.2s ease;
+    letter-spacing: 0.3px;
+
+    &:hover {
+      color: rgba(255, 255, 255, 0.7);
+    }
   }
 
   // 抖动动画
@@ -2726,12 +2756,34 @@ html .lock-fade-leave-to {
 }
 
 @keyframes lockShake {
-  0%, 100% { transform: translateX(0); }
-  15% { transform: translateX(-8px); }
-  30% { transform: translateX(7px); }
-  45% { transform: translateX(-6px); }
-  60% { transform: translateX(5px); }
-  75% { transform: translateX(-3px); }
-  90% { transform: translateX(2px); }
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  15% {
+    transform: translateX(-8px);
+  }
+
+  30% {
+    transform: translateX(7px);
+  }
+
+  45% {
+    transform: translateX(-6px);
+  }
+
+  60% {
+    transform: translateX(5px);
+  }
+
+  75% {
+    transform: translateX(-3px);
+  }
+
+  90% {
+    transform: translateX(2px);
+  }
 }
 </style>

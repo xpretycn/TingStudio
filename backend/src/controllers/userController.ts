@@ -6,6 +6,29 @@ interface AuthUser {
   userId: string;
 }
 
+export async function createUser(req: Request, res: Response) {
+  try {
+    const { username, password, role, displayName, email, phone } = req.body;
+    const user = await userService.createUser({
+      username,
+      password,
+      role,
+      displayName,
+      email,
+      phone,
+    });
+    res.status(201).json(success(user, "用户创建成功"));
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    if (message === "DUPLICATE_USERNAME") {
+      res.status(409).json({ success: false, message: "用户名已存在", code: "DUPLICATE_ENTRY" });
+      return;
+    }
+    console.error("[UserController] createUser Error:", message);
+    res.status(500).json({ success: false, message: "创建用户失败", error: message });
+  }
+}
+
 export async function getUserList(req: AuthUser & Request, res: Response) {
   try {
     const { keyword, roleId, isActive, page, pageSize } = req.query;
@@ -18,7 +41,7 @@ export async function getUserList(req: AuthUser & Request, res: Response) {
     });
 
     res.json(
-      successWithPagination(result.list, result.pagination.total, result.pagination.page, result.pagination.pageSize)
+      successWithPagination(result.list, result.pagination.total, result.pagination.page, result.pagination.pageSize),
     );
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);

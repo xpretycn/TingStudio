@@ -64,6 +64,22 @@ vi.mock("@/components/nutrition/NutritionSourceTag.vue", () => ({
   default: { template: '<span class="nutrition-source-tag" />' },
 }));
 
+vi.mock("@/components/nutrition/SeedEnrichDialog.vue", () => ({
+  default: { template: "<div />", name: "SeedEnrichDialog", props: ["visible", "materialName", "materialId", "currentNutrition"] },
+}));
+
+vi.mock("@/api/nutritionSource", () => ({
+  nutritionSourceApi: { checkSeedAvailability: vi.fn(() => Promise.resolve({ found: false, matchScore: 0 })) },
+}));
+
+vi.mock("@/constants/sourceTypes", () => ({
+  SOURCE_TYPE_OPTIONS: [
+    { label: "手动录入", value: "manual" },
+    { label: "种子库", value: "seed" },
+    { label: "文献数据", value: "literature" },
+  ],
+}));
+
 vi.mock("tdesign-vue-next", () => ({
   MessagePlugin: {
     success: vi.fn(),
@@ -96,6 +112,7 @@ vi.mock("tdesign-vue-next", () => ({
   Tooltip: { name: "Tooltip", template: "<div><slot /></div>" },
   Popup: { name: "Popup", template: "<div><slot /></div>" },
   Dialog: { name: "Dialog", template: "<div><slot /></div>" },
+  Switch: { name: "Switch", template: "<div />", props: ["modelValue"] },
 }));
 
 describe("MaterialForm 组件", () => {
@@ -130,6 +147,8 @@ describe("MaterialForm 组件", () => {
           "t-dropdown": { template: "<div><slot /></div>" },
           "t-dropdown-menu": { template: "<div><slot /></div>" },
           "t-dropdown-item": { template: "<div><slot /></div>" },
+          "t-switch": { template: "<div />", props: ["modelValue"] },
+          "seed-enrich-dialog": { template: "<div />", props: ["visible", "materialName", "materialId", "currentNutrition"] },
         },
       },
     });

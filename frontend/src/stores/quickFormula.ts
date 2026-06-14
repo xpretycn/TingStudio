@@ -1,6 +1,7 @@
 import { defineStore } from "pinia"
 import { ref, reactive, computed } from "vue"
 import type { QuickFormulaData, QuickFormulaDraft, QuickFormulaMaterial } from "@/types/quickFormula"
+import { roundRatio, calcMaterialRatio } from "@/utils/ratioValidation"
 
 const DRAFT_KEY = "quick_formula_draft"
 
@@ -53,10 +54,12 @@ export const useQuickFormulaStore = defineStore("quickFormula", () => {
   const totalRatio = computed(() => {
     const { finishedWeight, ratioFactor, supplementRatioFactor, materials } = formulaData
     if (finishedWeight <= 0) return 0
-    return materials.reduce((sum, m) => {
-      const factor = m.materialType === "herb" ? ratioFactor : supplementRatioFactor
-      return sum + (m.quantity / finishedWeight) * factor
-    }, 0)
+    return roundRatio(
+      materials.reduce((sum, m) => {
+        const factor = m.materialType === "herb" ? ratioFactor : supplementRatioFactor
+        return sum + calcMaterialRatio(m.quantity, finishedWeight, factor)
+      }, 0)
+    )
   })
 
   const nutritionSummary = computed(() => {
@@ -198,7 +201,7 @@ export const useQuickFormulaStore = defineStore("quickFormula", () => {
     const { finishedWeight, ratioFactor, supplementRatioFactor } = formulaData
     if (finishedWeight <= 0 || material.quantity <= 0) return "0.00%"
     const factor = material.materialType === "herb" ? ratioFactor : supplementRatioFactor
-    const ratio = (material.quantity / finishedWeight) * factor
+    const ratio = calcMaterialRatio(material.quantity, finishedWeight, factor)
     return (ratio * 100).toFixed(2) + "%"
   }
 

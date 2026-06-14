@@ -52,7 +52,11 @@ function ensureTable(dbInstance: Database.Database, tableName: string, createSql
 
 function seedDefaultPromptTemplates(dbInstance: Database.Database) {
   try {
-    const count = (dbInstance.prepare("SELECT COUNT(*) as cnt FROM ai_prompt_templates WHERE module = ?").get("smart-generate") as { cnt: number }).cnt;
+    const count = (
+      dbInstance.prepare("SELECT COUNT(*) as cnt FROM ai_prompt_templates WHERE module = ?").get("smart-generate") as {
+        cnt: number;
+      }
+    ).cnt;
     if (count > 0) return;
     const now = new Date().toISOString();
     const templates = [
@@ -62,7 +66,8 @@ function seedDefaultPromptTemplates(dbInstance: Database.Database) {
         name: "标准配方描述模板",
         type: "description",
         system_prompt: "你是TingStudio的专业配方描述生成助手，只输出纯文本内容。",
-        user_prompt_template: "配方名称：{{formulaName}}\n原料：{{materials}}\n成品重量：{{finishedWeight}}g\n\n请根据配方名称和原料信息，生成专业的配方描述。要求：\n1. 简述研发目标和主要功效特点\n2. 结合配方名称的含义和原料特性\n3. 100字以内\n4. 只输出描述文本，不要其他内容",
+        user_prompt_template:
+          "配方名称：{{formulaName}}\n原料：{{materials}}\n成品重量：{{finishedWeight}}g\n\n请根据配方名称和原料信息，生成专业的配方描述。要求：\n1. 简述研发目标和主要功效特点\n2. 结合配方名称的含义和原料特性\n3. 100字以内\n4. 只输出描述文本，不要其他内容",
         variables: JSON.stringify(["formulaName", "materials", "finishedWeight"]),
         is_default: 1,
         enabled: 1,
@@ -74,7 +79,8 @@ function seedDefaultPromptTemplates(dbInstance: Database.Database) {
         name: "标准制法模板",
         type: "preparation",
         system_prompt: "你是TingStudio的专业配方制法生成助手，只输出纯文本内容。",
-        user_prompt_template: "配方名称：{{formulaName}}\n原料：{{materials}}\n成品重量：{{finishedWeight}}g\n\n请根据配方名称和原料信息，生成专业的配方制法。要求：\n1. 描述制取工艺流程，包括提取、浓缩、收膏等关键步骤\n2. 结合配方名称的含义和原料特性\n3. 200字以内\n4. 只输出制法文本，不要其他内容",
+        user_prompt_template:
+          "配方名称：{{formulaName}}\n原料：{{materials}}\n成品重量：{{finishedWeight}}g\n\n请根据配方名称和原料信息，生成专业的配方制法。要求：\n1. 描述制取工艺流程，包括提取、浓缩、收膏等关键步骤\n2. 结合配方名称的含义和原料特性\n3. 200字以内\n4. 只输出制法文本，不要其他内容",
         variables: JSON.stringify(["formulaName", "materials", "finishedWeight"]),
         is_default: 1,
         enabled: 1,
@@ -86,7 +92,8 @@ function seedDefaultPromptTemplates(dbInstance: Database.Database) {
         name: "标准升版原因模板",
         type: "version_reason",
         system_prompt: "你是TingStudio的专业配方升版原因生成助手，只输出纯文本内容。",
-        user_prompt_template: "配方名称：{{formulaName}}\n原料：{{materials}}\n成品重量：{{finishedWeight}}g\n\n请根据配方名称和原料信息，分析可能的调整原因，生成升版原因说明。要求：\n1. 分析原料组成，推测可能的调整原因\n2. 结合配方名称的含义和原料特性\n3. 100字以内\n4. 只输出升版原因文本，不要其他内容",
+        user_prompt_template:
+          "配方名称：{{formulaName}}\n原料：{{materials}}\n成品重量：{{finishedWeight}}g\n\n请根据配方名称和原料信息，分析可能的调整原因，生成升版原因说明。要求：\n1. 分析原料组成，推测可能的调整原因\n2. 结合配方名称的含义和原料特性\n3. 100字以内\n4. 只输出升版原因文本，不要其他内容",
         variables: JSON.stringify(["formulaName", "materials", "finishedWeight"]),
         is_default: 1,
         enabled: 1,
@@ -98,18 +105,38 @@ function seedDefaultPromptTemplates(dbInstance: Database.Database) {
         name: "升版描述修订模板",
         type: "revision",
         system_prompt: "你是TingStudio的专业配方描述修订助手，只输出纯文本内容。",
-        user_prompt_template: "配方名称：{{formulaName}}\n原料：{{materials}}\n成品重量：{{finishedWeight}}g\n现有描述：{{existingDescription}}\n升版原因：{{revisionReason}}\n\n请根据升版原因，识别新旧配方的差异，生成更新后的配方描述。要求：\n1. 保留原描述中仍有效的部分\n2. 补充升版原因导致的变化\n3. 描述应专业、简洁，100字以内\n4. 只输出描述文本，不要其他内容",
-        variables: JSON.stringify(["formulaName", "materials", "finishedWeight", "existingDescription", "revisionReason"]),
+        user_prompt_template:
+          "配方名称：{{formulaName}}\n原料：{{materials}}\n成品重量：{{finishedWeight}}g\n现有描述：{{existingDescription}}\n升版原因：{{revisionReason}}\n\n请根据升版原因，识别新旧配方的差异，生成更新后的配方描述。要求：\n1. 保留原描述中仍有效的部分\n2. 补充升版原因导致的变化\n3. 描述应专业、简洁，100字以内\n4. 只输出描述文本，不要其他内容",
+        variables: JSON.stringify([
+          "formulaName",
+          "materials",
+          "finishedWeight",
+          "existingDescription",
+          "revisionReason",
+        ]),
         is_default: 1,
         enabled: 1,
         sort_order: 0,
       },
     ];
     const stmt = dbInstance.prepare(
-      "INSERT OR IGNORE INTO ai_prompt_templates (id, module, name, type, system_prompt, user_prompt_template, variables, is_default, enabled, sort_order, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+      "INSERT OR IGNORE INTO ai_prompt_templates (id, module, name, type, system_prompt, user_prompt_template, variables, is_default, enabled, sort_order, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
     );
     for (const t of templates) {
-      stmt.run(t.id, t.module, t.name, t.type, t.system_prompt, t.user_prompt_template, t.variables, t.is_default, t.enabled, t.sort_order, now, now);
+      stmt.run(
+        t.id,
+        t.module,
+        t.name,
+        t.type,
+        t.system_prompt,
+        t.user_prompt_template,
+        t.variables,
+        t.is_default,
+        t.enabled,
+        t.sort_order,
+        now,
+        now,
+      );
     }
     logger.info("数据库初始化: 已插入默认提示词模板");
   } catch (err: unknown) {
@@ -126,7 +153,7 @@ function runAutoMigrations(dbInstance: Database.Database) {
   `);
 
   const appliedMigrations = new Set(
-    (dbInstance.prepare("SELECT version FROM schema_migrations").all() as { version: string }[]).map(r => r.version)
+    (dbInstance.prepare("SELECT version FROM schema_migrations").all() as { version: string }[]).map(r => r.version),
   );
 
   function markMigration(version: string) {
@@ -145,7 +172,8 @@ function runAutoMigrations(dbInstance: Database.Database) {
   try {
     const indexes = dbInstance.pragma("index_list(materials)") as IndexInfo[];
     const hasUniqueCode = indexes.some(
-      (idx: IndexInfo) => (idx.origin === "c" || idx.origin === "u") && idx.unique === 1 && idx.name !== "sqlite_autoindex_materials_1",
+      (idx: IndexInfo) =>
+        (idx.origin === "c" || idx.origin === "u") && idx.unique === 1 && idx.name !== "sqlite_autoindex_materials_1",
     );
     if (hasUniqueCode) {
       logger.info("数据库迁移: 检测到 materials.code UNIQUE 约束，重建表...");
@@ -173,10 +201,16 @@ function runAutoMigrations(dbInstance: Database.Database) {
           efficacy_json TEXT DEFAULT NULL
         )
       `);
-      const oldCols = (dbInstance.pragma("table_info(materials)") as PragmaColumnInfo[]).map((c: PragmaColumnInfo) => c.name);
-      const newCols = (dbInstance.pragma("table_info(materials_new)") as PragmaColumnInfo[]).map((c: PragmaColumnInfo) => c.name);
+      const oldCols = (dbInstance.pragma("table_info(materials)") as PragmaColumnInfo[]).map(
+        (c: PragmaColumnInfo) => c.name,
+      );
+      const newCols = (dbInstance.pragma("table_info(materials_new)") as PragmaColumnInfo[]).map(
+        (c: PragmaColumnInfo) => c.name,
+      );
       const commonCols = oldCols.filter((c: string) => newCols.includes(c));
-      dbInstance.prepare(`INSERT INTO materials_new (${commonCols.join(", ")}) SELECT ${commonCols.join(", ")} FROM materials`).run();
+      dbInstance
+        .prepare(`INSERT INTO materials_new (${commonCols.join(", ")}) SELECT ${commonCols.join(", ")} FROM materials`)
+        .run();
       dbInstance.exec("DROP TABLE materials");
       dbInstance.exec("ALTER TABLE materials_new RENAME TO materials");
       dbInstance.exec("CREATE INDEX IF NOT EXISTS idx_material_name ON materials(name)");
@@ -197,7 +231,10 @@ function runAutoMigrations(dbInstance: Database.Database) {
   try {
     const nutIndexes = dbInstance.pragma("index_list(material_nutrition)") as IndexInfo[];
     const hasNutUnique = nutIndexes.some(
-      (idx: IndexInfo) => (idx.origin === "c" || idx.origin === "u") && idx.unique === 1 && idx.name !== "sqlite_autoindex_material_nutrition_1",
+      (idx: IndexInfo) =>
+        (idx.origin === "c" || idx.origin === "u") &&
+        idx.unique === 1 &&
+        idx.name !== "sqlite_autoindex_material_nutrition_1",
     );
     if (hasNutUnique) {
       logger.info("数据库迁移: 检测到 material_nutrition.material_id UNIQUE 约束，重建表...");
@@ -221,13 +258,23 @@ function runAutoMigrations(dbInstance: Database.Database) {
           FOREIGN KEY (material_id) REFERENCES materials(id) ON DELETE CASCADE
         )
       `);
-      const oldCols = (dbInstance.pragma("table_info(material_nutrition)") as PragmaColumnInfo[]).map((c: PragmaColumnInfo) => c.name);
-      const newCols = (dbInstance.pragma("table_info(material_nutrition_new)") as PragmaColumnInfo[]).map((c: PragmaColumnInfo) => c.name);
+      const oldCols = (dbInstance.pragma("table_info(material_nutrition)") as PragmaColumnInfo[]).map(
+        (c: PragmaColumnInfo) => c.name,
+      );
+      const newCols = (dbInstance.pragma("table_info(material_nutrition_new)") as PragmaColumnInfo[]).map(
+        (c: PragmaColumnInfo) => c.name,
+      );
       const commonCols = oldCols.filter((c: string) => newCols.includes(c));
-      dbInstance.prepare(`INSERT INTO material_nutrition_new (${commonCols.join(", ")}) SELECT ${commonCols.join(", ")} FROM material_nutrition`).run();
+      dbInstance
+        .prepare(
+          `INSERT INTO material_nutrition_new (${commonCols.join(", ")}) SELECT ${commonCols.join(", ")} FROM material_nutrition`,
+        )
+        .run();
       dbInstance.exec("DROP TABLE material_nutrition");
       dbInstance.exec("ALTER TABLE material_nutrition_new RENAME TO material_nutrition");
-      dbInstance.exec("CREATE INDEX IF NOT EXISTS idx_mn_material_version ON material_nutrition(material_id, material_version)");
+      dbInstance.exec(
+        "CREATE INDEX IF NOT EXISTS idx_mn_material_version ON material_nutrition(material_id, material_version)",
+      );
       dbInstance.exec("CREATE INDEX IF NOT EXISTS idx_mn_is_latest ON material_nutrition(is_latest)");
       logger.info("数据库迁移: material_nutrition 表重建完成（material_id UNIQUE 已移除）");
     }
@@ -259,7 +306,10 @@ function runAutoMigrations(dbInstance: Database.Database) {
   ensureColumn(dbInstance, "material_nutrition", "created_by", "TEXT", "NULL");
 
   // 来源层表 material_nutrition_sources（与 addNutritionSourceLayer.ts 保持一致）
-  ensureTable(dbInstance, "material_nutrition_sources", `
+  ensureTable(
+    dbInstance,
+    "material_nutrition_sources",
+    `
     CREATE TABLE IF NOT EXISTS material_nutrition_sources (
       source_id     TEXT PRIMARY KEY,
       material_id   TEXT NOT NULL,
@@ -274,13 +324,18 @@ function runAutoMigrations(dbInstance: Database.Database) {
       is_active     INTEGER NOT NULL DEFAULT 1,
       FOREIGN KEY (material_id) REFERENCES materials(id) ON DELETE CASCADE
     )
-  `);
+  `,
+  );
   try {
     dbInstance.exec("CREATE INDEX IF NOT EXISTS idx_mns_material ON material_nutrition_sources(material_id)");
     dbInstance.exec("CREATE INDEX IF NOT EXISTS idx_mns_source_type ON material_nutrition_sources(source_type)");
-    dbInstance.exec("CREATE INDEX IF NOT EXISTS idx_mns_material_type ON material_nutrition_sources(material_id, source_type)");
+    dbInstance.exec(
+      "CREATE INDEX IF NOT EXISTS idx_mns_material_type ON material_nutrition_sources(material_id, source_type)",
+    );
   } catch (err: unknown) {
-    logger.warn("数据库迁移: material_nutrition_sources 索引创建失败 - " + (err instanceof Error ? err.message : String(err)));
+    logger.warn(
+      "数据库迁移: material_nutrition_sources 索引创建失败 - " + (err instanceof Error ? err.message : String(err)),
+    );
   }
 
   // 版本化索引
@@ -289,7 +344,9 @@ function runAutoMigrations(dbInstance: Database.Database) {
     dbInstance.exec("CREATE INDEX IF NOT EXISTS idx_material_previous_version ON materials(previous_version_id)");
     dbInstance.exec("CREATE INDEX IF NOT EXISTS idx_material_is_latest ON materials(is_latest)");
     dbInstance.exec("CREATE INDEX IF NOT EXISTS idx_material_is_deleted ON materials(is_deleted)");
-    dbInstance.exec("CREATE INDEX IF NOT EXISTS idx_mn_material_version ON material_nutrition(material_id, material_version)");
+    dbInstance.exec(
+      "CREATE INDEX IF NOT EXISTS idx_mn_material_version ON material_nutrition(material_id, material_version)",
+    );
     dbInstance.exec("CREATE INDEX IF NOT EXISTS idx_mn_is_latest ON material_nutrition(is_latest)");
   } catch (err: unknown) {
     logger.warn("数据库迁移: 版本化索引创建失败 - " + (err instanceof Error ? err.message : String(err)));
@@ -315,107 +372,16 @@ function runAutoMigrations(dbInstance: Database.Database) {
   ensureColumn(dbInstance, "formula_versions", "ratio_factor", "REAL", "0.18");
   ensureColumn(dbInstance, "formula_versions", "supplement_ratio_factor", "REAL", "1.0");
 
-  // 0.3 迁移 uploaded_files 表结构（旧表名 file_id, uploaded_by, uploaded_at → 新表名 id, created_by, created_at，添加 updated_at）
-  try {
-    const ufCols = dbInstance.pragma("table_info(uploaded_files)") as PragmaColumnInfo[];
-    const ufColNames = ufCols.map(c => c.name);
-    const hasOldColumns = ufColNames.includes("file_id") || ufColNames.includes("uploaded_by") || ufColNames.includes("uploaded_at");
-    if (hasOldColumns) {
-      logger.info("数据库迁移: 检测到 uploaded_files 旧表结构，重建表...");
-      dbInstance.exec(`
-        CREATE TABLE IF NOT EXISTS uploaded_files_new (
-          id TEXT PRIMARY KEY,
-          original_name TEXT NOT NULL,
-          storage_path TEXT NOT NULL,
-          file_size INTEGER NOT NULL DEFAULT 0,
-          mime_type TEXT,
-          file_type TEXT DEFAULT 'formula' CHECK(file_type IN ('formula', 'material')),
-          status TEXT NOT NULL DEFAULT 'uploaded' CHECK(status IN ('uploaded', 'parsed', 'linked', 'orphaned', 'archived')),
-          related_id TEXT DEFAULT NULL,
-          related_type TEXT DEFAULT NULL CHECK(related_type IS NULL OR related_type IN ('formula', 'material')),
-          parse_result_json TEXT DEFAULT NULL,
-          parse_model TEXT DEFAULT NULL,
-          parse_confidence REAL DEFAULT NULL,
-          parse_usage_json TEXT DEFAULT NULL,
-          version INTEGER NOT NULL DEFAULT 1,
-          created_by TEXT NOT NULL,
-          created_at TEXT NOT NULL DEFAULT (datetime('now')),
-          updated_at TEXT NOT NULL DEFAULT (datetime('now')),
-          last_accessed_at TEXT DEFAULT NULL
-        )
-      `);
-      // 复制数据
-      const sourceIdCol = ufColNames.includes("file_id") ? "file_id" : "id";
-      const sourceCreatedByCol = ufColNames.includes("uploaded_by") ? "uploaded_by" : "created_by";
-      const sourceCreatedAtCol = ufColNames.includes("uploaded_at") ? "uploaded_at" : "created_at";
-      const hasUpdatedAt = ufColNames.includes("updated_at");
-      
-      const copySql = `
-        INSERT INTO uploaded_files_new (
-          id, original_name, storage_path, file_size, mime_type, file_type, status, 
-          related_id, related_type, parse_result_json, parse_model, parse_confidence, 
-          parse_usage_json, version, created_by, created_at, updated_at, last_accessed_at
-        )
-        SELECT 
-          ${sourceIdCol}, original_name, storage_path, file_size, mime_type, file_type, status,
-          related_id, related_type, parse_result_json, parse_model, parse_confidence,
-          parse_usage_json, version, ${sourceCreatedByCol}, ${sourceCreatedAtCol}, 
-          ${hasUpdatedAt ? "updated_at" : "datetime('now')"}, last_accessed_at
-        FROM uploaded_files
-      `;
-      dbInstance.exec(copySql);
-      dbInstance.exec("DROP TABLE uploaded_files");
-      dbInstance.exec("ALTER TABLE uploaded_files_new RENAME TO uploaded_files");
-      // 重建索引
-      dbInstance.exec("CREATE INDEX IF NOT EXISTS idx_uploaded_files_related ON uploaded_files(related_id, related_type)");
-      dbInstance.exec("CREATE INDEX IF NOT EXISTS idx_uploaded_files_type ON uploaded_files(file_type)");
-      dbInstance.exec("CREATE INDEX IF NOT EXISTS idx_uploaded_files_status ON uploaded_files(status)");
-      dbInstance.exec("CREATE INDEX IF NOT EXISTS idx_uploaded_files_created_by ON uploaded_files(created_by)");
-      dbInstance.exec("CREATE INDEX IF NOT EXISTS idx_uploaded_files_created_at ON uploaded_files(created_at)");
-      logger.info("数据库迁移: uploaded_files 表重建完成");
-    }
-  } catch (err: unknown) {
-    logger.error("数据库迁移: uploaded_files 表重建失败 - " + (err instanceof Error ? err.message : String(err)));
-  }
-
-  // 0.15 修复 file_audit_log 外键引用 uploaded_files(file_id) → uploaded_files(id)
-  try {
-    const falCreateSql = dbInstance.prepare("SELECT sql FROM sqlite_master WHERE type='table' AND name='file_audit_log'").get() as { sql: string | null } | undefined;
-    if (falCreateSql?.sql && falCreateSql.sql.includes("REFERENCES uploaded_files(file_id)")) {
-      logger.info("数据库迁移: file_audit_log 外键引用 uploaded_files(file_id)，需修复为 uploaded_files(id)，重建表...");
-      const falCols = (dbInstance.pragma("table_info(file_audit_log)") as PragmaColumnInfo[]).map((c: PragmaColumnInfo) => c.name);
-      dbInstance.exec(`
-        CREATE TABLE IF NOT EXISTS file_audit_log_new (
-          log_id TEXT PRIMARY KEY,
-          file_id TEXT NOT NULL,
-          action TEXT NOT NULL CHECK(action IN ('upload', 'parse', 'link', 'unlink', 'reparse', 'download', 'delete', 'archive')),
-          operator TEXT NOT NULL,
-          timestamp TEXT NOT NULL DEFAULT (datetime('now')),
-          detail_json TEXT DEFAULT NULL,
-          ip_address TEXT DEFAULT NULL,
-          FOREIGN KEY (file_id) REFERENCES uploaded_files(id) ON DELETE CASCADE
-        )
-      `);
-      const newFalCols = (dbInstance.pragma("table_info(file_audit_log_new)") as PragmaColumnInfo[]).map((c: PragmaColumnInfo) => c.name);
-      const commonFalCols = falCols.filter((c: string) => newFalCols.includes(c));
-      dbInstance.prepare(`INSERT INTO file_audit_log_new (${commonFalCols.join(", ")}) SELECT ${commonFalCols.join(", ")} FROM file_audit_log`).run();
-      dbInstance.exec("DROP TABLE file_audit_log");
-      dbInstance.exec("ALTER TABLE file_audit_log_new RENAME TO file_audit_log");
-      dbInstance.exec("CREATE INDEX IF NOT EXISTS idx_file_audit_file ON file_audit_log(file_id)");
-      dbInstance.exec("CREATE INDEX IF NOT EXISTS idx_file_audit_operator ON file_audit_log(operator)");
-      dbInstance.exec("CREATE INDEX IF NOT EXISTS idx_file_audit_timestamp ON file_audit_log(timestamp)");
-      logger.info("数据库迁移: file_audit_log 外键修复完成");
-    }
-  } catch (err: unknown) {
-    logger.error("数据库迁移: file_audit_log 外键修复失败 - " + (err instanceof Error ? err.message : String(err)));
-  }
-
   // 0.2 检测 formula_versions.status CHECK 约束是否包含 pending_review
   try {
-    const fvCreateSql = dbInstance.prepare("SELECT sql FROM sqlite_master WHERE type='table' AND name='formula_versions'").get() as { sql: string | null } | undefined;
+    const fvCreateSql = dbInstance
+      .prepare("SELECT sql FROM sqlite_master WHERE type='table' AND name='formula_versions'")
+      .get() as { sql: string | null } | undefined;
     if (fvCreateSql && fvCreateSql.sql && !fvCreateSql.sql.includes("pending_review")) {
       logger.info("数据库迁移: formula_versions.status 约束缺少 pending_review，重建表...");
-      const oldCols = (dbInstance.pragma("table_info(formula_versions)") as PragmaColumnInfo[]).map((c: PragmaColumnInfo) => c.name);
+      const oldCols = (dbInstance.pragma("table_info(formula_versions)") as PragmaColumnInfo[]).map(
+        (c: PragmaColumnInfo) => c.name,
+      );
 
       dbInstance.exec(`
         CREATE TABLE IF NOT EXISTS formula_versions_new (
@@ -439,13 +405,21 @@ function runAutoMigrations(dbInstance: Database.Database) {
         )
       `);
 
-      const newCols = (dbInstance.pragma("table_info(formula_versions_new)") as PragmaColumnInfo[]).map((c: PragmaColumnInfo) => c.name);
+      const newCols = (dbInstance.pragma("table_info(formula_versions_new)") as PragmaColumnInfo[]).map(
+        (c: PragmaColumnInfo) => c.name,
+      );
       const commonCols = oldCols.filter((c: string) => newCols.includes(c));
-      dbInstance.prepare(`INSERT INTO formula_versions_new (${commonCols.join(", ")}) SELECT ${commonCols.join(", ")} FROM formula_versions`).run();
+      dbInstance
+        .prepare(
+          `INSERT INTO formula_versions_new (${commonCols.join(", ")}) SELECT ${commonCols.join(", ")} FROM formula_versions`,
+        )
+        .run();
       dbInstance.exec("DROP TABLE formula_versions");
       dbInstance.exec("ALTER TABLE formula_versions_new RENAME TO formula_versions");
       dbInstance.exec("CREATE INDEX IF NOT EXISTS idx_fv_formula ON formula_versions(formula_id)");
-      dbInstance.exec("CREATE INDEX IF NOT EXISTS idx_fv_version_number ON formula_versions(formula_id, version_number)");
+      dbInstance.exec(
+        "CREATE INDEX IF NOT EXISTS idx_fv_version_number ON formula_versions(formula_id, version_number)",
+      );
       logger.info("数据库迁移: formula_versions 表重建完成（status 约束已含 pending_review）");
     }
   } catch (err: unknown) {
@@ -555,75 +529,6 @@ function runAutoMigrations(dbInstance: Database.Database) {
       updated_at TEXT NOT NULL DEFAULT (datetime('now')),
       FOREIGN KEY (created_by) REFERENCES users(id)
     )
-    `,
-  );
-  ensureTable(
-    dbInstance,
-    "uploaded_files",
-    `
-    CREATE TABLE uploaded_files (
-      id TEXT PRIMARY KEY,
-      original_name TEXT NOT NULL,
-      storage_path TEXT NOT NULL,
-      file_size INTEGER NOT NULL DEFAULT 0,
-      mime_type TEXT,
-      file_type TEXT DEFAULT 'formula' CHECK(file_type IN ('formula', 'material')),
-      status TEXT NOT NULL DEFAULT 'uploaded' CHECK(status IN ('uploaded', 'parsed', 'linked', 'orphaned', 'archived')),
-      related_id TEXT DEFAULT NULL,
-      related_type TEXT DEFAULT NULL CHECK(related_type IS NULL OR related_type IN ('formula', 'material')),
-      parse_result_json TEXT DEFAULT NULL,
-      parse_model TEXT DEFAULT NULL,
-      parse_confidence REAL DEFAULT NULL,
-      parse_usage_json TEXT DEFAULT NULL,
-      version INTEGER NOT NULL DEFAULT 1,
-      created_by TEXT NOT NULL,
-      created_at TEXT NOT NULL DEFAULT (datetime('now')),
-      updated_at TEXT NOT NULL DEFAULT (datetime('now')),
-      last_accessed_at TEXT DEFAULT NULL
-    );
-    CREATE INDEX IF NOT EXISTS idx_uploaded_files_related ON uploaded_files(related_id, related_type);
-    CREATE INDEX IF NOT EXISTS idx_uploaded_files_type ON uploaded_files(file_type);
-    CREATE INDEX IF NOT EXISTS idx_uploaded_files_status ON uploaded_files(status);
-    CREATE INDEX IF NOT EXISTS idx_uploaded_files_created_by ON uploaded_files(created_by);
-    CREATE INDEX IF NOT EXISTS idx_uploaded_files_created_at ON uploaded_files(created_at)
-    `,
-  );
-  ensureTable(
-    dbInstance,
-    "file_audit_log",
-    `
-    CREATE TABLE file_audit_log (
-      log_id TEXT PRIMARY KEY,
-      file_id TEXT NOT NULL,
-      action TEXT NOT NULL CHECK(action IN ('upload', 'parse', 'link', 'unlink', 'reparse', 'download', 'delete', 'archive')),
-      operator TEXT NOT NULL,
-      timestamp TEXT NOT NULL DEFAULT (datetime('now')),
-      detail_json TEXT DEFAULT NULL,
-      ip_address TEXT DEFAULT NULL,
-      FOREIGN KEY (file_id) REFERENCES uploaded_files(id) ON DELETE CASCADE
-    );
-    CREATE INDEX IF NOT EXISTS idx_file_audit_file ON file_audit_log(file_id);
-    CREATE INDEX IF NOT EXISTS idx_file_audit_operator ON file_audit_log(operator);
-    CREATE INDEX IF NOT EXISTS idx_file_audit_timestamp ON file_audit_log(timestamp)
-    `,
-  );
-  ensureTable(
-    dbInstance,
-    "file_relations",
-    `
-    CREATE TABLE file_relations (
-      relation_id TEXT PRIMARY KEY,
-      file_id TEXT NOT NULL,
-      related_id TEXT NOT NULL,
-      related_type TEXT NOT NULL CHECK(related_type IN ('formula', 'material')),
-      related_name TEXT NOT NULL,
-      created_by TEXT NOT NULL,
-      created_at TEXT NOT NULL DEFAULT (datetime('now')),
-      FOREIGN KEY (file_id) REFERENCES uploaded_files(id) ON DELETE CASCADE,
-      UNIQUE(file_id, related_id, related_type)
-    );
-    CREATE INDEX IF NOT EXISTS idx_fr_file ON file_relations(file_id);
-    CREATE INDEX IF NOT EXISTS idx_fr_related ON file_relations(related_id, related_type)
     `,
   );
   ensureTable(
@@ -1146,6 +1051,7 @@ function runAutoMigrations(dbInstance: Database.Database) {
 
   ensureColumn(dbInstance, "users", "role_id", "TEXT", "NULL");
   ensureColumn(dbInstance, "users", "is_active", "INTEGER", "1");
+  ensureColumn(dbInstance, "users", "must_change_password", "INTEGER", "0");
 
   ensureTable(
     dbInstance,
@@ -1316,7 +1222,6 @@ function runAutoMigrations(dbInstance: Database.Database) {
     "20260112_formula_sales",
     "20260113_reports",
     "20260114_report_targets",
-    "20260115_uploaded_files",
     "20260116_ai_tables",
     "20260117_agent_tables",
     "20260118_rbac",
@@ -1370,18 +1275,12 @@ function seedParseResultConfigs(dbInstance: Database.Database) {
     if (count > 0) return;
 
     const now = new Date().toISOString();
-    const configs = [
-      { key: "storage_limit", value: 5000, desc: "最大解析结果数量" },
-      { key: "cleanup_threshold_percent", value: 95, desc: "触发自动清理的阈值（百分比）" },
-      { key: "cleanup_batch_percent", value: 5, desc: "每次清理的比例（百分比）" },
-      { key: "retention_days", value: 30, desc: "保留天数（预留字段）" },
-      { key: "max_file_size_bytes", value: 5242880, desc: "可缓存文件大小上限（5MB）" },
-    ];
+    const configs = [];
 
     for (const config of configs) {
       dbInstance
         .prepare(
-          "INSERT INTO parse_result_configs (id, config_key, config_value, description, updated_at) VALUES (?, ?, ?, ?, ?)"
+          "INSERT INTO parse_result_configs (id, config_key, config_value, description, updated_at) VALUES (?, ?, ?, ?, ?)",
         )
         .run(crypto.randomUUID(), config.key, JSON.stringify(config.value), config.desc, now);
     }
@@ -1404,18 +1303,22 @@ function seedDefaultRoles(dbInstance: Database.Database) {
     ];
 
     const stmt = dbInstance.prepare(
-      "INSERT INTO roles (id, role_key, name, description, sort_order, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)"
+      "INSERT INTO roles (id, role_key, name, description, sort_order, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
     );
     for (const r of roles) {
       stmt.run(r.id, r.key, r.name, r.desc, r.sort, now, now);
     }
 
-    const adminRoleId = dbInstance.prepare("SELECT id FROM roles WHERE role_key = ?").get("admin") as { id: string } | undefined;
+    const adminRoleId = dbInstance.prepare("SELECT id FROM roles WHERE role_key = ?").get("admin") as
+      | { id: string }
+      | undefined;
     if (adminRoleId) {
       dbInstance.prepare("UPDATE users SET role_id = ? WHERE role = ?").run(adminRoleId.id, "admin");
     }
 
-    const formulistRoleId = dbInstance.prepare("SELECT id FROM roles WHERE role_key = ?").get("formulist") as { id: string } | undefined;
+    const formulistRoleId = dbInstance.prepare("SELECT id FROM roles WHERE role_key = ?").get("formulist") as
+      | { id: string }
+      | undefined;
     if (formulistRoleId) {
       dbInstance.prepare("UPDATE users SET role_id = ? WHERE role = ?").run(formulistRoleId.id, "formulist");
     }
@@ -1444,7 +1347,7 @@ function seedExportCenterConfigs(dbInstance: Database.Database) {
     ];
 
     const stmt = dbInstance.prepare(
-      "INSERT INTO export_center_config (config_key, config_value, config_type, description, updated_by, updated_at) VALUES (?, ?, ?, ?, ?, ?)"
+      "INSERT INTO export_center_config (config_key, config_value, config_type, description, updated_by, updated_at) VALUES (?, ?, ?, ?, ?, ?)",
     );
     for (const c of configs) {
       stmt.run(c.key, c.value, c.type, c.desc, "system", now);
@@ -1610,7 +1513,11 @@ const MATERIAL_DEFAULT_PRICES: Record<string, number> = {
 
 function ensureMaterialPrices(dbInstance: Database.Database) {
   try {
-    const rows = dbInstance.prepare("SELECT id, name, unit_price FROM materials").all() as { id: string; name: string; unit_price: number | null }[];
+    const rows = dbInstance.prepare("SELECT id, name, unit_price FROM materials").all() as {
+      id: string;
+      name: string;
+      unit_price: number | null;
+    }[];
     let fixed = 0;
     for (const row of rows) {
       if (row.unit_price !== null && row.unit_price !== undefined) continue;
@@ -2088,11 +1995,23 @@ export async function connectDatabase(): Promise<void> {
       db.pragma("journal_mode = DELETE");
     } catch (deleteError) {
       logger.warn("DELETE 模式失败，尝试不设置日志模式", deleteError);
-      try { db.close(); } catch { /* ignore */ }
-      const walFile = config.database.path + '-wal';
-      const shmFile = config.database.path + '-shm';
-      try { if (fs.existsSync(walFile)) fs.unlinkSync(walFile); } catch { /* ignore */ }
-      try { if (fs.existsSync(shmFile)) fs.unlinkSync(shmFile); } catch { /* ignore */ }
+      try {
+        db.close();
+      } catch {
+        /* ignore */
+      }
+      const walFile = config.database.path + "-wal";
+      const shmFile = config.database.path + "-shm";
+      try {
+        if (fs.existsSync(walFile)) fs.unlinkSync(walFile);
+      } catch {
+        /* ignore */
+      }
+      try {
+        if (fs.existsSync(shmFile)) fs.unlinkSync(shmFile);
+      } catch {
+        /* ignore */
+      }
       db = new Database(config.database.path);
       journalMode = "default";
     }
@@ -2100,11 +2019,23 @@ export async function connectDatabase(): Promise<void> {
       db.pragma("foreign_keys = ON");
     } catch (fkError) {
       logger.warn("foreign_keys 设置失败，尝试重新打开数据库", fkError);
-      try { db.close(); } catch { /* ignore */ }
-      const walFile = config.database.path + '-wal';
-      const shmFile = config.database.path + '-shm';
-      try { if (fs.existsSync(walFile)) fs.unlinkSync(walFile); } catch { /* ignore */ }
-      try { if (fs.existsSync(shmFile)) fs.unlinkSync(shmFile); } catch { /* ignore */ }
+      try {
+        db.close();
+      } catch {
+        /* ignore */
+      }
+      const walFile = config.database.path + "-wal";
+      const shmFile = config.database.path + "-shm";
+      try {
+        if (fs.existsSync(walFile)) fs.unlinkSync(walFile);
+      } catch {
+        /* ignore */
+      }
+      try {
+        if (fs.existsSync(shmFile)) fs.unlinkSync(shmFile);
+      } catch {
+        /* ignore */
+      }
       db = new Database(config.database.path);
     }
 
@@ -2140,10 +2071,10 @@ export function query<T = Record<string, unknown>>(sql: string, params?: unknown
     const stmt = dbInstance.prepare(sql);
 
     if (isSelect) {
-      const result = stmt.all(...params as unknown[]);
+      const result = stmt.all(...(params as unknown[]));
       return [result] as T;
     } else {
-      const result = stmt.run(...params as unknown[]);
+      const result = stmt.run(...(params as unknown[]));
       return { changes: result.changes, lastInsertRowid: result.lastInsertRowid } as unknown as T;
     }
   }

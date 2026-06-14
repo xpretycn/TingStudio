@@ -321,6 +321,7 @@ import { MessagePlugin } from "tdesign-vue-next";
 import { useMaterialStore } from "@/stores/material";
 import { nutritionApi } from "@/api/nutrition";
 import type { Material } from "@/api/material";
+import { validateRatio, calcMaterialRatio, type RatioValidationResult } from "@/utils/ratioValidation";
 
 export interface MaterialTableRow {
   materialId?: string;
@@ -391,7 +392,14 @@ const gridColumns = computed(() => {
 });
 
 const availableMaterialsForSelect = computed(() => {
-  return materialStore.allMaterials ?? [];
+  const allMats = materialStore.allMaterials ?? [];
+  // 收集当前已添加的原料 ID，排除已添加的避免重复选择
+  const usedIds = new Set(
+    props.materials
+      .filter(m => m.materialId)
+      .map(m => m.materialId)
+  );
+  return allMats.filter(mat => !usedIds.has(mat.id));
 });
 
 const isAllSelected = computed(() => {
@@ -525,58 +533,16 @@ const nutritionNrvPercent = computed(() => {
   };
 });
 
-interface RatioValidationResult {
-  level: "none" | "normal" | "warning" | "high_warning" | "error";
-  totalRatio: number;
-  badgeText: string;
-  description: string;
-}
-
 const ratioValidation = computed<RatioValidationResult>(() => {
-  if (!props.materials.length || !props.finishedWeight || props.finishedWeight <= 0) {
-    return { level: "none", totalRatio: 0, badgeText: "", description: "" };
-  }
-
-  let totalRatio = 0;
-  for (let i = 0; i < props.materials.length; i++) {
-    const row = props.materials[i];
-    if (!row.quantity || row.quantity <= 0) continue;
-    const baseRatio = row.quantity / props.finishedWeight;
-    const factor = isSupplement(i) ? (props.supplementRatioFactor || 1.0) : (props.ratioFactor || 0.18);
-    const ratio = Math.round(baseRatio * factor * 100000) / 100000;
-    totalRatio += ratio;
-  }
-  totalRatio = Math.round(totalRatio * 100000) / 100000;
-
-  const t = { normalLow: 0.98, normalHigh: 1.02, warningLow: 0.95, warningHigh: 1.05, highWarningLow: 0.92, highWarningHigh: 1.08 };
-
-  let level: RatioValidationResult["level"];
-  if (totalRatio >= t.normalLow && totalRatio <= t.normalHigh) {
-    level = "normal";
-  } else if (
-    (totalRatio >= t.warningLow && totalRatio < t.normalLow) ||
-    (totalRatio > t.normalHigh && totalRatio <= t.warningHigh)
-  ) {
-    level = "warning";
-  } else if (
-    (totalRatio >= t.highWarningLow && totalRatio < t.warningLow) ||
-    (totalRatio > t.warningHigh && totalRatio <= t.highWarningHigh)
-  ) {
-    level = "high_warning";
-  } else {
-    level = "error";
-  }
-
-  const deviation = ((totalRatio - 1) * 100).toFixed(2);
-  const messages: Record<string, { badgeText: string; description: string; }> = {
-    normal: { badgeText: "通过", description: `含量比总和 ${totalRatio.toFixed(5)}（偏差 ${deviation}%），在正常范围内` },
-    warning: { badgeText: "预警", description: `含量比总和 ${totalRatio.toFixed(5)}，偏差 ${deviation}%，建议检查用量` },
-    high_warning: { badgeText: "警告", description: `含量比总和 ${totalRatio.toFixed(5)}，偏差 ${deviation}%，需人工审核确认` },
-    error: { badgeText: "失败", description: `含量比总和 ${totalRatio.toFixed(5)}，偏差 ${deviation}%，超出允许范围，请修正用量` },
-  };
-
-  const msg = messages[level];
-  return { level, totalRatio, ...msg };
+  return validateRatio(
+    props.materials.map((m) => ({
+      quantity: m.quantity,
+      materialType: m.materialType,
+    })),
+    props.finishedWeight,
+    props.ratioFactor,
+    props.supplementRatioFactor,
+  );
 });
 
 const totalRatioDisplay = computed(() => {
@@ -653,12 +619,10 @@ function getSubtotal(idx: number): number | null {
 
 function calculateRatio(idx: number): string {
   const row = props.materials[idx];
-  if (!row || !props.finishedWeight || props.finishedWeight <= 0) return "—";
+  if (!row || props.finishedWeight <= 0) return "—";
   if (!row.quantity || row.quantity <= 0) return "—";
-  const factor = isSupplement(idx)
-    ? (props.supplementRatioFactor || 1.0)
-    : (props.ratioFactor || 0.18);
-  const ratio = (row.quantity / props.finishedWeight) * factor;
+  const factor = isSupplement(idx) ? props.supplementRatioFactor : props.ratioFactor;
+  const ratio = calcMaterialRatio(row.quantity, props.finishedWeight, factor);
   return (ratio * 100).toFixed(3) + "%";
 }
 

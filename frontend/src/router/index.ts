@@ -10,12 +10,7 @@ const router = createRouter({
       component: () => import("@/views/auth/Login.vue"),
       meta: { requiresAuth: false },
     },
-    {
-      path: "/register",
-      name: "Register",
-      component: () => import("@/views/auth/Register.vue"),
-      meta: { requiresAuth: false },
-    },
+
     {
       path: "/server-error",
       name: "ServerError",
@@ -207,18 +202,6 @@ const router = createRouter({
           meta: { title: "版本对比", hideHeader: true },
         },
         {
-          path: "files",
-          name: "FileManagement",
-          component: () => import(/* webpackPrefetch: true */ "@/views/files/FileManagement.vue"),
-          meta: { title: "文件管理" },
-        },
-        {
-          path: "files/:id",
-          name: "FileDetail",
-          component: () => import(/* webpackPrefetch: true */ "@/views/files/FileDetail.vue"),
-          meta: { title: "文件详情", hideHeader: true },
-        },
-        {
           path: "nutrition",
           name: "NutritionAnalysis",
           component: () => import(/* webpackPrefetch: true */ "@/views/nutrition/NutritionAnalysis.vue"),
@@ -292,7 +275,7 @@ router.beforeEach((to, _from, next) => {
 
   if (to.meta.requiresAuth !== false && !authStore.isAuthenticated) {
     next("/login");
-  } else if ((to.path === "/login" || to.path === "/register") && authStore.isAuthenticated) {
+  } else if (to.path === "/login" && authStore.isAuthenticated) {
     next("/");
   } else if (to.meta.requiresAdmin && authStore.user?.role !== "admin") {
     next("/");

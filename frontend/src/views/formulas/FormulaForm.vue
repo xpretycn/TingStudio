@@ -37,8 +37,9 @@
           <t-icon name="save" class="btn-icon" />
           {{submitBlockReasons.some(r => r.type === 'error') ? '校验未通过' : (isEdit ? '保存' : '创建')}}
         </button>
-        <button v-if="canSubmitForReview" class="header-action-btn submit-review-btn" @click="handleSubmitAndSubmit" aria-label="保存并提交审核"
-          data-testid="formula-submit-review-btn" :disabled="submitBlockReasons.some(r => r.type === 'error')">
+        <button v-if="canSubmitForReview" class="header-action-btn submit-review-btn" @click="handleSubmitAndSubmit"
+          aria-label="保存并提交审核" data-testid="formula-submit-review-btn"
+          :disabled="submitBlockReasons.some(r => r.type === 'error')">
           <t-icon name="send" class="btn-icon" />
           提交审核
         </button>
@@ -403,11 +404,12 @@ import { useMaterialStore } from '@/stores/material';
 import { useAuthStore } from '@/stores/auth';
 import { MessagePlugin, DialogPlugin } from 'tdesign-vue-next';
 import type { FormRule } from 'tdesign-vue-next';
-import type { MaterialItem, RatioFactorValidationResult, FormulaForm as FormulaFormType, PriceQuoteMaterial } from '@/api/formula';
+import type { MaterialItem, FormulaForm as FormulaFormType, PriceQuoteMaterial } from '@/api/formula';
 import { formulaApi } from '@/api/formula';
 import type { Material } from '@/api/material';
 import type { Salesman } from '@/api/salesman';
 import { agentApi } from '@/api/agent';
+import { validateRatioFull, type RatioFactorValidationResult } from '@/utils/ratioValidation';
 import ExcelImportPanel from '@/components/ExcelImportPanel.vue';
 import type { ParsedMaterial } from '@/api/excelImport';
 import QuickCreateSalesmanDialog from '@/components/QuickCreateSalesmanDialog.vue';
@@ -443,105 +445,18 @@ const ratioValidation = computed<RatioFactorValidationResult>(() => {
   const ratioFactor = formData.ratioFactor ?? 0.18;
   const supplementRatioFactor = formData.supplementRatioFactor ?? 1.0;
 
-  if (materials.length === 0 || finishedWeight <= 0) {
-    return {
-      level: 'normal',
-      totalRatio: 0,
-      breakdown: [],
-      thresholds: { normalLow: 0.98, normalHigh: 1.02, warningLow: 0.95, warningHigh: 1.05, highWarningLow: 0.92, highWarningHigh: 1.08 },
-      message: '待输入数据',
-      description: '请填写原料用量和成品重量后进行含量比校验',
-      allowed: true,
-      requiresManualReview: false,
-    };
-  }
-
   const allMats = materialStore.allMaterials || [];
-  const breakdown = materials.map((m: FormMaterialItem) => {
+  const materialInputs = materials.map((m: FormMaterialItem) => {
     const mat = allMats.find((x: Material) => x.id === m.materialId);
-    const materialType = mat?.materialType || 'herb';
-    const isSupplement = materialType === 'supplement';
-    const baseRatio = (m.quantity || 0) / finishedWeight;
-    const ratio = Math.round(baseRatio * (isSupplement ? supplementRatioFactor : ratioFactor) * 100000) / 100000;
     return {
       materialId: m.materialId || '',
       materialName: m.materialName || mat?.name || '',
       quantity: m.quantity || 0,
-      materialType,
-      ratioFactor: ratio,
+      materialType: mat?.materialType || 'herb',
     };
   });
 
-  // 只对已填写完成的原料（有 materialId 且用量 > 0）计算含量比总和
-  const validBreakdown = breakdown.filter(
-    item => item.materialId && item.quantity > 0
-  );
-
-  if (validBreakdown.length === 0) {
-    return {
-      level: 'normal',
-      totalRatio: 0,
-      breakdown,
-      thresholds: { normalLow: 0.98, normalHigh: 1.02, warningLow: 0.95, warningHigh: 1.05, highWarningLow: 0.92, highWarningHigh: 1.08 },
-      message: '待输入数据',
-      description: '请填写原料用量和成品重量后进行含量比校验',
-      allowed: true,
-      requiresManualReview: false,
-    };
-  }
-
-  const totalRatio = Math.round(validBreakdown.reduce((sum: number, item: { ratioFactor: number; }) => sum + item.ratioFactor, 0) * 100000) / 100000;
-
-  const thresholds = { normalLow: 0.98, normalHigh: 1.02, warningLow: 0.95, warningHigh: 1.05, highWarningLow: 0.92, highWarningHigh: 1.08 };
-
-  let level: RatioFactorValidationResult['level'];
-  if (totalRatio >= thresholds.normalLow && totalRatio <= thresholds.normalHigh) {
-    level = 'normal';
-  } else if (
-    (totalRatio >= thresholds.warningLow && totalRatio < thresholds.normalLow) ||
-    (totalRatio > thresholds.normalHigh && totalRatio <= thresholds.warningHigh)
-  ) {
-    level = 'warning';
-  } else if (
-    (totalRatio >= thresholds.highWarningLow && totalRatio < thresholds.warningLow) ||
-    (totalRatio > thresholds.warningHigh && totalRatio <= thresholds.highWarningHigh)
-  ) {
-    level = 'high_warning';
-  } else {
-    level = 'error';
-  }
-
-  const deviation = ((totalRatio - 1) * 100).toFixed(2);
-  const totalRatioPercent = (totalRatio * 100).toFixed(2);
-  const messages: Record<string, { message: string; description: string; allowed: boolean; requiresManualReview: boolean; }> = {
-    normal: {
-      message: '含量比校验通过',
-      description: `原料含量比总和为 ${totalRatioPercent}%（偏差 ${deviation}%），在正常范围内 [98%, 102%]`,
-      allowed: true,
-      requiresManualReview: false,
-    },
-    warning: {
-      message: `含量比偏差预警（偏差 ${deviation}%）`,
-      description: `原料含量比总和为 ${totalRatioPercent}%，超出正常范围 [98%, 102%]，偏差 ${deviation}%。建议检查原料用量是否合理，仍可继续创建。`,
-      allowed: true,
-      requiresManualReview: false,
-    },
-    high_warning: {
-      message: `含量比严重偏差（偏差 ${deviation}%）`,
-      description: `原料含量比总和为 ${totalRatioPercent}%，严重偏离标准值 100%，偏差 ${deviation}%。需要人工审核确认后方可创建，请仔细核对原料用量数据。`,
-      allowed: true,
-      requiresManualReview: true,
-    },
-    error: {
-      message: `含量比校验失败（偏差 ${deviation}%）`,
-      description: `原料含量比总和为 ${totalRatioPercent}%，偏差 ${deviation}% 超出允许范围 [92%, 108%]。配方数据存在错误，无法创建，请修正原料用量后重试。`,
-      allowed: false,
-      requiresManualReview: false,
-    },
-  };
-
-  const msg = messages[level];
-  return { level, totalRatio, breakdown, thresholds, ...msg };
+  return validateRatioFull(materialInputs, finishedWeight, ratioFactor, supplementRatioFactor);
 });
 
 const ratioDeviationText = computed(() => {
@@ -2035,7 +1950,7 @@ onMounted(async () => {
       margin-bottom: 16px;
 
       .t-icon {
-        color: $emerald-500;
+        color: var(--color-emerald-500);
         font-size: 14px;
       }
     }
@@ -2048,23 +1963,23 @@ onMounted(async () => {
       font-weight: 500;
 
       &.badge--normal {
-        background: $green-100;
-        color: $green-800;
+        background: var(--color-green-100);
+        color: var(--color-green-800);
       }
 
       &.badge--warning {
-        background: $amber-100;
-        color: var(--color-warning, $amber-800);
+        background: var(--color-amber-100);
+        color: var(--color-amber-800);
       }
 
       &.badge--high_warning {
-        background: $orange-50;
-        color: $orange-600;
+        background: var(--color-orange-50);
+        color: var(--color-orange-600);
       }
 
       &.badge--error {
-        background: $red-100;
-        color: $red-800;
+        background: var(--color-red-100);
+        color: var(--color-red-800);
       }
     }
 
@@ -2124,11 +2039,11 @@ onMounted(async () => {
           }
 
           &.deviation--warning {
-            color: $amber-600;
+            color: var(--color-amber-600);
           }
 
           &.deviation--high_warning {
-            color: $orange-600;
+            color: var(--color-orange-600);
           }
 
           &.deviation--error {
@@ -2172,7 +2087,7 @@ onMounted(async () => {
             }
 
             .rtc-label {
-              color: $green-800;
+              color: var(--color-green-800);
             }
           }
 
@@ -2182,17 +2097,17 @@ onMounted(async () => {
             }
 
             .rtc-label {
-              color: var(--color-warning, $amber-800);
+              color: var(--color-amber-600);
             }
           }
 
           &.rtc-item--high_warning {
             .rtc-dot {
-              background: $orange-600;
+              background: var(--color-orange-600);
             }
 
             .rtc-label {
-              color: $orange-600;
+              color: var(--color-orange-600);
             }
           }
 
@@ -2202,7 +2117,7 @@ onMounted(async () => {
             }
 
             .rtc-label {
-              color: $red-800;
+              color: var(--color-red-800);
             }
           }
         }
@@ -2218,18 +2133,18 @@ onMounted(async () => {
         flex-shrink: 0;
 
         &.rtc-submit-tag--allow {
-          background: $green-100;
-          color: $green-800;
+          background: var(--color-green-100);
+          color: var(--color-green-800);
         }
 
         &.rtc-submit-tag--review {
-          background: $orange-50;
-          color: $orange-600;
+          background: var(--color-orange-50);
+          color: var(--color-orange-600);
         }
 
         &.rtc-submit-tag--block {
-          background: $red-100;
-          color: $red-800;
+          background: var(--color-red-100);
+          color: var(--color-red-800);
         }
       }
     }
@@ -2246,7 +2161,7 @@ onMounted(async () => {
           align-items: center;
           gap: 4px;
           font-size: 12px;
-          color: var(--color-warning, $amber-800);
+          color: var(--color-warning);
         }
       }
 
@@ -2334,13 +2249,13 @@ onMounted(async () => {
             }
 
             >span {
-              color: $emerald-500;
+              color: var(--color-emerald-500);
               font-size: 20px;
               font-weight: 700;
             }
 
             .qs-label-icon--final {
-              color: $emerald-500;
+              color: var(--color-emerald-500);
             }
           }
         }
@@ -2352,7 +2267,7 @@ onMounted(async () => {
 
           &.qs-divider--bold {
             height: 2px;
-            background: $emerald-500;
+            background: var(--color-emerald-500);
             margin: 8px 0;
           }
         }
@@ -2395,7 +2310,7 @@ onMounted(async () => {
           }
 
           .sbr-text {
-            color: $amber-600;
+            color: var(--color-amber-600);
           }
         }
       }
@@ -2406,7 +2321,7 @@ onMounted(async () => {
         gap: var(--space-1-5);
         padding: 8px 0;
         font-size: 13px;
-        color: $green-600;
+        color: var(--color-green-600);
         font-weight: 500;
         margin-bottom: 16px;
       }
