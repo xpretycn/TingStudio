@@ -21,52 +21,28 @@
           <div class="toolbar-right-section">
             <div class="model-select-inline">
               <template v-if="modelGroups.length > 0">
-                <t-select
-                  v-model="selectedModelKey"
-                  placeholder="选择 AI 模型"
-                  size="medium"
-                  style="min-width: 280px;"
-                  @change="handleModelChange"
-                >
+                <t-select v-model="selectedModelKey" placeholder="选择 AI 模型" size="medium" style="min-width: 200px;"
+                  @change="handleModelChange">
                   <template v-if="currentModelInfo" #prefixIcon>
-                    <img
-                      :src="currentModelInfo.logo"
-                      :alt="currentModelInfo.name"
+                    <img :src="currentModelInfo.logo" :alt="currentModelInfo.name"
                       style="width: 16px; height: 16px; object-fit: contain; margin-right: 6px;"
-                      @error="(e: Event) => { (e.target as HTMLImageElement).style.display = 'none'; }"
-                    />
-                    <span style="font-size: 11px; padding: 1px 6px; background: var(--color-bg-container-alt); border-radius: 6px; color: var(--color-text-secondary); line-height: 14px; margin-right: 4px;">文本</span>
-                    <span v-if="currentModelInfo.supportsVision" style="font-size: 11px; padding: 1px 6px; background: var(--color-emerald-100); border-radius: 6px; color: var(--color-emerald-600); line-height: 14px;">图片</span>
+                      @error="(e: Event) => { (e.target as HTMLImageElement).style.display = 'none'; }" />
+                    <span class="model-badge model-badge--text">文本</span>
+                    <span v-if="currentModelInfo.supportsVision" class="model-badge model-badge--vision">图片</span>
                   </template>
                   <t-option-group v-for="group in modelGroups" :key="group.provider" :label="group.name">
-                    <t-option
-                      v-for="v in group.versions"
-                      :key="group.provider + '|' + v.value"
-                      :value="group.provider + '|' + v.value"
-                      :label="v.label"
-                    >
-                      <span style="display: inline-flex; align-items: center; gap: 8px; width: 100%;">
-                        <img
-                          :src="getModelLogo(group.provider)"
-                          :alt="group.name"
-                          style="width: 16px; height: 16px; object-fit: contain; flex-shrink: 0;"
-                          @error="(e: Event) => handleLogoError(e)"
-                        />
-                        <span style="font-size: 12px; line-height: 16px; flex-shrink: 0;">{{ v.label }}</span>
-                        <span style="font-size: 11px; padding: 1px 6px; background: var(--color-bg-container-alt); border-radius: 6px; color: var(--color-text-secondary); line-height: 14px; flex-shrink: 0;">文本</span>
-                        <span v-if="getModelSupportsVision(group.provider)" style="font-size: 11px; padding: 1px 6px; background: var(--color-emerald-100); border-radius: 6px; color: var(--color-emerald-600); line-height: 14px; flex-shrink: 0;">图片</span>
-                        <svg
-                          v-if="selectedModelKey === group.provider + '|' + v.value"
-                          style="width: 14px; height: 14px; flex-shrink: 0; margin-left: auto;"
-                          width="14"
-                          height="14"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="var(--color-primary)"
-                          stroke-width="2.5"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                        >
+                    <t-option v-for="v in group.versions" :key="group.provider + '|' + v.value"
+                      :value="group.provider + '|' + v.value" :label="v.label">
+                      <span class="model-option">
+                        <img :src="getModelLogo(group.provider)" :alt="group.name" class="model-option-logo"
+                          @error="(e: Event) => handleLogoError(e)" />
+                        <span class="model-option-label">{{ v.label }}</span>
+                        <span class="model-badge model-badge--text">文本</span>
+                        <span v-if="getModelSupportsVision(group.provider)"
+                          class="model-badge model-badge--vision">图片</span>
+                        <svg v-if="selectedModelKey === group.provider + '|' + v.value" class="model-option-check"
+                          width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)"
+                          stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                           <polyline points="20 6 9 17 4 12" />
                         </svg>
                       </span>
@@ -75,8 +51,8 @@
                 </t-select>
               </template>
               <div v-else class="no-models-inline">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-placeholder)" stroke-width="2"
-                  stroke-linecap="round" stroke-linejoin="round">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-placeholder)"
+                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <circle cx="12" cy="12" r="10" />
                   <line x1="12" y1="8" x2="12" y2="12" />
                   <line x1="12" y1="16" x2="12.01" y2="16" />
@@ -88,19 +64,19 @@
         </div>
         <!-- 内容区域 -->
         <div class="ai-content">
-          <div v-show="activeTab === 'smart-form'" class="tab-panel">
+          <div v-if="activeTab === 'smart-form'" class="tab-panel">
             <FormulaParseTab @activity-add="addActivity" />
           </div>
 
-          <div v-show="activeTab === 'smart-import'" class="tab-panel">
+          <div v-if="activeTab === 'smart-import'" class="tab-panel">
             <MaterialImportTab @activity-add="addActivity" />
           </div>
 
-          <div v-show="activeTab === 'smart-search'" class="tab-panel">
+          <div v-if="activeTab === 'smart-search'" class="tab-panel">
             <DataSearchTab />
           </div>
 
-          <div v-show="activeTab === 'smart-history'" class="tab-panel">
+          <div v-if="activeTab === 'smart-history'" class="tab-panel">
             <ParseHistoryTab />
           </div>
         </div>
@@ -322,7 +298,6 @@ onMounted(async () => {
   padding-bottom: 24px;
 
   .content-card {
-    min-height: 500px;
     border-radius: var(--radius-4xl) !important;
     overflow: hidden;
     border: none;
@@ -334,7 +309,7 @@ onMounted(async () => {
   }
 
   .data-center-toolbar {
-    padding: 20px 32px;
+    padding: 16px 20px;
     border-bottom: 1px solid var(--color-border-light);
     display: flex;
     flex-wrap: wrap;
@@ -375,7 +350,7 @@ onMounted(async () => {
           align-items: center;
           gap: var(--space-1-5);
           padding: 8px var(--space-4-5);
-          border-radius: 14px;
+          border-radius: 8px;
           border: 1px solid transparent;
           background: transparent;
           color: var(--color-text-secondary);
@@ -411,6 +386,7 @@ onMounted(async () => {
       align-items: center;
       gap: 12px;
       flex-shrink: 0;
+      margin-left: auto;
 
       .model-select-inline {
         :deep(.t-select) {
@@ -420,6 +396,7 @@ onMounted(async () => {
         }
 
         :deep(.t-select__single) {
+
           .t-select__placeholder,
           .t-select__value {
             display: inline-flex;
@@ -483,24 +460,58 @@ onMounted(async () => {
   }
 
   .ai-content {
-    padding: 24px var(--space-7);
-    min-height: 480px;
+    padding: 20px;
   }
 
   .tab-panel {
-    animation: fadeInUp 0.35s cubic-bezier(0.4, 0, 0.2, 1) both;
+    // Tab 内容区
   }
 
-  @keyframes fadeInUp {
-    from {
-      opacity: 0;
-      transform: translateY(16px);
-    }
+  // 模型选项样式
+  .model-option {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+  }
 
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
+  .model-option-logo {
+    width: 16px;
+    height: 16px;
+    object-fit: contain;
+    flex-shrink: 0;
+  }
+
+  .model-option-label {
+    font-size: 12px;
+    line-height: 16px;
+    flex-shrink: 0;
+  }
+
+  .model-option-check {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    margin-left: auto;
+  }
+
+  .model-badge {
+    font-size: 11px;
+    padding: 1px 6px;
+    border-radius: 6px;
+    line-height: 14px;
+    flex-shrink: 0;
+  }
+
+  .model-badge--text {
+    background: var(--color-bg-container-alt);
+    color: var(--color-text-secondary);
+    margin-right: 4px;
+  }
+
+  .model-badge--vision {
+    background: var(--color-emerald-100);
+    color: var(--color-emerald-600);
   }
 
   // 暗色模式下模型 logo 亮度修正，确保可见
@@ -508,6 +519,80 @@ onMounted(async () => {
   :deep(.t-option img) {
     transition: filter 0.2s ease;
     filter: var(--img-brightness, none);
+  }
+}
+
+// 移动端适配
+@media (max-width: 768px) {
+  .smart-tools {
+    .data-center-toolbar {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 12px;
+
+      .toolbar-left-section {
+        flex-wrap: wrap;
+        gap: 12px;
+
+        .toolbar-title {
+          font-size: 18px;
+        }
+
+        .toolbar-tabs {
+          width: 100%;
+          overflow-x: auto;
+          -webkit-overflow-scrolling: touch;
+
+          .tab-list {
+            flex-wrap: nowrap;
+          }
+        }
+      }
+
+      .toolbar-right-section {
+        margin-left: 0;
+
+        .model-select-inline {
+          width: 100%;
+
+          :deep(.t-select) {
+            width: 100% !important;
+            min-width: 0 !important;
+          }
+        }
+      }
+    }
+
+    .ai-content {
+      padding: 16px 12px;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .smart-tools {
+    .data-center-toolbar {
+      padding: 12px;
+
+      .toolbar-left-section {
+        .toolbar-title {
+          font-size: 16px;
+        }
+
+        .toolbar-tabs .tab-list .tab-btn {
+          padding: 6px 10px;
+          font-size: 13px;
+
+          .tab-icon {
+            display: none;
+          }
+        }
+      }
+    }
+
+    .ai-content {
+      padding: 12px 8px;
+    }
   }
 }
 </style>

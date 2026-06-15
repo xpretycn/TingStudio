@@ -242,18 +242,15 @@
                 }}</button>
             </div>
           </div>
-          <div class="chart-body" ref="chartRef">
-            <template v-if="dashboardStore.trendLoading">
-              <div class="chart-skeleton">
-                <div class="skeleton-bar" v-for="i in 6" :key="i" :style="{ height: `${20 + Math.random() * 60}%` }" />
-              </div>
-            </template>
-            <template v-else-if="dashboardStore.salesTrend.length === 0">
-              <div class="chart-empty">
-                <t-icon name="chart-line" size="32px" />
-                <p>暂无销量数据</p>
-              </div>
-            </template>
+          <div class="chart-body">
+            <div v-if="dashboardStore.trendLoading" class="chart-skeleton">
+              <div class="skeleton-bar" v-for="i in 6" :key="i" :style="{ height: `${20 + Math.random() * 60}%` }" />
+            </div>
+            <div v-else-if="dashboardStore.salesTrend.length === 0" class="chart-empty">
+              <t-icon name="chart-line" size="32px" />
+              <p>暂无销量数据</p>
+            </div>
+            <div v-show="!dashboardStore.trendLoading && dashboardStore.salesTrend.length > 0" ref="chartRef" class="chart-canvas"></div>
           </div>
         </section>
       </div>
@@ -747,6 +744,12 @@ onUnmounted(() => {
   .chart-body {
     height: 220px;
     margin-top: 12px;
+    position: relative;
+  }
+
+  .chart-canvas {
+    width: 100%;
+    height: 100%;
   }
 
   .chart-skeleton {

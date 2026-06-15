@@ -1,0 +1,64 @@
+# Render Blueprint - TingStudio 免费部署方案
+# 使用方式：在 Render Dashboard 中导入此文件，或连接 GitHub 仓库自动识别
+
+services:
+  # ==================== 后端 API ====================
+  - type: web
+    name: tingstudio-api
+    runtime: node
+    plan: free # 免费套餐：750 小时/月，512MB RAM，15 分钟无活动自动休眠
+    region: singapore
+    branch: main
+    rootDir: backend
+    buildCommand: npm install && npm run build
+    startCommand: node dist/index.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: DB_TYPE
+        value: sqlite
+      - key: DB_PATH
+        value: /opt/render/project/src/data/tingstudio.db
+      - key: JWT_SECRET
+        generateValue: true # 自动生成强随机密钥
+      - key: CORS_ORIGIN
+        # 部署前端后替换为 Vercel 域名
+        sync: false
+      # AI 服务密钥（可选，按需填写）
+      - key: AI_DASHSCOPE_API_KEY
+        sync: false
+      - key: AI_ZHIPU_API_KEY
+        sync: false
+      - key: AI_DEEPSEEK_API_KEY
+        sync: false
+    # 免费套餐不支持持久磁盘，SQLite 数据在重新部署时会丢失
+    # 如需持久化，可升级为 Starter 套餐 ($7/月) 并添加磁盘：
+    # disk:
+    #   name: tingstudio-data
+    #   mountPath: /opt/render/project/src/data
+    #   sizeGB: 1
+
+  # ==================== 前端静态站 ====================
+  - type: web
+    name: tingstudio-web
+    runtime: static
+    plan: free
+    region: singapore
+    branch: main
+    rootDir: frontend
+    buildCommand: npm install && npm run build:deploy
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_API_BASE_URL
+        # 部署后端后替换为 Render 后端地址
+        sync: false
+    headers:
+      - path: /assets/*
+        name: Cache-Control
+        value: public, max-age=31536000, immutable
+    routes:
+      - type: rewrite
+        source: /api/*
+        destination: /api/:splat

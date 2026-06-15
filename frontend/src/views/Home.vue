@@ -8,6 +8,10 @@
     </Transition>
     <!-- 左侧导航功能区 -->
     <aside class="left-sidebar" :class="{ 'mobile-drawer-open': mobileDrawerOpen }" aria-label="主导航">
+      <!-- 移动端关闭按钮 -->
+      <button v-if="mobileDrawerOpen" class="mobile-drawer-close" aria-label="关闭菜单" @click="closeMobileDrawer">
+        <t-icon name="close" size="20px" />
+      </button>
       <!-- Logo - 固定顶部 -->
       <div class="sidebar-top" :class="{ collapsed: sidebarCollapsed }">
         <div class="sidebar-logo" @click="toggleSidebarCollapse" title="折叠/展开侧边栏">
@@ -33,45 +37,38 @@
           <t-icon v-show="!sidebarCollapsed" name="chevron-left" size="16px" class="collapse-indicator" />
         </div>
 
-        <!-- 日期和天气信息卡片（参照 index.html 设计） -->
-        <div v-show="!sidebarCollapsed" class="sidebar-info-card">
+        <!-- 日期和天气信息卡片（紧凑单行式） -->
+        <div v-if="!sidebarCollapsed" class="sidebar-info-card">
           <div class="info-card-inner">
             <!-- 左侧：日期 -->
             <div class="info-card-date">
-              <p class="info-card-day">{{ currentDay }}</p>
-              <p class="info-card-meta">{{ currentDate }} · {{ currentWeekday }}</p>
+              <span class="info-card-day">{{ currentDay }}</span>
+              <span class="info-card-meta">{{ currentDate }} {{ currentWeekday }}</span>
             </div>
-            <!-- 右侧：天气（右对齐，图标+文字在上，温度+城市在下） -->
+            <!-- 右侧：天气 -->
             <div class="info-card-weather">
               <template v-if="weatherStore.loading || weatherStore.geoLoading">
                 <t-loading size="small" />
               </template>
               <template v-else>
-                <!-- 上行：图标 + 天气描述 -->
-                <div class="weather-top-row">
-                  <span class="weather-icon-text">{{ weatherStore.weatherEmoji }}</span>
-                  <span class="weather-status">{{ weatherStore.weatherText }}</span>
-                  <button class="weather-refresh-btn" :class="{ 'is-refreshing': weatherStore.loading }"
-                    :disabled="weatherStore.loading || weatherStore.geoLoading" title="刷新天气"
-                    @click.stop="handleRefreshWeather">
-                    <svg class="refresh-svg" width="12" height="12" viewBox="0 0 24 24" fill="none"
-                      stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                      <polyline points="23 4 23 10 17 10" />
-                      <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
-                    </svg>
-                  </button>
-                </div>
-                <!-- 下行：温度 + 城市 -->
-                <p class="weather-bottom">{{ weatherStore.temperature }}°C · {{ weatherStore.cityName }}</p>
+                <span class="weather-icon-text">{{ weatherStore.weatherEmoji }}</span>
+                <span class="weather-temp">{{ weatherStore.temperature }}°</span>
+                <button class="weather-refresh-btn" :class="{ 'is-refreshing': weatherStore.loading }"
+                  :disabled="weatherStore.loading || weatherStore.geoLoading" title="刷新天气"
+                  @click.stop="handleRefreshWeather">
+                  <svg class="refresh-svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="23 4 23 10 17 10" />
+                    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+                  </svg>
+                </button>
               </template>
             </div>
           </div>
-          <!-- AI 俏皮话（单独一行） -->
-          <div v-show="!sidebarCollapsed" class="info-card-witty" @click="refreshWittyComment"
-            :title="wittyLoading ? '加载中...' : '点击换一条'">
+          <!-- AI 俏皮话（单行截断，点击换一条） -->
+          <div class="info-card-witty" @click="refreshWittyComment" :title="wittyLoading ? '加载中...' : '点击换一条'">
             <span class="witty-icon">💬</span>
             <span class="witty-text">{{ wittyComment || '正在生成...' }}</span>
-            <t-loading v-if="wittyLoading" size="extra-small" />
           </div>
         </div>
       </div>
@@ -236,33 +233,30 @@
           </button>
           <span class="title-icon" aria-hidden="true"><t-icon :name="pageIcon" size="20px" /></span>
           <div class="header-title-area">
-            <t-breadcrumb max-item-width="200" separator=">" class="content-breadcrumb">
-              <t-breadcrumb-item v-for="crumb in breadcrumbs" :key="crumb.path"
-                @click="crumb.path && router.push(crumb.path)">
-                {{ crumb.title }}
-              </t-breadcrumb-item>
-              <t-breadcrumb-item class="breadcrumb-current"
-                :style="breadcrumbs.length > 0 ? { color: 'var(--color-primary)' } : {}">{{
+            <template v-if="breadcrumbs.length > 0">
+              <t-breadcrumb max-item-width="200" separator=">" class="content-breadcrumb">
+                <t-breadcrumb-item v-for="crumb in breadcrumbs" :key="crumb.path"
+                  @click="crumb.path && router.push(crumb.path)">
+                  {{ crumb.title }}
+                </t-breadcrumb-item>
+                <t-breadcrumb-item class="breadcrumb-current" :style="{ color: 'var(--color-primary)' }">{{
                   pageTitle }}</t-breadcrumb-item>
-            </t-breadcrumb>
+              </t-breadcrumb>
+            </template>
+            <template v-else>
+              <span class="header-page-title">{{ pageTitle }}</span>
+            </template>
           </div>
         </div>
         <!-- 右侧操作区 -->
         <div class="header-actions">
           <!-- 圆形导航按钮组 -->
           <div class="header-nav-buttons">
-            <button class="nav-circle-btn" title="后退" @click="handleGoBack">
+            <button v-if="breadcrumbs.length > 0" class="nav-circle-btn" title="返回上级" @click="handleGoBack">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                 stroke-linecap="round" stroke-linejoin="round">
                 <line x1="19" y1="12" x2="5" y2="12" />
                 <polyline points="12 19 5 12 12 5" />
-              </svg>
-            </button>
-            <button class="nav-circle-btn" title="前进" @click="handleGoForward">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round">
-                <line x1="5" y1="12" x2="19" y2="12" />
-                <polyline points="12 5 19 12 12 19" />
               </svg>
             </button>
             <button class="nav-circle-btn" title="刷新" @click="handleRefresh">
@@ -665,19 +659,22 @@ watch(currentGroup, (newGroup) => {
   }
 }, { immediate: true });
 
-// 兼容旧接口（保持向后兼容）
-const navItems = computed(() => {
-  const allItems: NavItem[] = [];
+// 从 navGroups 查找导航项标签
+const findNavLabel = (targetPath: string): string => {
   for (const group of Object.values(navGroups)) {
-    allItems.push(...group.items);
+    const found = group.items.find(item => item.path === targetPath);
+    if (found) return found.label;
   }
-  if (authStore.user?.role === 'admin') {
-    allItems.push({ path: '/model-management', label: '模型管理', icon: 'control-platform' });
-    allItems.push({ path: '/system/config', label: '系统管理', icon: 'file-icon' });
-    allItems.push({ path: '/tools/ai-assistant', label: 'AI 助手', icon: 'precise-monitor' });
-  }
-  return allItems;
-});
+  // 管理员额外入口
+  const adminExtraItems: NavItem[] = [
+    { path: '/model-management', label: '模型管理', icon: 'control-platform' },
+    { path: '/system/config', label: '系统管理', icon: 'file-icon' },
+    { path: '/tools/ai-assistant', label: 'AI 助手', icon: 'precise-monitor' },
+  ];
+  const adminFound = adminExtraItems.find(item => item.path === targetPath);
+  if (adminFound) return adminFound.label;
+  return '';
+};
 
 // 日期和星期
 const currentDate = ref('');
@@ -826,7 +823,7 @@ const breadcrumbs = computed(() => {
   if (parentMap[path]) {
     const parentPath = parentMap[path];
     const parentTitle = listPaths.includes(parentPath)
-      ? (navItems.value.find((n: NavItem) => n.path === parentPath)?.label || '')
+      ? findNavLabel(parentPath)
       : '';
     return parentTitle ? [{ title: parentTitle, path: parentPath }] : [];
   }
@@ -905,11 +902,6 @@ const handleGoBack = () => {
   } else {
     router.back();
   }
-};
-
-// 前进
-const handleGoForward = () => {
-  router.forward();
 };
 
 // 处理退出登录
@@ -1311,14 +1303,14 @@ onUnmounted(() => {
   }
 }
 
-// ─── 日期 & 天气信息卡片（参照 index.html 设计：左日期右天气）───
+// ─── 日期 & 天气信息卡片（紧凑单行式）───
 .sidebar-info-card {
   flex-shrink: 0;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
   background: var(--color-primary-dark);
-  border-radius: 16px;
-  padding: 16px;
-  color: #fff;
+  border-radius: 10px;
+  padding: 10px 12px;
+  color: var(--color-text-white);
   position: relative;
   overflow: hidden;
 
@@ -1330,51 +1322,39 @@ onUnmounted(() => {
     align-items: center;
   }
 
-  // ─── 左侧日期 ──
+  // ─── 左侧日期（单行：日期数字 + 月/周）───
   .info-card-date {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+
     .info-card-day {
-      font-size: 24px;
+      font-size: 18px;
       font-weight: 700;
       line-height: 1;
-      color: #fff;
+      color: var(--color-text-white);
     }
 
     .info-card-meta {
-      font-size: 12px;
+      font-size: 11px;
       opacity: 0.7;
-      margin-top: 4px;
     }
   }
 
-  // ─── 右侧天气（右对齐，与参考设计一致）───
+  // ─── 右侧天气（单行：emoji + 温度 + 刷新）───
   .info-card-weather {
-    text-align: right;
+    display: flex;
+    align-items: center;
+    gap: 4px;
 
-    // 上行：图标 + 天气文字 + 刷新按钮（flex 右对齐）
-    .weather-top-row {
-      display: flex;
-      align-items: center;
-      justify-content: flex-end;
-      gap: 4px;
-      margin-bottom: var(--space-0-5);
-
-      .weather-icon-text {
-        font-size: 16px;
-        line-height: 1;
-      }
-
-      .weather-status {
-        font-size: 13px;
-        font-weight: 500;
-      }
+    .weather-icon-text {
+      font-size: 14px;
+      line-height: 1;
     }
 
-    // 下行：温度 · 城市（小字半透明，与参考设计一致）
-    .weather-bottom {
-      font-size: 12px;
-      opacity: 0.7;
-      margin: 0;
-      white-space: nowrap;
+    .weather-temp {
+      font-size: 13px;
+      font-weight: 600;
     }
 
     // ─── 刷新按钮（精致小巧，融入设计）───
@@ -1392,10 +1372,10 @@ onUnmounted(() => {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: 22px;
-      height: 22px;
+      width: 18px;
+      height: 18px;
       border: none;
-      border-radius: 6px;
+      border-radius: 4px;
       background: rgba(255, 255, 255, 0.12);
       color: rgba(255, 255, 255, 0.75);
       cursor: pointer;
@@ -1403,7 +1383,7 @@ onUnmounted(() => {
 
       &:hover {
         background: rgba(255, 255, 255, 0.25);
-        color: #fff;
+        color: var(--color-text-white);
         transform: rotate(90deg);
       }
 
@@ -1425,8 +1405,8 @@ onUnmounted(() => {
       }
 
       .refresh-svg {
-        width: 12px;
-        height: 12px;
+        width: 10px;
+        height: 10px;
         transition: transform 0.3s ease;
       }
     }
@@ -1442,22 +1422,21 @@ onUnmounted(() => {
 
   .version-text {
     font-size: 10px;
-    color: rgba(255, 255, 255, 0.4);
+    color: var(--color-text-placeholder);
     letter-spacing: 0.5px;
   }
 }
 
-// ─── AI 俏皮话卡片（天气卡片下方，简洁风格）───
-// ─── AI 俏皮话（单独一行，在日期天气下方）───
+// ─── AI 俏皮话（单行截断）───
 .info-card-witty {
   position: relative;
   z-index: 1;
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
   display: flex;
-  align-items: flex-start;
-  gap: var(--space-1-5);
+  align-items: center;
+  gap: 4px;
   cursor: pointer;
   transition: opacity $transition-normal;
 
@@ -1466,20 +1445,20 @@ onUnmounted(() => {
   }
 
   .witty-icon {
-    font-size: 13px;
+    font-size: 11px;
     flex-shrink: 0;
-    line-height: 1.5;
-    margin-top: 1px;
+    line-height: 1;
   }
 
   .witty-text {
     flex: 1;
     min-width: 0;
-    font-size: 12px;
-    line-height: 1.5;
-    color: rgba(255, 255, 255, 0.85);
-    overflow: visible;
-    text-indent: 2em;
+    font-size: 11px;
+    line-height: 1.3;
+    color: rgba(255, 255, 255, 0.75);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 }
 
@@ -1489,31 +1468,24 @@ onUnmounted(() => {
   min-height: 0;
   overflow-y: auto;
   padding: 8px var(--space-3-5) 48px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-primary) transparent;
 
-  &,
-  * {
-    scrollbar-width: thin !important;
-    scrollbar-color: var(--color-primary) transparent !important;
+  &::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
   }
 
-  &::-webkit-scrollbar,
-  *::-webkit-scrollbar {
-    width: 5px !important;
-    height: 5px !important;
+  &::-webkit-scrollbar-track {
+    background: transparent;
   }
 
-  &::-webkit-scrollbar-track,
-  *::-webkit-scrollbar-track {
-    background: transparent !important;
-  }
-
-  &::-webkit-scrollbar-thumb,
-  *::-webkit-scrollbar-thumb {
-    background: var(--color-primary) !important;
-    border-radius: var(--radius-xs) !important;
+  &::-webkit-scrollbar-thumb {
+    background: var(--color-primary);
+    border-radius: var(--radius-xs);
 
     &:hover {
-      background: var(--color-primary-dark) !important;
+      background: var(--color-primary-dark);
     }
   }
 
@@ -1926,7 +1898,7 @@ onUnmounted(() => {
   min-width: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 20px 20px var(--space-2-5);
+  padding: 20px clamp(12px, 1.5vw, 24px) var(--space-2-5);
 
   &.no-top-padding {
     padding-top: 0; // hideHeader 页面消除顶部间距（子组件自带 detail-header）
@@ -1966,6 +1938,8 @@ onUnmounted(() => {
   justify-content: space-between;
   gap: 16px;
   margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--color-border-light);
   // 去除玻璃态，改为简洁透明（匹配参考设计的无背景顶栏）
 
   // 左侧：图标 + 面包屑
@@ -2276,36 +2250,6 @@ onUnmounted(() => {
         display: none;
       }
     }
-
-    .sidebar-info-card {
-      padding: 12px 8px;
-
-      .info-card-inner {
-        flex-direction: column;
-        align-items: center;
-        gap: 4px;
-      }
-
-      .info-card-date {
-        text-align: center;
-
-        .info-card-meta {
-          display: none;
-        }
-      }
-
-      .info-card-weather {
-        text-align: center;
-
-        .weather-bottom {
-          display: none;
-        }
-      }
-
-      .info-card-witty {
-        display: none;
-      }
-    }
   }
 
   .sidebar-nav {
@@ -2391,6 +2335,15 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   min-width: 0;
+
+  .header-page-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--color-text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 
   .content-breadcrumb {
     :deep(.t-breadcrumb) {
@@ -2520,24 +2473,82 @@ onUnmounted(() => {
     }
   }
 
+  // 移动端抽屉关闭按钮
+  .mobile-drawer-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 10;
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: $radius-md;
+    background: var(--color-bg-page);
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all $transition-fast;
+
+    &:hover {
+      background: var(--overlay-brand-08);
+      color: var(--color-primary);
+    }
+  }
+
   .right-content {
     flex: 1;
     padding: 16px; // 缩小为 p-4 以适应移动端
   }
 
   .content-header {
-    flex-direction: column;
-    gap: 12px;
-    align-items: stretch;
-    margin-bottom: 16px;
+    flex-direction: row;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 12px;
 
     .header-left {
-      flex-wrap: wrap;
+      flex: 1;
+      min-width: 0;
       gap: 8px;
+
+      // 移动端隐藏面包屑，只显示页面标题
+      .content-breadcrumb {
+        display: none;
+      }
+
+      .header-page-title {
+        display: block;
+      }
+
+      .title-icon {
+        display: none;
+      }
     }
 
     .header-actions {
-      justify-content: space-between;
+      flex-shrink: 0;
+      gap: 8px;
+
+      // 移动端隐藏导航按钮组，只保留用户头像
+      .header-nav-buttons {
+        display: none;
+      }
+
+      .header-user-section {
+        .user-display-name {
+          display: none;
+        }
+
+        .user-avatar-arrow {
+          display: none;
+        }
+
+        .user-avatar-wrapper {
+          padding: var(--space-1);
+        }
+      }
     }
   }
 

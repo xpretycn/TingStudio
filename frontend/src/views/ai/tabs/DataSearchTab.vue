@@ -146,6 +146,15 @@
         </t-tag>
       </div>
     </div>
+
+    <div v-if="!searchResult && !searchLoading && !searchError && searchHistory.length === 0" class="search-empty-guide">
+      <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-placeholder)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8" />
+        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+      </svg>
+      <span class="guide-title">输入自然语言，AI 自动生成查询</span>
+      <span class="guide-desc">支持查询配方、原料、业务员、销量等数据，点击上方快速示例即可体验</span>
+    </div>
   </div>
 </template>
 
@@ -705,6 +714,28 @@ onUnmounted(() => {
       display: flex;
       flex-wrap: wrap;
       gap: var(--space-1-5);
+    }
+  }
+
+  .search-empty-guide {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 40px 20px;
+    text-align: center;
+
+    .guide-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--color-text-primary);
+    }
+
+    .guide-desc {
+      font-size: 13px;
+      color: var(--color-text-placeholder);
+      max-width: 320px;
+      line-height: 1.5;
     }
   }
 }

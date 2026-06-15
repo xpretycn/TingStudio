@@ -1,0 +1,17 @@
+node_modules
+dist
+data
+uploads
+exports
+logs
+*.db
+*.db-wal
+*.db-shm
+.env
+.env.*
+!.env.example
+.git
+.github
+*.md
+test
+coverage
