@@ -1,4 +1,4 @@
-import { query, getDatabaseType } from "../config/database-adapter.js";
+import { query, execute } from "../config/database-adapter.js";
 import { generateId, now, rowToCamelCase, rowsToCamelCase } from "../utils/helpers.js";
 import { logger } from "../utils/logger.js";
 
@@ -42,25 +42,20 @@ function createAppError(message: string, code: string): Error & { code: string }
 
 async function ensureExclusionsTable(): Promise<void> {
   try {
-    const dbType = getDatabaseType();
-    if (dbType === "sqlite") {
-      const { getDb } = await import("../config/database-better-sqlite3.js");
-      const db = getDb();
-      db.exec(`
-        CREATE TABLE IF NOT EXISTS enum_exclusions (
-          id VARCHAR(36) PRIMARY KEY,
-          category VARCHAR(50) NOT NULL,
-          value_a VARCHAR(100) NOT NULL,
-          value_b VARCHAR(100) NOT NULL,
-          created_at DATETIME NOT NULL,
-          updated_at DATETIME NOT NULL,
-          UNIQUE(category, value_a, value_b)
-        )
-      `);
-      db.exec("CREATE INDEX IF NOT EXISTS idx_exclusion_category ON enum_exclusions(category)");
-      db.exec("CREATE INDEX IF NOT EXISTS idx_exclusion_value_a ON enum_exclusions(value_a)");
-      db.exec("CREATE INDEX IF NOT EXISTS idx_exclusion_value_b ON enum_exclusions(value_b)");
-    }
+    await execute(`
+      CREATE TABLE IF NOT EXISTS enum_exclusions (
+        id VARCHAR(36) PRIMARY KEY,
+        category VARCHAR(50) NOT NULL,
+        value_a VARCHAR(100) NOT NULL,
+        value_b VARCHAR(100) NOT NULL,
+        created_at DATETIME NOT NULL,
+        updated_at DATETIME NOT NULL,
+        UNIQUE(category, value_a, value_b),
+        INDEX idx_exclusion_category (category),
+        INDEX idx_exclusion_value_a (value_a),
+        INDEX idx_exclusion_value_b (value_b)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
   } catch {
     // ignore if table already exists
   }

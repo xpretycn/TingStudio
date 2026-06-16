@@ -8,8 +8,6 @@ console.log('开始执行 ratio_factor 字段迁移...')
 
 // 连接数据库
 const db = new Database(DB_PATH)
-db.pragma('journal_mode = WAL')
-db.pragma('foreign_keys = ON')
 console.log('数据库连接成功')
 
 // 执行 SQL 语句的封装函数

@@ -1,5 +1,5 @@
 import cron, { ScheduledTask } from 'node-cron';
-import { getDb } from '../config/database-better-sqlite3.js';
+import { query, execute } from '../config/database-adapter.js';
 
 export type DegradationLevel = 'normal' | 'degraded' | '熔断';
 
@@ -26,12 +26,10 @@ class ParseResultCleanupService {
   private currentDegradationLevel: DegradationLevel = 'normal';
 
   async getSystemStatus(): Promise<SystemStatus> {
-    const db = getDb();
+    
 
-    const totalResult = db.prepare('SELECT COUNT(*) as count FROM parse_results').get() as { count: number };
-    const configResult = db.prepare(
-      "SELECT config_key, config_value FROM parse_result_configs WHERE config_key IN ('storage_limit', 'cleanup_threshold_percent')"
-    ).all() as Array<{ config_key: string; config_value: string }>;
+    const totalResult = (await query('SELECT COUNT(*) as count FROM parse_results', [])).rows[0] as { count: number };
+    const configResult = (await query("SELECT config_key, config_value FROM parse_result_configs WHERE config_key IN ('storage_limit', 'cleanup_threshold_percent')", [])).rows as Array<{ config_key: string; config_value: string }>;
 
     const configMap = new Map<string, number>();
     for (const row of configResult) {
@@ -43,9 +41,7 @@ class ParseResultCleanupService {
     const usagePercent = Math.round((totalResult.count / storageLimit) * 100);
     const isOverThreshold = usagePercent >= cleanupThreshold;
 
-    const lastCleanup = db.prepare(
-      "SELECT created_at FROM parse_results ORDER BY created_at ASC LIMIT 1"
-    ).get() as { created_at: string } | undefined;
+    const lastCleanup = (await query("SELECT created_at FROM parse_results ORDER BY created_at ASC LIMIT 1", [])).rows[0] as { created_at: string } | undefined;
 
     const newDegradationLevel = this.calculateDegradationLevel(
       totalResult.count,
@@ -81,7 +77,7 @@ class ParseResultCleanupService {
   }
 
   async performCleanup(dryRun: boolean = false): Promise<CleanupResult> {
-    const db = getDb();
+    
     const status = await this.getSystemStatus();
 
     if (status.usagePercent < status.cleanupThreshold && !dryRun) {
@@ -111,12 +107,12 @@ class ParseResultCleanupService {
       };
     }
 
-    const idsToDelete = db.prepare(`
+    const idsToDelete = (await query(`
       SELECT id FROM parse_results
       WHERE is_linked = 0
       ORDER BY created_at ASC
       LIMIT ?
-    `).all(recordsToDelete) as Array<{ id: string }>;
+    `, [recordsToDelete])).rows as Array<{ id: string }>;
 
     if (idsToDelete.length === 0) {
       return {
@@ -127,9 +123,9 @@ class ParseResultCleanupService {
     }
 
     const placeholders = idsToDelete.map(() => '?').join(',');
-    const result = db.prepare(`
+    const result = await execute(`
       DELETE FROM parse_results WHERE id IN (${placeholders})
-    `).run(...idsToDelete.map(r => r.id));
+    `, [...idsToDelete.map(r => r.id]));
 
     this.lastCleanupResult = {
       deletedCount: result.changes,

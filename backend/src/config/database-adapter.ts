@@ -1,10 +1,6 @@
-// 数据库适配器 - 支持 SQLite (better-sqlite3) 和 MySQL
-import { config } from './index.js';
-import { query as sqliteQuery, getDb as getSqliteDb, connectDatabase as connectSqlite, transaction as sqliteTransaction } from './database-better-sqlite3.js';
-import { query as mysqlQuery, connectMySQL, closeMySQL, getMySQLPool } from './mysql.js';
+// 数据库适配器 - MySQL 唯一驱动
+import { query as mysqlQuery, execute as mysqlExecute, connectMySQL, closeMySQL, transaction as mysqlTransaction, getMySQLPool } from './mysql.js';
 import { logger } from '../utils/logger.js';
-
-export type DatabaseType = 'sqlite' | 'mysql';
 
 export interface QueryResult<T = Record<string, unknown>> {
   rows: T[];
@@ -13,104 +9,51 @@ export interface QueryResult<T = Record<string, unknown>> {
 }
 
 export async function connectDatabase(): Promise<void> {
-  const dbType = config.database.type as DatabaseType;
-  
-  if (dbType === 'mysql') {
-    await connectMySQL();
-  } else {
-    await connectSqlite();
-  }
-  
-  logger.info(`数据库已连接 (类型: ${dbType})`);
+  await connectMySQL();
+  logger.info('数据库已连接 (类型: mysql)');
 }
 
 export async function query<T = Record<string, unknown>>(sql: string, params?: unknown[]): Promise<QueryResult<T>> {
-  const dbType = config.database.type as DatabaseType;
-  
   try {
-    if (dbType === 'mysql') {
-      const rows = await mysqlQuery<T[]>(sql, params);
-      return { rows };
-    } else {
-      // SQLite 查询适配
-      const result = await sqliteQuery<T[]>(sql, params);
-      
-      // SQLite 返回格式适配
-      if (Array.isArray(result) && result.length > 0 && Array.isArray(result[0])) {
-        return { rows: result[0] };
-      }
-      
-      return { rows: result as T[] };
-    }
+    const rows = await mysqlQuery<T[]>(sql, params);
+    return { rows };
   } catch (error) {
-    logger.error('数据库查询错误:', { sql, params, dbType, error });
+    logger.error('数据库查询错误:', { sql, params, error });
     throw error;
   }
 }
 
 export async function execute(sql: string, params?: unknown[]): Promise<{ changes: number; lastInsertId?: number }> {
-  const dbType = config.database.type as DatabaseType;
-  
   try {
-    if (dbType === 'mysql') {
-      const [result] = await getMySQLPool().execute(sql, params as (string | number | boolean | null | Buffer)[]);
-      const mysqlResult = result as any;
-      return {
-        changes: mysqlResult.affectedRows || 0,
-        lastInsertId: mysqlResult.insertId,
-      };
-    } else {
-      const result = await sqliteQuery(sql, params);
-      return {
-        changes: (result as any)?.changes || 0,
-        lastInsertId: (result as any)?.lastInsertRowid,
-      };
-    }
+    return await mysqlExecute(sql, params);
   } catch (error) {
-    logger.error('数据库执行错误:', { sql, params, dbType, error });
+    logger.error('数据库执行错误:', { sql, params, error });
     throw error;
   }
 }
 
 export async function closeDatabase(): Promise<void> {
-  const dbType = config.database.type as DatabaseType;
-  
-  if (dbType === 'mysql') {
-    await closeMySQL();
-  }
-  
+  await closeMySQL();
   logger.info('数据库连接已关闭');
 }
 
-export function getDatabaseType(): DatabaseType {
-  return config.database.type as DatabaseType;
+export function getDatabaseType(): string {
+  return 'mysql';
 }
 
-// 数据库特定的 SQL 适配器
-export function transaction<T>(fn: () => T): T {
-  const dbType = config.database.type as DatabaseType;
-  
-  if (dbType === 'mysql') {
-    throw new Error('MySQL 事务暂未实现，请使用 SQLite');
-  }
-  
-  return sqliteTransaction(fn);
+export async function transactionAsync<T>(fn: () => Promise<T>): Promise<T> {
+  return mysqlTransaction(async () => fn());
 }
 
+// 兼容旧代码的同步事务入口（MySQL 下抛错提示使用异步版本）
+export function transaction<T>(_fn: () => T): T {
+  throw new Error('MySQL 不支持同步事务，请使用 transactionAsync()');
+}
+
+// SQL 适配（MySQL 原生，无需转换）
 export function adaptSQL(sql: string): string {
-  const dbType = config.database.type as DatabaseType;
-  
-  if (dbType === 'mysql') {
-    // SQLite 到 MySQL 的 SQL 适配
-    return sql
-      .replace(/datetime\('now'\)/g, 'NOW()')
-      .replace(/TEXT PRIMARY KEY/g, 'VARCHAR(36) PRIMARY KEY')
-      .replace(/TEXT NOT NULL/g, 'VARCHAR(255) NOT NULL')
-      .replace(/TEXT/g, 'VARCHAR(255)')
-      .replace(/REAL/g, 'DECIMAL(10,2)')
-      .replace(/INTEGER/g, 'INT')
-      .replace(/CHECK\([^)]+\)/g, ''); // MySQL 不支持 SQLite 的 CHECK 约束
-  }
-  
   return sql;
 }
+
+// 重新导出 MySQL 的 query/execute 供直接使用
+export { mysqlQuery as rawQuery, mysqlExecute as rawExecute, getMySQLPool };

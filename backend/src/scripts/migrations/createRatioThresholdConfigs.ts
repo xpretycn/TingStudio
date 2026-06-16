@@ -1,4 +1,4 @@
-import { getDb, connectDatabase } from "../../config/database-better-sqlite3.js";
+import { query, execute } from '../../config/database-adapter.js';
 import crypto from "node:crypto";
 
 connectDatabase();
@@ -7,10 +7,10 @@ async function migrateCreateRatioThresholdConfigs() {
   console.log("开始迁移：创建含量比校验阈值配置表...\n");
 
   try {
-    const db = getDb();
+    
 
     console.log("创建 ratio_threshold_configs 表...");
-    db.exec(`
+    await execute(`
       CREATE TABLE IF NOT EXISTS ratio_threshold_configs (
         id TEXT PRIMARY KEY,
         normal_low REAL NOT NULL DEFAULT 0.98,
@@ -25,13 +25,13 @@ async function migrateCreateRatioThresholdConfigs() {
     `);
     console.log("✅ ratio_threshold_configs 表创建成功\n");
 
-    const existing = db.prepare("SELECT id FROM ratio_threshold_configs LIMIT 1").get();
+    const existing = (await query("SELECT id FROM ratio_threshold_configs LIMIT 1", [])).rows[0];
     if (!existing) {
       const now = new Date().toISOString();
-      db.prepare(`
+      await execute(`
         INSERT INTO ratio_threshold_configs (id, normal_low, normal_high, warning_low, warning_high, high_warning_low, high_warning_high, updated_at, updated_by)
         VALUES (?, 0.98, 1.02, 0.95, 1.05, 0.92, 1.08, ?, NULL)
-      `).run(crypto.randomUUID(), now);
+      `, [crypto.randomUUID(]), now);
       console.log("✅ 默认阈值配置插入成功\n");
     } else {
       console.log("ℹ️ 阈值配置已存在，跳过默认数据插入\n");

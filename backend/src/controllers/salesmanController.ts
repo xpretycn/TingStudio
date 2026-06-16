@@ -1,6 +1,6 @@
 // 业务员管理控制器
 import { Request, Response } from "express";
-import { query } from "../config/database-better-sqlite3.js";
+import { query } from '../config/database-adapter.js';
 import {
   generateId,
   now,

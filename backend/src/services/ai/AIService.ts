@@ -1,5 +1,5 @@
 import crypto from "node:crypto";
-import { getDb } from "../../config/database-better-sqlite3.js";
+import { query, execute } from '../../config/database-adapter.js';
 import { checkAndFireAlerts } from "../../controllers/modelController.js";
 
 export interface AIModelConfig {
@@ -159,19 +159,18 @@ export class AIService {
     return [];
   }
 
-  reloadModels(): void {
+  async reloadModels(): Promise<void> {
     try {
-      const db = getDb();
-      const rows = db
-        .prepare(
+      
+      const rows = (await query(
           `
         SELECT m.*, f.fallback_provider
         FROM ai_models m
         LEFT JOIN ai_fallback_configs f ON m.id = f.model_id AND f.fallback_priority = 1 AND f.enabled = 1
         ORDER BY m.sort_order
       `,
-        )
-        .all();
+          []
+        )).rows;
 
       if (rows && rows.length > 0) {
         this.models = (rows as any[]).map(row => ({
@@ -195,9 +194,8 @@ export class AIService {
 
   private async getFallbackProvider(provider: string): Promise<string | null> {
     try {
-      const db = getDb();
-      const row = db
-        .prepare(
+      
+      const row = ((await query(
           `
         SELECT f.fallback_provider
         FROM ai_fallback_configs f
@@ -206,15 +204,15 @@ export class AIService {
         ORDER BY f.fallback_priority
         LIMIT 1
       `,
-        )
-        .get(provider) as any;
-      return row?.fallback_provider || null;
+          [provider]
+        )).rows[0]) as Record<string, unknown> | undefined;
+      return (row?.fallback_provider as string) || null;
     } catch {
       return null;
     }
   }
 
-  recordUsage(params: {
+  async recordUsage(params: {
     provider: string;
     model: string;
     callType: string;
@@ -231,13 +229,6 @@ export class AIService {
     applicationLocation?: string;
   }): void {
     try {
-      const db = getDb();
-
-      if (!db) {
-        console.error("[AI] 记录用量失败: 数据库实例为空");
-        return;
-      }
-
       const id = `ul_${crypto.randomUUID().slice(0, 8)}`;
 
       const appMapping = CALL_TYPE_APP_MAP[params.callType] || CALL_TYPE_APP_MAP.unknown;
@@ -246,13 +237,10 @@ export class AIService {
 
       console.log(`[AI-Usage] 准备记录用量: provider=${params.provider}, model=${params.model}, callType=${params.callType}, totalTokens=${params.totalTokens}`);
 
-      db.prepare(
-        `
+      await execute(`
         INSERT INTO ai_usage_logs (id, provider, model, call_type, prompt_tokens, completion_tokens, total_tokens, latency_ms, status, error_message, request_summary, fallback_from, user_id, application_name, application_location, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
-      `,
-      ).run(
-        id,
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+      `, [id,
         params.provider,
         params.model,
         params.callType,
@@ -266,13 +254,12 @@ export class AIService {
         params.fallbackFrom || null,
         params.userId || null,
         applicationName,
-        applicationLocation,
-      );
+        applicationLocation,]);
 
       console.log(`[AI-Usage] ✅ 用量记录成功: id=${id}, tokens=${params.totalTokens}`);
 
       try {
-        checkAndFireAlerts(params.provider, params.totalTokens, db);
+        checkAndFireAlerts(params.provider, params.totalTokens);
       } catch (alertErr) {
         console.warn("[AI-Usage] ⚠️ 告警检查失败（不影响主流程）:", alertErr);
       }

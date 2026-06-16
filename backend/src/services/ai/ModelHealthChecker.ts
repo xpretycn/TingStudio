@@ -1,5 +1,5 @@
 import crypto from 'node:crypto'
-import { getDb } from '../../config/database-better-sqlite3.js'
+import { query, execute } from '../../config/database-adapter.js';
 import { aiService } from './AIService.js'
 
 export class ModelHealthChecker {
@@ -37,8 +37,8 @@ export class ModelHealthChecker {
 
   async checkAll(): Promise<void> {
     try {
-      const db = getDb()
-      const models = db.prepare('SELECT * FROM ai_models WHERE api_key != ""').all() as any[]
+      
+      const models = (await query('SELECT * FROM ai_models WHERE api_key != ""', [])).rows as any[]
 
       for (const model of models) {
         const intervalDays = model.health_check_interval_days || 1
@@ -58,7 +58,7 @@ export class ModelHealthChecker {
   async checkOne(model: any): Promise<void> {
     const start = Date.now()
     const now = new Date().toISOString()
-    const db = getDb()
+    
 
     try {
       await aiService.chatCompletion(model.provider, [
@@ -66,24 +66,22 @@ export class ModelHealthChecker {
       ], { maxTokens: 5, temperature: 0, callType: 'health_check' })
 
       const latencyMs = Date.now() - start
-      db.prepare("UPDATE ai_models SET health_status = 'healthy', last_health_check = ?, last_health_latency = ?, updated_at = ? WHERE id = ?")
-        .run(now, latencyMs, now, model.id)
+      await execute("UPDATE ai_models SET health_status = 'healthy', last_health_check = ?, last_health_latency = ?, updated_at = ? WHERE id = ?", [now, latencyMs, now, model.id])
 
-      db.prepare(`
+      await execute(`
         INSERT INTO ai_health_records (id, provider, status, latency_ms, checked_at)
         VALUES (?, ?, 'healthy', ?, ?)
-      `).run(`hr_${crypto.randomUUID().slice(0, 8)}`, model.provider, latencyMs, now)
+      `, [`hr_${crypto.randomUUID(]).slice(0, 8)}`, model.provider, latencyMs, now)
 
       console.log(`[HealthChecker] ${model.name} (${model.provider}): healthy, ${latencyMs}ms`)
     } catch (err: any) {
       const latencyMs = Date.now() - start
-      db.prepare("UPDATE ai_models SET health_status = 'unhealthy', last_health_check = ?, last_health_latency = ?, updated_at = ? WHERE id = ?")
-        .run(now, latencyMs, now, model.id)
+      await execute("UPDATE ai_models SET health_status = 'unhealthy', last_health_check = ?, last_health_latency = ?, updated_at = ? WHERE id = ?", [now, latencyMs, now, model.id])
 
-      db.prepare(`
+      await execute(`
         INSERT INTO ai_health_records (id, provider, status, latency_ms, error_message, checked_at)
         VALUES (?, ?, 'unhealthy', ?, ?, ?)
-      `).run(`hr_${crypto.randomUUID().slice(0, 8)}`, model.provider, latencyMs, err.message?.substring(0, 200), now)
+      `, [`hr_${crypto.randomUUID(]).slice(0, 8)}`, model.provider, latencyMs, err.message?.substring(0, 200), now)
 
       console.warn(`[HealthChecker] ${model.name} (${model.provider}): unhealthy - ${err.message}`)
     }

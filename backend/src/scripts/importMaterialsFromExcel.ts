@@ -1,7 +1,7 @@
 import XLSX from "xlsx";
 import path from "path";
 import { fileURLToPath } from "url";
-import { connectDatabase, getDb, closeDatabase, transaction } from "../config/database-better-sqlite3.js";
+import { query, execute, closeDatabase, transactionAsync } from '../config/database-adapter.js';
 import { generateMaterialCode } from "../utils/helpers.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -31,7 +31,7 @@ async function main() {
   console.log("═══════════════════════════════════════════════════════════════\n");
 
   await connectDatabase();
-  const db = getDb();
+  
 
   const inputPath = path.join(__dirname, "../../../test/原料数据库导入_完整版_已清理.xlsx");
   const workbook = XLSX.readFile(inputPath);
@@ -46,12 +46,12 @@ async function main() {
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 
   transaction(() => {
-    db.prepare("DELETE FROM material_nutrition").run();
-    const nutCount = db.prepare("SELECT COUNT(*) as cnt FROM material_nutrition").get() as any;
+    await execute("DELETE FROM material_nutrition", []);
+    const nutCount = (await query("SELECT COUNT(*) as cnt FROM material_nutrition", [])).rows[0] as any;
     console.log(`   material_nutrition: 已清空 (剩余: ${nutCount.cnt})`);
 
-    db.prepare("DELETE FROM materials").run();
-    const matCount = db.prepare("SELECT COUNT(*) as cnt FROM materials").get() as any;
+    await execute("DELETE FROM materials", []);
+    const matCount = (await query("SELECT COUNT(*) as cnt FROM materials", [])).rows[0] as any;
     console.log(`   materials: 已清空 (剩余: ${matCount.cnt})`);
   });
 
@@ -61,7 +61,7 @@ async function main() {
   console.log("步骤 2: 导入原料数据");
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 
-  const adminUser = db.prepare("SELECT id FROM users WHERE role = 'admin' LIMIT 1").get() as any;
+  const adminUser = (await query("SELECT id FROM users WHERE role = 'admin' LIMIT 1", [])).rows[0] as any;
   const adminId = adminUser ? adminUser.id : "system";
   console.log(`   管理员ID: ${adminId}\n`);
 
@@ -90,7 +90,7 @@ async function main() {
         const dataSource = String(row["数据来源"] || "batch_import");
         const timestamp = new Date().toISOString();
 
-        db.prepare(`
+        (await query(`
           INSERT INTO materials (id, name, code, unit, stock, material_type, unit_price, data_source, created_by, created_at, updated_at)
           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `).run(materialId, name, code, unit, stock, materialType, unitPrice, dataSource, adminId, timestamp, timestamp);
@@ -114,10 +114,10 @@ async function main() {
           vitaminC_mg: 0,
         };
 
-        db.prepare(`
+        await execute(`
           INSERT INTO material_nutrition (nutrition_id, material_id, per_100g_json, data_version, data_source, last_updated)
           VALUES (?, ?, ?, '1.0', ?, ?)
-        `).run(nutritionId, materialId, JSON.stringify(per100g), dataSource, timestamp);
+        `, [nutritionId, materialId, JSON.stringify(per100g]), dataSource, timestamp);
 
         successCount++;
         if (successCount <= 10) {
@@ -137,10 +137,10 @@ async function main() {
   console.log("步骤 3: 数据验证");
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 
-  const matTotal = (db.prepare("SELECT COUNT(*) as cnt FROM materials").get() as any).cnt;
-  const nutTotal = (db.prepare("SELECT COUNT(*) as cnt FROM material_nutrition").get() as any).cnt;
-  const herbCount = (db.prepare("SELECT COUNT(*) as cnt FROM materials WHERE material_type = 'herb'").get() as any).cnt;
-  const supCount = (db.prepare("SELECT COUNT(*) as cnt FROM materials WHERE material_type = 'supplement'").get() as any).cnt;
+  const matTotal = ((await query("SELECT COUNT(*) as cnt FROM materials", [])).rows[0] as any).cnt;
+  const nutTotal = ((await query("SELECT COUNT(*) as cnt FROM material_nutrition", [])).rows[0] as any).cnt;
+  const herbCount = ((await query("SELECT COUNT(*) as cnt FROM materials WHERE material_type = 'herb'", [])).rows[0] as any).cnt;
+  const supCount = ((await query("SELECT COUNT(*) as cnt FROM materials WHERE material_type = 'supplement'", [])).rows[0] as any).cnt;
 
   console.log(`   原料总数: ${matTotal}`);
   console.log(`   营养数据: ${nutTotal}`);
@@ -152,7 +152,7 @@ async function main() {
     FROM materials
     GROUP BY name
     HAVING cnt > 1
-  `).all();
+  `, [])).rows;
 
   if (duplicates.length > 0) {
     console.log(`\n   ⚠️ 发现 ${duplicates.length} 组重复名称:`);

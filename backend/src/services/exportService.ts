@@ -1,7 +1,7 @@
 import path from "path";
 import fs from "fs";
 
-import { query } from "../config/database-better-sqlite3.js";
+import { query } from '../config/database-adapter.js';
 import {
   generateId,
   now,

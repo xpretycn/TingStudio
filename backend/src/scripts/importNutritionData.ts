@@ -89,14 +89,14 @@ const allMaterials: MaterialRow[] = [
 async function importNutritionData() {
   console.log('开始导入 XLS 原料营养数据...')
   await connectDatabase()
-  const db = getDb()
+  
 
   // 查询现有最大 code 编号
-  const maxCodeRow = db.prepare("SELECT code FROM materials WHERE code LIKE 'MAT%' ORDER BY code DESC LIMIT 1").get() as any
+  const maxCodeRow = (await query("SELECT code FROM materials WHERE code LIKE 'MAT%' ORDER BY code DESC LIMIT 1", [])).rows[0] as any
   const startNum = maxCodeRow ? parseInt(maxCodeRow.code.replace('MAT', '')) + 1 : 1
 
   // 查询现有用户（用作 created_by）
-  const adminUser = db.prepare("SELECT id FROM users WHERE role = 'admin' LIMIT 1").get() as any
+  const adminUser = (await query("SELECT id FROM users WHERE role = 'admin' LIMIT 1", [])).rows[0] as any
   const adminId = adminUser ? adminUser.id : 'system'
 
   // 去重：同名原料只保留第一条
@@ -120,7 +120,7 @@ async function importNutritionData() {
       const timestamp = now2()
 
       // 检查是否已存在同名原料
-      const existing = db.prepare('SELECT id, name, code FROM materials WHERE name = ?').get(mat.name) as any
+      const existing = (await query('SELECT id, name, code FROM materials WHERE name = ?', [mat.name])).rows[0] as any
 
       let materialId: string
       if (existing) {
@@ -128,9 +128,7 @@ async function importNutritionData() {
         console.log(`  原料已存在，跳过新增: ${mat.name} (${existing.code})`)
       } else {
         materialId = generateId2()
-        db.prepare(
-          'INSERT INTO materials (id, name, code, unit, stock, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
-        ).run(materialId, mat.name, code, 'g', 0, adminId, timestamp, timestamp)
+        await execute('INSERT INTO materials (id, name, code, unit, stock, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', [materialId, mat.name, code, 'g', 0, adminId, timestamp, timestamp])
         console.log(`✓ 新增原料: ${mat.name} (${code})`)
         insertedCount++
       }
@@ -154,13 +152,10 @@ async function importNutritionData() {
       const nutritionId = generateId2()
 
       // 检查是否已有营养数据
-      const existingNut = db.prepare('SELECT nutrition_id FROM material_nutrition WHERE material_id = ?').get(materialId) as any
+      const existingNut = (await query('SELECT nutrition_id FROM material_nutrition WHERE material_id = ?', [materialId])).rows[0] as any
 
       if (existingNut) {
-        db.prepare(
-          `UPDATE material_nutrition SET per_100g_json = ?, data_source = ?, data_version = ?, notes = ?, last_updated = ? WHERE material_id = ?`
-        ).run(
-          JSON.stringify(per100g),
+        await execute(`UPDATE material_nutrition SET per_100g_json = ?, data_source = ?, data_version = ?, notes = ?, last_updated = ? WHERE material_id = ?`, [JSON.stringify(per100g]),
           'nutrition1.xls / nutrition2.xls 配方营养计算表',
           '2.0',
           `来源配方: ${mat.source}`,
@@ -170,12 +165,9 @@ async function importNutritionData() {
         console.log(`  更新营养数据: ${mat.name}`)
         updatedCount++
       } else {
-        db.prepare(
-          'INSERT INTO material_nutrition (nutrition_id, material_id, per_100g_json, data_version, data_source, notes, last_updated) VALUES (?, ?, ?, ?, ?, ?, ?)'
-        ).run(
-          nutritionId,
+        await execute('INSERT INTO material_nutrition (nutrition_id, material_id, per_100g_json, data_version, data_source, notes, last_updated) VALUES (?, ?, ?, ?, ?, ?, ?)', [nutritionId,
           materialId,
-          JSON.stringify(per100g),
+          JSON.stringify(per100g]),
           '1.0',
           'nutrition1.xls / nutrition2.xls 配方营养计算表',
           `来源配方: ${mat.source}`,
@@ -199,8 +191,8 @@ async function importNutritionData() {
   console.log('═══════════════════════════════════════')
 
   // 验证
-  const totalMaterials = (db.prepare('SELECT COUNT(*) as cnt FROM materials').get() as any).cnt
-  const totalNutrition = (db.prepare('SELECT COUNT(*) as cnt FROM material_nutrition').get() as any).cnt
+  const totalMaterials = ((await query('SELECT COUNT(*) as cnt FROM materials', [])).rows[0] as any).cnt
+  const totalNutrition = ((await query('SELECT COUNT(*) as cnt FROM material_nutrition', [])).rows[0] as any).cnt
   console.log(`\n数据库验证:`)
   console.log(`  materials 表总数: ${totalMaterials}`)
   console.log(`  material_nutrition 表总数: ${totalNutrition}`)

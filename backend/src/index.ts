@@ -11,7 +11,7 @@ import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js";
 import { requestLogger } from "./middleware/logger.js";
 import { optionalAuth } from "./middleware/auth.js";
 
-import { connectDatabase, query, getDatabaseType } from "./config/database-adapter.js";
+import { connectDatabase, query } from "./config/database-adapter.js";
 import { AIService } from "./services/ai/AIService.js";
 import { initializeLLMAgentService } from "./services/ai/agent/index.js";
 import { registerAllTools } from "./services/ai/agent/toolRegistration.js";
@@ -25,49 +25,23 @@ let isReady = false;
 
 async function ensureReviewLogsTable(): Promise<void> {
   try {
-    const dbType = getDatabaseType();
-    if (dbType === "sqlite") {
-      const result: any = await query(
-        "SELECT name FROM sqlite_master WHERE type='table' AND name='formula_review_logs'"
-      );
-      if (result.rows && result.rows.length > 0) return;
-
-      await query(`
-        CREATE TABLE IF NOT EXISTS formula_review_logs (
-          review_log_id  TEXT PRIMARY KEY,
-          version_id     TEXT NOT NULL,
-          reviewer_id    TEXT NOT NULL,
-          reviewer_name  TEXT DEFAULT NULL,
-          action         TEXT NOT NULL CHECK(action IN ('submit', 'approve', 'reject')),
-          comment        TEXT DEFAULT NULL,
-          created_at     TEXT NOT NULL DEFAULT (datetime('now')),
-          FOREIGN KEY (version_id)  REFERENCES formula_versions(version_id) ON DELETE CASCADE,
-          FOREIGN KEY (reviewer_id) REFERENCES users(id) ON DELETE SET NULL
-        )
-      `);
-      await query("CREATE INDEX IF NOT EXISTS idx_frl_version ON formula_review_logs(version_id)");
-      await query("CREATE INDEX IF NOT EXISTS idx_frl_reviewer ON formula_review_logs(reviewer_id)");
-      await query("CREATE INDEX IF NOT EXISTS idx_frl_action ON formula_review_logs(action)");
-      console.log("[Startup] ✓ formula_review_logs 表已自动创建");
-    } else {
-      await query(`
-        CREATE TABLE IF NOT EXISTS formula_review_logs (
-          review_log_id  VARCHAR(36) PRIMARY KEY,
-          version_id     VARCHAR(36) NOT NULL,
-          reviewer_id    VARCHAR(36) NOT NULL,
-          reviewer_name  VARCHAR(255) DEFAULT NULL,
-          action         VARCHAR(20) NOT NULL,
-          comment        TEXT DEFAULT NULL,
-          created_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-          INDEX idx_frl_version  (version_id),
-          INDEX idx_frl_reviewer (reviewer_id),
-          INDEX idx_frl_action   (action),
-          FOREIGN KEY (version_id)  REFERENCES formula_versions(version_id) ON DELETE CASCADE,
-          FOREIGN KEY (reviewer_id) REFERENCES users(id) ON DELETE SET NULL
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-      `);
-      console.log("[Startup] ✓ formula_review_logs 表已自动创建 (MySQL)");
-    }
+    await query(`
+      CREATE TABLE IF NOT EXISTS formula_review_logs (
+        review_log_id  VARCHAR(36) PRIMARY KEY,
+        version_id     VARCHAR(36) NOT NULL,
+        reviewer_id    VARCHAR(36) NOT NULL,
+        reviewer_name  VARCHAR(255) DEFAULT NULL,
+        action         VARCHAR(20) NOT NULL,
+        comment        TEXT DEFAULT NULL,
+        created_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_frl_version  (version_id),
+        INDEX idx_frl_reviewer (reviewer_id),
+        INDEX idx_frl_action   (action),
+        FOREIGN KEY (version_id)  REFERENCES formula_versions(version_id) ON DELETE CASCADE,
+        FOREIGN KEY (reviewer_id) REFERENCES users(id) ON DELETE SET NULL
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+    console.log("[Startup] ✓ formula_review_logs 表已确认存在");
   } catch (error) {
     console.error("[Startup] ✗ 创建 formula_review_logs 表失败:", error);
   }

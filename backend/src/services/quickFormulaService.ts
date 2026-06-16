@@ -1,5 +1,5 @@
 // 快速配方 Service 层
-import { query } from "../config/database-better-sqlite3.js";
+import { query } from '../config/database-adapter.js';
 import {
   generateId,
   generateFormulaCode,

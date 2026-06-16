@@ -1,4 +1,4 @@
-import { getDb } from "../../config/database-better-sqlite3.js";
+import { query, execute } from '../../config/database-adapter.js';
 import { generateId } from "../../utils/helpers.js";
 
 interface SalespersonRecord {
@@ -39,36 +39,32 @@ interface SalespersonQueryParams {
 
 class SalespersonService {
   async create(input: SalespersonCreateInput): Promise<SalespersonRecord> {
-    const db = getDb();
+    
     const id = generateId();
 
-    const lastCodeRow = db.prepare(
-      "SELECT code FROM salesmen WHERE code LIKE 'YW%' ORDER BY code DESC LIMIT 1"
-    ).get() as any;
+    const lastCodeRow = (await query("SELECT code FROM salesmen WHERE code LIKE 'YW%' ORDER BY code DESC LIMIT 1", [])).rows[0] as any;
     let code = "YW001";
     if (lastCodeRow?.code) {
       const num = parseInt(lastCodeRow.code.replace("YW", ""), 10);
       code = `YW${String(num + 1).padStart(3, "0")}`;
     }
 
-    db.prepare(
-      "INSERT INTO salesmen (id, name, code, department, phone, email, status, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))"
-    ).run(id, input.name, code, input.department || null, input.phone || null, input.email || null, "active", "agent");
+    await execute("INSERT INTO salesmen (id, name, code, department, phone, email, status, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)", [id, input.name, code, input.department || null, input.phone || null, input.email || null, "active", "agent"]);
 
-    const row = db.prepare("SELECT * FROM salesmen WHERE id = ?").get(id) as SalespersonRecord;
+    const row = (await query("SELECT * FROM salesmen WHERE id = ?", [id])).rows[0] as SalespersonRecord;
     return row;
   }
 
   async getById(id: number | string): Promise<SalespersonRecord | null> {
-    const db = getDb();
-    const row = db.prepare("SELECT * FROM salesmen WHERE id = ?").get(String(id)) as SalespersonRecord | undefined;
+    
+    const row = (await query("SELECT * FROM salesmen WHERE id = ?", [String(id])).rows[0]) as SalespersonRecord | undefined;
     return row || null;
   }
 
   async update(id: number | string, input: SalespersonUpdateInput): Promise<SalespersonRecord | null> {
-    const db = getDb();
+    
     const sid = String(id);
-    const existing = db.prepare("SELECT * FROM salesmen WHERE id = ?").get(sid) as SalespersonRecord | undefined;
+    const existing = (await query("SELECT * FROM salesmen WHERE id = ?", [sid])).rows[0] as SalespersonRecord | undefined;
     if (!existing) return null;
 
     const setClauses: string[] = [];
@@ -82,16 +78,16 @@ class SalespersonService {
 
     if (setClauses.length === 0) return existing;
 
-    setClauses.push("updated_at = datetime('now')");
+    setClauses.push("updated_at = CURRENT_TIMESTAMP");
     sqlParams.push(sid);
-    db.prepare(`UPDATE salesmen SET ${setClauses.join(", ")} WHERE id = ?`).run(...sqlParams);
+    await execute(`UPDATE salesmen SET ${setClauses.join(", ")} WHERE id = ?`, [...sqlParams]);
 
-    return db.prepare("SELECT * FROM salesmen WHERE id = ?").get(sid) as SalespersonRecord;
+    return (await query("SELECT * FROM salesmen WHERE id = ?", [sid])).rows[0] as SalespersonRecord;
   }
 
   async delete(id: number | string): Promise<boolean> {
-    const db = getDb();
-    const result = db.prepare("DELETE FROM salesmen WHERE id = ?").run(String(id));
+    
+    const result = await execute("DELETE FROM salesmen WHERE id = ?", [String(id]));
     return result.changes > 0;
   }
 
@@ -101,7 +97,7 @@ class SalespersonService {
     page: number;
     limit: number;
   }> {
-    const db = getDb();
+    
     const conditions: string[] = [];
     const sqlParams: any[] = [];
 
@@ -124,13 +120,10 @@ class SalespersonService {
     const limit = params.limit || 20;
     const offset = (page - 1) * limit;
 
-    const rows = db.prepare(
-      `SELECT * FROM salesmen ${whereSql} ORDER BY created_at DESC LIMIT ? OFFSET ?`
-    ).all(...sqlParams, limit, offset) as SalespersonRecord[];
+    const rows = (await query(`SELECT * FROM salesmen ${whereSql} ORDER BY created_at DESC LIMIT ? OFFSET ?`, [...sqlParams, limit, offset])).rows as SalespersonRecord[];
 
-    const countRow = db.prepare(
-      `SELECT COUNT(*) as total FROM salesmen ${whereSql}`
-    ).get(...sqlParams) as any;
+    const countRow = (await query(
+      `SELECT COUNT(*) as total FROM salesmen ${whereSql}`, [...sqlParams])).rows[0] as Record<string, unknown>;
 
     return {
       data: rows,
@@ -146,13 +139,11 @@ class SalespersonService {
     inactive_count: number;
     departments: Array<{ name: string; count: number }>;
   }> {
-    const db = getDb();
-    const totalRow = db.prepare("SELECT COUNT(*) as total FROM salesmen").get() as any;
-    const activeRow = db.prepare("SELECT COUNT(*) as cnt FROM salesmen WHERE status = 'active'").get() as any;
-    const inactiveRow = db.prepare("SELECT COUNT(*) as cnt FROM salesmen WHERE status = 'inactive'").get() as any;
-    const deptRows = db.prepare(
-      "SELECT COALESCE(department, '未分配') as name, COUNT(*) as count FROM salesmen GROUP BY department"
-    ).all() as Array<{ name: string; count: number }>;
+    
+    const totalRow = (await query("SELECT COUNT(*) as total FROM salesmen", [])).rows[0] as any;
+    const activeRow = (await query("SELECT COUNT(*) as cnt FROM salesmen WHERE status = 'active'", [])).rows[0] as any;
+    const inactiveRow = (await query("SELECT COUNT(*) as cnt FROM salesmen WHERE status = 'inactive'", [])).rows[0] as any;
+    const deptRows = (await query("SELECT COALESCE(department, '未分配') as name, COUNT(*) as count FROM salesmen GROUP BY department", [])).rows as Array<{ name: string; count: number }>;
 
     return {
       total: totalRow?.total || 0,

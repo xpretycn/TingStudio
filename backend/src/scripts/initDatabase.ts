@@ -12,10 +12,11 @@ const __dirname = path.dirname(__filename)
 function ensureColumn(db: any, table: string, col: string, type: string, defaultValue: string) {
   try {
     // 检查列是否已存在
-    const cols = db.pragma(`table_info(${table})`) as any[]
+    const cols =
+`) as any[]
     const exists = cols.some((c: any) => c.name === col)
     if (!exists) {
-      db.exec(`ALTER TABLE ${table} ADD COLUMN ${col} ${type} DEFAULT ${defaultValue}`)
+      await execute(`ALTER TABLE ${table} ADD COLUMN ${col} ${type} DEFAULT ${defaultValue}`)
       console.log(`  ✓ 添加列: ${table}.${col}`)
     }
   } catch (_err) {
@@ -26,7 +27,8 @@ function ensureColumn(db: any, table: string, col: string, type: string, default
 /** 安全地创建表（如果不存在） */
 function ensureTable(db: any, tableName: string, createSql: string) {
   try {
-    const tables = db.pragma(`table_info(${tableName})`) as any[]
+    const tables =
+`) as any[]
     if (tables.length === 0) {
       db.exec(createSql)
       console.log(`  ✓ 创建表: ${tableName}`)
@@ -69,8 +71,8 @@ function runMigrations(db: any) {
       other_price REAL NOT NULL DEFAULT 0,
       profit_margin REAL NOT NULL DEFAULT 20,
       created_by TEXT NOT NULL,
-      created_at TEXT NOT NULL DEFAULT (datetime('now')),
-      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+      created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+      updated_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)
     );
     CREATE INDEX IF NOT EXISTS idx_template_name ON formula_templates(name);
     CREATE INDEX IF NOT EXISTS idx_template_created_by ON formula_templates(created_by);
@@ -83,7 +85,7 @@ async function initDatabase() {
   console.log('开始初始化数据库...')
 
   await connectDatabase()
-  const db = getDb()
+  
 
   // 读取 SQL 文件并一次性执行
   const sqlPath = path.join(__dirname, 'init.sql')

@@ -13,11 +13,11 @@ async function checkSQLiteData() {
 
     // 连接到 SQLite 数据库
     await connectDatabase();
-    const db = getDb();
+    
 
     // 1. 检查所有表
     console.log('1. 数据库表列表:');
-    const tablesResult = db.exec("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'");
+    const tablesResult = await execute("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'", []);
     
     if (tablesResult && tablesResult.length > 0) {
       const tables = tablesResult[0].values.map((row: any[]) => row[0]);
@@ -28,7 +28,7 @@ async function checkSQLiteData() {
         console.log(`2. 检查表: ${tableName}`);
         
         // 检查表结构
-        const schemaResult = db.exec(`PRAGMA table_info(${tableName})`);
+        const schemaResult = await execute(`PRAGMA table_info(${tableName})`, []);
         if (schemaResult && schemaResult.length > 0) {
           console.log(`   表结构:`);
           schemaResult[0].values.forEach((row: any[]) => {
@@ -37,14 +37,14 @@ async function checkSQLiteData() {
         }
 
         // 检查数据量
-        const countResult = db.exec(`SELECT COUNT(*) as count FROM ${tableName}`);
+        const countResult = await execute(`SELECT COUNT(*) as count FROM ${tableName}`, []);
         if (countResult && countResult.length > 0) {
           const count = countResult[0].values[0][0];
           console.log(`   数据量: ${count} 条记录`);
         }
 
         // 显示前几条数据
-        const dataResult = db.exec(`SELECT * FROM ${tableName} LIMIT 3`);
+        const dataResult = await execute(`SELECT * FROM ${tableName} LIMIT 3`, []);
         if (dataResult && dataResult.length > 0 && dataResult[0].values.length > 0) {
           console.log(`   示例数据:`);
           const columns = dataResult[0].columns;

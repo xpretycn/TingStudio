@@ -352,7 +352,7 @@ export async function updateScriptContent(req: Request, res: Response) {
     }
     const authReq = req as Request & { user?: { userId: string } };
     const savedBy = authReq.user?.userId || "unknown";
-    const data = dbService.saveScriptContent(scriptId, content, savedBy, changeSummary);
+    const data = await dbService.saveScriptContent(scriptId, content, savedBy, changeSummary);
     res.json(success(data));
   } catch (error: unknown) {
     console.error("[DbController] Error updating script content:", error);
@@ -377,7 +377,7 @@ export async function getScriptVersions(req: Request, res: Response) {
     }
     const rawLimit = Number(req.query.limit) || 20;
     const limit = Math.min(Math.max(1, rawLimit), 50);
-    const data = dbService.getScriptVersions(scriptId, limit);
+    const data = await dbService.getScriptVersions(scriptId, limit);
     res.json(success(data));
   } catch (error: unknown) {
     console.error("[DbController] Error getting script versions:", error);
@@ -403,7 +403,7 @@ export async function restoreScriptVersion(req: Request, res: Response) {
     }
     const authReq = req as Request & { user?: { userId: string } };
     const savedBy = authReq.user?.userId || "unknown";
-    const data = dbService.restoreScriptVersion(scriptId, versionId, savedBy);
+    const data = await dbService.restoreScriptVersion(scriptId, versionId, savedBy);
     res.json(success(data));
   } catch (error: unknown) {
     console.error("[DbController] Error restoring script version:", error);

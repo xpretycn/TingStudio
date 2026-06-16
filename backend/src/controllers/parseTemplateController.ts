@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { query } from "../config/database-better-sqlite3.js";
+import { query } from '../config/database-adapter.js';
 import {
   generateId, now, success, successWithPagination,
   buildPagination, buildLike, rowToCamelCase, rowsToCamelCase,

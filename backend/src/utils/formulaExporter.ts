@@ -3,7 +3,7 @@
  * 将配方数据导出为单 Sheet Excel 文件，还原营养成分表模板样式
  */
 import XLSX from "xlsx-js-style";
-import { query } from "../config/database-better-sqlite3.js";
+import { query } from '../config/database-adapter.js';
 import { safeJsonParse, rowToCamelCase } from "./helpers.js";
 import { TemplateConfig } from "./exportFieldRegistry.js";
 

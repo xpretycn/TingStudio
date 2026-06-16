@@ -1,10 +1,10 @@
 import { Request, Response } from "express";
 import { AuthRequest } from "../middleware/auth.js";
-import { getDb } from "../config/database-better-sqlite3.js";
+import { query, execute } from '../config/database-adapter.js';
 import { aiService } from "../services/ai/AIService.js";
 import { fail, fixGarbledText, generateId, success } from "../utils/helpers.js";
 import crypto from "node:crypto";
-import Database from "better-sqlite3";
+
 
 interface ModelRow {
   id: string;
@@ -148,9 +148,8 @@ function getUserId(req: Request): string {
 
 export async function getModelsList(req: Request, res: Response) {
   try {
-    const db = getDb();
-    const models = db
-      .prepare(
+    
+    const models = (await query(
         `
       SELECT m.*,
         COALESCE(today_stats.calls, 0) as today_calls,
@@ -160,19 +159,19 @@ export async function getModelsList(req: Request, res: Response) {
       LEFT JOIN (
         SELECT provider, COUNT(*) as calls, SUM(total_tokens) as tokens
         FROM ai_usage_logs
-        WHERE date(created_at) = date('now')
+        WHERE DATE(created_at) = CURDATE()
         GROUP BY provider
       ) today_stats ON m.provider = today_stats.provider
       LEFT JOIN (
         SELECT provider, SUM(total_tokens) as tokens
         FROM ai_usage_logs
-        WHERE created_at >= strftime('%Y-%m-01', 'now')
+        WHERE created_at >= DATE_FORMAT(CURDATE(), '%Y-%m-01')
         GROUP BY provider
       ) month_stats ON m.provider = month_stats.provider
       ORDER BY m.sort_order
     `,
-      )
-      .all() as ModelRow[];
+        []
+      )).rows as ModelRow[];
 
     const totalModels = models.length;
     const configuredModels = models.filter((m) => m.api_key).length;
@@ -180,19 +179,14 @@ export async function getModelsList(req: Request, res: Response) {
     const todayTokens = models.reduce((sum, m) => sum + (m.today_tokens || 0), 0);
     const monthTokens = models.reduce((sum, m) => sum + (m.month_tokens || 0), 0);
 
-    const activeAlerts = (
-      db
-        .prepare(
+    const activeAlerts = ((await query(
           `
       SELECT COUNT(*) as cnt FROM ai_alert_records WHERE is_read = 0
     `,
-        )
-        .get() as CountRow
-    ).cnt;
+          []
+        )).rows[0] as CountRow).cnt;
 
-    const fallbackRows = db
-      .prepare("SELECT provider, fallback_provider FROM ai_fallback_configs WHERE enabled = 1")
-      .all() as FallbackRow[];
+    const fallbackRows = (await query("SELECT provider, fallback_provider FROM ai_fallback_configs WHERE enabled = 1", [])).rows as FallbackRow[];
     const fallbackMap: Record<string, string> = {};
     for (const row of fallbackRows) {
       fallbackMap[row.provider] = row.fallback_provider;
@@ -257,8 +251,8 @@ export async function createModel(req: Request, res: Response) {
       return;
     }
 
-    const db = getDb();
-    const existing = db.prepare("SELECT id FROM ai_models WHERE provider = ?").get(provider);
+    
+    const existing = (await query("SELECT id FROM ai_models WHERE provider = ?", [provider])).rows[0];
     if (existing) {
       res.status(400).json(fail(`provider "${provider}" 已存在`, "DUPLICATE_ENTRY"));
       return;
@@ -266,15 +260,13 @@ export async function createModel(req: Request, res: Response) {
 
     const id = `model_${crypto.randomUUID().slice(0, 8)}`;
     const now = new Date().toISOString();
-    const maxSort = (db.prepare("SELECT MAX(sort_order) as max_sort FROM ai_models").get() as MaxSortRow)?.max_sort || 0;
+    const maxSort = ((await query("SELECT MAX(sort_order) as max_sort FROM ai_models", [])).rows[0] as MaxSortRow)?.max_sort || 0;
 
-    db.prepare(
-      `
+    await execute(`
       INSERT INTO ai_models (id, provider, name, base_url, api_key, model, vision_model, vision_max_tokens, description, supports_vision, sort_order, created_at, updated_at)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `,
-    ).run(
-      id,
+      [id,
       provider,
       name,
       baseUrl,
@@ -287,22 +279,18 @@ export async function createModel(req: Request, res: Response) {
       maxSort + 1,
       now,
       now,
-    );
+    ]);
 
-    db.prepare(
-      `
+    await execute(`
       INSERT INTO ai_alert_configs (id, model_id, provider, daily_call_limit, monthly_token_limit, warning_threshold, critical_threshold, enabled, created_at, updated_at)
       VALUES (?, ?, ?, 500, 5000000, 80, 95, 1, ?, ?)
-    `,
-    ).run(`alert_${id}`, id, provider, now, now);
+    `, [`alert_${id}`, id, provider, now, now]);
 
     if (fallbackProvider) {
-      db.prepare(
-        `
+      await execute(`
         INSERT INTO ai_fallback_configs (id, model_id, provider, fallback_provider, fallback_priority, enabled, created_at, updated_at)
         VALUES (?, ?, ?, ?, 1, 1, ?, ?)
-      `,
-      ).run(`fb_${crypto.randomUUID().slice(0, 8)}`, id, provider, fallbackProvider, now, now);
+      `, [`fb_${crypto.randomUUID().slice(0, 8)}`, id, provider, fallbackProvider, now, now]);
     }
 
     aiService.reloadModels();
@@ -324,8 +312,8 @@ export async function updateModel(req: Request, res: Response) {
     }
 
     const { id } = req.params;
-    const db = getDb();
-    const existing = db.prepare("SELECT * FROM ai_models WHERE id = ?").get(id) as ModelRow | undefined;
+    
+    const existing = (await query("SELECT * FROM ai_models WHERE id = ?", [id])).rows[0] as ModelRow | undefined;
     if (!existing) {
       res.status(404).json(fail("模型不存在", "NOT_FOUND"));
       return;
@@ -390,18 +378,16 @@ export async function updateModel(req: Request, res: Response) {
 
     if (sets.length > 1) {
       vals.push(id);
-      db.prepare(`UPDATE ai_models SET ${sets.join(", ")} WHERE id = ?`).run(...vals);
+      await execute(`UPDATE ai_models SET ${sets.join(", ")} WHERE id = ?`, [...vals]);
     }
 
     if (fallbackProvider !== undefined) {
-      db.prepare("DELETE FROM ai_fallback_configs WHERE model_id = ? AND fallback_priority = 1").run(id);
+      await execute("DELETE FROM ai_fallback_configs WHERE model_id = ? AND fallback_priority = 1", [id]);
       if (fallbackProvider) {
-        db.prepare(
-          `
+        await execute(`
           INSERT INTO ai_fallback_configs (id, model_id, provider, fallback_provider, fallback_priority, enabled, created_at, updated_at)
           VALUES (?, ?, ?, ?, 1, 1, ?, ?)
-        `,
-        ).run(`fb_${crypto.randomUUID().slice(0, 8)}`, id, existing.provider, fallbackProvider, now, now);
+        `, [`fb_${crypto.randomUUID().slice(0, 8)}`, id, existing.provider, fallbackProvider, now, now]);
       }
     }
 
@@ -421,24 +407,24 @@ export async function deleteModel(req: Request, res: Response) {
     }
 
     const { id } = req.params;
-    const db = getDb();
-    const existing = db.prepare("SELECT * FROM ai_models WHERE id = ?").get(id) as ModelRow | undefined;
+    
+    const existing = (await query("SELECT * FROM ai_models WHERE id = ?", [id])).rows[0] as ModelRow | undefined;
     if (!existing) {
       res.status(404).json(fail("模型不存在", "NOT_FOUND"));
       return;
     }
 
     const usageCount = (
-      db.prepare("SELECT COUNT(*) as cnt FROM ai_usage_logs WHERE provider = ?").get(existing.provider) as CountRow
+      (await query("SELECT COUNT(*) as cnt FROM ai_usage_logs WHERE provider = ?", [existing.provider])).rows[0] as CountRow
     ).cnt;
     if (usageCount > 0) {
       res.status(400).json(fail("该模型存在调用记录，无法移除", "VALIDATION_ERROR"));
       return;
     }
 
-    db.prepare("DELETE FROM ai_fallback_configs WHERE model_id = ?").run(id);
-    db.prepare("DELETE FROM ai_alert_configs WHERE model_id = ?").run(id);
-    db.prepare("DELETE FROM ai_models WHERE id = ?").run(id);
+    await execute("DELETE FROM ai_fallback_configs WHERE model_id = ?", [id]);
+    await execute("DELETE FROM ai_alert_configs WHERE model_id = ?", [id]);
+    await execute("DELETE FROM ai_models WHERE id = ?", [id]);
 
     aiService.reloadModels();
 
@@ -456,8 +442,8 @@ export async function testModelConnection(req: Request, res: Response) {
     }
 
     const { id } = req.params;
-    const db = getDb();
-    const model = db.prepare("SELECT * FROM ai_models WHERE id = ?").get(id) as ModelRow | undefined;
+    
+    const model = (await query("SELECT * FROM ai_models WHERE id = ?", [id])).rows[0] as ModelRow | undefined;
     if (!model) {
       res.status(404).json(fail("模型不存在", "NOT_FOUND"));
       return;
@@ -475,16 +461,12 @@ export async function testModelConnection(req: Request, res: Response) {
       const latencyMs = Date.now() - start;
       const now = new Date().toISOString();
 
-      db.prepare(
-        "UPDATE ai_models SET health_status = 'healthy', last_health_check = ?, last_health_latency = ?, updated_at = ? WHERE id = ?",
-      ).run(now, latencyMs, now, id);
+      await execute("UPDATE ai_models SET health_status = 'healthy', last_health_check = ?, last_health_latency = ?, updated_at = ? WHERE id = ?", [now, latencyMs, now, id]);
 
-      db.prepare(
-        `
+      await execute(`
         INSERT INTO ai_health_records (id, provider, status, latency_ms, checked_at)
         VALUES (?, ?, 'healthy', ?, ?)
-      `,
-      ).run(`hr_${crypto.randomUUID().slice(0, 8)}`, model.provider, latencyMs, now);
+      `, [`hr_${crypto.randomUUID().slice(0, 8)}`, model.provider, latencyMs, now]);
 
       res.json({
         success: true,
@@ -495,16 +477,12 @@ export async function testModelConnection(req: Request, res: Response) {
       const now = new Date().toISOString();
       const errMsg = err instanceof Error ? err.message : "连接失败";
 
-      db.prepare(
-        "UPDATE ai_models SET health_status = 'unhealthy', last_health_check = ?, last_health_latency = ?, updated_at = ? WHERE id = ?",
-      ).run(now, latencyMs, now, id);
+      await execute("UPDATE ai_models SET health_status = 'unhealthy', last_health_check = ?, last_health_latency = ?, updated_at = ? WHERE id = ?", [now, latencyMs, now, id]);
 
-      db.prepare(
-        `
+      await execute(`
         INSERT INTO ai_health_records (id, provider, status, latency_ms, error_message, checked_at)
         VALUES (?, ?, 'unhealthy', ?, ?, ?)
-      `,
-      ).run(`hr_${crypto.randomUUID().slice(0, 8)}`, model.provider, latencyMs, errMsg, now);
+      `, [`hr_${crypto.randomUUID().slice(0, 8)}`, model.provider, latencyMs, errMsg, now]);
 
       res.json({
         success: false,
@@ -519,8 +497,8 @@ export async function testModelConnection(req: Request, res: Response) {
 export async function getModelVersions(req: Request, res: Response) {
   try {
     const { id } = req.params;
-    const db = getDb();
-    const model = db.prepare("SELECT * FROM ai_models WHERE id = ?").get(id) as ModelRow | undefined;
+    
+    const model = (await query("SELECT * FROM ai_models WHERE id = ?", [id])).rows[0] as ModelRow | undefined;
     if (!model) {
       res.status(404).json(fail("模型不存在", "NOT_FOUND"));
       return;
@@ -541,8 +519,8 @@ export async function getModelVersionsByProvider(req: Request, res: Response) {
   try {
     const { provider } = req.params;
     const versions = aiService.getAvailableVersions(provider);
-    const db = getDb();
-    const model = db.prepare("SELECT model FROM ai_models WHERE provider = ?").get(provider) as ModelProviderRow | undefined;
+    
+    const model = (await query("SELECT model FROM ai_models WHERE provider = ?", [provider])).rows[0] as ModelProviderRow | undefined;
     res.json({
       success: true,
       data: { provider, currentModel: model?.model || "", versions },
@@ -564,13 +542,13 @@ export async function switchModelVersion(req: Request, res: Response) {
       res.status(400).json(fail("请提供有效的模型版本", "VALIDATION_ERROR"));
       return;
     }
-    const db = getDb();
-    const existing = db.prepare("SELECT id FROM ai_models WHERE provider = ?").get(provider);
+    
+    const existing = (await query("SELECT id FROM ai_models WHERE provider = ?", [provider])).rows[0];
     if (!existing) {
       res.status(404).json(fail("模型不存在", "NOT_FOUND"));
       return;
     }
-    db.prepare("UPDATE ai_models SET model = ?, updated_at = datetime('now') WHERE provider = ?").run(model, provider);
+    await execute("UPDATE ai_models SET model = ?, updated_at = CURRENT_TIMESTAMP WHERE provider = ?", [model, provider]);
     aiService.reloadModels();
     res.json({ success: true, data: { provider, model } });
   } catch (error: unknown) {
@@ -580,7 +558,7 @@ export async function switchModelVersion(req: Request, res: Response) {
 
 export async function getUsageStats(req: Request, res: Response) {
   try {
-    const db = getDb();
+    
     const { startDate, endDate, provider } = req.query;
 
     const start = (startDate as string) || new Date(Date.now() - 7 * 86400000).toISOString().slice(0, 10);
@@ -594,8 +572,7 @@ export async function getUsageStats(req: Request, res: Response) {
       params.push(provider);
     }
 
-    const summary = db
-      .prepare(
+    const summary = (await query(
         `
       SELECT m.provider, m.name,
         COALESCE(u.total_calls, 0) as total_calls,
@@ -608,23 +585,23 @@ export async function getUsageStats(req: Request, res: Response) {
       FROM ai_models m
       LEFT JOIN (
         SELECT provider, COUNT(*) as total_calls, SUM(total_tokens) as total_tokens, AVG(latency_ms) as avg_latency
-        FROM ai_usage_logs WHERE date(created_at) BETWEEN ? AND ? ${providerFilter}
+        FROM ai_usage_logs WHERE DATE(created_at) BETWEEN ? AND ? ${providerFilter}
         GROUP BY provider
       ) u ON m.provider = u.provider
       LEFT JOIN (
         SELECT provider, COUNT(*) as calls, SUM(total_tokens) as tokens
-        FROM ai_usage_logs WHERE date(created_at) = date('now')
+        FROM ai_usage_logs WHERE DATE(created_at) = CURDATE()
         GROUP BY provider
       ) today ON m.provider = today.provider
       LEFT JOIN (
         SELECT provider, COUNT(*) as calls, SUM(total_tokens) as tokens
-        FROM ai_usage_logs WHERE created_at >= strftime('%Y-%m-01', 'now')
+        FROM ai_usage_logs WHERE created_at >= DATE_FORMAT(CURDATE(), '%Y-%m-01')
         GROUP BY provider
       ) month ON m.provider = month.provider
       ORDER BY m.sort_order
     `,
-      )
-      .all(...params);
+        [...params]
+      )).rows;
 
     const trendParams: unknown[] = [start, end];
     let trendFilter = "";
@@ -633,19 +610,18 @@ export async function getUsageStats(req: Request, res: Response) {
       trendParams.push(provider);
     }
 
-    const trendRows = db
-      .prepare(
+    const trendRows = (await query(
         `
-      SELECT date(created_at) as date, provider, SUM(total_tokens) as tokens
+      SELECT DATE(created_at) as date, provider, SUM(total_tokens) as tokens
       FROM ai_usage_logs
-      WHERE date(created_at) BETWEEN ? AND ? ${trendFilter}
-      GROUP BY date(created_at), provider
+      WHERE DATE(created_at) BETWEEN ? AND ? ${trendFilter}
+      GROUP BY DATE(created_at), provider
       ORDER BY date
     `,
-      )
-      .all(...trendParams);
+        [...trendParams]
+      )).rows;
 
-    const allProviders = db.prepare("SELECT provider, name FROM ai_models ORDER BY sort_order").all() as ModelProviderRow[];
+    const allProviders = (await query("SELECT provider, name FROM ai_models ORDER BY sort_order", [])).rows as ModelProviderRow[];
     const trendMap: Record<string, Record<string, number>> = {};
     for (const row of trendRows as { date: string; provider: string; tokens: number }[]) {
       if (!trendMap[row.date]) trendMap[row.date] = {};
@@ -660,20 +636,19 @@ export async function getUsageStats(req: Request, res: Response) {
       return entry;
     });
 
-    const distribution = db
-      .prepare(
+    const distribution = (await query(
         `
       SELECT m.provider, m.name, COALESCE(u.tokens, 0) as tokens, COALESCE(u.calls, 0) as calls
       FROM ai_models m
       LEFT JOIN (
         SELECT provider, SUM(total_tokens) as tokens, COUNT(*) as calls
-        FROM ai_usage_logs WHERE date(created_at) BETWEEN ? AND ?
+        FROM ai_usage_logs WHERE DATE(created_at) BETWEEN ? AND ?
         GROUP BY provider
       ) u ON m.provider = u.provider
       ORDER BY m.sort_order
     `,
-      )
-      .all(start, end);
+        [start, end]
+      )).rows;
 
     res.json({ success: true, data: { summary, trend, distribution } });
   } catch (error: unknown) {
@@ -683,7 +658,7 @@ export async function getUsageStats(req: Request, res: Response) {
 
 export async function getUsageLogs(req: Request, res: Response) {
   try {
-    const db = getDb();
+    
     const { page = "1", pageSize = "20", provider, callType, status, startDate, endDate } = req.query;
 
     const conditions: string[] = [];
@@ -717,11 +692,10 @@ export async function getUsageLogs(req: Request, res: Response) {
 
     const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
-    const total = (db.prepare(`SELECT COUNT(*) as cnt FROM ai_usage_logs l ${where}`).get(...params) as CountRow).cnt;
+    const total = ((await query(`SELECT COUNT(*) as cnt FROM ai_usage_logs l ${where}`, [...params])).rows[0] as CountRow).cnt;
 
     const offset = (parseInt(page as string) - 1) * parseInt(pageSize as string);
-    const logs = db
-      .prepare(
+    const logs = (await query(
         `
       SELECT l.*, m.name as model_name
       FROM ai_usage_logs l
@@ -730,8 +704,8 @@ export async function getUsageLogs(req: Request, res: Response) {
       ORDER BY l.created_at DESC
       LIMIT ? OFFSET ?
     `,
-      )
-      .all(...params, parseInt(pageSize as string), offset) as UsageLogRow[];
+        [...params, parseInt(pageSize as string), offset]
+      )).rows as UsageLogRow[];
 
     res.json({
       success: true,
@@ -767,17 +741,16 @@ export async function getUsageLogs(req: Request, res: Response) {
 
 export async function getAlertConfigs(req: Request, res: Response) {
   try {
-    const db = getDb();
-    const configs = db
-      .prepare(
+    
+    const configs = (await query(
         `
       SELECT ac.*, m.name as model_name
       FROM ai_alert_configs ac
       JOIN ai_models m ON ac.model_id = m.id
       ORDER BY m.sort_order
     `,
-      )
-      .all();
+        []
+      )).rows;
 
     res.json({ success: true, data: { configs } });
   } catch (error: unknown) {
@@ -794,24 +767,22 @@ export async function updateAlertConfig(req: Request, res: Response) {
 
     const { id } = req.params;
     const { dailyCallLimit, monthlyTokenLimit, warningThreshold, criticalThreshold, enabled } = req.body;
-    const db = getDb();
+    
     const now = new Date().toISOString();
 
-    db.prepare(
-      `
+    await execute(`
       UPDATE ai_alert_configs
       SET daily_call_limit = ?, monthly_token_limit = ?, warning_threshold = ?, critical_threshold = ?, enabled = ?, updated_at = ?
       WHERE id = ?
     `,
-    ).run(
-      dailyCallLimit ?? 0,
+      [dailyCallLimit ?? 0,
       monthlyTokenLimit ?? 0,
       warningThreshold ?? 80,
       criticalThreshold ?? 95,
       enabled !== undefined ? (enabled ? 1 : 0) : 1,
       now,
       id,
-    );
+    ]);
 
     res.json({ success: true, data: { id, updatedAt: now } });
   } catch (error: unknown) {
@@ -821,7 +792,7 @@ export async function updateAlertConfig(req: Request, res: Response) {
 
 export async function getAlertRecords(req: Request, res: Response) {
   try {
-    const db = getDb();
+    
     const { page = "1", pageSize = "20", level } = req.query;
 
     const conditions: string[] = [];
@@ -834,20 +805,19 @@ export async function getAlertRecords(req: Request, res: Response) {
 
     const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
-    const total = (db.prepare(`SELECT COUNT(*) as cnt FROM ai_alert_records ${where}`).get(...params) as CountRow).cnt;
-    const activeAlerts = (db.prepare(`SELECT COUNT(*) as cnt FROM ai_alert_records WHERE is_read = 0`).get() as CountRow)
+    const total = ((await query(`SELECT COUNT(*) as cnt FROM ai_alert_records ${where}`, [...params])).rows[0] as CountRow).cnt;
+    const activeAlerts = ((await query(`SELECT COUNT(*) as cnt FROM ai_alert_records WHERE is_read = 0`, [])).rows[0] as CountRow)
       .cnt;
 
     const offset = (parseInt(page as string) - 1) * parseInt(pageSize as string);
-    const records = db
-      .prepare(
+    const records = (await query(
         `
       SELECT * FROM ai_alert_records ${where}
       ORDER BY created_at DESC
       LIMIT ? OFFSET ?
     `,
-      )
-      .all(...params, parseInt(pageSize as string), offset) as AlertRecordRow[];
+        [...params, parseInt(pageSize as string), offset]
+      )).rows as AlertRecordRow[];
 
     res.json({
       success: true,
@@ -869,16 +839,15 @@ export async function getAlertRecords(req: Request, res: Response) {
 
 export async function getHealthStatus(req: Request, res: Response) {
   try {
-    const db = getDb();
-    const models = db
-      .prepare(
+    
+    const models = (await query(
         `
       SELECT provider, name, health_status, last_health_check as lastCheckAt, last_health_latency as latencyMs
       FROM ai_models
       ORDER BY sort_order
     `,
-      )
-      .all();
+        []
+      )).rows;
 
     res.json({ success: true, data: { models } });
   } catch (error: unknown) {
@@ -891,23 +860,22 @@ export async function getHealthHistory(req: Request, res: Response) {
     const { provider } = req.params;
     const days = parseInt((req.query.days as string) || "7");
 
-    const db = getDb();
-    const history = db
-      .prepare(
+    
+    const history = (await query(
         `
-      SELECT date(checked_at) as date,
+      SELECT DATE(checked_at) as date,
         COUNT(*) as checks,
         SUM(CASE WHEN status = 'healthy' THEN 1 ELSE 0 END) as healthy,
         SUM(CASE WHEN status = 'degraded' THEN 1 ELSE 0 END) as degraded,
         SUM(CASE WHEN status = 'unhealthy' THEN 1 ELSE 0 END) as unhealthy,
         AVG(latency_ms) as avg_latency_ms
       FROM ai_health_records
-      WHERE provider = ? AND checked_at >= date('now', '-' || ? || ' days')
-      GROUP BY date(checked_at)
+      WHERE provider = ? AND checked_at >= DATE_SUB(CURDATE(), INTERVAL ? DAY)
+      GROUP BY DATE(checked_at)
       ORDER BY date
     `,
-      )
-      .all(provider, days);
+        [provider, days]
+      )).rows;
 
     res.json({ success: true, data: { provider, history } });
   } catch (error: unknown) {
@@ -924,23 +892,21 @@ export async function setFallback(req: Request, res: Response) {
 
     const { id } = req.params;
     const { fallbackProvider } = req.body;
-    const db = getDb();
-    const model = db.prepare("SELECT * FROM ai_models WHERE id = ?").get(id) as ModelRow | undefined;
+    
+    const model = (await query("SELECT * FROM ai_models WHERE id = ?", [id])).rows[0] as ModelRow | undefined;
     if (!model) {
       res.status(404).json(fail("模型不存在", "NOT_FOUND"));
       return;
     }
 
     const now = new Date().toISOString();
-    db.prepare("DELETE FROM ai_fallback_configs WHERE model_id = ? AND fallback_priority = 1").run(id);
+    await execute("DELETE FROM ai_fallback_configs WHERE model_id = ? AND fallback_priority = 1", [id]);
 
     if (fallbackProvider) {
-      db.prepare(
-        `
+      await execute(`
         INSERT INTO ai_fallback_configs (id, model_id, provider, fallback_provider, fallback_priority, enabled, created_at, updated_at)
         VALUES (?, ?, ?, ?, 1, 1, ?, ?)
-      `,
-      ).run(`fb_${crypto.randomUUID().slice(0, 8)}`, id, model.provider, fallbackProvider, now, now);
+      `, [`fb_${crypto.randomUUID().slice(0, 8)}`, id, model.provider, fallbackProvider, now, now]);
     }
 
     res.json({
@@ -952,17 +918,16 @@ export async function setFallback(req: Request, res: Response) {
   }
 }
 
-export async function checkAndFireAlerts(provider: string, totalTokens: number, db: Database.Database) {
-  const config = db
-    .prepare(
+export async function checkAndFireAlerts(provider: string, totalTokens: number, _db?: unknown) {
+  const config = ((await query(
       `
     SELECT ac.*, m.name as model_name
     FROM ai_alert_configs ac
     JOIN ai_models m ON ac.model_id = m.id
     WHERE ac.provider = ? AND ac.enabled = 1
   `,
-    )
-    .get(provider) as AlertConfigRow | undefined;
+      [provider]
+    )).rows[0]) as AlertConfigRow | undefined;
 
   if (!config) return;
 
@@ -970,123 +935,106 @@ export async function checkAndFireAlerts(provider: string, totalTokens: number, 
 
   if (config.daily_call_limit > 0) {
     const todayCalls = (
-      db
-        .prepare(
+      (await query(
           `
       SELECT COUNT(*) as cnt FROM ai_usage_logs
-      WHERE provider = ? AND date(created_at) = date('now')
+      WHERE provider = ? AND DATE(created_at) = CURDATE()
     `,
-        )
-        .get(provider) as CountRow
+          [provider]
+        )).rows[0] as CountRow
     ).cnt;
 
     const pct = Math.round((todayCalls / config.daily_call_limit) * 100);
     if (pct >= config.critical_threshold) {
-      db.prepare(
-        `
+      await execute(`
         INSERT INTO ai_alert_records (id, provider, model_name, alert_type, level, threshold, current_value, limit_value, message, created_at)
         VALUES (?, ?, ?, 'daily_call', 'critical', ?, ?, ?, ?, ?)
-      `,
-      ).run(
-        `ar_${crypto.randomUUID().slice(0, 8)}`,
+      `, [`ar_${crypto.randomUUID().slice(0, 8)}`,
         provider,
         config.model_name,
         config.critical_threshold,
         todayCalls,
         config.daily_call_limit,
         `${config.model_name}今日调用次数已达${pct}%，超过严重阈值`,
-        now,
-      );
+        now,]);
     } else if (pct >= config.warning_threshold) {
-      db.prepare(
-        `
+      await execute(`
         INSERT INTO ai_alert_records (id, provider, model_name, alert_type, level, threshold, current_value, limit_value, message, created_at)
         VALUES (?, ?, ?, 'daily_call', 'warning', ?, ?, ?, ?, ?)
-      `,
-      ).run(
-        `ar_${crypto.randomUUID().slice(0, 8)}`,
+      `, [`ar_${crypto.randomUUID().slice(0, 8)}`,
         provider,
         config.model_name,
         config.warning_threshold,
         todayCalls,
         config.daily_call_limit,
         `${config.model_name}今日调用次数已达${pct}%，接近预警阈值`,
-        now,
-      );
+        now,]);
     }
   }
 
   if (config.monthly_token_limit > 0) {
     const monthTokens =
       (
-        db
-          .prepare(
+        (await query(
             `
       SELECT SUM(total_tokens) as total FROM ai_usage_logs
-      WHERE provider = ? AND created_at >= strftime('%Y-%m-01', 'now')
+      WHERE provider = ? AND created_at >= DATE_FORMAT(CURDATE(), '%Y-%m-01')
     `,
-          )
-          .get(provider) as TotalRow
+            [provider]
+          )).rows[0] as TotalRow
       ).total || 0;
 
     const pct = Math.round((monthTokens / config.monthly_token_limit) * 100);
     if (pct >= config.critical_threshold) {
-      db.prepare(
-        `
+      await execute(`
         INSERT INTO ai_alert_records (id, provider, model_name, alert_type, level, threshold, current_value, limit_value, message, created_at)
         VALUES (?, ?, ?, 'monthly_token', 'critical', ?, ?, ?, ?, ?)
-      `,
-      ).run(
-        `ar_${crypto.randomUUID().slice(0, 8)}`,
+      `, [`ar_${crypto.randomUUID().slice(0, 8)}`,
         provider,
         config.model_name,
         config.critical_threshold,
         monthTokens,
         config.monthly_token_limit,
         `${config.model_name}本月Token用量已达${pct}%，超过严重阈值`,
-        now,
-      );
+        now,]);
     } else if (pct >= config.warning_threshold) {
-      db.prepare(
-        `
+      await execute(`
         INSERT INTO ai_alert_records (id, provider, model_name, alert_type, level, threshold, current_value, limit_value, message, created_at)
         VALUES (?, ?, ?, 'monthly_token', 'warning', ?, ?, ?, ?, ?)
-      `,
-      ).run(
-        `ar_${crypto.randomUUID().slice(0, 8)}`,
+      `, [`ar_${crypto.randomUUID().slice(0, 8)}`,
         provider,
         config.model_name,
         config.warning_threshold,
         monthTokens,
         config.monthly_token_limit,
         `${config.model_name}本月Token用量已达${pct}%，接近预警阈值`,
-        now,
-      );
+        now,]);
     }
   }
 }
 
-function ensureModelApplicationsTable(db: Database.Database) {
+async function ensureModelApplicationsTable() {
   try {
-    const tableExists = db
-      .prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='model_applications'")
-      .get();
+    const tableExists = (await query(
+        "SELECT TABLE_NAME as name FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'model_applications'",
+        []
+      )).rows[0];
     if (!tableExists) {
-      db.exec(`
-        CREATE TABLE model_applications (
-          id TEXT PRIMARY KEY,
-          module TEXT NOT NULL UNIQUE,
-          module_name TEXT NOT NULL,
-          provider TEXT NOT NULL,
-          model TEXT NOT NULL,
+      await execute(`
+        CREATE TABLE IF NOT EXISTS model_applications (
+          id VARCHAR(36) PRIMARY KEY,
+          module VARCHAR(100) NOT NULL UNIQUE,
+          module_name VARCHAR(255) NOT NULL,
+          provider VARCHAR(100) NOT NULL,
+          model VARCHAR(255) NOT NULL,
           description TEXT DEFAULT '',
-          enabled INTEGER NOT NULL DEFAULT 1,
-          created_by TEXT DEFAULT NULL,
-          created_at TEXT NOT NULL DEFAULT (datetime('now')),
-          updated_at TEXT NOT NULL DEFAULT (datetime('now'))
-        );
-        CREATE INDEX IF NOT EXISTS idx_model_app_module ON model_applications(module);
-        CREATE INDEX IF NOT EXISTS idx_model_app_provider ON model_applications(provider)
+          enabled TINYINT NOT NULL DEFAULT 1,
+          created_by VARCHAR(36) DEFAULT NULL,
+          created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+          INDEX idx_model_app_module (module),
+          INDEX idx_model_app_provider (provider)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
       `);
       console.log("✅ 数据库迁移: 创建表 model_applications");
     }
@@ -1101,15 +1049,14 @@ export async function getModelApplications(req: Request, res: Response) {
       return res.status(403).json(fail("仅管理员可访问", "FORBIDDEN"));
     }
 
-    const db = getDb();
-    ensureModelApplicationsTable(db);
-    const applications = db
-      .prepare(
+    
+    await ensureModelApplicationsTable();
+    const applications = (await query(
         `
         SELECT * FROM model_applications ORDER BY created_at DESC
       `,
-      )
-      .all();
+        []
+      )).rows;
 
     return res.json({ success: true, data: applications });
   } catch (error: unknown) {
@@ -1130,8 +1077,8 @@ export async function createModelApplication(req: Request, res: Response) {
       return res.status(400).json(fail("缺少必要字段", "VALIDATION_ERROR"));
     }
 
-    const db = getDb();
-    const existing = db.prepare("SELECT id FROM model_applications WHERE module = ?").get(moduleName);
+    
+    const existing = (await query("SELECT id FROM model_applications WHERE module = ?", [moduleName])).rows[0];
 
     if (existing) {
       return res.status(400).json({ success: false, message: "该功能模块已存在配置" });
@@ -1150,13 +1097,10 @@ export async function createModelApplication(req: Request, res: Response) {
       "smart-generate": "智能生成",
     };
 
-    db.prepare(
-      `
+    await execute(`
       INSERT INTO model_applications (id, module, module_name, provider, model, description, enabled, created_by, created_at, updated_at)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `,
-    ).run(
-      id,
+    `, [id,
       moduleName,
       moduleNames[moduleName] || moduleName,
       provider,
@@ -1165,10 +1109,9 @@ export async function createModelApplication(req: Request, res: Response) {
       enabled !== false ? 1 : 0,
       userId,
       now,
-      now,
-    );
+      now,]);
 
-    const newApp = db.prepare("SELECT * FROM model_applications WHERE id = ?").get(id);
+    const newApp = (await query("SELECT * FROM model_applications WHERE id = ?", [id])).rows[0];
     return res.status(201).json({ success: true, data: newApp, message: "创建成功" });
   } catch (error: unknown) {
     console.error("创建模型应用配置失败:", error);
@@ -1189,8 +1132,8 @@ export async function updateModelApplication(req: Request, res: Response) {
       return res.status(400).json(fail("缺少必要字段", "VALIDATION_ERROR"));
     }
 
-    const db = getDb();
-    const existing = db.prepare("SELECT * FROM model_applications WHERE id = ?").get(id);
+    
+    const existing = (await query("SELECT * FROM model_applications WHERE id = ?", [id])).rows[0];
 
     if (!existing) {
       return res.status(404).json(fail("配置不存在", "NOT_FOUND"));
@@ -1198,14 +1141,12 @@ export async function updateModelApplication(req: Request, res: Response) {
 
     const now = new Date().toISOString();
 
-    db.prepare(
-      `
+    await execute(`
       UPDATE model_applications SET provider = ?, model = ?, description = ?, enabled = ?, updated_at = ?
       WHERE id = ?
-    `,
-    ).run(provider, model, description || "", enabled !== false ? 1 : 0, now, id);
+    `, [provider, model, description || "", enabled !== false ? 1 : 0, now, id]);
 
-    const updated = db.prepare("SELECT * FROM model_applications WHERE id = ?").get(id);
+    const updated = (await query("SELECT * FROM model_applications WHERE id = ?", [id])).rows[0];
     return res.json({ success: true, data: updated, message: "更新成功" });
   } catch (error: unknown) {
     console.error("更新模型应用配置失败:", error);
@@ -1222,8 +1163,8 @@ export async function patchModelApplication(req: Request, res: Response) {
     const { id } = req.params;
     const { enabled } = req.body;
 
-    const db = getDb();
-    const existing = db.prepare("SELECT * FROM model_applications WHERE id = ?").get(id);
+    
+    const existing = (await query("SELECT * FROM model_applications WHERE id = ?", [id])).rows[0];
 
     if (!existing) {
       return res.status(404).json(fail("配置不存在", "NOT_FOUND"));
@@ -1231,11 +1172,9 @@ export async function patchModelApplication(req: Request, res: Response) {
 
     const now = new Date().toISOString();
 
-    db.prepare(
-      `
+    await execute(`
       UPDATE model_applications SET enabled = ?, updated_at = ? WHERE id = ?
-    `,
-    ).run(enabled !== false ? 1 : 0, now, id);
+    `, [enabled !== false ? 1 : 0, now, id]);
 
     return res.json({ success: true, message: "状态更新成功" });
   } catch (error: unknown) {
@@ -1252,14 +1191,14 @@ export async function deleteModelApplication(req: Request, res: Response) {
 
     const { id } = req.params;
 
-    const db = getDb();
-    const existing = db.prepare("SELECT * FROM model_applications WHERE id = ?").get(id);
+    
+    const existing = (await query("SELECT * FROM model_applications WHERE id = ?", [id])).rows[0];
 
     if (!existing) {
       return res.status(404).json(fail("配置不存在", "NOT_FOUND"));
     }
 
-    db.prepare("DELETE FROM model_applications WHERE id = ?").run(id);
+    await execute("DELETE FROM model_applications WHERE id = ?", [id]);
 
     return res.json({ success: true, message: "删除成功" });
   } catch (error: unknown) {
@@ -1270,25 +1209,21 @@ export async function deleteModelApplication(req: Request, res: Response) {
 
 export async function getRecentActivity(req: Request, res: Response) {
   try {
-    const db = getDb();
+    
     const limit = Math.min(parseInt(req.query.limit as string) || 20, 50);
 
-    const logs = db.prepare(
-      `SELECT id, provider, model, call_type, total_tokens, status, error_message, request_summary, created_at
+    const logs = (await query(`SELECT id, provider, model, call_type, total_tokens, status, error_message, request_summary, created_at
        FROM ai_usage_logs
        ORDER BY created_at DESC
-       LIMIT ?`,
-    ).all(limit) as UsageLogSmartRow[];
+       LIMIT ?`, [limit])).rows as UsageLogSmartRow[];
 
-    const alerts = db.prepare(
-      `SELECT id, provider, alert_type, level, threshold, current_value, created_at
+    const alerts = (await query(`SELECT id, provider, alert_type, level, threshold, current_value, created_at
        FROM ai_alert_records
        ORDER BY created_at DESC
-       LIMIT ?`,
-    ).all(limit) as { id: string; provider: string; alert_type: string; level: string; threshold: number; current_value: number; created_at: string }[];
+       LIMIT ?`, [limit])).rows as { id: string; provider: string; alert_type: string; level: string; threshold: number; current_value: number; created_at: string }[];
 
     const modelNameMap: Record<string, string> = {};
-    const models = db.prepare("SELECT provider, name FROM ai_models").all() as ModelProviderRow[];
+    const models = (await query("SELECT provider, name FROM ai_models", [])).rows as ModelProviderRow[];
     for (const m of models) {
       modelNameMap[m.provider] = m.name;
     }
@@ -1345,7 +1280,7 @@ const CALL_TYPE_LABELS: Record<string, string> = {
 
 export async function getSmartToolHistory(req: Request, res: Response) {
   try {
-    const db = getDb();
+    
     const page = Math.max(parseInt(req.query.page as string) || 1, 1);
     const pageSize = Math.min(Math.max(parseInt(req.query.pageSize as string) || 20, 1), 100);
     const offset = (page - 1) * pageSize;
@@ -1359,19 +1294,15 @@ export async function getSmartToolHistory(req: Request, res: Response) {
       params.push(callType);
     }
 
-    const totalResult = db.prepare(
-      `SELECT COUNT(*) as total FROM ai_usage_logs ${whereClause}`,
-    ).get(...params) as TotalRow;
+    const totalResult = (await query(`SELECT COUNT(*) as total FROM ai_usage_logs ${whereClause}`, [...params])).rows[0] as TotalRow;
 
-    const logs = db.prepare(
-      `SELECT id, provider, model, call_type, total_tokens, latency_ms, status, error_message, request_summary, created_at
+    const logs = (await query(`SELECT id, provider, model, call_type, total_tokens, latency_ms, status, error_message, request_summary, created_at
        FROM ai_usage_logs ${whereClause}
        ORDER BY created_at DESC
-       LIMIT ? OFFSET ?`,
-    ).all(...params, pageSize, offset) as UsageLogSmartRow[];
+       LIMIT ? OFFSET ?`, [...params, pageSize, offset])).rows as UsageLogSmartRow[];
 
     const modelInfoMap: Record<string, { name: string; model: string }> = {};
-    const models = db.prepare("SELECT provider, name, model FROM ai_models").all() as ModelProviderRow[];
+    const models = (await query("SELECT provider, name, model FROM ai_models", [])).rows as ModelProviderRow[];
     for (const m of models) {
       modelInfoMap[m.provider] = { name: m.name, model: m.model };
     }
@@ -1420,7 +1351,7 @@ export async function getSmartToolHistory(req: Request, res: Response) {
 
 export async function deleteSmartToolHistory(req: Request, res: Response) {
   try {
-    const db = getDb();
+    
     const { id } = req.params;
 
     if (!id) {
@@ -1428,7 +1359,7 @@ export async function deleteSmartToolHistory(req: Request, res: Response) {
     }
 
     const userId = (req as AuthRequest).user?.userId;
-    const record = db.prepare("SELECT id, user_id FROM ai_usage_logs WHERE id = ?").get(id) as UsageRecordRow | undefined;
+    const record = (await query("SELECT id, user_id FROM ai_usage_logs WHERE id = ?", [id])).rows[0] as UsageRecordRow | undefined;
     
     if (!record) {
       return res.status(404).json(fail("记录不存在", "NOT_FOUND"));
@@ -1438,7 +1369,7 @@ export async function deleteSmartToolHistory(req: Request, res: Response) {
       return res.status(403).json(fail("无权删除该记录", "FORBIDDEN"));
     }
 
-    db.prepare("DELETE FROM ai_usage_logs WHERE id = ?").run(id);
+    await execute("DELETE FROM ai_usage_logs WHERE id = ?", [id]);
 
     console.log(`[SmartTools] 已删除历史记录: id=${id}, operator=${userId}`);
 
@@ -1450,14 +1381,14 @@ export async function deleteSmartToolHistory(req: Request, res: Response) {
 
 export async function getPromptTemplates(req: Request, res: Response) {
   try {
-    const db = getDb();
+    
     const { module, type } = req.query;
     let sql = "SELECT * FROM ai_prompt_templates WHERE 1=1";
     const params: unknown[] = [];
     if (module) { sql += " AND module = ?"; params.push(module); }
     if (type) { sql += " AND type = ?"; params.push(type); }
     sql += " ORDER BY sort_order ASC, created_at DESC";
-    const rows = db.prepare(sql).all(...params) as PromptTemplateRow[];
+    const rows = (await query(sql, params)).rows as PromptTemplateRow[];
     const result = rows.map(row => ({
       ...row,
       variables: JSON.parse(row.variables || "[]"),
@@ -1475,7 +1406,7 @@ export async function getPromptTemplates(req: Request, res: Response) {
 
 export async function createPromptTemplate(req: Request, res: Response) {
   try {
-    const db = getDb();
+    
     const userId = (req as AuthRequest).user?.userId;
     const { module, name, type, systemPrompt, userPromptTemplate, variables, isDefault, enabled, sortOrder } = req.body;
     if (!module || !name) {
@@ -1483,12 +1414,11 @@ export async function createPromptTemplate(req: Request, res: Response) {
     }
     const id = generateId();
     const now = new Date().toISOString();
-    db.prepare(`INSERT INTO ai_prompt_templates (id, module, name, type, system_prompt, user_prompt_template, variables, is_default, enabled, sort_order, created_by, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(
-        id, module, name, type || "description", systemPrompt || "", userPromptTemplate || "",
+    await execute(`INSERT INTO ai_prompt_templates (id, module, name, type, system_prompt, user_prompt_template, variables, is_default, enabled, sort_order, created_by, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, [id, module, name, type || "description", systemPrompt || "", userPromptTemplate || "",
         JSON.stringify(variables || []), isDefault ? 1 : 0, enabled !== false ? 1 : 0,
         sortOrder || 0, userId || null, now, now
-    );
+    ]);
     res.json(success({ id, module, name }));
   } catch (error: unknown) {
     res.status(500).json(fail("操作失败"));
@@ -1497,22 +1427,21 @@ export async function createPromptTemplate(req: Request, res: Response) {
 
 export async function updatePromptTemplate(req: Request, res: Response) {
   try {
-    const db = getDb();
+    
     const { id } = req.params;
     const { module, name, type, systemPrompt, userPromptTemplate, variables, isDefault, enabled, sortOrder } = req.body;
-    const existing = db.prepare("SELECT id FROM ai_prompt_templates WHERE id = ?").get(id) as PromptTemplateRow | undefined;
+    const existing = (await query("SELECT id FROM ai_prompt_templates WHERE id = ?", [id])).rows[0] as PromptTemplateRow | undefined;
     if (!existing) {
       return res.status(404).json(fail("模板不存在", "NOT_FOUND"));
     }
     const now = new Date().toISOString();
-    db.prepare(`UPDATE ai_prompt_templates SET module = COALESCE(?, module), name = COALESCE(?, name), type = COALESCE(?, type),
+    await execute(`UPDATE ai_prompt_templates SET module = COALESCE(?, module), name = COALESCE(?, name), type = COALESCE(?, type),
       system_prompt = COALESCE(?, system_prompt), user_prompt_template = COALESCE(?, user_prompt_template),
       variables = COALESCE(?, variables), is_default = COALESCE(?, is_default), enabled = COALESCE(?, enabled),
-      sort_order = COALESCE(?, sort_order), updated_at = ? WHERE id = ?`).run(
-        module || null, name || null, type || null, systemPrompt ?? null, userPromptTemplate ?? null,
+      sort_order = COALESCE(?, sort_order), updated_at = ? WHERE id = ?`, [module || null, name || null, type || null, systemPrompt ?? null, userPromptTemplate ?? null,
         variables != null ? JSON.stringify(variables) : null, isDefault != null ? (isDefault ? 1 : 0) : null,
         enabled != null ? (enabled ? 1 : 0) : null, sortOrder ?? null, now, id
-    );
+    ]);
     res.json(success({ id }));
   } catch (error: unknown) {
     res.status(500).json(fail("操作失败"));
@@ -1521,13 +1450,13 @@ export async function updatePromptTemplate(req: Request, res: Response) {
 
 export async function deletePromptTemplate(req: Request, res: Response) {
   try {
-    const db = getDb();
+    
     const { id } = req.params;
-    const existing = db.prepare("SELECT id FROM ai_prompt_templates WHERE id = ?").get(id) as PromptTemplateRow | undefined;
+    const existing = (await query("SELECT id FROM ai_prompt_templates WHERE id = ?", [id])).rows[0] as PromptTemplateRow | undefined;
     if (!existing) {
       return res.status(404).json(fail("模板不存在", "NOT_FOUND"));
     }
-    db.prepare("DELETE FROM ai_prompt_templates WHERE id = ?").run(id);
+    await execute("DELETE FROM ai_prompt_templates WHERE id = ?", [id]);
     res.json(success({ id }));
   } catch (error: unknown) {
     res.status(500).json(fail("操作失败"));

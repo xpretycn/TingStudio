@@ -1,5 +1,5 @@
 // 直接导入真实原料数据到SQLite数据库
-import Database from "better-sqlite3";
+
 import path from "path";
 import fs from "fs";
 import XLSX from "xlsx";
@@ -18,8 +18,8 @@ CREATE TABLE IF NOT EXISTS users (
   bio TEXT DEFAULT NULL,
   email TEXT DEFAULT NULL,
   phone TEXT DEFAULT NULL,
-  created_at TEXT NOT NULL DEFAULT (datetime('now')),
-  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+  created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+  updated_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)
 );
 CREATE TABLE IF NOT EXISTS materials (
   id TEXT PRIMARY KEY,
@@ -29,8 +29,8 @@ CREATE TABLE IF NOT EXISTS materials (
   stock REAL NOT NULL DEFAULT 0,
   material_type TEXT NOT NULL DEFAULT 'herb' CHECK(material_type IN ('herb', 'supplement')),
   created_by TEXT NOT NULL,
-  created_at TEXT NOT NULL DEFAULT (datetime('now')),
-  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+  created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+  updated_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)
 );
 CREATE INDEX IF NOT EXISTS idx_material_name ON materials(name);
 CREATE INDEX IF NOT EXISTS idx_material_code ON materials(code);
@@ -45,8 +45,8 @@ CREATE TABLE IF NOT EXISTS formulas (
   supplement_ratio_factor REAL NOT NULL DEFAULT 1.0 CHECK(supplement_ratio_factor >= 0.5 AND supplement_ratio_factor <= 1.5),
   description TEXT DEFAULT NULL,
   created_by TEXT NOT NULL,
-  created_at TEXT NOT NULL DEFAULT (datetime('now')),
-  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+  created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+  updated_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
   FOREIGN KEY (salesman_id) REFERENCES salesmen(id) ON DELETE RESTRICT
 );
 CREATE TABLE IF NOT EXISTS salesmen (
@@ -58,8 +58,8 @@ CREATE TABLE IF NOT EXISTS salesmen (
   email TEXT DEFAULT NULL,
   status TEXT NOT NULL DEFAULT 'active' CHECK(status IN ('active', 'inactive')),
   created_by TEXT NOT NULL,
-  created_at TEXT NOT NULL DEFAULT (datetime('now')),
-  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+  created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+  updated_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)
 );
 CREATE TABLE IF NOT EXISTS formula_versions (
   version_id TEXT PRIMARY KEY,
@@ -74,7 +74,7 @@ CREATE TABLE IF NOT EXISTS formula_versions (
   ratio_factor REAL NOT NULL DEFAULT 0.18 CHECK(ratio_factor >= 0.15 AND ratio_factor <= 0.25),
   supplement_ratio_factor REAL NOT NULL DEFAULT 1.0 CHECK(supplement_ratio_factor >= 0.5 AND supplement_ratio_factor <= 1.5),
   created_by TEXT NOT NULL,
-  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
   FOREIGN KEY (formula_id) REFERENCES formulas(id) ON DELETE CASCADE
 );
 CREATE TABLE IF NOT EXISTS export_templates (
@@ -85,7 +85,7 @@ CREATE TABLE IF NOT EXISTS export_templates (
   format_config_json TEXT NOT NULL,
   is_default INTEGER NOT NULL DEFAULT 0,
   created_by TEXT NOT NULL,
-  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)
 );
 CREATE TABLE IF NOT EXISTS export_jobs (
   job_id TEXT PRIMARY KEY,
@@ -100,7 +100,7 @@ CREATE TABLE IF NOT EXISTS export_jobs (
   progress INTEGER NOT NULL DEFAULT 0,
   error_message TEXT DEFAULT NULL,
   created_by TEXT NOT NULL,
-  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
   completed_at TEXT DEFAULT NULL,
   FOREIGN KEY (formula_id) REFERENCES formulas(id) ON DELETE CASCADE
 );
@@ -112,7 +112,7 @@ CREATE TABLE IF NOT EXISTS material_nutrition (
   data_source TEXT DEFAULT NULL,
   notes TEXT DEFAULT NULL,
   confidence TEXT DEFAULT 'medium' CHECK(confidence IN ('high', 'medium', 'low')),
-  last_updated TEXT NOT NULL DEFAULT (datetime('now')),
+  last_updated TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
   FOREIGN KEY (material_id) REFERENCES materials(id) ON DELETE CASCADE
 );
 CREATE TABLE IF NOT EXISTS formula_nutrition_summaries (
@@ -124,7 +124,7 @@ CREATE TABLE IF NOT EXISTS formula_nutrition_summaries (
   per_100g_nutrition_json TEXT NOT NULL,
   material_breakdown_json TEXT DEFAULT NULL,
   calculated_by TEXT NOT NULL,
-  calculated_at TEXT NOT NULL DEFAULT (datetime('now')),
+  calculated_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
   FOREIGN KEY (formula_id) REFERENCES formulas(id) ON DELETE CASCADE
 );
 CREATE TABLE IF NOT EXISTS nutrition_profiles (
@@ -136,8 +136,8 @@ CREATE TABLE IF NOT EXISTS nutrition_profiles (
   tolerance_ranges_json TEXT DEFAULT NULL,
   mandatory_fields_json TEXT DEFAULT NULL,
   is_preset INTEGER NOT NULL DEFAULT 0,
-  created_at TEXT NOT NULL DEFAULT (datetime('now')),
-  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+  created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+  updated_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)
 );
 `;
 
@@ -504,11 +504,11 @@ function main() {
     console.log("   ✅ 数据库表结构已初始化");
 
     // 开启事务
-    db.exec("BEGIN TRANSACTION");
+    await execute("BEGIN TRANSACTION");
 
     // 清空现有数据
-    const delNutri = db.prepare("DELETE FROM material_nutrition").run();
-    const delMat = db.prepare("DELETE FROM materials").run();
+    const delNutri = await execute("DELETE FROM material_nutrition", []);
+    const delMat = await execute("DELETE FROM materials", []);
     console.log(`   已清空: material_nutrition(${delNutri.changes}), materials(${delMat.changes})`);
 
     // 插入原料数据
@@ -527,7 +527,7 @@ function main() {
       insertNutri.run(nutritions[i]);
     }
 
-    db.exec("COMMIT");
+    await execute("COMMIT");
 
     console.log(`\n✅ 导入成功!`);
     console.log(`   原料表: ${materials.length} 条`);
@@ -577,7 +577,7 @@ function main() {
       );
     }
   } catch (error: any) {
-    db.exec("ROLLBACK");
+    await execute("ROLLBACK");
     console.error("\n❌ 导入失败:", error.message);
     throw error;
   } finally {

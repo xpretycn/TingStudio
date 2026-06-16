@@ -1,4 +1,4 @@
-import { query } from "../config/database-better-sqlite3.js";
+import { query } from '../config/database-adapter.js';
 import { generateId, now, rowsToCamelCase } from "../utils/helpers.js";
 
 export async function createReviewLog(params: {

@@ -1,5 +1,5 @@
 // 快速配方表迁移脚本
-import { query, connectDatabase } from "../../config/database-better-sqlite3.js";
+import { query, execute } from '../../config/database-adapter.js';
 
 /** 升级：创建 quick_formulas 表及索引 */
 export async function up(): Promise<void> {

@@ -4,7 +4,7 @@ import { toolRegistry } from "./toolRegistry.js";
 import { promptEngine } from "./promptEngine.js";
 import { sessionStore } from "./sessionStore.js";
 import type { ToolContext, ToolResult } from "../../../types/ai.js";
-import { getDb } from "../../../config/database-better-sqlite3.js";
+import { query } from "../../../config/database-adapter.js";
 import crypto from "node:crypto";
 
 const MAX_REACT_ITERATIONS = 5;
@@ -34,13 +34,26 @@ function getSystemPrompt(userId?: string): string {
     }
     return cachedSystemPrompt;
   }
+  // MySQL 异步版本：返回默认 prompt，异步加载角色配置后更新
+  if (!cachedSystemPrompt) {
+    cachedSystemPrompt = promptEngine.buildSystemPrompt(JSON.stringify(toolRegistry.getToolsForLLM(), null, 2));
+  }
+  return cachedSystemPrompt;
+}
+
+async function getSystemPromptAsync(userId?: string): Promise<string> {
+  if (!userId) {
+    if (!cachedSystemPrompt) {
+      cachedSystemPrompt = promptEngine.buildSystemPrompt(JSON.stringify(toolRegistry.getToolsForLLM(), null, 2));
+    }
+    return cachedSystemPrompt;
+  }
   try {
-    const db = getDb();
-    const roleRow = db
-      .prepare(
-        "SELECT agent_name, user_title, greeting, tone_style, custom_instructions FROM agent_role_config WHERE user_id = ?",
-      )
-      .get(userId) as any;
+    const result = await query(
+      "SELECT agent_name, user_title, greeting, tone_style, custom_instructions FROM agent_role_config WHERE user_id = ?",
+      [userId]
+    );
+    const roleRow = result.rows[0] as Record<string, unknown> | undefined;
     if (roleRow) {
       return promptEngine.buildSystemPrompt(JSON.stringify(toolRegistry.getToolsForLLM(), null, 2), roleRow);
     }
@@ -76,14 +89,14 @@ class AgentChatController {
       return;
     }
 
-    let session = sessionId ? sessionStore.getSession(sessionId) : null;
+    let session = sessionId ? await sessionStore.getSession(sessionId) : null;
     if (!session) {
       const title =
         message.slice(0, MAX_SESSION_TITLE_LENGTH) + (message.length > MAX_SESSION_TITLE_LENGTH ? "..." : "");
-      session = sessionStore.createSession(userId, title);
+      session = await sessionStore.createSession(userId, title);
     }
 
-    sessionStore.addMessage(session.id, "user", message);
+    await sessionStore.addMessage(session.id, "user", message);
 
     if (stream) {
       await this.handleReActStream(req, res, session.id, userId, message, selectedModel, selectedModelVersion);
@@ -149,7 +162,7 @@ class AgentChatController {
     const startTime = Date.now();
 
     try {
-      const recentMessages = sessionStore.getRecentMessages(sessionId, 10);
+      const recentMessages = await sessionStore.getRecentMessages(sessionId, 10);
       const contextMessages: Array<{ role: "user" | "assistant"; content: string }> = recentMessages
         .filter(m => m.role === "user" || m.role === "assistant")
         .map(m => ({
@@ -157,7 +170,7 @@ class AgentChatController {
           content: m.content,
         }));
 
-      const systemPrompt = getSystemPrompt(userId);
+      const systemPrompt = await getSystemPromptAsync(userId);
       let messages: ChatMessage[] = [
         { role: "system", content: systemPrompt },
         ...contextMessages.slice(-MAX_CONTEXT_MESSAGES),
@@ -348,7 +361,7 @@ class AgentChatController {
         this.sendSSEEvent(res, "chunk", { content: finalContent });
       }
 
-      sessionStore.addMessage(sessionId, "assistant", finalContent, {
+      await sessionStore.addMessage(sessionId, "assistant", finalContent, {
         toolCalls: allToolCalls.length > 0 ? allToolCalls : undefined,
         toolResults: allToolResults.length > 0 ? allToolResults : undefined,
         displayType:
@@ -359,7 +372,7 @@ class AgentChatController {
           tokenUsage: totalTokenUsage,
         },
       });
-      sessionStore.updateSessionActivity(sessionId);
+      await sessionStore.updateSessionActivity(sessionId);
 
       this.sendSSEEvent(res, "done", {
         sessionId,
@@ -489,8 +502,8 @@ class AgentChatController {
 
   private async handleNormalChat(res: Response, sessionId: string, userId: string, userMessage: string): Promise<void> {
     try {
-      const systemPrompt = getSystemPrompt(userId);
-      const recentMessages = sessionStore.getRecentMessages(sessionId, 20);
+      const systemPrompt = await getSystemPromptAsync(userId);
+      const recentMessages = await sessionStore.getRecentMessages(sessionId, 20);
       const chatHistory = sessionStore.messagesToChatHistory(recentMessages) as ChatMessage[];
 
       const messages: ChatMessage[] = [
@@ -507,11 +520,11 @@ class AgentChatController {
       if (result.tool_calls && result.tool_calls.length > 0) {
         const toolResults = await this.executeToolCalls(result.tool_calls, userId, sessionId);
 
-        sessionStore.addMessage(sessionId, "assistant", result.content || "", {
+        await sessionStore.addMessage(sessionId, "assistant", result.content || "", {
           toolCalls: result.tool_calls,
           toolResults,
         });
-        sessionStore.updateSessionActivity(sessionId);
+        await sessionStore.updateSessionActivity(sessionId);
 
         res.json({
           success: true,
@@ -522,8 +535,8 @@ class AgentChatController {
           sessionId,
         });
       } else {
-        sessionStore.addMessage(sessionId, "assistant", result.content || "");
-        sessionStore.updateSessionActivity(sessionId);
+        await sessionStore.addMessage(sessionId, "assistant", result.content || "");
+        await sessionStore.updateSessionActivity(sessionId);
 
         res.json({
           success: true,
@@ -782,13 +795,13 @@ class AgentChatController {
       this.sendSSEEvent(res, "chunk", { content: finalContent });
     }
 
-    sessionStore.addMessage(sessionId, "assistant", finalContent, {
+    await sessionStore.addMessage(sessionId, "assistant", finalContent, {
       toolCalls: allToolCalls.length > 0 ? allToolCalls : undefined,
       toolResults: allToolResults.length > 0 ? allToolResults : undefined,
       displayType,
       metadata: { model: selectedModel, latency: Date.now() - startTime, tokenUsage: totalTokenUsage },
     });
-    sessionStore.updateSessionActivity(sessionId);
+    await sessionStore.updateSessionActivity(sessionId);
 
     this.sendSSEEvent(res, "done", {
       sessionId,

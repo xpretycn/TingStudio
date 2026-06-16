@@ -1,5 +1,5 @@
 import cron, { ScheduledTask } from "node-cron";
-import { query } from "../config/database-better-sqlite3.js";
+import { query } from '../config/database-adapter.js';
 import { generateId, now } from "../utils/helpers.js";
 import { aggregateReportData, getWeekNumber } from "../controllers/reportController.js";
 import { logger } from "../utils/logger.js";

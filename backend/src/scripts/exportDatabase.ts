@@ -1,4 +1,4 @@
-import Database from "better-sqlite3";
+
 import path from "path";
 import fs from "fs";
 import crypto from "crypto";
@@ -82,7 +82,7 @@ async function main() {
   console.log(" TingStudio 数据库完整导出工具 v2.0");
   console.log("════════════════════════════════════════════════════════\n");
 
-  const db = getDb();
+  
 
   if (!fs.existsSync(OUTPUT_DIR)) {
     fs.mkdirSync(OUTPUT_DIR, { recursive: true });
@@ -101,7 +101,7 @@ async function main() {
 
   console.log(`  发现 ${tables.length} 张数据表:`);
   for (const t of tables) {
-    const count = db.prepare(`SELECT COUNT(*) as cnt FROM "${t.name}"`).get() as { cnt: number };
+    const count = (await query(`SELECT COUNT(*) as cnt FROM "${t.name}"`).get() as { cnt: number };
     console.log(`    - ${t.name} (${count.cnt} 条记录)`);
   }
   console.log("");
@@ -141,7 +141,7 @@ async function main() {
     version: "2.0",
     exportedAt: new Date().toISOString(),
     dbPath: DB_PATH,
-    sqliteVersion: db.prepare("SELECT sqlite_version() as v").get() as any,
+    sqliteVersion: (await query("SELECT sqlite_version() as v", [])).rows[0] as any,
     tables: [],
     indexes,
     triggers,
@@ -160,9 +160,11 @@ async function main() {
   for (const table of tables) {
     const tableName = table.name;
 
-    const columns = db.pragma(`table_info("${tableName}")`) as ColumnInfo[];
+    const columns =
+`) as ColumnInfo[];
 
-    const fkList = db.pragma(`foreign_key_list("${tableName}")`) as {
+    const fkList =
+`) as {
       from: string;
       table: string;
       to: string;
@@ -175,7 +177,7 @@ async function main() {
       to: fk.to,
     }));
 
-    const rows = db.prepare(`SELECT * FROM "${tableName}"`).all() as Record<string, any>[];
+    const rows = db.prepare(`SELECT * FROM "${tableName}"`, [])).rows as Record<string, any>[];
 
     const rowsJson = JSON.stringify(rows);
     const dataHash = computeHash(rowsJson);

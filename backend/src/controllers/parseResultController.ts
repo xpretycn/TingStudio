@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { AuthRequest } from "../middleware/auth.js";
-import { getDb } from "../config/database-better-sqlite3.js";
+import { query, execute } from '../config/database-adapter.js';
 import { generateId, success, successWithPagination } from "../utils/helpers.js";
 import { parseResultCleanupService } from "../services/parseResultCleanupService.js";
 import { parseResultMonitoringService } from "../services/parseResultMonitoringService.js";
@@ -9,7 +9,7 @@ const SMART_TOOL_CALL_TYPES = ["parse_formula", "parse_nutrition"];
 
 export async function getParseResults(req: Request, res: Response) {
   try {
-    const db = getDb();
+    
     const page = Math.max(parseInt(req.query.page as string) || 1, 1);
     const pageSize = Math.min(Math.max(parseInt(req.query.pageSize as string) || 20, 1), 100);
     const offset = (page - 1) * pageSize;
@@ -80,16 +80,14 @@ export async function getParseResults(req: Request, res: Response) {
     const sortColumn = validSortColumns.includes(sortBy) ? sortBy : 'created_at';
     const sortDirection = sortOrder.toLowerCase() === 'asc' ? 'ASC' : 'DESC';
 
-    const totalResult = db.prepare(
-      `SELECT COUNT(*) as total FROM parse_results ${whereClause}`,
-    ).get(...params) as any;
+    const totalResult = ((await query(`SELECT COUNT(*) as total FROM parse_results ${whereClause}`,
+      [...params])).rows[0]) as any;
 
-    const logs = db.prepare(
-      `SELECT id, call_type, file_hash, file_name, file_size, status, model_provider, model_name, used_count, is_linked, linked_formula_id, linked_material_id, created_at, expires_at
+    const logs = (await query(`SELECT id, call_type, file_hash, file_name, file_size, status, model_provider, model_name, used_count, is_linked, linked_formula_id, linked_material_id, created_at, expires_at
        FROM parse_results ${whereClause}
        ORDER BY ${sortColumn} ${sortDirection}
        LIMIT ? OFFSET ?`,
-    ).all(...params, pageSize, offset) as any[];
+      [...params, pageSize, offset])).rows as any[];
 
     const items = logs.map((log) => {
       return {
@@ -127,13 +125,12 @@ export async function getParseResults(req: Request, res: Response) {
 
 export async function getParseResultById(req: Request, res: Response) {
   try {
-    const db = getDb();
+    
     const { id } = req.params;
     const userId = (req as AuthRequest).user?.userId;
 
-    const log = db.prepare(
-      `SELECT * FROM parse_results WHERE id = ? AND user_id = ?`,
-    ).get(id, userId) as any;
+    const log = (await query(`SELECT * FROM parse_results WHERE id = ? AND user_id = ?`,
+      [id, userId])).rows[0] as any;
 
     if (!log) {
       return res.status(404).json({
@@ -183,7 +180,7 @@ export async function getParseResultById(req: Request, res: Response) {
 
 export async function saveParseResult(req: Request, res: Response) {
   try {
-    const db = getDb();
+    
     const userId = (req as AuthRequest).user?.userId;
     const { callType, fileHash, fileName, fileSize, parsedResult, rawResponse, modelProvider, modelName, status, errorMessage } = req.body;
 
@@ -209,10 +206,10 @@ export async function saveParseResult(req: Request, res: Response) {
       });
     }
 
-    const config = db.prepare("SELECT config_value FROM parse_result_configs WHERE config_key = 'storage_limit'").get() as any;
+    const config = (await query("SELECT config_value FROM parse_result_configs WHERE config_key = 'storage_limit'", [])).rows[0] as any;
     const storageLimit = config ? JSON.parse(config.config_value) : 5000;
 
-    const currentCount = (db.prepare("SELECT COUNT(*) as count FROM parse_results WHERE user_id = ?").get(userId) as any).count;
+    const currentCount = ((await query("SELECT COUNT(*) as count FROM parse_results WHERE user_id = ?", [userId])).rows[0] as any).count;
 
     if (currentCount >= storageLimit) {
       return res.status(507).json({
@@ -229,11 +226,10 @@ export async function saveParseResult(req: Request, res: Response) {
     const now = new Date().toISOString();
     const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
 
-    db.prepare(`
+    await execute(`
       INSERT INTO parse_results (id, user_id, call_type, file_hash, file_name, file_size, parsed_result, raw_response, model_provider, model_name, status, error_message, expires_at, created_at, updated_at)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(
-      id,
+    `, [id,
       userId,
       callType,
       fileHash,
@@ -248,7 +244,7 @@ export async function saveParseResult(req: Request, res: Response) {
       expiresAt,
       now,
       now
-    );
+    ]);
 
     res.json(success({ id, message: '解析结果保存成功' }));
   } catch (error: any) {
@@ -266,12 +262,12 @@ export async function saveParseResult(req: Request, res: Response) {
 
 export async function deleteParseResult(req: Request, res: Response) {
   try {
-    const db = getDb();
+    
     const { id } = req.params;
     const userId = (req as AuthRequest).user?.userId;
     const isAdmin = (req as AuthRequest).user?.role === 'admin';
 
-    const log = db.prepare("SELECT * FROM parse_results WHERE id = ?").get(id) as any;
+    const log = (await query("SELECT * FROM parse_results WHERE id = ?", [id])).rows[0] as any;
 
     if (!log) {
       return res.status(404).json({
@@ -295,7 +291,7 @@ export async function deleteParseResult(req: Request, res: Response) {
       });
     }
 
-    db.prepare("DELETE FROM parse_results WHERE id = ?").run(id);
+    await execute("DELETE FROM parse_results WHERE id = ?", [id]);
 
     console.log(`[ParseResult] Deleted: id=${id}, operator=${userId}`);
 
@@ -315,29 +311,26 @@ export async function deleteParseResult(req: Request, res: Response) {
 
 export async function getParseResultStatistics(req: Request, res: Response) {
   try {
-    const db = getDb();
+    
     const userId = (req as AuthRequest).user?.userId;
 
-    const totalResult = db.prepare(
-      "SELECT COUNT(*) as count FROM parse_results WHERE user_id = ?"
-    ).get(userId) as any;
+    const totalResult = (await query("SELECT COUNT(*) as count FROM parse_results WHERE user_id = ?", [userId])).rows[0] as any;
 
-    const statsByType = db.prepare(`
+    const statsByType = (await query(`
       SELECT call_type, COUNT(*) as count 
       FROM parse_results 
       WHERE user_id = ? 
       GROUP BY call_type
-    `).all(userId) as any[];
+    `, [userId])).rows as any[];
 
-    const statsByStatus = db.prepare(`
+    const statsByStatus = (await query(`
       SELECT status, COUNT(*) as count 
       FROM parse_results 
       WHERE user_id = ? 
       GROUP BY status
-    `).all(userId) as any[];
+    `, [userId])).rows as any[];
 
-    const configStmt = db.prepare("SELECT config_key, config_value FROM parse_result_configs");
-    const configs = configStmt.all() as any[];
+    const configs = (await query("SELECT config_key, config_value FROM parse_result_configs", [])).rows as Record<string, unknown>[];
     
     const configMap: Record<string, any> = {};
     for (const config of configs) {
@@ -382,7 +375,7 @@ export async function getParseResultStatistics(req: Request, res: Response) {
 
 export async function checkParseResult(req: Request, res: Response) {
   try {
-    const db = getDb();
+    
     const userId = (req as AuthRequest).user?.userId;
     const { fileHash, callType } = req.body;
 
@@ -397,12 +390,12 @@ export async function checkParseResult(req: Request, res: Response) {
       });
     }
 
-    const existing = db.prepare(`
+    const existing = (await query(`
       SELECT id, status FROM parse_results 
       WHERE user_id = ? AND file_hash = ? AND call_type = ?
       ORDER BY created_at DESC
       LIMIT 1
-    `).get(userId, fileHash, callType) as any;
+    `, [userId, fileHash, callType])).rows[0] as any;
 
     if (existing) {
       res.json(success({
@@ -430,12 +423,12 @@ export async function checkParseResult(req: Request, res: Response) {
 
 export async function markParseResultUsed(req: Request, res: Response) {
   try {
-    const db = getDb();
+    
     const { id } = req.params;
     const userId = (req as AuthRequest).user?.userId;
     const { linkedFormulaId, linkedMaterialId, incrementCount } = req.body;
 
-    const log = db.prepare("SELECT * FROM parse_results WHERE id = ? AND user_id = ?").get(id, userId) as any;
+    const log = (await query("SELECT * FROM parse_results WHERE id = ? AND user_id = ?", [id, userId])).rows[0] as any;
 
     if (!log) {
       return res.status(404).json({
@@ -468,7 +461,7 @@ export async function markParseResultUsed(req: Request, res: Response) {
     updates.push('is_linked = 1');
     values.push(id);
 
-    db.prepare(`UPDATE parse_results SET ${updates.join(', ')} WHERE id = ?`).run(...values);
+    await execute(`UPDATE parse_results SET ${updates.join(', ')} WHERE id = ?`, [...values]);
 
     res.json(success({ message: '标记成功' }));
   } catch (error: any) {
@@ -486,8 +479,8 @@ export async function markParseResultUsed(req: Request, res: Response) {
 
 export async function getParseResultConfig(req: Request, res: Response) {
   try {
-    const db = getDb();
-    const configs = db.prepare("SELECT config_key, config_value, description, updated_at FROM parse_result_configs").all() as any[];
+    
+    const configs = (await query("SELECT config_key, config_value, description, updated_at FROM parse_result_configs", [])).rows as any[];
 
     const result: Record<string, any> = {};
     for (const config of configs) {
@@ -514,7 +507,7 @@ export async function getParseResultConfig(req: Request, res: Response) {
 
 export async function updateParseResultConfig(req: Request, res: Response) {
   try {
-    const db = getDb();
+    
     const isAdmin = (req as AuthRequest).user?.role === 'admin';
 
     if (!isAdmin) {
@@ -652,11 +645,11 @@ export async function updateParseResultConfig(req: Request, res: Response) {
     }
 
     for (const update of updates) {
-      db.prepare(`
+      await execute(`
         UPDATE parse_result_configs 
         SET config_value = ?, updated_at = ? 
         WHERE config_key = ?
-      `).run(JSON.stringify(update.value), now, update.key);
+      `, [JSON.stringify(update.value]), now, update.key);
     }
 
     console.log(`[ParseResult] Config updated by admin:`, updates);
@@ -677,7 +670,7 @@ export async function updateParseResultConfig(req: Request, res: Response) {
 
 export async function cleanupParseResults(req: Request, res: Response) {
   try {
-    const db = getDb();
+    
     const isAdmin = (req as AuthRequest).user?.role === 'admin';
 
     if (!isAdmin) {
@@ -706,10 +699,10 @@ export async function cleanupParseResults(req: Request, res: Response) {
       params.push(status);
     }
 
-    const toDelete = db.prepare(`
+    const toDelete = (await query(`
       SELECT id, file_name, created_at FROM parse_results ${whereClause}
       ORDER BY created_at ASC, used_count ASC
-    `).all(...params) as any[];
+    `, [...params])).rows as any[];
 
     if (dryRun) {
       return res.json(success({
@@ -729,7 +722,7 @@ export async function cleanupParseResults(req: Request, res: Response) {
     const ids = toDelete.map(r => r.id);
     const placeholders = ids.map(() => '?').join(',');
     
-    db.prepare(`DELETE FROM parse_results WHERE id IN (${placeholders})`).run(...ids);
+    await execute(`DELETE FROM parse_results WHERE id IN (${placeholders})`, [...ids]);
 
     console.log(`[ParseResult] Cleanup: deleted ${ids.length} records by admin`);
 
@@ -785,16 +778,16 @@ export async function getParseResultDegradation(req: Request, res: Response) {
 
 export async function getLinkedFormula(req: Request, res: Response) {
   try {
-    const db = getDb();
+    
     const { id } = req.params;
     const userId = (req as AuthRequest).user?.userId;
     const isAdmin = (req as AuthRequest).user?.role === 'admin';
 
-    const parseResult = db.prepare(`
+    const parseResult = (await query(`
       SELECT linked_formula_id, linked_material_id 
       FROM parse_results 
       WHERE id = ? AND (user_id = ? OR ? = 1)
-    `).get(id, userId, isAdmin ? 1 : 0) as any;
+    `, [id, userId, isAdmin ? 1 : 0])).rows[0] as Record<string, unknown> | undefined;
 
     if (!parseResult) {
       return res.status(404).json({
@@ -815,11 +808,11 @@ export async function getLinkedFormula(req: Request, res: Response) {
       }));
     }
 
-    const formula = db.prepare(`
+    const formula = (await query(`
       SELECT id, name, code, salesman_name, status, created_at, updated_at
       FROM formulas 
       WHERE id = ?
-    `).get(parseResult.linked_formula_id);
+    `, [parseResult.linked_formula_id])).rows[0];
 
     if (!formula) {
       return res.json(success({
@@ -850,16 +843,16 @@ export async function getLinkedFormula(req: Request, res: Response) {
 
 export async function getLinkedMaterial(req: Request, res: Response) {
   try {
-    const db = getDb();
+    
     const { id } = req.params;
     const userId = (req as AuthRequest).user?.userId;
     const isAdmin = (req as AuthRequest).user?.role === 'admin';
 
-    const parseResult = db.prepare(`
+    const parseResult = (await query(`
       SELECT linked_formula_id, linked_material_id 
       FROM parse_results 
       WHERE id = ? AND (user_id = ? OR ? = 1)
-    `).get(id, userId, isAdmin ? 1 : 0) as any;
+    `, [id, userId, isAdmin ? 1 : 0])).rows[0] as any;
 
     if (!parseResult) {
       return res.status(404).json({
@@ -880,11 +873,11 @@ export async function getLinkedMaterial(req: Request, res: Response) {
       }));
     }
 
-    const material = db.prepare(`
+    const material = (await query(`
       SELECT id, name, category, specification, unit, status, created_at, updated_at
       FROM materials 
       WHERE id = ?
-    `).get(parseResult.linked_material_id);
+    `, [parseResult.linked_material_id])).rows[0];
 
     if (!material) {
       return res.json(success({
@@ -915,15 +908,15 @@ export async function getLinkedMaterial(req: Request, res: Response) {
 
 export async function getFormulaParseResults(req: Request, res: Response) {
   try {
-    const db = getDb();
+    
     const { formulaId } = req.params;
 
-    const parseResults = db.prepare(`
+    const parseResults = (await query(`
       SELECT id, call_type, file_name, file_size, status, error_message, created_at, expires_at
       FROM parse_results 
       WHERE linked_formula_id = ?
       ORDER BY created_at DESC
-    `).all(formulaId);
+    `, [formulaId])).rows;
 
     res.json(success({
       formulaId,
@@ -944,15 +937,15 @@ export async function getFormulaParseResults(req: Request, res: Response) {
 
 export async function getMaterialParseResults(req: Request, res: Response) {
   try {
-    const db = getDb();
+    
     const { materialId } = req.params;
 
-    const parseResults = db.prepare(`
+    const parseResults = (await query(`
       SELECT id, call_type, file_name, file_size, status, error_message, created_at, expires_at
       FROM parse_results 
       WHERE linked_material_id = ?
       ORDER BY created_at DESC
-    `).all(materialId);
+    `, [materialId])).rows;
 
     res.json(success({
       materialId,
@@ -973,7 +966,7 @@ export async function getMaterialParseResults(req: Request, res: Response) {
 
 export async function triggerManualCleanup(req: Request, res: Response) {
   try {
-    const db = getDb();
+    
     const isAdmin = (req as AuthRequest).user?.role === 'admin';
 
     if (!isAdmin) {

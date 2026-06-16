@@ -1,4 +1,4 @@
-import { getDb, connectDatabase } from "../../config/database-better-sqlite3.js";
+import { query, execute } from '../../config/database-adapter.js';
 
 connectDatabase();
 
@@ -66,7 +66,7 @@ async function migrateFixGarbledSummary() {
   console.log("开始迁移：修复 ai_usage_logs 中 request_summary 的中文乱码...");
 
   try {
-    const db = getDb();
+    
 
     const rows = db
       .prepare(

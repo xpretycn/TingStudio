@@ -1,4 +1,4 @@
-import { query, connectDatabase } from "../../config/database-better-sqlite3.js";
+import { query, execute } from '../../config/database-adapter.js';
 
 export async function up(): Promise<void> {
   console.log("[Migration] 开始：创建 user_preferences 表...");

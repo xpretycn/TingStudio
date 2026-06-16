@@ -75,22 +75,21 @@ export function getCachedThresholds(): RatioFactorThresholds | null {
 
 export async function loadThresholdsFromConfig(): Promise<RatioFactorThresholds> {
   try {
-    const { getDb } = await import("../config/database-better-sqlite3.js");
-    const db = getDb();
-    const row = db.prepare(`
+    const result = await query(`
       SELECT normal_low, normal_high, warning_low, warning_high,
              high_warning_low, high_warning_high
       FROM ratio_threshold_configs LIMIT 1
-    `).get() as any;
+    `);
+    const row = result.rows[0] as Record<string, unknown> | undefined;
 
     if (row) {
       cachedThresholds = {
-        normalLow: row.normal_low,
-        normalHigh: row.normal_high,
-        warningLow: row.warning_low,
-        warningHigh: row.warning_high,
-        highWarningLow: row.high_warning_low,
-        highWarningHigh: row.high_warning_high,
+        normalLow: row.normal_low as number,
+        normalHigh: row.normal_high as number,
+        warningLow: row.warning_low as number,
+        warningHigh: row.warning_high as number,
+        highWarningLow: row.high_warning_low as number,
+        highWarningHigh: row.high_warning_high as number,
       };
       return cachedThresholds;
     }

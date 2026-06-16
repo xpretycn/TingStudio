@@ -4,7 +4,7 @@
  */
 import { Request, Response } from 'express'
 import XLSX from 'xlsx'
-import { query } from "../config/database-better-sqlite3.js";
+import { query } from '../config/database-adapter.js';
 import { success, fail } from '../utils/helpers.js'
 
 // Excel模板列定义

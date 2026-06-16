@@ -5,7 +5,7 @@
  * 用途: 检查数据库中报告的实际状态，验证删除操作是否生效
  */
 
-import Database from "better-sqlite3";
+
 import path from "path";
 import fs from "fs";
 
@@ -25,16 +25,16 @@ const db = new Database(DB_PATH, { readonly: true });
 
 try {
   // 1. 统计总报告数
-  const totalCount = db.prepare("SELECT COUNT(*) as total FROM reports").get() as any;
+  const totalCount = (await query("SELECT COUNT(*) as total FROM reports", [])).rows[0] as any;
   console.log(`📊 报告总数: ${totalCount.total}\n`);
 
   // 2. 查找所有包含"第18周"或"4月"的报告
-  const week18Reports = db.prepare(`
+  const week18Reports = (await query(`
     SELECT id, title, type, status, created_by, created_at, updated_at
     FROM reports
     WHERE title LIKE '%第18周%' OR title LIKE '%4月%'
     ORDER BY created_at DESC
-  `).all();
+  `, [])).rows;
 
   console.log(`🔍 找到 ${week18Reports.length} 条包含"第18周"或"4月"的报告:\n`);
   
@@ -52,12 +52,12 @@ try {
   }
 
   // 3. 按类型统计
-  const typeStats = db.prepare(`
+  const typeStats = (await query(`
     SELECT type, status, COUNT(*) as count
     FROM reports
     GROUP BY type, status
     ORDER BY type, status
-  `).all();
+  `, [])).rows;
 
   console.log(`📈 按类型+状态分布:`);
   typeStats.forEach((s: any) => {
@@ -67,23 +67,23 @@ try {
 
   // 4. 最近删除的痕迹（如果有 soft delete 字段）
   try {
-    const columns = db.prepare("PRAGMA table_info(reports)").all() as any[];
+    const columns = (await query("PRAGMA table_info(reports)", [])).rows as any[];
     const hasDeletedAt = columns.some((c: any) => c.name === 'deleted_at');
     
     if (hasDeletedAt) {
-      const deleted = db.prepare("SELECT COUNT(*) as cnt FROM reports WHERE deleted_at IS NOT NULL").get() as any;
+      const deleted = (await query("SELECT COUNT(*) as cnt FROM reports WHERE deleted_at IS NOT NULL", [])).rows[0] as any;
       console.log(`🗑️ 软删除记录数: ${deleted.cnt}\n`);
     }
   } catch {}
 
   // 5. 最近10条报告（用于对比）
   console.log(`📋 最近10条报告 (最新优先):\n`);
-  const recent = db.prepare(`
+  const recent = (await query(`
     SELECT id, title, type, status, created_by, created_at
     FROM reports
     ORDER BY created_at DESC
     LIMIT 10
-  `).all();
+  `, [])).rows;
 
   recent.forEach((r: any, i: number) => {
     console.log(`   ${i + 1}. [${r.id?.slice(0, 12)}...] "${r.title}" | ${r.type}/${r.status} | by ${r.created_by?.slice(0, 8)} | ${r.created_at?.slice(0, 16)}`);

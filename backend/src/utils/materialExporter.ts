@@ -2,7 +2,7 @@ import XLSX from "xlsx";
 import PDFDocument from "pdfkit";
 import path from "path";
 import fs from "fs";
-import { query } from "../config/database-better-sqlite3.js";
+import { query } from '../config/database-adapter.js';
 import { rowToCamelCase } from "./helpers.js";
 
 interface MaterialRow {

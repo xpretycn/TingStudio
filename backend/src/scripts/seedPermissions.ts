@@ -1,8 +1,7 @@
-import Database from "better-sqlite3";
+
 import crypto from "crypto";
 
 const db = new Database("./data/tingstudio.db");
-db.pragma("journal_mode = WAL");
 
 const now = new Date().toISOString();
 
@@ -27,7 +26,7 @@ const perms = [
   ["permission", "write", "permission:write", "管理权限", 18],
 ];
 
-const existingCount = db.prepare("SELECT COUNT(*) AS cnt FROM permissions").get() as { cnt: number };
+const existingCount = (await query("SELECT COUNT(*) AS cnt FROM permissions", [])).rows[0] as { cnt: number };
 if (existingCount.cnt > 0) {
   console.log("Permissions already exist (" + existingCount.cnt + " records), skipping seed.");
 } else {
@@ -49,15 +48,15 @@ const formulistPermKeys = [
   "export:read", "export:write",
 ];
 
-const formulistRole = db.prepare("SELECT id FROM roles WHERE role_key = ?").get("formulist") as { id: string } | undefined;
+const formulistRole = (await query("SELECT id FROM roles WHERE role_key = ?", ["formulist"])).rows[0] as { id: string } | undefined;
 if (formulistRole) {
-  const rpCount = db.prepare("SELECT COUNT(*) AS cnt FROM role_permissions WHERE role_id = ?").get(formulistRole.id) as { cnt: number };
+  const rpCount = (await query("SELECT COUNT(*) AS cnt FROM role_permissions WHERE role_id = ?", [formulistRole.id])).rows[0] as { cnt: number };
   if (rpCount.cnt === 0) {
     const rpStmt = db.prepare(
       "INSERT INTO role_permissions (role_id, permission_id, created_at) VALUES (?, ?, ?)"
     );
     for (const pk of formulistPermKeys) {
-      const perm = db.prepare("SELECT id FROM permissions WHERE permission_key = ?").get(pk) as { id: string } | undefined;
+      const perm = (await query("SELECT id FROM permissions WHERE permission_key = ?", [pk])).rows[0] as { id: string } | undefined;
       if (perm) rpStmt.run(formulistRole.id, perm.id, now);
     }
     console.log("Assigned " + formulistPermKeys.length + " permissions to formulist role.");
@@ -66,10 +65,10 @@ if (formulistRole) {
   }
 }
 
-db.prepare("UPDATE roles SET is_system = 1 WHERE role_key = ?").run("admin");
+await execute("UPDATE roles SET is_system = 1 WHERE role_key = ?", ["admin"]);
 console.log("Updated admin role is_system to 1.");
 
-const finalCount = db.prepare("SELECT COUNT(*) AS cnt FROM permissions").get() as { cnt: number };
+const finalCount = (await query("SELECT COUNT(*) AS cnt FROM permissions", [])).rows[0] as { cnt: number };
 console.log("Total permissions: " + finalCount.cnt);
 
 db.close();

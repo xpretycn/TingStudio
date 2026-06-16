@@ -1,4 +1,4 @@
-import Database from "better-sqlite3";
+
 import path from "path";
 import { generateFormulaCode } from "../utils/helpers.js";
 
@@ -8,7 +8,7 @@ const db = new Database(DB_PATH);
 console.log("=== 为现有配方生成拼音CODE ===\n");
 
 try {
-  const formulas: any[] = db.prepare("SELECT id, name, code FROM formulas").all();
+  const formulas: any[] = (await query("SELECT id, name, code FROM formulas", [])).rows;
   console.log(`共 ${formulas.length} 条配方\n`);
 
   let updated = 0;
@@ -16,7 +16,7 @@ try {
   for (const f of formulas) {
     const newCode = generateFormulaCode(f.name);
     if (f.code !== newCode) {
-      db.prepare("UPDATE formulas SET code = ? WHERE id = ?").run(newCode, f.id);
+      await execute("UPDATE formulas SET code = ? WHERE id = ?", [newCode, f.id]);
       console.log(`✅ ${f.name}: ${f.code || '(空)'} → ${newCode}`);
       updated++;
     } else {
@@ -28,7 +28,7 @@ try {
   console.log(`更新: ${updated} 条, 未变: ${unchanged} 条`);
 
   // 显示结果
-  const samples: any[] = db.prepare("SELECT name, code FROM formulas ORDER BY rowid LIMIT 10").all();
+  const samples: any[] = (await query("SELECT name, code FROM formulas ORDER BY rowid LIMIT 10", [])).rows;
   console.log("\n当前配方CODE示例:");
   for (const s of samples) {
     console.log(`   ${s.name} → ${s.code}`);

@@ -1,4 +1,4 @@
-import { getDb } from "../../config/database-better-sqlite3.js";
+import { query, execute } from '../../config/database-adapter.js';
 
 interface SalesAnalysisInput {
   start_date?: string;
@@ -29,7 +29,7 @@ class SalesAnalysisService {
     period_breakdown: Array<{ period_type: string; count: number; amount: number }>;
     has_data: boolean;
   }> {
-    const db = getDb();
+    
 
     const conditions: string[] = [];
     const sqlParams: any[] = [];
@@ -45,9 +45,8 @@ class SalesAnalysisService {
 
     const whereSql = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
-    const totalRow = db.prepare(
-      `SELECT COUNT(*) as total_records, COALESCE(SUM(fs.quantity), 0) as total_quantity, COALESCE(SUM(fs.revenue), 0) as total_amount FROM formula_sales fs ${whereSql}`
-    ).get(...sqlParams) as any;
+    const totalRow = ((await query(`SELECT COUNT(*) as total_records, COALESCE(SUM(fs.quantity), 0) as total_quantity, COALESCE(SUM(fs.revenue), 0) as total_amount FROM formula_sales fs ${whereSql}`,
+      [...sqlParams])).rows[0]) as any;
 
     const hasData = totalRow?.total_records > 0;
 
@@ -74,9 +73,8 @@ class SalesAnalysisService {
 
     let trends: SalesTrend[] = [];
     if (groupBy === "month") {
-      const trendRows = db.prepare(
-        `SELECT strftime('%Y-%m', fs.period_start) as period, SUM(fs.quantity) as total_quantity, SUM(fs.revenue) as total_amount, COUNT(*) as order_count FROM formula_sales fs ${whereSql} GROUP BY period ORDER BY period DESC LIMIT 24`
-      ).all(...sqlParams) as any[];
+      const trendRows = (await query(
+        `SELECT DATE_FORMAT(fs.period_start, '%Y-%m') as period, SUM(fs.quantity) as total_quantity, SUM(fs.revenue) as total_amount, COUNT(*) as order_count FROM formula_sales fs ${whereSql} GROUP BY period ORDER BY period DESC LIMIT 24`, [...sqlParams])).rows as Record<string, unknown>[];
       trends = trendRows.map(r => ({
         period: r.period,
         total_quantity: Math.round(r.total_quantity * 100) / 100,
@@ -85,9 +83,7 @@ class SalesAnalysisService {
         avg_order_value: r.order_count > 0 ? Math.round((r.total_amount / r.order_count) * 100) / 100 : 0,
       }));
     } else if (groupBy === "salesperson") {
-      const trendRows = db.prepare(
-        `SELECT s.name as period, SUM(fs.quantity) as total_quantity, SUM(fs.revenue) as total_amount, COUNT(*) as order_count FROM formula_sales fs JOIN salesmen s ON fs.salesman_id = s.id ${whereSql} GROUP BY fs.salesman_id ORDER BY total_amount DESC LIMIT 20`
-      ).all(...sqlParams) as any[];
+      const trendRows = (await query(`SELECT s.name as period, SUM(fs.quantity) as total_quantity, SUM(fs.revenue) as total_amount, COUNT(*) as order_count FROM formula_sales fs JOIN salesmen s ON fs.salesman_id = s.id ${whereSql} GROUP BY fs.salesman_id ORDER BY total_amount DESC LIMIT 20`, [...sqlParams])).rows as any[];
       trends = trendRows.map(r => ({
         period: r.period,
         total_quantity: Math.round(r.total_quantity * 100) / 100,
@@ -96,9 +92,7 @@ class SalesAnalysisService {
         avg_order_value: r.order_count > 0 ? Math.round((r.total_amount / r.order_count) * 100) / 100 : 0,
       }));
     } else if (groupBy === "category" || groupBy === "region") {
-      const trendRows = db.prepare(
-        `SELECT fs.period_type as period, SUM(fs.quantity) as total_quantity, SUM(fs.revenue) as total_amount, COUNT(*) as order_count FROM formula_sales fs ${whereSql} GROUP BY fs.period_type ORDER BY total_amount DESC`
-      ).all(...sqlParams) as any[];
+      const trendRows = (await query(`SELECT fs.period_type as period, SUM(fs.quantity) as total_quantity, SUM(fs.revenue) as total_amount, COUNT(*) as order_count FROM formula_sales fs ${whereSql} GROUP BY fs.period_type ORDER BY total_amount DESC`, [...sqlParams])).rows as any[];
       trends = trendRows.map(r => ({
         period: r.period,
         total_quantity: Math.round(r.total_quantity * 100) / 100,
@@ -107,9 +101,7 @@ class SalesAnalysisService {
         avg_order_value: r.order_count > 0 ? Math.round((r.total_amount / r.order_count) * 100) / 100 : 0,
       }));
     } else {
-      const trendRows = db.prepare(
-        `SELECT strftime('%Y-%m-%d', fs.period_start) as period, SUM(fs.quantity) as total_quantity, SUM(fs.revenue) as total_amount, COUNT(*) as order_count FROM formula_sales fs ${whereSql} GROUP BY period ORDER BY period DESC LIMIT 60`
-      ).all(...sqlParams) as any[];
+      const trendRows = (await query(`SELECT strftime('%Y-%m-%d', fs.period_start) as period, SUM(fs.quantity) as total_quantity, SUM(fs.revenue) as total_amount, COUNT(*) as order_count FROM formula_sales fs ${whereSql} GROUP BY period ORDER BY period DESC LIMIT 60`, [...sqlParams])).rows as any[];
       trends = trendRows.map(r => ({
         period: r.period,
         total_quantity: Math.round(r.total_quantity * 100) / 100,
@@ -119,27 +111,21 @@ class SalesAnalysisService {
       }));
     }
 
-    const topFormulaRows = db.prepare(
-      `SELECT f.name, SUM(fs.quantity) as quantity, SUM(fs.revenue) as amount FROM formula_sales fs JOIN formulas f ON fs.formula_id = f.id ${whereSql} GROUP BY fs.formula_id ORDER BY amount DESC LIMIT 10`
-    ).all(...sqlParams) as any[];
+    const topFormulaRows = (await query(`SELECT f.name, SUM(fs.quantity) as quantity, SUM(fs.revenue) as amount FROM formula_sales fs JOIN formulas f ON fs.formula_id = f.id ${whereSql} GROUP BY fs.formula_id ORDER BY amount DESC LIMIT 10`, [...sqlParams])).rows as any[];
     const top_formulas = topFormulaRows.map(r => ({
       name: r.name,
       quantity: Math.round(r.quantity * 100) / 100,
       amount: Math.round(r.amount * 100) / 100,
     }));
 
-    const topSalespersonRows = db.prepare(
-      `SELECT s.id, s.name, SUM(fs.revenue) as total_amount FROM formula_sales fs JOIN salesmen s ON fs.salesman_id = s.id ${whereSql} GROUP BY fs.salesman_id ORDER BY total_amount DESC LIMIT 10`
-    ).all(...sqlParams) as any[];
+    const topSalespersonRows = (await query(`SELECT s.id, s.name, SUM(fs.revenue) as total_amount FROM formula_sales fs JOIN salesmen s ON fs.salesman_id = s.id ${whereSql} GROUP BY fs.salesman_id ORDER BY total_amount DESC LIMIT 10`, [...sqlParams])).rows as any[];
     const top_salespersons = topSalespersonRows.map(r => ({
       id: r.id,
       name: r.name,
       total_amount: Math.round(r.total_amount * 100) / 100,
     }));
 
-    const periodRows = db.prepare(
-      `SELECT period_type, COUNT(*) as count, SUM(fs.revenue) as amount FROM formula_sales fs ${whereSql} GROUP BY period_type ORDER BY amount DESC`
-    ).all(...sqlParams) as any[];
+    const periodRows = (await query(`SELECT period_type, COUNT(*) as count, SUM(fs.revenue) as amount FROM formula_sales fs ${whereSql} GROUP BY period_type ORDER BY amount DESC`, [...sqlParams])).rows as any[];
     const period_breakdown = periodRows.map(r => ({
       period_type: r.period_type,
       count: r.count,

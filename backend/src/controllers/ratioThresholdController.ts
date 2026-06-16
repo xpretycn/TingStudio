@@ -1,17 +1,17 @@
 import { AuthRequest } from "../middleware/auth.js";
 import { Response } from "express";
-import { getDb } from "../config/database-better-sqlite3.js";
+import { query, execute } from '../config/database-adapter.js';
 import { success, now as getNow, generateId } from "../utils/helpers.js";
 import { setCachedThresholds } from "../services/ratioFactorValidator.js";
 
 export async function getRatioThresholds(req: AuthRequest, res: Response) {
   try {
-    const db = getDb();
-    const row = db.prepare(`
+    
+    const row = (await query(`
       SELECT id, normal_low, normal_high, warning_low, warning_high,
              high_warning_low, high_warning_high, updated_at, updated_by
       FROM ratio_threshold_configs LIMIT 1
-    `).get() as any;
+    `, [])).rows[0] as any;
 
     if (!row) {
       res.json(success({
@@ -106,38 +106,34 @@ export async function updateRatioThresholds(req: AuthRequest, res: Response) {
       return;
     }
 
-    const db = getDb();
-    const existing = db.prepare("SELECT id FROM ratio_threshold_configs LIMIT 1").get() as any;
+    
+    const existing = (await query("SELECT id FROM ratio_threshold_configs LIMIT 1", [])).rows[0] as any;
     const updatedAt = getNow();
     const updatedBy = req.user?.userId || null;
 
     if (existing) {
-      db.prepare(`
+      await execute(`
         UPDATE ratio_threshold_configs
         SET normal_low = ?, normal_high = ?,
             warning_low = ?, warning_high = ?,
             high_warning_low = ?, high_warning_high = ?,
             updated_at = ?, updated_by = ?
         WHERE id = ?
-      `).run(
-        normalLow, normalHigh,
+      `, [normalLow, normalHigh,
         warningLow, warningHigh,
         highWarningLow, highWarningHigh,
         updatedAt, updatedBy,
-        existing.id,
-      );
+        existing.id,]);
     } else {
       const id = generateId();
-      db.prepare(`
+      await execute(`
         INSERT INTO ratio_threshold_configs (id, normal_low, normal_high, warning_low, warning_high, high_warning_low, high_warning_high, updated_at, updated_by)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `).run(
-        id,
+      `, [id,
         normalLow, normalHigh,
         warningLow, warningHigh,
         highWarningLow, highWarningHigh,
-        updatedAt, updatedBy,
-      );
+        updatedAt, updatedBy,]);
     }
 
     setCachedThresholds({

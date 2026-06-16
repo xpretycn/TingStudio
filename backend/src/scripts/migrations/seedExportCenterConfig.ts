@@ -1,4 +1,4 @@
-import { query, connectDatabase } from "../../config/database-better-sqlite3.js";
+import { query, execute } from '../../config/database-adapter.js';
 
 interface ConfigRow {
   config_key: string;

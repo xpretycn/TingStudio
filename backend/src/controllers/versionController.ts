@@ -1,5 +1,5 @@
 import { Request, Response } from 'express'
-import { query } from '../config/database-better-sqlite3.js'
+import { query } from '../config/database-adapter.js';
 import { generateId, now, success, fail, rowToCamelCase, rowsToCamelCase, safeJsonParse } from '../utils/helpers.js'
 import { createReviewLog, getReviewLogs, getPendingReviewList, isFormulaOwner, getMySubmissions, getReviewedByMe, getMySubmissionStatusCounts } from '../services/reviewService.js'
 

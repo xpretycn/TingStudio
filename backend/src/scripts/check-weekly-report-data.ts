@@ -4,7 +4,7 @@
  * 运行方式: npx tsx src/scripts/check-weekly-report-data.ts
  */
 
-import Database from "better-sqlite3";
+
 import path from "path";
 import fs from "fs";
 
@@ -23,12 +23,12 @@ const db = new Database(DB_PATH, { readonly: true });
 
 try {
   // 获取所有周报
-  const weeklyReports = db.prepare(`
+  const weeklyReports = (await query(`
     SELECT id, title, status, created_at, data_json
     FROM reports
     WHERE type = 'weekly'
     ORDER BY created_at DESC
-  `).all();
+  `, [])).rows;
 
   console.log(`\n📊 周报总数: ${weeklyReports.length}\n`);
 
@@ -100,9 +100,9 @@ try {
 
   // 额外：检查月报是否有数据（对比用）
   console.log("\n📋 月报数据抽样检查:\n");
-  const monthlyReport = db.prepare(`
+  const monthlyReport = (await query(`
     SELECT id, title, data_json FROM reports WHERE type = 'monthly' LIMIT 2
-  `).all();
+  `, [])).rows;
 
   monthlyReport.forEach((r: any) => {
     let dataJson: any = null;

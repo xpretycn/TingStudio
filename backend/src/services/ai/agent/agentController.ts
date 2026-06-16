@@ -1,11 +1,10 @@
 import { Request, Response } from "express";
 import { llmAgentService } from "./llmService.js";
 import { sessionStore } from "./sessionStore.js";
-import { getDb } from "../../../config/database-better-sqlite3.js";
+import { query, execute } from "../../../config/database-adapter.js";
 import { checkWriteIntentFromText } from "./agentWriteGuard.js";
 import crypto from "node:crypto";
 
-const MAX_INTENT_CONTEXT_MESSAGES = 6;
 const MAX_SESSION_TITLE_LENGTH = 20;
 const FORM_PAGE_IDS = ["formula-add", "formula-edit", "material-add", "material-edit", "salesman-add", "salesman-edit"];
 
@@ -28,14 +27,15 @@ class AIAgentController {
         res.status(401).json({ success: false, error: "认证信息缺失" });
         return;
       }
-      const db = getDb();
-      let row = db.prepare("SELECT * FROM agent_float_config WHERE user_id = ?").get(userId) as any;
+      let result = await query("SELECT * FROM agent_float_config WHERE user_id = ?", [userId]);
+      let row = result.rows[0] as Record<string, unknown> | undefined;
       if (!row) {
         const id = crypto.randomUUID();
-        db.prepare("INSERT INTO agent_float_config (id, user_id) VALUES (?, ?)").run(id, userId);
-        row = db.prepare("SELECT * FROM agent_float_config WHERE user_id = ?").get(userId) as any;
+        await execute("INSERT INTO agent_float_config (id, user_id) VALUES (?, ?)", [id, userId]);
+        result = await query("SELECT * FROM agent_float_config WHERE user_id = ?", [userId]);
+        row = result.rows[0] as Record<string, unknown>;
       }
-      const config = this.deserializeFloatConfig(row);
+      const config = this.deserializeFloatConfig(row!);
       res.json({ success: true, data: config });
     } catch (error) {
       res.status(500).json({ success: false, error: error instanceof Error ? error.message : "获取悬浮球配置失败" });
@@ -56,35 +56,17 @@ class AIAgentController {
       }
 
       const allowedFields = [
-        "enabled",
-        "model",
-        "model_name",
-        "fallback_model",
-        "fallback_model_name",
-        "position",
-        "drawer_width",
-        "theme_color",
-        "show_pulse",
-        "enabled_pages",
-        "max_rounds",
+        "enabled", "model", "model_name", "fallback_model", "fallback_model_name",
+        "position", "drawer_width", "theme_color", "show_pulse", "enabled_pages", "max_rounds",
       ];
-      const db = getDb();
-      const existing = db.prepare("SELECT id FROM agent_float_config WHERE user_id = ?").get(userId) as any;
+      const existingResult = await query("SELECT id FROM agent_float_config WHERE user_id = ?", [userId]);
+      const existing = existingResult.rows[0];
 
       if (!existing) {
         const id = crypto.randomUUID();
-        const defaults: Record<string, any> = {
-          enabled: 1,
-          model: "deepseek",
-          model_name: "",
-          fallback_model: "",
-          fallback_model_name: "",
-          position: "right",
-          drawer_width: 400,
-          theme_color: "",
-          show_pulse: 1,
-          enabled_pages: "[]",
-          max_rounds: 10,
+        const defaults: Record<string, unknown> = {
+          enabled: 1, model: "deepseek", model_name: "", fallback_model: "", fallback_model_name: "",
+          position: "right", drawer_width: 400, theme_color: "", show_pulse: 1, enabled_pages: "[]", max_rounds: 10,
         };
         const merged = { ...defaults };
         for (const field of allowedFields) {
@@ -92,27 +74,16 @@ class AIAgentController {
             merged[field] = this.serializeFieldValue(field, req.body[field]);
           }
         }
-        db.prepare(
+        await execute(
           `INSERT INTO agent_float_config (id, user_id, enabled, model, model_name, fallback_model, fallback_model_name, position, drawer_width, theme_color, show_pulse, enabled_pages, max_rounds)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        ).run(
-          id,
-          userId,
-          merged.enabled,
-          merged.model,
-          merged.model_name,
-          merged.fallback_model,
-          merged.fallback_model_name,
-          merged.position,
-          merged.drawer_width,
-          merged.theme_color,
-          merged.show_pulse,
-          merged.enabled_pages,
-          merged.max_rounds,
+          [id, userId, merged.enabled, merged.model, merged.model_name, merged.fallback_model,
+           merged.fallback_model_name, merged.position, merged.drawer_width, merged.theme_color,
+           merged.show_pulse, merged.enabled_pages, merged.max_rounds]
         );
       } else {
         const setClauses: string[] = [];
-        const sqlParams: any[] = [];
+        const sqlParams: unknown[] = [];
         for (const field of allowedFields) {
           if (req.body[field] !== undefined) {
             setClauses.push(`${field} = ?`);
@@ -120,14 +91,14 @@ class AIAgentController {
           }
         }
         if (setClauses.length > 0) {
-          setClauses.push("updated_at = datetime('now')");
+          setClauses.push("updated_at = CURRENT_TIMESTAMP");
           sqlParams.push(userId);
-          db.prepare(`UPDATE agent_float_config SET ${setClauses.join(", ")} WHERE user_id = ?`).run(...sqlParams);
+          await execute(`UPDATE agent_float_config SET ${setClauses.join(", ")} WHERE user_id = ?`, sqlParams);
         }
       }
 
-      const row = db.prepare("SELECT * FROM agent_float_config WHERE user_id = ?").get(userId) as any;
-      const config = this.deserializeFloatConfig(row);
+      const rowResult = await query("SELECT * FROM agent_float_config WHERE user_id = ?", [userId]);
+      const config = this.deserializeFloatConfig(rowResult.rows[0] as Record<string, unknown>);
       res.json({ success: true, data: config });
     } catch (error) {
       res.status(500).json({ success: false, error: error instanceof Error ? error.message : "更新悬浮球配置失败" });
@@ -156,7 +127,6 @@ class AIAgentController {
         res.flushHeaders();
 
         const guidanceMessage = writeGuard.guidanceMessage || "此操作需要前往对应页面完成";
-
         res.write(`data: ${JSON.stringify({ type: "write_guidance", toolName: writeGuard.toolName, message: guidanceMessage, navigationLink: writeGuard.navigationLink })}\n\n`);
         res.write(`data: ${JSON.stringify({ type: "done", sessionId: "", model: "" })}\n\n`);
         res.end();
@@ -164,36 +134,23 @@ class AIAgentController {
       }
     }
 
-    const db = getDb();
-    const configRow = db.prepare("SELECT * FROM agent_float_config WHERE user_id = ?").get(userId) as any;
-    const selectedModel = configRow?.model || "deepseek";
-    const selectedModelName = configRow?.model_name || undefined;
+    const configResult = await query("SELECT * FROM agent_float_config WHERE user_id = ?", [userId]);
+    const configRow = configResult.rows[0] as Record<string, unknown> | undefined;
+    const selectedModel = (configRow?.model as string) || "deepseek";
+    const selectedModelName = (configRow?.model_name as string) || undefined;
 
-    let session = sessionId ? sessionStore.getSession(sessionId) : null;
+    let session = sessionId ? await sessionStore.getSession(sessionId) : null;
     if (!session) {
       const title = utterance.slice(0, MAX_SESSION_TITLE_LENGTH) + (utterance.length > MAX_SESSION_TITLE_LENGTH ? "..." : "");
-      session = sessionStore.createSession(userId, title);
+      session = await sessionStore.createSession(userId, title);
     }
-    sessionStore.addMessage(session.id, "user", utterance);
+    await sessionStore.addMessage(session.id, "user", utterance);
 
     const { agentChatController } = await import("./agentChatController.js");
     const contextMessages: Array<{ role: "user" | "assistant"; content: string }> = (context || []).slice(-6);
     await agentChatController.handleFloatReActStream(
       res, session.id, userId, utterance, selectedModel, selectedModelName, pageId, contextMessages,
     );
-  }
-
-  private classifyFloatIntent(utterance: string): "consult" | "calculate" | "compare" | "substitute" | "quotation" | "generate" {
-    const text = utterance.toLowerCase();
-
-    if (/对比|比较|vs| versus|区别|差异/.test(text)) return "compare";
-    if (/替代|替换|代替|换掉|替补/.test(text)) return "substitute";
-    if (/报价|报价单|多少钱|售价|定价|价格/.test(text)) return "quotation";
-    if (/生成描述|生成制法|智能生成|写描述|写制法|帮我写/.test(text)) return "generate";
-    if (/算|计算|校验|合规|营养|成本|含量比|系数/.test(text)) return "calculate";
-    if (/什么意思|合规吗|范围|规范|单位|标准|规则|是什么|怎么填|能不能|可以吗|解释|说明|示例|例子|格式|要求/.test(text)) return "consult";
-
-    return "consult";
   }
 
   async getFieldHints(req: Request, res: Response): Promise<void> {
@@ -230,9 +187,9 @@ class AIAgentController {
 
   async getHealth(req: Request, res: Response): Promise<void> {
     try {
-      const db = getDb();
-      const row = db.prepare("SELECT status FROM ai_health_records ORDER BY checked_at DESC LIMIT 1").get() as any;
-      const status = row?.status || "unknown";
+      const result = await query("SELECT status FROM ai_health_records ORDER BY checked_at DESC LIMIT 1", []);
+      const row = result.rows[0] as Record<string, unknown> | undefined;
+      const status = (row?.status as string) || "unknown";
       const modelStatus =
         status === "healthy" ? "online" :
         status === "degraded" ? "degraded" :
@@ -243,7 +200,7 @@ class AIAgentController {
     }
   }
 
-  private deserializeFloatConfig(row: any): Record<string, any> {
+  private deserializeFloatConfig(row: Record<string, unknown>): Record<string, unknown> {
     return {
       id: row.id,
       userId: row.user_id,
@@ -256,14 +213,14 @@ class AIAgentController {
       drawerWidth: row.drawer_width,
       themeColor: row.theme_color,
       showPulse: !!row.show_pulse,
-      enabledPages: JSON.parse(row.enabled_pages || "[]"),
+      enabledPages: JSON.parse((row.enabled_pages as string) || "[]"),
       maxRounds: row.max_rounds,
       updatedAt: row.updated_at,
       createdAt: row.created_at,
     };
   }
 
-  private serializeFieldValue(field: string, value: any): any {
+  private serializeFieldValue(field: string, value: unknown): unknown {
     if (field === "enabled" || field === "show_pulse") return value ? 1 : 0;
     if (field === "enabled_pages") return JSON.stringify(value);
     return value;
@@ -271,56 +228,12 @@ class AIAgentController {
 
   private getPageFieldMap(pageId: string): Record<string, string> {
     const maps: Record<string, Record<string, string>> = {
-      "formula-add": {
-        name: "配方名称",
-        finished_weight: "成品重量(g)",
-        ratio_factor: "系数",
-        salesman_name: "业务员",
-        description: "描述",
-        materials: "原料列表",
-      },
-      "formula-edit": {
-        name: "配方名称",
-        finished_weight: "成品重量(g)",
-        ratio_factor: "系数",
-        salesman_name: "业务员",
-        description: "描述",
-        materials: "原料列表",
-      },
-      "material-add": {
-        name: "原料名称",
-        code: "编码",
-        material_type: "原料类型(herb=药材,supplement=辅料)",
-        unit: "单位",
-        stock: "库存",
-        unit_price: "单价(元/kg)",
-        description: "描述",
-      },
-      "material-edit": {
-        name: "原料名称",
-        code: "编码",
-        material_type: "原料类型(herb=药材,supplement=辅料)",
-        unit: "单位",
-        stock: "库存",
-        unit_price: "单价(元/kg)",
-        description: "描述",
-      },
-      "salesman-add": {
-        name: "业务员姓名",
-        phone: "手机号",
-        region: "区域",
-        department: "部门",
-        email: "邮箱",
-        code: "工号",
-      },
-      "salesman-edit": {
-        name: "业务员姓名",
-        phone: "手机号",
-        region: "区域",
-        department: "部门",
-        email: "邮箱",
-        code: "工号",
-      },
+      "formula-add": { name: "配方名称", finished_weight: "成品重量(g)", ratio_factor: "系数", salesman_name: "业务员", description: "描述", materials: "原料列表" },
+      "formula-edit": { name: "配方名称", finished_weight: "成品重量(g)", ratio_factor: "系数", salesman_name: "业务员", description: "描述", materials: "原料列表" },
+      "material-add": { name: "原料名称", code: "编码", material_type: "原料类型(herb=药材,supplement=辅料)", unit: "单位", stock: "库存", unit_price: "单价(元/kg)", description: "描述" },
+      "material-edit": { name: "原料名称", code: "编码", material_type: "原料类型(herb=药材,supplement=辅料)", unit: "单位", stock: "库存", unit_price: "单价(元/kg)", description: "描述" },
+      "salesman-add": { name: "业务员姓名", phone: "手机号", region: "区域", department: "部门", email: "邮箱", code: "工号" },
+      "salesman-edit": { name: "业务员姓名", phone: "手机号", region: "区域", department: "部门", email: "邮箱", code: "工号" },
     };
     return maps[pageId] || {};
   }

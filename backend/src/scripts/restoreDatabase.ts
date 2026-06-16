@@ -1,4 +1,4 @@
-import Database from "better-sqlite3";
+
 import path from "path";
 import fs from "fs";
 import crypto from "crypto";
@@ -200,8 +200,6 @@ function getOrCreateDb(force: boolean): Database.Database {
   }
 
   const db = new Database(DB_PATH);
-  db.pragma("journal_mode = WAL");
-  db.pragma("foreign_keys = OFF");
   return db;
 }
 
@@ -342,7 +340,7 @@ async function main() {
         continue;
       }
 
-      db.prepare(`DELETE FROM "${tableName}"`).run();
+      (await query(`DELETE FROM "${tableName}"`).run();
 
       const columns = Object.keys(rows[0]);
       const placeholders = columns.map(() => "?").join(", ");
@@ -407,7 +405,7 @@ async function main() {
     const v2 = backupData as ExportDataV2;
     for (const trg of v2.triggers) {
       try {
-        db.exec(`DROP TRIGGER IF EXISTS "${trg.name}"`);
+        await execute(`DROP TRIGGER IF EXISTS "${trg.name}"`);
         db.exec(trg.sql);
         console.log(`  ✓ 触发器: ${trg.name}`);
       } catch (e: any) {
@@ -429,7 +427,7 @@ async function main() {
   for (const tableInfo of orderedTables) {
     const tableName = tableInfo.schema.name;
     try {
-      const maxResult = db.prepare(`SELECT MAX(rowid) as maxid FROM "${tableName}"`).get() as { maxid: number | null };
+      const maxResult = (await query(`SELECT MAX(rowid) as maxid FROM "${tableName}"`, [])).rows[0] as { maxid: number | null };
       if (maxResult.maxid !== null && maxResult.maxid > 0) {
         console.log(`  ✓ ${tableName}: 序列重置为 ${maxResult.maxid + 1}`);
       }
@@ -437,8 +435,6 @@ async function main() {
   }
   console.log("");
 
-  db.pragma("wal_checkpoint(TRUNCATE)");
-  db.pragma("foreign_keys = ON");
 
   if (!skipVerify) {
     console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
@@ -453,13 +449,13 @@ async function main() {
         ? (tableInfo.schema as ExportDataV2["tables"][0]["schema"]).rowCount
         : (tableInfo as ExportDataV1["tables"][0]).rowCount;
 
-      const countResult = db.prepare(`SELECT COUNT(*) as cnt FROM "${tableName}"`).get() as { cnt: number };
+      const countResult = (await query(`SELECT COUNT(*) as cnt FROM "${tableName}"`, [])).rows[0] as { cnt: number };
       const countMatch = countResult.cnt === expectedCount;
 
       let hashMatch = true;
       let hashInfo = "";
       if (isV2Format && tableInfo.schema.dataHash) {
-        const currentRows = db.prepare(`SELECT * FROM "${tableName}"`).all();
+        const currentRows = db.prepare(`SELECT * FROM "${tableName}"`, [])).rows;
         const currentHash = computeHash(JSON.stringify(currentRows));
         hashMatch = currentHash === tableInfo.schema.dataHash;
         hashInfo = hashMatch ? ", 哈希 ✅" : `, 哈希 ❌ (期望: ${tableInfo.schema.dataHash.slice(0, 12)}..., 实际: ${currentHash.slice(0, 12)}...)`;

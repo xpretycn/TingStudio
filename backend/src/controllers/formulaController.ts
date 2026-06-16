@@ -1,7 +1,7 @@
 // 配方管理控制器
 import { Request, Response } from "express";
 import crypto from "crypto";
-import { query, transaction } from "../config/database-better-sqlite3.js";
+import { query, transactionAsync } from '../config/database-adapter.js';
 import {
   generateId,
   now,

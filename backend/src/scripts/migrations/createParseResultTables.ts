@@ -1,4 +1,4 @@
-import { getDb, connectDatabase } from "../../config/database-better-sqlite3.js";
+import { query, execute } from '../../config/database-adapter.js';
 import crypto from "node:crypto";
 
 connectDatabase();
@@ -7,11 +7,11 @@ async function migrateCreateParseResultTables() {
   console.log("开始迁移：创建解析结果存储表...\n");
 
   try {
-    const db = getDb();
+    
 
     // 创建 parse_results 表
     console.log("创建 parse_results 表...");
-    db.exec(`
+    await execute(`
       CREATE TABLE IF NOT EXISTS parse_results (
         id TEXT PRIMARY KEY,
         user_id TEXT NOT NULL,
@@ -41,7 +41,7 @@ async function migrateCreateParseResultTables() {
 
     // 创建索引
     console.log("创建索引...");
-    db.exec(`
+    await execute(`
       CREATE INDEX IF NOT EXISTS idx_parse_results_user_id ON parse_results(user_id);
       CREATE INDEX IF NOT EXISTS idx_parse_results_file_hash ON parse_results(file_hash);
       CREATE INDEX IF NOT EXISTS idx_parse_results_call_type ON parse_results(call_type);
@@ -53,7 +53,7 @@ async function migrateCreateParseResultTables() {
 
     // 创建 parse_result_configs 表
     console.log("创建 parse_result_configs 表...");
-    db.exec(`
+    await execute(`
       CREATE TABLE IF NOT EXISTS parse_result_configs (
         id TEXT PRIMARY KEY,
         config_key TEXT UNIQUE NOT NULL,
@@ -77,13 +77,12 @@ async function migrateCreateParseResultTables() {
     ];
 
     for (const config of configs) {
-      const existing = db.prepare("SELECT id FROM parse_result_configs WHERE config_key = ?").get(config.key);
+      const existing = (await query("SELECT id FROM parse_result_configs WHERE config_key = ?", [config.key])).rows[0];
       if (!existing) {
-        db.prepare(`
+        await execute(`
           INSERT INTO parse_result_configs (id, config_key, config_value, description, updated_at)
           VALUES (?, ?, ?, ?, ?)
-        `).run(
-          crypto.randomUUID(),
+        `, [crypto.randomUUID(]),
           config.key,
           JSON.stringify(config.value),
           config.desc,
@@ -95,11 +94,11 @@ async function migrateCreateParseResultTables() {
 
     // 添加公式表关联字段（如果不存在）
     console.log("检查 formulas 表关联字段...");
-    const formulasColumns = db.prepare("PRAGMA table_info(formulas)").all() as any[];
+    const formulasColumns = (await query("PRAGMA table_info(formulas)", [])).rows as any[];
     const hasParseResultId = formulasColumns.some((col: any) => col.name === 'parse_result_id');
     
     if (!hasParseResultId) {
-      db.exec(`
+      await execute(`
         ALTER TABLE formulas ADD COLUMN parse_result_id TEXT;
         CREATE INDEX IF NOT EXISTS idx_formulas_parse_result_id ON formulas(parse_result_id);
       `);
@@ -110,11 +109,11 @@ async function migrateCreateParseResultTables() {
 
     // 添加 materials 表关联字段（如果不存在）
     console.log("检查 materials 表关联字段...");
-    const materialsColumns = db.prepare("PRAGMA table_info(materials)").all() as any[];
+    const materialsColumns = (await query("PRAGMA table_info(materials)", [])).rows as any[];
     const hasMaterialParseResultId = materialsColumns.some((col: any) => col.name === 'parse_result_id');
     
     if (!hasMaterialParseResultId) {
-      db.exec(`
+      await execute(`
         ALTER TABLE materials ADD COLUMN parse_result_id TEXT;
         CREATE INDEX IF NOT EXISTS idx_materials_parse_result_id ON materials(parse_result_id);
       `);

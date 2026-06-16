@@ -3,7 +3,7 @@
  * 运行方式: npx tsx scripts/check-ai-usage.ts
  */
 
-import Database from "better-sqlite3";
+
 import path from "path";
 import fs from "fs";
 
@@ -44,11 +44,11 @@ try {
 
   // 4. 查询表结构
   console.log("\n📋 表结构:");
-  const columns = db.prepare("PRAGMA table_info(ai_usage_logs)").all();
+  const columns = (await query("PRAGMA table_info(ai_usage_logs)", [])).rows;
   console.table(columns);
 
   // 5. 统计数据总量
-  const countResult = db.prepare("SELECT COUNT(*) as total FROM ai_usage_logs").get() as { total: number };
+  const countResult = (await query("SELECT COUNT(*) as total FROM ai_usage_logs", [])).rows[0] as { total: number };
   console.log(`\n📊 总记录数: ${countResult.total}`);
 
   if (countResult.total === 0) {

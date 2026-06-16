@@ -4,7 +4,7 @@
  * 支持中文字体显示
  */
 import PDFDocument from "pdfkit";
-import { query } from "../config/database-better-sqlite3.js";
+import { query } from '../config/database-adapter.js';
 import { safeJsonParse, rowToCamelCase } from "./helpers.js";
 import { TemplateConfig, getDefaultTemplateConfig, getDefaultSelectedFields } from "./exportFieldRegistry.js";
 import path from "path";

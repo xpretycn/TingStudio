@@ -1,9 +1,8 @@
-import Database from "better-sqlite3";
+
 
 const DB_PATH = "data/tingstudio.db";
 
 const db = new Database(DB_PATH);
-db.pragma("journal_mode = WAL");
 
 console.log("=== 修正低聚异麦芽糖数据 ===\n");
 
@@ -44,6 +43,5 @@ const updated = db
   .get(material.id) as any;
 console.log("\n验证:", updated.per_100g_json);
 
-db.pragma("wal_checkpoint(TRUNCATE)");
 db.close();
 console.log("\n=== 完成 ===");

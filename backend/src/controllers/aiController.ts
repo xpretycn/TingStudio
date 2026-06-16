@@ -13,8 +13,8 @@ import {
   NL2SQL_USER_PROMPT,
 } from "../services/ai/prompts.js";
 import { validateSQL, readFileAsBase64 } from "../utils/sqlValidator.js";
-import { query } from "../config/database-better-sqlite3.js";
-import { getDb } from "../config/database-better-sqlite3.js";
+import { query } from '../config/database-adapter.js';
+import { query, execute } from '../config/database-adapter.js';
 import { generateId } from "../utils/helpers.js";
 import fs from "node:fs";
 import path from "node:path";
@@ -274,25 +274,23 @@ async function saveParseResultToDb(params: {
   status: string;
   errorMessage?: string;
 }): Promise<string> {
-  const db = getDb();
+  
   const now = new Date().toISOString();
   const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
 
   // 检查是否已存在相同 (user_id, file_hash, call_type) 的记录
-  const existing = db
-    .prepare(
+  const existing = (await query(
       `
     SELECT id, used_count FROM parse_results
     WHERE user_id = ? AND file_hash = ? AND call_type = ?
     ORDER BY created_at DESC LIMIT 1
   `,
-    )
-    .get(params.userId, params.fileHash, params.callType);
+      [params.userId, params.fileHash, params.callType]
+    )).rows[0] as { id: string; used_count: number } | undefined;
 
   if (existing) {
     // 更新已存在的记录（覆盖结果，增加使用次数）
-    db.prepare(
-      `
+    await execute(`
       UPDATE parse_results SET
         file_name = ?,
         file_size = ?,
@@ -306,9 +304,7 @@ async function saveParseResultToDb(params: {
         used_count = used_count + 1,
         updated_at = ?
       WHERE id = ?
-    `,
-    ).run(
-      params.fileName,
+    `, [params.fileName,
       params.fileSize,
       JSON.stringify(params.parsedResult),
       params.rawResponse,
@@ -318,21 +314,17 @@ async function saveParseResultToDb(params: {
       params.errorMessage || null,
       expiresAt,
       now,
-      (existing as any).id,
-    );
+      existing.id,]);
     console.log(`[AI] 更新已有解析记录: ${params.fileName} (id: ${(existing as any).id})`);
     return (existing as any).id;
   }
 
   // 插入新记录
   const id = generateId();
-  db.prepare(
-    `
+  await execute(`
     INSERT INTO parse_results (id, user_id, call_type, file_hash, file_name, file_size, parsed_result, raw_response, model_provider, model_name, status, error_message, expires_at, created_at, updated_at)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `,
-  ).run(
-    id,
+  `, [id,
     params.userId,
     params.callType,
     params.fileHash,
@@ -346,8 +338,7 @@ async function saveParseResultToDb(params: {
     params.errorMessage || null,
     expiresAt,
     now,
-    now,
-  );
+    now,]);
   return id;
 }
 
@@ -794,14 +785,12 @@ async function generateCSVExport(rows: Record<string, any>[], userId: string, sq
   fs.writeFileSync(filePath, "\uFEFF" + csvLines.join("\n"), "utf-8");
 
   try {
-    const { getDb } = await import("../config/database-better-sqlite3.js");
-    const db = getDb();
+    
+    
     const now = new Date().toISOString();
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
-    db.prepare(
-      `INSERT INTO search_export_cache (id, user_id, filename, sql, row_count, file_path, expires_at, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-    ).run(exportId, userId, filename, sql, rows.length, filePath, expiresAt, now);
+    await execute(`INSERT INTO search_export_cache (id, user_id, filename, sql, row_count, file_path, expires_at, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, [exportId, userId, filename, sql, rows.length, filePath, expiresAt, now]);
   } catch {}
 
   return `/api/ai/export/${filename}`;
@@ -818,28 +807,26 @@ interface SmartGenerateRequest {
   existingDescription?: string;
 }
 
-function getModelForModule(module: string): { provider: string; model: string } | null {
+async function getModelForModule(module: string): Promise<{ provider: string; model: string } | null> {
   try {
-    const db = getDb();
-    const row = db
-      .prepare(
+    
+    const row = (await query(
         "SELECT provider, model FROM model_applications WHERE module = ? AND enabled = 1 ORDER BY updated_at DESC LIMIT 1",
-      )
-      .get(module) as { provider: string; model: string } | undefined;
+        [module]
+      )).rows[0] as { provider: string; model: string } | undefined;
     return row || null;
   } catch {
     return null;
   }
 }
 
-function getPromptTemplate(type: string): { systemPrompt: string; userPromptTemplate: string } | null {
+async function getPromptTemplate(type: string): Promise<{ systemPrompt: string; userPromptTemplate: string } | null> {
   try {
-    const db = getDb();
-    const row = db
-      .prepare(
+    
+    const row = (await query(
         "SELECT system_prompt, user_prompt_template FROM ai_prompt_templates WHERE module = 'smart-generate' AND type = ? AND enabled = 1 ORDER BY is_default DESC, sort_order ASC LIMIT 1",
-      )
-      .get(type) as { system_prompt: string; user_prompt_template: string } | undefined;
+        [type]
+      )).rows[0] as { system_prompt: string; user_prompt_template: string } | undefined;
     return row ? { systemPrompt: row.system_prompt, userPromptTemplate: row.user_prompt_template } : null;
   } catch {
     return null;
@@ -862,7 +849,7 @@ export async function smartGenerate(req: any, res: Response) {
     }
 
     // 获取模型配置
-    const modelConfig = getModelForModule("smart-generate");
+    const modelConfig = await getModelForModule("smart-generate");
     if (!modelConfig) {
       res
         .status(400)
@@ -874,7 +861,7 @@ export async function smartGenerate(req: any, res: Response) {
     }
 
     // 获取提示词模板
-    const template = getPromptTemplate(type);
+    const template = await getPromptTemplate(type);
     if (!template) {
       res
         .status(400)

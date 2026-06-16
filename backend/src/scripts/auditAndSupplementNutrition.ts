@@ -2,7 +2,7 @@ import XLSX from "xlsx";
 import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
-import { connectDatabase, getDb, closeDatabase } from "../config/database-better-sqlite3.js";
+import { query, execute, closeDatabase } from '../config/database-adapter.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -169,11 +169,11 @@ async function main() {
   
   console.log("\n🗄️ 第二步：连接数据库...");
   connectDatabase();
-  const db = getDb();
   
-  const dbMaterials = db.prepare(`
+  
+  const dbMaterials = (await query(`
     SELECT id, name, code FROM materials
-  `).all() as Array<{id: string; name: string; code: string}>;
+  `, [])).rows as Array<{id: string; name: string; code: string}>;
   
   console.log(`   ✓ 数据库原料总数: ${dbMaterials.length}`);
   report.push(`\n## 二、数据库现状\n`);
@@ -223,15 +223,15 @@ async function main() {
   
   console.log("\n🔧 第四步：开始补充数据...");
   
-  const insertStmt = db.prepare(`
+  const insertStmt = (await query(`
     INSERT INTO material_nutrition 
     (nutrition_id, material_id, per_100g_json, data_version, data_source, last_updated, material_version, is_latest)
-    VALUES (?, ?, ?, ?, ?, datetime('now'), 1, 1)
+    VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP, 1, 1)
   `);
   
   const updateStmt = db.prepare(`
     UPDATE material_nutrition 
-    SET per_100g_json = ?, data_source = ?, last_updated = datetime('now'), is_latest = 1
+    SET per_100g_json = ?, data_source = ?, last_updated = CURRENT_TIMESTAMP, is_latest = 1
     WHERE material_id = ?
   `);
   
@@ -246,8 +246,7 @@ async function main() {
         const jsonStr = JSON.stringify(excelNutrition);
         
         const existingCount = db.prepare(
-          `SELECT COUNT(*) as count FROM material_nutrition WHERE material_id = ?`
-        ).get(mat.id) as { count: number };
+          `SELECT COUNT(*) as count FROM material_nutrition WHERE material_id = ?`, [mat.id])).rows[0] as { count: number };
         
         if (existingCount.count > 0) {
           updateStmt.run(jsonStr, 'excel-reference-supplement', mat.id);
@@ -297,9 +296,7 @@ async function main() {
   };
   
   for (const mat of dbMaterials) {
-    const nutritionRecord = db.prepare(
-      `SELECT per_100g_json FROM material_nutrition WHERE material_id = ? AND is_latest = 1`
-    ).get(mat.id) as { per_100g_json: string } | undefined;
+    const nutritionRecord = (await query(`SELECT per_100g_json FROM material_nutrition WHERE material_id = ? AND is_latest = 1`, [mat.id])).rows[0] as { per_100g_json: string } | undefined;
     
     if (nutritionRecord && nutritionRecord.per_100g_json && nutritionRecord.per_100g_json !== '{}') {
       try {

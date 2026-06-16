@@ -5,7 +5,7 @@ import { ratioFactorValidator } from "../../formula/ratioFactorValidator.js";
 import { costCalculator } from "../../formula/costCalculator.js";
 import { salespersonService } from "../../business/salespersonService.js";
 import { salesAnalysisService } from "../../business/salesAnalysisService.js";
-import { getDb } from "../../../config/database-better-sqlite3.js";
+import { query, execute } from '../../../config/database-adapter.js';
 import path from "node:path";
 
 export { toolRegistry };
@@ -165,7 +165,7 @@ export function registerAllTools(): void {
     }),
     handler: async (params, context) => {
       try {
-        const db = getDb();
+        
         const { keyword, salesman_id, page = 1, limit = 10 } = params;
         const offset = (page - 1) * limit;
         const conditions: string[] = [];
@@ -175,7 +175,7 @@ export function registerAllTools(): void {
         let userRole = "user";
         if (userId) {
           try {
-            const userRow = db.prepare("SELECT role FROM users WHERE id = ?").get(userId) as any;
+            const userRow = (await query("SELECT role FROM users WHERE id = ?", [userId])).rows[0] as any;
             if (userRow?.role === "admin") userRole = "admin";
           } catch {}
         }
@@ -196,12 +196,11 @@ export function registerAllTools(): void {
         }
 
         const whereSql = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
-        const rows = db
-          .prepare(
+        const rows = (await query(
             `SELECT f.id, f.code, f.name, f.salesman_name, f.finished_weight, f.ratio_factor, f.description, f.created_at FROM formulas f ${whereSql} ORDER BY f.created_at DESC LIMIT ? OFFSET ?`,
-          )
-          .all(...sqlParams, limit, offset);
-        const countRow = db.prepare(`SELECT COUNT(*) as total FROM formulas f ${whereSql}`).get(...sqlParams) as any;
+            [...sqlParams, limit, offset]
+          )).rows;
+        const countRow = ((await query(`SELECT COUNT(*) as total FROM formulas f ${whereSql}`, [...sqlParams])).rows[0]) as any;
 
         if (rows.length === 0) {
           return {
@@ -229,7 +228,7 @@ export function registerAllTools(): void {
     }),
     handler: async (params, context) => {
       try {
-        const db = getDb();
+        
         const { keyword, material_type, page = 1, limit = 10 } = params;
         const offset = (page - 1) * limit;
         const conditions: string[] = ["is_deleted = 0"];
@@ -246,12 +245,11 @@ export function registerAllTools(): void {
         }
 
         const whereSql = `WHERE ${conditions.join(" AND ")}`;
-        const rows = db
-          .prepare(
+        const rows = (await query(
             `SELECT id, code, name, unit, stock, material_type, unit_price FROM materials ${whereSql} ORDER BY created_at DESC LIMIT ? OFFSET ?`,
-          )
-          .all(...sqlParams, limit, offset);
-        const countRow = db.prepare(`SELECT COUNT(*) as total FROM materials ${whereSql}`).get(...sqlParams) as any;
+            [...sqlParams, limit, offset]
+          )).rows;
+        const countRow = (await query(`SELECT COUNT(*) as total FROM materials ${whereSql}`, [...sqlParams])).rows[0] as any;
 
         if (rows.length === 0) {
           return {
@@ -288,17 +286,16 @@ export function registerAllTools(): void {
         const { AIService } = await import("../AIService.js");
         const aiService = new AIService();
 
-        const db = getDb();
-        const tables = db
-          .prepare(
-            "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE 'ai_%' AND name NOT LIKE 'agent_%' AND name NOT LIKE 'search_%' AND name NOT LIKE 'file_%' AND name NOT LIKE 'report_%' AND name NOT LIKE 'export_%' AND name NOT LIKE 'nutrition_%' AND name NOT LIKE 'upload_%'",
-          )
-          .all() as any[];
+        
+        const tables = (await query(
+            "SELECT TABLE_NAME as name FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME NOT LIKE 'ai_%' AND TABLE_NAME NOT LIKE 'agent_%' AND TABLE_NAME NOT LIKE 'search_%' AND TABLE_NAME NOT LIKE 'file_%' AND TABLE_NAME NOT LIKE 'report_%' AND TABLE_NAME NOT LIKE 'export_%' AND TABLE_NAME NOT LIKE 'nutrition_%' AND TABLE_NAME NOT LIKE 'upload_%'",
+            []
+          )).rows as any[];
         const tableNames = tables.map((t: any) => t.name);
 
         const schemaInfo: string[] = [];
         for (const tableName of tableNames) {
-          const cols = db.prepare(`PRAGMA table_info(${tableName})`).all() as any[];
+          const cols = (await query(`SELECT COLUMN_NAME as name, DATA_TYPE as type FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?`, [tableName])).rows as Record<string, unknown>[];
           schemaInfo.push(`${tableName}(${cols.map((c: any) => `${c.name}:${c.type}`).join(", ")})`);
         }
 
@@ -306,7 +303,7 @@ export function registerAllTools(): void {
         const messages = [
           {
             role: "system" as const,
-            content: `你是SQL生成引擎。根据用户的自然语言查询，生成SQLite SELECT语句。
+            content: `你是SQL生成引擎。根据用户的自然语言查询，生成MySQL SELECT语句。
 
 ## 数据库Schema
 ${schemaPrompt}
@@ -347,7 +344,7 @@ ${schemaPrompt}
         let userRole = "user";
         if (userId) {
           try {
-            const userRow = db.prepare("SELECT role FROM users WHERE id = ?").get(userId) as any;
+            const userRow = (await query("SELECT role FROM users WHERE id = ?", [userId])).rows[0] as any;
             if (userRow?.role === "admin") userRole = "admin";
           } catch {}
         }
@@ -366,7 +363,7 @@ ${schemaPrompt}
           }
         }
 
-        const rows = db.prepare(finalSQL).all(...finalParams) as any[];
+        const rows = (await query(finalSQL, finalParams)).rows as any[];
         const rowCount = rows.length;
 
         const queryType = detectQueryType(finalSQL);
@@ -404,13 +401,13 @@ ${schemaPrompt}
     }),
     handler: async (params, context) => {
       try {
-        const db = getDb();
+        
         const userId = context?.userId;
 
         function findFormula(idOrName: string) {
-          let row = db.prepare("SELECT * FROM formulas WHERE id = ?").get(idOrName) as any;
+          let row = (await query("SELECT * FROM formulas WHERE id = ?", [idOrName])).rows[0] as any;
           if (!row) {
-            const rows = db.prepare("SELECT * FROM formulas WHERE name LIKE ? LIMIT 1").get(`%${idOrName}%`) as any;
+            const rows = (await query("SELECT * FROM formulas WHERE name LIKE ? LIMIT 1", [`%${idOrName}%`])).rows[0] as any;
             row = rows;
           }
           return row;
@@ -491,17 +488,14 @@ ${schemaPrompt}
     }),
     handler: async (params, context) => {
       try {
-        const db = getDb();
-        const material = db
-          .prepare("SELECT * FROM materials WHERE name LIKE ? LIMIT 1")
-          .get(`%${params.material_name}%`) as any;
+        
+        const material = (await query("SELECT * FROM materials WHERE name LIKE ? LIMIT 1", [`%${params.material_name}%`])).rows[0] as any;
         if (!material) return { success: false, error: `未找到原料"${params.material_name}"` };
 
-        const candidates = db
-          .prepare(
+        const candidates = (await query(
             "SELECT id, name, material_type, unit_price, stock FROM materials WHERE material_type = ? AND id != ? ORDER BY name",
-          )
-          .all(material.material_type, material.id) as any[];
+            [material.material_type, material.id]
+          )).rows as any[];
 
         if (candidates.length === 0) {
           return {
@@ -549,15 +543,13 @@ ${schemaPrompt}
     }),
     handler: async (params, context) => {
       try {
-        const db = getDb();
+        
         let formula: any = null;
 
         if (params.formula_id) {
-          formula = db.prepare("SELECT * FROM formulas WHERE id = ?").get(params.formula_id) as any;
+          formula = (await query("SELECT * FROM formulas WHERE id = ?", [params.formula_id])).rows[0] as any;
         } else if (params.formula_name) {
-          formula = db
-            .prepare("SELECT * FROM formulas WHERE name LIKE ? LIMIT 1")
-            .get(`%${params.formula_name}%`) as any;
+          formula = ((await query("SELECT * FROM formulas WHERE name LIKE ? LIMIT 1", [`%${params.formula_name}%`])).rows[0]) as any;
         }
 
         if (!formula) return { success: false, error: "未找到指定配方，请提供配方ID或名称" };
@@ -570,7 +562,7 @@ ${schemaPrompt}
         const costMaterials = [];
         for (const m of materials) {
           const matName = m.materialName || m.name;
-          const dbMat = db.prepare("SELECT unit_price FROM materials WHERE name = ?").get(matName) as any;
+          const dbMat = (await query("SELECT unit_price FROM materials WHERE name = ?", [matName])).rows[0] as any;
           costMaterials.push({
             name: matName,
             quantity: m.quantity,

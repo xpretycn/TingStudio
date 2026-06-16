@@ -104,14 +104,14 @@ router.post("/natural-search", naturalSearch);
 router.get("/export/:filename", async (req: any, res: any) => {
   try {
     const { filename } = req.params;
-    const { getDb } = await import("../config/database-better-sqlite3.js");
-    const db = getDb();
-    const record = db.prepare("SELECT * FROM search_export_cache WHERE filename = ?").get(filename) as any;
+    const { query } = await import("../config/database-adapter.js");
+    const result = await query("SELECT * FROM search_export_cache WHERE filename = ?", [filename]);
+    const record = result.rows[0] as Record<string, unknown> | undefined;
     if (!record) {
       res.status(404).json({ success: false, message: "导出文件不存在或已过期" });
       return;
     }
-    if (new Date(record.expires_at) < new Date()) {
+    if (new Date(record.expires_at as string) < new Date()) {
       res.status(410).json({ success: false, message: "导出文件已过期" });
       return;
     }

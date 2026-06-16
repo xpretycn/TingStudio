@@ -1,9 +1,8 @@
-import Database from "better-sqlite3";
+
 
 const db = new Database("data/tingstudio.db");
-db.pragma("journal_mode = WAL");
 
-const adminUser = db.prepare("SELECT id FROM users WHERE username='admin'").get() as any;
+const adminUser = (await query("SELECT id FROM users WHERE username='admin'", [])).rows[0] as any;
 const adminId = adminUser.id;
 
 console.log("Admin ID:", adminId);

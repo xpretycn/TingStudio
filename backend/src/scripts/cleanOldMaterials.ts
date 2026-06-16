@@ -5,7 +5,7 @@ import { now } from '../utils/helpers.js'
 async function cleanOldMaterials() {
   console.log('开始清理 MAT001-MAT030 模拟数据...')
   await connectDatabase()
-  const db = getDb()
+  
 
   const doClean = db.transaction(() => {
     // 1. 删除旧原料的营养数据
@@ -26,9 +26,9 @@ async function cleanOldMaterials() {
   doClean()
 
   // 验证
-  const totalMat = (db.prepare('SELECT COUNT(*) as cnt FROM materials').get() as any).cnt
-  const totalNut = (db.prepare('SELECT COUNT(*) as cnt FROM material_nutrition').get() as any).cnt
-  const remaining = db.prepare('SELECT id, name, code FROM materials ORDER BY code').all() as any[]
+  const totalMat = ((await query('SELECT COUNT(*) as cnt FROM materials', [])).rows[0] as any).cnt
+  const totalNut = ((await query('SELECT COUNT(*) as cnt FROM material_nutrition', [])).rows[0] as any).cnt
+  const remaining = (await query('SELECT id, name, code FROM materials ORDER BY code', [])).rows as any[]
 
   console.log('\n═══════════════════════════════════════')
   console.log(`✅ 清理完成！`)

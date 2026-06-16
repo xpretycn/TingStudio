@@ -102,7 +102,7 @@ materialsFromExcel.forEach((m, i) => materialNameIndex.set(m.name, i))
 async function seedData() {
   console.log('开始插入种子数据...')
   await connectDatabase()
-  const db = getDb()
+  
 
   transaction(() => {
     // ═══════════════════════════════════════════════════════
@@ -141,7 +141,7 @@ async function seedData() {
     materialsFromExcel.forEach((mat, i) => {
       const code = `MAT${String(i + 1).padStart(3, '0')}`
       // 先查找是否已存在，避免 ID 错位
-      const existing = db.prepare('SELECT id FROM materials WHERE code = ?').get(code) as any
+      const existing = (await query('SELECT id FROM materials WHERE code = ?', [code])).rows[0] as any
       if (existing) {
         materialIds.push(existing.id)
         console.log(`  原料 ${mat.name} 已存在 (${code})，使用已有ID`)

@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { query, transaction } from "../config/database-better-sqlite3.js";
+import { query, transactionAsync } from '../config/database-adapter.js';
 import {
   generateId,
   generateMaterialCode,

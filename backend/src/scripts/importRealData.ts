@@ -204,7 +204,7 @@ async function importData() {
   console.log("════════════════════════════════════════════════════════\n");
 
   await connectDatabase();
-  const db = getDb();
+  
 
   // 1. 解析Excel文件
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
@@ -232,7 +232,7 @@ async function importData() {
     ];
 
     for (const table of tables) {
-      const result = db.prepare(`DELETE FROM ${table}`).run();
+      const result = await execute(`DELETE FROM ${table}`, []);
       console.log(`  清空 ${table}: 删除 ${result.changes} 条记录`);
     }
   });
@@ -245,7 +245,7 @@ async function importData() {
   console.log("步骤 3: 准备基础数据");
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 
-  const adminUser = db.prepare("SELECT id FROM users WHERE role = 'admin' LIMIT 1").get() as any;
+  const adminUser = (await query("SELECT id FROM users WHERE role = 'admin' LIMIT 1", [])).rows[0] as any;
   const adminId = adminUser ? adminUser.id : "system";
   console.log(`  管理员ID: ${adminId}`);
 
@@ -256,8 +256,8 @@ async function importData() {
     const salesmanCode = `SALE${String(formulas.indexOf(formula) + 1).padStart(3, "0")}`;
 
     // 检查是否已存在（按code或名称）
-    const existingByCode = db.prepare("SELECT id, name FROM salesmen WHERE code = ?").get(salesmanCode) as any;
-    const existingByName = db.prepare("SELECT id, name FROM salesmen WHERE name = ?").get(salesmanName) as any;
+    const existingByCode = (await query("SELECT id, name FROM salesmen WHERE code = ?", [salesmanCode])).rows[0] as any;
+    const existingByName = (await query("SELECT id, name FROM salesmen WHERE name = ?", [salesmanName])).rows[0] as any;
 
     if (existingByCode) {
       salesmenMap.set(formula.name, existingByCode.id);
@@ -414,10 +414,10 @@ async function importData() {
   console.log("步骤 6: 数据验证");
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 
-  const matCount = (db.prepare("SELECT COUNT(*) as cnt FROM materials").get() as any).cnt;
-  const formulaCount = (db.prepare("SELECT COUNT(*) as cnt FROM formulas").get() as any).cnt;
-  const nutritionCount = (db.prepare("SELECT COUNT(*) as cnt FROM material_nutrition").get() as any).cnt;
-  const salesmenCount = (db.prepare("SELECT COUNT(*) as cnt FROM salesmen").get() as any).cnt;
+  const matCount = ((await query("SELECT COUNT(*) as cnt FROM materials", [])).rows[0] as any).cnt;
+  const formulaCount = ((await query("SELECT COUNT(*) as cnt FROM formulas", [])).rows[0] as any).cnt;
+  const nutritionCount = ((await query("SELECT COUNT(*) as cnt FROM material_nutrition", [])).rows[0] as any).cnt;
+  const salesmenCount = ((await query("SELECT COUNT(*) as cnt FROM salesmen", [])).rows[0] as any).cnt;
 
   console.log(`  原料总数: ${matCount}`);
   console.log(`  配方总数: ${formulaCount}`);

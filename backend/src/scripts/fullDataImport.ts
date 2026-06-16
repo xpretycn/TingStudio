@@ -2,12 +2,7 @@ import XLSX from "xlsx";
 import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
-import {
-  connectDatabase,
-  getDb,
-  closeDatabase,
-  transaction,
-} from "../config/database-better-sqlite3.js";
+import { query, execute, closeDatabase, transactionAsync } from '../config/database-adapter.js';
 import { generateMaterialCode, generateFormulaCode } from "../utils/helpers.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -159,7 +154,7 @@ async function main() {
   );
 
   await connectDatabase();
-  const db = getDb();
+  
 
   const adminUser = db
     .prepare("SELECT id FROM users WHERE role = 'admin' LIMIT 1")
@@ -195,7 +190,7 @@ async function main() {
 
     for (const table of tablesToClear) {
       try {
-        const result = db.prepare(`DELETE FROM ${table}`).run();
+        const result = (await query(`DELETE FROM ${table}`).run();
         report.cleared[table] = result.changes;
         console.log(
           `   ${table}: 删除 ${result.changes} 条记录`
@@ -255,11 +250,10 @@ async function main() {
         const dataSource = String(row["数据来源"] || "batch_import");
         const timestamp = now();
 
-        db.prepare(`
+        await execute(`
           INSERT INTO materials (id, name, code, unit, stock, material_type, unit_price, data_source, created_by, created_at, updated_at)
           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `).run(
-          materialId,
+        `, [materialId,
           name,
           code,
           unit,
@@ -269,8 +263,7 @@ async function main() {
           dataSource,
           adminId,
           timestamp,
-          timestamp
-        );
+          timestamp]);
 
         materialIdMap.set(name, materialId);
 
@@ -293,10 +286,10 @@ async function main() {
           vitaminC_mg: 0,
         };
 
-        db.prepare(`
+        await execute(`
           INSERT INTO material_nutrition (nutrition_id, material_id, per_100g_json, data_version, data_source, last_updated, material_version, is_latest)
           VALUES (?, ?, ?, '1.0', ?, ?, 1, 1)
-        `).run(nutritionId, materialId, JSON.stringify(per100g), dataSource, timestamp);
+        `, [nutritionId, materialId, JSON.stringify(per100g]), dataSource, timestamp);
 
         report.materials.success++;
         report.nutrition.success++;
@@ -369,10 +362,10 @@ async function main() {
           const materialType = isSupplement(name) ? "supplement" : "herb";
           const timestamp = now();
 
-          db.prepare(`
+          await execute(`
             INSERT INTO materials (id, name, code, unit, stock, material_type, unit_price, data_source, created_by, created_at, updated_at)
             VALUES (?, ?, ?, 'g', 0, ?, NULL, 'formula_import', ?, ?, ?)
-          `).run(materialId, name, code, materialType, adminId, timestamp, timestamp);
+          `, [materialId, name, code, materialType, adminId, timestamp, timestamp]);
 
           materialIdMap.set(name, materialId);
 
@@ -390,10 +383,10 @@ async function main() {
             vitaminC_mg: 0,
           };
 
-          db.prepare(`
+          await execute(`
             INSERT INTO material_nutrition (nutrition_id, material_id, per_100g_json, data_version, data_source, last_updated, material_version, is_latest)
             VALUES (?, ?, ?, '1.0', 'formula_import', ?, 1, 1)
-          `).run(nutritionId, materialId, JSON.stringify(per100g), timestamp);
+          `, [nutritionId, materialId, JSON.stringify(per100g]), timestamp);
 
           report.materials.success++;
           report.nutrition.success++;
@@ -447,14 +440,13 @@ async function main() {
       const timestamp = now();
 
       try {
-        db.prepare(`
+        await execute(`
           INSERT INTO salesmen (id, name, code, department, phone, email, status, created_by, created_at, updated_at)
           VALUES (?, ?, ?, '配方部', ?, ?, 'active', ?, ?, ?)
-        `).run(
-          salesmanId,
+        `, [salesmanId,
           salesmanName,
           salesmanCode,
-          `138${String(Math.floor(Math.random() * 100000000)).padStart(8, "0")}`,
+          `138${String(Math.floor(Math.random(]) * 100000000)).padStart(8, "0")}`,
           `${salesmanName.replace(/\s/g, "")}@tingstudio.com`,
           adminId,
           timestamp,
@@ -522,7 +514,7 @@ async function main() {
         const description = `源自"${formula.name}"配方数据，共${formula.materials.length}种原料精心调配。`;
         const preparationMethod = "传统膏方熬制工艺";
 
-        db.prepare(`
+        await execute(`
           INSERT INTO formulas (
             id, code, name, salesman_id, salesman_name, materials_json,
             finished_weight, ratio_factor, supplement_ratio_factor,
@@ -531,9 +523,8 @@ async function main() {
             created_by, created_at, updated_at
           )
           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `).run(
-          formulaId,
-          generateFormulaCode(formula.name),
+        `, [formulaId,
+          generateFormulaCode(formula.name]),
           formula.name,
           salesmanId,
           salesmanName,
@@ -581,35 +572,31 @@ async function main() {
   );
 
   const matTotal = (
-    db.prepare("SELECT COUNT(*) as cnt FROM materials").get() as Record<
+    (await query("SELECT COUNT(*) as cnt FROM materials", [])).rows[0] as Record<
       string,
       number
     >
   ).cnt;
   const nutTotal = (
-    db.prepare("SELECT COUNT(*) as cnt FROM material_nutrition").get() as Record<
+    (await query("SELECT COUNT(*) as cnt FROM material_nutrition", [])).rows[0] as Record<
       string,
       number
     >
   ).cnt;
   const herbCount = (
-    db.prepare(
-      "SELECT COUNT(*) as cnt FROM materials WHERE material_type = 'herb'"
-    ).get() as Record<string, number>
+    (await query("SELECT COUNT(*) as cnt FROM materials WHERE material_type = 'herb'", [])).rows[0] as Record<string, number>
   ).cnt;
   const supCount = (
-    db.prepare(
-      "SELECT COUNT(*) as cnt FROM materials WHERE material_type = 'supplement'"
-    ).get() as Record<string, number>
+    (await query("SELECT COUNT(*) as cnt FROM materials WHERE material_type = 'supplement'", [])).rows[0] as Record<string, number>
   ).cnt;
   const formulaTotal = (
-    db.prepare("SELECT COUNT(*) as cnt FROM formulas").get() as Record<
+    (await query("SELECT COUNT(*) as cnt FROM formulas", [])).rows[0] as Record<
       string,
       number
     >
   ).cnt;
   const salesmanTotal = (
-    db.prepare("SELECT COUNT(*) as cnt FROM salesmen").get() as Record<
+    (await query("SELECT COUNT(*) as cnt FROM salesmen", [])).rows[0] as Record<
       string,
       number
     >
@@ -622,19 +609,13 @@ async function main() {
 
   // 验证创建人
   const nonAdminMaterials = (
-    db.prepare(
-      "SELECT COUNT(*) as cnt FROM materials WHERE created_by != ?"
-    ).get(adminId) as Record<string, number>
+    (await query("SELECT COUNT(*) as cnt FROM materials WHERE created_by != ?", [adminId])).rows[0] as Record<string, number>
   ).cnt;
   const nonAdminFormulas = (
-    db.prepare(
-      "SELECT COUNT(*) as cnt FROM formulas WHERE created_by != ?"
-    ).get(adminId) as Record<string, number>
+    (await query("SELECT COUNT(*) as cnt FROM formulas WHERE created_by != ?", [adminId])).rows[0] as Record<string, number>
   ).cnt;
   const nonAdminSalesmen = (
-    db.prepare(
-      "SELECT COUNT(*) as cnt FROM salesmen WHERE created_by != ?"
-    ).get(adminId) as Record<string, number>
+    (await query("SELECT COUNT(*) as cnt FROM salesmen WHERE created_by != ?", [adminId])).rows[0] as Record<string, number>
   ).cnt;
 
   if (nonAdminMaterials === 0 && nonAdminFormulas === 0 && nonAdminSalesmen === 0) {
@@ -681,7 +662,7 @@ async function main() {
     FROM materials
     GROUP BY name
     HAVING cnt > 1
-  `).all() as Record<string, unknown>[];
+  `, [])).rows as Record<string, unknown>[];
 
   if (duplicates.length > 0) {
     console.log(`\n   ⚠️ 发现 ${duplicates.length} 组重复原料名称:`);

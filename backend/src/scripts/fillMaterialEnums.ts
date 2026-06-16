@@ -1,4 +1,4 @@
-import Database from "better-sqlite3";
+
 
 const db = new Database("./data/tingstudio.db");
 
@@ -394,10 +394,10 @@ const skipNames = new Set([
   "烦烦烦"
 ]);
 
-const rows = db.prepare("SELECT id, name, appearance_json, taste_json, efficacy_json FROM materials").all();
+const rows = (await query("SELECT id, name, appearance_json, taste_json, efficacy_json FROM materials", [])).rows;
 
 const updateStmt = db.prepare(
-  "UPDATE materials SET appearance_json = ?, taste_json = ?, efficacy_json = ?, updated_at = datetime('now') WHERE id = ?"
+  "UPDATE materials SET appearance_json = ?, taste_json = ?, efficacy_json = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?"
 );
 
 let updated = 0;
@@ -444,7 +444,7 @@ transaction();
 
 console.log(`\nDone! Updated: ${updated}, Skipped: ${skipped}, Total: ${rows.length}`);
 
-const verifyRows = db.prepare("SELECT id, name, appearance_json, taste_json, efficacy_json FROM materials WHERE appearance_json IS NOT NULL").all();
+const verifyRows = (await query("SELECT id, name, appearance_json, taste_json, efficacy_json FROM materials WHERE appearance_json IS NOT NULL", [])).rows;
 console.log(`\nVerification: ${verifyRows.length} materials now have enum values`);
 
 db.close();

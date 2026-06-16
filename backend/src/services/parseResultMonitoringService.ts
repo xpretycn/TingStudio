@@ -1,4 +1,4 @@
-import { getDb } from '../config/database-better-sqlite3.js';
+import { query, execute } from '../config/database-adapter.js';
 
 export interface MonitoringMetrics {
   totalParseRequests: number;
@@ -57,48 +57,48 @@ export interface Alert {
 class ParseResultMonitoringService {
   async getMetrics(startDate?: string, endDate?: string): Promise<MonitoringMetrics> {
     try {
-      const db = getDb();
+      
 
       const start = startDate || new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
       const end = endDate || new Date().toISOString();
 
-      const totalResult = db.prepare(`
+      const totalResult = ((await query(`
       SELECT COUNT(*) as total FROM parse_results WHERE created_at >= ? AND created_at <= ?
-    `).get(start, end) as { total: number };
+    `, [start, end])).rows[0]) as { total: number };
 
-      const successResult = db.prepare(`
+      const successResult = (await query(`
       SELECT COUNT(*) as count FROM parse_results WHERE created_at >= ? AND created_at <= ? AND status = 'success'
-    `).get(start, end) as { count: number };
+    `, [start, end])).rows[0] as { count: number };
 
-      const failedResult = db.prepare(`
+      const failedResult = (await query(`
       SELECT COUNT(*) as count FROM parse_results WHERE created_at >= ? AND created_at <= ? AND status = 'failed'
-    `).get(start, end) as { count: number };
+    `, [start, end])).rows[0] as { count: number };
 
-      const pendingResult = db.prepare(`
+      const pendingResult = (await query(`
       SELECT COUNT(*) as count FROM parse_results WHERE created_at >= ? AND created_at <= ? AND status = 'pending'
-    `).get(start, end) as { count: number };
+    `, [start, end])).rows[0] as { count: number };
 
-      const tokensResult = db.prepare(`
+      const tokensResult = (await query(`
       SELECT
         COUNT(*) as count,
         SUM(tokens_used) as total
       FROM parse_results
       WHERE created_at >= ? AND created_at <= ? AND tokens_used > 0
-    `).get(start, end) as { count: number; total: number | null };
+    `, [start, end])).rows[0] as { count: number; total: number | null };
 
-      const cacheResult = db.prepare(`
+      const cacheResult = (await query(`
       SELECT
         SUM(CASE WHEN used_count > 0 THEN 1 ELSE 0 END) as hits,
         SUM(CASE WHEN used_count = 0 THEN 1 ELSE 0 END) as misses
       FROM parse_results
       WHERE created_at >= ? AND created_at <= ?
-    `).get(start, end) as { hits: number; misses: number };
+    `, [start, end])).rows[0] as { hits: number; misses: number };
 
       let storageLimit = 5000;
       try {
-        const configResult = db.prepare(`
+        const configResult = (await query(`
           SELECT config_key, config_value FROM parse_result_configs WHERE config_key = ?
-        `).get('storage_limit') as { config_key: string; config_value: string } | undefined;
+        `, ['storage_limit'])).rows[0] as { config_key: string; config_value: string } | undefined;
         if (configResult) {
           storageLimit = parseInt(configResult.config_value) || 5000;
         }
@@ -108,7 +108,7 @@ class ParseResultMonitoringService {
 
       const currentStorage = totalResult.total;
 
-      const modelUsage = db.prepare(`
+      const modelUsage = (await query(`
       SELECT
         model_provider,
         model_name,
@@ -118,7 +118,7 @@ class ParseResultMonitoringService {
       GROUP BY model_provider, model_name
       ORDER BY count DESC
       LIMIT 10
-    `).all(start, end) as Array<{ model_provider: string; model_name: string; count: number }>;
+    `, [start, end])).rows as Array<{ model_provider: string; model_name: string; count: number }>;
 
       const totalParseRequests = totalResult.total;
       const successfulRequests = successResult.count;
@@ -175,7 +175,7 @@ class ParseResultMonitoringService {
   }
 
   async getAlertRules(): Promise<AlertRule[]> {
-    const db = getDb();
+    
 
     const defaultRules: AlertRule[] = [
       {

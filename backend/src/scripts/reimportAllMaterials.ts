@@ -2,7 +2,7 @@ import XLSX from "xlsx";
 import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
-import { connectDatabase, getDb } from "../config/database-better-sqlite3.js";
+import { query, execute } from '../config/database-adapter.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -130,12 +130,12 @@ async function main() {
   console.log("============================================================\n");
 
   await connectDatabase();
-  const db = getDb();
+  
 
   // Step 0: Backup
   console.log("--- Step 0: Backup current data ---");
-  const backupMaterials = db.prepare("SELECT * FROM materials").all();
-  const backupNutrition = db.prepare("SELECT * FROM material_nutrition").all();
+  const backupMaterials = (await query("SELECT * FROM materials", [])).rows;
+  const backupNutrition = (await query("SELECT * FROM material_nutrition", [])).rows;
   console.log(`  Backup: ${backupMaterials.length} materials, ${backupNutrition.length} nutrition records`);
 
   const backupDir = path.resolve(__dirname, "../../data/backup");
@@ -146,12 +146,12 @@ async function main() {
 
   // Step 1: Clear tables
   console.log("--- Step 1: Clear materials + material_nutrition ---");
-  const beforeM = (db.prepare("SELECT COUNT(*) as c FROM materials").get() as any).c;
-  const beforeN = (db.prepare("SELECT COUNT(*) as c FROM material_nutrition").get() as any).c;
+  const beforeM = ((await query("SELECT COUNT(*) as c FROM materials", [])).rows[0] as any).c;
+  const beforeN = ((await query("SELECT COUNT(*) as c FROM material_nutrition", [])).rows[0] as any).c;
   console.log(`  Before: materials=${beforeM}, nutrition=${beforeN}`);
 
-  db.prepare("DELETE FROM material_nutrition").run();
-  db.prepare("DELETE FROM materials").run();
+  await execute("DELETE FROM material_nutrition", []);
+  await execute("DELETE FROM materials", []);
   console.log(`  Cleared.\n`);
 
   // Step 2: Parse complete database file first
@@ -248,11 +248,10 @@ async function main() {
 
   // Step 6: Import to database
   console.log("\n--- Step 6: Import to database ---");
-  const adminUser = db.prepare("SELECT id FROM users WHERE role = 'admin' LIMIT 1").get() as any;
+  const adminUser = (await query("SELECT id FROM users WHERE role = 'admin' LIMIT 1", [])).rows[0] as any;
   const adminId = adminUser ? adminUser.id : "system";
 
-  const stmtInsertMat = db.prepare(
-    `INSERT INTO materials (id, name, code, unit, stock, material_type, unit_price, data_source, created_by, created_at, updated_at)
+  const stmtInsertMat = (await query(`INSERT INTO materials (id, name, code, unit, stock, material_type, unit_price, data_source, created_by, created_at, updated_at)
      VALUES (?, ?, ?, ?, ?, ?, ?, 'full_reimport', ?, ?, ?)`,
   );
 
@@ -308,8 +307,8 @@ async function main() {
 
   // Step 7: Verification
   console.log("\n--- Step 7: Data Consistency Verification ---");
-  const totalM = (db.prepare("SELECT COUNT(*) as c FROM materials").get() as any).c;
-  const totalN = (db.prepare("SELECT COUNT(*) as c FROM material_nutrition").get() as any).c;
+  const totalM = ((await query("SELECT COUNT(*) as c FROM materials", [])).rows[0] as any).c;
+  const totalN = ((await query("SELECT COUNT(*) as c FROM material_nutrition", [])).rows[0] as any).c;
 
   console.log(`  Inserted materials: ${insertedM}`);
   console.log(`  Inserted nutrition: ${insertedN}`);
@@ -346,22 +345,22 @@ async function main() {
   }
 
   // Check table structure
-  const matCols = db.prepare("PRAGMA table_info(materials)").all() as any[];
-  const nutCols = db.prepare("PRAGMA table_info(material_nutrition)").all() as any[];
+  const matCols = (await query("PRAGMA table_info(materials)", [])).rows as any[];
+  const nutCols = (await query("PRAGMA table_info(material_nutrition)", [])).rows as any[];
   console.log(`  [PASS] materials table: ${matCols.length} columns`);
   console.log(`  [PASS] material_nutrition table: ${nutCols.length} columns`);
 
   // Summary by type
-  const herbCount = (db.prepare("SELECT COUNT(*) as c FROM materials WHERE material_type = 'herb'").get() as any).c;
-  const suppCount = (db.prepare("SELECT COUNT(*) as c FROM materials WHERE material_type = 'supplement'").get() as any).c;
-  const pricedTotal = (db.prepare("SELECT COUNT(*) as c FROM materials WHERE unit_price > 0").get() as any).c;
+  const herbCount = ((await query("SELECT COUNT(*) as c FROM materials WHERE material_type = 'herb'", [])).rows[0] as any).c;
+  const suppCount = ((await query("SELECT COUNT(*) as c FROM materials WHERE material_type = 'supplement'", [])).rows[0] as any).c;
+  const pricedTotal = ((await query("SELECT COUNT(*) as c FROM materials WHERE unit_price > 0", [])).rows[0] as any).c;
   console.log(`\n  Summary: herbs=${herbCount}, supplements=${suppCount}, with_price=${pricedTotal}`);
 
   // All tables check
-  const tables = db.prepare("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name").all() as { name: string }[];
+  const tables = (await query("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name", [])).rows as { name: string }[];
   console.log(`\n  All database tables (${tables.length}):`);
   for (const t of tables) {
-    const cnt = (db.prepare(`SELECT COUNT(*) as c FROM "${t.name}"`).get() as any).c;
+    const cnt = (db.prepare(`SELECT COUNT(*) as c FROM "${t.name}"`, [])).rows[0] as any).c;
     console.log(`    ${t.name}: ${cnt}`);
   }
 

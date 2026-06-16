@@ -1,4 +1,4 @@
-import Database from "better-sqlite3";
+
 import XLSX from "xlsx";
 import path from "path";
 import fs from "fs";
@@ -70,12 +70,11 @@ if (validData.length > 0 && rawData.length > 0) {
 
 // 3. 更新数据库
 const db = new Database(DB_PATH);
-db.pragma("journal_mode = WAL");
 
 let dbRemoved = 0;
 
 for (const pattern of INVALID_PATTERNS) {
-  const result = db.prepare("DELETE FROM materials WHERE name LIKE ?").run(`%${pattern.source}%`);
+  const result = await execute("DELETE FROM materials WHERE name LIKE ?", [`%${pattern.source}%`]);
   dbRemoved += result.changes;
 }
 
@@ -90,13 +89,12 @@ const orphanResult = db
   .run();
 
 // 合并WAL
-db.pragma("wal_checkpoint(TRUNCATE)");
 
 console.log(`\n📦 数据库:`);
 console.log(`   删除原料: ${dbRemoved} 条`);
 console.log(`   删除孤立营养: ${orphanResult.changes} 条`);
 
-const count = db.prepare("SELECT COUNT(*) as c FROM materials").get() as any;
+const count = (await query("SELECT COUNT(*) as c FROM materials", [])).rows[0] as any;
 console.log(`   剩余原料: ${count.c} 条`);
 
 db.close();

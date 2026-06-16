@@ -1,4 +1,4 @@
-import Database from "better-sqlite3";
+
 import XLSX from "xlsx";
 import path from "path";
 
@@ -6,7 +6,6 @@ const DB_PATH = path.join(process.cwd(), "data", "tingstudio.db");
 const TEST_DIR = path.join("..", "test");
 
 const db = new Database(DB_PATH);
-db.pragma("journal_mode = WAL");
 
 console.log("=== 1. 清除佛手玫苓膏 ===\n");
 
@@ -19,9 +18,9 @@ console.log("找到:", foshou);
 if (foshou.length > 0) {
   for (const item of foshou as any[]) {
     // 删除关联营养数据
-    db.prepare("DELETE FROM material_nutrition WHERE material_id = ?").run(item.id);
+    await execute("DELETE FROM material_nutrition WHERE material_id = ?", [item.id]);
     // 删除原料
-    db.prepare("DELETE FROM materials WHERE id = ?").run(item.id);
+    await execute("DELETE FROM materials WHERE id = ?", [item.id]);
     console.log(`已删除: ${item.name} (ID: ${item.id})`);
   }
 }
@@ -110,9 +109,8 @@ XLSX.writeFile(newWorkbook, path.join(TEST_DIR, "原料数据库导入_完整版
 console.log("Excel已更新");
 
 // 合并WAL
-db.pragma("wal_checkpoint(TRUNCATE)");
 
-const finalCount = (db.prepare("SELECT COUNT(*) as c FROM materials").get() as any).c;
+const finalCount = ((await query("SELECT COUNT(*) as c FROM materials", [])).rows[0] as any).c;
 console.log(`\n数据库剩余原料: ${finalCount} 条`);
 
 db.close();

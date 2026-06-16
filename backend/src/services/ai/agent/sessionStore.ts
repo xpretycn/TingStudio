@@ -1,4 +1,4 @@
-import { getDb } from "../../../config/database-better-sqlite3.js";
+import { query, execute } from "../../../config/database-adapter.js";
 import crypto from "node:crypto";
 
 export interface SessionRecord {
@@ -25,14 +25,14 @@ export interface MessageRecord {
 }
 
 export class SessionStore {
-  createSession(userId: string, title?: string): SessionRecord {
-    const db = getDb();
+  async createSession(userId: string, title?: string): Promise<SessionRecord> {
     const id = `session_${Date.now()}_${crypto.randomUUID().substring(0, 9)}`;
     const now = new Date().toISOString();
-    db.prepare(
+    await execute(
       `INSERT INTO agent_sessions (id, user_id, title, message_count, last_active_at, created_at)
-       VALUES (?, ?, ?, 0, ?, ?)`
-    ).run(id, userId, title || "", now, now);
+       VALUES (?, ?, ?, 0, ?, ?)`,
+      [id, userId, title || "", now, now]
+    );
     return {
       id,
       user_id: userId,
@@ -44,88 +44,74 @@ export class SessionStore {
     };
   }
 
-  getSession(sessionId: string): SessionRecord | null {
-    const db = getDb();
-    return (
-      (db
-        .prepare("SELECT * FROM agent_sessions WHERE id = ?")
-        .get(sessionId) as SessionRecord) || null
+  async getSession(sessionId: string): Promise<SessionRecord | null> {
+    const result = await query<SessionRecord[]>(
+      "SELECT * FROM agent_sessions WHERE id = ?",
+      [sessionId]
     );
+    return result.rows[0] || null;
   }
 
-  getSessionsByUser(userId: string): SessionRecord[] {
-    const db = getDb();
-    return db
-      .prepare(
-        "SELECT * FROM agent_sessions WHERE user_id = ? ORDER BY last_active_at DESC LIMIT 50"
-      )
-      .all(userId) as SessionRecord[];
+  async getSessionsByUser(userId: string): Promise<SessionRecord[]> {
+    const result = await query<SessionRecord[]>(
+      "SELECT * FROM agent_sessions WHERE user_id = ? ORDER BY last_active_at DESC LIMIT 50",
+      [userId]
+    );
+    return result.rows;
   }
 
-  updateSessionActivity(
-    sessionId: string,
-    intent?: string
-  ): void {
-    const db = getDb();
+  async updateSessionActivity(sessionId: string, intent?: string): Promise<void> {
     const now = new Date().toISOString();
     if (intent) {
-      db.prepare(
-        "UPDATE agent_sessions SET last_active_at = ?, last_intent = ?, message_count = message_count + 1 WHERE id = ?"
-      ).run(now, intent, sessionId);
+      await execute(
+        "UPDATE agent_sessions SET last_active_at = ?, last_intent = ?, message_count = message_count + 1 WHERE id = ?",
+        [now, intent, sessionId]
+      );
     } else {
-      db.prepare(
-        "UPDATE agent_sessions SET last_active_at = ?, message_count = message_count + 1 WHERE id = ?"
-      ).run(now, sessionId);
+      await execute(
+        "UPDATE agent_sessions SET last_active_at = ?, message_count = message_count + 1 WHERE id = ?",
+        [now, sessionId]
+      );
     }
   }
 
-  updateSessionTitle(sessionId: string, title: string): void {
-    const db = getDb();
-    db.prepare("UPDATE agent_sessions SET title = ? WHERE id = ?").run(
-      title,
-      sessionId
-    );
+  async updateSessionTitle(sessionId: string, title: string): Promise<void> {
+    await execute("UPDATE agent_sessions SET title = ? WHERE id = ?", [title, sessionId]);
   }
 
-  deleteSession(sessionId: string): boolean {
-    const db = getDb();
-    db.prepare("DELETE FROM agent_messages WHERE session_id = ?").run(sessionId);
-    db.prepare("DELETE FROM agent_pending_confirmations WHERE session_id = ?").run(sessionId);
-    const result = db.prepare("DELETE FROM agent_sessions WHERE id = ?").run(
-      sessionId
-    );
+  async deleteSession(sessionId: string): Promise<boolean> {
+    await execute("DELETE FROM agent_messages WHERE session_id = ?", [sessionId]);
+    await execute("DELETE FROM agent_pending_confirmations WHERE session_id = ?", [sessionId]);
+    const result = await execute("DELETE FROM agent_sessions WHERE id = ?", [sessionId]);
     return result.changes > 0;
   }
 
-  addMessage(
+  async addMessage(
     sessionId: string,
     role: MessageRecord["role"],
     content: string,
     options?: {
       intent?: string;
-      toolCalls?: any[];
-      toolResults?: any[];
+      toolCalls?: unknown[];
+      toolResults?: unknown[];
       displayType?: string;
-      metadata?: any;
+      metadata?: unknown;
     }
-  ): MessageRecord {
-    const db = getDb();
+  ): Promise<MessageRecord> {
     const id = `msg_${Date.now()}_${crypto.randomUUID().substring(0, 9)}`;
     const now = new Date().toISOString();
-    db.prepare(
+    await execute(
       `INSERT INTO agent_messages (id, session_id, role, content, intent, tool_calls, tool_results, display_type, metadata, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-    ).run(
-      id,
-      sessionId,
-      role,
-      content,
-      options?.intent || null,
-      options?.toolCalls ? JSON.stringify(options.toolCalls) : null,
-      options?.toolResults ? JSON.stringify(options.toolResults) : null,
-      options?.displayType || null,
-      options?.metadata ? JSON.stringify(options.metadata) : null,
-      now
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        id, sessionId, role, content,
+        options?.intent || null,
+        options?.toolCalls ? JSON.stringify(options.toolCalls) : null,
+        options?.toolResults ? JSON.stringify(options.toolResults) : null,
+        options?.displayType || null,
+        options?.metadata ? JSON.stringify(options.metadata) : null,
+        now,
+      ]
     );
     return {
       id,
@@ -141,34 +127,26 @@ export class SessionStore {
     };
   }
 
-  getMessages(
-    sessionId: string,
-    limit: number = 40
-  ): MessageRecord[] {
-    const db = getDb();
-    return db
-      .prepare(
-        "SELECT * FROM agent_messages WHERE session_id = ? ORDER BY created_at ASC LIMIT ?"
-      )
-      .all(sessionId, limit) as MessageRecord[];
+  async getMessages(sessionId: string, limit: number = 40): Promise<MessageRecord[]> {
+    const result = await query<MessageRecord[]>(
+      "SELECT * FROM agent_messages WHERE session_id = ? ORDER BY created_at ASC LIMIT ?",
+      [sessionId, limit]
+    );
+    return result.rows;
   }
 
-  getRecentMessages(
-    sessionId: string,
-    count: number = 20
-  ): MessageRecord[] {
-    const db = getDb();
-    const total = (
-      db
-        .prepare("SELECT COUNT(*) as cnt FROM agent_messages WHERE session_id = ?")
-        .get(sessionId) as any
-    ).cnt;
+  async getRecentMessages(sessionId: string, count: number = 20): Promise<MessageRecord[]> {
+    const countResult = await query<Array<{ cnt: number }>>(
+      "SELECT COUNT(*) as cnt FROM agent_messages WHERE session_id = ?",
+      [sessionId]
+    );
+    const total = countResult.rows[0]?.cnt || 0;
     const offset = Math.max(0, total - count);
-    return db
-      .prepare(
-        "SELECT * FROM agent_messages WHERE session_id = ? ORDER BY created_at ASC LIMIT ? OFFSET ?"
-      )
-      .all(sessionId, count, offset) as MessageRecord[];
+    const result = await query<MessageRecord[]>(
+      "SELECT * FROM agent_messages WHERE session_id = ? ORDER BY created_at ASC LIMIT ? OFFSET ?",
+      [sessionId, count, offset]
+    );
+    return result.rows;
   }
 
   messagesToChatHistory(
